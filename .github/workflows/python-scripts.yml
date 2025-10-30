@@ -1,0 +1,99 @@
+name: Python Scripts
+
+on:
+  pull_request:
+    branches-ignore:
+      - prod
+    paths:
+      - server/src/scripts/**/*.py
+      - server/src/scripts/**/requirements.txt
+      - .github/workflows/python-scripts.yml
+  push:
+    branches:
+      - main
+    paths:
+      - server/src/scripts/**/*.py
+      - server/src/scripts/**/requirements.txt
+      - .github/workflows/python-scripts.yml
+
+jobs:
+  test:
+    name: Test Python Scripts
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        python-version: ['3.11', '3.13']
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Python ${{ matrix.python-version }}
+        uses: actions/setup-python@v5
+        with:
+          python-version: ${{ matrix.python-version }}
+          cache: 'pip'
+
+      - name: Install pytest
+        run: |
+          python -m pip install --upgrade pip
+          pip install pytest pytest-cov
+
+      - name: Test owner-housing-distances
+        run: |
+          cd server/src/scripts/owner-housing-distances
+          pip install -r requirements.txt
+          pytest test_calculate_distances.py -v --tb=short
+        continue-on-error: false
+
+      - name: Generate coverage report
+        if: matrix.python-version == '3.13'
+        run: |
+          cd server/src/scripts/owner-housing-distances
+          pytest test_calculate_distances.py --cov=. --cov-report=xml --cov-report=term
+
+      - name: Upload coverage to Codecov
+        if: matrix.python-version == '3.13'
+        uses: codecov/codecov-action@5a1091511ad55cbe89839c7260b706298ca349f7 # v5
+        with:
+          token: ${{ secrets.CODECOV_TOKEN }}
+          files: ./server/src/scripts/owner-housing-distances/coverage.xml
+          flags: python-scripts
+          fail_ci_if_error: false
+
+  lint:
+    name: Lint Python Scripts
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.13'
+          cache: 'pip'
+
+      - name: Install linting tools
+        run: |
+          python -m pip install --upgrade pip
+          pip install flake8 black isort
+
+      - name: Check code formatting with black
+        run: |
+          black --check --diff server/src/scripts/
+        continue-on-error: true
+
+      - name: Check import sorting with isort
+        run: |
+          isort --check-only --diff server/src/scripts/
+        continue-on-error: true
+
+      - name: Lint with flake8
+        run: |
+          # Stop the build if there are Python syntax errors or undefined names
+          flake8 server/src/scripts/ --count --select=E9,F63,F7,F82 --show-source --statistics
+          # Exit-zero treats all errors as warnings
+          flake8 server/src/scripts/ --count --exit-zero --max-complexity=10 --max-line-length=120 --statistics
+        continue-on-error: true

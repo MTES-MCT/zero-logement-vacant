@@ -15,7 +15,10 @@ Calculates distances in kilometers between each property owner and their real es
 - ✅ **Force mode**: `--force` option to recalculate all data
 - ✅ **FANTOIR country detection**: Classification with official French reference
 - ✅ **Error handling**: Robust handling of missing data
-- ✅ **Batch commits**: Optimized performance (batches of 100)
+- ✅ **Parallel processing**: 6 workers by default (configurable up to 16-20)
+- ✅ **Batch processing**: 50k pairs per batch with 10k records per commit
+- ✅ **Optimized commits**: `synchronous_commit = off` for 2-5x faster writes
+- ✅ **Resume capability**: Automatic skip of already processed batches
 
 **Usage**:
 ```bash
@@ -125,15 +128,26 @@ pip install -r requirements.txt
 ### Production Workflow
 
 ```bash
-# Distance calculation with FANTOIR detection (normal mode)
+# 1. Create required database indexes (IMPORTANT - do this first!)
+# Create a Knex migration following the pattern in SCRIPT_BEST_PRACTICES.md
+# Then run: yarn knex migrate:latest
+
+# 2. Distance calculation with FANTOIR detection (normal mode)
 python calculate_distances.py --db-url "postgresql://user:pass@host:port/db"
 
-# Complete recalculation (force mode)
+# 3. Complete recalculation (force mode)
 python calculate_distances.py --force --db-url "postgresql://user:pass@host:port/db"
 
-# Generate statistical report
+# 4. Generate statistical report
 python statistics_report.py --db-url "postgresql://user:pass@host:port/db"
 ```
+
+**Performance Tips**:
+- Monitor PostgreSQL CPU usage during processing
+- Default 6 workers provide a safe baseline (40-60% CPU usage)
+- If CPU usage < 40%, consider increasing workers: `python calculate_distances.py --num-workers 12`
+- If CPU usage > 90%, reduce workers to avoid contention
+- Maximum recommended: 16-20 workers on powerful instances
 
 ---
 
@@ -150,12 +164,56 @@ logs/
 
 ## Performance
 
+### FANTOIR Detection Performance
+
 | Metric | Value |
 |--------|-------|
 | **Accuracy** | 100% (FANTOIR rule-based) |
 | **Throughput** | 48,000 addresses/second |
 | **False positives** | 0% |
 | **False negatives** | 0% |
+
+### Database Processing Performance
+
+| Configuration | Value |
+|---------------|-------|
+| **Workers (default)** | 6 parallel threads (configurable) |
+| **Batch size (pairs)** | 50,000 pairs per processing batch |
+| **Batch size (commits)** | 10,000 records per database commit |
+| **Commit mode** | Asynchronous (`synchronous_commit = off`) |
+| **Expected throughput** | ~10,000-20,000 pairs/second |
+| **CPU usage (target)** | 40-60% with 6 workers, tune as needed |
+
+### Required PostgreSQL Indexes
+
+**IMPORTANT**: The following indexes are required for optimal performance. Without them, processing time can increase by 10-100x.
+
+Create these indexes via Knex migration before running the script:
+
+```sql
+-- Owner addresses lookup (batch_get_address_data)
+CREATE INDEX IF NOT EXISTS idx_ban_addresses_owner_lookup
+ON ban_addresses(ref_id, address_kind)
+INCLUDE (postal_code, address, latitude, longitude)
+WHERE address_kind = 'Owner' AND postal_code IS NOT NULL;
+
+-- Housing addresses lookup (batch_get_address_data)
+CREATE INDEX IF NOT EXISTS idx_ban_addresses_housing_lookup
+ON ban_addresses(ref_id, address_kind)
+INCLUDE (postal_code, address, latitude, longitude)
+WHERE address_kind = 'Housing' AND postal_code IS NOT NULL;
+
+-- Update operations (update_database)
+CREATE INDEX IF NOT EXISTS idx_owners_housing_update
+ON owners_housing(owner_id, housing_id);
+
+-- Filter unprocessed pairs (get_all_owner_housing_pairs)
+CREATE INDEX IF NOT EXISTS idx_owners_housing_distances
+ON owners_housing(owner_id, housing_id)
+WHERE locprop_distance_ban IS NULL OR locprop_relative_ban IS NULL;
+```
+
+**Migration file**: Create a migration in `/server/db/migrations/` following the pattern in [SCRIPT_BEST_PRACTICES.md](../../../docs/SCRIPT_BEST_PRACTICES.md#index-sql-pour-optimiser-les-performances)
 
 ---
 

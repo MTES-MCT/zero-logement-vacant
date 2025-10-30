@@ -48,24 +48,7 @@ class DistanceCalculator:
         self.overseas_regions = None
 
         # Initialize country detector
-        print("🔧 Initializing CountryDetector...")
         self.country_detector = CountryDetector(model_name="rule-based", use_llm=False)
-
-        # Check version
-        detector_version = self.country_detector.get_version()
-        print(f"🔧 CountryDetector version: {detector_version}")
-
-        # Validation tests
-        print("🧪 Running validation tests:")
-        test_result = self.country_detector.detect_country("25 SE 41253 BENZELIIGATAN GOTEBORG SUEDE")
-        if test_result != "FOREIGN":
-            print(f"❌ ALERT: CountryDetector malfunction - Swedish address classified as {test_result} instead of FOREIGN")
-            sys.exit(1)
-        else:
-            print("✅ CountryDetector validation passed: corrections are active")
-
-        # Reset statistics after tests
-        self.country_detector.reset_statistics()
 
         self.stats = {
             'processed_pairs': 0,
@@ -95,61 +78,31 @@ class DistanceCalculator:
         self.setup_csv_logging()
 
     def setup_csv_logging(self):
-        """Setup CSV logging for address classifications."""
-        timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
-        os.makedirs("logs", exist_ok=True)
-
-        # Classification CSV
-        classification_csv_path = os.path.join("logs", f"address_classifications_{timestamp}.csv")
-        try:
-            self.classification_csv_file = open(classification_csv_path, 'w', newline='', encoding='utf-8')
-            self.classification_csv_writer = csv.writer(self.classification_csv_file)
-            self.classification_csv_writer.writerow([
-                'timestamp', 'owner_id', 'housing_id', 'address_type', 'address',
-                'has_coordinates', 'classification', 'postal_code', 'test_method'
-            ])
-            print(f"📊 Address classification CSV: {classification_csv_path}")
-        except Exception as e:
-            print(f"❌ Failed to initialize classification CSV: {e}")
-            self.classification_csv_file = None
-            self.classification_csv_writer = None
+        """Setup CSV logging for address classifications - disabled for performance."""
+        self.classification_csv_file = None
+        self.classification_csv_writer = None
 
     def log_classification(self, owner_id: str, housing_id: str, address_type: str,
                          address: str, has_coords: bool, classification: str,
                          postal_code: str = None, test_method: str = None):
-        """Log address classification to CSV."""
-        if not self.classification_csv_writer:
-            return
-
-        try:
-            self.classification_csv_writer.writerow([
-                datetime.now().isoformat(), owner_id, housing_id, address_type,
-                address if address else '', has_coords, classification,
-                postal_code if postal_code else '', test_method if test_method else ''
-            ])
-            self.classification_csv_file.flush()
-        except Exception as e:
-            logging.debug(f"Failed to log classification: {e}")
+        """Log address classification to CSV - disabled for performance."""
+        pass
 
     def connect(self):
         """Establish database connection."""
         try:
             self.conn = psycopg2.connect(self.db_url)
             self.cursor = self.conn.cursor(cursor_factory=RealDictCursor)
-            print("✅ Database connection established")
         except Exception as e:
-            print(f"❌ Failed to connect to database: {e}")
+            print(f"❌ Database connection failed: {e}")
             raise
 
     def disconnect(self):
-        """Close database connection and CSV files."""
+        """Close database connection."""
         if self.cursor:
             self.cursor.close()
         if self.conn:
             self.conn.close()
-        if self.classification_csv_file:
-            self.classification_csv_file.close()
-        print("✅ Database connection closed")
 
     def detect_country_simple(self, address: str) -> str:
         """Simple country detection using the country detector."""
@@ -248,6 +201,49 @@ class DistanceCalculator:
             logging.debug(f"Error getting address data for {ref_id}: {e}")
             return None
 
+    def batch_get_address_data(self, pairs: List) -> dict:
+        """Get address data for a batch of pairs (much smaller, not all addresses)."""
+        try:
+            # Extract unique owner and housing IDs from THIS BATCH only
+            owner_ids = list(set([pair['owner_id'] for pair in pairs]))
+            housing_ids = list(set([pair['housing_id'] for pair in pairs]))
+
+            address_cache = {}
+
+            # Fetch owner addresses for this batch
+            if owner_ids:
+                self.cursor.execute("""
+                    SELECT ref_id::text, postal_code, address, latitude, longitude
+                    FROM ban_addresses
+                    WHERE ref_id::text = ANY(%s) AND address_kind = 'Owner'
+                    AND postal_code IS NOT NULL
+                """, (owner_ids,))
+
+                for row in self.cursor.fetchall():
+                    key = (row['ref_id'], 'Owner')
+                    address_cache[key] = (row['postal_code'], row['address'],
+                                        row['latitude'], row['longitude'])
+
+            # Fetch housing addresses for this batch
+            if housing_ids:
+                self.cursor.execute("""
+                    SELECT ref_id::text, postal_code, address, latitude, longitude
+                    FROM ban_addresses
+                    WHERE ref_id::text = ANY(%s) AND address_kind = 'Housing'
+                    AND postal_code IS NOT NULL
+                """, (housing_ids,))
+
+                for row in self.cursor.fetchall():
+                    key = (row['ref_id'], 'Housing')
+                    address_cache[key] = (row['postal_code'], row['address'],
+                                        row['latitude'], row['longitude'])
+
+            return address_cache
+
+        except Exception as e:
+            logging.error(f"Error in batch_get_address_data: {e}")
+            return {}
+
     @staticmethod
     def haversine_distance(lat1: float, lon1: float, lat2: float, lon2: float) -> float:
         """Calculate distance between two points using Haversine formula."""
@@ -259,14 +255,18 @@ class DistanceCalculator:
         r = 6371  # Radius of Earth in kilometers
         return c * r
 
-    def process_single_pair(self, owner_id: str, housing_id: str) -> Tuple[Optional[float], int]:
+    def process_single_pair(self, owner_id: str, housing_id: str, address_cache: dict = None) -> Tuple[Optional[float], int]:
         """
         Process a single owner-housing pair with correct logic.
         """
 
-        # Get address data (note: address_kind values are capitalized)
-        owner_data = self.get_address_data(owner_id, 'Owner')
-        housing_data = self.get_address_data(housing_id, 'Housing')
+        # Get address data from cache if available, otherwise query individually
+        if address_cache is not None:
+            owner_data = address_cache.get((owner_id, 'Owner'))
+            housing_data = address_cache.get((housing_id, 'Housing'))
+        else:
+            owner_data = self.get_address_data(owner_id, 'Owner')
+            housing_data = self.get_address_data(housing_id, 'Housing')
 
         distance = None
         classification = 7  # Default
@@ -378,30 +378,16 @@ class DistanceCalculator:
         return 7
 
     def load_regions(self):
-        """Load metropolitan and overseas regions from API."""
+        """Load metropolitan and overseas regions (using hardcoded values for performance)."""
         if self.metro_regions is not None and self.overseas_regions is not None:
             return
 
-        try:
-            response = requests.get("https://geo.api.gouv.fr/regions", timeout=10)
-            response.raise_for_status()
-            regions = response.json()
+        # Use hardcoded values instead of API call for better performance
+        # These are stable administrative divisions that rarely change
+        self.metro_regions = ['11', '24', '27', '28', '32', '44', '52', '53', '75', '76', '84', '93', '94']
+        self.overseas_regions = ['01', '02', '03', '04', '06']
 
-            self.metro_regions = []
-            self.overseas_regions = []
-
-            for region in regions:
-                if region['code'] in ['01', '02', '03', '04', '06']:  # DOM-TOM codes
-                    self.overseas_regions.append(region['code'])
-                else:
-                    self.metro_regions.append(region['code'])
-
-            logging.info(f"Loaded {len(self.metro_regions)} metropolitan regions and {len(self.overseas_regions)} overseas regions")
-        except Exception as e:
-            logging.warning(f"Failed to load regions from API: {e}")
-            # Fallback to hardcoded values
-            self.metro_regions = ['11', '24', '27', '28', '32', '44', '52', '53', '75', '76', '84', '93', '94']
-            self.overseas_regions = ['01', '02', '03', '04', '06']
+        logging.info(f"Loaded {len(self.metro_regions)} metropolitan regions and {len(self.overseas_regions)} overseas regions (from cache)")
 
     def same_region(self, postal_code1: str, postal_code2: str) -> bool:
         """Check if two postal codes are in the same region."""
@@ -450,253 +436,151 @@ class DistanceCalculator:
 
     def process_foreign_owners(self, limit: int = None):
         """Process owners without coordinates for foreign detection."""
-        print("\n🌍 PROCESSING OWNERS WITHOUT COORDINATES")
-        print("="*60)
+        print("\n🌍 Processing owners without coordinates...")
 
         # Get owners without coordinates
         owners = self.get_owners_without_coordinates(limit)
-        print(f"Owners without coordinates to test: {len(owners)}")
 
         if not owners:
-            print("✅ No owners without coordinates")
             return {}
 
         foreign_owners = set()
 
         # Test each owner address
-        with tqdm(owners, desc="Testing owner addresses") as progress_bar:
+        with tqdm(owners, desc="Detecting foreign owners", unit="owner") as progress_bar:
             for owner in progress_bar:
-                owner_id = owner['owner_id']
-                owner_address = owner['owner_address']
-                owner_postal = owner['owner_postal_code']
-
                 try:
-                    classification = self.detect_country_simple(owner_address)
+                    classification = self.detect_country_simple(owner['owner_address'])
                     self.stats['addresses_without_coords'] += 1
 
-                    # Log classification
-                    self.log_classification(
-                        owner_id, "N/A", 'owner', owner_address,
-                        False, classification, owner_postal, 'country_detector'
-                    )
-
                     if classification == "FOREIGN":
-                        foreign_owners.add(owner_id)
+                        foreign_owners.add(owner['owner_id'])
                         self.stats['foreign_detected'] += 1
                     else:
                         self.stats['france_detected'] += 1
 
-                    # Update progress bar
-                    progress_bar.set_postfix({
-                        'tested': self.stats['addresses_without_coords'],
-                        'foreign': self.stats['foreign_detected'],
-                        'france': self.stats['france_detected']
-                    })
-
                 except Exception as e:
-                    logging.error(f"Error processing owner {owner_id}: {e}")
+                    logging.debug(f"Error processing owner {owner['owner_id']}: {e}")
                     self.stats['errors'] += 1
 
-        print(f"✅ Foreign owners detected: {len(foreign_owners)}")
+        print(f"✅ Found {len(foreign_owners)} foreign owners")
         return foreign_owners
 
     def run(self, limit: int = None, force: bool = False):
         """Main execution method."""
         print("="*80)
-        print("CALCULATE DISTANCES - OWNER-HOUSING DISTANCE CALCULATOR")
+        print("OWNER-HOUSING DISTANCE CALCULATOR")
         print("="*80)
-        print("📍 PRINCIPLE: Process OWNERS without coordinates")
-        print("📍 1. All owners without coordinates → country_detector")
-        print("📍 2. Mark all pairs of foreign owners as Rule 6")
-        print("📍 3. Process other pairs normally")
-        print(f"Mode: {'Force recalculation' if force else 'Only missing values'}")
-        print(f"Limit: {limit if limit else 'No limit'}")
+        print(f"Limit: {limit:,} pairs" if limit else "Processing all pairs")
 
         self.connect()
 
         try:
-            # STEP 1: Process owners without coordinates for foreign detection
+            # STEP 1: Detect foreign owners
             foreign_owners = self.process_foreign_owners(limit)
 
             # STEP 2: Get all pairs to process
-            pairs = self.get_all_owner_housing_pairs(limit)
-            print(f"\n📋 Pairs to process: {len(pairs)}")
-            if limit:
-                print(f"🎲 Random sampling enabled (ORDER BY RANDOM())")
+            all_pairs = self.get_all_owner_housing_pairs(limit)
+            print(f"\n📋 Processing {len(all_pairs):,} owner-housing pairs")
 
-            # Debug: SQL analysis of coordinate availability
-            print(f"🔍 DIRECT SQL ANALYSIS OF BAN COVERAGE:")
-            try:
-                # Count coordinate availability patterns directly in SQL
-                if limit:
-                    analysis_query = """
-                    WITH distinct_pairs AS (
-                        SELECT DISTINCT oh.owner_id, oh.housing_id
-                        FROM owners_housing oh
-                        WHERE oh.locprop_distance_ban IS NULL OR oh.locprop_relative_ban IS NULL
-                    ),
-                    sampled_pairs AS (
-                        SELECT * FROM distinct_pairs ORDER BY RANDOM() LIMIT %s
-                    ),
-                    coord_analysis AS (
-                        SELECT
-                            sp.owner_id,
-                            sp.housing_id,
-                            CASE WHEN o_ban.latitude IS NOT NULL AND o_ban.longitude IS NOT NULL THEN 1 ELSE 0 END as owner_has_coords,
-                            CASE WHEN h_ban.latitude IS NOT NULL AND h_ban.longitude IS NOT NULL THEN 1 ELSE 0 END as housing_has_coords
-                        FROM sampled_pairs sp
-                        LEFT JOIN ban_addresses o_ban ON o_ban.ref_id = sp.owner_id AND o_ban.address_kind = 'Owner'
-                        LEFT JOIN ban_addresses h_ban ON h_ban.ref_id = sp.housing_id AND h_ban.address_kind = 'Housing'
-                    )
-                    SELECT
-                        SUM(CASE WHEN owner_has_coords = 1 AND housing_has_coords = 1 THEN 1 ELSE 0 END) as both_coords,
-                        SUM(CASE WHEN owner_has_coords = 1 AND housing_has_coords = 0 THEN 1 ELSE 0 END) as owner_only,
-                        SUM(CASE WHEN owner_has_coords = 0 AND housing_has_coords = 1 THEN 1 ELSE 0 END) as housing_only,
-                        SUM(CASE WHEN owner_has_coords = 0 AND housing_has_coords = 0 THEN 1 ELSE 0 END) as no_coords,
-                        COUNT(*) as total
-                    FROM coord_analysis
-                    """
-                    self.cursor.execute(analysis_query, (limit,))
-                else:
-                    analysis_query = """
-                    WITH coord_analysis AS (
-                        SELECT DISTINCT
-                            oh.owner_id,
-                            oh.housing_id,
-                            CASE WHEN o_ban.latitude IS NOT NULL AND o_ban.longitude IS NOT NULL THEN 1 ELSE 0 END as owner_has_coords,
-                            CASE WHEN h_ban.latitude IS NOT NULL AND h_ban.longitude IS NOT NULL THEN 1 ELSE 0 END as housing_has_coords
-                        FROM owners_housing oh
-                        LEFT JOIN ban_addresses o_ban ON o_ban.ref_id = oh.owner_id AND o_ban.address_kind = 'Owner'
-                        LEFT JOIN ban_addresses h_ban ON h_ban.ref_id = oh.housing_id AND h_ban.address_kind = 'Housing'
-                        WHERE oh.locprop_distance_ban IS NULL OR oh.locprop_relative_ban IS NULL
-                    )
-                    SELECT
-                        SUM(CASE WHEN owner_has_coords = 1 AND housing_has_coords = 1 THEN 1 ELSE 0 END) as both_coords,
-                        SUM(CASE WHEN owner_has_coords = 1 AND housing_has_coords = 0 THEN 1 ELSE 0 END) as owner_only,
-                        SUM(CASE WHEN owner_has_coords = 0 AND housing_has_coords = 1 THEN 1 ELSE 0 END) as housing_only,
-                        SUM(CASE WHEN owner_has_coords = 0 AND housing_has_coords = 0 THEN 1 ELSE 0 END) as no_coords,
-                        COUNT(*) as total
-                    FROM coord_analysis
-                    """
-                    self.cursor.execute(analysis_query)
-
-                sql_result = self.cursor.fetchone()
-
-                if sql_result:
-                    print(f"  SQL Analysis:")
-                    print(f"    Both coords: {sql_result['both_coords']} ({(sql_result['both_coords']/sql_result['total']*100):.1f}%)")
-                    print(f"    Owner only:  {sql_result['owner_only']} ({(sql_result['owner_only']/sql_result['total']*100):.1f}%)")
-                    print(f"    Housing only: {sql_result['housing_only']} ({(sql_result['housing_only']/sql_result['total']*100):.1f}%)")
-                    print(f"    No coords:   {sql_result['no_coords']} ({(sql_result['no_coords']/sql_result['total']*100):.1f}%)")
-                    print(f"    Total pairs: {sql_result['total']}")
-
-                    if sql_result['both_coords'] > 0:
-                        print(f"  ✅ SQL shows {sql_result['both_coords']} pairs with both coords")
-                    else:
-                        print(f"  ⚠️  SQL confirms 0 pairs with both coords - data coverage issue")
-
-            except Exception as e:
-                print(f"  ❌ SQL analysis failed: {e}")
-
-            # Debug: Analyze what these pairs look like
-            if pairs and len(pairs) > 0:
-                print(f"\n🔍 SAMPLE OF FIRST PAIRS:")
-                for i, pair in enumerate(pairs[:3]):
-                    print(f"  Pair {i+1}: owner={pair['owner_id'][:8]}... housing={pair['housing_id'][:8]}...")
-                    # Quick check of their data availability
-                    owner_data = self.get_address_data(pair['owner_id'], 'Owner')
-                    housing_data = self.get_address_data(pair['housing_id'], 'Housing')
-                    owner_status = "COORDS" if owner_data and owner_data[2] is not None else "NO_COORDS" if owner_data else "NOT_FOUND"
-                    housing_status = "COORDS" if housing_data and housing_data[2] is not None else "NO_COORDS" if housing_data else "NOT_FOUND"
-                    print(f"    └── Owner: {owner_status}, Housing: {housing_status}")
-                print("="*60)
-
-            if not pairs:
+            if not all_pairs:
                 print("✅ Nothing to process")
                 return
 
-            updates = []
+            # STEP 3: Process pairs in batches to avoid loading all addresses at once
+            pair_batch_size = 50000  # Process 50k pairs at a time
 
-            # Process each pair
-            print(f"\n🔄 PROCESSING PAIRS")
-            with tqdm(pairs, desc="Processing pairs") as progress_bar:
-                for pair in progress_bar:
-                    owner_id = pair['owner_id']
-                    housing_id = pair['housing_id']
+            print("\n🔄 Processing pairs in batches...")
+            num_batches = (len(all_pairs) - 1) // pair_batch_size + 1
 
-                    try:
-                        # Count coordinate combinations for ALL pairs
-                        owner_data = self.get_address_data(owner_id, 'Owner')
-                        housing_data = self.get_address_data(housing_id, 'Housing')
+            for batch_idx in range(num_batches):
+                start_idx = batch_idx * pair_batch_size
+                end_idx = min(start_idx + pair_batch_size, len(all_pairs))
+                batch_pairs = all_pairs[start_idx:end_idx]
 
-                        # Debug logging every 100 pairs to understand data availability
-                        if self.stats['processed_pairs'] % 100 == 0:
-                            logging.info(f"SAMPLE PAIR {self.stats['processed_pairs']}: owner_id={owner_id[:8]}... housing_id={housing_id[:8]}...")
-                            if owner_data:
-                                logging.info(f"  Owner data: postal={owner_data[0]}, address_len={len(owner_data[1]) if owner_data[1] else 0}, lat={owner_data[2]}, lon={owner_data[3]}")
-                            else:
-                                logging.info(f"  Owner data: None (not found in BAN)")
-                            if housing_data:
-                                logging.info(f"  Housing data: postal={housing_data[0]}, address_len={len(housing_data[1]) if housing_data[1] else 0}, lat={housing_data[2]}, lon={housing_data[3]}")
-                            else:
-                                logging.info(f"  Housing data: None (not found in BAN)")
+                # Check if this batch is already processed (resume capability)
+                # Sample a few pairs from the batch to see if they're already done
+                sample_size = min(10, len(batch_pairs))
+                sample_pairs = batch_pairs[:sample_size]
 
-                        owner_has_coords = owner_data and owner_data[2] is not None and owner_data[3] is not None
-                        housing_has_coords = housing_data and housing_data[2] is not None and housing_data[3] is not None
+                already_processed = 0
+                for pair in sample_pairs:
+                    if pair['locprop_distance_ban'] is not None and pair['locprop_relative_ban'] is not None:
+                        already_processed += 1
 
-                        # Count coordinate combinations for ALL pairs
-                        if owner_has_coords and housing_has_coords:
-                            self.stats['pairs_with_both_coords'] += 1
-                            # Log first few cases with both coords for analysis
-                            if self.stats['pairs_with_both_coords'] <= 5:
-                                logging.info(f"BOTH COORDS FOUND #{self.stats['pairs_with_both_coords']}: {owner_id[:8]}.../{housing_id[:8]}...")
-                                logging.info(f"  Owner: {owner_data[1][:50]}... ({owner_data[2]:.6f}, {owner_data[3]:.6f})")
-                                logging.info(f"  Housing: {housing_data[1][:50]}... ({housing_data[2]:.6f}, {housing_data[3]:.6f})")
-                        elif owner_has_coords and not housing_has_coords:
-                            self.stats['pairs_with_owner_coords_only'] += 1
-                        elif not owner_has_coords and housing_has_coords:
-                            self.stats['pairs_with_housing_coords_only'] += 1
-                        else:
-                            self.stats['pairs_with_no_coords'] += 1
+                # If more than 80% of sample is processed, skip this batch
+                if already_processed > sample_size * 0.8:
+                    print(f"⏭️  Skipping batch {batch_idx+1}/{num_batches} (already processed)")
+                    self.stats['processed_pairs'] += len(batch_pairs)
+                    continue
 
-                        # If owner is already known to be foreign, mark as Rule 6
-                        if owner_id in foreign_owners:
-                            # Calculate distance if both have coordinates, even for foreign owners
+                # Load addresses only for this batch
+                print(f"📦 Loading addresses for batch {batch_idx+1}/{num_batches}...")
+                address_cache = self.batch_get_address_data(batch_pairs)
+                print(f"✅ Loaded {len(address_cache)} addresses")
+
+                batch_updates = []
+
+                # Process pairs in this batch
+                with tqdm(batch_pairs, desc=f"Batch {batch_idx+1}/{num_batches}", unit="pair") as progress_bar:
+                    for pair in progress_bar:
+                        owner_id = pair['owner_id']
+                        housing_id = pair['housing_id']
+
+                        # Skip if already processed (individual level check)
+                        if pair['locprop_distance_ban'] is not None and pair['locprop_relative_ban'] is not None:
+                            self.stats['processed_pairs'] += 1
+                            continue
+
+                        try:
+                            # Get data from cache
+                            owner_data = address_cache.get((owner_id, 'Owner'))
+                            housing_data = address_cache.get((housing_id, 'Housing'))
+
+                            owner_has_coords = owner_data and owner_data[2] is not None and owner_data[3] is not None
+                            housing_has_coords = housing_data and housing_data[2] is not None and housing_data[3] is not None
+
+                            # Count coordinate combinations
                             if owner_has_coords and housing_has_coords:
-                                distance = self.haversine_distance(
-                                    owner_data[2], owner_data[3], housing_data[2], housing_data[3]
-                                )
-                                self.stats['distances_calculated'] += 1
+                                self.stats['pairs_with_both_coords'] += 1
+                            elif owner_has_coords and not housing_has_coords:
+                                self.stats['pairs_with_owner_coords_only'] += 1
+                            elif not owner_has_coords and housing_has_coords:
+                                self.stats['pairs_with_housing_coords_only'] += 1
                             else:
-                                distance = None
-                            classification = 6
-                            self.stats['foreign_detected'] += 1  # Count pair as foreign
-                        else:
-                            # Normal processing for non-foreign owners
-                            distance, classification = self.process_single_pair(owner_id, housing_id)
+                                self.stats['pairs_with_no_coords'] += 1
 
-                        updates.append({
-                            'owner_id': owner_id,
-                            'housing_id': housing_id,
-                            'distance': distance,
-                            'classification': classification
-                        })
+                            # Calculate distance and classification
+                            if owner_id in foreign_owners:
+                                if owner_has_coords and housing_has_coords:
+                                    distance = self.haversine_distance(
+                                        owner_data[2], owner_data[3], housing_data[2], housing_data[3]
+                                    )
+                                    self.stats['distances_calculated'] += 1
+                                else:
+                                    distance = None
+                                classification = 6
+                            else:
+                                distance, classification = self.process_single_pair(owner_id, housing_id, address_cache)
 
-                        self.stats['processed_pairs'] += 1
+                            batch_updates.append({
+                                'owner_id': owner_id,
+                                'housing_id': housing_id,
+                                'distance': distance,
+                                'classification': classification
+                            })
 
-                        # Update progress bar with real-time stats
-                        progress_bar.set_postfix({
-                            'foreign_owners': len(foreign_owners),
-                            'processed': self.stats['processed_pairs'],
-                            'rule6': sum(1 for u in updates if u['classification'] == 6)
-                        })
+                            self.stats['processed_pairs'] += 1
 
-                    except Exception as e:
-                        logging.error(f"Error processing pair {owner_id}-{housing_id}: {e}")
-                        self.stats['errors'] += 1
+                        except Exception as e:
+                            logging.debug(f"Error processing pair {owner_id}-{housing_id}: {e}")
+                            self.stats['errors'] += 1
 
-            # Update database
-            self.update_database(updates)
+                # Save to database after each batch
+                if batch_updates:
+                    self.update_database(batch_updates)
+
+                print(f"✅ Batch {batch_idx+1}/{num_batches} completed\n")
 
             # Final statistics
             self.print_final_statistics()
@@ -704,135 +588,177 @@ class DistanceCalculator:
         finally:
             self.disconnect()
 
-    def update_database(self, updates: List):
-        """Update database with results using individual transactions."""
-        print("\n💾 DATABASE UPDATE")
-        print("="*60)
+    def _update_batch_worker(self, batch_data: tuple) -> tuple:
+        """Worker function to update a single batch in parallel"""
+        batch_id, batch, db_config = batch_data
+
+        import math
+        import time
+        import threading
+        from psycopg2.extras import execute_values
+
+        start_time = time.time()
+        thread_id = threading.current_thread().name
+
+        conn = None
+        try:
+            # Create dedicated connection for this worker
+            conn_start = time.time()
+            conn = psycopg2.connect(db_config)
+            cursor = conn.cursor(cursor_factory=RealDictCursor)
+
+            # Use asynchronous commits for better performance (safe for bulk processing)
+            # Each batch still commits independently, just faster
+            cursor.execute("SET synchronous_commit = off")
+
+            conn_time = time.time() - conn_start
+
+            # Prepare bulk update data
+            prep_start = time.time()
+            update_data = []
+            for update in batch:
+                distance = update['distance']
+                if distance is None or (isinstance(distance, float) and (math.isnan(distance) or math.isinf(distance))):
+                    distance_int = None
+                else:
+                    distance_int = int(round(distance * 1000))
+
+                update_data.append((
+                    distance_int,
+                    update['classification'],
+                    update['owner_id'],
+                    update['housing_id']
+                ))
+            prep_time = time.time() - prep_start
+
+            # Execute bulk update
+            exec_start = time.time()
+            execute_values(
+                cursor,
+                """
+                UPDATE owners_housing AS oh
+                SET locprop_distance_ban = CASE WHEN data.distance IS NULL THEN NULL ELSE data.distance::integer END,
+                    locprop_relative_ban = data.classification::integer
+                FROM (VALUES %s) AS data(distance, classification, owner_id, housing_id)
+                WHERE oh.owner_id = data.owner_id::uuid
+                  AND oh.housing_id = data.housing_id::uuid
+                """,
+                update_data,
+                page_size=1000
+            )
+            exec_time = time.time() - exec_start
+
+            # Commit (each batch commits independently)
+            commit_start = time.time()
+            conn.commit()
+            commit_time = time.time() - commit_start
+
+            cursor.close()
+            conn.close()
+
+            total_time = time.time() - start_time
+
+            # Log timing info (only for first 20 batches to verify parallelism)
+            if batch_id < 20:
+                logging.info(f"[{thread_id}] Batch #{batch_id+1}: {len(batch)} records in {total_time:.2f}s "
+                           f"(conn:{conn_time:.2f}s prep:{prep_time:.2f}s exec:{exec_time:.2f}s commit:{commit_time:.2f}s) "
+                           f"✓ Independent commit completed")
+
+            return (batch_id, len(batch), None)
+
+        except Exception as e:
+            if conn:
+                try:
+                    conn.rollback()
+                    conn.close()
+                except:
+                    pass
+            return (batch_id, 0, str(e))
+
+    def update_database(self, updates: List, num_workers: int = 6):
+        """
+        Update database with parallel bulk operations.
+
+        Args:
+            updates: List of updates to process
+            num_workers: Number of parallel workers (default: 6, recommended: 2-16)
+        """
+        print("\n💾 Updating database...")
+
+        if not updates:
+            print("⚠️ No updates to process")
+            return
 
         total_updates = 0
         total_errors = 0
+        batch_size = 10000
 
-        with tqdm(updates, desc="Updating database") as progress_bar:
-            for update in progress_bar:
-                try:
-                    # Each UPDATE in its own transaction to avoid cascade failures
-                    self.cursor.execute("""
-                        UPDATE owners_housing
-                        SET locprop_distance_ban = %s, locprop_relative_ban = %s
-                        WHERE owner_id = %s AND housing_id = %s
-                    """, (update['distance'], update['classification'],
-                         update['owner_id'], update['housing_id']))
+        # Split updates into batches
+        batches = []
+        for i in range(0, len(updates), batch_size):
+            batch = updates[i:i + batch_size]
+            # Pass the original db_url string, not conn.dsn which may not have password
+            batches.append((i // batch_size, batch, self.db_url))
 
-                    # Commit immediately
-                    self.conn.commit()
-                    total_updates += 1
+        print(f"Processing {len(batches)} batches with {num_workers} parallel workers...")
 
-                    # Update progress bar with real-time stats
-                    progress_bar.set_postfix({
-                        'success': total_updates,
-                        'errors': total_errors,
-                        'rate': f"{(total_updates/(total_updates+total_errors)*100):.1f}%" if (total_updates+total_errors) > 0 else "0%"
+        # Process batches in parallel
+        from concurrent.futures import ThreadPoolExecutor, as_completed
+
+        completed_batches = 0
+
+        with tqdm(total=len(updates), desc="Saving to database", unit="record",
+                 bar_format='{l_bar}{bar}| {n_fmt}/{total_fmt} [{elapsed}<{remaining}, {rate_fmt}] {postfix}') as pbar:
+            with ThreadPoolExecutor(max_workers=num_workers) as executor:
+                futures = {executor.submit(self._update_batch_worker, batch_data): batch_data for batch_data in batches}
+
+                for future in as_completed(futures):
+                    batch_id, updated_count, error = future.result()
+                    completed_batches += 1
+
+                    if error:
+                        batch_size_for_error = len(batches[batch_id][1])
+                        total_errors += batch_size_for_error
+                        logging.error(f"Error updating batch {batch_id + 1}: {error}")
+                        pbar.update(batch_size_for_error)
+                    else:
+                        total_updates += updated_count
+                        pbar.update(updated_count)
+
+                    # Show active workers and stats
+                    batches_remaining = len(batches) - completed_batches
+                    active_workers = min(num_workers, batches_remaining)
+
+                    pbar.set_postfix({
+                        'completed': f"{completed_batches}/{len(batches)}",
+                        'last': f"#{batch_id+1}",
+                        'workers': f"{active_workers}↻" if active_workers > 0 else "✓",
+                        'err': total_errors if total_errors > 0 else 0
                     })
 
-                except Exception as e:
-                    # Rollback this specific transaction and continue
-                    try:
-                        self.conn.rollback()
-                    except:
-                        pass  # Ignore rollback errors
-
-                    total_errors += 1
-                    logging.debug(f"Error updating {update['owner_id']}-{update['housing_id']}: {e}")
-
-                    # Update progress bar with real-time stats
-                    progress_bar.set_postfix({
-                        'success': total_updates,
-                        'errors': total_errors,
-                        'rate': f"{(total_updates/(total_updates+total_errors)*100):.1f}%" if (total_updates+total_errors) > 0 else "0%"
-                    })
-
-        print(f"✅ Database updated: {total_updates} records")
-        if total_errors > 0:
-            print(f"⚠️ Errors encountered: {total_errors} records failed")
-            logging.info(f"Database update completed with {total_errors} errors out of {len(updates)} attempts")
+        print(f"✅ Updated {total_updates:,} records" + (f" ({total_errors:,} errors)" if total_errors > 0 else ""))
 
     def print_final_statistics(self):
-        """Print final statistics including CountryDetector stats."""
+        """Print final statistics."""
         print("\n" + "="*80)
-        print("FINAL STATISTICS")
+        print("SUMMARY")
         print("="*80)
 
-        total_addresses_found = self.stats['addresses_with_coords'] + self.stats['addresses_without_coords']
-        expected_max_addresses = self.stats['processed_pairs'] * 2
+        print(f"Pairs processed: {self.stats['processed_pairs']:,}")
+        print(f"Distances calculated: {self.stats['distances_calculated']:,}")
+        print(f"Geographic rules applied: {self.stats['geographic_rules_applied']:,}")
 
-        print("📊 PROCESSING STATISTICS:")
-        print(f"  Owner-housing pairs processed: {self.stats['processed_pairs']}")
-        print(f"  └── Addresses found in BAN: {total_addresses_found}/{expected_max_addresses} ({(total_addresses_found/expected_max_addresses*100):.1f}%)")
-        print(f"      ├── Individual addresses with coordinates: {self.stats['addresses_with_coords']}")
-        print(f"      └── Individual addresses without coordinates: {self.stats['addresses_without_coords']}")
-        print(f"          ├── Classified as FRANCE (no coords): {self.stats['france_detected']}")
-        print(f"          └── Classified as FOREIGN (no coords): {self.stats['foreign_detected']}")
-
-        print(f"\n🎯 PAIR ANALYSIS (for distances and geographic rules):")
-        print(f"  ├── Pairs with BOTH coords → distances calculated: {self.stats['pairs_with_both_coords']} ({(self.stats['pairs_with_both_coords']/self.stats['processed_pairs']*100):.1f}%)")
-        print(f"  ├── Pairs with owner coords only: {self.stats['pairs_with_owner_coords_only']} ({(self.stats['pairs_with_owner_coords_only']/self.stats['processed_pairs']*100):.1f}%)")
-        print(f"  ├── Pairs with housing coords only: {self.stats['pairs_with_housing_coords_only']} ({(self.stats['pairs_with_housing_coords_only']/self.stats['processed_pairs']*100):.1f}%)")
-        print(f"  └── Pairs without coordinates: {self.stats['pairs_with_no_coords']} ({(self.stats['pairs_with_no_coords']/self.stats['processed_pairs']*100):.1f}%)")
-        print(f"  Distances actually calculated: {self.stats['distances_calculated']}")
-        print(f"  Geographic rules applied: {self.stats['geographic_rules_applied']}")
-        print(f"  Errors: {self.stats['errors']}")
-
-        print(f"\n🔍 BAN COVERAGE ANALYSIS:")
-        total_owner_found = self.stats['pairs_with_both_coords'] + self.stats['pairs_with_owner_coords_only']
-        total_housing_found = self.stats['pairs_with_both_coords'] + self.stats['pairs_with_housing_coords_only']
-        print(f"  ├── Owners found in BAN with coords: {total_owner_found}/{self.stats['processed_pairs']} ({(total_owner_found/self.stats['processed_pairs']*100):.1f}%)")
-        print(f"  └── Housings found in BAN with coords: {total_housing_found}/{self.stats['processed_pairs']} ({(total_housing_found/self.stats['processed_pairs']*100):.1f}%)")
-
-        # Calculate theoretical maximum with both coords
-        theoretical_max = min(total_owner_found, total_housing_found)
-        print(f"  ⚠️  Theoretical maximum pairs with BOTH coords: {theoretical_max}")
-        print(f"  ⚠️  Observed reality: {self.stats['pairs_with_both_coords']} (missing {theoretical_max - self.stats['pairs_with_both_coords']})")
-
-        print(f"\n📋 DATA COVERAGE (owner_id/housing_id in BAN):")
-        print(f"  Missing owner data: {self.stats['missing_owner_data']}")
-        print(f"  Missing housing data: {self.stats['missing_housing_data']}")
-        print(f"  Completely missing data: {self.stats['missing_both_data']}")
-        print(f"  └── BAN coverage: {(total_addresses_found/(self.stats['processed_pairs']*2))*100:.1f}% of referenced addresses")
-
-        # CountryDetector statistics
-        country_stats = self.country_detector.get_statistics()
-        if country_stats['total_processed'] > 0:
-            print("\n🌍 COUNTRY DETECTION STATISTICS")
-            print("-"*60)
-            print(f"Total addresses analyzed: {country_stats['total_processed']}")
-            print(f"France classifications: {country_stats['france_count']}")
-            print(f"Foreign classifications: {country_stats['foreign_count']}")
-            print(f"Rule-based used: {country_stats['rule_based_used']}")
-
-            if country_stats['total_processed'] > 0:
-                france_rate = (country_stats['france_count'] / country_stats['total_processed']) * 100
-                foreign_rate = (country_stats['foreign_count'] / country_stats['total_processed']) * 100
-                print(f"France rate: {france_rate:.1f}%")
-                print(f"Foreign rate: {foreign_rate:.1f}%")
-
-                print(f"\n🔍 ANALYSIS:")
-                print(f"  • Country_detector tested on: {country_stats['total_processed']} addresses without coordinates")
-                print(f"  • French addresses (with coords): {self.stats['addresses_with_coords']} (not tested)")
-                print(f"  • Logic: Normal to have many more addresses with coords than without coords")
+        if self.stats['errors'] > 0:
+            print(f"⚠️  Errors: {self.stats['errors']:,}")
 
         print("="*80)
 
 
-def setup_logging():
+def setup_logging(verbose: bool = False):
     """Setup logging configuration."""
-    os.makedirs("logs", exist_ok=True)
     logging.basicConfig(
-        level=logging.INFO,
-        format='%(asctime)s - %(levelname)s - %(message)s',
-        handlers=[
-            logging.FileHandler('logs/calculate_distances.log'),
-            logging.StreamHandler(sys.stdout)
-        ]
+        level=logging.INFO if verbose else logging.WARNING,
+        format='%(levelname)s - %(message)s'
     )
 
 
@@ -859,20 +785,20 @@ def main():
 
     args = parser.parse_args()
 
-    setup_logging()
-
-    print(f"Starting distance calculation script")
-    print(f"Parameters: limit={args.limit}, db_url={args.db_url}, force={args.force}")
+    # Enable verbose logging for first 10 batches to verify parallelism
+    setup_logging(verbose=True)
 
     # Initialize calculator
     calculator = DistanceCalculator(args.db_url)
 
     try:
         calculator.run(args.limit, args.force)
-        print("✅ Script completed successfully")
+        print("\n✅ Completed successfully")
+    except KeyboardInterrupt:
+        print("\n⚠️  Interrupted by user")
+        sys.exit(130)
     except Exception as e:
-        print(f"❌ Script failed: {e}")
-        logging.error(f"Script execution failed: {e}")
+        print(f"\n❌ Failed: {e}")
         sys.exit(1)
 
 

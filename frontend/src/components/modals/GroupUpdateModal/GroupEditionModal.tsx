@@ -1,14 +1,27 @@
-import { useEffect, useState } from 'react';
-import * as yup from 'yup';
+import { yupResolver } from '@hookform/resolvers-next/yup';
+import type { ButtonProps } from '@codegouvfr/react-dsfr/Button';
+import { FormProvider, useForm } from 'react-hook-form';
+import { object, string, type InferType } from 'yup-next';
 
 import ConfirmationModal from '../ConfirmationModal/ConfirmationModal';
 import type { Group } from '../../../models/Group';
-import { useForm } from '../../../hooks/useForm';
+import type { GroupPayload } from '../../../models/GroupPayload';
 import HousingCount from '../../HousingCount/HousingCount';
 import { Col, Row } from '../../_dsfr';
-import AppTextInput from '../../_app/AppTextInput/AppTextInput';
-import type { ButtonProps } from '@codegouvfr/react-dsfr/Button';
-import type { GroupPayload } from '../../../models/GroupPayload';
+import AppTextInputNext from '../../_app/AppTextInput/AppTextInputNext';
+
+const schema = object({
+  title: string()
+    .max(64, 'La longueur maximale du titre du groupe est de 64 caractères.')
+    .required('Veuillez donner un nom au groupe pour confirmer'),
+  description: string()
+    .max(
+      1000,
+      'La longueur maximale de la description du groupe est de 1000 caractères.'
+    )
+    .required('Veuillez donner une description au groupe pour confirmer')
+}).required();
+type Schema = InferType<typeof schema>;
 
 interface Props {
   title: string;
@@ -26,94 +39,65 @@ interface Props {
 
 function GroupEditionModal(props: Props) {
   const modalId = props.modalId ?? 'group-edition-modal';
-  const [title, setTitle] = useState(props.group?.title ?? '');
-  const [description, setDescription] = useState(
-    props.group?.description ?? ''
-  );
 
-  useEffect(() => {
-    if (props.group?.title) {
-      setTitle(props.group.title);
-    }
-    if (props.group?.description) {
-      setDescription(props.group.description);
-    }
-  }, [props.group]);
-
-  const shape = {
-    title: yup
-      .string()
-      .max(64, 'La longueur maximale du titre du groupe est de 64 caractères.')
-      .required('Veuillez donner un nom au groupe pour confirmer'),
-    description: yup
-      .string()
-      .max(
-        1000,
-        'La longueur maximale de la description du groupe est de 1000 caractères.'
-      )
-      .required('Veuillez donner une description au groupe pour confirmer')
-  };
-  type FormShape = typeof shape;
-
-  const form = useForm(yup.object().shape(shape), {
-    title,
-    description
+  const form = useForm<Schema>({
+    values: {
+      title: props.group?.title ?? '',
+      description: props.group?.description ?? ''
+    },
+    // @ts-expect-error: typescript resolves types from yup (v0) instead of yup-next (v1)
+    resolver: yupResolver(schema)
   });
 
-  async function onSubmit(): Promise<void> {
-    await form.validate(() =>
-      props.onSubmit({
-        title,
-        description
-      })
-    );
+  function handleSubmit(payload: Schema): void {
+    props.onSubmit({
+      title: payload.title,
+      description: payload.description
+    });
   }
 
   const housingCount = props.group?.housingCount ?? 0;
   const ownerCount = props.group?.ownerCount ?? 0;
 
   return (
-    <ConfirmationModal
-      modalId={modalId}
-      openingButtonProps={{
-        children: 'Créer un nouveau groupe',
-        iconId: 'fr-icon-add-line',
-        iconPosition: 'left',
-        size: 'small',
-        priority: 'secondary',
-        ...props.openingButtonProps
-      }}
-      size="large"
-      title={props.title}
-      onSubmit={onSubmit}
-    >
-      {housingCount > 0 && ownerCount > 0 && (
-        <HousingCount housingCount={housingCount} ownerCount={ownerCount} />
-      )}
-      <form id="group-edition-form">
-        <Row gutters>
-          <Col>
-            <AppTextInput<FormShape>
-              value={title}
-              onChange={(e) => setTitle(e.target.value)}
-              label="Nom du groupe (obligatoire)"
-              inputForm={form}
-              inputKey="title"
-              required
-            />
-            <AppTextInput<FormShape>
-              value={description}
-              textArea
-              onChange={(e) => setDescription(e.target.value)}
-              label="Description (obligatoire)"
-              inputForm={form}
-              inputKey="description"
-              required
-            />
-          </Col>
-        </Row>
+    <FormProvider {...form}>
+      <form onSubmit={form.handleSubmit(handleSubmit)}>
+        <ConfirmationModal
+          modalId={modalId}
+          openingButtonProps={{
+            children: 'Créer un nouveau groupe',
+            iconId: 'fr-icon-add-line',
+            iconPosition: 'left',
+            size: 'small',
+            priority: 'secondary',
+            ...props.openingButtonProps
+          }}
+          size="large"
+          title={props.title}
+          onSubmit={form.handleSubmit(handleSubmit)}
+        >
+          {housingCount > 0 && ownerCount > 0 && (
+            <HousingCount housingCount={housingCount} ownerCount={ownerCount} />
+          )}
+          <Row gutters>
+            <Col>
+              <AppTextInputNext
+                name="title"
+                label="Nom du groupe (obligatoire)"
+              />
+              <AppTextInputNext
+                name="description"
+                label="Description (obligatoire)"
+                textArea
+                nativeTextAreaProps={{
+                  rows: 4
+                }}
+              />
+            </Col>
+          </Row>
+        </ConfirmationModal>
       </form>
-    </ConfirmationModal>
+    </FormProvider>
   );
 }
 

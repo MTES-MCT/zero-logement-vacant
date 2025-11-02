@@ -26,10 +26,10 @@ function AppMultiSelect<Value extends string = string>({
   message,
   small
 }: AppMultiSelectProps<Value>) {
-  const wrapperRef = useRef(null);
-  useOutsideClick(wrapperRef, () => setShowOptions(false));
-
   const [showOptions, setShowOptions] = useState(false);
+  const wrapperRef = useRef(null);
+
+  useOutsideClick(wrapperRef, () => setShowOptions(false));
 
   const onChangeValue = (value: Value, isChecked: boolean) => {
     onChange([

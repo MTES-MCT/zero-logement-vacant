@@ -23,7 +23,6 @@ function GroupCard(props: GroupCardProps) {
           [styles.active]: props.isActive
         })}
         fluid
-        role="group-card"
       >
         <Typography
           className={styles.title}

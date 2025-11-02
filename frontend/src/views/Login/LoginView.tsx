@@ -2,166 +2,158 @@ import { fr } from '@codegouvfr/react-dsfr';
 import { Alert } from '@codegouvfr/react-dsfr/Alert';
 import Button from '@codegouvfr/react-dsfr/Button';
 import Typography from '@mui/material/Typography';
+import Container from '@mui/material/Container';
+import Grid from '@mui/material/Grid';
+import { yupResolver } from '@hookform/resolvers-next/yup';
+import { FormProvider, useForm } from 'react-hook-form';
+import { object, string, type InferType } from 'yup-next';
 
 import type { EstablishmentDTO } from '@zerologementvacant/models';
-import { type FormEvent, useState } from 'react';
+import { useState } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
-import * as yup from 'yup';
-import building from '../../assets/images/building.svg';
-import AppLink from '../../components/_app/AppLink/AppLink';
-import AppTextInput from '../../components/_app/AppTextInput/AppTextInput';
-import { Col, Container, Row, Text } from '../../components/_dsfr';
+
+import building from '~/assets/images/building.svg';
+import AppLink from '~/components/_app/AppLink/AppLink';
+import AppTextInputNext from '~/components/_app/AppTextInput/AppTextInputNext';
+import { Col, Row, Text } from '../../components/_dsfr';
 import EstablishmentSearchableSelect from '~/components/establishment/EstablishmentSearchableSelect';
-import { useDocumentTitle } from '../../hooks/useDocumentTitle';
-import { emailValidator, useForm } from '../../hooks/useForm';
-import { useAppDispatch, useAppSelector } from '../../hooks/useStore';
-import { logIn } from '../../store/thunks/auth-thunks';
+import { useDocumentTitle } from '~/hooks/useDocumentTitle';
+import { useAppDispatch, useAppSelector } from '~/hooks/useStore';
+import { logIn } from '~/store/thunks/auth-thunks';
+import Image from '~/components/Image/Image';
+
+const emailValidator = string()
+  .required('Veuillez renseigner votre adresse email.')
+  .email('L’adresse doit être un email valide');
+
+const schema = object({
+  email: emailValidator,
+  password: string().required('Veuillez renseigner un mot de passe.'),
+  establishmentId: string().nullable().default(null)
+});
+
+type FormSchema = InferType<typeof schema>;
 
 const LoginView = () => {
   useDocumentTitle('Connexion');
   const dispatch = useAppDispatch();
-
   const { pathname } = useLocation();
   const navigate = useNavigate();
+  const auth = useAppSelector((state) => state.authentication);
 
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
   const [establishment, setEstablishment] = useState<EstablishmentDTO | null>(
     null
   );
 
-  const auth = useAppSelector((state) => state.authentication);
-
-  const shape = {
-    isAdmin: yup.boolean(),
-    email: emailValidator,
-    password: yup.string().required('Veuillez renseigner un mot de passe.'),
-    establishmentId: yup.string().when('isAdmin', {
-      is: true,
-      then: yup.string().min(1, 'Veuillez sélectionner un établissement.')
-    })
-  };
-  type FormShape = typeof shape;
-
-  const form = useForm(yup.object().shape(shape), {
-    isAdmin: pathname === '/admin',
-    email,
-    password,
-    establishmentId: establishment?.id
-  });
-
-  async function submitLoginForm(e: FormEvent<HTMLFormElement>): Promise<void> {
-    e.preventDefault();
-    await form.validate(async () => {
-      try {
-        await dispatch(
-          logIn({
-            email,
-            password,
-            establishmentId: establishment ? establishment.id : undefined
-          })
-        ).unwrap();
-        navigate('/parc-de-logements');
-      } catch (error) {
-        console.error(error);
-      }
-    });
-  }
-
   const isAdminView = pathname === '/admin';
 
+  const form = useForm<FormSchema>({
+    defaultValues: {
+      email: '',
+      password: '',
+      establishmentId: null
+    },
+    mode: 'onSubmit',
+    // @ts-expect-error: typescript resolves types from yup (v0) instead of yup-next (v1)
+    resolver: yupResolver(schema)
+  });
+
+  function submit(data: FormSchema): void {
+    dispatch(
+      logIn({
+        email: data.email,
+        password: data.password,
+        establishmentId: data.establishmentId || undefined
+      })
+    )
+      .unwrap()
+      .then(() => {
+        navigate('/parc-de-logements');
+      });
+  }
+
   return (
-    <Container className="grow-container" spacing="py-4w">
-      <Row gutters alignItems="middle">
-        <Col>
-          {auth.isLoggedOut && <Col n="12"></Col>}
-          {auth.logIn.isError ? (
-            <Col n="12">
-              <div data-testid="alert-error" className="fr-my-2w">
-                <Alert
-                  title="Erreur"
-                  description="Échec de l’authentification"
-                  severity="error"
-                />
-              </div>
-            </Col>
-          ) : null}
-          <Typography component="h1" variant="h2" mb={3}>
+    <Container maxWidth="xl" sx={{ py: '4rem' }}>
+      <Grid container>
+        <Grid size="grow">
+          <Typography component="h1" variant="h2" sx={{ mb: '1.5rem' }}>
             Connexion
           </Typography>
-          <form onSubmit={submitLoginForm} id="login_form">
-            <AppTextInput<FormShape>
-              type="email"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              inputForm={form}
-              inputKey="email"
-              whenValid="Email renseigné."
-              data-testid="email-input"
-              label="Adresse email (obligatoire)"
-              required
-            />
-            <AppTextInput<FormShape>
-              type="password"
-              value={password}
-              className={isAdminView ? '' : 'fr-mb-1w'}
-              onChange={(e) => setPassword(e.target.value)}
-              inputForm={form}
-              inputKey="password"
-              whenValid="Mot de passe renseigné."
-              data-testid="password-input"
-              label="Mot de passe (obligatoire)"
-              required
-            />
-            {isAdminView && (
-              <EstablishmentSearchableSelect
-                className={fr.cx('fr-mb-2w')}
-                label="Collectivité"
-                value={establishment}
-                onChange={(establishment) => {
-                  if (establishment) {
-                    setEstablishment(establishment);
-                  }
+
+          {auth.logIn.isError && (
+            <div data-testid="alert-error" className="fr-my-2w">
+              <Alert
+                title="Erreur"
+                description="Échec de l'authentification"
+                severity="error"
+              />
+            </div>
+          )}
+
+          <FormProvider {...form}>
+            <form onSubmit={form.handleSubmit(submit)} id="login_form">
+              <AppTextInputNext<FormSchema['email']>
+                name="email"
+                label="Adresse email (obligatoire)"
+                nativeInputProps={{
+                  type: 'email',
+                  autoComplete: 'email'
                 }}
               />
-            )}
-            <Row spacing="mb-4w">
-              <AppLink to="/mot-de-passe/oublie" isSimple>
-                Mot de passe perdu ?
-              </AppLink>
-            </Row>
-            <Row alignItems="middle">
-              <Col n="9">
-                <Text as="span" size="lg">
-                  Première visite ?&nbsp;
-                </Text>
-                <AppLink
-                  to="/inscription"
-                  isSimple
-                  iconId="fr-icon-arrow-right-line"
-                  iconPosition="right"
-                >
-                  Créer votre compte
+              <AppTextInputNext<FormSchema['password']>
+                name="password"
+                label="Mot de passe (obligatoire)"
+                nativeInputProps={{
+                  type: 'password',
+                  autoComplete: 'current-password'
+                }}
+              />
+              {isAdminView && (
+                <EstablishmentSearchableSelect
+                  className={fr.cx('fr-mb-2w')}
+                  label="Collectivité"
+                  value={establishment}
+                  onChange={(establishment) => {
+                    if (establishment) {
+                      setEstablishment(establishment);
+                      form.setValue('establishmentId', establishment.id);
+                    }
+                  }}
+                />
+              )}
+              <Row spacing="mb-4w">
+                <AppLink to="/mot-de-passe/oublie" isSimple>
+                  Mot de passe perdu ?
                 </AppLink>
-              </Col>
-              <Col>
-                <Row justifyContent="right">
-                  <Button type="submit" data-testid="login-button">
-                    Se connecter
-                  </Button>
-                </Row>
-              </Col>
-            </Row>
-          </form>
-        </Col>
-        <Col n="5" offset="1" className="align-right">
-          <img
-            src={building}
-            style={{ width: '100%', height: '100%' }}
-            alt=""
-          />
-        </Col>
-      </Row>
+              </Row>
+              <Row alignItems="middle">
+                <Col n="9">
+                  <Text as="span" size="lg">
+                    Première visite ?&nbsp;
+                  </Text>
+                  <AppLink
+                    to="/inscription"
+                    isSimple
+                    iconId="fr-icon-arrow-right-line"
+                    iconPosition="right"
+                  >
+                    Créer votre compte
+                  </AppLink>
+                </Col>
+                <Col>
+                  <Row justifyContent="right">
+                    <Button type="submit">Se connecter</Button>
+                  </Row>
+                </Col>
+              </Row>
+            </form>
+          </FormProvider>
+        </Grid>
+
+        <Grid size={5} offset={1} sx={{ textAlign: 'end' }}>
+          <Image src={building} responsive="max-width" alt="" />
+        </Grid>
+      </Grid>
     </Container>
   );
 };

@@ -97,7 +97,8 @@ function OwnerView() {
             housingCount={undefined}
             id={owner?.id ?? null}
             birthdate={owner?.birthDate ?? null}
-            siren={owner?.siren}
+            kind={owner?.kind ?? null}
+            siren={owner?.siren ?? null}
             dgfipAddress={owner?.rawAddress ?? null}
             banAddress={owner?.banAddress ?? null}
             additionalAddress={owner?.additionalAddress ?? null}

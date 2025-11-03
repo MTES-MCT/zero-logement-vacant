@@ -130,6 +130,10 @@ function OwnerCardNext(props: OwnerCardProps) {
           .otherwise(() => null)}
 
         {match({ kind: props.kind, siren: props.siren })
+          .with(
+            { kind: Pattern.union(null, undefined, 'Particulier') },
+            () => null
+          )
           .with({ kind: Pattern.not('Particulier') }, ({ siren }) => (
             <OwnerAttribute
               icon="fr-icon-passport-line"
@@ -137,7 +141,7 @@ function OwnerCardNext(props: OwnerCardProps) {
               value={siren}
             />
           ))
-          .otherwise(() => null)}
+          .exhaustive()}
 
         <OwnerAttribute
           icon="fr-icon-bank-line"

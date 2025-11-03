@@ -35,7 +35,9 @@ describe('GroupApi', () => {
               lastAuthenticatedAt: group.createdBy.lastAuthenticatedAt,
               role: group.createdBy.role,
               activatedAt: group.createdBy.activatedAt,
-              establishmentId: group.createdBy.establishmentId
+              establishmentId: group.createdBy.establishmentId,
+              suspendedAt: group.createdBy.suspendedAt,
+              suspendedCause: group.createdBy.suspendedCause
             }
           : undefined,
         archivedAt: null

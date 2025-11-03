@@ -53,6 +53,8 @@ export const fromUserDTO = (user: UserDTO): User => ({
   role: user.role,
   activatedAt: new Date(user.activatedAt),
   lastAuthenticatedAt: user.lastAuthenticatedAt,
+  suspendedAt: user.suspendedAt,
+  suspendedCause: user.suspendedCause,
   updatedAt: user.updatedAt
 });
 
@@ -68,6 +70,8 @@ export const toUserDTO = (user: User): UserDTO => ({
   role: user.role,
   activatedAt: user.activatedAt.toJSON(),
   lastAuthenticatedAt: user.lastAuthenticatedAt,
+  suspendedAt: user.suspendedAt,
+  suspendedCause: user.suspendedCause,
   updatedAt: user.updatedAt
 });
 

@@ -39,6 +39,8 @@ const create = http.post<Record<string, never>, UserPayload, never>(
       position: null,
       timePerWeek: null,
       lastAuthenticatedAt: null,
+      suspendedAt: null,
+      suspendedCause: null,
       updatedAt: ''
     };
     return HttpResponse.json(user, {

@@ -47,11 +47,6 @@ async function upsert(request: Request, response: Response) {
       })
       .then((_) => _[0]);
 
-  const ceremaUser =
-    ceremaUsers.find(
-      (_) => _.establishmentSiren === knowEstablishmentWithCommitment?.siren
-    ) ?? ceremaUsers[0];
-
   const exists = await prospectRepository.exists(email);
 
   // Check if at least one account has commitment across all Cerema accounts

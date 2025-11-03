@@ -20,6 +20,10 @@ describe('login view', () => {
         {
           path: '/mot-de-passe/oublie',
           element: 'Mot de passe oublié'
+        },
+        {
+          path: '/parc-de-logements',
+          element: 'Parc de logements'
         }
       ],
       { initialEntries: ['/connexion'] }

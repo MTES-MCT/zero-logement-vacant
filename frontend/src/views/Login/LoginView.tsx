@@ -69,6 +69,9 @@ const LoginView = () => {
       .unwrap()
       .then(() => {
         navigate('/parc-de-logements');
+      })
+      .catch((error) => {
+        console.error('Authentication failed', error);
       });
   }
 

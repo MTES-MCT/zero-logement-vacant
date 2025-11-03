@@ -50,9 +50,9 @@ Cypress.Commands.add(
     password: string = Cypress.env('PASSWORD')
   ) => {
     cy.visit('/connexion');
-    cy.get('input[label^="Adresse email"]').type(email);
-    cy.get('input[label^="Mot de passe"]').type(password);
-    cy.get('button[type="submit"]').click();
+    cy.findByLabelText(/^Adresse email/).type(email);
+    cy.findByLabelText(/^Mot de passe/).type(password);
+    cy.findByRole('button', { name: /^Se connecter/ }).click();
 
     cy.location('pathname').should('eq', '/parc-de-logements');
   }

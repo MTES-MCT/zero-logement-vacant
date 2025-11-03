@@ -1,12 +1,27 @@
 import { HousingDTO } from './HousingDTO';
 import { OwnerDTO } from './OwnerDTO';
 import { PropertyRight } from './PropertyRight';
+import type { RelativeLocation } from './RelativeLocation';
 
 export interface BaseHousingOwnerDTO {
   rank: OwnerRank;
   idprocpte: string | null;
   idprodroit: string | null;
+  /**
+   * The relative location of the owner’s main residence to the housing as per source data.
+   * This comes from the source files.
+   */
   locprop: number | null;
+  /**
+   * The relative location of the owner's main residence to the housing.
+   * This is computed by us based on the Base Adresse Nationale’s data.
+   */
+  relativeLocation: RelativeLocation | null;
+  /**
+   * The absolute distance in meters between the owner's main residence and the housing.
+   * This is computed by us based on the Base Adresse Nationale’s data.
+   */
+  absoluteDistance: number | null;
   propertyRight: PropertyRight | null;
 }
 

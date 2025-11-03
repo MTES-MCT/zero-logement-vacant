@@ -54,11 +54,15 @@ async function upsert(request: Request, response: Response) {
 
   const exists = await prospectRepository.exists(email);
 
+  // Check if at least one account has commitment across all Cerema accounts
+  const hasCommitment = ceremaUsers.some((user) => user.hasCommitment);
+  const hasAccount = ceremaUsers.some((user) => user.hasAccount);
+
   const prospect: ProspectApi = {
     email,
     establishment: knowEstablishmentWithCommitment,
-    hasAccount: ceremaUser?.hasAccount ?? false,
-    hasCommitment: ceremaUser?.hasCommitment ?? false,
+    hasAccount: hasAccount,
+    hasCommitment: hasCommitment,
     lastAccountRequestAt: new Date()
   };
   await prospectRepository.upsert(prospect);

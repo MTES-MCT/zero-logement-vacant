@@ -84,7 +84,7 @@ const LoginView = () => {
             <div data-testid="alert-error" className="fr-my-2w">
               <Alert
                 title="Erreur"
-                description="Échec de l'authentification"
+                description="Échec de l’authentification"
                 severity="error"
               />
             </div>

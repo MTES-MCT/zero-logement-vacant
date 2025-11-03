@@ -4,7 +4,7 @@ import Grid from '@mui/material/Grid';
 import { useEffect, useMemo } from 'react';
 import Alert from '@codegouvfr/react-dsfr/Alert';
 
-import { useAuth } from '../../../store/reducers/authenticationReducer';
+import { useAppSelector } from '../../../hooks/useStore';
 import { useIsDsfrReady } from '../../../hooks/useIsDsfrReady';
 
 const id = 'suspended-user-modal';
@@ -30,7 +30,7 @@ function formatSuspensionReasons(suspendedCause: string): string {
 }
 
 function SuspendedUserModal() {
-  const { user } = useAuth();
+  const user = useAppSelector((state) => state.authentication.logIn.data);
   const ready = useIsDsfrReady(id);
 
   const isSuspended = useMemo(() => {

@@ -13,7 +13,7 @@ const modal = createModal({
   isOpenedByDefault: false
 });
 
-const PORTAIL_DF_URL = 'https://datafoncier.cerema.fr/portail-des-donnees-foncieres';
+const PORTAIL_DF_URL = 'https://portaildf.cerema.fr/';
 
 const SUSPENSION_REASONS: Record<string, string> = {
   'droits utilisateur expires': 'droits utilisateur expirés',
@@ -34,15 +34,15 @@ function SuspendedUserModal() {
   const ready = useIsDsfrReady(id);
 
   const isSuspended = useMemo(() => {
-    return user?.suspendedAt !== null && user?.suspendedAt !== undefined;
-  }, [user?.suspendedAt]);
+    return user?.user.suspendedAt !== null && user?.user.suspendedAt !== undefined;
+  }, [user?.user.suspendedAt]);
 
   const suspensionMessage = useMemo(() => {
-    if (!user?.suspendedCause) {
+    if (!user?.user.suspendedCause) {
       return 'droits d\'accès expirés';
     }
-    return formatSuspensionReasons(user.suspendedCause);
-  }, [user?.suspendedCause]);
+    return formatSuspensionReasons(user.user.suspendedCause);
+  }, [user?.user.suspendedCause]);
 
   useEffect(() => {
     if (ready && isSuspended) {
@@ -77,7 +77,7 @@ function SuspendedUserModal() {
             title="Vos droits d'accès à Zéro Logement Vacant ne sont plus valides"
             description={
               <Typography>
-                Vos droits d'accès à Zéro Logement Vacant ne sont plus valides
+                Vos droits d&apos;accès à Zéro Logement Vacant ne sont plus valides
                 en raison de <strong>{suspensionMessage}</strong>.
               </Typography>
             }

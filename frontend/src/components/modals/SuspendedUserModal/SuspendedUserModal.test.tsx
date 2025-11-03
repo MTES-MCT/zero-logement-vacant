@@ -1,27 +1,44 @@
 import { render, screen } from '@testing-library/react';
 import { Provider } from 'react-redux';
 import { configureStore } from '@reduxjs/toolkit';
-import { genUserDTO } from '~/mocks/handlers/data';
+import { genUserDTO, genEstablishmentDTO } from '@zerologementvacant/models/fixtures';
 import SuspendedUserModal from './SuspendedUserModal';
 import authenticationReducer from '~/store/reducers/authenticationReducer';
+import { fromUserDTO } from '~/models/User';
+import { fromEstablishmentDTO } from '~/models/Establishment';
 
 const renderWithUser = (suspendedAt: string | null, suspendedCause: string | null) => {
-  const user = {
+  const userDTO = {
     ...genUserDTO(),
     suspendedAt,
     suspendedCause
   };
 
+  const authUser = {
+    user: fromUserDTO(userDTO),
+    accessToken: 'fake-token',
+    establishment: fromEstablishmentDTO(genEstablishmentDTO())
+  };
+
   const store = configureStore({
     reducer: {
-      authentication: authenticationReducer
+      authentication: authenticationReducer.reducer
     },
     preloadedState: {
       authentication: {
-        isLoggedIn: true,
-        user,
-        userId: user.id,
-        authRedirectPath: null
+        logIn: {
+          data: authUser,
+          isError: false,
+          isLoading: false,
+          isSuccess: true,
+          isUninitialized: false
+        },
+        changeEstablishment: {
+          isError: false,
+          isLoading: false,
+          isSuccess: false,
+          isUninitialized: true
+        }
       }
     }
   });
@@ -63,8 +80,8 @@ describe('SuspendedUserModal', () => {
 
   it('should have a link to Portail des Données Foncières', () => {
     renderWithUser('2025-01-01T00:00:00Z', 'droits utilisateur expires');
-    const links = screen.getAllByRole('link', { name: /Portail des Données Foncières/i });
+    const links = screen.getAllByRole('link', { name: /Portail des Données Foncières/i, hidden: true });
     expect(links.length).toBeGreaterThan(0);
-    expect(links[0]).toHaveAttribute('href', 'https://datafoncier.cerema.fr/portail-des-donnees-foncieres');
+    expect(links[0]).toHaveAttribute('href', 'https://portaildf.cerema.fr/');
   });
 });

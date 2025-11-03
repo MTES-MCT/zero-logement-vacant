@@ -2,7 +2,7 @@ import { OwnerRank, PropertyRight } from '@zerologementvacant/models';
 import db from '~/infra/database';
 import { withinTransaction } from '~/infra/database/transaction';
 import { logger } from '~/infra/logger';
-import { HousingApi, HousingRecordApi } from '~/models/HousingApi';
+import { HousingRecordApi } from '~/models/HousingApi';
 import { HousingOwnerApi } from '~/models/HousingOwnerApi';
 import { OwnerApi } from '~/models/OwnerApi';
 import {
@@ -10,6 +10,8 @@ import {
   parseHousingRecordApi,
   type HousingRecordDBO
 } from '~/repositories/housingRepository';
+import type { RelativeLocation } from '../../../packages/models/src/RelativeLocation';
+import { match } from 'ts-pattern';
 
 export const housingOwnersTable = 'owners_housing';
 
@@ -34,7 +36,7 @@ async function findByOwner(
       .where({
         owner_id: owner.id
       })
-      .modify(query => {
+      .modify((query) => {
         if (options?.geoCodes?.length) {
           query.whereIn(
             `${housingOwnersTable}.housing_geo_code`,
@@ -98,12 +100,14 @@ export interface HousingOwnerDBO {
   housing_id: string;
   housing_geo_code: string;
   rank: OwnerRank;
-  start_date?: Date | null;
-  end_date?: Date | null;
-  origin?: string | null;
-  idprocpte?: string | null;
-  idprodroit?: string | null;
-  locprop_source?: string | null;
+  start_date: Date | null;
+  end_date: Date | null;
+  origin: string | null;
+  idprocpte: string | null;
+  idprodroit: string | null;
+  locprop_source: string | null;
+  locprop_relative_ban: number | null;
+  locprop_distance_ban: number | null;
   property_right: PropertyRight | null;
 }
 
@@ -117,9 +121,9 @@ export function parseOwnerHousingApi(
     rank: ownerHousing.rank,
     startDate: ownerHousing.start_date,
     endDate: ownerHousing.end_date,
-    origin: ownerHousing.origin ?? undefined,
-    idprocpte: ownerHousing.idprocpte ?? undefined,
-    idprodroit: ownerHousing.idprodroit ?? undefined,
+    origin: ownerHousing.origin,
+    idprocpte: ownerHousing.idprocpte,
+    idprodroit: ownerHousing.idprodroit,
     locprop:
       ownerHousing.locprop_source !== null
         ? Number(ownerHousing.locprop_source)
@@ -133,20 +137,6 @@ export function parseOwnerHousingApi(
     ...owner
   };
 }
-
-export const formatOwnerHousingApi = (housing: HousingApi): HousingOwnerDBO => {
-  if (!housing.owner) {
-    throw new Error('Owner is required');
-  }
-  return {
-    housing_id: housing.id,
-    housing_geo_code: housing.geoCode,
-    rank: 1,
-    owner_id: housing.owner.id,
-    property_right: null
-  };
-};
-
 export const formatHousingOwnerApi = (
   housingOwner: HousingOwnerApi
 ): HousingOwnerDBO => ({
@@ -163,6 +153,8 @@ export const formatHousingOwnerApi = (
     typeof housingOwner.locprop === 'number'
       ? String(housingOwner.locprop)
       : null,
+  locprop_relative_ban: toRelativeLocationDBO(housingOwner.relativeLocation),
+  locprop_distance_ban: housingOwner.absoluteDistance,
   property_right: housingOwner.propertyRight
 });
 
@@ -175,11 +167,41 @@ export const formatHousingOwnersApi = (
     owner_id: owner.id,
     housing_id: housing.id,
     housing_geo_code: housing.geoCode,
+    idprocpte: null,
+    idprodroit: null,
     rank: (i + 1) as OwnerRank,
     start_date: new Date(),
-    origin,
+    end_date: null,
+    origin: origin ?? null,
+    locprop_source: null,
+    locprop_relative_ban: null,
+    locprop_distance_ban: null,
     property_right: null
   }));
+
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
+const fromRelativeLocationDBO = (loc: number | null): RelativeLocation | null =>
+  match(loc)
+    .returnType<RelativeLocation | null>()
+    .with(1, () => 'same-commune')
+    .with(2, () => 'same-department')
+    .with(3, () => 'same-region')
+    .with(4, () => 'metropolitan')
+    .with(5, () => 'overseas')
+    .with(null, () => null)
+    .otherwise(() => 'other');
+
+const toRelativeLocationDBO = (loc: RelativeLocation | null): number | null =>
+  match(loc)
+    .returnType<number | null>()
+    .with('same-commune', () => 1)
+    .with('same-department', () => 2)
+    .with('same-region', () => 3)
+    .with('metropolitan', () => 4)
+    .with('overseas', () => 5)
+    .with('other', () => 6)
+    .with(null, () => null)
+    .exhaustive();
 
 const housingOwnerRepository = {
   findByOwner,

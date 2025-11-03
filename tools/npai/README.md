@@ -22,7 +22,9 @@ Tool suite for verifying property owner address validity using La Poste address 
 ### Prerequisites
 - Python 3.8+
 - Access to ZLV PostgreSQL database
-- La Poste API key
+- La Poste API key (from https://developer.laposte.fr/)
+
+**Important**: Make sure to configure API access permissions on your La Poste developer account before using the script. Without proper permissions, you will receive 403 errors.
 
 ### Dependencies Installation
 

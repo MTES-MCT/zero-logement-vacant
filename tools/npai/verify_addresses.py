@@ -251,9 +251,15 @@ def call_laposte_api(address: str, api_key: str, max_retries: int = 3) -> Tuple[
             if response.status_code == 200:
                 data = response.json()
                 results_count = len(data) if isinstance(data, list) else 0
+                logger.debug(f"API success: {results_count} results for address: {address[:50]}...")
                 return results_count, data
             elif response.status_code == 401:
                 logger.error("La Poste API authentication error - Check API key")
+                return -1, None
+            elif response.status_code == 403:
+                logger.error(f"La Poste API forbidden (403) - Check API key permissions or endpoint")
+                logger.error(f"Request URL: {url}")
+                logger.error(f"Response: {response.text[:200]}")
                 return -1, None
             elif response.status_code == 429:
                 logger.warning(f"Rate limit reached - Retry {attempt + 1}/{max_retries}")

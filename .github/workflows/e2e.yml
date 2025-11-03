@@ -37,7 +37,7 @@ jobs:
         run: yarn --immutable
 
       - name: Run cypress tests
-        run: yarn workspace @zerologementvacant/e2e start
+        run: yarn nx run e2e:start
         env:
           CYPRESS_API: ${{ vars.API_HOST }}
           CYPRESS_BASE_URL: ${{ vars.HOST }}

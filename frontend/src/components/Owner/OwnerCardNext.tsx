@@ -116,15 +116,18 @@ function OwnerCardNext(props: OwnerCardProps) {
           ))}
 
         {match(props.propertyRight)
-          .with(Pattern.nonNullable, (value) => (
+          .with(Pattern.not(undefined), (value) => (
             <OwnerAttribute
               icon="ri-auction-line"
               label="Nature du droit sur le bien"
-              value={<PropertyRightTag value={value} />}
+              value={
+                value ? (
+                  <PropertyRightTag value={value} tagProps={{ small: false }} />
+                ) : null
+              }
             />
           ))
-          .otherwise(() => null)
-        }
+          .otherwise(() => null)}
 
         {match({ kind: props.kind, siren: props.siren })
           .with({ kind: Pattern.not('Particulier') }, ({ siren }) => (

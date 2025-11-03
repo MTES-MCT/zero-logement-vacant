@@ -508,6 +508,8 @@ export function genUserDTO(
     timePerWeek: faker.helpers.arrayElement(TIME_PER_WEEK_VALUES),
     activatedAt: faker.date.recent().toJSON(),
     lastAuthenticatedAt: faker.date.recent().toJSON(),
+    suspendedAt: null,
+    suspendedCause: null,
     updatedAt: faker.date.recent().toJSON(),
     establishmentId: establishment?.id ?? null,
     role

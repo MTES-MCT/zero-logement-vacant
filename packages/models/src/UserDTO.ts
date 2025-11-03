@@ -13,6 +13,8 @@ export interface UserDTO {
   role: UserRole;
   activatedAt: string;
   lastAuthenticatedAt: string | null;
+  suspendedAt: string | null;
+  suspendedCause: string | null;
   updatedAt: string;
 }
 

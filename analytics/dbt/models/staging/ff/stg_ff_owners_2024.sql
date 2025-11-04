@@ -2,7 +2,7 @@
 
 with source as (
     SELECT *
-    FROM {{ source ('duckdb_raw', 'raw_ff_2024_owners') }}
+    FROM {{ source ('duckdb_raw', 'cerema_ff_2024_owners_raw') }}
 )
 
 SELECT idpersonne as owner_idpersonne,

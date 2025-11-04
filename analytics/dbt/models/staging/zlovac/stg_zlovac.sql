@@ -1,5 +1,5 @@
 with source as (
-    select * FROM {{ ref('stg_lovac_2025') }}
+    select * FROM {{ source ('duckdb_raw', 'cerema_lovac_2025_raw') }}
 ),
 
 cleaned_data as (

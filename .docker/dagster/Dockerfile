@@ -1,4 +1,4 @@
-FROM python:3.10-slim
+FROM python:3.12-slim
 
 ARG ZLV_HTTP_USERNAME
 ARG ZLV_HTTP_PASSWORD
@@ -10,7 +10,7 @@ COPY --from=clevercloud/clever-tools /bin/clever /usr/local/bin/clever
 COPY --from=ghcr.io/astral-sh/uv:latest /uv /uvx /bin/
 
 RUN apt-get update && \
-    apt-get install -y nginx apache2-utils curl gnupg && \
+    apt-get install -y nginx apache2-utils curl gnupg gcc libpq-dev && \
     apt-get clean && \
     rm -rf /var/lib/apt/lists/*
 

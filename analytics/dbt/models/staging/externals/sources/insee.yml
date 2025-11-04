@@ -1,0 +1,42 @@
+version: 2
+
+sources:
+  - name: insee
+    description: "Data from Institut National de la Statistique et des Études Économiques"
+    schema: insee
+    tables:
+      - name: recensement_historique
+        description: "Série historique du recensement de la population (1968-2022)"
+        meta:
+          dagster_asset_key: raw_insee_recensement_historique
+          producer: INSEE
+        columns:
+          - name: codgeo
+            description: "Code géographique de la commune"
+            tests:
+              - not_null
+        
+      - name: population_structures_ages
+        description: "Population - structures d'âges (2011-2022)"
+        meta:
+          dagster_asset_key: raw_insee_population_structures_ages
+          producer: INSEE
+        
+      - name: grille_densite
+        description: "Grille de densité INSEE - 7 niveaux"
+        meta:
+          dagster_asset_key: raw_insee_grille_densite
+          producer: INSEE
+        columns:
+          - name: codgeo
+            description: "Code géographique de la commune"
+          - name: niveau_densite
+            description: "Niveau de densité (1-7)"
+        
+      - name: table_appartenance_geo
+        description: "Table d'appartenance géographique des communes"
+        meta:
+          dagster_asset_key: raw_insee_table_appartenance_geo
+          producer: INSEE
+
+

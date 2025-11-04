@@ -1,10 +1,11 @@
 from .....config import Config
 
-SCHEMA = "cerema"
+SCHEMA = "external"
+SOURCE = "cerema"
 
 lovac_tables_sql = {
     "raw_lovac_2025": f"""
-        CREATE OR REPLACE TABLE {SCHEMA}.raw_lovac_2025 AS (
+        CREATE OR REPLACE TABLE {SCHEMA}.{SOURCE}_lovac_2025_raw AS (
         SELECT * FROM read_csv('s3://{Config.CELLAR_DATA_LAKE_BUCKET_NAME}/lake/cerema/lovac/2025/raw.csv',
         auto_detect = TRUE,
         escape = '"',
@@ -24,7 +25,7 @@ lovac_tables_sql = {
         'ff_ccogrm_6': 'VARCHAR',
         }}));""",
     "raw_lovac_2024": f"""
-        CREATE OR REPLACE TABLE {SCHEMA}.raw_lovac_2024 AS (
+        CREATE OR REPLACE TABLE {SCHEMA}.{SOURCE}_lovac_2024_raw AS (
         SELECT * FROM read_csv('s3://{Config.CELLAR_DATA_LAKE_BUCKET_NAME}/lake/cerema/lovac/2024/raw.csv', auto_detect = TRUE,
         types = {{
         'ff_jdatnss_6': 'VARCHAR',
@@ -41,7 +42,7 @@ lovac_tables_sql = {
         'ff_ccogrm_6': 'VARCHAR',
     }}));""",
     "raw_lovac_2023": f"""
-        CREATE OR REPLACE TABLE {SCHEMA}.raw_lovac_2023 AS (
+        CREATE OR REPLACE TABLE {SCHEMA}.{SOURCE}_lovac_2023_raw AS (
         SELECT * FROM read_csv('s3://{Config.CELLAR_DATA_LAKE_BUCKET_NAME}/lake/cerema/lovac/2023/raw.csv', auto_detect = TRUE,
         types = {{
         'ff_jdatnss_6': 'VARCHAR',
@@ -57,12 +58,12 @@ lovac_tables_sql = {
         'ff_ccogrm_5': 'VARCHAR',
         'ff_ccogrm_6': 'VARCHAR',
     }}));""",
-    "raw_lovac_2022": f"CREATE OR REPLACE TABLE {SCHEMA}.raw_lovac_2022 AS (SELECT * FROM read_csv('s3://{Config.CELLAR_DATA_LAKE_BUCKET_NAME}/lake/cerema/lovac/2022/raw.csv', auto_detect = TRUE, ignore_errors = false));",
-    "raw_lovac_2021": f"CREATE OR REPLACE TABLE {SCHEMA}.raw_lovac_2021 AS (SELECT * FROM read_csv('s3://{Config.CELLAR_DATA_LAKE_BUCKET_NAME}/lake/cerema/lovac/2021/raw.csv', auto_detect = TRUE, ignore_errors = false, quote='\"'));",
-    "raw_lovac_2020": f"CREATE OR REPLACE TABLE {SCHEMA}.raw_lovac_2020 AS (SELECT * FROM read_csv('s3://{Config.CELLAR_DATA_LAKE_BUCKET_NAME}/lake/cerema/lovac/2020/raw.csv', auto_detect = TRUE, ignore_errors = false));",
-    "raw_lovac_2019": f"CREATE OR REPLACE TABLE {SCHEMA}.raw_lovac_2019 AS (SELECT * FROM read_csv('s3://{Config.CELLAR_DATA_LAKE_BUCKET_NAME}/lake/cerema/lovac/2019/raw.csv', auto_detect = TRUE, ignore_errors = false));",
+    "raw_lovac_2022": f"CREATE OR REPLACE TABLE {SCHEMA}.{SOURCE}_lovac_2022_raw AS (SELECT * FROM read_csv('s3://{Config.CELLAR_DATA_LAKE_BUCKET_NAME}/lake/cerema/lovac/2022/raw.csv', auto_detect = TRUE, ignore_errors = false));",
+    "raw_lovac_2021": f"CREATE OR REPLACE TABLE {SCHEMA}.{SOURCE}_lovac_2021_raw AS (SELECT * FROM read_csv('s3://{Config.CELLAR_DATA_LAKE_BUCKET_NAME}/lake/cerema/lovac/2021/raw.csv', auto_detect = TRUE, ignore_errors = false, quote='\"'));",
+    "raw_lovac_2020": f"CREATE OR REPLACE TABLE {SCHEMA}.{SOURCE}_lovac_2020_raw AS (SELECT * FROM read_csv('s3://{Config.CELLAR_DATA_LAKE_BUCKET_NAME}/lake/cerema/lovac/2020/raw.csv', auto_detect = TRUE, ignore_errors = false));",
+    "raw_lovac_2019": f"CREATE OR REPLACE TABLE {SCHEMA}.{SOURCE}_lovac_2019_raw AS (SELECT * FROM read_csv('s3://{Config.CELLAR_DATA_LAKE_BUCKET_NAME}/lake/cerema/lovac/2019/raw.csv', auto_detect = TRUE, ignore_errors = false));",
     "raw_lovac_ff_ext_2024": f"""
-            CREATE OR REPLACE TABLE {SCHEMA}.raw_ff_2024 AS (
+            CREATE OR REPLACE TABLE {SCHEMA}.{SOURCE}_ff_2024_raw AS (
         SELECT * FROM read_csv('s3://{Config.CELLAR_DATA_LAKE_BUCKET_NAME}/lake/cerema/ff/2024/raw.csv',
                             auto_detect = TRUE,
         ignore_errors = false, types = {{'ff_ccogrm': 'VARCHAR',}}
@@ -70,7 +71,7 @@ lovac_tables_sql = {
     );
     """,
     "raw_lovac_ff_ext_2023": f"""
-            CREATE OR REPLACE TABLE {SCHEMA}.raw_ff_2023 AS (
+            CREATE OR REPLACE TABLE {SCHEMA}.{SOURCE}_ff_2023_raw AS (
         SELECT * FROM read_csv('s3://{Config.CELLAR_DATA_LAKE_BUCKET_NAME}/lake/cerema/ff/2023/raw.csv',
                             auto_detect = TRUE,
         ignore_errors = false, types = {{'ff_ccogrm': 'VARCHAR',}}
@@ -78,7 +79,7 @@ lovac_tables_sql = {
     );
     """,
     "raw_lovac_ff_ext_2022": f"""
-            CREATE OR REPLACE TABLE {SCHEMA}.raw_ff_2022 AS (
+            CREATE OR REPLACE TABLE {SCHEMA}.{SOURCE}_ff_2022_raw AS (
         SELECT * FROM read_csv('s3://{Config.CELLAR_DATA_LAKE_BUCKET_NAME}/lake/cerema/ff/2022/raw.csv',
                             auto_detect = TRUE,
         ignore_errors = false, types = {{'ff_ccogrm': 'VARCHAR',}}
@@ -86,7 +87,7 @@ lovac_tables_sql = {
     );
     """,
     "raw_lovac_ff_ext_2021": f"""
-            CREATE OR REPLACE TABLE {SCHEMA}.raw_ff_2021 AS (
+            CREATE OR REPLACE TABLE {SCHEMA}.{SOURCE}_ff_2021_raw AS (
         SELECT * FROM read_csv('s3://{Config.CELLAR_DATA_LAKE_BUCKET_NAME}/lake/cerema/ff/2021/raw.csv',
                             auto_detect = TRUE,
         ignore_errors = false, types = {{'ff_ccogrm': 'VARCHAR',}}
@@ -94,7 +95,7 @@ lovac_tables_sql = {
     );
     """,
     "raw_lovac_ff_ext_2020": f"""
-            CREATE OR REPLACE TABLE {SCHEMA}.raw_ff_2020 AS (
+            CREATE OR REPLACE TABLE {SCHEMA}.{SOURCE}_ff_2020_raw AS (
         SELECT * FROM read_csv('s3://{Config.CELLAR_DATA_LAKE_BUCKET_NAME}/lake/cerema/ff/2020/raw.csv',
                             auto_detect = TRUE,
         ignore_errors = false, types = {{'ff_ccogrm': 'VARCHAR',}}
@@ -102,7 +103,7 @@ lovac_tables_sql = {
     );
     """,
     "raw_lovac_ff_ext_2019": f"""
-            CREATE OR REPLACE TABLE {SCHEMA}.raw_ff_2019 AS (
+            CREATE OR REPLACE TABLE {SCHEMA}.{SOURCE}_ff_2019_raw AS (
         SELECT * FROM read_csv('s3://{Config.CELLAR_DATA_LAKE_BUCKET_NAME}/lake/cerema/ff/2019/raw.csv',
                             auto_detect = TRUE,
         ignore_errors = false, types = {{'ff_ccogrm': 'VARCHAR',}}

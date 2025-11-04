@@ -11,6 +11,7 @@ production_tables = {
     "owners_housing": f"CREATE OR REPLACE table {SCHEMA}.owners_housing AS (SELECT * FROM zlv_replication_db.public.owners_housing );",
     "events": f"CREATE OR REPLACE table {SCHEMA}.events AS (SELECT * EXCLUDE(old, new) FROM zlv_replication_db.public.events );",
     "housing_events": f"CREATE OR REPLACE table {SCHEMA}.housing_events AS (SELECT * FROM zlv_replication_db.public.housing_events );",
+    "owner_events": f"CREATE OR REPLACE table {SCHEMA}.owner_events AS (SELECT * FROM zlv_replication_db.public.owner_events );",
     "establishments": f"CREATE OR REPLACE table {SCHEMA}.establishments AS (SELECT * FROM zlv_replication_db.public.establishments );",
     "users": f"CREATE OR REPLACE table {SCHEMA}.users AS (SELECT * FROM zlv_replication_db.public.users );",
     "campaigns_housing": f"CREATE OR REPLACE table {SCHEMA}.campaigns_housing AS (SELECT * FROM zlv_replication_db.public.campaigns_housing );",

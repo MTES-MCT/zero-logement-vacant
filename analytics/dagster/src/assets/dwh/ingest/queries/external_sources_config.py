@@ -64,7 +64,7 @@ EXTERNAL_SOURCES: dict[str, SourceConfig] = {
     # Note: Your existing LOVAC/FF sources are already managed separately
     # Add new CEREMA sources here if needed
     
-    "cerema_consommation_espace": {
+    "consommation_espace": {
         "url": "https://datafoncier.cerema.fr/data/consommation_espace/TODO.csv",  # TODO: Add real URL
         "schema": "cerema",
         "table_name": "consommation_espace",
@@ -82,7 +82,7 @@ EXTERNAL_SOURCES: dict[str, SourceConfig] = {
     # INSEE
     # -------------------------------------------------------------------------
     
-    "insee_recensement_historique": {
+    "recensement_historique": {
         "url": "https://www.insee.fr/fr/statistiques/fichier/TODO.csv",  # TODO: Add real URL
         "schema": "insee",
         "table_name": "recensement_historique",
@@ -97,7 +97,7 @@ EXTERNAL_SOURCES: dict[str, SourceConfig] = {
         },
     },
     
-    "insee_population_structures_ages": {
+    "population_structures_ages": {
         "url": "https://www.insee.fr/fr/statistiques/fichier/TODO.csv",  # TODO: Add real URL
         "schema": "insee",
         "table_name": "population_structures_ages",
@@ -110,7 +110,7 @@ EXTERNAL_SOURCES: dict[str, SourceConfig] = {
         },
     },
     
-    "insee_grille_densite": {
+    "grille_densite": {
         "url": "https://www.insee.fr/fr/statistiques/fichier/TODO.csv",  # TODO: Add real URL
         "schema": "insee",
         "table_name": "grille_densite",
@@ -123,7 +123,7 @@ EXTERNAL_SOURCES: dict[str, SourceConfig] = {
         },
     },
     
-    "insee_table_appartenance_geo": {
+    "table_appartenance_geo": {
         "url": "https://www.insee.fr/fr/statistiques/fichier/TODO.csv",  # TODO: Add real URL
         "schema": "insee",
         "table_name": "table_appartenance_geo",
@@ -140,7 +140,7 @@ EXTERNAL_SOURCES: dict[str, SourceConfig] = {
     # URSSAF
     # -------------------------------------------------------------------------
     
-    "urssaf_etablissements_effectifs": {
+    "etablissements_effectifs": {
         "url": "https://open.urssaf.fr/explore/dataset/TODO/download/",  # TODO: Add real URL
         "schema": "urssaf",
         "table_name": "etablissements_effectifs",
@@ -158,7 +158,7 @@ EXTERNAL_SOURCES: dict[str, SourceConfig] = {
     # DGFIP
     # -------------------------------------------------------------------------
     
-    "dgfip_fiscalite_locale": {
+    "fiscalite_locale": {
         "url": "https://data.economie.gouv.fr/explore/dataset/TODO/download/",  # TODO: Add real URL
         "schema": "dgfip",
         "table_name": "fiscalite_locale_particuliers",
@@ -208,6 +208,13 @@ def generate_create_table_sql(source_name: str, config: SourceConfig) -> str:
     
     This function generates the appropriate SQL based on file type (CSV or Parquet)
     and applies any type overrides or read options.
+    
+    Args:
+        source_name: The key name from EXTERNAL_SOURCES dict (e.g., 'grille_densite')
+        config: The source configuration dictionary
+    
+    Returns:
+        SQL string to create and populate the table
     """
     schema = config["schema"]
     table_name = config["table_name"]

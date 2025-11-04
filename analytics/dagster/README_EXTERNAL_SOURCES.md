@@ -1,8 +1,9 @@
-# 🎯 External Data Sources Integration - Complete!
+# 🎯 External Data Sources Integration - Complete
 
 ## ✅ What's Been Implemented
 
 ### 1. Core Infrastructure
+
 ```
 analytics/dagster/src/assets/dwh/ingest/
 ├── queries/
@@ -13,6 +14,7 @@ analytics/dagster/src/assets/dwh/ingest/
 ```
 
 ### 2. Dagster Integration
+
 ```python
 # definitions.py now includes:
 
@@ -22,6 +24,7 @@ analytics/dagster/src/assets/dwh/ingest/
 ```
 
 ### 3. DBT Templates
+
 ```
 analytics/dbt/models/staging/externals/
 ├── sources/
@@ -36,6 +39,7 @@ analytics/dbt/models/staging/externals/
 ```
 
 ### 4. Documentation
+
 ```
 analytics/dagster/
 ├── IMPLEMENTATION_SUMMARY.md     ← Architecture overview (YOU ARE HERE)
@@ -51,12 +55,14 @@ analytics/dagster/
 ## 🚀 Quick Start
 
 ### Test the Pipeline
+
 ```bash
 cd analytics/dagster
 ./test_pipeline.sh
 ```
 
 ### Start Dagster
+
 ```bash
 cd analytics/dagster
 dagster dev
@@ -64,6 +70,7 @@ dagster dev
 ```
 
 ### Materialize a Source
+
 ```bash
 # Via CLI
 dagster asset materialize -m src.definitions --select raw_carte_des_loyers_2023
@@ -92,6 +99,7 @@ dagster asset materialize -m src.definitions --select raw_carte_des_loyers_2023
 ## 📝 How to Add a New Source
 
 ### 1️⃣ Add to Config (1 minute)
+
 ```python
 # external_sources_config.py
 "my_source": {
@@ -107,16 +115,19 @@ dagster asset materialize -m src.definitions --select raw_carte_des_loyers_2023
 ```
 
 ### 2️⃣ Validate (30 seconds)
+
 ```bash
 python src/assets/dwh/ingest/validate_sources.py my_source
 ```
 
 ### 3️⃣ Materialize (varies)
+
 ```bash
 dagster asset materialize -m src.definitions --select raw_my_source
 ```
 
 ### 4️⃣ Create DBT Model (5 minutes)
+
 ```sql
 -- stg_producer__my_table.sql
 with source as (select * from {{ source('producer', 'my_table') }})
@@ -130,6 +141,7 @@ select * from source
 ## 🔧 Key Commands
 
 ### Validation
+
 ```bash
 # Test one source
 python src/assets/dwh/ingest/validate_sources.py <source_name>
@@ -142,6 +154,7 @@ python src/assets/dwh/ingest/validate_sources.py --producer INSEE
 ```
 
 ### Dagster
+
 ```bash
 # Start dev server
 dagster dev
@@ -163,6 +176,7 @@ dagster schedule start yearly_external_sources_refresh_schedule
 ```
 
 ### DBT
+
 ```bash
 cd analytics/dbt
 
@@ -181,15 +195,17 @@ dbt docs generate && dbt docs serve
 ## 📦 Example Sources
 
 ### Already Configured
+
 1. ✅ **DGALN - Carte des loyers 2023**
-   - URL: https://object.files.data.gouv.fr/.../0de53e33c5b555111ffaf7a9849540c7.parquet
+   - URL: <https://object.files.data.gouv.fr/.../0de53e33c5b555111ffaf7a9849540c7.parquet>
    - Asset: `raw_carte_des_loyers_2023`
 
 2. ✅ **DGALN - Zonage ABC**
-   - URL: https://object.files.data.gouv.fr/.../5a9989ac0f32cd6aa41d5d60638390c0.parquet
+   - URL: <https://object.files.data.gouv.fr/.../5a9989ac0f32cd6aa41d5d60638390c0.parquet>
    - Asset: `raw_zonage_abc`
 
 ### To Be Added (see DATA_SOURCES_CATALOG.md)
+
 - INSEE Recensement historique
 - INSEE Structures d'âges
 - INSEE Grille densité
@@ -223,14 +239,16 @@ External Sources (data.gouv.fr, INSEE, etc.)
 
 ## 🎓 Best Practices
 
-### ✅ DO:
+### ✅ DO
+
 - Use VARCHAR for French codes (postal codes, INSEE codes)
 - Test URLs before adding to config
 - Document each source clearly
 - Add DBT tests (not_null, unique)
 - Group by producer
 
-### ❌ DON'T:
+### ❌ DON'T
+
 - Hard-code URLs in multiple places
 - Skip validation
 - Forget type overrides for codes
@@ -242,6 +260,7 @@ External Sources (data.gouv.fr, INSEE, etc.)
 ## 🐛 Troubleshooting
 
 ### Issue: URL not accessible
+
 ```bash
 # Test manually
 curl -I "https://your-url.parquet"
@@ -250,6 +269,7 @@ curl -I "https://your-url.parquet"
 ```
 
 ### Issue: CSV parsing error
+
 ```python
 # Adjust read options
 "read_options": {
@@ -260,6 +280,7 @@ curl -I "https://your-url.parquet"
 ```
 
 ### Issue: Wrong column types
+
 ```python
 # Add type overrides
 "type_overrides": {
@@ -297,21 +318,25 @@ curl -I "https://your-url.parquet"
 ## ✨ Benefits of This Approach
 
 ### Scalability
+
 - ✅ Add unlimited sources with just config
 - ✅ No code duplication
 - ✅ Automatic Dagster asset creation
 
 ### Maintainability
+
 - ✅ Single source of truth
 - ✅ Easy to update
 - ✅ Validation before deployment
 
 ### Observability
+
 - ✅ Dagster UI shows all sources
 - ✅ Metadata tracking
 - ✅ Error logging
 
 ### Developer Experience
+
 - ✅ 7 minutes to add a source
 - ✅ Clear documentation
 - ✅ Testing tools included
@@ -321,16 +346,19 @@ curl -I "https://your-url.parquet"
 ## 🎯 Next Steps
 
 ### Immediate (Today)
+
 1. Test the pipeline: `./test_pipeline.sh`
 2. Start Dagster: `dagster dev`
 3. Materialize a sample source
 
 ### Short-term (This Week)
+
 1. Find missing URLs (see DATA_SOURCES_CATALOG.md)
 2. Add 3-5 real sources
 3. Test end-to-end with DBT
 
 ### Medium-term (This Month)
+
 1. Add all remaining sources
 2. Create DBT marts
 3. Enable annual schedule
@@ -341,16 +369,19 @@ curl -I "https://your-url.parquet"
 ## 🤝 Need Help?
 
 ### Documentation
+
 - Start with: `QUICK_START.md`
 - Deep dive: `EXTERNAL_SOURCES_README.md`
 - Track progress: `DATA_SOURCES_CATALOG.md`
 
 ### Testing
+
 - Validate: `python validate_sources.py`
 - Test script: `./test_pipeline.sh`
 - Manual tests: See QUICK_START.md
 
 ### Debugging
+
 - Check Dagster logs in UI
 - Test URLs with `curl`
 - Query DuckDB directly
@@ -360,6 +391,7 @@ curl -I "https://your-url.parquet"
 ## 🎉 Summary
 
 You now have a **production-ready system** to:
+
 - ✅ Load unlimited external data sources
 - ✅ Validate and test before deployment
 - ✅ Schedule automatic refreshes
@@ -371,4 +403,3 @@ You now have a **production-ready system** to:
 ---
 
 **Questions? See the documentation files or test with `./test_pipeline.sh`**
-

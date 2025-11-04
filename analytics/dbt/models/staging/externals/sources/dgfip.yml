@@ -8,7 +8,7 @@ sources:
       - name: fiscalite_locale_particuliers
         description: "Fiscalité locale des particuliers par commune"
         meta:
-          dagster_asset_key: raw_dgfip_fiscalite_locale
+          dagster_asset_key: raw_fiscalite_locale
           producer: DGFIP
         columns:
           - name: code_commune

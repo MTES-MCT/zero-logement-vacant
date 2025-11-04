@@ -8,7 +8,7 @@ sources:
       - name: etablissements_effectifs
         description: "Nombre d'établissements employeurs et effectifs salariés du secteur privé, par commune x APE (2006-2022)"
         meta:
-          dagster_asset_key: raw_urssaf_etablissements_effectifs
+          dagster_asset_key: raw_etablissements_effectifs
           producer: URSSAF
         columns:
           - name: code_commune

@@ -93,7 +93,7 @@ function createFillLocalIdModal() {
             form.setError('localId', {
               type: 'manual',
               message:
-                'Nous n’avons pas pu trouver de logement avec les informations que vous avez fournies. Vérifiez les informations saisies afin de vous assurer qu’elles soient correctes, puis réessayez en modifiant l’identifiant du logement.'
+                'Nous n’avons pas pu trouver de logement avec les informations que vous avez fournies. Vérifiez les informations saisies afin de vous assurer qu’elles soient correctes, puis réessayez en modifiant l’identifiant du logement. Le format de l’identifiant national n’est pas valide. Exemple de format valide : 331234567891'
             });
           }
         }

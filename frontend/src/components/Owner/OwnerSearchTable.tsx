@@ -22,6 +22,8 @@ export interface OwnerSearchTableProps {
 }
 
 function OwnerSearchTable(props: OwnerSearchTableProps) {
+  const { onSelect } = props
+
   const columnHelper = createColumnHelper<Owner>();
   const columnDefs = useMemo(
     () => [
@@ -63,7 +65,7 @@ function OwnerSearchTable(props: OwnerSearchTableProps) {
                 'aria-label': `Sélectionner ${row.original.fullName}`
               }}
               onClick={() => {
-                props.onSelect?.(row.original);
+                onSelect?.(row.original);
               }}
             >
               Sélectionner
@@ -72,7 +74,7 @@ function OwnerSearchTable(props: OwnerSearchTableProps) {
         )
       })
     ],
-    [columnHelper, props.onSelect]
+    [columnHelper, onSelect]
   );
 
   if (props.owners.length === 0 && !props.isLoading) {

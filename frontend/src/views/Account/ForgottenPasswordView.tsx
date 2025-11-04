@@ -14,6 +14,39 @@ import Button from '@codegouvfr/react-dsfr/Button';
 import AppLinkAsButton from '../../components/_app/AppLinkAsButton/AppLinkAsButton';
 import Typography from '@mui/material/Typography';
 
+interface EmailSentProps {
+  hidden?: boolean;
+  submit?(): void;
+}
+
+function EmailSent(props: EmailSentProps) {
+  const confirmationClasses = classNames('fr-valid-text', {
+    [styles.hidden]: props.hidden
+  });
+
+  return (
+    <>
+      <Text>Un email vous a été envoyé avec les instructions à suivre.</Text>
+      <Text className="subtitle">
+        Vous ne trouvez pas le mail ? Vérifiez qu’il ne s’est pas glissé dans
+        vos spams ou 
+        <AppLinkAsButton
+          isSimple
+          onClick={() => {
+            props.submit?.();
+          }}
+        >
+          renvoyer le mail
+        </AppLinkAsButton>
+        .
+      </Text>
+      <Text size="sm" className={confirmationClasses}>
+        Email envoyé.
+      </Text>
+    </>
+  );
+}
+
 function ForgottenPasswordView() {
   useDocumentTitle('Mot de passe oublié');
   const [error, setError] = useState('');
@@ -42,29 +75,6 @@ function ForgottenPasswordView() {
     }
   }
 
-  function EmailSent() {
-    const confirmationClasses = classNames('fr-valid-text', {
-      [styles.hidden]: hidden
-    });
-
-    return (
-      <>
-        <Text>Un email vous a été envoyé avec les instructions à suivre.</Text>
-        <Text className="subtitle">
-          Vous ne trouvez pas le mail ? Vérifiez qu’il ne s’est pas glissé dans
-          vos spams ou 
-          <AppLinkAsButton isSimple onClick={submit}>
-            renvoyer le mail
-          </AppLinkAsButton>
-          .
-        </Text>
-        <Text size="sm" className={confirmationClasses}>
-          Email envoyé.
-        </Text>
-      </>
-    );
-  }
-
   return (
     <Container as="main" spacing="py-4w" className="grow-container">
       <Row gutters alignItems="middle">
@@ -82,7 +92,7 @@ function ForgottenPasswordView() {
             Réinitialisation de votre mot de passe
           </Typography>
           {emailSent ? (
-            <EmailSent />
+            <EmailSent hidden={hidden} submit={submit} />
           ) : (
             <>
               <Text>

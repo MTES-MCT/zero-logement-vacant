@@ -67,7 +67,9 @@ describe('GroupHeader', () => {
       </Provider>
     );
 
-    const cards = await screen.findAllByRole('group-card');
+    const cards = await screen.findAllByRole('link', {
+      name: /^Groupe de logements/
+    });
     expect(cards).toBeArrayOfSize(
       groups.filter((group) => !group.archivedAt).length
     );

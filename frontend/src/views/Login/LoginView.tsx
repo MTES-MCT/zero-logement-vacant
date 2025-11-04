@@ -1,38 +1,46 @@
 import { fr } from '@codegouvfr/react-dsfr';
 import { Alert } from '@codegouvfr/react-dsfr/Alert';
 import Button from '@codegouvfr/react-dsfr/Button';
+import Box from '@mui/material/Box';
+import Grid from '@mui/material/Grid';
 import Typography from '@mui/material/Typography';
 import Container from '@mui/material/Container';
-import Grid from '@mui/material/Grid';
 import { yupResolver } from '@hookform/resolvers-next/yup';
 import { FormProvider, useForm } from 'react-hook-form';
 import { object, string, type InferType } from 'yup-next';
-
 import type { EstablishmentDTO } from '@zerologementvacant/models';
 import { useState } from 'react';
+import { FormProvider, useForm } from 'react-hook-form';
 import { useLocation, useNavigate } from 'react-router-dom';
 
-import building from '~/assets/images/building.svg';
-import AppLink from '~/components/_app/AppLink/AppLink';
-import AppTextInputNext from '~/components/_app/AppTextInput/AppTextInputNext';
-import { Col, Row, Text } from '../../components/_dsfr';
+import building from '../../assets/images/building.svg';
+import AppLink from '../../components/_app/AppLink/AppLink';
+import AppTextInputNext from '../../components/_app/AppTextInput/AppTextInputNext';
 import EstablishmentSearchableSelect from '~/components/establishment/EstablishmentSearchableSelect';
-import { useDocumentTitle } from '~/hooks/useDocumentTitle';
-import { useAppDispatch, useAppSelector } from '~/hooks/useStore';
-import { logIn } from '~/store/thunks/auth-thunks';
-import Image from '~/components/Image/Image';
-
-const emailValidator = string()
-  .required('Veuillez renseigner votre adresse email.')
-  .email('L’adresse doit être un email valide');
+import { useDocumentTitle } from '../../hooks/useDocumentTitle';
+import { useAppDispatch, useAppSelector } from '../../hooks/useStore';
+import { logIn } from '../../store/thunks/auth-thunks';
 
 const schema = object({
-  email: emailValidator,
-  password: string().required('Veuillez renseigner un mot de passe.'),
-  establishmentId: string().nullable().default(null)
-});
+  isAdmin: boolean().required(),
+  email: string()
+    .trim()
+    .required('Veuillez renseigner votre adresse email.')
+    .email(
+      'L’adresse doit être un email valide. Exemple de format valide : exemple@gmail.com'
+    ),
+  password: string().trim().required('Veuillez renseigner un mot de passe.'),
+  establishmentId: string()
+    .nullable()
+    .when('isAdmin', {
+      is: true,
+      then: (schema) =>
+        schema.required('Veuillez sélectionner un établissement.'),
+      otherwise: (schema) => schema.nullable()
+    })
+}).required();
 
-type FormSchema = InferType<typeof schema>;
+export type LoginSchema = InferType<typeof schema>;
 
 const LoginView = () => {
   useDocumentTitle('Connexion');
@@ -47,55 +55,51 @@ const LoginView = () => {
 
   const isAdminView = pathname === '/admin';
 
-  const form = useForm<FormSchema>({
+  const form = useForm<LoginSchema>({
     defaultValues: {
+      isAdmin: isAdminView,
       email: '',
       password: '',
       establishmentId: null
     },
-    mode: 'onSubmit',
     // @ts-expect-error: typescript resolves types from yup (v0) instead of yup-next (v1)
     resolver: yupResolver(schema)
   });
 
-  function submit(data: FormSchema): void {
-    dispatch(
-      logIn({
-        email: data.email,
-        password: data.password,
-        establishmentId: data.establishmentId || undefined
-      })
-    )
-      .unwrap()
-      .then(() => {
-        navigate('/parc-de-logements');
-      })
-      .catch((error) => {
-        console.error('Authentication failed', error);
-      });
+  async function submitLoginForm(data: LoginSchema): Promise<void> {
+    try {
+      await dispatch(
+        logIn({
+          email: data.email,
+          password: data.password,
+          establishmentId: data.establishmentId ?? undefined
+        })
+      ).unwrap();
+      navigate('/parc-de-logements');
+    } catch (error) {
+      console.error(error);
+    }
   }
 
   return (
-    <Container maxWidth="xl" sx={{ py: '4rem' }}>
-      <Grid container>
-        <Grid size="grow">
-          <Typography component="h1" variant="h2" sx={{ mb: '1.5rem' }}>
-            Connexion
-          </Typography>
-
-          {auth.logIn.isError && (
-            <div data-testid="alert-error" className="fr-my-2w">
-              <Alert
-                title="Erreur"
-                description="Échec de l’authentification"
-                severity="error"
-              />
-            </div>
-          )}
-
-          <FormProvider {...form}>
-            <form onSubmit={form.handleSubmit(submit)} id="login_form">
-              <AppTextInputNext<FormSchema['email']>
+    <FormProvider {...form}>
+      <Container maxWidth="xl" sx={{ py: 4 }}>
+        <Grid container spacing={2} alignItems="center">
+          <Grid size={{ xs: 12, md: 6 }}>
+            {auth.logIn.isError ? (
+              <Box data-testid="alert-error" sx={{ my: 2 }}>
+                <Alert
+                  title="Erreur"
+                  description="Échec de l’authentification"
+                  severity="error"
+                />
+              </Box>
+            ) : null}
+            <Typography component="h1" variant="h2" mb={3}>
+              Connexion
+            </Typography>
+            <form onSubmit={form.handleSubmit(submitLoginForm)} id="login_form">
+              <AppTextInputNext
                 name="email"
                 label="Adresse email (obligatoire)"
                 nativeInputProps={{
@@ -103,9 +107,10 @@ const LoginView = () => {
                   autoComplete: 'email'
                 }}
               />
-              <AppTextInputNext<FormSchema['password']>
+              <AppTextInputNext
                 name="password"
                 label="Mot de passe (obligatoire)"
+                className={isAdminView ? '' : 'fr-mb-1w'}
                 nativeInputProps={{
                   type: 'password',
                   autoComplete: 'current-password'
@@ -124,16 +129,16 @@ const LoginView = () => {
                   }}
                 />
               )}
-              <Row spacing="mb-4w">
+              <Box sx={{ mb: 4 }}>
                 <AppLink to="/mot-de-passe/oublie" isSimple>
                   Mot de passe perdu ?
                 </AppLink>
-              </Row>
-              <Row alignItems="middle">
-                <Col n="9">
-                  <Text as="span" size="lg">
+              </Box>
+              <Grid container alignItems="center" spacing={2}>
+                <Grid size={{ xs: 12, md: 9 }}>
+                  <Typography component="span" variant="body1">
                     Première visite ?&nbsp;
-                  </Text>
+                  </Typography>
                   <AppLink
                     to="/inscription"
                     isSimple
@@ -142,22 +147,25 @@ const LoginView = () => {
                   >
                     Créer votre compte
                   </AppLink>
-                </Col>
-                <Col>
-                  <Row justifyContent="right">
-                    <Button type="submit">Se connecter</Button>
-                  </Row>
-                </Col>
-              </Row>
+                </Grid>
+                <Grid size={{ xs: 12, md: 3 }} sx={{ textAlign: 'right' }}>
+                  <Button type="submit">
+                    Se connecter
+                  </Button>
+                </Grid>
+              </Grid>
             </form>
-          </FormProvider>
+          </Grid>
+          <Grid
+            size={{ xs: 0, md: 5 }}
+            offset={{ md: 1 }}
+            sx={{ textAlign: 'end' }}
+          >
+            <Image src={building} responsive="max-width" alt="" />
+          </Grid>
         </Grid>
-
-        <Grid size={5} offset={1} sx={{ textAlign: 'end' }}>
-          <Image src={building} responsive="max-width" alt="" />
-        </Grid>
-      </Grid>
-    </Container>
+      </Container>
+    </FormProvider>
   );
 };
 

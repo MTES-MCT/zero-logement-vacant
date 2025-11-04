@@ -37,6 +37,9 @@ from .assets import clever
 from .assets.dwh.ingest.ingest_lovac_ff_s3_asset import (
     import_cerema_ff_lovac_data_from_s3_to_duckdb,
 )
+from .assets.dwh.ingest.ingest_external_sources_asset import (
+    import_external_sources_to_duckdb,
+)
 from .assets.dwh.checks.ff_table_exists import check_ff_lovac_on_duckdb
 from .assets.dwh.ingest.ingest_lovac_ff_s3_asset import setup_s3_connection
 from .assets.dwh.upload.upload_ff_db_to_cellar import upload_ff_to_s3
@@ -88,6 +91,22 @@ daily_refresh_schedule = ScheduleDefinition(
 
 yearly_ff_refresh_schedule = ScheduleDefinition(
     job=yearly_update_ff_dwh_job, cron_schedule="@yearly"
+)
+
+# Job to load external data sources (INSEE, DGALN, URSSAF, etc.)
+yearly_update_external_sources_job = define_asset_job(
+    name="datawarehouse_load_external_sources",
+    selection=AssetSelection.assets(
+        "setup_duckdb",
+        import_external_sources_to_duckdb,
+    ),
+    description="Load external data sources from data.gouv.fr, INSEE, URSSAF, DGFIP, etc.",
+)
+
+yearly_external_sources_refresh_schedule = ScheduleDefinition(
+    job=yearly_update_external_sources_job, 
+    cron_schedule="@yearly",
+    description="Annual refresh of external data sources (INSEE, DGALN, etc.)"
 )
 
 owners_asset_job = define_asset_job(
@@ -148,6 +167,16 @@ defs = Definitions(
         "ban_config": ban_config_resource,
         "psycopg2_connection": psycopg2_connection_resource,
     },
-    schedules=[daily_refresh_schedule, yearly_ff_refresh_schedule],
-    jobs=[owners_asset_job, edited_owners_asset_job, housings_asset_job, missing_ban_addresses_asset_job_for_owners],
+    schedules=[
+        daily_refresh_schedule, 
+        yearly_ff_refresh_schedule, 
+        yearly_external_sources_refresh_schedule
+    ],
+    jobs=[
+        owners_asset_job, 
+        edited_owners_asset_job, 
+        housings_asset_job, 
+        missing_ban_addresses_asset_job_for_owners,
+        yearly_update_external_sources_job,
+    ],
 )

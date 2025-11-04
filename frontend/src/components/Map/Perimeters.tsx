@@ -1,8 +1,9 @@
 import * as turf from '@turf/turf';
-import { Geometry } from 'geojson';
-import { Layer, MapRef, Source } from 'react-map-gl/maplibre';
+import { Layer, Source } from 'react-map-gl/maplibre';
+import type { Geometry } from 'geojson';
+import type { MapRef } from 'react-map-gl/maplibre';
 
-import {
+import type {
   GeoPerimeter,
   GeoPerimeterProperties
 } from '../../models/GeoPerimeter';

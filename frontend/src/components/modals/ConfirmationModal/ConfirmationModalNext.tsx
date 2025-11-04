@@ -1,9 +1,9 @@
-import { JSX } from 'react';
+import type { JSX } from 'react';
 
 import {
   createExtendedModal,
-  ExtendedModalOptions,
-  ExtendedModalProps
+  type ExtendedModalOptions,
+  type ExtendedModalProps
 } from './ExtendedModal';
 
 export type ConfirmationModalOptions = ExtendedModalOptions;

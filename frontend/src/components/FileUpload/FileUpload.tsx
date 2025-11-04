@@ -1,10 +1,11 @@
 import { Upload } from '@codegouvfr/react-dsfr/Upload';
 import mime from 'mime';
-import React, { ReactNode } from 'react';
+import React from 'react';
+import type { ReactNode } from 'react';
 
 import { useUploadFileMutation } from '../../services/file.service';
 import { useNotification } from '../../hooks/useNotification';
-import { FileUploadDTO } from '@zerologementvacant/models';
+import type { FileUploadDTO } from '@zerologementvacant/models';
 
 const DEFAULT_TYPES = ['pdf', 'jpg', 'png'];
 const MAX_SIZE = 5; // Mo

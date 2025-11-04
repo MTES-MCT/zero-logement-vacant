@@ -10,8 +10,6 @@ import {
 import { List } from 'immutable';
 import { match, Pattern } from 'ts-pattern';
 
-import { Compare } from '~/utils/compareUtils';
-import { stringSort } from '~/utils/stringUtils';
 import type { Note } from '~/models/Note';
 import { type Owner, toOwnerDTO } from '~/models/Owner';
 import type { Sort } from '~/models/Sort';
@@ -108,28 +106,6 @@ export const getBuildingLocation = (
   }
 };
 
-export function byAddress(h1: Housing, h2: Housing): Compare {
-  const [house1, city1] = h1.rawAddress;
-  const [hn1, ...s1] = house1.split(' ');
-  const street1 = s1.join(' ');
-
-  const [house2, city2] = h2.rawAddress;
-  const [hn2, ...s2] = house2.split(' ');
-  const street2 = s2.join(' ');
-
-  const byCity = stringSort(city1, city2);
-  const byStreet = stringSort(street1, street2);
-  const byHouseNumber = stringSort(hn1, hn2);
-
-  if (city1 === city2) {
-    if (street1 === street2) {
-      return byHouseNumber;
-    }
-    return byStreet;
-  }
-  return byCity;
-}
-
 export function formatOwnershipKind(kind: string | null): string {
   return match(kind)
     .with(
@@ -179,17 +155,19 @@ export function hasCoordinates(
  */
 export const lastUpdate = (): string | null => null;
 
-export enum OccupancyKind {
-  Vacant = 'V',
-  Rent = 'L',
-  ShortRent = 'B',
-  PrimaryResidence = 'P',
-  SecondaryResidence = 'RS',
-  CommercialOrOffice = 'T',
-  Dependency = 'N',
-  DemolishedOrDivided = 'D',
-  Others = 'A'
-}
+export const OccupancyKind = {
+  Vacant: 'V',
+  Rent: 'L',
+  ShortRent: 'B',
+  PrimaryResidence: 'P',
+  SecondaryResidence: 'RS',
+  CommercialOrOffice: 'T',
+  Dependency: 'N',
+  DemolishedOrDivided: 'D',
+  Others: 'A'
+} as const;
+
+export type OccupancyKind = (typeof OccupancyKind)[keyof typeof OccupancyKind];
 
 export const OccupancyUnknown = 'inconnu';
 

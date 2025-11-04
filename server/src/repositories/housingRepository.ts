@@ -15,7 +15,8 @@ import {
   PaginationOptions,
   Precision,
   READ_ONLY_OCCUPANCY_VALUES,
-  READ_WRITE_OCCUPANCY_VALUES
+  READ_WRITE_OCCUPANCY_VALUES,
+  type CadastralClassification
 } from '@zerologementvacant/models';
 import { compactNullable, isNotNull } from '@zerologementvacant/utils';
 import { Array, identity, Predicate, Struct } from 'effect';
@@ -1139,7 +1140,7 @@ export interface HousingRecordDBO {
   geo_code: string;
   longitude_dgfip: number | null;
   latitude_dgfip: number | null;
-  cadastral_classification: number | null;
+  cadastral_classification: CadastralClassification | null;
   uncomfortable: boolean;
   vacancy_start_year: number | null;
   housing_kind: HousingKind;

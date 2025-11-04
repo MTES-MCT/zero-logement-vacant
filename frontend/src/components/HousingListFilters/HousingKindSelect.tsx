@@ -1,8 +1,7 @@
-import { HousingKind } from '@zerologementvacant/models';
+import type { HousingKind } from '@zerologementvacant/models';
 import { housingKindOptions } from '../../models/HousingFilters';
-import AppSelectNext, {
-  AppSelectNextProps
-} from '../_app/AppSelect/AppSelectNext';
+import AppSelectNext from '../_app/AppSelect/AppSelectNext';
+import type { AppSelectNextProps } from '../_app/AppSelect/AppSelectNext';
 
 export type HousingKindSelectProps<Multiple extends boolean> = Pick<
   AppSelectNextProps<HousingKind, Multiple>,

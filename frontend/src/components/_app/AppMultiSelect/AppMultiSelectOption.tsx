@@ -1,5 +1,5 @@
-import { SelectOption } from '../../../models/SelectOption';
-import { ChangeEvent, ReactNode } from 'react';
+import type { SelectOption } from '../../../models/SelectOption';
+import type { ChangeEvent, ReactNode } from 'react';
 import AppCheckbox from '../AppCheckbox/AppCheckbox';
 
 export interface AppMultiSelectOptionProps<Value extends string>

@@ -1,8 +1,8 @@
-import { VACANCY_YEAR_VALUES, VacancyYear } from '@zerologementvacant/models';
+import { VACANCY_YEAR_VALUES } from '@zerologementvacant/models';
+import type { VacancyYear } from '@zerologementvacant/models';
 import { VACANCY_YEAR_OPTIONS } from '../../models/HousingFilters';
-import AppSelectNext, {
-  AppSelectNextProps
-} from '../_app/AppSelect/AppSelectNext';
+import AppSelectNext from '../_app/AppSelect/AppSelectNext';
+import type { AppSelectNextProps } from '../_app/AppSelect/AppSelectNext';
 
 export type VacancyYearSelectProps<Multiple extends boolean> = Pick<
   AppSelectNextProps<VacancyYear, Multiple>,

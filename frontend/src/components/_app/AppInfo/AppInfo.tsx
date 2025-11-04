@@ -1,5 +1,5 @@
 import { Container, Text } from '../../_dsfr';
-import { PropsWithChildren } from 'react';
+import type { PropsWithChildren } from 'react';
 
 import styles from './app-info.module.scss';
 import { fr } from '@codegouvfr/react-dsfr';

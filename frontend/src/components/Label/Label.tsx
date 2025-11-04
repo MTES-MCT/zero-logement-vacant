@@ -1,8 +1,8 @@
 import { Text } from '../_dsfr';
-import { PropsWithChildren } from 'react';
+import type { PropsWithChildren } from 'react';
 
 import styles from './label.module.scss';
-import { TextAs } from '../_dsfr/components/foundation/typography/Text/Text';
+import type { TextAs } from '../_dsfr/components/foundation/typography/Text/Text';
 
 interface Props {
   spacing?: string;

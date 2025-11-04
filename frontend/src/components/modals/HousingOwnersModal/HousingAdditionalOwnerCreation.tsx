@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { Col, Container, Row, Text } from '../../_dsfr';
-import { Owner } from '../../../models/Owner';
+import type { Owner } from '../../../models/Owner';
 import * as yup from 'yup';
 import {
   birthDateValidator,

@@ -3,7 +3,7 @@ import { render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import {
   Occupancy,
-  OwnerRank,
+  type OwnerRank,
   PRECISION_BLOCKING_POINT_CATEGORY_VALUES,
   PRECISION_EVOLUTION_CATEGORY_VALUES,
   PRECISION_MECHANISM_CATEGORY_VALUES,
@@ -12,11 +12,11 @@ import {
 import async from 'async';
 import { Provider } from 'react-redux';
 
-import { genEvent, genUser } from '../../../../test/fixtures';
-import { Event } from '../../../models/Event';
-import { Note } from '../../../models/Note';
-import { User } from '../../../models/User';
-import configureTestStore from '../../../utils/test/storeUtils';
+import { genEvent, genUser } from '../../../test/fixtures';
+import type { Event } from '../../../models/Event';
+import type { Note } from '../../../models/Note';
+import type { User } from '../../../models/User';
+import configureTestStore from '../../../utils/storeUtils';
 import { HousingEditionProvider } from '../../HousingEdition/useHousingEdition';
 import EventsHistory from '../EventsHistory';
 

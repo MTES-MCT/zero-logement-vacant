@@ -1,6 +1,7 @@
 import { fc, test } from '@fast-check/vitest';
 
 import {
+  CADASTRAL_CLASSIFICATION_VALUES,
   HOUSING_KIND_VALUES,
   OCCUPANCY_VALUES,
   OWNERSHIP_KIND_INTERNAL_VALUES
@@ -40,7 +41,9 @@ describe('SourceHousing', () => {
       living_area: fc.option(fc.integer({ min: 1 })),
       rooms_count: fc.option(fc.integer({ min: 0 })),
       uncomfortable: fc.option(fc.boolean()),
-      cadastral_classification: fc.option(fc.integer({ min: 0 })),
+      cadastral_classification: fc.option(
+        fc.constantFrom(...CADASTRAL_CLASSIFICATION_VALUES)
+      ),
       cadastral_reference: fc.option(fc.stringMatching(/\S+/)),
       taxed: fc.boolean(),
       rental_value: fc.option(fc.integer({ min: 0 })),

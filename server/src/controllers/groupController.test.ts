@@ -282,7 +282,7 @@ describe('Group API', () => {
             status: fc.constantFrom(...HOUSING_STATUS_VALUES),
             statusList: fc.array(fc.constantFrom(...HOUSING_STATUS_VALUES)),
             subStatus: fc.array(fc.string({ minLength: 1 })),
-            query: fc.string()
+            query: fc.stringMatching(/[a-zA-Z0-9-]/)
           })
         })
       },

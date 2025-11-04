@@ -1,5 +1,5 @@
-import { ChangeEvent } from 'react';
 import { object, string } from 'yup';
+import type { ChangeEvent } from 'react';
 
 import styles from './draft.module.scss';
 import AppTextInput from '../_app/AppTextInput/AppTextInput';

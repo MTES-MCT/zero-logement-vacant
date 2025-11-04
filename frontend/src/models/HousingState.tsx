@@ -1,10 +1,10 @@
 import { HousingStatus as HousingStatusDTO } from '@zerologementvacant/models';
+import { Predicate } from 'effect';
 import type { ReactNode } from 'react';
 
 import type { ColorFamily } from '~/models/ColorFamily';
 import type { Housing } from '~/models/Housing';
 import type { SelectOption } from '~/models/SelectOption';
-import { isDefined } from '~/utils/compareUtils';
 
 export interface HousingState {
   status: HousingStatusDTO;
@@ -21,14 +21,16 @@ export interface HousingSubStatus {
 /**
  * @deprecated See {@link HousingStatusDTO}
  */
-export enum HousingStatus {
-  NeverContacted = HousingStatusDTO.NEVER_CONTACTED,
-  Waiting = HousingStatusDTO.WAITING,
-  FirstContact = HousingStatusDTO.FIRST_CONTACT,
-  InProgress = HousingStatusDTO.IN_PROGRESS,
-  Completed = HousingStatusDTO.COMPLETED,
-  Blocked = HousingStatusDTO.BLOCKED
-}
+export const HousingStatus = {
+  NeverContacted: HousingStatusDTO.NEVER_CONTACTED,
+  Waiting: HousingStatusDTO.WAITING,
+  FirstContact: HousingStatusDTO.FIRST_CONTACT,
+  InProgress: HousingStatusDTO.IN_PROGRESS,
+  Completed: HousingStatusDTO.COMPLETED,
+  Blocked: HousingStatusDTO.BLOCKED
+} as const;
+
+export type HousingStatus = (typeof HousingStatus)[keyof typeof HousingStatus];
 
 export const HousingStates: HousingState[] = [
   {
@@ -135,7 +137,7 @@ export function getSubStatusList(
     .map((status) => (typeof status === 'string' ? Number(status) : status))
     .map(getHousingState)
     .flatMap((state) => state.subStatusList)
-    .filter(isDefined)
+    .filter(Predicate.isNotUndefined)
     .map((substatus) => substatus.title);
 }
 

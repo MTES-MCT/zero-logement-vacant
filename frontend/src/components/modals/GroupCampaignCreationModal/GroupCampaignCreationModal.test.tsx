@@ -2,9 +2,11 @@ import { faker } from '@faker-js/faker/locale/fr';
 import { render, screen, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { UserRole } from '@zerologementvacant/models';
+import { genUserDTO } from '@zerologementvacant/models/fixtures';
 import { Provider } from 'react-redux';
-import { Group } from '../../../models/Group';
-import configureTestStore from '../../../utils/test/storeUtils';
+import type { Group } from '../../../models/Group';
+import { fromUserDTO } from '../../../models/User';
+import configureTestStore from '../../../utils/storeUtils';
 import GroupCampaignCreationModal from './GroupCampaignCreationModal';
 
 const createGroup = (): Group => {
@@ -15,15 +17,10 @@ const createGroup = (): Group => {
     housingCount: faker.number.int({ min: 0, max: 100 }),
     ownerCount: faker.number.int({ min: 0, max: 50 }),
     createdAt: faker.date.past(),
-    createdBy: {
-      id: faker.string.uuid(),
-      email: faker.internet.email(),
-      firstName: faker.person.firstName(),
-      lastName: faker.person.lastName(),
-      role: UserRole.USUAL,
-      activatedAt: faker.date.past(),
-      establishmentId: faker.string.uuid()
-    },
+    createdBy: fromUserDTO({
+      ...genUserDTO(),
+      role: UserRole.USUAL
+    }),
     archivedAt: faker.datatype.boolean() ? faker.date.past() : null
   };
 };

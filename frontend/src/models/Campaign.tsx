@@ -1,21 +1,23 @@
 import { dateSort } from '../utils/dateUtils';
-import { Sort } from './Sort';
-import { CampaignDTO, CampaignStatus } from '@zerologementvacant/models';
+import type { Sort } from './Sort';
+import type { CampaignDTO, CampaignStatus } from '@zerologementvacant/models';
 
 export interface Campaign extends CampaignDTO {
   exportURL: string;
   groupId?: string;
 }
 
-export enum CampaignSteps {
-  OwnersValidation,
-  Export,
-  Sending,
-  Confirmation,
-  InProgress,
-  Outside,
-  Archived
-}
+export const CampaignSteps = {
+  OwnersValidation: 0,
+  Export: 1,
+  Sending: 2,
+  Confirmation: 3,
+  InProgress: 4,
+  Outside: 5,
+  Archived: 6
+} as const;
+
+export type CampaignSteps = (typeof CampaignSteps)[keyof typeof CampaignSteps];
 
 export function isBuilding(campaign: Campaign) {
   const statuses: CampaignStatus[] = ['draft', 'sending'];

@@ -1,10 +1,12 @@
 import * as turf from '@turf/turf';
-import { Feature, GeoJsonProperties, Point } from 'geojson';
-import { Layer, MapRef, Source } from 'react-map-gl/maplibre';
+import type { NonEmptyArray } from 'effect/Array';
+import type { Feature, GeoJsonProperties, Point } from 'geojson';
+import type { MapRef } from 'react-map-gl/maplibre';
+import { Layer, Source } from 'react-map-gl/maplibre';
 
 import { useMapLayerClick } from '../../hooks/useMapLayerClick';
-import HousingPoints from './HousingPoints';
 import BuildingPoints from './BuildingPoints';
+import HousingPoints from './HousingPoints';
 
 type IdentifiableGeoJson = GeoJsonProperties & { id: string };
 
@@ -30,9 +32,13 @@ interface Props<T> {
 function Clusters<T extends IdentifiableGeoJson>(props: Props<T>) {
   const maxZoom = props.maxZoom ?? 16;
   // Flatten and remove the zero
-  const radius = !props.radius
-    ? [24, 5, 36]
-    : Object.entries(props.radius).flat().splice(1).map(Number);
+  const radius: NonEmptyArray<number> =
+    !props.radius || Object.entries(props.radius).length === 0
+      ? [24, 5, 36]
+      : (Object.entries(props.radius)
+          .flat()
+          .splice(1)
+          .map(Number) as NonEmptyArray<number>);
 
   const clusters = turf.featureCollection(props.points);
 

@@ -1,4 +1,4 @@
-import { Housing } from './Housing';
+import type { Housing } from './Housing';
 
 export interface PaginatedResult<T> {
   /**

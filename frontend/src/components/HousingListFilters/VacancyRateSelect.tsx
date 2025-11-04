@@ -1,8 +1,8 @@
-import { VACANCY_RATE_VALUES, VacancyRate } from '@zerologementvacant/models';
+import { VACANCY_RATE_VALUES } from '@zerologementvacant/models';
+import type { VacancyRate } from '@zerologementvacant/models';
 import { VACANCY_RATE_OPTIONS } from '../../models/HousingFilters';
-import AppSelectNext, {
-  AppSelectNextProps
-} from '../_app/AppSelect/AppSelectNext';
+import AppSelectNext from '../_app/AppSelect/AppSelectNext';
+import type { AppSelectNextProps } from '../_app/AppSelect/AppSelectNext';
 
 export type VacancyRateSelectProps<Multiple extends boolean> = Pick<
   AppSelectNextProps<VacancyRate, Multiple>,

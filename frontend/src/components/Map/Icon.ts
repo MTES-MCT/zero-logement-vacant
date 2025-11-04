@@ -1,4 +1,4 @@
-import { MapRef } from 'react-map-gl/maplibre';
+import type { MapRef } from 'react-map-gl/maplibre';
 
 export const BUILDING_DARK = 'building-dark';
 

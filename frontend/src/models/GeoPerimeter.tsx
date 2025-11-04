@@ -1,4 +1,4 @@
-import { GeoPerimeterDTO } from '@zerologementvacant/models';
+import type { GeoPerimeterDTO } from '@zerologementvacant/models';
 
 export type GeoPerimeter = GeoPerimeterDTO;
 

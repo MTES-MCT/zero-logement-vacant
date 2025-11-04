@@ -1,6 +1,6 @@
-import { BadgeProps } from '@codegouvfr/react-dsfr/Badge';
+import type { BadgeProps } from '@codegouvfr/react-dsfr/Badge';
 
-import { HousingStatus } from '@zerologementvacant/models';
+import type { HousingStatus } from '@zerologementvacant/models';
 import { getHousingState } from '../../models/HousingState';
 import styles from './housing-status-badge.module.scss';
 import AppBadge from '../_app/AppBadge/AppBadge';

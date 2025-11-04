@@ -1,8 +1,7 @@
 import { match } from 'ts-pattern';
 
-import AppSelectNext, {
-  AppSelectNextProps
-} from '../_app/AppSelect/AppSelectNext';
+import AppSelectNext from '../_app/AppSelect/AppSelectNext';
+import type { AppSelectNextProps } from '../_app/AppSelect/AppSelectNext';
 
 export type MultiOwnerSelectProps<Multiple extends boolean> = Pick<
   AppSelectNextProps<boolean, Multiple>,

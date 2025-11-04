@@ -1,5 +1,5 @@
 import config from '../utils/config';
-import { AuthUser } from '../models/User';
+import type { AuthUser } from '../models/User';
 
 const login = async (
   email: string,

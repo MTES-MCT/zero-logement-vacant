@@ -1,11 +1,8 @@
-import {
-  ENERGY_CONSUMPTION_VALUES,
-  EnergyConsumption
-} from '@zerologementvacant/models';
-import AppSelectNext, {
-  AppSelectNextProps
-} from '../_app/AppSelect/AppSelectNext';
+import { ENERGY_CONSUMPTION_VALUES } from '@zerologementvacant/models';
+import AppSelectNext from '../_app/AppSelect/AppSelectNext';
 import DPE from '../DPE/DPE';
+import type { EnergyConsumption } from '@zerologementvacant/models';
+import type { AppSelectNextProps } from '../_app/AppSelect/AppSelectNext';
 
 export type EnergyConsumptionSelectProps<Multiple extends boolean> = Pick<
   AppSelectNextProps<EnergyConsumption | null, Multiple>,

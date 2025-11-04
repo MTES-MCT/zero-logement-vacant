@@ -1,4 +1,4 @@
-import { DatafoncierHousing } from '@zerologementvacant/models';
+import type { DatafoncierHousing } from '@zerologementvacant/models';
 import { forwardRef, useImperativeHandle } from 'react';
 import { useAppSelector } from '../../../hooks/useStore';
 import { OccupancyKind } from '../../../models/Housing';
@@ -7,7 +7,7 @@ import { useCreateHousingMutation } from '../../../services/housing.service';
 import { Text } from '../../_dsfr';
 
 import HousingResult from '../../HousingResult/HousingResult';
-import { Step, StepProps } from '../ModalStepper/ModalGraphStepper';
+import type { Step, StepProps } from '../ModalStepper/ModalGraphStepper';
 
 const ReviewHousing = forwardRef((_: StepProps, ref) => {
   const { creator } = useAppSelector((state) => state.housing);

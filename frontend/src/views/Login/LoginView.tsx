@@ -1,25 +1,25 @@
 import { fr } from '@codegouvfr/react-dsfr';
 import { Alert } from '@codegouvfr/react-dsfr/Alert';
 import Button from '@codegouvfr/react-dsfr/Button';
+import { yupResolver } from '@hookform/resolvers-next/yup';
 import Box from '@mui/material/Box';
+import Container from '@mui/material/Container';
 import Grid from '@mui/material/Grid';
 import Typography from '@mui/material/Typography';
-import Container from '@mui/material/Container';
-import { yupResolver } from '@hookform/resolvers-next/yup';
-import { FormProvider, useForm } from 'react-hook-form';
-import { object, string, type InferType } from 'yup-next';
 import type { EstablishmentDTO } from '@zerologementvacant/models';
 import { useState } from 'react';
 import { FormProvider, useForm } from 'react-hook-form';
 import { useLocation, useNavigate } from 'react-router-dom';
+import { boolean, object, string, type InferType } from 'yup-next';
 
+import EstablishmentSearchableSelect from '~/components/establishment/EstablishmentSearchableSelect';
 import building from '../../assets/images/building.svg';
 import AppLink from '../../components/_app/AppLink/AppLink';
 import AppTextInputNext from '../../components/_app/AppTextInput/AppTextInputNext';
-import EstablishmentSearchableSelect from '~/components/establishment/EstablishmentSearchableSelect';
 import { useDocumentTitle } from '../../hooks/useDocumentTitle';
 import { useAppDispatch, useAppSelector } from '../../hooks/useStore';
 import { logIn } from '../../store/thunks/auth-thunks';
+import Image from '~/components/Image/Image';
 
 const schema = object({
   isAdmin: boolean().required(),
@@ -101,10 +101,10 @@ const LoginView = () => {
             <form onSubmit={form.handleSubmit(submitLoginForm)} id="login_form">
               <AppTextInputNext
                 name="email"
-                label="Adresse email (obligatoire)"
+                label="Adresse e-mail (obligatoire)"
                 nativeInputProps={{
                   type: 'email',
-                  autoComplete: 'email'
+                  autoComplete: 'email',
                 }}
               />
               <AppTextInputNext

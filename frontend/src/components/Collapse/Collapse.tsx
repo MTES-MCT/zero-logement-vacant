@@ -1,6 +1,7 @@
 import { Icon, Text } from '../_dsfr';
 import classNames from 'classnames';
-import { ReactNode, useRef, useState } from 'react';
+import { useRef, useState } from 'react';
+import type { ReactNode } from 'react';
 
 import styles from './collapse.module.scss';
 import { useOutsideClick } from '../../hooks/useOutsideClick';

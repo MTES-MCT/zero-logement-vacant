@@ -36,17 +36,17 @@ export interface OwnerHousingCardProps {
   status: HousingStatus;
 }
 
+const PropertyRight = (props: Pick<OwnerHousingCardProps, 'propertyRight'>) =>
+  !props.propertyRight ? null : (
+    <PropertyRightTag value={props.propertyRight} />
+  );
+
+const Rank = (props: Pick<OwnerHousingCardProps, 'rank'>) =>
+  props.rank && isPrimaryOwner({ rank: props.rank }) ? (
+    <RankBadge value={props.rank} />
+  ) : null;
+
 function OwnerHousingCard(props: OwnerHousingCardProps) {
-  const PropertyRight = () =>
-    !props.propertyRight ? null : (
-      <PropertyRightTag value={props.propertyRight} />
-    );
-
-  const Rank = () =>
-    props.rank && isPrimaryOwner({ rank: props.rank }) ? (
-      <RankBadge value={props.rank} />
-    ) : null;
-
   const kind = match(props.kind)
     .returnType<string>()
     .with(HousingKind.APARTMENT, () => 'Appartement')
@@ -57,8 +57,8 @@ function OwnerHousingCard(props: OwnerHousingCardProps) {
     <Card
       start={
         <Stack direction="row" spacing="0.5rem" useFlexGap>
-          <PropertyRight />
-          <Rank />
+          <PropertyRight propertyRight={props.propertyRight} />
+          <Rank rank={props.rank} />
         </Stack>
       }
       title={

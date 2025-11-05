@@ -2,8 +2,8 @@ version: 2
 
 sources:
   - name: duckdb_raw
-    schema: ff
+    schema: external
     tables:
-      - name: raw_ff_2024_buildings
-      - name: raw_ff_2024_housing
-      - name: raw_ff_2024_owners
+      - name: cerema_ff_2024_buildings_raw
+      - name: cerema_ff_2024_housing_raw
+      - name: cerema_ff_2024_owners_raw

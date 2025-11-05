@@ -1,4 +1,4 @@
-import { NoteDTO, NotePayloadDTO } from '@zerologementvacant/models';
+import type { NoteDTO, NotePayloadDTO } from '@zerologementvacant/models';
 import { genNoteDTO, genUserDTO } from '@zerologementvacant/models/fixtures';
 import { http, HttpResponse, RequestHandler } from 'msw';
 import { constants } from 'node:http2';

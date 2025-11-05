@@ -1,40 +1,40 @@
 import {
-  BeneficiaryCount,
-  BuildingPeriod,
-  CadastralClassification,
-  CampaignDTO,
+  type BeneficiaryCount,
+  type BuildingPeriod,
+  type CadastralClassification,
+  type CampaignDTO,
   DATA_FILE_YEAR_VALUES,
-  DataFileYear,
+  type DataFileYear,
   ENERGY_CONSUMPTION_VALUES,
-  EnergyConsumption,
-  HousingByBuilding,
-  HousingFiltersDTO,
+  type EnergyConsumption,
+  type HousingByBuilding,
+  type HousingFiltersDTO,
   HousingKind,
   HousingStatus,
-  LastMutationTypeFilter,
-  LastMutationYearFilter,
-  LivingArea,
-  LocalityKind,
+  type LastMutationTypeFilter,
+  type LastMutationYearFilter,
+  type LivingArea,
+  type LocalityKind,
   Occupancy,
   OCCUPANCY_LABELS,
   OCCUPANCY_VALUES,
   OWNER_KIND_LABELS,
   OWNER_KIND_VALUES,
-  OwnerAge,
-  OwnerKind,
-  OwnershipKind,
-  RoomCount,
-  VacancyRate,
-  VacancyYear
+  type OwnerAge,
+  type OwnerKind,
+  type OwnershipKind,
+  type RoomCount,
+  type VacancyRate,
+  type VacancyYear
 } from '@zerologementvacant/models';
 import { Array, pipe, Record } from 'effect';
 import { match, Pattern } from 'ts-pattern';
 
 import EnergyConsumptionOption from '../components/_app/AppMultiSelect/EnergyConsumptionOption';
-import { Establishment } from './Establishment';
+import type { Establishment } from './Establishment';
 import { HousingStates } from './HousingState';
 import { LocalityKindLabels } from './Locality';
-import { SelectOption } from './SelectOption';
+import type { SelectOption } from './SelectOption';
 
 // eslint-disable-next-line @typescript-eslint/no-empty-object-type
 export interface HousingFilters extends HousingFiltersDTO {}

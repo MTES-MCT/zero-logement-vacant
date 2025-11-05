@@ -10,9 +10,8 @@ import { Alert } from '@codegouvfr/react-dsfr/Alert';
 import {
   HOUSING_STATUS_VALUES,
   HousingStatus,
-  Occupancy,
+  Occupancy
 } from '@zerologementvacant/models';
-import { Housing, HousingUpdate } from '../../models/Housing';
 import { getSubStatusOptions } from '../../models/HousingState';
 import {
   FormProvider,
@@ -25,7 +24,8 @@ import HousingStatusSelect from '../HousingListFilters/HousingStatusSelect';
 import HousingSubStatusSelect from '../HousingListFilters/HousingSubStatusSelect';
 import OccupancySelect from '../HousingListFilters/OccupancySelect';
 import AppTextInputNext from '../_app/AppTextInput/AppTextInputNext';
-import { HousingEditionFormSchema } from './HousingEditionSideMenu';
+import type { Housing, HousingUpdate } from '../../models/Housing';
+import type { HousingEditionFormSchema } from './HousingEditionSideMenu';
 
 const modal = createModal({ id: 'housing-edition-modal', isOpenedByDefault: false });
 
@@ -93,16 +93,16 @@ const HousingEditionForm = forwardRef(function HousingEditionForm(
         isStatusDirty || isSubStatusDirty
           ? {
               status: +(statusField.value ?? HousingStatus.WAITING),
-              subStatus: subStatusField.value,
+              subStatus: subStatusField.value ?? null
             }
           : undefined,
       occupancyUpdate: isOccupancyUpdate()
         ? {
             occupancy: occupancy ?? Occupancy.UNKNOWN,
-            occupancyIntended: occupancyIntended ?? null,
+            occupancyIntended: occupancyIntended ?? null
           }
         : undefined,
-      note: hasNote ? { content: noteValue } : undefined,
+      note: hasNote ? { content: noteValue } : undefined
     });
 
     modal.close();
@@ -198,15 +198,9 @@ const HousingEditionForm = forwardRef(function HousingEditionForm(
     () => [
       { label: 'Occupation', content: <OccupationTab /> },
       { label: 'Suivi', content: <MobilizationTab /> },
-      { label: 'Note', content: <NoteTab /> },
+      { label: 'Note', content: <NoteTab /> }
     ],
-    [
-      subStatusDisabled,
-      occupancy,
-      occupancyIntended,
-      statusField.value,
-      subStatusField.value,
-    ],
+    [OccupationTab, MobilizationTab, NoteTab]
   );
 
   return (

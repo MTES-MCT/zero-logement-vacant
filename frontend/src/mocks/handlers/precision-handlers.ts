@@ -1,6 +1,6 @@
 import { http, HttpResponse, RequestHandler } from 'msw';
 
-import { Precision } from '@zerologementvacant/models';
+import type { Precision } from '@zerologementvacant/models';
 import config from '../../utils/config';
 import data from './data';
 import { Predicate } from 'effect';

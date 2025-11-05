@@ -1,7 +1,11 @@
 import Button from '@codegouvfr/react-dsfr/Button';
 import Stack from '@mui/material/Stack';
 import Typography from '@mui/material/Typography';
-import { createColumnHelper, type SortingState } from '@tanstack/react-table';
+import {
+  createColumnHelper,
+  type SortingState,
+  type VisibilityState
+} from '@tanstack/react-table';
 import { format } from 'date-fns';
 import { fr } from 'date-fns/locale';
 import { useState } from 'react';

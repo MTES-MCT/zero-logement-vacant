@@ -1,4 +1,4 @@
-import { Locality, TaxKinds } from '../models/Locality';
+import { type Locality, TaxKinds } from '../models/Locality';
 import { zlvApi } from './api.service';
 
 export const localityApi = zlvApi.injectEndpoints({

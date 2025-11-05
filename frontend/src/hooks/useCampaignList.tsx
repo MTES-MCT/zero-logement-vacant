@@ -1,5 +1,5 @@
 import {
-  FindOptions,
+  type FindOptions,
   useFindCampaignsQuery,
 } from '../services/campaign.service';
 

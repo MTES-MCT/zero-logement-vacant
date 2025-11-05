@@ -3,6 +3,7 @@ SELECT
     e.created_at,
     e.created_by,
     he.housing_id,
+    ho.owner_id,
     CASE
         WHEN e.type = 'housing:status-updated' THEN
             CASE
@@ -34,9 +35,9 @@ SELECT
     e.next_new ->> 'occupancy' AS new_occupancy,
     e.next_old ->> 'occupancy' AS old_occupancy,
     'new' AS version,
-    NULL as category, 
+    split_part(type, ':', 1) as category, 
     type
 FROM {{ ref('stg_production_events') }} e
-LEFT JOIN {{ ref('stg_production_housing_events') }} he
-    ON e.id = he.event_id
+LEFT JOIN {{ ref('stg_production_housing_events') }} he ON e.id = he.event_id
+LEFT JOIN {{ ref('stg_production_owner_events') }} ho ON e.id = ho.event_id
 WHERE e.type IN('housing:status-updated', 'housing:occupancy-updated')

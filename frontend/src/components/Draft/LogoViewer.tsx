@@ -1,6 +1,6 @@
-import { FileUploadDTO } from '@zerologementvacant/models';
 import { Container } from '../_dsfr';
 import styles from './draft.module.scss';
+import type { FileUploadDTO } from '@zerologementvacant/models';
 
 interface Props {
   index: number;

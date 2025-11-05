@@ -1,4 +1,4 @@
-import { FilterSpecification } from '@maplibre/maplibre-gl-style-spec';
+import type { FilterSpecification } from '@maplibre/maplibre-gl-style-spec';
 import { Layer } from 'react-map-gl/maplibre';
 
 import statusColors from './status-colors';
@@ -24,7 +24,9 @@ function HousingPoints(props: Props) {
           ['get', 'status', ['at', 0, ['get', 'housingList']]],
           // Apply a background color to the circle
           // depending on the housing status
-          ...statusColors.backgroundColors.flat(),
+          statusColors.backgroundColors[0][0],
+          statusColors.backgroundColors[0][1],
+          ...statusColors.backgroundColors.slice(1).flat(),
           // Default
           statusColors.defaultBackgroundColor
         ],
@@ -40,7 +42,9 @@ function HousingPoints(props: Props) {
           ['get', 'status', ['at', 0, ['get', 'housingList']]],
           // Apply a stroke color to the circle
           // depending on the housing status
-          ...statusColors.borderColors.flat(),
+          statusColors.borderColors[0][0],
+          statusColors.borderColors[0][1],
+          ...statusColors.borderColors.slice(1).flat(),
           statusColors.defaultBorderColor
         ]
       }}

@@ -4,6 +4,7 @@ WITH old_events AS (
         CAST(created_at AS DATE) AS created_at,
         created_by,
         old_events.housing_id,
+        NULL AS owner_id,
         NULL AS old_status,
         NULL AS new_status_raw,
         NULL AS old_status_raw,

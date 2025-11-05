@@ -6,7 +6,7 @@ import { genUserDTO } from '@zerologementvacant/models/fixtures';
 import { Provider } from 'react-redux';
 import { createMemoryRouter, RouterProvider } from 'react-router-dom';
 import data from '../../mocks/handlers/data';
-import configureTestStore from '../../utils/test/storeUtils';
+import configureTestStore from '../../utils/storeUtils';
 import LoginView from './LoginView';
 
 describe('login view', () => {
@@ -20,6 +20,10 @@ describe('login view', () => {
         {
           path: '/mot-de-passe/oublie',
           element: 'Mot de passe oublié'
+        },
+        {
+          path: '/parc-de-logements',
+          element: 'Parc de logements'
         }
       ],
       { initialEntries: ['/connexion'] }

@@ -1,6 +1,6 @@
-import { Event } from '../../../models/Event';
 import { birthdate } from '../../../utils/dateUtils';
 import EventCard from '../EventCard';
+import type { Event } from '../../../models/Event';
 
 interface Props {
   event: Event<'owner:updated'>;

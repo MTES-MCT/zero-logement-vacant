@@ -1,6 +1,7 @@
-import { createColumnHelper, SortingState } from '@tanstack/react-table';
+import { createColumnHelper } from '@tanstack/react-table';
 import { byKind } from '@zerologementvacant/models';
 import { useState } from 'react';
+import type { SortingState } from '@tanstack/react-table';
 
 import AdvancedTable from '~/components/AdvancedTable/AdvancedTable';
 import type { Establishment } from '~/models/Establishment';

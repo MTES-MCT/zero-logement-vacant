@@ -1,4 +1,4 @@
-FROM python:3.10-slim
+FROM python:3.12-slim
 
 ARG ZLV_HTTP_USERNAME=zlv
 ARG ZLV_HTTP_PASSWORD=zlv
@@ -11,12 +11,12 @@ COPY --from=ghcr.io/astral-sh/uv:latest /uv /uvx /bin/
 
 # Installer les dépendances nécessaires
 RUN apt-get update && \
-    apt-get install -y nginx apache2-utils curl gnupg && \
+    apt-get install -y nginx apache2-utils curl gnupg gcc libpq-dev && \
     apt-get clean && \
     rm -rf /var/lib/apt/lists/*
 
 # Installer Clever Tools
-RUN curl -sL https://clever-tools.clever-cloud.com/releases/latest/clever-tools-latest_linux.tar.gz | tar xz -C /usr/local/binuv
+RUN curl -sL https://clever-tools.clever-cloud.com/releases/latest/clever-tools-latest_linux.tar.gz | tar xz -C /usr/local/bin
 
 # Copier les fichiers de configuration et le code source
 COPY pyproject.toml uv.lock ./

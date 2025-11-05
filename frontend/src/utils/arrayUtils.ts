@@ -1,6 +1,6 @@
 import { compose } from 'effect/Function';
 
-import { Identifiable } from '../models/Identifiable';
+import type { Identifiable } from '../models/Identifiable';
 
 export function ensure<T>(
   argument: T | undefined | null,

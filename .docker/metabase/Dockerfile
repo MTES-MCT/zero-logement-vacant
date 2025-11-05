@@ -1,4 +1,4 @@
-FROM openjdk:21-slim-bookworm
+FROM eclipse-temurin:21-jre
 
 ARG CELLAR_ADDON_HOST
 ARG CELLAR_ADDON_KEY_ID

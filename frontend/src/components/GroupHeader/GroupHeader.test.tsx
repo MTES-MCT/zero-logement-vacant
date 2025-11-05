@@ -1,14 +1,14 @@
-import { Store } from '@reduxjs/toolkit';
+import type { Store } from '@reduxjs/toolkit';
 import { render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { http, HttpResponse } from 'msw';
 import { Provider } from 'react-redux';
 import { MemoryRouter as Router } from 'react-router-dom';
 
-import { GroupDTO } from '@zerologementvacant/models';
+import type { GroupDTO } from '@zerologementvacant/models';
 import { genGroupDTO, genUserDTO } from '@zerologementvacant/models/fixtures';
 import GroupHeader, { DISPLAY_GROUPS } from './GroupHeader';
-import configureTestStore from '../../utils/test/storeUtils';
+import configureTestStore from '../../utils/storeUtils';
 import { mockAPI } from '../../mocks/mock-api';
 import config from '../../utils/config';
 
@@ -67,7 +67,9 @@ describe('GroupHeader', () => {
       </Provider>
     );
 
-    const cards = await screen.findAllByRole('group-card');
+    const cards = await screen.findAllByRole('link', {
+      name: /^Groupe de logements/
+    });
     expect(cards).toBeArrayOfSize(
       groups.filter((group) => !group.archivedAt).length
     );

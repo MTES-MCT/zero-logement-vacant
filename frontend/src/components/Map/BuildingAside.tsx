@@ -121,16 +121,18 @@ function BuildingAside(props: BuildingAsideProps) {
                   />
                   <span>Propriétaire principal</span>
                 </Label>
-                <AppLink isSimple to={`/proprietaires/${housing.owner.id}`}>
-                  {housing.owner.fullName}
-                </AppLink>
-              </Stack>
-
+                {housing.owner ? (
+                  <AppLink isSimple to={`/proprietaires/${housing.owner.id}`}>
+                    {housing.owner.fullName}
+                  </AppLink>
+                ) : (
+                  <Typography variant="body2">Pas d’information</Typography>
+                )}
+              </Stack>{' '}
               <Stack sx={{ alignItems: 'flex-start' }}>
                 <Label>Occupation</Label>
                 <OccupancyBadge occupancy={housing.occupancy} />
               </Stack>
-
               <Stack sx={{ alignItems: 'flex-start' }}>
                 <Label>Campagnes</Label>
                 {campaigns?.length === 0 ? (
@@ -149,7 +151,6 @@ function BuildingAside(props: BuildingAsideProps) {
                   </Stack>
                 )}
               </Stack>
-
               <Stack sx={{ alignItems: 'flex-start' }}>
                 <Label>Statut de suivi</Label>
                 <Stack

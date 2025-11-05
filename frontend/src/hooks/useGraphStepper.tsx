@@ -1,6 +1,6 @@
 import { useState } from 'react';
 
-import { Identifiable } from '../models/Identifiable';
+import type { Identifiable } from '../models/Identifiable';
 
 export function useGraphStepper<T extends Identifiable = Identifiable>(
   steps: T[]

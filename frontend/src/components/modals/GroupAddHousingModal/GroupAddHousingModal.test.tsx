@@ -1,10 +1,10 @@
 import { faker } from '@faker-js/faker/locale/fr';
-import { Store } from '@reduxjs/toolkit';
+import type { Store } from '@reduxjs/toolkit';
 import { render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { Provider } from 'react-redux';
 import { vi } from 'vitest';
-import configureTestStore from '../../../utils/test/storeUtils';
+import configureTestStore from '../../../utils/storeUtils';
 
 import GroupAddHousingModal from './GroupAddHousingModal';
 

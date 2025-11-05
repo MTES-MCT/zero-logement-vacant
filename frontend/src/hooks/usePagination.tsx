@@ -1,4 +1,4 @@
-import { Pagination } from '@zerologementvacant/models';
+import type { Pagination } from '@zerologementvacant/models';
 import config from '../utils/config';
 
 /**

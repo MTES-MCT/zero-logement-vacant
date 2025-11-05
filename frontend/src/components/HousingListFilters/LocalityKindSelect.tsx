@@ -1,11 +1,11 @@
-import { LOCALITY_KIND_VALUES, LocalityKind } from '@zerologementvacant/models';
+import { LOCALITY_KIND_VALUES } from '@zerologementvacant/models';
+import type { LocalityKind } from '@zerologementvacant/models';
 import {
   LOCALITY_KIND_EMPTY_OPTION,
   LOCALITY_KIND_OPTIONS
 } from '../../models/HousingFilters';
-import AppSelectNext, {
-  AppSelectNextProps
-} from '../_app/AppSelect/AppSelectNext';
+import AppSelectNext from '../_app/AppSelect/AppSelectNext';
+import type { AppSelectNextProps } from '../_app/AppSelect/AppSelectNext';
 
 export type LocalityKindSelectProps<Multiple extends boolean> = Pick<
   AppSelectNextProps<LocalityKind | null, Multiple>,

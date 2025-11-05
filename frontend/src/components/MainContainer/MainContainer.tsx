@@ -1,6 +1,6 @@
 import { Container } from '../_dsfr';
-import { ReactNode } from 'react';
 import Typography from '@mui/material/Typography';
+import type { ReactNode } from 'react';
 
 export interface Props {
   title?: ReactNode | ReactNode[];
@@ -10,12 +10,7 @@ export interface Props {
 
 function MainContainer(props: Props) {
   return (
-    <Container
-      as="main"
-      fluid
-      spacing="py-4w"
-      className={props.grey ? 'bg-100' : ''}
-    >
+    <Container fluid spacing="py-4w" className={props.grey ? 'bg-100' : ''}>
       <Container as="section">
         {props.title && (
           <Typography component="h1" variant="h3" mb={3}>

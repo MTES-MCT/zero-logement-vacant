@@ -1,11 +1,8 @@
-import {
-  OWNERSHIP_KIND_VALUES,
-  OwnershipKind
-} from '@zerologementvacant/models';
+import { OWNERSHIP_KIND_VALUES } from '@zerologementvacant/models';
+import type { OwnershipKind } from '@zerologementvacant/models';
 import { OWNERSHIP_KIND_OPTIONS } from '../../models/HousingFilters';
-import AppSelectNext, {
-  AppSelectNextProps
-} from '../_app/AppSelect/AppSelectNext';
+import AppSelectNext from '../_app/AppSelect/AppSelectNext';
+import type { AppSelectNextProps } from '../_app/AppSelect/AppSelectNext';
 
 export type OwnershipKindSelectProps<Multiple extends boolean> = Pick<
   AppSelectNextProps<OwnershipKind, Multiple>,

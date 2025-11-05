@@ -1,5 +1,5 @@
-import { createModal, ModalProps } from '@codegouvfr/react-dsfr/Modal';
-import { JSX, useEffect } from 'react';
+import { createModal, type ModalProps } from '@codegouvfr/react-dsfr/Modal';
+import { type JSX, useEffect } from 'react';
 import { match } from 'ts-pattern';
 
 export interface ExtendedModalOptions {

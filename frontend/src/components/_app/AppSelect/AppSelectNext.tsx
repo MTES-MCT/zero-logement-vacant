@@ -1,16 +1,12 @@
 import { fr } from '@codegouvfr/react-dsfr';
 import Checkbox from '@codegouvfr/react-dsfr/Checkbox';
-import {
-  BaseSelectProps,
-  Box,
-  MenuItem,
-  Select as MuiSelect,
-  SelectChangeEvent
-} from '@mui/material';
+import { Box, MenuItem, Select as MuiSelect } from '@mui/material';
+import type { BaseSelectProps, SelectChangeEvent } from '@mui/material';
 import Typography from '@mui/material/Typography';
 import classNames from 'classnames';
 import { List, Set } from 'immutable';
-import { Key, ReactNode, SyntheticEvent, useId, useRef } from 'react';
+import { useId, useRef } from 'react';
+import type { Key, ReactNode, SyntheticEvent } from 'react';
 import { match, Pattern } from 'ts-pattern';
 
 import styles from './app-select-next.module.scss';

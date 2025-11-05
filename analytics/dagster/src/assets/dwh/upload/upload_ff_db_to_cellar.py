@@ -1,18 +1,17 @@
 from dagster import AssetKey, asset
 from ....config import RESULT_TABLES, Config
 from .utils import upload
-from ..ingest.queries.lovac import lovac_tables_sql
-from ..ingest.queries.ff import ff_tables_sql
+from ..ingest.queries.external_sources_config import get_sources_by_producer
 from dagster_duckdb import DuckDBResource
 import boto3
 
 
-# Asset for uploading the DuckDB metabase file to S3
-all_tables_sql = {**lovac_tables_sql, **ff_tables_sql}
+# Get all CEREMA sources for dependency management
+cerema_sources = get_sources_by_producer("CEREMA")
 
 @asset(
     name="upload_ff_to_s3",
-    deps={AssetKey(f"build_{table_name}") for table_name in all_tables_sql.keys()},
+    deps={AssetKey(source_name) for source_name in cerema_sources.keys()},
     group_name="upload",
 )
 def upload_ff_to_s3(duckdb: DuckDBResource):

@@ -8,7 +8,7 @@
     "lib": ["es5", "dom"],
     "sourceMap": true,
     "esModuleInterop": true,
-    "types": ["cypress", "node"]
+    "types": ["@testing-library/cypress", "cypress", "cypress-axe", "node"]
   },
   "include": ["**/*.ts"]
 }

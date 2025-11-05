@@ -3,7 +3,7 @@ import Button from '@codegouvfr/react-dsfr/Button';
 import { Menu, MenuItem } from '@mui/material';
 import React, { useState } from 'react';
 
-import { Variable } from './Variable';
+import type { Variable } from './Variable';
 
 interface Props {
   options: Variable[];

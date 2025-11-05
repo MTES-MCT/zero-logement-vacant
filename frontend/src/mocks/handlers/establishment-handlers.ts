@@ -1,8 +1,8 @@
-import { EstablishmentDTO } from '@zerologementvacant/models';
+import type { EstablishmentDTO } from '@zerologementvacant/models';
 import { http, HttpResponse, RequestHandler } from 'msw';
 
-import config from '../../utils/config.ts';
-import data from './data.ts';
+import config from '../../utils/config';
+import data from './data';
 
 export const establishmentHandlers: RequestHandler[] = [
   http.get<never, never, ReadonlyArray<EstablishmentDTO>>(

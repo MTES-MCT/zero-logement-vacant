@@ -82,19 +82,15 @@ function SmallHeader() {
     <>
       <Paper
         className="fr-header"
+        component="header"
+        id="fr-header"
         square
         sx={(theme) => ({
           position: 'sticky',
           zIndex: theme.zIndex.appBar
         })}
       >
-        <Grid
-          alignItems="center"
-          container
-          component="header"
-          px={3}
-          sx={{ height: '84px' }}
-        >
+        <Grid alignItems="center" container px={3} sx={{ height: '84px' }}>
           <Link className="fr-header-operator fr-enlarge-link fr-mr-5w" to="/">
             <img
               className="fr-responsive-img-1x1"
@@ -107,7 +103,6 @@ function SmallHeader() {
           <MainNavigation
             className="fr-mr-5w"
             classes={{
-              //root: styles.root,
               list: styles.linkList,
               link: styles.link
             }}

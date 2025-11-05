@@ -1,3 +1,3 @@
-import { SignupLinkDTO } from '@zerologementvacant/models';
+import type { SignupLinkDTO } from '@zerologementvacant/models';
 
 export type SignupLink = SignupLinkDTO;

@@ -1,9 +1,9 @@
-import {
+import type {
   ComponentPropsWithoutRef,
   InputHTMLAttributes,
   TextareaHTMLAttributes
 } from 'react';
-import { ObjectShape } from 'yup/lib/object';
+import type { ObjectShape } from 'yup/lib/object';
 import { useForm } from '../../../hooks/useForm';
 import Input from '@codegouvfr/react-dsfr/Input';
 

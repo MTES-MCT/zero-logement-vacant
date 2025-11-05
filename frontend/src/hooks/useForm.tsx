@@ -2,7 +2,7 @@ import { isDate } from 'date-fns';
 import { Array, pipe, Predicate, Record } from 'effect';
 import { useEffect, useRef, useState } from 'react';
 import * as yup from 'yup';
-import { ObjectShape } from 'yup/lib/object';
+import type { ObjectShape } from 'yup/lib/object';
 import { parseDateInput } from '../utils/dateUtils';
 
 export const emailValidator = yup

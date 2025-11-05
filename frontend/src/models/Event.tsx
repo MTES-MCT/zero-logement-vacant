@@ -1,11 +1,11 @@
-import {
+import type {
   EventDTO,
   EventHousingStatus,
   EventType
 } from '@zerologementvacant/models';
 import { match } from 'ts-pattern';
 
-import { fromUserDTO, User } from './User';
+import { fromUserDTO, type User } from './User';
 
 export type Event<Type extends EventType = EventType> = Omit<
   EventDTO<Type>,

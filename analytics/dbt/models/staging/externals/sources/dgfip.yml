@@ -1,0 +1,19 @@
+version: 2
+
+sources:
+  - name: dgfip
+    description: "Data from Direction Générale des Finances Publiques"
+    schema: dgfip
+    tables:
+      - name: fiscalite_locale_particuliers
+        description: "Fiscalité locale des particuliers par commune"
+        meta:
+          dagster_asset_key: raw_fiscalite_locale
+          producer: DGFIP
+        columns:
+          - name: code_commune
+            description: "Code INSEE de la commune"
+          - name: annee
+            description: "Année fiscale"
+
+

@@ -15,20 +15,20 @@ import {
 } from '@zerologementvacant/models/fixtures';
 import { addHours } from 'date-fns';
 import randomstring from 'randomstring';
-import type { Address } from '../src/models/Address';
-import { type Event, fromEventDTO } from '../src/models/Event';
-import type { Group } from '../src/models/Group';
-import type { Housing } from '../src/models/Housing';
-import { fromNoteDTO, type Note } from '../src/models/Note';
-import { fromOwnerDTO, type Owner } from '../src/models/Owner';
-import type { Prospect } from '../src/models/Prospect';
-import type { SignupLink } from '../src/models/SignupLink';
+import type { Address } from '../models/Address';
+import { type Event, fromEventDTO } from '../models/Event';
+import type { Group } from '../models/Group';
+import type { Housing } from '../models/Housing';
+import { fromNoteDTO, type Note } from '../models/Note';
+import { fromOwnerDTO, type Owner } from '../models/Owner';
+import type { Prospect } from '../models/Prospect';
+import type { SignupLink } from '../models/SignupLink';
 import {
   type AuthUser,
   fromUserDTO,
   toUserDTO,
   type User
-} from '../src/models/User';
+} from '../models/User';
 
 export const genBoolean = () => Math.random() < 0.5;
 
@@ -87,7 +87,7 @@ export function genOwner(): Owner {
 export function genHousing(): Housing {
   return {
     ...genHousingDTO(null),
-    buildingId: null,
+    buildingId: null
   };
 }
 

@@ -1,12 +1,14 @@
-import { fr, FrIconClassName, RiIconClassName } from '@codegouvfr/react-dsfr';
-import Checkbox, { CheckboxProps } from '@codegouvfr/react-dsfr/Checkbox';
+import { fr } from '@codegouvfr/react-dsfr';
+import type { FrIconClassName, RiIconClassName } from '@codegouvfr/react-dsfr';
+import Checkbox from '@codegouvfr/react-dsfr/Checkbox';
+import type { CheckboxProps } from '@codegouvfr/react-dsfr/Checkbox';
 import RadioButtons from '@codegouvfr/react-dsfr/RadioButtons';
 import Typography from '@mui/material/Typography';
 import classNames from 'classnames';
-import { ChangeEvent } from 'react';
-import { ElementOf } from 'ts-essentials';
+import type { ChangeEvent } from 'react';
+import type { ElementOf } from 'ts-essentials';
 
-import { Precision, PrecisionCategory } from '@zerologementvacant/models';
+import type { Precision, PrecisionCategory } from '@zerologementvacant/models';
 import styles from './precision-modal.module.scss';
 
 interface PrecisionColumnProps {

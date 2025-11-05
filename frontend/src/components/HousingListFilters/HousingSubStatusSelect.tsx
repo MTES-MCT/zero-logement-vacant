@@ -1,7 +1,6 @@
 import { findStatus } from '../../models/HousingState';
-import AppSelectNext, {
-  AppSelectNextProps
-} from '../_app/AppSelect/AppSelectNext';
+import AppSelectNext from '../_app/AppSelect/AppSelectNext';
+import type { AppSelectNextProps } from '../_app/AppSelect/AppSelectNext';
 import HousingStatusBadge from '../HousingStatusBadge/HousingStatusBadge';
 
 export type HousingSubStatusSelectProps<Multiple extends boolean> = Pick<

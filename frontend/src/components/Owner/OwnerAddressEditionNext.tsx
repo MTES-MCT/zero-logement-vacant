@@ -1,4 +1,5 @@
 import { Array, pipe } from 'effect';
+import { useState } from 'react';
 import AddressSearchableSelectNext, {
   type AddressSearchableSelectNextProps
 } from '~/components/Address/AddressSearchableSelectNext';
@@ -38,8 +39,10 @@ function OwnerAddressEditionNext(props: OwnerAddressEditionNextProps) {
     );
   }
 
+  const [ignoredAddresses, setIgnoredAddresses] = useState<ReadonlyArray<string>>(listIgnored());
+
   const isIgnored: boolean = pipe(
-    listIgnored(),
+    ignoredAddresses,
     Array.contains(address?.banId)
   );
   const hasWarning: boolean =
@@ -50,10 +53,9 @@ function OwnerAddressEditionNext(props: OwnerAddressEditionNextProps) {
       return;
     }
 
-    const ignored = pipe(listIgnored(), Array.append(address.banId), (ids) =>
-      JSON.stringify(ids)
-    );
-    localStorage.setItem('address-warning-visible', ignored);
+    const ignored = pipe(ignoredAddresses, Array.append(address.banId));
+    localStorage.setItem('address-warning-visible', JSON.stringify(ignored));
+    setIgnoredAddresses(ignored);
   }
 
   return (

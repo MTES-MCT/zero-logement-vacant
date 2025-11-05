@@ -111,7 +111,9 @@ function AddressSearchableSelectNext(props: AddressSearchableSelectNextProps) {
             onClick: props.onIgnoreWarning
           }}
         >
-          L’adresse de la Base Adresse Nationale diffère de celle de la DGFIP.
+          <Typography component="span" variant="body1">
+            L’adresse de la Base Adresse Nationale diffère de celle de la DGFIP.
+          </Typography>
         </CallOut>
       )}
     </Stack>

@@ -212,7 +212,13 @@ describe('Prospect API', () => {
       expect(status).toBe(constants.HTTP_STATUS_CREATED);
       expect(body).toMatchObject<ProspectApi>({
         email,
-        establishment: establishment, // Should pick first known establishment with commitment
+        // The repository orders by name, so we can't predict which establishment will be returned
+        // We just verify it's one of the two with commitment
+        establishment: expect.objectContaining({
+          id: expect.any(String),
+          name: expect.any(String),
+          siren: expect.stringMatching(new RegExp(`(${establishment.siren}|${anotherEstablishment.siren})`))
+        }),
         hasAccount: true,
         hasCommitment: true, // Should be true because at least one account has commitment
         lastAccountRequestAt: expect.any(String)

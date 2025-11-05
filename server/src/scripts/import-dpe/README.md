@@ -118,11 +118,7 @@ This will create `dpe_data_complete.jsonl` with automatic resume support if inte
 
 ```shell
 python import-dpe.py dpe_data_complete.jsonl \
-  --db-name your_database \
-  --db-user your_user \
-  --db-password your_password \
-  --db-host localhost \
-  --db-port 5432
+  --db-url "postgresql://user:password@localhost:5432/database"
 ```
 
 #### Single Department Processing
@@ -130,9 +126,7 @@ python import-dpe.py dpe_data_complete.jsonl \
 ```shell
 python import-dpe.py dpe_data_complete.jsonl \
   --department 75 \
-  --db-name your_database \
-  --db-user your_user \
-  --db-password your_password
+  --db-url "postgresql://user:password@localhost:5432/database"
 ```
 
 #### Dry Run (Test Mode)
@@ -141,9 +135,7 @@ python import-dpe.py dpe_data_complete.jsonl \
 python import-dpe.py dpe_data_complete.jsonl \
   --dry-run \
   --max-lines 10000 \
-  --db-name your_database \
-  --db-user your_user \
-  --db-password your_password
+  --db-url "postgresql://user:password@localhost:5432/database"
 ```
 
 #### Advanced Options
@@ -155,24 +147,32 @@ python import-dpe.py dpe_data_complete.jsonl \
   --batch-size 500 \
   --retry-attempts 3 \
   --db-timeout 30 \
-  --disable-ssl \
+  --sequential \
   --debug \
-  --db-name your_database \
-  --db-user your_user \
-  --db-password your_password
+  --db-url "postgresql://user:password@localhost:5432/database?sslmode=prefer"
+```
+
+#### Resume from Specific Department
+
+```shell
+# Process all departments starting from department 13 (inclusive)
+python import-dpe.py dpe_data_complete.jsonl \
+  --start-department 13 \
+  --db-url "postgresql://user:password@localhost:5432/database"
 ```
 
 **Available Options:**
+- `--db-url`: PostgreSQL connection URI (required) - Format: `postgresql://user:password@host:port/database?sslmode=prefer`
 - `--department`, `--dept`: Process a specific department only (e.g., 75, 01, 2A)
+- `--start-department`, `--start-dept`: Start processing from this department code when processing multiple departments (e.g., 75, 01, 2A)
 - `--max-lines`: Limit the number of input lines to process
 - `--dry-run`: Simulation mode (no database modifications)
 - `--debug`: Enable detailed debug logging
-- `--max-workers`: Number of parallel workers (default: CPU count, max 4)
+- `--sequential`: Process departments one by one instead of in parallel
+- `--max-workers`: Number of parallel workers (default: 6)
 - `--batch-size`: SQL batch size (default: 500)
 - `--retry-attempts`: Connection retry attempts (default: 3)
 - `--db-timeout`: Database timeout in seconds (default: 30)
-- `--disable-ssl`: Disable SSL for database connection
-- `--ssl-mode`: SSL mode (disable, prefer, require, etc.)
 - `--output-dir`: Custom output directory for intermediate files
 
 ## Output

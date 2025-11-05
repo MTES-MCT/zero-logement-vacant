@@ -2,14 +2,14 @@ from dagster import AssetExecutionContext, AssetKey, AssetSpec, MaterializeResul
 from ....config import RESULT_TABLES, Config
 from dagster_duckdb import DuckDBResource
 import tempfile
-from ..ingest.queries.lovac import lovac_tables_sql
-from ..ingest.queries.ff import ff_tables_sql
+from ..ingest.queries.external_sources_config import get_sources_by_producer
 import os 
 #import psutil
 import shutil
 
 
-all_tables_sql = {**lovac_tables_sql, **ff_tables_sql}
+# Get all CEREMA sources for dependency management
+cerema_sources = get_sources_by_producer("CEREMA")
 
 
 def log_system_resources(context):

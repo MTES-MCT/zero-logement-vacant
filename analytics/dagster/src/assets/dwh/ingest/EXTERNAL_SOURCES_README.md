@@ -9,47 +9,65 @@ This document explains the architecture and best practices for managing external
 ```
 analytics/dagster/src/assets/dwh/ingest/
 ├── queries/
-│   ├── external_sources_config.py  ← NEW: Centralized source definitions
-│   ├── lovac.py                    ← Existing: CEREMA LOVAC data (S3)
-│   ├── ff.py                       ← Existing: CEREMA FF data (S3)
-│   └── production.py               ← Existing: Production DB queries
-├── ingest_external_sources_asset.py ← NEW: External sources ingestion
-├── ingest_lovac_ff_s3_asset.py     ← Existing: S3-based ingestion
-├── ingest_postgres_asset.py        ← Existing: Postgres ingestion
-└── administrative_cuts.py          ← Existing: API-based ingestion
+│   ├── external_sources_config.py  ← Centralized source definitions (ALL sources)
+│   └── production.py               ← Production DB queries
+├── ingest_external_sources_asset.py ← Unified external sources ingestion
+├── ingest_postgres_asset.py        ← Postgres ingestion
+└── administrative_cuts.py          ← API-based ingestion
 ```
 
-## Strategy: Hybrid Approach
+## Unified Approach
 
-### 1. **S3-Based Sources (Existing Pattern)**
+All external data sources (S3-based and HTTP-based) are now managed through a single, centralized configuration:
 
-Use for data you control and want versioned:
-
-- ✅ CEREMA LOVAC data
-- ✅ CEREMA Fichiers Fonciers (FF)
-- ✅ Any proprietary or processed data
+- ✅ CEREMA LOVAC data (S3)
+- ✅ CEREMA Fichiers Fonciers (FF) (S3)
+- ✅ data.gouv.fr datasets (HTTP/Parquet)
+- ✅ INSEE data (HTTP/CSV)
+- ✅ DGALN data (HTTP/Parquet)
+- ✅ URSSAF data (HTTP/CSV)
+- ✅ DGFIP data (HTTP/CSV)
 
 **Benefits:**
 
-- Full version control
-- Reliability (no dependency on external URLs)
-- Custom processing before storage
-- Historical snapshots
+- Single source of truth for all external data
+- Consistent naming convention: `external.(provider)_(name)_raw`
+- Easy to add new sources
+- Unified ingestion process
+- Better maintainability
 
-**Trade-offs:**
+### Schema Convention
 
-- Storage costs
-- Manual update process
-- Additional ETL step
+All tables are created in the `external` schema with the naming pattern:
 
-### 2. **Direct URL Loading (New Pattern)**
+```
+external.(provider)_(name)_raw
+```
 
-Use for stable external sources:
+**Examples:**
+- `external.cerema_lovac_2024_raw`
+- `external.cerema_ff_2024_raw`
+- `external.dgaln_carte_loyers_2023_raw`
+- `external.insee_grille_densite_raw`
+- `external.urssaf_etablissements_effectifs_raw`
 
-- ✅ data.gouv.fr datasets
-- ✅ INSEE data
-- ✅ URSSAF data
-- ✅ DGFIP data
+## Adding a New Source
+
+To add a new external data source, simply add an entry to `external_sources_config.py`:
+
+```python
+"my_new_source": {
+    "url": "https://example.com/data.csv",
+    "table_name": "external.provider_my_source_raw",
+    "file_type": "csv",
+    "description": "Description of my source",
+    "producer": "PROVIDER_NAME",
+    "type_overrides": {"column_name": "VARCHAR"},  # Optional
+    "read_options": {"auto_detect": True},  # Optional
+}
+```
+
+The asset will be automatically created and available in Dagster!
 - ✅ Other government open data
 
 **Benefits:**

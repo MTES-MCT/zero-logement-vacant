@@ -49,6 +49,11 @@ def test_duckdb_loading(source_name: str, config: dict) -> tuple[bool, str]:
     try:
         conn = duckdb.connect(":memory:")
         
+        # Setup S3 if needed
+        if config['url'].startswith('s3://'):
+            # Would need S3 credentials here in real scenario
+            return False, "⚠️ Skipped (S3 source - requires credentials)"
+        
         # Generate SQL
         sql = generate_create_table_sql(source_name, config)
         
@@ -63,9 +68,9 @@ def test_duckdb_loading(source_name: str, config: dict) -> tuple[bool, str]:
         
         conn.execute(test_sql)
         
-        # Get row count
+        # Get row count - table name already includes schema
         row_count = conn.execute(
-            f"SELECT COUNT(*) FROM {config['schema']}.{config['table_name']}"
+            f"SELECT COUNT(*) FROM {config['table_name']}"
         ).fetchone()[0]
         
         conn.close()
@@ -81,16 +86,19 @@ def validate_source(source_name: str, config: dict, check_loading: bool = False)
     print(f"Source: {source_name}")
     print(f"{'='*80}")
     print(f"Producer:    {config['producer']}")
-    print(f"Schema:      {config['schema']}")
     print(f"Table:       {config['table_name']}")
     print(f"File Type:   {config['file_type']}")
     print(f"URL:         {config['url']}")
     print(f"Description: {config['description']}")
     
-    # Check URL accessibility
-    print("\nChecking URL accessibility...")
-    accessible, message = check_url_accessibility(config['url'])
-    print(f"  {message}")
+    # Check URL accessibility (skip for S3 URLs)
+    if config['url'].startswith('s3://'):
+        print("\nSkipping URL check (S3 source)")
+        accessible = True
+    else:
+        print("\nChecking URL accessibility...")
+        accessible, message = check_url_accessibility(config['url'])
+        print(f"  {message}")
     
     # Test DuckDB loading if requested and URL is accessible
     if check_loading and accessible:

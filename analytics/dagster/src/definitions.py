@@ -34,15 +34,14 @@ from .resources.database_resources import psycopg2_connection_resource
 
 from .assets import clever
 
-from .assets.dwh.ingest.ingest_lovac_ff_s3_asset import (
-    import_cerema_ff_lovac_data_from_s3_to_duckdb,
-)
 from .assets.dwh.ingest.ingest_external_sources_asset import (
-    import_external_sources_to_duckdb,
+    setup_external_schema,
+    import_all_external_sources,
 )
 from .assets.dwh.checks.ff_table_exists import check_ff_lovac_on_duckdb
-from .assets.dwh.ingest.ingest_lovac_ff_s3_asset import setup_s3_connection
 from .assets.dwh.upload.upload_ff_db_to_cellar import upload_ff_to_s3
+
+# Note: These are imported for use in job definitions, but assets are loaded via load_assets_from_modules
 
 clever_assets_assets = load_assets_from_modules(modules=[clever])
 
@@ -62,9 +61,9 @@ daily_update_dwh_job = define_asset_job(
     selection=AssetSelection.assets(*[*dwh_assets, *dbt_analytics_assets, *["setup_duckdb", "clevercloud_login_and_restart"]])
     - AssetSelection.assets(
         *[
-            setup_s3_connection,
+            setup_external_schema,
             check_ff_lovac_on_duckdb,
-            import_cerema_ff_lovac_data_from_s3_to_duckdb,
+            import_all_external_sources,
             copy_dagster_duckdb_to_metabase_duckdb,
             export_mother_duck_local_duckdb,
             "upload_ff_to_s3",
@@ -73,40 +72,38 @@ daily_update_dwh_job = define_asset_job(
     ),
 )
 
-yearly_update_ff_dwh_job = define_asset_job(
-    name="datawarehouse_build_ff_data",
+# Unified job for all external data sources (CEREMA, INSEE, DGALN, URSSAF, DGFIP)
+yearly_update_all_external_sources_job = define_asset_job(
+    name="datawarehouse_load_all_external_sources",
     selection=AssetSelection.assets(
-        *[
-            "setup_duckdb",
-            setup_s3_connection,
-            import_cerema_ff_lovac_data_from_s3_to_duckdb,
-            upload_ff_to_s3
-        ]
+        "setup_duckdb",
+        setup_external_schema,
+        # CEREMA - LOVAC
+        "lovac_2019", "lovac_2020", "lovac_2021", "lovac_2022", "lovac_2023", "lovac_2024", "lovac_2025",
+        # CEREMA - Fichiers Fonciers
+        "ff_2019", "ff_2020", "ff_2021", "ff_2022", "ff_2023", "ff_2024", "ff_2024_buildings", "ff_owners",
+        # DGALN
+        "carte_des_loyers_2023", "zonage_abc",
+        # INSEE
+        "recensement_historique", "population_structures_ages", "grille_densite", "table_appartenance_geo",
+        # URSSAF
+        "etablissements_effectifs",
+        # DGFIP
+        "fiscalite_locale",
+        # Upload to S3
+        upload_ff_to_s3
     ),
+    description="Load all external data sources (CEREMA FF/LOVAC, INSEE, DGALN, URSSAF, DGFIP)",
 )
 
 daily_refresh_schedule = ScheduleDefinition(
     job=daily_update_dwh_job, cron_schedule="@daily"
 )
 
-yearly_ff_refresh_schedule = ScheduleDefinition(
-    job=yearly_update_ff_dwh_job, cron_schedule="@yearly"
-)
-
-# Job to load external data sources (INSEE, DGALN, URSSAF, etc.)
-yearly_update_external_sources_job = define_asset_job(
-    name="datawarehouse_load_external_sources",
-    selection=AssetSelection.assets(
-        "setup_duckdb",
-        import_external_sources_to_duckdb,
-    ),
-    description="Load external data sources from data.gouv.fr, INSEE, URSSAF, DGFIP, etc.",
-)
-
 yearly_external_sources_refresh_schedule = ScheduleDefinition(
-    job=yearly_update_external_sources_job, 
+    job=yearly_update_all_external_sources_job, 
     cron_schedule="@yearly",
-    description="Annual refresh of external data sources (INSEE, DGALN, etc.)"
+    description="Annual refresh of all external data sources"
 )
 
 owners_asset_job = define_asset_job(
@@ -148,10 +145,9 @@ defs = Definitions(
         populate_missing_ban_addresses_for_owners,
         process_and_update_edited_owners,
         housings_without_address_csv, process_housings_with_api,
-        *dwh_assets,
+        *dwh_assets,  # This already includes setup_external_schema and import_all_external_sources
         *dbt_analytics_assets,
         *clever_assets_assets,
-        import_external_sources_to_duckdb,
     ],
     resources={
         # "dlt": dlt_resource,
@@ -170,7 +166,6 @@ defs = Definitions(
     },
     schedules=[
         daily_refresh_schedule, 
-        yearly_ff_refresh_schedule, 
         yearly_external_sources_refresh_schedule
     ],
     jobs=[
@@ -178,6 +173,6 @@ defs = Definitions(
         edited_owners_asset_job, 
         housings_asset_job, 
         missing_ban_addresses_asset_job_for_owners,
-        yearly_update_external_sources_job,
+        yearly_update_all_external_sources_job,
     ],
 )

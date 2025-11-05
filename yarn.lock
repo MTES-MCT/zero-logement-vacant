@@ -12522,6 +12522,9 @@ __metadata:
     whatwg-fetch: "npm:^3.6.20"
     yup: "npm:^0.32.11"
     yup-next: "npm:yup@^1.7.0"
+  dependenciesMeta:
+    sharp:
+      optional: true
   languageName: unknown
   linkType: soft
 

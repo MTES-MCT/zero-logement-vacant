@@ -100,8 +100,10 @@
     "jest-sorted": "^1.0.15",
     "randomstring": "^1.3.1",
     "sass-embedded": "^1.90.0",
-    "sharp": "^0.34.3",
     "tsx": "^4.20.3",
     "undici": "^6.21.3"
+  },
+  "optionalDependencies": {
+    "sharp": "^0.34.3"
   }
 }

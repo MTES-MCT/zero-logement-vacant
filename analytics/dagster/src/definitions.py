@@ -150,7 +150,8 @@ defs = Definitions(
         housings_without_address_csv, process_housings_with_api,
         *dwh_assets,
         *dbt_analytics_assets,
-        *clever_assets_assets
+        *clever_assets_assets,
+        import_external_sources_to_duckdb,
     ],
     resources={
         # "dlt": dlt_resource,

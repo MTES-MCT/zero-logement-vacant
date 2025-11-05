@@ -1,6 +1,14 @@
 import type { TimePerWeek } from './TimePerWeek';
 import { UserRole } from './UserRole';
 
+export const SUSPENDED_CAUSE_VALUES = [
+  'droits utilisateur expires',
+  'droits structure expires',
+  'cgu vides'
+] as const;
+
+export type SuspendedCause = (typeof SUSPENDED_CAUSE_VALUES)[number];
+
 export interface UserDTO {
   id: string;
   email: string;

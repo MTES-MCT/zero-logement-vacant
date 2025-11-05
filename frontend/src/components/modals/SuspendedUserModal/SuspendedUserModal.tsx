@@ -3,9 +3,10 @@ import Typography from '@mui/material/Typography';
 import Grid from '@mui/material/Grid';
 import { useEffect, useMemo } from 'react';
 import Alert from '@codegouvfr/react-dsfr/Alert';
+import type { SuspendedCause } from '@zerologementvacant/models';
 
-import { useAppSelector } from '../../../hooks/useStore';
-import { useIsDsfrReady } from '../../../hooks/useIsDsfrReady';
+import { useAppSelector } from '~/hooks/useStore';
+import { useIsDsfrReady } from '~/hooks/useIsDsfrReady';
 
 const id = 'suspended-user-modal';
 const modal = createModal({
@@ -15,16 +16,16 @@ const modal = createModal({
 
 const PORTAIL_DF_URL = 'https://portaildf.cerema.fr/';
 
-const SUSPENSION_REASONS: Record<string, string> = {
+const SUSPENSION_REASONS: Record<SuspendedCause, string> = {
   'droits utilisateur expires': 'droits utilisateur expirés',
   'droits structure expires': 'droits de la structure expirés',
   'cgu vides': 'conditions générales d\'utilisation non validées'
-};
+} as const;
 
 function formatSuspensionReasons(suspendedCause: string): string {
-  const causes = suspendedCause.split(',').map(c => c.trim());
+  const causes = suspendedCause.split(',').map(c => c.trim()) as SuspendedCause[];
   const formatted = causes
-    .map(cause => SUSPENSION_REASONS[cause] || cause)
+    .map(cause => SUSPENSION_REASONS[cause] ?? cause)
     .join(', ');
   return formatted;
 }

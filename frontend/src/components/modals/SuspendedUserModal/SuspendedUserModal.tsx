@@ -43,7 +43,7 @@ function SuspendedUserModal() {
       return 'droits d\'accès expirés';
     }
     return formatSuspensionReasons(user.user.suspendedCause);
-  }, [user?.user.suspendedCause]);
+  }, [user]);
 
   useEffect(() => {
     if (ready && isSuspended) {

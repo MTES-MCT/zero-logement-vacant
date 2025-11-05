@@ -108,6 +108,10 @@ function AddressSearchableSelectNext(props: AddressSearchableSelectNextProps) {
           buttonProps={{
             children: 'Ignorer',
             priority: 'secondary',
+            nativeButtonProps: {
+              'aria-label': 'Ignorer l’adresse',
+              title: 'Ignorer l’adresse'
+            },
             onClick: props.onIgnoreWarning
           }}
         >

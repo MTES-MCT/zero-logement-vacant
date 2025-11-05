@@ -1,70 +1,38 @@
-import typescriptEslint from '@typescript-eslint/eslint-plugin';
-import _import from 'eslint-plugin-import';
-import { fixupConfigRules, fixupPluginRules } from '@eslint/compat';
-import globals from 'globals';
-import tsParser from '@typescript-eslint/parser';
-import path from 'node:path';
-import { fileURLToPath } from 'node:url';
 import js from '@eslint/js';
-import { FlatCompat } from '@eslint/eslintrc';
+import { defineConfig, globalIgnores } from 'eslint/config';
+import globals from 'globals';
+import cypressPlugin from 'eslint-plugin-cypress';
+import tsParser from '@typescript-eslint/parser';
+import tsPlugin from '@typescript-eslint/eslint-plugin';
+import importPlugin from 'eslint-plugin-import';
+import reactPlugin from 'eslint-plugin-react';
+import reactHooksPlugin from 'eslint-plugin-react-hooks';
+import jsxA11yPlugin from 'eslint-plugin-jsx-a11y';
+import prettierConfig from 'eslint-config-prettier';
 
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = path.dirname(__filename);
-const compat = new FlatCompat({
-  baseDirectory: __dirname,
-  recommendedConfig: js.configs.recommended,
-  allConfig: js.configs.all
-});
-
-export default [
+export default defineConfig([
+  globalIgnores([
+    '**/dist/',
+    '**/node_modules/',
+    '**/eslint.config.mjs',
+    '**/vite.config.ts',
+    '**/vitest.config.ts',
+    'frontend/src/components/_dsfr/'
+  ]),
   {
-    ignores: [
-      '**/build/',
-      '**/dist/',
-      'frontend/src/components/_dsfr/',
-      'frontend/jest.polyfills.js',
-      '**/node_modules/',
-      '**/public/',
-      '**/tools/',
-      '**/README.md',
-      '**/bin',
-      '**/Procfile',
-      '**/jest.config.js',
-      '**/.eslintrc.json',
-      '**/package.json',
-      '**/package-lock.json',
-      '**/yarn.lock',
-      '**/cron.json',
-      '**/*.css',
-      '**/*.hbs',
-      'server/jest.config.ts',
-      'frontend/jest.config.ts',
-      '**/vite.config.*.timestamp*',
-      '**/vitest.config.*.timestamp*'
-    ]
-  },
-  ...compat.extends(
-    'eslint:recommended',
-    'plugin:@typescript-eslint/recommended',
-    'prettier'
-  ),
-  {
+    files: ['**/src/**/*.{ts,tsx}', 'e2e/**/*.ts'],
     plugins: {
-      '@typescript-eslint': typescriptEslint,
-      import: fixupPluginRules(_import)
+      '@typescript-eslint': tsPlugin,
+      import: importPlugin
     },
-
     languageOptions: {
-      globals: {
-        ...globals.node
-      },
-
       parser: tsParser,
       ecmaVersion: 2023,
       sourceType: 'module'
     },
-
     rules: {
+      ...tsPlugin.configs.recommended.rules,
+      ...importPlugin.flatConfigs.typescript.rules,
       '@typescript-eslint/no-explicit-any': 'off',
       '@typescript-eslint/no-var-requires': 'off',
       'import/no-commonjs': 'error',
@@ -72,32 +40,45 @@ export default [
       semi: ['error', 'always']
     }
   },
-  ...fixupConfigRules(
-    compat.extends(
-      'plugin:react/recommended',
-      'plugin:react/jsx-runtime',
-      'plugin:react-hooks/recommended'
-    )
-  ).map((config) => ({
-    ...config,
-    files: ['frontend/src/**/*.ts?(x)']
-  })),
   {
-    files: ['frontend/src/**/*.ts?(x)'],
-
+    files: ['e2e/**/*.cy.ts'],
+    extends: [cypressPlugin.configs.globals, cypressPlugin.configs.recommended]
+  },
+  {
+    files: ['frontend/src/**/*.{ts,tsx}'],
+    plugins: {
+      react: reactPlugin,
+      'react-hooks': reactHooksPlugin,
+      'jsx-a11y': jsxA11yPlugin
+    },
+    languageOptions: {
+      parser: tsParser,
+      parserOptions: {
+        ecmaFeatures: {
+          jsx: true
+        }
+      }
+    },
     settings: {
       react: {
         version: 'detect'
       }
     },
-
     rules: {
-      'no-irregular-whitespace': [
-        'error',
-        {
-          skipJSXText: true
-        }
-      ]
+      ...reactPlugin.configs.flat.recommended.rules,
+      ...reactPlugin.configs.flat['jsx-runtime'].rules,
+      ...reactHooksPlugin.configs.flat.recommended.rules,
+      ...jsxA11yPlugin.flatConfigs.recommended.rules,
+
+      // Temporarily downgrade to warnings
+      'react-hooks/set-state-in-effect': 'warn',
+      'react-hooks/refs': 'warn',
+      'jsx-a11y/click-events-have-key-events': 'warn',
+      'jsx-a11y/no-static-element-interactions': 'warn',
+      'jsx-a11y/anchor-has-content': 'warn',
+      'jsx-a11y/alt-text': 'warn',
+      'jsx-a11y/aria-role': 'warn'
     }
-  }
-];
+  },
+  prettierConfig
+]);

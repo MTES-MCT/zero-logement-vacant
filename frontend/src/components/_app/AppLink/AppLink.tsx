@@ -36,7 +36,9 @@ function AppLink({
         className={className}
         href={typeof to === 'string' ? to : to.pathname}
         rel="noopener noreferrer"
-      />
+      >
+        {linkProps.children}
+      </a>
     );
   }
 

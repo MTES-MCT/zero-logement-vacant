@@ -1,14 +1,14 @@
-import { Icon } from '../_dsfr';
 import classNames from 'classnames';
-import { useEffect, useRef } from 'react';
+import { useEffect, useMemo } from 'react';
 import { v4 as uuidv4 } from 'uuid';
+import { Icon } from '../_dsfr';
 
-import styles from './extended-toggle.module.scss';
 import type { ToggleSwitchProps } from '@codegouvfr/react-dsfr/ToggleSwitch';
 import type {
   FrIconClassName,
   RiIconClassName
 } from '@codegouvfr/react-dsfr/src/fr/generatedFromCss/classNames';
+import styles from './extended-toggle.module.scss';
 
 type Props = ToggleSwitchProps & {
   disabled?: boolean;
@@ -23,13 +23,13 @@ function ExtendedToggle(props: Props) {
     props.onChange?.(!props.checked);
   }
 
-  const id = useRef(props.id || uuidv4());
+  const id = useMemo(() => props.id || uuidv4(), [props.id]);
   const classes = classNames(
     styles.toggle,
     {
       'fr-toggle--label-left': props.labelPosition,
       'ds-fr-toggle': props.toggleColor && !props.disabled,
-      [styles.vertical]: props.vertical,
+      [styles.vertical]: props.vertical
     },
     props.className
   );
@@ -45,7 +45,7 @@ function ExtendedToggle(props: Props) {
     ? null
     : {
         'data-fr-checked-label': 'Activé',
-        'data-fr-unchecked-label': 'Désactivé',
+        'data-fr-unchecked-label': 'Désactivé'
       };
 
   const icon = props.iconId ?? 'fr-icon-check-fill';
@@ -58,7 +58,7 @@ function ExtendedToggle(props: Props) {
           onChange={toggleChecked}
           type="checkbox"
           className={classNames(styles.input)}
-          id={id.current}
+          id={id}
         />
         <Icon
           className={styles.icon}
@@ -67,7 +67,7 @@ function ExtendedToggle(props: Props) {
           size="xs"
         />
       </div>
-      <label className={styles.label} htmlFor={id.current} {...checkboxLabels}>
+      <label className={styles.label} htmlFor={id} {...checkboxLabels}>
         {props.label}
       </label>
       {props.helperText && <p className="fr-hint-text">{props.helperText}</p>}

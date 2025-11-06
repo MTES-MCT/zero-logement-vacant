@@ -59,7 +59,7 @@ function OwnerCardNext(props: OwnerCardProps) {
   if (!props.id) {
     return (
       <HousingOwnersEmpty
-        title="Il n'y a pas de propriétaire actuel connu pour ce logement"
+        title="Aucun propriétaire identifié comme destinataire principal pour ce logement"
         buttonProps={{
           onClick: props.onAdd
         }}

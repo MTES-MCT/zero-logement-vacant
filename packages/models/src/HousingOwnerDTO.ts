@@ -28,7 +28,11 @@ export interface BaseHousingOwnerDTO {
 export type HousingOwnerDTO = BaseHousingOwnerDTO & OwnerDTO;
 export type OwnerHousingDTO = BaseHousingOwnerDTO & HousingDTO;
 
-export type HousingOwnerPayloadDTO = BaseHousingOwnerDTO & Pick<OwnerDTO, 'id'>;
+export type HousingOwnerPayloadDTO = Omit<
+  BaseHousingOwnerDTO,
+  'relativeLocation' | 'absoluteDistance'
+> &
+  Pick<OwnerDTO, 'id'>;
 
 export const DECEASED_OWNER_RANK = -3 as const;
 export const AWAITING_OWNER_RANK = -2 as const;
@@ -59,7 +63,7 @@ export type InactiveOwnerRank =
 export type OwnerRank = InactiveOwnerRank | ActiveOwnerRank;
 
 export function isActiveOwnerRank(rank: OwnerRank): rank is ActiveOwnerRank {
-  return 1 <= rank && rank <= 6;
+  return rank >= 1;
 }
 export function isPreviousOwnerRank(
   rank: OwnerRank

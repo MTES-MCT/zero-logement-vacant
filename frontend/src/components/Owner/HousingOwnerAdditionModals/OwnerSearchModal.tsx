@@ -1,3 +1,4 @@
+import { useIsModalOpen } from '@codegouvfr/react-dsfr/Modal/useIsModalOpen';
 import Avatar from '@codegouvfr/react-dsfr/picto/Avatar';
 import SearchBar from '@codegouvfr/react-dsfr/SearchBar';
 import Stack from '@mui/material/Stack';
@@ -66,6 +67,12 @@ function createOwnerSearchModal() {
         props.onSelect(owner);
       }
 
+      useIsModalOpen(modal, {
+        onConceal() {
+          setSearchQuery('');
+        }
+      });
+
       return (
         <modal.Component
           size="large"
@@ -83,6 +90,7 @@ function createOwnerSearchModal() {
             <SearchBar
               big
               label="Rechercher un propriétaire"
+              clearInputOnSearch
               renderInput={(params) => (
                 <input {...params} placeholder="Stéphanie Rousseau" />
               )}

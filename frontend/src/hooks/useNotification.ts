@@ -1,5 +1,5 @@
 import { useEffect } from 'react';
-import { toast, ToastOptions } from 'react-toastify';
+import { toast, type ToastOptions } from 'react-toastify';
 
 export interface NotificationProps extends Pick<ToastOptions, 'autoClose'> {
   isError: boolean;

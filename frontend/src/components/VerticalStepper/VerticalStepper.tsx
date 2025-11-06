@@ -1,4 +1,4 @@
-import { ReactElement } from 'react';
+import type { ReactElement } from 'react';
 import { findChildren } from '../../utils/elementUtils';
 import VerticalStep from './VerticalStep';
 

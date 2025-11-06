@@ -2,12 +2,12 @@ version: 2
 
 sources:
   - name: duckdb_raw
-    schema: lovac
+    schema: external
     tables:
-      - name: raw_lovac_2019
-      - name: raw_lovac_2020
-      - name: raw_lovac_2021
-      - name: raw_lovac_2022
-      - name: raw_lovac_2023
-      - name: raw_lovac_2024
-      - name: raw_lovac_2025
+      - name: cerema_lovac_2019_raw
+      - name: cerema_lovac_2020_raw
+      - name: cerema_lovac_2021_raw
+      - name: cerema_lovac_2022_raw
+      - name: cerema_lovac_2023_raw
+      - name: cerema_lovac_2024_raw
+      - name: cerema_lovac_2025_raw

@@ -1,6 +1,6 @@
 import { fr } from '@codegouvfr/react-dsfr';
 import Button from '@codegouvfr/react-dsfr/Button';
-import Select, { SelectProps } from '@codegouvfr/react-dsfr/SelectNext';
+import Select, { type SelectProps } from '@codegouvfr/react-dsfr/SelectNext';
 import { yupResolver } from '@hookform/resolvers/yup';
 import Box from '@mui/material/Box';
 import Grid from '@mui/material/Grid';
@@ -9,9 +9,9 @@ import Skeleton from '@mui/material/Skeleton';
 import { FormProvider, useController, useForm } from 'react-hook-form';
 import * as yup from 'yup';
 
-import { HousingCountDTO } from '@zerologementvacant/models';
+import type { HousingCountDTO } from '@zerologementvacant/models';
 import { useFindGroupsQuery } from '../../services/group.service';
-import { Group } from '../../models/Group';
+import type { Group } from '../../models/Group';
 import { createExtendedModal } from '../modals/ConfirmationModal/ExtendedModal';
 import HousingCount from '../HousingCount/HousingCount';
 

@@ -1,7 +1,7 @@
 import { useState } from 'react';
 
-import { HousingStatus } from '@zerologementvacant/models';
-import { HousingCount } from '../models/HousingCount';
+import type { HousingStatus } from '@zerologementvacant/models';
+import type { HousingCount } from '../models/HousingCount';
 import { useHousingListTabs } from '../views/HousingList/HousingListTabsProvider';
 
 interface Status {

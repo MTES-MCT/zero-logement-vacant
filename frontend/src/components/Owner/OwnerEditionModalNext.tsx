@@ -75,6 +75,7 @@ function createOwnerEditionModalNext() {
           email: props.owner.email,
           phone: props.owner.phone
         },
+        // @ts-expect-error: typescript resolves types from yup (v0) instead of yup-next (v1)
         resolver: yupResolver(schema)
       });
 

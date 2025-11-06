@@ -12,7 +12,7 @@ import IconToggle from '../IconToggle/IconToggle';
 import styles from './toolbar.module.scss';
 import VariableSelect from './VariableSelect';
 import { useVariablePlugin } from './useVariablePlugin';
-import { Variable } from './Variable';
+import type { Variable } from './Variable';
 
 interface Props {
   className?: string;

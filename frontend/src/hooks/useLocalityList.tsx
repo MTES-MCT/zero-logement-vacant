@@ -1,5 +1,5 @@
 import { useMemo } from 'react';
-import {  Locality } from '../models/Locality';
+import { type Locality } from '../models/Locality';
 import { useListLocalitiesQuery } from '../services/locality.service';
 
 

@@ -1,4 +1,4 @@
-import { SelectOption } from '../../models/SelectOption';
+import type { SelectOption } from '../../models/SelectOption';
 import FilterBadge from './FilterBadge';
 
 export interface FilterBadgesProps<Value extends string | null> {

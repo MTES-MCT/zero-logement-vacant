@@ -1,4 +1,4 @@
-import { genAddress } from '../../../test/fixtures.ts';
+import { genAddress } from '../../test/fixtures';
 import config from '../../utils/config';
 import { isBanEligible } from '../Address';
 

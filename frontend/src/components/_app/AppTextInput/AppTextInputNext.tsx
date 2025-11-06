@@ -1,11 +1,10 @@
-import Input, { InputProps } from '@codegouvfr/react-dsfr/Input';
+import Input, { type InputProps } from '@codegouvfr/react-dsfr/Input';
 import { identity, pipe } from 'effect';
-import {
+import type {
   ChangeEventHandler,
-  type DetailedHTMLProps,
-  type LabelHTMLAttributes,
-  ReactNode,
-  type TextareaHTMLAttributes
+  DetailedHTMLProps,
+  LabelHTMLAttributes,
+  ReactNode
 } from 'react';
 import { useController } from 'react-hook-form';
 import { match, Pattern } from 'ts-pattern';
@@ -64,8 +63,8 @@ function AppTextInputNext<T>(props: AppTextInputNextProps<T>) {
     'nativeLabelProps' | 'nativeInputProps'
   > = {
     nativeLabelProps: nativeLabelProps as DetailedHTMLProps<
-      LabelHTMLAttributes<HTMLInputElement>,
-      HTMLInputElement
+      LabelHTMLAttributes<HTMLLabelElement>,
+      HTMLLabelElement
     >,
     nativeInputProps: {
       ...nativeInputProps,
@@ -84,8 +83,8 @@ function AppTextInputNext<T>(props: AppTextInputNextProps<T>) {
   > = {
     textArea: true,
     nativeLabelProps: nativeLabelProps as DetailedHTMLProps<
-      TextareaHTMLAttributes<HTMLTextAreaElement>,
-      HTMLTextAreaElement
+      LabelHTMLAttributes<HTMLLabelElement>,
+      HTMLLabelElement
     >,
     nativeTextAreaProps: {
       ...nativeTextAreaProps,

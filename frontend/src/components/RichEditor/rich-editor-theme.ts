@@ -1,4 +1,4 @@
-import { EditorThemeClasses } from 'lexical';
+import type { EditorThemeClasses } from 'lexical';
 
 const theme: EditorThemeClasses = {
   root: 'fr-input editor',

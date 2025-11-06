@@ -1,9 +1,11 @@
-export enum UserNavItems {
-  Campaign,
-  HousingList,
-  Resources,
-  Analysis
-}
+export const UserNavItems = {
+  Campaign: 0,
+  HousingList: 1,
+  Resources: 2,
+  Analysis: 3
+} as const;
+
+export type UserNavItems = (typeof UserNavItems)[keyof typeof UserNavItems];
 
 export interface UserNavItem {
   url: string;
@@ -16,16 +18,37 @@ export interface UserNavItem {
 export const getUserNavItem = (userNavItem: UserNavItems): UserNavItem => {
   switch (userNavItem) {
     case UserNavItems.Campaign:
-      return { url: '/campagnes', label: 'Campagnes', icon: 'fr-icon-mail-line' };
+      return {
+        url: '/campagnes',
+        label: 'Campagnes',
+        icon: 'fr-icon-mail-line'
+      };
     case UserNavItems.HousingList:
-      return { url: '/parc-de-logements', label: 'Parc de logements', icon: 'fr-icon-building-line' };
+      return {
+        url: '/parc-de-logements',
+        label: 'Parc de logements',
+        icon: 'fr-icon-building-line'
+      };
     case UserNavItems.Resources:
-      return { url: '/ressources', label: 'Ressources', icon: 'fr-icon-information-line' };
+      return {
+        url: '/ressources',
+        label: 'Ressources',
+        icon: 'fr-icon-information-line'
+      };
     case UserNavItems.Analysis:
-      return { label: 'Analyses', showNewBadge: true, icon: 'ri-bar-chart-2-line', url: '/analyses', items: [
-        { url: '/analyses/parc-vacant', label: 'Parc vacant de votre territoire' },
-        { url: '/analyses/lutte', label: 'Vos suivis et campagnes' }
-      ] };
+      return {
+        label: 'Analyses',
+        showNewBadge: true,
+        icon: 'ri-bar-chart-2-line',
+        url: '/analyses',
+        items: [
+          {
+            url: '/analyses/parc-vacant',
+            label: 'Parc vacant de votre territoire'
+          },
+          { url: '/analyses/lutte', label: 'Vos suivis et campagnes' }
+        ]
+      };
     default:
       return { url: '/', label: 'Accueil', icon: 'fr-icon-building-line' };
   }

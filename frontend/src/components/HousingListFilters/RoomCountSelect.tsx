@@ -1,8 +1,8 @@
-import { ROOM_COUNT_VALUES, RoomCount } from '@zerologementvacant/models';
+import { ROOM_COUNT_VALUES } from '@zerologementvacant/models';
+import type { RoomCount } from '@zerologementvacant/models';
 import { ROOM_COUNT_OPTIONS } from '../../models/HousingFilters';
-import AppSelectNext, {
-  AppSelectNextProps
-} from '../_app/AppSelect/AppSelectNext';
+import AppSelectNext from '../_app/AppSelect/AppSelectNext';
+import type { AppSelectNextProps } from '../_app/AppSelect/AppSelectNext';
 
 export type RoomCountSelectProps<Multiple extends boolean> = Pick<
   AppSelectNextProps<RoomCount, Multiple>,

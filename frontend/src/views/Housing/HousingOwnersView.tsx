@@ -1,26 +1,29 @@
 import Breadcrumb from '@codegouvfr/react-dsfr/Breadcrumb';
+import Button from '@codegouvfr/react-dsfr/Button';
 import Container from '@mui/material/Container';
 import Skeleton from '@mui/material/Skeleton';
 import Stack from '@mui/material/Stack';
 import Typography from '@mui/material/Typography';
 import { skipToken } from '@reduxjs/toolkit/query';
-import { useState } from 'react';
-import { useParams } from 'react-router-dom';
+import { useEffect, useState } from 'react';
+import { useLocation, useParams } from 'react-router-dom';
 
 import type {
   AwaitingOwnerRank,
   InactiveOwnerRank,
   OwnerRank
 } from '@zerologementvacant/models';
-import { Array, Order, pipe } from 'effect';
+import { Array, Equivalence, Order, pipe } from 'effect';
 import type { NonEmptyArray } from 'effect/Array';
 import HousingOwnersEmpty from '~/components/HousingOwnersEmpty/HousingOwnersEmpty';
-import HousingOwnerAdditionModals from '~/components/Owner/HousingOwnerAdditionModals/HousingOwnerAdditionModals';
+import createOwnerAttachmentModal from '~/components/Owner/HousingOwnerAdditionModals/OwnerAttachmentModal';
+import createOwnerSearchModal from '~/components/Owner/HousingOwnerAdditionModals/OwnerSearchModal';
 import HousingOwnerEditionAside, {
   type HousingOwnerEditionSchema
 } from '~/components/Owner/HousingOwnerEditionAside';
 import HousingOwnerTable from '~/components/Owner/HousingOwnerTable';
 import { useHousingOwners } from '~/components/Owner/useHousingOwners';
+import { useModalReady } from '~/hooks/useModalReady';
 import { useNotification } from '~/hooks/useNotification';
 import {
   computeOwnersAfterRankTransition,
@@ -34,6 +37,9 @@ import {
   useUpdateOwnerMutation
 } from '~/services/owner.service';
 import NotFoundView from '../NotFoundView';
+
+const ownerSearchModal = createOwnerSearchModal();
+const ownerAttachmentModal = createOwnerAttachmentModal();
 
 function HousingOwnersView() {
   const { id } = useParams<{ id: string }>();
@@ -73,64 +79,122 @@ function HousingOwnersView() {
 
   const [selectedOwner, setSelectedOwner] = useState<HousingOwner | null>(null);
   const [asideOpen, setAsideOpen] = useState(false);
+  const [ownerToAdd, setOwnerToAdd] = useState<Owner | null>(null);
+
+  const location = useLocation();
+  const isModalReady = useModalReady('owner-search-modal');
+
+  useEffect(() => {
+    if (location.state?.search && isModalReady) {
+      ownerSearchModal.open();
+    }
+  }, [location.state?.search, isModalReady]);
 
   function onOwnerEdit(housingOwner: HousingOwner): void {
     setSelectedOwner(housingOwner);
     setAsideOpen(true);
   }
 
-  function onSave(payload: HousingOwnerEditionSchema): void {
+  async function onSave(payload: HousingOwnerEditionSchema): Promise<void> {
     if (!selectedOwner || !id || !inactiveOwners || !secondaryOwners) {
       return;
     }
 
-    updateOwner({
+    const OwnerEquivalence = Equivalence.struct({
+      email: Equivalence.strict<string | null>(),
+      fullName: Equivalence.string,
+      birthDate: Equivalence.strict<string | null>(),
+      phone: Equivalence.strict<string | null>(),
+      banAddress: Equivalence.make<{ id: string } | null>(
+        (a, b) => a !== null && b !== null && a.id === b.id
+      )
+    });
+    const ownerEquals = OwnerEquivalence(
+      {
+        email: selectedOwner.email,
+        fullName: selectedOwner.fullName,
+        birthDate: selectedOwner.birthDate,
+        phone: selectedOwner.phone,
+        banAddress: selectedOwner.banAddress?.banId
+          ? { id: selectedOwner.banAddress.banId }
+          : null
+      },
+      {
+        email: payload.email,
+        fullName: payload.fullName,
+        birthDate: payload.birthDate,
+        phone: payload.phone,
+        banAddress: payload.banAddress?.id
+          ? { id: payload.banAddress.id }
+          : null
+      }
+    );
+
+    if (!ownerEquals) {
+      await updateOwner({
+        id: selectedOwner.id,
+        email: payload.email,
+        fullName: payload.fullName,
+        birthDate: payload.birthDate,
+        phone: payload.phone,
+        banAddress: payload.banAddress
+          ? {
+              label: payload.banAddress.label,
+              banId: payload.banAddress.id,
+              score: payload.banAddress.score,
+              longitude: payload.banAddress.longitude,
+              latitude: payload.banAddress.latitude,
+              postalCode: '',
+              city: ''
+            }
+          : null,
+        additionalAddress: payload.additionalAddress
+      }).unwrap();
+    }
+
+    const rankBefore = rankToLabel(selectedOwner.rank);
+    const rankAfter: OwnerRankLabel = payload.isActive
+      ? payload.rank!
+      : rankToLabel(
+          payload.inactiveRank as Exclude<InactiveOwnerRank, AwaitingOwnerRank>
+        );
+
+    const allOwners = [...activeOwners, ...inactiveOwners];
+    const housingOwners = computeOwnersAfterRankTransition(allOwners, {
       id: selectedOwner.id,
-      email: payload.email,
-      fullName: payload.fullName,
-      birthDate: payload.birthDate,
-      phone: payload.phone,
-      banAddress: payload.banAddress
-        ? {
-            label: payload.banAddress.label,
-            banId: payload.banAddress.id,
-            score: payload.banAddress.score,
-            longitude: payload.banAddress.longitude,
-            latitude: payload.banAddress.latitude,
-            postalCode: '',
-            city: ''
-          }
-        : null,
-      additionalAddress: payload.additionalAddress
-    })
-      .unwrap()
-      .then(() => {
-        const rankBefore = rankToLabel(selectedOwner.rank);
-        const rankAfter: OwnerRankLabel = payload.isActive
-          ? payload.rank!
-          : rankToLabel(
-              payload.inactiveRank as Exclude<
-                InactiveOwnerRank,
-                AwaitingOwnerRank
-              >
-            );
+      from: rankBefore,
+      to: rankAfter
+    });
 
-        const allOwners = [...activeOwners, ...inactiveOwners];
-        const housingOwners = computeOwnersAfterRankTransition(allOwners, {
-          id: selectedOwner.id,
-          from: rankBefore,
-          to: rankAfter
-        });
+    if (rankBefore !== rankAfter) {
+      await updateHousingOwners({
+        housingId: id,
+        housingOwners: housingOwners as Array<HousingOwner>
+      }).unwrap();
+    }
 
-        return updateHousingOwners({
-          housingId: id,
-          housingOwners: housingOwners as Array<HousingOwner>
-        }).unwrap();
-      })
-      .then(() => {
-        setAsideOpen(false);
-        setSelectedOwner(null);
-      });
+    setAsideOpen(false);
+    setSelectedOwner(null);
+  }
+
+  function onSelectOwner(selected: Owner): void {
+    setOwnerToAdd(selected);
+    ownerSearchModal.close();
+    ownerAttachmentModal.open();
+  }
+
+  function onBackFromAttachment(): void {
+    setOwnerToAdd(null);
+    ownerAttachmentModal.close();
+    ownerSearchModal.open();
+  }
+
+  function onConfirmAttachment(): void {
+    if (ownerToAdd) {
+      onAddOwner(ownerToAdd);
+    }
+    setOwnerToAdd(null);
+    ownerAttachmentModal.close();
   }
 
   function onAddOwner(owner: Owner): void {
@@ -201,12 +265,29 @@ function HousingOwnersView() {
       )}
 
       <Stack component="section" spacing="1.5rem" useFlexGap>
-        <HousingOwnerAdditionModals
+        {activeOwners?.length === 0 ? null : (
+          <Button
+            iconId="fr-icon-add-line"
+            priority="secondary"
+            style={{ alignSelf: 'flex-end' }}
+            onClick={ownerSearchModal.open}
+          >
+            Ajouter un propriétaire
+          </Button>
+        )}
+
+        <ownerSearchModal.Component
           address={housing?.rawAddress?.join(' ') ?? ''}
-          buttonProps={{ style: { alignSelf: 'flex-end' } }}
           exclude={housingOwners ?? []}
-          onOwnerAddition={onAddOwner}
+          onSelect={onSelectOwner}
         />
+        <ownerAttachmentModal.Component
+          address={housing?.rawAddress?.join(' ') ?? ''}
+          owner={ownerToAdd}
+          onBack={onBackFromAttachment}
+          onConfirm={onConfirmAttachment}
+        />
+
         <HousingOwnerTable
           title="Propriétaires"
           housing={housing ?? null}
@@ -224,7 +305,8 @@ function HousingOwnersView() {
             <HousingOwnersEmpty
               title={`Il n’y a pas de propriétaire${inactiveOwners?.length ? ' actuel' : ''} connu pour ce logement`}
               buttonProps={{
-                priority: 'primary'
+                priority: 'primary',
+                onClick: ownerSearchModal.open
               }}
             />
           }

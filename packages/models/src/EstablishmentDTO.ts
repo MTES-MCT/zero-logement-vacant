@@ -14,7 +14,7 @@ export interface EstablishmentDTO {
   /**
    * Filled only when the caller has the required permissions.
    */
-  users?: ReadonlyArray<UserDTO>;
+  users?: UserDTO[];
 }
 
 export function isChild(geoCodes: ReadonlySet<string>) {

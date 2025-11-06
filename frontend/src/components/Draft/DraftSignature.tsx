@@ -1,15 +1,16 @@
 import Grid from '@mui/material/Grid';
 import Typography from '@mui/material/Typography';
-import { ChangeEvent, ChangeEventHandler, useId } from 'react';
+import { useId } from 'react';
 import { match } from 'ts-pattern';
+import type { ChangeEvent, ChangeEventHandler } from 'react';
 
-import { FileUploadDTO } from '@zerologementvacant/models';
 import { useForm } from '../../hooks/useForm';
-import { SignatoriesPayload, SignatoryPayload } from '../../models/Sender';
 import styles from './draft.module.scss';
 import AppTextInput from '../_app/AppTextInput/AppTextInput';
 import FileUpload from '../FileUpload/FileUpload';
 import LogoViewer from './LogoViewer';
+import type { FileUploadDTO } from '@zerologementvacant/models';
+import type { SignatoriesPayload, SignatoryPayload } from '../../models/Sender';
 
 interface Props {
   form: ReturnType<typeof useForm>;

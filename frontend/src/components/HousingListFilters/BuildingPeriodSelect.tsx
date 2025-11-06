@@ -1,11 +1,8 @@
-import {
-  BUILDING_PERIOD_VALUES,
-  BuildingPeriod
-} from '@zerologementvacant/models';
+import { BUILDING_PERIOD_VALUES } from '@zerologementvacant/models';
 import { BUILDING_PERIOD_OPTIONS } from '../../models/HousingFilters';
-import AppSelectNext, {
-  AppSelectNextProps
-} from '../_app/AppSelect/AppSelectNext';
+import AppSelectNext from '../_app/AppSelect/AppSelectNext';
+import type { BuildingPeriod } from '@zerologementvacant/models';
+import type { AppSelectNextProps } from '../_app/AppSelect/AppSelectNext';
 
 export type BuildingPeriodSelectProps<Multiple extends boolean> = Pick<
   AppSelectNextProps<BuildingPeriod, Multiple>,

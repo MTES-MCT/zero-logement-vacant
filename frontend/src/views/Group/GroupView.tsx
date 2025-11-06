@@ -10,8 +10,8 @@ import HousingListFiltersSidemenu from '../../components/HousingListFilters/Hous
 import { useDocumentTitle } from '../../hooks/useDocumentTitle';
 import { useFilters } from '../../hooks/useFilters';
 import { useAppSelector } from '../../hooks/useStore';
-import { Campaign } from '../../models/Campaign';
-import { GroupPayload } from '../../models/GroupPayload';
+import type { Campaign } from '../../models/Campaign';
+import type { GroupPayload } from '../../models/GroupPayload';
 import authService from '../../services/auth.service';
 import {
   useCreateCampaignFromGroupMutation,

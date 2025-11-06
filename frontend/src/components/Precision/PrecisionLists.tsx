@@ -7,12 +7,12 @@ import { skipToken } from '@reduxjs/toolkit/query/react';
 import {
   isPrecisionBlockingPointCategory,
   isPrecisionEvolutionCategory,
-  isPrecisionMechanismCategory,
-  Precision
+  isPrecisionMechanismCategory
 } from '@zerologementvacant/models';
+import type { Precision } from '@zerologementvacant/models';
 import { useMemo, useState } from 'react';
 import { useNotification } from '../../hooks/useNotification';
-import { Housing } from '../../models/Housing';
+import type { Housing } from '../../models/Housing';
 import {
   useFindPrecisionsByHousingQuery,
   useFindPrecisionsQuery,
@@ -20,7 +20,7 @@ import {
 } from '../../services/precision.service';
 import styles from '../HousingEdition/housing-edition.module.scss';
 import createPrecisionModalNext from './PrecisionModalNext';
-import { PrecisionTabId } from './PrecisionTabs';
+import type { PrecisionTabId } from './PrecisionTabs';
 import { useFilteredPrecisions } from './useFilteredPrecisions';
 
 interface Props {

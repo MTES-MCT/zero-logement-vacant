@@ -1,7 +1,7 @@
-import { Establishment } from '../../../models/Establishment';
-import { Event } from '../../../models/Event';
 import { getSource } from '../../../models/Housing';
 import EventCard from '../EventCard';
+import type { Establishment } from '../../../models/Establishment';
+import type { Event } from '../../../models/Event';
 
 interface CardProps {
   event: Event<'housing:created'>;

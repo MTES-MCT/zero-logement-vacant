@@ -15,9 +15,9 @@ import { createMemoryRouter, RouterProvider } from 'react-router-dom';
 
 import data from '~/mocks/handlers/data';
 import { fromUserDTO } from '~/models/User';
-import configureTestStore from '~/utils/test/storeUtils';
+import configureTestStore from '~/utils/storeUtils';
 import UsersView from '~/views/Account/Profile/UsersView';
-import { genAuthUser } from '../../../../../test/fixtures';
+import { genAuthUser } from '../../../../test/fixtures';
 
 describe('Users view', () => {
   interface RenderViewOptions {

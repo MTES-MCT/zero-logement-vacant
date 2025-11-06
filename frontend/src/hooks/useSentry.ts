@@ -1,61 +1,57 @@
 import { useCallback } from 'react';
 import sentry from '../utils/sentry';
-
-interface UseSentryReturn {
-  captureException: (error: Error | unknown, context?: Record<string, any>) => void;
-  captureMessage: (message: string, level?: 'fatal' | 'error' | 'warning' | 'info' | 'debug') => void;
-  addBreadcrumb: (breadcrumb: { message: string; category?: string; level?: string; data?: Record<string, any> }) => void;
-  setUser: (user: { id?: string; email?: string; username?: string; [key: string]: any }) => void;
-  setContext: (key: string, context: Record<string, any>) => void;
-  setTag: (key: string, value: string) => void;
-}
+import type { Breadcrumb, User } from '@sentry/react';
 
 /**
  * Hook for using Sentry in React components
  * Provides simplified methods for error reporting
  */
-export const useSentry = (): UseSentryReturn => {
-  const captureException = useCallback((error: Error | unknown, context?: Record<string, any>) => {
-    if (context) {
-      sentry.captureException(error, {
-        contexts: { additional: context }
-      });
-    } else {
-      sentry.captureException(error);
-    }
-  }, []);
+export function useSentry() {
+  const captureException = useCallback(
+    (error: Error | unknown, context?: Record<string, any>) => {
+      if (context) {
+        sentry.captureException(error, {
+          contexts: { additional: context }
+        });
+      } else {
+        sentry.captureException(error);
+      }
+    },
+    []
+  );
 
-  const captureMessage = useCallback((
-    message: string, 
-    level: 'fatal' | 'error' | 'warning' | 'info' | 'debug' = 'info'
-  ) => {
-    sentry.captureMessage(message, level);
-  }, []);
+  const captureMessage = useCallback(
+    (
+      message: string,
+      level: 'fatal' | 'error' | 'warning' | 'info' | 'debug' = 'info'
+    ) => {
+      sentry.captureMessage(message, level);
+    },
+    []
+  );
 
-  const addBreadcrumb = useCallback((breadcrumb: {
-    message: string;
-    category?: string;
-    level?: 'fatal' | 'error' | 'warning' | 'info' | 'debug';
-    data?: Record<string, any>;
-  }) => {
-    sentry.addBreadcrumb(breadcrumb);
-  }, []);
+  const addBreadcrumb = useCallback(
+    (
+      breadcrumb: Pick<Breadcrumb, 'message' | 'category' | 'level' | 'data'>
+    ) => {
+      sentry.addBreadcrumb(breadcrumb);
+    },
+    []
+  );
 
-  const setUser = useCallback((user: {
-    id?: string;
-    email?: string;
-    username?: string;
-    [key: string]: any;
-  }) => {
+  const setUser = useCallback((user: User) => {
     sentry.setUser(user);
   }, []);
 
-  const setContext = useCallback((key: string, context: Record<string, any>) => {
-    sentry.setContext(key, context);
-  }, []);
+  const setContext = useCallback(
+    (...args: Parameters<typeof sentry.setContext>) => {
+      sentry.setContext(...args);
+    },
+    []
+  );
 
-  const setTag = useCallback((key: string, value: string) => {
-    sentry.setTag(key, value);
+  const setTag = useCallback((...args: Parameters<typeof sentry.setTag>) => {
+    sentry.setTag(...args);
   }, []);
 
   return {

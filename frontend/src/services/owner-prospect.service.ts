@@ -1,7 +1,11 @@
-import { PaginationOptions } from '@zerologementvacant/models';
-import { OwnerProspect, OwnerProspectSortable } from '../models/OwnerProspect';
-import { PaginatedResult } from '../models/PaginatedResult';
-import { SortOptions, toQuery } from '../models/Sort';
+import type { PaginationOptions } from '@zerologementvacant/models';
+import type {
+  OwnerProspect,
+  OwnerProspectSortable
+} from '../models/OwnerProspect';
+import type { PaginatedResult } from '../models/PaginatedResult';
+import type { SortOptions } from '../models/Sort';
+import { toQuery } from '../models/Sort';
 import { zlvApi } from './api.service';
 import authService from './auth.service';
 

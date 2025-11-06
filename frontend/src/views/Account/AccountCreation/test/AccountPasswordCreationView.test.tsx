@@ -2,7 +2,7 @@ import { faker } from '@faker-js/faker/locale/fr';
 import { render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 
-import { ProspectDTO, SignupLinkDTO } from '@zerologementvacant/models';
+import type { ProspectDTO, SignupLinkDTO } from '@zerologementvacant/models';
 import {
   genEstablishmentDTO,
   genProspectDTO,
@@ -12,7 +12,7 @@ import { Provider } from 'react-redux';
 import { createMemoryRouter, RouterProvider } from 'react-router-dom';
 import OnboardingModal from '../../../../components/modals/OnboardingModal/OnboardingModal';
 import data from '../../../../mocks/handlers/data';
-import configureTestStore from '../../../../utils/test/storeUtils';
+import configureTestStore from '../../../../utils/storeUtils';
 import AccountPasswordCreationView from '../AccountPasswordCreationView';
 
 describe('AccountPasswordCreationView', () => {

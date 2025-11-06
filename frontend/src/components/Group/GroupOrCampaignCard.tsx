@@ -1,8 +1,9 @@
 import { fr } from '@codegouvfr/react-dsfr';
-import Button, { ButtonProps } from '@codegouvfr/react-dsfr/Button';
+import Button from '@codegouvfr/react-dsfr/Button';
 import Stack from '@mui/material/Stack';
 import Typography from '@mui/material/Typography';
-import { ReactNode } from 'react';
+import type { ButtonProps } from '@codegouvfr/react-dsfr/Button';
+import type { ReactNode } from 'react';
 
 interface GroupOrCampaignCardProps {
   title: ReactNode;

@@ -5,7 +5,7 @@ import Box from '@mui/material/Box';
 import Container from '@mui/material/Container';
 import Grid from '@mui/material/Grid';
 import Stack from '@mui/material/Stack';
-import { FileUploadDTO } from '@zerologementvacant/models';
+import type { FileUploadDTO } from '@zerologementvacant/models';
 import { isEqual } from 'lodash-es';
 import { useEffect, useState } from 'react';
 import * as yup from 'yup';
@@ -19,9 +19,9 @@ import CampaignCounts from '../../components/Campaign/CampaignCounts';
 import CampaignCreatedFromGroup from '../../components/Campaign/CampaignCreatedFromGroup';
 import CampaignRecipients from '../../components/Campaign/CampaignRecipients';
 import CampaignTitle from '../../components/Campaign/CampaignTitle';
-import DraftBody, { Body } from '../../components/Draft/DraftBody';
+import DraftBody, { type Body } from '../../components/Draft/DraftBody';
 import DraftMailInfo, {
-  Written,
+  type Written,
   writtenSchema
 } from '../../components/Draft/DraftMailInfo';
 import DraftSender, { senderSchema } from '../../components/Draft/DraftSender';
@@ -33,9 +33,9 @@ import SaveButton from '../../components/SaveButton/SaveButton';
 import { useCampaign } from '../../hooks/useCampaign';
 import { useForm } from '../../hooks/useForm';
 import useUnsavedChanges from '../../hooks/useUnsavedChanges';
-import { Campaign } from '../../models/Campaign';
-import { DraftCreationPayload } from '../../models/Draft';
-import { SenderPayload, SignatoriesPayload } from '../../models/Sender';
+import type { Campaign } from '../../models/Campaign';
+import type { DraftCreationPayload } from '../../models/Draft';
+import type { SenderPayload, SignatoriesPayload } from '../../models/Sender';
 import { useUpdateCampaignMutation } from '../../services/campaign.service';
 import {
   useCreateDraftMutation,

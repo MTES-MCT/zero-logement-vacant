@@ -1,7 +1,8 @@
-import { NoteDTO } from '@zerologementvacant/models';
-import { Housing } from './Housing';
-import { Owner } from './Owner';
-import { fromUserDTO, toUserDTO, User } from './User';
+import type { NoteDTO } from '@zerologementvacant/models';
+import type { Housing } from './Housing';
+import type { Owner } from './Owner';
+import { fromUserDTO, toUserDTO } from './User';
+import type { User } from './User';
 
 export interface NoteCreation {
   content: string;

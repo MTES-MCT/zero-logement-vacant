@@ -1,4 +1,4 @@
-import { DatafoncierHousing } from '@zerologementvacant/models';
+import type { DatafoncierHousing } from '@zerologementvacant/models';
 import { zlvApi } from './api.service';
 
 export const datafoncierApi = zlvApi.injectEndpoints({

@@ -1,13 +1,13 @@
-import {
+import type {
   CampaignCreationPayloadDTO,
   CampaignUpdatePayloadDTO
 } from '@zerologementvacant/models';
 import { parseISO } from 'date-fns';
-import { Campaign, CampaignSort } from '../models/Campaign';
-import { CampaignFilters } from '../models/CampaignFilters';
-import { Group } from '../models/Group';
-import { HousingFilters } from '../models/HousingFilters';
-import { SortOptions, toQuery } from '../models/Sort';
+import type { Campaign, CampaignSort } from '../models/Campaign';
+import type { CampaignFilters } from '../models/CampaignFilters';
+import type { Group } from '../models/Group';
+import type { HousingFilters } from '../models/HousingFilters';
+import { type SortOptions, toQuery } from '../models/Sort';
 
 import config from '../utils/config';
 import { zlvApi } from './api.service';

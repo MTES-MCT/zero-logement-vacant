@@ -1,7 +1,7 @@
 import { match } from 'ts-pattern';
 
-import { Establishment } from '../../models/Establishment';
-import { Event } from '../../models/Event';
+import type { Establishment } from '../../models/Establishment';
+import type { Event } from '../../models/Event';
 import { HousingCampaignAttachedEventCard } from './events/HousingCampaignAttachedEventCard';
 import { HousingCampaignDetachedEventCard } from './events/HousingCampaignDetachedEventCard';
 import { HousingCampaignRemovedEventCard } from './events/HousingCampaignRemovedEventCard';

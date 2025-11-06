@@ -14,9 +14,9 @@ import HousingList from '../../components/HousingList/HousingList';
 import SelectableListHeader from '../../components/SelectableListHeader/SelectableListHeader';
 import SelectableListHeaderActions from '../../components/SelectableListHeader/SelectableListHeaderActions';
 import { useSelection } from '../../hooks/useSelection';
-import { SelectedHousing } from '../../models/Housing';
-import { displayHousingCount, HousingCount } from '../../models/HousingCount';
-import { HousingFilters } from '../../models/HousingFilters';
+import type { SelectedHousing } from '../../models/Housing';
+import { displayHousingCount, type HousingCount } from '../../models/HousingCount';
+import type { HousingFilters } from '../../models/HousingFilters';
 import {
   useGetGroupQuery,
   useRemoveGroupHousingMutation

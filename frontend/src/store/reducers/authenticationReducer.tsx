@@ -1,6 +1,6 @@
-import { createSlice, SerializedError } from '@reduxjs/toolkit';
+import { createSlice, type SerializedError } from '@reduxjs/toolkit';
 
-import { AuthUser } from '../../models/User';
+import type { AuthUser } from '../../models/User';
 import { changeEstablishment, logIn } from '../thunks/auth-thunks';
 
 const AUTH_KEY = 'authUser';

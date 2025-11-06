@@ -1,14 +1,11 @@
-import {
-  CADASTRAL_CLASSIFICATION_VALUES,
-  CadastralClassification
-} from '@zerologementvacant/models';
+import { CADASTRAL_CLASSIFICATION_VALUES } from '@zerologementvacant/models';
 import {
   CADASTRAL_CLASSIFICATION_EMPTY_OPTION,
   CADASTRAL_CLASSIFICATION_OPTIONS
 } from '../../models/HousingFilters';
-import AppSelectNext, {
-  AppSelectNextProps
-} from '../_app/AppSelect/AppSelectNext';
+import AppSelectNext from '../_app/AppSelect/AppSelectNext';
+import type { CadastralClassification } from '@zerologementvacant/models';
+import type { AppSelectNextProps } from '../_app/AppSelect/AppSelectNext';
 
 export type CadastralClassificationSelectProps<Multiple extends boolean> = Pick<
   AppSelectNextProps<CadastralClassification | null, Multiple>,

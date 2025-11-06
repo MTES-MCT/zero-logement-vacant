@@ -9,38 +9,40 @@ import {
 
 import ProfileLayout from '~/views/Account/Profile/ProfileLayout';
 import './App.scss';
-import { useAppDispatch, useAppSelector } from './hooks/useStore';
-import AuthenticatedLayout from './layouts/AuthenticatedLayout';
-import GuestLayout from './layouts/GuestLayout';
-import sentry from './utils/sentry';
-import AccountCreationView from './views/Account/AccountCreationView';
-import AccountView from './views/Account/AccountView';
-import ForgottenPasswordView from './views/Account/ForgottenPasswordView';
-import TerritoryEstablishmentsView from './views/Account/Profile/TerritoryEstablishmentsView';
-import UsersView from './views/Account/Profile/UsersView';
-import ResetPasswordView from './views/Account/ResetPasswordView';
-import AnalysisView from './views/Analysis/AnalysisView';
-import CampaignListView from './views/Campaign/CampaignListView';
-import CampaignView from './views/Campaign/CampaignView';
-import GroupView from './views/Group/GroupView';
-import HousingView from './views/Housing/HousingView';
+import { useAppDispatch, useAppSelector } from '~/hooks/useStore';
+import AuthenticatedLayout from '~/layouts/AuthenticatedLayout';
+import GuestLayout from '~/layouts/GuestLayout';
+import sentry from '~/utils/sentry';
+import AccountCreationView from '~/views/Account/AccountCreationView';
+import AccountView from '~/views/Account/AccountView';
+import ForgottenPasswordView from '~/views/Account/ForgottenPasswordView';
+import TerritoryEstablishmentsView from '~/views/Account/Profile/TerritoryEstablishmentsView';
+import UsersView from '~/views/Account/Profile/UsersView';
+import ResetPasswordView from '~/views/Account/ResetPasswordView';
+import AnalysisView from '~/views/Analysis/AnalysisView';
+import CampaignListView from '~/views/Campaign/CampaignListView';
+import CampaignView from '~/views/Campaign/CampaignView';
+import GroupView from '~/views/Group/GroupView';
+import HousingView from '~/views/Housing/HousingView';
 import HousingViewNext from '~/views/Housing/HousingViewNext';
-import HousingListTabsProvider from './views/HousingList/HousingListTabsProvider';
-import HousingListView from './views/HousingList/HousingListView';
-import LoginView from './views/Login/LoginView';
-import NotFoundView from './views/NotFoundView';
-import OwnerView from './views/Owner/OwnerView';
-import ResourcesView from './views/Resources/ResourcesView';
-import StatusView from './views/Resources/StatusView';
+import HousingListTabsProvider from '~/views/HousingList/HousingListTabsProvider';
+import HousingListView from '~/views/HousingList/HousingListView';
+import LoginView from '~/views/Login/LoginView';
+import NotFoundView from '~/views/NotFoundView';
+import OwnerView from '~/views/Owner/OwnerView';
+import ResourcesView from '~/views/Resources/ResourcesView';
+import StatusView from '~/views/Resources/StatusView';
 import OwnerViewNext from '~/views/Owner/OwnerViewNext';
 import FeatureFlagLayout from '~/layouts/FeatureFlagLayout';
 import HousingOwnersView from '~/views/Housing/HousingOwnersView';
+import SiteMapView from '~/views/SiteMapView';
 
 const router = sentry.createBrowserRouter(
   createRoutesFromElements(
     <Route>
       <Route element={<AuthenticatedLayout />}>
         <Route path="/" element={<Navigate to="/parc-de-logements" />} />
+        <Route path="/plan-du-site" element={<SiteMapView />} />
         <Route
           path="/parc-de-logements"
           element={

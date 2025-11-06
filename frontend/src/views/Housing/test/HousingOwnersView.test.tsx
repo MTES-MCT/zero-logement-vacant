@@ -23,7 +23,7 @@ import { createMemoryRouter, RouterProvider } from 'react-router-dom';
 import data from '~/mocks/handlers/data';
 import { fromEstablishmentDTO } from '~/models/Establishment';
 import { fromUserDTO } from '~/models/User';
-import configureTestStore from '~/utils/test/storeUtils';
+import configureTestStore from '~/utils/storeUtils';
 import HousingOwnersView from '~/views/Housing/HousingOwnersView';
 
 describe('HousingOwnersView', () => {

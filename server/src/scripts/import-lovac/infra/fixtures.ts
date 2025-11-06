@@ -1,6 +1,7 @@
 import { faker } from '@faker-js/faker/locale/fr';
 import {
   ActiveOwnerRank,
+  CADASTRAL_CLASSIFICATION_VALUES,
   HOUSING_KIND_VALUES,
   Occupancy,
   OWNER_ENTITY_VALUES,
@@ -38,7 +39,7 @@ export function genSourceHousing(): SourceHousing {
     condominium: faker.helpers.arrayElement(OWNERSHIP_KIND_INTERNAL_VALUES),
     rooms_count: faker.number.int({ min: 1, max: 10 }),
     uncomfortable: faker.datatype.boolean(),
-    cadastral_classification: faker.number.int(10),
+    cadastral_classification: faker.helpers.arrayElement(CADASTRAL_CLASSIFICATION_VALUES),
     cadastral_reference: faker.string.sample(6),
     living_area: faker.number.float({ min: 10, max: 100, fractionDigits: 2 }),
     taxed: faker.datatype.boolean(),

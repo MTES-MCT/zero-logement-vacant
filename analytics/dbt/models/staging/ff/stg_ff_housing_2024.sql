@@ -1,6 +1,6 @@
 with source as (
     SELECT *
-    FROM dwh.ff.raw_ff_2024_housing
+    FROM {{ source ('duckdb_raw', 'cerema_ff_2024_housing_raw') }}
 ),
 cleaned_data as (
     select

@@ -1,12 +1,13 @@
 import { Col, Container, Icon, Row, Text } from '../_dsfr';
 import { useMemo, useState } from 'react';
-import { Popup, PopupProps } from 'react-map-gl/maplibre';
+import { Popup, type PopupProps } from 'react-map-gl/maplibre';
 
-import { HousingWithCoordinates, toLink } from '../../models/Housing';
+import type { HousingWithCoordinates } from '../../models/Housing';
+import { toLink } from '../../models/Housing';
 import AppLink from '../_app/AppLink/AppLink';
 import { age } from '../../utils/dateUtils';
 import Collapse from '../Collapse/Collapse';
-import { Building } from '../../models/Building';
+import type { Building } from '../../models/Building';
 
 import styles from './housing-popup.module.scss';
 import classNames from 'classnames';
@@ -66,9 +67,9 @@ function HousingPopup(props: HousingPopupProps) {
     }
   }
 
-  const popupTitle = housing.owner.birthDate
+  const popupTitle = housing.owner?.birthDate
     ? `${housing.owner.fullName} ${age(housing.owner.birthDate)}`
-    : housing.owner.fullName;
+    : (housing.owner?.fullName ?? 'Propriétaire inconnu');
 
   return (
     <Popup
@@ -122,7 +123,7 @@ function HousingPopup(props: HousingPopupProps) {
                   </>
                 }
                 content={
-                  housing.owner.email || housing.owner.phone ? (
+                  housing.owner?.email || housing.owner?.phone ? (
                     <Container as="section" fluid spacing="px-2w pt-1w pb-2w">
                       <Row>
                         <Col n="6">

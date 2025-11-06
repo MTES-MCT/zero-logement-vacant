@@ -3,20 +3,21 @@ import Stack from '@mui/material/Stack';
 import Typography from '@mui/material/Typography';
 import { createColumnHelper } from '@tanstack/react-table';
 
-import { Occupancy, Pagination } from '@zerologementvacant/models';
+import type { Occupancy, Pagination } from '@zerologementvacant/models';
 import { Set } from 'immutable';
-import { ReactElement, ReactNode, useMemo, useState } from 'react';
+import { useMemo, useState } from 'react';
+import type { ReactElement, ReactNode } from 'react';
 import { useCampaignList } from '../../hooks/useCampaignList';
 import { usePagination } from '../../hooks/usePagination';
 import { useSelection } from '../../hooks/useSelection';
 import { useSort } from '../../hooks/useSort';
-import {
+import type {
   Housing,
   HousingSort,
   HousingSortable,
   SelectedHousing
 } from '../../models/Housing';
-import { HousingFilters } from '../../models/HousingFilters';
+import type { HousingFilters } from '../../models/HousingFilters';
 import {
   useCountHousingQuery,
   useFindHousingQuery

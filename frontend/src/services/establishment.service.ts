@@ -1,8 +1,11 @@
-import {
+import type {
   EstablishmentDTO,
   EstablishmentFiltersDTO
 } from '@zerologementvacant/models';
-import { Establishment, fromEstablishmentDTO } from '../models/Establishment';
+import {
+  type Establishment,
+  fromEstablishmentDTO
+} from '../models/Establishment';
 import { zlvApi } from './api.service';
 
 export const establishmentApi = zlvApi.injectEndpoints({

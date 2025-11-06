@@ -1,6 +1,6 @@
-import { FrIconClassName, RiIconClassName } from '@codegouvfr/react-dsfr';
+import type { FrIconClassName, RiIconClassName } from '@codegouvfr/react-dsfr';
 
-import { Precision, PrecisionCategory } from '@zerologementvacant/models';
+import type { Precision, PrecisionCategory } from '@zerologementvacant/models';
 
 export const PRECISION_CATEGORY_LABELS: Record<
   PrecisionCategory,

@@ -1,7 +1,7 @@
 import Grid from '@mui/material/Grid';
 import Skeleton from '@mui/material/Skeleton';
 
-import { HousingCountDTO } from '@zerologementvacant/models';
+import type { HousingCountDTO } from '@zerologementvacant/models';
 import conclusion from '../../assets/images/conclusion.svg';
 import documentDownload from '../../assets/images/document-download.svg';
 import GroupOrCampaignCard from './GroupOrCampaignCard';

@@ -29,6 +29,27 @@ export class CustomMigrationSource implements Knex.MigrationSource<string> {
 
 export class CustomSeedSource implements Knex.SeedSource<string> {
   async getSeeds(options: Knex.SeederConfig): Promise<string[]> {
+    // Protect production from accidental seeding of development data
+    if (config.db.env === 'production') {
+      const allowedSeeds = new Set([
+        '20240405010603_establishments.ts',
+        '20240405011035_buildings.ts',
+        '20240405011127_users.ts',
+        '20240405011615_geo-code-changes-2024.ts',
+        '20250113145122_precisions.ts'
+      ]);
+
+      // Only allow explicitly whitelisted seeds in production
+      if (!options.specific || !allowedSeeds.has(options.specific)) {
+        logger.warn('⚠️  Seed execution blocked in production environment.');
+        logger.warn(`   Use --specific flag with an allowed seed name.`);
+        logger.warn(`   Allowed seeds: ${Array.from(allowedSeeds).join(', ')}`);
+        return [];
+      }
+
+      logger.info(`✓ Running whitelisted seed in production: ${options.specific}`);
+    }
+
     const dirents = await fs.readdir(
       path.join(import.meta.dirname, 'seeds', config.db.env),
       {

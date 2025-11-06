@@ -1,9 +1,9 @@
 import { HOUSING_STATUS_VALUES } from '@zerologementvacant/models';
 import {
   createContext,
-  Dispatch,
-  PropsWithChildren,
-  SetStateAction,
+  type Dispatch,
+  type PropsWithChildren,
+  type SetStateAction,
   useContext,
   useState
 } from 'react';

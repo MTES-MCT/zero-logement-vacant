@@ -21,11 +21,11 @@ import {
 import { format, subYears } from 'date-fns';
 import { Provider } from 'react-redux';
 import { createMemoryRouter, RouterProvider } from 'react-router-dom';
-import { genAuthUser, genNote, genUser } from '../../../../test/fixtures';
+import { genAuthUser, genNote, genUser } from '../../../test/fixtures';
 import data from '../../../mocks/handlers/data';
 import { type Note, toNoteDTO } from '../../../models/Note';
 import { fromUserDTO, type User } from '../../../models/User';
-import configureTestStore from '../../../utils/test/storeUtils';
+import configureTestStore from '../../../utils/storeUtils';
 import HousingView from '../HousingView';
 
 describe('Housing view', () => {
@@ -200,8 +200,9 @@ describe('Housing view', () => {
       });
       const [firstAccordion] = accordions;
       await user.click(firstAccordion);
-      const inputs =
-        await within(modal).findAllByLabelText(/^Date de naissance/);
+      const inputs = await within(modal).findAllByLabelText(
+        /^Date de (naissance|création)/
+      );
       const [input] = inputs;
       const value = faker.date
         .birthdate()
@@ -215,9 +216,12 @@ describe('Housing view', () => {
       await user.click(save);
 
       expect(modal).not.toBeVisible();
-      const birthdate = await screen.findByLabelText('Date de naissance', {
-        selector: 'span'
-      });
+      const birthdate = await screen.findByLabelText(
+        /Date de (naissance|création)/,
+        {
+          selector: 'span'
+        }
+      );
       const regexp = new RegExp(`^${value.split('-').toReversed().join('/')}`);
       expect(birthdate).toHaveTextContent(regexp);
     });
@@ -533,7 +537,10 @@ describe('Housing view', () => {
         name: 'Notes et historique'
       });
       await user.click(tab);
-      const input = await screen.findByLabelText('Date de création');
+      const panel = await screen.findByRole('tabpanel', {
+        name: 'Notes et historique'
+      });
+      const input = await within(panel).findByLabelText('Date de création');
       await user.type(input, '01012020');
       const history = await screen.findAllByRole('region', {
         name: (name) => ['Note', 'Mise à jour'].includes(name)

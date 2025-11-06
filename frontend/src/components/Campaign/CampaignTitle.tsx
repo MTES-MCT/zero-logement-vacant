@@ -7,7 +7,7 @@ import { FormProvider, useForm } from 'react-hook-form';
 import * as yup from 'yup';
 
 import { useNotification } from '~/hooks/useNotification';
-import { Campaign } from '../../models/Campaign';
+import type { Campaign } from '../../models/Campaign';
 import { useUpdateCampaignMutation } from '../../services/campaign.service';
 import AppTextInputNext from '../_app/AppTextInput/AppTextInputNext';
 import { createConfirmationModal } from '../modals/ConfirmationModal/ConfirmationModalNext';

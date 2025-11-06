@@ -4,12 +4,12 @@ import { toast } from 'react-toastify';
 
 import config from '../../utils/config';
 import authService from '../../services/auth.service';
-import { Draft, DraftPreviewPayload } from '../../models/Draft';
 import { useCampaign } from '../../hooks/useCampaign';
 import { useNotification } from '../../hooks/useNotification';
 import { toOwnerDTO } from '../../models/Owner';
 import { useLazyFindHousingQuery } from '../../services/housing.service';
 import { toHousingDTO } from '../../models/Housing';
+import type { Draft, DraftPreviewPayload } from '../../models/Draft';
 
 interface Props {
   className?: string;
@@ -65,6 +65,10 @@ function PreviewButton(props: Readonly<Props>) {
         setIsLoading(true);
         const [housing] = housings;
         const { owner } = housing;
+        if (!owner) {
+          toast.error('Aucun propriétaire trouvé pour ce logement');
+          return;
+        }
         const payload: DraftPreviewPayload = {
           housing: toHousingDTO(housing),
           owner: toOwnerDTO(owner)

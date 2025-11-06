@@ -12,10 +12,12 @@ interface Props {
 }
 
 function Image(props: Readonly<Props>) {
-  const { className, responsive, ...rest } = props;
+  const { className, responsive, alt, src } = props;
 
   return (
     <img
+      alt={alt}
+      src={src}
       className={classNames(
         {
           [fr.cx('fr-responsive-img')]:
@@ -31,7 +33,6 @@ function Image(props: Readonly<Props>) {
         },
         className
       )}
-      {...rest}
     />
   );
 }

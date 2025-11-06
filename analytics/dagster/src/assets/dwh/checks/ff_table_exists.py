@@ -1,32 +1,51 @@
-from dagster import AssetSpec, multi_asset
-from ..ingest.queries.lovac import lovac_tables_sql
-from ..ingest.queries.ff import ff_tables_sql
+from dagster import AssetSpec, multi_asset, AssetExecutionContext
+from ..ingest.queries.external_sources_config import EXTERNAL_SOURCES, get_sources_by_producer
 from dagster_duckdb import DuckDBResource
 
 
-# Asset for uploading the DuckDB metabase file to S3
-all_tables_sql = {**lovac_tables_sql, **ff_tables_sql}
+# Get all CEREMA sources (LOVAC and FF)
+cerema_sources = get_sources_by_producer("CEREMA")
 
-print([ f"check_{table_name}" for table_name in all_tables_sql.keys() ])
+print([f"check_{source_name}" for source_name in cerema_sources.keys()])
 
 
 @multi_asset(
     specs=[
         AssetSpec(
-            f"check_{table_name}",
+            f"check_{source_name}",
             kinds={"duckdb"},
-            deps=[f"build_{table_name}"],
+            deps=[source_name],
             group_name="check",
         )
-        for table_name in all_tables_sql.keys()
+        for source_name in cerema_sources.keys()
     ],
     can_subset=True,
 )
-def check_ff_lovac_on_duckdb(duckdb: DuckDBResource):
-    query = "SELECT * FROM ff.lovac LIMIT 1;"
+def check_ff_lovac_on_duckdb(context: AssetExecutionContext, duckdb: DuckDBResource):
+    """Check that CEREMA (FF and LOVAC) tables exist and contain data."""
+    
     with duckdb.get_connection() as conn:
-        res = conn.execute(query)
-        if res.fetchdf().empty:
-            raise Exception("No data in ff.lovac table")
-        else:
-            return "Data found in ff.lovac table"
+        for source_name, config in cerema_sources.items():
+            # Check if this asset was selected
+            from dagster import AssetKey
+            check_key = AssetKey(f"check_{source_name}")
+            if check_key not in context.op_execution_context.selected_asset_keys:
+                continue
+            
+            table_name = config['table_name']
+            query = f"SELECT COUNT(*) as cnt FROM {table_name};"
+            
+            context.log.info(f"Checking {table_name}")
+            
+            try:
+                res = conn.execute(query)
+                row_count = res.fetchone()[0]
+                
+                if row_count == 0:
+                    raise Exception(f"No data in {table_name} table")
+                else:
+                    context.log.info(f"✅ {table_name}: {row_count:,} rows found")
+                    
+            except Exception as e:
+                context.log.error(f"❌ Failed to check {table_name}: {str(e)}")
+                raise

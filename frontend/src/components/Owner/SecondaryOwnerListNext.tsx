@@ -10,11 +10,17 @@ export interface SecondaryOwnerListProps {
 }
 
 function SecondaryOwnerListNext(props: SecondaryOwnerListProps) {
-  const { data: housingOwners, isLoading } = useFindOwnersByHousingQuery(
-    props.housingId
-  );
+  const {
+    data: housingOwners,
+    isLoading,
+    isSuccess
+  } = useFindOwnersByHousingQuery(props.housingId);
 
   const secondaryOwners = housingOwners?.filter(isSecondaryOwner) ?? [];
+
+  if (isSuccess && secondaryOwners.length === 0) {
+    return null;
+  }
 
   return (
     <Stack>

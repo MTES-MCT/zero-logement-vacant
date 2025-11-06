@@ -1,7 +1,7 @@
 import { HousingStatus } from '@zerologementvacant/models';
 import async from 'async';
 import * as path from 'node:path';
-import sharp, { Color, OutputInfo } from 'sharp';
+import sharp, { type Color, type OutputInfo } from 'sharp';
 import statusColors from '../components/Map/status-colors';
 
 const SIZE = 15;

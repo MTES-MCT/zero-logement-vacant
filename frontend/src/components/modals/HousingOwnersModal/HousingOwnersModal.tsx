@@ -6,7 +6,7 @@ import Button from '@codegouvfr/react-dsfr/Button';
 import { createModal } from '@codegouvfr/react-dsfr/Modal';
 import { useIsModalOpen } from '@codegouvfr/react-dsfr/Modal/useIsModalOpen';
 import { Typography } from '@mui/material';
-import { OwnerRank } from '@zerologementvacant/models';
+import type { OwnerRank } from '@zerologementvacant/models';
 import classNames from 'classnames';
 import { Array, Option, pipe, Record } from 'effect';
 import { filter, groupBy } from 'effect/Array';
@@ -25,10 +25,10 @@ import { isBanEligible } from '../../../models/Address';
 import {
   byRank,
   getHousingOwnerRankLabel,
-  HousingOwner
+  type HousingOwner
 } from '../../../models/Owner';
-import { SelectOption } from '../../../models/SelectOption';
-import { AddressSearchResult } from '../../../services/address.service';
+import type { SelectOption } from '../../../models/SelectOption';
+import type { AddressSearchResult } from '../../../services/address.service';
 import AppSelect from '../../_app/AppSelect/AppSelect';
 import AppTextInput from '../../_app/AppTextInput/AppTextInput';
 import { Col, Icon, Row, Text } from '../../_dsfr';
@@ -196,7 +196,7 @@ function HousingOwnersModal({
   ) => {
     changeOwnerInputs({
       ...ownerInput,
-      banAddress: addressSearchResult
+      banAddress: addressSearchResult ?? null
     });
   };
 

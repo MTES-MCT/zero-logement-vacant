@@ -1,5 +1,5 @@
-import { createModal, ModalProps } from '@codegouvfr/react-dsfr/Modal';
-import { JSX, useEffect } from 'react';
+import { createModal, type ModalProps } from '@codegouvfr/react-dsfr/Modal';
+import { type JSX, useEffect } from 'react';
 import { match } from 'ts-pattern';
 
 export interface ExtendedModalOptions {
@@ -54,3 +54,5 @@ function isSizeExtension(
 ): size is SizeExtension {
   return size ? SIZE_EXTENSION_VALUES.includes(size as SizeExtension) : false;
 }
+
+export type Modal = ReturnType<typeof createExtendedModal>;

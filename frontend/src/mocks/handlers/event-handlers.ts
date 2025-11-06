@@ -1,4 +1,4 @@
-import { EventDTO, EventType } from '@zerologementvacant/models';
+import type { EventDTO, EventType } from '@zerologementvacant/models';
 import { http, HttpResponse, RequestHandler } from 'msw';
 import { constants } from 'node:http2';
 import config from '../../utils/config';

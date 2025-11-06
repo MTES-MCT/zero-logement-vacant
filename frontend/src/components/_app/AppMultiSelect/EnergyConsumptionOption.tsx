@@ -1,5 +1,5 @@
 import AppMultiSelectOption, {
-  AppMultiSelectOptionProps
+  type AppMultiSelectOptionProps
 } from './AppMultiSelectOption';
 import DPE from '../../DPE/DPE';
 

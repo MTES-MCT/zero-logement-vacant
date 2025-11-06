@@ -1,7 +1,7 @@
-import { GroupDTO, PaginationOptions } from '@zerologementvacant/models';
-import { fromGroupDTO, Group } from '../models/Group';
-import { GroupFilters } from '../models/GroupFilters';
-import { GroupPayload } from '../models/GroupPayload';
+import type { GroupDTO, PaginationOptions } from '@zerologementvacant/models';
+import { fromGroupDTO, type Group } from '../models/Group';
+import type { GroupFilters } from '../models/GroupFilters';
+import type { GroupPayload } from '../models/GroupPayload';
 import { zlvApi } from './api.service';
 import { housingApi } from './housing.service';
 
@@ -53,7 +53,9 @@ export const groupApi = zlvApi.injectEndpoints({
         method: 'PUT',
         body: group
       }),
-      invalidatesTags: (_result, _error, args) => [{ type: 'Group', id: args.id }]
+      invalidatesTags: (_result, _error, args) => [
+        { type: 'Group', id: args.id }
+      ]
     }),
     addGroupHousing: builder.mutation<
       void,

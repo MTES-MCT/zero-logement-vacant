@@ -2,8 +2,8 @@ import { fr } from '@codegouvfr/react-dsfr';
 import { createMuiDsfrThemeProvider } from '@codegouvfr/react-dsfr/mui';
 import { StyledEngineProvider, type Theme } from '@mui/material/styles';
 import { defaultsDeep } from 'lodash-es';
-import { PropsWithChildren } from 'react';
-import { DeepPartial } from 'ts-essentials';
+import type { PropsWithChildren } from 'react';
+import type { DeepPartial } from 'ts-essentials';
 
 const { MuiDsfrThemeProvider } = createMuiDsfrThemeProvider({
   augmentMuiTheme: ({ nonAugmentedMuiTheme }) => {

@@ -5,7 +5,7 @@ import { createMemoryRouter, RouterProvider } from 'react-router-dom';
 
 import { byStatus, CAMPAIGN_STATUS_LABELS } from '@zerologementvacant/models';
 import { genCampaignDTO } from '@zerologementvacant/models/fixtures';
-import configureTestStore from '../../../utils/test/storeUtils';
+import configureTestStore from '../../../utils/storeUtils';
 import CampaignListView from '../CampaignListView';
 import data from '../../../mocks/handlers/data';
 import { DEFAULT_ORDER } from '@zerologementvacant/utils';

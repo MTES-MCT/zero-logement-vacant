@@ -1,11 +1,11 @@
+import Stack from '@mui/material/Stack';
 import Typography from '@mui/material/Typography';
 import classNames from 'classnames';
 import { Link } from 'react-router-dom';
 
-import { Container } from '../_dsfr';
-import { Group } from '../../models/Group';
+import type { Group } from '~/models/Group';
+import HousingCount from '~/components/HousingCount/HousingCount';
 import styles from './group-card.module.scss';
-import HousingCount from '../HousingCount/HousingCount';
 
 interface GroupCardProps {
   group: Group;
@@ -16,14 +16,13 @@ function GroupCard(props: GroupCardProps) {
   const title = `Groupe de logements - ${props.group.title} - nombre de logements : ${props.group.housingCount}, nombre de propriétaires : ${props.group.ownerCount}`;
 
   return (
-    <Link to={`/groupes/${props.group.id}`} title={title}>
-      <Container
-        as="article"
+    <Link to={`/groupes/${props.group.id}`} title={title} aria-label={title}>
+      <Stack
+        component="article"
+        direction="row"
         className={classNames(styles.container, {
           [styles.active]: props.isActive
         })}
-        fluid
-        role="group-card"
       >
         <Typography
           className={styles.title}
@@ -37,7 +36,7 @@ function GroupCard(props: GroupCardProps) {
           housingCount={props.group.housingCount}
           ownerCount={props.group.ownerCount}
         />
-      </Container>
+      </Stack>
     </Link>
   );
 }

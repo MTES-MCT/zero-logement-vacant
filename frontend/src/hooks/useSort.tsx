@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 
-import { Direction, Sort } from '../models/Sort';
+import type { Direction, Sort } from '../models/Sort';
 import Button from '@codegouvfr/react-dsfr/Button';
 import { match } from 'ts-pattern';
 import type { FrIconClassName, RiIconClassName } from '@codegouvfr/react-dsfr';

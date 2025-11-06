@@ -127,8 +127,12 @@ export function parseOwnerHousingApi(
     locprop:
       ownerHousing.locprop_source !== null
         ? Number(ownerHousing.locprop_source)
-        : undefined,
-    propertyRight: ownerHousing.property_right
+        : null,
+    propertyRight: ownerHousing.property_right,
+    relativeLocation: ownerHousing.locprop_relative_ban
+      ? fromRelativeLocationDBO(ownerHousing.locprop_relative_ban)
+      : null,
+    absoluteDistance: ownerHousing.locprop_distance_ban
   };
   const housing: HousingRecordApi = parseHousingRecordApi(ownerHousing);
 
@@ -179,7 +183,7 @@ export const formatHousingOwnersApi = (
     property_right: null
   }));
 
-// eslint-disable-next-line @typescript-eslint/no-unused-vars
+ 
 const fromRelativeLocationDBO = (loc: number | null): RelativeLocation | null =>
   match(loc)
     .returnType<RelativeLocation | null>()
@@ -191,8 +195,9 @@ const fromRelativeLocationDBO = (loc: number | null): RelativeLocation | null =>
     .with(null, () => null)
     .otherwise(() => 'other');
 
-const toRelativeLocationDBO = (loc: RelativeLocation | null): number | null =>
-  match(loc)
+const toRelativeLocationDBO = (loc: RelativeLocation | null): number | null => {
+  console.log('Relative location', loc);
+  return match(loc)
     .returnType<number | null>()
     .with('same-commune', () => 1)
     .with('same-department', () => 2)
@@ -202,6 +207,7 @@ const toRelativeLocationDBO = (loc: RelativeLocation | null): number | null =>
     .with('other', () => 6)
     .with(null, () => null)
     .exhaustive();
+};
 
 const housingOwnerRepository = {
   findByOwner,

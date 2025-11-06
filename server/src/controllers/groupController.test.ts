@@ -23,7 +23,8 @@ import {
   OWNERSHIP_KIND_VALUES,
   ROOM_COUNT_VALUES,
   VACANCY_RATE_VALUES,
-  VACANCY_YEAR_VALUES
+  VACANCY_YEAR_VALUES,
+  type OwnerRank
 } from '@zerologementvacant/models';
 import { constants } from 'http2';
 import fp from 'lodash/fp';
@@ -575,8 +576,16 @@ describe('Group API', () => {
         owner_id: owner.id,
         housing_id: housing.id,
         housing_geo_code: housing.geoCode,
-        rank: 1,
-        property_right: null
+        rank: 1 as OwnerRank,
+        property_right: null,
+        locprop_relative_ban: null,
+        locprop_distance_ban: null,
+        locprop_source: null,
+        start_date: new Date(),
+        end_date: null,
+        origin: null,
+        idprocpte: null,
+        idprodroit: null
       }));
       await HousingOwners().insert(ownersHousing);
       await Groups().insert(formatGroupApi(group));
@@ -731,7 +740,15 @@ describe('Group API', () => {
         housing_id: housing.id,
         housing_geo_code: housing.geoCode,
         rank: 1,
-        property_right: null
+        property_right: null,
+        locprop_relative_ban: null,
+        locprop_distance_ban: null,
+        locprop_source: null,
+        start_date: new Date(),
+        end_date: null,
+        origin: null,
+        idprocpte: null,
+        idprodroit: null
       }));
       await HousingOwners().insert(ownersHousing);
       await Groups().insert(formatGroupApi(group));
@@ -865,7 +882,15 @@ describe('Group API', () => {
         housing_id: housing.id,
         housing_geo_code: housing.geoCode,
         rank: 1,
-        property_right: null
+        property_right: null,
+        locprop_relative_ban: null,
+        locprop_distance_ban: null,
+        locprop_source: null,
+        start_date: new Date(),
+        end_date: null,
+        origin: null,
+        idprocpte: null,
+        idprodroit: null
       }));
       await HousingOwners().insert(ownersHousing);
     });

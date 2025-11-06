@@ -184,7 +184,9 @@ export const formatHousingOwnersApi = (
   }));
 
  
-const fromRelativeLocationDBO = (loc: number | null): RelativeLocation | null =>
+export const fromRelativeLocationDBO = (
+  loc: number | null
+): RelativeLocation | null =>
   match(loc)
     .returnType<RelativeLocation | null>()
     .with(1, () => 'same-commune')
@@ -195,9 +197,10 @@ const fromRelativeLocationDBO = (loc: number | null): RelativeLocation | null =>
     .with(null, () => null)
     .otherwise(() => 'other');
 
-const toRelativeLocationDBO = (loc: RelativeLocation | null): number | null => {
-  console.log('Relative location', loc);
-  return match(loc)
+export const toRelativeLocationDBO = (
+  loc: RelativeLocation | null
+): number | null =>
+  match(loc)
     .returnType<number | null>()
     .with('same-commune', () => 1)
     .with('same-department', () => 2)
@@ -207,7 +210,7 @@ const toRelativeLocationDBO = (loc: RelativeLocation | null): number | null => {
     .with('other', () => 6)
     .with(null, () => null)
     .exhaustive();
-};
+
 
 const housingOwnerRepository = {
   findByOwner,

@@ -10,7 +10,7 @@ URSSAF_SOURCES = [
         producer=Producer.URSSAF,
         file_type=FileType.CSV,
         description="Nombre d'établissements employeurs et effectifs salariés du secteur privé, par commune x APE (2006-2022)",
-        read_options={"auto_detect": True, "delimiter": ";"},
+        read_options={"auto_detect": True, "delim": ";"},
     ),
 ]
 

@@ -41,7 +41,6 @@ WITH all_events AS (
     FROM
     {{ ref ('int_production_events_new') }}
 )
-
 SELECT
     ae.*,
     s.new AS event_status_label,

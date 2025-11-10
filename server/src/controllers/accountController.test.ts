@@ -18,6 +18,7 @@ import {
   ResetLinks
 } from '~/repositories/resetLinkRepository';
 import { formatUserApi, Users } from '~/repositories/userRepository';
+import userRepository from '~/repositories/userRepository';
 
 import {
   genEstablishmentApi,
@@ -29,6 +30,13 @@ import {
 import { tokenProvider } from '~/test/testUtils';
 
 vi.mock('../services/ceremaService/mockCeremaService');
+vi.mock('~/services/mailService', () => ({
+  default: {
+    sendTwoFactorCode: vi.fn().mockResolvedValue(undefined),
+    sendPasswordReset: vi.fn().mockResolvedValue(undefined),
+    sendAccountActivationEmail: vi.fn().mockResolvedValue(undefined)
+  }
+}));
 
 describe('Account controller', () => {
   let url: string;
@@ -85,16 +93,16 @@ describe('Account controller', () => {
         .expect(constants.HTTP_STATUS_UNAUTHORIZED);
     });
 
-    it('should fail if an admin tries to connect as a user', async () => {
+    it('should require 2FA when an admin tries to connect', async () => {
       const { body, status } = await request(url).post(testRoute).send({
         email: admin.email,
         password: admin.password
       });
 
-      expect(status).toBe(constants.HTTP_STATUS_UNPROCESSABLE_ENTITY);
-      expect(body).toStrictEqual({
-        name: 'UnprocessableEntityError',
-        message: 'Unprocessable entity'
+      expect(status).toBe(constants.HTTP_STATUS_OK);
+      expect(body).toMatchObject({
+        requiresTwoFactor: true,
+        email: admin.email
       });
     });
 
@@ -118,6 +126,61 @@ describe('Account controller', () => {
         establishment,
         accessToken: expect.any(String)
       });
+    });
+  });
+
+  describe('Verify 2FA', () => {
+    const testRoute = '/api/authenticate/verify-2fa';
+
+    beforeEach(async () => {
+      // Trigger 2FA code generation
+      await request(url).post('/api/authenticate').send({
+        email: admin.email,
+        password: admin.password
+      });
+    });
+
+    it('should fail with invalid code', async () => {
+      const { status } = await request(url).post(testRoute).send({
+        email: admin.email,
+        code: '000000',
+        establishmentId: establishment.id
+      });
+
+      expect(status).toBe(constants.HTTP_STATUS_UNAUTHORIZED);
+    });
+
+    it('should fail with non-admin user', async () => {
+      const { status } = await request(url).post(testRoute).send({
+        email: user.email,
+        code: '123456',
+        establishmentId: establishment.id
+      });
+
+      expect(status).toBe(constants.HTTP_STATUS_UNAUTHORIZED);
+    });
+
+    it('should succeed with valid code', async () => {
+      // Get the generated code from database
+      const adminUser = await userRepository.getByEmail(admin.email);
+      const code = adminUser?.twoFactorCode;
+
+      const { body, status } = await request(url).post(testRoute).send({
+        email: admin.email,
+        code,
+        establishmentId: establishment.id
+      });
+
+      expect(status).toBe(constants.HTTP_STATUS_OK);
+      expect(body).toMatchObject({
+        establishment,
+        accessToken: expect.any(String)
+      });
+
+      // Verify code was cleared
+      const updatedAdmin = await userRepository.getByEmail(admin.email);
+      expect(updatedAdmin?.twoFactorCode).toBeNull();
+      expect(updatedAdmin?.twoFactorCodeGeneratedAt).toBeNull();
     });
   });
 

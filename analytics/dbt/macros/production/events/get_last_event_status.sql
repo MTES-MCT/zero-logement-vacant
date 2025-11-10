@@ -28,6 +28,7 @@ ROW_NUMBER () OVER (PARTITION BY events.housing_id ORDER BY events.created_at DE
 FROM {{ ref ('int_production_events') }} AS events
 WHERE
 1 = 1
+AND e.type IN('housing:status-updated', 'housing:occupancy-updated')
 {% if event_name == 'suivi' %}
 AND events.status_changed = TRUE
 {% elif event_name == 'occupation' %}

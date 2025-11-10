@@ -97,9 +97,17 @@ const TwoFactorView = () => {
           </Text>
 
           <Text as="p" size="md" className={fr.cx('fr-mb-3w')}>
-            Ce code est valable pendant 10 minutes. Veuillez le saisir ci-dessous pour
+            Ce code est valable pendant 5 minutes. Veuillez le saisir ci-dessous pour
             accéder à votre compte administrateur.
           </Text>
+
+          <Alert
+            title="Sécurité"
+            description="Après 3 tentatives infructueuses, votre compte sera verrouillé pendant 15 minutes."
+            severity="info"
+            small
+            className={fr.cx('fr-mb-3w')}
+          />
 
           {error && (
             <div data-testid="alert-error" className="fr-my-2w">

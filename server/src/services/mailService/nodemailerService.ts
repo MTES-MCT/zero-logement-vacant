@@ -104,7 +104,8 @@ class NodemailerService implements MailService {
               <h2>Code de vérification pour la connexion</h2>
               <p>Votre code de vérification à usage unique est :</p>
               <div class="code">${code}</div>
-              <p>Ce code est valable pendant <strong>10 minutes</strong>.</p>
+              <p>Ce code est valable pendant <strong>5 minutes</strong>.</p>
+              <p><strong>Attention :</strong> Après 3 tentatives infructueuses, votre compte sera verrouillé pendant 15 minutes.</p>
               <p>Si vous n'avez pas demandé ce code, veuillez ignorer cet email.</p>
             </div>
             <div class="footer">

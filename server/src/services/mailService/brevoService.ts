@@ -121,7 +121,7 @@ class BrevoService implements MailService {
       templateId: TWO_FACTOR_CODE_TEMPLATE_ID,
       params: {
         code,
-        expiryMinutes: 10
+        expiryMinutes: 5
       }
     });
   }

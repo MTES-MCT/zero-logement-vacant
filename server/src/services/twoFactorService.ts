@@ -3,7 +3,7 @@ import crypto from 'crypto';
 import { logger } from '~/infra/logger';
 
 const OTP_CODE_LENGTH = 6;
-const OTP_VALIDITY_MINUTES = 5; // Changed from 10 to 5 minutes for security
+const OTP_VALIDITY_MINUTES = 5;
 const MAX_FAILED_ATTEMPTS = 3;
 const LOCKOUT_DURATION_MINUTES = 15;
 
@@ -35,7 +35,7 @@ export function generateTwoFactorConfig(userEmail: string): TwoFactorConfig {
   // Generate current code
   const code = totp.generate();
 
-  // Calculate expiration (10 minutes from now)
+  // Calculate expiration time
   const expiresAt = new Date();
   expiresAt.setMinutes(expiresAt.getMinutes() + OTP_VALIDITY_MINUTES);
 
@@ -63,7 +63,7 @@ export function verifyTwoFactorCode(
   secret: string,
   codeGeneratedAt: Date
 ): boolean {
-  // Check if code has expired (10 minutes)
+  // Check if code has expired
   const now = new Date();
   const expiresAt = new Date(codeGeneratedAt);
   expiresAt.setMinutes(expiresAt.getMinutes() + OTP_VALIDITY_MINUTES);
@@ -86,7 +86,7 @@ export function verifyTwoFactorCode(
     secret: secret
   });
 
-  // Validate the code with a window of ±1 period (90 seconds total)
+  // Validate the code with a window of ±1 period
   const delta = totp.validate({
     token: code,
     window: 1 // Accept codes from previous and next period

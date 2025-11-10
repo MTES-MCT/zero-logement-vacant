@@ -30,9 +30,16 @@ import {
 import { tokenProvider } from '~/test/testUtils';
 
 vi.mock('../services/ceremaService/mockCeremaService');
+
+// Capture the 2FA code sent by email
+let capturedTwoFactorCode: string | null = null;
+
 vi.mock('~/services/mailService', () => ({
   default: {
-    sendTwoFactorCode: vi.fn().mockResolvedValue(undefined),
+    sendTwoFactorCode: vi.fn().mockImplementation(async (code: string) => {
+      capturedTwoFactorCode = code;
+      return Promise.resolve();
+    }),
     sendPasswordReset: vi.fn().mockResolvedValue(undefined),
     sendAccountActivationEmail: vi.fn().mockResolvedValue(undefined)
   }
@@ -133,6 +140,9 @@ describe('Account controller', () => {
     const testRoute = '/api/authenticate/verify-2fa';
 
     beforeEach(async () => {
+      // Reset captured code
+      capturedTwoFactorCode = null;
+
       // Trigger 2FA code generation
       await request(url).post('/api/authenticate').send({
         email: admin.email,
@@ -161,9 +171,10 @@ describe('Account controller', () => {
     });
 
     it('should succeed with valid code', async () => {
-      // Get the generated code from database
-      const adminUser = await userRepository.getByEmail(admin.email);
-      const code = adminUser?.twoFactorCode;
+      // Use the captured code from the mock
+      const code = capturedTwoFactorCode;
+
+      expect(code).toBeTruthy(); // Ensure code was captured
 
       const { body, status } = await request(url).post(testRoute).send({
         email: admin.email,
@@ -177,10 +188,56 @@ describe('Account controller', () => {
         accessToken: expect.any(String)
       });
 
-      // Verify code was cleared
+      // Verify code was cleared and counters reset
       const updatedAdmin = await userRepository.getByEmail(admin.email);
       expect(updatedAdmin?.twoFactorCode).toBeNull();
       expect(updatedAdmin?.twoFactorCodeGeneratedAt).toBeNull();
+      expect(updatedAdmin?.twoFactorFailedAttempts).toBe(0);
+      expect(updatedAdmin?.twoFactorLockedUntil).toBeNull();
+    });
+
+    it('should lock account after 3 failed attempts', async () => {
+      // First failed attempt
+      await request(url).post(testRoute).send({
+        email: admin.email,
+        code: '000000',
+        establishmentId: establishment.id
+      });
+
+      let adminUser = await userRepository.getByEmail(admin.email);
+      expect(adminUser?.twoFactorFailedAttempts).toBe(1);
+      expect(adminUser?.twoFactorLockedUntil).toBeNull();
+
+      // Second failed attempt
+      await request(url).post(testRoute).send({
+        email: admin.email,
+        code: '111111',
+        establishmentId: establishment.id
+      });
+
+      adminUser = await userRepository.getByEmail(admin.email);
+      expect(adminUser?.twoFactorFailedAttempts).toBe(2);
+      expect(adminUser?.twoFactorLockedUntil).toBeNull();
+
+      // Third failed attempt - should lock
+      await request(url).post(testRoute).send({
+        email: admin.email,
+        code: '222222',
+        establishmentId: establishment.id
+      });
+
+      adminUser = await userRepository.getByEmail(admin.email);
+      expect(adminUser?.twoFactorFailedAttempts).toBe(3);
+      expect(adminUser?.twoFactorLockedUntil).not.toBeNull();
+
+      // Fourth attempt should fail due to lockout
+      const { status } = await request(url).post(testRoute).send({
+        email: admin.email,
+        code: capturedTwoFactorCode, // Even with correct code
+        establishmentId: establishment.id
+      });
+
+      expect(status).toBe(constants.HTTP_STATUS_UNAUTHORIZED);
     });
   });
 

@@ -1,4 +1,7 @@
+import type { RelativeLocation } from '@zerologementvacant/models';
 import { OwnerRank, PropertyRight } from '@zerologementvacant/models';
+import { match } from 'ts-pattern';
+
 import db from '~/infra/database';
 import { withinTransaction } from '~/infra/database/transaction';
 import { logger } from '~/infra/logger';
@@ -10,8 +13,6 @@ import {
   parseHousingRecordApi,
   type HousingRecordDBO
 } from '~/repositories/housingRepository';
-import type { RelativeLocation } from '../../../packages/models/src/RelativeLocation';
-import { match } from 'ts-pattern';
 
 export const housingOwnersTable = 'owners_housing';
 
@@ -183,7 +184,6 @@ export const formatHousingOwnersApi = (
     property_right: null
   }));
 
- 
 export const fromRelativeLocationDBO = (
   loc: number | null
 ): RelativeLocation | null =>
@@ -210,7 +210,6 @@ export const toRelativeLocationDBO = (
     .with('other', () => 6)
     .with(null, () => null)
     .exhaustive();
-
 
 const housingOwnerRepository = {
   findByOwner,

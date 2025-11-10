@@ -138,12 +138,15 @@ class DistanceCalculator:
             print(f"❌ Error fetching owners without coordinates: {e}")
             raise
 
-    def get_all_owner_housing_pairs(self, limit: int = None):
+    def get_all_owner_housing_pairs(self, limit: int = None, force: bool = False):
         """Get all owner-housing pairs that need processing with random sampling when limit is given."""
         try:
+            # Build WHERE clause based on force flag
+            where_clause = "" if force else "WHERE oh.locprop_distance_ban IS NULL OR oh.locprop_relative_ban IS NULL"
+
             if limit:
                 # Use random sampling with subquery to avoid DISTINCT + ORDER BY issue
-                query = """
+                query = f"""
                     SELECT
                         owner_id,
                         housing_id,
@@ -162,8 +165,7 @@ class DistanceCalculator:
                         FROM owners_housing oh
                         LEFT JOIN fast_housing h ON h.id = oh.housing_id AND h.geo_code = oh.housing_geo_code
                         LEFT JOIN ban_addresses owner_ba ON owner_ba.ref_id = oh.owner_id AND owner_ba.address_kind = 'Owner'
-                        WHERE oh.locprop_distance_ban IS NULL
-                           OR oh.locprop_relative_ban IS NULL
+                        {where_clause}
                     ) AS distinct_pairs
                     ORDER BY RANDOM()
                     LIMIT %s
@@ -171,7 +173,7 @@ class DistanceCalculator:
                 self.cursor.execute(query, (limit,))
             else:
                 # No sampling for full dataset
-                query = """
+                query = f"""
                     SELECT DISTINCT
                         oh.owner_id,
                         oh.housing_id,
@@ -182,8 +184,7 @@ class DistanceCalculator:
                     FROM owners_housing oh
                     LEFT JOIN fast_housing h ON h.id = oh.housing_id AND h.geo_code = oh.housing_geo_code
                     LEFT JOIN ban_addresses owner_ba ON owner_ba.ref_id = oh.owner_id AND owner_ba.address_kind = 'Owner'
-                    WHERE oh.locprop_distance_ban IS NULL
-                       OR oh.locprop_relative_ban IS NULL
+                    {where_clause}
                 """
                 self.cursor.execute(query)
 
@@ -576,6 +577,8 @@ class DistanceCalculator:
         print("OWNER-HOUSING DISTANCE CALCULATOR")
         print("="*80)
         print(f"Limit: {limit:,} pairs" if limit else "Processing all pairs")
+        if force:
+            print("⚠️  FORCE MODE: Recalculating ALL pairs (ignoring existing values)")
 
         self.connect()
 
@@ -584,7 +587,7 @@ class DistanceCalculator:
             foreign_owners = self.process_foreign_owners(limit)
 
             # STEP 2: Get all pairs to process
-            all_pairs = self.get_all_owner_housing_pairs(limit)
+            all_pairs = self.get_all_owner_housing_pairs(limit, force)
             print(f"\n📋 Processing {len(all_pairs):,} owner-housing pairs")
 
             if not all_pairs:
@@ -603,20 +606,21 @@ class DistanceCalculator:
                 batch_pairs = all_pairs[start_idx:end_idx]
 
                 # Check if this batch is already processed (resume capability)
-                # Sample a few pairs from the batch to see if they're already done
-                sample_size = min(10, len(batch_pairs))
-                sample_pairs = batch_pairs[:sample_size]
+                # Skip this check if force mode is enabled
+                if not force:
+                    sample_size = min(10, len(batch_pairs))
+                    sample_pairs = batch_pairs[:sample_size]
 
-                already_processed = 0
-                for pair in sample_pairs:
-                    if pair['locprop_distance_ban'] is not None and pair['locprop_relative_ban'] is not None:
-                        already_processed += 1
+                    already_processed = 0
+                    for pair in sample_pairs:
+                        if pair['locprop_distance_ban'] is not None and pair['locprop_relative_ban'] is not None:
+                            already_processed += 1
 
-                # If more than 80% of sample is processed, skip this batch
-                if already_processed > sample_size * 0.8:
-                    print(f"⏭️  Skipping batch {batch_idx+1}/{num_batches} (already processed)")
-                    self.stats['processed_pairs'] += len(batch_pairs)
-                    continue
+                    # If more than 80% of sample is processed, skip this batch
+                    if already_processed > sample_size * 0.8:
+                        print(f"⏭️  Skipping batch {batch_idx+1}/{num_batches} (already processed)")
+                        self.stats['processed_pairs'] += len(batch_pairs)
+                        continue
 
                 # Load addresses only for this batch
                 print(f"📦 Loading addresses for batch {batch_idx+1}/{num_batches}...")

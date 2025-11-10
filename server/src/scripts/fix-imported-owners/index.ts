@@ -1,4 +1,4 @@
-import { type OwnerRank } from '@zerologementvacant/models';
+import { isActiveOwnerRank, isInactiveOwnerRank, type OwnerRank } from '@zerologementvacant/models';
 import { Array, pipe } from 'effect';
 import { stringify as toJSONL } from 'jsonlines';
 import { v4 as uuid } from 'uuid';
@@ -18,6 +18,7 @@ import {
   type HousingOwnerEventApi
 } from '~/models/EventApi';
 import {
+  HOUSING_OWNER_EQUIVALENCE,
   listAddedHousingOwners,
   listRemovedHousingOwners,
   listUpdatedHousingOwners,
@@ -224,7 +225,7 @@ async function run(options: RunOptions) {
       })
     )
     .pipeTo(
-      new WritableStream({
+      new WritableStream<PreprocessedHousingOwner>({
         async write(chunk) {
           logger.debug('Processing...', chunk);
 
@@ -292,42 +293,52 @@ async function run(options: RunOptions) {
             return;
           }
 
+          const existingInactiveHousingOwners = existingHousingOwners.filter(
+            (housingOwner) => isActiveOwnerRank(housingOwner.rank)
+          );
+          const existingActiveHousingOwners = existingHousingOwners.filter(
+            (housingOwner) => !isInactiveOwnerRank(housingOwner.rank)
+          );
           const housingOwners: ReadonlyArray<HousingOwnerApi> = pipe(
-            existingHousingOwners,
+            existingActiveHousingOwners,
             Array.map(
-              // Archive the main owner
-              (housingOwner): HousingOwnerApi =>
-                housingOwner.rank === 1
-                  ? {
-                      ...housingOwner,
-                      rank: 0,
-                      endDate: new Date(),
-                      updatedAt: new Date().toJSON()
-                    }
-                  : housingOwner
+              // Archive active owners
+              (housingOwner): HousingOwnerApi => ({
+                ...housingOwner,
+                rank: 0,
+                endDate: new Date(),
+                updatedAt: new Date().toJSON()
+              })
             ),
-            // Move the concerned owner to the main owner position
-            Array.map(
-              (housingOwner): HousingOwnerApi =>
-                housingOwner.ownerId === chunk.ownerId
-                  ? {
-                      ...housingOwner,
-                      rank: 1,
-                      endDate: null,
-                      updatedAt: new Date().toJSON()
-                    }
-                  : housingOwner
-            ),
-            // Recompute the rank of the active owners
-            Array.partition((housingOwner) => housingOwner.rank >= 2),
-            ([otherOwners, secondaryOwners]): ReadonlyArray<HousingOwnerApi> =>
-              secondaryOwners
-                .map((housingOwner, index) => ({
-                  ...housingOwner,
-                  // The rank starts at 2 for secondary owners
-                  rank: (2 + index) as OwnerRank
-                }))
-                .concat(otherOwners)
+            // Add inactive owners back
+            Array.appendAll(existingInactiveHousingOwners),
+            (existingHousingOwners) =>
+              Array.containsWith(HOUSING_OWNER_EQUIVALENCE)(
+                existingHousingOwners,
+                chunk
+              )
+                ? existingHousingOwners.map((housingOwner) =>
+                    housingOwner.id === chunk.ownerId
+                      ? // If the owner is already linked as inactive, reactivate them
+                        {
+                          ...housingOwner,
+                          rank: 1,
+                          endDate: null,
+                          updatedAt: new Date().toJSON()
+                        }
+                      : housingOwner
+                  )
+                : // Otherwise add them as main owner
+                  existingHousingOwners.concat({
+                    ...owner,
+                    housingGeoCode: chunk.housingGeoCode,
+                    housingId: chunk.housingId,
+                    ownerId: owner.id,
+                    rank: 1 as OwnerRank,
+                    startDate: new Date(),
+                    endDate: null,
+                    propertyRight: null
+                  })
           );
 
           logger.debug('Updating housing owners', {

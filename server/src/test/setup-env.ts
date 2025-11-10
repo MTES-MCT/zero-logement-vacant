@@ -1,3 +1,4 @@
+process.env.NODE_ENV = 'test';
 process.env.AUTH_SECRET = 'secret';
 process.env.SYSTEM_ACCOUNT = `lovac-${new Date()
   .toISOString()

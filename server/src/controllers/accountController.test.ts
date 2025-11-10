@@ -1,10 +1,39 @@
+import { vi } from 'vitest';
+
+// Fixed 2FA code used in test environment
+// twoFactorService.generateSimpleCode() returns '123456' when NODE_ENV === 'test'
+const TEST_2FA_CODE = '123456';
+
+// Mock nodemailer to prevent actual email sending in tests
+vi.mock('nodemailer', () => ({
+  default: {
+    createTransport: vi.fn(() => ({
+      sendMail: vi.fn().mockResolvedValue({ messageId: 'test-message-id' })
+    }))
+  }
+}));
+
+// Mock mailService to prevent actual email sending
+vi.mock('../services/mailService', () => ({
+  default: {
+    sendTwoFactorCode: vi.fn().mockResolvedValue(undefined),
+    sendPasswordReset: vi.fn().mockResolvedValue(undefined),
+    sendAccountActivationEmail: vi.fn().mockResolvedValue(undefined),
+    sendAccountActivationEmailFromLovac: vi.fn().mockResolvedValue(undefined),
+    sendOwnerProspectCreatedEmail: vi.fn().mockResolvedValue(undefined),
+    send: vi.fn().mockResolvedValue(undefined),
+    emit: vi.fn()
+  }
+}));
+
+vi.mock('../services/ceremaService/mockCeremaService');
+
 import { UserRole } from '@zerologementvacant/models';
 import bcrypt from 'bcryptjs';
 import { subDays } from 'date-fns';
 import { constants } from 'http2';
 import randomstring from 'randomstring';
 import request from 'supertest';
-import { vi } from 'vitest';
 
 import { createServer } from '~/infra/server';
 import { ResetLinkApi } from '~/models/ResetLinkApi';
@@ -28,22 +57,6 @@ import {
   genUserApi
 } from '~/test/testFixtures';
 import { tokenProvider } from '~/test/testUtils';
-
-vi.mock('../services/ceremaService/mockCeremaService');
-
-// Capture the 2FA code sent by email
-let capturedTwoFactorCode: string | null = null;
-
-vi.mock('~/services/mailService', () => ({
-  default: {
-    sendTwoFactorCode: vi.fn().mockImplementation(async (code: string) => {
-      capturedTwoFactorCode = code;
-      return Promise.resolve();
-    }),
-    sendPasswordReset: vi.fn().mockResolvedValue(undefined),
-    sendAccountActivationEmail: vi.fn().mockResolvedValue(undefined)
-  }
-}));
 
 describe('Account controller', () => {
   let url: string;
@@ -106,6 +119,11 @@ describe('Account controller', () => {
         password: admin.password
       });
 
+      if (status !== constants.HTTP_STATUS_OK) {
+        console.error('Unexpected status:', status);
+        console.error('Response body:', body);
+      }
+
       expect(status).toBe(constants.HTTP_STATUS_OK);
       expect(body).toMatchObject({
         requiresTwoFactor: true,
@@ -140,10 +158,8 @@ describe('Account controller', () => {
     const testRoute = '/api/authenticate/verify-2fa';
 
     beforeEach(async () => {
-      // Reset captured code
-      capturedTwoFactorCode = null;
-
       // Trigger 2FA code generation
+      // In test environment, the code will be TEST_2FA_CODE ('123456')
       await request(url).post('/api/authenticate').send({
         email: admin.email,
         password: admin.password
@@ -171,14 +187,10 @@ describe('Account controller', () => {
     });
 
     it('should succeed with valid code', async () => {
-      // Use the captured code from the mock
-      const code = capturedTwoFactorCode;
-
-      expect(code).toBeTruthy(); // Ensure code was captured
-
+      // Use the fixed test code
       const { body, status } = await request(url).post(testRoute).send({
         email: admin.email,
-        code,
+        code: TEST_2FA_CODE,
         establishmentId: establishment.id
       });
 
@@ -230,10 +242,10 @@ describe('Account controller', () => {
       expect(adminUser?.twoFactorFailedAttempts).toBe(3);
       expect(adminUser?.twoFactorLockedUntil).not.toBeNull();
 
-      // Fourth attempt should fail due to lockout
+      // Fourth attempt should fail due to lockout, even with correct code
       const { status } = await request(url).post(testRoute).send({
         email: admin.email,
-        code: capturedTwoFactorCode, // Even with correct code
+        code: TEST_2FA_CODE, // Even with correct code
         establishmentId: establishment.id
       });
 

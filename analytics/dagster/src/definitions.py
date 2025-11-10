@@ -83,13 +83,16 @@ yearly_update_all_external_sources_job = define_asset_job(
         # CEREMA - Fichiers Fonciers
         "ff_2019", "ff_2020", "ff_2021", "ff_2022", "ff_2023", "ff_2024", "ff_2024_buildings", "ff_owners",
         # DGALN
-        "carte_des_loyers_2023", "zonage_abc",
+        "carte_loyers_2023", "zonage_abc",
         # INSEE
-        "recensement_historique", "population_structures_ages", "grille_densite", "table_appartenance_geo",
+        "grille_densite_2025_communes", "grille_densite_2025_epci", 
+        "grille_densite_2025_bassin_de_vie", "grille_densite_2025_departements",
+        "recensement_historique_2022", "recensement_historique_2021", "recensement_historique_2020", "recensement_historique_2019",
+        "population_structures_ages", "table_appartenance_geo",
         # URSSAF
         "etablissements_effectifs",
         # DGFIP
-        "fiscalite_locale",
+        "fiscalite_locale_particuliers",
         # Upload to S3
         upload_ff_to_s3
     ),

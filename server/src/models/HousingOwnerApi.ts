@@ -41,22 +41,24 @@ export type OwnerHousingApi = BaseHousingOwnerDTO & {
  * Consider two housing owners equivalent
  * if they refer to the same housing and owner.
  */
-export const HOUSING_OWNER_EQUIVALENCE = Equivalence.struct({
-  housingGeoCode: Equivalence.string,
-  housingId: Equivalence.string,
-  ownerId: Equivalence.string
-});
+export const HOUSING_OWNER_EQUIVALENCE: Equivalence.Equivalence<HousingOwnerApi> =
+  Equivalence.struct({
+    housingGeoCode: Equivalence.string,
+    housingId: Equivalence.string,
+    ownerId: Equivalence.string
+  });
 
 /**
  * Consider two housing owners equivalent
  * if they refer to the same housing, owner and rank.
  */
-export const HOUSING_OWNER_RANK_EQUIVALENCE = Equivalence.struct({
-  housingGeoCode: Equivalence.string,
-  housingId: Equivalence.string,
-  ownerId: Equivalence.string,
-  rank: Equivalence.number
-});
+export const HOUSING_OWNER_RANK_EQUIVALENCE: Equivalence.Equivalence<HousingOwnerApi> =
+  Equivalence.struct({
+    housingGeoCode: Equivalence.string,
+    housingId: Equivalence.string,
+    ownerId: Equivalence.string,
+    rank: Equivalence.number
+  });
 
 /**
  * List housing owners that have been added.

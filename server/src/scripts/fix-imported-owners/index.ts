@@ -315,6 +315,7 @@ async function run(options: RunOptions) {
             (existingHousingOwners) =>
               Array.containsWith(HOUSING_OWNER_EQUIVALENCE)(
                 existingHousingOwners,
+                // @ts-expect-error: We know that chunk is not HousingOwnerApi
                 chunk
               )
                 ? existingHousingOwners.map((housingOwner) =>

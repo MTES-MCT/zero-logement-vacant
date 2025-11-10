@@ -294,10 +294,10 @@ async function run(options: RunOptions) {
           }
 
           const existingInactiveHousingOwners = existingHousingOwners.filter(
-            (housingOwner) => isActiveOwnerRank(housingOwner.rank)
+            (housingOwner) => isInactiveOwnerRank(housingOwner.rank)
           );
           const existingActiveHousingOwners = existingHousingOwners.filter(
-            (housingOwner) => !isInactiveOwnerRank(housingOwner.rank)
+            (housingOwner) => isActiveOwnerRank(housingOwner.rank)
           );
           const housingOwners: ReadonlyArray<HousingOwnerApi> = pipe(
             existingActiveHousingOwners,

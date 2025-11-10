@@ -1,6 +1,6 @@
 import type { OwnerRank } from '@zerologementvacant/models';
 
-import { genOwner } from '../../test/fixtures';
+import { genHousingOwner, genOwner } from '../../test/fixtures';
 import {
   byRank,
   hasOwnerChanges,
@@ -37,22 +37,14 @@ describe('Owner', () => {
       const owner = genOwner();
       const before: HousingOwner[] = [
         {
-          ...owner,
-          rank: 1,
-          idprocpte: null,
-          idprodroit: null,
-          locprop: null,
-          propertyRight: null
+          ...genHousingOwner(owner),
+          rank: 1
         }
       ];
       const after: HousingOwner[] = [
         {
-          ...owner,
-          rank: 1,
-          idprocpte: null,
-          idprodroit: null,
-          locprop: null,
-          propertyRight: null
+          ...genHousingOwner(owner),
+          rank: 1
         }
       ];
 
@@ -65,22 +57,14 @@ describe('Owner', () => {
       const owner = genOwner();
       const before: HousingOwner[] = [
         {
-          ...owner,
-          rank: 1,
-          idprocpte: null,
-          idprodroit: null,
-          locprop: null,
-          propertyRight: null
+          ...genHousingOwner(owner),
+          rank: 1
         }
       ];
       const after: HousingOwner[] = [
         {
-          ...owner,
-          rank: 2,
-          idprocpte: null,
-          idprodroit: null,
-          locprop: null,
-          propertyRight: null
+          ...genHousingOwner(owner),
+          rank: 2
         }
       ];
 
@@ -94,12 +78,8 @@ describe('Owner', () => {
     it('should sort housing owners by rank', () => {
       const ranks: ReadonlyArray<OwnerRank> = [6, -2, 2, 0, 1, -1, 3, 5, 4];
       const housingOwners: ReadonlyArray<HousingOwner> = ranks.map((rank) => ({
-        ...genOwner(),
-        rank: rank,
-        locprop: null,
-        idprocpte: null,
-        idprodroit: null,
-        propertyRight: null
+        ...genHousingOwner(genOwner()),
+        rank: rank
       }));
 
       const actual = housingOwners.toSorted(byRank);

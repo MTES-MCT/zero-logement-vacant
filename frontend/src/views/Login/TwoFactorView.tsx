@@ -92,7 +92,7 @@ const TwoFactorView = () => {
           </Typography>
 
           <Text as="p" size="lg" className={fr.cx('fr-mb-3w')}>
-            Un code de vérification à 6 chiffres a été envoyé à l'adresse{' '}
+            Un code de vérification à 6 chiffres a été envoyé à l&apos;adresse{' '}
             <strong>{email}</strong>
           </Text>
 
@@ -125,7 +125,7 @@ const TwoFactorView = () => {
 
               <Row spacing="mb-3w" className={fr.cx('fr-mt-2w')}>
                 <Text as="p" size="sm" className="fr-hint-text">
-                  Vous n'avez pas reçu le code ?{' '}
+                  Vous n&apos;avez pas reçu le code ?{' '}
                   <button
                     type="button"
                     className="fr-link"
@@ -183,7 +183,7 @@ const TwoFactorView = () => {
                 Sécurité renforcée
               </Typography>
               <Typography variant="body1" sx={{ color: fr.colors.decisions.text.mention.grey.default }}>
-                L'authentification en deux étapes protège votre compte
+                L&apos;authentification en deux étapes protège votre compte
                 contre les accès non autorisés
               </Typography>
             </div>

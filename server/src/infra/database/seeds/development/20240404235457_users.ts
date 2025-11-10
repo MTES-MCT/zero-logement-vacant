@@ -54,7 +54,11 @@ export async function seed(knex: Knex): Promise<void> {
       phone: null,
       lastAuthenticatedAt: null,
       updatedAt: new Date().toJSON(),
-      deletedAt: null
+      deletedAt: null,
+      twoFactorSecret: null,
+      twoFactorEnabledAt: null,
+      twoFactorCode: null,
+      twoFactorCodeGeneratedAt: null
     },
     {
       id: uuidv4(),
@@ -70,7 +74,11 @@ export async function seed(knex: Knex): Promise<void> {
       phone: null,
       lastAuthenticatedAt: null,
       updatedAt: new Date().toJSON(),
-      deletedAt: null
+      deletedAt: null,
+      twoFactorSecret: null,
+      twoFactorEnabledAt: null,
+      twoFactorCode: null,
+      twoFactorCodeGeneratedAt: null
     },
     {
       id: uuidv4(),
@@ -86,7 +94,11 @@ export async function seed(knex: Knex): Promise<void> {
       lastAuthenticatedAt: null,
       updatedAt: new Date().toJSON(),
       deletedAt: null,
-      establishmentId: null
+      establishmentId: null,
+      twoFactorSecret: null,
+      twoFactorEnabledAt: null,
+      twoFactorCode: null,
+      twoFactorCodeGeneratedAt: null
     },
     {
       id: uuidv4(),
@@ -102,7 +114,11 @@ export async function seed(knex: Knex): Promise<void> {
       lastAuthenticatedAt: null,
       updatedAt: new Date().toJSON(),
       deletedAt: null,
-      establishmentId: null
+      establishmentId: null,
+      twoFactorSecret: null,
+      twoFactorEnabledAt: null,
+      twoFactorCode: null,
+      twoFactorCodeGeneratedAt: null
     },
     {
       id: uuidv4(),
@@ -118,7 +134,11 @@ export async function seed(knex: Knex): Promise<void> {
       phone: null,
       lastAuthenticatedAt: null,
       deletedAt: null,
-      establishmentId: null
+      establishmentId: null,
+      twoFactorSecret: null,
+      twoFactorEnabledAt: null,
+      twoFactorCode: null,
+      twoFactorCodeGeneratedAt: null
     },
     // End-to-end test user
     {
@@ -135,7 +155,11 @@ export async function seed(knex: Knex): Promise<void> {
       timePerWeek: null,
       phone: null,
       lastAuthenticatedAt: null,
-      deletedAt: null
+      deletedAt: null,
+      twoFactorSecret: null,
+      twoFactorEnabledAt: null,
+      twoFactorCode: null,
+      twoFactorCodeGeneratedAt: null
     }
   ];
   await Users()

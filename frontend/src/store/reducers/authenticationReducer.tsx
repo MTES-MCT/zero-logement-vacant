@@ -65,9 +65,12 @@ const authenticationSlice = createSlice({
         state.logIn.isUninitialized = false;
       })
       .addCase(logIn.fulfilled, (state, action) => {
-        localStorage.setItem(AUTH_KEY, JSON.stringify(action.payload));
-        state.authUser = action.payload;
-        state.logIn.data = action.payload;
+        // Only save to localStorage if it's a complete AuthUser (not a 2FA response)
+        if ('accessToken' in action.payload) {
+          localStorage.setItem(AUTH_KEY, JSON.stringify(action.payload));
+          state.authUser = action.payload;
+          state.logIn.data = action.payload;
+        }
         state.logIn.error = undefined;
         state.logIn.isError = false;
         state.logIn.isLoading = false;

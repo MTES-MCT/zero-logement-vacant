@@ -66,7 +66,7 @@ const TwoFactorView = () => {
 
     dispatch(
       verifyTwoFactor({
-        email,
+        email: email!,
         code: data.code,
         establishmentId
       })
@@ -140,7 +140,7 @@ const TwoFactorView = () => {
                 </Text>
               </Row>
 
-              <Row alignItems="middle" justifyContent="space-between">
+              <Row alignItems="middle">
                 <Col>
                   <Button
                     type="button"
@@ -178,7 +178,6 @@ const TwoFactorView = () => {
               <Image
                 src={securityIcon}
                 alt="Sécurité renforcée"
-                style={{ maxWidth: '300px', marginBottom: '2rem' }}
               />
               <Typography variant="h4" sx={{ color: fr.colors.decisions.text.label.blueFrance.default, mb: 2 }}>
                 Sécurité renforcée

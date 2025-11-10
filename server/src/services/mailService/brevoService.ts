@@ -105,6 +105,12 @@ class BrevoService implements MailService {
     });
   }
 
+  async sendTwoFactorCode(code: string, options: SendOptions): Promise<void> {
+    // Brevo service should use a template for 2FA emails
+    // For now, we'll throw an error to indicate it's not implemented
+    throw new Error('2FA with Brevo is not implemented. Use nodemailer service instead.');
+  }
+
   private housingExported(email: string) {
     this.events.trackEvent(email, 'housing:exported').catch(logger.error);
   }

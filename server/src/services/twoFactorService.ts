@@ -17,8 +17,8 @@ export interface TwoFactorConfig {
  * @returns Configuration with secret and current code
  */
 export function generateTwoFactorConfig(userEmail: string): TwoFactorConfig {
-  // Generate a random secret (base32 encoded)
-  const secret = crypto.randomBytes(20).toString('base32');
+  // Generate a random secret (hex encoded, OTPAuth will handle base32 internally)
+  const secret = crypto.randomBytes(20).toString('hex');
 
   // Create TOTP instance
   const totp = new OTPAuth.TOTP({

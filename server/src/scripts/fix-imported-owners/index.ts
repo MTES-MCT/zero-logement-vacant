@@ -25,7 +25,7 @@ import {
   type HousingOwnerApi
 } from '~/models/HousingOwnerApi';
 import eventRepository from '~/repositories/eventRepository';
-import {
+import housingOwnerRepository, {
   HousingOwners,
   housingOwnersTable
 } from '~/repositories/housingOwnerRepository';
@@ -40,6 +40,7 @@ import { progress } from '../import-lovac/infra/progress-bar';
 import { createGenericSourceRepository } from './generic-source-repository';
 import type { SourceHousingOwner } from './source-housing-owner';
 import { createSourceHousingOwnerRepository } from './source-housing-owner-repository';
+import { startTransaction } from '~/infra/database/transaction';
 
 const logger = createLogger('fix-imported-owners');
 
@@ -427,12 +428,14 @@ async function run(options: RunOptions) {
             })
           ];
 
-          // await startTransaction(async () => {
-          //   await Promise.all([
-          //     housingOwnerRepository.saveMany(housingOwners as HousingOwnerApi[]),
-          //     eventRepository.insertManyHousingOwnerEvents(events)
-          //   ]);
-          // });
+          await startTransaction(async () => {
+            await Promise.all([
+              housingOwnerRepository.saveMany(
+                housingOwners as HousingOwnerApi[]
+              ),
+              eventRepository.insertManyHousingOwnerEvents(events)
+            ]);
+          });
 
           await resultWriter.write({
             preprocessedHousingOwner: chunk,

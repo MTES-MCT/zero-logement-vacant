@@ -21,6 +21,8 @@ class Producer(str, Enum):
     INSEE = "INSEE"
     URSSAF = "URSSAF"
     DGFIP = "DGFIP"
+    PRIVATE = "PRIVATE"
+
 
 
 @dataclass

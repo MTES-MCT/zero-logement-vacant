@@ -12,6 +12,8 @@ Sources are organized by producer in separate modules in the config/ directory.
 """
 
 from typing import TypedDict, Literal, Optional
+
+from .config.private import PRIVATE_CONFIG
 from .config.cerema import CEREMA_CONFIG
 from .config.dgaln import DGALN_CONFIG
 from .config.insee import INSEE_CONFIG
@@ -40,6 +42,7 @@ EXTERNAL_SOURCES: dict[str, SourceConfig] = {
     **INSEE_CONFIG,
     **URSSAF_CONFIG,
     **DGFIP_CONFIG,
+    **PRIVATE_CONFIG
 }
 
 

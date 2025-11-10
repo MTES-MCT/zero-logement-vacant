@@ -81,25 +81,7 @@ INSEE_SOURCES = [
         file_type=FileType.XLSX,
         description="Série historique du recensement de la population 2019",
         read_options={"sheet": "2019", "range": "A8:C35000"},
-    ),
-    
-    ExternalSourceConfig(
-        name="population_structures_ages",
-        url="https://www.insee.fr/fr/statistiques/fichier/TODO.csv",  # TODO: Add real URL
-        producer=Producer.INSEE,
-        file_type=FileType.CSV,
-        description="Population - structures d'âges (2011-2022)",
-        read_options={"auto_detect": True},
-    ),
-    
-    ExternalSourceConfig(
-        name="table_appartenance_geo",
-        url="https://www.insee.fr/fr/statistiques/fichier/TODO.csv",  # TODO: Add real URL
-        producer=Producer.INSEE,
-        file_type=FileType.CSV,
-        description="Table d'appartenance géographique",
-        read_options={"auto_detect": True},
-    ),
+    )
 ]
 
 # Convert to dict format for backward compatibility

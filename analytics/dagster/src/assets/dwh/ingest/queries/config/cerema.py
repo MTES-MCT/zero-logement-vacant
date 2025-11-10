@@ -164,6 +164,19 @@ CEREMA_SOURCES = [
         type_overrides={"ccogrm": "VARCHAR"},
         read_options={"auto_detect": True, "ignore_errors": False},
     ),
+
+    # -------------------------------------------------------------------------
+    # Private Sources
+    # -------------------------------------------------------------------------
+    
+    ExternalSourceConfig(
+        name="conso2009_2024_resultats_com",
+        url="https://www.data.gouv.fr/api/1/datasets/r/8c67a68a-bb1a-4b7e-b221-62ccfb8bc4f9",
+        producer=Producer.CEREMA,
+        file_type=FileType.CSV,
+        description="Consommation d'espaces naturels, agricoles et forestiers du 1er janvier 2009 au 1er janvier 2024",
+        read_options={"auto_detect": True, "delim": ";"},
+    ),
 ]
 
 # Convert to dict format for backward compatibility

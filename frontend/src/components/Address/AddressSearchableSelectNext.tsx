@@ -88,7 +88,7 @@ function AddressSearchableSelectNext(props: AddressSearchableSelectNextProps) {
             </AppLink>
           </Stack>
         }
-        hintText="Cette adresse est la plus proche identifiée dans la Base Adresse Nationale. Ce format est recommandé pour vos courriers. Pour modifier l’adresse, commencez à saisir votre recherche et choisissez une des options dans la liste."
+        hintText="Adresse la plus proche dans la BAN, au format recommandé pour vos courriers (modifiable)."
         autocompleteProps={{
           autoHighlight: true,
           openOnFocus: true

@@ -57,11 +57,14 @@ class DataProcessor:
 
 ### Standard CLI Arguments
 
+**IMPORTANT**: Always use a single `--db-url` parameter (PostgreSQL URI) instead of multiple connection parameters.
+
 ```python
 parser = argparse.ArgumentParser(description='Process data')
 
-# Essential
-parser.add_argument('--db-url', required=True, help='Database URL')
+# Essential - Database connection via URI
+parser.add_argument('--db-url', required=True,
+                   help='PostgreSQL connection URI (postgresql://user:pass@host:port/dbname)')
 parser.add_argument('--dry-run', action='store_true', help='Simulation mode')
 parser.add_argument('--limit', type=int, help='Limit records to process')
 
@@ -71,9 +74,338 @@ parser.add_argument('--batch-size', type=int, default=5000,
 parser.add_argument('--num-workers', type=int, default=4,
                    help='Parallel workers (default: 4)')
 
+# Data partitioning for large datasets
+parser.add_argument('--department', '--dept', type=str,
+                   help='Process specific department/territory (e.g., 75, 01, 2A)')
+parser.add_argument('--start-department', '--start-dept', type=str,
+                   help='Starting department when processing multiple (e.g., 75, 01, 2A)')
+parser.add_argument('--sequential', action='store_true',
+                   help='Process partitions sequentially instead of in parallel')
+
 # Debug
 parser.add_argument('--debug', action='store_true', help='Enable debug logs')
 parser.add_argument('--verbose', '-v', action='store_true', help='Verbose output')
+```
+
+**Database Connection Best Practices:**
+
+✅ **GOOD**: Single URI parameter
+```bash
+python script.py --db-url "postgresql://user:password@localhost:5432/mydb"
+```
+
+❌ **BAD**: Multiple connection parameters (deprecated)
+```bash
+# Don't use separate --db-host, --db-port, --db-name, --db-user, --db-password
+python script.py --db-host localhost --db-port 5432 --db-name mydb --db-user user --db-password pass
+```
+
+**Why use URI format?**
+- **Consistency**: Standard PostgreSQL connection string format
+- **Security**: Single environment variable (`DATABASE_URL`) instead of multiple secrets
+- **Simplicity**: One parameter instead of 5+
+- **Portability**: Compatible with cloud providers (Heroku, Render, etc.)
+- **URL encoding**: Handles special characters in passwords automatically
+
+**URI Format:**
+```
+postgresql://[user[:password]@][host][:port][/dbname][?param1=value1&...]
+```
+
+**Examples:**
+```bash
+# Local development
+postgresql://postgres:postgres@localhost:5432/zlv
+
+# Production with SSL
+postgresql://user:pass@db.example.com:5432/prod?sslmode=require
+
+# With environment variable
+export DATABASE_URL="postgresql://user:pass@host:5432/db"
+python script.py --db-url "$DATABASE_URL"
+```
+
+**Parsing URI in Python:**
+```python
+import psycopg2
+
+class DataProcessor:
+    def __init__(self, db_url: str):
+        self.db_url = db_url
+        self.conn = None
+
+    def connect(self):
+        """Connect using PostgreSQL URI"""
+        self.conn = psycopg2.connect(self.db_url)
+
+# Usage
+processor = DataProcessor(db_url="postgresql://user:pass@localhost:5432/mydb")
+processor.connect()
+```
+
+---
+
+## Data Partitioning for Large Datasets
+
+### Why Partition Data?
+
+When processing **large datasets** (millions of records), partitioning by a discriminant (department, region, year, etc.) provides several benefits:
+
+- **🧠 Memory Management**: Process subset at a time, avoid OOM errors
+- **⏸️ Interruptibility**: Stop/resume at partition boundaries
+- **🔍 Debugging**: Isolate issues to specific partitions
+- **📊 Progress Tracking**: Clear visibility on which partitions are done
+- **🔄 Parallelization**: Process multiple partitions in parallel OR sequentially
+- **💾 Resource Control**: Release resources between partitions
+
+### Recommended Pattern
+
+#### 1. **CLI Arguments for Partitioning**
+
+```python
+parser.add_argument('--department', '--dept', type=str,
+                   help='Process specific department/territory (e.g., 75, 01, 2A)')
+parser.add_argument('--sequential', action='store_true',
+                   help='Process partitions sequentially instead of in parallel')
+parser.add_argument('--region', type=str,
+                   help='Process specific region')
+parser.add_argument('--year', type=int,
+                   help='Process specific year')
+```
+
+#### 2. **Preprocessing: Split Data by Discriminant**
+
+```python
+def preprocess_by_partition(self, input_file: str, output_dir: str,
+                            partition_field: str = 'department') -> List[str]:
+    """
+    Split large input file into partition-specific files.
+
+    Args:
+        input_file: Large input file (JSON Lines, CSV, etc.)
+        output_dir: Output directory for partition files
+        partition_field: Field to partition by (e.g., 'department', 'region')
+
+    Returns:
+        List of partition file paths
+    """
+    partitions = defaultdict(list)
+
+    # Read and partition data
+    with open(input_file, 'r') as f:
+        for line in tqdm(f, desc="Partitioning data"):
+            record = json.loads(line)
+            partition_key = record.get(partition_field)
+
+            if partition_key:
+                partitions[partition_key].append(record)
+
+    # Write partition files
+    partition_files = []
+    for partition_key, records in partitions.items():
+        output_file = os.path.join(output_dir, f"partition_{partition_key}.jsonl")
+
+        with open(output_file, 'w') as f:
+            for record in records:
+                f.write(json.dumps(record, ensure_ascii=False) + '\n')
+
+        partition_files.append(output_file)
+        print(f"✅ Partition {partition_key}: {len(records):,} records → {output_file}")
+
+    return partition_files
+```
+
+#### 3. **Processing: Sequential or Parallel**
+
+```python
+def process_partitions(self, partition_files: List[str], sequential: bool = False):
+    """
+    Process partitions either sequentially or in parallel.
+
+    Args:
+        partition_files: List of partition file paths
+        sequential: If True, process one partition at a time
+    """
+    if sequential or len(partition_files) == 1:
+        # Sequential processing (one partition at a time)
+        print(f"🔄 Sequential processing of {len(partition_files)} partitions")
+
+        for partition_file in tqdm(partition_files, desc="Partitions"):
+            partition_name = Path(partition_file).stem
+
+            try:
+                print(f"\n📦 Processing partition: {partition_name}")
+                self.process_single_partition(partition_file)
+                print(f"✅ Partition {partition_name} completed")
+
+            except Exception as e:
+                print(f"❌ Error in partition {partition_name}: {e}")
+                # Continue to next partition
+                continue
+
+    else:
+        # Parallel processing (multiple partitions at once)
+        print(f"⚡ Parallel processing of {len(partition_files)} partitions")
+
+        with ThreadPoolExecutor(max_workers=self.max_workers) as executor:
+            futures = {
+                executor.submit(self.process_single_partition, pf): pf
+                for pf in partition_files
+            }
+
+            for future in as_completed(futures):
+                partition_file = futures[future]
+                partition_name = Path(partition_file).stem
+
+                try:
+                    future.result()
+                    print(f"✅ Partition {partition_name} completed")
+                except Exception as e:
+                    print(f"❌ Error in partition {partition_name}: {e}")
+
+def process_single_partition(self, partition_file: str):
+    """Process a single partition file"""
+    with open(partition_file, 'r') as f:
+        records = [json.loads(line) for line in f]
+
+    # Process records in batches
+    for i in range(0, len(records), self.batch_size):
+        batch = records[i:i + self.batch_size]
+        self.process_batch(batch)
+```
+
+### Example Use Cases
+
+#### Example 1: DPE Import by Department
+
+```python
+# Preprocess large DPE file into department files
+python import-dpe.py data.jsonl --output-dir preprocessed/
+
+# Process all departments in parallel (default)
+python import-dpe.py data.jsonl --db-url "$DATABASE_URL"
+
+# Process all departments sequentially (one at a time)
+python import-dpe.py data.jsonl --sequential --db-url "$DATABASE_URL"
+
+# Resume from department 50 (skip departments 01-49)
+python import-dpe.py data.jsonl --sequential --start-department 50 --db-url "$DATABASE_URL"
+
+# Process only department 75 (Paris)
+python import-dpe.py data.jsonl --department 75 --db-url "$DATABASE_URL"
+
+# Process only department 01 (Ain)
+python import-dpe.py data.jsonl --department 01 --db-url "$DATABASE_URL"
+```
+
+#### Example 2: Address Geocoding by Region
+
+```python
+# Process all regions in parallel
+python geocode-addresses.py addresses.csv --db-url "$DATABASE_URL"
+
+# Process only Île-de-France
+python geocode-addresses.py addresses.csv --region "ile-de-france" --db-url "$DATABASE_URL"
+
+# Process all regions sequentially
+python geocode-addresses.py addresses.csv --sequential --db-url "$DATABASE_URL"
+```
+
+#### Example 3: Data Migration by Year
+
+```python
+# Process all years in parallel
+python migrate-data.py old.db --db-url "$DATABASE_URL"
+
+# Process specific year
+python migrate-data.py old.db --year 2023 --db-url "$DATABASE_URL"
+
+# Process all years sequentially
+python migrate-data.py old.db --sequential --db-url "$DATABASE_URL"
+```
+
+### Best Practices for Partitioning
+
+✅ **DO**:
+- Choose a natural discriminant (department, region, year, category)
+- Preprocess large files into partition files for faster re-runs
+- Add `--sequential` flag for memory-constrained environments
+- Add `--start-department` flag to resume processing from a specific partition
+- Log partition progress clearly (which partition is being processed)
+- Handle partition errors gracefully (continue to next partition)
+- Support processing specific partitions (`--department 75`)
+- Support resuming from a partition (`--start-department 50`)
+
+❌ **DON'T**:
+- Create too many small partitions (overhead increases)
+- Create unbalanced partitions (some too large, others too small)
+- Load entire partition in memory at once (use batching within partition)
+- Ignore failed partitions without logging
+
+### Monitoring Partition Progress
+
+```python
+def process_partitions(self, partition_files: List[str]):
+    """Process partitions with detailed progress tracking"""
+    total_partitions = len(partition_files)
+    completed = 0
+    failed = 0
+
+    for idx, partition_file in enumerate(partition_files, 1):
+        partition_name = Path(partition_file).stem
+
+        print(f"\n{'='*80}")
+        print(f"Partition {idx}/{total_partitions}: {partition_name}")
+        print(f"Progress: {completed} completed, {failed} failed")
+        print(f"{'='*80}")
+
+        try:
+            self.process_single_partition(partition_file)
+            completed += 1
+            print(f"✅ SUCCESS: Partition {partition_name}")
+
+        except Exception as e:
+            failed += 1
+            print(f"❌ FAILED: Partition {partition_name}: {e}")
+            logging.error(f"Partition {partition_name} failed", exc_info=True)
+
+    print(f"\n{'='*80}")
+    print(f"SUMMARY: {completed}/{total_partitions} completed, {failed} failed")
+    print(f"{'='*80}")
+```
+
+### Performance Considerations
+
+| Partition Strategy | Memory Usage | Speed | Use Case |
+|-------------------|--------------|-------|----------|
+| **All in parallel** | High | Fast | Small/medium datasets, powerful server |
+| **Sequential** | Low | Slower | Large datasets, limited resources |
+| **Single partition** | Low | Fastest for 1 | Testing, debugging, re-processing specific area |
+| **Hybrid (N workers)** | Medium | Fast | Balance between speed and resources |
+
+### Resume Capability
+
+Partitioning enables easy resume after interruption:
+
+```python
+def get_unprocessed_partitions(self, partition_files: List[str]) -> List[str]:
+    """Return only partitions that haven't been processed yet"""
+    unprocessed = []
+
+    for partition_file in partition_files:
+        partition_key = Path(partition_file).stem.split('_')[1]
+
+        # Check if partition is already processed in DB
+        self.cursor.execute("""
+            SELECT COUNT(*) FROM partitions_status
+            WHERE partition_key = %s AND status = 'completed'
+        """, (partition_key,))
+
+        count = self.cursor.fetchone()[0]
+        if count == 0:
+            unprocessed.append(partition_file)
+
+    return unprocessed
 ```
 
 ---
@@ -980,7 +1312,8 @@ class DataProcessor:
 def main():
     parser = argparse.ArgumentParser(description='Process data efficiently')
 
-    parser.add_argument('--db-url', required=True, help='Database URL')
+    parser.add_argument('--db-url', required=True,
+                       help='PostgreSQL connection URI (postgresql://user:pass@host:port/dbname)')
     parser.add_argument('--dry-run', action='store_true', help='Simulation mode')
     parser.add_argument('--limit', type=int, help='Limit items to process')
     parser.add_argument('--batch-size', type=int, default=5000,
@@ -1166,7 +1499,14 @@ pytest-watch test_script.py
 - [ ] **English comments**: All comments, docstrings, and variable names
 - [ ] **Tests implemented**: Unit and functional tests with pytest
 - [ ] **Error handling**: Try/except per batch, continue on error
-- [ ] **CLI args**: --dry-run, --limit, --batch-size, --num-workers
+- [ ] **CLI args**: --dry-run, --limit, --batch-size, --num-workers, --db-url
+
+### Large Datasets (if applicable)
+- [ ] **Data partitioning**: Implement `--department` / `--region` / discriminant filter
+- [ ] **Sequential mode**: Add `--sequential` flag for one-at-a-time processing
+- [ ] **Preprocessing**: Split large files into partition files
+- [ ] **Partition logging**: Clear progress tracking per partition
+- [ ] **Resume capability**: Support re-processing specific partitions
 
 ### Database
 - [ ] **SQL indexes created**: Knex migration with all necessary indexes
@@ -1202,6 +1542,8 @@ pytest-watch test_script.py
 | Batch vs final commits | **10-50x** |
 | `synchronous_commit = off` | **2-5x** (on commits) |
 | Skip processed data | **∞** (instant recovery) |
+| **Data partitioning** | **Memory control + resumability** |
+| Partition-level parallelization | **Linear speedup (N partitions = N workers)** |
 
 ### Cumulative Impact of Optimizations
 

@@ -178,6 +178,52 @@ describe('Prospect API', () => {
         lastAccountRequestAt: expect.any(String)
       });
     });
+
+    it('should have hasCommitment=true when at least one account has commitment, even if first account does not', async () => {
+      const email = genEmail();
+      const link = genSignupLinkApi(email);
+      await SignupLinks().insert(formatSignupLinkApi(link));
+
+      // Simulate the case where first account has no commitment but others do
+      // This covers the scenario where a user has multiple Cerema accounts
+      vi.spyOn(ceremaService, 'consultUsers').mockResolvedValue([
+        {
+          email,
+          establishmentSiren: genSiren(), // Unknown establishment without commitment
+          hasAccount: true,
+          hasCommitment: false
+        },
+        {
+          email,
+          establishmentSiren: establishment.siren, // Known establishment with commitment
+          hasAccount: true,
+          hasCommitment: true
+        },
+        {
+          email,
+          establishmentSiren: anotherEstablishment.siren, // Another known establishment with commitment
+          hasAccount: true,
+          hasCommitment: true
+        }
+      ]);
+
+      const { body, status } = await request(url).put(testRoute(link.id));
+
+      expect(status).toBe(constants.HTTP_STATUS_CREATED);
+      expect(body).toMatchObject<ProspectApi>({
+        email,
+        // The repository orders by name, so we can't predict which establishment will be returned
+        // We just verify it's one of the two with commitment
+        establishment: expect.objectContaining({
+          id: expect.any(String),
+          name: expect.any(String),
+          siren: expect.stringMatching(new RegExp(`(${establishment.siren}|${anotherEstablishment.siren})`))
+        }),
+        hasAccount: true,
+        hasCommitment: true, // Should be true because at least one account has commitment
+        lastAccountRequestAt: expect.any(String)
+      });
+    });
   });
 
   describe('GET /prospects/{email}', () => {

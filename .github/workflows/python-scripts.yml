@@ -46,6 +46,13 @@ jobs:
           pytest test_calculate_distances.py -v --tb=short
         continue-on-error: false
 
+      - name: Test import-dpe
+        run: |
+          cd server/src/scripts/import-dpe
+          pip install -r requirements.txt
+          pytest test_import_dpe.py -v --tb=short
+        continue-on-error: false
+
       - name: Generate coverage report
         if: matrix.python-version == '3.13'
         run: |

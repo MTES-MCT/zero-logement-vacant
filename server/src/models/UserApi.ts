@@ -4,6 +4,11 @@ export const SALT_LENGTH = 10;
 
 export type UserApi = UserDTO & {
   password: string;
+  // 2FA fields
+  twoFactorSecret: string | null;
+  twoFactorEnabledAt: string | null;
+  twoFactorCode: string | null;
+  twoFactorCodeGeneratedAt: string | null;
   // Timestamps
   deletedAt: string | null;
 };
@@ -15,6 +20,10 @@ export function fromUserDTO(user: UserDTO): UserApi {
     position: null,
     timePerWeek: null,
     password: '',
+    twoFactorSecret: null,
+    twoFactorEnabledAt: null,
+    twoFactorCode: null,
+    twoFactorCodeGeneratedAt: null,
     lastAuthenticatedAt: new Date().toJSON(),
     updatedAt: new Date().toJSON(),
     deletedAt: null

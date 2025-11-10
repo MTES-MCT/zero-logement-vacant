@@ -78,6 +78,50 @@ class NodemailerService implements MailService {
       content: 'Nouveau message'
     });
   }
+
+  async sendTwoFactorCode(code: string, options: SendOptions): Promise<void> {
+    const htmlContent = `
+      <!DOCTYPE html>
+      <html>
+        <head>
+          <meta charset="utf-8">
+          <style>
+            body { font-family: Arial, sans-serif; line-height: 1.6; color: #333; }
+            .container { max-width: 600px; margin: 0 auto; padding: 20px; }
+            .header { background-color: #000091; color: white; padding: 20px; text-align: center; }
+            .content { background-color: #f5f5f5; padding: 30px; margin: 20px 0; }
+            .code { font-size: 32px; font-weight: bold; text-align: center; letter-spacing: 8px;
+                    background-color: white; padding: 20px; margin: 20px 0; border: 2px solid #000091; }
+            .footer { text-align: center; color: #666; font-size: 12px; }
+          </style>
+        </head>
+        <body>
+          <div class="container">
+            <div class="header">
+              <h1>Zéro Logement Vacant</h1>
+            </div>
+            <div class="content">
+              <h2>Code de vérification pour la connexion</h2>
+              <p>Votre code de vérification à usage unique est :</p>
+              <div class="code">${code}</div>
+              <p>Ce code est valable pendant <strong>10 minutes</strong>.</p>
+              <p>Si vous n'avez pas demandé ce code, veuillez ignorer cet email.</p>
+            </div>
+            <div class="footer">
+              <p>Cet email a été envoyé automatiquement, merci de ne pas y répondre.</p>
+              <p>&copy; ${new Date().getFullYear()} Zéro Logement Vacant</p>
+            </div>
+          </div>
+        </body>
+      </html>
+    `;
+
+    return this.send({
+      ...options,
+      subject: 'Code de vérification - Zéro Logement Vacant',
+      content: htmlContent
+    });
+  }
 }
 
 export default function createNodemailerService(): MailService {

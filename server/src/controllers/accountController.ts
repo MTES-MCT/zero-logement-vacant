@@ -24,6 +24,8 @@ import {
 import establishmentRepository from '~/repositories/establishmentRepository';
 import resetLinkRepository from '~/repositories/resetLinkRepository';
 import userRepository from '~/repositories/userRepository';
+import mailService from '~/services/mailService';
+import { generateSimpleCode, isCodeExpired } from '~/services/twoFactorService';
 import { emailValidator, passwordCreationValidator } from '~/utils/validators';
 
 // TODO: rename the file to authController.ts
@@ -55,6 +57,36 @@ async function signIn(request: Request, response: Response) {
     throw new AuthenticationFailedError();
   }
 
+  // Check if 2FA is required for admin users
+  if (user.role === UserRole.ADMIN) {
+    logger.info('Admin user detected, generating 2FA code', { userId: user.id });
+
+    // Generate and send 2FA code
+    const code = generateSimpleCode();
+    const now = new Date();
+
+    await userRepository.update({
+      ...user,
+      twoFactorCode: code,
+      twoFactorCodeGeneratedAt: now.toJSON()
+    });
+
+    // Send code via email
+    await mailService.sendTwoFactorCode(code, {
+      recipients: [user.email]
+    });
+
+    logger.info('2FA code sent to admin user', { userId: user.id, email: user.email });
+
+    // Return response indicating 2FA is required
+    response.status(constants.HTTP_STATUS_OK).json({
+      requiresTwoFactor: true,
+      email: user.email
+    });
+    return;
+  }
+
+  // For non-admin users, proceed with normal login
   await userRepository.update({
     ...user,
     lastAuthenticatedAt: new Date().toJSON()
@@ -175,9 +207,73 @@ const resetPasswordValidators: ValidationChain[] = [
   passwordCreationValidator()
 ];
 
+const verifyTwoFactorValidators: ValidationChain[] = [
+  emailValidator(),
+  body('code').isString().isLength({ min: 6, max: 6 }),
+  body('establishmentId').isString().optional()
+];
+
+interface VerifyTwoFactorPayload {
+  email: string;
+  code: string;
+  establishmentId?: string;
+}
+
+async function verifyTwoFactor(request: Request, response: Response) {
+  const payload = request.body as VerifyTwoFactorPayload;
+
+  const user = await userRepository.getByEmail(payload.email);
+  if (!user) {
+    throw new AuthenticationFailedError();
+  }
+
+  // Check if user is admin
+  if (user.role !== UserRole.ADMIN) {
+    throw new AuthenticationFailedError();
+  }
+
+  // Check if code exists
+  if (!user.twoFactorCode || !user.twoFactorCodeGeneratedAt) {
+    logger.warn('2FA verification attempted without code', { userId: user.id });
+    throw new AuthenticationFailedError();
+  }
+
+  // Check if code has expired
+  if (isCodeExpired(new Date(user.twoFactorCodeGeneratedAt))) {
+    logger.warn('2FA code expired', { userId: user.id });
+    throw new AuthenticationFailedError();
+  }
+
+  // Verify code
+  if (user.twoFactorCode !== payload.code) {
+    logger.warn('2FA code mismatch', { userId: user.id });
+    throw new AuthenticationFailedError();
+  }
+
+  logger.info('2FA code verified successfully', { userId: user.id });
+
+  // Clear the 2FA code
+  await userRepository.update({
+    ...user,
+    twoFactorCode: null,
+    twoFactorCodeGeneratedAt: null,
+    lastAuthenticatedAt: new Date().toJSON()
+  });
+
+  // Complete the sign-in process
+  const establishmentId = user.establishmentId ?? payload.establishmentId;
+  if (!establishmentId) {
+    throw new UnprocessableEntityError();
+  }
+
+  await signInToEstablishment(user, establishmentId, response);
+}
+
 export default {
   signIn,
   signInValidators,
+  verifyTwoFactor,
+  verifyTwoFactorValidators,
   get,
   updateAccount,
   updateAccountValidators,

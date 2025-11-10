@@ -1,7 +1,7 @@
 import { createSlice, type SerializedError } from '@reduxjs/toolkit';
 
 import type { AuthUser } from '../../models/User';
-import { changeEstablishment, logIn } from '../thunks/auth-thunks';
+import { changeEstablishment, logIn, verifyTwoFactor } from '../thunks/auth-thunks';
 
 const AUTH_KEY = 'authUser';
 
@@ -99,6 +99,27 @@ const authenticationSlice = createSlice({
         state.changeEstablishment.isError = true;
         state.changeEstablishment.isLoading = false;
         state.changeEstablishment.isSuccess = false;
+      });
+
+    builder
+      .addCase(verifyTwoFactor.pending, (state) => {
+        state.logIn.isLoading = true;
+        state.logIn.isUninitialized = false;
+      })
+      .addCase(verifyTwoFactor.fulfilled, (state, action) => {
+        localStorage.setItem(AUTH_KEY, JSON.stringify(action.payload));
+        state.authUser = action.payload;
+        state.logIn.data = action.payload;
+        state.logIn.error = undefined;
+        state.logIn.isError = false;
+        state.logIn.isLoading = false;
+        state.logIn.isSuccess = true;
+      })
+      .addCase(verifyTwoFactor.rejected, (state, action) => {
+        state.logIn.error = action.error;
+        state.logIn.isError = true;
+        state.logIn.isLoading = false;
+        state.logIn.isSuccess = false;
       });
   }
 });

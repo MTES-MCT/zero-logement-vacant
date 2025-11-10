@@ -1,11 +1,18 @@
 import config from '../utils/config';
 import type { AuthUser } from '../models/User';
 
+interface TwoFactorResponse {
+  requiresTwoFactor: true;
+  email: string;
+}
+
+type LoginResponse = AuthUser | TwoFactorResponse;
+
 const login = async (
   email: string,
   password: string,
   establishmentId?: string
-): Promise<AuthUser> => {
+): Promise<LoginResponse> => {
   return fetch(`${config.apiEndpoint}/api/authenticate`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
@@ -15,6 +22,24 @@ const login = async (
       return response.json();
     } else {
       throw new Error('Authentication failed');
+    }
+  });
+};
+
+const verifyTwoFactor = async (
+  email: string,
+  code: string,
+  establishmentId?: string
+): Promise<AuthUser> => {
+  return fetch(`${config.apiEndpoint}/api/authenticate/verify-2fa`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ email, code, establishmentId })
+  }).then((response) => {
+    if (response.ok) {
+      return response.json();
+    } else {
+      throw new Error('2FA verification failed');
     }
   });
 };
@@ -77,6 +102,7 @@ const withAuthHeader = (headers?: Headers) => {
 
 const authService = {
   login,
+  verifyTwoFactor,
   logout,
   resetPassword,
   authHeader,
@@ -85,3 +111,4 @@ const authService = {
 };
 
 export default authService;
+export type { TwoFactorResponse, LoginResponse };

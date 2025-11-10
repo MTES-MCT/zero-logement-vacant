@@ -67,8 +67,20 @@ const LoginView = () => {
       })
     )
       .unwrap()
-      .then(() => {
-        navigate('/parc-de-logements');
+      .then((response) => {
+        // Check if 2FA is required
+        if ('requiresTwoFactor' in response && response.requiresTwoFactor) {
+          // Redirect to 2FA verification page
+          navigate('/verification-2fa', {
+            state: {
+              email: response.email,
+              establishmentId: data.establishmentId || undefined
+            }
+          });
+        } else {
+          // Normal login, redirect to dashboard
+          navigate('/parc-de-logements');
+        }
       })
       .catch((error) => {
         console.error('Authentication failed', error);

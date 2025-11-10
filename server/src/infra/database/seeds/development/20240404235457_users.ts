@@ -58,7 +58,9 @@ export async function seed(knex: Knex): Promise<void> {
       twoFactorSecret: null,
       twoFactorEnabledAt: null,
       twoFactorCode: null,
-      twoFactorCodeGeneratedAt: null
+      twoFactorCodeGeneratedAt: null,
+      twoFactorFailedAttempts: 0,
+      twoFactorLockedUntil: null
     },
     {
       id: uuidv4(),
@@ -78,7 +80,9 @@ export async function seed(knex: Knex): Promise<void> {
       twoFactorSecret: null,
       twoFactorEnabledAt: null,
       twoFactorCode: null,
-      twoFactorCodeGeneratedAt: null
+      twoFactorCodeGeneratedAt: null,
+      twoFactorFailedAttempts: 0,
+      twoFactorLockedUntil: null
     },
     {
       id: uuidv4(),
@@ -98,7 +102,9 @@ export async function seed(knex: Knex): Promise<void> {
       twoFactorSecret: null,
       twoFactorEnabledAt: null,
       twoFactorCode: null,
-      twoFactorCodeGeneratedAt: null
+      twoFactorCodeGeneratedAt: null,
+      twoFactorFailedAttempts: 0,
+      twoFactorLockedUntil: null
     },
     {
       id: uuidv4(),
@@ -118,7 +124,9 @@ export async function seed(knex: Knex): Promise<void> {
       twoFactorSecret: null,
       twoFactorEnabledAt: null,
       twoFactorCode: null,
-      twoFactorCodeGeneratedAt: null
+      twoFactorCodeGeneratedAt: null,
+      twoFactorFailedAttempts: 0,
+      twoFactorLockedUntil: null
     },
     {
       id: uuidv4(),
@@ -138,7 +146,9 @@ export async function seed(knex: Knex): Promise<void> {
       twoFactorSecret: null,
       twoFactorEnabledAt: null,
       twoFactorCode: null,
-      twoFactorCodeGeneratedAt: null
+      twoFactorCodeGeneratedAt: null,
+      twoFactorFailedAttempts: 0,
+      twoFactorLockedUntil: null
     },
     // End-to-end test user
     {
@@ -159,7 +169,9 @@ export async function seed(knex: Knex): Promise<void> {
       twoFactorSecret: null,
       twoFactorEnabledAt: null,
       twoFactorCode: null,
-      twoFactorCodeGeneratedAt: null
+      twoFactorCodeGeneratedAt: null,
+      twoFactorFailedAttempts: 0,
+      twoFactorLockedUntil: null
     }
   ];
   await Users()

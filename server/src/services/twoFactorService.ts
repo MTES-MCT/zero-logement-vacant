@@ -3,7 +3,9 @@ import crypto from 'crypto';
 import { logger } from '~/infra/logger';
 
 const OTP_CODE_LENGTH = 6;
-const OTP_VALIDITY_MINUTES = 10;
+const OTP_VALIDITY_MINUTES = 5; // Changed from 10 to 5 minutes for security
+const MAX_FAILED_ATTEMPTS = 3;
+const LOCKOUT_DURATION_MINUTES = 15;
 
 export interface TwoFactorConfig {
   secret: string;
@@ -118,3 +120,42 @@ export function isCodeExpired(generatedAt: Date): boolean {
   expiresAt.setMinutes(expiresAt.getMinutes() + OTP_VALIDITY_MINUTES);
   return now > expiresAt;
 }
+
+/**
+ * Hash a 2FA code for secure storage
+ */
+export async function hashCode(code: string): Promise<string> {
+  const bcrypt = await import('bcryptjs');
+  return bcrypt.hash(code, 10);
+}
+
+/**
+ * Verify a 2FA code against a hashed version
+ */
+export async function verifyHashedCode(code: string, hashedCode: string): Promise<boolean> {
+  const bcrypt = await import('bcryptjs');
+  return bcrypt.compare(code, hashedCode);
+}
+
+/**
+ * Check if account is locked due to failed attempts
+ */
+export function isAccountLocked(lockedUntil: Date | null): boolean {
+  if (!lockedUntil) return false;
+  const now = new Date();
+  return now < new Date(lockedUntil);
+}
+
+/**
+ * Calculate lockout end time
+ */
+export function calculateLockoutEnd(): Date {
+  const now = new Date();
+  now.setMinutes(now.getMinutes() + LOCKOUT_DURATION_MINUTES);
+  return now;
+}
+
+/**
+ * Export constants for use in other modules
+ */
+export { MAX_FAILED_ATTEMPTS, LOCKOUT_DURATION_MINUTES, OTP_VALIDITY_MINUTES };

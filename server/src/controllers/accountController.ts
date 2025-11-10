@@ -25,7 +25,15 @@ import establishmentRepository from '~/repositories/establishmentRepository';
 import resetLinkRepository from '~/repositories/resetLinkRepository';
 import userRepository from '~/repositories/userRepository';
 import mailService from '~/services/mailService';
-import { generateSimpleCode, isCodeExpired } from '~/services/twoFactorService';
+import {
+  generateSimpleCode,
+  isCodeExpired,
+  hashCode,
+  verifyHashedCode,
+  isAccountLocked,
+  calculateLockoutEnd,
+  MAX_FAILED_ATTEMPTS
+} from '~/services/twoFactorService';
 import { emailValidator, passwordCreationValidator } from '~/utils/validators';
 
 // TODO: rename the file to authController.ts
@@ -65,18 +73,28 @@ async function signIn(request: Request, response: Response) {
     const code = generateSimpleCode();
     const now = new Date();
 
+    // Hash the code before storing
+    const hashedCode = await hashCode(code);
+
     await userRepository.update({
       ...user,
-      twoFactorCode: code,
-      twoFactorCodeGeneratedAt: now.toJSON()
+      twoFactorCode: hashedCode,
+      twoFactorCodeGeneratedAt: now.toJSON(),
+      // Reset failed attempts on new code generation
+      twoFactorFailedAttempts: 0,
+      twoFactorLockedUntil: null
     });
 
-    // Send code via email
+    // Send code via email (plain text, only to user's email)
     await mailService.sendTwoFactorCode(code, {
       recipients: [user.email]
     });
 
-    logger.info('2FA code sent to admin user', { userId: user.id, email: user.email });
+    logger.info('2FA code sent to admin user', {
+      userId: user.id,
+      email: user.email,
+      action: '2fa_code_sent'
+    });
 
     // Return response indicating 2FA is required
     response.status(constants.HTTP_STATUS_OK).json({
@@ -224,39 +242,94 @@ async function verifyTwoFactor(request: Request, response: Response) {
 
   const user = await userRepository.getByEmail(payload.email);
   if (!user) {
+    logger.warn('2FA verification attempted for non-existent user', {
+      email: payload.email,
+      action: '2fa_verify_failed',
+      reason: 'user_not_found'
+    });
     throw new AuthenticationFailedError();
   }
 
   // Check if user is admin
   if (user.role !== UserRole.ADMIN) {
+    logger.warn('2FA verification attempted by non-admin user', {
+      userId: user.id,
+      action: '2fa_verify_failed',
+      reason: 'not_admin'
+    });
+    throw new AuthenticationFailedError();
+  }
+
+  // Check if account is locked
+  if (isAccountLocked(user.twoFactorLockedUntil ? new Date(user.twoFactorLockedUntil) : null)) {
+    logger.warn('2FA verification attempted on locked account', {
+      userId: user.id,
+      lockedUntil: user.twoFactorLockedUntil,
+      action: '2fa_verify_failed',
+      reason: 'account_locked'
+    });
     throw new AuthenticationFailedError();
   }
 
   // Check if code exists
   if (!user.twoFactorCode || !user.twoFactorCodeGeneratedAt) {
-    logger.warn('2FA verification attempted without code', { userId: user.id });
+    logger.warn('2FA verification attempted without code', {
+      userId: user.id,
+      action: '2fa_verify_failed',
+      reason: 'no_code'
+    });
     throw new AuthenticationFailedError();
   }
 
   // Check if code has expired
   if (isCodeExpired(new Date(user.twoFactorCodeGeneratedAt))) {
-    logger.warn('2FA code expired', { userId: user.id });
+    logger.warn('2FA code expired', {
+      userId: user.id,
+      generatedAt: user.twoFactorCodeGeneratedAt,
+      action: '2fa_verify_failed',
+      reason: 'expired'
+    });
     throw new AuthenticationFailedError();
   }
 
-  // Verify code
-  if (user.twoFactorCode !== payload.code) {
-    logger.warn('2FA code mismatch', { userId: user.id });
+  // Verify code against hashed version
+  const isValidCode = await verifyHashedCode(payload.code, user.twoFactorCode);
+
+  if (!isValidCode) {
+    const failedAttempts = user.twoFactorFailedAttempts + 1;
+    const shouldLock = failedAttempts >= MAX_FAILED_ATTEMPTS;
+
+    logger.warn('2FA code mismatch', {
+      userId: user.id,
+      failedAttempts,
+      shouldLock,
+      action: '2fa_verify_failed',
+      reason: 'invalid_code'
+    });
+
+    // Update failed attempts and lock if necessary
+    await userRepository.update({
+      ...user,
+      twoFactorFailedAttempts: failedAttempts,
+      twoFactorLockedUntil: shouldLock ? calculateLockoutEnd().toJSON() : user.twoFactorLockedUntil
+    });
+
     throw new AuthenticationFailedError();
   }
 
-  logger.info('2FA code verified successfully', { userId: user.id });
+  logger.info('2FA code verified successfully', {
+    userId: user.id,
+    email: user.email,
+    action: '2fa_verify_success'
+  });
 
-  // Clear the 2FA code
+  // Clear the 2FA code and reset counters
   await userRepository.update({
     ...user,
     twoFactorCode: null,
     twoFactorCodeGeneratedAt: null,
+    twoFactorFailedAttempts: 0,
+    twoFactorLockedUntil: null,
     lastAuthenticatedAt: new Date().toJSON()
   });
 

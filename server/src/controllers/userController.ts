@@ -124,7 +124,9 @@ async function create(request: Request, response: Response) {
     twoFactorSecret: null,
     twoFactorEnabledAt: null,
     twoFactorCode: null,
-    twoFactorCodeGeneratedAt: null
+    twoFactorCodeGeneratedAt: null,
+    twoFactorFailedAttempts: 0,
+    twoFactorLockedUntil: null
   };
 
   logger.info('Create user', {

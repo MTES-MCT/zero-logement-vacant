@@ -7,8 +7,10 @@ export type UserApi = UserDTO & {
   // 2FA fields
   twoFactorSecret: string | null;
   twoFactorEnabledAt: string | null;
-  twoFactorCode: string | null;
+  twoFactorCode: string | null; // Hashed code stored in database
   twoFactorCodeGeneratedAt: string | null;
+  twoFactorFailedAttempts: number;
+  twoFactorLockedUntil: string | null;
   // Timestamps
   deletedAt: string | null;
 };
@@ -24,6 +26,8 @@ export function fromUserDTO(user: UserDTO): UserApi {
     twoFactorEnabledAt: null,
     twoFactorCode: null,
     twoFactorCodeGeneratedAt: null,
+    twoFactorFailedAttempts: 0,
+    twoFactorLockedUntil: null,
     lastAuthenticatedAt: new Date().toJSON(),
     updatedAt: new Date().toJSON(),
     deletedAt: null

@@ -24,7 +24,9 @@ export const Lovac2023: UserApi = {
   twoFactorSecret: null,
   twoFactorEnabledAt: null,
   twoFactorCode: null,
-  twoFactorCodeGeneratedAt: null
+  twoFactorCodeGeneratedAt: null,
+  twoFactorFailedAttempts: 0,
+  twoFactorLockedUntil: null
 };
 
 export async function seed(knex: Knex): Promise<void> {

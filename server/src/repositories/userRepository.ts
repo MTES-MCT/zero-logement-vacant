@@ -111,6 +111,8 @@ export interface UserDBO {
   two_factor_enabled_at: Date | string | null;
   two_factor_code: string | null;
   two_factor_code_generated_at: Date | string | null;
+  two_factor_failed_attempts: number;
+  two_factor_locked_until: Date | string | null;
 }
 
 export const parseUserApi = (userDBO: UserDBO): UserApi => ({
@@ -137,6 +139,10 @@ export const parseUserApi = (userDBO: UserDBO): UserApi => ({
   twoFactorCode: userDBO.two_factor_code,
   twoFactorCodeGeneratedAt: userDBO.two_factor_code_generated_at
     ? new Date(userDBO.two_factor_code_generated_at).toJSON()
+    : null,
+  twoFactorFailedAttempts: userDBO.two_factor_failed_attempts,
+  twoFactorLockedUntil: userDBO.two_factor_locked_until
+    ? new Date(userDBO.two_factor_locked_until).toJSON()
     : null
 });
 
@@ -164,6 +170,10 @@ export const formatUserApi = (userApi: UserApi): UserDBO => ({
   two_factor_code: userApi.twoFactorCode,
   two_factor_code_generated_at: userApi.twoFactorCodeGeneratedAt
     ? new Date(userApi.twoFactorCodeGeneratedAt).toJSON()
+    : null,
+  two_factor_failed_attempts: userApi.twoFactorFailedAttempts,
+  two_factor_locked_until: userApi.twoFactorLockedUntil
+    ? new Date(userApi.twoFactorLockedUntil).toJSON()
     : null
 });
 

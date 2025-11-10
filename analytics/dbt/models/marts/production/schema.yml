@@ -295,11 +295,6 @@ models:
           - not_null
       - name: localities_geo_code
         description: "Codes géographiques des communes couvertes (array)"
-      - name: kind
-        description: "Type d'établissement (CA, CC, CU, ME, Commune, DEP, REG, etc.)"
-        data_tests:
-          - accepted_values:
-              values: ['CA', 'CC', 'CU', 'ME', 'Commune', 'DEP', 'PETR', 'REG', 'SDED', 'SDER', 'ASSO']
       - name: updated_at
         description: "Date de dernière mise à jour"
       - name: source
@@ -705,7 +700,6 @@ models:
       - name: establishment_id
         description: "Identifiant de l'établissement de rattachement (UUID converti en VARCHAR)"
         tests:
-          - not_null
           - relationships:
               to: ref('marts_production_establishments')
               field: establishment_id

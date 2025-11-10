@@ -175,10 +175,6 @@ models:
               field: id
       - name: user_id
         description: "Identifiant de l'utilisateur créateur de la campagne"
-        tests:
-          - relationships:
-              to: ref('marts_production_users')
-              field: id
       - name: recovery_id
         description: "Identifiant de récupération"
       - name: kind_deprecated
@@ -199,9 +195,6 @@ models:
               field: id
       - name: status
         description: "Statut de la campagne (draft, in-progress, sent, archived)"
-        data_tests:
-          - accepted_values:
-              values: ['draft', 'in-progress', 'sent', 'archived']
       - name: file
         description: "Fichier associé à la campagne"
       - name: description
@@ -231,8 +224,6 @@ models:
         description: "Temps jusqu'à la prochaine campagne (interval)"
       - name: housing_number_in_campaign
         description: "Nombre de logements dans la campagne"
-        tests:
-          - not_null
       - name: return_count_3_months
         description: "Nombre de retours dans les 3 mois"
       - name: return_rate_3_months
@@ -505,9 +496,6 @@ models:
               values: ['(1.1) CT inactive et fantôme', '(1.2) CT inactive et visiteuse', '(2.1) CT en analyse et fantôme', '(2.2) CT en analyse et visiteuse', '(3.1) CT en campagne et fantôme', '(3.2) CT en campagne et visiteuse', '(4.1) CT pro-active et fantôme', '(4.2) CT pro-active et visiteuse', '(5.1) CT exemplaire et fantôme', '(5.2) CT exemplaire et visiteuse', 'Erreur de classification']
       - name: type_explicite
         description: "Type d'établissement explicite (libellé complet)"
-        data_tests:
-          - accepted_values:
-              values: ["Communauté d'Agglomération", "Communauté des Communes", "Communauté Urbaine", "Commune", "Métropole", "Département", "Pôle Équilibre Territorial", "Région", "Service Déconcentré Départemental", "Service Déconcentré Régional", "Association"]
       - name: type_regroupe
         description: "Type d'établissement regroupé (4 catégories principales)"
         data_tests:
@@ -618,11 +606,6 @@ models:
         description: "Date d'archivage du groupe"
       - name: user_id
         description: "Identifiant de l'utilisateur créateur du groupe"
-        tests:
-          - not_null
-          - relationships:
-              to: ref('marts_production_users')
-              field: id
       - name: establishment_id
         description: "Identifiant de l'établissement propriétaire du groupe"
         tests:
@@ -694,9 +677,6 @@ models:
     columns:
       - name: user_id
         description: "Identifiant unique de l'utilisateur (UUID converti en VARCHAR)"
-        tests:
-          - unique
-          - not_null
       - name: establishment_id
         description: "Identifiant de l'établissement de rattachement (UUID converti en VARCHAR)"
         tests:

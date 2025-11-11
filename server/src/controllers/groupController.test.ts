@@ -432,9 +432,7 @@ describe('Group API', () => {
         })
         .use(tokenProvider(user));
       expect(status).toBe(constants.HTTP_STATUS_CREATED);
-      const establishmentHousings = housings.filter((housing) =>
-        establishment.geoCodes.includes(housing.geoCode)
-      );
+      const groupHousings = await GroupsHousing().where({ group_id: body.id })
       const events = await Events()
         .join(
           GROUP_HOUSING_EVENTS_TABLE,
@@ -445,7 +443,7 @@ describe('Group API', () => {
           group_id: body.id,
           type: 'housing:group-attached'
         });
-      expect(events).toBeArrayOfSize(establishmentHousings.length);
+      expect(events).toBeArrayOfSize(groupHousings.length);
       events.forEach((event) => {
         expect(event).toMatchObject<
           Partial<EventRecordDBO<'housing:group-attached'>>

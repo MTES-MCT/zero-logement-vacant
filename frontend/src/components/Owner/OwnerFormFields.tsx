@@ -77,8 +77,7 @@ function OwnerFormFields(props: OwnerFormFieldsProps) {
           </Typography>
         </Stack>
         <Typography className="fr-hint-text">
-          Cette adresse est issue du fichier LOVAC, récupérée via le fichier
-          1767BIS-COM. Celle-ci n&apos;est pas modifiable.
+          Adresse issue des fichiers LOVAC (non modifiable).
         </Typography>
         <Typography
           color={fr.colors.decisions.text.mention.grey.default}

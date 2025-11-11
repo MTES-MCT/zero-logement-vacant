@@ -372,10 +372,15 @@ async function updateHousingOwners(
         housingGeoCode: housing.geoCode,
         housingId: housing.id,
         rank: housingOwnerPayload.rank,
-        idprocpte: housingOwnerPayload.idprocpte ?? undefined,
-        idprodroit: housingOwnerPayload.idprodroit ?? undefined,
-        locprop: housingOwnerPayload.locprop ?? undefined,
-        propertyRight: housingOwnerPayload.propertyRight ?? null
+        idprocpte: housingOwnerPayload.idprocpte,
+        idprodroit: housingOwnerPayload.idprodroit,
+        locprop: housingOwnerPayload.locprop,
+        relativeLocation: null,
+        absoluteDistance: null,
+        propertyRight: housingOwnerPayload.propertyRight,
+        startDate: new Date(),
+        endDate: null,
+        origin: null
       };
     }
   );

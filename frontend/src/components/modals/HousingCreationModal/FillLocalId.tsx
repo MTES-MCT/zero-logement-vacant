@@ -43,7 +43,6 @@ function createFillLocalIdModal() {
       });
 
       const [getHousing, getHousingQuery] = housingApi.useLazyGetHousingQuery();
-      const { currentData: housing } = getHousingQuery;
       const [getDatafoncierHousing, getDatafoncierHousingQuery] =
         datafoncierApi.useLazyFindOneHousingQuery();
 
@@ -60,43 +59,43 @@ function createFillLocalIdModal() {
       }
 
       async function next(data: FillLocalIdSchema) {
-        try {
-          await Promise.all([
-            getDatafoncierHousing(data.localId).unwrap(),
-            getHousing(data.localId)
-              .unwrap()
-              .catch((err) => {
-                const error = unwrapError(err);
-                if (error?.name === 'HousingMissingError') {
-                  return;
-                }
-                throw error;
-              })
-              .then((housing) => {
-                if (housing) {
-                  throw new Error('HousingExistsError');
-                }
-              })
-          ]);
-
-          props.onNext(data.localId);
-        } catch {
-          if (housing) {
-            form.setError('localId', {
-              type: 'manual',
-              message: 'Ce logement existe déjà dans votre parc'
-            });
-          } else if (
-            unwrapError(getDatafoncierHousingQuery.error)?.name ===
-            'HousingMissingError'
-          ) {
-            form.setError('localId', {
-              type: 'manual',
-              message:
-                'Nous n’avons pas pu trouver de logement avec les informations que vous avez fournies. Vérifiez les informations saisies afin de vous assurer qu’elles soient correctes, puis réessayez en modifiant l’identifiant du logement. Le format de l’identifiant national n’est pas valide. Exemple de format valide : 331234567891'
-            });
-          }
-        }
+        await Promise.all([
+          getDatafoncierHousing(data.localId)
+            .unwrap()
+            .catch((error) => {
+              form.setError('localId', {
+                type: 'manual',
+                message:
+                  'Nous n’avons pas pu trouver de logement avec les informations que vous avez fournies. Vérifiez les informations saisies afin de vous assurer qu’elles soient correctes, puis réessayez en modifiant l’identifiant du logement. Le format de l’identifiant national n’est pas valide. Exemple de format valide : 331234567891'
+              });
+              throw error;
+            }),
+          getHousing(data.localId)
+            .unwrap()
+            .then((housing) => {
+              if (housing) {
+                form.setError('localId', {
+                  type: 'manual',
+                  message: 'Ce logement existe déjà dans votre parc'
+                });
+                throw new Error('HousingExistsError');
+              }
+            })
+            .catch((err) => {
+              const error = unwrapError(err);
+              if (error?.name === 'HousingMissingError') {
+                // Ignore the error because we want to know whether the housing exists
+                return;
+              }
+              throw error;
+            })
+        ])
+          .then(() => {
+            props.onNext(data.localId);
+          })
+          .catch(() => {
+            // Ignore
+          });
       }
 
       return (

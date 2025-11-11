@@ -12,7 +12,7 @@ const fillLocalIdModal = createFillLocalIdModal();
 const reviewHousingModal = createReviewHousingModal();
 
 function HousingCreationModal(props: Props) {
-  const [localId, setLocalId] = useState<string>('');
+  const [localId, setLocalId] = useState<string | null>(null);
 
   function handleFillLocalIdCancel() {
     fillLocalIdModal.close();

@@ -1,4 +1,5 @@
 import Typography from '@mui/material/Typography';
+import { skipToken } from '@reduxjs/toolkit/query';
 import type { DatafoncierHousing, Occupancy } from '@zerologementvacant/models';
 
 import HousingResult from '~/components/HousingResult/HousingResult';
@@ -7,7 +8,7 @@ import { datafoncierApi } from '~/services/datafoncier.service';
 import { useCreateHousingMutation } from '~/services/housing.service';
 
 export interface ReviewHousingProps {
-  localId: string;
+  localId: string | null;
   onBack(): void;
   onConfirm(): void;
 }
@@ -22,7 +23,7 @@ function createReviewHousingModal() {
     ...modal,
     Component(props: ReviewHousingProps) {
       const { data: datafoncierHousing } =
-        datafoncierApi.useFindOneHousingQuery(props.localId);
+        datafoncierApi.useFindOneHousingQuery(props.localId ?? skipToken);
 
       const address = datafoncierHousing
         ? toAddress(datafoncierHousing)
@@ -31,11 +32,13 @@ function createReviewHousingModal() {
       const [createHousing, createHousingMutation] = useCreateHousingMutation();
 
       function handleConfirm() {
-        createHousing({ localId: props.localId })
-          .unwrap()
-          .then(() => {
-            props.onConfirm();
-          });
+        if (props.localId) {
+          createHousing({ localId: props.localId })
+            .unwrap()
+            .then(() => {
+              props.onConfirm();
+            });
+        }
       }
 
       return (

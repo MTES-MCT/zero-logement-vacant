@@ -16,20 +16,6 @@ const modal = createModal({
 
 const PORTAIL_DF_URL = 'https://portaildf.cerema.fr/';
 
-const SUSPENSION_REASONS: Record<SuspendedCause, string> = {
-  'droits utilisateur expires': 'droits utilisateur expirés',
-  'droits structure expires': 'droits de la structure expirés',
-  'cgu vides': 'conditions générales d\'utilisation non validées'
-} as const;
-
-function formatSuspensionReasons(suspendedCause: string): string {
-  const causes = suspendedCause.split(',').map(c => c.trim()) as SuspendedCause[];
-  const formatted = causes
-    .map(cause => SUSPENSION_REASONS[cause] ?? cause)
-    .join(', ');
-  return formatted;
-}
-
 function SuspendedUserModal() {
   const user = useAppSelector((state) => state.authentication.logIn.data);
   const ready = useIsDsfrReady(id);

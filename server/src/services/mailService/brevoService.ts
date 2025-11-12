@@ -17,7 +17,7 @@ const LOVAC_ACCOUNT_ACTIVATION_TEMPLATE_ID = 54;
 const OWNER_PROSPECT_CREATED_TEMPLATE_ID = 13;
 // TODO: Create this template in Brevo interface
 // Template should include a {{params.code}} variable and {{params.expiryMinutes}}
-const TWO_FACTOR_CODE_TEMPLATE_ID = 0; // To be replaced with actual template ID
+const TWO_FACTOR_CODE_TEMPLATE_ID = 100;
 
 class BrevoService implements MailService {
   private emails: TransactionalEmailsApi;
@@ -109,13 +109,6 @@ class BrevoService implements MailService {
   }
 
   async sendTwoFactorCode(code: string, options: SendOptions): Promise<void> {
-    if (TWO_FACTOR_CODE_TEMPLATE_ID === 0) {
-      logger.warn('2FA template not configured in Brevo. Please create a template and update TWO_FACTOR_CODE_TEMPLATE_ID');
-      // Fallback: log the code (not secure for production, but allows development)
-      logger.info('2FA code (template missing):', { code, recipients: options.recipients });
-      return;
-    }
-
     await this.send({
       ...options,
       templateId: TWO_FACTOR_CODE_TEMPLATE_ID,

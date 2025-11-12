@@ -5,15 +5,11 @@ const VALID_PASSWORD = '1234QWERasdf';
 describe('Sign up', () => {
   it('should sign up', () => {
     cy.visit('/connexion');
-    cy.get('a').contains('Créer votre compte').click();
+
+    cy.findByRole('link', { name: /Créer votre compte/i }).click();
 
     const user = faker.internet.email();
-
-    cy.get('label')
-      .contains(/Adresse e-mail/i)
-      .next()
-      .type(`${user}{enter}`);
-
+    cy.findByLabelText(/^Adresse e-mail/i).type(`${user}{enter}`);
     cy.location('pathname').should('eq', '/inscription/activation');
 
     // Fetch emails from the Nodemailer API
@@ -37,18 +33,11 @@ describe('Sign up', () => {
       cy.visit(link);
     });
 
-    cy.get('label')
-      .contains(/Définissez votre mot de passe/i)
-      .next()
-      .type(VALID_PASSWORD);
-    cy.get('label')
-      .contains(/Confirmez votre mot de passe/i)
-      .next()
-      .type(`${VALID_PASSWORD}{enter}`);
-
-    cy.get('button')
-      .contains(/Créer mon compte/i)
-      .click();
+    cy.findByLabelText(/Définissez votre mot de passe/i).type(VALID_PASSWORD);
+    cy.findByLabelText(/Confirmez votre mot de passe/i).type(
+      `${VALID_PASSWORD}{enter}`
+    );
+    cy.findByRole('button', { name: /Créer mon compte/i }).click();
 
     cy.location('pathname').should('eq', '/parc-de-logements');
   });

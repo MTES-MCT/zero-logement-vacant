@@ -28,7 +28,7 @@ import {
 } from './banAddressesRepository';
 import { campaignsHousingTable } from './campaignHousingRepository';
 import { GROUPS_HOUSING_TABLE } from './groupRepository';
-import { HousingOwnerDBO, housingOwnersTable } from './housingOwnerRepository';
+import { fromRelativeLocationDBO, HousingOwnerDBO, housingOwnersTable } from './housingOwnerRepository';
 import {
   HousingDBO,
   housingTable,
@@ -645,6 +645,8 @@ export const parseHousingOwnerApi = (
     typeof housingOwner.locprop_source === 'string'
       ? Number(housingOwner.locprop_source)
       : null,
+  relativeLocation: fromRelativeLocationDBO(housingOwner.locprop_relative_ban),
+  absoluteDistance: housingOwner.locprop_distance_ban,
   propertyRight: housingOwner.property_right
 });
 

@@ -16,6 +16,7 @@ import RankBadge from '~/components/Owner/RankBadge';
 import { useUser } from '~/hooks/useUser';
 import type { Housing } from '~/models/Housing';
 import type { HousingOwner } from '~/models/Owner';
+import { useIgnoredAddresses } from './useIgnoredAddresses';
 
 const HOUSING_OWNER_TABLE_COLUMN_VALUES = [
   'name',
@@ -48,6 +49,8 @@ function HousingOwnerTable(props: HousingOwnerTableProps) {
   function isProtected(column: HousingOwnerTableColumn): boolean {
     return PROTECTED_COLUMNS.includes(column) && (isVisitor || isGuest);
   }
+
+  const { isIgnored } = useIgnoredAddresses();
 
   const columns = props.columns ?? ['name', 'kind', 'actions'];
   const showColumns: Record<HousingOwnerTableColumn, boolean> = pipe(
@@ -95,9 +98,18 @@ function HousingOwnerTable(props: HousingOwnerTableProps) {
         {
           id: 'addressStatus',
           header: 'Statut adresse',
-          cell: ({ cell }) => (
-            <ImprovableAddressBadge score={cell.getValue() ?? null} />
-          )
+          cell: ({ cell, row }) => {
+            return (
+              <ImprovableAddressBadge
+                score={cell.getValue() ?? null}
+                ignored={
+                  row.original.banAddress?.banId
+                    ? isIgnored(row.original.banAddress.banId)
+                    : false
+                }
+              />
+            );
+          }
         }
       ),
       columnHelper.accessor('rank', {
@@ -131,7 +143,7 @@ function HousingOwnerTable(props: HousingOwnerTableProps) {
         )
       })
     ],
-    [columnHelper, onEdit]
+    [columnHelper, onEdit, isIgnored]
   );
 
   if (props.owners.length === 0 && !props.isLoading) {

@@ -46,7 +46,7 @@ total_records = client.fetch_all_data(output_file="dpe_data.jsonl")
 
 ### 2. `import-dpe.py`
 
-Processes and imports DPE data into PostgreSQL database.
+Processes and imports DPE data into PostgreSQL `buildings` table.
 
 **Features:**
 - Department-based parallel processing
@@ -63,6 +63,47 @@ Processes and imports DPE data into PostgreSQL database.
 2. **Case 2**: Match via BAN address → Plot → Building
    - 2.1: Building-level DPE
    - 2.2: Apartment-level DPE
+
+### 3. `import_dpe_raw.py`
+
+Imports raw DPE data into PostgreSQL `dpe_raw` table for archival and analysis purposes.
+
+**Features:**
+- Department-based parallel or sequential processing
+- Structured storage with proper data types
+- Automatic duplicate detection via unique constraint
+- Resume capability (skips already imported records)
+- Configurable batch processing and workers
+- Dry-run mode for testing
+
+**Usage:**
+```shell
+# Create the table first
+psql -d database -f create_dpe_raw_table.sql
+
+# Import all departments in parallel (default)
+python import_dpe_raw.py dpe_data_complete.jsonl --db-url "postgresql://user:pass@localhost:5432/db"
+
+# Import all departments sequentially (one at a time)
+python import_dpe_raw.py dpe_data_complete.jsonl --sequential --db-url "$DATABASE_URL"
+
+# Import only department 75 (Paris)
+python import_dpe_raw.py dpe_data_complete.jsonl --department 75 --db-url "$DATABASE_URL"
+
+# Resume from department 50
+python import_dpe_raw.py dpe_data_complete.jsonl --sequential --start-department 50 --db-url "$DATABASE_URL"
+
+# Test with dry-run
+python import_dpe_raw.py dpe_data_complete.jsonl --department 69 --limit 1000 --dry-run --db-url "$DATABASE_URL"
+```
+
+**Table Schema:**
+The `dpe_raw` table stores DPE fields including:
+- Identifiers (dpe_id, numero_dpe)
+- Location (addresses, coordinates, codes)
+- Building characteristics (type, year, surface)
+- Energy performance (etiquette_dpe, etiquette_ges, consumption, emissions)
+- Dates (establishment, reception, validity, visit)
 
 ## Prerequisites
 
@@ -96,7 +137,17 @@ pip install -r requirements.txt
 
 ### Database
 
-A PostgreSQL database must be migrated and accessible with the following credentials as command-line arguments.
+A PostgreSQL database must be migrated and accessible with credentials provided via `--db-url` argument.
+
+For raw data import, create the `dpe_raw` table first:
+
+```shell
+# Using psql
+psql -d your_database -f create_dpe_raw_table.sql
+
+# Or using PostgreSQL connection URI
+psql postgresql://user:pass@localhost:5432/database -f create_dpe_raw_table.sql
+```
 
 ## Usage
 

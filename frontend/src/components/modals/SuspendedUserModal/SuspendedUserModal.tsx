@@ -38,13 +38,6 @@ function SuspendedUserModal() {
     return user?.user.suspendedAt !== null && user?.user.suspendedAt !== undefined;
   }, [user?.user.suspendedAt]);
 
-  const suspensionMessage = useMemo(() => {
-    if (!user?.user.suspendedCause) {
-      return 'droits d\'accès expirés';
-    }
-    return formatSuspensionReasons(user.user.suspendedCause);
-  }, [user]);
-
   const isUserExpired = useMemo(() => {
     return user?.user.suspendedCause?.includes('droits utilisateur expires');
   }, [user?.user.suspendedCause]);

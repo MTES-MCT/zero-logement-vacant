@@ -3,7 +3,6 @@ import Typography from '@mui/material/Typography';
 import Grid from '@mui/material/Grid';
 import { useEffect, useMemo } from 'react';
 import Alert from '@codegouvfr/react-dsfr/Alert';
-import type { SuspendedCause } from '@zerologementvacant/models';
 
 import { useAppSelector } from '~/hooks/useStore';
 import { useIsDsfrReady } from '~/hooks/useIsDsfrReady';

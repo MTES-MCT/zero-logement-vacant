@@ -54,7 +54,7 @@ function SuspendedUserModal() {
     <modal.Component
       concealingBackdrop={true}
       size="large"
-      title="Accès suspendu"
+      title="Accès non autorisé"
       buttons={[
         {
           children: 'Accéder au Portail des Données Foncières',
@@ -70,40 +70,24 @@ function SuspendedUserModal() {
         <Grid component="section" size={12}>
           <Alert
             severity="error"
-            title={
-              hasMultipleReasons
-                ? "La date d'expiration de vos droits d'accès aux données LOVAC en tant qu'utilisateur ou ceux de votre structure a été dépassée."
-                : isCguEmpty
-                ? "Les conditions générales d'utilisation du portail Données Foncières du Cerema n'ont pas été validées."
-                : isUserExpired
-                ? "La date d'expiration de vos droits d'accès aux données LOVAC en tant qu'utilisateur a été dépassée."
-                : "La date d'expiration des droits d'accès aux données LOVAC de votre structure a été dépassée."
-            }
+            title="Vos droits d’accès à Zéro Logement Vacant ne sont plus valides"
             description={
               <Typography>
                 {hasMultipleReasons ? (
                   <>
-                    Rendez-vous sur le portail Données Foncières du Cerema pour vérifier vos droits d'accès aux données LOVAC et ceux de votre structure.
-                    <br /><br />
-                    Si vous n'avez pas de compte sur le portail Données Foncières du Cerema, vous devez en créer un.
+                    La date d&apos;expiration de vos droits d&apos;accès aux données LOVAC en tant qu&apos;utilisateur ou ceux de votre structure a été dépassée.
                   </>
                 ) : isCguEmpty ? (
                   <>
-                    Rendez-vous sur le portail Données Foncières du Cerema pour valider les conditions générales d'utilisation.
-                    <br /><br />
-                    Si vous n'avez pas de compte sur le portail Données Foncières du Cerema, vous devez en créer un.
+                    Les conditions générales d&apos;utilisation du portail Données Foncières du Cerema n&apos;ont pas été validées, ce qui limite vos droits d&apos;accès aux données LOVAC.
                   </>
                 ) : isUserExpired ? (
                   <>
-                    Rendez-vous sur le portail Données Foncières du Cerema pour modifier la date d'expiration de vos droits d'accès aux données.
-                    <br /><br />
-                    Si vous ne pouvez pas modifier la date vous-même, demandez au(x) gestionnaire(s) de votre structure de le faire.
+                    La date d&apos;expiration de vos droits d&apos;accès aux données LOVAC en tant qu&apos;utilisateur a été dépassée.
                   </>
                 ) : (
                   <>
-                    Rendez-vous sur le portail Données Foncières du Cerema pour renouveler votre demande d'accès aux données LOVAC.
-                    <br /><br />
-                    Si vous ne pouvez pas renouveler la demande vous-même, demandez au(x) gestionnaire(s) de votre structure de le faire.
+                    La date d&apos;expiration des droits d&apos;accès aux données LOVAC de votre structure a été dépassée.
                   </>
                 )}
               </Typography>
@@ -113,20 +97,31 @@ function SuspendedUserModal() {
 
         <Grid component="section" size={12}>
           <Typography sx={{ mb: 2 }}>
-            Veuillez vous rendre sur le{' '}
-            <a
-              href={PORTAIL_DF_URL}
-              target="_blank"
-              rel="noopener noreferrer"
-            >
-              Portail des Données Foncières
-            </a>{' '}
-            pour vous mettre en conformité.
-          </Typography>
-
-          <Typography variant="body2" color="text.secondary">
-            Une fois vos droits rétablis sur le Portail des Données Foncières,
-            vous pourrez à nouveau accéder à Zéro Logement Vacant.
+            {hasMultipleReasons ? (
+              <>
+                Rendez-vous sur le portail Données Foncières du Cerema pour vérifier vos droits d’accès aux données LOVAC et ceux de votre structure.
+                <br />
+                Si vous n’avez pas de compte sur le portail Données Foncières du Cerema, vous devez en créer un.
+              </>
+            ) : isCguEmpty ? (
+              <>
+                Rendez-vous sur le portail Données Foncières du Cerema pour valider les conditions générales d’utilisation.
+                <br />
+                Si vous n’avez pas de compte sur le portail Données Foncières du Cerema, vous devez en créer un.
+              </>
+            ) : isUserExpired ? (
+              <>
+                Rendez-vous sur le portail Données Foncières du Cerema pour modifier la date d’expiration de vos droits d’accès aux données.
+                <br />
+                Si vous ne pouvez pas modifier la date vous-même, demandez au(x) gestionnaire(s) de votre structure de le faire.
+              </>
+            ) : (
+              <>
+                Rendez-vous sur le portail Données Foncières du Cerema pour renouveler votre demande d’accès aux données LOVAC.
+                <br />
+                Si vous ne pouvez pas renouveler la demande vous-même, demandez au(x) gestionnaire(s) de votre structure de le faire.
+              </>
+            )}
           </Typography>
         </Grid>
       </Grid>

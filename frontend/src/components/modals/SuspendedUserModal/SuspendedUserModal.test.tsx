@@ -53,29 +53,31 @@ const renderWithUser = (suspendedAt: string | null, suspendedCause: string | nul
 describe('SuspendedUserModal', () => {
   it('should not render when user is not suspended', () => {
     renderWithUser(null, null);
-    expect(screen.queryByText('Accès suspendu')).not.toBeInTheDocument();
+    expect(screen.queryByText('Accès non autorisé')).not.toBeInTheDocument();
   });
 
   it('should render when user is suspended with expired user rights', () => {
     renderWithUser('2025-01-01T00:00:00Z', 'droits utilisateur expires');
-    expect(screen.getByText(/droits utilisateur expirés/i)).toBeInTheDocument();
+    expect(screen.getByText(/Vos droits d.accès à Zéro Logement Vacant ne sont plus valides/i)).toBeInTheDocument();
+    expect(screen.getByText(/La date d.expiration de vos droits d.accès aux données LOVAC en tant qu.utilisateur a été dépassée/i)).toBeInTheDocument();
   });
 
   it('should render when user is suspended with expired structure rights', () => {
     renderWithUser('2025-01-01T00:00:00Z', 'droits structure expires');
-    expect(screen.getByText(/droits de la structure expirés/i)).toBeInTheDocument();
+    expect(screen.getByText(/Vos droits d.accès à Zéro Logement Vacant ne sont plus valides/i)).toBeInTheDocument();
+    expect(screen.getByText(/La date d.expiration des droits d.accès aux données LOVAC de votre structure a été dépassée/i)).toBeInTheDocument();
   });
 
   it('should render when user is suspended with missing CGU', () => {
     renderWithUser('2025-01-01T00:00:00Z', 'cgu vides');
-    expect(screen.getByText(/conditions générales d'utilisation non validées/i)).toBeInTheDocument();
+    expect(screen.getByText(/Vos droits d.accès à Zéro Logement Vacant ne sont plus valides/i)).toBeInTheDocument();
+    expect(screen.getByText(/Les conditions générales d.utilisation du portail Données Foncières du Cerema n.ont pas été validées/i)).toBeInTheDocument();
   });
 
   it('should render when user is suspended with multiple reasons', () => {
     renderWithUser('2025-01-01T00:00:00Z', 'droits utilisateur expires, droits structure expires, cgu vides');
-    expect(screen.getByText(/droits utilisateur expirés/i)).toBeInTheDocument();
-    expect(screen.getByText(/droits de la structure expirés/i)).toBeInTheDocument();
-    expect(screen.getByText(/conditions générales d'utilisation non validées/i)).toBeInTheDocument();
+    expect(screen.getByText(/Vos droits d.accès à Zéro Logement Vacant ne sont plus valides/i)).toBeInTheDocument();
+    expect(screen.getByText(/La date d.expiration de vos droits d.accès aux données LOVAC en tant qu.utilisateur ou ceux de votre structure a été dépassée/i)).toBeInTheDocument();
   });
 
   it('should have a link to Portail des Données Foncières', () => {

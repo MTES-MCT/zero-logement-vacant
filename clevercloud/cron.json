@@ -1,0 +1,6 @@
+[
+  {
+    "command": "/app/server/src/scripts/perimeters-portaildf/cerema-sync.sh",
+    "schedule": "*/30 * * * *"
+  }
+]

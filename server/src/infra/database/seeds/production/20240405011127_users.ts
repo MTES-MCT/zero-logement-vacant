@@ -19,6 +19,8 @@ export const Lovac2023: UserApi = {
   position: null,
   timePerWeek: null,
   lastAuthenticatedAt: null,
+  suspendedAt: null,
+  suspendedCause: null,
   updatedAt: new Date().toJSON(),
   deletedAt: null
 };

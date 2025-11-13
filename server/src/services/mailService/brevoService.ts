@@ -15,8 +15,6 @@ const PASSWORD_RESET_TEMPLATE_ID = 8;
 const ACCOUNT_ACTIVATION_TEMPLATE_ID = 5;
 const LOVAC_ACCOUNT_ACTIVATION_TEMPLATE_ID = 54;
 const OWNER_PROSPECT_CREATED_TEMPLATE_ID = 13;
-// TODO: Create this template in Brevo interface
-// Template should include a {{params.code}} variable and {{params.expiryMinutes}}
 const TWO_FACTOR_CODE_TEMPLATE_ID = 100;
 
 class BrevoService implements MailService {

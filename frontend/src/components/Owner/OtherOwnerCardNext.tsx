@@ -24,7 +24,8 @@ function OtherOwnerCardNext(props: OtherOwnerCardProps) {
         border: `1px solid ${fr.colors.decisions.border.default.grey.default}`,
         px: '1rem',
         py: '0.5rem',
-        justifyContent: 'space-between'
+        justifyContent: 'space-between',
+        alignItems: 'center'
       }}
     >
       <Stack component="section" spacing="0.25rem" useFlexGap>

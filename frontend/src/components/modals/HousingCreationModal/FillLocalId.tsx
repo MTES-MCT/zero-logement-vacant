@@ -1,158 +1,178 @@
 import Alert from '@codegouvfr/react-dsfr/Alert';
-import { type InputProps } from '@codegouvfr/react-dsfr/Input';
+import { yupResolver } from '@hookform/resolvers-next/yup';
 import Grid from '@mui/material/Grid';
-import { forwardRef, useImperativeHandle, useState } from 'react';
-import * as yup from 'yup';
-import AppTextInput from '../../_app/AppTextInput/AppTextInput';
-import { useForm } from '../../../hooks/useForm';
-import { unwrapError } from '../../../store/store';
-import { datafoncierApi } from '../../../services/datafoncier.service';
-import { housingApi } from '../../../services/housing.service';
-import { useAppDispatch } from '../../../hooks/useStore';
-import housingSlice from '../../../store/reducers/housingReducer';
-import type { Step, StepProps } from '../ModalStepper/ModalGraphStepper';
+import { useEffect } from 'react';
+import { FormProvider, useForm } from 'react-hook-form';
+import { object, string, type InferType } from 'yup-next';
 
-const FillLocalId = forwardRef((_: StepProps, ref) => {
-  const [localId, setLocalId] = useState('');
-  const dispatch = useAppDispatch();
-  const { changeCreator } = housingSlice.actions;
+import { datafoncierApi } from '~/services/datafoncier.service';
+import { housingApi } from '~/services/housing.service';
+import { unwrapError } from '~/store/store';
+import AppTextInputNext from '~/components/_app/AppTextInput/AppTextInputNext';
+import { createExtendedModal } from '~/components/modals/ConfirmationModal/ExtendedModal';
 
-  const shape = {
-    localId: yup
-      .string()
-      .required('Veuillez renseigner un identifiant pour ce logement')
-  };
-  type FormShape = typeof shape;
-  const form = useForm(yup.object().shape(shape), {
-    localId
+const schema = object({
+  localId: string()
+    .required('Veuillez renseigner un identifiant pour ce logement')
+    .trim()
+    .length(12, 'L’identifiant doit contenir exactement 12 caractères')
+}).required();
+
+type FillLocalIdSchema = InferType<typeof schema>;
+
+export interface FillLocalIdProps {
+  onCancel(): void;
+  onNext(localId: string): void;
+}
+
+function createFillLocalIdModal() {
+  const modal = createExtendedModal({
+    id: 'fill-local-id-modal',
+    isOpenedByDefault: false
   });
 
-  const [getHousing, getHousingQuery] = housingApi.useLazyGetHousingQuery();
-  const { currentData: housing } = getHousingQuery;
-  const [getDatafoncierHousing, getDatafoncierHousingQuery] =
-    datafoncierApi.useLazyFindOneHousingQuery();
+  return {
+    ...modal,
+    Component(props: FillLocalIdProps) {
+      const form = useForm<FillLocalIdSchema>({
+        defaultValues: {
+          localId: ''
+        },
+        // @ts-expect-error: typescript resolves types from yup (v0) instead of yup-next (v1)
+        resolver: yupResolver(schema)
+      });
 
-  useImperativeHandle(ref, () => ({
-    onNext: async () => {
-      try {
-        const bypassCache = false;
-        await form.validate();
+      const [getHousing, getHousingQuery] = housingApi.useLazyGetHousingQuery();
+      const [getDatafoncierHousing, getDatafoncierHousingQuery] =
+        datafoncierApi.useLazyFindOneHousingQuery();
+
+      useEffect(() => {
+        const subscription = form.watch(() => {
+          form.clearErrors('localId');
+        });
+        return () => subscription.unsubscribe();
+      }, [form]);
+
+      function cancel() {
+        form.reset();
+        props.onCancel();
+      }
+
+      async function next(data: FillLocalIdSchema) {
         await Promise.all([
-          getDatafoncierHousing(localId, bypassCache).unwrap(),
-          getHousing(localId, bypassCache)
+          getDatafoncierHousing(data.localId)
             .unwrap()
+            .catch((error) => {
+              form.setError('localId', {
+                type: 'manual',
+                message:
+                  'Nous n’avons pas pu trouver de logement avec les informations que vous avez fournies. Vérifiez les informations saisies afin de vous assurer qu’elles soient correctes, puis réessayez en modifiant l’identifiant du logement. Le format de l’identifiant national n’est pas valide. Exemple de format valide : 331234567891'
+              });
+              throw error;
+            }),
+          getHousing(data.localId)
+            .unwrap()
+            .then((housing) => {
+              if (housing) {
+                form.setError('localId', {
+                  type: 'manual',
+                  message: 'Ce logement existe déjà dans votre parc'
+                });
+                throw new Error('HousingExistsError');
+              }
+            })
             .catch((err) => {
               const error = unwrapError(err);
               if (error?.name === 'HousingMissingError') {
+                // Ignore the error because we want to know whether the housing exists
                 return;
               }
               throw error;
             })
-            .then((housing) => {
-              if (housing) {
-                throw new Error('HousingExistsError');
-              }
-            })
-        ]);
-        dispatch(changeCreator({ localId }));
-        return 'review-housing';
-      } catch {
-        return null;
+        ])
+          .then(() => {
+            props.onNext(data.localId);
+          })
+          .catch(() => {
+            // Ignore
+          });
       }
-    }
-  }));
 
-  function inputState(): {
-    state: InputProps['state'];
-    stateRelatedMessage?: string;
-  } {
-    if (housing) {
-      return {
-        state: 'error',
-        stateRelatedMessage: 'Ce logement existe déjà dans votre parc'
-      };
-    }
-
-    if (
-      unwrapError(getDatafoncierHousingQuery.error)?.name ===
-      'HousingMissingError'
-    ) {
-      return {
-        state: 'error',
-        stateRelatedMessage:
-          'Nous n’avons pas pu trouver de logement avec les informations que vous avez fournies. Vérifiez les informations saisies afin de vous assurer qu’elles soient correctes, puis réessayez en modifiant l’identifiant du logement.'
-      };
-    }
-
-    return {
-      state: 'default',
-      stateRelatedMessage: undefined
-    };
-  }
-
-  const { state, stateRelatedMessage } = inputState();
-
-  return (
-    <>
-      <Alert
-        className="fr-mb-2w"
-        severity="info"
-        title="Comment trouver l’identifiant fiscal national ?"
-        description={
-          <>
-            <a
-              href="https://doc-datafoncier.cerema.fr/doc/ff/pb0010_local/idlocal"
-              target="_blank"
-              rel="noreferrer"
+      return (
+        <FormProvider {...form}>
+          <form id="housing-creation-form" onSubmit={form.handleSubmit(next)}>
+            <modal.Component
+              title="Ajouter un logement"
+              size="large"
+              buttons={[
+                {
+                  children: 'Annuler',
+                  priority: 'secondary',
+                  doClosesModal: false,
+                  onClick: cancel
+                },
+                {
+                  children: 'Suivant',
+                  doClosesModal: false,
+                  disabled:
+                    getHousingQuery.isLoading ||
+                    getDatafoncierHousingQuery.isLoading,
+                  onClick: form.handleSubmit(next)
+                }
+              ]}
             >
-              L’identifiant fiscal national
-            </a>
-            &nbsp;(12 chiffres), présent dans les Fichiers Fonciers, est une
-            concaténation du&nbsp;
-            <a
-              href="https://doc-datafoncier.cerema.fr/doc/dv3f/local/coddep"
-              target="_blank"
-              rel="noreferrer"
-            >
-              &nbsp;code département
-            </a>
-            &nbsp;(2 chiffres) et de&nbsp;
-            <a
-              href="https://doc-datafoncier.cerema.fr/doc/ff/pb0010_local/invar"
-              target="_blank"
-              rel="noreferrer"
-            >
-              l’invariant fiscal départemental
-            </a>
-            &nbsp;(10 chiffres) du logement, dans cet ordre-là.
-          </>
-        }
-      />
-      <form id="housing-creation-form" onSubmit={(e) => e.preventDefault()}>
-        <Grid container>
-          <Grid size={8}>
-            <AppTextInput<FormShape>
-              inputForm={form}
-              inputKey="localId"
-              label="Saisissez l’identifiant fiscal national (obligatoire)"
-              required
-              value={localId}
-              state={state}
-              stateRelatedMessage={stateRelatedMessage}
-              onChange={(e) => setLocalId(e.target.value)}
-            />
-          </Grid>
-        </Grid>
-      </form>
-    </>
-  );
-});
+              <Alert
+                className="fr-mb-2w"
+                severity="info"
+                title="Comment trouver l’identifiant fiscal national ?"
+                description={
+                  <>
+                    <a
+                      href="https://doc-datafoncier.cerema.fr/doc/ff/pb0010_local/idlocal"
+                      target="_blank"
+                      rel="noreferrer"
+                    >
+                      L&apos;identifiant fiscal national
+                    </a>
+                    &nbsp;(12 chiffres), présent dans les Fichiers Fonciers, est
+                    une concaténation du&nbsp;
+                    <a
+                      href="https://doc-datafoncier.cerema.fr/doc/dv3f/local/coddep"
+                      target="_blank"
+                      rel="noreferrer"
+                    >
+                      &nbsp;code département
+                    </a>
+                    &nbsp;(2 chiffres) et de&nbsp;
+                    <a
+                      href="https://doc-datafoncier.cerema.fr/doc/ff/pb0010_local/invar"
+                      target="_blank"
+                      rel="noreferrer"
+                    >
+                      l&apos;invariant fiscal départemental
+                    </a>
+                    &nbsp;(10 chiffres) du logement, dans cet ordre-là.
+                  </>
+                }
+              />
 
-FillLocalId.displayName = 'FillLocalId';
+              <Grid container>
+                <Grid size={8}>
+                  <AppTextInputNext
+                    name="localId"
+                    label="Saisissez l’identifiant fiscal national (obligatoire)"
+                    nativeInputProps={{
+                      required: true
+                    }}
+                  />
+                </Grid>
+              </Grid>
+            </modal.Component>
+          </form>
+        </FormProvider>
+      );
+    }
+  };
+}
 
-const step: Step = {
-  id: 'fill-local-id',
-  Component: FillLocalId
-};
-
-export default step;
+export default createFillLocalIdModal;

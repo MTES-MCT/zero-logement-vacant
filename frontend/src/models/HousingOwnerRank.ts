@@ -4,7 +4,6 @@ import {
   INCORRECT_OWNER_RANK,
   isActiveOwnerRank,
   isInactiveOwnerRank,
-  isPrimaryOwner,
   type OwnerRank,
   PREVIOUS_OWNER_RANK
 } from '@zerologementvacant/models';
@@ -85,7 +84,6 @@ export function computeOwnersAfterRankTransition(
   const activeOwners = owners.filter(({ rank }) => isActiveOwnerRank(rank));
   const inactiveOwners = owners.filter(({ rank }) => isInactiveOwnerRank(rank));
   const selectedOwner = owners.find((owner) => owner.id === transition.id);
-  const primaryOwner = activeOwners.find(isPrimaryOwner);
 
   if (!selectedOwner) {
     return owners;
@@ -93,20 +91,16 @@ export function computeOwnersAfterRankTransition(
 
   return match(transition)
     .with({ from: 'secondary', to: 'primary' }, () => {
-      return activeOwners
-        .map((owner) => {
-          if (owner.id === selectedOwner.id) {
-            return { ...owner, rank: 1 as const };
-          }
-
-          if (owner.id === primaryOwner?.id) {
-            // Swap primary owner with secondary
-            return { ...owner, rank: selectedOwner.rank };
-          }
-
-          return owner;
-        })
-        .concat(inactiveOwners);
+      return [
+        { ...selectedOwner, rank: 1 as const },
+        ...activeOwners
+          .filter((owner) => owner.id !== selectedOwner.id)
+          .map((owner, index) => ({
+            ...owner,
+            rank: (2 + index) as OwnerRank
+          })),
+        ...inactiveOwners
+      ];
     })
     .with({ from: 'primary', to: 'secondary' }, () => {
       return activeOwners

@@ -1,11 +1,7 @@
 import { faker } from '@faker-js/faker/locale/fr';
 import * as turf from '@turf/turf';
 
-import {
-  AddressKinds,
-  OWNER_RANKS,
-  PROPERTY_RIGHT_VALUES
-} from '@zerologementvacant/models';
+import { AddressKinds, OWNER_RANKS } from '@zerologementvacant/models';
 import async from 'async';
 import { Array, pipe } from 'effect';
 import { Feature, MultiPolygon, Polygon, Position } from 'geojson';
@@ -35,7 +31,7 @@ import {
   parseOwnerApi
 } from '~/repositories/ownerRepository';
 import { createBanAPI } from '~/services/ban/ban-api';
-import { genHousingApi } from '~/test/testFixtures';
+import { genHousingApi, genHousingOwnerApi } from '~/test/testFixtures';
 
 export async function seed(knex: Knex): Promise<void> {
   const ban = createBanAPI();
@@ -142,15 +138,11 @@ export async function seed(knex: Knex): Promise<void> {
         );
         const housingOwners: ReadonlyArray<HousingOwnerApi> = pipe(
           ranks,
-          Array.map((rank) => {
+          Array.map((rank): HousingOwnerApi => {
             const owner = selectedOwners.pop() as OwnerApi;
             return {
-              ...owner,
-              ownerId: owner.id,
-              housingGeoCode: housing.geoCode,
-              housingId: housing.id,
-              rank: rank,
-              propertyRight: faker.helpers.arrayElement(PROPERTY_RIGHT_VALUES)
+              ...genHousingOwnerApi(housing, owner),
+              rank: rank
             };
           })
         );

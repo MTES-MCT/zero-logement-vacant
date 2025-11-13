@@ -1,9 +1,9 @@
-import { Array, pipe } from 'effect';
 import AddressSearchableSelectNext, {
   type AddressSearchableSelectNextProps
 } from '~/components/Address/AddressSearchableSelectNext';
 import { isBanEligible, type Address } from '~/models/Address';
 import type { AddressSearchResult } from '~/services/address.service';
+import { useIgnoredAddresses } from './useIgnoredAddresses';
 
 export type OwnerAddressEditionNextProps = Pick<
   AddressSearchableSelectNextProps,
@@ -32,36 +32,24 @@ function OwnerAddressEditionNext(props: OwnerAddressEditionNextProps) {
         }
       : null;
 
-  function listIgnored(): ReadonlyArray<string> {
-    return pipe(localStorage.getItem('address-warning-visible'), (warnings) =>
-      warnings ? (JSON.parse(warnings) as ReadonlyArray<string>) : []
-    );
-  }
+  const { isIgnored, ignoreWarning } = useIgnoredAddresses();
 
-  const isIgnored: boolean = pipe(
-    listIgnored(),
-    Array.contains(address?.banId)
-  );
   const hasWarning: boolean =
-    !!address && !isIgnored && !isBanEligible(address);
-
-  function ignoreWarning(): void {
-    if (!address?.banId) {
-      return;
-    }
-
-    const ignored = pipe(listIgnored(), Array.append(address.banId), (ids) =>
-      JSON.stringify(ids)
-    );
-    localStorage.setItem('address-warning-visible', ignored);
-  }
+    !!address &&
+    !!address.banId &&
+    !isIgnored(address.banId) &&
+    !isBanEligible(address);
 
   return (
     <AddressSearchableSelectNext
       {...rest}
       value={value}
       warning={hasWarning}
-      onIgnoreWarning={ignoreWarning}
+      onIgnoreWarning={() => {
+        if (address?.banId) {
+          ignoreWarning(address.banId);
+        }
+      }}
     />
   );
 }

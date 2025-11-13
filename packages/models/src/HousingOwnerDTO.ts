@@ -1,19 +1,38 @@
 import { HousingDTO } from './HousingDTO';
 import { OwnerDTO } from './OwnerDTO';
 import { PropertyRight } from './PropertyRight';
+import type { RelativeLocation } from './RelativeLocation';
 
 export interface BaseHousingOwnerDTO {
   rank: OwnerRank;
   idprocpte: string | null;
   idprodroit: string | null;
+  /**
+   * The relative location of the owner’s main residence to the housing as per source data.
+   * This comes from the source files.
+   */
   locprop: number | null;
+  /**
+   * The relative location of the owner's main residence to the housing.
+   * This is computed by us based on the Base Adresse Nationale’s data.
+   */
+  relativeLocation: RelativeLocation | null;
+  /**
+   * The absolute distance in meters between the owner's main residence and the housing.
+   * This is computed by us based on the Base Adresse Nationale’s data.
+   */
+  absoluteDistance: number | null;
   propertyRight: PropertyRight | null;
 }
 
 export type HousingOwnerDTO = BaseHousingOwnerDTO & OwnerDTO;
 export type OwnerHousingDTO = BaseHousingOwnerDTO & HousingDTO;
 
-export type HousingOwnerPayloadDTO = BaseHousingOwnerDTO & Pick<OwnerDTO, 'id'>;
+export type HousingOwnerPayloadDTO = Omit<
+  BaseHousingOwnerDTO,
+  'relativeLocation' | 'absoluteDistance'
+> &
+  Pick<OwnerDTO, 'id'>;
 
 export const DECEASED_OWNER_RANK = -3 as const;
 export const AWAITING_OWNER_RANK = -2 as const;
@@ -44,7 +63,7 @@ export type InactiveOwnerRank =
 export type OwnerRank = InactiveOwnerRank | ActiveOwnerRank;
 
 export function isActiveOwnerRank(rank: OwnerRank): rank is ActiveOwnerRank {
-  return 1 <= rank && rank <= 6;
+  return rank >= 1;
 }
 export function isPreviousOwnerRank(
   rank: OwnerRank

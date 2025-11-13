@@ -2,3 +2,5 @@
 *.png
 *.log
 *.csv
+*.sql
+dpe_raw_import*

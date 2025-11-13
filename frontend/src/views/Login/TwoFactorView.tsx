@@ -4,6 +4,8 @@ import Button from '@codegouvfr/react-dsfr/Button';
 import Typography from '@mui/material/Typography';
 import Container from '@mui/material/Container';
 import Grid from '@mui/material/Grid';
+import Box from '@mui/material/Box';
+import Stack from '@mui/material/Stack';
 import { yupResolver } from '@hookform/resolvers-next/yup';
 import { FormProvider, useForm } from 'react-hook-form';
 import { object, string, type InferType } from 'yup-next';
@@ -11,7 +13,6 @@ import { useLocation, useNavigate } from 'react-router-dom';
 import { useState } from 'react';
 
 import AppTextInputNext from '~/components/_app/AppTextInput/AppTextInputNext';
-import { Col, Row, Text } from '../../components/_dsfr';
 import { useDocumentTitle } from '~/hooks/useDocumentTitle';
 import { useAppDispatch, useAppSelector } from '~/hooks/useStore';
 import { verifyTwoFactor } from '~/store/thunks/auth-thunks';
@@ -91,15 +92,9 @@ const TwoFactorView = () => {
             Vérification en deux étapes
           </Typography>
 
-          <Text as="p" size="lg" className={fr.cx('fr-mb-3w')}>
-            Un code de vérification à 6 chiffres a été envoyé à l&apos;adresse{' '}
-            <strong>{email}</strong>
-          </Text>
-
-          <Text as="p" size="md" className={fr.cx('fr-mb-3w')}>
-            Ce code est valable pendant 5 minutes. Veuillez le saisir ci-dessous pour
-            accéder à votre compte administrateur.
-          </Text>
+          <Typography sx={{ mb: 3 }}>
+            Saisissez le code de vérification à 6 chiffres envoyé à l’adresse mail <strong>{email}</strong>. Ce code est valable 5 minutes.
+          </Typography>
 
           <Alert
             title="Sécurité"
@@ -131,12 +126,12 @@ const TwoFactorView = () => {
                 }}
               />
 
-              <Row spacing="mb-3w" className={fr.cx('fr-mt-2w')}>
-                <Text as="p" size="sm" className="fr-hint-text">
+              <Box sx={{ mt: 2, mb: 3 }}>
+                <Typography className="fr-hint-text">
                   Vous n&apos;avez pas reçu le code ?{' '}
                   <button
                     type="button"
-                    className="fr-link"
+                    className="fr-link fr-link--xs"
                     onClick={() => {
                       navigate('/admin', {
                         state: { email }
@@ -145,57 +140,50 @@ const TwoFactorView = () => {
                   >
                     Retour à la connexion
                   </button>
-                </Text>
-              </Row>
+                </Typography>
+              </Box>
 
-              <Row alignItems="middle">
-                <Col>
-                  <Button
-                    type="button"
-                    priority="secondary"
-                    onClick={() => navigate('/admin')}
-                  >
-                    Annuler
-                  </Button>
-                </Col>
-                <Col>
-                  <Button
-                    type="submit"
-                    disabled={auth.logIn.isLoading}
-                    iconId="fr-icon-lock-line"
-                    iconPosition="left"
-                  >
-                    {auth.logIn.isLoading ? 'Vérification...' : 'Vérifier'}
-                  </Button>
-                </Col>
-              </Row>
+              <Stack direction="row" spacing={2} alignItems="center">
+                <Button
+                  type="button"
+                  priority="secondary"
+                  onClick={() => navigate('/admin')}
+                >
+                  Annuler
+                </Button>
+                <Button
+                  type="submit"
+                  disabled={auth.verifyTwoFactor.isLoading}
+                  iconId="fr-icon-lock-line"
+                  iconPosition="left"
+                >
+                  {auth.verifyTwoFactor.isLoading ? 'Vérification...' : 'Vérifier'}
+                </Button>
+              </Stack>
             </form>
           </FormProvider>
         </Grid>
 
-        <Grid size={6} sx={{ display: { xs: 'none', md: 'block' } }}>
-          <div
-            style={{
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              height: '100%'
-            }}
+        <Grid size={{ xs: 0, md: 6 }}>
+          <Stack
+            alignItems="center"
+            justifyContent="center"
+            sx={{ height: '100%' }}
           >
-            <div style={{ textAlign: 'center' }}>
+            <Stack alignItems="center" spacing={2}>
               <Image
                 src={securityIcon}
                 alt="Sécurité renforcée"
               />
-              <Typography variant="h4" sx={{ color: fr.colors.decisions.text.label.blueFrance.default, mb: 2 }}>
+              <Typography variant="h4" sx={{ color: fr.colors.decisions.text.label.blueFrance.default }}>
                 Sécurité renforcée
               </Typography>
-              <Typography variant="body1" sx={{ color: fr.colors.decisions.text.mention.grey.default }}>
+              <Typography variant="body1" sx={{ color: fr.colors.decisions.text.mention.grey.default, textAlign: 'center' }}>
                 L&apos;authentification en deux étapes protège votre compte
                 contre les accès non autorisés
               </Typography>
-            </div>
-          </div>
+            </Stack>
+          </Stack>
         </Grid>
       </Grid>
     </Container>

@@ -26,6 +26,7 @@ function createFetchAction<Data>(data?: Data): FetchAction<Data> {
 
 export interface AuthenticationState {
   logIn: FetchAction<AuthUser>;
+  verifyTwoFactor: FetchAction<AuthUser>;
   changeEstablishment: FetchAction<never>;
   isLoggedOut?: boolean;
   /**
@@ -46,6 +47,7 @@ const authenticationSlice = createSlice({
     return {
       authUser: user,
       logIn: createFetchAction(user),
+      verifyTwoFactor: createFetchAction(),
       changeEstablishment: createFetchAction()
     };
   },
@@ -106,23 +108,24 @@ const authenticationSlice = createSlice({
 
     builder
       .addCase(verifyTwoFactor.pending, (state) => {
-        state.logIn.isLoading = true;
-        state.logIn.isUninitialized = false;
+        state.verifyTwoFactor.isLoading = true;
+        state.verifyTwoFactor.isUninitialized = false;
       })
       .addCase(verifyTwoFactor.fulfilled, (state, action) => {
         localStorage.setItem(AUTH_KEY, JSON.stringify(action.payload));
         state.authUser = action.payload;
         state.logIn.data = action.payload;
-        state.logIn.error = undefined;
-        state.logIn.isError = false;
-        state.logIn.isLoading = false;
-        state.logIn.isSuccess = true;
+        state.verifyTwoFactor.data = action.payload;
+        state.verifyTwoFactor.error = undefined;
+        state.verifyTwoFactor.isError = false;
+        state.verifyTwoFactor.isLoading = false;
+        state.verifyTwoFactor.isSuccess = true;
       })
       .addCase(verifyTwoFactor.rejected, (state, action) => {
-        state.logIn.error = action.error;
-        state.logIn.isError = true;
-        state.logIn.isLoading = false;
-        state.logIn.isSuccess = false;
+        state.verifyTwoFactor.error = action.error;
+        state.verifyTwoFactor.isError = true;
+        state.verifyTwoFactor.isLoading = false;
+        state.verifyTwoFactor.isSuccess = false;
       });
   }
 });

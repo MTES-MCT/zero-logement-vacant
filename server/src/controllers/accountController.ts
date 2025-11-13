@@ -2,9 +2,9 @@ import { UserAccountDTO, UserRole } from '@zerologementvacant/models';
 import bcrypt from 'bcryptjs';
 import { Request, Response } from 'express';
 import { AuthenticatedRequest } from 'express-jwt';
-import { body, ValidationChain } from 'express-validator';
 import { constants } from 'http2';
 import jwt from 'jsonwebtoken';
+import { object, string } from 'yup';
 import AuthenticationFailedError from '~/errors/authenticationFailedError';
 import EstablishmentMissingError from '~/errors/establishmentMissingError';
 import ResetLinkExpiredError from '~/errors/resetLinkExpiredError';
@@ -34,17 +34,16 @@ import {
   calculateLockoutEnd,
   MAX_FAILED_ATTEMPTS
 } from '~/services/twoFactorService';
-import { emailValidator, passwordCreationValidator } from '~/utils/validators';
 
 // TODO: rename the file to authController.ts
 // TODO: remove get, updateAccount
 // because they shall be implemented in userController
 
-const signInValidators: ValidationChain[] = [
-  emailValidator(),
-  body('password').isString().notEmpty({ ignore_whitespace: true }),
-  body('establishmentId').isString().optional()
-];
+const signInSchema = object({
+  email: string().required().email(),
+  password: string().required().min(1),
+  establishmentId: string().optional()
+});
 
 interface SignInPayload {
   email: string;
@@ -53,7 +52,7 @@ interface SignInPayload {
 }
 
 async function signIn(request: Request, response: Response) {
-  const payload = request.body as SignInPayload;
+  const payload = await signInSchema.validate(request.body);
 
   const user = await userRepository.getByEmail(payload.email);
   if (!user) {
@@ -170,13 +169,13 @@ async function get(request: Request, response: Response) {
   response.status(constants.HTTP_STATUS_OK).json(toUserAccountDTO(user));
 }
 
-const updateAccountValidators: ValidationChain[] = [
-  body('firstName').isString(),
-  body('lastName').isString(),
-  body('phone').isString(),
-  body('position').isString(),
-  body('timePerWeek').isString()
-];
+const updateAccountSchema = object({
+  firstName: string().required(),
+  lastName: string().required(),
+  phone: string().required(),
+  position: string().required(),
+  timePerWeek: string().required()
+});
 
 /**
  * @deprecated Use {@link userController.update} instead
@@ -185,7 +184,7 @@ const updateAccountValidators: ValidationChain[] = [
  */
 async function updateAccount(request: Request, response: Response) {
   const { user } = request as AuthenticatedRequest;
-  const account = request.body as UserAccountDTO;
+  const account = await updateAccountSchema.validate(request.body) as UserAccountDTO;
 
   logger.info('Update account for ', user.id);
 
@@ -197,8 +196,19 @@ async function updateAccount(request: Request, response: Response) {
   response.status(constants.HTTP_STATUS_OK).send();
 }
 
+const resetPasswordSchema = object({
+  key: string().required().matches(/^[a-zA-Z0-9]+$/),
+  password: string()
+    .required()
+    .min(12, 'Le mot de passe doit contenir au moins 12 caractères')
+    .matches(/[A-Z]/, 'Le mot de passe doit contenir au moins une majuscule')
+    .matches(/[a-z]/, 'Le mot de passe doit contenir au moins une minuscule')
+    .matches(/[0-9]/, 'Le mot de passe doit contenir au moins un chiffre')
+    .matches(/[^A-Za-z0-9]/, 'Le mot de passe doit contenir au moins un caractère spécial')
+});
+
 async function resetPassword(request: Request, response: Response) {
-  const { key, password } = request.body;
+  const { key, password } = await resetPasswordSchema.validate(request.body);
 
   const link = await resetLinkRepository.get(key);
   if (!link) {
@@ -220,16 +230,12 @@ async function resetPassword(request: Request, response: Response) {
   await resetLinkRepository.used(link.id);
   response.sendStatus(constants.HTTP_STATUS_OK);
 }
-const resetPasswordValidators: ValidationChain[] = [
-  body('key').isString().isAlphanumeric(),
-  passwordCreationValidator()
-];
 
-const verifyTwoFactorValidators: ValidationChain[] = [
-  emailValidator(),
-  body('code').isString().isLength({ min: 6, max: 6 }),
-  body('establishmentId').isString().optional()
-];
+const verifyTwoFactorSchema = object({
+  email: string().required().email(),
+  code: string().required().length(6).matches(/^\d{6}$/),
+  establishmentId: string().optional()
+});
 
 interface VerifyTwoFactorPayload {
   email: string;
@@ -238,7 +244,7 @@ interface VerifyTwoFactorPayload {
 }
 
 async function verifyTwoFactor(request: Request, response: Response) {
-  const payload = request.body as VerifyTwoFactorPayload;
+  const payload = await verifyTwoFactorSchema.validate(request.body) as VerifyTwoFactorPayload;
 
   const user = await userRepository.getByEmail(payload.email);
   if (!user) {
@@ -344,13 +350,13 @@ async function verifyTwoFactor(request: Request, response: Response) {
 
 export default {
   signIn,
-  signInValidators,
+  signInSchema,
   verifyTwoFactor,
-  verifyTwoFactorValidators,
+  verifyTwoFactorSchema,
   get,
   updateAccount,
-  updateAccountValidators,
+  updateAccountSchema,
   resetPassword,
-  resetPasswordValidators,
+  resetPasswordSchema,
   changeEstablishment
 };

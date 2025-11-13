@@ -334,8 +334,6 @@ router.delete(
 router.get('/account', [], validator.validate, accountController.get);
 router.put(
   '/account',
-  accountController.updateAccountValidators,
-  validator.validate,
   accountController.updateAccount
 );
 router.get(

@@ -62,6 +62,9 @@ interface Config {
       delay: string;
     };
   };
+  clamav: {
+    enabled: boolean;
+  };
   cerema: {
     api: string;
     enabled: boolean;
@@ -198,6 +201,13 @@ const config = convict<Config>({
         format: String,
         default: '1 months'
       }
+    }
+  },
+  clamav: {
+    enabled: {
+      env: 'CLAMAV_ENABLED',
+      format: Boolean,
+      default: false
     }
   },
   cerema: {

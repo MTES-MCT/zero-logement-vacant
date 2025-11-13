@@ -92,9 +92,12 @@ async function fetchCommunes(
     `https://geo.api.gouv.fr/departements/${department}/communes?format=geojson&geometry=contour`
   );
   if (!response.ok) {
-    const error = await response.json();
-    console.log(error);
-    throw new Error('Failed to fetch geojson');
+    console.warn(`Failed to fetch communes for department ${department}: ${response.status} ${response.statusText}`);
+    // Return empty FeatureCollection instead of throwing
+    return {
+      type: 'FeatureCollection',
+      features: []
+    };
   }
 
   const perimeters = await response.json();

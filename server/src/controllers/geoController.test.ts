@@ -2,6 +2,9 @@ import { faker } from '@faker-js/faker/locale/fr';
 import { constants } from 'http2';
 import randomstring from 'randomstring';
 import request from 'supertest';
+import path from 'node:path';
+import fs from 'node:fs';
+import AdmZip from 'adm-zip';
 
 import { tokenProvider } from '~/test/testUtils';
 import {
@@ -20,6 +23,9 @@ import {
 } from '~/repositories/establishmentRepository';
 import { formatUserApi, Users } from '~/repositories/userRepository';
 import { GeoPerimeterApi } from '~/models/GeoPerimeterApi';
+
+// EICAR test file - standard antivirus test string
+const EICAR_TEST_FILE = 'X5O!P%@AP[4\\PZX54(P^)7CC)7}$EICAR-STANDARD-ANTIVIRUS-TEST-FILE!$H+H*';
 
 describe('Geo perimeters API', () => {
   let url: string;
@@ -231,5 +237,110 @@ describe('Geo perimeters API', () => {
         name: newName
       });
     });
+  });
+
+  describe('POST /geo/perimeters', () => {
+    const testRoute = '/api/geo/perimeters';
+
+    it('should be forbidden for a non-authenticated user', async () => {
+      const { status } = await request(url).post(testRoute);
+
+      expect(status).toBe(constants.HTTP_STATUS_UNAUTHORIZED);
+    });
+
+    it('should reject EICAR test file in ZIP', async () => {
+      // Create a ZIP containing EICAR test file
+      const zip = new AdmZip();
+      zip.addFile('eicar.txt', Buffer.from(EICAR_TEST_FILE));
+      const zipBuffer = zip.toBuffer();
+
+      const tmpPath = path.join(import.meta.dirname, 'eicar-test.zip');
+      fs.writeFileSync(tmpPath, zipBuffer);
+
+      try {
+        const { body, status } = await request(url)
+          .post(testRoute)
+          .attach('file', tmpPath)
+          .use(tokenProvider(user));
+
+        expect(status).toBe(constants.HTTP_STATUS_BAD_REQUEST);
+        expect(body).toMatchObject({
+          error: 'Virus detected',
+          reason: 'virus_detected',
+          message: expect.stringContaining('malicious content'),
+          details: {
+            filename: expect.any(String),
+            viruses: expect.arrayContaining([
+              expect.stringContaining('EICAR')
+            ])
+          }
+        });
+      } finally {
+        fs.unlinkSync(tmpPath);
+      }
+    }, 30000);
+
+    it('should reject non-ZIP file', async () => {
+      const txtContent = 'This is not a ZIP file';
+      const tmpPath = path.join(import.meta.dirname, 'fake.zip');
+      fs.writeFileSync(tmpPath, txtContent);
+
+      try {
+        const { body, status } = await request(url)
+          .post(testRoute)
+          .attach('file', tmpPath)
+          .use(tokenProvider(user));
+
+        expect(status).toBe(constants.HTTP_STATUS_BAD_REQUEST);
+        expect(body).toMatchObject({
+          error: expect.any(String),
+          message: expect.stringContaining('ZIP')
+        });
+      } finally {
+        fs.unlinkSync(tmpPath);
+      }
+    }, 30000);
+
+    it('should reject ZIP without shapefile components', async () => {
+      const zip = new AdmZip();
+      zip.addFile('readme.txt', Buffer.from('This is not a shapefile'));
+      const zipBuffer = zip.toBuffer();
+
+      const tmpPath = path.join(import.meta.dirname, 'no-shapefile.zip');
+      fs.writeFileSync(tmpPath, zipBuffer);
+
+      try {
+        const { body, status } = await request(url)
+          .post(testRoute)
+          .attach('file', tmpPath)
+          .use(tokenProvider(user));
+
+        expect(status).toBe(constants.HTTP_STATUS_BAD_REQUEST);
+        expect(body).toMatchObject({
+          error: expect.any(String),
+          message: expect.stringContaining('Missing')
+        });
+      } finally {
+        fs.unlinkSync(tmpPath);
+      }
+    }, 30000);
+
+    it('should reject file that is too large', async () => {
+      // Create a ZIP larger than 100MB (default limit)
+      const largeBuffer = Buffer.alloc(101 * 1024 * 1024, 'a');
+      const tmpPath = path.join(import.meta.dirname, 'large.zip');
+      fs.writeFileSync(tmpPath, largeBuffer);
+
+      try {
+        const { status } = await request(url)
+          .post(testRoute)
+          .attach('file', tmpPath)
+          .use(tokenProvider(user));
+
+        expect(status).toBe(constants.HTTP_STATUS_BAD_REQUEST);
+      } finally {
+        fs.unlinkSync(tmpPath);
+      }
+    }, 60000);
   });
 });

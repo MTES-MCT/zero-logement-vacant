@@ -66,7 +66,7 @@ const LoginView = () => {
     resolver: yupResolver(schema)
   });
 
-  function submit(data: FormSchema): void {
+  function submitLoginForm(data: LoginSchema): void {
     dispatch(
       logIn({
         email: data.email,

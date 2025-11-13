@@ -45,12 +45,6 @@ const signInSchema = object({
   establishmentId: string().optional()
 });
 
-interface SignInPayload {
-  email: string;
-  password: string;
-  establishmentId?: string;
-}
-
 async function signIn(request: Request, response: Response) {
   const payload = await signInSchema.validate(request.body);
 

@@ -376,7 +376,7 @@ describe('Account controller', () => {
 
       const { status } = await request(url).post(testRoute).send({
         key: link.id,
-        password: '123QWEasd'
+        password: '123QWEasd!@#'
       });
 
       expect(status).toBe(constants.HTTP_STATUS_GONE);
@@ -387,7 +387,7 @@ describe('Account controller', () => {
 
       const { status } = await request(url).post(testRoute).send({
         key: link.id,
-        password: '123QWEasd'
+        password: '123QWEasd!@#'
       });
 
       expect(status).toBe(constants.HTTP_STATUS_NOT_FOUND);
@@ -396,7 +396,7 @@ describe('Account controller', () => {
     it('should change password and use the reset link', async () => {
       const link = genResetLinkApi(user.id);
       await ResetLinks().insert(formatResetLinkApi(link));
-      const newPassword = '123QWEasd';
+      const newPassword = '123QWEasd!@#';
 
       const { status } = await request(url).post(testRoute).send({
         key: link.id,

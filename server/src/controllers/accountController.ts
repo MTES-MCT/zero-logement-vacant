@@ -40,13 +40,17 @@ import {
 // because they shall be implemented in userController
 
 const signInSchema = object({
-  email: string().required().email(),
-  password: string().required().min(1),
+  email: string().trim().required().email(),
+  password: string().trim().required().min(1),
   establishmentId: string().optional()
 });
 
+const signInValidators = {
+  body: signInSchema
+};
+
 async function signIn(request: Request, response: Response) {
-  const payload = await signInSchema.validate(request.body);
+  const payload = request.body;
 
   const user = await userRepository.getByEmail(payload.email);
   if (!user) {
@@ -164,12 +168,16 @@ async function get(request: Request, response: Response) {
 }
 
 const updateAccountSchema = object({
-  firstName: string().required(),
-  lastName: string().required(),
-  phone: string().required(),
-  position: string().required(),
-  timePerWeek: string().required()
+  firstName: string().strict(true).required(),
+  lastName: string().strict(true).required(),
+  phone: string().strict(true).required(),
+  position: string().strict(true).required(),
+  timePerWeek: string().strict(true).required()
 });
+
+const updateAccountValidators = {
+  body: updateAccountSchema
+};
 
 /**
  * @deprecated Use {@link userController.update} instead
@@ -178,7 +186,7 @@ const updateAccountSchema = object({
  */
 async function updateAccount(request: Request, response: Response) {
   const { user } = request as AuthenticatedRequest;
-  const account = await updateAccountSchema.validate(request.body) as UserAccountDTO;
+  const account = request.body as UserAccountDTO;
 
   logger.info('Update account for ', user.id);
 
@@ -201,8 +209,12 @@ const resetPasswordSchema = object({
     .matches(/[^A-Za-z0-9]/, 'Le mot de passe doit contenir au moins un caractère spécial')
 });
 
+const resetPasswordValidators = {
+  body: resetPasswordSchema
+};
+
 async function resetPassword(request: Request, response: Response) {
-  const { key, password } = await resetPasswordSchema.validate(request.body);
+  const { key, password } = request.body;
 
   const link = await resetLinkRepository.get(key);
   if (!link) {
@@ -231,6 +243,10 @@ const verifyTwoFactorSchema = object({
   establishmentId: string().optional()
 });
 
+const verifyTwoFactorValidators = {
+  body: verifyTwoFactorSchema
+};
+
 interface VerifyTwoFactorPayload {
   email: string;
   code: string;
@@ -238,7 +254,7 @@ interface VerifyTwoFactorPayload {
 }
 
 async function verifyTwoFactor(request: Request, response: Response) {
-  const payload = await verifyTwoFactorSchema.validate(request.body) as VerifyTwoFactorPayload;
+  const payload = request.body as VerifyTwoFactorPayload;
 
   const user = await userRepository.getByEmail(payload.email);
   if (!user) {
@@ -345,12 +361,16 @@ async function verifyTwoFactor(request: Request, response: Response) {
 export default {
   signIn,
   signInSchema,
+  signInValidators,
   verifyTwoFactor,
   verifyTwoFactorSchema,
+  verifyTwoFactorValidators,
   get,
   updateAccount,
   updateAccountSchema,
+  updateAccountValidators,
   resetPassword,
   resetPasswordSchema,
+  resetPasswordValidators,
   changeEstablishment
 };

@@ -36,6 +36,7 @@ import OwnerViewNext from '~/views/Owner/OwnerViewNext';
 import FeatureFlagLayout from '~/layouts/FeatureFlagLayout';
 import HousingOwnersView from '~/views/Housing/HousingOwnersView';
 import SiteMapView from '~/views/SiteMapView';
+import TwoFactorView from '~/views/Login/TwoFactorView';
 
 const router = sentry.createBrowserRouter(
   createRoutesFromElements(
@@ -115,6 +116,7 @@ const router = sentry.createBrowserRouter(
       <Route element={<GuestLayout />}>
         <Route path="/inscription/*" element={<AccountCreationView />} />
         <Route path="/connexion" element={<LoginView />} />
+        <Route path="/verification-2fa" element={<TwoFactorView />} />
         <Route
           path="/mot-de-passe/oublie"
           element={<ForgottenPasswordView />}

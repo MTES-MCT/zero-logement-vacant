@@ -1,7 +1,7 @@
 import { createSlice, type SerializedError } from '@reduxjs/toolkit';
 
 import type { AuthUser } from '../../models/User';
-import { changeEstablishment, logIn } from '../thunks/auth-thunks';
+import { changeEstablishment, logIn, verifyTwoFactor } from '../thunks/auth-thunks';
 
 const AUTH_KEY = 'authUser';
 
@@ -26,6 +26,7 @@ function createFetchAction<Data>(data?: Data): FetchAction<Data> {
 
 export interface AuthenticationState {
   logIn: FetchAction<AuthUser>;
+  verifyTwoFactor: FetchAction<AuthUser>;
   changeEstablishment: FetchAction<never>;
   isLoggedOut?: boolean;
   /**
@@ -46,6 +47,7 @@ const authenticationSlice = createSlice({
     return {
       authUser: user,
       logIn: createFetchAction(user),
+      verifyTwoFactor: createFetchAction(),
       changeEstablishment: createFetchAction()
     };
   },
@@ -65,9 +67,12 @@ const authenticationSlice = createSlice({
         state.logIn.isUninitialized = false;
       })
       .addCase(logIn.fulfilled, (state, action) => {
-        localStorage.setItem(AUTH_KEY, JSON.stringify(action.payload));
-        state.authUser = action.payload;
-        state.logIn.data = action.payload;
+        // Only save to localStorage if it's a complete AuthUser (not a 2FA response)
+        if ('accessToken' in action.payload) {
+          localStorage.setItem(AUTH_KEY, JSON.stringify(action.payload));
+          state.authUser = action.payload;
+          state.logIn.data = action.payload;
+        }
         state.logIn.error = undefined;
         state.logIn.isError = false;
         state.logIn.isLoading = false;
@@ -99,6 +104,28 @@ const authenticationSlice = createSlice({
         state.changeEstablishment.isError = true;
         state.changeEstablishment.isLoading = false;
         state.changeEstablishment.isSuccess = false;
+      });
+
+    builder
+      .addCase(verifyTwoFactor.pending, (state) => {
+        state.verifyTwoFactor.isLoading = true;
+        state.verifyTwoFactor.isUninitialized = false;
+      })
+      .addCase(verifyTwoFactor.fulfilled, (state, action) => {
+        localStorage.setItem(AUTH_KEY, JSON.stringify(action.payload));
+        state.authUser = action.payload;
+        state.logIn.data = action.payload;
+        state.verifyTwoFactor.data = action.payload;
+        state.verifyTwoFactor.error = undefined;
+        state.verifyTwoFactor.isError = false;
+        state.verifyTwoFactor.isLoading = false;
+        state.verifyTwoFactor.isSuccess = true;
+      })
+      .addCase(verifyTwoFactor.rejected, (state, action) => {
+        state.verifyTwoFactor.error = action.error;
+        state.verifyTwoFactor.isError = true;
+        state.verifyTwoFactor.isLoading = false;
+        state.verifyTwoFactor.isSuccess = false;
       });
   }
 });

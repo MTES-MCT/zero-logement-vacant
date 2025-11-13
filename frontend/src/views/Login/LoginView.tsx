@@ -66,19 +66,33 @@ const LoginView = () => {
     resolver: yupResolver(schema)
   });
 
-  async function submitLoginForm(data: LoginSchema): Promise<void> {
-    try {
-      await dispatch(
-        logIn({
-          email: data.email,
-          password: data.password,
-          establishmentId: data.establishmentId ?? undefined
-        })
-      ).unwrap();
-      navigate('/parc-de-logements');
-    } catch (error) {
-      console.error(error);
-    }
+  function submitLoginForm(data: LoginSchema): void {
+    dispatch(
+      logIn({
+        email: data.email,
+        password: data.password,
+        establishmentId: data.establishmentId || undefined
+      })
+    )
+      .unwrap()
+      .then((response) => {
+        // Check if 2FA is required
+        if ('requiresTwoFactor' in response && response.requiresTwoFactor) {
+          // Redirect to 2FA verification page
+          navigate('/verification-2fa', {
+            state: {
+              email: response.email,
+              establishmentId: data.establishmentId || undefined
+            }
+          });
+        } else {
+          // Normal login, redirect to dashboard
+          navigate('/parc-de-logements');
+        }
+      })
+      .catch((error) => {
+        console.error('Authentication failed', error);
+      });
   }
 
   return (

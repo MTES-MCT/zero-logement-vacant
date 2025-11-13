@@ -24,6 +24,7 @@ export interface MailService {
     options: SendOptions
   ): Promise<void>;
   sendOwnerProspectCreatedEmail(users: UserApi[]): Promise<void>;
+  sendTwoFactorCode(code: string, options: SendOptions): Promise<void>;
 }
 
 export interface MailEvent {

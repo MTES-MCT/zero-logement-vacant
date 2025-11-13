@@ -50,6 +50,12 @@ data/
 data/*
 analytics/plugins/
 
+# DPE Import - Large data files
+server/src/scripts/import-dpe/dpe_processing_*/
+server/src/scripts/import-dpe/dpe_output_*/
+*.dump
+tools/*.dump
+
 # VS Code
 .vscode/*
 !.vscode/settings.json

@@ -17,7 +17,7 @@ function configureTestStore(options?: Options) {
     middleware: (getDefaultMiddleware) =>
       getDefaultMiddleware({
         serializableCheck: false
-      }).concat(applicationMiddlewares),
+      }).concat(applicationMiddlewares) as any,
     preloadedState: {
       app: {
         isDsfrReady: true
@@ -37,6 +37,12 @@ function configureTestStore(options?: Options) {
               isSuccess: false,
               isUninitialized: true
             },
+        verifyTwoFactor: {
+          isError: false,
+          isLoading: false,
+          isSuccess: false,
+          isUninitialized: true
+        },
         changeEstablishment: {
           isError: false,
           isLoading: false,

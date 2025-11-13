@@ -3,56 +3,24 @@ import knex from 'knex';
 
 import config from '~/infra/database/knexfile';
 
-const tables: string[] = [
-  'ban_addresses',
-  'buildings',
-  'campaign_events',
-  'campaign_housing_events',
-  'campaigns',
-  'campaigns',
-  'campaigns_drafts',
-  'campaigns_housing',
-  'contact_points',
-  'df_housing_nat',
-  'df_owners_nat',
-  'drafts',
-  'establishments',
-  'establishments_localities',
-  'events',
-  'fast_housing',
-  'geo_perimeters',
-  'group_housing_events',
-  'groups',
-  'groups_housing',
-  'housing_events',
-  'housing_notes',
-  'housing_owner_events',
-  'localities',
-  'notes',
-  'owner_events',
-  'owner_matches',
-  'owner_notes',
-  'owner_prospects',
-  'owners',
-  'owners_duplicates',
-  'owners_housing',
-  'precision_housing_events',
-  'prospects',
-  'reset_links',
-  'senders',
-  'settings',
-  'signup_links',
-  'users'
-];
-
 export default async function setup() {
   const db = knex(config);
   try {
     await db.migrate.latest();
     console.log('Migrated.');
 
-    // Remove data from all tables
-    await async.forEachSeries(tables, async (table) => {
+    // Get list of existing tables dynamically
+    const result = await db.raw(`
+      SELECT tablename
+      FROM pg_tables
+      WHERE schemaname = 'public'
+      AND tablename NOT IN ('knex_migrations', 'knex_migrations_lock')
+    `);
+    const existingTables = result.rows.map((row: any) => row.tablename);
+    console.log(`Found ${existingTables.length} tables to truncate.`);
+
+    // Remove data from all existing tables
+    await async.forEachSeries(existingTables, async (table: string) => {
       await db.raw('TRUNCATE TABLE ?? CASCADE', [table]);
       console.log(`Truncated table ${table}.`);
     });

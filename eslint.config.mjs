@@ -17,7 +17,12 @@ export default defineConfig([
     '**/eslint.config.mjs',
     '**/vite.config.ts',
     '**/vitest.config.ts',
-    'frontend/src/components/_dsfr/'
+    'frontend/src/components/_dsfr/',
+    'server/src/scripts/import-dpe/dpe_processing_*/**',
+    'server/src/scripts/import-dpe/dpe_output_*/**',
+    'server/src/scripts/import-dpe/**/*.jsonl',
+    'server/src/scripts/import-dpe/**/*.log',
+    'tools/**/*.dump'
   ]),
   {
     files: ['**/src/**/*.{ts,tsx}', 'e2e/**/*.ts'],

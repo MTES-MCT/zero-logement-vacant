@@ -15,6 +15,7 @@ const PASSWORD_RESET_TEMPLATE_ID = 8;
 const ACCOUNT_ACTIVATION_TEMPLATE_ID = 5;
 const LOVAC_ACCOUNT_ACTIVATION_TEMPLATE_ID = 54;
 const OWNER_PROSPECT_CREATED_TEMPLATE_ID = 13;
+const TWO_FACTOR_CODE_TEMPLATE_ID = 100;
 
 class BrevoService implements MailService {
   private emails: TransactionalEmailsApi;
@@ -102,6 +103,17 @@ class BrevoService implements MailService {
     await this.send({
       templateId: OWNER_PROSPECT_CREATED_TEMPLATE_ID,
       recipients: users.map((user) => user.email)
+    });
+  }
+
+  async sendTwoFactorCode(code: string, options: SendOptions): Promise<void> {
+    await this.send({
+      ...options,
+      templateId: TWO_FACTOR_CODE_TEMPLATE_ID,
+      params: {
+        code,
+        expiryMinutes: 5
+      }
     });
   }
 

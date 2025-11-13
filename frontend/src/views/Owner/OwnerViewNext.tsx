@@ -1,4 +1,3 @@
-import type { FrIconClassName, RiIconClassName } from '@codegouvfr/react-dsfr';
 import Button from '@codegouvfr/react-dsfr/Button';
 import { Typography } from '@mui/material';
 import Container from '@mui/material/Container';
@@ -6,12 +5,11 @@ import Grid from '@mui/material/Grid';
 import Stack from '@mui/material/Stack';
 import { skipToken } from '@reduxjs/toolkit/query';
 import { useParams } from 'react-router-dom';
-import { match } from 'ts-pattern';
 
 import OwnerCardNext from '~/components/Owner/OwnerCardNext';
 import createOwnerEditionModalNext from '~/components/Owner/OwnerEditionModalNext';
 import OwnerHousingCardGrid from '~/components/Owner/OwnerHousingCardGrid';
-import Icon from '~/components/ui/Icon';
+import OwnerKindIcon from '~/components/Owner/OwnerKindIcon';
 import { useGetOwnerQuery } from '~/services/owner.service';
 import NotFoundView from '~/views/NotFoundView';
 
@@ -24,25 +22,6 @@ function OwnerView() {
     isLoading,
     isError
   } = useGetOwnerQuery(params.id ?? skipToken);
-
-  const icon = match(owner?.kind)
-    .returnType<FrIconClassName | RiIconClassName | null>()
-    .with('Particulier', () => 'fr-icon-user-line')
-    .with(
-      'SCI, Copropriété, Autres personnes morales',
-      () => 'fr-icon-building-line'
-    )
-    .with(
-      'Promoteur, Investisseur privé',
-      () => 'fr-icon-money-euro-circle-line'
-    )
-    .with('Etat et collectivité territoriale', () => 'fr-icon-france-line')
-    .with(
-      'Bailleur social, Aménageur, Investisseur public',
-      () => 'fr-icon-government-line'
-    )
-    .with('Autres', () => 'fr-icon-info-line')
-    .otherwise(() => null);
 
   if (isError || (!isLoading && !owner)) {
     return <NotFoundView />;
@@ -61,17 +40,7 @@ function OwnerView() {
             <Typography component="h1" variant="h3">
               {owner?.fullName}
             </Typography>
-            {!icon ? null : (
-              <Stack
-                component="section"
-                direction="row"
-                spacing="0.25rem"
-                useFlexGap
-              >
-                <Icon name={icon} />
-                <Typography sx={{ fontWeight: 500 }}>{owner?.kind}</Typography>
-              </Stack>
-            )}
+            {owner?.kind ? <OwnerKindIcon kind={owner.kind} /> : null}
           </Stack>
 
           <Stack
@@ -97,7 +66,8 @@ function OwnerView() {
             housingCount={undefined}
             id={owner?.id ?? null}
             birthdate={owner?.birthDate ?? null}
-            siren={owner?.siren}
+            kind={owner?.kind ?? null}
+            siren={owner?.siren ?? null}
             dgfipAddress={owner?.rawAddress ?? null}
             banAddress={owner?.banAddress ?? null}
             additionalAddress={owner?.additionalAddress ?? null}

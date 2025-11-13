@@ -33,6 +33,7 @@ next_campaign_check AS (
     AND e.user_source = 'user'
     AND e.created_at < (pc.sent_at + INTERVAL '36 months')
     WHERE pc.sent_at IS NOT NULL
+    AND e.type IN('housing:status-updated', 'housing:occupancy-updated')
     GROUP BY pc.id
 )
 

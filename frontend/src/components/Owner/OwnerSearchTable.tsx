@@ -22,7 +22,7 @@ export interface OwnerSearchTableProps {
 }
 
 function OwnerSearchTable(props: OwnerSearchTableProps) {
-  const { onSelect } = props
+  const { onSelect } = props;
 
   const columnHelper = createColumnHelper<Owner>();
   const columnDefs = useMemo(

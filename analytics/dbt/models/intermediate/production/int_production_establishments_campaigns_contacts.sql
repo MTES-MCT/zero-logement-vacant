@@ -27,6 +27,7 @@ establishment_followup AS (
     LEFT JOIN {{ ref ('int_production_campaigns_housing') }} pch ON pc.id = pch.campaign_id
     LEFT JOIN {{ ref ('int_production_events') }} e ON e.housing_id = pch.housing_id
     WHERE pc.sent_at IS NOT NULL
+    AND e.type IN('housing:status-updated', 'housing:occupancy-updated')
     AND event_status_label = 'Suivi terminé'
     AND user_source = 'user'
     GROUP BY pe.id, year

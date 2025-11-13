@@ -103,7 +103,7 @@ export function createSourceHousingOwnerProcessor(options: ProcessorOptions) {
       );
 
       const activeHousingOwners: ReadonlyArray<HousingOwnerApi> =
-        sourceHousingOwners.map((sourceHousingOwner) => {
+        sourceHousingOwners.map((sourceHousingOwner): HousingOwnerApi => {
           const owner = owners.find(
             (owner) => owner.idpersonne === sourceHousingOwner.idpersonne
           ) as OwnerApi; // Verified before
@@ -120,7 +120,10 @@ export function createSourceHousingOwnerProcessor(options: ProcessorOptions) {
             locprop: sourceHousingOwner.locprop_source,
             propertyRight: sourceHousingOwner.property_right,
             startDate: new Date(),
-            endDate: undefined
+            endDate: null,
+            relativeLocation: null,
+            absoluteDistance: null,
+            origin: null,
           };
         });
       const inactiveHousingOwners: ReadonlyArray<HousingOwnerApi> = fp

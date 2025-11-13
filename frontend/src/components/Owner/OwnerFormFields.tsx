@@ -27,9 +27,15 @@ export const OWNER_FORM_FIELD_SCHEMA = object({
     .defined()
     .nullable(),
   additionalAddress: string().defined().nullable(),
-  email: string().email('Email invalide').defined().nullable(),
+  email: string()
+    .email('Email invalide. Exemple de format valide : exemple@gmail.com')
+    .defined()
+    .nullable(),
   phone: string()
-    .matches(PHONE_REGEXP, 'Téléphone invalide')
+    .matches(
+      PHONE_REGEXP,
+      'Téléphone invalide. Exemple de format valide : +33XXXXXXXXX ou 0XXXXXXXXX'
+    )
     .defined()
     .nullable()
 });
@@ -42,6 +48,8 @@ export interface OwnerFormFieldsProps {
 
 function OwnerFormFields(props: OwnerFormFieldsProps) {
   const form = useFormContext<OwnerFormFieldsSchema>();
+
+  console.log(form.getValues('birthDate'));
 
   return (
     <Stack spacing="1.5rem">
@@ -65,6 +73,8 @@ function OwnerFormFields(props: OwnerFormFieldsProps) {
               type: 'date',
               max: new Date().toISOString().substring(0, 'yyyy-mm-dd'.length)
             }}
+            mapValue={(value): string => value ?? ''}
+            contramapValue={(value): string | null => value || null}
           />
         </Grid>
       </Grid>
@@ -77,8 +87,7 @@ function OwnerFormFields(props: OwnerFormFieldsProps) {
           </Typography>
         </Stack>
         <Typography className="fr-hint-text">
-          Cette adresse est issue du fichier LOVAC, récupérée via le fichier
-          1767BIS-COM. Celle-ci n&apos;est pas modifiable.
+          Adresse issue des fichiers LOVAC (non modifiable).
         </Typography>
         <Typography
           color={fr.colors.decisions.text.mention.grey.default}

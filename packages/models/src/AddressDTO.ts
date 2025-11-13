@@ -3,21 +3,9 @@ import { Array, pipe, Predicate, String } from 'effect';
 export interface AddressDTO {
   banId?: string;
   label: string;
-  /**
-   * @deprecated See {@link label}
-   */
   houseNumber?: string;
-  /**
-   * @deprecated See {@link label}
-   */
   street?: string;
-  /**
-   * @deprecated See {@link label}
-   */
   postalCode: string;
-  /**
-   * @deprecated See {@link label}
-   */
   city: string;
   cityCode?: string | null;
   latitude?: number;

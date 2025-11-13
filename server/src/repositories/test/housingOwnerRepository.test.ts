@@ -1,5 +1,5 @@
 import { faker } from '@faker-js/faker/locale/fr';
-import { OWNER_RANKS, PROPERTY_RIGHT_VALUES } from '@zerologementvacant/models';
+import { PROPERTY_RIGHT_VALUES } from '@zerologementvacant/models';
 import { HousingOwnerApi } from '~/models/HousingOwnerApi';
 import { OwnerApi } from '~/models/OwnerApi';
 import housingOwnerRepository, {
@@ -12,7 +12,11 @@ import {
   Housing
 } from '~/repositories/housingRepository';
 import { formatOwnerApi, Owners } from '~/repositories/ownerRepository';
-import { genHousingApi, genOwnerApi } from '~/test/testFixtures';
+import {
+  genHousingApi,
+  genHousingOwnerApi,
+  genOwnerApi
+} from '~/test/testFixtures';
 
 describe('housingOwnerRepository', () => {
   describe('findByOwner', () => {
@@ -22,14 +26,7 @@ describe('housingOwnerRepository', () => {
       const housings = faker.helpers.multiple(() => genHousingApi());
       await Housing().insert(housings.map(formatHousingRecordApi));
       const housingOwners: ReadonlyArray<HousingOwnerApi> = housings.map(
-        (housing) => ({
-          ...owner,
-          ownerId: owner.id,
-          housingGeoCode: housing.geoCode,
-          housingId: housing.id,
-          rank: faker.helpers.arrayElement(OWNER_RANKS),
-          propertyRight: faker.helpers.arrayElement(PROPERTY_RIGHT_VALUES)
-        })
+        (housing) => genHousingOwnerApi(housing, owner)
       );
       await HousingOwners().insert(housingOwners.map(formatHousingOwnerApi));
 
@@ -60,21 +57,15 @@ describe('housingOwnerRepository', () => {
         Housing().insert(formatHousingRecordApi(housing))
       ]);
       const housingOwner: HousingOwnerApi = {
-        ...owner,
+        ...genHousingOwnerApi(housing, owner),
         rank: -2,
-        ownerId: owner.id,
-        housingId: housing.id,
-        housingGeoCode: housing.geoCode,
         propertyRight: null
       };
       await HousingOwners().insert(formatHousingOwnerApi(housingOwner));
 
       await housingOwnerRepository.insert({
-        ...owner,
+        ...genHousingOwnerApi(housing, owner),
         rank: -2,
-        ownerId: owner.id,
-        housingId: housing.id,
-        housingGeoCode: housing.geoCode,
         propertyRight: faker.helpers.arrayElement(PROPERTY_RIGHT_VALUES)
       });
     });
@@ -87,21 +78,15 @@ describe('housingOwnerRepository', () => {
         Housing().insert(formatHousingRecordApi(housing))
       ]);
       const housingOwner: HousingOwnerApi = {
-        ...owner,
+        ...genHousingOwnerApi(housing, owner),
         rank: -2,
-        ownerId: owner.id,
-        housingId: housing.id,
-        housingGeoCode: housing.geoCode,
         propertyRight: null
       };
       await HousingOwners().insert(formatHousingOwnerApi(housingOwner));
 
       await housingOwnerRepository.insert({
-        ...owner,
+        ...genHousingOwnerApi(housing, owner),
         rank: 1,
-        ownerId: owner.id,
-        housingId: housing.id,
-        housingGeoCode: housing.geoCode,
         propertyRight: faker.helpers.arrayElement(PROPERTY_RIGHT_VALUES)
       });
 
@@ -127,23 +112,15 @@ describe('housingOwnerRepository', () => {
         Housing().insert(formatHousingRecordApi(housing))
       ]);
       const existingHousingOwner: HousingOwnerApi = {
-        ...existingOwner,
-        rank: 1,
-        ownerId: existingOwner.id,
-        housingId: housing.id,
-        housingGeoCode: housing.geoCode,
-        propertyRight: faker.helpers.arrayElement(PROPERTY_RIGHT_VALUES)
+        ...genHousingOwnerApi(housing, existingOwner),
+        rank: 1
       };
       await HousingOwners().insert(formatHousingOwnerApi(existingHousingOwner));
 
       const newOwner: OwnerApi = genOwnerApi();
       const newHousingOwner: HousingOwnerApi = {
-        ...newOwner,
-        rank: 1,
-        ownerId: newOwner.id,
-        housingId: housing.id,
-        housingGeoCode: housing.geoCode,
-        propertyRight: faker.helpers.arrayElement(PROPERTY_RIGHT_VALUES)
+        ...genHousingOwnerApi(housing, newOwner),
+        rank: 1
       };
       await Owners().insert(formatOwnerApi(newOwner));
       const newHousingOwners: HousingOwnerApi[] = [

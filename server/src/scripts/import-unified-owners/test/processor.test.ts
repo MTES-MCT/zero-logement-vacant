@@ -26,8 +26,8 @@ describe('Processor', () => {
     return {
       ...genHousingOwnerApi(housing, owner),
       idpersonne: null,
-      idprocpte: undefined,
-      idprodroit: undefined,
+      idprocpte: null,
+      idprodroit: null,
       rank: AWAITING_OWNER_RANK
     };
   }

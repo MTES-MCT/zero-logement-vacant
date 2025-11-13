@@ -34,9 +34,15 @@ const schema = object({
     .defined()
     .nullable(),
   additionalAddress: string().defined().nullable(),
-  email: string().email('Email invalide').defined().nullable(),
+  email: string()
+    .email('Email invalide. Exemple de format valide : exemple@gmail.com')
+    .defined()
+    .nullable(),
   phone: string()
-    .matches(PHONE_REGEXP, 'Téléphone invalide')
+    .matches(
+      PHONE_REGEXP,
+      'Téléphone invalide. Exemple de format valide : +33XXXXXXXXX ou 0XXXXXXXXX'
+    )
     .defined()
     .nullable()
 }).required();
@@ -195,8 +201,7 @@ function createOwnerEditionModalNext() {
                     </Typography>
                   </Stack>
                   <Typography className="fr-hint-text">
-                    Cette adresse est issue du fichier LOVAC, récupérée via le
-                    fichier 1767BIS-COM. Celle-ci n’est pas modifiable.
+                    Adresse issue des fichiers LOVAC (non modifiable).
                   </Typography>
                   <Typography
                     color={fr.colors.decisions.text.default.grey.default}
@@ -275,7 +280,7 @@ function createOwnerEditionModalNext() {
                       label="Adresse e-mail"
                       nativeInputProps={{
                         type: 'email',
-                        autoComplete: 'email'
+                        inputMode: 'email'
                       }}
                       mapValue={(value): string => value ?? ''}
                       contramapValue={(value): string | null => value || null}
@@ -287,7 +292,7 @@ function createOwnerEditionModalNext() {
                       label="Numéro de téléphone"
                       nativeInputProps={{
                         type: 'tel',
-                        autoComplete: 'tel'
+                        inputMode: 'tel'
                       }}
                       mapValue={(value): string => value ?? ''}
                       contramapValue={(value): string | null => value || null}

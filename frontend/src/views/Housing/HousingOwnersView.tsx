@@ -220,7 +220,9 @@ function HousingOwnersView() {
       idprocpte: null,
       idprodroit: null,
       locprop: null,
-      propertyRight: null
+      propertyRight: null,
+      relativeLocation: null,
+      absoluteDistance: null
     });
 
     updateHousingOwners({

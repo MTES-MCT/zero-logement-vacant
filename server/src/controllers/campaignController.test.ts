@@ -71,7 +71,7 @@ import {
   GroupsHousing
 } from '~/repositories/groupRepository';
 import {
-  formatOwnerHousingApi,
+  formatHousingOwnerApi,
   HousingOwners
 } from '~/repositories/housingOwnerRepository';
 import {
@@ -88,6 +88,7 @@ import {
   genEventApi,
   genGroupApi,
   genHousingApi,
+  genHousingOwnerApi,
   genSenderApi,
   genUserApi,
   oneOf
@@ -383,12 +384,15 @@ describe('Campaign API', () => {
     const owners = groupHousing
       .map((housing) => housing.owner)
       .filter(isDefined);
+    const housingOwners = groupHousing.map((housing) =>
+      genHousingOwnerApi(housing, housing.owner!)
+    );
 
     beforeAll(async () => {
       await Groups().insert(formatGroupApi(group));
       await Housing().insert(groupHousing.map(formatHousingRecordApi));
       await Owners().insert(owners.map(formatOwnerApi));
-      await HousingOwners().insert(groupHousing.map(formatOwnerHousingApi));
+      await HousingOwners().insert(housingOwners.map(formatHousingOwnerApi));
       await GroupsHousing().insert(formatGroupHousingApi(group, groupHousing));
     });
 

@@ -25,7 +25,9 @@ function HousingAdditionalOwner({ activeOwnersCount, onAddOwner }: Props) {
       idprocpte: null,
       idprodroit: null,
       locprop: null,
-      propertyRight: null
+      propertyRight: null,
+      relativeLocation: null,
+      absoluteDistance: null
     });
   }
 

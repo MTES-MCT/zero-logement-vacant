@@ -2,6 +2,7 @@ import { faker } from '@faker-js/faker/locale/fr';
 import { render, screen, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import {
+  ACTIVE_OWNER_RANKS,
   INACTIVE_OWNER_RANKS,
   OWNER_KIND_LABELS,
   UserRole,
@@ -11,6 +12,7 @@ import {
   type OwnerRank
 } from '@zerologementvacant/models';
 import {
+  genAddressDTO,
   genEstablishmentDTO,
   genHousingDTO,
   genHousingOwnerDTO,
@@ -23,6 +25,7 @@ import { createMemoryRouter, RouterProvider } from 'react-router-dom';
 import data from '~/mocks/handlers/data';
 import { fromEstablishmentDTO } from '~/models/Establishment';
 import { fromUserDTO } from '~/models/User';
+import config from '~/utils/config';
 import configureTestStore from '~/utils/storeUtils';
 import HousingOwnersView from '~/views/Housing/HousingOwnersView';
 
@@ -581,6 +584,50 @@ describe('HousingOwnersView', () => {
         });
         expect(cell).toBeVisible();
       });
+    });
+  });
+
+  describe('Improvable addresses', () => {
+    it('should ignore an improvable address', async () => {
+      const housing = genHousingDTO(null);
+      const owner: OwnerDTO = {
+        ...genOwnerDTO(),
+        banAddress: {
+          ...genAddressDTO(),
+          score: config.banEligibleScore - 0.01
+        }
+      };
+      const housingOwner: HousingOwnerDTO = {
+        ...genHousingOwnerDTO(owner),
+        rank: faker.helpers.arrayElement(ACTIVE_OWNER_RANKS)
+      };
+
+      renderView({
+        housing,
+        owners: [owner],
+        housingOwners: [housingOwner]
+      });
+
+      let badge: HTMLElement | null = await screen.findByRole('cell', {
+        name: /Adresse améliorable/i
+      });
+      expect(badge).toBeVisible();
+      const edit = await screen.findByRole('button', {
+        name: `Éditer ${owner.fullName}`
+      });
+      await user.click(edit);
+      const ignore = await screen.findByRole('button', {
+        name: 'Ignorer l’adresse'
+      });
+      await user.click(ignore);
+      const save = await screen.findByRole('button', {
+        name: 'Enregistrer'
+      });
+      await user.click(save);
+      badge = screen.queryByRole('cell', {
+        name: /Adresse améliorable/i
+      });
+      expect(badge).not.toBeInTheDocument();
     });
   });
 });

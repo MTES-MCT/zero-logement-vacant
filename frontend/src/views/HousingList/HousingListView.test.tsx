@@ -30,7 +30,6 @@ import {
 } from '@zerologementvacant/models/fixtures';
 import async from 'async';
 import { Array, pipe, Predicate } from 'effect';
-import * as randomstring from 'randomstring';
 import { Provider } from 'react-redux';
 import { createMemoryRouter, RouterProvider } from 'react-router-dom';
 import { vi } from 'vitest';
@@ -222,7 +221,7 @@ describe('Housing list view', () => {
     });
 
     it('should fail if the housing was not found in datafoncier', async () => {
-      const localId = randomstring.generate(12);
+      const localId = faker.string.alphanumeric(12);
       const auth = genUserDTO();
 
       renderView({
@@ -235,8 +234,8 @@ describe('Housing list view', () => {
         campaignHousings: []
       });
 
-      const button = screen.getByText('Ajouter un logement', {
-        selector: 'button'
+      const button = await screen.findByRole('button', {
+        name: /^Ajouter un logement/
       });
       await user.click(button);
       const modal = await screen.findByRole('dialog');
@@ -244,11 +243,9 @@ describe('Housing list view', () => {
         /^Saisissez l’identifiant fiscal national/
       );
       await user.type(input, localId);
-      await user.click(
-        within(modal).getByRole('button', { name: /^Confirmer/ })
-      );
+      await user.click(within(modal).getByRole('button', { name: /^Suivant/ }));
       const error = await within(modal).findByText(
-        'Nous n’avons pas pu trouver de logement avec les informations que vous avez fournies. Vérifiez les informations saisies afin de vous assurer qu’elles soient correctes, puis réessayez en modifiant l’identifiant du logement.'
+        'Nous n’avons pas pu trouver de logement avec les informations que vous avez fournies. Vérifiez les informations saisies afin de vous assurer qu’elles soient correctes, puis réessayez en modifiant l’identifiant du logement. Le format de l’identifiant national n’est pas valide. Exemple de format valide : 331234567891'
       );
       expect(error).toBeVisible();
     });
@@ -291,7 +288,7 @@ describe('Housing list view', () => {
         name: /^Saisissez l’identifiant fiscal national/
       });
       await user.type(input, datafoncierHousing.idlocal);
-      await user.click(within(modal).getByText('Confirmer'));
+      await user.click(within(modal).getByText('Suivant'));
       const alert = await within(modal).findByText(
         'Ce logement existe déjà dans votre parc'
       );
@@ -315,20 +312,18 @@ describe('Housing list view', () => {
         name: /^Ajouter un logement/
       });
       await user.click(button);
-      const modal = await screen.findByRole('dialog');
+      const modal = await screen.findByRole('dialog', {
+        name: /^Ajouter un logement/
+      });
       const input = await within(modal).findByLabelText(
         /^Saisissez l’identifiant fiscal national/
       );
       await user.type(input, datafoncierHousing.idlocal);
-      await user.click(
-        within(modal).getByRole('button', { name: /^Confirmer/ })
-      );
-      await within(modal).findByText(
-        'Voici le logement que nous avons trouvé à cette adresse/sur cette parcelle.'
-      );
-      await user.click(
-        within(modal).getByRole('button', { name: /^Confirmer/ })
-      );
+      await user.click(within(modal).getByRole('button', { name: /^Suivant/ }));
+      await screen.findByRole('heading', {
+        name: 'Voici le logement que nous avons trouvé à cette adresse/sur cette parcelle.'
+      });
+      await user.click(screen.getByRole('button', { name: /^Confirmer/ }));
 
       expect(modal).not.toBeVisible();
       const alert = await screen.findByText(

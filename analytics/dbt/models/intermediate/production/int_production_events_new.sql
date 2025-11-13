@@ -40,4 +40,4 @@ SELECT
 FROM {{ ref('stg_production_events') }} e
 LEFT JOIN {{ ref('stg_production_housing_events') }} he ON e.id = he.event_id
 LEFT JOIN {{ ref('stg_production_owner_events') }} ho ON e.id = ho.event_id
-WHERE e.type IN('housing:status-updated', 'housing:occupancy-updated')
+-- WHERE e.type IN('housing:status-updated', 'housing:occupancy-updated')

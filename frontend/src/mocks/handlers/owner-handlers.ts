@@ -162,34 +162,49 @@ export const ownerHandlers: RequestHandler[] = [
       }
 
       const payload = await request.json();
-      const housingOwners: HousingOwnerDTO[] = payload.map((payload) => {
-        const owner = data.owners.find((owner) => owner.id === payload.id);
-        if (!owner) {
-          throw HttpResponse.json(null, {
-            status: constants.HTTP_STATUS_NOT_FOUND
-          });
-        }
+      const housingOwners: HousingOwnerDTO[] = payload.map(
+        (payload): HousingOwnerDTO => {
+          const owner = data.owners.find((owner) => owner.id === payload.id);
+          if (!owner) {
+            throw HttpResponse.json(null, {
+              status: constants.HTTP_STATUS_NOT_FOUND
+            });
+          }
 
-        return {
-          ...owner,
-          id: payload.id,
-          rank: payload.rank,
-          idprocpte: payload.idprocpte,
-          idprodroit: payload.idprodroit,
-          locprop: payload.locprop,
-          propertyRight: payload.propertyRight
-        };
-      });
+          return {
+            ...owner,
+            id: payload.id,
+            rank: payload.rank,
+            idprocpte: payload.idprocpte,
+            idprodroit: payload.idprodroit,
+            locprop: payload.locprop,
+            propertyRight: payload.propertyRight,
+            relativeLocation: null,
+            absoluteDistance: null
+          };
+        }
+      );
       data.housingOwners.set(
         housing.id,
         housingOwners.map(
-          ({ id, rank, idprocpte, idprodroit, locprop, propertyRight }) => ({
+          ({
             id,
             rank,
             idprocpte,
             idprodroit,
             locprop,
-            propertyRight
+            propertyRight,
+            relativeLocation,
+            absoluteDistance
+          }) => ({
+            id,
+            rank,
+            idprocpte,
+            idprodroit,
+            locprop,
+            propertyRight,
+            relativeLocation,
+            absoluteDistance
           })
         )
       );

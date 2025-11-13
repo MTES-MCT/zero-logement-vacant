@@ -14,12 +14,17 @@ export const senderSchema = object({
   firstName: string().trim(),
   lastName: string().trim(),
   address: string().trim(),
-  email: string().nullable().email('Veuillez renseigner un courriel valide'),
+  email: string()
+    .nullable()
+    .email(
+      'Veuillez renseigner un courriel valide. Exemple de format valide : exemple@gmail.com'
+    ),
   phone: string()
     .optional()
     .nullable()
     .matches(/^\d{10}$/, {
-      message: 'Veuillez renseigner un numéro de téléphone valide',
+      message:
+        'Veuillez renseigner un numéro de téléphone valide. Exemple de format valide : +33123456789 ou 0612345678',
       excludeEmptyString: true
     })
 });
@@ -96,7 +101,7 @@ function DraftSender(props: Readonly<Props>) {
           <AppTextInput
             inputForm={props.form}
             inputKey="sender.email"
-            label="Adresse courriel"
+            label="Adresse e-mail"
             value={email}
             type="email"
             onChange={onChange('email')}

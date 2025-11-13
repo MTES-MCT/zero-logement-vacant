@@ -1,7 +1,6 @@
 import {
   HousingOwnerDTO,
   OwnerRank,
-  PropertyRight,
   type BaseHousingOwnerDTO
 } from '@zerologementvacant/models';
 import { Equivalence } from 'effect';
@@ -11,27 +10,30 @@ import { OwnerApi, toOwnerDTO } from './OwnerApi';
 
 export const MAX_OWNERS = 6;
 
-export interface HousingOwnerApi extends OwnerApi {
-  ownerId: string;
-  housingId: string;
-  housingGeoCode: string;
-  /**
-   * Should be come `rank: Rank`
-   */
-  rank: OwnerRank;
-  startDate?: Date | null;
-  endDate?: Date | null;
-  origin?: string | null;
-  /**
-   * @deprecated Hard to maintain because it is computed from the housings
-   */
-  housingCount?: number;
-  // New properties
-  idprocpte?: string | null;
-  idprodroit?: string | null;
-  locprop?: number | null;
-  propertyRight: PropertyRight | null;
-}
+export type HousingOwnerNextApi = HousingOwnerDTO;
+
+export type HousingOwnerApi = Pick<
+  HousingOwnerDTO,
+  | 'rank'
+  | 'idprocpte'
+  | 'idprodroit'
+  | 'locprop'
+  | 'relativeLocation'
+  | 'absoluteDistance'
+  | 'propertyRight'
+> &
+  OwnerApi & {
+    ownerId: string;
+    housingId: string;
+    housingGeoCode: string;
+    startDate: Date | null;
+    endDate: Date | null;
+    origin: string | null;
+    /**
+     * @deprecated Hard to maintain because it is computed from the housings
+     */
+    housingCount?: number;
+  };
 
 export type OwnerHousingApi = BaseHousingOwnerDTO & {
   housing: HousingRecordApi;
@@ -74,8 +76,15 @@ export function toHousingOwnersApi(
     ownerId: owner.id,
     housingId: housing.id,
     housingGeoCode: housing.geoCode,
+    idprocpte: null,
+    idprodroit: null,
+    origin: null,
     rank: (i + 1) as OwnerRank,
     startDate: new Date(),
+    endDate: null,
+    locprop: null,
+    relativeLocation: null,
+    absoluteDistance: null,
     propertyRight: null
   }));
 }
@@ -90,6 +99,8 @@ export function toHousingOwnerDTO(
     idprocpte: housingOwner.idprocpte ?? null,
     idprodroit: housingOwner.idprodroit ?? null,
     locprop: housingOwner.locprop ?? null,
+    relativeLocation: housingOwner.relativeLocation ?? null,
+    absoluteDistance: housingOwner.absoluteDistance ?? null,
     propertyRight: housingOwner.propertyRight
   };
 }

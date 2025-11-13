@@ -24,6 +24,7 @@ import {
   PRECISION_CATEGORY_VALUES,
   PROPERTY_RIGHT_VALUES,
   READ_WRITE_OCCUPANCY_VALUES,
+  RELATIVE_LOCATION_VALUES,
   TIME_PER_WEEK_VALUES,
   UserAccountDTO
 } from '@zerologementvacant/models';
@@ -268,7 +269,10 @@ export const genHousingOwnerApi = (
   idprodroit: faker.string.alphanumeric(13),
   locprop: faker.number.int({ min: 1, max: 10 }),
   propertyRight: faker.helpers.arrayElement(PROPERTY_RIGHT_VALUES),
-  startDate: faker.date.past()
+  startDate: faker.date.past(),
+  endDate: null,
+  relativeLocation: faker.helpers.arrayElement(RELATIVE_LOCATION_VALUES),
+  absoluteDistance: null,
 });
 
 export function genBuildingApi(): BuildingApi {

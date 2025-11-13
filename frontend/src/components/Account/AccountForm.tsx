@@ -215,6 +215,11 @@ function AccountForm() {
                 label="Téléphone"
                 mapValue={(value) => value ?? ''}
                 contramapValue={(value) => (value === '' ? null : value)}
+                nativeInputProps={{
+                  type: 'tel',
+                  autoComplete: 'tel',
+                  placeholder: '0123456789 ou +33123456789'
+                }}
               />
               <AppTextInputNext<FormSchema['position']>
                 name="position"

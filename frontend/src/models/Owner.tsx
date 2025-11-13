@@ -76,6 +76,8 @@ export function fromHousingOwnerDTO(
     idprocpte: housingOwner.idprocpte,
     idprodroit: housingOwner.idprodroit,
     locprop: housingOwner.locprop,
+    relativeLocation: housingOwner.relativeLocation,
+    absoluteDistance: housingOwner.absoluteDistance,
     propertyRight: housingOwner.propertyRight
   };
 }

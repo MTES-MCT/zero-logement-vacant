@@ -29,7 +29,6 @@ export interface HousingState {
   };
   view: ViewMode;
   creator: {
-    localId?: string;
     geoCode?: string;
     housingList?: DatafoncierHousing[];
   };
@@ -86,22 +85,7 @@ const housingSlice = createSlice({
         q: action.payload.q
       };
     },
-    changeCreator: (
-      state: HousingState,
-      action: PayloadAction<CreatorPayload>
-    ) => {
-      state.creator = {
-        ...state.creator,
-        ...action.payload
-      };
-    }
   }
 });
-
-export interface CreatorPayload {
-  localId?: string;
-  geoCode?: string;
-  housingList?: DatafoncierHousing[];
-}
 
 export default housingSlice;

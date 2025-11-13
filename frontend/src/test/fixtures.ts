@@ -9,6 +9,7 @@ import {
   genAddressDTO,
   genEventDTO,
   genHousingDTO,
+  genHousingOwnerDTO,
   genNoteDTO,
   genOwnerDTO,
   genUserDTO
@@ -20,7 +21,12 @@ import { type Event, fromEventDTO } from '../models/Event';
 import type { Group } from '../models/Group';
 import type { Housing } from '../models/Housing';
 import { fromNoteDTO, type Note } from '../models/Note';
-import { fromOwnerDTO, type Owner } from '../models/Owner';
+import {
+  fromHousingOwnerDTO,
+  fromOwnerDTO,
+  type HousingOwner,
+  type Owner
+} from '../models/Owner';
 import type { Prospect } from '../models/Prospect';
 import type { SignupLink } from '../models/SignupLink';
 import {
@@ -89,6 +95,10 @@ export function genHousing(): Housing {
     ...genHousingDTO(null),
     buildingId: null
   };
+}
+
+export function genHousingOwner(owner: Owner): HousingOwner {
+  return fromHousingOwnerDTO(genHousingOwnerDTO(owner));
 }
 
 export function genAddress(): Address {

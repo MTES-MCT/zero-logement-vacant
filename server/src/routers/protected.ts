@@ -261,7 +261,9 @@ router.get(
   validatorNext.validate({ params: object({ id: schemas.id }) }),
   ownerController.listByHousing
 );
-router.put('/housing/:housingId/owners', ownerController.updateHousingOwners);
+router.put('/housing/:housingId/owners',
+  // TODO: validate inputs
+  ownerController.updateHousingOwners);
 
 // Housing owners
 router.get(

@@ -59,7 +59,7 @@ function OwnerCardNext(props: OwnerCardProps) {
   if (!props.id) {
     return (
       <HousingOwnersEmpty
-        title="Il n'y a pas de propriétaire actuel connu pour ce logement"
+        title="Aucun propriétaire identifié comme destinataire principal pour ce logement"
         buttonProps={{
           onClick: props.onAdd
         }}
@@ -116,17 +116,24 @@ function OwnerCardNext(props: OwnerCardProps) {
           ))}
 
         {match(props.propertyRight)
-          .with(Pattern.nonNullable, (value) => (
+          .with(Pattern.not(undefined), (value) => (
             <OwnerAttribute
               icon="ri-auction-line"
               label="Nature du droit sur le bien"
-              value={<PropertyRightTag value={value} />}
+              value={
+                value ? (
+                  <PropertyRightTag value={value} tagProps={{ small: false }} />
+                ) : null
+              }
             />
           ))
-          .otherwise(() => null)
-        }
+          .otherwise(() => null)}
 
         {match({ kind: props.kind, siren: props.siren })
+          .with(
+            { kind: Pattern.union(null, undefined, 'Particulier') },
+            () => null
+          )
           .with({ kind: Pattern.not('Particulier') }, ({ siren }) => (
             <OwnerAttribute
               icon="fr-icon-passport-line"
@@ -134,7 +141,7 @@ function OwnerCardNext(props: OwnerCardProps) {
               value={siren}
             />
           ))
-          .otherwise(() => null)}
+          .exhaustive()}
 
         <OwnerAttribute
           icon="fr-icon-bank-line"

@@ -138,26 +138,34 @@ class DistanceCalculator:
             print(f"❌ Error fetching owners without coordinates: {e}")
             raise
 
-    def get_all_owner_housing_pairs(self, limit: int = None):
+    def get_all_owner_housing_pairs(self, limit: int = None, force: bool = False):
         """Get all owner-housing pairs that need processing with random sampling when limit is given."""
         try:
+            # Build WHERE clause based on force flag
+            where_clause = "" if force else "WHERE oh.locprop_distance_ban IS NULL OR oh.locprop_relative_ban IS NULL"
+
             if limit:
                 # Use random sampling with subquery to avoid DISTINCT + ORDER BY issue
-                query = """
+                query = f"""
                     SELECT
                         owner_id,
                         housing_id,
                         locprop_distance_ban,
-                        locprop_relative_ban
+                        locprop_relative_ban,
+                        owner_geo_code,
+                        housing_geo_code
                     FROM (
                         SELECT DISTINCT
                             oh.owner_id,
                             oh.housing_id,
                             oh.locprop_distance_ban,
-                            oh.locprop_relative_ban
+                            oh.locprop_relative_ban,
+                            LEFT(owner_ba.postal_code, 5) as owner_geo_code,
+                            h.geo_code as housing_geo_code
                         FROM owners_housing oh
-                        WHERE oh.locprop_distance_ban IS NULL
-                           OR oh.locprop_relative_ban IS NULL
+                        LEFT JOIN fast_housing h ON h.id = oh.housing_id AND h.geo_code = oh.housing_geo_code
+                        LEFT JOIN ban_addresses owner_ba ON owner_ba.ref_id = oh.owner_id AND owner_ba.address_kind = 'Owner'
+                        {where_clause}
                     ) AS distinct_pairs
                     ORDER BY RANDOM()
                     LIMIT %s
@@ -165,15 +173,18 @@ class DistanceCalculator:
                 self.cursor.execute(query, (limit,))
             else:
                 # No sampling for full dataset
-                query = """
+                query = f"""
                     SELECT DISTINCT
                         oh.owner_id,
                         oh.housing_id,
                         oh.locprop_distance_ban,
-                        oh.locprop_relative_ban
+                        oh.locprop_relative_ban,
+                        LEFT(owner_ba.postal_code, 5) as owner_geo_code,
+                        h.geo_code as housing_geo_code
                     FROM owners_housing oh
-                    WHERE oh.locprop_distance_ban IS NULL
-                       OR oh.locprop_relative_ban IS NULL
+                    LEFT JOIN fast_housing h ON h.id = oh.housing_id AND h.geo_code = oh.housing_geo_code
+                    LEFT JOIN ban_addresses owner_ba ON owner_ba.ref_id = oh.owner_id AND owner_ba.address_kind = 'Owner'
+                    {where_clause}
                 """
                 self.cursor.execute(query)
 
@@ -182,20 +193,29 @@ class DistanceCalculator:
             print(f"❌ Error fetching owner-housing pairs: {e}")
             raise
 
-    def get_address_data(self, ref_id: str, address_kind: str) -> Optional[Tuple[str, str, float, float]]:
-        """Get address data including postal code, address, lat, lon."""
+    def get_address_data(self, ref_id: str, address_kind: str) -> Optional[Tuple[str, str, float, float, str]]:
+        """Get address data including postal code, address, lat, lon, geo_code."""
         try:
-            self.cursor.execute("""
-                SELECT postal_code, address, latitude, longitude
-                FROM ban_addresses
-                WHERE ref_id = %s AND address_kind = %s
-                AND postal_code IS NOT NULL
-            """, (ref_id, address_kind))
+            if address_kind == 'Owner':
+                self.cursor.execute("""
+                    SELECT ba.postal_code, ba.address, ba.latitude, ba.longitude,
+                           LEFT(ba.postal_code, 5) as geo_code
+                    FROM ban_addresses ba
+                    WHERE ba.ref_id = %s AND ba.address_kind = %s
+                """, (ref_id, address_kind))
+            else:  # Housing
+                self.cursor.execute("""
+                    SELECT ba.postal_code, ba.address, ba.latitude, ba.longitude,
+                           h.geo_code
+                    FROM ban_addresses ba
+                    LEFT JOIN fast_housing h ON h.id = ba.ref_id
+                    WHERE ba.ref_id = %s AND ba.address_kind = %s
+                """, (ref_id, address_kind))
 
             result = self.cursor.fetchone()
             if result:
                 return (result['postal_code'], result['address'],
-                       result['latitude'], result['longitude'])
+                       result['latitude'], result['longitude'], result['geo_code'])
             return None
         except Exception as e:
             logging.debug(f"Error getting address data for {ref_id}: {e}")
@@ -213,30 +233,31 @@ class DistanceCalculator:
             # Fetch owner addresses for this batch
             if owner_ids:
                 self.cursor.execute("""
-                    SELECT ref_id::text, postal_code, address, latitude, longitude
-                    FROM ban_addresses
-                    WHERE ref_id::text = ANY(%s) AND address_kind = 'Owner'
-                    AND postal_code IS NOT NULL
+                    SELECT ba.ref_id::text, ba.postal_code, ba.address, ba.latitude, ba.longitude,
+                           LEFT(ba.postal_code, 5) as geo_code
+                    FROM ban_addresses ba
+                    WHERE ba.ref_id::text = ANY(%s) AND ba.address_kind = 'Owner'
                 """, (owner_ids,))
 
                 for row in self.cursor.fetchall():
                     key = (row['ref_id'], 'Owner')
                     address_cache[key] = (row['postal_code'], row['address'],
-                                        row['latitude'], row['longitude'])
+                                        row['latitude'], row['longitude'], row['geo_code'])
 
             # Fetch housing addresses for this batch
             if housing_ids:
                 self.cursor.execute("""
-                    SELECT ref_id::text, postal_code, address, latitude, longitude
-                    FROM ban_addresses
-                    WHERE ref_id::text = ANY(%s) AND address_kind = 'Housing'
-                    AND postal_code IS NOT NULL
+                    SELECT ba.ref_id::text, ba.postal_code, ba.address, ba.latitude, ba.longitude,
+                           h.geo_code
+                    FROM ban_addresses ba
+                    LEFT JOIN fast_housing h ON h.id = ba.ref_id
+                    WHERE ba.ref_id::text = ANY(%s) AND ba.address_kind = 'Housing'
                 """, (housing_ids,))
 
                 for row in self.cursor.fetchall():
                     key = (row['ref_id'], 'Housing')
                     address_cache[key] = (row['postal_code'], row['address'],
-                                        row['latitude'], row['longitude'])
+                                        row['latitude'], row['longitude'], row['geo_code'])
 
             return address_cache
 
@@ -245,8 +266,20 @@ class DistanceCalculator:
             return {}
 
     @staticmethod
-    def haversine_distance(lat1: float, lon1: float, lat2: float, lon2: float) -> float:
-        """Calculate distance between two points using Haversine formula."""
+    def haversine_distance(lat1: float, lon1: float, lat2: float, lon2: float) -> Optional[float]:
+        """Calculate distance between two points using Haversine formula.
+
+        Returns None if coordinates are invalid (out of valid ranges).
+        Valid ranges: latitude [-90, 90], longitude [-180, 180]
+        """
+        # Validate coordinates
+        if not (-90 <= lat1 <= 90 and -90 <= lat2 <= 90):
+            logging.warning(f"Invalid latitude: lat1={lat1}, lat2={lat2}")
+            return None
+        if not (-180 <= lon1 <= 180 and -180 <= lon2 <= 180):
+            logging.warning(f"Invalid longitude: lon1={lon1}, lon2={lon2}")
+            return None
+
         lat1, lon1, lat2, lon2 = map(radians, [lat1, lon1, lat2, lon2])
         dlat = lat2 - lat1
         dlon = lon2 - lon1
@@ -281,13 +314,13 @@ class DistanceCalculator:
             self.stats['missing_housing_data'] += 1
 
         # Handle cases where only one data source is available
-        owner_postal = owner_address = owner_lat = owner_lon = None
-        housing_postal = housing_address = housing_lat = housing_lon = None
+        owner_postal = owner_address = owner_lat = owner_lon = owner_geo_code = None
+        housing_postal = housing_address = housing_lat = housing_lon = housing_geo_code = None
 
         if owner_data:
-            owner_postal, owner_address, owner_lat, owner_lon = owner_data
+            owner_postal, owner_address, owner_lat, owner_lon, owner_geo_code = owner_data
         if housing_data:
-            housing_postal, housing_address, housing_lat, housing_lon = housing_data
+            housing_postal, housing_address, housing_lat, housing_lon, housing_geo_code = housing_data
 
         # Correct logic: Test country_detector only on addresses without coordinates
 
@@ -339,15 +372,54 @@ class DistanceCalculator:
             distance = self.haversine_distance(owner_lat, owner_lon, housing_lat, housing_lon)
             self.stats['distances_calculated'] += 1
 
-        # Apply geographic rules only if both postal codes are available
+        # Apply geographic rules: prefer postal_code, fallback to geo_code
         if owner_postal and housing_postal:
             classification = self.calculate_french_geographic_rules(owner_postal, housing_postal)
+            self.stats['geographic_rules_applied'] += 1
+        elif owner_geo_code and housing_geo_code:
+            # Fallback: use geo_code to derive postal code prefix
+            classification = self.calculate_french_geographic_rules_from_geocode(owner_geo_code, housing_geo_code)
             self.stats['geographic_rules_applied'] += 1
         else:
             # Default classification when data is incomplete
             classification = 7
 
         return distance, classification
+
+    def calculate_french_geographic_rules_from_geocode(self, owner_geo_code: str, housing_geo_code: str) -> int:
+        """Calculate French geographic classification rules using geo_code (INSEE commune codes)."""
+
+        # Rule 1: Same commune (same geo_code)
+        if owner_geo_code == housing_geo_code:
+            return 1
+
+        # Rule 2: Same department (first 2 digits for most, first 3 for Corsica)
+        # Handle Corsica (2A and 2B)
+        owner_dept = owner_geo_code[:3] if owner_geo_code.startswith('2') else owner_geo_code[:2]
+        housing_dept = housing_geo_code[:3] if housing_geo_code.startswith('2') else housing_geo_code[:2]
+
+        if owner_dept == housing_dept:
+            return 2
+
+        # For remaining rules, we need to map geo_code to postal_code equivalent
+        # Extract department code for region checks
+        owner_dept_for_region = owner_geo_code[:2]
+        housing_dept_for_region = housing_geo_code[:2]
+
+        # Rule 3: Same region (using department prefix)
+        if self.same_region_from_dept(owner_dept_for_region, housing_dept_for_region):
+            return 3
+
+        # Rule 4: Different regions and owner is in metropolitan regions
+        if self.is_metro_region_from_dept(owner_dept_for_region):
+            return 4
+
+        # Rule 5: Owner is in DOM-TOM regions
+        if self.is_overseas_region_from_dept(owner_dept_for_region):
+            return 5
+
+        # Rule 7: Default
+        return 7
 
     def calculate_french_geographic_rules(self, owner_postal: str, housing_postal: str) -> int:
         """Calculate French geographic classification rules."""
@@ -408,31 +480,64 @@ class DistanceCalculator:
         region = self.get_region_from_postal_code(postal_code)
         return region in self.overseas_regions if region else False
 
-    def get_region_from_postal_code(self, postal_code: str) -> Optional[str]:
-        """Get region code from postal code."""
-        if not postal_code or len(postal_code) < 2:
-            return None
+    def same_region_from_dept(self, dept1: str, dept2: str) -> bool:
+        """Check if two department codes are in the same region."""
+        self.load_regions()
+        region1 = self.get_region_from_dept(dept1)
+        region2 = self.get_region_from_dept(dept2)
+        return region1 == region2 and region1 is not None
 
-        dept = postal_code[:2]
+    def is_metro_region_from_dept(self, dept: str) -> bool:
+        """Check if department code is in metropolitan region."""
+        self.load_regions()
+        region = self.get_region_from_dept(dept)
+        return region in self.metro_regions if region else False
+
+    def is_overseas_region_from_dept(self, dept: str) -> bool:
+        """Check if department code is in overseas region."""
+        self.load_regions()
+        region = self.get_region_from_dept(dept)
+        return region in self.overseas_regions if region else False
+
+    def get_region_from_dept(self, dept: str) -> Optional[str]:
+        """Get region code from department code."""
+        if not dept:
+            return None
 
         # Mapping based on French administrative divisions
         dept_to_region = {
             '01': '84', '02': '32', '03': '84', '04': '93', '05': '93', '06': '93', '07': '84', '08': '44',
             '09': '76', '10': '44', '11': '76', '12': '76', '13': '93', '14': '28', '15': '84', '16': '75',
-            '17': '75', '18': '24', '19': '75', '20': '94', '21': '27', '22': '53', '23': '75', '24': '75',
-            '25': '27', '26': '84', '27': '28', '28': '24', '29': '53', '30': '76', '31': '76', '32': '76',
-            '33': '75', '34': '76', '35': '53', '36': '24', '37': '24', '38': '84', '39': '27', '40': '75',
-            '41': '24', '42': '84', '43': '84', '44': '52', '45': '24', '46': '76', '47': '75', '48': '76',
-            '49': '52', '50': '28', '51': '44', '52': '44', '53': '52', '54': '44', '55': '44', '56': '53',
-            '57': '44', '58': '27', '59': '32', '60': '32', '61': '28', '62': '32', '63': '84', '64': '75',
-            '65': '76', '66': '76', '67': '44', '68': '44', '69': '84', '70': '27', '71': '27', '72': '52',
-            '73': '84', '74': '84', '75': '11', '76': '28', '77': '11', '78': '11', '79': '75', '80': '32',
-            '81': '76', '82': '76', '83': '93', '84': '93', '85': '52', '86': '75', '87': '75', '88': '44',
-            '89': '27', '90': '27', '91': '11', '92': '11', '93': '11', '94': '11', '95': '11',
-            '971': '01', '972': '02', '973': '03', '974': '04', '976': '06'  # DOM-TOM
+            '17': '75', '18': '24', '19': '75', '20': '94', '2A': '94', '2B': '94', '21': '27', '22': '53',
+            '23': '75', '24': '75', '25': '27', '26': '84', '27': '28', '28': '24', '29': '53', '30': '76',
+            '31': '76', '32': '76', '33': '75', '34': '76', '35': '53', '36': '24', '37': '24', '38': '84',
+            '39': '27', '40': '75', '41': '24', '42': '84', '43': '84', '44': '52', '45': '24', '46': '76',
+            '47': '75', '48': '76', '49': '52', '50': '28', '51': '44', '52': '44', '53': '52', '54': '44',
+            '55': '44', '56': '53', '57': '44', '58': '27', '59': '32', '60': '32', '61': '28', '62': '32',
+            '63': '84', '64': '75', '65': '76', '66': '76', '67': '44', '68': '44', '69': '84', '70': '27',
+            '71': '27', '72': '52', '73': '84', '74': '84', '75': '11', '76': '28', '77': '11', '78': '11',
+            '79': '75', '80': '32', '81': '76', '82': '76', '83': '93', '84': '93', '85': '52', '86': '75',
+            '87': '75', '88': '44', '89': '27', '90': '27', '91': '11', '92': '11', '93': '11', '94': '11',
+            '95': '11', '971': '01', '972': '02', '973': '03', '974': '04', '976': '06'  # DOM-TOM
         }
 
         return dept_to_region.get(dept)
+
+    def get_region_from_postal_code(self, postal_code: str) -> Optional[str]:
+        """Get region code from postal code."""
+        if not postal_code or len(postal_code) < 2:
+            return None
+
+        # Try 3 digits first for DOM-TOM (971, 972, 973, 974, 976)
+        if len(postal_code) >= 3:
+            dept_3 = postal_code[:3]
+            region = self.get_region_from_dept(dept_3)
+            if region:
+                return region
+
+        # Fallback to 2 digits for metropolitan France
+        dept = postal_code[:2]
+        return self.get_region_from_dept(dept)
 
     def process_foreign_owners(self, limit: int = None):
         """Process owners without coordinates for foreign detection."""
@@ -472,6 +577,8 @@ class DistanceCalculator:
         print("OWNER-HOUSING DISTANCE CALCULATOR")
         print("="*80)
         print(f"Limit: {limit:,} pairs" if limit else "Processing all pairs")
+        if force:
+            print("⚠️  FORCE MODE: Recalculating ALL pairs (ignoring existing values)")
 
         self.connect()
 
@@ -480,7 +587,7 @@ class DistanceCalculator:
             foreign_owners = self.process_foreign_owners(limit)
 
             # STEP 2: Get all pairs to process
-            all_pairs = self.get_all_owner_housing_pairs(limit)
+            all_pairs = self.get_all_owner_housing_pairs(limit, force)
             print(f"\n📋 Processing {len(all_pairs):,} owner-housing pairs")
 
             if not all_pairs:
@@ -499,20 +606,21 @@ class DistanceCalculator:
                 batch_pairs = all_pairs[start_idx:end_idx]
 
                 # Check if this batch is already processed (resume capability)
-                # Sample a few pairs from the batch to see if they're already done
-                sample_size = min(10, len(batch_pairs))
-                sample_pairs = batch_pairs[:sample_size]
+                # Skip this check if force mode is enabled
+                if not force:
+                    sample_size = min(10, len(batch_pairs))
+                    sample_pairs = batch_pairs[:sample_size]
 
-                already_processed = 0
-                for pair in sample_pairs:
-                    if pair['locprop_distance_ban'] is not None and pair['locprop_relative_ban'] is not None:
-                        already_processed += 1
+                    already_processed = 0
+                    for pair in sample_pairs:
+                        if pair['locprop_distance_ban'] is not None and pair['locprop_relative_ban'] is not None:
+                            already_processed += 1
 
-                # If more than 80% of sample is processed, skip this batch
-                if already_processed > sample_size * 0.8:
-                    print(f"⏭️  Skipping batch {batch_idx+1}/{num_batches} (already processed)")
-                    self.stats['processed_pairs'] += len(batch_pairs)
-                    continue
+                    # If more than 80% of sample is processed, skip this batch
+                    if already_processed > sample_size * 0.8:
+                        print(f"⏭️  Skipping batch {batch_idx+1}/{num_batches} (already processed)")
+                        self.stats['processed_pairs'] += len(batch_pairs)
+                        continue
 
                 # Load addresses only for this batch
                 print(f"📦 Loading addresses for batch {batch_idx+1}/{num_batches}...")

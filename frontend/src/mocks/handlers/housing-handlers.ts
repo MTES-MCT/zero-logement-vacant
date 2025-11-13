@@ -1,13 +1,13 @@
 import { faker } from '@faker-js/faker/locale/fr';
 import type {
+  HousingBatchUpdatePayload,
   HousingCountDTO,
   HousingDTO,
   HousingFiltersDTO,
   HousingPayloadDTO,
   HousingUpdatePayloadDTO,
-  Paginated,
-  HousingBatchUpdatePayload,
-  NoteDTO
+  NoteDTO,
+  Paginated
 } from '@zerologementvacant/models';
 import {
   genHousingDTO,
@@ -135,7 +135,9 @@ export const housingHandlers: RequestHandler[] = [
           locprop: null,
           idprocpte: null,
           idprodroit: null,
-          propertyRight: null
+          propertyRight: null,
+          relativeLocation: null,
+          absoluteDistance: null
         }
       ]);
       return HttpResponse.json(housing, {

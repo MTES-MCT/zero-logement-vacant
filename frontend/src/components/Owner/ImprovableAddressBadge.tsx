@@ -3,12 +3,13 @@ import { isBanEligible } from '~/models/Address';
 
 export interface ImprovableAddressBadgeProps {
   score: number | null;
+  ignored: boolean;
 }
 
 function ImprovableAddressBadge(props: ImprovableAddressBadgeProps) {
-  const isEligible = isBanEligible({ score: props.score ?? undefined });
+  const isCorrect = isBanEligible({ score: props.score ?? undefined });
 
-  if (!isEligible) {
+  if (!props.score || isCorrect || props.ignored) {
     return null;
   }
 

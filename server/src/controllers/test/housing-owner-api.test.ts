@@ -1,8 +1,4 @@
 import { faker } from '@faker-js/faker/locale/fr';
-import {
-  ACTIVE_OWNER_RANKS,
-  PROPERTY_RIGHT_VALUES
-} from '@zerologementvacant/models';
 import { constants } from 'node:http2';
 import request from 'supertest';
 
@@ -25,6 +21,7 @@ import { formatUserApi, Users } from '~/repositories/userRepository';
 import {
   genEstablishmentApi,
   genHousingApi,
+  genHousingOwnerApi,
   genOwnerApi,
   genUserApi
 } from '~/test/testFixtures';
@@ -53,14 +50,9 @@ describe('Housing owner API', () => {
       }
     );
     const owner = genOwnerApi();
-    const housingOwners = housings.map<HousingOwnerApi>((housing) => ({
-      ...owner,
-      ownerId: owner.id,
-      housingId: housing.id,
-      housingGeoCode: housing.geoCode,
-      rank: faker.helpers.arrayElement(ACTIVE_OWNER_RANKS),
-      propertyRight: faker.helpers.arrayElement(PROPERTY_RIGHT_VALUES)
-    }));
+    const housingOwners = housings.map<HousingOwnerApi>((housing) =>
+      genHousingOwnerApi(housing, owner)
+    );
 
     beforeAll(async () => {
       await Housing().insert(housings.map(formatHousingRecordApi));

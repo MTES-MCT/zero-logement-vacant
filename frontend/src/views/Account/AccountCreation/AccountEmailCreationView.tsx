@@ -97,6 +97,8 @@ function AccountEmailCreationView() {
                 label="Adresse e-mail (obligatoire)"
                 name="email"
                 nativeInputProps={{
+                  type: 'email',
+                  autoComplete: 'email',
                   inputMode: 'email'
                 }}
               />

@@ -56,6 +56,8 @@ function toOwnerHousingDTO(
     idprocpte: ownerHousing.idprocpte ?? null,
     idprodroit: ownerHousing.idprodroit ?? null,
     locprop: ownerHousing.locprop ?? null,
+    relativeLocation: ownerHousing.relativeLocation ?? null,
+    absoluteDistance: ownerHousing.absoluteDistance ?? null,
     propertyRight: ownerHousing.propertyRight,
     rank: ownerHousing.rank
   };

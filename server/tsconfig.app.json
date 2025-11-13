@@ -14,10 +14,6 @@
     "src/test/setup-env.ts",
     "src/test/setup-tests.ts",
     "src/test/testUtils.ts",
-    "src/scripts/import-dpe/dpe_processing_*/**",
-    "src/scripts/import-dpe/dpe_output_*/**",
-    "src/scripts/import-dpe/**/*.jsonl",
-    "src/scripts/import-dpe/**/*.log"
   ],
   "references": [
     {

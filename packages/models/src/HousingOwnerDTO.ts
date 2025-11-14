@@ -62,32 +62,22 @@ export type InactiveOwnerRank =
   | PreviousOwnerRank;
 export type OwnerRank = InactiveOwnerRank | ActiveOwnerRank;
 
-export function isActiveOwnerRank(rank: OwnerRank): rank is ActiveOwnerRank {
+export function isActiveOwnerRank(rank: number): rank is ActiveOwnerRank {
   return rank >= 1;
 }
-export function isPreviousOwnerRank(
-  rank: OwnerRank
-): rank is PreviousOwnerRank {
+export function isPreviousOwnerRank(rank: number): rank is PreviousOwnerRank {
   return rank === 0;
 }
-export function isIncorrectOwnerRank(
-  rank: OwnerRank
-): rank is IncorrectOwnerRank {
+export function isIncorrectOwnerRank(rank: number): rank is IncorrectOwnerRank {
   return rank === -1;
 }
-export function isAwaitingOwnerRank(
-  rank: OwnerRank
-): rank is AwaitingOwnerRank {
+export function isAwaitingOwnerRank(rank: number): rank is AwaitingOwnerRank {
   return rank === -2;
 }
-export function isDeceasedOwnerRank(
-  rank: OwnerRank
-): rank is AwaitingOwnerRank {
+export function isDeceasedOwnerRank(rank: number): rank is AwaitingOwnerRank {
   return rank === -3;
 }
-export function isInactiveOwnerRank(
-  rank: OwnerRank
-): rank is InactiveOwnerRank {
+export function isInactiveOwnerRank(rank: number): rank is InactiveOwnerRank {
   return (
     isPreviousOwnerRank(rank) ||
     isIncorrectOwnerRank(rank) ||

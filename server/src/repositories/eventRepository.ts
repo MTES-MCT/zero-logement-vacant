@@ -115,11 +115,12 @@ async function insertManyOwnerEvents(
   events: ReadonlyArray<OwnerEventApi>
 ): Promise<void> {
   if (!events.length) {
+    logger.debug('No owner event to insert. Skipping...');
     return;
   }
 
   logger.debug('Inserting owner events...', { events: events.length });
-  await db.transaction(async (transaction) => {
+  await withinTransaction(async (transaction) => {
     await transaction.batchInsert(EVENTS_TABLE, events.map(formatEventApi));
     await transaction.batchInsert(
       OWNER_EVENTS_TABLE,

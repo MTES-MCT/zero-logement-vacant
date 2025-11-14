@@ -5,9 +5,7 @@ import db from '~/infra/database';
 import { DatafoncierHousing } from '@zerologementvacant/models';
 import Stream = Highland.Stream;
 
-const FIELDS = ['*'];
-
-export const datafoncierHousingTable = 'df_housing_nat';
+export const datafoncierHousingTable = 'df_housing_nat_2024';
 export const DatafoncierHouses = (transaction = db) =>
   transaction<DatafoncierHousing>(datafoncierHousingTable);
 
@@ -15,35 +13,37 @@ class DatafoncierHousingRepository {
   async find(
     where: Partial<DatafoncierHousing>
   ): Promise<DatafoncierHousing[]> {
-    const housingList = await DatafoncierHouses()
-      .where(where)
-      .whereIn('dteloctxt', ['APPARTEMENT', 'MAISON']);
+    const housingList = await list().where(where);
     return housingList;
   }
 
   async findOne(
     where: Partial<DatafoncierHousing>
   ): Promise<DatafoncierHousing | null> {
-    const housing = await DatafoncierHouses()
-      .where(where)
-      .whereIn('dteloctxt', ['APPARTEMENT', 'MAISON'])
-      .first();
+    const housing = await list().where(where).first();
     return housing ?? null;
   }
 
   stream(): Stream<DatafoncierHousing> {
-    logger.debug('Stream housing');
+    logger.debug('Streaming Datafoncier housings...');
 
-    const query = DatafoncierHouses()
-      .select(FIELDS)
+    const query = list()
       .where({
         ccthp: 'L'
       })
-      .whereIn('dteloctxt', ['APPARTEMENT', 'MAISON'])
       .stream();
 
     return highland<DatafoncierHousing>(query);
   }
+}
+
+function list() {
+  return DatafoncierHouses()
+    .select('*')
+    .select(db.raw('ST_AsGeoJson(ST_Transform(ban_geom, 4326)) AS ban_geom'))
+    .select(db.raw('ST_AsGeoJson(ST_Transform(geomloc, 4326)) AS geomloc'))
+    .select(db.raw('ST_AsGeoJson(ST_Transform(geomrnb, 4326)) AS geomrnb'))
+    .whereIn('dteloctxt', ['APPARTEMENT', 'MAISON']);
 }
 
 function createDatafoncierHousingRepository() {

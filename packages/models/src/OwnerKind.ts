@@ -10,7 +10,15 @@ export const OWNER_KIND_VALUES = [
 
 export type OwnerKind = (typeof OWNER_KIND_VALUES)[number];
 
-export const OWNER_KIND_LABELS: Record<OwnerKind, string> = {
+export type OwnerKindLabel =
+  | 'Particulier'
+  | 'SCI, Copropriété, Autres personnes morales'
+  | 'Promoteur, Investisseur privé'
+  | 'Etat et collectivité territoriale'
+  | 'Bailleur social, Aménageur, Investisseur public'
+  | 'Autres'
+  | 'Absence de propriétaire';
+export const OWNER_KIND_LABELS: Record<OwnerKind, OwnerKindLabel> = {
   particulier: 'Particulier',
   'sci-copro': 'SCI, Copropriété, Autres personnes morales',
   promoteur: 'Promoteur, Investisseur privé',

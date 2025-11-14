@@ -36,6 +36,7 @@ import {
   parseHousingApi
 } from './housingRepository';
 import Stream = Highland.Stream;
+import { withinTransaction } from '~/infra/database/transaction';
 
 const logger = createLogger('ownerRepository');
 
@@ -324,6 +325,22 @@ async function betterSave(
 ): Promise<void> {
   logger.debug(`Saving owner...`, { owner });
   await Owners().insert(formatOwnerApi(owner)).modify(onConflict(opts));
+}
+
+async function betterSaveMany(
+  owners: ReadonlyArray<OwnerApi>,
+  opts: BetterSaveOptions
+): Promise<void> {
+  logger.debug(`Saving ${owners.length} owners...`);
+  if (owners.length === 0) {
+    return;
+  }
+
+  await withinTransaction(async (transaction) => {
+    await Owners(transaction)
+      .insert(owners.map(formatOwnerApi))
+      .modify(onConflict(opts));
+  });
 }
 
 interface SaveOptions {
@@ -680,6 +697,7 @@ export default {
   findByHousing,
   insert,
   betterSave,
+  betterSaveMany,
   save,
   saveMany,
   update,

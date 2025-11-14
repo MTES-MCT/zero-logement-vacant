@@ -21,7 +21,7 @@ import {
 } from '@zerologementvacant/models';
 import {
   genCampaignDTO,
-  genDatafoncierHousingDTO,
+  genDatafoncierHousing,
   genGroupDTO,
   genHousingDTO,
   genHousingOwnerDTO,
@@ -216,7 +216,7 @@ describe('Housing list view', () => {
     let datafoncierHousing: DatafoncierHousing;
 
     beforeEach(() => {
-      datafoncierHousing = genDatafoncierHousingDTO();
+      datafoncierHousing = genDatafoncierHousing();
       data.datafoncierHousings.push(datafoncierHousing);
     });
 

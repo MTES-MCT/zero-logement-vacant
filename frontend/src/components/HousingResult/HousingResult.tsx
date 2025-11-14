@@ -9,9 +9,9 @@ import styles from './housing-result.module.scss';
 
 interface Props {
   address: string;
-  appartment?: number;
+  apartment: number | null;
   display?: 'one-line' | 'two-lines';
-  floor?: number;
+  floor: number | null;
   localId: string;
   occupancy: Occupancy;
 }
@@ -21,8 +21,8 @@ function HousingResult(props: Props) {
   const floor = props.floor ? (
     <Typography>- Étage {props.floor}</Typography>
   ) : null;
-  const appartment = props.appartment ? (
-    <Typography>- Appartement {props.appartment}</Typography>
+  const appartment = props.apartment ? (
+    <Typography>- Appartement {props.apartment}</Typography>
   ) : null;
   const occupancy = (
     <Stack direction="row" sx={{ alignItems: 'center' }}>
@@ -37,13 +37,18 @@ function HousingResult(props: Props) {
         {props.address}
       </Typography>
       {display === 'two-lines' && (
-        <Stack direction="row" sx={{ alignItems: 'center' }}>
-          <Typography component="span">Identifiant du local :&nbsp;</Typography>
-          <Tag as="span">{props.localId}</Tag>
-          {appartment}
-          {floor}
-          <Typography sx={{ mx: '0.5rem' }}>—</Typography>
-          {occupancy}
+        <Stack direction="column" spacing="0.5rem">
+          <Stack direction="row" sx={{ alignItems: 'center' }}>
+            <Typography component="span">
+              Identifiant du local :&nbsp;
+            </Typography>
+            <Tag as="span">{props.localId}</Tag>
+            {appartment}
+            {floor}
+          </Stack>
+          <Stack direction="row" sx={{ alignItems: 'center' }}>
+            {occupancy}
+          </Stack>
         </Stack>
       )}
     </Box>

@@ -1,12 +1,19 @@
 import {
   DataFileYear,
   HousingDTO,
+  HousingKind,
   HousingStatus,
   Occupancy,
-  Precision
+  Precision,
+  toOccupancy,
+  type DatafoncierHousing,
+  type HousingSource,
+  type OwnershipKindInternal
 } from '@zerologementvacant/models';
 import { Array, Equivalence, Order, pipe } from 'effect';
+import type { Point } from 'geojson';
 import { assert, MarkRequired } from 'ts-essentials';
+import { v4 as uuidv4 } from 'uuid';
 
 import { HousingEventApi, isUserModified } from '~/models/EventApi';
 import { OwnerApi, toOwnerDTO } from '~/models/OwnerApi';
@@ -19,7 +26,7 @@ export interface HousingRecordApi extends Omit<HousingDTO, 'owner'> {
   plotId: string | null;
   buildingId: string | null;
   buildingGroupId: string | null;
-  geolocation: string | null;
+  geolocation: Point | null;
   /**
    * @deprecated See {@link precisions}
    */
@@ -82,6 +89,73 @@ export function toHousingDTO(housing: HousingApi): HousingDTO {
     lastMutationDate: housing.lastMutationDate,
     lastTransactionDate: housing.lastTransactionDate,
     lastTransactionValue: housing.lastTransactionValue
+  };
+}
+
+interface FromDatafoncierHousingOptions {
+  dataYears: number;
+  dataFileYears: DataFileYear;
+  source: HousingSource;
+}
+
+export function fromDatafoncierHousing(
+  housing: DatafoncierHousing,
+  options: FromDatafoncierHousingOptions
+): HousingRecordApi {
+  const streetNumber = housing.dnvoiri.replace('^0+', '');
+  const repetition = housing.dindic;
+  const street = housing.dvoilib;
+  const geoCode = housing.idcom;
+  const commune = housing.idcomtxt;
+
+  return {
+    id: uuidv4(),
+    invariant: housing.invar,
+    localId: housing.idlocal,
+    rawAddress: [
+      `${streetNumber}${repetition} ${street}`,
+      `${geoCode} ${commune}`
+    ],
+    geoCode,
+    uncomfortable: false,
+    housingKind:
+      housing.dteloctxt === 'MAISON'
+        ? HousingKind.HOUSE
+        : HousingKind.APARTMENT,
+    roomsCount: housing.npiece_p2,
+    livingArea: housing.stoth,
+    buildingYear: housing.jannath > 0 ? housing.jannath : null,
+    taxed: null,
+    dataYears: [options.dataYears],
+    dataFileYears: [options.dataFileYears],
+    buildingLocation: `${housing.dnubat}${housing.descc}${housing.dniv}${housing.dpor}`,
+    ownershipKind: housing.ctpdl as OwnershipKindInternal,
+    status: HousingStatus.NEVER_CONTACTED,
+    subStatus: null,
+    occupancy: toOccupancy(housing.ccthp),
+    occupancyRegistered: toOccupancy(housing.ccthp),
+    occupancyIntended: null,
+    source: options.source,
+    energyConsumption: null,
+    energyConsumptionAt: null,
+    beneficiaryCount: housing.ndroit,
+    cadastralClassification: null,
+    lastMutationType: null,
+    lastMutationDate: `${housing.jdatatv.slice(-4)}-${housing.jdatatv.substring(2, 4)}-${housing.jdatatv.substring(0, 2)}`,
+    lastTransactionDate: null,
+    lastTransactionValue: null,
+    buildingGroupId: null,
+    buildingId: housing.idbat,
+    plotId: housing.idpar,
+    geolocation: housing.geomloc,
+    latitude: null,
+    longitude: null,
+    cadastralReference: housing.idsec,
+    campaignIds: null,
+    deprecatedPrecisions: null,
+    deprecatedVacancyReasons: null,
+    rentalValue: housing.dvltrt,
+    vacancyStartYear: null
   };
 }
 

@@ -20,6 +20,7 @@ import {
 } from '@zerologementvacant/models';
 import { compactNullable, isNotNull } from '@zerologementvacant/utils';
 import { Array, identity, Predicate, Struct } from 'effect';
+import type { Point } from 'geojson';
 import highland from 'highland';
 import { Set } from 'immutable';
 import { Knex } from 'knex';
@@ -34,6 +35,7 @@ import {
   withinTransaction
 } from '~/infra/database/transaction';
 import { createLogger } from '~/infra/logger';
+import type { EstablishmentApi } from '~/models/EstablishmentApi';
 import {
   HousingApi,
   HousingRecordApi,
@@ -48,8 +50,8 @@ import {
   HOUSING_PRECISION_TABLE,
   PRECISION_TABLE
 } from '~/repositories/precisionRepository';
-import { AddressDBO, banAddressesTable } from './banAddressesRepository';
 import { createArrayAddressSearchCondition } from '~/utils/addressNormalization';
+import { AddressDBO, banAddressesTable } from './banAddressesRepository';
 import { campaignsHousingTable } from './campaignHousingRepository';
 import { campaignsTable } from './campaignRepository';
 import establishmentRepository from './establishmentRepository';
@@ -58,7 +60,6 @@ import { GROUPS_HOUSING_TABLE } from './groupRepository';
 import { housingOwnersTable } from './housingOwnerRepository';
 import { localitiesTable } from './localityRepository';
 import { OwnerDBO, ownerTable, parseOwnerApi } from './ownerRepository';
-import type { EstablishmentApi } from '~/models/EstablishmentApi';
 
 const logger = createLogger('housingRepository');
 
@@ -274,14 +275,18 @@ async function saveMany(
     return;
   }
 
-  await Housing()
-    .insert(housingList.map(formatHousingRecordApi))
-    .modify((builder) => {
-      if (opts?.onConflict === 'merge') {
-        return builder.onConflict(['geo_code', 'local_id']).merge(opts?.merge);
-      }
-      return builder.onConflict(['geo_code', 'local_id']).ignore();
-    });
+  await withinTransaction(async (transaction) => {
+    await Housing(transaction)
+      .insert(housingList.map(formatHousingRecordApi))
+      .modify((builder) => {
+        if (opts?.onConflict === 'merge') {
+          return builder
+            .onConflict(['geo_code', 'local_id'])
+            .merge(opts?.merge);
+        }
+        return builder.onConflict(['geo_code', 'local_id']).ignore();
+      });
+  });
 }
 
 type HousingInclude = 'owner' | 'campaigns' | 'perimeters' | 'precisions';
@@ -1180,7 +1185,7 @@ export interface HousingRecordDBO {
    * @example ['ff-2023', 'lovac-2024']
    */
   data_file_years: DataFileYear[] | null;
-  geolocation: string | null;
+  geolocation: Point | null;
   plot_area: number | null;
   last_mutation_date: Date | string | null;
   last_transaction_date: Date | string | null;
@@ -1323,7 +1328,10 @@ export const parseHousingApi = (housing: HousingDBO): HousingApi => ({
   lastTransactionValue: housing.last_transaction_value
 });
 
-type READ_ONLY_FIELDS = 'last_mutation_type' | 'plot_area' | 'occupancy_history';
+type READ_ONLY_FIELDS =
+  | 'last_mutation_type'
+  | 'plot_area'
+  | 'occupancy_history';
 
 export const formatHousingRecordApi = (
   housing: HousingRecordApi

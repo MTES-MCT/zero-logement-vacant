@@ -1,18 +1,18 @@
+import type { DatafoncierOwner } from '@zerologementvacant/models';
 import { Array, pipe } from 'effect';
 import highland from 'highland';
 import { Knex } from 'knex';
 
 import db, { where } from '~/infra/database';
+import { OwnerApi } from '~/models/OwnerApi';
+import { sortQuery } from '~/models/SortApi';
 import {
-  DatafoncierOwner,
   DatafoncierOwnerSortApi,
   ownerDatafoncierSchema,
   validator
 } from '~/scripts/shared';
 import { ownerMatchTable } from './ownerMatchRepository';
 import { OwnerDBO, ownerTable, parseOwnerApi } from './ownerRepository';
-import { OwnerApi } from '~/models/OwnerApi';
-import { sortQuery } from '~/models/SortApi';
 
 const FIELDS = [
   'idprodroit',
@@ -27,7 +27,7 @@ const FIELDS = [
   'catpro3txt'
 ];
 
-export const datafoncierOwnersTable = 'df_owners_nat';
+export const datafoncierOwnersTable = 'df_owners_nat_2024';
 export const DatafoncierOwners = (transaction = db) =>
   transaction<DatafoncierOwner>(datafoncierOwnersTable);
 

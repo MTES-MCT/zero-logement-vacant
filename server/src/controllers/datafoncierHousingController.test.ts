@@ -1,3 +1,5 @@
+import { faker } from '@faker-js/faker';
+import { genIdprocpte } from '@zerologementvacant/models/fixtures';
 import { constants } from 'http2';
 import request from 'supertest';
 
@@ -11,8 +13,7 @@ import { formatUserApi, Users } from '~/repositories/userRepository';
 import {
   genDatafoncierHousing,
   genEstablishmentApi,
-  genUserApi,
-  oneOf
+  genUserApi
 } from '~/test/testFixtures';
 import { tokenProvider } from '~/test/testUtils';
 
@@ -36,7 +37,10 @@ describe('Datafoncier housing controller', () => {
       `/api/datafoncier/housing/${localId}`;
 
     it('should return the housing if it exists', async () => {
-      const housing = genDatafoncierHousing(oneOf(establishment.geoCodes));
+      const idprocpte = genIdprocpte(
+        faker.helpers.arrayElement(establishment.geoCodes)
+      );
+      const housing = genDatafoncierHousing(idprocpte);
       await DatafoncierHouses().insert(housing);
 
       const { body, status } = await request(url)

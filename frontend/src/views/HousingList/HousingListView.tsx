@@ -31,6 +31,7 @@ import HousingListMap from './HousingListMap';
 import HousingListTabs from './HousingListTabs';
 import { useHousingListTabs } from './HousingListTabsProvider';
 import Tooltip from '~/Tooltip/Tooltip';
+import type { Housing } from '~/models/Housing';
 
 const campaignCreationInfoModal = createCampaignCreationInfoModal();
 const campaignCreationModal = createCampaignCreationModal();
@@ -65,11 +66,12 @@ const HousingListView = () => {
   const navigate = useNavigate();
   const [alert, setAlert] = useState(location.state?.alert ?? '');
   const [isAlertVisible, setIsAlertVisible] = useState(false);
-  function onFinish() {
+  function onFinish(housing: Housing) {
     setAlert(
       'Le logement sélectionné a bien été ajouté à votre parc de logements.'
     );
     setIsAlertVisible(true);
+    navigate(`/logements/${housing.id}`)
   }
 
   const { isVisitor } = useUser();

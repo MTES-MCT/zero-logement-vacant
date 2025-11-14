@@ -6497,15 +6497,6 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@posthog/core@npm:1.5.2":
-  version: 1.5.2
-  resolution: "@posthog/core@npm:1.5.2"
-  dependencies:
-    cross-spawn: "npm:^7.0.6"
-  checksum: 10c0/89fc7b090f657c4e0a241fbaed928cb49a2b02cae91655bd172b12b23ecabd91e3ba8efb5437d2fcd5887ed8768be08bc948f50ca23b58137c654ce0030dd5e7
-  languageName: node
-  linkType: hard
-
 "@preact/signals-core@npm:^1.11.0":
   version: 1.12.1
   resolution: "@preact/signals-core@npm:1.12.1"
@@ -12838,7 +12829,6 @@ __metadata:
     pdf-lib: "npm:^1.17.1"
     pg: "npm:^8.16.3"
     pg-query-stream: "npm:^4.10.3"
-    posthog-node: "npm:^5.11.2"
     puppeteer: "npm:^22.15.0"
     qs: "npm:^6.14.0"
     randomstring: "npm:^1.3.1"
@@ -26826,15 +26816,6 @@ __metadata:
     rrweb-snapshot:
       optional: true
   checksum: 10c0/0be99322b038b6d65937f32495add052744f86178baaeab9da96f2294235008f23c2a6f24828a2dd267b2530cb782a90955406258232d5d5e7b297993565f6a1
-  languageName: node
-  linkType: hard
-
-"posthog-node@npm:^5.11.2":
-  version: 5.11.2
-  resolution: "posthog-node@npm:5.11.2"
-  dependencies:
-    "@posthog/core": "npm:1.5.2"
-  checksum: 10c0/dbddf27b0e0f0538ab3288af907660caaff16163518bcd8ccbe6f1f24482e34d2609d62ddd607d69748933026bea752cab6de8a6d317ed789646936ca5e4356f
   languageName: node
   linkType: hard
 

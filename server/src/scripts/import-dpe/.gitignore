@@ -4,3 +4,5 @@
 *.csv
 dpe_processing_*/
 dpe_output_*/
+*.sql
+dpe_raw_import*

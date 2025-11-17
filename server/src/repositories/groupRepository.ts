@@ -71,7 +71,7 @@ const listQuery = (query: Knex.QueryBuilder): void => {
         JOIN ${housingTable}
           ON ${housingTable}.geo_code = ${GROUPS_HOUSING_TABLE}.housing_geo_code
           AND ${housingTable}.id = ${GROUPS_HOUSING_TABLE}.housing_id
-        JOIN ${housingOwnersTable}
+        LEFT JOIN ${housingOwnersTable}
           ON ${housingOwnersTable}.housing_geo_code = ${housingTable}.geo_code
           AND ${housingOwnersTable}.housing_id = ${housingTable}.id
           AND ${housingOwnersTable}.rank = 1

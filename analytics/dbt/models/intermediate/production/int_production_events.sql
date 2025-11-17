@@ -4,6 +4,8 @@ WITH all_events AS (
         created_at,
         created_by,
         housing_id,
+        type,
+        owner_id,
         new_status,
         new_sub_status,
         name,
@@ -24,6 +26,8 @@ WITH all_events AS (
         created_at,
         created_by,
         housing_id,
+        type,
+        owner_id,
         new_status,
         new_sub_status,
         name,
@@ -39,7 +43,6 @@ WITH all_events AS (
     FROM
     {{ ref ('int_production_events_new') }}
 )
-
 SELECT
     ae.*,
     s.new AS event_status_label,

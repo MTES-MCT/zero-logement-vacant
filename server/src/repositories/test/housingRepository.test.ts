@@ -21,7 +21,6 @@ import {
   OwnerAge,
   OwnershipKind,
   Precision,
-  PROPERTY_RIGHT_VALUES,
   READ_ONLY_OCCUPANCY_VALUES,
   READ_WRITE_OCCUPANCY_VALUES,
   ROOM_COUNT_VALUES
@@ -66,6 +65,7 @@ import {
   genGeoPerimeterApi,
   genGroupApi,
   genHousingApi,
+  genHousingOwnerApi,
   genLocalityApi,
   genOwnerApi,
   genUserApi,
@@ -126,14 +126,12 @@ describe('Housing repository', () => {
         (housing): housing is Omit<HousingApi, 'owner'> & { owner: OwnerApi } =>
           !!housing.owner
       )
-      .map((housing) => ({
-        ...housing.owner,
-        ownerId: housing.owner.id,
-        housingGeoCode: housing.geoCode,
-        housingId: housing.id,
-        rank: 1,
-        propertyRight: faker.helpers.arrayElement(PROPERTY_RIGHT_VALUES)
-      }));
+      .map(
+        (housing): HousingOwnerApi => ({
+          ...genHousingOwnerApi(housing, housing.owner),
+          rank: 1
+        })
+      );
 
     beforeAll(async () => {
       await Housing().insert(housings.map(formatHousingRecordApi));

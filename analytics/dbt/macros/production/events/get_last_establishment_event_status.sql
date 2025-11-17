@@ -14,6 +14,7 @@ FROM {{ ref ('int_production_events') }} AS events
 LEFT JOIN {{ ref ('int_production_users') }} AS u ON events.created_by = u.id
 WHERE
 1 = 1
+AND events.type IN('housing:status-updated', 'housing:occupancy-updated')
 {% if event_name == 'suivi' %}
 AND events.status_changed = TRUE
 {% elif event_name == 'occupation' %}

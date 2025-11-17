@@ -5,6 +5,7 @@ import RequireAuth from '~/components/Auth/RequireAuth';
 import Footer from '~/components/Footer/Footer';
 import SmallHeader from '~/components/Header/SmallHeader';
 import OnboardingModal from '~/components/modals/OnboardingModal/OnboardingModal';
+import SuspendedUserModal from '~/components/modals/SuspendedUserModal/SuspendedUserModal';
 import { useScrollTop } from '~/hooks/useScrollTop';
 
 function AuthenticatedLayout() {
@@ -19,6 +20,7 @@ function AuthenticatedLayout() {
           { label: 'Pied de page', anchor: '#fr-footer' }
         ]}
       />
+      <SuspendedUserModal />
       <OnboardingModal />
       <SmallHeader />
       <main id="fr-content">

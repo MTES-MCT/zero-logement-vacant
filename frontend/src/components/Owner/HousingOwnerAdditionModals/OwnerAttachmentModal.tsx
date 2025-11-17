@@ -63,7 +63,8 @@ function createOwnerAttachmentModal() {
           ]}
         >
           <Typography sx={{ mb: '1rem' }}>
-            Confirmez-vous l’ajout de ce propriétaire ?
+            Ce propriétaire sera ajouté par défaut comme destinataire
+            secondaire, si un destinataire principal est déjà identifié.
           </Typography>
           <Stack
             component="article"

@@ -55,6 +55,7 @@ external.(provider)_(name)_raw
 
 To add a new external data source, simply add an entry to `external_sources_config.py`:
 
+### CSV Example
 ```python
 "my_new_source": {
     "url": "https://example.com/data.csv",
@@ -63,9 +64,51 @@ To add a new external data source, simply add an entry to `external_sources_conf
     "description": "Description of my source",
     "producer": "PROVIDER_NAME",
     "type_overrides": {"column_name": "VARCHAR"},  # Optional
-    "read_options": {"auto_detect": True},  # Optional
+    "read_options": {"auto_detect": True, "delimiter": ";"},  # Optional
 }
 ```
+
+### Parquet Example
+```python
+"my_parquet_source": {
+    "url": "https://example.com/data.parquet",
+    "table_name": "external.provider_my_source_raw",
+    "file_type": "parquet",
+    "description": "Description of my parquet source",
+    "producer": "PROVIDER_NAME",
+    "type_overrides": None,
+    "read_options": None,
+}
+```
+
+### XLSX (Excel) Example
+```python
+"my_excel_source": {
+    "url": "https://example.com/data.xlsx",
+    "table_name": "external.provider_my_source_raw",
+    "file_type": "xlsx",
+    "description": "Description of my Excel source",
+    "producer": "PROVIDER_NAME",
+    "type_overrides": None,  # Not supported for XLSX
+    "read_options": {
+        "sheet": "Sheet1",         # Optional: specify sheet name (default: first sheet)
+        "range": "A1:Z100",        # Optional: specific cell range
+        "header": True,            # Optional: treat first row as header (auto-detected by default)
+        "stop_at_empty": True,     # Optional: stop reading at first empty row
+        "all_varchar": False,      # Optional: treat all cells as VARCHAR
+        "ignore_errors": False,    # Optional: replace cast errors with NULL
+    },
+}
+```
+
+### Supported File Types
+- **CSV** - Comma-separated values (using `read_csv`)
+  - Options: `auto_detect`, `delimiter`, `quote`, `escape`, `header`, etc.
+- **Parquet** - Columnar format (using `read_parquet`)
+  - Minimal configuration needed
+- **XLSX** - Excel files (using `read_xlsx`)
+  - Options: `sheet`, `range`, `header`, `stop_at_empty`, `all_varchar`, `ignore_errors`, etc.
+  - Note: `.xls` files are NOT supported, only `.xlsx`
 
 The asset will be automatically created and available in Dagster!
 - ✅ Other government open data

@@ -2,7 +2,6 @@ import nodemailer from 'nodemailer';
 
 import config from '~/infra/config';
 import { logger } from '~/infra/logger';
-import { UserApi } from '~/models/UserApi';
 import { MailEvent, MailService, SendOptions } from './mailService';
 
 class NodemailerService implements MailService {
@@ -68,14 +67,6 @@ class NodemailerService implements MailService {
       ...options,
       subject: 'Activation du compte',
       content: `Suite à la validation de votre accès aux données LOVAC. Cliquez sur le lien ${config.app.host}/inscription/mot-de-passe#${key}`
-    });
-  }
-
-  async sendOwnerProspectCreatedEmail(users: UserApi[]): Promise<void> {
-    return this.send({
-      subject: 'Nouveau message - Boite de réception',
-      recipients: users.map((user) => user.email),
-      content: 'Nouveau message'
     });
   }
 

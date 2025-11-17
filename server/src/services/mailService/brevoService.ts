@@ -8,13 +8,11 @@ import { MailEvent, MailService, SendOptions } from './mailService';
 import config from '~/infra/config';
 import { getAccountActivationLink } from '~/models/SignupLinkApi';
 import { getPasswordResetLink } from '~/models/ResetLinkApi';
-import { UserApi } from '~/models/UserApi';
 import { logger } from '~/infra/logger';
 
 const PASSWORD_RESET_TEMPLATE_ID = 8;
 const ACCOUNT_ACTIVATION_TEMPLATE_ID = 5;
 const LOVAC_ACCOUNT_ACTIVATION_TEMPLATE_ID = 54;
-const OWNER_PROSPECT_CREATED_TEMPLATE_ID = 13;
 const TWO_FACTOR_CODE_TEMPLATE_ID = 100;
 
 class BrevoService implements MailService {
@@ -41,8 +39,6 @@ class BrevoService implements MailService {
     switch (event) {
       case 'housing:exported':
         return this.housingExported(email);
-      case 'owner-prospect:created':
-        return this.ownerProspectCreated(email);
       case 'prospect:initialized':
         return this.prospectInitialized(
           email,
@@ -99,13 +95,6 @@ class BrevoService implements MailService {
     });
   }
 
-  async sendOwnerProspectCreatedEmail(users: UserApi[]): Promise<void> {
-    await this.send({
-      templateId: OWNER_PROSPECT_CREATED_TEMPLATE_ID,
-      recipients: users.map((user) => user.email)
-    });
-  }
-
   async sendTwoFactorCode(code: string, options: SendOptions): Promise<void> {
     await this.send({
       ...options,
@@ -119,10 +108,6 @@ class BrevoService implements MailService {
 
   private housingExported(email: string) {
     this.events.trackEvent(email, 'housing:exported').catch(logger.error);
-  }
-
-  private ownerProspectCreated(email: string) {
-    this.events.trackEvent(email, 'owner-prospect:created').catch(logger.error);
   }
 
   private prospectInitialized(

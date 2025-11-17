@@ -45,7 +45,9 @@ import {
   Events,
   EVENTS_TABLE,
   HOUSING_EVENTS_TABLE,
-  HousingEvents
+  HousingEvents,
+  HousingOwnerEvents,
+  OwnerEvents
 } from '~/repositories/eventRepository';
 import {
   formatHousingOwnersApi,
@@ -639,8 +641,10 @@ describe('Housing API', () => {
         .use(tokenProvider(user));
 
       expect(status).toBe(constants.HTTP_STATUS_CREATED);
-      expect(body).toMatchObject({
-        localId: payload.localId
+      expect(body).toMatchObject<Partial<HousingDTO>>({
+        localId: payload.localId,
+        dataYears: [2024],
+        dataFileYears: ['ff-2024']
       });
     });
 
@@ -722,7 +726,7 @@ describe('Housing API', () => {
       expect(actual).toBeArrayOfSize(datafoncierOwners.length);
     });
 
-    it('should create an event', async () => {
+    it('should create an event "housing:created"', async () => {
       const datafoncierHousing = genDatafoncierHousing();
       const datafoncierOwners = [
         genDatafoncierOwner(datafoncierHousing.idprocpte)
@@ -736,6 +740,7 @@ describe('Housing API', () => {
       const { body, status } = await request(url)
         .post(testRoute)
         .send(payload)
+        .type('json')
         .use(tokenProvider(user));
 
       expect(status).toBe(constants.HTTP_STATUS_CREATED);
@@ -756,6 +761,66 @@ describe('Housing API', () => {
           occupancy: OCCUPANCY_LABELS[toOccupancy(datafoncierHousing.ccthp)]
         }
       });
+    });
+
+    it('should create an event "owner:created" for each missing owner', async () => {
+      const datafoncierHousing = genDatafoncierHousing();
+      const datafoncierOwners = [
+        genDatafoncierOwner(datafoncierHousing.idprocpte)
+      ];
+      await Promise.all([
+        DatafoncierHouses().insert(datafoncierHousing),
+        DatafoncierOwners().insert(datafoncierOwners)
+      ]);
+      const payload = {
+        localId: datafoncierHousing.idlocal
+      };
+
+      const { body, status } = await request(url)
+        .post(testRoute)
+        .send(payload)
+        .type('json')
+        .use(tokenProvider(user));
+
+      expect(status).toBe(constants.HTTP_STATUS_CREATED);
+      const events = await OwnerEvents()
+        .join(EVENTS_TABLE, 'id', 'event_id')
+        .where({
+          type: 'owner:created',
+          housing_geo_code: body.geoCode,
+          housing_id: body.id
+        });
+      expect(events.length).toBe(datafoncierOwners.length);
+    });
+
+    it('should create an event "housing:owner-attached" for each housing owner', async () => {
+      const datafoncierHousing = genDatafoncierHousing();
+      const datafoncierOwners = [
+        genDatafoncierOwner(datafoncierHousing.idprocpte)
+      ];
+      await Promise.all([
+        DatafoncierHouses().insert(datafoncierHousing),
+        DatafoncierOwners().insert(datafoncierOwners)
+      ]);
+      const payload = {
+        localId: datafoncierHousing.idlocal
+      };
+
+      const { body, status } = await request(url)
+        .post(testRoute)
+        .send(payload)
+        .type('json')
+        .use(tokenProvider(user));
+
+      expect(status).toBe(constants.HTTP_STATUS_CREATED);
+      const events = await HousingOwnerEvents()
+        .join(EVENTS_TABLE, 'id', 'event_id')
+        .where({
+          type: 'housing:owner-attached',
+          housing_geo_code: body.geoCode,
+          housing_id: body.id
+        });
+      expect(events.length).toBe(datafoncierOwners.length);
     });
   });
 

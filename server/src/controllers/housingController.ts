@@ -1,50 +1,59 @@
 import {
+  AddressKinds,
+  DATAFONCIER_OWNER_EQUIVALENCE,
   HOUSING_STATUS_LABELS,
   HousingDTO,
   HousingFiltersDTO,
   HousingStatus,
   HousingUpdatePayloadDTO,
   OCCUPANCY_LABELS,
-  OCCUPANCY_VALUES,
   Pagination,
+  toActiveRank,
+  toPropertyRight,
+  toSourceRelativeLocation,
   UserRole,
+  type ActiveOwnerRank,
   type HousingBatchUpdatePayload
 } from '@zerologementvacant/models';
 import { compactNullable } from '@zerologementvacant/utils';
-import async from 'async';
-import { Record, Struct } from 'effect';
+import { Array, pipe, Record, Struct } from 'effect';
 import { Request, RequestHandler, Response } from 'express';
 import { AuthenticatedRequest } from 'express-jwt';
-import { body, oneOf, param, ValidationChain } from 'express-validator';
+import { oneOf, param } from 'express-validator';
 import { constants } from 'http2';
 import { v4 as uuidv4 } from 'uuid';
-import validator from 'validator';
 import HousingExistsError from '~/errors/housingExistsError';
 import HousingMissingError from '~/errors/housingMissingError';
 import HousingUpdateForbiddenError from '~/errors/housingUpdateForbiddenError';
 import { startTransaction } from '~/infra/database/transaction';
-import { logger } from '~/infra/logger';
-import { HousingEventApi } from '~/models/EventApi';
+import { createLogger } from '~/infra/logger';
+import type { AddressApi } from '~/models/AddressApi';
+import {
+  HousingEventApi,
+  type HousingOwnerEventApi,
+  type OwnerEventApi
+} from '~/models/EventApi';
 import {
   diffHousingOccupancyUpdated,
   diffHousingStatusUpdated,
+  fromDatafoncierHousing,
   HousingApi,
-  HousingRecordApi,
   HousingSortableApi,
   isContacted,
   toHousingDTO,
-  type HousingId,
+  type HousingId
 } from '~/models/HousingApi';
 import { HousingCountApi } from '~/models/HousingCountApi';
 import { HousingFiltersApi } from '~/models/HousingFiltersApi';
-import { toHousingOwnersApi } from '~/models/HousingOwnerApi';
-import { HousingStatusApi } from '~/models/HousingStatusApi';
+import { HousingOwnerApi } from '~/models/HousingOwnerApi';
 import { NoteApi, type HousingNoteApi } from '~/models/NoteApi';
+import { fromDatafoncierOwner, type OwnerApi } from '~/models/OwnerApi';
 import {
   HousingPaginatedDTO,
   HousingPaginatedResultApi
 } from '~/models/PaginatedResultApi';
 import sortApi from '~/models/SortApi';
+import banAddressesRepository from '~/repositories/banAddressesRepository';
 import createDatafoncierHousingRepository from '~/repositories/datafoncierHousingRepository';
 import createDatafoncierOwnersRepository from '~/repositories/datafoncierOwnersRepository';
 import eventRepository from '~/repositories/eventRepository';
@@ -53,7 +62,10 @@ import housingOwnerRepository from '~/repositories/housingOwnerRepository';
 import housingRepository from '~/repositories/housingRepository';
 import noteRepository from '~/repositories/noteRepository';
 import ownerRepository from '~/repositories/ownerRepository';
-import { toHousingRecordApi, toOwnerApi } from '~/scripts/shared';
+import { createBanAPI } from '~/services/ban/ban-api';
+
+const logger = createLogger('housingController');
+const banAPI = createBanAPI();
 
 interface HousingPathParams extends Record<string, string> {
   id: string;
@@ -185,11 +197,22 @@ const count: RequestHandler<
 const datafoncierHousingRepository = createDatafoncierHousingRepository();
 const datafoncierOwnerRepository = createDatafoncierOwnersRepository();
 
-const createValidators: ValidationChain[] = [
-  body('localId').isString().isLength({ min: 12, max: 12 })
-];
-async function create(request: Request, response: Response) {
-  const { auth, body, establishment } = request as AuthenticatedRequest;
+interface HousingCreationPayload {
+  localId: string;
+}
+
+const create: RequestHandler<
+  never,
+  HousingDTO,
+  HousingCreationPayload,
+  never
+> = async (request, response): Promise<void> => {
+  const { auth, body, establishment } = request as AuthenticatedRequest<
+    never,
+    HousingDTO,
+    HousingCreationPayload,
+    never
+  >;
 
   const existing = await housingRepository.findOne({
     establishment: establishment.id,
@@ -213,47 +236,177 @@ async function create(request: Request, response: Response) {
         idprocpte: datafoncierHousing.idprocpte
       }
     });
-  // Create the missing datafoncier owners if needed
-  await async.forEach(datafoncierOwners, async (datafoncierOwner) => {
-    const owner = toOwnerApi(datafoncierOwner);
-    await ownerRepository.betterSave(owner, {
-      onConflict: ['idpersonne'],
-      merge: false
-    });
-  });
-  const owners = await ownerRepository.find({
+
+  // Call posthog feature flag
+  logger.debug('Creating housing with the new creation flow...');
+  const existingOwners = (await ownerRepository.find({
     filters: {
       idpersonne: datafoncierOwners.map((owner) => owner.idpersonne)
+    },
+    pagination: {
+      paginate: false
     }
+  })) as Array<Omit<OwnerApi, 'idpersonne'> & { idpersonne: string }>;
+  const missingOwners = pipe(
+    datafoncierOwners,
+    Array.filter((datafoncierOwner) => {
+      return Array.containsWith<{ idpersonne: string }>(
+        DATAFONCIER_OWNER_EQUIVALENCE
+      )(existingOwners, datafoncierOwner);
+    }),
+    Array.map(fromDatafoncierOwner)
+  );
+  logger.debug('Owners found from Datafoncier owners', {
+    existing: existingOwners,
+    missing: missingOwners
   });
 
-  const housing: HousingRecordApi = toHousingRecordApi(
-    { source: 'datafoncier-manual' },
-    datafoncierHousing
-  );
-  await housingRepository.save(housing);
-  await housingOwnerRepository.saveMany(toHousingOwnersApi(housing, owners));
+  const housing = fromDatafoncierHousing(datafoncierHousing, {
+    dataYears: 2024,
+    dataFileYears: 'ff-2024',
+    source: 'datafoncier-manual'
+  });
 
-  await eventRepository.insertManyHousingEvents([
+  // Fetch BAN address
+  const addresses = datafoncierHousing.ban_geom
+    ? await banAPI.reverseMany([
+        {
+          longitude: datafoncierHousing.ban_geom.coordinates[0],
+          latitude: datafoncierHousing.ban_geom.coordinates[1]
+        }
+      ])
+    : null;
+  const address =
+    addresses?.find((address) => address.id === datafoncierHousing.ban_id) ??
+    null;
+  const banAddress: AddressApi | null = address
+    ? {
+        refId: housing.id,
+        addressKind: AddressKinds.Housing,
+        banId: address.id,
+        label: address.label,
+        houseNumber: address.houseNumber,
+        street: address.street,
+        postalCode: address.postalCode,
+        city: address.city,
+        latitude: address.latitude,
+        longitude: address.longitude,
+        score: address.score,
+        lastUpdatedAt: new Date().toISOString()
+      }
+    : null;
+  const housingOwners = existingOwners
+    .concat(missingOwners)
+    .map<Omit<HousingOwnerApi, keyof OwnerApi>>((owner) => {
+      const datafoncierOwner = datafoncierOwners.find(
+        (datafoncierOwner) => datafoncierOwner.idpersonne === owner.idpersonne
+      );
+      if (!datafoncierOwner) {
+        // Should not happen
+        throw new Error('Datafoncier owner not found for existing owner');
+      }
+      const rank: ActiveOwnerRank = toActiveRank(datafoncierOwner.dnulp);
+      const locprop: number | null = datafoncierOwner.locprop
+        ? toSourceRelativeLocation(datafoncierOwner.locprop)
+        : null;
+
+      return {
+        housingGeoCode: housing.geoCode,
+        housingId: housing.id,
+        ownerId: owner.id,
+        rank: rank,
+        startDate: new Date(),
+        endDate: null,
+        origin: 'datafoncier-manual',
+        idprocpte: datafoncierOwner.idprocpte,
+        idprodroit: datafoncierOwner.idprodroit,
+        locprop: locprop,
+        propertyRight: toPropertyRight(datafoncierOwner.ccodro),
+        relativeLocation: null,
+        absoluteDistance: null
+      };
+    });
+
+  const housingEvents: HousingEventApi[] = [
     {
       id: uuidv4(),
-      name: 'Création du logement',
       type: 'housing:created',
+      name: 'Création du logement',
       nextOld: null,
       nextNew: {
-        source: 'datafoncier-manual',
-        occupancy: OCCUPANCY_LABELS[housing.occupancy]
+        occupancy: OCCUPANCY_LABELS[housing.occupancy],
+        source: 'datafoncier-manual'
       },
-      conflict: false,
-      createdAt: new Date().toJSON(),
+      createdAt: new Date().toISOString(),
       createdBy: auth.userId,
       housingGeoCode: housing.geoCode,
-      housingId: housing.id
+      housingId: housing.id,
+      conflict: false
     }
-  ]);
+  ];
+  const ownerEvents: OwnerEventApi[] = missingOwners.map<OwnerEventApi>(
+    (owner) => ({
+      id: uuidv4(),
+      name: "Création d'un nouveau propriétaire",
+      type: 'owner:created',
+      createdAt: new Date().toJSON(),
+      createdBy: auth.userId,
+      nextOld: null,
+      nextNew: {
+        name: owner.fullName,
+        birthdate: owner.birthDate?.substring(0, 'yyyy-mm-dd'.length) ?? null,
+        email: owner.email,
+        phone: owner.phone,
+        address: owner.rawAddress?.length ? owner.rawAddress.join(' ') : null,
+        additionalAddress: null
+      },
+      ownerId: owner.id
+    })
+  );
+  const housingOwnerEvents: HousingOwnerEventApi[] =
+    housingOwners.map<HousingOwnerEventApi>((housingOwner) => {
+      const owner = existingOwners.concat(missingOwners).find((owner) => {
+        return owner.id === housingOwner.ownerId;
+      }) as OwnerApi;
+      return {
+        id: uuidv4(),
+        type: 'housing:owner-attached',
+        name: 'Propriétaire ajouté au logement',
+        nextOld: null,
+        nextNew: {
+          name: owner.fullName,
+          rank: housingOwner.rank
+        },
+        createdAt: new Date().toISOString(),
+        createdBy: auth.userId,
+        housingGeoCode: housingOwner.housingGeoCode,
+        housingId: housingOwner.housingId,
+        ownerId: housingOwner.ownerId,
+        conflict: false
+      };
+    });
 
-  response.status(constants.HTTP_STATUS_CREATED).json(housing);
-}
+  await startTransaction(async () => {
+    await Promise.all([
+      housingRepository.save(housing),
+      ownerRepository.betterSaveMany(missingOwners, {
+        onConflict: ['idpersonne'],
+        merge: false
+      })
+    ]);
+    await housingOwnerRepository.saveMany(housingOwners);
+    await Promise.all([
+      banAddress ? banAddressesRepository.save(banAddress) : Promise.resolve(),
+      eventRepository.insertManyHousingEvents(housingEvents),
+      eventRepository.insertManyOwnerEvents(ownerEvents),
+      eventRepository.insertManyHousingOwnerEvents(housingOwnerEvents)
+    ]);
+  });
+  response
+    .status(constants.HTTP_STATUS_CREATED)
+    .location(`housing/${housing.id}`)
+    .json(toHousingDTO(housing));
+};
 
 export interface HousingUpdateBody {
   statusUpdate?: Pick<
@@ -263,31 +416,6 @@ export interface HousingUpdateBody {
   occupancyUpdate?: Pick<HousingApi, 'occupancy' | 'occupancyIntended'>;
   note?: Pick<NoteApi, 'content' | 'noteKind'>;
 }
-
-const updateValidators = [
-  body('housingUpdate').notEmpty(),
-  body('housingUpdate.statusUpdate')
-    .optional()
-    .custom((value) =>
-      validator.isIn(String(value.status), Object.values(HousingStatusApi))
-    ),
-  body('housingUpdate.occupancyUpdate')
-    .optional()
-    .custom((value) =>
-      validator.isIn(String(value.occupancy), OCCUPANCY_VALUES)
-    )
-    .custom(
-      (value) =>
-        !value.occupancyIntended ||
-        validator.isIn(
-          String(value.occupancyIntended),
-          Object.values(OCCUPANCY_VALUES)
-        )
-    ),
-  body('housingUpdate.note')
-    .optional()
-    .custom((value) => value.content && !validator.isEmpty(value.content))
-];
 
 async function update(
   request: Request<HousingPathParams, HousingDTO, HousingUpdatePayloadDTO>,
@@ -534,9 +662,7 @@ const housingController = {
   get,
   list,
   count,
-  createValidators,
   create,
-  updateValidators,
   update,
   updateMany
 };

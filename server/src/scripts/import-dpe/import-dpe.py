@@ -208,8 +208,9 @@ class DPEProcessor:
                 test_conn.close()
                 self.logger.info("Connection test successful")
 
-                # Create pool with fewer connections to avoid overload
-                pool_size = min(self.max_workers + 1, 4)  # Maximum 4 connections
+                # Create pool with enough connections for all workers + 1 for main thread
+                # Cap at 10 to avoid overwhelming the database
+                pool_size = min(self.max_workers + 2, 10)
                 self.connection_pool = ThreadedConnectionPool(
                     minconn=1,
                     maxconn=pool_size,

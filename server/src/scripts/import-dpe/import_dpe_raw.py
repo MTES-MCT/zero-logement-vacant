@@ -1,24 +1,32 @@
 #!/usr/bin/env python3
 """
-DPE Raw Data Import Script
+DPE Raw Data Import Script - Complete Version with ALL 224 fields
 
 This script imports raw DPE (Diagnostic de Performance Énergétique) data from JSONL files
 into the dpe_raw PostgreSQL table for archival and analysis purposes.
 
-REQUIRED DATABASE:
-This script requires the dpe_raw table to be created first:
-- Run: psql -d <database> -f create_dpe_raw_table.sql
+This version imports ALL 224 fields from the ADEME DPE JSON data, not just a subset.
+
+REQUIRED SETUP:
+1. Generate the complete schema and field list:
+   python generate_complete_schema.py dpe_raw_import_YYYYMMDD/
+
+2. Create the database table:
+   psql -d <database> -f create_dpe_raw_table_complete.sql
 
 REQUIRED INDEXES:
 The following indexes are created by the table creation script for optimal performance:
-- idx_dpe_raw_dpe_id: Speeds up duplicate checks and lookups by DPE ID
 - idx_dpe_raw_code_insee: Speeds up queries by INSEE commune code
 - idx_dpe_raw_code_postal: Speeds up queries by postal code
+- idx_dpe_raw_code_departement: Speeds up queries by department code
 - idx_dpe_raw_etiquette_dpe: Speeds up queries by energy label
 - idx_dpe_raw_date_etablissement: Speeds up queries by DPE date
 - idx_dpe_raw_type_batiment: Speeds up queries by building type
+- idx_dpe_raw_numero_dpe: Speeds up queries by DPE number
+- idx_dpe_raw_location: Speeds up location-based queries
 
 FEATURES:
+- Imports ALL 224 fields from DPE JSON data
 - Parallel batch processing with configurable workers (default: 6)
 - Automatic resume capability: skips already imported DPE records
 - Department-based partitioning for memory efficiency
@@ -69,10 +77,18 @@ import psycopg2
 from psycopg2.extras import DictCursor, execute_values
 from tqdm import tqdm
 
+# Import auto-generated field list
+try:
+    from dpe_raw_fields import DPE_RAW_FIELDS, JSON_TO_DB_FIELD_MAPPING
+except ImportError:
+    print("ERROR: dpe_raw_fields.py not found!")
+    print("Please run: python generate_complete_schema.py dpe_raw_import_YYYYMMDD/")
+    sys.exit(1)
+
 
 class DPERawImporter:
     def __init__(self, db_url: str, dry_run: bool = False,
-                 batch_size: int = 2000, max_workers: int = 6):
+                 batch_size: int = 2000, max_workers: int = 6, truncate: bool = False):
         """
         Initialize the DPE raw data importer
 
@@ -81,11 +97,13 @@ class DPERawImporter:
             dry_run: If True, only logs without DB modifications
             batch_size: Batch size for SQL inserts
             max_workers: Number of parallel workers
+            truncate: If True, truncate table before import
         """
         self.db_url = db_url
         self.dry_run = dry_run
         self.batch_size = batch_size
         self.max_workers = max_workers
+        self.truncate = truncate
         self.logger = self._setup_logger()
         self.start_time = datetime.now()
 
@@ -167,6 +185,34 @@ class DPERawImporter:
             return True
         except Exception as e:
             self.logger.error(f"Error checking table: {e}")
+            return False
+
+    def truncate_table(self) -> bool:
+        """Truncate dpe_raw table"""
+        try:
+            if self.dry_run:
+                self.logger.info("DRY RUN: Would truncate table dpe_raw")
+                return True
+
+            self.logger.info("Truncating table dpe_raw...")
+            self.cursor.execute("TRUNCATE TABLE dpe_raw CASCADE")
+            self.conn.commit()
+
+            # Get count to verify
+            self.cursor.execute("SELECT COUNT(*) FROM dpe_raw")
+            count = self.cursor.fetchone()[0]
+
+            if count == 0:
+                self.logger.info("✅ Table dpe_raw truncated successfully")
+                return True
+            else:
+                self.logger.error(f"❌ Table truncation failed, {count} records remain")
+                return False
+
+        except Exception as e:
+            self.logger.error(f"Error truncating table: {e}")
+            if self.conn:
+                self.conn.rollback()
             return False
 
     def _count_lines(self, file_path: str) -> int:
@@ -354,7 +400,7 @@ class DPERawImporter:
 
     def _parse_dpe_record(self, data: Dict) -> Optional[Dict]:
         """
-        Parse and validate a DPE record from JSON
+        Parse and validate a DPE record from JSON - imports ALL 224 fields
 
         Args:
             data: Raw JSON data
@@ -379,30 +425,50 @@ class DPERawImporter:
                 except (ValueError, TypeError):
                     return None
 
-            # Build record
-            record = {
-                'dpe_id': dpe_id,
-                'numero_dpe': data.get('numero_dpe'),
-                'adresse_ban': data.get('adresse_ban'),
-                'code_insee_ban': data.get('code_insee_ban'),
-                'code_postal_ban': data.get('code_postal_ban'),
-                'code_departement_ban': data.get('code_departement_ban'),
-                'latitude': data.get('latitude'),
-                'longitude': data.get('longitude'),
-                'type_batiment': data.get('type_batiment'),
-                'annee_construction': data.get('annee_construction'),
-                'surface_habitable_logement': data.get('surface_habitable_logement'),
-                'etiquette_dpe': data.get('etiquette_dpe'),
-                'etiquette_ges': data.get('etiquette_ges'),
-                'conso_5_usages_ep': data.get('conso_5_usages_ep'),
-                'conso_5_usages_par_m2_ep': data.get('conso_5_usages_par_m2_ep'),
-                'emission_ges_5_usages': data.get('emission_ges_5_usages'),
-                'emission_ges_5_usages_par_m2': data.get('emission_ges_5_usages_par_m2'),
-                'date_etablissement_dpe': parse_date(data.get('date_etablissement_dpe')),
-                'date_reception_dpe': parse_date(data.get('date_reception_dpe')),
-                'date_fin_validite_dpe': parse_date(data.get('date_fin_validite_dpe')),
-                'date_visite_diagnostiqueur': parse_date(data.get('date_visite_diagnostiqueur'))
-            }
+            # Convert Lambert 93 (x, y) to WGS84 (lat, lon) if coordinates are available
+            latitude = None
+            longitude = None
+            x_ban = data.get('coordonnee_cartographique_x_ban')
+            y_ban = data.get('coordonnee_cartographique_y_ban')
+
+            if x_ban and y_ban:
+                try:
+                    # Lambert 93 to WGS84 conversion (simplified approximation)
+                    # For precise conversion, use pyproj library
+                    # This is a rough approximation for France
+                    lat_approx = 42.0 + (y_ban - 6000000.0) / 111320.0
+                    lon_approx = -5.0 + (x_ban - 700000.0) / (111320.0 * 0.7)  # 0.7 is cos(latitude) approximation
+
+                    # Validate coordinates are within France bounds
+                    if 41.0 <= lat_approx <= 51.5 and -5.5 <= lon_approx <= 10.0:
+                        latitude = lat_approx
+                        longitude = lon_approx
+                except (ValueError, TypeError):
+                    pass
+
+            # Build record with ALL fields from JSON
+            record = {}
+
+            # Map all JSON fields to database fields
+            for json_field, db_field in JSON_TO_DB_FIELD_MAPPING.items():
+                value = data.get(json_field)
+
+                # Special handling for date fields
+                if 'date_' in db_field and value:
+                    value = parse_date(value)
+
+                record[db_field] = value
+
+            # Override/add calculated and RNB fields
+            if latitude:
+                record['latitude'] = latitude
+            if longitude:
+                record['longitude'] = longitude
+            # Ensure RNB fields are included (may be None)
+            if 'id_rnb' not in record:
+                record['id_rnb'] = data.get('id_rnb')
+            if 'provenance_id_rnb' not in record:
+                record['provenance_id_rnb'] = data.get('provenance_id_rnb')
 
             return record
 
@@ -431,54 +497,39 @@ class DPERawImporter:
             # Use asynchronous commits for better performance
             cursor.execute("SET synchronous_commit = off")
 
-            # Prepare insert data
+            # Prepare insert data - use ALL fields
             insert_data = []
             for record in batch:
-                insert_data.append((
-                    record['dpe_id'],
-                    record['numero_dpe'],
-                    record['adresse_ban'],
-                    record['code_insee_ban'],
-                    record['code_postal_ban'],
-                    record['code_departement_ban'],
-                    record['latitude'],
-                    record['longitude'],
-                    record['type_batiment'],
-                    record['annee_construction'],
-                    record['surface_habitable_logement'],
-                    record['etiquette_dpe'],
-                    record['etiquette_ges'],
-                    record['conso_5_usages_ep'],
-                    record['conso_5_usages_par_m2_ep'],
-                    record['emission_ges_5_usages'],
-                    record['emission_ges_5_usages_par_m2'],
-                    record['date_etablissement_dpe'],
-                    record['date_reception_dpe'],
-                    record['date_fin_validite_dpe'],
-                    record['date_visite_diagnostiqueur']
-                ))
+                # Build tuple with all fields in the same order as DPE_RAW_FIELDS
+                row = tuple(record.get(field) for field in DPE_RAW_FIELDS)
+                insert_data.append(row)
 
-            # Execute bulk insert with ON CONFLICT to skip duplicates
-            insert_query = """
-            INSERT INTO dpe_raw (
-                dpe_id, numero_dpe, adresse_ban, code_insee_ban, code_postal_ban,
-                code_departement_ban, latitude, longitude, type_batiment,
-                annee_construction, surface_habitable_logement, etiquette_dpe,
-                etiquette_ges, conso_5_usages_ep, conso_5_usages_par_m2_ep,
-                emission_ges_5_usages, emission_ges_5_usages_par_m2,
-                date_etablissement_dpe, date_reception_dpe, date_fin_validite_dpe,
-                date_visite_diagnostiqueur
-            ) VALUES %s
+            # Generate column list (excluding internal fields like _geopoint, _i, _rand, _score)
+            db_columns = [f for f in DPE_RAW_FIELDS if not f.startswith('_') or f == 'dpe_id']
+
+            # Build INSERT query dynamically
+            columns_str = ', '.join(db_columns)
+            insert_query = f"""
+            INSERT INTO dpe_raw ({columns_str})
+            VALUES %s
             ON CONFLICT (dpe_id) DO NOTHING
             """
 
             # Get count before insert
             cursor.execute("SELECT COUNT(*) FROM dpe_raw WHERE dpe_id = ANY(%s)",
-                          ([r[0] for r in insert_data],))
+                          ([r[DPE_RAW_FIELDS.index('dpe_id')] for r in insert_data],))
             existing_count = cursor.fetchone()[0]
 
+            # Filter out internal fields from insert data
+            filtered_insert_data = []
+            internal_indices = [i for i, f in enumerate(DPE_RAW_FIELDS) if f.startswith('_') and f != 'dpe_id']
+
+            for row in insert_data:
+                filtered_row = tuple(v for i, v in enumerate(row) if i not in internal_indices)
+                filtered_insert_data.append(filtered_row)
+
             # Execute insert
-            execute_values(cursor, insert_query, insert_data, page_size=1000)
+            execute_values(cursor, insert_query, filtered_insert_data, page_size=1000)
 
             # Commit
             conn.commit()
@@ -714,6 +765,8 @@ class DPERawImporter:
         print(f"Mode: {'DRY RUN' if self.dry_run else 'PRODUCTION'}")
         print(f"Workers: {self.max_workers}")
         print(f"Batch size: {self.batch_size}")
+        print(f"Truncate table: {'YES ⚠️' if self.truncate else 'NO'}")
+        print(f"Record limit: {limit if limit else 'ALL'}")
         if department:
             print(f"Target department: {department}")
         if start_department:
@@ -729,6 +782,21 @@ class DPERawImporter:
             # Check if table exists
             if not self.check_table_exists():
                 sys.exit(1)
+
+            # Truncate table if requested
+            if self.truncate:
+                print("\n⚠️  WARNING: --truncate flag detected")
+                print("This will DELETE ALL EXISTING DATA in the dpe_raw table!")
+
+                if not self.dry_run:
+                    response = input("Are you sure you want to continue? (yes/NO): ")
+                    if response.lower() != 'yes':
+                        print("Truncate cancelled. Exiting.")
+                        sys.exit(0)
+
+                if not self.truncate_table():
+                    sys.exit(1)
+                print()
 
             # Step 1: Partition by department
             print("Step 1: Partitioning by department...")
@@ -789,8 +857,10 @@ Examples:
     # Main arguments
     parser.add_argument('input_file', help='Input JSONL file')
     parser.add_argument('--output-dir', help='Output directory for partitions')
-    parser.add_argument('--limit', type=int, help='Maximum number of lines to process')
+    parser.add_argument('--limit', type=int, help='Maximum number of lines to process (default: all)')
     parser.add_argument('--dry-run', action='store_true', help='Simulation mode (no DB modifications)')
+    parser.add_argument('--truncate', action='store_true',
+                       help='Truncate table before import (WARNING: deletes all existing data)')
 
     # Department filtering
     parser.add_argument('--department', '--dept', type=str,
@@ -824,7 +894,8 @@ Examples:
         db_url=args.db_url,
         dry_run=args.dry_run,
         batch_size=args.batch_size,
-        max_workers=args.max_workers
+        max_workers=args.max_workers,
+        truncate=args.truncate
     )
 
     # Enable debug if requested

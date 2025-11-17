@@ -196,8 +196,8 @@ class TestProcessSinglePair:
     def test_both_addresses_with_coordinates(self, calculator):
         """Test pair with both addresses having coordinates."""
         address_cache = {
-            ('owner123', 'Owner'): ('75001', '123 Rue de Rivoli', 48.8566, 2.3522),
-            ('housing456', 'Housing'): ('75015', '456 Rue de Vaugirard', 48.8422, 2.2996)
+            ('owner123', 'Owner'): ('75001', '123 Rue de Rivoli', 48.8566, 2.3522, '75001'),
+            ('housing456', 'Housing'): ('75015', '456 Rue de Vaugirard', 48.8422, 2.2996, '75015')
         }
 
         distance, classification = calculator.process_single_pair('owner123', 'housing456', address_cache)
@@ -210,7 +210,7 @@ class TestProcessSinglePair:
     def test_missing_owner_data(self, calculator):
         """Test pair with missing owner data."""
         address_cache = {
-            ('housing456', 'Housing'): ('75015', '456 Rue de Vaugirard', 48.8422, 2.2996)
+            ('housing456', 'Housing'): ('75015', '456 Rue de Vaugirard', 48.8422, 2.2996, '75015')
         }
 
         distance, classification = calculator.process_single_pair('owner123', 'housing456', address_cache)
@@ -222,7 +222,7 @@ class TestProcessSinglePair:
     def test_missing_housing_data(self, calculator):
         """Test pair with missing housing data."""
         address_cache = {
-            ('owner123', 'Owner'): ('75001', '123 Rue de Rivoli', 48.8566, 2.3522)
+            ('owner123', 'Owner'): ('75001', '123 Rue de Rivoli', 48.8566, 2.3522, '75001')
         }
 
         distance, classification = calculator.process_single_pair('owner123', 'housing456', address_cache)
@@ -236,8 +236,8 @@ class TestProcessSinglePair:
         calculator.detect_country_simple = Mock(side_effect=lambda addr: 'FOREIGN' if 'London' in addr else 'FRANCE')
 
         address_cache = {
-            ('owner123', 'Owner'): ('SW1A', '10 Downing Street, London', None, None),
-            ('housing456', 'Housing'): ('75015', '456 Rue de Vaugirard', 48.8422, 2.2996)
+            ('owner123', 'Owner'): ('SW1A', '10 Downing Street, London', None, None, None),
+            ('housing456', 'Housing'): ('75015', '456 Rue de Vaugirard', 48.8422, 2.2996, '75015')
         }
 
         distance, classification = calculator.process_single_pair('owner123', 'housing456', address_cache)
@@ -249,8 +249,8 @@ class TestProcessSinglePair:
     def test_addresses_without_coordinates_but_french(self, calculator):
         """Test pair where addresses have no coordinates but are in France."""
         address_cache = {
-            ('owner123', 'Owner'): ('75001', '123 Rue de Rivoli', None, None),
-            ('housing456', 'Housing'): ('75001', '456 Rue de Rivoli', None, None)
+            ('owner123', 'Owner'): ('75001', '123 Rue de Rivoli', None, None, '75001'),
+            ('housing456', 'Housing'): ('75001', '456 Rue de Rivoli', None, None, '75001')
         }
 
         distance, classification = calculator.process_single_pair('owner123', 'housing456', address_cache)
@@ -281,13 +281,13 @@ class TestBatchAddressData:
 
         # Mock cursor responses
         owner_rows = [
-            {'ref_id': 'owner1', 'postal_code': '75001', 'address': 'Addr 1', 'latitude': 48.86, 'longitude': 2.35},
-            {'ref_id': 'owner2', 'postal_code': '75002', 'address': 'Addr 2', 'latitude': 48.87, 'longitude': 2.34}
+            {'ref_id': 'owner1', 'postal_code': '75001', 'address': 'Addr 1', 'latitude': 48.86, 'longitude': 2.35, 'geo_code': '75001'},
+            {'ref_id': 'owner2', 'postal_code': '75002', 'address': 'Addr 2', 'latitude': 48.87, 'longitude': 2.34, 'geo_code': '75002'}
         ]
         housing_rows = [
-            {'ref_id': 'housing1', 'postal_code': '75011', 'address': 'Housing 1', 'latitude': 48.85, 'longitude': 2.38},
-            {'ref_id': 'housing2', 'postal_code': '75012', 'address': 'Housing 2', 'latitude': 48.84, 'longitude': 2.39},
-            {'ref_id': 'housing3', 'postal_code': '75013', 'address': 'Housing 3', 'latitude': 48.83, 'longitude': 2.36}
+            {'ref_id': 'housing1', 'postal_code': '75011', 'address': 'Housing 1', 'latitude': 48.85, 'longitude': 2.38, 'geo_code': '75111'},
+            {'ref_id': 'housing2', 'postal_code': '75012', 'address': 'Housing 2', 'latitude': 48.84, 'longitude': 2.39, 'geo_code': '75112'},
+            {'ref_id': 'housing3', 'postal_code': '75013', 'address': 'Housing 3', 'latitude': 48.83, 'longitude': 2.36, 'geo_code': '75113'}
         ]
 
         calculator.cursor.execute = Mock()
@@ -362,8 +362,8 @@ class TestFunctionalEndToEnd:
         calculator.calculate_french_geographic_rules = Mock(return_value=1)
 
         address_cache = {
-            ('owner1', 'Owner'): ('75001', '1 Rue de Rivoli', 48.8606, 2.3376),
-            ('housing1', 'Housing'): ('75001', '10 Rue de Rivoli', 48.8603, 2.3381)
+            ('owner1', 'Owner'): ('75001', '1 Rue de Rivoli', 48.8606, 2.3376, '75001'),
+            ('housing1', 'Housing'): ('75001', '10 Rue de Rivoli', 48.8603, 2.3381, '75001')
         }
 
         distance, classification = calculator.process_single_pair('owner1', 'housing1', address_cache)
@@ -380,8 +380,8 @@ class TestFunctionalEndToEnd:
         calculator.calculate_french_geographic_rules = Mock(return_value=4)
 
         address_cache = {
-            ('owner2', 'Owner'): ('75001', 'Paris Address', 48.8566, 2.3522),
-            ('housing2', 'Housing'): ('69001', 'Lyon Address', 45.7640, 4.8357)
+            ('owner2', 'Owner'): ('75001', 'Paris Address', 48.8566, 2.3522, '75001'),
+            ('housing2', 'Housing'): ('69001', 'Lyon Address', 45.7640, 4.8357, '69001')
         }
 
         distance, classification = calculator.process_single_pair('owner2', 'housing2', address_cache)
@@ -398,8 +398,8 @@ class TestFunctionalEndToEnd:
         calculator.detect_country_simple = Mock(side_effect=lambda addr: 'FOREIGN' if 'London' in addr else 'FRANCE')
 
         address_cache = {
-            ('owner3', 'Owner'): ('SW1A', '10 Downing Street, London', None, None),
-            ('housing3', 'Housing'): ('75001', 'Paris Address', 48.8566, 2.3522)
+            ('owner3', 'Owner'): ('SW1A', '10 Downing Street, London', None, None, None),
+            ('housing3', 'Housing'): ('75001', 'Paris Address', 48.8566, 2.3522, '75001')
         }
 
         distance, classification = calculator.process_single_pair('owner3', 'housing3', address_cache)
@@ -413,7 +413,7 @@ class TestFunctionalEndToEnd:
         Expected: No distance, classification = 7 (default)
         """
         address_cache = {
-            ('housing4', 'Housing'): ('75001', 'Paris Address', 48.8566, 2.3522)
+            ('housing4', 'Housing'): ('75001', 'Paris Address', 48.8566, 2.3522, '75001')
         }
 
         distance, classification = calculator.process_single_pair('owner4', 'housing4', address_cache)

@@ -38,6 +38,12 @@ const renderWithUser = (suspendedAt: string | null, suspendedCause: string | nul
           isLoading: false,
           isSuccess: false,
           isUninitialized: true
+        },
+        verifyTwoFactor: {
+          isError: false,
+          isLoading: false,
+          isSuccess: false,
+          isUninitialized: true
         }
       }
     }

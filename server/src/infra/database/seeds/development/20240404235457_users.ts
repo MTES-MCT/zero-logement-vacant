@@ -78,6 +78,12 @@ function createBaseUser(overrides: Partial<UserApi> & Pick<UserApi, 'email' | 'p
     suspendedAt: null,
     suspendedCause: null,
     deletedAt: null,
+    twoFactorSecret: null,
+    twoFactorEnabledAt: null,
+    twoFactorCode: null,
+    twoFactorCodeGeneratedAt: null,
+    twoFactorFailedAttempts: 0,
+    twoFactorLockedUntil: null,
     ...overrides
   };
 }

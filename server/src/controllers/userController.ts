@@ -122,7 +122,13 @@ async function create(request: Request, response: Response) {
     suspendedAt: null,
     suspendedCause: null,
     updatedAt: new Date().toJSON(),
-    deletedAt: null
+    deletedAt: null,
+    twoFactorSecret: null,
+    twoFactorEnabledAt: null,
+    twoFactorCode: null,
+    twoFactorCodeGeneratedAt: null,
+    twoFactorFailedAttempts: 0,
+    twoFactorLockedUntil: null
   };
 
   logger.info('Create user', {

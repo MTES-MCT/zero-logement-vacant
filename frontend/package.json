@@ -31,7 +31,7 @@
     "@lexical/list": "^0.37.0",
     "@lexical/react": "^0.36.2",
     "@lexical/text": "^0.36.2",
-    "@lexical/utils": "^0.36.2",
+    "@lexical/utils": "^0.37.0",
     "@maplibre/maplibre-gl-style-spec": "^23.3.0",
     "@mui/material": "^7.3.1",
     "@reduxjs/toolkit": "^1.9.7",

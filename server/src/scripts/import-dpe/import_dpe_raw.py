@@ -425,6 +425,27 @@ class DPERawImporter:
                 except (ValueError, TypeError):
                     return None
 
+            # Convert Lambert 93 (x, y) to WGS84 (lat, lon) if coordinates are available
+            latitude = None
+            longitude = None
+            x_ban = data.get('coordonnee_cartographique_x_ban')
+            y_ban = data.get('coordonnee_cartographique_y_ban')
+
+            if x_ban and y_ban:
+                try:
+                    # Lambert 93 to WGS84 conversion (simplified approximation)
+                    # For precise conversion, use pyproj library
+                    # This is a rough approximation for France
+                    lat_approx = 42.0 + (y_ban - 6000000.0) / 111320.0
+                    lon_approx = -5.0 + (x_ban - 700000.0) / (111320.0 * 0.7)  # 0.7 is cos(latitude) approximation
+
+                    # Validate coordinates are within France bounds
+                    if 41.0 <= lat_approx <= 51.5 and -5.5 <= lon_approx <= 10.0:
+                        latitude = lat_approx
+                        longitude = lon_approx
+                except (ValueError, TypeError):
+                    pass
+
             # Build record with ALL fields from JSON
             record = {}
 
@@ -437,6 +458,17 @@ class DPERawImporter:
                     value = parse_date(value)
 
                 record[db_field] = value
+
+            # Override/add calculated and RNB fields
+            if latitude:
+                record['latitude'] = latitude
+            if longitude:
+                record['longitude'] = longitude
+            # Ensure RNB fields are included (may be None)
+            if 'id_rnb' not in record:
+                record['id_rnb'] = data.get('id_rnb')
+            if 'provenance_id_rnb' not in record:
+                record['provenance_id_rnb'] = data.get('provenance_id_rnb')
 
             return record
 

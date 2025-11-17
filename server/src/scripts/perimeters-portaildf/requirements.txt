@@ -1,0 +1,7 @@
+# Dependencies for Cerema DF Portal synchronization scripts
+# Used by: daily-sync.sh, cerema-scraper.py, establishment-verifier.py, users-verifier.py
+
+requests>=2.31.0
+click>=8.1.7
+psycopg2-binary>=2.9.9
+python-dateutil>=2.8.2

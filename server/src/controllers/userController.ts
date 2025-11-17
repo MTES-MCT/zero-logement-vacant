@@ -119,6 +119,8 @@ async function create(request: Request, response: Response) {
     timePerWeek: null,
     activatedAt: new Date().toJSON(),
     lastAuthenticatedAt: null,
+    suspendedAt: null,
+    suspendedCause: null,
     updatedAt: new Date().toJSON(),
     deletedAt: null
   };

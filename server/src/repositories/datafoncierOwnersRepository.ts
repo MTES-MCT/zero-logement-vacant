@@ -1,31 +1,11 @@
 import type { DatafoncierOwner } from '@zerologementvacant/models';
 import { Array, pipe } from 'effect';
-import highland from 'highland';
 import { Knex } from 'knex';
 
 import db, { where } from '~/infra/database';
 import { OwnerApi } from '~/models/OwnerApi';
-import { sortQuery } from '~/models/SortApi';
-import {
-  DatafoncierOwnerSortApi,
-  ownerDatafoncierSchema,
-  validator
-} from '~/scripts/shared';
 import { ownerMatchTable } from './ownerMatchRepository';
 import { OwnerDBO, ownerTable, parseOwnerApi } from './ownerRepository';
-
-const FIELDS = [
-  'idprodroit',
-  'idpersonne',
-  'dlign3',
-  'dlign4',
-  'dlign5',
-  'dlign6',
-  'ddenom',
-  'jdatnss',
-  'catpro2txt',
-  'catpro3txt'
-];
 
 export const datafoncierOwnersTable = 'df_owners_nat_2024';
 export const DatafoncierOwners = (transaction = db) =>
@@ -82,36 +62,6 @@ class DatafoncierOwnersRepository {
       .orderBy(`${datafoncierOwnersTable}.dnulp`);
     return Array.dedupeWith(owners, (a, b) => a.idpersonne === b.idpersonne);
   }
-
-  stream(opts?: StreamOptions): Highland.Stream<DatafoncierOwner> {
-    const query = DatafoncierOwners()
-      .select(FIELDS)
-      .distinctOn('idpersonne')
-      .where((whereBuilder) =>
-        whereBuilder.whereNull('ccogrm').orWhereIn('ccogrm', ['0', '7', '8'])
-      )
-      // Avoid importing owners that have no address at all
-      .modify(hasAddress())
-      .modify(hasName())
-      .modify(
-        sortQuery(opts?.sort, {
-          keys: {
-            idprocpte: (query) =>
-              query.orderBy('idprocpte', opts?.sort?.idprocpte)
-          },
-          default: (query) => query.orderBy('idpersonne')
-        })
-      )
-      .stream();
-
-    return highland<DatafoncierOwner>(query).map(
-      validator.validate(ownerDatafoncierSchema)
-    );
-  }
-}
-
-interface StreamOptions {
-  sort?: DatafoncierOwnerSortApi;
 }
 
 export function hasAddress() {

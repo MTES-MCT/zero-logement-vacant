@@ -24,7 +24,6 @@ export const zlvApi = createApi({
     'Account',
     'Building',
     'Campaign',
-    'ContactPoint',
     'Datafoncier housing',
     'Draft',
     'Establishment',

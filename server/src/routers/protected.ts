@@ -8,7 +8,6 @@ import { object, string } from 'yup';
 import accountController from '~/controllers/accountController';
 import buildingController from '~/controllers/buildingController';
 import campaignController from '~/controllers/campaignController';
-import contactPointController from '~/controllers/contactPointController';
 import dashboardController from '~/controllers/dashboardController';
 import datafoncierController from '~/controllers/datafoncierHousingController';
 import draftController from '~/controllers/draftController';
@@ -395,31 +394,6 @@ router.delete(
   geoController.deleteGeoPerimeterListValidators,
   validator.validate,
   geoController.deleteGeoPerimeterList
-);
-
-router.get(
-  '/contact-points',
-  contactPointController.listContactPointsValidators,
-  validator.validate,
-  contactPointController.listContactPoints(false)
-);
-router.post(
-  '/contact-points',
-  contactPointController.createContactPointValidators,
-  validator.validate,
-  contactPointController.createContactPoint
-);
-router.put(
-  '/contact-points/:id',
-  contactPointController.updateContactPointValidators,
-  validator.validate,
-  contactPointController.updateContactPoint
-);
-router.delete(
-  '/contact-points/:id',
-  contactPointController.deleteContactPointValidators,
-  validator.validate,
-  contactPointController.deleteContactPoint
 );
 
 router.put(

@@ -55,7 +55,6 @@ import { HousingOwnerApi } from '~/models/HousingOwnerApi';
 import { LocalityApi, TaxKindsApi } from '~/models/LocalityApi';
 import { fromNoteDTO, HousingNoteApi, NoteApi } from '~/models/NoteApi';
 import { OwnerApi } from '~/models/OwnerApi';
-import { OwnerProspectApi } from '~/models/OwnerProspectApi';
 import { PrecisionApi } from '~/models/PrecisionApi';
 import { ProspectApi } from '~/models/ProspectApi';
 import {
@@ -165,23 +164,6 @@ export const genProspectApi = (
     hasAccount: true,
     hasCommitment: true,
     lastAccountRequestAt: new Date()
-  };
-};
-
-export const genOwnerProspectApi = (geoCode?: string): OwnerProspectApi => {
-  return {
-    id: uuidv4(),
-    email: genEmail(),
-    firstName: randomstring.generate(),
-    lastName: randomstring.generate(),
-    address: randomstring.generate(),
-    geoCode: geoCode ?? genGeoCode(),
-    notes: randomstring.generate(),
-    phone: randomstring.generate(),
-    invariant: randomstring.generate(),
-    callBack: true,
-    read: false,
-    createdAt: new Date()
   };
 };
 

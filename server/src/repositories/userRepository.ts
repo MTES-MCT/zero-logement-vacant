@@ -102,6 +102,8 @@ export interface UserDBO {
   role: number;
   activated_at: Date | string;
   last_authenticated_at: Date | string | null;
+  suspended_at: Date | string | null;
+  suspended_cause: string | null;
   deleted_at: Date | string | null;
   updated_at: Date | string;
   phone: string | null;
@@ -127,6 +129,10 @@ export const parseUserApi = (userDBO: UserDBO): UserApi => ({
   lastAuthenticatedAt: userDBO.last_authenticated_at
     ? new Date(userDBO.last_authenticated_at).toJSON()
     : null,
+  suspendedAt: userDBO.suspended_at
+    ? new Date(userDBO.suspended_at).toJSON()
+    : null,
+  suspendedCause: userDBO.suspended_cause,
   deletedAt: userDBO.deleted_at ? new Date(userDBO.deleted_at).toJSON() : null,
   updatedAt: new Date(userDBO.updated_at).toJSON(),
   phone: userDBO.phone,
@@ -158,6 +164,10 @@ export const formatUserApi = (userApi: UserApi): UserDBO => ({
   last_authenticated_at: userApi.lastAuthenticatedAt
     ? new Date(userApi.lastAuthenticatedAt).toJSON()
     : null,
+  suspended_at: userApi.suspendedAt
+    ? new Date(userApi.suspendedAt).toJSON()
+    : null,
+  suspended_cause: userApi.suspendedCause,
   deleted_at: userApi.deletedAt ? new Date(userApi.deletedAt).toJSON() : null,
   updated_at: new Date(userApi.updatedAt).toJSON(),
   phone: userApi.phone,

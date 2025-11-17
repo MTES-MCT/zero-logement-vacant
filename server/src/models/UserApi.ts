@@ -29,6 +29,8 @@ export function fromUserDTO(user: UserDTO): UserApi {
     twoFactorFailedAttempts: 0,
     twoFactorLockedUntil: null,
     lastAuthenticatedAt: new Date().toJSON(),
+    suspendedAt: null,
+    suspendedCause: null,
     updatedAt: new Date().toJSON(),
     deletedAt: null
   };
@@ -47,6 +49,8 @@ export function toUserDTO(user: UserApi): UserDTO {
     establishmentId: user.establishmentId,
     activatedAt: user.activatedAt,
     lastAuthenticatedAt: user.lastAuthenticatedAt,
+    suspendedAt: user.suspendedAt,
+    suspendedCause: user.suspendedCause,
     updatedAt: user.updatedAt
   };
 }

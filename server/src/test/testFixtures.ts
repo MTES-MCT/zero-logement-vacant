@@ -45,7 +45,6 @@ import { logger } from '~/infra/logger';
 import { AddressApi } from '~/models/AddressApi';
 import { BuildingApi } from '~/models/BuildingApi';
 import { CampaignApi } from '~/models/CampaignApi';
-import { ContactPointApi } from '~/models/ContactPointApi';
 import { DraftApi } from '~/models/DraftApi';
 import { EstablishmentApi } from '~/models/EstablishmentApi';
 import { EventApi, fromEventDTO } from '~/models/EventApi';
@@ -475,27 +474,10 @@ export const genSignupLinkApi = (prospectEmail: string): SignupLinkApi => ({
   expiresAt: addHours(new Date(), SIGNUP_LINK_EXPIRATION)
 });
 
-export const genContactPointApi = (
-  establishmentId: string
-): ContactPointApi => {
-  return {
-    id: uuidv4(),
-    establishmentId,
-    title: randomstring.generate(),
-    opening: randomstring.generate(),
-    address: `${faker.location.streetAddress()}, ${faker.location.zipCode()} ${faker.location.city()}`,
-    email: genEmail(),
-    geoCodes: [genGeoCode()]
-  };
-};
-
 export const genSettingsApi = (establishmentId: string): SettingsApi => {
   return {
     id: uuidv4(),
     establishmentId,
-    contactPoints: {
-      public: genBoolean()
-    },
     inbox: {
       enabled: true
     }

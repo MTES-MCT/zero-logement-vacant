@@ -88,7 +88,7 @@ function AddressSearchableSelectNext(props: AddressSearchableSelectNextProps) {
             </AppLink>
           </Stack>
         }
-        hintText="Cette adresse est la plus proche identifiée dans la Base Adresse Nationale. Ce format est recommandé pour vos courriers. Pour modifier l’adresse, commencez à saisir votre recherche et choisissez une des options dans la liste."
+        hintText="Adresse la plus proche dans la BAN, au format recommandé pour vos courriers (modifiable)."
         autocompleteProps={{
           autoHighlight: true,
           openOnFocus: true
@@ -108,10 +108,16 @@ function AddressSearchableSelectNext(props: AddressSearchableSelectNextProps) {
           buttonProps={{
             children: 'Ignorer',
             priority: 'secondary',
+            nativeButtonProps: {
+              'aria-label': 'Ignorer l’adresse',
+              title: 'Ignorer l’adresse'
+            },
             onClick: props.onIgnoreWarning
           }}
         >
-          L’adresse de la Base Adresse Nationale diffère de celle de la DGFIP.
+          <Typography component="span" variant="body1">
+            L’adresse de la Base Adresse Nationale diffère de celle de la DGFIP.
+          </Typography>
         </CallOut>
       )}
     </Stack>

@@ -38,7 +38,7 @@ describe('login view', () => {
   it('should render login form', () => {
     setup();
 
-    const email = screen.queryByLabelText(/^Adresse email/);
+    const email = screen.queryByLabelText(/^Adresse e-mail/);
     expect(email).toBeVisible();
     const password = screen.queryByLabelText(/^Mot de passe/);
     expect(password).toBeVisible();
@@ -52,7 +52,7 @@ describe('login view', () => {
 
     setup();
 
-    const email = screen.getByLabelText(/^Adresse email/);
+    const email = screen.getByLabelText(/^Adresse e-mail/);
     await user.type(email, 'test@test.test');
     const password = screen.getByLabelText(/^Mot de passe/);
     await user.type(password, faker.string.alphanumeric(16));
@@ -79,7 +79,7 @@ describe('login view', () => {
 
     setup();
 
-    const email = screen.getByLabelText(/^Adresse email/);
+    const email = screen.getByLabelText(/^Adresse e-mail/);
     await user.type(email, currentUser.email);
     const password = screen.getByLabelText(/^Mot de passe/);
     await user.type(password, 'password'); // Whatever you want

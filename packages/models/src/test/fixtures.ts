@@ -32,6 +32,8 @@ import { SignupLinkDTO } from '../SignupLinkDTO';
 import { TIME_PER_WEEK_VALUES } from '../TimePerWeek';
 import { UserDTO } from '../UserDTO';
 import { UserRole } from '../UserRole';
+import { RELATIVE_LOCATION_VALUES } from '../RelativeLocation';
+import { match } from 'ts-pattern';
 
 export function genGeoCode(): string {
   const geoCode = faker.helpers.arrayElement([
@@ -360,12 +362,25 @@ export function genHousingDTO(owner: OwnerDTO | null): HousingDTO {
 }
 
 export function genHousingOwnerDTO(owner: OwnerDTO): HousingOwnerDTO {
+  const relativeLocation = faker.helpers.arrayElement(RELATIVE_LOCATION_VALUES);
+  const absoluteDistance = match(relativeLocation)
+    .returnType<number | null>()
+    .with('same-commune', () => faker.number.int({ min: 0, max: 100 }))
+    .with('same-department', () => faker.number.int({ min: 100, max: 200 }))
+    .with('same-region', () => faker.number.int({ min: 200, max: 500 }))
+    .with('metropolitan', () => faker.number.int({ min: 500, max: 1000 }))
+    .with('overseas', () => faker.number.int({ min: 1000, max: 5000 }))
+    .with('other', () => null)
+    .exhaustive();
+
   return {
     ...owner,
     rank: faker.helpers.arrayElement([-2, -1, 0, 1, 2, 3, 4, 5, 6]),
     idprocpte: faker.string.numeric(11),
     idprodroit: faker.string.numeric(13),
     locprop: faker.number.int(9),
+    relativeLocation,
+    absoluteDistance,
     propertyRight: faker.helpers.arrayElement(PROPERTY_RIGHT_VALUES)
   };
 }
@@ -493,6 +508,8 @@ export function genUserDTO(
     timePerWeek: faker.helpers.arrayElement(TIME_PER_WEEK_VALUES),
     activatedAt: faker.date.recent().toJSON(),
     lastAuthenticatedAt: faker.date.recent().toJSON(),
+    suspendedAt: null,
+    suspendedCause: null,
     updatedAt: faker.date.recent().toJSON(),
     establishmentId: establishment?.id ?? null,
     role

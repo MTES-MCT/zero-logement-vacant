@@ -1,31 +1,128 @@
-# Import DPE
+# DPE Import - Complete Guide
 
-This set of scripts imports DPE (Diagnostic de Performance Énergétique - Energy Performance Certificate) data from the ADEME API into the database.
+This guide explains how to download and import DPE (Energy Performance Diagnostic) data from ADEME into PostgreSQL.
 
-The import process consists of two steps:
+## 📋 Table of Contents
 
-1. **Download** DPE data from the ADEME API using `import-ademe.py`
-2. **Import** data into PostgreSQL database using `import-dpe.py`
+- [Overview](#overview)
+- [Quick Start](#quick-start)
+- [Available Scripts](#available-scripts)
+- [Prerequisites](#prerequisites)
+- [DPE Raw Import - Details](#dpe-raw-import---details)
+- [DPE Buildings Import](#dpe-buildings-import)
+- [Verification](#verification)
+- [Troubleshooting](#troubleshooting)
+- [Additional Documentation](#additional-documentation)
 
-## Scripts
+---
 
-### 1. `import-ademe.py`
+## Overview
 
-Downloads all DPE data from the ADEME API with authentication and resumption support.
+This directory contains 3 main scripts:
 
-**Features:**
-- Automatic resume after interruption
-- Authentication with API key (via environment variable or argument)
-- JSON Lines streaming output
-- Connection retry logic
+1. **`import-ademe.py`** - Downloads DPE data from ADEME API
+2. **`import_dpe_raw.py`** - Imports raw DPE data (224 fields) into `dpe_raw` table
+3. **`import-dpe.py`** - Imports enriched DPE data into `buildings` table
+
+### Which script to use?
+
+**Just starting?** Follow the [Quick Start](#quick-start) section below.
+
+**Need to understand the workflow?** See all scripts in the [Available Scripts](#available-scripts) section.
+
+**Have a problem?** Check the [Troubleshooting](#troubleshooting) section.
+
+**Want to learn about coordinates?** Read [SPATIAL_INDEX_NOTE.md](SPATIAL_INDEX_NOTE.md)
+
+---
+
+## Quick Start
+
+### 🚀 DPE Raw Import (ALL 224 fields)
+
+```bash
+cd server/src/scripts/import-dpe
+
+# 1️⃣ Generate SQL schema
+python3 generate_schema.py dpe_data_complete.jsonl
+
+# 2️⃣ Create the table
+export DATABASE_URL="postgresql://user:password@localhost:5432/database"
+psql "$DATABASE_URL" -f create_dpe_raw_table_complete.sql
+
+# 3️⃣ Import the data
+python3 import_dpe_raw.py dpe_data_complete.jsonl --db-url "$DATABASE_URL"
+```
+
+**Expected output:**
+```
+✅ SQL schema written to: create_dpe_raw_table_complete.sql
+✅ Field list written to: dpe_raw_fields.py
+Total unique fields found: 224
+```
+
+### Useful Options
+
+```bash
+# Quick test (1 department, 1000 rows)
+python3 import_dpe_raw.py dpe_data_complete.jsonl \
+  --department 75 \
+  --limit 1000 \
+  --db-url "$DATABASE_URL"
+
+# Sequential import (recommended for debugging)
+python3 import_dpe_raw.py dpe_data_complete.jsonl \
+  --sequential \
+  --db-url "$DATABASE_URL"
+
+# Parallel import with 8 workers
+python3 import_dpe_raw.py dpe_data_complete.jsonl \
+  --max-workers 8 \
+  --db-url "$DATABASE_URL"
+```
+
+---
+
+## Available Scripts
+
+### 1. `generate_schema.py` 🆕
+
+Automatically generates SQL schema from your JSON data.
 
 **Usage:**
-```shell
-# Using environment variable (recommended)
+```bash
+# Analyze 10,000 records (default, fast)
+python3 generate_schema.py dpe_data_complete.jsonl
+
+# Analyze more records for better detection
+python3 generate_schema.py dpe_data_complete.jsonl --sample-size 50000
+
+# Analyze entire file (slow)
+python3 generate_schema.py dpe_data_complete.jsonl --sample-size 0
+```
+
+**Generated files:**
+- `create_dpe_raw_table_complete.sql` - PostgreSQL schema with all fields
+- `dpe_raw_fields.py` - Python field definitions for import
+
+**Duration:** ~30 seconds for 10,000 records
+
+---
+
+### 2. `import-ademe.py`
+
+Downloads DPE data from ADEME API.
+
+**Prerequisites:**
+- ADEME API key (get one at [data.ademe.fr](https://data.ademe.fr))
+
+**Usage:**
+```bash
+# With environment variable (recommended)
 export ADEME_API_KEY="your_api_key_here"
 python import-ademe.py
 
-# Or using command-line argument
+# Or with argument
 python import-ademe.py --api-key YOUR_API_KEY
 
 # With custom options
@@ -36,111 +133,86 @@ python import-ademe.py \
   --max-pages 100
 ```
 
-**Programmatic Usage:**
-```python
-from import_ademe import AdemeApiClient
+**Features:**
+- Automatic resume after interruption
+- JSON Lines streaming
+- Automatic retry on errors
 
-client = AdemeApiClient(api_key="YOUR_API_KEY")
-total_records = client.fetch_all_data(output_file="dpe_data.jsonl")
-```
+---
 
-### 2. `import-dpe.py`
+### 3. `import_dpe_raw.py`
 
-Processes and imports DPE data into PostgreSQL database.
+Imports **ALL 224 DPE fields** into `dpe_raw` table.
 
 **Features:**
-- Department-based parallel processing
-- Automatic deduplication by RNB ID
-- Multi-stage matching strategy (RNB ID → BAN ID → Plot ID)
-- Connection pooling with robust error handling
-- Comprehensive logging and statistics
-- Dry-run mode for testing
+- ✅ Imports ALL fields (not just 20)
+- ✅ Parallel or sequential processing
+- ✅ Automatic duplicate handling
+- ✅ Automatic resume if interrupted
+- ✅ Dry-run mode for testing
 
-**Matching Strategy:**
+**Usage:**
+```bash
+# Full import (all departments in parallel)
+python3 import_dpe_raw.py dpe_data_complete.jsonl --db-url "$DATABASE_URL"
+
+# Sequential import (one department at a time)
+python3 import_dpe_raw.py dpe_data_complete.jsonl --sequential --db-url "$DATABASE_URL"
+
+# Import single department
+python3 import_dpe_raw.py dpe_data_complete.jsonl --department 75 --db-url "$DATABASE_URL"
+
+# Resume from specific department
+python3 import_dpe_raw.py dpe_data_complete.jsonl --sequential --start-department 50 --db-url "$DATABASE_URL"
+
+# Dry-run (test without insertion)
+python3 import_dpe_raw.py dpe_data_complete.jsonl --department 69 --limit 1000 --dry-run --db-url "$DATABASE_URL"
+```
+
+**Available options:**
+- `--department` / `--dept` : Process single department (e.g., 75, 01, 2A)
+- `--start-department` : Resume from specific department
+- `--sequential` : Sequential import instead of parallel
+- `--max-workers` : Number of parallel workers (default: 6)
+- `--batch-size` : SQL batch size (default: 2000)
+- `--limit` : Limit number of rows to process
+- `--dry-run` : Simulation mode (no DB modification)
+- `--debug` : Enable debug mode
+
+**Estimated duration:** 2-4 hours for all of France (depending on configuration)
+
+---
+
+### 4. `import-dpe.py`
+
+Imports enriched DPE data into `buildings` table.
+
+**Matching strategy:**
 1. **Case 1**: Direct match via RNB ID
-   - 1.1: Building-level DPE (collective building or individual house)
-   - 1.2: Apartment-level DPE
+   - 1.1: Building DPE (apartment building or house)
+   - 1.2: Apartment DPE
 2. **Case 2**: Match via BAN address → Plot → Building
-   - 2.1: Building-level DPE
-   - 2.2: Apartment-level DPE
+   - 2.1: Building DPE
+   - 2.2: Apartment DPE
 
-## Prerequisites
-
-### ADEME API Key
-
-To use `import-ademe.py`, you need an ADEME API key:
-
-1. Create an account on [data.ademe.fr](https://data.ademe.fr)
-2. Generate an API key at [https://data.ademe.fr/me/api-keys](https://data.ademe.fr/me/api-keys)
-3. Set it as an environment variable:
-   ```shell
-   export ADEME_API_KEY="your_api_key_here"
-   ```
-
-### Python Environment
-
-A Python virtual environment with required dependencies:
-
-```shell
-# Create virtual environment
-python3 -m venv venv
-
-# Activate virtual environment
-source venv/bin/activate  # On macOS/Linux
-# or
-venv\Scripts\activate  # On Windows
-
-# Install dependencies
-pip install -r requirements.txt
-```
-
-### Database
-
-A PostgreSQL database must be migrated and accessible with the following credentials as command-line arguments.
-
-## Usage
-
-### Step 1: Download DPE Data
-
-```shell
-# Set your API key
-export ADEME_API_KEY="your_api_key_here"
-
-# Download data
-python import-ademe.py
-```
-
-This will create `dpe_data_complete.jsonl` with automatic resume support if interrupted.
-
-### Step 2: Import DPE Data into Database
-
-#### Complete Processing (All Departments)
-
-```shell
+**Usage:**
+```bash
+# Full import
 python import-dpe.py dpe_data_complete.jsonl \
   --db-url "postgresql://user:password@localhost:5432/database"
-```
 
-#### Single Department Processing
-
-```shell
+# Import single department
 python import-dpe.py dpe_data_complete.jsonl \
   --department 75 \
-  --db-url "postgresql://user:password@localhost:5432/database"
-```
+  --db-url "$DATABASE_URL"
 
-#### Dry Run (Test Mode)
-
-```shell
+# Dry run
 python import-dpe.py dpe_data_complete.jsonl \
   --dry-run \
   --max-lines 10000 \
-  --db-url "postgresql://user:password@localhost:5432/database"
-```
+  --db-url "$DATABASE_URL"
 
-#### Advanced Options
-
-```shell
+# Advanced options
 python import-dpe.py dpe_data_complete.jsonl \
   --department 13 \
   --max-workers 4 \
@@ -149,43 +221,160 @@ python import-dpe.py dpe_data_complete.jsonl \
   --db-timeout 30 \
   --sequential \
   --debug \
-  --db-url "postgresql://user:password@localhost:5432/database?sslmode=prefer"
+  --db-url "$DATABASE_URL"
 ```
 
-#### Resume from Specific Department
+**Fields updated in `buildings`:**
+- `dpe_id` : DPE identifier
+- `class_dpe` : Energy class (A to G)
+- `class_ges` : GHG emissions class
+- `dpe_date_at` : Certificate date
+- `dpe_type` : DPE type (method)
+- `heating_building` : Heating type
+- `dpe_import_match` : Matching method (rnb_id or plot_id)
 
-```shell
-# Process all departments starting from department 13 (inclusive)
+---
+
+## Prerequisites
+
+### 1. ADEME API Key
+
+To download data:
+
+1. Create account at [data.ademe.fr](https://data.ademe.fr)
+2. Generate API key at [data.ademe.fr/me/api-keys](https://data.ademe.fr/me/api-keys)
+3. Set environment variable:
+   ```bash
+   export ADEME_API_KEY="your_api_key_here"
+   ```
+
+### 2. Python Environment
+
+```bash
+# Create virtual environment
+python3 -m venv venv
+
+# Activate environment
+source venv/bin/activate  # macOS/Linux
+# or
+venv\Scripts\activate     # Windows
+
+# Install dependencies
+pip install -r requirements.txt
+```
+
+**Main dependencies:**
+- `psycopg2-binary` - PostgreSQL connection
+- `tqdm` - Progress bars
+- `requests` - API calls (import-ademe.py)
+
+### 3. PostgreSQL Database
+
+An accessible PostgreSQL database with connection URL:
+
+```bash
+export DATABASE_URL="postgresql://user:password@host:port/database"
+```
+
+---
+
+## DPE Raw Import - Details
+
+### `dpe_raw` Table Schema
+
+The table stores **224 fields** organized in categories:
+
+#### 🆔 Identifiers (~10 fields)
+- `dpe_id`, `numero_dpe`, `id_rnb`, etc.
+
+#### 📍 Location (~20 fields)
+- BAN and raw addresses
+- INSEE, postal, department, region codes
+- Cartographic coordinates (Lambert 93)
+
+#### ⚡ Energy Performance (~80 fields)
+- DPE and GHG labels
+- Consumption by usage (heating, DHW, lighting, cooling)
+- Consumption by energy (n1, n2, n3)
+- GHG emissions by usage and energy
+- Detailed energy costs
+
+#### 🏠 Building Characteristics (~30 fields)
+- Type, construction year, surface area
+- Number of levels, floors
+- Construction period
+
+#### 🔧 Technical Installations (~50 fields)
+- Heating (types, generators, configurations)
+- DHW - Domestic Hot Water (types, generators)
+- Ventilation (type, quality)
+
+#### 🛡️ Insulation and Losses (~20 fields)
+- Insulation quality (walls, floors, windows, roof)
+- Thermal losses (walls, thermal bridges)
+
+#### 📅 Dates (~10 fields)
+- Establishment, reception, validity, visit, modification
+
+#### 🔬 Technical Metadata (~4 fields)
+- DPE version, model, method
+
+### Automatically Created Indexes
+
+The schema creates 8 indexes to optimize performance:
+
+1. `idx_dpe_raw_code_insee` - INSEE code (municipalities)
+2. `idx_dpe_raw_code_postal` - Postal code
+3. `idx_dpe_raw_code_departement` - Department code
+4. `idx_dpe_raw_etiquette_dpe` - DPE label (A-G)
+5. `idx_dpe_raw_date_etablissement` - Establishment date
+6. `idx_dpe_raw_type_batiment` - Building type
+7. `idx_dpe_raw_numero_dpe` - DPE number
+8. `idx_dpe_raw_location` - Spatial coordinates (Lambert 93)
+
+### Geographic Coordinates
+
+⚠️ **Important note**: DPE data uses **Lambert 93** projection system (EPSG:2154), not latitude/longitude.
+
+Available fields:
+- `coordonnee_cartographique_x_ban` (Lambert 93)
+- `coordonnee_cartographique_y_ban` (Lambert 93)
+- `_geopoint` (string "lat,lon")
+
+For more details, see [SPATIAL_INDEX_NOTE.md](SPATIAL_INDEX_NOTE.md)
+
+---
+
+## DPE Buildings Import
+
+### Complete Workflow
+
+```bash
+# 1. Download data
+export ADEME_API_KEY="your_api_key_here"
+python import-ademe.py
+
+# 2. Import into buildings table
 python import-dpe.py dpe_data_complete.jsonl \
-  --start-department 13 \
   --db-url "postgresql://user:password@localhost:5432/database"
 ```
 
-**Available Options:**
-- `--db-url`: PostgreSQL connection URI (required) - Format: `postgresql://user:password@host:port/database?sslmode=prefer`
-- `--department`, `--dept`: Process a specific department only (e.g., 75, 01, 2A)
-- `--start-department`, `--start-dept`: Start processing from this department code when processing multiple departments (e.g., 75, 01, 2A)
-- `--max-lines`: Limit the number of input lines to process
-- `--dry-run`: Simulation mode (no database modifications)
-- `--debug`: Enable detailed debug logging
-- `--sequential`: Process departments one by one instead of in parallel
-- `--max-workers`: Number of parallel workers (default: 6)
-- `--batch-size`: SQL batch size (default: 500)
-- `--retry-attempts`: Connection retry attempts (default: 3)
-- `--db-timeout`: Database timeout in seconds (default: 30)
-- `--output-dir`: Custom output directory for intermediate files
+### Automatic Resume
 
-## Output
+Scripts support automatic resume:
 
-### Log Files
+- Intermediate files cached in `dpe_processing_YYYYMMDD/` or `dpe_output_YYYYMMDD/`
+- Rerun command to resume from where import stopped
+- To force new processing, delete cache directory
 
-The script generates detailed log files:
-- `dpe_processing_YYYYMMDD_HHMMSS.log` - Complete processing log
-- `dpe_case2_debug_YYYYMMDD_HHMMSS.log` - Debug log for plot_id matching
+### Generated Logs
 
-### Statistics
+- `dpe_processing_YYYYMMDD_HHMMSS.log` - Complete log
+- `dpe_case2_debug_YYYYMMDD_HHMMSS.log` - Plot match debugging
 
-At the end of processing, a comprehensive report is displayed:
+### Statistics Report
+
+At the end, a detailed report is displayed:
 
 ```
 FINAL REPORT - OPTIMIZED VERSION WITH ERROR HANDLING
@@ -198,16 +387,11 @@ SQL batch size: 500
 DB CONNECTION STATISTICS:
   Connections created: 156
   Failed connections: 3
-  Connection retries: 2
-  Successful retries: 2
-  Total connection errors: 3
   Connection success rate: 98.1%
 
 INPUT DATA:
   Lines processed: 1,234,567
   DPE with rnb_id: 856,234
-  rnb_id rate: 69.4%
-  Filtered lines (rnb_id provided): 856,234
   Duplicates removed: 45,123
   Departments processed: 96/96
 
@@ -225,65 +409,218 @@ DISTRIBUTION BY CASE:
   Case 1.2 (RNB + Apartment DPE): 123,456
   Case 2.1 (Plot + Building DPE): 45,678
   Case 2.2 (Plot + Apartment DPE): 28,398
-
-IGNORED ITEMS:
-  No join key: 123,456
-  Inadequate DPE method: 45,678
-  Unknown RNB IDs: 78,901
-  Unknown BAN IDs: 34,567
 ```
 
-## Data Processing Pipeline
+---
 
-1. **Preprocessing**: Split input file by department and deduplicate by RNB ID
-2. **Parallel Processing**: Each department is processed independently
-3. **Batch Matching**: Buildings are matched in batches via RNB ID or BAN address
-4. **Update**: Building records are updated with DPE information
-5. **Reporting**: Statistics and logs are generated
+## Verification
 
-## Resumption Support
+### Verify Generated SQL Schema
 
-The import script supports automatic resumption:
-- Intermediate files by department are cached in `dpe_processing_YYYYMMDD/` or `dpe_output_YYYYMMDD/`
-- If processing is interrupted, re-running with the same parameters will reuse cached files
-- To force a full reprocessing, delete the output directory
+```bash
+# View beginning of file
+head -50 create_dpe_raw_table_complete.sql
+
+# Count fields
+grep -c "^    [a-z_]" create_dpe_raw_table_complete.sql
+# Should return: 224
+
+# View created indexes
+grep "CREATE INDEX" create_dpe_raw_table_complete.sql
+```
+
+### Verify Created Table
+
+```bash
+# Connect to database
+psql "$DATABASE_URL"
+```
+
+```sql
+-- Table structure
+\d dpe_raw
+
+-- Number of columns
+SELECT COUNT(*)
+FROM information_schema.columns
+WHERE table_name = 'dpe_raw';
+-- Should return: 224
+
+-- Created indexes
+SELECT indexname, indexdef
+FROM pg_indexes
+WHERE tablename = 'dpe_raw';
+
+-- Number of records
+SELECT COUNT(*) FROM dpe_raw;
+
+-- Sample data
+SELECT
+  dpe_id,
+  code_insee_ban,
+  etiquette_dpe,
+  date_etablissement_dpe,
+  type_batiment
+FROM dpe_raw
+LIMIT 5;
+
+-- Distribution by DPE label
+SELECT
+  etiquette_dpe,
+  COUNT(*) as count
+FROM dpe_raw
+GROUP BY etiquette_dpe
+ORDER BY etiquette_dpe;
+
+-- Distribution by department
+SELECT
+  code_departement_ban,
+  COUNT(*) as count
+FROM dpe_raw
+GROUP BY code_departement_ban
+ORDER BY code_departement_ban;
+```
+
+---
 
 ## Troubleshooting
 
-### Connection Errors
+### Error: "relation dpe_raw already exists"
+
+Table already exists. Options:
+
+```sql
+-- Option 1: Drop and recreate (WARNING: data loss!)
+DROP TABLE dpe_raw CASCADE;
+
+-- Then rerun SQL script
+
+-- Option 2: Rename old table
+ALTER TABLE dpe_raw RENAME TO dpe_raw_old;
+```
+
+### Error: "column latitude does not exist"
+
+This means old SQL schema is being used. Regenerate it:
+
+```bash
+python3 generate_schema.py dpe_data_complete.jsonl
+```
+
+New schema uses correct columns (`coordonnee_cartographique_x_ban` and `coordonnee_cartographique_y_ban`).
+
+### JSONL file not found
+
+```bash
+# Check path
+ls -lh dpe_data_complete.jsonl
+
+# Navigate to correct directory
+cd server/src/scripts/import-dpe
+```
+
+### Not enough fields detected
+
+Increase sample size when generating schema:
+
+```bash
+python3 generate_schema.py dpe_data_complete.jsonl --sample-size 50000
+```
+
+### PostgreSQL connection errors
 
 If you encounter SSL or connection errors:
-- Use `--disable-ssl` flag
-- Increase `--db-timeout` (e.g., `--db-timeout 60`)
-- Increase `--retry-attempts` (e.g., `--retry-attempts 5`)
 
-### Performance Issues
+```bash
+# Increase timeout
+python3 import_dpe_raw.py dpe_data_complete.jsonl \
+  --db-url "$DATABASE_URL" \
+  --db-timeout 60
 
-- Reduce `--max-workers` if system is overloaded
-- Reduce `--batch-size` if you get timeout errors
-- Process departments individually using `--department`
+# Increase retry attempts
+python3 import-dpe.py dpe_data_complete.jsonl \
+  --db-url "$DATABASE_URL" \
+  --retry-attempts 5
+```
 
-### Memory Issues
+### Performance issues
 
-- Use `--max-lines` to limit processing
-- Process departments one at a time
-- Increase system swap space
+```bash
+# Reduce number of workers
+python3 import_dpe_raw.py dpe_data_complete.jsonl \
+  --db-url "$DATABASE_URL" \
+  --max-workers 2
 
-## Database Schema
+# Reduce batch size
+python3 import_dpe_raw.py dpe_data_complete.jsonl \
+  --db-url "$DATABASE_URL" \
+  --batch-size 1000
 
-The script updates the following fields in the `buildings` table:
+# Process one department at a time
+python3 import_dpe_raw.py dpe_data_complete.jsonl \
+  --db-url "$DATABASE_URL" \
+  --sequential
+```
 
-- `dpe_id`: DPE identifier number
-- `class_dpe`: Energy performance class (A to G)
-- `class_ges`: Greenhouse gas emissions class
-- `dpe_date_at`: DPE certificate date
-- `dpe_type`: Type of DPE (method used)
-- `heating_building`: Primary heating energy type
-- `dpe_import_match`: Matching method used (rnb_id or plot_id)
+### Memory issues
 
-## Notes
+```bash
+# Limit number of processed rows
+python3 import_dpe_raw.py dpe_data_complete.jsonl \
+  --db-url "$DATABASE_URL" \
+  --limit 100000
 
-- The script prioritizes building-level DPE over apartment-level DPE
-- More recent DPE certificates overwrite older ones
-- The matching is done first by RNB ID, then by BAN address if RNB ID is not available
-- Connection pooling and retry logic ensure reliability for long-running imports
+# Process department by department
+python3 import_dpe_raw.py dpe_data_complete.jsonl \
+  --db-url "$DATABASE_URL" \
+  --department 01
+
+python3 import_dpe_raw.py dpe_data_complete.jsonl \
+  --db-url "$DATABASE_URL" \
+  --department 02
+# etc.
+```
+
+---
+
+## Additional Documentation
+
+- **[SPATIAL_INDEX_NOTE.md](SPATIAL_INDEX_NOTE.md)** - Explanations about geographic coordinates
+- **Command-line help:**
+  ```bash
+  python3 generate_schema.py --help
+  python3 import_dpe_raw.py --help
+  python3 import-dpe.py --help
+  ```
+
+---
+
+## ✅ Complete Checklist
+
+### Preparation
+- [ ] ADEME API key obtained and configured
+- [ ] Python environment created and activated
+- [ ] Dependencies installed (`pip install -r requirements.txt`)
+- [ ] PostgreSQL connection configured (`DATABASE_URL`)
+
+### DPE Raw Import
+- [ ] JSONL file downloaded (`dpe_data_complete.jsonl`)
+- [ ] SQL schema generated (`generate_schema.py`)
+- [ ] Files created: `create_dpe_raw_table_complete.sql` and `dpe_raw_fields.py`
+- [ ] `dpe_raw` table created (224 columns)
+- [ ] Test import successful (small sample with `--department` and `--limit`)
+- [ ] Full import completed
+- [ ] Verifications done (row count, indexes, etc.)
+
+### DPE Buildings Import (optional)
+- [ ] `buildings` table migrated and ready
+- [ ] DPE import into `buildings` completed
+- [ ] Statistics report verified
+
+---
+
+## 🎉 You're Ready!
+
+For any questions or issues, consult additional documentation files or open an issue.
+
+Happy importing! 🚀

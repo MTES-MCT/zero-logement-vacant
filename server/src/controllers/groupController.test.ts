@@ -19,10 +19,12 @@ import {
   OCCUPANCY_VALUES,
   OWNER_AGE_VALUES,
   OWNER_KIND_VALUES,
+  OWNER_RANKS,
   OWNERSHIP_KIND_VALUES,
   ROOM_COUNT_VALUES,
   VACANCY_RATE_VALUES,
-  VACANCY_YEAR_VALUES
+  VACANCY_YEAR_VALUES,
+  type OwnerRank
 } from '@zerologementvacant/models';
 import { constants } from 'http2';
 import fp from 'lodash/fp';
@@ -56,6 +58,7 @@ import {
   GroupsHousing
 } from '~/repositories/groupRepository';
 import {
+  formatHousingOwnerApi,
   HousingOwnerDBO,
   HousingOwners
 } from '~/repositories/housingOwnerRepository';
@@ -72,6 +75,7 @@ import {
   genEstablishmentApi,
   genGroupApi,
   genHousingApi,
+  genHousingOwnerApi,
   genOwnerApi,
   genUserApi,
   oneOf
@@ -166,36 +170,51 @@ describe('Group API', () => {
 
   describe('POST /groups', () => {
     const testRoute = '/api/groups';
-    const owner = genOwnerApi();
-    const housings = [
-      genHousingApi(establishment.geoCodes[0]),
-      genHousingApi(establishment.geoCodes[0]),
-      genHousingApi(otherEstablishment.geoCodes[0])
-    ];
-    const payload: GroupPayloadDTO = {
+    const owners = faker.helpers.multiple(() => genOwnerApi());
+    const housings = faker.helpers.multiple(
+      () => {
+        const geoCode = faker.helpers.arrayElement([
+          ...establishment.geoCodes,
+          ...otherEstablishment.geoCodes
+        ]);
+        return genHousingApi(geoCode);
+      },
+      { count: 10 }
+    );
+    const basePayload = {
       title: 'Logements prioritaires',
-      description: 'Logements les plus énergivores',
-      housing: {
-        all: false,
-        ids: housings.map((housing) => housing.id),
-        filters: {}
-      }
+      description: 'Logements les plus énergivores'
     };
 
     beforeAll(async () => {
-      await Owners().insert(formatOwnerApi(owner));
+      await Owners().insert(owners.map(formatOwnerApi));
       await Housing().insert(housings.map(formatHousingRecordApi));
-      const ownersHousing = housings.map<HousingOwnerDBO>((housing) => ({
-        owner_id: owner.id,
-        housing_id: housing.id,
-        housing_geo_code: housing.geoCode,
-        rank: 1,
-        property_right: null
-      }));
-      await HousingOwners().insert(ownersHousing);
+      const housingOwners = housings
+        .flatMap((housing) => {
+          const randomRanks = faker.helpers.arrayElements(OWNER_RANKS);
+          const randomOwners = faker.helpers.arrayElements(
+            owners,
+            randomRanks.length
+          );
+          return randomOwners.map((owner, index) => ({
+            ...genHousingOwnerApi(housing, owner),
+            rank: randomRanks[index]
+          }));
+        })
+        .map(formatHousingOwnerApi);
+      await HousingOwners().insert(housingOwners);
     });
 
     it('should be forbidden for a non-authenticated user', async () => {
+      const payload: GroupPayloadDTO = {
+        ...basePayload,
+        housing: {
+          all: true,
+          ids: [],
+          filters: {}
+        }
+      };
+
       const { status } = await request(url).post(testRoute).send(payload).set({
         'Content-Type': 'application/json'
       });
@@ -203,6 +222,17 @@ describe('Group API', () => {
     });
 
     it('should create a group with all the housing belonging to the given establishment', async () => {
+      const payload: GroupPayloadDTO = {
+        ...basePayload,
+        housing: {
+          all: true,
+          ids: [],
+          filters: {
+            establishmentIds: [establishment.id]
+          }
+        }
+      };
+
       const { body, status } = await request(url)
         .post(testRoute)
         .send(payload)
@@ -212,12 +242,20 @@ describe('Group API', () => {
         .use(tokenProvider(user));
 
       expect(status).toBe(constants.HTTP_STATUS_CREATED);
+      const housings = await GroupsHousing().where({ group_id: body.id });
+      const owners = await HousingOwners()
+        .whereIn(
+          ['housing_geo_code', 'housing_id'],
+          housings.map((h) => [h.housing_geo_code, h.housing_id])
+        )
+        .where({ rank: 1 })
+        .distinctOn('owner_id');
       expect(body).toStrictEqual<GroupDTO>({
         id: expect.any(String),
         title: payload.title,
         description: payload.description,
-        housingCount: 2,
-        ownerCount: 1,
+        housingCount: housings.length,
+        ownerCount: owners.length,
         createdAt: expect.any(String),
         createdBy: toUserDTO(user),
         archivedAt: null
@@ -298,18 +336,20 @@ describe('Group API', () => {
     });
 
     it('should create a group with all the housing corresponding to the given criteria', async () => {
+      const payload: GroupPayloadDTO = {
+        ...basePayload,
+        housing: {
+          all: true,
+          ids: [],
+          filters: {
+            status: HousingStatus.FIRST_CONTACT
+          }
+        }
+      };
+
       const { body, status } = await request(url)
         .post(testRoute)
-        .send({
-          ...payload,
-          housing: {
-            all: true,
-            ids: [],
-            filters: {
-              status: HousingStatus.FIRST_CONTACT
-            }
-          }
-        } as GroupPayloadDTO)
+        .send(payload)
         .set({
           'Content-Type': 'application/json'
         })
@@ -341,7 +381,49 @@ describe('Group API', () => {
       });
     });
 
+    it('should create a group with ownerless housings too', async () => {
+      const housing = genHousingApi(establishment.geoCodes[0]);
+      await Housing().insert(formatHousingRecordApi(housing));
+
+      const payload: GroupPayloadDTO = {
+        ...basePayload,
+        housing: {
+          all: false,
+          ids: [...housings.map((housing) => housing.id), housing.id],
+          filters: {}
+        }
+      };
+
+      const { body, status } = await request(url)
+        .post(testRoute)
+        .send(payload)
+        .set({
+          'Content-Type': 'application/json'
+        })
+        .use(tokenProvider(user));
+
+      expect(status).toBe(constants.HTTP_STATUS_CREATED);
+
+      const groupHousing = await GroupsHousing()
+        .where({
+          group_id: body.id,
+          housing_geo_code: housing.geoCode,
+          housing_id: housing.id
+        })
+        .first();
+      expect(groupHousing).toBeDefined();
+    });
+
     it('should create events related to the group and its housing', async () => {
+      const payload: GroupPayloadDTO = {
+        ...basePayload,
+        housing: {
+          all: true,
+          ids: [],
+          filters: {}
+        }
+      };
+
       const { body, status } = await request(url)
         .post(testRoute)
         .send(payload)
@@ -350,9 +432,7 @@ describe('Group API', () => {
         })
         .use(tokenProvider(user));
       expect(status).toBe(constants.HTTP_STATUS_CREATED);
-      const establishmentHousings = housings.filter((housing) =>
-        establishment.geoCodes.includes(housing.geoCode)
-      );
+      const groupHousings = await GroupsHousing().where({ group_id: body.id })
       const events = await Events()
         .join(
           GROUP_HOUSING_EVENTS_TABLE,
@@ -363,7 +443,7 @@ describe('Group API', () => {
           group_id: body.id,
           type: 'housing:group-attached'
         });
-      expect(events).toBeArrayOfSize(establishmentHousings.length);
+      expect(events).toBeArrayOfSize(groupHousings.length);
       events.forEach((event) => {
         expect(event).toMatchObject<
           Partial<EventRecordDBO<'housing:group-attached'>>
@@ -494,8 +574,16 @@ describe('Group API', () => {
         owner_id: owner.id,
         housing_id: housing.id,
         housing_geo_code: housing.geoCode,
-        rank: 1,
-        property_right: null
+        rank: 1 as OwnerRank,
+        property_right: null,
+        locprop_relative_ban: null,
+        locprop_distance_ban: null,
+        locprop_source: null,
+        start_date: new Date(),
+        end_date: null,
+        origin: null,
+        idprocpte: null,
+        idprodroit: null
       }));
       await HousingOwners().insert(ownersHousing);
       await Groups().insert(formatGroupApi(group));
@@ -650,7 +738,15 @@ describe('Group API', () => {
         housing_id: housing.id,
         housing_geo_code: housing.geoCode,
         rank: 1,
-        property_right: null
+        property_right: null,
+        locprop_relative_ban: null,
+        locprop_distance_ban: null,
+        locprop_source: null,
+        start_date: new Date(),
+        end_date: null,
+        origin: null,
+        idprocpte: null,
+        idprodroit: null
       }));
       await HousingOwners().insert(ownersHousing);
       await Groups().insert(formatGroupApi(group));
@@ -784,7 +880,15 @@ describe('Group API', () => {
         housing_id: housing.id,
         housing_geo_code: housing.geoCode,
         rank: 1,
-        property_right: null
+        property_right: null,
+        locprop_relative_ban: null,
+        locprop_distance_ban: null,
+        locprop_source: null,
+        start_date: new Date(),
+        end_date: null,
+        origin: null,
+        idprocpte: null,
+        idprodroit: null
       }));
       await HousingOwners().insert(ownersHousing);
     });

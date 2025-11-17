@@ -38,6 +38,7 @@ from .assets.dwh.ingest.ingest_external_sources_asset import (
     setup_external_schema,
     import_all_external_sources,
 )
+from .assets.dwh.ingest.queries.external_sources_config import EXTERNAL_SOURCES
 from .assets.dwh.checks.ff_table_exists import check_ff_lovac_on_duckdb
 from .assets.dwh.upload.upload_ff_db_to_cellar import upload_ff_to_s3
 
@@ -73,24 +74,13 @@ daily_update_dwh_job = define_asset_job(
 )
 
 # Unified job for all external data sources (CEREMA, INSEE, DGALN, URSSAF, DGFIP)
+# Dynamically includes all sources defined in EXTERNAL_SOURCES
 yearly_update_all_external_sources_job = define_asset_job(
     name="datawarehouse_load_all_external_sources",
     selection=AssetSelection.assets(
         "setup_duckdb",
         setup_external_schema,
-        # CEREMA - LOVAC
-        "lovac_2019", "lovac_2020", "lovac_2021", "lovac_2022", "lovac_2023", "lovac_2024", "lovac_2025",
-        # CEREMA - Fichiers Fonciers
-        "ff_2019", "ff_2020", "ff_2021", "ff_2022", "ff_2023", "ff_2024", "ff_2024_buildings", "ff_owners",
-        # DGALN
-        "carte_des_loyers_2023", "zonage_abc",
-        # INSEE
-        "recensement_historique", "population_structures_ages", "grille_densite", "table_appartenance_geo",
-        # URSSAF
-        "etablissements_effectifs",
-        # DGFIP
-        "fiscalite_locale",
-        # Upload to S3
+        *list(EXTERNAL_SOURCES.keys()),  # Dynamically include all external sources
         upload_ff_to_s3
     ),
     description="Load all external data sources (CEREMA FF/LOVAC, INSEE, DGALN, URSSAF, DGFIP)",

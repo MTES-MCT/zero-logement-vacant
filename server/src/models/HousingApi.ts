@@ -108,6 +108,10 @@ export function fromDatafoncierHousing(
   const geoCode = housing.idcom;
   const commune = housing.idcomtxt;
 
+  const [longitude, latitude] = housing.geomloc
+    ? housing.geomloc.coordinates
+    : [null, null];
+
   return {
     id: uuidv4(),
     invariant: housing.invar,
@@ -148,8 +152,8 @@ export function fromDatafoncierHousing(
     buildingId: housing.idbat,
     plotId: housing.idpar,
     geolocation: housing.geomloc,
-    latitude: null,
-    longitude: null,
+    latitude,
+    longitude,
     cadastralReference: housing.idsec,
     campaignIds: null,
     deprecatedPrecisions: null,

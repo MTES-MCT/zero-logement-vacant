@@ -42,12 +42,14 @@ The following environment variables must be configured on Clever Cloud:
 > ```
 > This token is then used as `CEREMA_BEARER_TOKEN` for all API calls in the session.
 
-#### For Database
-- `DB_HOST`: Database host
-- `DB_PORT`: Database port (default: 5432)
-- `DB_NAME`: Database name
-- `DB_USER`: Database user
-- `DB_PASSWORD`: Database password
+#### For Database (Clever Cloud naming convention)
+- `POSTGRESQL_ADDON_HOST`: Database host
+- `POSTGRESQL_ADDON_PORT`: Database port (default: 5432)
+- `POSTGRESQL_ADDON_DB`: Database name
+- `POSTGRESQL_ADDON_USER`: Database user
+- `POSTGRESQL_ADDON_PASSWORD`: Database password
+
+> **Note**: These are automatically set by Clever Cloud when you link a PostgreSQL addon to your application.
 
 ### Cron Format
 

@@ -19,12 +19,19 @@ if [ -z "$CEREMA_USERNAME" ] || [ -z "$CEREMA_PASSWORD" ]; then
     exit 1
 fi
 
-# Check database connection variables
-if [ -z "$DB_HOST" ] || [ -z "$DB_NAME" ] || [ -z "$DB_USER" ] || [ -z "$DB_PASSWORD" ]; then
+# Check database connection variables (Clever Cloud naming convention)
+if [ -z "$POSTGRESQL_ADDON_HOST" ] || [ -z "$POSTGRESQL_ADDON_DB" ] || [ -z "$POSTGRESQL_ADDON_USER" ] || [ -z "$POSTGRESQL_ADDON_PASSWORD" ]; then
     echo "ERROR: Database connection variables not set"
-    echo "Required: DB_HOST, DB_NAME, DB_USER, DB_PASSWORD"
+    echo "Required: POSTGRESQL_ADDON_HOST, POSTGRESQL_ADDON_DB, POSTGRESQL_ADDON_USER, POSTGRESQL_ADDON_PASSWORD, POSTGRESQL_ADDON_PORT"
     exit 1
 fi
+
+# Export database variables for Python scripts
+export DB_HOST="$POSTGRESQL_ADDON_HOST"
+export DB_NAME="$POSTGRESQL_ADDON_DB"
+export DB_USER="$POSTGRESQL_ADDON_USER"
+export DB_PASSWORD="$POSTGRESQL_ADDON_PASSWORD"
+export DB_PORT="${POSTGRESQL_ADDON_PORT:-5432}"
 
 # Create logs directory if it doesn't exist
 mkdir -p logs

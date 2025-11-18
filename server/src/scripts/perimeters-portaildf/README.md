@@ -44,12 +44,12 @@ pip install requests click psycopg2-binary python-dateutil
 export CEREMA_USERNAME="your_cerema_username"
 export CEREMA_PASSWORD="your_cerema_password"
 
-# Set up database credentials
-export DB_HOST="localhost"
-export DB_PORT="5432"
-export DB_NAME="your_database"
-export DB_USER="your_username"
-export DB_PASSWORD="your_password"
+# Set up database credentials (Clever Cloud naming convention)
+export POSTGRESQL_ADDON_HOST="localhost"
+export POSTGRESQL_ADDON_PORT="5432"
+export POSTGRESQL_ADDON_DB="your_database"
+export POSTGRESQL_ADDON_USER="your_username"
+export POSTGRESQL_ADDON_PASSWORD="your_password"
 ```
 
 **Note**: Le script `cerema-sync.sh` s'authentifie automatiquement à chaque exécution :

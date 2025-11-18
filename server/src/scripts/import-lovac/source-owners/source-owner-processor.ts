@@ -90,7 +90,6 @@ export function sourceOwnerProcessor(opts: ProcessorOptions) {
           phone: existingOwner.phone ?? null,
           dataSource: existingOwner.data_source ?? undefined,
           kind: sourceOwner.ownership_type,
-          kindDetail: existingOwner.owner_kind_detail ?? null,
           entity: sourceOwner.entity,
           createdAt: existingOwner.created_at
             ? new Date(existingOwner.created_at).toJSON()

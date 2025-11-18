@@ -511,11 +511,13 @@ function HousingListFiltersSidemenu(props: Props) {
                 label="Commune"
                 placeholder="Rechercher une commune"
                 options={
-                  localityOptions?.toSorted((a, b) => {
-                    const cityA = getCity(a.geoCode) ?? '';
-                    const cityB = getCity(b.geoCode) ?? '';
-                    return cityA.localeCompare(cityB);
-                  }) ?? []
+                  localityOptions
+                    ? [...localityOptions].sort((a, b) => {
+                        const cityA = getCity(a.geoCode) ?? '';
+                        const cityB = getCity(b.geoCode) ?? '';
+                        return cityA.localeCompare(cityB);
+                      })
+                    : []
                 }
                 isOptionEqualToValue={(option, value) =>
                   option.geoCode === value.geoCode

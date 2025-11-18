@@ -88,9 +88,9 @@ function EventsHistory({ events, notes }: Props) {
         // Aggregate events
         return [
           <AggregatedEventCard
-            key={events
+            key={[...events]
               .map((event) => event.id)
-              .toSorted()
+              .sort()
               .join('-')}
             events={events as unknown as Array.NonEmptyReadonlyArray<Event>}
           />,

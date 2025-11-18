@@ -40,9 +40,9 @@ class DatafoncierHousingRepository {
 function list() {
   return DatafoncierHouses()
     .select('*')
-    .select(db.raw('ST_AsGeoJson(ST_Transform(ban_geom, 4326)) AS ban_geom'))
-    .select(db.raw('ST_AsGeoJson(ST_Transform(geomloc, 4326)) AS geomloc'))
-    .select(db.raw('ST_AsGeoJson(ST_Transform(geomrnb, 4326)) AS geomrnb'))
+    .select(db.raw('ST_AsGeoJson(ban_geom) AS ban_geom'))
+    .select(db.raw('ST_AsGeoJson(geomloc) AS geomloc'))
+    .select(db.raw('ST_AsGeoJson(geomrnb) AS geomrnb'))
     .whereIn('dteloctxt', ['APPARTEMENT', 'MAISON']);
 }
 

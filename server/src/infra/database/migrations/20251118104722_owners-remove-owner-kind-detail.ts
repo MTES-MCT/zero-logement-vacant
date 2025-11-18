@@ -1,6 +1,6 @@
 import type { Knex } from 'knex';
 
-const TABLE = 'df_owners_nat_2024';
+const TABLE = 'owners';
 
 export async function up(knex: Knex): Promise<void> {
   await knex.schema.alterTable(TABLE, (table) => {

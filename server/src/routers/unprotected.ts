@@ -60,15 +60,19 @@ router.post(
 router.post(
   '/authenticate',
   rateLimiter(),
-  accountController.signInValidators,
-  validator.validate,
+  validatorNext.validate(accountController.signInValidators),
   accountController.signIn
+);
+router.post(
+  '/authenticate/verify-2fa',
+  rateLimiter(),
+  validatorNext.validate(accountController.verifyTwoFactorValidators),
+  accountController.verifyTwoFactor
 );
 router.post(
   '/account/reset-password',
   rateLimiter(),
-  accountController.resetPasswordValidators,
-  validator.validate,
+  validatorNext.validate(accountController.resetPasswordValidators),
   accountController.resetPassword
 );
 

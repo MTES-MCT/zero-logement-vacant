@@ -14,12 +14,12 @@ CC_PYTHON_VERSION=3.11
 CEREMA_USERNAME=your_cerema_username
 CEREMA_PASSWORD=your_cerema_password
 
-# Database
-DB_HOST=your_postgresql_host
-DB_PORT=5432
-DB_NAME=your_database
-DB_USER=your_user
-DB_PASSWORD=your_password
+# Database (automatically set by Clever Cloud PostgreSQL addon)
+POSTGRESQL_ADDON_HOST=your_postgresql_host
+POSTGRESQL_ADDON_PORT=5432
+POSTGRESQL_ADDON_DB=your_database
+POSTGRESQL_ADDON_USER=your_user
+POSTGRESQL_ADDON_PASSWORD=your_password
 ```
 
 ### 2. Verify Configuration Files
@@ -114,11 +114,11 @@ tail -f /app/server/src/scripts/perimeters-portaildf/logs/sync-*.log
    ```
 
 ### Database Connection Error
-1. Check all `DB_*` variables
+1. Check all `POSTGRESQL_ADDON_*` variables (automatically set by Clever Cloud addon)
 2. Test connection from SSH:
    ```bash
    clever ssh
-   psql "postgresql://$DB_USER:$DB_PASSWORD@$DB_HOST:$DB_PORT/$DB_NAME" -c "SELECT 1"
+   psql "postgresql://$POSTGRESQL_ADDON_USER:$POSTGRESQL_ADDON_PASSWORD@$POSTGRESQL_ADDON_HOST:$POSTGRESQL_ADDON_PORT/$POSTGRESQL_ADDON_DB" -c "SELECT 1"
    ```
 
 ## 📚 Documentation

@@ -649,7 +649,6 @@ export function genOwnerDTO(): OwnerDTO {
     }),
     phone: faker.phone.number().replace(/\s+/g, ''),
     kind,
-    kindDetail: null,
     siren: kind === 'Particulier' ? null : faker.string.numeric(9),
     createdAt: faker.date.past().toJSON(),
     updatedAt: faker.date.recent().toJSON()

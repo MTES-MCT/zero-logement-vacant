@@ -30,7 +30,6 @@ export function toOwnerDTO(owner: OwnerApi): OwnerDTO {
       'banAddress',
       'additionalAddress',
       'kind',
-      'kindDetail',
       'siren',
       'createdAt',
       'updatedAt'
@@ -94,7 +93,7 @@ export function fromDatafoncierOwner(
       !!birthdate && isValid(new Date(birthdate))
         ? birthdate.substring(0, 'yyyy-mm-dd'.length)
         : null,
-    kind: match(owner.catpro3.slice(-3))
+    kind: match(owner.catpro3)
       .returnType<OwnerKindLabel>()
       .with(
         'P1a',
@@ -151,8 +150,6 @@ export function fromDatafoncierOwner(
       .with('X1a', () => 'Particulier')
       .with('999', () => 'Absence de propriétaire')
       .otherwise(() => 'Autres'),
-    kindDetail: owner.catpro3txt,
-    // TODO: do something with this
     entity: null,
     administrator: null,
     email: null,

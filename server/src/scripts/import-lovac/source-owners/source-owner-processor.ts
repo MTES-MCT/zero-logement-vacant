@@ -57,7 +57,6 @@ export function sourceOwnerProcessor(opts: ProcessorOptions) {
             phone: null,
             dataSource: 'lovac-2025',
             kind: sourceOwner.ownership_type,
-            kindDetail: null,
             entity: sourceOwner.entity,
             createdAt: now,
             updatedAt: now

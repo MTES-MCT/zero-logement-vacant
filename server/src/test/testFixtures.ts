@@ -208,7 +208,6 @@ export const genOwnerApi = (): OwnerApi => {
       null,
       ...Object.values(OWNER_KIND_LABELS)
     ]),
-    kindDetail: randomstring.generate(),
     administrator: null,
     banAddress: null,
     additionalAddress: randomstring.generate(),

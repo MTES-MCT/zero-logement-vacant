@@ -108,7 +108,6 @@ export function toOwnerApi(owner: DatafoncierOwner): OwnerApi {
         : owner.ddenom,
     birthDate: !!birthdate && isValid(birthdate) ? birthdate.toJSON() : null,
     kind: kinds[owner.catpro2txt] ?? 'Autre',
-    kindDetail: owner.catpro3txt,
     entity: 'personnes-physiques',
     administrator: null,
     email: null,

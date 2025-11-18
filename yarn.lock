@@ -12646,6 +12646,7 @@ __metadata:
   dependencies:
     "@faker-js/faker": "npm:^8.4.1"
     "@tsconfig/node20": "npm:^20.1.6"
+    "@turf/turf": "npm:^7.1.0"
     "@types/geojson": "npm:^7946.0.16"
     "@types/node": "npm:^20.19.10"
     "@zerologementvacant/draft": "workspace:*"

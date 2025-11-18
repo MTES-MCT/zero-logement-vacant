@@ -10,6 +10,7 @@ import { match } from 'ts-pattern';
 import { v4 as uuidv4 } from 'uuid';
 
 import { EventApi } from '~/models/EventApi';
+import { mapEntity } from '~/scripts/import-lovac/source-owners/source-owner';
 
 export interface OwnerApi extends OwnerDTO {
   dataSource?: string;
@@ -160,7 +161,8 @@ export function fromDatafoncierOwner(
       .with('X1a', () => 'Particulier')
       .with('999', () => 'Absence de propriétaire')
       .otherwise(() => 'Autres'),
-    entity: null,
+    // Can be '1A' for example but we only need the first character
+    entity: mapEntity(owner.ccogrm?.substring(0, 1) ?? null),
     administrator: null,
     email: null,
     phone: null,

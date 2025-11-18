@@ -25,6 +25,7 @@ import {
   genGroupDTO,
   genHousingDTO,
   genHousingOwnerDTO,
+  genIdprocpte,
   genOwnerDTO,
   genUserDTO
 } from '@zerologementvacant/models/fixtures';
@@ -216,7 +217,8 @@ describe('Housing list view', () => {
     let datafoncierHousing: DatafoncierHousing;
 
     beforeEach(() => {
-      datafoncierHousing = genDatafoncierHousing();
+      const idprocpte = genIdprocpte()
+      datafoncierHousing = genDatafoncierHousing(idprocpte);
       data.datafoncierHousings.push(datafoncierHousing);
     });
 

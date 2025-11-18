@@ -1,8 +1,11 @@
 import axios from 'axios';
 import { parse as fromCSV } from 'csv-parse/sync';
 import { stringify as toCSV } from 'csv-stringify/sync';
+import { createLogger } from '~/infra/logger';
 
 import { Address, AddressQuery, BAN, Point } from '~/services/ban/ban';
+
+const logger = createLogger('ban-api');
 
 class BanAPI implements BAN {
   readonly http = axios.create({
@@ -74,7 +77,7 @@ class BanAPI implements BAN {
 
     // Tells the API that geoCode is an INSEE code
 
-    form.append('citycode', 'geoCode');
+    // form.append('citycode', 'geoCode');
     form.append('result_columns', 'result_id');
     form.append('result_columns', 'result_label');
     form.append('result_columns', 'result_type');
@@ -86,7 +89,15 @@ class BanAPI implements BAN {
     form.append('result_columns', 'longitude');
     form.append('result_columns', 'result_score');
 
-    const { data } = await this.http.post<string>('/reverse/csv', form);
+    const { data } = await this.http
+      .post<string>('/reverse/csv', form)
+      .catch((error) => {
+        logger.error('BAN API error', {
+          name: error.name,
+          message: error.message
+        });
+        throw error;
+      });
     const records: ReadonlyArray<BanAddress & P> = fromCSV(data, {
       columns: true
     });

@@ -237,8 +237,6 @@ const create: RequestHandler<
       }
     });
 
-  // Call posthog feature flag
-  logger.debug('Creating housing with the new creation flow...');
   const existingOwners = (await ownerRepository.find({
     filters: {
       idpersonne: datafoncierOwners.map((owner) => owner.idpersonne)
@@ -250,13 +248,15 @@ const create: RequestHandler<
   const missingOwners = pipe(
     datafoncierOwners,
     Array.filter((datafoncierOwner) => {
-      return Array.containsWith<{ idpersonne: string }>(
+      // Keep owners that do not exist
+      return !Array.containsWith<{ idpersonne: string }>(
         DATAFONCIER_OWNER_EQUIVALENCE
       )(existingOwners, datafoncierOwner);
     }),
     Array.map(fromDatafoncierOwner)
   );
   logger.debug('Owners found from Datafoncier owners', {
+    idprocpte: datafoncierHousing.idprocpte,
     existing: existingOwners,
     missing: missingOwners
   });

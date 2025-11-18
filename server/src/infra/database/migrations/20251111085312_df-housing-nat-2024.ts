@@ -121,18 +121,21 @@ export async function up(knex: Knex): Promise<void> {
     table.string('catproges2');
     table.string('locprop', 1);
     table.string('locproptxt');
-    table.specificType('geomloc', 'geometry(Point, 4326)');
+    // Store with unspecified SRID but converted to EPSG:4326 on query
+    table.specificType('geomloc', 'geometry(Point)');
     table.string('source_geo');
     table.string('vecteur', 1);
     table.string('ban_id');
     table.string('ban_type');
     table.decimal('ban_score');
     table.string('ban_cp', 5);
-    table.specificType('ban_geom', 'geometry(Point, 4326)');
+    // Store with unspecified SRID but converted to EPSG:4326 on query
+    table.specificType('ban_geom', 'geometry(Point)');
     table.integer('dis_ban_ff');
     table.string('rnb_id');
     table.string('rnb_id_score', 1);
-    table.specificType('geomrnb', 'geometry(Point, 4326)');
+    // Store with unspecified SRID but converted to EPSG:4326 on query
+    table.specificType('geomrnb', 'geometry(Point)');
     table.integer('idpk');
 
     table.index('idprocpte');

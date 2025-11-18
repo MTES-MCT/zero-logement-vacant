@@ -1,11 +1,8 @@
 import type { DatafoncierOwner } from '@zerologementvacant/models';
-import { Array, pipe } from 'effect';
+import { Array } from 'effect';
 import { Knex } from 'knex';
 
 import db, { where } from '~/infra/database';
-import { OwnerApi } from '~/models/OwnerApi';
-import { ownerMatchTable } from './ownerMatchRepository';
-import { OwnerDBO, ownerTable, parseOwnerApi } from './ownerRepository';
 
 export const datafoncierOwnersTable = 'df_owners_nat_2024';
 export const DatafoncierOwners = (transaction = db) =>
@@ -33,25 +30,6 @@ class DatafoncierOwnersRepository {
       .count({ total: '*' });
 
     return Number(result[0] ? result[0].total : 0);
-  }
-
-  async find(opts?: FindOptions): Promise<OwnerApi[]> {
-    const whereOptions = where<DatafoncierOwnerFilters>(['idprocpte']);
-
-    const owners: OwnerDBO[] = await DatafoncierOwners()
-      .where(whereOptions(opts?.filters ?? {}))
-      .join(
-        ownerMatchTable,
-        `${ownerMatchTable}.idpersonne`,
-        `${datafoncierOwnersTable}.idpersonne`
-      )
-      .join(ownerTable, `${ownerTable}.id`, `${ownerMatchTable}.owner_id`)
-      .orderBy(`${datafoncierOwnersTable}.dnulp`);
-    return pipe(
-      owners,
-      Array.dedupeWith((a, b) => a.idpersonne === b.idpersonne),
-      Array.map(parseOwnerApi)
-    );
   }
 
   async findDatafoncierOwners(opts?: FindOptions): Promise<DatafoncierOwner[]> {

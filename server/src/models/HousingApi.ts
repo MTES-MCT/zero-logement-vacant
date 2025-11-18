@@ -102,11 +102,11 @@ export function fromDatafoncierHousing(
   housing: DatafoncierHousing,
   options: FromDatafoncierHousingOptions
 ): HousingRecordApi {
-  const streetNumber = housing.dnvoiri.replace('^0+', '');
-  const repetition = housing.dindic;
-  const street = housing.dvoilib;
+  const streetNumber = housing.dnvoiri.replace(/^0+/, '') ?? '';
+  const repetition = housing.dindic ?? '';
+  const street = housing.dvoilib.trim();
   const geoCode = housing.idcom;
-  const commune = housing.idcomtxt;
+  const commune = housing.idcomtxt.trim();
 
   const [longitude, latitude] = housing.geomloc
     ? housing.geomloc.coordinates

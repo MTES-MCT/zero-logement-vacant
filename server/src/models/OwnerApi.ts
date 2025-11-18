@@ -5,7 +5,7 @@ import {
   type OwnerKindLabel
 } from '@zerologementvacant/models';
 import { isValid } from 'date-fns';
-import { Equivalence, pipe, Predicate, Record, Struct } from 'effect';
+import { Array, Equivalence, pipe, Predicate, Record, Struct } from 'effect';
 import { match } from 'ts-pattern';
 import { v4 as uuidv4 } from 'uuid';
 
@@ -78,13 +78,23 @@ export function fromDatafoncierOwner(
     ? owner.jdatnss.split('/').reverse().join('-')
     : undefined;
 
+  const rawAddress: string[] | null = pipe(
+    [
+      owner.dlign3,
+      // Remove leading zeros from dlign4 (street number)
+      owner.dlign4?.replace(/^0+/, '') ?? null,
+      owner.dlign5,
+      owner.dlign6
+    ],
+    Array.filter(Predicate.isNotNull),
+    Array.filter((line) => line.length > 0)
+  );
+
   return {
     id: uuidv4(),
     idpersonne: owner.idpersonne,
     dataSource: 'ff',
-    rawAddress: [owner.dlign3, owner.dlign4, owner.dlign5, owner.dlign6].filter(
-      Predicate.compose(Predicate.isNotNull, (line) => line.length > 0)
-    ),
+    rawAddress,
     fullName:
       owner.catpro2txt === 'PERSONNE PHYSIQUE'
         ? owner.ddenom.replace('/', ' ')

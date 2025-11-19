@@ -3,13 +3,13 @@ version: 2
 models:
   - name: int_zff_buildings
     config:
-      materialized: table
+      materialized: view
   - name: int_zff_housings
     config:
-      materialized: table
+      materialized: view
   - name: int_zff_owners
     config:
-      materialized: table
+      materialized: view
   - name: int_zff_owners_housing
     config:
-      materialized: table
+      materialized: view

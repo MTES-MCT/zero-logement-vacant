@@ -739,3 +739,5 @@ models:
         description: "Libellé synthétique du type d'établissement"
       - name: covered_by_state_service
         description: "Indicateur si l'établissement est couvert par un service de l'État"
+
+  - name: marts_productions_events

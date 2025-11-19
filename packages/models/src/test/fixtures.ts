@@ -92,6 +92,21 @@ export function genAddressDTO(): AddressDTO {
   };
 }
 
+export function genBuildingDTO(): BuildingDTO {
+  const housingCount = faker.number.int({ min: 0, max: 100 });
+  const rentHousingCount = faker.number.int({ min: 0, max: housingCount });
+  const vacantHousingCount = faker.number.int({
+    min: 0,
+    max: housingCount - rentHousingCount
+  });
+  return {
+    id: faker.string.uuid(),
+    housingCount,
+    rentHousingCount,
+    vacantHousingCount
+  };
+}
+
 export function genCampaignDTO(group?: GroupDTO): CampaignDTO {
   return {
     id: faker.string.uuid(),

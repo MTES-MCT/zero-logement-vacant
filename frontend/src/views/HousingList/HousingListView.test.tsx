@@ -20,6 +20,7 @@ import {
   UserRole
 } from '@zerologementvacant/models';
 import {
+  genBuildingDTO,
   genCampaignDTO,
   genDatafoncierHousing,
   genGroupDTO,
@@ -218,7 +219,8 @@ describe('Housing list view', () => {
 
     beforeEach(() => {
       const idprocpte = genIdprocpte()
-      datafoncierHousing = genDatafoncierHousing(idprocpte);
+      const building = genBuildingDTO();
+      datafoncierHousing = genDatafoncierHousing(idprocpte, building.id);
       data.datafoncierHousings.push(datafoncierHousing);
     });
 

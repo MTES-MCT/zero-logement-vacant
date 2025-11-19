@@ -1,29 +1,35 @@
 import { faker } from '@faker-js/faker';
-import type { DatafoncierOwner } from '@zerologementvacant/models';
 import { genDatafoncierHousing } from '@zerologementvacant/models/fixtures';
 import type { Geometry } from 'geojson';
 import type { Knex } from 'knex';
 
-import { groupBy } from '~/infra/database/index';
 import { Buildings } from '~/repositories/buildingRepository';
-import { DatafoncierOwners } from '~/repositories/datafoncierOwnersRepository';
+import { Establishments } from '~/repositories/establishmentRepository';
 
 const TABLE = 'df_housing_nat_2024';
 
 export async function seed(knex: Knex): Promise<void> {
   await knex(TABLE).truncate();
 
-  const buildings = await Buildings(knex);
+  const [buildings, establishments] = await Promise.all([
+    Buildings(knex),
+    Establishments().where({ available: true })
+  ]);
 
-  const datafoncierOwners: DatafoncierOwner[] = await DatafoncierOwners(knex)
-    .select()
-    .modify(groupBy<DatafoncierOwner>(['idprocpte']));
-  const datafoncierHousings = datafoncierOwners.map((datafoncierOwner) => {
-    const building = faker.helpers.arrayElement(buildings)
-    return {
-      ...genDatafoncierHousing(datafoncierOwner.idprocpte, building.id),
-      idbat: faker.helpers.arrayElement(buildings).id
-    };
+  const datafoncierHousings = establishments.flatMap((establishment) => {
+    return faker.helpers.multiple(
+      () => {
+        const idprocpte = faker.helpers.arrayElement(
+          establishment.localities_geo_code
+        );
+        const building = faker.helpers.arrayElement(buildings);
+
+        return genDatafoncierHousing(idprocpte, building.id);
+      },
+      {
+        count: { min: 50, max: 200 }
+      }
+    );
   });
 
   console.log(

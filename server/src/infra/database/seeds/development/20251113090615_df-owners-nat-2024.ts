@@ -1,26 +1,27 @@
 import { faker } from '@faker-js/faker/locale/fr';
-import type { DatafoncierOwner } from '@zerologementvacant/models';
-import { genDatafoncierOwner } from '@zerologementvacant/models/fixtures';
+import {
+  genDatafoncierOwners
+} from '@zerologementvacant/models/fixtures';
 import type { Knex } from 'knex';
 
-import { Establishments } from '~/repositories/establishmentRepository';
+import { DatafoncierHouses } from '~/repositories/datafoncierHousingRepository';
+
 
 const TABLE = 'df_owners_nat_2024';
 
 export async function seed(knex: Knex): Promise<void> {
   await knex(TABLE).truncate();
 
-  const establishments = await Establishments(knex).where('available', true);
-  const datafoncierOwners = establishments.flatMap<DatafoncierOwner>(
-    (establishment) => {
-      const geoCode = faker.helpers.arrayElement(
-        establishment.localities_geo_code
-      );
-      return faker.helpers.multiple(() => genDatafoncierOwner(geoCode), {
-        count: 10000
+  const datafoncierHousings = await DatafoncierHouses();
+  const datafoncierOwners = datafoncierHousings.flatMap(
+    (datafoncierHousing) => {
+      return faker.helpers.multiple(() => {
+        const count = faker.number.int({ min: 1, max: 6 });
+        return genDatafoncierOwners(datafoncierHousing.idprocpte, count);
       });
     }
   );
+
   console.log(`Inserting ${datafoncierOwners.length} datafoncier owners...`);
   await knex.batchInsert(TABLE, datafoncierOwners);
 }

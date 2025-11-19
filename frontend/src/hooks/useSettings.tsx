@@ -11,21 +11,8 @@ export function useSettings(establishmentId?: string) {
 
   const [upsertSettings] = useUpsertSettingsMutation();
 
-  async function togglePublishContactPoints() {
-    if (settings && establishmentId) {
-      await upsertSettings({
-        establishmentId,
-        settings: {
-          contactPoints: {
-            public: !settings.contactPoints.public,
-          },
-        },
-      });
-    }
-  }
-
   return {
     settings,
-    togglePublishContactPoints,
+    upsertSettings,
   };
 }

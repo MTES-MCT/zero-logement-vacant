@@ -7,9 +7,6 @@ interface FindOneOptions {
 }
 
 const DEFAULT_SETTINGS: SettingsDTO = {
-  contactPoints: {
-    public: false
-  },
   inbox: {
     enabled: true
   }

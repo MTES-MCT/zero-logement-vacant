@@ -32,8 +32,7 @@ import {
   genGeoCode,
   genNoteDTO,
   genUserDTO,
-  genDatafoncierHousing as genDatafoncierHousingDTO,
-  genIdprocpte
+  genDatafoncierHousing as genDatafoncierHousingDTO
 } from '@zerologementvacant/models/fixtures';
 import { addHours } from 'date-fns';
 import type { BBox } from 'geojson';
@@ -624,9 +623,10 @@ export const genDatafoncierOwner = (
 };
 
 export const genDatafoncierHousing = (
-  idprocpte: string = genIdprocpte()
+  idprocpte: string,
+  idbat: string
 ): DatafoncierHousing => {
-  return genDatafoncierHousingDTO(idprocpte);
+  return genDatafoncierHousingDTO(idprocpte, idbat);
 };
 
 export const genOwnerMatch = (

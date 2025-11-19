@@ -1,17 +1,22 @@
 import type { DatafoncierHousing } from '@zerologementvacant/models';
+import { genIdprocpte } from '@zerologementvacant/models/fixtures';
 
 import db from '~/infra/database';
 import createDatafoncierHousingRepository, {
   DatafoncierHouses
 } from '~/repositories/datafoncierHousingRepository';
-import { genDatafoncierHousing } from '~/test/testFixtures';
+import { genBuildingApi, genDatafoncierHousing } from '~/test/testFixtures';
+import { Buildings, formatBuildingApi } from '../buildingRepository';
 
 describe('DatafoncierHousingRepository', () => {
   const repository = createDatafoncierHousingRepository();
 
   describe('findOne', () => {
     it('should find an existing datafoncier housing', async () => {
-      const datafoncierHousing = genDatafoncierHousing();
+      const idprocpte = genIdprocpte();
+      const building = genBuildingApi();
+      const datafoncierHousing = genDatafoncierHousing(idprocpte, building.id);
+      await Buildings().insert(formatBuildingApi(building));
       await DatafoncierHouses().insert({
         ...datafoncierHousing,
         ban_geom: db.raw('ST_GeomFromGeoJson(?)', [

@@ -1,6 +1,7 @@
 import { faker } from '@faker-js/faker/locale/fr';
 import { fc, test } from '@fast-check/vitest';
 import {
+  ACTIVE_OWNER_RANKS,
   fromHousing,
   HOUSING_STATUS_LABELS,
   HOUSING_STATUS_VALUES,
@@ -15,17 +16,29 @@ import {
   UserRole,
   type HousingBatchUpdatePayload
 } from '@zerologementvacant/models';
-import { genGeoCode } from '@zerologementvacant/models/fixtures';
+import {
+  genDatafoncierHousing,
+  genDatafoncierOwner,
+  genDatafoncierOwners,
+  genGeoCode,
+  genIdprocpte,
+  genIdprodroit
+} from '@zerologementvacant/models/fixtures';
 import async from 'async';
 import { constants } from 'http2';
 import randomstring from 'randomstring';
 import request from 'supertest';
+import db from '~/infra/database';
 
 import { createServer } from '~/infra/server';
 import { EstablishmentApi } from '~/models/EstablishmentApi';
 import { HousingApi } from '~/models/HousingApi';
 import { OwnerApi } from '~/models/OwnerApi';
 import { UserApi } from '~/models/UserApi';
+import {
+  Buildings,
+  formatBuildingApi
+} from '~/repositories/buildingRepository';
 import {
   CampaignsHousing,
   formatCampaignHousingApi
@@ -73,9 +86,8 @@ import {
 } from '~/repositories/ownerRepository';
 import { formatUserApi, Users } from '~/repositories/userRepository';
 import {
+  genBuildingApi,
   genCampaignApi,
-  genDatafoncierHousing,
-  genDatafoncierOwner,
   genEstablishmentApi,
   genHousingApi,
   genOwnerApi,
@@ -625,12 +637,27 @@ describe('Housing API', () => {
     });
 
     it('should create a housing', async () => {
-      const datafoncierHousing = genDatafoncierHousing();
-      const datafoncierOwners = Array.from({ length: 3 }, () =>
-        genDatafoncierOwner(datafoncierHousing.idprocpte)
+      const idprocpte = genIdprocpte(faker.helpers.arrayElement(establishment.geoCodes));
+      const building = genBuildingApi();
+      const datafoncierHousing = genDatafoncierHousing(idprocpte, building.id);
+      const ranks = faker.helpers.arrayElements(ACTIVE_OWNER_RANKS, 3);
+      const datafoncierOwners = ranks.map((rank) =>
+        genDatafoncierOwner(genIdprodroit(idprocpte, rank))
       );
-      await DatafoncierHouses().insert(datafoncierHousing);
-      await DatafoncierOwners().insert(datafoncierOwners);
+      await Buildings().insert(formatBuildingApi(building));
+      await Promise.all([
+        DatafoncierHouses().insert({
+          ...datafoncierHousing,
+          geomloc: db.raw('ST_GeomFromGeoJson(?)', [
+            datafoncierHousing.geomloc
+          ]),
+          ban_geom: db.raw('ST_GeomFromGeoJson(?)', [
+            datafoncierHousing.ban_geom
+          ]),
+          geomrnb: db.raw('ST_GeomFromGeoJson(?)', [datafoncierHousing.geomrnb])
+        }),
+        DatafoncierOwners().insert(datafoncierOwners)
+      ]);
       const payload = {
         localId: datafoncierHousing.idlocal
       };
@@ -649,10 +676,10 @@ describe('Housing API', () => {
     });
 
     it('should ignore owners update if they already exist', async () => {
-      const datafoncierHousing = genDatafoncierHousing();
-      const datafoncierOwners = Array.from({ length: 3 }, () =>
-        genDatafoncierOwner(datafoncierHousing.idprocpte)
-      );
+      const idprocpte = genIdprocpte(faker.helpers.arrayElement(establishment.geoCodes));
+      const building = genBuildingApi();
+      const datafoncierHousing = genDatafoncierHousing(idprocpte, building.id);
+      const datafoncierOwners = genDatafoncierOwners(idprocpte, 3);
       const existingOwners = datafoncierOwners.map<OwnerApi>(
         (datafoncierOwner) => {
           return {
@@ -661,8 +688,18 @@ describe('Housing API', () => {
           };
         }
       );
+      await Buildings().insert(formatBuildingApi(building));
       await Promise.all([
-        DatafoncierHouses().insert(datafoncierHousing),
+        DatafoncierHouses().insert({
+          ...datafoncierHousing,
+          geomloc: db.raw('ST_GeomFromGeoJson(?)', [
+            datafoncierHousing.geomloc
+          ]),
+          ban_geom: db.raw('ST_GeomFromGeoJson(?)', [
+            datafoncierHousing.ban_geom
+          ]),
+          geomrnb: db.raw('ST_GeomFromGeoJson(?)', [datafoncierHousing.geomrnb])
+        }),
         DatafoncierOwners().insert(datafoncierOwners),
         Owners().insert(existingOwners.map(formatOwnerApi))
       ]);
@@ -703,12 +740,24 @@ describe('Housing API', () => {
     });
 
     it('should assign its owners', async () => {
-      const datafoncierHousing = genDatafoncierHousing();
-      const datafoncierOwners = Array.from({ length: 6 }, () =>
-        genDatafoncierOwner(datafoncierHousing.idprocpte)
-      );
-      await DatafoncierHouses().insert(datafoncierHousing);
-      await DatafoncierOwners().insert(datafoncierOwners);
+      const idprocpte = genIdprocpte(faker.helpers.arrayElement(establishment.geoCodes));
+      const building = genBuildingApi();
+      const datafoncierHousing = genDatafoncierHousing(idprocpte, building.id);
+      const datafoncierOwners = genDatafoncierOwners(idprocpte, 3);
+      await Buildings().insert(formatBuildingApi(building));
+      await Promise.all([
+        DatafoncierHouses().insert({
+          ...datafoncierHousing,
+          geomloc: db.raw('ST_GeomFromGeoJson(?)', [
+            datafoncierHousing.geomloc
+          ]),
+          ban_geom: db.raw('ST_GeomFromGeoJson(?)', [
+            datafoncierHousing.ban_geom
+          ]),
+          geomrnb: db.raw('ST_GeomFromGeoJson(?)', [datafoncierHousing.geomrnb])
+        }),
+        DatafoncierOwners().insert(datafoncierOwners)
+      ]);
       const payload = {
         localId: datafoncierHousing.idlocal
       };
@@ -727,12 +776,24 @@ describe('Housing API', () => {
     });
 
     it('should create an event "housing:created"', async () => {
-      const datafoncierHousing = genDatafoncierHousing();
-      const datafoncierOwners = [
-        genDatafoncierOwner(datafoncierHousing.idprocpte)
-      ];
-      await DatafoncierHouses().insert(datafoncierHousing);
-      await DatafoncierOwners().insert(datafoncierOwners);
+      const idprocpte = genIdprocpte(faker.helpers.arrayElement(establishment.geoCodes));
+      const building = genBuildingApi();
+      const datafoncierHousing = genDatafoncierHousing(idprocpte, building.id);
+      const datafoncierOwners = genDatafoncierOwners(idprocpte, 1);
+      await Buildings().insert(formatBuildingApi(building));
+      await Promise.all([
+        DatafoncierHouses().insert({
+          ...datafoncierHousing,
+          geomloc: db.raw('ST_GeomFromGeoJson(?)', [
+            datafoncierHousing.geomloc
+          ]),
+          ban_geom: db.raw('ST_GeomFromGeoJson(?)', [
+            datafoncierHousing.ban_geom
+          ]),
+          geomrnb: db.raw('ST_GeomFromGeoJson(?)', [datafoncierHousing.geomrnb])
+        }),
+        DatafoncierOwners().insert(datafoncierOwners)
+      ]);
       const payload = {
         localId: datafoncierHousing.idlocal
       };
@@ -764,12 +825,22 @@ describe('Housing API', () => {
     });
 
     it('should create an event "owner:created" for each missing owner', async () => {
-      const datafoncierHousing = genDatafoncierHousing();
-      const datafoncierOwners = [
-        genDatafoncierOwner(datafoncierHousing.idprocpte)
-      ];
+      const idprocpte = genIdprocpte(faker.helpers.arrayElement(establishment.geoCodes));
+      const building = genBuildingApi();
+      const datafoncierHousing = genDatafoncierHousing(idprocpte, building.id);
+      const datafoncierOwners = genDatafoncierOwners(idprocpte, 1);
+      await Buildings().insert(formatBuildingApi(building));
       await Promise.all([
-        DatafoncierHouses().insert(datafoncierHousing),
+        DatafoncierHouses().insert({
+          ...datafoncierHousing,
+          geomloc: db.raw('ST_GeomFromGeoJson(?)', [
+            datafoncierHousing.geomloc
+          ]),
+          ban_geom: db.raw('ST_GeomFromGeoJson(?)', [
+            datafoncierHousing.ban_geom
+          ]),
+          geomrnb: db.raw('ST_GeomFromGeoJson(?)', [datafoncierHousing.geomrnb])
+        }),
         DatafoncierOwners().insert(datafoncierOwners)
       ]);
       const payload = {
@@ -783,23 +854,38 @@ describe('Housing API', () => {
         .use(tokenProvider(user));
 
       expect(status).toBe(constants.HTTP_STATUS_CREATED);
+
+      const housingOwners = await HousingOwners().where({
+        housing_geo_code: body.geoCode,
+        housing_id: body.id
+      });
       const events = await OwnerEvents()
         .join(EVENTS_TABLE, 'id', 'event_id')
-        .where({
-          type: 'owner:created',
-          housing_geo_code: body.geoCode,
-          housing_id: body.id
-        });
+        .where({ type: 'owner:created' })
+        .whereIn(
+          'owner_id',
+          housingOwners.map((housingOwner) => housingOwner.owner_id)
+        );
       expect(events.length).toBe(datafoncierOwners.length);
     });
 
     it('should create an event "housing:owner-attached" for each housing owner', async () => {
-      const datafoncierHousing = genDatafoncierHousing();
-      const datafoncierOwners = [
-        genDatafoncierOwner(datafoncierHousing.idprocpte)
-      ];
+      const idprocpte = genIdprocpte(faker.helpers.arrayElement(establishment.geoCodes));
+      const building = genBuildingApi();
+      const datafoncierHousing = genDatafoncierHousing(idprocpte, building.id);
+      const datafoncierOwners = genDatafoncierOwners(idprocpte, 1);
+      await Buildings().insert(formatBuildingApi(building));
       await Promise.all([
-        DatafoncierHouses().insert(datafoncierHousing),
+        DatafoncierHouses().insert({
+          ...datafoncierHousing,
+          geomloc: db.raw('ST_GeomFromGeoJson(?)', [
+            datafoncierHousing.geomloc
+          ]),
+          ban_geom: db.raw('ST_GeomFromGeoJson(?)', [
+            datafoncierHousing.ban_geom
+          ]),
+          geomrnb: db.raw('ST_GeomFromGeoJson(?)', [datafoncierHousing.geomrnb])
+        }),
         DatafoncierOwners().insert(datafoncierOwners)
       ]);
       const payload = {

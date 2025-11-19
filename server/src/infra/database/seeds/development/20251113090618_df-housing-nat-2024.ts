@@ -19,8 +19,9 @@ export async function seed(knex: Knex): Promise<void> {
     .select()
     .modify(groupBy<DatafoncierOwner>(['idprocpte']));
   const datafoncierHousings = datafoncierOwners.map((datafoncierOwner) => {
+    const building = faker.helpers.arrayElement(buildings)
     return {
-      ...genDatafoncierHousing(datafoncierOwner.idprocpte),
+      ...genDatafoncierHousing(datafoncierOwner.idprocpte, building.id),
       idbat: faker.helpers.arrayElement(buildings).id
     };
   });

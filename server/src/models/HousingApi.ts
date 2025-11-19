@@ -107,6 +107,7 @@ export function fromDatafoncierHousing(
   const street = housing.dvoilib.trim();
   const geoCode = housing.idcom;
   const commune = housing.idcomtxt.trim();
+  const jannath: number | null = !!housing.jannath ? Number(housing.jannath) : null;
 
   const [longitude, latitude] = housing.geomloc
     ? housing.geomloc.coordinates
@@ -128,7 +129,7 @@ export function fromDatafoncierHousing(
         : HousingKind.APARTMENT,
     roomsCount: housing.npiece_p2,
     livingArea: housing.stoth,
-    buildingYear: housing.jannath > 0 ? housing.jannath : null,
+    buildingYear: jannath,
     taxed: null,
     dataYears: [options.dataYears],
     dataFileYears: [options.dataFileYears],

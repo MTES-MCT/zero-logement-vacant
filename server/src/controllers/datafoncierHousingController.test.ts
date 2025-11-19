@@ -1,9 +1,17 @@
 import { faker } from '@faker-js/faker';
-import { genIdprocpte } from '@zerologementvacant/models/fixtures';
+import {
+  genDatafoncierHousing,
+  genIdprocpte
+} from '@zerologementvacant/models/fixtures';
 import { constants } from 'http2';
 import request from 'supertest';
+import db from '~/infra/database';
 
 import { createServer } from '~/infra/server';
+import {
+  Buildings,
+  formatBuildingApi
+} from '~/repositories/buildingRepository';
 import { DatafoncierHouses } from '~/repositories/datafoncierHousingRepository';
 import {
   Establishments,
@@ -11,7 +19,7 @@ import {
 } from '~/repositories/establishmentRepository';
 import { formatUserApi, Users } from '~/repositories/userRepository';
 import {
-  genDatafoncierHousing,
+  genBuildingApi,
   genEstablishmentApi,
   genUserApi
 } from '~/test/testFixtures';
@@ -24,7 +32,7 @@ describe('Datafoncier housing controller', () => {
     url = await createServer().testing();
   });
 
-  const establishment = genEstablishmentApi();
+  const establishment = genEstablishmentApi('54321');
   const user = genUserApi(establishment.id);
 
   beforeAll(async () => {
@@ -40,8 +48,15 @@ describe('Datafoncier housing controller', () => {
       const idprocpte = genIdprocpte(
         faker.helpers.arrayElement(establishment.geoCodes)
       );
-      const housing = genDatafoncierHousing(idprocpte);
-      await DatafoncierHouses().insert(housing);
+      const building = genBuildingApi();
+      const housing = genDatafoncierHousing(idprocpte, building.id);
+      await Buildings().insert(formatBuildingApi(building));
+      await DatafoncierHouses().insert({
+        ...housing,
+        ban_geom: db.raw('ST_GeomFromGeoJSON(?)', [housing.ban_geom]),
+        geomloc: db.raw('ST_GeomFromGeoJSON(?)', [housing.geomloc]),
+        geomrnb: db.raw('ST_GeomFromGeoJSON(?)', [housing.geomrnb])
+      });
 
       const { body, status } = await request(url)
         .get(testRoute(housing.idlocal))
@@ -52,8 +67,16 @@ describe('Datafoncier housing controller', () => {
     });
 
     it('should return "not found" if the given local id does not belong to the user’s establishment', async () => {
-      const housing = genDatafoncierHousing('12345');
-      await DatafoncierHouses().insert(housing);
+      const idprocpte = genIdprocpte('12345');
+      const building = genBuildingApi();
+      const housing = genDatafoncierHousing(idprocpte, building.id);
+      await Buildings().insert(formatBuildingApi(building));
+      await DatafoncierHouses().insert({
+        ...housing,
+        ban_geom: db.raw('ST_GeomFromGeoJSON(?)', [housing.ban_geom]),
+        geomloc: db.raw('ST_GeomFromGeoJSON(?)', [housing.geomloc]),
+        geomrnb: db.raw('ST_GeomFromGeoJSON(?)', [housing.geomrnb])
+      });
 
       const { status } = await request(url)
         .get(testRoute(housing.idlocal))

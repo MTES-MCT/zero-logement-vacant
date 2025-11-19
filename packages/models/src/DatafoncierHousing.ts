@@ -32,18 +32,21 @@ export interface DatafoncierHousing {
   ccocif: string;
   dvoilib: string;
   cleinvar: string;
+  assieft: string | null;
   ccpper: string;
+  codique: string | null;
   gpdl: string;
   ctpdl: string | null;
   dnupro: string;
   jdatat: string;
   jdatatv: string;
-  jdatatan: number;
+  jdatatan: string | null;
   dnufnl: string | null;
   ccoeva: string;
   ccoevatxt: string;
   dteloc: string;
   dteloctxt: string;
+  typeloc: string | null;
   logh: boolean | null;
   loghmais: boolean | null;
   loghappt: boolean | null;
@@ -84,7 +87,7 @@ export interface DatafoncierHousing {
   cconactxt: string | null;
   toprev: string;
   ccoifp: number;
-  jannath: number;
+  jannath: string | null;
   janbilmin: number;
   npevph: number;
   stoth: number;
@@ -137,7 +140,7 @@ export interface DatafoncierHousing {
   geomloc: Point | null;
   dis_ban_ff: number;
   rnb_id: string | null;
-  rnb_id_score: number | null;
+  rnb_id_score: string | null;
   /**
    * Warning: this point might use various SRID e.g. EPSG:32620, EPSG:2154, etc.
    * One should convert it first to EPSG:4326 before storing it in a production table.

@@ -18,7 +18,11 @@ import { FileUploadDTO } from '../FileUploadDTO';
 import { GroupDTO } from '../GroupDTO';
 import { HousingDTO } from '../HousingDTO';
 import { HOUSING_KIND_VALUES } from '../HousingKind';
-import { HousingOwnerDTO } from '../HousingOwnerDTO';
+import {
+  ACTIVE_OWNER_RANKS,
+  HousingOwnerDTO,
+  type ActiveOwnerRank
+} from '../HousingOwnerDTO';
 import { HOUSING_STATUS_VALUES } from '../HousingStatus';
 import { MUTATION_TYPE_VALUES } from '../Mutation';
 import { NoteDTO } from '../NoteDTO';
@@ -36,6 +40,7 @@ import { UserRole } from '../UserRole';
 import { RELATIVE_LOCATION_VALUES } from '../RelativeLocation';
 import { match } from 'ts-pattern';
 import type { DatafoncierOwner } from '../DatafoncierOwner';
+import type { BuildingDTO } from '../BuildingDTO';
 
 export function genGeoCode(): string {
   const geoCode = faker.helpers.arrayElement([
@@ -52,11 +57,20 @@ export function genGeoCode(): string {
 }
 
 export function genDnupro(): string {
-  return faker.string.alpha({ length: 1, casing: 'upper' }) + faker.string.numeric(5);
+  return (
+    faker.string.alpha({ length: 1, casing: 'upper' }) + faker.string.numeric(5)
+  );
 }
 
 export function genIdprocpte(geoCode = genGeoCode()): string {
   return geoCode + genDnupro();
+}
+
+export function genIdprodroit(
+  idprocpte: string,
+  rank: ActiveOwnerRank
+): string {
+  return idprocpte + rank.toString().padStart(2, '0');
 }
 
 export function genAddressDTO(): AddressDTO {
@@ -90,7 +104,10 @@ export function genCampaignDTO(group?: GroupDTO): CampaignDTO {
   };
 }
 
-export function genDatafoncierHousing(idprocpte: string): DatafoncierHousing {
+export function genDatafoncierHousing(
+  idprocpte: string,
+  idbat: BuildingDTO['id']
+): DatafoncierHousing {
   const idcom = idprocpte.toUpperCase().substring(0, 5);
   const department = idcom.substring(0, 2);
   const locality = idcom.substring(2, 5);
@@ -99,7 +116,7 @@ export function genDatafoncierHousing(idprocpte: string): DatafoncierHousing {
 
   return {
     idlocal: idlocal,
-    idbat: faker.string.alpha({ length: 10, casing: 'upper' }),
+    idbat,
     idpar: faker.string.alpha({ length: 14, casing: 'upper' }),
     idtup: faker.string.alpha(),
     idsec: faker.string.alpha({ length: 9, casing: 'upper' }),
@@ -125,18 +142,27 @@ export function genDatafoncierHousing(idprocpte: string): DatafoncierHousing {
     ccocif: faker.string.alphanumeric(4),
     dvoilib: faker.location.street().substring(0, 30),
     cleinvar: faker.string.alphanumeric(1),
+    assieft: faker.string.numeric(10),
     ccpper: faker.string.alphanumeric(3),
+    codique: faker.string.numeric(7),
     gpdl: faker.string.alphanumeric(1),
     ctpdl: faker.string.alphanumeric(5),
     dnupro: faker.string.alphanumeric(6),
     jdatat: faker.string.alphanumeric(8),
-    jdatatv: faker.string.alphanumeric(8),
-    jdatatan: faker.number.int(99),
+    jdatatv: faker.date
+      .past()
+      .toISOString()
+      .substring(0, 'yyyy-mm-dd'.length)
+      .split('-')
+      .toReversed()
+      .join(''),
+    jdatatan: faker.date.past().getUTCFullYear().toString(),
     dnufnl: faker.string.alphanumeric(6),
     ccoeva: faker.string.alphanumeric(1),
     ccoevatxt: faker.string.alphanumeric(72),
     dteloc: faker.helpers.arrayElement(['1', '2']),
     dteloctxt: faker.helpers.arrayElement(['MAISON', 'APPARTEMENT']),
+    typeloc: faker.string.alphanumeric(6),
     logh: faker.datatype.boolean(),
     loghmais: faker.datatype.boolean(),
     loghappt: faker.datatype.boolean(),
@@ -182,7 +208,7 @@ export function genDatafoncierHousing(idprocpte: string): DatafoncierHousing {
     cconactxt: faker.string.alphanumeric(129),
     toprev: faker.string.alphanumeric(1),
     ccoifp: faker.number.int(99),
-    jannath: faker.number.int(9999),
+    jannath: faker.date.past().getUTCFullYear().toString(),
     janbilmin: faker.number.int(9),
     npevph: faker.number.int(9),
     stoth: faker.number.int(9),
@@ -232,24 +258,29 @@ export function genDatafoncierHousing(idprocpte: string): DatafoncierHousing {
     ban_cp: faker.string.alphanumeric(5),
     dis_ban_ff: faker.number.int(9),
     rnb_id: faker.string.alphanumeric({ length: 12, casing: 'upper' }),
-    rnb_id_score: faker.helpers.arrayElement([0, 1, 2, 3, 8, 9]),
+    rnb_id_score: faker.helpers.arrayElement([
+      '0',
+      '1',
+      '2',
+      '3',
+      '8',
+      '9',
+      null
+    ]),
     geomrnb: point([faker.location.longitude(), faker.location.latitude()])
       .geometry
   };
 }
 
-export function genDatafoncierOwner(geoCode?: string): DatafoncierOwner {
-  const idcom = geoCode ?? genGeoCode();
+export function genDatafoncierOwner(idprodroit: string): DatafoncierOwner {
+  const idprocpte = idprodroit.slice(0, -2);
+  const dnulp = idprodroit.slice(-2);
+  const idcom = idprocpte.substring(0, 5);
   // TODO: make it plausible
   const idcomtxt = faker.location.city().toUpperCase();
   const ccodep = idcom.substring(0, 2);
   const ccocom = idcom.substring(2, 5);
-  const dnupro =
-    faker.string.alpha({ length: 1, casing: 'upper' }) +
-    faker.string.numeric(5);
-  const idprocpte = idcom + dnupro;
-  const dnulp = `0${faker.number.int({ min: 1, max: 6 })}`;
-  const idprodroit = idprocpte + dnulp;
+  const dnupro = idprocpte.substring(5);
   const dnuper = faker.string.alphanumeric({ length: 6, casing: 'upper' });
   const idpersonne = ccodep + dnuper;
   const ccoriv = faker.string.numeric({ length: 4, allowLeadingZeros: true });
@@ -433,6 +464,16 @@ export function genDatafoncierOwner(geoCode?: string): DatafoncierOwner {
     catpro3txt,
     idpk: faker.number.int({ min: 1, max: 1_000_000 })
   };
+}
+
+export function genDatafoncierOwners(
+  idprocpte: string,
+  count: number
+): DatafoncierOwner[] {
+  const ranks = faker.helpers.arrayElements(ACTIVE_OWNER_RANKS, count);
+  return ranks.map((rank) =>
+    genDatafoncierOwner(genIdprodroit(idprocpte, rank))
+  );
 }
 
 export function genDraftDTO(

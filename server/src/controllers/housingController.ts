@@ -226,7 +226,10 @@ const create: RequestHandler<
   const datafoncierHousing = await datafoncierHousingRepository.findOne({
     idlocal: body.localId
   });
-  if (!datafoncierHousing) {
+  if (
+    !datafoncierHousing ||
+    !establishment.geoCodes.includes(datafoncierHousing.idcom)
+  ) {
     throw new HousingMissingError(body.localId);
   }
 

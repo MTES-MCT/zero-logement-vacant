@@ -90,7 +90,7 @@ function EventsHistory({ events, notes }: Props) {
           <AggregatedEventCard
             key={[...events]
               .map((event) => event.id)
-              .sort()
+              .sort((a, b) => a.localeCompare(b))
               .join('-')}
             events={events as unknown as Array.NonEmptyReadonlyArray<Event>}
           />,

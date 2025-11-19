@@ -52,8 +52,11 @@ router.get(
 );
 router.post(
   '/housing',
-  housingController.createValidators,
-  validator.validate,
+  validatorNext.validate({
+    body: object({
+      localId: string().required().length(12)
+    })
+  }),
   housingController.create
 );
 router.get(

@@ -70,7 +70,9 @@ async function insert(housingOwner: HousingOwnerApi): Promise<void> {
   logger.debug('Saved housing owner.');
 }
 
-async function saveMany(housingOwners: HousingOwnerApi[]): Promise<void> {
+async function saveMany(
+  housingOwners: ReadonlyArray<Omit<HousingOwnerApi, keyof OwnerApi>>
+): Promise<void> {
   if (housingOwners.length) {
     housingOwners.forEach((housingOwner) => {
       logger.debug('Saving housing owner...', {
@@ -143,9 +145,9 @@ export function parseOwnerHousingApi(
   };
 }
 export const formatHousingOwnerApi = (
-  housingOwner: HousingOwnerApi
+  housingOwner: Omit<HousingOwnerApi, keyof OwnerApi>
 ): HousingOwnerDBO => ({
-  owner_id: housingOwner.id,
+  owner_id: housingOwner.ownerId,
   housing_id: housingOwner.housingId,
   housing_geo_code: housingOwner.housingGeoCode,
   rank: housingOwner.rank,

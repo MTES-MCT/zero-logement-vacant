@@ -223,7 +223,6 @@ export const housingHandlers: RequestHandler[] = [
               'banAddress',
               'additionalAddress',
               'kind',
-              'kindDetail',
               'siren',
               'createdAt',
               'updatedAt'

@@ -7,6 +7,7 @@ import { OwnerApi } from '~/models/OwnerApi';
 import { Sort } from '~/models/SortApi';
 
 /**
+ * @deprecated Use `DatafoncierOwner` from `@zerologementvacant/models` instead
  * @see http://doc-datafoncier.cerema.fr/ff/doc_fftp/table/proprietaire_droit/last/
  */
 export interface DatafoncierOwner {
@@ -78,6 +79,11 @@ export interface DatafoncierOwner {
 type DatafoncierOwnerSortable = Pick<DatafoncierOwner, 'idprocpte'>;
 export type DatafoncierOwnerSortApi = Sort<DatafoncierOwnerSortable>;
 
+/**
+ * @deprecated Use `fromDatafoncierOwner` from `@zerologementvacant/models` instead
+ * @param owner
+ * @returns 
+ */
 export function toOwnerApi(owner: DatafoncierOwner): OwnerApi {
   const kinds: Record<string, string> = {
     'PERSONNE PHYSIQUE': 'Particulier',
@@ -102,7 +108,6 @@ export function toOwnerApi(owner: DatafoncierOwner): OwnerApi {
         : owner.ddenom,
     birthDate: !!birthdate && isValid(birthdate) ? birthdate.toJSON() : null,
     kind: kinds[owner.catpro2txt] ?? 'Autre',
-    kindDetail: owner.catpro3txt,
     entity: 'personnes-physiques',
     administrator: null,
     email: null,

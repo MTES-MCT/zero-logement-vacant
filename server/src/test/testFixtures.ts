@@ -46,11 +46,6 @@ import { logger } from '~/infra/logger';
 import { AddressApi } from '~/models/AddressApi';
 import { BuildingApi } from '~/models/BuildingApi';
 import { CampaignApi } from '~/models/CampaignApi';
-import {
-  ConflictApi,
-  HousingOwnerConflictApi,
-  OwnerConflictApi
-} from '~/models/ConflictApi';
 import { ContactPointApi } from '~/models/ContactPointApi';
 import { DraftApi } from '~/models/DraftApi';
 import { EstablishmentApi } from '~/models/EstablishmentApi';
@@ -120,9 +115,10 @@ export const genLocalityApi = (geoCode = genGeoCode()): LocalityApi => {
     id: uuidv4(),
     geoCode,
     name: faker.location.city(),
-    kind: LOCALITY_KIND_VALUES.length > 0
-      ? faker.helpers.arrayElement([null, ...LOCALITY_KIND_VALUES])
-      : null,
+    kind:
+      LOCALITY_KIND_VALUES.length > 0
+        ? faker.helpers.arrayElement([null, ...LOCALITY_KIND_VALUES])
+        : null,
     taxKind: TaxKindsApi.None
   };
 };
@@ -272,7 +268,7 @@ export const genHousingOwnerApi = (
   startDate: faker.date.past(),
   endDate: null,
   relativeLocation: faker.helpers.arrayElement(RELATIVE_LOCATION_VALUES),
-  absoluteDistance: null,
+  absoluteDistance: null
 });
 
 export function genBuildingApi(): BuildingApi {
@@ -783,29 +779,6 @@ export const genOwnerMatch = (
 ): OwnerMatchDBO => ({
   owner_id: owner.id,
   idpersonne: datafoncierOwner.idpersonne
-});
-
-export const genConflictApi = <T>(
-  existing: T,
-  replacement: T
-): ConflictApi<T> => ({
-  id: uuidv4(),
-  createdAt: new Date(),
-  existing,
-  replacement
-});
-
-export const genOwnerConflictApi = (): OwnerConflictApi =>
-  genConflictApi(genOwnerApi(), genOwnerApi()) as OwnerConflictApi;
-
-export const genHousingOwnerConflictApi = (
-  housing: HousingApi,
-  existing: HousingOwnerApi,
-  replacement: HousingOwnerApi
-): HousingOwnerConflictApi => ({
-  ...genConflictApi(existing, replacement),
-  housingGeoCode: housing.geoCode,
-  housingId: housing.id
 });
 
 const genNoteApi = (creator: UserApi): NoteApi =>

@@ -267,5 +267,5 @@ function sort(keys?: ReadonlyArray<string>) {
   const sortFn = combineAll(sortFns.toArray());
 
   return (campaigns: CampaignDTO[]): CampaignDTO[] =>
-    keys?.length ? campaigns.toSorted(sortFn) : campaigns;
+    keys?.length ? [...campaigns].sort(sortFn) : campaigns;
 }

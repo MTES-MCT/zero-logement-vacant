@@ -23,7 +23,6 @@ function respond(
   request: Request,
   response: Response,
   // Needed because express bases itself on the number of arguments
-   
   next: Next,
 ): void {
   if (response.headersSent) {

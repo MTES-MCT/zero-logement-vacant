@@ -4,7 +4,8 @@ import ButtonsGroup from '@codegouvfr/react-dsfr/ButtonsGroup';
 import Grid from '@mui/material/Grid';
 import Stack from '@mui/material/Stack';
 import Typography from '@mui/material/Typography';
-import { useMemo, useState } from 'react';
+import { useMemo, useState, useEffect } from 'react';
+import { toast } from 'react-toastify';
 
 import { createConfirmationModal } from '~/components/modals/ConfirmationModal/ConfirmationModalNext';
 import { type GeoPerimeter } from '../../../models/GeoPerimeter';
@@ -15,6 +16,7 @@ import {
   useUploadGeoPerimeterFileMutation
 } from '../../../services/geo.service';
 import { displayCount, pluralize } from '../../../utils/stringUtils';
+import { getFileUploadErrorMessage } from '../../../utils/fileUploadErrors';
 import AppSearchBar from '../../_app/AppSearchBar/AppSearchBar';
 import GeoPerimeterCard from '../../GeoPerimeterCard/GeoPerimeterCard';
 import { createExtendedModal } from '../ConfirmationModal/ExtendedModal';
@@ -46,8 +48,19 @@ function createPerimetersModal() {
 
       const [
         uploadGeoPerimeterFile,
-        { isSuccess: isUploadSuccess, isError: isUploadError }
+        { isSuccess: isUploadSuccess, isError: isUploadError, error: uploadError }
       ] = useUploadGeoPerimeterFileMutation();
+
+      // Show custom error message for geo upload errors
+      useEffect(() => {
+        if (isUploadError && uploadError) {
+          const errorMessage = getFileUploadErrorMessage(uploadError, true);
+          toast.error(errorMessage, {
+            toastId: 'geo-upload-error'
+          });
+        }
+      }, [isUploadError, uploadError]);
+
       async function upload(file: File): Promise<void> {
         await uploadGeoPerimeterFile(file)
           .unwrap()

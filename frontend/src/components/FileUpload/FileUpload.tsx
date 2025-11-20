@@ -1,11 +1,13 @@
 import { Upload } from '@codegouvfr/react-dsfr/Upload';
 import mime from 'mime';
-import React from 'react';
+import React, { useEffect } from 'react';
 import type { ReactNode } from 'react';
+import { toast } from 'react-toastify';
 
 import { useUploadFileMutation } from '../../services/file.service';
 import { useNotification } from '../../hooks/useNotification';
 import type { FileUploadDTO } from '@zerologementvacant/models';
+import { getFileUploadErrorMessage } from '../../utils/fileUploadErrors';
 
 const DEFAULT_TYPES = ['pdf', 'jpg', 'png'];
 const MAX_SIZE = 5; // Mo
@@ -30,8 +32,18 @@ function FileUpload(props: Readonly<Props>) {
   const accept = types.map((type) => mime.getType(type)).join(', ');
   const [upload, mutation] = useUploadFileMutation();
 
+  // Show custom error message based on error reason
+  useEffect(() => {
+    if (mutation.isError && mutation.error) {
+      const errorMessage = getFileUploadErrorMessage(mutation.error);
+      toast.error(errorMessage, {
+        toastId: 'file-upload-error'
+      });
+    }
+  }, [mutation.isError, mutation.error]);
+
   useNotification({
-    isError: mutation.isError,
+    isError: false, // Don't use default error notification
     isLoading: mutation.isLoading,
     isSuccess: mutation.isSuccess,
     toastId: 'file-upload'

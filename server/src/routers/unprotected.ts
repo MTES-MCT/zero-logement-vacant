@@ -2,10 +2,8 @@ import Router from 'express-promise-router';
 import rateLimit from 'express-rate-limit';
 
 import accountController from '~/controllers/accountController';
-import contactPointController from '~/controllers/contactPointController';
 import establishmentController from '~/controllers/establishmentController';
 import localityController from '~/controllers/localityController';
-import ownerProspectController from '~/controllers/ownerProspectController';
 import prospectController from '~/controllers/prospectController';
 import resetLinkController from '~/controllers/resetLinkController';
 import settingsController from '~/controllers/settingsController';
@@ -44,13 +42,6 @@ router.get(
 );
 
 router.post(
-  '/owner-prospects',
-  ownerProspectController.createOwnerProspectValidators,
-  validator.validate,
-  ownerProspectController.create
-);
-
-router.post(
   '/users/creation',
   rateLimiter(),
   userController.createUserValidators,
@@ -60,15 +51,19 @@ router.post(
 router.post(
   '/authenticate',
   rateLimiter(),
-  accountController.signInValidators,
-  validator.validate,
+  validatorNext.validate(accountController.signInValidators),
   accountController.signIn
+);
+router.post(
+  '/authenticate/verify-2fa',
+  rateLimiter(),
+  validatorNext.validate(accountController.verifyTwoFactorValidators),
+  accountController.verifyTwoFactor
 );
 router.post(
   '/account/reset-password',
   rateLimiter(),
-  accountController.resetPasswordValidators,
-  validator.validate,
+  validatorNext.validate(accountController.resetPasswordValidators),
   accountController.resetPassword
 );
 
@@ -136,13 +131,6 @@ router.get(
   localityController.getLocalityValidators,
   validator.validate,
   localityController.getLocality
-);
-
-router.get(
-  '/contact-points/public',
-  contactPointController.listContactPointsValidators,
-  validator.validate,
-  contactPointController.listContactPoints(true)
 );
 
 export default router;

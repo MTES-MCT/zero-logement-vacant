@@ -83,7 +83,6 @@ export const ownerHandlers: RequestHandler[] = [
         fullName: payload.fullName,
         administrator: null,
         kind: 'Particulier',
-        kindDetail: null,
         birthDate: payload.birthDate,
         email: payload.email,
         phone: payload.phone,

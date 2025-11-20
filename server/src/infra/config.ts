@@ -52,6 +52,7 @@ interface Config {
   auth: {
     secret: string;
     expiresIn: StringValue;
+    admin2faEnabled: boolean;
   };
   ban: {
     api: {
@@ -180,6 +181,11 @@ const config = convict<Config>({
       env: 'AUTH_EXPIRES_IN',
       format: String,
       default: '12 hours'
+    },
+    admin2faEnabled: {
+      env: 'ADMIN_2FA_ENABLED',
+      format: Boolean,
+      default: false
     }
   },
   ban: {

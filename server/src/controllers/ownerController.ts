@@ -177,7 +177,6 @@ const create: RequestHandler<
     administrator: null,
     // TODO: we should ask the user to provide the kind of owner
     kind: null,
-    kindDetail: null,
     phone: body.phone,
     email: body.email,
     // TODO: obtain this from the frontend form
@@ -249,7 +248,6 @@ async function update(
     phone: body.phone,
     additionalAddress: body.additionalAddress,
     kind: existingOwner.kind,
-    kindDetail: existingOwner.kindDetail,
     idpersonne: existingOwner.idpersonne,
     siren: existingOwner.siren,
     dataSource: existingOwner.dataSource,

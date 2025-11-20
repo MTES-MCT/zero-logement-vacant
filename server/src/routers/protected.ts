@@ -7,7 +7,6 @@ import { object, string } from 'yup';
 import accountController from '~/controllers/accountController';
 import buildingController from '~/controllers/buildingController';
 import campaignController from '~/controllers/campaignController';
-import contactPointController from '~/controllers/contactPointController';
 import dashboardController from '~/controllers/dashboardController';
 import datafoncierController from '~/controllers/datafoncierHousingController';
 import draftController from '~/controllers/draftController';
@@ -21,7 +20,6 @@ import housingOwnerController from '~/controllers/housingOwnerController';
 import localityController from '~/controllers/localityController';
 import noteController from '~/controllers/noteController';
 import ownerController from '~/controllers/ownerController';
-import ownerProspectController from '~/controllers/ownerProspectController';
 import precisionController from '~/controllers/precisionController';
 import settingsController from '~/controllers/settingsController';
 import userController from '~/controllers/userController';
@@ -56,8 +54,11 @@ router.get(
 );
 router.post(
   '/housing',
-  housingController.createValidators,
-  validator.validate,
+  validatorNext.validate({
+    body: object({
+      localId: string().required().length(12)
+    })
+  }),
   housingController.create
 );
 router.get(
@@ -279,19 +280,6 @@ router.get(
 );
 
 router.get(
-  '/owner-prospects',
-  ownerProspectController.findOwnerProspectsValidators,
-  validator.validate,
-  ownerProspectController.find
-);
-router.put(
-  '/owner-prospects/:id',
-  ownerProspectController.updateOwnerProspectValidators,
-  validator.validate,
-  ownerProspectController.update
-);
-
-router.get(
   '/owners/:id/events',
   [isUUIDParam('id')],
   validator.validate,
@@ -338,8 +326,7 @@ router.delete(
 router.get('/account', [], validator.validate, accountController.get);
 router.put(
   '/account',
-  accountController.updateAccountValidators,
-  validator.validate,
+  validatorNext.validate(accountController.updateAccountValidators),
   accountController.updateAccount
 );
 router.get(
@@ -404,31 +391,6 @@ router.delete(
   geoController.deleteGeoPerimeterListValidators,
   validator.validate,
   geoController.deleteGeoPerimeterList
-);
-
-router.get(
-  '/contact-points',
-  contactPointController.listContactPointsValidators,
-  validator.validate,
-  contactPointController.listContactPoints(false)
-);
-router.post(
-  '/contact-points',
-  contactPointController.createContactPointValidators,
-  validator.validate,
-  contactPointController.createContactPoint
-);
-router.put(
-  '/contact-points/:id',
-  contactPointController.updateContactPointValidators,
-  validator.validate,
-  contactPointController.updateContactPoint
-);
-router.delete(
-  '/contact-points/:id',
-  contactPointController.deleteContactPointValidators,
-  validator.validate,
-  contactPointController.deleteContactPoint
 );
 
 router.put(

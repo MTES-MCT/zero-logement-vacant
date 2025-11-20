@@ -34,8 +34,8 @@ const byDate = Order.mapInput(
 function AggregatedEventCard(props: AggregatedEventCardProps) {
   const createdAt = props.events[0].createdAt;
   const creator = props.events[0].creator;
-  const differences = props.events
-    .toSorted(byDate)
+  const differences = [...props.events]
+    .sort(byDate)
     .map((event) =>
       match(event)
         .returnType<ReactNode>()

@@ -36,6 +36,7 @@ import {
   parseHousingApi
 } from './housingRepository';
 import Stream = Highland.Stream;
+import { withinTransaction } from '~/infra/database/transaction';
 
 const logger = createLogger('ownerRepository');
 
@@ -55,7 +56,6 @@ export interface OwnerRecordDBO {
   phone: string | null;
   data_source: string | null;
   kind_class: string | null;
-  owner_kind_detail: string | null;
   entity: OwnerEntity | null;
   created_at: Date | string | null;
   updated_at: Date | string | null;
@@ -326,6 +326,22 @@ async function betterSave(
   await Owners().insert(formatOwnerApi(owner)).modify(onConflict(opts));
 }
 
+async function betterSaveMany(
+  owners: ReadonlyArray<OwnerApi>,
+  opts: BetterSaveOptions
+): Promise<void> {
+  logger.debug(`Saving ${owners.length} owners...`);
+  if (owners.length === 0) {
+    return;
+  }
+
+  await withinTransaction(async (transaction) => {
+    await Owners(transaction)
+      .insert(owners.map(formatOwnerApi))
+      .modify(onConflict(opts));
+  });
+}
+
 interface SaveOptions {
   /**
    * @default 'ignore'
@@ -370,7 +386,7 @@ async function saveMany(owners: OwnerApi[], opts?: SaveOptions): Promise<void> {
             if (onConflict === 'merge') {
               return builder
                 .onConflict(['full_name', 'address_dgfip', 'birth_date'])
-                .merge(['administrator', 'kind_class', 'owner_kind_detail']);
+                .merge(['administrator', 'kind_class']);
             }
             return builder
               .onConflict(['full_name', 'address_dgfip', 'birth_date'])
@@ -391,7 +407,7 @@ async function saveMany(owners: OwnerApi[], opts?: SaveOptions): Promise<void> {
                     '(full_name, address_dgfip, (birth_date IS NULL)) where birth_date is null'
                   )
                 )
-                .merge(['administrator', 'kind_class', 'owner_kind_detail']);
+                .merge(['administrator', 'kind_class']);
             }
             return builder
               .onConflict(
@@ -618,7 +634,6 @@ export const parseOwnerApi = (owner: OwnerDBO): OwnerApi => {
     email: owner.email ?? null,
     phone: owner.phone ?? null,
     kind: owner.kind_class,
-    kindDetail: owner.owner_kind_detail ?? null,
     siren: owner.siren ?? null,
     banAddress: owner.ban ? parseAddressApi(owner.ban) : null,
     additionalAddress: owner.additional_address ?? null,
@@ -663,7 +678,6 @@ export const formatOwnerApi = (owner: OwnerApi): OwnerRecordDBO => ({
   phone: owner.phone ?? null,
   data_source: owner.dataSource ?? null,
   kind_class: owner.kind ?? null,
-  owner_kind_detail: owner.kindDetail ?? null,
   entity: owner.entity,
   created_at: owner.createdAt ? new Date(owner.createdAt) : null,
   updated_at: owner.updatedAt ? new Date(owner.updatedAt) : null
@@ -680,6 +694,7 @@ export default {
   findByHousing,
   insert,
   betterSave,
+  betterSaveMany,
   save,
   saveMany,
   update,

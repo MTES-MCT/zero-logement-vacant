@@ -89,7 +89,13 @@ function OwnerCardNext(props: OwnerCardProps) {
             <OwnerAttribute
               icon="fr-icon-user-fill"
               label="Nom et prénom"
-              value={<Typography sx={{ fontWeight: 700 }}>{value}</Typography>}
+              value={
+                <Typography
+                  sx={{ fontWeight: 700, textTransform: 'capitalize' }}
+                >
+                  {value?.toLowerCase()}
+                </Typography>
+              }
             />
           ))}
 

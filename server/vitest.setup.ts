@@ -13,8 +13,7 @@ vi.mock('~/services/mailService', () => ({
     emit: vi.fn(),
     send: vi.fn().mockResolvedValue(undefined),
     sendPasswordReset: vi.fn().mockResolvedValue(undefined),
-    sendAccountActivationEmailFromLovac: vi.fn().mockResolvedValue(undefined),
-    sendOwnerProspectCreatedEmail: vi.fn().mockResolvedValue(undefined)
+    sendAccountActivationEmailFromLovac: vi.fn().mockResolvedValue(undefined)
   }
 }));
 

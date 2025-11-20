@@ -1,10 +1,53 @@
+import { vi } from 'vitest';
+
+// Fixed 2FA code used in test environment
+// twoFactorService.generateSimpleCode() returns '123456' when NODE_ENV === 'test'
+const TEST_2FA_CODE = '123456';
+
+// Mock nodemailer to prevent actual email sending in tests
+vi.mock('nodemailer', () => ({
+  default: {
+    createTransport: vi.fn(() => ({
+      sendMail: vi.fn().mockResolvedValue({ messageId: 'test-message-id' })
+    }))
+  }
+}));
+
+// Mock mailService to prevent actual email sending
+vi.mock('../services/mailService', () => ({
+  default: {
+    sendTwoFactorCode: vi.fn().mockResolvedValue(undefined),
+    sendPasswordReset: vi.fn().mockResolvedValue(undefined),
+    sendAccountActivationEmail: vi.fn().mockResolvedValue(undefined),
+    sendAccountActivationEmailFromLovac: vi.fn().mockResolvedValue(undefined),
+    send: vi.fn().mockResolvedValue(undefined),
+    emit: vi.fn()
+  }
+}));
+
+vi.mock('../services/ceremaService/mockCeremaService');
+
+// Mock config to enable 2FA for tests
+vi.mock('../infra/config', async () => {
+  const actual = await vi.importActual('../infra/config');
+  return {
+    ...actual,
+    default: {
+      ...(actual as any).default,
+      auth: {
+        ...(actual as any).default.auth,
+        admin2faEnabled: true
+      }
+    }
+  };
+});
+
 import { UserRole } from '@zerologementvacant/models';
 import bcrypt from 'bcryptjs';
 import { subDays } from 'date-fns';
 import { constants } from 'http2';
 import randomstring from 'randomstring';
 import request from 'supertest';
-import { vi } from 'vitest';
 
 import { createServer } from '~/infra/server';
 import { ResetLinkApi } from '~/models/ResetLinkApi';
@@ -18,6 +61,7 @@ import {
   ResetLinks
 } from '~/repositories/resetLinkRepository';
 import { formatUserApi, Users } from '~/repositories/userRepository';
+import userRepository from '~/repositories/userRepository';
 
 import {
   genEstablishmentApi,
@@ -27,8 +71,6 @@ import {
   genUserApi
 } from '~/test/testFixtures';
 import { tokenProvider } from '~/test/testUtils';
-
-vi.mock('../services/ceremaService/mockCeremaService');
 
 describe('Account controller', () => {
   let url: string;
@@ -85,16 +127,21 @@ describe('Account controller', () => {
         .expect(constants.HTTP_STATUS_UNAUTHORIZED);
     });
 
-    it('should fail if an admin tries to connect as a user', async () => {
+    it('should require 2FA when an admin tries to connect', async () => {
       const { body, status } = await request(url).post(testRoute).send({
         email: admin.email,
         password: admin.password
       });
 
-      expect(status).toBe(constants.HTTP_STATUS_UNPROCESSABLE_ENTITY);
-      expect(body).toStrictEqual({
-        name: 'UnprocessableEntityError',
-        message: 'Unprocessable entity'
+      if (status !== constants.HTTP_STATUS_OK) {
+        console.error('Unexpected status:', status);
+        console.error('Response body:', body);
+      }
+
+      expect(status).toBe(constants.HTTP_STATUS_OK);
+      expect(body).toMatchObject({
+        requiresTwoFactor: true,
+        email: admin.email
       });
     });
 
@@ -118,6 +165,105 @@ describe('Account controller', () => {
         establishment,
         accessToken: expect.any(String)
       });
+    });
+  });
+
+  describe('Verify 2FA', () => {
+    const testRoute = '/api/authenticate/verify-2fa';
+
+    beforeEach(async () => {
+      // Trigger 2FA code generation
+      // In test environment, the code will be TEST_2FA_CODE ('123456')
+      await request(url).post('/api/authenticate').send({
+        email: admin.email,
+        password: admin.password
+      });
+    });
+
+    it('should fail with invalid code', async () => {
+      const { status } = await request(url).post(testRoute).send({
+        email: admin.email,
+        code: '000000',
+        establishmentId: establishment.id
+      });
+
+      expect(status).toBe(constants.HTTP_STATUS_UNAUTHORIZED);
+    });
+
+    it('should fail with non-admin user', async () => {
+      const { status } = await request(url).post(testRoute).send({
+        email: user.email,
+        code: '123456',
+        establishmentId: establishment.id
+      });
+
+      expect(status).toBe(constants.HTTP_STATUS_UNAUTHORIZED);
+    });
+
+    it('should succeed with valid code', async () => {
+      // Use the fixed test code
+      const { body, status } = await request(url).post(testRoute).send({
+        email: admin.email,
+        code: TEST_2FA_CODE,
+        establishmentId: establishment.id
+      });
+
+      expect(status).toBe(constants.HTTP_STATUS_OK);
+      expect(body).toMatchObject({
+        establishment,
+        accessToken: expect.any(String)
+      });
+
+      // Verify code was cleared and counters reset
+      const updatedAdmin = await userRepository.getByEmail(admin.email);
+      expect(updatedAdmin?.twoFactorCode).toBeNull();
+      expect(updatedAdmin?.twoFactorCodeGeneratedAt).toBeNull();
+      expect(updatedAdmin?.twoFactorFailedAttempts).toBe(0);
+      expect(updatedAdmin?.twoFactorLockedUntil).toBeNull();
+    });
+
+    it('should lock account after 3 failed attempts', async () => {
+      // First failed attempt
+      await request(url).post(testRoute).send({
+        email: admin.email,
+        code: '000000',
+        establishmentId: establishment.id
+      });
+
+      let adminUser = await userRepository.getByEmail(admin.email);
+      expect(adminUser?.twoFactorFailedAttempts).toBe(1);
+      expect(adminUser?.twoFactorLockedUntil).toBeNull();
+
+      // Second failed attempt
+      await request(url).post(testRoute).send({
+        email: admin.email,
+        code: '111111',
+        establishmentId: establishment.id
+      });
+
+      adminUser = await userRepository.getByEmail(admin.email);
+      expect(adminUser?.twoFactorFailedAttempts).toBe(2);
+      expect(adminUser?.twoFactorLockedUntil).toBeNull();
+
+      // Third failed attempt - should lock
+      await request(url).post(testRoute).send({
+        email: admin.email,
+        code: '222222',
+        establishmentId: establishment.id
+      });
+
+      adminUser = await userRepository.getByEmail(admin.email);
+      expect(adminUser?.twoFactorFailedAttempts).toBe(3);
+      expect(adminUser?.twoFactorLockedUntil).not.toBeNull();
+
+      // Fourth attempt should fail due to lockout, even with correct code
+      const { status } = await request(url).post(testRoute).send({
+        email: admin.email,
+        code: TEST_2FA_CODE, // Even with correct code
+        establishmentId: establishment.id
+      });
+
+      expect(status).toBe(constants.HTTP_STATUS_UNAUTHORIZED);
     });
   });
 
@@ -244,7 +390,7 @@ describe('Account controller', () => {
 
       const { status } = await request(url).post(testRoute).send({
         key: link.id,
-        password: '123QWEasd'
+        password: '123QWEasd!@#'
       });
 
       expect(status).toBe(constants.HTTP_STATUS_GONE);
@@ -255,7 +401,7 @@ describe('Account controller', () => {
 
       const { status } = await request(url).post(testRoute).send({
         key: link.id,
-        password: '123QWEasd'
+        password: '123QWEasd!@#'
       });
 
       expect(status).toBe(constants.HTTP_STATUS_NOT_FOUND);
@@ -264,7 +410,7 @@ describe('Account controller', () => {
     it('should change password and use the reset link', async () => {
       const link = genResetLinkApi(user.id);
       await ResetLinks().insert(formatResetLinkApi(link));
-      const newPassword = '123QWEasd';
+      const newPassword = '123QWEasd!@#';
 
       const { status } = await request(url).post(testRoute).send({
         key: link.id,

@@ -17,7 +17,6 @@ import config from '~/infra/config';
 import gracefulShutdown from '~/infra/graceful-shutdown';
 import { logger } from '~/infra/logger';
 import sentry from '~/infra/sentry';
-import mockServices from '~/mocks';
 import unprotectedRouter from '~/routers/unprotected';
 import protectedRouter from '~/routers/protected';
 import errorHandler from '~/middlewares/error-handler';
@@ -105,9 +104,6 @@ export function createServer(): Server {
       credentials: false
     })
   );
-
-  // Mock services like Datafoncier API on specific environments
-  mockServices();
 
   app.use(express.json({ limit: '10mb' }));
 

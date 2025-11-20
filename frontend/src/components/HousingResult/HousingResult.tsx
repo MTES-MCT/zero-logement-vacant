@@ -1,50 +1,57 @@
-import { Container, Text } from '../_dsfr';
-import styles from './housing-result.module.scss';
 import Tag from '@codegouvfr/react-dsfr/Tag';
-import Badge from '@codegouvfr/react-dsfr/Badge';
-import { OccupancyKind, OccupancyKindBadgeLabels } from '../../models/Housing';
+import Box from '@mui/material/Box';
+import Stack from '@mui/material/Stack';
+import Typography from '@mui/material/Typography';
+import type { Occupancy } from '@zerologementvacant/models';
+
+import OccupancyBadge from '../Housing/OccupancyBadge';
+import styles from './housing-result.module.scss';
 
 interface Props {
   address: string;
-  appartment?: number;
+  apartment: number | null;
   display?: 'one-line' | 'two-lines';
-  floor?: number;
+  floor: number | null;
   localId: string;
-  occupancy: OccupancyKind;
+  occupancy: Occupancy;
 }
 
 function HousingResult(props: Props) {
   const display = props.display ?? 'one-line';
-  const floor = props.floor ? `- Étage ${props.floor}` : null;
-  const appartment = props.appartment
-    ? `- Appartement ${props.appartment}`
-    : null;
+  const floor = props.floor ? (
+    <Typography>- Étage {props.floor}</Typography>
+  ) : null;
+  const appartment = props.apartment ? (
+    <Typography>- Appartement {props.apartment}</Typography>
+  ) : null;
   const occupancy = (
-    <>
-      <Text as="span" spacing="mb-0">
-        Statut d’occupation : 
-      </Text>
-      <Badge>{OccupancyKindBadgeLabels[props.occupancy]}</Badge>
-    </>
+    <Stack direction="row" sx={{ alignItems: 'center' }}>
+      <Typography component="span">Statut d’occupation :&nbsp;</Typography>
+      <OccupancyBadge occupancy={props.occupancy} tagProps={{ as: 'span' }} />
+    </Stack>
   );
 
   return (
-    <Container as="article" className={styles.container}>
-      <Text bold size="lg" spacing="mb-1w">
+    <Box component="article" className={styles.container}>
+      <Typography variant="subtitle2" sx={{ fontWeight: 700, mb: '0.5rem' }}>
         {props.address}
-      </Text>
+      </Typography>
       {display === 'two-lines' && (
-        <Container fluid>
-          <Text as="span" spacing="mr-1w mb-1w">
-            Identifiant du local :
-          </Text>
-          <Tag>{props.localId}</Tag>
-          <Text as="span" spacing="mb-0">
-            {appartment} {floor} - {occupancy} 
-          </Text>
-        </Container>
+        <Stack direction="column" spacing="0.5rem">
+          <Stack direction="row" sx={{ alignItems: 'center' }}>
+            <Typography component="span">
+              Identifiant du local :&nbsp;
+            </Typography>
+            <Tag as="span">{props.localId}</Tag>
+            {appartment}
+            {floor}
+          </Stack>
+          <Stack direction="row" sx={{ alignItems: 'center' }}>
+            {occupancy}
+          </Stack>
+        </Stack>
       )}
-    </Container>
+    </Box>
   );
 }
 

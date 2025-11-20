@@ -92,7 +92,9 @@ function HousingFiltersBadges(props: HousingFiltersBadgesProps) {
     return Array.from(setGeoCodes);
   }
 
-  const { localitiesOptions } = useLocalityList(establishment?.id);
+  const { localitiesOptions, listLocalitiesQuery } = useLocalityList(
+    establishment?.id ?? null
+  );
 
   const { data: precisions } = useFindPrecisionsQuery();
   const precisionOptions = precisions ?? [];
@@ -232,6 +234,7 @@ function HousingFiltersBadges(props: HousingFiltersBadgesProps) {
         options={localitiesOptions}
         values={mergeDistricts(filters.localities ?? [])}
         small={small}
+        isLoading={listLocalitiesQuery.isFetching}
         onChange={(values) => onChange?.({ localities: values })}
       />
       <FilterBadges

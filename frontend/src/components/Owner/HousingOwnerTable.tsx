@@ -93,25 +93,22 @@ function HousingOwnerTable(props: HousingOwnerTableProps) {
         header: 'Rang de contact',
         cell: ({ cell }) => <RankBadge value={cell.getValue()} />
       }),
-      columnHelper.accessor(
-        (housingOwner) => housingOwner.banAddress?.score ?? null,
-        {
-          id: 'addressStatus',
-          header: 'Statut adresse',
-          cell: ({ cell, row }) => {
-            return (
-              <ImprovableAddressBadge
-                score={cell.getValue() ?? null}
-                ignored={
-                  row.original.banAddress?.banId
-                    ? isIgnored(row.original.banAddress.banId)
-                    : false
-                }
-              />
-            );
-          }
+      columnHelper.accessor((housingOwner) => housingOwner.banAddress?.score, {
+        id: 'addressStatus',
+        header: 'Statut adresse',
+        cell: ({ cell, row }) => {
+          return (
+            <ImprovableAddressBadge
+              score={cell.getValue() ?? null}
+              ignored={
+                row.original.banAddress?.banId
+                  ? isIgnored(row.original.banAddress.banId)
+                  : false
+              }
+            />
+          );
         }
-      ),
+      }),
       columnHelper.accessor('rank', {
         id: 'status',
         header: 'État du propriétaire',

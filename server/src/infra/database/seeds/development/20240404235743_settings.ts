@@ -11,12 +11,7 @@ export async function seed(knex: Knex): Promise<void> {
   const establishments = await Establishments(knex).select('id');
 
   const settings = establishments.map((establishment) =>
-    formatSettingsApi({
-      ...genSettingsApi(establishment.id),
-      contactPoints: {
-        public: true
-      }
-    })
+    formatSettingsApi(genSettingsApi(establishment.id))
   );
 
   await knex.batchInsert(settingsTable, settings);

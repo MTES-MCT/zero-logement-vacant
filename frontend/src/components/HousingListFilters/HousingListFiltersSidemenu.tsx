@@ -15,17 +15,13 @@ import {
 import { Occupancy } from '@zerologementvacant/models';
 import { isDefined } from '@zerologementvacant/utils';
 import classNames from 'classnames';
-import { Set } from 'immutable';
 import { usePostHog } from 'posthog-js/react';
 
 import { useIntercommunalities } from '../../hooks/useIntercommunalities';
-import { useLocalityList } from '../../hooks/useLocalityList';
-import { useAppSelector } from '../../hooks/useStore';
 import { useToggle } from '../../hooks/useToggle';
 import { useUser } from '../../hooks/useUser';
 import type { HousingFilters } from '../../models/HousingFilters';
 import { getSubStatuses } from '../../models/HousingState';
-import { getCity, getDistricts } from '../../models/Locality';
 import { getPrecision } from '../../models/Precision';
 import { useFindCampaignsQuery } from '../../services/campaign.service';
 import { useListGeoPerimetersQuery } from '../../services/geo.service';
@@ -48,6 +44,7 @@ import HousingSubStatusSelect from './HousingSubStatusSelect';
 import LastMutationTypeSelect from './LastMutationTypeSelect';
 import LastMutationYearSelect from './LastMutationYearSelect';
 import LocalityKindSelect from './LocalityKindSelect';
+import LocalitySearchableSelect from './LocalitySearchableSelect';
 import MultiOwnerSelect from './MultiOwnerSelect';
 import OccupancySelect from './OccupancySelect';
 import OwnerAgeSelect from './OwnerAgeSelect';
@@ -90,38 +87,14 @@ interface Props {
 function HousingListFiltersSidemenu(props: Props) {
   const posthog = usePostHog();
 
-  const establishment = useAppSelector(
-    (state) => state.authentication.authUser?.establishment
-  );
-
   const toggle = useToggle(true);
 
   const filters = props.filters;
   const onChangeFilters = props.onChange;
   const onResetFilters = props.onReset;
   const { data: geoPerimeters } = useListGeoPerimetersQuery();
-  const { localities } = useLocalityList(establishment?.id);
 
   const { data: intercommunalities, isFetching } = useIntercommunalities();
-  const localityOptions = localities
-    ?.filter((locality) => {
-      const districts = getDistricts(locality.geoCode);
-      return districts === null;
-    })
-    ?.filter((locality) => {
-      if (!filters.intercommunalities?.length) {
-        return true;
-      }
-
-      const set = Set(
-        intercommunalities
-          ?.filter((interco) =>
-            filters.intercommunalities?.includes(interco.id)
-          )
-          ?.flatMap((interco) => interco.geoCodes)
-      );
-      return set.has(locality.geoCode);
-    });
 
   const { data: precisions } = useFindPrecisionsQuery();
   const precisionOptions = precisions ?? [];
@@ -505,55 +478,11 @@ function HousingListFiltersSidemenu(props: Props) {
               />
             </Grid>
             <Grid component="article" mb={2} size={12}>
-              <SearchableSelectNext
-                multiple
-                disabled={localityOptions && localityOptions.length === 0}
-                label="Commune"
-                placeholder="Rechercher une commune"
-                options={
-                  localityOptions?.toSorted((a, b) => {
-                    const cityA = getCity(a.geoCode) ?? '';
-                    const cityB = getCity(b.geoCode) ?? '';
-                    return cityA.localeCompare(cityB);
-                  }) ?? []
-                }
-                isOptionEqualToValue={(option, value) =>
-                  option.geoCode === value.geoCode
-                }
-                getOptionLabel={(option) => option.name}
-                groupBy={(option) => {
-                  const city = getCity(option.geoCode);
-                  return city ?? '';
-                }}
-                renderGroup={(group) => {
-                  const city = localities?.find(
-                    (locality) => locality.geoCode === group
-                  );
-                  return (
-                    <Typography
-                      sx={{ mt: '0.125rem', fontWeight: 700 }}
-                      variant="body2"
-                    >
-                      {city?.name ?? group}
-                    </Typography>
-                  );
-                }}
-                value={
-                  filters.localities?.map((geoCode) => {
-                    const option = localityOptions?.find(
-                      (option) => option.geoCode === geoCode
-                    );
-                    if (!option) {
-                      throw new Error(`Locality ${geoCode} not found`);
-                    }
-
-                    return option;
-                  }) ?? []
-                }
+              <LocalitySearchableSelect
+                intercommunalities={filters.intercommunalities}
+                value={filters.localities ?? []}
                 onChange={(values) => {
-                  onChangeFilters({
-                    localities: values.map((value) => value.geoCode)
-                  });
+                  onChangeFilters({ localities: values });
                   posthog.capture('filtre-commune');
                 }}
               />

@@ -1,37 +1,61 @@
-import type { ButtonProps } from '@codegouvfr/react-dsfr/Button';
-import { createModal } from '@codegouvfr/react-dsfr/Modal';
+import Button from '@codegouvfr/react-dsfr/Button';
+import { useState } from 'react';
 
-import ModalGraphStepper, { type Step } from '../ModalStepper/ModalGraphStepper';
-import fillLocalId from './FillLocalId';
-import reviewHousing from './ReviewHousing';
+import createFillLocalIdModal from './FillLocalId';
+import createReviewHousingModal from './ReviewHousing';
+import type { Housing } from '~/models/Housing';
 
 interface Props {
-  onFinish?: () => void;
+  onFinish?(housing: Housing): void;
 }
 
-const modal = createModal({
-  id: 'housing-creation-modal',
-  isOpenedByDefault: false
-});
+const fillLocalIdModal = createFillLocalIdModal();
+const reviewHousingModal = createReviewHousingModal();
 
 function HousingCreationModal(props: Props) {
-  const openingButtonProps: ButtonProps = {
-    iconId: 'fr-icon-add-line',
-    children: 'Ajouter un logement',
-    priority: 'secondary',
-    onClick: modal.open
-  };
+  const [localId, setLocalId] = useState<string | null>(null);
 
-  const steps: Step[] = [fillLocalId, reviewHousing];
+  function handleFillLocalIdCancel() {
+    fillLocalIdModal.close();
+  }
+
+  function handleFillLocalIdNext(localId: string) {
+    setLocalId(localId);
+    fillLocalIdModal.close();
+    reviewHousingModal.open();
+  }
+
+  function handleReviewHousingBack() {
+    reviewHousingModal.close();
+    fillLocalIdModal.open();
+  }
+
+  function handleReviewHousingConfirm(housing: Housing) {
+    reviewHousingModal.close();
+    props.onFinish?.(housing);
+  }
 
   return (
-    <ModalGraphStepper
-      openingButtonProps={openingButtonProps}
-      size="large"
-      steps={steps}
-      title="Ajouter un logement"
-      onFinish={props.onFinish}
-    />
+    <>
+      <Button
+        iconId="fr-icon-add-line"
+        priority="secondary"
+        onClick={fillLocalIdModal.open}
+      >
+        Ajouter un logement
+      </Button>
+
+      <fillLocalIdModal.Component
+        onCancel={handleFillLocalIdCancel}
+        onNext={handleFillLocalIdNext}
+      />
+
+      <reviewHousingModal.Component
+        onBack={handleReviewHousingBack}
+        localId={localId}
+        onConfirm={handleReviewHousingConfirm}
+      />
+    </>
   );
 }
 

@@ -27,9 +27,15 @@ export const OWNER_FORM_FIELD_SCHEMA = object({
     .defined()
     .nullable(),
   additionalAddress: string().defined().nullable(),
-  email: string().email('Email invalide').defined().nullable(),
+  email: string()
+    .email('Email invalide. Exemple de format valide : exemple@gmail.com')
+    .defined()
+    .nullable(),
   phone: string()
-    .matches(PHONE_REGEXP, 'Téléphone invalide')
+    .matches(
+      PHONE_REGEXP,
+      'Téléphone invalide. Exemple de format valide : +33XXXXXXXXX ou 0XXXXXXXXX'
+    )
     .defined()
     .nullable()
 });
@@ -65,6 +71,8 @@ function OwnerFormFields(props: OwnerFormFieldsProps) {
               type: 'date',
               max: new Date().toISOString().substring(0, 'yyyy-mm-dd'.length)
             }}
+            mapValue={(value): string => value ?? ''}
+            contramapValue={(value): string | null => value || null}
           />
         </Grid>
       </Grid>

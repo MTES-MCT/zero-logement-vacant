@@ -1,66 +1,85 @@
-import type { DatafoncierHousing } from '@zerologementvacant/models';
-import { forwardRef, useImperativeHandle } from 'react';
-import { useAppSelector } from '../../../hooks/useStore';
-import { OccupancyKind } from '../../../models/Housing';
-import { datafoncierApi } from '../../../services/datafoncier.service';
-import { useCreateHousingMutation } from '../../../services/housing.service';
-import { Text } from '../../_dsfr';
+import Typography from '@mui/material/Typography';
+import { skipToken } from '@reduxjs/toolkit/query';
+import { type DatafoncierHousing, type Occupancy } from '@zerologementvacant/models';
 
-import HousingResult from '../../HousingResult/HousingResult';
-import type { Step, StepProps } from '../ModalStepper/ModalGraphStepper';
+import HousingResult from '~/components/HousingResult/HousingResult';
+import { createExtendedModal } from '~/components/modals/ConfirmationModal/ExtendedModal';
+import { type Housing } from '~/models/Housing';
+import { datafoncierApi } from '~/services/datafoncier.service';
+import { useCreateHousingMutation } from '~/services/housing.service';
 
-const ReviewHousing = forwardRef((_: StepProps, ref) => {
-  const { creator } = useAppSelector((state) => state.housing);
-  const { localId } = creator;
-  const { data: datafoncierHousing } = datafoncierApi.useFindOneHousingQuery(
-    localId as string,
-    { skip: !localId }
-  );
+export interface ReviewHousingProps {
+  localId: string | null;
+  onBack(): void;
+  onConfirm(housing: Housing): void;
+}
 
-  const address = datafoncierHousing
-    ? toAddress(datafoncierHousing)
-    : undefined;
+function createReviewHousingModal() {
+  const modal = createExtendedModal({
+    id: 'review-housing-modal',
+    isOpenedByDefault: false
+  });
 
-  const [doCreateHousing] = useCreateHousingMutation();
+  return {
+    ...modal,
+    Component(props: ReviewHousingProps) {
+      const { data: datafoncierHousing } =
+        datafoncierApi.useFindOneHousingQuery(props.localId ?? skipToken);
 
-  useImperativeHandle(ref, () => ({
-    onNext: async () => {
-      try {
-        if (localId) {
-          await doCreateHousing({ localId }).unwrap();
-          return '';
+      const address = datafoncierHousing
+        ? toAddress(datafoncierHousing)
+        : undefined;
+
+      const [createHousing, createHousingMutation] = useCreateHousingMutation();
+
+      function handleConfirm() {
+        if (props.localId) {
+          createHousing({ localId: props.localId })
+            .unwrap()
+            .then((housing) => {
+              props.onConfirm(housing);
+            });
         }
-        return null;
-      } catch {
-        return null;
       }
+
+      return (
+        <modal.Component
+          title="Ajouter un logement"
+          size="large"
+          buttons={[
+            {
+              children: 'Retour',
+              priority: 'secondary',
+              doClosesModal: false,
+              onClick: props.onBack
+            },
+            {
+              children: 'Confirmer',
+              doClosesModal: false,
+              disabled: createHousingMutation.isLoading,
+              onClick: handleConfirm
+            }
+          ]}
+        >
+          <Typography variant="subtitle2" sx={{ mb: '1.5rem' }}>
+            Voici le logement que nous avons trouvé à cette adresse/sur cette
+            parcelle.
+          </Typography>
+          {address && datafoncierHousing && (
+            <HousingResult
+              address={address}
+              display="two-lines"
+              localId={datafoncierHousing.idlocal}
+              apartment={null}
+              floor={null}
+              occupancy={datafoncierHousing.ccthp as Occupancy}
+            />
+          )}
+        </modal.Component>
+      );
     }
-  }));
-
-  return (
-    <>
-      <Text size="lg">
-        Voici le logement que nous avons trouvé à cette adresse/sur cette
-        parcelle.
-      </Text>
-      {address && datafoncierHousing && (
-        <HousingResult
-          address={address}
-          display="two-lines"
-          localId={datafoncierHousing.idlocal}
-          occupancy={datafoncierHousing.ccthp as OccupancyKind}
-        />
-      )}
-    </>
-  );
-});
-
-ReviewHousing.displayName = 'ReviewHousing';
-
-const step: Step = {
-  id: 'review-housing',
-  Component: ReviewHousing
-};
+  };
+}
 
 function toAddress(housing: DatafoncierHousing): string {
   const streetNumber = housing.dnvoiri.replace('^0+', '0');
@@ -71,4 +90,4 @@ function toAddress(housing: DatafoncierHousing): string {
   return `${streetNumber}${repetition} ${street}, ${zipcode} ${city}`;
 }
 
-export default step;
+export default createReviewHousingModal;

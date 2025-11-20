@@ -42,6 +42,9 @@ jobs:
       - name: Test owner-housing-distances
         run: |
           cd server/src/scripts/owner-housing-distances
+          # Clean Python cache to avoid bytecode compatibility issues
+          find . -type d -name __pycache__ -exec rm -rf {} + 2>/dev/null || true
+          find . -type f -name "*.pyc" -delete 2>/dev/null || true
           pip install -r requirements.txt
           pytest test_calculate_distances.py -v --tb=short
         continue-on-error: false

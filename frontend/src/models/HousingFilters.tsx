@@ -760,6 +760,12 @@ export const dataFileYearsIncludedOptions: SelectOption[] = [
       'Source et millésime inclus : Fichiers fonciers 2023 (parc locatif privé)'
   },
   {
+    value: 'ff-2024',
+    label: 'Fichiers fonciers 2024 (ajout manuel)',
+    badgeLabel:
+      'Source et millésime inclus : Fichiers fonciers 2024 (ajout manuel)'
+  },
+  {
     value: 'lovac-2019',
     label: 'LOVAC 2019 (>2 ans)',
     badgeLabel: 'Source et millésime inclus : LOVAC 2019 (>2 ans)'
@@ -808,6 +814,13 @@ export const DATA_FILE_YEAR_INCLUDED_OPTIONS = DATA_FILE_YEAR_VALUES.reduce(
             badgeLabel: `Source et millésime inclus: ${label}`
           };
         })
+        .with('ff-2024', () => {
+          const label = 'Fichiers fonciers 2024 (ajout manuel)';
+          return {
+            label,
+            badgeLabel: `Source et millésime inclus: ${label}`
+          };
+        })
         .with(Pattern.string.startsWith('lovac-'), (value) => {
           const label = `LOVAC ${value.slice('lovac-'.length)} (>2 ans)`;
           return {
@@ -827,6 +840,13 @@ export const DATA_FILE_YEAR_EXCLUDED_OPTIONS = DATA_FILE_YEAR_VALUES.reduce(
       [value]: match(value)
         .with('ff-2023-locatif', () => {
           const label = 'Fichiers fonciers 2023 (parc locatif privé)';
+          return {
+            label,
+            badgeLabel: `Source et millésime exclus : ${label}`
+          };
+        })
+        .with('ff-2024', () => {
+          const label = 'Fichiers fonciers 2024 (ajout manuel)';
           return {
             label,
             badgeLabel: `Source et millésime exclus : ${label}`
@@ -854,6 +874,12 @@ export const dataFileYearsExcludedOptions: SelectOption[] = [
     label: 'Fichiers fonciers 2023 (parc locatif privé)',
     badgeLabel:
       'Source et millésime exclus : Fichiers fonciers 2023 (parc locatif privé)'
+  },
+  {
+    value: 'ff-2024',
+    label: 'Fichiers fonciers 2024 (ajout manuel)',
+    badgeLabel:
+      'Source et millésime exclus : Fichiers fonciers 2024 (ajout manuel)'
   },
   {
     value: 'lovac-2019',

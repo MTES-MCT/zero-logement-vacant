@@ -78,10 +78,10 @@ class DatabaseUser:
 
 @dataclass
 class DeactivationAction:
-    """Represents a suspension action to perform."""
+    """Represents a suspension or reactivation action to perform."""
     user_id: int
     email: str
-    action_type: str  # 'suspend' only
+    action_type: str  # 'suspend' or 'reactivate'
     reasons: List[str]
     suspended_at: Optional[str] = None
     suspended_cause: Optional[str] = None
@@ -414,7 +414,18 @@ def analyze_user_status(
             suspended_at=now.isoformat(),
             suspended_cause=", ".join(reasons)
         )
-    
+
+    # If user is currently suspended but no longer has suspension reasons, reactivate
+    if db_user.suspended_at is not None and not reasons:
+        return DeactivationAction(
+            user_id=db_user.id,
+            email=db_user.email,
+            action_type='reactivate',
+            reasons=['suspension criteria no longer met'],
+            suspended_at=None,
+            suspended_cause=None
+        )
+
     return None
 
 def apply_deactivation_actions(actions: List[DeactivationAction], db_config: DatabaseConfig, dry_run: bool = False) -> None:
@@ -433,28 +444,49 @@ def apply_deactivation_actions(actions: List[DeactivationAction], db_config: Dat
     if dry_run:
         logger.info(f"DRY RUN MODE - {len(actions)} actions would be performed:")
         for action in actions:
-            logger.info(f"  SUSPEND: {action.email} - {action.suspended_cause}")
+            if action.action_type == 'suspend':
+                logger.info(f"  SUSPEND: {action.email} - {action.suspended_cause}")
+            elif action.action_type == 'reactivate':
+                logger.info(f"  REACTIVATE: {action.email}")
         return
     
     try:
         with psycopg2.connect(**db_config.__dict__) as conn:
             with conn.cursor() as cursor:
-                # Process suspensions only
+                # Process suspensions
                 suspend_query = """
-                UPDATE users 
-                SET suspended_at = %s, suspended_cause = %s 
+                UPDATE users
+                SET suspended_at = %s, suspended_cause = %s
                 WHERE id = %s AND deleted_at IS NULL
                 """
-                
+
+                # Process reactivations
+                reactivate_query = """
+                UPDATE users
+                SET suspended_at = NULL, suspended_cause = NULL
+                WHERE id = %s AND deleted_at IS NULL
+                """
+
+                suspended_count = 0
+                reactivated_count = 0
+
                 for action in actions:
-                    cursor.execute(suspend_query, (
-                        action.suspended_at, 
-                        action.suspended_cause, 
-                        action.user_id
-                    ))
-                
-                logger.info(f"{len(actions)} users suspended")
-                
+                    if action.action_type == 'suspend':
+                        cursor.execute(suspend_query, (
+                            action.suspended_at,
+                            action.suspended_cause,
+                            action.user_id
+                        ))
+                        suspended_count += 1
+                    elif action.action_type == 'reactivate':
+                        cursor.execute(reactivate_query, (action.user_id,))
+                        reactivated_count += 1
+
+                if suspended_count > 0:
+                    logger.info(f"{suspended_count} users suspended")
+                if reactivated_count > 0:
+                    logger.info(f"{reactivated_count} users reactivated")
+
                 conn.commit()
                 logger.info("All changes have been applied")
         
@@ -468,27 +500,36 @@ def apply_deactivation_actions(actions: List[DeactivationAction], db_config: Dat
 def generate_report(actions: List[DeactivationAction]) -> None:
     """
     Generate a report of performed actions.
-    
+
     Args:
         actions: List of actions performed
     """
     if not actions:
         return
-    
-    logger.info(f"=== SUSPENSION REPORT ===")
-    logger.info(f"Users suspended: {len(actions)}")
+
+    suspended = [a for a in actions if a.action_type == 'suspend']
+    reactivated = [a for a in actions if a.action_type == 'reactivate']
+
+    logger.info(f"=== ACTION REPORT ===")
+    logger.info(f"Users suspended: {len(suspended)}")
+    logger.info(f"Users reactivated: {len(reactivated)}")
     logger.info(f"Total actions: {len(actions)}")
-    
-    if actions:
+
+    if suspended:
         # Analyze suspension reasons
         reason_counts = {}
-        for action in actions:
+        for action in suspended:
             for reason in action.reasons:
                 reason_counts[reason] = reason_counts.get(reason, 0) + 1
-        
+
         logger.info(f"=== SUSPENSION REASONS ===")
         for reason, count in sorted(reason_counts.items(), key=lambda x: x[1], reverse=True):
             logger.info(f"  {reason}: {count} users")
+
+    if reactivated:
+        logger.info(f"=== REACTIVATED USERS ===")
+        for action in reactivated:
+            logger.info(f"  {action.email}")
 
 def run_deactivation(
     users_file: str,

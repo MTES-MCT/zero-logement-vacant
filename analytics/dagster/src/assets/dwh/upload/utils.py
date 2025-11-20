@@ -10,12 +10,21 @@ def upload(source_file_path: str, s3_bucket: str, s3_key: str):
     print(f"Endpoint URL: {Config.CELLAR_HTTP_HOST_URL}")
 
     # Initialize S3 client
+    from botocore.config import Config as BotoConfig
+    
+    # Disable optional checksums that can cause MissingContentLength errors with some S3 providers
+    client_config = BotoConfig(
+        request_checksum_calculation="when_required",
+        response_checksum_validation="when_required",
+    )
+
     s3_client = boto3.client(
         "s3",
         region_name=Config.CELLAR_REGION,
         aws_access_key_id=Config.CELLAR_ACCESS_KEY_ID,
         aws_secret_access_key=Config.CELLAR_SECRET_ACCESS_KEY,
         endpoint_url=Config.CELLAR_HTTP_HOST_URL,
+        config=client_config,
     )
 
     # Upload the DuckDB metabase file to S3

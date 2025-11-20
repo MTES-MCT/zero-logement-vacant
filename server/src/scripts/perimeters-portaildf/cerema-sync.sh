@@ -66,6 +66,20 @@ if [ -z "$PYTHON_CMD" ]; then
 fi
 echo "Using Python: $PYTHON_CMD"
 
+# Install Python dependencies
+echo ""
+echo "Installing Python dependencies..."
+if [ -f requirements.txt ]; then
+    if pip3 install -q -r requirements.txt; then
+        echo "✓ Dependencies installed successfully"
+    else
+        echo "✗ ERROR: Failed to install dependencies"
+        exit 1
+    fi
+else
+    echo "⚠ WARNING: requirements.txt not found, skipping dependency installation"
+fi
+
 # 1. Retrieve latest data from API
 echo ""
 echo "Step 1/3: Retrieving data from Cerema API..."

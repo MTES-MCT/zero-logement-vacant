@@ -4,7 +4,6 @@ import rateLimit from 'express-rate-limit';
 import accountController from '~/controllers/accountController';
 import establishmentController from '~/controllers/establishmentController';
 import localityController from '~/controllers/localityController';
-import ownerProspectController from '~/controllers/ownerProspectController';
 import prospectController from '~/controllers/prospectController';
 import resetLinkController from '~/controllers/resetLinkController';
 import settingsController from '~/controllers/settingsController';
@@ -40,13 +39,6 @@ router.get(
   prospectController.showProspectValidator,
   validator.validate,
   prospectController.show
-);
-
-router.post(
-  '/owner-prospects',
-  ownerProspectController.createOwnerProspectValidators,
-  validator.validate,
-  ownerProspectController.create
 );
 
 router.post(

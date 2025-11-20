@@ -6,12 +6,13 @@ export interface FilterBadgesProps<Value extends string | null> {
   values: Value[] | undefined;
   onChange?(value: Value[]): void;
   small?: boolean;
+  isLoading?: boolean;
 }
 
 function FilterBadges<Value extends string | null = string>(
   props: FilterBadgesProps<Value>
 ) {
-  const { values, onChange, options, small }: FilterBadgesProps<Value> = {
+  const { values, onChange, options, small, isLoading }: FilterBadgesProps<Value> = {
     ...props,
     values: props.values ?? []
   };
@@ -19,7 +20,7 @@ function FilterBadges<Value extends string | null = string>(
   const unknownValues = values.filter(
     (value) => !options.some((option) => option.value === value)
   );
-  if (unknownValues.length > 0) {
+  if (unknownValues.length > 0 && !isLoading) {
     console.warn('Unknown badge values found', unknownValues);
   }
 

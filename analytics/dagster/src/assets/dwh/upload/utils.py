@@ -19,8 +19,8 @@ def upload(source_file_path: str, s3_bucket: str, s3_key: str):
     )
 
     # Upload the DuckDB metabase file to S3
-    with open(source_file_path, "rb") as f:
-        s3_client.upload_fileobj(f, s3_bucket, s3_key)
+    # Using upload_file instead of upload_fileobj to avoid MissingContentLength error
+    s3_client.upload_file(source_file_path, s3_bucket, s3_key)
 
 
 def download(destination_file_path: str, s3_bucket: str, s3_key: str):

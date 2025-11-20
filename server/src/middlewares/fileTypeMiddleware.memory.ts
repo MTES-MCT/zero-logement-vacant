@@ -8,18 +8,18 @@ import BadRequestError from '~/errors/badRequestError';
  */
 const ALLOWED_FILE_TYPES = {
   png: {
-    mimeTypes: ['image/png'],
+    mimeTypes: ['image/png'] as string[],
     signature: [0x89, 0x50, 0x4e, 0x47] // PNG signature: 89 50 4E 47
   },
   jpg: {
-    mimeTypes: ['image/jpeg', 'image/jpg'],
+    mimeTypes: ['image/jpeg', 'image/jpg'] as string[],
     signature: [0xff, 0xd8, 0xff] // JPEG signature: FF D8 FF
   },
   pdf: {
-    mimeTypes: ['application/pdf'],
+    mimeTypes: ['application/pdf'] as string[],
     signature: [0x25, 0x50, 0x44, 0x46] // PDF signature: 25 50 44 46 (%PDF)
   }
-} as const;
+};
 
 /**
  * Validates file type for multer uploads stored in memory
@@ -72,7 +72,7 @@ export const fileTypeMiddleware: RequestHandler = async (
         fileName,
         declaredMimeType
       });
-      throw new BadRequestError('Unable to determine file type from content');
+      throw new BadRequestError();
     }
 
     logger.debug('File type detected', {
@@ -93,7 +93,7 @@ export const fileTypeMiddleware: RequestHandler = async (
         declaredMimeType,
         detectedMimeType: detectedType.mime
       });
-      throw new BadRequestError(`File type ${detectedType.mime} is not allowed`);
+      throw new BadRequestError();
     }
 
     // Verify that declared MIME matches detected MIME
@@ -106,7 +106,6 @@ export const fileTypeMiddleware: RequestHandler = async (
         action: 'rejected'
       });
       throw new BadRequestError(
-        `Declared MIME type (${declaredMimeType}) does not match actual file type (${detectedType.mime})`
       );
     }
 
@@ -127,7 +126,7 @@ export const fileTypeMiddleware: RequestHandler = async (
       logger.error('Unexpected error in file type validation', {
         error: error instanceof Error ? error.message : String(error)
       });
-      next(new BadRequestError('Internal server error during file validation'));
+      next(new BadRequestError());
     }
   }
 };

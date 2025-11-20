@@ -29,7 +29,7 @@ export function upload(): RequestHandler {
     ) {
       // Basic MIME check (will be validated again with magic bytes)
       if (!ALLOWED_MIMES.includes(file.mimetype)) {
-        return callback(new BadRequestError('Invalid file type'));
+        return callback(new BadRequestError());
       }
       return callback(null, true);
     }

@@ -68,11 +68,9 @@ export const zipValidationMiddleware: RequestHandler = async (
       logger.warn('File is not a valid ZIP archive (magic bytes check failed)', {
         fileName,
         declaredMimeType,
-        firstBytes: Array.from(fileBuffer.slice(0, 4)).map(b => b.toString(16).padStart(2, '0')).join(' ')
+        firstBytes: Array.from(fileBuffer.slice(0, 4)).map((b: number) => b.toString(16).padStart(2, '0')).join(' ')
       });
-      throw new BadRequestError(
-        `File "${fileName}" is not a valid ZIP archive. Please upload a shapefile as a ZIP file.`
-      );
+      throw new BadRequestError();
     }
 
     // Also use file-type for additional validation
@@ -84,9 +82,7 @@ export const zipValidationMiddleware: RequestHandler = async (
         declaredMimeType,
         detectedType: detectedType.mime
       });
-      throw new BadRequestError(
-        `File type mismatch. Expected ZIP file, detected ${detectedType.mime}`
-      );
+      throw new BadRequestError();
     }
 
     logger.info('ZIP file validation successful', {
@@ -104,7 +100,7 @@ export const zipValidationMiddleware: RequestHandler = async (
       logger.error('Unexpected error in ZIP validation', {
         error: error instanceof Error ? error.message : String(error)
       });
-      next(new BadRequestError('Internal server error during file validation'));
+      next(new BadRequestError());
     }
   }
 };

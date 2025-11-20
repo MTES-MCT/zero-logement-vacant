@@ -3,6 +3,7 @@ import { logger } from '~/infra/logger';
 import { scanBuffer, isClamAVAvailable } from '~/infra/clamav';
 import VirusDetectedError from '~/errors/virusDetectedError';
 import { constants } from 'http2';
+import config from '~/infra/config';
 
 /**
  * Antivirus middleware for scanning uploaded files from memory

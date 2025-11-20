@@ -1,10 +1,14 @@
 import { Request, Response, NextFunction, RequestHandler } from 'express';
+import { GetObjectCommand, DeleteObjectCommand } from '@aws-sdk/client-s3';
 import { logger } from '~/infra/logger';
 import { scanBuffer, isClamAVAvailable } from '~/infra/clamav';
 import VirusDetectedError from '~/errors/virusDetectedError';
 import config from '~/infra/config';
 import { createS3 } from '@zerologementvacant/utils/node';
 import { constants } from 'http2';
+
+// Ensure multer-s3 types are available
+import 'multer-s3';
 
 /**
  * Antivirus middleware for scanning uploaded files
@@ -104,10 +108,10 @@ export const antivirusMiddleware: RequestHandler = async (
       secretAccessKey: config.s3.secretAccessKey
     });
 
-    const response = await s3.getObject({
+    const response = await s3.send(new GetObjectCommand({
       Bucket: config.s3.bucket,
       Key: fileKey
-    });
+    }));
 
     if (!response.Body) {
       logger.error('Could not retrieve file from S3 for scanning', {
@@ -139,10 +143,10 @@ export const antivirusMiddleware: RequestHandler = async (
 
       // Delete infected file from S3
       try {
-        await s3.deleteObject({
+        await s3.send(new DeleteObjectCommand({
           Bucket: config.s3.bucket,
           Key: fileKey
-        });
+        }));
         logger.info('Infected file deleted from S3', {
           fileKey,
           filename: fileName

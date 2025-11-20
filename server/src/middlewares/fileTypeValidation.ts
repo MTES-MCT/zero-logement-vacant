@@ -1,28 +1,31 @@
 import { Request, Response, NextFunction, RequestHandler } from 'express';
+import { GetObjectCommand, DeleteObjectCommand } from '@aws-sdk/client-s3';
 import { fileTypeFromBuffer } from 'file-type';
 import { logger } from '~/infra/logger';
 import BadRequestError from '~/errors/badRequestError';
-import { S3 } from '@aws-sdk/client-s3';
 import config from '~/infra/config';
 import { createS3 } from '@zerologementvacant/utils/node';
+
+// Ensure multer-s3 types are available
+import 'multer-s3';
 
 /**
  * Allowed file types with their MIME types and magic bytes signatures
  */
 const ALLOWED_FILE_TYPES = {
   png: {
-    mimeTypes: ['image/png'],
+    mimeTypes: ['image/png'] as string[],
     signature: [0x89, 0x50, 0x4e, 0x47] // PNG signature: 89 50 4E 47
   },
   jpg: {
-    mimeTypes: ['image/jpeg', 'image/jpg'],
+    mimeTypes: ['image/jpeg', 'image/jpg'] as string[],
     signature: [0xff, 0xd8, 0xff] // JPEG signature: FF D8 FF
   },
   pdf: {
-    mimeTypes: ['application/pdf'],
+    mimeTypes: ['application/pdf'] as string[],
     signature: [0x25, 0x50, 0x44, 0x46] // PDF signature: 25 50 44 46 (%PDF)
   }
-} as const;
+};
 
 /**
  * Validates file type for multer uploads stored in S3
@@ -65,21 +68,21 @@ export const validateUploadedFileType: RequestHandler = async (
     });
 
     // Download file from S3 to validate magic bytes
-    const s3: S3 = createS3({
+    const s3 = createS3({
       endpoint: config.s3.endpoint,
       region: config.s3.region,
       accessKeyId: config.s3.accessKeyId,
       secretAccessKey: config.s3.secretAccessKey
     });
 
-    const response = await s3.getObject({
+    const response = await s3.send(new GetObjectCommand({
       Bucket: config.s3.bucket,
       Key: fileKey
-    });
+    }));
 
     if (!response.Body) {
       logger.error('Could not retrieve file from S3', { fileKey });
-      throw new BadRequestError('Could not validate file');
+      throw new BadRequestError();
     }
 
     // Get file buffer
@@ -97,12 +100,12 @@ export const validateUploadedFileType: RequestHandler = async (
       });
 
       // Delete file from S3
-      await s3.deleteObject({
+      await s3.send(new DeleteObjectCommand({
         Bucket: config.s3.bucket,
         Key: fileKey
-      });
+      }));
 
-      throw new BadRequestError('Unable to determine file type from content');
+      throw new BadRequestError();
     }
 
     logger.debug('File type detected', {
@@ -127,12 +130,12 @@ export const validateUploadedFileType: RequestHandler = async (
       });
 
       // Delete file from S3
-      await s3.deleteObject({
+      await s3.send(new DeleteObjectCommand({
         Bucket: config.s3.bucket,
         Key: fileKey
-      });
+      }));
 
-      throw new BadRequestError(`File type ${detectedType.mime} is not allowed`);
+      throw new BadRequestError();
     }
 
     // Verify that declared MIME matches detected MIME
@@ -147,14 +150,12 @@ export const validateUploadedFileType: RequestHandler = async (
       });
 
       // Delete file from S3
-      await s3.deleteObject({
+      await s3.send(new DeleteObjectCommand({
         Bucket: config.s3.bucket,
         Key: fileKey
-      });
+      }));
 
-      throw new BadRequestError(
-        `Declared MIME type (${declaredMimeType}) does not match actual file type (${detectedType.mime})`
-      );
+      throw new BadRequestError();
     }
 
     logger.info('File type validation successful', {
@@ -172,7 +173,7 @@ export const validateUploadedFileType: RequestHandler = async (
       logger.error('Unexpected error in file type validation', {
         error: error instanceof Error ? error.message : String(error)
       });
-      next(new BadRequestError('Internal server error during file validation'));
+      next(new BadRequestError());
     }
   }
 };

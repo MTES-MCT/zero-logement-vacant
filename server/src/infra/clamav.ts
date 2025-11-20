@@ -1,4 +1,5 @@
 import NodeClam from 'clamscan';
+import { Readable } from 'stream';
 import { logger } from './logger';
 
 /**
@@ -7,7 +8,6 @@ import { logger } from './logger';
 const CLAMAV_OPTIONS: NodeClam.Options = {
   removeInfected: false, // Do not automatically remove infected files
   quarantineInfected: false, // Do not quarantine infected files
-  scanLog: null, // Disable file logging
   debugMode: process.env.NODE_ENV === 'development',
 
   clamdscan: {
@@ -126,8 +126,11 @@ export async function scanBuffer(
 
     const startTime = Date.now();
 
-    // Scan the buffer
-    const result = await clam.scanBuffer(buffer, 5000, filename);
+    // Convert buffer to readable stream for scanning
+    const stream = Readable.from(buffer);
+
+    // Scan the stream
+    const result = await clam.scanStream(stream);
 
     const scanDuration = Date.now() - startTime;
 

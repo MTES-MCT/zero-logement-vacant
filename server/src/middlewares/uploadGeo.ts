@@ -31,7 +31,7 @@ export function uploadGeo(): RequestHandler {
     ) {
       // Basic MIME check for ZIP files
       if (!ALLOWED_MIMES.includes(file.mimetype)) {
-        return callback(new BadRequestError(`Invalid file type. Expected ZIP file, got ${file.mimetype}`));
+        return callback(new BadRequestError());
       }
       return callback(null, true);
     }

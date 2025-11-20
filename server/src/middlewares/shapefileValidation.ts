@@ -59,18 +59,16 @@ export const shapefileValidationMiddleware: RequestHandler = async (
       const zipEntries = zip.getEntries();
 
       // Find .shp and .dbf files
-      const shpEntry = zipEntries.find(entry => entry.entryName.toLowerCase().endsWith('.shp'));
-      const dbfEntry = zipEntries.find(entry => entry.entryName.toLowerCase().endsWith('.dbf'));
+      const shpEntry = zipEntries.find((entry: any) => entry.entryName.toLowerCase().endsWith('.shp'));
+      const dbfEntry = zipEntries.find((entry: any) => entry.entryName.toLowerCase().endsWith('.dbf'));
 
       if (!shpEntry) {
         throw new BadRequestError(
-          'Invalid shapefile: Missing .shp file in ZIP archive'
         );
       }
 
       if (!dbfEntry) {
         throw new BadRequestError(
-          'Invalid shapefile: Missing .dbf file in ZIP archive'
         );
       }
 
@@ -100,7 +98,6 @@ export const shapefileValidationMiddleware: RequestHandler = async (
             maxFeatures
           });
           throw new BadRequestError(
-            `Shapefile contains too many features. Maximum allowed: ${maxFeatures.toLocaleString()}`
           );
         }
 
@@ -132,7 +129,6 @@ export const shapefileValidationMiddleware: RequestHandler = async (
       });
 
       throw new BadRequestError(
-        'Invalid shapefile format. Please ensure the ZIP contains valid shapefile components (.shp, .shx, .dbf).'
       );
     }
   } catch (error) {
@@ -142,7 +138,7 @@ export const shapefileValidationMiddleware: RequestHandler = async (
       logger.error('Unexpected error in shapefile validation', {
         error: error instanceof Error ? error.message : String(error)
       });
-      next(new BadRequestError('Internal server error during shapefile validation'));
+      next(new BadRequestError());
     }
   }
 };

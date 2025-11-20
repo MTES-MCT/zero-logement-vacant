@@ -8,18 +8,18 @@ import { logger } from '~/infra/logger';
  */
 const ALLOWED_FILE_TYPES = {
   png: {
-    mimeTypes: ['image/png'],
+    mimeTypes: ['image/png'] as string[],
     signature: [0x89, 0x50, 0x4e, 0x47] // PNG signature: 89 50 4E 47
   },
   jpg: {
-    mimeTypes: ['image/jpeg', 'image/jpg'],
+    mimeTypes: ['image/jpeg', 'image/jpg'] as string[],
     signature: [0xff, 0xd8, 0xff] // JPEG signature: FF D8 FF
   },
   pdf: {
-    mimeTypes: ['application/pdf'],
+    mimeTypes: ['application/pdf'] as string[],
     signature: [0x25, 0x50, 0x44, 0x46] // PDF signature: 25 50 44 46 (%PDF)
   }
-} as const;
+};
 
 /**
  * Error class for file type validation failures
@@ -149,7 +149,7 @@ export async function fileTypeMiddleware(
       return;
     }
 
-    const files: FileArray = req.files;
+    const files = req.files as unknown as FileArray;
     const validationPromises: Promise<void>[] = [];
 
     // Validate all uploaded files

@@ -5,4 +5,3 @@ models:
   - name: marts_stats_monthly_global
   - name: marts_stats_monthly_signup
   - name: marts_stats_monthly_housing
-  - name: marts_stats_monthly_events

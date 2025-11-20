@@ -49,8 +49,6 @@ export interface OwnerFormFieldsProps {
 function OwnerFormFields(props: OwnerFormFieldsProps) {
   const form = useFormContext<OwnerFormFieldsSchema>();
 
-  console.log(form.getValues('birthDate'));
-
   return (
     <Stack spacing="1.5rem">
       <Grid

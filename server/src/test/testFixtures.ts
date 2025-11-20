@@ -17,8 +17,6 @@ import {
   INTERNAL_MONO_CONDOMINIUM_VALUES,
   LOCALITY_KIND_VALUES,
   MUTATION_TYPE_VALUES,
-  Occupancy,
-  OCCUPANCY_VALUES,
   OWNER_ENTITY_VALUES,
   OWNER_KIND_LABELS,
   PRECISION_CATEGORY_VALUES,
@@ -33,7 +31,8 @@ import {
   genEventDTO,
   genGeoCode,
   genNoteDTO,
-  genUserDTO
+  genUserDTO,
+  genDatafoncierHousing as genDatafoncierHousingDTO
 } from '@zerologementvacant/models/fixtures';
 import { addHours } from 'date-fns';
 import type { BBox } from 'geojson';
@@ -46,12 +45,6 @@ import { logger } from '~/infra/logger';
 import { AddressApi } from '~/models/AddressApi';
 import { BuildingApi } from '~/models/BuildingApi';
 import { CampaignApi } from '~/models/CampaignApi';
-import {
-  ConflictApi,
-  HousingOwnerConflictApi,
-  OwnerConflictApi
-} from '~/models/ConflictApi';
-import { ContactPointApi } from '~/models/ContactPointApi';
 import { DraftApi } from '~/models/DraftApi';
 import { EstablishmentApi } from '~/models/EstablishmentApi';
 import { EventApi, fromEventDTO } from '~/models/EventApi';
@@ -120,9 +113,10 @@ export const genLocalityApi = (geoCode = genGeoCode()): LocalityApi => {
     id: uuidv4(),
     geoCode,
     name: faker.location.city(),
-    kind: LOCALITY_KIND_VALUES.length > 0
-      ? faker.helpers.arrayElement([null, ...LOCALITY_KIND_VALUES])
-      : null,
+    kind:
+      LOCALITY_KIND_VALUES.length > 0
+        ? faker.helpers.arrayElement([null, ...LOCALITY_KIND_VALUES])
+        : null,
     taxKind: TaxKindsApi.None
   };
 };
@@ -212,7 +206,6 @@ export const genOwnerApi = (): OwnerApi => {
       null,
       ...Object.values(OWNER_KIND_LABELS)
     ]),
-    kindDetail: randomstring.generate(),
     administrator: null,
     banAddress: null,
     additionalAddress: randomstring.generate(),
@@ -272,7 +265,7 @@ export const genHousingOwnerApi = (
   startDate: faker.date.past(),
   endDate: null,
   relativeLocation: faker.helpers.arrayElement(RELATIVE_LOCATION_VALUES),
-  absoluteDistance: null,
+  absoluteDistance: null
 });
 
 export function genBuildingApi(): BuildingApi {
@@ -481,27 +474,10 @@ export const genSignupLinkApi = (prospectEmail: string): SignupLinkApi => ({
   expiresAt: addHours(new Date(), SIGNUP_LINK_EXPIRATION)
 });
 
-export const genContactPointApi = (
-  establishmentId: string
-): ContactPointApi => {
-  return {
-    id: uuidv4(),
-    establishmentId,
-    title: randomstring.generate(),
-    opening: randomstring.generate(),
-    address: `${faker.location.streetAddress()}, ${faker.location.zipCode()} ${faker.location.city()}`,
-    email: genEmail(),
-    geoCodes: [genGeoCode()]
-  };
-};
-
 export const genSettingsApi = (establishmentId: string): SettingsApi => {
   return {
     id: uuidv4(),
     establishmentId,
-    contactPoints: {
-      public: genBoolean()
-    },
     inbox: {
       enabled: true
     }
@@ -629,152 +605,10 @@ export const genDatafoncierOwner = (
 };
 
 export const genDatafoncierHousing = (
-  geoCode = genGeoCode()
+  idprocpte: string,
+  idbat: string
 ): DatafoncierHousing => {
-  const department = geoCode.substring(0, 2);
-  const localityCode = geoCode.substring(2, 5);
-  const invariant = genInvariant(localityCode);
-  const localId = genLocalId(department, invariant);
-  const birthdate = faker.date
-    .past()
-    .toJSON()
-    .substring(0, 'yyyy-mm-dd'.length)
-    .split('-')
-    .toReversed()
-    .join('');
-  return {
-    idlocal: localId,
-    idbat: randomstring.generate(16),
-    idpar: randomstring.generate(14),
-    idtup: randomstring.generate(),
-    idsec: randomstring.generate(10),
-    idvoie: randomstring.generate(9),
-    idprocpte: randomstring.generate(11),
-    idcom: geoCode,
-    idcomtxt: faker.location.county(),
-    ccodep: randomstring.generate(2),
-    ccodir: randomstring.generate(1),
-    ccocom: localityCode,
-    invar: invariant,
-    ccopre: randomstring.generate(3),
-    ccosec: randomstring.generate(2),
-    dnupla: randomstring.generate(4),
-    dnubat: randomstring.generate(2),
-    descc: randomstring.generate(2),
-    dniv: randomstring.generate(2),
-    dpor: randomstring.generate(5),
-    ccoriv: randomstring.generate(4),
-    ccovoi: randomstring.generate(5),
-    dnvoiri: faker.location.buildingNumber().substring(0, 4),
-    dindic: '',
-    ccocif: randomstring.generate(4),
-    dvoilib: faker.location.street().substring(0, 30),
-    cleinvar: randomstring.generate(1),
-    ccpper: randomstring.generate(3),
-    gpdl: randomstring.generate(1),
-    ctpdl: randomstring.generate(5),
-    dnupro: randomstring.generate(6),
-    jdatat: birthdate,
-    jdatatv: birthdate,
-    jdatatan: genNumber(2),
-    dnufnl: randomstring.generate(6),
-    ccoeva: randomstring.generate(1),
-    ccoevatxt: randomstring.generate(72),
-    dteloc: faker.helpers.arrayElement(['1', '2']),
-    dteloctxt: oneOf(['MAISON', 'APPARTEMENT']),
-    logh: randomstring.generate(1),
-    loghmais: randomstring.generate(1),
-    loghappt: randomstring.generate(1),
-    gtauom: randomstring.generate(2),
-    dcomrd: randomstring.generate(3),
-    ccoplc: randomstring.generate(1),
-    ccoplctxt: randomstring.generate(140),
-    cconlc: randomstring.generate(2),
-    cconlctxt: randomstring.generate(43),
-    dvltrt: genNumber(2),
-    cc48lc: randomstring.generate(2),
-    dloy48a: genNumber(2),
-    top48a: randomstring.generate(1),
-    dnatlc: randomstring.generate(1),
-    ccthp: faker.helpers.arrayElement([
-      ...OCCUPANCY_VALUES.filter(
-        (occupancy) => occupancy !== Occupancy.UNKNOWN
-      ),
-      null
-    ]),
-    proba_rprs: randomstring.generate(7),
-    typeact: randomstring.generate(4),
-    loghvac: randomstring.generate(1),
-    loghvac2a: randomstring.generate(1),
-    loghvac5a: randomstring.generate(1),
-    loghvacdeb: randomstring.generate(5),
-    cchpr: randomstring.generate(1),
-    jannat: randomstring.generate(4),
-    dnbniv: randomstring.generate(2),
-    nbetagemax: genNumber(1),
-    nbnivssol: genNumber(1),
-    hlmsem: randomstring.generate(1),
-    loghlls: randomstring.generate(15),
-    postel: randomstring.generate(1),
-    dnatcg: randomstring.generate(2),
-    jdatcgl: randomstring.generate(8),
-    fburx: genNumber(1),
-    gimtom: randomstring.generate(1),
-    cbtabt: randomstring.generate(2),
-    jdbabt: randomstring.generate(4),
-    jrtabt: randomstring.generate(4),
-    cconac: randomstring.generate(5),
-    cconactxt: randomstring.generate(129),
-    toprev: randomstring.generate(1),
-    ccoifp: genNumber(2),
-    jannath: genNumber(4),
-    janbilmin: genNumber(1),
-    npevph: genNumber(1),
-    stoth: genNumber(1),
-    stotdsueic: genNumber(1),
-    npevd: genNumber(1),
-    stotd: genNumber(1),
-    npevp: genNumber(1),
-    sprincp: genNumber(1),
-    ssecp: genNumber(1),
-    ssecncp: genNumber(1),
-    sparkp: genNumber(1),
-    sparkncp: genNumber(1),
-    npevtot: genNumber(1),
-    slocal: genNumber(1),
-    npiece_soc: genNumber(1),
-    npiece_ff: genNumber(1),
-    npiece_i: genNumber(1),
-    npiece_p2: genNumber(1),
-    nbannexe: genNumber(1),
-    nbgarpark: genNumber(1),
-    nbagrement: genNumber(1),
-    nbterrasse: genNumber(1),
-    nbpiscine: genNumber(1),
-    ndroit: genNumber(1),
-    ndroitindi: genNumber(1),
-    ndroitpro: genNumber(1),
-    ndroitges: genNumber(1),
-    catpro2: randomstring.generate(20),
-    catpro2txt: randomstring.generate(200),
-    catpro3: randomstring.generate(30),
-    catpropro2: randomstring.generate(20),
-    catproges2: randomstring.generate(30),
-    locprop: randomstring.generate(1),
-    locproptxt: randomstring.generate(21),
-    source_geo: randomstring.generate(34),
-    vecteur: randomstring.generate(1),
-    ban_id: randomstring.generate(30),
-    ban_geom: null,
-    ban_type: randomstring.generate(15),
-    ban_score: Math.random().toString(),
-    geomloc: null,
-    idpk: null,
-    code_epci: null,
-    lib_epci: null,
-    ban_cp: randomstring.generate(5),
-    dis_ban_ff: genNumber(1)
-  };
+  return genDatafoncierHousingDTO(idprocpte, idbat);
 };
 
 export const genOwnerMatch = (
@@ -783,29 +617,6 @@ export const genOwnerMatch = (
 ): OwnerMatchDBO => ({
   owner_id: owner.id,
   idpersonne: datafoncierOwner.idpersonne
-});
-
-export const genConflictApi = <T>(
-  existing: T,
-  replacement: T
-): ConflictApi<T> => ({
-  id: uuidv4(),
-  createdAt: new Date(),
-  existing,
-  replacement
-});
-
-export const genOwnerConflictApi = (): OwnerConflictApi =>
-  genConflictApi(genOwnerApi(), genOwnerApi()) as OwnerConflictApi;
-
-export const genHousingOwnerConflictApi = (
-  housing: HousingApi,
-  existing: HousingOwnerApi,
-  replacement: HousingOwnerApi
-): HousingOwnerConflictApi => ({
-  ...genConflictApi(existing, replacement),
-  housingGeoCode: housing.geoCode,
-  housingId: housing.id
 });
 
 const genNoteApi = (creator: UserApi): NoteApi =>

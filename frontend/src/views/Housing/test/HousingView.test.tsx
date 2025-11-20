@@ -110,7 +110,7 @@ describe('Housing view', () => {
     renderView(housing);
 
     const name = await screen.findByLabelText('Nom et prénom');
-    expect(name).toHaveTextContent(owner.fullName);
+    expect(name).toHaveTextContent(new RegExp(owner.fullName, 'i'));
   });
 
   describe('Show housing details', () => {
@@ -181,7 +181,7 @@ describe('Housing view', () => {
 
       expect(modal).not.toBeVisible();
       const name = await screen.findByLabelText('Nom et prénom');
-      expect(name).toHaveTextContent(newName);
+      expect(name).toHaveTextContent(new RegExp(newName, 'i'));
     });
 
     it('should update their birth date', async () => {

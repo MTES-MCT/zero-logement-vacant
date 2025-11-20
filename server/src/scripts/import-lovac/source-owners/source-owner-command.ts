@@ -213,7 +213,6 @@ export async function update(
       phone: db.ref(`${TEMPORARY_TABLE}.phone`),
       data_source: db.ref(`${TEMPORARY_TABLE}.data_source`),
       kind_class: db.ref(`${TEMPORARY_TABLE}.kind_class`),
-      owner_kind_detail: db.ref(`${TEMPORARY_TABLE}.owner_kind_detail`),
       updated_at: db.ref(`${TEMPORARY_TABLE}.updated_at`)
     })
     .where(`${ownerTable}.id`, db.ref(`${TEMPORARY_TABLE}.id`))

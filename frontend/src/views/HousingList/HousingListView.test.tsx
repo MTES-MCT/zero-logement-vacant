@@ -20,11 +20,13 @@ import {
   UserRole
 } from '@zerologementvacant/models';
 import {
+  genBuildingDTO,
   genCampaignDTO,
-  genDatafoncierHousingDTO,
+  genDatafoncierHousing,
   genGroupDTO,
   genHousingDTO,
   genHousingOwnerDTO,
+  genIdprocpte,
   genOwnerDTO,
   genUserDTO
 } from '@zerologementvacant/models/fixtures';
@@ -86,6 +88,15 @@ describe('Housing list view', () => {
     const router = createMemoryRouter(
       [
         {
+          path: '/logements/:id',
+          element: 'Logement'
+        },
+        {
+          path: '/groupes/:id',
+          element: 'Groupe'
+        },
+        { path: '/campagnes/:id', element: <CampaignView /> },
+        {
           path: '/',
           element: (
             <HousingListTabsProvider>
@@ -93,11 +104,6 @@ describe('Housing list view', () => {
             </HousingListTabsProvider>
           )
         },
-        {
-          path: '/groupes/:id',
-          element: 'Groupe'
-        },
-        { path: '/campagnes/:id', element: <CampaignView /> }
       ],
       {
         initialEntries: ['/']
@@ -216,7 +222,9 @@ describe('Housing list view', () => {
     let datafoncierHousing: DatafoncierHousing;
 
     beforeEach(() => {
-      datafoncierHousing = genDatafoncierHousingDTO();
+      const idprocpte = genIdprocpte();
+      const building = genBuildingDTO();
+      datafoncierHousing = genDatafoncierHousing(idprocpte, building.id);
       data.datafoncierHousings.push(datafoncierHousing);
     });
 
@@ -298,7 +306,7 @@ describe('Housing list view', () => {
     it('should succeed otherwise', async () => {
       const auth = genUserDTO();
 
-      renderView({
+      const { router } = renderView({
         auth,
         housings: [],
         owners: [],
@@ -326,10 +334,7 @@ describe('Housing list view', () => {
       await user.click(screen.getByRole('button', { name: /^Confirmer/ }));
 
       expect(modal).not.toBeVisible();
-      const alert = await screen.findByText(
-        'Le logement sélectionné a bien été ajouté à votre parc de logements.'
-      );
-      expect(alert).toBeVisible();
+      expect(router.state.location.pathname).toStartWith('/logements/')
     });
   });
 

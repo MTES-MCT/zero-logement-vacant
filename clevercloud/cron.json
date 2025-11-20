@@ -1,6 +1,3 @@
 [
-  {
-    "command": "$APP_HOME/server/src/scripts/perimeters-portaildf/cerema-sync.sh",
-    "schedule": "*/30 * * * *"
-  }
+  "*/30 * * * * $APP_HOME/server/src/scripts/perimeters-portaildf/cerema-sync.sh"
 ]

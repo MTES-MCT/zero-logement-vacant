@@ -1,3 +1,4 @@
+import type { Point } from 'geojson';
 import { Occupancy, OCCUPANCY_VALUES } from './Occupancy';
 
 /**
@@ -31,21 +32,24 @@ export interface DatafoncierHousing {
   ccocif: string;
   dvoilib: string;
   cleinvar: string;
+  assieft: string | null;
   ccpper: string;
+  codique: string | null;
   gpdl: string;
   ctpdl: string | null;
   dnupro: string;
   jdatat: string;
   jdatatv: string;
-  jdatatan: number;
+  jdatatan: string | null;
   dnufnl: string | null;
   ccoeva: string;
   ccoevatxt: string;
   dteloc: string;
   dteloctxt: string;
-  logh: string;
-  loghmais: string;
-  loghappt: string | null;
+  typeloc: string | null;
+  logh: boolean | null;
+  loghmais: boolean | null;
+  loghappt: boolean | null;
   gtauom: string;
   dcomrd: string;
   ccoplc: string | null;
@@ -58,11 +62,11 @@ export interface DatafoncierHousing {
   top48a: string;
   dnatlc: string;
   ccthp: string | null;
-  proba_rprs: string;
+  rppo_rs: string;
   typeact: string | null;
   loghvac: string | null;
-  loghvac2a: string | null;
-  loghvac5a: string | null;
+  loghvac2a: boolean | null;
+  loghvac5a: boolean | null;
   loghvacdeb: string | null;
   cchpr: string | null;
   jannat: string;
@@ -83,7 +87,7 @@ export interface DatafoncierHousing {
   cconactxt: string | null;
   toprev: string;
   ccoifp: number;
-  jannath: number;
+  jannath: string | null;
   janbilmin: number;
   npevph: number;
   stoth: number;
@@ -121,18 +125,40 @@ export interface DatafoncierHousing {
   source_geo: string;
   vecteur: string;
   ban_id: string;
-  ban_geom: string | null;
+  /**
+   * Warning: this point might use various SRID e.g. EPSG:32620, EPSG:2154, etc.
+   * One should convert it first to EPSG:4326 before storing it in a production table.
+   */
+  ban_geom: Point | null;
   ban_type: string;
   ban_score: string;
   ban_cp: string;
-  code_epci: string | null;
-  lib_epci: string | null;
-  geomloc: string | null;
-  idpk: number | null;
+  /**
+   * Warning: this point might use various SRID e.g. EPSG:32620, EPSG:2154, etc.
+   * One should convert it first to EPSG:4326 before storing it in a production table.
+   */
+  geomloc: Point | null;
   dis_ban_ff: number;
+  rnb_id: string | null;
+  rnb_id_score: string | null;
+  /**
+   * Warning: this point might use various SRID e.g. EPSG:32620, EPSG:2154, etc.
+   * One should convert it first to EPSG:4326 before storing it in a production table.
+   */
+  geomrnb: Point | null;
+  idpk: number | null;
 }
 
 export function toOccupancy(ccthp: DatafoncierHousing['ccthp']): Occupancy {
   const occupancy = OCCUPANCY_VALUES.find((occupancy) => occupancy === ccthp);
   return occupancy ?? Occupancy.UNKNOWN;
+}
+
+export function toBuildingLocation(
+  datafoncierHousing: Pick<
+    DatafoncierHousing,
+    'dnubat' | 'descc' | 'dniv' | 'dpor'
+  >
+): string {
+  return `${datafoncierHousing.dnubat}${datafoncierHousing.descc}${datafoncierHousing.dniv}${datafoncierHousing.dpor}`;
 }

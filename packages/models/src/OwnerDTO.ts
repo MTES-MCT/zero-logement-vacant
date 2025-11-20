@@ -16,7 +16,6 @@ export interface OwnerDTO {
   banAddress: AddressDTO | null;
   additionalAddress: string | null;
   kind: string | null;
-  kindDetail: string | null;
   siren: string | null;
   createdAt: string | null;
   updatedAt: string | null;

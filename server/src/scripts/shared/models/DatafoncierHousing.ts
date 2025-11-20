@@ -29,7 +29,7 @@ export const toHousingRecordApi = (
         : HousingKind.APARTMENT,
     roomsCount: housing.npiece_p2,
     livingArea: housing.stoth,
-    buildingYear: housing.jannath,
+    buildingYear: !!housing.jannath ? Number(housing.jannath) : null,
     taxed: false,
     // The data in `df_housing_nat` and `df_owners_nat` is from 2023
     dataYears: [2023],

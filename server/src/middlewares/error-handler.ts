@@ -3,16 +3,18 @@ import { Request, Response } from 'express';
 import { constants } from 'http2';
 
 import { isClientError, isHttpError } from '~/errors/httpError';
-import { logger } from '~/infra/logger';
+import { createLogger } from '~/infra/logger';
+
+const logger = createLogger('error-handler');
 
 function log(
   error: Error,
   request: Request,
   response: Response,
-  next: Next,
+  next: Next
 ): void {
   // Should later be enhanced with relevant info like Request ID, user ID, etc.
-  logger.error(error);
+  logger.error('API Error', error);
   next(error);
 }
 
@@ -21,7 +23,7 @@ function respond(
   request: Request,
   response: Response,
   // Needed because express bases itself on the number of arguments
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+   
   next: Next,
 ): void {
   if (response.headersSent) {

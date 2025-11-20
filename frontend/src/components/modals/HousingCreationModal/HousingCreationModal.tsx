@@ -3,9 +3,10 @@ import { useState } from 'react';
 
 import createFillLocalIdModal from './FillLocalId';
 import createReviewHousingModal from './ReviewHousing';
+import type { Housing } from '~/models/Housing';
 
 interface Props {
-  onFinish?: () => void;
+  onFinish?(housing: Housing): void;
 }
 
 const fillLocalIdModal = createFillLocalIdModal();
@@ -29,9 +30,9 @@ function HousingCreationModal(props: Props) {
     fillLocalIdModal.open();
   }
 
-  function handleReviewHousingConfirm() {
+  function handleReviewHousingConfirm(housing: Housing) {
     reviewHousingModal.close();
-    props.onFinish?.();
+    props.onFinish?.(housing);
   }
 
   return (

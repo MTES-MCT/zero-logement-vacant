@@ -76,7 +76,7 @@ production_tables = [
     "marts_production_groups",
     "marts_production_users",
     "marts_production_campaigns",
-    "marts_productions_events"
+    "marts_production_events"
 ]
 
 join_tables = [

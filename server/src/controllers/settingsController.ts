@@ -54,10 +54,7 @@ async function updateSettings(request: Request, response: Response) {
   const newSettings: SettingsApi = {
     id: existingSettings?.id ?? uuidv4(),
     establishmentId,
-    contactPoints: {
-      public: body.contactPoints.public,
-    },
-    inbox: existingSettings?.inbox ?? {
+    inbox: body.inbox ?? existingSettings?.inbox ?? {
       enabled: true,
     },
   };
@@ -67,8 +64,8 @@ async function updateSettings(request: Request, response: Response) {
 
 const updateSettingsValidators: ValidationChain[] = [
   param('id').isString().notEmpty(),
-  body('contactPoints').isObject({ strict: true }),
-  body('contactPoints.public').default(false).isBoolean({ strict: true }),
+  body('inbox').optional().isObject({ strict: true }),
+  body('inbox.enabled').optional().isBoolean({ strict: true }),
 ];
 
 export default {

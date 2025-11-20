@@ -82,7 +82,7 @@ describe('Owner', () => {
         rank: rank
       }));
 
-      const actual = housingOwners.toSorted(byRank);
+      const actual = [...housingOwners].sort(byRank);
 
       expect(actual).toBeSortedBy('rank');
     });

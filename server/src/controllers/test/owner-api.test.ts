@@ -280,7 +280,6 @@ describe('Owner API', () => {
         birthDate: payload.birthDate,
         email: payload.email,
         phone: payload.phone,
-        kindDetail: owner.kindDetail
       });
     });
 

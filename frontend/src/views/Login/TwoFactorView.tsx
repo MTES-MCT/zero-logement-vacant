@@ -97,9 +97,8 @@ const TwoFactorView = () => {
           </Typography>
 
           <Alert
-            title="Sécurité"
             description="Après 3 tentatives infructueuses, votre compte sera verrouillé pendant 15 minutes."
-            severity="info"
+            severity="warning"
             small
             className={fr.cx('fr-mb-3w')}
           />

@@ -48,7 +48,6 @@ describe('Settings API', () => {
 
       expect(status).toBe(constants.HTTP_STATUS_OK);
       expect(body).toStrictEqual<SettingsDTO>({
-        contactPoints: settings.contactPoints,
         inbox: settings.inbox
       });
     });
@@ -67,19 +66,16 @@ describe('Settings API', () => {
       const { body, status } = await request(url)
         .put(testRoute('any'))
         .send({
-          contactPoints: {
-            public: true
+          inbox: {
+            enabled: false
           }
         })
         .use(tokenProvider(user));
 
       expect(status).toBe(constants.HTTP_STATUS_CREATED);
       expect(body).toStrictEqual<SettingsDTO>({
-        contactPoints: {
-          public: true
-        },
         inbox: {
-          enabled: true
+          enabled: false
         }
       });
     });
@@ -92,18 +88,15 @@ describe('Settings API', () => {
         .put(testRoute('any'))
         .use(tokenProvider(user))
         .send({
-          contactPoints: {
-            public: !settings.contactPoints.public
+          inbox: {
+            enabled: !settings.inbox.enabled
           }
         });
 
       expect(status).toBe(constants.HTTP_STATUS_OK);
       expect(body).toStrictEqual<SettingsDTO>({
-        contactPoints: {
-          public: !settings.contactPoints.public
-        },
         inbox: {
-          enabled: true
+          enabled: !settings.inbox.enabled
         }
       });
     });

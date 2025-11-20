@@ -2,7 +2,6 @@ import Router from 'express-promise-router';
 import rateLimit from 'express-rate-limit';
 
 import accountController from '~/controllers/accountController';
-import contactPointController from '~/controllers/contactPointController';
 import establishmentController from '~/controllers/establishmentController';
 import localityController from '~/controllers/localityController';
 import ownerProspectController from '~/controllers/ownerProspectController';
@@ -140,13 +139,6 @@ router.get(
   localityController.getLocalityValidators,
   validator.validate,
   localityController.getLocality
-);
-
-router.get(
-  '/contact-points/public',
-  contactPointController.listContactPointsValidators,
-  validator.validate,
-  contactPointController.listContactPoints(true)
 );
 
 export default router;

@@ -1,5 +1,3 @@
-import { UserApi } from '~/models/UserApi';
-
 export type TemplateId = string | number;
 
 export interface SendOptions {
@@ -23,13 +21,11 @@ export interface MailService {
     key: string,
     options: SendOptions
   ): Promise<void>;
-  sendOwnerProspectCreatedEmail(users: UserApi[]): Promise<void>;
   sendTwoFactorCode(code: string, options: SendOptions): Promise<void>;
 }
 
 export interface MailEvent {
   'housing:exported': Record<string, never>;
-  'owner-prospect:created': Record<string, never>;
   'prospect:initialized': { link: string };
   'user:created': { createdAt: Date };
 }

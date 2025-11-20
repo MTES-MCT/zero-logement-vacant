@@ -21,7 +21,6 @@ import housingOwnerController from '~/controllers/housingOwnerController';
 import localityController from '~/controllers/localityController';
 import noteController from '~/controllers/noteController';
 import ownerController from '~/controllers/ownerController';
-import ownerProspectController from '~/controllers/ownerProspectController';
 import precisionController from '~/controllers/precisionController';
 import settingsController from '~/controllers/settingsController';
 import userController from '~/controllers/userController';
@@ -274,19 +273,6 @@ router.get(
     params: object({ id: schemas.id })
   }),
   housingOwnerController.listByOwner
-);
-
-router.get(
-  '/owner-prospects',
-  ownerProspectController.findOwnerProspectsValidators,
-  validator.validate,
-  ownerProspectController.find
-);
-router.put(
-  '/owner-prospects/:id',
-  ownerProspectController.updateOwnerProspectValidators,
-  validator.validate,
-  ownerProspectController.update
 );
 
 router.get(

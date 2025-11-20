@@ -28,6 +28,21 @@ vi.mock('../services/mailService', () => ({
 
 vi.mock('../services/ceremaService/mockCeremaService');
 
+// Mock config to enable 2FA for tests
+vi.mock('../infra/config', async () => {
+  const actual = await vi.importActual('../infra/config');
+  return {
+    ...actual,
+    default: {
+      ...(actual as any).default,
+      auth: {
+        ...(actual as any).default.auth,
+        admin2faEnabled: true
+      }
+    }
+  };
+});
+
 import { UserRole } from '@zerologementvacant/models';
 import bcrypt from 'bcryptjs';
 import { subDays } from 'date-fns';

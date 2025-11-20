@@ -161,7 +161,7 @@ class AdemeApiClient:
             return None
     
     def fetch_all_data(self, limit_per_page: int = 10000, max_pages: Optional[int] = None,
-                      output_file: str = "dpe_data.jsonl") -> int:
+                      output_file: str = "dpe_data.jsonl", after_date: Optional[str] = None) -> int:
         """
         Retrieves all data by iterating through all pages and writes to JSON Lines
         Supports resuming after interruption
@@ -170,10 +170,18 @@ class AdemeApiClient:
             limit_per_page: Number of items per page (max 10000)
             max_pages: Maximum number of pages to retrieve (None = all)
             output_file: Output JSON Lines filename
+            after_date: Filter DPE with date_etablissement_dpe >= this date (YYYY-MM-DD)
 
         Returns:
             Total number of records retrieved
         """
+        # Build date filter query string
+        date_filter = ""
+        if after_date:
+            # Use Data Fair query syntax: field_gte for >= comparison
+            date_filter = f"&date_etablissement_dpe_gte={after_date}"
+            print(f"📅 Filtering DPE with date_etablissement_dpe >= {after_date}")
+
         # Check if file exists and contains data
         existing_records = self.count_lines_in_file(output_file)
 
@@ -186,14 +194,14 @@ class AdemeApiClient:
 
             if last_record:
                 print(f"🔄 Resuming from record: _i={last_record.get('_i')}, _rand={last_record.get('_rand')}")
-                current_url = self.build_resume_url(last_record, limit_per_page)
+                current_url = self.build_resume_url(last_record, limit_per_page) + date_filter
             else:
                 print("❌ Unable to read last record, starting from beginning")
-                current_url = f"{self.base_url}?size={limit_per_page}"
+                current_url = f"{self.base_url}?size={limit_per_page}{date_filter}"
                 existing_records = 0
         else:
             print(f"🆕 New file: {output_file}")
-            current_url = f"{self.base_url}?size={limit_per_page}"
+            current_url = f"{self.base_url}?size={limit_per_page}{date_filter}"
             existing_records = 0
         
         page_count = 0
@@ -312,6 +320,7 @@ def main():
     parser.add_argument('--output-file', default='dpe_data_complete.jsonl', help='Output JSONL file (default: dpe_data_complete.jsonl)')
     parser.add_argument('--limit-per-page', type=int, default=10000, help='Items per page (default: 10000)')
     parser.add_argument('--max-pages', type=int, help='Maximum number of pages to retrieve')
+    parser.add_argument('--after', help='Filter DPE with date_etablissement_dpe >= this date (format: YYYY-MM-DD)')
 
     args = parser.parse_args()
 
@@ -352,7 +361,8 @@ def main():
     total_records = client.fetch_all_data(
         output_file=args.output_file,
         limit_per_page=args.limit_per_page,
-        max_pages=args.max_pages
+        max_pages=args.max_pages,
+        after_date=args.after
     )
 
     print(f"\n🎯 Retrieval completed!")

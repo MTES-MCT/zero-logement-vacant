@@ -21,6 +21,7 @@ function DataFileYearSelect<Multiple extends boolean = false>(
   const options: ReadonlyArray<DataFileYear | null> = [
     'lovac-2025',
     'ff-2024',
+    'ff-2024-locatif',
     'ff-2023',
     'ff-2023-locatif',
     'lovac-2024',

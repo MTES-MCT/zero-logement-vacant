@@ -27,7 +27,7 @@
     "@emotion/styled": "^11.14.1",
     "@hookform/resolvers": "^3.10.0",
     "@hookform/resolvers-next": "npm:@hookform/resolvers@^5.2.2",
-    "@lexical/html": "^0.37.0",
+    "@lexical/html": "^0.38.2",
     "@lexical/list": "^0.37.0",
     "@lexical/react": "^0.37.0",
     "@lexical/text": "^0.37.0",

@@ -28,7 +28,7 @@ import {
   type VacancyYear
 } from '@zerologementvacant/models';
 import { Array, pipe, Record } from 'effect';
-import { match, Pattern } from 'ts-pattern';
+import { match, NonExhaustiveError, Pattern } from 'ts-pattern';
 
 import EnergyConsumptionOption from '../components/_app/AppMultiSelect/EnergyConsumptionOption';
 import type { Establishment } from './Establishment';
@@ -760,6 +760,12 @@ export const dataFileYearsIncludedOptions: SelectOption[] = [
       'Source et millésime inclus : Fichiers fonciers 2023 (parc locatif privé)'
   },
   {
+    value: 'ff-2024-locatif',
+    label: 'Fichiers fonciers 2024 (parc locatif privé)',
+    badgeLabel:
+      'Source et millésime inclus : Fichiers fonciers 2024 (parc locatif privé)'
+  },
+  {
     value: 'ff-2024',
     label: 'Fichiers fonciers 2024 (ajout manuel)',
     badgeLabel:
@@ -807,11 +813,12 @@ export const DATA_FILE_YEAR_INCLUDED_OPTIONS = DATA_FILE_YEAR_VALUES.reduce(
     return {
       ...record,
       [value]: match(value)
-        .with('ff-2023-locatif', () => {
-          const label = 'Fichiers fonciers 2023 (parc locatif privé)';
+        .with(Pattern.string.regex(/^ff-\d{4}-locatif$/), (value) => {
+          const year = Number(value.substring('ff-'.length, 'ff-yyyy'.length));
+          const label = `Fichiers fonciers ${year} (parc locatif privé)`;
           return {
             label,
-            badgeLabel: `Source et millésime inclus: ${label}`
+            badgeLabel: `Source et millésime inclus : ${label}`
           };
         })
         .with('ff-2024', () => {
@@ -828,7 +835,9 @@ export const DATA_FILE_YEAR_INCLUDED_OPTIONS = DATA_FILE_YEAR_VALUES.reduce(
             badgeLabel: `Source et millésime inclus : ${label}`
           };
         })
-        .exhaustive()
+        .otherwise((value) => {
+          throw new NonExhaustiveError(value);
+        })
     };
   },
   {} as Record<DataFileYear, { label: string; badgeLabel: string }>
@@ -838,8 +847,9 @@ export const DATA_FILE_YEAR_EXCLUDED_OPTIONS = DATA_FILE_YEAR_VALUES.reduce(
     return {
       ...record,
       [value]: match(value)
-        .with('ff-2023-locatif', () => {
-          const label = 'Fichiers fonciers 2023 (parc locatif privé)';
+        .with(Pattern.string.regex(/^ff-\d{4}-locatif$/), (value) => {
+          const year = Number(value.substring('ff-'.length, 'ff-yyyy'.length));
+          const label = `Fichiers fonciers ${year} (parc locatif privé)`;
           return {
             label,
             badgeLabel: `Source et millésime exclus : ${label}`
@@ -859,7 +869,9 @@ export const DATA_FILE_YEAR_EXCLUDED_OPTIONS = DATA_FILE_YEAR_VALUES.reduce(
             badgeLabel: `Source et millésime exclus : ${label}`
           };
         })
-        .exhaustive()
+        .otherwise((value) => {
+          throw new NonExhaustiveError(value);
+        })
     };
   },
   {} as Record<DataFileYear, { label: string; badgeLabel: string }>

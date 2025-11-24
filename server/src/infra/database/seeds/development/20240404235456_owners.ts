@@ -39,11 +39,21 @@ export async function seed(knex: Knex): Promise<void> {
     () => genGeoCode().substring(0, 2),
     { count: 10 }
   );
-  const communesByDepartment: ReadonlyArray<
+  const allCommunesByDepartment: ReadonlyArray<
     FeatureCollection<Polygon | MultiPolygon>
   > = await async.map(departments, async (department: string) => {
     return fetchCommunes(department);
   });
+  // Filter out empty FeatureCollections (from failed API calls)
+  const communesByDepartment = allCommunesByDepartment.filter(
+    (fc) => fc.features.length > 0
+  );
+
+  // Skip if no valid communes were fetched
+  if (communesByDepartment.length === 0) {
+    console.log('No valid communes fetched. Skipping owners seed.');
+    return;
+  }
 
   const owners = establishments.flatMap(() => {
     return faker.helpers.multiple(() => genOwnerApi(), {

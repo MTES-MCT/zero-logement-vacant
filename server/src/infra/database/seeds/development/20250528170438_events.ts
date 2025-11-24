@@ -139,17 +139,24 @@ export async function seed(knex: Knex): Promise<void> {
     })
     .flat();
 
-  const housingPrecisions: ReadonlyArray<PrecisionDBO & HousingPrecisionDBO> =
-    await HousingPrecisions(knex)
+  // Batch queries to avoid PostgreSQL parameter limit
+  const BATCH_SIZE = 1000;
+  const housingPrecisionsArray: Array<PrecisionDBO & HousingPrecisionDBO> = [];
+  for (let i = 0; i < housings.length; i += BATCH_SIZE) {
+    const batch = housings.slice(i, i + BATCH_SIZE);
+    const batchResults = await HousingPrecisions(knex)
       .whereIn(
         ['housing_geo_code', 'housing_id'],
-        housings.map((housing) => [housing.geo_code, housing.id])
+        batch.map((housing) => [housing.geo_code, housing.id])
       )
       .join(
         PRECISION_TABLE,
         `${PRECISION_TABLE}.id`,
         `${HOUSING_PRECISION_TABLE}.precision_id`
       );
+    housingPrecisionsArray.push(...batchResults);
+  }
+  const housingPrecisions: ReadonlyArray<PrecisionDBO & HousingPrecisionDBO> = housingPrecisionsArray;
   const precisionHousingEvents: ReadonlyArray<PrecisionHousingEventApi> =
     faker.helpers
       .arrayElements(housingPrecisions)
@@ -186,12 +193,16 @@ export async function seed(knex: Knex): Promise<void> {
         ];
       });
 
-  const housingOwners: ReadonlyArray<HousingOwnerDBO> = await HousingOwners(
-    knex
-  ).whereIn(
-    ['housing_geo_code', 'housing_id'],
-    housings.map((housing) => [housing.geo_code, housing.id])
-  );
+  const housingOwnersArray: Array<HousingOwnerDBO> = [];
+  for (let i = 0; i < housings.length; i += BATCH_SIZE) {
+    const batch = housings.slice(i, i + BATCH_SIZE);
+    const batchResults = await HousingOwners(knex).whereIn(
+      ['housing_geo_code', 'housing_id'],
+      batch.map((housing) => [housing.geo_code, housing.id])
+    );
+    housingOwnersArray.push(...batchResults);
+  }
+  const housingOwners: ReadonlyArray<HousingOwnerDBO> = housingOwnersArray;
   const housingOwnerEvents: ReadonlyArray<HousingOwnerEventApi> = faker.helpers
     .arrayElements(housingOwners)
     .flatMap((housingOwner): HousingOwnerEventApi[] => {
@@ -244,12 +255,16 @@ export async function seed(knex: Knex): Promise<void> {
       ];
     });
 
-  const groupHousings: ReadonlyArray<GroupHousingDBO> = await GroupsHousing(
-    knex
-  ).whereIn(
-    ['housing_geo_code', 'housing_id'],
-    housings.map((housing) => [housing.geo_code, housing.id])
-  );
+  const groupHousingsArray: Array<GroupHousingDBO> = [];
+  for (let i = 0; i < housings.length; i += BATCH_SIZE) {
+    const batch = housings.slice(i, i + BATCH_SIZE);
+    const batchResults = await GroupsHousing(knex).whereIn(
+      ['housing_geo_code', 'housing_id'],
+      batch.map((housing) => [housing.geo_code, housing.id])
+    );
+    groupHousingsArray.push(...batchResults);
+  }
+  const groupHousings: ReadonlyArray<GroupHousingDBO> = groupHousingsArray;
   const groupHousingEvents: ReadonlyArray<GroupHousingEventApi> = faker.helpers
     .arrayElements(groupHousings)
     .flatMap((groupHousing): GroupHousingEventApi[] => {
@@ -309,11 +324,16 @@ export async function seed(knex: Knex): Promise<void> {
       ];
     });
 
-  const campaignHousings: ReadonlyArray<CampaignHousingDBO> =
-    await CampaignsHousing(knex).whereIn(
+  const campaignHousingsArray: Array<CampaignHousingDBO> = [];
+  for (let i = 0; i < housings.length; i += BATCH_SIZE) {
+    const batch = housings.slice(i, i + BATCH_SIZE);
+    const batchResults = await CampaignsHousing(knex).whereIn(
       ['housing_geo_code', 'housing_id'],
-      housings.map((housing) => [housing.geo_code, housing.id])
+      batch.map((housing) => [housing.geo_code, housing.id])
     );
+    campaignHousingsArray.push(...batchResults);
+  }
+  const campaignHousings: ReadonlyArray<CampaignHousingDBO> = campaignHousingsArray;
   const campaignHousingEvents: ReadonlyArray<CampaignHousingEventApi> =
     faker.helpers
       .arrayElements(campaignHousings)

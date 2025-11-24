@@ -54,12 +54,14 @@ export const fileTypeMiddleware: RequestHandler = async (
     const declaredMimeType = file.mimetype;
     const fileName = file.originalname;
     const fileBuffer = file.buffer;
+    const userId = req.user?.id;
     const startTime = Date.now();
 
     logger.info('Validating file type from memory buffer', {
       fileName,
       declaredMimeType,
       size: file.size,
+      userId,
       action: 'validation.started'
     });
 
@@ -70,7 +72,8 @@ export const fileTypeMiddleware: RequestHandler = async (
     if (!detectedType) {
       logger.warn('Could not detect file type from magic bytes', {
         fileName,
-        declaredMimeType
+        declaredMimeType,
+        userId
       });
       throw new BadRequestError();
     }
@@ -79,7 +82,8 @@ export const fileTypeMiddleware: RequestHandler = async (
       fileName,
       declaredMimeType,
       detectedMimeType: detectedType.mime,
-      detectedExtension: detectedType.ext
+      detectedExtension: detectedType.ext,
+      userId
     });
 
     // Check if detected type is allowed
@@ -91,7 +95,8 @@ export const fileTypeMiddleware: RequestHandler = async (
       logger.warn('Detected file type is not allowed', {
         fileName,
         declaredMimeType,
-        detectedMimeType: detectedType.mime
+        detectedMimeType: detectedType.mime,
+        userId
       });
       throw new BadRequestError();
     }
@@ -103,6 +108,7 @@ export const fileTypeMiddleware: RequestHandler = async (
         fileName,
         declaredMimeType,
         detectedMimeType: detectedType.mime,
+        userId,
         action: 'rejected'
       });
       throw new BadRequestError(
@@ -114,6 +120,7 @@ export const fileTypeMiddleware: RequestHandler = async (
       fileType: typeName,
       mimeType: detectedType.mime,
       size: file.size,
+      userId,
       duration,
       action: 'validation.completed'
     });

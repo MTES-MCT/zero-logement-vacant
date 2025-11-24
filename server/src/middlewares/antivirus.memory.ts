@@ -89,12 +89,14 @@ export const antivirusMiddleware: RequestHandler = async (
 
     const fileName = file.originalname;
     const fileBuffer = file.buffer;
+    const userId = req.user?.id;
     const startTime = Date.now();
 
     logger.info('Scanning file for viruses', {
       fileName,
       size: file.size,
       mimeType: file.mimetype,
+      userId,
       action: 'scan.started'
     });
 
@@ -109,6 +111,7 @@ export const antivirusMiddleware: RequestHandler = async (
         mimeType: file.mimetype,
         virusName: scanResult.viruses.join(', '),
         viruses: scanResult.viruses,
+        userId,
         duration,
         action: 'virus_detected'
       });
@@ -121,6 +124,7 @@ export const antivirusMiddleware: RequestHandler = async (
       fileName,
       size: file.size,
       mimeType: file.mimetype,
+      userId,
       duration,
       action: 'scan.completed'
     });

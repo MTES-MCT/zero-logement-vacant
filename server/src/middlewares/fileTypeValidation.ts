@@ -73,12 +73,14 @@ export const validateUploadedFileType: RequestHandler = async (
     const declaredMimeType = file.contentType || file.mimetype;
     const fileName = file.originalname;
     const fileKey = file.key;
+    const userId = req.user?.id;
 
     logger.info('Validating uploaded file type', {
       fileName,
       fileKey,
       declaredMimeType,
-      size: file.size
+      size: file.size,
+      userId
     });
 
     // Download file from S3 to validate magic bytes
@@ -95,7 +97,7 @@ export const validateUploadedFileType: RequestHandler = async (
     }));
 
     if (!response.Body) {
-      logger.error('Could not retrieve file from S3', { fileKey });
+      logger.error('Could not retrieve file from S3', { fileKey, userId });
       throw new BadRequestError();
     }
 
@@ -110,7 +112,8 @@ export const validateUploadedFileType: RequestHandler = async (
       logger.warn('Could not detect file type from magic bytes', {
         fileName,
         fileKey,
-        declaredMimeType
+        declaredMimeType,
+        userId
       });
 
       // Delete file from S3
@@ -127,7 +130,8 @@ export const validateUploadedFileType: RequestHandler = async (
       fileKey,
       declaredMimeType,
       detectedMimeType: detectedType.mime,
-      detectedExtension: detectedType.ext
+      detectedExtension: detectedType.ext,
+      userId
     });
 
     // Check if detected type is allowed
@@ -140,7 +144,8 @@ export const validateUploadedFileType: RequestHandler = async (
         fileName,
         fileKey,
         declaredMimeType,
-        detectedMimeType: detectedType.mime
+        detectedMimeType: detectedType.mime,
+        userId
       });
 
       // Delete file from S3
@@ -160,6 +165,7 @@ export const validateUploadedFileType: RequestHandler = async (
         fileKey,
         declaredMimeType,
         detectedMimeType: detectedType.mime,
+        userId,
         action: 'rejected'
       });
 
@@ -176,7 +182,8 @@ export const validateUploadedFileType: RequestHandler = async (
       fileName,
       fileKey,
       fileType: typeName,
-      mimeType: detectedType.mime
+      mimeType: detectedType.mime,
+      userId
     });
 
     next();

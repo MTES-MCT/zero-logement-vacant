@@ -55,6 +55,7 @@ export const shapefileValidationMiddleware: RequestHandler = async (
 
     const fileName = file.originalname;
     const fileBuffer = file.buffer;
+    const userId = req.user?.id;
     const startTime = Date.now();
 
     // Get max features from env or default to 10000
@@ -64,6 +65,7 @@ export const shapefileValidationMiddleware: RequestHandler = async (
       fileName,
       size: file.size,
       maxFeatures,
+      userId,
       action: 'shapefile_validation.started'
     });
 
@@ -83,7 +85,8 @@ export const shapefileValidationMiddleware: RequestHandler = async (
 
         logger.warn('Missing required shapefile components', {
           fileName,
-          missing
+          missing,
+          userId
         });
 
         throw new ShapefileValidationError(
@@ -96,7 +99,8 @@ export const shapefileValidationMiddleware: RequestHandler = async (
       logger.debug('Shapefile components found', {
         fileName,
         shpFile: shpEntry.entryName,
-        dbfFile: dbfEntry.entryName
+        dbfFile: dbfEntry.entryName,
+        userId
       });
 
       // Extract shapefile data
@@ -116,7 +120,8 @@ export const shapefileValidationMiddleware: RequestHandler = async (
           logger.warn('Shapefile exceeds feature limit', {
             fileName,
             featureCount: `>${maxFeatures}`,
-            maxFeatures
+            maxFeatures,
+            userId
           });
           throw new ShapefileValidationError(
             'too_many_features',
@@ -134,6 +139,7 @@ export const shapefileValidationMiddleware: RequestHandler = async (
         fileName,
         featureCount,
         duration,
+        userId,
         action: 'shapefile_validation.completed',
         maxFeatures
       });

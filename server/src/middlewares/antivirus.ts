@@ -93,11 +93,13 @@ export const antivirusMiddleware: RequestHandler = async (
 
     const fileName = file.originalname;
     const fileKey = file.key;
+    const userId = req.user?.id;
 
     logger.info('Scanning file for viruses', {
       filename: fileName,
       fileKey,
-      size: file.size
+      size: file.size,
+      userId
     });
 
     // Download file from S3 to scan
@@ -116,7 +118,8 @@ export const antivirusMiddleware: RequestHandler = async (
     if (!response.Body) {
       logger.error('Could not retrieve file from S3 for scanning', {
         fileKey,
-        filename: fileName
+        filename: fileName,
+        userId
       });
       res.status(constants.HTTP_STATUS_INTERNAL_SERVER_ERROR).json({
         error: 'Internal server error',
@@ -138,6 +141,7 @@ export const antivirusMiddleware: RequestHandler = async (
         fileKey,
         viruses: scanResult.viruses,
         size: file.size,
+        userId,
         action: 'virus_detected'
       });
 
@@ -149,12 +153,14 @@ export const antivirusMiddleware: RequestHandler = async (
         }));
         logger.info('Infected file deleted from S3', {
           fileKey,
-          filename: fileName
+          filename: fileName,
+          userId
         });
       } catch (deleteError) {
         logger.error('Failed to delete infected file from S3', {
           fileKey,
           filename: fileName,
+          userId,
           error: deleteError instanceof Error ? deleteError.message : String(deleteError)
         });
       }
@@ -167,6 +173,7 @@ export const antivirusMiddleware: RequestHandler = async (
       filename: fileName,
       fileKey,
       size: file.size,
+      userId,
       action: 'scan.completed'
     });
 

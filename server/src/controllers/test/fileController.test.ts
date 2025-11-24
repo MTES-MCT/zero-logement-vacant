@@ -139,12 +139,19 @@ describe('File API', () => {
       fs.writeFileSync(tmpPath, largeBuffer);
 
       try {
-        const { status } = await request(url)
-          .post(testRoute)
-          .attach('file', tmpPath)
-          .use(tokenProvider(user));
+        // The server may close connection (EPIPE) or return 400
+        // Both behaviors are acceptable for oversized files
+        try {
+          const { status } = await request(url)
+            .post(testRoute)
+            .attach('file', tmpPath)
+            .use(tokenProvider(user));
 
-        expect(status).toBe(constants.HTTP_STATUS_BAD_REQUEST);
+          expect(status).toBe(constants.HTTP_STATUS_BAD_REQUEST);
+        } catch (error: any) {
+          // EPIPE error is acceptable - server closed connection due to file size
+          expect(error.code).toBe('EPIPE');
+        }
       } finally {
         fs.unlinkSync(tmpPath);
       }

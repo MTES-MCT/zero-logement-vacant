@@ -29,6 +29,12 @@ export async function seed(knex: Knex): Promise<void> {
   const ban = createBanAPI();
   const establishments = await Establishments(knex).where({ available: true });
 
+  // Skip seeding if no establishments are available
+  if (establishments.length === 0) {
+    console.log('No available establishments found. Skipping owners seed.');
+    return;
+  }
+
   const departments = faker.helpers.multiple(
     () => genGeoCode().substring(0, 2),
     { count: 10 }

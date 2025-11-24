@@ -67,7 +67,7 @@ function createPerimetersModal() {
           await uploadGeoPerimeterFile(file).unwrap();
           // Only close modal on success
           uploadModal.close();
-        } catch (error) {
+        } catch {
           // Error is handled by useEffect and displayed in modal
           // Don't close the modal
         }

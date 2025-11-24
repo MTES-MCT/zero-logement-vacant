@@ -52,7 +52,8 @@ export const geoPerimetersApi = zlvApi.injectEndpoints({
 
 const fileToFormData = (file: File) => {
   const formData: FormData = new FormData();
-  formData.append('geoPerimeter', file, file.name);
+  // Field name must match server expectation (uploadGeo middleware expects 'file')
+  formData.append('file', file, file.name);
   return formData;
 };
 

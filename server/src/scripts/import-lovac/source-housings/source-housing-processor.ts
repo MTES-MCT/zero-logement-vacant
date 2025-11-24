@@ -19,7 +19,6 @@ import {
   HousingId,
   normalizeDataFileYears
 } from '~/models/HousingApi';
-import { HousingStatusApi } from '~/models/HousingStatusApi';
 import {
   HousingNoteApi,
   isUserModified as isNoteUserModified
@@ -123,7 +122,7 @@ export function createSourceHousingProcessor(opts: ProcessorOptions) {
             source: 'lovac',
             dataYears: [2024],
             dataFileYears: ['lovac-2025'],
-            status: HousingStatusApi.NeverContacted as any,
+            status: HousingStatus.NEVER_CONTACTED,
             subStatus: null,
             energyConsumption: null,
             energyConsumptionAt: null

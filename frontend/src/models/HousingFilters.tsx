@@ -28,7 +28,7 @@ import {
   type VacancyYear
 } from '@zerologementvacant/models';
 import { Array, pipe, Record } from 'effect';
-import { match, Pattern } from 'ts-pattern';
+import { match, NonExhaustiveError, Pattern } from 'ts-pattern';
 
 import EnergyConsumptionOption from '../components/_app/AppMultiSelect/EnergyConsumptionOption';
 import type { Establishment } from './Establishment';
@@ -752,51 +752,63 @@ export const LOCALITY_KIND_OPTIONS: Record<
 /**
  * @deprecated Use {@link DATA_FILE_YEAR_INCLUDED_OPTIONS} instead.
  */
-export const dataFileYearsIncludedOptions: SelectOption[] = [
+export const dataFileYearsIncludedOptions: SelectOption<DataFileYear>[] = [
   {
-    value: 'ff-2023-locatif',
+    value: 'ff-2023-locatif' as const,
     label: 'Fichiers fonciers 2023 (parc locatif privé)',
     badgeLabel:
       'Source et millésime inclus : Fichiers fonciers 2023 (parc locatif privé)'
   },
   {
-    value: 'ff-2024',
+    value: 'ff-2024-locatif' as const,
+    label: 'Fichiers fonciers 2024 (parc locatif privé)',
+    badgeLabel:
+      'Source et millésime inclus : Fichiers fonciers 2024 (parc locatif privé)'
+  },
+  {
+    value: 'ff-2023' as const,
+    label: 'Fichiers fonciers 2023 (ajout manuel)',
+    badgeLabel:
+      'Source et millésime inclus : Fichiers fonciers 2023 (ajout manuel)'
+  },
+  {
+    value: 'ff-2024' as const,
     label: 'Fichiers fonciers 2024 (ajout manuel)',
     badgeLabel:
       'Source et millésime inclus : Fichiers fonciers 2024 (ajout manuel)'
   },
   {
-    value: 'lovac-2019',
+    value: 'lovac-2019' as const,
     label: 'LOVAC 2019 (>2 ans)',
     badgeLabel: 'Source et millésime inclus : LOVAC 2019 (>2 ans)'
   },
   {
-    value: 'lovac-2020',
+    value: 'lovac-2020' as const,
     label: 'LOVAC 2020 (>2 ans)',
     badgeLabel: 'Source et millésime inclus : LOVAC 2020 (>2 ans)'
   },
   {
-    value: 'lovac-2021',
+    value: 'lovac-2021' as const,
     label: 'LOVAC 2021 (>2 ans)',
     badgeLabel: 'Source et millésime inclus : LOVAC 2021 (>2 ans)'
   },
   {
-    value: 'lovac-2022',
+    value: 'lovac-2022' as const,
     label: 'LOVAC 2022 (>2 ans)',
     badgeLabel: 'Source et millésime inclus : LOVAC 2022 (>2 ans)'
   },
   {
-    value: 'lovac-2023',
+    value: 'lovac-2023' as const,
     label: 'LOVAC 2023 (>2 ans)',
     badgeLabel: 'Source et millésime inclus : LOVAC 2023 (>2 ans)'
   },
   {
-    value: 'lovac-2024',
+    value: 'lovac-2024' as const,
     label: 'LOVAC 2024 (>2 ans)',
     badgeLabel: 'Source et millésime inclus : LOVAC 2024 (>2 ans)'
   },
   {
-    value: 'lovac-2025',
+    value: 'lovac-2025' as const,
     label: 'LOVAC 2025 (>2 ans)',
     badgeLabel: 'Source et millésime inclus : LOVAC 2025 (>2 ans)'
   }
@@ -807,18 +819,20 @@ export const DATA_FILE_YEAR_INCLUDED_OPTIONS = DATA_FILE_YEAR_VALUES.reduce(
     return {
       ...record,
       [value]: match(value)
-        .with('ff-2023-locatif', () => {
-          const label = 'Fichiers fonciers 2023 (parc locatif privé)';
+        .with(Pattern.string.regex(/^ff-\d{4}-locatif$/), (value) => {
+          const year = Number(value.substring('ff-'.length, 'ff-yyyy'.length));
+          const label = `Fichiers fonciers ${year} (parc locatif privé)`;
           return {
             label,
-            badgeLabel: `Source et millésime inclus: ${label}`
+            badgeLabel: `Source et millésime inclus : ${label}`
           };
         })
-        .with('ff-2024', () => {
-          const label = 'Fichiers fonciers 2024 (ajout manuel)';
+        .with(Pattern.string.startsWith('ff-'), (value) => {
+          const year = value.substring('ff-'.length);
+          const label = `Fichiers fonciers ${year} (ajout manuel)`;
           return {
             label,
-            badgeLabel: `Source et millésime inclus: ${label}`
+            badgeLabel: `Source et millésime inclus : ${label}`
           };
         })
         .with(Pattern.string.startsWith('lovac-'), (value) => {
@@ -828,7 +842,9 @@ export const DATA_FILE_YEAR_INCLUDED_OPTIONS = DATA_FILE_YEAR_VALUES.reduce(
             badgeLabel: `Source et millésime inclus : ${label}`
           };
         })
-        .exhaustive()
+        .otherwise((value) => {
+          throw new NonExhaustiveError(value);
+        })
     };
   },
   {} as Record<DataFileYear, { label: string; badgeLabel: string }>
@@ -838,15 +854,17 @@ export const DATA_FILE_YEAR_EXCLUDED_OPTIONS = DATA_FILE_YEAR_VALUES.reduce(
     return {
       ...record,
       [value]: match(value)
-        .with('ff-2023-locatif', () => {
-          const label = 'Fichiers fonciers 2023 (parc locatif privé)';
+        .with(Pattern.string.regex(/^ff-\d{4}-locatif$/), (value) => {
+          const year = Number(value.substring('ff-'.length, 'ff-yyyy'.length));
+          const label = `Fichiers fonciers ${year} (parc locatif privé)`;
           return {
             label,
             badgeLabel: `Source et millésime exclus : ${label}`
           };
         })
-        .with('ff-2024', () => {
-          const label = 'Fichiers fonciers 2024 (ajout manuel)';
+        .with(Pattern.string.startsWith('ff-'), (value) => {
+          const year = value.substring('ff-'.length);
+          const label = `Fichiers fonciers ${year} (ajout manuel)`;
           return {
             label,
             badgeLabel: `Source et millésime exclus : ${label}`
@@ -859,7 +877,9 @@ export const DATA_FILE_YEAR_EXCLUDED_OPTIONS = DATA_FILE_YEAR_VALUES.reduce(
             badgeLabel: `Source et millésime exclus : ${label}`
           };
         })
-        .exhaustive()
+        .otherwise((value) => {
+          throw new NonExhaustiveError(value);
+        })
     };
   },
   {} as Record<DataFileYear, { label: string; badgeLabel: string }>
@@ -868,51 +888,57 @@ export const DATA_FILE_YEAR_EXCLUDED_OPTIONS = DATA_FILE_YEAR_VALUES.reduce(
 /**
  * @deprecated Use {@link DATA_FILE_YEAR_EXCLUDED_OPTIONS} instead.
  */
-export const dataFileYearsExcludedOptions: SelectOption[] = [
+export const dataFileYearsExcludedOptions: SelectOption<DataFileYear>[] = [
   {
-    value: 'ff-2023-locatif',
+    value: 'ff-2023-locatif' as const,
     label: 'Fichiers fonciers 2023 (parc locatif privé)',
     badgeLabel:
       'Source et millésime exclus : Fichiers fonciers 2023 (parc locatif privé)'
   },
   {
-    value: 'ff-2024',
+    value: 'ff-2023' as const,
+    label: 'Fichiers fonciers 2023 (ajout manuel)',
+    badgeLabel:
+      'Source et millésime exclus : Fichiers fonciers 2023 (ajout manuel)'
+  },
+  {
+    value: 'ff-2024' as const,
     label: 'Fichiers fonciers 2024 (ajout manuel)',
     badgeLabel:
       'Source et millésime exclus : Fichiers fonciers 2024 (ajout manuel)'
   },
   {
-    value: 'lovac-2019',
+    value: 'lovac-2019' as const,
     label: 'LOVAC 2019 (>2 ans)',
     badgeLabel: 'Source et millésime exclus : LOVAC 2019 (>2 ans)'
   },
   {
-    value: 'lovac-2020',
+    value: 'lovac-2020' as const,
     label: 'LOVAC 2020 (>2 ans)',
     badgeLabel: 'Source et millésime exclus : LOVAC 2020 (>2 ans)'
   },
   {
-    value: 'lovac-2021',
+    value: 'lovac-2021' as const,
     label: 'LOVAC 2021 (>2 ans)',
     badgeLabel: 'Source et millésime exclus : LOVAC 2021 (>2 ans)'
   },
   {
-    value: 'lovac-2022',
+    value: 'lovac-2022' as const,
     label: 'LOVAC 2022 (>2 ans)',
     badgeLabel: 'Source et millésime exclus : LOVAC 2022 (>2 ans)'
   },
   {
-    value: 'lovac-2023',
+    value: 'lovac-2023' as const,
     label: 'LOVAC 2023 (>2 ans)',
     badgeLabel: 'Source et millésime exclus : LOVAC 2023 (>2 ans)'
   },
   {
-    value: 'lovac-2024',
+    value: 'lovac-2024' as const,
     label: 'LOVAC 2024 (>2 ans)',
     badgeLabel: 'Source et millésime exclus : LOVAC 2024 (>2 ans)'
   },
   {
-    value: 'lovac-2025',
+    value: 'lovac-2025' as const,
     label: 'LOVAC 2025 (>2 ans)',
     badgeLabel: 'Source et millésime exclus : LOVAC 2025 (>2 ans)'
   }

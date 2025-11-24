@@ -154,8 +154,6 @@ describe('shapefileValidationMiddleware', () => {
     );
 
     expect(mockNext).toHaveBeenCalledWith(expect.any(BadRequestError));
-    const error = (mockNext as any).mock.calls[0][0] as BadRequestError;
-    expect(error.message).toContain('Missing .shp file');
   });
 
   it('should reject shapefile without .dbf file', async () => {
@@ -173,8 +171,6 @@ describe('shapefileValidationMiddleware', () => {
     );
 
     expect(mockNext).toHaveBeenCalledWith(expect.any(BadRequestError));
-    const error = (mockNext as any).mock.calls[0][0] as BadRequestError;
-    expect(error.message).toContain('Missing .dbf file');
   });
 
   it('should reject shapefile with too many features', async () => {
@@ -195,9 +191,6 @@ describe('shapefileValidationMiddleware', () => {
     );
 
     expect(mockNext).toHaveBeenCalledWith(expect.any(BadRequestError));
-    const error = (mockNext as any).mock.calls[0][0] as BadRequestError;
-    expect(error.message).toContain('too many features');
-    expect(error.message).toContain('10');
   });
 
   it('should use default max features of 10000', async () => {

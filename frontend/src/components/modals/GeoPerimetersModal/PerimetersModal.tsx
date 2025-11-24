@@ -54,9 +54,12 @@ function createPerimetersModal() {
       // Show custom error message for geo upload errors
       useEffect(() => {
         if (isUploadError && uploadError) {
+          console.log('GeoPerimeter upload error:', uploadError);
           const errorMessage = getFileUploadErrorMessage(uploadError, true);
+          console.log('Error message:', errorMessage);
           toast.error(errorMessage, {
-            toastId: 'geo-upload-error'
+            toastId: 'geo-upload-error',
+            autoClose: 5000
           });
         }
       }, [isUploadError, uploadError]);

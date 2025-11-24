@@ -35,9 +35,12 @@ function FileUpload(props: Readonly<Props>) {
   // Show custom error message based on error reason
   useEffect(() => {
     if (mutation.isError && mutation.error) {
+      console.log('File upload error:', mutation.error);
       const errorMessage = getFileUploadErrorMessage(mutation.error);
+      console.log('Error message:', errorMessage);
       toast.error(errorMessage, {
-        toastId: 'file-upload-error'
+        toastId: 'file-upload-error',
+        autoClose: 5000
       });
     }
   }, [mutation.isError, mutation.error]);

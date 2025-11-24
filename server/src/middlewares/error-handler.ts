@@ -25,6 +25,22 @@ function isFileValidationError(error: Error): error is BadRequestError & {
   );
 }
 
+/**
+ * Check if error is a ShapefileValidationError (from shapefileValidation middleware)
+ */
+function isShapefileValidationError(error: Error): error is BadRequestError & {
+  reason: 'missing_components' | 'too_many_features' | 'invalid_shapefile';
+  fileName: string;
+  details?: string;
+} {
+  return (
+    error instanceof BadRequestError &&
+    error.name === 'ShapefileValidationError' &&
+    'reason' in error &&
+    'fileName' in error
+  );
+}
+
 function log(
   error: Error,
   request: Request,
@@ -45,6 +61,32 @@ function respond(
 ): void {
   if (response.headersSent) {
     next(error);
+    return;
+  }
+
+  // Handle ShapefileValidationError (from shapefileValidation middleware)
+  if (isShapefileValidationError(error)) {
+    const status = constants.HTTP_STATUS_BAD_REQUEST;
+    let message = 'Invalid shapefile';
+
+    switch (error.reason) {
+      case 'missing_components':
+        message = error.details || 'Missing required shapefile components';
+        break;
+      case 'too_many_features':
+        message = error.details || 'Shapefile contains too many features';
+        break;
+      case 'invalid_shapefile':
+        message = error.details || 'Invalid shapefile format';
+        break;
+    }
+
+    response.status(status).json({
+      name: 'ShapefileValidationError',
+      message,
+      reason: error.reason,
+      fileName: error.fileName
+    });
     return;
   }
 

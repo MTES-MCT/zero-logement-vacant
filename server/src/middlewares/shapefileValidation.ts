@@ -5,6 +5,20 @@ import AdmZip from 'adm-zip';
 import shapefile from 'shapefile';
 
 /**
+ * Custom error class for shapefile validation failures
+ */
+class ShapefileValidationError extends BadRequestError {
+  constructor(
+    public readonly reason: 'missing_components' | 'too_many_features' | 'invalid_shapefile',
+    public readonly fileName: string,
+    public readonly details?: string
+  ) {
+    super();
+    this.name = 'ShapefileValidationError';
+  }
+}
+
+/**
  * Validates shapefile feature count
  *
  * Environment variables:
@@ -62,13 +76,20 @@ export const shapefileValidationMiddleware: RequestHandler = async (
       const shpEntry = zipEntries.find((entry: any) => entry.entryName.toLowerCase().endsWith('.shp'));
       const dbfEntry = zipEntries.find((entry: any) => entry.entryName.toLowerCase().endsWith('.dbf'));
 
-      if (!shpEntry) {
-        throw new BadRequestError(
-        );
-      }
+      if (!shpEntry || !dbfEntry) {
+        const missing = [];
+        if (!shpEntry) missing.push('.shp');
+        if (!dbfEntry) missing.push('.dbf');
 
-      if (!dbfEntry) {
-        throw new BadRequestError(
+        logger.warn('Missing required shapefile components', {
+          fileName,
+          missing
+        });
+
+        throw new ShapefileValidationError(
+          'missing_components',
+          fileName,
+          `Missing required files: ${missing.join(', ')}`
         );
       }
 
@@ -97,7 +118,10 @@ export const shapefileValidationMiddleware: RequestHandler = async (
             featureCount: `>${maxFeatures}`,
             maxFeatures
           });
-          throw new BadRequestError(
+          throw new ShapefileValidationError(
+            'too_many_features',
+            fileName,
+            `Shapefile contains more than ${maxFeatures} features`
           );
         }
 
@@ -119,6 +143,10 @@ export const shapefileValidationMiddleware: RequestHandler = async (
 
       next();
     } catch (error) {
+      if (error instanceof ShapefileValidationError) {
+        throw error;
+      }
+
       if (error instanceof BadRequestError) {
         throw error;
       }
@@ -128,7 +156,10 @@ export const shapefileValidationMiddleware: RequestHandler = async (
         error: error instanceof Error ? error.message : String(error)
       });
 
-      throw new BadRequestError(
+      throw new ShapefileValidationError(
+        'invalid_shapefile',
+        fileName,
+        error instanceof Error ? error.message : 'Invalid shapefile format'
       );
     }
   } catch (error) {

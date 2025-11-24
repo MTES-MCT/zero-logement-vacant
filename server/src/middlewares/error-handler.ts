@@ -4,9 +4,26 @@ import { constants } from 'http2';
 import multer from 'multer';
 
 import { isClientError, isHttpError } from '~/errors/httpError';
+import BadRequestError from '~/errors/badRequestError';
 import { createLogger } from '~/infra/logger';
 
 const logger = createLogger('error-handler');
+
+/**
+ * Check if error is a FileValidationError (from fileTypeValidation middleware)
+ */
+function isFileValidationError(error: Error): error is BadRequestError & {
+  reason: 'invalid_file_type' | 'mime_mismatch';
+  fileName: string;
+  detectedType?: string;
+} {
+  return (
+    error instanceof BadRequestError &&
+    error.name === 'FileValidationError' &&
+    'reason' in error &&
+    'fileName' in error
+  );
+}
 
 function log(
   error: Error,
@@ -28,6 +45,26 @@ function respond(
 ): void {
   if (response.headersSent) {
     next(error);
+    return;
+  }
+
+  // Handle FileValidationError (from fileTypeValidation middleware)
+  if (isFileValidationError(error)) {
+    const status = constants.HTTP_STATUS_BAD_REQUEST;
+    let message = 'Invalid file type';
+
+    if (error.reason === 'mime_mismatch') {
+      message = `Declared MIME type does not match actual file type`;
+    } else if (error.detectedType) {
+      message = `File type ${error.detectedType} is not allowed`;
+    }
+
+    response.status(status).json({
+      name: 'FileValidationError',
+      message,
+      reason: error.reason,
+      fileName: error.fileName
+    });
     return;
   }
 

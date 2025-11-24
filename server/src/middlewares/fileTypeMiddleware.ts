@@ -180,9 +180,15 @@ export async function fileTypeMiddleware(
         message: error.message
       });
 
+      // Determine the specific reason for rejection
+      const reason = error.detectedType
+        ? (error.message.includes('does not match') ? 'mime_mismatch' : 'invalid_file_type')
+        : 'invalid_file_type';
+
       res.status(400).json({
         error: 'Invalid file type',
         message: error.message,
+        reason,
         fileName: error.fileName
       });
     } else {

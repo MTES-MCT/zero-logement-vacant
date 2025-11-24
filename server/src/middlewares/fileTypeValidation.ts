@@ -10,6 +10,20 @@ import { createS3 } from '@zerologementvacant/utils/node';
 import 'multer-s3';
 
 /**
+ * Custom error class for file validation failures
+ */
+class FileValidationError extends BadRequestError {
+  constructor(
+    public readonly reason: 'invalid_file_type' | 'mime_mismatch',
+    public readonly fileName: string,
+    public readonly detectedType?: string
+  ) {
+    super();
+    this.name = 'FileValidationError';
+  }
+}
+
+/**
  * Allowed file types with their MIME types and magic bytes signatures
  */
 const ALLOWED_FILE_TYPES = {
@@ -105,7 +119,7 @@ export const validateUploadedFileType: RequestHandler = async (
         Key: fileKey
       }));
 
-      throw new BadRequestError();
+      throw new FileValidationError('invalid_file_type', fileName);
     }
 
     logger.debug('File type detected', {
@@ -135,7 +149,7 @@ export const validateUploadedFileType: RequestHandler = async (
         Key: fileKey
       }));
 
-      throw new BadRequestError();
+      throw new FileValidationError('invalid_file_type', fileName, detectedType.mime);
     }
 
     // Verify that declared MIME matches detected MIME
@@ -155,7 +169,7 @@ export const validateUploadedFileType: RequestHandler = async (
         Key: fileKey
       }));
 
-      throw new BadRequestError();
+      throw new FileValidationError('mime_mismatch', fileName, detectedType.mime);
     }
 
     logger.info('File type validation successful', {
@@ -167,7 +181,10 @@ export const validateUploadedFileType: RequestHandler = async (
 
     next();
   } catch (error) {
-    if (error instanceof BadRequestError) {
+    if (error instanceof FileValidationError) {
+      // Pass to error handler with reason
+      next(error);
+    } else if (error instanceof BadRequestError) {
       next(error);
     } else {
       logger.error('Unexpected error in file type validation', {

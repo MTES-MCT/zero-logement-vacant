@@ -3,6 +3,14 @@ import { Request, Response, NextFunction } from 'express';
 import { shapefileValidationMiddleware } from './shapefileValidation';
 import BadRequestError from '~/errors/badRequestError';
 
+// Partial type for multer file in tests
+type MockMulterFile = {
+  originalname: string;
+  buffer: Buffer;
+  mimetype: string;
+  size: number;
+};
+
 // Mock logger
 vi.mock('~/infra/logger', () => ({
   logger: {
@@ -116,7 +124,7 @@ describe('shapefileValidationMiddleware', () => {
       buffer: Buffer.from('VALID_SHAPEFILE'),
       mimetype: 'application/zip',
       size: 1024,
-    } as Express.Multer.File;
+    } as MockMulterFile;
 
     process.env.TEST_FEATURE_COUNT = '5';
 
@@ -137,7 +145,7 @@ describe('shapefileValidationMiddleware', () => {
       buffer: Buffer.from('NO_SHP'),
       mimetype: 'application/zip',
       size: 1024,
-    } as Express.Multer.File;
+    } as MockMulterFile;
 
     await shapefileValidationMiddleware(
       mockRequest as Request,
@@ -156,7 +164,7 @@ describe('shapefileValidationMiddleware', () => {
       buffer: Buffer.from('NO_DBF'),
       mimetype: 'application/zip',
       size: 1024,
-    } as Express.Multer.File;
+    } as MockMulterFile;
 
     await shapefileValidationMiddleware(
       mockRequest as Request,
@@ -175,7 +183,7 @@ describe('shapefileValidationMiddleware', () => {
       buffer: Buffer.from('VALID_SHAPEFILE'),
       mimetype: 'application/zip',
       size: 1024,
-    } as Express.Multer.File;
+    } as MockMulterFile;
 
     process.env.MAX_SHAPEFILE_FEATURES = '10';
     process.env.TEST_FEATURE_COUNT = '15';
@@ -198,7 +206,7 @@ describe('shapefileValidationMiddleware', () => {
       buffer: Buffer.from('VALID_SHAPEFILE'),
       mimetype: 'application/zip',
       size: 1024,
-    } as Express.Multer.File;
+    } as MockMulterFile;
 
     process.env.TEST_FEATURE_COUNT = '100';
 

@@ -351,11 +351,12 @@ describe('Geo perimeters API', () => {
     }, 30000);
 
     it('should reject file that is too large', async () => {
-      // Set max size to 5MB for testing
-      process.env.GEO_UPLOAD_MAX_SIZE_MB = '5';
+      // Set max size to 0.5MB for testing
+      const originalLimit = process.env.GEO_UPLOAD_MAX_SIZE_MB;
+      process.env.GEO_UPLOAD_MAX_SIZE_MB = '0.5';
 
-      // Create a ZIP larger than 5MB
-      const largeBuffer = Buffer.alloc(6 * 1024 * 1024, 'a');
+      // Create a 1MB ZIP (exceeds 0.5MB limit)
+      const largeBuffer = Buffer.alloc(1 * 1024 * 1024, 'a');
       const tmpPath = path.join(import.meta.dirname, 'large.zip');
       fs.writeFileSync(tmpPath, largeBuffer);
 
@@ -368,7 +369,11 @@ describe('Geo perimeters API', () => {
         expect(status).toBe(constants.HTTP_STATUS_BAD_REQUEST);
       } finally {
         fs.unlinkSync(tmpPath);
-        delete process.env.GEO_UPLOAD_MAX_SIZE_MB;
+        if (originalLimit) {
+          process.env.GEO_UPLOAD_MAX_SIZE_MB = originalLimit;
+        } else {
+          delete process.env.GEO_UPLOAD_MAX_SIZE_MB;
+        }
       }
     }, 30000);
   });

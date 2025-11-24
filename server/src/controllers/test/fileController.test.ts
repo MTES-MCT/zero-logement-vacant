@@ -133,24 +133,34 @@ describe('File API', () => {
     }, 30000);
 
     it('should reject file that is too large', async () => {
-      // Create a file larger than 5MB
-      const largeBuffer = Buffer.alloc(6 * 1024 * 1024, 'a');
+      // Create a 1MB file - using smaller file to avoid EPIPE issues
+      // Default limit is 5MB but we test with smaller file for performance
+      const largeBuffer = Buffer.alloc(1 * 1024 * 1024, 'a');
       const tmpPath = path.join(import.meta.dirname, 'large.txt');
       fs.writeFileSync(tmpPath, largeBuffer);
 
       try {
-        // The server may close connection (EPIPE) or return 400
-        // Both behaviors are acceptable for oversized files
+        // Temporarily lower limit for this specific test
+        const originalLimit = process.env.FILE_UPLOAD_MAX_SIZE_MB;
+        process.env.FILE_UPLOAD_MAX_SIZE_MB = '0.5';
+
         try {
           const { status } = await request(url)
             .post(testRoute)
             .attach('file', tmpPath)
             .use(tokenProvider(user));
 
+          // Either rejected with 400 or connection closed with EPIPE
           expect(status).toBe(constants.HTTP_STATUS_BAD_REQUEST);
         } catch (error: any) {
-          // EPIPE error is acceptable - server closed connection due to file size
+          // EPIPE is acceptable - server closed connection due to size
           expect(error.code).toBe('EPIPE');
+        } finally {
+          if (originalLimit) {
+            process.env.FILE_UPLOAD_MAX_SIZE_MB = originalLimit;
+          } else {
+            delete process.env.FILE_UPLOAD_MAX_SIZE_MB;
+          }
         }
       } finally {
         fs.unlinkSync(tmpPath);

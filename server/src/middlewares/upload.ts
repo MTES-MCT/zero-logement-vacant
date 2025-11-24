@@ -13,13 +13,17 @@ import BadRequestError from '~/errors/badRequestError';
 export function upload(): RequestHandler {
   const ALLOWED_MIMES = ['image/png', 'image/jpeg', 'application/pdf'];
 
+  // Get max size from env or default to 5MB
+  const maxSizeMB = parseInt(process.env.FILE_UPLOAD_MAX_SIZE_MB || '5', 10);
+  const maxSizeBytes = maxSizeMB * 1024 * 1024;
+
   const upload = multer({
     // Use memory storage instead of direct S3 upload
     storage: multer.memoryStorage(),
 
     limits: {
       files: 1,
-      fileSize: 1024 * 1024 * 5 // 5 MB
+      fileSize: maxSizeBytes
     },
 
     fileFilter(

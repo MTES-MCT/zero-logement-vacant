@@ -72,12 +72,15 @@ export function getFileUploadErrorMessage(error: unknown, isGeoUpload = false): 
       const response = errorData as FileUploadErrorResponse;
       const reason = response.reason || 'unknown';
 
-      // Check for specific error patterns in message
-      if (response.message?.includes('Missing')) {
-        return messages.missing_components || messages.invalid_file_type;
-      }
-      if (response.message?.includes('too many features')) {
-        return messages.too_many_features || messages.file_too_large;
+      // Check for specific error patterns in message (geo uploads only)
+      if (isGeoUpload) {
+        const geoMessages = messages as typeof GEO_UPLOAD_ERROR_MESSAGES;
+        if (response.message?.includes('Missing')) {
+          return geoMessages.missing_components;
+        }
+        if (response.message?.includes('too many features')) {
+          return geoMessages.too_many_features;
+        }
       }
 
       return messages[reason] || messages.unknown;

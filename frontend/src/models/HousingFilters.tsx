@@ -760,7 +760,7 @@ export const dataFileYearsIncludedOptions: SelectOption<DataFileYear>[] = [
       'Source et millésime inclus : Fichiers fonciers 2023 (parc locatif privé)'
   },
   {
-    value: 'ff-2024-locatif',
+    value: 'ff-2024-locatif' as const,
     label: 'Fichiers fonciers 2024 (parc locatif privé)',
     badgeLabel:
       'Source et millésime inclus : Fichiers fonciers 2024 (parc locatif privé)'

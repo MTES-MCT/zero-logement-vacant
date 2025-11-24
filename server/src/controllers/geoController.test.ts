@@ -280,7 +280,7 @@ describe('Geo perimeters API', () => {
       }
     }, 30000);
 
-    it.skip('should reject non-ZIP file', async () => {
+    it('should reject non-ZIP file', async () => {
       const txtContent = 'This is not a ZIP file';
       const tmpPath = path.join(import.meta.dirname, 'fake.zip');
       fs.writeFileSync(tmpPath, txtContent);
@@ -293,15 +293,15 @@ describe('Geo perimeters API', () => {
 
         expect(status).toBe(constants.HTTP_STATUS_BAD_REQUEST);
         expect(body).toMatchObject({
-          error: expect.any(String),
-          message: expect.stringContaining('ZIP')
+          name: 'BadRequestError',
+          message: 'Bad request'
         });
       } finally {
         fs.unlinkSync(tmpPath);
       }
     }, 30000);
 
-    it.skip('should reject ZIP without shapefile components', async () => {
+    it('should reject ZIP without shapefile components', async () => {
       const zip = new AdmZip();
       zip.addFile('readme.txt', Buffer.from('This is not a shapefile'));
       const zipBuffer = zip.toBuffer();
@@ -317,7 +317,7 @@ describe('Geo perimeters API', () => {
 
         expect(status).toBe(constants.HTTP_STATUS_BAD_REQUEST);
         expect(body).toMatchObject({
-          error: expect.any(String),
+          name: 'ShapefileValidationError',
           message: expect.stringContaining('Missing')
         });
       } finally {

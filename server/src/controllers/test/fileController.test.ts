@@ -110,7 +110,7 @@ describe('File API', () => {
       }
     }, 30000);
 
-    it.skip('should reject file with wrong MIME type', async () => {
+    it('should reject file with wrong MIME type', async () => {
       // Create a text file pretending to be PNG
       const txtContent = 'This is a text file, not an image';
       const tmpPath = path.join(import.meta.dirname, 'fake.png');
@@ -124,8 +124,8 @@ describe('File API', () => {
 
         expect(status).toBe(constants.HTTP_STATUS_BAD_REQUEST);
         expect(body).toMatchObject({
-          error: expect.any(String),
-          message: expect.stringContaining('type')
+          name: 'BadRequestError',
+          message: 'Bad request'
         });
       } finally {
         fs.unlinkSync(tmpPath);

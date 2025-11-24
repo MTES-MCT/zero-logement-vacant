@@ -5,7 +5,6 @@ import Grid from '@mui/material/Grid';
 import Stack from '@mui/material/Stack';
 import Typography from '@mui/material/Typography';
 import { useMemo, useState, useEffect } from 'react';
-import { toast } from 'react-toastify';
 
 import { createConfirmationModal } from '~/components/modals/ConfirmationModal/ConfirmationModalNext';
 import { type GeoPerimeter } from '../../../models/GeoPerimeter';
@@ -51,18 +50,17 @@ function createPerimetersModal() {
         { isSuccess: isUploadSuccess, isError: isUploadError, error: uploadError }
       ] = useUploadGeoPerimeterFileMutation();
 
+      const [uploadErrorMessage, setUploadErrorMessage] = useState<string | undefined>();
+
       // Show custom error message for geo upload errors
       useEffect(() => {
         if (isUploadError && uploadError) {
-          console.log('GeoPerimeter upload error:', uploadError);
           const errorMessage = getFileUploadErrorMessage(uploadError, true);
-          console.log('Error message:', errorMessage);
-          toast.error(errorMessage, {
-            toastId: 'geo-upload-error',
-            autoClose: 5000
-          });
+          setUploadErrorMessage(errorMessage);
+        } else if (isUploadSuccess) {
+          setUploadErrorMessage(undefined);
         }
-      }, [isUploadError, uploadError]);
+      }, [isUploadError, uploadError, isUploadSuccess]);
 
       async function upload(file: File): Promise<void> {
         await uploadGeoPerimeterFile(file)
@@ -290,7 +288,16 @@ function createPerimetersModal() {
                   className="fr-mb-2w"
                 />
               )}
-              {(isUploadError || isUpdateError || isDeleteError) && (
+              {isUploadError && uploadErrorMessage && (
+                <Alert
+                  severity="error"
+                  description={uploadErrorMessage}
+                  closable
+                  small
+                  className="fr-mb-2w"
+                />
+              )}
+              {(isUpdateError || isDeleteError) && (
                 <Alert
                   severity="error"
                   description="Une erreur s'est produite, veuillez réessayer."

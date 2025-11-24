@@ -1,8 +1,7 @@
 import { Upload } from '@codegouvfr/react-dsfr/Upload';
 import mime from 'mime';
-import React, { useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
 import type { ReactNode } from 'react';
-import { toast } from 'react-toastify';
 
 import { useUploadFileMutation } from '../../services/file.service';
 import { useNotification } from '../../hooks/useNotification';
@@ -31,19 +30,17 @@ function FileUpload(props: Readonly<Props>) {
     `Taille maximale : ${MAX_SIZE} Mo. Formats supportés : ${types.join(', ')}`;
   const accept = types.map((type) => mime.getType(type)).join(', ');
   const [upload, mutation] = useUploadFileMutation();
+  const [errorMessage, setErrorMessage] = useState<string | undefined>();
 
   // Show custom error message based on error reason
   useEffect(() => {
     if (mutation.isError && mutation.error) {
-      console.log('File upload error:', mutation.error);
-      const errorMessage = getFileUploadErrorMessage(mutation.error);
-      console.log('Error message:', errorMessage);
-      toast.error(errorMessage, {
-        toastId: 'file-upload-error',
-        autoClose: 5000
-      });
+      const message = getFileUploadErrorMessage(mutation.error);
+      setErrorMessage(message);
+    } else if (mutation.isSuccess) {
+      setErrorMessage(undefined);
     }
-  }, [mutation.isError, mutation.error]);
+  }, [mutation.isError, mutation.error, mutation.isSuccess]);
 
   useNotification({
     isError: false, // Don't use default error notification
@@ -55,6 +52,8 @@ function FileUpload(props: Readonly<Props>) {
   function onChange(event: React.ChangeEvent<HTMLInputElement>): void {
     const file = event.target.files?.[0];
     if (file) {
+      // Clear previous error
+      setErrorMessage(undefined);
       upload(file)
         .unwrap()
         .then((fileUpload) => {
@@ -68,6 +67,8 @@ function FileUpload(props: Readonly<Props>) {
       label={props.label}
       multiple={false}
       hint={hint}
+      state={errorMessage ? 'error' : 'default'}
+      stateRelatedMessage={errorMessage}
       nativeInputProps={{ accept, id: props.id, onChange }}
     />
   );

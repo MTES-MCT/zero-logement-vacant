@@ -325,6 +325,31 @@ describe('Geo perimeters API', () => {
       }
     }, 30000);
 
+    it('should reject corrupted ZIP file', async () => {
+      // Create a corrupted ZIP (ZIP header but invalid content)
+      const corruptedZip = Buffer.concat([
+        Buffer.from([0x50, 0x4b, 0x03, 0x04]), // ZIP magic bytes
+        Buffer.from('corrupted data that is not a valid ZIP structure')
+      ]);
+      const tmpPath = path.join(import.meta.dirname, 'corrupted.zip');
+      fs.writeFileSync(tmpPath, corruptedZip);
+
+      try {
+        const { body, status } = await request(url)
+          .post(testRoute)
+          .attach('file', tmpPath)
+          .use(tokenProvider(user));
+
+        expect(status).toBe(constants.HTTP_STATUS_BAD_REQUEST);
+        expect(body).toMatchObject({
+          name: 'ShapefileValidationError',
+          message: expect.any(String)
+        });
+      } finally {
+        fs.unlinkSync(tmpPath);
+      }
+    }, 30000);
+
     it('should reject file that is too large', async () => {
       // Set max size to 5MB for testing
       process.env.GEO_UPLOAD_MAX_SIZE_MB = '5';

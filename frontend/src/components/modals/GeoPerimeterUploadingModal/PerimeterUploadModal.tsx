@@ -1,4 +1,5 @@
 import { Upload } from '@codegouvfr/react-dsfr/Upload';
+import { Alert } from '@codegouvfr/react-dsfr/Alert';
 import Grid from '@mui/material/Grid';
 import { useState } from 'react';
 import * as yup from 'yup';
@@ -9,6 +10,8 @@ import { createConfirmationModal } from '~/components/modals/ConfirmationModal/C
 export interface GeoPerimeterUploadingModalProps {
   onClose(): void;
   onSubmit(file: File): void;
+  error?: string;
+  isLoading?: boolean;
 }
 
 function createPerimeterUploadModal() {
@@ -50,15 +53,26 @@ function createPerimeterUploadModal() {
           onSubmit={submitFile}
           {...rest}
         >
-          <Grid container>
+          <Grid container spacing={2}>
+            {props.error && (
+              <Grid size={12}>
+                <Alert
+                  severity="error"
+                  description={props.error}
+                  closable={false}
+                  small
+                />
+              </Grid>
+            )}
             <Grid size={8}>
               <Upload
                 nativeInputProps={{
-                  onChange: (event: any) => selectFile(event)
+                  onChange: (event: any) => selectFile(event),
+                  accept: '.zip,application/zip,application/x-zip-compressed'
                 }}
                 multiple={false}
                 label="Ajouter un fichier"
-                hint="Format : fichier géographique (SIG) au format .zip comprenant l'ensemble des extensions qui constituent le fichier (.cpg, .dbf, .shp, etc.).”. "
+                hint="Format : fichier géographique (SIG) au format .zip comprenant l'ensemble des extensions qui constituent le fichier (.cpg, .dbf, .shp, etc.)."
                 stateRelatedMessage={message('file')}
               />
             </Grid>

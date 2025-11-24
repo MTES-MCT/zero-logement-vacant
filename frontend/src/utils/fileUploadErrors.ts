@@ -8,6 +8,9 @@ export type FileUploadErrorReason =
   | 'mime_mismatch'
   | 'service_unavailable'
   | 'scan_error'
+  | 'unexpected_field'
+  | 'too_many_files'
+  | 'upload_error'
   | 'unknown';
 
 /**
@@ -37,6 +40,9 @@ export const FILE_UPLOAD_ERROR_MESSAGES: Record<FileUploadErrorReason, string> =
   mime_mismatch: 'Le contenu du fichier ne correspond pas à son extension. Vérifiez que le fichier n\'a pas été renommé.',
   service_unavailable: 'Service temporairement indisponible. Veuillez réessayer ultérieurement.',
   scan_error: 'Erreur lors de l\'analyse du fichier. Veuillez réessayer.',
+  unexpected_field: 'Champ de fichier inattendu. Veuillez vérifier le formulaire.',
+  too_many_files: 'Trop de fichiers. Un seul fichier est autorisé.',
+  upload_error: 'Erreur lors de l\'envoi du fichier. Veuillez réessayer.',
   unknown: 'Une erreur est survenue lors de l\'envoi du fichier'
 };
 
@@ -52,6 +58,9 @@ export const GEO_UPLOAD_ERROR_MESSAGES: Record<FileUploadErrorReason | 'missing_
   too_many_features: 'Le shapefile contient trop d\'éléments (maximum 10 000 features).',
   service_unavailable: 'Service temporairement indisponible. Veuillez réessayer ultérieurement.',
   scan_error: 'Erreur lors de l\'analyse du fichier. Veuillez réessayer.',
+  unexpected_field: 'Champ de fichier inattendu. Veuillez vérifier que vous uploadez bien un fichier ZIP.',
+  too_many_files: 'Trop de fichiers. Un seul fichier ZIP est autorisé.',
+  upload_error: 'Erreur lors de l\'envoi du fichier. Veuillez réessayer.',
   unknown: 'Une erreur est survenue lors de l\'envoi du fichier'
 };
 

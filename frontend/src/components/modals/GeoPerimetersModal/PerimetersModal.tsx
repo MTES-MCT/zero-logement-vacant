@@ -63,11 +63,14 @@ function createPerimetersModal() {
       }, [isUploadError, uploadError, isUploadSuccess]);
 
       async function upload(file: File): Promise<void> {
-        await uploadGeoPerimeterFile(file)
-          .unwrap()
-          .finally(() => {
-            uploadModal.close();
-          });
+        try {
+          await uploadGeoPerimeterFile(file).unwrap();
+          // Only close modal on success
+          uploadModal.close();
+        } catch (error) {
+          // Error is handled by useEffect and displayed in modal
+          // Don't close the modal
+        }
       }
 
       function startEditing(perimeter: GeoPerimeter): void {
@@ -175,9 +178,12 @@ function createPerimetersModal() {
 
           <uploadModal.Component
             onClose={() => {
+              setUploadErrorMessage(undefined);
               perimetersModal.open();
             }}
             onSubmit={upload}
+            error={uploadErrorMessage}
+            isLoading={false}
           />
 
           <editionModal.Component

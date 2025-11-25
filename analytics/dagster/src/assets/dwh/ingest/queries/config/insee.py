@@ -81,7 +81,36 @@ INSEE_SOURCES = [
         file_type=FileType.XLSX,
         description="Série historique du recensement de la population 2019",
         read_options={"sheet": "2019", "range": "A8:C35000"},
-    )
+    ), 
+
+    # s3://zlv-production/lake/insee/table-appartenance-geo-communes-2025.xlsx
+    # s3://zlv-production/lake/insee/table-appartenance-geo-communes-2024.xlsx
+
+    ExternalSourceConfig(
+        name="table_appartenance_geo_communes_2025",
+        url="s3://zlv-production/lake/insee/table-appartenance-geo-communes-2025.xlsx",
+        producer=Producer.INSEE,
+        file_type=FileType.XLSX,
+        description="Table appartenance geo communes 2025",
+        read_options={"sheet": "COM", "range": "A6:C35000"},
+    ),
+    ExternalSourceConfig(
+        name="table_appartenance_geo_communes_2024",
+        url="s3://zlv-production/lake/insee/table-appartenance-geo-communes-2024.xlsx",
+        producer=Producer.INSEE,
+        file_type=FileType.XLSX,
+        description="Table appartenance geo communes 2024",
+        read_options={"sheet": "COM", "range": "A6:C35000"},
+    ),
+
+    ExternalSourceConfig(
+        name="population_structure_dage_2022_2011",
+        url="s3://zlv-production/lake/insee/DS_RP_POPULATION_PRINC_2022_data.csv",
+        producer=Producer.INSEE,
+        file_type=FileType.CSV,
+        description="Population structure dage 2022 2011",
+        read_options={"auto_detect": True},
+    ),
 ]
 
 # Convert to dict format for backward compatibility

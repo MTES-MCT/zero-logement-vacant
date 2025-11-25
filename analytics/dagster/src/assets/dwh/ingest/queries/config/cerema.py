@@ -11,6 +11,22 @@ LOVAC_TYPE_OVERRIDES = {
     'ff_ccogrm_4': 'VARCHAR', 'ff_ccogrm_5': 'VARCHAR', 'ff_ccogrm_6': 'VARCHAR',
 }
 
+def clean_sheet_name(sheet_name: str) -> str:
+    # Lowercase and strip leading/trailing whitespace
+    cleaned = sheet_name.strip().lower()
+    # Replace spaces and hyphens with underscores
+    cleaned = cleaned.replace(" ", "_").replace("-", "_")
+    # Replace all non-ASCII characters with nothing
+    cleaned = ''.join(c for c in cleaned if ord(c) < 128)
+    # Remove all characters that are not alphanumeric or underscore
+    cleaned = ''.join(c for c in cleaned if c.isalnum() or c == "_")
+    # Remove consecutive underscores
+    while "__" in cleaned:
+        cleaned = cleaned.replace("__", "_")
+    # Remove leading/trailing underscores
+    cleaned = cleaned.strip("_")
+    return cleaned
+
 CEREMA_SOURCES = [
     # -------------------------------------------------------------------------
     # LOVAC Sources
@@ -177,7 +193,20 @@ CEREMA_SOURCES = [
         description="Consommation d'espaces naturels, agricoles et forestiers du 1er janvier 2009 au 1er janvier 2024",
         read_options={"auto_detect": True, "delim": ";"},
     ),
+] + [
+    ExternalSourceConfig(
+        name=f"prix_volumes_{year}_communes_{clean_sheet_name(sheet)}",
+        url=f"s3://zlv-production/lake/cerema/prix_volumes/dv3f_prix_volumes_communes_{year}.xlsx",
+        producer=Producer.CEREMA,
+        file_type=FileType.XLSX,
+        description=f"Prix volumes {year} communes {sheet}",
+        read_options={"sheet": sheet, "range": "A5:H1260"},
+    )
+    for year in range(2010, 2023)
+    for sheet in ["Bâti", "Non bâti", "Ensemble des maisons", "Maisons à usage d'habitation"]
+
 ]
+
 
 # Convert to dict format for backward compatibility
 CEREMA_CONFIG = {source.name: source.to_dict() for source in CEREMA_SOURCES}

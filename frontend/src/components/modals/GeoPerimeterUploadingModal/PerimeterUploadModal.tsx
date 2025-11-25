@@ -45,6 +45,10 @@ function createPerimeterUploadModal() {
         });
       };
 
+      // Check if error is file_too_large to display it differently
+      const isFileTooLarge = props.error?.includes('trop volumineux');
+      const shouldShowAlert = props.error && !isFileTooLarge;
+
       return (
         <modal.Component
           size="large"
@@ -54,7 +58,7 @@ function createPerimeterUploadModal() {
           {...rest}
         >
           <Grid container spacing={2}>
-            {props.error && (
+            {shouldShowAlert && (
               <Grid size={12}>
                 <Alert
                   severity="error"
@@ -73,7 +77,8 @@ function createPerimeterUploadModal() {
                 multiple={false}
                 label="Ajouter un fichier"
                 hint="Format : fichier géographique (SIG) au format .zip comprenant l'ensemble des extensions qui constituent le fichier (.cpg, .dbf, .shp, etc.)."
-                stateRelatedMessage={message('file')}
+                state={isFileTooLarge ? 'error' : 'default'}
+                stateRelatedMessage={isFileTooLarge ? props.error : message('file')}
               />
             </Grid>
           </Grid>

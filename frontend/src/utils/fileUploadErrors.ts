@@ -54,7 +54,7 @@ export const GEO_UPLOAD_ERROR_MESSAGES: Record<FileUploadErrorReason | 'missing_
   file_too_large: 'Fichier trop volumineux (maximum 100 Mo)',
   invalid_file_type: 'Type de fichier non autorisé. Veuillez uploader une archive ZIP contenant un shapefile.',
   mime_mismatch: 'Le fichier n\'est pas une archive ZIP valide.',
-  missing_components: 'Archive invalide. Le shapefile doit contenir au minimum les fichiers .shp et .dbf.',
+  missing_components: 'Le fichier importé est invalide. Le fichier .zip à importer doit contenir au minimum un fichier .shp et un fichier .dbf.',
   too_many_features: 'Le shapefile contient trop d\'éléments (maximum 10 000 features).',
   service_unavailable: 'Service temporairement indisponible. Veuillez réessayer ultérieurement.',
   scan_error: 'Erreur lors de l\'analyse du fichier. Veuillez réessayer.',
@@ -63,6 +63,18 @@ export const GEO_UPLOAD_ERROR_MESSAGES: Record<FileUploadErrorReason | 'missing_
   upload_error: 'Erreur lors de l\'envoi du fichier. Veuillez réessayer.',
   unknown: 'Une erreur est survenue lors de l\'envoi du fichier'
 };
+
+/**
+ * Get max file size limit from environment variable
+ * @param isGeoUpload - Whether this is a geo perimeter upload
+ * @returns Max file size in MB
+ */
+function getMaxFileSize(isGeoUpload: boolean): number {
+  if (isGeoUpload) {
+    return parseInt(import.meta.env.VITE_GEO_UPLOAD_MAX_SIZE_MB || '100', 10);
+  }
+  return parseInt(import.meta.env.VITE_FILE_UPLOAD_MAX_SIZE_MB || '5', 10);
+}
 
 /**
  * Parse error response and return user-friendly message
@@ -80,6 +92,12 @@ export function getFileUploadErrorMessage(error: unknown, isGeoUpload = false): 
     if (errorData && typeof errorData === 'object' && 'reason' in errorData) {
       const response = errorData as FileUploadErrorResponse;
       const reason = response.reason || 'unknown';
+
+      // Handle file_too_large with dynamic size
+      if (reason === 'file_too_large') {
+        const maxSize = getMaxFileSize(isGeoUpload);
+        return `Fichier trop volumineux (maximum ${maxSize} Mo)`;
+      }
 
       // Check for specific error patterns in message (geo uploads only)
       if (isGeoUpload) {
@@ -101,7 +119,9 @@ export function getFileUploadErrorMessage(error: unknown, isGeoUpload = false): 
     const status = (error as { status: number }).status;
 
     if (status === 413) {
-      return messages.file_too_large;
+      // Dynamic message based on upload type
+      const maxSize = getMaxFileSize(isGeoUpload);
+      return `Fichier trop volumineux (maximum ${maxSize} Mo)`;
     }
     if (status === 415) {
       return messages.invalid_file_type;

@@ -12,9 +12,13 @@ LOVAC_TYPE_OVERRIDES = {
 }
 
 def clean_sheet_name(sheet_name: str) -> str:
-    cleaned = sheet_name.lower()
+    # Lowercase and strip leading/trailing whitespace
+    cleaned = sheet_name.strip().lower()
+    # Replace spaces and hyphens with underscores
     cleaned = cleaned.replace(" ", "_").replace("-", "_")
-    # Remove characters that are not alphanumeric or underscore
+    # Replace all non-ASCII characters with nothing
+    cleaned = ''.join(c for c in cleaned if ord(c) < 128)
+    # Remove all characters that are not alphanumeric or underscore
     cleaned = ''.join(c for c in cleaned if c.isalnum() or c == "_")
     # Remove consecutive underscores
     while "__" in cleaned:

@@ -1,4 +1,4 @@
-#!/usr/bin/env bash
+#!/bin/bash -l
 # cerema-sync.sh - Cerema Data Synchronization Script
 # Synchronizes structures and users from Cerema DF Portal API
 # Can be scheduled at any frequency (e.g., every 30 minutes, daily, etc.)

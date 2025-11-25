@@ -97,18 +97,6 @@ function UserTable(props: UserTableProps) {
         return value ? date(value) : null;
       }
     }),
-    columnHelper.accessor('updatedAt', {
-      header: 'Dernière mise à jour',
-      meta: {
-        sort: {
-          title: 'Trier par date de dernière mise à jour'
-        }
-      },
-      cell: ({ getValue }) => {
-        const value = getValue();
-        return value ? date(value) : null;
-      }
-    }),
     columnHelper.display({
       id: 'actions',
       header: 'Actions',

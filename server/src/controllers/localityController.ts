@@ -1,12 +1,12 @@
 import { Request, Response } from 'express';
 import { AuthenticatedRequest } from 'express-jwt';
-import { constants } from 'http2';
-import localityRepository from '~/repositories/localityRepository';
 import { body, param, query } from 'express-validator';
-import establishmentRepository from '~/repositories/establishmentRepository';
+import { constants } from 'http2';
 import LocalityMissingError from '~/errors/localityMissingError';
-import { LocalityApi, TaxKindsApi } from '~/models/LocalityApi';
 import { logger } from '~/infra/logger';
+import { LocalityApi, TaxKindsApi } from '~/models/LocalityApi';
+import establishmentRepository from '~/repositories/establishmentRepository';
+import localityRepository from '~/repositories/localityRepository';
 
 const getLocalityValidators = [
   param('geoCode').notEmpty().isAlphanumeric().isLength({ min: 5, max: 5 })

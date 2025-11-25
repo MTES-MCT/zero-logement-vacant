@@ -1,5 +1,8 @@
 import { faker } from '@faker-js/faker';
-import { genDatafoncierHousing } from '@zerologementvacant/models/fixtures';
+import {
+  genDatafoncierHousing,
+  genIdprocpte
+} from '@zerologementvacant/models/fixtures';
 import type { Geometry } from 'geojson';
 import type { Knex } from 'knex';
 
@@ -19,9 +22,10 @@ export async function seed(knex: Knex): Promise<void> {
   const datafoncierHousings = establishments.flatMap((establishment) => {
     return faker.helpers.multiple(
       () => {
-        const idprocpte = faker.helpers.arrayElement(
+        const geoCode = faker.helpers.arrayElement(
           establishment.localities_geo_code
         );
+        const idprocpte = genIdprocpte(geoCode);
         const building = faker.helpers.arrayElement(buildings);
 
         return genDatafoncierHousing(idprocpte, building.id);

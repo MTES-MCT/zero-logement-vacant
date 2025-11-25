@@ -1,5 +1,7 @@
 export const DATA_FILE_YEAR_VALUES = [
   'ff-2023-locatif',
+  'ff-2024-locatif',
+  'ff-2023',
   'ff-2024',
   'lovac-2019',
   'lovac-2020',

@@ -20,13 +20,27 @@ vi.mock('../services/mailService', () => ({
     sendPasswordReset: vi.fn().mockResolvedValue(undefined),
     sendAccountActivationEmail: vi.fn().mockResolvedValue(undefined),
     sendAccountActivationEmailFromLovac: vi.fn().mockResolvedValue(undefined),
-    sendOwnerProspectCreatedEmail: vi.fn().mockResolvedValue(undefined),
     send: vi.fn().mockResolvedValue(undefined),
     emit: vi.fn()
   }
 }));
 
 vi.mock('../services/ceremaService/mockCeremaService');
+
+// Mock config to enable 2FA for tests
+vi.mock('../infra/config', async () => {
+  const actual = await vi.importActual('../infra/config');
+  return {
+    ...actual,
+    default: {
+      ...(actual as any).default,
+      auth: {
+        ...(actual as any).default.auth,
+        admin2faEnabled: true
+      }
+    }
+  };
+});
 
 import { UserRole } from '@zerologementvacant/models';
 import bcrypt from 'bcryptjs';

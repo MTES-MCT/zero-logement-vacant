@@ -63,7 +63,7 @@ async function signIn(request: Request, response: Response) {
   }
 
   // Check if 2FA is required for admin users
-  if (user.role === UserRole.ADMIN) {
+  if (user.role === UserRole.ADMIN && config.auth.admin2faEnabled) {
     logger.info('Admin user detected, generating 2FA code', { userId: user.id });
 
     // Generate and send 2FA code

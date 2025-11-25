@@ -15,10 +15,8 @@ export async function seed(knex: Knex): Promise<void> {
   const datafoncierHousings = await DatafoncierHouses();
   const datafoncierOwners = datafoncierHousings.flatMap(
     (datafoncierHousing) => {
-      return faker.helpers.multiple(() => {
-        const count = faker.number.int({ min: 1, max: 6 });
-        return genDatafoncierOwners(datafoncierHousing.idprocpte, count);
-      });
+      const count = faker.number.int({ min: 1, max: 6 });
+      return genDatafoncierOwners(datafoncierHousing.idprocpte, count);
     }
   );
 

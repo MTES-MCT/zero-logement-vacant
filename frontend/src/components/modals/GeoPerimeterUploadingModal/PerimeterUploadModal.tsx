@@ -68,7 +68,7 @@ function createPerimeterUploadModal() {
                 />
               </Grid>
             )}
-            <Grid size={8}>
+            <Grid size={12}>
               <Upload
                 nativeInputProps={{
                   onChange: (event: any) => selectFile(event),

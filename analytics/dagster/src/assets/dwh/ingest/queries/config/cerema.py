@@ -12,7 +12,16 @@ LOVAC_TYPE_OVERRIDES = {
 }
 
 def clean_sheet_name(sheet_name: str) -> str:
-    return sheet_name.lower().replace(" ", "_").replace("-", "_")
+    cleaned = sheet_name.lower()
+    cleaned = cleaned.replace(" ", "_").replace("-", "_")
+    # Remove characters that are not alphanumeric or underscore
+    cleaned = ''.join(c for c in cleaned if c.isalnum() or c == "_")
+    # Remove consecutive underscores
+    while "__" in cleaned:
+        cleaned = cleaned.replace("__", "_")
+    # Remove leading/trailing underscores
+    cleaned = cleaned.strip("_")
+    return cleaned
 
 CEREMA_SOURCES = [
     # -------------------------------------------------------------------------

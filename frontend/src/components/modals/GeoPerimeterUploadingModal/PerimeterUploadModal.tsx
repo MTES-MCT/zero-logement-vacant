@@ -47,7 +47,7 @@ function createPerimeterUploadModal() {
 
       // Check if error is file_too_large to display it differently
       const isFileTooLarge = props.error?.includes('trop volumineux');
-      const shouldShowAlert = props.error && !isFileTooLarge;
+      const shouldShowAlert = !!props.error && !isFileTooLarge;
 
       return (
         <modal.Component
@@ -58,7 +58,7 @@ function createPerimeterUploadModal() {
           {...rest}
         >
           <Grid container spacing={2}>
-            {shouldShowAlert && (
+            {shouldShowAlert && props.error && (
               <Grid size={12}>
                 <Alert
                   severity="error"

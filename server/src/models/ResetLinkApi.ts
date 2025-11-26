@@ -1,12 +1,9 @@
 import { isPast } from 'date-fns';
+import { ResetLinkDTO } from '@zerologementvacant/models';
 import config from '~/infra/config';
 
-export interface ResetLinkApi {
-  id: string;
+export interface ResetLinkApi extends ResetLinkDTO {
   userId: string;
-  createdAt: Date;
-  expiresAt: Date;
-  usedAt?: Date | null;
 }
 
 /**

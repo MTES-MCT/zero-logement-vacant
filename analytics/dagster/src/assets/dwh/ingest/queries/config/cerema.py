@@ -11,6 +11,24 @@ LOVAC_TYPE_OVERRIDES = {
     'ff_ccogrm_4': 'VARCHAR', 'ff_ccogrm_5': 'VARCHAR', 'ff_ccogrm_6': 'VARCHAR',
 }
 
+def clean_sheet_name(sheet_name: str) -> str:
+    # Lowercase and strip leading/trailing whitespace
+    cleaned = sheet_name.strip().lower()
+    # Normalize curly quotes and apostrophes to regular ones
+    cleaned = cleaned.replace("'", "'").replace("'", "'").replace(""", '"').replace(""", '"')
+    # Replace spaces and hyphens with underscores
+    cleaned = cleaned.replace(" ", "_").replace("-", "_")
+    # Replace all non-ASCII characters with nothing
+    cleaned = ''.join(c for c in cleaned if ord(c) < 128)
+    # Remove all characters that are not alphanumeric or underscore
+    cleaned = ''.join(c for c in cleaned if c.isalnum() or c == "_")
+    # Remove consecutive underscores
+    while "__" in cleaned:
+        cleaned = cleaned.replace("__", "_")
+    # Remove leading/trailing underscores
+    cleaned = cleaned.strip("_")
+    return cleaned
+
 CEREMA_SOURCES = [
     # -------------------------------------------------------------------------
     # LOVAC Sources
@@ -178,6 +196,29 @@ CEREMA_SOURCES = [
         read_options={"auto_detect": True, "delim": ";"},
     ),
 ]
+
+# Define sheet names mapping: cleaned name -> original name with correct characters
+PRIX_VOLUMES_SHEETS = {
+    "Bâti": "Bâti",
+    "Non bâti": "Non bâti", 
+    "Ensemble des maisons": "Ensemble des maisons",
+    "Ensemble des appartements": "Ensemble des appartements",
+}
+
+# Add prix_volumes assets with proper sheet names
+CEREMA_SOURCES += [
+    ExternalSourceConfig(
+        name=f"prix_volumes_{year}_communes_{clean_sheet_name(sheet_display)}",
+        url=f"s3://{Config.CELLAR_DATA_LAKE_BUCKET_NAME}/lake/cerema/prix_volumes/dv3f_prix_volumes_communes_{year}.xlsx",
+        producer=Producer.CEREMA,
+        file_type=FileType.XLSX,
+        description=f"Prix volumes {year} communes {sheet_display}",
+        read_options={"sheet": sheet_actual, "range": "A5:H1260"},
+    )
+    for year in range(2013, 2024)
+    for sheet_display, sheet_actual in PRIX_VOLUMES_SHEETS.items()
+]
+
 
 # Convert to dict format for backward compatibility
 CEREMA_CONFIG = {source.name: source.to_dict() for source in CEREMA_SOURCES}

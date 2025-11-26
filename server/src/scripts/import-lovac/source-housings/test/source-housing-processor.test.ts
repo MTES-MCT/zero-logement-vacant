@@ -10,7 +10,6 @@ import { ReadableStream } from 'node:stream/web';
 import { AddressApi } from '~/models/AddressApi';
 import { HousingEventApi } from '~/models/EventApi';
 import { HousingApi } from '~/models/HousingApi';
-import { HousingStatusApi } from '~/models/HousingStatusApi';
 import { HousingNoteApi } from '~/models/NoteApi';
 import { UserApi } from '~/models/UserApi';
 import { genSourceHousing } from '~/scripts/import-lovac/infra/fixtures';
@@ -96,7 +95,7 @@ describe('Source housing processor', () => {
         value: expect.objectContaining({
           dataFileYears: ['lovac-2025'],
           occupancy: Occupancy.VACANT,
-          status: HousingStatusApi.NeverContacted
+          status: HousingStatus.NEVER_CONTACTED
         })
       });
     });

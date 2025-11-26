@@ -45,8 +45,10 @@ WITH all_events AS (
 )
 SELECT
     ae.*,
-    s.new AS event_status_label,
-    coalesce(user_type, 'user') AS user_source
+    s.new AS new_status_refined,
+    version as event_version,
+    coalesce(user_type, 'user') AS user_source,
+    CAST(u.establishment_id AS VARCHAR) AS establishment_id
 FROM
     all_events ae
 LEFT JOIN {{ ref ('int_production_users') }} u ON ae.created_by = u.id

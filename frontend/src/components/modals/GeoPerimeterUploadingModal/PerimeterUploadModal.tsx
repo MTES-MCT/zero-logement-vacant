@@ -6,6 +6,7 @@ import * as yup from 'yup';
 
 import { fileValidator, useForm } from '~/hooks/useForm';
 import { createConfirmationModal } from '~/components/modals/ConfirmationModal/ConfirmationModalNext';
+import styles from './geo-perimeter-uploading-modal.module.scss';
 
 export interface GeoPerimeterUploadingModalProps {
   onClose(): void;
@@ -79,6 +80,7 @@ function createPerimeterUploadModal() {
                 hint="Format : fichier géographique (SIG) au format .zip comprenant l'ensemble des extensions qui constituent le fichier (.cpg, .dbf, .shp, etc.)."
                 state={isFileTooLarge ? 'error' : 'default'}
                 stateRelatedMessage={isFileTooLarge ? props.error : message('file')}
+                className={styles.upload}
               />
             </Grid>
           </Grid>

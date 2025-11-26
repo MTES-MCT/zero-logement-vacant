@@ -15,6 +15,7 @@ import SecondaryOwnerList from '~/components/Owner/SecondaryOwnerList';
 import { useHousingOwners } from '~/components/Owner/useHousingOwners';
 import { useDocumentTitle } from '~/hooks/useDocumentTitle';
 import { useHousing } from '~/hooks/useHousing';
+import { useUser } from '~/hooks/useUser';
 import { useCountHousingQuery } from '~/services/housing.service';
 import NotFoundView from '~/views/NotFoundView';
 
@@ -25,11 +26,13 @@ function HousingView() {
       ? `Fiche logement - ${housing.rawAddress.join(' ')}`
       : 'Page non trouvée'
   );
-  const { owner, secondaryOwners, inactiveOwners, findOwnersQuery } =
-    useHousingOwners(housingId);
+  const { owner, housingOwners, findOwnersQuery } = useHousingOwners(housingId);
   const { data: count } = useCountHousingQuery(
     housing?.owner?.id ? { ownerIds: [housing.owner.id] } : skipToken
   );
+
+  const { isUsual, isAdmin } = useUser();
+  const canUpdate = isUsual || isAdmin;
 
   const navigate = useNavigate();
 
@@ -68,7 +71,7 @@ function HousingView() {
               <Typography component="h2" variant="h5">
                 Propriétaires
               </Typography>
-              {!secondaryOwners?.length && !inactiveOwners?.length ? null : (
+              {!housingOwners?.length || !canUpdate ? null : (
                 <Button
                   iconId="fr-icon-edit-fill"
                   priority="tertiary"

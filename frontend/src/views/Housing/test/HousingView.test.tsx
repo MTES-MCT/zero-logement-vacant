@@ -105,6 +105,43 @@ describe('Housing view', () => {
     expect(name).toHaveTextContent(new RegExp(owner.fullName, 'i'));
   });
 
+  it('should allow users to modify owners', async () => {
+    const housing = genHousingDTO(null);
+    const owner = genOwnerDTO();
+    const housingOwner: HousingOwnerDTO = {
+      ...genHousingOwnerDTO(owner),
+      rank: 1
+    };
+    const auth = genUserDTO(UserRole.USUAL);
+
+    renderView(housing, {
+      owners: [owner],
+      housingOwners: [housingOwner],
+      user: auth
+    });
+
+    const modify = await screen.findByTitle('Modifier les propriétaires');
+    expect(modify).toBeVisible();
+  });
+
+  it('should hide the button to edit owners from visitors', async () => {
+    const housing = genHousingDTO(null);
+    const owner = genOwnerDTO();
+    const housingOwner = genHousingOwnerDTO(owner);
+    const auth = genUserDTO(UserRole.VISITOR);
+
+    renderView(housing, {
+      owners: [owner],
+      housingOwners: [housingOwner],
+      user: auth
+    });
+
+    const name = await screen.findByText(owner.fullName);
+    expect(name).toBeVisible();
+    const title = screen.queryByTitle('Modifier les propriétaires');
+    expect(title).not.toBeInTheDocument();
+  });
+
   describe('Show housing details', () => {
     describe('Vacancy start year', () => {
       it('should be unknown', async () => {

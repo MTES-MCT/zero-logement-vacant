@@ -5,6 +5,7 @@ import {
 } from '@codegouvfr/react-dsfr';
 import Alert from '@codegouvfr/react-dsfr/Alert';
 import Button from '@codegouvfr/react-dsfr/Button';
+import Box from '@mui/material/Box';
 import Skeleton from '@mui/material/Skeleton';
 import Stack from '@mui/material/Stack';
 import Typography from '@mui/material/Typography';
@@ -220,15 +221,28 @@ function OwnerCardNext(props: OwnerCardProps) {
 
         {match(props.housingCount)
           .with(Pattern.number, (count) => (
-            <Button
-              title="Voir tous ses logements"
-              priority="secondary"
-              linkProps={{
-                to: `/proprietaires/${props.id}`
+            <Box
+              sx={{
+                display: 'flex',
+                justifyContent: 'center',
+                textAlign: 'center'
               }}
             >
-              Voir tous ses logements ({count})
-            </Button>
+              <Button
+                title="Voir tous ses logements"
+                priority="secondary"
+                linkProps={{
+                  to: `/proprietaires/${props.id}`
+                }}
+                style={{
+                  width: '100%',
+                  display: 'flex',
+                  justifyContent: 'center'
+                }}
+              >
+                Voir tous ses logements ({count})
+              </Button>
+            </Box>
           ))
           .otherwise(() => null)}
       </Stack>

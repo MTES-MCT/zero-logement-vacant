@@ -96,6 +96,9 @@ interface Config {
     email: string | null;
     password: string | null;
   };
+  upload: {
+    maxSizeMB: number;
+  };
   log: {
     level: LogLevel;
   };
@@ -297,6 +300,13 @@ const config = convict<Config>({
       sensitive: true,
       default: null,
       nullable: true
+    }
+  },
+  upload: {
+    maxSizeMB: {
+      env: 'FILE_UPLOAD_MAX_SIZE_MB',
+      format: 'int',
+      default: 5
     }
   },
   elastic: {

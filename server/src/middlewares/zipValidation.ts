@@ -94,14 +94,7 @@ export const zipValidationMiddleware: RequestHandler = async (
 
     next();
   } catch (error) {
-    if (error instanceof BadRequestError) {
-      next(error);
-    } else {
-      logger.error('Unexpected error in ZIP validation', {
-        error: error instanceof Error ? error.message : String(error)
-      });
-      next(new BadRequestError());
-    }
+    next(error);
   }
 };
 

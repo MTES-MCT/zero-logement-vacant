@@ -4,7 +4,7 @@ import ButtonsGroup from '@codegouvfr/react-dsfr/ButtonsGroup';
 import Grid from '@mui/material/Grid';
 import Stack from '@mui/material/Stack';
 import Typography from '@mui/material/Typography';
-import { useMemo, useState, useEffect } from 'react';
+import { useMemo, useState } from 'react';
 
 import { createConfirmationModal } from '~/components/modals/ConfirmationModal/ConfirmationModalNext';
 import { type GeoPerimeter } from '../../../models/GeoPerimeter';
@@ -15,7 +15,6 @@ import {
   useUploadGeoPerimeterFileMutation
 } from '../../../services/geo.service';
 import { displayCount, pluralize } from '../../../utils/stringUtils';
-import { getFileUploadErrorMessage } from '../../../utils/fileUploadErrors';
 import AppSearchBar from '../../_app/AppSearchBar/AppSearchBar';
 import GeoPerimeterCard from '../../GeoPerimeterCard/GeoPerimeterCard';
 import { createExtendedModal } from '../ConfirmationModal/ExtendedModal';
@@ -50,17 +49,8 @@ function createPerimetersModal() {
         { isSuccess: isUploadSuccess, isError: isUploadError, error: uploadError }
       ] = useUploadGeoPerimeterFileMutation();
 
-      const [uploadErrorMessage, setUploadErrorMessage] = useState<string | undefined>();
-
-      // Show custom error message for geo upload errors
-      useEffect(() => {
-        if (isUploadError && uploadError) {
-          const errorMessage = getFileUploadErrorMessage(uploadError, true);
-          setUploadErrorMessage(errorMessage);
-        } else if (isUploadSuccess) {
-          setUploadErrorMessage(undefined);
-        }
-      }, [isUploadError, uploadError, isUploadSuccess]);
+      // Error message is already formatted by RTK Query transformErrorResponse
+      const uploadErrorMessage = uploadError as string | undefined;
 
       async function upload(file: File): Promise<void> {
         try {
@@ -178,7 +168,6 @@ function createPerimetersModal() {
 
           <uploadModal.Component
             onClose={() => {
-              setUploadErrorMessage(undefined);
               perimetersModal.open();
             }}
             onSubmit={upload}

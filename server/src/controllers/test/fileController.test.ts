@@ -83,6 +83,8 @@ describe('File API', () => {
       });
     }, 30000);
 
+    // Skipped: Requires ClamAV daemon running locally (see docs/EICAR_TESTING.md)
+    // Enable this test in CI/CD where ClamAV is available, or run manually with local ClamAV setup
     it.skip('should reject EICAR test file with virus detected error', async () => {
       const tmpPath = path.join(import.meta.dirname, 'eicar-test.txt');
       fs.writeFileSync(tmpPath, EICAR_TEST_FILE);

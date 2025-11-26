@@ -1,12 +1,11 @@
 import { Upload } from '@codegouvfr/react-dsfr/Upload';
 import mime from 'mime';
-import React, { useEffect, useState } from 'react';
+import React from 'react';
 import type { ReactNode } from 'react';
 
 import { useUploadFileMutation } from '../../services/file.service';
 import { useNotification } from '../../hooks/useNotification';
 import type { FileUploadDTO } from '@zerologementvacant/models';
-import { getFileUploadErrorMessage } from '../../utils/fileUploadErrors';
 
 const DEFAULT_TYPES = ['pdf', 'jpg', 'png'];
 const MAX_SIZE = 5; // Mo
@@ -30,17 +29,9 @@ function FileUpload(props: Readonly<Props>) {
     `Taille maximale : ${MAX_SIZE} Mo. Formats supportés : ${types.join(', ')}`;
   const accept = types.map((type) => mime.getType(type)).join(', ');
   const [upload, mutation] = useUploadFileMutation();
-  const [errorMessage, setErrorMessage] = useState<string | undefined>();
 
-  // Show custom error message based on error reason
-  useEffect(() => {
-    if (mutation.isError && mutation.error) {
-      const message = getFileUploadErrorMessage(mutation.error);
-      setErrorMessage(message);
-    } else if (mutation.isSuccess) {
-      setErrorMessage(undefined);
-    }
-  }, [mutation.isError, mutation.error, mutation.isSuccess]);
+  // Error message is already formatted by RTK Query transformErrorResponse
+  const errorMessage = mutation.error as string | undefined;
 
   useNotification({
     isError: false, // Don't use default error notification
@@ -52,8 +43,6 @@ function FileUpload(props: Readonly<Props>) {
   function onChange(event: React.ChangeEvent<HTMLInputElement>): void {
     const file = event.target.files?.[0];
     if (file) {
-      // Clear previous error
-      setErrorMessage(undefined);
       upload(file)
         .unwrap()
         .then((fileUpload) => {

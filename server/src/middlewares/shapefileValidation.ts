@@ -169,14 +169,7 @@ export const shapefileValidationMiddleware: RequestHandler = async (
       );
     }
   } catch (error) {
-    if (error instanceof BadRequestError) {
-      next(error);
-    } else {
-      logger.error('Unexpected error in shapefile validation', {
-        error: error instanceof Error ? error.message : String(error)
-      });
-      next(new BadRequestError());
-    }
+    next(error);
   }
 };
 

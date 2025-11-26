@@ -1,5 +1,6 @@
 import type { GeoPerimeter } from '../models/GeoPerimeter';
 import { zlvApi } from './api.service';
+import { getFileUploadErrorMessage } from '../utils/fileUploadErrors';
 
 export const geoPerimetersApi = zlvApi.injectEndpoints({
   endpoints: (builder) => ({
@@ -46,6 +47,9 @@ export const geoPerimetersApi = zlvApi.injectEndpoints({
         body: fileToFormData(file),
       }),
       invalidatesTags: ['GeoPerimeter'],
+      transformErrorResponse: (error) => {
+        return getFileUploadErrorMessage(error, true);
+      },
     }),
   }),
 });

@@ -248,6 +248,8 @@ describe('Geo perimeters API', () => {
       expect(status).toBe(constants.HTTP_STATUS_UNAUTHORIZED);
     });
 
+    // Skipped: Requires ClamAV daemon running locally (see docs/EICAR_TESTING.md)
+    // Enable this test in CI/CD where ClamAV is available, or run manually with local ClamAV setup
     it.skip('should reject EICAR test file in ZIP', async () => {
       // Create a ZIP containing EICAR test file
       const zip = new AdmZip();

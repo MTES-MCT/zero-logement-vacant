@@ -1,93 +1,88 @@
-import { fr } from '@codegouvfr/react-dsfr';
-import Tag from '@codegouvfr/react-dsfr/Tag';
+import Button from '@codegouvfr/react-dsfr/Button';
+import { Typography } from '@mui/material';
+import Container from '@mui/material/Container';
 import Grid from '@mui/material/Grid';
-import Skeleton from '@mui/material/Skeleton';
-import Typography from '@mui/material/Typography';
+import Stack from '@mui/material/Stack';
 import { skipToken } from '@reduxjs/toolkit/query';
-import { useState } from 'react';
 import { useParams } from 'react-router-dom';
 
-import { useFindOwnerHousingsQuery } from '~/services/owner-housing.service';
-import MainContainer from '../../components/MainContainer/MainContainer';
-import OwnerEditionModal from '../../components/modals/OwnerEditionModal/OwnerEditionModal';
-import OwnerCard from '../../components/OwnerCard/OwnerCard';
-import OwnerHousingCard from '../../components/OwnerHousingCard/OwnerHousingCard';
-import { useDocumentTitle } from '../../hooks/useDocumentTitle';
-import { useOwner } from '../../hooks/useOwner';
-import styles from './owner.module.scss';
+import OwnerCardNext from '~/components/Owner/OwnerCardNext';
+import createOwnerEditionModalNext from '~/components/Owner/OwnerEditionModalNext';
+import OwnerHousingCardGrid from '~/components/Owner/OwnerHousingCardGrid';
+import OwnerKindIcon from '~/components/Owner/OwnerKindIcon';
+import { useGetOwnerQuery } from '~/services/owner.service';
+import NotFoundView from '~/views/NotFoundView';
 
-/**
- * @deprecated Use {@link OwnerViewNext} instead.
- * This file will be removed in a future release
- * after the feature flag is removed.
- * @returns
- */
+const ownerEditionModalNext = createOwnerEditionModalNext();
+
 function OwnerView() {
-  const { count, owner } = useOwner({
-    include: ['housings']
-  });
-  useDocumentTitle(
-    owner ? `Fiche propriétaire - ${owner.fullName}` : 'Page non trouvée'
-  );
+  const params = useParams<{ id: string }>();
+  const {
+    data: owner,
+    isLoading,
+    isError
+  } = useGetOwnerQuery(params.id ?? skipToken);
 
-  const { id } = useParams<{ id: string }>();
-  const { data: ownerHousings } = useFindOwnerHousingsQuery(id ?? skipToken);
-
-  const [ownerEditionModalKey, setOwnerEditionModalKey] = useState(
-    new Date().getTime()
-  );
+  if (isError || (!isLoading && !owner)) {
+    return <NotFoundView />;
+  }
 
   return (
-    <MainContainer grey>
-      <Grid container columnSpacing={3} alignItems="flex-start">
-        <Grid size={4}>
-          {!owner ? (
-            <Skeleton
-              animation="wave"
-              variant="rectangular"
-              width="100%"
-              height="40rem"
-            />
-          ) : (
-            <OwnerCard
-              owner={owner}
-              housingCount={count?.housing}
-              modify={
-                <OwnerEditionModal
-                  owner={owner}
-                  key={ownerEditionModalKey}
-                  onCancel={() => setOwnerEditionModalKey(new Date().getTime())}
-                />
-              }
-            />
-          )}
-        </Grid>
+    <Container maxWidth={false} sx={{ pt: '2rem', pb: '3rem' }}>
+      <Grid container columnSpacing="3rem">
+        <Grid size={{ xs: 12, md: 4 }}>
+          <Stack
+            component="header"
+            spacing="0.25rem"
+            useFlexGap
+            sx={{ mb: '1rem' }}
+          >
+            <Typography component="h1" variant="h3">
+              {owner?.fullName}
+            </Typography>
+            {owner?.kind ? <OwnerKindIcon kind={owner.kind} /> : null}
+          </Stack>
 
-        <Grid container spacing={2} size={8}>
-          <Grid component="header" size={12}>
-            <Grid
-              component="section"
-              sx={{
-                backgroundColor:
-                  fr.colors.decisions.background.default.grey.default,
-                padding: fr.spacing('2w')
-              }}
+          <Stack
+            direction="row"
+            spacing="1rem"
+            sx={{ justifyContent: 'space-between' }}
+            useFlexGap
+          >
+            <Typography component="h2" variant="h5">
+              Coordonnées
+            </Typography>
+            <Button
+              iconId="fr-icon-edit-fill"
+              priority="tertiary"
+              onClick={ownerEditionModalNext.open}
             >
-              <Typography component="h3" variant="h6" mb={0}>
-                <span className="fr-mr-1w">Tous les logements</span>
-                <Tag className={styles.tag}>{count?.housing}</Tag>
-              </Typography>
-            </Grid>
-          </Grid>
+              Modifier
+            </Button>
+          </Stack>
 
-          {ownerHousings?.map((ownerHousing) => (
-            <Grid component="article" key={ownerHousing.id} size={6}>
-              <OwnerHousingCard ownerHousing={ownerHousing} />
-            </Grid>
-          ))}
+          <OwnerCardNext
+            isLoading={isLoading}
+            housingCount={undefined}
+            id={owner?.id ?? null}
+            birthdate={owner?.birthDate ?? null}
+            kind={owner?.kind ?? null}
+            siren={owner?.siren ?? null}
+            dgfipAddress={owner?.rawAddress ?? null}
+            banAddress={owner?.banAddress ?? null}
+            additionalAddress={owner?.additionalAddress ?? null}
+            email={owner?.email ?? null}
+            phone={owner?.phone ?? null}
+          />
         </Grid>
+
+        <Grid size={{ xs: 12, md: 8 }}>
+          <OwnerHousingCardGrid />
+        </Grid>
+
+        {!owner ? null : <ownerEditionModalNext.Component owner={owner} />}
       </Grid>
-    </MainContainer>
+    </Container>
   );
 }
 

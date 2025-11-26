@@ -1,6 +1,4 @@
 import Stack from '@mui/material/Stack';
-import { useFeatureFlagEnabled } from 'posthog-js/react';
-import { useMemo } from 'react';
 
 import { Text } from '../../components/_dsfr';
 import Label from '~/components/Label/Label';
@@ -27,20 +25,13 @@ interface Props {
 }
 const HousingListMap = ({ filters }: Props) => {
   const { data: perimeters } = useListGeoPerimetersQuery();
-  const isNewHousingOwnerPagesEnabled = useFeatureFlagEnabled(
-    'new-housing-owner-pages'
-  );
   const { data } = useFindHousingQuery({
     filters,
     pagination: {
       paginate: false
     }
   });
-  const housingList = useMemo(() => {
-    return data?.entities?.filter((housing) => {
-      return isNewHousingOwnerPagesEnabled ? true : !!housing.owner;
-    });
-  }, [data?.entities, isNewHousingOwnerPagesEnabled]);
+  const housingList = data?.entities;
 
   const { data: housingCount } = useCountHousingQuery({
     dataFileYearsIncluded: filters.dataFileYearsIncluded,

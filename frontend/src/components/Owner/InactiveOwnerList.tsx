@@ -1,14 +1,14 @@
 import { isInactiveOwnerRank } from '@zerologementvacant/models';
 
 import { useFindOwnersByHousingQuery } from '../../services/owner.service';
-import OwnerListNext from '~/components/Owner/OwnerListNext';
+import OwnerList from '~/components/Owner/OwnerList';
 import Accordion from '@codegouvfr/react-dsfr/Accordion';
 
 export interface InactiveOwnerListProps {
   housingId: string;
 }
 
-function InactiveOwnerListNext(props: InactiveOwnerListProps) {
+function InactiveOwnerList(props: InactiveOwnerListProps) {
   const {
     data: housingOwners,
     isLoading,
@@ -24,9 +24,9 @@ function InactiveOwnerListNext(props: InactiveOwnerListProps) {
 
   return (
     <Accordion label={`Propriétaires archivés (${inactiveOwners.length})`}>
-      <OwnerListNext isLoading={isLoading} owners={inactiveOwners} />
+      <OwnerList isLoading={isLoading} owners={inactiveOwners} />
     </Accordion>
   );
 }
 
-export default InactiveOwnerListNext;
+export default InactiveOwnerList;

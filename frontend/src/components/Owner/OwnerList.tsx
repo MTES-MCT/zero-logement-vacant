@@ -1,7 +1,7 @@
 import Skeleton from '@mui/material/Skeleton';
 import Stack from '@mui/material/Stack';
 
-import OtherOwnerCardNext from '~/components/Owner/OtherOwnerCardNext';
+import OtherOwnerCard from '~/components/Owner/OtherOwnerCard';
 import { type HousingOwner } from '~/models/Owner';
 
 interface OwnerListProps {
@@ -9,7 +9,7 @@ interface OwnerListProps {
   isLoading: boolean;
 }
 
-function OwnerListNext(props: OwnerListProps) {
+function OwnerList(props: OwnerListProps) {
   if (props.isLoading) {
     return (
       <Skeleton animation="wave" variant="rectangular" width="100%">
@@ -25,7 +25,7 @@ function OwnerListNext(props: OwnerListProps) {
   return (
     <Stack component="article" spacing="0.75rem" useFlexGap>
       {props.owners.map((owner) => (
-        <OtherOwnerCardNext
+        <OtherOwnerCard
           key={owner.id}
           id={owner.id}
           name={owner.fullName}
@@ -36,4 +36,4 @@ function OwnerListNext(props: OwnerListProps) {
   );
 }
 
-export default OwnerListNext;
+export default OwnerList;

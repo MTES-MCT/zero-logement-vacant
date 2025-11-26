@@ -6,14 +6,14 @@ import Stack from '@mui/material/Stack';
 import { skipToken } from '@reduxjs/toolkit/query';
 import { useParams } from 'react-router-dom';
 
-import OwnerCardNext from '~/components/Owner/OwnerCardNext';
-import createOwnerEditionModalNext from '~/components/Owner/OwnerEditionModalNext';
+import OwnerCard from '~/components/Owner/OwnerCard';
+import createOwnerEditionModal from '~/components/Owner/OwnerEditionModal';
 import OwnerHousingCardGrid from '~/components/Owner/OwnerHousingCardGrid';
 import OwnerKindIcon from '~/components/Owner/OwnerKindIcon';
 import { useGetOwnerQuery } from '~/services/owner.service';
 import NotFoundView from '~/views/NotFoundView';
 
-const ownerEditionModalNext = createOwnerEditionModalNext();
+const ownerEditionModal = createOwnerEditionModal();
 
 function OwnerView() {
   const params = useParams<{ id: string }>();
@@ -55,13 +55,13 @@ function OwnerView() {
             <Button
               iconId="fr-icon-edit-fill"
               priority="tertiary"
-              onClick={ownerEditionModalNext.open}
+              onClick={ownerEditionModal.open}
             >
               Modifier
             </Button>
           </Stack>
 
-          <OwnerCardNext
+          <OwnerCard
             isLoading={isLoading}
             housingCount={undefined}
             id={owner?.id ?? null}
@@ -80,7 +80,7 @@ function OwnerView() {
           <OwnerHousingCardGrid />
         </Grid>
 
-        {!owner ? null : <ownerEditionModalNext.Component owner={owner} />}
+        {!owner ? null : <ownerEditionModal.Component owner={owner} />}
       </Grid>
     </Container>
   );

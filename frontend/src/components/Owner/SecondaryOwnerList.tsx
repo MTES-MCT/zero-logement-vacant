@@ -2,14 +2,14 @@ import Stack from '@mui/material/Stack';
 import Typography from '@mui/material/Typography';
 import { isSecondaryOwner } from '@zerologementvacant/models';
 
-import OwnerListNext from '~/components/Owner/OwnerListNext';
+import OwnerList from '~/components/Owner/OwnerList';
 import { useFindOwnersByHousingQuery } from '~/services/owner.service';
 
 export interface SecondaryOwnerListProps {
   housingId: string;
 }
 
-function SecondaryOwnerListNext(props: SecondaryOwnerListProps) {
+function SecondaryOwnerList(props: SecondaryOwnerListProps) {
   const {
     data: housingOwners,
     isLoading,
@@ -29,9 +29,9 @@ function SecondaryOwnerListNext(props: SecondaryOwnerListProps) {
       </Typography>
       <hr />
 
-      <OwnerListNext isLoading={isLoading} owners={secondaryOwners} />
+      <OwnerList isLoading={isLoading} owners={secondaryOwners} />
     </Stack>
   );
 }
 
-export default SecondaryOwnerListNext;
+export default SecondaryOwnerList;

@@ -9,9 +9,9 @@ import { useNavigate } from 'react-router-dom';
 import HousingHeader from '~/components/Housing/HousingHeader';
 import HousingDetailsCard from '~/components/HousingDetails/HousingDetailsCard';
 import { HousingEditionProvider } from '~/components/HousingEdition/useHousingEdition';
-import InactiveOwnerListNext from '~/components/Owner/InactiveOwnerListNext';
-import OwnerCardNext from '~/components/Owner/OwnerCardNext';
-import SecondaryOwnerListNext from '~/components/Owner/SecondaryOwnerListNext';
+import InactiveOwnerList from '~/components/Owner/InactiveOwnerList';
+import OwnerCard from '~/components/Owner/OwnerCard';
+import SecondaryOwnerList from '~/components/Owner/SecondaryOwnerList';
 import { useHousingOwners } from '~/components/Owner/useHousingOwners';
 import { useDocumentTitle } from '~/hooks/useDocumentTitle';
 import { useHousing } from '~/hooks/useHousing';
@@ -79,7 +79,7 @@ function HousingView() {
               )}
             </Stack>
 
-            <OwnerCardNext
+            <OwnerCard
               title="Destinataire principal"
               id={owner?.id ?? null}
               name={owner?.fullName ?? null}
@@ -101,8 +101,8 @@ function HousingView() {
                 });
               }}
             />
-            <SecondaryOwnerListNext housingId={housingId} />
-            <InactiveOwnerListNext housingId={housingId} />
+            <SecondaryOwnerList housingId={housingId} />
+            <InactiveOwnerList housingId={housingId} />
           </Grid>
         </Grid>
       </Container>

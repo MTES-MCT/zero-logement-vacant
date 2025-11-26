@@ -72,7 +72,11 @@ function HousingView() {
                 <Button
                   iconId="fr-icon-edit-fill"
                   priority="tertiary"
-                  linkProps={{ to: `/logements/${housingId}/proprietaires` }}
+                  linkProps={{
+                    to: `/logements/${housingId}/proprietaires`,
+                    'aria-label': 'Modifier les propriétaires'
+                  }}
+                  title="Modifier les propriétaires"
                 >
                   Modifier
                 </Button>

@@ -16,7 +16,6 @@ import AppLink from '~/components/_app/AppLink/AppLink';
 import HousingOwnersEmpty from '~/components/HousingOwnersEmpty/HousingOwnersEmpty';
 import LabelNext from '~/components/Label/LabelNext';
 import OwnerKindTag from '~/components/Owner/OwnerKindTag';
-import styles from '~/components/OwnerCard/owner-card.module.scss';
 import { isBanEligible, type Address } from '~/models/Address';
 import { age, birthdate } from '~/utils/dateUtils';
 import { mailto } from '~/utils/stringUtils';
@@ -227,7 +226,6 @@ function OwnerCardNext(props: OwnerCardProps) {
               linkProps={{
                 to: `/proprietaires/${props.id}`
               }}
-              className={styles.housingBouton}
             >
               Voir tous ses logements ({count})
             </Button>

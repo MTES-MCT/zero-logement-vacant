@@ -1,13 +1,15 @@
-import { Col, Icon, Row, Text } from '../_dsfr';
-import { type Locality, TaxKinds, TaxKindsLabels } from '../../models/Locality';
-import Tag from '@codegouvfr/react-dsfr/Tag';
 import Card from '@codegouvfr/react-dsfr/Card';
-import LocalityTaxEditionModal from '../modals/LocalityTaxEditionModal/LocalityTaxEditionModal';
+import Tag from '@codegouvfr/react-dsfr/Tag';
 import Typography from '@mui/material/Typography';
+import type { TaxKind } from '@zerologementvacant/models';
+
+import { type Locality, TaxKindLabels } from '../../models/Locality';
+import { Col, Icon, Row, Text } from '../_dsfr';
+import LocalityTaxEditionModal from '../modals/LocalityTaxEditionModal/LocalityTaxEditionModal';
 
 interface Props {
   locality: Locality;
-  onEdit?: (geoCode: string, taxKind: TaxKinds, taxRate?: number) => void;
+  onEdit?: (geoCode: string, taxKind: TaxKind, taxRate?: number) => void;
   isPublicDisplay: boolean;
 }
 
@@ -32,7 +34,7 @@ function LocalityTaxesCard({ locality, onEdit, isPublicDisplay }: Props) {
                 </span>
               </Col>
               <Col className="align-right">
-                {locality.taxKind !== TaxKinds.TLV && onEdit && (
+                {locality.taxKind !== 'TLV' && onEdit && (
                   <LocalityTaxEditionModal
                     locality={locality}
                     onSubmit={onEdit}
@@ -48,9 +50,9 @@ function LocalityTaxesCard({ locality, onEdit, isPublicDisplay }: Props) {
       }
       desc={
         <div>
-          <Tag className="fr-mb-2w">{TaxKindsLabels[locality.taxKind]}</Tag>
+          <Tag className="fr-mb-2w">{TaxKindLabels[locality.taxKind]}</Tag>
           <hr className="fr-pb-1w" />
-          {locality.taxKind === TaxKinds.TLV && (
+          {locality.taxKind === 'TLV' && (
             <Row>
               <Col>
                 <Text size="sm" className="zlv-label">
@@ -66,7 +68,7 @@ function LocalityTaxesCard({ locality, onEdit, isPublicDisplay }: Props) {
               </Col>
             </Row>
           )}
-          {locality.taxKind === TaxKinds.THLV && locality.taxRate && (
+          {locality.taxKind === 'THLV' && locality.taxRate && (
             <>
               <Text size="sm" className="zlv-label">
                 Taux après 2 ans

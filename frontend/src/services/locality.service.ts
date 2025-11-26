@@ -1,4 +1,6 @@
-import { type Locality, TaxKinds } from '../models/Locality';
+import type { TaxKind } from '@zerologementvacant/models';
+
+import { type Locality } from '../models/Locality';
 import { zlvApi } from './api.service';
 
 export const localityApi = zlvApi.injectEndpoints({
@@ -11,30 +13,30 @@ export const localityApi = zlvApi.injectEndpoints({
           ? [
               ...result.map(({ geoCode }) => ({
                 type: 'Locality' as const,
-                geoCode,
+                geoCode
               })),
-              'Locality',
+              'Locality'
             ]
-          : ['Locality'],
+          : ['Locality']
     }),
     updateLocalityTax: builder.mutation<
       void,
       {
         geoCode: string;
-        taxKind: TaxKinds;
+        taxKind: TaxKind;
         taxRate?: number;
       }
     >({
       query: ({ geoCode, taxKind, taxRate }) => ({
         url: `localities/${geoCode}/tax`,
         method: 'PUT',
-        body: { taxKind, taxRate },
+        body: { taxKind, taxRate }
       }),
       invalidatesTags: (_result, _error, { geoCode }) => [
-        { type: 'Locality', geoCode },
-      ],
-    }),
-  }),
+        { type: 'Locality', geoCode }
+      ]
+    })
+  })
 });
 
 export const { useListLocalitiesQuery, useUpdateLocalityTaxMutation } =

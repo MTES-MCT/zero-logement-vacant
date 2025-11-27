@@ -52,7 +52,7 @@ import { GeoPerimeterApi } from '~/models/GeoPerimeterApi';
 import { GroupApi } from '~/models/GroupApi';
 import { HousingApi } from '~/models/HousingApi';
 import { HousingOwnerApi } from '~/models/HousingOwnerApi';
-import { LocalityApi, TaxKindsApi } from '~/models/LocalityApi';
+import { LocalityApi } from '~/models/LocalityApi';
 import { fromNoteDTO, HousingNoteApi, NoteApi } from '~/models/NoteApi';
 import { OwnerApi } from '~/models/OwnerApi';
 import { PrecisionApi } from '~/models/PrecisionApi';
@@ -116,7 +116,7 @@ export const genLocalityApi = (geoCode = genGeoCode()): LocalityApi => {
       LOCALITY_KIND_VALUES.length > 0
         ? faker.helpers.arrayElement([null, ...LOCALITY_KIND_VALUES])
         : null,
-    taxKind: TaxKindsApi.None
+    taxKind: 'None'
   };
 };
 

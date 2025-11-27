@@ -1,6 +1,6 @@
 import Typography from '@mui/material/Typography';
 import { skipToken } from '@reduxjs/toolkit/query';
-import { type DatafoncierHousing, type Occupancy } from '@zerologementvacant/models';
+import { toOccupancy, type DatafoncierHousing } from '@zerologementvacant/models';
 
 import HousingResult from '~/components/HousingResult/HousingResult';
 import { createExtendedModal } from '~/components/modals/ConfirmationModal/ExtendedModal';
@@ -72,7 +72,7 @@ function createReviewHousingModal() {
               localId={datafoncierHousing.idlocal}
               apartment={null}
               floor={null}
-              occupancy={datafoncierHousing.ccthp as Occupancy}
+              occupancy={toOccupancy(datafoncierHousing.ccthp)}
             />
           )}
         </modal.Component>

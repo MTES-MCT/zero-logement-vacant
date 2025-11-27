@@ -6,7 +6,7 @@ import { skipToken } from '@reduxjs/toolkit/query';
 import { useParams } from 'react-router-dom';
 import { match } from 'ts-pattern';
 
-import OwnerHousingCard from '~/components/Owner/OwnerHousingCardNext';
+import OwnerHousingCard from '~/components/Owner/OwnerHousingCard';
 import { getBuildingLocation, type BuildingLocation } from '~/models/Housing';
 import { useFindOwnerHousingsQuery } from '~/services/owner-housing.service';
 

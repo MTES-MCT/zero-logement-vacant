@@ -127,8 +127,10 @@ class DPERawImporter:
         for handler in logger.handlers[:]:
             logger.removeHandler(handler)
 
-        # File handler with timestamp
-        log_filename = f'dpe_raw_import_{datetime.now().strftime("%Y%m%d_%H%M%S")}.log'
+        # File handler with timestamp in logs/ directory
+        log_dir = Path(__file__).parent / 'logs'
+        log_dir.mkdir(exist_ok=True)
+        log_filename = log_dir / f'dpe_raw_import_{datetime.now().strftime("%Y%m%d_%H%M%S")}.log'
         file_handler = logging.FileHandler(log_filename, encoding='utf-8')
         file_handler.setLevel(logging.INFO)
 

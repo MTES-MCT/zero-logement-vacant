@@ -171,8 +171,10 @@ class DPEProcessor:
         for handler in logger.handlers[:]:
             logger.removeHandler(handler)
 
-        # File handler with timestamp
-        log_filename = f'dpe_processing_{datetime.now().strftime("%Y%m%d_%H%M%S")}.log'
+        # File handler with timestamp in logs/ directory
+        log_dir = Path(__file__).parent / 'logs'
+        log_dir.mkdir(exist_ok=True)
+        log_filename = log_dir / f'dpe_processing_{datetime.now().strftime("%Y%m%d_%H%M%S")}.log'
         file_handler = logging.FileHandler(log_filename, encoding='utf-8')
         file_handler.setLevel(logging.INFO)
 
@@ -797,16 +799,14 @@ class DPEProcessor:
                     self.stats[key] += value if isinstance(value, (int, float)) else 0
 
     def _batch_get_buildings_by_rnb_ids(self, cursor, rnb_ids: List[str]) -> Dict[str, Dict]:
-        """Fetch only buildings without DPE or that need update"""
+        """Fetch all buildings matching RNB IDs (including those with existing DPE)"""
         if not rnb_ids:
             return {}
 
-        # OPTIMIZATION: Load only buildings without imported DPE yet
-        # This enables script resume without reprocessing already done work
+        # Fetch all matching buildings to allow updating with more recent DPE
         query = """
         SELECT * FROM buildings
         WHERE rnb_id = ANY(%s)
-          AND (dpe_id IS NULL OR dpe_import_match IS NULL)
         """
         cursor.execute(query, (rnb_ids,))
         results = cursor.fetchall()
@@ -814,11 +814,11 @@ class DPEProcessor:
         return {row['rnb_id']: dict(row) for row in results}
 
     def _batch_get_buildings_by_ban_ids(self, cursor, ban_ids: List[str]) -> Dict[str, Dict]:
-        """Fetch only buildings without DPE via ban_ids"""
+        """Fetch all buildings matching BAN IDs (including those with existing DPE)"""
         if not ban_ids:
             return {}
 
-        # OPTIMIZATION: Load only buildings without imported DPE yet
+        # Fetch all matching buildings to allow updating with more recent DPE
         query = """
         SELECT DISTINCT ON (ba.ban_id) ba.ban_id, b.*
         FROM buildings b
@@ -826,7 +826,6 @@ class DPEProcessor:
         JOIN ban_addresses ba ON fh.id = ba.ref_id
         WHERE ba.address_kind = 'Housing'
           AND ba.ban_id = ANY(%s)
-          AND (b.dpe_id IS NULL OR b.dpe_import_match IS NULL)
         """
         cursor.execute(query, (ban_ids,))
         results = cursor.fetchall()
@@ -990,7 +989,7 @@ class DPEProcessor:
         else:
             return 2
 
-    def _should_import_dpe(self, dpe_data: Dict, existing_dpe: Optional[Dict]) -> tuple[bool, str]:
+    def _should_import_dpe(self, dpe_data: Dict, existing_dpe_id: Optional[str], building: Optional[Dict] = None) -> tuple[bool, str]:
         """
         Determine if DPE should be imported according to business rules
 
@@ -1006,10 +1005,26 @@ class DPEProcessor:
         # Check if it's an apartment DPE
         is_apartment_dpe = 'dpe appartement individuel' in methode
 
-        if existing_dpe:
-            # A DPE already exists
+        if existing_dpe_id and building:
+            # A DPE already exists - check if new one is more recent
+            existing_date = building.get('dpe_date_at')
+            new_date_str = dpe_data.get('date_etablissement_dpe')
+
+            if existing_date and new_date_str:
+                try:
+                    new_date = datetime.strptime(new_date_str, '%Y-%m-%d').date()
+                    # Convert existing_date to date if it's a datetime
+                    if hasattr(existing_date, 'date'):
+                        existing_date = existing_date.date()
+
+                    # Only import if new DPE is more recent
+                    if new_date <= existing_date:
+                        return False, "skip_older_dpe"
+                except (ValueError, TypeError):
+                    pass  # If date parsing fails, continue with other checks
+
             if is_building_dpe:
-                return True, "building_dpe_exists"
+                return True, "building_dpe_update"
             else:
                 return False, "skip_non_building_dpe"
         else:
@@ -1392,7 +1407,7 @@ class DPEProcessor:
         """
         # Check business rules
         existing_dpe_id = building.get('dpe_id')
-        should_import, reason = self._should_import_dpe(dpe_data, existing_dpe_id)
+        should_import, reason = self._should_import_dpe(dpe_data, existing_dpe_id, building)
 
         if not should_import:
             return None

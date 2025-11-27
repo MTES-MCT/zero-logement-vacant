@@ -1,12 +1,10 @@
 import Skeleton from '@mui/material/Skeleton';
 import Stack from '@mui/material/Stack';
-import Typography from '@mui/material/Typography';
 
-import type { HousingOwner } from '../../models/Owner';
-import OtherOwnerCard from '../OwnerCard/OtherOwnerCard';
+import OtherOwnerCard from '~/components/Owner/OtherOwnerCard';
+import { type HousingOwner } from '~/models/Owner';
 
 interface OwnerListProps {
-  title: string;
   owners: ReadonlyArray<HousingOwner>;
   isLoading: boolean;
 }
@@ -25,17 +23,14 @@ function OwnerList(props: OwnerListProps) {
   }
 
   return (
-    <Stack component="article">
-      <Typography
-        component="h2"
-        variant="body1"
-        sx={{ fontSize: '1.125rem', fontWeight: 700, mb: '0.5rem' }}
-      >
-        {props.title}
-      </Typography>
-      <hr />
+    <Stack component="article" spacing="0.75rem" useFlexGap>
       {props.owners.map((owner) => (
-        <OtherOwnerCard key={owner.id} owner={owner} />
+        <OtherOwnerCard
+          key={owner.id}
+          id={owner.id}
+          name={owner.fullName}
+          propertyRight={owner.propertyRight}
+        />
       ))}
     </Stack>
   );

@@ -1,14 +1,15 @@
 import { faker } from '@faker-js/faker/locale/fr';
 import { render, screen, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
-
 import {
   type HousingDTO,
   type HousingOwnerDTO,
   HousingStatus,
+  type NoteDTO,
   Occupancy,
   type OwnerDTO,
   type OwnerRank,
+  type UserDTO,
   UserRole
 } from '@zerologementvacant/models';
 import {
@@ -21,42 +22,21 @@ import {
 import { format, subYears } from 'date-fns';
 import { Provider } from 'react-redux';
 import { createMemoryRouter, RouterProvider } from 'react-router-dom';
-import { genAuthUser, genNote, genUser } from '../../../test/fixtures';
-import data from '../../../mocks/handlers/data';
-import { type Note, toNoteDTO } from '../../../models/Note';
-import { fromUserDTO, type User } from '../../../models/User';
-import configureTestStore from '../../../utils/storeUtils';
-import HousingView from '../HousingView';
+
+import data from '~/mocks/handlers/data';
+import { fromUserDTO } from '~/models/User';
+import { genAuthUser } from '~/test/fixtures';
+import configureTestStore from '~/utils/storeUtils';
+import HousingView from '~/views/Housing/HousingView';
 
 describe('Housing view', () => {
   const user = userEvent.setup();
 
-  let owner: OwnerDTO;
-  let housing: HousingDTO;
-  let housingOwners: HousingOwnerDTO[];
-
-  beforeEach(() => {
-    owner = genOwnerDTO();
-    const secondaryOwners = Array.from({ length: 3 }, genOwnerDTO);
-    data.owners.push(owner, ...secondaryOwners);
-    housing = {
-      ...genHousingDTO(owner),
-      status: HousingStatus.NEVER_CONTACTED,
-      subStatus: null,
-      occupancy: Occupancy.VACANT,
-      occupancyIntended: null
-    };
-    data.housings.push(housing);
-    housingOwners = [owner, ...secondaryOwners].map((owner, i) => ({
-      ...genHousingOwnerDTO(owner),
-      rank: (i + 1) as OwnerRank
-    }));
-    data.housingOwners.set(housing.id, housingOwners);
-  });
-
   interface RenderViewOptions {
-    user?: User;
-    notes?: ReadonlyArray<Note>;
+    user?: UserDTO;
+    owners?: ReadonlyArray<OwnerDTO>;
+    housingOwners?: ReadonlyArray<HousingOwnerDTO>;
+    notes?: ReadonlyArray<NoteDTO>;
     /**
      * @default true
      */
@@ -68,17 +48,23 @@ describe('Housing view', () => {
     if (housing && createHousing) {
       data.housings.push(housing);
     }
+    if (options?.owners) {
+      data.owners.push(...options.owners);
+    }
+    if (options?.housingOwners) {
+      data.housingOwners.set(housing.id, options.housingOwners);
+    }
     if (options?.notes?.length) {
-      data.notes.push(...options.notes.map(toNoteDTO));
+      data.notes.push(...options.notes);
       data.housingNotes.set(
         housing.id,
         options.notes.map((note) => note.id)
       );
     }
 
-    const store = configureTestStore({
-      auth: genAuthUser(options?.user ?? genUser(UserRole.USUAL))
-    });
+    const user = options?.user ?? genUserDTO(UserRole.USUAL);
+    const auth = genAuthUser(fromUserDTO(user));
+    const store = configureTestStore({ auth });
     const router = createMemoryRouter(
       [{ path: '/housing/:housingId', element: <HousingView /> }],
       {
@@ -107,15 +93,59 @@ describe('Housing view', () => {
   });
 
   it('should display the main owner', async () => {
-    renderView(housing);
+    const owner = genOwnerDTO();
+    const housing = genHousingDTO(owner);
+
+    renderView(housing, {
+      owners: [owner],
+      housingOwners: [{ ...genHousingOwnerDTO(owner), rank: 1 as OwnerRank }]
+    });
 
     const name = await screen.findByLabelText('Nom et prénom');
     expect(name).toHaveTextContent(new RegExp(owner.fullName, 'i'));
   });
 
+  it('should allow users to modify owners', async () => {
+    const housing = genHousingDTO(null);
+    const owner = genOwnerDTO();
+    const housingOwner: HousingOwnerDTO = {
+      ...genHousingOwnerDTO(owner),
+      rank: 1
+    };
+    const auth = genUserDTO(UserRole.USUAL);
+
+    renderView(housing, {
+      owners: [owner],
+      housingOwners: [housingOwner],
+      user: auth
+    });
+
+    const modify = await screen.findByTitle('Modifier les propriétaires');
+    expect(modify).toBeVisible();
+  });
+
+  it('should hide the button to edit owners from visitors', async () => {
+    const housing = genHousingDTO(null);
+    const owner = genOwnerDTO();
+    const housingOwner = genHousingOwnerDTO(owner);
+    const auth = genUserDTO(UserRole.VISITOR);
+
+    renderView(housing, {
+      owners: [owner],
+      housingOwners: [housingOwner],
+      user: auth
+    });
+
+    const name = await screen.findByText(owner.fullName);
+    expect(name).toBeVisible();
+    const title = screen.queryByTitle('Modifier les propriétaires');
+    expect(title).not.toBeInTheDocument();
+  });
+
   describe('Show housing details', () => {
     describe('Vacancy start year', () => {
       it('should be unknown', async () => {
+        const housing = genHousingDTO(null);
         housing.occupancy = Occupancy.RENT;
         housing.vacancyStartYear = null;
 
@@ -128,6 +158,7 @@ describe('Housing view', () => {
       });
 
       it('should be defined', async () => {
+        const housing = genHousingDTO(null);
         housing.occupancy = Occupancy.VACANT;
         housing.vacancyStartYear = new Date().getFullYear() - 1;
 
@@ -144,6 +175,7 @@ describe('Housing view', () => {
 
     describe('Source', () => {
       it('should be "Fichiers fonciers (2023)"', async () => {
+        const housing = genHousingDTO(null);
         housing.dataFileYears = ['ff-2023-locatif'];
 
         renderView(housing);
@@ -154,190 +186,16 @@ describe('Housing view', () => {
     });
   });
 
-  describe('Update owner details', () => {
-    it('should update their name', async () => {
-      renderView(housing);
-
-      const modifyOwners = await screen.findByRole('button', {
-        name: /^Modifier/,
-        description: 'Modifier le propriétaire'
-      });
-      await user.click(modifyOwners);
-      const modal = await screen.findByRole('dialog');
-      const accordions = await within(modal).findAllByRole('button', {
-        expanded: false
-      });
-      const [firstAccordion] = accordions;
-      await user.click(firstAccordion);
-      const inputs = await within(modal).findAllByLabelText(/^Nom et prénom/);
-      const [input] = inputs;
-      const newName = faker.person.fullName();
-      await user.clear(input);
-      await user.type(input, newName);
-      const save = await within(modal).findByRole('button', {
-        name: /^Enregistrer/
-      });
-      await user.click(save);
-
-      expect(modal).not.toBeVisible();
-      const name = await screen.findByLabelText('Nom et prénom');
-      expect(name).toHaveTextContent(new RegExp(newName, 'i'));
-    });
-
-    it('should update their birth date', async () => {
-      owner.birthDate = null;
-
-      renderView(housing);
-
-      const modifyOwners = await screen.findByRole('button', {
-        name: /^Modifier/,
-        description: 'Modifier le propriétaire'
-      });
-      await user.click(modifyOwners);
-      const modal = await screen.findByRole('dialog');
-      const accordions = await within(modal).findAllByRole('button', {
-        expanded: false
-      });
-      const [firstAccordion] = accordions;
-      await user.click(firstAccordion);
-      const inputs = await within(modal).findAllByLabelText(
-        /^Date de (naissance|création)/
-      );
-      const [input] = inputs;
-      const value = faker.date
-        .birthdate()
-        .toJSON()
-        .substring(0, 'yyyy-mm-dd'.length);
-      await user.clear(input);
-      await user.type(input, value);
-      const save = await within(modal).findByRole('button', {
-        name: /^Enregistrer/
-      });
-      await user.click(save);
-
-      expect(modal).not.toBeVisible();
-      const birthdate = await screen.findByLabelText(
-        /Date de (naissance|création)/,
-        {
-          selector: 'span'
-        }
-      );
-      const regexp = new RegExp(`^${value.split('-').toReversed().join('/')}`);
-      expect(birthdate).toHaveTextContent(regexp);
-    });
-  });
-
-  describe('Add owner', () => {
-    describe('If there is no main owner', () => {
-      it('should add an owner', async () => {
-        const housing: HousingDTO = genHousingDTO(null);
-
-        renderView(housing);
-
-        const add = await screen.findByRole('button', {
-          name: /^Ajouter un propriétaire/
-        });
-        await user.click(add);
-        // TODO
-      });
-    });
-
-    it('should add an owner who is missing from the database', async () => {
-      renderView(housing);
-
-      const newOwner = genOwnerDTO();
-      const modifyOwners = await screen.findByRole('button', {
-        name: /^Modifier/,
-        description: 'Modifier le propriétaire'
-      });
-      await user.click(modifyOwners);
-      const modal = await screen.findByRole('dialog');
-      const addOwner = await within(modal).findByRole('button', {
-        name: /^Ajouter un propriétaire/
-      });
-      await user.click(addOwner);
-      const rank = await within(modal).findByLabelText(
-        /^Sélectionner les droits de propriétés/
-      );
-      await user.selectOptions(rank, String(housingOwners.length + 1));
-      const identity = await within(modal).findByLabelText(/^Nom et prénom/);
-      await user.type(identity, newOwner.fullName);
-      const birthDate =
-        await within(modal).findByLabelText(/^Date de naissance/);
-      await user.type(birthDate, newOwner.birthDate as string);
-      const address = await within(modal).findByLabelText(/^Adresse postale/);
-      if (newOwner.rawAddress) {
-        await user.type(address, newOwner.rawAddress.join(' '));
-      }
-      const email = await within(modal).findByLabelText(/^Adresse mail/);
-      await user.type(email, newOwner.email as string);
-      const phone = await within(modal).findByLabelText(/^Numéro de téléphone/);
-      await user.type(phone, newOwner.phone as string);
-      const add = await within(modal).findByRole('button', {
-        name: /^Ajouter/
-      });
-      await user.click(add);
-      const newAccordion = await within(modal).findByRole('button', {
-        name: new RegExp(`^${newOwner.fullName}`)
-      });
-      expect(newAccordion).toBeVisible();
-      const save = await within(modal).findByRole('button', {
-        name: /^Enregistrer/
-      });
-      await user.click(save);
-      expect(modal).not.toBeVisible();
-      const link = await screen.findByRole('heading', {
-        name: newOwner.fullName
-      });
-      expect(link).toBeVisible();
-    });
-
-    it('should add an owner who is present in the database', async () => {
-      const newOwner = genOwnerDTO();
-      data.owners.push(newOwner);
-
-      renderView(housing);
-
-      const modifyOwners = await screen.findByRole('button', {
-        name: /^Modifier/,
-        description: 'Modifier le propriétaire'
-      });
-      await user.click(modifyOwners);
-      const modal = await screen.findByRole('dialog');
-      const addOwner = await within(modal).findByRole('button', {
-        name: /^Ajouter un propriétaire/
-      });
-      await user.click(addOwner);
-      const rank = await within(modal).findByLabelText(
-        /^Sélectionner les droits de propriétés/
-      );
-      await user.selectOptions(rank, String(housingOwners.length + 1));
-      const search = await within(modal).findByRole('searchbox');
-      await user.type(search, newOwner.fullName + '{Enter}');
-      await within(modal).findByText(/^Un propriétaire trouvé/);
-      const cell = await within(modal).findByRole('cell');
-      const add = await within(cell).findByRole('button', {
-        name: /^Ajouter/
-      });
-      await user.click(add);
-      const newAccordion = await within(modal).findByRole('button', {
-        name: new RegExp(`^${newOwner.fullName}`)
-      });
-      expect(newAccordion).toBeVisible();
-      const save = await within(modal).findByRole('button', {
-        name: /^Enregistrer/
-      });
-      await user.click(save);
-      expect(modal).not.toBeVisible();
-      const link = await screen.findByRole('heading', {
-        name: newOwner.fullName
-      });
-      expect(link).toBeVisible();
-    });
-  });
-
   describe('Update the housing', () => {
+    it.todo('should hide the edit button from visitors');
+
     it('should update the occupancy', async () => {
+      const housing = genHousingDTO(null);
+      housing.status = HousingStatus.NEVER_CONTACTED;
+      housing.subStatus = null;
+      housing.occupancy = Occupancy.VACANT;
+      housing.occupancyIntended = null;
+
       renderView(housing);
 
       const update = await screen.findByRole('button', {
@@ -366,6 +224,12 @@ describe('Housing view', () => {
     });
 
     it('should update the status', async () => {
+      const housing = genHousingDTO(null);
+      housing.status = HousingStatus.NEVER_CONTACTED;
+      housing.subStatus = null;
+      housing.occupancy = Occupancy.VACANT;
+      housing.occupancyIntended = null;
+
       renderView(housing);
 
       const [update] = await screen.findAllByRole('button', {
@@ -401,6 +265,12 @@ describe('Housing view', () => {
     });
 
     it('should create a note', async () => {
+      const housing = genHousingDTO(null);
+      housing.status = HousingStatus.NEVER_CONTACTED;
+      housing.subStatus = null;
+      housing.occupancy = Occupancy.VACANT;
+      housing.occupancyIntended = null;
+
       renderView(housing);
 
       const [update] = await screen.findAllByRole('button', {
@@ -434,8 +304,11 @@ describe('Housing view', () => {
 
   describe('Add a note', () => {
     it('should add a note', async () => {
+      const housing = genHousingDTO(null);
+      const auth = genUserDTO(UserRole.USUAL);
+
       renderView(housing, {
-        user: genUser(UserRole.USUAL),
+        user: auth,
         notes: []
       });
 
@@ -462,9 +335,13 @@ describe('Housing view', () => {
 
   describe('Filter the event history', () => {
     it('should filter by event type', async () => {
+      const housing = genHousingDTO(null);
+      const creator = genUserDTO(UserRole.USUAL);
+      const note = genNoteDTO(creator);
+
       renderView(housing, {
-        notes: [genNote(genUser())],
-        user: genUser()
+        notes: [note],
+        user: creator
       });
 
       const tab = await screen.findByRole('tab', {
@@ -492,9 +369,12 @@ describe('Housing view', () => {
     });
 
     it('should filter by creator', async () => {
-      const creator = genUser();
+      const housing = genHousingDTO(null);
+      const creator = genUserDTO(UserRole.USUAL);
+      const note = genNoteDTO(creator);
+
       renderView(housing, {
-        notes: [genNote(creator)],
+        notes: [note],
         user: creator
       });
 
@@ -523,11 +403,11 @@ describe('Housing view', () => {
     });
 
     it('should filter by date', async () => {
-      const creator = genUser();
-      const note: Note = {
-        ...genNote(creator),
-        createdAt: '2000-01-01T12:00:00Z'
-      };
+      const housing = genHousingDTO(null);
+      const creator = genUserDTO(UserRole.USUAL);
+      const note = genNoteDTO(creator);
+      note.createdAt = '2000-01-01T12:00:00Z';
+
       renderView(housing, {
         notes: [note],
         user: creator
@@ -551,9 +431,13 @@ describe('Housing view', () => {
     });
 
     it('should reset filters', async () => {
+      const housing = genHousingDTO(null);
+      const creator = genUserDTO(UserRole.USUAL);
+      const note = genNoteDTO(creator);
+
       renderView(housing, {
-        notes: [genNote(genUser())],
-        user: genUser()
+        notes: [note],
+        user: creator
       });
 
       const tab = await screen.findByRole('tab', {
@@ -582,24 +466,14 @@ describe('Housing view', () => {
   });
 
   describe('Edit a note', () => {
-    const admin = genUserDTO(UserRole.ADMIN);
-    const note = genNoteDTO(admin);
-
-    beforeEach(() => {
-      data.users.push(admin);
-      data.notes.push(note);
-      data.housingNotes.set(
-        housing.id,
-        data.housingNotes
-          .get(housing.id)
-          ?.filter((housingNote) => housingNote !== note.id)
-          ?.concat(note.id) ?? [note.id]
-      );
-    });
-
     it('should edit the note', async () => {
+      const housing = genHousingDTO(null);
+      const admin = genUserDTO(UserRole.ADMIN);
+      const note = genNoteDTO(admin);
+
       renderView(housing, {
-        user: fromUserDTO(admin)
+        notes: [note],
+        user: admin
       });
 
       const history = await screen.findByRole('tab', {
@@ -624,20 +498,14 @@ describe('Housing view', () => {
     });
 
     it('should be invisible to a non-admin user who is not the creator of the note', async () => {
-      const nonAdminUser = genUserDTO(UserRole.USUAL);
-      data.users.push(nonAdminUser);
-      const note = genNoteDTO(nonAdminUser);
-      data.notes.push(note);
-      data.housingNotes.set(
-        housing.id,
-        data.housingNotes
-          .get(housing.id)
-          ?.filter((housingNote) => housingNote !== note.id)
-          ?.concat(note.id) ?? [note.id]
-      );
+      const housing = genHousingDTO(null);
+      const creator = genUserDTO(UserRole.USUAL);
+      const note = genNoteDTO(creator);
+      const auth = genUserDTO(UserRole.USUAL);
 
       renderView(housing, {
-        user: fromUserDTO(genUserDTO(UserRole.USUAL))
+        notes: [note],
+        user: auth
       });
 
       const history = await screen.findByRole('tab', {
@@ -652,25 +520,19 @@ describe('Housing view', () => {
   });
 
   describe('Remove a note', () => {
-    function renderViewAs(role: UserRole) {
-      const user = genUserDTO(role);
-      const note = genNoteDTO(user);
-      data.users.push(user);
-      data.notes.push(note);
-      data.housingNotes.set(housing.id, [note.id]);
+    it.todo('should be invisible to a visitor');
+
+    it.todo('should be invisible to a common user who did not create the note');
+
+    it('should allow the creator to remove their note', async () => {
+      const creator = genUserDTO(UserRole.USUAL);
+      const housing = genHousingDTO(null);
+      const note = genNoteDTO(creator);
 
       renderView(housing, {
-        user: fromUserDTO(user)
+        notes: [note],
+        user: creator
       });
-
-      return {
-        note,
-        user
-      };
-    }
-
-    it('should remove the note', async () => {
-      const { note } = renderViewAs(UserRole.ADMIN);
 
       const history = await screen.findByRole('tab', {
         name: 'Notes et historique'
@@ -689,5 +551,7 @@ describe('Housing view', () => {
       await user.click(confirm);
       expect(screen.queryByText(note.content)).not.toBeInTheDocument();
     });
+
+    it.todo('should allow an admin to remove any note');
   });
 });

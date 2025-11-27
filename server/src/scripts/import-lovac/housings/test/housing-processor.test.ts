@@ -1,5 +1,6 @@
 import {
   HOUSING_STATUS_LABELS,
+  HOUSING_STATUS_VALUES,
   HousingStatus,
   Occupancy,
   OCCUPANCY_LABELS
@@ -7,11 +8,6 @@ import {
 import { flatten, toArray } from '@zerologementvacant/utils/node';
 import { ReadableStream } from 'node:stream/web';
 import { HousingApi } from '~/models/HousingApi';
-import {
-  HOUSING_STATUS_VALUES,
-  HousingStatusApi,
-  toHousingStatus
-} from '~/models/HousingStatusApi';
 import {
   createHousingProcessor,
   HousingChange,
@@ -72,13 +68,13 @@ describe('Housing processor', () => {
     describe('if it is vacant', () => {
       beforeEach(() => {
         housing.occupancy = Occupancy.VACANT;
-        housing.status = toHousingStatus(HousingStatusApi.NeverContacted);
+        housing.status = HousingStatus.NEVER_CONTACTED;
         housing.subStatus = null;
       });
 
       describe('if it is currently monitored', () => {
         beforeEach(() => {
-          housing.status = toHousingStatus(HousingStatusApi.InProgress);
+          housing.status = HousingStatus.IN_PROGRESS;
         });
 
         const subStatuses = ['En accompagnement', 'Intervention publique'];
@@ -92,7 +88,7 @@ describe('Housing processor', () => {
 
       describe('if it was set as completed', () => {
         beforeEach(() => {
-          housing.status = toHousingStatus(HousingStatusApi.Completed);
+          housing.status = HousingStatus.COMPLETED;
         });
 
         it('should remain untouched', async () => {
@@ -103,15 +99,15 @@ describe('Housing processor', () => {
       });
 
       const statuses = HOUSING_STATUS_VALUES.filter(
-        (status) => status !== HousingStatusApi.Completed
-      ).filter((status) => status !== HousingStatusApi.InProgress);
+        (status) => status !== HousingStatus.COMPLETED
+      ).filter((status) => status !== HousingStatus.IN_PROGRESS);
 
       it.each(statuses)(
         'should be set as non-vacant otherwise',
         async (status) => {
           const actual = await run({
             ...housing,
-            status: toHousingStatus(status)
+            status
           });
 
           expect(actual).toPartiallyContain<HousingChange>({
@@ -119,7 +115,7 @@ describe('Housing processor', () => {
             kind: 'update',
             value: expect.objectContaining<Partial<HousingChange['value']>>({
               occupancy: Occupancy.UNKNOWN,
-              status: toHousingStatus(HousingStatusApi.Completed),
+              status: HousingStatus.COMPLETED,
               subStatus: 'Sortie de la vacance'
             })
           });
@@ -167,8 +163,8 @@ describe('Housing processor', () => {
   });
 
   describe('isInProgress', () => {
-    describe(`If the status is ${HousingStatusApi.InProgress}`, () => {
-      const status = toHousingStatus(HousingStatusApi.InProgress);
+    describe(`If the status is ${HousingStatus.IN_PROGRESS}`, () => {
+      const status = HousingStatus.IN_PROGRESS;
 
       it.each(['En accompagnement', 'Intervention publique'])(
         'should return true if the housing status is %s and the substatus is %s',
@@ -189,7 +185,7 @@ describe('Housing processor', () => {
     it('should return false if the substatus is not set', () => {
       const housing = {
         ...genHousingApi(),
-        status: toHousingStatus(HousingStatusApi.InProgress)
+        status: HousingStatus.IN_PROGRESS
       };
 
       const actual = isInProgress(housing);
@@ -200,7 +196,7 @@ describe('Housing processor', () => {
     it('should return false if the substatus is irrelevant', () => {
       const housing = {
         ...genHousingApi(),
-        status: toHousingStatus(HousingStatusApi.InProgress),
+        status: HousingStatus.IN_PROGRESS,
         subStatus: 'anything else'
       };
 
@@ -210,7 +206,7 @@ describe('Housing processor', () => {
     });
 
     const otherStatuses = HOUSING_STATUS_VALUES.filter(
-      (status) => status !== HousingStatusApi.InProgress
+      (status) => status !== HousingStatus.IN_PROGRESS
     );
 
     it.each(otherStatuses)(
@@ -218,7 +214,7 @@ describe('Housing processor', () => {
       (status) => {
         const housing = {
           ...genHousingApi(),
-          status: toHousingStatus(status)
+          status
         };
 
         const actual = isInProgress(housing);
@@ -229,10 +225,10 @@ describe('Housing processor', () => {
   });
 
   describe('isCompleted', () => {
-    it(`should return true if the housing status is ${HousingStatusApi.Completed}`, () => {
+    it(`should return true if the housing status is ${HousingStatus.COMPLETED}`, () => {
       const housing = {
         ...genHousingApi(),
-        status: toHousingStatus(HousingStatusApi.Completed)
+        status: HousingStatus.COMPLETED
       };
 
       const actual = isCompleted(housing);
@@ -241,13 +237,13 @@ describe('Housing processor', () => {
     });
 
     const otherStatuses = HOUSING_STATUS_VALUES.filter(
-      (status) => status !== HousingStatusApi.Completed
+      (status) => status !== HousingStatus.COMPLETED
     );
 
     it.each(otherStatuses)('should return false otherwise', (status) => {
       const housing = {
         ...genHousingApi(),
-        status: toHousingStatus(status)
+        status
       };
 
       const actual = isCompleted(housing);

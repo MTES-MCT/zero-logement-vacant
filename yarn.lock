@@ -12935,9 +12935,10 @@ __metadata:
     lexical: "npm:0.38.2"
     lodash-es: "npm:4.17.21"
     maplibre-gl: "npm:5.6.2"
-    mime: "npm:4.0.4"
+    mime: "npm:4.1.0"
     msw: "npm:2.10.4"
     posthog-js: "npm:1.298.0"
+    pretty-bytes: "npm:7.1.0"
     prop-types: "npm:15.8.1"
     qs: "npm:6.14.0"
     randomstring: "npm:1.3.1"
@@ -13001,6 +13002,7 @@ __metadata:
     "@zerologementvacant/draft": "workspace:*"
     "@zerologementvacant/utils": "workspace:*"
     effect: "npm:3.17.7"
+    mime: "npm:4.1.0"
     ts-essentials: "npm:10.1.1"
     ts-pattern: "npm:5.8.0"
   languageName: unknown
@@ -24851,12 +24853,12 @@ __metadata:
   languageName: node
   linkType: hard
 
-"mime@npm:4.0.4":
-  version: 4.0.4
-  resolution: "mime@npm:4.0.4"
+"mime@npm:4.1.0":
+  version: 4.1.0
+  resolution: "mime@npm:4.1.0"
   bin:
     mime: bin/cli.js
-  checksum: 10c0/3046e425ed616613af8c7f4b268ff33ab564baeb24a117ef00475cbb23fbae91369ff2d9918cc6408162b0016bde34ea8cc4041b830fc2c45a8ecaf5b7e3e26f
+  checksum: 10c0/3b8602e50dff1049aea8bb2d4c65afc55bf7f3eb5c17fd2bcb315b8c8ae225a7553297d424d3621757c24cdba99e930ecdc4108467009cdc7ed55614cd55031d
   languageName: node
   linkType: hard
 
@@ -27649,6 +27651,13 @@ __metadata:
   bin:
     prettier: bin/prettier.cjs
   checksum: 10c0/488cb2f2b99ec13da1e50074912870217c11edaddedeadc649b1244c749d15ba94e846423d062e2c4c9ae683e2d65f754de28889ba06e697ac4f988d44f45812
+  languageName: node
+  linkType: hard
+
+"pretty-bytes@npm:7.1.0":
+  version: 7.1.0
+  resolution: "pretty-bytes@npm:7.1.0"
+  checksum: 10c0/9458f17007bbf8b61d11ef82091bfe7f87bb2f3fd7e6aa917744eb6dc709346995f698ecbf6597ac353b0d44bb7982054f7a2325f3260c9909d09aaafbdab5ca
   languageName: node
   linkType: hard
 

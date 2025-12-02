@@ -91,6 +91,43 @@ router.delete(
 );
 
 router.get(
+  '/housing/:id/documents',
+  validatorNext.validate({
+    params: object({ id: schemas.id })
+  }),
+  documentController.listByHousing
+);
+
+router.post(
+  '/housing/:id/documents',
+  hasRole([UserRole.USUAL, UserRole.ADMIN]),
+  validatorNext.validate({
+    params: object({ id: schemas.id })
+  }),
+  upload(),
+  documentController.createByHousing
+);
+
+router.put(
+  '/documents/:id',
+  hasRole([UserRole.USUAL, UserRole.ADMIN]),
+  validatorNext.validate({
+    params: object({ id: schemas.id }),
+    body: schemas.documentPayload
+  }),
+  documentController.update
+);
+
+router.delete(
+  '/documents/:id',
+  hasRole([UserRole.USUAL, UserRole.ADMIN]),
+  validatorNext.validate({
+    params: object({ id: schemas.id })
+  }),
+  documentController.remove
+);
+
+router.get(
   '/housing',
   validatorNext.validate({
     query: schemas.housingFilters

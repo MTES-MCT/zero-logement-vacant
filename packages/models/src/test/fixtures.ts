@@ -17,6 +17,7 @@ import { EventType } from '../EventType';
 import { FileUploadDTO } from '../FileUploadDTO';
 import { GroupDTO } from '../GroupDTO';
 import { HousingDTO } from '../HousingDTO';
+import { HousingDocumentDTO } from '../HousingDocumentDTO';
 import { HOUSING_KIND_VALUES } from '../HousingKind';
 import {
   ACTIVE_OWNER_RANKS,
@@ -779,5 +780,23 @@ export function genUserDTO(
     updatedAt: faker.date.recent().toJSON(),
     establishmentId: establishment?.id ?? null,
     role
+  };
+}
+
+export function genDocumentDTO(creator: UserDTO): HousingDocumentDTO {
+  return {
+    id: faker.string.uuid(),
+    filename: faker.system.fileName(),
+    url: faker.internet.url(),
+    contentType: faker.helpers.arrayElement([
+      'application/pdf',
+      'image/jpeg',
+      'image/png',
+      'application/msword'
+    ]),
+    sizeBytes: faker.number.int({ min: 1000, max: 5000000 }),
+    createdAt: faker.date.recent().toJSON(),
+    updatedAt: null,
+    creator
   };
 }

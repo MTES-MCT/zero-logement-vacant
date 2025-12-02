@@ -24,6 +24,7 @@ import {
 import establishmentRepository from '~/repositories/establishmentRepository';
 import resetLinkRepository from '~/repositories/resetLinkRepository';
 import userRepository from '~/repositories/userRepository';
+import { fetchUserKind } from '~/services/ceremaService/userKindService';
 import mailService from '~/services/mailService';
 import {
   generateSimpleCode,
@@ -102,16 +103,27 @@ async function signIn(request: Request, response: Response) {
   }
 
   // For non-admin users, proceed with normal login
-  await userRepository.update({
+  // Fetch and update user kind from Portail DF API
+  const kind = await fetchUserKind(user.email);
+
+  const updatedUser = await userRepository.update({
     ...user,
+    kind,
     lastAuthenticatedAt: new Date().toJSON()
   });
-  const establishmentId = user.establishmentId ?? payload.establishmentId;
+
+  logger.info('User signed in', {
+    userId: user.id,
+    email: user.email,
+    kind
+  });
+
+  const establishmentId = updatedUser.establishmentId ?? payload.establishmentId;
   if (!establishmentId) {
     throw new UnprocessableEntityError();
   }
 
-  await signInToEstablishment(user, establishmentId, response);
+  await signInToEstablishment(updatedUser, establishmentId, response);
 }
 
 async function signInToEstablishment(
@@ -339,9 +351,13 @@ async function verifyTwoFactor(request: Request, response: Response) {
     action: '2fa_verify_success'
   });
 
+  // Fetch and update user kind from Portail DF API
+  const kind = await fetchUserKind(user.email);
+
   // Clear the 2FA code and reset counters
-  await userRepository.update({
+  const updatedUser = await userRepository.update({
     ...user,
+    kind,
     twoFactorCode: null,
     twoFactorCodeGeneratedAt: null,
     twoFactorFailedAttempts: 0,
@@ -349,13 +365,19 @@ async function verifyTwoFactor(request: Request, response: Response) {
     lastAuthenticatedAt: new Date().toJSON()
   });
 
+  logger.info('Admin user signed in after 2FA', {
+    userId: user.id,
+    email: user.email,
+    kind
+  });
+
   // Complete the sign-in process
-  const establishmentId = user.establishmentId ?? payload.establishmentId;
+  const establishmentId = updatedUser.establishmentId ?? payload.establishmentId;
   if (!establishmentId) {
     throw new UnprocessableEntityError();
   }
 
-  await signInToEstablishment(user, establishmentId, response);
+  await signInToEstablishment(updatedUser, establishmentId, response);
 }
 
 export default {

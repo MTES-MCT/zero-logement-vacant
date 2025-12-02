@@ -32,7 +32,8 @@ import {
   genGeoCode,
   genNoteDTO,
   genUserDTO,
-  genDatafoncierHousing as genDatafoncierHousingDTO
+  genDatafoncierHousing as genDatafoncierHousingDTO,
+  genDocumentDTO
 } from '@zerologementvacant/models/fixtures';
 import { addHours } from 'date-fns';
 import type { BBox } from 'geojson';
@@ -48,6 +49,7 @@ import { CampaignApi } from '~/models/CampaignApi';
 import { DraftApi } from '~/models/DraftApi';
 import { EstablishmentApi } from '~/models/EstablishmentApi';
 import { EventApi, fromEventDTO } from '~/models/EventApi';
+import { HousingDocumentApi } from '~/models/HousingDocumentApi';
 import { GeoPerimeterApi } from '~/models/GeoPerimeterApi';
 import { GroupApi } from '~/models/GroupApi';
 import { HousingApi } from '~/models/HousingApi';
@@ -672,5 +674,21 @@ export function genPrecisionApi(order: number): PrecisionApi {
     category: faker.helpers.arrayElement(PRECISION_CATEGORY_VALUES),
     label: faker.lorem.word(),
     order
+  };
+}
+
+export function genHousingDocumentApi(
+  housing: HousingApi,
+  creator: UserApi
+): HousingDocumentApi {
+  const baseDocument = genDocumentDTO(creator);
+  return {
+    ...baseDocument,
+    housingId: housing.id,
+    housingGeoCode: housing.geoCode,
+    s3Key: `documents/${faker.string.uuid()}/${baseDocument.filename}`,
+    createdBy: creator.id,
+    deletedAt: null,
+    creator
   };
 }

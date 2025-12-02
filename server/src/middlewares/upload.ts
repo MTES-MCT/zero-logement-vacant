@@ -3,6 +3,14 @@ import multer from 'multer';
 import BadRequestError from '~/errors/badRequestError';
 import config from '~/infra/config';
 
+export interface UploadOptions {
+  /**
+   * @default 1
+   */
+  maxSizeMB?: number;
+  multiple?: boolean;
+}
+
 /**
  * Upload middleware using memory storage for security validation
  *
@@ -11,7 +19,7 @@ import config from '~/infra/config';
  * 2. Antivirus scanning
  * 3. Upload to S3 only if all checks pass
  */
-export function upload(): RequestHandler {
+export function upload(options?: UploadOptions): RequestHandler {
   const ALLOWED_MIMES = ['image/png', 'image/jpeg', 'application/pdf'];
 
   const maxSizeBytes = config.upload.maxSizeMB * 1024 * 1024;
@@ -38,5 +46,5 @@ export function upload(): RequestHandler {
     }
   });
 
-  return upload.single('file');
+  return options?.multiple ? upload.array('files') : upload.single('file');
 }

@@ -9,6 +9,7 @@ import buildingController from '~/controllers/buildingController';
 import campaignController from '~/controllers/campaignController';
 import dashboardController from '~/controllers/dashboardController';
 import datafoncierController from '~/controllers/datafoncierHousingController';
+import documentController from '~/controllers/documentController';
 import draftController from '~/controllers/draftController';
 import eventController from '~/controllers/eventController';
 import fileController from '~/controllers/fileController';
@@ -42,6 +43,43 @@ router.use(jwtCheck());
 router.use(userCheck());
 
 router.post('/files', upload(), fileTypeMiddleware, antivirusMiddleware, fileController.create);
+
+router.get(
+  '/housing/:id/documents',
+  validatorNext.validate({
+    params: object({ id: schemas.id })
+  }),
+  documentController.listByHousing
+);
+
+router.post(
+  '/housing/:id/documents',
+  hasRole([UserRole.USUAL, UserRole.ADMIN]),
+  validatorNext.validate({
+    params: object({ id: schemas.id })
+  }),
+  upload(),
+  documentController.createByHousing
+);
+
+router.put(
+  '/documents/:id',
+  hasRole([UserRole.USUAL, UserRole.ADMIN]),
+  validatorNext.validate({
+    params: object({ id: schemas.id }),
+    body: schemas.documentPayload
+  }),
+  documentController.update
+);
+
+router.delete(
+  '/documents/:id',
+  hasRole([UserRole.USUAL, UserRole.ADMIN]),
+  validatorNext.validate({
+    params: object({ id: schemas.id })
+  }),
+  documentController.remove
+);
 
 router.get(
   '/housing',

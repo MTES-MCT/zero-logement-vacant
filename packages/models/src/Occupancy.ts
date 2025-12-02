@@ -23,6 +23,7 @@ export const READ_WRITE_OCCUPANCY_VALUES: ReadonlyArray<Occupancy> = [
   Occupancy.SHORT_RENT,
   Occupancy.PRIMARY_RESIDENCE,
   Occupancy.SECONDARY_RESIDENCE,
+  Occupancy.DEPENDENCY,
   Occupancy.COMMERCIAL_OR_OFFICE,
   Occupancy.DEMOLISHED_OR_DIVIDED,
   Occupancy.UNKNOWN,

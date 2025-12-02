@@ -1,32 +1,23 @@
+import Button from '@codegouvfr/react-dsfr/Button';
 import Container from '@mui/material/Container';
 import Grid from '@mui/material/Grid';
 import Stack from '@mui/material/Stack';
 import Typography from '@mui/material/Typography';
 import { skipToken } from '@reduxjs/toolkit/query';
-import async from 'async';
-import { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 
-import HousingHeader from '../../components/Housing/HousingHeader';
-import HousingDetailsCard from '../../components/HousingDetails/HousingDetailsCard';
-import { HousingEditionProvider } from '../../components/HousingEdition/useHousingEdition';
-import HousingOwnersModal from '../../components/modals/HousingOwnersModal/HousingOwnersModal';
-import InactiveOwnerList from '../../components/Owner/InactiveOwnerList';
-import OwnerCardNext from '../../components/Owner/OwnerCardNext';
-import SecondaryOwnerList from '../../components/Owner/SecondaryOwnerList';
-import { useHousingOwners } from '../../components/Owner/useHousingOwners';
-import { useDocumentTitle } from '../../hooks/useDocumentTitle';
-import { useHousing } from '../../hooks/useHousing';
-import {
-  hasOwnerChanges,
-  hasRankChanges,
-  type HousingOwner
-} from '../../models/Owner';
-import { useCountHousingQuery } from '../../services/housing.service';
-import {
-  useUpdateHousingOwnersMutation,
-  useUpdateOwnerMutation
-} from '../../services/owner.service';
-import NotFoundView from '../NotFoundView';
+import HousingHeader from '~/components/Housing/HousingHeader';
+import HousingDetailsCard from '~/components/HousingDetails/HousingDetailsCard';
+import { HousingEditionProvider } from '~/components/HousingEdition/useHousingEdition';
+import InactiveOwnerList from '~/components/Owner/InactiveOwnerList';
+import OwnerCard from '~/components/Owner/OwnerCard';
+import SecondaryOwnerList from '~/components/Owner/SecondaryOwnerList';
+import { useHousingOwners } from '~/components/Owner/useHousingOwners';
+import { useDocumentTitle } from '~/hooks/useDocumentTitle';
+import { useHousing } from '~/hooks/useHousing';
+import { useUser } from '~/hooks/useUser';
+import { useCountHousingQuery } from '~/services/housing.service';
+import NotFoundView from '~/views/NotFoundView';
 
 function HousingView() {
   const { housing, housingId, getHousingQuery } = useHousing();
@@ -40,40 +31,10 @@ function HousingView() {
     housing?.owner?.id ? { ownerIds: [housing.owner.id] } : skipToken
   );
 
-  const [updateOwner] = useUpdateOwnerMutation();
-  const [updateHousingOwners] = useUpdateHousingOwnersMutation();
+  const { isUsual, isAdmin } = useUser();
+  const canUpdate = isUsual || isAdmin;
 
-  const [housingOwnersModalKey, setHousingOwnersModalKey] = useState(
-    new Date().getTime()
-  );
-
-  async function submitHousingOwnersUpdate(
-    housingOwnersUpdated: HousingOwner[]
-  ) {
-    if (!housing || !housingOwners || housingOwners.length === 0) {
-      return;
-    }
-
-    await async.forEach(housingOwnersUpdated, async (housingOwner) => {
-      const before = housingOwners.find(
-        (before) => before.id === housingOwner.id
-      );
-      const after = housingOwner;
-      if (!before || hasOwnerChanges(before, after)) {
-        await updateOwner(housingOwner).unwrap();
-      }
-    });
-
-    if (
-      housingOwners.length !== housingOwnersUpdated.length ||
-      hasRankChanges(housingOwners, housingOwnersUpdated)
-    ) {
-      await updateHousingOwners({
-        housingId: housing.id,
-        housingOwners: housingOwnersUpdated
-      }).unwrap();
-    }
-  }
+  const navigate = useNavigate();
 
   if (getHousingQuery.isError && !housing) {
     return <NotFoundView />;
@@ -101,43 +62,52 @@ function HousingView() {
             size={4}
           >
             <Stack
+              component="section"
               direction="row"
               spacing="1rem"
-              useFlexGap
               sx={{ justifyContent: 'space-between' }}
+              useFlexGap
             >
               <Typography component="h2" variant="h5">
                 Propriétaires
               </Typography>
+              {!housingOwners?.length || !canUpdate ? null : (
+                <Button
+                  iconId="fr-icon-edit-fill"
+                  priority="tertiary"
+                  linkProps={{
+                    to: `/logements/${housingId}/proprietaires`,
+                    'aria-label': 'Modifier les propriétaires'
+                  }}
+                  title="Modifier les propriétaires"
+                >
+                  Modifier
+                </Button>
+              )}
+            </Stack>
 
-              {housingOwners ? (
-                <HousingOwnersModal
-                  housingId={housingId}
-                  housingOwners={housingOwners}
-                  onSubmit={submitHousingOwnersUpdate}
-                  key={housingOwnersModalKey}
-                  onCancel={() =>
-                    setHousingOwnersModalKey(new Date().getTime())
+            <OwnerCard
+              title="Destinataire principal"
+              id={owner?.id ?? null}
+              name={owner?.fullName ?? null}
+              birthdate={owner?.birthDate ?? null}
+              kind={owner?.kind ?? null}
+              propertyRight={owner?.propertyRight ?? null}
+              dgfipAddress={owner?.rawAddress ?? null}
+              banAddress={owner?.banAddress ?? null}
+              additionalAddress={owner?.additionalAddress ?? null}
+              email={owner?.email ?? null}
+              phone={owner?.phone ?? null}
+              isLoading={findOwnersQuery.isLoading}
+              housingCount={count?.housing ?? null}
+              onAdd={() => {
+                navigate(`/logements/${housingId}/proprietaires`, {
+                  state: {
+                    search: true
                   }
-                />
-              ) : null}
-            </Stack>
-
-            <Stack sx={{ mt: '-1.5rem' }}>
-              <OwnerCardNext
-                title="Propriétaire principal"
-                id={owner?.id ?? null}
-                name={owner?.fullName ?? null}
-                birthdate={owner?.birthDate ?? null}
-                dgfipAddress={owner?.rawAddress ?? null}
-                banAddress={owner?.banAddress ?? null}
-                additionalAddress={owner?.additionalAddress ?? null}
-                email={owner?.email ?? null}
-                phone={owner?.phone ?? null}
-                isLoading={findOwnersQuery.isLoading}
-                housingCount={count?.housing}
-              />
-            </Stack>
+                });
+              }}
+            />
             <SecondaryOwnerList housingId={housingId} />
             <InactiveOwnerList housingId={housingId} />
           </Grid>

@@ -1,4 +1,7 @@
+import { identity } from 'effect';
 import type { Point } from 'geojson';
+import { match, Pattern } from 'ts-pattern';
+
 import { Occupancy, OCCUPANCY_VALUES } from './Occupancy';
 
 /**
@@ -151,7 +154,17 @@ export interface DatafoncierHousing {
 
 export function toOccupancy(ccthp: DatafoncierHousing['ccthp']): Occupancy {
   const occupancy = OCCUPANCY_VALUES.find((occupancy) => occupancy === ccthp);
-  return occupancy ?? Occupancy.UNKNOWN;
+  return match(occupancy)
+    .with(
+      Occupancy.FREE,
+      Occupancy.CIVIL_SERVANT,
+      Occupancy.ARTISAN,
+      Occupancy.COMMON,
+      Occupancy.RURAL,
+      () => Occupancy.OTHERS
+    )
+    .with(Pattern.nonNullable, identity)
+    .otherwise(() => Occupancy.UNKNOWN);
 }
 
 export function toBuildingLocation(

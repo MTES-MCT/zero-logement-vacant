@@ -2,9 +2,10 @@ import { Request, Response } from 'express';
 import { AuthenticatedRequest } from 'express-jwt';
 import { body, param, query } from 'express-validator';
 import { constants } from 'http2';
+
 import LocalityMissingError from '~/errors/localityMissingError';
 import { logger } from '~/infra/logger';
-import { LocalityApi, TaxKindsApi } from '~/models/LocalityApi';
+import { LocalityApi } from '~/models/LocalityApi';
 import establishmentRepository from '~/repositories/establishmentRepository';
 import localityRepository from '~/repositories/localityRepository';
 
@@ -41,12 +42,12 @@ async function listLocalities(request: Request, response: Response) {
 
 const updateLocalityTaxValidators = [
   param('geoCode').notEmpty().isAlphanumeric().isLength({ min: 5, max: 5 }),
-  body('taxKind').isIn([TaxKindsApi.THLV, TaxKindsApi.None]),
+  body('taxKind').isIn(['THLV', 'None']),
   body('taxRate')
-    .if(body('taxKind').equals(TaxKindsApi.THLV))
+    .if(body('taxKind').equals('THLV'))
     .isNumeric()
     .notEmpty(),
-  body('taxRate').if(body('taxKind').equals(TaxKindsApi.None)).not().exists()
+  body('taxRate').if(body('taxKind').equals('None')).not().exists()
 ];
 
 async function updateLocalityTax(request: Request, response: Response) {
@@ -70,7 +71,7 @@ async function updateLocalityTax(request: Request, response: Response) {
 
   if (
     !establishment?.geoCodes.includes(locality.geoCode) ||
-    locality.taxKind === TaxKindsApi.TLV
+    locality.taxKind === 'TLV'
   ) {
     response.status(constants.HTTP_STATUS_UNAUTHORIZED).send();
     return;

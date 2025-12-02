@@ -7,7 +7,11 @@ import { createS3 } from '@zerologementvacant/utils/node';
 import config from '~/infra/config';
 import BadRequestError from '~/errors/badRequestError';
 
-export function upload(): RequestHandler {
+export interface UploadOptions {
+  multiple?: boolean;
+}
+
+export function upload(options?: UploadOptions): RequestHandler {
   const ALLOWED_MIMES = ['image/png', 'image/jpeg', 'application/pdf'];
   const upload = multer({
     limits: {
@@ -44,5 +48,5 @@ export function upload(): RequestHandler {
     })
   });
 
-  return upload.single('file');
+  return options?.multiple ? upload.array('files') : upload.single('file');
 }

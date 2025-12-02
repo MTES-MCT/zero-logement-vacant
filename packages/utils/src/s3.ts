@@ -3,6 +3,7 @@ import {
   GetObjectCommandOutput,
   S3Client
 } from '@aws-sdk/client-s3';
+import { getSignedUrl } from '@aws-sdk/s3-request-presigner';
 
 export interface S3Options {
   endpoint: string;
@@ -55,4 +56,24 @@ export async function getContent(
   const content = await response.Body?.transformToString('base64');
 
   return { response, content };
+}
+
+interface GeneratePresignedUrlOptions {
+  s3: S3Client;
+  bucket: string;
+  key: string;
+  expiresIn?: number;
+}
+
+export async function generatePresignedUrl(
+  opts: GeneratePresignedUrlOptions
+): Promise<string> {
+  const command = new GetObjectCommand({
+    Bucket: opts.bucket,
+    Key: opts.key
+  });
+
+  return getSignedUrl(opts.s3, command, {
+    expiresIn: opts.expiresIn ?? 60 * 5 // Default: 5 minutes
+  });
 }

@@ -1,6 +1,7 @@
 import { buildingFilters } from './building-filters';
 import { campaignCreationPayload } from './campaign-creation-payload';
 import { dateString } from './date-string';
+import { documentPayload } from './document-payload';
 import { draft } from './draft';
 import { email } from './email';
 import { establishmentFilters } from './establishment-filters';
@@ -24,6 +25,7 @@ const schemas = {
   buildingFilters,
   campaignCreationPayload,
   dateString,
+  documentPayload,
   draft,
   email,
   establishmentFilters,

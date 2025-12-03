@@ -1,6 +1,6 @@
 import { useFeatureFlagEnabled } from 'posthog-js/react';
 
-type AvailableFeatureFlag = 'new-housing-owner-pages';
+type AvailableFeatureFlag = never;
 
 export interface FeatureFlagLayoutProps {
   flag: AvailableFeatureFlag;

@@ -1,9 +1,11 @@
-export interface Locality {
-  geoCode: string;
-  name: string;
-  taxKind: TaxKinds;
-  taxRate?: number;
-}
+import type {
+  LocalityDTO,
+  LocalityKind,
+  TaxKind
+} from '@zerologementvacant/models';
+
+export type Locality = LocalityDTO;
+
 export const LocalityKinds = {
   ACV: 'ACV',
   PVD: 'PVD'
@@ -11,22 +13,15 @@ export const LocalityKinds = {
 
 export type LocalityKinds = (typeof LocalityKinds)[keyof typeof LocalityKinds];
 
-export const LocalityKindLabels = {
+export const LocalityKindLabels: Record<LocalityKind, string> = {
   [LocalityKinds.ACV]: 'Action Cœur de Ville',
   [LocalityKinds.PVD]: 'Petites Villes de Demain'
 };
 
-export const TaxKinds = {
-  TLV: 'TLV',
-  THLV: 'THLV',
-  None: 'None'
-} as const;
-
-export type TaxKinds = (typeof TaxKinds)[keyof typeof TaxKinds];
-export const TaxKindsLabels = {
-  [TaxKinds.TLV]: 'TLV appliquée',
-  [TaxKinds.THLV]: 'THLV appliquée',
-  [TaxKinds.None]: 'THLV non appliquée'
+export const TaxKindLabels: Record<TaxKind, string> = {
+  TLV: 'TLV appliquée',
+  THLV: 'THLV appliquée',
+  None: 'THLV non appliquée'
 };
 
 export const CITIES_WITH_DISTRICTS: Record<string, ReadonlyArray<string>> = {

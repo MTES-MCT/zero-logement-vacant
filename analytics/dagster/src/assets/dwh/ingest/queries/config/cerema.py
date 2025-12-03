@@ -215,7 +215,7 @@ CEREMA_SOURCES += [
         description=f"Prix volumes {year} communes {sheet_display}",
         read_options={"sheet": sheet_actual, "range": "A5:H1260"},
     )
-    for year in range(2013, 2024)
+    for year in range(2013, 2025)
     for sheet_display, sheet_actual in PRIX_VOLUMES_SHEETS.items()
 ]
 

@@ -1,20 +1,21 @@
-import { type ChangeEvent, useMemo, useState } from 'react';
-import { Col, Container, Row } from '../../_dsfr';
-
-import * as yup from 'yup';
-import { useForm } from '../../../hooks/useForm';
-import { type Locality, TaxKinds, TaxKindsLabels } from '../../../models/Locality';
-import AppHelp from '../../_app/AppHelp/AppHelp';
-import AppTextInput from '../../_app/AppTextInput/AppTextInput';
+import Button from '@codegouvfr/react-dsfr/Button';
 import { createModal } from '@codegouvfr/react-dsfr/Modal';
 import Tag from '@codegouvfr/react-dsfr/Tag';
-import AppCheckbox from '../../_app/AppCheckbox/AppCheckbox';
-import Button from '@codegouvfr/react-dsfr/Button';
+import type { TaxKind } from '@zerologementvacant/models';
+import { type ChangeEvent, useMemo, useState } from 'react';
+import * as yup from 'yup';
+
+import { useForm } from '../../../hooks/useForm';
 import { useUser } from '../../../hooks/useUser';
+import { type Locality, TaxKindLabels } from '../../../models/Locality';
+import AppCheckbox from '../../_app/AppCheckbox/AppCheckbox';
+import AppHelp from '../../_app/AppHelp/AppHelp';
+import AppTextInput from '../../_app/AppTextInput/AppTextInput';
+import { Col, Container, Row } from '../../_dsfr';
 
 interface Props {
   locality: Locality;
-  onSubmit: (geoCode: string, taxKind: TaxKinds, taxRate?: number) => void;
+  onSubmit: (geoCode: string, taxKind: TaxKind, taxRate?: number) => void;
 }
 
 const LocalityTaxEditionModal = ({ locality, onSubmit }: Props) => {
@@ -29,7 +30,7 @@ const LocalityTaxEditionModal = ({ locality, onSubmit }: Props) => {
 
   const { isVisitor } = useUser();
 
-  const [hasTHLV, setHasTHLV] = useState(locality.taxKind === TaxKinds.THLV);
+  const [hasTHLV, setHasTHLV] = useState(locality.taxKind === 'THLV');
   const [taxRate, setTaxRate] = useState(String(locality.taxRate ?? ''));
 
   const shape = {
@@ -47,9 +48,9 @@ const LocalityTaxEditionModal = ({ locality, onSubmit }: Props) => {
   const submitContactPointForm = async () => {
     await form.validate(() => {
       if (hasTHLV && taxRate) {
-        onSubmit(locality.geoCode, TaxKinds.THLV, Number(taxRate));
+        onSubmit(locality.geoCode, 'THLV', Number(taxRate));
       } else {
-        onSubmit(locality.geoCode, TaxKinds.None);
+        onSubmit(locality.geoCode, 'None');
       }
     });
   };
@@ -90,7 +91,7 @@ const LocalityTaxEditionModal = ({ locality, onSubmit }: Props) => {
         }}
       >
         <Container as="section" fluid>
-          <Tag>{TaxKindsLabels[hasTHLV ? TaxKinds.THLV : TaxKinds.None]}</Tag>
+          <Tag>{TaxKindLabels[hasTHLV ? 'THLV' : 'None']}</Tag>
           <form id="user_form">
             <Row spacing="mt-2w">
               <Col>

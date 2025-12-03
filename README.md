@@ -14,6 +14,16 @@ git clone https://github.com/MTES-MCT/zero-logement-vacant.git
 cd zero-logement-vacant && yarn
 ```
 
+### Sécurité des dépendances
+
+Pour ajouter une nouvelle dépendance avec vérification de sécurité :
+
+```bash
+npx npq install package-name
+```
+
+npq effectue des vérifications (vulnérabilités Snyk, âge du package, scripts d'installation suspects) avant l'installation.
+
 ### Lancement des dépendances
 
 Pour lancer les services, migrer et remplir la base de données en une seule

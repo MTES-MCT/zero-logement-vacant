@@ -81,6 +81,7 @@
     "lint-staged": "^13.3.0",
     "madr": "^4.0.0",
     "node-talisman": "^1.29.22",
+    "npq": "^3.15.2",
     "nx": "22.0.3",
     "prettier": "^3.6.2",
     "react-refresh": "^0.17.0",

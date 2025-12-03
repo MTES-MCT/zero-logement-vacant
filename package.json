@@ -109,25 +109,10 @@
     "tslib": "^2.8.1"
   },
   "dependenciesMeta": {
-    "@swc/core": {
-      "built": true
-    },
-    "esbuild": {
-      "built": true
-    },
-    "sharp": {
-      "built": true
-    },
-    "cypress": {
-      "built": true
-    },
-    "puppeteer": {
-      "built": true
-    },
     "@parcel/watcher": {
       "built": true
     },
-    "msgpackr-extract": {
+    "@swc/core": {
       "built": true
     },
     "core-js": {
@@ -136,13 +121,28 @@
     "core-js-pure": {
       "built": true
     },
-    "nx": {
+    "cypress": {
       "built": true
     },
     "es5-ext": {
       "built": true
     },
+    "esbuild": {
+      "built": true
+    },
+    "msgpackr-extract": {
+      "built": true
+    },
     "msw": {
+      "built": true
+    },
+    "nx": {
+      "built": true
+    },
+    "puppeteer": {
+      "built": true
+    },
+    "sharp": {
       "built": true
     },
     "unrs-resolver": {

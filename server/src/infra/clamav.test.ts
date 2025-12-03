@@ -1,16 +1,19 @@
 import { describe, it, expect, beforeAll } from 'vitest';
+import config from './config';
 import { scanBuffer } from './clamav';
 
 // EICAR test file - standard antivirus test string
 // This is NOT a real virus, it's a test pattern recognized by all antivirus software
 const EICAR_TEST_FILE = 'X5O!P%@AP[4\\PZX54(P^)7CC)7}$EICAR-STANDARD-ANTIVIRUS-TEST-FILE!$H+H*';
 
-describe.skip('ClamAV scanBuffer', () => {
+// Run tests only when ClamAV is enabled
+const describeIfClamavEnabled = config.clamav.enabled ? describe : describe.skip;
+
+describeIfClamavEnabled('ClamAV scanBuffer', () => {
   beforeAll(() => {
     // Ensure ClamAV is running
-    // In CI/CD, this test will be skipped if ClamAV is not available
-    if (!process.env.CI && process.env.SKIP_CLAMAV_TESTS === 'true') {
-      console.warn('ClamAV tests skipped. Set SKIP_CLAMAV_TESTS=false to run them.');
+    if (!config.clamav.enabled) {
+      console.warn('ClamAV tests skipped. Set CLAMAV_ENABLED=true to run them.');
     }
   });
 

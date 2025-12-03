@@ -38,13 +38,13 @@ The daemon will be accessible via:
 Add these variables to your `.env`:
 
 ```bash
+# Enable ClamAV virus scanning
+CLAMAV_ENABLED=true
+
 # ClamAV Configuration
 CLAMAV_SOCKET=/opt/homebrew/var/run/clamav/clamd.sock
 CLAMAV_HOST=127.0.0.1
 CLAMAV_PORT=3310
-
-# Skip antivirus scan in development (optional)
-# SKIP_ANTIVIRUS_SCAN=true
 ```
 
 ## Development Usage
@@ -62,13 +62,16 @@ To start ClamAV automatically with the server, add to `package.json`:
 }
 ```
 
-### Skip scanning (dev mode only)
+### Enable/disable scanning
 
-If you want to temporarily disable scanning in dev:
+Control virus scanning with the `CLAMAV_ENABLED` environment variable:
 
 ```bash
-export SKIP_ANTIVIRUS_SCAN=true
-yarn dev
+# Enable scanning (requires ClamAV daemon running)
+CLAMAV_ENABLED=true yarn dev
+
+# Disable scanning (default)
+CLAMAV_ENABLED=false yarn dev
 ```
 
 ## Updating virus definitions

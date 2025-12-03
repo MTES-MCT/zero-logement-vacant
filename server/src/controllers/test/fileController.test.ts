@@ -3,6 +3,7 @@ import path from 'node:path';
 import fs from 'node:fs';
 import request from 'supertest';
 
+import config from '~/infra/config';
 import { createServer } from '~/infra/server';
 import { tokenProvider } from '../../test/testUtils';
 import { genEstablishmentApi, genUserApi } from '../../test/testFixtures';
@@ -83,9 +84,10 @@ describe('File API', () => {
       });
     }, 30000);
 
-    // Skipped: Requires ClamAV daemon running locally (see docs/EICAR_TESTING.md)
-    // Enable this test in CI/CD where ClamAV is available, or run manually with local ClamAV setup
-    it.skip('should reject EICAR test file with virus detected error', async () => {
+    // Test runs only when ClamAV is enabled (CLAMAV_ENABLED=true)
+    const itIfClamavEnabled = config.clamav.enabled ? it : it.skip;
+
+    itIfClamavEnabled('should reject EICAR test file with virus detected error', async () => {
       const tmpPath = path.join(import.meta.dirname, 'eicar-test.txt');
       fs.writeFileSync(tmpPath, EICAR_TEST_FILE);
 

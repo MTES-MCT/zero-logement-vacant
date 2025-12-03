@@ -1,5 +1,6 @@
 import NodeClam from 'clamscan';
 import { Readable } from 'stream';
+import config from './config';
 import { logger } from './logger';
 
 /**
@@ -8,17 +9,17 @@ import { logger } from './logger';
 const CLAMAV_OPTIONS: NodeClam.Options = {
   removeInfected: false, // Do not automatically remove infected files
   quarantineInfected: false, // Do not quarantine infected files
-  debugMode: process.env.NODE_ENV === 'development',
+  debugMode: config.app.env === 'development',
 
   clamdscan: {
     // Use ClamD daemon for better performance
-    socket: process.env.CLAMAV_SOCKET || '/var/run/clamav/clamd.sock',
-    host: process.env.CLAMAV_HOST || '127.0.0.1',
-    port: process.env.CLAMAV_PORT ? parseInt(process.env.CLAMAV_PORT) : 3310,
+    socket: config.clamav.socket,
+    host: config.clamav.host,
+    port: config.clamav.port,
     timeout: 60000, // 60 seconds timeout
     localFallback: true, // Fallback to local if daemon unavailable
-    path: process.env.CLAMAV_BIN_PATH || '/usr/bin/clamdscan',
-    configFile: process.env.CLAMAV_CONFIG_FILE || '/etc/clamav/clamd.conf',
+    path: config.clamav.binPath,
+    configFile: config.clamav.configFile,
     multiscan: true,
     reloadDb: false,
     active: true,

@@ -5,6 +5,7 @@ import multer from 'multer';
 
 import { isClientError, isHttpError } from '~/errors/httpError';
 import BadRequestError from '~/errors/badRequestError';
+import VirusDetectedError from '~/errors/virusDetectedError';
 import { createLogger } from '~/infra/logger';
 
 const logger = createLogger('error-handler');
@@ -64,6 +65,21 @@ function respond(
     return;
   }
 
+  // Handle VirusDetectedError (from antivirus middleware)
+  if (error instanceof VirusDetectedError) {
+    response.status(error.status).json({
+      name: 'VirusDetectedError',
+      error: 'Virus detected',
+      reason: 'virus_detected',
+      message: `The uploaded file "${error.filename}" contains malicious content and has been rejected.`,
+      details: {
+        filename: error.filename,
+        viruses: error.viruses
+      }
+    });
+    return;
+  }
+
   // Handle ShapefileValidationError (from shapefileValidation middleware)
   if (isShapefileValidationError(error)) {
     const status = constants.HTTP_STATUS_BAD_REQUEST;
@@ -113,8 +129,8 @@ function respond(
   // Handle Multer errors (file upload errors)
   if (error instanceof multer.MulterError) {
     const status = constants.HTTP_STATUS_BAD_REQUEST;
-    let message = 'File upload error';
-    let reason = 'unknown';
+    let message: string;
+    let reason: string;
 
     switch (error.code) {
       case 'LIMIT_FILE_SIZE':

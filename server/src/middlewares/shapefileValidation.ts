@@ -1,6 +1,7 @@
 import { Request, Response, NextFunction, RequestHandler } from 'express';
 import { logger } from '~/infra/logger';
 import BadRequestError from '~/errors/badRequestError';
+import config from '~/infra/config';
 import AdmZip from 'adm-zip';
 import shapefile from 'shapefile';
 
@@ -20,9 +21,6 @@ class ShapefileValidationError extends BadRequestError {
 
 /**
  * Validates shapefile feature count
- *
- * Environment variables:
- * - MAX_SHAPEFILE_FEATURES: Maximum number of features allowed (default: 10000)
  *
  * This middleware extracts and validates the shapefile from ZIP to ensure:
  * 1. ZIP contains valid shapefile components (.shp, .shx, .dbf)
@@ -57,9 +55,7 @@ export const shapefileValidationMiddleware: RequestHandler = async (
     const fileBuffer = file.buffer;
     const userId = req.user?.id;
     const startTime = Date.now();
-
-    // Get max features from env or default to 10000
-    const maxFeatures = parseInt(process.env.MAX_SHAPEFILE_FEATURES || '10000', 10);
+    const maxFeatures = config.upload.geo.maxShapefileFeatures;
 
     logger.info('Validating shapefile feature count', {
       fileName,
@@ -149,11 +145,7 @@ export const shapefileValidationMiddleware: RequestHandler = async (
 
       next();
     } catch (error) {
-      if (error instanceof ShapefileValidationError) {
-        throw error;
-      }
-
-      if (error instanceof BadRequestError) {
+      if (error instanceof ShapefileValidationError || error instanceof BadRequestError) {
         throw error;
       }
 

@@ -1,7 +1,7 @@
-import { Request, Response, NextFunction } from 'express';
-import { FileArray, UploadedFile } from 'express-fileupload';
+import { Request, Response, NextFunction, RequestHandler } from 'express';
 import { fileTypeFromBuffer } from 'file-type';
 import { logger } from '~/infra/logger';
+import BadRequestError from '~/errors/badRequestError';
 
 /**
  * Allowed file types with their MIME types and magic bytes signatures
@@ -22,185 +22,113 @@ const ALLOWED_FILE_TYPES = {
 };
 
 /**
- * Error class for file type validation failures
- */
-export class FileTypeValidationError extends Error {
-  constructor(
-    message: string,
-    public readonly fileName: string,
-    public readonly declaredMimeType: string,
-    public readonly detectedType?: string
-  ) {
-    super(message);
-    this.name = 'FileTypeValidationError';
-  }
-}
-
-/**
- * Validates a single uploaded file against its declared MIME type
+ * Validates file type for uploaded files
  *
- * @param file - The uploaded file to validate
- * @throws {FileTypeValidationError} If validation fails
- */
-async function validateFileType(file: UploadedFile): Promise<void> {
-  const declaredMimeType = file.mimetype;
-  const fileName = file.name;
-
-  logger.info('Validating file type', {
-    fileName,
-    declaredMimeType,
-    size: file.size
-  });
-
-  // Detect actual file type from magic bytes
-  const detectedType = await fileTypeFromBuffer(file.data);
-
-  if (!detectedType) {
-    logger.warn('Could not detect file type from magic bytes', {
-      fileName,
-      declaredMimeType
-    });
-    throw new FileTypeValidationError(
-      'Unable to determine file type from content',
-      fileName,
-      declaredMimeType
-    );
-  }
-
-  logger.debug('File type detected', {
-    fileName,
-    declaredMimeType,
-    detectedMimeType: detectedType.mime,
-    detectedExtension: detectedType.ext
-  });
-
-  // Check if detected type is allowed
-  const allowedType = Object.entries(ALLOWED_FILE_TYPES).find(
-    ([, config]) => config.mimeTypes.includes(detectedType.mime)
-  );
-
-  if (!allowedType) {
-    logger.warn('Detected file type is not allowed', {
-      fileName,
-      declaredMimeType,
-      detectedMimeType: detectedType.mime
-    });
-    throw new FileTypeValidationError(
-      `File type ${detectedType.mime} is not allowed`,
-      fileName,
-      declaredMimeType,
-      detectedType.mime
-    );
-  }
-
-  // Verify that declared MIME matches detected MIME
-  const [typeName, typeConfig] = allowedType;
-  if (!typeConfig.mimeTypes.includes(declaredMimeType)) {
-    logger.warn('MIME type mismatch detected (possible spoofing)', {
-      fileName,
-      declaredMimeType,
-      detectedMimeType: detectedType.mime,
-      action: 'rejected'
-    });
-    throw new FileTypeValidationError(
-      `Declared MIME type (${declaredMimeType}) does not match actual file type (${detectedType.mime})`,
-      fileName,
-      declaredMimeType,
-      detectedType.mime
-    );
-  }
-
-  logger.info('File type validation successful', {
-    fileName,
-    fileType: typeName,
-    mimeType: detectedType.mime
-  });
-}
-
-/**
- * Express middleware to validate uploaded file types using magic bytes
- *
- * This middleware prevents MIME type spoofing by checking the actual file
- * content (magic bytes) against the declared MIME type.
- *
- * Supported file types:
- * - PNG (image/png)
- * - JPEG (image/jpeg, image/jpg)
- * - PDF (application/pdf)
+ * This middleware validates the magic bytes of uploaded files against their declared MIME type.
+ * It works with multer memory storage and should be placed AFTER the multer upload middleware.
  *
  * @example
  * ```typescript
- * app.post('/upload',
- *   fileUpload(),
+ * router.post('/files',
+ *   upload.single('file'),
  *   fileTypeMiddleware,
- *   uploadController
+ *   antivirusMiddleware,
+ *   fileController.create
  * );
  * ```
  */
-export async function fileTypeMiddleware(
+export const fileTypeMiddleware: RequestHandler = async (
   req: Request,
   res: Response,
   next: NextFunction
-): Promise<void> {
+): Promise<void> => {
   try {
-    // Skip if no files uploaded
-    if (!req.files || Object.keys(req.files).length === 0) {
+    const file = req.file;
+
+    // Skip if no file uploaded
+    if (!file) {
       next();
       return;
     }
 
-    const files = req.files as unknown as FileArray;
-    const validationPromises: Promise<void>[] = [];
+    const declaredMimeType = file.mimetype;
+    const fileName = file.originalname;
+    const fileBuffer = file.buffer;
+    const userId = req.user?.id;
+    const startTime = Date.now();
 
-    // Validate all uploaded files
-    for (const fieldName of Object.keys(files)) {
-      const fileOrFiles = files[fieldName];
+    logger.info('Validating file type from memory buffer', {
+      fileName,
+      declaredMimeType,
+      size: file.size,
+      userId,
+      action: 'validation.started'
+    });
 
-      if (Array.isArray(fileOrFiles)) {
-        // Multiple files in same field
-        fileOrFiles.forEach((file) => {
-          validationPromises.push(validateFileType(file));
-        });
-      } else {
-        // Single file
-        validationPromises.push(validateFileType(fileOrFiles));
-      }
+    // Detect actual file type from magic bytes
+    const detectedType = await fileTypeFromBuffer(fileBuffer);
+    const duration = Date.now() - startTime;
+
+    if (!detectedType) {
+      logger.warn('Could not detect file type from magic bytes', {
+        fileName,
+        declaredMimeType,
+        userId
+      });
+      throw new BadRequestError();
     }
 
-    // Wait for all validations to complete
-    await Promise.all(validationPromises);
+    logger.debug('File type detected', {
+      fileName,
+      declaredMimeType,
+      detectedMimeType: detectedType.mime,
+      detectedExtension: detectedType.ext,
+      userId
+    });
+
+    // Check if detected type is allowed
+    const allowedType = Object.entries(ALLOWED_FILE_TYPES).find(
+      ([, config]) => config.mimeTypes.includes(detectedType.mime)
+    );
+
+    if (!allowedType) {
+      logger.warn('Detected file type is not allowed', {
+        fileName,
+        declaredMimeType,
+        detectedMimeType: detectedType.mime,
+        userId
+      });
+      throw new BadRequestError();
+    }
+
+    // Verify that declared MIME matches detected MIME
+    const [typeName, typeConfig] = allowedType;
+    if (!typeConfig.mimeTypes.includes(declaredMimeType)) {
+      logger.warn('MIME type mismatch detected (possible spoofing)', {
+        fileName,
+        declaredMimeType,
+        detectedMimeType: detectedType.mime,
+        userId,
+        action: 'rejected'
+      });
+      throw new BadRequestError(
+      );
+    }
+
+    logger.info('File type validation successful', {
+      fileName,
+      fileType: typeName,
+      mimeType: detectedType.mime,
+      size: file.size,
+      userId,
+      duration,
+      action: 'validation.completed'
+    });
 
     next();
   } catch (error) {
-    if (error instanceof FileTypeValidationError) {
-      logger.error('File type validation failed', {
-        fileName: error.fileName,
-        declaredMimeType: error.declaredMimeType,
-        detectedType: error.detectedType,
-        message: error.message
-      });
-
-      // Determine the specific reason for rejection
-      const reason = error.detectedType
-        ? (error.message.includes('does not match') ? 'mime_mismatch' : 'invalid_file_type')
-        : 'invalid_file_type';
-
-      res.status(400).json({
-        error: 'Invalid file type',
-        message: error.message,
-        reason,
-        fileName: error.fileName
-      });
-    } else {
-      logger.error('Unexpected error in file type validation', {
-        error: error instanceof Error ? error.message : String(error)
-      });
-
-      res.status(500).json({
-        error: 'Internal server error during file validation'
-      });
-    }
+    next(error);
   }
-}
+};
 
 export default fileTypeMiddleware;

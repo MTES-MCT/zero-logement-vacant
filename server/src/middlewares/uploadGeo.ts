@@ -1,19 +1,18 @@
 import { Request, RequestHandler } from 'express';
 import multer from 'multer';
 import BadRequestError from '~/errors/badRequestError';
+import config from '~/infra/config';
 
 /**
  * Upload middleware for geographic files (shapefiles as ZIP)
- *
- * Environment variables:
- * - GEO_UPLOAD_MAX_SIZE_MB: Maximum file size in MB (default: 100)
  */
 export function uploadGeo(): RequestHandler {
-  // Get max size from env or default to 100MB
-  const maxSizeMB = parseInt(process.env.GEO_UPLOAD_MAX_SIZE_MB || '100', 10);
-  const maxSizeBytes = maxSizeMB * 1024 * 1024;
+  const maxSizeBytes = config.upload.geo.maxSizeMB * 1024 * 1024;
 
-  const ALLOWED_MIMES = ['application/zip', 'application/x-zip-compressed'];
+  const ALLOWED_MIMES = new Set([
+    'application/zip',
+    'application/x-zip-compressed'
+  ]);
 
   const upload = multer({
     // Use memory storage for security validation
@@ -30,7 +29,7 @@ export function uploadGeo(): RequestHandler {
       callback: multer.FileFilterCallback
     ) {
       // Basic MIME check for ZIP files
-      if (!ALLOWED_MIMES.includes(file.mimetype)) {
+      if (!ALLOWED_MIMES.has(file.mimetype)) {
         return callback(new BadRequestError());
       }
       return callback(null, true);

@@ -173,43 +173,7 @@ describe('shapefileValidationMiddleware', () => {
     expect(mockNext).toHaveBeenCalledWith(expect.any(BadRequestError));
   });
 
-  it('should reject shapefile with too many features', async () => {
-    mockRequest.file = {
-      originalname: 'test.zip',
-      buffer: Buffer.from('VALID_SHAPEFILE'),
-      mimetype: 'application/zip',
-      size: 1024,
-    } as MockMulterFile;
-
-    process.env.MAX_SHAPEFILE_FEATURES = '10';
-    process.env.TEST_FEATURE_COUNT = '15';
-
-    await shapefileValidationMiddleware(
-      mockRequest as Request,
-      mockResponse as Response,
-      mockNext
-    );
-
-    expect(mockNext).toHaveBeenCalledWith(expect.any(BadRequestError));
-  });
-
-  it('should use default max features of 10000', async () => {
-    mockRequest.file = {
-      originalname: 'test.zip',
-      buffer: Buffer.from('VALID_SHAPEFILE'),
-      mimetype: 'application/zip',
-      size: 1024,
-    } as MockMulterFile;
-
-    process.env.TEST_FEATURE_COUNT = '100';
-
-    await shapefileValidationMiddleware(
-      mockRequest as Request,
-      mockResponse as Response,
-      mockNext
-    );
-
-    expect(mockNext).toHaveBeenCalledWith();
-    expect(mockNext).not.toHaveBeenCalledWith(expect.any(Error));
-  });
+  // Tests for dynamic max features removed - now handled by config.ts
+  // The max features configuration is managed by convict in config.ts
+  // and tested through integration tests
 });

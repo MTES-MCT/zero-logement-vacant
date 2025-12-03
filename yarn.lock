@@ -33917,6 +33917,33 @@ __metadata:
     vite: "npm:^6.3.6"
     vitest: "npm:^3.2.4"
     webpack-cli: "npm:^5.1.4"
+  dependenciesMeta:
+    "@parcel/watcher":
+      built: true
+    "@swc/core":
+      built: true
+    core-js:
+      built: true
+    core-js-pure:
+      built: true
+    cypress:
+      built: true
+    es5-ext:
+      built: true
+    esbuild:
+      built: true
+    msgpackr-extract:
+      built: true
+    msw:
+      built: true
+    nx:
+      built: true
+    puppeteer:
+      built: true
+    sharp:
+      built: true
+    unrs-resolver:
+      built: true
   languageName: unknown
   linkType: soft
 

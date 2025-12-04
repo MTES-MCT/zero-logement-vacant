@@ -58,7 +58,10 @@ router.post(
   validatorNext.validate({
     params: object({ id: schemas.id })
   }),
-  upload({ multiple: true }),
+  upload({
+    accept: ['png', 'jpg', 'heic', 'webp', 'docx', 'xlsx', 'ppt', 'pdf'],
+    multiple: true
+  }),
   documentController.createByHousing
 );
 

@@ -1,15 +1,29 @@
+import { createS3 } from '@zerologementvacant/utils/node';
+import { Predicate } from 'effect';
 import { Request, RequestHandler } from 'express';
+import mime from 'mime';
 import multer from 'multer';
 import BadRequestError from '~/errors/badRequestError';
 import config from '~/infra/config';
 
 export interface UploadOptions {
   /**
+   * The accepted file extensions (without dot).
+   * @default ['png', 'jpg', 'pdf']
+   */
+  accept?: string[];
+  /**
    * @default 1
    */
   maxSizeMB?: number;
+  /**
+   * Whether to accept multiple files.
+   * @default false
+   */
   multiple?: boolean;
 }
+
+const DEFAULT_ALLOWED_EXTENSIONS = ['png', 'jpg', 'pdf'];
 
 /**
  * Upload middleware using memory storage for security validation
@@ -20,7 +34,11 @@ export interface UploadOptions {
  * 3. Upload to S3 only if all checks pass
  */
 export function upload(options?: UploadOptions): RequestHandler {
-  const ALLOWED_MIMES = ['image/png', 'image/jpeg', 'application/pdf'];
+  const types: ReadonlyArray<string> = (
+    options?.accept ?? DEFAULT_ALLOWED_EXTENSIONS
+  )
+    .map((ext) => mime.getType(ext))
+    .filter(Predicate.isNotNull);
 
   const maxSizeBytes = config.upload.maxSizeMB * 1024 * 1024;
 
@@ -39,7 +57,7 @@ export function upload(options?: UploadOptions): RequestHandler {
       callback: multer.FileFilterCallback
     ) {
       // Basic MIME check (will be validated again with magic bytes)
-      if (!ALLOWED_MIMES.includes(file.mimetype)) {
+      if (!types.includes(file.mimetype)) {
         return callback(new BadRequestError());
       }
       return callback(null, true);

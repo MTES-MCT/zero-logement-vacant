@@ -18,10 +18,14 @@ function HousingDocumentUpload(props: HousingDocumentUploadProps) {
 
   return (
     <DocumentUpload
-      id="file-upload"
+      id="housing-document-upload"
+      accept={['png', 'jpg', 'pdf', 'heic', 'webp', 'docx']}
+      hint="Taille maximale par fichier : 25Mo. Formats supportés : images (png, jpg, heic, webp, etc.) et documents (docx, xlsx, ppt, etc.). Le nom du fichier doit faire moins de 255 caractères. Plusieurs fichiers possibles."
       isError={uploadMutation.isError}
       isLoading={uploadMutation.isLoading}
       isSuccess={uploadMutation.isSuccess}
+      label="Ajouter un ou plusieurs documents à associer à ce logement"
+      maxSize={25}
       multiple
       onUpload={onUpload}
     />

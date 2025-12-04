@@ -1,4 +1,4 @@
-import { object, string } from 'yup';
+import * as yup from 'yup';
 import type { ChangeEvent } from 'react';
 
 import styles from './draft.module.scss';
@@ -7,13 +7,13 @@ import { useForm } from '../../hooks/useForm';
 import { DATE_REGEXP_OPTIONNAL } from '../../utils/dateUtils';
 import Typography from '@mui/material/Typography';
 
-export const writtenSchema = object({
-  writtenAt: string().matches(
+export const writtenSchema = yup.object({
+  writtenAt: yup.string().default(undefined).matches(
     DATE_REGEXP_OPTIONNAL,
     'Veuillez renseigner une date au format yyyy-mm-dd'
   ),
-  writtenFrom: string()
-});
+  writtenFrom: yup.string().default(undefined)
+}).required();
 
 export interface Written {
   at: string;

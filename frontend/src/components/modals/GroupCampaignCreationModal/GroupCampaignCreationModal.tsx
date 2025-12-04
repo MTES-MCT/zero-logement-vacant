@@ -30,7 +30,7 @@ function GroupCampaignCreationModal(props: Props) {
     description: campaignDescriptionValidator
   };
   type FormShape = typeof shape;
-  const form = useForm(yup.object().shape(shape), {
+  const form = useForm(yup.object().shape(shape) as any, {
     title,
     description
   });

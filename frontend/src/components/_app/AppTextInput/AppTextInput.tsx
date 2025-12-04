@@ -3,7 +3,7 @@ import type {
   InputHTMLAttributes,
   TextareaHTMLAttributes
 } from 'react';
-import type { ObjectShape } from 'yup/lib/object';
+import type { ObjectShape } from 'yup';
 import { useForm } from '../../../hooks/useForm';
 import Input from '@codegouvfr/react-dsfr/Input';
 

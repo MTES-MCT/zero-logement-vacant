@@ -24,9 +24,9 @@ function createPerimeterUploadModal() {
       const FileTypes = ['application/zip', 'application/x-zip-compressed'];
       const [file, setFile] = useState<File | undefined>();
 
-      const schema = yup.object().shape({ file: fileValidator(FileTypes) });
+      const schema = yup.object().shape({ file: fileValidator(FileTypes).default(undefined) }).required();
 
-      const { isValid, message, validate } = useForm(schema, {
+      const { isValid, message, validate } = useForm(schema as any, {
         file
       });
 

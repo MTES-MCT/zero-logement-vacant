@@ -22,15 +22,15 @@ interface OwnerEditionSideMenuProps {
 const WIDTH = '700px';
 const schema = object({
   address: object({
-    banId: string().defined().nullable(),
+    banId: string().optional(),
     label: string().required(),
-    houseNumber: string().defined().nullable(),
-    street: string().defined().nullable(),
-    postalCode: string().defined().nullable(),
-    city: string().defined().nullable(),
-    latitude: number().defined().nullable(),
-    longitude: number().defined().nullable(),
-    score: number().defined().nullable()
+    houseNumber: string().optional(),
+    street: string().optional(),
+    postalCode: string().required(),
+    city: string().required(),
+    latitude: number().optional(),
+    longitude: number().optional(),
+    score: number().optional()
   })
     .defined()
     .nullable(),
@@ -48,17 +48,17 @@ function OwnerEditionSideMenu(props: OwnerEditionSideMenuProps) {
 
   const form = useForm({
     values: {
-      address: {
-        banId: props.owner?.banAddress?.banId ?? '',
-        label: props.owner?.banAddress?.label ?? '',
-        city: props.owner?.banAddress?.city ?? '',
-        houseNumber: props.owner?.banAddress?.houseNumber ?? '',
-        postalCode: props.owner?.banAddress?.postalCode ?? '',
-        street: props.owner?.banAddress?.street ?? '',
-        latitude: props.owner?.banAddress?.latitude ?? 0,
-        longitude: props.owner?.banAddress?.longitude ?? 0,
-        score: props.owner?.banAddress?.score ?? 0,
-      },
+      address: props.owner?.banAddress ? {
+        banId: props.owner.banAddress.banId,
+        label: props.owner.banAddress.label,
+        city: props.owner.banAddress.city,
+        houseNumber: props.owner.banAddress.houseNumber,
+        postalCode: props.owner.banAddress.postalCode,
+        street: props.owner.banAddress.street,
+        latitude: props.owner.banAddress.latitude,
+        longitude: props.owner.banAddress.longitude,
+        score: props.owner.banAddress.score,
+      } : null,
       additionalAddress: props.owner?.additionalAddress ?? ''
     },
     mode: 'onSubmit',

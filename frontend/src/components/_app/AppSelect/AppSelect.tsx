@@ -1,5 +1,5 @@
 import type { ComponentPropsWithoutRef, InputHTMLAttributes } from 'react';
-import type { ObjectShape } from 'yup/lib/object';
+import type { ObjectShape } from 'yup';
 import { useForm } from '../../../hooks/useForm';
 import Select from '@codegouvfr/react-dsfr/Select';
 import type { SelectOptions } from '../../_dsfr/components/interface/Select/Select';

@@ -1,4 +1,4 @@
-import { string } from 'yup';
+import * as yup from 'yup';
 
 import { useForm } from '../../hooks/useForm';
 import { Container } from '../_dsfr';
@@ -6,8 +6,8 @@ import AppTextInput from '../_app/AppTextInput/AppTextInput';
 import { DATE_REGEXP } from '../../utils/dateUtils';
 import { Typography } from '@mui/material';
 
-export const sentAtSchema = string()
-  .required('Veuillez renseigner une date d’envoi')
+export const sentAtSchema = yup.string()
+  .required('Veuillez renseigner une date d\'envoi')
   .matches(DATE_REGEXP, 'Veuillez renseigner une date au format yyyy-mm-dd');
 
 interface Props {

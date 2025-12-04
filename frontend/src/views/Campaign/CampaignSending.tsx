@@ -10,7 +10,7 @@ import Typography from '@mui/material/Typography';
 import { type FormEvent, useEffect, useState } from 'react';
 
 import Container from '@mui/material/Container';
-import { object } from 'yup';
+import * as yup from 'yup';
 import CampaignCounts from '../../components/Campaign/CampaignCounts';
 import CampaignCreatedFromGroup from '../../components/Campaign/CampaignCreatedFromGroup';
 import CampaignTitle from '../../components/Campaign/CampaignTitle';
@@ -35,9 +35,9 @@ const modal = createModal({
   isOpenedByDefault: false
 });
 
-const schema = object({
+const schema = yup.object({
   sentAt: sentAtSchema
-});
+}).required();
 
 interface Props {
   campaign: Campaign;
@@ -49,7 +49,7 @@ function CampaignSending(props: Readonly<Props>) {
   const { count } = useCampaign();
   const [updateCampaign, mutation] = useUpdateCampaignMutation();
 
-  const form = useForm(schema, {
+  const form = useForm(schema as any, {
     sentAt
   });
 

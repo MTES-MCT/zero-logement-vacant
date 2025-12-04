@@ -45,13 +45,14 @@ import styles from './campaign.module.scss';
 
 const schema = yup
   .object({
-    subject: yup.string(),
-    body: yup.string(),
+    subject: yup.string().default(undefined),
+    body: yup.string().default(undefined),
     sender: senderSchema
   })
   // Must do like that because the useForm hook has a validation bug
   // where it creates an infinite render loop if passed a `written` object
-  .concat(writtenSchema);
+  .concat(writtenSchema)
+  .required();
 
 interface Props {
   campaign: Campaign;
@@ -102,7 +103,7 @@ function CampaignDraft(props: Readonly<Props>) {
     }
   }, [draft, props.campaign.id]);
 
-  const form = useForm(schema, {
+  const form = useForm(schema as any, {
     subject: values.subject,
     body: values.body,
     sender: values.sender,

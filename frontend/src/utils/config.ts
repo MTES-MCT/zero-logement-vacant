@@ -1,47 +1,51 @@
-import { boolean, number, object, string } from 'yup-next';
+import * as yup from 'yup';
 
-const schema = object({
-  api: object({
-    url: string().default('http://localhost:3001')
+const schema = yup.object({
+  api: yup.object({
+    url: yup.string().default('http://localhost:3001')
   }),
-  ban: object({
-    url: string().url().default('https://api-adresse.data.gouv.fr'),
-    eligibleScore: number().default(0.8)
+  ban: yup.object({
+    url: yup.string().url().default('https://api-adresse.data.gouv.fr'),
+    eligibleScore: yup.number().default(0.8)
   }),
-  metabase: object({
-    siteURL: string().url().optional(),
-    public: object({
-      statsDashboard: string().optional()
+  metabase: yup.object({
+    siteURL: yup.string().url().optional(),
+    public: yup.object({
+      statsDashboard: yup.string().optional()
     })
   }),
-  posthog: object({
-    enabled: boolean().default(false),
-    apiKey: string().optional()
-  }).when({
-    is: (posthog: { enabled: boolean }) => posthog.enabled,
-    then: (schema) =>
-      schema.shape({
-        apiKey: string().required(
-          'PostHog API key is required when PostHog is enabled'
-        )
-      })
-  }),
-  sentry: object({
-    enabled: boolean().default(false),
-    sampleRate: number().min(0).max(1).default(0.2),
-    tracesSampleRate: number().min(0).max(1).default(0.2)
-  }).when({
-    is: (sentry: { enabled: boolean }) => sentry.enabled,
-    then: (schema) =>
-      schema.shape({
-        dsn: string()
-          .url()
-          .required('Sentry DSN is required when Sentry is enabled'),
-        env: string().required(
-          'Sentry environment is required when Sentry is enabled'
-        )
-      })
-  })
+  posthog: yup.object({
+    enabled: yup.boolean().default(false),
+    apiKey: yup.string().optional()
+  }).when([], ([], schema) =>
+    schema.shape({
+      apiKey: yup.string().when('enabled', ([enabled], schema) =>
+        enabled === true
+          ? schema.required('PostHog API key is required when PostHog is enabled')
+          : schema
+      )
+    })
+  ),
+  sentry: yup.object({
+    enabled: yup.boolean().default(false),
+    sampleRate: yup.number().min(0).max(1).default(0.2),
+    tracesSampleRate: yup.number().min(0).max(1).default(0.2)
+  }).when([], ([], schema) =>
+    schema.shape({
+      dsn: yup.string()
+        .url()
+        .when('enabled', ([enabled], schema) =>
+          enabled === true
+            ? schema.required('Sentry DSN is required when Sentry is enabled')
+            : schema
+        ),
+      env: yup.string().when('enabled', ([enabled], schema) =>
+        enabled === true
+          ? schema.required('Sentry environment is required when Sentry is enabled')
+          : schema
+      )
+    })
+  )
 });
 
 const config = schema.validateSync({

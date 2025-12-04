@@ -159,7 +159,7 @@ function HousingOwnersModal({
   ];
 
   const form = useForm(
-    yup.object().shape(shape),
+    yup.object().shape(shape) as any,
     {
       ...housingOwners.reduce(
         (inputs, housingOwner) => ({

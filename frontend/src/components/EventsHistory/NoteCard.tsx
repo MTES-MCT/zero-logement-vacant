@@ -13,7 +13,7 @@ import { match } from 'ts-pattern';
 import { useNotification } from '../../hooks/useNotification';
 import { useUser } from '../../hooks/useUser';
 
-import { object, string } from 'yup';
+import * as yup from 'yup';
 import type { Establishment } from '../../models/Establishment';
 import type { Note } from '../../models/Note';
 import { formatAuthor } from '../../models/User';
@@ -59,8 +59,8 @@ function NoteCard(props: NoteCardProps) {
     },
     mode: 'onSubmit',
     resolver: yupResolver(
-      object({
-        content: string().required('Veuillez renseigner le contenu de la note')
+      yup.object({
+        content: yup.string().required('Veuillez renseigner le contenu de la note')
       })
     )
   });

@@ -84,6 +84,7 @@ function createBaseUser(overrides: Partial<UserApi> & Pick<UserApi, 'email' | 'p
     twoFactorCodeGeneratedAt: null,
     twoFactorFailedAttempts: 0,
     twoFactorLockedUntil: null,
+    kind: null,
     ...overrides
   };
 }

@@ -104,7 +104,7 @@ function OwnerEditionSideMenu(props: OwnerEditionSideMenuProps) {
       }}
       header={
         <Typography component="h2" variant="h6">
-          Modifier les informations du propriétaire
+          Éditer les informations du propriétaire
         </Typography>
       }
       main={
@@ -128,8 +128,7 @@ function OwnerEditionSideMenu(props: OwnerEditionSideMenuProps) {
                 </Typography>
                 <Grid>
                   <span className="fr-hint-text">
-                    Cette adresse est issue du fichier LOVAC, récupérée via le
-                    fichier 1767BIS-COM. Celle-ci n’est pas modifiable.
+                    Adresse issue des fichiers LOVAC (non modifiable).
                   </span>
                   <Typography
                     color={fr.colors.decisions.text.default.grey.default}

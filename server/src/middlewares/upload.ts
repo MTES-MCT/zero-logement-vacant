@@ -1,14 +1,36 @@
+import { createS3 } from '@zerologementvacant/utils/node';
+import { Predicate } from 'effect';
 import { Request, RequestHandler } from 'express';
+import mime from 'mime';
 import multer from 'multer';
 import multerS3 from 'multer-s3';
 import { v4 as uuidv4 } from 'uuid';
 
-import { createS3 } from '@zerologementvacant/utils/node';
-import config from '~/infra/config';
 import BadRequestError from '~/errors/badRequestError';
+import config from '~/infra/config';
 
-export function upload(): RequestHandler {
-  const ALLOWED_MIMES = ['image/png', 'image/jpeg', 'application/pdf'];
+export interface UploadOptions {
+  /**
+   * The accepted file extensions (without dot).
+   * @default ['png', 'jpg', 'pdf']
+   */
+  accept?: string[];
+  /**
+   * Whether to accept multiple files.
+   * @default false
+   */
+  multiple?: boolean;
+}
+
+const DEFAULT_ALLOWED_EXTENSIONS = ['png', 'jpg', 'pdf'];
+
+export function upload(options?: UploadOptions): RequestHandler {
+  const types: Set<string> = new Set(
+    (options?.accept ?? DEFAULT_ALLOWED_EXTENSIONS)
+      .map((ext) => mime.getType(ext))
+      .filter(Predicate.isNotNull)
+  );
+
   const upload = multer({
     limits: {
       files: 1,
@@ -19,7 +41,7 @@ export function upload(): RequestHandler {
       file: Express.Multer.File,
       callback: multer.FileFilterCallback
     ) {
-      if (!ALLOWED_MIMES.includes(file.mimetype)) {
+      if (!types.has(file.mimetype)) {
         return callback(new BadRequestError());
       }
       return callback(null, true);
@@ -44,5 +66,5 @@ export function upload(): RequestHandler {
     })
   });
 
-  return upload.single('file');
+  return options?.multiple ? upload.array('files') : upload.single('file');
 }

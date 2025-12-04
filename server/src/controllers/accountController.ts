@@ -106,11 +106,17 @@ async function signIn(request: Request, response: Response) {
   // Fetch and update user kind from Portail DF API
   const kind = await fetchUserKind(user.email);
 
-  const updatedUser = await userRepository.update({
+  await userRepository.update({
     ...user,
     kind,
     lastAuthenticatedAt: new Date().toJSON()
   });
+
+  const updatedUser = {
+    ...user,
+    kind,
+    lastAuthenticatedAt: new Date().toJSON()
+  };
 
   logger.info('User signed in', {
     userId: user.id,
@@ -355,7 +361,7 @@ async function verifyTwoFactor(request: Request, response: Response) {
   const kind = await fetchUserKind(user.email);
 
   // Clear the 2FA code and reset counters
-  const updatedUser = await userRepository.update({
+  await userRepository.update({
     ...user,
     kind,
     twoFactorCode: null,
@@ -364,6 +370,16 @@ async function verifyTwoFactor(request: Request, response: Response) {
     twoFactorLockedUntil: null,
     lastAuthenticatedAt: new Date().toJSON()
   });
+
+  const updatedUser = {
+    ...user,
+    kind,
+    twoFactorCode: null,
+    twoFactorCodeGeneratedAt: null,
+    twoFactorFailedAttempts: 0,
+    twoFactorLockedUntil: null,
+    lastAuthenticatedAt: new Date().toJSON()
+  };
 
   logger.info('Admin user signed in after 2FA', {
     userId: user.id,

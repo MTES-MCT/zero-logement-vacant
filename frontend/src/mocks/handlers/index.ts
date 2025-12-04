@@ -4,6 +4,7 @@ import { authHandlers } from './auth-handlers';
 import { banHandlers } from './ban-handlers';
 import { campaignHandlers } from './campaign-handlers';
 import { datafoncierHandlers } from './datafoncier-handlers';
+import { documentHandlers } from './document-handlers';
 import { draftHandlers } from './draft-handlers';
 import { establishmentHandlers } from './establishment-handlers';
 import { eventHandlers } from './event-handlers';
@@ -24,6 +25,7 @@ export const handlers: RequestHandler[] = [
   ...banHandlers,
   ...campaignHandlers,
   ...datafoncierHandlers,
+  ...documentHandlers,
   ...draftHandlers,
   ...establishmentHandlers,
   ...eventHandlers,

@@ -12,7 +12,7 @@ interface HousingDetailsCardProps {
   housing: Housing | undefined;
 }
 
-function HousingDetailsCard(props: HousingDetailsCardProps) {
+function HousingDetailsCard(props: Readonly<HousingDetailsCardProps>) {
   const uploadDocsEnabled = useFeatureFlagEnabled('upload-docs');
 
   if (!props.housing) {

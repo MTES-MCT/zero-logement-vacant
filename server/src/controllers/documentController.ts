@@ -8,7 +8,7 @@ import { createS3, generatePresignedUrl } from '@zerologementvacant/utils/node';
 import async from 'async';
 import { RequestHandler } from 'express';
 import { AuthenticatedRequest } from 'express-jwt';
-import { constants } from 'http2';
+import { constants } from 'node:http2';
 import { v4 as uuidv4 } from 'uuid';
 
 import DocumentMissingError from '~/errors/documentMissingError';

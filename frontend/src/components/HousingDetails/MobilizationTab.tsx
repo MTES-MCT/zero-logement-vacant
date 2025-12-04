@@ -15,7 +15,7 @@ interface MobilizationTabProps {
   housing: Housing;
 }
 
-function MobilizationTab(props: MobilizationTabProps) {
+function MobilizationTab(props: Readonly<MobilizationTabProps>) {
   const findCampaignsQuery = useFindCampaignsQuery();
 
   const updated = lastUpdate();

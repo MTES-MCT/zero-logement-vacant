@@ -24,7 +24,7 @@ function DocumentPreview(props: DocumentPreviewProps) {
     .otherwise(() => <Fallback />);
 }
 
-function PDF({ url }: { url: string }) {
+function PDF({ url }: Readonly<{ url: string }>) {
   const [containerWidth, setContainerWidth] = useState<number | null>(null);
   const [numPages, setNumPages] = useState<number | null>(null);
 

@@ -34,11 +34,11 @@ const DEFAULT_ALLOWED_EXTENSIONS = ['png', 'jpg', 'pdf'];
  * 3. Upload to S3 only if all checks pass
  */
 export function upload(options?: UploadOptions): RequestHandler {
-  const types: ReadonlyArray<string> = (
-    options?.accept ?? DEFAULT_ALLOWED_EXTENSIONS
-  )
-    .map((ext) => mime.getType(ext))
-    .filter(Predicate.isNotNull);
+  const types: Set<string> = new Set(
+    (options?.accept ?? DEFAULT_ALLOWED_EXTENSIONS)
+      .map((ext) => mime.getType(ext))
+      .filter(Predicate.isNotNull)
+  );
 
   const maxSizeBytes = config.upload.maxSizeMB * 1024 * 1024;
 

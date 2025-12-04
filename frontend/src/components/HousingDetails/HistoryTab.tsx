@@ -9,7 +9,7 @@ interface HistoryTabProps {
   housing: Housing;
 }
 
-function HistoryTab(props: HistoryTabProps) {
+function HistoryTab(props: Readonly<HistoryTabProps>) {
   const { data: events, isLoading: isLoadingEvents } =
     useFindEventsByHousingQuery(props.housing.id);
   const { data: notes, isLoading: isLoadingNotes } = useFindNotesByHousingQuery(

@@ -7,14 +7,14 @@ import { match, Pattern } from 'ts-pattern';
 
 import { type Housing } from '~/models/Housing';
 import { useListHousingDocumentsQuery } from '~/services/document.service';
-import HousingDocumentUpload from '../FileUpload/HousingDocumentUpload';
-import DocumentCard from './DocumentCard';
+import HousingDocumentUpload from '~/components/FileUpload/HousingDocumentUpload';
+import DocumentCard from '~/components/HousingDetails/DocumentCard';
 
 interface DocumentsTabProps {
   housing: Housing;
 }
 
-function DocumentsTab(props: DocumentsTabProps) {
+function DocumentsTab(props: Readonly<DocumentsTabProps>) {
   const {
     data: documents,
     isLoading,

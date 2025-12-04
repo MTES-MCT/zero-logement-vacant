@@ -96,7 +96,7 @@ export async function fetchUserKind(email: string): Promise<string | null> {
       return null;
     }
 
-    const userContent: PortailDFResponse = await userResponse.json();
+    const userContent = await userResponse.json() as PortailDFResponse;
 
     // No user found
     if (!userContent.results || userContent.results.length === 0) {

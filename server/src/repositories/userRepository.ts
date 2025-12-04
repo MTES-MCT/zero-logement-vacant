@@ -109,6 +109,7 @@ export interface UserDBO {
   phone: string | null;
   position: string | null;
   time_per_week: TimePerWeek | null;
+  kind: string | null;
   two_factor_secret: string | null;
   two_factor_enabled_at: Date | string | null;
   two_factor_code: string | null;
@@ -138,6 +139,7 @@ export const parseUserApi = (userDBO: UserDBO): UserApi => ({
   phone: userDBO.phone,
   position: userDBO.position,
   timePerWeek: userDBO.time_per_week,
+  kind: userDBO.kind,
   twoFactorSecret: userDBO.two_factor_secret,
   twoFactorEnabledAt: userDBO.two_factor_enabled_at
     ? new Date(userDBO.two_factor_enabled_at).toJSON()
@@ -173,6 +175,7 @@ export const formatUserApi = (userApi: UserApi): UserDBO => ({
   phone: userApi.phone,
   position: userApi.position,
   time_per_week: userApi.timePerWeek,
+  kind: userApi.kind,
   two_factor_secret: userApi.twoFactorSecret,
   two_factor_enabled_at: userApi.twoFactorEnabledAt
     ? new Date(userApi.twoFactorEnabledAt).toJSON()

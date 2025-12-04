@@ -14,6 +14,30 @@ git clone https://github.com/MTES-MCT/zero-logement-vacant.git
 cd zero-logement-vacant && yarn
 ```
 
+### Sécurité des dépendances
+
+1. Installation de `npq` (compatible Yarn)
+
+Installer `npq` globalement :
+
+```bash
+brew install npq
+```
+
+Vous pouvez créer un alias pour que chaque commande `yarn add` passe automatiquement par `npq-hero` :
+
+```bash
+alias yarn="NPQ_PKG_MGR=yarn npq-hero"
+```
+
+2. Pour ajouter une nouvelle dépendance avec vérification de sécurité :
+
+```bash
+npx npq install package-name
+```
+
+npq effectue des vérifications (vulnérabilités Snyk, âge du package, scripts d'installation suspects) avant l'installation.
+
 ### Lancement des dépendances
 
 Pour lancer les services, migrer et remplir la base de données en une seule

@@ -59,6 +59,7 @@
     "@vitejs/plugin-react-swc": "^3.11.0",
     "@vitest/coverage-v8": "^3.2.4",
     "@vitest/ui": "^3.2.4",
+    "clever-tools": "4.4.0",
     "cypress": "^14.5.4",
     "eslint": "^9.38.0",
     "eslint-config-prettier": "^10.1.8",
@@ -80,6 +81,7 @@
     "lint-staged": "^13.3.0",
     "madr": "^4.0.0",
     "node-talisman": "^1.29.22",
+    "npq": "^3.15.2",
     "nx": "22.0.3",
     "prettier": "^3.6.2",
     "react-refresh": "^0.17.0",
@@ -106,5 +108,46 @@
     "react-dom": "18.3.1",
     "react-router-dom": "6.30.1",
     "tslib": "^2.8.1"
+  },
+  "dependenciesMeta": {
+    "@parcel/watcher": {
+      "built": true
+    },
+    "@swc/core": {
+      "built": true
+    },
+    "core-js": {
+      "built": true
+    },
+    "core-js-pure": {
+      "built": true
+    },
+    "cypress": {
+      "built": true
+    },
+    "es5-ext": {
+      "built": true
+    },
+    "esbuild": {
+      "built": true
+    },
+    "msgpackr-extract": {
+      "built": true
+    },
+    "msw": {
+      "built": true
+    },
+    "nx": {
+      "built": true
+    },
+    "puppeteer": {
+      "built": true
+    },
+    "sharp": {
+      "built": true
+    },
+    "unrs-resolver": {
+      "built": true
+    }
   }
 }

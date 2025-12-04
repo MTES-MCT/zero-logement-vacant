@@ -16,7 +16,21 @@ cd zero-logement-vacant && yarn
 
 ### Sécurité des dépendances
 
-Pour ajouter une nouvelle dépendance avec vérification de sécurité :
+1. Installation de `npq` (compatible Yarn)
+
+Installer `npq` globalement :
+
+```bash
+brew install npq
+```
+
+Vous pouvez créer un alias pour que chaque commande `yarn add` passe automatiquement par `npq-hero` :
+
+```bash
+alias yarn="NPQ_PKG_MGR=yarn npq-hero"
+```
+
+2. Pour ajouter une nouvelle dépendance avec vérification de sécurité :
 
 ```bash
 npx npq install package-name

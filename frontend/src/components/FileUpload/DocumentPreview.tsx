@@ -20,18 +20,23 @@ function DocumentPreview(props: DocumentPreviewProps) {
     .when(isImage, (image) => (
       <Image responsive="1x1" src={image.url} alt={image.filename} />
     ))
-    .when(isPDF, (pdf) => <PDFPreview url={pdf.url} />)
+    .when(isPDF, (pdf) => <PDF url={pdf.url} />)
     .otherwise(() => <Fallback />);
 }
 
-function PDFPreview({ url }: { url: string }) {
+function PDF({ url }: { url: string }) {
   const [containerWidth, setContainerWidth] = useState<number | null>(null);
+  const [numPages, setNumPages] = useState<number | null>(null);
 
   const containerRef = useCallback((element: HTMLDivElement | null) => {
     if (element) {
       setContainerWidth(element.getBoundingClientRect().width);
     }
   }, []);
+
+  const onDocumentLoadSuccess = ({ numPages }: { numPages: number }) => {
+    setNumPages(numPages);
+  };
 
   return (
     <Stack>
@@ -45,6 +50,7 @@ function PDFPreview({ url }: { url: string }) {
       >
         <Document
           file={{ url }}
+          onLoadSuccess={onDocumentLoadSuccess}
           loading={
             <Box
               sx={{
@@ -59,7 +65,14 @@ function PDFPreview({ url }: { url: string }) {
             </Box>
           }
         >
-          <Page pageNumber={1} width={containerWidth ?? undefined} />
+          {numPages &&
+            Array.from(new Array(numPages), (_, index) => (
+              <Page
+                key={`page_${index + 1}`}
+                pageNumber={index + 1}
+                width={containerWidth ?? undefined}
+              />
+            ))}
         </Document>
       </Stack>
     </Stack>

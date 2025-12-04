@@ -12,7 +12,7 @@ export interface DocumentCardProps {
   document: DocumentDTO;
 }
 
-function DocumentCard(props: DocumentCardProps) {
+function DocumentCard(props: Readonly<DocumentCardProps>) {
   const size = prettyBytes(props.document.sizeBytes, {
     locale: 'fr',
     space: true

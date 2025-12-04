@@ -118,13 +118,12 @@ const createByHousing = http.post<{ id: string }, never, DocumentDTO[] | Error>(
     }
 
     const documents: DocumentDTO[] = files.map((file) => {
-      const blob = file as File;
       const document: DocumentDTO = {
         id: uuidv4(),
-        filename: blob.name,
-        url: URL.createObjectURL(blob),
-        contentType: blob.type,
-        sizeBytes: blob.size,
+        filename: file.name,
+        url: URL.createObjectURL(file),
+        contentType: file.type,
+        sizeBytes: file.size,
         createdAt: new Date().toJSON(),
         updatedAt: null,
         creator

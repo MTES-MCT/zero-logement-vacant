@@ -14,7 +14,7 @@ interface HousingAttributeProps {
   fallback?: string;
 }
 
-function HousingAttribute(props: HousingAttributeProps) {
+function HousingAttribute(props: Readonly<HousingAttributeProps>) {
   const label = useId();
   const fallback = props.fallback ?? 'Pas d’information';
 

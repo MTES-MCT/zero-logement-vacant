@@ -25,11 +25,11 @@ export interface UploadOptions {
 const DEFAULT_ALLOWED_EXTENSIONS = ['png', 'jpg', 'pdf'];
 
 export function upload(options?: UploadOptions): RequestHandler {
-  const types: ReadonlyArray<string> = (
-    options?.accept ?? DEFAULT_ALLOWED_EXTENSIONS
-  )
-    .map((ext) => mime.getType(ext))
-    .filter(Predicate.isNotNull);
+  const types: Set<string> = new Set(
+    (options?.accept ?? DEFAULT_ALLOWED_EXTENSIONS)
+      .map((ext) => mime.getType(ext))
+      .filter(Predicate.isNotNull)
+  );
 
   const upload = multer({
     limits: {
@@ -41,7 +41,7 @@ export function upload(options?: UploadOptions): RequestHandler {
       file: Express.Multer.File,
       callback: multer.FileFilterCallback
     ) {
-      if (!types.includes(file.mimetype)) {
+      if (!types.has(file.mimetype)) {
         return callback(new BadRequestError());
       }
       return callback(null, true);

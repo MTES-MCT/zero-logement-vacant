@@ -20,7 +20,7 @@ const accept = [
   'pptx'
 ];
 
-function HousingDocumentUpload(props: HousingDocumentUploadProps) {
+function HousingDocumentUpload(props: Readonly<HousingDocumentUploadProps>) {
   const [upload, uploadMutation] = useUploadHousingDocumentsMutation();
 
   async function onUpload(files: ReadonlyArray<File>) {

@@ -26,3 +26,7 @@ export function isImage(document: DocumentDTO): boolean {
     .filter(Predicate.isNotNull)
     .includes(document.contentType);
 }
+
+export function isPDF(document: DocumentDTO): boolean {
+  return document.contentType === mime.getType('pdf');
+}

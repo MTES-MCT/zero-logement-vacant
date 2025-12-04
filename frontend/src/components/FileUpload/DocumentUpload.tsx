@@ -4,7 +4,7 @@ import { type ChangeEvent } from 'react';
 
 import { useNotification } from '~/hooks/useNotification';
 
-const DEFAULT_TYPES = ['pdf', 'jpg', 'png'];
+const DEFAULT_EXTENSIONS = ['pdf', 'jpg', 'png'];
 const MAX_SIZE = 5; // MB
 
 export type DocumentUploadProps = UploadProps & {
@@ -28,8 +28,8 @@ export type DocumentUploadProps = UploadProps & {
 };
 
 function DocumentUpload(props: Readonly<DocumentUploadProps>) {
-  const { accept = DEFAULT_TYPES, ...uploadProps } = props;
-  const types = accept ?? DEFAULT_TYPES;
+  const { accept = DEFAULT_EXTENSIONS, ...uploadProps } = props;
+  const types = accept ?? DEFAULT_EXTENSIONS;
   const hint =
     props.hint ??
     `Taille maximale : ${props.maxSize ?? MAX_SIZE} Mo. Formats supportés : ${types.join(', ')}`;

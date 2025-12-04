@@ -7,6 +7,7 @@ import { datafoncierHandlers } from './datafoncier-handlers';
 import { draftHandlers } from './draft-handlers';
 import { establishmentHandlers } from './establishment-handlers';
 import { eventHandlers } from './event-handlers';
+import { fileHandlers } from './file-handlers';
 import { geoPerimeterHandlers } from './geo-perimeter-handlers';
 import { groupHandlers } from './group-handlers';
 import { housingHandlers } from './housing-handlers';
@@ -26,6 +27,7 @@ export const handlers: RequestHandler[] = [
   ...draftHandlers,
   ...establishmentHandlers,
   ...eventHandlers,
+  ...fileHandlers,
   ...geoPerimeterHandlers,
   ...groupHandlers,
   ...housingHandlers,

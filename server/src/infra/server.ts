@@ -152,6 +152,7 @@ export function createServer(): Server {
     });
 
     try {
+      logger.debug('Starting server with config', config);
       await listen(port);
       logger.info(`Server listening on ${port}`);
     } catch (error) {

@@ -158,7 +158,7 @@ function createOwnerEditionModalNext() {
                 }
               ]}
               {...props}
-              title='Modifier la rubrique "propriétaire"'
+              title='Éditer les informations du propriétaire'
             >
               <Stack spacing="1.5rem">
                 <Grid

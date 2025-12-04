@@ -39,8 +39,13 @@ jobs:
     if: github.event.inputs.action_type == 'Créer'
     runs-on: ubuntu-latest
     steps:
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 24
+
       - name: Install clever-tools
-        run: npm install -g clever-tools
+        run: npm install -g clever-tools@4.4.0
 
       - name: Check for existing applications
         run: |
@@ -118,8 +123,13 @@ jobs:
     needs: [check-duplicates]
     runs-on: ubuntu-latest
     steps:
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 24
+
       - name: Install clever-tools
-        run: npm install -g clever-tools
+        run: npm install -g clever-tools@4.4.0
 
       - name: Create postgres addon
         run: clever addon create postgresql-addon $PR_NAME-postgres --org $CLEVER_ORG --plan xxs_sml --region par
@@ -150,8 +160,13 @@ jobs:
           token: ${{ secrets.GITHUB_TOKEN }}
           fetch-depth: 0
 
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 24
+
       - name: Install clever-tools
-        run: npm install -g clever-tools
+        run: npm install -g clever-tools@4.4.0
 
       - name: Create the app
         run: |
@@ -320,8 +335,13 @@ jobs:
           token: ${{ secrets.GITHUB_TOKEN }}
           fetch-depth: 0
 
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 24
+
       - name: Install clever-tools
-        run: npm install -g clever-tools
+        run: npm install -g clever-tools@4.4.0
 
       - name: Create the app
         run: |
@@ -472,8 +492,13 @@ jobs:
           token: ${{ secrets.GITHUB_TOKEN }}
           fetch-depth: 0
 
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 24
+
       - name: Install clever-tools
-        run: npm install -g clever-tools
+        run: npm install -g clever-tools@4.4.0
 
       - name: Create the app
         run: |
@@ -526,8 +551,13 @@ jobs:
           token: ${{ secrets.GITHUB_TOKEN }}
           fetch-depth: 0
 
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 24
+
       - name: Install clever-tools
-        run: npm install -g clever-tools
+        run: npm install -g clever-tools@4.4.0
 
       - name: Link app
         run: clever link -o $CLEVER_ORG $APP_ALIAS
@@ -563,8 +593,13 @@ jobs:
           token: ${{ secrets.GITHUB_TOKEN }}
           fetch-depth: 0
 
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 24
+
       - name: Install clever-tools
-        run: npm install -g clever-tools
+        run: npm install -g clever-tools@4.4.0
 
       - name: Link app
         run: clever link -o $CLEVER_ORG $APP_ALIAS
@@ -600,8 +635,13 @@ jobs:
           token: ${{ secrets.GITHUB_TOKEN }}
           fetch-depth: 0
 
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 24
+
       - name: Install clever-tools
-        run: npm install -g clever-tools
+        run: npm install -g clever-tools@4.4.0
 
       - name: Link app
         run: clever link -o $CLEVER_ORG $APP_ALIAS
@@ -621,8 +661,13 @@ jobs:
     env:
       APP_ALIAS: pr${{ github.event.inputs.pull_request_number || github.event.number }}-queue
     steps:
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 24
+
       - name: Install clever-tools
-        run: npm install -g clever-tools
+        run: npm install -g clever-tools@4.4.0
 
       - name: Delete the app
         run: |
@@ -635,8 +680,13 @@ jobs:
     env:
       APP_ALIAS: pr${{ github.event.inputs.pull_request_number || github.event.number }}-api
     steps:
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 24
+
       - name: Install clever-tools
-        run: npm install -g clever-tools
+        run: npm install -g clever-tools@4.4.0
 
       - name: Delete the app
         run: |
@@ -649,8 +699,13 @@ jobs:
     env:
       APP_ALIAS: pr${{ github.event.inputs.pull_request_number || github.event.number }}-front
     steps:
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 24
+
       - name: Install clever-tools
-        run: npm install -g clever-tools
+        run: npm install -g clever-tools@4.4.0
 
       - name: Delete the app
         run: |
@@ -661,8 +716,13 @@ jobs:
     runs-on: ubuntu-latest
     if: always() && (github.event.inputs.action_type == 'Supprimer' || (github.event_name == 'pull_request_target' && github.event.action == 'closed'))
     steps:
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 24
+
       - name: Install clever-tools
-        run: npm install -g clever-tools
+        run: npm install -g clever-tools@4.4.0
 
       - name: Delete the app
         run: |

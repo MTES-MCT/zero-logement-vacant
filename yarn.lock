@@ -3383,7 +3383,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@hookform/resolvers-next@npm:@hookform/resolvers@^5.2.2":
+"@hookform/resolvers-next@npm:@hookform/resolvers@5.2.2":
   version: 5.2.2
   resolution: "@hookform/resolvers@npm:5.2.2"
   dependencies:
@@ -12879,7 +12879,7 @@ __metadata:
     "@emotion/styled": "npm:11.14.1"
     "@faker-js/faker": "npm:8.4.1"
     "@hookform/resolvers": "npm:3.10.0"
-    "@hookform/resolvers-next": "npm:@hookform/resolvers@^5.2.2"
+    "@hookform/resolvers-next": "npm:@hookform/resolvers@5.2.2"
     "@lexical/html": "npm:0.37.0"
     "@lexical/list": "npm:0.37.0"
     "@lexical/react": "npm:0.37.0"
@@ -12952,7 +12952,7 @@ __metadata:
     web-vitals: "npm:5.1.0"
     whatwg-fetch: "npm:3.6.20"
     yup: "npm:0.32.11"
-    yup-next: "npm:yup@^1.7.0"
+    yup-next: "npm:yup@1.7.0"
   dependenciesMeta:
     sharp:
       optional: true
@@ -33875,7 +33875,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"yup-next@npm:yup@^1.7.0, yup@npm:1.7.0":
+"yup-next@npm:yup@1.7.0, yup@npm:1.7.0":
   version: 1.7.0
   resolution: "yup@npm:1.7.0"
   dependencies:

@@ -16,15 +16,15 @@
   "dependencies": {
     "@zerologementvacant/draft": "workspace:*",
     "@zerologementvacant/utils": "workspace:*",
-    "effect": "^3.17.7",
-    "ts-essentials": "^10.1.1",
-    "ts-pattern": "^5.8.0"
+    "effect": "3.17.7",
+    "ts-essentials": "10.1.1",
+    "ts-pattern": "5.8.0"
   },
   "devDependencies": {
-    "@faker-js/faker": "^8.4.1",
-    "@tsconfig/node20": "^20.1.6",
-    "@turf/turf": "^7.1.0",
-    "@types/geojson": "^7946.0.16",
-    "@types/node": "^20.19.10"
+    "@faker-js/faker": "8.4.1",
+    "@tsconfig/node20": "20.1.6",
+    "@turf/turf": "7.1.0",
+    "@types/geojson": "7946.0.16",
+    "@types/node": "20.19.10"
   }
 }

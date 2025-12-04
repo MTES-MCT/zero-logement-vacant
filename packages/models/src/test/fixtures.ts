@@ -779,7 +779,8 @@ export function genUserDTO(
     suspendedCause: null,
     updatedAt: faker.date.recent().toJSON(),
     establishmentId: establishment?.id ?? null,
-    role
+    role,
+    kind: null
   };
 }
 

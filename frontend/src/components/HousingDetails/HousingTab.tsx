@@ -29,7 +29,7 @@ interface HousingTabProps {
   housing: Housing;
 }
 
-function HousingTab(props: HousingTabProps) {
+function HousingTab(props: Readonly<HousingTabProps>) {
   const isHouse = props.housing.housingKind === 'MAISON';
   const getBuildingQuery = useGetBuildingQuery(
     props.housing.buildingId ?? skipToken,
@@ -77,20 +77,18 @@ function HousingTab(props: HousingTabProps) {
           <HousingAttribute
             label="Surface"
             value={
-              !props.housing.livingArea
-                ? null
-                : `${props.housing.livingArea} m²`
+              props.housing.livingArea ? `${props.housing.livingArea} m²` : null
             }
           />
           <HousingAttribute label="Pièces" value={props.housing.roomsCount} />
           <HousingAttribute
             label="Classement cadastral"
             value={
-              !props.housing.cadastralClassification
-                ? null
-                : CADASTRAL_CLASSIFICATION_OPTIONS[
+              props.housing.cadastralClassification
+                ? CADASTRAL_CLASSIFICATION_OPTIONS[
                     props.housing.cadastralClassification
                   ].label
+                : null
             }
           />
           <HousingAttribute
@@ -115,9 +113,9 @@ function HousingTab(props: HousingTabProps) {
           <HousingAttribute
             label="Étiquette DPE représentatif (CSTB)"
             value={
-              !props.housing.energyConsumption ? null : (
+              props.housing.energyConsumption ? (
                 <DPE value={props.housing.energyConsumption} />
-              )
+              ) : null
             }
           />
           <HousingAttribute
@@ -216,10 +214,8 @@ function HousingTab(props: HousingTabProps) {
                     ({ data: perimeters }) => {
                       const result = perimeters
                         .filter((perimeter) => {
-                          return props.housing.geoPerimeters?.some(
-                            (housingPerimeter) => {
-                              return housingPerimeter === perimeter.kind;
-                            }
+                          return props.housing.geoPerimeters?.includes(
+                            perimeter.kind
                           );
                         })
                         .map((perimeter) => (
@@ -232,9 +228,9 @@ function HousingTab(props: HousingTabProps) {
                   )
                   .otherwise(() => null)}
                 fallback={
-                  !props.housing.geoPerimeters?.length
-                    ? 'Aucun périmètre'
-                    : 'Pas d’information'
+                  props.housing.geoPerimeters?.length
+                    ? 'Pas d’information'
+                    : 'Aucun périmètre'
                 }
               />
             </>
@@ -257,20 +253,20 @@ function HousingTab(props: HousingTabProps) {
           <HousingAttribute
             label="Année de début de vacance déclarée"
             value={
-              !props.housing.vacancyStartYear ? null : (
+              props.housing.vacancyStartYear ? (
                 <Typography>
                   {props.housing.vacancyStartYear} (
                   {`${years} an${years && years >= 2 ? 's' : ''}`})
                 </Typography>
-              )
+              ) : null
             }
           />
           <HousingAttribute
             label="Occupation prévisionnelle"
             value={
-              !props.housing.occupancyIntended ? null : (
+              props.housing.occupancyIntended ? (
                 <OccupancyBadge occupancy={props.housing.occupancyIntended} />
-              )
+              ) : null
             }
           />
           <HousingAttribute label="Dernière mutation" value={lastMutation} />

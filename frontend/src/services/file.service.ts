@@ -1,5 +1,6 @@
 import { zlvApi } from './api.service';
 import type { FileUploadDTO } from '@zerologementvacant/models';
+import { getFileUploadErrorMessage } from '../utils/fileUploadErrors';
 
 export const fileApi = zlvApi.injectEndpoints({
   endpoints: (builder) => ({
@@ -13,6 +14,9 @@ export const fileApi = zlvApi.injectEndpoints({
           method: 'POST',
           body: data,
         };
+      },
+      transformErrorResponse: (error) => {
+        return getFileUploadErrorMessage(error, false);
       },
     }),
   }),

@@ -58,7 +58,7 @@ function DraftSenderLogo(props: Readonly<Props>) {
           onDelete={deleteLogo(props.value[0]?.id, 0)}
         />
       </Row>
-      <Row spacing="mb-2w">
+      <Row spacing="mb-2w mt-6w">
         <FileUpload
           id="fileUploadLogo1"
           hint=""

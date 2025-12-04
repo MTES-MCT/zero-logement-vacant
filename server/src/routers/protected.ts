@@ -1,6 +1,5 @@
 import { UserRole } from '@zerologementvacant/models';
 import schemas from '@zerologementvacant/schemas';
-import fileUpload from 'express-fileupload';
 import Router from 'express-promise-router';
 import { param } from 'express-validator';
 import { object, string } from 'yup';
@@ -26,6 +25,11 @@ import settingsController from '~/controllers/settingsController';
 import userController from '~/controllers/userController';
 import { hasRole, jwtCheck, userCheck } from '~/middlewares/auth';
 import { upload } from '~/middlewares/upload';
+import { uploadGeo } from '~/middlewares/uploadGeo';
+import zipValidationMiddleware from '~/middlewares/zipValidation';
+import shapefileValidationMiddleware from '~/middlewares/shapefileValidation';
+import fileTypeMiddleware from '~/middlewares/fileTypeMiddleware';
+import antivirusMiddleware from '~/middlewares/antivirus';
 import validator from '~/middlewares/validator';
 import validatorNext from '~/middlewares/validator-next';
 import { paginationSchema } from '~/models/PaginationApi';
@@ -37,7 +41,7 @@ const router = Router();
 router.use(jwtCheck());
 router.use(userCheck());
 
-router.post('/files', upload(), fileController.create);
+router.post('/files', upload(), fileTypeMiddleware, antivirusMiddleware, fileController.create);
 
 router.get(
   '/housing',
@@ -368,7 +372,14 @@ router.delete(
 
 // TODO: should be /geo-perimeters
 router.get('/geo/perimeters', geoController.listGeoPerimeters);
-router.post('/geo/perimeters', fileUpload(), geoController.createGeoPerimeter);
+router.post(
+  '/geo/perimeters',
+  uploadGeo(),
+  zipValidationMiddleware,
+  antivirusMiddleware,
+  shapefileValidationMiddleware,
+  geoController.createGeoPerimeter
+);
 router.put(
   '/geo/perimeters/:geoPerimeterId',
   geoController.updateGeoPerimeterValidators,

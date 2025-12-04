@@ -30,8 +30,11 @@ function FileUpload(props: Readonly<Props>) {
   const accept = types.map((type) => mime.getType(type)).join(', ');
   const [upload, mutation] = useUploadFileMutation();
 
+  // Error message is already formatted by RTK Query transformErrorResponse
+  const errorMessage = mutation.error as string | undefined;
+
   useNotification({
-    isError: mutation.isError,
+    isError: false, // Don't use default error notification
     isLoading: mutation.isLoading,
     isSuccess: mutation.isSuccess,
     toastId: 'file-upload'
@@ -53,6 +56,8 @@ function FileUpload(props: Readonly<Props>) {
       label={props.label}
       multiple={false}
       hint={hint}
+      state={errorMessage ? 'error' : 'default'}
+      stateRelatedMessage={errorMessage}
       nativeInputProps={{ accept, id: props.id, onChange }}
     />
   );

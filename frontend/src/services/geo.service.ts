@@ -1,5 +1,6 @@
 import type { GeoPerimeter } from '../models/GeoPerimeter';
 import { zlvApi } from './api.service';
+import { getFileUploadErrorMessage } from '../utils/fileUploadErrors';
 
 export const geoPerimetersApi = zlvApi.injectEndpoints({
   endpoints: (builder) => ({
@@ -46,13 +47,17 @@ export const geoPerimetersApi = zlvApi.injectEndpoints({
         body: fileToFormData(file),
       }),
       invalidatesTags: ['GeoPerimeter'],
+      transformErrorResponse: (error) => {
+        return getFileUploadErrorMessage(error, true);
+      },
     }),
   }),
 });
 
 const fileToFormData = (file: File) => {
   const formData: FormData = new FormData();
-  formData.append('geoPerimeter', file, file.name);
+  // Field name must match server expectation (uploadGeo middleware expects 'file')
+  formData.append('file', file, file.name);
   return formData;
 };
 

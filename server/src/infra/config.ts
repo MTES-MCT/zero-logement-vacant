@@ -63,6 +63,14 @@ interface Config {
       delay: string;
     };
   };
+  clamav: {
+    enabled: boolean;
+    socket: string;
+    host: string;
+    port: number;
+    binPath: string;
+    configFile: string;
+  };
   cerema: {
     api: string;
     enabled: boolean;
@@ -92,6 +100,13 @@ interface Config {
   e2e: {
     email: string | null;
     password: string | null;
+  };
+  upload: {
+    maxSizeMB: number;
+    geo: {
+      maxSizeMB: number;
+      maxShapefileFeatures: number;
+    };
   };
   log: {
     level: LogLevel;
@@ -206,6 +221,38 @@ const config = convict<Config>({
       }
     }
   },
+  clamav: {
+    enabled: {
+      env: 'CLAMAV_ENABLED',
+      format: Boolean,
+      default: false
+    },
+    socket: {
+      env: 'CLAMAV_SOCKET',
+      format: String,
+      default: '/var/run/clamav/clamd.sock'
+    },
+    host: {
+      env: 'CLAMAV_HOST',
+      format: String,
+      default: '127.0.0.1'
+    },
+    port: {
+      env: 'CLAMAV_PORT',
+      format: 'port',
+      default: 3310
+    },
+    binPath: {
+      env: 'CLAMAV_BIN_PATH',
+      format: String,
+      default: '/usr/bin/clamdscan'
+    },
+    configFile: {
+      env: 'CLAMAV_CONFIG_FILE',
+      format: String,
+      default: '/etc/clamav/clamd.conf'
+    }
+  },
   cerema: {
     enabled: {
       env: 'CEREMA_ENABLED',
@@ -287,6 +334,25 @@ const config = convict<Config>({
       sensitive: true,
       default: null,
       nullable: true
+    }
+  },
+  upload: {
+    maxSizeMB: {
+      env: 'FILE_UPLOAD_MAX_SIZE_MB',
+      format: 'int',
+      default: 5
+    },
+    geo: {
+      maxSizeMB: {
+        env: 'GEO_UPLOAD_MAX_SIZE_MB',
+        format: 'int',
+        default: 100
+      },
+      maxShapefileFeatures: {
+        env: 'MAX_SHAPEFILE_FEATURES',
+        format: 'int',
+        default: 10000
+      }
     }
   },
   elastic: {

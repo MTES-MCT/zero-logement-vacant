@@ -29,15 +29,31 @@ export async function seed(knex: Knex): Promise<void> {
   const ban = createBanAPI();
   const establishments = await Establishments(knex).where({ available: true });
 
+  // Skip seeding if no establishments are available
+  if (establishments.length === 0) {
+    console.log('No available establishments found. Skipping owners seed.');
+    return;
+  }
+
   const departments = faker.helpers.multiple(
     () => genGeoCode().substring(0, 2),
     { count: 10 }
   );
-  const communesByDepartment: ReadonlyArray<
+  const allCommunesByDepartment: ReadonlyArray<
     FeatureCollection<Polygon | MultiPolygon>
   > = await async.map(departments, async (department: string) => {
     return fetchCommunes(department);
   });
+  // Filter out empty FeatureCollections (from failed API calls)
+  const communesByDepartment = allCommunesByDepartment.filter(
+    (fc) => fc.features.length > 0
+  );
+
+  // Skip if no valid communes were fetched
+  if (communesByDepartment.length === 0) {
+    console.log('No valid communes fetched. Skipping owners seed.');
+    return;
+  }
 
   const owners = establishments.flatMap(() => {
     return faker.helpers.multiple(() => genOwnerApi(), {
@@ -92,9 +108,12 @@ async function fetchCommunes(
     `https://geo.api.gouv.fr/departements/${department}/communes?format=geojson&geometry=contour`
   );
   if (!response.ok) {
-    const error = await response.json();
-    console.log(error);
-    throw new Error('Failed to fetch geojson');
+    console.warn(`Failed to fetch communes for department ${department}: ${response.status} ${response.statusText}`);
+    // Return empty FeatureCollection instead of throwing
+    return {
+      type: 'FeatureCollection',
+      features: []
+    };
   }
 
   const perimeters = await response.json();

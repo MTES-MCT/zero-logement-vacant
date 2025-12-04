@@ -1,5 +1,5 @@
 import * as yup from 'yup';
-import { type ObjectShape } from 'yup/lib/object';
+import { type ObjectShape } from 'yup';
 
 import { entriesDeep, keysDeep } from '../useForm';
 

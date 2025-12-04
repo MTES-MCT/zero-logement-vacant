@@ -23,7 +23,7 @@ import { logIn } from '../../../store/actions/authenticationAction';
 
 const schema = yup
   .object({
-    password: passwordFormatValidator,
+    password: passwordFormatValidator.optional().default(undefined),
     confirmation: passwordConfirmationValidator
   })
   .required();
@@ -40,7 +40,7 @@ function AccountPasswordCreationView() {
       confirmation: ''
     },
     mode: 'onSubmit',
-    resolver: yupResolver(schema)
+    resolver: yupResolver(schema) as any
   });
 
   const [createUser] = useCreateUserMutation();

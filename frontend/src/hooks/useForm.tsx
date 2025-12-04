@@ -2,7 +2,7 @@ import { isDate } from 'date-fns';
 import { Array, pipe, Predicate, Record } from 'effect';
 import { useEffect, useRef, useState } from 'react';
 import * as yup from 'yup';
-import type { ObjectShape } from 'yup/lib/object';
+import type { ObjectShape } from 'yup';
 import { parseDateInput } from '../utils/dateUtils';
 
 export const emailValidator = yup
@@ -61,7 +61,7 @@ export const fileValidator = (supportedFormats: string[]) =>
     .test(
       'fileType',
       'Format de fichier invalide',
-      (value) => value && supportedFormats.includes(value.type)
+      (value) => value && supportedFormats.includes((value as any).type)
     );
 
 export const banAddressValidator = yup.object();

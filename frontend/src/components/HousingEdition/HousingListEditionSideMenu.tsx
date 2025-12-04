@@ -46,18 +46,16 @@ const schema = yup.object({
   subStatus: yup
     .string()
     .trim()
-    .nullable()
     .optional()
-    .when('status', {
-      is: (status: HousingStatus) =>
-        HousingStates.find((state) => state.status === status)?.subStatusList
-          ?.length,
-      then: (schema) =>
-        schema.required('Veuillez renseigner le sous-statut de suivi'),
-      otherwise: (schema) => schema.nullable().optional().default(null)
-    }),
+    .nullable()
+    .default(undefined)
+    .when('status', ([status], schema) =>
+      HousingStates.find((state) => state.status === status)?.subStatusList?.length
+        ? schema.required('Veuillez renseigner le sous-statut de suivi')
+        : schema
+    ),
   note: yup.string().trim().nullable().optional().default(null)
-});
+}).required();
 
 const modal = createConfirmationModal({
   id: 'housing-list-edition-modal',
@@ -84,7 +82,7 @@ function HousingListEditionSideMenu(props: Props) {
       note: null
     },
     mode: 'onSubmit',
-    resolver: yupResolver(schema)
+    resolver: yupResolver(schema) as any
   });
 
   // Tabs state: 'occupancy', 'mobilization', 'note'

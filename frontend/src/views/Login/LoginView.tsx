@@ -1,7 +1,7 @@
 import { fr } from '@codegouvfr/react-dsfr';
 import { Alert } from '@codegouvfr/react-dsfr/Alert';
 import Button from '@codegouvfr/react-dsfr/Button';
-import { yupResolver } from '@hookform/resolvers-next/yup';
+import { yupResolver } from '@hookform/resolvers/yup';
 import Box from '@mui/material/Box';
 import Container from '@mui/material/Container';
 import Grid from '@mui/material/Grid';
@@ -10,7 +10,7 @@ import type { EstablishmentDTO } from '@zerologementvacant/models';
 import { useState } from 'react';
 import { FormProvider, useForm } from 'react-hook-form';
 import { useLocation, useNavigate } from 'react-router-dom';
-import { boolean, object, string, type InferType } from 'yup-next';
+import * as yup from 'yup';
 
 import EstablishmentSearchableSelect from '~/components/establishment/EstablishmentSearchableSelect';
 import building from '../../assets/images/building.svg';
@@ -21,26 +21,27 @@ import { useAppDispatch, useAppSelector } from '../../hooks/useStore';
 import { logIn } from '../../store/thunks/auth-thunks';
 import Image from '~/components/Image/Image';
 
-const schema = object({
-  isAdmin: boolean().required(),
-  email: string()
+const schema = yup.object({
+  isAdmin: yup.boolean().required(),
+  email: yup.string()
     .trim()
     .required('Veuillez renseigner votre adresse email.')
     .email(
-      'L’adresse doit être un email valide. Exemple de format valide : exemple@gmail.com'
+      'L\'adresse doit être un email valide. Exemple de format valide : exemple@gmail.com'
     ),
-  password: string().trim().required('Veuillez renseigner un mot de passe.'),
-  establishmentId: string()
+  password: yup.string().trim().required('Veuillez renseigner un mot de passe.'),
+  establishmentId: yup.string()
+    .optional()
     .nullable()
-    .when('isAdmin', {
-      is: true,
-      then: (schema) =>
-        schema.required('Veuillez sélectionner un établissement.'),
-      otherwise: (schema) => schema.nullable()
-    })
+    .default(undefined)
+    .when('isAdmin', ([isAdmin], schema) =>
+      isAdmin === true
+        ? schema.required('Veuillez sélectionner un établissement.')
+        : schema
+    )
 }).required();
 
-export type LoginSchema = InferType<typeof schema>;
+export type LoginSchema = yup.InferType<typeof schema>;
 
 const LoginView = () => {
   useDocumentTitle('Connexion');
@@ -62,8 +63,7 @@ const LoginView = () => {
       password: '',
       establishmentId: null
     },
-    // @ts-expect-error: typescript resolves types from yup (v0) instead of yup-next (v1)
-    resolver: yupResolver(schema)
+    resolver: yupResolver(schema) as any
   });
 
   function submitLoginForm(data: LoginSchema): void {

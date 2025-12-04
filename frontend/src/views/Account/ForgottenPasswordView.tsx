@@ -57,7 +57,7 @@ function ForgottenPasswordView() {
   };
   type FormShape = typeof shape;
 
-  const form = useForm(yup.object().shape(shape), {
+  const form = useForm(yup.object().shape(shape) as any, {
     email
   });
   const { hidden, setHidden } = useHide();

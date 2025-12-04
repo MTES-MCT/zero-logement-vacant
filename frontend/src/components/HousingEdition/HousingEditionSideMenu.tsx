@@ -40,7 +40,7 @@ const WIDTH = '700px';
 const schema = yup.object({
   occupancy: yup
     .string()
-    .required('Veuillez renseigner l’occupation actuelle')
+    .required('Veuillez renseigner l\'occupation actuelle')
     .oneOf(OCCUPANCY_VALUES),
   occupancyIntended: yup
     .string()
@@ -55,17 +55,16 @@ const schema = yup.object({
   subStatus: yup
     .string()
     .trim()
+    .optional()
     .nullable()
-    .when('status', {
-      is: (status: HousingStatus) =>
-        HousingStates.find((state) => state.status === status)?.subStatusList
-          ?.length,
-      then: (schema) =>
-        schema.required('Veuillez renseigner le sous-statut de suivi'),
-      otherwise: (schema) => schema.nullable().optional().default(null)
-    }),
-  note: yup.string()
-});
+    .default(undefined)
+    .when('status', ([status], schema) =>
+      HousingStates.find((state) => state.status === status)?.subStatusList?.length
+        ? schema.required('Veuillez renseigner le sous-statut de suivi')
+        : schema
+    ),
+  note: yup.string().optional().default(undefined)
+}).required();
 
 export type HousingEditionFormSchema = yup.InferType<typeof schema>;
 
@@ -82,7 +81,7 @@ function HousingEditionSideMenu(props: HousingEditionSideMenuProps) {
       note: ''
     },
     mode: 'onSubmit',
-    resolver: yupResolver(schema)
+    resolver: yupResolver(schema) as any
   });
 
   const [createNote, noteCreationMutation] = useCreateNoteByHousingMutation();

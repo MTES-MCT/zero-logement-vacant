@@ -33,7 +33,7 @@ function ResetPasswordView() {
   };
   type FormShape = typeof shape;
 
-  const form = useForm(yup.object().shape(shape), {
+  const form = useForm(yup.object().shape(shape) as any, {
     password,
     passwordFormat: password,
     passwordConfirmation

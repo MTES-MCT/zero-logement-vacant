@@ -1,7 +1,9 @@
-import { useCallback, useState } from 'react';
+import Box from '@mui/material/Box';
+import CircularProgress from '@mui/material/CircularProgress';
 import Stack from '@mui/material/Stack';
 import Typography from '@mui/material/Typography';
 import { type DocumentDTO, isImage, isPDF } from '@zerologementvacant/models';
+import { useCallback, useState } from 'react';
 import { Document, Page, pdfjs } from 'react-pdf';
 import { match } from 'ts-pattern';
 
@@ -41,7 +43,22 @@ function PDFPreview({ url }: { url: string }) {
           overflow: 'scroll'
         }}
       >
-        <Document file={{ url }}>
+        <Document
+          file={{ url }}
+          loading={
+            <Box
+              sx={{
+                display: 'flex',
+                justifyContent: 'center',
+                alignItems: 'center',
+                height: '100%',
+                p: 2
+              }}
+            >
+              <CircularProgress />
+            </Box>
+          }
+        >
           <Page pageNumber={1} width={containerWidth ?? undefined} />
         </Document>
       </Stack>

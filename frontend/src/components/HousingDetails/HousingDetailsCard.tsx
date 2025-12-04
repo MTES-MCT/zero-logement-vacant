@@ -1,4 +1,5 @@
 import Tabs from '@codegouvfr/react-dsfr/Tabs';
+import { useFeatureFlagEnabled } from 'posthog-js/react';
 import Skeleton from '@mui/material/Skeleton';
 
 import { type Housing } from '~/models/Housing';
@@ -12,6 +13,8 @@ interface HousingDetailsCardProps {
 }
 
 function HousingDetailsCard(props: HousingDetailsCardProps) {
+  const uploadDocsEnabled = useFeatureFlagEnabled('upload-docs');
+
   if (!props.housing) {
     return (
       <Skeleton
@@ -19,6 +22,28 @@ function HousingDetailsCard(props: HousingDetailsCardProps) {
         variant="rectangular"
         width="100%"
         height="60rem"
+      />
+    );
+  }
+
+  if (!uploadDocsEnabled) {
+    return (
+      <Tabs
+        tabs={[
+          {
+            label: 'Logement et bâtiment',
+            content: <HousingTab housing={props.housing} />,
+            isDefault: true
+          },
+          {
+            label: 'Suivi',
+            content: <MobilizationTab housing={props.housing} />
+          },
+          {
+            label: 'Notes et historique',
+            content: <HistoryTab housing={props.housing} />
+          }
+        ]}
       />
     );
   }

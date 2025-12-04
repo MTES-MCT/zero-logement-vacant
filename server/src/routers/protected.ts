@@ -54,7 +54,7 @@ router.post(
   validatorNext.validate({
     params: object({ id: schemas.id })
   }),
-  upload(),
+  upload({ multiple: true }),
   documentController.createByHousing
 );
 

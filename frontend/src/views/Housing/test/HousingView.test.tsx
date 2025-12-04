@@ -2,6 +2,7 @@ import { faker } from '@faker-js/faker/locale/fr';
 import { render, screen, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import {
+  type DocumentDTO,
   type HousingDTO,
   type HousingOwnerDTO,
   HousingStatus,
@@ -13,12 +14,14 @@ import {
   UserRole
 } from '@zerologementvacant/models';
 import {
+  genDocumentDTO,
   genHousingDTO,
   genHousingOwnerDTO,
   genNoteDTO,
   genOwnerDTO,
   genUserDTO
 } from '@zerologementvacant/models/fixtures';
+import async from 'async';
 import { format, subYears } from 'date-fns';
 import { Provider } from 'react-redux';
 import { createMemoryRouter, RouterProvider } from 'react-router-dom';
@@ -37,6 +40,7 @@ describe('Housing view', () => {
     owners?: ReadonlyArray<OwnerDTO>;
     housingOwners?: ReadonlyArray<HousingOwnerDTO>;
     notes?: ReadonlyArray<NoteDTO>;
+    documents?: ReadonlyArray<DocumentDTO>;
     /**
      * @default true
      */
@@ -60,6 +64,12 @@ describe('Housing view', () => {
         housing.id,
         options.notes.map((note) => note.id)
       );
+    }
+    if (options?.documents?.length) {
+      options.documents.forEach((document) => {
+        data.documents.set(document.id, document);
+      });
+      data.housingDocuments.set(housing.id, options.documents);
     }
 
     const user = options?.user ?? genUserDTO(UserRole.USUAL);
@@ -299,6 +309,59 @@ describe('Housing view', () => {
       });
       const note = await within(panel).findByText('Note');
       expect(note).toBeVisible();
+    });
+  });
+
+  describe('View documents', () => {
+    vitest.mock('posthog-js/react', () => ({
+      useFeatureFlagEnabled: (flag: string) => flag === 'upload-docs'
+    }));
+
+    it('should display a message if there is no document', async () => {
+      const housing = genHousingDTO(null);
+      const auth = genUserDTO(UserRole.USUAL);
+
+      renderView(housing, {
+        documents: [],
+        user: auth
+      });
+
+      const tab = await screen.findByRole('tab', {
+        name: 'Documents'
+      });
+      await user.click(tab);
+      const tabpanel = await screen.findByRole('tabpanel', {
+        name: 'Documents'
+      });
+      const description = await within(tabpanel).findByText(
+        /Il n’y a pas de document associé à ce logement/i
+      );
+      expect(description).toBeVisible();
+    });
+
+    it('should display documents', async () => {
+      const housing = genHousingDTO(null);
+      const auth = genUserDTO(UserRole.USUAL);
+      const documents = faker.helpers.multiple(() => genDocumentDTO(auth));
+
+      renderView(housing, {
+        documents,
+        user: auth
+      });
+
+      const tab = await screen.findByRole('tab', {
+        name: 'Documents'
+      });
+      await user.click(tab);
+      const tabpanel = await screen.findByRole('tabpanel', {
+        name: 'Documents'
+      });
+      await async.forEach(documents, async (document) => {
+        const name = await within(tabpanel).findByText(
+          new RegExp(document.filename, 'i')
+        );
+        expect(name).toBeVisible();
+      });
     });
   });
 

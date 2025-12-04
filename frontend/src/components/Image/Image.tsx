@@ -3,11 +3,13 @@ import styled from '@emotion/styled';
 import classNames from 'classnames';
 
 type Responsive = '1x1' | '2x3' | '3x2' | '3x4' | '4x3' | '16x9' | '32x9';
+type ObjectFit = 'fill' | 'contain' | 'cover' | 'none' | 'scale-down';
 
 interface Props {
   alt: string;
   className?: string;
   responsive?: boolean | Responsive | 'max-width' | 'max-height';
+  fit?: ObjectFit;
   src: string;
 }
 
@@ -44,4 +46,5 @@ export default styled(Image)`
   max-height: ${(props) =>
     props.responsive === 'max-height' ? '100%' : undefined};
   width: ${(props) => (props.responsive === 'max-height' ? 'auto' : undefined)};
+  object-fit: ${(props) => (props.fit ? `${props.fit} !important` : undefined)};
 `;

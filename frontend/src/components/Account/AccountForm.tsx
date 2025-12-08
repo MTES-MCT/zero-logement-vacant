@@ -1,11 +1,11 @@
 import Button from '@codegouvfr/react-dsfr/Button';
-import { yupResolver } from '@hookform/resolvers-next/yup';
+import { yupResolver } from '@hookform/resolvers/yup';
 import Box from '@mui/material/Box';
 import Stack from '@mui/material/Stack';
 import Typography from '@mui/material/Typography';
 import { TIME_PER_WEEK_VALUES } from '@zerologementvacant/models';
 import { Controller, FormProvider, useForm } from 'react-hook-form';
-import { object, ref, string, type InferType } from 'yup-next';
+import { object, ref, string, type InferType } from 'yup';
 
 import { useUser } from '~/hooks/useUser';
 import {
@@ -101,7 +101,6 @@ function AccountForm() {
       passwordConfirmation: null
     },
     mode: 'onSubmit',
-    // @ts-expect-error: typescript resolves types from yup (v0) instead of yup-next (v1)
     resolver: yupResolver(schema)
   });
 

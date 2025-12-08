@@ -6,9 +6,9 @@ import Container from '@mui/material/Container';
 import Grid from '@mui/material/Grid';
 import Box from '@mui/material/Box';
 import Stack from '@mui/material/Stack';
-import { yupResolver } from '@hookform/resolvers-next/yup';
+import { yupResolver } from '@hookform/resolvers/yup';
 import { FormProvider, useForm } from 'react-hook-form';
-import { object, string, type InferType } from 'yup-next';
+import { object, string, type InferType } from 'yup';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { useState } from 'react';
 
@@ -52,7 +52,6 @@ const TwoFactorView = () => {
       code: ''
     },
     mode: 'onSubmit',
-    // @ts-expect-error: typescript resolves types from yup (v0) instead of yup-next (v1)
     resolver: yupResolver(schema)
   });
 

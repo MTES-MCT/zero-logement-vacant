@@ -1,9 +1,9 @@
 import Alert from '@codegouvfr/react-dsfr/Alert';
-import { yupResolver } from '@hookform/resolvers-next/yup';
+import { yupResolver } from '@hookform/resolvers/yup';
 import Grid from '@mui/material/Grid';
 import { useEffect } from 'react';
 import { FormProvider, useForm } from 'react-hook-form';
-import { object, string, type InferType } from 'yup-next';
+import { object, string, type InferType } from 'yup';
 
 import { datafoncierApi } from '~/services/datafoncier.service';
 import { housingApi } from '~/services/housing.service';
@@ -38,7 +38,6 @@ function createFillLocalIdModal() {
         defaultValues: {
           localId: ''
         },
-        // @ts-expect-error: typescript resolves types from yup (v0) instead of yup-next (v1)
         resolver: yupResolver(schema)
       });
 

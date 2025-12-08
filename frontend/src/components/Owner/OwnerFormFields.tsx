@@ -3,7 +3,7 @@ import Grid from '@mui/material/Grid';
 import Stack from '@mui/material/Stack';
 import Typography from '@mui/material/Typography';
 import { Controller, useFormContext } from 'react-hook-form';
-import { number, object, string, type InferType } from 'yup-next';
+import { number, object, string, type InferType } from 'yup';
 
 import AppTextInputNext from '~/components/_app/AppTextInput/AppTextInputNext';
 import OwnerAddressEditionNext from '~/components/Owner/OwnerAddressEditionNext';

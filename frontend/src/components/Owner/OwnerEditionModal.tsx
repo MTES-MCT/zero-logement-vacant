@@ -1,10 +1,10 @@
 import { fr } from '@codegouvfr/react-dsfr';
-import { yupResolver } from '@hookform/resolvers-next/yup';
+import { yupResolver } from '@hookform/resolvers/yup';
 import Grid from '@mui/material/Grid';
 import Stack from '@mui/material/Stack';
 import Typography from '@mui/material/Typography';
 import { Controller, FormProvider, useForm } from 'react-hook-form';
-import { number, object, string, type InferType } from 'yup-next';
+import { number, object, string, type InferType } from 'yup';
 
 import AppTextInputNext from '~/components/_app/AppTextInput/AppTextInputNext';
 import {
@@ -81,7 +81,6 @@ function createOwnerEditionModalNext() {
           email: props.owner.email,
           phone: props.owner.phone
         },
-        // @ts-expect-error: typescript resolves types from yup (v0) instead of yup-next (v1)
         resolver: yupResolver(schema)
       });
 
@@ -158,7 +157,7 @@ function createOwnerEditionModalNext() {
                 }
               ]}
               {...props}
-              title='Modifier la rubrique "propriétaire"'
+              title='Éditer les informations du propriétaire'
             >
               <Stack spacing="1.5rem">
                 <Grid

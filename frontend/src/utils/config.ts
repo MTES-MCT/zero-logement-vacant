@@ -1,4 +1,4 @@
-import { boolean, number, object, string } from 'yup-next';
+import { boolean, number, object, string } from 'yup';
 
 const schema = object({
   api: object({

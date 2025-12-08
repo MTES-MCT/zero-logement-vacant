@@ -1,6 +1,6 @@
 import { fr } from '@codegouvfr/react-dsfr';
 import RadioButtons from '@codegouvfr/react-dsfr/RadioButtons';
-import { yupResolver } from '@hookform/resolvers-next/yup';
+import { yupResolver } from '@hookform/resolvers/yup';
 import Stack from '@mui/material/Stack';
 import Typography from '@mui/material/Typography';
 import {
@@ -9,7 +9,7 @@ import {
   PREVIOUS_OWNER_RANK
 } from '@zerologementvacant/models';
 import { Controller, FormProvider, useForm } from 'react-hook-form';
-import { boolean, number, object, string, type InferType } from 'yup-next';
+import { boolean, number, object, string, type InferType } from 'yup';
 
 import ToggleSwitch from '@codegouvfr/react-dsfr/ToggleSwitch';
 import Box from '@mui/material/Box';
@@ -96,7 +96,6 @@ function HousingOwnerEditionAside(props: HousingOwnerEditionAsideProps) {
       email: housingOwner?.email ?? null,
       phone: housingOwner?.phone ?? null
     },
-    // @ts-expect-error: typescript resolves types from yup (v0) instead of yup-next (v1)
     resolver: yupResolver(schema)
   });
 
@@ -242,7 +241,6 @@ function HousingOwnerEditionAside(props: HousingOwnerEditionAsideProps) {
                       render={({ field, fieldState }) => (
                         <HousingOwnerInactiveSelect
                           error={fieldState.error?.message}
-                          // @ts-expect-error: typescript resolves types from yup (v0) instead of yup-next (v1)
                           value={field.value}
                           onChange={field.onChange}
                         />

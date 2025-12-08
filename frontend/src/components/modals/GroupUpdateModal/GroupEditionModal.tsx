@@ -1,7 +1,7 @@
-import { yupResolver } from '@hookform/resolvers-next/yup';
+import { yupResolver } from '@hookform/resolvers/yup';
 import type { ButtonProps } from '@codegouvfr/react-dsfr/Button';
 import { FormProvider, useForm } from 'react-hook-form';
-import { object, string, type InferType } from 'yup-next';
+import { object, string, type InferType } from 'yup';
 
 import ConfirmationModal from '../ConfirmationModal/ConfirmationModal';
 import type { Group } from '../../../models/Group';
@@ -45,7 +45,6 @@ function GroupEditionModal(props: Props) {
       title: props.group?.title ?? '',
       description: props.group?.description ?? ''
     },
-    // @ts-expect-error: typescript resolves types from yup (v0) instead of yup-next (v1)
     resolver: yupResolver(schema)
   });
 

@@ -68,7 +68,7 @@ export const zipValidationMiddleware: RequestHandler = async (
       logger.warn('File is not a valid ZIP archive (magic bytes check failed)', {
         fileName,
         declaredMimeType,
-        firstBytes: Array.from(fileBuffer.slice(0, 4)).map((b: number) => b.toString(16).padStart(2, '0')).join(' ')
+        firstBytes: Array.from(fileBuffer.slice(0, 4)).map((b) => (b as number).toString(16).padStart(2, '0')).join(' ')
       });
       throw new BadRequestError();
     }

@@ -8,7 +8,7 @@ import { parseDateInput } from '../utils/dateUtils';
 export const emailValidator = yup
   .string()
   .required('Veuillez renseigner votre adresse email.')
-  .email('L’adresse doit être un email valide. Exemple de format valide : exemple@gmail.com');
+  .email("L'adresse doit être un email valide. Exemple de format valide : exemple@gmail.com");
 
 export const passwordFormatValidator = yup
   .string()

@@ -13,7 +13,7 @@ import {
 import { fromJS } from 'immutable';
 import { Controller, FormProvider, useForm } from 'react-hook-form';
 import { match } from 'ts-pattern';
-import * as yup from 'yup';
+import { type InferType, number, object, string } from 'yup';
 import { useNotification } from '../../hooks/useNotification';
 import { HousingStates } from '../../models/HousingState';
 import { useUpdateHousingMutation } from '../../services/housing.service';
@@ -37,23 +37,19 @@ interface HousingEditionSideMenuProps {
 
 const WIDTH = '700px';
 
-const schema = yup.object({
-  occupancy: yup
-    .string()
-    .required('Veuillez renseigner l\'occupation actuelle')
+const schema = object({
+  occupancy: string()
+    .required("Veuillez renseigner l'occupation actuelle")
     .oneOf(OCCUPANCY_VALUES),
-  occupancyIntended: yup
-    .string()
+  occupancyIntended: string()
     .oneOf(OCCUPANCY_VALUES)
     .nullable()
     .optional()
     .default(null),
-  status: yup
-    .number()
+  status: number()
     .required('Veuillez renseigner le statut de suivi')
     .oneOf(HOUSING_STATUS_VALUES),
-  subStatus: yup
-    .string()
+  subStatus: string()
     .trim()
     .optional()
     .nullable()
@@ -63,10 +59,10 @@ const schema = yup.object({
         ? schema.required('Veuillez renseigner le sous-statut de suivi')
         : schema
     ),
-  note: yup.string().optional().default(undefined)
+  note: string().optional().default(undefined)
 }).required();
 
-export type HousingEditionFormSchema = yup.InferType<typeof schema>;
+export type HousingEditionFormSchema = InferType<typeof schema>;
 
 function HousingEditionSideMenu(props: HousingEditionSideMenuProps) {
   const { housing, expand, onClose } = props;
@@ -81,7 +77,7 @@ function HousingEditionSideMenu(props: HousingEditionSideMenuProps) {
       note: ''
     },
     mode: 'onSubmit',
-    resolver: yupResolver(schema) as any
+    resolver: yupResolver(schema)
   });
 
   const [createNote, noteCreationMutation] = useCreateNoteByHousingMutation();

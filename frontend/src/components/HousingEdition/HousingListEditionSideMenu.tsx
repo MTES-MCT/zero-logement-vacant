@@ -10,7 +10,7 @@ import {
 import { useState } from 'react';
 import { Controller, FormProvider, useForm } from 'react-hook-form';
 import { match } from 'ts-pattern';
-import * as yup from 'yup';
+import { type InferType, number, object, string } from 'yup';
 
 import type { Selection } from '~/hooks/useSelection';
 import { HousingStates } from '../../models/HousingState';
@@ -24,27 +24,23 @@ import HousingEditionMobilizationTab from './HousingEditionMobilizationTab';
 
 const WIDTH = '700px';
 
-const schema = yup.object({
-  occupancy: yup
-    .string()
+const schema = object({
+  occupancy: string()
     .nullable()
     .optional()
     .default(null)
     .oneOf([...OCCUPANCY_VALUES, null]),
-  occupancyIntended: yup
-    .string()
+  occupancyIntended: string()
     .nullable()
     .optional()
     .default(null)
     .oneOf([...OCCUPANCY_VALUES, null]),
-  status: yup
-    .number()
+  status: number()
     .nullable()
     .optional()
     .default(null)
     .oneOf([...HOUSING_STATUS_VALUES, null]),
-  subStatus: yup
-    .string()
+  subStatus: string()
     .trim()
     .optional()
     .nullable()
@@ -54,7 +50,7 @@ const schema = yup.object({
         ? schema.required('Veuillez renseigner le sous-statut de suivi')
         : schema
     ),
-  note: yup.string().trim().nullable().optional().default(null)
+  note: string().trim().nullable().optional().default(null)
 }).required();
 
 const modal = createConfirmationModal({
@@ -62,7 +58,7 @@ const modal = createConfirmationModal({
   isOpenedByDefault: false
 });
 
-export type BatchEditionFormSchema = yup.InferType<typeof schema>;
+export type BatchEditionFormSchema = InferType<typeof schema>;
 
 interface Props {
   count: number;
@@ -82,7 +78,7 @@ function HousingListEditionSideMenu(props: Props) {
       note: null
     },
     mode: 'onSubmit',
-    resolver: yupResolver(schema) as any
+    resolver: yupResolver(schema)
   });
 
   // Tabs state: 'occupancy', 'mobilization', 'note'

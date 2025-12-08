@@ -13,7 +13,7 @@ export type AppTextInputNextProps<T> = InputProps & {
   name: string;
   // TODO: require these functions when T is not a string
   mapValue?(value: T): string;
-  contramapValue?(value: string): T;
+  contramapValue?(value: string): T | null;
 };
 /**
  * A text input based on the [DSFR Input](https://components.react-dsfr.codegouv.studio/?path=/docs/components-input--default) component and [react-hook-form](https://react-hook-form.com/).

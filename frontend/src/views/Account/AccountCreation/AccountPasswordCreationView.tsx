@@ -5,7 +5,7 @@ import Grid from '@mui/material/Grid';
 import Typography from '@mui/material/Typography';
 import { FormProvider, useForm } from 'react-hook-form';
 import { Navigate, useNavigate } from 'react-router-dom';
-import * as yup from 'yup';
+import { type InferType, object } from 'yup';
 
 import {
   passwordConfirmationValidator,
@@ -21,26 +21,24 @@ import { useCreateUserMutation } from '../../../services/user.service';
 import { useAppDispatch } from '../../../hooks/useStore';
 import { logIn } from '../../../store/actions/authenticationAction';
 
-const schema = yup
-  .object({
-    password: passwordFormatValidator.optional().default(undefined),
-    confirmation: passwordConfirmationValidator
-  })
-  .required();
+const schema = object({
+  password: passwordFormatValidator.optional().default(undefined),
+  confirmation: passwordConfirmationValidator
+}).required();
 
 function AccountPasswordCreationView() {
   const dispatch = useAppDispatch();
   const navigate = useNavigate();
   const { linkExists, loading, prospect } = useProspect();
 
-  const form = useForm<yup.InferType<typeof schema>>({
+  const form = useForm<InferType<typeof schema>>({
     criteriaMode: 'all',
     defaultValues: {
       password: '',
       confirmation: ''
     },
     mode: 'onSubmit',
-    resolver: yupResolver(schema) as any
+    resolver: yupResolver(schema)
   });
 
   const [createUser] = useCreateUserMutation();

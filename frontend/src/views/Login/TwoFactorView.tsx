@@ -8,7 +8,7 @@ import Box from '@mui/material/Box';
 import Stack from '@mui/material/Stack';
 import { yupResolver } from '@hookform/resolvers/yup';
 import { FormProvider, useForm } from 'react-hook-form';
-import * as yup from 'yup';
+import { type InferType, object, string } from 'yup';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { useState } from 'react';
 
@@ -19,14 +19,14 @@ import { verifyTwoFactor } from '~/store/thunks/auth-thunks';
 import Image from '~/components/Image/Image';
 import securityIcon from '~/assets/images/building.svg';
 
-const schema = yup.object({
-  code: yup.string()
+const schema = object({
+  code: string()
     .required('Veuillez renseigner le code de vérification.')
     .length(6, 'Le code doit contenir 6 chiffres')
     .matches(/^\d{6}$/, 'Le code doit contenir uniquement des chiffres')
 });
 
-type FormSchema = yup.InferType<typeof schema>;
+type FormSchema = InferType<typeof schema>;
 
 interface TwoFactorState {
   email: string;

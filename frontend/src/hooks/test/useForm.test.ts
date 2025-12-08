@@ -1,7 +1,6 @@
 import * as yup from 'yup';
-import { type ObjectShape } from 'yup';
 
-import { entriesDeep, keysDeep } from '../useForm';
+import { entriesDeep, keysDeep, type ObjectShape } from '../useForm';
 
 describe('useForm', () => {
   describe('keysDeep', () => {

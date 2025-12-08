@@ -15,7 +15,7 @@ const schema = yup.object({
   localId: yup.string()
     .required('Veuillez renseigner un identifiant pour ce logement')
     .trim()
-    .length(12, 'L\'identifiant doit contenir exactement 12 caractères')
+    .length(12, 'L’identifiant doit contenir exactement 12 caractères')
 }).required();
 
 type FillLocalIdSchema = yup.InferType<typeof schema>;

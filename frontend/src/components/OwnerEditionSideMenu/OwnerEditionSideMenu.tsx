@@ -76,7 +76,17 @@ function OwnerEditionSideMenu(props: OwnerEditionSideMenuProps) {
       );
       await updateOwner({
         ...props.owner,
-        banAddress: values.address ?? null,
+        banAddress: values.address ? {
+          ...values.address,
+          score: values.address.score ?? undefined,
+          banId: values.address.banId ?? undefined,
+          houseNumber: values.address.houseNumber ?? undefined,
+          street: values.address.street ?? undefined,
+          postalCode: values.address.postalCode ?? undefined,
+          city: values.address.city ?? undefined,
+          latitude: values.address.latitude ?? undefined,
+          longitude: values.address.longitude ?? undefined
+        } : null,
         additionalAddress: values.additionalAddress
       });
       props.onClose?.();

@@ -2,7 +2,7 @@ import { isDate } from 'date-fns';
 import { Array, pipe, Predicate, Record } from 'effect';
 import { useEffect, useRef, useState } from 'react';
 import * as yup from 'yup';
-import type { ObjectShape } from 'yup/lib/object';
+import type { ObjectShape } from 'yup';
 import { parseDateInput } from '../utils/dateUtils';
 
 export const emailValidator = yup
@@ -56,7 +56,7 @@ export const dateValidator = yup
 
 export const fileValidator = (supportedFormats: string[]) =>
   yup
-    .mixed()
+    .mixed<File>()
     .required('Veuillez sélectionner un fichier')
     .test(
       'fileType',
@@ -82,7 +82,7 @@ interface Message {
  * @param fullValidationKeys
  */
 export function useForm<
-  T extends ObjectShape,
+  T extends yup.AnyObject,
   U extends Record<keyof T, unknown>
 >(schema: yup.ObjectSchema<T>, input: U, fullValidationKeys?: (keyof U)[]) {
   const [errors, setErrors] = useState<yup.ValidationError[]>();

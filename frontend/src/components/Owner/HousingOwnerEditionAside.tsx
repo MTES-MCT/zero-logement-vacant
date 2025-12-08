@@ -241,7 +241,7 @@ function HousingOwnerEditionAside(props: HousingOwnerEditionAsideProps) {
                       render={({ field, fieldState }) => (
                         <HousingOwnerInactiveSelect
                           error={fieldState.error?.message}
-                          value={field.value}
+                          value={field.value ?? null}
                           onChange={field.onChange}
                         />
                       )}

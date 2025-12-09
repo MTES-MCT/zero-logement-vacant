@@ -741,7 +741,7 @@ describe('Housing view', () => {
       });
       await user.click(remove);
       const modal = await screen.findByRole('dialog', {
-        name: 'Suppression d’une note'
+        name: "Suppression d'une note"
       });
       const confirm = await within(modal).findByRole('button', {
         name: 'Confirmer'
@@ -751,5 +751,78 @@ describe('Housing view', () => {
     });
 
     it.todo('should allow an admin to remove any note');
+  });
+
+  describe('Delete a document', () => {
+    it('should delete a document', async () => {
+      const housing = genHousingDTO(null);
+      const auth = genUserDTO(UserRole.USUAL);
+      const document = genDocumentDTO(auth);
+
+      renderView(housing, {
+        documents: [document],
+        user: auth
+      });
+
+      const tab = await screen.findByRole('tab', {
+        name: 'Documents'
+      });
+      await user.click(tab);
+      const tabpanel = await screen.findByRole('tabpanel', {
+        name: 'Documents'
+      });
+      const dropdown = await within(tabpanel).findByRole('button', {
+        name: 'Options'
+      });
+      await user.click(dropdown);
+      const deleteButton = await screen.findByRole('button', {
+        name: 'Supprimer'
+      });
+      await user.click(deleteButton);
+      const modal = await screen.findByRole('dialog', {
+        name: 'Supprimer le document'
+      });
+      const confirm = await within(modal).findByRole('button', {
+        name: 'Confirmer'
+      });
+      await user.click(confirm);
+
+      expect(
+        within(tabpanel).queryByText(new RegExp(document.filename, 'i'))
+      ).not.toBeInTheDocument();
+    });
+
+    it('should be invisible to a visitor', async () => {
+      const housing = genHousingDTO(null);
+      const creator = genUserDTO(UserRole.USUAL);
+      const document = genDocumentDTO(creator);
+      const visitor = genUserDTO(UserRole.VISITOR);
+
+      renderView(housing, {
+        documents: [document],
+        user: visitor
+      });
+
+      const tab = await screen.findByRole('tab', {
+        name: 'Documents'
+      });
+      await user.click(tab);
+      const tabpanel = await screen.findByRole('tabpanel', {
+        name: 'Documents'
+      });
+      const name = await within(tabpanel).findByText(
+        new RegExp(document.filename, 'i')
+      );
+      expect(name).toBeVisible();
+
+      const dropdown = await within(tabpanel).findByRole('button', {
+        name: 'Options'
+      });
+      await user.click(dropdown);
+
+      expect(
+        screen.queryByRole('button', { name: 'Supprimer' })
+      ).not.toBeInTheDocument();
+    });
   });
 });

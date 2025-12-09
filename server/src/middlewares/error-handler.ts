@@ -6,6 +6,7 @@ import multer from 'multer';
 import { isClientError, isHttpError } from '~/errors/httpError';
 import BadRequestError from '~/errors/badRequestError';
 import VirusDetectedError from '~/errors/virusDetectedError';
+import { ShapefileValidationError } from '~/middlewares/shapefileValidation';
 import { createLogger } from '~/infra/logger';
 
 const logger = createLogger('error-handler');
@@ -23,23 +24,6 @@ function isFileValidationError(error: Error): error is BadRequestError & {
     error.name === 'FileValidationError' &&
     'reason' in error &&
     'fileName' in error
-  );
-}
-
-/**
- * Check if error is a ShapefileValidationError (from shapefileValidation middleware)
- */
-function isShapefileValidationError(error: Error): error is Error & {
-  status: number;
-  reason: 'missing_components' | 'too_many_features' | 'invalid_shapefile';
-  fileName: string;
-  details?: string;
-} {
-  return (
-    error.name === 'ShapefileValidationError' &&
-    'reason' in error &&
-    'fileName' in error &&
-    'status' in error
   );
 }
 
@@ -82,7 +66,7 @@ function respond(
   }
 
   // Handle ShapefileValidationError (from shapefileValidation middleware)
-  if (isShapefileValidationError(error)) {
+  if (error instanceof ShapefileValidationError) {
     const status = constants.HTTP_STATUS_BAD_REQUEST;
     let message = 'Invalid shapefile';
 

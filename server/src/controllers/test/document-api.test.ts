@@ -1,9 +1,12 @@
+import { HeadObjectCommand } from '@aws-sdk/client-s3';
 import { faker } from '@faker-js/faker/locale/fr';
 import { HousingDocumentDTO, UserRole } from '@zerologementvacant/models';
+import { createS3 } from '@zerologementvacant/utils/node';
 import { constants } from 'http2';
 import request from 'supertest';
 
 import type { DeepPartial } from 'ts-essentials';
+import config from '~/infra/config';
 import { createServer } from '~/infra/server';
 import { UserApi } from '~/models/UserApi';
 import {
@@ -344,7 +347,6 @@ describe('Document API', () => {
     });
 
     it('should return 404 Not found if the housing belongs to another establishment', async () => {
-      const document = genHousingDocumentApi(housing, anotherUser);
       const housingFromAnotherEstablishment = genHousingApi(
         faker.helpers.arrayElement(anotherEstablishment.geoCodes)
       );
@@ -355,16 +357,18 @@ describe('Document API', () => {
       await Housing().insert(
         formatHousingRecordApi(housingFromAnotherEstablishment)
       );
-      await housingDocumentRepository.createMany([
-        document,
-        documentFromAnotherEstablishment
-      ]);
+      await housingDocumentRepository.create(documentFromAnotherEstablishment);
 
       const { status } = await request(url)
-        .delete(testRoute(housing.id, document.id))
+        .delete(
+          testRoute(
+            housingFromAnotherEstablishment.id,
+            documentFromAnotherEstablishment.id
+          )
+        )
         .use(tokenProvider(user));
 
-      expect(status).toBe(constants.HTTP_STATUS_FORBIDDEN);
+      expect(status).toBe(constants.HTTP_STATUS_NOT_FOUND);
     });
 
     it('should allow admin to delete any document', async () => {
@@ -402,5 +406,29 @@ describe('Document API', () => {
       expect(deletedDocument).not.toBeNull();
       expect(deletedDocument!.deletedAt).not.toBeNull();
     });
+
+    it('should remove the actual document from the S3 bucket', async () => {
+      const s3 = createS3({
+        endpoint: config.s3.endpoint,
+        region: config.s3.region,
+        accessKeyId: config.s3.accessKeyId,
+        secretAccessKey: config.s3.secretAccessKey
+      });
+
+      const document = genHousingDocumentApi(housing, user);
+      await housingDocumentRepository.create(document);
+
+      await request(url)
+        .delete(testRoute(housing.id, document.id))
+        .use(tokenProvider(user));
+
+      // Verify the object no longer exists in S3
+      const headCommand = new HeadObjectCommand({
+        Bucket: config.s3.bucket,
+        Key: document.s3Key
+      });
+
+      await expect(s3.send(headCommand)).rejects.toThrow();
+    })
   });
 });

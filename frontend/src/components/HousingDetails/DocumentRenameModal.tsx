@@ -1,22 +1,19 @@
+import { yupResolver } from '@hookform/resolvers/yup';
+import Box from '@mui/material/Box';
+import Stack from '@mui/material/Stack';
+import type { DocumentDTO } from '@zerologementvacant/models';
+import schemas from "@zerologementvacant/schemas";
+import { FormProvider, useForm, useFormState } from 'react-hook-form';
+import { type InferType } from 'yup';
+
+import DocumentPreview from '~/components/FileUpload/DocumentPreview';
 import {
   createConfirmationModal,
   type ConfirmationModalProps
 } from '~/components/modals/ConfirmationModal/ConfirmationModalNext';
-import DocumentPreview from '~/components/FileUpload/DocumentPreview';
-import type { DocumentDTO } from '@zerologementvacant/models';
-import Stack from '@mui/material/Stack';
 import AppTextInputNext from '../_app/AppTextInput/AppTextInputNext';
-import { FormProvider, useForm, useFormState } from 'react-hook-form';
-import { yupResolver } from '@hookform/resolvers-next/yup';
-import { object, string, type InferType } from 'yup-next';
-import Box from '@mui/material/Box';
 
-const schema = object({
-  filename: string()
-    .required('Le nom du document est requis')
-    .trim()
-    .max(255, 'Le nom du document doit faire moins de 255 caractères')
-});
+const schema = schemas.documentPayload
 
 type FormSchema = InferType<typeof schema>;
 

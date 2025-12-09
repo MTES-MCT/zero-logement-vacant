@@ -59,7 +59,7 @@ export const dateValidator = yup
 
 export const fileValidator = (supportedFormats: string[]) =>
   yup
-    .mixed()
+    .mixed<File>()
     .required('Veuillez sélectionner un fichier')
     .test(
       'fileType',
@@ -85,7 +85,7 @@ interface Message {
  * @param fullValidationKeys
  */
 export function useForm<
-  T extends ObjectShape,
+  T extends yup.AnyObject,
   U extends Record<keyof T, unknown>
 >(schema: yup.ObjectSchema<T>, input: U, fullValidationKeys?: (keyof U)[]) {
   const [errors, setErrors] = useState<yup.ValidationError[]>();

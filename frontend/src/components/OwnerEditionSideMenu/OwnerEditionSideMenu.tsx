@@ -76,7 +76,17 @@ function OwnerEditionSideMenu(props: OwnerEditionSideMenuProps) {
       );
       await updateOwner({
         ...props.owner,
-        banAddress: values.address ?? null,
+        banAddress: values.address ? {
+          label: values.address.label,
+          score: values.address.score ?? undefined,
+          banId: values.address.banId ?? undefined,
+          houseNumber: values.address.houseNumber ?? undefined,
+          street: values.address.street ?? undefined,
+          postalCode: values.address.postalCode ?? '',
+          city: values.address.city ?? '',
+          latitude: values.address.latitude ?? undefined,
+          longitude: values.address.longitude ?? undefined
+        } : null,
         additionalAddress: values.additionalAddress
       });
       props.onClose?.();
@@ -158,7 +168,17 @@ function OwnerEditionSideMenu(props: OwnerEditionSideMenuProps) {
                   name="address"
                   render={({ field, fieldState }) => (
                     <OwnerAddressEdition
-                      banAddress={field.value ?? undefined}
+                      banAddress={field.value ? {
+                        label: field.value.label,
+                        score: field.value.score ?? undefined,
+                        banId: field.value.banId ?? undefined,
+                        houseNumber: field.value.houseNumber ?? undefined,
+                        street: field.value.street ?? undefined,
+                        postalCode: field.value.postalCode ?? '',
+                        city: field.value.city ?? '',
+                        latitude: field.value.latitude ?? undefined,
+                        longitude: field.value.longitude ?? undefined
+                      } : undefined}
                       disabled={field.disabled}
                       errorMessage={fieldState.error?.message}
                       help={false}

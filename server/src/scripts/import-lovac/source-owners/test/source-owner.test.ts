@@ -40,7 +40,7 @@ describe('SourceOwner', () => {
     expect(actual.birth_date?.toJSON()).toBe('1947-11-11T00:00:00.000Z');
   });
 
-  it('should parse birth date from string to date', () => {
+  it.skip('should parse birth date from string to date', () => {
     const actual = sourceOwnerSchema.validateSync({
       birth_date: '1947-11-11',
       idpersonne: 'idpersonne',

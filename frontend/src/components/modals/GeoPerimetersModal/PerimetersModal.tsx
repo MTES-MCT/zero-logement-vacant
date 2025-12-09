@@ -46,14 +46,21 @@ function createPerimetersModal() {
 
       const [
         uploadGeoPerimeterFile,
-        { isSuccess: isUploadSuccess, isError: isUploadError }
+        { isSuccess: isUploadSuccess, isError: isUploadError, error: uploadError }
       ] = useUploadGeoPerimeterFileMutation();
+
+      // Error message is already formatted by RTK Query transformErrorResponse
+      const uploadErrorMessage = uploadError as string | undefined;
+
       async function upload(file: File): Promise<void> {
-        await uploadGeoPerimeterFile(file)
-          .unwrap()
-          .finally(() => {
-            uploadModal.close();
-          });
+        try {
+          await uploadGeoPerimeterFile(file).unwrap();
+          // Only close modal on success
+          uploadModal.close();
+        } catch {
+          // Error is handled by useEffect and displayed in modal
+          // Don't close the modal
+        }
       }
 
       function startEditing(perimeter: GeoPerimeter): void {
@@ -164,6 +171,8 @@ function createPerimetersModal() {
               perimetersModal.open();
             }}
             onSubmit={upload}
+            error={uploadErrorMessage}
+            isLoading={false}
           />
 
           <editionModal.Component
@@ -274,7 +283,16 @@ function createPerimetersModal() {
                   className="fr-mb-2w"
                 />
               )}
-              {(isUploadError || isUpdateError || isDeleteError) && (
+              {isUploadError && uploadErrorMessage && (
+                <Alert
+                  severity="error"
+                  description={uploadErrorMessage}
+                  closable
+                  small
+                  className="fr-mb-2w"
+                />
+              )}
+              {(isUpdateError || isDeleteError) && (
                 <Alert
                   severity="error"
                   description="Une erreur s'est produite, veuillez réessayer."

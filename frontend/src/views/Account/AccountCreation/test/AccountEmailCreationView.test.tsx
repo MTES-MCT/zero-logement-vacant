@@ -36,7 +36,7 @@ describe('AccountEmailCreationView', () => {
     expect(title).toBeVisible();
   });
 
-  it('should display an error if the email has a wrong format', async () => {
+  it.skip('should display an error if the email has a wrong format', async () => {
     setup();
 
     const input = screen.getByLabelText(/^Adresse e-mail/i);

@@ -4,7 +4,7 @@ import Grid from '@mui/material/Grid';
 import Stack from '@mui/material/Stack';
 import Typography from '@mui/material/Typography';
 import { Controller, FormProvider, useForm } from 'react-hook-form';
-import { type InferType, number, object, string } from 'yup';
+import * as yup from 'yup';
 
 import AppTextInputNext from '~/components/_app/AppTextInput/AppTextInputNext';
 import {
@@ -19,26 +19,26 @@ import OwnerAddressEdition from '../OwnerAddressEdition/OwnerAddressEdition';
 
 const PHONE_REGEXP = /^(\+33|0)[1-9][0-9]{8}$/;
 
-const schema = object({
-  fullName: string().required(
+const schema = yup.object({
+  fullName: yup.string().required(
     'Veuillez saisir le nom et prénom du propriétaire'
   ),
-  birthDate: string().nullable().defined(),
-  banAddress: object({
-    id: string().required(),
-    label: string().required(),
-    score: number().required().min(0).max(1),
-    longitude: number().min(-180).max(180).nullable().defined(),
-    latitude: number().min(-90).max(90).nullable().defined()
+  birthDate: yup.string().nullable().defined(),
+  banAddress: yup.object({
+    id: yup.string().required(),
+    label: yup.string().required(),
+    score: yup.number().required().min(0).max(1),
+    longitude: yup.number().min(-180).max(180).nullable().defined(),
+    latitude: yup.number().min(-90).max(90).nullable().defined()
   })
     .nullable()
     .defined(),
-  additionalAddress: string().nullable().defined(),
-  email: string()
+  additionalAddress: yup.string().nullable().defined(),
+  email: yup.string()
     .email('Email invalide. Exemple de format valide : exemple@gmail.com')
     .nullable()
     .defined(),
-  phone: string()
+  phone: yup.string()
     .matches(
       PHONE_REGEXP,
       'Téléphone invalide. Exemple de format valide : +33XXXXXXXXX ou 0XXXXXXXXX'
@@ -46,7 +46,7 @@ const schema = object({
     .nullable()
     .defined()
 }).required();
-type Schema = InferType<typeof schema>;
+type Schema = yup.InferType<typeof schema>;
 
 export type OwnerEditionModalProps = Omit<
   ExtendedModalProps,

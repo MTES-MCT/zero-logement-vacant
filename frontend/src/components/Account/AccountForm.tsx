@@ -5,7 +5,7 @@ import Stack from '@mui/material/Stack';
 import Typography from '@mui/material/Typography';
 import { TIME_PER_WEEK_VALUES, type TimePerWeek } from '@zerologementvacant/models';
 import { Controller, FormProvider, useForm } from 'react-hook-form';
-import { type InferType, object, ref, string } from 'yup';
+import * as yup from 'yup';
 
 import { useUser } from '~/hooks/useUser';
 import {
@@ -17,17 +17,17 @@ import AppTextInputNext from '../_app/AppTextInput/AppTextInputNext';
 import TimePerWeekSelect from '../Users/TimePerWeekSelect';
 import { skipToken } from '@reduxjs/toolkit/query';
 
-const schema = object({
-  firstName: string().nullable().default(null),
-  lastName: string().nullable().default(null),
-  phone: string().nullable().default(null),
-  position: string().nullable().default(null),
-  timePerWeek: string().oneOf([...TIME_PER_WEEK_VALUES]).nullable().default(null)
+const schema = yup.object({
+  firstName: yup.string().nullable().default(null),
+  lastName: yup.string().nullable().default(null),
+  phone: yup.string().nullable().default(null),
+  position: yup.string().nullable().default(null),
+  timePerWeek: yup.string().oneOf([...TIME_PER_WEEK_VALUES]).nullable().default(null)
 })
   .required()
   .shape(
     {
-      currentPassword: string()
+      currentPassword: yup.string()
         .nullable()
         .default(null)
         .when(['password', 'passwordConfirmation'], ([password, passwordConfirmation], schema) =>
@@ -35,7 +35,7 @@ const schema = object({
             ? schema.required('Veuillez entrer votre mot de passe actuel.')
             : schema
         ),
-      password: string()
+      password: yup.string()
         .min(12, 'Au moins 12 caractères.')
         .matches(/[A-Z]/g, {
           name: 'uppercase',
@@ -56,7 +56,7 @@ const schema = object({
             ? schema.required('Veuillez entrer un nouveau mot de passe.')
             : schema
         ),
-      passwordConfirmation: string()
+      passwordConfirmation: yup.string()
         .nullable()
         .default(null)
         .when('password', ([password], schema) =>
@@ -64,7 +64,7 @@ const schema = object({
             ? schema
                 .required('Veuillez confirmer votre mot de passe.')
                 .oneOf(
-                  [ref('password')],
+                  [yup.ref('password')],
                   'Les mots de passe doivent être identiques.'
                 )
             : schema
@@ -77,7 +77,7 @@ const schema = object({
     ]
   );
 
-type FormSchema = InferType<typeof schema>;
+type FormSchema = yup.InferType<typeof schema>;
 
 function AccountForm() {
   const { user: auth } = useUser();

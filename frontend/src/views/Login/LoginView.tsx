@@ -10,7 +10,7 @@ import type { EstablishmentDTO } from '@zerologementvacant/models';
 import { useState } from 'react';
 import { FormProvider, useForm } from 'react-hook-form';
 import { useLocation, useNavigate } from 'react-router-dom';
-import { boolean, type InferType, object, string } from 'yup';
+import * as yup from 'yup';
 
 import EstablishmentSearchableSelect from '~/components/establishment/EstablishmentSearchableSelect';
 import building from '../../assets/images/building.svg';
@@ -21,16 +21,16 @@ import { useAppDispatch, useAppSelector } from '../../hooks/useStore';
 import { logIn } from '../../store/thunks/auth-thunks';
 import Image from '~/components/Image/Image';
 
-const schema = object({
-  isAdmin: boolean().required(),
-  email: string()
+const schema = yup.object({
+  isAdmin: yup.boolean().required(),
+  email: yup.string()
     .trim()
     .required('Veuillez renseigner votre adresse email.')
     .email(
       "L'adresse doit être un email valide. Exemple de format valide : exemple@gmail.com"
     ),
-  password: string().trim().required('Veuillez renseigner un mot de passe.'),
-  establishmentId: string()
+  password: yup.string().trim().required('Veuillez renseigner un mot de passe.'),
+  establishmentId: yup.string()
     .optional()
     .nullable()
     .default(undefined)
@@ -41,7 +41,7 @@ const schema = object({
     )
 }).required();
 
-export type LoginSchema = InferType<typeof schema>;
+export type LoginSchema = yup.InferType<typeof schema>;
 
 const LoginView = () => {
   useDocumentTitle('Connexion');

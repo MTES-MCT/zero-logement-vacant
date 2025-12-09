@@ -51,18 +51,16 @@ export function determineUserKind(
  */
 export async function fetchUserKind(email: string): Promise<string | null> {
   try {
-    // Authenticate with Portail DF API
+    // Authenticate with Portail DF API using multipart/form-data
+    const formData = new FormData();
+    formData.append('username', config.cerema.username);
+    formData.append('password', config.cerema.password);
+
     const authResponse = await fetch(
       `${config.cerema.api}/api/api-token-auth/`,
       {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify({
-          username: config.cerema.username,
-          password: config.cerema.password
-        })
+        body: formData
       }
     );
 

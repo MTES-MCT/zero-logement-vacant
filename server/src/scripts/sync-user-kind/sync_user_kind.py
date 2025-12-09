@@ -35,6 +35,8 @@ class UserKindSync:
         self,
         db_url: str,
         api_url: str,
+        username: str,
+        password: str,
         dry_run: bool = False,
         batch_size: int = 1000,
         num_workers: int = 4,
@@ -45,17 +47,22 @@ class UserKindSync:
         Args:
             db_url: PostgreSQL connection URI
             api_url: Portail DF API base URL
+            username: Portail DF API username
+            password: Portail DF API password
             dry_run: Simulation mode (no database modifications)
             batch_size: Batch size for database operations
             num_workers: Number of parallel workers
         """
         self.db_url = db_url
         self.api_url = api_url.rstrip("/")
+        self.username = username
+        self.password = password
         self.dry_run = dry_run
         self.batch_size = batch_size
         self.num_workers = num_workers
         self.conn = None
         self.cursor = None
+        self.auth_token = None
 
         self.stats = {
             "processed": 0,
@@ -73,6 +80,40 @@ class UserKindSync:
         self.session.headers.update(
             {"Accept": "application/json", "Content-Type": "application/json"}
         )
+
+    def authenticate(self):
+        """Authenticate with Portail DF API and get token."""
+        try:
+            auth_url = f"{self.api_url}/api-token-auth/"
+            # Send as multipart/form-data (boundary is auto-calculated)
+            response = requests.post(
+                auth_url,
+                files={
+                    "username": (None, self.username),
+                    "password": (None, self.password),
+                },
+                timeout=60,
+            )
+            response.raise_for_status()
+
+            data = response.json()
+            self.auth_token = data.get("token")
+
+            if not self.auth_token:
+                raise ValueError("No token in authentication response")
+
+            # Update session headers with token
+            self.session.headers.update(
+                {"Authorization": f"Token {self.auth_token}"}
+            )
+            logging.info("✅ Portail DF API authentication successful")
+
+        except requests.exceptions.RequestException as e:
+            print(f"❌ Portail DF API authentication failed: {e}")
+            raise
+        except Exception as e:
+            print(f"❌ Authentication error: {e}")
+            raise
 
     def connect(self):
         """Establish database connection."""
@@ -118,43 +159,57 @@ class UserKindSync:
         logging.info(f"📋 Found {len(users):,} users to sync")
         return users
 
-    def fetch_user_from_api(self, email: str) -> Optional[Dict]:
+    def fetch_user_from_api(self, email: str, max_retries: int = 3) -> Optional[Dict]:
         """
-        Fetch user data from Portail DF API.
+        Fetch user data from Portail DF API with retry logic.
 
         Args:
             email: User email address
+            max_retries: Maximum number of retry attempts
 
         Returns:
             User data from API or None if not found/error
         """
-        try:
-            url = f"{self.api_url}/utilisateurs"
-            params = {"email": email}
+        import time
 
-            response = self.session.get(url, params=params, timeout=10)
-            response.raise_for_status()
+        url = f"{self.api_url}/utilisateurs"
+        params = {"email": email}
 
-            data = response.json()
+        for attempt in range(max_retries):
+            try:
+                response = self.session.get(url, params=params, timeout=30)
+                response.raise_for_status()
 
-            # API returns paginated results
-            if data.get("count", 0) == 0:
-                logging.debug(f"User not found in Portail DF: {email}")
+                data = response.json()
+
+                # API returns paginated results
+                if data.get("count", 0) == 0:
+                    logging.debug(f"User not found in Portail DF: {email}")
+                    return None
+
+                # Get first result (should be only one)
+                results = data.get("results", [])
+                if results:
+                    return results[0]
+
                 return None
 
-            # Get first result (should be only one)
-            results = data.get("results", [])
-            if results:
-                return results[0]
+            except requests.exceptions.Timeout as e:
+                wait_time = 2 ** attempt  # Exponential backoff: 1s, 2s, 4s
+                if attempt < max_retries - 1:
+                    logging.warning(f"Timeout for {email}, retrying in {wait_time}s (attempt {attempt + 1}/{max_retries})")
+                    time.sleep(wait_time)
+                else:
+                    logging.warning(f"API request failed for {email} after {max_retries} attempts: {e}")
+                    return None
+            except requests.exceptions.RequestException as e:
+                logging.warning(f"API request failed for {email}: {e}")
+                return None
+            except Exception as e:
+                logging.error(f"Error fetching user {email}: {e}")
+                return None
 
-            return None
-
-        except requests.exceptions.RequestException as e:
-            logging.warning(f"API request failed for {email}: {e}")
-            return None
-        except Exception as e:
-            logging.error(f"Error fetching user {email}: {e}")
-            return None
+        return None
 
     def determine_kind(self, exterieur: bool, gestionnaire: bool) -> str:
         """
@@ -238,7 +293,7 @@ class UserKindSync:
                 UPDATE users AS u
                 SET kind = data.kind
                 FROM (VALUES %s) AS data(kind, user_id)
-                WHERE u.id = data.user_id
+                WHERE u.id = data.user_id::uuid
                 """,
                 update_data,
                 page_size=500,
@@ -327,6 +382,7 @@ class UserKindSync:
         print()
 
         self.connect()
+        self.authenticate()
 
         try:
             # Get users to process
@@ -403,6 +459,16 @@ def main():
         help="Portail DF API base URL (e.g., https://portaildf.cerema.fr/api)",
     )
     parser.add_argument(
+        "--username",
+        required=True,
+        help="Portail DF API username",
+    )
+    parser.add_argument(
+        "--password",
+        required=True,
+        help="Portail DF API password",
+    )
+    parser.add_argument(
         "--dry-run", action="store_true", help="Simulation mode (no database changes)"
     )
     parser.add_argument(
@@ -448,6 +514,8 @@ def main():
     sync = UserKindSync(
         db_url=args.db_url,
         api_url=args.api_url,
+        username=args.username,
+        password=args.password,
         dry_run=args.dry_run,
         batch_size=args.batch_size,
         num_workers=args.num_workers,

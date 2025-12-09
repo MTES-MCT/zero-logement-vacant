@@ -158,22 +158,28 @@ router.post(
 );
 
 router.put(
-  '/documents/:id',
+  '/housing/:housingId/documents/:documentId',
   hasRole([UserRole.USUAL, UserRole.ADMIN]),
   validatorNext.validate({
-    params: object({ id: schemas.id }),
+    params: object({
+      housingId: schemas.id,
+      documentId: schemas.id
+    }),
     body: schemas.documentPayload
   }),
-  documentController.update
+  documentController.updateByHousing
 );
 
 router.delete(
-  '/documents/:id',
+  '/housing/:housingId/documents/:documentId',
   hasRole([UserRole.USUAL, UserRole.ADMIN]),
   validatorNext.validate({
-    params: object({ id: schemas.id })
+    params: object({
+      housingId: schemas.id,
+      documentId: schemas.id
+    })
   }),
-  documentController.remove
+  documentController.removeByHousing
 );
 
 router.get(

@@ -53,6 +53,10 @@ describe('Document API', () => {
     ...genUserApi(establishment.id),
     role: UserRole.USUAL
   };
+  const visitor: UserApi = {
+    ...genUserApi(establishment.id),
+    role: UserRole.VISITOR
+  };
   const anotherEstablishment = genEstablishmentApi('23456');
   const userFromAnotherEstablishment = genUserApi(anotherEstablishment.id);
 
@@ -61,7 +65,7 @@ describe('Document API', () => {
       [establishment, anotherEstablishment].map(formatEstablishmentApi)
     );
     await Users().insert(
-      [user, admin, anotherUser, userFromAnotherEstablishment].map(
+      [user, admin, anotherUser, visitor, userFromAnotherEstablishment].map(
         formatUserApi
       )
     );
@@ -438,58 +442,83 @@ describe('Document API', () => {
     );
   });
 
-  describe('PUT /documents/:id', () => {
-    const testRoute = (documentId: string) => `/api/documents/${documentId}`;
+  describe('PUT /housing/:housingId/documents/:documentId', () => {
+    const testRoute = (housingId: string, documentId: string) =>
+      `/api/housing/${housingId}/documents/${documentId}`;
 
     const housing = genHousingApi(
       faker.helpers.arrayElement(establishment.geoCodes)
     );
+    const housingFromAnotherEstablishment = genHousingApi(
+      faker.helpers.arrayElement(anotherEstablishment.geoCodes)
+    );
     const userDocument = genHousingDocumentApi(housing, user);
-    const anotherUserDocument = genHousingDocumentApi(housing, anotherUser);
+    const documentFromAnotherEstablishment = genHousingDocumentApi(
+      housingFromAnotherEstablishment,
+      userFromAnotherEstablishment
+    );
 
     beforeAll(async () => {
-      await Housing().insert(formatHousingRecordApi(housing));
+      await Housing().insert(
+        [housing, housingFromAnotherEstablishment].map(formatHousingRecordApi)
+      );
       await housingDocumentRepository.createMany([
         userDocument,
-        anotherUserDocument
+        documentFromAnotherEstablishment
       ]);
     });
 
     it('should be forbidden for a non-authenticated user', async () => {
       const { status } = await request(url)
-        .put(testRoute(userDocument.id))
+        .put(testRoute(userDocument.housingId, userDocument.id))
         .send({ filename: 'nouveau-nom.pdf' });
 
       expect(status).toBe(constants.HTTP_STATUS_UNAUTHORIZED);
     });
 
-    it('should return 404 Not found if document does not exist', async () => {
+    it('should be forbidden for a visitor', async () => {
       const { status } = await request(url)
-        .put(testRoute(faker.string.uuid()))
+        .put(testRoute(userDocument.housingId, userDocument.id))
+        .send({ filename: 'nouveau-nom.pdf' })
+        .use(tokenProvider(visitor));
+
+      expect(status).toBe(constants.HTTP_STATUS_FORBIDDEN);
+    });
+
+    it('should return 404 Not found if the document is missing', async () => {
+      const { status } = await request(url)
+        .put(testRoute(userDocument.housingId, faker.string.uuid()))
         .send({ filename: 'nouveau-nom.pdf' })
         .use(tokenProvider(user));
 
       expect(status).toBe(constants.HTTP_STATUS_NOT_FOUND);
     });
 
-    it('should forbid updating a document created by another user', async () => {
+    it('should return 404 Not found if the document belongs to a user from another establishment', async () => {
       const { status } = await request(url)
-        .put(testRoute(anotherUserDocument.id))
+        .put(
+          testRoute(documentFromAnotherEstablishment.housingId, userDocument.id)
+        )
         .send({ filename: 'nouveau-nom.pdf' })
         .use(tokenProvider(user));
 
-      expect(status).toBe(constants.HTTP_STATUS_FORBIDDEN);
+      expect(status).toBe(constants.HTTP_STATUS_NOT_FOUND);
     });
 
     it('should allow admin to update any document', async () => {
       const { status, body } = await request(url)
-        .put(testRoute(anotherUserDocument.id))
+        .put(
+          testRoute(
+            documentFromAnotherEstablishment.housingId,
+            documentFromAnotherEstablishment.id
+          )
+        )
         .send({ filename: 'admin-rename.pdf' })
         .use(tokenProvider(admin));
 
       expect(status).toBe(constants.HTTP_STATUS_OK);
       expect(body).toMatchObject<Partial<HousingDocumentDTO>>({
-        id: anotherUserDocument.id,
+        id: documentFromAnotherEstablishment.id,
         filename: 'admin-rename.pdf',
         updatedAt: expect.any(String)
       });
@@ -497,7 +526,7 @@ describe('Document API', () => {
 
     it('should return 200 OK with updated document', async () => {
       const { status, body } = await request(url)
-        .put(testRoute(userDocument.id))
+        .put(testRoute(userDocument.housingId, userDocument.id))
         .send({ filename: 'nouveau-nom.pdf' })
         .use(tokenProvider(user));
 
@@ -512,7 +541,7 @@ describe('Document API', () => {
 
     it('should return 400 Bad request if filename is missing', async () => {
       const { status } = await request(url)
-        .put(testRoute(userDocument.id))
+        .put(testRoute(userDocument.housingId, userDocument.id))
         .send({})
         .use(tokenProvider(user));
 
@@ -520,8 +549,9 @@ describe('Document API', () => {
     });
   });
 
-  describe('DELETE /documents/:id', () => {
-    const testRoute = (documentId: string) => `/api/documents/${documentId}`;
+  describe('DELETE /housing/:housingId/documents/:documentId', () => {
+    const testRoute = (housingId: string, documentId: string) =>
+      `/api/housing/${housingId}/documents/${documentId}`;
 
     const housing = genHousingApi(
       faker.helpers.arrayElement(establishment.geoCodes)
@@ -532,25 +562,51 @@ describe('Document API', () => {
       await Housing().insert(formatHousingRecordApi(housing));
       await housingDocumentRepository.create(document);
 
-      const { status } = await request(url).delete(testRoute(document.id));
+      const { status } = await request(url).delete(
+        testRoute(housing.id, document.id)
+      );
 
       expect(status).toBe(constants.HTTP_STATUS_UNAUTHORIZED);
     });
 
-    it('should return 404 Not found if document does not exist', async () => {
+    it('should be forbidden for a visitor', async () => {
+      const document = genHousingDocumentApi(housing, user);
+      await housingDocumentRepository.create(document);
+
       const { status } = await request(url)
-        .delete(testRoute(faker.string.uuid()))
+        .delete(testRoute(housing.id, document.id))
+        .use(tokenProvider(visitor));
+
+      expect(status).toBe(constants.HTTP_STATUS_FORBIDDEN);
+    });
+
+    it('should return 404 Not found if the document is missing', async () => {
+      const { status } = await request(url)
+        .delete(testRoute(housing.id, faker.string.uuid()))
         .use(tokenProvider(user));
 
       expect(status).toBe(constants.HTTP_STATUS_NOT_FOUND);
     });
 
-    it('should forbid deleting a document created by another user', async () => {
+    it('should return 404 Not found if the housing belongs to another establishment', async () => {
       const document = genHousingDocumentApi(housing, anotherUser);
-      await housingDocumentRepository.create(document);
+      const housingFromAnotherEstablishment = genHousingApi(
+        faker.helpers.arrayElement(anotherEstablishment.geoCodes)
+      );
+      const documentFromAnotherEstablishment = genHousingDocumentApi(
+        housingFromAnotherEstablishment,
+        userFromAnotherEstablishment
+      );
+      await Housing().insert(
+        formatHousingRecordApi(housingFromAnotherEstablishment)
+      );
+      await housingDocumentRepository.createMany([
+        document,
+        documentFromAnotherEstablishment
+      ]);
 
       const { status } = await request(url)
-        .delete(testRoute(document.id))
+        .delete(testRoute(housing.id, document.id))
         .use(tokenProvider(user));
 
       expect(status).toBe(constants.HTTP_STATUS_FORBIDDEN);
@@ -561,7 +617,7 @@ describe('Document API', () => {
       await housingDocumentRepository.create(document);
 
       const { status } = await request(url)
-        .delete(testRoute(document.id))
+        .delete(testRoute(housing.id, document.id))
         .use(tokenProvider(admin));
 
       expect(status).toBe(constants.HTTP_STATUS_NO_CONTENT);
@@ -572,7 +628,7 @@ describe('Document API', () => {
       await housingDocumentRepository.create(document);
 
       const { status } = await request(url)
-        .delete(testRoute(document.id))
+        .delete(testRoute(housing.id, document.id))
         .use(tokenProvider(user));
 
       expect(status).toBe(constants.HTTP_STATUS_NO_CONTENT);
@@ -583,7 +639,7 @@ describe('Document API', () => {
       await housingDocumentRepository.create(document);
 
       await request(url)
-        .delete(testRoute(document.id))
+        .delete(testRoute(housing.id, document.id))
         .use(tokenProvider(user));
 
       const deletedDocument = await housingDocumentRepository.get(document.id);

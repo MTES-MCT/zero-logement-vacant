@@ -74,10 +74,16 @@ export const shapefileValidationMiddleware: RequestHandler = async (
       // Extract ZIP to find shapefile components
       let zip: AdmZip;
       let zipEntries: any[];
+      let shpEntry: any;
+      let dbfEntry: any;
 
       try {
         zip = new AdmZip(fileBuffer);
         zipEntries = zip.getEntries();
+
+        // Find .shp and .dbf files
+        shpEntry = zipEntries.find((entry: any) => entry.entryName.toLowerCase().endsWith('.shp'));
+        dbfEntry = zipEntries.find((entry: any) => entry.entryName.toLowerCase().endsWith('.dbf'));
       } catch (error) {
         // Handle corrupted/invalid ZIP files
         logger.warn('Failed to extract ZIP file', {
@@ -91,10 +97,6 @@ export const shapefileValidationMiddleware: RequestHandler = async (
           'Unable to extract ZIP file - the file may be corrupted'
         );
       }
-
-      // Find .shp and .dbf files
-      const shpEntry = zipEntries.find((entry: any) => entry.entryName.toLowerCase().endsWith('.shp'));
-      const dbfEntry = zipEntries.find((entry: any) => entry.entryName.toLowerCase().endsWith('.dbf'));
 
       if (!shpEntry || !dbfEntry) {
         const missing = [];

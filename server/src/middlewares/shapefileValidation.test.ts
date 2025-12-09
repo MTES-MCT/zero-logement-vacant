@@ -1,7 +1,6 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { Request, Response, NextFunction } from 'express';
-import { shapefileValidationMiddleware } from './shapefileValidation';
-import BadRequestError from '~/errors/badRequestError';
+import { shapefileValidationMiddleware, ShapefileValidationError } from './shapefileValidation';
 
 // Partial type for multer file in tests
 type MockMulterFile = {
@@ -153,7 +152,7 @@ describe('shapefileValidationMiddleware', () => {
       mockNext
     );
 
-    expect(mockNext).toHaveBeenCalledWith(expect.any(BadRequestError));
+    expect(mockNext).toHaveBeenCalledWith(expect.any(ShapefileValidationError));
   });
 
   it('should reject shapefile without .dbf file', async () => {
@@ -170,7 +169,7 @@ describe('shapefileValidationMiddleware', () => {
       mockNext
     );
 
-    expect(mockNext).toHaveBeenCalledWith(expect.any(BadRequestError));
+    expect(mockNext).toHaveBeenCalledWith(expect.any(ShapefileValidationError));
   });
 
   // Tests for dynamic max features removed - now handled by config.ts

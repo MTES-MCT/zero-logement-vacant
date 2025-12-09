@@ -1,4 +1,4 @@
-import { createContext, useContext, type ReactNode } from 'react';
+import { createContext, useContext, useMemo, type ReactNode } from 'react';
 import { assert } from 'ts-essentials';
 
 import type { Housing } from '~/models/Housing';
@@ -22,10 +22,14 @@ export function HousingProvider(props: Readonly<HousingProviderProps>) {
     props.housingId
   );
 
+  const value = useMemo(() => ({
+    housing,
+    housingId: props.housingId,
+    getHousingQuery
+  }), [housing, props.housingId, getHousingQuery]);
+
   return (
-    <HousingContext.Provider
-      value={{ housing, housingId: props.housingId, getHousingQuery }}
-    >
+    <HousingContext.Provider value={value}>
       {props.children}
     </HousingContext.Provider>
   );

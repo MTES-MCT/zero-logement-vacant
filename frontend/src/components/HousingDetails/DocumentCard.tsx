@@ -45,6 +45,25 @@ function DocumentCard(props: Readonly<DocumentCardProps>) {
     props.onDelete(props.document);
   }
 
+  async function onDownload(): Promise<void> {
+    setDropdownOpen(false);
+
+    try {
+      const response = await fetch(props.document.url);
+      const blob = await response.blob();
+      const url = globalThis.URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      link.href = url;
+      link.download = props.document.filename;
+      document.body.appendChild(link);
+      link.click();
+      link.remove();
+      globalThis.URL.revokeObjectURL(url);
+    } catch (error) {
+      console.error('Failed to download document', error);
+    }
+  }
+
   return (
     <Stack
       component="article"
@@ -77,24 +96,32 @@ function DocumentCard(props: Readonly<DocumentCardProps>) {
         >
           <Stack spacing="0.5rem" useFlexGap sx={{ px: '1.5rem', py: '1rem' }}>
             {isUsual || isAdmin ? (
-              <>
-                <Button
-                  priority="tertiary no outline"
-                  iconId="fr-icon-edit-fill"
-                  size="small"
-                  onClick={onRename}
-                >
-                  Renommer
-                </Button>
-                <Button
-                  priority="tertiary no outline"
-                  iconId="fr-icon-delete-bin-line"
-                  size="small"
-                  onClick={onDelete}
-                >
-                  Supprimer
-                </Button>
-              </>
+              <Button
+                priority="tertiary no outline"
+                iconId="fr-icon-edit-fill"
+                size="small"
+                onClick={onRename}
+              >
+                Renommer
+              </Button>
+            ) : null}
+            <Button
+              priority="tertiary no outline"
+              iconId="fr-icon-download-line"
+              size="small"
+              onClick={onDownload}
+            >
+              Télécharger
+            </Button>
+            {isUsual || isAdmin ? (
+              <Button
+                priority="tertiary no outline"
+                iconId="ri-delete-bin-line"
+                size="small"
+                onClick={onDelete}
+              >
+                Supprimer
+              </Button>
             ) : null}
           </Stack>
         </Dropdown>

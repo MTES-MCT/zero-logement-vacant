@@ -2,20 +2,17 @@ import Tabs from '@codegouvfr/react-dsfr/Tabs';
 import { useFeatureFlagEnabled } from 'posthog-js/react';
 import Skeleton from '@mui/material/Skeleton';
 
-import { type Housing } from '~/models/Housing';
+import { useHousing } from '~/hooks/useHousing';
 import DocumentsTab from './DocumentsTab';
 import HistoryTab from './HistoryTab';
 import HousingTab from './HousingTab';
 import MobilizationTab from './MobilizationTab';
 
-interface HousingDetailsCardProps {
-  housing: Housing | undefined;
-}
-
-function HousingDetailsCard(props: Readonly<HousingDetailsCardProps>) {
+function HousingDetailsCard() {
+  const { housing } = useHousing();
   const uploadDocsEnabled = useFeatureFlagEnabled('upload-docs');
 
-  if (!props.housing) {
+  if (!housing) {
     return (
       <Skeleton
         animation="wave"
@@ -32,16 +29,16 @@ function HousingDetailsCard(props: Readonly<HousingDetailsCardProps>) {
         tabs={[
           {
             label: 'Logement et bâtiment',
-            content: <HousingTab housing={props.housing} />,
+            content: <HousingTab />,
             isDefault: true
           },
           {
             label: 'Suivi',
-            content: <MobilizationTab housing={props.housing} />
+            content: <MobilizationTab />
           },
           {
             label: 'Notes et historique',
-            content: <HistoryTab housing={props.housing} />
+            content: <HistoryTab />
           }
         ]}
       />
@@ -53,20 +50,20 @@ function HousingDetailsCard(props: Readonly<HousingDetailsCardProps>) {
       tabs={[
         {
           label: 'Logement et bâtiment',
-          content: <HousingTab housing={props.housing} />,
+          content: <HousingTab />,
           isDefault: true
         },
         {
           label: 'Suivi',
-          content: <MobilizationTab housing={props.housing} />
+          content: <MobilizationTab />
         },
         {
           label: 'Documents',
-          content: <DocumentsTab housing={props.housing} />
+          content: <DocumentsTab />
         },
         {
           label: 'Notes et historique',
-          content: <HistoryTab housing={props.housing} />
+          content: <HistoryTab />
         }
       ]}
     />

@@ -1,4 +1,8 @@
-import type { DocumentDTO, DocumentPayload } from '@zerologementvacant/models';
+import type {
+  DocumentDTO,
+  DocumentPayload,
+  HousingDTO
+} from '@zerologementvacant/models';
 import { Predicate } from 'effect';
 import { http, HttpResponse, type RequestHandler } from 'msw';
 import { constants } from 'node:http2';
@@ -6,58 +10,6 @@ import { v4 as uuidv4 } from 'uuid';
 
 import config from '~/utils/config';
 import data from './data';
-
-const update = http.put<{ id: string }, DocumentPayload, DocumentDTO | Error>(
-  `${config.apiEndpoint}/api/documents/:id`,
-  async ({ params, request }) => {
-    const document = data.documents.get(params.id);
-    if (!document) {
-      return HttpResponse.json(
-        {
-          name: 'DocumentMissingError',
-          message: `Document ${params.id} missing`
-        },
-        {
-          status: constants.HTTP_STATUS_NOT_FOUND
-        }
-      );
-    }
-
-    const payload = await request.json();
-    const updated: DocumentDTO = {
-      ...document,
-      filename: payload.filename,
-      updatedAt: new Date().toJSON()
-    };
-    data.documents.set(document.id, updated);
-    return HttpResponse.json(document, {
-      status: constants.HTTP_STATUS_OK
-    });
-  }
-);
-
-const remove = http.delete<{ id: string }, never, null | Error>(
-  `${config.apiEndpoint}/api/documents/:id`,
-  async ({ params }) => {
-    const exists = data.documents.has(params.id);
-    if (!exists) {
-      return HttpResponse.json(
-        {
-          name: 'DocumentMissingError',
-          message: `Document ${params.id} missing`
-        },
-        {
-          status: constants.HTTP_STATUS_NOT_FOUND
-        }
-      );
-    }
-
-    data.documents.delete(params.id);
-    return HttpResponse.json(null, {
-      status: constants.HTTP_STATUS_NO_CONTENT
-    });
-  }
-);
 
 const listByHousing = http.get<{ id: string }, never, DocumentDTO[]>(
   `${config.apiEndpoint}/api/housing/:id/documents`,
@@ -144,9 +96,78 @@ const createByHousing = http.post<{ id: string }, never, DocumentDTO[] | Error>(
   }
 );
 
+const updateByHousing = http.put<
+  { housingId: HousingDTO['id']; documentId: DocumentDTO['id'] },
+  DocumentPayload,
+  DocumentDTO | Error
+>(
+  `${config.apiEndpoint}/api/housing/:housingId/documents/:documentId`,
+  async ({ params, request }) => {
+    const document = data.documents.get(params.documentId);
+    if (!document) {
+      return HttpResponse.json(
+        {
+          name: 'DocumentMissingError',
+          message: `Document ${params.documentId} missing`
+        },
+        {
+          status: constants.HTTP_STATUS_NOT_FOUND
+        }
+      );
+    }
+
+    const payload = await request.json();
+    const updated: DocumentDTO = {
+      ...document,
+      filename: payload.filename,
+      updatedAt: new Date().toJSON()
+    };
+    data.documents.set(document.id, updated);
+    return HttpResponse.json(document, {
+      status: constants.HTTP_STATUS_OK
+    });
+  }
+);
+
+const removeByHousing = http.delete<
+  { housingId: HousingDTO['id']; documentId: DocumentDTO['id'] },
+  never,
+  null | Error
+>(
+  `${config.apiEndpoint}/api/housing/:housingId/documents/:documentId`,
+  async ({ params }) => {
+    const exists = data.housingDocuments
+      .get(params.housingId)
+      ?.map((document) => document.id)
+      ?.includes(params.documentId);
+    if (!exists) {
+      return HttpResponse.json(
+        {
+          name: 'DocumentMissingError',
+          message: `Document ${params.documentId} missing`
+        },
+        {
+          status: constants.HTTP_STATUS_NOT_FOUND
+        }
+      );
+    }
+
+    data.documents.delete(params.documentId);
+    data.housingDocuments.set(
+      params.housingId,
+      (data.housingDocuments.get(params.housingId) ?? []).filter(
+        (document) => document.id !== params.documentId
+      )
+    );
+    return HttpResponse.json(null, {
+      status: constants.HTTP_STATUS_NO_CONTENT
+    });
+  }
+);
+
 export const documentHandlers: RequestHandler[] = [
   listByHousing,
   createByHousing,
-  update,
-  remove
+  updateByHousing,
+  removeByHousing
 ];

@@ -1,20 +1,16 @@
 import Skeleton from '@mui/material/Skeleton';
 
-import { type Housing } from '../../models/Housing';
+import { useHousing } from '../../hooks/useHousing';
 import { useFindEventsByHousingQuery } from '../../services/event.service';
 import { useFindNotesByHousingQuery } from '../../services/note.service';
 import EventsHistory from '../EventsHistory/EventsHistory';
 
-interface HistoryTabProps {
-  housing: Housing;
-}
-
-function HistoryTab(props: Readonly<HistoryTabProps>) {
+function HistoryTab() {
+  const { housingId } = useHousing();
   const { data: events, isLoading: isLoadingEvents } =
-    useFindEventsByHousingQuery(props.housing.id);
-  const { data: notes, isLoading: isLoadingNotes } = useFindNotesByHousingQuery(
-    props.housing.id
-  );
+    useFindEventsByHousingQuery(housingId);
+  const { data: notes, isLoading: isLoadingNotes } =
+    useFindNotesByHousingQuery(housingId);
 
   if (isLoadingEvents || isLoadingNotes) {
     return <Skeleton animation="wave" variant="rectangular" height={200} />;

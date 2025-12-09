@@ -5,20 +5,22 @@ import { Predicate } from 'effect';
 import { type ReactNode } from 'react';
 import { match, Pattern } from 'ts-pattern';
 
-import { type Housing, lastUpdate } from '../../models/Housing';
+import { lastUpdate } from '../../models/Housing';
 import { useFindCampaignsQuery } from '../../services/campaign.service';
+import { useHousing } from '../../hooks/useHousing';
 import HousingStatusBadge from '../HousingStatusBadge/HousingStatusBadge';
 import PrecisionLists from '../Precision/PrecisionLists';
 import HousingAttribute from './HousingAttribute';
 
-interface MobilizationTabProps {
-  housing: Housing;
-}
-
-function MobilizationTab(props: Readonly<MobilizationTabProps>) {
+function MobilizationTab() {
+  const { housing } = useHousing();
   const findCampaignsQuery = useFindCampaignsQuery();
 
   const updated = lastUpdate();
+
+  if (!housing) {
+    return null;
+  }
 
   return (
     <Stack component="section" spacing="2rem">
@@ -33,11 +35,11 @@ function MobilizationTab(props: Readonly<MobilizationTabProps>) {
 
         <HousingAttribute
           label="Statut de suivi"
-          value={<HousingStatusBadge inline status={props.housing.status} />}
+          value={<HousingStatusBadge inline status={housing.status} />}
         />
         <HousingAttribute
           label="Sous-statut de suivi"
-          value={props.housing.subStatus}
+          value={housing.subStatus}
           fallback="Pas applicable"
         />
         <HousingAttribute
@@ -53,7 +55,7 @@ function MobilizationTab(props: Readonly<MobilizationTabProps>) {
             { isLoading: false, data: Pattern.nonNullable },
             ({ data: campaigns }) => {
               const housingCampaigns =
-                props.housing.campaignIds
+                housing.campaignIds
                   ?.map((id) =>
                     campaigns.find((campaign) => campaign.id === id)
                   )
@@ -81,7 +83,7 @@ function MobilizationTab(props: Readonly<MobilizationTabProps>) {
       </Stack>
 
       <Stack component="article">
-        <PrecisionLists housingId={props.housing.id} />
+        <PrecisionLists housingId={housing.id} />
       </Stack>
     </Stack>
   );

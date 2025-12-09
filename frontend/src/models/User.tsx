@@ -15,7 +15,7 @@ export interface AuthUser {
 }
 
 export interface User extends Omit<UserDTO, 'activatedAt'> {
-  activatedAt: Date;
+  activatedAt: Date | string;
 }
 
 export type UserSortable = Pick<
@@ -68,7 +68,10 @@ export const toUserDTO = (user: User): UserDTO => ({
   timePerWeek: user.timePerWeek,
   establishmentId: user.establishmentId,
   role: user.role,
-  activatedAt: user.activatedAt.toJSON(),
+  activatedAt:
+    typeof user.activatedAt === 'string'
+      ? user.activatedAt
+      : user.activatedAt.toJSON(),
   lastAuthenticatedAt: user.lastAuthenticatedAt,
   suspendedAt: user.suspendedAt,
   suspendedCause: user.suspendedCause,

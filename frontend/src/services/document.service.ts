@@ -1,7 +1,8 @@
 import type {
   DocumentDTO,
   DocumentPayload,
-  HousingDocumentDTO
+  HousingDocumentDTO,
+  HousingDTO
 } from '@zerologementvacant/models';
 
 import { zlvApi } from '~/services/api.service';
@@ -44,10 +45,13 @@ export const documentApi = zlvApi.injectEndpoints({
 
     updateDocument: builder.mutation<
       DocumentDTO,
-      DocumentPayload & { id: string }
+      DocumentPayload & {
+        housingId: HousingDTO['id'];
+        documentId: DocumentDTO['id'];
+      }
     >({
-      query: ({ id, ...payload }) => ({
-        url: `documents/${id}`,
+      query: ({ housingId, documentId, ...payload }) => ({
+        url: `housing/${housingId}/documents/${documentId}`,
         method: 'PUT',
         body: payload
       }),
@@ -55,12 +59,15 @@ export const documentApi = zlvApi.injectEndpoints({
         document ? [{ type: 'Document', id: document.id }] : []
     }),
 
-    removeDocument: builder.mutation<void, string>({
-      query: (id) => ({
-        url: `documents/${id}`,
+    removeDocument: builder.mutation<
+      void,
+      { housingId: HousingDTO['id']; documentId: DocumentDTO['id'] }
+    >({
+      query: ({ housingId, documentId }) => ({
+        url: `housing/${housingId}/documents/${documentId}`,
         method: 'DELETE'
       }),
-      invalidatesTags: (_result, _error, id) => [{ type: 'Document', id }]
+      invalidatesTags: (_result, _error, { documentId }) => [{ type: 'Document', id: documentId }]
     })
   })
 });

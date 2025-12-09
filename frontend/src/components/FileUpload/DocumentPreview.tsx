@@ -3,7 +3,7 @@ import CircularProgress from '@mui/material/CircularProgress';
 import Stack from '@mui/material/Stack';
 import Typography from '@mui/material/Typography';
 import { type DocumentDTO, isImage, isPDF } from '@zerologementvacant/models';
-import { useCallback, useState } from 'react';
+import { memo, useCallback, useState } from 'react';
 import { Document, Page, pdfjs } from 'react-pdf';
 import { match } from 'ts-pattern';
 
@@ -24,7 +24,7 @@ function DocumentPreview(props: DocumentPreviewProps) {
     .otherwise(() => <Fallback />);
 }
 
-function PDF({ url }: Readonly<{ url: string }>) {
+const PDF = memo(({ url }: Readonly<{ url: string }>) => {
   const [containerWidth, setContainerWidth] = useState<number | null>(null);
   const [numPages, setNumPages] = useState<number | null>(null);
 
@@ -77,7 +77,8 @@ function PDF({ url }: Readonly<{ url: string }>) {
       </Stack>
     </Stack>
   );
-}
+});
+PDF.displayName = 'PDF';
 
 function Fallback() {
   return (
@@ -87,4 +88,4 @@ function Fallback() {
   );
 }
 
-export default DocumentPreview;
+export default memo(DocumentPreview);

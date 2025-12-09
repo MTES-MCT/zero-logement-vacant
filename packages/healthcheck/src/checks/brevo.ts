@@ -7,6 +7,7 @@ interface BrevoCheckOptions {
 export function brevoCheck(apiKey: string, options?: BrevoCheckOptions): Check {
   return {
     name: 'brevo',
+    critical: false, // Brevo check is non-critical - won't block deployment if down
     async test() {
       if (options?.enable === false) {
         // Pass through

@@ -39,7 +39,13 @@ export function healthcheck(opts?: Options) {
       },
     );
 
-    const code = statuses.every(({ status }) => status === 'up')
+    // Only critical checks (critical !== false) can cause a 503 response
+    const criticalChecks = statuses.filter(s => {
+      const check = checks.find(c => c.name === s.name);
+      return check?.critical !== false; // default to true if not specified
+    });
+
+    const code = criticalChecks.every(({ status }) => status === 'up')
       ? constants.HTTP_STATUS_OK
       : constants.HTTP_STATUS_SERVICE_UNAVAILABLE;
     response.status(code).json({

@@ -15,6 +15,7 @@ import { useUser } from '~/hooks/useUser';
 export interface DocumentCardProps {
   document: DocumentDTO;
   onRename(document: DocumentDTO): void;
+  onDelete(document: DocumentDTO): void;
 }
 
 function DocumentCard(props: Readonly<DocumentCardProps>) {
@@ -37,6 +38,11 @@ function DocumentCard(props: Readonly<DocumentCardProps>) {
   function onRename(): void {
     setDropdownOpen(false);
     props.onRename(props.document);
+  }
+
+  function onDelete(): void {
+    setDropdownOpen(false);
+    props.onDelete(props.document);
   }
 
   return (
@@ -71,14 +77,24 @@ function DocumentCard(props: Readonly<DocumentCardProps>) {
         >
           <Stack spacing="0.5rem" useFlexGap sx={{ px: '1.5rem', py: '1rem' }}>
             {isUsual || isAdmin ? (
-              <Button
-                priority="tertiary no outline"
-                iconId="fr-icon-edit-fill"
-                size="small"
-                onClick={onRename}
-              >
-                Renommer
-              </Button>
+              <>
+                <Button
+                  priority="tertiary no outline"
+                  iconId="fr-icon-edit-fill"
+                  size="small"
+                  onClick={onRename}
+                >
+                  Renommer
+                </Button>
+                <Button
+                  priority="tertiary no outline"
+                  iconId="fr-icon-delete-bin-line"
+                  size="small"
+                  onClick={onDelete}
+                >
+                  Supprimer
+                </Button>
+              </>
             ) : null}
           </Stack>
         </Dropdown>

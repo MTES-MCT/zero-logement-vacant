@@ -57,7 +57,7 @@ function DocumentCard(props: Readonly<DocumentCardProps>) {
       link.download = props.document.filename;
       document.body.appendChild(link);
       link.click();
-      link.remove()
+      link.remove();
       globalThis.URL.revokeObjectURL(url);
     } catch (error) {
       console.error('Failed to download document', error);
@@ -116,7 +116,7 @@ function DocumentCard(props: Readonly<DocumentCardProps>) {
             {isUsual || isAdmin ? (
               <Button
                 priority="tertiary no outline"
-                iconId="fr-icon-delete-bin-line"
+                iconId="ri-delete-bin-line"
                 size="small"
                 onClick={onDelete}
               >

@@ -56,8 +56,27 @@ export const documentApi = zlvApi.injectEndpoints({
         method: 'PUT',
         body: payload
       }),
-      invalidatesTags: (document) =>
-        document ? [{ type: 'Document', id: document.id }] : []
+      async onQueryStarted(
+        { housingId, documentId, ...patch },
+        { dispatch, queryFulfilled }
+      ) {
+        const patchResult = dispatch(
+          documentApi.util.updateQueryData(
+            'listHousingDocuments',
+            housingId,
+            (documents) => {
+              const document = documents.find(
+                (draft) => draft.id === documentId
+              );
+              if (document) {
+                Object.assign(document, patch);
+              }
+            }
+          )
+        );
+
+        queryFulfilled.catch(patchResult.undo);
+      }
     }),
 
     removeDocument: builder.mutation<
@@ -68,7 +87,9 @@ export const documentApi = zlvApi.injectEndpoints({
         url: `housing/${housingId}/documents/${documentId}`,
         method: 'DELETE'
       }),
-      invalidatesTags: (_result, _error, { documentId }) => [{ type: 'Document', id: documentId }]
+      invalidatesTags: (_result, _error, { documentId }) => [
+        { type: 'Document', id: documentId }
+      ]
     })
   })
 });

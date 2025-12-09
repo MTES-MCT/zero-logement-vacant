@@ -67,8 +67,25 @@ export const shapefileValidationMiddleware: RequestHandler = async (
 
     try {
       // Extract ZIP to find shapefile components
-      const zip = new AdmZip(fileBuffer);
-      const zipEntries = zip.getEntries();
+      let zip: AdmZip;
+      let zipEntries: any[];
+
+      try {
+        zip = new AdmZip(fileBuffer);
+        zipEntries = zip.getEntries();
+      } catch (error) {
+        // Handle corrupted/invalid ZIP files
+        logger.warn('Failed to extract ZIP file', {
+          fileName,
+          error: error instanceof Error ? error.message : String(error),
+          userId
+        });
+        throw new ShapefileValidationError(
+          'invalid_shapefile',
+          fileName,
+          'Unable to extract ZIP file - the file may be corrupted'
+        );
+      }
 
       // Find .shp and .dbf files
       const shpEntry = zipEntries.find((entry: any) => entry.entryName.toLowerCase().endsWith('.shp'));

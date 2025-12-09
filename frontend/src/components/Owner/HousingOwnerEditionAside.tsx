@@ -9,7 +9,7 @@ import {
   PREVIOUS_OWNER_RANK
 } from '@zerologementvacant/models';
 import { Controller, FormProvider, useForm } from 'react-hook-form';
-import { boolean, number, object, string, type InferType } from 'yup';
+import * as yup from 'yup';
 
 import ToggleSwitch from '@codegouvfr/react-dsfr/ToggleSwitch';
 import Box from '@mui/material/Box';
@@ -19,35 +19,37 @@ import type { HousingOwner } from '~/models/Owner';
 import HousingOwnerInactiveSelect from './HousingOwnerInactiveSelect';
 import OwnerFormFields, { OWNER_FORM_FIELD_SCHEMA } from './OwnerFormFields';
 
-const schema = object({
-  isActive: boolean().required(),
-  rank: string()
+const schema = yup.object({
+  isActive: yup.boolean().required(),
+  rank: yup.string()
     .oneOf(['primary', 'secondary'])
     .nullable()
-    .when('isActive', {
-      is: true,
-      then: (schema) =>
-        schema.required('Veuillez sélectionner un rang de contact'),
-      otherwise: (schema) => schema.nullable()
-    }),
-  inactiveRank: number()
+    .optional()
+    .default(undefined)
+    .when('isActive', ([isActive], schema) =>
+      isActive === true
+        ? schema.required('Veuillez sélectionner un rang de contact')
+        : schema.nullable()
+    ),
+  inactiveRank: yup.number()
     .oneOf([
       DECEASED_OWNER_RANK,
       INCORRECT_OWNER_RANK,
       PREVIOUS_OWNER_RANK
     ])
     .nullable()
-    .when('isActive', {
-      is: false,
-      then: (schema) =>
-        schema.required('Veuillez sélectionner un état du propriétaire'),
-      otherwise: (schema) => schema.nullable()
-    })
+    .optional()
+    .default(undefined)
+    .when('isActive', ([isActive], schema) =>
+      isActive === false
+        ? schema.required('Veuillez sélectionner un état du propriétaire')
+        : schema.nullable()
+    )
 })
   .concat(OWNER_FORM_FIELD_SCHEMA)
   .required();
 
-export type HousingOwnerEditionSchema = InferType<typeof schema>;
+export type HousingOwnerEditionSchema = yup.InferType<typeof schema>;
 
 export type HousingOwnerEditionAsideProps = Pick<
   AsideProps,
@@ -96,7 +98,7 @@ function HousingOwnerEditionAside(props: HousingOwnerEditionAsideProps) {
       email: housingOwner?.email ?? null,
       phone: housingOwner?.phone ?? null
     },
-    resolver: yupResolver(schema)
+    resolver: yupResolver(schema) as any
   });
 
   // The original rank found in the fiscal data

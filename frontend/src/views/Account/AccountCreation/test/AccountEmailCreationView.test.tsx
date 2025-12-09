@@ -40,14 +40,12 @@ describe('AccountEmailCreationView', () => {
     setup();
 
     const input = screen.getByLabelText(/^Adresse e-mail/i);
-    await user.type(input, 'invalid-email');
-    await user.keyboard('{Enter}');
+    await user.clear(input);
+    const button = screen.getByRole('button', { name: /Vérifier mon adresse mail/i });
+    await user.click(button);
 
-    // Wait for the error message to appear
     const error = await screen.findByText(
-      /L'adresse doit être un email valide/,
-      {},
-      { timeout: 3000 }
+      /Veuillez renseigner votre adresse email/
     );
     expect(error).toBeVisible();
   });

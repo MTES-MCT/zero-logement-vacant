@@ -3,8 +3,7 @@ import type {
   InputHTMLAttributes,
   TextareaHTMLAttributes
 } from 'react';
-import type { ObjectShape } from 'yup';
-import { useForm } from '../../../hooks/useForm';
+import { type ObjectShape, useForm } from '../../../hooks/useForm';
 import Input from '@codegouvfr/react-dsfr/Input';
 
 type AppTextInputProps<T extends ObjectShape> = Partial<

@@ -3,7 +3,7 @@ import { yupResolver } from '@hookform/resolvers/yup';
 import Grid from '@mui/material/Grid';
 import { useEffect } from 'react';
 import { FormProvider, useForm } from 'react-hook-form';
-import { object, string, type InferType } from 'yup';
+import * as yup from 'yup';
 
 import { datafoncierApi } from '~/services/datafoncier.service';
 import { housingApi } from '~/services/housing.service';
@@ -11,14 +11,14 @@ import { unwrapError } from '~/store/store';
 import AppTextInputNext from '~/components/_app/AppTextInput/AppTextInputNext';
 import { createExtendedModal } from '~/components/modals/ConfirmationModal/ExtendedModal';
 
-const schema = object({
-  localId: string()
+const schema = yup.object({
+  localId: yup.string()
     .required('Veuillez renseigner un identifiant pour ce logement')
     .trim()
     .length(12, 'L’identifiant doit contenir exactement 12 caractères')
 }).required();
 
-type FillLocalIdSchema = InferType<typeof schema>;
+type FillLocalIdSchema = yup.InferType<typeof schema>;
 
 export interface FillLocalIdProps {
   onCancel(): void;

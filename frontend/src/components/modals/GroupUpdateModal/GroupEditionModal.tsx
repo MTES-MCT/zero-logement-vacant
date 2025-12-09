@@ -1,7 +1,7 @@
 import { yupResolver } from '@hookform/resolvers/yup';
 import type { ButtonProps } from '@codegouvfr/react-dsfr/Button';
 import { FormProvider, useForm } from 'react-hook-form';
-import { object, string, type InferType } from 'yup';
+import * as yup from 'yup';
 
 import ConfirmationModal from '../ConfirmationModal/ConfirmationModal';
 import type { Group } from '../../../models/Group';
@@ -10,18 +10,18 @@ import HousingCount from '../../HousingCount/HousingCount';
 import { Col, Row } from '../../_dsfr';
 import AppTextInputNext from '../../_app/AppTextInput/AppTextInputNext';
 
-const schema = object({
-  title: string()
+const schema = yup.object({
+  title: yup.string()
     .max(64, 'La longueur maximale du titre du groupe est de 64 caractères.')
     .required('Veuillez donner un nom au groupe pour confirmer'),
-  description: string()
+  description: yup.string()
     .max(
       1000,
       'La longueur maximale de la description du groupe est de 1000 caractères.'
     )
     .required('Veuillez donner une description au groupe pour confirmer')
 }).required();
-type Schema = InferType<typeof schema>;
+type Schema = yup.InferType<typeof schema>;
 
 interface Props {
   title: string;

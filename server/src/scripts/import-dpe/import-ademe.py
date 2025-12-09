@@ -205,14 +205,14 @@ class AdemeApiClient:
 
         return None
     
-    def fetch_all_data(self, limit_per_page: int = 10000, max_pages: Optional[int] = None,
+    def fetch_all_data(self, limit_per_page: int = 1000, max_pages: Optional[int] = None,
                       output_dir: str = "dpe_split", resume_from: Optional[Dict[str, Any]] = None) -> int:
         """
         Retrieves all data by iterating through all pages and writes to year/month structure
         Supports resuming from a specific record
 
         Args:
-            limit_per_page: Number of items per page (max 10000)
+            limit_per_page: Number of items per page (default 1000, max 10000)
             max_pages: Maximum number of pages to retrieve (None = all)
             output_dir: Output directory for year/month structure (default: dpe_split)
             resume_from: Dictionary with '_i' and '_rand' to resume from, or None to start from beginning
@@ -222,10 +222,31 @@ class AdemeApiClient:
         """
         from datetime import datetime
         from pathlib import Path
+        import subprocess
 
         # Create output directory
         output_path = Path(output_dir)
         output_path.mkdir(exist_ok=True)
+
+        # Count existing records if resuming
+        existing_records = 0
+        if resume_from:
+            print(f"📊 Counting existing records in {output_dir}...")
+            try:
+                result = subprocess.run(
+                    ['find', output_dir, '-name', '*.jsonl', '-type', 'f', '-exec', 'wc', '-l', '{}', '+'],
+                    capture_output=True,
+                    text=True,
+                    check=True
+                )
+                lines = result.stdout.strip().split('\n')
+                if lines:
+                    # Last line contains total
+                    total_line = lines[-1].strip()
+                    existing_records = int(total_line.split()[0])
+                    print(f"✅ Found {existing_records:,} existing records")
+            except Exception as e:
+                print(f"⚠️  Could not count existing records: {e}")
 
         # Determine starting URL
         if resume_from:
@@ -263,7 +284,7 @@ class AdemeApiClient:
                 if total_records is None and "total" in page_data:
                     total_records = page_data["total"]
                     print(f"📊 Total records in API: {total_records:,}")
-                    pbar = tqdm(total=total_records, unit="records", desc="Downloading DPE")
+                    pbar = tqdm(total=total_records, initial=existing_records, unit="records", desc="Downloading DPE")
 
                 # Process results
                 if "results" in page_data:
@@ -407,7 +428,7 @@ def main():
     parser = argparse.ArgumentParser(description='ADEME DPE API Client - Downloads to year/month structure')
     parser.add_argument('--api-key', help='ADEME API key (or set ADEME_API_KEY environment variable)')
     parser.add_argument('--output-dir', default='dpe_split', help='Output directory for year/month structure (default: dpe_split)')
-    parser.add_argument('--limit-per-page', type=int, default=10000, help='Items per page (default: 10000)')
+    parser.add_argument('--limit-per-page', type=int, default=1000, help='Items per page (default: 1000, max: 10000)')
     parser.add_argument('--max-pages', type=int, help='Maximum number of pages to retrieve')
     parser.add_argument('--resume-i', type=int, help='Resume from specific _i value')
     parser.add_argument('--resume-rand', type=int, help='Resume from specific _rand value')

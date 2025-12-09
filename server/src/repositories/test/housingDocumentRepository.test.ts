@@ -275,7 +275,7 @@ describe('Housing document repository', () => {
 
       await housingDocumentRepository.create(document);
 
-      await housingDocumentRepository.remove(document.id);
+      await housingDocumentRepository.remove(document);
 
       const actualDocument = await Documents()
         .where({ id: document.id })

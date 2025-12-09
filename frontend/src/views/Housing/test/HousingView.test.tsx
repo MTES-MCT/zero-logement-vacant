@@ -741,7 +741,7 @@ describe('Housing view', () => {
       });
       await user.click(remove);
       const modal = await screen.findByRole('dialog', {
-        name: "Suppression d'une note"
+        name: 'Suppression d’une note'
       });
       const confirm = await within(modal).findByRole('button', {
         name: 'Confirmer'

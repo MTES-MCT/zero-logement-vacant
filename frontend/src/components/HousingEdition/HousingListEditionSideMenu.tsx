@@ -10,7 +10,7 @@ import {
 import { useState } from 'react';
 import { Controller, FormProvider, useForm } from 'react-hook-form';
 import { match } from 'ts-pattern';
-import * as yup from 'yup';
+import { type InferType, number, object, string } from 'yup';
 
 import type { Selection } from '~/hooks/useSelection';
 import { HousingStates } from '../../models/HousingState';
@@ -24,47 +24,41 @@ import HousingEditionMobilizationTab from './HousingEditionMobilizationTab';
 
 const WIDTH = '700px';
 
-const schema = yup.object({
-  occupancy: yup
-    .string()
+const schema = object({
+  occupancy: string()
     .nullable()
     .optional()
     .default(null)
     .oneOf([...OCCUPANCY_VALUES, null]),
-  occupancyIntended: yup
-    .string()
+  occupancyIntended: string()
     .nullable()
     .optional()
     .default(null)
     .oneOf([...OCCUPANCY_VALUES, null]),
-  status: yup
-    .number()
+  status: number()
     .nullable()
     .optional()
     .default(null)
     .oneOf([...HOUSING_STATUS_VALUES, null]),
-  subStatus: yup
-    .string()
+  subStatus: string()
     .trim()
-    .nullable()
     .optional()
-    .when('status', {
-      is: (status: HousingStatus) =>
-        HousingStates.find((state) => state.status === status)?.subStatusList
-          ?.length,
-      then: (schema) =>
-        schema.required('Veuillez renseigner le sous-statut de suivi'),
-      otherwise: (schema) => schema.nullable().optional().default(null)
-    }),
-  note: yup.string().trim().nullable().optional().default(null)
-});
+    .nullable()
+    .default(undefined)
+    .when('status', ([status], schema) =>
+      HousingStates.find((state) => state.status === status)?.subStatusList?.length
+        ? schema.required('Veuillez renseigner le sous-statut de suivi')
+        : schema
+    ),
+  note: string().trim().nullable().optional().default(null)
+}).required();
 
 const modal = createConfirmationModal({
   id: 'housing-list-edition-modal',
   isOpenedByDefault: false
 });
 
-export type BatchEditionFormSchema = yup.InferType<typeof schema>;
+export type BatchEditionFormSchema = InferType<typeof schema>;
 
 interface Props {
   count: number;

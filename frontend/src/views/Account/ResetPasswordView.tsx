@@ -1,7 +1,7 @@
 import { Col, Container, Row, Text } from '../../components/_dsfr';
 import { type FormEvent, useState } from 'react';
 import building from '../../assets/images/building.svg';
-import * as yup from 'yup';
+import { object, string } from 'yup';
 import {
   passwordConfirmationValidator,
   passwordFormatValidator,
@@ -27,13 +27,13 @@ function ResetPasswordView() {
   });
 
   const shape = {
-    password: yup.string().required('Veuillez renseigner votre mot de passe.'),
+    password: string().required('Veuillez renseigner votre mot de passe.'),
     passwordFormat: passwordFormatValidator,
     passwordConfirmation: passwordConfirmationValidator
   };
   type FormShape = typeof shape;
 
-  const form = useForm(yup.object().shape(shape), {
+  const form = useForm(object().shape(shape) as any, {
     password,
     passwordFormat: password,
     passwordConfirmation

@@ -6,7 +6,7 @@ import { yupResolver } from '@hookform/resolvers/yup';
 import { FormProvider, useForm } from 'react-hook-form';
 import { useNavigate } from 'react-router-dom';
 import { toast } from 'react-toastify';
-import * as yup from 'yup';
+import { type InferType, object } from 'yup';
 
 import { emailValidator } from '../../../hooks/useForm';
 import AppTextInputNext from '../../../components/_app/AppTextInput/AppTextInputNext';
@@ -15,18 +15,16 @@ import Image from '../../../components/Image/Image';
 import AppLink from '../../../components/_app/AppLink/AppLink';
 import { useSendActivationEmailMutation } from '../../../services/signup-link.service';
 
-const schema = yup
-  .object({
-    email: emailValidator
-  })
-  .required();
+const schema = object({
+  email: emailValidator
+}).required();
 
 function AccountEmailCreationView() {
   const navigate = useNavigate();
 
   const [sendActivationEmail] = useSendActivationEmailMutation();
 
-  const form = useForm<yup.InferType<typeof schema>>({
+  const form = useForm<InferType<typeof schema>>({
     defaultValues: {
       email: ''
     },
@@ -34,7 +32,7 @@ function AccountEmailCreationView() {
     resolver: yupResolver(schema)
   });
 
-  async function submit(values: yup.InferType<typeof schema>): Promise<void> {
+  async function submit(values: InferType<typeof schema>): Promise<void> {
     await sendActivationEmail(values.email).unwrap();
     toast.success('Email envoyé');
     navigate('/inscription/activation', {

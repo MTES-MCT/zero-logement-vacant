@@ -1,11 +1,11 @@
 import Button from '@codegouvfr/react-dsfr/Button';
-import { yupResolver } from '@hookform/resolvers-next/yup';
+import { yupResolver } from '@hookform/resolvers/yup';
 import Box from '@mui/material/Box';
 import Stack from '@mui/material/Stack';
 import Typography from '@mui/material/Typography';
-import { TIME_PER_WEEK_VALUES } from '@zerologementvacant/models';
+import { TIME_PER_WEEK_VALUES, type TimePerWeek } from '@zerologementvacant/models';
 import { Controller, FormProvider, useForm } from 'react-hook-form';
-import { object, ref, string, type InferType } from 'yup-next';
+import { type InferType, object, ref, string } from 'yup';
 
 import { useUser } from '~/hooks/useUser';
 import {
@@ -22,7 +22,7 @@ const schema = object({
   lastName: string().nullable().default(null),
   phone: string().nullable().default(null),
   position: string().nullable().default(null),
-  timePerWeek: string().oneOf(TIME_PER_WEEK_VALUES).nullable().default(null)
+  timePerWeek: string().oneOf([...TIME_PER_WEEK_VALUES]).nullable().default(null)
 })
   .required()
   .shape(
@@ -30,12 +30,11 @@ const schema = object({
       currentPassword: string()
         .nullable()
         .default(null)
-        .when(['password', 'passwordConfirmation'], {
-          is: (password: string | null, passwordConfirmation: string | null) =>
-            password !== null || passwordConfirmation !== null,
-          then: (schema) =>
-            schema.required('Veuillez entrer votre mot de passe actuel.')
-        }),
+        .when(['password', 'passwordConfirmation'], ([password, passwordConfirmation], schema) =>
+          password !== null || passwordConfirmation !== null
+            ? schema.required('Veuillez entrer votre mot de passe actuel.')
+            : schema
+        ),
       password: string()
         .min(12, 'Au moins 12 caractères.')
         .matches(/[A-Z]/g, {
@@ -52,27 +51,24 @@ const schema = object({
         })
         .nullable()
         .default(null)
-        .when(['currentPassword', 'passwordConfirmation'], {
-          is: (
-            currentPassword: string | null,
-            passwordConfirmation: string | null
-          ) => currentPassword !== null || passwordConfirmation !== null,
-          then: (schema) =>
-            schema.required('Veuillez entrer un nouveau mot de passe.')
-        }),
+        .when(['currentPassword', 'passwordConfirmation'], ([currentPassword, passwordConfirmation], schema) =>
+          currentPassword !== null || passwordConfirmation !== null
+            ? schema.required('Veuillez entrer un nouveau mot de passe.')
+            : schema
+        ),
       passwordConfirmation: string()
         .nullable()
         .default(null)
-        .when('password', {
-          is: (password: string | null) => password !== null,
-          then: (schema) =>
-            schema
-              .required('Veuillez confirmer votre mot de passe.')
-              .oneOf(
-                [ref('password')],
-                'Les mots de passe doivent être identiques.'
-              )
-        })
+        .when('password', ([password], schema) =>
+          password !== null
+            ? schema
+                .required('Veuillez confirmer votre mot de passe.')
+                .oneOf(
+                  [ref('password')],
+                  'Les mots de passe doivent être identiques.'
+                )
+            : schema
+        )
     },
     [
       ['currentPassword', 'password'],
@@ -101,7 +97,6 @@ function AccountForm() {
       passwordConfirmation: null
     },
     mode: 'onSubmit',
-    // @ts-expect-error: typescript resolves types from yup (v0) instead of yup-next (v1)
     resolver: yupResolver(schema)
   });
 
@@ -139,7 +134,7 @@ function AccountForm() {
       lastName: values.lastName,
       phone: values.phone,
       position: values.position,
-      timePerWeek: values.timePerWeek,
+      timePerWeek: values.timePerWeek as TimePerWeek | null,
       ...password
     })
       .unwrap()

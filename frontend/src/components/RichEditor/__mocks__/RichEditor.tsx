@@ -1,5 +1,5 @@
 import type { ComponentPropsWithoutRef } from 'react';
-import { object } from 'yup';
+import * as yup from 'yup';
 
 import AppTextInput from '../../_app/AppTextInput/AppTextInput';
 import { useForm } from '../../../hooks/useForm';
@@ -8,7 +8,7 @@ import RichEditor from '../RichEditor';
 type MockRichEditorProps = ComponentPropsWithoutRef<typeof RichEditor>;
 
 function RichEditorMock(props: MockRichEditorProps) {
-  const form = useForm(object(), {});
+  const form = useForm(yup.object(), {});
 
   return (
     <AppTextInput

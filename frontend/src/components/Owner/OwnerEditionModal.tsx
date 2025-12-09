@@ -1,10 +1,10 @@
 import { fr } from '@codegouvfr/react-dsfr';
-import { yupResolver } from '@hookform/resolvers-next/yup';
+import { yupResolver } from '@hookform/resolvers/yup';
 import Grid from '@mui/material/Grid';
 import Stack from '@mui/material/Stack';
 import Typography from '@mui/material/Typography';
 import { Controller, FormProvider, useForm } from 'react-hook-form';
-import { number, object, string, type InferType } from 'yup-next';
+import { type InferType, number, object, string } from 'yup';
 
 import AppTextInputNext from '~/components/_app/AppTextInput/AppTextInputNext';
 import {
@@ -23,28 +23,28 @@ const schema = object({
   fullName: string().required(
     'Veuillez saisir le nom et prénom du propriétaire'
   ),
-  birthDate: string().defined().nullable(),
+  birthDate: string().nullable().defined(),
   banAddress: object({
     id: string().required(),
     label: string().required(),
     score: number().required().min(0).max(1),
-    longitude: number().min(-180).max(180).defined().nullable(),
-    latitude: number().min(-90).max(90).defined().nullable()
+    longitude: number().min(-180).max(180).nullable().defined(),
+    latitude: number().min(-90).max(90).nullable().defined()
   })
-    .defined()
-    .nullable(),
-  additionalAddress: string().defined().nullable(),
+    .nullable()
+    .defined(),
+  additionalAddress: string().nullable().defined(),
   email: string()
     .email('Email invalide. Exemple de format valide : exemple@gmail.com')
-    .defined()
-    .nullable(),
+    .nullable()
+    .defined(),
   phone: string()
     .matches(
       PHONE_REGEXP,
       'Téléphone invalide. Exemple de format valide : +33XXXXXXXXX ou 0XXXXXXXXX'
     )
-    .defined()
     .nullable()
+    .defined()
 }).required();
 type Schema = InferType<typeof schema>;
 
@@ -67,7 +67,7 @@ function createOwnerEditionModalNext() {
       const form = useForm<Schema>({
         values: {
           fullName: props.owner.fullName,
-          birthDate: props.owner.birthDate,
+          birthDate: props.owner.birthDate ?? null,
           banAddress: props.owner.banAddress
             ? {
                 id: props.owner.banAddress.banId ?? '',
@@ -77,11 +77,10 @@ function createOwnerEditionModalNext() {
                 latitude: props.owner.banAddress.latitude ?? null
               }
             : null,
-          additionalAddress: props.owner.additionalAddress,
-          email: props.owner.email,
-          phone: props.owner.phone
-        },
-        // @ts-expect-error: typescript resolves types from yup (v0) instead of yup-next (v1)
+          additionalAddress: props.owner.additionalAddress ?? null,
+          email: props.owner.email ?? null,
+          phone: props.owner.phone ?? null
+        } satisfies Schema,
         resolver: yupResolver(schema)
       });
 

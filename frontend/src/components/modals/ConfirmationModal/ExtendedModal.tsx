@@ -1,4 +1,5 @@
 import { createModal, type ModalProps } from '@codegouvfr/react-dsfr/Modal';
+import { useIsModalOpen } from '@codegouvfr/react-dsfr/Modal/useIsModalOpen';
 import { type JSX, useEffect } from 'react';
 import { match } from 'ts-pattern';
 
@@ -9,6 +10,8 @@ export interface ExtendedModalOptions {
 
 export interface ExtendedModalProps extends Omit<ModalProps, 'size'> {
   size?: ModalProps['size'] | SizeExtension;
+  onOpen?(): void;
+  onClose?(): void;
 }
 
 export function createExtendedModal(options: ExtendedModalOptions) {
@@ -17,7 +20,12 @@ export function createExtendedModal(options: ExtendedModalOptions) {
   return {
     ...modal,
     Component(props: ExtendedModalProps): JSX.Element {
-      const { size, ...rest } = props;
+      const { size, onOpen, onClose, ...rest } = props;
+
+      useIsModalOpen(options, {
+        onDisclose: onOpen,
+        onConceal: onClose
+      });
 
       useEffect(() => {
         if (isSizeExtension(size)) {

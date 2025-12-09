@@ -51,14 +51,14 @@ function DocumentCard(props: Readonly<DocumentCardProps>) {
     try {
       const response = await fetch(props.document.url);
       const blob = await response.blob();
-      const url = window.URL.createObjectURL(blob);
+      const url = globalThis.URL.createObjectURL(blob);
       const link = document.createElement('a');
       link.href = url;
       link.download = props.document.filename;
       document.body.appendChild(link);
       link.click();
-      document.body.removeChild(link);
-      window.URL.revokeObjectURL(url);
+      link.remove()
+      globalThis.URL.revokeObjectURL(url);
     } catch (error) {
       console.error('Failed to download document', error);
     }

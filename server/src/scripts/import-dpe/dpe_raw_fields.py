@@ -224,6 +224,8 @@ DPE_RAW_FIELDS = [
     "volume_stockage_generateur_n1_ecs_n1",
     "volume_stockage_generateur_n2_ecs_n1",
     "zone_climatique",
+    "id_rnb",
+    "provenance_id_rnb",
 ]
 
 # Mapping from JSON field names to database field names
@@ -450,4 +452,6 @@ JSON_TO_DB_FIELD_MAPPING = {
     "volume_stockage_generateur_n1_ecs_n1": "volume_stockage_generateur_n1_ecs_n1",
     "volume_stockage_generateur_n2_ecs_n1": "volume_stockage_generateur_n2_ecs_n1",
     "zone_climatique": "zone_climatique",
+    "id_rnb": "id_rnb",
+    "provenance_id_rnb": "provenance_id_rnb",
 }

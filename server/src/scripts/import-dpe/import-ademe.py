@@ -45,7 +45,7 @@ class AdemeApiClient:
         try:
             if not os.path.exists(filename):
                 return None
-            
+
             with open(filename, 'rb') as f:
                 # Go to end of file
                 f.seek(-2, os.SEEK_END)
@@ -56,10 +56,10 @@ class AdemeApiClient:
 
                 # Read the last line
                 last_line = f.readline().decode('utf-8').strip()
-                
+
                 if last_line:
                     return json.loads(last_line)
-                    
+
         except Exception as e:
             print(f"Error reading last record: {e}")
 
@@ -81,9 +81,9 @@ class AdemeApiClient:
 
         # Build 'after' parameter: _i + "%2C" + _rand
         after_param = f"{_i}%2C{_rand}"
-        
+
         return f"{self.base_url}?size={limit_per_page}&after={after_param}"
-    
+
     def count_lines_in_file(self, filename: str) -> int:
         """
         Counts the number of lines in a file
@@ -103,7 +103,7 @@ class AdemeApiClient:
         except Exception as e:
             print(f"Error counting lines: {e}")
             return 0
-    
+
     def test_authentication(self) -> bool:
         """
         Tests authentication with x-apiKey
@@ -112,7 +112,7 @@ class AdemeApiClient:
             True if authentication succeeds, False otherwise
         """
         test_url = f"{self.base_url}?size=1"
-        
+
         print(f"🧪 Testing authentication with: {dict(self.session.headers)}")
 
         try:
@@ -134,7 +134,7 @@ class AdemeApiClient:
         except Exception as e:
             print(f"❌ Error during test: {e}")
             return False
-    
+
     def get_page(self, url: str, max_retries: int = 5) -> Optional[tuple[Dict[str, Any], int]]:
         """
         Retrieves a page of data from the API with retry logic
@@ -204,7 +204,7 @@ class AdemeApiClient:
                     return None
 
         return None
-    
+
     def fetch_all_data(self, limit_per_page: int = 1000, max_pages: Optional[int] = None,
                       output_dir: str = "dpe_split", resume_from: Optional[Dict[str, Any]] = None) -> int:
         """
@@ -362,7 +362,7 @@ class AdemeApiClient:
             print(f"   {year_month_key}: {records_by_month[year_month_key]:,} DPE")
 
         return new_records
-    
+
     def save_to_json(self, data: List[Dict[str, Any]], filename: str = "dpe_data.json"):
         """
         Saves data to a standard JSON file
@@ -377,7 +377,7 @@ class AdemeApiClient:
             print(f"Data saved to {filename}")
         except Exception as e:
             print(f"Error during save: {e}")
-    
+
     def read_jsonl_file(self, filename: str) -> List[Dict[str, Any]]:
         """
         Reads a JSON Lines file and returns a list of objects
@@ -400,7 +400,7 @@ class AdemeApiClient:
         except Exception as e:
             print(f"Error reading file: {e}")
             return []
-    
+
     def get_sample_data(self, sample_size: int = 100) -> List[Dict[str, Any]]:
         """
         Retrieves a data sample for testing
@@ -413,7 +413,7 @@ class AdemeApiClient:
         """
         url = f"{self.base_url}?size={sample_size}"
         page_data = self.get_page(url)
-        
+
         if page_data and "results" in page_data:
             return page_data["results"]
         return []

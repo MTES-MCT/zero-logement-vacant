@@ -24,19 +24,25 @@ async function listGeoPerimeters(request: Request, response: Response) {
 }
 
 async function createGeoPerimeter(
-  // TODO: type this
-  request: any,
+  request: Request,
   response: Response
 ) {
   const { establishmentId, userId } = (request as AuthenticatedRequest).auth;
-  const file = request.files.geoPerimeter;
+  const file = request.file;
+
+  if (!file) {
+    return response.status(constants.HTTP_STATUS_BAD_REQUEST).json({
+      error: 'No file uploaded',
+      message: 'Please upload a shapefile as a ZIP file'
+    });
+  }
 
   logger.info('Create geo perimeter', {
     establishment: establishmentId,
-    name: file.name
+    name: file.originalname
   });
 
-  const geojson = await shpjs(file.data);
+  const geojson = await shpjs(file.buffer);
   const featureCollections = Array.isArray(geojson) ? geojson : [geojson];
 
   const features = featureCollections.flatMap(

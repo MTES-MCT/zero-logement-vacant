@@ -35,7 +35,7 @@ const HousingAdditionalOwnerCreation = ({ onAdd, rank }: Props) => {
   };
   type FormShape = typeof shape;
 
-  const form = useForm(yup.object().shape(shape), {
+  const form = useForm(yup.object().shape(shape) as any, {
     fullName,
     birthDate,
     rawAddress,

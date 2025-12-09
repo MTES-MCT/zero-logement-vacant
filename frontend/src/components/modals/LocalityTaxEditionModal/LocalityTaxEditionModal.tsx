@@ -41,7 +41,7 @@ const LocalityTaxEditionModal = ({ locality, onSubmit }: Props) => {
 
   type FormShape = typeof shape;
 
-  const form = useForm(yup.object().shape(shape), {
+  const form = useForm(yup.object().shape(shape) as any, {
     taxRate
   });
 

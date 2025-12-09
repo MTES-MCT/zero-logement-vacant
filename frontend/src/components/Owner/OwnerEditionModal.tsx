@@ -1,10 +1,10 @@
 import { fr } from '@codegouvfr/react-dsfr';
-import { yupResolver } from '@hookform/resolvers-next/yup';
+import { yupResolver } from '@hookform/resolvers/yup';
 import Grid from '@mui/material/Grid';
 import Stack from '@mui/material/Stack';
 import Typography from '@mui/material/Typography';
 import { Controller, FormProvider, useForm } from 'react-hook-form';
-import { number, object, string, type InferType } from 'yup-next';
+import * as yup from 'yup';
 
 import AppTextInputNext from '~/components/_app/AppTextInput/AppTextInputNext';
 import {
@@ -19,34 +19,34 @@ import OwnerAddressEdition from '../OwnerAddressEdition/OwnerAddressEdition';
 
 const PHONE_REGEXP = /^(\+33|0)[1-9][0-9]{8}$/;
 
-const schema = object({
-  fullName: string().required(
+const schema = yup.object({
+  fullName: yup.string().required(
     'Veuillez saisir le nom et prénom du propriétaire'
   ),
-  birthDate: string().defined().nullable(),
-  banAddress: object({
-    id: string().required(),
-    label: string().required(),
-    score: number().required().min(0).max(1),
-    longitude: number().min(-180).max(180).defined().nullable(),
-    latitude: number().min(-90).max(90).defined().nullable()
+  birthDate: yup.string().nullable().defined(),
+  banAddress: yup.object({
+    id: yup.string().required(),
+    label: yup.string().required(),
+    score: yup.number().required().min(0).max(1),
+    longitude: yup.number().min(-180).max(180).nullable().defined(),
+    latitude: yup.number().min(-90).max(90).nullable().defined()
   })
-    .defined()
-    .nullable(),
-  additionalAddress: string().defined().nullable(),
-  email: string()
+    .nullable()
+    .defined(),
+  additionalAddress: yup.string().nullable().defined(),
+  email: yup.string()
     .email('Email invalide. Exemple de format valide : exemple@gmail.com')
-    .defined()
-    .nullable(),
-  phone: string()
+    .nullable()
+    .defined(),
+  phone: yup.string()
     .matches(
       PHONE_REGEXP,
       'Téléphone invalide. Exemple de format valide : +33XXXXXXXXX ou 0XXXXXXXXX'
     )
-    .defined()
     .nullable()
+    .defined()
 }).required();
-type Schema = InferType<typeof schema>;
+type Schema = yup.InferType<typeof schema>;
 
 export type OwnerEditionModalProps = Omit<
   ExtendedModalProps,
@@ -67,7 +67,7 @@ function createOwnerEditionModalNext() {
       const form = useForm<Schema>({
         values: {
           fullName: props.owner.fullName,
-          birthDate: props.owner.birthDate,
+          birthDate: props.owner.birthDate ?? null,
           banAddress: props.owner.banAddress
             ? {
                 id: props.owner.banAddress.banId ?? '',
@@ -77,11 +77,10 @@ function createOwnerEditionModalNext() {
                 latitude: props.owner.banAddress.latitude ?? null
               }
             : null,
-          additionalAddress: props.owner.additionalAddress,
-          email: props.owner.email,
-          phone: props.owner.phone
-        },
-        // @ts-expect-error: typescript resolves types from yup (v0) instead of yup-next (v1)
+          additionalAddress: props.owner.additionalAddress ?? null,
+          email: props.owner.email ?? null,
+          phone: props.owner.phone ?? null
+        } satisfies Schema,
         resolver: yupResolver(schema)
       });
 
@@ -158,7 +157,7 @@ function createOwnerEditionModalNext() {
                 }
               ]}
               {...props}
-              title='Modifier la rubrique "propriétaire"'
+              title='Éditer les informations du propriétaire'
             >
               <Stack spacing="1.5rem">
                 <Grid

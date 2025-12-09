@@ -40,11 +40,11 @@ describe('AccountEmailCreationView', () => {
     setup();
 
     const input = screen.getByLabelText(/^Adresse e-mail/i);
-    await user.type(input, 'invalid@email');
+    await user.type(input, 'invalid-email');
     await user.keyboard('{Enter}');
 
     const error = await screen.findByText(
-      /L’adresse doit être un email valide/
+      /L'adresse doit être un email valide/
     );
     expect(error).toBeVisible();
   });

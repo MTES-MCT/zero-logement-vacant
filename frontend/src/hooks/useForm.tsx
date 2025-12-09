@@ -4,14 +4,15 @@ import { useEffect, useRef, useState } from 'react';
 import * as yup from 'yup';
 
 // ObjectShape type compatible with yup's internal type
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
 export type ObjectShape = Record<string, any>;
 import { parseDateInput } from '../utils/dateUtils';
 
 export const emailValidator = yup
   .string()
   .required('Veuillez renseigner votre adresse email.')
-  .email("L'adresse doit être un email valide. Exemple de format valide : exemple@gmail.com");
+  .email(
+    'L’adresse doit être un email valide. Exemple de format valide : exemple@gmail.com'
+  );
 
 export const passwordFormatValidator = yup
   .string()
@@ -231,10 +232,7 @@ export function useForm<
   };
 }
 
-export function keysDeep(
-  record: ObjectShape,
-  prefix: string = ''
-): string[] {
+export function keysDeep(record: ObjectShape, prefix: string = ''): string[] {
   return pipe(
     record,
     Array.fromRecord,

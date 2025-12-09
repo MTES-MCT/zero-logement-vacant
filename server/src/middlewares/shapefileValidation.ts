@@ -1,6 +1,5 @@
 import { Request, Response, NextFunction, RequestHandler } from 'express';
 import { logger } from '~/infra/logger';
-import BadRequestError from '~/errors/badRequestError';
 import config from '~/infra/config';
 import AdmZip from 'adm-zip';
 import shapefile from 'shapefile';
@@ -8,14 +7,20 @@ import shapefile from 'shapefile';
 /**
  * Custom error class for shapefile validation failures
  */
-class ShapefileValidationError extends BadRequestError {
+export class ShapefileValidationError extends Error {
+  public readonly status = 400;
+
   constructor(
     public readonly reason: 'missing_components' | 'too_many_features' | 'invalid_shapefile',
     public readonly fileName: string,
     public readonly details?: string
   ) {
-    super();
+    super(details || 'Shapefile validation failed');
     this.name = 'ShapefileValidationError';
+    // Maintains proper stack trace for where our error was thrown (only available on V8)
+    if (Error.captureStackTrace) {
+      Error.captureStackTrace(this, ShapefileValidationError);
+    }
   }
 }
 
@@ -162,7 +167,7 @@ export const shapefileValidationMiddleware: RequestHandler = async (
 
       next();
     } catch (error) {
-      if (error instanceof ShapefileValidationError || error instanceof BadRequestError) {
+      if (error instanceof ShapefileValidationError) {
         throw error;
       }
 

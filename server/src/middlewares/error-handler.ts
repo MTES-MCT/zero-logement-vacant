@@ -29,16 +29,17 @@ function isFileValidationError(error: Error): error is BadRequestError & {
 /**
  * Check if error is a ShapefileValidationError (from shapefileValidation middleware)
  */
-function isShapefileValidationError(error: Error): error is BadRequestError & {
+function isShapefileValidationError(error: Error): error is Error & {
+  status: number;
   reason: 'missing_components' | 'too_many_features' | 'invalid_shapefile';
   fileName: string;
   details?: string;
 } {
   return (
-    error instanceof BadRequestError &&
     error.name === 'ShapefileValidationError' &&
     'reason' in error &&
-    'fileName' in error
+    'fileName' in error &&
+    'status' in error
   );
 }
 

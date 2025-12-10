@@ -1,3 +1,4 @@
+import { PutObjectCommand } from '@aws-sdk/client-s3';
 import {
   HousingDocumentDTO,
   isAdmin,
@@ -6,12 +7,16 @@ import {
 } from '@zerologementvacant/models';
 import { createS3, generatePresignedUrl } from '@zerologementvacant/utils/node';
 import async from 'async';
+import { Array, Either, pipe } from 'effect';
 import { RequestHandler } from 'express';
 import { AuthenticatedRequest } from 'express-jwt';
 import { constants } from 'node:http2';
+import type { ElementOf } from 'ts-essentials';
+import { match } from 'ts-pattern';
 import { v4 as uuidv4 } from 'uuid';
 
 import DocumentMissingError from '~/errors/documentMissingError';
+import FilesMissingError from '~/errors/filesMissingError';
 import ForbiddenError from '~/errors/forbiddenError';
 import HousingMissingError from '~/errors/housingMissingError';
 import config from '~/infra/config';
@@ -22,6 +27,7 @@ import {
 } from '~/models/HousingDocumentApi';
 import housingDocumentRepository from '~/repositories/housingDocumentRepository';
 import housingRepository from '~/repositories/housingRepository';
+import { FileValidationError, validateFiles } from '~/services/file-validation';
 
 const logger = createLogger('documentController');
 
@@ -145,17 +151,17 @@ const listByHousing: RequestHandler<PathParams, HousingDocumentDTO[]> = async (
 
 const createByHousing: RequestHandler<
   PathParams,
-  ReadonlyArray<HousingDocumentDTO>,
+  ReadonlyArray<HousingDocumentDTO | FileValidationError>,
   never
 > = async (request, response) => {
   const { establishment, params, user } = request as AuthenticatedRequest<
     PathParams,
-    HousingDocumentDTO,
+    HousingDocumentDTO | FileValidationError,
     never
   >;
   const files = request.files ?? [];
   if (!files.length) {
-    throw new Error('No file uploaded');
+    throw new FilesMissingError();
   }
 
   logger.debug('Create a document by housing', {
@@ -172,21 +178,12 @@ const createByHousing: RequestHandler<
     throw new HousingMissingError(params.id);
   }
 
-  const documents: Array<HousingDocumentApi> = files.map((file) => ({
-    id: uuidv4(),
-    housingId: housing.id,
-    housingGeoCode: housing.geoCode,
-    filename: file.originalname,
-    s3Key: file.key,
-    contentType: file.contentType,
-    sizeBytes: file.size,
-    createdBy: user.id,
-    createdAt: new Date().toJSON(),
-    updatedAt: null,
-    deletedAt: null,
-    creator: user
-  }));
-  await housingDocumentRepository.createMany(documents);
+  // Validate files
+  logger.info('Validating files before upload', {
+    housing: params.id,
+    fileCount: files.length
+  });
+  const validationResults = await validateFiles(files);
 
   const s3 = createS3({
     endpoint: config.s3.endpoint,
@@ -195,18 +192,132 @@ const createByHousing: RequestHandler<
     secretAccessKey: config.s3.secretAccessKey
   });
 
-  const documentsWithURLs: ReadonlyArray<HousingDocumentDTO> = await async.map(
-    documents,
-    async (document: HousingDocumentApi) => {
-      const url = await generatePresignedUrl({
-        s3,
-        bucket: config.s3.bucket,
-        key: document.s3Key
-      });
-      return toHousingDocumentDTO(document, url);
+  const documentsOrErrors: ReadonlyArray<
+    Either.Either<HousingDocumentDTO, FileValidationError>
+  > = await pipe(
+    validationResults,
+    Array.map(
+      Either.map((file) => {
+        const id = uuidv4();
+        const command = new PutObjectCommand({
+          Bucket: config.s3.bucket,
+          Key: id,
+          Body: file.buffer,
+          ContentType: file.mimetype,
+          ACL: 'authenticated-read',
+          Metadata: {
+            originalName: file.originalname,
+            fieldName: file.fieldname
+          }
+        });
+        const document: HousingDocumentApi = {
+          id: id,
+          filename: file.originalname,
+          s3Key: id,
+          contentType: file.mimetype,
+          sizeBytes: file.size,
+          createdBy: user.id,
+          createdAt: new Date().toJSON(),
+          updatedAt: null,
+          deletedAt: null,
+          creator: user,
+          housingId: housing.id,
+          housingGeoCode: housing.geoCode
+        };
+
+        return { document, command };
+      })
+    ),
+    // Upload files to S3
+    async (documentsWithCommandsOrErrors) => {
+      return async.map(
+        documentsWithCommandsOrErrors,
+        async (
+          either: ElementOf<typeof documentsWithCommandsOrErrors>
+        ): Promise<Either.Either<HousingDocumentApi, FileValidationError>> => {
+          // Already an error
+          if (Either.isLeft(either)) {
+            return Either.left(either.left);
+          }
+
+          const { command, document } = either.right;
+          try {
+            await s3.send(command);
+            return Either.right(document);
+          } catch (error) {
+            logger.error('Failed to upload file to S3', {
+              filename: document.filename,
+              s3Key: document.s3Key,
+              error: error instanceof Error ? error.message : String(error)
+            });
+            return Either.left(
+              new FileValidationError(
+                document.filename,
+                'invalid_file_type',
+                'Failed to upload file to storage',
+                {
+                  error: error instanceof Error ? error.message : String(error)
+                }
+              )
+            );
+          }
+        }
+      );
+    },
+    // Save to database
+    async (
+      promise
+    ): Promise<Either.Either<HousingDocumentApi, FileValidationError>[]> => {
+      const documentsOrErrors = await promise;
+      const documents = Array.getRights(documentsOrErrors);
+
+      if (Array.isNonEmptyArray(documents)) {
+        logger.info('Creating documents...', {
+          housing: params.id,
+          count: documents.length
+        });
+        await housingDocumentRepository.createMany(documents);
+      }
+
+      return documentsOrErrors;
+    },
+    // Generate pre-signed URLs and build final DTOs
+    async (promise) => {
+      const documentsOrErrors = await promise;
+      return async.map(
+        documentsOrErrors,
+        async (either: ElementOf<typeof documentsOrErrors>) => {
+          if (Either.isLeft(either)) {
+            return Either.left(either.left);
+          }
+
+          const document = either.right;
+          const url = await generatePresignedUrl({
+            s3,
+            bucket: config.s3.bucket,
+            key: document.s3Key
+          });
+          return Either.right(toHousingDocumentDTO(document, url));
+        }
+      );
     }
   );
-  response.status(constants.HTTP_STATUS_CREATED).json(documentsWithURLs);
+
+  const documents = Array.getRights(documentsOrErrors);
+  const errors = Array.getLefts(documentsOrErrors);
+  logger.info('Document creation completed', {
+    housing: params.id,
+    total: files.length,
+    succeeded: documents.length,
+    failed: errors.length
+  });
+  const status = match({ documents, errors })
+    .returnType<number>()
+    .with({ errors: [] }, () => constants.HTTP_STATUS_CREATED)
+    .with({ documents: [] }, () => constants.HTTP_STATUS_BAD_REQUEST)
+    .otherwise(() => constants.HTTP_STATUS_MULTI_STATUS);
+
+  response.status(status).json(Array.map(documentsOrErrors, Either.merge));
 };
 
 const documentController = {

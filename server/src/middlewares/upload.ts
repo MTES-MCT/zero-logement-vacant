@@ -1,10 +1,8 @@
-import { createS3 } from '@zerologementvacant/utils/node';
 import { Predicate } from 'effect';
 import { Request, RequestHandler } from 'express';
 import mime from 'mime';
 import multer from 'multer';
 import BadRequestError from '~/errors/badRequestError';
-import config from '~/infra/config';
 
 export interface UploadOptions {
   /**
@@ -15,7 +13,7 @@ export interface UploadOptions {
   /**
    * @default 1
    */
-  maxSizeMB?: number;
+  maxSizeMiB?: number;
   /**
    * Whether to accept multiple files.
    * @default false
@@ -40,14 +38,15 @@ export function upload(options?: UploadOptions): RequestHandler {
       .filter(Predicate.isNotNull)
   );
 
-  const maxSizeBytes = config.upload.maxSizeMB * 1024 * 1024;
+  const maxSizeMiB = options?.maxSizeMiB ?? 1;
+  const maxSizeBytes = maxSizeMiB * 1024 ** 2;
 
   const upload = multer({
     // Use memory storage instead of direct S3 upload
     storage: multer.memoryStorage(),
 
     limits: {
-      files: 1,
+      files: 10,
       fileSize: maxSizeBytes
     },
 

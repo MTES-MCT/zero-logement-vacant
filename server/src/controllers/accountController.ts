@@ -10,7 +10,9 @@ import EstablishmentMissingError from '~/errors/establishmentMissingError';
 import ResetLinkExpiredError from '~/errors/resetLinkExpiredError';
 import ResetLinkMissingError from '~/errors/resetLinkMissingError';
 import UnprocessableEntityError from '~/errors/unprocessableEntityError';
+import UserDeletedError from '~/errors/userDeletedError';
 import UserMissingError from '~/errors/userMissingError';
+import UserSuspendedError from '~/errors/userSuspendedError';
 import config from '~/infra/config';
 import { logger } from '~/infra/logger';
 import { hasExpired } from '~/models/ResetLinkApi';
@@ -61,6 +63,27 @@ async function signIn(request: Request, response: Response) {
   const isPasswordValid = await bcrypt.compare(payload.password, user.password);
   if (!isPasswordValid) {
     throw new AuthenticationFailedError();
+  }
+
+  // Check if user account is deleted
+  if (user.deletedAt) {
+    logger.warn('Login attempt on deleted account', {
+      userId: user.id,
+      email: user.email,
+      deletedAt: user.deletedAt
+    });
+    throw new UserDeletedError();
+  }
+
+  // Check if user account is suspended
+  if (user.suspendedAt) {
+    logger.warn('Login attempt on suspended account', {
+      userId: user.id,
+      email: user.email,
+      suspendedAt: user.suspendedAt,
+      suspendedCause: user.suspendedCause
+    });
+    throw new UserSuspendedError(user.suspendedCause ?? undefined);
   }
 
   // Check if 2FA is required for admin users

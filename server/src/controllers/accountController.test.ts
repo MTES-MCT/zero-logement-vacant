@@ -166,6 +166,45 @@ describe('Account controller', () => {
         accessToken: expect.any(String)
       });
     });
+
+    it('should fail if the user is suspended', async () => {
+      const suspendedUser: UserApi = {
+        ...genUserApi(establishment.id),
+        password: bcrypt.hashSync('TestPassword123!', SALT_LENGTH),
+        suspendedAt: new Date().toJSON(),
+        suspendedCause: 'droits utilisateur expires'
+      };
+      await Users().insert(formatUserApi(suspendedUser));
+
+      const { status } = await request(url).post(testRoute).send({
+        email: suspendedUser.email,
+        password: 'TestPassword123!'
+      });
+
+      expect(status).toBe(constants.HTTP_STATUS_FORBIDDEN);
+
+      // Cleanup
+      await Users().where('id', suspendedUser.id).delete();
+    });
+
+    it('should fail if the user is deleted', async () => {
+      const deletedUser: UserApi = {
+        ...genUserApi(establishment.id),
+        password: bcrypt.hashSync('TestPassword123!', SALT_LENGTH),
+        deletedAt: new Date().toJSON()
+      };
+      await Users().insert(formatUserApi(deletedUser));
+
+      const { status } = await request(url).post(testRoute).send({
+        email: deletedUser.email,
+        password: 'TestPassword123!'
+      });
+
+      expect(status).toBe(constants.HTTP_STATUS_FORBIDDEN);
+
+      // Cleanup
+      await Users().where('id', deletedUser.id).delete();
+    });
   });
 
   describe('Verify 2FA', () => {

@@ -25,6 +25,7 @@ import { SALT_LENGTH, toUserDTO, UserApi } from '~/models/UserApi';
 import establishmentRepository from '~/repositories/establishmentRepository';
 import prospectRepository from '~/repositories/prospectRepository';
 import userRepository from '~/repositories/userRepository';
+import ceremaService from '~/services/ceremaService';
 import { isTestAccount } from '~/services/ceremaService/consultUserService';
 import { fetchUserKind } from '~/services/ceremaService/userKindService';
 import mailService from '~/services/mailService';
@@ -105,6 +106,25 @@ async function create(request: Request, response: Response) {
   );
   if (!userEstablishment) {
     throw new EstablishmentMissingError(body.establishmentId);
+  }
+
+  // Re-verify Portail DF rights at account creation time
+  // The prospect may have been created some time ago and rights may have changed
+  const ceremaUsers = await ceremaService.consultUsers(body.email);
+  const hasValidCommitment = ceremaUsers.some(
+    (user) =>
+      user.hasCommitment &&
+      user.establishmentSiren === userEstablishment.siren
+  );
+
+  if (!hasValidCommitment) {
+    logger.warn('User does not have valid LOVAC commitment at account creation', {
+      email: body.email,
+      establishmentId: body.establishmentId,
+      establishmentSiren: userEstablishment.siren,
+      ceremaUsers
+    });
+    throw new ProspectInvalidError(prospect);
   }
 
   // Fetch user kind from Portail DF API

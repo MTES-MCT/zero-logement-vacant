@@ -1,4 +1,9 @@
-import { CeremaUser, ConsultUserService } from './consultUserService';
+import {
+  CeremaGroup,
+  CeremaPerimeter,
+  CeremaUser,
+  ConsultUserService
+} from './consultUserService';
 
 import config from '~/infra/config';
 import { logger } from '~/infra/logger';
@@ -17,6 +22,37 @@ function isLovacAccessValid(accesLovac: string | null): boolean {
     return accessDate > now;
   } catch {
     return false;
+  }
+}
+
+/**
+ * Make an authenticated API call to Portail DF
+ */
+async function fetchPortailDF<T>(
+  token: string,
+  endpoint: string
+): Promise<T | null> {
+  try {
+    const response = await fetch(`${config.cerema.api}${endpoint}`, {
+      method: 'GET',
+      headers: {
+        Authorization: `Token ${token}`,
+        'Content-Type': 'application/json'
+      }
+    });
+
+    if (!response.ok) {
+      logger.warn('Failed to fetch from Portail DF', {
+        endpoint,
+        status: response.status
+      });
+      return null;
+    }
+
+    return (await response.json()) as T;
+  } catch (error) {
+    logger.error('Error fetching from Portail DF', { endpoint, error });
+    return null;
   }
 }
 
@@ -64,7 +100,7 @@ export class CeremaService implements ConsultUserService {
       if (userContent) {
         const users = await Promise.all(
           userContent.results.map(
-            async (user: { email: any; structure: number }) => {
+            async (user: { email: any; structure: number; groupe: number }) => {
               const establishmentResponse = await fetch(
                 `${config.cerema.api}/api/structures/${user.structure}/`,
                 {
@@ -82,14 +118,35 @@ export class CeremaService implements ConsultUserService {
                 throw establishmentContent.detail;
               }
 
-              const u = {
+              // Fetch group info if available
+              let group: CeremaGroup | undefined;
+              let perimeter: CeremaPerimeter | undefined;
+
+              if (user.groupe) {
+                group = await fetchPortailDF<CeremaGroup>(
+                  token,
+                  `/api/groupes/${user.groupe}/`
+                ) ?? undefined;
+
+                // Fetch perimeter if group has one
+                if (group?.perimetre) {
+                  perimeter = await fetchPortailDF<CeremaPerimeter>(
+                    token,
+                    `/api/perimetres/${group.perimetre}/`
+                  ) ?? undefined;
+                }
+              }
+
+              const u: CeremaUser = {
                 email: user.email,
                 establishmentSiren: establishmentContent.siret.substring(0, 9),
                 hasAccount: true,
                 // Check that acces_lovac is not null AND is a valid future date
                 hasCommitment: isLovacAccessValid(
                   establishmentContent.acces_lovac
-                )
+                ),
+                group,
+                perimeter
               };
               return u;
             }

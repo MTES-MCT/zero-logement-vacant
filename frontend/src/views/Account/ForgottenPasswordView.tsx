@@ -1,7 +1,7 @@
 import { Col, Container, Row, Text } from '../../components/_dsfr';
 import building from '../../assets/images/building.svg';
 import { useState } from 'react';
-import * as yup from 'yup';
+import { object } from 'yup';
 import { emailValidator, useForm } from '../../hooks/useForm';
 import resetLinkService from '../../services/reset-link.service';
 import classNames from 'classnames';
@@ -57,7 +57,7 @@ function ForgottenPasswordView() {
   };
   type FormShape = typeof shape;
 
-  const form = useForm(yup.object().shape(shape), {
+  const form = useForm(object().shape(shape) as any, {
     email
   });
   const { hidden, setHidden } = useHide();

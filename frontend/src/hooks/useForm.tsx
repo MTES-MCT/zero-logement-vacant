@@ -2,13 +2,16 @@ import { isDate } from 'date-fns';
 import { Array, pipe, Predicate, Record } from 'effect';
 import { useEffect, useRef, useState } from 'react';
 import * as yup from 'yup';
-import type { ObjectShape } from 'yup/lib/object';
+
+// ObjectShape type compatible with yup's internal type
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+export type ObjectShape = Record<string, any>;
 import { parseDateInput } from '../utils/dateUtils';
 
 export const emailValidator = yup
   .string()
   .required('Veuillez renseigner votre adresse email.')
-  .email('L’adresse doit être un email valide. Exemple de format valide : exemple@gmail.com');
+  .email("L'adresse doit être un email valide. Exemple de format valide : exemple@gmail.com");
 
 export const passwordFormatValidator = yup
   .string()
@@ -56,12 +59,12 @@ export const dateValidator = yup
 
 export const fileValidator = (supportedFormats: string[]) =>
   yup
-    .mixed()
+    .mixed<File>()
     .required('Veuillez sélectionner un fichier')
     .test(
       'fileType',
       'Format de fichier invalide',
-      (value) => value && supportedFormats.includes(value.type)
+      (value) => value && supportedFormats.includes((value as any).type)
     );
 
 export const banAddressValidator = yup.object();
@@ -82,7 +85,7 @@ interface Message {
  * @param fullValidationKeys
  */
 export function useForm<
-  T extends ObjectShape,
+  T extends yup.AnyObject,
   U extends Record<keyof T, unknown>
 >(schema: yup.ObjectSchema<T>, input: U, fullValidationKeys?: (keyof U)[]) {
   const [errors, setErrors] = useState<yup.ValidationError[]>();
@@ -228,7 +231,10 @@ export function useForm<
   };
 }
 
-export function keysDeep(record: ObjectShape, prefix: string = ''): string[] {
+export function keysDeep(
+  record: ObjectShape,
+  prefix: string = ''
+): string[] {
   return pipe(
     record,
     Array.fromRecord,

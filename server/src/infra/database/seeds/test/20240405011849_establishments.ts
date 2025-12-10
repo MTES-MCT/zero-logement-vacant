@@ -1,6 +1,6 @@
 import { Knex } from 'knex';
 
-import { LocalityApi, TaxKindsApi } from '~/models/LocalityApi';
+import { LocalityApi } from '~/models/LocalityApi';
 import establishmentRepository, {
   establishmentsTable
 } from '~/repositories/establishmentRepository';
@@ -13,7 +13,7 @@ import { genEstablishmentApi, genLocalityApi } from '~/test/testFixtures';
 export const Locality1: LocalityApi = genLocalityApi();
 export const Locality2: LocalityApi = {
   ...genLocalityApi(),
-  taxKind: TaxKindsApi.TLV
+  taxKind: 'TLV'
 };
 
 /**

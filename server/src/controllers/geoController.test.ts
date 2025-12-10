@@ -2,6 +2,9 @@ import { faker } from '@faker-js/faker/locale/fr';
 import { constants } from 'http2';
 import randomstring from 'randomstring';
 import request from 'supertest';
+import path from 'node:path';
+import fs from 'node:fs';
+import AdmZip from 'adm-zip';
 
 import { tokenProvider } from '~/test/testUtils';
 import {
@@ -20,6 +23,9 @@ import {
 } from '~/repositories/establishmentRepository';
 import { formatUserApi, Users } from '~/repositories/userRepository';
 import { GeoPerimeterApi } from '~/models/GeoPerimeterApi';
+
+// EICAR test file - standard antivirus test string
+const EICAR_TEST_FILE = 'X5O!P%@AP[4\\PZX54(P^)7CC)7}$EICAR-STANDARD-ANTIVIRUS-TEST-FILE!$H+H*';
 
 describe('Geo perimeters API', () => {
   let url: string;
@@ -231,5 +237,150 @@ describe('Geo perimeters API', () => {
         name: newName
       });
     });
+  });
+
+  describe('POST /geo/perimeters', () => {
+    const testRoute = '/api/geo/perimeters';
+
+    it('should be forbidden for a non-authenticated user', async () => {
+      const { status } = await request(url).post(testRoute);
+
+      expect(status).toBe(constants.HTTP_STATUS_UNAUTHORIZED);
+    });
+
+    // Skipped: Requires ClamAV daemon running locally (see docs/EICAR_TESTING.md)
+    // Enable this test in CI/CD where ClamAV is available, or run manually with local ClamAV setup
+    it.skip('should reject EICAR test file in ZIP', async () => {
+      // Create a ZIP containing EICAR test file
+      const zip = new AdmZip();
+      zip.addFile('eicar.txt', Buffer.from(EICAR_TEST_FILE));
+      const zipBuffer = zip.toBuffer();
+
+      const tmpPath = path.join(import.meta.dirname, 'eicar-test.zip');
+      fs.writeFileSync(tmpPath, zipBuffer);
+
+      try {
+        const { body, status } = await request(url)
+          .post(testRoute)
+          .attach('file', tmpPath)
+          .use(tokenProvider(user));
+
+        expect(status).toBe(constants.HTTP_STATUS_BAD_REQUEST);
+        expect(body).toMatchObject({
+          error: 'Virus detected',
+          reason: 'virus_detected',
+          message: expect.stringContaining('malicious content'),
+          details: {
+            filename: expect.any(String),
+            viruses: expect.arrayContaining([
+              expect.stringContaining('EICAR')
+            ])
+          }
+        });
+      } finally {
+        fs.unlinkSync(tmpPath);
+      }
+    }, 30000);
+
+    it('should reject non-ZIP file', async () => {
+      const txtContent = 'This is not a ZIP file';
+      const tmpPath = path.join(import.meta.dirname, 'fake.zip');
+      fs.writeFileSync(tmpPath, txtContent);
+
+      try {
+        const { body, status } = await request(url)
+          .post(testRoute)
+          .attach('file', tmpPath)
+          .use(tokenProvider(user));
+
+        expect(status).toBe(constants.HTTP_STATUS_BAD_REQUEST);
+        expect(body).toMatchObject({
+          name: 'BadRequestError',
+          message: 'Bad request'
+        });
+      } finally {
+        fs.unlinkSync(tmpPath);
+      }
+    }, 30000);
+
+    it('should reject ZIP without shapefile components', async () => {
+      const zip = new AdmZip();
+      zip.addFile('readme.txt', Buffer.from('This is not a shapefile'));
+      const zipBuffer = zip.toBuffer();
+
+      const tmpPath = path.join(import.meta.dirname, 'no-shapefile.zip');
+      fs.writeFileSync(tmpPath, zipBuffer);
+
+      try {
+        const { body, status } = await request(url)
+          .post(testRoute)
+          .attach('file', tmpPath)
+          .use(tokenProvider(user));
+
+        expect(status).toBe(constants.HTTP_STATUS_BAD_REQUEST);
+        expect(body).toMatchObject({
+          name: 'ShapefileValidationError',
+          message: expect.stringContaining('Missing')
+        });
+      } finally {
+        fs.unlinkSync(tmpPath);
+      }
+    }, 30000);
+
+    it.skip('should reject corrupted ZIP file', async () => {
+      // TODO: This test is skipped because it's flaky in CI
+      // The corrupted ZIP detection is tested in the middleware unit tests
+      // See shapefileValidation.test.ts for validation logic tests
+
+      // Create a corrupted ZIP (ZIP header but invalid content)
+      const corruptedZip = Buffer.concat([
+        Buffer.from([0x50, 0x4b, 0x03, 0x04]), // ZIP magic bytes
+        Buffer.from('corrupted data that is not a valid ZIP structure')
+      ]);
+      const tmpPath = path.join(import.meta.dirname, 'corrupted.zip');
+      fs.writeFileSync(tmpPath, corruptedZip);
+
+      try {
+        const { body, status } = await request(url)
+          .post(testRoute)
+          .attach('file', tmpPath)
+          .use(tokenProvider(user));
+
+        expect(status).toBe(constants.HTTP_STATUS_BAD_REQUEST);
+        expect(body).toMatchObject({
+          name: 'ShapefileValidationError',
+          message: expect.any(String)
+        });
+      } finally {
+        fs.unlinkSync(tmpPath);
+      }
+    }, 30000);
+
+    it('should reject file that is too large', async () => {
+      // Set max size to 0.5MB for testing
+      const originalLimit = process.env.GEO_UPLOAD_MAX_SIZE_MB;
+      process.env.GEO_UPLOAD_MAX_SIZE_MB = '0.5';
+
+      // Create a 1MB ZIP (exceeds 0.5MB limit)
+      const largeBuffer = Buffer.alloc(1 * 1024 * 1024, 'a');
+      const tmpPath = path.join(import.meta.dirname, 'large.zip');
+      fs.writeFileSync(tmpPath, largeBuffer);
+
+      try {
+        const { status } = await request(url)
+          .post(testRoute)
+          .attach('file', tmpPath)
+          .use(tokenProvider(user));
+
+        expect(status).toBe(constants.HTTP_STATUS_BAD_REQUEST);
+      } finally {
+        fs.unlinkSync(tmpPath);
+        if (originalLimit) {
+          process.env.GEO_UPLOAD_MAX_SIZE_MB = originalLimit;
+        } else {
+          delete process.env.GEO_UPLOAD_MAX_SIZE_MB;
+        }
+      }
+    }, 30000);
   });
 });

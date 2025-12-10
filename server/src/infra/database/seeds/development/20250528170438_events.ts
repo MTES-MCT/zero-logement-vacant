@@ -186,12 +186,11 @@ export async function seed(knex: Knex): Promise<void> {
         ];
       });
 
-  const housingOwners: ReadonlyArray<HousingOwnerDBO> = await HousingOwners(
-    knex
-  ).whereIn(
-    ['housing_geo_code', 'housing_id'],
-    housings.map((housing) => [housing.geo_code, housing.id])
-  );
+  const housingOwners: ReadonlyArray<HousingOwnerDBO> =
+    await HousingOwners(knex).whereIn(
+      ['housing_geo_code', 'housing_id'],
+      housings.map((housing) => [housing.geo_code, housing.id])
+    );
   const housingOwnerEvents: ReadonlyArray<HousingOwnerEventApi> = faker.helpers
     .arrayElements(housingOwners)
     .flatMap((housingOwner): HousingOwnerEventApi[] => {
@@ -244,12 +243,11 @@ export async function seed(knex: Knex): Promise<void> {
       ];
     });
 
-  const groupHousings: ReadonlyArray<GroupHousingDBO> = await GroupsHousing(
-    knex
-  ).whereIn(
-    ['housing_geo_code', 'housing_id'],
-    housings.map((housing) => [housing.geo_code, housing.id])
-  );
+  const groupHousings: ReadonlyArray<GroupHousingDBO> =
+    await GroupsHousing(knex).whereIn(
+      ['housing_geo_code', 'housing_id'],
+      housings.map((housing) => [housing.geo_code, housing.id])
+    );
   const groupHousingEvents: ReadonlyArray<GroupHousingEventApi> = faker.helpers
     .arrayElements(groupHousings)
     .flatMap((groupHousing): GroupHousingEventApi[] => {

@@ -22,15 +22,15 @@ interface OwnerEditionSideMenuProps {
 const WIDTH = '700px';
 const schema = object({
   address: object({
-    banId: string().defined().nullable(),
+    banId: string().optional(),
     label: string().required(),
-    houseNumber: string().defined().nullable(),
-    street: string().defined().nullable(),
-    postalCode: string().defined().nullable(),
-    city: string().defined().nullable(),
-    latitude: number().defined().nullable(),
-    longitude: number().defined().nullable(),
-    score: number().defined().nullable()
+    houseNumber: string().optional(),
+    street: string().optional(),
+    postalCode: string().required(),
+    city: string().required(),
+    latitude: number().optional(),
+    longitude: number().optional(),
+    score: number().optional()
   })
     .defined()
     .nullable(),
@@ -48,17 +48,17 @@ function OwnerEditionSideMenu(props: OwnerEditionSideMenuProps) {
 
   const form = useForm({
     values: {
-      address: {
-        banId: props.owner?.banAddress?.banId ?? '',
-        label: props.owner?.banAddress?.label ?? '',
-        city: props.owner?.banAddress?.city ?? '',
-        houseNumber: props.owner?.banAddress?.houseNumber ?? '',
-        postalCode: props.owner?.banAddress?.postalCode ?? '',
-        street: props.owner?.banAddress?.street ?? '',
-        latitude: props.owner?.banAddress?.latitude ?? 0,
-        longitude: props.owner?.banAddress?.longitude ?? 0,
-        score: props.owner?.banAddress?.score ?? 0,
-      },
+      address: props.owner?.banAddress ? {
+        banId: props.owner.banAddress.banId,
+        label: props.owner.banAddress.label,
+        city: props.owner.banAddress.city,
+        houseNumber: props.owner.banAddress.houseNumber,
+        postalCode: props.owner.banAddress.postalCode,
+        street: props.owner.banAddress.street,
+        latitude: props.owner.banAddress.latitude,
+        longitude: props.owner.banAddress.longitude,
+        score: props.owner.banAddress.score,
+      } : null,
       additionalAddress: props.owner?.additionalAddress ?? ''
     },
     mode: 'onSubmit',
@@ -76,7 +76,17 @@ function OwnerEditionSideMenu(props: OwnerEditionSideMenuProps) {
       );
       await updateOwner({
         ...props.owner,
-        banAddress: values.address ?? null,
+        banAddress: values.address ? {
+          label: values.address.label,
+          score: values.address.score ?? undefined,
+          banId: values.address.banId ?? undefined,
+          houseNumber: values.address.houseNumber ?? undefined,
+          street: values.address.street ?? undefined,
+          postalCode: values.address.postalCode ?? '',
+          city: values.address.city ?? '',
+          latitude: values.address.latitude ?? undefined,
+          longitude: values.address.longitude ?? undefined
+        } : null,
         additionalAddress: values.additionalAddress
       });
       props.onClose?.();
@@ -104,7 +114,7 @@ function OwnerEditionSideMenu(props: OwnerEditionSideMenuProps) {
       }}
       header={
         <Typography component="h2" variant="h6">
-          Modifier les informations du propriétaire
+          Éditer les informations du propriétaire
         </Typography>
       }
       main={
@@ -128,8 +138,7 @@ function OwnerEditionSideMenu(props: OwnerEditionSideMenuProps) {
                 </Typography>
                 <Grid>
                   <span className="fr-hint-text">
-                    Cette adresse est issue du fichier LOVAC, récupérée via le
-                    fichier 1767BIS-COM. Celle-ci n’est pas modifiable.
+                    Adresse issue des fichiers LOVAC (non modifiable).
                   </span>
                   <Typography
                     color={fr.colors.decisions.text.default.grey.default}
@@ -159,7 +168,17 @@ function OwnerEditionSideMenu(props: OwnerEditionSideMenuProps) {
                   name="address"
                   render={({ field, fieldState }) => (
                     <OwnerAddressEdition
-                      banAddress={field.value ?? undefined}
+                      banAddress={field.value ? {
+                        label: field.value.label,
+                        score: field.value.score ?? undefined,
+                        banId: field.value.banId ?? undefined,
+                        houseNumber: field.value.houseNumber ?? undefined,
+                        street: field.value.street ?? undefined,
+                        postalCode: field.value.postalCode ?? '',
+                        city: field.value.city ?? '',
+                        latitude: field.value.latitude ?? undefined,
+                        longitude: field.value.longitude ?? undefined
+                      } : undefined}
                       disabled={field.disabled}
                       errorMessage={fieldState.error?.message}
                       help={false}

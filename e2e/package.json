@@ -2,13 +2,13 @@
   "name": "@zerologementvacant/e2e",
   "version": "0.0.1",
   "devDependencies": {
-    "@dotenvx/dotenvx": "^1.48.4",
-    "@faker-js/faker": "^8.4.1",
-    "@testing-library/cypress": "^10.1.0",
-    "@types/convict": "^6.1.6",
-    "axe-core": "^4.11.0",
-    "convict": "^6.2.4",
-    "cypress": "^15.5.0",
-    "cypress-axe": "^1.7.0"
+    "@dotenvx/dotenvx": "1.48.4",
+    "@faker-js/faker": "8.4.1",
+    "@testing-library/cypress": "10.1.0",
+    "@types/convict": "6.1.6",
+    "axe-core": "4.11.0",
+    "convict": "6.2.4",
+    "cypress": "15.5.0",
+    "cypress-axe": "1.7.0"
   }
 }

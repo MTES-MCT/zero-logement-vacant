@@ -1,8 +1,9 @@
-import { LocalityKind } from '@zerologementvacant/models';
+import { LocalityKind, TaxKind } from '@zerologementvacant/models';
 import { Knex } from 'knex';
+
 import db from '~/infra/database';
 import { createLogger } from '~/infra/logger';
-import { LocalityApi, TaxKindsApi } from '~/models/LocalityApi';
+import { LocalityApi } from '~/models/LocalityApi';
 import {
   Establishments,
   establishmentsTable
@@ -88,7 +89,7 @@ export const parseLocalityApi = (locality: LocalityDBO): LocalityApi => ({
   geoCode: locality.geo_code,
   name: locality.name,
   kind: locality.locality_kind as LocalityKind,
-  taxKind: locality.tax_kind as TaxKindsApi,
+  taxKind: locality.tax_kind as TaxKind,
   taxRate: locality.tax_rate
 });
 

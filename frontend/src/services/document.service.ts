@@ -3,6 +3,7 @@ import type {
   DocumentPayload,
   HousingDocumentDTO
 } from '@zerologementvacant/models';
+import type { FileValidationError } from '~/models/FileValidationError';
 
 import { zlvApi } from '~/services/api.service';
 
@@ -23,7 +24,7 @@ export const documentApi = zlvApi.injectEndpoints({
     }),
 
     uploadHousingDocuments: builder.mutation<
-      HousingDocumentDTO[],
+      ReadonlyArray<HousingDocumentDTO | FileValidationError>,
       { housingId: string; files: ReadonlyArray<File> }
     >({
       query: ({ housingId, files }) => {

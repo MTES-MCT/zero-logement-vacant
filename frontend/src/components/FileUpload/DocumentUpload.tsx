@@ -1,6 +1,7 @@
 import { Upload, type UploadProps } from '@codegouvfr/react-dsfr/Upload';
 import mime from 'mime';
 import { type ChangeEvent } from 'react';
+import type { AsyncOrSync } from 'ts-essentials';
 
 import { useNotification } from '~/hooks/useNotification';
 
@@ -13,6 +14,7 @@ export type DocumentUploadProps = UploadProps & {
    * ['pdf', 'jpg', 'png']
    */
   accept?: string[];
+  error?: string;
   isError: boolean;
   isLoading: boolean;
   isSuccess: boolean;
@@ -24,7 +26,7 @@ export type DocumentUploadProps = UploadProps & {
    * Called when documents are uploaded successfully.
    * @param files
    */
-  onUpload(files: ReadonlyArray<File>): Promise<void>;
+  onUpload(files: ReadonlyArray<File>): AsyncOrSync<void>;
 };
 
 function DocumentUpload(props: Readonly<DocumentUploadProps>) {
@@ -54,6 +56,8 @@ function DocumentUpload(props: Readonly<DocumentUploadProps>) {
         accept: types.map((type) => mime.getType(type)).join(','),
         onChange
       }}
+      state={!!props.error ? 'error' : undefined}
+      stateRelatedMessage={props.error}
     />
   );
 }

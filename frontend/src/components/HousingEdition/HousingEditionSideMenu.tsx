@@ -51,15 +51,15 @@ const schema = object({
     .oneOf(HOUSING_STATUS_VALUES),
   subStatus: string()
     .trim()
-    .optional()
     .nullable()
-    .default(undefined)
+    .optional()
+    .default(null)
     .when('status', ([status], schema) =>
       HousingStates.find((state) => state.status === status)?.subStatusList?.length
         ? schema.required('Veuillez renseigner le sous-statut de suivi')
         : schema
     ),
-  note: string().optional().default(undefined)
+  note: string().default(null)
 }).required();
 
 export type HousingEditionFormSchema = InferType<typeof schema>;

@@ -1,9 +1,10 @@
-import { PutObjectCommand } from '@aws-sdk/client-s3';
+import { PutObjectCommand, DeleteObjectCommand } from '@aws-sdk/client-s3';
 import {
   HousingDocumentDTO,
   isAdmin,
   type DocumentDTO,
-  type DocumentPayload
+  type DocumentPayload,
+  type HousingDTO
 } from '@zerologementvacant/models';
 import { createS3, generatePresignedUrl } from '@zerologementvacant/utils/node';
 import async from 'async';
@@ -18,7 +19,6 @@ import { v4 as uuidv4 } from 'uuid';
 import DocumentMissingError from '~/errors/documentMissingError';
 import FilesMissingError from '~/errors/filesMissingError';
 import { FileValidationError } from '~/errors/fileValidationError';
-import ForbiddenError from '~/errors/forbiddenError';
 import HousingMissingError from '~/errors/housingMissingError';
 import config from '~/infra/config';
 import { createLogger } from '~/infra/logger';
@@ -31,86 +31,20 @@ import housingRepository from '~/repositories/housingRepository';
 import { validateFiles } from '~/services/file-validation';
 
 const logger = createLogger('documentController');
+const s3 = createS3({
+  endpoint: config.s3.endpoint,
+  region: config.s3.region,
+  accessKeyId: config.s3.accessKeyId,
+  secretAccessKey: config.s3.secretAccessKey
+});
 
-interface PathParams extends Record<string, string> {
-  id: string;
-}
-
-const update: RequestHandler<PathParams, DocumentDTO, DocumentPayload> = async (
-  request,
-  response
-) => {
-  const { body, params, user } = request as AuthenticatedRequest<
-    PathParams,
-    DocumentDTO,
-    DocumentPayload
-  >;
-  logger.debug('Updating document...', { id: params.id });
-
-  const document = await housingDocumentRepository.get(params.id);
-  if (!document) {
-    throw new DocumentMissingError(params.id);
-  }
-
-  // Allow the document creator or an admin to update
-  if (!isAdmin(user) && document.creator.id !== user.id) {
-    logger.warn('Unauthorized update attempt', {
-      user: user.id,
-      document: document.id
-    });
-    throw new ForbiddenError();
-  }
-
-  const updated: HousingDocumentApi = {
-    ...document,
-    filename: body.filename,
-    updatedAt: new Date().toJSON()
-  };
-  await housingDocumentRepository.update(updated);
-
-  const s3 = createS3({
-    endpoint: config.s3.endpoint,
-    region: config.s3.region,
-    accessKeyId: config.s3.accessKeyId,
-    secretAccessKey: config.s3.secretAccessKey
-  });
-
-  const presignedUrl = await generatePresignedUrl({
-    s3,
-    bucket: config.s3.bucket,
-    key: updated.s3Key
-  });
-  response
-    .status(constants.HTTP_STATUS_OK)
-    .json(toHousingDocumentDTO(updated, presignedUrl));
-};
-
-const remove: RequestHandler<PathParams, void> = async (request, response) => {
-  const { params, user } = request as AuthenticatedRequest<PathParams>;
-
-  const document = await housingDocumentRepository.get(params.id);
-  if (!document) {
-    throw new DocumentMissingError(params.id);
-  }
-
-  if (!isAdmin(user) && document.creator.id !== user.id) {
-    logger.warn('Unauthorized removal attempt', {
-      user: user.id,
-      document: document.id
-    });
-    throw new ForbiddenError();
-  }
-
-  await housingDocumentRepository.remove(document.id);
-  response.status(constants.HTTP_STATUS_NO_CONTENT).send();
-};
-
-const listByHousing: RequestHandler<PathParams, HousingDocumentDTO[]> = async (
-  request,
-  response
-): Promise<void> => {
-  const { establishment, params } = request as AuthenticatedRequest<PathParams>;
-
+const listByHousing: RequestHandler<
+  { id: HousingDTO['id'] },
+  HousingDocumentDTO[]
+> = async (request, response): Promise<void> => {
+  const { establishment, params } = request as AuthenticatedRequest<{
+    id: HousingDTO['id'];
+  }>;
   logger.debug('Finding documents by housing...', { housing: params.id });
   const housing = await housingRepository.findOne({
     establishment: establishment.id,
@@ -128,13 +62,6 @@ const listByHousing: RequestHandler<PathParams, HousingDocumentDTO[]> = async (
   });
 
   // Generate pre-signed URLs for all documents using async.map
-  const s3 = createS3({
-    endpoint: config.s3.endpoint,
-    region: config.s3.region,
-    accessKeyId: config.s3.accessKeyId,
-    secretAccessKey: config.s3.secretAccessKey
-  });
-
   const documentsWithURLs = await async.map(
     documents,
     async (document: HousingDocumentApi) => {
@@ -151,12 +78,12 @@ const listByHousing: RequestHandler<PathParams, HousingDocumentDTO[]> = async (
 };
 
 const createByHousing: RequestHandler<
-  PathParams,
+  { id: HousingDTO['id'] },
   ReadonlyArray<HousingDocumentDTO | FileValidationError>,
   never
 > = async (request, response) => {
   const { establishment, params, user } = request as AuthenticatedRequest<
-    PathParams,
+    { id: HousingDTO['id'] },
     HousingDocumentDTO | FileValidationError,
     never
   >;
@@ -321,11 +248,85 @@ const createByHousing: RequestHandler<
   response.status(status).json(Array.map(documentsOrErrors, Either.merge));
 };
 
+const updateByHousing: RequestHandler<
+  { housingId: HousingDTO['id']; documentId: DocumentDTO['id'] },
+  DocumentDTO,
+  DocumentPayload
+> = async (request, response) => {
+  const { body, params, user, establishment } = request as AuthenticatedRequest<
+    { housingId: HousingDTO['id']; documentId: DocumentDTO['id'] },
+    DocumentDTO,
+    DocumentPayload
+  >;
+  logger.debug('Updating document...', {
+    housingId: params.housingId,
+    documentId: params.documentId
+  });
+
+  const document = await housingDocumentRepository.get(params.documentId, {
+    housing: isAdmin(user)
+      ? undefined
+      : establishment.geoCodes.map((geoCode) => ({
+          geoCode: geoCode,
+          id: params.housingId
+        }))
+  });
+  if (!document) {
+    throw new DocumentMissingError(params.documentId);
+  }
+
+  const updated: HousingDocumentApi = {
+    ...document,
+    filename: body.filename,
+    updatedAt: new Date().toJSON()
+  };
+  await housingDocumentRepository.update(updated);
+
+  const presignedUrl = await generatePresignedUrl({
+    s3,
+    bucket: config.s3.bucket,
+    key: updated.s3Key
+  });
+  response
+    .status(constants.HTTP_STATUS_OK)
+    .json(toHousingDocumentDTO(updated, presignedUrl));
+};
+
+const removeByHousing: RequestHandler<
+  { housingId: HousingDTO['id']; documentId: DocumentDTO['id'] },
+  void
+> = async (request, response) => {
+  const { params, user, establishment } = request as AuthenticatedRequest<
+    { housingId: HousingDTO['id']; documentId: DocumentDTO['id'] },
+    void
+  >;
+
+  const document = await housingDocumentRepository.get(params.documentId, {
+    housing: isAdmin(user)
+      ? undefined
+      : establishment.geoCodes.map((geoCode) => ({
+          geoCode: geoCode,
+          id: params.housingId
+        }))
+  });
+  if (!document) {
+    throw new DocumentMissingError(params.documentId);
+  }
+
+  const command = new DeleteObjectCommand({
+    Bucket: config.s3.bucket,
+    Key: document.s3Key
+  });
+  await s3.send(command);
+  await housingDocumentRepository.remove(document);
+  response.status(constants.HTTP_STATUS_NO_CONTENT).send();
+};
+
 const documentController = {
   listByHousing,
   createByHousing,
-  update,
-  remove
+  updateByHousing,
+  removeByHousing
 };
 
 export default documentController;

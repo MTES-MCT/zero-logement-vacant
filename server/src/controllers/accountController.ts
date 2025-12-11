@@ -10,6 +10,7 @@ import EstablishmentMissingError from '~/errors/establishmentMissingError';
 import ResetLinkExpiredError from '~/errors/resetLinkExpiredError';
 import ResetLinkMissingError from '~/errors/resetLinkMissingError';
 import UnprocessableEntityError from '~/errors/unprocessableEntityError';
+import UserDeletedError from '~/errors/userDeletedError';
 import UserMissingError from '~/errors/userMissingError';
 import config from '~/infra/config';
 import { logger } from '~/infra/logger';
@@ -52,14 +53,40 @@ const signInValidators = {
 async function signIn(request: Request, response: Response) {
   const payload = request.body;
 
-  const user = await userRepository.getByEmail(payload.email);
+  // Use getByEmailIncludingDeleted to be able to detect deleted users
+  // and return a proper 403 error instead of 401
+  const user = await userRepository.getByEmailIncludingDeleted(payload.email);
   if (!user) {
     throw new AuthenticationFailedError();
+  }
+
+  // Check if user account is deleted before password validation
+  // to return proper 403 error for deleted accounts
+  if (user.deletedAt) {
+    logger.warn('Login attempt on deleted account', {
+      userId: user.id,
+      email: user.email,
+      deletedAt: user.deletedAt
+    });
+    throw new UserDeletedError();
   }
 
   const isPasswordValid = await bcrypt.compare(payload.password, user.password);
   if (!isPasswordValid) {
     throw new AuthenticationFailedError();
+  }
+
+  // Log suspended account login (but allow login - frontend will show modal)
+  if (user.suspendedAt) {
+    logger.info('Login on suspended account - modal will be displayed', {
+      userId: user.id,
+      email: user.email,
+      suspendedAt: user.suspendedAt,
+      suspendedCause: user.suspendedCause
+    });
+    // Note: We don't throw an error here anymore.
+    // The login proceeds and the frontend displays the suspension modal
+    // based on user.suspendedAt and user.suspendedCause
   }
 
   // Check if 2FA is required for admin users

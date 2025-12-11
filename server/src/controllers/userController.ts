@@ -25,7 +25,12 @@ import { SALT_LENGTH, toUserDTO, UserApi } from '~/models/UserApi';
 import establishmentRepository from '~/repositories/establishmentRepository';
 import prospectRepository from '~/repositories/prospectRepository';
 import userRepository from '~/repositories/userRepository';
+import ceremaService from '~/services/ceremaService';
 import { isTestAccount } from '~/services/ceremaService/consultUserService';
+import {
+  verifyAccessRights,
+  accessErrorsToSuspensionCause
+} from '~/services/ceremaService/perimeterService';
 import mailService from '~/services/mailService';
 
 type ListQuery = UserFilters;
@@ -101,6 +106,52 @@ async function create(request: Request, response: Response) {
   );
   if (!userEstablishment) {
     throw new EstablishmentMissingError(body.establishmentId);
+  }
+
+  // Re-verify Portail DF rights at account creation time
+  // The prospect may have been created some time ago and rights may have changed
+  const ceremaUsers = await ceremaService.consultUsers(body.email);
+
+  // Find the user entry matching this establishment
+  // Note: '*' is a wildcard SIREN used in mock service for tests
+  const matchingCeremaUser = ceremaUsers.find(
+    (user) => user.establishmentSiren === userEstablishment.siren || user.establishmentSiren === '*'
+  );
+
+  if (!matchingCeremaUser) {
+    logger.warn('No matching Portail DF user found for establishment', {
+      email: body.email,
+      establishmentId: body.establishmentId,
+      establishmentSiren: userEstablishment.siren,
+      ceremaUsers
+    });
+    throw new ProspectInvalidError(prospect);
+  }
+
+  // Check structure LOVAC commitment (acces_lovac date in future)
+  if (!matchingCeremaUser.hasCommitment) {
+    logger.warn('User does not have valid LOVAC commitment at account creation', {
+      email: body.email,
+      establishmentId: body.establishmentId,
+      establishmentSiren: userEstablishment.siren
+    });
+    throw new ProspectInvalidError(prospect);
+  }
+
+  // Verify access rights: LOVAC access level and geographic perimeter
+  const accessRights = verifyAccessRights(
+    matchingCeremaUser,
+    userEstablishment.geoCodes
+  );
+
+  if (!accessRights.isValid) {
+    logger.warn('User access rights verification failed at account creation', {
+      email: body.email,
+      establishmentId: body.establishmentId,
+      errors: accessRights.errors,
+      suspensionCause: accessErrorsToSuspensionCause(accessRights.errors)
+    });
+    throw new ProspectInvalidError(prospect);
   }
 
   const user: UserApi = {

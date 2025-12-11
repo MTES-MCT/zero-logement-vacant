@@ -19,7 +19,6 @@ import { v4 as uuidv4 } from 'uuid';
 import DocumentMissingError from '~/errors/documentMissingError';
 import FilesMissingError from '~/errors/filesMissingError';
 import { FileValidationError } from '~/errors/fileValidationError';
-import ForbiddenError from '~/errors/forbiddenError';
 import HousingMissingError from '~/errors/housingMissingError';
 import config from '~/infra/config';
 import { createLogger } from '~/infra/logger';

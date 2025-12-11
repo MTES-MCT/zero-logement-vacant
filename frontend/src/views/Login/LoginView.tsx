@@ -21,25 +21,32 @@ import { useAppDispatch, useAppSelector } from '../../hooks/useStore';
 import { logIn } from '../../store/thunks/auth-thunks';
 import Image from '~/components/Image/Image';
 
-const schema = yup.object({
-  isAdmin: yup.boolean().required(),
-  email: yup.string()
-    .trim()
-    .required('Veuillez renseigner votre adresse email.')
-    .email(
-      "L'adresse doit être un email valide. Exemple de format valide : exemple@gmail.com"
-    ),
-  password: yup.string().trim().required('Veuillez renseigner un mot de passe.'),
-  establishmentId: yup.string()
-    .optional()
-    .nullable()
-    .default(undefined)
-    .when('isAdmin', ([isAdmin], schema) =>
-      isAdmin === true
-        ? schema.required('Veuillez sélectionner un établissement.')
-        : schema
-    )
-}).required();
+const schema = yup
+  .object({
+    isAdmin: yup.boolean().required(),
+    email: yup
+      .string()
+      .trim()
+      .required('Veuillez renseigner votre adresse email.')
+      .email(
+        "L'adresse doit être un email valide. Exemple de format valide : exemple@gmail.com"
+      ),
+    password: yup
+      .string()
+      .trim()
+      .required('Veuillez renseigner un mot de passe.'),
+    establishmentId: yup
+      .string()
+      .required()
+      .nullable()
+      .default(undefined)
+      .when('isAdmin', {
+        is: true,
+        then: (schema) =>
+          schema.nonNullable('Veuillez sélectionner un établissement.')
+      })
+  })
+  .required();
 
 export type LoginSchema = yup.InferType<typeof schema>;
 

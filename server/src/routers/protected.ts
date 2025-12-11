@@ -24,11 +24,12 @@ import ownerController from '~/controllers/ownerController';
 import precisionController from '~/controllers/precisionController';
 import settingsController from '~/controllers/settingsController';
 import userController from '~/controllers/userController';
+import config from '~/infra/config';
 import antivirusMiddleware from '~/middlewares/antivirus';
 import { hasRole, jwtCheck, userCheck } from '~/middlewares/auth';
+import fileTypeMiddleware from '~/middlewares/fileTypeMiddleware';
 import shapefileValidationMiddleware from '~/middlewares/shapefileValidation';
 import { upload } from '~/middlewares/upload';
-import { uploadGeo } from '~/middlewares/uploadGeo';
 import validator from '~/middlewares/validator';
 import validatorNext from '~/middlewares/validator-next';
 import zipValidationMiddleware from '~/middlewares/zipValidation';
@@ -41,7 +42,13 @@ const router = Router();
 router.use(jwtCheck());
 router.use(userCheck());
 
-router.post('/files', upload(), fileController.create);
+router.post(
+  '/files',
+  upload(),
+  fileTypeMiddleware,
+  antivirusMiddleware,
+  fileController.create
+);
 
 router.get(
   '/housing/:id/documents',
@@ -416,7 +423,11 @@ router.delete(
 router.get('/geo/perimeters', geoController.listGeoPerimeters);
 router.post(
   '/geo/perimeters',
-  uploadGeo(),
+  upload({
+    accept: ['zip'],
+    maxSizeMiB: config.upload.geo.maxSizeMB,
+    multiple: false
+  }),
   zipValidationMiddleware,
   antivirusMiddleware,
   shapefileValidationMiddleware,

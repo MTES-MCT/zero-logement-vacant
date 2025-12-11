@@ -9,6 +9,7 @@ import buildingController from '~/controllers/buildingController';
 import campaignController from '~/controllers/campaignController';
 import dashboardController from '~/controllers/dashboardController';
 import datafoncierController from '~/controllers/datafoncierHousingController';
+import documentController from '~/controllers/documentController';
 import draftController from '~/controllers/draftController';
 import eventController from '~/controllers/eventController';
 import fileController from '~/controllers/fileController';
@@ -23,15 +24,15 @@ import ownerController from '~/controllers/ownerController';
 import precisionController from '~/controllers/precisionController';
 import settingsController from '~/controllers/settingsController';
 import userController from '~/controllers/userController';
-import { hasRole, jwtCheck, userCheck } from '~/middlewares/auth';
-import { upload } from '~/middlewares/upload';
-import { uploadGeo } from '~/middlewares/uploadGeo';
-import zipValidationMiddleware from '~/middlewares/zipValidation';
-import shapefileValidationMiddleware from '~/middlewares/shapefileValidation';
-import fileTypeMiddleware from '~/middlewares/fileTypeMiddleware';
+import config from '~/infra/config';
 import antivirusMiddleware from '~/middlewares/antivirus';
+import { hasRole, jwtCheck, userCheck } from '~/middlewares/auth';
+import fileTypeMiddleware from '~/middlewares/fileTypeMiddleware';
+import shapefileValidationMiddleware from '~/middlewares/shapefileValidation';
+import { upload } from '~/middlewares/upload';
 import validator from '~/middlewares/validator';
 import validatorNext from '~/middlewares/validator-next';
+import zipValidationMiddleware from '~/middlewares/zipValidation';
 import { paginationSchema } from '~/models/PaginationApi';
 import sortApi from '~/models/SortApi';
 import { isUUIDParam } from '~/utils/validators';
@@ -41,7 +42,53 @@ const router = Router();
 router.use(jwtCheck());
 router.use(userCheck());
 
-router.post('/files', upload(), fileTypeMiddleware, antivirusMiddleware, fileController.create);
+router.post(
+  '/files',
+  upload(),
+  fileTypeMiddleware,
+  antivirusMiddleware,
+  fileController.create
+);
+
+router.get(
+  '/housing/:id/documents',
+  validatorNext.validate({
+    params: object({ id: schemas.id })
+  }),
+  documentController.listByHousing
+);
+
+router.post(
+  '/housing/:id/documents',
+  hasRole([UserRole.USUAL, UserRole.ADMIN]),
+  validatorNext.validate({
+    params: object({ id: schemas.id })
+  }),
+  upload({
+    accept: ['png', 'jpg', 'heic', 'webp', 'docx', 'xlsx', 'ppt', 'pdf'],
+    multiple: true
+  }),
+  documentController.createByHousing
+);
+
+router.put(
+  '/documents/:id',
+  hasRole([UserRole.USUAL, UserRole.ADMIN]),
+  validatorNext.validate({
+    params: object({ id: schemas.id }),
+    body: schemas.documentPayload
+  }),
+  documentController.update
+);
+
+router.delete(
+  '/documents/:id',
+  hasRole([UserRole.USUAL, UserRole.ADMIN]),
+  validatorNext.validate({
+    params: object({ id: schemas.id })
+  }),
+  documentController.remove
+);
 
 router.get(
   '/housing',
@@ -266,9 +313,11 @@ router.get(
   validatorNext.validate({ params: object({ id: schemas.id }) }),
   ownerController.listByHousing
 );
-router.put('/housing/:housingId/owners',
+router.put(
+  '/housing/:housingId/owners',
   // TODO: validate inputs
-  ownerController.updateHousingOwners);
+  ownerController.updateHousingOwners
+);
 
 // Housing owners
 router.get(
@@ -374,7 +423,11 @@ router.delete(
 router.get('/geo/perimeters', geoController.listGeoPerimeters);
 router.post(
   '/geo/perimeters',
-  uploadGeo(),
+  upload({
+    accept: ['zip'],
+    maxSizeMiB: config.upload.geo.maxSizeMB,
+    multiple: false
+  }),
   zipValidationMiddleware,
   antivirusMiddleware,
   shapefileValidationMiddleware,

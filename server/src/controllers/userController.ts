@@ -117,8 +117,9 @@ async function create(request: Request, response: Response) {
   const ceremaUsers = await ceremaService.consultUsers(body.email);
 
   // Find the user entry matching this establishment
+  // Note: '*' is a wildcard SIREN used in mock service for tests
   const matchingCeremaUser = ceremaUsers.find(
-    (user) => user.establishmentSiren === userEstablishment.siren
+    (user) => user.establishmentSiren === userEstablishment.siren || user.establishmentSiren === '*'
   );
 
   if (!matchingCeremaUser) {

@@ -56,7 +56,7 @@ export function upload(options?: UploadOptions): RequestHandler {
       callback: multer.FileFilterCallback
     ) {
       // Basic MIME check (will be validated again with magic bytes)
-      if (!types.includes(file.mimetype)) {
+      if (!types.has(file.mimetype)) {
         return callback(new BadRequestError());
       }
       return callback(null, true);

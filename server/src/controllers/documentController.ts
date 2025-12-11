@@ -17,6 +17,7 @@ import { v4 as uuidv4 } from 'uuid';
 
 import DocumentMissingError from '~/errors/documentMissingError';
 import FilesMissingError from '~/errors/filesMissingError';
+import type { FileValidationError } from '~/errors/fileValidationError';
 import ForbiddenError from '~/errors/forbiddenError';
 import HousingMissingError from '~/errors/housingMissingError';
 import config from '~/infra/config';
@@ -27,7 +28,7 @@ import {
 } from '~/models/HousingDocumentApi';
 import housingDocumentRepository from '~/repositories/housingDocumentRepository';
 import housingRepository from '~/repositories/housingRepository';
-import { FileValidationError, validateFiles } from '~/services/file-validation';
+import { validateFiles } from '~/services/file-validation';
 
 const logger = createLogger('documentController');
 

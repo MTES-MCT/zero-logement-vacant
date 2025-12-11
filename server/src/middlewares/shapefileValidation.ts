@@ -1,26 +1,38 @@
-import { Request, Response, NextFunction, RequestHandler } from 'express';
-import { logger } from '~/infra/logger';
-import config from '~/infra/config';
 import AdmZip from 'adm-zip';
+import { NextFunction, Request, RequestHandler, Response } from 'express';
+import { constants } from 'http2';
 import shapefile from 'shapefile';
+
+import { HttpError } from '~/errors/httpError';
+import config from '~/infra/config';
+import { logger } from '~/infra/logger';
 
 /**
  * Custom error class for shapefile validation failures
  */
-export class ShapefileValidationError extends Error {
-  public readonly status = 400;
+export class ShapefileValidationError extends HttpError implements HttpError {
+  public readonly reason:
+    | 'missing_components'
+    | 'too_many_features'
+    | 'invalid_shapefile';
+  public readonly fileName: string;
 
   constructor(
-    public readonly reason: 'missing_components' | 'too_many_features' | 'invalid_shapefile',
-    public readonly fileName: string,
-    public readonly details?: string
+    reason: 'missing_components' | 'too_many_features' | 'invalid_shapefile',
+    fileName: string,
+    details?: string
   ) {
-    super(details || 'Shapefile validation failed');
-    this.name = 'ShapefileValidationError';
-    // Maintains proper stack trace for where our error was thrown (only available on V8)
-    if (Error.captureStackTrace) {
-      Error.captureStackTrace(this, ShapefileValidationError);
-    }
+    super({
+      name: 'ShapefileValidationError',
+      message: details || 'Shapefile validation failed',
+      status: constants.HTTP_STATUS_BAD_REQUEST,
+      data: {
+        reason,
+        fileName
+      }
+    });
+    this.reason = reason;
+    this.fileName = fileName;
   }
 }
 
@@ -82,8 +94,12 @@ export const shapefileValidationMiddleware: RequestHandler = async (
         zipEntries = zip.getEntries();
 
         // Find .shp and .dbf files
-        shpEntry = zipEntries.find((entry: any) => entry.entryName.toLowerCase().endsWith('.shp'));
-        dbfEntry = zipEntries.find((entry: any) => entry.entryName.toLowerCase().endsWith('.dbf'));
+        shpEntry = zipEntries.find((entry: any) =>
+          entry.entryName.toLowerCase().endsWith('.shp')
+        );
+        dbfEntry = zipEntries.find((entry: any) =>
+          entry.entryName.toLowerCase().endsWith('.dbf')
+        );
       } catch (error) {
         // Handle corrupted/invalid ZIP files
         logger.warn('Failed to extract ZIP file', {

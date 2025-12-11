@@ -78,7 +78,7 @@ router.put(
     params: object({ id: schemas.id }),
     body: schemas.documentPayload
   }),
-  documentController.update
+  documentController.updateByHousing
 );
 
 router.delete(
@@ -87,7 +87,7 @@ router.delete(
   validatorNext.validate({
     params: object({ id: schemas.id })
   }),
-  documentController.remove
+  documentController.removeByHousing
 );
 
 router.get(

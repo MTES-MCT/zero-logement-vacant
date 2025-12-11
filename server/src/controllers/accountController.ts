@@ -12,7 +12,6 @@ import ResetLinkMissingError from '~/errors/resetLinkMissingError';
 import UnprocessableEntityError from '~/errors/unprocessableEntityError';
 import UserDeletedError from '~/errors/userDeletedError';
 import UserMissingError from '~/errors/userMissingError';
-import UserSuspendedError from '~/errors/userSuspendedError';
 import config from '~/infra/config';
 import { logger } from '~/infra/logger';
 import { hasExpired } from '~/models/ResetLinkApi';
@@ -75,15 +74,17 @@ async function signIn(request: Request, response: Response) {
     throw new UserDeletedError();
   }
 
-  // Check if user account is suspended
+  // Log suspended account login (but allow login - frontend will show modal)
   if (user.suspendedAt) {
-    logger.warn('Login attempt on suspended account', {
+    logger.info('Login on suspended account - modal will be displayed', {
       userId: user.id,
       email: user.email,
       suspendedAt: user.suspendedAt,
       suspendedCause: user.suspendedCause
     });
-    throw new UserSuspendedError(user.suspendedCause ?? undefined);
+    // Note: We don't throw an error here anymore.
+    // The login proceeds and the frontend displays the suspension modal
+    // based on user.suspendedAt and user.suspendedCause
   }
 
   // Check if 2FA is required for admin users

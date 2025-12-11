@@ -31,8 +31,10 @@ def housings_without_address_csv(context: AssetExecutionContext):
     query = f"""
     SELECT fh.id as housing_id, array_to_string(fh.address_dgfip, ' ') as address_dgfip, fh.geo_code
     FROM fast_housing fh
-    LEFT JOIN ban_addresses ba ON fh.id = ba.ref_id
-    WHERE ba.ban_id IS NULL
+    WHERE NOT EXISTS (
+        SELECT 1 FROM ban_addresses ba
+        WHERE ba.ref_id = fh.id AND ba.address_kind = 'Housing'
+    )
     {"LIMIT " + str(max_files * chunk_size) if not disable_max_files else ""}
     ;
     """
@@ -47,18 +49,45 @@ def housings_without_address_csv(context: AssetExecutionContext):
 
     try:
       with context.resources.psycopg2_connection as conn:
-        for chunk in pd.read_sql_query(query, conn, chunksize=chunk_size):
+        # Check if any Housing entries exist in ban_addresses
+        # If none exist, skip the NOT EXISTS check for better performance
+        context.log.info("Checking if Housing entries exist in ban_addresses...")
+        cursor = conn.cursor()
+        cursor.execute("SELECT EXISTS (SELECT 1 FROM ban_addresses WHERE address_kind = 'Housing' LIMIT 1)")
+        has_housing_addresses = cursor.fetchone()[0]
+        cursor.close()
+
+        if has_housing_addresses:
+            context.log.info("Housing addresses found in ban_addresses, using NOT EXISTS query")
+            effective_query = query
+        else:
+            context.log.info("No Housing addresses in ban_addresses, using direct query for better performance")
+            effective_query = f"""
+            SELECT fh.id as housing_id, array_to_string(fh.address_dgfip, ' ') as address_dgfip, fh.geo_code
+            FROM fast_housing fh
+            {"LIMIT " + str(max_files * chunk_size) if not disable_max_files else ""}
+            ;
+            """
+
+        context.log.info(f"Starting to fetch housings from database with chunk_size={chunk_size}...")
+        total_rows = 0
+        for chunk in pd.read_sql_query(effective_query, conn, chunksize=chunk_size):
           if not disable_max_files and chunk_count >= max_files:
+              context.log.info(f"Reached max_files limit ({max_files}), stopping")
               break
 
+          rows_in_chunk = len(chunk)
+          total_rows += rows_in_chunk
           chunk_file_path = f"{output_prefix}{chunk_count + 1}.csv"
           file_paths.append(chunk_file_path)
 
           table = pa.Table.from_pandas(chunk)
           pacsv.write_csv(table, chunk_file_path)
 
-          context.log.info(f"CSV file created: {chunk_file_path}")
+          context.log.info(f"CSV file created: {chunk_file_path} ({rows_in_chunk} rows, total so far: {total_rows})")
           chunk_count += 1
+
+        context.log.info(f"Finished fetching housings: {chunk_count} files created, {total_rows} total rows")
 
     except Exception as e:
         context.log.error(f"Error executing query or writing CSV: {e}")

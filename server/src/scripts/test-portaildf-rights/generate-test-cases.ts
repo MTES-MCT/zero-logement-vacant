@@ -87,19 +87,8 @@ interface TestCase {
   testType: 'login' | 'create_account' | 'both';
 }
 
-// Séparation des cas de test pour la connexion et la création de compte
-interface LoginTestCase extends TestCase {
-  testType: 'login';
-  // Pour la connexion, l'utilisateur existe déjà en base
-  existingUser: boolean;
-}
-
-interface CreateAccountTestCase extends TestCase {
-  testType: 'create_account';
-  // Pour la création de compte, on a besoin d'un prospect et d'un signup link
-  prospectEmail: string;
-  signupLinkId: string;
-}
+// Note: LoginTestCase et CreateAccountTestCase pourraient être utilisés
+// pour un typage plus strict, mais pour l'instant on utilise TestCase directement
 
 // =============================================================================
 // API FUNCTIONS
@@ -191,13 +180,7 @@ function getInvalidGeoCodes(perimeter: PortailDFPerimeter | null): string[] {
 }
 
 function generateTestCases(userData: FullUserData): { login: TestCase[]; createAccount: TestCase[] } {
-  const siren = userData.structure.siret.substring(0, 9);
   const perimeter = userData.perimeter;
-  const hasValidLovac = userData.group?.niveau_acces === 'lovac' || userData.group?.lovac === true;
-  const hasValidStructureAccess = userData.structure.acces_lovac
-    ? new Date(userData.structure.acces_lovac) > new Date()
-    : false;
-
   const validGeoCodes = getValidGeoCodes(perimeter);
   const invalidGeoCodes = getInvalidGeoCodes(perimeter);
 

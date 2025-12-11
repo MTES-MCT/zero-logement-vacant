@@ -32,6 +32,16 @@ async function getByEmail(email: string): Promise<UserApi | null> {
   return result ? parseUserApi(result) : null;
 }
 
+async function getByEmailIncludingDeleted(email: string): Promise<UserApi | null> {
+  logger.debug('Get user by email (including deleted)', email);
+
+  const result = await Users()
+    .whereRaw('upper(email) = upper(?)', email)
+    .first();
+
+  return result ? parseUserApi(result) : null;
+}
+
 async function update(user: UserApi): Promise<void> {
   logger.debug('Updating user...', { id: user.id });
   await Users().where({ id: user.id }).update(formatUserApi(user));
@@ -193,6 +203,7 @@ export const formatUserApi = (userApi: UserApi): UserDBO => ({
 export default {
   get,
   getByEmail,
+  getByEmailIncludingDeleted,
   update,
   count,
   find,

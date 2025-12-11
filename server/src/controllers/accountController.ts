@@ -54,17 +54,15 @@ const signInValidators = {
 async function signIn(request: Request, response: Response) {
   const payload = request.body;
 
-  const user = await userRepository.getByEmail(payload.email);
+  // Use getByEmailIncludingDeleted to be able to detect deleted users
+  // and return a proper 403 error instead of 401
+  const user = await userRepository.getByEmailIncludingDeleted(payload.email);
   if (!user) {
     throw new AuthenticationFailedError();
   }
 
-  const isPasswordValid = await bcrypt.compare(payload.password, user.password);
-  if (!isPasswordValid) {
-    throw new AuthenticationFailedError();
-  }
-
-  // Check if user account is deleted
+  // Check if user account is deleted before password validation
+  // to return proper 403 error for deleted accounts
   if (user.deletedAt) {
     logger.warn('Login attempt on deleted account', {
       userId: user.id,
@@ -72,6 +70,11 @@ async function signIn(request: Request, response: Response) {
       deletedAt: user.deletedAt
     });
     throw new UserDeletedError();
+  }
+
+  const isPasswordValid = await bcrypt.compare(payload.password, user.password);
+  if (!isPasswordValid) {
+    throw new AuthenticationFailedError();
   }
 
   // Log suspended account login (but allow login - frontend will show modal)

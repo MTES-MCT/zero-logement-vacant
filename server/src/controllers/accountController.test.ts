@@ -167,7 +167,7 @@ describe('Account controller', () => {
       });
     });
 
-    it('should fail if the user is suspended', async () => {
+    it('should allow login for suspended user (modal will be displayed on frontend)', async () => {
       const suspendedUser: UserApi = {
         ...genUserApi(establishment.id),
         password: bcrypt.hashSync('TestPassword123!', SALT_LENGTH),
@@ -176,12 +176,17 @@ describe('Account controller', () => {
       };
       await Users().insert(formatUserApi(suspendedUser));
 
-      const { status } = await request(url).post(testRoute).send({
+      const { body, status } = await request(url).post(testRoute).send({
         email: suspendedUser.email,
         password: 'TestPassword123!'
       });
 
-      expect(status).toBe(constants.HTTP_STATUS_FORBIDDEN);
+      // Suspended users can login - the frontend will display the suspension modal
+      expect(status).toBe(constants.HTTP_STATUS_OK);
+      expect(body).toMatchObject({
+        establishment,
+        accessToken: expect.any(String)
+      });
 
       // Cleanup
       await Users().where('id', suspendedUser.id).delete();

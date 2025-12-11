@@ -275,7 +275,7 @@ describe('Document API', () => {
 
         expect(status).toBe(constants.HTTP_STATUS_BAD_REQUEST);
         expect(body).toBeArrayOfSize(2);
-        body.forEach((error) => {
+        body.forEach((error: FileValidationError) => {
           expect(error).toMatchObject<Partial<FileValidationError>>({
             name: 'FileValidationError',
             data: {

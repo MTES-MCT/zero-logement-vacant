@@ -10,11 +10,7 @@ vitest.mock('~/infra/clamav');
 
 describe('File Validation Service', () => {
   describe('validateFiles', () => {
-    const mockFile = (
-      filename: string,
-      mimetype: string,
-      buffer: Buffer
-    ): Express.Multer.File => ({
+    const mockFile = (filename: string, mimetype: string, buffer: Buffer) => ({
       fieldname: 'file',
       originalname: filename,
       encoding: '7bit',

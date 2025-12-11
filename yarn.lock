@@ -104,7 +104,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@aws-sdk/client-s3@npm:3.864.0, @aws-sdk/client-s3@npm:^3.0.0":
+"@aws-sdk/client-s3@npm:3.864.0":
   version: 3.864.0
   resolution: "@aws-sdk/client-s3@npm:3.864.0"
   dependencies:
@@ -355,7 +355,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@aws-sdk/lib-storage@npm:3.864.0, @aws-sdk/lib-storage@npm:^3.46.0":
+"@aws-sdk/lib-storage@npm:3.864.0":
   version: 3.864.0
   resolution: "@aws-sdk/lib-storage@npm:3.864.0"
   dependencies:
@@ -11699,18 +11699,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@types/multer-s3@npm:3.0.3":
-  version: 3.0.3
-  resolution: "@types/multer-s3@npm:3.0.3"
-  dependencies:
-    "@aws-sdk/client-s3": "npm:^3.0.0"
-    "@types/multer": "npm:*"
-    "@types/node": "npm:*"
-  checksum: 10c0/03fa49cf74fed5c43f756c320e2fa02e14b8b3e0d3d959a4ad8433cbb40c40c4b6c73799b607bbffdce178e806c9b75ab9753f3d4ec77e4c21bf11c3f5b2a757
-  languageName: node
-  linkType: hard
-
-"@types/multer@npm:*, @types/multer@npm:2.0.0":
+"@types/multer@npm:2.0.0":
   version: 2.0.0
   resolution: "@types/multer@npm:2.0.0"
   dependencies:
@@ -13224,7 +13213,6 @@ __metadata:
     "@types/memoizee": "npm:0.4.12"
     "@types/ms": "npm:2.1.0"
     "@types/multer": "npm:2.0.0"
-    "@types/multer-s3": "npm:3.0.3"
     "@types/node": "npm:20.19.10"
     "@types/nodemailer": "npm:6.4.17"
     "@types/pg": "npm:8.15.5"
@@ -13285,7 +13273,6 @@ __metadata:
     mime: "npm:4.1.0"
     ms: "npm:2.1.3"
     multer: "npm:2.0.2"
-    multer-s3: "npm:3.0.1"
     nock: "npm:13.5.6"
     nodemailer: "npm:6.10.1"
     nodemon: "npm:3.1.10"
@@ -19430,7 +19417,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"file-type@npm:^3.3.0, file-type@npm:^3.8.0":
+"file-type@npm:^3.8.0":
   version: 3.9.0
   resolution: "file-type@npm:3.9.0"
   checksum: 10c0/7ae074b350c2300807a99d428600a8ee6b2ace901400898706a20ddc2c43c9abb7e05177ff55ed67a2fd26dfa9b91857b21ec9c0ab3202b9cabebc7e65900240
@@ -20708,13 +20695,6 @@ __metadata:
   version: 1.2.0
   resolution: "hpagent@npm:1.2.0"
   checksum: 10c0/505ef42e5e067dba701ea21e7df9fa73f6f5080e59d53680829827d34cd7040f1ecf7c3c8391abe9df4eb4682ef4a4321608836b5b70a61b88c1b3a03d77510b
-  languageName: node
-  linkType: hard
-
-"html-comment-regex@npm:^1.1.2":
-  version: 1.1.2
-  resolution: "html-comment-regex@npm:1.1.2"
-  checksum: 10c0/c6fe47e7efbb2e853217854cdf352e53a6d414f87a6029456010250179f9ac2c77ef657dd4e26f4d3930f8def0e2fad015c233a3181a195a59fb4eeda6d333f9
   languageName: node
   linkType: hard
 
@@ -25336,20 +25316,6 @@ __metadata:
   languageName: node
   linkType: hard
 
-"multer-s3@npm:3.0.1":
-  version: 3.0.1
-  resolution: "multer-s3@npm:3.0.1"
-  dependencies:
-    "@aws-sdk/lib-storage": "npm:^3.46.0"
-    file-type: "npm:^3.3.0"
-    html-comment-regex: "npm:^1.1.2"
-    run-parallel: "npm:^1.1.6"
-  peerDependencies:
-    "@aws-sdk/client-s3": ^3.0.0
-  checksum: 10c0/1627fb5d2dc7eed1b6f8deed499888894d5efc5403fcecc5c1a64f7028180b0a7024bfb9d0776ab54f94c69c79bc5e838117ccca209e45d95a8e54f624b32013
-  languageName: node
-  linkType: hard
-
 "multer@npm:2.0.2":
   version: 2.0.2
   resolution: "multer@npm:2.0.2"
@@ -29507,7 +29473,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"run-parallel@npm:^1.1.6, run-parallel@npm:^1.1.9":
+"run-parallel@npm:^1.1.9":
   version: 1.2.0
   resolution: "run-parallel@npm:1.2.0"
   dependencies:

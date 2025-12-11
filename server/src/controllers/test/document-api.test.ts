@@ -589,7 +589,6 @@ describe('Document API', () => {
     });
 
     it('should return 404 Not found if the housing belongs to another establishment', async () => {
-      const document = genHousingDocumentApi(housing, anotherUser);
       const housingFromAnotherEstablishment = genHousingApi(
         faker.helpers.arrayElement(anotherEstablishment.geoCodes)
       );
@@ -600,16 +599,18 @@ describe('Document API', () => {
       await Housing().insert(
         formatHousingRecordApi(housingFromAnotherEstablishment)
       );
-      await housingDocumentRepository.createMany([
-        document,
-        documentFromAnotherEstablishment
-      ]);
+      await housingDocumentRepository.create(documentFromAnotherEstablishment);
 
       const { status } = await request(url)
-        .delete(testRoute(housing.id, document.id))
+        .delete(
+          testRoute(
+            housingFromAnotherEstablishment.id,
+            documentFromAnotherEstablishment.id
+          )
+        )
         .use(tokenProvider(user));
 
-      expect(status).toBe(constants.HTTP_STATUS_FORBIDDEN);
+      expect(status).toBe(constants.HTTP_STATUS_NOT_FOUND);
     });
 
     it('should allow admin to delete any document', async () => {

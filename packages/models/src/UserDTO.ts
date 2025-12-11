@@ -32,6 +32,7 @@ export interface UserDTO {
   suspendedAt: string | null;
   suspendedCause: SuspendedCauseField;
   updatedAt: string;
+  kind: string | null;
 }
 
 export type UserCreationPayload = Pick<

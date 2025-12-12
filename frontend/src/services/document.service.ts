@@ -87,8 +87,9 @@ export const documentApi = zlvApi.injectEndpoints({
         url: `housing/${housingId}/documents/${documentId}`,
         method: 'DELETE'
       }),
-      invalidatesTags: (_result, _error, { documentId }) => [
-        { type: 'Document', id: documentId }
+      invalidatesTags: (_result, _error, { housingId, documentId }) => [
+        { type: 'Document', id: documentId },
+        { type: 'Document', id: `LIST-${housingId}` }
       ]
     })
   })

@@ -1,9 +1,11 @@
+import { HeadObjectCommand } from '@aws-sdk/client-s3';
 import { faker } from '@faker-js/faker/locale/fr';
 import {
   HousingDocumentDTO,
   UserRole,
   type DocumentDTO
 } from '@zerologementvacant/models';
+import { createS3 } from '@zerologementvacant/utils/node';
 import { Array, Predicate } from 'effect';
 import { constants } from 'http2';
 import fs from 'node:fs';
@@ -648,5 +650,29 @@ describe('Document API', () => {
       expect(deletedDocument).not.toBeNull();
       expect(deletedDocument!.deletedAt).not.toBeNull();
     });
+
+    it('should remove the actual document from the S3 bucket', async () => {
+      const s3 = createS3({
+        endpoint: config.s3.endpoint,
+        region: config.s3.region,
+        accessKeyId: config.s3.accessKeyId,
+        secretAccessKey: config.s3.secretAccessKey
+      });
+
+      const document = genHousingDocumentApi(housing, user);
+      await housingDocumentRepository.create(document);
+
+      await request(url)
+        .delete(testRoute(housing.id, document.id))
+        .use(tokenProvider(user));
+
+      // Verify the object no longer exists in S3
+      const headCommand = new HeadObjectCommand({
+        Bucket: config.s3.bucket,
+        Key: document.s3Key
+      });
+
+      await expect(s3.send(headCommand)).rejects.toThrow();
+    })
   });
 });

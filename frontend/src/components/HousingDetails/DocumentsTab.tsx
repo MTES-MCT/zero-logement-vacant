@@ -7,6 +7,7 @@ import type { ReactNode } from 'react';
 import { useState } from 'react';
 import { match, Pattern } from 'ts-pattern';
 
+import DocumentFullscreenPreview from '~/components/FileUpload/DocumentFullscreenPreview';
 import HousingDocumentUpload from '~/components/FileUpload/HousingDocumentUpload';
 import DocumentCard from '~/components/HousingDetails/DocumentCard';
 import { createDocumentDeleteModal } from '~/components/HousingDetails/DocumentDeleteModal';
@@ -37,6 +38,10 @@ function DocumentsTab() {
     null
   );
 
+  const [fullscreenPreviewIndex, setFullscreenPreviewIndex] = useState<
+    number | null
+  >(null);
+
   const [updateDocument, updateDocumentMutation] = useUpdateDocumentMutation();
   useNotification({
     toastId: 'document-rename',
@@ -66,6 +71,10 @@ function DocumentsTab() {
   function onRename(document: DocumentDTO): void {
     setSelectedDocument(document);
     documentRenameModal.open();
+  }
+
+  function onVisualize(index: number): void {
+    setFullscreenPreviewIndex(index);
   }
 
   function onCancelRename(): void {
@@ -122,6 +131,23 @@ function DocumentsTab() {
       });
   }
 
+  async function onDownload(document: DocumentDTO): Promise<void> {
+    try {
+      const response = await fetch(document.url);
+      const blob = await response.blob();
+      const url = globalThis.URL.createObjectURL(blob);
+      const link = globalThis.document.createElement('a');
+      link.href = url;
+      link.download = document.filename;
+      globalThis.document.body.appendChild(link);
+      link.click();
+      link.remove();
+      globalThis.URL.revokeObjectURL(url);
+    } catch (error) {
+      console.error('Failed to download document', error);
+    }
+  }
+
   if (!housing) {
     return null;
   }
@@ -132,12 +158,30 @@ function DocumentsTab() {
         document={selectedDocument}
         onCancel={onCancelRename}
         onSubmit={rename}
+        onDownload={() => {
+          if (selectedDocument) {
+            onDownload(selectedDocument);
+          }
+        }}
       />
       <documentDeleteModal.Component
         document={documentToDelete}
         onCancel={onCancelDelete}
         onSubmit={deleteDocument}
       />
+
+      {documents && fullscreenPreviewIndex !== null && (
+        <DocumentFullscreenPreview
+          documents={documents}
+          index={fullscreenPreviewIndex}
+          onIndexChange={setFullscreenPreviewIndex}
+          open={fullscreenPreviewIndex !== null}
+          onClose={() => {
+            setFullscreenPreviewIndex(null);
+          }}
+          onDownload={onDownload}
+        />
+      )}
 
       <Stack component="section" spacing="2rem" useFlexGap>
         <Stack component="header">
@@ -170,12 +214,15 @@ function DocumentsTab() {
             },
             ({ documents }) => (
               <Grid container spacing="1rem">
-                {documents.map((document) => (
-                  <Grid key={document.id} size={{ xs: 12, md: 4 }}>
+                {documents.map((document, index) => (
+                  <Grid key={document.id} size={{ xs: 12, md: 6, lg: 4 }}>
                     <DocumentCard
                       document={document}
-                      onRename={onRename}
+                      index={index}
                       onDelete={onDelete}
+                      onDownload={onDownload}
+                      onRename={onRename}
+                      onVisualize={onVisualize}
                     />
                   </Grid>
                 ))}

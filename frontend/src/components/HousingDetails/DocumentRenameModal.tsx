@@ -24,6 +24,7 @@ export type DocumentRenameModalProps = Pick<
   document: DocumentDTO | null;
   onCancel(): void;
   onSubmit(filename: string): void;
+  onDownload(): void;
 };
 
 export function createDocumentRenameModal() {
@@ -73,7 +74,10 @@ export function createDocumentRenameModal() {
               {document ? (
                 <Stack spacing="1rem" useFlexGap>
                   <Box sx={{ maxWidth: '12rem' }}>
-                    <DocumentPreview document={document} />
+                    <DocumentPreview
+                      document={document}
+                      onDownload={props.onDownload}
+                    />
                   </Box>
                   <AppTextInputNext
                     name="filename"

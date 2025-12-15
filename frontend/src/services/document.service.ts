@@ -87,10 +87,24 @@ export const documentApi = zlvApi.injectEndpoints({
         url: `housing/${housingId}/documents/${documentId}`,
         method: 'DELETE'
       }),
-      invalidatesTags: (_result, _error, { housingId, documentId }) => [
-        { type: 'Document', id: documentId },
-        { type: 'Document', id: `LIST-${housingId}` }
-      ]
+      async onQueryStarted({ housingId, documentId }, { dispatch, queryFulfilled }) {
+        const patchResult = dispatch(
+          documentApi.util.updateQueryData(
+            'listHousingDocuments',
+            housingId,
+            (documents) => {
+              const index = documents.findIndex(
+                (draft) => draft.id === documentId
+              );
+              if (index !== -1) {
+                documents.splice(index, 1);
+              }
+            }
+          )
+        );
+
+        queryFulfilled.catch(patchResult.undo);
+      }
     })
   })
 });

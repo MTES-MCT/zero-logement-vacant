@@ -673,6 +673,6 @@ describe('Document API', () => {
       });
 
       await expect(s3.send(headCommand)).rejects.toThrow();
-    })
+    });
   });
 });

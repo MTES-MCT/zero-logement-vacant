@@ -22,7 +22,7 @@ import { useAppDispatch } from '../../../hooks/useStore';
 import { logIn } from '../../../store/actions/authenticationAction';
 
 const schema = object({
-  password: passwordFormatValidator.optional().default(undefined),
+  password: passwordFormatValidator.required(),
   confirmation: passwordConfirmationValidator
 }).required();
 

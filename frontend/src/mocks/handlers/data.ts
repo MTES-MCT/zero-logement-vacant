@@ -4,9 +4,11 @@ import {
   type BaseHousingOwnerDTO,
   type CampaignDTO,
   type DatafoncierHousing,
+  type DocumentDTO,
   type DraftDTO,
   type EstablishmentDTO,
   type EventUnionDTO,
+  type FileUploadDTO,
   type GroupDTO,
   type HousingDTO,
   type NoteDTO,
@@ -30,10 +32,14 @@ const campaignHousings = new Map<
 
 const datafoncierHousings: DatafoncierHousing[] = [];
 
+const documents = new Map<DocumentDTO['id'], DocumentDTO>();
+
 const drafts: DraftDTO[] = [];
 const draftCampaigns = new Map<DraftDTO['id'], Pick<CampaignDTO, 'id'>>();
 
 const establishments: EstablishmentDTO[] = [];
+
+const files: FileUploadDTO[] = [];
 
 const groups: GroupDTO[] = [];
 const groupHousings = new Map<
@@ -48,12 +54,17 @@ const housingCampaigns = new Map<
   HousingDTO['id'],
   ReadonlyArray<Pick<CampaignDTO, 'id'>>
 >();
+const housingDocuments = new Map<
+  HousingDTO['id'],
+  ReadonlyArray<Pick<DocumentDTO, 'id'>>
+>();
 const housingEvents = new Map<
   HousingDTO['id'],
   EventUnionDTO<
     'housing:created' | 'housing:occupancy-updated' | 'housing:status-updated'
   >[]
 >();
+const housingFiles = new Map<HousingDTO['id'], FileUploadDTO[]>();
 const housingNotes = new Map<HousingDTO['id'], string[]>();
 const housingOwners = new Map<
   HousingDTO['id'],
@@ -107,14 +118,18 @@ export default {
   campaignDrafts,
   campaignHousings,
   datafoncierHousings,
+  documents,
   drafts,
   draftCampaigns,
   establishments,
+  files,
   groups,
   groupHousings,
   housings,
   housingCampaigns,
+  housingDocuments,
   housingEvents,
+  housingFiles,
   housingNotes,
   housingOwners,
   housingPrecisions,
@@ -125,5 +140,5 @@ export default {
   signupLinks,
   users,
 
-  reset,
+  reset
 };

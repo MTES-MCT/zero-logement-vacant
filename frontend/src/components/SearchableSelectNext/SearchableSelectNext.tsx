@@ -265,7 +265,6 @@ function SearchableSelectNext<
           }}
           onClick={(event) => {
             event.preventDefault();
-            // eslint-disable-next-line react/prop-types
             props.onClick?.(event);
           }}
         >

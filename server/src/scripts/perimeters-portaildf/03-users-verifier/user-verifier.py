@@ -72,6 +72,7 @@ class DatabaseUser:
     first_name: Optional[str]
     last_name: Optional[str]
     establishment_id: Optional[int]
+    establishment_siren: Optional[str]
     deleted_at: Optional[str]
     suspended_at: Optional[str]
     suspended_cause: Optional[str]
@@ -256,19 +257,21 @@ def get_database_users(db_config: DatabaseConfig) -> Dict[str, DatabaseUser]:
         return {}
     
     query = """
-    SELECT 
-        id,
-        email,
-        first_name,
-        last_name,
-        establishment_id,
-        deleted_at,
-        suspended_at,
-        suspended_cause
-    FROM users 
-    WHERE email IS NOT NULL 
-    AND email != ''
-    ORDER BY email;
+    SELECT
+        u.id,
+        u.email,
+        u.first_name,
+        u.last_name,
+        u.establishment_id,
+        e.siren as establishment_siren,
+        u.deleted_at,
+        u.suspended_at,
+        u.suspended_cause
+    FROM users u
+    LEFT JOIN establishments e ON u.establishment_id = e.id
+    WHERE u.email IS NOT NULL
+    AND u.email != ''
+    ORDER BY u.email;
     """
     
     try:
@@ -281,15 +284,16 @@ def get_database_users(db_config: DatabaseConfig) -> Dict[str, DatabaseUser]:
                 rows = cursor.fetchall()
                 
                 for row in rows:
-                    user_id, email, first_name, last_name, establishment_id, deleted_at, suspended_at, suspended_cause = row
+                    user_id, email, first_name, last_name, establishment_id, establishment_siren, deleted_at, suspended_at, suspended_cause = row
                     normalized_email = email.lower().strip()
-                    
+
                     users[normalized_email] = DatabaseUser(
                         id=user_id,
                         email=email,
                         first_name=first_name,
                         last_name=last_name,
                         establishment_id=establishment_id,
+                        establishment_siren=establishment_siren,
                         deleted_at=deleted_at.isoformat() if deleted_at else None,
                         suspended_at=suspended_at.isoformat() if suspended_at else None,
                         suspended_cause=suspended_cause
@@ -308,44 +312,100 @@ def get_database_users(db_config: DatabaseConfig) -> Dict[str, DatabaseUser]:
     
     return users
 
+def find_structure_by_siren(siren: str, structures: Dict[int, Structure]) -> Optional[Structure]:
+    """
+    Find a structure by its SIREN (first 9 digits of SIRET).
+
+    Args:
+        siren: SIREN to search for
+        structures: Dictionary of loaded structures
+
+    Returns:
+        Structure if found, None otherwise
+    """
+    if not siren:
+        return None
+
+    for structure in structures.values():
+        if structure.siren == siren:
+            return structure
+
+    return None
+
+
 def check_structure_access(structure_id: int, structures: Dict[int, Structure]) -> Optional[bool]:
     """
     Check if the structure has valid LOVAC access using local data.
-    
+
     Args:
         structure_id: ID of the structure to check
         structures: Dictionary of loaded structures
-        
+
     Returns:
         bool: True if access is valid, False otherwise, None if structure not found
     """
     if not structure_id:
         return None
-    
+
     structure = structures.get(structure_id)
     if not structure:
         logger.warning(f"Structure {structure_id} not found in structures file")
         return None
-    
+
+    return check_structure_lovac_access(structure)
+
+
+def check_structure_access_by_siren(siren: str, structures: Dict[int, Structure]) -> Optional[bool]:
+    """
+    Check if a structure has valid LOVAC access by its SIREN.
+
+    Args:
+        siren: SIREN of the structure to check
+        structures: Dictionary of loaded structures
+
+    Returns:
+        bool: True if access is valid, False otherwise, None if structure not found
+    """
+    if not siren:
+        return None
+
+    structure = find_structure_by_siren(siren, structures)
+    if not structure:
+        logger.warning(f"Structure with SIREN {siren} not found in structures file")
+        return None
+
+    return check_structure_lovac_access(structure)
+
+
+def check_structure_lovac_access(structure: Structure) -> bool:
+    """
+    Check if a structure has valid LOVAC access.
+
+    Args:
+        structure: Structure to check
+
+    Returns:
+        bool: True if access is valid, False otherwise
+    """
     lovac_access = structure.acces_lovac
     if not lovac_access:
-        logger.info(f"Structure {structure_id}: no LOVAC access defined")
+        logger.info(f"Structure {structure.id_structure}: no LOVAC access defined")
         return False
-    
+
     # Check if LOVAC access is in the future
     try:
         access_date = dateutil.parser.parse(lovac_access.replace('Z', '+00:00'))
         access_date = access_date.replace(tzinfo=None)
         now = datetime.now()
-        
+
         is_valid = access_date > now
         status = "valid" if is_valid else "expired"
-        logger.info(f"Structure {structure_id}: LOVAC access {status} ({lovac_access})")
-        
+        logger.info(f"Structure {structure.id_structure}: LOVAC access {status} ({lovac_access})")
+
         return is_valid
-        
+
     except Exception as date_error:
-        logger.warning(f"Invalid LOVAC date for structure {structure_id}: {date_error}")
+        logger.warning(f"Invalid LOVAC date for structure {structure.id_structure}: {date_error}")
         return False
 
 def analyze_user_status(
@@ -393,16 +453,17 @@ def analyze_user_status(
         reasons.append("cgu vides")
     
     # Rule 3: Expired structure rights
-    if api_user.structure:
-        logger.info(f"Checking structure {api_user.structure} for {db_user.email}...")
-        structure_access_valid = check_structure_access(api_user.structure, structures)
-        
+    # IMPORTANT: Check the ZLV establishment (by SIREN), not the API structure
+    # A user may be attached to multiple structures in Portail DF, but only one
+    # establishment in ZLV. We only care about the ZLV establishment's access rights.
+    if db_user.establishment_siren:
+        logger.info(f"Checking ZLV establishment SIREN {db_user.establishment_siren} for {db_user.email}...")
+        structure_access_valid = check_structure_access_by_siren(db_user.establishment_siren, structures)
+
         if structure_access_valid is False:
             reasons.append("droits structure expires")
         elif structure_access_valid is None:
-            logger.warning(f"Structure {api_user.structure} not found in structures file")
-            # Optional: add suspension reason for missing structures
-            # reasons.append("structure not found")
+            logger.warning(f"Structure with SIREN {db_user.establishment_siren} not found in structures file for {db_user.email}")
     
     # If suspension reasons exist
     if reasons:

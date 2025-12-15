@@ -25,6 +25,8 @@ fileignoreconfig:
   checksum: 25a58ba4ecfb8606daf5efbae6a1f0f2efe4e87a4a8a18e745712b39198d93a5
 - filename: frontend/src/utils/config.ts
   checksum: 2916d5a89dbd4b6425e9b6980e235007cb0f09a3dd0f2cc8b49f43c0e79d5d5f
+- filename: frontend/src/views/Account/AccountCreation/AccountPasswordCreationView.tsx
+  checksum: 5a2e7162cb75423a1a967f93bdb36d3ed60811e06164b642ce431c0c1130d636
 - filename: packages/api-sdk/src/test/campaign-api.test.ts
   checksum: b200d9e1fec310660a91e99cd048b24cbe983e0f9f965861d061a7f0992af43e
 - filename: packages/healthcheck/src/checks/brevo.ts

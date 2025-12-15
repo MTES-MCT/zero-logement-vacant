@@ -35,6 +35,7 @@ describe('Error handler', () => {
         .expect({
           name: 'TestAccountError',
           message: `${email} is a test account. It cannot be used.`,
+          status: constants.HTTP_STATUS_FORBIDDEN
         });
     });
 

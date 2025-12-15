@@ -5,8 +5,9 @@ import Stack from '@mui/material/Stack';
 import Typography from '@mui/material/Typography';
 
 import Tooltip from '~/Tooltip/Tooltip';
+import { useHousing } from '~/hooks/useHousing';
 import { useUser } from '../../hooks/useUser';
-import { getSource, type Housing } from '../../models/Housing';
+import { getSource } from '../../models/Housing';
 import HousingEditionSideMenu from '../HousingEdition/HousingEditionSideMenu';
 import { useHousingEdition } from '../HousingEdition/useHousingEdition';
 import HousingStatusBadge from '../HousingStatusBadge/HousingStatusBadge';
@@ -14,16 +15,15 @@ import OccupancyBadge from './OccupancyBadge';
 
 export interface HousingHeaderProps {
   className?: string;
-  housing: Housing | undefined;
-  isLoading: boolean;
 }
 
 function HousingHeader(props: HousingHeaderProps) {
+  const { housing } = useHousing();
   const { editing, setEditing } = useHousingEdition();
 
   const { isVisitor } = useUser();
 
-  if (!props.housing) {
+  if (!housing) {
     return (
       <Skeleton
         animation="wave"
@@ -43,7 +43,7 @@ function HousingHeader(props: HousingHeaderProps) {
     >
       <Stack className={props.className} component="section">
         <Typography component="h1" variant="h3">
-          {fallback(props.housing.rawAddress.join(', '))}
+          {fallback(housing.rawAddress.join(', '))}
         </Typography>
 
         <Typography
@@ -53,7 +53,7 @@ function HousingHeader(props: HousingHeaderProps) {
             mb: '0.5rem'
           }}
         >
-          Identifiant fiscal national : {props.housing.localId}
+          Identifiant fiscal national : {housing.localId}
         </Typography>
 
         <Stack
@@ -63,16 +63,16 @@ function HousingHeader(props: HousingHeaderProps) {
         >
           <Typography component="span">
             Occupation :&nbsp;
-            <OccupancyBadge occupancy={props.housing.occupancy} />
+            <OccupancyBadge occupancy={housing.occupancy} />
           </Typography>
           <Typography component="span" sx={{ display: 'inline-flex' }}>
             <Typography component="span" sx={{ mr: '0.5rem' }}>
               Statut de suivi :&nbsp;
             </Typography>
-            <HousingStatusBadge inline status={props.housing.status} />
+            <HousingStatusBadge inline status={housing.status} />
           </Typography>
-          {!props.housing.subStatus ? null : (
-            <Typography>{props.housing.subStatus}</Typography>
+          {!housing.subStatus ? null : (
+            <Typography>{housing.subStatus}</Typography>
           )}
         </Stack>
         <Typography
@@ -81,8 +81,8 @@ function HousingHeader(props: HousingHeaderProps) {
         >
           Source des informations :&nbsp;
           {getSource({
-            dataFileYears: props.housing.dataFileYears,
-            source: props.housing.source
+            dataFileYears: housing.dataFileYears,
+            source: housing.source
           })}
         </Typography>
       </Stack>
@@ -125,7 +125,7 @@ function HousingHeader(props: HousingHeaderProps) {
               Éditer
             </Button>
             <HousingEditionSideMenu
-              housing={props.housing}
+              housing={housing}
               expand={editing}
               onClose={() => {
                 setEditing(false);

@@ -42,11 +42,12 @@ const schema = object({
     .oneOf([...HOUSING_STATUS_VALUES, null]),
   subStatus: string()
     .trim()
-    .optional()
     .nullable()
-    .default(undefined)
+    .optional()
+    .default(null)
     .when('status', ([status], schema) =>
-      HousingStates.find((state) => state.status === status)?.subStatusList?.length
+      HousingStates.find((state) => state.status === status)?.subStatusList
+        ?.length
         ? schema.required('Veuillez renseigner le sous-statut de suivi')
         : schema
     ),
@@ -74,7 +75,6 @@ function HousingListEditionSideMenu(props: Props) {
       occupancy: null,
       occupancyIntended: null,
       status: null,
-      subStatus: null,
       note: null
     },
     mode: 'onSubmit',

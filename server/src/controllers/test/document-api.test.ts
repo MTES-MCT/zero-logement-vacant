@@ -227,6 +227,53 @@ describe('Document API', () => {
       }
     }, 30000);
 
+    it('should upload document to correct S3 path based on housing localId', async () => {
+      // Create a valid PDF file
+      const pdfBuffer = Buffer.from([
+        0x25, 0x50, 0x44, 0x46, 0x2d, 0x31, 0x2e, 0x34
+      ]);
+
+      const tmpPath = path.join(import.meta.dirname, 'test-s3-path.pdf');
+      fs.writeFileSync(tmpPath, pdfBuffer);
+
+      try {
+        const { status, body } = await request(url)
+          .post(testRoute(housing.id))
+          .attach('files', tmpPath)
+          .use(tokenProvider(user));
+
+        expect(status).toBe(constants.HTTP_STATUS_CREATED);
+        expect(body).toBeArrayOfSize(1);
+
+        const document = body[0] as HousingDocumentDTO;
+        const documentId = document.id;
+
+        // Verify the document exists in S3 at the correct path
+        const s3 = createS3({
+          endpoint: config.s3.endpoint,
+          region: config.s3.region,
+          accessKeyId: config.s3.accessKeyId,
+          secretAccessKey: config.s3.secretAccessKey
+        });
+
+        // Construct expected S3 key: housing-documents/{dept}/{commune}/{remaining-digits}/{documentId}
+        const department = housing.localId.slice(0, 2);
+        const commune = housing.localId.slice(2, 5);
+        const remaining = housing.localId.slice(5).split('').join('/');
+        const expectedS3Key = `housing-documents/${department}/${commune}/${remaining}/${documentId}`;
+
+        const headCommand = new HeadObjectCommand({
+          Bucket: config.s3.bucket,
+          Key: expectedS3Key
+        });
+
+        // Should not throw - document exists at expected path
+        await expect(s3.send(headCommand)).resolves.toBeDefined();
+      } finally {
+        fs.unlinkSync(tmpPath);
+      }
+    }, 30000);
+
     it('should upload multiple valid files and return 201 Created', async () => {
       // Create valid PNG and PDF files
       const pngBuffer = Buffer.from([

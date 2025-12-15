@@ -159,7 +159,7 @@ function DocumentsTab() {
                 variant="subtitle2"
                 sx={{ fontWeight: 500, width: '17rem' }}
               >
-                Il n&apos;y a pas de document associé à ce logement
+                Il n’y a pas de document associé à ce logement
               </Typography>
             </Stack>
           ))

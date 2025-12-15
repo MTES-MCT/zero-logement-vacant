@@ -1,0 +1,10 @@
+version: 2
+
+sources:
+  - name: external_dgfip
+    schema: external
+    description: "DGFIP (Direction Générale des Finances Publiques) data sources"
+    tables:
+      - name: dgfip_fiscalite_locale_particuliers_raw
+        description: "Fiscalité locale des particuliers"
+

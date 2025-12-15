@@ -30,6 +30,7 @@ dependencies = [
     "xlrd>=2.0.2",
     "pyxlsb>=1.0.10",
     "pyarrow>=21.0.0",
+    "plotly>=6.5.0",
 ]
 
 [tool.uv.workspace]

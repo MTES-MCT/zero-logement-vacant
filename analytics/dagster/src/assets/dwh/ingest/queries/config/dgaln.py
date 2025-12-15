@@ -13,7 +13,7 @@ DGALN_SOURCES = [
     
     ExternalSourceConfig(
         name="zonage_abc",
-        url="https://object.files.data.gouv.fr/hydra-parquet/hydra-parquet/5a9989ac0f32cd6aa41d5d60638390c0.parquet",
+        url="https://object.files.data.gouv.fr/hydra-parquet/hydra-parquet/13f7282b-8a25-43ab-9713-8bb4e476df55.parquet",
         producer=Producer.DGALN,
         file_type=FileType.PARQUET,
         description="Zonage ABC pour les aides au logement",

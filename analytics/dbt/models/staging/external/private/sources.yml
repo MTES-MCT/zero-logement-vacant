@@ -1,0 +1,20 @@
+version: 2
+
+sources:
+  - name: external_private
+    schema: external
+    description: "Private data sources (DV3F, etc.)"
+    tables:
+      - name: private_dvg_communes_2024_raw
+        description: "DV3F - Prix et volumes par commune et année 2024"
+      - name: private_dvg_communes_2023_raw
+        description: "DV3F - Prix et volumes par commune et année 2023"
+      - name: private_dvg_communes_2022_raw
+        description: "DV3F - Prix et volumes par commune et année 2022"
+      - name: private_dvg_communes_2021_raw
+        description: "DV3F - Prix et volumes par commune et année 2021"
+      - name: private_dvg_communes_2020_raw
+        description: "DV3F - Prix et volumes par commune et année 2020"
+      - name: private_dvg_communes_2019_raw
+        description: "DV3F - Prix et volumes par commune et année 2019"
+

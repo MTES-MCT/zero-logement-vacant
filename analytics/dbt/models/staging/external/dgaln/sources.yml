@@ -1,0 +1,11 @@
+version: 2
+
+sources:
+  - name: external_dgaln
+    schema: external
+    description: "DGALN (Direction Générale de l'Aménagement, du Logement et de la Nature) data sources"
+    tables:
+      - name: dgaln_carte_loyers_2023_raw
+        description: "Indicateurs de loyers d'annonce par commune en 2023"
+      - name: dgaln_zonage_abc_raw
+        description: "Défini à l’article D304-1 du code de la construction et de l’habitation, le zonage conventionnellement appelé ABC effectue un « classement des communes du territoire national en zones géographiques en fonction du déséquilibre entre l'offre et de la demande de logements ». Par ordre décroissant de tension, les zones géographiques sont : Abis, A, B1, B2 et C." 

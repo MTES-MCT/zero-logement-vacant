@@ -23,6 +23,7 @@ URL_MAPPING_SIREN_INSEE = "data/mapping_siren_insee.xlsx"
 EPCI_PATH = "data/EPCI.xlsx"
 EPT_PATH = "data/EPT.xlsx"
 PARQUET_PATH = '/Users/raphaelcourivaud/Downloads/Base Sirene SIREN SIRET.parquet'
+PARQUET_GEOLOC_PATH = '/Users/raphaelcourivaud/Downloads/Geolocalisation Etablissement Sirene Statistiques.parquet'
 MILLESIME = "2025"
 SLEEP_TIME = 0.15
 
@@ -458,9 +459,12 @@ class CollectivityProcessor:
         
         query = f"""
             SELECT siren, nicSiegeUniteLegale
-            FROM '{PARQUET_PATH}'
+            FROM '{PARQUET_PATH}' siren_db
+            JOIN '{PARQUET_GEOLOC_PATH}' siren_geo_db 
+                ON (siren_db.siren || lpad(CAST(siren_db.nicSiegeUniteLegale as VARCHAR), 5, '0')) = siren_geo_db.siret
             WHERE denominationUniteLegale LIKE '%COMMUNE%'
             AND denominationUniteLegale LIKE '%{normalized_name}%'
+            AND plg_code_commune LIKE '975%'
             LIMIT 1;
         """
         try:

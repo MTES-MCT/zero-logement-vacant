@@ -1,0 +1,123 @@
+version: 2
+
+models:
+  - name: int_analysis_insee_features
+    description: "Consolidation des données INSEE par commune : densité, démographie, évolution population"
+    columns:
+      - name: geo_code
+        description: "Code commune INSEE"
+        tests:
+          - not_null
+          - unique
+      - name: densite_grid
+        description: "Niveau de densité (1-7)"
+      - name: densite_category
+        description: "Catégorie de densité (Dense, Intermédiaire, Peu dense)"
+      - name: population_2022
+        description: "Population municipale 2022"
+      - name: population_growth_rate_2019_2022
+        description: "Taux de croissance de la population 2019-2022 (%)"
+      - name: is_population_declining
+        description: "Indicateur de déclin démographique"
+
+  - name: int_analysis_prix_volumes_wide
+    description: "Prix et volumes des transactions immobilières par commune en format large (2019-2024)"
+    columns:
+      - name: geo_code
+        description: "Code commune INSEE"
+        tests:
+          - not_null
+          - unique
+      - name: evolution_prix_maisons_2019_2023_pct
+        description: "Évolution du prix médian des maisons 2019-2023 (%)"
+      - name: evolution_prix_appartements_2019_2023_pct
+        description: "Évolution du prix médian des appartements 2019-2023 (%)"
+      - name: total_mutations_maisons_2019_2024
+        description: "Total des mutations de maisons 2019-2024"
+      - name: total_mutations_appartements_2019_2024
+        description: "Total des mutations d'appartements 2019-2024"
+
+  - name: int_analysis_dvg_wide
+    description: "Données DVG/DV3F par commune en format large (2019-2024)"
+    columns:
+      - name: geo_code
+        description: "Code commune INSEE"
+        tests:
+          - not_null
+          - unique
+      - name: total_transactions_2019_2024
+        description: "Total des transactions 2019-2024"
+      - name: avg_annual_transactions
+        description: "Moyenne annuelle des transactions"
+      - name: evolution_prix_m2_2019_2023_pct
+        description: "Évolution du prix au m² 2019-2023 (%)"
+      - name: marche_dynamisme
+        description: "Niveau de dynamisme du marché (Très dynamique, Dynamique, Modéré, Faible)"
+
+  - name: int_analysis_city_features
+    description: "Table maître des caractéristiques par commune, consolidant toutes les sources externes"
+    columns:
+      - name: city_code
+        description: "Code commune (gérant les arrondissements)"
+        tests:
+          - not_null
+      - name: geo_code
+        description: "Code géographique INSEE"
+      - name: commune_name
+        description: "Nom de la commune"
+      - name: department_code
+        description: "Code département"
+      - name: region_code
+        description: "Code région"
+      - name: densite_grid
+        description: "Niveau de densité INSEE"
+      - name: loyer_median_m2
+        description: "Loyer médian au m² (carte des loyers)"
+      - name: loyer_predit_m2
+        description: "Loyer prédit au m² (modèle DGALN)"
+      - name: niveau_loyer
+        description: "Catégorie de niveau de loyer (Très élevé, Élevé, Moyen, Modéré, Faible)"
+      - name: loyer_confiance_prediction
+        description: "Niveau de confiance de la prédiction de loyer"
+      - name: taux_tfb
+        description: "Taux global de taxe foncière sur le bâti (%)"
+      - name: taux_tfnb
+        description: "Taux global de taxe foncière non bâti (%)"
+      - name: taux_th
+        description: "Taux global de taxe d'habitation (%)"
+      - name: teom_taux
+        description: "Taux de taxe d'enlèvement des ordures ménagères (%)"
+      - name: pression_fiscale_tfb_teom
+        description: "Indicateur de pression fiscale (TFB + TEOM)"
+      - name: th_surtaxe_residences_secondaires_pct
+        description: "Taux de surtaxe TH sur résidences secondaires (%)"
+      - name: taux_artificialisation_pct
+        description: "Taux d'artificialisation de la commune (%)"
+
+  - name: int_analysis_housing_with_out_flag
+    description: "Logements avec indicateur de sortie de vacance (is_housing_out)"
+    columns:
+      - name: housing_id
+        description: "Identifiant unique du logement"
+        tests:
+          - not_null
+          - unique
+      - name: geo_code
+        description: "Code géographique INSEE"
+      - name: city_code
+        description: "Code commune"
+      - name: is_housing_out
+        description: "Indicateur de sortie de vacance (1=sorti, 0=toujours vacant)"
+        tests:
+          - not_null
+          - accepted_values:
+              values: [0, 1]
+      - name: vacancy_status_label
+        description: "Statut de vacance en texte"
+      - name: years_in_vacancy
+        description: "Nombre d'années de vacance"
+      - name: vacancy_duration_category
+        description: "Catégorie de durée de vacance"
+      - name: has_lovac_history
+        description: "Indicateur de présence dans LOVAC"
+

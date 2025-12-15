@@ -1,0 +1,9 @@
+version: 2
+
+
+models:
+  - name: stg_external_cerema_conso_espaces
+  - name: stg_external_cerema_prix_volumes_appartements
+  - name: stg_external_cerema_prix_volumes_bati
+  - name: stg_external_cerema_prix_volumes_maisons
+    

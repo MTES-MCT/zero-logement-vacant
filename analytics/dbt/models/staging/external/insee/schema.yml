@@ -1,0 +1,50 @@
+version: 2
+
+models:
+  - name: stg_external_insee_grille_densite_communes
+    description: "Grille de densité INSEE 2025 au niveau communal. Classification en 3 et 7 niveaux de densité."
+    columns:
+      - name: geo_code
+        description: "Code commune INSEE (CODGEO)"
+        tests:
+          - not_null
+      - name: commune_name
+        description: "Nom de la commune"
+      - name: densite_grid
+        description: "Niveau de densité 3 niveaux (1=Urbain dense, 2=Urbain intermédiaire, 3=Rural)"
+      - name: densite_label
+        description: "Libellé du niveau de densité (3 niveaux)"
+      - name: densite_category
+        description: "Catégorie de densité pour l'analyse"
+      - name: densite_grid_7
+        description: "Niveau de densité 7 niveaux (1-7)"
+      - name: densite_label_7
+        description: "Libellé du niveau de densité (7 niveaux)"
+      - name: densite_aav_grid
+        description: "Densité dans le contexte AAV"
+      - name: densite_aav_label
+        description: "Libellé densité AAV"
+      - name: population_2022
+        description: "Population municipale 2022"
+      - name: pct_pop_urbain_dense
+        description: "% population en zone urbaine dense"
+      - name: pct_pop_urbain_intermediaire
+        description: "% population en zone urbaine intermédiaire"
+      - name: pct_pop_rural
+        description: "% population en zone rurale"
+
+  - name: stg_external_insee_recensement_historique
+    description: "Série historique du recensement de la population (2019-2022)"
+    columns:
+      - name: geo_code
+        description: "Code commune INSEE"
+        tests:
+          - not_null
+      - name: commune_name
+        description: "Nom de la commune"
+      - name: population
+        description: "Population municipale"
+      - name: year
+        description: "Année du recensement"
+        tests:
+          - not_null

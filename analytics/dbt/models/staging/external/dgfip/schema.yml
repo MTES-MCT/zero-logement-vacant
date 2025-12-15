@@ -1,0 +1,70 @@
+version: 2
+
+models:
+  - name: stg_external_dgfip_fiscalite_locale
+    description: "Fiscalité locale des particuliers par commune (DGFIP) - Taux d'imposition TFNB, TFB, TH, TEOM"
+    columns:
+      - name: geo_code
+        description: "Code commune INSEE (5 caractères)"
+        tests:
+          - not_null
+      - name: commune_name
+        description: "Nom de la commune"
+      - name: commune_code_short
+        description: "Code commune (3 caractères)"
+      - name: department_code
+        description: "Code département"
+      - name: department_name
+        description: "Nom du département"
+      - name: region_code
+        description: "Code région"
+      - name: region_name
+        description: "Nom de la région"
+      - name: epci_siren
+        description: "Numéro SIREN de l'EPCI"
+      - name: epci_name
+        description: "Nom de l'EPCI"
+      - name: epci_regime_fiscal
+        description: "Régime fiscal de l'EPCI (FPU, FPA, FPZ)"
+      - name: population_ponderee
+        description: "Population pondérée"
+      
+      # TFNB - Taxe Foncière Non Bâti
+      - name: tfnb_taux_commune
+        description: "Taux TFNB voté par la commune (%)"
+      - name: tfnb_taux_syndicat
+        description: "Taux TFNB syndicat (%)"
+      - name: tfnb_taux_epci
+        description: "Taux TFNB EPCI (%)"
+      - name: tfnb_taux_global
+        description: "Taux global TFNB (%)"
+      
+      # TFB - Taxe Foncière Bâti
+      - name: tfb_taux_commune
+        description: "Taux TFB voté par la commune (%)"
+      - name: tfb_taux_syndicat
+        description: "Taux TFB syndicat (%)"
+      - name: tfb_taux_epci
+        description: "Taux TFB EPCI (%)"
+      - name: tfb_taux_global
+        description: "Taux global TFB (%)"
+      
+      # TEOM
+      - name: teom_taux
+        description: "Taux plein TEOM (%)"
+      
+      # TH - Taxe d'Habitation
+      - name: th_taux_commune
+        description: "Taux TH voté par la commune (%)"
+      - name: th_taux_global
+        description: "Taux global TH (%)"
+      - name: th_surtaxe_indicateur
+        description: "Indicateur de surtaxe TH sur résidences secondaires (OUI/NON)"
+      - name: th_surtaxe_residences_secondaires_pct
+        description: "Taux de surtaxe TH sur résidences secondaires (%)"
+      
+      # Derived
+      - name: pression_fiscale_tfb_teom
+        description: "Indicateur de pression fiscale (TFB + TEOM)"
+      - name: annee_reference
+        description: "Année de référence des données (exercice fiscal)"

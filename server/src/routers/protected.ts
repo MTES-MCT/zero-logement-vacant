@@ -1,4 +1,7 @@
-import { UserRole } from '@zerologementvacant/models';
+import {
+  ACCEPTED_HOUSING_DOCUMENT_EXTENSIONS,
+  UserRole
+} from '@zerologementvacant/models';
 import schemas from '@zerologementvacant/schemas';
 import Router from 'express-promise-router';
 import { param } from 'express-validator';
@@ -105,7 +108,7 @@ router.post(
     params: object({ id: schemas.id })
   }),
   upload({
-    accept: ['png', 'jpg', 'heic', 'webp', 'docx', 'xlsx', 'ppt', 'pdf'],
+    accept: ACCEPTED_HOUSING_DOCUMENT_EXTENSIONS as string[],
     multiple: true
   }),
   documentController.createByHousing

@@ -11,6 +11,14 @@ DGFIP_SOURCES = [
         description="Fiscalité locale des particuliers",
         read_options={"auto_detect": True},
     ),
+     ExternalSourceConfig(
+        name="Deliberations fiscalité locale communes 2025",
+        url="https://www.data.gouv.fr/api/1/datasets/r/7906b3eb-c42f-41f7-b984-de5e00ba62a6",
+        producer=Producer.DGFIP,
+        file_type=FileType.CSV,
+        description="Délibérations de fiscalité directe locale des communes 2025 (hors taux) ",
+        read_options={"auto_detect": True},
+    ),
 ]
 
 # Convert to dict format for backward compatibility

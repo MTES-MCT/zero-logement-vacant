@@ -27,3 +27,4 @@ SELECT
 FROM updated_count
 WHERE total < 35000
 
+

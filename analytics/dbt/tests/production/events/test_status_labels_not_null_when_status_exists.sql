@@ -21,3 +21,4 @@ FROM {{ ref('int_production_housing_last_status') }}
 WHERE last_event_status_zlv_followup IS NOT NULL
 AND last_event_status_label_zlv_followup IS NULL
 
+

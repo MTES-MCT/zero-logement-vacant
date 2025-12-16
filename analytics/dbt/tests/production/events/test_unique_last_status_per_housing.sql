@@ -9,3 +9,4 @@ FROM {{ ref('int_production_housing_last_status') }}
 GROUP BY housing_id
 HAVING COUNT(*) > 1
 
+

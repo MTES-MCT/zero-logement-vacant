@@ -57,10 +57,6 @@ models:
   - name: int_analysis_city_features
     description: "Table maître des caractéristiques par commune, consolidant toutes les sources externes"
     columns:
-      - name: city_code
-        description: "Code commune (gérant les arrondissements)"
-        tests:
-          - not_null
       - name: geo_code
         description: "Code géographique INSEE"
       - name: commune_name

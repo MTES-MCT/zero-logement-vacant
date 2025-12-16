@@ -38,6 +38,19 @@ const s3 = createS3({
   secretAccessKey: config.s3.secretAccessKey
 });
 
+/**
+ * Generates S3 key path from housing localId and document ID
+ * Format: housing-documents/{department}/{commune}/{remaining-digits}/{documentId}
+ * Example: housing-documents/12/345/6/7/8/9/1/1/2/3/uuid
+ */
+function generateS3Key(localId: string, documentId: string): string {
+  const department = localId.slice(0, 2);
+  const commune = localId.slice(2, 5);
+  const remaining = localId.slice(5).split('').join('/');
+
+  return `housing-documents/${department}/${commune}/${remaining}/${documentId}`;
+}
+
 const listByHousing: RequestHandler<
   { id: HousingDTO['id'] },
   HousingDocumentDTO[]
@@ -127,9 +140,10 @@ const createByHousing: RequestHandler<
     Array.map(
       Either.map((file) => {
         const id = uuidv4();
+        const s3Key = generateS3Key(housing.localId, id);
         const command = new PutObjectCommand({
           Bucket: config.s3.bucket,
-          Key: id,
+          Key: s3Key,
           Body: file.buffer,
           ContentType: file.mimetype,
           ACL: 'authenticated-read',
@@ -141,7 +155,7 @@ const createByHousing: RequestHandler<
         const document: HousingDocumentApi = {
           id: id,
           filename: file.originalname,
-          s3Key: id,
+          s3Key: s3Key,
           contentType: file.mimetype,
           sizeBytes: file.size,
           createdBy: user.id,

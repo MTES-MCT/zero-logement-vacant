@@ -1,5 +1,6 @@
 import { HeadObjectCommand } from '@aws-sdk/client-s3';
 import { faker } from '@faker-js/faker/locale/fr';
+import { fc, test } from '@fast-check/vitest';
 import {
   HousingDocumentDTO,
   UserRole,
@@ -227,6 +228,53 @@ describe('Document API', () => {
       }
     }, 30000);
 
+    it('should upload document to correct S3 path based on housing localId', async () => {
+      // Create a valid PDF file
+      const pdfBuffer = Buffer.from([
+        0x25, 0x50, 0x44, 0x46, 0x2d, 0x31, 0x2e, 0x34
+      ]);
+
+      const tmpPath = path.join(import.meta.dirname, 'test-s3-path.pdf');
+      fs.writeFileSync(tmpPath, pdfBuffer);
+
+      try {
+        const { status, body } = await request(url)
+          .post(testRoute(housing.id))
+          .attach('files', tmpPath)
+          .use(tokenProvider(user));
+
+        expect(status).toBe(constants.HTTP_STATUS_CREATED);
+        expect(body).toBeArrayOfSize(1);
+
+        const document = body[0] as HousingDocumentDTO;
+        const documentId = document.id;
+
+        // Verify the document exists in S3 at the correct path
+        const s3 = createS3({
+          endpoint: config.s3.endpoint,
+          region: config.s3.region,
+          accessKeyId: config.s3.accessKeyId,
+          secretAccessKey: config.s3.secretAccessKey
+        });
+
+        // Construct expected S3 key: housing-documents/{dept}/{commune}/{remaining-digits}/{documentId}
+        const department = housing.localId.slice(0, 2);
+        const commune = housing.localId.slice(2, 5);
+        const remaining = housing.localId.slice(5).split('').join('/');
+        const expectedS3Key = `housing-documents/${department}/${commune}/${remaining}/${documentId}`;
+
+        const headCommand = new HeadObjectCommand({
+          Bucket: config.s3.bucket,
+          Key: expectedS3Key
+        });
+
+        // Should not throw - document exists at expected path
+        await expect(s3.send(headCommand)).resolves.toBeDefined();
+      } finally {
+        fs.unlinkSync(tmpPath);
+      }
+    }, 30000);
+
     it('should upload multiple valid files and return 201 Created', async () => {
       // Create valid PNG and PDF files
       const pngBuffer = Buffer.from([
@@ -381,6 +429,31 @@ describe('Document API', () => {
       }
     }, 30000);
 
+    it('should return 400 Bad Request when file exceeds 25MB', async () => {
+      // Create a 26 MiB buffer
+      const oversizedBuffer = Buffer.alloc(26 * 1024 * 1024);
+      const tmpPath = path.join(import.meta.dirname, 'oversized.pdf');
+      fs.writeFileSync(tmpPath, oversizedBuffer);
+
+      try {
+        const { status, body } = await request(url)
+          .post(testRoute(housing.id))
+          .attach('files', tmpPath)
+          .use(tokenProvider(user));
+
+        // Multer error handler returns 400 Bad Request for LIMIT_FILE_SIZE
+        expect(status).toBe(constants.HTTP_STATUS_BAD_REQUEST);
+        expect(body).toMatchObject({
+          name: 'MulterError',
+          message: 'File too large',
+          reason: 'file_too_large',
+          error: 'LIMIT_FILE_SIZE'
+        });
+      } finally {
+        fs.unlinkSync(tmpPath);
+      }
+    }, 30000);
+
     // Test runs only when ClamAV is enabled (CLAMAV_ENABLED=true)
     const itIfClamavEnabled = config.clamav.enabled ? it : it.skip;
 
@@ -470,6 +543,34 @@ describe('Document API', () => {
       ]);
     });
 
+    it('should return 400 Bad request if filename is missing', async () => {
+      const { status } = await request(url)
+        .put(testRoute(userDocument.housingId, userDocument.id))
+        .send({})
+        .use(tokenProvider(user));
+
+      expect(status).toBe(constants.HTTP_STATUS_BAD_REQUEST);
+    });
+
+    test.prop({
+      filename: fc.oneof(
+        // Empty string after trim (only whitespace)
+        fc.stringMatching(/^\s+$/),
+        // String exceeding 255 characters
+        fc.string({ minLength: 256 }).filter((s) => s.trim().length > 255)
+      )
+    })(
+      'should return 400 Bad request for invalid filename',
+      async ({ filename }) => {
+        const { status } = await request(url)
+          .put(testRoute(userDocument.housingId, userDocument.id))
+          .send({ filename })
+          .use(tokenProvider(user));
+
+        expect(status).toBe(constants.HTTP_STATUS_BAD_REQUEST);
+      }
+    );
+
     it('should be forbidden for a non-authenticated user', async () => {
       const { status } = await request(url)
         .put(testRoute(userDocument.housingId, userDocument.id))
@@ -539,15 +640,6 @@ describe('Document API', () => {
         url: expect.stringMatching(/^http/),
         updatedAt: expect.any(String)
       });
-    });
-
-    it('should return 400 Bad request if filename is missing', async () => {
-      const { status } = await request(url)
-        .put(testRoute(userDocument.housingId, userDocument.id))
-        .send({})
-        .use(tokenProvider(user));
-
-      expect(status).toBe(constants.HTTP_STATUS_BAD_REQUEST);
     });
   });
 

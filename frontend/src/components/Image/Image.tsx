@@ -40,6 +40,7 @@ function Image(props: Readonly<Props>) {
 }
 
 export default styled(Image)`
+  display: block;
   max-width: ${(props) =>
     props.responsive === 'max-width' ? '100%' : undefined};
   height: ${(props) => (props.responsive === 'max-width' ? 'auto' : undefined)};

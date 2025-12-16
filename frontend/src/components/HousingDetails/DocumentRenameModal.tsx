@@ -1,19 +1,16 @@
 import { yupResolver } from '@hookform/resolvers/yup';
-import Box from '@mui/material/Box';
-import Stack from '@mui/material/Stack';
 import type { DocumentDTO } from '@zerologementvacant/models';
-import schemas from "@zerologementvacant/schemas";
+import schemas from '@zerologementvacant/schemas';
 import { FormProvider, useForm, useFormState } from 'react-hook-form';
 import { type InferType } from 'yup';
 
-import DocumentPreview from '~/components/FileUpload/DocumentPreview';
 import {
   createConfirmationModal,
   type ConfirmationModalProps
 } from '~/components/modals/ConfirmationModal/ConfirmationModalNext';
 import AppTextInputNext from '../_app/AppTextInput/AppTextInputNext';
 
-const schema = schemas.documentPayload
+const schema = schemas.documentPayload;
 
 type FormSchema = InferType<typeof schema>;
 
@@ -24,6 +21,7 @@ export type DocumentRenameModalProps = Pick<
   document: DocumentDTO | null;
   onCancel(): void;
   onSubmit(filename: string): void;
+  onDownload(): void;
 };
 
 export function createDocumentRenameModal() {
@@ -71,16 +69,11 @@ export function createDocumentRenameModal() {
               onSubmit={form.handleSubmit(onSubmit)}
             >
               {document ? (
-                <Stack spacing="1rem" useFlexGap>
-                  <Box sx={{ maxWidth: '12rem' }}>
-                    <DocumentPreview document={document} />
-                  </Box>
-                  <AppTextInputNext
-                    name="filename"
-                    label="Nouveau nom du document"
-                    hintText="Le nom du document doit faire moins de 255 caractères."
-                  />
-                </Stack>
+                <AppTextInputNext
+                  name="filename"
+                  label="Nouveau nom du document"
+                  hintText="Le nom du document doit faire moins de 255 caractères."
+                />
               ) : null}
             </modal.Component>
           </FormProvider>

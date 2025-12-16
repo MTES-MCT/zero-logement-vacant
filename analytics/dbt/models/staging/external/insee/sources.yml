@@ -27,4 +27,5 @@ sources:
         description: "Table d'appartenance géographique des communes 2024"
       - name: insee_population_structure_dage_2022_2011_raw
         description: "Population et structure d'âge 2011-2022"
-
+      - name: insee_cog_2025_raw
+      - name: insee_cog_2024_raw

@@ -1,6 +1,6 @@
 SELECT
     ccm.city_code,
-    MIN(cc.libelle) AS label,
+    MIN(cc.commune_name) AS label,
     MIN(cc.department_code) AS department_code,
     MIN(cc.region_code) AS region_code,
     MAX(ca1.is_in) AS tlv1,  -- Prend 1 s'il y a au moins un arrondissement où la valeur est 1

@@ -15,3 +15,5 @@ export const ACCEPTED_HOUSING_DOCUMENT_EXTENSIONS: ReadonlyArray<string> = [
   'ppt',
   'pptx'
 ];
+
+export const MAX_HOUSING_DOCUMENT_SIZE_IN_MiB = 25;

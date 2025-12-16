@@ -64,7 +64,7 @@ async function createMany(
     );
     await transaction.batchInsert(
       HOUSING_DOCUMENT_TABLE,
-      documents.map(toDocumentHousingDBO)
+      documents.map(toHousingDocumentDBO)
     );
   });
 }
@@ -162,7 +162,7 @@ function listQuery() {
     .join(usersTable, `${usersTable}.id`, `${DOCUMENTS_TABLE}.created_by`);
 }
 
-function toDocumentDBO(document: HousingDocumentApi): DocumentDBO {
+export function toDocumentDBO(document: HousingDocumentApi): DocumentDBO {
   return {
     id: document.id,
     filename: document.filename,
@@ -176,7 +176,7 @@ function toDocumentDBO(document: HousingDocumentApi): DocumentDBO {
   };
 }
 
-function toDocumentHousingDBO(
+export function toHousingDocumentDBO(
   document: HousingDocumentApi
 ): HousingDocumentDBO {
   return {
@@ -186,7 +186,7 @@ function toDocumentHousingDBO(
   };
 }
 
-function fromHousingDocumentDBO(
+export function fromHousingDocumentDBO(
   dbo: HousingDocumentWithCreatorDBO
 ): HousingDocumentApi {
   if (!dbo.creator) {

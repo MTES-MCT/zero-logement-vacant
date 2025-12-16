@@ -1,5 +1,6 @@
 import { HeadObjectCommand } from '@aws-sdk/client-s3';
 import { faker } from '@faker-js/faker/locale/fr';
+import { fc, test } from '@fast-check/vitest';
 import {
   HousingDocumentDTO,
   UserRole,
@@ -428,6 +429,31 @@ describe('Document API', () => {
       }
     }, 30000);
 
+    it('should return 400 Bad Request when file exceeds 25MB', async () => {
+      // Create a 26 MiB buffer
+      const oversizedBuffer = Buffer.alloc(26 * 1024 * 1024);
+      const tmpPath = path.join(import.meta.dirname, 'oversized.pdf');
+      fs.writeFileSync(tmpPath, oversizedBuffer);
+
+      try {
+        const { status, body } = await request(url)
+          .post(testRoute(housing.id))
+          .attach('files', tmpPath)
+          .use(tokenProvider(user));
+
+        // Multer error handler returns 400 Bad Request for LIMIT_FILE_SIZE
+        expect(status).toBe(constants.HTTP_STATUS_BAD_REQUEST);
+        expect(body).toMatchObject({
+          name: 'MulterError',
+          message: 'File too large',
+          reason: 'file_too_large',
+          error: 'LIMIT_FILE_SIZE'
+        });
+      } finally {
+        fs.unlinkSync(tmpPath);
+      }
+    }, 30000);
+
     // Test runs only when ClamAV is enabled (CLAMAV_ENABLED=true)
     const itIfClamavEnabled = config.clamav.enabled ? it : it.skip;
 
@@ -517,6 +543,34 @@ describe('Document API', () => {
       ]);
     });
 
+    it('should return 400 Bad request if filename is missing', async () => {
+      const { status } = await request(url)
+        .put(testRoute(userDocument.housingId, userDocument.id))
+        .send({})
+        .use(tokenProvider(user));
+
+      expect(status).toBe(constants.HTTP_STATUS_BAD_REQUEST);
+    });
+
+    test.prop({
+      filename: fc.oneof(
+        // Empty string after trim (only whitespace)
+        fc.stringMatching(/^\s+$/),
+        // String exceeding 255 characters
+        fc.string({ minLength: 256 }).filter((s) => s.trim().length > 255)
+      )
+    })(
+      'should return 400 Bad request for invalid filename',
+      async ({ filename }) => {
+        const { status } = await request(url)
+          .put(testRoute(userDocument.housingId, userDocument.id))
+          .send({ filename })
+          .use(tokenProvider(user));
+
+        expect(status).toBe(constants.HTTP_STATUS_BAD_REQUEST);
+      }
+    );
+
     it('should be forbidden for a non-authenticated user', async () => {
       const { status } = await request(url)
         .put(testRoute(userDocument.housingId, userDocument.id))
@@ -586,15 +640,6 @@ describe('Document API', () => {
         url: expect.stringMatching(/^http/),
         updatedAt: expect.any(String)
       });
-    });
-
-    it('should return 400 Bad request if filename is missing', async () => {
-      const { status } = await request(url)
-        .put(testRoute(userDocument.housingId, userDocument.id))
-        .send({})
-        .use(tokenProvider(user));
-
-      expect(status).toBe(constants.HTTP_STATUS_BAD_REQUEST);
     });
   });
 

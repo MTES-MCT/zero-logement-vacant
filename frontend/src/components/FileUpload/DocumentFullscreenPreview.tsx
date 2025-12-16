@@ -6,6 +6,8 @@ import type { DocumentDTO } from '@zerologementvacant/models';
 import DocumentCyclingBar from './DocumentCyclingBar';
 import DocumentPreview from './DocumentPreview';
 import { styled } from '@mui/material/styles';
+import { Button } from '@codegouvfr/react-dsfr/Button';
+import Paper from '@mui/material/Paper';
 
 const CenteredDocumentPreview = styled(DocumentPreview)({
   flex: 1,
@@ -15,7 +17,7 @@ const CenteredDocumentPreview = styled(DocumentPreview)({
   justifyContent: 'center'
 });
 
-type ExtractedModalProps = 'open' | 'onClose';
+type ExtractedModalProps = 'open';
 
 export type DocumentFullscreenPreviewProps = Pick<
   ModalProps,
@@ -24,6 +26,7 @@ export type DocumentFullscreenPreviewProps = Pick<
   documents: DocumentDTO[];
   modalProps?: Omit<ModalProps, ExtractedModalProps>;
   index: number;
+  onClose(): void;
   onIndexChange(index: number): void;
   onDownload?(document: DocumentDTO): void;
 };
@@ -31,7 +34,8 @@ export type DocumentFullscreenPreviewProps = Pick<
 function DocumentFullscreenPreview(
   props: Readonly<DocumentFullscreenPreviewProps>
 ) {
-  const { documents, index, onIndexChange, ...modalProps } = props;
+  const { documents, index, modalProps, onDownload, onIndexChange, ...rest } =
+    props;
 
   const currentDocument = documents[index];
 
@@ -48,11 +52,31 @@ function DocumentFullscreenPreview(
   }
 
   return (
-    <Modal {...modalProps}>
+    <Modal {...modalProps} {...rest} role="dialog">
       <Container
-        maxWidth={false}
+        maxWidth="xl"
         sx={{ padding: '1.5rem', pb: '3rem', height: '100vh' }}
       >
+        <Paper
+          sx={{
+            position: 'absolute',
+            top: '1.5rem',
+            right: '1.5rem',
+            padding: '0.75rem'
+          }}
+        >
+          <Button
+            priority="tertiary no outline"
+            iconId="fr-icon-close-line"
+            size="small"
+            onClick={() => {
+              props.onClose();
+            }}
+          >
+            Fermer
+          </Button>
+        </Paper>
+
         <Stack
           spacing="1.5rem"
           sx={{
@@ -63,7 +87,7 @@ function DocumentFullscreenPreview(
           <CenteredDocumentPreview
             document={currentDocument}
             responsive="max-height"
-            onDownload={() => props.onDownload?.(currentDocument)}
+            onDownload={() => onDownload?.(currentDocument)}
           />
           {documents.length > 1 && (
             <DocumentCyclingBar

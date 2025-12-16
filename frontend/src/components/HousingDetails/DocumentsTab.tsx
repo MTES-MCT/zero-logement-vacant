@@ -14,6 +14,7 @@ import { createDocumentDeleteModal } from '~/components/HousingDetails/DocumentD
 import { createDocumentRenameModal } from '~/components/HousingDetails/DocumentRenameModal';
 import { useHousing } from '~/hooks/useHousing';
 import { useNotification } from '~/hooks/useNotification';
+import { useUser } from '~/hooks/useUser';
 import {
   useListHousingDocumentsQuery,
   useRemoveDocumentMutation,
@@ -30,6 +31,8 @@ function DocumentsTab() {
     isLoading,
     isSuccess
   } = useListHousingDocumentsQuery(housingId);
+  const { isUsual, isAdmin } = useUser()
+  const canWrite = isAdmin || isUsual;
 
   const [selectedDocument, setSelectedDocument] = useState<DocumentDTO | null>(
     null
@@ -184,9 +187,11 @@ function DocumentsTab() {
       )}
 
       <Stack component="section" spacing="2rem" useFlexGap>
-        <Stack component="header">
-          <HousingDocumentUpload housing={housing} />
-        </Stack>
+        {canWrite ? (
+          <Stack component="header">
+            <HousingDocumentUpload housing={housing} />
+          </Stack>
+        ) : null}
 
         {match({ documents, isLoading, isSuccess })
           .returnType<ReactNode>()
@@ -215,7 +220,7 @@ function DocumentsTab() {
             ({ documents }) => (
               <Grid container spacing="1rem">
                 {documents.map((document, index) => (
-                  <Grid key={document.id} size={{ xs: 12, md: 6, lg: 4 }}>
+                  <Grid key={document.id} size={{ xs: 12, md: 6, xl: 4 }}>
                     <DocumentCard
                       document={document}
                       index={index}

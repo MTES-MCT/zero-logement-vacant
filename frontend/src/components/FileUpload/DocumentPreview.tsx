@@ -1,6 +1,6 @@
 import { fr } from '@codegouvfr/react-dsfr';
 import { Button } from '@codegouvfr/react-dsfr/Button';
-import ErrorPicto from '@codegouvfr/react-dsfr/picto/Error';
+import DocumentPicto from '@codegouvfr/react-dsfr/picto/Document';
 import Box from '@mui/material/Box';
 import CircularProgress from '@mui/material/CircularProgress';
 import Paper from '@mui/material/Paper';
@@ -158,7 +158,7 @@ function Fallback(
         sx={{ padding: '2rem', maxWidth: '23.75rem', textAlign: 'center' }}
       >
         <Stack spacing="1rem" useFlexGap sx={{ alignItems: 'center' }}>
-          <ErrorPicto width="5rem" height="5rem" />
+          <DocumentPicto width="5rem" height="5rem" />
           <Typography variant="h6" component="p">
             La visualisation de ce document n’est pas disponible
           </Typography>
@@ -166,13 +166,15 @@ function Fallback(
             Le format de ce document ne permet pas de la visualiser.
             Téléchargez-le directement pour le consulter.
           </Typography>
-          <Button
-            priority="secondary"
-            iconId="fr-icon-download-line"
-            onClick={props.onDownload}
-          >
-            Télécharger le document
-          </Button>
+          {props.onDownload ? (
+            <Button
+              priority="secondary"
+              iconId="fr-icon-download-line"
+              onClick={props.onDownload}
+            >
+              Télécharger le document
+            </Button>
+          ) : null}
         </Stack>
       </Paper>
     </Box>

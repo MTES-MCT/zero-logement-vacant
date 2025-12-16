@@ -146,7 +146,6 @@ function DocumentCard(props: Readonly<DocumentCardProps>) {
             firstPageOnly
             responsive="max-width"
             onClick={onVisualize}
-            onDownload={onDownload}
           />
         </Box>
         <Stack component="footer" spacing="0.5rem" useFlexGap>

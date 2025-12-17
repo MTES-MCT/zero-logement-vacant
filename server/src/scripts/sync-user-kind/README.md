@@ -27,6 +27,14 @@ This script fetches user information from the Portail DF API and updates the loc
    pip install psycopg2-binary requests tqdm
    ```
 
+## Authentication
+
+The script uses token-based authentication with the Portail DF API:
+1. Authenticates via POST to `/api-token-auth/` with username and password
+2. Uses the returned token in `Authorization: Token <token>` header for subsequent requests
+
+Credentials must be provided via command-line arguments or environment variables.
+
 ## Usage
 
 ### Basic Usage
@@ -35,6 +43,16 @@ This script fetches user information from the Portail DF API and updates the loc
 python sync_user_kind.py \
   --db-url "postgresql://user:pass@localhost:5432/dbname" \
   --api-url "https://portaildf.cerema.fr/api"
+```
+
+### With Custom Credentials
+
+```bash
+python sync_user_kind.py \
+  --db-url "postgresql://user:pass@localhost:5432/dbname" \
+  --api-url "https://portaildf.cerema.fr/api" \
+  --username "my_user" \
+  --password "my_password"
 ```
 
 ### Dry Run (Test Mode)
@@ -83,6 +101,8 @@ python sync_user_kind.py \
 |----------|----------|---------|-------------|
 | `--db-url` | Yes | - | PostgreSQL connection URI |
 | `--api-url` | Yes | - | Portail DF API base URL |
+| `--username` | Yes | - | API username for authentication |
+| `--password` | Yes | - | API password for authentication |
 | `--dry-run` | No | `false` | Simulation mode (no DB changes) |
 | `--limit` | No | - | Limit number of users to process |
 | `--batch-size` | No | `1000` | Batch size for DB updates |
@@ -92,11 +112,12 @@ python sync_user_kind.py \
 
 ## How It Works
 
-1. **Fetch Users**: Retrieves all users with email addresses from local database
-2. **API Lookup**: For each user, queries Portail DF API: `/utilisateurs?email=<email>`
-3. **Determine Kind**: Applies mapping rules based on `exterieur` and `gestionnaire` flags
-4. **Batch Update**: Updates database in batches with parallel workers
-5. **Summary**: Displays statistics about processed users
+1. **Authenticate**: Obtains a token from `/api-token-auth/` using username/password
+2. **Fetch Users**: Retrieves all users with email addresses from local database
+3. **API Lookup**: For each user, queries Portail DF API: `/utilisateurs?email=<email>` with `Authorization: Token <token>` header
+4. **Determine Kind**: Applies mapping rules based on `exterieur` and `gestionnaire` flags
+5. **Batch Update**: Updates database in batches with parallel workers
+6. **Summary**: Displays statistics about processed users
 
 ## Performance
 

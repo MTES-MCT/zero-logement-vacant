@@ -47,8 +47,8 @@ class UserKindSync:
         Args:
             db_url: PostgreSQL connection URI
             api_url: Portail DF API base URL
-            username: Portail DF API username
-            password: Portail DF API password
+            username: API username for authentication
+            password: API password for authentication
             dry_run: Simulation mode (no database modifications)
             batch_size: Batch size for database operations
             num_workers: Number of parallel workers
@@ -461,12 +461,12 @@ def main():
     parser.add_argument(
         "--username",
         required=True,
-        help="Portail DF API username",
+        help="API username for authentication",
     )
     parser.add_argument(
         "--password",
         required=True,
-        help="Portail DF API password",
+        help="API password for authentication",
     )
     parser.add_argument(
         "--dry-run", action="store_true", help="Simulation mode (no database changes)"

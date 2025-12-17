@@ -239,29 +239,42 @@ class DPERawImporter:
                 self.conn.rollback()
             return False
 
-    def _count_lines(self, file_path: str) -> int:
-        """Count the number of lines in a file with progress bar"""
+    def _count_lines(self, file_path: str, show_progress: bool = False) -> int:
+        """Count the number of lines in a file
+
+        Args:
+            file_path: Path to the file
+            show_progress: If True, show a progress bar (default: False for cleaner output)
+        """
         file_size = Path(file_path).stat().st_size
+        lines = 0
+        buffer_size = 1024 * 1024  # 1MB buffer
 
         with open(file_path, 'rb') as f:
-            with tqdm(
-                total=file_size,
-                desc="Counting lines",
-                unit="B",
-                unit_scale=True,
-                ncols=80
-            ) as pbar:
-                lines = 0
-                buffer_size = 1024 * 1024  # 1MB buffer
-
+            if show_progress:
+                with tqdm(
+                    total=file_size,
+                    desc=f"Counting {Path(file_path).name}",
+                    unit="B",
+                    unit_scale=True,
+                    ncols=80,
+                    leave=False
+                ) as pbar:
+                    while True:
+                        buffer = f.read(buffer_size)
+                        if not buffer:
+                            break
+                        lines += buffer.count(b'\n')
+                        pbar.update(len(buffer))
+            else:
+                # Fast count without progress bar
                 while True:
                     buffer = f.read(buffer_size)
                     if not buffer:
                         break
                     lines += buffer.count(b'\n')
-                    pbar.update(len(buffer))
 
-                return lines
+        return lines
 
     def _is_year_based_directory(self, input_path: str) -> bool:
         """Check if input path is a year-based directory structure"""
@@ -332,16 +345,19 @@ class DPERawImporter:
             Dict with statistics (inserted, skipped, failed)
         """
         # Count total lines for this year
+        print(f"📊 Counting lines for year {year}...")
         total_lines = self._count_lines_in_files(files)
+        print(f"   Found {total_lines:,} lines across {len(files)} files")
 
         year_inserted = 0
         year_skipped = 0
         year_failed = 0
         year_start = datetime.now()
 
-        # Create progress bar for this year
+        # Create progress bar for this year (use total_lines or None for unknown)
+        pbar_total = total_lines if total_lines > 0 else None
         with tqdm(
-            total=total_lines,
+            total=pbar_total,
             desc=f"📅 {year}",
             unit="rec",
             ncols=120,

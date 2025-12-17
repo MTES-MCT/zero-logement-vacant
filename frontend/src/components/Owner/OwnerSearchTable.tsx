@@ -17,6 +17,10 @@ import { birthdate } from '~/utils/dateUtils';
 
 export type OwnerSearchTableProps = {
   owners: ReadonlyArray<Owner>;
+  /**
+   * The total number of owners available (for pagination purposes).
+   */
+  total: number;
   isLoading?: boolean;
   pagination?: PaginationState;
   onPaginationChange?: AdvancedTableProps<Owner>['onPaginationChange'];
@@ -86,13 +90,19 @@ function OwnerSearchTable(props: OwnerSearchTableProps) {
   return (
     <Stack spacing="1rem">
       <LabelNext style={{ fontWeight: 400 }}>
-        {props.owners.length} propriétaires trouvés
+        {props.total} propriétaires trouvés
       </LabelNext>
       <AdvancedTable
         data={props.owners as Array<Owner>}
         columns={columnDefs}
         isLoading={props.isLoading}
-        paginate={true}
+        paginate
+        manualPagination
+        pageCount={
+          props.pagination
+            ? Math.ceil(props.total / props.pagination.pageSize)
+            : undefined
+        }
         state={props.pagination ? { pagination: props.pagination } : undefined}
         onPaginationChange={props.onPaginationChange}
         tableProps={{

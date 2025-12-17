@@ -17,10 +17,10 @@ import {
 import classNames from 'classnames';
 import { createRef, memo, useEffect, useState, type MouseEvent } from 'react';
 
+import SelectNext from '@codegouvfr/react-dsfr/SelectNext';
 import SingleCheckbox from '~/components/_app/AppCheckbox/SingleCheckbox';
 import SortButton from '~/components/AdvancedTable/SortButton';
 import { type Selection } from '~/hooks/useSelection';
-import AppSelectNext from '../_app/AppSelect/AppSelectNext';
 
 /**
  *
@@ -65,7 +65,7 @@ interface PaginationProps {
   /**
    * You must define this when using server-side pagination.
    */
-  pageCount?: number
+  pageCount?: number;
 }
 
 const ROW_SIZE = 64;
@@ -155,7 +155,7 @@ function AdvancedTable<Data extends object>(props: AdvancedTableProps<Data>) {
   }
 
   return (
-    <Stack sx={{ width: '100%' }}>
+    <Stack sx={{ width: '100%' }} spacing="1rem" useFlexGap>
       <div
         className={classNames(
           fr.cx('fr-table', {
@@ -299,13 +299,19 @@ function AdvancedTable<Data extends object>(props: AdvancedTableProps<Data>) {
           useFlexGap
           sx={{ justifyContent: 'center', alignItems: 'center' }}
         >
-          <AppSelectNext
-            options={PER_PAGE_OPTIONS}
-            getOptionLabel={(option) => `${option} résultats par page`}
-            value={table.getState().pagination.pageSize}
-            onChange={(value) => {
-              if (value !== null) {
-                table.setPageSize(value);
+          <SelectNext
+            label={null}
+            options={PER_PAGE_OPTIONS.map((option) => ({
+              label: `${option} résultats par page`,
+              value: String(option)
+            }))}
+            nativeSelectProps={{
+              value: String(table.getState().pagination.pageSize),
+              onChange: (event) => {
+                const value = Number(event.target.value);
+                if (value !== null) {
+                  table.setPageSize(value);
+                }
               }
             }}
           />

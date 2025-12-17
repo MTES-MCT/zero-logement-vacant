@@ -55,11 +55,14 @@ function createOwnerSearchModal() {
           skip: searchQuery.length < 3,
           selectFromResult: (query) => ({
             ...query,
-            data: query.data?.filter(
-              (owner) =>
-                // Exclude owners who are already linked to the housing
-                !props.exclude.some((excluded) => excluded.id === owner.id)
-            )
+            data: {
+              ...query.data,
+              entities: query.data?.entities?.filter(
+                (owner) =>
+                  // Exclude owners who are already linked to the housing
+                  !props.exclude.some((excluded) => excluded.id === owner.id)
+              )
+            }
           })
         }
       );
@@ -126,12 +129,16 @@ function createOwnerSearchModal() {
               ))
               .with(
                 Pattern.union(
-                  { isSuccess: true, owners: Pattern.nonNullable },
+                  {
+                    isSuccess: true,
+                    owners: Pattern.nonNullable
+                  },
                   { isFetching: true }
                 ),
                 ({ owners }) => (
                   <OwnerSearchTable
-                    owners={owners ?? []}
+                    owners={owners.entities ?? []}
+                    total={owners.total ?? 0}
                     isLoading={isFetching}
                     pagination={pagination}
                     onPaginationChange={setPagination}

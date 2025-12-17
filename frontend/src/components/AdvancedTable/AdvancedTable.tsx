@@ -1,8 +1,5 @@
 import { fr } from '@codegouvfr/react-dsfr';
-import {
-  Pagination as TablePagination,
-  type PaginationProps as TablePaginationProps
-} from '@codegouvfr/react-dsfr/Pagination';
+import { Pagination as TablePagination } from '@codegouvfr/react-dsfr/Pagination';
 import { type TableProps } from '@codegouvfr/react-dsfr/Table';
 import Skeleton from '@mui/material/Skeleton';
 import Stack from '@mui/material/Stack';
@@ -46,10 +43,6 @@ export type AdvancedTableProps<Data extends object> = Pick<
   PaginationProps & {
     data?: Data[];
     isLoading?: boolean;
-    paginationProps?: Omit<
-      TablePaginationProps,
-      'count' | 'defaultPage' | 'getPageLinkProps'
-    >;
     tableProps?: Omit<TableProps, 'headers' | 'data'> & {
       fixedRowHeight?: boolean;
       size?: 'sm' | 'md' | 'lg';

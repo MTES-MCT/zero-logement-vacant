@@ -1,14 +1,16 @@
 import Button from '@codegouvfr/react-dsfr/Button';
 import Stack from '@mui/material/Stack';
 import Typography from '@mui/material/Typography';
-import { createColumnHelper } from '@tanstack/react-table';
+import {
+  createColumnHelper,
+  type PaginationState
+} from '@tanstack/react-table';
 
 import type { Occupancy, Pagination } from '@zerologementvacant/models';
 import { Set } from 'immutable';
 import { useMemo, useState } from 'react';
 import type { ReactElement, ReactNode } from 'react';
 import { useCampaignList } from '../../hooks/useCampaignList';
-import { usePagination } from '../../hooks/usePagination';
 import { useSelection } from '../../hooks/useSelection';
 import { useSort } from '../../hooks/useSort';
 import type {
@@ -22,7 +24,6 @@ import {
   useCountHousingQuery,
   useFindHousingQuery
 } from '../../services/housing.service';
-import { DefaultPagination } from '../../store/reducers/housingReducer';
 import { findChild } from '../../utils/elementUtils';
 import { capitalize } from '../../utils/stringUtils';
 import AppLink from '../_app/AppLink/AppLink';
@@ -49,13 +50,21 @@ function HousingList(props: HousingListProps) {
 
   const campaignList = useCampaignList();
 
-  const [pagination, setPagination] = useState<Pagination>(DefaultPagination);
+  const [pagination, setPagination] = useState<PaginationState>({
+    pageIndex: 0,
+    pageSize: 50
+  });
   const [sort, setSort] = useState<HousingSort>();
   const [updatingHousing, setUpdatingHousing] = useState<Housing>();
 
+  const apiPagination: Pagination = {
+    page: pagination.pageIndex + 1,
+    perPage: pagination.pageSize
+  };
+
   const { data: housings, isFetching: isFetchHousings } = useFindHousingQuery({
     filters,
-    pagination,
+    pagination: apiPagination,
     sort
   });
 
@@ -63,14 +72,6 @@ function HousingList(props: HousingListProps) {
 
   const { data: count } = useCountHousingQuery(filters);
   const filteredCount = count?.housing ?? 0;
-
-  const { pageCount, page, perPage, changePerPage, changePage } = usePagination(
-    {
-      pagination,
-      setPagination,
-      count: filteredCount
-    }
-  );
 
   const { selected, selectedCount, setSelected, unselectAll } = useSelection(
     filteredCount,
@@ -80,8 +81,8 @@ function HousingList(props: HousingListProps) {
   const onSort = (sort: HousingSort) => {
     setSort(sort);
     setPagination({
-      ...pagination,
-      page: 1
+      pageIndex: 0,
+      pageSize: pagination.pageSize
     });
   };
 
@@ -112,7 +113,10 @@ function HousingList(props: HousingListProps) {
         header: () => (
           <AdvancedTableHeader
             title="Propriétaire"
-            sort={getSortButton('owner', 'Trier alphabétiquement par propriétaire')}
+            sort={getSortButton(
+              'owner',
+              'Trier alphabétiquement par propriétaire'
+            )}
           />
         ),
         meta: {
@@ -260,16 +264,15 @@ function HousingList(props: HousingListProps) {
         }
         isLoading={isFetchHousings}
         manualSorting
-        page={page}
-        pageCount={pageCount}
-        perPage={perPage}
+        manualPagination
+        state={{ pagination }}
+        pageCount={Math.ceil(filteredCount / pagination.pageSize)}
         selection={selected}
         tableProps={{
           noCaption: true,
           fixedRowHeight: true
         }}
-        onPageChange={changePage}
-        onPerPageChange={changePerPage}
+        onPaginationChange={setPagination}
         onSelectionChange={setSelected}
       />
 

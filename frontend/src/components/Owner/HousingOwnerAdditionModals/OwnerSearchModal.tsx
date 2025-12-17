@@ -5,6 +5,7 @@ import Stack from '@mui/material/Stack';
 import Typography from '@mui/material/Typography';
 import { useState } from 'react';
 import { match, Pattern } from 'ts-pattern';
+import { type PaginationState } from '@tanstack/react-table';
 
 import LabelNext from '~/components/Label/LabelNext';
 import {
@@ -34,6 +35,10 @@ function createOwnerSearchModal() {
     ...modal,
     Component(props: OwnerSearchModalProps) {
       const [searchQuery, setSearchQuery] = useState<string>('');
+      const [pagination, setPagination] = useState<PaginationState>({
+        pageIndex: 0,
+        pageSize: 10
+      });
 
       const {
         data: owners,
@@ -43,8 +48,8 @@ function createOwnerSearchModal() {
       } = useFindOwnersNextQuery(
         {
           search: searchQuery,
-          page: 1,
-          perPage: 10
+          page: pagination.pageIndex + 1,
+          perPage: pagination.pageSize
         },
         {
           skip: searchQuery.length < 3,
@@ -70,6 +75,7 @@ function createOwnerSearchModal() {
       useIsModalOpen(modal, {
         onConceal() {
           setSearchQuery('');
+          setPagination({ pageIndex: 0, pageSize: 10 });
         }
       });
 
@@ -127,6 +133,8 @@ function createOwnerSearchModal() {
                   <OwnerSearchTable
                     owners={owners ?? []}
                     isLoading={isFetching}
+                    pagination={pagination}
+                    onPaginationChange={setPagination}
                     onSelect={onSelectOwner}
                   />
                 )

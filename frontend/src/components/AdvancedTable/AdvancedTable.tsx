@@ -3,7 +3,6 @@ import {
   Pagination as TablePagination,
   type PaginationProps as TablePaginationProps
 } from '@codegouvfr/react-dsfr/Pagination';
-import Select, { type SelectProps } from '@codegouvfr/react-dsfr/SelectNext';
 import { type TableProps } from '@codegouvfr/react-dsfr/Table';
 import Skeleton from '@mui/material/Skeleton';
 import Stack from '@mui/material/Stack';
@@ -13,17 +12,22 @@ import {
   getPaginationRowModel,
   getSortedRowModel,
   useReactTable,
+  type PaginationState,
   type RowData,
   type RowSelectionState,
   type TableOptions
 } from '@tanstack/react-table';
 import classNames from 'classnames';
-import { createRef, memo, useEffect, type MouseEvent } from 'react';
+import { createRef, memo, useEffect, useState, type MouseEvent } from 'react';
 
 import SingleCheckbox from '~/components/_app/AppCheckbox/SingleCheckbox';
 import SortButton from '~/components/AdvancedTable/SortButton';
 import { type Selection } from '~/hooks/useSelection';
+import AppSelectNext from '../_app/AppSelect/AppSelectNext';
 
+/**
+ *
+ */
 export type AdvancedTableProps<Data extends object> = Pick<
   TableOptions<Data>,
   | 'columns'
@@ -35,6 +39,9 @@ export type AdvancedTableProps<Data extends object> = Pick<
   | 'enableMultiSort'
   | 'manualSorting'
   | 'onSortingChange'
+  // Pagination
+  | 'manualPagination'
+  | 'onPaginationChange'
 > &
   PaginationProps & {
     data?: Data[];
@@ -62,21 +69,14 @@ interface PaginationProps {
    * @default true
    */
   paginate?: boolean;
-  page?: number;
-  pageCount?: number;
-  perPage?: number;
-  onPageChange?(page: number): void;
-  onPerPageChange?(perPage: number): void;
+  /**
+   * You must define this when using server-side pagination.
+   */
+  pageCount?: number
 }
 
 const ROW_SIZE = 64;
-const PER_PAGE_OPTIONS: SelectProps.Option[] = [
-  '50',
-  '200',
-  '500'
-].map<SelectProps.Option>((nb) => {
-  return { label: `${nb} résultats par page`, value: nb };
-});
+const PER_PAGE_OPTIONS = [10, 50, 200, 500];
 
 function AdvancedTable<Data extends object>(props: AdvancedTableProps<Data>) {
   // Map our selection to the @tanstack/table internal selection state
@@ -96,12 +96,12 @@ function AdvancedTable<Data extends object>(props: AdvancedTableProps<Data>) {
   const enableSelection = props.selection !== undefined;
 
   const paginate = props.paginate ?? true;
-  const manualPagination = [props.page, props.pageCount, props.perPage].some(
-    (prop) => prop !== undefined
-  );
+  const [pagination, setPagination] = useState<PaginationState>({
+    pageIndex: 0,
+    pageSize: 50
+  });
 
   const table = useReactTable<Data>({
-    manualPagination: manualPagination,
     ...props,
     data: props.data ?? [],
     getCoreRowModel: getCoreRowModel(),
@@ -114,8 +114,11 @@ function AdvancedTable<Data extends object>(props: AdvancedTableProps<Data>) {
     enableMultiRowSelection: enableSelection,
     state: {
       ...props.state,
-      rowSelection: rowSelection
+      pagination: props.state?.pagination ?? pagination,
+      rowSelection
     },
+    // Take pagination from props when controlled or state when uncontrolled
+    onPaginationChange: props.onPaginationChange ?? setPagination,
     onRowSelectionChange(updater) {
       props.onSelectionChange?.({
         all: all,
@@ -297,49 +300,31 @@ function AdvancedTable<Data extends object>(props: AdvancedTableProps<Data>) {
       </div>
 
       {paginate ? (
-        <Stack direction="row" justifyContent="center">
-          <Select
-            className={fr.cx('fr-mr-2w')}
-            label={null}
-            nativeSelectProps={{
-              value: manualPagination
-                ? props.perPage?.toString()
-                : table.getState().pagination.pageSize.toString(),
-              onChange: (event) => {
-                if (manualPagination) {
-                  props.onPerPageChange?.(Number(event.target.value));
-                } else {
-                  table.setPagination({
-                    ...table.getState().pagination,
-                    pageSize: Number(event.target.value)
-                  });
-                }
+        <Stack
+          direction="row"
+          spacing="1rem"
+          useFlexGap
+          sx={{ justifyContent: 'center', alignItems: 'center' }}
+        >
+          <AppSelectNext
+            options={PER_PAGE_OPTIONS}
+            getOptionLabel={(option) => `${option} résultats par page`}
+            value={table.getState().pagination.pageSize}
+            onChange={(value) => {
+              if (value !== null) {
+                table.setPageSize(value);
               }
             }}
-            options={PER_PAGE_OPTIONS}
           />
+
           <TablePagination
-            {...props.paginationProps}
-            count={
-              manualPagination ? (props.pageCount ?? 1) : table.getPageCount()
-            }
-            defaultPage={
-              manualPagination
-                ? props.page
-                : table.getState().pagination.pageIndex + 1
-            }
+            count={table.getPageCount()}
+            defaultPage={table.getState().pagination.pageIndex + 1}
             getPageLinkProps={(page: number) => ({
               to: '#',
               onClick: (event: MouseEvent) => {
                 event.preventDefault();
-                if (manualPagination) {
-                  props.onPageChange?.(page);
-                } else {
-                  table.setPagination({
-                    ...table.getState().pagination,
-                    pageIndex: page - 1
-                  });
-                }
+                table.setPageIndex(page - 1);
               }
             })}
             showFirstLast

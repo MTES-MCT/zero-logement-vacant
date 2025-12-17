@@ -87,6 +87,7 @@ const list: RequestHandler<
   response
     .set('Accept-Ranges', 'owners')
     .set('Content-Range', `owners ${rangeStart}-${rangeEnd}/${count}`)
+    .set('Access-Control-Expose-Headers', 'Accept-Ranges, Content-Range')
     .status(constants.HTTP_STATUS_PARTIAL_CONTENT)
     .json(owners.map(toOwnerDTO));
 };

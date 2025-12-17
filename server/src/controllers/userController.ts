@@ -49,6 +49,9 @@ const list: RequestHandler<
   const users = await userRepository.find({
     filters: {
       establishments: isAdmin(user) ? query.establishments : [establishment.id]
+    },
+    pagination: {
+      paginate: false
     }
   });
 

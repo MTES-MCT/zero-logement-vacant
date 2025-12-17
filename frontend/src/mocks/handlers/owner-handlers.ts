@@ -1,12 +1,12 @@
 import { faker } from '@faker-js/faker/locale/fr';
-import type {
-  HousingOwnerDTO,
-  HousingOwnerPayloadDTO,
-  OwnerCreationPayload,
-  OwnerDTO,
-  OwnerUpdatePayload,
-  Paginated,
-  Pagination
+import {
+  type HousingOwnerDTO,
+  type HousingOwnerPayloadDTO,
+  type OwnerCreationPayload,
+  type OwnerDTO,
+  type OwnerUpdatePayload,
+  type Paginated,
+  type Pagination
 } from '@zerologementvacant/models';
 import schemas from '@zerologementvacant/schemas';
 import { Array, pipe } from 'effect';
@@ -37,9 +37,23 @@ const list = http.get<never, never, ReadonlyArray<OwnerDTO>>(
       query.search ? Array.filter(owners, byName(query.search)) : owners
     );
 
-    return HttpResponse.json(owners, {
+    const response = HttpResponse.json<ReadonlyArray<OwnerDTO>>(owners, {
       status: constants.HTTP_STATUS_OK
     });
+
+    // Set headers after creating the response (MSW v2 requirement)
+    response.headers.set('Access-Control-Allow-Origin', '*');
+    response.headers.set(
+      'Access-Control-Expose-Headers',
+      'Accept-Ranges, Content-Range'
+    );
+    response.headers.set('Accept-Ranges', 'owners');
+    response.headers.set(
+      'Content-Range',
+      `owners 0-${owners.length}/${owners.length}`
+    );
+
+    return response;
   }
 );
 

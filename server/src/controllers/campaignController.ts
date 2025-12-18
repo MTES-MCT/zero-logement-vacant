@@ -127,7 +127,7 @@ const listValidators: ValidationChain[] = [
 ];
 
 async function list(request: Request, response: Response) {
-  const { auth } = request as AuthenticatedRequest;
+  const { auth, effectiveGeoCodes } = request as AuthenticatedRequest;
   const query = request.query as CampaignQuery;
   const sort = sortApi.parse<CampaignSortableApi>(
     request.query.sort as string[] | undefined
@@ -137,7 +137,10 @@ async function list(request: Request, response: Response) {
   const campaigns = await campaignRepository.find({
     filters: {
       establishmentId: auth.establishmentId,
-      groupIds: typeof query.groups === 'string' ? [query.groups] : query.groups
+      groupIds:
+        typeof query.groups === 'string' ? [query.groups] : query.groups,
+      // Only show campaigns where ALL housings are within user's perimeter
+      geoCodes: effectiveGeoCodes?.length ? effectiveGeoCodes : undefined
     },
     sort
   });

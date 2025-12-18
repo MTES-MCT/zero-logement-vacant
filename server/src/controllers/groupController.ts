@@ -20,7 +20,7 @@ import { isArrayOf, isString, isUUIDParam } from '~/utils/validators';
 import { HousingApi } from '~/models/HousingApi';
 
 const list = async (request: Request, response: Response): Promise<void> => {
-  const { auth } = request as AuthenticatedRequest;
+  const { auth, effectiveGeoCodes } = request as AuthenticatedRequest;
   const { establishmentId, userId } = auth;
 
   logger.info('Find groups', {
@@ -30,7 +30,9 @@ const list = async (request: Request, response: Response): Promise<void> => {
 
   const groups = await groupRepository.find({
     filters: {
-      establishmentId
+      establishmentId,
+      // Only show groups where ALL housings are within user's perimeter
+      geoCodes: effectiveGeoCodes?.length ? effectiveGeoCodes : undefined
     }
   });
   response.status(constants.HTTP_STATUS_OK).json(groups.map(toGroupDTO));

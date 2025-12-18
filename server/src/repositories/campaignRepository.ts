@@ -6,6 +6,7 @@ import { logger } from '~/infra/logger';
 import queue from '~/infra/queue';
 import { CampaignApi, CampaignSortApi } from '~/models/CampaignApi';
 import { CampaignFiltersApi } from '~/models/CampaignFiltersApi';
+import { campaignsHousingTable } from '~/repositories/campaignHousingRepository';
 import { sortQuery } from '~/models/SortApi';
 import eventRepository from '~/repositories/eventRepository';
 
@@ -53,6 +54,17 @@ const filterQuery = (filters: CampaignFiltersApi) => {
     }
     if (filters.groupIds?.length) {
       query.whereIn('group_id', filters.groupIds);
+    }
+    // Filter campaigns to only those where ALL housings are within the user's perimeter
+    if (filters?.geoCodes?.length) {
+      query.whereNotExists(function () {
+        this.select(db.raw('1'))
+          .from(campaignsHousingTable)
+          .whereRaw(
+            `${campaignsHousingTable}.campaign_id = ${campaignsTable}.id`
+          )
+          .whereNotIn(`${campaignsHousingTable}.housing_geo_code`, filters.geoCodes);
+      });
     }
   };
 };

@@ -22,6 +22,11 @@ export const GroupsHousing = (transaction: Knex<GroupHousingDBO> = db) =>
 interface FindOptions {
   filters: {
     establishmentId: string;
+    /**
+     * If provided, only return groups where ALL housings are within these geoCodes.
+     * Groups with any housing outside these geoCodes will be excluded.
+     */
+    geoCodes?: string[];
   };
 }
 
@@ -84,12 +89,26 @@ const listQuery = (query: Knex.QueryBuilder): void => {
 
 interface FilterOptions {
   establishmentId?: string;
+  /**
+   * If provided, only return groups where ALL housings are within these geoCodes.
+   * Groups with any housing outside these geoCodes will be excluded.
+   */
+  geoCodes?: string[];
 }
 
 const filterQuery = (opts?: FilterOptions) => {
   return function (query: Knex.QueryBuilder): void {
     if (opts?.establishmentId) {
       query.where(`${GROUPS_TABLE}.establishment_id`, opts.establishmentId);
+    }
+    // Filter groups to only those where ALL housings are within the user's perimeter
+    if (opts?.geoCodes?.length) {
+      query.whereNotExists(function () {
+        this.select(db.raw('1'))
+          .from(GROUPS_HOUSING_TABLE)
+          .whereRaw(`${GROUPS_HOUSING_TABLE}.group_id = ${GROUPS_TABLE}.id`)
+          .whereNotIn(`${GROUPS_HOUSING_TABLE}.housing_geo_code`, opts.geoCodes);
+      });
     }
   };
 };

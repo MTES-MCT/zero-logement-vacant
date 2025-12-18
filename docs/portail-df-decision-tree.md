@@ -1,8 +1,8 @@
-# Arbre de décision - Vérification des droits Portail DF
+# Decision Tree - Portail DF Rights Verification
 
-## 1. Création de compte
+## 1. Account Creation
 
-Copier le code ci-dessous dans [Mermaid Live Editor](https://mermaid.live) pour générer le graphique.
+Copy the code below into [Mermaid Live Editor](https://mermaid.live) to generate the diagram.
 
 ```mermaid
 flowchart TD
@@ -60,7 +60,7 @@ flowchart TD
 
 ---
 
-## 2. Connexion (mono-établissement)
+## 2. Login (single-establishment)
 
 ```mermaid
 flowchart TD
@@ -142,7 +142,7 @@ flowchart TD
 
 ---
 
-## 3. Changement d'établissement (multi-établissement)
+## 3. Establishment Switch (multi-establishment)
 
 ```mermaid
 flowchart TD
@@ -173,63 +173,63 @@ flowchart TD
 
 ---
 
-## Glossaire des entités
+## Entity Glossary
 
-| Entité | Source | Description |
+| Entity | Source | Description |
 |--------|--------|-------------|
-| **USER** | Base ZLV | Utilisateur de l'application ZLV |
-| **PROSPECT** | Base ZLV | Demande de création de compte en attente |
-| **ÉTABLISSEMENT ZLV** | Base ZLV | Collectivité/EPCI avec ses geoCodes (codes INSEE communes) |
-| **STRUCTURE Portail DF** | API Portail DF | Organisation sur Portail DF, identifiée par SIREN, possède `acces_lovac` (date) |
-| **GROUPE Portail DF** | API Portail DF | Sous-ensemble d'une structure avec `lovac` (bool), `niveau_acces`, et un périmètre |
-| **PÉRIMÈTRE** | API Portail DF | Zone géographique : `comm[]`, `dep[]`, `reg[]`, `fr_entiere` (bool) |
+| **USER** | ZLV Database | ZLV application user |
+| **PROSPECT** | ZLV Database | Pending account creation request |
+| **ZLV ESTABLISHMENT** | ZLV Database | Local authority/EPCI with its geoCodes (INSEE commune codes) |
+| **Portail DF STRUCTURE** | Portail DF API | Organization on Portail DF, identified by SIREN, has `acces_lovac` (date) |
+| **Portail DF GROUP** | Portail DF API | Subset of a structure with `lovac` (bool), `niveau_acces`, and a perimeter |
+| **PERIMETER** | Portail DF API | Geographic area: `comm[]`, `dep[]`, `reg[]`, `fr_entiere` (bool) |
 
 ---
 
-## Correspondance ZLV ↔ Portail DF
+## ZLV ↔ Portail DF Mapping
 
 ```
-ÉTABLISSEMENT ZLV
+ZLV ESTABLISHMENT
 ├── id: UUID
 ├── siren: "123456789"  ←──────────────┐
-└── geoCodes: ["67482", "67043", ...]  │  Correspondance par SIREN
+└── geoCodes: ["67482", "67043", ...]  │  Match by SIREN
                                        │
-STRUCTURE Portail DF  ─────────────────┘
+Portail DF STRUCTURE  ─────────────────┘
 ├── siren: "123456789"
-├── acces_lovac: "2025-12-31" (date expiration commitment)
-└── GROUPE(S) Portail DF
+├── acces_lovac: "2025-12-31" (commitment expiration date)
+└── GROUP(S) Portail DF
     ├── lovac: true/false
     ├── niveau_acces: "lovac" | "dvf" | ...
-    └── PÉRIMÈTRE
+    └── PERIMETER
         ├── comm: ["67482", "67218", ...]  (communes)
-        ├── dep: ["67", "68", ...]          (départements)
-        ├── reg: ["44", ...]                (régions)
-        └── fr_entiere: false               (France entière)
+        ├── dep: ["67", "68", ...]          (departments)
+        ├── reg: ["44", ...]                (regions)
+        └── fr_entiere: false               (entire France)
 ```
 
 ---
 
-## Règle de couverture du périmètre
+## Perimeter Coverage Rule
 
-Une commune de l'établissement est **couverte** par le périmètre si **AU MOINS UNE** des conditions suivantes est vraie :
+A commune in the establishment is **covered** by the perimeter if **AT LEAST ONE** of the following conditions is true:
 
 ```
-isCommuneInPerimeter(communeCode, perimeter) = true si :
+isCommuneInPerimeter(communeCode, perimeter) = true if:
 │
 ├─ perimeter.fr_entiere = true
-│  → Accès France entière, toutes communes couvertes
+│  → Full France access, all communes covered
 │
 ├─ communeCode ∈ perimeter.comm
-│  → Commune directement listée (ex: "67482")
+│  → Commune directly listed (e.g.: "67482")
 │
 ├─ getDepartment(communeCode) ∈ perimeter.dep
-│  → Département de la commune listé (ex: "67" pour "67482")
+│  → Commune's department listed (e.g.: "67" for "67482")
 │
 └─ getRegion(getDepartment(communeCode)) ∈ perimeter.reg
-   → Région du département listée (ex: "44" Grand Est)
+   → Department's region listed (e.g.: "44" Grand Est)
 ```
 
-**Validation du périmètre** : Le périmètre est valide si **AU MOINS UNE** commune de l'établissement est couverte :
+**Perimeter validation**: The perimeter is valid if **AT LEAST ONE** commune of the establishment is covered:
 
 ```javascript
 // server/src/services/ceremaService/perimeterService.ts:181-183
@@ -238,71 +238,71 @@ const hasValidPerimeter = establishmentGeoCodes.some((geoCode) =>
 );
 ```
 
-> ⚠️ **Important** : Il suffit d'**une seule** commune couverte pour valider le périmètre, pas toutes !
+> ⚠️ **Important**: Only **one** covered commune is needed to validate the perimeter, not all of them!
 
 ---
 
-## Légende des couleurs
+## Color Legend
 
-| Couleur | Signification |
-|---------|---------------|
-| 🟢 Vert | Succès (compte créé / connexion réussie) |
-| 🔴 Rouge | Erreur bloquante (création/connexion refusée) |
-| 🟡 Jaune | Avertissement (connexion autorisée avec bandeau) |
-
----
-
-## Causes de suspension Portail DF
-
-| Cause | Entité | Champ vérifié | Condition d'erreur |
-|-------|--------|---------------|-------------------|
-| `droits structure expires` | STRUCTURE | `acces_lovac` | Date expirée (< aujourd'hui) |
-| `niveau_acces_invalide` | GROUPE | `lovac` ET `niveau_acces` | `lovac=false` ET `niveau_acces≠'lovac'` |
-| `perimetre_invalide` | GROUPE.PÉRIMÈTRE | `comm`, `dep`, `reg`, `fr_entiere` | Aucune commune établissement couverte |
-| `droits utilisateur expires` | USER Portail DF | Date expiration user | Date expirée |
-| `cgu vides` | USER Portail DF | CGU validées | CGU non validées |
+| Color | Meaning |
+|-------|---------|
+| 🟢 Green | Success (account created / login successful) |
+| 🔴 Red | Blocking error (creation/login denied) |
+| 🟡 Yellow | Warning (login allowed with banner) |
 
 ---
 
-## Différences Création vs Connexion
+## Portail DF Suspension Causes
 
-| Vérification | Entité.Champ | Création | Connexion |
-|--------------|--------------|----------|-----------|
-| SIREN non trouvé | STRUCTURE.siren | ❌ Bloqué (403) | ❌ Bloqué (403) |
-| Commitment expiré | STRUCTURE.acces_lovac | ❌ Bloqué (403) | ⚠️ Suspendu + bandeau |
-| Niveau accès invalide | GROUPE.lovac/niveau_acces | ❌ Bloqué (403) | ⚠️ Suspendu + bandeau |
-| Périmètre invalide | GROUPE.PÉRIMÈTRE | ❌ Bloqué (403) | ⚠️ Suspendu + bandeau |
+| Cause | Entity | Field Checked | Error Condition |
+|-------|--------|---------------|-----------------|
+| `droits structure expires` | STRUCTURE | `acces_lovac` | Date expired (< today) |
+| `niveau_acces_invalide` | GROUP | `lovac` AND `niveau_acces` | `lovac=false` AND `niveau_acces≠'lovac'` |
+| `perimetre_invalide` | GROUP.PERIMETER | `comm`, `dep`, `reg`, `fr_entiere` | No establishment commune covered |
+| `droits utilisateur expires` | Portail DF USER | User expiration date | Date expired |
+| `cgu vides` | Portail DF USER | CGU validated | CGU not validated |
 
 ---
 
-## Cas multi-établissement
+## Creation vs Login Differences
 
-Un utilisateur peut être membre de **plusieurs établissements ZLV**. Chaque établissement peut correspondre à une **STRUCTURE Portail DF différente** (SIREN différent).
+| Verification | Entity.Field | Creation | Login |
+|--------------|--------------|----------|-------|
+| SIREN not found | STRUCTURE.siren | ❌ Blocked (403) | ❌ Blocked (403) |
+| Commitment expired | STRUCTURE.acces_lovac | ❌ Blocked (403) | ⚠️ Suspended + banner |
+| Invalid access level | GROUP.lovac/niveau_acces | ❌ Blocked (403) | ⚠️ Suspended + banner |
+| Invalid perimeter | GROUP.PERIMETER | ❌ Blocked (403) | ⚠️ Suspended + banner |
+
+---
+
+## Multi-Establishment Case
+
+A user can be a member of **multiple ZLV establishments**. Each establishment may correspond to a **different Portail DF STRUCTURE** (different SIREN).
 
 ```
-USER ZLV
-├── Membre de Établissement A (SIREN: 111111111)
-│   └── Vérifié contre STRUCTURE Portail DF (SIREN: 111111111)
+ZLV USER
+├── Member of Establishment A (SIREN: 111111111)
+│   └── Verified against Portail DF STRUCTURE (SIREN: 111111111)
 │
-└── Membre de Établissement B (SIREN: 222222222)
-    └── Vérifié contre STRUCTURE Portail DF (SIREN: 222222222)
+└── Member of Establishment B (SIREN: 222222222)
+    └── Verified against Portail DF STRUCTURE (SIREN: 222222222)
 ```
 
-**Lors du changement d'établissement** :
-1. L'utilisateur clique sur la liste déroulante
-2. Sélectionne un autre établissement
-3. `changeEstablishment()` appelle `verifyAndUpdatePortailDFRights()` pour le **nouvel établissement**
-4. La vérification cherche une STRUCTURE avec le **SIREN du nouvel établissement**
-5. Si trouvée : vérification des droits (commitment, LOVAC, périmètre)
-6. Si non trouvée : **Connexion refusée** (403)
+**During establishment switch**:
+1. User clicks on the dropdown
+2. Selects another establishment
+3. `changeEstablishment()` calls `verifyAndUpdatePortailDFRights()` for the **new establishment**
+4. Verification looks for a STRUCTURE with the **new establishment's SIREN**
+5. If found: rights verification (commitment, LOVAC, perimeter)
+6. If not found: **Login denied** (403)
 
 ---
 
-## 4. Filtrage des données par périmètre utilisateur
+## 4. Data Filtering by User Perimeter
 
-Le filtrage des données se fait en deux niveaux :
-1. **Niveau établissement** : geoCodes de l'établissement ZLV
-2. **Niveau utilisateur** : périmètre Portail DF de l'utilisateur (intersection avec les geoCodes établissement)
+Data filtering is done at two levels:
+1. **Establishment level**: ZLV establishment geoCodes
+2. **User level**: User's Portail DF perimeter (intersection with establishment geoCodes)
 
 ```mermaid
 flowchart TD
@@ -323,13 +323,15 @@ flowchart TD
         F2["🗺️ LOCALITIES<br/>(Carte/communes)"]
         F3["📋 CAMPAIGNS<br/>(Campagnes)"]
         F4["📤 EXPORT<br/>(Export Excel)"]
+        F5["📁 GROUPS<br/>(Groupes)"]
     end
 
     subgraph RULES["Règles de filtrage"]
         R1["WHERE geo_code<br/>IN (effectiveGeoCodes)"]
         R2["WHERE geo_code<br/>IN (effectiveGeoCodes)"]
-        R3["WHERE establishment_id<br/>= establishmentId"]
+        R3["Masquer si ∃ housing<br/>hors effectiveGeoCodes"]
         R4["localities =<br/>effectiveGeoCodes"]
+        R5["Masquer si ∃ housing<br/>hors effectiveGeoCodes"]
     end
 
     U1 --> U2
@@ -351,19 +353,27 @@ flowchart TD
     C4 --> F4
     F4 --> R4
 
+    C3 --> F3
+    C4 --> F3
     F3 --> R3
+
+    C3 --> F5
+    C4 --> F5
+    F5 --> R5
 
     style U1 fill:#e3f2fd,stroke:#1976d2
     style C3 fill:#e8f5e9,stroke:#388e3c
     style C4 fill:#fff3e0,stroke:#f57c00
     style R1 fill:#fff3e0,stroke:#f57c00
     style R2 fill:#fff3e0,stroke:#f57c00
+    style R3 fill:#fff3e0,stroke:#f57c00
     style R4 fill:#fff3e0,stroke:#f57c00
+    style R5 fill:#fff3e0,stroke:#f57c00
 ```
 
-### Calcul des effectiveGeoCodes
+### Computing effectiveGeoCodes
 
-À chaque requête authentifiée, le middleware `auth.ts` calcule les `effectiveGeoCodes` :
+On every authenticated request, the `auth.ts` middleware computes `effectiveGeoCodes`:
 
 ```typescript
 // server/src/middlewares/auth.ts
@@ -373,38 +383,40 @@ request.effectiveGeoCodes = filterGeoCodesByPerimeter(
 );
 ```
 
-La fonction `filterGeoCodesByPerimeter()` :
-- Si **pas de périmètre** : retourne tous les geoCodes de l'établissement
-- Si **fr_entiere = true** : retourne tous les geoCodes de l'établissement
-- Sinon : retourne l'**intersection** des geoCodes établissement avec le périmètre utilisateur
+The `filterGeoCodesByPerimeter()` function:
+- If **no perimeter**: returns all establishment geoCodes
+- If **fr_entiere = true**: returns all establishment geoCodes
+- Otherwise: returns the **intersection** of establishment geoCodes with user perimeter
 
-### Détail des filtres par entité
+### Filter Details by Entity
 
-| Entité | Table | Filtre appliqué | Exemple SQL |
-|--------|-------|-----------------|-------------|
+| Entity | Table | Applied Filter | SQL Example |
+|--------|-------|----------------|-------------|
 | **HOUSING** | `housing` | `geo_code IN effectiveGeoCodes` | `WHERE geo_code IN ('67482', '67043')` |
 | **LOCALITIES** | `localities` | `geo_code IN effectiveGeoCodes` | `WHERE geo_code IN ('67482', '67043')` |
-| **CAMPAIGNS** | `campaigns` | `establishment_id = X` | `WHERE establishment_id = 'uuid'` |
-| **GROUPS** | `groups` | `establishment_id = X` | `WHERE establishment_id = 'uuid'` |
-| **OWNERS** | `owners` | Via jointure HOUSING | `JOIN housing ON ... WHERE geo_code IN (...)` |
-| **EVENTS** | `events` | Via HOUSING ou CAMPAIGN | Filtré via entité parente |
-| **EXPORT** | - | `localities = effectiveGeoCodes` | Filtre dans le stream |
+| **CAMPAIGNS** | `campaigns` | Hide if any housing outside perimeter | `WHERE NOT EXISTS (SELECT 1 FROM campaigns_housing WHERE housing_geo_code NOT IN effectiveGeoCodes)` |
+| **GROUPS** | `groups` | Hide if any housing outside perimeter | `WHERE NOT EXISTS (SELECT 1 FROM groups_housing WHERE housing_geo_code NOT IN effectiveGeoCodes)` |
+| **OWNERS** | `owners` | Via HOUSING join | `JOIN housing ON ... WHERE geo_code IN (...)` |
+| **EVENTS** | `events` | Via HOUSING or CAMPAIGN | Filtered via parent entity |
+| **EXPORT** | - | `localities = effectiveGeoCodes` | Filter in the stream |
 
-### Exceptions : Admins et Visitors
+> ⚠️ **Important**: Groups and campaigns are hidden if they contain **at least one** housing outside the user's perimeter. This ensures users only see groups/campaigns they have full access to.
 
-Les utilisateurs avec le rôle **ADMIN** ou **VISITOR** ne sont **pas filtrés** par le périmètre utilisateur. Ils voient toutes les données de l'établissement (ou tous établissements pour ADMIN).
+### Exceptions: Admins and Visitors
+
+Users with **ADMIN** or **VISITOR** role are **not filtered** by user perimeter. They see all establishment data (or all establishments for ADMIN).
 
 ```typescript
-// Dans housingController.ts, localityController.ts, etc.
+// In housingController.ts, localityController.ts, etc.
 const isAdminOrVisitor = [UserRole.ADMIN, UserRole.VISITOR].includes(role);
 const filters = {
   localities: isAdminOrVisitor
-    ? rawFilters.localities  // Pas de filtrage périmètre
-    : effectiveGeoCodes      // Filtrage par périmètre
+    ? rawFilters.localities  // No perimeter filtering
+    : effectiveGeoCodes      // Perimeter filtering
 };
 ```
 
-### Chaîne de filtrage complète
+### Complete Filtering Chain
 
 ```
 USER (token JWT)
@@ -412,77 +424,81 @@ USER (token JWT)
     ▼
 MIDDLEWARE auth.ts
     │
-    ├── Charge USER_PERIMETER depuis user_perimeters
+    ├── Load USER_PERIMETER from user_perimeters
     │
-    ├── Calcule effectiveGeoCodes
+    ├── Compute effectiveGeoCodes
     │   = intersection(establishment.geoCodes, user_perimeter)
     │
     ▼
-effectiveGeoCodes[] ────────────────┐
-    │                               │
-    │   ┌───────────────────────────┼───────────────────────┐
-    │   ▼                           ▼                       ▼
-    │ ┌─────────────┐         ┌─────────────┐         ┌─────────────┐
-    │ │   HOUSING   │         │  LOCALITIES │         │   EXPORT    │
-    │ │ geo_code IN │         │ geo_code IN │         │ localities  │
-    │ │ effective   │         │ effective   │         │ = effective │
-    │ └─────────────┘         └─────────────┘         └─────────────┘
-    │
-    └── establishmentId ────────────┐
-                                    │
-                    ┌───────────────┼───────────────┐
-                    ▼               ▼               ▼
-             ┌───────────┐   ┌───────────┐   ┌───────────┐
-             │ CAMPAIGNS │   │  GROUPS   │   │  DRAFTS   │
-             │ estab_id  │   │ estab_id  │   │ estab_id  │
-             └───────────┘   └───────────┘   └───────────┘
+effectiveGeoCodes[] ─────────────────────────────────────────────────────────┐
+    │                                                                        │
+    │   ┌────────────────────┬────────────────────┬────────────────────┐     │
+    │   ▼                    ▼                    ▼                    ▼     │
+    │ ┌─────────────┐  ┌─────────────┐  ┌─────────────┐  ┌─────────────┐    │
+    │ │   HOUSING   │  │  LOCALITIES │  │   EXPORT    │  │   DRAFTS    │    │
+    │ │ geo_code IN │  │ geo_code IN │  │ localities  │  │ estab_id    │    │
+    │ │ effective   │  │ effective   │  │ = effective │  │             │    │
+    │ └─────────────┘  └─────────────┘  └─────────────┘  └─────────────┘    │
+    │                                                                        │
+    │   ┌────────────────────────────────────────┐                          │
+    │   ▼                                        ▼                          │
+    │ ┌─────────────────────────┐  ┌─────────────────────────┐              │
+    │ │       CAMPAIGNS         │  │         GROUPS          │              │
+    │ │  Hide if ∃ housing      │  │  Hide if ∃ housing      │              │
+    │ │  NOT IN effectiveGeo    │  │  NOT IN effectiveGeo    │              │
+    │ └─────────────────────────┘  └─────────────────────────┘              │
+    │                                                                        │
 ```
 
-### Stockage du périmètre utilisateur
+### User Perimeter Storage
 
-À la connexion, le périmètre Portail DF de l'utilisateur est stocké dans la table `user_perimeters` :
+On login, the user's Portail DF perimeter is stored in the `user_perimeters` table:
 
 ```
 TABLE user_perimeters
 ├── user_id: UUID (FK → users.id)
-├── geo_codes: text[]    (codes INSEE communes)
-├── departments: text[]  (codes départements)
-├── regions: text[]      (codes régions)
+├── geo_codes: text[]    (INSEE commune codes)
+├── departments: text[]  (department codes)
+├── regions: text[]      (region codes)
 ├── fr_entiere: boolean
 ├── updated_at: timestamp
-└── INDEX GIN sur geo_codes, departments, regions
+└── GIN INDEX on geo_codes, departments, regions
 ```
 
-### Fichiers implémentant le filtrage
+### Files Implementing Filtering
 
-| Fichier | Rôle |
-|---------|------|
-| `server/src/middlewares/auth.ts` | Calcul de `effectiveGeoCodes` |
-| `server/src/models/UserPerimeterApi.ts` | Fonction `filterGeoCodesByPerimeter()` |
-| `server/src/controllers/housingController.ts` | Filtrage HOUSING par périmètre |
-| `server/src/controllers/localityController.ts` | Filtrage LOCALITIES (carte) par périmètre |
-| `server/src/controllers/housingExportController.ts` | Filtrage EXPORT par périmètre |
-| `server/src/repositories/localityRepository.ts` | Support filtre `geoCodes` |
-
----
-
-## Fichiers sources
-
-| Fichier | Rôle |
-|---------|------|
-| `server/src/controllers/userController.ts` | Création de compte |
-| `server/src/controllers/accountController.ts` | Connexion, changement établissement |
-| `server/src/services/ceremaService/perimeterService.ts` | Vérification droits, règle de couverture |
-| `server/src/services/ceremaService/ceremaService.ts` | Appel API Portail DF |
-| `frontend/src/components/modals/SuspendedUserModal/SuspendedUserModal.tsx` | Bandeau de suspension |
+| File | Role |
+|------|------|
+| `server/src/middlewares/auth.ts` | Compute `effectiveGeoCodes` |
+| `server/src/models/UserPerimeterApi.ts` | `filterGeoCodesByPerimeter()` function |
+| `server/src/controllers/housingController.ts` | HOUSING filtering by perimeter |
+| `server/src/controllers/localityController.ts` | LOCALITIES (map) filtering by perimeter |
+| `server/src/controllers/housingExportController.ts` | EXPORT filtering by perimeter |
+| `server/src/controllers/campaignController.ts` | CAMPAIGNS filtering by perimeter |
+| `server/src/controllers/groupController.ts` | GROUPS filtering by perimeter |
+| `server/src/repositories/localityRepository.ts` | `geoCodes` filter support |
+| `server/src/repositories/campaignRepository.ts` | `geoCodes` filter support (hide if any housing outside) |
+| `server/src/repositories/groupRepository.ts` | `geoCodes` filter support (hide if any housing outside) |
 
 ---
 
-## Export PDF
+## Source Files
 
-Pour chaque diagramme :
-1. Copier le code Mermaid
-2. Aller sur [https://mermaid.live](https://mermaid.live)
-3. Coller le code dans l'éditeur
-4. Cliquer sur "Actions" → "Export as PNG" ou "Export as SVG"
-5. Convertir en PDF si nécessaire
+| File | Role |
+|------|------|
+| `server/src/controllers/userController.ts` | Account creation |
+| `server/src/controllers/accountController.ts` | Login, establishment switch |
+| `server/src/services/ceremaService/perimeterService.ts` | Rights verification, coverage rule |
+| `server/src/services/ceremaService/ceremaService.ts` | Portail DF API call |
+| `frontend/src/components/modals/SuspendedUserModal/SuspendedUserModal.tsx` | Suspension banner |
+
+---
+
+## PDF Export
+
+For each diagram:
+1. Copy the Mermaid code
+2. Go to [https://mermaid.live](https://mermaid.live)
+3. Paste the code in the editor
+4. Click "Actions" → "Export as PNG" or "Export as SVG"
+5. Convert to PDF if needed

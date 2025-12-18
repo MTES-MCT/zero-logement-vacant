@@ -50,6 +50,14 @@ export function determineUserKind(
  * @returns The kind value or null if user not found or error occurred
  */
 export async function fetchUserKind(email: string): Promise<string | null> {
+  // Skip if Cerema integration is disabled
+  if (!config.cerema.enabled) {
+    logger.debug('Cerema integration disabled, skipping user kind fetch', {
+      email
+    });
+    return null;
+  }
+
   try {
     // Authenticate with Portail DF API using multipart/form-data
     const formData = new FormData();

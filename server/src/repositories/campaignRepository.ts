@@ -63,7 +63,10 @@ const filterQuery = (filters: CampaignFiltersApi) => {
           .whereRaw(
             `${campaignsHousingTable}.campaign_id = ${campaignsTable}.id`
           )
-          .whereNotIn(`${campaignsHousingTable}.housing_geo_code`, filters.geoCodes);
+          .whereRaw(
+            `${campaignsHousingTable}.housing_geo_code NOT IN (${filters.geoCodes.map(() => '?').join(', ')})`,
+            filters.geoCodes
+          );
       });
     }
   };

@@ -20,7 +20,7 @@ const statuses = [
   ...HOUSING_STATUS_VALUES.map((status) => {
     const label = getHousingState(status).title;
 
-    const id = label.toLowerCase();
+    const id = label.toLowerCase().replace(/\s+/g, '-');
     return {
       id,
       label,

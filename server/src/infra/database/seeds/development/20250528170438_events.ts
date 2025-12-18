@@ -56,6 +56,32 @@ import { parseUserApi, Users } from '~/repositories/userRepository';
 import { genEventApi } from '~/test/testFixtures';
 
 const LIMIT = Number.MAX_SAFE_INTEGER;
+const BATCH_SIZE = 500; // Limit batch size to avoid PostgreSQL parameter limit
+
+// Helper function to chunk an array into smaller arrays
+function chunk<T>(array: ReadonlyArray<T>, size: number): T[][] {
+  const chunks: T[][] = [];
+  for (let i = 0; i < array.length; i += size) {
+    chunks.push(array.slice(i, i + size) as T[]);
+  }
+  return chunks;
+}
+
+// Helper function to query with batched whereIn for composite keys
+async function batchedWhereIn<T>(
+  knex: Knex,
+  tableFn: (knex: Knex) => Knex.QueryBuilder,
+  columns: [string, string],
+  values: ReadonlyArray<[string, string]>
+): Promise<T[]> {
+  const batches = chunk(values, BATCH_SIZE);
+  const results: T[] = [];
+  for (const batch of batches) {
+    const batchResults = await tableFn(knex).whereIn(columns, batch);
+    results.push(...batchResults);
+  }
+  return results;
+}
 
 export async function seed(knex: Knex): Promise<void> {
   const admin = await Users(knex)
@@ -139,17 +165,18 @@ export async function seed(knex: Knex): Promise<void> {
     })
     .flat();
 
+  const housingKeys = housings.map((housing): [string, string] => [housing.geo_code, housing.id]);
   const housingPrecisions: ReadonlyArray<PrecisionDBO & HousingPrecisionDBO> =
-    await HousingPrecisions(knex)
-      .whereIn(
-        ['housing_geo_code', 'housing_id'],
-        housings.map((housing) => [housing.geo_code, housing.id])
-      )
-      .join(
+    await batchedWhereIn<PrecisionDBO & HousingPrecisionDBO>(
+      knex,
+      (k) => HousingPrecisions(k).join(
         PRECISION_TABLE,
         `${PRECISION_TABLE}.id`,
         `${HOUSING_PRECISION_TABLE}.precision_id`
-      );
+      ),
+      ['housing_geo_code', 'housing_id'],
+      housingKeys
+    );
   const precisionHousingEvents: ReadonlyArray<PrecisionHousingEventApi> =
     faker.helpers
       .arrayElements(housingPrecisions)
@@ -187,9 +214,11 @@ export async function seed(knex: Knex): Promise<void> {
       });
 
   const housingOwners: ReadonlyArray<HousingOwnerDBO> =
-    await HousingOwners(knex).whereIn(
+    await batchedWhereIn<HousingOwnerDBO>(
+      knex,
+      (k) => HousingOwners(k),
       ['housing_geo_code', 'housing_id'],
-      housings.map((housing) => [housing.geo_code, housing.id])
+      housingKeys
     );
   const housingOwnerEvents: ReadonlyArray<HousingOwnerEventApi> = faker.helpers
     .arrayElements(housingOwners)
@@ -244,9 +273,11 @@ export async function seed(knex: Knex): Promise<void> {
     });
 
   const groupHousings: ReadonlyArray<GroupHousingDBO> =
-    await GroupsHousing(knex).whereIn(
+    await batchedWhereIn<GroupHousingDBO>(
+      knex,
+      (k) => GroupsHousing(k),
       ['housing_geo_code', 'housing_id'],
-      housings.map((housing) => [housing.geo_code, housing.id])
+      housingKeys
     );
   const groupHousingEvents: ReadonlyArray<GroupHousingEventApi> = faker.helpers
     .arrayElements(groupHousings)
@@ -308,9 +339,11 @@ export async function seed(knex: Knex): Promise<void> {
     });
 
   const campaignHousings: ReadonlyArray<CampaignHousingDBO> =
-    await CampaignsHousing(knex).whereIn(
+    await batchedWhereIn<CampaignHousingDBO>(
+      knex,
+      (k) => CampaignsHousing(k),
       ['housing_geo_code', 'housing_id'],
-      housings.map((housing) => [housing.geo_code, housing.id])
+      housingKeys
     );
   const campaignHousingEvents: ReadonlyArray<CampaignHousingEventApi> =
     faker.helpers

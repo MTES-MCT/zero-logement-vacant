@@ -26,6 +26,7 @@ import establishmentRepository from '~/repositories/establishmentRepository';
 import prospectRepository from '~/repositories/prospectRepository';
 import userRepository from '~/repositories/userRepository';
 import { isTestAccount } from '~/services/ceremaService/consultUserService';
+import { fetchUserKind } from '~/services/ceremaService/userKindService';
 import mailService from '~/services/mailService';
 
 type ListQuery = UserFilters;
@@ -106,6 +107,9 @@ async function create(request: Request, response: Response) {
     throw new EstablishmentMissingError(body.establishmentId);
   }
 
+  // Fetch user kind from Portail DF API
+  const kind = await fetchUserKind(body.email);
+
   const user: UserApi = {
     id: uuidv4(),
     email: body.email,
@@ -126,6 +130,7 @@ async function create(request: Request, response: Response) {
     suspendedCause: null,
     updatedAt: new Date().toJSON(),
     deletedAt: null,
+    kind,
     twoFactorSecret: null,
     twoFactorEnabledAt: null,
     twoFactorCode: null,
@@ -137,7 +142,8 @@ async function create(request: Request, response: Response) {
   logger.info('Create user', {
     id: user.id,
     email: user.email,
-    establishmentId: user.establishmentId
+    establishmentId: user.establishmentId,
+    kind
   });
 
   const createdUser = await userRepository.insert(user);

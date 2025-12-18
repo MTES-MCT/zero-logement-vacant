@@ -7,11 +7,9 @@ import { format } from 'date-fns';
 import { Record } from 'effect';
 import { useMemo, useState } from 'react';
 
-import { usePagination } from '../../hooks/usePagination';
 import { useUser } from '../../hooks/useUser';
 import { type Campaign } from '../../models/Campaign';
 import { useFindCampaignsQuery } from '../../services/campaign.service';
-import { DefaultPagination } from '../../store/reducers/housingReducer';
 import { displayCount } from '../../utils/stringUtils';
 import AppLink from '../_app/AppLink/AppLink';
 import AdvancedTable from '../AdvancedTable/AdvancedTable';
@@ -28,14 +26,6 @@ function CampaignTable(props: CampaignTableProps) {
   const { onArchive, onRemove } = props;
 
   const { isVisitor } = useUser();
-
-  const [pagination, setPagination] = useState(DefaultPagination);
-  const { page, pageCount, perPage, changePage, changePerPage } = usePagination(
-    {
-      pagination,
-      setPagination
-    }
-  );
 
   const [sorting, setSorting] = useState<SortingState>([
     { id: 'createdAt', desc: true }
@@ -201,17 +191,12 @@ function CampaignTable(props: CampaignTableProps) {
         columns={columns}
         data={campaigns}
         isLoading={isLoading}
-        page={page}
-        pageCount={pageCount}
-        perPage={perPage}
         enableSorting
         enableSortingRemoval
         manualSorting
         state={{ sorting }}
         tableProps={{ noCaption: true }}
         onSortingChange={setSorting}
-        onPageChange={changePage}
-        onPerPageChange={changePerPage}
       />
     </>
   );

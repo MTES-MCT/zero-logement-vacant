@@ -11,8 +11,8 @@ import {
   type Pagination
 } from '@zerologementvacant/models';
 import { Fragment, type ReactNode, useMemo, useState } from 'react';
+import type { PaginationState } from '@tanstack/react-table';
 import { useNotification } from '../../hooks/useNotification';
-import { usePagination } from '../../hooks/usePagination';
 import { type Address, isBanEligible } from '../../models/Address';
 import type { Campaign } from '../../models/Campaign';
 import type { Housing } from '../../models/Housing';
@@ -21,7 +21,6 @@ import {
   useCountHousingQuery,
   useFindHousingQuery
 } from '../../services/housing.service';
-import { DefaultPagination } from '../../store/reducers/housingReducer';
 import AppLink from '../_app/AppLink/AppLink';
 import AdvancedTable from '../AdvancedTable/AdvancedTable';
 import AdvancedTableHeader from '../AdvancedTable/AdvancedTableHeader';
@@ -38,24 +37,23 @@ const removeCampaignHousingModal = createModal({
 const columnHelper = createColumnHelper<Housing>();
 
 function CampaignRecipients(props: Props) {
-  const [pagination, setPagination] = useState<Pagination>(DefaultPagination);
+  const [pagination, setPagination] = useState<PaginationState>({
+    pageIndex: 0,
+    pageSize: 50
+  });
   const filters = {
     campaignIds: [props.campaign.id]
   };
+  const apiPagination: Pagination = {
+    page: pagination.pageIndex + 1,
+    perPage: pagination.pageSize
+  };
   const { data: housings, isLoading } = useFindHousingQuery({
     filters,
-    pagination
+    pagination: apiPagination
   });
   const { data: count } = useCountHousingQuery(filters);
   const filteredCount = count?.housing ?? 0;
-
-  const { page, perPage, pageCount, changePerPage, changePage } = usePagination(
-    {
-      pagination,
-      setPagination,
-      count: filteredCount
-    }
-  );
 
   function formatAddress(address: Address): ReactNode[] {
     return formatAddressDTO(address).map((line) => (
@@ -226,12 +224,11 @@ function CampaignRecipients(props: Props) {
         columns={columns}
         data={housings?.entities}
         isLoading={isLoading}
-        page={page}
-        pageCount={pageCount}
-        perPage={perPage}
+        manualPagination
+        state={{ pagination }}
+        pageCount={Math.ceil(filteredCount / pagination.pageSize)}
         tableProps={{ noCaption: true, size: 'lg' }}
-        onPageChange={changePage}
-        onPerPageChange={changePerPage}
+        onPaginationChange={setPagination}
       />
 
       <OwnerEditionSideMenu

@@ -259,8 +259,13 @@ describe('Precision API', () => {
     });
 
     it('should create an event when a precision is attached', async () => {
+      const housingWithoutPrecisions = genHousingApi(
+        faker.helpers.arrayElement(establishment.geoCodes)
+      );
+      await Housing().insert(formatHousingRecordApi(housingWithoutPrecisions));
+
       const { status } = await request(url)
-        .put(testRoute(housing.id))
+        .put(testRoute(housingWithoutPrecisions.id))
         .send(payload)
         .type('json')
         .use(tokenProvider(user));
@@ -270,8 +275,8 @@ describe('Precision API', () => {
         .join(PRECISION_HOUSING_EVENTS_TABLE, 'event_id', 'id')
         .where({
           type: 'housing:precision-attached',
-          housing_geo_code: housing.geoCode,
-          housing_id: housing.id
+          housing_geo_code: housingWithoutPrecisions.geoCode,
+          housing_id: housingWithoutPrecisions.id
         });
       expect(events.length).toBeGreaterThan(0);
     });
@@ -279,7 +284,7 @@ describe('Precision API', () => {
     it('should create an event when a precision is detached', async () => {
       const { status } = await request(url)
         .put(testRoute(housing.id))
-        .send(payload)
+        .send([])
         .type('json')
         .use(tokenProvider(user));
 

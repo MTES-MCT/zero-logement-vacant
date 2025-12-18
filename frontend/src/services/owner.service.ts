@@ -3,10 +3,12 @@ import type {
   OwnerCreationPayload,
   OwnerDTO,
   OwnerFiltersDTO,
-  OwnerUpdatePayload
+  OwnerUpdatePayload,
+  PaginatedResponse
 } from '@zerologementvacant/models';
 import { parseISO } from 'date-fns';
 
+import { paginated } from '@zerologementvacant/models';
 import {
   fromHousingOwnerDTO,
   fromOwnerDTO,
@@ -24,18 +26,27 @@ type FindOwnersOptions = OwnerFiltersDTO & {
 
 export const ownerApi = zlvApi.injectEndpoints({
   endpoints: (builder) => ({
-    findOwnersNext: builder.query<ReadonlyArray<Owner>, FindOwnersOptions>({
+    findOwnersNext: builder.query<PaginatedResponse<Owner>, FindOwnersOptions>({
       query: (params) => ({
         url: 'owners',
         method: 'GET',
         params
       }),
-      transformResponse: (owners: ReadonlyArray<OwnerDTO>) =>
-        owners.map(fromOwnerDTO),
+      transformResponse: (owners: ReadonlyArray<OwnerDTO>, meta) => {
+        const acceptRanges =
+          meta?.response?.headers?.get('Accept-Ranges') ?? null;
+        const contentRange =
+          meta?.response?.headers?.get('Content-Range') ?? null;
+
+        return paginated(owners.map(fromOwnerDTO), {
+          acceptRanges,
+          contentRange
+        });
+      },
       providesTags: (result) =>
         result
           ? [
-              ...result.map((owner) => ({
+              ...result.entities.map((owner) => ({
                 type: 'Owner' as const,
                 id: owner.id
               })),

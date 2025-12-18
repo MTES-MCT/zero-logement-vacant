@@ -29,6 +29,8 @@ SLEEP_TIME = 0.15
 
 requests_cache.install_cache('cache', expire_after=36000000)
 
+SIREN_PARIS = "217500016"
+SIRET_PARIS = "21750001600019"
 
 class CollectivityProcessor:
     """Process and standardize territorial collectivities data."""
@@ -302,7 +304,10 @@ class CollectivityProcessor:
             communes_in_dep = [c for c in communes_in_dep if c is not None]
             
             # Fetch SIREN and SIRET from API (add "D" suffix for departments)
-            siren, siret = self.get_siren_siret_from_collectivite_api(f"{dep_code}D")
+            if dep_code:
+                siren, siret = SIREN_PARIS, SIRET_PARIS
+            else:
+                siren, siret = self.get_siren_siret_from_collectivite_api(f"{dep_code}D")
             
             # Fallback to query by name if not found (for special departments like Corse-du-Sud, Paris, etc.)
             if siren is None or siret is None:

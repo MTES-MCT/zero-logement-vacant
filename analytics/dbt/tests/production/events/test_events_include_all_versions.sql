@@ -22,3 +22,4 @@ WHERE
     OR (SELECT COUNT(*) FROM version_counts WHERE version = 'new' AND event_count > 0) = 0
 
 
+

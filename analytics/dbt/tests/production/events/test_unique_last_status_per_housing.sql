@@ -10,3 +10,4 @@ GROUP BY housing_id
 HAVING COUNT(*) > 1
 
 
+

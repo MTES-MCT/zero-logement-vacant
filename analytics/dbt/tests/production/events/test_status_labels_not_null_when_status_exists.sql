@@ -22,3 +22,4 @@ WHERE last_event_status_zlv_followup IS NOT NULL
 AND last_event_status_label_zlv_followup IS NULL
 
 
+

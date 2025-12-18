@@ -96,7 +96,8 @@ function HousingFiltersBadges(props: HousingFiltersBadgesProps) {
     establishment?.id ?? null
   );
 
-  const { data: precisions } = useFindPrecisionsQuery();
+  const { data: precisions, isSuccess: hasFetchedPrecisions } =
+    useFindPrecisionsQuery();
   const precisionOptions = precisions ?? [];
 
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
@@ -356,7 +357,7 @@ function HousingFiltersBadges(props: HousingFiltersBadgesProps) {
           badgeLabel: `Dispositif : ${precision.label}`
         }))}
         values={
-          filters.precisions
+          filters.precisions && hasFetchedPrecisions
             ? filters.precisions
                 .map(getPrecision(precisionOptions))
                 .filter((precision) =>
@@ -367,17 +368,19 @@ function HousingFiltersBadges(props: HousingFiltersBadgesProps) {
         }
         small={small}
         onChange={(values) => {
-          const otherPrecisions = filters.precisions
-            ?.map(getPrecision(precisionOptions))
-            ?.filter(
-              (precision) => !isPrecisionMechanismCategory(precision.category)
-            );
-          onChange?.({
-            precisions: values
-              .map(getPrecision(precisionOptions))
-              .concat(otherPrecisions ?? [])
-              .map((precision) => precision.id)
-          });
+          if (hasFetchedPrecisions) {
+            const otherPrecisions = filters.precisions
+              ?.map(getPrecision(precisionOptions))
+              ?.filter(
+                (precision) => !isPrecisionMechanismCategory(precision.category)
+              );
+            onChange?.({
+              precisions: values
+                .map(getPrecision(precisionOptions))
+                .concat(otherPrecisions ?? [])
+                .map((precision) => precision.id)
+            });
+          }
         }}
       />
       <FilterBadges
@@ -387,7 +390,7 @@ function HousingFiltersBadges(props: HousingFiltersBadgesProps) {
           badgeLabel: `Point de blocage : ${precision.label}`
         }))}
         values={
-          filters.precisions
+          filters.precisions && hasFetchedPrecisions
             ? filters.precisions
                 .map(getPrecision(precisionOptions))
                 .filter((precision) =>
@@ -398,18 +401,20 @@ function HousingFiltersBadges(props: HousingFiltersBadgesProps) {
         }
         small={small}
         onChange={(values) => {
-          const otherPrecisions = filters.precisions
-            ?.map(getPrecision(precisionOptions))
-            ?.filter(
-              (precision) =>
-                !isPrecisionBlockingPointCategory(precision.category)
-            );
-          onChange?.({
-            precisions: values
-              .map(getPrecision(precisionOptions))
-              .concat(otherPrecisions ?? [])
-              .map((precision) => precision.id)
-          });
+          if (hasFetchedPrecisions) {
+            const otherPrecisions = filters.precisions
+              ?.map(getPrecision(precisionOptions))
+              ?.filter(
+                (precision) =>
+                  !isPrecisionBlockingPointCategory(precision.category)
+              );
+            onChange?.({
+              precisions: values
+                .map(getPrecision(precisionOptions))
+                .concat(otherPrecisions ?? [])
+                .map((precision) => precision.id)
+            });
+          }
         }}
       />
       <FilterBadges
@@ -419,7 +424,7 @@ function HousingFiltersBadges(props: HousingFiltersBadgesProps) {
           badgeLabel: `Évolution : ${mapPrecisionLabel(precision)}`
         }))}
         values={
-          filters.precisions
+          filters.precisions && hasFetchedPrecisions
             ? filters.precisions
                 .map(getPrecision(precisionOptions))
                 .filter((precision) =>
@@ -430,17 +435,19 @@ function HousingFiltersBadges(props: HousingFiltersBadgesProps) {
         }
         small={small}
         onChange={(values) => {
-          const otherPrecisions = filters.precisions
-            ?.map(getPrecision(precisionOptions))
-            ?.filter(
-              (precision) => !isPrecisionEvolutionCategory(precision.category)
-            );
-          onChange?.({
-            precisions: values
-              .map(getPrecision(precisionOptions))
-              .concat(otherPrecisions ?? [])
-              .map((precision) => precision.id)
-          });
+          if (hasFetchedPrecisions) {
+            const otherPrecisions = filters.precisions
+              ?.map(getPrecision(precisionOptions))
+              ?.filter(
+                (precision) => !isPrecisionEvolutionCategory(precision.category)
+              );
+            onChange?.({
+              precisions: values
+                .map(getPrecision(precisionOptions))
+                .concat(otherPrecisions ?? [])
+                .map((precision) => precision.id)
+            });
+          }
         }}
       />
     </Box>

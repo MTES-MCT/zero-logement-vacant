@@ -107,7 +107,10 @@ const filterQuery = (opts?: FilterOptions) => {
         this.select(db.raw('1'))
           .from(GROUPS_HOUSING_TABLE)
           .whereRaw(`${GROUPS_HOUSING_TABLE}.group_id = ${GROUPS_TABLE}.id`)
-          .whereNotIn(`${GROUPS_HOUSING_TABLE}.housing_geo_code`, opts.geoCodes);
+          .whereRaw(
+            `${GROUPS_HOUSING_TABLE}.housing_geo_code NOT IN (${opts.geoCodes.map(() => '?').join(', ')})`,
+            opts.geoCodes
+          );
       });
     }
   };

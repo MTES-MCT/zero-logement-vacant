@@ -96,7 +96,8 @@ function HousingListFiltersSidemenu(props: Props) {
 
   const { data: intercommunalities, isFetching } = useIntercommunalities();
 
-  const { data: precisions } = useFindPrecisionsQuery();
+  const { data: precisions, isSuccess: hasFetchedPrecisions } =
+    useFindPrecisionsQuery();
   const precisionOptions = precisions ?? [];
 
   const { data: campaigns } = useFindCampaignsQuery();
@@ -357,7 +358,7 @@ function HousingListFiltersSidemenu(props: Props) {
                   isPrecisionMechanismCategory(precision.category)
                 )}
                 values={
-                  filters.precisions
+                  filters.precisions && hasFetchedPrecisions
                     ? filters.precisions
                         .map(getPrecision(precisionOptions))
                         .filter((precision) =>
@@ -366,15 +367,18 @@ function HousingListFiltersSidemenu(props: Props) {
                     : []
                 }
                 onChange={(values) => {
-                  const otherPrecisions = filters.precisions
-                    ?.map(getPrecision(precisionOptions))
-                    ?.filter(
-                      (precision) =>
-                        !isPrecisionMechanismCategory(precision.category)
-                    );
+                  const otherPrecisions =
+                    filters.precisions && hasFetchedPrecisions
+                      ? filters.precisions
+                          .map(getPrecision(precisionOptions))
+                          .filter(
+                            (precision) =>
+                              !isPrecisionMechanismCategory(precision.category)
+                          )
+                      : [];
                   onChangeFilters({
                     precisions: values
-                      .concat(otherPrecisions ?? [])
+                      .concat(otherPrecisions)
                       .map((precision) => precision.id)
                   });
                   posthog.capture('filtre-dispositifs');
@@ -388,7 +392,7 @@ function HousingListFiltersSidemenu(props: Props) {
                   isPrecisionBlockingPointCategory(precision.category)
                 )}
                 values={
-                  filters.precisions
+                  filters.precisions && hasFetchedPrecisions
                     ? filters.precisions
                         .map(getPrecision(precisionOptions))
                         .filter((precision) =>
@@ -397,15 +401,20 @@ function HousingListFiltersSidemenu(props: Props) {
                     : []
                 }
                 onChange={(values) => {
-                  const otherPrecisions = filters.precisions
-                    ?.map(getPrecision(precisionOptions))
-                    ?.filter(
-                      (precision) =>
-                        !isPrecisionBlockingPointCategory(precision.category)
-                    );
+                  const otherPrecisions =
+                    filters.precisions && hasFetchedPrecisions
+                      ? filters.precisions
+                          .map(getPrecision(precisionOptions))
+                          .filter(
+                            (precision) =>
+                              !isPrecisionBlockingPointCategory(
+                                precision.category
+                              )
+                          )
+                      : [];
                   onChangeFilters({
                     precisions: values
-                      .concat(otherPrecisions ?? [])
+                      .concat(otherPrecisions)
                       .map((precision) => precision.id)
                   });
                   posthog.capture('filtre-points-de-blocage');
@@ -419,7 +428,7 @@ function HousingListFiltersSidemenu(props: Props) {
                   isPrecisionEvolutionCategory(precision.category)
                 )}
                 values={
-                  filters.precisions
+                  filters.precisions && hasFetchedPrecisions
                     ? filters.precisions
                         .map(getPrecision(precisionOptions))
                         .filter((precision) =>
@@ -428,15 +437,18 @@ function HousingListFiltersSidemenu(props: Props) {
                     : []
                 }
                 onChange={(values) => {
-                  const otherPrecisions = filters.precisions
-                    ?.map(getPrecision(precisionOptions))
-                    ?.filter(
-                      (precision) =>
-                        !isPrecisionEvolutionCategory(precision.category)
-                    );
+                  const otherPrecisions =
+                    filters.precisions && hasFetchedPrecisions
+                      ? filters.precisions
+                          .map(getPrecision(precisionOptions))
+                          .filter(
+                            (precision) =>
+                              !isPrecisionEvolutionCategory(precision.category)
+                          )
+                      : [];
                   onChangeFilters({
                     precisions: values
-                      .concat(otherPrecisions ?? [])
+                      .concat(otherPrecisions)
                       .map((precision) => precision.id)
                   });
                   posthog.capture('filtre-evolutions');

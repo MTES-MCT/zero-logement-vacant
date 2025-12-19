@@ -1648,7 +1648,7 @@ class DPEProcessor:
         if case_type == 'case_1':
             dpe_import_match = 'rnb_id'
         elif case_type == 'case_2':
-            dpe_import_match = 'plot_id'
+            dpe_import_match = 'ban_id'
         else:
             dpe_import_match = 'unknown'
 

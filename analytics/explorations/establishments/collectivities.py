@@ -449,13 +449,13 @@ class CollectivityProcessor:
             print(f"⚠️ DuckDB error for arrondissement {arrondissement_name}: {e}")
             return None, None
     
-    def get_siren_siret_for_tom_commune(self, commune_name: str) -> tuple:
+    def get_siren_siret_for_tom_commune(self, commune_name: str, dep_code: str) -> tuple:
         """
         Get SIREN and SIRET for TOM communes from the Sirene parquet file.
         
         Args:
             commune_name: Name of the commune (e.g., "Ua Huka", "Kouaoua")
-            
+            dep_code: Department code (e.g., "975" for Mayotte)
         Returns:
             tuple: (siren, siret) or (None, None) if not found
         """
@@ -469,7 +469,7 @@ class CollectivityProcessor:
                 ON (siren_db.siren || lpad(CAST(siren_db.nicSiegeUniteLegale as VARCHAR), 5, '0')) = siren_geo_db.siret
             WHERE denominationUniteLegale LIKE '%COMMUNE%'
             AND denominationUniteLegale LIKE '%{normalized_name}%'
-            AND plg_code_commune LIKE '975%'
+            AND plg_code_commune LIKE '{dep_code}%'
             LIMIT 1;
         """
         try:
@@ -849,7 +849,7 @@ class CollectivityProcessor:
             dep_name = self.dep_code_to_name.get(dep_code, '')
             
             # Get SIREN/SIRET from the parquet file using commune name
-            siren, siret = self.get_siren_siret_for_tom_commune(com_name)
+            siren, siret = self.get_siren_siret_for_tom_commune(com_name, dep_code)
             
             data = self._create_base_row()
             data.update({

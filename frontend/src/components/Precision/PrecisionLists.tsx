@@ -112,7 +112,10 @@ function PrecisionLists(props: Props) {
           sx={{ alignItems: 'center', columnGap: 2, rowGap: 1 }}
           size={12}
         >
-          <Grid sx={{ display: 'flex', alignItems: 'center', gap: 2 }} size={12}>
+          <Grid
+            sx={{ display: 'flex', alignItems: 'center', gap: 2 }}
+            size={12}
+          >
             <Typography
               component="h3"
               sx={{
@@ -165,7 +168,10 @@ function PrecisionLists(props: Props) {
           sx={{ alignItems: 'center', columnGap: 2, rowGap: 1 }}
           size={12}
         >
-          <Grid sx={{ display: 'flex', alignItems: 'center', gap: 2 }} size={12}>
+          <Grid
+            sx={{ display: 'flex', alignItems: 'center', gap: 2 }}
+            size={12}
+          >
             <Typography
               component="h3"
               sx={{
@@ -218,7 +224,10 @@ function PrecisionLists(props: Props) {
           sx={{ alignItems: 'center', columnGap: 2, rowGap: 1 }}
           size={12}
         >
-          <Grid sx={{ display: 'flex', alignItems: 'center', gap: 2 }} size={12}>
+          <Grid
+            sx={{ display: 'flex', alignItems: 'center', gap: 2 }}
+            size={12}
+          >
             <Typography
               component="h3"
               sx={{ fontSize: '1.125rem', fontWeight: 700 }}
@@ -242,9 +251,9 @@ function PrecisionLists(props: Props) {
             ) : (
               filteredEvolutions.map((precision) => (
                 <Tag key={precision.id} className={styles.tag}>
-                  {precision.category[0] +
+                  {precision.category[0].toUpperCase() +
                     precision.category.substring(1).replace('-', ' ')}
-                  :&nbsp;
+                  &nbsp;:&nbsp;
                   {precision.label.toLowerCase()}
                 </Tag>
               ))

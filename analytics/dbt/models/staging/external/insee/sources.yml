@@ -1,0 +1,31 @@
+version: 2
+
+sources:
+  - name: external_insee
+    schema: external
+    description: "INSEE (Institut National de la Statistique et des Études Économiques) data sources"
+    tables:
+      - name: insee_grille_densite_2025_communes_raw
+        description: "Grille de densité INSEE 2025 - Maille communale"
+      - name: insee_grille_densite_2025_epci_raw
+        description: "Grille de densité INSEE 2025 - Maille EPCI"
+      - name: insee_grille_densite_2025_bassin_de_vie_raw
+        description: "Grille de densité INSEE 2025 - Maille Bassin de vie"
+      - name: insee_grille_densite_2025_departements_raw
+        description: "Grille de densité INSEE 2025 - Maille départementale"
+      - name: insee_recensement_historique_2022_raw
+        description: "Série historique du recensement de la population 2022"
+      - name: insee_recensement_historique_2021_raw
+        description: "Série historique du recensement de la population 2021"
+      - name: insee_recensement_historique_2020_raw
+        description: "Série historique du recensement de la population 2020"
+      - name: insee_recensement_historique_2019_raw
+        description: "Série historique du recensement de la population 2019"
+      - name: insee_table_appartenance_geo_communes_2025_raw
+        description: "Table d'appartenance géographique des communes 2025"
+      - name: insee_table_appartenance_geo_communes_2024_raw
+        description: "Table d'appartenance géographique des communes 2024"
+      - name: insee_population_structure_dage_2022_2011_raw
+        description: "Population et structure d'âge 2011-2022"
+      - name: insee_cog_2025_raw
+      - name: insee_cog_2024_raw

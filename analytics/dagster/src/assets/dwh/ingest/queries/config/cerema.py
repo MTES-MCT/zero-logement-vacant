@@ -15,7 +15,7 @@ def clean_sheet_name(sheet_name: str) -> str:
     # Lowercase and strip leading/trailing whitespace
     cleaned = sheet_name.strip().lower()
     # Normalize curly quotes and apostrophes to regular ones
-    cleaned = cleaned.replace("'", "'").replace("'", "'").replace(""", '"').replace(""", '"')
+    cleaned = cleaned.replace("'", "'").replace("’", "'").replace("“", '"').replace("”", '"')
     # Replace spaces and hyphens with underscores
     cleaned = cleaned.replace(" ", "_").replace("-", "_")
     # Replace all non-ASCII characters with nothing
@@ -205,19 +205,25 @@ PRIX_VOLUMES_SHEETS = {
     "Ensemble des appartements": "Ensemble des appartements",
 }
 
-# Add prix_volumes assets with proper sheet names
-CEREMA_SOURCES += [
-    ExternalSourceConfig(
-        name=f"prix_volumes_{year}_communes_{clean_sheet_name(sheet_display)}",
-        url=f"s3://{Config.CELLAR_DATA_LAKE_BUCKET_NAME}/lake/cerema/prix_volumes/dv3f_prix_volumes_communes_{year}.xlsx",
-        producer=Producer.CEREMA,
-        file_type=FileType.XLSX,
-        description=f"Prix volumes {year} communes {sheet_display}",
-        read_options={"sheet": sheet_actual, "range": "A5:H1260"},
-    )
-    for year in range(2013, 2025)
-    for sheet_display, sheet_actual in PRIX_VOLUMES_SHEETS.items()
-]
+# Add prix_volumes assets with proper sheet names and ranges
+for year in range(2013, 2025):
+    for sheet_display, sheet_actual in PRIX_VOLUMES_SHEETS.items():
+        # Determine range based on sheet type
+        if sheet_display in ["Bâti", "Non bâti"]:
+            excel_range = "A1:D33300"
+        else:
+            excel_range = "A1:N33300"
+            
+        CEREMA_SOURCES.append(
+            ExternalSourceConfig(
+                name=f"prix_volumes_{year}_communes_{clean_sheet_name(sheet_display)}",
+                url=f"s3://{Config.CELLAR_DATA_LAKE_BUCKET_NAME}/lake/cerema/prix_volumes/dv3f_prix_volumes_communes_{year}.xlsx",
+                producer=Producer.CEREMA,
+                file_type=FileType.XLSX,
+                description=f"Prix volumes {year} communes {sheet_display}",
+                read_options={"sheet": sheet_actual, "range": excel_range, "header": True},
+            )
+        )
 
 
 # Convert to dict format for backward compatibility

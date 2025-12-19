@@ -393,5 +393,44 @@ describe('Event API', () => {
         descending: true
       });
     });
+
+    it('should not return owner:updated events if there are no housing owners', async () => {
+      const housing = genHousingApi(
+        faker.helpers.arrayElement(establishment.geoCodes)
+      );
+      await Housing().insert(formatHousingRecordApi(housing));
+
+      const owner = genOwnerApi();
+      await Owners().insert(formatOwnerApi(owner));
+
+      const ownerEvent = genEventApi({
+        creator: user,
+        type: 'owner:updated',
+        nextOld: {
+          name: faker.person.fullName(),
+          birthdate: faker.date.birthdate().toJSON()
+        },
+        nextNew: {
+          name: faker.person.fullName(),
+          birthdate: faker.date.birthdate().toJSON()
+        }
+      });
+      const ownerEventApi: OwnerEventApi = {
+        ...ownerEvent,
+        ownerId: owner.id
+      };
+
+      await Events().insert([formatEventApi(ownerEvent)]);
+      await OwnerEvents().insert([formatOwnerEventApi(ownerEventApi)]);
+
+      const { body, status } = await request(url)
+        .get(testRoute(housing.id))
+        .use(tokenProvider(user));
+
+      expect(status).toBe(constants.HTTP_STATUS_OK);
+      expect(body).not.toPartiallyContain({
+        id: ownerEvent.id
+      });
+    });
   });
 });

@@ -1,4 +1,4 @@
-WITH old_events AS (
+WITH old_events_raw AS (
     SELECT
         id,
         CAST(created_at AS DATE) AS created_at,
@@ -79,23 +79,56 @@ WITH old_events AS (
             ELSE NULL
         END AS new_sub_status,
         content AS name,
-        NULL AS simple_name,
         'old' AS version,
-        NULL AS category, 
-        NULL AS type
+        NULL AS category
     FROM
     {{ ref ('stg_production_old_events') }} AS old_events
+),
+
+old_events_with_flags AS (
+    SELECT
+        *,
+        CASE
+            WHEN new_status IS NOT NULL THEN TRUE
+            ELSE FALSE
+        END AS status_changed,
+        CASE
+            WHEN new_occupancy IS NOT NULL THEN TRUE
+            ELSE FALSE
+        END AS occupancy_changed
+    FROM
+        old_events_raw
 )
 
 SELECT
-    *,
-    CASE
-        WHEN new_status IS NOT NULL THEN TRUE
-        ELSE FALSE
-    END AS status_changed,
-    CASE
-        WHEN new_occupancy IS NOT NULL THEN TRUE
-        ELSE FALSE
-    END AS occupancy_changed
+    id,
+    created_at,
+    created_by,
+    housing_id,
+    -- Type synthétique pour compatibilité avec get_last_event_status qui filtre sur type
+    -- CORRECTION BUG: Sans ce type, les anciens événements étaient exclus du calcul
+    CASE 
+        WHEN new_status IS NOT NULL THEN 'housing:status-updated'
+        WHEN new_occupancy IS NOT NULL THEN 'housing:occupancy-updated'
+        ELSE NULL
+    END AS type,
+    owner_id,
+    new_status,
+    new_sub_status,
+    name,
+    -- simple_name synthétique pour cohérence avec les nouveaux événements
+    CASE 
+        WHEN new_status IS NOT NULL THEN 'suivi'
+        WHEN new_occupancy IS NOT NULL THEN 'occupation'
+        ELSE NULL
+    END AS simple_name,
+    status_changed,
+    new_status_raw,
+    old_status_raw,
+    occupancy_changed,
+    new_occupancy,
+    old_occupancy,
+    version,
+    category
 FROM
-    old_events
+    old_events_with_flags

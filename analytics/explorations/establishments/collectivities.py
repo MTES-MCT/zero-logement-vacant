@@ -23,11 +23,14 @@ URL_MAPPING_SIREN_INSEE = "data/mapping_siren_insee.xlsx"
 EPCI_PATH = "data/EPCI.xlsx"
 EPT_PATH = "data/EPT.xlsx"
 PARQUET_PATH = '/Users/raphaelcourivaud/Downloads/Base Sirene SIREN SIRET.parquet'
+PARQUET_GEOLOC_PATH = '/Users/raphaelcourivaud/Downloads/Geolocalisation Etablissement Sirene Statistiques.parquet'
 MILLESIME = "2025"
 SLEEP_TIME = 0.15
 
 requests_cache.install_cache('cache', expire_after=36000000)
 
+SIREN_PARIS = "217500016"
+SIRET_PARIS = "21750001600019"
 
 class CollectivityProcessor:
     """Process and standardize territorial collectivities data."""
@@ -301,7 +304,10 @@ class CollectivityProcessor:
             communes_in_dep = [c for c in communes_in_dep if c is not None]
             
             # Fetch SIREN and SIRET from API (add "D" suffix for departments)
-            siren, siret = self.get_siren_siret_from_collectivite_api(f"{dep_code}D")
+            if dep_code:
+                siren, siret = SIREN_PARIS, SIRET_PARIS
+            else:
+                siren, siret = self.get_siren_siret_from_collectivite_api(f"{dep_code}D")
             
             # Fallback to query by name if not found (for special departments like Corse-du-Sud, Paris, etc.)
             if siren is None or siret is None:
@@ -443,13 +449,13 @@ class CollectivityProcessor:
             print(f"⚠️ DuckDB error for arrondissement {arrondissement_name}: {e}")
             return None, None
     
-    def get_siren_siret_for_tom_commune(self, commune_name: str) -> tuple:
+    def get_siren_siret_for_tom_commune(self, commune_name: str, dep_code: str) -> tuple:
         """
         Get SIREN and SIRET for TOM communes from the Sirene parquet file.
         
         Args:
             commune_name: Name of the commune (e.g., "Ua Huka", "Kouaoua")
-            
+            dep_code: Department code (e.g., "975" for Mayotte)
         Returns:
             tuple: (siren, siret) or (None, None) if not found
         """
@@ -458,9 +464,12 @@ class CollectivityProcessor:
         
         query = f"""
             SELECT siren, nicSiegeUniteLegale
-            FROM '{PARQUET_PATH}'
+            FROM '{PARQUET_PATH}' siren_db
+            JOIN '{PARQUET_GEOLOC_PATH}' siren_geo_db 
+                ON (siren_db.siren || lpad(CAST(siren_db.nicSiegeUniteLegale as VARCHAR), 5, '0')) = siren_geo_db.siret
             WHERE denominationUniteLegale LIKE '%COMMUNE%'
             AND denominationUniteLegale LIKE '%{normalized_name}%'
+            AND plg_code_commune LIKE '{dep_code}%'
             LIMIT 1;
         """
         try:
@@ -840,7 +849,7 @@ class CollectivityProcessor:
             dep_name = self.dep_code_to_name.get(dep_code, '')
             
             # Get SIREN/SIRET from the parquet file using commune name
-            siren, siret = self.get_siren_siret_for_tom_commune(com_name)
+            siren, siret = self.get_siren_siret_for_tom_commune(com_name, dep_code)
             
             data = self._create_base_row()
             data.update({

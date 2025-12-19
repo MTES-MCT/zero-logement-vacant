@@ -10,6 +10,8 @@ from typing import List, Dict, Optional, Tuple
 import numpy as np
 import requests_cache
 
+
+
 # Install cache to avoid repeated API calls
 requests_cache.install_cache('api_entreprise_cache', expire_after=36000000)
 

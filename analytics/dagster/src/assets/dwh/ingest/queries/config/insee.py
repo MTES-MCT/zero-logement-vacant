@@ -111,6 +111,21 @@ INSEE_SOURCES = [
         description="Population structure dage 2022 2011",
         read_options={"auto_detect": True},
     ),
+    ExternalSourceConfig(
+        name="cog_2025",
+        url="https://object.files.data.gouv.fr/hydra-parquet/hydra-parquet/3150f54803910d1323ecb5e9b468d4ba.parquet",
+        producer=Producer.INSEE,
+        file_type=FileType.PARQUET,
+        description="Code officiel géographique 2025 : Chaque année, l'Insee met à disposition sur son site (insee.fr) le code officiel géographique qui rassemble les codes et libellés des communes, cantons, arrondissements, départements, collectivités territoriales ayant les compétences départementales, régions, collectivités et territoires français d’outre-mer, pays et territoires étrangers au 1er janvier.",
+    ),
+    ExternalSourceConfig(
+        name="cog_2024",
+        url="https://www.data.gouv.fr/api/1/datasets/r/9e31f4ee-b65b-49d9-aedd-0f5f583551f8",
+        producer=Producer.INSEE,
+        file_type=FileType.CSV,
+        description="Code officiel géographique 2024 : Chaque année, l'Insee met à disposition sur son site (insee.fr) le code officiel géographique qui rassemble les codes et libellés des communes, cantons, arrondissements, départements, collectivités territoriales ayant les compétences départementales, régions, collectivités et territoires français d’outre-mer, pays et territoires étrangers au 1er janvier.",
+        read_options={"auto_detect": True},
+    ),
 ]
 
 # Convert to dict format for backward compatibility

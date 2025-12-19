@@ -73,12 +73,14 @@ async function listByHousingId(
 
   const owners = await ownerRepository.findByHousing(housing);
   const [ownerEvents, housingEvents] = await Promise.all([
-    eventRepository.find({
-      filters: {
-        types: ['owner:updated'],
-        owners: owners.map((owner) => owner.id)
-      }
-    }),
+    owners.length
+      ? eventRepository.find({
+          filters: {
+            types: ['owner:updated'],
+            owners: owners.map((owner) => owner.id)
+          }
+        })
+      : Promise.resolve([]),
     eventRepository.find({
       filters: {
         types: [

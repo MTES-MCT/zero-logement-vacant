@@ -1,0 +1,39 @@
+version: 2
+
+models:
+  - name: stg_external_dgaln_carte_loyers
+    description: "Carte des loyers prédits par commune (DGALN) - Modèle de prédiction des loyers"
+    columns:
+      - name: id_zone
+        description: "Identifiant de la zone de prédiction"
+      - name: geo_code
+        description: "Code commune INSEE"
+        tests:
+          - not_null
+      - name: commune_name
+        description: "Nom de la commune"
+      - name: epci_code
+        description: "Code EPCI"
+      - name: department_code
+        description: "Code département"
+      - name: region_code
+        description: "Code région"
+      - name: loyer_predit_m2
+        description: "Loyer prédit en €/m²/mois"
+      - name: loyer_intervalle_bas_m2
+        description: "Borne inférieure de l'intervalle de prédiction (€/m²/mois)"
+      - name: loyer_intervalle_haut_m2
+        description: "Borne supérieure de l'intervalle de prédiction (€/m²/mois)"
+      - name: type_prediction
+        description: "Type de prédiction (commune = données directes, maille = extrapolation)"
+      - name: nb_observations_commune
+        description: "Nombre d'observations au niveau commune"
+      - name: nb_observations_maille
+        description: "Nombre d'observations au niveau maille"
+      - name: r2_adjusted
+        description: "R² ajusté du modèle de prédiction"
+      - name: niveau_loyer
+        description: "Catégorie de niveau de loyer (Très élevé, Élevé, Moyen, Modéré, Faible)"
+      - name: confiance_prediction
+        description: "Niveau de confiance de la prédiction (Haute, Moyenne, Faible)"
+

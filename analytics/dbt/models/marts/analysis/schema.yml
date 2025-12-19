@@ -1,0 +1,151 @@
+version: 2
+
+models:
+  - name: marts_analysis_housing_out_features
+    description: |
+      Table d'analyse au niveau logement avec indicateur de sortie de vacance (is_housing_out)
+      et ensemble des caractéristiques du logement et de la commune pour analyse ML et statistique.
+      
+      **Target variable**: is_housing_out (1 = sorti de vacance, 0 = toujours vacant)
+      
+      **Use cases**:
+      - Analyse des facteurs influençant la sortie de vacance
+      - Modèles prédictifs de sortie de vacance
+      - Évaluation de l'impact des politiques publiques
+    columns:
+      - name: housing_id
+        description: "Identifiant unique du logement"
+        tests:
+          - not_null
+          - unique
+      - name: is_housing_out
+        description: "Variable cible : 1 si le logement est sorti de vacance, 0 sinon"
+        tests:
+          - not_null
+          - accepted_values:
+              values: [0, 1]
+      - name: vacancy_status_label
+        description: "Libellé du statut de vacance"
+      - name: city_code
+        description: "Code commune"
+      - name: geo_code
+        description: "Code géographique INSEE"
+      - name: housing_kind
+        description: "Type de logement (maison, appartement)"
+      - name: rooms_count
+        description: "Nombre de pièces"
+      - name: living_area
+        description: "Surface habitable en m²"
+      - name: building_year
+        description: "Année de construction"
+      - name: vacancy_start_year
+        description: "Année de début de vacance"
+      - name: years_in_vacancy
+        description: "Nombre d'années de vacance"
+      - name: vacancy_duration_category
+        description: "Catégorie de durée de vacance"
+      - name: is_energy_sieve
+        description: "Passoire énergétique (DPE F ou G)"
+      - name: building_age_category
+        description: "Catégorie d'âge du bâtiment"
+      - name: surface_category
+        description: "Catégorie de surface"
+      - name: has_been_contacted
+        description: "A été contacté par une campagne ZLV"
+      - name: campaigns_count
+        description: "Nombre de campagnes ZLV"
+      - name: densite_category
+        description: "Catégorie de densité INSEE"
+      - name: loyer_median_m2
+        description: "Loyer médian au m² dans la commune"
+      - name: loyer_predit_m2
+        description: "Loyer prédit au m² (modèle DGALN)"
+      - name: niveau_loyer
+        description: "Catégorie de niveau de loyer (Très élevé, Élevé, Moyen, Modéré, Faible)"
+      - name: loyer_confiance_prediction
+        description: "Niveau de confiance de la prédiction de loyer"
+      - name: population_growth_rate_2019_2022
+        description: "Taux de croissance de la population 2019-2022"
+      - name: is_population_declining
+        description: "Commune en déclin démographique"
+      - name: taux_tfb
+        description: "Taux global de taxe foncière sur le bâti (%)"
+      - name: teom_taux
+        description: "Taux de taxe d'enlèvement des ordures ménagères (%)"
+      - name: pression_fiscale_tfb_teom
+        description: "Indicateur de pression fiscale (TFB + TEOM)"
+      - name: th_surtaxe_residences_secondaires_pct
+        description: "Taux de surtaxe TH sur résidences secondaires (%)"
+      - name: dvg_marche_dynamisme
+        description: "Dynamisme du marché immobilier"
+
+  - name: marts_analysis_city_aggregated
+    description: |
+      Table d'analyse agrégée au niveau commune avec taux de sortie de vacance
+      et caractéristiques territoriales.
+      
+      **Métriques clés**:
+      - exit_rate_pct : Taux de sortie de vacance global
+      - zlv_contact_impact_pct : Impact du contact ZLV sur la sortie
+      
+      **Use cases**:
+      - Analyse territoriale de la vacance
+      - Identification des communes à fort potentiel
+      - Évaluation de l'efficacité des politiques locales
+    columns:
+      - name: city_code
+        description: "Code commune"
+        tests:
+          - not_null
+          - unique
+      - name: commune_name
+        description: "Nom de la commune"
+      - name: department_code
+        description: "Code département"
+      - name: region_code
+        description: "Code région"
+      - name: total_housing_count
+        description: "Nombre total de logements vacants LOVAC"
+      - name: housing_out_count
+        description: "Nombre de logements sortis de vacance"
+      - name: still_vacant_count
+        description: "Nombre de logements toujours vacants"
+      - name: exit_rate_pct
+        description: "Taux de sortie de vacance (%)"
+      - name: exit_rate_maisons_pct
+        description: "Taux de sortie de vacance des maisons (%)"
+      - name: exit_rate_appartements_pct
+        description: "Taux de sortie de vacance des appartements (%)"
+      - name: exit_rate_energy_sieve_pct
+        description: "Taux de sortie des passoires énergétiques (%)"
+      - name: exit_rate_contacted_pct
+        description: "Taux de sortie des logements contactés (%)"
+      - name: exit_rate_not_contacted_pct
+        description: "Taux de sortie des logements non contactés (%)"
+      - name: zlv_contact_impact_pct
+        description: "Impact du contact ZLV (différence de taux de sortie contacté vs non contacté)"
+      - name: avg_living_area
+        description: "Surface moyenne des logements vacants"
+      - name: avg_years_in_vacancy
+        description: "Durée moyenne de vacance"
+      - name: densite_category
+        description: "Catégorie de densité INSEE"
+      - name: loyer_median_m2
+        description: "Loyer médian au m² dans la commune"
+      - name: loyer_predit_m2
+        description: "Loyer prédit au m² (modèle DGALN)"
+      - name: niveau_loyer
+        description: "Catégorie de niveau de loyer"
+      - name: loyer_confiance_prediction
+        description: "Niveau de confiance de la prédiction"
+      - name: population_growth_rate_2019_2022
+        description: "Évolution démographique 2019-2022"
+      - name: is_population_declining
+        description: "Commune en déclin démographique"
+      - name: dvg_marche_dynamisme
+        description: "Dynamisme du marché immobilier"
+      - name: vacancy_rate_vs_total_housing_pct
+        description: "Taux de vacance par rapport au parc total"
+      - name: vacant_housing_per_km2
+        description: "Densité de logements vacants par km²"
+

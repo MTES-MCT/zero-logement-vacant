@@ -1,25 +1,31 @@
 import Button from '@codegouvfr/react-dsfr/Button';
 import Stack from '@mui/material/Stack';
 import Typography from '@mui/material/Typography';
-import { createColumnHelper } from '@tanstack/react-table';
+import {
+  createColumnHelper,
+  type PaginationState
+} from '@tanstack/react-table';
 import { useMemo } from 'react';
 
-import AdvancedTable from '~/components/AdvancedTable/AdvancedTable';
+import AdvancedTable, {
+  type AdvancedTableProps
+} from '~/components/AdvancedTable/AdvancedTable';
 import LabelNext from '~/components/Label/LabelNext';
 import OwnerKindTag from '~/components/Owner/OwnerKindTag';
 import type { Owner } from '~/models/Owner';
 import { birthdate } from '~/utils/dateUtils';
 
-export interface OwnerSearchTableProps {
+export type OwnerSearchTableProps = {
   owners: ReadonlyArray<Owner>;
+  /**
+   * The total number of owners available (for pagination purposes).
+   */
+  total: number;
   isLoading?: boolean;
-  page?: number;
-  pageCount?: number;
-  perPage?: number;
-  onPageChange?(page: number): void;
-  onPerPageChange?(perPage: number): void;
+  pagination?: PaginationState;
+  onPaginationChange?: AdvancedTableProps<Owner>['onPaginationChange'];
   onSelect?(owner: Owner): void;
-}
+};
 
 function OwnerSearchTable(props: OwnerSearchTableProps) {
   const { onSelect } = props;
@@ -84,18 +90,21 @@ function OwnerSearchTable(props: OwnerSearchTableProps) {
   return (
     <Stack spacing="1rem">
       <LabelNext style={{ fontWeight: 400 }}>
-        {props.owners.length} propriétaires trouvés
+        {props.total} propriétaires trouvés
       </LabelNext>
       <AdvancedTable
         data={props.owners as Array<Owner>}
         columns={columnDefs}
         isLoading={props.isLoading}
-        paginate={true}
-        page={props.page}
-        pageCount={props.pageCount}
-        perPage={props.perPage}
-        onPageChange={props.onPageChange}
-        onPerPageChange={props.onPerPageChange}
+        paginate
+        manualPagination
+        pageCount={
+          props.pagination
+            ? Math.ceil(props.total / props.pagination.pageSize)
+            : undefined
+        }
+        state={props.pagination ? { pagination: props.pagination } : undefined}
+        onPaginationChange={props.onPaginationChange}
         tableProps={{
           className: 'fr-my-0',
           noCaption: true

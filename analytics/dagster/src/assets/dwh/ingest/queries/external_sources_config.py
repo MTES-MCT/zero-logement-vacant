@@ -98,18 +98,12 @@ def generate_create_table_sql(source_name: str, config: SourceConfig) -> str:
                     options.append(f"{key} = {value}")
     elif file_type == "xlsx":
         # XLSX uses read_xlsx function
-        # Format: read_xlsx(filename, sheet_name, named_options...)
-        # Sheet name should be positional, other options are named
+        # Format: read_xlsx(filename, sheet='SheetName', named_options...)
         read_func = "read_xlsx"
-        sheet_name = None
         options = []
         if read_options:
             for key, value in read_options.items():
-                if key == "sheet":
-                    # Sheet name goes as positional parameter
-                    escaped_value = value.replace("'", "''")
-                    sheet_name = f"'{escaped_value}'"
-                elif isinstance(value, bool):
+                if isinstance(value, bool):
                     options.append(f"{key} = {str(value).upper()}")
                 elif isinstance(value, str):
                     # Escape single quotes by doubling them for SQL

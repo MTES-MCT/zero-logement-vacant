@@ -1,7 +1,8 @@
 import type {
   DocumentDTO,
   DocumentPayload,
-  HousingDocumentDTO
+  HousingDocumentDTO,
+  HousingDTO
 } from '@zerologementvacant/models';
 import type { FileValidationError } from '~/models/FileValidationError';
 
@@ -45,23 +46,65 @@ export const documentApi = zlvApi.injectEndpoints({
 
     updateDocument: builder.mutation<
       DocumentDTO,
-      DocumentPayload & { id: string }
+      DocumentPayload & {
+        housingId: HousingDTO['id'];
+        documentId: DocumentDTO['id'];
+      }
     >({
-      query: ({ id, ...payload }) => ({
-        url: `documents/${id}`,
+      query: ({ housingId, documentId, ...payload }) => ({
+        url: `housing/${housingId}/documents/${documentId}`,
         method: 'PUT',
         body: payload
       }),
-      invalidatesTags: (document) =>
-        document ? [{ type: 'Document', id: document.id }] : []
+      async onQueryStarted(
+        { housingId, documentId, ...patch },
+        { dispatch, queryFulfilled }
+      ) {
+        const patchResult = dispatch(
+          documentApi.util.updateQueryData(
+            'listHousingDocuments',
+            housingId,
+            (documents) => {
+              const document = documents.find(
+                (draft) => draft.id === documentId
+              );
+              if (document) {
+                Object.assign(document, patch);
+              }
+            }
+          )
+        );
+
+        queryFulfilled.catch(patchResult.undo);
+      }
     }),
 
-    removeDocument: builder.mutation<void, string>({
-      query: (id) => ({
-        url: `documents/${id}`,
+    removeDocument: builder.mutation<
+      void,
+      { housingId: HousingDTO['id']; documentId: DocumentDTO['id'] }
+    >({
+      query: ({ housingId, documentId }) => ({
+        url: `housing/${housingId}/documents/${documentId}`,
         method: 'DELETE'
       }),
-      invalidatesTags: (_result, _error, id) => [{ type: 'Document', id }]
+      async onQueryStarted({ housingId, documentId }, { dispatch, queryFulfilled }) {
+        const patchResult = dispatch(
+          documentApi.util.updateQueryData(
+            'listHousingDocuments',
+            housingId,
+            (documents) => {
+              const index = documents.findIndex(
+                (draft) => draft.id === documentId
+              );
+              if (index !== -1) {
+                documents.splice(index, 1);
+              }
+            }
+          )
+        );
+
+        queryFulfilled.catch(patchResult.undo);
+      }
     })
   })
 });

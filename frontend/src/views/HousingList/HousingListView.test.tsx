@@ -13,6 +13,7 @@ import {
   type HousingDTO,
   HousingKind,
   type HousingOwnerDTO,
+  HousingStatus,
   isPrimaryOwner,
   type OwnerDTO,
   type OwnerRank,
@@ -633,6 +634,83 @@ describe('Housing list view', () => {
       });
       await user.click(confirm);
       expect(router.state.location.pathname).toStartWith('/groupes');
+    });
+
+    it('should create a new group with correct status when tab is changed', async () => {
+      const auth = genUserDTO(UserRole.USUAL);
+      const owners = faker.helpers.multiple(() => genOwnerDTO(), { count: 10 });
+
+      // Create housings with specific statuses
+      const waitingHousings = faker.helpers.multiple(
+        () => ({
+          ...genHousingDTO(null),
+          status: HousingStatus.WAITING
+        }),
+        { count: 3 }
+      );
+
+      const neverContactedHousings = faker.helpers.multiple(
+        () => ({
+          ...genHousingDTO(null),
+          status: HousingStatus.NEVER_CONTACTED
+        }),
+        { count: 5 }
+      );
+
+      const housings = [...waitingHousings, ...neverContactedHousings];
+
+      const housingOwners = housings.flatMap((housing, i) => {
+        const owner = owners[i % owners.length];
+        return {
+          ...genHousingOwnerDTO(owner),
+          housingId: housing.id,
+          ownerId: owner.id,
+          rank: 1 as const
+        };
+      });
+      const group = genGroupDTO(auth);
+
+      const { router } = renderView({
+        auth,
+        housings,
+        owners,
+        housingOwners,
+        groups: [group],
+        campaigns: [],
+        campaignHousings: []
+      });
+      expect(router).toBeDefined();
+
+      // Switch to "En attente de retour" tab (WAITING status = 1)
+      const waitingTab = await screen.findByRole('tab', {
+        name: /En attente de retour/
+      });
+      await user.click(waitingTab);
+
+      // Wait for the tab panel to be visible
+      const panel = await screen.findByRole('tabpanel', {
+        name: /En attente de retour/
+      });
+      expect(panel).toBeVisible();
+
+      // Select all housings in the tab
+      const [checkbox] = await within(panel).findAllByRole('checkbox');
+      await user.click(checkbox);
+
+      // Click export or contact
+      const exportOrContact = await screen.findByRole('button', {
+        name: 'Exporter ou contacter'
+      });
+      await user.click(exportOrContact);
+
+      // The modal should show the count for WAITING status only (3 housings)
+      const modal = await screen.findByRole('dialog', {
+        name: 'Que souhaitez-vous faire ?'
+      });
+
+      // This will fail with the bug because it shows all housings (8) instead of just WAITING (3)
+      const countText = await within(modal).findByText(/3 logements/);
+      expect(countText).toBeVisible();
     });
 
     it.todo('should require a title and a description');

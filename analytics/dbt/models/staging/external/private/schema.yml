@@ -1,0 +1,32 @@
+version: 2
+
+models:
+  - name: stg_external_private_dvg_communes
+    description: "DV3F - Prix et volumes des transactions immobilières par commune (2019-2024)"
+    columns:
+      - name: geo_code
+        description: "Code commune INSEE"
+        tests:
+          - not_null
+      - name: annee_reference
+        description: "Année de référence des données"
+      - name: nb_transactions
+        description: "Nombre total de mutations immobilières"
+      - name: nb_transactions_maisons
+        description: "Nombre de transactions de maisons"
+      - name: nb_transactions_appartements
+        description: "Nombre de transactions d'appartements"
+      - name: proportion_maisons
+        description: "Proportion de maisons parmi les transactions (%)"
+      - name: proportion_appartements
+        description: "Proportion d'appartements parmi les transactions (%)"
+      - name: prix_moyen
+        description: "Prix moyen des transactions (€)"
+      - name: prix_m2_moyen
+        description: "Prix moyen au m² (€/m²)"
+      - name: surface_moyenne
+        description: "Surface moyenne des biens en m²"
+      - name: year
+        description: "Année de référence (pour pivot)"
+        tests:
+          - not_null

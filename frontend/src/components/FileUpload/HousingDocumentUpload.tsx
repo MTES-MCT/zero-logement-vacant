@@ -1,3 +1,4 @@
+import { ACCEPTED_HOUSING_DOCUMENT_EXTENSIONS } from '@zerologementvacant/models';
 import { Array } from 'effect';
 import { match } from 'ts-pattern';
 import DocumentUpload from '~/components/FileUpload/DocumentUpload';
@@ -12,20 +13,6 @@ import { isFetchBaseQueryError } from '~/store/store';
 export interface HousingDocumentUploadProps {
   housing: Housing;
 }
-
-const accept = [
-  'png',
-  'jpg',
-  'pdf',
-  'heic',
-  'webp',
-  'doc',
-  'docx',
-  'xls',
-  'xlsx',
-  'ppt',
-  'pptx'
-];
 
 function HousingDocumentUpload(props: Readonly<HousingDocumentUploadProps>) {
   const [upload, uploadMutation] = useUploadHousingDocumentsMutation();
@@ -64,7 +51,7 @@ function HousingDocumentUpload(props: Readonly<HousingDocumentUploadProps>) {
   return (
     <DocumentUpload
       id="housing-document-upload"
-      accept={accept}
+      accept={ACCEPTED_HOUSING_DOCUMENT_EXTENSIONS as string[]}
       error={error}
       hint="Taille maximale par fichier : 25Mo. Formats supportés : images (png, jpg, heic, webp) et documents (pdf, doc, docx, xls, xlsx, ppt, pptx). Le nom du fichier doit faire moins de 255 caractères. Plusieurs fichiers possibles."
       isError={uploadMutation.isError}

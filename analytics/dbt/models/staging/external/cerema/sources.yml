@@ -1,0 +1,115 @@
+version: 2
+
+sources:
+  - name: external_cerema
+    schema: external
+    description: "CEREMA (Centre d'études et d'expertise sur les risques, l'environnement, la mobilité et l'aménagement) data sources"
+    tables:
+      # Consommation d'espaces
+      - name: cerema_conso2009_2024_resultats_com_raw
+        description: "Consommation d'espaces naturels, agricoles et forestiers 2009-2024"
+      
+      # Prix volumes - Bâti
+      - name: cerema_prix_volumes_2024_communes_bti_raw
+        description: "Prix volumes 2024 communes - Bâti"
+      - name: cerema_prix_volumes_2023_communes_bti_raw
+        description: "Prix volumes 2023 communes - Bâti"
+      - name: cerema_prix_volumes_2022_communes_bti_raw
+        description: "Prix volumes 2022 communes - Bâti"
+      - name: cerema_prix_volumes_2021_communes_bti_raw
+        description: "Prix volumes 2021 communes - Bâti"
+      - name: cerema_prix_volumes_2020_communes_bti_raw
+        description: "Prix volumes 2020 communes - Bâti"
+      - name: cerema_prix_volumes_2019_communes_bti_raw
+        description: "Prix volumes 2019 communes - Bâti"
+      - name: cerema_prix_volumes_2018_communes_bti_raw
+        description: "Prix volumes 2018 communes - Bâti"
+      - name: cerema_prix_volumes_2017_communes_bti_raw
+        description: "Prix volumes 2017 communes - Bâti"
+      - name: cerema_prix_volumes_2016_communes_bti_raw
+        description: "Prix volumes 2016 communes - Bâti"
+      - name: cerema_prix_volumes_2015_communes_bti_raw
+        description: "Prix volumes 2015 communes - Bâti"
+      - name: cerema_prix_volumes_2014_communes_bti_raw
+        description: "Prix volumes 2014 communes - Bâti"
+      - name: cerema_prix_volumes_2013_communes_bti_raw
+        description: "Prix volumes 2013 communes - Bâti"
+      
+      # Prix volumes - Non bâti
+      - name: cerema_prix_volumes_2024_communes_non_bti_raw
+        description: "Prix volumes 2024 communes - Non bâti"
+      - name: cerema_prix_volumes_2023_communes_non_bti_raw
+        description: "Prix volumes 2023 communes - Non bâti"
+      - name: cerema_prix_volumes_2022_communes_non_bti_raw
+        description: "Prix volumes 2022 communes - Non bâti"
+      - name: cerema_prix_volumes_2021_communes_non_bti_raw
+        description: "Prix volumes 2021 communes - Non bâti"
+      - name: cerema_prix_volumes_2020_communes_non_bti_raw
+        description: "Prix volumes 2020 communes - Non bâti"
+      - name: cerema_prix_volumes_2019_communes_non_bti_raw
+        description: "Prix volumes 2019 communes - Non bâti"
+      - name: cerema_prix_volumes_2018_communes_non_bti_raw
+        description: "Prix volumes 2018 communes - Non bâti"
+      - name: cerema_prix_volumes_2017_communes_non_bti_raw
+        description: "Prix volumes 2017 communes - Non bâti"
+      - name: cerema_prix_volumes_2016_communes_non_bti_raw
+        description: "Prix volumes 2016 communes - Non bâti"
+      - name: cerema_prix_volumes_2015_communes_non_bti_raw
+        description: "Prix volumes 2015 communes - Non bâti"
+      - name: cerema_prix_volumes_2014_communes_non_bti_raw
+        description: "Prix volumes 2014 communes - Non bâti"
+      - name: cerema_prix_volumes_2013_communes_non_bti_raw
+        description: "Prix volumes 2013 communes - Non bâti"
+      
+      # Prix volumes - Maisons
+      - name: cerema_prix_volumes_2024_communes_ensemble_des_maisons_raw
+        description: "Prix volumes 2024 communes - Ensemble des maisons"
+      - name: cerema_prix_volumes_2023_communes_ensemble_des_maisons_raw
+        description: "Prix volumes 2023 communes - Ensemble des maisons"
+      - name: cerema_prix_volumes_2022_communes_ensemble_des_maisons_raw
+        description: "Prix volumes 2022 communes - Ensemble des maisons"
+      - name: cerema_prix_volumes_2021_communes_ensemble_des_maisons_raw
+        description: "Prix volumes 2021 communes - Ensemble des maisons"
+      - name: cerema_prix_volumes_2020_communes_ensemble_des_maisons_raw
+        description: "Prix volumes 2020 communes - Ensemble des maisons"
+      - name: cerema_prix_volumes_2019_communes_ensemble_des_maisons_raw
+        description: "Prix volumes 2019 communes - Ensemble des maisons"
+      - name: cerema_prix_volumes_2018_communes_ensemble_des_maisons_raw
+        description: "Prix volumes 2018 communes - Ensemble des maisons"
+      - name: cerema_prix_volumes_2017_communes_ensemble_des_maisons_raw
+        description: "Prix volumes 2017 communes - Ensemble des maisons"
+      - name: cerema_prix_volumes_2016_communes_ensemble_des_maisons_raw
+        description: "Prix volumes 2016 communes - Ensemble des maisons"
+      - name: cerema_prix_volumes_2015_communes_ensemble_des_maisons_raw
+        description: "Prix volumes 2015 communes - Ensemble des maisons"
+      - name: cerema_prix_volumes_2014_communes_ensemble_des_maisons_raw
+        description: "Prix volumes 2014 communes - Ensemble des maisons"
+      - name: cerema_prix_volumes_2013_communes_ensemble_des_maisons_raw
+        description: "Prix volumes 2013 communes - Ensemble des maisons"
+      
+      # Prix volumes - Appartements
+      - name: cerema_prix_volumes_2024_communes_ensemble_des_appartements_raw
+        description: "Prix volumes 2024 communes - Ensemble des appartements"
+      - name: cerema_prix_volumes_2023_communes_ensemble_des_appartements_raw
+        description: "Prix volumes 2023 communes - Ensemble des appartements"
+      - name: cerema_prix_volumes_2022_communes_ensemble_des_appartements_raw
+        description: "Prix volumes 2022 communes - Ensemble des appartements"
+      - name: cerema_prix_volumes_2021_communes_ensemble_des_appartements_raw
+        description: "Prix volumes 2021 communes - Ensemble des appartements"
+      - name: cerema_prix_volumes_2020_communes_ensemble_des_appartements_raw
+        description: "Prix volumes 2020 communes - Ensemble des appartements"
+      - name: cerema_prix_volumes_2019_communes_ensemble_des_appartements_raw
+        description: "Prix volumes 2019 communes - Ensemble des appartements"
+      - name: cerema_prix_volumes_2018_communes_ensemble_des_appartements_raw
+        description: "Prix volumes 2018 communes - Ensemble des appartements"
+      - name: cerema_prix_volumes_2017_communes_ensemble_des_appartements_raw
+        description: "Prix volumes 2017 communes - Ensemble des appartements"
+      - name: cerema_prix_volumes_2016_communes_ensemble_des_appartements_raw
+        description: "Prix volumes 2016 communes - Ensemble des appartements"
+      - name: cerema_prix_volumes_2015_communes_ensemble_des_appartements_raw
+        description: "Prix volumes 2015 communes - Ensemble des appartements"
+      - name: cerema_prix_volumes_2014_communes_ensemble_des_appartements_raw
+        description: "Prix volumes 2014 communes - Ensemble des appartements"
+      - name: cerema_prix_volumes_2013_communes_ensemble_des_appartements_raw
+        description: "Prix volumes 2013 communes - Ensemble des appartements"
+

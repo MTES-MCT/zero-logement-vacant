@@ -1,4 +1,8 @@
-import { UserRole } from '@zerologementvacant/models';
+import {
+  ACCEPTED_HOUSING_DOCUMENT_EXTENSIONS,
+  MAX_HOUSING_DOCUMENT_SIZE_IN_MiB,
+  UserRole
+} from '@zerologementvacant/models';
 import schemas from '@zerologementvacant/schemas';
 import Router from 'express-promise-router';
 import { param } from 'express-validator';
@@ -65,29 +69,36 @@ router.post(
     params: object({ id: schemas.id })
   }),
   upload({
-    accept: ['png', 'jpg', 'heic', 'webp', 'docx', 'xlsx', 'ppt', 'pdf'],
-    multiple: true
+    accept: ACCEPTED_HOUSING_DOCUMENT_EXTENSIONS as string[],
+    multiple: true,
+    maxSizeMiB: MAX_HOUSING_DOCUMENT_SIZE_IN_MiB
   }),
   documentController.createByHousing
 );
 
 router.put(
-  '/documents/:id',
+  '/housing/:housingId/documents/:documentId',
   hasRole([UserRole.USUAL, UserRole.ADMIN]),
   validatorNext.validate({
-    params: object({ id: schemas.id }),
+    params: object({
+      housingId: schemas.id,
+      documentId: schemas.id
+    }),
     body: schemas.documentPayload
   }),
-  documentController.update
+  documentController.updateByHousing
 );
 
 router.delete(
-  '/documents/:id',
+  '/housing/:housingId/documents/:documentId',
   hasRole([UserRole.USUAL, UserRole.ADMIN]),
   validatorNext.validate({
-    params: object({ id: schemas.id })
+    params: object({
+      housingId: schemas.id,
+      documentId: schemas.id
+    })
   }),
-  documentController.remove
+  documentController.removeByHousing
 );
 
 router.get(

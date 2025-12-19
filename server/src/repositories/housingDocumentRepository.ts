@@ -64,7 +64,7 @@ async function createMany(
     );
     await transaction.batchInsert(
       HOUSING_DOCUMENT_TABLE,
-      documents.map(toDocumentHousingDBO)
+      documents.map(toHousingDocumentDBO)
     );
   });
 }
@@ -97,9 +97,29 @@ async function findByHousing(
   return documents.map(fromHousingDocumentDBO);
 }
 
-async function get(id: string): Promise<HousingDocumentApi | null> {
+interface GetOptions {
+  housing?: HousingId[];
+}
+
+async function get(
+  id: string,
+  options?: GetOptions
+): Promise<HousingDocumentApi | null> {
   logger.debug('Getting housing document...', { id });
-  const document = await listQuery().where(`${DOCUMENTS_TABLE}.id`, id).first();
+  const document = await listQuery()
+    .where(`${HOUSING_DOCUMENT_TABLE}.document_id`, id)
+    .modify((query) => {
+      if (options?.housing?.length) {
+        query.whereIn(
+          [
+            `${HOUSING_DOCUMENT_TABLE}.housing_geo_code`,
+            `${HOUSING_DOCUMENT_TABLE}.housing_id`
+          ],
+          options.housing.map((housing) => [housing.geoCode, housing.id])
+        );
+      }
+    })
+    .first();
 
   return document ? fromHousingDocumentDBO(document) : null;
 }
@@ -109,9 +129,9 @@ async function update(document: HousingDocumentApi): Promise<void> {
   await Documents().where('id', document.id).update(toDocumentDBO(document));
 }
 
-async function remove(id: string): Promise<void> {
-  logger.debug('Soft-deleting housing document...', { id });
-  await Documents().where('id', id).update({ deleted_at: new Date() });
+async function remove(document: HousingDocumentApi): Promise<void> {
+  logger.debug('Soft-deleting housing document...', document);
+  await Documents().where('id', document.id).update({ deleted_at: new Date() });
 }
 
 // Base query with creator join
@@ -142,7 +162,7 @@ function listQuery() {
     .join(usersTable, `${usersTable}.id`, `${DOCUMENTS_TABLE}.created_by`);
 }
 
-function toDocumentDBO(document: HousingDocumentApi): DocumentDBO {
+export function toDocumentDBO(document: HousingDocumentApi): DocumentDBO {
   return {
     id: document.id,
     filename: document.filename,
@@ -156,7 +176,7 @@ function toDocumentDBO(document: HousingDocumentApi): DocumentDBO {
   };
 }
 
-function toDocumentHousingDBO(
+export function toHousingDocumentDBO(
   document: HousingDocumentApi
 ): HousingDocumentDBO {
   return {
@@ -166,7 +186,7 @@ function toDocumentHousingDBO(
   };
 }
 
-function fromHousingDocumentDBO(
+export function fromHousingDocumentDBO(
   dbo: HousingDocumentWithCreatorDBO
 ): HousingDocumentApi {
   if (!dbo.creator) {

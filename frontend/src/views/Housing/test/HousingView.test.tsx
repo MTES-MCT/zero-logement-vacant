@@ -312,59 +312,6 @@ describe('Housing view', () => {
     });
   });
 
-  describe('View documents', () => {
-    vitest.mock('posthog-js/react', () => ({
-      useFeatureFlagEnabled: (flag: string) => flag === 'upload-docs'
-    }));
-
-    it('should display a message if there is no document', async () => {
-      const housing = genHousingDTO(null);
-      const auth = genUserDTO(UserRole.USUAL);
-
-      renderView(housing, {
-        documents: [],
-        user: auth
-      });
-
-      const tab = await screen.findByRole('tab', {
-        name: 'Documents'
-      });
-      await user.click(tab);
-      const tabpanel = await screen.findByRole('tabpanel', {
-        name: 'Documents'
-      });
-      const description = await within(tabpanel).findByText(
-        /Il n’y a pas de document associé à ce logement/i
-      );
-      expect(description).toBeVisible();
-    });
-
-    it('should display documents', async () => {
-      const housing = genHousingDTO(null);
-      const auth = genUserDTO(UserRole.USUAL);
-      const documents = faker.helpers.multiple(() => genDocumentDTO(auth));
-
-      renderView(housing, {
-        documents,
-        user: auth
-      });
-
-      const tab = await screen.findByRole('tab', {
-        name: 'Documents'
-      });
-      await user.click(tab);
-      const tabpanel = await screen.findByRole('tabpanel', {
-        name: 'Documents'
-      });
-      await async.forEach(documents, async (document) => {
-        const name = await within(tabpanel).findByText(
-          new RegExp(document.filename, 'i')
-        );
-        expect(name).toBeVisible();
-      });
-    });
-  });
-
   describe('Add a note', () => {
     it('should add a note', async () => {
       const housing = genHousingDTO(null);
@@ -616,5 +563,522 @@ describe('Housing view', () => {
     });
 
     it.todo('should allow an admin to remove any note');
+  });
+
+  describe('View documents', () => {
+    vitest.mock('posthog-js/react', () => ({
+      useFeatureFlagEnabled: (flag: string) => flag === 'upload-docs'
+    }));
+
+    it('should display a message if there is no document', async () => {
+      const housing = genHousingDTO(null);
+      const auth = genUserDTO(UserRole.USUAL);
+
+      renderView(housing, {
+        documents: [],
+        user: auth
+      });
+
+      const tab = await screen.findByRole('tab', {
+        name: 'Documents'
+      });
+      await user.click(tab);
+      const tabpanel = await screen.findByRole('tabpanel', {
+        name: 'Documents'
+      });
+      const description = await within(tabpanel).findByText(
+        /Il n’y a pas de document associé à ce logement/i
+      );
+      expect(description).toBeVisible();
+    });
+
+    it('should display documents', async () => {
+      const housing = genHousingDTO(null);
+      const auth = genUserDTO(UserRole.USUAL);
+      const documents = faker.helpers.multiple(() => genDocumentDTO(auth));
+
+      renderView(housing, {
+        documents,
+        user: auth
+      });
+
+      const tab = await screen.findByRole('tab', {
+        name: 'Documents'
+      });
+      await user.click(tab);
+      const tabpanel = await screen.findByRole('tabpanel', {
+        name: 'Documents'
+      });
+      await async.forEach(documents, async (document) => {
+        const name = await within(tabpanel).findByText(
+          new RegExp(document.filename, 'i')
+        );
+        expect(name).toBeVisible();
+      });
+    });
+  });
+
+  describe('Rename a document', () => {
+    it('should rename a document', async () => {
+      const housing = genHousingDTO(null);
+      const auth = genUserDTO(UserRole.USUAL);
+      const document = genDocumentDTO(auth);
+
+      renderView(housing, {
+        documents: [document],
+        user: auth
+      });
+
+      const tab = await screen.findByRole('tab', {
+        name: 'Documents'
+      });
+      await user.click(tab);
+      const tabpanel = await screen.findByRole('tabpanel', {
+        name: 'Documents'
+      });
+      const dropdown = await within(tabpanel).findByRole('button', {
+        name: 'Options'
+      });
+      await user.click(dropdown);
+      const renameButton = await screen.findByRole('button', {
+        name: 'Renommer'
+      });
+      await user.click(renameButton);
+      const modal = await screen.findByRole('dialog', {
+        name: 'Renommer le document'
+      });
+      const input = await within(modal).findByRole('textbox', {
+        name: /^Nouveau nom du document/
+      });
+      await user.clear(input);
+      await user.type(input, 'nouveau-nom-document.pdf');
+      const save = await within(modal).findByRole('button', {
+        name: 'Confirmer'
+      });
+      await user.click(save);
+      const renamedDocument = await within(tabpanel).findByText(
+        'nouveau-nom-document.pdf'
+      );
+      expect(renamedDocument).toBeVisible();
+    });
+
+    it('should reset the form after closing without saving', async () => {
+      const housing = genHousingDTO(null);
+      const auth = genUserDTO(UserRole.USUAL);
+      const document = genDocumentDTO(auth);
+      const originalFilename = document.filename;
+
+      renderView(housing, {
+        documents: [document],
+        user: auth
+      });
+
+      const tab = await screen.findByRole('tab', {
+        name: 'Documents'
+      });
+      await user.click(tab);
+      const tabpanel = await screen.findByRole('tabpanel', {
+        name: 'Documents'
+      });
+      const dropdown = await within(tabpanel).findByRole('button', {
+        name: 'Options'
+      });
+      await user.click(dropdown);
+      const renameButton = await screen.findByRole('button', {
+        name: 'Renommer'
+      });
+      await user.click(renameButton);
+      const modal = await screen.findByRole('dialog', {
+        name: 'Renommer le document'
+      });
+      const input = await within(modal).findByRole('textbox', {
+        name: /^Nouveau nom du document/
+      });
+      await user.clear(input);
+      await user.type(input, 'temporary-name.pdf');
+      const cancel = await within(modal).findByRole('button', {
+        name: 'Annuler'
+      });
+      await user.click(cancel);
+
+      // Re-open the modal to check if form was reset
+      const dropdownAgain = await within(tabpanel).findByRole('button', {
+        name: 'Options'
+      });
+      await user.click(dropdownAgain);
+      const renameButtonAgain = await screen.findByRole('button', {
+        name: 'Renommer'
+      });
+      await user.click(renameButtonAgain);
+      const modalAgain = await screen.findByRole('dialog', {
+        name: 'Renommer le document'
+      });
+      const inputAgain = await within(modalAgain).findByRole('textbox', {
+        name: /^Nouveau nom du document/
+      });
+      expect(inputAgain).toHaveValue(originalFilename);
+    });
+
+    it('should be invisible to a visitor', async () => {
+      const housing = genHousingDTO(null);
+      const creator = genUserDTO(UserRole.USUAL);
+      const document = genDocumentDTO(creator);
+      const visitor = genUserDTO(UserRole.VISITOR);
+
+      renderView(housing, {
+        documents: [document],
+        user: visitor
+      });
+
+      const tab = await screen.findByRole('tab', {
+        name: 'Documents'
+      });
+      await user.click(tab);
+      const tabpanel = await screen.findByRole('tabpanel', {
+        name: 'Documents'
+      });
+      const name = await within(tabpanel).findByText(
+        new RegExp(document.filename, 'i')
+      );
+      expect(name).toBeVisible();
+
+      const dropdown = await within(tabpanel).findByRole('button', {
+        name: 'Options'
+      });
+      await user.click(dropdown);
+
+      expect(
+        screen.queryByRole('button', { name: 'Renommer' })
+      ).not.toBeInTheDocument();
+    });
+  });
+
+  describe('Delete a document', () => {
+    it('should delete a document', async () => {
+      const housing = genHousingDTO(null);
+      const auth = genUserDTO(UserRole.USUAL);
+      const document = genDocumentDTO(auth);
+
+      renderView(housing, {
+        documents: [document],
+        user: auth
+      });
+
+      const tab = await screen.findByRole('tab', {
+        name: 'Documents'
+      });
+      await user.click(tab);
+      const tabpanel = await screen.findByRole('tabpanel', {
+        name: 'Documents'
+      });
+      const dropdown = await within(tabpanel).findByRole('button', {
+        name: 'Options'
+      });
+      await user.click(dropdown);
+      const deleteButton = await screen.findByRole('button', {
+        name: 'Supprimer'
+      });
+      await user.click(deleteButton);
+      const modal = await screen.findByRole('dialog', {
+        name: 'Suppression du document'
+      });
+      const confirm = await within(modal).findByRole('button', {
+        name: 'Confirmer'
+      });
+      await user.click(confirm);
+
+      expect(
+        within(tabpanel).queryByText(new RegExp(document.filename, 'i'))
+      ).not.toBeInTheDocument();
+    });
+
+    it('should be invisible to a visitor', async () => {
+      const housing = genHousingDTO(null);
+      const creator = genUserDTO(UserRole.USUAL);
+      const document = genDocumentDTO(creator);
+      const visitor = genUserDTO(UserRole.VISITOR);
+
+      renderView(housing, {
+        documents: [document],
+        user: visitor
+      });
+
+      const tab = await screen.findByRole('tab', {
+        name: 'Documents'
+      });
+      await user.click(tab);
+      const tabpanel = await screen.findByRole('tabpanel', {
+        name: 'Documents'
+      });
+      const name = await within(tabpanel).findByText(
+        new RegExp(document.filename, 'i')
+      );
+      expect(name).toBeVisible();
+
+      const dropdown = await within(tabpanel).findByRole('button', {
+        name: 'Options'
+      });
+      await user.click(dropdown);
+
+      expect(
+        screen.queryByRole('button', { name: 'Supprimer' })
+      ).not.toBeInTheDocument();
+    });
+  });
+
+  describe('Visualize documents in fullscreen', () => {
+    it('should open fullscreen preview when clicking visualize', async () => {
+      const housing = genHousingDTO(null);
+      const auth = genUserDTO(UserRole.USUAL);
+      const document = genDocumentDTO(auth);
+
+      renderView(housing, {
+        documents: [document],
+        user: auth
+      });
+
+      const tab = await screen.findByRole('tab', {
+        name: 'Documents'
+      });
+      await user.click(tab);
+      const tabpanel = await screen.findByRole('tabpanel', {
+        name: 'Documents'
+      });
+      const dropdown = await within(tabpanel).findByRole('button', {
+        name: 'Options'
+      });
+      await user.click(dropdown);
+      const visualizeButton = await screen.findByRole('button', {
+        name: 'Visualiser'
+      });
+      await user.click(visualizeButton);
+
+      const modal = await screen.findByRole('dialog');
+      expect(modal).toBeVisible();
+    });
+
+    it('should cycle through multiple documents in fullscreen', async () => {
+      const housing = genHousingDTO(null);
+      const auth = genUserDTO(UserRole.USUAL);
+      const documents = [
+        genDocumentDTO(auth),
+        genDocumentDTO(auth),
+        genDocumentDTO(auth)
+      ];
+
+      renderView(housing, {
+        documents,
+        user: auth
+      });
+
+      const tab = await screen.findByRole('tab', {
+        name: 'Documents'
+      });
+      await user.click(tab);
+
+      // Open fullscreen for first document
+      const tabpanel = await screen.findByRole('tabpanel', {
+        name: 'Documents'
+      });
+      const dropdowns = await within(tabpanel).findAllByRole('button', {
+        name: 'Options'
+      });
+      await user.click(dropdowns[0]);
+      const visualizeButton = await screen.findByRole('button', {
+        name: 'Visualiser'
+      });
+      await user.click(visualizeButton);
+
+      const modal = await screen.findByRole('dialog');
+      expect(modal).toBeVisible();
+      const index = await within(modal).findByText(`1 / ${documents.length}`);
+      expect(index).toBeVisible();
+
+      // Navigate to previous document
+      const previousButton = await screen.findByRole('button', {
+        name: 'Document précédent'
+      });
+      await user.click(previousButton);
+      const indexAfterPrevious = await within(modal).findByText(
+        `${documents.length} / ${documents.length}`
+      );
+      expect(indexAfterPrevious).toBeVisible();
+
+      // Navigate to next document
+      const nextButton = await screen.findByRole('button', {
+        name: 'Document suivant'
+      });
+      await user.click(nextButton);
+      const indexAfterNext = await within(modal).findByText(
+        `1 / ${documents.length}`
+      );
+      expect(indexAfterNext).toBeVisible();
+
+      expect(modal).toBeVisible();
+    });
+
+    it('should close fullscreen preview with close button', async () => {
+      const housing = genHousingDTO(null);
+      const auth = genUserDTO(UserRole.USUAL);
+      const document = genDocumentDTO(auth);
+
+      renderView(housing, {
+        documents: [document],
+        user: auth
+      });
+
+      const tab = await screen.findByRole('tab', {
+        name: 'Documents'
+      });
+      await user.click(tab);
+      const tabpanel = await screen.findByRole('tabpanel', {
+        name: 'Documents'
+      });
+      const dropdown = await within(tabpanel).findByRole('button', {
+        name: 'Options'
+      });
+      await user.click(dropdown);
+      const visualizeButton = await screen.findByRole('button', {
+        name: 'Visualiser'
+      });
+      await user.click(visualizeButton);
+
+      const modal = await screen.findByRole('dialog');
+      expect(modal).toBeVisible();
+
+      // Close by clicking the close button
+      const closeButton = await within(modal).findByRole('button', {
+        name: 'Fermer'
+      });
+      await user.click(closeButton);
+
+      expect(screen.queryByRole('dialog')).not.toBeInTheDocument();
+    });
+
+    it('should close fullscreen preview', async () => {
+      const housing = genHousingDTO(null);
+      const auth = genUserDTO(UserRole.USUAL);
+      const document = genDocumentDTO(auth);
+
+      renderView(housing, {
+        documents: [document],
+        user: auth
+      });
+
+      const tab = await screen.findByRole('tab', {
+        name: 'Documents'
+      });
+      await user.click(tab);
+      const tabpanel = await screen.findByRole('tabpanel', {
+        name: 'Documents'
+      });
+      const dropdown = await within(tabpanel).findByRole('button', {
+        name: 'Options'
+      });
+      await user.click(dropdown);
+      const visualizeButton = await screen.findByRole('button', {
+        name: 'Visualiser'
+      });
+      await user.click(visualizeButton);
+
+      const modal = await screen.findByRole('dialog');
+      expect(modal).toBeVisible();
+
+      // Close by pressing Escape
+      await user.keyboard('{Escape}');
+
+      expect(screen.queryByRole('dialog')).not.toBeInTheDocument();
+    });
+  });
+
+  describe('Download documents', () => {
+    it('should show download button in dropdown', async () => {
+      const housing = genHousingDTO(null);
+      const auth = genUserDTO(UserRole.USUAL);
+      const document = genDocumentDTO(auth);
+
+      renderView(housing, {
+        documents: [document],
+        user: auth
+      });
+
+      const tab = await screen.findByRole('tab', {
+        name: 'Documents'
+      });
+      await user.click(tab);
+      const tabpanel = await screen.findByRole('tabpanel', {
+        name: 'Documents'
+      });
+      const dropdown = await within(tabpanel).findByRole('button', {
+        name: 'Options'
+      });
+      await user.click(dropdown);
+      const downloadButton = await screen.findByRole('button', {
+        name: 'Télécharger'
+      });
+
+      expect(downloadButton).toBeVisible();
+    });
+
+    it('should show download button in fullscreen preview for unsupported file types', async () => {
+      const housing = genHousingDTO(null);
+      const auth = genUserDTO(UserRole.USUAL);
+      // Create a document with an unsupported type (not image or PDF)
+      const document: DocumentDTO = {
+        ...genDocumentDTO(auth),
+        contentType: 'application/vnd.ms-excel',
+        filename: 'document.xls'
+      };
+
+      renderView(housing, {
+        documents: [document],
+        user: auth
+      });
+
+      const tab = await screen.findByRole('tab', {
+        name: 'Documents'
+      });
+      await user.click(tab);
+      const tabpanel = await screen.findByRole('tabpanel', {
+        name: 'Documents'
+      });
+      const dropdown = await within(tabpanel).findByRole('button', {
+        name: 'Options'
+      });
+      await user.click(dropdown);
+      const visualizeButton = await screen.findByRole('button', {
+        name: 'Visualiser'
+      });
+      await user.click(visualizeButton);
+
+      const modal = await screen.findByRole('dialog');
+      const downloadInModal = await within(modal).findByRole('button', {
+        name: /télécharger/i
+      });
+
+      expect(downloadInModal).toBeVisible();
+    });
+  });
+
+  describe('Upload documents', () => {
+    it('should hide the upload input from visitors', async () => {
+      const housing = genHousingDTO(null);
+      const visitor = genUserDTO(UserRole.VISITOR);
+
+      renderView(housing, {
+        documents: [],
+        user: visitor
+      });
+
+      const tab = await screen.findByRole('tab', {
+        name: 'Documents'
+      });
+      await user.click(tab);
+
+      const input = screen.queryByLabelText(
+        /ajouter un ou plusieurs documents/i
+      );
+      expect(input).not.toBeInTheDocument();
+    });
   });
 });

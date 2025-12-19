@@ -1,9 +1,12 @@
+import { HeadObjectCommand } from '@aws-sdk/client-s3';
 import { faker } from '@faker-js/faker/locale/fr';
+import { fc, test } from '@fast-check/vitest';
 import {
   HousingDocumentDTO,
   UserRole,
   type DocumentDTO
 } from '@zerologementvacant/models';
+import { createS3 } from '@zerologementvacant/utils/node';
 import { Array, Predicate } from 'effect';
 import { constants } from 'http2';
 import fs from 'node:fs';
@@ -53,6 +56,10 @@ describe('Document API', () => {
     ...genUserApi(establishment.id),
     role: UserRole.USUAL
   };
+  const visitor: UserApi = {
+    ...genUserApi(establishment.id),
+    role: UserRole.VISITOR
+  };
   const anotherEstablishment = genEstablishmentApi('23456');
   const userFromAnotherEstablishment = genUserApi(anotherEstablishment.id);
 
@@ -61,7 +68,7 @@ describe('Document API', () => {
       [establishment, anotherEstablishment].map(formatEstablishmentApi)
     );
     await Users().insert(
-      [user, admin, anotherUser, userFromAnotherEstablishment].map(
+      [user, admin, anotherUser, visitor, userFromAnotherEstablishment].map(
         formatUserApi
       )
     );
@@ -221,6 +228,53 @@ describe('Document API', () => {
       }
     }, 30000);
 
+    it('should upload document to correct S3 path based on housing localId', async () => {
+      // Create a valid PDF file
+      const pdfBuffer = Buffer.from([
+        0x25, 0x50, 0x44, 0x46, 0x2d, 0x31, 0x2e, 0x34
+      ]);
+
+      const tmpPath = path.join(import.meta.dirname, 'test-s3-path.pdf');
+      fs.writeFileSync(tmpPath, pdfBuffer);
+
+      try {
+        const { status, body } = await request(url)
+          .post(testRoute(housing.id))
+          .attach('files', tmpPath)
+          .use(tokenProvider(user));
+
+        expect(status).toBe(constants.HTTP_STATUS_CREATED);
+        expect(body).toBeArrayOfSize(1);
+
+        const document = body[0] as HousingDocumentDTO;
+        const documentId = document.id;
+
+        // Verify the document exists in S3 at the correct path
+        const s3 = createS3({
+          endpoint: config.s3.endpoint,
+          region: config.s3.region,
+          accessKeyId: config.s3.accessKeyId,
+          secretAccessKey: config.s3.secretAccessKey
+        });
+
+        // Construct expected S3 key: housing-documents/{dept}/{commune}/{remaining-digits}/{documentId}
+        const department = housing.localId.slice(0, 2);
+        const commune = housing.localId.slice(2, 5);
+        const remaining = housing.localId.slice(5).split('').join('/');
+        const expectedS3Key = `housing-documents/${department}/${commune}/${remaining}/${documentId}`;
+
+        const headCommand = new HeadObjectCommand({
+          Bucket: config.s3.bucket,
+          Key: expectedS3Key
+        });
+
+        // Should not throw - document exists at expected path
+        await expect(s3.send(headCommand)).resolves.toBeDefined();
+      } finally {
+        fs.unlinkSync(tmpPath);
+      }
+    }, 30000);
+
     it('should upload multiple valid files and return 201 Created', async () => {
       // Create valid PNG and PDF files
       const pngBuffer = Buffer.from([
@@ -375,6 +429,31 @@ describe('Document API', () => {
       }
     }, 30000);
 
+    it('should return 400 Bad Request when file exceeds 25MB', async () => {
+      // Create a 26 MiB buffer
+      const oversizedBuffer = Buffer.alloc(26 * 1024 * 1024);
+      const tmpPath = path.join(import.meta.dirname, 'oversized.pdf');
+      fs.writeFileSync(tmpPath, oversizedBuffer);
+
+      try {
+        const { status, body } = await request(url)
+          .post(testRoute(housing.id))
+          .attach('files', tmpPath)
+          .use(tokenProvider(user));
+
+        // Multer error handler returns 400 Bad Request for LIMIT_FILE_SIZE
+        expect(status).toBe(constants.HTTP_STATUS_BAD_REQUEST);
+        expect(body).toMatchObject({
+          name: 'MulterError',
+          message: 'File too large',
+          reason: 'file_too_large',
+          error: 'LIMIT_FILE_SIZE'
+        });
+      } finally {
+        fs.unlinkSync(tmpPath);
+      }
+    }, 30000);
+
     // Test runs only when ClamAV is enabled (CLAMAV_ENABLED=true)
     const itIfClamavEnabled = config.clamav.enabled ? it : it.skip;
 
@@ -438,58 +517,111 @@ describe('Document API', () => {
     );
   });
 
-  describe('PUT /documents/:id', () => {
-    const testRoute = (documentId: string) => `/api/documents/${documentId}`;
+  describe('PUT /housing/:housingId/documents/:documentId', () => {
+    const testRoute = (housingId: string, documentId: string) =>
+      `/api/housing/${housingId}/documents/${documentId}`;
 
     const housing = genHousingApi(
       faker.helpers.arrayElement(establishment.geoCodes)
     );
+    const housingFromAnotherEstablishment = genHousingApi(
+      faker.helpers.arrayElement(anotherEstablishment.geoCodes)
+    );
     const userDocument = genHousingDocumentApi(housing, user);
-    const anotherUserDocument = genHousingDocumentApi(housing, anotherUser);
+    const documentFromAnotherEstablishment = genHousingDocumentApi(
+      housingFromAnotherEstablishment,
+      userFromAnotherEstablishment
+    );
 
     beforeAll(async () => {
-      await Housing().insert(formatHousingRecordApi(housing));
+      await Housing().insert(
+        [housing, housingFromAnotherEstablishment].map(formatHousingRecordApi)
+      );
       await housingDocumentRepository.createMany([
         userDocument,
-        anotherUserDocument
+        documentFromAnotherEstablishment
       ]);
     });
 
+    it('should return 400 Bad request if filename is missing', async () => {
+      const { status } = await request(url)
+        .put(testRoute(userDocument.housingId, userDocument.id))
+        .send({})
+        .use(tokenProvider(user));
+
+      expect(status).toBe(constants.HTTP_STATUS_BAD_REQUEST);
+    });
+
+    test.prop({
+      filename: fc.oneof(
+        // Empty string after trim (only whitespace)
+        fc.stringMatching(/^\s+$/),
+        // String exceeding 255 characters
+        fc.string({ minLength: 256 }).filter((s) => s.trim().length > 255)
+      )
+    })(
+      'should return 400 Bad request for invalid filename',
+      async ({ filename }) => {
+        const { status } = await request(url)
+          .put(testRoute(userDocument.housingId, userDocument.id))
+          .send({ filename })
+          .use(tokenProvider(user));
+
+        expect(status).toBe(constants.HTTP_STATUS_BAD_REQUEST);
+      }
+    );
+
     it('should be forbidden for a non-authenticated user', async () => {
       const { status } = await request(url)
-        .put(testRoute(userDocument.id))
+        .put(testRoute(userDocument.housingId, userDocument.id))
         .send({ filename: 'nouveau-nom.pdf' });
 
       expect(status).toBe(constants.HTTP_STATUS_UNAUTHORIZED);
     });
 
-    it('should return 404 Not found if document does not exist', async () => {
+    it('should be forbidden for a visitor', async () => {
       const { status } = await request(url)
-        .put(testRoute(faker.string.uuid()))
+        .put(testRoute(userDocument.housingId, userDocument.id))
+        .send({ filename: 'nouveau-nom.pdf' })
+        .use(tokenProvider(visitor));
+
+      expect(status).toBe(constants.HTTP_STATUS_FORBIDDEN);
+    });
+
+    it('should return 404 Not found if the document is missing', async () => {
+      const { status } = await request(url)
+        .put(testRoute(userDocument.housingId, faker.string.uuid()))
         .send({ filename: 'nouveau-nom.pdf' })
         .use(tokenProvider(user));
 
       expect(status).toBe(constants.HTTP_STATUS_NOT_FOUND);
     });
 
-    it('should forbid updating a document created by another user', async () => {
+    it('should return 404 Not found if the document belongs to a user from another establishment', async () => {
       const { status } = await request(url)
-        .put(testRoute(anotherUserDocument.id))
+        .put(
+          testRoute(documentFromAnotherEstablishment.housingId, userDocument.id)
+        )
         .send({ filename: 'nouveau-nom.pdf' })
         .use(tokenProvider(user));
 
-      expect(status).toBe(constants.HTTP_STATUS_FORBIDDEN);
+      expect(status).toBe(constants.HTTP_STATUS_NOT_FOUND);
     });
 
     it('should allow admin to update any document', async () => {
       const { status, body } = await request(url)
-        .put(testRoute(anotherUserDocument.id))
+        .put(
+          testRoute(
+            documentFromAnotherEstablishment.housingId,
+            documentFromAnotherEstablishment.id
+          )
+        )
         .send({ filename: 'admin-rename.pdf' })
         .use(tokenProvider(admin));
 
       expect(status).toBe(constants.HTTP_STATUS_OK);
       expect(body).toMatchObject<Partial<HousingDocumentDTO>>({
-        id: anotherUserDocument.id,
+        id: documentFromAnotherEstablishment.id,
         filename: 'admin-rename.pdf',
         updatedAt: expect.any(String)
       });
@@ -497,7 +629,7 @@ describe('Document API', () => {
 
     it('should return 200 OK with updated document', async () => {
       const { status, body } = await request(url)
-        .put(testRoute(userDocument.id))
+        .put(testRoute(userDocument.housingId, userDocument.id))
         .send({ filename: 'nouveau-nom.pdf' })
         .use(tokenProvider(user));
 
@@ -509,19 +641,11 @@ describe('Document API', () => {
         updatedAt: expect.any(String)
       });
     });
-
-    it('should return 400 Bad request if filename is missing', async () => {
-      const { status } = await request(url)
-        .put(testRoute(userDocument.id))
-        .send({})
-        .use(tokenProvider(user));
-
-      expect(status).toBe(constants.HTTP_STATUS_BAD_REQUEST);
-    });
   });
 
-  describe('DELETE /documents/:id', () => {
-    const testRoute = (documentId: string) => `/api/documents/${documentId}`;
+  describe('DELETE /housing/:housingId/documents/:documentId', () => {
+    const testRoute = (housingId: string, documentId: string) =>
+      `/api/housing/${housingId}/documents/${documentId}`;
 
     const housing = genHousingApi(
       faker.helpers.arrayElement(establishment.geoCodes)
@@ -532,28 +656,55 @@ describe('Document API', () => {
       await Housing().insert(formatHousingRecordApi(housing));
       await housingDocumentRepository.create(document);
 
-      const { status } = await request(url).delete(testRoute(document.id));
+      const { status } = await request(url).delete(
+        testRoute(housing.id, document.id)
+      );
 
       expect(status).toBe(constants.HTTP_STATUS_UNAUTHORIZED);
     });
 
-    it('should return 404 Not found if document does not exist', async () => {
+    it('should be forbidden for a visitor', async () => {
+      const document = genHousingDocumentApi(housing, user);
+      await housingDocumentRepository.create(document);
+
       const { status } = await request(url)
-        .delete(testRoute(faker.string.uuid()))
+        .delete(testRoute(housing.id, document.id))
+        .use(tokenProvider(visitor));
+
+      expect(status).toBe(constants.HTTP_STATUS_FORBIDDEN);
+    });
+
+    it('should return 404 Not found if the document is missing', async () => {
+      const { status } = await request(url)
+        .delete(testRoute(housing.id, faker.string.uuid()))
         .use(tokenProvider(user));
 
       expect(status).toBe(constants.HTTP_STATUS_NOT_FOUND);
     });
 
-    it('should forbid deleting a document created by another user', async () => {
-      const document = genHousingDocumentApi(housing, anotherUser);
-      await housingDocumentRepository.create(document);
+    it('should return 404 Not found if the housing belongs to another establishment', async () => {
+      const housingFromAnotherEstablishment = genHousingApi(
+        faker.helpers.arrayElement(anotherEstablishment.geoCodes)
+      );
+      const documentFromAnotherEstablishment = genHousingDocumentApi(
+        housingFromAnotherEstablishment,
+        userFromAnotherEstablishment
+      );
+      await Housing().insert(
+        formatHousingRecordApi(housingFromAnotherEstablishment)
+      );
+      await housingDocumentRepository.create(documentFromAnotherEstablishment);
 
       const { status } = await request(url)
-        .delete(testRoute(document.id))
+        .delete(
+          testRoute(
+            housingFromAnotherEstablishment.id,
+            documentFromAnotherEstablishment.id
+          )
+        )
         .use(tokenProvider(user));
 
-      expect(status).toBe(constants.HTTP_STATUS_FORBIDDEN);
+      expect(status).toBe(constants.HTTP_STATUS_NOT_FOUND);
     });
 
     it('should allow admin to delete any document', async () => {
@@ -561,7 +712,7 @@ describe('Document API', () => {
       await housingDocumentRepository.create(document);
 
       const { status } = await request(url)
-        .delete(testRoute(document.id))
+        .delete(testRoute(housing.id, document.id))
         .use(tokenProvider(admin));
 
       expect(status).toBe(constants.HTTP_STATUS_NO_CONTENT);
@@ -572,7 +723,7 @@ describe('Document API', () => {
       await housingDocumentRepository.create(document);
 
       const { status } = await request(url)
-        .delete(testRoute(document.id))
+        .delete(testRoute(housing.id, document.id))
         .use(tokenProvider(user));
 
       expect(status).toBe(constants.HTTP_STATUS_NO_CONTENT);
@@ -583,13 +734,37 @@ describe('Document API', () => {
       await housingDocumentRepository.create(document);
 
       await request(url)
-        .delete(testRoute(document.id))
+        .delete(testRoute(housing.id, document.id))
         .use(tokenProvider(user));
 
       const deletedDocument = await housingDocumentRepository.get(document.id);
 
       expect(deletedDocument).not.toBeNull();
       expect(deletedDocument!.deletedAt).not.toBeNull();
+    });
+
+    it('should remove the actual document from the S3 bucket', async () => {
+      const s3 = createS3({
+        endpoint: config.s3.endpoint,
+        region: config.s3.region,
+        accessKeyId: config.s3.accessKeyId,
+        secretAccessKey: config.s3.secretAccessKey
+      });
+
+      const document = genHousingDocumentApi(housing, user);
+      await housingDocumentRepository.create(document);
+
+      await request(url)
+        .delete(testRoute(housing.id, document.id))
+        .use(tokenProvider(user));
+
+      // Verify the object no longer exists in S3
+      const headCommand = new HeadObjectCommand({
+        Bucket: config.s3.bucket,
+        Key: document.s3Key
+      });
+
+      await expect(s3.send(headCommand)).rejects.toThrow();
     });
   });
 });

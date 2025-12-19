@@ -46,6 +46,7 @@ WITH all_events AS (
 SELECT
     ae.*,
     s.new AS new_status_refined,
+    s.new AS event_status_label,
     version as event_version,
     coalesce(user_type, 'user') AS user_source,
     CAST(u.establishment_id AS VARCHAR) AS establishment_id

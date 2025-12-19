@@ -21,6 +21,9 @@ function EstablishmentTable(props: EstablishmentTableProps) {
       meta: {
         sort: {
           title: 'Trier par nom'
+        },
+        styles: {
+          multiline: true
         }
       },
       sortingFn: (a, b) => byKind(a.original.kind, b.original.kind)

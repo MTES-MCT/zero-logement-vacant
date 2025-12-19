@@ -270,7 +270,7 @@ function HousingOwnersView() {
         {activeOwners?.length === 0 ? null : (
           <Button
             iconId="fr-icon-add-line"
-            priority="secondary"
+            priority="primary"
             style={{ alignSelf: 'flex-end' }}
             onClick={ownerSearchModal.open}
           >

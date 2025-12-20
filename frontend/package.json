@@ -51,7 +51,7 @@
     "jose": "4.15.9",
     "lexical": "0.38.2",
     "lodash-es": "4.17.21",
-    "maplibre-gl": "5.6.2",
+    "maplibre-gl": "5.13.0",
     "mime": "4.1.0",
     "msw": "2.12.4",
     "posthog-js": "1.298.0",

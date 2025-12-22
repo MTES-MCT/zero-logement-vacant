@@ -31,6 +31,7 @@ import {
   accessErrorsToSuspensionCause
 } from '~/services/ceremaService/perimeterService';
 import { fetchUserKind } from '~/services/ceremaService/userKindService';
+import userPerimeterRepository from '~/repositories/userPerimeterRepository';
 import mailService from '~/services/mailService';
 import {
   generateSimpleCode,
@@ -188,6 +189,42 @@ async function refreshAuthorizedEstablishments(user: UserApi): Promise<void> {
         userId: user.id,
         email: user.email
       });
+    }
+
+    // Save user perimeter from Portail DF for filtering
+    // Use the perimeter from the user's current establishment
+    if (user.establishmentId) {
+      const currentEstablishment = knownEstablishments.find(
+        (est) => est.id === user.establishmentId
+      );
+      if (currentEstablishment) {
+        const currentCeremaUser = ceremaUsersWithCommitment.find(
+          (cu) =>
+            cu.establishmentSiren === currentEstablishment.siren ||
+            cu.establishmentSiren === '*'
+        );
+
+        if (currentCeremaUser?.perimeter) {
+          const perimeter = currentCeremaUser.perimeter;
+          await userPerimeterRepository.upsert({
+            userId: user.id,
+            geoCodes: perimeter.comm || [],
+            departments: perimeter.dep || [],
+            regions: perimeter.reg || [],
+            frEntiere: perimeter.fr_entiere || false,
+            updatedAt: new Date().toJSON()
+          });
+
+          logger.info('User perimeter saved from Portail DF', {
+            userId: user.id,
+            email: user.email,
+            frEntiere: perimeter.fr_entiere,
+            communesCount: perimeter.comm?.length || 0,
+            departmentsCount: perimeter.dep?.length || 0,
+            regionsCount: perimeter.reg?.length || 0
+          });
+        }
+      }
     }
   } catch (error) {
     // Log error but don't fail login

@@ -1,3 +1,4 @@
+import { UserRole } from '@zerologementvacant/models';
 import { Request, Response } from 'express';
 import { AuthenticatedRequest } from 'express-jwt';
 import { body, param, query } from 'express-validator';
@@ -29,15 +30,24 @@ async function getLocality(request: Request, response: Response) {
 const listLocalitiesValidators = [query('establishmentId').notEmpty().isUUID()];
 
 async function listLocalities(request: Request, response: Response) {
-  const { effectiveGeoCodes } = request as AuthenticatedRequest;
+  const { auth, effectiveGeoCodes } = request as AuthenticatedRequest;
   const establishmentId = request.query.establishmentId as string;
 
   logger.info('List localities', { establishment: establishmentId });
+
+  // ADMIN and VISITOR users bypass perimeter filtering
+  const isAdminOrVisitor = [UserRole.ADMIN, UserRole.VISITOR].includes(
+    auth.role
+  );
+
   const localities = await localityRepository.find({
     filters: {
       establishmentId,
-      // Filter by user perimeter if available
-      geoCodes: effectiveGeoCodes?.length ? effectiveGeoCodes : undefined
+      // Filter by user perimeter if available (bypass for ADMIN/VISITOR)
+      geoCodes:
+        isAdminOrVisitor || !effectiveGeoCodes?.length
+          ? undefined
+          : effectiveGeoCodes
     }
   });
   response.status(constants.HTTP_STATUS_OK).json(localities);

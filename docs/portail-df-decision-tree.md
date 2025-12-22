@@ -452,7 +452,22 @@ effectiveGeoCodes[] ────────────────────
 
 ### User Perimeter Storage
 
-On login, the user's Portail DF perimeter is stored in the `user_perimeters` table:
+On **every login**, the user's Portail DF perimeter is stored/updated in the `user_perimeters` table via `refreshAuthorizedEstablishments()` in `accountController.ts`:
+
+```typescript
+// server/src/controllers/accountController.ts
+if (currentCeremaUser?.perimeter) {
+  const perimeter = currentCeremaUser.perimeter;
+  await userPerimeterRepository.upsert({
+    userId: user.id,
+    geoCodes: perimeter.comm || [],
+    departments: perimeter.dep || [],
+    regions: perimeter.reg || [],
+    frEntiere: perimeter.fr_entiere || false,
+    updatedAt: new Date().toJSON()
+  });
+}
+```
 
 ```
 TABLE user_perimeters
@@ -469,6 +484,8 @@ TABLE user_perimeters
 
 | File | Role |
 |------|------|
+| `server/src/controllers/accountController.ts` | Save user perimeter from Portail DF on login |
+| `server/src/repositories/userPerimeterRepository.ts` | CRUD operations for `user_perimeters` table |
 | `server/src/middlewares/auth.ts` | Compute `effectiveGeoCodes` |
 | `server/src/models/UserPerimeterApi.ts` | `filterGeoCodesByPerimeter()` function |
 | `server/src/controllers/housingController.ts` | HOUSING filtering by perimeter |

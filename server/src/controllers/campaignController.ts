@@ -14,7 +14,8 @@ import {
   HOUSING_STATUS_LABELS,
   HousingFiltersDTO,
   HousingStatus,
-  nextStatus
+  nextStatus,
+  UserRole
 } from '@zerologementvacant/models';
 import { slugify, timestamp } from '@zerologementvacant/utils';
 import { createS3 } from '@zerologementvacant/utils/node';
@@ -134,13 +135,21 @@ async function list(request: Request, response: Response) {
   );
   logger.info('List campaigns', query);
 
+  // ADMIN and VISITOR users bypass perimeter filtering
+  const isAdminOrVisitor = [UserRole.ADMIN, UserRole.VISITOR].includes(
+    auth.role
+  );
+
   const campaigns = await campaignRepository.find({
     filters: {
       establishmentId: auth.establishmentId,
       groupIds:
         typeof query.groups === 'string' ? [query.groups] : query.groups,
-      // Only show campaigns where ALL housings are within user's perimeter
-      geoCodes: effectiveGeoCodes?.length ? effectiveGeoCodes : undefined
+      // Only show campaigns where ALL housings are within user's perimeter (bypass for ADMIN/VISITOR)
+      geoCodes:
+        isAdminOrVisitor || !effectiveGeoCodes?.length
+          ? undefined
+          : effectiveGeoCodes
     },
     sort
   });

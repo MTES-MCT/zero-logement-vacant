@@ -199,6 +199,45 @@ async function create(request: Request, response: Response) {
 
   const createdUser = await userRepository.insert(user);
 
+  // Populate users_establishments with all establishments the user has access to
+  // Filter Cerema users that have LOVAC commitment and find matching establishments
+  const ceremaUsersWithCommitment = ceremaUsers.filter((cu) => cu.hasCommitment);
+  const establishmentSirens = ceremaUsersWithCommitment.map((cu) => cu.establishmentSiren);
+
+  // Find all known establishments matching the SIRENs
+  const knownEstablishments = await establishmentRepository.find({
+    filters: { siren: establishmentSirens }
+  });
+
+  // Create authorized establishments entries
+  const authorizedEstablishments = knownEstablishments.map((est) => {
+    const ceremaUser = ceremaUsersWithCommitment.find(
+      (cu) => cu.establishmentSiren === est.siren || cu.establishmentSiren === '*'
+    );
+    return {
+      establishmentId: est.id,
+      establishmentSiren: est.siren,
+      hasCommitment: ceremaUser?.hasCommitment ?? false
+    };
+  });
+
+  // Store authorized establishments (multi-structure support)
+  if (authorizedEstablishments.length > 0) {
+    await userRepository.setAuthorizedEstablishments(
+      createdUser.id,
+      authorizedEstablishments
+    );
+
+    const isMultiStructure = authorizedEstablishments.filter((e) => e.hasCommitment).length > 1;
+    if (isMultiStructure) {
+      logger.info('User created as multi-structure user', {
+        userId: createdUser.id,
+        email: createdUser.email,
+        authorizedEstablishmentsCount: authorizedEstablishments.length
+      });
+    }
+  }
+
   if (!userEstablishment.available) {
     await establishmentRepository.setAvailable(userEstablishment);
   }

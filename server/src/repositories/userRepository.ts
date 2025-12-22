@@ -227,7 +227,8 @@ async function isMultiStructure(userId: string): Promise<boolean> {
     .count('establishment_id as count')
     .first();
 
-  return Number(result?.count) > 1;
+  const count = result as { count: string } | undefined;
+  return Number(count?.count) > 1;
 }
 
 const parseUserEstablishment = (dbo: UserEstablishmentDBO): UserEstablishment => ({

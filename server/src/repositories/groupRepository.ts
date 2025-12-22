@@ -103,13 +103,14 @@ const filterQuery = (opts?: FilterOptions) => {
     }
     // Filter groups to only those where ALL housings are within the user's perimeter
     if (opts?.geoCodes?.length) {
+      const geoCodes = opts.geoCodes;
       query.whereNotExists(function () {
         this.select(db.raw('1'))
           .from(GROUPS_HOUSING_TABLE)
           .whereRaw(`${GROUPS_HOUSING_TABLE}.group_id = ${GROUPS_TABLE}.id`)
           .whereRaw(
-            `${GROUPS_HOUSING_TABLE}.housing_geo_code NOT IN (${opts.geoCodes.map(() => '?').join(', ')})`,
-            opts.geoCodes
+            `${GROUPS_HOUSING_TABLE}.housing_geo_code NOT IN (${geoCodes.map(() => '?').join(', ')})`,
+            geoCodes
           );
       });
     }

@@ -57,6 +57,7 @@ const filterQuery = (filters: CampaignFiltersApi) => {
     }
     // Filter campaigns to only those where ALL housings are within the user's perimeter
     if (filters?.geoCodes?.length) {
+      const geoCodes = filters.geoCodes;
       query.whereNotExists(function () {
         this.select(db.raw('1'))
           .from(campaignsHousingTable)
@@ -64,8 +65,8 @@ const filterQuery = (filters: CampaignFiltersApi) => {
             `${campaignsHousingTable}.campaign_id = ${campaignsTable}.id`
           )
           .whereRaw(
-            `${campaignsHousingTable}.housing_geo_code NOT IN (${filters.geoCodes.map(() => '?').join(', ')})`,
-            filters.geoCodes
+            `${campaignsHousingTable}.housing_geo_code NOT IN (${geoCodes.map(() => '?').join(', ')})`,
+            geoCodes
           );
       });
     }

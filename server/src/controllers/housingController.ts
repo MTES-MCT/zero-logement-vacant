@@ -84,9 +84,10 @@ async function get(request: Request, response: Response) {
   const id = params.id.length !== 12 ? params.id : undefined;
   const localId = params.id.length === 12 ? params.id : undefined;
 
+  // effectiveGeoCodes is undefined when no restriction applies, use all establishment geoCodes
   const housing = await housingRepository.findOne({
     establishment: establishment.id,
-    geoCode: effectiveGeoCodes,
+    geoCode: effectiveGeoCodes ?? establishment.geoCodes,
     id,
     localId,
     includes: ['owner', 'perimeters', 'campaigns']
@@ -129,6 +130,9 @@ const list: RequestHandler<
 
   // For non-admin users, apply user perimeter filtering via localities
   const isAdminOrVisitor = [UserRole.ADMIN, UserRole.VISITOR].includes(role);
+  // effectiveGeoCodes is undefined when no restriction applies (no perimeter or fr_entiere)
+  // effectiveGeoCodes is an array (possibly empty) when restriction applies
+  const hasPerimeterRestriction = effectiveGeoCodes !== undefined;
   const filters: HousingFiltersApi = {
     ...rawFilters,
     establishmentIds:
@@ -136,8 +140,9 @@ const list: RequestHandler<
         ? rawFilters?.establishmentIds
         : [auth.establishmentId],
     // Apply user perimeter filtering for non-admin users
+    // If effectiveGeoCodes is empty array, user should see nothing (no communes in their perimeter)
     localities:
-      isAdminOrVisitor || !effectiveGeoCodes?.length
+      isAdminOrVisitor || !hasPerimeterRestriction
         ? rawFilters.localities
         : rawFilters.localities?.length
           ? rawFilters.localities.filter((loc) =>
@@ -198,6 +203,9 @@ const count: RequestHandler<
   const isAdminOrVisitor = [UserRole.ADMIN, UserRole.VISITOR].includes(
     auth.role
   );
+  // effectiveGeoCodes is undefined when no restriction applies (no perimeter or fr_entiere)
+  // effectiveGeoCodes is an array (possibly empty) when restriction applies
+  const hasPerimeterRestriction = effectiveGeoCodes !== undefined;
   const count = await housingRepository.count({
     ...query,
     establishmentIds:
@@ -205,8 +213,9 @@ const count: RequestHandler<
         ? query.establishmentIds
         : [auth.establishmentId],
     // Apply user perimeter filtering for non-admin users
+    // If effectiveGeoCodes is empty array, user should see nothing
     localities:
-      isAdminOrVisitor || !effectiveGeoCodes?.length
+      isAdminOrVisitor || !hasPerimeterRestriction
         ? query.localities
         : query.localities?.length
           ? query.localities.filter((loc) => effectiveGeoCodes.includes(loc))
@@ -236,9 +245,12 @@ const create: RequestHandler<
       never
     >;
 
+  // effectiveGeoCodes is undefined when no restriction applies, use all establishment geoCodes
+  const allowedGeoCodes = effectiveGeoCodes ?? establishment.geoCodes;
+
   const existing = await housingRepository.findOne({
     establishment: establishment.id,
-    geoCode: effectiveGeoCodes,
+    geoCode: allowedGeoCodes,
     localId: body.localId
   });
   if (existing) {
@@ -250,7 +262,7 @@ const create: RequestHandler<
   });
   if (
     !datafoncierHousing ||
-    !effectiveGeoCodes.includes(datafoncierHousing.idcom)
+    !allowedGeoCodes.includes(datafoncierHousing.idcom)
   ) {
     throw new HousingMissingError(body.localId);
   }
@@ -453,10 +465,11 @@ async function update(
       HousingUpdatePayloadDTO
     >;
 
+  // effectiveGeoCodes is undefined when no restriction applies, use all establishment geoCodes
   const housing = await housingRepository.findOne({
     establishment: establishment.id,
     id: params.id,
-    geoCode: effectiveGeoCodes,
+    geoCode: effectiveGeoCodes ?? establishment.geoCodes,
     includes: ['owner']
   });
   if (!housing) {
@@ -550,6 +563,9 @@ const updateMany: RequestHandler<
   const isAdminOrVisitor = [UserRole.ADMIN, UserRole.VISITOR].includes(
     user.role
   );
+  // effectiveGeoCodes is undefined when no restriction applies (no perimeter or fr_entiere)
+  // effectiveGeoCodes is an array (possibly empty) when restriction applies
+  const hasPerimeterRestriction = effectiveGeoCodes !== undefined;
   const housings = await housingRepository.find({
     filters: {
       ...body.filters,
@@ -558,8 +574,9 @@ const updateMany: RequestHandler<
           ? body.filters.establishmentIds
           : [establishment.id],
       // Apply user perimeter filtering for non-admin users
+      // If effectiveGeoCodes is empty array, user should see nothing
       localities:
-        isAdminOrVisitor || !effectiveGeoCodes?.length
+        isAdminOrVisitor || !hasPerimeterRestriction
           ? body.filters.localities
           : body.filters.localities?.length
             ? body.filters.localities.filter((loc) =>

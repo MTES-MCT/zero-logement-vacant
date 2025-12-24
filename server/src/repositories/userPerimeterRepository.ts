@@ -18,6 +18,7 @@ async function upsert(perimeter: UserPerimeterApi): Promise<void> {
       geo_codes: dbo.geo_codes,
       departments: dbo.departments,
       regions: dbo.regions,
+      epci: dbo.epci,
       fr_entiere: dbo.fr_entiere,
       updated_at: dbo.updated_at
     });
@@ -44,6 +45,7 @@ export interface UserPerimeterDBO {
   geo_codes: string[];
   departments: string[];
   regions: string[];
+  epci: string[];
   fr_entiere: boolean;
   updated_at: Date | string;
 }
@@ -55,6 +57,7 @@ export const parseUserPerimeterApi = (
   geoCodes: dbo.geo_codes || [],
   departments: dbo.departments || [],
   regions: dbo.regions || [],
+  epci: dbo.epci || [],
   frEntiere: dbo.fr_entiere,
   updatedAt: new Date(dbo.updated_at).toJSON()
 });
@@ -66,6 +69,7 @@ export const formatUserPerimeterApi = (
   geo_codes: api.geoCodes,
   departments: api.departments,
   regions: api.regions,
+  epci: api.epci,
   fr_entiere: api.frEntiere,
   updated_at: new Date(api.updatedAt).toJSON()
 });

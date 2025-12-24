@@ -148,10 +148,15 @@ function hasValidLovacAccessLevel(group: CeremaGroup): boolean {
 
 /**
  * Verify if user has valid access rights for the given establishment geo codes
+ *
+ * @param ceremaUser - User info from Portail DF
+ * @param establishmentGeoCodes - All communes of the establishment
+ * @param establishmentSiren - Optional SIREN of the establishment (for EPCI perimeter check)
  */
 export function verifyAccessRights(
   ceremaUser: CeremaUser,
-  establishmentGeoCodes: string[]
+  establishmentGeoCodes: string[],
+  establishmentSiren?: string
 ): AccessRightsResult {
   const errors: AccessRightsError[] = [];
 
@@ -177,18 +182,46 @@ export function verifyAccessRights(
 
   // Check perimeter
   if (ceremaUser.perimeter) {
-    // Check if at least one establishment commune is within the perimeter
-    const hasValidPerimeter = establishmentGeoCodes.some((geoCode) =>
-      isCommuneInPerimeter(geoCode, ceremaUser.perimeter!)
-    );
+    // Check if user has any commune/department/region restrictions
+    const hasGeoCodesRestriction = ceremaUser.perimeter.comm && ceremaUser.perimeter.comm.length > 0;
+    const hasDepartmentsRestriction = ceremaUser.perimeter.dep && ceremaUser.perimeter.dep.length > 0;
+    const hasRegionsRestriction = ceremaUser.perimeter.reg && ceremaUser.perimeter.reg.length > 0;
+    const hasGeoRestriction = hasGeoCodesRestriction || hasDepartmentsRestriction || hasRegionsRestriction;
 
-    if (!hasValidPerimeter) {
-      logger.warn('User perimeter does not cover establishment', {
+    // Check EPCI perimeter - if establishment SIREN matches an EPCI in perimeter
+    // AND no more restrictive geo constraints, access is valid
+    // Note: Convert SIREN to string for comparison since epci array contains strings
+    const sirenStr = String(establishmentSiren);
+    const hasEpciAccess =
+      !hasGeoRestriction &&
+      establishmentSiren &&
+      ceremaUser.perimeter.epci &&
+      ceremaUser.perimeter.epci.length > 0 &&
+      ceremaUser.perimeter.epci.includes(sirenStr);
+
+    if (hasEpciAccess) {
+      // EPCI match with no geo restriction - user has access to entire establishment
+      logger.debug('User has EPCI perimeter matching establishment (no geo restriction)', {
         email: ceremaUser.email,
-        establishmentGeoCodes,
-        perimeter: ceremaUser.perimeter
+        establishmentSiren,
+        perimeterEpci: ceremaUser.perimeter.epci
       });
-      errors.push('perimetre_invalide');
+    } else {
+      // Check if at least one establishment commune is within the perimeter
+      const hasValidPerimeter = establishmentGeoCodes.some((geoCode) =>
+        isCommuneInPerimeter(geoCode, ceremaUser.perimeter!)
+      );
+
+      if (!hasValidPerimeter) {
+        logger.warn('User perimeter does not cover establishment', {
+          email: ceremaUser.email,
+          establishmentSiren,
+          establishmentGeoCodes: establishmentGeoCodes.slice(0, 10), // Log first 10 for brevity
+          perimeter: ceremaUser.perimeter,
+          hasGeoRestriction
+        });
+        errors.push('perimetre_invalide');
+      }
     }
   } else if (ceremaUser.group.perimetre) {
     // Group has a perimeter ID but we couldn't fetch it

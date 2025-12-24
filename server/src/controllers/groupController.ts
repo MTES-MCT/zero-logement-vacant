@@ -32,13 +32,17 @@ const list = async (request: Request, response: Response): Promise<void> => {
   const isAdminOrVisitor = [UserRole.ADMIN, UserRole.VISITOR].includes(
     auth.role
   );
+  // effectiveGeoCodes is undefined when no restriction applies (no perimeter or fr_entiere)
+  // effectiveGeoCodes is an array (possibly empty) when restriction applies
+  const hasPerimeterRestriction = effectiveGeoCodes !== undefined;
 
   const groups = await groupRepository.find({
     filters: {
       establishmentId,
       // Only show groups where ALL housings are within user's perimeter (bypass for ADMIN/VISITOR)
+      // If effectiveGeoCodes is empty array, user should see nothing
       geoCodes:
-        isAdminOrVisitor || !effectiveGeoCodes?.length
+        isAdminOrVisitor || !hasPerimeterRestriction
           ? undefined
           : effectiveGeoCodes
     }

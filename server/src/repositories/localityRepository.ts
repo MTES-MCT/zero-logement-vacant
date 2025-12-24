@@ -44,9 +44,17 @@ async function get(geoCode: string): Promise<LocalityApi | null> {
 
 function filterQuery(filters?: LocalityFilters) {
   return (query: Knex.QueryBuilder<LocalityDBO>): void => {
-    if (filters?.geoCodes?.length) {
-      // Filter by specific geoCodes (user perimeter filtering takes priority)
-      query.whereIn('geo_code', filters.geoCodes);
+    // Filter by specific geoCodes (user perimeter filtering takes priority)
+    // Note: geoCodes is an array when a restriction applies
+    //   - non-empty array: filter to localities with these geoCodes
+    //   - empty array: user should see NO localities (intersection with perimeter is empty)
+    if (filters?.geoCodes !== undefined) {
+      if (filters.geoCodes.length === 0) {
+        // Empty geoCodes means no access - return no localities
+        query.whereRaw('1 = 0');
+      } else {
+        query.whereIn('geo_code', filters.geoCodes);
+      }
     } else if (filters?.establishmentId) {
       // Filter by establishment geoCodes (default behavior)
       query.whereIn(

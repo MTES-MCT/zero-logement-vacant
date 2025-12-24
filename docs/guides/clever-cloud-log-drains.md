@@ -152,33 +152,44 @@ curl -X GET "https://<ES_HOST>/_index_template/zlv-logs-template" \
 
 Export logs monthly to Cellar (S3-compatible storage) for long-term archival in a readable format.
 
-### Prerequisites
+The export runs automatically on the 1st of each month at 3am via Clever Cloud cron (see `clevercloud/cron.json`).
+
+### Clever Cloud Deployment Checklist
+
+Before deploying, configure the following environment variables in the Clever Cloud console:
+
+| Variable | Description | Source |
+|----------|-------------|--------|
+| `ES_USER` | Elasticsearch username | Elasticsearch add-on |
+| `ES_PASS` | Elasticsearch password | Elasticsearch add-on |
+| `ES_HOST` | Elasticsearch host URL | Elasticsearch add-on (optional, has default) |
+| `CELLAR_KEY_ID` | Cellar S3 access key | Cellar add-on |
+| `CELLAR_KEY_SECRET` | Cellar S3 secret key | Cellar add-on |
+| `CELLAR_HOST` | Cellar endpoint | Cellar add-on (optional, default: `cellar-c2.services.clever-cloud.com`) |
+| `CELLAR_BUCKET` | S3 bucket name | Cellar add-on (optional, default: `zlv-logs-archive`) |
+
+### Prerequisites (local execution)
 
 - AWS CLI installed (`brew install awscli`)
 - `jq` installed (`brew install jq`)
 - Cellar add-on created on Clever Cloud
 
-### Configuration
+### Run Export Script Manually
 
-Set the required environment variables:
+The export script is located at `server/src/scripts/logs/export-monthly-logs.sh`.
 
 ```bash
+# Set environment variables
 export ES_USER="<ES_USERNAME>"
 export ES_PASS="<ES_PASSWORD>"
 export CELLAR_KEY_ID="<CELLAR_KEY_ID>"
 export CELLAR_KEY_SECRET="<CELLAR_KEY_SECRET>"
-```
 
-### Run Export Script
-
-The export script is located at `scripts/logs/export-monthly-logs.sh`.
-
-```bash
 # Export previous month (default)
-./scripts/logs/export-monthly-logs.sh
+./server/src/scripts/logs/export-monthly-logs.sh
 
 # Export a specific month
-./scripts/logs/export-monthly-logs.sh 2024-12
+./server/src/scripts/logs/export-monthly-logs.sh 2024-12
 ```
 
 ### Output
@@ -192,18 +203,6 @@ s3://zlv-logs-archive/
         ├── zlv-logs-2024-10.json.gz
         ├── zlv-logs-2024-11.json.gz
         └── zlv-logs-2024-12.json.gz
-```
-
-### Automate with Cron
-
-To run the export automatically on the 1st of each month:
-
-```bash
-# Edit crontab
-crontab -e
-
-# Add this line (runs at 3am on the 1st of each month)
-0 3 1 * * /path/to/scripts/logs/export-monthly-logs.sh >> /var/log/zlv-logs-export.log 2>&1
 ```
 
 ### List Archived Files

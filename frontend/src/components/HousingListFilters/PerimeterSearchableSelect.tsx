@@ -15,6 +15,7 @@ function PerimeterSearchableSelect<Multiple extends boolean = false>(
 ) {
   const options: ReadonlyArray<string> = pipe(
     props.options,
+    Array.filter((perimeter) => !!perimeter.kind?.length),
     Array.dedupeWith((a, b) => a.kind === b.kind),
     Array.map((perimeter) => perimeter.kind)
   );

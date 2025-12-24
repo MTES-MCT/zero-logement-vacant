@@ -135,7 +135,7 @@ async function exportGroup(request: Request, response: Response) {
       groupIds: [params.id],
       establishmentIds: [auth.establishmentId]
     },
-    includes: ['owner', 'precisions']
+    includes: ['owner', 'campaigns', 'precisions']
   });
   const ownerStream = ownerRepository.stream({
     filters: {

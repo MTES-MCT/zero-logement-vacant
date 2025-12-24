@@ -4,23 +4,23 @@ import {
   type AutocompleteValue
 } from '@mui/material/Autocomplete';
 
-import type { EstablishmentDTO } from '@zerologementvacant/models';
 import { type ReactNode } from 'react';
+import { type Establishment } from '../../models/Establishment';
 import { useLazyFindEstablishmentsQuery } from '../../services/establishment.service';
 import SearchableSelectNext from '../SearchableSelectNext/SearchableSelectNext';
 
 type Props<Multiple extends boolean, DisableClearable extends boolean> = Pick<
-  AutocompleteProps<EstablishmentDTO, Multiple, DisableClearable, false>,
+  AutocompleteProps<Establishment, Multiple, DisableClearable, false>,
   'disableClearable' | 'multiple'
 > & {
   className?: string;
   label?: ReactNode;
   /** Pre-defined options to use instead of API search. When provided, no API call is made. */
-  options?: ReadonlyArray<EstablishmentDTO>;
-  value: AutocompleteValue<EstablishmentDTO, Multiple, DisableClearable, false>;
+  options?: ReadonlyArray<Establishment>;
+  value: AutocompleteValue<Establishment, Multiple, DisableClearable, false>;
   onChange(
     establishment: AutocompleteValue<
-      EstablishmentDTO,
+      Establishment,
       Multiple,
       DisableClearable,
       false
@@ -37,9 +37,9 @@ function EstablishmentSearchableSelect<
 
   // Use pre-defined options if provided, otherwise use API search results
   const hasPreDefinedOptions = props.options !== undefined;
-  const options = hasPreDefinedOptions
-    ? props.options
-    : ((establishments ?? []) as unknown as ReadonlyArray<EstablishmentDTO>);
+  const options: ReadonlyArray<Establishment> = hasPreDefinedOptions
+    ? (props.options ?? [])
+    : (establishments ?? []);
 
   async function search(query: string | undefined): Promise<void> {
     // Skip API search if we have pre-defined options

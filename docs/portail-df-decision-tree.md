@@ -182,7 +182,7 @@ flowchart TD
 | **ZLV ESTABLISHMENT** | ZLV Database | Local authority/EPCI with its geoCodes (INSEE commune codes) |
 | **Portail DF STRUCTURE** | Portail DF API | Organization on Portail DF, identified by SIREN, has `acces_lovac` (date) |
 | **Portail DF GROUP** | Portail DF API | Subset of a structure with `lovac` (bool), `niveau_acces`, and a perimeter |
-| **PERIMETER** | Portail DF API | Geographic area: `comm[]`, `dep[]`, `reg[]`, `fr_entiere` (bool) |
+| **PERIMETER** | Portail DF API | Geographic area: `comm[]`, `dep[]`, `reg[]`, `epci[]` (SIREN codes), `fr_entiere` (bool) |
 
 ---
 
@@ -204,6 +204,7 @@ Portail DF STRUCTURE  ─────────────────┘
         ├── comm: ["67482", "67218", ...]  (communes)
         ├── dep: ["67", "68", ...]          (departments)
         ├── reg: ["44", ...]                (regions)
+        ├── epci: ["200023414", ...]        (EPCI SIREN codes)
         └── fr_entiere: false               (entire France)
 ```
 
@@ -225,8 +226,13 @@ isCommuneInPerimeter(communeCode, perimeter) = true if:
 ├─ getDepartment(communeCode) ∈ perimeter.dep
 │  → Commune's department listed (e.g.: "67" for "67482")
 │
-└─ getRegion(getDepartment(communeCode)) ∈ perimeter.reg
-   → Department's region listed (e.g.: "44" Grand Est)
+├─ getRegion(getDepartment(communeCode)) ∈ perimeter.reg
+│  → Department's region listed (e.g.: "44" Grand Est)
+│
+└─ establishmentSiren ∈ perimeter.epci (AND no geo restriction)
+   → EPCI SIREN matches establishment (e.g.: "200023414")
+   → Special case: if user has ONLY epci[] (no comm/dep/reg),
+     and EPCI matches establishment SIREN, full access is granted
 ```
 
 **Perimeter validation**: The perimeter is valid if **AT LEAST ONE** commune of the establishment is covered:
@@ -379,14 +385,39 @@ On every authenticated request, the `auth.ts` middleware computes `effectiveGeoC
 // server/src/middlewares/auth.ts
 request.effectiveGeoCodes = filterGeoCodesByPerimeter(
   establishment.geoCodes,
-  userPerimeter
+  userPerimeter,
+  establishment.siren  // For EPCI perimeter check
 );
 ```
 
 The `filterGeoCodesByPerimeter()` function:
-- If **no perimeter**: returns all establishment geoCodes
-- If **fr_entiere = true**: returns all establishment geoCodes
-- Otherwise: returns the **intersection** of establishment geoCodes with user perimeter
+- If **no perimeter**: returns `undefined` (no restriction)
+- If **fr_entiere = true**: returns `undefined` (no restriction)
+- If **EPCI match** (perimeter.epci includes establishment SIREN AND no geo restriction): returns `undefined` (no restriction)
+- Otherwise: returns the **intersection** of establishment geoCodes with user perimeter (may be empty array if 0% intersection)
+
+### EPCI Perimeter (Special Case)
+
+EPCI perimeters work differently from commune/department/region perimeters:
+
+```
+User with perimeter: { epci: ["200023414"], comm: [], dep: [], reg: [] }
+Establishment SIREN: "200023414"
+                      ↓
+EPCI SIREN matches! → effectiveGeoCodes = undefined (full access)
+```
+
+**Rule**: If the user's perimeter contains **only** EPCI SIREN codes (no comm/dep/reg), and the establishment SIREN is in the epci array, the user gets **full access** to all establishment geoCodes.
+
+### effectiveGeoCodes: `undefined` vs `[]`
+
+| Value | Meaning | Result |
+|-------|---------|--------|
+| `undefined` | No restriction | User sees **all** establishment housing |
+| `[]` (empty array) | 0% intersection | User sees **nothing** |
+| `['67482', '67043']` | Partial intersection | User sees only housing in those communes |
+
+> ⚠️ **Important**: An empty array `[]` is NOT the same as `undefined`. Empty means "no access", while undefined means "full access".
 
 ### Filter Details by Entity
 
@@ -463,6 +494,7 @@ if (currentCeremaUser?.perimeter) {
     geoCodes: perimeter.comm || [],
     departments: perimeter.dep || [],
     regions: perimeter.reg || [],
+    epci: perimeter.epci || [],  // EPCI SIREN codes for EPCI-level perimeters
     frEntiere: perimeter.fr_entiere || false,
     updatedAt: new Date().toJSON()
   });
@@ -475,6 +507,7 @@ TABLE user_perimeters
 ├── geo_codes: text[]    (INSEE commune codes)
 ├── departments: text[]  (department codes)
 ├── regions: text[]      (region codes)
+├── epci: text[]         (EPCI SIREN codes - 9 chars)
 ├── fr_entiere: boolean
 ├── updated_at: timestamp
 └── GIN INDEX on geo_codes, departments, regions

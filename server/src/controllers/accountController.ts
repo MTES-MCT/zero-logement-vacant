@@ -102,8 +102,8 @@ async function refreshAuthorizedEstablishments(user: UserApi): Promise<void> {
       );
 
       if (ceremaUser) {
-        // Verify access rights for this establishment
-        const accessRights = verifyAccessRights(ceremaUser, est.geoCodes);
+        // Verify access rights for this establishment (pass SIREN for EPCI perimeter check)
+        const accessRights = verifyAccessRights(ceremaUser, est.geoCodes, est.siren);
 
         if (accessRights.isValid) {
           authorizedEstablishments.push({
@@ -143,11 +143,15 @@ async function refreshAuthorizedEstablishments(user: UserApi): Promise<void> {
           suspensionCause
         });
 
-        await userRepository.update({
-          ...user,
-          suspendedAt: new Date().toJSON(),
-          suspendedCause: suspensionCause
-        });
+        // Re-fetch user to get latest lastAuthenticatedAt (updated by signIn)
+        const currentUser = await userRepository.get(user.id);
+        if (currentUser) {
+          await userRepository.update({
+            ...currentUser,
+            suspendedAt: new Date().toJSON(),
+            suspendedCause: suspensionCause
+          });
+        }
       }
     }
 
@@ -211,6 +215,7 @@ async function refreshAuthorizedEstablishments(user: UserApi): Promise<void> {
             geoCodes: perimeter.comm || [],
             departments: perimeter.dep || [],
             regions: perimeter.reg || [],
+            epci: perimeter.epci || [],
             frEntiere: perimeter.fr_entiere || false,
             updatedAt: new Date().toJSON()
           });
@@ -221,7 +226,8 @@ async function refreshAuthorizedEstablishments(user: UserApi): Promise<void> {
             frEntiere: perimeter.fr_entiere,
             communesCount: perimeter.comm?.length || 0,
             departmentsCount: perimeter.dep?.length || 0,
-            regionsCount: perimeter.reg?.length || 0
+            regionsCount: perimeter.reg?.length || 0,
+            epciCount: perimeter.epci?.length || 0
           });
         }
       }
@@ -394,12 +400,36 @@ async function signInToEstablishment(
 
 async function changeEstablishment(request: Request, response: Response) {
   const { user } = request as AuthenticatedRequest;
+  const establishmentId = request.params.establishmentId;
 
-  if (user.role !== UserRole.ADMIN && user.role !== UserRole.VISITOR) {
+  // ADMIN and VISITOR can change to any establishment
+  if (user.role === UserRole.ADMIN || user.role === UserRole.VISITOR) {
+    await signInToEstablishment(user, establishmentId, response);
+    return;
+  }
+
+  // USUAL users can only change to their authorized establishments
+  const authorizedEstablishments = await userRepository.getAuthorizedEstablishments(user.id);
+  const authorizedIds = authorizedEstablishments
+    .filter((e) => e.hasCommitment)
+    .map((e) => e.establishmentId);
+
+  if (!authorizedIds.includes(establishmentId)) {
+    logger.warn('USUAL user tried to change to unauthorized establishment', {
+      userId: user.id,
+      email: user.email,
+      requestedEstablishment: establishmentId,
+      authorizedEstablishments: authorizedIds
+    });
     throw new AuthenticationFailedError();
   }
 
-  const establishmentId = request.params.establishmentId;
+  // Update user's current establishment
+  await userRepository.update({
+    ...user,
+    establishmentId,
+    updatedAt: new Date().toJSON()
+  });
 
   await signInToEstablishment(user, establishmentId, response);
 }

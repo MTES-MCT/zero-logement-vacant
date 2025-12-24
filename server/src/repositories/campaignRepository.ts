@@ -56,19 +56,27 @@ const filterQuery = (filters: CampaignFiltersApi) => {
       query.whereIn('group_id', filters.groupIds);
     }
     // Filter campaigns to only those where ALL housings are within the user's perimeter
-    if (filters?.geoCodes?.length) {
-      const geoCodes = filters.geoCodes;
-      query.whereNotExists(function () {
-        this.select(db.raw('1'))
-          .from(campaignsHousingTable)
-          .whereRaw(
-            `${campaignsHousingTable}.campaign_id = ${campaignsTable}.id`
-          )
-          .whereRaw(
-            `${campaignsHousingTable}.housing_geo_code NOT IN (${geoCodes.map(() => '?').join(', ')})`,
-            geoCodes
-          );
-      });
+    // Note: geoCodes is an array when a restriction applies
+    //   - non-empty array: filter to campaigns with housings in these geoCodes
+    //   - empty array: user should see NO campaigns (intersection with perimeter is empty)
+    if (filters?.geoCodes !== undefined) {
+      if (filters.geoCodes.length === 0) {
+        // Empty geoCodes means no access - return no campaigns
+        query.whereRaw('1 = 0');
+      } else {
+        const geoCodes = filters.geoCodes;
+        query.whereNotExists(function () {
+          this.select(db.raw('1'))
+            .from(campaignsHousingTable)
+            .whereRaw(
+              `${campaignsHousingTable}.campaign_id = ${campaignsTable}.id`
+            )
+            .whereRaw(
+              `${campaignsHousingTable}.housing_geo_code NOT IN (${geoCodes.map(() => '?').join(', ')})`,
+              geoCodes
+            );
+        });
+      }
     }
   };
 };

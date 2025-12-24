@@ -71,9 +71,11 @@ export function userCheck(options?: CheckOptions) {
     request.establishment = establishment;
     request.userPerimeter = userPerimeter;
     // Compute filtered geoCodes based on user perimeter
+    // Pass establishment SIREN for EPCI perimeter check
     request.effectiveGeoCodes = filterGeoCodesByPerimeter(
       establishment.geoCodes,
-      userPerimeter
+      userPerimeter,
+      establishment.siren
     );
     next();
   };

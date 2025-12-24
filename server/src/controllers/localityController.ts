@@ -36,16 +36,21 @@ async function listLocalities(request: Request, response: Response) {
   logger.info('List localities', { establishment: establishmentId });
 
   // ADMIN and VISITOR users bypass perimeter filtering
-  const isAdminOrVisitor = [UserRole.ADMIN, UserRole.VISITOR].includes(
-    auth.role
-  );
+  // Note: This route can be called unauthenticated, so check if auth exists
+  const isAdminOrVisitor = auth
+    ? [UserRole.ADMIN, UserRole.VISITOR].includes(auth.role)
+    : false;
+  // effectiveGeoCodes is undefined when no restriction applies (no perimeter or fr_entiere)
+  // effectiveGeoCodes is an array (possibly empty) when restriction applies
+  const hasPerimeterRestriction = effectiveGeoCodes !== undefined;
 
   const localities = await localityRepository.find({
     filters: {
       establishmentId,
       // Filter by user perimeter if available (bypass for ADMIN/VISITOR)
+      // If effectiveGeoCodes is empty array, user should see nothing
       geoCodes:
-        isAdminOrVisitor || !effectiveGeoCodes?.length
+        isAdminOrVisitor || !hasPerimeterRestriction
           ? undefined
           : effectiveGeoCodes
     }

@@ -142,10 +142,11 @@ async function create(request: Request, response: Response) {
     throw new ProspectInvalidError(prospect);
   }
 
-  // Verify access rights: LOVAC access level and geographic perimeter
+  // Verify access rights: LOVAC access level and geographic perimeter (pass SIREN for EPCI perimeter check)
   const accessRights = verifyAccessRights(
     matchingCeremaUser,
-    userEstablishment.geoCodes
+    userEstablishment.geoCodes,
+    userEstablishment.siren
   );
 
   if (!accessRights.isValid) {

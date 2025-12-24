@@ -29,7 +29,7 @@ import styles from './small-header.module.scss';
 function SmallHeader() {
   const dispatch = useAppDispatch();
   const location = useLocation();
-  const { establishment, isAdmin, isVisitor, isAuthenticated } = useUser();
+  const { establishment, isAdmin, isVisitor, isAuthenticated, canChangeEstablishment, authorizedEstablishments } = useUser();
 
   function getMainNavigationItem(
     navItem: UserNavItems
@@ -119,20 +119,36 @@ function SmallHeader() {
           />
           <Grid alignItems="center" display="flex" ml="auto">
             {isAuthenticated ? (
-              isAdmin || isVisitor ? (
+              canChangeEstablishment ? (
                 establishment ? (
-                  <EstablishmentSearchableSelect
-                    className={fr.cx('fr-mr-2w')}
-                    disableClearable
-                    value={toEstablishmentDTO(establishment)}
-                    onChange={(establishment) => {
-                      if (establishment) {
-                        onChangeEstablishment(
-                          fromEstablishmentDTO(establishment)
-                        );
-                      }
-                    }}
-                  />
+                  isAdmin || isVisitor ? (
+                    <EstablishmentSearchableSelect
+                      className={fr.cx('fr-mr-2w')}
+                      disableClearable
+                      value={toEstablishmentDTO(establishment)}
+                      onChange={(establishment) => {
+                        if (establishment) {
+                          onChangeEstablishment(
+                            fromEstablishmentDTO(establishment)
+                          );
+                        }
+                      }}
+                    />
+                  ) : (
+                    <EstablishmentSearchableSelect
+                      className={fr.cx('fr-mr-2w')}
+                      disableClearable
+                      options={authorizedEstablishments ?? []}
+                      value={toEstablishmentDTO(establishment)}
+                      onChange={(establishment) => {
+                        if (establishment) {
+                          onChangeEstablishment(
+                            fromEstablishmentDTO(establishment)
+                          );
+                        }
+                      }}
+                    />
+                  )
                 ) : null
               ) : (
                 <Typography

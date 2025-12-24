@@ -15,6 +15,8 @@ type Props<Multiple extends boolean, DisableClearable extends boolean> = Pick<
 > & {
   className?: string;
   label?: ReactNode;
+  /** Pre-defined options to use instead of API search. When provided, no API call is made. */
+  options?: ReadonlyArray<EstablishmentDTO>;
   value: AutocompleteValue<EstablishmentDTO, Multiple, DisableClearable, false>;
   onChange(
     establishment: AutocompleteValue<
@@ -33,10 +35,17 @@ function EstablishmentSearchableSelect<
   const [findEstablishments, { data: establishments, isFetching }] =
     useLazyFindEstablishmentsQuery();
 
-  const options = (establishments ??
-    []) as unknown as ReadonlyArray<EstablishmentDTO>;
+  // Use pre-defined options if provided, otherwise use API search results
+  const hasPreDefinedOptions = props.options !== undefined;
+  const options = hasPreDefinedOptions
+    ? props.options
+    : ((establishments ?? []) as unknown as ReadonlyArray<EstablishmentDTO>);
 
   async function search(query: string | undefined): Promise<void> {
+    // Skip API search if we have pre-defined options
+    if (hasPreDefinedOptions) {
+      return;
+    }
     if (query) {
       await findEstablishments({ query }).unwrap();
     }
@@ -46,10 +55,10 @@ function EstablishmentSearchableSelect<
     <SearchableSelectNext
       className={props.className}
       disableClearable={props.disableClearable}
-      debounce={250}
+      debounce={hasPreDefinedOptions ? 0 : 250}
       search={search}
       options={options}
-      loading={isFetching}
+      loading={hasPreDefinedOptions ? false : isFetching}
       label={props.label ?? null}
       getOptionKey={(option) => option.id}
       getOptionLabel={(option) => option.name}

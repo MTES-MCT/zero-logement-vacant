@@ -7,6 +7,7 @@ export interface UserPerimeterApi {
   geoCodes: string[];
   departments: string[];
   regions: string[];
+  epci: string[];  // EPCI SIREN codes (9 chars) - for EPCI-level perimeters
   frEntiere: boolean;
   updatedAt: string;
 }
@@ -117,25 +118,57 @@ function getRegionFromDepartment(departmentCode: string): string | null {
  * Filter establishment geoCodes based on user perimeter.
  * Returns only the geoCodes that are within the user's perimeter.
  *
+ * Priority of perimeter checks:
+ * 1. fr_entiere = true → no restriction
+ * 2. geoCodes (communes) not empty → filter by communes (most restrictive)
+ * 3. departments not empty → filter by departments
+ * 4. regions not empty → filter by regions
+ * 5. epci matches establishment SIREN → no restriction (full EPCI access)
+ *
  * @param establishmentGeoCodes - All geoCodes from the establishment
  * @param perimeter - User's perimeter from Portail DF (or null if not available)
- * @returns Filtered geoCodes that match both establishment and user perimeter
+ * @param establishmentSiren - Optional establishment SIREN for EPCI perimeter check
+ * @returns undefined if no restriction applies (no perimeter, fr_entiere=true, or EPCI match with no commune restriction),
+ *          or an array of filtered geoCodes (may be empty if no intersection)
  */
 export function filterGeoCodesByPerimeter(
   establishmentGeoCodes: string[],
-  perimeter: UserPerimeterApi | null
-): string[] {
-  // If no perimeter, return all establishment geoCodes (no filtering)
+  perimeter: UserPerimeterApi | null,
+  establishmentSiren?: string | number
+): string[] | undefined {
+  // If no perimeter, return undefined to indicate no restriction
   if (!perimeter) {
-    return establishmentGeoCodes;
+    return undefined;
   }
 
-  // If user has fr_entiere, they can see all establishment geoCodes
+  // If user has fr_entiere, they can see all establishment geoCodes (no restriction)
   if (perimeter.frEntiere) {
-    return establishmentGeoCodes;
+    return undefined;
+  }
+
+  // Check if user has any commune/department/region restrictions
+  const hasGeoCodesRestriction = perimeter.geoCodes && perimeter.geoCodes.length > 0;
+  const hasDepartmentsRestriction = perimeter.departments && perimeter.departments.length > 0;
+  const hasRegionsRestriction = perimeter.regions && perimeter.regions.length > 0;
+  const hasGeoRestriction = hasGeoCodesRestriction || hasDepartmentsRestriction || hasRegionsRestriction;
+
+  // If user has EPCI perimeter that matches the establishment SIREN,
+  // AND no more restrictive geo constraints (communes/departments/regions),
+  // they can see all establishment geoCodes (no restriction)
+  // Note: Convert SIREN to string for comparison since epci array contains strings
+  const sirenStr = String(establishmentSiren);
+  if (
+    !hasGeoRestriction &&
+    establishmentSiren &&
+    perimeter.epci &&
+    perimeter.epci.length > 0 &&
+    perimeter.epci.includes(sirenStr)
+  ) {
+    return undefined;
   }
 
   // Filter establishment geoCodes to only those within user's perimeter
+  // May return empty array if no geoCodes match (user should see nothing)
   return establishmentGeoCodes.filter((geoCode) =>
     isCommuneInUserPerimeter(geoCode, perimeter)
   );

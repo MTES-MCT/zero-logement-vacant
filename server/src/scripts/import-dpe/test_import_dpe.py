@@ -115,7 +115,7 @@ class TestShouldImportDPE:
     def test_new_building_dpe_no_existing(self, processor):
         """New building DPE with no existing DPE should be imported."""
         dpe_data = {'methode_application_dpe': 'DPE immeuble collectif'}
-        should_import, case = processor._should_import_dpe(dpe_data, existing_dpe=None)
+        should_import, case = processor._should_import_dpe(dpe_data, existing_dpe_id=None)
 
         assert should_import is True
         assert case == "new_building_dpe"
@@ -123,7 +123,7 @@ class TestShouldImportDPE:
     def test_new_house_dpe_no_existing(self, processor):
         """New house DPE with no existing DPE should be imported."""
         dpe_data = {'methode_application_dpe': 'DPE maison individuelle'}
-        should_import, case = processor._should_import_dpe(dpe_data, existing_dpe=None)
+        should_import, case = processor._should_import_dpe(dpe_data, existing_dpe_id=None)
 
         assert should_import is True
         assert case == "new_building_dpe"
@@ -131,7 +131,7 @@ class TestShouldImportDPE:
     def test_apartment_dpe_no_existing(self, processor):
         """Apartment DPE with no existing DPE should be imported."""
         dpe_data = {'methode_application_dpe': 'DPE appartement individuel'}
-        should_import, case = processor._should_import_dpe(dpe_data, existing_dpe=None)
+        should_import, case = processor._should_import_dpe(dpe_data, existing_dpe_id=None)
 
         assert should_import is True
         assert case == "apartment_dpe"
@@ -139,34 +139,46 @@ class TestShouldImportDPE:
     def test_other_dpe_no_existing(self, processor):
         """Other DPE types with no existing DPE should be skipped."""
         dpe_data = {'methode_application_dpe': 'Autre méthode'}
-        should_import, case = processor._should_import_dpe(dpe_data, existing_dpe=None)
+        should_import, case = processor._should_import_dpe(dpe_data, existing_dpe_id=None)
 
         assert should_import is False
         assert case == "skip_other_dpe"
 
     def test_building_dpe_replaces_existing(self, processor):
-        """Building DPE should replace any existing DPE."""
-        dpe_data = {'methode_application_dpe': 'DPE immeuble collectif'}
-        existing_dpe = {'dpe_id': 'old_dpe', 'class_dpe': 'C'}
-        should_import, case = processor._should_import_dpe(dpe_data, existing_dpe=existing_dpe)
+        """Building DPE should replace any existing DPE when more recent."""
+        from datetime import date
+        dpe_data = {
+            'methode_application_dpe': 'DPE immeuble collectif',
+            'date_etablissement_dpe': '2024-06-01'
+        }
+        building = {'dpe_date_at': date(2024, 1, 1)}
+        should_import, case = processor._should_import_dpe(dpe_data, existing_dpe_id='old_dpe', building=building)
 
         assert should_import is True
-        assert case == "building_dpe_exists"
+        assert case == "building_dpe_update"
 
     def test_apartment_dpe_with_existing_skipped(self, processor):
         """Apartment DPE should not replace existing DPE."""
-        dpe_data = {'methode_application_dpe': 'DPE appartement individuel'}
-        existing_dpe = {'dpe_id': 'existing_dpe', 'class_dpe': 'B'}
-        should_import, case = processor._should_import_dpe(dpe_data, existing_dpe=existing_dpe)
+        from datetime import date
+        dpe_data = {
+            'methode_application_dpe': 'DPE appartement individuel',
+            'date_etablissement_dpe': '2024-06-01'
+        }
+        building = {'dpe_date_at': date(2024, 1, 1)}
+        should_import, case = processor._should_import_dpe(dpe_data, existing_dpe_id='existing_dpe', building=building)
 
         assert should_import is False
         assert case == "skip_non_building_dpe"
 
     def test_other_dpe_with_existing_skipped(self, processor):
         """Other DPE should not replace existing DPE."""
-        dpe_data = {'methode_application_dpe': 'Autre méthode'}
-        existing_dpe = {'dpe_id': 'existing_dpe', 'class_dpe': 'A'}
-        should_import, case = processor._should_import_dpe(dpe_data, existing_dpe=existing_dpe)
+        from datetime import date
+        dpe_data = {
+            'methode_application_dpe': 'Autre méthode',
+            'date_etablissement_dpe': '2024-06-01'
+        }
+        building = {'dpe_date_at': date(2024, 1, 1)}
+        should_import, case = processor._should_import_dpe(dpe_data, existing_dpe_id='existing_dpe', building=building)
 
         assert should_import is False
         assert case == "skip_non_building_dpe"
@@ -296,31 +308,33 @@ class TestBusinessLogic:
         building_dpe = {'methode_application_dpe': 'DPE immeuble collectif'}
 
         # Test against no existing DPE
-        should_import, _ = processor._should_import_dpe(building_dpe, None)
+        should_import, _ = processor._should_import_dpe(building_dpe, existing_dpe_id=None)
         assert should_import is True
 
         # Test against existing apartment DPE
-        existing_apt = {'dpe_id': 'apt_dpe', 'methode_application_dpe': 'DPE appartement individuel'}
-        should_import, _ = processor._should_import_dpe(building_dpe, existing_apt)
+        should_import, _ = processor._should_import_dpe(building_dpe, existing_dpe_id='apt_dpe')
         assert should_import is True
 
         # Test against existing building DPE
-        existing_building = {'dpe_id': 'building_dpe', 'methode_application_dpe': 'DPE immeuble collectif'}
-        should_import, _ = processor._should_import_dpe(building_dpe, existing_building)
+        should_import, _ = processor._should_import_dpe(building_dpe, existing_dpe_id='building_dpe')
         assert should_import is True
 
     def test_apartment_dpe_priority_logic(self, processor):
         """Apartment DPE should only be imported when no DPE exists."""
-        apartment_dpe = {'methode_application_dpe': 'DPE appartement individuel'}
+        from datetime import date
+        apartment_dpe = {
+            'methode_application_dpe': 'DPE appartement individuel',
+            'date_etablissement_dpe': '2024-06-01'
+        }
 
         # Should import when no DPE exists
-        should_import, case = processor._should_import_dpe(apartment_dpe, None)
+        should_import, case = processor._should_import_dpe(apartment_dpe, existing_dpe_id=None)
         assert should_import is True
         assert case == "apartment_dpe"
 
-        # Should NOT import when any DPE already exists
-        existing = {'dpe_id': 'any_dpe'}
-        should_import, case = processor._should_import_dpe(apartment_dpe, existing)
+        # Should NOT import when a DPE already exists (with building info for date check)
+        building = {'dpe_date_at': date(2024, 1, 1)}
+        should_import, case = processor._should_import_dpe(apartment_dpe, existing_dpe_id='any_dpe', building=building)
         assert should_import is False
         assert case == "skip_non_building_dpe"
 

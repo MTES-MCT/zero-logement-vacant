@@ -203,12 +203,17 @@ async function create(request: Request, response: Response) {
   // Populate users_establishments with all establishments the user has access to
   // Filter Cerema users that have LOVAC commitment and find matching establishments
   const ceremaUsersWithCommitment = ceremaUsers.filter((cu) => cu.hasCommitment);
-  const establishmentSirens = ceremaUsersWithCommitment.map((cu) => cu.establishmentSiren);
+  // Filter out the wildcard SIREN '*' used in mock tests (not a valid SIREN for DB queries)
+  const establishmentSirens = ceremaUsersWithCommitment
+    .map((cu) => cu.establishmentSiren)
+    .filter((siren) => siren !== '*');
 
   // Find all known establishments matching the SIRENs
-  const knownEstablishments = await establishmentRepository.find({
-    filters: { siren: establishmentSirens }
-  });
+  const knownEstablishments = establishmentSirens.length > 0
+    ? await establishmentRepository.find({
+        filters: { siren: establishmentSirens }
+      })
+    : [];
 
   // Create authorized establishments entries
   const authorizedEstablishments = knownEstablishments.map((est) => {

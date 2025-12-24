@@ -160,13 +160,13 @@ Before deploying, configure the following environment variables in the Clever Cl
 
 | Variable | Description | Source |
 |----------|-------------|--------|
-| `ES_USER` | Elasticsearch username | Elasticsearch add-on |
-| `ES_PASS` | Elasticsearch password | Elasticsearch add-on |
-| `ES_HOST` | Elasticsearch host URL | Elasticsearch add-on (optional, has default) |
-| `CELLAR_KEY_ID` | Cellar S3 access key | Cellar add-on |
-| `CELLAR_KEY_SECRET` | Cellar S3 secret key | Cellar add-on |
-| `CELLAR_HOST` | Cellar endpoint | Cellar add-on (optional, default: `cellar-c2.services.clever-cloud.com`) |
-| `CELLAR_BUCKET` | S3 bucket name | Cellar add-on (optional, default: `zlv-logs-archive`) |
+| `ELASTIC_NODE` | Elasticsearch host URL | Elasticsearch add-on |
+| `ELASTIC_USERNAME` | Elasticsearch username | Elasticsearch add-on |
+| `ELASTIC_PASSWORD` | Elasticsearch password | Elasticsearch add-on |
+| `BACKUP_S3_ACCESS_KEY_ID` | S3 access key | Cellar add-on |
+| `BACKUP_S3_SECRET_ACCESS_KEY` | S3 secret key | Cellar add-on |
+| `BACKUP_S3_ENDPOINT` | S3 endpoint | Cellar add-on (optional, default: `cellar-c2.services.clever-cloud.com`) |
+| `BACKUP_S3_BUCKET` | S3 bucket name | Cellar add-on (optional, default: `zlv-logs-archive`) |
 
 ### Prerequisites (local execution)
 
@@ -180,10 +180,11 @@ The export script is located at `server/src/scripts/logs/export-monthly-logs.sh`
 
 ```bash
 # Set environment variables
-export ES_USER="<ES_USERNAME>"
-export ES_PASS="<ES_PASSWORD>"
-export CELLAR_KEY_ID="<CELLAR_KEY_ID>"
-export CELLAR_KEY_SECRET="<CELLAR_KEY_SECRET>"
+export ELASTIC_NODE="https://xxx-elasticsearch.services.clever-cloud.com"
+export ELASTIC_USERNAME="<ES_USERNAME>"
+export ELASTIC_PASSWORD="<ES_PASSWORD>"
+export BACKUP_S3_ACCESS_KEY_ID="<S3_KEY_ID>"
+export BACKUP_S3_SECRET_ACCESS_KEY="<S3_SECRET>"
 
 # Export previous month (default)
 ./server/src/scripts/logs/export-monthly-logs.sh
@@ -208,9 +209,9 @@ s3://zlv-logs-archive/
 ### List Archived Files
 
 ```bash
-# Configure AWS CLI for Cellar
-export AWS_ACCESS_KEY_ID="<CELLAR_KEY_ID>"
-export AWS_SECRET_ACCESS_KEY="<CELLAR_KEY_SECRET>"
+# Configure AWS CLI for S3
+export AWS_ACCESS_KEY_ID="<BACKUP_S3_ACCESS_KEY_ID>"
+export AWS_SECRET_ACCESS_KEY="<BACKUP_S3_SECRET_ACCESS_KEY>"
 
 # List files
 aws s3 ls s3://zlv-logs-archive/monthly/ --recursive \

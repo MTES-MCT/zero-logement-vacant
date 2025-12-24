@@ -12,6 +12,8 @@ export interface AuthUser {
   user: User;
   accessToken: string;
   establishment: Establishment;
+  /** List of establishments the user has access to (for multi-structure USUAL users) */
+  authorizedEstablishments?: Establishment[];
 }
 
 export interface User extends Omit<UserDTO, 'activatedAt'> {

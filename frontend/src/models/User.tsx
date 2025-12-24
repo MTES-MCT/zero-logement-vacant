@@ -3,7 +3,6 @@ import {
   type UserDTO,
   UserRole
 } from '@zerologementvacant/models';
-import type { EstablishmentDTO } from '@zerologementvacant/models';
 import { Equivalence } from 'effect';
 
 import type { Establishment } from '~/models/Establishment';
@@ -14,7 +13,7 @@ export interface AuthUser {
   accessToken: string;
   establishment: Establishment;
   /** List of establishments the user has access to (for multi-structure USUAL users) */
-  authorizedEstablishments?: EstablishmentDTO[];
+  authorizedEstablishments?: Establishment[];
 }
 
 export interface User extends Omit<UserDTO, 'activatedAt'> {

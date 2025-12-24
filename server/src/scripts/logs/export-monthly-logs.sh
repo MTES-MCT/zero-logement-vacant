@@ -8,21 +8,23 @@
 # If no argument provided, exports the previous month
 #
 # Required environment variables:
-#   ES_HOST, ES_USER, ES_PASS - Elasticsearch credentials
-#   CELLAR_KEY_ID, CELLAR_KEY_SECRET - Cellar S3 credentials
+#   ELASTIC_NODE, ELASTIC_USERNAME, ELASTIC_PASSWORD - Elasticsearch credentials
+#   BACKUP_S3_ACCESS_KEY_ID, BACKUP_S3_SECRET_ACCESS_KEY, BACKUP_S3_ENDPOINT, BACKUP_S3_BUCKET - S3 credentials
 #
 # Can be run as a cron job on the 1st of each month
 
 set -euo pipefail
 
-# Configuration
-ES_HOST="${ES_HOST:-https://bj52epukdycxwrfsecr5-elasticsearch.services.clever-cloud.com}"
-ES_USER="${ES_USER:-}"
-ES_PASS="${ES_PASS:-}"
-CELLAR_HOST="${CELLAR_HOST:-cellar-c2.services.clever-cloud.com}"
-CELLAR_BUCKET="${CELLAR_BUCKET:-zlv-logs-archive}"
-CELLAR_KEY_ID="${CELLAR_KEY_ID:-}"
-CELLAR_KEY_SECRET="${CELLAR_KEY_SECRET:-}"
+# Configuration - Elasticsearch
+ES_HOST="${ELASTIC_NODE:-}"
+ES_USER="${ELASTIC_USERNAME:-}"
+ES_PASS="${ELASTIC_PASSWORD:-}"
+
+# Configuration - S3 (Cellar)
+S3_ENDPOINT="${BACKUP_S3_ENDPOINT:-cellar-c2.services.clever-cloud.com}"
+S3_BUCKET="${BACKUP_S3_BUCKET:-zlv-logs-archive}"
+S3_ACCESS_KEY_ID="${BACKUP_S3_ACCESS_KEY_ID:-}"
+S3_SECRET_ACCESS_KEY="${BACKUP_S3_SECRET_ACCESS_KEY:-}"
 INDEX_PATTERN="${INDEX_PATTERN:-zlv-logs-*}"
 SCROLL_SIZE="${SCROLL_SIZE:-5000}"
 SCROLL_TIME="${SCROLL_TIME:-5m}"
@@ -65,19 +67,21 @@ check_dependencies() {
 check_env_vars() {
     local missing=()
 
-    if [ -z "$ES_USER" ]; then missing+=("ES_USER"); fi
-    if [ -z "$ES_PASS" ]; then missing+=("ES_PASS"); fi
-    if [ -z "$CELLAR_KEY_ID" ]; then missing+=("CELLAR_KEY_ID"); fi
-    if [ -z "$CELLAR_KEY_SECRET" ]; then missing+=("CELLAR_KEY_SECRET"); fi
+    if [ -z "$ES_HOST" ]; then missing+=("ELASTIC_NODE"); fi
+    if [ -z "$ES_USER" ]; then missing+=("ELASTIC_USERNAME"); fi
+    if [ -z "$ES_PASS" ]; then missing+=("ELASTIC_PASSWORD"); fi
+    if [ -z "$S3_ACCESS_KEY_ID" ]; then missing+=("BACKUP_S3_ACCESS_KEY_ID"); fi
+    if [ -z "$S3_SECRET_ACCESS_KEY" ]; then missing+=("BACKUP_S3_SECRET_ACCESS_KEY"); fi
 
     if [ ${#missing[@]} -gt 0 ]; then
         log_error "Missing required environment variables: ${missing[*]}"
         echo ""
         echo "Set them with:"
-        echo "  export ES_USER='your_es_user'"
-        echo "  export ES_PASS='your_es_pass'"
-        echo "  export CELLAR_KEY_ID='your_cellar_key'"
-        echo "  export CELLAR_KEY_SECRET='your_cellar_secret'"
+        echo "  export ELASTIC_NODE='https://xxx-elasticsearch.services.clever-cloud.com'"
+        echo "  export ELASTIC_USERNAME='your_es_user'"
+        echo "  export ELASTIC_PASSWORD='your_es_pass'"
+        echo "  export BACKUP_S3_ACCESS_KEY_ID='your_s3_key'"
+        echo "  export BACKUP_S3_SECRET_ACCESS_KEY='your_s3_secret'"
         exit 1
     fi
 }
@@ -226,21 +230,21 @@ compress_file() {
     echo "$output_file"
 }
 
-# Upload to Cellar (S3)
-upload_to_cellar() {
+# Upload to S3
+upload_to_s3() {
     local file="$1"
     local filename
     filename=$(basename "$file")
-    local s3_path="s3://${CELLAR_BUCKET}/monthly/${YEAR}/${filename}"
+    local s3_path="s3://${S3_BUCKET}/monthly/${YEAR}/${filename}"
 
-    log_info "Uploading to Cellar: $s3_path"
+    log_info "Uploading to S3: $s3_path"
 
-    # Configure AWS CLI for Cellar
-    export AWS_ACCESS_KEY_ID="$CELLAR_KEY_ID"
-    export AWS_SECRET_ACCESS_KEY="$CELLAR_KEY_SECRET"
+    # Configure AWS CLI for S3
+    export AWS_ACCESS_KEY_ID="$S3_ACCESS_KEY_ID"
+    export AWS_SECRET_ACCESS_KEY="$S3_SECRET_ACCESS_KEY"
 
     aws s3 cp "$file" "$s3_path" \
-        --endpoint-url "https://${CELLAR_HOST}" \
+        --endpoint-url "https://${S3_ENDPOINT}" \
         --no-progress
 
     if [ $? -eq 0 ]; then
@@ -249,7 +253,7 @@ upload_to_cellar() {
         # Verify upload
         local remote_size
         remote_size=$(aws s3 ls "$s3_path" \
-            --endpoint-url "https://${CELLAR_HOST}" | awk '{print $3}')
+            --endpoint-url "https://${S3_ENDPOINT}" | awk '{print $3}')
         local local_size
         local_size=$(stat -f%z "$file" 2>/dev/null || stat -c%s "$file")
 
@@ -290,11 +294,11 @@ main() {
     if export_logs "$json_file"; then
         local gz_file
         gz_file=$(compress_file "$json_file")
-        upload_to_cellar "$gz_file"
+        upload_to_s3 "$gz_file"
 
         log_info "=== Export Complete ==="
         log_info "File: zlv-logs-${TARGET_MONTH}.json.gz"
-        log_info "Location: s3://${CELLAR_BUCKET}/monthly/${YEAR}/"
+        log_info "Location: s3://${S3_BUCKET}/monthly/${YEAR}/"
     else
         log_warn "No logs to export for $TARGET_MONTH"
     fi

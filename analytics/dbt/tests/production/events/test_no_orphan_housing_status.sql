@@ -26,3 +26,6 @@ AND e.type IS NOT NULL  -- Uniquement les événements avec un type (changements
 
 
 
+
+
+

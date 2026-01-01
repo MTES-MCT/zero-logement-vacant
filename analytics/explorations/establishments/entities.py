@@ -140,6 +140,8 @@ class EntityProcessor:
         self.df_collectivities['Geo_Perimeter'] = self.df_collectivities['Geo_Perimeter'].apply(self._parse_list_string)
         self.df_collectivities['Dep_Code'] = self.df_collectivities['Dep_Code'].apply(self._parse_list_string)
         self.df_collectivities['Dep_Name'] = self.df_collectivities['Dep_Name'].apply(self._parse_list_string)
+        self.df_collectivities['Reg_Code'] = self.df_collectivities['Reg_Code'].apply(self._parse_list_string)
+        self.df_collectivities['Reg_Name'] = self.df_collectivities['Reg_Name'].apply(self._parse_list_string)
         
         # Build geographic lookups
         self._build_geo_lookups()
@@ -163,6 +165,7 @@ class EntityProcessor:
         """
         Normalize geographic codes by removing decimals and leading zeros.
         Keeps alphanumeric codes like 2A, 2B intact.
+        Returns a string without leading zeros for internal lookups.
         """
         if not code:
             return None
@@ -188,6 +191,88 @@ class EntityProcessor:
         # For alphanumeric codes (like 2A, 2B), keep as-is
         return code
     
+    def _normalize_geo_code_2digit(self, code):
+        """
+        Normalize geographic codes to 2-digit format (e.g., 1 -> "01", 1.0 -> "01").
+        Used for matching with collectivities data which stores codes as 2-digit strings.
+        Keeps alphanumeric codes like 2A, 2B intact.
+        """
+        if not code:
+            return None
+        code = str(code).strip()
+        
+        # Remove decimal point if present
+        if '.' in code:
+            try:
+                float_val = float(code)
+                code = str(int(float_val))
+            except (ValueError, OverflowError):
+                code = code.split('.')[0]
+        
+        # For purely numeric codes, pad to 2 digits
+        if code.isdigit():
+            return code.zfill(2)
+        
+        # For alphanumeric codes (like 2A, 2B), keep as-is
+        return code
+    
+    def _code_matches(self, code_value, target_code):
+        """
+        Check if a code value (which may be a list or scalar) matches a target code.
+        Handles 2-digit formatting (e.g., "01" matches "1" or "1.0").
+        """
+        if code_value is None or target_code is None:
+            return False
+        
+        # Normalize target code
+        target_normalized = self._normalize_geo_code(target_code)
+        target_2digit = self._normalize_geo_code_2digit(target_code)
+        
+        # Handle list values
+        if isinstance(code_value, list):
+            for val in code_value:
+                val_normalized = self._normalize_geo_code(val)
+                val_2digit = self._normalize_geo_code_2digit(val)
+                if val_normalized == target_normalized or val_2digit == target_2digit:
+                    return True
+            return False
+        
+        # Handle scalar values
+        val_normalized = self._normalize_geo_code(code_value)
+        val_2digit = self._normalize_geo_code_2digit(code_value)
+        return val_normalized == target_normalized or val_2digit == target_2digit
+    
+    def _to_padded_string_list(self, codes):
+        """
+        Convert a list of codes to a list of zero-padded strings (minimum 2 digits).
+        Handles string codes like "01", "1.0", "1" -> "01".
+        Keeps alphanumeric codes like "2A", "2B" as-is.
+        """
+        if not codes:
+            return []
+        
+        result = []
+        for code in codes:
+            if code is None:
+                continue
+            code_str = str(code).strip()
+            
+            # Handle decimal strings (e.g., "1.0" -> "1")
+            if '.' in code_str:
+                try:
+                    code_str = str(int(float(code_str)))
+                except (ValueError, OverflowError):
+                    code_str = code_str.split('.')[0]
+            
+            # For purely numeric codes, pad to at least 2 digits
+            if code_str.isdigit():
+                result.append(code_str.zfill(2))
+            else:
+                # Alphanumeric codes like 2A, 2B - keep as-is
+                result.append(code_str)
+        
+        return result
+    
     def _build_geo_lookups(self):
         """Build lookup dictionaries for geographic data."""
         # Get all communes, departments, regions
@@ -210,33 +295,43 @@ class EntityProcessor:
             self.all_departments.extend(dep_codes)
             self.all_department_names.extend(dep_names)
         
-        # All regions
-        self.all_regions = regions['Reg_Code'].tolist()
-        self.all_region_names = regions['Reg_Name'].tolist()
+        # All regions (Reg_Code is now a list, extract first element from each)
+        self.all_regions = []
+        self.all_region_names = []
+        for _, region in regions.iterrows():
+            reg_codes = region['Reg_Code'] if isinstance(region['Reg_Code'], list) else [region['Reg_Code']]
+            reg_names = region['Reg_Name'] if isinstance(region['Reg_Name'], list) else [region['Reg_Name']]
+            self.all_regions.extend(reg_codes)
+            self.all_region_names.extend(reg_names)
         
         # Create lookups by region code (normalized - without leading zeros)
         self.region_to_data = {}
         for _, region in regions.iterrows():
-            reg_code = self._normalize_geo_code(region['Reg_Code'])
+            reg_code_list = region['Reg_Code'] if isinstance(region['Reg_Code'], list) else [region['Reg_Code']]
+            reg_name_list = region['Reg_Name'] if isinstance(region['Reg_Name'], list) else [region['Reg_Name']]
+            reg_code = self._normalize_geo_code(reg_code_list[0]) if reg_code_list else None
+            reg_name = reg_name_list[0] if reg_name_list else None
             if reg_code:
                 self.region_to_data[reg_code] = {
                     'communes': region['Geo_Perimeter'],
                     'dep_codes': region['Dep_Code'],
                     'dep_names': region['Dep_Name'],
-                    'reg_name': region['Reg_Name']
+                    'reg_name': reg_name
                 }
         
         # Create lookups by department code (normalized - handle 2A, 2B for Corsica)
         self.dep_to_data = {}
         for _, dept in departments.iterrows():
             dep_code_list = dept['Dep_Code'] if isinstance(dept['Dep_Code'], list) else [dept['Dep_Code']]
+            reg_code_list = dept['Reg_Code'] if isinstance(dept['Reg_Code'], list) else [dept['Reg_Code']]
+            reg_name_list = dept['Reg_Name'] if isinstance(dept['Reg_Name'], list) else [dept['Reg_Name']]
             dep_code = self._normalize_geo_code(dep_code_list[0]) if dep_code_list else None
             if dep_code:
                 self.dep_to_data[dep_code] = {
                     'communes': dept['Geo_Perimeter'],
                     'dep_name': dept['Dep_Name'][0] if isinstance(dept['Dep_Name'], list) else dept['Dep_Name'],
-                    'reg_code': self._normalize_geo_code(dept['Reg_Code']),
-                    'reg_name': dept['Reg_Name']
+                    'reg_code': self._normalize_geo_code(reg_code_list[0]) if reg_code_list else None,
+                    'reg_name': reg_name_list[0] if reg_name_list else None
                 }
         
         # Add TOM departments to dep_to_data
@@ -310,8 +405,10 @@ class EntityProcessor:
             if commune_code in row['Geo_Perimeter']:
                 dep_code = row['Dep_Code'][0] if isinstance(row['Dep_Code'], list) else row['Dep_Code']
                 dep_name = row['Dep_Name'][0] if isinstance(row['Dep_Name'], list) else row['Dep_Name']
-                reg_code = row['Reg_Code']
-                reg_name = row['Reg_Name']
+                reg_code_list = row['Reg_Code'] if isinstance(row['Reg_Code'], list) else [row['Reg_Code']]
+                reg_name_list = row['Reg_Name'] if isinstance(row['Reg_Name'], list) else [row['Reg_Name']]
+                reg_code = reg_code_list[0] if reg_code_list else None
+                reg_name = reg_name_list[0] if reg_name_list else None
                 return dep_code, dep_name, reg_code, reg_name
         
         return None, None, None, None
@@ -374,9 +471,9 @@ class EntityProcessor:
                 'Siret': siret,
                 'Layer-geo_label': 'National',
                 'Geo_Perimeter': self.all_communes,
-                'Dep_Code': self.all_departments,
+                'Dep_Code': self._to_padded_string_list(self.all_departments),
                 'Dep_Name': self.all_department_names,
-                'Reg_Code': self.all_regions,
+                'Reg_Code': self._to_padded_string_list(self.all_regions),
                 'Reg_Name': self.all_region_names
             })
             results.append(data)
@@ -424,9 +521,9 @@ class EntityProcessor:
                 'Siret': siret,
                 'Layer-geo_label': 'National',
                 'Geo_Perimeter': self.all_communes,
-                'Dep_Code': self.all_departments,
+                'Dep_Code': self._to_padded_string_list(self.all_departments),
                 'Dep_Name': self.all_department_names,
-                'Reg_Code': self.all_regions,
+                'Reg_Code': self._to_padded_string_list(self.all_regions),
                 'Reg_Name': self.all_region_names
             })
             results.append(data)
@@ -513,9 +610,9 @@ class EntityProcessor:
                     'Siret': siret,
                     'Layer-geo_label': 'Région',
                     'Geo_Perimeter': geo_perimeter,
-                    'Dep_Code': dep_codes,
+                    'Dep_Code': self._to_padded_string_list(dep_codes),
                     'Dep_Name': dep_names,
-                    'Reg_Code': [reg_code],
+                    'Reg_Code': self._to_padded_string_list([reg_code]),
                     'Reg_Name': [reg_name]
                 })
                 results.append(data)
@@ -602,9 +699,9 @@ class EntityProcessor:
                     'Siret': siret,
                     'Layer-geo_label': 'Département',
                     'Geo_Perimeter': geo_perimeter,
-                    'Dep_Code': [dep_code],
+                    'Dep_Code': self._to_padded_string_list([dep_code]),
                     'Dep_Name': [dep_name],
-                    'Reg_Code': [reg_code] if reg_code else [],
+                    'Reg_Code': self._to_padded_string_list([reg_code]) if reg_code else [],
                     'Reg_Name': [reg_name] if reg_name else []
                 })
                 results.append(data)
@@ -677,9 +774,11 @@ class EntityProcessor:
                 # Try to find departments that belong to this region
                 elif not geo_perimeter:
                     # Look through all departments to find those in this region
+                    # Reg_Code in collectivities is a list of strings with 2-digit format
+                    reg_code_2digit = self._normalize_geo_code_2digit(reg_code_raw)
                     matching_depts = self.df_collectivities[
                         (self.df_collectivities['Kind-admin'].isin(['DEP', 'TOM'])) &
-                        (self.df_collectivities['Reg_Code'] == reg_code_raw)
+                        (self.df_collectivities['Reg_Code'].apply(lambda x: self._code_matches(x, reg_code_raw)))
                     ]
                     
                     if len(matching_depts) > 0:
@@ -698,7 +797,11 @@ class EntityProcessor:
                         geo_perimeter = list(set(all_communes))
                         dep_codes = list(set(all_dep_codes))
                         dep_names = list(set(all_dep_names))
-                        reg_name = matching_depts.iloc[0]['Reg_Name'] if 'Reg_Name' in matching_depts.columns else None
+                        if 'Reg_Name' in matching_depts.columns:
+                            reg_name_val = matching_depts.iloc[0]['Reg_Name']
+                            reg_name = reg_name_val[0] if isinstance(reg_name_val, list) and reg_name_val else reg_name_val
+                        else:
+                            reg_name = None
                         print(f"    ✓ Found {len(matching_depts)} department(s) for {name_zlv} in region {reg_code}")
                     else:
                         print(f"    ⚠️  Region {reg_code} not found in collectivities data for {name_zlv}")
@@ -734,9 +837,9 @@ class EntityProcessor:
                 'Siret': siret,
                 'Layer-geo_label': 'Hybride',
                 'Geo_Perimeter': geo_perimeter,
-                'Dep_Code': dep_codes,
+                'Dep_Code': self._to_padded_string_list(dep_codes),
                 'Dep_Name': dep_names,
-                'Reg_Code': [reg_code] if reg_code else [],
+                'Reg_Code': self._to_padded_string_list([reg_code]) if reg_code else [],
                 'Reg_Name': [reg_name] if reg_name else []
             })
             results.append(data)

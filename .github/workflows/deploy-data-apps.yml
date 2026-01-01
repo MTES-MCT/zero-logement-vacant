@@ -1,0 +1,23 @@
+name: Deploy Vacancy Explainer to Clever Cloud
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - analytics/apps/vacancy_explainer/**
+      - analytics/pyproject.toml
+      - analytics/uv.lock
+      - .github/workflows/deploy-data-apps.yml
+      - .github/workflows/deploy.yml
+  workflow_dispatch:
+
+jobs:
+  deploy:
+    uses: ./.github/workflows/deploy.yml
+    with:
+      # Must match the Clever Cloud application name & alias
+      app: Vacancy Explainer (Production)
+      alias: vacancy-explainer-production
+      branch: main
+      environment: vacancy-explainer-production
+    secrets: inherit

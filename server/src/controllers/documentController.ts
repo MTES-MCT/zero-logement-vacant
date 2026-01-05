@@ -1,5 +1,6 @@
 import { PutObjectCommand, DeleteObjectCommand } from '@aws-sdk/client-s3';
 import {
+  ACCEPTED_HOUSING_DOCUMENT_EXTENSIONS,
   HousingDocumentDTO,
   isAdmin,
   type DocumentDTO,
@@ -124,7 +125,9 @@ const createByHousing: RequestHandler<
     housing: params.id,
     fileCount: files.length
   });
-  const validationResults = await validateFiles(files);
+  const validationResults = await validateFiles(files, {
+    accept: ACCEPTED_HOUSING_DOCUMENT_EXTENSIONS as string[]
+  });
 
   const s3 = createS3({
     endpoint: config.s3.endpoint,

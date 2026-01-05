@@ -145,7 +145,8 @@ function DocumentCard(props: Readonly<DocumentCardProps>) {
             key={props.document.id}
             document={props.document}
             firstPageOnly
-            responsive="max-width"
+            responsive="1x1"
+            fit="cover"
             onClick={onVisualize}
           />
         </Box>

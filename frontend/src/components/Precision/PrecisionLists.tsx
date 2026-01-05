@@ -19,7 +19,7 @@ import {
   useSaveHousingPrecisionsMutation
 } from '../../services/precision.service';
 import styles from '../HousingEdition/housing-edition.module.scss';
-import createPrecisionModalNext from './PrecisionModalNext';
+import createPrecisionModal from './PrecisionModal';
 import type { PrecisionTabId } from './PrecisionTabs';
 import { useFilteredPrecisions } from './useFilteredPrecisions';
 
@@ -29,7 +29,7 @@ interface Props {
 
 function PrecisionLists(props: Props) {
   const precisionModal = useMemo(
-    () => createPrecisionModalNext(new Date().toJSON()),
+    () => createPrecisionModal(new Date().toJSON()),
     []
   );
 

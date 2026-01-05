@@ -154,7 +154,8 @@ function DocumentCard(props: Readonly<DocumentCardProps>) {
               fontWeight: 500,
               color: fr.colors.decisions.text.title.grey.default,
               whiteSpace: 'nowrap',
-              overflowY: 'auto'
+              overflowY: 'clip',
+              textOverflow: 'ellipsis'
             }}
           >
             {props.document.filename}

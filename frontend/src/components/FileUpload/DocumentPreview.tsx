@@ -8,11 +8,11 @@ import Stack from '@mui/material/Stack';
 import { styled } from '@mui/material/styles';
 import Typography from '@mui/material/Typography';
 import { type DocumentDTO, isImage, isPDF } from '@zerologementvacant/models';
-import { memo, useState } from 'react';
+import { memo, useMemo, useState } from 'react';
 import { Page, pdfjs, Document as UnstyledDocument } from 'react-pdf';
-import { useMeasure } from 'react-use';
 import 'react-pdf/dist/Page/AnnotationLayer.css';
 import 'react-pdf/dist/Page/TextLayer.css';
+import { useMeasure } from 'react-use';
 import { match } from 'ts-pattern';
 
 import Image from '~/components/Image/Image';
@@ -106,8 +106,7 @@ const Document = styled(UnstyledDocument)<{
     display: 'flex',
     flexDirection: 'column' as const,
     alignItems: 'center',
-    justifyContent: 'center',
-    overflow: enableScroll ? 'auto' : (fit === 'cover' ? 'hidden' : 'visible'),
+    overflow: enableScroll ? 'auto' : fit === 'cover' ? 'hidden' : 'visible',
     '& .react-pdf__Page': {
       display: 'flex',
       justifyContent: 'center'
@@ -149,6 +148,7 @@ const PDF = memo((props: Readonly<PDFProps>) => {
   const [containerRef, { width, height }] = useMeasure<HTMLDivElement>();
   const [numPages, setNumPages] = useState<number | null>(null);
   const [pageAspectRatio, setPageAspectRatio] = useState<number | null>(null);
+  const file = useMemo(() => ({ url: props.url }), [props.url]);
 
   const onPageLoadSuccess = (page: any) => {
     const viewport = page.getViewport({ scale: 1 });
@@ -221,7 +221,7 @@ const PDF = memo((props: Readonly<PDFProps>) => {
   return (
     <Document
       className={props.className}
-      file={{ url: props.url }}
+      file={file}
       inputRef={containerRef}
       enableScroll={enableScroll}
       responsive={props.responsive}

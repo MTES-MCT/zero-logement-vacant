@@ -57,7 +57,7 @@ function HousingDocumentUpload(props: Readonly<HousingDocumentUploadProps>) {
       isError={uploadMutation.isError}
       isLoading={uploadMutation.isLoading}
       isSuccess={uploadMutation.isSuccess}
-      label="Ajouter un ou plusieurs documents à associer à ce logement"
+      label="Associez un ou plusieurs documents à ce logement"
       maxSize={25}
       multiple
       onUpload={onUpload}

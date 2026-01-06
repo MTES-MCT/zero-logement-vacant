@@ -10,10 +10,10 @@ import localeFR from 'date-fns/locale/fr';
 import { useMemo, useState } from 'react';
 import { FormProvider, type SubmitHandler, useForm } from 'react-hook-form';
 import { match } from 'ts-pattern';
+import * as yup from 'yup';
+
 import { useNotification } from '../../hooks/useNotification';
 import { useUser } from '../../hooks/useUser';
-
-import * as yup from 'yup';
 import type { Establishment } from '../../models/Establishment';
 import type { Note } from '../../models/Note';
 import { formatAuthor } from '../../models/User';
@@ -29,6 +29,7 @@ import HistoryCard from './HistoryCard';
 export interface NoteCardProps {
   note: Note;
   establishment: Pick<Establishment, 'name'> | null;
+  hideIcon?: boolean;
 }
 
 function NoteCard(props: NoteCardProps) {
@@ -123,7 +124,7 @@ function NoteCard(props: NoteCardProps) {
   }
 
   return (
-    <HistoryCard icon="ri-message-line">
+    <HistoryCard icon="ri-message-line" hideIcon={props.hideIcon}>
       <removeModal.Component
         className="fr-ml-0"
         title="Suppression d’une note"

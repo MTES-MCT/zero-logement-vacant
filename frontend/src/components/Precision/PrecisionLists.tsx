@@ -96,7 +96,7 @@ function PrecisionLists(props: Props) {
     if (props.housingId) {
       saveHousingPrecisions({
         housing: props.housingId,
-        precisions: precisions.map((p) => p.id)
+        precisions: precisions.map((precision) => precision.id)
       }).then(() => {
         precisionModal.close();
       });

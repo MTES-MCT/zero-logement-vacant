@@ -117,11 +117,9 @@ describe('PrecisionLists', () => {
       );
       await user.click(modify);
 
-      const realOptions = screen
-        .getAllByRole('radio')
-        .filter(
-          (radio) => (radio as HTMLInputElement).value !== NULL_PRECISION_ID
-        );
+      const realOptions = screen.getAllByRole('radio', {
+        name: (accessibleName) => accessibleName !== 'Pas d’information'
+      });
 
       if (realOptions.length > 0) {
         await user.click(realOptions[0]);

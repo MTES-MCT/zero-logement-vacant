@@ -44,7 +44,7 @@ Dans Clever Cloud, configurer au minimum:
 - `CC_RUN_COMMAND`:
 
 ```bash
-uv run streamlit run analytics/apps/vacancy_explainer/app.py --server.address 0.0.0.0 --server.port $PORT --server.headless true
+uv --directory analytics/apps/vacancy_explainer run streamlit run app.py --server.address 0.0.0.0 --server.port 9000 --server.headless true
 ```
 
 ## Notes

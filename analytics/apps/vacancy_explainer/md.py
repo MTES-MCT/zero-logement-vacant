@@ -1,66 +1,29 @@
 from __future__ import annotations
 
-import os
-from dataclasses import dataclass
-from typing import Iterable, Literal
+"""Legacy utilities kept for backward compatibility.
+
+The app has been refactored to use:
+- `data/connection.py` for MotherDuck -> local DuckDB caching
+- `data/schemas.py` for schema helpers
+
+This module remains as a thin wrapper so old imports don't break.
+"""
+
+from typing import Iterable
 
 import duckdb
 import pandas as pd
 
+from data.connection import DEFAULT_MD_DB, connect_motherduck
+from data.schemas import quote_ident as _quote_ident
 
+
+# Kept for compatibility with previous `app.py` usage
 TABLE_FQN = "dwh.main_marts.marts_analysis_city_aggregated"
-DEFAULT_MD_DB = "dwh"
-
-
-@dataclass(frozen=True)
-class ColumnInfo:
-    name: str
-    duckdb_type: str
-    kind: Literal["numeric", "categorical", "other"]
-
-
-def _infer_kind_from_duckdb_type(duckdb_type: str) -> Literal["numeric", "categorical", "other"]:
-    t = duckdb_type.strip().upper()
-    if any(k in t for k in ("INT", "DOUBLE", "FLOAT", "DECIMAL", "HUGEINT", "UBIGINT", "SMALLINT", "TINYINT", "REAL")):
-        return "numeric"
-    if any(k in t for k in ("VARCHAR", "CHAR", "TEXT", "STRING", "BOOLEAN", "DATE", "TIMESTAMP")):
-        return "categorical"
-    return "other"
-
-
-def require_motherduck_token() -> str:
-    token = os.getenv("MOTHERDUCK_TOKEN", "").strip()
-    if not token:
-        raise RuntimeError("MOTHERDUCK_TOKEN is not set")
-    return token
-
-
-def connect_motherduck(db: str = DEFAULT_MD_DB) -> duckdb.DuckDBPyConnection:
-    """
-    Connect to MotherDuck using DuckDB.
-    Uses `MOTHERDUCK_TOKEN` from environment.
-    """
-    require_motherduck_token()
-    # DuckDB MotherDuck connector reads MOTHERDUCK_TOKEN automatically.
-    # This connection string targets the MotherDuck database named `db`.
-    return duckdb.connect(f"md:{db}")
-
-
-def list_columns(con: duckdb.DuckDBPyConnection, table_fqn: str = TABLE_FQN) -> list[ColumnInfo]:
-    # DESCRIBE works with qualified identifiers in DuckDB.
-    df = con.execute(f"DESCRIBE {table_fqn}").df()
-    # DuckDB returns: column_name, column_type, null, key, default, extra (varies)
-    cols: list[ColumnInfo] = []
-    for _, row in df.iterrows():
-        name = str(row["column_name"])
-        dtype = str(row["column_type"])
-        cols.append(ColumnInfo(name=name, duckdb_type=dtype, kind=_infer_kind_from_duckdb_type(dtype)))
-    return cols
 
 
 def quote_ident(name: str) -> str:
-    # DuckDB uses double quotes for identifiers
-    return '"' + name.replace('"', '""') + '"'
+    return _quote_ident(name)
 
 
 def sql_literal(value: str) -> str:

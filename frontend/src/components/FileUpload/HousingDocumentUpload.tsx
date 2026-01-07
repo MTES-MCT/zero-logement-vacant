@@ -42,6 +42,11 @@ function HousingDocumentUpload(props: Readonly<HousingDocumentUploadProps>) {
     );
 
   function onUpload(files: ReadonlyArray<File>) {
+    if (!files.length) {
+      uploadMutation.reset();
+      return;
+    }
+
     upload({
       housingId: props.housing.id,
       files: files

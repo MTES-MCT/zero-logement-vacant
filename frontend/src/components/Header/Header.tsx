@@ -9,7 +9,7 @@ function Header() {
       brandTop={
         <>
          Ministère<br />
-          chargé de la Ville<br />
+          de la Ville<br />
           et du Logement
         </>
       }

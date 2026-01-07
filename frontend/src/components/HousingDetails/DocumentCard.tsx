@@ -1,5 +1,6 @@
 import { fr } from '@codegouvfr/react-dsfr';
 import Button from '@codegouvfr/react-dsfr/Button';
+import styled from '@emotion/styled';
 import Box from '@mui/material/Box';
 import Stack from '@mui/material/Stack';
 import Typography from '@mui/material/Typography';
@@ -20,6 +21,10 @@ export interface DocumentCardProps {
   onRename(document: DocumentDTO): void;
   onVisualize(index: number): void;
 }
+
+const FullWidthButton = styled(Button)({
+  width: '100% !important'
+});
 
 function DocumentCard(props: Readonly<DocumentCardProps>) {
   const size = prettyBytes(props.document.sizeBytes, {
@@ -89,47 +94,43 @@ function DocumentCard(props: Readonly<DocumentCardProps>) {
             open={dropdownOpen}
             onOpen={onOpen}
           >
-            <Stack
-              spacing="0.5rem"
-              useFlexGap
-              sx={{ px: '1.5rem', py: '1rem' }}
-            >
-              <Button
+            <Stack spacing="0.5rem" useFlexGap sx={{ p: '1rem' }}>
+              <FullWidthButton
                 priority="tertiary no outline"
                 iconId="fr-icon-eye-line"
                 size="small"
                 onClick={onVisualize}
               >
                 Visualiser
-              </Button>
+              </FullWidthButton>
 
               {isUsual || isAdmin ? (
-                <Button
+                <FullWidthButton
                   priority="tertiary no outline"
                   iconId="fr-icon-edit-fill"
                   size="small"
                   onClick={onRename}
                 >
                   Renommer
-                </Button>
+                </FullWidthButton>
               ) : null}
-              <Button
+              <FullWidthButton
                 priority="tertiary no outline"
                 iconId="fr-icon-download-line"
                 size="small"
                 onClick={onDownload}
               >
                 Télécharger
-              </Button>
+              </FullWidthButton>
               {isUsual || isAdmin ? (
-                <Button
+                <FullWidthButton
                   priority="tertiary no outline"
                   iconId="ri-delete-bin-line"
                   size="small"
                   onClick={onDelete}
                 >
                   Supprimer
-                </Button>
+                </FullWidthButton>
               ) : null}
             </Stack>
           </Dropdown>
@@ -144,7 +145,11 @@ function DocumentCard(props: Readonly<DocumentCardProps>) {
             key={props.document.id}
             document={props.document}
             firstPageOnly
-            responsive="max-width"
+            responsive="1x1"
+            fit="contain"
+            fallbackProps={{
+              size: 'sm'
+            }}
             onClick={onVisualize}
           />
         </Box>
@@ -154,7 +159,8 @@ function DocumentCard(props: Readonly<DocumentCardProps>) {
               fontWeight: 500,
               color: fr.colors.decisions.text.title.grey.default,
               whiteSpace: 'nowrap',
-              overflowY: 'auto'
+              overflowY: 'clip',
+              textOverflow: 'ellipsis'
             }}
           >
             {props.document.filename}

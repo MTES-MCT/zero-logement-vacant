@@ -146,7 +146,7 @@ function DocumentCard(props: Readonly<DocumentCardProps>) {
             document={props.document}
             firstPageOnly
             responsive="1x1"
-            fit="cover"
+            fit="contain"
             fallbackProps={{
               size: 'sm'
             }}

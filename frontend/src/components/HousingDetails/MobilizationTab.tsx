@@ -83,7 +83,7 @@ function MobilizationTab() {
       </Stack>
 
       <Stack component="article">
-        <PrecisionLists housingId={housing.id} />
+        <PrecisionLists housingId={housing.id} writable={false} />
       </Stack>
     </Stack>
   );

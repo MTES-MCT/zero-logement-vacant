@@ -25,6 +25,10 @@ import { useFilteredPrecisions } from './useFilteredPrecisions';
 
 interface Props {
   housingId: Housing['id'] | null;
+  /**
+   * @default true
+   */
+  writable?: boolean;
 }
 
 function PrecisionLists(props: Props) {
@@ -33,6 +37,7 @@ function PrecisionLists(props: Props) {
     []
   );
 
+  const writable = props.writable ?? true
   const [tab, setTab] = useState<PrecisionTabId>('dispositifs');
   const [showAllMechanisms, setShowAllMechanisms] = useState(false);
   const [showAllBlockingPoints, setShowAllBlockingPoints] = useState(false);
@@ -126,6 +131,7 @@ function PrecisionLists(props: Props) {
             >
               Dispositifs ({totalMechanisms})
             </Typography>
+            {writable ? (
             <Button
               priority="secondary"
               title="Modifier les dispositifs"
@@ -136,6 +142,8 @@ function PrecisionLists(props: Props) {
             >
               Modifier
             </Button>
+
+            ) : null}
           </Grid>
           <Grid>
             {filteredMechanisms.length === 0 ? (
@@ -182,16 +190,18 @@ function PrecisionLists(props: Props) {
             >
               Points de blocages ({totalBlockingPoints})
             </Typography>
-            <Button
-              priority="secondary"
-              title="Modifier les points de blocage"
-              onClick={() => {
-                setTab('points-de-blocage');
-                precisionModal.open();
-              }}
-            >
-              Modifier
-            </Button>
+            {writable ? (
+              <Button
+                priority="secondary"
+                title="Modifier les points de blocage"
+                onClick={() => {
+                  setTab('points-de-blocage');
+                  precisionModal.open();
+                }}
+              >
+                Modifier
+              </Button>
+            ) : null}
           </Grid>
           <Grid>
             {filteredBlockingPoints.length === 0 ? (
@@ -234,16 +244,18 @@ function PrecisionLists(props: Props) {
             >
               Évolutions du logement ({totalEvolutions})
             </Typography>
-            <Button
-              priority="secondary"
-              title="Modifier les évolutions du logement"
-              onClick={() => {
-                setTab('evolutions');
-                precisionModal.open();
-              }}
-            >
-              Modifier
-            </Button>
+            {writable ? (
+              <Button
+                priority="secondary"
+                title="Modifier les évolutions du logement"
+                onClick={() => {
+                  setTab('evolutions');
+                  precisionModal.open();
+                }}
+              >
+                Modifier
+              </Button>
+            ) : null}
           </Grid>
           <Grid>
             {filteredEvolutions.length === 0 ? (

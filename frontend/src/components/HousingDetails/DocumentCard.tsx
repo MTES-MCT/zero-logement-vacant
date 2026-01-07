@@ -147,6 +147,9 @@ function DocumentCard(props: Readonly<DocumentCardProps>) {
             firstPageOnly
             responsive="1x1"
             fit="cover"
+            fallbackProps={{
+              size: 'sm'
+            }}
             onClick={onVisualize}
           />
         </Box>

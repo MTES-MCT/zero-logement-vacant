@@ -17,7 +17,7 @@ function Footer() {
         <>
           Ministère
           <br />
-          chargé de la Ville
+          de la Ville
           <br />
           et du Logement
         </>

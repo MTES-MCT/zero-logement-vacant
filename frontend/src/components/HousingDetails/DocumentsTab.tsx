@@ -218,20 +218,26 @@ function DocumentsTab() {
               documents: [Pattern.any, ...Pattern.array(Pattern.any)]
             },
             ({ documents }) => (
-              <Grid container spacing="1rem">
-                {documents.map((document, index) => (
-                  <Grid key={document.id} size={{ xs: 12, md: 6, xl: 4 }}>
-                    <DocumentCard
-                      document={document}
-                      index={index}
-                      onDelete={onDelete}
-                      onDownload={onDownload}
-                      onRename={onRename}
-                      onVisualize={onVisualize}
-                    />
-                  </Grid>
-                ))}
-              </Grid>
+              <Stack spacing="1rem" useFlexGap>
+                <Typography component="h2" variant="h6">
+                  Documents ({documents.length})
+                </Typography>
+
+                <Grid container spacing="1rem">
+                  {documents.map((document, index) => (
+                    <Grid key={document.id} size={{ xs: 12, md: 6, xl: 4 }}>
+                      <DocumentCard
+                        document={document}
+                        index={index}
+                        onDelete={onDelete}
+                        onDownload={onDownload}
+                        onRename={onRename}
+                        onVisualize={onVisualize}
+                      />
+                    </Grid>
+                  ))}
+                </Grid>
+              </Stack>
             )
           )
           .otherwise(() => null)}

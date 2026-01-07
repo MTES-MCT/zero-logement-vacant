@@ -1076,7 +1076,7 @@ describe('Housing view', () => {
       await user.click(tab);
 
       const input = screen.queryByLabelText(
-        /ajouter un ou plusieurs documents/i
+        /associez un ou plusieurs documents à ce logement/i
       );
       expect(input).not.toBeInTheDocument();
     });

@@ -5106,7 +5106,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@maplibre/maplibre-gl-style-spec@npm:23.3.0, @maplibre/maplibre-gl-style-spec@npm:^23.3.0":
+"@maplibre/maplibre-gl-style-spec@npm:23.3.0":
   version: 23.3.0
   resolution: "@maplibre/maplibre-gl-style-spec@npm:23.3.0"
   dependencies:
@@ -5140,6 +5140,34 @@ __metadata:
     gl-style-migrate: dist/gl-style-migrate.mjs
     gl-style-validate: dist/gl-style-validate.mjs
   checksum: 10c0/ef315bf9c4e5ebce0d76a7722e53c3e4192b92ea405c95392f61655f551a112bbc17fd00c7c62a16eeb57cdb79a2145e385c4eaf2ca7f50222d2540c9e7e0a7a
+  languageName: node
+  linkType: hard
+
+"@maplibre/maplibre-gl-style-spec@npm:^24.3.1":
+  version: 24.4.1
+  resolution: "@maplibre/maplibre-gl-style-spec@npm:24.4.1"
+  dependencies:
+    "@mapbox/jsonlint-lines-primitives": "npm:~2.0.2"
+    "@mapbox/unitbezier": "npm:^0.0.1"
+    json-stringify-pretty-compact: "npm:^4.0.0"
+    minimist: "npm:^1.2.8"
+    quickselect: "npm:^3.0.0"
+    rw: "npm:^1.3.3"
+    tinyqueue: "npm:^3.0.0"
+  bin:
+    gl-style-format: dist/gl-style-format.mjs
+    gl-style-migrate: dist/gl-style-migrate.mjs
+    gl-style-validate: dist/gl-style-validate.mjs
+  checksum: 10c0/68c2f0607ab742ee7638ca5ecf90904e714a4215759d1862dbfc1024e92323df2322b926caf3c83237baf1dc50351a43fcab06b2b4f850597c00524a43ab74c2
+  languageName: node
+  linkType: hard
+
+"@maplibre/mlt@npm:^1.1.0":
+  version: 1.1.2
+  resolution: "@maplibre/mlt@npm:1.1.2"
+  dependencies:
+    "@mapbox/point-geometry": "npm:^1.1.0"
+  checksum: 10c0/bb181f15c19ade26ea8b25505d12ff172cbe4a467f3529f951d5d4860390f9df8f87f6a036573aaff0a9b2c6b913d49d0a2135141297f183e1c6d66c28407056
   languageName: node
   linkType: hard
 
@@ -12997,7 +13025,7 @@ __metadata:
     classnames: "npm:2.5.1"
     copyfiles: "npm:2.4.1"
     date-fns: "npm:2.30.0"
-    effect: "npm:3.17.7"
+    effect: "npm:3.19.6"
     fetch-intercept: "npm:2.4.0"
     happy-dom: "npm:18.0.1"
     immutable: "npm:5.1.3"
@@ -13006,7 +13034,7 @@ __metadata:
     jose: "npm:4.15.9"
     lexical: "npm:0.38.2"
     lodash-es: "npm:4.17.21"
-    maplibre-gl: "npm:5.6.2"
+    maplibre-gl: "npm:5.13.0"
     mime: "npm:4.1.0"
     msw: "npm:2.12.4"
     posthog-js: "npm:1.298.0"
@@ -13016,7 +13044,7 @@ __metadata:
     randomstring: "npm:1.3.1"
     react: "npm:18.3.1"
     react-dom: "npm:18.3.1"
-    react-hook-form: "npm:7.62.0"
+    react-hook-form: "npm:7.66.1"
     react-map-gl: "npm:8.0.4"
     react-pdf: "npm:10.2.0"
     react-redux: "npm:8.1.3"
@@ -17658,6 +17686,16 @@ __metadata:
   languageName: node
   linkType: hard
 
+"effect@npm:3.19.6":
+  version: 3.19.6
+  resolution: "effect@npm:3.19.6"
+  dependencies:
+    "@standard-schema/spec": "npm:^1.0.0"
+    fast-check: "npm:^3.23.1"
+  checksum: 10c0/88ca504296094523ab463a861bd1fc1a7b510743b07a0038c040d7dd2ff77131468d40852c98e4688a123d1239251a2b3b10b8c9b966add7b21d10656a549661
+  languageName: node
+  linkType: hard
+
 "ejs@npm:^3.1.10, ejs@npm:^3.1.7":
   version: 3.1.10
   resolution: "ejs@npm:3.1.10"
@@ -20178,10 +20216,10 @@ __metadata:
   languageName: node
   linkType: hard
 
-"gl-matrix@npm:^3.4.3":
-  version: 3.4.3
-  resolution: "gl-matrix@npm:3.4.3"
-  checksum: 10c0/c8ee6e2ce2d089b4ba4ae13ec9d4cb99bf2abe5f68f0cb08d94bbd8bafbec13aacc7230b86539ce5ca01b79226ea8c3194f971f5ca0c81838bc5e4e619dc398e
+"gl-matrix@npm:^3.4.4":
+  version: 3.4.4
+  resolution: "gl-matrix@npm:3.4.4"
+  checksum: 10c0/9aa022ffac0d158212ad0cd29939864ad919ac31cd5dc5a5d35e9d66bb62679ddf152ff7b2173ded20131045e40572b87f31b26a920be2a7583a1516b13b5b4b
   languageName: node
   linkType: hard
 
@@ -24718,9 +24756,9 @@ __metadata:
   languageName: node
   linkType: hard
 
-"maplibre-gl@npm:5.6.2":
-  version: 5.6.2
-  resolution: "maplibre-gl@npm:5.6.2"
+"maplibre-gl@npm:5.13.0":
+  version: 5.13.0
+  resolution: "maplibre-gl@npm:5.13.0"
   dependencies:
     "@mapbox/geojson-rewind": "npm:^0.5.2"
     "@mapbox/jsonlint-lines-primitives": "npm:^2.0.2"
@@ -24729,14 +24767,15 @@ __metadata:
     "@mapbox/unitbezier": "npm:^0.0.1"
     "@mapbox/vector-tile": "npm:^2.0.4"
     "@mapbox/whoots-js": "npm:^3.1.0"
-    "@maplibre/maplibre-gl-style-spec": "npm:^23.3.0"
+    "@maplibre/maplibre-gl-style-spec": "npm:^24.3.1"
+    "@maplibre/mlt": "npm:^1.1.0"
     "@maplibre/vt-pbf": "npm:^4.0.3"
     "@types/geojson": "npm:^7946.0.16"
     "@types/geojson-vt": "npm:3.2.5"
     "@types/supercluster": "npm:^7.1.3"
     earcut: "npm:^3.0.2"
     geojson-vt: "npm:^4.0.2"
-    gl-matrix: "npm:^3.4.3"
+    gl-matrix: "npm:^3.4.4"
     kdbush: "npm:^4.0.2"
     murmurhash-js: "npm:^1.0.0"
     pbf: "npm:^4.0.1"
@@ -24744,7 +24783,7 @@ __metadata:
     quickselect: "npm:^3.0.0"
     supercluster: "npm:^8.0.1"
     tinyqueue: "npm:^3.0.0"
-  checksum: 10c0/5ae824455bc8123c28e1d84d5205e94ede25ab03c18d5d1529513759428d37b920f27dfe98b333797849cb5ce208206d7329ff4fca59ecefe03c31c8c1a0870d
+  checksum: 10c0/83c4df19979e361844cb30b644d1169e01d1e8312e4e0f6683896915e4456c6c3d2595d055cef5a0b2bc5927609ad51f7c54d6f3662dbd2305e32c3aa8741e24
   languageName: node
   linkType: hard
 
@@ -28281,12 +28320,12 @@ __metadata:
   languageName: node
   linkType: hard
 
-"react-hook-form@npm:7.62.0":
-  version: 7.62.0
-  resolution: "react-hook-form@npm:7.62.0"
+"react-hook-form@npm:7.66.1":
+  version: 7.66.1
+  resolution: "react-hook-form@npm:7.66.1"
   peerDependencies:
     react: ^16.8.0 || ^17 || ^18 || ^19
-  checksum: 10c0/451a25a2ddf07be14f690d2ad3f2f970e0b933fd059ef141c6da9e19d0566d739e9d5cc9c482e3533f3fd01d97e658b896a01ce45a1259ad7b0d4638ba0112c6
+  checksum: 10c0/f82238249d44111b377116bdfb6063045e3e81fef4c73d7f487160554fa4b43ff0970dec1f4d031e57bc2dfbdd974bdfba5608bc8c5785998a7b8a39a566428f
   languageName: node
   linkType: hard
 

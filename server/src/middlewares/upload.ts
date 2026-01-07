@@ -2,7 +2,8 @@ import { Predicate } from 'effect';
 import { Request, RequestHandler } from 'express';
 import mime from 'mime';
 import multer from 'multer';
-import BadRequestError from '~/errors/badRequestError';
+
+import { InvalidFileTypeError } from '~/errors/InvalidFileTypeError';
 
 export interface UploadOptions {
   /**
@@ -55,9 +56,16 @@ export function upload(options?: UploadOptions): RequestHandler {
       file: Express.Multer.File,
       callback: multer.FileFilterCallback
     ) {
-      // Basic MIME check (will be validated again with magic bytes)
-      if (!types.has(file.mimetype)) {
-        return callback(new BadRequestError());
+      // Basic MIME check (will be validated again with magic bytes).
+      // Bypass validation if multiple files are allowed
+      // to validate later and provide a list of errors.
+      if (!options?.multiple && !types.has(file.mimetype)) {
+        return callback(
+          new InvalidFileTypeError({
+            filename: file.originalname,
+            accepted: Array.from(types)
+          })
+        );
       }
       return callback(null, true);
     }

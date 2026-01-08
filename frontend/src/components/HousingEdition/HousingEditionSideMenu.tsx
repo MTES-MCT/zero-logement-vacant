@@ -19,11 +19,11 @@ import { HousingStates } from '../../models/HousingState';
 import { useUpdateHousingMutation } from '../../services/housing.service';
 import { useCreateNoteByHousingMutation } from '../../services/note.service';
 import AppLink from '../_app/AppLink/AppLink';
-import AppTextInputNext from '../_app/AppTextInput/AppTextInputNext';
 import OccupancySelect from '../HousingListFilters/OccupancySelect';
 import AsideNext from '../Aside/AsideNext';
 import LabelNext from '../Label/LabelNext';
 import HousingEditionMobilizationTab from './HousingEditionMobilizationTab';
+import HousingEditionNoteTab from './HousingEditionNoteTab';
 import { useHousingEdition } from './useHousingEdition';
 import type { Housing, HousingUpdate } from '../../models/Housing';
 import type { HousingEditionContext } from './useHousingEdition';
@@ -173,12 +173,7 @@ function HousingEditionSideMenu(props: HousingEditionSideMenuProps) {
       <HousingEditionMobilizationTab housingId={housing?.id ?? null} />
     ))
     .with('note', () => (
-      <AppTextInputNext
-        label="Nouvelle note"
-        name="note"
-        nativeTextAreaProps={{ rows: 8 }}
-        textArea
-      />
+      <HousingEditionNoteTab housingId={housing?.id ?? null} />
     ))
     .exhaustive();
 

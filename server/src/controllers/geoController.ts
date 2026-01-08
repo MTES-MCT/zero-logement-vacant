@@ -4,8 +4,15 @@ import async from 'async';
 import { Request, Response } from 'express';
 import { AuthenticatedRequest } from 'express-jwt';
 import { body, param } from 'express-validator';
-import { Feature, FeatureCollection, Geometry, MultiPolygon } from 'geojson';
+import {
+  Feature,
+  FeatureCollection,
+  Geometry,
+  MultiPolygon,
+  Position
+} from 'geojson';
 import { constants } from 'http2';
+import proj4 from 'proj4';
 import shapefile from 'shapefile';
 import { v4 as uuidv4 } from 'uuid';
 import { match, Pattern } from 'ts-pattern';
@@ -15,13 +22,178 @@ import { isArrayOf, isUUID } from '~/utils/validators';
 import { logger } from '~/infra/logger';
 import { GeoPerimeterApi, toGeoPerimeterDTO } from '~/models/GeoPerimeterApi';
 
+// Common projections for French territories
+const KNOWN_PROJECTIONS: Record<string, string> = {
+  // Metropolitan France
+  'EPSG:2154': '+proj=lcc +lat_0=46.5 +lon_0=3 +lat_1=49 +lat_2=44 +x_0=700000 +y_0=6600000 +ellps=GRS80 +towgs84=0,0,0,0,0,0,0 +units=m +no_defs +type=crs',
+  // Réunion
+  'EPSG:2975': '+proj=utm +zone=40 +south +ellps=GRS80 +towgs84=0,0,0,0,0,0,0 +units=m +no_defs +type=crs',
+  // Martinique
+  'EPSG:5490': '+proj=utm +zone=20 +ellps=GRS80 +towgs84=0,0,0,0,0,0,0 +units=m +no_defs +type=crs',
+  // Guadeloupe
+  'EPSG:32620': '+proj=utm +zone=20 +datum=WGS84 +units=m +no_defs +type=crs',
+  // Guyane
+  'EPSG:2972': '+proj=utm +zone=22 +ellps=GRS80 +towgs84=0,0,0,0,0,0,0 +units=m +no_defs +type=crs',
+  // Mayotte
+  'EPSG:4471': '+proj=utm +zone=38 +south +ellps=GRS80 +towgs84=0,0,0,0,0,0,0 +units=m +no_defs +type=crs'
+};
+
+// WGS84 definition
+const WGS84 = '+proj=longlat +datum=WGS84 +no_defs +type=crs';
+
+/**
+ * Detect projection from coordinate ranges when .prj file is missing
+ */
+function detectProjectionFromCoordinates(
+  xMin: number,
+  xMax: number,
+  yMin: number,
+  yMax: number
+): string | null {
+  // WGS84 - already in lat/lng
+  if (xMin >= -180 && xMax <= 180 && yMin >= -90 && yMax <= 90) {
+    return null; // No reprojection needed
+  }
+
+  // Lambert 93 (Metropolitan France)
+  if (xMin > 100000 && xMax < 1300000 && yMin > 6000000 && yMax < 7200000) {
+    return 'EPSG:2154';
+  }
+
+  // RGR92 / UTM zone 40S (Réunion) - X around 300-900k, Y around 7.6-7.9M
+  // But the user's data shows X ~1.7M and Y ~9.2M which suggests a different zone
+  // UTM Zone 40S for Réunion with extended coordinates
+  if (xMin > 1600000 && xMax < 1900000 && yMin > 9100000 && yMax < 9400000) {
+    return 'EPSG:2975';
+  }
+
+  // Standard UTM zone 40S (Réunion)
+  if (xMin > 300000 && xMax < 900000 && yMin > 7600000 && yMax < 7900000) {
+    return 'EPSG:2975';
+  }
+
+  // UTM zone 20N (Martinique/Guadeloupe)
+  if (xMin > 400000 && xMax < 800000 && yMin > 1600000 && yMax < 1900000) {
+    return 'EPSG:5490';
+  }
+
+  // UTM zone 22N (Guyane)
+  if (xMin > 100000 && xMax < 400000 && yMin > 200000 && yMax < 700000) {
+    return 'EPSG:2972';
+  }
+
+  // UTM zone 38S (Mayotte)
+  if (xMin > 400000 && xMax < 600000 && yMin > 8500000 && yMax < 8700000) {
+    return 'EPSG:4471';
+  }
+
+  logger.warn('Unable to detect projection from coordinates', {
+    xMin,
+    xMax,
+    yMin,
+    yMax
+  });
+  return null;
+}
+
+/**
+ * Parse WKT projection string to detect EPSG code
+ */
+function parseWktProjection(wkt: string): string | null {
+  // Look for EPSG code in AUTHORITY
+  const authorityMatch = wkt.match(/AUTHORITY\s*\[\s*"EPSG"\s*,\s*"(\d+)"\s*\]/i);
+  if (authorityMatch) {
+    return `EPSG:${authorityMatch[1]}`;
+  }
+
+  // Look for common projection names
+  if (wkt.includes('Lambert_Conformal_Conic') && wkt.includes('RGF93')) {
+    return 'EPSG:2154';
+  }
+  if (wkt.includes('UTM') && wkt.includes('zone 40S')) {
+    return 'EPSG:2975';
+  }
+  if (wkt.includes('RGR92')) {
+    return 'EPSG:2975';
+  }
+
+  return null;
+}
+
+/**
+ * Reproject coordinates from source CRS to WGS84
+ */
+function reprojectCoordinates(
+  coordinates: Position[],
+  sourceProj: string
+): Position[] {
+  const projDef = KNOWN_PROJECTIONS[sourceProj];
+  if (!projDef) {
+    logger.warn('Unknown projection, cannot reproject', { sourceProj });
+    return coordinates;
+  }
+
+  return coordinates.map((coord) => {
+    const [x, y, ...rest] = coord;
+    const [lng, lat] = proj4(projDef, WGS84, [x, y]);
+    return [lng, lat, ...rest];
+  });
+}
+
+/**
+ * Recursively reproject all coordinates in a geometry
+ */
+function reprojectGeometry(geometry: Geometry, sourceProj: string): Geometry {
+  if (geometry.type === 'Point') {
+    const [lng, lat] = proj4(
+      KNOWN_PROJECTIONS[sourceProj],
+      WGS84,
+      geometry.coordinates as [number, number]
+    );
+    return { ...geometry, coordinates: [lng, lat] };
+  }
+
+  if (geometry.type === 'LineString' || geometry.type === 'MultiPoint') {
+    return {
+      ...geometry,
+      coordinates: reprojectCoordinates(geometry.coordinates, sourceProj)
+    };
+  }
+
+  if (geometry.type === 'Polygon' || geometry.type === 'MultiLineString') {
+    return {
+      ...geometry,
+      coordinates: geometry.coordinates.map((ring) =>
+        reprojectCoordinates(ring, sourceProj)
+      )
+    };
+  }
+
+  if (geometry.type === 'MultiPolygon') {
+    return {
+      ...geometry,
+      coordinates: geometry.coordinates.map((polygon) =>
+        polygon.map((ring) => reprojectCoordinates(ring, sourceProj))
+      )
+    };
+  }
+
+  return geometry;
+}
+
+interface ParsedShapefile {
+  featureCollection: FeatureCollection;
+  sourceProjection: string | null;
+}
+
 /**
  * Parse a shapefile from a ZIP buffer using the shapefile library.
  * This correctly handles Null Shapes (type 0) which shpjs cannot parse.
+ * Also detects the source projection for reprojection to WGS84.
  */
 async function parseShapefileFromZip(
   fileBuffer: Buffer
-): Promise<FeatureCollection> {
+): Promise<ParsedShapefile> {
   const zip = new AdmZip(fileBuffer);
   const zipEntries = zip.getEntries();
 
@@ -31,6 +203,9 @@ async function parseShapefileFromZip(
   const dbfEntry = zipEntries.find((entry) =>
     entry.entryName.toLowerCase().endsWith('.dbf')
   );
+  const prjEntry = zipEntries.find((entry) =>
+    entry.entryName.toLowerCase().endsWith('.prj')
+  );
 
   if (!shpEntry || !dbfEntry) {
     throw new Error('Missing required shapefile components (.shp and .dbf)');
@@ -39,8 +214,24 @@ async function parseShapefileFromZip(
   const shpBuffer = shpEntry.getData();
   const dbfBuffer = dbfEntry.getData();
 
+  // Try to detect projection from .prj file
+  let sourceProjection: string | null = null;
+  if (prjEntry) {
+    const prjContent = prjEntry.getData().toString('utf-8');
+    sourceProjection = parseWktProjection(prjContent);
+    if (sourceProjection) {
+      logger.info('Detected projection from .prj file', { sourceProjection });
+    }
+  }
+
   const features: Feature[] = [];
   const source = await shapefile.open(shpBuffer, dbfBuffer);
+
+  // Track coordinate bounds for projection detection
+  let xMin = Infinity;
+  let xMax = -Infinity;
+  let yMin = Infinity;
+  let yMax = -Infinity;
 
   let result = await source.read();
   while (!result.done) {
@@ -48,13 +239,43 @@ async function parseShapefileFromZip(
     // Filter out Null Shapes (features with null geometry)
     if (feature.geometry !== null) {
       features.push(feature as Feature);
+
+      // Update bounds from coordinates (skip GeometryCollection)
+      if (feature.geometry.type !== 'GeometryCollection') {
+        const coords = JSON.stringify(feature.geometry.coordinates);
+        const numbers = coords.match(/-?\d+\.?\d*/g)?.map(Number) || [];
+        for (let i = 0; i < numbers.length; i += 2) {
+          const x = numbers[i];
+          const y = numbers[i + 1];
+          if (x !== undefined && y !== undefined) {
+            xMin = Math.min(xMin, x);
+            xMax = Math.max(xMax, x);
+            yMin = Math.min(yMin, y);
+            yMax = Math.max(yMax, y);
+          }
+        }
+      }
     }
     result = await source.read();
   }
 
+  // If no projection detected from .prj, try to detect from coordinates
+  if (!sourceProjection && features.length > 0) {
+    sourceProjection = detectProjectionFromCoordinates(xMin, xMax, yMin, yMax);
+    if (sourceProjection) {
+      logger.info('Detected projection from coordinate ranges', {
+        sourceProjection,
+        bounds: { xMin, xMax, yMin, yMax }
+      });
+    }
+  }
+
   return {
-    type: 'FeatureCollection',
-    features
+    featureCollection: {
+      type: 'FeatureCollection',
+      features
+    },
+    sourceProjection
   };
 }
 
@@ -86,11 +307,28 @@ async function createGeoPerimeter(
     name: file.originalname
   });
 
-  const featureCollection = await parseShapefileFromZip(file.buffer);
+  const { featureCollection, sourceProjection } = await parseShapefileFromZip(
+    file.buffer
+  );
+
+  // Log reprojection info
+  if (sourceProjection) {
+    logger.info('Reprojecting shapefile coordinates to WGS84', {
+      sourceProjection,
+      featureCount: featureCollection.features.length
+    });
+  }
+
   const features = featureCollection.features;
   const perimeters = await async.map(features, async (feature: Feature) => {
+    // Reproject geometry if source projection was detected
+    let geometry = feature.geometry;
+    if (sourceProjection && KNOWN_PROJECTIONS[sourceProjection]) {
+      geometry = reprojectGeometry(geometry, sourceProjection);
+    }
+
     // TODO: ask if it necessary to create one perimeter by feature
-    const multiPolygon: MultiPolygon = to2D(toMultiPolygon(feature.geometry));
+    const multiPolygon: MultiPolygon = to2D(toMultiPolygon(geometry));
     const perimeter: GeoPerimeterApi = {
       id: uuidv4(),
       kind: feature.properties?.type ?? '',

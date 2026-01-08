@@ -11761,6 +11761,15 @@ __metadata:
   languageName: node
   linkType: hard
 
+"@types/proj4@npm:^2.19.0":
+  version: 2.19.0
+  resolution: "@types/proj4@npm:2.19.0"
+  dependencies:
+    proj4: "npm:*"
+  checksum: 10c0/3df1d7a3613461f3f1c5e0369668e50b02c0149233e235bf4b82af53a1f6c61acea633c9087b0a57ed211c873397c005af31082e202ac642b001d3c866d66871
+  languageName: node
+  linkType: hard
+
 "@types/prop-types@npm:*, @types/prop-types@npm:15.7.15, @types/prop-types@npm:^15.7.15":
   version: 15.7.15
   resolution: "@types/prop-types@npm:15.7.15"
@@ -13199,6 +13208,7 @@ __metadata:
     "@types/node": "npm:20.19.10"
     "@types/nodemailer": "npm:6.4.17"
     "@types/pg": "npm:8.15.5"
+    "@types/proj4": "npm:^2.19.0"
     "@types/qs": "npm:6.14.0"
     "@types/randomstring": "npm:1.3.0"
     "@types/shapefile": "npm:0"
@@ -13264,6 +13274,7 @@ __metadata:
     pdf-lib: "npm:1.17.1"
     pg: "npm:8.16.3"
     pg-query-stream: "npm:4.10.3"
+    proj4: "npm:^2.20.2"
     puppeteer: "npm:22.15.0"
     qs: "npm:6.14.0"
     randomstring: "npm:1.3.1"
@@ -27957,6 +27968,16 @@ __metadata:
   version: 2.0.3
   resolution: "progress@npm:2.0.3"
   checksum: 10c0/1697e07cb1068055dbe9fe858d242368ff5d2073639e652b75a7eb1f2a1a8d4afd404d719de23c7b48481a6aa0040686310e2dac2f53d776daa2176d3f96369c
+  languageName: node
+  linkType: hard
+
+"proj4@npm:*, proj4@npm:^2.20.2":
+  version: 2.20.2
+  resolution: "proj4@npm:2.20.2"
+  dependencies:
+    mgrs: "npm:1.0.0"
+    wkt-parser: "npm:^1.5.1"
+  checksum: 10c0/7b65fcb12a896a110779f6a0e28e947c4c208ccb4a2e381052f1b7c8bad5306d4315a1dac7b4d6316687a48cfbce63d6ff6017c9946c5ef12f440cbf67d8f0e5
   languageName: node
   linkType: hard
 

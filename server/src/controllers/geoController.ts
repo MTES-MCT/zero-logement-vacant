@@ -1,11 +1,12 @@
 import * as turf from '@turf/turf';
+import AdmZip from 'adm-zip';
 import async from 'async';
 import { Request, Response } from 'express';
 import { AuthenticatedRequest } from 'express-jwt';
 import { body, param } from 'express-validator';
-import { Feature, Geometry, MultiPolygon } from 'geojson';
+import { Feature, FeatureCollection, Geometry, MultiPolygon } from 'geojson';
 import { constants } from 'http2';
-import shpjs from 'shpjs';
+import shapefile from 'shapefile';
 import { v4 as uuidv4 } from 'uuid';
 import { match, Pattern } from 'ts-pattern';
 
@@ -13,6 +14,49 @@ import geoRepository from '~/repositories/geoRepository';
 import { isArrayOf, isUUID } from '~/utils/validators';
 import { logger } from '~/infra/logger';
 import { GeoPerimeterApi, toGeoPerimeterDTO } from '~/models/GeoPerimeterApi';
+
+/**
+ * Parse a shapefile from a ZIP buffer using the shapefile library.
+ * This correctly handles Null Shapes (type 0) which shpjs cannot parse.
+ */
+async function parseShapefileFromZip(
+  fileBuffer: Buffer
+): Promise<FeatureCollection> {
+  const zip = new AdmZip(fileBuffer);
+  const zipEntries = zip.getEntries();
+
+  const shpEntry = zipEntries.find((entry) =>
+    entry.entryName.toLowerCase().endsWith('.shp')
+  );
+  const dbfEntry = zipEntries.find((entry) =>
+    entry.entryName.toLowerCase().endsWith('.dbf')
+  );
+
+  if (!shpEntry || !dbfEntry) {
+    throw new Error('Missing required shapefile components (.shp and .dbf)');
+  }
+
+  const shpBuffer = shpEntry.getData();
+  const dbfBuffer = dbfEntry.getData();
+
+  const features: Feature[] = [];
+  const source = await shapefile.open(shpBuffer, dbfBuffer);
+
+  let result = await source.read();
+  while (!result.done) {
+    const feature = result.value;
+    // Filter out Null Shapes (features with null geometry)
+    if (feature.geometry !== null) {
+      features.push(feature as Feature);
+    }
+    result = await source.read();
+  }
+
+  return {
+    type: 'FeatureCollection',
+    features
+  };
+}
 
 async function listGeoPerimeters(request: Request, response: Response) {
   const { auth } = request as AuthenticatedRequest;
@@ -42,12 +86,8 @@ async function createGeoPerimeter(
     name: file.originalname
   });
 
-  const geojson = await shpjs(file.buffer);
-  const featureCollections = Array.isArray(geojson) ? geojson : [geojson];
-
-  const features = featureCollections.flatMap(
-    (featureCollection) => featureCollection.features
-  );
+  const featureCollection = await parseShapefileFromZip(file.buffer);
+  const features = featureCollection.features;
   const perimeters = await async.map(features, async (feature: Feature) => {
     // TODO: ask if it necessary to create one perimeter by feature
     const multiPolygon: MultiPolygon = to2D(toMultiPolygon(feature.geometry));

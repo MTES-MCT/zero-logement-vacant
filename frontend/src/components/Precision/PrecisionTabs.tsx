@@ -1,9 +1,9 @@
 import Tabs from '@codegouvfr/react-dsfr/Tabs';
 import Grid from '@mui/material/Grid';
 
-import type { Precision } from '@zerologementvacant/models';
+import type { Precision, PrecisionCategory } from '@zerologementvacant/models';
 import { List } from 'immutable';
-import type { ChangeEvent, ReactElement } from 'react';
+import type { ReactElement } from 'react';
 import { useMemo } from 'react';
 import PrecisionColumn from './PrecisionColumn';
 
@@ -28,27 +28,23 @@ function PrecisionTabs(props: PrecisionTabs) {
     [props.options]
   );
 
-  function onChange(event: ChangeEvent<HTMLInputElement>) {
-    if (event.target.checked) {
-      const option = props.options.find(
-        (option) => option.id === event.target.value
-      ) as Precision;
+  function handleCheckboxChange(precisions: Precision[]) {
+    props.onChange(precisions);
+  }
 
-      if (event.target.type === 'radio') {
-        props.onChange(
-          props.value
-            // Remove mutually exclusive options
-            .filter((selected) => selected.category !== option.category)
-            .concat(option)
-        );
-      } else {
-        props.onChange([...props.value, option as Precision]);
-      }
-    } else {
-      props.onChange(
-        props.value.filter((precision) => precision.id !== event.target.value)
+  function handleRadioChange(category: PrecisionCategory) {
+    return (precision: Precision | null) => {
+      const others = props.value.filter(
+        (precision) => precision.category !== category
       );
-    }
+      props.onChange(precision ? [...others, precision] : others);
+    };
+  }
+
+  function getRadioValue(category: PrecisionCategory): Precision | null {
+    return (
+      props.value.find((precision) => precision.category === category) ?? null
+    );
   }
 
   const MechanismsTab: PrecisionTab = {
@@ -65,7 +61,7 @@ function PrecisionTabs(props: PrecisionTabs) {
             }
             title="Dispositifs incitatifs"
             value={props.value}
-            onChange={onChange}
+            onChange={handleCheckboxChange}
           />
         </Grid>
 
@@ -78,7 +74,7 @@ function PrecisionTabs(props: PrecisionTabs) {
             }
             title="Dispositifs coercitifs"
             value={props.value}
-            onChange={onChange}
+            onChange={handleCheckboxChange}
           />
         </Grid>
 
@@ -91,7 +87,7 @@ function PrecisionTabs(props: PrecisionTabs) {
             }
             title="Hors dispositif public"
             value={props.value}
-            onChange={onChange}
+            onChange={handleCheckboxChange}
           />
         </Grid>
       </Grid>
@@ -112,7 +108,7 @@ function PrecisionTabs(props: PrecisionTabs) {
             }
             title="Blocage involontaire"
             value={props.value}
-            onChange={onChange}
+            onChange={handleCheckboxChange}
           />
         </Grid>
 
@@ -125,7 +121,7 @@ function PrecisionTabs(props: PrecisionTabs) {
             }
             title="Blocage volontaire"
             value={props.value}
-            onChange={onChange}
+            onChange={handleCheckboxChange}
           />
         </Grid>
 
@@ -138,7 +134,7 @@ function PrecisionTabs(props: PrecisionTabs) {
             }
             title="Immeuble / Environnement"
             value={props.value}
-            onChange={onChange}
+            onChange={handleCheckboxChange}
           />
         </Grid>
 
@@ -149,7 +145,7 @@ function PrecisionTabs(props: PrecisionTabs) {
             options={optionsByCategory.get('tiers-en-cause')?.toArray() ?? []}
             title="Tiers en cause"
             value={props.value}
-            onChange={onChange}
+            onChange={handleCheckboxChange}
           />
         </Grid>
       </Grid>
@@ -168,8 +164,8 @@ function PrecisionTabs(props: PrecisionTabs) {
             input="radio"
             options={optionsByCategory.get('travaux')?.toArray() ?? []}
             title="Travaux"
-            value={props.value}
-            onChange={onChange}
+            value={getRadioValue('travaux')}
+            onChange={handleRadioChange('travaux')}
           />
         </Grid>
 
@@ -180,8 +176,8 @@ function PrecisionTabs(props: PrecisionTabs) {
             input="radio"
             options={optionsByCategory.get('occupation')?.toArray() ?? []}
             title="Location ou autre occupation"
-            value={props.value}
-            onChange={onChange}
+            value={getRadioValue('occupation')}
+            onChange={handleRadioChange('occupation')}
           />
         </Grid>
 
@@ -192,8 +188,8 @@ function PrecisionTabs(props: PrecisionTabs) {
             input="radio"
             options={optionsByCategory.get('mutation')?.toArray() ?? []}
             title="Vente ou autre mutation"
-            value={props.value}
-            onChange={onChange}
+            value={getRadioValue('mutation')}
+            onChange={handleRadioChange('mutation')}
           />
         </Grid>
       </Grid>

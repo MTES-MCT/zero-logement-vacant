@@ -55,7 +55,8 @@ export const fromUserDTO = (user: UserDTO): User => ({
   lastAuthenticatedAt: user.lastAuthenticatedAt,
   suspendedAt: user.suspendedAt,
   suspendedCause: user.suspendedCause,
-  updatedAt: user.updatedAt
+  updatedAt: user.updatedAt,
+  kind: user.kind
 });
 
 export const toUserDTO = (user: User): UserDTO => ({
@@ -75,7 +76,8 @@ export const toUserDTO = (user: User): UserDTO => ({
   lastAuthenticatedAt: user.lastAuthenticatedAt,
   suspendedAt: user.suspendedAt,
   suspendedCause: user.suspendedCause,
-  updatedAt: user.updatedAt
+  updatedAt: user.updatedAt,
+  kind: user.kind
 });
 
 export type UserAccount = UserAccountDTO;

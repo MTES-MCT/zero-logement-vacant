@@ -51,7 +51,8 @@ export function toUserDTO(user: UserApi): UserDTO {
     lastAuthenticatedAt: user.lastAuthenticatedAt,
     suspendedAt: user.suspendedAt,
     suspendedCause: user.suspendedCause,
-    updatedAt: user.updatedAt
+    updatedAt: user.updatedAt,
+    kind: user.kind
   };
 }
 

@@ -1,13 +1,15 @@
 import Skeleton from '@mui/material/Skeleton';
 import Stack from '@mui/material/Stack';
 import Typography from '@mui/material/Typography';
+import { skipToken } from '@reduxjs/toolkit/query/react';
 import { Predicate } from 'effect';
 import { type ReactNode } from 'react';
 import { match, Pattern } from 'ts-pattern';
 
-import { lastUpdate } from '../../models/Housing';
-import { useFindCampaignsQuery } from '../../services/campaign.service';
-import { useHousing } from '../../hooks/useHousing';
+import { useHousing } from '~/hooks/useHousing';
+import { lastUpdate } from '~/models/Housing';
+import { useFindCampaignsQuery } from '~/services/campaign.service';
+import { useFindPrecisionsByHousingQuery } from '~/services/precision.service';
 import HousingStatusBadge from '../HousingStatusBadge/HousingStatusBadge';
 import PrecisionLists from '../Precision/PrecisionLists';
 import HousingAttribute from './HousingAttribute';
@@ -15,6 +17,9 @@ import HousingAttribute from './HousingAttribute';
 function MobilizationTab() {
   const { housing } = useHousing();
   const findCampaignsQuery = useFindCampaignsQuery();
+  const { data: housingPrecisions } = useFindPrecisionsByHousingQuery(
+    housing ? { housingId: housing.id } : skipToken
+  );
 
   const updated = lastUpdate();
 
@@ -83,7 +88,7 @@ function MobilizationTab() {
       </Stack>
 
       <Stack component="article">
-        <PrecisionLists housingId={housing.id} writable={false} />
+        <PrecisionLists writable={false} value={housingPrecisions ?? []} />
       </Stack>
     </Stack>
   );

@@ -4,29 +4,35 @@ import Box from '@mui/material/Box';
 import Stack from '@mui/material/Stack';
 import Typography from '@mui/material/Typography';
 
+import { skipToken } from '@reduxjs/toolkit/query/react';
 import {
   HOUSING_STATUS_VALUES,
   HousingStatus,
   Occupancy,
-  OCCUPANCY_VALUES
+  OCCUPANCY_VALUES,
+  PRECISION_CATEGORY_VALUES
 } from '@zerologementvacant/models';
 import { fromJS } from 'immutable';
 import { Controller, FormProvider, useForm } from 'react-hook-form';
 import { match } from 'ts-pattern';
-import { type InferType, number, object, string } from 'yup';
-import { useNotification } from '../../hooks/useNotification';
-import { HousingStates } from '../../models/HousingState';
-import { useUpdateHousingMutation } from '../../services/housing.service';
-import { useCreateNoteByHousingMutation } from '../../services/note.service';
+import { array, number, object, string, type InferType } from 'yup';
+import { useNotification } from '~/hooks/useNotification';
+import { HousingStates } from '~/models/HousingState';
+import { useUpdateHousingMutation } from '~/services/housing.service';
+import { useCreateNoteByHousingMutation } from '~/services/note.service';
+import {
+  useFindPrecisionsByHousingQuery,
+  useSaveHousingPrecisionsMutation
+} from '~/services/precision.service';
+import type { Housing, HousingUpdate } from '../../models/Housing';
 import AppLink from '../_app/AppLink/AppLink';
-import OccupancySelect from '../HousingListFilters/OccupancySelect';
 import AsideNext from '../Aside/AsideNext';
+import OccupancySelect from '../HousingListFilters/OccupancySelect';
 import LabelNext from '../Label/LabelNext';
 import HousingEditionMobilizationTab from './HousingEditionMobilizationTab';
 import HousingEditionNoteTab from './HousingEditionNoteTab';
-import { useHousingEdition } from './useHousingEdition';
-import type { Housing, HousingUpdate } from '../../models/Housing';
 import type { HousingEditionContext } from './useHousingEdition';
+import { useHousingEdition } from './useHousingEdition';
 
 interface HousingEditionSideMenuProps {
   housing: Housing | null;
@@ -55,11 +61,19 @@ const schema = object({
     .optional()
     .default(null)
     .when('status', ([status], schema) =>
-      HousingStates.find((state) => state.status === status)?.subStatusList?.length
+      HousingStates.find((state) => state.status === status)?.subStatusList
+        ?.length
         ? schema.required('Veuillez renseigner le sous-statut de suivi')
         : schema
     ),
-  note: string().default(null)
+  note: string().default(null),
+  precisions: array(
+    object({
+      id: string().required(),
+      category: string().oneOf(PRECISION_CATEGORY_VALUES).required(),
+      label: string().required()
+    }).required()
+  ).default([])
 }).required();
 
 export type HousingEditionFormSchema = InferType<typeof schema>;
@@ -68,13 +82,18 @@ function HousingEditionSideMenu(props: HousingEditionSideMenuProps) {
   const { housing, expand, onClose } = props;
   const { tab, setTab } = useHousingEdition();
 
+  const { data: housingPrecisions } = useFindPrecisionsByHousingQuery(
+    props.housing ? { housingId: props.housing.id } : skipToken
+  );
+
   const form = useForm<HousingEditionFormSchema>({
     values: {
       occupancy: props.housing?.occupancy ?? Occupancy.UNKNOWN,
       occupancyIntended: props.housing?.occupancyIntended ?? Occupancy.UNKNOWN,
       status: props.housing?.status ?? HousingStatus.NEVER_CONTACTED,
       subStatus: props.housing?.subStatus ?? null,
-      note: ''
+      note: '',
+      precisions: housingPrecisions ?? []
     },
     mode: 'onSubmit',
     resolver: yupResolver(schema)
@@ -82,6 +101,8 @@ function HousingEditionSideMenu(props: HousingEditionSideMenuProps) {
 
   const [createNote, noteCreationMutation] = useCreateNoteByHousingMutation();
   const [updateHousing, housingUpdateMutation] = useUpdateHousingMutation();
+  const [saveHousingPrecisions, saveHousingPrecisionsMutation] =
+    useSaveHousingPrecisionsMutation();
 
   useNotification({
     toastId: 'note-creation',
@@ -106,13 +127,24 @@ function HousingEditionSideMenu(props: HousingEditionSideMenuProps) {
       success: 'Logement mis à jour !'
     }
   });
+  useNotification({
+    toastId: 'housing-precisions-update',
+    isError: saveHousingPrecisionsMutation.isError,
+    isLoading: saveHousingPrecisionsMutation.isLoading,
+    isSuccess: saveHousingPrecisionsMutation.isSuccess,
+    message: {
+      error: 'Impossible de modifier les précisions du logement',
+      loading: 'Modification des précisions du logement...',
+      success: 'Précisions du logement modifiées'
+    }
+  });
 
   function submit() {
     if (housing) {
-      const { note, ...payload } = form.getValues();
+      const { note, precisions, ...payload } = form.getValues();
 
       const hasChanges = fromJS(form.formState.dirtyFields)
-        .filterNot((_, key) => key === 'note')
+        .filterNot((_, key) => key === 'note' || key === 'precisions')
         .some((value) => !!value);
       if (hasChanges) {
         updateHousing({
@@ -123,6 +155,13 @@ function HousingEditionSideMenu(props: HousingEditionSideMenuProps) {
           occupancyIntended: payload.occupancyIntended as Occupancy | null,
           status: payload.status as HousingStatus,
           subStatus: payload.subStatus ?? null
+        });
+      }
+
+      if (form.formState.dirtyFields.precisions) {
+        saveHousingPrecisions({
+          housing: housing.id,
+          precisions: precisions.map((precision) => precision.id)
         });
       }
 
@@ -169,9 +208,7 @@ function HousingEditionSideMenu(props: HousingEditionSideMenuProps) {
         />
       </Stack>
     ))
-    .with('mobilization', () => (
-      <HousingEditionMobilizationTab housingId={housing?.id ?? null} />
-    ))
+    .with('mobilization', () => <HousingEditionMobilizationTab />)
     .with('note', () => (
       <HousingEditionNoteTab housingId={housing?.id ?? null} />
     ))

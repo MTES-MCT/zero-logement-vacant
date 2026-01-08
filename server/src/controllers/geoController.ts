@@ -26,7 +26,7 @@ import { GeoPerimeterApi, toGeoPerimeterDTO } from '~/models/GeoPerimeterApi';
 const KNOWN_PROJECTIONS: Record<string, string> = {
   // Metropolitan France
   'EPSG:2154': '+proj=lcc +lat_0=46.5 +lon_0=3 +lat_1=49 +lat_2=44 +x_0=700000 +y_0=6600000 +ellps=GRS80 +towgs84=0,0,0,0,0,0,0 +units=m +no_defs +type=crs',
-  // Réunion
+  // Réunion (standard UTM zone 40S)
   'EPSG:2975': '+proj=utm +zone=40 +south +ellps=GRS80 +towgs84=0,0,0,0,0,0,0 +units=m +no_defs +type=crs',
   // Martinique
   'EPSG:5490': '+proj=utm +zone=20 +ellps=GRS80 +towgs84=0,0,0,0,0,0,0 +units=m +no_defs +type=crs',
@@ -36,6 +36,24 @@ const KNOWN_PROJECTIONS: Record<string, string> = {
   'EPSG:2972': '+proj=utm +zone=22 +ellps=GRS80 +towgs84=0,0,0,0,0,0,0 +units=m +no_defs +type=crs',
   // Mayotte
   'EPSG:4471': '+proj=utm +zone=38 +south +ellps=GRS80 +towgs84=0,0,0,0,0,0,0 +units=m +no_defs +type=crs'
+};
+
+// Special projections with coordinate offsets (non-standard grids)
+// Some shapefiles use modified coordinate systems with additional offsets
+interface ProjectionWithOffset {
+  proj4: string;
+  xOffset: number;
+  yOffset: number;
+}
+
+const OFFSET_PROJECTIONS: Record<string, ProjectionWithOffset> = {
+  // Réunion with non-standard offsets (X+1.35M, Y+1.57M added to standard UTM 40S)
+  // Detected from shapefiles with X: ~1.6M-1.9M, Y: ~9.0M-9.5M
+  'REUNION_OFFSET': {
+    proj4: '+proj=utm +zone=40 +south +datum=WGS84 +units=m +no_defs +type=crs',
+    xOffset: -1350000,
+    yOffset: -1570000
+  }
 };
 
 // WGS84 definition
@@ -60,15 +78,15 @@ function detectProjectionFromCoordinates(
     return 'EPSG:2154';
   }
 
-  // RGR92 / UTM zone 40S (Réunion) - X around 300-900k, Y around 7.6-7.9M
-  // But the user's data shows X ~1.7M and Y ~9.2M which suggests a different zone
-  // UTM Zone 40S for Réunion with extended coordinates
-  if (xMin > 1600000 && xMax < 1900000 && yMin > 9100000 && yMax < 9400000) {
-    return 'EPSG:2975';
+  // Réunion with non-standard offsets (some local tools add extra offsets)
+  // Detected pattern: X ~1.6M-1.9M, Y ~9.0M-9.5M
+  // This needs special handling with coordinate offsets before reprojection
+  if (xMin > 1600000 && xMax < 1900000 && yMin > 9000000 && yMax < 9500000) {
+    return 'REUNION_OFFSET';
   }
 
-  // Standard UTM zone 40S (Réunion)
-  if (xMin > 300000 && xMax < 900000 && yMin > 7600000 && yMax < 7900000) {
+  // Standard UTM zone 40S (Réunion) - X around 300-500k, Y around 7.6-7.8M
+  if (xMin > 300000 && xMax < 600000 && yMin > 7600000 && yMax < 7800000) {
     return 'EPSG:2975';
   }
 
@@ -122,11 +140,26 @@ function parseWktProjection(wkt: string): string | null {
 
 /**
  * Reproject coordinates from source CRS to WGS84
+ * Handles both standard EPSG projections and special offset projections
  */
 function reprojectCoordinates(
   coordinates: Position[],
   sourceProj: string
 ): Position[] {
+  // Check for offset projections first
+  const offsetProj = OFFSET_PROJECTIONS[sourceProj];
+  if (offsetProj) {
+    return coordinates.map((coord) => {
+      const [x, y, ...rest] = coord;
+      // Apply coordinate offsets before reprojection
+      const adjustedX = x + offsetProj.xOffset;
+      const adjustedY = y + offsetProj.yOffset;
+      const [lng, lat] = proj4(offsetProj.proj4, WGS84, [adjustedX, adjustedY]);
+      return [lng, lat, ...rest];
+    });
+  }
+
+  // Standard EPSG projection
   const projDef = KNOWN_PROJECTIONS[sourceProj];
   if (!projDef) {
     logger.warn('Unknown projection, cannot reproject', { sourceProj });
@@ -142,15 +175,29 @@ function reprojectCoordinates(
 
 /**
  * Recursively reproject all coordinates in a geometry
+ * Handles both standard EPSG projections and special offset projections
  */
 function reprojectGeometry(geometry: Geometry, sourceProj: string): Geometry {
   if (geometry.type === 'Point') {
-    const [lng, lat] = proj4(
-      KNOWN_PROJECTIONS[sourceProj],
-      WGS84,
-      geometry.coordinates as [number, number]
-    );
-    return { ...geometry, coordinates: [lng, lat] };
+    const [x, y] = geometry.coordinates as [number, number];
+
+    // Check for offset projections first
+    const offsetProj = OFFSET_PROJECTIONS[sourceProj];
+    if (offsetProj) {
+      const adjustedX = x + offsetProj.xOffset;
+      const adjustedY = y + offsetProj.yOffset;
+      const [lng, lat] = proj4(offsetProj.proj4, WGS84, [adjustedX, adjustedY]);
+      return { ...geometry, coordinates: [lng, lat] };
+    }
+
+    // Standard EPSG projection
+    const projDef = KNOWN_PROJECTIONS[sourceProj];
+    if (projDef) {
+      const [lng, lat] = proj4(projDef, WGS84, [x, y]);
+      return { ...geometry, coordinates: [lng, lat] };
+    }
+
+    return geometry;
   }
 
   if (geometry.type === 'LineString' || geometry.type === 'MultiPoint') {
@@ -323,7 +370,9 @@ async function createGeoPerimeter(
   const perimeters = await async.map(features, async (feature: Feature) => {
     // Reproject geometry if source projection was detected
     let geometry = feature.geometry;
-    if (sourceProjection && KNOWN_PROJECTIONS[sourceProjection]) {
+    const hasKnownProjection = sourceProjection && KNOWN_PROJECTIONS[sourceProjection];
+    const hasOffsetProjection = sourceProjection && OFFSET_PROJECTIONS[sourceProjection];
+    if (hasKnownProjection || hasOffsetProjection) {
       geometry = reprojectGeometry(geometry, sourceProjection);
     }
 

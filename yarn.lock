@@ -8088,15 +8088,16 @@ __metadata:
   linkType: hard
 
 "@smithy/config-resolver@npm:^4.1.5":
-  version: 4.1.5
-  resolution: "@smithy/config-resolver@npm:4.1.5"
+  version: 4.4.5
+  resolution: "@smithy/config-resolver@npm:4.4.5"
   dependencies:
-    "@smithy/node-config-provider": "npm:^4.1.4"
-    "@smithy/types": "npm:^4.3.2"
-    "@smithy/util-config-provider": "npm:^4.0.0"
-    "@smithy/util-middleware": "npm:^4.0.5"
+    "@smithy/node-config-provider": "npm:^4.3.7"
+    "@smithy/types": "npm:^4.11.0"
+    "@smithy/util-config-provider": "npm:^4.2.0"
+    "@smithy/util-endpoints": "npm:^3.2.7"
+    "@smithy/util-middleware": "npm:^4.2.7"
     tslib: "npm:^2.6.2"
-  checksum: 10c0/f76f2365403411810a205763a6744eb84d4edfc6bedb87ba0d41b4b310b9c693f3cb17610f963f706b06e90c12864fe54617c9ff1f435fe3b94d825f2def2bfb
+  checksum: 10c0/0a7c365bc50e82c9e22897b26cafe1d2a176b425a1303ff55fd5bd5f851e85534e7147d2a1408328dc6ca29f535143eab3289a39d03969e924302226711c0d55
   languageName: node
   linkType: hard
 
@@ -8352,6 +8353,18 @@ __metadata:
   languageName: node
   linkType: hard
 
+"@smithy/node-config-provider@npm:^4.3.7":
+  version: 4.3.7
+  resolution: "@smithy/node-config-provider@npm:4.3.7"
+  dependencies:
+    "@smithy/property-provider": "npm:^4.2.7"
+    "@smithy/shared-ini-file-loader": "npm:^4.4.2"
+    "@smithy/types": "npm:^4.11.0"
+    tslib: "npm:^2.6.2"
+  checksum: 10c0/2fbe9f22e315253d8d4f5a8d16d41d36ff4467c9f7e515d456c3172b59af8fbd67004d0d44bdb7638886eb6057d04ce269f84de65a382d2ccd0c08114dea840c
+  languageName: node
+  linkType: hard
+
 "@smithy/node-http-handler@npm:^4.1.1":
   version: 4.1.1
   resolution: "@smithy/node-http-handler@npm:4.1.1"
@@ -8372,6 +8385,16 @@ __metadata:
     "@smithy/types": "npm:^4.3.2"
     tslib: "npm:^2.6.2"
   checksum: 10c0/67b828f4ddfb90a90e8a919328bb3c842612115d84d949087988fd8558cd143ec8f7dc437936ef41f9427a7ea2a6ec6a726c5f92a9c12e8c7bef831c4b4f16f0
+  languageName: node
+  linkType: hard
+
+"@smithy/property-provider@npm:^4.2.7":
+  version: 4.2.7
+  resolution: "@smithy/property-provider@npm:4.2.7"
+  dependencies:
+    "@smithy/types": "npm:^4.11.0"
+    tslib: "npm:^2.6.2"
+  checksum: 10c0/7caaeec11262a169c6509c5cd687900342ab02900f3074e54aeafbd2ce8a112c83ce3190225b2dab9f2a7f737f7176960329f882935ae7bd9d624984387d0fc1
   languageName: node
   linkType: hard
 
@@ -8425,6 +8448,16 @@ __metadata:
   languageName: node
   linkType: hard
 
+"@smithy/shared-ini-file-loader@npm:^4.4.2":
+  version: 4.4.2
+  resolution: "@smithy/shared-ini-file-loader@npm:4.4.2"
+  dependencies:
+    "@smithy/types": "npm:^4.11.0"
+    tslib: "npm:^2.6.2"
+  checksum: 10c0/3d401b87b21113aa9bb7490d80ec02d7655c1abc1b23eb384fea13b7e1348f1c599011ed109a3fe2e3675b3bc51f91f43b66d7e46f565f78c3f0d45d3b997058
+  languageName: node
+  linkType: hard
+
 "@smithy/signature-v4@npm:^5.1.3":
   version: 5.1.3
   resolution: "@smithy/signature-v4@npm:5.1.3"
@@ -8453,6 +8486,15 @@ __metadata:
     "@smithy/util-stream": "npm:^4.2.4"
     tslib: "npm:^2.6.2"
   checksum: 10c0/994743c7a04e3e1b5136c3be98c3882ab9169d39143530c11553062934887b6b9b7d32de035a15f7ff0f7e6b5db6106ab3e71dc62beb473da9313ff6b8b24a37
+  languageName: node
+  linkType: hard
+
+"@smithy/types@npm:^4.11.0":
+  version: 4.11.0
+  resolution: "@smithy/types@npm:4.11.0"
+  dependencies:
+    tslib: "npm:^2.6.2"
+  checksum: 10c0/8be4af86df4a78fe43afe7dc3f875bf8ec6ce7c04f7bb167152bf3c7ab2eef26db38ed7ae365c2f283e8796e40372b01b4c857b8db43da393002c5638ef3f249
   languageName: node
   linkType: hard
 
@@ -8543,6 +8585,15 @@ __metadata:
   languageName: node
   linkType: hard
 
+"@smithy/util-config-provider@npm:^4.2.0":
+  version: 4.2.0
+  resolution: "@smithy/util-config-provider@npm:4.2.0"
+  dependencies:
+    tslib: "npm:^2.6.2"
+  checksum: 10c0/0699b9980ef94eac8f491c2ac557dc47e01c6ae71dabcb4464cc064f8dbf0855797461dbec8ba1925d45f076e968b0df02f0691c636cd1043e560f67541a1d27
+  languageName: node
+  linkType: hard
+
 "@smithy/util-defaults-mode-browser@npm:^4.0.26":
   version: 4.0.26
   resolution: "@smithy/util-defaults-mode-browser@npm:4.0.26"
@@ -8582,6 +8633,17 @@ __metadata:
   languageName: node
   linkType: hard
 
+"@smithy/util-endpoints@npm:^3.2.7":
+  version: 3.2.7
+  resolution: "@smithy/util-endpoints@npm:3.2.7"
+  dependencies:
+    "@smithy/node-config-provider": "npm:^4.3.7"
+    "@smithy/types": "npm:^4.11.0"
+    tslib: "npm:^2.6.2"
+  checksum: 10c0/ca4b134e0ed8b62dfedb82b9ea91fa028567732e271e934b9b878a9aa43f1c5c9d8860ad49f60992290c7705b7b6d2e734769304b9ea38eec40eaf524bb27ad8
+  languageName: node
+  linkType: hard
+
 "@smithy/util-hex-encoding@npm:^4.0.0":
   version: 4.0.0
   resolution: "@smithy/util-hex-encoding@npm:4.0.0"
@@ -8598,6 +8660,16 @@ __metadata:
     "@smithy/types": "npm:^4.3.2"
     tslib: "npm:^2.6.2"
   checksum: 10c0/74d9bdbcea4c4aa5304197417c370346b230b7a89893ba0dee0d9771b6ead2628a53fb8a64a3822bf1a30a176ebba2c16ece7003c21880a7ff54be0955356606
+  languageName: node
+  linkType: hard
+
+"@smithy/util-middleware@npm:^4.2.7":
+  version: 4.2.7
+  resolution: "@smithy/util-middleware@npm:4.2.7"
+  dependencies:
+    "@smithy/types": "npm:^4.11.0"
+    tslib: "npm:^2.6.2"
+  checksum: 10c0/76c598cfe8062b6daf0bf88bc855544ce071f1d2df5d9d2c2d1c08402a577cb9ade8f33102a869dfb8aae9f679b86b5faacc9011b032bf453ced255fd8d0a0d3
   languageName: node
   linkType: hard
 
@@ -12918,7 +12990,7 @@ __metadata:
     knex: "npm:3.1.0"
     nock: "npm:13.5.6"
     pg: "npm:8.16.3"
-    qs: "npm:6.14.0"
+    qs: "npm:6.14.1"
   languageName: unknown
   linkType: soft
 
@@ -13276,7 +13348,7 @@ __metadata:
     pg-query-stream: "npm:4.10.3"
     proj4: "npm:^2.20.2"
     puppeteer: "npm:22.15.0"
-    qs: "npm:6.14.0"
+    qs: "npm:6.14.1"
     randomstring: "npm:1.3.1"
     redis: "npm:4.7.1"
     rimraf: "npm:5.0.10"
@@ -13289,7 +13361,7 @@ __metadata:
     tsx: "npm:4.20.3"
     unzip-stream: "npm:0.3.4"
     uuid: "npm:9.0.1"
-    validator: "npm:13.15.22"
+    validator: "npm:13.15.23"
     web-streams-utils: "npm:0.3.0"
     wuzzy: "npm:0.1.8"
     yup: "npm:1.7.0"
@@ -19380,7 +19452,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"fdir@npm:^6.2.0, fdir@npm:^6.4.4, fdir@npm:^6.5.0":
+"fdir@npm:^6.2.0, fdir@npm:^6.5.0":
   version: 6.5.0
   resolution: "fdir@npm:6.5.0"
   peerDependencies:
@@ -27764,7 +27836,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"postcss@npm:^8.4.24, postcss@npm:^8.4.33, postcss@npm:^8.4.38, postcss@npm:^8.5.3, postcss@npm:^8.5.6":
+"postcss@npm:^8.4.24, postcss@npm:^8.4.33, postcss@npm:^8.4.38, postcss@npm:^8.5.6":
   version: 8.5.6
   resolution: "postcss@npm:8.5.6"
   dependencies:
@@ -27826,9 +27898,9 @@ __metadata:
   linkType: hard
 
 "preact@npm:^10.19.3":
-  version: 10.27.0
-  resolution: "preact@npm:10.27.0"
-  checksum: 10c0/f00d84fdceca2d6236c093afb005ab34bfc9bac7fdeac2bb83c09791034692e0c1eb431659ba1fba1b9914ca0f9918da13b0a212ffb51c3ca2c2f5e5f5f01219
+  version: 10.28.2
+  resolution: "preact@npm:10.28.2"
+  checksum: 10c0/eb60bf526eb6971701e6ac9c25236aca451f17f99e9c24704419196989b15bb576ed3101e084b151cd0fb30546b3e5e1ba73b774e8be2f2ed8187db42ec65faf
   languageName: node
   linkType: hard
 
@@ -29420,81 +29492,6 @@ __metadata:
   languageName: node
   linkType: hard
 
-"rollup@npm:^4.34.9, rollup@npm:^4.46.2":
-  version: 4.46.2
-  resolution: "rollup@npm:4.46.2"
-  dependencies:
-    "@rollup/rollup-android-arm-eabi": "npm:4.46.2"
-    "@rollup/rollup-android-arm64": "npm:4.46.2"
-    "@rollup/rollup-darwin-arm64": "npm:4.46.2"
-    "@rollup/rollup-darwin-x64": "npm:4.46.2"
-    "@rollup/rollup-freebsd-arm64": "npm:4.46.2"
-    "@rollup/rollup-freebsd-x64": "npm:4.46.2"
-    "@rollup/rollup-linux-arm-gnueabihf": "npm:4.46.2"
-    "@rollup/rollup-linux-arm-musleabihf": "npm:4.46.2"
-    "@rollup/rollup-linux-arm64-gnu": "npm:4.46.2"
-    "@rollup/rollup-linux-arm64-musl": "npm:4.46.2"
-    "@rollup/rollup-linux-loongarch64-gnu": "npm:4.46.2"
-    "@rollup/rollup-linux-ppc64-gnu": "npm:4.46.2"
-    "@rollup/rollup-linux-riscv64-gnu": "npm:4.46.2"
-    "@rollup/rollup-linux-riscv64-musl": "npm:4.46.2"
-    "@rollup/rollup-linux-s390x-gnu": "npm:4.46.2"
-    "@rollup/rollup-linux-x64-gnu": "npm:4.46.2"
-    "@rollup/rollup-linux-x64-musl": "npm:4.46.2"
-    "@rollup/rollup-win32-arm64-msvc": "npm:4.46.2"
-    "@rollup/rollup-win32-ia32-msvc": "npm:4.46.2"
-    "@rollup/rollup-win32-x64-msvc": "npm:4.46.2"
-    "@types/estree": "npm:1.0.8"
-    fsevents: "npm:~2.3.2"
-  dependenciesMeta:
-    "@rollup/rollup-android-arm-eabi":
-      optional: true
-    "@rollup/rollup-android-arm64":
-      optional: true
-    "@rollup/rollup-darwin-arm64":
-      optional: true
-    "@rollup/rollup-darwin-x64":
-      optional: true
-    "@rollup/rollup-freebsd-arm64":
-      optional: true
-    "@rollup/rollup-freebsd-x64":
-      optional: true
-    "@rollup/rollup-linux-arm-gnueabihf":
-      optional: true
-    "@rollup/rollup-linux-arm-musleabihf":
-      optional: true
-    "@rollup/rollup-linux-arm64-gnu":
-      optional: true
-    "@rollup/rollup-linux-arm64-musl":
-      optional: true
-    "@rollup/rollup-linux-loongarch64-gnu":
-      optional: true
-    "@rollup/rollup-linux-ppc64-gnu":
-      optional: true
-    "@rollup/rollup-linux-riscv64-gnu":
-      optional: true
-    "@rollup/rollup-linux-riscv64-musl":
-      optional: true
-    "@rollup/rollup-linux-s390x-gnu":
-      optional: true
-    "@rollup/rollup-linux-x64-gnu":
-      optional: true
-    "@rollup/rollup-linux-x64-musl":
-      optional: true
-    "@rollup/rollup-win32-arm64-msvc":
-      optional: true
-    "@rollup/rollup-win32-ia32-msvc":
-      optional: true
-    "@rollup/rollup-win32-x64-msvc":
-      optional: true
-    fsevents:
-      optional: true
-  bin:
-    rollup: dist/bin/rollup
-  checksum: 10c0/f428497fe119fe7c4e34f1020d45ba13e99b94c9aa36958d88823d932b155c9df3d84f53166f3ee913ff68ea6c7599a9ab34861d88562ad9d8420f64ca5dad4c
-  languageName: node
-  linkType: hard
-
 "rollup@npm:^4.40.0":
   version: 4.46.1
   resolution: "rollup@npm:4.46.1"
@@ -29567,6 +29564,81 @@ __metadata:
   bin:
     rollup: dist/bin/rollup
   checksum: 10c0/84297d63a97bf8fc131039d0f600787ada8baaa38b744820f7d29da601bce9f70a14aa12da80843b2b49eb8660718576f441ee9952954efa16009d7ccebf0000
+  languageName: node
+  linkType: hard
+
+"rollup@npm:^4.46.2":
+  version: 4.46.2
+  resolution: "rollup@npm:4.46.2"
+  dependencies:
+    "@rollup/rollup-android-arm-eabi": "npm:4.46.2"
+    "@rollup/rollup-android-arm64": "npm:4.46.2"
+    "@rollup/rollup-darwin-arm64": "npm:4.46.2"
+    "@rollup/rollup-darwin-x64": "npm:4.46.2"
+    "@rollup/rollup-freebsd-arm64": "npm:4.46.2"
+    "@rollup/rollup-freebsd-x64": "npm:4.46.2"
+    "@rollup/rollup-linux-arm-gnueabihf": "npm:4.46.2"
+    "@rollup/rollup-linux-arm-musleabihf": "npm:4.46.2"
+    "@rollup/rollup-linux-arm64-gnu": "npm:4.46.2"
+    "@rollup/rollup-linux-arm64-musl": "npm:4.46.2"
+    "@rollup/rollup-linux-loongarch64-gnu": "npm:4.46.2"
+    "@rollup/rollup-linux-ppc64-gnu": "npm:4.46.2"
+    "@rollup/rollup-linux-riscv64-gnu": "npm:4.46.2"
+    "@rollup/rollup-linux-riscv64-musl": "npm:4.46.2"
+    "@rollup/rollup-linux-s390x-gnu": "npm:4.46.2"
+    "@rollup/rollup-linux-x64-gnu": "npm:4.46.2"
+    "@rollup/rollup-linux-x64-musl": "npm:4.46.2"
+    "@rollup/rollup-win32-arm64-msvc": "npm:4.46.2"
+    "@rollup/rollup-win32-ia32-msvc": "npm:4.46.2"
+    "@rollup/rollup-win32-x64-msvc": "npm:4.46.2"
+    "@types/estree": "npm:1.0.8"
+    fsevents: "npm:~2.3.2"
+  dependenciesMeta:
+    "@rollup/rollup-android-arm-eabi":
+      optional: true
+    "@rollup/rollup-android-arm64":
+      optional: true
+    "@rollup/rollup-darwin-arm64":
+      optional: true
+    "@rollup/rollup-darwin-x64":
+      optional: true
+    "@rollup/rollup-freebsd-arm64":
+      optional: true
+    "@rollup/rollup-freebsd-x64":
+      optional: true
+    "@rollup/rollup-linux-arm-gnueabihf":
+      optional: true
+    "@rollup/rollup-linux-arm-musleabihf":
+      optional: true
+    "@rollup/rollup-linux-arm64-gnu":
+      optional: true
+    "@rollup/rollup-linux-arm64-musl":
+      optional: true
+    "@rollup/rollup-linux-loongarch64-gnu":
+      optional: true
+    "@rollup/rollup-linux-ppc64-gnu":
+      optional: true
+    "@rollup/rollup-linux-riscv64-gnu":
+      optional: true
+    "@rollup/rollup-linux-riscv64-musl":
+      optional: true
+    "@rollup/rollup-linux-s390x-gnu":
+      optional: true
+    "@rollup/rollup-linux-x64-gnu":
+      optional: true
+    "@rollup/rollup-linux-x64-musl":
+      optional: true
+    "@rollup/rollup-win32-arm64-msvc":
+      optional: true
+    "@rollup/rollup-win32-ia32-msvc":
+      optional: true
+    "@rollup/rollup-win32-x64-msvc":
+      optional: true
+    fsevents:
+      optional: true
+  bin:
+    rollup: dist/bin/rollup
+  checksum: 10c0/f428497fe119fe7c4e34f1020d45ba13e99b94c9aa36958d88823d932b155c9df3d84f53166f3ee913ff68ea6c7599a9ab34861d88562ad9d8420f64ca5dad4c
   languageName: node
   linkType: hard
 
@@ -32061,7 +32133,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"tinyglobby@npm:^0.2.12, tinyglobby@npm:^0.2.13, tinyglobby@npm:^0.2.14":
+"tinyglobby@npm:^0.2.12, tinyglobby@npm:^0.2.14":
   version: 0.2.15
   resolution: "tinyglobby@npm:0.2.15"
   dependencies:
@@ -33310,10 +33382,10 @@ __metadata:
   languageName: node
   linkType: hard
 
-"validator@npm:13.15.22":
-  version: 13.15.22
-  resolution: "validator@npm:13.15.22"
-  checksum: 10c0/69c0ad0abff0bc9f96faeb6790f5dd4e11b685031e4a115a056f3ed729aaac4d218e61f3582c051cb593305614a0a0d3b5da6ca7d5e0b426fa21be256a0ad852
+"validator@npm:13.15.23":
+  version: 13.15.23
+  resolution: "validator@npm:13.15.23"
+  checksum: 10c0/22a05ec6a98d48d2b6fb34d43ce854af61d15842362d142e64cfca0325d4d0c2d1051d9f9d3a0f741e58ea888f73a35baf7a2a810f5aed0f89183bd5040f0177
   languageName: node
   linkType: hard
 
@@ -33364,26 +33436,26 @@ __metadata:
   languageName: node
   linkType: hard
 
-"vite@npm:6.4.1":
-  version: 6.4.1
-  resolution: "vite@npm:6.4.1"
+"vite@npm:7.0.8":
+  version: 7.0.8
+  resolution: "vite@npm:7.0.8"
   dependencies:
     esbuild: "npm:^0.25.0"
-    fdir: "npm:^6.4.4"
+    fdir: "npm:^6.4.6"
     fsevents: "npm:~2.3.3"
-    picomatch: "npm:^4.0.2"
-    postcss: "npm:^8.5.3"
-    rollup: "npm:^4.34.9"
-    tinyglobby: "npm:^0.2.13"
+    picomatch: "npm:^4.0.3"
+    postcss: "npm:^8.5.6"
+    rollup: "npm:^4.40.0"
+    tinyglobby: "npm:^0.2.14"
   peerDependencies:
-    "@types/node": ^18.0.0 || ^20.0.0 || >=22.0.0
+    "@types/node": ^20.19.0 || >=22.12.0
     jiti: ">=1.21.0"
-    less: "*"
+    less: ^4.0.0
     lightningcss: ^1.21.0
-    sass: "*"
-    sass-embedded: "*"
-    stylus: "*"
-    sugarss: "*"
+    sass: ^1.70.0
+    sass-embedded: ^1.70.0
+    stylus: ">=0.54.8"
+    sugarss: ^5.0.0
     terser: ^5.16.0
     tsx: ^4.8.1
     yaml: ^2.4.2
@@ -33415,7 +33487,7 @@ __metadata:
       optional: true
   bin:
     vite: bin/vite.js
-  checksum: 10c0/77bb4c5b10f2a185e7859cc9a81c789021bc18009b02900347d1583b453b58e4b19ff07a5e5a5b522b68fc88728460bb45a63b104d969e8c6a6152aea3b849f7
+  checksum: 10c0/733fc790c537af0d420d4002cb622ec228defcec7ef31e77d02fd9d4af4cb42e34da1dcbdb4c2175b3076edfb35860b56fbd7deda8676bf31e48fe830e1e0e61
   languageName: node
   linkType: hard
 
@@ -34430,7 +34502,7 @@ __metadata:
     ts-node: "npm:10.9.2"
     tslib: "npm:2.8.1"
     typescript: "npm:5.9.2"
-    vite: "npm:6.4.1"
+    vite: "npm:7.0.8"
     vitest: "npm:3.2.4"
     webpack-cli: "npm:5.1.4"
   dependenciesMeta:

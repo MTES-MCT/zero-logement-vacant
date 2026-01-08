@@ -19,7 +19,42 @@ const KNOWN_PROJECTIONS: Record<string, string> = {
   'EPSG:4471': '+proj=utm +zone=38 +south +ellps=GRS80 +towgs84=0,0,0,0,0,0,0 +units=m +no_defs +type=crs'
 };
 
+// Special projections with coordinate offsets
+interface ProjectionWithOffset {
+  proj4: string;
+  xOffset: number;
+  yOffset: number;
+}
+
+const OFFSET_PROJECTIONS: Record<string, ProjectionWithOffset> = {
+  'REUNION_OFFSET': {
+    proj4: '+proj=utm +zone=40 +south +datum=WGS84 +units=m +no_defs +type=crs',
+    xOffset: -1350000,
+    yOffset: -1570000
+  }
+};
+
 const WGS84 = '+proj=longlat +datum=WGS84 +no_defs +type=crs';
+
+// Known location bounding boxes
+const KNOWN_LOCATIONS: Record<string, { minLng: number; maxLng: number; minLat: number; maxLat: number }> = {
+  'Metropolitan France': { minLng: -5, maxLng: 10, minLat: 41, maxLat: 51 },
+  'La Réunion': { minLng: 55.2, maxLng: 55.9, minLat: -21.5, maxLat: -20.8 },
+  'Mayotte': { minLng: 45.0, maxLng: 45.3, minLat: -13.0, maxLat: -12.6 },
+  'Guadeloupe': { minLng: -61.9, maxLng: -61.0, minLat: 15.8, maxLat: 16.5 },
+  'Martinique': { minLng: -61.3, maxLng: -60.8, minLat: 14.4, maxLat: 14.9 },
+  'Guyane': { minLng: -54.5, maxLng: -51.5, minLat: 2.0, maxLat: 6.0 },
+};
+
+function getLocationName(lng: number, lat: number): string | null {
+  for (const [name, bounds] of Object.entries(KNOWN_LOCATIONS)) {
+    if (lng >= bounds.minLng && lng <= bounds.maxLng &&
+        lat >= bounds.minLat && lat <= bounds.maxLat) {
+      return name;
+    }
+  }
+  return null;
+}
 
 function detectProjectionFromCoordinates(
   xMin: number,
@@ -33,16 +68,30 @@ function detectProjectionFromCoordinates(
   if (xMin > 100000 && xMax < 1300000 && yMin > 6000000 && yMax < 7200000) {
     return 'EPSG:2154';
   }
-  if (xMin > 1600000 && xMax < 1900000 && yMin > 9100000 && yMax < 9400000) {
-    return 'EPSG:2975';
+  // Réunion with non-standard offsets
+  if (xMin > 1600000 && xMax < 1900000 && yMin > 9000000 && yMax < 9500000) {
+    return 'REUNION_OFFSET';
   }
-  if (xMin > 300000 && xMax < 900000 && yMin > 7600000 && yMax < 7900000) {
+  // Standard UTM zone 40S (Réunion)
+  if (xMin > 300000 && xMax < 600000 && yMin > 7600000 && yMax < 7800000) {
     return 'EPSG:2975';
   }
   return null;
 }
 
 function reprojectCoordinates(coordinates: Position[], sourceProj: string): Position[] {
+  // Check for offset projections first
+  const offsetProj = OFFSET_PROJECTIONS[sourceProj];
+  if (offsetProj) {
+    return coordinates.map((coord) => {
+      const [x, y, ...rest] = coord;
+      const adjustedX = x + offsetProj.xOffset;
+      const adjustedY = y + offsetProj.yOffset;
+      const [lng, lat] = proj4(offsetProj.proj4, WGS84, [adjustedX, adjustedY]);
+      return [lng, lat, ...rest];
+    });
+  }
+
   const projDef = KNOWN_PROJECTIONS[sourceProj];
   if (!projDef) return coordinates;
 
@@ -55,12 +104,22 @@ function reprojectCoordinates(coordinates: Position[], sourceProj: string): Posi
 
 function reprojectGeometry(geometry: Geometry, sourceProj: string): Geometry {
   if (geometry.type === 'Point') {
-    const [lng, lat] = proj4(
-      KNOWN_PROJECTIONS[sourceProj],
-      WGS84,
-      geometry.coordinates as [number, number]
-    );
-    return { ...geometry, coordinates: [lng, lat] };
+    const [x, y] = geometry.coordinates as [number, number];
+
+    const offsetProj = OFFSET_PROJECTIONS[sourceProj];
+    if (offsetProj) {
+      const adjustedX = x + offsetProj.xOffset;
+      const adjustedY = y + offsetProj.yOffset;
+      const [lng, lat] = proj4(offsetProj.proj4, WGS84, [adjustedX, adjustedY]);
+      return { ...geometry, coordinates: [lng, lat] };
+    }
+
+    const projDef = KNOWN_PROJECTIONS[sourceProj];
+    if (projDef) {
+      const [lng, lat] = proj4(projDef, WGS84, [x, y]);
+      return { ...geometry, coordinates: [lng, lat] };
+    }
+    return geometry;
   }
 
   if (geometry.type === 'Polygon') {
@@ -98,7 +157,7 @@ async function testReprojection(zipPath: string) {
   const dbfEntry = zipEntries.find((e) => e.entryName.toLowerCase().endsWith('.dbf'));
 
   if (!shpEntry || !dbfEntry) {
-    console.error('❌ Fichiers .shp ou .dbf manquants');
+    console.error('Fichiers .shp ou .dbf manquants');
     return;
   }
 
@@ -132,23 +191,31 @@ async function testReprojection(zipPath: string) {
     result = await source.read();
   }
 
-  console.log(`📊 ${features.length} features trouvées`);
+  console.log(`${features.length} features trouvees`);
   console.log();
-  console.log('📍 COORDONNÉES ORIGINALES:');
+  console.log('COORDONNEES ORIGINALES:');
   console.log('-'.repeat(40));
-  console.log(`  X: ${xMin.toFixed(2)} à ${xMax.toFixed(2)}`);
-  console.log(`  Y: ${yMin.toFixed(2)} à ${yMax.toFixed(2)}`);
+  console.log(`  X: ${xMin.toFixed(2)} a ${xMax.toFixed(2)}`);
+  console.log(`  Y: ${yMin.toFixed(2)} a ${yMax.toFixed(2)}`);
 
   const sourceProjection = detectProjectionFromCoordinates(xMin, xMax, yMin, yMax);
 
   console.log();
-  console.log('🔍 DÉTECTION DE PROJECTION:');
+  console.log('DETECTION DE PROJECTION:');
   console.log('-'.repeat(40));
 
   if (sourceProjection) {
-    console.log(`  Projection détectée: ${sourceProjection}`);
+    console.log(`  Projection detectee: ${sourceProjection}`);
+
+    if (OFFSET_PROJECTIONS[sourceProjection]) {
+      const offset = OFFSET_PROJECTIONS[sourceProjection];
+      console.log(`  Type: Projection avec offset`);
+      console.log(`  Offset X: ${offset.xOffset} metres`);
+      console.log(`  Offset Y: ${offset.yOffset} metres`);
+    }
+
     console.log();
-    console.log('🔄 REPROJECTION VERS WGS84:');
+    console.log('REPROJECTION VERS WGS84:');
     console.log('-'.repeat(40));
 
     const firstFeature = features[0];
@@ -158,23 +225,55 @@ async function testReprojection(zipPath: string) {
 
       const reprojected = reprojectGeometry(firstFeature.geometry, sourceProjection);
       const newCoord = (reprojected as any).coordinates?.[0]?.[0];
-      console.log(`  Après: [${newCoord[0].toFixed(6)}, ${newCoord[1].toFixed(6)}]`);
+      console.log(`  Apres: [${newCoord[0].toFixed(6)}, ${newCoord[1].toFixed(6)}]`);
 
       // Validate WGS84 range
       const isValidLng = newCoord[0] >= -180 && newCoord[0] <= 180;
       const isValidLat = newCoord[1] >= -90 && newCoord[1] <= 90;
+      const location = getLocationName(newCoord[0], newCoord[1]);
 
       console.log();
       if (isValidLng && isValidLat) {
-        console.log('  ✅ Coordonnées WGS84 valides!');
-        console.log(`     Longitude: ${newCoord[0].toFixed(6)}° (${newCoord[0] > 0 ? 'E' : 'W'})`);
-        console.log(`     Latitude: ${newCoord[1].toFixed(6)}° (${newCoord[1] > 0 ? 'N' : 'S'})`);
+        console.log('  Coordonnees WGS84 valides!');
+        console.log(`     Longitude: ${newCoord[0].toFixed(6)} (${newCoord[0] > 0 ? 'E' : 'W'})`);
+        console.log(`     Latitude: ${newCoord[1].toFixed(6)} (${newCoord[1] > 0 ? 'N' : 'S'})`);
+
+        if (location) {
+          console.log();
+          console.log(`  LOCALISATION: ${location}`);
+        }
       } else {
-        console.log('  ❌ Coordonnées hors plage WGS84');
+        console.log('  Coordonnees hors plage WGS84');
+      }
+
+      // Test all features
+      console.log();
+      console.log('VERIFICATION DE TOUTES LES FEATURES:');
+      console.log('-'.repeat(40));
+
+      let allValid = true;
+      let allInLocation = true;
+
+      for (const feature of features) {
+        if (feature.geometry) {
+          const reproj = reprojectGeometry(feature.geometry, sourceProjection);
+          const coords = (reproj as any).coordinates?.[0]?.[0];
+          if (coords) {
+            const loc = getLocationName(coords[0], coords[1]);
+            if (!loc) {
+              allInLocation = false;
+              console.log(`  Feature hors zone connue: [${coords[0].toFixed(6)}, ${coords[1].toFixed(6)}]`);
+            }
+          }
+        }
+      }
+
+      if (allValid && allInLocation) {
+        console.log(`  Toutes les ${features.length} features sont dans une zone connue`);
       }
     }
   } else {
-    console.log('  Déjà en WGS84 ou projection inconnue');
+    console.log('  Deja en WGS84 ou projection inconnue');
   }
 
   console.log();

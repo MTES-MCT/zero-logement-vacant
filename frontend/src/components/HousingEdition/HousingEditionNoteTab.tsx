@@ -27,7 +27,13 @@ function HousingEditionNoteTab(props: Props) {
       {notes.length > 0 && (
         <Stack spacing="1rem">
           {notes.map((note) => (
-            <NoteCard key={note.id} note={note} establishment={null} hideIcon />
+            <NoteCard
+              key={note.id}
+              note={note}
+              establishment={null}
+              hideIcon
+              readOnly
+            />
           ))}
         </Stack>
       )}

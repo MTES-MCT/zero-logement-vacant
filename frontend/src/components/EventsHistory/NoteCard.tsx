@@ -30,6 +30,11 @@ export interface NoteCardProps {
   note: Note;
   establishment: Pick<Establishment, 'name'> | null;
   hideIcon?: boolean;
+  /**
+   * If true, the note cannot be edited or deleted.
+   * @default false
+   */
+  readOnly?: boolean;
 }
 
 function NoteCard(props: NoteCardProps) {
@@ -67,7 +72,9 @@ function NoteCard(props: NoteCardProps) {
   });
 
   const { isAdmin, isUsual, user } = useUser();
-  const canUpdate = isAdmin || (isUsual && user?.id === props.note.createdBy);
+  const canUpdate =
+    !props.readOnly &&
+    (isAdmin || (isUsual && user?.id === props.note.createdBy));
 
   const removeModal = useMemo(
     () =>

@@ -44,10 +44,6 @@ export function createDocumentRenameModal() {
       });
 
       function onClose(): void {
-        props.onCancel();
-      }
-
-      function onOpen(): void {
         form.reset();
       }
 
@@ -65,7 +61,6 @@ export function createDocumentRenameModal() {
               {...rest}
               title="Renommer le document"
               onClose={onClose}
-              onOpen={onOpen}
               onSubmit={form.handleSubmit(onSubmit)}
             >
               {document ? (

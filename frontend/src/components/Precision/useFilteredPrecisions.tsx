@@ -8,7 +8,7 @@ interface UseFilteredPrecisionsOptions {
 const DISPLAY_TAGS = 6;
 
 export function useFilteredPrecisions(
-  precisions: Precision[],
+  precisions: ReadonlyArray<Precision>,
   options: UseFilteredPrecisionsOptions
 ) {
   const { predicate, showAll } = options;

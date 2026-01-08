@@ -1,49 +1,60 @@
+import Alert from '@codegouvfr/react-dsfr/Alert';
 import Button from '@codegouvfr/react-dsfr/Button';
 import Tag from '@codegouvfr/react-dsfr/Tag';
+import Grid from '@mui/material/Grid';
 import Stack from '@mui/material/Stack';
 import Typography from '@mui/material/Typography';
-import Grid from '@mui/material/Grid';
-import { skipToken } from '@reduxjs/toolkit/query/react';
+import type { Precision } from '@zerologementvacant/models';
 import {
   isPrecisionBlockingPointCategory,
   isPrecisionEvolutionCategory,
   isPrecisionMechanismCategory
 } from '@zerologementvacant/models';
-import type { Precision } from '@zerologementvacant/models';
 import { useMemo, useState } from 'react';
-import { useNotification } from '../../hooks/useNotification';
-import type { Housing } from '../../models/Housing';
-import {
-  useFindPrecisionsByHousingQuery,
-  useFindPrecisionsQuery,
-  useSaveHousingPrecisionsMutation
-} from '../../services/precision.service';
+import { useFindPrecisionsQuery } from '../../services/precision.service';
 import styles from '../HousingEdition/housing-edition.module.scss';
 import createPrecisionModal from './PrecisionModal';
 import type { PrecisionTabId } from './PrecisionTabs';
 import { useFilteredPrecisions } from './useFilteredPrecisions';
 
-interface Props {
-  housingId: Housing['id'] | null;
+interface WritableProps {
+  /**
+   * @default false
+   */
+  multiple?: boolean;
+  writable?: true;
+  value: ReadonlyArray<Precision>;
+  onChange(precisions: ReadonlyArray<Precision>): void;
 }
 
-function PrecisionLists(props: Props) {
+interface ReadOnlyProps {
+  /**
+   * @default false
+   */
+  multiple?: boolean;
+  writable: false;
+  value: ReadonlyArray<Precision>;
+  onChange?: never;
+}
+
+type Props = WritableProps | ReadOnlyProps;
+
+function PrecisionLists(props: Readonly<Props>) {
   const precisionModal = useMemo(
     () => createPrecisionModal(new Date().toJSON()),
     []
   );
 
+  const writable = props.writable ?? true;
+  const multiple = props.multiple ?? false;
   const [tab, setTab] = useState<PrecisionTabId>('dispositifs');
   const [showAllMechanisms, setShowAllMechanisms] = useState(false);
   const [showAllBlockingPoints, setShowAllBlockingPoints] = useState(false);
   const [showAllEvolutions, setShowAllEvolutions] = useState(false);
 
   const { data: referential } = useFindPrecisionsQuery();
-  const { data: housingPrecisions } = useFindPrecisionsByHousingQuery(
-    props.housingId ? { housingId: props.housingId } : skipToken
-  );
-  const precisionOptions = referential ?? [];
-  const precisions = housingPrecisions ?? [];
+  const precisionOptions: ReadonlyArray<Precision> = referential ?? [];
+  const precisions = props.value;
 
   const {
     totalCount: totalMechanisms,
@@ -78,34 +89,31 @@ function PrecisionLists(props: Props) {
     setShowAll((prev) => !prev);
   }
 
-  const [saveHousingPrecisions, saveHousingPrecisionsMutation] =
-    useSaveHousingPrecisionsMutation();
-  useNotification({
-    toastId: 'housing-precisions-update',
-    isError: saveHousingPrecisionsMutation.isError,
-    isLoading: saveHousingPrecisionsMutation.isLoading,
-    isSuccess: saveHousingPrecisionsMutation.isSuccess,
-    message: {
-      error: 'Impossible de mettre à jour les précisions du logement',
-      loading: 'Mise à jour des précisions du logement...',
-      success: 'Précisions mises à jour !'
+  function savePrecisions(precisions: ReadonlyArray<Precision>): void {
+    if (writable) {
+      props.onChange?.(precisions);
     }
-  });
-
-  function savePrecisions(precisions: Precision[]) {
-    if (props.housingId) {
-      saveHousingPrecisions({
-        housing: props.housingId,
-        precisions: precisions.map((precision) => precision.id)
-      }).then(() => {
-        precisionModal.close();
-      });
-    }
+    precisionModal.close();
   }
 
   return (
     <>
       <Stack spacing="1rem">
+        <Typography
+          component="h3"
+          sx={{ fontSize: '1.25rem', fontWeight: 700 }}
+        >
+          {multiple
+            ? 'Précisions sur ces logements'
+            : 'Précisions sur ce logement'}
+        </Typography>
+        {multiple ? (
+          <Alert
+            severity="info"
+            small
+            description="Si des logements sélectionnés ont déjà des dispositifs ou des points de blocage de renseignés, ceux-ci seront conservés."
+          />
+        ) : null}
         <Grid
           component="article"
           container
@@ -126,16 +134,21 @@ function PrecisionLists(props: Props) {
             >
               Dispositifs ({totalMechanisms})
             </Typography>
-            <Button
-              priority="secondary"
-              title="Modifier les dispositifs"
-              onClick={() => {
-                setTab('dispositifs');
-                precisionModal.open();
-              }}
-            >
-              Modifier
-            </Button>
+            {writable ? (
+              <Button
+                priority="secondary"
+                title="Modifier les dispositifs"
+                nativeButtonProps={{
+                  'aria-label': 'Modifier les dispositifs'
+                }}
+                onClick={() => {
+                  setTab('dispositifs');
+                  precisionModal.open();
+                }}
+              >
+                Modifier
+              </Button>
+            ) : null}
           </Grid>
           <Grid>
             {filteredMechanisms.length === 0 ? (
@@ -182,16 +195,21 @@ function PrecisionLists(props: Props) {
             >
               Points de blocages ({totalBlockingPoints})
             </Typography>
-            <Button
-              priority="secondary"
-              title="Modifier les points de blocage"
-              onClick={() => {
-                setTab('points-de-blocage');
-                precisionModal.open();
-              }}
-            >
-              Modifier
-            </Button>
+            {writable ? (
+              <Button
+                priority="secondary"
+                title="Modifier les points de blocage"
+                nativeButtonProps={{
+                  'aria-label': 'Modifier les points de blocage'
+                }}
+                onClick={() => {
+                  setTab('points-de-blocage');
+                  precisionModal.open();
+                }}
+              >
+                Modifier
+              </Button>
+            ) : null}
           </Grid>
           <Grid>
             {filteredBlockingPoints.length === 0 ? (
@@ -234,16 +252,21 @@ function PrecisionLists(props: Props) {
             >
               Évolutions du logement ({totalEvolutions})
             </Typography>
-            <Button
-              priority="secondary"
-              title="Modifier les évolutions du logement"
-              onClick={() => {
-                setTab('evolutions');
-                precisionModal.open();
-              }}
-            >
-              Modifier
-            </Button>
+            {writable ? (
+              <Button
+                priority="secondary"
+                title="Modifier les évolutions du logement"
+                nativeButtonProps={{
+                  'aria-label': 'Modifier les évolutions du logement'
+                }}
+                onClick={() => {
+                  setTab('evolutions');
+                  precisionModal.open();
+                }}
+              >
+                Modifier
+              </Button>
+            ) : null}
           </Grid>
           <Grid>
             {filteredEvolutions.length === 0 ? (

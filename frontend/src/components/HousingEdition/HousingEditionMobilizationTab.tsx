@@ -2,7 +2,8 @@ import Grid from '@mui/material/Grid';
 import Typography from '@mui/material/Typography';
 import {
   HOUSING_STATUS_VALUES,
-  HousingStatus
+  HousingStatus,
+  type Precision
 } from '@zerologementvacant/models';
 import {
   useController,
@@ -10,22 +11,18 @@ import {
   type FieldValues
 } from 'react-hook-form';
 
-import { getSubStatusOptions } from '../../models/HousingState';
+import { getSubStatusOptions } from '~/models/HousingState';
 import HousingStatusSelect from '../HousingListFilters/HousingStatusSelect';
 import HousingSubStatusSelect from '../HousingListFilters/HousingSubStatusSelect';
 import PrecisionLists from '../Precision/PrecisionLists';
-import type { Housing } from '../../models/Housing';
-
-interface Props {
-  housingId: Housing['id'] | null;
-}
 
 interface BaseSchema extends FieldValues {
   status: HousingStatus | null;
   subStatus: string | null;
+  precisions: ReadonlyArray<Precision>;
 }
 
-function HousingEditionMobilizationTab(props: Props) {
+function HousingEditionMobilizationTab() {
   const form = useFormContext();
   const { field: statusField, fieldState: statusFieldState } = useController<
     BaseSchema,
@@ -37,6 +34,9 @@ function HousingEditionMobilizationTab(props: Props) {
     useController<BaseSchema, 'subStatus'>({
       name: 'subStatus'
     });
+  const { field: precisionField } = useController<BaseSchema, 'precisions'>({
+    name: 'precisions'
+  });
 
   const subStatusDisabled =
     statusField.value === null ||
@@ -83,7 +83,10 @@ function HousingEditionMobilizationTab(props: Props) {
           onChange={subStatusField.onChange}
         />
       </Grid>
-      {props.housingId ? <PrecisionLists housingId={props.housingId} /> : null}
+      <PrecisionLists
+        value={precisionField.value}
+        onChange={precisionField.onChange}
+      />
     </Grid>
   );
 }

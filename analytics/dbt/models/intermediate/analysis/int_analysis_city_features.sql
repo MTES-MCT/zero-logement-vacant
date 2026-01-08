@@ -28,6 +28,10 @@ fiscalite AS (
     WHERE annee_reference = 2024
 ),
 
+zonage_abc AS (
+    SELECT * FROM {{ ref('stg_external_dgaln_zonage_abc') }}
+),
+
 -- Get city mapping for arrondissements
 city_mapping AS (
     SELECT
@@ -84,6 +88,11 @@ SELECT
     l.niveau_loyer,
     l.confiance_prediction AS loyer_confiance_prediction,
     
+    -- =====================================================
+    -- DGALN ZONAGE ABC
+    -- =====================================================
+    z.zonage_en_vigueur,
+
     -- =====================================================
     -- CEREMA PRIX VOLUMES (selected years)
     -- =====================================================
@@ -170,3 +179,4 @@ LEFT JOIN dvg d ON i.geo_code = d.geo_code
 LEFT JOIN conso c ON i.geo_code = c.geo_code
 LEFT JOIN loyers l ON i.geo_code = l.geo_code
 LEFT JOIN fiscalite f ON i.geo_code = f.geo_code
+LEFT JOIN zonage_abc z ON i.geo_code = z.geo_code

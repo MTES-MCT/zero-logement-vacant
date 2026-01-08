@@ -37,3 +37,8 @@ INNER JOIN housing_without_any_status hws ON hoe.housing_id = hws.housing_id
 
 
 
+
+
+
+
+

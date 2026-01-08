@@ -87,6 +87,7 @@ function DocumentFullscreenPreview(
           <CenteredDocumentPreview
             document={currentDocument}
             responsive="max-height"
+            fit="contain"
             onDownload={() => onDownload?.(currentDocument)}
           />
           {documents.length > 1 && (

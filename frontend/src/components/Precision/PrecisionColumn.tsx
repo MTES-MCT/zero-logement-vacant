@@ -14,14 +14,14 @@ import styles from './precision-modal.module.scss';
 type PrecisionColumnCommonProps = {
   category: PrecisionCategory;
   icon: FrIconClassName | RiIconClassName;
-  options: Precision[];
+  options: ReadonlyArray<Precision>;
   title: string;
 };
 
 type PrecisionColumnCheckboxProps = PrecisionColumnCommonProps & {
   input?: 'checkbox';
-  value: Precision[];
-  onChange(value: Precision[]): void;
+  value: ReadonlyArray<Precision>;
+  onChange(value: ReadonlyArray<Precision>): void;
 };
 
 type PrecisionColumnRadioProps = PrecisionColumnCommonProps & {

@@ -312,6 +312,287 @@ describe('Housing view', () => {
     });
   });
 
+  describe('Update housing precisions', () => {
+    it('should save precisions when "Enregistrer" is clicked in sidebar', async () => {
+      const owner = genOwnerDTO();
+      const housing = genHousingDTO(owner);
+      const housingOwner: HousingOwnerDTO = {
+        ...genHousingOwnerDTO(owner),
+        rank: 1 as OwnerRank
+      };
+      housing.status = HousingStatus.NEVER_CONTACTED;
+      housing.subStatus = null;
+      housing.occupancy = Occupancy.VACANT;
+      housing.occupancyIntended = null;
+
+      renderView(housing, {
+        owners: [owner],
+        housingOwners: [housingOwner]
+      });
+
+      const [update] = await screen.findAllByRole('button', {
+        name: /Éditer/
+      });
+      await user.click(update);
+      const mobilizationTab = await screen.findByRole('tab', {
+        name: 'Suivi'
+      });
+      await user.click(mobilizationTab);
+      const mobilizationPanel = await screen.findByRole('tabpanel', {
+        name: 'Suivi'
+      });
+      const modifyButton = await within(mobilizationPanel).findByRole(
+        'button',
+        {
+          name: 'Modifier les dispositifs'
+        }
+      );
+      await user.click(modifyButton);
+
+      const modal = await screen.findByRole('dialog', {
+        name: 'Précisez la situation du logement'
+      });
+      expect(modal).toBeVisible();
+
+      const precision = data.precisions.find(
+        (precision) => precision.category === 'dispositifs-incitatifs'
+      );
+      expect(precision).toBeDefined();
+
+      const precisionCheckbox = await within(modal).findByRole('checkbox', {
+        name: new RegExp(precision!.label, 'i')
+      });
+      await user.click(precisionCheckbox);
+
+      const confirmButton = await within(modal).findByRole('button', {
+        name: 'Confirmer'
+      });
+      await user.click(confirmButton);
+
+      expect(screen.queryByRole('dialog')).not.toBeInTheDocument();
+
+      const saveButton = await screen.findByRole('button', {
+        name: 'Enregistrer'
+      });
+      await user.click(saveButton);
+
+      const housingPrecisions = data.housingPrecisions.get(housing.id);
+      expect(housingPrecisions).toContain(precision!.id);
+    });
+
+    it('should reset precisions when sidebar is closed without saving', async () => {
+      const housing = genHousingDTO(null);
+      housing.status = HousingStatus.NEVER_CONTACTED;
+      housing.subStatus = null;
+      housing.occupancy = Occupancy.VACANT;
+      housing.occupancyIntended = null;
+
+      const existingPrecisions = data.precisions.filter(
+        (precision) => precision.category === 'dispositifs-incitatifs'
+      );
+      data.housingPrecisions.set(
+        housing.id,
+        existingPrecisions.map((precision) => precision.id)
+      );
+
+      renderView(housing);
+
+      const [update] = await screen.findAllByRole('button', {
+        name: /Éditer/
+      });
+      await user.click(update);
+      const mobilizationTab = await screen.findByRole('tab', {
+        name: 'Suivi'
+      });
+      await user.click(mobilizationTab);
+      const mobilizationPanel = await screen.findByRole('tabpanel', {
+        name: 'Suivi'
+      });
+      const modifyButton = await within(mobilizationPanel).findByRole(
+        'button',
+        {
+          name: 'Modifier les dispositifs'
+        }
+      );
+      await user.click(modifyButton);
+
+      const modal = await screen.findByRole('dialog', {
+        name: 'Précisez la situation du logement'
+      });
+
+      await async.forEachSeries(existingPrecisions, async (precision) => {
+        const checkbox = await within(modal).findByRole('checkbox', {
+          name: precision.label
+        });
+        await user.click(checkbox);
+      });
+
+      const confirmButton = await within(modal).findByRole('button', {
+        name: 'Confirmer'
+      });
+      await user.click(confirmButton);
+
+      const cancelButton = await screen.findByRole('button', {
+        name: 'Annuler'
+      });
+      await user.click(cancelButton);
+
+      const housingPrecisions = data.housingPrecisions.get(housing.id);
+      expect(housingPrecisions).toIncludeSameMembers(
+        existingPrecisions.map((precision) => precision.id)
+      );
+
+      const [updateAgain] = await screen.findAllByRole('button', {
+        name: /Éditer/
+      });
+      await user.click(updateAgain);
+      const mobilizationTabAgain = await screen.findByRole('tab', {
+        name: 'Suivi'
+      });
+      await user.click(mobilizationTabAgain);
+      const mobilizationPanelAgain = await screen.findByRole('tabpanel', {
+        name: 'Suivi'
+      });
+      await async.forEachSeries(existingPrecisions, async (precision) => {
+        const tag = await within(mobilizationPanelAgain).findByText(
+          precision.label,
+          {
+            selector: 'p'
+          }
+        );
+        expect(tag).toBeVisible();
+      });
+    });
+
+    it('should not save precisions if they are not modified', async () => {
+      const owner = genOwnerDTO();
+      const housing = genHousingDTO(owner);
+      const housingOwner: HousingOwnerDTO = {
+        ...genHousingOwnerDTO(owner),
+        rank: 1 as OwnerRank
+      };
+      housing.status = HousingStatus.NEVER_CONTACTED;
+      housing.subStatus = null;
+      housing.occupancy = Occupancy.VACANT;
+      housing.occupancyIntended = null;
+
+      const existingPrecision = data.precisions.find(
+        (precision) => precision.category === 'dispositifs-incitatifs'
+      );
+      data.housingPrecisions.set(housing.id, [existingPrecision!.id]);
+      const initialPrecisions = [
+        ...(data.housingPrecisions.get(housing.id) ?? [])
+      ];
+
+      renderView(housing, {
+        owners: [owner],
+        housingOwners: [housingOwner]
+      });
+
+      const [update] = await screen.findAllByRole('button', {
+        name: /Éditer/
+      });
+      await user.click(update);
+      const mobilizationTab = await screen.findByRole('tab', {
+        name: 'Suivi'
+      });
+      await user.click(mobilizationTab);
+
+      const saveButton = await screen.findByRole('button', {
+        name: 'Enregistrer'
+      });
+      await user.click(saveButton);
+
+      const housingPrecisions = data.housingPrecisions.get(housing.id);
+      expect(housingPrecisions).toEqual(initialPrecisions);
+    });
+
+    it('should save both housing fields and precisions atomically', async () => {
+      const owner = genOwnerDTO();
+      const housing = genHousingDTO(owner);
+      const housingOwner: HousingOwnerDTO = {
+        ...genHousingOwnerDTO(owner),
+        rank: 1 as OwnerRank
+      };
+      housing.status = HousingStatus.NEVER_CONTACTED;
+      housing.subStatus = null;
+      housing.occupancy = Occupancy.VACANT;
+      housing.occupancyIntended = null;
+
+      renderView(housing, {
+        owners: [owner],
+        housingOwners: [housingOwner]
+      });
+
+      const [update] = await screen.findAllByRole('button', {
+        name: /Éditer/
+      });
+      await user.click(update);
+
+      const occupancyTab = await screen.findByRole('tab', {
+        name: 'Occupation'
+      });
+      await user.click(occupancyTab);
+      const occupancyPanel = await screen.findByRole('tabpanel', {
+        name: 'Occupation'
+      });
+      const occupancy = await within(occupancyPanel).findByLabelText(
+        'Occupation actuelle'
+      );
+      await user.click(occupancy);
+      const options = await screen.findByRole('listbox');
+      const option = await within(options).findByRole('option', {
+        name: 'En location'
+      });
+      await user.click(option);
+
+      const mobilizationTab = await screen.findByRole('tab', {
+        name: 'Suivi'
+      });
+      await user.click(mobilizationTab);
+      const mobilizationPanel = await screen.findByRole('tabpanel', {
+        name: 'Suivi'
+      });
+      const modifyButton = await within(mobilizationPanel).findByRole(
+        'button',
+        {
+          name: 'Modifier les dispositifs'
+        }
+      );
+      await user.click(modifyButton);
+
+      const modal = await screen.findByRole('dialog', {
+        name: 'Précisez la situation du logement'
+      });
+
+      const precision = data.precisions.find(
+        (precision) => precision.category === 'dispositifs-incitatifs'
+      );
+      const precisionCheckbox = await within(modal).findByRole('checkbox', {
+        name: new RegExp(precision!.label, 'i')
+      });
+      await user.click(precisionCheckbox);
+
+      const confirmButton = await within(modal).findByRole('button', {
+        name: 'Confirmer'
+      });
+      await user.click(confirmButton);
+
+      const saveButton = await screen.findByRole('button', {
+        name: 'Enregistrer'
+      });
+      await user.click(saveButton);
+
+      const updatedHousing = data.housings.find(
+        (housing) => housing.id === housing.id
+      );
+      expect(updatedHousing?.occupancy).toBe(Occupancy.RENT);
+
+      const housingPrecisions = data.housingPrecisions.get(housing.id);
+      expect(housingPrecisions).toContain(precision!.id);
+    });
+  });
+
   describe('Add a note', () => {
     it('should add a note', async () => {
       const housing = genHousingDTO(null);

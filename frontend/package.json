@@ -26,7 +26,7 @@
     "@emotion/react": "11.14.0",
     "@emotion/styled": "11.14.1",
     "@hookform/resolvers": "5.2.2",
-    "@lexical/html": "0.38.2",
+    "@lexical/html": "0.39.0",
     "@lexical/list": "0.38.2",
     "@lexical/react": "0.38.2",
     "@lexical/text": "0.38.2",

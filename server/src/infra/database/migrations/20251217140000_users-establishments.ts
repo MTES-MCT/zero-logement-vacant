@@ -10,11 +10,6 @@ import { Knex } from 'knex';
  * or "primary" establishment for the user.
  */
 export async function up(knex: Knex): Promise<void> {
-  const tableExists = await knex.schema.hasTable('users_establishments');
-  if (tableExists) {
-    return;
-  }
-
   await knex.schema.createTable('users_establishments', (table) => {
     table.uuid('user_id').notNullable()
       .references('id').inTable('users')

@@ -28,12 +28,11 @@ export function createConfirmationModal(options: ConfirmationModalOptions) {
             {
               children: 'Annuler',
               className: 'fr-mr-2w',
-              doClosesModal: false,
+              doClosesModal: true,
               priority: 'secondary',
               nativeButtonProps: {
                 type: 'reset'
-              },
-              onClick: props.onClose
+              }
             },
             {
               children: 'Confirmer',

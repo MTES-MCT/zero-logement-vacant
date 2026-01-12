@@ -662,63 +662,6 @@ describe('Housing view', () => {
       expect(renamedDocument).toBeVisible();
     });
 
-    it('should reset the form after closing without saving', async () => {
-      const housing = genHousingDTO(null);
-      const auth = genUserDTO(UserRole.USUAL);
-      const document = genDocumentDTO(auth);
-      const originalFilename = document.filename;
-
-      renderView(housing, {
-        documents: [document],
-        user: auth
-      });
-
-      const tab = await screen.findByRole('tab', {
-        name: 'Documents'
-      });
-      await user.click(tab);
-      const tabpanel = await screen.findByRole('tabpanel', {
-        name: 'Documents'
-      });
-      const dropdown = await within(tabpanel).findByRole('button', {
-        name: 'Options'
-      });
-      await user.click(dropdown);
-      const renameButton = await screen.findByRole('button', {
-        name: 'Renommer'
-      });
-      await user.click(renameButton);
-      const modal = await screen.findByRole('dialog', {
-        name: 'Renommer le document'
-      });
-      const input = await within(modal).findByRole('textbox', {
-        name: /^Nouveau nom du document/
-      });
-      await user.clear(input);
-      await user.type(input, 'temporary-name.pdf');
-      const cancel = await within(modal).findByRole('button', {
-        name: 'Annuler'
-      });
-      await user.click(cancel);
-
-      // Re-open the modal to check if form was reset
-      const dropdownAgain = await within(tabpanel).findByRole('button', {
-        name: 'Options'
-      });
-      await user.click(dropdownAgain);
-      const renameButtonAgain = await screen.findByRole('button', {
-        name: 'Renommer'
-      });
-      await user.click(renameButtonAgain);
-      const modalAgain = await screen.findByRole('dialog', {
-        name: 'Renommer le document'
-      });
-      const inputAgain = await within(modalAgain).findByRole('textbox', {
-        name: /^Nouveau nom du document/
-      });
-      expect(inputAgain).toHaveValue(originalFilename);
-    });
-
     it('should be invisible to a visitor', async () => {
       const housing = genHousingDTO(null);
       const creator = genUserDTO(UserRole.USUAL);

@@ -38,10 +38,62 @@ from tqdm import tqdm
 
 
 # Kind mapping from catpro2txt to ZLV kind_class
+# Based on official OwnerKind labels from packages/models/src/OwnerKind.ts
 KIND_MAPPING = {
+    # Particulier
     'PERSONNE PHYSIQUE': 'Particulier',
-    'INVESTISSEUR PROFESSIONNEL': 'Investisseur',
-    'SOCIETE CIVILE A VOCATION IMMOBILIERE': 'SCI',
+
+    # SCI, Copropriété, Autres personnes morales
+    'SOCIETE CIVILE A VOCATION IMMOBILIERE': 'SCI, Copropriété, Autres personnes morales',
+    'PROPRIETE DIVISEE EN LOT': 'SCI, Copropriété, Autres personnes morales',
+    'PERSONNE MORALE AUTRE': 'SCI, Copropriété, Autres personnes morales',
+    'ACTIVITE COMMERCIALE': 'SCI, Copropriété, Autres personnes morales',
+    'ACTIVITE INDUSTRIELLE': 'SCI, Copropriété, Autres personnes morales',
+    'ACTIVITE DE TOURISME': 'SCI, Copropriété, Autres personnes morales',
+    'ACTIVITE EXTRACTIVE': 'SCI, Copropriété, Autres personnes morales',
+
+    # Promoteur, Investisseur privé
+    'INVESTISSEUR PROFESSIONNEL': 'Promoteur, Investisseur privé',
+    'PROMOTEUR': 'Promoteur, Investisseur privé',
+    'AMENAGEUR': 'Promoteur, Investisseur privé',
+
+    # Etat et collectivité territoriale
+    'ETAT': 'Etat et collectivité territoriale',
+    'COMMUNE': 'Etat et collectivité territoriale',
+    'DEPARTEMENT': 'Etat et collectivité territoriale',
+    'REGION': 'Etat et collectivité territoriale',
+    'STRUCTURE INTERCOMMUNALE': 'Etat et collectivité territoriale',
+    'COLLECTIVITE TERRITORIALE AUTRE': 'Etat et collectivité territoriale',
+    'SEM OU SPLA': 'Etat et collectivité territoriale',
+    'ETABLISSEMENT PUBLIC FONCIER': 'Etat et collectivité territoriale',
+    'PERSONNE MORALE PUBLIQUE AUTRE': 'Etat et collectivité territoriale',
+    'ETABLISSEMENT DE SANTE': 'Etat et collectivité territoriale',
+    'ETABLISSEMENT D ENSEIGNEMENT DU PRIMAIRE ET SECONDAIRE': 'Etat et collectivité territoriale',
+    'ETABLISSEMENT PUBLIC D ETUDE OU DE RECHERCHE': 'Etat et collectivité territoriale',
+    'UNIVERSITE ET ENSEIGNEMENT SUPERIEUR': 'Etat et collectivité territoriale',
+    'CHAMBRE CONSULAIRE': 'Etat et collectivité territoriale',
+
+    # Bailleur social
+    'ORGANISME DE LOGEMENT SOCIAL': 'Bailleur social',
+
+    # Autres
+    'STRUCTURE AGRICOLE': 'Autres',
+    'STRUCTURE FORESTIERE': 'Autres',
+    'SAFER': 'Autres',
+    'RESEAU ELECTRIQUE OU GAZ': 'Autres',
+    'RESEAU FERRE': 'Autres',
+    'RESEAU EAU OU ASSAINISSEMENT': 'Autres',
+    'RESEAU DE TELECOMMUNICATION': 'Autres',
+    'PROPRIETAIRE DE RESEAU AUTRE': 'Autres',
+    'CONCESSIONNAIRE AUTOROUTIER': 'Autres',
+    'STRUCTURE FLUVIALE OU MARITIME': 'Autres',
+    'STRUCTURE AERIENNE': 'Autres',
+    'STRUCTURE SOCIALE': 'Autres',
+    'STRUCTURE LIEE AUX CULTES': 'Autres',
+    'STRUCTURE SPORTIVE': 'Autres',
+    'STRUCTURE LIEE À LA CULTURE': 'Autres',
+    'STRUCTURE DU FONCIER ENVIRONNEMENTAL': 'Autres',
+    'ASSOCIATION FONCIERE DE REMEMBREMENT': 'Autres',
 }
 
 

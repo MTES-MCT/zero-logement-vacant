@@ -37,9 +37,9 @@ interface ReadOnlyProps {
   onChange?: never;
 }
 
-type Props = WritableProps | ReadOnlyProps;
+export type PrecisionListProps = WritableProps | ReadOnlyProps;
 
-function PrecisionLists(props: Readonly<Props>) {
+function PrecisionLists(props: Readonly<PrecisionListProps>) {
   const precisionModal = useMemo(
     () => createPrecisionModal(new Date().toJSON()),
     []
@@ -115,7 +115,6 @@ function PrecisionLists(props: Readonly<Props>) {
           />
         ) : null}
 
-        {/* Points de blocage */}
         <Grid
           component="article"
           container
@@ -134,7 +133,9 @@ function PrecisionLists(props: Readonly<Props>) {
                 fontWeight: 700
               }}
             >
-              Points de blocage ({totalBlockingPoints})
+              {multiple
+                ? `Points de blocage`
+                : `Points de blocage (${totalBlockingPoints})`}
             </Typography>
             {writable ? (
               <Button
@@ -152,32 +153,35 @@ function PrecisionLists(props: Readonly<Props>) {
               </Button>
             ) : null}
           </Grid>
-          <Grid>
-            {filteredBlockingPoints.length === 0 ? (
-              <Typography>Aucun point de blocage</Typography>
-            ) : (
-              filteredBlockingPoints.map((precision) => (
-                <Tag key={precision.id} className={styles.tag}>
-                  {precision.label}
-                </Tag>
-              ))
-            )}
-          </Grid>
-          {moreBlockingPoints > 0 && (
-            <Grid component="footer">
-              <Button
-                priority="tertiary"
-                onClick={() => toggleShowAll(setShowAllBlockingPoints)}
-              >
-                {showAllBlockingPoints
-                  ? 'Afficher moins'
-                  : `Afficher plus (${moreBlockingPoints})`}
-              </Button>
-            </Grid>
+          {multiple ? null : (
+            <>
+              <Grid>
+                {filteredBlockingPoints.length === 0 ? (
+                  <Typography>Aucun point de blocage</Typography>
+                ) : (
+                  filteredBlockingPoints.map((precision) => (
+                    <Tag key={precision.id} className={styles.tag}>
+                      {precision.label}
+                    </Tag>
+                  ))
+                )}
+              </Grid>
+              {moreBlockingPoints > 0 && (
+                <Grid component="footer">
+                  <Button
+                    priority="tertiary"
+                    onClick={() => toggleShowAll(setShowAllBlockingPoints)}
+                  >
+                    {showAllBlockingPoints
+                      ? 'Afficher moins'
+                      : `Afficher plus (${moreBlockingPoints})`}
+                  </Button>
+                </Grid>
+              )}
+            </>
           )}
         </Grid>
 
-        {/* Évolutions */}
         <Grid
           component="article"
           container
@@ -192,7 +196,9 @@ function PrecisionLists(props: Readonly<Props>) {
               component="h3"
               sx={{ fontSize: '1.125rem', fontWeight: 700 }}
             >
-              Évolutions ({totalEvolutions})
+              {multiple
+                ? `Évolutions du logement`
+                : `Évolutions du logement (${totalEvolutions})`}
             </Typography>
             {writable ? (
               <Button
@@ -210,35 +216,38 @@ function PrecisionLists(props: Readonly<Props>) {
               </Button>
             ) : null}
           </Grid>
-          <Grid>
-            {filteredEvolutions.length === 0 ? (
-              <Typography>Aucune évolution</Typography>
-            ) : (
-              filteredEvolutions.map((precision) => (
-                <Tag key={precision.id} className={styles.tag}>
-                  {precision.category[0].toUpperCase() +
-                    precision.category.substring(1).replace('-', ' ')}
-                  &nbsp;:&nbsp;
-                  {precision.label.toLowerCase()}
-                </Tag>
-              ))
-            )}
-          </Grid>
-          {moreEvolutions > 0 && (
-            <Grid component="footer">
-              <Button
-                priority="tertiary"
-                onClick={() => toggleShowAll(setShowAllEvolutions)}
-              >
-                {showAllEvolutions
-                  ? 'Afficher moins'
-                  : `Afficher plus (${moreEvolutions})`}
-              </Button>
-            </Grid>
+          {multiple ? null : (
+            <>
+              <Grid>
+                {filteredEvolutions.length === 0 ? (
+                  <Typography>Aucune évolution</Typography>
+                ) : (
+                  filteredEvolutions.map((precision) => (
+                    <Tag key={precision.id} className={styles.tag}>
+                      {precision.category[0].toUpperCase() +
+                        precision.category.substring(1).replace('-', ' ')}
+                      &nbsp;:&nbsp;
+                      {precision.label.toLowerCase()}
+                    </Tag>
+                  ))
+                )}
+              </Grid>
+              {moreEvolutions > 0 && (
+                <Grid component="footer">
+                  <Button
+                    priority="tertiary"
+                    onClick={() => toggleShowAll(setShowAllEvolutions)}
+                  >
+                    {showAllEvolutions
+                      ? 'Afficher moins'
+                      : `Afficher plus (${moreEvolutions})`}
+                  </Button>
+                </Grid>
+              )}
+            </>
           )}
         </Grid>
 
-        {/* Dispositifs */}
         <Grid
           component="article"
           container
@@ -275,28 +284,32 @@ function PrecisionLists(props: Readonly<Props>) {
               </Button>
             ) : null}
           </Grid>
-          <Grid>
-            {filteredMechanisms.length === 0 ? (
-              <Typography>Aucun dispositif</Typography>
-            ) : (
-              filteredMechanisms.map((precision) => (
-                <Tag key={precision.id} className={styles.tag}>
-                  {precision.label}
-                </Tag>
-              ))
-            )}
-          </Grid>
-          {moreMechanisms > 0 && (
-            <Grid component="footer">
-              <Button
-                priority="tertiary"
-                onClick={() => toggleShowAll(setShowAllMechanisms)}
-              >
-                {showAllMechanisms
-                  ? 'Afficher moins'
-                  : `Afficher plus (${moreMechanisms})`}
-              </Button>
-            </Grid>
+          {multiple ? null : (
+            <>
+              <Grid>
+                {filteredMechanisms.length === 0 ? (
+                  <Typography>Aucun dispositif</Typography>
+                ) : (
+                  filteredMechanisms.map((precision) => (
+                    <Tag key={precision.id} className={styles.tag}>
+                      {precision.label}
+                    </Tag>
+                  ))
+                )}
+              </Grid>
+              {moreMechanisms > 0 && (
+                <Grid component="footer">
+                  <Button
+                    priority="tertiary"
+                    onClick={() => toggleShowAll(setShowAllMechanisms)}
+                  >
+                    {showAllMechanisms
+                      ? 'Afficher moins'
+                      : `Afficher plus (${moreMechanisms})`}
+                  </Button>
+                </Grid>
+              )}
+            </>
           )}
         </Grid>
       </Stack>

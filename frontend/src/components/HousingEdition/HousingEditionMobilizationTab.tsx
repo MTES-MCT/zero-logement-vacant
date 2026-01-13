@@ -14,7 +14,7 @@ import {
 import { getSubStatusOptions } from '~/models/HousingState';
 import HousingStatusSelect from '../HousingListFilters/HousingStatusSelect';
 import HousingSubStatusSelect from '../HousingListFilters/HousingSubStatusSelect';
-import PrecisionLists from '../Precision/PrecisionLists';
+import PrecisionLists, { type PrecisionListProps } from '~/components/Precision/PrecisionLists';
 
 interface BaseSchema extends FieldValues {
   status: HousingStatus | null;
@@ -22,7 +22,13 @@ interface BaseSchema extends FieldValues {
   precisions: ReadonlyArray<Precision>;
 }
 
-function HousingEditionMobilizationTab() {
+export type HousingEditionMobilizationTabProps = {
+  precisionListProps?: Pick<PrecisionListProps, 'multiple'>;
+};
+
+function HousingEditionMobilizationTab(
+  props: Readonly<HousingEditionMobilizationTabProps>
+) {
   const form = useFormContext();
   const { field: statusField, fieldState: statusFieldState } = useController<
     BaseSchema,
@@ -84,6 +90,7 @@ function HousingEditionMobilizationTab() {
         />
       </Grid>
       <PrecisionLists
+        {...props.precisionListProps}
         value={precisionField.value}
         onChange={precisionField.onChange}
       />

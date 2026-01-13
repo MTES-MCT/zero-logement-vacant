@@ -5,12 +5,13 @@ import {
   HOUSING_STATUS_VALUES,
   HousingStatus,
   Occupancy,
-  OCCUPANCY_VALUES
+  OCCUPANCY_VALUES,
+  PRECISION_CATEGORY_VALUES
 } from '@zerologementvacant/models';
 import { useState } from 'react';
 import { Controller, FormProvider, useForm } from 'react-hook-form';
 import { match } from 'ts-pattern';
-import { type InferType, number, object, string } from 'yup';
+import { array, type InferType, number, object, string } from 'yup';
 
 import type { Selection } from '~/hooks/useSelection';
 import { HousingStates } from '../../models/HousingState';
@@ -51,7 +52,18 @@ const schema = object({
         ? schema.required('Veuillez renseigner le sous-statut de suivi')
         : schema
     ),
-  note: string().trim().nullable().optional().default(null)
+  note: string().trim().nullable().optional().default(null),
+  precisions: array()
+    .of(
+      object({
+        id: string().required(),
+        category: string().oneOf(PRECISION_CATEGORY_VALUES).required(),
+        label: string().required()
+      }).required()
+    )
+    .optional()
+    .nullable()
+    .default(null)
 }).required();
 
 const modal = createConfirmationModal({
@@ -75,13 +87,13 @@ function HousingListEditionSideMenu(props: Props) {
       occupancy: null,
       occupancyIntended: null,
       status: null,
-      note: null
+      note: null,
+      precisions: []
     },
     mode: 'onSubmit',
     resolver: yupResolver(schema)
   });
 
-  // Tabs state: 'occupancy', 'mobilization', 'note'
   const [tab, setTab] = useState<'occupancy' | 'mobilization' | 'note'>(
     'occupancy'
   );
@@ -105,7 +117,8 @@ function HousingListEditionSideMenu(props: Props) {
       occupancyIntended: data.occupancyIntended as Occupancy | null,
       status: data.status as HousingStatus | null,
       subStatus: data.subStatus,
-      note: data.note
+      note: data.note,
+      precisions: data.precisions
     });
     props.onClose();
     form.reset();
@@ -144,7 +157,7 @@ function HousingListEditionSideMenu(props: Props) {
       </Stack>
     ))
     .with('mobilization', () => (
-      <HousingEditionMobilizationTab />
+      <HousingEditionMobilizationTab precisionListProps={{ multiple: true }} />
     ))
     .with('note', () => (
       <AppTextInputNext<BatchEditionFormSchema>

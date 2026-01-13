@@ -1,7 +1,7 @@
 import { Knex } from 'knex';
 
 import db from '~/infra/database';
-import { getTransaction } from '~/infra/database/transaction';
+import { withinTransaction } from '~/infra/database/transaction';
 import { createLogger } from '~/infra/logger';
 import { HousingApi } from '~/models/HousingApi';
 import { PrecisionApi } from '~/models/PrecisionApi';
@@ -66,24 +66,70 @@ async function link(
     housing: housing.id,
     precisions
   });
-  const transaction = getTransaction();
-  await HousingPrecisions(transaction)
-    .where({
-      housing_geo_code: housing.geoCode,
-      housing_id: housing.id
-    })
-    .delete();
 
-  if (precisions.length) {
-    const housingPrecisions: ReadonlyArray<HousingPrecisionDBO> =
-      precisions.map((precision) => ({
+  await withinTransaction(async (transaction) => {
+    await HousingPrecisions(transaction)
+      .where({
         housing_geo_code: housing.geoCode,
-        housing_id: housing.id,
+        housing_id: housing.id
+      })
+      .delete();
+
+    if (precisions.length) {
+      const housingPrecisions: ReadonlyArray<HousingPrecisionDBO> =
+        precisions.map((precision) => ({
+          housing_geo_code: housing.geoCode,
+          housing_id: housing.id,
+          precision_id: precision.id,
+          created_at: new Date()
+        }));
+      await HousingPrecisions(transaction).insert(housingPrecisions);
+    }
+  });
+}
+
+async function linkMany(
+  links: ReadonlyArray<{
+    housing: HousingApi;
+    precisions: ReadonlyArray<PrecisionApi>;
+  }>
+): Promise<void> {
+  if (links.length === 0) {
+    logger.debug('No housings to link. Skipping...');
+    return;
+  }
+
+  const precisions = links.flatMap((link) => link.precisions);
+  logger.debug('Linking many housings to precisions...', {
+    housings: links.length,
+    precisions: precisions.length
+  });
+
+  await withinTransaction(async (transaction) => {
+    await HousingPrecisions(transaction)
+      .whereIn(
+        ['housing_geo_code', 'housing_id'],
+        links.map((link) => [link.housing.geoCode, link.housing.id])
+      )
+      .delete();
+
+    const housingPrecisions: HousingPrecisionDBO[] = links.flatMap((link) =>
+      link.precisions.map((precision) => ({
+        housing_geo_code: link.housing.geoCode,
+        housing_id: link.housing.id,
         precision_id: precision.id,
         created_at: new Date()
-      }));
-    await HousingPrecisions(transaction).insert(housingPrecisions);
-  }
+      }))
+    );
+    if (housingPrecisions.length) {
+      await HousingPrecisions(transaction).insert(housingPrecisions);
+    }
+
+    logger.debug('Linked many housings to precisions', {
+      housings: links.length,
+      precisions: precisions.length
+    });
+  });
 }
 
 export function formatPrecisionApi(precision: PrecisionApi): PrecisionDBO {
@@ -106,7 +152,8 @@ export function formatPrecisionHousingApi(housing: HousingApi) {
 
 const precisionRepository = {
   find,
-  link
+  link,
+  linkMany
 };
 
 export default precisionRepository;

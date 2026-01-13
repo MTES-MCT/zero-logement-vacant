@@ -25,6 +25,7 @@ import {
   useCountHousingQuery,
   useUpdateManyHousingMutation
 } from '../../services/housing.service';
+import { useNotification } from '~/hooks/useNotification';
 
 export type HousingListTabProps = {
   isActive: boolean;
@@ -80,6 +81,8 @@ function HousingListTab(props: HousingListTabProps) {
         | Occupancy
         | undefined,
       note: payload.note ?? undefined,
+      precisions:
+        payload.precisions?.map((precision) => precision.id) ?? undefined,
       filters: {
         ...props.filters,
         all: selected.all,
@@ -99,6 +102,18 @@ function HousingListTab(props: HousingListTabProps) {
         unselectAll();
       });
   }
+
+  useNotification({
+    toastId: 'housing-update-many',
+    isError: updateManyHousingMutation.isError,
+    isLoading: updateManyHousingMutation.isLoading,
+    isSuccess: updateManyHousingMutation.isSuccess,
+    message: {
+      error: 'Impossible de modifier les logements sélectionnés',
+      loading: 'Modification des logements sélectionnés...',
+      success: 'Logements modifiés !'
+    }
+  })
 
   const params = useParams<{ id?: string }>();
   const { data: group } = useGetGroupQuery(params?.id ?? '', {

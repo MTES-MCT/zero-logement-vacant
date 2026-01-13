@@ -57,10 +57,13 @@ import {
   EventRecordDBO,
   Events,
   EVENTS_TABLE,
+  formatEventApi,
   HOUSING_EVENTS_TABLE,
   HousingEvents,
   HousingOwnerEvents,
-  OwnerEvents
+  OwnerEvents,
+  PRECISION_HOUSING_EVENTS_TABLE,
+  PrecisionHousingEvents
 } from '~/repositories/eventRepository';
 import {
   formatHousingOwnersApi,
@@ -84,11 +87,17 @@ import {
   Owners,
   ownerTable
 } from '~/repositories/ownerRepository';
+import {
+  HousingPrecisions,
+  Precisions,
+  type HousingPrecisionDBO
+} from '~/repositories/precisionRepository';
 import { formatUserApi, Users } from '~/repositories/userRepository';
 import {
   genBuildingApi,
   genCampaignApi,
   genEstablishmentApi,
+  genEventApi,
   genHousingApi,
   genOwnerApi,
   genUserApi,
@@ -637,7 +646,9 @@ describe('Housing API', () => {
     });
 
     it('should create a housing', async () => {
-      const idprocpte = genIdprocpte(faker.helpers.arrayElement(establishment.geoCodes));
+      const idprocpte = genIdprocpte(
+        faker.helpers.arrayElement(establishment.geoCodes)
+      );
       const building = genBuildingApi();
       const datafoncierHousing = genDatafoncierHousing(idprocpte, building.id);
       const ranks = faker.helpers.arrayElements(ACTIVE_OWNER_RANKS, 3);
@@ -676,7 +687,9 @@ describe('Housing API', () => {
     });
 
     it('should ignore owners update if they already exist', async () => {
-      const idprocpte = genIdprocpte(faker.helpers.arrayElement(establishment.geoCodes));
+      const idprocpte = genIdprocpte(
+        faker.helpers.arrayElement(establishment.geoCodes)
+      );
       const building = genBuildingApi();
       const datafoncierHousing = genDatafoncierHousing(idprocpte, building.id);
       const datafoncierOwners = genDatafoncierOwners(idprocpte, 3);
@@ -740,7 +753,9 @@ describe('Housing API', () => {
     });
 
     it('should assign its owners', async () => {
-      const idprocpte = genIdprocpte(faker.helpers.arrayElement(establishment.geoCodes));
+      const idprocpte = genIdprocpte(
+        faker.helpers.arrayElement(establishment.geoCodes)
+      );
       const building = genBuildingApi();
       const datafoncierHousing = genDatafoncierHousing(idprocpte, building.id);
       const datafoncierOwners = genDatafoncierOwners(idprocpte, 3);
@@ -776,7 +791,9 @@ describe('Housing API', () => {
     });
 
     it('should create an event "housing:created"', async () => {
-      const idprocpte = genIdprocpte(faker.helpers.arrayElement(establishment.geoCodes));
+      const idprocpte = genIdprocpte(
+        faker.helpers.arrayElement(establishment.geoCodes)
+      );
       const building = genBuildingApi();
       const datafoncierHousing = genDatafoncierHousing(idprocpte, building.id);
       const datafoncierOwners = genDatafoncierOwners(idprocpte, 1);
@@ -825,7 +842,9 @@ describe('Housing API', () => {
     });
 
     it('should create an event "owner:created" for each missing owner', async () => {
-      const idprocpte = genIdprocpte(faker.helpers.arrayElement(establishment.geoCodes));
+      const idprocpte = genIdprocpte(
+        faker.helpers.arrayElement(establishment.geoCodes)
+      );
       const building = genBuildingApi();
       const datafoncierHousing = genDatafoncierHousing(idprocpte, building.id);
       const datafoncierOwners = genDatafoncierOwners(idprocpte, 1);
@@ -870,7 +889,9 @@ describe('Housing API', () => {
     });
 
     it('should create an event "housing:owner-attached" for each housing owner', async () => {
-      const idprocpte = genIdprocpte(faker.helpers.arrayElement(establishment.geoCodes));
+      const idprocpte = genIdprocpte(
+        faker.helpers.arrayElement(establishment.geoCodes)
+      );
       const building = genBuildingApi();
       const datafoncierHousing = genDatafoncierHousing(idprocpte, building.id);
       const datafoncierOwners = genDatafoncierOwners(idprocpte, 1);
@@ -1166,6 +1187,244 @@ describe('Housing API', () => {
           content: 'Nouvelle note'
         });
       });
+    });
+
+    it('should add precisions to multiple housings', async () => {
+      const { housings } = await createHousings({
+        count: 2
+      });
+      const allPrecisions = await Precisions();
+      const precisions = faker.helpers.arrayElements(allPrecisions, 2);
+
+      const { body, status } = await request(url)
+        .put('/api/housing')
+        .send({
+          filters: {
+            housingIds: housings.map((housing) => housing.id)
+          },
+          precisions: precisions.map((precision) => precision.id)
+        } satisfies HousingBatchUpdatePayload)
+        .use(tokenProvider(user));
+
+      expect(status).toBe(constants.HTTP_STATUS_OK);
+      expect(body).toHaveLength(2);
+
+      // Verify precision links created
+      const links = await HousingPrecisions()
+        .whereIn(
+          ['housing_geo_code', 'housing_id'],
+          housings.map((housing) => [housing.geoCode, housing.id])
+        )
+        .select();
+      expect(links).toHaveLength(4); // 2 housings * 2 precisions
+    });
+
+    it('should create events related to the precision changes', async () => {
+      const { housings } = await createHousings({
+        count: 2
+      });
+      const allPrecisions = await Precisions();
+      const precisions = faker.helpers.arrayElements(allPrecisions, 2);
+
+      const { status } = await request(url)
+        .put('/api/housing')
+        .send({
+          filters: {
+            housingIds: housings.map((housing) => housing.id)
+          },
+          precisions: precisions.map((precision) => precision.id)
+        } satisfies HousingBatchUpdatePayload)
+        .use(tokenProvider(user));
+
+      expect(status).toBe(constants.HTTP_STATUS_OK);
+
+      const events = await Events()
+        .where({ type: 'housing:precision-attached' })
+        .join(PRECISION_HOUSING_EVENTS_TABLE, 'id', 'event_id')
+        .whereIn(
+          ['housing_geo_code', 'housing_id'],
+          housings.map((housing) => [housing.geoCode, housing.id])
+        )
+        .select();
+      expect(events).toHaveLength(4); // 2 housings * 2 precisions
+    });
+
+    it('should not create events for existing precision links', async () => {
+      const { housings } = await createHousings({
+        count: 1
+      });
+      const [housing] = housings;
+      const allPrecisions = await Precisions();
+      const precisions = faker.helpers.arrayElements(allPrecisions, 2);
+
+      // First, add the precisions
+      await HousingPrecisions().insert(
+        precisions.map((precision) => ({
+          housing_geo_code: housing.geoCode,
+          housing_id: housing.id,
+          precision_id: precision.id,
+          created_at: new Date()
+        }))
+      );
+      // Create related events
+      const events = precisions.map((precision) =>
+        genEventApi({
+          type: 'housing:precision-attached',
+          nextOld: null,
+          nextNew: {
+            category: precision.category,
+            label: precision.label
+          },
+          creator: user
+        })
+      );
+      await Events().insert(events.map(formatEventApi));
+      await PrecisionHousingEvents().insert(
+        events.map((event) => ({
+          event_id: event.id,
+          housing_geo_code: housing.geoCode,
+          housing_id: housing.id
+        }))
+      );
+
+      // Add the same precisions again via API
+      const { status } = await request(url)
+        .put('/api/housing')
+        .send({
+          filters: {
+            housingIds: [housing.id]
+          },
+          precisions: precisions.map((precision) => precision.id)
+        })
+        .use(tokenProvider(user));
+
+      expect(status).toBe(constants.HTTP_STATUS_OK);
+
+      // Should still have only the original 2 precision links
+      const links = await HousingPrecisions()
+        .where({
+          housing_geo_code: housing.geoCode,
+          housing_id: housing.id
+        })
+        .select();
+      expect(links).toHaveLength(2);
+
+      // Should have no new events
+      const eventsAgain = await Events()
+        .where({
+          type: 'housing:precision-attached'
+        })
+        .join(PRECISION_HOUSING_EVENTS_TABLE, 'id', 'event_id')
+        .where({
+          housing_geo_code: housing.geoCode,
+          housing_id: housing.id
+        })
+        .select();
+      expect(eventsAgain).toHaveLength(housings.length * precisions.length);
+    });
+
+    it('should add only new precisions (add-only mode)', async () => {
+      const { housings } = await createHousings({
+        count: 1
+      });
+      const [housing] = housings;
+      const allPrecisions = await Precisions();
+      const existingPrecisions = faker.helpers.arrayElements(allPrecisions, 2);
+      const newPrecisions = faker.helpers.arrayElements(
+        allPrecisions.filter(
+          (p) => !existingPrecisions.some((ep) => ep.id === p.id)
+        ),
+        1
+      );
+
+      // Add initial precisions
+      await HousingPrecisions().insert(
+        existingPrecisions.map((precision) => ({
+          housing_geo_code: housing.geoCode,
+          housing_id: housing.id,
+          precision_id: precision.id,
+          created_at: new Date()
+        }))
+      );
+
+      const { status } = await request(url)
+        .put('/api/housing')
+        .send({
+          filters: {
+            housingIds: [housing.id]
+          },
+          precisions: newPrecisions.map((precision) => precision.id)
+        } satisfies HousingBatchUpdatePayload)
+        .use(tokenProvider(user));
+
+      expect(status).toBe(constants.HTTP_STATUS_OK);
+
+      const links = await HousingPrecisions()
+        .where({
+          housing_geo_code: housing.geoCode,
+          housing_id: housing.id
+        })
+        .select();
+      expect(links).toHaveLength(
+        existingPrecisions.length + newPrecisions.length
+      );
+    });
+
+    // For example, in the subcategory "travaux", there cannot be
+    // a precision "en cours" and "terminé" at the same time.
+    it('should keep only one precision per evolution subcategory', async () => {
+      const { housings } = await createHousings({
+        count: 2
+      });
+      const allPrecisions = await Precisions();
+      const travaux = allPrecisions.filter(
+        (precision) => precision.category === 'travaux'
+      );
+      const initialPrecisions: HousingPrecisionDBO[] = [
+        {
+          housing_geo_code: housings[0].geoCode,
+          housing_id: housings[0].id,
+          precision_id: travaux[0].id,
+          created_at: new Date()
+        },
+        {
+          housing_geo_code: housings[1].geoCode,
+          housing_id: housings[1].id,
+          precision_id: travaux[1].id,
+          created_at: new Date()
+        }
+      ];
+      const newPrecision = travaux[1]
+
+      // Add initial precision
+      await HousingPrecisions().insert(initialPrecisions);
+
+      const { status } = await request(url)
+        .put('/api/housing')
+        .send({
+          filters: {
+            housingIds: housings.map(housing => housing.id)
+          },
+          precisions: [newPrecision.id]
+        } satisfies HousingBatchUpdatePayload)
+        .use(tokenProvider(user));
+
+      expect(status).toBe(constants.HTTP_STATUS_OK);
+
+      const actual = await HousingPrecisions().whereIn(['housing_geo_code', 'housing_id'], housings.map(housing => [housing.geoCode, housing.id]));
+      expect(actual).toHaveLength(2)
+      expect(actual).toIncludeAllPartialMembers([
+        {
+          housing_geo_code: housings[0].geoCode,
+          housing_id: housings[0].id,
+          precision_id: newPrecision.id
+        },
+        {
+          housing_geo_code: housings[1].geoCode,
+          housing_id: housings[1].id,
+          precision_id: newPrecision.id
+        }
+      ])
     });
   });
 

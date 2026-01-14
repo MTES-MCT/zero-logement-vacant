@@ -4,7 +4,7 @@ import Grid from '@mui/material/Grid';
 import Stack from '@mui/material/Stack';
 import Typography from '@mui/material/Typography';
 import { Controller, FormProvider, useForm } from 'react-hook-form';
-import * as yup from 'yup';
+import { number, object, string, type InferType } from 'yup';
 
 import AppTextInputNext from '~/components/_app/AppTextInput/AppTextInputNext';
 import {
@@ -19,26 +19,26 @@ import OwnerAddressEdition from '../OwnerAddressEdition/OwnerAddressEdition';
 
 const PHONE_REGEXP = /^(\+33|0)[1-9][0-9]{8}$/;
 
-const schema = yup.object({
-  fullName: yup.string().required(
+const schema = object({
+  fullName: string().required(
     'Veuillez saisir le nom et prénom du propriétaire'
   ),
-  birthDate: yup.string().nullable().defined(),
-  banAddress: yup.object({
-    id: yup.string().required(),
-    label: yup.string().required(),
-    score: yup.number().required().min(0).max(1),
-    longitude: yup.number().min(-180).max(180).nullable().defined(),
-    latitude: yup.number().min(-90).max(90).nullable().defined()
+  birthDate: string().nullable().defined(),
+  banAddress: object({
+    id: string().required(),
+    label: string().required(),
+    score: number().required().min(0).max(1),
+    longitude: number().min(-180).max(180).nullable().defined(),
+    latitude: number().min(-90).max(90).nullable().defined()
   })
     .nullable()
     .defined(),
-  additionalAddress: yup.string().nullable().defined(),
-  email: yup.string()
+  additionalAddress: string().nullable().defined(),
+  email: string()
     .email('Email invalide. Exemple de format valide : exemple@gmail.com')
     .nullable()
     .defined(),
-  phone: yup.string()
+  phone: string()
     .matches(
       PHONE_REGEXP,
       'Téléphone invalide. Exemple de format valide : +33XXXXXXXXX ou 0XXXXXXXXX'
@@ -46,7 +46,7 @@ const schema = yup.object({
     .nullable()
     .defined()
 }).required();
-type Schema = yup.InferType<typeof schema>;
+type FormSchema = InferType<typeof schema>;
 
 export type OwnerEditionModalProps = Omit<
   ExtendedModalProps,
@@ -64,7 +64,7 @@ function createOwnerEditionModalNext() {
   return {
     ...modal,
     Component(props: OwnerEditionModalProps) {
-      const form = useForm<Schema>({
+      const form = useForm<FormSchema>({
         values: {
           fullName: props.owner.fullName,
           birthDate: props.owner.birthDate ?? null,
@@ -80,7 +80,7 @@ function createOwnerEditionModalNext() {
           additionalAddress: props.owner.additionalAddress ?? null,
           email: props.owner.email ?? null,
           phone: props.owner.phone ?? null
-        } satisfies Schema,
+        } satisfies FormSchema,
         resolver: yupResolver(schema)
       });
 
@@ -106,7 +106,7 @@ function createOwnerEditionModalNext() {
         }
       }
 
-      function onSubmit(payload: Schema) {
+      function onSubmit(payload: FormSchema) {
         if (!isDirty) {
           modal.close();
           return;
@@ -173,7 +173,7 @@ function createOwnerEditionModalNext() {
                     />
                   </Grid>
                   <Grid size={{ xs: 12, md: 6 }}>
-                    <AppTextInputNext<Schema['birthDate']>
+                    <AppTextInputNext<FormSchema>
                       name="birthDate"
                       label="Date de naissance"
                       nativeInputProps={{
@@ -264,7 +264,7 @@ function createOwnerEditionModalNext() {
                 </Stack>
 
                 <Stack component="section">
-                  <AppTextInputNext<Schema['additionalAddress']>
+                  <AppTextInputNext<FormSchema>
                     name="additionalAddress"
                     label="Complément d’adresse"
                     mapValue={(value): string => value ?? ''}
@@ -274,7 +274,7 @@ function createOwnerEditionModalNext() {
 
                 <Grid container component="section" columnSpacing="1rem">
                   <Grid size={{ xs: 12, md: 6 }}>
-                    <AppTextInputNext<Schema['email']>
+                    <AppTextInputNext<FormSchema>
                       name="email"
                       label="Adresse e-mail"
                       nativeInputProps={{
@@ -286,7 +286,7 @@ function createOwnerEditionModalNext() {
                     />
                   </Grid>
                   <Grid size={{ xs: 12, md: 6 }}>
-                    <AppTextInputNext<Schema['phone']>
+                    <AppTextInputNext<FormSchema>
                       name="phone"
                       label="Numéro de téléphone"
                       nativeInputProps={{

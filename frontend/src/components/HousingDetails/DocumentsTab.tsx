@@ -82,7 +82,6 @@ function DocumentsTab() {
 
   function onCancelRename(): void {
     setSelectedDocument(null);
-    documentRenameModal.close();
   }
 
   function rename(filename: string): void {

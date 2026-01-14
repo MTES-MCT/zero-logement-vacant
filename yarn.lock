@@ -5106,7 +5106,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@maplibre/maplibre-gl-style-spec@npm:24.4.1, @maplibre/maplibre-gl-style-spec@npm:^24.3.1":
+"@maplibre/maplibre-gl-style-spec@npm:24.4.1, @maplibre/maplibre-gl-style-spec@npm:^24.4.1":
   version: 24.4.1
   resolution: "@maplibre/maplibre-gl-style-spec@npm:24.4.1"
   dependencies:
@@ -5143,7 +5143,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@maplibre/mlt@npm:^1.1.0":
+"@maplibre/mlt@npm:^1.1.2":
   version: 1.1.2
   resolution: "@maplibre/mlt@npm:1.1.2"
   dependencies:
@@ -5152,9 +5152,9 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@maplibre/vt-pbf@npm:^4.0.3":
-  version: 4.0.3
-  resolution: "@maplibre/vt-pbf@npm:4.0.3"
+"@maplibre/vt-pbf@npm:^4.2.0":
+  version: 4.2.0
+  resolution: "@maplibre/vt-pbf@npm:4.2.0"
   dependencies:
     "@mapbox/point-geometry": "npm:^1.1.0"
     "@mapbox/vector-tile": "npm:^2.0.4"
@@ -5163,7 +5163,7 @@ __metadata:
     geojson-vt: "npm:^4.0.2"
     pbf: "npm:^4.0.1"
     supercluster: "npm:^8.0.1"
-  checksum: 10c0/d3c84adabb9dc93ff72ea6ab8c17900479f09e4d473f34ccae1f8e22d29f814d288f529f0d85959545bc4d7021675e056f7f558e758f705a4cb060b1f75f0aff
+  checksum: 10c0/763b038c46e56f8393cf553a1dcea6bf51a32e2502a222d5b7cda24087dcba06b9175a9435b08e7a0df664d0251b0c1e714b2433f0dbdca7d824adb2d412c055
   languageName: node
   linkType: hard
 
@@ -13015,7 +13015,7 @@ __metadata:
     jose: "npm:4.15.9"
     lexical: "npm:0.38.2"
     lodash-es: "npm:4.17.21"
-    maplibre-gl: "npm:5.13.0"
+    maplibre-gl: "npm:5.16.0"
     mime: "npm:4.1.0"
     msw: "npm:2.12.4"
     posthog-js: "npm:1.298.0"
@@ -24820,9 +24820,9 @@ __metadata:
   languageName: node
   linkType: hard
 
-"maplibre-gl@npm:5.13.0":
-  version: 5.13.0
-  resolution: "maplibre-gl@npm:5.13.0"
+"maplibre-gl@npm:5.16.0":
+  version: 5.16.0
+  resolution: "maplibre-gl@npm:5.16.0"
   dependencies:
     "@mapbox/geojson-rewind": "npm:^0.5.2"
     "@mapbox/jsonlint-lines-primitives": "npm:^2.0.2"
@@ -24831,9 +24831,9 @@ __metadata:
     "@mapbox/unitbezier": "npm:^0.0.1"
     "@mapbox/vector-tile": "npm:^2.0.4"
     "@mapbox/whoots-js": "npm:^3.1.0"
-    "@maplibre/maplibre-gl-style-spec": "npm:^24.3.1"
-    "@maplibre/mlt": "npm:^1.1.0"
-    "@maplibre/vt-pbf": "npm:^4.0.3"
+    "@maplibre/maplibre-gl-style-spec": "npm:^24.4.1"
+    "@maplibre/mlt": "npm:^1.1.2"
+    "@maplibre/vt-pbf": "npm:^4.2.0"
     "@types/geojson": "npm:^7946.0.16"
     "@types/geojson-vt": "npm:3.2.5"
     "@types/supercluster": "npm:^7.1.3"
@@ -24847,7 +24847,7 @@ __metadata:
     quickselect: "npm:^3.0.0"
     supercluster: "npm:^8.0.1"
     tinyqueue: "npm:^3.0.0"
-  checksum: 10c0/83c4df19979e361844cb30b644d1169e01d1e8312e4e0f6683896915e4456c6c3d2595d055cef5a0b2bc5927609ad51f7c54d6f3662dbd2305e32c3aa8741e24
+  checksum: 10c0/573f560724d898e2825212fcd578e82fad4da2934375f3672ffcdc379ad21e358739754104f698a1874b0c42fe8062ab27841f04c31b65d049ec0fab62233c6c
   languageName: node
   linkType: hard
 

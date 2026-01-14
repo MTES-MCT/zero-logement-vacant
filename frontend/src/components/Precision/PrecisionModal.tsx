@@ -18,7 +18,7 @@ export type PrecisionModalProps = Omit<
     onSubmit(value: Precision[]): void;
   };
 
-function createPrecisionModalNext(id: string) {
+function createPrecisionModal(id: string) {
   const precisionModalOptions = {
     id: `precision-modal-${id}`,
     isOpenedByDefault: false
@@ -59,4 +59,4 @@ function createPrecisionModalNext(id: string) {
   };
 }
 
-export default createPrecisionModalNext;
+export default createPrecisionModal;

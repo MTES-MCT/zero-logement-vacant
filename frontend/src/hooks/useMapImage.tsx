@@ -7,7 +7,7 @@ interface UseMapImageOptions {
 }
 
 export function useMapImage(options: UseMapImageOptions) {
-  const { housingMap: map } = useMap();
+  const { current: map } = useMap();
 
   useEffect(() => {
     if (map && !map.hasImage(options.id)) {

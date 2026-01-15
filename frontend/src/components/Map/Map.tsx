@@ -1,5 +1,5 @@
-import { mapStyles } from 'carte-facile';
 import * as turf from '@turf/turf';
+import { mapStyles } from 'carte-facile';
 import { type CSSProperties, memo, useEffect, useMemo, useState } from 'react';
 import ReactiveMap, {
   NavigationControl,
@@ -23,6 +23,7 @@ import {
 } from '../../models/Housing';
 import BuildingAside from './BuildingAside';
 import Clusters from './Clusters';
+import LayerControl from './LayerControl';
 import MapControls from './MapControls';
 import Perimeters from './Perimeters';
 import Points from './Points';
@@ -62,7 +63,7 @@ function Map(props: MapProps) {
     props.onMove?.(event.viewState);
   }
 
-  const { housingMap: map } = useMap();
+  const { current: map } = useMap();
 
   const housingList = useMemo<HousingWithCoordinates[]>(
     () => props.housingList?.filter(hasCoordinates) ?? [],
@@ -206,6 +207,7 @@ function Map(props: MapProps) {
           showZoom
           visualizePitch={false}
         />
+        <LayerControl />
       </ReactiveMap>
 
       <BuildingAside

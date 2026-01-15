@@ -87,6 +87,7 @@ const HousingListMap = ({ filters }: Props) => {
         perimeters={remainingPerimeters}
         perimetersIncluded={perimetersIncluded}
         perimetersExcluded={perimetersExcluded}
+        maxZoom={18}
       />
     </Stack>
   );

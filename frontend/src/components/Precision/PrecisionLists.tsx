@@ -114,67 +114,8 @@ function PrecisionLists(props: Readonly<Props>) {
             description="Si des logements sélectionnés ont déjà des dispositifs ou des points de blocage de renseignés, ceux-ci seront conservés."
           />
         ) : null}
-        <Grid
-          component="article"
-          container
-          sx={{ alignItems: 'center', columnGap: 2, rowGap: 1 }}
-          size={12}
-        >
-          <Grid
-            sx={{ display: 'flex', alignItems: 'center', gap: 2 }}
-            size={12}
-          >
-            <Typography
-              component="h3"
-              sx={{
-                display: 'inline-block',
-                fontSize: '1.125rem',
-                fontWeight: 700
-              }}
-            >
-              Dispositifs ({totalMechanisms})
-            </Typography>
-            {writable ? (
-              <Button
-                priority="secondary"
-                title="Modifier les dispositifs"
-                nativeButtonProps={{
-                  'aria-label': 'Modifier les dispositifs'
-                }}
-                onClick={() => {
-                  setTab('dispositifs');
-                  precisionModal.open();
-                }}
-              >
-                Modifier
-              </Button>
-            ) : null}
-          </Grid>
-          <Grid>
-            {filteredMechanisms.length === 0 ? (
-              <Typography>Aucun dispositif</Typography>
-            ) : (
-              filteredMechanisms.map((precision) => (
-                <Tag key={precision.id} className={styles.tag}>
-                  {precision.label}
-                </Tag>
-              ))
-            )}
-          </Grid>
-          {moreMechanisms > 0 && (
-            <Grid component="footer">
-              <Button
-                priority="tertiary"
-                onClick={() => toggleShowAll(setShowAllMechanisms)}
-              >
-                {showAllMechanisms
-                  ? 'Afficher moins'
-                  : `Afficher plus (${moreMechanisms})`}
-              </Button>
-            </Grid>
-          )}
-        </Grid>
 
+        {/* Points de blocages */}
         <Grid
           component="article"
           container
@@ -236,6 +177,7 @@ function PrecisionLists(props: Readonly<Props>) {
           )}
         </Grid>
 
+        {/* Évolutions du logement */}
         <Grid
           component="article"
           container
@@ -291,6 +233,68 @@ function PrecisionLists(props: Readonly<Props>) {
                 {showAllEvolutions
                   ? 'Afficher moins'
                   : `Afficher plus (${moreEvolutions})`}
+              </Button>
+            </Grid>
+          )}
+        </Grid>
+
+        {/* Dispositifs */}
+        <Grid
+          component="article"
+          container
+          sx={{ alignItems: 'center', columnGap: 2, rowGap: 1 }}
+          size={12}
+        >
+          <Grid
+            sx={{ display: 'flex', alignItems: 'center', gap: 2 }}
+            size={12}
+          >
+            <Typography
+              component="h3"
+              sx={{
+                display: 'inline-block',
+                fontSize: '1.125rem',
+                fontWeight: 700
+              }}
+            >
+              Dispositifs ({totalMechanisms})
+            </Typography>
+            {writable ? (
+              <Button
+                priority="secondary"
+                title="Modifier les dispositifs"
+                nativeButtonProps={{
+                  'aria-label': 'Modifier les dispositifs'
+                }}
+                onClick={() => {
+                  setTab('dispositifs');
+                  precisionModal.open();
+                }}
+              >
+                Modifier
+              </Button>
+            ) : null}
+          </Grid>
+          <Grid>
+            {filteredMechanisms.length === 0 ? (
+              <Typography>Aucun dispositif</Typography>
+            ) : (
+              filteredMechanisms.map((precision) => (
+                <Tag key={precision.id} className={styles.tag}>
+                  {precision.label}
+                </Tag>
+              ))
+            )}
+          </Grid>
+          {moreMechanisms > 0 && (
+            <Grid component="footer">
+              <Button
+                priority="tertiary"
+                onClick={() => toggleShowAll(setShowAllMechanisms)}
+              >
+                {showAllMechanisms
+                  ? 'Afficher moins'
+                  : `Afficher plus (${moreMechanisms})`}
               </Button>
             </Grid>
           )}

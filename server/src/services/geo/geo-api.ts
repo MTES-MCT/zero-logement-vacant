@@ -199,9 +199,11 @@ class GeoAPIImpl implements GeoAPI {
     }
 
     try {
+      // Use encodeURIComponent for defense in depth
+      const safeSiren = encodeURIComponent(siren);
       const data = await withRetry(
         async () => {
-          const response = await this.http.get<GeoEPCI>(`/epcis/${siren}`);
+          const response = await this.http.get<GeoEPCI>(`/epcis/${safeSiren}`);
           return response.data;
         },
         `Fetching EPCI ${siren}`
@@ -264,10 +266,12 @@ class GeoAPIImpl implements GeoAPI {
     }
 
     try {
+      // Use encodeURIComponent for defense in depth (even though regex validation prevents injection)
+      const safeDepartmentCode = encodeURIComponent(departmentCode);
       const data = await withRetry(
         async () => {
           const response = await this.http.get<GeoCommune[]>(
-            `/departements/${departmentCode}/communes`,
+            `/departements/${safeDepartmentCode}/communes`,
             { params: { fields: 'code,nom,codeDepartement,codeRegion,codeEpci' } }
           );
           return response.data;
@@ -298,9 +302,11 @@ class GeoAPIImpl implements GeoAPI {
     }
 
     try {
+      // Use encodeURIComponent for defense in depth
+      const safeGeoCode = encodeURIComponent(geoCode);
       const data = await withRetry(
         async () => {
-          const response = await this.http.get<GeoCommune>(`/communes/${geoCode}`);
+          const response = await this.http.get<GeoCommune>(`/communes/${safeGeoCode}`);
           return response.data;
         },
         `Fetching commune ${geoCode}`
@@ -330,10 +336,12 @@ class GeoAPIImpl implements GeoAPI {
     }
 
     try {
+      // Use encodeURIComponent for defense in depth
+      const safeEpciSiren = encodeURIComponent(epciSiren);
       const data = await withRetry(
         async () => {
           const response = await this.http.get<GeoCommune[]>(
-            `/epcis/${epciSiren}/communes`
+            `/epcis/${safeEpciSiren}/communes`
           );
           return response.data;
         },

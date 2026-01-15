@@ -3,19 +3,20 @@ import posthog from 'posthog-js';
 import { PostHogProvider } from 'posthog-js/react';
 import { StrictMode } from 'react';
 import ReactDOM from 'react-dom/client';
-import { MapProvider } from 'react-map-gl/maplibre';
 import { Provider as StoreProvider } from 'react-redux';
 import { Link } from 'react-router-dom';
-import App from './App';
 
+import App from './App';
 import Notification from './components/Notification/Notification';
 import { store } from './store/store';
 import ThemeProvider from './theme';
 import config from './utils/config';
 import sentry from './utils/sentry';
 
-sentry.init();
+import 'maplibre-gl/dist/maplibre-gl.css';
+import 'carte-facile/carte-facile.css';
 
+sentry.init();
 
 startReactDsfr({
   defaultColorScheme: 'light',
@@ -34,7 +35,6 @@ if (config.posthog.enabled) {
     person_profiles: 'identified_only'
   });
 }
-
 
 const container = document.getElementById('root');
 const root = ReactDOM.createRoot(container!);
@@ -79,14 +79,12 @@ root.render(
       }}
     >
       <ThemeProvider>
-        <MapProvider>
-          <PostHogProvider client={posthog}>
-            <StoreProvider store={store}>
-              <Notification />
-              <App />
-            </StoreProvider>
-          </PostHogProvider>
-        </MapProvider>
+        <PostHogProvider client={posthog}>
+          <StoreProvider store={store}>
+            <Notification />
+            <App />
+          </StoreProvider>
+        </PostHogProvider>
       </ThemeProvider>
     </sentry.ErrorBoundary>
   </StrictMode>

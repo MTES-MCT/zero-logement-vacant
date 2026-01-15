@@ -13003,6 +13003,7 @@ __metadata:
     "@zerologementvacant/schemas": "workspace:*"
     "@zerologementvacant/utils": "workspace:*"
     async: "npm:3.2.6"
+    carte-facile: "npm:0.8.3"
     classnames: "npm:2.5.1"
     copyfiles: "npm:2.4.1"
     date-fns: "npm:2.30.0"
@@ -15223,6 +15224,15 @@ __metadata:
   version: 1.0.30001754
   resolution: "caniuse-lite@npm:1.0.30001754"
   checksum: 10c0/d38709ab11abc36eea28068d241434eba925c4d3462916ccaa17a34a6227dfdeb58ab0e1eb614bab12fb393c7d527db392a0f477b48c33d70d8e466954f381ba
+  languageName: node
+  linkType: hard
+
+"carte-facile@npm:0.8.3":
+  version: 0.8.3
+  resolution: "carte-facile@npm:0.8.3"
+  peerDependencies:
+    maplibre-gl: ^5.0.0
+  checksum: 10c0/786034ef2091b4c6600f861112249d710d9502c0e026db7f745c6f85e96915c702530db2c34b921a232ab84b02cc630a8aa58ac5256a75d7eff5b095879615c7
   languageName: node
   linkType: hard
 

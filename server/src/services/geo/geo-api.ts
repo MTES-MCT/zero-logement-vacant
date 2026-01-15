@@ -217,8 +217,11 @@ class GeoAPIImpl implements GeoAPI {
   }
 
   async getEPCIsByDepartment(departmentCode: string): Promise<GeoEPCIWithDepartments[]> {
-    // Validate department code format (2 or 3 characters for DOM-TOM)
-    if (!/^[0-9]{2,3}[A-B]?$/.test(departmentCode)) {
+    // Validate department code format:
+    // - Metropolitan: 01-95 (2 digits)
+    // - Corsica: 2A, 2B
+    // - DOM-TOM: 971-976, 984-989 (3 digits)
+    if (!/^([0-9]{2,3}|2[AB])$/.test(departmentCode)) {
       logger.warn('Invalid department code format for EPCI lookup', { departmentCode });
       return [];
     }
@@ -251,8 +254,11 @@ class GeoAPIImpl implements GeoAPI {
   }
 
   async getCommunesByDepartment(departmentCode: string): Promise<GeoCommune[]> {
-    // Validate department code format (2 or 3 characters for DOM-TOM)
-    if (!/^[0-9]{2,3}[A-B]?$/.test(departmentCode)) {
+    // Validate department code format:
+    // - Metropolitan: 01-95 (2 digits)
+    // - Corsica: 2A, 2B
+    // - DOM-TOM: 971-976, 984-989 (3 digits)
+    if (!/^([0-9]{2,3}|2[AB])$/.test(departmentCode)) {
       logger.warn('Invalid department code format for communes lookup', { departmentCode });
       return [];
     }

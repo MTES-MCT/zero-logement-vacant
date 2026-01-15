@@ -3,6 +3,7 @@ import posthog from 'posthog-js';
 import { PostHogProvider } from 'posthog-js/react';
 import { StrictMode } from 'react';
 import ReactDOM from 'react-dom/client';
+import { MapProvider } from 'react-map-gl/maplibre';
 import { Provider as StoreProvider } from 'react-redux';
 import { Link } from 'react-router-dom';
 
@@ -13,8 +14,8 @@ import ThemeProvider from './theme';
 import config from './utils/config';
 import sentry from './utils/sentry';
 
-import 'maplibre-gl/dist/maplibre-gl.css';
 import 'carte-facile/carte-facile.css';
+import 'maplibre-gl/dist/maplibre-gl.css';
 
 sentry.init();
 
@@ -79,12 +80,14 @@ root.render(
       }}
     >
       <ThemeProvider>
-        <PostHogProvider client={posthog}>
-          <StoreProvider store={store}>
-            <Notification />
-            <App />
-          </StoreProvider>
-        </PostHogProvider>
+        <MapProvider>
+          <PostHogProvider client={posthog}>
+            <StoreProvider store={store}>
+              <Notification />
+              <App />
+            </StoreProvider>
+          </PostHogProvider>
+        </MapProvider>
       </ThemeProvider>
     </sentry.ErrorBoundary>
   </StrictMode>

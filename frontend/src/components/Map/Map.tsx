@@ -1,6 +1,13 @@
 import * as turf from '@turf/turf';
 import { mapStyles } from 'carte-facile';
-import { type CSSProperties, memo, useEffect, useMemo, useState } from 'react';
+import {
+  type CSSProperties,
+  memo,
+  useCallback,
+  useEffect,
+  useMemo,
+  useState
+} from 'react';
 import ReactiveMap, {
   NavigationControl,
   useMap,
@@ -21,6 +28,7 @@ import {
   type Housing,
   type HousingWithCoordinates
 } from '../../models/Housing';
+import AdministrativeBoundaries from './AdministrativeBoundaries';
 import BuildingAside from './BuildingAside';
 import Clusters from './Clusters';
 import LayerControl from './LayerControl';
@@ -63,7 +71,7 @@ function Map(props: MapProps) {
     props.onMove?.(event.viewState);
   }
 
-  const { current: map } = useMap();
+  const { housingMap: map } = useMap();
 
   const housingList = useMemo<HousingWithCoordinates[]>(
     () => props.housingList?.filter(hasCoordinates) ?? [],
@@ -126,17 +134,20 @@ function Map(props: MapProps) {
   const [selected, setSelected] = useState<Building | null>(null);
   const isOpen = selected !== null;
 
-  function select(building: Building | null) {
-    if (building) {
-      map?.flyTo({
-        center: {
-          lon: building.longitude,
-          lat: building.latitude
-        }
-      });
-      setSelected(building);
-    }
-  }
+  const select = useCallback(
+    (building: Building | null) => {
+      if (building) {
+        map?.flyTo({
+          center: {
+            lon: building.longitude,
+            lat: building.latitude
+          }
+        });
+        setSelected(building);
+      }
+    },
+    [map]
+  );
 
   return (
     <>
@@ -208,6 +219,7 @@ function Map(props: MapProps) {
           visualizePitch={false}
         />
         <LayerControl />
+        <AdministrativeBoundaries fillOpacity={0.3} />
       </ReactiveMap>
 
       <BuildingAside

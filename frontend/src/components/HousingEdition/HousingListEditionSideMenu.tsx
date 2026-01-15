@@ -4,10 +4,12 @@ import { Stack, Typography } from '@mui/material';
 import {
   HOUSING_STATUS_VALUES,
   HousingStatus,
+  isPrecisionEvolutionCategory,
   Occupancy,
   OCCUPANCY_VALUES,
   PRECISION_CATEGORY_VALUES
 } from '@zerologementvacant/models';
+import { capitalize } from "effect/String";
 import { useState } from 'react';
 import { Controller, FormProvider, useForm } from 'react-hook-form';
 import { match } from 'ts-pattern';
@@ -235,6 +237,22 @@ function HousingListEditionSideMenu(props: Props) {
                   <li>Occupation du logement — Occupation prévisionnelle</li>
                 )}
                 {form.formState.dirtyFields.note && <li>Ajout d’une note</li>}
+                {form.formState.dirtyFields.precisions &&
+                  form
+                    .getValues('precisions')
+                    ?.some((precision) =>
+                      isPrecisionEvolutionCategory(precision.category)
+                    ) &&
+                  form
+                    .getValues('precisions')
+                    ?.filter((precision) =>
+                      isPrecisionEvolutionCategory(precision.category)
+                    )
+                    ?.map((precision) => (
+                      <li key={precision.id}>
+                        Évolutions du logement — {capitalize(precision.category)}
+                      </li>
+                    ))}
               </ul>
             </Stack>
           </modal.Component>

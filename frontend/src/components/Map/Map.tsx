@@ -1,3 +1,4 @@
+import { mapStyles } from 'carte-facile';
 import * as turf from '@turf/turf';
 import { type CSSProperties, memo, useEffect, useMemo, useState } from 'react';
 import ReactiveMap, {
@@ -25,11 +26,6 @@ import Clusters from './Clusters';
 import MapControls from './MapControls';
 import Perimeters from './Perimeters';
 import Points from './Points';
-
-const STYLE = {
-  title: 'Carte',
-  uri: 'https://openmaptiles.geo.data.gouv.fr/styles/osm-bright/style.json'
-};
 
 export interface MapProps {
   housingList?: Housing[];
@@ -147,7 +143,7 @@ function Map(props: MapProps) {
         {...viewState}
         attributionControl={{}}
         id="housingMap"
-        mapStyle={STYLE.uri}
+        mapStyle={mapStyles.simple}
         minZoom={props.minZoom}
         maxZoom={props.maxZoom}
         onMove={onMove}

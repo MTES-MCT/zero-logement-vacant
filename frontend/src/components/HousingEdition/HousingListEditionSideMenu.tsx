@@ -98,10 +98,14 @@ function HousingListEditionSideMenu(props: Props) {
     'occupancy'
   );
 
+  function close(): void {
+    props.onClose();
+    form.reset();
+  }
+
   async function save(): Promise<void> {
     if (!Object.values(form.formState.dirtyFields).some(Boolean)) {
-      props.onClose();
-      form.reset();
+      close();
       return;
     }
 
@@ -120,8 +124,7 @@ function HousingListEditionSideMenu(props: Props) {
       note: data.note,
       precisions: data.precisions
     });
-    props.onClose();
-    form.reset();
+    close();
   }
 
   // Tab content logic using ts-pattern
@@ -157,7 +160,9 @@ function HousingListEditionSideMenu(props: Props) {
       </Stack>
     ))
     .with('mobilization', () => (
-      <HousingEditionMobilizationTab precisionListProps={{ multiple: true }} />
+      <HousingEditionMobilizationTab
+        precisionListProps={{ multiple: true, showNullOption: false }}
+      />
     ))
     .with('note', () => (
       <AppTextInputNext<BatchEditionFormSchema>
@@ -236,7 +241,7 @@ function HousingListEditionSideMenu(props: Props) {
         </FormProvider>
       }
       open={props.open}
-      onClose={props.onClose}
+      onClose={close}
       onSave={save}
     />
   );

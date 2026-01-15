@@ -12,7 +12,7 @@ export type PrecisionModalProps = Omit<
   ConfirmationModalProps,
   'children' | 'size' | 'title' | 'onSubmit'
 > &
-  Pick<PrecisionTabs, 'tab' | 'onTabChange'> & {
+  Pick<PrecisionTabs, 'tab' | 'onTabChange' | 'showNullOption'> & {
     options: ReadonlyArray<Precision>;
     value: ReadonlyArray<Precision>;
     onSubmit(value: ReadonlyArray<Precision>): void;
@@ -51,6 +51,7 @@ function createPrecisionModal(id: string) {
           <PrecisionTabs
             tab={tab}
             options={options}
+            showNullOption={props.showNullOption}
             value={internalValue}
             onChange={setInternalValue}
             onTabChange={onTabChange}

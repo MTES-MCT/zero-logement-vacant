@@ -23,7 +23,7 @@ interface BaseSchema extends FieldValues {
 }
 
 export type HousingEditionMobilizationTabProps = {
-  precisionListProps?: Pick<PrecisionListProps, 'multiple'>;
+  precisionListProps?: Pick<PrecisionListProps, 'multiple' | 'showNullOption'>;
 };
 
 function HousingEditionMobilizationTab(

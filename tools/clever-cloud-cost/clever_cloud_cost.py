@@ -304,9 +304,28 @@ def get_applications(org_id: Optional[str] = None) -> List[Dict]:
     return applications
 
 
+def get_organizations() -> List[Dict]:
+    """
+    Get list of all organizations the user has access to.
+
+    Returns:
+        List of organization dictionaries with id and name
+    """
+    args = ['applications', 'list', '--format', 'json']
+    success, output = run_clever_command(args)
+    if not success:
+        return []
+
+    try:
+        data = json.loads(output) if output.strip() else []
+        return [{'id': item.get('id', ''), 'name': item.get('name', '')} for item in data if 'id' in item]
+    except json.JSONDecodeError:
+        return []
+
+
 def get_addons(org_id: Optional[str] = None) -> List[Dict]:
     """
-    Get list of all add-ons.
+    Get list of all add-ons from all organizations.
 
     Args:
         org_id: Optional organization ID to filter by
@@ -314,20 +333,44 @@ def get_addons(org_id: Optional[str] = None) -> List[Dict]:
     Returns:
         List of addon dictionaries
     """
-    args = ['addon', 'list', '--format', 'json']
     if org_id:
-        args.extend(['--org', org_id])
+        # If org specified, only get addons from that org
+        args = ['addon', 'list', '--format', 'json', '--org', org_id]
+        success, output = run_clever_command(args)
+        if not success:
+            print(f"Warning: Failed to get addons: {output}", file=sys.stderr)
+            return []
+        try:
+            return json.loads(output) if output.strip() else []
+        except json.JSONDecodeError as e:
+            print(f"Warning: Failed to parse addons JSON: {e}", file=sys.stderr)
+            return []
 
-    success, output = run_clever_command(args)
-    if not success:
-        print(f"Warning: Failed to get addons: {output}", file=sys.stderr)
-        return []
+    # Get addons from all organizations
+    organizations = get_organizations()
+    all_addons = []
 
-    try:
-        return json.loads(output) if output.strip() else []
-    except json.JSONDecodeError as e:
-        print(f"Warning: Failed to parse addons JSON: {e}", file=sys.stderr)
-        return []
+    for org in organizations:
+        org_id_item = org.get('id', '')
+        org_name = org.get('name', '')
+        if not org_id_item:
+            continue
+
+        args = ['addon', 'list', '--format', 'json', '--org', org_id_item]
+        success, output = run_clever_command(args)
+        if not success:
+            continue
+
+        try:
+            addons = json.loads(output) if output.strip() else []
+            for addon in addons:
+                addon['org_id'] = org_id_item
+                addon['org_name'] = org_name
+            all_addons.extend(addons)
+        except json.JSONDecodeError:
+            continue
+
+    return all_addons
 
 
 def get_app_details(app_id: str, org_id: Optional[str] = None) -> Dict:
@@ -545,8 +588,10 @@ def process_resources(apps: List[Dict], addons: List[Dict], verbose: bool = Fals
 
     # Process add-ons
     for addon in addons:
-        addon_id = addon.get('addon_id') or addon.get('id', 'unknown')
+        addon_id = addon.get('addon_id') or addon.get('addonId', addon.get('id', 'unknown'))
         name = addon.get('name', 'unknown')
+        org_name = addon.get('org_name', '')
+        org_id = addon.get('org_id', '')
         provider = addon.get('provider', {}).get('id', addon.get('providerId', 'unknown'))
         plan = addon.get('plan', {}).get('slug', addon.get('planSlug', 'unknown'))
 
@@ -556,9 +601,12 @@ def process_resources(apps: List[Dict], addons: List[Dict], verbose: bool = Fals
         # Categorize addon
         category = categorize_resource(name, provider)
 
+        # Include org name in display
+        display_name = f"{org_name} / {name}" if org_name else name
+
         resources.append(Resource(
             id=addon_id,
-            name=name,
+            name=display_name,
             type='addon',
             provider=provider,
             plan_or_flavor=plan,
@@ -567,6 +615,8 @@ def process_resources(apps: List[Dict], addons: List[Dict], verbose: bool = Fals
             details={
                 'plan': plan,
                 'provider': provider,
+                'org_id': org_id,
+                'org_name': org_name,
             },
             category=category,
         ))
@@ -698,6 +748,58 @@ def print_csv(resources: List[Resource]) -> None:
         print(f'"{r.type}","{name}","{r.provider}","{r.plan_or_flavor}",{r.instances},{r.monthly_cost:.2f},"{r.category.value}"')
 
 
+def print_markdown(resources: List[Resource]) -> None:
+    """Print resources as Markdown tables."""
+    # Group costs by category
+    category_costs: Dict[Category, Dict] = {}
+    for cat in Category:
+        category_costs[cat] = {'apps': 0.0, 'addons': 0.0, 'count': 0}
+
+    for r in resources:
+        category_costs[r.category]['count'] += 1
+        if r.type == 'application':
+            category_costs[r.category]['apps'] += r.monthly_cost
+        else:
+            category_costs[r.category]['addons'] += r.monthly_cost
+
+    # Print category summary table
+    print("## Coûts par catégorie\n")
+    print("| Catégorie | Apps | Add-ons | Total | Nb |")
+    print("|-----------|------|---------|-------|-----|")
+
+    total_apps = 0.0
+    total_addons = 0.0
+    total_count = 0
+
+    # Sort by total cost descending
+    sorted_cats = sorted(
+        Category,
+        key=lambda c: category_costs[c]['apps'] + category_costs[c]['addons'],
+        reverse=True
+    )
+
+    for cat in sorted_cats:
+        costs = category_costs[cat]
+        cat_total = costs['apps'] + costs['addons']
+        if cat_total > 0 or costs['count'] > 0:
+            print(f"| {cat.value} | {costs['apps']:.0f}€ | {costs['addons']:.0f}€ | {cat_total:.0f}€ | {costs['count']} |")
+            total_apps += costs['apps']
+            total_addons += costs['addons']
+            total_count += costs['count']
+
+    print(f"| **Total** | **{total_apps:.0f}€** | **{total_addons:.0f}€** | **{total_apps + total_addons:.0f}€** | **{total_count}** |")
+    print()
+
+    # Print detailed resources table
+    print("## Détail des ressources\n")
+    print("| Type | Nom | Provider | Plan/Flavor | Instances | Coût | Catégorie |")
+    print("|------|-----|----------|-------------|-----------|------|-----------|")
+
+    for r in sorted(resources, key=lambda x: (-x.monthly_cost, x.name)):
+        name = r.name[:40] + '...' if len(r.name) > 40 else r.name
+        print(f"| {r.type} | {name} | {r.provider} | {r.plan_or_flavor} | {r.instances} | {r.monthly_cost:.0f}€ | {r.category.value} |")
+
+
 def main():
     parser = argparse.ArgumentParser(
         description='Calculate Clever Cloud projected monthly costs'
@@ -716,6 +818,11 @@ def main():
         action='store_true',
         help='Output as CSV'
     )
+    parser.add_argument(
+        '--markdown', '-m',
+        action='store_true',
+        help='Output as Markdown'
+    )
 
     args = parser.parse_args()
 
@@ -728,7 +835,7 @@ def main():
         sys.exit(1)
 
     # Print header (only for table output)
-    if not args.json and not args.csv:
+    if not args.json and not args.csv and not args.markdown:
         print("=" * 80)
         print("CLEVER CLOUD COST CALCULATOR")
         print("=" * 80)
@@ -738,7 +845,7 @@ def main():
     apps = get_applications(args.org)
     addons = get_addons(args.org)
 
-    verbose = not args.json and not args.csv
+    verbose = not args.json and not args.csv and not args.markdown
     if verbose:
         print(f"Found {len(apps)} applications and {len(addons)} add-ons")
         print("Fetching application details (this may take a moment)...")
@@ -754,6 +861,8 @@ def main():
         print_json(resources)
     elif args.csv:
         print_csv(resources)
+    elif args.markdown:
+        print_markdown(resources)
     else:
         print_table(resources)
 

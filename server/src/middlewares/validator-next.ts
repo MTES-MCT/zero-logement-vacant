@@ -18,8 +18,16 @@ type RequestSchema = Partial<{
 function validate(schema: RequestSchema) {
   return (request: Request, response: Response, next: NextFunction) => {
     try {
+      // Support multipart/form-data requests with payload field
+      const body =
+        typeof request.body === 'object' &&
+        'payload' in request.body &&
+        typeof request.body.payload === 'string'
+          ? JSON.parse(request.body.payload)
+          : request.body;
+
       const data = object(schema).validateSync({
-        body: request.body,
+        body,
         params: request.params,
         query: request.query
       });

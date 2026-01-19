@@ -1426,6 +1426,84 @@ describe('Housing API', () => {
         }
       ])
     });
+
+    describe('multipart/form-data support', () => {
+      it('should accept multipart/form-data with payload as JSON string', async () => {
+        const { housings } = await createHousings();
+        const payload: HousingBatchUpdatePayload = {
+          filters: {
+            all: false,
+            housingIds: housings.map((housing) => housing.id)
+          },
+          occupancy: Occupancy.SECONDARY_RESIDENCE,
+          status: HousingStatus.WAITING
+        };
+
+        const { body, status } = await request(url)
+          .put(testRoute)
+          .field('payload', JSON.stringify(payload))
+          .use(tokenProvider(user));
+
+        expect(status).toBe(constants.HTTP_STATUS_OK);
+        expect(body).toIncludeAllPartialMembers(
+          housings.map((housing) => ({
+            id: housing.id,
+            occupancy: payload.occupancy,
+            status: payload.status
+          }))
+        );
+      });
+
+      it('should accept multipart/form-data with payload and files', async () => {
+        const { housings } = await createHousings({ count: 1 });
+        const payload: HousingBatchUpdatePayload = {
+          filters: {
+            all: false,
+            housingIds: housings.map((housing) => housing.id)
+          },
+          status: HousingStatus.IN_PROGRESS
+        };
+
+        const { body, status } = await request(url)
+          .put(testRoute)
+          .field('payload', JSON.stringify(payload))
+          .attach('files', Buffer.from('fake pdf content'), 'test.pdf')
+          .use(tokenProvider(user));
+
+        expect(status).toBe(constants.HTTP_STATUS_OK);
+        expect(body).toIncludeAllPartialMembers(
+          housings.map((housing) => ({
+            id: housing.id,
+            status: payload.status
+          }))
+        );
+      });
+
+      it('should maintain backwards compatibility with JSON requests', async () => {
+        const { housings } = await createHousings();
+        const payload: HousingBatchUpdatePayload = {
+          filters: {
+            all: false,
+            housingIds: housings.map((housing) => housing.id)
+          },
+          occupancy: Occupancy.SECONDARY_RESIDENCE
+        };
+
+        const { body, status } = await request(url)
+          .put(testRoute)
+          .send(payload)
+          .type('json')
+          .use(tokenProvider(user));
+
+        expect(status).toBe(constants.HTTP_STATUS_OK);
+        expect(body).toIncludeAllPartialMembers(
+          housings.map((housing) => ({
+            id: housing.id,
+            occupancy: payload.occupancy
+          }))
+        );
+      });
+    });
   });
 
   describe('PUT /housing/{id}', () => {

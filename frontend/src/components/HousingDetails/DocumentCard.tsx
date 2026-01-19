@@ -16,10 +16,10 @@ import { useUser } from '~/hooks/useUser';
 export interface DocumentCardProps {
   document: DocumentDTO;
   index: number;
-  onDelete(document: DocumentDTO): void;
+  onDelete?(document: DocumentDTO): void;
   onDownload(document: DocumentDTO): Promise<void>;
-  onRename(document: DocumentDTO): void;
-  onVisualize(index: number): void;
+  onRename?(document: DocumentDTO): void;
+  onVisualize?(index: number): void;
 }
 
 const FullWidthButton = styled(Button)({
@@ -45,12 +45,12 @@ function DocumentCard(props: Readonly<DocumentCardProps>) {
 
   function onRename(): void {
     setDropdownOpen(false);
-    props.onRename(props.document);
+    props.onRename?.(props.document);
   }
 
   function onDelete(): void {
     setDropdownOpen(false);
-    props.onDelete(props.document);
+    props.onDelete?.(props.document);
   }
 
   async function onDownload(): Promise<void> {
@@ -60,7 +60,7 @@ function DocumentCard(props: Readonly<DocumentCardProps>) {
 
   function onVisualize(): void {
     setDropdownOpen(false);
-    props.onVisualize(props.index);
+    props.onVisualize?.(props.index);
   }
 
   return (
@@ -95,16 +95,18 @@ function DocumentCard(props: Readonly<DocumentCardProps>) {
             onOpen={onOpen}
           >
             <Stack spacing="0.5rem" useFlexGap sx={{ p: '1rem' }}>
-              <FullWidthButton
-                priority="tertiary no outline"
-                iconId="fr-icon-eye-line"
-                size="small"
-                onClick={onVisualize}
-              >
-                Visualiser
-              </FullWidthButton>
+              {props.onVisualize && (
+                <FullWidthButton
+                  priority="tertiary no outline"
+                  iconId="fr-icon-eye-line"
+                  size="small"
+                  onClick={onVisualize}
+                >
+                  Visualiser
+                </FullWidthButton>
+              )}
 
-              {isUsual || isAdmin ? (
+              {props.onRename && (isUsual || isAdmin) && (
                 <FullWidthButton
                   priority="tertiary no outline"
                   iconId="fr-icon-edit-fill"
@@ -113,7 +115,7 @@ function DocumentCard(props: Readonly<DocumentCardProps>) {
                 >
                   Renommer
                 </FullWidthButton>
-              ) : null}
+              )}
               <FullWidthButton
                 priority="tertiary no outline"
                 iconId="fr-icon-download-line"
@@ -122,7 +124,7 @@ function DocumentCard(props: Readonly<DocumentCardProps>) {
               >
                 Télécharger
               </FullWidthButton>
-              {isUsual || isAdmin ? (
+              {props.onDelete && (isUsual || isAdmin) && (
                 <FullWidthButton
                   priority="tertiary no outline"
                   iconId="ri-delete-bin-line"
@@ -131,7 +133,7 @@ function DocumentCard(props: Readonly<DocumentCardProps>) {
                 >
                   Supprimer
                 </FullWidthButton>
-              ) : null}
+              )}
             </Stack>
           </Dropdown>
         </Box>
@@ -150,7 +152,7 @@ function DocumentCard(props: Readonly<DocumentCardProps>) {
             fallbackProps={{
               size: 'sm'
             }}
-            onClick={onVisualize}
+            onClick={props.onVisualize ? onVisualize : undefined}
           />
         </Box>
         <Stack component="footer" spacing="0.5rem" useFlexGap>

@@ -74,6 +74,13 @@ yarn workspace @zerologementvacant/server dev   # localhost:3001/api
 
 ## Code Standards
 
+### Frontend Import Aliases
+
+Use `~/` path alias for imports within frontend workspace:
+```typescript
+import { useGetGeoStatisticsQuery } from '~/services/geo.service';
+```
+
 ### Shared Code Location
 
 - **Models/DTOs** → `packages/models/` (naming: `ExampleDTO`, `ExamplePayload`)

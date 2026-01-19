@@ -1,7 +1,7 @@
 /**
  * Geographic level for statistics aggregation
  */
-export type GeoLevel = 'region' | 'department' | 'epci';
+export type GeoLevel = 'region' | 'department' | 'epci' | 'commune';
 
 /**
  * Statistics for a geographic area

@@ -148,6 +148,7 @@ class Category(Enum):
     STAGING = "Staging"
     REVIEW_APP = "Review Apps (PRs)"
     DATA_WAREHOUSE = "Entrepôt de données"
+    SHOWCASE = "Site vitrine"
     OTHER = "Autres"
 
 
@@ -185,6 +186,13 @@ def categorize_resource(name: str, provider: str) -> Category:
         return Category.REVIEW_APP
     if 'dpe' in name_lower:
         return Category.REVIEW_APP
+
+    # Showcase / Landing page (site vitrine)
+    if any(kw in name_lower for kw in ['vitrine', 'landing', 'www', 'site-', 'marketing']):
+        return Category.SHOWCASE
+    # Beta.gouv showcase sites
+    if 'beta.gouv' in name_lower or 'betagouv' in name_lower:
+        return Category.SHOWCASE
 
     # Data warehouse / Analytics
     if any(kw in name_lower for kw in ['dagster', 'metabase', 'elasticsearch', 'kibana', 'datalake', 'analytics']):

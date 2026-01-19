@@ -183,9 +183,11 @@ def categorize_resource(name: str, provider: str) -> Category:
         return Category.REVIEW_APP
     if 'review' in name_lower:
         return Category.REVIEW_APP
+    if 'dpe' in name_lower:
+        return Category.REVIEW_APP
 
     # Data warehouse / Analytics
-    if any(kw in name_lower for kw in ['dagster', 'metabase', 'elasticsearch', 'kibana', 'datalake', 'dpe', 'analytics']):
+    if any(kw in name_lower for kw in ['dagster', 'metabase', 'elasticsearch', 'kibana', 'datalake', 'analytics']):
         return Category.DATA_WAREHOUSE
     if provider.lower() in ['es-addon', 'elastic', 'kibana']:
         return Category.DATA_WAREHOUSE

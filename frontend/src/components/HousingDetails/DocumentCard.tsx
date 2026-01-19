@@ -39,6 +39,13 @@ function DocumentCard(props: Readonly<DocumentCardProps>) {
 
   const [dropdownOpen, setDropdownOpen] = useState(false);
 
+  // Determine if any actions are available for the dropdown
+  const hasActions =
+    props.onVisualize !== undefined ||
+    (props.onRename !== undefined && (isUsual || isAdmin)) ||
+    (props.onDelete !== undefined && (isUsual || isAdmin)) ||
+    true; // Download is always available
+
   function onOpen(): void {
     setDropdownOpen(true);
   }
@@ -78,64 +85,66 @@ function DocumentCard(props: Readonly<DocumentCardProps>) {
           component="header"
           sx={{ display: 'flex', justifyContent: 'flex-end' }}
         >
-          <Dropdown
-            label="Options"
-            buttonProps={{ size: 'small' }}
-            popoverProps={{
-              anchorOrigin: {
-                vertical: 'bottom',
-                horizontal: 'right'
-              },
-              transformOrigin: {
-                vertical: 'top',
-                horizontal: 'right'
-              }
-            }}
-            open={dropdownOpen}
-            onOpen={onOpen}
-          >
-            <Stack spacing="0.5rem" useFlexGap sx={{ p: '1rem' }}>
-              {props.onVisualize && (
-                <FullWidthButton
-                  priority="tertiary no outline"
-                  iconId="fr-icon-eye-line"
-                  size="small"
-                  onClick={onVisualize}
-                >
-                  Visualiser
-                </FullWidthButton>
-              )}
+          {hasActions && (
+            <Dropdown
+              label="Options"
+              buttonProps={{ size: 'small' }}
+              popoverProps={{
+                anchorOrigin: {
+                  vertical: 'bottom',
+                  horizontal: 'right'
+                },
+                transformOrigin: {
+                  vertical: 'top',
+                  horizontal: 'right'
+                }
+              }}
+              open={dropdownOpen}
+              onOpen={onOpen}
+            >
+              <Stack spacing="0.5rem" useFlexGap sx={{ p: '1rem' }}>
+                {props.onVisualize && (
+                  <FullWidthButton
+                    priority="tertiary no outline"
+                    iconId="fr-icon-eye-line"
+                    size="small"
+                    onClick={onVisualize}
+                  >
+                    Visualiser
+                  </FullWidthButton>
+                )}
 
-              {props.onRename && (isUsual || isAdmin) && (
+                {props.onRename && (isUsual || isAdmin) && (
+                  <FullWidthButton
+                    priority="tertiary no outline"
+                    iconId="fr-icon-edit-fill"
+                    size="small"
+                    onClick={onRename}
+                  >
+                    Renommer
+                  </FullWidthButton>
+                )}
                 <FullWidthButton
                   priority="tertiary no outline"
-                  iconId="fr-icon-edit-fill"
+                  iconId="fr-icon-download-line"
                   size="small"
-                  onClick={onRename}
+                  onClick={onDownload}
                 >
-                  Renommer
+                  Télécharger
                 </FullWidthButton>
-              )}
-              <FullWidthButton
-                priority="tertiary no outline"
-                iconId="fr-icon-download-line"
-                size="small"
-                onClick={onDownload}
-              >
-                Télécharger
-              </FullWidthButton>
-              {props.onDelete && (isUsual || isAdmin) && (
-                <FullWidthButton
-                  priority="tertiary no outline"
-                  iconId="ri-delete-bin-line"
-                  size="small"
-                  onClick={onDelete}
-                >
-                  Supprimer
-                </FullWidthButton>
-              )}
-            </Stack>
-          </Dropdown>
+                {props.onDelete && (isUsual || isAdmin) && (
+                  <FullWidthButton
+                    priority="tertiary no outline"
+                    iconId="ri-delete-bin-line"
+                    size="small"
+                    onClick={onDelete}
+                  >
+                    Supprimer
+                  </FullWidthButton>
+                )}
+              </Stack>
+            </Dropdown>
+          )}
         </Box>
         <Box
           component="section"

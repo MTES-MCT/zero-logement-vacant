@@ -1,15 +1,15 @@
 import type { GeoJsonProperties } from 'geojson';
 import { useEffect } from 'react';
-import { type MapRef } from 'react-map-gl/maplibre';
+import { type MapRef, type MapLayerMouseEvent } from 'react-map-gl/maplibre';
 
 import { deserialize } from '../utils/jsonUtils';
 
 interface Props<T> {
   layers: string[];
   map: MapRef | undefined;
-  onClick?: (value: T) => void;
-  onMouseEnter?: (value: T) => void;
-  onMouseLeave?: () => void;
+  onClick?: (value: T, event: MapLayerMouseEvent) => void;
+  onMouseEnter?: (value: T, event: MapLayerMouseEvent) => void;
+  onMouseLeave?: (value: T, event: MapLayerMouseEvent) => void;
 }
 
 export function useMapLayerClick<T extends GeoJsonProperties>(props: Props<T>) {
@@ -17,32 +17,41 @@ export function useMapLayerClick<T extends GeoJsonProperties>(props: Props<T>) {
   useEffect(() => {
     if (!map) return;
 
-    const clickHandlers: Array<{ layer: string; handler: (e: any) => void }> =
-      [];
-    const mouseEnterHandlers: Array<{ layer: string; handler: (e: any) => void }> =
-      [];
-    const mouseLeaveHandlers: Array<{ layer: string; handler: () => void }> =
-      [];
+    const clickHandlers: Array<{
+      layer: string;
+      handler: (event: MapLayerMouseEvent) => void;
+    }> = [];
+    const mouseEnterHandlers: Array<{
+      layer: string;
+      handler: (event: MapLayerMouseEvent) => void;
+    }> = [];
+    const mouseLeaveHandlers: Array<{
+      layer: string;
+      handler: (event: MapLayerMouseEvent) => void;
+    }> = [];
 
     layers.forEach((layer) => {
-      const clickHandler = (e: any) => {
-        const properties = e.features?.[0]?.properties;
+      const clickHandler = (event: MapLayerMouseEvent) => {
+        const properties = event.features?.[0]?.properties;
         if (properties) {
-          onClick?.(deserialize(properties) as T);
+          onClick?.(deserialize(properties) as T, event);
         }
       };
 
-      const mouseEnterHandler = (e: any) => {
+      const mouseEnterHandler = (event: MapLayerMouseEvent) => {
         map.getCanvas().style.cursor = 'pointer';
-        const properties = e.features?.[0]?.properties;
+        const properties = event.features?.[0]?.properties;
         if (properties) {
-          onMouseEnter?.(deserialize(properties) as T);
+          onMouseEnter?.(deserialize(properties) as T, event);
         }
       };
 
-      const mouseLeaveHandler = () => {
+      const mouseLeaveHandler = (event: MapLayerMouseEvent) => {
         map.getCanvas().style.cursor = '';
-        onMouseLeave?.();
+        const properties = event.features?.[0]?.properties;
+        if (properties) {
+          onMouseLeave?.(deserialize(properties) as T, event);
+        }
       };
 
       map.on('click', layer, clickHandler);

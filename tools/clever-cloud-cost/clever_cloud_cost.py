@@ -195,7 +195,7 @@ def categorize_resource(name: str, provider: str) -> Category:
         return Category.SHOWCASE
 
     # Data warehouse / Analytics
-    if any(kw in name_lower for kw in ['dagster', 'metabase', 'elasticsearch', 'kibana', 'datalake', 'analytics']):
+    if any(kw in name_lower for kw in ['dagster', 'metabase', 'elasticsearch', 'kibana', 'datalake', 'analytics', 'vacancy explainer']):
         return Category.DATA_WAREHOUSE
     if provider.lower() in ['es-addon', 'elastic', 'kibana']:
         return Category.DATA_WAREHOUSE
@@ -203,7 +203,9 @@ def categorize_resource(name: str, provider: str) -> Category:
     # Staging
     if 'staging' in name_lower or 'stag' in name_lower:
         return Category.STAGING
-    if 'dev' in name_lower and 'maildev' not in name_lower:
+    if 'maildev' in name_lower:
+        return Category.STAGING
+    if 'dev' in name_lower:
         return Category.STAGING
 
     # Production

@@ -2,12 +2,14 @@ import { MapSelectorControl } from 'carte-facile';
 import { useControl } from 'react-map-gl/maplibre';
 
 function LayerControl() {
-  useControl(
-    () =>
-      new MapSelectorControl({
-        overlays: ['administrativeBoundaries', 'cadastre'],
-        styles: ['simple', 'aerial']
-      }),
+  const control = new MapSelectorControl({
+    overlays: ['administrativeBoundaries', 'cadastre'],
+    styles: ['simple', 'aerial']
+  })
+
+  useControl<MapSelectorControl>(
+    () => control,
+    () => control.onRemove(),
     {
       position: 'bottom-left'
     }

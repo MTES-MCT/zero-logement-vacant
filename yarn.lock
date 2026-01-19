@@ -12613,9 +12613,9 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@vis.gl/react-mapbox@npm:8.0.4":
-  version: 8.0.4
-  resolution: "@vis.gl/react-mapbox@npm:8.0.4"
+"@vis.gl/react-mapbox@npm:8.1.0":
+  version: 8.1.0
+  resolution: "@vis.gl/react-mapbox@npm:8.1.0"
   peerDependencies:
     mapbox-gl: ">=3.5.0"
     react: ">=16.3.0"
@@ -12623,13 +12623,13 @@ __metadata:
   peerDependenciesMeta:
     mapbox-gl:
       optional: true
-  checksum: 10c0/2e3690d6a131075f749eb33a9aa40b6fb00b988d199a0b0c891090e84db52ee05255d9b751a7088f12afb101bcd63d156835a31e03d8d6b9750083b64c4ee821
+  checksum: 10c0/2f3fdfd2090e031a8934d82b494d46a4d0546e5f31a92f550c264666e15ae2ce15122acd96e55fa3455e85625a447f5bb17581878e5296bcb8b6a82ed83287f2
   languageName: node
   linkType: hard
 
-"@vis.gl/react-maplibre@npm:8.0.4":
-  version: 8.0.4
-  resolution: "@vis.gl/react-maplibre@npm:8.0.4"
+"@vis.gl/react-maplibre@npm:8.1.0":
+  version: 8.1.0
+  resolution: "@vis.gl/react-maplibre@npm:8.1.0"
   dependencies:
     "@maplibre/maplibre-gl-style-spec": "npm:^19.2.1"
   peerDependencies:
@@ -12639,7 +12639,7 @@ __metadata:
   peerDependenciesMeta:
     maplibre-gl:
       optional: true
-  checksum: 10c0/3a2059a30210b0bf27a07517495c3abd7803ab2700bc0f9cef851b19c18300f3e1225fdfe3d22e0cf39c8ba10e9f86ea47d0aca6ff637e266566ca04dfb089bb
+  checksum: 10c0/ebbbf581a81f50da8f25d740187f91851fbcd07d46f09af67a3017dc05a49bc0de5a943daa9bf6bf7da5faebd19d2e6e8ca670dc5516c487bf5537fe6f89cf94
   languageName: node
   linkType: hard
 
@@ -13259,6 +13259,7 @@ __metadata:
     "@zerologementvacant/schemas": "workspace:*"
     "@zerologementvacant/utils": "workspace:*"
     async: "npm:3.2.6"
+    carte-facile: "npm:0.8.3"
     classnames: "npm:2.5.1"
     copyfiles: "npm:2.4.1"
     date-fns: "npm:2.30.0"
@@ -13282,7 +13283,7 @@ __metadata:
     react: "npm:18.3.1"
     react-dom: "npm:18.3.1"
     react-hook-form: "npm:7.66.1"
-    react-map-gl: "npm:8.0.4"
+    react-map-gl: "npm:8.1.0"
     react-pdf: "npm:10.2.0"
     react-redux: "npm:8.1.3"
     react-redux-loading-bar: "npm:5.0.8"
@@ -15481,6 +15482,15 @@ __metadata:
   version: 1.0.30001754
   resolution: "caniuse-lite@npm:1.0.30001754"
   checksum: 10c0/d38709ab11abc36eea28068d241434eba925c4d3462916ccaa17a34a6227dfdeb58ab0e1eb614bab12fb393c7d527db392a0f477b48c33d70d8e466954f381ba
+  languageName: node
+  linkType: hard
+
+"carte-facile@npm:0.8.3":
+  version: 0.8.3
+  resolution: "carte-facile@npm:0.8.3"
+  peerDependencies:
+    maplibre-gl: ^5.0.0
+  checksum: 10c0/786034ef2091b4c6600f861112249d710d9502c0e026db7f745c6f85e96915c702530db2c34b921a232ab84b02cc630a8aa58ac5256a75d7eff5b095879615c7
   languageName: node
   linkType: hard
 
@@ -28708,12 +28718,12 @@ __metadata:
   languageName: node
   linkType: hard
 
-"react-map-gl@npm:8.0.4":
-  version: 8.0.4
-  resolution: "react-map-gl@npm:8.0.4"
+"react-map-gl@npm:8.1.0":
+  version: 8.1.0
+  resolution: "react-map-gl@npm:8.1.0"
   dependencies:
-    "@vis.gl/react-mapbox": "npm:8.0.4"
-    "@vis.gl/react-maplibre": "npm:8.0.4"
+    "@vis.gl/react-mapbox": "npm:8.1.0"
+    "@vis.gl/react-maplibre": "npm:8.1.0"
   peerDependencies:
     mapbox-gl: ">=1.13.0"
     maplibre-gl: ">=1.13.0"
@@ -28724,7 +28734,7 @@ __metadata:
       optional: true
     maplibre-gl:
       optional: true
-  checksum: 10c0/350e8ed18b49bcf6092bd2ce38e5b9945840baea79a1f96577bcfcea228fc8c29556d170b588353c52355ab61f2c5301b3ae069308c8ce0846b9cb04e9da5155
+  checksum: 10c0/acec8b8b3d5226bfd91526e87793ca13043a0c9acbae569f04d1f8e45bf27e87f7a8a5fa1cfc3e1875e33e46db6dcc5e013a52db64324f829feba6ad31311d33
   languageName: node
   linkType: hard
 

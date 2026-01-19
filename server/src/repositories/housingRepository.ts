@@ -84,11 +84,10 @@ async function find(opts: FindOptions): Promise<HousingApi[]> {
     fetchGeoCodes(opts.filters.establishmentIds ?? []),
     fetchGeoCodes(opts.filters.intercommunalities ?? [])
   ]);
-  const defaults = [
-    opts.filters.localities,
-    intercommunalities,
-    allowedGeoCodes
-  ].find((array) => array && array.length > 0);
+  const localities = opts.filters.localities ?? [];
+  const defaults = [localities, intercommunalities, allowedGeoCodes].find(
+    (array) => array && array.length > 0
+  );
   const geoCodes = Set(defaults)
     .withMutations((set) => {
       if (intercommunalities.length > 0) {
@@ -99,6 +98,16 @@ async function find(opts: FindOptions): Promise<HousingApi[]> {
       }
     })
     .toArray();
+
+  // If we had geo restrictions but the intersection is empty,
+  // return empty array instead of querying without geo filter
+  const hadGeoRestrictions =
+    allowedGeoCodes.length > 0 ||
+    intercommunalities.length > 0 ||
+    localities.length > 0;
+  if (hadGeoRestrictions && geoCodes.length === 0) {
+    return [];
+  }
 
   const housingList: HousingDBO[] = await fastListQuery({
     filters: {
@@ -178,6 +187,16 @@ async function count(filters: HousingFiltersApi): Promise<HousingCountApi> {
     .withMutations((set) => {
       return localities.length ? set.intersect(localities) : set;
     });
+
+  // If we had geo restrictions but the intersection is empty,
+  // return 0 results instead of querying without geo filter
+  const hadGeoRestrictions =
+    allowedGeoCodes.length > 0 ||
+    intercommunalities.length > 0 ||
+    localities.length > 0;
+  if (hadGeoRestrictions && geoCodes.size === 0) {
+    return { housing: 0, owners: 0 };
+  }
 
   const result = await db
     .with(

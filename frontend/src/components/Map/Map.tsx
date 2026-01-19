@@ -36,6 +36,9 @@ import MapControls from './MapControls';
 import Perimeters from './Perimeters';
 import Points from './Points';
 
+import 'carte-facile/carte-facile.css';
+import 'maplibre-gl/dist/maplibre-gl.css';
+
 export interface MapProps {
   housingList?: Housing[];
   hasPerimetersFilter?: boolean;
@@ -219,7 +222,7 @@ function Map(props: MapProps) {
           visualizePitch={false}
         />
         <LayerControl />
-        <AdministrativeBoundaries fillOpacity={0.3} />
+        <AdministrativeBoundaries />
       </ReactiveMap>
 
       <BuildingAside

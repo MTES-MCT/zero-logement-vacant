@@ -14,9 +14,6 @@ import ThemeProvider from './theme';
 import config from './utils/config';
 import sentry from './utils/sentry';
 
-import 'carte-facile/carte-facile.css';
-import 'maplibre-gl/dist/maplibre-gl.css';
-
 sentry.init();
 
 startReactDsfr({

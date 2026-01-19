@@ -25,6 +25,7 @@ export * from './EventType';
 export * from './Feature';
 export * from './FileUploadDTO';
 export * from './GeoPerimeterDTO';
+export * from './GeoStatisticsDTO';
 export * from './GroupDTO';
 export * from './HousingByBuilding';
 export * from './HousingDocumentDTO';

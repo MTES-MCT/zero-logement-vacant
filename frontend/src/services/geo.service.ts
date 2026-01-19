@@ -1,9 +1,26 @@
+import type {
+  GeoLevel,
+  GeoStatisticsResponseDTO,
+} from '@zerologementvacant/models';
 import type { GeoPerimeter } from '../models/GeoPerimeter';
 import { zlvApi } from './api.service';
 import { getFileUploadErrorMessage } from '../utils/fileUploadErrors';
 
+interface GetGeoStatisticsParams {
+  level: GeoLevel;
+  code?: string;
+  establishmentId?: string;
+}
+
 export const geoPerimetersApi = zlvApi.injectEndpoints({
   endpoints: (builder) => ({
+    getGeoStatistics: builder.query<GeoStatisticsResponseDTO, GetGeoStatisticsParams>({
+      query: ({ level, code, establishmentId }) => ({
+        url: 'geo/statistics',
+        params: { level, code, establishmentId },
+      }),
+      providesTags: ['GeoStatistics'],
+    }),
     listGeoPerimeters: builder.query<GeoPerimeter[], void>({
       query: () => 'geo/perimeters',
       providesTags: (result) =>
@@ -62,6 +79,7 @@ const fileToFormData = (file: File) => {
 };
 
 export const {
+  useGetGeoStatisticsQuery,
   useListGeoPerimetersQuery,
   useUpdateGeoPerimeterMutation,
   useDeleteGeoPerimetersMutation,

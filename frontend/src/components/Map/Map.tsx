@@ -1,5 +1,13 @@
 import * as turf from '@turf/turf';
-import { type CSSProperties, memo, useEffect, useMemo, useState } from 'react';
+import { mapStyles } from 'carte-facile';
+import {
+  type CSSProperties,
+  memo,
+  useCallback,
+  useEffect,
+  useMemo,
+  useState
+} from 'react';
 import ReactiveMap, {
   NavigationControl,
   useMap,
@@ -20,16 +28,16 @@ import {
   type Housing,
   type HousingWithCoordinates
 } from '../../models/Housing';
+import AdministrativeBoundaries from './AdministrativeBoundaries';
 import BuildingAside from './BuildingAside';
 import Clusters from './Clusters';
+import LayerControl from './LayerControl';
 import MapControls from './MapControls';
 import Perimeters from './Perimeters';
 import Points from './Points';
 
-const STYLE = {
-  title: 'Carte',
-  uri: 'https://openmaptiles.geo.data.gouv.fr/styles/osm-bright/style.json'
-};
+import 'carte-facile/carte-facile.css';
+import 'maplibre-gl/dist/maplibre-gl.css';
 
 export interface MapProps {
   housingList?: Housing[];
@@ -129,17 +137,20 @@ function Map(props: MapProps) {
   const [selected, setSelected] = useState<Building | null>(null);
   const isOpen = selected !== null;
 
-  function select(building: Building | null) {
-    if (building) {
-      map?.flyTo({
-        center: {
-          lon: building.longitude,
-          lat: building.latitude
-        }
-      });
-      setSelected(building);
-    }
-  }
+  const select = useCallback(
+    (building: Building | null) => {
+      if (building) {
+        map?.flyTo({
+          center: {
+            lon: building.longitude,
+            lat: building.latitude
+          }
+        });
+        setSelected(building);
+      }
+    },
+    [map]
+  );
 
   return (
     <>
@@ -147,7 +158,7 @@ function Map(props: MapProps) {
         {...viewState}
         attributionControl={{}}
         id="housingMap"
-        mapStyle={STYLE.uri}
+        mapStyle={mapStyles.simple}
         minZoom={props.minZoom}
         maxZoom={props.maxZoom}
         onMove={onMove}
@@ -210,6 +221,8 @@ function Map(props: MapProps) {
           showZoom
           visualizePitch={false}
         />
+        <LayerControl />
+        <AdministrativeBoundaries />
       </ReactiveMap>
 
       <BuildingAside

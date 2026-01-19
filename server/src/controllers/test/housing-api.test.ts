@@ -1503,6 +1503,15 @@ describe('Housing API', () => {
           }))
         );
       });
+
+      it('should return 400 Bad Request for malformed JSON in payload field', async () => {
+        const { status } = await request(url)
+          .put(testRoute)
+          .field('payload', '{invalid json}')
+          .use(tokenProvider(user));
+
+        expect(status).toBe(constants.HTTP_STATUS_BAD_REQUEST);
+      });
     });
   });
 

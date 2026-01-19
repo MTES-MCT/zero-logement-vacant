@@ -19,12 +19,26 @@ function validate(schema: RequestSchema) {
   return (request: Request, response: Response, next: NextFunction) => {
     try {
       // Support multipart/form-data requests with payload field
-      const body =
+      let body;
+      if (
+        request.body !== null &&
         typeof request.body === 'object' &&
         'payload' in request.body &&
         typeof request.body.payload === 'string'
-          ? JSON.parse(request.body.payload)
-          : request.body;
+      ) {
+        try {
+          body = JSON.parse(request.body.payload);
+        } catch {
+          const syntheticError = new YupValidationError(
+            'Invalid JSON in payload field',
+            request.body.payload,
+            'payload'
+          );
+          throw syntheticError;
+        }
+      } else {
+        body = request.body;
+      }
 
       const data = object(schema).validateSync({
         body,

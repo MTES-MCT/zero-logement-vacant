@@ -10,6 +10,7 @@ export const DatafoncierHouses = (transaction = db) =>
 interface DatafoncierHousingFilters {
   idlocal?: string;
   idpropcte?: string;
+  rnb_id?: string;
 }
 
 class DatafoncierHousingRepository {

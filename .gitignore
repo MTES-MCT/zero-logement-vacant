@@ -36,9 +36,10 @@ lerna-debug.log
 /talisman_report
 .clever.json
 
-# Data Stack
+# Data Stack / Python
 .pyc
 __pycache__
+venv/
 analytics/dagster/storage/
 .duckdb
 .jsonl

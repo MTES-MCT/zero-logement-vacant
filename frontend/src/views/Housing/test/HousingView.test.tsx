@@ -566,10 +566,6 @@ describe('Housing view', () => {
   });
 
   describe('View documents', () => {
-    vitest.mock('posthog-js/react', () => ({
-      useFeatureFlagEnabled: (flag: string) => flag === 'upload-docs'
-    }));
-
     it('should display a message if there is no document', async () => {
       const housing = genHousingDTO(null);
       const auth = genUserDTO(UserRole.USUAL);

@@ -136,7 +136,7 @@ function HousingListEditionSideMenu(props: Props) {
               disabled={field.disabled}
               error={fieldState.error?.message}
               invalid={fieldState.invalid}
-              value={field.value as Occupancy | null}
+              value={field.value}
               onChange={field.onChange}
             />
           )}
@@ -147,7 +147,7 @@ function HousingListEditionSideMenu(props: Props) {
       <HousingEditionMobilizationTab housingId={null} />
     ))
     .with('note', () => (
-      <AppTextInputNext<string | null>
+      <AppTextInputNext<BatchEditionFormSchema>
         label="Nouvelle note"
         name="note"
         nativeTextAreaProps={{

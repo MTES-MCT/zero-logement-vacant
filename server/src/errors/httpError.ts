@@ -33,7 +33,7 @@ export abstract class HttpError extends Error implements HttpError {
 }
 
 export function isHttpError(error: Error): error is HttpError {
-  return 'status' in error;
+  return 'status' in error && typeof (error as HttpError).toJSON === 'function';
 }
 
 export function isClientError(error: HttpError): boolean {

@@ -1,5 +1,5 @@
 import * as turf from '@turf/turf';
-import { type CSSProperties, memo, useEffect, useMemo, useState } from 'react';
+import { type CSSProperties, memo, useCallback, useEffect, useMemo, useState } from 'react';
 import ReactiveMap, {
   NavigationControl,
   useMap,
@@ -25,11 +25,15 @@ import Clusters from './Clusters';
 import MapControls from './MapControls';
 import Perimeters from './Perimeters';
 import Points from './Points';
+import RNBBuildings from './RNBBuildings';
+import createRNBHousingModal from '../modals/RNBHousingModal/RNBHousingModal';
 
 const STYLE = {
   title: 'Carte',
   uri: 'https://openmaptiles.geo.data.gouv.fr/styles/osm-bright/style.json'
 };
+
+const rnbHousingModal = createRNBHousingModal();
 
 export interface MapProps {
   housingList?: Housing[];
@@ -43,6 +47,7 @@ export interface MapProps {
   showMapSettings?: boolean;
   style?: CSSProperties;
   onMove?: (viewState: ViewState) => void;
+  onHousingCreated?: (housing: Housing) => void;
 }
 
 function Map(props: MapProps) {
@@ -141,6 +146,27 @@ function Map(props: MapProps) {
     }
   }
 
+  // RNB building click handling
+  const [selectedRnbId, setSelectedRnbId] = useState<string | null>(null);
+
+  const handleRNBBuildingClick = useCallback((rnbId: string) => {
+    setSelectedRnbId(rnbId);
+    rnbHousingModal.open();
+  }, []);
+
+  const handleRNBModalClose = useCallback(() => {
+    setSelectedRnbId(null);
+    rnbHousingModal.close();
+  }, []);
+
+  const handleRNBHousingCreated = useCallback(
+    (housing: Housing) => {
+      props.onHousingCreated?.(housing);
+      navigate(`/logements/${housing.id}`);
+    },
+    [navigate, props]
+  );
+
   return (
     <>
       <ReactiveMap
@@ -181,6 +207,7 @@ function Map(props: MapProps) {
           map={map}
           perimeters={includedPerimeters}
         />
+        <RNBBuildings isVisible onBuildingClick={handleRNBBuildingClick} />
         {clusterize ? (
           <Clusters
             id="housing"
@@ -221,6 +248,12 @@ function Map(props: MapProps) {
         onView={(housing) => {
           navigate(`/logements/${housing.id}`);
         }}
+      />
+
+      <rnbHousingModal.Component
+        rnbId={selectedRnbId}
+        onClose={handleRNBModalClose}
+        onHousingCreated={handleRNBHousingCreated}
       />
     </>
   );

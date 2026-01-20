@@ -6,6 +6,7 @@ import establishmentController from '~/controllers/establishmentController';
 import localityController from '~/controllers/localityController';
 import prospectController from '~/controllers/prospectController';
 import resetLinkController from '~/controllers/resetLinkController';
+import rnbController from '~/controllers/rnbController';
 import settingsController from '~/controllers/settingsController';
 import signupLinkController from '~/controllers/signupLinkController';
 import userController from '~/controllers/userController';
@@ -131,6 +132,22 @@ router.get(
   localityController.getLocalityValidators,
   validator.validate,
   localityController.getLocality
+);
+
+// RNB Buildings
+router.get(
+  '/rnb/buildings',
+  rnbController.getBuildingsValidators,
+  validator.validate,
+  rnbController.getBuildings
+);
+
+// RNB Housing lookup by rnb_id
+router.get(
+  '/rnb/housing/:rnbId',
+  rnbController.getHousingByRnbIdValidators,
+  validator.validate,
+  rnbController.getHousingByRnbId
 );
 
 export default router;

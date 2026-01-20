@@ -37,63 +37,181 @@ from psycopg2.extras import RealDictCursor, execute_values
 from tqdm import tqdm
 
 
-# Kind mapping from catpro2txt to ZLV kind_class
-# Based on official OwnerKind labels from packages/models/src/OwnerKind.ts
+# Kind mapping from catpro3txt (CATPRO 3 LOVAC ET FF) to ZLV kind_class
+# Source: Classification CEREMA - effectif depuis S 2024
 KIND_MAPPING = {
-    # Particulier
+    # =========================================================================
+    # X – PERSONNE PHYSIQUE
+    # =========================================================================
     'PERSONNE PHYSIQUE': 'Particulier',
 
-    # SCI, Copropriété, Autres personnes morales
-    'SOCIETE CIVILE A VOCATION IMMOBILIERE': 'SCI, Copropriété, Autres personnes morales',
-    'PROPRIETE DIVISEE EN LOT': 'SCI, Copropriété, Autres personnes morales',
-    'PERSONNE MORALE AUTRE': 'SCI, Copropriété, Autres personnes morales',
-    'ACTIVITE COMMERCIALE': 'SCI, Copropriété, Autres personnes morales',
-    'ACTIVITE INDUSTRIELLE': 'SCI, Copropriété, Autres personnes morales',
-    'ACTIVITE DE TOURISME': 'SCI, Copropriété, Autres personnes morales',
-    'ACTIVITE EXTRACTIVE': 'SCI, Copropriété, Autres personnes morales',
+    # =========================================================================
+    # P – ETAT ET COLLECTIVITE TERRITORIALE
+    # =========================================================================
+    'ETAT ETRANGER': 'Etat et collectivité territoriale',
+    'ETAT FRANCAIS': 'Etat et collectivité territoriale',
+    'REGION': 'Etat et collectivité territoriale',
+    'DEPARTEMENT': 'Etat et collectivité territoriale',
+    'INTERCOMMUNALITE': 'Etat et collectivité territoriale',
+    'SYNDICAT INTERCOMMUNAL A VOCATION MULTIPLE': 'Etat et collectivité territoriale',
+    'SYNDICAT MIXTE': 'Etat et collectivité territoriale',
+    'SYNDICAT INTERCOMMUNAL AUTRE': 'Etat et collectivité territoriale',
+    'COMMUNE': 'Etat et collectivité territoriale',
+    'COLLECTIVITE TERRITORIALE SPECIFIQUE': 'Etat et collectivité territoriale',
+    'COLLECTIVITE DE PARIS': 'Etat et collectivité territoriale',
+
+    # =========================================================================
+    # F – PROFESSIONNEL DU FONCIER ET IMMOBILIER
+    # =========================================================================
+    # Bailleur social, Aménageur, Investisseur public
+    'ORGANISME DE LOGEMENT SOCIAL': 'Bailleur social, Aménageur, Investisseur public',
+    'EPF – ETABLISSEMENT PUBLIC FONCIER D ETAT': 'Bailleur social, Aménageur, Investisseur public',
+    'EPFL – ETABLISSEMENT PUBLIC FONCIER LOCAL': 'Bailleur social, Aménageur, Investisseur public',
+    'SEM – SOCIETE D ECONOMIE MIXTE': 'Bailleur social, Aménageur, Investisseur public',
+    'SPLA – SOCIETE PUBLIQUE LOCALE D AMENAGEMENT': 'Bailleur social, Aménageur, Investisseur public',
+    'SEM OU SPLA INDETERMINE': 'Bailleur social, Aménageur, Investisseur public',
+    'AMENAGEUR FONCIER': 'Bailleur social, Aménageur, Investisseur public',
+    'EPA – ETABLISSEMENT PUBLIC D AMENAGEMENT': 'Bailleur social, Aménageur, Investisseur public',
+    'INVESTISSEUR PUBLIC': 'Bailleur social, Aménageur, Investisseur public',
+    'BANQUE PUBLIQUE': 'Bailleur social, Aménageur, Investisseur public',
+    'CAISSE DES DEPOTS ET CONSIGNATIONS': 'Bailleur social, Aménageur, Investisseur public',
 
     # Promoteur, Investisseur privé
-    'INVESTISSEUR PROFESSIONNEL': 'Promoteur, Investisseur privé',
-    'PROMOTEUR': 'Promoteur, Investisseur privé',
-    'AMENAGEUR': 'Promoteur, Investisseur privé',
+    'PROMOTEUR IMMOBILIER': 'Promoteur, Investisseur privé',
+    'CONSTRUCTEUR': 'Promoteur, Investisseur privé',
+    'SOCIETE CIVILE DE CONSTRUCTION VENTE': 'Promoteur, Investisseur privé',
+    'INVESTISSEUR PRIVE': 'Promoteur, Investisseur privé',
+    'BANQUE PRIVEE – CREDIT BAIL': 'Promoteur, Investisseur privé',
+    'ASSURANCE OU MUTUELLE': 'Promoteur, Investisseur privé',
+    'SOCIETE CIVILE DE PLACEMENT IMMOBILIER': 'Promoteur, Investisseur privé',
 
-    # Etat et collectivité territoriale
-    'ETAT': 'Etat et collectivité territoriale',
-    'COMMUNE': 'Etat et collectivité territoriale',
-    'DEPARTEMENT': 'Etat et collectivité territoriale',
-    'REGION': 'Etat et collectivité territoriale',
-    'STRUCTURE INTERCOMMUNALE': 'Etat et collectivité territoriale',
-    'COLLECTIVITE TERRITORIALE AUTRE': 'Etat et collectivité territoriale',
-    'SEM OU SPLA': 'Etat et collectivité territoriale',
-    'ETABLISSEMENT PUBLIC FONCIER': 'Etat et collectivité territoriale',
-    'PERSONNE MORALE PUBLIQUE AUTRE': 'Etat et collectivité territoriale',
-    'ETABLISSEMENT DE SANTE': 'Etat et collectivité territoriale',
-    'ETABLISSEMENT D ENSEIGNEMENT DU PRIMAIRE ET SECONDAIRE': 'Etat et collectivité territoriale',
-    'ETABLISSEMENT PUBLIC D ETUDE OU DE RECHERCHE': 'Etat et collectivité territoriale',
-    'UNIVERSITE ET ENSEIGNEMENT SUPERIEUR': 'Etat et collectivité territoriale',
-    'CHAMBRE CONSULAIRE': 'Etat et collectivité territoriale',
+    # =========================================================================
+    # G – ORGANISATION DE GESTION FONCIERE ET IMMOBILIERE
+    # =========================================================================
+    'SCI - SOCIETE CIVILE IMMOBILIERE': 'SCI, Copropriété, Autres personnes morales',
+    'SOCIETE CIVILE A VOCATION DE CONSTRUCTION': 'SCI, Copropriété, Autres personnes morales',
+    'SOCIETE CIVILE A VOCATION D INVESTISSEMENT': 'SCI, Copropriété, Autres personnes morales',
+    'SOCIETE CIVILE AUTRE': 'SCI, Copropriété, Autres personnes morales',
+    'COPROPRIETE': 'SCI, Copropriété, Autres personnes morales',
+    'BND - PROPRIETAIRE EN BIENS NON DELIMITES': 'SCI, Copropriété, Autres personnes morales',
+    'COPROPRIETE AUTRE': 'SCI, Copropriété, Autres personnes morales',
+    'COPROPRIETE DE FAIT': 'SCI, Copropriété, Autres personnes morales',
 
-    # Bailleur social
-    'ORGANISME DE LOGEMENT SOCIAL': 'Bailleur social',
+    # =========================================================================
+    # M – PERSONNE MORALE AUTRE
+    # =========================================================================
+    'PERSONNE MORALE AUTRE': 'SCI, Copropriété, Autres personnes morales',
+    'PERSONNE MORALE PUBLIQUE AUTRE': 'SCI, Copropriété, Autres personnes morales',
+    'PERSONNE MORALE NON CLASSEE': 'SCI, Copropriété, Autres personnes morales',
 
-    # Autres
-    'STRUCTURE AGRICOLE': 'Autres',
-    'STRUCTURE FORESTIERE': 'Autres',
-    'SAFER': 'Autres',
-    'RESEAU ELECTRIQUE OU GAZ': 'Autres',
-    'RESEAU FERRE': 'Autres',
-    'RESEAU EAU OU ASSAINISSEMENT': 'Autres',
+    # =========================================================================
+    # A – PROPRIETAIRE ET EXPLOITANT DU FONCIER NATUREL AGRICOLE OU FORESTIER
+    # =========================================================================
+    'EXPLOITANT AGRICOLE': 'Autres',
+    'SYNDICAT AGRICOLE': 'Autres',
+    'COOPERATIVE AGRICOLE': 'Autres',
+    'CHAMBRE D AGRICULTURE': 'Autres',
+    'STRUCTURE VITICOLE': 'Autres',
+    'GROUPEMENT FORESTIER': 'Autres',
+    'ONF – OFFICE NATIONAL DES FORETS': 'Autres',
+    'STRUCTURE FORESTIERE AUTRE': 'Autres',
+    'CONSERVATOIRE DES ESPACES NATURELS': 'Autres',
+    'PNR – PARC NATUREL REGIONAL': 'Autres',
+    'AFB – AGENCE FRANCAISE DE LA BIODIVERSITE': 'Autres',
+    'ONCFS – OFFICE NATIONAL DE LA CHASSE ET DE LA FAUNE SAUVAGE': 'Autres',
+    'SYNDICAT DE GESTION HYDRAULIQUE': 'Autres',
+    'CONSERVATOIRE DU LITTORAL': 'Autres',
+    'ASSOCIATION DE CHASSE ET PECHE': 'Autres',
+    'AGENCE DE L EAU': 'Autres',
+    'SAFER – SOCIETE D AMENAGEMENT FONCIER ET D ETABLISSEMENT RURAL': 'Autres',
+    'ASSOCIATION FONCIERE DE REMEMBREMENT': 'Autres',
+
+    # =========================================================================
+    # R – PROPRIETAIRE ET EXPLOITANT DE RESEAU
+    # =========================================================================
+    'CONCESSIONNAIRE AUTOROUTIER': 'Autres',
+    'SNCF – SOCIETE NATIONALE DES CHEMINS DE FER FRANCAIS': 'Autres',
+    'RATP – REGIE AUTONOME DES TRANSPORTS PARISIENS': 'Autres',
+    'RESEAU FERRE AUTRE': 'Autres',
+    'STRUCTURE AERIENNE': 'Autres',
+    'SYNDICAT DE CANAL': 'Autres',
+    'GRAND PORT MARITIME - PORT AUTONOME': 'Autres',
+    'VNF – VOIES NAVIGABLES DE FRANCE': 'Autres',
+    'STRUCTURE FLUVIALE OU MARITIME AUTRE': 'Autres',
+    'EDF – GDF': 'Autres',
+    'GESTIONNAIRE DE RESEAU ELECTRIQUE OU GAZ AUTRE': 'Autres',
+    'GESTIONNAIRE DE RESEAU D EAU OU D ASSAINISSEMENT': 'Autres',
     'RESEAU DE TELECOMMUNICATION': 'Autres',
     'PROPRIETAIRE DE RESEAU AUTRE': 'Autres',
-    'CONCESSIONNAIRE AUTOROUTIER': 'Autres',
-    'STRUCTURE FLUVIALE OU MARITIME': 'Autres',
-    'STRUCTURE AERIENNE': 'Autres',
-    'STRUCTURE SOCIALE': 'Autres',
+
+    # =========================================================================
+    # E – ETABLISSEMENT D ENSEIGNEMENT D ETUDE ET DE RECHERCHE
+    # =========================================================================
+    'UNIVERSITE ET ENSEIGNEMENT SUPERIEUR': 'Autres',
+    'IGN – INSTITUT GEOGRAPHIQUE NATIONAL': 'Autres',
+    'CEA – COMMISSARIAT A L ENERGIE ATOMIQUE': 'Autres',
+    'INRA – INSTITUT NATIONAL DE LA RECHERCHE AGRONOMIQUE': 'Autres',
+    'CNES – CENTRE NATIONAL D ETUDES SPATIALES': 'Autres',
+    'BRGM – BUREAU DE RECHERCHES GEOLOGIQUES ET MINIERES': 'Autres',
+    'CNRS – CENTRE NATIONAL DE LA RECHERCHE SCIENTIFIQUE': 'Autres',
+    'METEO FRANCE': 'Autres',
+    'ADEME – AGENCE DE L ENVIRONNEMENT ET DE LA MAITRISE DE L ENERGIE': 'Autres',
+    'ONERA – OFFICE NATIONAL D ETUDES ET DE RECHERCHES AEROSPATIALES': 'Autres',
+    'CEREMA - CENTRE D ETUDES ET D EXPERTISE SUR LES RISQUES L ENVIRONNEMENT LA MOBILITE ET L AMENAGEMENT': 'Autres',
+    'IFREMER - INSTITUT FRANÇAIS DE RECHERCHE POUR L EXPLOITATION DE LA MER': 'Autres',
+    'INRIA – INSTITUT NATIONAL DE RECHERCHE EN INFORMATIQUE ET AUTOMATIQUE': 'Autres',
+    'CSTB – CENTRE SCIENTIFIQUE ET TECHNIQUE DU BATIMENT': 'Autres',
+    'INSEE – INSTITUT NATIONAL DE LA STATISTIQUE ET DES ETUDES ECONOMIQUES': 'Autres',
+    'IRSTEA - INSTITUT NATIONAL DE RECHERCHE EN SCIENCES ET TECHNOLOGIES POUR L ENVIRONNEMENT ET L AGRICULTURE': 'Autres',
+    'MUSEUM NATIONAL D HISTOIRE NATURELLE': 'Autres',
+    'ETABLISSEMENT D ETUDE OU DE RECHERCHE AUTRE': 'Autres',
+    'ENSEIGNEMENT PRIMAIRE ET SECONDAIRE': 'Autres',
+    'ENSEIGNEMENT AGRICOLE': 'Autres',
+
+    # =========================================================================
+    # S – ETABLISSEMENT DE SANTE ET STRUCTURE SOCIALE
+    # =========================================================================
+    'ETABLISSEMENT HOSPITALIER': 'Autres',
+    'MAISON DE RETRAITE': 'Autres',
+    'ETABLISSEMENT PUBLIC DU MINISTERE DE LA SANTE': 'Autres',
+    'ASSURANCE MALADIE': 'Autres',
+    'ETABLISSEMENT DE SANTE AUTRE': 'Autres',
+    'ETABLISSEMENT PUBLIC SOCIAL': 'Autres',
+    'CENTRE COMMUNAL D ACTION SOCIALE': 'Autres',
+    'ALLOCATIONS FAMILIALES': 'Autres',
+    'CROUS': 'Autres',
+    'STRUCTURE SOCIALE AUTRE': 'Autres',
+    'POLE EMPLOI': 'Autres',
+
+    # =========================================================================
+    # Z – ETABLISSEMENT INDUSTRIEL ET COMMERCIAL
+    # =========================================================================
+    'ETABLISSEMENT INDUSTRIEL': 'Autres',
+    'GRANDE DISTRIBUTION': 'Autres',
+    'COMMERCE DE GROS': 'Autres',
+    'COMMERCE DE DETAIL': 'Autres',
+    'CHARBONNAGES DE FRANCE': 'Autres',
+    'CARRIERE': 'Autres',
+    'ACTIVITE EXTRACTIVE AUTRE': 'Autres',
+    'CCI – CHAMBRE DE COMMERCE ET D INDUSTRIE': 'Autres',
+    'CHAMBRE DES METIERS ET DE L ARTISANAT': 'Autres',
+
+    # =========================================================================
+    # L – ETABLISSEMENT DE TOURISME ET STRUCTURE DE LOISIR SPORTIVE OU CULTUELLE
+    # =========================================================================
+    'CAMPING': 'Autres',
+    'HOTEL': 'Autres',
+    'SYNDICAT D INITIATIVE': 'Autres',
+    'ACTIVITE DE TOURISME AUTRE': 'Autres',
     'STRUCTURE LIEE AUX CULTES': 'Autres',
-    'STRUCTURE SPORTIVE': 'Autres',
-    'STRUCTURE LIEE À LA CULTURE': 'Autres',
-    'STRUCTURE DU FONCIER ENVIRONNEMENTAL': 'Autres',
-    'ASSOCIATION FONCIERE DE REMEMBREMENT': 'Autres',
+    'ETABLISSEMENT PUBLIC CULTUREL': 'Autres',
+    'STRUCTURE CULTURELLE AUTRE': 'Autres',
+    'ASSOCIATION SPORTIVE': 'Autres',
+
+    # =========================================================================
+    # Cas spécial
+    # =========================================================================
+    'PAS DE PROPRIETAIRE': 'Absence de propriétaires',
 }
 
 

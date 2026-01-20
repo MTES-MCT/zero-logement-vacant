@@ -1,5 +1,6 @@
 import { NextFunction, Request, Response } from 'express';
 import { constants } from 'http2';
+import { match, Pattern } from 'ts-pattern';
 import {
   AnyObject,
   Maybe,
@@ -18,27 +19,12 @@ type RequestSchema = Partial<{
 function validate(schema: RequestSchema) {
   return (request: Request, response: Response, next: NextFunction) => {
     try {
-      // Support multipart/form-data requests with payload field
-      let body;
-      if (
-        request.body !== null &&
-        typeof request.body === 'object' &&
-        'payload' in request.body &&
-        typeof request.body.payload === 'string'
-      ) {
-        try {
-          body = JSON.parse(request.body.payload);
-        } catch {
-          const syntheticError = new YupValidationError(
-            'Invalid JSON in payload field',
-            request.body.payload,
-            'payload'
-          );
-          throw syntheticError;
-        }
-      } else {
-        body = request.body;
-      }
+      const contentType = request.get('Content-Type');
+      const body = match(contentType)
+        .with(Pattern.string.startsWith('multipart/form-data'), () => {
+          return JSON.parse(request.body.payload);
+        })
+        .otherwise(() => request.body);
 
       const data = object(schema).validateSync({
         body,

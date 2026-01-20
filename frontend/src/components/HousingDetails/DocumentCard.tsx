@@ -16,10 +16,10 @@ import { useUser } from '~/hooks/useUser';
 export interface DocumentCardProps {
   document: DocumentDTO;
   index: number;
-  onDelete?(document: DocumentDTO): void;
+  onDelete(document: DocumentDTO): void;
   onDownload(document: DocumentDTO): Promise<void>;
-  onRename?(document: DocumentDTO): void;
-  onVisualize?(index: number): void;
+  onRename(document: DocumentDTO): void;
+  onVisualize(index: number): void;
 }
 
 const FullWidthButton = styled(Button)({
@@ -31,9 +31,8 @@ function DocumentCard(props: Readonly<DocumentCardProps>) {
     locale: 'fr',
     space: true
   });
-  const contentType = mime
-    .getExtension(props.document.contentType)
-    ?.toUpperCase() ?? 'N/A';
+  const contentType =
+    mime.getExtension(props.document.contentType)?.toUpperCase() ?? 'N/A';
 
   const { isUsual, isAdmin } = useUser();
   const canModifyDocument = isUsual || isAdmin;
@@ -46,12 +45,12 @@ function DocumentCard(props: Readonly<DocumentCardProps>) {
 
   function onRename(): void {
     setDropdownOpen(false);
-    props.onRename?.(props.document);
+    props.onRename(props.document);
   }
 
   function onDelete(): void {
     setDropdownOpen(false);
-    props.onDelete?.(props.document);
+    props.onDelete(props.document);
   }
 
   async function onDownload(): Promise<void> {
@@ -61,7 +60,7 @@ function DocumentCard(props: Readonly<DocumentCardProps>) {
 
   function onVisualize(): void {
     setDropdownOpen(false);
-    props.onVisualize?.(props.index);
+    props.onVisualize(props.index);
   }
 
   return (
@@ -95,18 +94,16 @@ function DocumentCard(props: Readonly<DocumentCardProps>) {
           onOpen={onOpen}
         >
           <Stack spacing="0.5rem" useFlexGap sx={{ p: '1rem' }}>
-            {props.onVisualize && (
-              <FullWidthButton
-                priority="tertiary no outline"
-                iconId="fr-icon-eye-line"
-                size="small"
-                onClick={onVisualize}
-              >
-                Visualiser
-              </FullWidthButton>
-            )}
+            <FullWidthButton
+              priority="tertiary no outline"
+              iconId="fr-icon-eye-line"
+              size="small"
+              onClick={onVisualize}
+            >
+              Visualiser
+            </FullWidthButton>
 
-            {props.onRename && canModifyDocument && (
+            {canModifyDocument && (
               <FullWidthButton
                 priority="tertiary no outline"
                 iconId="fr-icon-edit-fill"
@@ -124,7 +121,7 @@ function DocumentCard(props: Readonly<DocumentCardProps>) {
             >
               Télécharger
             </FullWidthButton>
-            {props.onDelete && canModifyDocument && (
+            {canModifyDocument && (
               <FullWidthButton
                 priority="tertiary no outline"
                 iconId="ri-delete-bin-line"
@@ -137,44 +134,44 @@ function DocumentCard(props: Readonly<DocumentCardProps>) {
           </Stack>
         </Dropdown>
       </Box>
-        <Box
-          component="section"
+      <Box
+        component="section"
+        sx={{
+          border: `1px solid ${fr.colors.decisions.border.contrast.grey.default}`
+        }}
+      >
+        <DocumentPreview
+          key={props.document.id}
+          document={props.document}
+          firstPageOnly
+          responsive="1x1"
+          fit="contain"
+          fallbackProps={{
+            size: 'sm'
+          }}
+          onClick={onVisualize}
+        />
+      </Box>
+      <Stack component="footer" spacing="0.5rem" useFlexGap>
+        <Typography
           sx={{
-            border: `1px solid ${fr.colors.decisions.border.contrast.grey.default}`
+            fontWeight: 500,
+            color: fr.colors.decisions.text.title.grey.default,
+            whiteSpace: 'nowrap',
+            overflowY: 'clip',
+            textOverflow: 'ellipsis'
           }}
         >
-          <DocumentPreview
-            key={props.document.id}
-            document={props.document}
-            firstPageOnly
-            responsive="1x1"
-            fit="contain"
-            fallbackProps={{
-              size: 'sm'
-            }}
-            onClick={props.onVisualize ? onVisualize : undefined}
-          />
-        </Box>
-        <Stack component="footer" spacing="0.5rem" useFlexGap>
-          <Typography
-            sx={{
-              fontWeight: 500,
-              color: fr.colors.decisions.text.title.grey.default,
-              whiteSpace: 'nowrap',
-              overflowY: 'clip',
-              textOverflow: 'ellipsis'
-            }}
-          >
-            {props.document.filename}
-          </Typography>
-          <Typography
-            variant="body2"
-            sx={{ color: fr.colors.decisions.text.mention.grey.default }}
-          >
-            {contentType} — {size}
-          </Typography>
-        </Stack>
+          {props.document.filename}
+        </Typography>
+        <Typography
+          variant="body2"
+          sx={{ color: fr.colors.decisions.text.mention.grey.default }}
+        >
+          {contentType} — {size}
+        </Typography>
       </Stack>
+    </Stack>
   );
 }
 

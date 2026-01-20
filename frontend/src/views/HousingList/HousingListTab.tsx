@@ -80,6 +80,7 @@ function HousingListTab(props: HousingListTabProps) {
       occupancyIntended: (payload.occupancyIntended ?? undefined) as
         | Occupancy
         | undefined,
+      files: payload.files ?? undefined,
       note: payload.note ?? undefined,
       precisions:
         payload.precisions?.map((precision) => precision.id) ?? undefined,

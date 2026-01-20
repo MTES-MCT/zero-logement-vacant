@@ -9,11 +9,11 @@ import {
   OCCUPANCY_VALUES,
   PRECISION_CATEGORY_VALUES
 } from '@zerologementvacant/models';
-import { capitalize } from "effect/String";
+import { capitalize } from 'effect/String';
 import { useState } from 'react';
 import { Controller, FormProvider, useForm } from 'react-hook-form';
 import { match } from 'ts-pattern';
-import { array, type InferType, number, object, string } from 'yup';
+import { array, type InferType, mixed, number, object, string } from 'yup';
 
 import type { Selection } from '~/hooks/useSelection';
 import { HousingStates } from '../../models/HousingState';
@@ -24,6 +24,7 @@ import LabelNext from '../Label/LabelNext';
 import AppTextInputNext from '../_app/AppTextInput/AppTextInputNext';
 import { createConfirmationModal } from '../modals/ConfirmationModal/ConfirmationModalNext';
 import HousingEditionMobilizationTab from './HousingEditionMobilizationTab';
+import HousingListDocumentsTab from './HousingListDocumentsTab';
 
 const WIDTH = '700px';
 
@@ -54,6 +55,11 @@ const schema = object({
         ? schema.required('Veuillez renseigner le sous-statut de suivi')
         : schema
     ),
+  files: array()
+    .of(mixed<File>().required())
+    .nullable()
+    .optional()
+    .default(null),
   note: string().trim().nullable().optional().default(null),
   precisions: array()
     .of(
@@ -89,6 +95,7 @@ function HousingListEditionSideMenu(props: Props) {
       occupancy: null,
       occupancyIntended: null,
       status: null,
+      files: null,
       note: null,
       precisions: []
     },
@@ -99,20 +106,20 @@ function HousingListEditionSideMenu(props: Props) {
   const { formState } = form;
   const precisions = form.watch('precisions');
   const { isDirty, dirtyFields } = formState;
-  const needsConfirmation =
-    dirtyFields.status ||
-    dirtyFields.subStatus ||
-    dirtyFields.occupancy ||
-    dirtyFields.occupancyIntended ||
-    dirtyFields.note ||
-    (dirtyFields.precisions &&
+  const needsConfirmation: boolean =
+    !!dirtyFields.status ||
+    !!dirtyFields.subStatus ||
+    !!dirtyFields.occupancy ||
+    !!dirtyFields.occupancyIntended ||
+    !!dirtyFields.note ||
+    (!!dirtyFields.precisions &&
       precisions?.some((precision) =>
         isPrecisionEvolutionCategory(precision.category)
       ));
 
-  const [tab, setTab] = useState<'occupancy' | 'mobilization' | 'note'>(
-    'occupancy'
-  );
+  const [tab, setTab] = useState<
+    'occupancy' | 'mobilization' | 'documents' | 'note'
+  >('occupancy');
 
   function close(): void {
     props.onClose();
@@ -142,13 +149,13 @@ function HousingListEditionSideMenu(props: Props) {
       occupancyIntended: data.occupancyIntended as Occupancy | null,
       status: data.status as HousingStatus | null,
       subStatus: data.subStatus,
+      files: data.files,
       note: data.note,
       precisions: data.precisions
     });
     close();
   }
 
-  // Tab content logic using ts-pattern
   const content = match(tab)
     .with('occupancy', () => (
       <Stack rowGap={2}>
@@ -185,6 +192,7 @@ function HousingListEditionSideMenu(props: Props) {
         precisionListProps={{ multiple: true, showNullOption: false }}
       />
     ))
+    .with('documents', () => <HousingListDocumentsTab />)
     .with('note', () => (
       <AppTextInputNext<BatchEditionFormSchema>
         label="Nouvelle note"
@@ -225,6 +233,7 @@ function HousingListEditionSideMenu(props: Props) {
             tabs={[
               { tabId: 'occupancy', label: 'Occupation' },
               { tabId: 'mobilization', label: 'Suivi' },
+              { tabId: 'documents', label: 'Documents' },
               { tabId: 'note', label: 'Note' }
             ]}
             selectedTabId={tab}

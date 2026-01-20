@@ -20,8 +20,8 @@ import Image from '~/components/Image/Image';
 pdfjs.GlobalWorkerOptions.workerSrc = `//unpkg.com/pdfjs-dist@${pdfjs.version}/build/pdf.worker.min.mjs`;
 
 export interface DocumentPreviewProps {
+  document: Pick<DocumentDTO, 'filename' | 'contentType' | 'url'>;
   className?: string;
-  document: DocumentDTO;
   firstPageOnly?: boolean;
   /**
    * @default undefined
@@ -60,18 +60,18 @@ function DocumentPreview(props: DocumentPreviewProps) {
   const fit = props.fit ?? 'contain';
 
   const Preview = match(props.document)
-    .when(isImage, (image) => (
+    .when(isImage, () => (
       <Image
         className={props.className}
         responsive={props.responsive}
         fit={fit}
-        src={image.url}
-        alt={image.filename}
+        src={props.document.url}
+        alt={props.document.filename}
       />
     ))
-    .when(isPDF, (pdf) => (
+    .when(isPDF, () => (
       <PDF
-        url={pdf.url}
+        url={props.document.url}
         firstPageOnly={props.firstPageOnly}
         responsive={props.responsive}
         fit={fit}

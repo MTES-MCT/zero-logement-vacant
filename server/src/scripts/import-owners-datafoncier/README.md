@@ -66,55 +66,97 @@ python import_owners.py --db-url "$DATABASE_URL" --batch-size 10000 --num-worker
 
 ## Kind Mapping (catpro2txt → kind_class)
 
-Based on official `OwnerKind` labels from `packages/models/src/OwnerKind.ts`:
+Classification CATPRO 3 (LOVAC ET FF) - Source CEREMA, effectif depuis S 2024.
 
+### Catégories ZLV
+
+| Catégorie ZLV | Description |
+|---------------|-------------|
+| Particulier | Personnes physiques |
+| Etat et collectivité territoriale | Etat, régions, départements, communes, intercommunalités |
+| Bailleur social, Aménageur, Investisseur public | OLS, EPF, SEM, SPLA, CDC, investisseurs publics |
+| Promoteur, Investisseur privé | Promoteurs, constructeurs, investisseurs privés, banques privées |
+| SCI, Copropriété, Autres personnes morales | SCI, copropriétés, personnes morales non classées |
+| Autres | Agricole, forestier, réseaux, enseignement, santé, industrie, tourisme |
+| Absence de propriétaires | Pas de propriétaire identifié |
+
+### Mapping détaillé par catégorie CATPRO 3
+
+#### X – Personne physique
 | catpro2txt | kind_class |
 |------------|------------|
 | PERSONNE PHYSIQUE | Particulier |
-| SOCIETE CIVILE A VOCATION IMMOBILIERE | SCI, Copropriété, Autres personnes morales |
-| PROPRIETE DIVISEE EN LOT | SCI, Copropriété, Autres personnes morales |
-| PERSONNE MORALE AUTRE | SCI, Copropriété, Autres personnes morales |
-| ACTIVITE COMMERCIALE | SCI, Copropriété, Autres personnes morales |
-| ACTIVITE INDUSTRIELLE | SCI, Copropriété, Autres personnes morales |
-| ACTIVITE DE TOURISME | SCI, Copropriété, Autres personnes morales |
-| ACTIVITE EXTRACTIVE | SCI, Copropriété, Autres personnes morales |
-| INVESTISSEUR PROFESSIONNEL | Promoteur, Investisseur privé |
-| PROMOTEUR | Promoteur, Investisseur privé |
-| AMENAGEUR | Promoteur, Investisseur privé |
-| ETAT | Etat et collectivité territoriale |
-| COMMUNE | Etat et collectivité territoriale |
-| DEPARTEMENT | Etat et collectivité territoriale |
-| REGION | Etat et collectivité territoriale |
-| STRUCTURE INTERCOMMUNALE | Etat et collectivité territoriale |
-| COLLECTIVITE TERRITORIALE AUTRE | Etat et collectivité territoriale |
-| SEM OU SPLA | Etat et collectivité territoriale |
-| ETABLISSEMENT PUBLIC FONCIER | Etat et collectivité territoriale |
-| PERSONNE MORALE PUBLIQUE AUTRE | Etat et collectivité territoriale |
-| ETABLISSEMENT DE SANTE | Etat et collectivité territoriale |
-| ETABLISSEMENT D ENSEIGNEMENT DU PRIMAIRE ET SECONDAIRE | Etat et collectivité territoriale |
-| ETABLISSEMENT PUBLIC D ETUDE OU DE RECHERCHE | Etat et collectivité territoriale |
-| UNIVERSITE ET ENSEIGNEMENT SUPERIEUR | Etat et collectivité territoriale |
-| CHAMBRE CONSULAIRE | Etat et collectivité territoriale |
-| ORGANISME DE LOGEMENT SOCIAL | Bailleur social |
-| STRUCTURE AGRICOLE | Autres |
-| STRUCTURE FORESTIERE | Autres |
-| SAFER | Autres |
-| RESEAU ELECTRIQUE OU GAZ | Autres |
-| RESEAU FERRE | Autres |
-| RESEAU EAU OU ASSAINISSEMENT | Autres |
-| RESEAU DE TELECOMMUNICATION | Autres |
-| PROPRIETAIRE DE RESEAU AUTRE | Autres |
-| CONCESSIONNAIRE AUTOROUTIER | Autres |
-| STRUCTURE FLUVIALE OU MARITIME | Autres |
-| STRUCTURE AERIENNE | Autres |
-| STRUCTURE SOCIALE | Autres |
-| STRUCTURE LIEE AUX CULTES | Autres |
-| STRUCTURE SPORTIVE | Autres |
-| STRUCTURE LIEE À LA CULTURE | Autres |
-| STRUCTURE DU FONCIER ENVIRONNEMENTAL | Autres |
-| ASSOCIATION FONCIERE DE REMEMBREMENT | Autres |
 
-> **Note:** Any `catpro2txt` value not in this mapping will default to `'Autres'`.
+#### P – Etat et collectivité territoriale
+| catpro2txt | kind_class |
+|------------|------------|
+| ETAT ETRANGER | Etat et collectivité territoriale |
+| ETAT FRANCAIS | Etat et collectivité territoriale |
+| REGION | Etat et collectivité territoriale |
+| DEPARTEMENT | Etat et collectivité territoriale |
+| INTERCOMMUNALITE | Etat et collectivité territoriale |
+| SYNDICAT INTERCOMMUNAL A VOCATION MULTIPLE | Etat et collectivité territoriale |
+| SYNDICAT MIXTE | Etat et collectivité territoriale |
+| SYNDICAT INTERCOMMUNAL AUTRE | Etat et collectivité territoriale |
+| COMMUNE | Etat et collectivité territoriale |
+| COLLECTIVITE TERRITORIALE SPECIFIQUE | Etat et collectivité territoriale |
+| COLLECTIVITE DE PARIS | Etat et collectivité territoriale |
+
+#### F – Professionnel du foncier et immobilier
+| catpro2txt | kind_class |
+|------------|------------|
+| ORGANISME DE LOGEMENT SOCIAL | Bailleur social, Aménageur, Investisseur public |
+| EPF – ETABLISSEMENT PUBLIC FONCIER D ETAT | Bailleur social, Aménageur, Investisseur public |
+| EPFL – ETABLISSEMENT PUBLIC FONCIER LOCAL | Bailleur social, Aménageur, Investisseur public |
+| SEM – SOCIETE D ECONOMIE MIXTE | Bailleur social, Aménageur, Investisseur public |
+| SPLA – SOCIETE PUBLIQUE LOCALE D AMENAGEMENT | Bailleur social, Aménageur, Investisseur public |
+| SEM OU SPLA INDETERMINE | Bailleur social, Aménageur, Investisseur public |
+| AMENAGEUR FONCIER | Bailleur social, Aménageur, Investisseur public |
+| EPA – ETABLISSEMENT PUBLIC D AMENAGEMENT | Bailleur social, Aménageur, Investisseur public |
+| INVESTISSEUR PUBLIC | Bailleur social, Aménageur, Investisseur public |
+| BANQUE PUBLIQUE | Bailleur social, Aménageur, Investisseur public |
+| CAISSE DES DEPOTS ET CONSIGNATIONS | Bailleur social, Aménageur, Investisseur public |
+| PROMOTEUR IMMOBILIER | Promoteur, Investisseur privé |
+| CONSTRUCTEUR | Promoteur, Investisseur privé |
+| SOCIETE CIVILE DE CONSTRUCTION VENTE | Promoteur, Investisseur privé |
+| INVESTISSEUR PRIVE | Promoteur, Investisseur privé |
+| BANQUE PRIVEE – CREDIT BAIL | Promoteur, Investisseur privé |
+| ASSURANCE OU MUTUELLE | Promoteur, Investisseur privé |
+| SOCIETE CIVILE DE PLACEMENT IMMOBILIER | Promoteur, Investisseur privé |
+
+#### G – Organisation de gestion foncière et immobilière
+| catpro2txt | kind_class |
+|------------|------------|
+| SCI - SOCIETE CIVILE IMMOBILIERE | SCI, Copropriété, Autres personnes morales |
+| SOCIETE CIVILE A VOCATION DE CONSTRUCTION | SCI, Copropriété, Autres personnes morales |
+| SOCIETE CIVILE A VOCATION D INVESTISSEMENT | SCI, Copropriété, Autres personnes morales |
+| SOCIETE CIVILE AUTRE | SCI, Copropriété, Autres personnes morales |
+| COPROPRIETE | SCI, Copropriété, Autres personnes morales |
+| BND - PROPRIETAIRE EN BIENS NON DELIMITES | SCI, Copropriété, Autres personnes morales |
+| COPROPRIETE AUTRE | SCI, Copropriété, Autres personnes morales |
+| COPROPRIETE DE FAIT | SCI, Copropriété, Autres personnes morales |
+
+#### M – Personne morale autre
+| catpro2txt | kind_class |
+|------------|------------|
+| PERSONNE MORALE AUTRE | SCI, Copropriété, Autres personnes morales |
+| PERSONNE MORALE PUBLIQUE AUTRE | SCI, Copropriété, Autres personnes morales |
+| PERSONNE MORALE NON CLASSEE | SCI, Copropriété, Autres personnes morales |
+
+#### A, R, E, S, Z, L – Autres catégories (→ Autres)
+- **A** : Agricole, forestier, environnemental (exploitants, ONF, SAFER, conservatoires...)
+- **R** : Réseaux (SNCF, RATP, EDF, VNF, autoroutes, télécoms...)
+- **E** : Enseignement et recherche (universités, CNRS, INRA, CEA, INSEE...)
+- **S** : Santé et social (hôpitaux, EHPAD, CAF, CCAS, Pôle Emploi...)
+- **Z** : Industrie et commerce (CCI, grande distribution, activités extractives...)
+- **L** : Tourisme, loisirs, cultes (hôtels, campings, associations sportives...)
+
+#### Cas spécial
+| catpro2txt | kind_class |
+|------------|------------|
+| PAS DE PROPRIETAIRE | Absence de propriétaires |
+
+> **Note:** Toute valeur `catpro2txt` non présente dans ce mapping sera classée par défaut en `'Autres'`.
 
 ## Validation Rules
 

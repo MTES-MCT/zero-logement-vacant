@@ -199,7 +199,7 @@ function PrecisionTabs(props: PrecisionTabs) {
   const tabs: PrecisionTab[] = [
     EvolutionsTab,
     BlockingPointsTab,
-    MechanismsTa
+    MechanismsTab
   ];
 
   const tab = props.tab ?? 'evolutions';

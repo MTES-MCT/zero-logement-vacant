@@ -1,4 +1,6 @@
+import { DeleteObjectsCommand, PutObjectCommand } from '@aws-sdk/client-s3';
 import {
+  ACCEPTED_HOUSING_DOCUMENT_EXTENSIONS,
   AddressKinds,
   DATAFONCIER_OWNER_EQUIVALENCE,
   HOUSING_STATUS_LABELS,
@@ -19,16 +21,20 @@ import {
   type HousingBatchUpdatePayload
 } from '@zerologementvacant/models';
 import { compactNullable } from '@zerologementvacant/utils';
+import { createS3 } from '@zerologementvacant/utils/node';
+import async from 'async';
 import { Array, Either, HashMap, pipe, Record, Struct } from 'effect';
 import { Request, RequestHandler, Response } from 'express';
 import { AuthenticatedRequest } from 'express-jwt';
 import { oneOf, param } from 'express-validator';
 import { constants } from 'http2';
+import type { ElementOf } from 'ts-essentials';
 import { v4 as uuidv4 } from 'uuid';
 import HousingExistsError from '~/errors/housingExistsError';
 import HousingMissingError from '~/errors/housingMissingError';
 import HousingUpdateForbiddenError from '~/errors/housingUpdateForbiddenError';
 import PrecisionMissingError from '~/errors/precisionMissingError';
+import config from '~/infra/config';
 import { startTransaction } from '~/infra/database/transaction';
 import { createLogger } from '~/infra/logger';
 import type { AddressApi } from '~/models/AddressApi';
@@ -49,6 +55,7 @@ import {
   type HousingId
 } from '~/models/HousingApi';
 import { HousingCountApi } from '~/models/HousingCountApi';
+import { HousingDocumentApi } from '~/models/HousingDocumentApi';
 import { HousingFiltersApi } from '~/models/HousingFiltersApi';
 import { HousingOwnerApi } from '~/models/HousingOwnerApi';
 import { NoteApi, type HousingNoteApi } from '~/models/NoteApi';
@@ -63,13 +70,16 @@ import banAddressesRepository from '~/repositories/banAddressesRepository';
 import createDatafoncierHousingRepository from '~/repositories/datafoncierHousingRepository';
 import createDatafoncierOwnersRepository from '~/repositories/datafoncierOwnersRepository';
 import eventRepository from '~/repositories/eventRepository';
+import housingDocumentRepository from '~/repositories/housingDocumentRepository';
 import housingOwnerRepository from '~/repositories/housingOwnerRepository';
 
+import type { DocumentApi } from '~/models/DocumentApi';
 import housingRepository from '~/repositories/housingRepository';
 import noteRepository from '~/repositories/noteRepository';
 import ownerRepository from '~/repositories/ownerRepository';
 import precisionRepository from '~/repositories/precisionRepository';
 import { createBanAPI } from '~/services/ban/ban-api';
+import { validateFiles } from '~/services/file-validation';
 
 const logger = createLogger('housingController');
 const banAPI = createBanAPI();
@@ -530,6 +540,15 @@ const updateMany: RequestHandler<
   >;
   logger.info('Updating many housings...', { body });
 
+  // Handle file uploads if present
+  const files = (request.files ?? []) as Express.Multer.File[];
+  const s3 = createS3({
+    endpoint: config.s3.endpoint,
+    region: config.s3.region,
+    accessKeyId: config.s3.accessKeyId,
+    secretAccessKey: config.s3.secretAccessKey
+  });
+
   const [housings, referential] = await Promise.all([
     housingRepository.find({
       filters: {
@@ -714,6 +733,93 @@ const updateMany: RequestHandler<
       : [];
   const precisionEvents = precisionLinks.flatMap((link) => link.events);
 
+  // Process document uploads if files are present
+  let housingDocuments: ReadonlyArray<HousingDocumentApi> = [];
+  let uploadedDocuments: ReadonlyArray<DocumentApi> = [];
+  let uploadErrors: ReadonlyArray<unknown> = [];
+  if (files.length > 0 && housings.length > 0) {
+    logger.info('Processing batch document upload', {
+      fileCount: files.length,
+      housingCount: housings.length
+    });
+
+    // Validate files
+    const validationResults = await validateFiles(files, {
+      accept: ACCEPTED_HOUSING_DOCUMENT_EXTENSIONS as string[]
+    });
+
+    // Upload valid files to S3 and prepare document records
+    const documentsOrErrors: ReadonlyArray<
+      Either.Either<DocumentApi, unknown>
+    > = await pipe(
+      validationResults,
+      Array.map(
+        Either.map((file) => {
+          const documentId = uuidv4();
+          const s3Key = `batch-housing-documents/${documentId}`;
+          const command = new PutObjectCommand({
+            Bucket: config.s3.bucket,
+            Key: s3Key,
+            Body: file.buffer,
+            ContentType: file.mimetype,
+            ACL: 'authenticated-read',
+            Metadata: {
+              originalName: file.originalname,
+              fieldName: file.fieldname
+            }
+          });
+          const document: DocumentApi = {
+            id: documentId,
+            filename: file.originalname,
+            s3Key: s3Key,
+            contentType: file.mimetype,
+            sizeBytes: file.size,
+            createdBy: user.id,
+            creator: user,
+            createdAt: new Date().toJSON(),
+            updatedAt: null,
+            deletedAt: null
+          };
+          return { document, command };
+        })
+      ),
+      // Upload files to S3
+      async (documentsWithCommandsOrErrors) => {
+        return async.map(
+          documentsWithCommandsOrErrors,
+          async (
+            either: ElementOf<typeof documentsWithCommandsOrErrors>
+          ): Promise<Either.Either<DocumentApi, unknown>> => {
+            if (Either.isLeft(either)) {
+              return Either.left(either.left);
+            }
+
+            const { command, document } = either.right;
+            try {
+              await s3.send(command);
+              return Either.right(document);
+            } catch (error) {
+              logger.error('Failed to upload file to S3', {
+                filename: document.filename,
+                s3Key: document.s3Key,
+                error: error instanceof Error ? error.message : String(error)
+              });
+              return Either.left(error);
+            }
+          }
+        );
+      }
+    );
+
+    uploadedDocuments = Array.getRights(documentsOrErrors);
+    uploadErrors = Array.getLefts(documentsOrErrors);
+    logger.info('Batch document upload completed', {
+      total: files.length,
+      succeeded: uploadedDocuments.length,
+      failed: uploadErrors.length
+    });
+  }
+
   await startTransaction(async () => {
     await Promise.all([
       housingRepository.updateMany(ids, {
@@ -722,6 +828,10 @@ const updateMany: RequestHandler<
         occupancy: body.occupancy,
         occupancyIntended: body.occupancyIntended
       }),
+      housingDocumentRepository.createManyForManyHousings(
+        uploadedDocuments,
+        housings
+      ),
       noteRepository.createManyByHousing(notes),
       eventRepository.insertManyHousingEvents(events),
       // Add precisions to housings (if requested)
@@ -741,6 +851,22 @@ const updateMany: RequestHandler<
         ? eventRepository.insertManyPrecisionHousingEvents(precisionEvents)
         : Promise.resolve()
     ]);
+  }).catch(async (error) => {
+    // Clean up uploaded documents in case of error
+    if (housingDocuments.length > 0) {
+      logger.debug(
+        'Cleaning up uploaded S3 objects after transaction failure',
+        { documents: housingDocuments.length }
+      );
+      const command = new DeleteObjectsCommand({
+        Bucket: config.s3.bucket,
+        Delete: {
+          Objects: housingDocuments.map((doc) => ({ Key: doc.s3Key }))
+        }
+      });
+      await s3.send(command);
+    }
+    throw error;
   });
 
   const updated = compactNullable({

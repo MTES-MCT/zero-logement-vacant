@@ -1,13 +1,10 @@
 import { HousingDocumentDTO } from '@zerologementvacant/models';
-import { UserApi, toUserDTO } from './UserApi';
+import { DocumentApi } from './DocumentApi';
+import { toUserDTO } from './UserApi';
 
-export interface HousingDocumentApi extends Omit<HousingDocumentDTO, 'creator' | 'url'> {
+export interface HousingDocumentApi extends DocumentApi {
   housingId: string;
   housingGeoCode: string;
-  s3Key: string;
-  createdBy: string;
-  deletedAt: string | null;
-  creator: UserApi;
 }
 
 /**

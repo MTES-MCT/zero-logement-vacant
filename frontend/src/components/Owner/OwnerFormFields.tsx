@@ -3,7 +3,7 @@ import Grid from '@mui/material/Grid';
 import Stack from '@mui/material/Stack';
 import Typography from '@mui/material/Typography';
 import { Controller, useFormContext } from 'react-hook-form';
-import * as yup from 'yup';
+import { number, object, string, type InferType } from 'yup';
 
 import AppTextInputNext from '~/components/_app/AppTextInput/AppTextInputNext';
 import OwnerAddressEditionNext from '~/components/Owner/OwnerAddressEditionNext';
@@ -12,26 +12,26 @@ import type { Owner } from '~/models/Owner';
 
 const PHONE_REGEXP = /^(\+33|0)[1-9][0-9]{8}$/;
 
-export const OWNER_FORM_FIELD_SCHEMA = yup.object({
-  fullName: yup.string().required(
+export const OWNER_FORM_FIELD_SCHEMA = object({
+  fullName: string().required(
     'Veuillez saisir le nom et prénom du propriétaire'
   ),
-  birthDate: yup.string().defined().nullable(),
-  banAddress: yup.object({
-    id: yup.string().required(),
-    label: yup.string().required(),
-    score: yup.number().required().min(0).max(1),
-    longitude: yup.number().min(-180).max(180).required(),
-    latitude: yup.number().min(-90).max(90).required()
+  birthDate: string().defined().nullable(),
+  banAddress: object({
+    id: string().required(),
+    label: string().required(),
+    score: number().required().min(0).max(1),
+    longitude: number().min(-180).max(180).required(),
+    latitude: number().min(-90).max(90).required()
   })
     .defined()
     .nullable(),
-  additionalAddress: yup.string().defined().nullable(),
-  email: yup.string()
+  additionalAddress: string().defined().nullable(),
+  email: string()
     .email('Email invalide. Exemple de format valide : exemple@gmail.com')
     .defined()
     .nullable(),
-  phone: yup.string()
+  phone: string()
     .matches(
       PHONE_REGEXP,
       'Téléphone invalide. Exemple de format valide : +33XXXXXXXXX ou 0XXXXXXXXX'
@@ -40,7 +40,7 @@ export const OWNER_FORM_FIELD_SCHEMA = yup.object({
     .nullable()
 });
 
-export type OwnerFormFieldsSchema = yup.InferType<typeof OWNER_FORM_FIELD_SCHEMA>;
+export type OwnerFormFieldsSchema = InferType<typeof OWNER_FORM_FIELD_SCHEMA>;
 
 export interface OwnerFormFieldsProps {
   owner: Owner;
@@ -64,7 +64,7 @@ function OwnerFormFields(props: OwnerFormFieldsProps) {
           />
         </Grid>
         <Grid size={{ xs: 12, md: 6 }}>
-          <AppTextInputNext<OwnerFormFieldsSchema['birthDate']>
+          <AppTextInputNext<OwnerFormFieldsSchema>
             name="birthDate"
             label="Date de naissance"
             nativeInputProps={{
@@ -138,7 +138,7 @@ function OwnerFormFields(props: OwnerFormFieldsProps) {
       </Stack>
 
       <Stack component="section">
-        <AppTextInputNext<OwnerFormFieldsSchema['additionalAddress']>
+        <AppTextInputNext<OwnerFormFieldsSchema>
           name="additionalAddress"
           label="Complément d'adresse"
           mapValue={(value): string => value ?? ''}
@@ -148,7 +148,7 @@ function OwnerFormFields(props: OwnerFormFieldsProps) {
 
       <Grid container component="section" columnSpacing="1rem">
         <Grid size={{ xs: 12, md: 6 }}>
-          <AppTextInputNext<OwnerFormFieldsSchema['email']>
+          <AppTextInputNext<OwnerFormFieldsSchema>
             name="email"
             label="Adresse e-mail"
             nativeInputProps={{
@@ -160,7 +160,7 @@ function OwnerFormFields(props: OwnerFormFieldsProps) {
           />
         </Grid>
         <Grid size={{ xs: 12, md: 6 }}>
-          <AppTextInputNext<OwnerFormFieldsSchema['phone']>
+          <AppTextInputNext<OwnerFormFieldsSchema>
             name="phone"
             label="Numéro de téléphone"
             nativeInputProps={{

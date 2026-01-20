@@ -10,7 +10,7 @@ import { yupResolver } from '@hookform/resolvers/yup';
 import { FormProvider, useForm } from 'react-hook-form';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { useState } from 'react';
-import * as yup from 'yup';
+import { object, string, type InferType }  from 'yup';
 
 import AppTextInputNext from '~/components/_app/AppTextInput/AppTextInputNext';
 import { useDocumentTitle } from '~/hooks/useDocumentTitle';
@@ -19,14 +19,14 @@ import { verifyTwoFactor } from '~/store/thunks/auth-thunks';
 import Image from '~/components/Image/Image';
 import securityIcon from '~/assets/images/building.svg';
 
-const schema = yup.object({
-  code: yup.string()
+const schema = object({
+  code: string()
     .required('Veuillez renseigner le code de vérification.')
     .length(6, 'Le code doit contenir 6 chiffres')
     .matches(/^\d{6}$/, 'Le code doit contenir uniquement des chiffres')
 });
 
-type FormSchema = yup.InferType<typeof schema>;
+type FormSchema = InferType<typeof schema>;
 
 interface TwoFactorState {
   email: string;
@@ -110,7 +110,7 @@ const TwoFactorView = () => {
 
           <FormProvider {...form}>
             <form onSubmit={form.handleSubmit(submit)} id="2fa_form">
-              <AppTextInputNext<FormSchema['code']>
+              <AppTextInputNext<FormSchema>
                 name="code"
                 label="Code de vérification (6 chiffres)"
                 nativeInputProps={{

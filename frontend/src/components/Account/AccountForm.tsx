@@ -5,7 +5,7 @@ import Stack from '@mui/material/Stack';
 import Typography from '@mui/material/Typography';
 import { TIME_PER_WEEK_VALUES, type TimePerWeek } from '@zerologementvacant/models';
 import { Controller, FormProvider, useForm } from 'react-hook-form';
-import * as yup from 'yup';
+import { object, ref, string, type InferType } from 'yup';
 
 import { useUser } from '~/hooks/useUser';
 import {
@@ -17,25 +17,30 @@ import AppTextInputNext from '../_app/AppTextInput/AppTextInputNext';
 import TimePerWeekSelect from '../Users/TimePerWeekSelect';
 import { skipToken } from '@reduxjs/toolkit/query';
 
-const schema = yup.object({
-  firstName: yup.string().nullable().default(null),
-  lastName: yup.string().nullable().default(null),
-  phone: yup.string().nullable().default(null),
-  position: yup.string().nullable().default(null),
-  timePerWeek: yup.string().oneOf([...TIME_PER_WEEK_VALUES]).nullable().default(null)
+const schema = object({
+  firstName: string().nullable().default(null),
+  lastName: string().nullable().default(null),
+  phone: string().nullable().default(null),
+  position: string().nullable().default(null),
+  timePerWeek: string()
+    .oneOf([...TIME_PER_WEEK_VALUES])
+    .nullable()
+    .default(null)
 })
   .required()
   .shape(
     {
-      currentPassword: yup.string()
+      currentPassword: string()
         .nullable()
         .default(null)
-        .when(['password', 'passwordConfirmation'], ([password, passwordConfirmation], schema) =>
-          password !== null || passwordConfirmation !== null
-            ? schema.required('Veuillez entrer votre mot de passe actuel.')
-            : schema
+        .when(
+          ['password', 'passwordConfirmation'],
+          ([password, passwordConfirmation], schema) =>
+            password !== null || passwordConfirmation !== null
+              ? schema.required('Veuillez entrer votre mot de passe actuel.')
+              : schema
         ),
-      password: yup.string()
+      password: string()
         .min(12, 'Au moins 12 caractères.')
         .matches(/[A-Z]/g, {
           name: 'uppercase',
@@ -51,12 +56,14 @@ const schema = yup.object({
         })
         .nullable()
         .default(null)
-        .when(['currentPassword', 'passwordConfirmation'], ([currentPassword, passwordConfirmation], schema) =>
-          currentPassword !== null || passwordConfirmation !== null
-            ? schema.required('Veuillez entrer un nouveau mot de passe.')
-            : schema
+        .when(
+          ['currentPassword', 'passwordConfirmation'],
+          ([currentPassword, passwordConfirmation], schema) =>
+            currentPassword !== null || passwordConfirmation !== null
+              ? schema.required('Veuillez entrer un nouveau mot de passe.')
+              : schema
         ),
-      passwordConfirmation: yup.string()
+      passwordConfirmation: string()
         .nullable()
         .default(null)
         .when('password', ([password], schema) =>
@@ -64,7 +71,7 @@ const schema = yup.object({
             ? schema
                 .required('Veuillez confirmer votre mot de passe.')
                 .oneOf(
-                  [yup.ref('password')],
+                  [ref('password')],
                   'Les mots de passe doivent être identiques.'
                 )
             : schema
@@ -77,7 +84,7 @@ const schema = yup.object({
     ]
   );
 
-type FormSchema = yup.InferType<typeof schema>;
+type FormSchema = InferType<typeof schema>;
 
 function AccountForm() {
   const { user: auth } = useUser();
@@ -162,14 +169,14 @@ function AccountForm() {
             </Typography>
 
             <Stack spacing="-0.75rem">
-              <AppTextInputNext<FormSchema['currentPassword']>
+              <AppTextInputNext<FormSchema>
                 name="currentPassword"
                 label="Mot de passe actuel (obligatoire)"
                 nativeInputProps={{ type: 'password' }}
                 mapValue={(value) => value ?? ''}
                 contramapValue={(value) => (value === '' ? null : value)}
               />
-              <AppTextInputNext<FormSchema['password']>
+              <AppTextInputNext<FormSchema>
                 name="password"
                 label="Nouveau mot de passe (obligatoire)"
                 hintText="Votre nouveau mot de passe doit contenir au moins 12 caractères, une majuscule, une minuscule et un chiffre."
@@ -177,7 +184,7 @@ function AccountForm() {
                 mapValue={(value) => value ?? ''}
                 contramapValue={(value) => (value === '' ? null : value)}
               />
-              <AppTextInputNext<FormSchema['passwordConfirmation']>
+              <AppTextInputNext<FormSchema>
                 name="passwordConfirmation"
                 label="Confirmation du nouveau mot de passe (obligatoire)"
                 nativeInputProps={{ type: 'password' }}
@@ -193,19 +200,19 @@ function AccountForm() {
             </Typography>
 
             <Stack spacing="-0.75rem">
-              <AppTextInputNext<FormSchema['firstName']>
+              <AppTextInputNext<FormSchema>
                 name="firstName"
                 label="Prénom"
                 mapValue={(value) => value ?? ''}
                 contramapValue={(value) => (value === '' ? null : value)}
               />
-              <AppTextInputNext<FormSchema['lastName']>
+              <AppTextInputNext<FormSchema>
                 name="lastName"
                 label="Nom"
                 mapValue={(value) => value ?? ''}
                 contramapValue={(value) => (value === '' ? null : value)}
               />
-              <AppTextInputNext<FormSchema['phone']>
+              <AppTextInputNext<FormSchema>
                 name="phone"
                 label="Téléphone"
                 mapValue={(value) => value ?? ''}
@@ -216,17 +223,17 @@ function AccountForm() {
                   placeholder: '0123456789 ou +33123456789'
                 }}
               />
-              <AppTextInputNext<FormSchema['position']>
+              <AppTextInputNext<FormSchema>
                 name="position"
                 label="Poste"
                 mapValue={(value) => value ?? ''}
                 contramapValue={(value) => (value === '' ? null : value)}
               />
-              <Controller
+              <Controller<FormSchema>
                 name="timePerWeek"
                 render={({ field }) => (
                   <TimePerWeekSelect
-                    value={field.value}
+                    value={field.value as TimePerWeek | null}
                     disabled={field.disabled}
                     onChange={(value) => field.onChange(value)}
                   />

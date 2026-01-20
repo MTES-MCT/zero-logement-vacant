@@ -6,14 +6,15 @@ import type {
   LabelHTMLAttributes,
   ReactNode
 } from 'react';
-import { useController } from 'react-hook-form';
+import { useController, type Control, type FieldValues, type Path } from 'react-hook-form';
 import { match, Pattern } from 'ts-pattern';
 
-export type AppTextInputNextProps<T> = InputProps & {
-  name: string;
-  // TODO: require these functions when T is not a string
-  mapValue?(value: T): string;
-  contramapValue?(value: string): T | null;
+export type AppTextInputNextProps<TFieldValues extends FieldValues = FieldValues, TValueType = string> = InputProps & {
+  name: Path<TFieldValues>;
+  control?: Control<TFieldValues>;
+  // TODO: require these functions when TValueType is not a string
+  mapValue?(value: TValueType): string;
+  contramapValue?(value: string): TValueType | null;
 };
 /**
  * A text input based on the [DSFR Input](https://components.react-dsfr.codegouv.studio/?path=/docs/components-input--default) component and [react-hook-form](https://react-hook-form.com/).
@@ -33,8 +34,34 @@ export type AppTextInputNextProps<T> = InputProps & {
  *   textArea
  * />
  * ```
+ *
+ * @example Type-safe usage with explicit control (best for direct children)
+ * ```tsx
+ * type FormValues = { title: string; description: string };
+ * const form = useForm<FormValues>();
+ *
+ * <AppTextInputNext
+ *   name="title"  // ✅ Autocompleted and type-checked
+ *   control={form.control}
+ *   label="Title"
+ * />
+ * ```
+ *
+ * @example Type-safe usage with FormProvider (for deeply nested components)
+ * ```tsx
+ * type FormValues = { title: string; description: string };
+ *
+ * <FormProvider {...form}>
+ *   <AppTextInputNext<FormValues>
+ *     name="title"  // ✅ Autocompleted and type-checked
+ *     label="Title"
+ *   />
+ * </FormProvider>
+ * ```
  */
-function AppTextInputNext<T>(props: AppTextInputNextProps<T>) {
+function AppTextInputNext<TFieldValues extends FieldValues = FieldValues, TValueType = string>(
+  props: AppTextInputNextProps<TFieldValues, TValueType>
+) {
   const {
     nativeLabelProps,
     nativeInputProps,
@@ -42,11 +69,15 @@ function AppTextInputNext<T>(props: AppTextInputNextProps<T>) {
     mapValue,
     contramapValue,
     textArea,
+    control,
+    name,
+    disabled,
     ...rest
   } = props;
-  const { field, fieldState } = useController({
-    name: props.name,
-    disabled: props.disabled
+  const { field, fieldState } = useController<TFieldValues>({
+    name,
+    control,
+    disabled
   });
 
   const transform = {

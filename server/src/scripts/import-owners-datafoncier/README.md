@@ -66,28 +66,28 @@ python import_owners.py --db-url "$DATABASE_URL" --batch-size 10000 --num-worker
 
 ## Kind Mapping (catpro2txt → kind_class)
 
-Classification CATPRO 3 (LOVAC ET FF) - Source CEREMA, effectif depuis S 2024.
+CATPRO 3 Classification (LOVAC & FF) - Source: CEREMA, effective since S 2024.
 
-### Catégories ZLV
+### ZLV Categories
 
-| Catégorie ZLV | Description |
-|---------------|-------------|
-| Particulier | Personnes physiques |
-| Etat et collectivité territoriale | Etat, régions, départements, communes, intercommunalités |
-| Bailleur social, Aménageur, Investisseur public | OLS, EPF, SEM, SPLA, CDC, investisseurs publics |
-| Promoteur, Investisseur privé | Promoteurs, constructeurs, investisseurs privés, banques privées |
-| SCI, Copropriété, Autres personnes morales | SCI, copropriétés, personnes morales non classées |
-| Autres | Agricole, forestier, réseaux, enseignement, santé, industrie, tourisme |
-| Absence de propriétaires | Pas de propriétaire identifié |
+| ZLV Category | Description |
+|--------------|-------------|
+| Particulier | Individual owners (physical persons) |
+| Etat et collectivité territoriale | Government and local authorities |
+| Bailleur social, Aménageur, Investisseur public | Social housing, developers, public investors |
+| Promoteur, Investisseur privé | Real estate developers, private investors |
+| SCI, Copropriété, Autres personnes morales | Real estate companies, condominiums, other legal entities |
+| Autres | Agriculture, forestry, networks, education, health, industry, tourism |
+| Absence de propriétaires | No owner identified |
 
-### Mapping détaillé par catégorie CATPRO 3
+### Detailed Mapping by CATPRO 3 Category
 
-#### X – Personne physique
+#### X – Physical Person
 | catpro2txt | kind_class |
 |------------|------------|
 | PERSONNE PHYSIQUE | Particulier |
 
-#### P – Etat et collectivité territoriale
+#### P – Government and Local Authorities
 | catpro2txt | kind_class |
 |------------|------------|
 | ETAT ETRANGER | Etat et collectivité territoriale |
@@ -102,7 +102,7 @@ Classification CATPRO 3 (LOVAC ET FF) - Source CEREMA, effectif depuis S 2024.
 | COLLECTIVITE TERRITORIALE SPECIFIQUE | Etat et collectivité territoriale |
 | COLLECTIVITE DE PARIS | Etat et collectivité territoriale |
 
-#### F – Professionnel du foncier et immobilier
+#### F – Real Estate Professional
 | catpro2txt | kind_class |
 |------------|------------|
 | ORGANISME DE LOGEMENT SOCIAL | Bailleur social, Aménageur, Investisseur public |
@@ -124,7 +124,7 @@ Classification CATPRO 3 (LOVAC ET FF) - Source CEREMA, effectif depuis S 2024.
 | ASSURANCE OU MUTUELLE | Promoteur, Investisseur privé |
 | SOCIETE CIVILE DE PLACEMENT IMMOBILIER | Promoteur, Investisseur privé |
 
-#### G – Organisation de gestion foncière et immobilière
+#### G – Real Estate Management Organization
 | catpro2txt | kind_class |
 |------------|------------|
 | SCI - SOCIETE CIVILE IMMOBILIERE | SCI, Copropriété, Autres personnes morales |
@@ -136,27 +136,27 @@ Classification CATPRO 3 (LOVAC ET FF) - Source CEREMA, effectif depuis S 2024.
 | COPROPRIETE AUTRE | SCI, Copropriété, Autres personnes morales |
 | COPROPRIETE DE FAIT | SCI, Copropriété, Autres personnes morales |
 
-#### M – Personne morale autre
+#### M – Other Legal Entity
 | catpro2txt | kind_class |
 |------------|------------|
 | PERSONNE MORALE AUTRE | SCI, Copropriété, Autres personnes morales |
 | PERSONNE MORALE PUBLIQUE AUTRE | SCI, Copropriété, Autres personnes morales |
 | PERSONNE MORALE NON CLASSEE | SCI, Copropriété, Autres personnes morales |
 
-#### A, R, E, S, Z, L – Autres catégories (→ Autres)
-- **A** : Agricole, forestier, environnemental (exploitants, ONF, SAFER, conservatoires...)
-- **R** : Réseaux (SNCF, RATP, EDF, VNF, autoroutes, télécoms...)
-- **E** : Enseignement et recherche (universités, CNRS, INRA, CEA, INSEE...)
-- **S** : Santé et social (hôpitaux, EHPAD, CAF, CCAS, Pôle Emploi...)
-- **Z** : Industrie et commerce (CCI, grande distribution, activités extractives...)
-- **L** : Tourisme, loisirs, cultes (hôtels, campings, associations sportives...)
+#### A, R, E, S, Z, L – Other Categories (→ Autres)
+- **A**: Agriculture, forestry, environment (farmers, ONF, SAFER, conservatories...)
+- **R**: Networks (SNCF, RATP, EDF, VNF, highways, telecoms...)
+- **E**: Education and research (universities, CNRS, INRA, CEA, INSEE...)
+- **S**: Health and social services (hospitals, nursing homes, CAF, CCAS, employment agencies...)
+- **Z**: Industry and commerce (chambers of commerce, retail, extractive industries...)
+- **L**: Tourism, leisure, religious organizations (hotels, campsites, sports associations...)
 
-#### Cas spécial
+#### Special Case
 | catpro2txt | kind_class |
 |------------|------------|
 | PAS DE PROPRIETAIRE | Absence de propriétaires |
 
-> **Note:** Toute valeur `catpro2txt` non présente dans ce mapping sera classée par défaut en `'Autres'`.
+> **Note:** Any `catpro2txt` value not present in this mapping will be classified as `'Autres'` by default.
 
 ## Validation Rules
 

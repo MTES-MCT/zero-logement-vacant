@@ -1,7 +1,6 @@
 import Alert from '@codegouvfr/react-dsfr/Alert';
 import Button from '@codegouvfr/react-dsfr/Button';
 import Tag from '@codegouvfr/react-dsfr/Tag';
-import Grid from '@mui/material/Grid';
 import Stack from '@mui/material/Stack';
 import Typography from '@mui/material/Typography';
 import type { Precision } from '@zerologementvacant/models';
@@ -13,7 +12,6 @@ import {
 import { useMemo, useState } from 'react';
 
 import { useFindPrecisionsQuery } from '../../services/precision.service';
-import styles from '../HousingEdition/housing-edition.module.scss';
 import createPrecisionModal, {
   type PrecisionModalProps
 } from './PrecisionModal';
@@ -103,7 +101,7 @@ function PrecisionLists(props: Readonly<PrecisionListProps>) {
 
   return (
     <>
-      <Stack spacing="1rem">
+      <Stack spacing="1rem" useFlexGap>
         <Typography component="h3" variant="h6">
           {multiple
             ? 'Précisions sur ces logements'
@@ -117,15 +115,13 @@ function PrecisionLists(props: Readonly<PrecisionListProps>) {
           />
         ) : null}
 
-        <Grid
-          component="article"
-          container
-          sx={{ alignItems: 'center', columnGap: 2, rowGap: 1 }}
-          size={12}
-        >
-          <Grid
-            sx={{ display: 'flex', alignItems: 'center', gap: 2 }}
-            size={12}
+        <Stack component="article" spacing="0.5rem" useFlexGap>
+          <Stack
+            component="header"
+            direction="row"
+            spacing="1rem"
+            useFlexGap
+            sx={{ alignItems: 'center' }}
           >
             <Typography
               component="h3"
@@ -152,21 +148,26 @@ function PrecisionLists(props: Readonly<PrecisionListProps>) {
                 Modifier
               </Button>
             ) : null}
-          </Grid>
+          </Stack>
 
-          <Grid>
-            {filteredBlockingPoints.length === 0 ? (
-              <Typography>Aucun point de blocage</Typography>
-            ) : (
-              filteredBlockingPoints.map((precision) => (
-                <Tag key={precision.id} className={styles.tag}>
-                  {precision.label}
-                </Tag>
-              ))
-            )}
-          </Grid>
+          {filteredBlockingPoints.length === 0 ? (
+            <Typography>Aucun point de blocage</Typography>
+          ) : (
+            <Stack
+              component="section"
+              direction="row"
+              spacing="0.5rem"
+              useFlexGap
+              sx={{ flexWrap: 'wrap' }}
+            >
+              {filteredBlockingPoints.map((precision) => (
+                <Tag key={precision.id}>{precision.label}</Tag>
+              ))}
+            </Stack>
+          )}
+
           {moreBlockingPoints > 0 && (
-            <Grid component="footer">
+            <Stack direction="row" component="footer">
               <Button
                 priority="tertiary"
                 onClick={() => toggleShowAll(setShowAllBlockingPoints)}
@@ -175,19 +176,17 @@ function PrecisionLists(props: Readonly<PrecisionListProps>) {
                   ? 'Afficher moins'
                   : `Afficher plus (${moreBlockingPoints})`}
               </Button>
-            </Grid>
+            </Stack>
           )}
-        </Grid>
+        </Stack>
 
-        <Grid
-          component="article"
-          container
-          sx={{ alignItems: 'center', columnGap: 2, rowGap: 1 }}
-          size={12}
-        >
-          <Grid
-            sx={{ display: 'flex', alignItems: 'center', gap: 2 }}
-            size={12}
+        <Stack component="article" spacing="0.5rem" useFlexGap>
+          <Stack
+            component="header"
+            direction="row"
+            spacing="1rem"
+            useFlexGap
+            sx={{ alignItems: 'center' }}
           >
             <Typography
               component="h3"
@@ -210,24 +209,30 @@ function PrecisionLists(props: Readonly<PrecisionListProps>) {
                 Modifier
               </Button>
             ) : null}
-          </Grid>
+          </Stack>
 
-          <Grid>
-            {filteredEvolutions.length === 0 ? (
-              <Typography>Aucune évolution</Typography>
-            ) : (
-              filteredEvolutions.map((precision) => (
-                <Tag key={precision.id} className={styles.tag}>
+          {filteredEvolutions.length === 0 ? (
+            <Typography>Aucune évolution</Typography>
+          ) : (
+            <Stack
+              component="section"
+              direction="row"
+              spacing="0.5rem"
+              useFlexGap
+              sx={{ flexWrap: 'wrap' }}
+            >
+              {filteredEvolutions.map((precision) => (
+                <Tag key={precision.id}>
                   {precision.category[0].toUpperCase() +
                     precision.category.substring(1).replace('-', ' ')}
                   &nbsp;:&nbsp;
                   {precision.label.toLowerCase()}
                 </Tag>
-              ))
-            )}
-          </Grid>
+              ))}
+            </Stack>
+          )}
           {moreEvolutions > 0 && (
-            <Grid component="footer">
+            <Stack direction="row" component="footer">
               <Button
                 priority="tertiary"
                 onClick={() => toggleShowAll(setShowAllEvolutions)}
@@ -236,19 +241,17 @@ function PrecisionLists(props: Readonly<PrecisionListProps>) {
                   ? 'Afficher moins'
                   : `Afficher plus (${moreEvolutions})`}
               </Button>
-            </Grid>
+            </Stack>
           )}
-        </Grid>
+        </Stack>
 
-        <Grid
-          component="article"
-          container
-          sx={{ alignItems: 'center', columnGap: 2, rowGap: 1 }}
-          size={12}
-        >
-          <Grid
-            sx={{ display: 'flex', alignItems: 'center', gap: 2 }}
-            size={12}
+        <Stack component="article" spacing="0.5rem" useFlexGap>
+          <Stack
+            component="header"
+            direction="row"
+            spacing="1rem"
+            useFlexGap
+            sx={{ alignItems: 'center' }}
           >
             <Typography
               component="h3"
@@ -276,22 +279,26 @@ function PrecisionLists(props: Readonly<PrecisionListProps>) {
                 Modifier
               </Button>
             ) : null}
-          </Grid>
+          </Stack>
 
-          <Grid>
-            {filteredMechanisms.length === 0 ? (
-              <Typography>Aucun dispositif</Typography>
-            ) : (
-              filteredMechanisms.map((precision) => (
-                <Tag key={precision.id} className={styles.tag}>
-                  {precision.label}
-                </Tag>
-              ))
-            )}
-          </Grid>
+          {filteredMechanisms.length === 0 ? (
+            <Typography>Aucun dispositif</Typography>
+          ) : (
+            <Stack
+              component="section"
+              direction="row"
+              spacing="0.5rem"
+              useFlexGap
+              sx={{ flexWrap: 'wrap' }}
+            >
+              {filteredMechanisms.map((precision) => (
+                <Tag key={precision.id}>{precision.label}</Tag>
+              ))}
+            </Stack>
+          )}
 
           {moreMechanisms > 0 && (
-            <Grid component="footer">
+            <Stack direction="row" component="footer">
               <Button
                 priority="tertiary"
                 onClick={() => toggleShowAll(setShowAllMechanisms)}
@@ -300,9 +307,9 @@ function PrecisionLists(props: Readonly<PrecisionListProps>) {
                   ? 'Afficher moins'
                   : `Afficher plus (${moreMechanisms})`}
               </Button>
-            </Grid>
+            </Stack>
           )}
-        </Grid>
+        </Stack>
       </Stack>
       <precisionModal.Component
         tab={tab}

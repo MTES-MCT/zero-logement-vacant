@@ -22,7 +22,9 @@ function validate(schema: RequestSchema) {
       const contentType = request.get('Content-Type');
       const body = match(contentType)
         .with(Pattern.string.startsWith('multipart/form-data'), () => {
-          return JSON.parse(request.body.payload);
+          return request.body.payload
+            ? JSON.parse(request.body.payload)
+            : undefined;
         })
         .otherwise(() => request.body);
 

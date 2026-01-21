@@ -97,7 +97,7 @@ function HousingListEditionSideMenu(props: Props) {
       status: null,
       files: null,
       note: null,
-      precisions: []
+      precisions: null
     },
     mode: 'onSubmit',
     resolver: yupResolver(schema)
@@ -113,7 +113,7 @@ function HousingListEditionSideMenu(props: Props) {
     !!dirtyFields.occupancyIntended ||
     !!dirtyFields.note ||
     (!!dirtyFields.precisions &&
-      precisions?.some((precision) =>
+      !!precisions?.some((precision) =>
         isPrecisionEvolutionCategory(precision.category)
       ));
 

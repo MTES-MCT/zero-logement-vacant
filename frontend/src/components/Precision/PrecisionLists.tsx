@@ -115,7 +115,7 @@ function PrecisionLists(props: Readonly<Props>) {
           />
         ) : null}
 
-        {/* Points de blocages */}
+        {/* Points de blocage */}
         <Grid
           component="article"
           container
@@ -134,7 +134,7 @@ function PrecisionLists(props: Readonly<Props>) {
                 fontWeight: 700
               }}
             >
-              Points de blocages ({totalBlockingPoints})
+              Points de blocage ({totalBlockingPoints})
             </Typography>
             {writable ? (
               <Button
@@ -177,7 +177,7 @@ function PrecisionLists(props: Readonly<Props>) {
           )}
         </Grid>
 
-        {/* Évolutions du logement */}
+        {/* Évolutions */}
         <Grid
           component="article"
           container
@@ -192,14 +192,14 @@ function PrecisionLists(props: Readonly<Props>) {
               component="h3"
               sx={{ fontSize: '1.125rem', fontWeight: 700 }}
             >
-              Évolutions du logement ({totalEvolutions})
+              Évolutions ({totalEvolutions})
             </Typography>
             {writable ? (
               <Button
                 priority="secondary"
-                title="Modifier les évolutions du logement"
+                title="Modifier les évolutions"
                 nativeButtonProps={{
-                  'aria-label': 'Modifier les évolutions du logement'
+                  'aria-label': 'Modifier les évolutions'
                 }}
                 onClick={() => {
                   setTab('evolutions');

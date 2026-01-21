@@ -96,6 +96,20 @@ function HousingListEditionSideMenu(props: Props) {
     resolver: yupResolver(schema)
   });
 
+  const { formState } = form;
+  const precisions = form.watch('precisions');
+  const { isDirty, dirtyFields } = formState;
+  const needsConfirmation =
+    dirtyFields.status ||
+    dirtyFields.subStatus ||
+    dirtyFields.occupancy ||
+    dirtyFields.occupancyIntended ||
+    dirtyFields.note ||
+    (dirtyFields.precisions &&
+      precisions?.some((precision) =>
+        isPrecisionEvolutionCategory(precision.category)
+      ));
+
   const [tab, setTab] = useState<'occupancy' | 'mobilization' | 'note'>(
     'occupancy'
   );
@@ -106,7 +120,7 @@ function HousingListEditionSideMenu(props: Props) {
   }
 
   async function save(): Promise<void> {
-    if (!Object.values(form.formState.dirtyFields).some(Boolean)) {
+    if (!isDirty) {
       close();
       return;
     }
@@ -118,6 +132,11 @@ function HousingListEditionSideMenu(props: Props) {
   }
 
   function submit(data: BatchEditionFormSchema) {
+    if (!isDirty) {
+      close();
+      return;
+    }
+
     props.onSubmit({
       occupancy: data.occupancy as Occupancy | null,
       occupancyIntended: data.occupancyIntended as Occupancy | null,
@@ -224,20 +243,20 @@ function HousingListEditionSideMenu(props: Props) {
                 actuelles sur les champs suivants :
               </Typography>
               <ul>
-                {form.formState.dirtyFields.status && (
+                {dirtyFields.status && (
                   <li>Suivi du logement — Statut de suivi</li>
                 )}
-                {form.formState.dirtyFields.subStatus && (
+                {dirtyFields.subStatus && (
                   <li>Suivi du logement — Sous-statut de suivi</li>
                 )}
-                {form.formState.dirtyFields.occupancy && (
+                {dirtyFields.occupancy && (
                   <li>Occupation du logement — Occupation actuelle</li>
                 )}
-                {form.formState.dirtyFields.occupancyIntended && (
+                {dirtyFields.occupancyIntended && (
                   <li>Occupation du logement — Occupation prévisionnelle</li>
                 )}
-                {form.formState.dirtyFields.note && <li>Ajout d’une note</li>}
-                {form.formState.dirtyFields.precisions &&
+                {dirtyFields.note && <li>Ajout d’une note</li>}
+                {dirtyFields.precisions &&
                   form
                     .getValues('precisions')
                     ?.some((precision) =>
@@ -261,7 +280,7 @@ function HousingListEditionSideMenu(props: Props) {
       }
       open={props.open}
       onClose={close}
-      onSave={save}
+      onSave={needsConfirmation ? save : form.handleSubmit(submit)}
     />
   );
 }

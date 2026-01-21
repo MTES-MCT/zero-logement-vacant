@@ -1,4 +1,4 @@
-import { array, number, object, ObjectSchema, string } from 'yup';
+import { array, mixed, number, object, ObjectSchema, string } from 'yup';
 
 import {
   HOUSING_STATUS_VALUES,
@@ -14,6 +14,7 @@ export const housingBatchUpdatePayload: ObjectSchema<HousingBatchUpdatePayload> 
     subStatus: string().trim().min(1).optional(),
     occupancy: string().oneOf(OCCUPANCY_VALUES).optional(),
     occupancyIntended: string().oneOf(OCCUPANCY_VALUES).optional(),
+    files: array().of(mixed<File>().required()).optional(),
     note: string().trim().min(1).optional(),
     precisions: array().of(string().uuid().required()).optional()
   });

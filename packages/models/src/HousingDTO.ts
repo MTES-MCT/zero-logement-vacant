@@ -70,7 +70,7 @@ export type HousingBatchUpdatePayload = {
   occupancyIntended?: Occupancy;
   status?: HousingStatus;
   subStatus?: string;
-  files?: ReadonlyArray<File>;
+  files?: Array<File>;
   note?: string;
   precisions?: Precision['id'][];
 };

@@ -104,10 +104,7 @@ function PrecisionLists(props: Readonly<PrecisionListProps>) {
   return (
     <>
       <Stack spacing="1rem">
-        <Typography
-          component="h3"
-          sx={{ fontSize: '1.25rem', fontWeight: 700 }}
-        >
+        <Typography component="h3" variant="h6">
           {multiple
             ? 'Précisions sur ces logements'
             : 'Précisions sur ce logement'}

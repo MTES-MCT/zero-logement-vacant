@@ -55,10 +55,7 @@ function HousingEditionMobilizationTab(
         sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}
         size={12}
       >
-        <Typography
-          component="h3"
-          sx={{ fontSize: '1.125rem', fontWeight: 700 }}
-        >
+        <Typography component="h3" variant="h6">
           Statut de suivi
         </Typography>
         <HousingStatusSelect

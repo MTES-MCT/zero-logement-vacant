@@ -140,8 +140,8 @@ function HousingListTab(props: HousingListTabProps) {
       {updateManyHousingMutation.isSuccess && (
         <Alert
           severity="success"
-          title={`La mise à jour groupée de ${updateManyHousingMutation.data.length} logements a bien été enregistrée`}
-          description="Les informations saisies ont bien été appliquées aux logements sélectionnés"
+          title={`L’édition groupée de ${updateManyHousingMutation.data.length} logements a bien été enregistrée.`}
+          description="Les informations saisies ont bien été appliquées aux logements sélectionnés."
           closable
           className="fr-my-2w fr-mt-2w"
           onClose={() => {
@@ -199,7 +199,7 @@ function HousingListTab(props: HousingListTabProps) {
                     size="small"
                     onClick={() => setUpdating(selected)}
                   >
-                    Mise à jour groupée
+                    Édition groupée
                   </Button>
                 )}
 

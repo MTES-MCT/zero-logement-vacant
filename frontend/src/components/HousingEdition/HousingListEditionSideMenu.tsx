@@ -194,7 +194,7 @@ function HousingListEditionSideMenu(props: Props) {
       }}
       header={
         <Stack component="header">
-          <LabelNext>Mise à jour groupée</LabelNext>
+          <LabelNext>Édition groupée</LabelNext>
           <Typography variant="h6">
             {displayCount(props.count, 'logement sélectionné')}
           </Typography>
@@ -215,7 +215,7 @@ function HousingListEditionSideMenu(props: Props) {
           </Tabs>
 
           <modal.Component
-            title={`Vous êtes sur le point de mettre à jour ${props.count} logements`}
+            title={`Vous êtes sur le point d’éditer ${props.count} logements`}
             onSubmit={form.handleSubmit(submit)}
           >
             <Stack spacing={2}>
@@ -250,7 +250,8 @@ function HousingListEditionSideMenu(props: Props) {
                     )
                     ?.map((precision) => (
                       <li key={precision.id}>
-                        Évolutions du logement — {capitalize(precision.category)}
+                        Évolutions du logement —{' '}
+                        {capitalize(precision.category)}
                       </li>
                     ))}
               </ul>

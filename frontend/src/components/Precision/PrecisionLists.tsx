@@ -113,7 +113,7 @@ function PrecisionLists(props: Readonly<PrecisionListProps>) {
           <Alert
             severity="info"
             small
-            description="Si des logements sélectionnés ont déjà des dispositifs ou des points de blocage de renseignés, ceux-ci seront conservés."
+            description="Si des logements sélectionnés ont déjà des dispositifs ou des points de blocage renseignés, ceux-ci seront conservés."
           />
         ) : null}
 

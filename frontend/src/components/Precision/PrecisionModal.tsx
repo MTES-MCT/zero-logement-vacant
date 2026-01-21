@@ -13,9 +13,9 @@ export type PrecisionModalProps = Omit<
   'children' | 'size' | 'title' | 'onSubmit'
 > &
   Pick<PrecisionTabs, 'tab' | 'onTabChange'> & {
-    options: Precision[];
-    value: Precision[];
-    onSubmit(value: Precision[]): void;
+    options: ReadonlyArray<Precision>;
+    value: ReadonlyArray<Precision>;
+    onSubmit(value: ReadonlyArray<Precision>): void;
   };
 
 function createPrecisionModal(id: string) {
@@ -29,7 +29,9 @@ function createPrecisionModal(id: string) {
     ...confirmationModal,
     Component(props: PrecisionModalProps) {
       const { tab, options, value, onSubmit, onTabChange, ...rest } = props;
-      const [internalValue, setInternalValue] = useState<Precision[]>([]);
+      const [internalValue, setInternalValue] = useState<
+        ReadonlyArray<Precision>
+      >([]);
 
       useIsModalOpen(precisionModalOptions, {
         onDisclose() {

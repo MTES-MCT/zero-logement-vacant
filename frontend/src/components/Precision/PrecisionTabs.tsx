@@ -9,9 +9,9 @@ import PrecisionColumn from './PrecisionColumn';
 
 interface PrecisionTabs {
   tab: PrecisionTabId;
-  options: Precision[];
-  value: Precision[];
-  onChange(value: Precision[]): void;
+  options: ReadonlyArray<Precision>;
+  value: ReadonlyArray<Precision>;
+  onChange(value: ReadonlyArray<Precision>): void;
   onTabChange(tab: PrecisionTabId): void;
 }
 

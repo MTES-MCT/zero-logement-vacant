@@ -144,7 +144,7 @@ function HousingListEditionSideMenu(props: Props) {
       </Stack>
     ))
     .with('mobilization', () => (
-      <HousingEditionMobilizationTab housingId={null} />
+      <HousingEditionMobilizationTab />
     ))
     .with('note', () => (
       <AppTextInputNext<BatchEditionFormSchema>

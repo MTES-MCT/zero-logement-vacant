@@ -55,6 +55,12 @@ export function isPrecisionEvolutionCategory(
   return PRECISION_EVOLUTION_CATEGORY_VALUES.includes(category);
 }
 
+export function isSingleChoicePrecisionCategory(
+  category: PrecisionCategory
+): boolean {
+  return isPrecisionEvolutionCategory(category);
+}
+
 /**
  * The equivalence between two precisions is defined by their `id`.
  * @example
@@ -68,3 +74,8 @@ export const PRECISION_EQUIVALENCE = Equivalence.mapInput<
   Precision,
   Precision['id']
 >((precision) => precision.id)(Equivalence.string);
+
+export const PRECISION_CATEGORY_EQUIVALENCE = Equivalence.mapInput<
+  Precision,
+  Precision['category']
+>((precision) => precision.category)(Equivalence.string);

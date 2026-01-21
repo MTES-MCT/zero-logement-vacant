@@ -6,8 +6,11 @@ import {
   HousingFiltersDTO,
   HousingStatus,
   HousingUpdatePayloadDTO,
+  isSingleChoicePrecisionCategory,
   OCCUPANCY_LABELS,
   Pagination,
+  PRECISION_CATEGORY_EQUIVALENCE,
+  PRECISION_EQUIVALENCE,
   toActiveRank,
   toPropertyRight,
   toSourceRelativeLocation,
@@ -16,7 +19,7 @@ import {
   type HousingBatchUpdatePayload
 } from '@zerologementvacant/models';
 import { compactNullable } from '@zerologementvacant/utils';
-import { Array, pipe, Record, Struct } from 'effect';
+import { Array, Either, HashMap, pipe, Record, Struct } from 'effect';
 import { Request, RequestHandler, Response } from 'express';
 import { AuthenticatedRequest } from 'express-jwt';
 import { oneOf, param } from 'express-validator';
@@ -25,13 +28,15 @@ import { v4 as uuidv4 } from 'uuid';
 import HousingExistsError from '~/errors/housingExistsError';
 import HousingMissingError from '~/errors/housingMissingError';
 import HousingUpdateForbiddenError from '~/errors/housingUpdateForbiddenError';
+import PrecisionMissingError from '~/errors/precisionMissingError';
 import { startTransaction } from '~/infra/database/transaction';
 import { createLogger } from '~/infra/logger';
 import type { AddressApi } from '~/models/AddressApi';
 import {
   HousingEventApi,
   type HousingOwnerEventApi,
-  type OwnerEventApi
+  type OwnerEventApi,
+  type PrecisionHousingEventApi
 } from '~/models/EventApi';
 import {
   diffHousingOccupancyUpdated,
@@ -52,6 +57,7 @@ import {
   HousingPaginatedDTO,
   HousingPaginatedResultApi
 } from '~/models/PaginatedResultApi';
+import { type PrecisionApi } from '~/models/PrecisionApi';
 import sortApi from '~/models/SortApi';
 import banAddressesRepository from '~/repositories/banAddressesRepository';
 import createDatafoncierHousingRepository from '~/repositories/datafoncierHousingRepository';
@@ -62,6 +68,7 @@ import housingOwnerRepository from '~/repositories/housingOwnerRepository';
 import housingRepository from '~/repositories/housingRepository';
 import noteRepository from '~/repositories/noteRepository';
 import ownerRepository from '~/repositories/ownerRepository';
+import precisionRepository from '~/repositories/precisionRepository';
 import { createBanAPI } from '~/services/ban/ban-api';
 
 const logger = createLogger('housingController');
@@ -523,18 +530,25 @@ const updateMany: RequestHandler<
   >;
   logger.info('Updating many housings...', { body });
 
-  const housings = await housingRepository.find({
-    filters: {
-      ...body.filters,
-      establishmentIds:
-        [UserRole.ADMIN, UserRole.VISITOR].includes(user.role) &&
-        body.filters.establishmentIds?.length
-          ? body.filters.establishmentIds
-          : [establishment.id]
-    },
-    includes: ['campaigns', 'owner'],
-    pagination: { paginate: false }
-  });
+  const [housings, referential] = await Promise.all([
+    housingRepository.find({
+      filters: {
+        ...body.filters,
+        establishmentIds:
+          [UserRole.ADMIN, UserRole.VISITOR].includes(user.role) &&
+          body.filters.establishmentIds?.length
+            ? body.filters.establishmentIds
+            : [establishment.id]
+      },
+      includes: ['campaigns', 'owner', 'precisions'],
+      pagination: { paginate: false }
+    }),
+    precisionRepository.find().then((precisions) => {
+      return HashMap.fromIterable(
+        precisions.map((precision) => [precision.id, precision])
+      );
+    })
+  ]);
 
   const contactedHousings = housings.filter(isContacted);
   if (
@@ -544,6 +558,18 @@ const updateMany: RequestHandler<
     throw new HousingUpdateForbiddenError(
       ...contactedHousings.map((housing) => housing.id)
     );
+  }
+
+  const [precisionsMissing, precisionsFound] = pipe(
+    body.precisions ?? [],
+    Array.partitionMap((id) => {
+      return HashMap.has(referential, id)
+        ? Either.right(HashMap.unsafeGet(referential, id))
+        : Either.left(id);
+    })
+  );
+  if (precisionsMissing.length > 0) {
+    throw new PrecisionMissingError(...precisionsMissing);
   }
 
   const notes: ReadonlyArray<HousingNoteApi> =
@@ -629,6 +655,65 @@ const updateMany: RequestHandler<
     Struct.pick('geoCode', 'id')
   );
 
+  // Build precision links for add-only updates
+  const precisionLinks =
+    precisionsFound.length && housings.length > 0
+      ? housings.map((housing: HousingApi) => {
+          const union = pipe(
+            precisionsFound,
+            Array.filter(
+              (precision) =>
+                !isSingleChoicePrecisionCategory(precision.category)
+            ),
+            Array.unionWith(
+              housing.precisions?.filter(
+                (precision) =>
+                  !isSingleChoicePrecisionCategory(precision.category)
+              ) ?? [],
+              PRECISION_EQUIVALENCE
+            ),
+            // For single-choice categories, remove existing ones of the same category
+            Array.appendAll(
+              pipe(
+                precisionsFound,
+                Array.filter((precision) =>
+                  isSingleChoicePrecisionCategory(precision.category)
+                ),
+                Array.unionWith(
+                  housing.precisions?.filter((precision) =>
+                    isSingleChoicePrecisionCategory(precision.category)
+                  ) ?? [],
+                  PRECISION_CATEGORY_EQUIVALENCE
+                )
+              )
+            )
+          );
+          const substract = Array.differenceWith(PRECISION_EQUIVALENCE);
+          const added = substract(union, housing.precisions ?? []);
+
+          return {
+            housing,
+            precisions: union,
+            events: added.map<PrecisionHousingEventApi>((precision) => ({
+              id: uuidv4(),
+              type: 'housing:precision-attached',
+              name: 'Ajout d’une précision au logement',
+              nextOld: null,
+              nextNew: {
+                category: precision.category,
+                label: precision.label
+              },
+              createdAt: new Date().toJSON(),
+              createdBy: user.id,
+              precisionId: precision.id,
+              housingGeoCode: housing.geoCode,
+              housingId: housing.id
+            }))
+          };
+        })
+      : [];
+  const precisionEvents = precisionLinks.flatMap((link) => link.events);
+
   await startTransaction(async () => {
     await Promise.all([
       housingRepository.updateMany(ids, {
@@ -638,7 +723,23 @@ const updateMany: RequestHandler<
         occupancyIntended: body.occupancyIntended
       }),
       noteRepository.createManyByHousing(notes),
-      eventRepository.insertManyHousingEvents(events)
+      eventRepository.insertManyHousingEvents(events),
+      // Add precisions to housings (if requested)
+      precisionLinks.length
+        ? precisionRepository.linkMany(
+            precisionLinks.map((link) => ({
+              housing: link.housing,
+              precisions: link.precisions
+            })) as ReadonlyArray<{
+              housing: HousingApi;
+              precisions: ReadonlyArray<PrecisionApi>;
+            }>
+          )
+        : Promise.resolve(),
+      // Insert precision events (if any)
+      precisionEvents.length > 0
+        ? eventRepository.insertManyPrecisionHousingEvents(precisionEvents)
+        : Promise.resolve()
     ]);
   });
 

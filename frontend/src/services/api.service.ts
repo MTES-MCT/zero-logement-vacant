@@ -5,6 +5,35 @@ import qs from 'qs';
 import config from '../utils/config';
 import authService from './auth.service';
 
+const TAG_TYPE_VALUES = [
+  'Account',
+  'Building',
+  'Campaign',
+  'Datafoncier housing',
+  'Document',
+  'Draft',
+  'Establishment',
+  'Event',
+  'GeoPerimeter',
+  'Group',
+  'Housing',
+  'HousingByStatus',
+  'HousingCountByStatus',
+  'HousingEvent',
+  'HousingOwner',
+  'Locality',
+  'Note',
+  'Owner',
+  'OwnerHousing',
+  'Precision',
+  'Prospect',
+  'Settings',
+  'Stats',
+  'SignupLink',
+  'User'
+] as const;
+export type TagType = (typeof TAG_TYPE_VALUES)[number];
+
 export const zlvApi = createApi({
   baseQuery: fetchBaseQuery({
     baseUrl: `${config.apiEndpoint}/api`,
@@ -20,32 +49,6 @@ export const zlvApi = createApi({
         { arrayFormat: 'comma' }
       )
   }),
-  tagTypes: [
-    'Account',
-    'Building',
-    'Campaign',
-    'Datafoncier housing',
-    'Document',
-    'Draft',
-    'Establishment',
-    'Event',
-    'GeoPerimeter',
-    'Group',
-    'Housing',
-    'HousingByStatus',
-    'HousingCountByStatus',
-    'HousingEvent',
-    'HousingOwner',
-    'Locality',
-    'Note',
-    'Owner',
-    'OwnerHousing',
-    'Precision',
-    'Prospect',
-    'Settings',
-    'Stats',
-    'SignupLink',
-    'User'
-  ],
+  tagTypes: TAG_TYPE_VALUES,
   endpoints: () => ({})
 });

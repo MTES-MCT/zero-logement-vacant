@@ -5,11 +5,14 @@ import type { Precision, PrecisionCategory } from '@zerologementvacant/models';
 import { List } from 'immutable';
 import type { ReactElement } from 'react';
 import { useMemo } from 'react';
-import PrecisionColumn from './PrecisionColumn';
+import PrecisionColumn, {
+  type PrecisionColumnRadioProps
+} from './PrecisionColumn';
 
 interface PrecisionTabs {
   tab: PrecisionTabId;
   options: ReadonlyArray<Precision>;
+  showNullOption?: PrecisionColumnRadioProps['showNullOption'];
   value: ReadonlyArray<Precision>;
   onChange(value: ReadonlyArray<Precision>): void;
   onTabChange(tab: PrecisionTabId): void;
@@ -115,6 +118,7 @@ function PrecisionTabs(props: PrecisionTabs) {
             category="travaux"
             icon="ri-barricade-line"
             input="radio"
+            showNullOption={props.showNullOption}
             options={optionsByCategory.get('travaux')?.toArray() ?? []}
             title="Travaux"
             value={getRadioValue('travaux')}
@@ -127,6 +131,7 @@ function PrecisionTabs(props: PrecisionTabs) {
             category="occupation"
             icon="ri-user-location-line"
             input="radio"
+            showNullOption={props.showNullOption}
             options={optionsByCategory.get('occupation')?.toArray() ?? []}
             title="Location ou autre occupation"
             value={getRadioValue('occupation')}
@@ -139,6 +144,7 @@ function PrecisionTabs(props: PrecisionTabs) {
             category="mutation"
             icon="ri-user-shared-line"
             input="radio"
+            showNullOption={props.showNullOption}
             options={optionsByCategory.get('mutation')?.toArray() ?? []}
             title="Vente ou autre mutation"
             value={getRadioValue('mutation')}

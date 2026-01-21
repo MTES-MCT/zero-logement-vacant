@@ -114,6 +114,131 @@ function PrecisionLists(props: Readonly<Props>) {
             description="Si des logements sélectionnés ont déjà des dispositifs ou des points de blocage de renseignés, ceux-ci seront conservés."
           />
         ) : null}
+
+        {/* Points de blocage */}
+        <Grid
+          component="article"
+          container
+          sx={{ alignItems: 'center', columnGap: 2, rowGap: 1 }}
+          size={12}
+        >
+          <Grid
+            sx={{ display: 'flex', alignItems: 'center', gap: 2 }}
+            size={12}
+          >
+            <Typography
+              component="h3"
+              sx={{
+                display: 'inline-block',
+                fontSize: '1.125rem',
+                fontWeight: 700
+              }}
+            >
+              Points de blocage ({totalBlockingPoints})
+            </Typography>
+            {writable ? (
+              <Button
+                priority="secondary"
+                title="Modifier les points de blocage"
+                nativeButtonProps={{
+                  'aria-label': 'Modifier les points de blocage'
+                }}
+                onClick={() => {
+                  setTab('points-de-blocage');
+                  precisionModal.open();
+                }}
+              >
+                Modifier
+              </Button>
+            ) : null}
+          </Grid>
+          <Grid>
+            {filteredBlockingPoints.length === 0 ? (
+              <Typography>Aucun point de blocage</Typography>
+            ) : (
+              filteredBlockingPoints.map((precision) => (
+                <Tag key={precision.id} className={styles.tag}>
+                  {precision.label}
+                </Tag>
+              ))
+            )}
+          </Grid>
+          {moreBlockingPoints > 0 && (
+            <Grid component="footer">
+              <Button
+                priority="tertiary"
+                onClick={() => toggleShowAll(setShowAllBlockingPoints)}
+              >
+                {showAllBlockingPoints
+                  ? 'Afficher moins'
+                  : `Afficher plus (${moreBlockingPoints})`}
+              </Button>
+            </Grid>
+          )}
+        </Grid>
+
+        {/* Évolutions */}
+        <Grid
+          component="article"
+          container
+          sx={{ alignItems: 'center', columnGap: 2, rowGap: 1 }}
+          size={12}
+        >
+          <Grid
+            sx={{ display: 'flex', alignItems: 'center', gap: 2 }}
+            size={12}
+          >
+            <Typography
+              component="h3"
+              sx={{ fontSize: '1.125rem', fontWeight: 700 }}
+            >
+              Évolutions ({totalEvolutions})
+            </Typography>
+            {writable ? (
+              <Button
+                priority="secondary"
+                title="Modifier les évolutions"
+                nativeButtonProps={{
+                  'aria-label': 'Modifier les évolutions'
+                }}
+                onClick={() => {
+                  setTab('evolutions');
+                  precisionModal.open();
+                }}
+              >
+                Modifier
+              </Button>
+            ) : null}
+          </Grid>
+          <Grid>
+            {filteredEvolutions.length === 0 ? (
+              <Typography>Aucune évolution</Typography>
+            ) : (
+              filteredEvolutions.map((precision) => (
+                <Tag key={precision.id} className={styles.tag}>
+                  {precision.category[0].toUpperCase() +
+                    precision.category.substring(1).replace('-', ' ')}
+                  &nbsp;:&nbsp;
+                  {precision.label.toLowerCase()}
+                </Tag>
+              ))
+            )}
+          </Grid>
+          {moreEvolutions > 0 && (
+            <Grid component="footer">
+              <Button
+                priority="tertiary"
+                onClick={() => toggleShowAll(setShowAllEvolutions)}
+              >
+                {showAllEvolutions
+                  ? 'Afficher moins'
+                  : `Afficher plus (${moreEvolutions})`}
+              </Button>
+            </Grid>
+          )}
+        </Grid>
+
+        {/* Dispositifs */}
         <Grid
           component="article"
           container
@@ -170,127 +295,6 @@ function PrecisionLists(props: Readonly<Props>) {
                 {showAllMechanisms
                   ? 'Afficher moins'
                   : `Afficher plus (${moreMechanisms})`}
-              </Button>
-            </Grid>
-          )}
-        </Grid>
-
-        <Grid
-          component="article"
-          container
-          sx={{ alignItems: 'center', columnGap: 2, rowGap: 1 }}
-          size={12}
-        >
-          <Grid
-            sx={{ display: 'flex', alignItems: 'center', gap: 2 }}
-            size={12}
-          >
-            <Typography
-              component="h3"
-              sx={{
-                display: 'inline-block',
-                fontSize: '1.125rem',
-                fontWeight: 700
-              }}
-            >
-              Points de blocages ({totalBlockingPoints})
-            </Typography>
-            {writable ? (
-              <Button
-                priority="secondary"
-                title="Modifier les points de blocage"
-                nativeButtonProps={{
-                  'aria-label': 'Modifier les points de blocage'
-                }}
-                onClick={() => {
-                  setTab('points-de-blocage');
-                  precisionModal.open();
-                }}
-              >
-                Modifier
-              </Button>
-            ) : null}
-          </Grid>
-          <Grid>
-            {filteredBlockingPoints.length === 0 ? (
-              <Typography>Aucun point de blocage</Typography>
-            ) : (
-              filteredBlockingPoints.map((precision) => (
-                <Tag key={precision.id} className={styles.tag}>
-                  {precision.label}
-                </Tag>
-              ))
-            )}
-          </Grid>
-          {moreBlockingPoints > 0 && (
-            <Grid component="footer">
-              <Button
-                priority="tertiary"
-                onClick={() => toggleShowAll(setShowAllBlockingPoints)}
-              >
-                {showAllBlockingPoints
-                  ? 'Afficher moins'
-                  : `Afficher plus (${moreBlockingPoints})`}
-              </Button>
-            </Grid>
-          )}
-        </Grid>
-
-        <Grid
-          component="article"
-          container
-          sx={{ alignItems: 'center', columnGap: 2, rowGap: 1 }}
-          size={12}
-        >
-          <Grid
-            sx={{ display: 'flex', alignItems: 'center', gap: 2 }}
-            size={12}
-          >
-            <Typography
-              component="h3"
-              sx={{ fontSize: '1.125rem', fontWeight: 700 }}
-            >
-              Évolutions du logement ({totalEvolutions})
-            </Typography>
-            {writable ? (
-              <Button
-                priority="secondary"
-                title="Modifier les évolutions du logement"
-                nativeButtonProps={{
-                  'aria-label': 'Modifier les évolutions du logement'
-                }}
-                onClick={() => {
-                  setTab('evolutions');
-                  precisionModal.open();
-                }}
-              >
-                Modifier
-              </Button>
-            ) : null}
-          </Grid>
-          <Grid>
-            {filteredEvolutions.length === 0 ? (
-              <Typography>Aucune évolution</Typography>
-            ) : (
-              filteredEvolutions.map((precision) => (
-                <Tag key={precision.id} className={styles.tag}>
-                  {precision.category[0].toUpperCase() +
-                    precision.category.substring(1).replace('-', ' ')}
-                  &nbsp;:&nbsp;
-                  {precision.label.toLowerCase()}
-                </Tag>
-              ))
-            )}
-          </Grid>
-          {moreEvolutions > 0 && (
-            <Grid component="footer">
-              <Button
-                priority="tertiary"
-                onClick={() => toggleShowAll(setShowAllEvolutions)}
-              >
-                {showAllEvolutions
-                  ? 'Afficher moins'
-                  : `Afficher plus (${moreEvolutions})`}
               </Button>
             </Grid>
           )}

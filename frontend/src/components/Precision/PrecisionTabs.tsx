@@ -47,53 +47,6 @@ function PrecisionTabs(props: PrecisionTabs) {
     );
   }
 
-  const MechanismsTab: PrecisionTab = {
-    label: 'Dispositifs',
-    tabId: 'dispositifs',
-    children: (
-      <Grid container columnSpacing={2}>
-        <Grid size={4}>
-          <PrecisionColumn
-            category="dispositifs-incitatifs"
-            icon="fr-icon-money-euro-circle-line"
-            options={
-              optionsByCategory.get('dispositifs-incitatifs')?.toArray() ?? []
-            }
-            title="Dispositifs incitatifs"
-            value={props.value}
-            onChange={handleCheckboxChange}
-          />
-        </Grid>
-
-        <Grid size={4}>
-          <PrecisionColumn
-            category="dispositifs-coercitifs"
-            icon="fr-icon-scales-3-line"
-            options={
-              optionsByCategory.get('dispositifs-coercitifs')?.toArray() ?? []
-            }
-            title="Dispositifs coercitifs"
-            value={props.value}
-            onChange={handleCheckboxChange}
-          />
-        </Grid>
-
-        <Grid size={4}>
-          <PrecisionColumn
-            category="hors-dispositif-public"
-            icon="fr-icon-more-line"
-            options={
-              optionsByCategory.get('hors-dispositif-public')?.toArray() ?? []
-            }
-            title="Hors dispositif public"
-            value={props.value}
-            onChange={handleCheckboxChange}
-          />
-        </Grid>
-      </Grid>
-    )
-  };
-
   const BlockingPointsTab: PrecisionTab = {
     label: 'Points de blocage',
     tabId: 'points-de-blocage',
@@ -196,10 +149,57 @@ function PrecisionTabs(props: PrecisionTabs) {
     )
   };
 
+  const MechanismsTab: PrecisionTab = {
+    label: 'Dispositifs',
+    tabId: 'dispositifs',
+    children: (
+      <Grid container columnSpacing={2}>
+        <Grid size={4}>
+          <PrecisionColumn
+            category="dispositifs-incitatifs"
+            icon="fr-icon-money-euro-circle-line"
+            options={
+              optionsByCategory.get('dispositifs-incitatifs')?.toArray() ?? []
+            }
+            title="Dispositifs incitatifs"
+            value={props.value}
+            onChange={handleCheckboxChange}
+          />
+        </Grid>
+
+        <Grid size={4}>
+          <PrecisionColumn
+            category="dispositifs-coercitifs"
+            icon="fr-icon-scales-3-line"
+            options={
+              optionsByCategory.get('dispositifs-coercitifs')?.toArray() ?? []
+            }
+            title="Dispositifs coercitifs"
+            value={props.value}
+            onChange={handleCheckboxChange}
+          />
+        </Grid>
+
+        <Grid size={4}>
+          <PrecisionColumn
+            category="hors-dispositif-public"
+            icon="fr-icon-more-line"
+            options={
+              optionsByCategory.get('hors-dispositif-public')?.toArray() ?? []
+            }
+            title="Hors dispositif public"
+            value={props.value}
+            onChange={handleCheckboxChange}
+          />
+        </Grid>
+      </Grid>
+    )
+  };
+
   const tabs: PrecisionTab[] = [
-    MechanismsTab,
     BlockingPointsTab,
-    EvolutionsTab
+    EvolutionsTab,
+    MechanismsTab
   ];
 
   const tab = props.tab ?? 'evolutions';

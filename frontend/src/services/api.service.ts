@@ -30,6 +30,7 @@ export const zlvApi = createApi({
     'Establishment',
     'Event',
     'GeoPerimeter',
+    'GeoStatistics',
     'Group',
     'Housing',
     'HousingByStatus',

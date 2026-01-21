@@ -18,6 +18,7 @@ import draftController from '~/controllers/draftController';
 import eventController from '~/controllers/eventController';
 import fileController from '~/controllers/fileController';
 import geoController from '~/controllers/geoController';
+import geoStatisticsController from '~/controllers/geoStatisticsController';
 import groupController from '~/controllers/groupController';
 import housingController from '~/controllers/housingController';
 import housingExportController from '~/controllers/housingExportController';
@@ -455,6 +456,13 @@ router.delete(
   geoController.deleteGeoPerimeterListValidators,
   validator.validate,
   geoController.deleteGeoPerimeterList
+);
+
+router.get(
+  '/geo/statistics',
+  geoStatisticsController.getStatisticsValidators,
+  validator.validate,
+  geoStatisticsController.getStatistics
 );
 
 router.put(

@@ -32,6 +32,7 @@ export interface Housing
     | 'cadastralReference'
     | 'uncomfortable'
     | 'livingArea'
+    | 'plotArea'
     | 'housingKind'
     | 'roomsCount'
     | 'buildingYear'
@@ -147,13 +148,6 @@ export function hasCoordinates(
     housing.latitude <= MAX_LAT
   );
 }
-
-/**
- * @deprecated The last update should not be retrieved from the housing
- * but from the events and notes instead.
- * @param housing
- */
-export const lastUpdate = (): string | null => null;
 
 export const OccupancyKind = {
   Vacant: 'V',

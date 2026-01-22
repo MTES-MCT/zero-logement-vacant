@@ -1,4 +1,8 @@
-import type { EnergyConsumption } from './EnergyConsumption';
+import type {
+  EnergyConsumption,
+  EnergyConsumptionMatch,
+  EnergyConsumptionType
+} from './EnergyConsumption';
 
 export interface BuildingDTO {
   id: string;
@@ -16,8 +20,8 @@ export interface BuildingDTO {
      * An ISO 8601 date string
      * @example '2023-01-15'
      */
-    createdAt: string
-    type: 'dpe appartement individuel' | 'dpe maison individuelle'
-    match: 'plot_id' | 'rnb_id'
+    doneAt: string;
+    type: EnergyConsumptionType;
+    match: EnergyConsumptionMatch;
   } | null;
 }

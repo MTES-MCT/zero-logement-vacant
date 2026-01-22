@@ -12,7 +12,11 @@ import type { DatafoncierHousing } from '../DatafoncierHousing';
 import type { DatafoncierOwner } from '../DatafoncierOwner';
 import type { DocumentDTO } from '../DocumentDTO';
 import { DraftDTO } from '../DraftDTO';
-import { ENERGY_CONSUMPTION_VALUES } from '../EnergyConsumption';
+import {
+  ENERGY_CONSUMPTION_MATCH_VALUES,
+  ENERGY_CONSUMPTION_TYPE_VALUES,
+  ENERGY_CONSUMPTION_VALUES
+} from '../EnergyConsumption';
 import { EstablishmentDTO } from '../EstablishmentDTO';
 import { ESTABLISHMENT_KIND_VALUES } from '../EstablishmentKind';
 import { ESTABLISHMENT_SOURCE_VALUES } from '../EstablishmentSource';
@@ -94,17 +98,33 @@ export function genAddressDTO(): AddressDTO {
 }
 
 export function genBuildingDTO(): BuildingDTO {
-  const housingCount = faker.number.int({ min: 0, max: 100 });
-  const rentHousingCount = faker.number.int({ min: 0, max: housingCount });
-  const vacantHousingCount = faker.number.int({
-    min: 0,
-    max: housingCount - rentHousingCount
-  });
+  const hasEnergyConsumption = faker.datatype.boolean({ probability: 0.8 });
+
   return {
-    id: faker.string.uuid(),
-    housingCount,
-    rentHousingCount,
-    vacantHousingCount
+    id:
+      genGeoCode() + faker.string.alphanumeric({ length: 7, casing: 'upper' }),
+    housingCount: 0,
+    vacantHousingCount: 0,
+    rentHousingCount: 0,
+    rnb: hasEnergyConsumption
+      ? {
+          id:
+            faker.helpers.maybe(
+              () => faker.string.alphanumeric({ casing: 'upper', length: 10 }),
+              { probability: 0.9 }
+            ) ?? null,
+          score: faker.helpers.arrayElement([0, 1, 2, 3, 8, 9])
+        }
+      : null,
+    dpe: hasEnergyConsumption
+      ? {
+          id: faker.string.alphanumeric({ casing: 'upper', length: 13 }),
+          class: faker.helpers.arrayElement(ENERGY_CONSUMPTION_VALUES),
+          doneAt: faker.date.past().toJSON().substring(0, 10),
+          type: faker.helpers.arrayElement(ENERGY_CONSUMPTION_TYPE_VALUES),
+          match: faker.helpers.arrayElement(ENERGY_CONSUMPTION_MATCH_VALUES)
+        }
+      : null
   };
 }
 
@@ -581,6 +601,10 @@ export function genHousingDTO(owner: OwnerDTO | null): HousingDTO {
     uncomfortable: faker.datatype.boolean(),
     roomsCount: faker.number.int({ min: 1, max: 10 }),
     livingArea: faker.number.int({ min: 8 }),
+    plotArea:
+      faker.helpers.maybe(() => faker.number.int({ min: 20, max: 1000 }), {
+        probability: 0.8
+      }) ?? null,
     campaignIds: [],
     dataYears: [
       faker.number.int({

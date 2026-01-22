@@ -6,6 +6,7 @@ import { skipToken } from '@reduxjs/toolkit/query';
 import { fromHousing } from '@zerologementvacant/models';
 import classNames from 'classnames';
 import { type ReactNode } from 'react';
+import { useFeatureFlagEnabled } from 'posthog-js/react';
 import { match, Pattern } from 'ts-pattern';
 
 import DPE from '~/components/DPE/DPE';
@@ -24,6 +25,7 @@ import AppLink from '../_app/AppLink/AppLink';
 
 function HousingTab() {
   const { housing } = useHousing();
+  const isActualDpeEnabled = useFeatureFlagEnabled('actual-dpe');
   const isHouse = housing?.housingKind === 'MAISON';
   const getBuildingQuery = useGetBuildingQuery(
     housing?.buildingId ?? skipToken
@@ -86,6 +88,16 @@ function HousingTab() {
                 : null
             }
           />
+          {isActualDpeEnabled && (
+            <HousingAttribute
+              label="Étiquette DPE réelle"
+              value={
+                housing.actualEnergyConsumption ? (
+                  <DPE value={housing.actualEnergyConsumption} />
+                ) : null
+              }
+            />
+          )}
           <HousingAttribute
             label="Identifiant fiscal départemental"
             value={housing.invariant}
@@ -109,50 +121,51 @@ function HousingTab() {
             label="Type de propriété"
             value={formatOwnershipKind(housing.ownershipKind)}
           />
-          {match(getBuildingQuery)
-            .returnType<ReactNode>()
-            .with({ isLoading: true }, () => (
-              <HousingAttribute
-                label="Étiquette DPE représentatif (source : ADEME)"
-                value={<Skeleton animation="wave" variant="text" />}
-              />
-            ))
-            .with(
-              {
-                isSuccess: true,
-                data: Pattern.nonNullable
-              },
-              ({ data: building }) => (
+          {isActualDpeEnabled &&
+            match(getBuildingQuery)
+              .returnType<ReactNode>()
+              .with({ isLoading: true }, () => (
                 <HousingAttribute
-                  label={
-                    <>
-                      Étiquette DPE représentatif (source :{' '}
-                      {building.dpe ? (
-                        <AppLink
-                          to={`https://observatoire-dpe-audit.ademe.fr/afficher-dpe/${building.dpe?.id}`}
-                        >
-                          ADEME
-                        </AppLink>
-                      ) : (
-                        'ADEME'
-                      )}
-                      )
-                    </>
-                  }
-                  value={
-                    building.dpe ? (
-                      <Stack direction="row" spacing="0.5rem" useFlexGap>
-                        <DPE value={building.dpe.class} />
-                        <Typography component="span">
-                          réalisé le {birthdate(building.dpe.doneAt)}
-                        </Typography>
-                      </Stack>
-                    ) : null
-                  }
+                  label="Étiquette DPE représentatif (source : ADEME)"
+                  value={<Skeleton animation="wave" variant="text" />}
                 />
+              ))
+              .with(
+                {
+                  isSuccess: true,
+                  data: Pattern.nonNullable
+                },
+                ({ data: building }) => (
+                  <HousingAttribute
+                    label={
+                      <>
+                        Étiquette DPE représentatif (source :{' '}
+                        {building.dpe ? (
+                          <AppLink
+                            to={`https://observatoire-dpe-audit.ademe.fr/afficher-dpe/${building.dpe?.id}`}
+                          >
+                            ADEME
+                          </AppLink>
+                        ) : (
+                          'ADEME'
+                        )}
+                        )
+                      </>
+                    }
+                    value={
+                      building.dpe ? (
+                        <Stack direction="row" spacing="0.5rem" useFlexGap>
+                          <DPE value={building.dpe.class} />
+                          <Typography component="span">
+                            réalisé le {birthdate(building.dpe.doneAt)}
+                          </Typography>
+                        </Stack>
+                      ) : null
+                    }
+                  />
+                )
               )
-            )
-            .otherwise(() => null)}
+              .otherwise(() => null)}
           <HousingAttribute
             label="Nombre de logements"
             value={match(getBuildingQuery)
@@ -182,26 +195,28 @@ function HousingTab() {
               .otherwise(() => null)}
             fallback={isHouse ? 'Pas applicable' : 'Pas d’information'}
           />
-          <HousingAttribute
-            label="Identifiant Référentiel National des Bâtiments"
-            value={match(getBuildingQuery)
-              .returnType<ReactNode>()
-              .with({ isLoading: true }, () => (
-                <Skeleton animation="wave" variant="text" />
-              ))
-              .with(
-                {
-                  isSuccess: true,
-                  data: {
-                    rnb: {
-                      id: Pattern.string
+          {isActualDpeEnabled && (
+            <HousingAttribute
+              label="Identifiant Référentiel National des Bâtiments"
+              value={match(getBuildingQuery)
+                .returnType<ReactNode>()
+                .with({ isLoading: true }, () => (
+                  <Skeleton animation="wave" variant="text" />
+                ))
+                .with(
+                  {
+                    isSuccess: true,
+                    data: {
+                      rnb: {
+                        id: Pattern.string
+                      }
                     }
-                  }
-                },
-                ({ data: building }) => building.rnb.id
-              )
-              .otherwise(() => null)}
-          />
+                  },
+                  ({ data: building }) => building.rnb.id
+                )
+                .otherwise(() => null)}
+            />
+          )}
         </Stack>
       </Grid>
       <Grid
@@ -226,10 +241,12 @@ function HousingTab() {
                   label="Référence cadastrale"
                   value={housing.cadastralReference}
                 />
-                <HousingAttribute
-                  label="Surface de la parcelle"
-                  value={housing.plotArea ? `${housing.plotArea} m²` : null}
-                />
+                {isActualDpeEnabled && (
+                  <HousingAttribute
+                    label="Surface de la parcelle"
+                    value={housing.plotArea ? `${housing.plotArea} m²` : null}
+                  />
+                )}
               </Stack>
             </Grid>
             <Grid sx={{ textAlign: 'end' }} size={6}>

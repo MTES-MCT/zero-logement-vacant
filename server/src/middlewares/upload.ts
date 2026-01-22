@@ -1,6 +1,5 @@
-import path from 'node:path';
-
 import { Request, RequestHandler } from 'express';
+import mime from 'mime';
 import multer from 'multer';
 
 import { InvalidFileTypeError } from '~/errors/InvalidFileTypeError';
@@ -25,17 +24,6 @@ export interface UploadOptions {
 const DEFAULT_ALLOWED_EXTENSIONS = ['png', 'jpg', 'pdf'];
 
 /**
- * Normalize file extensions to handle common aliases.
- * For example, 'jpeg' is normalized to 'jpg'.
- */
-function normalizeExtension(ext: string): string {
-  const normalized = ext.toLowerCase();
-  // Handle common extension aliases
-  if (normalized === 'jpeg') return 'jpg';
-  return normalized;
-}
-
-/**
  * Upload middleware using memory storage for security validation
  *
  * Files are stored in memory (buffer) to allow validation before S3 upload:
@@ -45,7 +33,7 @@ function normalizeExtension(ext: string): string {
  */
 export function upload(options?: UploadOptions): RequestHandler {
   const acceptedExtensions: Set<string> = new Set(
-    (options?.accept ?? DEFAULT_ALLOWED_EXTENSIONS).map(normalizeExtension)
+    options?.accept ?? DEFAULT_ALLOWED_EXTENSIONS
   );
 
   const maxSizeMiB = options?.maxSizeMiB ?? 1;
@@ -65,18 +53,30 @@ export function upload(options?: UploadOptions): RequestHandler {
       file: Express.Multer.File,
       callback: multer.FileFilterCallback
     ) {
-      // Validate by file extension instead of MIME type.
+      // Validate by normalized file extension instead of MIME type.
       // MIME types are unreliable across browsers/OS (e.g., Windows/Chrome
       // sends 'application/x-zip-compressed' while macOS/Firefox sends
       // 'application/zip' for the same .zip file).
       // Content will be validated again with magic bytes downstream.
       // Bypass validation if multiple files are allowed
       // to validate later and provide a list of errors.
-      const fileExtension = normalizeExtension(
-        path.extname(file.originalname).slice(1)
-      );
+      const fileType = mime.getType(file.originalname);
+      const fileExtension = fileType ? mime.getExtension(fileType) : null;
 
-      if (!options?.multiple && !acceptedExtensions.has(fileExtension)) {
+      if (!options?.multiple && !fileExtension) {
+        return callback(
+          new InvalidFileTypeError({
+            filename: file.originalname,
+            accepted: Array.from(acceptedExtensions).map((ext) => `.${ext}`)
+          })
+        );
+      }
+
+      if (
+        !options?.multiple &&
+        fileExtension &&
+        !acceptedExtensions.has(fileExtension)
+      ) {
         return callback(
           new InvalidFileTypeError({
             filename: file.originalname,

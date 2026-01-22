@@ -1,3 +1,4 @@
+import type { TagDescription } from '@reduxjs/toolkit/dist/query/endpointDefinitions';
 import type {
   HousingBatchUpdatePayload,
   HousingDTO,
@@ -10,9 +11,9 @@ import type { Housing, HousingSort } from '../models/Housing';
 import type { HousingCount } from '../models/HousingCount';
 import type { HousingFilters } from '../models/HousingFilters';
 import type { HousingPaginatedResult } from '../models/PaginatedResult';
-import { type SortOptions, toQuery } from '../models/Sort';
+import { toQuery, type SortOptions } from '../models/Sort';
 import type { AbortOptions } from '../utils/fetchUtils';
-import { zlvApi } from './api.service';
+import { zlvApi, type TagType } from './api.service';
 import { parseOwner } from './owner.service';
 
 export interface FindOptions
@@ -136,14 +137,15 @@ export const housingApi = zlvApi.injectEndpoints({
         method: 'PUT',
         body: payload
       }),
-      invalidatesTags: () => {
-        return [
+      invalidatesTags: (_result, _error, payload) => {
+        const tags: ReadonlyArray<TagDescription<TagType>> = [
           'Housing',
           'HousingByStatus',
           'HousingCountByStatus',
           'Event',
           'HousingEvent'
         ];
+        return tags.concat(payload.precisions?.length ? ['Precision'] : []);
       }
     })
   })

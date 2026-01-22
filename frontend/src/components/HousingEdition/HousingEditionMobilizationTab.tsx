@@ -2,7 +2,8 @@ import Grid from '@mui/material/Grid';
 import Typography from '@mui/material/Typography';
 import {
   HOUSING_STATUS_VALUES,
-  HousingStatus
+  HousingStatus,
+  type Precision
 } from '@zerologementvacant/models';
 import {
   useController,
@@ -10,22 +11,24 @@ import {
   type FieldValues
 } from 'react-hook-form';
 
-import { getSubStatusOptions } from '../../models/HousingState';
+import { getSubStatusOptions } from '~/models/HousingState';
 import HousingStatusSelect from '../HousingListFilters/HousingStatusSelect';
 import HousingSubStatusSelect from '../HousingListFilters/HousingSubStatusSelect';
-import PrecisionLists from '../Precision/PrecisionLists';
-import type { Housing } from '../../models/Housing';
-
-interface Props {
-  housingId: Housing['id'] | null;
-}
+import PrecisionLists, { type PrecisionListProps } from '~/components/Precision/PrecisionLists';
 
 interface BaseSchema extends FieldValues {
   status: HousingStatus | null;
   subStatus: string | null;
+  precisions: ReadonlyArray<Precision>;
 }
 
-function HousingEditionMobilizationTab(props: Props) {
+export type HousingEditionMobilizationTabProps = {
+  precisionListProps?: Pick<PrecisionListProps, 'multiple' | 'showNullOption'>;
+};
+
+function HousingEditionMobilizationTab(
+  props: Readonly<HousingEditionMobilizationTabProps>
+) {
   const form = useFormContext();
   const { field: statusField, fieldState: statusFieldState } = useController<
     BaseSchema,
@@ -37,6 +40,9 @@ function HousingEditionMobilizationTab(props: Props) {
     useController<BaseSchema, 'subStatus'>({
       name: 'subStatus'
     });
+  const { field: precisionField } = useController<BaseSchema, 'precisions'>({
+    name: 'precisions'
+  });
 
   const subStatusDisabled =
     statusField.value === null ||
@@ -49,10 +55,7 @@ function HousingEditionMobilizationTab(props: Props) {
         sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}
         size={12}
       >
-        <Typography
-          component="h3"
-          sx={{ fontSize: '1.125rem', fontWeight: 700 }}
-        >
+        <Typography component="h3" variant="h6">
           Statut de suivi
         </Typography>
         <HousingStatusSelect
@@ -83,7 +86,11 @@ function HousingEditionMobilizationTab(props: Props) {
           onChange={subStatusField.onChange}
         />
       </Grid>
-      {props.housingId ? <PrecisionLists housingId={props.housingId} /> : null}
+      <PrecisionLists
+        {...props.precisionListProps}
+        value={precisionField.value}
+        onChange={precisionField.onChange}
+      />
     </Grid>
   );
 }

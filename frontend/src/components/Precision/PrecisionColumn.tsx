@@ -14,23 +14,27 @@ import styles from './precision-modal.module.scss';
 type PrecisionColumnCommonProps = {
   category: PrecisionCategory;
   icon: FrIconClassName | RiIconClassName;
-  options: Precision[];
+  options: ReadonlyArray<Precision>;
   title: string;
 };
 
-type PrecisionColumnCheckboxProps = PrecisionColumnCommonProps & {
+export type PrecisionColumnCheckboxProps = PrecisionColumnCommonProps & {
   input?: 'checkbox';
-  value: Precision[];
-  onChange(value: Precision[]): void;
+  value: ReadonlyArray<Precision>;
+  onChange(value: ReadonlyArray<Precision>): void;
 };
 
-type PrecisionColumnRadioProps = PrecisionColumnCommonProps & {
+export type PrecisionColumnRadioProps = PrecisionColumnCommonProps & {
   input: 'radio';
+  /**
+   * @default true
+   */
+  showNullOption?: boolean;
   value: Precision | null;
   onChange(value: Precision | null): void;
 };
 
-type PrecisionColumnProps =
+export type PrecisionColumnProps =
   | PrecisionColumnCheckboxProps
   | PrecisionColumnRadioProps;
 
@@ -39,13 +43,15 @@ function PrecisionColumn(props: PrecisionColumnProps) {
   const Fieldset = isRadio ? RadioButtons : Checkbox;
 
   // Add null option for radio inputs
-  const nullOption: Precision | null = isRadio
-    ? {
-        id: NULL_PRECISION_ID,
-        label: 'Pas d’information',
-        category: props.category
-      }
-    : null;
+  const showNullOption = isRadio ? (props.showNullOption ?? true) : false;
+  const nullOption: Precision | null =
+    isRadio && showNullOption
+      ? {
+          id: NULL_PRECISION_ID,
+          label: 'Pas d’information',
+          category: props.category
+        }
+      : null;
 
   const allOptions = nullOption
     ? [nullOption, ...props.options]

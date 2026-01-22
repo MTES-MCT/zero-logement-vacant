@@ -4,13 +4,16 @@ import { Stack, Typography } from '@mui/material';
 import {
   HOUSING_STATUS_VALUES,
   HousingStatus,
+  isPrecisionEvolutionCategory,
   Occupancy,
-  OCCUPANCY_VALUES
+  OCCUPANCY_VALUES,
+  PRECISION_CATEGORY_VALUES
 } from '@zerologementvacant/models';
+import { capitalize } from "effect/String";
 import { useState } from 'react';
 import { Controller, FormProvider, useForm } from 'react-hook-form';
 import { match } from 'ts-pattern';
-import { type InferType, number, object, string } from 'yup';
+import { array, type InferType, number, object, string } from 'yup';
 
 import type { Selection } from '~/hooks/useSelection';
 import { HousingStates } from '../../models/HousingState';
@@ -51,7 +54,18 @@ const schema = object({
         ? schema.required('Veuillez renseigner le sous-statut de suivi')
         : schema
     ),
-  note: string().trim().nullable().optional().default(null)
+  note: string().trim().nullable().optional().default(null),
+  precisions: array()
+    .of(
+      object({
+        id: string().required(),
+        category: string().oneOf(PRECISION_CATEGORY_VALUES).required(),
+        label: string().required()
+      }).required()
+    )
+    .optional()
+    .nullable()
+    .default(null)
 }).required();
 
 const modal = createConfirmationModal({
@@ -75,21 +89,39 @@ function HousingListEditionSideMenu(props: Props) {
       occupancy: null,
       occupancyIntended: null,
       status: null,
-      note: null
+      note: null,
+      precisions: []
     },
     mode: 'onSubmit',
     resolver: yupResolver(schema)
   });
 
-  // Tabs state: 'occupancy', 'mobilization', 'note'
+  const { formState } = form;
+  const precisions = form.watch('precisions');
+  const { isDirty, dirtyFields } = formState;
+  const needsConfirmation =
+    dirtyFields.status ||
+    dirtyFields.subStatus ||
+    dirtyFields.occupancy ||
+    dirtyFields.occupancyIntended ||
+    dirtyFields.note ||
+    (dirtyFields.precisions &&
+      precisions?.some((precision) =>
+        isPrecisionEvolutionCategory(precision.category)
+      ));
+
   const [tab, setTab] = useState<'occupancy' | 'mobilization' | 'note'>(
     'occupancy'
   );
 
+  function close(): void {
+    props.onClose();
+    form.reset();
+  }
+
   async function save(): Promise<void> {
-    if (!Object.values(form.formState.dirtyFields).some(Boolean)) {
-      props.onClose();
-      form.reset();
+    if (!isDirty) {
+      close();
       return;
     }
 
@@ -100,15 +132,20 @@ function HousingListEditionSideMenu(props: Props) {
   }
 
   function submit(data: BatchEditionFormSchema) {
+    if (!isDirty) {
+      close();
+      return;
+    }
+
     props.onSubmit({
       occupancy: data.occupancy as Occupancy | null,
       occupancyIntended: data.occupancyIntended as Occupancy | null,
       status: data.status as HousingStatus | null,
       subStatus: data.subStatus,
-      note: data.note
+      note: data.note,
+      precisions: data.precisions
     });
-    props.onClose();
-    form.reset();
+    close();
   }
 
   // Tab content logic using ts-pattern
@@ -144,7 +181,9 @@ function HousingListEditionSideMenu(props: Props) {
       </Stack>
     ))
     .with('mobilization', () => (
-      <HousingEditionMobilizationTab housingId={null} />
+      <HousingEditionMobilizationTab
+        precisionListProps={{ multiple: true, showNullOption: false }}
+      />
     ))
     .with('note', () => (
       <AppTextInputNext<BatchEditionFormSchema>
@@ -174,7 +213,7 @@ function HousingListEditionSideMenu(props: Props) {
       }}
       header={
         <Stack component="header">
-          <LabelNext>Mise à jour groupée</LabelNext>
+          <LabelNext>Édition groupée</LabelNext>
           <Typography variant="h6">
             {displayCount(props.count, 'logement sélectionné')}
           </Typography>
@@ -195,7 +234,7 @@ function HousingListEditionSideMenu(props: Props) {
           </Tabs>
 
           <modal.Component
-            title={`Vous êtes sur le point de mettre à jour ${props.count} logements`}
+            title={`Vous êtes sur le point d’éditer ${props.count} logements`}
             onSubmit={form.handleSubmit(submit)}
           >
             <Stack spacing={2}>
@@ -204,27 +243,44 @@ function HousingListEditionSideMenu(props: Props) {
                 actuelles sur les champs suivants :
               </Typography>
               <ul>
-                {form.formState.dirtyFields.status && (
+                {dirtyFields.status && (
                   <li>Suivi du logement — Statut de suivi</li>
                 )}
-                {form.formState.dirtyFields.subStatus && (
+                {dirtyFields.subStatus && (
                   <li>Suivi du logement — Sous-statut de suivi</li>
                 )}
-                {form.formState.dirtyFields.occupancy && (
+                {dirtyFields.occupancy && (
                   <li>Occupation du logement — Occupation actuelle</li>
                 )}
-                {form.formState.dirtyFields.occupancyIntended && (
+                {dirtyFields.occupancyIntended && (
                   <li>Occupation du logement — Occupation prévisionnelle</li>
                 )}
-                {form.formState.dirtyFields.note && <li>Ajout d’une note</li>}
+                {dirtyFields.note && <li>Ajout d’une note</li>}
+                {dirtyFields.precisions &&
+                  form
+                    .getValues('precisions')
+                    ?.some((precision) =>
+                      isPrecisionEvolutionCategory(precision.category)
+                    ) &&
+                  form
+                    .getValues('precisions')
+                    ?.filter((precision) =>
+                      isPrecisionEvolutionCategory(precision.category)
+                    )
+                    ?.map((precision) => (
+                      <li key={precision.id}>
+                        Évolutions du logement —{' '}
+                        {capitalize(precision.category)}
+                      </li>
+                    ))}
               </ul>
             </Stack>
           </modal.Component>
         </FormProvider>
       }
       open={props.open}
-      onClose={props.onClose}
-      onSave={save}
+      onClose={close}
+      onSave={needsConfirmation ? save : form.handleSubmit(submit)}
     />
   );
 }

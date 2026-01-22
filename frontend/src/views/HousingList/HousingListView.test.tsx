@@ -372,7 +372,7 @@ describe('Housing list view', () => {
       const [checkbox] = await within(housingTable).findAllByRole('checkbox');
       await user.click(checkbox);
       const updateMany = await screen.findByRole('button', {
-        name: 'Mise à jour groupée'
+        name: 'Édition groupée'
       });
       await user.click(updateMany);
       const select = await screen.findByRole('combobox', {
@@ -387,7 +387,7 @@ describe('Housing list view', () => {
       });
       await user.click(save);
       const modal = await screen.findByRole('dialog', {
-        name: /Vous êtes sur le point de mettre à jour \d+ logements/
+        name: /Vous êtes sur le point d’éditer \d+ logements/
       });
       expect(modal).toBeVisible();
       const confirm = await within(modal).findByRole('button', {
@@ -396,7 +396,7 @@ describe('Housing list view', () => {
       await user.click(confirm);
 
       const alert = await screen.findByRole('heading', {
-        name: /La mise à jour groupée de \d+ logements a bien été enregistrée/
+        name: /L’édition groupée de \d+ logements a bien été enregistrée/
       });
       expect(alert).toBeVisible();
     });

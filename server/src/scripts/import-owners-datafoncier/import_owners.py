@@ -9,12 +9,12 @@ Field Mapping:
 - id              -> uuid_generate_v4()
 - full_name       -> ddenom (with '/' replaced by space for physical persons)
 - birth_date      -> jdatnss (converted from DD/MM/YYYY to ISO format)
-- address_dgfip   -> [dlign3, dlign4, dlign5, dlign6] (non-null values as array)
-- kind_class      -> mapped from catpro2txt
+- address_dgfip   -> [dlign3, dlign4, dlign5, dlign6] (non-null values as array, dlign4 formatted)
+- kind_class      -> mapped from catpro3txt
 - idpersonne      -> idpersonne
 - siren           -> dsiren
-- data_source     -> 'datafoncier-2024'
-- entity          -> 'personnes-physiques'
+- data_source     -> 'ff-2024'
+- entity          -> mapped from ccogrm first character
 - created_at      -> NOW()
 - updated_at      -> NOW()
 
@@ -208,11 +208,81 @@ KIND_MAPPING = {
     'STRUCTURE CULTURELLE AUTRE': 'Autres',
     'ASSOCIATION SPORTIVE': 'Autres',
 
-    # =========================================================================
-    # Cas spécial
-    # =========================================================================
-    'PAS DE PROPRIETAIRE': 'Absence de propriétaires',
 }
+
+
+# Entity mapping from ccogrm first character
+# Based on server/src/scripts/import-lovac/source-owners/source-owner.ts mapEntity()
+ENTITY_MAPPING = {
+    '0': 'personnes-morales-non-remarquables',
+    '1': 'etat',
+    '2': 'region',
+    '3': 'departement',
+    '4': 'commune',
+    '5': 'office-hlm',
+    '6': 'personnes-morales-representant-des-societes',
+    '7': 'coproprietaire',
+    '8': 'associe',
+    '9': 'etablissements-publics-ou-organismes-assimiles',
+}
+
+
+def map_entity(ccogrm: Optional[str]) -> str:
+    """
+    Map entity from ccogrm first character.
+
+    Args:
+        ccogrm: Group code from Datafoncier
+
+    Returns:
+        Entity value for ZLV owners table
+    """
+    if not ccogrm or not ccogrm.strip():
+        return 'personnes-physiques'
+
+    first_char = ccogrm.strip()[0]
+    return ENTITY_MAPPING.get(first_char, 'personnes-physiques')
+
+
+def format_dlign4(dlign4: Optional[str]) -> Optional[str]:
+    """
+    Format dlign4 address line:
+    - Remove leading zeros from house number
+    - Add space after repetition index (bis, ter, etc.)
+
+    Examples:
+        "0012BIS RUE DES FLEURS" -> "12 BIS RUE DES FLEURS"
+        "0003TER AVENUE" -> "3 TER AVENUE"
+        "0045 RUE" -> "45 RUE"
+
+    Args:
+        dlign4: Address line 4 from Datafoncier
+
+    Returns:
+        Formatted address line or None if empty
+    """
+    import re
+
+    if not dlign4 or not dlign4.strip():
+        return None
+
+    line = dlign4.strip()
+
+    # Pattern: leading zeros followed by number, optionally followed by repetition index (BIS, TER, etc.)
+    # then the rest of the address
+    match = re.match(r'^0*(\d+)(BIS|TER|QUATER|QUINQUIES|A|B|C|D|E|F)?(.*)$', line, re.IGNORECASE)
+    if match:
+        number = match.group(1)
+        repetition = match.group(2)
+        rest = match.group(3)
+
+        if repetition:
+            # Add space after repetition index
+            return f"{number} {repetition.upper()}{rest}"
+        else:
+            return f"{number}{rest}"
+
+    return line
 
 
 class OwnerImporter:
@@ -306,8 +376,9 @@ class OwnerImporter:
                 d.dlign4,
                 d.dlign5,
                 d.dlign6,
-                d.catpro2txt,
-                d.dsiren
+                d.catpro3txt,
+                d.dsiren,
+                d.ccogrm
             FROM {self.source_table} d
             WHERE d.idpersonne IS NOT NULL
               AND NOT EXISTS (
@@ -358,10 +429,23 @@ class OwnerImporter:
             List of non-null address lines
         """
         address_lines = []
-        for field in ['dlign3', 'dlign4', 'dlign5', 'dlign6']:
+
+        # dlign3: add as-is if present
+        dlign3 = owner.get('dlign3')
+        if dlign3 and dlign3.strip():
+            address_lines.append(dlign3.strip())
+
+        # dlign4: format to remove leading zeros and add space after repetition index
+        dlign4 = format_dlign4(owner.get('dlign4'))
+        if dlign4:
+            address_lines.append(dlign4)
+
+        # dlign5, dlign6: add as-is if present
+        for field in ['dlign5', 'dlign6']:
             value = owner.get(field)
             if value and value.strip():
                 address_lines.append(value.strip())
+
         return address_lines
 
     def transform_owner(self, source: Dict) -> Optional[Dict]:
@@ -389,13 +473,16 @@ class OwnerImporter:
             return None
 
         # Process full name - replace / with space for physical persons
-        catpro2txt = source.get('catpro2txt', '')
+        catpro3txt = source.get('catpro3txt', '')
         full_name = ddenom.strip()
-        if catpro2txt == 'PERSONNE PHYSIQUE':
+        if catpro3txt == 'PERSONNE PHYSIQUE':
             full_name = full_name.replace('/', ' ')
 
-        # Map kind
-        kind_class = KIND_MAPPING.get(catpro2txt, 'Autre')
+        # Map kind from catpro3txt
+        kind_class = KIND_MAPPING.get(catpro3txt, 'Autres')
+
+        # Map entity from ccogrm first character
+        entity = map_entity(source.get('ccogrm'))
 
         return {
             'idpersonne': source['idpersonne'],
@@ -404,8 +491,8 @@ class OwnerImporter:
             'address_dgfip': address,
             'kind_class': kind_class,
             'siren': source.get('dsiren'),
-            'data_source': 'datafoncier-2024',
-            'entity': 'personnes-physiques',
+            'data_source': 'ff-2024',
+            'entity': entity,
         }
 
     def _insert_batch_worker(self, batch_data: Tuple) -> Tuple[int, int, Optional[str]]:

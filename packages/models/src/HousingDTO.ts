@@ -40,7 +40,21 @@ export interface HousingDTO {
   ownershipKind: string | null;
   status: HousingStatus;
   subStatus: string | null;
+  /**
+   * The actual energy consumption class of the housing.
+   * Prefilled from the building energy consumption
+   * when the building is an individual house.
+   *
+   * NB: this can be edited by users.
+   */
+  actualEnergyConsumption: EnergyConsumption | null;
+  /**
+   * @deprecated Use BuildingDTO.dpe.class instead
+   */
   energyConsumption: EnergyConsumption | null;
+  /**
+   * @deprecated Use BuildingDTO.dpe.doneAt instead
+   */
   energyConsumptionAt: Date | null;
   occupancy: Occupancy;
   occupancyIntended: Occupancy | null;

@@ -43,6 +43,7 @@ export interface Housing
     | 'campaignIds'
     | 'status'
     | 'subStatus'
+    | 'actualEnergyConsumption'
     | 'energyConsumption'
     | 'energyConsumptionAt'
     | 'occupancy'

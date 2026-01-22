@@ -1192,12 +1192,19 @@ export interface HousingRecordDBO {
    * @deprecated See {@link HousingDBO.precisions}
    */
   deprecated_precisions: string[] | null;
+  actual_dpe: EnergyConsumption | null;
+  /**
+   * @deprecated Use `BuildingDBO.dpe_class` instead.
+   */
   energy_consumption_bdnb: EnergyConsumption | null;
+  /**
+   * @deprecated Use `BuildingDBO.dpe_date_at` instead.
+   */
+  energy_consumption_at_bdnb: Date | string | null;
   occupancy_source: Occupancy;
   occupancy: Occupancy;
   occupancy_intended: Occupancy | null;
   plot_id: string | null;
-  energy_consumption_at_bdnb: Date | string | null;
   building_group_id: string | null;
   data_source: HousingSource | null;
   /**
@@ -1263,6 +1270,7 @@ export const parseHousingRecordApi = (
   subStatus: housing.sub_status,
   deprecatedVacancyReasons: housing.deprecated_vacancy_reasons,
   deprecatedPrecisions: housing.deprecated_precisions,
+  actualEnergyConsumption: housing.actual_dpe,
   energyConsumption: housing.energy_consumption_bdnb,
   energyConsumptionAt: housing.energy_consumption_at_bdnb
     ? new Date(housing.energy_consumption_at_bdnb)
@@ -1320,6 +1328,7 @@ export const parseHousingApi = (housing: HousingDBO): HousingApi => ({
   deprecatedVacancyReasons: housing.deprecated_vacancy_reasons,
   deprecatedPrecisions: housing.deprecated_precisions,
   precisions: housing.precisions,
+  actualEnergyConsumption: housing.actual_dpe,
   energyConsumption: housing.energy_consumption_bdnb,
   energyConsumptionAt: housing.energy_consumption_at_bdnb
     ? new Date(housing.energy_consumption_at_bdnb)
@@ -1391,6 +1400,7 @@ export const formatHousingRecordApi = (
   data_file_years: housing.dataFileYears,
   status: housing.status,
   sub_status: housing.subStatus ?? null,
+  actual_dpe: housing.actualEnergyConsumption,
   energy_consumption_bdnb: housing.energyConsumption,
   energy_consumption_at_bdnb: housing.energyConsumptionAt,
   occupancy: housing.occupancy,

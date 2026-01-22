@@ -256,7 +256,7 @@ describe('Housing view', () => {
       });
       await user.click(update);
       const panel = await screen.findByRole('tabpanel', {
-        name: 'Occupation'
+        name: 'Informations sur le logement'
       });
       const occupancy = await within(panel).findByLabelText(
         'Occupation actuelle'
@@ -605,11 +605,11 @@ describe('Housing view', () => {
       await user.click(update);
 
       const occupancyTab = await screen.findByRole('tab', {
-        name: 'Occupation'
+        name: 'Informations sur le logement'
       });
       await user.click(occupancyTab);
       const occupancyPanel = await screen.findByRole('tabpanel', {
-        name: 'Occupation'
+        name: 'Informations sur le logement'
       });
       const occupancy = await within(occupancyPanel).findByLabelText(
         'Occupation actuelle'

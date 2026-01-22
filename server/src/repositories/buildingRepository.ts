@@ -89,7 +89,7 @@ export function formatBuildingApi(building: BuildingApi): BuildingDBO {
     dpe_id: building.dpe?.id ?? null,
     class_dpe: building.dpe?.class ?? null,
     class_ges: building.ges?.class ?? null,
-    dpe_date_at: building.dpe?.createdAt ?? null,
+    dpe_date_at: building.dpe?.doneAt ?? null,
     dpe_type: building.dpe?.type ?? null,
     heating_building: building.heating ?? null,
     dpe_import_match: building.dpe?.match ?? null
@@ -115,7 +115,7 @@ export function parseBuildingApi(building: BuildingDBO): BuildingApi {
     ? {
         id: building.dpe_id as string,
         class: building.class_dpe as EnergyConsumption,
-        createdAt: building.dpe_date_at as string,
+        doneAt: building.dpe_date_at as string,
         type: building.dpe_type as
           | 'dpe appartement individuel'
           | 'dpe maison individuelle',

@@ -50,6 +50,10 @@ export interface HousingDTO {
   lastMutationDate: string | null;
   lastTransactionDate: string | null;
   lastTransactionValue: number | null;
+  /**
+   * The surface of the plot associated with the housing, in square meters.
+   */
+  plotArea: number | null;
 }
 
 export type HousingPayloadDTO = Pick<HousingDTO, 'localId'>;

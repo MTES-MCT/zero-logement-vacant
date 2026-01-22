@@ -27,7 +27,7 @@ export function toBuildingDTO(building: BuildingApi): BuildingDTO {
       ? {
           id: building.dpe.id,
           class: building.dpe.class,
-          createdAt: building.dpe.createdAt,
+          doneAt: building.dpe.doneAt,
           type: building.dpe.type,
           match: building.dpe.match
         }

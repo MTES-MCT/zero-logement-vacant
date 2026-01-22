@@ -28,12 +28,13 @@ import {
 } from '@zerologementvacant/models';
 
 import {
+  genBuildingDTO,
+  genDatafoncierHousing as genDatafoncierHousingDTO,
+  genDocumentDTO,
   genEventDTO,
   genGeoCode,
   genNoteDTO,
-  genUserDTO,
-  genDatafoncierHousing as genDatafoncierHousingDTO,
-  genDocumentDTO
+  genUserDTO
 } from '@zerologementvacant/models/fixtures';
 import { addHours } from 'date-fns';
 import type { BBox } from 'geojson';
@@ -50,10 +51,10 @@ import { DocumentApi } from '~/models/DocumentApi';
 import { DraftApi } from '~/models/DraftApi';
 import { EstablishmentApi } from '~/models/EstablishmentApi';
 import { EventApi, fromEventDTO } from '~/models/EventApi';
-import { HousingDocumentApi } from '~/models/HousingDocumentApi';
 import { GeoPerimeterApi } from '~/models/GeoPerimeterApi';
 import { GroupApi } from '~/models/GroupApi';
 import { HousingApi } from '~/models/HousingApi';
+import { HousingDocumentApi } from '~/models/HousingDocumentApi';
 import { HousingOwnerApi } from '~/models/HousingOwnerApi';
 import { LocalityApi } from '~/models/LocalityApi';
 import { fromNoteDTO, HousingNoteApi, NoteApi } from '~/models/NoteApi';
@@ -280,21 +281,23 @@ export const genHousingOwnerApi = (
 });
 
 export function genBuildingApi(): BuildingApi {
-  const geoCode = genGeoCode();
-  const housingCount = faker.number.int({ min: 1, max: 10 });
-  const vacantHousingCount = faker.number.int({ min: 0, max: housingCount });
-  const rentHousingCount = faker.number.int({
-    min: housingCount - vacantHousingCount,
-    max: housingCount
-  });
+  const building = genBuildingDTO();
+  const hasEnergyConsumption = building.dpe !== null;
 
   return {
-    id: geoCode + faker.string.alphanumeric(7),
-    housingCount,
-    vacantHousingCount,
-    rentHousingCount,
-    rnbId: faker.string.alphanumeric({ casing: 'upper' }),
-    rnbIdScore: faker.helpers.arrayElement([0, 1, 2, 3, 8, 9])
+    ...building,
+    ges: hasEnergyConsumption
+      ? {
+          class: faker.helpers.arrayElement(ENERGY_CONSUMPTION_VALUES)
+        }
+      : null,
+    heating: faker.helpers.arrayElement([
+      'Gaz naturel',
+      'Électricité',
+      'GPL',
+      'Fioul domestique',
+      'Bois - Bûches'
+    ])
   };
 }
 
@@ -390,6 +393,7 @@ export const genHousingApi = (
     source: faker.helpers.arrayElement(HOUSING_SOURCE_VALUES),
     geolocation: null,
     plotId: null,
+    plotArea: faker.number.int({ min: 100, max: 10000 }),
     beneficiaryCount: null,
     buildingId: building?.id ?? null,
     buildingGroupId: null,

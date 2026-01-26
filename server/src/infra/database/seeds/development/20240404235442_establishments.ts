@@ -25,7 +25,7 @@ export async function seed(knex: Knex): Promise<void> {
     siren: Number(faker.string.numeric(9)),
     available: true,
     localities_geo_code: ['13055'],
-    kind: 'Commune',
+    kind: 'COM',
     source: 'seed',
     updated_at: new Date()
   });

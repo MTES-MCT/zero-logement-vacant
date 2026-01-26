@@ -73,11 +73,15 @@ class EstablishmentImporter:
             "updated": 0,
             "skipped_no_siren": 0,
             "skipped_invalid_siren": 0,
+            "skipped_invalid_localities": 0,
             "errors": 0,
         }
 
         # Track skipped rows for reporting
         self.skipped_rows: List[Dict] = []
+
+        # Valid locality geo_codes from DB (loaded at connect)
+        self.valid_localities: set = set()
 
     def connect(self):
         """Establish database connection."""
@@ -88,6 +92,28 @@ class EstablishmentImporter:
         except Exception as e:
             logging.error(f"Database connection failed: {e}")
             raise
+
+    def load_valid_localities(self):
+        """Load all valid geo_codes from the localities table."""
+        self.cursor.execute("SELECT geo_code FROM localities")
+        self.valid_localities = {row["geo_code"] for row in self.cursor.fetchall()}
+        print(f"Loaded {len(self.valid_localities):,} valid localities from database")
+
+    def validate_localities(self, geo_codes: Optional[List[str]]) -> Tuple[bool, List[str]]:
+        """
+        Validate that all geo_codes exist in the localities table.
+
+        Args:
+            geo_codes: List of geo codes to validate
+
+        Returns:
+            Tuple of (is_valid, list_of_invalid_codes)
+        """
+        if not geo_codes:
+            return True, []
+
+        invalid_codes = [code for code in geo_codes if code not in self.valid_localities]
+        return len(invalid_codes) == 0, invalid_codes
 
     def disconnect(self):
         """Close database connection."""
@@ -150,6 +176,135 @@ class EstablishmentImporter:
         except ValueError:
             return None
 
+    def parse_siret(self, row: Dict) -> Optional[str]:
+        """
+        Extract and validate SIRET from row.
+
+        Args:
+            row: CSV row dict
+
+        Returns:
+            SIRET as string (14 digits), or None if invalid
+        """
+        siret = row.get("Siret", "")
+
+        if not siret or str(siret).strip() == "":
+            return None
+
+        siret_str = str(siret).strip()
+
+        # Handle potential decimal format (e.g., "23971001500015.0")
+        if "." in siret_str:
+            siret_str = siret_str.split(".")[0]
+
+        # Validate: SIRET should be 14 digits
+        if not siret_str.isdigit() or len(siret_str) != 14:
+            return None
+
+        return siret_str
+
+    def compute_short_name(self, name: str, kind: str) -> str:
+        """
+        Compute short name from full name.
+
+        For communes, removes "Commune de " or "Commune d'" prefix.
+
+        Args:
+            name: Full establishment name
+            kind: Establishment kind (COM, COM-TOM, etc.)
+
+        Returns:
+            Short name
+        """
+        import re
+
+        if kind in ("COM", "COM-TOM"):
+            return re.sub(r"^Commune d(e\s|')", "", name)
+        return name
+
+    def normalize_name(self, name: str) -> str:
+        """
+        Normalize establishment name from legacy uppercase to title case.
+
+        Handles French naming conventions:
+        - Lowercase articles: de, du, des, d', l', la, le, les, et, en, sur, sous
+        - Preserves acronyms in parentheses: (DDETS), (DDETSPP), (DDT)
+        - Preserves department names after hyphens
+
+        Examples:
+            "PREFECTURE DE DEPARTEMENT COTE-D'OR" -> "Préfecture de Département Côte-d'Or"
+            "COMMUNE DE PARIS" -> "Commune de Paris"
+
+        Args:
+            name: Original name (possibly all uppercase)
+
+        Returns:
+            Normalized name with proper capitalization
+        """
+        import re
+
+        # If not all uppercase, return as-is (already normalized)
+        if name != name.upper():
+            return name
+
+        # French lowercase words (articles, prepositions)
+        lowercase_words = {
+            "de", "du", "des", "d", "l", "la", "le", "les",
+            "et", "en", "sur", "sous", "aux", "au", "a"
+        }
+
+        # Extract and preserve acronyms in parentheses
+        acronyms = {}
+        def save_acronym(match):
+            key = f"__ACRONYM_{len(acronyms)}__"
+            acronyms[key] = match.group(0)
+            return key
+
+        # Save acronyms like (DDETS), (DDT), etc.
+        name = re.sub(r'\([A-Z]{2,}\)', save_acronym, name)
+
+        # Convert to title case
+        words = name.lower().split()
+        result = []
+
+        for i, word in enumerate(words):
+            # Check if it's a placeholder for an acronym
+            if word.startswith("__acronym_"):
+                result.append(word.upper())
+                continue
+
+            # Handle hyphenated words (e.g., "côte-d'or")
+            if "-" in word:
+                parts = word.split("-")
+                normalized_parts = []
+                for j, part in enumerate(parts):
+                    # Handle d' and l' contractions
+                    if part in ("d", "l") and j < len(parts) - 1:
+                        normalized_parts.append(part)
+                    elif j == 0 or part not in lowercase_words:
+                        normalized_parts.append(part.capitalize())
+                    else:
+                        normalized_parts.append(part)
+                result.append("-".join(normalized_parts))
+            # First word is always capitalized
+            elif i == 0:
+                result.append(word.capitalize())
+            # Lowercase articles/prepositions in middle of name
+            elif word in lowercase_words:
+                result.append(word)
+            else:
+                result.append(word.capitalize())
+
+        normalized = " ".join(result)
+
+        # Restore acronyms
+        for key, value in acronyms.items():
+            normalized = normalized.replace(key.upper(), value)
+            normalized = normalized.replace(key.lower(), value)
+            normalized = normalized.replace(key.capitalize(), value)
+
+        return normalized
+
     def transform_row(self, row: Dict) -> Optional[Dict]:
         """
         Transform CSV row to DB record.
@@ -180,10 +335,31 @@ class EstablishmentImporter:
         # R3: Parse Geo_Perimeter
         localities = self.parse_geo_perimeter(row.get("Geo_Perimeter", ""))
 
-        # R4: Name
+        # Validate localities against DB
+        is_valid, invalid_codes = self.validate_localities(localities)
+        if not is_valid:
+            self.stats["skipped_invalid_localities"] += 1
+            self.skipped_rows.append(
+                {
+                    "reason": "invalid_localities",
+                    "siren": str(siren),
+                    "name": row.get("Name-zlv", ""),
+                    "kind": row.get("Kind-admin", ""),
+                    "invalid_codes": invalid_codes[:5],  # Show first 5 invalid codes
+                    "total_invalid": len(invalid_codes),
+                }
+            )
+            logging.error(
+                f"SIREN {siren}: {len(invalid_codes)} invalid locality codes - "
+                f"first 5: {invalid_codes[:5]}"
+            )
+            return None
+
+        # R4: Name (normalize from uppercase legacy format)
         name = row.get("Name-zlv", "").strip()
         if not name:
             name = row.get("Name-source", "Unknown")
+        name = self.normalize_name(name)
 
         # R5: Kind (direct mapping)
         kind = row.get("Kind-admin", "").strip()
@@ -191,13 +367,22 @@ class EstablishmentImporter:
             kind = "UNKNOWN"
 
         # R6: Source with millesime
-        millesime = row.get("Millesime", "2025")
+        millesime = row.get("Millesime", "2025").strip() if row.get("Millesime") else "2025"
         source = f"gold_establishments_{millesime}"
+
+        # New fields
+        siret = self.parse_siret(row)
+        short_name = self.compute_short_name(name, kind)
+        kind_meta = row.get("Kind-admin_meta", "").strip() or None
 
         return {
             "siren": siren,
+            "siret": siret,
             "name": name[:255],  # Truncate to VARCHAR(255)
+            "short_name": short_name[:255],
             "kind": kind[:255],
+            "kind_meta": kind_meta[:50] if kind_meta else None,
+            "millesime": millesime[:4] if millesime else None,
             "localities_geo_code": localities,
             "available": True,
             "source": source,
@@ -275,8 +460,12 @@ class EstablishmentImporter:
             insert_data = [
                 (
                     r["siren"],
+                    r["siret"],
                     r["name"],
+                    r["short_name"],
                     r["kind"],
+                    r["kind_meta"],
+                    r["millesime"],
                     r["localities_geo_code"],
                     r["available"],
                     r["source"],
@@ -288,11 +477,12 @@ class EstablishmentImporter:
                 self.cursor,
                 """
                 INSERT INTO establishments
-                    (siren, name, kind, localities_geo_code, available, source, updated_at)
+                    (siren, siret, name, short_name, kind, kind_meta, millesime,
+                     localities_geo_code, available, source, updated_at)
                 VALUES %s
                 """,
                 insert_data,
-                template="(%s, %s, %s, %s, %s, %s, NOW())",
+                template="(%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, NOW())",
                 page_size=500,
             )
 
@@ -302,8 +492,12 @@ class EstablishmentImporter:
         if to_update and not self.dry_run:
             update_data = [
                 (
+                    r["siret"],
                     r["name"],
+                    r["short_name"],
                     r["kind"],
+                    r["kind_meta"],
+                    r["millesime"],
                     r["localities_geo_code"],
                     r["source"],
                     r["siren"],
@@ -316,12 +510,16 @@ class EstablishmentImporter:
                 """
                 UPDATE establishments AS e
                 SET
+                    siret = data.siret,
                     name = data.name,
+                    short_name = data.short_name,
                     kind = data.kind,
+                    kind_meta = data.kind_meta,
+                    millesime = data.millesime,
                     localities_geo_code = data.localities_geo_code,
                     source = data.source,
                     updated_at = NOW()
-                FROM (VALUES %s) AS data(name, kind, localities_geo_code, source, siren)
+                FROM (VALUES %s) AS data(siret, name, short_name, kind, kind_meta, millesime, localities_geo_code, source, siren)
                 WHERE e.siren = data.siren::integer
                 """,
                 update_data,
@@ -348,6 +546,9 @@ class EstablishmentImporter:
         self.connect()
 
         try:
+            # Load valid localities for integrity check
+            self.load_valid_localities()
+
             # Load and transform CSV
             records = self.load_csv(limit)
             print(f"\n{len(records):,} valid records loaded")
@@ -379,6 +580,7 @@ class EstablishmentImporter:
             print(f"Inserted: {self.stats['inserted']:,}")
             print(f"Updated: {self.stats['updated']:,}")
             print(f"Skipped (no SIREN): {self.stats['skipped_no_siren']:,}")
+            print(f"Skipped (invalid localities): {self.stats['skipped_invalid_localities']:,}")
             print(f"Errors: {self.stats['errors']:,}")
 
             if self.dry_run:
@@ -388,9 +590,15 @@ class EstablishmentImporter:
             if self.skipped_rows:
                 print(f"\n--- Skipped rows sample (first 10) ---")
                 for row in self.skipped_rows[:10]:
-                    print(
-                        f"  {row['reason']}: SIREN={row['siren']}, name={row['name'][:40]}"
-                    )
+                    if row["reason"] == "invalid_localities":
+                        print(
+                            f"  {row['reason']}: SIREN={row['siren']}, name={row['name'][:30]}, "
+                            f"{row['total_invalid']} invalid codes: {row['invalid_codes']}"
+                        )
+                    else:
+                        print(
+                            f"  {row['reason']}: SIREN={row['siren']}, name={row['name'][:40]}"
+                        )
 
                 if len(self.skipped_rows) > 10:
                     print(f"  ... and {len(self.skipped_rows) - 10} more")

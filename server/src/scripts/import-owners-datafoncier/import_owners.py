@@ -23,6 +23,11 @@ Usage:
     python import_owners.py --db-url "$DATABASE_URL" --dry-run --limit 1000
     python import_owners.py --db-url "$DATABASE_URL" --batch-size 10000 --num-workers 6
     python import_owners.py --db-url "$DATABASE_URL" --source-table df_owners_nat  # for older table
+
+    # Process by department (recommended for large datasets to avoid OOM)
+    python import_owners.py --db-url "$DATABASE_URL" --department 75  # Paris only
+    python import_owners.py --db-url "$DATABASE_URL" --sequential     # All departments one by one
+    python import_owners.py --db-url "$DATABASE_URL" --sequential --start-department 50  # Resume from dept 50
 """
 
 import argparse
@@ -290,7 +295,8 @@ class OwnerImporter:
 
     def __init__(self, db_url: str, dry_run: bool = False,
                  batch_size: int = 5000, num_workers: int = 4,
-                 source_table: str = 'df_owners_nat_2024'):
+                 source_table: str = 'df_owners_nat_2024',
+                 department: Optional[str] = None):
         """
         Initialize the importer.
 
@@ -300,12 +306,14 @@ class OwnerImporter:
             batch_size: Number of records per batch for insert operations
             num_workers: Number of parallel workers for database operations
             source_table: Name of the source table (default: df_owners_nat_2024)
+            department: Filter by department code (e.g., '75', '01', '2A')
         """
         self.db_url = db_url
         self.dry_run = dry_run
         self.batch_size = batch_size
         self.num_workers = num_workers
         self.source_table = source_table
+        self.department = department
         self.conn = None
         self.cursor = None
 
@@ -338,12 +346,24 @@ class OwnerImporter:
         if self.conn:
             self.conn.close()
 
-    def get_source_count(self) -> int:
+    def get_departments(self) -> List[str]:
+        """Get list of distinct departments in source table."""
+        self.cursor.execute(f"""
+            SELECT DISTINCT ccodep
+            FROM {self.source_table}
+            WHERE ccodep IS NOT NULL
+            ORDER BY ccodep
+        """)
+        return [row['ccodep'] for row in self.cursor.fetchall()]
+
+    def get_source_count(self, department: Optional[str] = None) -> int:
         """Get total count of owners in source table with valid idpersonne."""
+        dept_filter = f"AND ccodep = '{department}'" if department else ""
         self.cursor.execute(f"""
             SELECT COUNT(DISTINCT idpersonne)
             FROM {self.source_table}
             WHERE idpersonne IS NOT NULL
+            {dept_filter}
         """)
         result = self.cursor.fetchone()
         return result['count'] if result else 0
@@ -357,16 +377,20 @@ class OwnerImporter:
         """)
         return {row['idpersonne'] for row in self.cursor.fetchall()}
 
-    def get_owners_to_import(self, limit: Optional[int] = None) -> List[Dict]:
+    def get_owners_to_import(self, limit: Optional[int] = None,
+                             department: Optional[str] = None) -> List[Dict]:
         """
         Get owners from source table that don't exist in owners table.
 
         Args:
             limit: Maximum number of records to retrieve
+            department: Filter by department code (e.g., '75', '01', '2A')
 
         Returns:
             List of owner records to import
         """
+        dept_filter = f"AND d.ccodep = '{department}'" if department else ""
+
         query = f"""
             SELECT DISTINCT ON (d.idpersonne)
                 d.idpersonne,
@@ -381,6 +405,7 @@ class OwnerImporter:
                 d.ccogrm
             FROM {self.source_table} d
             WHERE d.idpersonne IS NOT NULL
+              {dept_filter}
               AND NOT EXISTS (
                   SELECT 1 FROM owners o WHERE o.idpersonne = d.idpersonne
               )
@@ -617,12 +642,73 @@ class OwnerImporter:
         self.stats['imported'] = total_inserted
         self.stats['failed'] = total_failed
 
-    def run(self, limit: Optional[int] = None):
+    def reset_stats(self):
+        """Reset statistics for a new department."""
+        self.stats = {
+            'total_source': 0,
+            'already_exists': 0,
+            'to_import': 0,
+            'imported': 0,
+            'skipped_no_name': 0,
+            'skipped_no_address': 0,
+            'failed': 0,
+        }
+
+    def process_department(self, department: str, limit: Optional[int] = None) -> bool:
+        """
+        Process owners for a single department.
+
+        Args:
+            department: Department code (e.g., '75', '01', '2A')
+            limit: Maximum number of records to retrieve
+
+        Returns:
+            True if successful, False otherwise
+        """
+        self.reset_stats()
+
+        print(f"\n--- Department {department} ---")
+
+        # Get statistics for this department
+        self.stats['total_source'] = self.get_source_count(department)
+        print(f"  Owners in source: {self.stats['total_source']:,}")
+
+        if self.stats['total_source'] == 0:
+            print(f"  No owners in department {department}, skipping")
+            return True
+
+        # Get owners to import
+        source_owners = self.get_owners_to_import(limit, department)
+        print(f"  To import: {len(source_owners):,}")
+
+        if not source_owners:
+            print(f"  No new owners to import for department {department}")
+            return True
+
+        # Transform owners
+        transformed_owners = []
+        for owner in tqdm(source_owners, desc=f"Dept {department}", unit="owner", leave=False):
+            transformed = self.transform_owner(owner)
+            if transformed:
+                transformed_owners.append(transformed)
+
+        self.stats['to_import'] = len(transformed_owners)
+
+        # Insert owners
+        self.insert_owners(transformed_owners)
+
+        print(f"  Imported: {self.stats['imported']:,}, Failed: {self.stats['failed']:,}")
+        return self.stats['failed'] == 0
+
+    def run(self, limit: Optional[int] = None, sequential: bool = False,
+            start_department: Optional[str] = None):
         """
         Main execution method.
 
         Args:
-            limit: Maximum number of owners to import
+            limit: Maximum number of owners to import (per department if sequential)
+            sequential: If True, process all departments one by one
+            start_department: Skip departments before this one (for resuming)
         """
         print("=" * 80)
         print("DATAFONCIER OWNER IMPORTER")
@@ -631,6 +717,12 @@ class OwnerImporter:
         print(f"Mode: {'DRY RUN' if self.dry_run else 'LIVE'}")
         print(f"Batch size: {self.batch_size:,}")
         print(f"Workers: {self.num_workers}")
+        if self.department:
+            print(f"Department: {self.department}")
+        if sequential:
+            print(f"Sequential mode: processing all departments one by one")
+        if start_department:
+            print(f"Starting from department: {start_department}")
         if limit:
             print(f"Limit: {limit:,}")
         print()
@@ -638,51 +730,83 @@ class OwnerImporter:
         self.connect()
 
         try:
-            # Get statistics
-            print("Analyzing source data...")
-            self.stats['total_source'] = self.get_source_count()
-            print(f"  Total distinct owners in {self.source_table}: {self.stats['total_source']:,}")
+            # Determine which departments to process
+            if self.department:
+                # Single department mode
+                departments = [self.department]
+            elif sequential:
+                # Sequential mode: get all departments
+                departments = self.get_departments()
+                print(f"Found {len(departments)} departments to process")
 
-            existing = self.get_existing_idpersonnes()
-            self.stats['already_exists'] = len(existing)
-            print(f"  Already in owners table: {self.stats['already_exists']:,}")
+                # Skip departments before start_department
+                if start_department:
+                    try:
+                        start_idx = departments.index(start_department)
+                        skipped = departments[:start_idx]
+                        departments = departments[start_idx:]
+                        print(f"Skipping {len(skipped)} departments before {start_department}")
+                    except ValueError:
+                        print(f"Warning: start_department {start_department} not found, processing all")
+            else:
+                # All at once (original behavior - may cause OOM with large datasets)
+                departments = [None]
 
-            # Get owners to import
-            print("\nFetching owners to import...")
-            source_owners = self.get_owners_to_import(limit)
-            print(f"  Found {len(source_owners):,} owners to import")
+            # Process departments
+            total_imported = 0
+            total_failed = 0
+            completed_depts = 0
+            failed_depts = []
 
-            if not source_owners:
-                print("\nNo new owners to import")
-                return
+            for dept in departments:
+                if dept is None:
+                    # Original behavior: process all at once
+                    print("Analyzing source data...")
+                    self.stats['total_source'] = self.get_source_count()
+                    print(f"  Total distinct owners: {self.stats['total_source']:,}")
 
-            # Transform owners
-            print("\nTransforming owner records...")
-            transformed_owners = []
-            for owner in tqdm(source_owners, desc="Transforming", unit="owner"):
-                transformed = self.transform_owner(owner)
-                if transformed:
-                    transformed_owners.append(transformed)
+                    print("\nFetching owners to import...")
+                    source_owners = self.get_owners_to_import(limit)
+                    print(f"  Found {len(source_owners):,} owners to import")
 
-            self.stats['to_import'] = len(transformed_owners)
-            print(f"\n  Valid owners to import: {self.stats['to_import']:,}")
-            print(f"  Skipped (no name): {self.stats['skipped_no_name']:,}")
-            print(f"  Skipped (no address): {self.stats['skipped_no_address']:,}")
+                    if not source_owners:
+                        print("\nNo new owners to import")
+                        return
 
-            # Insert owners
-            self.insert_owners(transformed_owners)
+                    print("\nTransforming owner records...")
+                    transformed_owners = []
+                    for owner in tqdm(source_owners, desc="Transforming", unit="owner"):
+                        transformed = self.transform_owner(owner)
+                        if transformed:
+                            transformed_owners.append(transformed)
+
+                    self.stats['to_import'] = len(transformed_owners)
+                    print(f"\n  Valid owners to import: {self.stats['to_import']:,}")
+
+                    self.insert_owners(transformed_owners)
+                    total_imported = self.stats['imported']
+                    total_failed = self.stats['failed']
+                else:
+                    # Department-by-department processing
+                    success = self.process_department(dept, limit)
+                    total_imported += self.stats['imported']
+                    total_failed += self.stats['failed']
+
+                    if success:
+                        completed_depts += 1
+                    else:
+                        failed_depts.append(dept)
 
             # Final summary
             print("\n" + "=" * 80)
-            print("SUMMARY")
+            print("FINAL SUMMARY")
             print("=" * 80)
-            print(f"Source owners (with idpersonne): {self.stats['total_source']:,}")
-            print(f"Already in owners table: {self.stats['already_exists']:,}")
-            print(f"Attempted to import: {self.stats['to_import']:,}")
-            print(f"Successfully imported: {self.stats['imported']:,}")
-            print(f"Skipped (no name): {self.stats['skipped_no_name']:,}")
-            print(f"Skipped (no address): {self.stats['skipped_no_address']:,}")
-            print(f"Failed: {self.stats['failed']:,}")
+            if departments[0] is not None:
+                print(f"Departments processed: {completed_depts}/{len(departments)}")
+                if failed_depts:
+                    print(f"Failed departments: {', '.join(failed_depts)}")
+            print(f"Total imported: {total_imported:,}")
+            print(f"Total failed: {total_failed:,}")
             print("=" * 80)
 
         finally:
@@ -735,6 +859,25 @@ def main():
         help='Number of parallel workers (default: 4)'
     )
 
+    # Department partitioning (to avoid OOM with large datasets)
+    parser.add_argument(
+        '--department', '--dept',
+        type=str,
+        dest='department',
+        help='Process specific department only (e.g., 75, 01, 2A)'
+    )
+    parser.add_argument(
+        '--sequential',
+        action='store_true',
+        help='Process all departments one by one (avoids OOM)'
+    )
+    parser.add_argument(
+        '--start-department', '--start-dept',
+        type=str,
+        dest='start_department',
+        help='Starting department when using --sequential (resume from)'
+    )
+
     # Debug
     parser.add_argument(
         '--debug',
@@ -756,11 +899,16 @@ def main():
         dry_run=args.dry_run,
         batch_size=args.batch_size,
         num_workers=args.num_workers,
-        source_table=args.source_table
+        source_table=args.source_table,
+        department=args.department
     )
 
     try:
-        importer.run(args.limit)
+        importer.run(
+            limit=args.limit,
+            sequential=args.sequential,
+            start_department=args.start_department
+        )
         print("\nCompleted successfully")
     except KeyboardInterrupt:
         print("\nInterrupted by user")

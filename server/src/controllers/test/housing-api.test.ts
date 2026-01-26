@@ -243,14 +243,14 @@ describe('Housing API', () => {
         ...genEstablishmentApi(
           ...faker.helpers.arrayElements(department.geoCodes)
         ),
-        kind: 'ME'
+        kind: 'METRO'
       };
       const intercommunalityUser = genUserApi(intercommunality.id);
       const commune: EstablishmentApi = {
         ...genEstablishmentApi(
           faker.helpers.arrayElement(intercommunality.geoCodes)
         ),
-        kind: 'Commune'
+        kind: 'COM'
       };
       const communeUser = genUserApi(commune.id);
 

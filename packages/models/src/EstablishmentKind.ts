@@ -1,20 +1,17 @@
 import { Order } from 'effect';
 
 export const ESTABLISHMENT_KIND_VALUES = [
-  'ASSO',
-  'CA',
-  'CC',
-  'Commune',
-  'CTU',
-  'CU',
-  'DEP',
-  'ME',
-  'PETR',
-  'REG',
-  'SDED',
-  'SDER',
-  "Service déconcentré de l'État à compétence (inter) départementale",
-  'SIVOM'
+  'ARR', // Arrondissement
+  'CA', // Communauté d'Agglomération
+  'CC', // Communauté de Communes
+  'COM', // Commune
+  'COM-TOM', // Commune d'Outre-Mer
+  'CU', // Communauté Urbaine
+  'DEP', // Département
+  'EPT', // Établissement Public Territorial
+  'METRO', // Métropole
+  'REG', // Région
+  'TOM' // Territoire d'Outre-Mer
 ] as const;
 
 export type EstablishmentKind = (typeof ESTABLISHMENT_KIND_VALUES)[number];
@@ -22,27 +19,22 @@ export type EstablishmentKind = (typeof ESTABLISHMENT_KIND_VALUES)[number];
 const ESTABLISHMENT_KIND_ORDER: Record<EstablishmentKind, number> = {
   // Regional level
   REG: 1, // Région
-  SDER: 2, // Service Déconcentré de l'État Régional
+  TOM: 2, // Territoire d'Outre-Mer
 
   // Departmental level
   DEP: 3, // Département
-  "Service déconcentré de l'État à compétence (inter) départementale": 4,
-  SDED: 5, // Service Déconcentré de l'État Départemental
 
   // Intercommunal level (from largest to smallest)
-  ME: 6, // Métropole
-  CU: 7, // Communauté Urbaine
-  CA: 8, // Communauté d'Agglomération
-  CC: 9, // Communauté de Communes
-  CTU: 10, // Communauté de Transport Urbain
-
-  // Territorial cooperation
-  PETR: 11, // Pôle d'Équilibre Territorial et Rural
-  SIVOM: 12, // Syndicat Intercommunal à Vocation Multiple (Multi-purpose Intercommunal Syndicate)
+  METRO: 4, // Métropole
+  CU: 5, // Communauté Urbaine
+  CA: 6, // Communauté d'Agglomération
+  CC: 7, // Communauté de Communes
+  EPT: 8, // Établissement Public Territorial
 
   // Municipal level
-  Commune: 13,
-  ASSO: 14
+  COM: 9, // Commune
+  'COM-TOM': 10, // Commune d'Outre-Mer
+  ARR: 11 // Arrondissement
 };
 export const byKindDesc = Order.mapInput(
   Order.number,

@@ -293,7 +293,7 @@ describe('Housing repository', () => {
           intercommunality = {
             ...genEstablishmentApi(...geoCodes),
             name: 'Eurométropole de Strasbourg',
-            kind: 'ME'
+            kind: 'METRO'
           };
 
           await Establishments().insert(

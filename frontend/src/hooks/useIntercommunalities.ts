@@ -11,7 +11,7 @@ export function useIntercommunalities() {
   );
   const query = useFindEstablishmentsQuery(
     {
-      kind: ['CA', 'CC', 'CU', 'ME'] // Intercommunalities
+      kind: ['CA', 'CC', 'CU', 'METRO', 'EPT'] // Intercommunalities
     },
     {
       skip: establishment && !isDepartmentalEstablishment(establishment)

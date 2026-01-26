@@ -1,10 +1,33 @@
-import classNames from 'classnames';
+import { styled } from '@mui/material/styles';
 import { format } from 'date-fns';
-import type { ReactElement } from 'react';
-import React from 'react';
-
 import { Predicate } from 'effect';
-import styles from './dpe.module.scss';
+import type { ReactElement } from 'react';
+import { Fragment } from 'react';
+
+const DPEContainer = styled('div', {
+  shouldForwardProp: (prop) => prop !== 'value'
+})<{ value: string }>(({ value }) => ({
+  display: 'inline-flex',
+  justifyContent: 'center',
+  alignItems: 'center',
+  color: value === 'G' ? '#fff' : '#1e1e1e',
+  clipPath: 'polygon(0% 0%, 80% 0, 100% 50%, 80% 100%, 0% 100%)',
+  width: '2.5rem',
+  height: '1.5rem',
+  textAlign: 'center',
+  paddingRight: '0.5rem',
+  lineHeight: 'inherit',
+  fontWeight: 700,
+  backgroundColor: {
+    A: '#519740',
+    B: '#67C84D',
+    C: '#D6FC5E',
+    D: '#FFFD54',
+    E: '#F7CD46',
+    F: '#F19E4B',
+    G: '#EA3223'
+  }[value]
+}));
 
 interface Props {
   /**
@@ -23,15 +46,15 @@ function DPE(props: Props) {
 
   return (
     <>
-      <div className={classNames(styles.dpe, styles[value])}>{value}</div>
+      <DPEContainer value={value}>{value}</DPEContainer>
       {additionalInfos.length > 0 && (
         <>
            (
           {additionalInfos.map((elt, index) => (
-            <React.Fragment key={index}>
+            <Fragment key={index}>
               {!!index && <> - </>}
               {elt}
-            </React.Fragment>
+            </Fragment>
           ))}
           )
         </>

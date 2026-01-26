@@ -231,7 +231,7 @@ python import-dpe.py dpe_data_complete.jsonl \
 - `dpe_date_at` : Certificate date
 - `dpe_type` : DPE type (method)
 - `heating_building` : Heating type
-- `dpe_import_match` : Matching method (rnb_id or plot_id)
+- `dpe_import_match` : Matching method (rnb_id or ban_id)
 
 ---
 

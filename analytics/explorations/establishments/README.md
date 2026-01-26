@@ -50,12 +50,12 @@ Remarque: les scripts produisent déjà la plupart de ces champs (avec des noms 
 - Fichiers locaux du dossier `data/`
   - `EPCI.xlsx` (onglets `EPCI`, `Composition`)
   - `EPT.xlsx` (onglets `EPT`, `Composition`)
-  - `mapping_siren_insee.xlsx` (commune INSEE → SIREN)
+  - `mapping_siren_insee.csv` (commune INSEE → SIREN, séparateur `;`)
 
 ## Architecture des scripts
 
 - `collectivities.py`
-  - Télécharge/charge les tables INSEE (COG {2025}) et les Excel `EPCI.xlsx` / `EPT.xlsx` / `mapping_siren_insee.xlsx`
+  - Télécharge/charge les tables INSEE (COG {2025}) et les fichiers `EPCI.xlsx` / `EPT.xlsx` / `mapping_siren_insee.csv`
   - Construit les périmètres géo (listes de codes communes) pour: Régions, Départements, EPCI (ME/CU/CA/CC), EPT, Communes, TOM (collectivités + communes), Arrondissements (dont Paris > cas particulier)
   - Normalise les codes (décimaux, padding, 2A/2B) et les noms ZLV (suppression de préfixes « Communauté de… », ajout du code dép dans le nom EPCI, etc.)
   - Récupère SIREN/SIRET via: mapping INSEE↔SIREN + requêtes DuckDB dans le parquet Sirene, ou API Entreprises (collectivités)
@@ -72,11 +72,21 @@ Remarque: les scripts produisent déjà la plupart de ces champs (avec des noms 
 ### 1) Prérequis
 
 - Python 3.10+ et librairies: pandas, numpy, duckdb, requests, requests-cache, tqdm, openpyxl (pour Excel)
-- Fichiers présents dans `data/`:
-  - `EPCI.xlsx`, `EPT.xlsx`, `mapping_siren_insee.xlsx`
-- Base Sirene (Parquet) disponible localement et chemin mis à jour dans `collectivities.py` (variable `PARQUET_PATH`)
-- Connexion internet pour charger les COG (via data.gouv) et appeler l’API Entreprises
+- Fichiers présents dans `data/` (voir section "Téléchargement des fichiers sources" ci-dessous)
+- Base Sirene (Parquet) disponible localement: `StockUniteLegale_utf8.parquet`
+- Connexion internet pour charger les COG (via data.gouv) et appeler l'API Entreprises
 - Les caches se créeront automatiquement: `cache.sqlite` (INSEE/data.gouv) et `api_entreprise_cache.sqlite` (API Entreprises)
+
+### Téléchargement des fichiers sources
+
+| Fichier | Source | URL de téléchargement |
+|---------|--------|----------------------|
+| `data/EPCI.xlsx` | INSEE | https://www.insee.fr/fr/information/2510634 → "Télécharger EPCI" (zip) |
+| `data/EPT.xlsx` | INSEE | https://www.insee.fr/fr/information/2510634 → "Télécharger EPT" (zip) |
+| `data/mapping_siren_insee.csv` | BANATIC / data.gouv.fr | https://www.data.gouv.fr/datasets/table-de-correspondance-entre-ndeg-siren-et-code-insee-des-communes |
+| `StockUniteLegale_utf8.parquet` | Base Sirene | https://www.data.gouv.fr/datasets/base-sirene-des-entreprises-et-de-leurs-etablissements-siren-siret |
+
+> **Note**: Extraire les fichiers EPCI et EPT des archives ZIP et les renommer si nécessaire (ex: `EPCI_au_01-01-2025.xlsx` → `EPCI.xlsx`)
 
 Installation rapide (exemple):
 

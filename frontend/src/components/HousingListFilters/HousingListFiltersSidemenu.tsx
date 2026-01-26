@@ -562,6 +562,7 @@ function HousingListFiltersSidemenu(props: Props) {
             </Grid>
             <Grid component="article" mb={2} size={12}>
               <EnergyConsumptionSelect
+                label="Étiquette DPE représentatif (CSTB)"
                 multiple
                 value={filters.energyConsumption ?? []}
                 onChange={(values) => {

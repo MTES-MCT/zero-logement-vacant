@@ -74,7 +74,7 @@ export type HousingPayloadDTO = Pick<HousingDTO, 'localId'>;
 
 export type HousingUpdatePayloadDTO =
   // Required keys
-  Pick<HousingDTO, 'status' | 'occupancy'> & {
+  Pick<HousingDTO, 'status' | 'occupancy' | 'actualEnergyConsumption'> & {
     // Nullable keys
     subStatus: string | null;
     occupancyIntended: Occupancy | null;

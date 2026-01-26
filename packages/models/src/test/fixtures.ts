@@ -634,6 +634,10 @@ export function genHousingDTO(owner: OwnerDTO | null): HousingDTO {
     housingKind: faker.helpers.arrayElement(HOUSING_KIND_VALUES),
     status: faker.helpers.arrayElement(HOUSING_STATUS_VALUES),
     subStatus: null,
+    actualEnergyConsumption: faker.helpers.arrayElement([
+      null,
+      ...ENERGY_CONSUMPTION_VALUES
+    ]),
     energyConsumption: faker.helpers.arrayElement([
       null,
       ...ENERGY_CONSUMPTION_VALUES

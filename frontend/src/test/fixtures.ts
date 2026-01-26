@@ -70,7 +70,7 @@ export function genAuthUser(user: User): AuthUser {
       id: faker.string.uuid(),
       name: randomstring.generate(),
       siren: genNumber(10),
-      kind: 'Commune',
+      kind: 'COM',
       available: genBoolean(),
       shortName: randomstring.generate(),
       geoCodes: [faker.location.zipCode()],

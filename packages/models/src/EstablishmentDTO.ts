@@ -26,15 +26,7 @@ export function isChild(geoCodes: ReadonlySet<string>) {
 export function isDepartmentalEstablishment(
   establishment: Pick<EstablishmentDTO, 'kind'>
 ): boolean {
-  const departments: ReadonlyArray<EstablishmentKind> = [
-    'DEP',
-    'SDED',
-    // TODO: wrong data?
-    'SDER',
-    'SIVOM',
-    'REG',
-    'CTU'
-  ];
+  const departments: ReadonlyArray<EstablishmentKind> = ['DEP', 'REG', 'TOM'];
   return departments.includes(establishment.kind);
 }
 
@@ -45,7 +37,8 @@ export function isIntercommunalityEstablishment(
     'CA',
     'CC',
     'CU',
-    'ME'
+    'METRO',
+    'EPT'
   ];
   return intercommunalities.includes(establishment.kind);
 }

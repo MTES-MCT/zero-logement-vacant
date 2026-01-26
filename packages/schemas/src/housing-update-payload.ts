@@ -1,6 +1,7 @@
 import { number, object, ObjectSchema, string } from 'yup';
 
 import {
+  ENERGY_CONSUMPTION_VALUES,
   HOUSING_STATUS_VALUES,
   HousingUpdatePayloadDTO,
   OCCUPANCY_VALUES
@@ -19,6 +20,11 @@ export const housingUpdatePayload: ObjectSchema<HousingUpdatePayloadDTO> =
     subStatus: string().trim().min(1).nullable().optional().default(null),
     occupancyIntended: string()
       .oneOf(OCCUPANCY_VALUES)
+      .nullable()
+      .optional()
+      .default(null),
+    actualEnergyConsumption: string()
+      .oneOf(ENERGY_CONSUMPTION_VALUES)
       .nullable()
       .optional()
       .default(null)

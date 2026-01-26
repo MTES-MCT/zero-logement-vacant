@@ -412,7 +412,8 @@ async function update(housing: HousingApi): Promise<void> {
       occupancy: housing.occupancy,
       occupancy_intended: housing.occupancyIntended ?? null,
       status: housing.status,
-      sub_status: housing.subStatus ?? null
+      sub_status: housing.subStatus ?? null,
+      actual_dpe: housing.actualEnergyConsumption
     });
 }
 

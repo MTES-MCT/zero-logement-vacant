@@ -20,6 +20,7 @@ export const EVENT_NAME_VALUES = [
   "Modification d'identité",
   'Modification du statut de la campagne',
   'Création du logement',
+  'Modification du logement',
   "Création d'un nouveau propriétaire",
   'Conflit d’informations possible venant d’une source externe concernant le propriétaire et/ou la propriété',
   // New events

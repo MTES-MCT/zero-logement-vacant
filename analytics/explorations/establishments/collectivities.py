@@ -19,11 +19,11 @@ URL_COMMUNES_TOM = "https://www.data.gouv.fr/api/1/datasets/r/6fcfb772-1c24-41c9
 URL_DEPARTEMENTS = "https://www.data.gouv.fr/api/1/datasets/r/54a8263d-6e2d-48d5-b214-aa17cc13f7a0"
 URL_DEPARTMENTS_TOM = "https://www.data.gouv.fr/api/1/datasets/r/d4f01365-a3a7-41b2-9907-01a6cb42c9f2"
 URL_REGIONS = "https://www.data.gouv.fr/api/1/datasets/r/2486b351-5d85-4e1a-8d12-5df082c75104"
-URL_MAPPING_SIREN_INSEE = "data/mapping_siren_insee.xlsx"
+URL_MAPPING_SIREN_INSEE = "data/mapping_siren_insee.csv"
 EPCI_PATH = "data/EPCI.xlsx"
 EPT_PATH = "data/EPT.xlsx"
-PARQUET_PATH = '/Users/raphaelcourivaud/Downloads/Base Sirene SIREN SIRET.parquet'
-PARQUET_GEOLOC_PATH = '/Users/raphaelcourivaud/Downloads/Geolocalisation Etablissement Sirene Statistiques.parquet'
+PARQUET_PATH = 'StockUniteLegale_utf8.parquet'
+PARQUET_GEOLOC_PATH = None  # Not available - TOM commune lookup will be skipped
 MILLESIME = "2025"
 SLEEP_TIME = 0.15
 
@@ -43,11 +43,11 @@ class CollectivityProcessor:
         self.df_departements = pd.read_csv(URL_DEPARTEMENTS)
         self.df_departements_tom = pd.read_csv(URL_DEPARTMENTS_TOM)
         self.df_regions = pd.read_csv(URL_REGIONS)
-        self.df_epci_main = pd.read_excel(EPCI_PATH, sheet_name='EPCI')
-        self.df_epci_composition = pd.read_excel(EPCI_PATH, sheet_name='Composition')
-        self.df_ept_main = pd.read_excel(EPT_PATH, sheet_name='EPT')
-        self.df_ept_composition = pd.read_excel(EPT_PATH, sheet_name='Composition')
-        self.df_mapping_siren_insee = pd.read_excel(URL_MAPPING_SIREN_INSEE)
+        self.df_epci_main = pd.read_excel(EPCI_PATH, sheet_name='EPCI', engine='calamine', header=5)
+        self.df_epci_composition = pd.read_excel(EPCI_PATH, sheet_name='Composition_communale', engine='calamine', header=5)
+        self.df_ept_main = pd.read_excel(EPT_PATH, sheet_name='EPT', engine='calamine', header=5)
+        self.df_ept_composition = pd.read_excel(EPT_PATH, sheet_name='Composition_communale', engine='calamine', header=5)
+        self.df_mapping_siren_insee = pd.read_csv(URL_MAPPING_SIREN_INSEE, sep=';', dtype={'siren': str, 'insee': str}, encoding='latin-1')
         print("Data sources loaded successfully!")
         
         # Build lookup dictionaries
@@ -452,13 +452,17 @@ class CollectivityProcessor:
     def get_siren_siret_for_tom_commune(self, commune_name: str, dep_code: str) -> tuple:
         """
         Get SIREN and SIRET for TOM communes from the Sirene parquet file.
-        
+
         Args:
             commune_name: Name of the commune (e.g., "Ua Huka", "Kouaoua")
             dep_code: Department code (e.g., "975" for Mayotte)
         Returns:
             tuple: (siren, siret) or (None, None) if not found
         """
+        # Skip if geolocation parquet is not available
+        if PARQUET_GEOLOC_PATH is None:
+            return None, None
+
         # Normalize the commune name: replace special characters with space and uppercase
         normalized_name = re.sub(r'[^A-Za-z0-9\s]', ' ', commune_name).upper()
         

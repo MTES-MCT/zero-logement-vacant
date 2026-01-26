@@ -17,7 +17,6 @@ import {
   TIME_PER_WEEK_VALUES,
   UserAccountDTO
 } from '@zerologementvacant/models';
-
 import {
   genBuildingDTO,
   genDatafoncierHousing as genDatafoncierHousingDTO,

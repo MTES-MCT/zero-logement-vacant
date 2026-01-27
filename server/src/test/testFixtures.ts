@@ -324,7 +324,6 @@ export const genHousingApi = (
     cadastralReference: randomstring.generate(),
     buildingYear: faker.date.past({ years: 100 }).getUTCFullYear(),
     taxed: faker.datatype.boolean(),
-    deprecatedVacancyReasons: [],
     dataYears,
     dataFileYears,
     buildingLocation: randomstring.generate(),
@@ -371,7 +370,6 @@ export const genHousingApi = (
     geoPerimeters: [],
     precisions: [],
     rentalValue: faker.number.int({ min: 500, max: 1000 }),
-    deprecatedPrecisions: [],
     lastMutationType: faker.helpers.arrayElement(MUTATION_TYPE_VALUES),
     lastMutationDate:
       faker.helpers.maybe(() => faker.date.past({ years: 20 }).toJSON()) ??

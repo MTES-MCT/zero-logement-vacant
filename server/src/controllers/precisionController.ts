@@ -9,12 +9,7 @@ import HousingMissingError from '~/errors/housingMissingError';
 import PrecisionMissingError from '~/errors/precisionMissingError';
 import { startTransaction } from '~/infra/database/transaction';
 import { PrecisionHousingEventApi } from '~/models/EventApi';
-import {
-  toOldPrecision,
-  toPrecisionDTO,
-  wasPrecision,
-  wasVacancyReason
-} from '~/models/PrecisionApi';
+import { toPrecisionDTO } from '~/models/PrecisionApi';
 import eventRepository from '~/repositories/eventRepository';
 import housingRepository from '~/repositories/housingRepository';
 import precisionRepository from '~/repositories/precisionRepository';

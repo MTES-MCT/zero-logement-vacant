@@ -93,13 +93,6 @@ const updatePrecisionsByHousing: RequestHandler<
     throw new PrecisionMissingError(...body);
   }
 
-  const deprecatedPrecisions: string[] = precisions
-    .filter((precision) => wasPrecision(precision.category))
-    .map(toOldPrecision);
-  const deprecatedVacancyReasons: string[] = precisions
-    .filter((precision) => wasVacancyReason(precision.category))
-    .map(toOldPrecision);
-
   const existingPrecisions = await precisionRepository.find({
     filters: {
       housingId: [housing.id]
@@ -143,11 +136,6 @@ const updatePrecisionsByHousing: RequestHandler<
 
   await startTransaction(async () => {
     await Promise.all([
-      housingRepository.update({
-        ...housing,
-        deprecatedPrecisions,
-        deprecatedVacancyReasons
-      }),
       precisionRepository.link(housing, precisions),
       eventRepository.insertManyPrecisionHousingEvents(events)
     ]);

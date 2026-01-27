@@ -19,8 +19,8 @@ export interface BuildingDBO {
    */
   rnb_id_score: number | null;
   dpe_id: string | null;
-  class_dpe: string | null;
-  class_ges: string | null;
+  class_dpe: EnergyConsumption | null;
+  class_ges: EnergyConsumption | null;
   dpe_date_at: string | null;
   dpe_type: string | null;
   heating_building: string | null;

@@ -178,27 +178,6 @@ describe('Precision API', () => {
       expect(status).toBe(constants.HTTP_STATUS_NOT_FOUND);
     });
 
-    it('should write to the old fast_housing.deprecated_precisions', async () => {
-      const { status } = await request(url)
-        .put(testRoute(housing.id))
-        .send(payload)
-        .type('json')
-        .use(tokenProvider(user));
-
-      expect(status).toBe(constants.HTTP_STATUS_OK);
-      const actualHousing = await Housing()
-        .where({
-          geo_code: housing.geoCode,
-          id: housing.id
-        })
-        .first();
-      expect(actualHousing).toBeDefined();
-      const oldPrecisions = (actualHousing?.deprecated_precisions ?? []).concat(
-        actualHousing?.deprecated_vacancy_reasons ?? []
-      );
-      expect(oldPrecisions).toHaveLength(payload.length);
-    });
-
     it('should link the housing to the precisions', async () => {
       const { status } = await request(url)
         .put(testRoute(housing.id))

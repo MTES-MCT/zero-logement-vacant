@@ -127,6 +127,7 @@ function IndividualEventCard(props: IndividualEventCardProps) {
       // Not yet needed thus not implemented
       .with({ type: 'owner:created' }, () => null)
       .with({ type: 'campaign:updated' }, () => null)
+      .with({ type: 'housing:updated' }, () => null)
       .exhaustive()
   );
 }

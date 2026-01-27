@@ -600,8 +600,7 @@ export function genGroupDTO(
 export const FRANCE_BBOX: BBox = [-1.69, 43.19, 6.8, 49.49];
 
 export function genHousingDTO(owner: OwnerDTO | null): HousingDTO {
-  // faker.location.zipCode() sometimes returns the department "20"
-  const geoCode = faker.helpers.fromRegExp(/[1-9][0-9]{4}/);
+  const geoCode = genGeoCode();
   const department = geoCode.substring(0, 2);
   const locality = geoCode.substring(2, 5);
   const invariant = genInvariant(locality);

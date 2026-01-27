@@ -27,14 +27,6 @@ export interface HousingRecordApi extends Omit<HousingDTO, 'owner'> {
   buildingId: string | null;
   buildingGroupId: string | null;
   geolocation: Point | null;
-  /**
-   * @deprecated See {@link precisions}
-   */
-  deprecatedVacancyReasons: string[] | null;
-  /**
-   * @deprecated See {@link precisions}
-   */
-  deprecatedPrecisions: string[] | null;
   occupancyRegistered: Occupancy;
 }
 
@@ -157,8 +149,6 @@ export function fromDatafoncierHousing(
     longitude,
     cadastralReference: housing.idsec,
     campaignIds: null,
-    deprecatedPrecisions: null,
-    deprecatedVacancyReasons: null,
     rentalValue: housing.dvltrt,
     vacancyStartYear: null
   };

@@ -60,8 +60,6 @@ export const toHousingRecordApi = (
     beneficiaryCount: null,
     cadastralReference: null,
     campaignIds: null,
-    deprecatedPrecisions: null,
-    deprecatedVacancyReasons: null,
     rentalValue: null,
     vacancyStartYear: null
   };

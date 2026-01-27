@@ -109,22 +109,3 @@ export const VACANCY_REASON_TRANSITION_MAPPING: Map<
   ],
   'tiers-en-cause': ['Extérieurs au propriétaire', 'Tiers en cause']
 });
-
-export function wasPrecision(category: PrecisionCategory): boolean {
-  return PRECISION_TRANSITION_MAPPING.has(category);
-}
-
-export function wasVacancyReason(category: PrecisionCategory): boolean {
-  return VACANCY_REASON_TRANSITION_MAPPING.has(category);
-}
-
-export function toOldPrecision(precision: PrecisionApi): string {
-  const mapping =
-    PRECISION_TRANSITION_MAPPING.get(precision.category) ??
-    VACANCY_REASON_TRANSITION_MAPPING.get(precision.category);
-  if (!mapping) {
-    throw new Error(`No mapping found for category ${precision.category}`);
-  }
-
-  return mapping.concat(precision.label).join(' > ');
-}

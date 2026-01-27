@@ -5,7 +5,7 @@ import {
   BENEFIARY_COUNT_VALUES,
   CADASTRAL_CLASSIFICATION_VALUES,
   DataFileYear,
-  EnergyConsumption,
+  ENERGY_CONSUMPTION_VALUES,
   fromHousing,
   HOUSING_KIND_VALUES,
   HOUSING_STATUS_VALUES,
@@ -75,7 +75,8 @@ import {
 import {
   Buildings,
   formatBuildingApi,
-  parseBuildingApi
+  parseBuildingApi,
+  type BuildingDBO
 } from '../buildingRepository';
 import {
   CampaignsHousing,
@@ -384,11 +385,13 @@ describe('Housing repository', () => {
       });
 
       describe('by energy consumption', () => {
-        it('should keep housings that have no energy consumption filled', async () => {
-          const housing: HousingApi = {
-            ...genHousingApi(),
-            energyConsumption: null
+        it('should keep housings that have no energy consumption filled on their building', async () => {
+          const building: BuildingApi = {
+            ...genBuildingApi(),
+            dpe: null
           };
+          const housing: HousingApi = genHousingApi(undefined, building);
+          await Buildings().insert(formatBuildingApi(building));
           await Housing().insert(formatHousingRecordApi(housing));
 
           const actual = await housingRepository.find({
@@ -398,30 +401,75 @@ describe('Housing repository', () => {
           });
 
           expect(actual.length).toBeGreaterThan(0);
-          expect(actual).toSatisfyAll<HousingApi>((housing) => {
-            return housing.energyConsumption === null;
+          expect(actual).toPartiallyContain<Partial<HousingApi>>({
+            id: housing.id
           });
         });
 
-        it('should filter by energy consumption', async () => {
-          const actualA = await housingRepository.find({
-            filters: {
-              energyConsumption: ['A']
+        it.each([null, ...ENERGY_CONSUMPTION_VALUES])(
+          'should filter by a single building DPE = %s',
+          async (energyConsumption) => {
+            const building: BuildingApi = genBuildingApi({
+              hasEnergyConsumption: energyConsumption !== null
+            });
+            if (building.dpe && energyConsumption !== null) {
+              building.dpe.class = energyConsumption;
             }
-          });
-          expect(actualA).toSatisfyAll<HousingApi>(
-            (housing) => housing.energyConsumption === 'A'
-          );
+            const housing = genHousingApi(undefined, building);
+            await Buildings().insert(formatBuildingApi(building));
+            await Housing().insert(formatHousingRecordApi(housing));
 
-          const EFGClasses: Array<EnergyConsumption | null> = ['E', 'F', 'G'];
-          const actualEFG = await housingRepository.find({
+            const actual = await housingRepository.find({
+              filters: {
+                energyConsumption: [energyConsumption]
+              }
+            });
+
+            const buildings = await Buildings().whereIn(
+              'id',
+              actual.map((housing) => housing.buildingId)
+            );
+            expect(buildings).toSatisfyAll<BuildingDBO>((building) => {
+              return building.class_dpe === energyConsumption;
+            });
+          }
+        );
+
+        it('should filter by a several building DPE', async () => {
+          const energyConsumptions = faker.helpers.arrayElements([
+            null,
+            ...ENERGY_CONSUMPTION_VALUES
+          ]);
+          const buildings: BuildingApi[] = energyConsumptions.map(
+            (energyConsumption) => {
+              const building = genBuildingApi({
+                hasEnergyConsumption: energyConsumption !== null
+              });
+              if (building.dpe && energyConsumption !== null) {
+                building.dpe.class = energyConsumption;
+              }
+              return building;
+            }
+          );
+          const housings = buildings.map((building) =>
+            genHousingApi(undefined, building)
+          );
+          await Buildings().insert(buildings.map(formatBuildingApi));
+          await Housing().insert(housings.map(formatHousingRecordApi));
+
+          const actual = await housingRepository.find({
             filters: {
-              energyConsumption: EFGClasses
+              energyConsumption: energyConsumptions
             }
           });
-          expect(actualEFG).toSatisfyAll<HousingApi>((housing) =>
-            EFGClasses.includes(housing.energyConsumption)
+
+          const actualBuildings = await Buildings().whereIn(
+            'id',
+            actual.map((housing) => housing.buildingId)
           );
+          expect(actualBuildings).toSatisfyAll<BuildingDBO>((building) => {
+            return energyConsumptions.includes(building.class_dpe);
+          });
         });
       });
 

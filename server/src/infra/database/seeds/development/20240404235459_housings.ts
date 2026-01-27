@@ -39,9 +39,13 @@ export async function seed(knex: Knex): Promise<void> {
   await knex.raw(`TRUNCATE TABLE ${housingOwnersTable} CASCADE`);
   await knex.raw(`TRUNCATE TABLE ${housingTable} CASCADE`);
 
-  const establishments = await Establishments(knex).where({ available: true });
-  const buildings = await Buildings(knex).limit(1000);
-  const owners = (await Owners(knex).select()).map(parseOwnerApi);
+  const [establishments, buildings, owners] = await Promise.all([
+    Establishments(knex).where({ available: true }),
+    Buildings(knex).limit(1000),
+    Owners(knex)
+      .select()
+      .then((owners) => owners.map(parseOwnerApi))
+  ]);
 
   await async.forEachSeries(establishments, async (establishment) => {
     const geoCodes = faker.helpers.arrayElements(

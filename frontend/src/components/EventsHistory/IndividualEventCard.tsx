@@ -133,6 +133,7 @@ function IndividualEventCard(props: IndividualEventCardProps) {
             'document:created',
             'document:updated',
             'document:removed',
+            'housing:updated',
             'housing:document-attached',
             'housing:document-detached',
             'housing:document-removed'

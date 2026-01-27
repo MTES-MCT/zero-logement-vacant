@@ -109,7 +109,8 @@ export function diffHousingUpdatePayload(
       status: Equivalence.strict<HousingStatus>(),
       subStatus: Equivalence.strict<string | null>(),
       occupancy: Equivalence.strict<Occupancy>(),
-      occupancyIntended: Equivalence.strict<Occupancy | null>()
+      occupancyIntended: Equivalence.strict<Occupancy | null>(),
+      actualEnergyConsumption: Equivalence.strict<EnergyConsumption | null>()
     },
     Record.map((equivalence: Equivalence.Equivalence<any>, key) =>
       equivalence(before[key], after[key])

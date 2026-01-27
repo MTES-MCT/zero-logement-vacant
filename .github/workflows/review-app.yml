@@ -176,8 +176,8 @@ jobs:
           clever service link-addon $PR_NAME-postgres -a $APP_ALIAS
           clever service link-addon $PR_NAME-redis -a $APP_ALIAS
 
-          clever config update -a $APP_ALIAS --enable-zero-downtime --enable-cancel-on-push --enable-force-https --build-flavor L
-          clever scale --flavor S -a $APP_ALIAS
+          clever config update -a $APP_ALIAS --enable-zero-downtime --enable-cancel-on-push --enable-force-https
+          clever scale --flavor S --build-flavor L -a $APP_ALIAS
 
       - name: Wait for PostgreSQL addon to be ready
         run: |

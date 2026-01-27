@@ -1924,7 +1924,7 @@ describe('Housing list view', () => {
         await user.click(accordion);
 
         const dpe = await screen.findByRole('combobox', {
-          name: 'Étiquette DPE représentatif (CSTB)'
+          name: 'Étiquette DPE représentatif (ADEME)'
         });
         await user.click(dpe);
         const options = await screen.findByRole('listbox');
@@ -1932,7 +1932,7 @@ describe('Housing list view', () => {
         await user.click(option);
         await user.keyboard('{Escape}');
 
-        const badge = await screen.findByText('DPE représentatif (CSTB) A');
+        const badge = await screen.findByText('DPE représentatif (ADEME) A');
         expect(badge).toBeVisible();
       });
     });

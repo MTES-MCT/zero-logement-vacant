@@ -517,11 +517,29 @@ function filteredQuery(opts: FilteredQueryOptions) {
     if (filters.energyConsumption?.length) {
       queryBuilder.where((where) => {
         if (filters.energyConsumption?.includes(null)) {
-          where.whereNull('energy_consumption_bdnb');
+          where.orWhereExists((subquery) => {
+            subquery
+              .select(`${buildingTable}.id`)
+              .from(buildingTable)
+              .where(
+                `${buildingTable}.id`,
+                db.ref(`${housingTable}.building_id`)
+              )
+              .whereNull(`${buildingTable}.class_dpe`);
+          });
         }
         const energyConsumptions = filters.energyConsumption?.filter(isNotNull);
         if (energyConsumptions?.length) {
-          where.orWhereIn('energy_consumption_bdnb', energyConsumptions);
+          where.orWhereExists((subquery) => {
+            subquery
+              .select(`${buildingTable}.id`)
+              .from(buildingTable)
+              .where(
+                `${buildingTable}.id`,
+                db.ref(`${housingTable}.building_id`)
+              )
+              .whereIn(`${buildingTable}.class_dpe`, energyConsumptions);
+          });
         }
       });
     }

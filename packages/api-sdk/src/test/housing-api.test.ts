@@ -1,8 +1,5 @@
 import { Occupancy } from '@zerologementvacant/models';
-import {
-  genHousingDTO,
-  genOwnerDTO
-} from '@zerologementvacant/models/fixtures';
+import { genHousingDTO } from '@zerologementvacant/models/fixtures';
 import axios from 'axios';
 import nock from 'nock';
 import { constants } from 'node:http2';
@@ -18,8 +15,7 @@ describe('Housing API', () => {
 
   describe('find', () => {
     it('should return a list of housing', async () => {
-      const owner = genOwnerDTO();
-      const housings = Array.from({ length: 3 }, () => genHousingDTO(owner));
+      const housings = Array.from({ length: 3 }, () => genHousingDTO());
       nock(host)
         .get('/housing')
         .query(

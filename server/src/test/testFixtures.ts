@@ -25,7 +25,8 @@ import {
   genGeoCode,
   genHousingDTO,
   genNoteDTO,
-  genUserDTO
+  genUserDTO,
+  type GenBuildingDtoOptions
 } from '@zerologementvacant/models/fixtures';
 import { addHours } from 'date-fns';
 import type { BBox } from 'geojson';
@@ -49,7 +50,7 @@ import { HousingDocumentApi } from '~/models/HousingDocumentApi';
 import { HousingOwnerApi } from '~/models/HousingOwnerApi';
 import { LocalityApi } from '~/models/LocalityApi';
 import { fromNoteDTO, HousingNoteApi, NoteApi } from '~/models/NoteApi';
-import { OwnerApi, toOwnerDTO } from '~/models/OwnerApi';
+import { OwnerApi } from '~/models/OwnerApi';
 import { PrecisionApi } from '~/models/PrecisionApi';
 import { ProspectApi } from '~/models/ProspectApi';
 import {
@@ -271,8 +272,8 @@ export const genHousingOwnerApi = (
   absoluteDistance: null
 });
 
-export function genBuildingApi(): BuildingApi {
-  const building = genBuildingDTO();
+export function genBuildingApi(options?: GenBuildingDtoOptions): BuildingApi {
+  const building = genBuildingDTO(options);
   const hasEnergyConsumption = building.dpe !== null;
 
   return {
@@ -297,7 +298,7 @@ export const genHousingApi = (
   building?: BuildingApi
 ): Omit<HousingApi, 'owner'> & { owner: OwnerApi } => {
   const owner = genOwnerApi();
-  const housing = genHousingDTO(toOwnerDTO(owner));
+  const housing = genHousingDTO(geoCode);
 
   return {
     ...housing,

@@ -106,8 +106,14 @@ export function genAddressDTO(): AddressDTO {
   };
 }
 
-export function genBuildingDTO(): BuildingDTO {
-  const hasEnergyConsumption = faker.datatype.boolean({ probability: 0.8 });
+export interface GenBuildingDtoOptions {
+  hasEnergyConsumption?: boolean;
+}
+
+export function genBuildingDTO(options?: GenBuildingDtoOptions): BuildingDTO {
+  const hasEnergyConsumption =
+    options?.hasEnergyConsumption ??
+    faker.datatype.boolean({ probability: 0.8 });
 
   return {
     id:
@@ -599,8 +605,7 @@ export function genGroupDTO(
 
 export const FRANCE_BBOX: BBox = [-1.69, 43.19, 6.8, 49.49];
 
-export function genHousingDTO(owner: OwnerDTO | null): HousingDTO {
-  const geoCode = genGeoCode();
+export function genHousingDTO(geoCode = genGeoCode()): HousingDTO {
   const department = geoCode.substring(0, 2);
   const locality = geoCode.substring(2, 5);
   const invariant = genInvariant(locality);
@@ -638,7 +643,7 @@ export function genHousingDTO(owner: OwnerDTO | null): HousingDTO {
       min: FRANCE_BBOX[0],
       max: FRANCE_BBOX[2]
     }),
-    owner,
+    owner: null,
     livingArea: faker.number.int({ min: 10, max: 300 }),
     cadastralClassification: faker.helpers.arrayElement([
       null,

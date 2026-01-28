@@ -282,10 +282,10 @@ def format_dlign4(dlign4: Optional[str]) -> Optional[str]:
         rest = match.group(3)
 
         if repetition:
-            # Add space after repetition index
-            return f"{number} {repetition.upper()}{rest}"
+            # Add space before and after repetition index
+            return f"{number} {repetition.upper()} {rest.lstrip()}"
         else:
-            return f"{number}{rest}"
+            return f"{number} {rest.lstrip()}"
 
     return line
 

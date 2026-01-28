@@ -25,7 +25,7 @@ function HousingListDocumentUpload(
       isError={false}
       isLoading={false}
       isSuccess={false}
-      label="Ajoutez un ou plusieurs fichiers"
+      label="Ajoutez un ou plusieurs documents"
       maxSize={25}
       multiple
       onUpload={onUpload}

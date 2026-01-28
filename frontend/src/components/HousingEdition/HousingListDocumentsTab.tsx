@@ -1,6 +1,6 @@
 import Grid from '@mui/material/Grid';
 import Stack from '@mui/material/Stack';
-import { Array } from 'effect';
+import { Array, pipe } from 'effect';
 import { useController } from 'react-hook-form';
 import { match, Pattern } from 'ts-pattern';
 
@@ -18,7 +18,11 @@ function HousingListDocumentsTab() {
     .exhaustive();
 
   function onUpload(files: ReadonlyArray<File>): void {
-    field.onChange(files);
+    const values: ReadonlyArray<File> = pipe(
+      value,
+      Array.unionWith(files, (a, b) => a.name === b.name)
+    );
+    field.onChange(values);
   }
 
   function onRemove(file: File): void {

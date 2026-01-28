@@ -69,9 +69,7 @@ const schema = object({
         label: string().required()
       }).required()
     )
-    .optional()
-    .nullable()
-    .default(null)
+    .default([])
 }).required();
 
 const modal = createConfirmationModal({
@@ -97,7 +95,7 @@ function HousingListEditionSideMenu(props: Props) {
       status: null,
       files: null,
       note: null,
-      precisions: null
+      precisions: []
     },
     mode: 'onSubmit',
     resolver: yupResolver(schema)

@@ -9,7 +9,7 @@ import {
   isPrecisionEvolutionCategory,
   isPrecisionMechanismCategory
 } from '@zerologementvacant/models';
-import { useMemo, useState } from 'react';
+import { useState } from 'react';
 
 import { useFindPrecisionsQuery } from '../../services/precision.service';
 import createPrecisionModal, {
@@ -42,12 +42,9 @@ interface ReadOnlyProps {
 
 export type PrecisionListProps = WritableProps | ReadOnlyProps;
 
-function PrecisionLists(props: Readonly<PrecisionListProps>) {
-  const precisionModal = useMemo(
-    () => createPrecisionModal(new Date().toJSON()),
-    []
-  );
+const precisionModal = createPrecisionModal('lists');
 
+function PrecisionLists(props: Readonly<PrecisionListProps>) {
   const writable = props.writable ?? true;
   const multiple = props.multiple ?? false;
   const [tab, setTab] = useState<PrecisionTabId>('dispositifs');

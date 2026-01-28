@@ -132,11 +132,29 @@ export const housingApi = zlvApi.injectEndpoints({
       ReadonlyArray<HousingDTO>,
       HousingBatchUpdatePayload
     >({
-      query: (payload) => ({
-        url: 'housing',
-        method: 'PUT',
-        body: payload
-      }),
+      query: (payload) => {
+        if (payload.files?.length) {
+          // Upload files with the request body
+          const { files, ...json } = payload;
+          const body = new FormData();
+          files.forEach((file) => {
+            body.append('files', file);
+          });
+          body.set('payload', JSON.stringify(json));
+          return {
+            url: 'housing',
+            method: 'PUT',
+            body: body
+          };
+        }
+
+        return {
+          url: 'housing',
+          method: 'PUT',
+          // Send the payload directly as json
+          body: payload
+        };
+      },
       invalidatesTags: (_result, _error, payload) => {
         const tags: ReadonlyArray<TagDescription<TagType>> = [
           'Housing',

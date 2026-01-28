@@ -21,12 +21,12 @@ export type DocumentPayload = Pick<DocumentDTO, 'filename'>;
 
 const IMAGE_TYPES = ['jpeg', 'png', 'webp'];
 
-export function isImage(document: DocumentDTO): boolean {
+export function isImage(document: Pick<DocumentDTO, 'contentType'>): boolean {
   return IMAGE_TYPES.map((type) => mime.getType(type))
     .filter(Predicate.isNotNull)
     .includes(document.contentType);
 }
 
-export function isPDF(document: DocumentDTO): boolean {
+export function isPDF(document: Pick<DocumentDTO, 'contentType'>): boolean {
   return document.contentType === mime.getType('pdf');
 }

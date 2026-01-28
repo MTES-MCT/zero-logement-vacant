@@ -26,6 +26,7 @@ import {
 } from '@zerologementvacant/models/fixtures';
 import async from 'async';
 import { constants } from 'http2';
+import path from 'node:path';
 import randomstring from 'randomstring';
 import request from 'supertest';
 import db from '~/infra/database';
@@ -65,6 +66,7 @@ import {
   PRECISION_HOUSING_EVENTS_TABLE,
   PrecisionHousingEvents
 } from '~/repositories/eventRepository';
+import { HousingDocuments } from '~/repositories/housingDocumentRepository';
 import {
   formatHousingOwnersApi,
   HousingOwners,
@@ -1425,6 +1427,278 @@ describe('Housing API', () => {
           precision_id: newPrecision.id
         }
       ])
+    });
+
+    describe('multipart/form-data support', () => {
+      it('should accept multipart/form-data with payload as JSON string', async () => {
+        const { housings } = await createHousings();
+        const payload: HousingBatchUpdatePayload = {
+          filters: {
+            all: false,
+            housingIds: housings.map((housing) => housing.id)
+          },
+          occupancy: Occupancy.SECONDARY_RESIDENCE,
+          status: HousingStatus.WAITING
+        };
+
+        const { body, status } = await request(url)
+          .put(testRoute)
+          .field('payload', JSON.stringify(payload))
+          .use(tokenProvider(user));
+
+        expect(status).toBe(constants.HTTP_STATUS_OK);
+        expect(body).toIncludeAllPartialMembers(
+          housings.map((housing) => ({
+            id: housing.id,
+            occupancy: payload.occupancy,
+            status: payload.status
+          }))
+        );
+      });
+
+      it('should accept multipart/form-data with payload and files', async () => {
+        const { housings } = await createHousings({ count: 1 });
+        const payload: HousingBatchUpdatePayload = {
+          filters: {
+            all: false,
+            housingIds: housings.map((housing) => housing.id)
+          },
+          status: HousingStatus.IN_PROGRESS
+        };
+
+        const { body, status } = await request(url)
+          .put(testRoute)
+          .field('payload', JSON.stringify(payload))
+          .attach('files', Buffer.from('fake pdf content'), 'test.pdf')
+          .use(tokenProvider(user));
+
+        expect(status).toBe(constants.HTTP_STATUS_OK);
+        expect(body).toIncludeAllPartialMembers(
+          housings.map((housing) => ({
+            id: housing.id,
+            status: payload.status
+          }))
+        );
+      });
+
+      it('should maintain backwards compatibility with JSON requests', async () => {
+        const { housings } = await createHousings();
+        const payload: HousingBatchUpdatePayload = {
+          filters: {
+            all: false,
+            housingIds: housings.map((housing) => housing.id)
+          },
+          occupancy: Occupancy.SECONDARY_RESIDENCE
+        };
+
+        const { body, status } = await request(url)
+          .put(testRoute)
+          .send(payload)
+          .type('json')
+          .use(tokenProvider(user));
+
+        expect(status).toBe(constants.HTTP_STATUS_OK);
+        expect(body).toIncludeAllPartialMembers(
+          housings.map((housing) => ({
+            id: housing.id,
+            occupancy: payload.occupancy
+          }))
+        );
+      });
+
+      it('should return 400 Bad Request for malformed JSON in payload field', async () => {
+        const { status } = await request(url)
+          .put(testRoute)
+          .field('payload', '{invalid json}')
+          .use(tokenProvider(user));
+
+        expect(status).toBe(constants.HTTP_STATUS_BAD_REQUEST);
+      });
+
+      describe('Batch document upload', () => {
+        const testPdfPath = path.join(__dirname, 'fixtures', 'test.pdf');
+        const testJpgPath = path.join(__dirname, 'fixtures', 'test.jpg');
+
+        it('should upload valid documents to S3 and create database records', async () => {
+          const { housings } = await createHousings({ count: 2 });
+          const payload: HousingBatchUpdatePayload = {
+            filters: {
+              all: false,
+              housingIds: housings.map((housing) => housing.id)
+            }
+          };
+
+          const { status } = await request(url)
+            .put(testRoute)
+            .field('payload', JSON.stringify(payload))
+            .attach('files', testPdfPath)
+            .use(tokenProvider(user));
+
+          expect(status).toBe(constants.HTTP_STATUS_OK);
+
+          // Verify documents were created for each housing
+          const documents = await HousingDocuments()
+            .join('documents', 'documents.id', 'documents_housings.document_id')
+            .whereIn(
+              ['housing_geo_code', 'housing_id'],
+              housings.map((h) => [h.geoCode, h.id])
+            );
+
+          expect(documents).toHaveLength(2); // 1 document × 2 housings
+          expect(documents).toSatisfyAll((doc: any) => {
+            return (
+              doc.filename === 'test.pdf' &&
+              doc.s3_key.startsWith('batch-housing-documents/')
+            );
+          });
+        });
+
+        it('should use batch S3 key pattern for uploaded documents', async () => {
+          const { housings } = await createHousings({ count: 1 });
+          const payload: HousingBatchUpdatePayload = {
+            filters: {
+              all: false,
+              housingIds: housings.map((housing) => housing.id)
+            }
+          };
+
+          await request(url)
+            .put(testRoute)
+            .field('payload', JSON.stringify(payload))
+            .attach('files', testPdfPath)
+            .use(tokenProvider(user));
+
+          const documents = await HousingDocuments()
+            .join('documents', 'documents.id', 'documents_housings.document_id')
+            .where({
+              housing_geo_code: housings[0].geoCode,
+              housing_id: housings[0].id
+            });
+
+          expect(documents).toHaveLength(1);
+          expect(documents[0].s3_key).toMatch(
+            /^batch-housing-documents\/[0-9a-f-]+$/
+          );
+        });
+
+        it('should upload multiple files for multiple housings', async () => {
+          const { housings } = await createHousings({ count: 2 });
+          const payload: HousingBatchUpdatePayload = {
+            filters: {
+              all: false,
+              housingIds: housings.map((housing) => housing.id)
+            }
+          };
+
+          await request(url)
+            .put(testRoute)
+            .field('payload', JSON.stringify(payload))
+            .attach('files', testPdfPath)
+            .attach('files', testJpgPath)
+            .use(tokenProvider(user));
+
+          // Should create 4 document records: 2 files × 2 housings
+          const documents = await HousingDocuments()
+            .join('documents', 'documents.id', 'documents_housings.document_id')
+            .whereIn(
+              ['housing_geo_code', 'housing_id'],
+              housings.map((h) => [h.geoCode, h.id])
+            );
+
+          expect(documents).toHaveLength(4);
+        });
+
+        it('should validate file types and reject invalid files', async () => {
+          const { housings } = await createHousings({ count: 1 });
+          const payload: HousingBatchUpdatePayload = {
+            filters: {
+              all: false,
+              housingIds: housings.map((housing) => housing.id)
+            }
+          };
+
+          const invalidBuffer = Buffer.from('not a valid file type');
+          const { status } = await request(url)
+            .put(testRoute)
+            .field('payload', JSON.stringify(payload))
+            .attach('files', invalidBuffer, 'invalid.pdf')
+            .use(tokenProvider(user));
+
+          // Should still succeed with partial success (207 Multi-Status)
+          expect(status).toBe(constants.HTTP_STATUS_OK);
+
+          // No documents should be created for invalid files
+          const documents = await HousingDocuments()
+            .join('documents', 'documents.id', 'documents_housings.document_id')
+            .where({
+              housing_geo_code: housings[0].geoCode,
+              housing_id: housings[0].id
+            });
+
+          expect(documents).toHaveLength(0);
+        });
+
+        it('should handle partial success when some files are invalid', async () => {
+          const { housings } = await createHousings({ count: 1 });
+          const payload: HousingBatchUpdatePayload = {
+            filters: {
+              all: false,
+              housingIds: housings.map((housing) => housing.id)
+            }
+          };
+
+          const invalidBuffer = Buffer.from('invalid file');
+
+          const { status } = await request(url)
+            .put(testRoute)
+            .field('payload', JSON.stringify(payload))
+            .attach('files', testPdfPath)
+            .attach('files', invalidBuffer, 'invalid.pdf')
+            .use(tokenProvider(user));
+
+          expect(status).toBe(constants.HTTP_STATUS_OK);
+
+          // Only valid file should create documents
+          const documents = await HousingDocuments()
+            .join('documents', 'documents.id', 'documents_housings.document_id')
+            .where({
+              housing_geo_code: housings[0].geoCode,
+              housing_id: housings[0].id
+            });
+
+          expect(documents).toHaveLength(1);
+          expect(documents[0].filename).toBe('test.pdf');
+        });
+
+        it('should work in transaction with housing updates', async () => {
+          const { housings } = await createHousings({ count: 1 });
+          const payload: HousingBatchUpdatePayload = {
+            filters: {
+              all: false,
+              housingIds: housings.map((housing) => housing.id)
+            },
+            status: HousingStatus.IN_PROGRESS
+          };
+
+          const { status } = await request(url)
+            .put(testRoute)
+            .field('payload', JSON.stringify(payload))
+            .attach('files', testPdfPath)
+            .use(tokenProvider(user));
+
+          expect(status).toBe(constants.HTTP_STATUS_OK);
+
+          // Both housing update and document should exist
+          const housing = await Housing().where({ id: housings[0].id }).first();
+          expect(housing?.status).toBe(HousingStatus.IN_PROGRESS);
+
+          const documents = await HousingDocuments().where({
+            housing_geo_code: housings[0].geoCode,
+            housing_id: housings[0].id
+          });
+          expect(documents).toHaveLength(1);
+        });
+      });
     });
   });
 

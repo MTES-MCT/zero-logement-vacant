@@ -31,11 +31,11 @@ function DocumentCard(props: Readonly<DocumentCardProps>) {
     locale: 'fr',
     space: true
   });
-  const contentType = mime
-    .getExtension(props.document.contentType)
-    ?.toUpperCase();
+  const contentType =
+    mime.getExtension(props.document.contentType)?.toUpperCase() ?? 'N/A';
 
   const { isUsual, isAdmin } = useUser();
+  const canModifyDocument = isUsual || isAdmin;
 
   const [dropdownOpen, setDropdownOpen] = useState(false);
 
@@ -64,116 +64,114 @@ function DocumentCard(props: Readonly<DocumentCardProps>) {
   }
 
   return (
-    <>
-      <Stack
-        component="article"
-        spacing="1rem"
-        useFlexGap
+    <Stack
+      component="article"
+      spacing="1rem"
+      useFlexGap
+      sx={{
+        border: `1px solid ${fr.colors.decisions.border.default.grey.default}`,
+        padding: '1rem'
+      }}
+    >
+      <Box
+        component="header"
+        sx={{ display: 'flex', justifyContent: 'flex-end' }}
+      >
+        <Dropdown
+          label="Options"
+          buttonProps={{ size: 'small' }}
+          popoverProps={{
+            anchorOrigin: {
+              vertical: 'bottom',
+              horizontal: 'right'
+            },
+            transformOrigin: {
+              vertical: 'top',
+              horizontal: 'right'
+            }
+          }}
+          open={dropdownOpen}
+          onOpen={onOpen}
+        >
+          <Stack spacing="0.5rem" useFlexGap sx={{ p: '1rem' }}>
+            <FullWidthButton
+              priority="tertiary no outline"
+              iconId="fr-icon-eye-line"
+              size="small"
+              onClick={onVisualize}
+            >
+              Visualiser
+            </FullWidthButton>
+
+            {canModifyDocument && (
+              <FullWidthButton
+                priority="tertiary no outline"
+                iconId="fr-icon-edit-fill"
+                size="small"
+                onClick={onRename}
+              >
+                Renommer
+              </FullWidthButton>
+            )}
+            <FullWidthButton
+              priority="tertiary no outline"
+              iconId="fr-icon-download-line"
+              size="small"
+              onClick={onDownload}
+            >
+              Télécharger
+            </FullWidthButton>
+            {canModifyDocument && (
+              <FullWidthButton
+                priority="tertiary no outline"
+                iconId="ri-delete-bin-line"
+                size="small"
+                onClick={onDelete}
+              >
+                Supprimer
+              </FullWidthButton>
+            )}
+          </Stack>
+        </Dropdown>
+      </Box>
+      <Box
+        component="section"
         sx={{
-          border: `1px solid ${fr.colors.decisions.border.default.grey.default}`,
-          padding: '1rem'
+          border: `1px solid ${fr.colors.decisions.border.contrast.grey.default}`
         }}
       >
-        <Box
-          component="header"
-          sx={{ display: 'flex', justifyContent: 'flex-end' }}
-        >
-          <Dropdown
-            label="Options"
-            buttonProps={{ size: 'small' }}
-            popoverProps={{
-              anchorOrigin: {
-                vertical: 'bottom',
-                horizontal: 'right'
-              },
-              transformOrigin: {
-                vertical: 'top',
-                horizontal: 'right'
-              }
-            }}
-            open={dropdownOpen}
-            onOpen={onOpen}
-          >
-            <Stack spacing="0.5rem" useFlexGap sx={{ p: '1rem' }}>
-              <FullWidthButton
-                priority="tertiary no outline"
-                iconId="fr-icon-eye-line"
-                size="small"
-                onClick={onVisualize}
-              >
-                Visualiser
-              </FullWidthButton>
-
-              {isUsual || isAdmin ? (
-                <FullWidthButton
-                  priority="tertiary no outline"
-                  iconId="fr-icon-edit-fill"
-                  size="small"
-                  onClick={onRename}
-                >
-                  Renommer
-                </FullWidthButton>
-              ) : null}
-              <FullWidthButton
-                priority="tertiary no outline"
-                iconId="fr-icon-download-line"
-                size="small"
-                onClick={onDownload}
-              >
-                Télécharger
-              </FullWidthButton>
-              {isUsual || isAdmin ? (
-                <FullWidthButton
-                  priority="tertiary no outline"
-                  iconId="ri-delete-bin-line"
-                  size="small"
-                  onClick={onDelete}
-                >
-                  Supprimer
-                </FullWidthButton>
-              ) : null}
-            </Stack>
-          </Dropdown>
-        </Box>
-        <Box
-          component="section"
+        <DocumentPreview
+          key={props.document.id}
+          document={props.document}
+          firstPageOnly
+          responsive="1x1"
+          fit="contain"
+          fallbackProps={{
+            size: 'sm'
+          }}
+          onClick={onVisualize}
+        />
+      </Box>
+      <Stack component="footer" spacing="0.5rem" useFlexGap>
+        <Typography
           sx={{
-            border: `1px solid ${fr.colors.decisions.border.contrast.grey.default}`
+            fontWeight: 500,
+            color: fr.colors.decisions.text.title.grey.default,
+            whiteSpace: 'nowrap',
+            overflowY: 'clip',
+            textOverflow: 'ellipsis'
           }}
         >
-          <DocumentPreview
-            key={props.document.id}
-            document={props.document}
-            firstPageOnly
-            responsive="1x1"
-            fit="contain"
-            fallbackProps={{
-              size: 'sm'
-            }}
-            onClick={onVisualize}
-          />
-        </Box>
-        <Stack component="footer" spacing="0.5rem" useFlexGap>
-          <Typography
-            sx={{
-              fontWeight: 500,
-              color: fr.colors.decisions.text.title.grey.default,
-              whiteSpace: 'nowrap',
-              overflowY: 'clip',
-              textOverflow: 'ellipsis'
-            }}
-          >
-            {props.document.filename}
-          </Typography>
-          <Typography
-            variant="body2"
-            sx={{ color: fr.colors.decisions.text.mention.grey.default }}
-          >
-            {contentType} — {size}
-          </Typography>
-        </Stack>
+          {props.document.filename}
+        </Typography>
+        <Typography
+          variant="body2"
+          sx={{ color: fr.colors.decisions.text.mention.grey.default }}
+        >
+          {contentType} — {size}
+        </Typography>
       </Stack>
-    </>
+    </Stack>
   );
 }
 

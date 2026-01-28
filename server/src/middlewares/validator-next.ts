@@ -1,5 +1,6 @@
 import { NextFunction, Request, Response } from 'express';
 import { constants } from 'http2';
+import { match, Pattern } from 'ts-pattern';
 import {
   AnyObject,
   Maybe,
@@ -18,8 +19,17 @@ type RequestSchema = Partial<{
 function validate(schema: RequestSchema) {
   return (request: Request, response: Response, next: NextFunction) => {
     try {
+      const contentType = request.get('Content-Type');
+      const body = match(contentType)
+        .with(Pattern.string.startsWith('multipart/form-data'), () => {
+          return request.body.payload
+            ? JSON.parse(request.body.payload)
+            : undefined;
+        })
+        .otherwise(() => request.body);
+
       const data = object(schema).validateSync({
-        body: request.body,
+        body,
         params: request.params,
         query: request.query
       });

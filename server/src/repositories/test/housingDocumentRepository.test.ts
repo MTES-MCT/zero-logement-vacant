@@ -10,10 +10,8 @@ import {
   Housing
 } from '~/repositories/housingRepository';
 import housingDocumentRepository, {
-  DocumentDBO,
   Documents,
   HousingDocuments,
-  toDocumentDBO,
   toHousingDocumentDBO
 } from '~/repositories/housingDocumentRepository';
 import { formatUserApi, Users } from '~/repositories/userRepository';
@@ -24,6 +22,7 @@ import {
   genUserApi
 } from '~/test/testFixtures';
 import type { HousingApi } from '~/models/HousingApi';
+import { toDocumentDBO, type DocumentDBO } from '../documentRepository';
 
 describe('Housing document repository', () => {
   const establishment = genEstablishmentApi();

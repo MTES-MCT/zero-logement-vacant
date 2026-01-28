@@ -2,13 +2,15 @@ import type { Knex } from 'knex';
 import db from '~/infra/database';
 import { withinTransaction } from '~/infra/database/transaction';
 import { createLogger } from '~/infra/logger';
-import { HousingId } from '~/models/HousingApi';
+import type { DocumentApi } from '~/models/DocumentApi';
+import { HousingId, type HousingApi } from '~/models/HousingApi';
 import { HousingDocumentApi } from '~/models/HousingDocumentApi';
 import {
   parseUserApi,
   UserDBO,
   usersTable
 } from '~/repositories/userRepository';
+import { toDocumentDBO, type DocumentDBO } from './documentRepository';
 
 const logger = createLogger('housingDocumentRepository');
 
@@ -19,18 +21,6 @@ export const Documents = (transaction: Knex<DocumentDBO> = db) =>
   transaction<DocumentDBO>(DOCUMENTS_TABLE);
 export const HousingDocuments = (transaction: Knex<HousingDocumentDBO> = db) =>
   transaction<HousingDocumentDBO>(HOUSING_DOCUMENT_TABLE);
-
-export interface DocumentDBO {
-  id: string;
-  filename: string;
-  s3_key: string;
-  content_type: string;
-  size_bytes: number;
-  created_by: string;
-  created_at: string;
-  updated_at: Date | null;
-  deleted_at: Date | null;
-}
 
 export interface HousingDocumentDBO {
   document_id: string;
@@ -45,6 +35,42 @@ type HousingDocumentWithCreatorDBO = DocumentDBO &
 
 async function create(document: HousingDocumentApi): Promise<void> {
   await createMany([document]);
+}
+
+/**
+ * Create documents and associate them to housings.
+ * @param document
+ * @param housings
+ * @returns
+ */
+async function createManyForManyHousings(
+  documents: ReadonlyArray<DocumentApi>,
+  housings: ReadonlyArray<HousingApi>
+): Promise<void> {
+  if (!housings.length) {
+    logger.debug('No housing provided. Skipping...');
+    return;
+  }
+
+  if (!documents.length) {
+    logger.debug('No document provided. Skipping...');
+    return;
+  }
+
+  const housingDocuments = documents.flatMap((document) => {
+    return housings.map<HousingDocumentApi>((housing) => ({
+      ...document,
+      housingGeoCode: housing.geoCode,
+      housingId: housing.id
+    }));
+  });
+  await withinTransaction(async (transaction) => {
+    await Documents(transaction).insert(documents.map(toDocumentDBO));
+    await transaction.batchInsert(
+      HOUSING_DOCUMENT_TABLE,
+      housingDocuments.map(toHousingDocumentDBO)
+    );
+  });
 }
 
 async function createMany(
@@ -162,20 +188,6 @@ function listQuery() {
     .join(usersTable, `${usersTable}.id`, `${DOCUMENTS_TABLE}.created_by`);
 }
 
-export function toDocumentDBO(document: HousingDocumentApi): DocumentDBO {
-  return {
-    id: document.id,
-    filename: document.filename,
-    s3_key: document.s3Key,
-    content_type: document.contentType,
-    size_bytes: document.sizeBytes,
-    created_by: document.createdBy,
-    created_at: document.createdAt,
-    updated_at: document.updatedAt ? new Date(document.updatedAt) : null,
-    deleted_at: document.deletedAt ? new Date(document.deletedAt) : null
-  };
-}
-
 export function toHousingDocumentDBO(
   document: HousingDocumentApi
 ): HousingDocumentDBO {
@@ -212,6 +224,7 @@ export function fromHousingDocumentDBO(
 const housingDocumentRepository = {
   create,
   createMany,
+  createManyForManyHousings,
   findByHousing,
   get,
   update,

@@ -137,6 +137,11 @@ router.get(
 router.put(
   '/housing',
   hasRole([UserRole.USUAL, UserRole.ADMIN]),
+  upload({
+    accept: ACCEPTED_HOUSING_DOCUMENT_EXTENSIONS as string[],
+    multiple: true,
+    maxSizeMiB: MAX_HOUSING_DOCUMENT_SIZE_IN_MiB
+  }),
   validatorNext.validate({
     body: schemas.housingBatchUpdatePayload
   }),

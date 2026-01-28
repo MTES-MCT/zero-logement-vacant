@@ -77,7 +77,9 @@ describe('Building repository', () => {
     });
 
     it('should update only the chosen properties', async () => {
-      const building = genBuildingApi();
+      const building = genBuildingApi({
+        hasEnergyConsumption: true
+      });
       await Buildings().insert(formatBuildingApi(building));
       expect(building.rnb).not.toBeNull();
 

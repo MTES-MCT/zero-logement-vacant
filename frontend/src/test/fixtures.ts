@@ -91,7 +91,7 @@ export function genOwner(): Owner {
 
 export function genHousing(): Housing {
   return {
-    ...genHousingDTO(null),
+    ...genHousingDTO(),
     buildingId: null
   };
 }

@@ -124,7 +124,7 @@ describe('Housing list view', () => {
     const auth = genUserDTO();
     const housings = HOUSING_KIND_VALUES.flatMap((housingKind) => {
       return faker.helpers
-        .multiple(() => genHousingDTO(null))
+        .multiple(() => genHousingDTO())
         .map((housing) => ({ ...housing, housingKind }));
     });
     const owners = faker.helpers.multiple(() => genOwnerDTO(), {
@@ -172,7 +172,7 @@ describe('Housing list view', () => {
     it('should select all housings when the top checkbox gets checked', async () => {
       const auth = genUserDTO();
       const owners = faker.helpers.multiple(() => genOwnerDTO());
-      const housings = faker.helpers.multiple(() => genHousingDTO(null));
+      const housings = faker.helpers.multiple(() => genHousingDTO());
 
       renderView({
         auth,
@@ -196,7 +196,7 @@ describe('Housing list view', () => {
     it('should unselect all housings when the top checkbox is checked and clicked again', async () => {
       const auth = genUserDTO();
       const owners = faker.helpers.multiple(() => genOwnerDTO());
-      const housings = faker.helpers.multiple(() => genHousingDTO(null));
+      const housings = faker.helpers.multiple(() => genHousingDTO());
 
       renderView({
         auth,
@@ -263,7 +263,7 @@ describe('Housing list view', () => {
       const auth = genUserDTO();
       const owner = genOwnerDTO();
       const housing: HousingDTO = {
-        ...genHousingDTO(null),
+        ...genHousingDTO(),
         localId: datafoncierHousing.idlocal
       };
       expect(housing.localId).toBeDefined();
@@ -343,7 +343,7 @@ describe('Housing list view', () => {
     it('should update occupancies', async () => {
       const auth = genUserDTO(UserRole.USUAL);
       const owners = faker.helpers.multiple(() => genOwnerDTO());
-      const housings = faker.helpers.multiple(() => genHousingDTO(null));
+      const housings = faker.helpers.multiple(() => genHousingDTO());
       const housingOwners = housings.flatMap((housing) => {
         const subset = faker.helpers.arrayElements(owners, {
           min: 1,
@@ -406,7 +406,7 @@ describe('Housing list view', () => {
     it('should add housings to an existing group', async () => {
       const auth = genUserDTO(UserRole.USUAL);
       const owners = faker.helpers.multiple(() => genOwnerDTO());
-      const housings = faker.helpers.multiple(() => genHousingDTO(null));
+      const housings = faker.helpers.multiple(() => genHousingDTO());
       const housingOwners = housings.flatMap((housing) => {
         const subset = faker.helpers.arrayElements(owners, {
           min: 1,
@@ -473,7 +473,7 @@ describe('Housing list view', () => {
     it('should go back to the first step', async () => {
       const auth = genUserDTO(UserRole.USUAL);
       const owners = faker.helpers.multiple(() => genOwnerDTO());
-      const housings = faker.helpers.multiple(() => genHousingDTO(null));
+      const housings = faker.helpers.multiple(() => genHousingDTO());
       const housingOwners = housings.flatMap((housing) => {
         const subset = faker.helpers.arrayElements(owners, {
           min: 1,
@@ -524,7 +524,7 @@ describe('Housing list view', () => {
     it('should go back to the previous step', async () => {
       const auth = genUserDTO(UserRole.USUAL);
       const owners = faker.helpers.multiple(() => genOwnerDTO());
-      const housings = faker.helpers.multiple(() => genHousingDTO(null));
+      const housings = faker.helpers.multiple(() => genHousingDTO());
       const housingOwners = housings.flatMap((housing) => {
         const subset = faker.helpers.arrayElements(owners, {
           min: 1,
@@ -579,7 +579,7 @@ describe('Housing list view', () => {
     it('should create a new group', async () => {
       const auth = genUserDTO(UserRole.USUAL);
       const owners = faker.helpers.multiple(() => genOwnerDTO());
-      const housings = faker.helpers.multiple(() => genHousingDTO(null));
+      const housings = faker.helpers.multiple(() => genHousingDTO());
       const housingOwners = housings.flatMap((housing) => {
         const subset = faker.helpers.arrayElements(owners, {
           min: 1,
@@ -643,7 +643,7 @@ describe('Housing list view', () => {
       // Create housings with specific statuses
       const waitingHousings = faker.helpers.multiple(
         () => ({
-          ...genHousingDTO(null),
+          ...genHousingDTO(),
           status: HousingStatus.WAITING
         }),
         { count: 3 }
@@ -651,7 +651,7 @@ describe('Housing list view', () => {
 
       const neverContactedHousings = faker.helpers.multiple(
         () => ({
-          ...genHousingDTO(null),
+          ...genHousingDTO(),
           status: HousingStatus.NEVER_CONTACTED
         }),
         { count: 5 }
@@ -741,7 +741,7 @@ describe('Housing list view', () => {
     it('should create a campaign', async () => {
       const auth = genUserDTO(UserRole.USUAL);
       const owners = faker.helpers.multiple(() => genOwnerDTO());
-      const housings = faker.helpers.multiple(() => genHousingDTO(null));
+      const housings = faker.helpers.multiple(() => genHousingDTO());
       const housingOwners = housings.flatMap((housing) => {
         const subset = faker.helpers.arrayElements(owners, {
           min: 1,
@@ -815,7 +815,7 @@ describe('Housing list view', () => {
     it('should require a title', async () => {
       const auth = genUserDTO(UserRole.USUAL);
       const owners = faker.helpers.multiple(() => genOwnerDTO());
-      const housings = faker.helpers.multiple(() => genHousingDTO(null));
+      const housings = faker.helpers.multiple(() => genHousingDTO());
       const housingOwners = housings.flatMap((housing) => {
         const subset = faker.helpers.arrayElements(owners, {
           min: 1,
@@ -883,7 +883,7 @@ describe('Housing list view', () => {
     it('should restrict require the description', async () => {
       const auth = genUserDTO(UserRole.USUAL);
       const owners = faker.helpers.multiple(() => genOwnerDTO());
-      const housings = faker.helpers.multiple(() => genHousingDTO(null));
+      const housings = faker.helpers.multiple(() => genHousingDTO());
       const housingOwners = housings.flatMap((housing) => {
         const subset = faker.helpers.arrayElements(owners, {
           min: 1,
@@ -955,7 +955,7 @@ describe('Housing list view', () => {
     it('should restrict the title to 64 characters', async () => {
       const auth = genUserDTO(UserRole.USUAL);
       const owners = faker.helpers.multiple(() => genOwnerDTO());
-      const housings = faker.helpers.multiple(() => genHousingDTO(null));
+      const housings = faker.helpers.multiple(() => genHousingDTO());
       const housingOwners = housings.flatMap((housing) => {
         const subset = faker.helpers.arrayElements(owners, {
           min: 1,
@@ -1027,7 +1027,7 @@ describe('Housing list view', () => {
     it('should restrict the description to 1000 characters', async () => {
       const auth = genUserDTO(UserRole.USUAL);
       const owners = faker.helpers.multiple(() => genOwnerDTO());
-      const housings = faker.helpers.multiple(() => genHousingDTO(null));
+      const housings = faker.helpers.multiple(() => genHousingDTO());
       const housingOwners = housings.flatMap((housing) => {
         const subset = faker.helpers.arrayElements(owners, {
           min: 1,
@@ -1223,7 +1223,7 @@ describe('Housing list view', () => {
     describe('Campaign filter', () => {
       it('should filter by a single campaign', async () => {
         const auth = genUserDTO();
-        const housings = faker.helpers.multiple(() => genHousingDTO(null), {
+        const housings = faker.helpers.multiple(() => genHousingDTO(), {
           count: 10
         });
         const owners = faker.helpers.multiple(() => genOwnerDTO(), {
@@ -1292,7 +1292,7 @@ describe('Housing list view', () => {
 
       it('should filter by several campaigns', async () => {
         const auth = genUserDTO(UserRole.USUAL);
-        const housings = faker.helpers.multiple(() => genHousingDTO(null), {
+        const housings = faker.helpers.multiple(() => genHousingDTO(), {
           count: 10
         });
         const owners = faker.helpers.multiple(() => genOwnerDTO(), {
@@ -1355,7 +1355,7 @@ describe('Housing list view', () => {
       it('should remove the filter by campaigns', async () => {
         const auth = genUserDTO(UserRole.USUAL);
         const housings = faker.helpers.multiple(
-          () => genHousingDTO(genOwnerDTO()),
+          () => genHousingDTO(),
           { count: 10 }
         );
         const owners = faker.helpers.multiple(() => genOwnerDTO(), {
@@ -1444,7 +1444,7 @@ describe('Housing list view', () => {
       it('should filter by a status', async () => {
         const status: CampaignStatus = 'draft';
         const auth = genUserDTO();
-        const housings = faker.helpers.multiple(() => genHousingDTO(null), {
+        const housings = faker.helpers.multiple(() => genHousingDTO(), {
           count: 10
         });
         const owners = faker.helpers.multiple(() => genOwnerDTO(), {
@@ -1511,7 +1511,7 @@ describe('Housing list view', () => {
         const status: CampaignStatus = 'draft';
         const auth = genUserDTO();
         const owners = faker.helpers.multiple(() => genOwnerDTO());
-        const housings = faker.helpers.multiple(() => genHousingDTO(null), {
+        const housings = faker.helpers.multiple(() => genHousingDTO(), {
           count: 10
         });
         const housingOwners = housings.flatMap((housing) => {
@@ -1585,7 +1585,7 @@ describe('Housing list view', () => {
       it('should select a status and its campaigns if at least one of the campaigns is not selected', async () => {
         const status: CampaignStatus = 'draft';
         const auth = genUserDTO();
-        const housings = faker.helpers.multiple(() => genHousingDTO(null));
+        const housings = faker.helpers.multiple(() => genHousingDTO());
         const owners = faker.helpers.multiple(() => genOwnerDTO(), {
           count: housings.length
         });
@@ -1648,7 +1648,7 @@ describe('Housing list view', () => {
         const status: CampaignStatus = 'draft';
         const auth = genUserDTO();
         const owners = faker.helpers.multiple(() => genOwnerDTO());
-        const housings = faker.helpers.multiple(() => genHousingDTO(null));
+        const housings = faker.helpers.multiple(() => genHousingDTO());
         const housingOwners = housings.flatMap((housing) => {
           const subset = faker.helpers.arrayElements(owners, {
             min: 1,

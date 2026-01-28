@@ -1,5 +1,7 @@
 import type { EnergyConsumption } from '@zerologementvacant/models';
 import { Array, Predicate } from 'effect';
+import { match, Pattern } from 'ts-pattern';
+
 import db, { ConflictOptions, onConflict } from '~/infra/database';
 import { BuildingApi } from '~/models/BuildingApi';
 
@@ -21,7 +23,7 @@ export interface BuildingDBO {
   dpe_id: string | null;
   class_dpe: EnergyConsumption | null;
   class_ges: EnergyConsumption | null;
-  dpe_date_at: string | null;
+  dpe_date_at: Date | string | null;
   dpe_type: string | null;
   heating_building: string | null;
   dpe_import_match: string | null;
@@ -115,7 +117,11 @@ export function parseBuildingApi(building: BuildingDBO): BuildingApi {
     ? {
         id: building.dpe_id as string,
         class: building.class_dpe as EnergyConsumption,
-        doneAt: building.dpe_date_at as string,
+        doneAt: match(building.dpe_date_at)
+          .with(Pattern.instanceOf(Date), (date) =>
+            date.toISOString().substring(0, 'yyyy-mm-dd'.length)
+          )
+          .otherwise(date => date as string),
         type: building.dpe_type as
           | 'dpe appartement individuel'
           | 'dpe maison individuelle',

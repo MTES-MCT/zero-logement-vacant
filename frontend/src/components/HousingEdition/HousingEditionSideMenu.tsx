@@ -1,9 +1,7 @@
 import Tabs from '@codegouvfr/react-dsfr/Tabs';
 import { yupResolver } from '@hookform/resolvers/yup';
 import Box from '@mui/material/Box';
-import Stack from '@mui/material/Stack';
 import Typography from '@mui/material/Typography';
-
 import { skipToken } from '@reduxjs/toolkit/query/react';
 import {
   HOUSING_STATUS_VALUES,
@@ -12,10 +10,15 @@ import {
   OCCUPANCY_VALUES,
   PRECISION_CATEGORY_VALUES
 } from '@zerologementvacant/models';
-import { fromJS } from 'immutable';
-import { Controller, FormProvider, useForm } from 'react-hook-form';
+import {
+  FormProvider,
+  useForm,
+  type SubmitHandler
+} from 'react-hook-form';
 import { match } from 'ts-pattern';
 import { array, number, object, string, type InferType } from 'yup';
+
+import HousingEditionInformationTab from '~/components/HousingEdition/HousingEditionInformationTab';
 import { useNotification } from '~/hooks/useNotification';
 import { HousingStates } from '~/models/HousingState';
 import { useUpdateHousingMutation } from '~/services/housing.service';
@@ -27,7 +30,6 @@ import {
 import type { Housing, HousingUpdate } from '../../models/Housing';
 import AppLink from '../_app/AppLink/AppLink';
 import AsideNext from '../Aside/AsideNext';
-import OccupancySelect from '../HousingListFilters/OccupancySelect';
 import LabelNext from '../Label/LabelNext';
 import HousingEditionMobilizationTab from './HousingEditionMobilizationTab';
 import HousingEditionNoteTab from './HousingEditionNoteTab';
@@ -73,7 +75,12 @@ const schema = object({
       category: string().oneOf(PRECISION_CATEGORY_VALUES).required(),
       label: string().required()
     }).required()
-  ).default([])
+  ).default([]),
+  actualEnergyConsumption: string()
+    .oneOf(['A', 'B', 'C', 'D', 'E', 'F', 'G'])
+    .nullable()
+    .optional()
+    .default(null)
 }).required();
 
 export type HousingEditionFormSchema = InferType<typeof schema>;
@@ -93,7 +100,8 @@ function HousingEditionSideMenu(props: HousingEditionSideMenuProps) {
       status: props.housing?.status ?? HousingStatus.NEVER_CONTACTED,
       subStatus: props.housing?.subStatus ?? null,
       note: '',
-      precisions: housingPrecisions ?? []
+      precisions: housingPrecisions ?? [],
+      actualEnergyConsumption: props.housing?.actualEnergyConsumption ?? null
     },
     mode: 'onSubmit',
     resolver: yupResolver(schema)
@@ -139,26 +147,28 @@ function HousingEditionSideMenu(props: HousingEditionSideMenuProps) {
     }
   });
 
-  function submit() {
-    if (housing) {
-      const { note, precisions, ...payload } = form.getValues();
+  const { formState } = form;
+  const { dirtyFields } = formState;
 
-      const hasChanges = fromJS(form.formState.dirtyFields)
-        .filterNot((_, key) => key === 'note' || key === 'precisions')
-        .some((value) => !!value);
+  const submit: SubmitHandler<HousingEditionFormSchema> = (data) => {
+    if (housing) {
+      const { note, precisions, ...payload } = data;
+      const hasChanges = [
+        dirtyFields.occupancy,
+        dirtyFields.occupancyIntended,
+        dirtyFields.status,
+        dirtyFields.subStatus,
+        dirtyFields.actualEnergyConsumption
+      ].some((field) => !!field);
+
       if (hasChanges) {
         updateHousing({
           ...housing,
-          // TODO: directly pass payload whenever
-          //  Housing and HousingDTO are aligned
-          occupancy: payload.occupancy as Occupancy,
-          occupancyIntended: payload.occupancyIntended as Occupancy | null,
-          status: payload.status as HousingStatus,
-          subStatus: payload.subStatus ?? null
+          ...payload
         });
       }
 
-      if (form.formState.dirtyFields.precisions) {
+      if (!!dirtyFields.precisions) {
         saveHousingPrecisions({
           housing: housing.id,
           precisions: precisions.map((precision) => precision.id)
@@ -175,39 +185,10 @@ function HousingEditionSideMenu(props: HousingEditionSideMenuProps) {
 
     onClose();
     form.reset();
-  }
+  };
 
   const content = match(tab)
-    .with('occupancy', () => (
-      <Stack rowGap={2}>
-        <Controller<HousingEditionFormSchema, 'occupancy'>
-          name="occupancy"
-          render={({ field, fieldState }) => (
-            <OccupancySelect
-              label="Occupation actuelle"
-              disabled={field.disabled}
-              error={fieldState.error?.message}
-              invalid={fieldState.invalid}
-              value={field.value as Occupancy}
-              onChange={field.onChange}
-            />
-          )}
-        />
-        <Controller<HousingEditionFormSchema, 'occupancyIntended'>
-          name="occupancyIntended"
-          render={({ field, fieldState }) => (
-            <OccupancySelect
-              label="Occupation prévisionnelle"
-              disabled={field.disabled}
-              error={fieldState.error?.message}
-              invalid={fieldState.invalid}
-              value={field.value as Occupancy | null}
-              onChange={field.onChange}
-            />
-          )}
-        />
-      </Stack>
-    ))
+    .with('occupancy', () => <HousingEditionInformationTab housing={housing} />)
     .with('mobilization', () => <HousingEditionMobilizationTab />)
     .with('note', () => (
       <HousingEditionNoteTab housingId={housing?.id ?? null} />
@@ -248,7 +229,7 @@ function HousingEditionSideMenu(props: HousingEditionSideMenuProps) {
         <FormProvider {...form}>
           <Tabs
             tabs={[
-              { tabId: 'occupancy', label: 'Occupation' },
+              { tabId: 'occupancy', label: 'Informations sur le logement' },
               { tabId: 'mobilization', label: 'Suivi' },
               { tabId: 'note', label: 'Note' }
             ]}

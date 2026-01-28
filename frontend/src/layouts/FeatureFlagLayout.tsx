@@ -1,11 +1,11 @@
 import { useFeatureFlagEnabled } from 'posthog-js/react';
 
-type AvailableFeatureFlag = never;
+type AvailableFeatureFlag = 'actual-dpe';
 
 export interface FeatureFlagLayoutProps {
   flag: AvailableFeatureFlag;
   then: React.ReactNode;
-  else: React.ReactNode;
+  else?: React.ReactNode;
 }
 
 function FeatureFlagLayout(props: FeatureFlagLayoutProps) {

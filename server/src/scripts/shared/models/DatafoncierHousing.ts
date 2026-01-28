@@ -44,6 +44,7 @@ export const toHousingRecordApi = (
     occupancyRegistered: toOccupancy(housing.ccthp),
     occupancyIntended: null,
     source: additionalData.source,
+    actualEnergyConsumption: null,
     energyConsumption: null,
     energyConsumptionAt: null,
     cadastralClassification: null,
@@ -63,7 +64,8 @@ export const toHousingRecordApi = (
     deprecatedPrecisions: null,
     deprecatedVacancyReasons: null,
     rentalValue: null,
-    vacancyStartYear: null
+    vacancyStartYear: null,
+    plotArea: null
   };
 };
 

@@ -413,6 +413,7 @@ async function update(housing: HousingApi): Promise<void> {
       occupancy_intended: housing.occupancyIntended ?? null,
       status: housing.status,
       sub_status: housing.subStatus ?? null,
+      actual_dpe: housing.actualEnergyConsumption,
       deprecated_precisions: housing.deprecatedPrecisions?.length
         ? housing.deprecatedPrecisions
         : null,
@@ -522,11 +523,29 @@ function filteredQuery(opts: FilteredQueryOptions) {
     if (filters.energyConsumption?.length) {
       queryBuilder.where((where) => {
         if (filters.energyConsumption?.includes(null)) {
-          where.whereNull('energy_consumption_bdnb');
+          where.orWhereExists((subquery) => {
+            subquery
+              .select(`${buildingTable}.id`)
+              .from(buildingTable)
+              .where(
+                `${buildingTable}.id`,
+                db.ref(`${housingTable}.building_id`)
+              )
+              .whereNull(`${buildingTable}.class_dpe`);
+          });
         }
         const energyConsumptions = filters.energyConsumption?.filter(isNotNull);
         if (energyConsumptions?.length) {
-          where.orWhereIn('energy_consumption_bdnb', energyConsumptions);
+          where.orWhereExists((subquery) => {
+            subquery
+              .select(`${buildingTable}.id`)
+              .from(buildingTable)
+              .where(
+                `${buildingTable}.id`,
+                db.ref(`${housingTable}.building_id`)
+              )
+              .whereIn(`${buildingTable}.class_dpe`, energyConsumptions);
+          });
         }
       });
     }
@@ -1192,12 +1211,19 @@ export interface HousingRecordDBO {
    * @deprecated See {@link HousingDBO.precisions}
    */
   deprecated_precisions: string[] | null;
+  actual_dpe: EnergyConsumption | null;
+  /**
+   * @deprecated Use `BuildingDBO.dpe_class` instead.
+   */
   energy_consumption_bdnb: EnergyConsumption | null;
+  /**
+   * @deprecated Use `BuildingDBO.dpe_date_at` instead.
+   */
+  energy_consumption_at_bdnb: Date | string | null;
   occupancy_source: Occupancy;
   occupancy: Occupancy;
   occupancy_intended: Occupancy | null;
   plot_id: string | null;
-  energy_consumption_at_bdnb: Date | string | null;
   building_group_id: string | null;
   data_source: HousingSource | null;
   /**
@@ -1235,6 +1261,7 @@ export const parseHousingRecordApi = (
   invariant: housing.invariant,
   localId: housing.local_id,
   plotId: housing.plot_id,
+  plotArea: housing.plot_area,
   buildingGroupId: housing.building_group_id,
   buildingId: housing.building_id,
   buildingYear: housing.building_year,
@@ -1262,6 +1289,7 @@ export const parseHousingRecordApi = (
   subStatus: housing.sub_status,
   deprecatedVacancyReasons: housing.deprecated_vacancy_reasons,
   deprecatedPrecisions: housing.deprecated_precisions,
+  actualEnergyConsumption: housing.actual_dpe,
   energyConsumption: housing.energy_consumption_bdnb,
   energyConsumptionAt: housing.energy_consumption_at_bdnb
     ? new Date(housing.energy_consumption_at_bdnb)
@@ -1284,6 +1312,7 @@ export const parseHousingApi = (housing: HousingDBO): HousingApi => ({
   invariant: housing.invariant,
   localId: housing.local_id,
   plotId: housing.plot_id,
+  plotArea: housing.plot_area,
   buildingGroupId: housing.building_group_id,
   buildingHousingCount: housing.housing_count,
   buildingId: housing.building_id,
@@ -1318,6 +1347,7 @@ export const parseHousingApi = (housing: HousingDBO): HousingApi => ({
   deprecatedVacancyReasons: housing.deprecated_vacancy_reasons,
   deprecatedPrecisions: housing.deprecated_precisions,
   precisions: housing.precisions,
+  actualEnergyConsumption: housing.actual_dpe,
   energyConsumption: housing.energy_consumption_bdnb,
   energyConsumptionAt: housing.energy_consumption_at_bdnb
     ? new Date(housing.energy_consumption_at_bdnb)
@@ -1389,6 +1419,7 @@ export const formatHousingRecordApi = (
   data_file_years: housing.dataFileYears,
   status: housing.status,
   sub_status: housing.subStatus ?? null,
+  actual_dpe: housing.actualEnergyConsumption,
   energy_consumption_bdnb: housing.energyConsumption,
   energy_consumption_at_bdnb: housing.energyConsumptionAt,
   occupancy: housing.occupancy,

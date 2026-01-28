@@ -77,15 +77,17 @@ describe('Building repository', () => {
     });
 
     it('should update only the chosen properties', async () => {
-      const building = genBuildingApi();
+      const building = genBuildingApi({
+        hasEnergyConsumption: true
+      });
       await Buildings().insert(formatBuildingApi(building));
-      expect(building.rnbId).not.toBeNull();
+      expect(building.rnb).not.toBeNull();
 
       await buildingRepository.save(
         {
           ...building,
           housingCount: 10,
-          rnbId: null
+          rnb: null
         },
         {
           onConflict: ['id'],
@@ -95,7 +97,7 @@ describe('Building repository', () => {
 
       const actual = await Buildings().where({ id: building.id }).first();
       expect(actual?.housing_count).toBe(10);
-      expect(actual?.rnb_id).toBe(building.rnbId);
+      expect(actual?.rnb_id).toBe(building.rnb!.id);
     });
   });
 });

@@ -337,7 +337,7 @@ export const energyConsumptionOptions: SelectOption<EnergyConsumption>[] =
     markup: (props) => (
       <EnergyConsumptionOption {...props} label={grade} value={grade} />
     ),
-    badgeLabel: `DPE représentatif (CSTB) ${grade}`
+    badgeLabel: `DPE représentatif (ADEME) ${grade}`
   }));
 
 export const housingKindOptions: SelectOption<HousingKind>[] = [

@@ -147,6 +147,7 @@ function AggregatedEventCard(props: AggregatedEventCardProps) {
         )
         // Not yet needed thus not implemented
         .with({ type: 'campaign:updated' }, () => null)
+        .with({ type: 'housing:updated' }, () => null)
         .exhaustive()
     )
     .flat()

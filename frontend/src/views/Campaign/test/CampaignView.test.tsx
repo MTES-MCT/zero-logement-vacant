@@ -44,7 +44,7 @@ describe('Campaign view', () => {
   const sender: SenderDTO = genSenderDTO();
   const draft: DraftDTO = genDraftDTO(sender);
   const owner = genOwnerDTO();
-  const housings = faker.helpers.multiple(() => genHousingDTO(owner));
+  const housings = faker.helpers.multiple(() => genHousingDTO());
 
   beforeEach(() => {
     owner.banAddress = {
@@ -69,6 +69,24 @@ describe('Campaign view', () => {
           options.campaign
         ]);
       });
+
+      if (options.owner) {
+        data.owners.push(options.owner);
+        options.housings.forEach((housing) => {
+          data.housingOwners.set(housing.id, [
+            {
+              id: options.owner!.id,
+              rank: 1,
+              idprocpte: null,
+              idprodroit: null,
+              locprop: null,
+              propertyRight: null,
+              absoluteDistance: null,
+              relativeLocation: null
+            }
+          ]);
+        });
+      }
     }
 
     if (options.draft) {
@@ -146,7 +164,7 @@ describe('Campaign view', () => {
     const housing = housings[index];
     campaign.status = 'draft';
 
-    renderView({ campaign, housings, draft });
+    renderView({ campaign, housings, owner, draft });
 
     const tab = await screen.findByRole('tab', { name: /^Destinataires/ });
     await user.click(tab);
@@ -289,7 +307,7 @@ describe('Campaign view', () => {
       status: 'draft'
     };
 
-    renderView({ campaign, housings, draft });
+    renderView({ campaign, housings, owner, draft });
 
     const tab = await screen.findByRole('tab', { name: /^Destinataires/ });
     await user.click(tab);
@@ -314,7 +332,7 @@ describe('Campaign view', () => {
       status: 'draft'
     };
 
-    renderView({ campaign, housings, draft });
+    renderView({ campaign, housings, owner, draft });
     localStorage.clear();
 
     const tab = await screen.findByRole('tab', { name: /^Destinataires/ });

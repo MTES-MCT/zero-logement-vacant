@@ -749,6 +749,7 @@ const updateMany: RequestHandler<
     });
 
     // Upload valid files to S3 and prepare document records
+    const day = new Date().toJSON().substring(0, 'yyyy-mm-dd'.length);
     const documentsOrErrors: ReadonlyArray<
       Either.Either<DocumentApi, unknown>
     > = await pipe(
@@ -756,7 +757,7 @@ const updateMany: RequestHandler<
       Array.map(
         Either.map((file) => {
           const documentId = uuidv4();
-          const s3Key = `batch-housing-documents/${documentId}`;
+          const s3Key = `batch-housing-documents/${day}/${documentId}`;
           const command = new PutObjectCommand({
             Bucket: config.s3.bucket,
             Key: s3Key,

@@ -232,7 +232,7 @@ ENTITY_MAPPING = {
 }
 
 
-def map_entity(ccogrm: Optional[str]) -> str:
+def map_entity(ccogrm: Optional[str]) -> Optional[str]:
     """
     Map entity from ccogrm first character.
 
@@ -240,13 +240,13 @@ def map_entity(ccogrm: Optional[str]) -> str:
         ccogrm: Group code from Datafoncier
 
     Returns:
-        Entity value for ZLV owners table
+        Entity value for ZLV owners table, or None if unknown
     """
     if not ccogrm or not ccogrm.strip():
-        return 'personnes-physiques'
+        return None
 
     first_char = ccogrm.strip()[0]
-    return ENTITY_MAPPING.get(first_char, 'personnes-physiques')
+    return ENTITY_MAPPING.get(first_char)
 
 
 def format_dlign4(dlign4: Optional[str]) -> Optional[str]:

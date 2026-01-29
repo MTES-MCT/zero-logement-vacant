@@ -54,6 +54,17 @@ router.post(
   fileController.create
 );
 
+router.post(
+  '/documents',
+  hasRole([UserRole.USUAL, UserRole.ADMIN]),
+  upload({
+    accept: ACCEPTED_HOUSING_DOCUMENT_EXTENSIONS as string[],
+    multiple: true,
+    maxSizeMiB: MAX_HOUSING_DOCUMENT_SIZE_IN_MiB
+  }),
+  documentController.create
+);
+
 router.get(
   '/housing/:id/documents',
   validatorNext.validate({

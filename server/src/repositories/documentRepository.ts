@@ -36,6 +36,14 @@ interface FindOneOptions {
   };
 }
 
+interface FindOptions {
+  filters?: {
+    ids?: string[];
+    establishmentIds?: string[];
+    deleted?: boolean;
+  };
+}
+
 async function findOne(
   id: string,
   options?: FindOneOptions
@@ -62,29 +70,23 @@ async function findOne(
   return document ? fromDocumentDBO(document) : null;
 }
 
-async function findMany(
-  ids: string[],
-  options?: FindOneOptions
-): Promise<DocumentApi[]> {
-  if (!ids.length) {
-    return [];
-  }
+async function find(options?: FindOptions): Promise<DocumentApi[]> {
+  logger.debug('Finding documents...', options);
 
-  logger.debug('Finding documents...', { count: ids.length });
-
-  const documents = await queryWithCreator()
-    .whereIn(`${DOCUMENTS_TABLE}.id`, ids)
-    .modify((query) => {
-      if (options?.filters?.establishmentIds?.length) {
-        query.whereIn(
-          `${DOCUMENTS_TABLE}.establishment_id`,
-          options.filters.establishmentIds
-        );
-      }
-      if (options?.filters?.deleted === false) {
-        query.whereNull(`${DOCUMENTS_TABLE}.deleted_at`);
-      }
-    });
+  const documents = await queryWithCreator().modify((query) => {
+    if (options?.filters?.ids?.length) {
+      query.whereIn(`${DOCUMENTS_TABLE}.id`, options.filters.ids);
+    }
+    if (options?.filters?.establishmentIds?.length) {
+      query.whereIn(
+        `${DOCUMENTS_TABLE}.establishment_id`,
+        options.filters.establishmentIds
+      );
+    }
+    if (options?.filters?.deleted === false) {
+      query.whereNull(`${DOCUMENTS_TABLE}.deleted_at`);
+    }
+  });
 
   return documents.map(fromDocumentDBO);
 }
@@ -177,8 +179,8 @@ function fromDocumentDBO(dbo: DocumentWithCreatorDBO): DocumentApi {
 }
 
 const documentRepository = {
+  find,
   findOne,
-  findMany,
   insert,
   insertMany,
   update,

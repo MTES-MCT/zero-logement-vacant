@@ -65,25 +65,6 @@ router.post(
   documentController.create
 );
 
-router.put(
-  '/documents/:id',
-  hasRole([UserRole.USUAL, UserRole.ADMIN]),
-  validatorNext.validate({
-    params: object({ id: schemas.id }),
-    body: schemas.documentPayload
-  }),
-  documentController.update
-);
-
-router.delete(
-  '/documents/:id',
-  hasRole([UserRole.USUAL, UserRole.ADMIN]),
-  validatorNext.validate({
-    params: object({ id: schemas.id })
-  }),
-  documentController.remove
-);
-
 router.get(
   '/housing/:id/documents',
   validatorNext.validate({
@@ -92,19 +73,31 @@ router.get(
   documentController.listByHousing
 );
 
+// NEW: Link existing documents to housing
 router.post(
   '/housing/:id/documents',
   hasRole([UserRole.USUAL, UserRole.ADMIN]),
   validatorNext.validate({
-    params: object({ id: schemas.id })
+    params: object({ id: schemas.id }),
+    body: schemas.housingDocumentPayload
   }),
-  upload({
-    accept: ACCEPTED_HOUSING_DOCUMENT_EXTENSIONS as string[],
-    multiple: true,
-    maxSizeMiB: MAX_HOUSING_DOCUMENT_SIZE_IN_MiB
-  }),
-  documentController.createByHousing
+  documentController.linkToHousing
 );
+
+// OLD: Upload files directly to housing (DEPRECATED - use POST /documents then POST /housing/:id/documents)
+// router.post(
+//   '/housing/:id/documents',
+//   hasRole([UserRole.USUAL, UserRole.ADMIN]),
+//   validatorNext.validate({
+//     params: object({ id: schemas.id })
+//   }),
+//   upload({
+//     accept: ACCEPTED_HOUSING_DOCUMENT_EXTENSIONS as string[],
+//     multiple: true,
+//     maxSizeMiB: MAX_HOUSING_DOCUMENT_SIZE_IN_MiB
+//   }),
+//   documentController.createByHousing
+// );
 
 router.put(
   '/housing/:housingId/documents/:documentId',

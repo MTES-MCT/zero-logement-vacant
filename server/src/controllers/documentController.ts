@@ -8,6 +8,7 @@ import {
   type DocumentPayload,
   type HousingDTO
 } from '@zerologementvacant/models';
+import { type HousingDocumentPayload } from '@zerologementvacant/schemas';
 import { createS3, generatePresignedUrl } from '@zerologementvacant/utils/node';
 import async from 'async';
 import { Array, Either, pipe } from 'effect';
@@ -203,6 +204,75 @@ const remove: RequestHandler<Pick<DocumentDTO, 'id'>, void, never> = async (
   await documentRepository.remove(params.id);
 
   response.status(constants.HTTP_STATUS_NO_CONTENT).send();
+};
+
+const linkToHousing: RequestHandler<
+  { id: HousingDTO['id'] },
+  ReadonlyArray<DocumentDTO>,
+  HousingDocumentPayload
+> = async (request, response) => {
+  const { establishment, params, body } = request as AuthenticatedRequest<
+    { id: HousingDTO['id'] },
+    ReadonlyArray<DocumentDTO>,
+    HousingDocumentPayload
+  >;
+
+  logger.info('Linking documents to housing', {
+    housing: params.id,
+    documentCount: body.documentIds.length
+  });
+
+  // Validate housing exists and belongs to establishment
+  const housing = await housingRepository.findOne({
+    establishment: establishment.id,
+    geoCode: establishment.geoCodes,
+    id: params.id
+  });
+
+  if (!housing) {
+    throw new HousingMissingError(params.id);
+  }
+
+  // Validate documents exist and belong to establishment
+  const documents = await documentRepository.find({
+    filters: {
+      ids: body.documentIds,
+      establishmentIds: [establishment.id],
+      deleted: false
+    }
+  });
+
+  if (documents.length !== body.documentIds.length) {
+    const foundIds = documents.map((document) => document.id);
+    const missingIds = body.documentIds.filter((id) => !foundIds.includes(id));
+    throw new DocumentMissingError(missingIds.join(', '));
+  }
+
+  // Create housing document links
+  const housingDocuments: ReadonlyArray<HousingDocumentApi> = documents.map(
+    (document): HousingDocumentApi => ({
+      ...document,
+      housingId: housing.id,
+      housingGeoCode: housing.geoCode
+    })
+  );
+
+  await housingDocumentRepository.createMany(housingDocuments);
+
+  // Generate pre-signed URLs for linked documents
+  const documentsWithURLs = await async.map(
+    documents,
+    async (document: DocumentApi) => {
+      const url = await generatePresignedUrl({
+        s3,
+        bucket: config.s3.bucket,
+        key: document.s3Key
+      });
+      return toDocumentDTO(document, url);
+    }
+  );
+
+  response.status(constants.HTTP_STATUS_CREATED).json(documentsWithURLs);
 };
 
 const listByHousing: RequestHandler<
@@ -496,6 +566,7 @@ const documentController = {
   create,
   update,
   remove,
+  linkToHousing,
   listByHousing,
   createByHousing,
   updateByHousing,

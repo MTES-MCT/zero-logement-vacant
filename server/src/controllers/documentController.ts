@@ -23,12 +23,15 @@ import { FileValidationError } from '~/errors/fileValidationError';
 import HousingMissingError from '~/errors/housingMissingError';
 import config from '~/infra/config';
 import { createLogger } from '~/infra/logger';
+import { toDocumentDTO } from '~/models/DocumentApi';
 import {
   HousingDocumentApi,
   toHousingDocumentDTO
 } from '~/models/HousingDocumentApi';
+import documentRepository from '~/repositories/documentRepository';
 import housingDocumentRepository from '~/repositories/housingDocumentRepository';
 import housingRepository from '~/repositories/housingRepository';
+import { uploadDocuments } from '~/services/document-upload';
 import { validateFiles } from '~/services/file-validation';
 
 const logger = createLogger('documentController');
@@ -51,6 +54,102 @@ function generateS3Key(localId: string, documentId: string): string {
 
   return `housing-documents/${department}/${commune}/${remaining}/${documentId}`;
 }
+
+const create: RequestHandler<
+  never,
+  ReadonlyArray<DocumentDTO | FileValidationError>,
+  never
+> = async (request, response) => {
+  const { establishment, user } = request as AuthenticatedRequest<
+    never,
+    DocumentDTO | FileValidationError,
+    never
+  >;
+  const files = request.files ?? [];
+
+  if (!files.length) {
+    throw new FilesMissingError();
+  }
+
+  logger.info('Uploading documents', {
+    fileCount: files.length,
+    establishment: establishment.id
+  });
+
+  // Upload files and validate
+  const uploadResults = await uploadDocuments(files, {
+    s3,
+    bucket: config.s3.bucket,
+    establishmentId: establishment.id,
+    userId: user.id,
+    user,
+    accept: ACCEPTED_HOUSING_DOCUMENT_EXTENSIONS as string[],
+    generateS3Key: () => {
+      const now = new Date();
+      const year = now.getFullYear();
+      const month = String(now.getMonth() + 1).padStart(2, '0');
+      const day = String(now.getDate()).padStart(2, '0');
+      const documentId = uuidv4();
+      return `documents/${establishment.id}/${year}/${month}/${day}/${documentId}`;
+    }
+  });
+
+  const documentsOrErrors: ReadonlyArray<
+    Either.Either<DocumentDTO, FileValidationError>
+  > = await pipe(
+    uploadResults,
+    // Save to database
+    async (results) => {
+      const documents = Array.getRights(results);
+      if (Array.isNonEmptyArray(documents)) {
+        logger.info('Saving documents to database', {
+          count: documents.length
+        });
+        await documentRepository.insertMany(documents);
+      }
+      return results;
+    },
+    // Generate pre-signed URLs
+    async (results) => {
+      const documentsWithUrls = await results;
+      return async.map(
+        documentsWithUrls,
+        async (
+          either: ElementOf<typeof documentsWithUrls>
+        ): Promise<Either.Either<DocumentDTO, FileValidationError>> => {
+          if (Either.isLeft(either)) {
+            return Either.left(either.left);
+          }
+
+          const document = either.right;
+          const url = await generatePresignedUrl({
+            s3,
+            bucket: config.s3.bucket,
+            key: document.s3Key
+          });
+
+          return Either.right(toDocumentDTO(document, url));
+        }
+      );
+    }
+  );
+
+  const documents = Array.getRights(documentsOrErrors);
+  const errors = Array.getLefts(documentsOrErrors);
+  logger.info('Document upload completed', {
+    total: files.length,
+    succeeded: documents.length,
+    failed: errors.length
+  });
+
+  const status = match({ documents, errors })
+    .returnType<number>()
+    .with({ errors: [] }, () => constants.HTTP_STATUS_CREATED)
+    .with({ documents: [] }, () => constants.HTTP_STATUS_BAD_REQUEST)
+    .otherwise(() => constants.HTTP_STATUS_MULTI_STATUS);
+
+  response.status(status).json(Array.map(documentsOrErrors, Either.merge));
+};
 
 const listByHousing: RequestHandler<
   { id: HousingDTO['id'] },
@@ -340,6 +439,7 @@ const removeByHousing: RequestHandler<
 };
 
 const documentController = {
+  create,
   listByHousing,
   createByHousing,
   updateByHousing,

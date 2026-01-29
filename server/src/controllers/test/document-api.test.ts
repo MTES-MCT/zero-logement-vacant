@@ -4,7 +4,8 @@ import { fc, test } from '@fast-check/vitest';
 import {
   HousingDocumentDTO,
   UserRole,
-  type DocumentDTO
+  type DocumentDTO,
+  type DocumentPayload
 } from '@zerologementvacant/models';
 import { createS3 } from '@zerologementvacant/utils/node';
 import { Array, Predicate } from 'effect';
@@ -12,8 +13,9 @@ import { constants } from 'http2';
 import fs from 'node:fs';
 import path from 'node:path';
 import request from 'supertest';
-
 import type { DeepPartial } from 'ts-essentials';
+import { beforeAll, describe, expect, it } from 'vitest';
+
 import { FileValidationError } from '~/errors/fileValidationError';
 import config from '~/infra/config';
 import { createServer } from '~/infra/server';
@@ -28,7 +30,9 @@ import {
   Housing
 } from '~/repositories/housingRepository';
 import { formatUserApi, Users } from '~/repositories/userRepository';
+import { Documents, toDocumentDBO } from '~/repositories/documentRepository';
 import {
+  genDocumentApi,
   genEstablishmentApi,
   genHousingApi,
   genHousingDocumentApi,
@@ -72,6 +76,148 @@ describe('Document API', () => {
         formatUserApi
       )
     );
+  });
+
+  describe('POST /documents', () => {
+    let url: string;
+
+    beforeAll(async () => {
+      url = await createServer().testing();
+    });
+
+    const establishment = genEstablishmentApi();
+    const user = genUserApi(establishment.id);
+
+    beforeAll(async () => {
+      await Establishments().insert(formatEstablishmentApi(establishment));
+      await Users().insert(formatUserApi(user));
+    });
+
+    const samplePdfPath = path.join(__dirname, '../../test/sample.pdf');
+
+    it('should upload a single document successfully', async () => {
+      const { body, status } = await request(url)
+        .post('/api/documents')
+        .use(tokenProvider(user))
+        .attach('files', samplePdfPath);
+
+      expect(status).toBe(constants.HTTP_STATUS_CREATED);
+      expect(body).toHaveLength(1);
+      expect(body[0]).toMatchObject({
+        id: expect.any(String),
+        filename: 'sample.pdf',
+        url: expect.stringContaining('http'),
+        contentType: 'application/pdf'
+      });
+    });
+
+    it('should upload multiple documents successfully', async () => {
+      const { body, status } = await request(url)
+        .post('/api/documents')
+        .use(tokenProvider(user))
+        .attach('files', samplePdfPath)
+        .attach('files', samplePdfPath);
+
+      expect(status).toBe(constants.HTTP_STATUS_CREATED);
+      expect(body).toHaveLength(2);
+    });
+
+    it('should return 207 for partial success', async () => {
+      const { body, status } = await request(url)
+        .post('/api/documents')
+        .use(tokenProvider(user))
+        .attach('files', samplePdfPath)
+        .attach('files', Buffer.from('invalid'), 'invalid.exe');
+
+      expect(status).toBe(constants.HTTP_STATUS_MULTI_STATUS);
+      expect(body).toHaveLength(2);
+
+      const [valid, invalid] = body;
+      expect(valid).toMatchObject({ filename: 'sample.pdf' });
+      expect(invalid).toMatchObject({
+        name: 'FileValidationError',
+        data: {
+          filename: 'invalid.exe',
+          reason: 'invalid_file_type'
+        }
+      });
+    });
+
+    it('should return 400 if all files fail validation', async () => {
+      const { status } = await request(url)
+        .post('/api/documents')
+        .use(tokenProvider(user))
+        .attach('files', Buffer.from('bad'), 'bad.exe');
+
+      expect(status).toBe(constants.HTTP_STATUS_BAD_REQUEST);
+    });
+
+    it('should return 400 if no files provided', async () => {
+      const { status } = await request(url)
+        .post('/api/documents')
+        .use(tokenProvider(user));
+
+      expect(status).toBe(constants.HTTP_STATUS_BAD_REQUEST);
+    });
+  });
+
+  describe('PUT /documents/:id', () => {
+    const testRoute = (id: string) => `/api/documents/${id}`;
+
+    it('should update document filename', async () => {
+      const document = genDocumentApi({
+        createdBy: user.id,
+        creator: user,
+        establishmentId: establishment.id
+      });
+      await Documents().insert(toDocumentDBO(document));
+      const payload: DocumentPayload = {
+        filename: 'renamed.pdf'
+      };
+
+      const { status, body } = await request(url)
+        .put(testRoute(document.id))
+        .use(tokenProvider(user))
+        .send(payload);
+
+      expect(status).toBe(constants.HTTP_STATUS_OK);
+      expect(body).toMatchObject({
+        id: document.id,
+        filename: 'renamed.pdf'
+      });
+    });
+
+    it('should return 404 if document not found', async () => {
+      const payload: DocumentPayload = {
+        filename: 'test.pdf'
+      };
+
+      const { status } = await request(url)
+        .put(testRoute(faker.string.uuid()))
+        .use(tokenProvider(user))
+        .send(payload);
+
+      expect(status).toBe(constants.HTTP_STATUS_NOT_FOUND);
+    });
+
+    it('should only allow updating documents in user establishment', async () => {
+      const document = genDocumentApi({
+        createdBy: userFromAnotherEstablishment.id,
+        creator: userFromAnotherEstablishment,
+        establishmentId: anotherEstablishment.id
+      });
+      await Documents().insert(toDocumentDBO(document));
+      const payload: DocumentPayload = {
+        filename: 'hacked.pdf'
+      };
+
+      const { status } = await request(url)
+        .put(testRoute(document.id))
+        .use(tokenProvider(user))
+        .send(payload);
+
+      expect(status).toBe(constants.HTTP_STATUS_NOT_FOUND);
+    });
   });
 
   describe('GET /housing/:id/documents', () => {

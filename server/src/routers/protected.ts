@@ -75,6 +75,15 @@ router.put(
   documentController.update
 );
 
+router.delete(
+  '/documents/:id',
+  hasRole([UserRole.USUAL, UserRole.ADMIN]),
+  validatorNext.validate({
+    params: object({ id: schemas.id })
+  }),
+  documentController.remove
+);
+
 router.get(
   '/housing/:id/documents',
   validatorNext.validate({

@@ -220,6 +220,54 @@ describe('Document API', () => {
     });
   });
 
+  describe('DELETE /documents/:id', () => {
+    const testRoute = (id: string) => `/api/documents/${id}`;
+
+    it('should soft-delete document', async () => {
+      const document = genDocumentApi({
+        createdBy: user.id,
+        creator: user,
+        establishmentId: establishment.id
+      });
+      await Documents().insert(toDocumentDBO(document));
+
+      const { status } = await request(url)
+        .delete(testRoute(document.id))
+        .use(tokenProvider(user));
+
+      expect(status).toBe(constants.HTTP_STATUS_NO_CONTENT);
+
+      const [deletedDocument] = await Documents()
+        .where('id', document.id)
+        .select('*');
+      expect(deletedDocument).toBeDefined();
+      expect(deletedDocument.deleted_at).not.toBeNull();
+    });
+
+    it('should return 404 if document not found', async () => {
+      const { status } = await request(url)
+        .delete(testRoute(faker.string.uuid()))
+        .use(tokenProvider(user));
+
+      expect(status).toBe(constants.HTTP_STATUS_NOT_FOUND);
+    });
+
+    it('should only allow deleting documents in user establishment', async () => {
+      const document = genDocumentApi({
+        createdBy: userFromAnotherEstablishment.id,
+        creator: userFromAnotherEstablishment,
+        establishmentId: anotherEstablishment.id
+      });
+      await Documents().insert(toDocumentDBO(document));
+
+      const { status } = await request(url)
+        .delete(testRoute(document.id))
+        .use(tokenProvider(user));
+
+      expect(status).toBe(constants.HTTP_STATUS_NOT_FOUND);
+    });
+  });
+
   describe('GET /housing/:id/documents', () => {
     const testRoute = (housingId: string) =>
       `/api/housing/${housingId}/documents`;

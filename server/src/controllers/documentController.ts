@@ -178,6 +178,33 @@ const update: RequestHandler<
   response.status(constants.HTTP_STATUS_OK).json(toDocumentDTO(updated, url));
 };
 
+const remove: RequestHandler<Pick<DocumentDTO, 'id'>, void, never> = async (
+  request,
+  response
+) => {
+  const { establishment, params } = request as AuthenticatedRequest<
+    Pick<DocumentDTO, 'id'>,
+    void,
+    never
+  >;
+
+  logger.info('Removing document...', { id: params.id });
+
+  const document = await documentRepository.findOne(params.id, {
+    filters: {
+      establishmentIds: [establishment.id],
+      deleted: false
+    }
+  });
+  if (!document) {
+    throw new DocumentMissingError(params.id);
+  }
+
+  await documentRepository.remove(params.id);
+
+  response.status(constants.HTTP_STATUS_NO_CONTENT).send();
+};
+
 const listByHousing: RequestHandler<
   { id: HousingDTO['id'] },
   HousingDocumentDTO[]
@@ -468,6 +495,7 @@ const removeByHousing: RequestHandler<
 const documentController = {
   create,
   update,
+  remove,
   listByHousing,
   createByHousing,
   updateByHousing,

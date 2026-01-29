@@ -64,7 +64,7 @@ fileignoreconfig:
 - filename: server/src/controllers/documentController.ts
   checksum: 6b9c1112c96ee222b1f6e30cc4b67bcaf352a473b98640b966be27cd1822c8eb
 - filename: docs/plans/2026-01-28-document-upload-refactoring.md
-  checksum: 208d65c6180529d9dbcc9fdfc35b17505da0c6d3c6b9d2c7b90d732a67af46d9
+  checksum: ac444aed1f4427b4d3928842fac8fa67bc32ddae8547dd561d622d057ad0840e
 scopeconfig:
 - scope: node
 allowed_patterns:

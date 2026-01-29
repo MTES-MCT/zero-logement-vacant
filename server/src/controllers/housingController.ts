@@ -419,10 +419,7 @@ const create: RequestHandler<
 };
 
 export interface HousingUpdateBody {
-  statusUpdate?: Pick<
-    HousingApi,
-    'status' | 'subStatus' | 'deprecatedPrecisions' | 'deprecatedVacancyReasons'
-  >;
+  statusUpdate?: Pick<HousingApi, 'status' | 'subStatus'>;
   occupancyUpdate?: Pick<HousingApi, 'occupancy' | 'occupancyIntended'>;
   note?: Pick<NoteApi, 'content' | 'noteKind'>;
 }

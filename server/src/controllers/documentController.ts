@@ -1,4 +1,4 @@
-import { DeleteObjectCommand, PutObjectCommand } from '@aws-sdk/client-s3';
+import { PutObjectCommand } from '@aws-sdk/client-s3';
 import {
   ACCEPTED_HOUSING_DOCUMENT_EXTENSIONS,
   HousingDocumentDTO,
@@ -30,6 +30,7 @@ import {
   HousingDocumentApi,
   toHousingDocumentDTO
 } from '~/models/HousingDocumentApi';
+import documentHousingRepository from '~/repositories/documentHousingRepository';
 import documentRepository from '~/repositories/documentRepository';
 import housingDocumentRepository from '~/repositories/housingDocumentRepository';
 import housingRepository from '~/repositories/housingRepository';
@@ -257,7 +258,7 @@ const linkToHousing: RequestHandler<
     })
   );
 
-  await housingDocumentRepository.createMany(housingDocuments);
+  await documentHousingRepository.createMany(housingDocuments);
 
   // Generate pre-signed URLs for linked documents
   const documentsWithURLs = await async.map(
@@ -536,29 +537,40 @@ const removeByHousing: RequestHandler<
   { housingId: HousingDTO['id']; documentId: DocumentDTO['id'] },
   void
 > = async (request, response) => {
-  const { params, user, establishment } = request as AuthenticatedRequest<
+  const { params, establishment } = request as AuthenticatedRequest<
     { housingId: HousingDTO['id']; documentId: DocumentDTO['id'] },
     void
   >;
 
-  const document = await housingDocumentRepository.get(params.documentId, {
-    housing: isAdmin(user)
-      ? undefined
-      : establishment.geoCodes.map((geoCode) => ({
-          geoCode: geoCode,
-          id: params.housingId
-        }))
+  logger.info('Removing document-housing association', {
+    housing: params.housingId,
+    document: params.documentId
   });
-  if (!document) {
+
+  // Validate housing exists and belongs to establishment
+  const housing = await housingRepository.findOne({
+    establishment: establishment.id,
+    geoCode: establishment.geoCodes,
+    id: params.housingId
+  });
+  if (!housing) {
+    throw new HousingMissingError(params.housingId);
+  }
+
+  // Validate association exists
+  const links = await documentHousingRepository.findByHousing(housing);
+  const hasLink = links.some((link) => link.documentId === params.documentId);
+  if (!hasLink) {
     throw new DocumentMissingError(params.documentId);
   }
 
-  const command = new DeleteObjectCommand({
-    Bucket: config.s3.bucket,
-    Key: document.s3Key
+  // Remove association only (keep document)
+  await documentHousingRepository.remove({
+    documentId: params.documentId,
+    housingId: housing.id,
+    housingGeoCode: housing.geoCode
   });
-  await s3.send(command);
-  await housingDocumentRepository.remove(document);
+
   response.status(constants.HTTP_STATUS_NO_CONTENT).send();
 };
 

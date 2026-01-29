@@ -5,6 +5,7 @@ export interface HousingDocumentApi extends Omit<HousingDocumentDTO, 'creator' |
   housingId: string;
   housingGeoCode: string;
   s3Key: string;
+  establishmentId: string;
   createdBy: string;
   deletedAt: string | null;
   creator: UserApi;

@@ -55,6 +55,8 @@ fileignoreconfig:
   checksum: 85991d7ad1b2c8cb325947dfacc773689ff6bdf1b479d819725d7b2a878902be
 - filename: server/src/models/test/DocumentApi.test.ts
   checksum: 1d816ff7b060a0100cbd90a60182bb7c3e230ab5761909b18871af6ced2a6efb
+- filename: server/src/repositories/documentRepository.ts
+  checksum: 08cf7ff79afbf8604d02913f97a4a3a7a5ba21921a104096a6973f293b81d107
 scopeconfig:
 - scope: node
 allowed_patterns:

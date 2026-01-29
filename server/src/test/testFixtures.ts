@@ -150,7 +150,11 @@ export function genUserApi(establishmentId: string): UserApi {
 export function genDocumentApi(
   overrides?: Partial<DocumentApi>
 ): DocumentApi {
-  const creator = overrides?.creator ?? genUserApi(overrides?.establishmentId ?? uuidv4());
+  // If creator is provided, use their establishmentId unless explicitly overridden
+  const establishmentId = overrides?.establishmentId ??
+    overrides?.creator?.establishmentId ??
+    uuidv4();
+  const creator = overrides?.creator ?? genUserApi(establishmentId);
   const baseDocument = genDocumentDTO();
   const id = overrides?.id ?? baseDocument.id;
 
@@ -160,7 +164,7 @@ export function genDocumentApi(
     s3Key: overrides?.s3Key ?? `documents/${faker.string.uuid()}/${id}`,
     contentType: overrides?.contentType ?? baseDocument.contentType,
     sizeBytes: overrides?.sizeBytes ?? baseDocument.sizeBytes,
-    establishmentId: overrides?.establishmentId ?? creator.establishmentId,
+    establishmentId,
     createdBy: overrides?.createdBy ?? creator.id,
     createdAt: overrides?.createdAt ?? baseDocument.createdAt,
     updatedAt: overrides?.updatedAt ?? baseDocument.updatedAt,

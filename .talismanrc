@@ -51,6 +51,10 @@ fileignoreconfig:
   checksum: e61269bb50cfcf72e05f504edc4e72dddca39e35f6994c958f62ca453467368d
 - filename: server/AGENTS.md
   checksum: 7dcff7f92233af9d77b5756e39af3d2aa71cd7dab25d91c2a96bfb7cdd609bca
+- filename: server/src/test/testFixtures.ts
+  checksum: 85991d7ad1b2c8cb325947dfacc773689ff6bdf1b479d819725d7b2a878902be
+- filename: server/src/models/test/DocumentApi.test.ts
+  checksum: 1d816ff7b060a0100cbd90a60182bb7c3e230ab5761909b18871af6ced2a6efb
 scopeconfig:
 - scope: node
 allowed_patterns:

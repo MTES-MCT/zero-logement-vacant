@@ -46,6 +46,7 @@ import { logger } from '~/infra/logger';
 import { AddressApi } from '~/models/AddressApi';
 import { BuildingApi } from '~/models/BuildingApi';
 import { CampaignApi } from '~/models/CampaignApi';
+import { DocumentApi } from '~/models/DocumentApi';
 import { DraftApi } from '~/models/DraftApi';
 import { EstablishmentApi } from '~/models/EstablishmentApi';
 import { EventApi, fromEventDTO } from '~/models/EventApi';
@@ -143,6 +144,28 @@ export function genUserApi(establishmentId: string): UserApi {
     ...fromUserDTO(genUserDTO()),
     password: '123QWEasd',
     establishmentId: establishmentId
+  };
+}
+
+export function genDocumentApi(
+  overrides?: Partial<DocumentApi>
+): DocumentApi {
+  const creator = overrides?.creator ?? genUserApi(overrides?.establishmentId ?? uuidv4());
+  const baseDocument = genDocumentDTO();
+  const id = overrides?.id ?? baseDocument.id;
+
+  return {
+    id,
+    filename: overrides?.filename ?? baseDocument.filename,
+    s3Key: overrides?.s3Key ?? `documents/${faker.string.uuid()}/${id}`,
+    contentType: overrides?.contentType ?? baseDocument.contentType,
+    sizeBytes: overrides?.sizeBytes ?? baseDocument.sizeBytes,
+    establishmentId: overrides?.establishmentId ?? creator.establishmentId,
+    createdBy: overrides?.createdBy ?? creator.id,
+    createdAt: overrides?.createdAt ?? baseDocument.createdAt,
+    updatedAt: overrides?.updatedAt ?? baseDocument.updatedAt,
+    deletedAt: overrides?.deletedAt ?? null,
+    creator
   };
 }
 
@@ -676,17 +699,14 @@ export function genPrecisionApi(order: number): PrecisionApi {
 }
 
 export function genHousingDocumentApi(
-  housing: HousingApi,
-  creator: UserApi
+  overrides?: Partial<HousingDocumentApi>
 ): HousingDocumentApi {
-  const baseDocument = genDocumentDTO(creator);
+  const baseDocument = genDocumentApi(overrides);
+
   return {
     ...baseDocument,
-    housingId: housing.id,
-    housingGeoCode: housing.geoCode,
-    s3Key: `documents/${faker.string.uuid()}/${baseDocument.filename}`,
-    createdBy: creator.id,
-    deletedAt: null,
-    creator
+    housingId: overrides?.housingId ?? faker.string.uuid(),
+    housingGeoCode:
+      overrides?.housingGeoCode ?? faker.location.zipCode('######')
   };
 }

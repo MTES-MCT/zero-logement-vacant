@@ -1,4 +1,3 @@
-import { HeadObjectCommand } from '@aws-sdk/client-s3';
 import { faker } from '@faker-js/faker/locale/fr';
 import { fc, test } from '@fast-check/vitest';
 import {
@@ -6,19 +5,19 @@ import {
   UserRole,
   type DocumentPayload
 } from '@zerologementvacant/models';
-import { createS3 } from '@zerologementvacant/utils/node';
 import { constants } from 'http2';
 import path from 'node:path';
 import request from 'supertest';
 import { beforeAll, describe, expect, it } from 'vitest';
-import config from '~/infra/config';
 import { createServer } from '~/infra/server';
 import { UserApi } from '~/models/UserApi';
 import {
   Establishments,
   formatEstablishmentApi
 } from '~/repositories/establishmentRepository';
-import housingDocumentRepository from '~/repositories/housingDocumentRepository';
+import housingDocumentRepository, {
+  toHousingDocumentDBO
+} from '~/repositories/housingDocumentRepository';
 import {
   formatHousingRecordApi,
   Housing
@@ -33,6 +32,7 @@ import {
   genUserApi
 } from '~/test/testFixtures';
 import { tokenProvider } from '~/test/testUtils';
+import { DocumentsHousings } from '~/repositories/documentHousingRepository';
 
 describe('Document API', () => {
   let url: string;
@@ -462,34 +462,51 @@ describe('Document API', () => {
     const testRoute = (housingId: string, documentId: string) =>
       `/api/housing/${housingId}/documents/${documentId}`;
 
-    const housing = genHousingApi(
-      faker.helpers.arrayElement(establishment.geoCodes)
-    );
-
-    it('should be forbidden for a non-authenticated user', async () => {
-      const document = genHousingDocumentApi(housing, user);
-      await Housing().insert(formatHousingRecordApi(housing));
-      await housingDocumentRepository.create(document);
-
-      const { status } = await request(url).delete(
-        testRoute(housing.id, document.id)
+    it('should remove association only (keep document)', async () => {
+      const housing = genHousingApi(
+        faker.helpers.arrayElement(establishment.geoCodes)
       );
-
-      expect(status).toBe(constants.HTTP_STATUS_UNAUTHORIZED);
-    });
-
-    it('should be forbidden for a visitor', async () => {
-      const document = genHousingDocumentApi(housing, user);
-      await housingDocumentRepository.create(document);
+      await Housing().insert(formatHousingRecordApi(housing));
+      const document = genDocumentApi({
+        createdBy: user.id,
+        creator: user,
+        establishmentId: establishment.id
+      });
+      const housingDocument = genHousingDocumentApi({
+        ...document,
+        housingId: housing.id,
+        housingGeoCode: housing.geoCode
+      });
+      await Documents().insert(toDocumentDBO(document));
+      await DocumentsHousings().insert(toHousingDocumentDBO(housingDocument));
 
       const { status } = await request(url)
         .delete(testRoute(housing.id, document.id))
-        .use(tokenProvider(visitor));
+        .use(tokenProvider(user));
 
-      expect(status).toBe(constants.HTTP_STATUS_FORBIDDEN);
+      expect(status).toBe(constants.HTTP_STATUS_NO_CONTENT);
+
+      // Verify association removed
+      const links = await DocumentsHousings()
+        .where({
+          document_id: document.id,
+          housing_id: housing.id
+        })
+        .select('*');
+      expect(links).toHaveLength(0);
+
+      // Verify document still exists
+      const [doc] = await Documents().where({ id: document.id }).select('*');
+      expect(doc).toBeDefined();
+      expect(doc.deleted_at).toBeNull();
     });
 
-    it('should return 404 Not found if the document is missing', async () => {
+    it('should return 404 if association not found', async () => {
+      const housing = genHousingApi(
+        faker.helpers.arrayElement(establishment.geoCodes)
+      );
+      await Housing().insert(formatHousingRecordApi(housing));
+
       const { status } = await request(url)
         .delete(testRoute(housing.id, faker.string.uuid()))
         .use(tokenProvider(user));
@@ -497,89 +514,47 @@ describe('Document API', () => {
       expect(status).toBe(constants.HTTP_STATUS_NOT_FOUND);
     });
 
-    it('should return 404 Not found if the housing belongs to another establishment', async () => {
-      const housingFromAnotherEstablishment = genHousingApi(
-        faker.helpers.arrayElement(anotherEstablishment.geoCodes)
-      );
-      const documentFromAnotherEstablishment = genHousingDocumentApi(
-        housingFromAnotherEstablishment,
-        userFromAnotherEstablishment
-      );
-      await Housing().insert(
-        formatHousingRecordApi(housingFromAnotherEstablishment)
-      );
-      await housingDocumentRepository.create(documentFromAnotherEstablishment);
+    it('should return 404 if housing not found', async () => {
+      const document = genDocumentApi({
+        createdBy: user.id,
+        creator: user,
+        establishmentId: establishment.id
+      });
+      await Documents().insert(toDocumentDBO(document));
 
       const { status } = await request(url)
-        .delete(
-          testRoute(
-            housingFromAnotherEstablishment.id,
-            documentFromAnotherEstablishment.id
-          )
-        )
+        .delete(testRoute(faker.string.uuid(), document.id))
         .use(tokenProvider(user));
 
       expect(status).toBe(constants.HTTP_STATUS_NOT_FOUND);
     });
 
-    it('should allow admin to delete any document', async () => {
-      const document = genHousingDocumentApi(housing, anotherUser);
-      await housingDocumentRepository.create(document);
+    it('should return 404 if housing belongs to another establishment', async () => {
+      const housingFromAnotherEstablishment = genHousingApi(
+        faker.helpers.arrayElement(anotherEstablishment.geoCodes)
+      );
+      await Housing().insert(
+        formatHousingRecordApi(housingFromAnotherEstablishment)
+      );
 
-      const { status } = await request(url)
-        .delete(testRoute(housing.id, document.id))
-        .use(tokenProvider(admin));
+      const document = genDocumentApi({
+        createdBy: userFromAnotherEstablishment.id,
+        creator: userFromAnotherEstablishment,
+        establishmentId: anotherEstablishment.id
+      });
+      await Documents().insert(toDocumentDBO(document));
 
-      expect(status).toBe(constants.HTTP_STATUS_NO_CONTENT);
-    });
-
-    it('should return 204 No content after deletion', async () => {
-      const document = genHousingDocumentApi(housing, user);
-      await housingDocumentRepository.create(document);
-
-      const { status } = await request(url)
-        .delete(testRoute(housing.id, document.id))
-        .use(tokenProvider(user));
-
-      expect(status).toBe(constants.HTTP_STATUS_NO_CONTENT);
-    });
-
-    it('should soft-delete the document', async () => {
-      const document = genHousingDocumentApi(housing, user);
-      await housingDocumentRepository.create(document);
-
-      await request(url)
-        .delete(testRoute(housing.id, document.id))
-        .use(tokenProvider(user));
-
-      const deletedDocument = await housingDocumentRepository.get(document.id);
-
-      expect(deletedDocument).not.toBeNull();
-      expect(deletedDocument!.deletedAt).not.toBeNull();
-    });
-
-    it('should remove the actual document from the S3 bucket', async () => {
-      const s3 = createS3({
-        endpoint: config.s3.endpoint,
-        region: config.s3.region,
-        accessKeyId: config.s3.accessKeyId,
-        secretAccessKey: config.s3.secretAccessKey
+      await housingDocumentRepository.create({
+        ...document,
+        housingId: housingFromAnotherEstablishment.id,
+        housingGeoCode: housingFromAnotherEstablishment.geoCode
       });
 
-      const document = genHousingDocumentApi(housing, user);
-      await housingDocumentRepository.create(document);
-
-      await request(url)
-        .delete(testRoute(housing.id, document.id))
+      const { status } = await request(url)
+        .delete(testRoute(housingFromAnotherEstablishment.id, document.id))
         .use(tokenProvider(user));
 
-      // Verify the object no longer exists in S3
-      const headCommand = new HeadObjectCommand({
-        Bucket: config.s3.bucket,
-        Key: document.s3Key
-      });
-
-      await expect(s3.send(headCommand)).rejects.toThrow();
+      expect(status).toBe(constants.HTTP_STATUS_NOT_FOUND);
     });
   });
 });

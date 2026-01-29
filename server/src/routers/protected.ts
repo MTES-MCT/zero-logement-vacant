@@ -65,6 +65,16 @@ router.post(
   documentController.create
 );
 
+router.put(
+  '/documents/:id',
+  hasRole([UserRole.USUAL, UserRole.ADMIN]),
+  validatorNext.validate({
+    params: object({ id: schemas.id }),
+    body: schemas.documentPayload
+  }),
+  documentController.update
+);
+
 router.get(
   '/housing/:id/documents',
   validatorNext.validate({

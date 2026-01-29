@@ -1,8 +1,9 @@
-import { PutObjectCommand, DeleteObjectCommand } from '@aws-sdk/client-s3';
+import { DeleteObjectCommand, PutObjectCommand } from '@aws-sdk/client-s3';
 import {
   ACCEPTED_HOUSING_DOCUMENT_EXTENSIONS,
   HousingDocumentDTO,
   isAdmin,
+  MAX_HOUSING_DOCUMENT_SIZE_IN_MiB,
   type DocumentDTO,
   type DocumentPayload,
   type HousingDTO
@@ -23,7 +24,7 @@ import { FileValidationError } from '~/errors/fileValidationError';
 import HousingMissingError from '~/errors/housingMissingError';
 import config from '~/infra/config';
 import { createLogger } from '~/infra/logger';
-import { toDocumentDTO } from '~/models/DocumentApi';
+import { toDocumentDTO, type DocumentApi } from '~/models/DocumentApi';
 import {
   HousingDocumentApi,
   toHousingDocumentDTO
@@ -31,7 +32,7 @@ import {
 import documentRepository from '~/repositories/documentRepository';
 import housingDocumentRepository from '~/repositories/housingDocumentRepository';
 import housingRepository from '~/repositories/housingRepository';
-import { uploadDocuments } from '~/services/document-upload';
+import { upload, validate } from '~/services/document-upload';
 import { validateFiles } from '~/services/file-validation';
 
 const logger = createLogger('documentController');
@@ -76,66 +77,55 @@ const create: RequestHandler<
     establishment: establishment.id
   });
 
-  // Upload files and validate
-  const uploadResults = await uploadDocuments(files, {
-    s3,
-    bucket: config.s3.bucket,
-    establishmentId: establishment.id,
-    userId: user.id,
-    user,
-    accept: ACCEPTED_HOUSING_DOCUMENT_EXTENSIONS as string[],
-    generateS3Key: () => {
-      const now = new Date();
-      const year = now.getFullYear();
-      const month = String(now.getMonth() + 1).padStart(2, '0');
-      const day = String(now.getDate()).padStart(2, '0');
-      const documentId = uuidv4();
-      return `documents/${establishment.id}/${year}/${month}/${day}/${documentId}`;
-    }
-  });
-
-  const documentsOrErrors: ReadonlyArray<
-    Either.Either<DocumentDTO, FileValidationError>
-  > = await pipe(
-    uploadResults,
-    // Save to database
-    async (results) => {
-      const documents = Array.getRights(results);
-      if (Array.isNonEmptyArray(documents)) {
-        logger.info('Saving documents to database', {
-          count: documents.length
+  // NEW IMPLEMENTATION
+  const now = new Date().toJSON();
+  const [year, month, day] = now.split('-');
+  const documentsOrErrors = await async.map(
+    files,
+    async (
+      file: Express.Multer.File
+    ): Promise<Either.Either<DocumentDTO, unknown>> => {
+      try {
+        await validate(file, {
+          accept: ACCEPTED_HOUSING_DOCUMENT_EXTENSIONS,
+          maxSize: MAX_HOUSING_DOCUMENT_SIZE_IN_MiB * 1024 ** 2
         });
-        await documentRepository.insertMany(documents);
+
+        const key = `documents/${establishment.id}/${year}/${month}/${day}/${uuidv4()}`;
+        await upload(file, {
+          key: key
+        });
+        const document: DocumentApi = {
+          id: uuidv4(),
+          filename: file.originalname,
+          s3Key: key,
+          contentType: file.mimetype,
+          sizeBytes: file.size,
+          establishmentId: establishment.id,
+          createdBy: user.id,
+          creator: user,
+          createdAt: now,
+          updatedAt: null,
+          deletedAt: null
+        };
+        await documentRepository.insert(document);
+
+        const url = await generatePresignedUrl({
+          s3,
+          bucket: config.s3.bucket,
+          key: document.s3Key
+        });
+
+        return Either.right(toDocumentDTO(document, url));
+      } catch (error) {
+        return Either.left(error);
       }
-      return results;
-    },
-    // Generate pre-signed URLs
-    async (results) => {
-      const documentsWithUrls = await results;
-      return async.map(
-        documentsWithUrls,
-        async (
-          either: ElementOf<typeof documentsWithUrls>
-        ): Promise<Either.Either<DocumentDTO, FileValidationError>> => {
-          if (Either.isLeft(either)) {
-            return Either.left(either.left);
-          }
-
-          const document = either.right;
-          const url = await generatePresignedUrl({
-            s3,
-            bucket: config.s3.bucket,
-            key: document.s3Key
-          });
-
-          return Either.right(toDocumentDTO(document, url));
-        }
-      );
     }
   );
 
   const documents = Array.getRights(documentsOrErrors);
   const errors = Array.getLefts(documentsOrErrors);
+
   logger.info('Document upload completed', {
     total: files.length,
     succeeded: documents.length,
@@ -149,6 +139,43 @@ const create: RequestHandler<
     .otherwise(() => constants.HTTP_STATUS_MULTI_STATUS);
 
   response.status(status).json(Array.map(documentsOrErrors, Either.merge));
+};
+
+const update: RequestHandler<
+  Pick<DocumentDTO, 'id'>,
+  DocumentDTO,
+  DocumentPayload
+> = async (request, response) => {
+  const { establishment, params, body } = request as AuthenticatedRequest<
+    Pick<DocumentDTO, 'id'>,
+    DocumentDTO,
+    DocumentPayload
+  >;
+
+  logger.info('Updating document', { id: params.id });
+
+  const document = await documentRepository.findOne(params.id, {
+    filters: {
+      establishmentIds: [establishment.id],
+      deleted: false
+    }
+  });
+  if (!document) {
+    throw new DocumentMissingError(params.id);
+  }
+
+  const updated: DocumentApi = {
+    ...document,
+    filename: body.filename
+  };
+  await documentRepository.update(updated);
+
+  const url = await generatePresignedUrl({
+    s3,
+    bucket: config.s3.bucket,
+    key: updated.s3Key
+  });
+  response.status(constants.HTTP_STATUS_OK).json(toDocumentDTO(updated, url));
 };
 
 const listByHousing: RequestHandler<
@@ -440,6 +467,7 @@ const removeByHousing: RequestHandler<
 
 const documentController = {
   create,
+  update,
   listByHousing,
   createByHousing,
   updateByHousing,

@@ -141,17 +141,17 @@ const update: RequestHandler<...> = async (request, response) => {
 
 ```typescript
 // repositories/test/housingRepository.test.ts
-import { housingRepository } from '../housingRepository';
-import { genHousingApi } from '../../test/testFixtures';
+import { housingRepository, HousingDBO } from '~/repositories/housingRepository';
+import { genHousingApi } from '~/test/testFixtures';
 
 describe('Housing repository', () => {
   it('should find housing by id', async () => {
     const housing = genHousingApi();
-    await housingRepository.insert([housing]);
+    await Housings().insert(toHousingDBO(housing));
 
-    const result = await housingRepository.findOne({ id: housing.id });
+    const actual = await housingRepository.findOne({ id: housing.id });
 
-    expect(result).toMatchObject(housing);
+    expect(actual).toMatchObject<Partial<HousingDBO>>(housing);
   });
 });
 ```

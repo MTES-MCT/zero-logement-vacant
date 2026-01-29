@@ -57,6 +57,10 @@ fileignoreconfig:
   checksum: 1d816ff7b060a0100cbd90a60182bb7c3e230ab5761909b18871af6ced2a6efb
 - filename: server/src/repositories/documentRepository.ts
   checksum: 08cf7ff79afbf8604d02913f97a4a3a7a5ba21921a104096a6973f293b81d107
+- filename: server/src/services/document-upload.ts
+  checksum: 893d6e184a9c815c86ea616b561e9b594d7277c8d7ab8e57e3002250ed234ced
+- filename: server/src/services/test/document-upload.test.ts
+  checksum: d72231d6b3e4620d79c61ac6470bce501b70780ca88a64b7e91d5510eab66fc5
 scopeconfig:
 - scope: node
 allowed_patterns:

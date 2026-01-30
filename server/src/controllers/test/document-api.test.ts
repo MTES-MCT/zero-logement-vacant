@@ -1,5 +1,4 @@
 import { faker } from '@faker-js/faker/locale/fr';
-import { fc, test } from '@fast-check/vitest';
 import {
   HousingDocumentDTO,
   UserRole,
@@ -15,9 +14,7 @@ import {
   Establishments,
   formatEstablishmentApi
 } from '~/repositories/establishmentRepository';
-import housingDocumentRepository, {
-  toHousingDocumentDBO
-} from '~/repositories/housingDocumentRepository';
+import { HousingDocuments } from '~/repositories/housingDocumentRepository';
 import {
   formatHousingRecordApi,
   Housing
@@ -28,11 +25,9 @@ import {
   genDocumentApi,
   genEstablishmentApi,
   genHousingApi,
-  genHousingDocumentApi,
   genUserApi
 } from '~/test/testFixtures';
 import { tokenProvider } from '~/test/testUtils';
-import { DocumentsHousings } from '~/repositories/documentHousingRepository';
 
 describe('Document API', () => {
   let url: string;
@@ -279,11 +274,32 @@ describe('Document API', () => {
       );
 
       const documents = [
-        genHousingDocumentApi(housing, user),
-        genHousingDocumentApi(housing, user),
-        genHousingDocumentApi(anotherHousing, userFromAnotherEstablishment)
+        genDocumentApi({
+          createdBy: anotherUser.id,
+          creator: anotherUser,
+          establishmentId: establishment.id
+        }),
+        genDocumentApi({
+          createdBy: user.id,
+          creator: user,
+          establishmentId: establishment.id
+        }),
+        genDocumentApi({
+          createdBy: userFromAnotherEstablishment.id,
+          creator: userFromAnotherEstablishment,
+          establishmentId: anotherEstablishment.id
+        })
       ];
-      await housingDocumentRepository.createMany(documents);
+
+      // Insert documents
+      await Documents().insert(documents.map(toDocumentDBO));
+
+      // Link documents to housings
+      await HousingDocuments().insert([
+        { document_id: documents[0].id, housing_id: housing.id, housing_geo_code: housing.geoCode },
+        { document_id: documents[1].id, housing_id: housing.id, housing_geo_code: housing.geoCode },
+        { document_id: documents[2].id, housing_id: anotherHousing.id, housing_geo_code: anotherHousing.geoCode }
+      ]);
     });
 
     it('should be forbidden for a non-authenticated user', async () => {
@@ -332,132 +348,6 @@ describe('Document API', () => {
     });
   });
 
-  describe('PUT /housing/:housingId/documents/:documentId', () => {
-    const testRoute = (housingId: string, documentId: string) =>
-      `/api/housing/${housingId}/documents/${documentId}`;
-
-    const housing = genHousingApi(
-      faker.helpers.arrayElement(establishment.geoCodes)
-    );
-    const housingFromAnotherEstablishment = genHousingApi(
-      faker.helpers.arrayElement(anotherEstablishment.geoCodes)
-    );
-    const userDocument = genHousingDocumentApi(housing, user);
-    const documentFromAnotherEstablishment = genHousingDocumentApi(
-      housingFromAnotherEstablishment,
-      userFromAnotherEstablishment
-    );
-
-    beforeAll(async () => {
-      await Housing().insert(
-        [housing, housingFromAnotherEstablishment].map(formatHousingRecordApi)
-      );
-      await housingDocumentRepository.createMany([
-        userDocument,
-        documentFromAnotherEstablishment
-      ]);
-    });
-
-    it('should return 400 Bad request if filename is missing', async () => {
-      const { status } = await request(url)
-        .put(testRoute(userDocument.housingId, userDocument.id))
-        .send({})
-        .use(tokenProvider(user));
-
-      expect(status).toBe(constants.HTTP_STATUS_BAD_REQUEST);
-    });
-
-    test.prop({
-      filename: fc.oneof(
-        // Empty string after trim (only whitespace)
-        fc.stringMatching(/^\s+$/),
-        // String exceeding 255 characters
-        fc.string({ minLength: 256 }).filter((s) => s.trim().length > 255)
-      )
-    })(
-      'should return 400 Bad request for invalid filename',
-      async ({ filename }) => {
-        const { status } = await request(url)
-          .put(testRoute(userDocument.housingId, userDocument.id))
-          .send({ filename })
-          .use(tokenProvider(user));
-
-        expect(status).toBe(constants.HTTP_STATUS_BAD_REQUEST);
-      }
-    );
-
-    it('should be forbidden for a non-authenticated user', async () => {
-      const { status } = await request(url)
-        .put(testRoute(userDocument.housingId, userDocument.id))
-        .send({ filename: 'nouveau-nom.pdf' });
-
-      expect(status).toBe(constants.HTTP_STATUS_UNAUTHORIZED);
-    });
-
-    it('should be forbidden for a visitor', async () => {
-      const { status } = await request(url)
-        .put(testRoute(userDocument.housingId, userDocument.id))
-        .send({ filename: 'nouveau-nom.pdf' })
-        .use(tokenProvider(visitor));
-
-      expect(status).toBe(constants.HTTP_STATUS_FORBIDDEN);
-    });
-
-    it('should return 404 Not found if the document is missing', async () => {
-      const { status } = await request(url)
-        .put(testRoute(userDocument.housingId, faker.string.uuid()))
-        .send({ filename: 'nouveau-nom.pdf' })
-        .use(tokenProvider(user));
-
-      expect(status).toBe(constants.HTTP_STATUS_NOT_FOUND);
-    });
-
-    it('should return 404 Not found if the document belongs to a user from another establishment', async () => {
-      const { status } = await request(url)
-        .put(
-          testRoute(documentFromAnotherEstablishment.housingId, userDocument.id)
-        )
-        .send({ filename: 'nouveau-nom.pdf' })
-        .use(tokenProvider(user));
-
-      expect(status).toBe(constants.HTTP_STATUS_NOT_FOUND);
-    });
-
-    it('should allow admin to update any document', async () => {
-      const { status, body } = await request(url)
-        .put(
-          testRoute(
-            documentFromAnotherEstablishment.housingId,
-            documentFromAnotherEstablishment.id
-          )
-        )
-        .send({ filename: 'admin-rename.pdf' })
-        .use(tokenProvider(admin));
-
-      expect(status).toBe(constants.HTTP_STATUS_OK);
-      expect(body).toMatchObject<Partial<HousingDocumentDTO>>({
-        id: documentFromAnotherEstablishment.id,
-        filename: 'admin-rename.pdf',
-        updatedAt: expect.any(String)
-      });
-    });
-
-    it('should return 200 OK with updated document', async () => {
-      const { status, body } = await request(url)
-        .put(testRoute(userDocument.housingId, userDocument.id))
-        .send({ filename: 'nouveau-nom.pdf' })
-        .use(tokenProvider(user));
-
-      expect(status).toBe(constants.HTTP_STATUS_OK);
-      expect(body).toMatchObject<Partial<HousingDocumentDTO>>({
-        id: userDocument.id,
-        filename: 'nouveau-nom.pdf',
-        url: expect.stringMatching(/^http/),
-        updatedAt: expect.any(String)
-      });
-    });
-  });
-
   describe('DELETE /housing/:housingId/documents/:documentId', () => {
     const testRoute = (housingId: string, documentId: string) =>
       `/api/housing/${housingId}/documents/${documentId}`;
@@ -472,13 +362,12 @@ describe('Document API', () => {
         creator: user,
         establishmentId: establishment.id
       });
-      const housingDocument = genHousingDocumentApi({
-        ...document,
-        housingId: housing.id,
-        housingGeoCode: housing.geoCode
-      });
       await Documents().insert(toDocumentDBO(document));
-      await DocumentsHousings().insert(toHousingDocumentDBO(housingDocument));
+      await HousingDocuments().insert({
+        document_id: document.id,
+        housing_id: housing.id,
+        housing_geo_code: housing.geoCode
+      });
 
       const { status } = await request(url)
         .delete(testRoute(housing.id, document.id))
@@ -487,7 +376,7 @@ describe('Document API', () => {
       expect(status).toBe(constants.HTTP_STATUS_NO_CONTENT);
 
       // Verify association removed
-      const links = await DocumentsHousings()
+      const links = await HousingDocuments()
         .where({
           document_id: document.id,
           housing_id: housing.id
@@ -544,10 +433,11 @@ describe('Document API', () => {
       });
       await Documents().insert(toDocumentDBO(document));
 
-      await housingDocumentRepository.create({
-        ...document,
-        housingId: housingFromAnotherEstablishment.id,
-        housingGeoCode: housingFromAnotherEstablishment.geoCode
+      // Link document to housing
+      await HousingDocuments().insert({
+        document_id: document.id,
+        housing_id: housingFromAnotherEstablishment.id,
+        housing_geo_code: housingFromAnotherEstablishment.geoCode
       });
 
       const { status } = await request(url)

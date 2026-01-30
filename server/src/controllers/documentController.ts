@@ -2,7 +2,6 @@ import { PutObjectCommand } from '@aws-sdk/client-s3';
 import {
   ACCEPTED_HOUSING_DOCUMENT_EXTENSIONS,
   HousingDocumentDTO,
-  isAdmin,
   MAX_HOUSING_DOCUMENT_SIZE_IN_MiB,
   type DocumentDTO,
   type DocumentPayload,
@@ -30,7 +29,6 @@ import {
   HousingDocumentApi,
   toHousingDocumentDTO
 } from '~/models/HousingDocumentApi';
-import documentHousingRepository from '~/repositories/documentHousingRepository';
 import documentRepository from '~/repositories/documentRepository';
 import housingDocumentRepository from '~/repositories/housingDocumentRepository';
 import housingRepository from '~/repositories/housingRepository';
@@ -250,15 +248,11 @@ const linkToHousing: RequestHandler<
   }
 
   // Create housing document links
-  const housingDocuments: ReadonlyArray<HousingDocumentApi> = documents.map(
-    (document): HousingDocumentApi => ({
-      ...document,
-      housingId: housing.id,
-      housingGeoCode: housing.geoCode
-    })
-  );
-
-  await documentHousingRepository.createMany(housingDocuments);
+  await housingDocumentRepository.linkMany({
+    documentIds: body.documentIds,
+    housingIds: [housing.id],
+    housingGeoCodes: [housing.geoCode]
+  });
 
   // Generate pre-signed URLs for linked documents
   const documentsWithURLs = await async.map(
@@ -489,50 +483,6 @@ const createByHousing: RequestHandler<
   response.status(status).json(Array.map(documentsOrErrors, Either.merge));
 };
 
-const updateByHousing: RequestHandler<
-  { housingId: HousingDTO['id']; documentId: DocumentDTO['id'] },
-  DocumentDTO,
-  DocumentPayload
-> = async (request, response) => {
-  const { body, params, user, establishment } = request as AuthenticatedRequest<
-    { housingId: HousingDTO['id']; documentId: DocumentDTO['id'] },
-    DocumentDTO,
-    DocumentPayload
-  >;
-  logger.debug('Updating document...', {
-    housingId: params.housingId,
-    documentId: params.documentId
-  });
-
-  const document = await housingDocumentRepository.get(params.documentId, {
-    housing: isAdmin(user)
-      ? undefined
-      : establishment.geoCodes.map((geoCode) => ({
-          geoCode: geoCode,
-          id: params.housingId
-        }))
-  });
-  if (!document) {
-    throw new DocumentMissingError(params.documentId);
-  }
-
-  const updated: HousingDocumentApi = {
-    ...document,
-    filename: body.filename,
-    updatedAt: new Date().toJSON()
-  };
-  await housingDocumentRepository.update(updated);
-
-  const presignedUrl = await generatePresignedUrl({
-    s3,
-    bucket: config.s3.bucket,
-    key: updated.s3Key
-  });
-  response
-    .status(constants.HTTP_STATUS_OK)
-    .json(toHousingDocumentDTO(updated, presignedUrl));
-};
-
 const removeByHousing: RequestHandler<
   { housingId: HousingDTO['id']; documentId: DocumentDTO['id'] },
   void
@@ -558,14 +508,14 @@ const removeByHousing: RequestHandler<
   }
 
   // Validate association exists
-  const links = await documentHousingRepository.findByHousing(housing);
+  const links = await housingDocumentRepository.findLinksByHousing(housing);
   const hasLink = links.some((link) => link.documentId === params.documentId);
   if (!hasLink) {
     throw new DocumentMissingError(params.documentId);
   }
 
   // Remove association only (keep document)
-  await documentHousingRepository.remove({
+  await housingDocumentRepository.unlink({
     documentId: params.documentId,
     housingId: housing.id,
     housingGeoCode: housing.geoCode
@@ -581,7 +531,6 @@ const documentController = {
   linkToHousing,
   listByHousing,
   createByHousing,
-  updateByHousing,
   removeByHousing
 };
 

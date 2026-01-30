@@ -26,14 +26,16 @@
 | 10. DELETE /housing/:id/documents/:id | ✅ Done | `7694025e4` | Unlink only (keep document) |
 | 11. PUT /housing (documents) | ✅ Done | - | Batch link support (field renamed from documentIds) |
 | 12. Make establishment_id NOT NULL | ✅ Done | `b97457206` | Already done in Task 1 migration |
-| 13. Remove deprecated PUT /housing/:id/documents/:id | ❌ TODO | - | Remove legacy update route |
+| 13. Remove deprecated PUT /housing/:id/documents/:id | ✅ Done | - | Legacy update route removed |
 
 **Recent Commits:**
 - `f0ffdda8a` feat(server): add PUT/DELETE /documents/:id routes and clean up deprecated tests
 - `7694025e4` refactor(server): DELETE /housing/:id/documents/:id removes association only
 
 **Next Steps:**
-1. Remove deprecated PUT /housing/:housingId/documents/:documentId route (Task 13)
+None - all tasks complete!
+
+**Note:** Pre-existing test isolation issues detected in document-api.test.ts (duplicate key constraints). These failures existed before Task 13 and are unrelated to this refactoring.
 
 ---
 

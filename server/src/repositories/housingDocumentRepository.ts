@@ -43,12 +43,6 @@ type HousingDocumentWithCreatorDBO = DocumentDBO &
     creator: UserDBO;
   };
 
-export interface DocumentHousingLink {
-  documentId: string;
-  housingGeoCode: string;
-  housingId: string;
-}
-
 async function link(document: HousingDocumentApi): Promise<void> {
   logger.debug('Creating document-housing link', {
     documentId: document.id,
@@ -104,7 +98,11 @@ async function linkMany(params: LinkManyParams): Promise<void> {
   }
 }
 
-async function unlink(link: DocumentHousingLink): Promise<void> {
+async function unlink(link: {
+  documentId: string;
+  housingId: string;
+  housingGeoCode: string;
+}): Promise<void> {
   logger.debug('Unlinking document from housing...', link);
 
   await HousingDocuments()
@@ -118,7 +116,9 @@ async function unlink(link: DocumentHousingLink): Promise<void> {
 
 async function findLinksByDocument(
   documentId: string
-): Promise<DocumentHousingLink[]> {
+): Promise<
+  Array<{ documentId: string; housingId: string; housingGeoCode: string }>
+> {
   logger.debug('Finding housings for document...', { documentId });
 
   const links = await HousingDocuments().where('document_id', documentId);
@@ -132,7 +132,9 @@ async function findLinksByDocument(
 
 async function findLinksByHousing(
   housing: HousingId
-): Promise<DocumentHousingLink[]> {
+): Promise<
+  Array<{ documentId: string; housingId: string; housingGeoCode: string }>
+> {
   logger.debug('Finding document links for housing...', housing);
 
   const links = await HousingDocuments().where({

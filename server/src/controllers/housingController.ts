@@ -63,8 +63,8 @@ import sortApi from '~/models/SortApi';
 import banAddressesRepository from '~/repositories/banAddressesRepository';
 import createDatafoncierHousingRepository from '~/repositories/datafoncierHousingRepository';
 import createDatafoncierOwnersRepository from '~/repositories/datafoncierOwnersRepository';
-import documentHousingRepository from '~/repositories/documentHousingRepository';
 import documentRepository from '~/repositories/documentRepository';
+import housingDocumentRepository from '~/repositories/housingDocumentRepository';
 import eventRepository from '~/repositories/eventRepository';
 import housingOwnerRepository from '~/repositories/housingOwnerRepository';
 
@@ -714,40 +714,29 @@ const updateMany: RequestHandler<
       : [];
   const precisionEvents = precisionLinks.flatMap((link) => link.events);
 
-  // Validate and prepare document links if provided
-  const documentLinks =
-    body.documents?.length && housings.length
-      ? await (async () => {
-          logger.info('Linking documents to housings', {
-            documentCount: body.documents!.length,
-            housingCount: housings.length
-          });
+  // Validate documents if provided
+  const shouldLinkDocuments = body.documents?.length && housings.length;
+  if (shouldLinkDocuments) {
+    logger.info('Linking documents to housings', {
+      documentCount: body.documents!.length,
+      housingCount: housings.length
+    });
 
-          // Validate documents exist and belong to establishment
-          const documents = await documentRepository.find({
-            filters: {
-              ids: body.documents!,
-              establishmentIds: [establishment.id],
-              deleted: false
-            }
-          });
+    // Validate documents exist and belong to establishment
+    const documents = await documentRepository.find({
+      filters: {
+        ids: body.documents!,
+        establishmentIds: [establishment.id],
+        deleted: false
+      }
+    });
 
-          if (documents.length !== body.documents!.length) {
-            const foundIds = documents.map(document => document.id);
-            const missingIds = body.documents!.filter(id => !foundIds.includes(id));
-            throw new DocumentMissingError(...missingIds);
-          }
-
-          // Create links (cartesian product: documents × housings)
-          return housings.flatMap(housing =>
-            body.documents!.map(documentId => ({
-              ...documents.find(doc => doc.id === documentId)!,
-              housingId: housing.id,
-              housingGeoCode: housing.geoCode
-            }))
-          );
-        })()
-      : [];
+    if (documents.length !== body.documents!.length) {
+      const foundIds = documents.map(document => document.id);
+      const missingIds = body.documents!.filter(id => !foundIds.includes(id));
+      throw new DocumentMissingError(...missingIds);
+    }
+  }
 
   await startTransaction(async () => {
     await Promise.all([
@@ -776,8 +765,12 @@ const updateMany: RequestHandler<
         ? eventRepository.insertManyPrecisionHousingEvents(precisionEvents)
         : Promise.resolve(),
       // Link documents (if any)
-      documentLinks.length > 0
-        ? documentHousingRepository.createMany(documentLinks)
+      shouldLinkDocuments
+        ? housingDocumentRepository.linkMany({
+            documentIds: body.documents!,
+            housingIds: housings.map(h => h.id),
+            housingGeoCodes: housings.map(h => h.geoCode)
+          })
         : Promise.resolve()
     ]);
   });

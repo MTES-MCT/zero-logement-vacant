@@ -1,6 +1,5 @@
 import type { Knex } from 'knex';
 import db from '~/infra/database';
-import { withinTransaction } from '~/infra/database/transaction';
 import { createLogger } from '~/infra/logger';
 import { HousingId } from '~/models/HousingApi';
 import { HousingDocumentApi } from '~/models/HousingDocumentApi';
@@ -44,30 +43,108 @@ type HousingDocumentWithCreatorDBO = DocumentDBO &
     creator: UserDBO;
   };
 
-async function create(document: HousingDocumentApi): Promise<void> {
-  await createMany([document]);
+export interface DocumentHousingLink {
+  documentId: string;
+  housingGeoCode: string;
+  housingId: string;
 }
 
-async function createMany(
-  documents: ReadonlyArray<HousingDocumentApi>
-): Promise<void> {
-  if (!documents.length) {
+async function link(document: HousingDocumentApi): Promise<void> {
+  logger.debug('Creating document-housing link', {
+    documentId: document.id,
+    housingId: document.housingId
+  });
+
+  await HousingDocuments()
+    .insert(toHousingDocumentDBO(document))
+    .onConflict(['document_id', 'housing_geo_code', 'housing_id'])
+    .ignore(); // Idempotent: ignore duplicate links
+}
+
+interface LinkManyParams {
+  documentIds: string[];
+  housingIds: string[];
+  housingGeoCodes: string[];
+}
+
+async function linkMany(params: LinkManyParams): Promise<void> {
+  const { documentIds, housingIds, housingGeoCodes } = params;
+
+  if (!documentIds.length || !housingIds.length) {
     return;
   }
 
-  logger.debug('Inserting housing documents...', {
-    documents: documents.length
+  if (housingIds.length !== housingGeoCodes.length) {
+    throw new Error('housingIds and housingGeoCodes must have same length');
+  }
+
+  // Create cartesian product: documentIds × housings
+  const links: HousingDocumentDBO[] = [];
+  for (const documentId of documentIds) {
+    for (let i = 0; i < housingIds.length; i++) {
+      links.push({
+        document_id: documentId,
+        housing_id: housingIds[i],
+        housing_geo_code: housingGeoCodes[i]
+      });
+    }
+  }
+
+  logger.debug('Linking documents to housings...', {
+    documents: documentIds.length,
+    housings: housingIds.length,
+    links: links.length
   });
-  await withinTransaction(async (transaction) => {
-    await transaction.batchInsert(
-      DOCUMENTS_TABLE,
-      documents.map(toDocumentDBO)
-    );
-    await transaction.batchInsert(
-      HOUSING_DOCUMENT_TABLE,
-      documents.map(toHousingDocumentDBO)
-    );
+
+  if (links.length) {
+    await HousingDocuments()
+      .insert(links)
+      .onConflict(['document_id', 'housing_geo_code', 'housing_id'])
+      .ignore();
+  }
+}
+
+async function unlink(link: DocumentHousingLink): Promise<void> {
+  logger.debug('Unlinking document from housing...', link);
+
+  await HousingDocuments()
+    .where({
+      document_id: link.documentId,
+      housing_geo_code: link.housingGeoCode,
+      housing_id: link.housingId
+    })
+    .delete();
+}
+
+async function findLinksByDocument(
+  documentId: string
+): Promise<DocumentHousingLink[]> {
+  logger.debug('Finding housings for document...', { documentId });
+
+  const links = await HousingDocuments().where('document_id', documentId);
+
+  return links.map((dbo) => ({
+    documentId: dbo.document_id,
+    housingGeoCode: dbo.housing_geo_code,
+    housingId: dbo.housing_id
+  }));
+}
+
+async function findLinksByHousing(
+  housing: HousingId
+): Promise<DocumentHousingLink[]> {
+  logger.debug('Finding document links for housing...', housing);
+
+  const links = await HousingDocuments().where({
+    housing_geo_code: housing.geoCode,
+    housing_id: housing.id
   });
+
+  return links.map((dbo) => ({
+    documentId: dbo.document_id,
+    housingGeoCode: dbo.housing_geo_code,
+    housingId: dbo.housing_id
+  }));
 }
 
 interface FindByHousingOptions {
@@ -213,8 +290,11 @@ export function fromHousingDocumentDBO(
 }
 
 const housingDocumentRepository = {
-  create,
-  createMany,
+  link,
+  linkMany,
+  unlink,
+  findLinksByDocument,
+  findLinksByHousing,
   findByHousing,
   get,
   update,

@@ -106,7 +106,7 @@ import {
 } from '~/test/testFixtures';
 import { tokenProvider } from '~/test/testUtils';
 import { Documents, toDocumentDBO } from '~/repositories/documentRepository';
-import documentHousingRepository from '~/repositories/documentHousingRepository';
+import housingDocumentRepository from '~/repositories/housingDocumentRepository';
 
 describe('Housing API', () => {
   let url: string;
@@ -1455,11 +1455,11 @@ describe('Housing API', () => {
       expect(body).toHaveLength(2);
 
       // Verify both housings have the document linked
-      const links1 = await documentHousingRepository.findByHousing({
+      const links1 = await housingDocumentRepository.findLinksByHousing({
         id: housings[0].id,
         geoCode: housings[0].geoCode
       });
-      const links2 = await documentHousingRepository.findByHousing({
+      const links2 = await housingDocumentRepository.findLinksByHousing({
         id: housings[1].id,
         geoCode: housings[1].geoCode
       });
@@ -1499,7 +1499,7 @@ describe('Housing API', () => {
       });
 
       // Verify document linked
-      const links = await documentHousingRepository.findByHousing({
+      const links = await housingDocumentRepository.findLinksByHousing({
         id: housings[0].id,
         geoCode: housings[0].geoCode
       });

@@ -1,9 +1,11 @@
 import { describe, it, expect, beforeAll } from 'vitest';
 
-import documentHousingRepository, {
-  DocumentsHousings,
-  type DocumentHousingDBO
-} from '../documentHousingRepository';
+
+import housingDocumentRepository, {
+  HousingDocuments,
+  type HousingDocumentDBO
+} from '../housingDocumentRepository';
+import { Documents, toDocumentDBO } from '~/repositories/documentRepository';
 import { Documents, toDocumentDBO } from '~/repositories/documentRepository';
 import { Users, formatUserApi } from '~/repositories/userRepository';
 import {
@@ -18,7 +20,7 @@ import {
   genHousingApi
 } from '~/test/testFixtures';
 
-describe('documentHousingRepository', () => {
+describe('housingDocumentRepository - junction table operations', () => {
   const establishment = genEstablishmentApi();
   const user = genUserApi(establishment.id);
 
@@ -27,7 +29,7 @@ describe('documentHousingRepository', () => {
     await Users().insert(formatUserApi(user));
   });
 
-  describe('create', () => {
+  describe('link', () => {
     it('should create document-housing link', async () => {
       const housing = genHousingApi();
       await Housing().insert(formatHousingRecordApi(housing));
@@ -40,9 +42,9 @@ describe('documentHousingRepository', () => {
       });
       await Documents().insert(toDocumentDBO(housingDocument));
 
-      await documentHousingRepository.create(housingDocument);
+      await housingDocumentRepository.link(housingDocument);
 
-      const actual = await DocumentsHousings()
+      const actual = await HousingDocuments()
         .where('document_id', housingDocument.id)
         .first();
 
@@ -65,10 +67,10 @@ describe('documentHousingRepository', () => {
       });
       await Documents().insert(toDocumentDBO(housingDocument));
 
-      await documentHousingRepository.create(housingDocument);
-      await documentHousingRepository.create(housingDocument); // Second call
+      await housingDocumentRepository.link(housingDocument);
+      await housingDocumentRepository.link(housingDocument); // Second call
 
-      const actual = await DocumentsHousings().where(
+      const actual = await HousingDocuments().where(
         'document_id',
         housingDocument.id
       );
@@ -76,8 +78,8 @@ describe('documentHousingRepository', () => {
     });
   });
 
-  describe('createMany', () => {
-    it('should create multiple document-housing links', async () => {
+  describe('linkMany', () => {
+    it('should create multiple document-housing links (cartesian product)', async () => {
       const housings = [
         genHousingApi(),
         genHousingApi()
@@ -87,37 +89,26 @@ describe('documentHousingRepository', () => {
       const housingDocuments = [
         genHousingDocumentApi({
           createdBy: user.id,
-          creator: user,
-          housingId: housings[0].id,
-          housingGeoCode: housings[0].geoCode
+          creator: user
         }),
         genHousingDocumentApi({
           createdBy: user.id,
-          creator: user,
-          housingId: housings[1].id,
-          housingGeoCode: housings[1].geoCode
-        }),
-        genHousingDocumentApi({
-          createdBy: user.id,
-          creator: user,
-          housingId: housings[0].id,
-          housingGeoCode: housings[0].geoCode
-        }),
-        genHousingDocumentApi({
-          createdBy: user.id,
-          creator: user,
-          housingId: housings[1].id,
-          housingGeoCode: housings[1].geoCode
+          creator: user
         })
       ];
 
       // Insert the documents
       await Documents().insert(housingDocuments.map(toDocumentDBO));
 
-      await documentHousingRepository.createMany(housingDocuments);
+      // Link 2 documents × 2 housings = 4 links
+      await housingDocumentRepository.linkMany({
+        documentIds: housingDocuments.map(d => d.id),
+        housingIds: housings.map(h => h.id),
+        housingGeoCodes: housings.map(h => h.geoCode)
+      });
 
       // Should create 4 links
-      const allLinks = await DocumentsHousings().whereIn(
+      const allLinks = await HousingDocuments().whereIn(
         'document_id',
         housingDocuments.map((d) => d.id)
       );
@@ -127,12 +118,16 @@ describe('documentHousingRepository', () => {
 
     it('should handle empty arrays', async () => {
       await expect(
-        documentHousingRepository.createMany([])
+        housingDocumentRepository.linkMany({
+          documentIds: [],
+          housingIds: [],
+          housingGeoCodes: []
+        })
       ).resolves.not.toThrow();
     });
   });
 
-  describe('remove', () => {
+  describe('unlink', () => {
     it('should remove document-housing link', async () => {
       const housing = genHousingApi();
       await Housing().insert(formatHousingRecordApi(housing));
@@ -145,20 +140,20 @@ describe('documentHousingRepository', () => {
       });
       await Documents().insert(toDocumentDBO(housingDocument));
 
-      const linkDBO: DocumentHousingDBO = {
+      const linkDBO: HousingDocumentDBO = {
         document_id: housingDocument.id,
         housing_geo_code: housing.geoCode,
         housing_id: housing.id
       };
-      await DocumentsHousings().insert(linkDBO);
+      await HousingDocuments().insert(linkDBO);
 
-      await documentHousingRepository.remove({
+      await housingDocumentRepository.unlink({
         documentId: housingDocument.id,
         housingGeoCode: housing.geoCode,
         housingId: housing.id
       });
 
-      const actual = await DocumentsHousings().where(
+      const actual = await HousingDocuments().where(
         'document_id',
         housingDocument.id
       );
@@ -166,7 +161,7 @@ describe('documentHousingRepository', () => {
     });
   });
 
-  describe('findByDocument', () => {
+  describe('findLinksByDocument', () => {
     it('should find all housings linked to document', async () => {
       const housings = [
         genHousingApi(),
@@ -180,7 +175,7 @@ describe('documentHousingRepository', () => {
       });
       await Documents().insert(toDocumentDBO(housingDocument));
 
-      const links: DocumentHousingDBO[] = [
+      const links: HousingDocumentDBO[] = [
         {
           document_id: housingDocument.id,
           housing_geo_code: housings[0].geoCode,
@@ -192,9 +187,9 @@ describe('documentHousingRepository', () => {
           housing_id: housings[1].id
         }
       ];
-      await DocumentsHousings().insert(links);
+      await HousingDocuments().insert(links);
 
-      const actual = await documentHousingRepository.findByDocument(
+      const actual = await housingDocumentRepository.findLinksByDocument(
         housingDocument.id
       );
 
@@ -206,7 +201,7 @@ describe('documentHousingRepository', () => {
     });
   });
 
-  describe('findByHousing', () => {
+  describe('findLinksByHousing', () => {
     it('should find all documents linked to housing', async () => {
       const housing = genHousingApi();
       await Housing().insert(formatHousingRecordApi(housing));
@@ -223,7 +218,7 @@ describe('documentHousingRepository', () => {
       ];
       await Documents().insert(housingDocuments.map(toDocumentDBO));
 
-      const links: DocumentHousingDBO[] = [
+      const links: HousingDocumentDBO[] = [
         {
           document_id: housingDocuments[0].id,
           housing_geo_code: housing.geoCode,
@@ -235,9 +230,9 @@ describe('documentHousingRepository', () => {
           housing_id: housing.id
         }
       ];
-      await DocumentsHousings().insert(links);
+      await HousingDocuments().insert(links);
 
-      const actual = await documentHousingRepository.findByHousing({
+      const actual = await housingDocumentRepository.findLinksByHousing({
         geoCode: housing.geoCode,
         id: housing.id
       });

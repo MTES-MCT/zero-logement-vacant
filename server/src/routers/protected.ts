@@ -102,19 +102,6 @@ router.post(
   documentController.linkToHousing
 );
 
-router.put(
-  '/housing/:housingId/documents/:documentId',
-  hasRole([UserRole.USUAL, UserRole.ADMIN]),
-  validatorNext.validate({
-    params: object({
-      housingId: schemas.id,
-      documentId: schemas.id
-    }),
-    body: schemas.documentPayload
-  }),
-  documentController.updateByHousing
-);
-
 router.delete(
   '/housing/:housingId/documents/:documentId',
   hasRole([UserRole.USUAL, UserRole.ADMIN]),

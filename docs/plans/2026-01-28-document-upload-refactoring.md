@@ -20,19 +20,20 @@
 | 4. Create documentHousingRepository | ✅ Done | `a1ff96e8e` | Junction table ready |
 | 5. Create document-upload service | ✅ Done | `833977db8` | **Modified implementation** (better design) |
 | 6. POST /documents endpoint | ✅ Done | `f9da33cef` | ⚠️ API tests needed |
-| 7. PUT /documents/:id endpoint | ❌ TODO | - | Update document filename |
-| 8. DELETE /documents/:id endpoint | ❌ TODO | - | Soft delete + cascade |
-| 9. POST /housing/:id/documents | ❌ TODO | - | Link documents to housing |
-| 10. DELETE /housing/:id/documents/:id | ❌ TODO | - | Unlink documents |
-| 11. PUT /housing (documentIds) | ❌ TODO | - | Batch link support |
-| 12. Make establishment_id NOT NULL | ❌ TODO | - | Contract phase |
+| 7. PUT /documents/:id endpoint | ✅ Done | `f0ffdda8a` | Rename document filename |
+| 8. DELETE /documents/:id endpoint | ✅ Done | `f0ffdda8a` | Soft delete document |
+| 9. POST /housing/:id/documents | ✅ Done | See commits | Link documents to housing (breaking change) |
+| 10. DELETE /housing/:id/documents/:id | ✅ Done | `7694025e4` | Unlink only (keep document) |
+| 11. PUT /housing (documents) | ✅ Done | - | Batch link support (field renamed from documentIds) |
+| 12. Make establishment_id NOT NULL | ✅ Done | `b97457206` | Already done in Task 1 migration |
+| 13. Remove deprecated PUT /housing/:id/documents/:id | ❌ TODO | - | Remove legacy update route |
+
+**Recent Commits:**
+- `f0ffdda8a` feat(server): add PUT/DELETE /documents/:id routes and clean up deprecated tests
+- `7694025e4` refactor(server): DELETE /housing/:id/documents/:id removes association only
 
 **Next Steps:**
-1. Add API tests for POST /documents (Task 6)
-2. Implement remaining CRUD endpoints (Tasks 7-8)
-3. Implement linking endpoints (Tasks 9-10)
-4. Add batch linking support (Task 11)
-5. Complete migration (Task 12)
+1. Remove deprecated PUT /housing/:housingId/documents/:documentId route (Task 13)
 
 ---
 
@@ -1494,10 +1495,16 @@ Co-Authored-By: Claude Sonnet 4.5 <noreply@anthropic.com>"
 
 ## Task 7: Implement PUT /documents/:id endpoint
 
+**Status:** ✅ **COMPLETED**
+
+**Commits:**
+- ✅ `f0ffdda8a` feat(server): add PUT/DELETE /documents/:id routes and clean up deprecated tests
+
 **Files:**
 
-- Modify: `server/src/controllers/documentController.ts`
-- Modify: `server/src/controllers/test/documents-api.test.ts`
+- ✅ Modified: `server/src/controllers/documentController.ts`
+- ✅ Modified: `server/src/controllers/test/document-api.test.ts` (tests consolidated here)
+- ✅ Modified: `server/src/routers/protected.ts` (added route)
 
 **Step 1: Write failing test**
 
@@ -1720,6 +1727,11 @@ Co-Authored-By: Claude Sonnet 4.5 <noreply@anthropic.com>"
 
 ## Task 8: Implement DELETE /documents/:id endpoint
 
+**Status:** ✅ **COMPLETED**
+
+**Commits:**
+- ✅ `f0ffdda8a` feat(server): add PUT/DELETE /documents/:id routes and clean up deprecated tests
+
 **Files:**
 
 - Modify: `server/src/controllers/documentController.ts`
@@ -1866,6 +1878,14 @@ Co-Authored-By: Claude Sonnet 4.5 <noreply@anthropic.com>"
 ---
 
 ## Task 9: Implement POST /housing/:id/documents endpoint (linking)
+
+**Status:** ✅ **COMPLETED**
+
+**Commits:**
+- ✅ Multiple commits during Task 9 execution (see earlier in session)
+- ⚠️ **BREAKING CHANGE:** Replaced file upload endpoint with document linking endpoint
+
+**Note:** This is a breaking API change. The old POST /housing/:id/documents endpoint uploaded files directly. The new endpoint accepts `documentIds` array to link existing documents to housing.
 
 **Files:**
 
@@ -2203,6 +2223,17 @@ Co-Authored-By: Claude Sonnet 4.5 <noreply@anthropic.com>"
 ---
 
 ## Task 10: Refactor DELETE /housing/:housingId/documents/:documentId
+
+**Status:** ✅ **COMPLETED**
+
+**Commits:**
+- ✅ `7694025e4` refactor(server): DELETE /housing/:id/documents/:id removes association only
+
+**Changes:**
+- Removed S3 file deletion
+- Removed document soft-delete
+- Now only unlinks document from housing
+- Document remains in `documents` table and can be linked to other housings
 
 **Files:**
 
@@ -2630,9 +2661,15 @@ Co-Authored-By: Claude Sonnet 4.5 <noreply@anthropic.com>"
 
 ## Task 12: Contract phase - Make establishment_id NOT NULL
 
+**Status:** ✅ **COMPLETED**
+
+**Note:** This was already completed in Task 1's migration. The migration backfilled all documents with establishment_id and made it NOT NULL in the expand phase. No additional contract phase migration is needed.
+
 **Files:**
 
-- Create: `server/src/infra/database/migrations/YYYYMMDDHHMMSS_make_establishment_id_required.ts`
+- ✅ Already done in: `server/src/infra/database/migrations/20260128204657_documents-add-establishment_id.ts`
+  - Lines 78-90: Backfill establishment_id from users table
+  - Line 88: `table.dropNullable('establishment_id')` makes column NOT NULL
 
 **Step 1: Generate migration**
 
@@ -2767,3 +2804,65 @@ This plan refactors the document upload workflow to support:
 - ✅ Uses `validate()` + `upload()` pattern
 - ✅ Partial success handling (HTTP 207)
 - ⚠️ API tests missing (should be added)
+
+
+---
+
+## Task 13: Remove deprecated PUT /housing/:housingId/documents/:documentId route
+
+**Files:**
+
+- Modify: `server/src/routers/protected.ts` (remove route)
+- Modify: `server/src/controllers/documentController.ts` (remove `updateByHousing` handler)
+- Modify: `server/src/controllers/test/document-api.test.ts` (remove tests)
+
+**Rationale:**
+
+The PUT /housing/:housingId/documents/:documentId endpoint is no longer needed since:
+1. Documents are now updated via PUT /documents/:id (Task 7)
+2. The endpoint was used to update document filenames for housing-specific documents
+3. With the new architecture, documents are independent entities updated directly
+
+**Step 1: Remove route**
+
+Modify: `server/src/routers/protected.ts`
+
+Remove:
+```typescript
+router.put(
+  '/housing/:housingId/documents/:documentId',
+  hasRole([UserRole.USUAL, UserRole.ADMIN]),
+  validatorNext.validate({
+    params: object({
+      housingId: schemas.id,
+      documentId: schemas.id
+    }),
+    body: schemas.documentPayload
+  }),
+  documentController.updateByHousing
+);
+```
+
+**Step 2: Remove controller handler**
+
+Modify: `server/src/controllers/documentController.ts`
+
+Remove the `updateByHousing` function and remove it from the exported `documentController` object.
+
+**Step 3: Remove tests**
+
+Modify: `server/src/controllers/test/document-api.test.ts`
+
+Remove the `PUT /housing/:housingId/documents/:documentId` describe block and all its tests.
+
+**Step 4: Commit**
+
+```bash
+git add server/src/routers/protected.ts server/src/controllers/documentController.ts server/src/controllers/test/document-api.test.ts
+git commit -m "refactor(api): remove deprecated PUT /housing/:id/documents/:id endpoint
+
+Use PUT /documents/:id instead to update document filenames.
+
+Co-Authored-By: Claude Sonnet 4.5 <noreply@anthropic.com>"
+```
+

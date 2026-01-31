@@ -764,13 +764,17 @@ const updateMany: RequestHandler<
       precisionEvents.length > 0
         ? eventRepository.insertManyPrecisionHousingEvents(precisionEvents)
         : Promise.resolve(),
-      // Link documents (if any)
+      // Link documents (if any) - create cartesian product
       shouldLinkDocuments
-        ? housingDocumentRepository.linkMany({
-            documentIds: body.documents!,
-            housingIds: housings.map(h => h.id),
-            housingGeoCodes: housings.map(h => h.geoCode)
-          })
+        ? housingDocumentRepository.linkMany(
+            body.documents!.flatMap((documentId) =>
+              housings.map((housing) => ({
+                document_id: documentId,
+                housing_id: housing.id,
+                housing_geo_code: housing.geoCode
+              }))
+            )
+          )
         : Promise.resolve()
     ]);
   });

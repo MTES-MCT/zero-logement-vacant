@@ -106,7 +106,10 @@ import {
 } from '~/test/testFixtures';
 import { tokenProvider } from '~/test/testUtils';
 import { Documents, toDocumentDBO } from '~/repositories/documentRepository';
-import housingDocumentRepository from '~/repositories/housingDocumentRepository';
+import housingDocumentRepository, {
+  HousingDocumentDBO,
+  HousingDocuments
+} from '~/repositories/housingDocumentRepository';
 
 describe('Housing API', () => {
   let url: string;
@@ -1455,19 +1458,22 @@ describe('Housing API', () => {
       expect(body).toHaveLength(2);
 
       // Verify both housings have the document linked
-      const links1 = await housingDocumentRepository.findLinksByHousing({
-        id: housings[0].id,
-        geoCode: housings[0].geoCode
+      const actual = await HousingDocuments().where({
+        document_id: document.id
       });
-      const links2 = await housingDocumentRepository.findLinksByHousing({
-        id: housings[1].id,
-        geoCode: housings[1].geoCode
-      });
-
-      expect(links1).toHaveLength(1);
-      expect(links2).toHaveLength(1);
-      expect(links1[0].documentId).toBe(document.id);
-      expect(links2[0].documentId).toBe(document.id);
+      expect(actual).toHaveLength(2);
+      expect(actual).toIncludeAllPartialMembers<HousingDocumentDBO>([
+        {
+          housing_geo_code: housings[0].geoCode,
+          housing_id: housings[0].id,
+          document_id: document.id
+        },
+        {
+          housing_geo_code: housings[1].geoCode,
+          housing_id: housings[1].id,
+          document_id: document.id
+        }
+      ]);
     });
 
     it('should update status AND link documents in same request', async () => {
@@ -1499,9 +1505,10 @@ describe('Housing API', () => {
       });
 
       // Verify document linked
-      const links = await housingDocumentRepository.findLinksByHousing({
-        id: housings[0].id,
-        geoCode: housings[0].geoCode
+      const links = await housingDocumentRepository.find({
+        filters: {
+          housingIds: [{ id: housings[0].id, geoCode: housings[0].geoCode }]
+        }
       });
       expect(links).toHaveLength(1);
     });

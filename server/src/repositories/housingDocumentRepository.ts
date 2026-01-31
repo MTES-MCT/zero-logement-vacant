@@ -1,5 +1,6 @@
 import type { Knex } from 'knex';
 import db from '~/infra/database';
+import { withinTransaction } from '~/infra/database/transaction';
 import { createLogger } from '~/infra/logger';
 import { HousingId } from '~/models/HousingApi';
 import { HousingDocumentApi } from '~/models/HousingDocumentApi';
@@ -49,53 +50,32 @@ async function link(document: HousingDocumentApi): Promise<void> {
     housingId: document.housingId
   });
 
-  await HousingDocuments()
-    .insert(toHousingDocumentDBO(document))
-    .onConflict(['document_id', 'housing_geo_code', 'housing_id'])
-    .ignore(); // Idempotent: ignore duplicate links
+  await withinTransaction(async (transaction) => {
+    await HousingDocuments(transaction)
+      .insert(toHousingDocumentDBO(document))
+      .onConflict(['document_id', 'housing_geo_code', 'housing_id'])
+      .ignore(); // Idempotent: ignore duplicate links
+  });
 }
 
-interface LinkManyParams {
-  documentIds: string[];
-  housingIds: string[];
-  housingGeoCodes: string[];
-}
-
-async function linkMany(params: LinkManyParams): Promise<void> {
-  const { documentIds, housingIds, housingGeoCodes } = params;
-
-  if (!documentIds.length || !housingIds.length) {
+async function linkMany(
+  housingDocuments: ReadonlyArray<HousingDocumentDBO>
+): Promise<void> {
+  if (housingDocuments.length === 0) {
+    logger.debug('No housing documents to link. Skipping...');
     return;
   }
 
-  if (housingIds.length !== housingGeoCodes.length) {
-    throw new Error('housingIds and housingGeoCodes must have same length');
-  }
-
-  // Create cartesian product: documentIds × housings
-  const links: HousingDocumentDBO[] = [];
-  for (const documentId of documentIds) {
-    for (let i = 0; i < housingIds.length; i++) {
-      links.push({
-        document_id: documentId,
-        housing_id: housingIds[i],
-        housing_geo_code: housingGeoCodes[i]
-      });
-    }
-  }
-
   logger.debug('Linking documents to housings...', {
-    documents: documentIds.length,
-    housings: housingIds.length,
-    links: links.length
+    housingDocuments
   });
 
-  if (links.length) {
-    await HousingDocuments()
-      .insert(links)
+  await withinTransaction(async (transaction) => {
+    await HousingDocuments(transaction)
+      .insert(housingDocuments)
       .onConflict(['document_id', 'housing_geo_code', 'housing_id'])
       .ignore();
-  }
+  });
 }
 
 async function unlink(link: {
@@ -114,58 +94,38 @@ async function unlink(link: {
     .delete();
 }
 
-async function findLinksByDocument(
-  documentId: string
-): Promise<
-  Array<{ documentId: string; housingId: string; housingGeoCode: string }>
-> {
-  logger.debug('Finding housings for document...', { documentId });
-
-  const links = await HousingDocuments().where('document_id', documentId);
-
-  return links.map((dbo) => ({
-    documentId: dbo.document_id,
-    housingGeoCode: dbo.housing_geo_code,
-    housingId: dbo.housing_id
-  }));
-}
-
-async function findLinksByHousing(
-  housing: HousingId
-): Promise<
-  Array<{ documentId: string; housingId: string; housingGeoCode: string }>
-> {
-  logger.debug('Finding document links for housing...', housing);
-
-  const links = await HousingDocuments().where({
-    housing_geo_code: housing.geoCode,
-    housing_id: housing.id
-  });
-
-  return links.map((dbo) => ({
-    documentId: dbo.document_id,
-    housingGeoCode: dbo.housing_geo_code,
-    housingId: dbo.housing_id
-  }));
-}
-
-interface FindByHousingOptions {
+interface FindOptions {
   filters?: {
+    documentIds?: string[];
+    housingIds?: HousingId[];
     deleted?: boolean;
   };
 }
 
-async function findByHousing(
-  housing: HousingId,
-  options?: FindByHousingOptions
-): Promise<HousingDocumentApi[]> {
-  logger.debug('Finding housing documents...', housing);
+async function find(
+  options?: FindOptions
+): Promise<ReadonlyArray<HousingDocumentApi>> {
+  logger.debug('Finding document-housing links...', options);
+
   const documents = await listQuery()
-    .where({
-      [`${HOUSING_DOCUMENT_TABLE}.housing_geo_code`]: housing.geoCode,
-      [`${HOUSING_DOCUMENT_TABLE}.housing_id`]: housing.id
-    })
     .modify((query) => {
+      if (options?.filters?.documentIds?.length) {
+        query.whereIn(
+          `${HOUSING_DOCUMENT_TABLE}.document_id`,
+          options.filters.documentIds
+        );
+      }
+
+      if (options?.filters?.housingIds?.length) {
+        query.whereIn(
+          [
+            `${HOUSING_DOCUMENT_TABLE}.housing_geo_code`,
+            `${HOUSING_DOCUMENT_TABLE}.housing_id`
+          ],
+          options.filters.housingIds.map((h) => [h.geoCode, h.id])
+        );
+      }
+
       if (options?.filters?.deleted === true) {
         query.whereNotNull(`${DOCUMENTS_TABLE}.deleted_at`);
       } else if (options?.filters?.deleted === false) {
@@ -202,11 +162,6 @@ async function get(
     .first();
 
   return document ? fromHousingDocumentDBO(document) : null;
-}
-
-async function update(document: HousingDocumentApi): Promise<void> {
-  logger.debug('Updating housing document...', { id: document.id });
-  await Documents().where('id', document.id).update(toDocumentDBO(document));
 }
 
 async function remove(document: HousingDocumentApi): Promise<void> {
@@ -295,11 +250,8 @@ const housingDocumentRepository = {
   link,
   linkMany,
   unlink,
-  findLinksByDocument,
-  findLinksByHousing,
-  findByHousing,
+  find,
   get,
-  update,
   remove
 };
 

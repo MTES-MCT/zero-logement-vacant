@@ -120,9 +120,11 @@ describe('documentRepository', () => {
       ];
       await Documents().insert(documents.map(toDocumentDBO));
 
-      const actual = await documentRepository.findMany(
-        documents.map((document) => document.id)
-      );
+      const actual = await documentRepository.find({
+        filters: {
+          ids: documents.map((document) => document.id)
+        }
+      });
 
       expect(actual).toHaveLength(2);
       expect(actual).toIncludeAllPartialMembers([
@@ -132,7 +134,11 @@ describe('documentRepository', () => {
     });
 
     it('should return empty array for non-existent ids', async () => {
-      const actual = await documentRepository.findMany([uuidv4()]);
+      const actual = await documentRepository.find({
+        filters: {
+          ids: [uuidv4()]
+        }
+      });
 
       expect(actual).toEqual([]);
     });

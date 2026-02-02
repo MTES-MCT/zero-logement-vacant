@@ -5,17 +5,16 @@ import {
   Establishments,
   formatEstablishmentApi
 } from '~/repositories/establishmentRepository';
-import {
-  formatHousingRecordApi,
-  Housing
-} from '~/repositories/housingRepository';
 import housingDocumentRepository, {
-  Documents,
   HousingDocuments,
   toDocumentDBO,
   toHousingDocumentDBO,
   type HousingDocumentDBO
 } from '~/repositories/housingDocumentRepository';
+import {
+  formatHousingRecordApi,
+  Housing
+} from '~/repositories/housingRepository';
 import { formatUserApi, Users } from '~/repositories/userRepository';
 import {
   genEstablishmentApi,
@@ -23,6 +22,7 @@ import {
   genHousingDocumentApi,
   genUserApi
 } from '~/test/testFixtures';
+import { Documents } from '../documentRepository';
 
 describe('Housing document repository', () => {
   const establishment = genEstablishmentApi();

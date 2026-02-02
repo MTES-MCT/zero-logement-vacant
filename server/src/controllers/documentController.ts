@@ -61,14 +61,13 @@ const create: RequestHandler<
     establishment: establishment.id
   });
 
-  // NEW IMPLEMENTATION
   const now = new Date().toJSON();
   const [year, month, day] = now.split('-');
   const documentsOrErrors = await async.map(
     files,
     async (
       file: Express.Multer.File
-    ): Promise<Either.Either<DocumentDTO, unknown>> => {
+    ): Promise<Either.Either<DocumentDTO, FileValidationError>> => {
       try {
         await validate(file, {
           accept: ACCEPTED_HOUSING_DOCUMENT_EXTENSIONS,
@@ -102,7 +101,16 @@ const create: RequestHandler<
 
         return Either.right(toDocumentDTO(document, url));
       } catch (error) {
-        return Either.left(error);
+        if (error instanceof FileValidationError) {
+          return Either.left(error);
+        }
+        return Either.left(
+          new FileValidationError(
+            'unknown',
+            'upload_failed',
+            'File upload failed'
+          )
+        );
       }
     }
   );

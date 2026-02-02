@@ -16,6 +16,11 @@ import {
 } from '~/repositories/establishmentRepository';
 import { HousingDocuments } from '~/repositories/housingDocumentRepository';
 import {
+  DocumentEvents,
+  Events,
+  HousingDocumentEvents
+} from '~/repositories/eventRepository';
+import {
   formatHousingRecordApi,
   Housing
 } from '~/repositories/housingRepository';
@@ -445,6 +450,176 @@ describe('Document API', () => {
         .use(tokenProvider(user));
 
       expect(status).toBe(constants.HTTP_STATUS_NOT_FOUND);
+    });
+  });
+
+  describe('Event Tracking', () => {
+    describe('POST /api/documents', () => {
+      const samplePdfPath = path.join(__dirname, '../../test/sample.pdf');
+
+      it('should create document:created event when uploading document', async () => {
+        const { status, body } = await request(url)
+          .post('/api/documents')
+          .use(tokenProvider(user))
+          .attach('files', samplePdfPath);
+
+        expect(status).toBe(constants.HTTP_STATUS_CREATED);
+        const document = body[0];
+
+        const [eventRecord] = await Events()
+          .where({ type: 'document:created' })
+          .where({ created_by: user.id })
+          .orderBy('created_at', 'desc')
+          .limit(1);
+
+        expect(eventRecord).toMatchObject({
+          type: 'document:created',
+          next_new: { filename: document.filename }
+        });
+        expect(eventRecord.next_old).toBeNull();
+
+        const [documentEvent] = await DocumentEvents().where({
+          event_id: eventRecord.id
+        });
+        expect(documentEvent).toMatchObject({
+          document_id: document.id
+        });
+      });
+    });
+
+    describe('PUT /api/documents/:id', () => {
+      it('should create document:updated event when renaming document', async () => {
+        const document = genDocumentApi({
+          filename: 'old-name.pdf',
+          creator: user
+        });
+        await Documents().insert(toDocumentDBO(document));
+
+        const { status } = await request(url)
+          .put(`/api/documents/${document.id}`)
+          .use(tokenProvider(user))
+          .send({ filename: 'new-name.pdf' });
+
+        expect(status).toBe(constants.HTTP_STATUS_OK);
+
+        const [eventRecord] = await Events()
+          .where({ type: 'document:updated' })
+          .where({ created_by: user.id })
+          .orderBy('created_at', 'desc')
+          .limit(1);
+
+        expect(eventRecord).toMatchObject({
+          type: 'document:updated',
+          next_old: { filename: 'old-name.pdf' },
+          next_new: { filename: 'new-name.pdf' }
+        });
+
+        const [documentEvent] = await DocumentEvents().where({
+          event_id: eventRecord.id
+        });
+        expect(documentEvent).toMatchObject({
+          document_id: document.id
+        });
+      });
+    });
+
+    describe('DELETE /api/documents/:id', () => {
+      it('should create document:removed and housing:document-removed events', async () => {
+        const housing = genHousingApi();
+        const document = genDocumentApi({ creator: user });
+
+        await Housing().insert(formatHousingRecordApi(housing));
+        await Documents().insert(toDocumentDBO(document));
+        await HousingDocuments().insert({
+          document_id: document.id,
+          housing_id: housing.id,
+          housing_geo_code: housing.geoCode
+        });
+
+        const { status } = await request(url)
+          .delete(`/api/documents/${document.id}`)
+          .use(tokenProvider(user));
+
+        expect(status).toBe(constants.HTTP_STATUS_NO_CONTENT);
+
+        // Check document:removed event
+        const [documentRemoveEvent] = await Events()
+          .where({ type: 'document:removed' })
+          .where({ created_by: user.id })
+          .orderBy('created_at', 'desc')
+          .limit(1);
+
+        expect(documentRemoveEvent).toMatchObject({
+          type: 'document:removed',
+          next_old: { filename: document.filename }
+        });
+        expect(documentRemoveEvent.next_new).toBeNull();
+
+        const [docEvent] = await DocumentEvents().where({
+          event_id: documentRemoveEvent.id
+        });
+        expect(docEvent).toMatchObject({
+          document_id: document.id
+        });
+
+        // Check housing:document-removed event
+        const [housingRemoveEvent] = await Events()
+          .where({ type: 'housing:document-removed' })
+          .where({ created_by: user.id })
+          .orderBy('created_at', 'desc')
+          .limit(1);
+
+        expect(housingRemoveEvent).toMatchObject({
+          type: 'housing:document-removed',
+          next_old: { filename: document.filename }
+        });
+        expect(housingRemoveEvent.next_new).toBeNull();
+
+        const [housingDocEvent] = await HousingDocumentEvents().where({
+          event_id: housingRemoveEvent.id
+        });
+        expect(housingDocEvent).toMatchObject({
+          housing_id: housing.id,
+          document_id: document.id
+        });
+      });
+
+      it('should handle document deletion without housing links', async () => {
+        const document = genDocumentApi({ creator: user });
+        await Documents().insert(toDocumentDBO(document));
+
+        const { status } = await request(url)
+          .delete(`/api/documents/${document.id}`)
+          .use(tokenProvider(user));
+
+        expect(status).toBe(constants.HTTP_STATUS_NO_CONTENT);
+
+        // Should still create document:removed event
+        const [documentRemoveEvent] = await Events()
+          .where({ type: 'document:removed' })
+          .where({ created_by: user.id })
+          .orderBy('created_at', 'desc')
+          .limit(1);
+
+        expect(documentRemoveEvent).toBeDefined();
+
+        // Should not create housing:document-removed events
+        const housingRemoveEvents = await Events()
+          .where({ type: 'housing:document-removed' })
+          .where({ created_by: user.id })
+          .orderBy('created_at', 'desc')
+          .limit(10);
+
+        // Filter to events for this document only
+        const thisDocEvents = await HousingDocumentEvents()
+          .whereIn(
+            'event_id',
+            housingRemoveEvents.map((e) => e.id)
+          )
+          .where({ document_id: document.id });
+
+        expect(thisDocEvents).toBeEmpty();
+      });
     });
   });
 });

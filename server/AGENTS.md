@@ -597,7 +597,14 @@ test.prop([
 
 ### Integration API Tests
 
+**Test conventions:**
+
+- **Use `jest-extended` matchers** to reduce boilerplate (installed via Vitest)
+- **Use `constants` from `node:http2`** instead of raw numbers for HTTP status codes
+- **Assert using primitive table accessors** (e.g., `Events()`, `HousingEvents()`) in repository and API tests, NOT the repository being tested
+
 ```typescript
+import { constants } from 'node:http2';
 import request from 'supertest';
 
 import { createServer } from '~/infra/server';
@@ -635,6 +642,46 @@ describe('Housing API', () => {
       id: housing.id,
       status: housing.status
     });
+  });
+});
+```
+
+**Repository test example:**
+
+```typescript
+import { Events, DocumentEvents } from '~/repositories/eventRepository';
+
+describe('eventRepository', () => {
+  it('should insert document events', async () => {
+    const document = genDocumentApi();
+    const events: DocumentEventApi[] = [{
+      id: uuidv4(),
+      type: 'document:created',
+      name: 'Création d'un document',
+      nextOld: null,
+      nextNew: { filename: document.filename },
+      createdAt: new Date().toJSON(),
+      createdBy: user.id,
+      documentId: document.id
+    }];
+
+    await eventRepository.insertManyDocumentEvents(events);
+
+    // ✅ CORRECT - Assert using primitive table accessor
+    const [eventRecord] = await Events().where({ id: events[0].id });
+    expect(eventRecord).toMatchObject({
+      type: 'document:created',
+      next_new: { filename: document.filename }
+    });
+
+    const [documentEvent] = await DocumentEvents()
+      .where({ event_id: events[0].id });
+    expect(documentEvent).toMatchObject({
+      document_id: document.id
+    });
+
+    // ❌ WRONG - Don't use the repository being tested for assertions
+    // const found = await eventRepository.find({ filters: { documents: [document.id] } });
   });
 });
 ```

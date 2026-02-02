@@ -9,29 +9,18 @@ import {
   UserDBO,
   usersTable
 } from '~/repositories/userRepository';
+import {
+  Documents,
+  DOCUMENTS_TABLE,
+  type DocumentDBO
+} from './documentRepository';
 
 const logger = createLogger('housingDocumentRepository');
 
-export const DOCUMENTS_TABLE = 'documents';
 export const HOUSING_DOCUMENT_TABLE = 'documents_housings';
 
-export const Documents = (transaction: Knex<DocumentDBO> = db) =>
-  transaction<DocumentDBO>(DOCUMENTS_TABLE);
 export const HousingDocuments = (transaction: Knex<HousingDocumentDBO> = db) =>
   transaction<HousingDocumentDBO>(HOUSING_DOCUMENT_TABLE);
-
-export interface DocumentDBO {
-  id: string;
-  filename: string;
-  s3_key: string;
-  content_type: string;
-  size_bytes: number;
-  establishment_id: string;
-  created_by: string;
-  created_at: string;
-  updated_at: Date | null;
-  deleted_at: Date | null;
-}
 
 export interface HousingDocumentDBO {
   document_id: string;

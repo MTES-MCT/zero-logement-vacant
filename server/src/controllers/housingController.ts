@@ -19,7 +19,15 @@ import {
   type HousingBatchUpdatePayload
 } from '@zerologementvacant/models';
 import { compactNullable } from '@zerologementvacant/utils';
-import { Array, Either, HashMap, pipe, Record, Struct } from 'effect';
+import {
+  Array,
+  Either,
+  HashMap,
+  pipe,
+  Predicate,
+  Record,
+  Struct
+} from 'effect';
 import { Request, RequestHandler, Response } from 'express';
 import { AuthenticatedRequest } from 'express-jwt';
 import { oneOf, param } from 'express-validator';
@@ -35,6 +43,7 @@ import { createLogger } from '~/infra/logger';
 import type { AddressApi } from '~/models/AddressApi';
 import {
   HousingEventApi,
+  type HousingDocumentEventApi,
   type HousingOwnerEventApi,
   type OwnerEventApi,
   type PrecisionHousingEventApi
@@ -60,6 +69,7 @@ import {
 } from '~/models/PaginatedResultApi';
 import { type PrecisionApi } from '~/models/PrecisionApi';
 import sortApi from '~/models/SortApi';
+import { type DocumentApi } from '~/models/DocumentApi';
 import banAddressesRepository from '~/repositories/banAddressesRepository';
 import createDatafoncierHousingRepository from '~/repositories/datafoncierHousingRepository';
 import createDatafoncierOwnersRepository from '~/repositories/datafoncierOwnersRepository';
@@ -716,6 +726,7 @@ const updateMany: RequestHandler<
 
   // Validate documents if provided
   const shouldLinkDocuments = body.documents?.length && housings.length;
+  let documents: DocumentApi[] = [];
   if (shouldLinkDocuments) {
     logger.info('Linking documents to housings', {
       documentCount: body.documents!.length,
@@ -723,7 +734,7 @@ const updateMany: RequestHandler<
     });
 
     // Validate documents exist and belong to establishment
-    const documents = await documentRepository.find({
+    documents = await documentRepository.find({
       filters: {
         ids: body.documents!,
         establishmentIds: [establishment.id],
@@ -732,11 +743,33 @@ const updateMany: RequestHandler<
     });
 
     if (documents.length !== body.documents!.length) {
-      const foundIds = documents.map(document => document.id);
-      const missingIds = body.documents!.filter(id => !foundIds.includes(id));
+      const foundIds = documents.map((document) => document.id);
+      const missingIds = body.documents!.filter((id) => !foundIds.includes(id));
       throw new DocumentMissingError(...missingIds);
     }
   }
+
+  // Create housing:document-attached events (cartesian product)
+  const documentAttachEvents: ReadonlyArray<HousingDocumentEventApi> =
+    shouldLinkDocuments && body.documents
+      ? body.documents
+          .map((id) => documents.find((document) => document.id === id))
+          .filter(Predicate.isNotNullable)
+          .flatMap((document) => {
+            return housings.map((housing) => ({
+              id: uuidv4(),
+              type: 'housing:document-attached',
+              name: 'Ajout d’un document au logement',
+              nextOld: null,
+              nextNew: { filename: document.filename },
+              createdAt: new Date().toJSON(),
+              createdBy: user.id,
+              documentId: document.id,
+              housingGeoCode: housing.geoCode,
+              housingId: housing.id
+            }));
+          })
+      : [];
 
   await startTransaction(async () => {
     await Promise.all([
@@ -775,6 +808,10 @@ const updateMany: RequestHandler<
               }))
             )
           )
+        : Promise.resolve(),
+      // Insert document attach events (if any)
+      documentAttachEvents.length > 0
+        ? eventRepository.insertManyHousingDocumentEvents(documentAttachEvents)
         : Promise.resolve()
     ]);
   });

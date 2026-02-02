@@ -83,6 +83,29 @@ async function unlink(link: {
     .delete();
 }
 
+async function unlinkMany(params: {
+  documentIds: string[];
+}): Promise<void> {
+  if (!params.documentIds.length) {
+    logger.debug('No documents to unlink. Skipping...');
+    return;
+  }
+
+  logger.debug('Unlinking documents from housings...', {
+    documents: params.documentIds.length
+  });
+
+  await withinTransaction(async (transaction) => {
+    await HousingDocuments(transaction)
+      .whereIn('document_id', params.documentIds)
+      .delete();
+  });
+
+  logger.debug('Documents unlinked from housings', {
+    documents: params.documentIds.length
+  });
+}
+
 interface FindOptions {
   filters?: {
     documentIds?: string[];
@@ -239,6 +262,7 @@ const housingDocumentRepository = {
   link,
   linkMany,
   unlink,
+  unlinkMany,
   find,
   get,
   remove

@@ -253,4 +253,94 @@ describe('Housing document repository', () => {
       expect(actualLink).toBeDefined();
     });
   });
+
+  describe('unlinkMany', () => {
+    it('should unlink multiple documents from all housings', async () => {
+      const housings = [genHousingApi(), genHousingApi()];
+      const housingDocuments = [
+        genHousingDocumentApi({
+          createdBy: user.id,
+          creator: user
+        }),
+        genHousingDocumentApi({
+          createdBy: user.id,
+          creator: user
+        })
+      ];
+
+      await Housing().insert(housings.map(formatHousingRecordApi));
+      await Documents().insert(housingDocuments.map(toDocumentDBO));
+
+      // Link all documents to all housings (cartesian product)
+      const links = housingDocuments.flatMap((doc) =>
+        housings.map((h) => ({
+          document_id: doc.id,
+          housing_id: h.id,
+          housing_geo_code: h.geoCode
+        }))
+      );
+      await housingDocumentRepository.linkMany(links);
+
+      // Verify links were created (2 documents × 2 housings = 4 links)
+      const linksBefore = await HousingDocuments().whereIn(
+        'document_id',
+        housingDocuments.map((doc) => doc.id)
+      );
+      expect(linksBefore).toHaveLength(4);
+
+      await housingDocumentRepository.unlinkMany({
+        documentIds: housingDocuments.map((doc) => doc.id)
+      });
+
+      const linksAfter = await HousingDocuments().whereIn(
+        'document_id',
+        housingDocuments.map((doc) => doc.id)
+      );
+      expect(linksAfter).toBeEmpty();
+    });
+
+    it('should handle empty array', async () => {
+      await housingDocumentRepository.unlinkMany({ documentIds: [] });
+      // Should not throw
+    });
+
+    it('should only unlink specified documents', async () => {
+      const housing = genHousingApi();
+      const documents = [
+        genHousingDocumentApi({
+          createdBy: user.id,
+          creator: user,
+          housingId: housing.id,
+          housingGeoCode: housing.geoCode
+        }),
+        genHousingDocumentApi({
+          createdBy: user.id,
+          creator: user,
+          housingId: housing.id,
+          housingGeoCode: housing.geoCode
+        })
+      ];
+
+      await Housing().insert(formatHousingRecordApi(housing));
+      await Documents().insert(documents.map(toDocumentDBO));
+
+      const links = documents.map((doc) => ({
+        document_id: doc.id,
+        housing_id: housing.id,
+        housing_geo_code: housing.geoCode
+      }));
+      await housingDocumentRepository.linkMany(links);
+
+      // Unlink only the first document
+      await housingDocumentRepository.unlinkMany({
+        documentIds: [documents[0].id]
+      });
+
+      const remainingLinks = await HousingDocuments().where({
+        housing_id: housing.id
+      });
+      expect(remainingLinks).toHaveLength(1);
+      expect(remainingLinks[0].document_id).toBe(documents[1].id);
+    });
+  });
 });

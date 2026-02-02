@@ -1,12 +1,16 @@
-import { point } from '@turf/turf';
 import { faker } from '@faker-js/faker/locale/fr';
+import { point } from '@turf/turf';
 import { Array, pipe } from 'effect';
 import { MarkRequired } from 'ts-essentials';
 
+import { match } from 'ts-pattern';
 import { AddressDTO } from '../AddressDTO';
+import type { BuildingDTO } from '../BuildingDTO';
 import { CADASTRAL_CLASSIFICATION_VALUES } from '../CadastralClassification';
 import { CAMPAIGN_STATUS_VALUES, CampaignDTO } from '../CampaignDTO';
 import type { DatafoncierHousing } from '../DatafoncierHousing';
+import type { DatafoncierOwner } from '../DatafoncierOwner';
+import type { DocumentDTO } from '../DocumentDTO';
 import { DraftDTO } from '../DraftDTO';
 import { ENERGY_CONSUMPTION_VALUES } from '../EnergyConsumption';
 import { EstablishmentDTO } from '../EstablishmentDTO';
@@ -17,7 +21,6 @@ import { EventType } from '../EventType';
 import { FileUploadDTO } from '../FileUploadDTO';
 import { GroupDTO } from '../GroupDTO';
 import { HousingDTO } from '../HousingDTO';
-import { HousingDocumentDTO } from '../HousingDocumentDTO';
 import { HOUSING_KIND_VALUES } from '../HousingKind';
 import {
   ACTIVE_OWNER_RANKS,
@@ -33,15 +36,12 @@ import { OWNER_KIND_LABELS } from '../OwnerKind';
 import { OWNERSHIP_KIND_INTERNAL_VALUES } from '../OwnershipKind';
 import { PROPERTY_RIGHT_VALUES } from '../PropertyRight';
 import { ProspectDTO } from '../ProspectDTO';
+import { RELATIVE_LOCATION_VALUES } from '../RelativeLocation';
 import { SenderDTO, SignatoryDTO } from '../SenderDTO';
 import { SignupLinkDTO } from '../SignupLinkDTO';
 import { TIME_PER_WEEK_VALUES } from '../TimePerWeek';
 import { UserDTO } from '../UserDTO';
 import { UserRole } from '../UserRole';
-import { RELATIVE_LOCATION_VALUES } from '../RelativeLocation';
-import { match } from 'ts-pattern';
-import type { DatafoncierOwner } from '../DatafoncierOwner';
-import type { BuildingDTO } from '../BuildingDTO';
 
 export function genGeoCode(): string {
   const geoCode = faker.helpers.arrayElement([
@@ -784,7 +784,7 @@ export function genUserDTO(
   };
 }
 
-export function genDocumentDTO(creator: UserDTO): HousingDocumentDTO {
+export function genDocumentDTO(creator: UserDTO): DocumentDTO {
   return {
     id: faker.string.uuid(),
     filename: faker.system.fileName(),

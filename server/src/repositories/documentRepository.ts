@@ -4,6 +4,7 @@ import db from '~/infra/database';
 import { createLogger } from '~/infra/logger';
 import { DocumentApi } from '~/models/DocumentApi';
 import { UserDBO, parseUserApi, usersTable } from './userRepository';
+import { withinTransaction } from '~/infra/database/transaction';
 
 const logger = createLogger('documentRepository');
 
@@ -109,12 +110,15 @@ async function insertMany(
 
 async function update(document: DocumentApi): Promise<void> {
   logger.debug('Updating document...', { id: document.id });
-  await Documents()
-    .where('id', document.id)
-    .update({
-      ...toDocumentDBO(document),
-      updated_at: new Date()
-    });
+
+  await withinTransaction(async (transaction) => {
+    await Documents(transaction)
+      .where('id', document.id)
+      .update({
+        ...toDocumentDBO(document),
+        updated_at: new Date()
+      });
+  });
 }
 
 async function remove(id: string): Promise<void> {

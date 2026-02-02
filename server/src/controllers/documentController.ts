@@ -21,13 +21,20 @@ import FilesMissingError from '~/errors/filesMissingError';
 import { FileValidationError } from '~/errors/fileValidationError';
 import HousingMissingError from '~/errors/housingMissingError';
 import config from '~/infra/config';
+import { startTransaction } from '~/infra/database/transaction';
 import { createLogger } from '~/infra/logger';
-import { toDocumentDTO, type DocumentApi } from '~/models/DocumentApi';
+import {
+  DocumentFilenameEquivalence,
+  toDocumentDTO,
+  type DocumentApi
+} from '~/models/DocumentApi';
+import { DocumentEventApi, HousingDocumentEventApi } from '~/models/EventApi';
 import {
   HousingDocumentApi,
   toHousingDocumentDTO
 } from '~/models/HousingDocumentApi';
 import documentRepository from '~/repositories/documentRepository';
+import eventRepository from '~/repositories/eventRepository';
 import housingDocumentRepository from '~/repositories/housingDocumentRepository';
 import housingRepository from '~/repositories/housingRepository';
 import { upload, validate } from '~/services/document-upload';
@@ -124,6 +131,22 @@ const create: RequestHandler<
     failed: errors.length
   });
 
+  // Create document:created events for successful uploads
+  if (documents.length > 0) {
+    const events = documents.map<DocumentEventApi>((document) => ({
+      id: uuidv4(),
+      type: 'document:created',
+      name: 'Création d’un document',
+      nextOld: null,
+      nextNew: { filename: document.filename },
+      createdAt: new Date().toJSON(),
+      createdBy: user.id,
+      documentId: document.id
+    }));
+
+    await eventRepository.insertManyDocumentEvents(events);
+  }
+
   const status = match({ documents, errors })
     .returnType<number>()
     .with({ errors: [] }, () => constants.HTTP_STATUS_CREATED)
@@ -138,7 +161,7 @@ const update: RequestHandler<
   DocumentDTO,
   DocumentPayload
 > = async (request, response) => {
-  const { establishment, params, body } = request as AuthenticatedRequest<
+  const { body, params, user, establishment } = request as AuthenticatedRequest<
     Pick<DocumentDTO, 'id'>,
     DocumentDTO,
     DocumentPayload
@@ -160,7 +183,32 @@ const update: RequestHandler<
     ...document,
     filename: body.filename
   };
-  await documentRepository.update(updated);
+
+  const updateEvent: DocumentEventApi | null = !DocumentFilenameEquivalence(
+    document,
+    updated
+  )
+    ? {
+        // Create document:updated event
+        id: uuidv4(),
+        type: 'document:updated',
+        name: 'Modification d’un document',
+        nextOld: { filename: document.filename },
+        nextNew: { filename: updated.filename },
+        createdAt: new Date().toJSON(),
+        createdBy: user.id,
+        documentId: params.id
+      }
+    : null;
+
+  await startTransaction(async () => {
+    await Promise.all([
+      documentRepository.update(updated),
+      updateEvent
+        ? eventRepository.insertManyDocumentEvents([updateEvent])
+        : Promise.resolve()
+    ]);
+  });
 
   const url = await generatePresignedUrl({
     s3,
@@ -174,7 +222,7 @@ const remove: RequestHandler<Pick<DocumentDTO, 'id'>, void, never> = async (
   request,
   response
 ) => {
-  const { establishment, params } = request as AuthenticatedRequest<
+  const { establishment, params, user } = request as AuthenticatedRequest<
     Pick<DocumentDTO, 'id'>,
     void,
     never
@@ -192,7 +240,45 @@ const remove: RequestHandler<Pick<DocumentDTO, 'id'>, void, never> = async (
     throw new DocumentMissingError(params.id);
   }
 
-  await documentRepository.remove(params.id);
+  // Find all housings linked to this document
+  const housingDocuments = await housingDocumentRepository.find({
+    filters: { documentIds: [params.id] }
+  });
+
+  // Create housing:document-removed events for each linked housing
+  const removeEvents = housingDocuments.map<HousingDocumentEventApi>(
+    (housingDocument) => ({
+      id: uuidv4(),
+      type: 'housing:document-removed',
+      name: 'Suppression d’un document du logement',
+      nextOld: { filename: document.filename },
+      nextNew: null,
+      createdAt: new Date().toJSON(),
+      createdBy: user.id,
+      documentId: params.id,
+      housingGeoCode: housingDocument.housingGeoCode,
+      housingId: housingDocument.housingId
+    })
+  );
+
+  // Create document:removed event
+  const documentRemoveEvent: DocumentEventApi = {
+    id: uuidv4(),
+    type: 'document:removed',
+    name: 'Suppression d’un document',
+    nextOld: { filename: document.filename },
+    nextNew: null,
+    createdAt: new Date().toJSON(),
+    createdBy: request.user!.id,
+    documentId: params.id
+  };
+
+  await Promise.all([
+    eventRepository.insertManyHousingDocumentEvents(removeEvents),
+    eventRepository.insertManyDocumentEvents([documentRemoveEvent]),
+    housingDocumentRepository.unlinkMany({ documentIds: [params.id] }),
+    documentRepository.remove(params.id)
+  ]);
 
   response.status(constants.HTTP_STATUS_NO_CONTENT).send();
 };
@@ -246,6 +332,21 @@ const linkToHousing: RequestHandler<
     housing_geo_code: housing.geoCode
   }));
   await housingDocumentRepository.linkMany(links);
+  // Create housing:document-attached events for each link
+  const attachEvents = documents.map<HousingDocumentEventApi>((document) => ({
+    id: uuidv4(),
+    type: 'housing:document-attached',
+    name: 'Ajout d’un document au logement',
+    nextOld: null,
+    nextNew: { filename: document.filename },
+    createdAt: new Date().toJSON(),
+    createdBy: request.user!.id,
+    documentId: document.id,
+    housingGeoCode: housing.geoCode,
+    housingId: housing.id
+  }));
+
+  await eventRepository.insertManyHousingDocumentEvents(attachEvents);
 
   // Generate pre-signed URLs for linked documents
   const documentsWithURLs = await async.map(
@@ -331,10 +432,28 @@ const removeByHousing: RequestHandler<
   const links = await housingDocumentRepository.find({
     filters: { housingIds: [housing] }
   });
-  const hasLink = links.some((link) => link.id === params.documentId);
-  if (!hasLink) {
+
+  // Get document details for event
+  const document = links.find((link) => link.id === params.documentId);
+  if (!document) {
     throw new DocumentMissingError(params.documentId);
   }
+
+  // Create housing:document-detached event
+  const detachEvent: HousingDocumentEventApi = {
+    id: uuidv4(),
+    type: 'housing:document-detached',
+    name: 'Retrait d’un document du logement',
+    nextOld: { filename: document.filename },
+    nextNew: null,
+    createdAt: new Date().toJSON(),
+    createdBy: request.user!.id,
+    documentId: params.documentId,
+    housingGeoCode: housing.geoCode,
+    housingId: housing.id
+  };
+
+  await eventRepository.insertManyHousingDocumentEvents([detachEvent]);
 
   // Remove association only (keep document)
   await housingDocumentRepository.unlink({

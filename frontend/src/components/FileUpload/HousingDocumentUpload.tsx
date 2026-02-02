@@ -1,4 +1,7 @@
-import { ACCEPTED_HOUSING_DOCUMENT_EXTENSIONS } from '@zerologementvacant/models';
+import {
+  ACCEPTED_HOUSING_DOCUMENT_EXTENSIONS,
+  type DocumentDTO
+} from '@zerologementvacant/models';
 import { Array } from 'effect';
 import { match } from 'ts-pattern';
 import DocumentUpload from '~/components/FileUpload/DocumentUpload';
@@ -7,7 +10,10 @@ import {
   isFileValidationError
 } from '~/models/FileValidationError';
 import type { Housing } from '~/models/Housing';
-import { useUploadHousingDocumentsMutation } from '~/services/document.service';
+import {
+  useUploadDocumentsMutation,
+  useLinkDocumentsToHousingMutation
+} from '~/services/document.service';
 import { isFetchBaseQueryError } from '~/store/store';
 
 export interface HousingDocumentUploadProps {
@@ -15,7 +21,13 @@ export interface HousingDocumentUploadProps {
 }
 
 function HousingDocumentUpload(props: Readonly<HousingDocumentUploadProps>) {
-  const [upload, uploadMutation] = useUploadHousingDocumentsMutation();
+  const [uploadDocuments, uploadMutation] = useUploadDocumentsMutation();
+  const [linkDocuments, linkMutation] = useLinkDocumentsToHousingMutation();
+
+  // Combined state tracking
+  const isLoading = uploadMutation.isLoading || linkMutation.isLoading;
+  const isSuccess = uploadMutation.isSuccess && linkMutation.isSuccess;
+  const isError = uploadMutation.isError || linkMutation.isError;
 
   const documentsOrErrors = uploadMutation.data ?? [];
   const errors: ReadonlyArray<FileValidationError> =
@@ -34,23 +46,42 @@ function HousingDocumentUpload(props: Readonly<HousingDocumentUploadProps>) {
     .with(
       documentsOrErrors.length,
       () =>
-        'Aucun fichier n’a pu être importé, car le format ne respecte pas les consignes d’import. Essayez avec d’autres documents ou modifiez les documents que vous souhaitez importer.'
+        "Aucun fichier n’a pu être importé, car le format ne respecte pas les consignes d'import. Essayez avec d’autres documents ou modifiez les documents que vous souhaitez importer."
     )
     .otherwise(
       () =>
-        'Certains fichiers n’ont pas pu être importés, car le format ne respecte pas les consignes d’import. Essayez avec d’autres documents ou modifiez les documents que vous souhaitez importer.'
+        "Certains fichiers n’ont pas pu être importés, car le format ne respecte pas les consignes d’import. Essayez avec d’autres documents ou modifiez les documents que vous souhaitez importer."
     );
 
-  function onUpload(files: ReadonlyArray<File>) {
+  async function onUpload(files: ReadonlyArray<File>) {
     if (!files.length) {
       uploadMutation.reset();
+      linkMutation.reset();
       return;
     }
 
-    upload({
-      housingId: props.housing.id,
-      files: files
-    });
+    try {
+      // Step 1: Upload documents
+      const uploadResult = await uploadDocuments({ files }).unwrap();
+
+      // Extract successful uploads (filter FileValidationErrors)
+      const successfulDocuments = uploadResult.filter(
+        (item): item is DocumentDTO => !isFileValidationError(item)
+      );
+
+      if (successfulDocuments.length === 0) {
+        return; // All uploads failed
+      }
+
+      // Step 2: Link successful documents to housing
+      const documentIds = successfulDocuments.map((document) => document.id);
+      await linkDocuments({
+        housingId: props.housing.id,
+        documentIds
+      }).unwrap();
+    } catch (error) {
+      console.error('Upload or link failed', error);
+    }
   }
 
   return (
@@ -59,9 +90,9 @@ function HousingDocumentUpload(props: Readonly<HousingDocumentUploadProps>) {
       accept={ACCEPTED_HOUSING_DOCUMENT_EXTENSIONS as string[]}
       error={error}
       hint="Taille maximale par fichier : 25Mo. Formats supportés : images (png, jpg, heic, webp) et documents (pdf, doc, docx, xls, xlsx, ppt, pptx). Le nom du fichier doit faire moins de 255 caractères. Plusieurs fichiers possibles."
-      isError={uploadMutation.isError}
-      isLoading={uploadMutation.isLoading}
-      isSuccess={uploadMutation.isSuccess}
+      isError={isError}
+      isLoading={isLoading}
+      isSuccess={isSuccess}
       label="Associez un ou plusieurs documents à ce logement"
       maxSize={25}
       multiple

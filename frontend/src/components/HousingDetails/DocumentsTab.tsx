@@ -17,7 +17,7 @@ import { useNotification } from '~/hooks/useNotification';
 import { useUser } from '~/hooks/useUser';
 import {
   useListHousingDocumentsQuery,
-  useRemoveDocumentMutation,
+  useUnlinkDocumentMutation,
   useUpdateDocumentMutation
 } from '~/services/document.service';
 
@@ -31,8 +31,8 @@ function DocumentsTab() {
     isLoading,
     isSuccess
   } = useListHousingDocumentsQuery(housingId);
-  const { isUsual, isAdmin } = useUser()
-  const canWrite = isAdmin || isUsual;
+  const { isUsual, isAdmin } = useUser();
+  const canUpload = isAdmin || isUsual;
 
   const [selectedDocument, setSelectedDocument] = useState<DocumentDTO | null>(
     null
@@ -58,12 +58,12 @@ function DocumentsTab() {
     }
   });
 
-  const [removeDocument, removeDocumentMutation] = useRemoveDocumentMutation();
+  const [unlinkDocument, unlinkDocumentMutation] = useUnlinkDocumentMutation();
   useNotification({
     toastId: 'document-delete',
-    isError: removeDocumentMutation.isError,
-    isLoading: removeDocumentMutation.isLoading,
-    isSuccess: removeDocumentMutation.isSuccess,
+    isError: unlinkDocumentMutation.isError,
+    isLoading: unlinkDocumentMutation.isLoading,
+    isSuccess: unlinkDocumentMutation.isSuccess,
     message: {
       error: 'Erreur lors de la suppression du document',
       loading: 'Suppression du document ...',
@@ -91,7 +91,6 @@ function DocumentsTab() {
 
     updateDocument({
       documentId: selectedDocument.id,
-      housingId: housingId,
       filename
     })
       .unwrap()
@@ -119,7 +118,7 @@ function DocumentsTab() {
       return;
     }
 
-    removeDocument({
+    unlinkDocument({
       documentId: documentToDelete.id,
       housingId: housingId
     })
@@ -186,7 +185,7 @@ function DocumentsTab() {
       )}
 
       <Stack component="section" spacing="2rem" useFlexGap>
-        {canWrite ? (
+        {canUpload ? (
           <Stack component="header">
             <HousingDocumentUpload housing={housing} />
           </Stack>

@@ -24,48 +24,24 @@ const listByHousing = http.get<{ id: string }, never, DocumentDTO[]>(
   }
 );
 
-const createByHousing = http.post<{ id: string }, never, DocumentDTO[] | Error>(
-  `${config.apiEndpoint}/api/housing/:id/documents`,
-  async ({ params, request }) => {
+const upload = http.post<never, FormData, DocumentDTO[] | Error>(
+  `${config.apiEndpoint}/api/documents`,
+  async ({ request }) => {
     const formData = await request.formData();
     const files = formData.getAll('files') as File[];
 
     if (!files.length) {
       return HttpResponse.json(
-        {
-          name: 'Error',
-          message: 'No file uploaded'
-        },
-        {
-          status: constants.HTTP_STATUS_BAD_REQUEST
-        }
+        { name: 'FilesMissingError', message: 'No files uploaded' },
+        { status: constants.HTTP_STATUS_BAD_REQUEST }
       );
     }
 
-    const housing = data.housings.find((housing) => housing.id === params.id);
-    if (!housing) {
-      return HttpResponse.json(
-        {
-          name: 'HousingMissingError',
-          message: `Housing ${params.id} missing`
-        },
-        {
-          status: constants.HTTP_STATUS_NOT_FOUND
-        }
-      );
-    }
-
-    // Get a user from the data to use as creator
     const creator = data.users[0];
     if (!creator) {
       return HttpResponse.json(
-        {
-          name: 'Error',
-          message: 'No user available'
-        },
-        {
-          status: constants.HTTP_STATUS_INTERNAL_SERVER_ERROR
-        }
+        { name: 'Error', message: 'No user available' },
+        { status: constants.HTTP_STATUS_INTERNAL_SERVER_ERROR }
       );
     }
 
@@ -84,11 +60,48 @@ const createByHousing = http.post<{ id: string }, never, DocumentDTO[] | Error>(
       return document;
     });
 
-    const existingDocs = data.housingDocuments.get(params.id) ?? [];
-    data.housingDocuments.set(params.id, [
-      ...existingDocs,
-      ...documents.map((doc) => ({ id: doc.id }))
-    ]);
+    return HttpResponse.json(documents, {
+      status: constants.HTTP_STATUS_CREATED
+    });
+  }
+);
+
+const linkToHousing = http.post<
+  { id: HousingDTO['id'] },
+  { documentIds: DocumentDTO['id'][] },
+  DocumentDTO[] | Error
+>(
+  `${config.apiEndpoint}/api/housing/:id/documents`,
+  async ({ params, request }) => {
+    const { documentIds } = await request.json();
+
+    const housing = data.housings.find((housing) => housing.id === params.id);
+    if (!housing) {
+      return HttpResponse.json(
+        {
+          name: 'HousingMissingError',
+          message: `Housing ${params.id} missing`
+        },
+        { status: constants.HTTP_STATUS_NOT_FOUND }
+      );
+    }
+
+    // Verify all documents exist
+    const documents = documentIds
+      .map((id) => data.documents.get(id))
+      .filter(Predicate.isNotUndefined);
+
+    if (documents.length !== documentIds.length) {
+      return HttpResponse.json(
+        { name: 'DocumentMissingError', message: 'Some documents not found' },
+        { status: constants.HTTP_STATUS_BAD_REQUEST }
+      );
+    }
+
+    // Link documents to housing
+    const existingDocuments = data.housingDocuments.get(params.id) ?? [];
+    const newRefs = documentIds.map((id) => ({ id }));
+    data.housingDocuments.set(params.id, [...existingDocuments, ...newRefs]);
 
     return HttpResponse.json(documents, {
       status: constants.HTTP_STATUS_CREATED
@@ -96,38 +109,34 @@ const createByHousing = http.post<{ id: string }, never, DocumentDTO[] | Error>(
   }
 );
 
-const updateByHousing = http.put<
-  { housingId: HousingDTO['id']; documentId: DocumentDTO['id'] },
+const update = http.put<
+  { id: DocumentDTO['id'] },
   DocumentPayload,
   DocumentDTO | Error
->(
-  `${config.apiEndpoint}/api/housing/:housingId/documents/:documentId`,
-  async ({ params, request }) => {
-    const document = data.documents.get(params.documentId);
-    if (!document) {
-      return HttpResponse.json(
-        {
-          name: 'DocumentMissingError',
-          message: `Document ${params.documentId} missing`
-        },
-        {
-          status: constants.HTTP_STATUS_NOT_FOUND
-        }
-      );
-    }
-
-    const payload = await request.json();
-    const updated: DocumentDTO = {
-      ...document,
-      filename: payload.filename,
-      updatedAt: new Date().toJSON()
-    };
-    data.documents.set(document.id, updated);
-    return HttpResponse.json(document, {
-      status: constants.HTTP_STATUS_OK
-    });
+>(`${config.apiEndpoint}/api/documents/:id`, async ({ params, request }) => {
+  const document = data.documents.get(params.id);
+  if (!document) {
+    return HttpResponse.json(
+      {
+        name: 'DocumentMissingError',
+        message: `Document ${params.id} missing`
+      },
+      { status: constants.HTTP_STATUS_NOT_FOUND }
+    );
   }
-);
+
+  const payload = await request.json();
+  const updated: DocumentDTO = {
+    ...document,
+    filename: payload.filename,
+    updatedAt: new Date().toJSON()
+  };
+  data.documents.set(document.id, updated);
+
+  return HttpResponse.json(updated, {
+    status: constants.HTTP_STATUS_OK
+  });
+});
 
 const removeByHousing = http.delete<
   { housingId: HousingDTO['id']; documentId: DocumentDTO['id'] },
@@ -144,7 +153,7 @@ const removeByHousing = http.delete<
       return HttpResponse.json(
         {
           name: 'DocumentMissingError',
-          message: `Document ${params.documentId} missing`
+          message: `Document ${params.documentId} not linked to housing`
         },
         {
           status: constants.HTTP_STATUS_NOT_FOUND
@@ -152,13 +161,13 @@ const removeByHousing = http.delete<
       );
     }
 
-    data.documents.delete(params.documentId);
     data.housingDocuments.set(
       params.housingId,
       (data.housingDocuments.get(params.housingId) ?? []).filter(
         (document) => document.id !== params.documentId
       )
     );
+
     return HttpResponse.json(null, {
       status: constants.HTTP_STATUS_NO_CONTENT
     });
@@ -167,7 +176,8 @@ const removeByHousing = http.delete<
 
 export const documentHandlers: RequestHandler[] = [
   listByHousing,
-  createByHousing,
-  updateByHousing,
+  upload,
+  linkToHousing,
+  update,
   removeByHousing
 ];

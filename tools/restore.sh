@@ -98,10 +98,7 @@ extract_major_version() {
 # Check if target is a Clever Cloud instance
 is_clever_cloud_instance() {
   local host="$1"
-  if [[ "$host" == *"clever-cloud.com"* ]] || [[ "$host" == *"cleverapps.io"* ]]; then
-    return 0
-  fi
-  return 1
+  [[ "$host" == *"clever-cloud.com"* ]]
 }
 
 # Verify PostgreSQL versions match between source and target

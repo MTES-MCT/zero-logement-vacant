@@ -570,7 +570,7 @@ export function genGroupDTO(
 
 export function genHousingDTO(owner: OwnerDTO | null): HousingDTO {
   // faker.location.zipCode() sometimes returns the department "20"
-  const geoCode = faker.helpers.fromRegExp(/[1-9][0-9]{4}/);
+  const geoCode = genGeoCode();
   const department = geoCode.substring(0, 2);
   const locality = geoCode.substring(2, 5);
   const invariant = genInvariant(locality);
@@ -784,7 +784,10 @@ export function genUserDTO(
   };
 }
 
-export function genDocumentDTO(creator: UserDTO): DocumentDTO {
+export function genDocumentDTO(
+  creator: UserDTO,
+  establishment: Pick<EstablishmentDTO, 'id'>
+): DocumentDTO {
   return {
     id: faker.string.uuid(),
     filename: faker.system.fileName(),
@@ -798,6 +801,7 @@ export function genDocumentDTO(creator: UserDTO): DocumentDTO {
     sizeBytes: faker.number.int({ min: 1000, max: 5000000 }),
     createdAt: faker.date.recent().toJSON(),
     updatedAt: null,
+    establishmentId: establishment.id,
     creator
   };
 }

@@ -1,3 +1,4 @@
+import { DocumentDTO } from '@zerologementvacant/models';
 import { describe, it, expect } from 'vitest';
 
 import { toDocumentDTO } from '~/models/DocumentApi';
@@ -41,7 +42,7 @@ describe('DocumentApi', () => {
 
       const dto = toDocumentDTO(document, url);
 
-      expect(dto).toEqual({
+      expect(dto).toEqual<DocumentDTO>({
         id: document.id,
         filename: document.filename,
         url,
@@ -49,6 +50,7 @@ describe('DocumentApi', () => {
         sizeBytes: document.sizeBytes,
         createdAt: document.createdAt,
         updatedAt: document.updatedAt,
+        establishmentId: document.establishmentId,
         creator: expect.objectContaining({
           id: document.creator.id
         })

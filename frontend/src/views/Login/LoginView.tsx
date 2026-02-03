@@ -6,13 +6,13 @@ import Box from '@mui/material/Box';
 import Container from '@mui/material/Container';
 import Grid from '@mui/material/Grid';
 import Typography from '@mui/material/Typography';
-import type { EstablishmentDTO } from '@zerologementvacant/models';
 import { useState } from 'react';
 import { FormProvider, useForm } from 'react-hook-form';
 import { useLocation, useNavigate } from 'react-router-dom';
 import * as yup from 'yup';
 
 import EstablishmentSearchableSelect from '~/components/establishment/EstablishmentSearchableSelect';
+import { type Establishment } from '../../models/Establishment';
 import building from '../../assets/images/building.svg';
 import AppLink from '../../components/_app/AppLink/AppLink';
 import AppTextInputNext from '../../components/_app/AppTextInput/AppTextInputNext';
@@ -57,7 +57,7 @@ const LoginView = () => {
   const navigate = useNavigate();
   const auth = useAppSelector((state) => state.authentication);
 
-  const [establishment, setEstablishment] = useState<EstablishmentDTO | null>(
+  const [establishment, setEstablishment] = useState<Establishment | null>(
     null
   );
 

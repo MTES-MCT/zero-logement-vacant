@@ -760,7 +760,7 @@ describe('Housing view', () => {
       await user.click(author);
       const options = await screen.findByRole('listbox');
       const option = await within(options).findByRole('option', {
-        name: `${creator.firstName} ${creator.lastName}`
+        name: new RegExp(`^${creator.firstName} ${creator.lastName}`)
       });
       await user.click(option);
       await user.keyboard('{Escape}');
@@ -769,7 +769,9 @@ describe('Housing view', () => {
       });
       notes.forEach((note) => {
         expect(
-          within(note).queryByText(`${creator.firstName} ${creator.lastName}`)
+          within(note).queryByText(
+            new RegExp(`^${creator.firstName} ${creator.lastName}`)
+          )
         ).toBeInTheDocument();
       });
     });
@@ -1072,6 +1074,45 @@ describe('Housing view', () => {
         screen.queryByRole('button', { name: 'Renommer' })
       ).not.toBeInTheDocument();
     });
+
+    it('should be invisible to a user from a different establishment', async () => {
+      const housing = genHousingDTO(null);
+      const establishmentA = genEstablishmentDTO();
+      const creator = genUserDTO(UserRole.USUAL, establishmentA);
+      const document = genDocumentDTO(creator, establishmentA);
+      const establishmentB = genEstablishmentDTO();
+      const userFromOtherEstablishment = genUserDTO(
+        UserRole.USUAL,
+        establishmentB
+      );
+
+      renderView(housing, {
+        auth: userFromOtherEstablishment,
+        establishment: establishmentB,
+        documents: [document]
+      });
+
+      const tab = await screen.findByRole('tab', {
+        name: 'Documents'
+      });
+      await user.click(tab);
+      const tabpanel = await screen.findByRole('tabpanel', {
+        name: 'Documents'
+      });
+      const name = await within(tabpanel).findByText(
+        new RegExp(document.filename, 'i')
+      );
+      expect(name).toBeVisible();
+
+      const dropdown = await within(tabpanel).findByRole('button', {
+        name: 'Options'
+      });
+      await user.click(dropdown);
+
+      expect(
+        screen.queryByRole('button', { name: 'Renommer' })
+      ).not.toBeInTheDocument();
+    });
   });
 
   describe('Delete a document', () => {
@@ -1125,6 +1166,45 @@ describe('Housing view', () => {
       renderView(housing, {
         auth: visitor,
         establishment,
+        documents: [document]
+      });
+
+      const tab = await screen.findByRole('tab', {
+        name: 'Documents'
+      });
+      await user.click(tab);
+      const tabpanel = await screen.findByRole('tabpanel', {
+        name: 'Documents'
+      });
+      const name = await within(tabpanel).findByText(
+        new RegExp(document.filename, 'i')
+      );
+      expect(name).toBeVisible();
+
+      const dropdown = await within(tabpanel).findByRole('button', {
+        name: 'Options'
+      });
+      await user.click(dropdown);
+
+      expect(
+        screen.queryByRole('button', { name: 'Supprimer' })
+      ).not.toBeInTheDocument();
+    });
+
+    it('should be invisible to a user from a different establishment', async () => {
+      const housing = genHousingDTO(null);
+      const establishmentA = genEstablishmentDTO();
+      const establishmentB = genEstablishmentDTO();
+      const creator = genUserDTO(UserRole.USUAL, establishmentA);
+      const document = genDocumentDTO(creator, establishmentA);
+      const userFromOtherEstablishment = genUserDTO(
+        UserRole.USUAL,
+        establishmentB
+      );
+
+      renderView(housing, {
+        auth: userFromOtherEstablishment,
+        establishment: establishmentB,
         documents: [document]
       });
 

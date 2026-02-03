@@ -61,6 +61,128 @@ check_pg_connection() {
   return 0
 }
 
+# Get PostgreSQL version from a database via SQL
+get_pg_version_sql() {
+  local host="$1"
+  local port="$2"
+  local user="$3"
+  local password="$4"
+  local dbname="$5"
+
+  PGPASSWORD="$password" psql -h "$host" -p "$port" -U "$user" -d "$dbname" -t -c "SHOW server_version;" 2>/dev/null | xargs
+}
+
+# Get PostgreSQL version from Clever Cloud addon via API
+get_pg_version_clever_cloud() {
+  local addon_id="$1"
+
+  # Get addon info from Clever Cloud API
+  local addon_info=$(clever curl "https://api.clever-cloud.com/v2/addon/postgresql-addon/$addon_id" 2>/dev/null)
+
+  if [ -z "$addon_info" ]; then
+    echo ""
+    return 1
+  fi
+
+  # Extract version from addon info
+  local version=$(echo "$addon_info" | jq -r '.addon.config.version // .version // empty' 2>/dev/null)
+  echo "$version"
+}
+
+# Extract major version from full version string (e.g., "15.4" -> "15")
+extract_major_version() {
+  local version="$1"
+  echo "$version" | cut -d'.' -f1
+}
+
+# Check if target is a Clever Cloud instance
+is_clever_cloud_instance() {
+  local host="$1"
+  if [[ "$host" == *"clever-cloud.com"* ]] || [[ "$host" == *"cleverapps.io"* ]]; then
+    return 0
+  fi
+  return 1
+}
+
+# Verify PostgreSQL versions match between source and target
+verify_pg_versions() {
+  echo ""
+  echo "Checking PostgreSQL versions..."
+
+  # Get source version from Clever Cloud
+  echo "  Fetching source database version from Clever Cloud..."
+  local source_version=$(get_pg_version_clever_cloud "$CLEVER_DATABASE_ID")
+
+  if [ -z "$source_version" ]; then
+    echo "  ⚠️  Could not get source version from Clever Cloud API"
+    echo "  Trying to get version from addon environment..."
+
+    # Fallback: try to get version from addon env
+    local addon_env=$(clever addon env "$CLEVER_DATABASE_ID" --org "$CLEVER_ORG_ID" 2>/dev/null)
+    source_version=$(echo "$addon_env" | grep -E "POSTGRESQL_ADDON_VERSION|PG_VERSION" | head -1 | cut -d'=' -f2 | tr -d '"' | xargs)
+  fi
+
+  if [ -z "$source_version" ]; then
+    echo "  ⚠️  Could not determine source PostgreSQL version"
+    echo "  Proceeding without version check..."
+    return 0
+  fi
+
+  echo "  Source (Clever Cloud): PostgreSQL $source_version"
+
+  # Get target version
+  local target_version=""
+
+  if is_clever_cloud_instance "$DB_HOST"; then
+    echo "  Target is a Clever Cloud instance"
+    # Try to find the addon ID from the hostname
+    # Format: <addon_id>-postgresql.services.clever-cloud.com
+    local target_addon_id=$(echo "$DB_HOST" | grep -oE '^[a-z0-9]+' 2>/dev/null)
+    if [ -n "$target_addon_id" ]; then
+      target_version=$(get_pg_version_clever_cloud "$target_addon_id")
+    fi
+  fi
+
+  # Fallback to SQL query for version
+  if [ -z "$target_version" ]; then
+    target_version=$(get_pg_version_sql "$DB_HOST" "$DB_PORT" "$DB_USER" "$DB_PASSWORD" "$DB_NAME")
+  fi
+
+  if [ -z "$target_version" ]; then
+    echo "  ⚠️  Could not determine target PostgreSQL version"
+    echo "  Proceeding without version check..."
+    return 0
+  fi
+
+  echo "  Target: PostgreSQL $target_version"
+
+  # Compare major versions
+  local source_major=$(extract_major_version "$source_version")
+  local target_major=$(extract_major_version "$target_version")
+
+  echo ""
+  if [ "$source_major" != "$target_major" ]; then
+    echo "  ❌ PostgreSQL version mismatch!"
+    echo "     Source: PostgreSQL $source_major.x"
+    echo "     Target: PostgreSQL $target_major.x"
+    echo ""
+    echo "  Restoring a backup to a different major PostgreSQL version may cause issues."
+    echo "  Please ensure both databases are running the same major version."
+    echo ""
+    read -p "  Continue anyway? (y/N): " -n 1 -r
+    echo
+    if [[ ! $REPLY =~ ^[Yy]$ ]]; then
+      echo "  Restoration cancelled due to version mismatch."
+      return 1
+    fi
+    echo "  ⚠️  Proceeding despite version mismatch..."
+  else
+    echo "  ✓ PostgreSQL versions compatible (both $source_major.x)"
+  fi
+
+  return 0
+}
+
 # Check available disk space on target (Docker or local)
 check_resources() {
   echo "Checking target database resources..."
@@ -341,6 +463,9 @@ echo ""
 # Verify connection and check resources before proceeding
 check_pg_connection || exit 1
 check_resources
+
+# Verify PostgreSQL versions match
+verify_pg_versions || exit 1
 
 # Check for previous progress
 RESUME_MODE=false

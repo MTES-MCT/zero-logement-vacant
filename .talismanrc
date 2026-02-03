@@ -51,6 +51,22 @@ fileignoreconfig:
   checksum: e61269bb50cfcf72e05f504edc4e72dddca39e35f6994c958f62ca453467368d
 - filename: server/AGENTS.md
   checksum: 7dcff7f92233af9d77b5756e39af3d2aa71cd7dab25d91c2a96bfb7cdd609bca
+- filename: server/src/test/testFixtures.ts
+  checksum: 85991d7ad1b2c8cb325947dfacc773689ff6bdf1b479d819725d7b2a878902be
+- filename: server/src/models/test/DocumentApi.test.ts
+  checksum: 1d816ff7b060a0100cbd90a60182bb7c3e230ab5761909b18871af6ced2a6efb
+- filename: server/src/repositories/documentRepository.ts
+  checksum: 08cf7ff79afbf8604d02913f97a4a3a7a5ba21921a104096a6973f293b81d107
+- filename: server/src/services/document-upload.ts
+  checksum: 0cb813413285efbcff1805170c8c6017b54d8708a0dab34a89ba08524ce9724b
+- filename: server/src/services/test/document-upload.test.ts
+  checksum: d72231d6b3e4620d79c61ac6470bce501b70780ca88a64b7e91d5510eab66fc5
+- filename: server/src/controllers/documentController.ts
+  checksum: 8deb9be993a9fcd96cb51229661cb4337102874f3047fe9fc0e4b9309070c36b
+- filename: docs/plans/2026-01-28-document-upload-refactoring.md
+  checksum: ac444aed1f4427b4d3928842fac8fa67bc32ddae8547dd561d622d057ad0840e
+- filename: docs/guides/document-upload-architecture.md
+  checksum: 11ec4499248e685ea168b05df23d74a6357f21a54e9f26a8cf0937be8ba59f61
 scopeconfig:
 - scope: node
 allowed_patterns:

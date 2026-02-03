@@ -106,6 +106,32 @@ export type EventPayloads = {
     name: string;
   }>;
 
+  // Standalone document events
+  'document:created': CreationEventChange<{
+    filename: string;
+  }>;
+
+  'document:updated': UpdateEventChange<{
+    filename: string;
+  }>;
+
+  'document:removed': RemoveEventChange<{
+    filename: string;
+  }>;
+
+  // Housing-document association events
+  'housing:document-attached': CreationEventChange<{
+    filename: string;
+  }>;
+
+  'housing:document-detached': RemoveEventChange<{
+    filename: string;
+  }>;
+
+  'housing:document-removed': RemoveEventChange<{
+    filename: string;
+  }>;
+
   'owner:created': CreationEventChange<{
     name: string;
     birthdate: string | null;

@@ -1,3 +1,4 @@
+import jwt from 'jsonwebtoken';
 import { faker } from '@faker-js/faker/locale/fr';
 import {
   type EventType,
@@ -34,6 +35,7 @@ import {
   toUserDTO,
   type User
 } from '../models/User';
+import type { Establishment } from '~/models/Establishment';
 
 export const genBoolean = () => Math.random() < 0.5;
 
@@ -62,20 +64,23 @@ export function genNumber(length = 10): number {
   );
 }
 
-export function genAuthUser(user: User): AuthUser {
+export function genAuthUser(
+  user: User,
+  establishment: Establishment
+): AuthUser {
+  const accessToken = jwt.sign(
+    {
+      userId: user.id,
+      establishmentId: establishment.id,
+      role: user.role
+    },
+    faker.string.alphanumeric(10),
+    { algorithm: 'HS256' }
+  );
   return {
-    accessToken: randomstring.generate(),
+    accessToken,
     user,
-    establishment: {
-      id: faker.string.uuid(),
-      name: randomstring.generate(),
-      siren: genNumber(10),
-      kind: 'Commune',
-      available: genBoolean(),
-      shortName: randomstring.generate(),
-      geoCodes: [faker.location.zipCode()],
-      source: 'manual'
-    }
+    establishment
   };
 }
 

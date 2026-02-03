@@ -5,17 +5,16 @@ import {
   Establishments,
   formatEstablishmentApi
 } from '~/repositories/establishmentRepository';
+import housingDocumentRepository, {
+  HousingDocuments,
+  toDocumentDBO,
+  toHousingDocumentDBO,
+  type HousingDocumentDBO
+} from '~/repositories/housingDocumentRepository';
 import {
   formatHousingRecordApi,
   Housing
 } from '~/repositories/housingRepository';
-import housingDocumentRepository, {
-  DocumentDBO,
-  Documents,
-  HousingDocuments,
-  toDocumentDBO,
-  toHousingDocumentDBO
-} from '~/repositories/housingDocumentRepository';
 import { formatUserApi, Users } from '~/repositories/userRepository';
 import {
   genEstablishmentApi,
@@ -23,7 +22,7 @@ import {
   genHousingDocumentApi,
   genUserApi
 } from '~/test/testFixtures';
-import type { HousingApi } from '~/models/HousingApi';
+import { Documents } from '../documentRepository';
 
 describe('Housing document repository', () => {
   const establishment = genEstablishmentApi();
@@ -34,232 +33,149 @@ describe('Housing document repository', () => {
     await Users().insert(formatUserApi(user));
   });
 
-  describe('create', () => {
-    const housing = genHousingApi();
-    const document = genHousingDocumentApi(housing, user);
-
-    beforeAll(async () => {
+  describe('link', () => {
+    it('should create document-housing link', async () => {
+      const housing = genHousingApi();
       await Housing().insert(formatHousingRecordApi(housing));
 
-      await housingDocumentRepository.create(document);
-    });
-
-    it('should create the document', async () => {
-      const actual = await Documents().where({ id: document.id }).first();
-
-      expect(actual).toMatchObject({
-        id: document.id,
-        filename: document.filename,
-        s3_key: document.s3Key,
-        content_type: document.contentType,
-        size_bytes: document.sizeBytes,
-        created_by: document.createdBy,
-        deleted_at: null
+      const housingDocument = genHousingDocumentApi({
+        createdBy: user.id,
+        creator: user,
+        housingId: housing.id,
+        housingGeoCode: housing.geoCode
       });
-    });
+      await Documents().insert(toDocumentDBO(housingDocument));
 
-    it('should link the document to its housing', async () => {
+      await housingDocumentRepository.link(housingDocument);
+
       const actual = await HousingDocuments()
-        .where({
-          document_id: document.id,
-          housing_id: housing.id,
-          housing_geo_code: housing.geoCode
-        })
+        .where('document_id', housingDocument.id)
         .first();
 
-      expect(actual).toBeDefined();
-    });
-  });
-
-  describe('createMany', () => {
-    const housing = genHousingApi();
-    const documents: HousingDocumentApi[] = [
-      genHousingDocumentApi(housing, user),
-      genHousingDocumentApi(housing, user),
-      genHousingDocumentApi(housing, user)
-    ];
-
-    beforeAll(async () => {
-      await Housing().insert(formatHousingRecordApi(housing));
-
-      await housingDocumentRepository.createMany(documents);
-    });
-
-    it('should create all documents', async () => {
-      const actual = await Documents()
-        .whereIn(
-          'id',
-          documents.map((d) => d.id)
-        )
-        .select();
-
-      expect(actual).toHaveLength(3);
-    });
-
-    it('should link all documents to the housing', async () => {
-      const actual = await HousingDocuments()
-        .whereIn(
-          'document_id',
-          documents.map((d) => d.id)
-        )
-        .select();
-
-      expect(actual).toHaveLength(3);
-      expect(actual).toSatisfyAll((link) => {
-        return (
-          link.housing_id === housing.id &&
-          link.housing_geo_code === housing.geoCode
-        );
+      expect(actual).toMatchObject({
+        document_id: housingDocument.id,
+        housing_geo_code: housing.geoCode,
+        housing_id: housing.id
       });
     });
 
-    it('should handle empty array', async () => {
+    it('should be idempotent (ignore duplicate links)', async () => {
+      const housing = genHousingApi();
+      await Housing().insert(formatHousingRecordApi(housing));
+
+      const housingDocument = genHousingDocumentApi({
+        createdBy: user.id,
+        creator: user,
+        housingId: housing.id,
+        housingGeoCode: housing.geoCode
+      });
+      await Documents().insert(toDocumentDBO(housingDocument));
+
+      await housingDocumentRepository.link(housingDocument);
+      await housingDocumentRepository.link(housingDocument); // Second call
+
+      const actual = await HousingDocuments().where(
+        'document_id',
+        housingDocument.id
+      );
+      expect(actual).toHaveLength(1); // Still only 1 link
+    });
+  });
+
+  describe('linkMany', () => {
+    it('should create multiple document-housing links (cartesian product)', async () => {
+      const housings = [genHousingApi(), genHousingApi()];
+      await Housing().insert(housings.map(formatHousingRecordApi));
+
+      const housingDocuments = [
+        genHousingDocumentApi({
+          createdBy: user.id,
+          creator: user
+        }),
+        genHousingDocumentApi({
+          createdBy: user.id,
+          creator: user
+        })
+      ];
+
+      // Insert the documents
+      await Documents().insert(housingDocuments.map(toDocumentDBO));
+
+      // Link 2 documents × 2 housings = 4 links (cartesian product)
+      const links = housingDocuments.flatMap((d) =>
+        housings.map((h) => ({
+          document_id: d.id,
+          housing_id: h.id,
+          housing_geo_code: h.geoCode
+        }))
+      );
+      await housingDocumentRepository.linkMany(links);
+
+      // Should create 4 links
+      const allLinks = await HousingDocuments().whereIn(
+        'document_id',
+        housingDocuments.map((d) => d.id)
+      );
+
+      expect(allLinks).toHaveLength(4);
+    });
+
+    it('should handle empty arrays', async () => {
       await expect(
-        housingDocumentRepository.createMany([])
+        housingDocumentRepository.linkMany([])
       ).resolves.not.toThrow();
     });
-
-    it('should fail when attempting to create documents with duplicate IDs', async () => {
-      const housing = genHousingApi();
-      await Housing().insert(formatHousingRecordApi(housing));
-
-      const doc1 = genHousingDocumentApi(housing, user);
-      const doc2 = { ...genHousingDocumentApi(housing, user), id: doc1.id };
-
-      await expect(
-        housingDocumentRepository.createMany([doc1, doc2])
-      ).rejects.toThrow();
-
-      // Verify no documents were created
-      const actual = await Documents().where({ id: doc1.id }).first();
-      expect(actual).toBeUndefined();
-    });
-
-    it('should rollback transaction on partial failure', async () => {
-      const housing = genHousingApi();
-      await Housing().insert(formatHousingRecordApi(housing));
-
-      const validDoc = genHousingDocumentApi(housing, user);
-      const invalidDoc = {
-        ...genHousingDocumentApi(housing, user),
-        // Set an invalid field that should cause the insert to fail
-        createdBy: faker.string.uuid() // Non-existent user ID
-      };
-
-      await expect(
-        housingDocumentRepository.createMany([validDoc, invalidDoc])
-      ).rejects.toThrow();
-
-      // Verify the valid document was also rolled back
-      const actualValid = await Documents().where({ id: validDoc.id }).first();
-      expect(actualValid).toBeUndefined();
-
-      // Verify no housing_documents links were created
-      const actualLinks = await HousingDocuments()
-        .whereIn('document_id', [validDoc.id, invalidDoc.id])
-        .select();
-      expect(actualLinks).toHaveLength(0);
-    });
   });
 
-  describe('findByHousing', () => {
-    const housing = genHousingApi();
-    const documents: ReadonlyArray<HousingDocumentApi> = [
-      {
-        ...genHousingDocumentApi(housing, user),
-        deletedAt: null
-      },
-      {
-        ...genHousingDocumentApi(housing, user),
-        deletedAt: new Date().toJSON()
-      }
-    ];
-
-    beforeAll(async () => {
+  describe('unlink', () => {
+    it('should remove document-housing link', async () => {
+      const housing = genHousingApi();
       await Housing().insert(formatHousingRecordApi(housing));
-      await housingDocumentRepository.createMany(documents);
 
-      // Manually soft-delete the second document
-      await Documents()
-        .where('id', documents[1].id)
-        .update({ deleted_at: new Date(documents[1].deletedAt!) });
-    });
+      const housingDocument = genHousingDocumentApi({
+        createdBy: user.id,
+        creator: user,
+        housingId: housing.id,
+        housingGeoCode: housing.geoCode
+      });
+      await Documents().insert(toDocumentDBO(housingDocument));
 
-    it('should return all the documents of a housing', async () => {
-      const actual = await housingDocumentRepository.findByHousing(housing);
+      const linkDBO: HousingDocumentDBO = {
+        document_id: housingDocument.id,
+        housing_geo_code: housing.geoCode,
+        housing_id: housing.id
+      };
+      await HousingDocuments().insert(linkDBO);
 
-      expect(actual).toIncludeAllPartialMembers(
-        documents.map((doc) => ({ id: doc.id }))
+      await housingDocumentRepository.unlink({
+        documentId: housingDocument.id,
+        housingGeoCode: housing.geoCode,
+        housingId: housing.id
+      });
+
+      const actual = await HousingDocuments().where(
+        'document_id',
+        housingDocument.id
       );
-    });
-
-    it('should return all documents including deleted when no filters are provided', async () => {
-      const actual = await housingDocumentRepository.findByHousing(housing);
-
-      expect(actual).toHaveLength(documents.length);
-      const deletedDocs = actual.filter((doc) => doc.deletedAt !== null);
-      const nonDeletedDocs = actual.filter((doc) => doc.deletedAt === null);
-
-      expect(deletedDocs.length).toBeGreaterThan(0);
-      expect(nonDeletedDocs.length).toBeGreaterThan(0);
-    });
-
-    it('should return the deleted documents of a housing', async () => {
-      const actual = await housingDocumentRepository.findByHousing(housing, {
-        filters: {
-          deleted: true
-        }
-      });
-
-      expect(actual.length).toBeGreaterThan(0);
-      expect(actual).toSatisfyAll<HousingDocumentApi>((doc) => {
-        return doc.deletedAt !== null;
-      });
-    });
-
-    it('should return the non-deleted documents of a housing', async () => {
-      const actual = await housingDocumentRepository.findByHousing(housing, {
-        filters: {
-          deleted: false
-        }
-      });
-
-      expect(actual.length).toBeGreaterThan(0);
-      expect(actual).toSatisfyAll<HousingDocumentApi>((doc) => {
-        return doc.deletedAt === null;
-      });
-    });
-
-    it('should include creator information', async () => {
-      const actual = await housingDocumentRepository.findByHousing(housing, {
-        filters: { deleted: false }
-      });
-
-      expect(actual.length).toBeGreaterThan(0);
-      expect(actual[0].creator).toBeDefined();
-      expect(actual[0].creator.id).toBe(user.id);
-      expect(actual[0].creator.email).toBe(user.email);
-    });
-
-    it('should order by created_at desc', async () => {
-      const actual = await housingDocumentRepository.findByHousing(housing, {
-        filters: { deleted: false }
-      });
-
-      expect(actual).toBeSortedBy('createdAt', {
-        descending: true
-      });
+      expect(actual).toHaveLength(0);
     });
   });
 
   describe('get', () => {
     const housing = genHousingApi();
-    const document = genHousingDocumentApi(housing, user);
+    const document = genHousingDocumentApi({
+      createdBy: user.id,
+      creator: user,
+      housingId: housing.id,
+      housingGeoCode: housing.geoCode
+    });
 
     beforeAll(async () => {
       await Housing().insert(formatHousingRecordApi(housing));
 
-      await housingDocumentRepository.create(document);
+      // Insert document and link manually
+      await Documents().insert(toDocumentDBO(document));
+      await HousingDocuments().insert(toHousingDocumentDBO(document));
     });
 
     it('should return null if the document is missing', async () => {
@@ -306,66 +222,20 @@ describe('Housing document repository', () => {
     });
   });
 
-  describe('update', () => {
-    let housing: HousingApi = genHousingApi();
-    let document: HousingDocumentApi = genHousingDocumentApi(housing, user);
-
-    beforeAll(async () => {
-      housing = genHousingApi();
-      document = genHousingDocumentApi(housing, user);
-
-      await Housing().insert(formatHousingRecordApi(housing));
-      await Documents().insert(toDocumentDBO(document));
-      await HousingDocuments().insert(toHousingDocumentDBO(document));
-    });
-
-    it('should update the document filename and updated_at field', async () => {
-      const newFilename = 'Nouveau nom';
-      const updatedAt = new Date().toISOString();
-
-      await housingDocumentRepository.update({
-        ...document,
-        filename: newFilename,
-        updatedAt
-      });
-
-      const actual = await Documents().where({ id: document.id }).first();
-
-      expect(actual).toMatchObject({
-        id: document.id,
-        filename: newFilename,
-        updated_at: new Date(updatedAt)
-      });
-    });
-
-    it('should preserve other fields when updating only filename', async () => {
-      const newFilename = 'Nouveau nom';
-
-      await housingDocumentRepository.update({
-        ...document,
-        filename: newFilename,
-        updatedAt: new Date().toISOString()
-      });
-
-      const actual = await Documents().where({ id: document.id }).first();
-
-      expect(actual).toMatchObject<Partial<DocumentDBO>>({
-        id: document.id,
-        s3_key: document.s3Key,
-        content_type: document.contentType,
-        size_bytes: document.sizeBytes,
-        created_by: document.createdBy
-      });
-    });
-  });
-
   describe('remove', () => {
     it('should soft-delete the document', async () => {
       const housing = genHousingApi();
-      const document = genHousingDocumentApi(housing, user);
+      const document = genHousingDocumentApi({
+        createdBy: user.id,
+        creator: user,
+        housingId: housing.id,
+        housingGeoCode: housing.geoCode
+      });
       await Housing().insert(formatHousingRecordApi(housing));
 
-      await housingDocumentRepository.create(document);
+      // Insert document and link manually
+      await Documents().insert(toDocumentDBO(document));
+      await HousingDocuments().insert(toHousingDocumentDBO(document));
 
       await housingDocumentRepository.remove(document);
 
@@ -381,6 +251,96 @@ describe('Housing document repository', () => {
         .first();
 
       expect(actualLink).toBeDefined();
+    });
+  });
+
+  describe('unlinkMany', () => {
+    it('should unlink multiple documents from all housings', async () => {
+      const housings = [genHousingApi(), genHousingApi()];
+      const housingDocuments = [
+        genHousingDocumentApi({
+          createdBy: user.id,
+          creator: user
+        }),
+        genHousingDocumentApi({
+          createdBy: user.id,
+          creator: user
+        })
+      ];
+
+      await Housing().insert(housings.map(formatHousingRecordApi));
+      await Documents().insert(housingDocuments.map(toDocumentDBO));
+
+      // Link all documents to all housings (cartesian product)
+      const links = housingDocuments.flatMap((doc) =>
+        housings.map((h) => ({
+          document_id: doc.id,
+          housing_id: h.id,
+          housing_geo_code: h.geoCode
+        }))
+      );
+      await housingDocumentRepository.linkMany(links);
+
+      // Verify links were created (2 documents × 2 housings = 4 links)
+      const linksBefore = await HousingDocuments().whereIn(
+        'document_id',
+        housingDocuments.map((doc) => doc.id)
+      );
+      expect(linksBefore).toHaveLength(4);
+
+      await housingDocumentRepository.unlinkMany({
+        documentIds: housingDocuments.map((doc) => doc.id)
+      });
+
+      const linksAfter = await HousingDocuments().whereIn(
+        'document_id',
+        housingDocuments.map((doc) => doc.id)
+      );
+      expect(linksAfter).toBeEmpty();
+    });
+
+    it('should handle empty array', async () => {
+      await housingDocumentRepository.unlinkMany({ documentIds: [] });
+      // Should not throw
+    });
+
+    it('should only unlink specified documents', async () => {
+      const housing = genHousingApi();
+      const documents = [
+        genHousingDocumentApi({
+          createdBy: user.id,
+          creator: user,
+          housingId: housing.id,
+          housingGeoCode: housing.geoCode
+        }),
+        genHousingDocumentApi({
+          createdBy: user.id,
+          creator: user,
+          housingId: housing.id,
+          housingGeoCode: housing.geoCode
+        })
+      ];
+
+      await Housing().insert(formatHousingRecordApi(housing));
+      await Documents().insert(documents.map(toDocumentDBO));
+
+      const links = documents.map((doc) => ({
+        document_id: doc.id,
+        housing_id: housing.id,
+        housing_geo_code: housing.geoCode
+      }));
+      await housingDocumentRepository.linkMany(links);
+
+      // Unlink only the first document
+      await housingDocumentRepository.unlinkMany({
+        documentIds: [documents[0].id]
+      });
+
+      const remainingLinks = await HousingDocuments().where({
+        housing_id: housing.id
+      });
+      expect(remainingLinks).toHaveLength(1);
+      expect(remainingLinks[0].document_id).toBe(documents[1].id);
     });
   });
 });

@@ -10,9 +10,11 @@ import { createLogger } from '~/infra/logger';
 import {
   CampaignEventApi,
   CampaignHousingEventApi,
+  DocumentEventApi,
   EventApi,
   EventUnion,
   GroupHousingEventApi,
+  HousingDocumentEventApi,
   HousingEventApi,
   HousingOwnerEventApi,
   OwnerEventApi,
@@ -37,6 +39,8 @@ export const CAMPAIGN_EVENTS_TABLE = 'campaign_events';
 export const CAMPAIGN_HOUSING_EVENTS_TABLE = 'campaign_housing_events';
 export const GROUP_HOUSING_EVENTS_TABLE = 'group_housing_events';
 export const PRECISION_HOUSING_EVENTS_TABLE = 'precision_housing_events';
+export const DOCUMENT_EVENTS_TABLE = 'document_events';
+export const HOUSING_DOCUMENT_EVENTS_TABLE = 'housing_document_events';
 
 export const Events = <Type extends EventType>(transaction = db) =>
   transaction<EventRecordDBO<Type>>(EVENTS_TABLE);
@@ -54,6 +58,11 @@ export const GroupHousingEvents = (transaction = db) =>
   transaction<GroupHousingEventDBO>(GROUP_HOUSING_EVENTS_TABLE);
 export const PrecisionHousingEvents = (transaction = db) =>
   transaction<PrecisionHousingEventDBO>(PRECISION_HOUSING_EVENTS_TABLE);
+
+export const DocumentEvents = (transaction = db) =>
+  transaction<DocumentEventDBO>(DOCUMENT_EVENTS_TABLE);
+export const HousingDocumentEvents = (transaction = db) =>
+  transaction<HousingDocumentEventDBO>(HOUSING_DOCUMENT_EVENTS_TABLE);
 
 async function insertManyHousingEvents(
   events: ReadonlyArray<HousingEventApi>
@@ -186,6 +195,43 @@ async function insertManyGroupHousingEvents(
   });
 }
 
+async function insertManyDocumentEvents(
+  events: ReadonlyArray<DocumentEventApi>
+): Promise<void> {
+  if (!events.length) {
+    logger.debug('No document event to insert. Skipping...');
+    return;
+  }
+
+  logger.debug('Inserting document events...', { events: events.length });
+  await withinTransaction(async (transaction) => {
+    await transaction.batchInsert(EVENTS_TABLE, events.map(formatEventApi));
+    await transaction.batchInsert(
+      DOCUMENT_EVENTS_TABLE,
+      events.map(formatDocumentEventApi)
+    );
+  });
+}
+
+async function insertManyHousingDocumentEvents(
+  events: ReadonlyArray<HousingDocumentEventApi>
+): Promise<void> {
+  if (!events.length) {
+    return;
+  }
+
+  logger.debug('Inserting housing document events...', {
+    events: events.length
+  });
+  await withinTransaction(async (transaction) => {
+    await transaction.batchInsert(EVENTS_TABLE, events.map(formatEventApi));
+    await transaction.batchInsert(
+      HOUSING_DOCUMENT_EVENTS_TABLE,
+      events.map(formatHousingDocumentEventApi)
+    );
+  });
+}
+
 interface FindEventsOptions<Type extends EventType> {
   filters?: {
     types?: ReadonlyArray<Type>;
@@ -271,6 +317,19 @@ async function find<Type extends EventType>(
                   [
                     `${CAMPAIGN_HOUSING_EVENTS_TABLE}.housing_geo_code`,
                     `${CAMPAIGN_HOUSING_EVENTS_TABLE}.housing_id`
+                  ],
+                  housings.map((housing) => [housing.geoCode, housing.id])
+                );
+            })
+            // Add housing events related to documents
+            .unionAll((union) => {
+              union
+                .select(`${HOUSING_DOCUMENT_EVENTS_TABLE}.event_id`)
+                .from(HOUSING_DOCUMENT_EVENTS_TABLE)
+                .whereIn(
+                  [
+                    `${HOUSING_DOCUMENT_EVENTS_TABLE}.housing_geo_code`,
+                    `${HOUSING_DOCUMENT_EVENTS_TABLE}.housing_id`
                   ],
                   housings.map((housing) => [housing.geoCode, housing.id])
                 );
@@ -495,6 +554,38 @@ export function formatCampaignEventApi(
   };
 }
 
+export interface DocumentEventDBO {
+  event_id: string;
+  document_id: string;
+}
+
+export function formatDocumentEventApi(
+  event: DocumentEventApi
+): DocumentEventDBO {
+  return {
+    event_id: event.id,
+    document_id: event.documentId
+  };
+}
+
+export interface HousingDocumentEventDBO {
+  event_id: string;
+  housing_geo_code: string;
+  housing_id: string;
+  document_id: string;
+}
+
+export function formatHousingDocumentEventApi(
+  event: HousingDocumentEventApi
+): HousingDocumentEventDBO {
+  return {
+    event_id: event.id,
+    housing_geo_code: event.housingGeoCode,
+    housing_id: event.housingId,
+    document_id: event.documentId
+  };
+}
+
 export default {
   insertManyCampaignEvents,
   insertManyCampaignHousingEvents,
@@ -503,6 +594,8 @@ export default {
   insertManyGroupHousingEvents,
   insertManyOwnerEvents,
   insertManyPrecisionHousingEvents,
+  insertManyDocumentEvents,
+  insertManyHousingDocumentEvents,
   find,
   removeCampaignEvents
 };

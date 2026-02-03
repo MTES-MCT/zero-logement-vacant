@@ -46,11 +46,11 @@ function HousingDocumentUpload(props: Readonly<HousingDocumentUploadProps>) {
     .with(
       documentsOrErrors.length,
       () =>
-        "Aucun fichier n’a pu être importé, car le format ne respecte pas les consignes d'import. Essayez avec d’autres documents ou modifiez les documents que vous souhaitez importer."
+        'Aucun fichier n’a pu être importé, car le format ne respecte pas les consignes d’import. Essayez avec d’autres documents ou modifiez les documents que vous souhaitez importer.'
     )
     .otherwise(
       () =>
-        "Certains fichiers n’ont pas pu être importés, car le format ne respecte pas les consignes d’import. Essayez avec d’autres documents ou modifiez les documents que vous souhaitez importer."
+        'Certains fichiers n’ont pas pu être importés, car le format ne respecte pas les consignes d’import. Essayez avec d’autres documents ou modifiez les documents que vous souhaitez importer.'
     );
 
   async function onUpload(files: ReadonlyArray<File>) {

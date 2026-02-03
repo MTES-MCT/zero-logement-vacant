@@ -1,7 +1,7 @@
 import { configureStore } from '@reduxjs/toolkit';
 
-import { type AuthUser } from '../models/User';
 import { applicationMiddlewares, applicationReducer } from '~/store/store';
+import { type AuthUser } from '../models/User';
 
 interface Options {
   /**
@@ -12,6 +12,8 @@ interface Options {
 }
 
 function configureTestStore(options?: Options) {
+  localStorage.setItem('authUser', JSON.stringify(options?.auth ?? null));
+
   return configureStore({
     reducer: applicationReducer,
     middleware: (getDefaultMiddleware) =>

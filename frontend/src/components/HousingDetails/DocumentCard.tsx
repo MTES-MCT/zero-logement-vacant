@@ -37,7 +37,7 @@ function DocumentCard(props: Readonly<DocumentCardProps>) {
 
   const { isUsual, isAdmin, establishment } = useUser();
   const sameEstablishment: boolean =
-    establishment?.id === props.document.creator.establishmentId;
+    establishment?.id === props.document.establishmentId;
   const canWrite: boolean = isAdmin || (isUsual && sameEstablishment);
 
   const [dropdownOpen, setDropdownOpen] = useState(false);

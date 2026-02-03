@@ -8,7 +8,9 @@ import { http, HttpResponse, type RequestHandler } from 'msw';
 import { constants } from 'node:http2';
 import { v4 as uuidv4 } from 'uuid';
 
+import { toUserDTO } from '~/models/User';
 import config from '~/utils/config';
+import { decodeAuth } from './auth-helpers';
 import data from './data';
 
 const listByHousing = http.get<{ id: string }, never, DocumentDTO[]>(
@@ -27,21 +29,27 @@ const listByHousing = http.get<{ id: string }, never, DocumentDTO[]>(
 const upload = http.post<never, FormData, DocumentDTO[] | Error>(
   `${config.apiEndpoint}/api/documents`,
   async ({ request }) => {
+    // Simulate auth by decoding token (without verifying signature)
+    const auth = decodeAuth(request);
+    if (!auth) {
+      return HttpResponse.json(
+        { name: 'AuthenticationError', message: 'Invalid access token' },
+        { status: constants.HTTP_STATUS_UNAUTHORIZED }
+      );
+    }
+
     const formData = await request.formData();
     const files = formData.getAll('files') as File[];
-
     if (!files.length) {
       return HttpResponse.json(
         { name: 'FilesMissingError', message: 'No files uploaded' },
         { status: constants.HTTP_STATUS_BAD_REQUEST }
       );
     }
-
-    const creator = data.users[0];
-    if (!creator) {
+    if (files.some((file) => !(file instanceof File))) {
       return HttpResponse.json(
-        { name: 'Error', message: 'No user available' },
-        { status: constants.HTTP_STATUS_INTERNAL_SERVER_ERROR }
+        { name: 'InvalidFileError', message: 'Invalid file uploaded' },
+        { status: constants.HTTP_STATUS_BAD_REQUEST }
       );
     }
 
@@ -54,7 +62,8 @@ const upload = http.post<never, FormData, DocumentDTO[] | Error>(
         sizeBytes: file.size,
         createdAt: new Date().toJSON(),
         updatedAt: null,
-        creator
+        establishmentId: auth.establishment.id,
+        creator: toUserDTO(auth.user)
       };
       data.documents.set(document.id, document);
       return document;

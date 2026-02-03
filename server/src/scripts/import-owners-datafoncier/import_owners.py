@@ -251,14 +251,21 @@ def map_entity(ccogrm: Optional[str]) -> Optional[str]:
 
 def format_dlign4(dlign4: Optional[str]) -> Optional[str]:
     """
-    Format dlign4 address line:
+    Format dlign4 address line from Datafoncier fixed format:
+    - Positions 1-4: house number with zero padding
+    - Position 5: repetition index (B=bis, T=ter, Q=quater, C=cinquième, etc.)
+    - Positions 6+: street name
+
+    Processing:
     - Remove leading zeros from house number
-    - Add space after repetition index (bis, ter, etc.)
+    - If position 5 is a letter (repetition index), add space after it
+    - Clean up extra spaces
 
     Examples:
-        "0012BIS RUE DES FLEURS" -> "12 BIS RUE DES FLEURS"
-        "0003TER AVENUE" -> "3 TER AVENUE"
-        "0045 RUE" -> "45 RUE"
+        "0028 RUE PARMENTIER" -> "28 RUE PARMENTIER"
+        "0000 RTE DE LA DOUANE" -> "RTE DE LA DOUANE"
+        "0060 BD GALLIENI" -> "60 BD GALLIENI"
+        "0088CAV DE PARIS" -> "88C AV DE PARIS"
 
     Args:
         dlign4: Address line 4 from Datafoncier
@@ -266,28 +273,42 @@ def format_dlign4(dlign4: Optional[str]) -> Optional[str]:
     Returns:
         Formatted address line or None if empty
     """
-    import re
-
     if not dlign4 or not dlign4.strip():
         return None
 
     line = dlign4.strip()
 
-    # Pattern: leading zeros followed by number, optionally followed by repetition index (BIS, TER, etc.)
-    # then the rest of the address
-    match = re.match(r'^0*(\d+)(BIS|TER|QUATER|QUINQUIES|A|B|C|D|E|F)?(.*)$', line, re.IGNORECASE)
-    if match:
-        number = match.group(1)
-        repetition = match.group(2)
-        rest = match.group(3)
+    # Need at least 4 characters for the house number
+    if len(line) < 4:
+        return line
 
-        if repetition:
-            # Add space before and after repetition index
-            return f"{number} {repetition.upper()} {rest.lstrip()}"
+    # Extract house number (positions 1-4) and remove leading zeros
+    house_number = line[:4].lstrip('0')
+
+    # If house number is empty (was "0000"), just return the rest
+    if not house_number:
+        rest = line[4:].strip()
+        # Clean up extra spaces
+        return ' '.join(rest.split()) if rest else None
+
+    # Check if position 5 is a repetition index (a letter, not a space or digit)
+    if len(line) > 4:
+        char5 = line[4]
+        rest = line[5:] if len(line) > 5 else ''
+
+        if char5.isalpha():
+            # Position 5 is a repetition index - add space between index and street name
+            street = rest.strip()
+            result = f"{house_number}{char5} {street}" if street else f"{house_number}{char5}"
         else:
-            return f"{number} {rest.lstrip()}"
+            # Position 5 is a space or other - just concatenate
+            street = (char5 + rest).strip()
+            result = f"{house_number} {street}" if street else house_number
+    else:
+        result = house_number
 
-    return line
+    # Clean up extra spaces
+    return ' '.join(result.split())
 
 
 class OwnerImporter:

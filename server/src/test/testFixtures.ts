@@ -155,7 +155,7 @@ export function genDocumentApi(
     overrides?.creator?.establishmentId ??
     uuidv4();
   const creator = overrides?.creator ?? genUserApi(establishmentId);
-  const baseDocument = genDocumentDTO(creator);
+  const baseDocument = genDocumentDTO(creator, { id: establishmentId });
   const id = overrides?.id ?? baseDocument.id;
 
   return {

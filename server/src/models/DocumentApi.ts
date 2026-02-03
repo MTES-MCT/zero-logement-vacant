@@ -8,7 +8,6 @@ import { Equivalence } from 'effect';
  */
 export interface DocumentApi extends Omit<DocumentDTO, 'creator' | 'url'> {
   s3Key: string;
-  establishmentId: string;
   createdBy: string;
   deletedAt: string | null;
   creator: UserApi;
@@ -35,6 +34,7 @@ export function toDocumentDTO(document: DocumentApi, url: string): DocumentDTO {
     sizeBytes: document.sizeBytes,
     createdAt: document.createdAt,
     updatedAt: document.updatedAt,
+    establishmentId: document.establishmentId,
     creator: toUserDTO(document.creator)
   };
 }

@@ -5,8 +5,8 @@ import Typography from '@mui/material/Typography';
 import { skipToken } from '@reduxjs/toolkit/query';
 import { fromHousing } from '@zerologementvacant/models';
 import classNames from 'classnames';
-import { type ReactNode } from 'react';
 import { useFeatureFlagEnabled } from 'posthog-js/react';
+import { type ReactNode } from 'react';
 import { match, Pattern } from 'ts-pattern';
 
 import DPE from '~/components/DPE/DPE';
@@ -90,7 +90,20 @@ function HousingTab() {
           />
           {isActualDpeEnabled && (
             <HousingAttribute
-              label="Étiquette DPE réelle"
+              label={
+                <Stack>
+                  <Typography
+                    component="span"
+                    variant="body2"
+                    sx={{ fontWeight: 700 }}
+                  >
+                    Étiquette DPE renseignée
+                  </Typography>
+                  <Typography component="span" variant="caption">
+                    Renseignée par un utilisateur ZLV
+                  </Typography>
+                </Stack>
+              }
               value={
                 housing.actualEnergyConsumption ? (
                   <DPE value={housing.actualEnergyConsumption} />
@@ -138,19 +151,28 @@ function HousingTab() {
                 ({ data: building }) => (
                   <HousingAttribute
                     label={
-                      <>
-                        Étiquette DPE représentatif (source :{' '}
-                        {building.dpe ? (
-                          <AppLink
-                            to={`https://observatoire-dpe-audit.ademe.fr/afficher-dpe/${building.dpe?.id}`}
-                          >
-                            ADEME
-                          </AppLink>
-                        ) : (
-                          'ADEME'
-                        )}
-                        )
-                      </>
+                      <Stack>
+                        <Typography
+                          component="span"
+                          variant="body2"
+                          sx={{ fontWeight: 700 }}
+                        >
+                          Étiquette DPE représentatif (source :{' '}
+                          {building.dpe ? (
+                            <AppLink
+                              to={`https://observatoire-dpe-audit.ademe.fr/afficher-dpe/${building.dpe?.id}`}
+                            >
+                              ADEME
+                            </AppLink>
+                          ) : (
+                            'ADEME'
+                          )}
+                          )
+                        </Typography>
+                        <Typography component="span" variant="caption">
+                          Issue du DPE le plus récent du bâtiment
+                        </Typography>
+                      </Stack>
                     }
                     value={
                       building.dpe ? (

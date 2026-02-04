@@ -125,7 +125,6 @@ function HousingHeader(props: HousingHeaderProps) {
               Éditer
             </Button>
             <HousingEditionSideMenu
-              housing={housing}
               expand={editing}
               onClose={() => {
                 setEditing(false);

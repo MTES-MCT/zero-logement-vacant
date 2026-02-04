@@ -38,7 +38,7 @@ export const PRECISION_TREE_VALUES: OrderedMap<
     'Bien sans maître',
     'Abandon manifeste',
     'DIA - préemption',
-    'Procédure d’habitat indigne',
+    'Procédure d’habitat indigne (hygiène, insalubrité, péril)',
     'Permis de louer',
     'Permis de diviser',
     'Autre'

@@ -24,15 +24,15 @@ export type DocumentRenameModalProps = Pick<
   onDownload(): void;
 };
 
-export function createDocumentRenameModal() {
+export function createDocumentRenameModal(id: string) {
   const modal = createConfirmationModal({
-    id: 'document-rename-modal',
+    id: `document-rename-modal-${id}`,
     isOpenedByDefault: false
   });
 
   return {
     ...modal,
-    Component(props: DocumentRenameModalProps) {
+    Component(props: Readonly<DocumentRenameModalProps>) {
       const { document, ...rest } = props;
 
       const form = useForm({

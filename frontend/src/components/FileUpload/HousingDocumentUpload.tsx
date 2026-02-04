@@ -9,25 +9,23 @@ import {
   type FileValidationError,
   isFileValidationError
 } from '~/models/FileValidationError';
-import type { Housing } from '~/models/Housing';
-import {
-  useUploadDocumentsMutation,
-  useLinkDocumentsToHousingMutation
-} from '~/services/document.service';
+import { useUploadDocumentsMutation } from '~/services/document.service';
 import { isFetchBaseQueryError } from '~/store/store';
 
 export interface HousingDocumentUploadProps {
-  housing: Housing;
+  /**
+   * Called every time documents are successfully uploaded.
+   * @param documents
+   */
+  onUpload(documents: ReadonlyArray<DocumentDTO>): void;
 }
 
 function HousingDocumentUpload(props: Readonly<HousingDocumentUploadProps>) {
   const [uploadDocuments, uploadMutation] = useUploadDocumentsMutation();
-  const [linkDocuments, linkMutation] = useLinkDocumentsToHousingMutation();
 
-  // Combined state tracking
-  const isLoading = uploadMutation.isLoading || linkMutation.isLoading;
-  const isSuccess = uploadMutation.isSuccess && linkMutation.isSuccess;
-  const isError = uploadMutation.isError || linkMutation.isError;
+  const isLoading = uploadMutation.isLoading;
+  const isSuccess = uploadMutation.isSuccess;
+  const isError = uploadMutation.isError;
 
   const documentsOrErrors = uploadMutation.data ?? [];
   const errors: ReadonlyArray<FileValidationError> =
@@ -53,35 +51,21 @@ function HousingDocumentUpload(props: Readonly<HousingDocumentUploadProps>) {
         'Certains fichiers n’ont pas pu être importés, car le format ne respecte pas les consignes d’import. Essayez avec d’autres documents ou modifiez les documents que vous souhaitez importer.'
     );
 
-  async function onUpload(files: ReadonlyArray<File>) {
+  function onUpload(files: ReadonlyArray<File>) {
     if (!files.length) {
       uploadMutation.reset();
-      linkMutation.reset();
       return;
     }
 
-    try {
-      // Step 1: Upload documents
-      const uploadResult = await uploadDocuments({ files }).unwrap();
+    uploadDocuments({ files })
+      .unwrap()
+      .then((documentsOrErrors) => {
+        const documents: DocumentDTO[] = documentsOrErrors.filter(
+          (item): item is DocumentDTO => !isFileValidationError(item)
+        );
 
-      // Extract successful uploads (filter FileValidationErrors)
-      const successfulDocuments = uploadResult.filter(
-        (item): item is DocumentDTO => !isFileValidationError(item)
-      );
-
-      if (successfulDocuments.length === 0) {
-        return; // All uploads failed
-      }
-
-      // Step 2: Link successful documents to housing
-      const documentIds = successfulDocuments.map((document) => document.id);
-      await linkDocuments({
-        housingId: props.housing.id,
-        documentIds
-      }).unwrap();
-    } catch (error) {
-      console.error('Upload or link failed', error);
-    }
+        props.onUpload(documents);
+      });
   }
 
   return (

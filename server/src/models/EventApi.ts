@@ -98,6 +98,22 @@ export type CampaignEventApi = EventUnion<'campaign:updated'> & {
   campaignId: string;
 };
 
+// Standalone document events
+export type DocumentEventApi = EventUnion<
+  'document:created' | 'document:updated' | 'document:removed'
+> & {
+  documentId: string;
+};
+
+// Housing-document association events
+export type HousingDocumentEventApi = EventUnion<
+  'housing:document-attached' | 'housing:document-detached' | 'housing:document-removed'
+> & {
+  housingGeoCode: string;
+  housingId: string;
+  documentId: string;
+};
+
 export function isUserModified(event: EventApi<EventType>): boolean {
   assert(event.creator, 'Event creator is missing');
   const isBeta = /@(zerologementvacant\.)?beta\.gouv\.fr$/;

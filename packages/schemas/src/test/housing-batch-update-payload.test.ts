@@ -95,6 +95,10 @@ describe('Housing batch update payload', () => {
     precisions: fc.option(
       fc.array(fc.uuid({ version: 4 }), { minLength: 1, maxLength: 10 }),
       { nil: undefined }
+    ),
+    documents: fc.option(
+      fc.array(fc.uuid({ version: 4 }), { minLength: 1, maxLength: 10 }),
+      { nil: undefined }
     )
   })('shoud validate inputs', (payload) => {
     const validate = () => housingBatchUpdatePayload.validateSync(payload);

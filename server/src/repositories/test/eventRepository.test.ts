@@ -4,7 +4,9 @@ import { ActiveOwnerRank, Occupancy } from '@zerologementvacant/models';
 import {
   CampaignEventApi,
   CampaignHousingEventApi,
+  DocumentEventApi,
   GroupHousingEventApi,
+  HousingDocumentEventApi,
   HousingEventApi,
   HousingOwnerEventApi,
   OwnerEventApi,
@@ -24,6 +26,7 @@ import {
 import eventRepository, {
   CampaignEvents,
   CampaignHousingEvents,
+  DocumentEvents,
   Events,
   formatCampaignEventApi,
   formatCampaignHousingEventApi,
@@ -34,6 +37,7 @@ import eventRepository, {
   formatOwnerEventApi,
   formatPrecisionHousingEventApi,
   GroupHousingEvents,
+  HousingDocumentEvents,
   HousingEventDBO,
   HousingEvents,
   HousingOwnerEvents,
@@ -56,8 +60,10 @@ import {
   Precisions
 } from '~/repositories/precisionRepository';
 import { formatUserApi, Users } from '~/repositories/userRepository';
+import { Documents, toDocumentDBO } from '~/repositories/documentRepository';
 import {
   genCampaignApi,
+  genDocumentApi,
   genEstablishmentApi,
   genEventApi,
   genGroupApi,
@@ -705,6 +711,189 @@ describe('Event repository', () => {
     it('should remove the associated campaign events', async () => {
       const actual = await CampaignEvents().where({ campaign_id: campaign.id });
       expect(actual).toBeArrayOfSize(0);
+    });
+  });
+
+  describe('Document Events', () => {
+    describe('insertManyDocumentEvents', () => {
+      it('should insert document:created events', async () => {
+        const document = genDocumentApi({ creator });
+        const events: DocumentEventApi[] = [
+          {
+            ...genEventApi({
+              creator,
+              type: 'document:created',
+              nextOld: null,
+              nextNew: { filename: document.filename }
+            }),
+            documentId: document.id
+          }
+        ];
+
+        await Documents().insert(toDocumentDBO(document));
+        await eventRepository.insertManyDocumentEvents(events);
+
+        const [eventRecord] = await Events().where({ id: events[0].id });
+        expect(eventRecord).toMatchObject({
+          type: 'document:created',
+          next_new: { filename: document.filename },
+          next_old: null
+        });
+
+        const [documentEvent] = await DocumentEvents().where({
+          event_id: events[0].id
+        });
+        expect(documentEvent).toMatchObject({
+          document_id: document.id
+        });
+      });
+
+      it('should insert document:updated events', async () => {
+        const document = genDocumentApi({ creator });
+        const events: DocumentEventApi[] = [
+          {
+            ...genEventApi({
+              creator,
+              type: 'document:updated',
+              nextOld: { filename: 'old.pdf' },
+              nextNew: { filename: 'new.pdf' }
+            }),
+            documentId: document.id
+          }
+        ];
+
+        await Documents().insert(toDocumentDBO(document));
+        await eventRepository.insertManyDocumentEvents(events);
+
+        const [eventRecord] = await Events().where({ id: events[0].id });
+        expect(eventRecord).toMatchObject({
+          type: 'document:updated',
+          next_old: { filename: 'old.pdf' },
+          next_new: { filename: 'new.pdf' }
+        });
+      });
+
+      it('should insert document:removed events', async () => {
+        const document = genDocumentApi({ creator });
+        const events: DocumentEventApi[] = [
+          {
+            ...genEventApi({
+              creator,
+              type: 'document:removed',
+              nextOld: { filename: document.filename },
+              nextNew: null
+            }),
+            documentId: document.id
+          }
+        ];
+
+        await Documents().insert(toDocumentDBO(document));
+        await eventRepository.insertManyDocumentEvents(events);
+
+        const [eventRecord] = await Events().where({ id: events[0].id });
+        expect(eventRecord).toMatchObject({
+          type: 'document:removed',
+          next_old: { filename: document.filename }
+        });
+        expect(eventRecord.next_new).toBeNull();
+      });
+    });
+
+    describe('insertManyHousingDocumentEvents', () => {
+      it('should insert housing:document-attached events', async () => {
+        const housing = genHousingApi();
+        const document = genDocumentApi({ creator });
+        const events: HousingDocumentEventApi[] = [
+          {
+            ...genEventApi({
+              creator,
+              type: 'housing:document-attached',
+              nextOld: null,
+              nextNew: { filename: document.filename }
+            }),
+            documentId: document.id,
+            housingGeoCode: housing.geoCode,
+            housingId: housing.id
+          }
+        ];
+
+        await Housing().insert(formatHousingRecordApi(housing));
+        await Documents().insert(toDocumentDBO(document));
+        await eventRepository.insertManyHousingDocumentEvents(events);
+
+        const [eventRecord] = await Events().where({ id: events[0].id });
+        expect(eventRecord).toMatchObject({
+          type: 'housing:document-attached',
+          next_new: { filename: document.filename }
+        });
+
+        const [housingDocumentEvent] = await HousingDocumentEvents().where({
+          event_id: events[0].id
+        });
+        expect(housingDocumentEvent).toMatchObject({
+          housing_geo_code: housing.geoCode,
+          housing_id: housing.id,
+          document_id: document.id
+        });
+      });
+
+      it('should insert housing:document-detached events', async () => {
+        const housing = genHousingApi();
+        const document = genDocumentApi({ creator });
+        const events: HousingDocumentEventApi[] = [
+          {
+            ...genEventApi({
+              creator,
+              type: 'housing:document-detached',
+              nextOld: { filename: document.filename },
+              nextNew: null
+            }),
+            documentId: document.id,
+            housingGeoCode: housing.geoCode,
+            housingId: housing.id
+          }
+        ];
+
+        await Housing().insert(formatHousingRecordApi(housing));
+        await Documents().insert(toDocumentDBO(document));
+        await eventRepository.insertManyHousingDocumentEvents(events);
+
+        const [eventRecord] = await Events().where({ id: events[0].id });
+        expect(eventRecord).toMatchObject({
+          type: 'housing:document-detached',
+          next_old: { filename: document.filename }
+        });
+        expect(eventRecord.next_new).toBeNull();
+      });
+
+      it('should insert housing:document-removed events', async () => {
+        const housing = genHousingApi();
+        const document = genDocumentApi({ creator });
+        const events: HousingDocumentEventApi[] = [
+          {
+            ...genEventApi({
+              creator,
+              type: 'housing:document-removed',
+              nextOld: { filename: document.filename },
+              nextNew: null
+            }),
+            documentId: document.id,
+            housingGeoCode: housing.geoCode,
+            housingId: housing.id
+          }
+        ];
+
+        await Housing().insert(formatHousingRecordApi(housing));
+        await Documents().insert(toDocumentDBO(document));
+        await eventRepository.insertManyHousingDocumentEvents(events);
+
+        const [eventRecord] = await Events().where({ id: events[0].id });
+        expect(eventRecord).toMatchObject({
+          type: 'housing:document-removed',
+          next_old: { filename: document.filename }
+        });
+        expect(eventRecord.next_new).toBeNull();
+      });
     });
   });
 });

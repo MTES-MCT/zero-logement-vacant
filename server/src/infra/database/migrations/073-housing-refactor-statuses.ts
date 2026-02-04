@@ -343,9 +343,9 @@ function mapPrecisions(housing: Housing): Housing {
     'DIA - préemption': {
       precisions: ['Dispositifs > Dispositifs coercitifs > DIA - préemption']
     },
-    'Procédure d’habitat indigne': {
+    'Procédure d’habitat indigne (hygiène, insalubrité, péril)': {
       precisions: [
-        'Dispositifs > Dispositifs coercitifs > Procédure d’habitat indigine'
+        'Dispositifs > Dispositifs coercitifs > Procédure d’habitat indigne (hygiène, insalubrité, péril)'
       ]
     },
     'Vente en cours': {

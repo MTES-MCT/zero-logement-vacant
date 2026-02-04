@@ -15,5 +15,6 @@ export const housingBatchUpdatePayload: ObjectSchema<HousingBatchUpdatePayload> 
     occupancy: string().oneOf(OCCUPANCY_VALUES).optional(),
     occupancyIntended: string().oneOf(OCCUPANCY_VALUES).optional(),
     note: string().trim().min(1).optional(),
-    precisions: array().of(string().uuid().required()).optional()
+    precisions: array().of(string().uuid().required()).optional(),
+    documents: array().of(string().uuid().required()).optional()
   });

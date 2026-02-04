@@ -2,6 +2,7 @@ import { Predicate } from 'effect';
 import mime from 'mime';
 
 import type { UserDTO } from './UserDTO';
+import type { EstablishmentDTO } from './EstablishmentDTO';
 
 export interface DocumentDTO {
   id: string;
@@ -14,6 +15,7 @@ export interface DocumentDTO {
   sizeBytes: number;
   createdAt: string;
   updatedAt: string | null;
+  establishmentId: EstablishmentDTO['id'];
   creator: UserDTO;
 }
 

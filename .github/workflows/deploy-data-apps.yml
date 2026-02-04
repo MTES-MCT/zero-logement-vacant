@@ -16,8 +16,8 @@ jobs:
     uses: ./.github/workflows/deploy.yml
     with:
       # Must match the Clever Cloud application name & alias
-      app: Vacancy Explainer (Production)
-      alias: vacancy-explainer-production
+      app: Vacancy Explainer
+      alias: vacancy-explainer
       branch: main
-      environment: vacancy-explainer-production
+      environment: vacancy-explainer
     secrets: inherit

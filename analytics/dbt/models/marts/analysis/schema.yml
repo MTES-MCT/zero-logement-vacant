@@ -2,150 +2,161 @@ version: 2
 
 models:
   - name: marts_analysis_housing_out_features
-    description: |
-      Table d'analyse au niveau logement avec indicateur de sortie de vacance (is_housing_out)
-      et ensemble des caractéristiques du logement et de la commune pour analyse ML et statistique.
-      
-      **Target variable**: is_housing_out (1 = sorti de vacance, 0 = toujours vacant)
-      
-      **Use cases**:
-      - Analyse des facteurs influençant la sortie de vacance
-      - Modèles prédictifs de sortie de vacance
-      - Évaluation de l'impact des politiques publiques
+    description: Table d'analyse au niveau logement avec indicateur de sortie de vacance
     columns:
       - name: housing_id
-        description: "Identifiant unique du logement"
+        description: Identifiant unique du logement
         tests:
           - not_null
           - unique
       - name: is_housing_out
-        description: "Variable cible : 1 si le logement est sorti de vacance, 0 sinon"
+        description: Variable cible 1=sorti, 0=toujours vacant
         tests:
           - not_null
           - accepted_values:
               values: [0, 1]
-      - name: vacancy_status_label
-        description: "Libellé du statut de vacance"
-      - name: city_code
-        description: "Code commune"
-      - name: geo_code
-        description: "Code géographique INSEE"
-      - name: housing_kind
-        description: "Type de logement (maison, appartement)"
-      - name: rooms_count
-        description: "Nombre de pièces"
-      - name: living_area
-        description: "Surface habitable en m²"
-      - name: building_year
-        description: "Année de construction"
-      - name: vacancy_start_year
-        description: "Année de début de vacance"
-      - name: years_in_vacancy
-        description: "Nombre d'années de vacance"
-      - name: vacancy_duration_category
-        description: "Catégorie de durée de vacance"
-      - name: is_energy_sieve
-        description: "Passoire énergétique (DPE F ou G)"
-      - name: building_age_category
-        description: "Catégorie d'âge du bâtiment"
-      - name: surface_category
-        description: "Catégorie de surface"
-      - name: has_been_contacted
-        description: "A été contacté par une campagne ZLV"
-      - name: campaigns_count
-        description: "Nombre de campagnes ZLV"
-      - name: densite_category
-        description: "Catégorie de densité INSEE"
-      - name: loyer_median_m2
-        description: "Loyer médian au m² dans la commune"
-      - name: loyer_predit_m2
-        description: "Loyer prédit au m² (modèle DGALN)"
-      - name: niveau_loyer
-        description: "Catégorie de niveau de loyer (Très élevé, Élevé, Moyen, Modéré, Faible)"
-      - name: loyer_confiance_prediction
-        description: "Niveau de confiance de la prédiction de loyer"
-      - name: population_growth_rate_2019_2022
-        description: "Taux de croissance de la population 2019-2022"
-      - name: is_population_declining
-        description: "Commune en déclin démographique"
-      - name: taux_tfb
-        description: "Taux global de taxe foncière sur le bâti (%)"
-      - name: teom_taux
-        description: "Taux de taxe d'enlèvement des ordures ménagères (%)"
-      - name: pression_fiscale_tfb_teom
-        description: "Indicateur de pression fiscale (TFB + TEOM)"
-      - name: th_surtaxe_residences_secondaires_pct
-        description: "Taux de surtaxe TH sur résidences secondaires (%)"
-      - name: dvg_marche_dynamisme
-        description: "Dynamisme du marché immobilier"
 
   - name: marts_analysis_city_aggregated
-    description: |
-      Table d'analyse agrégée au niveau commune avec taux de sortie de vacance
-      et caractéristiques territoriales.
-      
-      **Métriques clés**:
-      - exit_rate_pct : Taux de sortie de vacance global
-      - zlv_contact_impact_pct : Impact du contact ZLV sur la sortie
-      
-      **Use cases**:
-      - Analyse territoriale de la vacance
-      - Identification des communes à fort potentiel
-      - Évaluation de l'efficacité des politiques locales
+    description: Table d'analyse agregee au niveau commune avec taux de sortie de vacance
     columns:
-      - name: city_code
-        description: "Code commune"
+      - name: geo_code
+        description: Code commune
         tests:
           - not_null
           - unique
-      - name: commune_name
-        description: "Nom de la commune"
-      - name: department_code
-        description: "Code département"
-      - name: region_code
-        description: "Code région"
-      - name: total_housing_count
-        description: "Nombre total de logements vacants LOVAC"
-      - name: housing_out_count
-        description: "Nombre de logements sortis de vacance"
-      - name: still_vacant_count
-        description: "Nombre de logements toujours vacants"
-      - name: exit_rate_pct
-        description: "Taux de sortie de vacance (%)"
-      - name: exit_rate_maisons_pct
-        description: "Taux de sortie de vacance des maisons (%)"
-      - name: exit_rate_appartements_pct
-        description: "Taux de sortie de vacance des appartements (%)"
-      - name: exit_rate_energy_sieve_pct
-        description: "Taux de sortie des passoires énergétiques (%)"
-      - name: exit_rate_contacted_pct
-        description: "Taux de sortie des logements contactés (%)"
-      - name: exit_rate_not_contacted_pct
-        description: "Taux de sortie des logements non contactés (%)"
-      - name: zlv_contact_impact_pct
-        description: "Impact du contact ZLV (différence de taux de sortie contacté vs non contacté)"
-      - name: avg_living_area
-        description: "Surface moyenne des logements vacants"
-      - name: avg_years_in_vacancy
-        description: "Durée moyenne de vacance"
-      - name: densite_category
-        description: "Catégorie de densité INSEE"
-      - name: loyer_median_m2
-        description: "Loyer médian au m² dans la commune"
-      - name: loyer_predit_m2
-        description: "Loyer prédit au m² (modèle DGALN)"
-      - name: niveau_loyer
-        description: "Catégorie de niveau de loyer"
-      - name: loyer_confiance_prediction
-        description: "Niveau de confiance de la prédiction"
-      - name: population_growth_rate_2019_2022
-        description: "Évolution démographique 2019-2022"
-      - name: is_population_declining
-        description: "Commune en déclin démographique"
-      - name: dvg_marche_dynamisme
-        description: "Dynamisme du marché immobilier"
-      - name: vacancy_rate_vs_total_housing_pct
-        description: "Taux de vacance par rapport au parc total"
-      - name: vacant_housing_per_km2
-        description: "Densité de logements vacants par km²"
 
+  - name: marts_bi_housing_characteristics
+    description: |
+      Table BI - Caracteristiques intrinseques des logements pour l'analyse de sortie de vacance.
+      Granularite Logement. Variable cible is_housing_out.
+      Features - Type de logement, taille, age du batiment, DPE, confort, duree de vacance, fiscalite, mutations.
+    columns:
+      - name: housing_id
+        description: Identifiant unique du logement
+        tests:
+          - not_null
+          - unique
+      - name: is_housing_out
+        description: Variable cible 1=sorti, 0=toujours vacant
+      - name: housing_kind
+        description: Type de logement maison ou appartement
+      - name: living_area_category
+        description: Categorie de surface
+      - name: energy_consumption_category
+        description: Categorie DPE Performant Moyen Passoire
+      - name: is_energy_sieve
+        description: TRUE si passoire energetique F ou G
+      - name: vacancy_duration_category
+        description: Categorie de duree 0-2 ans, 3-5 ans, 6-10 ans, Plus de 10 ans
+      - name: vacancy_severity
+        description: Severite de la vacance combinaison duree energie cadastre
+
+  - name: marts_bi_housing_geography
+    description: |
+      Table BI - Contexte geographique et territorial des logements.
+      Features - Localisation, densite, demographie, zonage ABC, prix immobilier, loyers, dynamisme marche, fiscalite, territoires speciaux.
+    columns:
+      - name: housing_id
+        description: Identifiant unique du logement
+        tests:
+          - not_null
+          - unique
+      - name: densite_category
+        description: Categorie de densite Urbain dense, Urbain intermediaire, Rural
+      - name: zonage_category
+        description: Zone tendue ou detendue
+      - name: niveau_loyer
+        description: Categorie de loyer Tres eleve, Eleve, Moyen, Modere, Faible
+      - name: dvg_marche_dynamisme
+        description: Dynamisme du marche
+      - name: is_in_tlv_territory
+        description: TRUE si en zone TLV
+      - name: has_any_special_territory
+        description: TRUE si au moins un programme special
+
+  - name: marts_bi_housing_owners
+    description: |
+      Table BI - Profil des proprietaires rang=1 uniquement.
+      Features - Type de proprietaire, demographie, localisation relative, distance, droits de propriete, multi-propriete, contactabilite.
+    columns:
+      - name: housing_id
+        description: Identifiant unique du logement
+        tests:
+          - not_null
+          - unique
+      - name: owner_kind_category
+        description: Categorie de proprietaire Particulier, SCI, Autre PM, Indivision
+      - name: owner_is_individual
+        description: TRUE si particulier
+      - name: owner_age_category
+        description: Categorie d age
+      - name: owner_is_local
+        description: TRUE si proprietaire local
+      - name: owner_is_distant
+        description: TRUE si proprietaire distant
+      - name: owner_is_multi_owner
+        description: TRUE si multi-proprietaire
+      - name: owner_contactable
+        description: TRUE si email ou telephone disponible
+
+  - name: marts_bi_housing_zlv_usage
+    description: |
+      Table BI - Utilisation de l application ZLV et activite des etablissements.
+      Question cle - L utilisation de ZLV est-elle un determinant de la sortie de vacance?
+      Features - Contact par ZLV, campagnes, MAJ suivi/occupation, activation etablissement, pro-activite, score engagement.
+    columns:
+      - name: housing_id
+        description: Identifiant unique du logement
+        tests:
+          - not_null
+          - unique
+      - name: was_contacted_by_zlv
+        description: TRUE si le logement a ete contacte par ZLV
+      - name: contact_intensity
+        description: Intensite de contact Non contacte, 1 contact, 2-3 contacts, 4+ contacts
+      - name: typologie_activation_simple
+        description: Typologie d activation de la CT
+      - name: activation_level
+        description: Niveau d activation 1-5
+      - name: kind_pro_activity_ntile
+        description: Categorie de pro-activite
+      - name: zlv_engagement_score
+        description: Score d engagement ZLV 0-10
+      - name: zlv_engagement_category
+        description: Categorie d engagement Aucun, Faible, Moyen, Fort
+
+  - name: marts_bi_housing_complete
+    description: |
+      Table BI complete - Jointure de toutes les dimensions pour l analyse des determinants.
+      Table principale pour analyser les facteurs de sortie de vacance et mesurer l impact de ZLV.
+      Dimensions - Caracteristiques logement, contexte geographique, profil proprietaire, usage ZLV.
+      Features d interaction - owner_x_territory, housing_x_market, vacancy_x_energy, contact_x_activation.
+      Flags d analyse - is_favorable_for_exit, is_at_risk_long_vacancy, zlv_treatment_group.
+    columns:
+      - name: housing_id
+        description: Identifiant unique du logement
+        tests:
+          - not_null
+          - unique
+      - name: is_housing_out
+        description: Variable cible 1=sorti, 0=toujours vacant
+        tests:
+          - not_null
+          - accepted_values:
+              values: [0, 1]
+      - name: owner_x_territory
+        description: Interaction proprietaire x territoire
+      - name: housing_x_market
+        description: Interaction logement x marche
+      - name: vacancy_x_energy
+        description: Interaction vacance x energie
+      - name: contact_x_activation
+        description: Interaction contact ZLV x activation CT
+      - name: is_favorable_for_exit
+        description: TRUE si conditions favorables a la sortie
+      - name: is_at_risk_long_vacancy
+        description: TRUE si risque de vacance longue
+      - name: zlv_treatment_group
+        description: Groupe de traitement pour analyse quasi-experimentale
+      - name: total_count
+        description: Toujours 1, utile pour les agregations BI

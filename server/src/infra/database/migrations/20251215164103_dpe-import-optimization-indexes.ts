@@ -15,8 +15,10 @@ import type { Knex } from 'knex';
  * 1. idx_fast_housing_id: For JOIN between ban_addresses.ref_id and fast_housing.id
  * 2. idx_fast_housing_building_id: For JOIN between fast_housing.building_id and buildings.id
  *
- * Note: fast_housing is a partitioned table, so indexes are created on the parent
- * and automatically propagated to all partitions.
+ * Note: fast_housing is a partitioned table. Using ON ONLY creates the index
+ * definition on the parent table only, without creating indexes on all partitions
+ * (which would be slow and block writes). Each partition already has its own
+ * indexes created when the partition was added.
  */
 
 export async function up(knex: Knex): Promise<void> {
@@ -24,14 +26,14 @@ export async function up(knex: Knex): Promise<void> {
   // The primary key is (geo_code, id) which doesn't help for lookups by id alone
   await knex.raw(`
     CREATE INDEX IF NOT EXISTS idx_fast_housing_id
-    ON fast_housing(id)
+    ON ONLY fast_housing(id)
   `);
 
   // Index on fast_housing.building_id for efficient JOINs with buildings.id
   // Only index non-null values since we filter on building_id IS NOT NULL
   await knex.raw(`
     CREATE INDEX IF NOT EXISTS idx_fast_housing_building_id
-    ON fast_housing(building_id)
+    ON ONLY fast_housing(building_id)
     WHERE building_id IS NOT NULL
   `);
 }

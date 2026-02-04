@@ -177,6 +177,7 @@ jobs:
           clever service link-addon $PR_NAME-redis -a $APP_ALIAS
 
           clever config update -a $APP_ALIAS --enable-zero-downtime --enable-cancel-on-push --enable-force-https
+          clever scale --flavor S --build-flavor L -a $APP_ALIAS
 
       - name: Wait for PostgreSQL addon to be ready
         run: |
@@ -301,16 +302,10 @@ jobs:
           clever env set METABASE_DOMAIN "$METABASE_DOMAIN" -a $APP_ALIAS
           clever env set METABASE_API_TOKEN "$METABASE_API_TOKEN" -a $APP_ALIAS
 
-      - name: Scale up for deployment
-        run: clever scale --flavor L -a $APP_ALIAS
-
       - name: Deploy the app
         run: |
           clever domain add $APP_ALIAS.cleverapps.io -a $APP_ALIAS
           clever deploy -a $APP_ALIAS --same-commit-policy rebuild
-
-      - name: Scale down for the run
-        run: clever scale --flavor S -a $APP_ALIAS
 
   deploy-queue:
     if: github.event.inputs.action_type == 'Créer'
@@ -562,14 +557,8 @@ jobs:
       - name: Link app
         run: clever link -o $CLEVER_ORG $APP_ALIAS
 
-      - name: Scale up for deployment
-        run: clever scale --flavor L -a $APP_ALIAS
-
       - name: Update the app
         run: clever deploy --force -a $APP_ALIAS --same-commit-policy rebuild
-
-      - name: Scale down for the run
-        run: clever scale --flavor S -a $APP_ALIAS
 
   update-front:
     if: github.event.inputs.action_type == 'Mettre à jour'

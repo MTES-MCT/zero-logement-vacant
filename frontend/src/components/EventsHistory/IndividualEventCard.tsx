@@ -1,4 +1,4 @@
-import { match } from 'ts-pattern';
+import { match, Pattern } from 'ts-pattern';
 
 import type { Establishment } from '../../models/Establishment';
 import type { Event } from '../../models/Event';
@@ -125,8 +125,21 @@ function IndividualEventCard(props: IndividualEventCardProps) {
         <OwnerUpdatedEventCard event={event} />
       ))
       // Not yet needed thus not implemented
-      .with({ type: 'owner:created' }, () => null)
-      .with({ type: 'campaign:updated' }, () => null)
+      .with(
+        {
+          type: Pattern.union(
+            'owner:created',
+            'campaign:updated',
+            'document:created',
+            'document:updated',
+            'document:removed',
+            'housing:document-attached',
+            'housing:document-detached',
+            'housing:document-removed'
+          )
+        },
+        () => null
+      )
       .exhaustive()
   );
 }

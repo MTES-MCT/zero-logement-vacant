@@ -157,3 +157,4 @@ fig_load.update_layout(height=380, xaxis_tickangle=-45, title="Top contributions
 st.plotly_chart(fig_load, width="stretch")
 
 
+

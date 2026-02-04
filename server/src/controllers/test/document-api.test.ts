@@ -1,37 +1,35 @@
-import { HeadObjectCommand } from '@aws-sdk/client-s3';
 import { faker } from '@faker-js/faker/locale/fr';
-import { fc, test } from '@fast-check/vitest';
 import {
   HousingDocumentDTO,
   UserRole,
-  type DocumentDTO
+  type DocumentPayload
 } from '@zerologementvacant/models';
-import { createS3 } from '@zerologementvacant/utils/node';
-import { Array, Predicate } from 'effect';
 import { constants } from 'http2';
-import fs from 'node:fs';
 import path from 'node:path';
 import request from 'supertest';
-
-import type { DeepPartial } from 'ts-essentials';
-import { FileValidationError } from '~/errors/fileValidationError';
-import config from '~/infra/config';
+import { beforeAll, describe, expect, it } from 'vitest';
 import { createServer } from '~/infra/server';
 import { UserApi } from '~/models/UserApi';
 import {
   Establishments,
   formatEstablishmentApi
 } from '~/repositories/establishmentRepository';
-import housingDocumentRepository from '~/repositories/housingDocumentRepository';
+import { HousingDocuments } from '~/repositories/housingDocumentRepository';
+import {
+  DocumentEvents,
+  Events,
+  HousingDocumentEvents
+} from '~/repositories/eventRepository';
 import {
   formatHousingRecordApi,
   Housing
 } from '~/repositories/housingRepository';
 import { formatUserApi, Users } from '~/repositories/userRepository';
+import { Documents, toDocumentDBO } from '~/repositories/documentRepository';
 import {
+  genDocumentApi,
   genEstablishmentApi,
   genHousingApi,
-  genHousingDocumentApi,
   genUserApi
 } from '~/test/testFixtures';
 import { tokenProvider } from '~/test/testUtils';
@@ -74,6 +72,196 @@ describe('Document API', () => {
     );
   });
 
+  describe('POST /documents', () => {
+    let url: string;
+
+    beforeAll(async () => {
+      url = await createServer().testing();
+    });
+
+    const establishment = genEstablishmentApi();
+    const user = genUserApi(establishment.id);
+
+    beforeAll(async () => {
+      await Establishments().insert(formatEstablishmentApi(establishment));
+      await Users().insert(formatUserApi(user));
+    });
+
+    const samplePdfPath = path.join(__dirname, '../../test/sample.pdf');
+
+    it('should upload a single document successfully', async () => {
+      const { body, status } = await request(url)
+        .post('/api/documents')
+        .use(tokenProvider(user))
+        .attach('files', samplePdfPath);
+
+      expect(status).toBe(constants.HTTP_STATUS_CREATED);
+      expect(body).toHaveLength(1);
+      expect(body[0]).toMatchObject({
+        id: expect.any(String),
+        filename: 'sample.pdf',
+        url: expect.stringContaining('http'),
+        contentType: 'application/pdf'
+      });
+    });
+
+    it('should upload multiple documents successfully', async () => {
+      const { body, status } = await request(url)
+        .post('/api/documents')
+        .use(tokenProvider(user))
+        .attach('files', samplePdfPath)
+        .attach('files', samplePdfPath);
+
+      expect(status).toBe(constants.HTTP_STATUS_CREATED);
+      expect(body).toHaveLength(2);
+    });
+
+    it('should return 207 for partial success', async () => {
+      const { body, status } = await request(url)
+        .post('/api/documents')
+        .use(tokenProvider(user))
+        .attach('files', samplePdfPath)
+        .attach('files', Buffer.from('invalid'), 'invalid.exe');
+
+      expect(status).toBe(constants.HTTP_STATUS_MULTI_STATUS);
+      expect(body).toHaveLength(2);
+
+      const [valid, invalid] = body;
+      expect(valid).toMatchObject({ filename: 'sample.pdf' });
+      expect(invalid).toMatchObject({
+        name: 'FileValidationError',
+        data: {
+          filename: 'invalid.exe',
+          reason: 'invalid_file_type'
+        }
+      });
+    });
+
+    it('should return 400 if all files fail validation', async () => {
+      const { status } = await request(url)
+        .post('/api/documents')
+        .use(tokenProvider(user))
+        .attach('files', Buffer.from('bad'), 'bad.exe');
+
+      expect(status).toBe(constants.HTTP_STATUS_BAD_REQUEST);
+    });
+
+    it('should return 400 if no files provided', async () => {
+      const { status } = await request(url)
+        .post('/api/documents')
+        .use(tokenProvider(user));
+
+      expect(status).toBe(constants.HTTP_STATUS_BAD_REQUEST);
+    });
+  });
+
+  describe('PUT /documents/:id', () => {
+    const testRoute = (id: string) => `/api/documents/${id}`;
+
+    it('should update document filename', async () => {
+      const document = genDocumentApi({
+        createdBy: user.id,
+        creator: user,
+        establishmentId: establishment.id
+      });
+      await Documents().insert(toDocumentDBO(document));
+      const payload: DocumentPayload = {
+        filename: 'renamed.pdf'
+      };
+
+      const { status, body } = await request(url)
+        .put(testRoute(document.id))
+        .use(tokenProvider(user))
+        .send(payload);
+
+      expect(status).toBe(constants.HTTP_STATUS_OK);
+      expect(body).toMatchObject({
+        id: document.id,
+        filename: 'renamed.pdf'
+      });
+    });
+
+    it('should return 404 if document not found', async () => {
+      const payload: DocumentPayload = {
+        filename: 'test.pdf'
+      };
+
+      const { status } = await request(url)
+        .put(testRoute(faker.string.uuid()))
+        .use(tokenProvider(user))
+        .send(payload);
+
+      expect(status).toBe(constants.HTTP_STATUS_NOT_FOUND);
+    });
+
+    it('should only allow updating documents in user establishment', async () => {
+      const document = genDocumentApi({
+        createdBy: userFromAnotherEstablishment.id,
+        creator: userFromAnotherEstablishment,
+        establishmentId: anotherEstablishment.id
+      });
+      await Documents().insert(toDocumentDBO(document));
+      const payload: DocumentPayload = {
+        filename: 'hacked.pdf'
+      };
+
+      const { status } = await request(url)
+        .put(testRoute(document.id))
+        .use(tokenProvider(user))
+        .send(payload);
+
+      expect(status).toBe(constants.HTTP_STATUS_NOT_FOUND);
+    });
+  });
+
+  describe('DELETE /documents/:id', () => {
+    const testRoute = (id: string) => `/api/documents/${id}`;
+
+    it('should soft-delete document', async () => {
+      const document = genDocumentApi({
+        createdBy: user.id,
+        creator: user,
+        establishmentId: establishment.id
+      });
+      await Documents().insert(toDocumentDBO(document));
+
+      const { status } = await request(url)
+        .delete(testRoute(document.id))
+        .use(tokenProvider(user));
+
+      expect(status).toBe(constants.HTTP_STATUS_NO_CONTENT);
+
+      const [deletedDocument] = await Documents()
+        .where('id', document.id)
+        .select('*');
+      expect(deletedDocument).toBeDefined();
+      expect(deletedDocument.deleted_at).not.toBeNull();
+    });
+
+    it('should return 404 if document not found', async () => {
+      const { status } = await request(url)
+        .delete(testRoute(faker.string.uuid()))
+        .use(tokenProvider(user));
+
+      expect(status).toBe(constants.HTTP_STATUS_NOT_FOUND);
+    });
+
+    it('should only allow deleting documents in user establishment', async () => {
+      const document = genDocumentApi({
+        createdBy: userFromAnotherEstablishment.id,
+        creator: userFromAnotherEstablishment,
+        establishmentId: anotherEstablishment.id
+      });
+      await Documents().insert(toDocumentDBO(document));
+
+      const { status } = await request(url)
+        .delete(testRoute(document.id))
+        .use(tokenProvider(user));
+
+      expect(status).toBe(constants.HTTP_STATUS_NOT_FOUND);
+    });
+  });
+
   describe('GET /housing/:id/documents', () => {
     const testRoute = (housingId: string) =>
       `/api/housing/${housingId}/documents`;
@@ -91,11 +279,32 @@ describe('Document API', () => {
       );
 
       const documents = [
-        genHousingDocumentApi(housing, user),
-        genHousingDocumentApi(housing, user),
-        genHousingDocumentApi(anotherHousing, userFromAnotherEstablishment)
+        genDocumentApi({
+          createdBy: anotherUser.id,
+          creator: anotherUser,
+          establishmentId: establishment.id
+        }),
+        genDocumentApi({
+          createdBy: user.id,
+          creator: user,
+          establishmentId: establishment.id
+        }),
+        genDocumentApi({
+          createdBy: userFromAnotherEstablishment.id,
+          creator: userFromAnotherEstablishment,
+          establishmentId: anotherEstablishment.id
+        })
       ];
-      await housingDocumentRepository.createMany(documents);
+
+      // Insert documents
+      await Documents().insert(documents.map(toDocumentDBO));
+
+      // Link documents to housings
+      await HousingDocuments().insert([
+        { document_id: documents[0].id, housing_id: housing.id, housing_geo_code: housing.geoCode },
+        { document_id: documents[1].id, housing_id: housing.id, housing_geo_code: housing.geoCode },
+        { document_id: documents[2].id, housing_id: anotherHousing.id, housing_geo_code: anotherHousing.geoCode }
+      ]);
     });
 
     it('should be forbidden for a non-authenticated user', async () => {
@@ -144,537 +353,54 @@ describe('Document API', () => {
     });
   });
 
-  describe('POST /housing/:id/documents', () => {
-    const testRoute = (housingId: string) =>
-      `/api/housing/${housingId}/documents`;
-
-    const housing = genHousingApi(
-      faker.helpers.arrayElement(establishment.geoCodes)
-    );
-    const anotherHousing = genHousingApi(
-      faker.helpers.arrayElement(anotherEstablishment.geoCodes)
-    );
-
-    beforeAll(async () => {
-      await Housing().insert(
-        [housing, anotherHousing].map(formatHousingRecordApi)
-      );
-    });
-
-    it('should be forbidden for a non-authenticated user', async () => {
-      const { status } = await request(url)
-        .post(testRoute(housing.id))
-        .attach('file', Buffer.from('test'), 'test.pdf');
-
-      expect(status).toBe(constants.HTTP_STATUS_UNAUTHORIZED);
-    });
-
-    it('should forbid uploading to housing outside of an establishment’s perimeter', async () => {
-      const { status } = await request(url)
-        .post(testRoute(anotherHousing.id))
-        .attach('files', Buffer.from('test'), 'test.pdf')
-        .use(tokenProvider(user));
-
-      expect(status).toBe(constants.HTTP_STATUS_NOT_FOUND);
-    });
-
-    it('should return 400 Bad request if no file is uploaded', async () => {
-      const { status } = await request(url)
-        .post(testRoute(housing.id))
-        .use(tokenProvider(user));
-
-      expect(status).toBe(constants.HTTP_STATUS_BAD_REQUEST);
-    });
-
-    it('should return 201 Created with the uploaded document', async () => {
-      // Create a valid PDF file
-      const pdfBuffer = Buffer.from([
-        0x25,
-        0x50,
-        0x44,
-        0x46,
-        0x2d, // %PDF-
-        0x31,
-        0x2e,
-        0x34 // 1.4
-      ]);
-
-      const tmpPath = path.join(import.meta.dirname, 'test-upload.pdf');
-      fs.writeFileSync(tmpPath, pdfBuffer);
-
-      try {
-        const { status, body } = await request(url)
-          .post(testRoute(housing.id))
-          .attach('files', tmpPath)
-          .use(tokenProvider(user));
-
-        expect(status).toBe(constants.HTTP_STATUS_CREATED);
-        expect(body).toBeArrayOfSize(1);
-        expect(body[0]).toMatchObject<DeepPartial<HousingDocumentDTO>>({
-          id: expect.any(String),
-          filename: 'test-upload.pdf',
-          url: expect.stringMatching(/^http/),
-          contentType: 'application/pdf',
-          sizeBytes: expect.any(Number),
-          createdAt: expect.any(String),
-          updatedAt: null,
-          creator: {
-            id: user.id,
-            email: user.email
-          }
-        });
-      } finally {
-        fs.unlinkSync(tmpPath);
-      }
-    }, 30000);
-
-    it('should upload document to correct S3 path based on housing localId', async () => {
-      // Create a valid PDF file
-      const pdfBuffer = Buffer.from([
-        0x25, 0x50, 0x44, 0x46, 0x2d, 0x31, 0x2e, 0x34
-      ]);
-
-      const tmpPath = path.join(import.meta.dirname, 'test-s3-path.pdf');
-      fs.writeFileSync(tmpPath, pdfBuffer);
-
-      try {
-        const { status, body } = await request(url)
-          .post(testRoute(housing.id))
-          .attach('files', tmpPath)
-          .use(tokenProvider(user));
-
-        expect(status).toBe(constants.HTTP_STATUS_CREATED);
-        expect(body).toBeArrayOfSize(1);
-
-        const document = body[0] as HousingDocumentDTO;
-        const documentId = document.id;
-
-        // Verify the document exists in S3 at the correct path
-        const s3 = createS3({
-          endpoint: config.s3.endpoint,
-          region: config.s3.region,
-          accessKeyId: config.s3.accessKeyId,
-          secretAccessKey: config.s3.secretAccessKey
-        });
-
-        // Construct expected S3 key: housing-documents/{dept}/{commune}/{remaining-digits}/{documentId}
-        const department = housing.localId.slice(0, 2);
-        const commune = housing.localId.slice(2, 5);
-        const remaining = housing.localId.slice(5).split('').join('/');
-        const expectedS3Key = `housing-documents/${department}/${commune}/${remaining}/${documentId}`;
-
-        const headCommand = new HeadObjectCommand({
-          Bucket: config.s3.bucket,
-          Key: expectedS3Key
-        });
-
-        // Should not throw - document exists at expected path
-        await expect(s3.send(headCommand)).resolves.toBeDefined();
-      } finally {
-        fs.unlinkSync(tmpPath);
-      }
-    }, 30000);
-
-    it('should upload multiple valid files and return 201 Created', async () => {
-      // Create valid PNG and PDF files
-      const pngBuffer = Buffer.from([
-        0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a, 0x00, 0x00, 0x00, 0x0d,
-        0x49, 0x48, 0x44, 0x52
-      ]);
-      const pdfBuffer = Buffer.from([
-        0x25, 0x50, 0x44, 0x46, 0x2d, 0x31, 0x2e, 0x34
-      ]);
-
-      const pngPath = path.join(import.meta.dirname, 'test-image.png');
-      const pdfPath = path.join(import.meta.dirname, 'test-doc.pdf');
-      fs.writeFileSync(pngPath, pngBuffer);
-      fs.writeFileSync(pdfPath, pdfBuffer);
-
-      try {
-        const { status, body } = await request(url)
-          .post(testRoute(housing.id))
-          .attach('files', pngPath)
-          .attach('files', pdfPath)
-          .use(tokenProvider(user));
-
-        expect(status).toBe(constants.HTTP_STATUS_CREATED);
-        expect(body).toBeArrayOfSize(2);
-        expect(body).toSatisfyAll<HousingDocumentDTO>((doc) => {
-          return (
-            typeof doc.id === 'string' &&
-            doc.url.startsWith('http') &&
-            doc.creator.id === user.id
-          );
-        });
-      } finally {
-        fs.unlinkSync(pngPath);
-        fs.unlinkSync(pdfPath);
-      }
-    }, 30000);
-
-    it('should return 400 Bad Request when all files fail validation', async () => {
-      // Create invalid files (text files pretending to be images)
-      const invalidBuffer = Buffer.from('This is not an image');
-      const tmpPath1 = path.join(import.meta.dirname, 'fake1.png');
-      const tmpPath2 = path.join(import.meta.dirname, 'fake2.pdf');
-      fs.writeFileSync(tmpPath1, invalidBuffer);
-      fs.writeFileSync(tmpPath2, invalidBuffer);
-
-      try {
-        const { status, body } = await request(url)
-          .post(testRoute(housing.id))
-          .attach('files', tmpPath1)
-          .attach('files', tmpPath2)
-          .use(tokenProvider(user));
-
-        expect(status).toBe(constants.HTTP_STATUS_BAD_REQUEST);
-        expect(body).toBeArrayOfSize(2);
-        body.forEach((error: FileValidationError) => {
-          expect(error).toMatchObject<Partial<FileValidationError>>({
-            name: 'FileValidationError',
-            data: {
-              filename: expect.any(String),
-              reason: 'invalid_file_type'
-            }
-          });
-        });
-      } finally {
-        fs.unlinkSync(tmpPath1);
-        fs.unlinkSync(tmpPath2);
-      }
-    }, 30000);
-
-    it('should return 207 Multi-Status with partial success (some valid, some invalid)', async () => {
-      // Create one valid PNG and one invalid file
-      const pngBuffer = Buffer.from([
-        0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a, 0x00, 0x00, 0x00, 0x0d,
-        0x49, 0x48, 0x44, 0x52
-      ]);
-      const invalidBuffer = Buffer.from('This is not an image');
-
-      const validPath = path.join(import.meta.dirname, 'valid.png');
-      const invalidPath = path.join(import.meta.dirname, 'invalid.png');
-      fs.writeFileSync(validPath, pngBuffer);
-      fs.writeFileSync(invalidPath, invalidBuffer);
-
-      try {
-        const { status, body } = await request(url)
-          .post(testRoute(housing.id))
-          .attach('files', validPath)
-          .attach('files', invalidPath)
-          .use(tokenProvider(user));
-
-        expect(status).toBe(constants.HTTP_STATUS_MULTI_STATUS);
-        expect(body).toBeArrayOfSize(2);
-
-        // Find the success and error in the response
-        const [documents, errors] = Array.partition(
-          body as ReadonlyArray<DocumentDTO | FileValidationError>,
-          (documentOrError): documentOrError is FileValidationError =>
-            Predicate.hasProperty(documentOrError, 'name') &&
-            documentOrError.name === 'FileValidationError'
-        );
-        documents.forEach((document) => {
-          expect(document).toMatchObject({
-            id: expect.any(String),
-            filename: 'valid.png',
-            url: expect.stringMatching(/^http/)
-          });
-        });
-
-        errors.forEach((error) => {
-          expect(error).toMatchObject({
-            name: 'FileValidationError',
-            message: expect.any(String),
-            data: {
-              filename: 'invalid.png',
-              reason: 'invalid_file_type'
-            }
-          });
-        });
-      } finally {
-        fs.unlinkSync(validPath);
-        fs.unlinkSync(invalidPath);
-      }
-    }, 30000);
-
-    it('should detect MIME type spoofing and return error', async () => {
-      // Create a PNG file but declare it as PDF
-      const pngBuffer = Buffer.from([
-        0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a, 0x00, 0x00, 0x00, 0x0d,
-        0x49, 0x48, 0x44, 0x52
-      ]);
-
-      const tmpPath = path.join(import.meta.dirname, 'spoofed.pdf');
-      fs.writeFileSync(tmpPath, pngBuffer);
-
-      try {
-        const { status, body } = await request(url)
-          .post(testRoute(housing.id))
-          .attach('files', tmpPath)
-          .use(tokenProvider(user));
-
-        expect(status).toBe(constants.HTTP_STATUS_BAD_REQUEST);
-        expect(body).toBeArrayOfSize(1);
-        expect(body[0]).toMatchObject({
-          name: 'FileValidationError',
-          message: expect.stringContaining('does not match'),
-          data: {
-            filename: 'spoofed.pdf',
-            reason: 'mime_mismatch'
-          }
-        });
-      } finally {
-        fs.unlinkSync(tmpPath);
-      }
-    }, 30000);
-
-    it('should return 400 Bad Request when file exceeds 25MB', async () => {
-      // Create a 26 MiB buffer
-      const oversizedBuffer = Buffer.alloc(26 * 1024 * 1024);
-      const tmpPath = path.join(import.meta.dirname, 'oversized.pdf');
-      fs.writeFileSync(tmpPath, oversizedBuffer);
-
-      try {
-        const { status, body } = await request(url)
-          .post(testRoute(housing.id))
-          .attach('files', tmpPath)
-          .use(tokenProvider(user));
-
-        // Multer error handler returns 400 Bad Request for LIMIT_FILE_SIZE
-        expect(status).toBe(constants.HTTP_STATUS_BAD_REQUEST);
-        expect(body).toMatchObject({
-          name: 'MulterError',
-          message: 'File too large',
-          reason: 'file_too_large',
-          error: 'LIMIT_FILE_SIZE'
-        });
-      } finally {
-        fs.unlinkSync(tmpPath);
-      }
-    }, 30000);
-
-    // Test runs only when ClamAV is enabled (CLAMAV_ENABLED=true)
-    const itIfClamavEnabled = config.clamav.enabled ? it : it.skip;
-
-    itIfClamavEnabled(
-      'should return 207 Multi-Status when virus detected in one of multiple files',
-      async () => {
-        // EICAR test file - standard antivirus test string
-        const EICAR_TEST_FILE =
-          'X5O!P%@AP[4\\PZX54(P^)7CC)7}$EICAR-STANDARD-ANTIVIRUS-TEST-FILE!$H+H*';
-
-        // Create one valid PNG and one EICAR test file
-        const pngBuffer = Buffer.from([
-          0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a, 0x00, 0x00, 0x00,
-          0x0d, 0x49, 0x48, 0x44, 0x52
-        ]);
-
-        const validPath = path.join(import.meta.dirname, 'clean.png');
-        const virusPath = path.join(import.meta.dirname, 'eicar.pdf');
-        fs.writeFileSync(validPath, pngBuffer);
-        fs.writeFileSync(virusPath, EICAR_TEST_FILE);
-
-        try {
-          const { status, body } = await request(url)
-            .post(testRoute(housing.id))
-            .attach('files', validPath)
-            .attach('files', virusPath)
-            .use(tokenProvider(user));
-
-          expect(status).toBe(constants.HTTP_STATUS_MULTI_STATUS);
-          expect(body).toBeArrayOfSize(2);
-
-          const success = body.find(
-            (item: any) => !item.name || item.name !== 'FileValidationError'
-          );
-          const error = body.find(
-            (item: any) => item.name === 'FileValidationError'
-          );
-
-          expect(success).toMatchObject({
-            filename: 'clean.png'
-          });
-          expect(success.creator.id).toBe(user.id);
-
-          expect(error).toMatchObject({
-            name: 'FileValidationError',
-            filename: 'eicar.pdf',
-            reason: 'virus_detected',
-            message: expect.stringContaining('malicious content'),
-            details: {
-              viruses: expect.arrayContaining([
-                expect.stringContaining('EICAR')
-              ])
-            }
-          });
-        } finally {
-          fs.unlinkSync(validPath);
-          fs.unlinkSync(virusPath);
-        }
-      },
-      30000
-    );
-  });
-
-  describe('PUT /housing/:housingId/documents/:documentId', () => {
-    const testRoute = (housingId: string, documentId: string) =>
-      `/api/housing/${housingId}/documents/${documentId}`;
-
-    const housing = genHousingApi(
-      faker.helpers.arrayElement(establishment.geoCodes)
-    );
-    const housingFromAnotherEstablishment = genHousingApi(
-      faker.helpers.arrayElement(anotherEstablishment.geoCodes)
-    );
-    const userDocument = genHousingDocumentApi(housing, user);
-    const documentFromAnotherEstablishment = genHousingDocumentApi(
-      housingFromAnotherEstablishment,
-      userFromAnotherEstablishment
-    );
-
-    beforeAll(async () => {
-      await Housing().insert(
-        [housing, housingFromAnotherEstablishment].map(formatHousingRecordApi)
-      );
-      await housingDocumentRepository.createMany([
-        userDocument,
-        documentFromAnotherEstablishment
-      ]);
-    });
-
-    it('should return 400 Bad request if filename is missing', async () => {
-      const { status } = await request(url)
-        .put(testRoute(userDocument.housingId, userDocument.id))
-        .send({})
-        .use(tokenProvider(user));
-
-      expect(status).toBe(constants.HTTP_STATUS_BAD_REQUEST);
-    });
-
-    test.prop({
-      filename: fc.oneof(
-        // Empty string after trim (only whitespace)
-        fc.stringMatching(/^\s+$/),
-        // String exceeding 255 characters
-        fc.string({ minLength: 256 }).filter((s) => s.trim().length > 255)
-      )
-    })(
-      'should return 400 Bad request for invalid filename',
-      async ({ filename }) => {
-        const { status } = await request(url)
-          .put(testRoute(userDocument.housingId, userDocument.id))
-          .send({ filename })
-          .use(tokenProvider(user));
-
-        expect(status).toBe(constants.HTTP_STATUS_BAD_REQUEST);
-      }
-    );
-
-    it('should be forbidden for a non-authenticated user', async () => {
-      const { status } = await request(url)
-        .put(testRoute(userDocument.housingId, userDocument.id))
-        .send({ filename: 'nouveau-nom.pdf' });
-
-      expect(status).toBe(constants.HTTP_STATUS_UNAUTHORIZED);
-    });
-
-    it('should be forbidden for a visitor', async () => {
-      const { status } = await request(url)
-        .put(testRoute(userDocument.housingId, userDocument.id))
-        .send({ filename: 'nouveau-nom.pdf' })
-        .use(tokenProvider(visitor));
-
-      expect(status).toBe(constants.HTTP_STATUS_FORBIDDEN);
-    });
-
-    it('should return 404 Not found if the document is missing', async () => {
-      const { status } = await request(url)
-        .put(testRoute(userDocument.housingId, faker.string.uuid()))
-        .send({ filename: 'nouveau-nom.pdf' })
-        .use(tokenProvider(user));
-
-      expect(status).toBe(constants.HTTP_STATUS_NOT_FOUND);
-    });
-
-    it('should return 404 Not found if the document belongs to a user from another establishment', async () => {
-      const { status } = await request(url)
-        .put(
-          testRoute(documentFromAnotherEstablishment.housingId, userDocument.id)
-        )
-        .send({ filename: 'nouveau-nom.pdf' })
-        .use(tokenProvider(user));
-
-      expect(status).toBe(constants.HTTP_STATUS_NOT_FOUND);
-    });
-
-    it('should allow admin to update any document', async () => {
-      const { status, body } = await request(url)
-        .put(
-          testRoute(
-            documentFromAnotherEstablishment.housingId,
-            documentFromAnotherEstablishment.id
-          )
-        )
-        .send({ filename: 'admin-rename.pdf' })
-        .use(tokenProvider(admin));
-
-      expect(status).toBe(constants.HTTP_STATUS_OK);
-      expect(body).toMatchObject<Partial<HousingDocumentDTO>>({
-        id: documentFromAnotherEstablishment.id,
-        filename: 'admin-rename.pdf',
-        updatedAt: expect.any(String)
-      });
-    });
-
-    it('should return 200 OK with updated document', async () => {
-      const { status, body } = await request(url)
-        .put(testRoute(userDocument.housingId, userDocument.id))
-        .send({ filename: 'nouveau-nom.pdf' })
-        .use(tokenProvider(user));
-
-      expect(status).toBe(constants.HTTP_STATUS_OK);
-      expect(body).toMatchObject<Partial<HousingDocumentDTO>>({
-        id: userDocument.id,
-        filename: 'nouveau-nom.pdf',
-        url: expect.stringMatching(/^http/),
-        updatedAt: expect.any(String)
-      });
-    });
-  });
-
   describe('DELETE /housing/:housingId/documents/:documentId', () => {
     const testRoute = (housingId: string, documentId: string) =>
       `/api/housing/${housingId}/documents/${documentId}`;
 
-    const housing = genHousingApi(
-      faker.helpers.arrayElement(establishment.geoCodes)
-    );
-
-    it('should be forbidden for a non-authenticated user', async () => {
-      const document = genHousingDocumentApi(housing, user);
-      await Housing().insert(formatHousingRecordApi(housing));
-      await housingDocumentRepository.create(document);
-
-      const { status } = await request(url).delete(
-        testRoute(housing.id, document.id)
+    it('should remove association only (keep document)', async () => {
+      const housing = genHousingApi(
+        faker.helpers.arrayElement(establishment.geoCodes)
       );
-
-      expect(status).toBe(constants.HTTP_STATUS_UNAUTHORIZED);
-    });
-
-    it('should be forbidden for a visitor', async () => {
-      const document = genHousingDocumentApi(housing, user);
-      await housingDocumentRepository.create(document);
+      await Housing().insert(formatHousingRecordApi(housing));
+      const document = genDocumentApi({
+        createdBy: user.id,
+        creator: user,
+        establishmentId: establishment.id
+      });
+      await Documents().insert(toDocumentDBO(document));
+      await HousingDocuments().insert({
+        document_id: document.id,
+        housing_id: housing.id,
+        housing_geo_code: housing.geoCode
+      });
 
       const { status } = await request(url)
         .delete(testRoute(housing.id, document.id))
-        .use(tokenProvider(visitor));
+        .use(tokenProvider(user));
 
-      expect(status).toBe(constants.HTTP_STATUS_FORBIDDEN);
+      expect(status).toBe(constants.HTTP_STATUS_NO_CONTENT);
+
+      // Verify association removed
+      const links = await HousingDocuments()
+        .where({
+          document_id: document.id,
+          housing_id: housing.id
+        })
+        .select('*');
+      expect(links).toHaveLength(0);
+
+      // Verify document still exists
+      const [doc] = await Documents().where({ id: document.id }).select('*');
+      expect(doc).toBeDefined();
+      expect(doc.deleted_at).toBeNull();
     });
 
-    it('should return 404 Not found if the document is missing', async () => {
+    it('should return 404 if association not found', async () => {
+      const housing = genHousingApi(
+        faker.helpers.arrayElement(establishment.geoCodes)
+      );
+      await Housing().insert(formatHousingRecordApi(housing));
+
       const { status } = await request(url)
         .delete(testRoute(housing.id, faker.string.uuid()))
         .use(tokenProvider(user));
@@ -682,89 +408,218 @@ describe('Document API', () => {
       expect(status).toBe(constants.HTTP_STATUS_NOT_FOUND);
     });
 
-    it('should return 404 Not found if the housing belongs to another establishment', async () => {
-      const housingFromAnotherEstablishment = genHousingApi(
-        faker.helpers.arrayElement(anotherEstablishment.geoCodes)
-      );
-      const documentFromAnotherEstablishment = genHousingDocumentApi(
-        housingFromAnotherEstablishment,
-        userFromAnotherEstablishment
-      );
-      await Housing().insert(
-        formatHousingRecordApi(housingFromAnotherEstablishment)
-      );
-      await housingDocumentRepository.create(documentFromAnotherEstablishment);
+    it('should return 404 if housing not found', async () => {
+      const document = genDocumentApi({
+        createdBy: user.id,
+        creator: user,
+        establishmentId: establishment.id
+      });
+      await Documents().insert(toDocumentDBO(document));
 
       const { status } = await request(url)
-        .delete(
-          testRoute(
-            housingFromAnotherEstablishment.id,
-            documentFromAnotherEstablishment.id
-          )
-        )
+        .delete(testRoute(faker.string.uuid(), document.id))
         .use(tokenProvider(user));
 
       expect(status).toBe(constants.HTTP_STATUS_NOT_FOUND);
     });
 
-    it('should allow admin to delete any document', async () => {
-      const document = genHousingDocumentApi(housing, anotherUser);
-      await housingDocumentRepository.create(document);
+    it('should return 404 if housing belongs to another establishment', async () => {
+      const housingFromAnotherEstablishment = genHousingApi(
+        faker.helpers.arrayElement(anotherEstablishment.geoCodes)
+      );
+      await Housing().insert(
+        formatHousingRecordApi(housingFromAnotherEstablishment)
+      );
 
-      const { status } = await request(url)
-        .delete(testRoute(housing.id, document.id))
-        .use(tokenProvider(admin));
+      const document = genDocumentApi({
+        createdBy: userFromAnotherEstablishment.id,
+        creator: userFromAnotherEstablishment,
+        establishmentId: anotherEstablishment.id
+      });
+      await Documents().insert(toDocumentDBO(document));
 
-      expect(status).toBe(constants.HTTP_STATUS_NO_CONTENT);
-    });
-
-    it('should return 204 No content after deletion', async () => {
-      const document = genHousingDocumentApi(housing, user);
-      await housingDocumentRepository.create(document);
-
-      const { status } = await request(url)
-        .delete(testRoute(housing.id, document.id))
-        .use(tokenProvider(user));
-
-      expect(status).toBe(constants.HTTP_STATUS_NO_CONTENT);
-    });
-
-    it('should soft-delete the document', async () => {
-      const document = genHousingDocumentApi(housing, user);
-      await housingDocumentRepository.create(document);
-
-      await request(url)
-        .delete(testRoute(housing.id, document.id))
-        .use(tokenProvider(user));
-
-      const deletedDocument = await housingDocumentRepository.get(document.id);
-
-      expect(deletedDocument).not.toBeNull();
-      expect(deletedDocument!.deletedAt).not.toBeNull();
-    });
-
-    it('should remove the actual document from the S3 bucket', async () => {
-      const s3 = createS3({
-        endpoint: config.s3.endpoint,
-        region: config.s3.region,
-        accessKeyId: config.s3.accessKeyId,
-        secretAccessKey: config.s3.secretAccessKey
+      // Link document to housing
+      await HousingDocuments().insert({
+        document_id: document.id,
+        housing_id: housingFromAnotherEstablishment.id,
+        housing_geo_code: housingFromAnotherEstablishment.geoCode
       });
 
-      const document = genHousingDocumentApi(housing, user);
-      await housingDocumentRepository.create(document);
-
-      await request(url)
-        .delete(testRoute(housing.id, document.id))
+      const { status } = await request(url)
+        .delete(testRoute(housingFromAnotherEstablishment.id, document.id))
         .use(tokenProvider(user));
 
-      // Verify the object no longer exists in S3
-      const headCommand = new HeadObjectCommand({
-        Bucket: config.s3.bucket,
-        Key: document.s3Key
+      expect(status).toBe(constants.HTTP_STATUS_NOT_FOUND);
+    });
+  });
+
+  describe('Event Tracking', () => {
+    describe('POST /api/documents', () => {
+      const samplePdfPath = path.join(__dirname, '../../test/sample.pdf');
+
+      it('should create document:created event when uploading document', async () => {
+        const { status, body } = await request(url)
+          .post('/api/documents')
+          .use(tokenProvider(user))
+          .attach('files', samplePdfPath);
+
+        expect(status).toBe(constants.HTTP_STATUS_CREATED);
+        const document = body[0];
+
+        const [eventRecord] = await Events()
+          .where({ type: 'document:created' })
+          .where({ created_by: user.id })
+          .orderBy('created_at', 'desc')
+          .limit(1);
+
+        expect(eventRecord).toMatchObject({
+          type: 'document:created',
+          next_new: { filename: document.filename }
+        });
+        expect(eventRecord.next_old).toBeNull();
+
+        const [documentEvent] = await DocumentEvents().where({
+          event_id: eventRecord.id
+        });
+        expect(documentEvent).toMatchObject({
+          document_id: document.id
+        });
+      });
+    });
+
+    describe('PUT /api/documents/:id', () => {
+      it('should create document:updated event when renaming document', async () => {
+        const document = genDocumentApi({
+          filename: 'old-name.pdf',
+          creator: user
+        });
+        await Documents().insert(toDocumentDBO(document));
+
+        const { status } = await request(url)
+          .put(`/api/documents/${document.id}`)
+          .use(tokenProvider(user))
+          .send({ filename: 'new-name.pdf' });
+
+        expect(status).toBe(constants.HTTP_STATUS_OK);
+
+        const [eventRecord] = await Events()
+          .where({ type: 'document:updated' })
+          .where({ created_by: user.id })
+          .orderBy('created_at', 'desc')
+          .limit(1);
+
+        expect(eventRecord).toMatchObject({
+          type: 'document:updated',
+          next_old: { filename: 'old-name.pdf' },
+          next_new: { filename: 'new-name.pdf' }
+        });
+
+        const [documentEvent] = await DocumentEvents().where({
+          event_id: eventRecord.id
+        });
+        expect(documentEvent).toMatchObject({
+          document_id: document.id
+        });
+      });
+    });
+
+    describe('DELETE /api/documents/:id', () => {
+      it('should create document:removed and housing:document-removed events', async () => {
+        const housing = genHousingApi();
+        const document = genDocumentApi({ creator: user });
+
+        await Housing().insert(formatHousingRecordApi(housing));
+        await Documents().insert(toDocumentDBO(document));
+        await HousingDocuments().insert({
+          document_id: document.id,
+          housing_id: housing.id,
+          housing_geo_code: housing.geoCode
+        });
+
+        const { status } = await request(url)
+          .delete(`/api/documents/${document.id}`)
+          .use(tokenProvider(user));
+
+        expect(status).toBe(constants.HTTP_STATUS_NO_CONTENT);
+
+        // Check document:removed event
+        const [documentRemoveEvent] = await Events()
+          .where({ type: 'document:removed' })
+          .where({ created_by: user.id })
+          .orderBy('created_at', 'desc')
+          .limit(1);
+
+        expect(documentRemoveEvent).toMatchObject({
+          type: 'document:removed',
+          next_old: { filename: document.filename }
+        });
+        expect(documentRemoveEvent.next_new).toBeNull();
+
+        const [docEvent] = await DocumentEvents().where({
+          event_id: documentRemoveEvent.id
+        });
+        expect(docEvent).toMatchObject({
+          document_id: document.id
+        });
+
+        // Check housing:document-removed event
+        const [housingRemoveEvent] = await Events()
+          .where({ type: 'housing:document-removed' })
+          .where({ created_by: user.id })
+          .orderBy('created_at', 'desc')
+          .limit(1);
+
+        expect(housingRemoveEvent).toMatchObject({
+          type: 'housing:document-removed',
+          next_old: { filename: document.filename }
+        });
+        expect(housingRemoveEvent.next_new).toBeNull();
+
+        const [housingDocEvent] = await HousingDocumentEvents().where({
+          event_id: housingRemoveEvent.id
+        });
+        expect(housingDocEvent).toMatchObject({
+          housing_id: housing.id,
+          document_id: document.id
+        });
       });
 
-      await expect(s3.send(headCommand)).rejects.toThrow();
+      it('should handle document deletion without housing links', async () => {
+        const document = genDocumentApi({ creator: user });
+        await Documents().insert(toDocumentDBO(document));
+
+        const { status } = await request(url)
+          .delete(`/api/documents/${document.id}`)
+          .use(tokenProvider(user));
+
+        expect(status).toBe(constants.HTTP_STATUS_NO_CONTENT);
+
+        // Should still create document:removed event
+        const [documentRemoveEvent] = await Events()
+          .where({ type: 'document:removed' })
+          .where({ created_by: user.id })
+          .orderBy('created_at', 'desc')
+          .limit(1);
+
+        expect(documentRemoveEvent).toBeDefined();
+
+        // Should not create housing:document-removed events
+        const housingRemoveEvents = await Events()
+          .where({ type: 'housing:document-removed' })
+          .where({ created_by: user.id })
+          .orderBy('created_at', 'desc')
+          .limit(10);
+
+        // Filter to events for this document only
+        const thisDocEvents = await HousingDocumentEvents()
+          .whereIn(
+            'event_id',
+            housingRemoveEvents.map((e) => e.id)
+          )
+          .where({ document_id: document.id });
+
+        expect(thisDocEvents).toBeEmpty();
+      });
     });
   });
 });

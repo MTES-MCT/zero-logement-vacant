@@ -425,65 +425,77 @@ models:
               to: ref('marts_production_establishments')
               field: establishment_id
       - name: connecte_90_derniers_jours
-        description: "Connexion dans les 90 derniers jours (Oui/👻 Fantôme)"
+        description: "Connexion dans les 90 derniers jours (true/false)"
         data_tests:
           - accepted_values:
-              values: ['Oui', '👻 Fantôme']
+              values: [true, false]
+              quote: false
       - name: connecte_60_derniers_jours
-        description: "Connexion dans les 60 derniers jours (Oui/Non)"
+        description: "Connexion dans les 60 derniers jours (true/false)"
         data_tests:
           - accepted_values:
-              values: ['Oui', 'Non']
+              values: [true, false]
+              quote: false
       - name: connecte_30_derniers_jours
-        description: "Connexion dans les 30 derniers jours (Oui/Non)"
+        description: "Connexion dans les 30 derniers jours (true/false)"
         data_tests:
           - accepted_values:
-              values: ['Oui', 'Non']
+              values: [true, false]
+              quote: false
       - name: a_depose_1_perimetre
-        description: "A déposé au moins 1 périmètre (oui/non)"
+        description: "A déposé au moins 1 périmètre (true/false)"
         data_tests:
           - accepted_values:
-              values: ['oui', 'non']
+              values: [true, false]
+              quote: false
       - name: a_cree_1_groupe
-        description: "A créé au moins 1 groupe (oui/non)"
+        description: "A créé au moins 1 groupe (true/false)"
         data_tests:
           - accepted_values:
-              values: ['oui', 'non']
+              values: [true, false]
+              quote: false
       - name: a_cree_1_campagne
-        description: "A créé au moins 1 campagne (oui/non)"
+        description: "A créé au moins 1 campagne (true/false)"
         data_tests:
           - accepted_values:
-              values: ['oui', 'non']
+              values: [true, false]
+              quote: false
       - name: a_cree_1_campagne_30_derniers_jours
-        description: "A créé au moins 1 campagne dans les 30 derniers jours (Oui/Non)"
+        description: "A créé au moins 1 campagne dans les 30 derniers jours (true/false)"
         data_tests:
           - accepted_values:
-              values: ['Oui', 'Non']
+              values: [true, false]
+              quote: false
       - name: a_envoye_1_campagne
-        description: "A envoyé au moins 1 campagne (oui/non)"
+        description: "A envoyé au moins 1 campagne (true/false)"
         data_tests:
           - accepted_values:
-              values: ['oui', 'non']
+              values: [true, false]
+              quote: false
       - name: a_fait_1_maj_suivi
-        description: "A fait au moins 1 mise à jour de suivi (Oui/Non)"
+        description: "A fait au moins 1 mise à jour de suivi (true/false)"
         data_tests:
           - accepted_values:
-              values: ['Oui', 'Non']
+              values: [true, false]
+              quote: false
       - name: a_fait_1_maj_occupation
-        description: "A fait au moins 1 mise à jour d'occupation (Oui/Non)"
+        description: "A fait au moins 1 mise à jour d'occupation (true/false)"
         data_tests:
           - accepted_values:
-              values: ['Oui', 'Non']
+              values: [true, false]
+              quote: false
       - name: a_fait_1_maj
-        description: "A fait au moins 1 mise à jour (suivi ou occupation) (Oui/Non)"
+        description: "A fait au moins 1 mise à jour (suivi ou occupation) (true/false)"
         data_tests:
           - accepted_values:
-              values: ['Oui', 'Non']
+              values: [true, false]
+              quote: false
       - name: a_fait_1_campagne_ET_1_maj
-        description: "A fait au moins 1 campagne ET 1 mise à jour (Oui/Non)"
+        description: "A fait au moins 1 campagne ET 1 mise à jour (true/false)"
         data_tests:
           - accepted_values:
-              values: ['Oui', 'Non']
+              values: [true, false]
+              quote: false
       - name: typologie_activation_simple
         description: "Typologie d'activation simplifiée (4 niveaux)"
         data_tests:

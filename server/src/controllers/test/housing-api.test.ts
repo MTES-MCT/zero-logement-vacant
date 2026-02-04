@@ -96,6 +96,7 @@ import { formatUserApi, Users } from '~/repositories/userRepository';
 import {
   genBuildingApi,
   genCampaignApi,
+  genDocumentApi,
   genEstablishmentApi,
   genEventApi,
   genHousingApi,
@@ -104,6 +105,11 @@ import {
   oneOf
 } from '~/test/testFixtures';
 import { tokenProvider } from '~/test/testUtils';
+import { Documents, toDocumentDBO } from '~/repositories/documentRepository';
+import housingDocumentRepository, {
+  HousingDocumentDBO,
+  HousingDocuments
+} from '~/repositories/housingDocumentRepository';
 
 describe('Housing API', () => {
   let url: string;
@@ -1425,6 +1431,104 @@ describe('Housing API', () => {
           precision_id: newPrecision.id
         }
       ])
+    });
+
+    it('should link documents to multiple housings in batch update', async () => {
+      const { housings } = await createHousings({ count: 2 });
+      const document = genDocumentApi({
+        createdBy: user.id,
+        creator: user,
+        establishmentId: establishment.id
+      });
+      await Documents().insert(toDocumentDBO(document));
+
+      const { status, body } = await request(url)
+        .put(testRoute)
+        .send({
+          filters: {
+            establishmentIds: [establishment.id],
+            housingIds: housings.map(housing => housing.id)
+          },
+          documents: [document.id],
+          status: HousingStatus.IN_PROGRESS
+        } satisfies HousingBatchUpdatePayload)
+        .use(tokenProvider(user));
+
+      expect(status).toBe(constants.HTTP_STATUS_OK);
+      expect(body).toHaveLength(2);
+
+      // Verify both housings have the document linked
+      const actual = await HousingDocuments().where({
+        document_id: document.id
+      });
+      expect(actual).toHaveLength(2);
+      expect(actual).toIncludeAllPartialMembers<HousingDocumentDBO>([
+        {
+          housing_geo_code: housings[0].geoCode,
+          housing_id: housings[0].id,
+          document_id: document.id
+        },
+        {
+          housing_geo_code: housings[1].geoCode,
+          housing_id: housings[1].id,
+          document_id: document.id
+        }
+      ]);
+    });
+
+    it('should update status AND link documents in same request', async () => {
+      const { housings } = await createHousings({ count: 1 });
+      const document = genDocumentApi({
+        createdBy: user.id,
+        creator: user,
+        establishmentId: establishment.id
+      });
+      await Documents().insert(toDocumentDBO(document));
+
+      const { status, body } = await request(url)
+        .put(testRoute)
+        .send({
+          filters: {
+            establishmentIds: [establishment.id],
+            housingIds: [housings[0].id]
+          },
+          status: HousingStatus.IN_PROGRESS,
+          note: 'Batch update with docs',
+          documents: [document.id]
+        } satisfies HousingBatchUpdatePayload)
+        .use(tokenProvider(user));
+
+      expect(status).toBe(constants.HTTP_STATUS_OK);
+      expect(body[0]).toMatchObject({
+        id: housings[0].id,
+        status: HousingStatus.IN_PROGRESS
+      });
+
+      // Verify document linked
+      const links = await housingDocumentRepository.find({
+        filters: {
+          housingIds: [{ id: housings[0].id, geoCode: housings[0].geoCode }]
+        }
+      });
+      expect(links).toHaveLength(1);
+    });
+
+    it('should handle empty documents gracefully', async () => {
+      const { housings } = await createHousings({ count: 1 });
+
+      const { status } = await request(url)
+        .put(testRoute)
+        .send({
+          filters: {
+            establishmentIds: [establishment.id],
+            housingIds: [housings[0].id]
+          },
+          status: HousingStatus.IN_PROGRESS,
+          documents: []
+        } satisfies HousingBatchUpdatePayload)
+        .use(tokenProvider(user));
+
+      expect(status).toBe(constants.HTTP_STATUS_OK);
     });
   });
 

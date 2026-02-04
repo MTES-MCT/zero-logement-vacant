@@ -1,0 +1,12 @@
+[project]
+name = "housing-out-analysis"
+version = "0.1.0"
+description = "Housing vacancy exit analysis for ZLV"
+requires-python = ">=3.11"
+dependencies = [
+    "duckdb>=1.0.0",
+    "pandas>=2.0.0",
+]
+
+[project.scripts]
+run-analysis = "run_analysis:main"

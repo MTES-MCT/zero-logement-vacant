@@ -2,9 +2,36 @@ name: Data Stack CI
 
 on:
   push:
+  pull_request:
+    paths:
+      - analytics/dagster/**
+      - .github/workflows/github-actions-data-stack.yml
 
 jobs:
+  test-dagster:
+    name: Test Dagster Compilation
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Install uv
+        uses: astral-sh/setup-uv@v5
+
+      - name: Set up Python
+        run: uv python install 3.11
+
+      - name: Install dependencies
+        working-directory: analytics/dagster
+        run: uv sync --all-extras
+
+      - name: Run compilation tests
+        working-directory: analytics/dagster
+        run: uv run pytest tests/ -v --tb=short
+
   deploy-dagster:
+    needs: test-dagster
+    if: github.ref == 'refs/heads/main' && github.event_name == 'push'
     uses: ./.github/workflows/deploy.yml
     with:
       app: Dagster (Production)

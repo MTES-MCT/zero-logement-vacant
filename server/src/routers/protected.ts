@@ -54,6 +54,36 @@ router.post(
   fileController.create
 );
 
+router.post(
+  '/documents',
+  hasRole([UserRole.USUAL, UserRole.ADMIN]),
+  upload({
+    accept: ACCEPTED_HOUSING_DOCUMENT_EXTENSIONS as string[],
+    multiple: true,
+    maxSizeMiB: MAX_HOUSING_DOCUMENT_SIZE_IN_MiB
+  }),
+  documentController.create
+);
+
+router.put(
+  '/documents/:id',
+  hasRole([UserRole.USUAL, UserRole.ADMIN]),
+  validatorNext.validate({
+    params: object({ id: schemas.id }),
+    body: schemas.documentPayload
+  }),
+  documentController.update
+);
+
+router.delete(
+  '/documents/:id',
+  hasRole([UserRole.USUAL, UserRole.ADMIN]),
+  validatorNext.validate({
+    params: object({ id: schemas.id })
+  }),
+  documentController.remove
+);
+
 router.get(
   '/housing/:id/documents',
   validatorNext.validate({
@@ -66,27 +96,10 @@ router.post(
   '/housing/:id/documents',
   hasRole([UserRole.USUAL, UserRole.ADMIN]),
   validatorNext.validate({
-    params: object({ id: schemas.id })
+    params: object({ id: schemas.id }),
+    body: schemas.housingDocumentPayload
   }),
-  upload({
-    accept: ACCEPTED_HOUSING_DOCUMENT_EXTENSIONS as string[],
-    multiple: true,
-    maxSizeMiB: MAX_HOUSING_DOCUMENT_SIZE_IN_MiB
-  }),
-  documentController.createByHousing
-);
-
-router.put(
-  '/housing/:housingId/documents/:documentId',
-  hasRole([UserRole.USUAL, UserRole.ADMIN]),
-  validatorNext.validate({
-    params: object({
-      housingId: schemas.id,
-      documentId: schemas.id
-    }),
-    body: schemas.documentPayload
-  }),
-  documentController.updateByHousing
+  documentController.linkToHousing
 );
 
 router.delete(

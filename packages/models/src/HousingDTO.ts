@@ -8,6 +8,7 @@ import { Occupancy } from './Occupancy';
 import { OwnerDTO } from './OwnerDTO';
 import type { HousingFiltersDTO } from './HousingFiltersDTO';
 import type { CadastralClassification } from './CadastralClassification';
+import type { DocumentDTO } from './DocumentDTO';
 import type { Precision } from './Precision';
 
 export interface HousingDTO {
@@ -72,6 +73,7 @@ export type HousingBatchUpdatePayload = {
   subStatus?: string;
   note?: string;
   precisions?: Precision['id'][];
+  documents?: DocumentDTO['id'][];
 };
 
 interface Diff<A> {

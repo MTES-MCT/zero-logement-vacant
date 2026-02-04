@@ -8,6 +8,7 @@ import { establishmentFilters } from './establishment-filters';
 import { geoCode } from './geo-code';
 import { groupCreationPayload } from './group-creation-payload';
 import { housingBatchUpdatePayload } from './housing-batch-update-payload';
+import { housingDocumentPayload } from './housing-document-payload';
 import { housingFilters } from './housing-filters';
 import { housingUpdatePayload } from './housing-update-payload';
 import { id } from './id';
@@ -20,6 +21,7 @@ import { userUpdatePayload } from './user-update-payload';
 
 export { GEO_CODE_REGEXP } from './geo-code';
 export { SIREN_REGEXP } from './siren';
+export { type HousingDocumentPayload } from './housing-document-payload';
 
 const schemas = {
   buildingFilters,
@@ -32,6 +34,7 @@ const schemas = {
   geoCode,
   groupCreationPayload,
   housingBatchUpdatePayload,
+  housingDocumentPayload,
   housingFilters,
   housingUpdatePayload,
   id,

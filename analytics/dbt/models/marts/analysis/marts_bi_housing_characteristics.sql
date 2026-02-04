@@ -134,6 +134,7 @@ SELECT
     END AS energy_consumption_category,
     CASE 
         WHEN ph.energy_consumption_bdnb IN ('F', 'G') THEN TRUE 
+        WHEN ph.energy_consumption_bdnb IS NULL THEN NULL
         ELSE FALSE 
     END AS is_energy_sieve,
     

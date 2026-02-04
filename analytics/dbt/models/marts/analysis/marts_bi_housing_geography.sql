@@ -109,7 +109,12 @@ SELECT
         WHEN cf.population_growth_rate_annual > 0 THEN 'Croissance moderee'
         ELSE 'Stable'
     END AS population_trend_category,
+
     
+
+
+    
+
     -- Computed: Zonage category
     CASE 
         WHEN cf.zonage_en_vigueur IN ('A', 'A bis') THEN 'Zone tendue'

@@ -1,18 +1,21 @@
-import { Col, Container, Row, Text } from '../../components/_dsfr';
-import building from '../../assets/images/building.svg';
-import { useState } from 'react';
-import { object } from 'yup';
-import { emailValidator, useForm } from '../../hooks/useForm';
-import resetLinkService from '../../services/reset-link.service';
-import classNames from 'classnames';
-import styles from './forgotten-password-view.module.scss';
-import { useHide } from '../../hooks/useHide';
-import { useDocumentTitle } from '../../hooks/useDocumentTitle';
-import AppTextInput from '../../components/_app/AppTextInput/AppTextInput';
 import { Alert } from '@codegouvfr/react-dsfr/Alert';
 import Button from '@codegouvfr/react-dsfr/Button';
-import AppLinkAsButton from '../../components/_app/AppLinkAsButton/AppLinkAsButton';
+import { yupResolver } from '@hookform/resolvers/yup';
 import Typography from '@mui/material/Typography';
+import classNames from 'classnames';
+import { useState } from 'react';
+import { useForm, type SubmitHandler } from 'react-hook-form';
+import { type InferType, object } from 'yup';
+
+import building from '~/assets/images/building.svg';
+import AppLinkAsButton from '~/components/_app/AppLinkAsButton/AppLinkAsButton';
+import AppTextInputNext from '~/components/_app/AppTextInput/AppTextInputNext';
+import { Col, Container, Row, Text } from '../../components/_dsfr';
+import { useDocumentTitle } from '~/hooks/useDocumentTitle';
+import { emailValidator } from '~/hooks/useForm';
+import { useHide } from '~/hooks/useHide';
+import resetLinkService from '~/services/reset-link.service';
+import styles from './forgotten-password-view.module.scss';
 
 interface EmailSentProps {
   hidden?: boolean;
@@ -47,33 +50,36 @@ function EmailSent(props: EmailSentProps) {
   );
 }
 
+const schema = object({
+  email: emailValidator
+});
+
+type FormValues = InferType<typeof schema>;
+
 function ForgottenPasswordView() {
   useDocumentTitle('Mot de passe oublié');
   const [error, setError] = useState('');
-  const [email, setEmail] = useState('');
   const [emailSent, setEmailSent] = useState(false);
-  const shape = {
-    email: emailValidator
-  };
-  type FormShape = typeof shape;
-
-  const form = useForm(object().shape(shape) as any, {
-    email
-  });
   const { hidden, setHidden } = useHide();
 
-  async function submit(e?: any) {
+  const form = useForm<FormValues>({
+    resolver: yupResolver(schema),
+    defaultValues: {
+      email: ''
+    },
+    mode: 'onBlur'
+  });
+
+  const onSubmit: SubmitHandler<FormValues> = async (data) => {
     try {
-      e?.preventDefault();
-      await form.validate(async () => {
-        await resetLinkService.sendResetEmail(email);
-        setEmailSent(true);
-        setHidden(false);
-      });
+      await resetLinkService.sendResetEmail(data.email);
+      setEmailSent(true);
+      setHidden(false);
+      form.reset(); // Reset form after successful submission
     } catch (err) {
       setError((err as Error).message);
     }
-  }
+  };
 
   return (
     <Container as="main" spacing="py-4w" className="grow-container">
@@ -92,26 +98,24 @@ function ForgottenPasswordView() {
             Réinitialisation de votre mot de passe
           </Typography>
           {emailSent ? (
-            <EmailSent hidden={hidden} submit={submit} />
+            <EmailSent hidden={hidden} submit={form.handleSubmit(onSubmit)} />
           ) : (
             <>
               <Text>
                 Vous allez <b>recevoir un email</b> qui vous permettra de créer
                 un nouveau mot de passe.
               </Text>
-              <form onSubmit={submit}>
-                <AppTextInput<FormShape>
-                  type="email"
-                  value={email}
-                  onChange={(e) => setEmail(e.target.value)}
-                  hintText="Entrez l’adresse mail utilisée pour créer votre compte ZLV"
-                  inputForm={form}
-                  inputKey="email"
-                  whenValid="Email valide."
+              <form onSubmit={form.handleSubmit(onSubmit)}>
+                <AppTextInputNext<FormValues>
+                  name="email"
+                  hintText="Entrez l'adresse mail utilisée pour créer votre compte ZLV"
+                  control={form.control}
                   data-testid="email-input"
                   label="Adresse email (obligatoire)"
-                  placeholder="exemple@gmail.com"
-                  required
+                  nativeInputProps={{
+                    type: 'email',
+                    placeholder: 'exemple@gmail.com'
+                  }}
                 />
                 <Row justifyContent="right">
                   <Button type="submit">

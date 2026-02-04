@@ -18,6 +18,7 @@ import { fromUserDTO } from '~/models/User';
 import configureTestStore from '~/utils/storeUtils';
 import UsersView from '~/views/Account/Profile/UsersView';
 import { genAuthUser } from '../../../../test/fixtures';
+import { fromEstablishmentDTO } from '~/models/Establishment';
 
 describe('Users view', () => {
   interface RenderViewOptions {
@@ -32,7 +33,10 @@ describe('Users view', () => {
     data.users.push(...options.users);
 
     const store = configureTestStore({
-      auth: genAuthUser(fromUserDTO(options.auth))
+      auth: genAuthUser(
+        fromUserDTO(options.auth),
+        fromEstablishmentDTO(options.establishment)
+      )
     });
     const router = createMemoryRouter(
       [{ path: '/utilisateurs', element: <UsersView /> }],

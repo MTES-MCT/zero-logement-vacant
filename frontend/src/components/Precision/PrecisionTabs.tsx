@@ -1,17 +1,20 @@
 import Tabs from '@codegouvfr/react-dsfr/Tabs';
 import Grid from '@mui/material/Grid';
 
-import type { Precision } from '@zerologementvacant/models';
+import type { Precision, PrecisionCategory } from '@zerologementvacant/models';
 import { List } from 'immutable';
-import type { ChangeEvent, ReactElement } from 'react';
+import type { ReactElement } from 'react';
 import { useMemo } from 'react';
-import PrecisionColumn from './PrecisionColumn';
+import PrecisionColumn, {
+  type PrecisionColumnRadioProps
+} from './PrecisionColumn';
 
 interface PrecisionTabs {
   tab: PrecisionTabId;
-  options: Precision[];
-  value: Precision[];
-  onChange(value: Precision[]): void;
+  options: ReadonlyArray<Precision>;
+  showNullOption?: PrecisionColumnRadioProps['showNullOption'];
+  value: ReadonlyArray<Precision>;
+  onChange(value: ReadonlyArray<Precision>): void;
   onTabChange(tab: PrecisionTabId): void;
 }
 
@@ -28,75 +31,24 @@ function PrecisionTabs(props: PrecisionTabs) {
     [props.options]
   );
 
-  function onChange(event: ChangeEvent<HTMLInputElement>) {
-    if (event.target.checked) {
-      const option = props.options.find(
-        (option) => option.id === event.target.value
-      ) as Precision;
-
-      if (event.target.type === 'radio') {
-        props.onChange(
-          props.value
-            // Remove mutually exclusive options
-            .filter((selected) => selected.category !== option.category)
-            .concat(option)
-        );
-      } else {
-        props.onChange([...props.value, option as Precision]);
-      }
-    } else {
-      props.onChange(
-        props.value.filter((precision) => precision.id !== event.target.value)
-      );
-    }
+  function handleCheckboxChange(precisions: Precision[]) {
+    props.onChange(precisions);
   }
 
-  const MechanismsTab: PrecisionTab = {
-    label: 'Dispositifs',
-    tabId: 'dispositifs',
-    children: (
-      <Grid container columnSpacing={2}>
-        <Grid size={4}>
-          <PrecisionColumn
-            category="dispositifs-incitatifs"
-            icon="fr-icon-money-euro-circle-line"
-            options={
-              optionsByCategory.get('dispositifs-incitatifs')?.toArray() ?? []
-            }
-            title="Dispositifs incitatifs"
-            value={props.value}
-            onChange={onChange}
-          />
-        </Grid>
+  function handleRadioChange(category: PrecisionCategory) {
+    return (precision: Precision | null) => {
+      const others = props.value.filter(
+        (precision) => precision.category !== category
+      );
+      props.onChange(precision ? [...others, precision] : others);
+    };
+  }
 
-        <Grid size={4}>
-          <PrecisionColumn
-            category="dispositifs-coercitifs"
-            icon="fr-icon-scales-3-line"
-            options={
-              optionsByCategory.get('dispositifs-coercitifs')?.toArray() ?? []
-            }
-            title="Dispositifs coercitifs"
-            value={props.value}
-            onChange={onChange}
-          />
-        </Grid>
-
-        <Grid size={4}>
-          <PrecisionColumn
-            category="hors-dispositif-public"
-            icon="fr-icon-more-line"
-            options={
-              optionsByCategory.get('hors-dispositif-public')?.toArray() ?? []
-            }
-            title="Hors dispositif public"
-            value={props.value}
-            onChange={onChange}
-          />
-        </Grid>
-      </Grid>
-    )
-  };
+  function getRadioValue(category: PrecisionCategory): Precision | null {
+    return (
+      props.value.find((precision) => precision.category === category) ?? null
+    );
+  }
 
   const BlockingPointsTab: PrecisionTab = {
     label: 'Points de blocage',
@@ -112,7 +64,7 @@ function PrecisionTabs(props: PrecisionTabs) {
             }
             title="Blocage involontaire"
             value={props.value}
-            onChange={onChange}
+            onChange={handleCheckboxChange}
           />
         </Grid>
 
@@ -125,7 +77,7 @@ function PrecisionTabs(props: PrecisionTabs) {
             }
             title="Blocage volontaire"
             value={props.value}
-            onChange={onChange}
+            onChange={handleCheckboxChange}
           />
         </Grid>
 
@@ -138,7 +90,7 @@ function PrecisionTabs(props: PrecisionTabs) {
             }
             title="Immeuble / Environnement"
             value={props.value}
-            onChange={onChange}
+            onChange={handleCheckboxChange}
           />
         </Grid>
 
@@ -149,7 +101,7 @@ function PrecisionTabs(props: PrecisionTabs) {
             options={optionsByCategory.get('tiers-en-cause')?.toArray() ?? []}
             title="Tiers en cause"
             value={props.value}
-            onChange={onChange}
+            onChange={handleCheckboxChange}
           />
         </Grid>
       </Grid>
@@ -166,10 +118,11 @@ function PrecisionTabs(props: PrecisionTabs) {
             category="travaux"
             icon="ri-barricade-line"
             input="radio"
+            showNullOption={props.showNullOption}
             options={optionsByCategory.get('travaux')?.toArray() ?? []}
             title="Travaux"
-            value={props.value}
-            onChange={onChange}
+            value={getRadioValue('travaux')}
+            onChange={handleRadioChange('travaux')}
           />
         </Grid>
 
@@ -178,10 +131,11 @@ function PrecisionTabs(props: PrecisionTabs) {
             category="occupation"
             icon="ri-user-location-line"
             input="radio"
+            showNullOption={props.showNullOption}
             options={optionsByCategory.get('occupation')?.toArray() ?? []}
             title="Location ou autre occupation"
-            value={props.value}
-            onChange={onChange}
+            value={getRadioValue('occupation')}
+            onChange={handleRadioChange('occupation')}
           />
         </Grid>
 
@@ -190,10 +144,58 @@ function PrecisionTabs(props: PrecisionTabs) {
             category="mutation"
             icon="ri-user-shared-line"
             input="radio"
+            showNullOption={props.showNullOption}
             options={optionsByCategory.get('mutation')?.toArray() ?? []}
             title="Vente ou autre mutation"
+            value={getRadioValue('mutation')}
+            onChange={handleRadioChange('mutation')}
+          />
+        </Grid>
+      </Grid>
+    )
+  };
+
+  const MechanismsTab: PrecisionTab = {
+    label: 'Dispositifs',
+    tabId: 'dispositifs',
+    children: (
+      <Grid container columnSpacing={2}>
+        <Grid size={4}>
+          <PrecisionColumn
+            category="dispositifs-incitatifs"
+            icon="fr-icon-money-euro-circle-line"
+            options={
+              optionsByCategory.get('dispositifs-incitatifs')?.toArray() ?? []
+            }
+            title="Dispositifs incitatifs"
             value={props.value}
-            onChange={onChange}
+            onChange={handleCheckboxChange}
+          />
+        </Grid>
+
+        <Grid size={4}>
+          <PrecisionColumn
+            category="dispositifs-coercitifs"
+            icon="fr-icon-scales-3-line"
+            options={
+              optionsByCategory.get('dispositifs-coercitifs')?.toArray() ?? []
+            }
+            title="Dispositifs coercitifs"
+            value={props.value}
+            onChange={handleCheckboxChange}
+          />
+        </Grid>
+
+        <Grid size={4}>
+          <PrecisionColumn
+            category="hors-dispositif-public"
+            icon="fr-icon-more-line"
+            options={
+              optionsByCategory.get('hors-dispositif-public')?.toArray() ?? []
+            }
+            title="Hors dispositif public"
+            value={props.value}
+            onChange={handleCheckboxChange}
           />
         </Grid>
       </Grid>
@@ -201,9 +203,9 @@ function PrecisionTabs(props: PrecisionTabs) {
   };
 
   const tabs: PrecisionTab[] = [
-    MechanismsTab,
     BlockingPointsTab,
-    EvolutionsTab
+    EvolutionsTab,
+    MechanismsTab
   ];
 
   const tab = props.tab ?? 'evolutions';

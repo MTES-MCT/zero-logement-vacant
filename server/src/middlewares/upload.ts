@@ -1,8 +1,8 @@
-import { Predicate } from 'effect';
 import { Request, RequestHandler } from 'express';
 import mime from 'mime';
 import multer from 'multer';
-import BadRequestError from '~/errors/badRequestError';
+
+import { InvalidFileTypeError } from '~/errors/InvalidFileTypeError';
 
 export interface UploadOptions {
   /**
@@ -32,10 +32,8 @@ const DEFAULT_ALLOWED_EXTENSIONS = ['png', 'jpg', 'pdf'];
  * 3. Upload to S3 only if all checks pass
  */
 export function upload(options?: UploadOptions): RequestHandler {
-  const types: Set<string> = new Set(
-    (options?.accept ?? DEFAULT_ALLOWED_EXTENSIONS)
-      .map((ext) => mime.getType(ext))
-      .filter(Predicate.isNotNull)
+  const acceptedExtensions: Set<string> = new Set(
+    options?.accept ?? DEFAULT_ALLOWED_EXTENSIONS
   );
 
   const maxSizeMiB = options?.maxSizeMiB ?? 1;
@@ -55,9 +53,36 @@ export function upload(options?: UploadOptions): RequestHandler {
       file: Express.Multer.File,
       callback: multer.FileFilterCallback
     ) {
-      // Basic MIME check (will be validated again with magic bytes)
-      if (!types.has(file.mimetype)) {
-        return callback(new BadRequestError());
+      // Validate by normalized file extension instead of MIME type.
+      // MIME types are unreliable across browsers/OS (e.g., Windows/Chrome
+      // sends 'application/x-zip-compressed' while macOS/Firefox sends
+      // 'application/zip' for the same .zip file).
+      // Content will be validated again with magic bytes downstream.
+      // Bypass validation if multiple files are allowed
+      // to validate later and provide a list of errors.
+      const fileType = mime.getType(file.originalname);
+      const fileExtension = fileType ? mime.getExtension(fileType) : null;
+
+      if (!options?.multiple && !fileExtension) {
+        return callback(
+          new InvalidFileTypeError({
+            filename: file.originalname,
+            accepted: Array.from(acceptedExtensions).map((ext) => `.${ext}`)
+          })
+        );
+      }
+
+      if (
+        !options?.multiple &&
+        fileExtension &&
+        !acceptedExtensions.has(fileExtension)
+      ) {
+        return callback(
+          new InvalidFileTypeError({
+            filename: file.originalname,
+            accepted: Array.from(acceptedExtensions).map((ext) => `.${ext}`)
+          })
+        );
       }
       return callback(null, true);
     }

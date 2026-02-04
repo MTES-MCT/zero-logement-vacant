@@ -3,16 +3,16 @@ import { Button } from '@codegouvfr/react-dsfr/Button';
 import DocumentPicto from '@codegouvfr/react-dsfr/picto/Document';
 import Box from '@mui/material/Box';
 import CircularProgress from '@mui/material/CircularProgress';
-import Paper from '@mui/material/Paper';
+import Paper, { type PaperProps } from '@mui/material/Paper';
 import Stack from '@mui/material/Stack';
 import { styled } from '@mui/material/styles';
-import Typography from '@mui/material/Typography';
+import Typography, { type TypographyProps } from '@mui/material/Typography';
 import { type DocumentDTO, isImage, isPDF } from '@zerologementvacant/models';
-import { memo, useState } from 'react';
+import { memo, useMemo, useState } from 'react';
 import { Page, pdfjs, Document as UnstyledDocument } from 'react-pdf';
-import { useMeasure } from 'react-use';
 import 'react-pdf/dist/Page/AnnotationLayer.css';
 import 'react-pdf/dist/Page/TextLayer.css';
+import { useMeasure } from 'react-use';
 import { match } from 'ts-pattern';
 
 import Image from '~/components/Image/Image';
@@ -31,6 +31,7 @@ export interface DocumentPreviewProps {
    * @default 'contain'
    */
   fit?: 'contain' | 'cover';
+  fallbackProps?: FallbackProps;
   onClick?(): void;
   onDownload?(): void;
 }
@@ -77,7 +78,11 @@ function DocumentPreview(props: DocumentPreviewProps) {
       />
     ))
     .otherwise(() => (
-      <Fallback className={props.className} onDownload={props.onDownload} />
+      <Fallback
+        {...props.fallbackProps}
+        className={props.className}
+        onDownload={props.onDownload}
+      />
     ));
 
   const isSupported = isImage(props.document) || isPDF(props.document);
@@ -106,8 +111,7 @@ const Document = styled(UnstyledDocument)<{
     display: 'flex',
     flexDirection: 'column' as const,
     alignItems: 'center',
-    justifyContent: 'center',
-    overflow: enableScroll ? 'auto' : (fit === 'cover' ? 'hidden' : 'visible'),
+    overflow: enableScroll ? 'auto' : fit === 'cover' ? 'hidden' : 'visible',
     '& .react-pdf__Page': {
       display: 'flex',
       justifyContent: 'center'
@@ -149,6 +153,7 @@ const PDF = memo((props: Readonly<PDFProps>) => {
   const [containerRef, { width, height }] = useMeasure<HTMLDivElement>();
   const [numPages, setNumPages] = useState<number | null>(null);
   const [pageAspectRatio, setPageAspectRatio] = useState<number | null>(null);
+  const file = useMemo(() => ({ url: props.url }), [props.url]);
 
   const onPageLoadSuccess = (page: any) => {
     const viewport = page.getViewport({ scale: 1 });
@@ -221,7 +226,7 @@ const PDF = memo((props: Readonly<PDFProps>) => {
   return (
     <Document
       className={props.className}
-      file={{ url: props.url }}
+      file={file}
       inputRef={containerRef}
       enableScroll={enableScroll}
       responsive={props.responsive}
@@ -262,21 +267,63 @@ const PDF = memo((props: Readonly<PDFProps>) => {
 });
 PDF.displayName = 'PDF';
 
+interface FallbackProps {
+  /**
+   * @default 'md'
+   */
+  size?: 'sm' | 'md';
+}
+
 function Fallback(
-  props: Pick<DocumentPreviewProps, 'className' | 'onDownload'>
+  props: Readonly<
+    FallbackProps & Pick<DocumentPreviewProps, 'className' | 'onDownload'>
+  >
 ) {
+  const size = props.size ?? 'md';
+  const paperProps: PaperProps =
+    size === 'sm'
+      ? {
+          sx: {
+            px: '0.5rem',
+            py: '1rem',
+            maxWidth: '23.75rem',
+            textAlign: 'center'
+          }
+        }
+      : {
+          sx: {
+            padding: '2rem',
+            maxWidth: '23.75rem',
+            textAlign: 'center'
+          }
+        };
+  const titleProps: TypographyProps = {
+    color: fr.colors.decisions.text.title.grey.default,
+    component: 'p',
+    variant: size === 'sm' ? 'body2' : 'h6',
+    sx:
+      size === 'sm'
+        ? {
+            fontWeight: 700
+          }
+        : undefined
+  };
+  const descriptionProps: TypographyProps =
+    size === 'sm'
+      ? {
+          variant: 'caption'
+        }
+      : {};
+
   return (
     <Box component="section" className={props.className}>
-      <Paper
-        elevation={0}
-        sx={{ padding: '2rem', maxWidth: '23.75rem', textAlign: 'center' }}
-      >
+      <Paper {...paperProps} elevation={0}>
         <Stack spacing="1rem" useFlexGap sx={{ alignItems: 'center' }}>
           <DocumentPicto width="5rem" height="5rem" />
-          <Typography variant="h6" component="p">
+          <Typography {...titleProps}>
             La visualisation de ce document n’est pas disponible
           </Typography>
-          <Typography>
+          <Typography {...descriptionProps}>
             Le format de ce document ne permet pas de la visualiser.
             Téléchargez-le directement pour le consulter.
           </Typography>

@@ -1,17 +1,17 @@
-import { useState } from 'react';
-import * as yup from 'yup';
+import { yupResolver } from '@hookform/resolvers/yup';
+import { useForm, type SubmitHandler } from 'react-hook-form';
+import { type InferType, object } from 'yup';
 
+import ConfirmationModal from '~/components/modals/ConfirmationModal/ConfirmationModal';
 import {
   campaignDescriptionValidator,
-  campaignTitleValidator,
-  useForm
-} from '../../../hooks/useForm';
-import { type Campaign } from '../../../models/Campaign';
-import { type Group } from '../../../models/Group';
-import { displayCount } from '../../../utils/stringUtils';
-import AppTextInput from '../../_app/AppTextInput/AppTextInput';
+  campaignTitleValidator
+} from '~/hooks/useForm';
+import { type Campaign } from '~/models/Campaign';
+import { type Group } from '~/models/Group';
+import { displayCount } from '~/utils/stringUtils';
+import AppTextInputNext from '../../_app/AppTextInput/AppTextInputNext';
 import { Container, Text } from '../../_dsfr';
-import ConfirmationModal from '../ConfirmationModal/ConfirmationModal';
 
 interface Props {
   group: Group;
@@ -22,27 +22,29 @@ interface Props {
   onSubmit: (campaign: Pick<Campaign, 'title' | 'description'>) => void;
 }
 
+const schema = object({
+  title: campaignTitleValidator,
+  description: campaignDescriptionValidator.required()
+});
+
+type FormSchema = InferType<typeof schema>;
+
 function GroupCampaignCreationModal(props: Props) {
-  const [title, setTitle] = useState('');
-  const [description, setDescription] = useState('');
-  const shape = {
-    title: campaignTitleValidator,
-    description: campaignDescriptionValidator
-  };
-  type FormShape = typeof shape;
-  const form = useForm(yup.object().shape(shape) as any, {
-    title,
-    description
+  const form = useForm<FormSchema>({
+    resolver: yupResolver(schema),
+    defaultValues: {
+      title: '',
+      description: ''
+    },
+    mode: 'onBlur'
   });
 
-  async function submit(): Promise<void> {
-    await form.validate(() =>
-      props.onSubmit({
-        title,
-        description
-      })
-    );
-  }
+  const onSubmit: SubmitHandler<FormSchema> = (data) => {
+    props.onSubmit({
+      title: data.title,
+      description: data.description
+    });
+  };
 
   return (
     <ConfirmationModal
@@ -55,7 +57,7 @@ function GroupCampaignCreationModal(props: Props) {
         children: 'Créer une campagne',
         disabled: props.housingCount === 0
       }}
-      onSubmit={submit}
+      onSubmit={form.handleSubmit(onSubmit)}
     >
       <Container as="main" fluid>
         <Text>
@@ -67,22 +69,17 @@ function GroupCampaignCreationModal(props: Props) {
             groupe ne seront pas pris en compte dans la campagne.
           </span>
         </Text>
-        <AppTextInput<FormShape>
-          value={title}
-          onChange={(e) => setTitle(e.target.value)}
+        <AppTextInputNext<FormSchema>
+          name="title"
           label="Titre de la campagne (obligatoire)"
-          inputForm={form}
-          inputKey="title"
-          required
+          control={form.control}
           data-testid="campaign-title-input"
         />
-        <AppTextInput<FormShape>
-          textArea
-          value={description}
-          onChange={(e) => setDescription(e.target.value)}
+        <AppTextInputNext<FormSchema>
+          name="description"
           label="Description de la campagne"
-          inputForm={form}
-          inputKey="description"
+          control={form.control}
+          textArea
         />
         <Text>
           La liste a été établie à partir du groupe &nbsp;

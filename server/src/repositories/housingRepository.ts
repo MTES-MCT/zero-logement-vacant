@@ -84,11 +84,10 @@ async function find(opts: FindOptions): Promise<HousingApi[]> {
     fetchGeoCodes(opts.filters.establishmentIds ?? []),
     fetchGeoCodes(opts.filters.intercommunalities ?? [])
   ]);
-  const defaults = [
-    opts.filters.localities,
-    intercommunalities,
-    allowedGeoCodes
-  ].find((array) => array && array.length > 0);
+  const localities = opts.filters.localities ?? [];
+  const defaults = [localities, intercommunalities, allowedGeoCodes].find(
+    (array) => array && array.length > 0
+  );
   const geoCodes = Set(defaults)
     .withMutations((set) => {
       if (intercommunalities.length > 0) {
@@ -99,6 +98,16 @@ async function find(opts: FindOptions): Promise<HousingApi[]> {
       }
     })
     .toArray();
+
+  // If we had geo restrictions but the intersection is empty,
+  // return empty array instead of querying without geo filter
+  const hadGeoRestrictions =
+    allowedGeoCodes.length > 0 ||
+    intercommunalities.length > 0 ||
+    localities.length > 0;
+  if (hadGeoRestrictions && geoCodes.length === 0) {
+    return [];
+  }
 
   const housingList: HousingDBO[] = await fastListQuery({
     filters: {
@@ -178,6 +187,16 @@ async function count(filters: HousingFiltersApi): Promise<HousingCountApi> {
     .withMutations((set) => {
       return localities.length ? set.intersect(localities) : set;
     });
+
+  // If we had geo restrictions but the intersection is empty,
+  // return 0 results instead of querying without geo filter
+  const hadGeoRestrictions =
+    allowedGeoCodes.length > 0 ||
+    intercommunalities.length > 0 ||
+    localities.length > 0;
+  if (hadGeoRestrictions && geoCodes.size === 0) {
+    return { housing: 0, owners: 0 };
+  }
 
   const result = await db
     .with(
@@ -393,13 +412,7 @@ async function update(housing: HousingApi): Promise<void> {
       occupancy: housing.occupancy,
       occupancy_intended: housing.occupancyIntended ?? null,
       status: housing.status,
-      sub_status: housing.subStatus ?? null,
-      deprecated_precisions: housing.deprecatedPrecisions?.length
-        ? housing.deprecatedPrecisions
-        : null,
-      deprecated_vacancy_reasons: housing.deprecatedVacancyReasons?.length
-        ? housing.deprecatedVacancyReasons
-        : null
+      sub_status: housing.subStatus ?? null
     });
 }
 
@@ -1156,10 +1169,6 @@ export interface HousingRecordDBO {
   mutation_date: Date | string | null;
   taxed: boolean | null;
   /**
-   * @deprecated See the tables `precisions` and `housing_precisions`
-   */
-  deprecated_vacancy_reasons: string[] | null;
-  /**
    * @deprecated See {@link data_file_years}
    */
   data_years: number[];
@@ -1169,10 +1178,6 @@ export interface HousingRecordDBO {
   condominium: string | null;
   status: HousingStatus;
   sub_status: string | null;
-  /**
-   * @deprecated See {@link HousingDBO.precisions}
-   */
-  deprecated_precisions: string[] | null;
   energy_consumption_bdnb: EnergyConsumption | null;
   occupancy_source: Occupancy;
   occupancy: Occupancy;
@@ -1241,8 +1246,6 @@ export const parseHousingRecordApi = (
   source: housing.data_source,
   status: housing.status,
   subStatus: housing.sub_status,
-  deprecatedVacancyReasons: housing.deprecated_vacancy_reasons,
-  deprecatedPrecisions: housing.deprecated_precisions,
   energyConsumption: housing.energy_consumption_bdnb,
   energyConsumptionAt: housing.energy_consumption_at_bdnb
     ? new Date(housing.energy_consumption_at_bdnb)
@@ -1296,8 +1299,6 @@ export const parseHousingApi = (housing: HousingDBO): HousingApi => ({
   ownershipKind: housing.condominium,
   status: housing.status,
   subStatus: housing.sub_status,
-  deprecatedVacancyReasons: housing.deprecated_vacancy_reasons,
-  deprecatedPrecisions: housing.deprecated_precisions,
   precisions: housing.precisions,
   energyConsumption: housing.energy_consumption_bdnb,
   energyConsumptionAt: housing.energy_consumption_at_bdnb
@@ -1358,12 +1359,6 @@ export const formatHousingRecordApi = (
   rooms_count: housing.roomsCount,
   living_area: housing.livingArea,
   cadastral_reference: housing.cadastralReference,
-  deprecated_vacancy_reasons: !housing.deprecatedVacancyReasons?.length
-    ? null
-    : housing.deprecatedVacancyReasons,
-  deprecated_precisions: housing.deprecatedPrecisions?.length
-    ? housing.deprecatedPrecisions
-    : null,
   taxed: housing.taxed,
   condominium: housing.ownershipKind,
   data_years: housing.dataYears,

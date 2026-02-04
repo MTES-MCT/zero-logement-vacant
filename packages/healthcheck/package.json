@@ -10,7 +10,7 @@
     }
   },
   "peerDependencies": {
-    "express": "4.20.0"
+    "express": "4.22.0"
   },
   "devDependencies": {
     "@tsconfig/node20": "20.1.6",
@@ -19,7 +19,7 @@
     "@types/jest": "29.5.14",
     "@types/pg": "8.15.5",
     "@types/supertest": "6.0.3",
-    "express": "4.21.2",
+    "express": "4.22.0",
     "supertest": "7.1.4"
   },
   "dependencies": {

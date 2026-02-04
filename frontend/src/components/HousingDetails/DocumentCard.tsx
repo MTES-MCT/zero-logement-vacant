@@ -35,7 +35,10 @@ function DocumentCard(props: Readonly<DocumentCardProps>) {
     .getExtension(props.document.contentType)
     ?.toUpperCase();
 
-  const { isUsual, isAdmin } = useUser();
+  const { isUsual, isAdmin, establishment } = useUser();
+  const sameEstablishment: boolean =
+    establishment?.id === props.document.establishmentId;
+  const canWrite: boolean = isAdmin || (isUsual && sameEstablishment);
 
   const [dropdownOpen, setDropdownOpen] = useState(false);
 
@@ -104,7 +107,7 @@ function DocumentCard(props: Readonly<DocumentCardProps>) {
                 Visualiser
               </FullWidthButton>
 
-              {isUsual || isAdmin ? (
+              {canWrite ? (
                 <FullWidthButton
                   priority="tertiary no outline"
                   iconId="fr-icon-edit-fill"
@@ -122,7 +125,7 @@ function DocumentCard(props: Readonly<DocumentCardProps>) {
               >
                 Télécharger
               </FullWidthButton>
-              {isUsual || isAdmin ? (
+              {canWrite ? (
                 <FullWidthButton
                   priority="tertiary no outline"
                   iconId="ri-delete-bin-line"
@@ -146,7 +149,10 @@ function DocumentCard(props: Readonly<DocumentCardProps>) {
             document={props.document}
             firstPageOnly
             responsive="1x1"
-            fit="cover"
+            fit="contain"
+            fallbackProps={{
+              size: 'sm'
+            }}
             onClick={onVisualize}
           />
         </Box>

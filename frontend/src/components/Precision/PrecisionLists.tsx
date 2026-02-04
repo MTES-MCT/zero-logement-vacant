@@ -1,49 +1,63 @@
+import Alert from '@codegouvfr/react-dsfr/Alert';
 import Button from '@codegouvfr/react-dsfr/Button';
 import Tag from '@codegouvfr/react-dsfr/Tag';
 import Stack from '@mui/material/Stack';
 import Typography from '@mui/material/Typography';
-import Grid from '@mui/material/Grid';
-import { skipToken } from '@reduxjs/toolkit/query/react';
+import type { Precision } from '@zerologementvacant/models';
 import {
   isPrecisionBlockingPointCategory,
   isPrecisionEvolutionCategory,
   isPrecisionMechanismCategory
 } from '@zerologementvacant/models';
-import type { Precision } from '@zerologementvacant/models';
 import { useMemo, useState } from 'react';
-import { useNotification } from '../../hooks/useNotification';
-import type { Housing } from '../../models/Housing';
-import {
-  useFindPrecisionsByHousingQuery,
-  useFindPrecisionsQuery,
-  useSaveHousingPrecisionsMutation
-} from '../../services/precision.service';
-import styles from '../HousingEdition/housing-edition.module.scss';
-import createPrecisionModalNext from './PrecisionModalNext';
+
+import { useFindPrecisionsQuery } from '../../services/precision.service';
+import createPrecisionModal, {
+  type PrecisionModalProps
+} from './PrecisionModal';
 import type { PrecisionTabId } from './PrecisionTabs';
 import { useFilteredPrecisions } from './useFilteredPrecisions';
 
-interface Props {
-  housingId: Housing['id'] | null;
+interface WritableProps {
+  /**
+   * @default false
+   */
+  multiple?: boolean;
+  writable?: true;
+  showNullOption?: PrecisionModalProps['showNullOption'];
+  value: ReadonlyArray<Precision>;
+  onChange(precisions: ReadonlyArray<Precision>): void;
 }
 
-function PrecisionLists(props: Props) {
+interface ReadOnlyProps {
+  /**
+   * @default false
+   */
+  multiple?: boolean;
+  writable: false;
+  showNullOption?: PrecisionModalProps['showNullOption'];
+  value: ReadonlyArray<Precision>;
+  onChange?: never;
+}
+
+export type PrecisionListProps = WritableProps | ReadOnlyProps;
+
+function PrecisionLists(props: Readonly<PrecisionListProps>) {
   const precisionModal = useMemo(
-    () => createPrecisionModalNext(new Date().toJSON()),
+    () => createPrecisionModal(new Date().toJSON()),
     []
   );
 
+  const writable = props.writable ?? true;
+  const multiple = props.multiple ?? false;
   const [tab, setTab] = useState<PrecisionTabId>('dispositifs');
   const [showAllMechanisms, setShowAllMechanisms] = useState(false);
   const [showAllBlockingPoints, setShowAllBlockingPoints] = useState(false);
   const [showAllEvolutions, setShowAllEvolutions] = useState(false);
 
   const { data: referential } = useFindPrecisionsQuery();
-  const { data: housingPrecisions } = useFindPrecisionsByHousingQuery(
-    props.housingId ? { housingId: props.housingId } : skipToken
-  );
-  const precisionOptions = referential ?? [];
-  const precisions = housingPrecisions ?? [];
+  const precisionOptions: ReadonlyArray<Precision> = referential ?? [];
+  const precisions = props.value;
 
   const {
     totalCount: totalMechanisms,
@@ -78,43 +92,166 @@ function PrecisionLists(props: Props) {
     setShowAll((prev) => !prev);
   }
 
-  const [saveHousingPrecisions, saveHousingPrecisionsMutation] =
-    useSaveHousingPrecisionsMutation();
-  useNotification({
-    toastId: 'housing-precisions-update',
-    isError: saveHousingPrecisionsMutation.isError,
-    isLoading: saveHousingPrecisionsMutation.isLoading,
-    isSuccess: saveHousingPrecisionsMutation.isSuccess,
-    message: {
-      error: 'Impossible de mettre à jour les précisions du logement',
-      loading: 'Mise à jour des précisions du logement...',
-      success: 'Précisions mises à jour !'
+  function savePrecisions(precisions: ReadonlyArray<Precision>): void {
+    if (writable) {
+      props.onChange?.(precisions);
     }
-  });
-
-  function savePrecisions(precisions: Precision[]) {
-    if (props.housingId) {
-      saveHousingPrecisions({
-        housing: props.housingId,
-        precisions: precisions.map((p) => p.id)
-      }).then(() => {
-        precisionModal.close();
-      });
-    }
+    precisionModal.close();
   }
 
   return (
     <>
-      <Stack spacing="1rem">
-        <Grid
-          component="article"
-          container
-          sx={{ alignItems: 'center', columnGap: 2, rowGap: 1 }}
-          size={12}
-        >
-          <Grid
-            sx={{ display: 'flex', alignItems: 'center', gap: 2 }}
-            size={12}
+      <Stack spacing="1rem" useFlexGap>
+        <Typography component="h3" variant="h6">
+          {multiple
+            ? 'Précisions sur ces logements'
+            : 'Précisions sur ce logement'}
+        </Typography>
+        {multiple ? (
+          <Alert
+            severity="info"
+            small
+            description="Si des logements sélectionnés ont déjà des dispositifs ou des points de blocage renseignés, ceux-ci seront conservés."
+          />
+        ) : null}
+
+        <Stack component="article" spacing="0.5rem" useFlexGap>
+          <Stack
+            component="header"
+            direction="row"
+            spacing="1rem"
+            useFlexGap
+            sx={{ alignItems: 'center' }}
+          >
+            <Typography
+              component="h3"
+              sx={{
+                display: 'inline-block',
+                fontSize: '1.125rem',
+                fontWeight: 700
+              }}
+            >
+              Points de blocage ({totalBlockingPoints})
+            </Typography>
+            {writable ? (
+              <Button
+                priority="secondary"
+                title="Modifier les points de blocage"
+                nativeButtonProps={{
+                  'aria-label': 'Modifier les points de blocage'
+                }}
+                onClick={() => {
+                  setTab('points-de-blocage');
+                  precisionModal.open();
+                }}
+              >
+                Modifier
+              </Button>
+            ) : null}
+          </Stack>
+
+          {filteredBlockingPoints.length === 0 ? (
+            <Typography>Aucun point de blocage</Typography>
+          ) : (
+            <Stack
+              component="section"
+              direction="row"
+              spacing="0.5rem"
+              useFlexGap
+              sx={{ flexWrap: 'wrap' }}
+            >
+              {filteredBlockingPoints.map((precision) => (
+                <Tag key={precision.id}>{precision.label}</Tag>
+              ))}
+            </Stack>
+          )}
+
+          {moreBlockingPoints > 0 && (
+            <Stack direction="row" component="footer">
+              <Button
+                priority="tertiary"
+                onClick={() => toggleShowAll(setShowAllBlockingPoints)}
+              >
+                {showAllBlockingPoints
+                  ? 'Afficher moins'
+                  : `Afficher plus (${moreBlockingPoints})`}
+              </Button>
+            </Stack>
+          )}
+        </Stack>
+
+        <Stack component="article" spacing="0.5rem" useFlexGap>
+          <Stack
+            component="header"
+            direction="row"
+            spacing="1rem"
+            useFlexGap
+            sx={{ alignItems: 'center' }}
+          >
+            <Typography
+              component="h3"
+              sx={{ fontSize: '1.125rem', fontWeight: 700 }}
+            >
+              Évolutions du logement ({totalEvolutions})
+            </Typography>
+            {writable ? (
+              <Button
+                priority="secondary"
+                title="Modifier les évolutions"
+                nativeButtonProps={{
+                  'aria-label': 'Modifier les évolutions'
+                }}
+                onClick={() => {
+                  setTab('evolutions');
+                  precisionModal.open();
+                }}
+              >
+                Modifier
+              </Button>
+            ) : null}
+          </Stack>
+
+          {filteredEvolutions.length === 0 ? (
+            <Typography>Aucune évolution</Typography>
+          ) : (
+            <Stack
+              component="section"
+              direction="row"
+              spacing="0.5rem"
+              useFlexGap
+              sx={{ flexWrap: 'wrap' }}
+            >
+              {filteredEvolutions.map((precision) => (
+                <Tag key={precision.id}>
+                  {precision.category[0].toUpperCase() +
+                    precision.category.substring(1).replace('-', ' ')}
+                  &nbsp;:&nbsp;
+                  {precision.label.toLowerCase()}
+                </Tag>
+              ))}
+            </Stack>
+          )}
+          {moreEvolutions > 0 && (
+            <Stack direction="row" component="footer">
+              <Button
+                priority="tertiary"
+                onClick={() => toggleShowAll(setShowAllEvolutions)}
+              >
+                {showAllEvolutions
+                  ? 'Afficher moins'
+                  : `Afficher plus (${moreEvolutions})`}
+              </Button>
+            </Stack>
+          )}
+        </Stack>
+
+        <Stack component="article" spacing="0.5rem" useFlexGap>
+          <Stack
+            component="header"
+            direction="row"
+            spacing="1rem"
+            useFlexGap
+            sx={{ alignItems: 'center' }}
           >
             <Typography
               component="h3"
@@ -126,30 +263,42 @@ function PrecisionLists(props: Props) {
             >
               Dispositifs ({totalMechanisms})
             </Typography>
-            <Button
-              priority="secondary"
-              title="Modifier les dispositifs"
-              onClick={() => {
-                setTab('dispositifs');
-                precisionModal.open();
-              }}
+
+            {writable ? (
+              <Button
+                priority="secondary"
+                title="Modifier les dispositifs"
+                nativeButtonProps={{
+                  'aria-label': 'Modifier les dispositifs'
+                }}
+                onClick={() => {
+                  setTab('dispositifs');
+                  precisionModal.open();
+                }}
+              >
+                Modifier
+              </Button>
+            ) : null}
+          </Stack>
+
+          {filteredMechanisms.length === 0 ? (
+            <Typography>Aucun dispositif</Typography>
+          ) : (
+            <Stack
+              component="section"
+              direction="row"
+              spacing="0.5rem"
+              useFlexGap
+              sx={{ flexWrap: 'wrap' }}
             >
-              Modifier
-            </Button>
-          </Grid>
-          <Grid>
-            {filteredMechanisms.length === 0 ? (
-              <Typography>Aucun dispositif</Typography>
-            ) : (
-              filteredMechanisms.map((precision) => (
-                <Tag key={precision.id} className={styles.tag}>
-                  {precision.label}
-                </Tag>
-              ))
-            )}
-          </Grid>
+              {filteredMechanisms.map((precision) => (
+                <Tag key={precision.id}>{precision.label}</Tag>
+              ))}
+            </Stack>
+          )}
+
           {moreMechanisms > 0 && (
-            <Grid component="footer">
+            <Stack direction="row" component="footer">
               <Button
                 priority="tertiary"
                 onClick={() => toggleShowAll(setShowAllMechanisms)}
@@ -158,124 +307,14 @@ function PrecisionLists(props: Props) {
                   ? 'Afficher moins'
                   : `Afficher plus (${moreMechanisms})`}
               </Button>
-            </Grid>
+            </Stack>
           )}
-        </Grid>
-
-        <Grid
-          component="article"
-          container
-          sx={{ alignItems: 'center', columnGap: 2, rowGap: 1 }}
-          size={12}
-        >
-          <Grid
-            sx={{ display: 'flex', alignItems: 'center', gap: 2 }}
-            size={12}
-          >
-            <Typography
-              component="h3"
-              sx={{
-                display: 'inline-block',
-                fontSize: '1.125rem',
-                fontWeight: 700
-              }}
-            >
-              Points de blocages ({totalBlockingPoints})
-            </Typography>
-            <Button
-              priority="secondary"
-              title="Modifier les points de blocage"
-              onClick={() => {
-                setTab('points-de-blocage');
-                precisionModal.open();
-              }}
-            >
-              Modifier
-            </Button>
-          </Grid>
-          <Grid>
-            {filteredBlockingPoints.length === 0 ? (
-              <Typography>Aucun point de blocage</Typography>
-            ) : (
-              filteredBlockingPoints.map((precision) => (
-                <Tag key={precision.id} className={styles.tag}>
-                  {precision.label}
-                </Tag>
-              ))
-            )}
-          </Grid>
-          {moreBlockingPoints > 0 && (
-            <Grid component="footer">
-              <Button
-                priority="tertiary"
-                onClick={() => toggleShowAll(setShowAllBlockingPoints)}
-              >
-                {showAllBlockingPoints
-                  ? 'Afficher moins'
-                  : `Afficher plus (${moreBlockingPoints})`}
-              </Button>
-            </Grid>
-          )}
-        </Grid>
-
-        <Grid
-          component="article"
-          container
-          sx={{ alignItems: 'center', columnGap: 2, rowGap: 1 }}
-          size={12}
-        >
-          <Grid
-            sx={{ display: 'flex', alignItems: 'center', gap: 2 }}
-            size={12}
-          >
-            <Typography
-              component="h3"
-              sx={{ fontSize: '1.125rem', fontWeight: 700 }}
-            >
-              Évolutions du logement ({totalEvolutions})
-            </Typography>
-            <Button
-              priority="secondary"
-              title="Modifier les évolutions du logement"
-              onClick={() => {
-                setTab('evolutions');
-                precisionModal.open();
-              }}
-            >
-              Modifier
-            </Button>
-          </Grid>
-          <Grid>
-            {filteredEvolutions.length === 0 ? (
-              <Typography>Aucune évolution</Typography>
-            ) : (
-              filteredEvolutions.map((precision) => (
-                <Tag key={precision.id} className={styles.tag}>
-                  {precision.category[0].toUpperCase() +
-                    precision.category.substring(1).replace('-', ' ')}
-                  &nbsp;:&nbsp;
-                  {precision.label.toLowerCase()}
-                </Tag>
-              ))
-            )}
-          </Grid>
-          {moreEvolutions > 0 && (
-            <Grid component="footer">
-              <Button
-                priority="tertiary"
-                onClick={() => toggleShowAll(setShowAllEvolutions)}
-              >
-                {showAllEvolutions
-                  ? 'Afficher moins'
-                  : `Afficher plus (${moreEvolutions})`}
-              </Button>
-            </Grid>
-          )}
-        </Grid>
+        </Stack>
       </Stack>
       <precisionModal.Component
         tab={tab}
         options={precisionOptions}
+        showNullOption={props.showNullOption}
         value={precisions}
         onSubmit={savePrecisions}
         onTabChange={setTab}

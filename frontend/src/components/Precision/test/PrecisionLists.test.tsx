@@ -1,38 +1,17 @@
 import { render, screen } from '@testing-library/react';
-import type { HousingDTO, HousingOwnerDTO } from '@zerologementvacant/models';
-import {
-  genHousingDTO,
-  genHousingOwnerDTO,
-  genOwnerDTO
-} from '@zerologementvacant/models/fixtures';
 import { Provider } from 'react-redux';
 
-import data from '../../../mocks/handlers/data';
 import configureTestStore from '../../../utils/storeUtils';
 import PrecisionLists from '../PrecisionLists';
 
 describe('PrecisionLists', () => {
-  function renderComponent(housing: HousingDTO): void {
+  it('should display fallback texts if there is no precision', async () => {
     const store = configureTestStore();
     render(
       <Provider store={store}>
-        <PrecisionLists housingId={housing.id} />
+        <PrecisionLists value={[]} onChange={() => {}} />
       </Provider>
     );
-  }
-
-  it('should display fallback texts if there is no precision', async () => {
-    const owner = genOwnerDTO();
-    const housing = genHousingDTO(owner);
-    const housingOwner: HousingOwnerDTO = {
-      ...genHousingOwnerDTO(owner),
-      rank: 1
-    };
-    data.housings.push(housing);
-    data.owners.push(owner);
-    data.housingOwners.set(housing.id, [housingOwner]);
-
-    renderComponent(housing);
 
     const mechanism = await screen.findByText('Aucun dispositif');
     expect(mechanism).toBeVisible();

@@ -9,12 +9,7 @@ import HousingMissingError from '~/errors/housingMissingError';
 import PrecisionMissingError from '~/errors/precisionMissingError';
 import { startTransaction } from '~/infra/database/transaction';
 import { PrecisionHousingEventApi } from '~/models/EventApi';
-import {
-  toOldPrecision,
-  toPrecisionDTO,
-  wasPrecision,
-  wasVacancyReason
-} from '~/models/PrecisionApi';
+import { toPrecisionDTO } from '~/models/PrecisionApi';
 import eventRepository from '~/repositories/eventRepository';
 import housingRepository from '~/repositories/housingRepository';
 import precisionRepository from '~/repositories/precisionRepository';
@@ -93,13 +88,6 @@ const updatePrecisionsByHousing: RequestHandler<
     throw new PrecisionMissingError(...body);
   }
 
-  const deprecatedPrecisions: string[] = precisions
-    .filter((precision) => wasPrecision(precision.category))
-    .map(toOldPrecision);
-  const deprecatedVacancyReasons: string[] = precisions
-    .filter((precision) => wasVacancyReason(precision.category))
-    .map(toOldPrecision);
-
   const existingPrecisions = await precisionRepository.find({
     filters: {
       housingId: [housing.id]
@@ -143,11 +131,6 @@ const updatePrecisionsByHousing: RequestHandler<
 
   await startTransaction(async () => {
     await Promise.all([
-      housingRepository.update({
-        ...housing,
-        deprecatedPrecisions,
-        deprecatedVacancyReasons
-      }),
       precisionRepository.link(housing, precisions),
       eventRepository.insertManyPrecisionHousingEvents(events)
     ]);

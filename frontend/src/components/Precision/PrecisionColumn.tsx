@@ -5,27 +5,90 @@ import type { CheckboxProps } from '@codegouvfr/react-dsfr/Checkbox';
 import RadioButtons from '@codegouvfr/react-dsfr/RadioButtons';
 import Typography from '@mui/material/Typography';
 import classNames from 'classnames';
-import type { ChangeEvent } from 'react';
 import type { ElementOf } from 'ts-essentials';
 
 import type { Precision, PrecisionCategory } from '@zerologementvacant/models';
+import { NULL_PRECISION_ID } from '../../models/Precision';
 import styles from './precision-modal.module.scss';
 
-interface PrecisionColumnProps {
+type PrecisionColumnCommonProps = {
   category: PrecisionCategory;
   icon: FrIconClassName | RiIconClassName;
-  options: Precision[];
-  value: Precision[];
+  options: ReadonlyArray<Precision>;
   title: string;
+};
+
+export type PrecisionColumnCheckboxProps = PrecisionColumnCommonProps & {
+  input?: 'checkbox';
+  value: ReadonlyArray<Precision>;
+  onChange(value: ReadonlyArray<Precision>): void;
+};
+
+export type PrecisionColumnRadioProps = PrecisionColumnCommonProps & {
+  input: 'radio';
   /**
-   * @default 'checkbox'
+   * @default true
    */
-  input?: 'checkbox' | 'radio';
-  onChange(event: ChangeEvent<HTMLInputElement>): void;
-}
+  showNullOption?: boolean;
+  value: Precision | null;
+  onChange(value: Precision | null): void;
+};
+
+export type PrecisionColumnProps =
+  | PrecisionColumnCheckboxProps
+  | PrecisionColumnRadioProps;
 
 function PrecisionColumn(props: PrecisionColumnProps) {
-  const Fieldset = props.input === 'radio' ? RadioButtons : Checkbox;
+  const isRadio = props.input === 'radio';
+  const Fieldset = isRadio ? RadioButtons : Checkbox;
+
+  // Add null option for radio inputs
+  const showNullOption = isRadio ? (props.showNullOption ?? true) : false;
+  const nullOption: Precision | null =
+    isRadio && showNullOption
+      ? {
+          id: NULL_PRECISION_ID,
+          label: 'Pas d’information',
+          category: props.category
+        }
+      : null;
+
+  const allOptions = nullOption
+    ? [nullOption, ...props.options]
+    : props.options;
+
+  function isOptionChecked(option: Precision): boolean {
+    if (option.id === NULL_PRECISION_ID) {
+      // Null option is checked when there's no selection
+      return isRadio && props.value === null;
+    }
+
+    if (isRadio) {
+      return props.value?.id === option.id;
+    } else {
+      return props.value.some((value) => value.id === option.id);
+    }
+  }
+
+  function handleOptionClick(option: Precision, checked: boolean): void {
+    if (isRadio) {
+      // Radio button mode: always set the clicked option
+      if (option.id === NULL_PRECISION_ID) {
+        props.onChange(null);
+      } else {
+        props.onChange(option);
+      }
+    } else {
+      // Checkbox mode: toggle
+      if (checked) {
+        props.onChange([...props.value, option]);
+      } else {
+        props.onChange(
+          props.value.filter((precision) => precision.id !== option.id)
+        );
+      }
+    }
+  }
 
   return (
     <>
@@ -36,13 +99,13 @@ function PrecisionColumn(props: PrecisionColumnProps) {
         {props.title}
       </Typography>
       <Fieldset
-        options={props.options.map(
+        options={allOptions.map(
           (option): ElementOf<CheckboxProps['options']> => ({
             label: option.label,
             nativeInputProps: {
-              checked: props.value.some((value) => value.id === option.id),
-              value: option.id,
-              onChange: props.onChange
+              checked: isOptionChecked(option),
+              onChange: () =>
+                handleOptionClick(option, !isOptionChecked(option))
             }
           })
         )}

@@ -8,53 +8,53 @@ config (
 SELECT
   CAST(e.establishment_id AS VARCHAR) AS establishment_id,
   CASE 
-    WHEN e.connected_last_90_days THEN 'Oui'
-    ELSE '👻 Fantôme'
+    WHEN e.connected_last_90_days THEN TRUE
+    ELSE FALSE
   END AS connecte_90_derniers_jours,
   CASE 
-    WHEN e.connected_last_60_days THEN 'Oui' 
-    ELSE 'Non'
+    WHEN e.connected_last_60_days THEN TRUE
+    ELSE FALSE
   END AS connecte_60_derniers_jours,
   CASE 
-    WHEN e.connected_last_30_days THEN 'Oui' 
-    ELSE 'Non'
+    WHEN e.connected_last_30_days THEN TRUE
+    ELSE FALSE
   END AS connecte_30_derniers_jours,
   CASE 
-    WHEN e.total_perimeters > 0 THEN 'oui' 
-    ELSE 'non'
+    WHEN e.total_perimeters > 0 THEN TRUE
+    ELSE FALSE
   END AS a_depose_1_perimetre,
   
   CASE 
-    WHEN e.total_groups > 0 THEN 'oui' 
-    ELSE 'non'
+    WHEN e.total_groups > 0 THEN TRUE 
+    ELSE FALSE
   END AS a_cree_1_groupe,
   CASE 
-    WHEN e.total_campaigns > 0 THEN 'oui' 
-    ELSE 'non'
+    WHEN e.total_campaigns > 0 THEN TRUE
+    ELSE FALSE
   END AS a_cree_1_campagne,
   CASE 
-    WHEN e.is_creation_lt_30_days THEN 'Oui' 
-    ELSE 'Non'
+    WHEN e.is_creation_lt_30_days THEN TRUE
+    ELSE FALSE
   END AS a_cree_1_campagne_30_derniers_jours,
   CASE 
-    WHEN e.total_sent_campaigns > 0 THEN 'oui' 
-    ELSE 'non'
+    WHEN e.total_sent_campaigns > 0 THEN TRUE
+    ELSE FALSE
   END AS a_envoye_1_campagne,
   CASE 
-    WHEN e.last_event_status_user_followup IS NULL THEN 'Non' 
-    ELSE 'Oui'
+    WHEN e.last_event_status_user_followup IS NULL THEN FALSE
+    ELSE TRUE
   END AS a_fait_1_maj_suivi,
   CASE 
-    WHEN e.last_event_occupancy_user_occupancy IS NULL THEN 'Non' 
-    ELSE 'Oui'
+    WHEN e.last_event_occupancy_user_occupancy IS NULL THEN FALSE
+    ELSE TRUE
   END AS a_fait_1_maj_occupation,
   CASE 
-    WHEN e.last_event_status_user_followup IS NULL AND e.last_event_occupancy_user_occupancy IS NULL THEN 'Non'
-    ELSE 'Oui'
+    WHEN e.last_event_status_user_followup IS NULL AND e.last_event_occupancy_user_occupancy IS NULL THEN FALSE
+    ELSE TRUE
   END AS a_fait_1_maj,
   CASE 
-    WHEN e.total_sent_campaigns > 0 AND e.last_event_status_user_followup IS NOT NULL THEN 'Oui' 
-    ELSE 'Non'
+    WHEN e.total_sent_campaigns > 0 AND e.last_event_status_user_followup IS NOT NULL THEN TRUE
+    ELSE FALSE
   END AS a_fait_1_campagne_ET_1_maj,
   CASE 
     WHEN e.total_groups = 0 AND e.total_campaigns = 0 AND e.total_sent_campaigns = 0 THEN '(1) CT inactive'

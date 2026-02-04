@@ -15,7 +15,7 @@ DGFIP_SOURCES = [
         name="deliberation fiscalite locale communes",
         url="https://object.files.data.gouv.fr/hydra-parquet/hydra-parquet/7906b3eb-c42f-41f7-b984-de5e00ba62a6.parquet",
         producer=Producer.DGFIP,
-        file_type=FileType.Parquet,
+        file_type=FileType.PARQUET,
         description="Délibérations de fiscalité directe locale des communes 2025 (hors taux)",
         read_options={"auto_detect": True},
     ),

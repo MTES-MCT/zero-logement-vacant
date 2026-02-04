@@ -21,6 +21,7 @@ import {
   useCountHousingQuery,
   useGetHousingQuery
 } from '~/services/housing.service';
+import { unwrapError } from '~/store/store';
 import NotFoundView from '~/views/NotFoundView';
 
 function HousingView() {
@@ -53,7 +54,7 @@ function HousingView() {
   return (
     <HousingProvider
       housing={housing ?? null}
-      error={getHousingQuery.error?.message ?? null}
+      error={unwrapError(getHousingQuery.error)?.message ?? null}
       isError={getHousingQuery.isError}
       isLoading={getHousingQuery.isLoading}
       isSuccess={getHousingQuery.isSuccess}

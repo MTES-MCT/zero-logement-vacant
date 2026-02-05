@@ -145,7 +145,9 @@ export const housingApi = zlvApi.injectEndpoints({
           'Event',
           'HousingEvent'
         ];
-        return tags.concat(payload.precisions?.length ? ['Precision'] : []);
+        return tags
+          .concat(payload.precisions?.length ? ['Precision'] : [])
+          .concat(payload.documents?.length ? ['Document'] : []);
       }
     })
   })

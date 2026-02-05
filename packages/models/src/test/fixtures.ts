@@ -600,9 +600,10 @@ export function genHousingDTO(owner: OwnerDTO | null): HousingDTO {
     vacancyStartYear: faker.date.past().getUTCFullYear(),
     localId: genLocalId(department, invariant),
     invariant: genInvariant(locality),
-    rawAddress: faker.location
-      .streetAddress({ useFullAddress: true })
-      .split(' '),
+    rawAddress: [
+      faker.location.streetAddress(),
+      `${faker.location.zipCode()} ${faker.location.city()}`
+    ],
     cadastralClassification: faker.helpers.arrayElement(
       CADASTRAL_CLASSIFICATION_VALUES
     ),

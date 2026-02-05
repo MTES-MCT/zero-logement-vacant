@@ -16,6 +16,7 @@ import DocumentsTab from './DocumentsTab';
 import HistoryTab from './HistoryTab';
 import HousingTab from './HousingTab';
 import MobilizationTab from './MobilizationTab';
+import type { DocumentDTO } from '@zerologementvacant/models';
 
 function HousingDetailsCard() {
   const { housing, isLoading: isHousingLoading } = useHousing();
@@ -38,7 +39,7 @@ function HousingDetailsCard() {
       success: 'Document renommé !'
     }
   });
-  const rename: DocumentCardProps['onRename'] = (document) => {
+  function rename(document: DocumentDTO): void {
     updateDocument({
       id: document.id,
       filename: document.filename

@@ -44,6 +44,9 @@ import configureTestStore from '../../utils/storeUtils';
 import CampaignView from '../Campaign/CampaignView';
 import HousingListTabsProvider from './HousingListTabsProvider';
 import HousingListView from './HousingListView';
+import { genAuthUser } from '~/test/fixtures';
+import { fromEstablishmentDTO } from '~/models/Establishment';
+import { fromUserDTO } from '~/models/User';
 
 vi.mock('../../components/Aside/Aside.tsx');
 
@@ -89,7 +92,12 @@ describe('Housing list view', () => {
       });
     });
 
-    const store = configureTestStore();
+    const store = configureTestStore({
+      auth: genAuthUser(
+        fromUserDTO(options.auth),
+        fromEstablishmentDTO(options.establishment)
+      )
+    });
     const router = createMemoryRouter(
       [
         {
@@ -436,7 +444,15 @@ describe('Housing list view', () => {
       await user.upload(input, file);
       const cancel = await screen.findByRole('button', { name: 'Annuler' });
       await user.click(cancel);
-      await user.click(editHousing);
+      const [editHousingAgain] = await within(housingPanel).findAllByRole(
+        'button',
+        { name: 'Éditer' }
+      );
+      await user.click(editHousingAgain);
+      const documentTabAgain = await screen.findByRole('tab', {
+        name: /Documents/
+      });
+      await user.click(documentTabAgain);
       const documentPanelAgain = await screen.findByRole('tabpanel', {
         name: /Documents/
       });

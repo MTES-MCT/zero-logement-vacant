@@ -23,9 +23,9 @@ export interface DocumentsTabProps {
   isLoading?: boolean;
   isSuccess?: boolean;
   documentCardProps?: Pick<DocumentCardProps, 'actions'>;
+  onUpload: HousingDocumentUploadProps['onUpload'];
   onRename(document: DocumentDTO): void;
   onDelete: DocumentCardProps['onDelete'];
-  onUpload: HousingDocumentUploadProps['onUpload'];
 };
 
 function DocumentsTab(props: Readonly<DocumentsTabProps>) {

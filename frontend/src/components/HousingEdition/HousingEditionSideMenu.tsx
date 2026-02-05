@@ -3,21 +3,28 @@ import { yupResolver } from '@hookform/resolvers/yup';
 import Box from '@mui/material/Box';
 import Stack from '@mui/material/Stack';
 import Typography from '@mui/material/Typography';
-
 import { skipToken } from '@reduxjs/toolkit/query/react';
 import {
   HOUSING_STATUS_VALUES,
-  HousingStatus,
   Occupancy,
   OCCUPANCY_VALUES,
-  PRECISION_CATEGORY_VALUES
+  PRECISION_CATEGORY_VALUES,
+  type DocumentDTO
 } from '@zerologementvacant/models';
-import { fromJS } from 'immutable';
 import { Controller, FormProvider, useForm } from 'react-hook-form';
+import { useSet } from 'react-use';
 import { match } from 'ts-pattern';
-import { array, number, object, string, type InferType } from 'yup';
+import { array, mixed, number, object, string, type InferType } from 'yup';
+
+import { useHousing } from '~/hooks/useHousing';
 import { useNotification } from '~/hooks/useNotification';
 import { HousingStates } from '~/models/HousingState';
+import {
+  useDeleteDocumentMutation,
+  useFindHousingDocumentsQuery,
+  useLinkDocumentsToHousingMutation,
+  useUnlinkDocumentMutation
+} from '~/services/document.service';
 import { useUpdateHousingMutation } from '~/services/housing.service';
 import { useCreateNoteByHousingMutation } from '~/services/note.service';
 import {
@@ -27,6 +34,9 @@ import {
 import type { Housing, HousingUpdate } from '../../models/Housing';
 import AppLink from '../_app/AppLink/AppLink';
 import AsideNext from '../Aside/AsideNext';
+import DocumentsTab, {
+  type DocumentsTabProps
+} from '../HousingDetails/DocumentsTab';
 import OccupancySelect from '../HousingListFilters/OccupancySelect';
 import LabelNext from '../Label/LabelNext';
 import HousingEditionMobilizationTab from './HousingEditionMobilizationTab';
@@ -35,7 +45,6 @@ import type { HousingEditionContext } from './useHousingEdition';
 import { useHousingEdition } from './useHousingEdition';
 
 interface HousingEditionSideMenuProps {
-  housing: Housing | null;
   expand: boolean;
   onSubmit?: (housing: Housing, housingUpdate: HousingUpdate) => void;
   onClose: () => void;
@@ -49,60 +58,69 @@ const schema = object({
     .oneOf(OCCUPANCY_VALUES),
   occupancyIntended: string()
     .oneOf(OCCUPANCY_VALUES)
+    .required()
     .nullable()
-    .optional()
     .default(null),
   status: number()
     .required('Veuillez renseigner le statut de suivi')
-    .oneOf(HOUSING_STATUS_VALUES),
+    .oneOf(HOUSING_STATUS_VALUES)
+    .nullable(),
   subStatus: string()
     .trim()
+    .required()
     .nullable()
-    .optional()
-    .default(null)
     .when('status', ([status], schema) =>
       HousingStates.find((state) => state.status === status)?.subStatusList
         ?.length
         ? schema.required('Veuillez renseigner le sous-statut de suivi')
         : schema
     ),
-  note: string().default(null),
+  note: string().required().nullable(),
   precisions: array(
     object({
       id: string().required(),
       category: string().oneOf(PRECISION_CATEGORY_VALUES).required(),
       label: string().required()
     }).required()
-  ).default([])
+  ).required(),
+  documents: array(mixed<DocumentDTO>().required()).required()
 }).required();
 
 export type HousingEditionFormSchema = InferType<typeof schema>;
 
 function HousingEditionSideMenu(props: HousingEditionSideMenuProps) {
-  const { housing, expand, onClose } = props;
+  const { housing } = useHousing();
   const { tab, setTab } = useHousingEdition();
 
+  const { data: existingDocuments = [] } = useFindHousingDocumentsQuery(
+    housing?.id ?? skipToken
+  );
   const { data: housingPrecisions } = useFindPrecisionsByHousingQuery(
-    props.housing ? { housingId: props.housing.id } : skipToken
+    housing ? { housingId: housing.id } : skipToken
   );
 
   const form = useForm<HousingEditionFormSchema>({
     values: {
-      occupancy: props.housing?.occupancy ?? Occupancy.UNKNOWN,
-      occupancyIntended: props.housing?.occupancyIntended ?? Occupancy.UNKNOWN,
-      status: props.housing?.status ?? HousingStatus.NEVER_CONTACTED,
-      subStatus: props.housing?.subStatus ?? null,
-      note: '',
-      precisions: housingPrecisions ?? []
+      occupancy: housing?.occupancy ?? Occupancy.UNKNOWN,
+      occupancyIntended: housing?.occupancyIntended ?? null,
+      status: housing?.status ?? null,
+      subStatus: housing?.subStatus ?? null,
+      note: null,
+      precisions: housingPrecisions ?? [],
+      // Documents are loaded separately and managed via onUpload/onDelete
+      documents: []
     },
     mode: 'onSubmit',
     resolver: yupResolver(schema)
   });
 
   const [createNote, noteCreationMutation] = useCreateNoteByHousingMutation();
+  const [deleteDocument] = useDeleteDocumentMutation();
   const [updateHousing, housingUpdateMutation] = useUpdateHousingMutation();
   const [saveHousingPrecisions, saveHousingPrecisionsMutation] =
     useSaveHousingPrecisionsMutation();
+  const [linkDocuments] = useLinkDocumentsToHousingMutation();
+  const [unlinkDocument] = useUnlinkDocumentMutation();
 
   useNotification({
     toastId: 'note-creation',
@@ -139,48 +157,106 @@ function HousingEditionSideMenu(props: HousingEditionSideMenuProps) {
     }
   });
 
-  function submit() {
-    if (housing) {
-      const { note, precisions, ...payload } = form.getValues();
+  // Documents set to be removed later, on form submit
+  const [
+    removing,
+    { add: addRemoving, has: isRemoving, reset: resetRemoving }
+  ] = useSet<DocumentDTO['id']>();
 
-      const hasChanges = fromJS(form.formState.dirtyFields)
-        .filterNot((_, key) => key === 'note' || key === 'precisions')
-        .some((value) => !!value);
+  function cancel(): void {
+    const documents = form.getValues('documents');
+    documents?.forEach((document) => {
+      deleteDocument(document.id);
+    });
+    props.onClose();
+    form.reset();
+    resetRemoving();
+  }
+
+  const { formState } = form;
+  const { dirtyFields } = formState;
+
+  function submit(payload: HousingEditionFormSchema) {
+    if (housing) {
+      const hasChanges =
+        [
+          dirtyFields.occupancy,
+          dirtyFields.occupancyIntended,
+          dirtyFields.status,
+          dirtyFields.subStatus
+        ].filter((value) => !!value).length > 0;
       if (hasChanges) {
         updateHousing({
           ...housing,
-          // TODO: directly pass payload whenever
-          //  Housing and HousingDTO are aligned
-          occupancy: payload.occupancy as Occupancy,
-          occupancyIntended: payload.occupancyIntended as Occupancy | null,
-          status: payload.status as HousingStatus,
-          subStatus: payload.subStatus ?? null
+          occupancy: payload.occupancy ?? housing.occupancy,
+          occupancyIntended:
+            payload.occupancyIntended ?? housing.occupancyIntended,
+          status: payload.status ?? housing.status,
+          subStatus: payload.subStatus ?? housing.subStatus
         });
       }
 
-      if (form.formState.dirtyFields.precisions) {
+      if (dirtyFields.precisions) {
         saveHousingPrecisions({
           housing: housing.id,
-          precisions: precisions.map((precision) => precision.id)
+          precisions: payload.precisions.map((precision) => precision.id)
         });
       }
 
-      if (note) {
+      if (removing.size > 0) {
+        Array.from(removing.values()).forEach((documentId) => {
+          unlinkDocument({
+            housingId: housing.id,
+            documentId: documentId
+          });
+        });
+      }
+
+      if (payload.documents?.length) {
+        linkDocuments({
+          housingId: housing.id,
+          documentIds: payload.documents.map((document) => document.id)
+        });
+      }
+
+      if (payload.note) {
         createNote({
           id: housing.id,
-          content: note
+          content: payload.note
         });
       }
     }
 
-    onClose();
+    props.onClose();
     form.reset();
+    resetRemoving();
   }
+
+  const onUpload: DocumentsTabProps['onUpload'] = (documents) => {
+    const currentDocuments = form.getValues('documents');
+    form.setValue('documents', [...currentDocuments, ...documents]);
+  };
+
+  const onDelete: DocumentsTabProps['onDelete'] = (document) => {
+    const existedBefore = existingDocuments.some(
+      (existing) => existing.id === document.id
+    );
+    if (existedBefore) {
+      addRemoving(document.id);
+    } else {
+      deleteDocument(document.id);
+      form.setValue(
+        'documents',
+        form.getValues('documents').filter(({ id }) => id !== document.id)
+      );
+    }
+  };
 
   const content = match(tab)
     .with('occupancy', () => (
       <Stack rowGap={2}>
-        <Controller<HousingEditionFormSchema, 'occupancy'>
+        <Controller
+          control={form.control}
           name="occupancy"
           render={({ field, fieldState }) => (
             <OccupancySelect
@@ -193,7 +269,8 @@ function HousingEditionSideMenu(props: HousingEditionSideMenuProps) {
             />
           )}
         />
-        <Controller<HousingEditionFormSchema, 'occupancyIntended'>
+        <Controller
+          control={form.control}
           name="occupancyIntended"
           render={({ field, fieldState }) => (
             <OccupancySelect
@@ -207,6 +284,28 @@ function HousingEditionSideMenu(props: HousingEditionSideMenuProps) {
           )}
         />
       </Stack>
+    ))
+    .with('documents', () => (
+      <Controller
+        control={form.control}
+        name="documents"
+        render={({ field }) => (
+          <DocumentsTab
+            documents={[
+              ...field.value,
+              ...existingDocuments.filter(
+                (document) => !isRemoving(document.id)
+              )
+            ]}
+            documentCardProps={{ actions: 'remove-only' }}
+            isLoading={false}
+            isSuccess={true}
+            onUpload={onUpload}
+            onRename={() => {}}
+            onDelete={onDelete}
+          />
+        )}
+      />
     ))
     .with('mobilization', () => <HousingEditionMobilizationTab />)
     .with('note', () => (
@@ -229,14 +328,14 @@ function HousingEditionSideMenu(props: HousingEditionSideMenuProps) {
       header={
         <Box component="header">
           <Typography variant="h6">
-            {props.housing?.rawAddress.join(' - ')}
+            {housing?.rawAddress.join(' - ')}
           </Typography>
           <LabelNext>
-            Identifiant fiscal national : {props.housing?.localId}
+            Identifiant fiscal national : {housing?.localId}
           </LabelNext>
           <AppLink
             style={{ display: 'block' }}
-            to={`/logements/${props.housing?.id}`}
+            to={`/logements/${housing?.id}`}
             isSimple
             target="_blank"
           >
@@ -250,6 +349,7 @@ function HousingEditionSideMenu(props: HousingEditionSideMenuProps) {
             tabs={[
               { tabId: 'occupancy', label: 'Occupation' },
               { tabId: 'mobilization', label: 'Suivi' },
+              { tabId: 'documents', label: 'Documents' },
               { tabId: 'note', label: 'Note' }
             ]}
             selectedTabId={tab}
@@ -261,8 +361,8 @@ function HousingEditionSideMenu(props: HousingEditionSideMenuProps) {
           </Tabs>
         </FormProvider>
       }
-      open={expand}
-      onClose={onClose}
+      open={props.expand}
+      onClose={cancel}
       onSave={form.handleSubmit(submit)}
     />
   );

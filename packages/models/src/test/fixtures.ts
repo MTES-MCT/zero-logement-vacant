@@ -30,7 +30,11 @@ import {
 import { HOUSING_STATUS_VALUES } from '../HousingStatus';
 import { MUTATION_TYPE_VALUES } from '../Mutation';
 import { NoteDTO } from '../NoteDTO';
-import { Occupancy, OCCUPANCY_VALUES } from '../Occupancy';
+import {
+  Occupancy,
+  OCCUPANCY_VALUES,
+  READ_WRITE_OCCUPANCY_VALUES
+} from '../Occupancy';
 import { OwnerDTO } from '../OwnerDTO';
 import { OWNER_KIND_LABELS } from '../OwnerKind';
 import { OWNERSHIP_KIND_INTERNAL_VALUES } from '../OwnershipKind';
@@ -605,8 +609,8 @@ export function genHousingDTO(owner: OwnerDTO | null): HousingDTO {
     cadastralReference: null,
     longitude: faker.location.longitude(),
     latitude: faker.location.latitude(),
-    occupancy: faker.helpers.arrayElement(OCCUPANCY_VALUES),
-    occupancyIntended: faker.helpers.arrayElement(OCCUPANCY_VALUES),
+    occupancy: faker.helpers.arrayElement(READ_WRITE_OCCUPANCY_VALUES),
+    occupancyIntended: faker.helpers.arrayElement(READ_WRITE_OCCUPANCY_VALUES),
     housingKind: faker.helpers.arrayElement(HOUSING_KIND_VALUES),
     status: faker.helpers.arrayElement(HOUSING_STATUS_VALUES),
     subStatus: null,

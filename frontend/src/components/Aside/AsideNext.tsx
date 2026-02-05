@@ -33,6 +33,7 @@ export type AsideProps = CommonProps & (FooterProps | SaveProps);
 function Aside(props: AsideProps) {
   return (
     <Drawer
+      component="aside"
       anchor="right"
       open={props.open}
       onClose={props.onClose}

@@ -69,7 +69,7 @@ const create: RequestHandler<
   });
 
   const now = new Date().toJSON();
-  const [year, month, day] = now.split('-');
+  const [year, month, day] = now.substring(0, 'yyyy-mm-dd'.length).split('-');
   const documentsOrErrors = await async.map(
     files,
     async (
@@ -81,12 +81,13 @@ const create: RequestHandler<
           maxSize: MAX_HOUSING_DOCUMENT_SIZE_IN_MiB * 1024 ** 2
         });
 
-        const key = `documents/${establishment.id}/${year}/${month}/${day}/${uuidv4()}`;
+        const id = uuidv4();
+        const key = `documents/${establishment.id}/${year}/${month}/${day}/${id}`;
         await upload(file, {
           key: key
         });
         const document: DocumentApi = {
-          id: uuidv4(),
+          id: id,
           filename: file.originalname,
           s3Key: key,
           contentType: file.mimetype,

@@ -28,7 +28,7 @@ export const documentApi = zlvApi.injectEndpoints({
       invalidatesTags: ['Document']
     }),
 
-    listHousingDocuments: builder.query<HousingDocumentDTO[], string>({
+    findHousingDocuments: builder.query<HousingDocumentDTO[], string>({
       query: (housingId) => `housing/${housingId}/documents`,
       providesTags: (documents, _error, housingId) =>
         documents
@@ -37,9 +37,9 @@ export const documentApi = zlvApi.injectEndpoints({
                 type: 'Document' as const,
                 id: document.id
               })),
-              { type: 'Document' as const, id: `LIST-${housingId}` }
+              { type: 'Document', id: `LIST-${housingId}` }
             ]
-          : [{ type: 'Document' as const, id: `LIST-${housingId}` }]
+          : [{ type: 'Document', id: `LIST-${housingId}` }]
     }),
 
     linkDocumentsToHousing: builder.mutation<
@@ -58,16 +58,14 @@ export const documentApi = zlvApi.injectEndpoints({
 
     updateDocument: builder.mutation<
       DocumentDTO,
-      { documentId: DocumentDTO['id'] } & DocumentPayload
+      { id: DocumentDTO['id'] } & DocumentPayload
     >({
-      query: ({ documentId, ...payload }) => ({
-        url: `documents/${documentId}`,
+      query: ({ id, ...payload }) => ({
+        url: `documents/${id}`,
         method: 'PUT',
         body: payload
       }),
-      invalidatesTags: (_result, _error, { documentId }) => [
-        { type: 'Document', id: documentId }
-      ]
+      invalidatesTags: (_result, _error, { id }) => [{ type: 'Document', id }]
     }),
 
     unlinkDocument: builder.mutation<
@@ -84,7 +82,7 @@ export const documentApi = zlvApi.injectEndpoints({
       ) {
         const patchResult = dispatch(
           documentApi.util.updateQueryData(
-            'listHousingDocuments',
+            'findHousingDocuments',
             housingId,
             (documents) => {
               const index = documents.findIndex(
@@ -99,14 +97,23 @@ export const documentApi = zlvApi.injectEndpoints({
 
         queryFulfilled.catch(patchResult.undo);
       }
+    }),
+
+    deleteDocument: builder.mutation<void, DocumentDTO['id']>({
+      query: (id) => ({
+        url: `documents/${id}`,
+        method: 'DELETE'
+      }),
+      invalidatesTags: (_result, _error, id) => [{ type: 'Document', id }]
     })
   })
 });
 
 export const {
-  useListHousingDocumentsQuery,
+  useFindHousingDocumentsQuery,
   useUploadDocumentsMutation,
   useLinkDocumentsToHousingMutation,
   useUpdateDocumentMutation,
-  useUnlinkDocumentMutation
+  useUnlinkDocumentMutation,
+  useDeleteDocumentMutation
 } = documentApi;

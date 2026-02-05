@@ -139,7 +139,7 @@ function HousingTab() {
               .returnType<ReactNode>()
               .with({ isLoading: true }, () => (
                 <HousingAttribute
-                  label="Étiquette DPE représentatif (source : ADEME)"
+                  label="Étiquette DPE représentatif (ADEME)"
                   value={<Skeleton animation="wave" variant="text" />}
                 />
               ))
@@ -157,7 +157,7 @@ function HousingTab() {
                           variant="body2"
                           sx={{ fontWeight: 700 }}
                         >
-                          Étiquette DPE représentatif (source :{' '}
+                          Étiquette DPE représentatif (
                           {building.dpe ? (
                             <AppLink
                               to={`https://observatoire-dpe-audit.ademe.fr/afficher-dpe/${building.dpe?.id}`}

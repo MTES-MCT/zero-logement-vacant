@@ -1075,7 +1075,7 @@ describe('Housing view', () => {
     });
 
     it('should be invisible to a user from a different establishment', async () => {
-      const housing = genHousingDTO(null);
+      const housing = genHousingDTO();
       const establishmentA = genEstablishmentDTO();
       const creator = genUserDTO(UserRole.USUAL, establishmentA);
       const document = genDocumentDTO(creator, establishmentA);
@@ -1191,7 +1191,7 @@ describe('Housing view', () => {
     });
 
     it('should be invisible to a user from a different establishment', async () => {
-      const housing = genHousingDTO(null);
+      const housing = genHousingDTO();
       const establishmentA = genEstablishmentDTO();
       const establishmentB = genEstablishmentDTO();
       const creator = genUserDTO(UserRole.USUAL, establishmentA);
@@ -1500,7 +1500,7 @@ describe('Housing view', () => {
     });
 
     it('should upload a document', async () => {
-      const housing = genHousingDTO(null);
+      const housing = genHousingDTO();
       const establishment = genEstablishmentDTO();
       const auth = genUserDTO(UserRole.USUAL, establishment);
 

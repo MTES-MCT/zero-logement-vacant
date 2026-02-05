@@ -1,2 +1,3 @@
 // Public exports
-export {};
+export { generate as generateHousingsPDF } from './generators/housings';
+export { HousingTemplate } from './templates';

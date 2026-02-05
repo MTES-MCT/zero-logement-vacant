@@ -1,3 +1,4 @@
+import { DeleteObjectCommand } from '@aws-sdk/client-s3';
 import {
   ACCEPTED_HOUSING_DOCUMENT_EXTENSIONS,
   HousingDocumentDTO,
@@ -273,13 +274,20 @@ const remove: RequestHandler<Pick<DocumentDTO, 'id'>, void, never> = async (
     createdBy: request.user!.id,
     documentId: params.id
   };
+  const deleteCommand = new DeleteObjectCommand({
+    Bucket: config.s3.bucket,
+    Key: document.s3Key
+  });
 
-  await Promise.all([
-    eventRepository.insertManyHousingDocumentEvents(removeEvents),
-    eventRepository.insertManyDocumentEvents([documentRemoveEvent]),
-    housingDocumentRepository.unlinkMany({ documentIds: [params.id] }),
-    documentRepository.remove(params.id)
-  ]);
+  await startTransaction(async () => {
+    await Promise.all([
+      eventRepository.insertManyHousingDocumentEvents(removeEvents),
+      eventRepository.insertManyDocumentEvents([documentRemoveEvent]),
+      housingDocumentRepository.unlinkMany({ documentIds: [params.id] }),
+      documentRepository.remove(params.id)
+    ]);
+    await s3.send(deleteCommand);
+  });
 
   response.status(constants.HTTP_STATUS_NO_CONTENT).send();
 };
@@ -332,7 +340,6 @@ const linkToHousing: RequestHandler<
     housing_id: housing.id,
     housing_geo_code: housing.geoCode
   }));
-  await housingDocumentRepository.linkMany(links);
   // Create housing:document-attached events for each link
   const attachEvents = documents.map<HousingDocumentEventApi>((document) => ({
     id: uuidv4(),
@@ -347,7 +354,12 @@ const linkToHousing: RequestHandler<
     housingId: housing.id
   }));
 
-  await eventRepository.insertManyHousingDocumentEvents(attachEvents);
+  await startTransaction(async () => {
+    await Promise.all([
+      housingDocumentRepository.linkMany(links),
+      eventRepository.insertManyHousingDocumentEvents(attachEvents)
+    ]);
+  });
 
   // Generate pre-signed URLs for linked documents
   const documentsWithURLs = await async.map(
@@ -454,13 +466,16 @@ const removeByHousing: RequestHandler<
     housingId: housing.id
   };
 
-  await eventRepository.insertManyHousingDocumentEvents([detachEvent]);
-
-  // Remove association only (keep document)
-  await housingDocumentRepository.unlink({
-    documentId: params.documentId,
-    housingId: housing.id,
-    housingGeoCode: housing.geoCode
+  await startTransaction(async () => {
+    await Promise.all([
+      eventRepository.insertManyHousingDocumentEvents([detachEvent]),
+      // Remove association only (keep document)
+      housingDocumentRepository.unlink({
+        documentId: params.documentId,
+        housingId: housing.id,
+        housingGeoCode: housing.geoCode
+      })
+    ]);
   });
 
   response.status(constants.HTTP_STATUS_NO_CONTENT).send();

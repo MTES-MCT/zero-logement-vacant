@@ -49,6 +49,10 @@ const FullWidthCenteredButton = styled(FullWidthButton)({
 
 function DocumentCard(props: Readonly<DocumentCardProps>) {
   const actions = props.actions ?? 'all';
+  const isAllActions = (
+    props: DocumentCardProps
+  ): props is CommonProps & AllActionsProps => actions === 'all';
+
   const size = prettyBytes(props.document.sizeBytes, {
     locale: 'fr',
     space: true
@@ -69,9 +73,9 @@ function DocumentCard(props: Readonly<DocumentCardProps>) {
   }
 
   function onRename(): void {
-    if (props.actions === 'all') {
+    if (isAllActions(props)) {
       setDropdownOpen(false);
-      props.onRename?.(props.document);
+      props.onRename(props.document);
     }
   }
 
@@ -81,14 +85,14 @@ function DocumentCard(props: Readonly<DocumentCardProps>) {
   }
 
   async function onDownload(): Promise<void> {
-    if (props.actions === 'all') {
+    if (isAllActions(props)) {
       setDropdownOpen(false);
       await props.onDownload(props.document);
     }
   }
 
   function onVisualize(): void {
-    if (props.actions === 'all') {
+    if (isAllActions(props)) {
       setDropdownOpen(false);
       props.onVisualize(props.index);
     }

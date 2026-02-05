@@ -16,6 +16,8 @@ class FileType(str, Enum):
 
 class Producer(str, Enum):
     """Data producers."""
+    ANAH="ANAH"
+    ANCT="ANCT"
     CEREMA = "CEREMA"
     DGALN = "DGALN"
     INSEE = "INSEE"

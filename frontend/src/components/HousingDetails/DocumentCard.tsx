@@ -13,7 +13,7 @@ import Dropdown from '~/components/Dropdown/Dropdown';
 import DocumentPreview from '~/components/FileUpload/DocumentPreview';
 import { useUser } from '~/hooks/useUser';
 
-export interface DocumentCardProps {
+type CommonProps = {
   document: DocumentDTO;
   index: number;
   /**
@@ -24,10 +24,21 @@ export interface DocumentCardProps {
    */
   actions?: 'remove-only' | 'all';
   onDelete(document: DocumentDTO): void;
+};
+
+type AllActionsProps = {
+  actions?: 'all';
   onDownload(document: DocumentDTO): Promise<void>;
   onRename(document: DocumentDTO): void;
   onVisualize(index: number): void;
-}
+};
+
+type RemoveOnlyProps = {
+  actions: 'remove-only';
+};
+
+export type DocumentCardProps = CommonProps &
+  (AllActionsProps | RemoveOnlyProps);
 
 const FullWidthButton = styled(Button)({
   width: '100% !important'
@@ -58,8 +69,10 @@ function DocumentCard(props: Readonly<DocumentCardProps>) {
   }
 
   function onRename(): void {
-    setDropdownOpen(false);
-    props.onRename(props.document);
+    if (props.actions === 'all') {
+      setDropdownOpen(false);
+      props.onRename?.(props.document);
+    }
   }
 
   function onDelete(): void {
@@ -68,13 +81,17 @@ function DocumentCard(props: Readonly<DocumentCardProps>) {
   }
 
   async function onDownload(): Promise<void> {
-    setDropdownOpen(false);
-    props.onDownload(props.document);
+    if (props.actions === 'all') {
+      setDropdownOpen(false);
+      await props.onDownload(props.document);
+    }
   }
 
   function onVisualize(): void {
-    setDropdownOpen(false);
-    props.onVisualize(props.index);
+    if (props.actions === 'all') {
+      setDropdownOpen(false);
+      props.onVisualize(props.index);
+    }
   }
 
   return (

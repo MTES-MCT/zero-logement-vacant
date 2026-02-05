@@ -30,9 +30,16 @@ export const documentApi = zlvApi.injectEndpoints({
 
     findHousingDocuments: builder.query<HousingDocumentDTO[], string>({
       query: (housingId) => `housing/${housingId}/documents`,
-      providesTags: (_documents, _error, housingId) => [
-        { type: 'Document', id: `LIST-${housingId}` }
-      ]
+      providesTags: (documents, _error, housingId) =>
+        documents
+          ? [
+              ...documents.map((document) => ({
+                type: 'Document' as const,
+                id: document.id
+              })),
+              { type: 'Document', id: `LIST-${housingId}` }
+            ]
+          : [{ type: 'Document', id: `LIST-${housingId}` }]
     }),
 
     linkDocumentsToHousing: builder.mutation<

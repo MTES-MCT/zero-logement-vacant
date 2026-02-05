@@ -85,7 +85,7 @@ function HousingEditionInformationTab(
               name="actualEnergyConsumption"
               render={({ field, fieldState }) => (
                 <EnergyConsumptionSelect
-                  label="Étiquette DPE réelle (au logement)"
+                  label="Étiquette DPE renseignée"
                   disabled={field.disabled}
                   error={fieldState.error?.message}
                   value={field.value as EnergyConsumption | null}

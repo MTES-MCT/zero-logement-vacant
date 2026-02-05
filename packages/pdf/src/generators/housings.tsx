@@ -13,7 +13,7 @@ interface GenerateOptions {
  * Generate PDF for one or multiple housings.
  * Returns a web ReadableStream suitable for piping to HTTP response.
  */
-export async function generate(options: GenerateOptions): Promise<ReadableStream> {
+export async function generate(options: GenerateOptions) {
   const { housings } = options;
 
   // Create document with all housing pages
@@ -28,5 +28,5 @@ export async function generate(options: GenerateOptions): Promise<ReadableStream
   // renderToStream returns Node.js Readable, wrap into web ReadableStream
   const nodeStream = await renderToStream(document);
 
-  return Readable.toWeb(nodeStream as any) as ReadableStream;
+  return Readable.toWeb(nodeStream as unknown as Readable);
 }

@@ -18,14 +18,13 @@ import { createDocumentDeleteModal } from '~/components/HousingDetails/DocumentD
 import { createDocumentRenameModal } from '~/components/HousingDetails/DocumentRenameModal';
 import { useUser } from '~/hooks/useUser';
 
-export type DocumentsTabProps = Pick<
-  DocumentCardProps,
-  'onRename' | 'onDelete'
-> & {
+export interface DocumentsTabProps {
   documents: ReadonlyArray<DocumentDTO>;
   isLoading?: boolean;
   isSuccess?: boolean;
   documentCardProps?: Pick<DocumentCardProps, 'actions'>;
+  onRename(document: DocumentDTO): void;
+  onDelete: DocumentCardProps['onDelete'];
   onUpload: HousingDocumentUploadProps['onUpload'];
 };
 

@@ -231,9 +231,12 @@ function HousingList(props: HousingListProps) {
               sx={{ justifyContent: 'flex-end' }}
             >
               <Button
-                title="Mettre à jour"
                 size="small"
                 priority="secondary"
+                title={`Éditer le logement "${row.original.rawAddress.join(', ')}"`}
+                nativeButtonProps={{
+                  'aria-label': `Éditer le logement "${row.original.rawAddress.join(', ')}"`
+                }}
                 onClick={() => setUpdatingHousing(row.original)}
               >
                 Éditer

@@ -32,6 +32,7 @@ export interface Housing
     | 'cadastralReference'
     | 'uncomfortable'
     | 'livingArea'
+    | 'plotArea'
     | 'housingKind'
     | 'roomsCount'
     | 'buildingYear'
@@ -42,6 +43,7 @@ export interface Housing
     | 'campaignIds'
     | 'status'
     | 'subStatus'
+    | 'actualEnergyConsumption'
     | 'energyConsumption'
     | 'energyConsumptionAt'
     | 'occupancy'
@@ -147,13 +149,6 @@ export function hasCoordinates(
     housing.latitude <= MAX_LAT
   );
 }
-
-/**
- * @deprecated The last update should not be retrieved from the housing
- * but from the events and notes instead.
- * @param housing
- */
-export const lastUpdate = (): string | null => null;
 
 export const OccupancyKind = {
   Vacant: 'V',
@@ -263,6 +258,7 @@ export function toHousingDTO(housing: Housing): HousingDTO {
     ownershipKind: housing.ownershipKind,
     status: housing.status as unknown as HousingStatus,
     subStatus: housing.subStatus ?? null,
+    actualEnergyConsumption: housing.actualEnergyConsumption,
     energyConsumption:
       housing.energyConsumption as unknown as EnergyConsumption,
     energyConsumptionAt: housing.energyConsumptionAt,
@@ -276,6 +272,7 @@ export function toHousingDTO(housing: Housing): HousingDTO {
     lastTransactionValue: housing.lastTransactionValue,
     beneficiaryCount: null,
     campaignIds: housing.campaignIds,
-    rentalValue: null
+    rentalValue: null,
+    plotArea: housing.plotArea
   };
 }

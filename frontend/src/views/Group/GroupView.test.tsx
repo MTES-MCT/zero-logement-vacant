@@ -106,8 +106,7 @@ describe('Group view', () => {
   });
 
   it('should show NotFoundView if the group has been archived', async () => {
-    const owner = genOwnerDTO();
-    const housings = faker.helpers.multiple(() => genHousingDTO(owner));
+    const housings = faker.helpers.multiple(() => genHousingDTO());
     const group: GroupDTO = {
       ...genGroupDTO(auth, housings),
       archivedAt: new Date().toJSON()
@@ -127,8 +126,7 @@ describe('Group view', () => {
 
   describe('Create a campaign from the group', () => {
     it('should display a modal to create a campaign', async () => {
-      const owner = genOwnerDTO();
-      const housings = faker.helpers.multiple(() => genHousingDTO(owner));
+      const housings = faker.helpers.multiple(() => genHousingDTO());
       const group = genGroupDTO(auth, housings);
       const campaign = null;
 
@@ -160,8 +158,7 @@ describe('Group view', () => {
   describe('Remove the group', () => {
     it('should display a modal to archive the group', async () => {
       const group = genGroupDTO(auth);
-      const owner = genOwnerDTO();
-      const housings = faker.helpers.multiple(() => genHousingDTO(owner));
+      const housings = faker.helpers.multiple(() => genHousingDTO());
       const campaign = genCampaignDTO(group);
 
       renderView({
@@ -183,8 +180,7 @@ describe('Group view', () => {
 
     it('should display a "Remove" button if no campaign was created from the group', async () => {
       const group = genGroupDTO(auth);
-      const owner = genOwnerDTO();
-      const housings = faker.helpers.multiple(() => genHousingDTO(owner));
+      const housings = faker.helpers.multiple(() => genHousingDTO());
       const campaign = null;
 
       renderView({

@@ -122,6 +122,8 @@ export function createSourceHousingProcessor(opts: ProcessorOptions) {
             dataFileYears: ['lovac-2025'],
             status: HousingStatus.NEVER_CONTACTED,
             subStatus: null,
+            plotArea: null,
+            actualEnergyConsumption: null,
             energyConsumption: null,
             energyConsumptionAt: null
           };

@@ -462,7 +462,8 @@ async function update(
     status: body.status,
     subStatus: body.subStatus,
     occupancy: body.occupancy,
-    occupancyIntended: body.occupancyIntended
+    occupancyIntended: body.occupancyIntended,
+    actualEnergyConsumption: body.actualEnergyConsumption
   };
 
   const housingStatusDiff = diffHousingStatusUpdated(
@@ -516,6 +517,23 @@ async function update(
       housingGeoCode: housing.geoCode,
       housingId: housing.id
     });
+  }
+  if (housing.actualEnergyConsumption !== updated.actualEnergyConsumption) {
+    events.push({
+      id: uuidv4(),
+      type: 'housing:updated',
+      name: 'Modification du logement',
+      nextOld: {
+        actualEnergyConsumption: housing.actualEnergyConsumption
+      },
+      nextNew: {
+        actualEnergyConsumption: updated.actualEnergyConsumption
+      },
+      createdAt: new Date().toJSON(),
+      createdBy: auth.userId,
+      housingGeoCode: housing.geoCode,
+      housingId: housing.id
+    })
   }
 
   await startTransaction(async () => {

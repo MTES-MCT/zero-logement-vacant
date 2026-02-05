@@ -39,7 +39,10 @@ export type EventUnion<Type extends EventType> = Type extends any
   : never;
 
 export type HousingEventApi = EventUnion<
-  'housing:created' | 'housing:occupancy-updated' | 'housing:status-updated'
+  | 'housing:created'
+  | 'housing:updated'
+  | 'housing:occupancy-updated'
+  | 'housing:status-updated'
 > & {
   housingGeoCode: string;
   housingId: string;

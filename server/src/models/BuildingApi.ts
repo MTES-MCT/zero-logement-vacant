@@ -1,12 +1,20 @@
-import { BuildingDTO } from '@zerologementvacant/models';
+import {
+  BuildingDTO,
+  type EnergyConsumption
+} from '@zerologementvacant/models';
 
-export interface BuildingApi {
-  id: string;
-  housingCount: number;
-  rentHousingCount: number;
-  vacantHousingCount: number;
-  rnbId: string | null;
-  rnbIdScore: number | null;
+export interface BuildingApi extends BuildingDTO {
+  ges: {
+    /**
+     * @example 'A'
+     */
+    class: EnergyConsumption;
+  } | null;
+  /**
+   * @example 'Gaz naturel'
+   * @example 'Électricité'
+   */
+  heating: string | null;
 }
 
 export function toBuildingDTO(building: BuildingApi): BuildingDTO {
@@ -14,6 +22,21 @@ export function toBuildingDTO(building: BuildingApi): BuildingDTO {
     id: building.id,
     housingCount: building.housingCount,
     rentHousingCount: building.rentHousingCount,
-    vacantHousingCount: building.vacantHousingCount
+    vacantHousingCount: building.vacantHousingCount,
+    dpe: building.dpe
+      ? {
+          id: building.dpe.id,
+          class: building.dpe.class,
+          doneAt: building.dpe.doneAt,
+          type: building.dpe.type,
+          match: building.dpe.match
+        }
+      : null,
+    rnb: building.rnb
+      ? {
+          id: building.rnb.id,
+          score: building.rnb.score
+        }
+      : null
   };
 }

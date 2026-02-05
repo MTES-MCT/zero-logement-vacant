@@ -24,7 +24,9 @@ describe('generate campaign PDF', () => {
     const housing = genHousingDTO(owner);
     const draft = {
       subject: 'Test',
-      body: '<p>Bonjour {{owner.fullName}},</p>'
+      body: '<p>Bonjour {{owner.fullName}},</p>',
+      writtenAt: null,
+      writtenFrom: null
     };
 
     const stream = await generate({ housings: [housing], draft });

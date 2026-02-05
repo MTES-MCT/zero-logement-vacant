@@ -2,32 +2,15 @@ import React from 'react';
 import { renderToStream, Document } from '@react-pdf/renderer';
 import { Readable } from 'stream';
 import { CampaignTemplate } from '../templates/Campaign';
-import type { HousingDTO } from '@zerologementvacant/models';
-
-interface DraftDTO {
-  subject?: string | null;
-  body: string | null;
-  writtenAt?: string | null;
-  writtenFrom?: string | null;
-}
+import type { HousingDTO, DraftDTO } from '@zerologementvacant/models';
+import { replaceVariables } from '@zerologementvacant/models';
 
 interface GenerateCampaignOptions {
   housings: HousingDTO[];
-  draft: DraftDTO;
+  draft: Pick<DraftDTO, 'subject' | 'body' | 'writtenAt' | 'writtenFrom'>;
 }
 
-/**
- * Replace template variables in string.
- * Simple implementation - enhance with existing utility later.
- */
-function replaceVariables(template: string, data: Record<string, any>): string {
-  return template.replace(/\{\{([^}]+)\}\}/g, (match, path) => {
-    const value = path.split('.').reduce((obj: any, key: string) => obj?.[key], data);
-    return value ?? match;
-  });
-}
-
-export async function generate(options: GenerateCampaignOptions): Promise<ReadableStream> {
+export async function generate(options: GenerateCampaignOptions) {
   const { housings, draft } = options;
 
   const nodeStream = await renderToStream(
@@ -36,7 +19,7 @@ export async function generate(options: GenerateCampaignOptions): Promise<Readab
         // Replace variables for each housing
         const personalizedBody = replaceVariables(draft.body ?? '', {
           housing,
-          owner: housing.owner
+          owner: housing.owner ?? { fullName: '' }
         });
 
         // Create personalized draft
@@ -48,7 +31,6 @@ export async function generate(options: GenerateCampaignOptions): Promise<Readab
         return (
           <CampaignTemplate
             key={housing.id}
-            housing={housing}
             draft={personalizedDraft}
           />
         );
@@ -56,5 +38,5 @@ export async function generate(options: GenerateCampaignOptions): Promise<Readab
     </Document>
   );
 
-  return Readable.toWeb(nodeStream as any) as ReadableStream;
+  return Readable.toWeb(nodeStream as unknown as Readable);
 }

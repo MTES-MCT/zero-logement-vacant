@@ -1,18 +1,10 @@
 import React from 'react';
 import { Page, View, StyleSheet } from '@react-pdf/renderer';
 import Html from 'react-pdf-html';
-import type { HousingDTO } from '@zerologementvacant/models';
-
-interface DraftDTO {
-  subject?: string | null;
-  body: string | null;
-  writtenAt?: string | null;
-  writtenFrom?: string | null;
-}
+import type { DraftDTO } from '@zerologementvacant/models';
 
 interface CampaignTemplateProps {
-  housing: HousingDTO;
-  draft: DraftDTO;
+  draft: Pick<DraftDTO, 'subject' | 'body' | 'writtenAt' | 'writtenFrom'>;
 }
 
 export function CampaignTemplate({ draft }: CampaignTemplateProps) {

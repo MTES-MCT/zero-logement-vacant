@@ -1,7 +1,6 @@
 // packages/pdf/src/generators/housings.test.ts
 // Component-level tests without actual PDF rendering (avoids OOM issues from @react-pdf/renderer memory leaks)
 import { describe, it, expect } from 'vitest';
-import React from 'react';
 import { genHousingDTO, genOwnerDTO } from '@zerologementvacant/models/fixtures';
 
 // Import only the implementation, not @react-pdf/renderer

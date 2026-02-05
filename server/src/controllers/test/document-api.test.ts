@@ -1,31 +1,37 @@
+import { HeadObjectCommand, PutObjectCommand } from '@aws-sdk/client-s3';
 import { faker } from '@faker-js/faker/locale/fr';
 import {
   HousingDocumentDTO,
   UserRole,
+  type DocumentDTO,
   type DocumentPayload
 } from '@zerologementvacant/models';
+import { createS3 } from '@zerologementvacant/utils/node';
 import { constants } from 'http2';
 import path from 'node:path';
 import request from 'supertest';
 import { beforeAll, describe, expect, it } from 'vitest';
+import config from '~/infra/config';
 import { createServer } from '~/infra/server';
 import { UserApi } from '~/models/UserApi';
+import { Documents, toDocumentDBO } from '~/repositories/documentRepository';
 import {
   Establishments,
   formatEstablishmentApi
 } from '~/repositories/establishmentRepository';
-import { HousingDocuments } from '~/repositories/housingDocumentRepository';
 import {
-  DocumentEvents,
+  DOCUMENT_EVENTS_TABLE,
   Events,
-  HousingDocumentEvents
+  EVENTS_TABLE,
+  HOUSING_DOCUMENT_EVENTS_TABLE,
+  type EventDBO
 } from '~/repositories/eventRepository';
+import { HousingDocuments } from '~/repositories/housingDocumentRepository';
 import {
   formatHousingRecordApi,
   Housing
 } from '~/repositories/housingRepository';
 import { formatUserApi, Users } from '~/repositories/userRepository';
-import { Documents, toDocumentDBO } from '~/repositories/documentRepository';
 import {
   genDocumentApi,
   genEstablishmentApi,
@@ -105,6 +111,29 @@ describe('Document API', () => {
       });
     });
 
+    it('should create an event "document:created" for each document', async () => {
+      const { body, status } = await request(url)
+        .post('/api/documents')
+        .use(tokenProvider(user))
+        .attach('files', samplePdfPath)
+        .attach('files', samplePdfPath);
+
+      expect(status).toBe(constants.HTTP_STATUS_CREATED);
+      const documents = body as ReadonlyArray<DocumentDTO>;
+      const events = await Events()
+        .where({ type: 'document:created' })
+        .join(
+          DOCUMENT_EVENTS_TABLE,
+          `${DOCUMENT_EVENTS_TABLE}.event_id`,
+          `${EVENTS_TABLE}.id`
+        )
+        .whereIn(
+          `${DOCUMENT_EVENTS_TABLE}.document_id`,
+          documents.map((document) => document.id)
+        );
+      expect(events).toHaveLength(2);
+    });
+
     it('should upload multiple documents successfully', async () => {
       const { body, status } = await request(url)
         .post('/api/documents')
@@ -181,6 +210,41 @@ describe('Document API', () => {
       });
     });
 
+    it('should create an event "document:updated"', async () => {
+      const document = genDocumentApi({
+        createdBy: user.id,
+        creator: user,
+        establishmentId: establishment.id
+      });
+      await Documents().insert(toDocumentDBO(document));
+      const payload: DocumentPayload = {
+        filename: 'renamed.pdf'
+      };
+
+      const { status } = await request(url)
+        .put(testRoute(document.id))
+        .use(tokenProvider(user))
+        .send(payload);
+
+      expect(status).toBe(constants.HTTP_STATUS_OK);
+      const event = await Events()
+        .where({ type: 'document:updated' })
+        .join(
+          DOCUMENT_EVENTS_TABLE,
+          `${DOCUMENT_EVENTS_TABLE}.event_id`,
+          `${EVENTS_TABLE}.id`
+        )
+        .where(`${DOCUMENT_EVENTS_TABLE}.document_id`, document.id)
+        .first();
+      expect(event).toMatchObject<Partial<EventDBO<'document:updated'>>>({
+        type: 'document:updated',
+        name: 'Modification d’un document',
+        next_old: { filename: document.filename },
+        next_new: { filename: payload.filename },
+        created_by: user.id
+      });
+    });
+
     it('should return 404 if document not found', async () => {
       const payload: DocumentPayload = {
         filename: 'test.pdf'
@@ -236,6 +300,105 @@ describe('Document API', () => {
         .select('*');
       expect(deletedDocument).toBeDefined();
       expect(deletedDocument.deleted_at).not.toBeNull();
+    });
+
+    it('should remove the actual file from S3', async () => {
+      const document = genDocumentApi({
+        createdBy: user.id,
+        creator: user,
+        establishmentId: establishment.id
+      });
+      await Documents().insert(toDocumentDBO(document));
+      const s3 = createS3(config.s3);
+      const upload = new PutObjectCommand({
+        Bucket: config.s3.bucket,
+        Key: document.s3Key
+      });
+      await s3.send(upload);
+      const head = new HeadObjectCommand({
+        Bucket: config.s3.bucket,
+        Key: document.s3Key
+      });
+      await s3.send(head);
+
+      const { status } = await request(url)
+        .delete(testRoute(document.id))
+        .use(tokenProvider(user));
+
+      expect(status).toBe(constants.HTTP_STATUS_NO_CONTENT);
+      await expect(s3.send(head)).rejects.toThrow();
+    });
+
+    it('should create an event "document:removed"', async () => {
+      const document = genDocumentApi({
+        createdBy: user.id,
+        creator: user,
+        establishmentId: establishment.id
+      });
+      await Documents().insert(toDocumentDBO(document));
+
+      const { status } = await request(url)
+        .delete(testRoute(document.id))
+        .use(tokenProvider(user));
+
+      expect(status).toBe(constants.HTTP_STATUS_NO_CONTENT);
+      const event = await Events()
+        .where({ type: 'document:removed' })
+        .join(
+          DOCUMENT_EVENTS_TABLE,
+          `${DOCUMENT_EVENTS_TABLE}.event_id`,
+          `${EVENTS_TABLE}.id`
+        )
+        .where(`${DOCUMENT_EVENTS_TABLE}.document_id`, document.id)
+        .first();
+      expect(event).toMatchObject<Partial<EventDBO<'document:removed'>>>({
+        type: 'document:removed',
+        name: 'Suppression d’un document',
+        next_old: { filename: document.filename },
+        next_new: null,
+        created_by: user.id
+      });
+    });
+
+    it('should create an event "housing:document-removed" for each housing to which the document was attached', async () => {
+      const document = genDocumentApi({
+        createdBy: user.id,
+        creator: user,
+        establishmentId: establishment.id
+      });
+      await Documents().insert(toDocumentDBO(document));
+      const housings = faker.helpers.multiple(() => genHousingApi());
+      await Housing().insert(housings.map(formatHousingRecordApi));
+      await HousingDocuments().insert(housings.map(housing => ({
+        document_id: document.id,
+        housing_geo_code: housing.geoCode,
+        housing_id: housing.id
+      })));
+
+      const { status } = await request(url)
+        .delete(testRoute(document.id))
+        .use(tokenProvider(user));
+
+      expect(status).toBe(constants.HTTP_STATUS_NO_CONTENT);
+      const events = await Events()
+        .where({ type: 'housing:document-removed' })
+        .join(
+          HOUSING_DOCUMENT_EVENTS_TABLE,
+          `${HOUSING_DOCUMENT_EVENTS_TABLE}.event_id`,
+          `${EVENTS_TABLE}.id`
+        )
+        .where(`${HOUSING_DOCUMENT_EVENTS_TABLE}.document_id`, document.id);
+      events.forEach((event) => {
+        expect(event).toMatchObject<
+          Partial<EventDBO<'housing:document-removed'>>
+        >({
+          type: 'housing:document-removed',
+          name: 'Suppression d’un document du logement',
+          next_old: { filename: document.filename },
+          next_new: null,
+          created_by: user.id
+        });
+      });
     });
 
     it('should return 404 if document not found', async () => {
@@ -301,9 +464,21 @@ describe('Document API', () => {
 
       // Link documents to housings
       await HousingDocuments().insert([
-        { document_id: documents[0].id, housing_id: housing.id, housing_geo_code: housing.geoCode },
-        { document_id: documents[1].id, housing_id: housing.id, housing_geo_code: housing.geoCode },
-        { document_id: documents[2].id, housing_id: anotherHousing.id, housing_geo_code: anotherHousing.geoCode }
+        {
+          document_id: documents[0].id,
+          housing_id: housing.id,
+          housing_geo_code: housing.geoCode
+        },
+        {
+          document_id: documents[1].id,
+          housing_id: housing.id,
+          housing_geo_code: housing.geoCode
+        },
+        {
+          document_id: documents[2].id,
+          housing_id: anotherHousing.id,
+          housing_geo_code: anotherHousing.geoCode
+        }
       ]);
     });
 
@@ -395,6 +570,49 @@ describe('Document API', () => {
       expect(doc.deleted_at).toBeNull();
     });
 
+    it('should create an event "housing:document-detached"', async () => {
+      const housing = genHousingApi(
+        faker.helpers.arrayElement(establishment.geoCodes)
+      );
+      await Housing().insert(formatHousingRecordApi(housing));
+      const document = genDocumentApi({
+        createdBy: user.id,
+        creator: user,
+        establishmentId: establishment.id
+      });
+      await Documents().insert(toDocumentDBO(document));
+      await HousingDocuments().insert({
+        document_id: document.id,
+        housing_id: housing.id,
+        housing_geo_code: housing.geoCode
+      });
+
+      const { status } = await request(url)
+        .delete(testRoute(housing.id, document.id))
+        .use(tokenProvider(user));
+
+      expect(status).toBe(constants.HTTP_STATUS_NO_CONTENT);
+      const event = await Events()
+        .where({ type: 'housing:document-detached' })
+        .join(
+          HOUSING_DOCUMENT_EVENTS_TABLE,
+          `${HOUSING_DOCUMENT_EVENTS_TABLE}.event_id`,
+          `${EVENTS_TABLE}.id`
+        )
+        .where(`${HOUSING_DOCUMENT_EVENTS_TABLE}.document_id`, document.id)
+        .where(`${HOUSING_DOCUMENT_EVENTS_TABLE}.housing_id`, housing.id)
+        .first();
+      expect(event).toMatchObject<
+        Partial<EventDBO<'housing:document-detached'>>
+      >({
+        type: 'housing:document-detached',
+        name: 'Retrait d’un document du logement',
+        next_old: { filename: document.filename },
+        next_new: null,
+        created_by: user.id
+      });
+    });
+
     it('should return 404 if association not found', async () => {
       const housing = genHousingApi(
         faker.helpers.arrayElement(establishment.geoCodes)
@@ -450,176 +668,6 @@ describe('Document API', () => {
         .use(tokenProvider(user));
 
       expect(status).toBe(constants.HTTP_STATUS_NOT_FOUND);
-    });
-  });
-
-  describe('Event Tracking', () => {
-    describe('POST /api/documents', () => {
-      const samplePdfPath = path.join(__dirname, '../../test/sample.pdf');
-
-      it('should create document:created event when uploading document', async () => {
-        const { status, body } = await request(url)
-          .post('/api/documents')
-          .use(tokenProvider(user))
-          .attach('files', samplePdfPath);
-
-        expect(status).toBe(constants.HTTP_STATUS_CREATED);
-        const document = body[0];
-
-        const [eventRecord] = await Events()
-          .where({ type: 'document:created' })
-          .where({ created_by: user.id })
-          .orderBy('created_at', 'desc')
-          .limit(1);
-
-        expect(eventRecord).toMatchObject({
-          type: 'document:created',
-          next_new: { filename: document.filename }
-        });
-        expect(eventRecord.next_old).toBeNull();
-
-        const [documentEvent] = await DocumentEvents().where({
-          event_id: eventRecord.id
-        });
-        expect(documentEvent).toMatchObject({
-          document_id: document.id
-        });
-      });
-    });
-
-    describe('PUT /api/documents/:id', () => {
-      it('should create document:updated event when renaming document', async () => {
-        const document = genDocumentApi({
-          filename: 'old-name.pdf',
-          creator: user
-        });
-        await Documents().insert(toDocumentDBO(document));
-
-        const { status } = await request(url)
-          .put(`/api/documents/${document.id}`)
-          .use(tokenProvider(user))
-          .send({ filename: 'new-name.pdf' });
-
-        expect(status).toBe(constants.HTTP_STATUS_OK);
-
-        const [eventRecord] = await Events()
-          .where({ type: 'document:updated' })
-          .where({ created_by: user.id })
-          .orderBy('created_at', 'desc')
-          .limit(1);
-
-        expect(eventRecord).toMatchObject({
-          type: 'document:updated',
-          next_old: { filename: 'old-name.pdf' },
-          next_new: { filename: 'new-name.pdf' }
-        });
-
-        const [documentEvent] = await DocumentEvents().where({
-          event_id: eventRecord.id
-        });
-        expect(documentEvent).toMatchObject({
-          document_id: document.id
-        });
-      });
-    });
-
-    describe('DELETE /api/documents/:id', () => {
-      it('should create document:removed and housing:document-removed events', async () => {
-        const housing = genHousingApi();
-        const document = genDocumentApi({ creator: user });
-
-        await Housing().insert(formatHousingRecordApi(housing));
-        await Documents().insert(toDocumentDBO(document));
-        await HousingDocuments().insert({
-          document_id: document.id,
-          housing_id: housing.id,
-          housing_geo_code: housing.geoCode
-        });
-
-        const { status } = await request(url)
-          .delete(`/api/documents/${document.id}`)
-          .use(tokenProvider(user));
-
-        expect(status).toBe(constants.HTTP_STATUS_NO_CONTENT);
-
-        // Check document:removed event
-        const [documentRemoveEvent] = await Events()
-          .where({ type: 'document:removed' })
-          .where({ created_by: user.id })
-          .orderBy('created_at', 'desc')
-          .limit(1);
-
-        expect(documentRemoveEvent).toMatchObject({
-          type: 'document:removed',
-          next_old: { filename: document.filename }
-        });
-        expect(documentRemoveEvent.next_new).toBeNull();
-
-        const [docEvent] = await DocumentEvents().where({
-          event_id: documentRemoveEvent.id
-        });
-        expect(docEvent).toMatchObject({
-          document_id: document.id
-        });
-
-        // Check housing:document-removed event
-        const [housingRemoveEvent] = await Events()
-          .where({ type: 'housing:document-removed' })
-          .where({ created_by: user.id })
-          .orderBy('created_at', 'desc')
-          .limit(1);
-
-        expect(housingRemoveEvent).toMatchObject({
-          type: 'housing:document-removed',
-          next_old: { filename: document.filename }
-        });
-        expect(housingRemoveEvent.next_new).toBeNull();
-
-        const [housingDocEvent] = await HousingDocumentEvents().where({
-          event_id: housingRemoveEvent.id
-        });
-        expect(housingDocEvent).toMatchObject({
-          housing_id: housing.id,
-          document_id: document.id
-        });
-      });
-
-      it('should handle document deletion without housing links', async () => {
-        const document = genDocumentApi({ creator: user });
-        await Documents().insert(toDocumentDBO(document));
-
-        const { status } = await request(url)
-          .delete(`/api/documents/${document.id}`)
-          .use(tokenProvider(user));
-
-        expect(status).toBe(constants.HTTP_STATUS_NO_CONTENT);
-
-        // Should still create document:removed event
-        const [documentRemoveEvent] = await Events()
-          .where({ type: 'document:removed' })
-          .where({ created_by: user.id })
-          .orderBy('created_at', 'desc')
-          .limit(1);
-
-        expect(documentRemoveEvent).toBeDefined();
-
-        // Should not create housing:document-removed events
-        const housingRemoveEvents = await Events()
-          .where({ type: 'housing:document-removed' })
-          .where({ created_by: user.id })
-          .orderBy('created_at', 'desc')
-          .limit(10);
-
-        // Filter to events for this document only
-        const thisDocEvents = await HousingDocumentEvents()
-          .whereIn(
-            'event_id',
-            housingRemoveEvents.map((e) => e.id)
-          )
-          .where({ document_id: document.id });
-
-        expect(thisDocEvents).toBeEmpty();
-      });
     });
   });
 });

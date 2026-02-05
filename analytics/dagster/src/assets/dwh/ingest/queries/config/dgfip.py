@@ -19,6 +19,14 @@ DGFIP_SOURCES = [
         description="Délibérations de fiscalité directe locale des communes 2025 (hors taux)",
         read_options={"auto_detect": True},
     ),
+  ExternalSourceConfig(
+        name="liste_communes_tlv1-2",
+        url="https://object.files.data.gouv.fr/hydra-parquet/hydra-parquet/efe71da1-15f8-4526-bcb8-5b9a9419c58c.parquet",
+        producer=Producer.DGFIP,
+        file_type=FileType.PARQUET,
+        description="Liste des communes selon le zonage TLV",
+        read_options={"auto_detect": True},
+    ),
 ]
 
 # Convert to dict format for backward compatibility

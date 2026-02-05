@@ -56,5 +56,5 @@ export async function generate(options: GenerateCampaignOptions): Promise<Readab
     </Document>
   );
 
-  return Readable.toWeb(nodeStream) as ReadableStream;
+  return Readable.toWeb(nodeStream as any) as ReadableStream;
 }

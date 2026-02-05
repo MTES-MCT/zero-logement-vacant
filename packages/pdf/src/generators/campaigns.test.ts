@@ -1,10 +1,11 @@
 import { describe, it, expect } from 'vitest';
 import { generate } from './campaigns';
-import { genHousingDTO } from '@zerologementvacant/models/fixtures';
+import { genHousingDTO, genOwnerDTO } from '@zerologementvacant/models/fixtures';
 
 describe('generate campaign PDF', () => {
   it('should return ReadableStream', async () => {
-    const housing = genHousingDTO();
+    const owner = genOwnerDTO();
+    const housing = genHousingDTO(owner);
     const draft = {
       subject: 'Test Subject',
       body: '<p>Hello {{owner.fullName}}</p>',
@@ -18,11 +19,9 @@ describe('generate campaign PDF', () => {
   });
 
   it('should replace variables in draft body', async () => {
-    const housing = genHousingDTO({
-      owner: {
-        fullName: 'Jean Dupont'
-      }
-    });
+    const owner = genOwnerDTO();
+    owner.fullName = 'Jean Dupont';
+    const housing = genHousingDTO(owner);
     const draft = {
       subject: 'Test',
       body: '<p>Bonjour {{owner.fullName}},</p>'

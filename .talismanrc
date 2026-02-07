@@ -70,7 +70,7 @@ fileignoreconfig:
 - filename: frontend/src/components/HousingListFilters/DataFileYearSelect.tsx
   checksum: c4e85a92672ddd7bce82931823c2cebbdd0516e04d47f7603d5fd04f23fab6b2
 - filename: docs/performance-improvements.md
-  checksum: e5f1bda166543ea5bedb81661e04d2596c7b34c49a2018effa3d32f91ab1a2f6
+  checksum: 89082f320ef3eb9d8a7ee811b5ff9948bbbe162e9ba0caf88d11de3d51466e4b
 scopeconfig:
 - scope: node
 allowed_patterns:

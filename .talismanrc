@@ -68,7 +68,7 @@ fileignoreconfig:
 - filename: docs/guides/document-upload-architecture.md
   checksum: 11ec4499248e685ea168b05df23d74a6357f21a54e9f26a8cf0937be8ba59f61
 - filename: docs/performance-improvements.md
-  checksum: e5f1bda166543ea5bedb81661e04d2596c7b34c49a2018effa3d32f91ab1a2f6
+  checksum: 89082f320ef3eb9d8a7ee811b5ff9948bbbe162e9ba0caf88d11de3d51466e4b
 scopeconfig:
 - scope: node
 allowed_patterns:

@@ -5,14 +5,8 @@
   "exports": {
     "./package.json": "./package.json",
     ".": {
-      "import": {
-        "types": "./dist/lib/index.d.ts",
-        "default": "./dist/lib/index.js"
-      },
-      "require": {
-        "types": "./dist/lib/index.d.cts",
-        "default": "./dist/lib/index.cjs"
-      }
+      "types": "./dist/lib/index.d.ts",
+      "default": "./dist/lib/index.js"
     }
   },
   "devDependencies": {

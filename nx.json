@@ -7,12 +7,18 @@
       "default",
       "!{projectRoot}/**/?(*.)+(spec|test).[jt]s?(x)?(.snap)",
       "!{projectRoot}/tsconfig.spec.json",
-      "!{projectRoot}/**/*.md"
+      "!{projectRoot}/**/*.md",
+      "!{projectRoot}/src/test-setup.[jt]s"
     ],
     "sharedGlobals": [
       "{workspaceRoot}/tsconfig.base.json",
       "{workspaceRoot}/eslint.config.mjs"
     ]
+  },
+  "generators": {
+    "@nx/js:library": {
+      "buildable": true
+    }
   },
   "targetDefaults": {
     "build": {
@@ -29,7 +35,10 @@
     "typecheck": {
       "dependsOn": ["^typecheck"],
       "inputs": ["default", "^default", "{workspaceRoot}/tsconfig.base.json"],
-      "outputs": ["{projectRoot}/dist/**/*.d.ts", "{projectRoot}/*.tsbuildinfo"],
+      "outputs": [
+        "{projectRoot}/dist/**/*.d.ts",
+        "{projectRoot}/*.tsbuildinfo"
+      ],
       "cache": true
     },
     "lint": {
@@ -44,7 +53,8 @@
     "test": {
       "inputs": ["default", "^production"],
       "outputs": ["{workspaceRoot}/coverage/{projectRoot}"],
-      "cache": true
+      "cache": true,
+      "dependsOn": ["^build"]
     },
     "icons": {
       "dependsOn": ["^icons"],
@@ -71,7 +81,6 @@
       "plugin": "@nx/vite/plugin",
       "options": {
         "buildTargetName": "build",
-        "testTargetName": "test",
         "serveTargetName": "serve",
         "devTargetName": "dev",
         "previewTargetName": "preview",
@@ -98,6 +107,12 @@
         "devTargetName": "dev",
         "startTargetName": "start",
         "typecheckTargetName": "typecheck"
+      }
+    },
+    {
+      "plugin": "@nx/vitest",
+      "options": {
+        "testTargetName": "test"
       }
     }
   ]

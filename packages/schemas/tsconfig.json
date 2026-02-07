@@ -7,9 +7,6 @@
   },
   "references": [
     {
-      "path": "../models"
-    },
-    {
       "path": "./tsconfig.lib.json"
     },
     {

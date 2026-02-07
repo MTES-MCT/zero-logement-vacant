@@ -8,13 +8,6 @@
   },
   "references": [
     {
-      "path": "../utils"
-    },
-    {
-      "path": "../draft"
-    },
-    // Other project dependencies
-    {
       "path": "./tsconfig.lib.json"
     },
     {

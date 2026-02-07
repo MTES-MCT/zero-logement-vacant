@@ -10,24 +10,6 @@
   },
   "references": [
     {
-      "path": "../packages/utils"
-    },
-    {
-      "path": "../packages/schemas"
-    },
-    {
-      "path": "../queue"
-    },
-    {
-      "path": "../packages/models"
-    },
-    {
-      "path": "../packages/healthcheck"
-    },
-    {
-      "path": "../packages/draft"
-    },
-    {
       "path": "./tsconfig.app.json"
     },
     {

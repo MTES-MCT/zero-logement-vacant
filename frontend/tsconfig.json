@@ -13,18 +13,6 @@
   },
   "references": [
     {
-      "path": "../packages/utils"
-    },
-    {
-      "path": "../packages/schemas"
-    },
-    {
-      "path": "../queue"
-    },
-    {
-      "path": "../packages/models"
-    },
-    {
       "path": "./tsconfig.app.json"
     },
     {

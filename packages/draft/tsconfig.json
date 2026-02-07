@@ -11,9 +11,6 @@
   },
   "references": [
     {
-      "path": "../utils"
-    },
-    {
       "path": "./tsconfig.lib.json"
     },
     {

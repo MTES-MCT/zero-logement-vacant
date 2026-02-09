@@ -1,37 +1,26 @@
-import { createContext, useContext, useMemo, type ReactNode } from 'react';
+import { createContext, useContext, type ReactNode } from 'react';
 import { assert } from 'ts-essentials';
 
 import type { Housing } from '~/models/Housing';
-import { useGetHousingQuery } from '~/services/housing.service';
 
 interface HousingContextValue {
-  housing: Housing | undefined;
-  housingId: string;
-  getHousingQuery: Omit<ReturnType<typeof useGetHousingQuery>, 'data'>;
+  housing: Housing | null;
+  error: string | null;
+  isError: boolean;
+  isLoading: boolean;
+  isSuccess: boolean;
 }
 
 const HousingContext = createContext<HousingContextValue | null>(null);
 
-interface HousingProviderProps {
-  housingId: string;
+interface HousingProviderProps extends HousingContextValue {
   children: ReactNode;
 }
 
 export function HousingProvider(props: Readonly<HousingProviderProps>) {
-  const { data: housing, ...getHousingQuery } = useGetHousingQuery(
-    props.housingId
-  );
-
-  const value = useMemo(() => ({
-    housing,
-    housingId: props.housingId,
-    getHousingQuery
-  }), [housing, props.housingId, getHousingQuery]);
-
+  const { children, ...rest } = props;
   return (
-    <HousingContext.Provider value={value}>
-      {props.children}
-    </HousingContext.Provider>
+    <HousingContext.Provider value={rest}>{children}</HousingContext.Provider>
   );
 }
 

@@ -4,33 +4,43 @@ import Stack from '@mui/material/Stack';
 import Typography from '@mui/material/Typography';
 import type { DocumentDTO } from '@zerologementvacant/models';
 import type { ReactNode } from 'react';
-import { useState } from 'react';
+import { useId, useMemo, useState } from 'react';
 import { match, Pattern } from 'ts-pattern';
 
 import DocumentFullscreenPreview from '~/components/FileUpload/DocumentFullscreenPreview';
-import HousingDocumentUpload from '~/components/FileUpload/HousingDocumentUpload';
-import DocumentCard from '~/components/HousingDetails/DocumentCard';
+import HousingDocumentUpload, {
+  type HousingDocumentUploadProps
+} from '~/components/FileUpload/HousingDocumentUpload';
+import DocumentCard, {
+  type DocumentCardProps
+} from '~/components/HousingDetails/DocumentCard';
 import { createDocumentDeleteModal } from '~/components/HousingDetails/DocumentDeleteModal';
 import { createDocumentRenameModal } from '~/components/HousingDetails/DocumentRenameModal';
-import { useHousing } from '~/hooks/useHousing';
-import { useNotification } from '~/hooks/useNotification';
 import { useUser } from '~/hooks/useUser';
-import {
-  useListHousingDocumentsQuery,
-  useUnlinkDocumentMutation,
-  useUpdateDocumentMutation
-} from '~/services/document.service';
 
-const documentRenameModal = createDocumentRenameModal();
-const documentDeleteModal = createDocumentDeleteModal();
+export type DocumentsTabProps = Pick<
+  DocumentCardProps,
+  'onRename' | 'onDelete'
+> & {
+  documents: ReadonlyArray<DocumentDTO>;
+  isLoading?: boolean;
+  isSuccess?: boolean;
+  documentCardProps?: Pick<DocumentCardProps, 'actions'>;
+  onUpload: HousingDocumentUploadProps['onUpload'];
+};
 
-function DocumentsTab() {
-  const { housing, housingId } = useHousing();
-  const {
-    data: documents,
-    isLoading,
-    isSuccess
-  } = useListHousingDocumentsQuery(housingId);
+function DocumentsTab(props: Readonly<DocumentsTabProps>) {
+  const documentRenameModalId = useId();
+  const documentRenameModal = useMemo(
+    () => createDocumentRenameModal(documentRenameModalId),
+    [documentRenameModalId]
+  );
+  const documentDeleteModalId = useId();
+  const documentDeleteModal = useMemo(
+    () => createDocumentDeleteModal(documentDeleteModalId),
+    [documentDeleteModalId]
+  );
+
   const { isUsual, isAdmin } = useUser();
   const canUpload = isAdmin || isUsual;
 
@@ -45,70 +55,36 @@ function DocumentsTab() {
     number | null
   >(null);
 
-  const [updateDocument, updateDocumentMutation] = useUpdateDocumentMutation();
-  useNotification({
-    toastId: 'document-rename',
-    isError: updateDocumentMutation.isError,
-    isLoading: updateDocumentMutation.isLoading,
-    isSuccess: updateDocumentMutation.isSuccess,
-    message: {
-      error: 'Erreur lors du renommage du document',
-      loading: 'Renommage du document ...',
-      success: 'Document renommé !'
-    }
-  });
-
-  const [unlinkDocument, unlinkDocumentMutation] = useUnlinkDocumentMutation();
-  useNotification({
-    toastId: 'document-delete',
-    isError: unlinkDocumentMutation.isError,
-    isLoading: unlinkDocumentMutation.isLoading,
-    isSuccess: unlinkDocumentMutation.isSuccess,
-    message: {
-      error: 'Erreur lors de la suppression du document',
-      loading: 'Suppression du document ...',
-      success: 'Document supprimé !'
-    }
-  });
-
-  function onRename(document: DocumentDTO): void {
+  function confirmRename(document: DocumentDTO): void {
     setSelectedDocument(document);
     documentRenameModal.open();
+  }
+
+  function cancelRename(): void {
+    documentRenameModal.close();
+    setSelectedDocument(null);
+  }
+
+  function renameDocument(filename: string): void {
+    if (!selectedDocument) {
+      return;
+    }
+
+    props.onRename({ ...selectedDocument, filename });
+    documentRenameModal.close();
+    setSelectedDocument(null);
   }
 
   function onVisualize(index: number): void {
     setFullscreenPreviewIndex(index);
   }
 
-  function onCancelRename(): void {
-    setSelectedDocument(null);
-  }
-
-  function rename(filename: string): void {
-    if (!selectedDocument) {
-      return;
-    }
-
-    updateDocument({
-      documentId: selectedDocument.id,
-      filename
-    })
-      .unwrap()
-      .then(() => {
-        setSelectedDocument(null);
-        documentRenameModal.close();
-      })
-      .catch((error) => {
-        console.warn('Error renaming document', error);
-      });
-  }
-
-  function onDelete(document: DocumentDTO): void {
+  function confirmDeletion(document: DocumentDTO): void {
     setDocumentToDelete(document);
     documentDeleteModal.open();
   }
 
-  function onCancelDelete(): void {
+  function cancelDeletion(): void {
     setDocumentToDelete(null);
     documentDeleteModal.close();
   }
@@ -118,18 +94,9 @@ function DocumentsTab() {
       return;
     }
 
-    unlinkDocument({
-      documentId: documentToDelete.id,
-      housingId: housingId
-    })
-      .unwrap()
-      .then(() => {
-        setDocumentToDelete(null);
-        documentDeleteModal.close();
-      })
-      .catch((error) => {
-        console.warn('Error deleting document', error);
-      });
+    props.onDelete(documentToDelete);
+    documentDeleteModal.close();
+    setDocumentToDelete(null);
   }
 
   async function onDownload(document: DocumentDTO): Promise<void> {
@@ -149,16 +116,14 @@ function DocumentsTab() {
     }
   }
 
-  if (!housing) {
-    return null;
-  }
+  const { documents } = props;
 
   return (
     <>
       <documentRenameModal.Component
         document={selectedDocument}
-        onCancel={onCancelRename}
-        onSubmit={rename}
+        onCancel={cancelRename}
+        onSubmit={renameDocument}
         onDownload={() => {
           if (selectedDocument) {
             onDownload(selectedDocument);
@@ -166,8 +131,7 @@ function DocumentsTab() {
         }}
       />
       <documentDeleteModal.Component
-        document={documentToDelete}
-        onCancel={onCancelDelete}
+        onCancel={cancelDeletion}
         onSubmit={deleteDocument}
       />
 
@@ -187,11 +151,15 @@ function DocumentsTab() {
       <Stack component="section" spacing="2rem" useFlexGap>
         {canUpload ? (
           <Stack component="header">
-            <HousingDocumentUpload housing={housing} />
+            <HousingDocumentUpload onUpload={props.onUpload} />
           </Stack>
         ) : null}
 
-        {match({ documents, isLoading, isSuccess })
+        {match({
+          documents,
+          isLoading: props.isLoading,
+          isSuccess: props.isSuccess
+        })
           .returnType<ReactNode>()
           .with({ isSuccess: true, documents: [] }, () => (
             <Stack
@@ -225,11 +193,12 @@ function DocumentsTab() {
                   {documents.map((document, index) => (
                     <Grid key={document.id} size={{ xs: 12, md: 6, xl: 4 }}>
                       <DocumentCard
+                        {...props.documentCardProps}
                         document={document}
                         index={index}
-                        onDelete={onDelete}
+                        onDelete={confirmDeletion}
                         onDownload={onDownload}
-                        onRename={onRename}
+                        onRename={confirmRename}
                         onVisualize={onVisualize}
                       />
                     </Grid>

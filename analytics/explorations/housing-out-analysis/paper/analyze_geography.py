@@ -56,6 +56,9 @@ BOOLEAN_FEATURES = [
     ("village_davenir", "Village d Avenir", "Hors VDA"),
     ("has_opah", "Avec OPAH", "Sans OPAH"),
     ("ort_signed", "ORT signe", "Sans ORT"),
+    ("is_in_tlv1_territory", "Zone TLV1", "Hors TLV1"),
+    ("is_in_tlv2_territory", "Zone TLV2", "Hors TLV2"),
+    ("is_in_tlv_territory", "Zone TLV", "Hors TLV"),
 ]
 
 CONTINUOUS_FEATURES = [
@@ -86,6 +89,16 @@ CONTINUOUS_FEATURES = [
     
     # Land consumption
     "taux_artificialisation_pct",
+
+    "tfb_taux_commune",
+    "taux_tfnb",
+    "taux_th",
+    "teom_taux",
+    "th_surtaxe_indicateur",
+    "th_surtaxe_residences_secondaires_pct",
+    "pression_fiscale_tfb_teom",
+    "epci_regime_fiscal",
+    "fiscalite_annee_reference"
 ]
 
 

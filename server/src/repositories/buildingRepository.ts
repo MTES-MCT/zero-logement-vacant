@@ -1,3 +1,7 @@
+import type { EnergyConsumption } from '@zerologementvacant/models';
+import { Array, Predicate } from 'effect';
+import { match, Pattern } from 'ts-pattern';
+
 import db, { ConflictOptions, onConflict } from '~/infra/database';
 import { BuildingApi } from '~/models/BuildingApi';
 
@@ -16,11 +20,18 @@ export interface BuildingDBO {
    * @see https://doc-datafoncier.cerema.fr/doc/ff/batiment/rnb_id_score
    */
   rnb_id_score: number | null;
+  dpe_id: string | null;
+  class_dpe: EnergyConsumption | null;
+  class_ges: EnergyConsumption | null;
+  dpe_date_at: Date | string | null;
+  dpe_type: string | null;
+  heating_building: string | null;
+  dpe_import_match: string | null;
 }
 
 interface FindOptions {
   filters?: {
-    id?: string[];
+    id?: Array<BuildingDBO['id']>;
   };
 }
 
@@ -29,7 +40,7 @@ export async function find(
 ): Promise<ReadonlyArray<BuildingApi>> {
   const buildings = await Buildings().modify((query) => {
     if (options?.filters?.id?.length) {
-      query.whereIn('id', options?.filters.id);
+      query.whereIn('id', options.filters.id);
     }
   });
   return buildings.map(parseBuildingApi);
@@ -69,23 +80,69 @@ export async function saveMany(
     );
 }
 
-export const formatBuildingApi = (building: BuildingApi): BuildingDBO => ({
-  id: building.id,
-  housing_count: building.housingCount,
-  vacant_housing_count: building.vacantHousingCount,
-  rent_housing_count: building.rentHousingCount,
-  rnb_id: building.rnbId,
-  rnb_id_score: building.rnbIdScore
-});
+export function formatBuildingApi(building: BuildingApi): BuildingDBO {
+  return {
+    id: building.id,
+    housing_count: building.housingCount,
+    vacant_housing_count: building.vacantHousingCount,
+    rent_housing_count: building.rentHousingCount,
+    rnb_id: building.rnb?.id ?? null,
+    rnb_id_score: building.rnb?.score ?? null,
+    dpe_id: building.dpe?.id ?? null,
+    class_dpe: building.dpe?.class ?? null,
+    class_ges: building.ges?.class ?? null,
+    dpe_date_at: building.dpe?.doneAt ?? null,
+    dpe_type: building.dpe?.type ?? null,
+    heating_building: building.heating ?? null,
+    dpe_import_match: building.dpe?.match ?? null
+  };
+}
 
-export const parseBuildingApi = (building: BuildingDBO): BuildingApi => ({
-  id: building.id,
-  housingCount: building.housing_count,
-  vacantHousingCount: building.vacant_housing_count,
-  rentHousingCount: building.rent_housing_count ?? 0,
-  rnbId: building.rnb_id,
-  rnbIdScore: building.rnb_id_score
-});
+export function parseBuildingApi(building: BuildingDBO): BuildingApi {
+  const allNonNull = Array.every(Predicate.isNotNull);
+
+  const rnb: BuildingApi['rnb'] = allNonNull([building.rnb_id_score])
+    ? {
+        id: building.rnb_id,
+        score: building.rnb_id_score as number
+      }
+    : null;
+  const dpe: BuildingApi['dpe'] = allNonNull([
+    building.dpe_id,
+    building.class_dpe,
+    building.dpe_date_at,
+    building.dpe_type,
+    building.dpe_import_match
+  ])
+    ? {
+        id: building.dpe_id as string,
+        class: building.class_dpe as EnergyConsumption,
+        doneAt: match(building.dpe_date_at)
+          .with(Pattern.instanceOf(Date), (date) =>
+            date.toISOString().substring(0, 'yyyy-mm-dd'.length)
+          )
+          .otherwise(date => date as string),
+        type: building.dpe_type as
+          | 'dpe appartement individuel'
+          | 'dpe maison individuelle',
+        match: building.dpe_import_match as 'plot_id' | 'rnb_id'
+      }
+    : null;
+  const ges: BuildingApi['ges'] = allNonNull([building.class_ges])
+    ? { class: building.class_ges as EnergyConsumption }
+    : null;
+
+  return {
+    id: building.id,
+    housingCount: building.housing_count,
+    vacantHousingCount: building.vacant_housing_count,
+    rentHousingCount: building.rent_housing_count ?? 0,
+    rnb,
+    dpe,
+    ges,
+    heating: building.heating_building
+  };
+}
 
 const buildingRepository = {
   find,

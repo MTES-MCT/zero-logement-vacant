@@ -336,7 +336,8 @@ function HousingFiltersBadges(props: HousingFiltersBadgesProps) {
           {
             value: null,
             label: 'Pas d’information',
-            badgeLabel: 'Étiquette DPE représentatif (CSTB) : pas d’information'
+            badgeLabel:
+              'Étiquette DPE représentatif (ADEME) : pas d’information'
           },
           ...energyConsumptionOptions
         ]}

@@ -1,5 +1,4 @@
 import Typography from '@mui/material/Typography';
-import type { DocumentDTO } from '@zerologementvacant/models';
 
 import {
   createConfirmationModal,
@@ -10,34 +9,29 @@ export type DocumentDeleteModalProps = Pick<
   ConfirmationModalProps,
   'className' | 'size'
 > & {
-  document: DocumentDTO | null;
   onCancel(): void;
   onSubmit(): void;
 };
 
-export function createDocumentDeleteModal() {
+export function createDocumentDeleteModal(id: string) {
   const modal = createConfirmationModal({
-    id: 'document-delete-modal',
+    id: `document-delete-modal-${id}`,
     isOpenedByDefault: false
   });
 
   return {
     ...modal,
-    Component(props: DocumentDeleteModalProps) {
-      const { document, ...rest } = props;
-
+    Component(props: Readonly<DocumentDeleteModalProps>) {
       return (
         <modal.Component
-          {...rest}
+          {...props}
           title="Suppression du document"
           onClose={props.onCancel}
           onSubmit={props.onSubmit}
         >
-          {document ? (
-            <Typography>
-              Êtes-vous sûr de vouloir supprimer ce document ?
-            </Typography>
-          ) : null}
+          <Typography>
+            Êtes-vous sûr de vouloir supprimer ce document ?
+          </Typography>
         </modal.Component>
       );
     }

@@ -49,6 +49,19 @@ export const housingHandlers: RequestHandler[] = [
 
       const subset = pipe(
         data.housings,
+        Array.map((housing) => {
+          const mainHousingOwner =
+            data.housingOwners
+              .get(housing.id)
+              ?.find((housingOwner) => housingOwner.rank === 1) ?? null;
+          const mainOwner =
+            data.owners.find((owner) => owner.id === mainHousingOwner?.id) ??
+            null;
+          return {
+            ...housing,
+            owner: mainOwner
+          };
+        }),
         filterByCampaign(campaignIds),
         filterByHousingKind(housingKinds),
         filterByStatus(statuses)
@@ -121,7 +134,7 @@ export const housingHandlers: RequestHandler[] = [
 
       const owner = genOwnerDTO();
       const housing: HousingDTO = {
-        ...genHousingDTO(owner),
+        ...genHousingDTO(),
         localId: datafoncierHousing.idlocal,
         geoCode: datafoncierHousing.idcom,
         source: 'datafoncier-manual'

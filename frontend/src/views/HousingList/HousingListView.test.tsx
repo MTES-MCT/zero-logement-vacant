@@ -367,7 +367,7 @@ describe('Housing list view', () => {
     it('should upload a single document', async () => {
       const establishment = genEstablishmentDTO();
       const auth = genUserDTO(UserRole.USUAL, establishment);
-      const housing = genHousingDTO(null);
+      const housing = genHousingDTO();
 
       renderView({
         establishment,
@@ -408,7 +408,7 @@ describe('Housing list view', () => {
     it('should remove documents on cancel', async () => {
       const establishment = genEstablishmentDTO();
       const auth = genUserDTO(UserRole.USUAL, establishment);
-      const housing = genHousingDTO(null);
+      const housing = genHousingDTO();
 
       renderView({
         establishment,

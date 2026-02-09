@@ -187,7 +187,7 @@ function HousingEditionSideMenu(props: HousingEditionSideMenuProps) {
   const { formState } = form;
   const { dirtyFields } = formState;
 
-  const submit: SubmitHandler<HousingEditionFormSchema> = (data) => {
+  const submit: SubmitHandler<HousingEditionFormSchema> = (payload) => {
     if (housing) {
       const hasChanges =
         [

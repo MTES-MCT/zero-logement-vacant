@@ -1,6 +1,7 @@
 import { fc, test } from '@fast-check/vitest';
 
 import {
+  ENERGY_CONSUMPTION_VALUES,
   HOUSING_STATUS_VALUES,
   HousingStatus,
   Occupancy,
@@ -19,6 +20,11 @@ describe('Housing update payload', () => {
     ),
     occupancyIntended: fc.oneof(
       fc.constantFrom(...OCCUPANCY_VALUES),
+      fc.constant(null),
+      fc.constant(undefined)
+    ),
+    actualEnergyConsumption: fc.oneof(
+      fc.constantFrom(...ENERGY_CONSUMPTION_VALUES),
       fc.constant(null),
       fc.constant(undefined)
     )

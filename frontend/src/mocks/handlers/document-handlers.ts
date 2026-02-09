@@ -13,7 +13,7 @@ import config from '~/utils/config';
 import { decodeAuth } from './auth-helpers';
 import data from './data';
 
-const listByHousing = http.get<{ id: string }, never, DocumentDTO[]>(
+const findByHousing = http.get<{ id: string }, never, DocumentDTO[]>(
   `${config.apiEndpoint}/api/housing/:id/documents`,
   async ({ params }) => {
     const documents = (data.housingDocuments.get(params.id) ?? [])
@@ -147,7 +147,35 @@ const update = http.put<
   });
 });
 
-const removeByHousing = http.delete<
+const remove = http.delete<{ id: DocumentDTO['id'] }, never, null | Error>(
+  `${config.apiEndpoint}/api/documents/:id`,
+  async ({ params }) => {
+    const document = data.documents.get(params.id);
+    if (!document) {
+      return HttpResponse.json(
+        {
+          name: 'DocumentMissingError',
+          message: `Document ${params.id} missing`
+        },
+        { status: constants.HTTP_STATUS_NOT_FOUND }
+      );
+    }
+
+    data.documents.delete(params.id);
+    data.housingDocuments.forEach((documents, housingId) => {
+      data.housingDocuments.set(
+        housingId,
+        documents.filter((doc) => doc.id !== params.id)
+      );
+    });
+
+    return HttpResponse.json(null, {
+      status: constants.HTTP_STATUS_NO_CONTENT
+    });
+  }
+);
+
+const unlinkFromHousing = http.delete<
   { housingId: HousingDTO['id']; documentId: DocumentDTO['id'] },
   never,
   null | Error
@@ -184,9 +212,10 @@ const removeByHousing = http.delete<
 );
 
 export const documentHandlers: RequestHandler[] = [
-  listByHousing,
   upload,
-  linkToHousing,
   update,
-  removeByHousing
+  remove,
+  findByHousing,
+  linkToHousing,
+  unlinkFromHousing
 ];

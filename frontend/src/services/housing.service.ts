@@ -116,7 +116,8 @@ export const housingApi = zlvApi.injectEndpoints({
           occupancy: payload.occupancy,
           occupancyIntended: payload.occupancyIntended ?? null,
           status: payload.status,
-          subStatus: payload.subStatus?.length ? payload.subStatus : null
+          subStatus: payload.subStatus?.length ? payload.subStatus : null,
+          actualEnergyConsumption: payload.actualEnergyConsumption ?? null
         } satisfies HousingUpdatePayloadDTO
       }),
       invalidatesTags: (_result, _error, payload) => [

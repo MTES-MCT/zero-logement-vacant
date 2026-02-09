@@ -8,6 +8,7 @@ import {
   type CampaignDTO,
   type CampaignStatus,
   type DatafoncierHousing,
+  type EstablishmentDTO,
   type GroupDTO,
   HOUSING_KIND_VALUES,
   type HousingDTO,
@@ -24,6 +25,7 @@ import {
   genBuildingDTO,
   genCampaignDTO,
   genDatafoncierHousing,
+  genEstablishmentDTO,
   genGroupDTO,
   genHousingDTO,
   genHousingOwnerDTO,
@@ -42,10 +44,14 @@ import configureTestStore from '../../utils/storeUtils';
 import CampaignView from '../Campaign/CampaignView';
 import HousingListTabsProvider from './HousingListTabsProvider';
 import HousingListView from './HousingListView';
+import { genAuthUser } from '~/test/fixtures';
+import { fromEstablishmentDTO } from '~/models/Establishment';
+import { fromUserDTO } from '~/models/User';
 
 vi.mock('../../components/Aside/Aside.tsx');
 
 interface RenderViewOptions {
+  establishment: EstablishmentDTO;
   auth: UserDTO;
   housings: ReadonlyArray<HousingDTO>;
   owners: ReadonlyArray<OwnerDTO>;
@@ -64,6 +70,7 @@ describe('Housing list view', () => {
   const user = userEvent.setup();
 
   function renderView(options: RenderViewOptions) {
+    data.establishments.push(options.establishment);
     data.users.push(options.auth);
     data.groups.push(...options.groups);
     data.housings.push(...options.housings);
@@ -85,7 +92,12 @@ describe('Housing list view', () => {
       });
     });
 
-    const store = configureTestStore();
+    const store = configureTestStore({
+      auth: genAuthUser(
+        fromUserDTO(options.auth),
+        fromEstablishmentDTO(options.establishment)
+      )
+    });
     const router = createMemoryRouter(
       [
         {
@@ -104,7 +116,7 @@ describe('Housing list view', () => {
               <HousingListView />
             </HousingListTabsProvider>
           )
-        },
+        }
       ],
       {
         initialEntries: ['/']
@@ -121,10 +133,11 @@ describe('Housing list view', () => {
   }
 
   it('should filter by housing kind', async () => {
-    const auth = genUserDTO();
+    const establishment = genEstablishmentDTO();
+    const auth = genUserDTO(UserRole.USUAL, establishment);
     const housings = HOUSING_KIND_VALUES.flatMap((housingKind) => {
       return faker.helpers
-        .multiple(() => genHousingDTO(null))
+        .multiple(() => genHousingDTO())
         .map((housing) => ({ ...housing, housingKind }));
     });
     const owners = faker.helpers.multiple(() => genOwnerDTO(), {
@@ -141,6 +154,7 @@ describe('Housing list view', () => {
     });
 
     renderView({
+      establishment,
       auth,
       housings,
       owners,
@@ -170,11 +184,13 @@ describe('Housing list view', () => {
 
   describe('Select housings', () => {
     it('should select all housings when the top checkbox gets checked', async () => {
-      const auth = genUserDTO();
+      const establishment = genEstablishmentDTO();
+      const auth = genUserDTO(UserRole.USUAL, establishment);
       const owners = faker.helpers.multiple(() => genOwnerDTO());
-      const housings = faker.helpers.multiple(() => genHousingDTO(null));
+      const housings = faker.helpers.multiple(() => genHousingDTO());
 
       renderView({
+        establishment,
         auth,
         housings,
         owners,
@@ -194,11 +210,13 @@ describe('Housing list view', () => {
     });
 
     it('should unselect all housings when the top checkbox is checked and clicked again', async () => {
-      const auth = genUserDTO();
+      const establishment = genEstablishmentDTO();
+      const auth = genUserDTO(UserRole.USUAL, establishment);
       const owners = faker.helpers.multiple(() => genOwnerDTO());
-      const housings = faker.helpers.multiple(() => genHousingDTO(null));
+      const housings = faker.helpers.multiple(() => genHousingDTO());
 
       renderView({
+        establishment,
         auth,
         housings,
         owners,
@@ -231,9 +249,11 @@ describe('Housing list view', () => {
 
     it('should fail if the housing was not found in datafoncier', async () => {
       const localId = faker.string.alphanumeric(12);
-      const auth = genUserDTO();
+      const establishment = genEstablishmentDTO();
+      const auth = genUserDTO(UserRole.USUAL, establishment);
 
       renderView({
+        establishment,
         auth,
         housings: [],
         owners: [],
@@ -260,15 +280,17 @@ describe('Housing list view', () => {
     });
 
     it('should fail if the housing already exists in our database', async () => {
-      const auth = genUserDTO();
+      const establishment = genEstablishmentDTO();
+      const auth = genUserDTO(UserRole.USUAL, establishment);
       const owner = genOwnerDTO();
       const housing: HousingDTO = {
-        ...genHousingDTO(null),
+        ...genHousingDTO(),
         localId: datafoncierHousing.idlocal
       };
       expect(housing.localId).toBeDefined();
 
       renderView({
+        establishment,
         auth,
         housings: [housing],
         owners: [owner],
@@ -305,9 +327,11 @@ describe('Housing list view', () => {
     });
 
     it('should succeed otherwise', async () => {
-      const auth = genUserDTO();
+      const establishment = genEstablishmentDTO();
+      const auth = genUserDTO(UserRole.USUAL, establishment);
 
       const { router } = renderView({
+        establishment,
         auth,
         housings: [],
         owners: [],
@@ -335,15 +359,114 @@ describe('Housing list view', () => {
       await user.click(screen.getByRole('button', { name: /^Confirmer/ }));
 
       expect(modal).not.toBeVisible();
-      expect(router.state.location.pathname).toStartWith('/logements/')
+      expect(router.state.location.pathname).toStartWith('/logements/');
+    });
+  });
+
+  describe('Upload documents for a single housing', () => {
+    it('should upload a single document', async () => {
+      const establishment = genEstablishmentDTO();
+      const auth = genUserDTO(UserRole.USUAL, establishment);
+      const housing = genHousingDTO();
+
+      renderView({
+        establishment,
+        auth,
+        housings: [housing],
+        owners: [],
+        housingOwners: [],
+        campaigns: [],
+        campaignHousings: [],
+        groups: []
+      });
+
+      const housingPanel = await screen.findByRole('tabpanel', {
+        name: /Tous/
+      });
+      const [editHousing] = await within(housingPanel).findAllByRole('button', {
+        name: 'Éditer'
+      });
+      await user.click(editHousing);
+      const documentTab = await screen.findByRole('tab', {
+        name: /Documents/
+      });
+      await user.click(documentTab);
+      const documentPanel = await screen.findByRole('tabpanel', {
+        name: /Documents/
+      });
+      const input = await within(documentPanel).findByLabelText(
+        /associez un ou plusieurs documents à ce logement/i
+      );
+      const file = new File(['dummy content'], 'example.pdf', {
+        type: 'application/pdf'
+      });
+      await user.upload(input, file);
+      const document = await within(documentPanel).findByText('example.pdf');
+      expect(document).toBeVisible();
+    });
+
+    it('should remove documents on cancel', async () => {
+      const establishment = genEstablishmentDTO();
+      const auth = genUserDTO(UserRole.USUAL, establishment);
+      const housing = genHousingDTO();
+
+      renderView({
+        establishment,
+        auth,
+        housings: [housing],
+        owners: [],
+        housingOwners: [],
+        campaigns: [],
+        campaignHousings: [],
+        groups: []
+      });
+
+      const housingPanel = await screen.findByRole('tabpanel', {
+        name: /Tous/
+      });
+      const [editHousing] = await within(housingPanel).findAllByRole('button', {
+        name: 'Éditer'
+      });
+      await user.click(editHousing);
+      const documentTab = await screen.findByRole('tab', {
+        name: /Documents/
+      });
+      await user.click(documentTab);
+      const documentPanel = await screen.findByRole('tabpanel', {
+        name: /Documents/
+      });
+      const input = await within(documentPanel).findByLabelText(
+        /associez un ou plusieurs documents à ce logement/i
+      );
+      const file = new File(['dummy content'], 'example.pdf', {
+        type: 'application/pdf'
+      });
+      await user.upload(input, file);
+      const cancel = await screen.findByRole('button', { name: 'Annuler' });
+      await user.click(cancel);
+      const [editHousingAgain] = await within(housingPanel).findAllByRole(
+        'button',
+        { name: 'Éditer' }
+      );
+      await user.click(editHousingAgain);
+      const documentTabAgain = await screen.findByRole('tab', {
+        name: /Documents/
+      });
+      await user.click(documentTabAgain);
+      const documentPanelAgain = await screen.findByRole('tabpanel', {
+        name: /Documents/
+      });
+      const document = within(documentPanelAgain).queryByText('example.pdf');
+      expect(document).not.toBeInTheDocument();
     });
   });
 
   describe('Update several housings', () => {
     it('should update occupancies', async () => {
-      const auth = genUserDTO(UserRole.USUAL);
+      const establishment = genEstablishmentDTO();
+      const auth = genUserDTO(UserRole.USUAL, establishment);
       const owners = faker.helpers.multiple(() => genOwnerDTO());
-      const housings = faker.helpers.multiple(() => genHousingDTO(null));
+      const housings = faker.helpers.multiple(() => genHousingDTO());
       const housingOwners = housings.flatMap((housing) => {
         const subset = faker.helpers.arrayElements(owners, {
           min: 1,
@@ -359,6 +482,7 @@ describe('Housing list view', () => {
       const group = genGroupDTO(auth);
 
       renderView({
+        establishment,
         auth,
         housings,
         owners,
@@ -404,9 +528,10 @@ describe('Housing list view', () => {
 
   describe('Group creation', () => {
     it('should add housings to an existing group', async () => {
-      const auth = genUserDTO(UserRole.USUAL);
+      const establishment = genEstablishmentDTO();
+      const auth = genUserDTO(UserRole.USUAL, establishment);
       const owners = faker.helpers.multiple(() => genOwnerDTO());
-      const housings = faker.helpers.multiple(() => genHousingDTO(null));
+      const housings = faker.helpers.multiple(() => genHousingDTO());
       const housingOwners = housings.flatMap((housing) => {
         const subset = faker.helpers.arrayElements(owners, {
           min: 1,
@@ -422,6 +547,7 @@ describe('Housing list view', () => {
       const group = genGroupDTO(auth);
 
       const { router } = renderView({
+        establishment,
         auth,
         housings,
         owners,
@@ -471,9 +597,10 @@ describe('Housing list view', () => {
     it.todo('should add housings to a new group');
 
     it('should go back to the first step', async () => {
-      const auth = genUserDTO(UserRole.USUAL);
+      const establishment = genEstablishmentDTO();
+      const auth = genUserDTO(UserRole.USUAL, establishment);
       const owners = faker.helpers.multiple(() => genOwnerDTO());
-      const housings = faker.helpers.multiple(() => genHousingDTO(null));
+      const housings = faker.helpers.multiple(() => genHousingDTO());
       const housingOwners = housings.flatMap((housing) => {
         const subset = faker.helpers.arrayElements(owners, {
           min: 1,
@@ -489,6 +616,7 @@ describe('Housing list view', () => {
       const group = genGroupDTO(auth);
 
       renderView({
+        establishment,
         auth,
         housings,
         owners,
@@ -522,9 +650,10 @@ describe('Housing list view', () => {
     });
 
     it('should go back to the previous step', async () => {
-      const auth = genUserDTO(UserRole.USUAL);
+      const establishment = genEstablishmentDTO();
+      const auth = genUserDTO(UserRole.USUAL, establishment);
       const owners = faker.helpers.multiple(() => genOwnerDTO());
-      const housings = faker.helpers.multiple(() => genHousingDTO(null));
+      const housings = faker.helpers.multiple(() => genHousingDTO());
       const housingOwners = housings.flatMap((housing) => {
         const subset = faker.helpers.arrayElements(owners, {
           min: 1,
@@ -540,6 +669,7 @@ describe('Housing list view', () => {
       const group = genGroupDTO(auth);
 
       renderView({
+        establishment,
         auth,
         housings,
         owners,
@@ -577,9 +707,10 @@ describe('Housing list view', () => {
     });
 
     it('should create a new group', async () => {
-      const auth = genUserDTO(UserRole.USUAL);
+      const establishment = genEstablishmentDTO();
+      const auth = genUserDTO(UserRole.USUAL, establishment);
       const owners = faker.helpers.multiple(() => genOwnerDTO());
-      const housings = faker.helpers.multiple(() => genHousingDTO(null));
+      const housings = faker.helpers.multiple(() => genHousingDTO());
       const housingOwners = housings.flatMap((housing) => {
         const subset = faker.helpers.arrayElements(owners, {
           min: 1,
@@ -595,6 +726,7 @@ describe('Housing list view', () => {
       const group = genGroupDTO(auth);
 
       const { router } = renderView({
+        establishment,
         auth,
         housings,
         owners,
@@ -637,13 +769,14 @@ describe('Housing list view', () => {
     });
 
     it('should create a new group with correct status when tab is changed', async () => {
-      const auth = genUserDTO(UserRole.USUAL);
+      const establishment = genEstablishmentDTO();
+      const auth = genUserDTO(UserRole.USUAL, establishment);
       const owners = faker.helpers.multiple(() => genOwnerDTO(), { count: 10 });
 
       // Create housings with specific statuses
       const waitingHousings = faker.helpers.multiple(
         () => ({
-          ...genHousingDTO(null),
+          ...genHousingDTO(),
           status: HousingStatus.WAITING
         }),
         { count: 3 }
@@ -651,7 +784,7 @@ describe('Housing list view', () => {
 
       const neverContactedHousings = faker.helpers.multiple(
         () => ({
-          ...genHousingDTO(null),
+          ...genHousingDTO(),
           status: HousingStatus.NEVER_CONTACTED
         }),
         { count: 5 }
@@ -671,6 +804,7 @@ describe('Housing list view', () => {
       const group = genGroupDTO(auth);
 
       const { router } = renderView({
+        establishment,
         auth,
         housings,
         owners,
@@ -716,9 +850,11 @@ describe('Housing list view', () => {
     it.todo('should require a title and a description');
 
     it('should display an alert if trying to export without selecting housings', async () => {
-      const auth = genUserDTO();
+      const establishment = genEstablishmentDTO();
+      const auth = genUserDTO(UserRole.USUAL, establishment);
 
       renderView({
+        establishment,
         auth,
         housings: [],
         owners: [],
@@ -739,9 +875,10 @@ describe('Housing list view', () => {
 
   describe('Campaign creation', () => {
     it('should create a campaign', async () => {
-      const auth = genUserDTO(UserRole.USUAL);
+      const establishment = genEstablishmentDTO();
+      const auth = genUserDTO(UserRole.USUAL, establishment);
       const owners = faker.helpers.multiple(() => genOwnerDTO());
-      const housings = faker.helpers.multiple(() => genHousingDTO(null));
+      const housings = faker.helpers.multiple(() => genHousingDTO());
       const housingOwners = housings.flatMap((housing) => {
         const subset = faker.helpers.arrayElements(owners, {
           min: 1,
@@ -756,6 +893,7 @@ describe('Housing list view', () => {
       });
 
       const { router } = renderView({
+        establishment,
         auth,
         housings,
         owners,
@@ -813,9 +951,10 @@ describe('Housing list view', () => {
     });
 
     it('should require a title', async () => {
-      const auth = genUserDTO(UserRole.USUAL);
+      const establishment = genEstablishmentDTO();
+      const auth = genUserDTO(UserRole.USUAL, establishment);
       const owners = faker.helpers.multiple(() => genOwnerDTO());
-      const housings = faker.helpers.multiple(() => genHousingDTO(null));
+      const housings = faker.helpers.multiple(() => genHousingDTO());
       const housingOwners = housings.flatMap((housing) => {
         const subset = faker.helpers.arrayElements(owners, {
           min: 1,
@@ -830,6 +969,7 @@ describe('Housing list view', () => {
       });
 
       renderView({
+        establishment,
         auth,
         housings,
         owners,
@@ -881,9 +1021,10 @@ describe('Housing list view', () => {
     });
 
     it('should restrict require the description', async () => {
-      const auth = genUserDTO(UserRole.USUAL);
+      const establishment = genEstablishmentDTO();
+      const auth = genUserDTO(UserRole.USUAL, establishment);
       const owners = faker.helpers.multiple(() => genOwnerDTO());
-      const housings = faker.helpers.multiple(() => genHousingDTO(null));
+      const housings = faker.helpers.multiple(() => genHousingDTO());
       const housingOwners = housings.flatMap((housing) => {
         const subset = faker.helpers.arrayElements(owners, {
           min: 1,
@@ -898,6 +1039,7 @@ describe('Housing list view', () => {
       });
 
       renderView({
+        establishment,
         auth,
         housings,
         owners,
@@ -953,9 +1095,10 @@ describe('Housing list view', () => {
     });
 
     it('should restrict the title to 64 characters', async () => {
-      const auth = genUserDTO(UserRole.USUAL);
+      const establishment = genEstablishmentDTO();
+      const auth = genUserDTO(UserRole.USUAL, establishment);
       const owners = faker.helpers.multiple(() => genOwnerDTO());
-      const housings = faker.helpers.multiple(() => genHousingDTO(null));
+      const housings = faker.helpers.multiple(() => genHousingDTO());
       const housingOwners = housings.flatMap((housing) => {
         const subset = faker.helpers.arrayElements(owners, {
           min: 1,
@@ -970,6 +1113,7 @@ describe('Housing list view', () => {
       });
 
       renderView({
+        establishment,
         auth,
         housings,
         owners,
@@ -1025,9 +1169,10 @@ describe('Housing list view', () => {
     });
 
     it('should restrict the description to 1000 characters', async () => {
-      const auth = genUserDTO(UserRole.USUAL);
+      const establishment = genEstablishmentDTO();
+      const auth = genUserDTO(UserRole.USUAL, establishment);
       const owners = faker.helpers.multiple(() => genOwnerDTO());
-      const housings = faker.helpers.multiple(() => genHousingDTO(null));
+      const housings = faker.helpers.multiple(() => genHousingDTO());
       const housingOwners = housings.flatMap((housing) => {
         const subset = faker.helpers.arrayElements(owners, {
           min: 1,
@@ -1042,6 +1187,7 @@ describe('Housing list view', () => {
       });
 
       renderView({
+        establishment,
         auth,
         housings,
         owners,
@@ -1106,9 +1252,11 @@ describe('Housing list view', () => {
 
   describe('Housing tabs', () => {
     it('should select a default tab', async () => {
-      const auth = genUserDTO();
+      const establishment = genEstablishmentDTO();
+      const auth = genUserDTO(UserRole.USUAL, establishment);
 
       renderView({
+        establishment,
         auth,
         housings: [],
         owners: [],
@@ -1123,9 +1271,11 @@ describe('Housing list view', () => {
     });
 
     it('should open another tab', async () => {
-      const auth = genUserDTO();
+      const establishment = genEstablishmentDTO();
+      const auth = genUserDTO(UserRole.USUAL, establishment);
 
       renderView({
+        establishment,
         auth,
         housings: [],
         owners: [],
@@ -1147,9 +1297,11 @@ describe('Housing list view', () => {
   describe('Filters', () => {
     describe('Status filter', () => {
       it('should display a badge', async () => {
-        const auth = genUserDTO();
+        const establishment = genEstablishmentDTO();
+        const auth = genUserDTO(UserRole.USUAL, establishment);
 
         renderView({
+          establishment,
           auth,
           housings: [],
           owners: [],
@@ -1178,9 +1330,11 @@ describe('Housing list view', () => {
 
     describe('Substatus filter', () => {
       it('should display a badge', async () => {
-        const auth = genUserDTO();
+        const establishment = genEstablishmentDTO();
+        const auth = genUserDTO(UserRole.USUAL, establishment);
 
         renderView({
+          establishment,
           auth,
           housings: [],
           owners: [],
@@ -1222,8 +1376,9 @@ describe('Housing list view', () => {
 
     describe('Campaign filter', () => {
       it('should filter by a single campaign', async () => {
-        const auth = genUserDTO();
-        const housings = faker.helpers.multiple(() => genHousingDTO(null), {
+        const establishment = genEstablishmentDTO();
+        const auth = genUserDTO(UserRole.USUAL, establishment);
+        const housings = faker.helpers.multiple(() => genHousingDTO(), {
           count: 10
         });
         const owners = faker.helpers.multiple(() => genOwnerDTO(), {
@@ -1245,6 +1400,7 @@ describe('Housing list view', () => {
         }));
 
         renderView({
+          establishment,
           auth,
           housings,
           owners,
@@ -1291,8 +1447,9 @@ describe('Housing list view', () => {
       });
 
       it('should filter by several campaigns', async () => {
-        const auth = genUserDTO(UserRole.USUAL);
-        const housings = faker.helpers.multiple(() => genHousingDTO(null), {
+        const establishment = genEstablishmentDTO();
+        const auth = genUserDTO(UserRole.USUAL, establishment);
+        const housings = faker.helpers.multiple(() => genHousingDTO(), {
           count: 10
         });
         const owners = faker.helpers.multiple(() => genOwnerDTO(), {
@@ -1314,6 +1471,7 @@ describe('Housing list view', () => {
         }));
 
         renderView({
+          establishment,
           auth,
           housings,
           owners,
@@ -1353,9 +1511,10 @@ describe('Housing list view', () => {
       });
 
       it('should remove the filter by campaigns', async () => {
-        const auth = genUserDTO(UserRole.USUAL);
+        const establishment = genEstablishmentDTO();
+        const auth = genUserDTO(UserRole.USUAL, establishment);
         const housings = faker.helpers.multiple(
-          () => genHousingDTO(genOwnerDTO()),
+          () => genHousingDTO(),
           { count: 10 }
         );
         const owners = faker.helpers.multiple(() => genOwnerDTO(), {
@@ -1380,6 +1539,7 @@ describe('Housing list view', () => {
         }));
 
         renderView({
+          establishment,
           auth,
           housings,
           owners,
@@ -1443,8 +1603,9 @@ describe('Housing list view', () => {
 
       it('should filter by a status', async () => {
         const status: CampaignStatus = 'draft';
-        const auth = genUserDTO();
-        const housings = faker.helpers.multiple(() => genHousingDTO(null), {
+        const establishment = genEstablishmentDTO();
+        const auth = genUserDTO(UserRole.USUAL, establishment);
+        const housings = faker.helpers.multiple(() => genHousingDTO(), {
           count: 10
         });
         const owners = faker.helpers.multiple(() => genOwnerDTO(), {
@@ -1469,6 +1630,7 @@ describe('Housing list view', () => {
         }));
 
         renderView({
+          establishment,
           auth,
           housings,
           owners,
@@ -1509,9 +1671,10 @@ describe('Housing list view', () => {
 
       it('should remove the filter by status', async () => {
         const status: CampaignStatus = 'draft';
-        const auth = genUserDTO();
+        const establishment = genEstablishmentDTO();
+        const auth = genUserDTO(UserRole.USUAL, establishment);
         const owners = faker.helpers.multiple(() => genOwnerDTO());
-        const housings = faker.helpers.multiple(() => genHousingDTO(null), {
+        const housings = faker.helpers.multiple(() => genHousingDTO(), {
           count: 10
         });
         const housingOwners = housings.flatMap((housing) => {
@@ -1536,6 +1699,7 @@ describe('Housing list view', () => {
         }));
 
         renderView({
+          establishment,
           auth,
           housings,
           owners,
@@ -1584,8 +1748,9 @@ describe('Housing list view', () => {
 
       it('should select a status and its campaigns if at least one of the campaigns is not selected', async () => {
         const status: CampaignStatus = 'draft';
-        const auth = genUserDTO();
-        const housings = faker.helpers.multiple(() => genHousingDTO(null));
+        const establishment = genEstablishmentDTO();
+        const auth = genUserDTO(UserRole.USUAL, establishment);
+        const housings = faker.helpers.multiple(() => genHousingDTO());
         const owners = faker.helpers.multiple(() => genOwnerDTO(), {
           count: housings.length
         });
@@ -1611,6 +1776,7 @@ describe('Housing list view', () => {
         }));
 
         renderView({
+          establishment,
           auth,
           housings,
           owners,
@@ -1646,9 +1812,10 @@ describe('Housing list view', () => {
 
       it('should unselect a status and its campaigns if all the campaigns of this status are selected', async () => {
         const status: CampaignStatus = 'draft';
-        const auth = genUserDTO();
+        const establishment = genEstablishmentDTO();
+        const auth = genUserDTO(UserRole.USUAL, establishment);
         const owners = faker.helpers.multiple(() => genOwnerDTO());
-        const housings = faker.helpers.multiple(() => genHousingDTO(null));
+        const housings = faker.helpers.multiple(() => genHousingDTO());
         const housingOwners = housings.flatMap((housing) => {
           const subset = faker.helpers.arrayElements(owners, {
             min: 1,
@@ -1671,6 +1838,7 @@ describe('Housing list view', () => {
         }));
 
         renderView({
+          establishment,
           auth,
           housings,
           owners,
@@ -1704,9 +1872,11 @@ describe('Housing list view', () => {
 
     describe('Vacancy year filter', () => {
       it('should disable the input if `Vacant` is not selected', async () => {
-        const auth = genUserDTO();
+        const establishment = genEstablishmentDTO();
+        const auth = genUserDTO(UserRole.USUAL, establishment);
 
         renderView({
+          establishment,
           auth,
           housings: [],
           owners: [],
@@ -1728,9 +1898,11 @@ describe('Housing list view', () => {
       });
 
       it('should display a badge', async () => {
-        const auth = genUserDTO();
+        const establishment = genEstablishmentDTO();
+        const auth = genUserDTO(UserRole.USUAL, establishment);
 
         renderView({
+          establishment,
           auth,
           housings: [],
           owners: [],
@@ -1772,9 +1944,11 @@ describe('Housing list view', () => {
 
     describe('Housing kind filter', () => {
       it('should display a badge', async () => {
-        const auth = genUserDTO();
+        const establishment = genEstablishmentDTO();
+        const auth = genUserDTO(UserRole.USUAL, establishment);
 
         renderView({
+          establishment,
           auth,
           housings: [],
           owners: [],
@@ -1802,9 +1976,11 @@ describe('Housing list view', () => {
 
     describe('Locality kind filter', () => {
       it('should display a badge', async () => {
-        const auth = genUserDTO();
+        const establishment = genEstablishmentDTO();
+        const auth = genUserDTO(UserRole.USUAL, establishment);
 
         renderView({
+          establishment,
           auth,
           housings: [],
           owners: [],
@@ -1839,9 +2015,11 @@ describe('Housing list view', () => {
 
     describe('Housing count filter', () => {
       it('should display a badge', async () => {
-        const auth = genUserDTO();
+        const establishment = genEstablishmentDTO();
+        const auth = genUserDTO(UserRole.USUAL, establishment);
 
         renderView({
+          establishment,
           auth,
           housings: [],
           owners: [],
@@ -1874,9 +2052,11 @@ describe('Housing list view', () => {
 
     describe('Vacancy rate filter', () => {
       it('should display a badge', async () => {
-        const auth = genUserDTO();
+        const establishment = genEstablishmentDTO();
+        const auth = genUserDTO(UserRole.USUAL, establishment);
 
         renderView({
+          establishment,
           auth,
           housings: [],
           owners: [],
@@ -1906,9 +2086,11 @@ describe('Housing list view', () => {
 
     describe('Energy consumption filter', () => {
       it('should display a badge', async () => {
-        const auth = genUserDTO();
+        const establishment = genEstablishmentDTO();
+        const auth = genUserDTO(UserRole.USUAL, establishment);
 
         renderView({
+          establishment,
           auth,
           housings: [],
           owners: [],
@@ -1924,7 +2106,7 @@ describe('Housing list view', () => {
         await user.click(accordion);
 
         const dpe = await screen.findByRole('combobox', {
-          name: 'Étiquette DPE représentatif (CSTB)'
+          name: 'Étiquette DPE représentatif (ADEME)'
         });
         await user.click(dpe);
         const options = await screen.findByRole('listbox');
@@ -1932,16 +2114,18 @@ describe('Housing list view', () => {
         await user.click(option);
         await user.keyboard('{Escape}');
 
-        const badge = await screen.findByText('DPE représentatif (CSTB) A');
+        const badge = await screen.findByText('DPE représentatif (ADEME) A');
         expect(badge).toBeVisible();
       });
     });
 
     describe('Building period filter', () => {
       it('should display a badge', async () => {
-        const auth = genUserDTO();
+        const establishment = genEstablishmentDTO();
+        const auth = genUserDTO(UserRole.USUAL, establishment);
 
         renderView({
+          establishment,
           auth,
           housings: [],
           owners: [],
@@ -1974,9 +2158,11 @@ describe('Housing list view', () => {
 
     describe('Surface filter', () => {
       it('should display a badge', async () => {
-        const auth = genUserDTO();
+        const establishment = genEstablishmentDTO();
+        const auth = genUserDTO(UserRole.USUAL, establishment);
 
         renderView({
+          establishment,
           auth,
           housings: [],
           owners: [],
@@ -2007,9 +2193,11 @@ describe('Housing list view', () => {
 
     describe('Room count filter', () => {
       it('should display a badge', async () => {
-        const auth = genUserDTO();
+        const establishment = genEstablishmentDTO();
+        const auth = genUserDTO(UserRole.USUAL, establishment);
 
         renderView({
+          establishment,
           auth,
           housings: [],
           owners: [],
@@ -2040,9 +2228,11 @@ describe('Housing list view', () => {
 
     describe('Cadastral classification filter', () => {
       it('should display a badge', async () => {
-        const auth = genUserDTO();
+        const establishment = genEstablishmentDTO();
+        const auth = genUserDTO(UserRole.USUAL, establishment);
 
         renderView({
+          establishment,
           auth,
           housings: [],
           owners: [],
@@ -2075,9 +2265,11 @@ describe('Housing list view', () => {
 
     describe('Ownership kind filter', () => {
       it('should display a badge', async () => {
-        const auth = genUserDTO();
+        const establishment = genEstablishmentDTO();
+        const auth = genUserDTO(UserRole.USUAL, establishment);
 
         renderView({
+          establishment,
           auth,
           housings: [],
           owners: [],
@@ -2110,9 +2302,11 @@ describe('Housing list view', () => {
 
     describe('Owner kind filter', () => {
       it('should display a badge', async () => {
-        const auth = genUserDTO();
+        const establishment = genEstablishmentDTO();
+        const auth = genUserDTO(UserRole.USUAL, establishment);
 
         renderView({
+          establishment,
           auth,
           housings: [],
           owners: [],
@@ -2145,9 +2339,11 @@ describe('Housing list view', () => {
 
     describe('Owner age filter', () => {
       it('should display a badge', async () => {
-        const auth = genUserDTO();
+        const establishment = genEstablishmentDTO();
+        const auth = genUserDTO(UserRole.USUAL, establishment);
 
         renderView({
+          establishment,
           auth,
           housings: [],
           owners: [],
@@ -2178,9 +2374,11 @@ describe('Housing list view', () => {
 
     describe('Multi-owner filter', () => {
       it('should display a badge', async () => {
-        const auth = genUserDTO();
+        const establishment = genEstablishmentDTO();
+        const auth = genUserDTO(UserRole.USUAL, establishment);
 
         renderView({
+          establishment,
           auth,
           housings: [],
           owners: [],
@@ -2211,9 +2409,11 @@ describe('Housing list view', () => {
 
     describe('Secondary owner filter', () => {
       it('should display a badge', async () => {
-        const auth = genUserDTO();
+        const establishment = genEstablishmentDTO();
+        const auth = genUserDTO(UserRole.USUAL, establishment);
 
         renderView({
+          establishment,
           auth,
           housings: [],
           owners: [],
@@ -2246,9 +2446,11 @@ describe('Housing list view', () => {
 
     describe('Included data file years filter', () => {
       it('should display a badge', async () => {
-        const auth = genUserDTO();
+        const establishment = genEstablishmentDTO();
+        const auth = genUserDTO(UserRole.USUAL, establishment);
 
         renderView({
+          establishment,
           auth,
           housings: [],
           owners: [],
@@ -2281,9 +2483,11 @@ describe('Housing list view', () => {
 
     describe('Excluded data file years filter', () => {
       it('should display a badge', async () => {
-        const auth = genUserDTO();
+        const establishment = genEstablishmentDTO();
+        const auth = genUserDTO(UserRole.USUAL, establishment);
 
         renderView({
+          establishment,
           auth,
           housings: [],
           owners: [],

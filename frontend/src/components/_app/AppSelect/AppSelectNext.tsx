@@ -285,7 +285,6 @@ function AppSelectNext<Value, Multiple extends boolean = false>(
           },
           variant: 'menu',
           elevation: 0,
-          marginThreshold: null,
           disableScrollLock: true,
           slotProps: {
             paper: {

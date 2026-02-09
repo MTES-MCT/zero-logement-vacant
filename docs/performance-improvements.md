@@ -502,27 +502,86 @@ After removing the conflicting `project.json` from `api-sdk` and fixing the inva
    - All TypeScript project references are up to date
    - No project graph errors
 
+## Updated Benchmarks (2026-02-09)
+
+After migrating server build from `tsc` to `@nx/esbuild:esbuild` with bundling enabled (`skipTypeCheck: true`, `bundle: true`), new benchmarks were run.
+
+### Configuration Changes
+
+- **Server build executor:** `nx:run-commands` (tsc) → `@nx/esbuild:esbuild` (esbuild)
+- **Bundling enabled:** Single output bundle instead of individual transpiled files
+- **Type checking skipped during build:** `skipTypeCheck: true` (handled by separate `typecheck` target)
+- **Source maps:** Enabled in development, disabled in production
+
+### Performance Comparison
+
+| Metric | Baseline (Before) | Previous (Fixed) | Current (esbuild) | vs Baseline | vs Previous |
+|--------|-------------------|------------------|-------------------|-------------|-------------|
+| **Cold Build** | 22.50s | 23.39s | **18.47s** | **-17.9% ✓** | **-21.0% ✓** |
+| **Warm Build (Cache)** | 0.88s | 1.19s | **0.71s** | **-19.3% ✓** | **-40.3% ✓** |
+| **Cold Lint** | 14.30s | 14.18s | **13.40s** | **-6.3% ✓** | **-5.5% ✓** |
+| **Warm Lint (Cache)** | 0.70s | 0.99s | **0.64s** | **-8.6% ✓** | **-35.4% ✓** |
+| **Test Cache Isolation** | ❌ | ✅ | ✅ | - | - |
+| **Parallel Execution** | 3 tasks | 4 tasks | 4 tasks | +33% ✓ | Maintained |
+| **Cache Hit Rate** | 100% | 100% | 100% | Maintained | Maintained |
+
+### Detailed Measurements (Current)
+
+**Cold Build (No Cache):**
+- Run 1: 19.845s
+- Run 2: 18.755s
+- Run 3: 16.800s
+- **Average: 18.467s**
+
+**Warm Build (100% Cache Hit):**
+- Run 1: 0.800s
+- Run 2: 0.670s
+- Run 3: 0.665s
+- **Average: 0.712s**
+
+**Cold Lint (No Cache):**
+- Run 1: 12.956s
+- Run 2: 13.997s
+- Run 3: 13.236s
+- **Average: 13.396s**
+
+**Warm Lint (100% Cache Hit):**
+- Run 1: 0.671s
+- Run 2: 0.643s
+- Run 3: 0.616s
+- **Average: 0.643s**
+
+### Key Findings
+
+1. ✅ **Cold build improved by 21.0%** vs previous — esbuild bundles the server much faster than tsc transpilation
+2. ✅ **Warm build improved by 40.3%** vs previous — cache restoration overhead reduced
+3. ✅ **Cold lint improved by 5.5%** vs previous — likely benefiting from reduced Nx daemon overhead
+4. ✅ **Warm lint improved by 35.4%** vs previous — consistent sub-second cache hits
+5. ✅ **Server build no longer runs type checking** — type checking is decoupled to the `typecheck` target, enabling faster iteration during development
+6. ✅ **Server build produces a single bundled output** — simpler deployment artifact
+
 ## Conclusion
 
-The optimization focused on improving cache accuracy and parallel execution. While executor migration was blocked by architectural constraints, the implemented changes provide:
+The optimization focused on improving cache accuracy, parallel execution, and server build performance:
 
 1. **More accurate caching:** Test changes no longer trigger production rebuilds ✅
 2. **Better CPU utilization:** 4 parallel tasks instead of 3 ✅
-3. **Foundation for future improvements:** Configuration ready for batch mode once executors are migrated
-4. **Clean configuration:** Removed conflicting and invalid settings
-
-The cold build performance improved significantly (11.7%) after fixing the api-sdk configuration issues. Warm cache times show some variance but remain excellent (sub-second for all tasks).
+3. **Server uses esbuild:** Faster server builds with bundled output ✅
+4. **Clean configuration:** Removed conflicting and invalid settings ✅
+5. **Decoupled type checking:** Build and typecheck are independent targets ✅
+6. **All metrics improved** vs both baseline and previous measurements ✅
 
 ### Next Steps
 
-1. ✅ Monitor cache behavior in real development workflow - **VALIDATED**
-2. Consider implementing ESLint caching for high-churn projects (medium impact)
-3. Plan TypeScript configuration migration to enable batch mode (blocked, high impact)
-4. Evaluate Nx Cloud for team cache sharing
+1. ✅ Monitor cache behavior in real development workflow — **VALIDATED**
+2. ✅ Migrate server build to esbuild — **DONE**
+3. Consider implementing ESLint caching for high-churn projects (medium impact)
+4. Plan TypeScript configuration migration to enable batch mode for packages (blocked, high impact)
+5. Evaluate Nx Cloud for team cache sharing
 
 ---
 
 **Implemented by:** Claude Code
 **Review Status:** Ready for team review
 **Deployment:** Safe to merge to main
-**Last Updated:** 2026-02-07
+**Last Updated:** 2026-02-09

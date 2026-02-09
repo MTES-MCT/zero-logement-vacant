@@ -48,10 +48,13 @@ const FullWidthCenteredButton = styled(FullWidthButton)({
 });
 
 function DocumentCard(props: Readonly<DocumentCardProps>) {
+  function isAllActions(
+    value: DocumentCardProps
+  ): value is CommonProps & AllActionsProps {
+    return (value.actions ?? 'all') === 'all';
+  }
+
   const actions = props.actions ?? 'all';
-  const isAllActions = (
-    props: DocumentCardProps
-  ): props is CommonProps & AllActionsProps => actions === 'all';
 
   const size = prettyBytes(props.document.sizeBytes, {
     locale: 'fr',
@@ -109,7 +112,7 @@ function DocumentCard(props: Readonly<DocumentCardProps>) {
           padding: '1rem'
         }}
       >
-        {actions === 'all' ? (
+        {isAllActions(props) ? (
           <Box
             component="header"
             sx={{ display: 'flex', justifyContent: 'flex-end' }}

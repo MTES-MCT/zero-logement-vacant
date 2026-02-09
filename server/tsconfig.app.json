@@ -2,6 +2,7 @@
   "extends": "./tsconfig.json",
   "compilerOptions": {
     "baseUrl": "./",
+    "sourceRoot": "src",
     "outDir": "dist/app",
     "tsBuildInfoFile": "dist/app/tsconfig.tsbuildinfo",
     "typeRoots": ["node_modules", "src/types"],

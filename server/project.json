@@ -6,26 +6,68 @@
   "tags": [],
   "targets": {
     "build": {
-      "executor": "@nx/js:tsc",
+      "executor": "@nx/esbuild:esbuild",
+      "outputs": ["{options.outputPath}"],
+      "defaultConfiguration": "production",
       "options": {
-        "main": "server/src/index.ts",
-        "tsConfig": "server/tsconfig.app.json",
+        "platform": "node",
         "outputPath": "server/dist/app",
-        "rootDir": "server/src",
+        "format": ["esm"],
+        "bundle": true,
+        "skipTypeCheck": true,
+        "declaration": false,
+        "main": "{projectRoot}/src/index.ts",
+        "tsConfig": "{projectRoot}/tsconfig.app.json",
         "assets": [
           {
             "glob": "**/*",
-            "input": "server/src/infra/database/migrations",
+            "input": "{projectRoot}/src/infra/database/migrations",
             "output": "./migrations"
           },
           {
             "glob": "**/*",
-            "input": "server/src/infra/database/seeds",
+            "input": "{projectRoot}/src/infra/database/seeds",
             "output": "./seeds"
           }
-        ]
+        ],
+        "esbuildOptions": {
+          "sourcemap": true,
+          "outExtension": {
+            ".js": ".js"
+          }
+        }
+      },
+      "configurations": {
+        "development": {},
+        "production": {
+          "esbuildOptions": {
+            "sourcemap": false,
+            "outExtension": {
+              ".js": ".js"
+            }
+          }
+        }
       }
     },
+
+    "serve": {
+      "continuous": true,
+      "executor": "@nx/js:node",
+      "defaultConfiguration": "development",
+      "dependsOn": ["build"],
+      "options": {
+        "buildTarget": "@zerologementvacant/server:build"
+      },
+      "configurations": {
+        "development": {
+          "buildTarget": "@zerologementvacant/server:build:development"
+        },
+        "production": {
+          "buildTarget": "@zerologementvacant/server:build:production"
+        }
+      }
+    },
+
     "lint": {
       "executor": "nx:run-commands",
       "outputs": ["{projectRoot}/.eslintcache"],

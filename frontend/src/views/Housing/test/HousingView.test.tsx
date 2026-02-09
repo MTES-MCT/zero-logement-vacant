@@ -1533,7 +1533,7 @@ describe('Housing view', () => {
     it('should remove a document on submit', async () => {
       const establishment = genEstablishmentDTO();
       const auth = genUserDTO(UserRole.USUAL, establishment);
-      const housing = genHousingDTO(null);
+      const housing = genHousingDTO();
       const documents = faker.helpers.multiple(() =>
         genDocumentDTO(auth, establishment)
       );
@@ -1579,7 +1579,7 @@ describe('Housing view', () => {
     it('should cancel the removal of a document', async () => {
      const establishment = genEstablishmentDTO();
       const auth = genUserDTO(UserRole.USUAL, establishment);
-      const housing = genHousingDTO(null);
+      const housing = genHousingDTO();
       const documents = faker.helpers.multiple(() =>
         genDocumentDTO(auth, establishment)
       );

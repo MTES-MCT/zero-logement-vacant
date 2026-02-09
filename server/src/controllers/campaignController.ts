@@ -452,7 +452,7 @@ async function update(request: Request, response: Response) {
                 subStatus: housing.subStatus
               },
               nextNew: {
-                status: 'waiting',
+                status: HOUSING_STATUS_LABELS[HousingStatus.WAITING],
                 subStatus: null
               },
               createdBy: auth.userId,

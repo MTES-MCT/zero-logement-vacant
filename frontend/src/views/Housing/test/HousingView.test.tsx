@@ -1528,4 +1528,98 @@ describe('Housing view', () => {
       expect(uploadedDocument).toBeVisible();
     });
   });
+
+  describe('Remove documents from the side panel', () => {
+    it('should remove a document on submit', async () => {
+      const establishment = genEstablishmentDTO();
+      const auth = genUserDTO(UserRole.USUAL, establishment);
+      const housing = genHousingDTO();
+      const documents = faker.helpers.multiple(() =>
+        genDocumentDTO(auth, establishment)
+      );
+
+      renderView(housing, {
+        auth,
+        establishment,
+        documents
+      });
+
+      const edit = await screen.findByRole('button', {
+        name: 'Éditer'
+      });
+      await user.click(edit);
+      const tab = await screen.findByRole('tab', {
+        name: 'Documents'
+      });
+      await user.click(tab);
+      const panel = await screen.findByRole('tabpanel', {
+        name: 'Documents'
+      });
+      const remove = await within(panel).findByRole('button', {
+        name: new RegExp(`Supprimer ${documents[0].filename}`)
+      });
+      await user.click(remove);
+      const confirmRemoval = await screen.findByRole('button', {
+        name: 'Confirmer'
+      });
+      await user.click(confirmRemoval);
+      const submit = await screen.findByRole('button', {
+        name: 'Enregistrer'
+      });
+      await user.click(submit);
+      const panelAgain = await screen.findByRole('tabpanel', {
+        name: 'Documents'
+      });
+      const document = within(panelAgain).queryByText(
+        new RegExp(documents[0].filename, 'i')
+      );
+      expect(document).not.toBeInTheDocument();
+    });
+
+    it('should cancel the removal of a document', async () => {
+     const establishment = genEstablishmentDTO();
+      const auth = genUserDTO(UserRole.USUAL, establishment);
+      const housing = genHousingDTO();
+      const documents = faker.helpers.multiple(() =>
+        genDocumentDTO(auth, establishment)
+      );
+
+      renderView(housing, {
+        auth,
+        establishment,
+        documents
+      });
+
+      const edit = await screen.findByRole('button', {
+        name: 'Éditer'
+      });
+      await user.click(edit);
+      const tab = await screen.findByRole('tab', {
+        name: 'Documents'
+      });
+      await user.click(tab);
+      const panel = await screen.findByRole('tabpanel', {
+        name: 'Documents'
+      });
+      const remove = await within(panel).findByRole('button', {
+        name: new RegExp(`Supprimer ${documents[0].filename}`)
+      });
+      await user.click(remove);
+      const confirmRemoval = await screen.findByRole('button', {
+        name: 'Confirmer'
+      });
+      await user.click(confirmRemoval);
+      const cancel = await screen.findByRole('button', {
+        name: 'Annuler'
+      });
+      await user.click(cancel);
+      const panelAgain = await screen.findByRole('tabpanel', {
+        name: 'Documents'
+      });
+      const document = within(panelAgain).queryByText(
+        new RegExp(documents[0].filename, 'i')
+      );
+      expect(document).toBeInTheDocument(); 
+    })
+  });
 });

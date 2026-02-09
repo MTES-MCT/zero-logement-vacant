@@ -3,6 +3,7 @@ import { match } from 'ts-pattern';
 import { DataFileYear } from './DataFileYear';
 import { OwnerRank } from './HousingOwnerDTO';
 import { HousingStatus } from './HousingStatus';
+import type { EnergyConsumption } from './EnergyConsumption';
 
 interface EventChange<Old, New> {
   old: Old;
@@ -39,6 +40,9 @@ export type EventPayloads = {
     // This should not ever change so we can type it strongly
     source: 'datafoncier-manual' | DataFileYear;
     occupancy: string;
+  }>;
+  'housing:updated': UpdateEventChange<{
+    actualEnergyConsumption: EnergyConsumption | null;
   }>;
   'housing:occupancy-updated': UpdateEventChange<{
     // Store occupancy as a string to avoid changes

@@ -12,13 +12,15 @@ describe('HousingDTO', () => {
         status: HousingStatus.NEVER_CONTACTED,
         subStatus: null,
         occupancy: Occupancy.VACANT,
-        occupancyIntended: null
+        occupancyIntended: null,
+        actualEnergyConsumption: null
       };
       const after: HousingUpdatePayloadDTO = {
         status: HousingStatus.COMPLETED,
         subStatus: 'Suivi terminé',
         occupancy: Occupancy.RENT,
-        occupancyIntended: Occupancy.RENT
+        occupancyIntended: Occupancy.RENT,
+        actualEnergyConsumption: 'A'
       };
 
       const actual = diffHousingUpdatePayload(before, after);
@@ -29,15 +31,23 @@ describe('HousingDTO', () => {
             status: HousingStatus.NEVER_CONTACTED,
             subStatus: null,
             occupancy: Occupancy.VACANT,
-            occupancyIntended: null
+            occupancyIntended: null,
+            actualEnergyConsumption: null
           },
           after: {
             status: HousingStatus.COMPLETED,
             subStatus: 'Suivi terminé',
             occupancy: Occupancy.RENT,
-            occupancyIntended: Occupancy.RENT
+            occupancyIntended: Occupancy.RENT,
+            actualEnergyConsumption: 'A'
           },
-          changed: ['status', 'subStatus', 'occupancy', 'occupancyIntended']
+          changed: [
+            'status',
+            'subStatus',
+            'occupancy',
+            'occupancyIntended',
+            'actualEnergyConsumption'
+          ]
         }
       );
     });
@@ -47,12 +57,14 @@ describe('HousingDTO', () => {
         status: HousingStatus.NEVER_CONTACTED,
         subStatus: null,
         occupancy: Occupancy.VACANT,
-        occupancyIntended: null
+        occupancyIntended: null,
+        actualEnergyConsumption: null
       };
       const after: HousingUpdatePayloadDTO = {
         status: HousingStatus.NEVER_CONTACTED,
         subStatus: null,
         occupancy: Occupancy.VACANT,
+        actualEnergyConsumption: null,
         // Only this property changed
         occupancyIntended: Occupancy.RENT
       };

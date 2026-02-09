@@ -5,32 +5,30 @@ import Typography from '@mui/material/Typography';
 import { skipToken } from '@reduxjs/toolkit/query';
 import { fromHousing } from '@zerologementvacant/models';
 import classNames from 'classnames';
+import { useFeatureFlagEnabled } from 'posthog-js/react';
 import { type ReactNode } from 'react';
 import { match, Pattern } from 'ts-pattern';
 
-import {
-  formatOwnershipKind,
-  getBuildingLocation
-} from '../../models/Housing';
-import { CADASTRAL_CLASSIFICATION_OPTIONS } from '../../models/HousingFilters';
-import { toString as toMutationString } from '../../models/Mutation';
-import { useGetBuildingQuery } from '../../services/building.service';
-import { useFindPerimetersQuery } from '../../services/perimeter.service';
-import { age } from '../../utils/dateUtils';
-import { useHousing } from '../../hooks/useHousing';
+import DPE from '~/components/DPE/DPE';
+import OccupancyBadge from '~/components/Housing/OccupancyBadge';
+import HousingAttribute from '~/components/HousingDetails/HousingAttribute';
+import styles from '~/components/HousingDetails/housing-details-card.module.scss';
+import Map from '~/components/Map/Map';
+import { useHousing } from '~/hooks/useHousing';
+import { formatOwnershipKind, getBuildingLocation } from '~/models/Housing';
+import { CADASTRAL_CLASSIFICATION_OPTIONS } from '~/models/HousingFilters';
+import { toString as toMutationString } from '~/models/Mutation';
+import { useGetBuildingQuery } from '~/services/building.service';
+import { useFindPerimetersQuery } from '~/services/perimeter.service';
+import { age, birthdate } from '~/utils/dateUtils';
 import AppLink from '../_app/AppLink/AppLink';
-import DPE from '../DPE/DPE';
-import OccupancyBadge from '../Housing/OccupancyBadge';
-import Map from '../Map/Map';
-import HousingAttribute from './HousingAttribute';
-import styles from './housing-details-card.module.scss';
 
 function HousingTab() {
   const { housing } = useHousing();
+  const isActualDpeEnabled = useFeatureFlagEnabled('actual-dpe');
   const isHouse = housing?.housingKind === 'MAISON';
   const getBuildingQuery = useGetBuildingQuery(
-    housing?.buildingId ?? skipToken,
-    { skip: isHouse }
+    housing?.buildingId ?? skipToken
   );
   const findPerimetersQuery = useFindPerimetersQuery(undefined, {
     skip: !housing?.geoPerimeters?.length
@@ -58,14 +56,14 @@ function HousingTab() {
   }
 
   return (
-    <Grid component="section" container columnSpacing="1.75rem">
+    <Grid component="section" container columnSpacing="1rem">
       <Grid
         component="section"
         rowGap="2rem"
         sx={{ display: 'flex', flexFlow: 'column nowrap' }}
-        size={4}
+        size={5}
       >
-        <Stack component="article" spacing="0.75rem">
+        <Stack component="article" spacing="0.75rem" useFlexGap>
           <Typography
             component="h3"
             variant="body1"
@@ -90,13 +88,36 @@ function HousingTab() {
                 : null
             }
           />
+          {isActualDpeEnabled && (
+            <HousingAttribute
+              label={
+                <Stack>
+                  <Typography
+                    component="span"
+                    variant="body2"
+                    sx={{ fontWeight: 700 }}
+                  >
+                    Étiquette DPE renseignée
+                  </Typography>
+                  <Typography component="span" variant="caption">
+                    Renseignée par un utilisateur ZLV
+                  </Typography>
+                </Stack>
+              }
+              value={
+                housing.actualEnergyConsumption ? (
+                  <DPE value={housing.actualEnergyConsumption} />
+                ) : null
+              }
+            />
+          )}
           <HousingAttribute
             label="Identifiant fiscal départemental"
             value={housing.invariant}
           />
         </Stack>
 
-        <Stack component="article" spacing="0.75rem">
+        <Stack component="article" spacing="0.75rem" useFlexGap>
           <Typography
             component="h3"
             variant="body1"
@@ -110,17 +131,63 @@ function HousingTab() {
             value={housing.buildingYear}
           />
           <HousingAttribute
-            label="Étiquette DPE représentatif (CSTB)"
-            value={
-              housing.energyConsumption ? (
-                <DPE value={housing.energyConsumption} />
-              ) : null
-            }
-          />
-          <HousingAttribute
             label="Type de propriété"
             value={formatOwnershipKind(housing.ownershipKind)}
           />
+          {isActualDpeEnabled &&
+            match(getBuildingQuery)
+              .returnType<ReactNode>()
+              .with({ isLoading: true }, () => (
+                <HousingAttribute
+                  label="Étiquette DPE représentatif (ADEME)"
+                  value={<Skeleton animation="wave" variant="text" />}
+                />
+              ))
+              .with(
+                {
+                  isSuccess: true,
+                  data: Pattern.nonNullable
+                },
+                ({ data: building }) => (
+                  <HousingAttribute
+                    label={
+                      <Stack>
+                        <Typography
+                          component="span"
+                          variant="body2"
+                          sx={{ fontWeight: 700 }}
+                        >
+                          Étiquette DPE représentatif (
+                          {building.dpe ? (
+                            <AppLink
+                              to={`https://observatoire-dpe-audit.ademe.fr/afficher-dpe/${building.dpe?.id}`}
+                            >
+                              ADEME
+                            </AppLink>
+                          ) : (
+                            'ADEME'
+                          )}
+                          )
+                        </Typography>
+                        <Typography component="span" variant="caption">
+                          Issue du DPE le plus récent du bâtiment
+                        </Typography>
+                      </Stack>
+                    }
+                    value={
+                      building.dpe ? (
+                        <Stack direction="row" spacing="0.5rem" useFlexGap>
+                          <DPE value={building.dpe.class} />
+                          <Typography component="span">
+                            réalisé le {birthdate(building.dpe.doneAt)}
+                          </Typography>
+                        </Stack>
+                      ) : null
+                    }
+                  />
+                )
+              )
+              .otherwise(() => null)}
           <HousingAttribute
             label="Nombre de logements"
             value={match(getBuildingQuery)
@@ -150,15 +217,37 @@ function HousingTab() {
               .otherwise(() => null)}
             fallback={isHouse ? 'Pas applicable' : 'Pas d’information'}
           />
+          {isActualDpeEnabled && (
+            <HousingAttribute
+              label="Identifiant Référentiel National des Bâtiments"
+              value={match(getBuildingQuery)
+                .returnType<ReactNode>()
+                .with({ isLoading: true }, () => (
+                  <Skeleton animation="wave" variant="text" />
+                ))
+                .with(
+                  {
+                    isSuccess: true,
+                    data: {
+                      rnb: {
+                        id: Pattern.string
+                      }
+                    }
+                  },
+                  ({ data: building }) => building.rnb.id
+                )
+                .otherwise(() => null)}
+            />
+          )}
         </Stack>
       </Grid>
       <Grid
         component="section"
         rowGap="2rem"
         sx={{ display: 'flex', flexFlow: 'column nowrap' }}
-        size={8}
+        size={7}
       >
-        <Stack component="article" spacing="0.75rem">
+        <Stack component="article" spacing="0.75rem" useFlexGap>
           <Typography
             component="h3"
             variant="body1"
@@ -169,10 +258,18 @@ function HousingTab() {
 
           <Grid container columnSpacing="0.5rem">
             <Grid size={6}>
-              <HousingAttribute
-                label="Référence cadastrale"
-                value={housing.cadastralReference}
-              />
+              <Stack spacing="0.5rem">
+                <HousingAttribute
+                  label="Référence cadastrale"
+                  value={housing.cadastralReference}
+                />
+                {isActualDpeEnabled && (
+                  <HousingAttribute
+                    label="Surface de la parcelle"
+                    value={housing.plotArea ? `${housing.plotArea} m²` : null}
+                  />
+                )}
+              </Stack>
             </Grid>
             <Grid sx={{ textAlign: 'end' }} size={6}>
               <HousingAttribute
@@ -211,18 +308,17 @@ function HousingTab() {
                   .with(
                     { isLoading: false, data: Pattern.nonNullable },
                     ({ data: perimeters }) => {
-                      const result = perimeters
+                      const names = perimeters
                         .filter((perimeter) => {
                           return housing.geoPerimeters?.includes(
                             perimeter.kind
                           );
                         })
-                        .map((perimeter) => (
-                          <Typography key={perimeter.id}>
-                            {perimeter.name}
-                          </Typography>
-                        ));
-                      return result.length > 0 ? result : null;
+                        .map((perimeter) => perimeter.name)
+                        .join(' ; ');
+                      return names.length > 0 ? (
+                        <Typography>{names}</Typography>
+                      ) : null;
                     }
                   )
                   .otherwise(() => null)}
@@ -236,7 +332,7 @@ function HousingTab() {
           )}
         </Stack>
 
-        <Stack component="article" spacing="0.75rem">
+        <Stack component="article" spacing="0.75rem" useFlexGap>
           <Typography
             component="h3"
             variant="body1"

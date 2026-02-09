@@ -71,6 +71,7 @@ export function toHousingDTO(housing: HousingApi): HousingDTO {
     ownershipKind: housing.ownershipKind,
     status: housing.status,
     subStatus: housing.subStatus,
+    actualEnergyConsumption: housing.actualEnergyConsumption,
     energyConsumption: housing.energyConsumption,
     energyConsumptionAt: housing.energyConsumptionAt,
     occupancy: housing.occupancy,
@@ -80,7 +81,8 @@ export function toHousingDTO(housing: HousingApi): HousingDTO {
     lastMutationType: housing.lastMutationType,
     lastMutationDate: housing.lastMutationDate,
     lastTransactionDate: housing.lastTransactionDate,
-    lastTransactionValue: housing.lastTransactionValue
+    lastTransactionValue: housing.lastTransactionValue,
+    plotArea: housing.plotArea
   };
 }
 
@@ -129,6 +131,7 @@ export function fromDatafoncierHousing(
     ownershipKind: housing.ctpdl as OwnershipKindInternal,
     status: HousingStatus.NEVER_CONTACTED,
     subStatus: null,
+    actualEnergyConsumption: null,
     occupancy: toOccupancy(housing.ccthp),
     occupancyRegistered: toOccupancy(housing.ccthp),
     occupancyIntended: null,
@@ -144,6 +147,7 @@ export function fromDatafoncierHousing(
     buildingGroupId: null,
     buildingId: housing.idbat,
     plotId: housing.idpar,
+    plotArea: null,
     geolocation: housing.geomloc,
     latitude,
     longitude,

@@ -26,8 +26,10 @@ export function createSourceBuildingProcessor(options: ProcessorOptions) {
           rentHousingCount: chunk.housing_rent_count,
           // Should be provided later, by the file
           housingCount: 0,
-          rnbId: null,
-          rnbIdScore: null
+          rnb: null,
+          dpe: null,
+          ges: null,
+          heating: null,
         };
         await buildingRepository.save(building);
         reporter.passed(chunk);

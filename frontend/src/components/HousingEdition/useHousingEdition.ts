@@ -2,7 +2,7 @@ import { createStateContext } from 'react-use';
 
 export interface HousingEditionContext {
   editing: boolean;
-  tab: 'occupancy' | 'mobilization' | 'note';
+  tab: 'occupancy' | 'mobilization' | 'note' | 'documents';
 }
 
 const [useHousingEditionContext, HousingEditionProvider] =

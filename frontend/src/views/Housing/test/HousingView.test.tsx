@@ -99,8 +99,7 @@ describe('Housing view', () => {
   it('should throw an error if the housing is missing', async () => {
     const establishment = genEstablishmentDTO();
     const auth = genUserDTO(UserRole.USUAL, establishment);
-    const owner = genOwnerDTO();
-    const missingHousing = genHousingDTO(owner);
+    const missingHousing = genHousingDTO();
 
     renderView(missingHousing, {
       auth,
@@ -118,7 +117,7 @@ describe('Housing view', () => {
     const establishment = genEstablishmentDTO();
     const auth = genUserDTO(UserRole.USUAL, establishment);
     const owner = genOwnerDTO();
-    const housing = genHousingDTO(owner);
+    const housing = genHousingDTO();
 
     renderView(housing, {
       auth,
@@ -132,7 +131,7 @@ describe('Housing view', () => {
   });
 
   it('should allow users to modify owners', async () => {
-    const housing = genHousingDTO(null);
+    const housing = genHousingDTO();
     const owner = genOwnerDTO();
     const housingOwner: HousingOwnerDTO = {
       ...genHousingOwnerDTO(owner),
@@ -153,7 +152,7 @@ describe('Housing view', () => {
   });
 
   it('should hide the button to edit owners from visitors', async () => {
-    const housing = genHousingDTO(null);
+    const housing = genHousingDTO();
     const owner = genOwnerDTO();
     const housingOwner = genHousingOwnerDTO(owner);
     const establishment = genEstablishmentDTO();
@@ -177,7 +176,7 @@ describe('Housing view', () => {
       it('should be unknown', async () => {
         const establishment = genEstablishmentDTO();
         const auth = genUserDTO(UserRole.USUAL, establishment);
-        const housing = genHousingDTO(null);
+        const housing = genHousingDTO();
         housing.occupancy = Occupancy.RENT;
         housing.vacancyStartYear = null;
 
@@ -193,7 +192,7 @@ describe('Housing view', () => {
       });
 
       it('should be defined', async () => {
-        const housing = genHousingDTO(null);
+        const housing = genHousingDTO();
         housing.occupancy = Occupancy.VACANT;
         housing.vacancyStartYear = new Date().getFullYear() - 1;
 
@@ -216,7 +215,7 @@ describe('Housing view', () => {
 
     describe('Source', () => {
       it('should be "Fichiers fonciers (2023)"', async () => {
-        const housing = genHousingDTO(null);
+        const housing = genHousingDTO();
         housing.dataFileYears = ['ff-2023-locatif'];
         const establishment = genEstablishmentDTO();
         const auth = genUserDTO(UserRole.USUAL, establishment);
@@ -236,7 +235,7 @@ describe('Housing view', () => {
     it.todo('should hide the edit button from visitors');
 
     it('should update the occupancy', async () => {
-      const housing = genHousingDTO(null);
+      const housing = genHousingDTO();
       housing.status = HousingStatus.NEVER_CONTACTED;
       housing.subStatus = null;
       housing.occupancy = Occupancy.VACANT;
@@ -256,7 +255,7 @@ describe('Housing view', () => {
       });
       await user.click(update);
       const panel = await screen.findByRole('tabpanel', {
-        name: 'Occupation'
+        name: 'Informations sur le logement'
       });
       const occupancy = await within(panel).findByLabelText(
         'Occupation actuelle'
@@ -276,7 +275,7 @@ describe('Housing view', () => {
     });
 
     it('should update the status', async () => {
-      const housing = genHousingDTO(null);
+      const housing = genHousingDTO();
       housing.status = HousingStatus.NEVER_CONTACTED;
       housing.subStatus = null;
       housing.occupancy = Occupancy.VACANT;
@@ -323,7 +322,7 @@ describe('Housing view', () => {
     });
 
     it('should create a note', async () => {
-      const housing = genHousingDTO(null);
+      const housing = genHousingDTO();
       housing.status = HousingStatus.NEVER_CONTACTED;
       housing.subStatus = null;
       housing.occupancy = Occupancy.VACANT;
@@ -369,7 +368,7 @@ describe('Housing view', () => {
   describe('Update housing precisions', () => {
     it('should save precisions when "Enregistrer" is clicked in sidebar', async () => {
       const owner = genOwnerDTO();
-      const housing = genHousingDTO(owner);
+      const housing = genHousingDTO();
       const housingOwner: HousingOwnerDTO = {
         ...genHousingOwnerDTO(owner),
         rank: 1 as OwnerRank
@@ -440,7 +439,7 @@ describe('Housing view', () => {
     });
 
     it('should reset precisions when sidebar is closed without saving', async () => {
-      const housing = genHousingDTO(null);
+      const housing = genHousingDTO();
       housing.status = HousingStatus.NEVER_CONTACTED;
       housing.subStatus = null;
       housing.occupancy = Occupancy.VACANT;
@@ -531,7 +530,7 @@ describe('Housing view', () => {
 
     it('should not save precisions if they are not modified', async () => {
       const owner = genOwnerDTO();
-      const housing = genHousingDTO(owner);
+      const housing = genHousingDTO();
       const housingOwner: HousingOwnerDTO = {
         ...genHousingOwnerDTO(owner),
         rank: 1 as OwnerRank
@@ -579,7 +578,7 @@ describe('Housing view', () => {
 
     it('should save both housing fields and precisions atomically', async () => {
       const owner = genOwnerDTO();
-      const housing = genHousingDTO(owner);
+      const housing = genHousingDTO();
       const housingOwner: HousingOwnerDTO = {
         ...genHousingOwnerDTO(owner),
         rank: 1 as OwnerRank
@@ -605,11 +604,11 @@ describe('Housing view', () => {
       await user.click(update);
 
       const occupancyTab = await screen.findByRole('tab', {
-        name: 'Occupation'
+        name: 'Informations sur le logement'
       });
       await user.click(occupancyTab);
       const occupancyPanel = await screen.findByRole('tabpanel', {
-        name: 'Occupation'
+        name: 'Informations sur le logement'
       });
       const occupancy = await within(occupancyPanel).findByLabelText(
         'Occupation actuelle'
@@ -670,7 +669,7 @@ describe('Housing view', () => {
 
   describe('Add a note', () => {
     it('should add a note', async () => {
-      const housing = genHousingDTO(null);
+      const housing = genHousingDTO();
       const establishment = genEstablishmentDTO();
       const auth = genUserDTO(UserRole.USUAL, establishment);
 
@@ -703,7 +702,7 @@ describe('Housing view', () => {
 
   describe('Filter the event history', () => {
     it('should filter by event type', async () => {
-      const housing = genHousingDTO(null);
+      const housing = genHousingDTO();
       const establishment = genEstablishmentDTO();
       const creator = genUserDTO(UserRole.USUAL, establishment);
       const note = genNoteDTO(creator);
@@ -739,7 +738,7 @@ describe('Housing view', () => {
     });
 
     it('should filter by creator', async () => {
-      const housing = genHousingDTO(null);
+      const housing = genHousingDTO();
       const establishment = genEstablishmentDTO();
       const creator = genUserDTO(UserRole.USUAL, establishment);
       const note = genNoteDTO(creator);
@@ -777,7 +776,7 @@ describe('Housing view', () => {
     });
 
     it('should filter by date', async () => {
-      const housing = genHousingDTO(null);
+      const housing = genHousingDTO();
       const establishment = genEstablishmentDTO();
       const creator = genUserDTO(UserRole.USUAL, establishment);
       const note = genNoteDTO(creator);
@@ -807,7 +806,7 @@ describe('Housing view', () => {
     });
 
     it('should reset filters', async () => {
-      const housing = genHousingDTO(null);
+      const housing = genHousingDTO();
       const establishment = genEstablishmentDTO();
       const creator = genUserDTO(UserRole.USUAL, establishment);
       const note = genNoteDTO(creator);
@@ -845,7 +844,7 @@ describe('Housing view', () => {
 
   describe('Edit a note', () => {
     it('should edit the note', async () => {
-      const housing = genHousingDTO(null);
+      const housing = genHousingDTO();
       const establishment = genEstablishmentDTO();
       const admin = genUserDTO(UserRole.ADMIN, establishment);
       const note = genNoteDTO(admin);
@@ -878,7 +877,7 @@ describe('Housing view', () => {
     });
 
     it('should be invisible to a non-admin user who is not the creator of the note', async () => {
-      const housing = genHousingDTO(null);
+      const housing = genHousingDTO();
       const establishment = genEstablishmentDTO();
       const creator = genUserDTO(UserRole.USUAL, establishment);
       const note = genNoteDTO(creator);
@@ -909,7 +908,7 @@ describe('Housing view', () => {
     it('should allow the creator to remove their note', async () => {
       const establishment = genEstablishmentDTO();
       const creator = genUserDTO(UserRole.USUAL, establishment);
-      const housing = genHousingDTO(null);
+      const housing = genHousingDTO();
       const note = genNoteDTO(creator);
 
       renderView(housing, {
@@ -941,7 +940,7 @@ describe('Housing view', () => {
 
   describe('View documents', () => {
     it('should display a message if there is no document', async () => {
-      const housing = genHousingDTO(null);
+      const housing = genHousingDTO();
       const establishment = genEstablishmentDTO();
       const auth = genUserDTO(UserRole.USUAL, establishment);
 
@@ -965,7 +964,7 @@ describe('Housing view', () => {
     });
 
     it('should display documents', async () => {
-      const housing = genHousingDTO(null);
+      const housing = genHousingDTO();
       const establishment = genEstablishmentDTO();
       const auth = genUserDTO(UserRole.USUAL, establishment);
       const documents = faker.helpers.multiple(() =>
@@ -996,7 +995,7 @@ describe('Housing view', () => {
 
   describe('Rename a document', () => {
     it('should rename a document', async () => {
-      const housing = genHousingDTO(null);
+      const housing = genHousingDTO();
       const establishment = genEstablishmentDTO();
       const auth = genUserDTO(UserRole.USUAL, establishment);
       const document = genDocumentDTO(auth, establishment);
@@ -1041,7 +1040,7 @@ describe('Housing view', () => {
     });
 
     it('should be invisible to a visitor', async () => {
-      const housing = genHousingDTO(null);
+      const housing = genHousingDTO();
       const establishment = genEstablishmentDTO();
       const creator = genUserDTO(UserRole.USUAL, establishment);
       const document = genDocumentDTO(creator, establishment);
@@ -1076,7 +1075,7 @@ describe('Housing view', () => {
     });
 
     it('should be invisible to a user from a different establishment', async () => {
-      const housing = genHousingDTO(null);
+      const housing = genHousingDTO();
       const establishmentA = genEstablishmentDTO();
       const creator = genUserDTO(UserRole.USUAL, establishmentA);
       const document = genDocumentDTO(creator, establishmentA);
@@ -1117,7 +1116,7 @@ describe('Housing view', () => {
 
   describe('Delete a document', () => {
     it('should delete a document', async () => {
-      const housing = genHousingDTO(null);
+      const housing = genHousingDTO();
       const establishment = genEstablishmentDTO();
       const auth = genUserDTO(UserRole.USUAL, establishment);
       const document = genDocumentDTO(auth, establishment);
@@ -1157,7 +1156,7 @@ describe('Housing view', () => {
     });
 
     it('should be invisible to a visitor', async () => {
-      const housing = genHousingDTO(null);
+      const housing = genHousingDTO();
       const establishment = genEstablishmentDTO();
       const creator = genUserDTO(UserRole.USUAL, establishment);
       const document = genDocumentDTO(creator, establishment);
@@ -1192,7 +1191,7 @@ describe('Housing view', () => {
     });
 
     it('should be invisible to a user from a different establishment', async () => {
-      const housing = genHousingDTO(null);
+      const housing = genHousingDTO();
       const establishmentA = genEstablishmentDTO();
       const establishmentB = genEstablishmentDTO();
       const creator = genUserDTO(UserRole.USUAL, establishmentA);
@@ -1233,7 +1232,7 @@ describe('Housing view', () => {
 
   describe('Visualize documents in fullscreen', () => {
     it('should open fullscreen preview when clicking visualize', async () => {
-      const housing = genHousingDTO(null);
+      const housing = genHousingDTO();
       const establishment = genEstablishmentDTO();
       const auth = genUserDTO(UserRole.USUAL, establishment);
       const document = genDocumentDTO(auth, establishment);
@@ -1265,7 +1264,7 @@ describe('Housing view', () => {
     });
 
     it('should cycle through multiple documents in fullscreen', async () => {
-      const housing = genHousingDTO(null);
+      const housing = genHousingDTO();
       const establishment = genEstablishmentDTO();
       const auth = genUserDTO(UserRole.USUAL, establishment);
       const documents = [
@@ -1327,7 +1326,7 @@ describe('Housing view', () => {
     });
 
     it('should close fullscreen preview with close button', async () => {
-      const housing = genHousingDTO(null);
+      const housing = genHousingDTO();
       const establishment = genEstablishmentDTO();
       const auth = genUserDTO(UserRole.USUAL, establishment);
       const document = genDocumentDTO(auth, establishment);
@@ -1367,7 +1366,7 @@ describe('Housing view', () => {
     });
 
     it('should close fullscreen preview', async () => {
-      const housing = genHousingDTO(null);
+      const housing = genHousingDTO();
       const establishment = genEstablishmentDTO();
       const auth = genUserDTO(UserRole.USUAL, establishment);
       const document = genDocumentDTO(auth, establishment);
@@ -1406,7 +1405,7 @@ describe('Housing view', () => {
 
   describe('Download documents', () => {
     it('should show download button in dropdown', async () => {
-      const housing = genHousingDTO(null);
+      const housing = genHousingDTO();
       const establishment = genEstablishmentDTO();
       const auth = genUserDTO(UserRole.USUAL, establishment);
       const document = genDocumentDTO(auth, establishment);
@@ -1436,7 +1435,7 @@ describe('Housing view', () => {
     });
 
     it('should show download button in fullscreen preview for unsupported file types', async () => {
-      const housing = genHousingDTO(null);
+      const housing = genHousingDTO();
       const establishment = genEstablishmentDTO();
       const auth = genUserDTO(UserRole.USUAL, establishment);
       // Create a document with an unsupported type (not image or PDF)
@@ -1479,7 +1478,7 @@ describe('Housing view', () => {
 
   describe('Upload documents', () => {
     it('should hide the upload input from visitors', async () => {
-      const housing = genHousingDTO(null);
+      const housing = genHousingDTO();
       const establishment = genEstablishmentDTO();
       const visitor = genUserDTO(UserRole.VISITOR, establishment);
 
@@ -1501,7 +1500,7 @@ describe('Housing view', () => {
     });
 
     it('should upload a document', async () => {
-      const housing = genHousingDTO(null);
+      const housing = genHousingDTO();
       const establishment = genEstablishmentDTO();
       const auth = genUserDTO(UserRole.USUAL, establishment);
 
@@ -1528,5 +1527,99 @@ describe('Housing view', () => {
       const uploadedDocument = await screen.findByText('example.pdf');
       expect(uploadedDocument).toBeVisible();
     });
+  });
+
+  describe('Remove documents from the side panel', () => {
+    it('should remove a document on submit', async () => {
+      const establishment = genEstablishmentDTO();
+      const auth = genUserDTO(UserRole.USUAL, establishment);
+      const housing = genHousingDTO();
+      const documents = faker.helpers.multiple(() =>
+        genDocumentDTO(auth, establishment)
+      );
+
+      renderView(housing, {
+        auth,
+        establishment,
+        documents
+      });
+
+      const edit = await screen.findByRole('button', {
+        name: 'Éditer'
+      });
+      await user.click(edit);
+      const tab = await screen.findByRole('tab', {
+        name: 'Documents'
+      });
+      await user.click(tab);
+      const panel = await screen.findByRole('tabpanel', {
+        name: 'Documents'
+      });
+      const remove = await within(panel).findByRole('button', {
+        name: new RegExp(`Supprimer ${documents[0].filename}`)
+      });
+      await user.click(remove);
+      const confirmRemoval = await screen.findByRole('button', {
+        name: 'Confirmer'
+      });
+      await user.click(confirmRemoval);
+      const submit = await screen.findByRole('button', {
+        name: 'Enregistrer'
+      });
+      await user.click(submit);
+      const panelAgain = await screen.findByRole('tabpanel', {
+        name: 'Documents'
+      });
+      const document = within(panelAgain).queryByText(
+        new RegExp(documents[0].filename, 'i')
+      );
+      expect(document).not.toBeInTheDocument();
+    });
+
+    it('should cancel the removal of a document', async () => {
+     const establishment = genEstablishmentDTO();
+      const auth = genUserDTO(UserRole.USUAL, establishment);
+      const housing = genHousingDTO();
+      const documents = faker.helpers.multiple(() =>
+        genDocumentDTO(auth, establishment)
+      );
+
+      renderView(housing, {
+        auth,
+        establishment,
+        documents
+      });
+
+      const edit = await screen.findByRole('button', {
+        name: 'Éditer'
+      });
+      await user.click(edit);
+      const tab = await screen.findByRole('tab', {
+        name: 'Documents'
+      });
+      await user.click(tab);
+      const panel = await screen.findByRole('tabpanel', {
+        name: 'Documents'
+      });
+      const remove = await within(panel).findByRole('button', {
+        name: new RegExp(`Supprimer ${documents[0].filename}`)
+      });
+      await user.click(remove);
+      const confirmRemoval = await screen.findByRole('button', {
+        name: 'Confirmer'
+      });
+      await user.click(confirmRemoval);
+      const cancel = await screen.findByRole('button', {
+        name: 'Annuler'
+      });
+      await user.click(cancel);
+      const panelAgain = await screen.findByRole('tabpanel', {
+        name: 'Documents'
+      });
+      const document = within(panelAgain).queryByText(
+        new RegExp(documents[0].filename, 'i')
+      );
+      expect(document).toBeInTheDocument(); 
+    })
   });
 });

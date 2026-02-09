@@ -223,7 +223,7 @@ function HousingListEditionSideMenu(props: Props) {
         <FormProvider {...form}>
           <Tabs
             tabs={[
-              { tabId: 'occupancy', label: 'Occupation' },
+              { tabId: 'occupancy', label: 'Informations sur les logements' },
               { tabId: 'mobilization', label: 'Suivi' },
               { tabId: 'note', label: 'Note' }
             ]}

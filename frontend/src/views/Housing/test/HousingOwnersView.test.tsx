@@ -68,7 +68,7 @@ describe('HousingOwnersView', () => {
   }
 
   it('should display an empty state if there are no active owners', async () => {
-    const housing = genHousingDTO(null);
+    const housing = genHousingDTO();
     const owners = faker.helpers.multiple(() => genOwnerDTO());
     const housingOwners = owners.map((owner) => ({
       ...genHousingOwnerDTO(owner),
@@ -89,7 +89,7 @@ describe('HousingOwnersView', () => {
   });
 
   it('should display an empty state if there are no owners at all', async () => {
-    const housing = genHousingDTO(null);
+    const housing = genHousingDTO();
     const owners = faker.helpers.multiple(() => genOwnerDTO());
     const housingOwners: ReadonlyArray<HousingOwnerDTO> = [];
 
@@ -106,7 +106,7 @@ describe('HousingOwnersView', () => {
   });
 
   it('should edit a housing owner’s details', async () => {
-    const housing = genHousingDTO(null);
+    const housing = genHousingDTO();
     const owners: ReadonlyArray<OwnerDTO> = [genOwnerDTO()];
     const housingOwners: ReadonlyArray<HousingOwnerDTO> = [
       { ...genHousingOwnerDTO(owners[0]), rank: 1 }
@@ -139,7 +139,7 @@ describe('HousingOwnersView', () => {
   });
 
   it('should change a secondary owner to primary', async () => {
-    const housing = genHousingDTO(null);
+    const housing = genHousingDTO();
     const owners: ReadonlyArray<OwnerDTO> = [genOwnerDTO(), genOwnerDTO()];
     const housingOwners: ReadonlyArray<HousingOwnerDTO> = [
       { ...genHousingOwnerDTO(owners[0]), rank: 1 },
@@ -184,7 +184,7 @@ describe('HousingOwnersView', () => {
   });
 
   it('should change a primary owner to secondary', async () => {
-    const housing = genHousingDTO(null);
+    const housing = genHousingDTO();
     const owners: ReadonlyArray<OwnerDTO> = [genOwnerDTO(), genOwnerDTO()];
     const housingOwners: ReadonlyArray<HousingOwnerDTO> = [
       { ...genHousingOwnerDTO(owners[0]), rank: 1 },
@@ -219,7 +219,7 @@ describe('HousingOwnersView', () => {
   });
 
   it('should change an inactive owner to primary', async () => {
-    const housing = genHousingDTO(null);
+    const housing = genHousingDTO();
     const owners: ReadonlyArray<OwnerDTO> = [genOwnerDTO(), genOwnerDTO()];
     const housingOwners: ReadonlyArray<HousingOwnerDTO> = [
       { ...genHousingOwnerDTO(owners[0]), rank: 1 },
@@ -261,7 +261,7 @@ describe('HousingOwnersView', () => {
   });
 
   it('should change an inactive owner to secondary', async () => {
-    const housing = genHousingDTO(null);
+    const housing = genHousingDTO();
     const owners: ReadonlyArray<OwnerDTO> = [
       genOwnerDTO(),
       genOwnerDTO(),
@@ -308,7 +308,7 @@ describe('HousingOwnersView', () => {
   });
 
   it('should set the primary owner as deceased', async () => {
-    const housing = genHousingDTO(null);
+    const housing = genHousingDTO();
     const owners: ReadonlyArray<OwnerDTO> = [genOwnerDTO(), genOwnerDTO()];
     const housingOwners: ReadonlyArray<HousingOwnerDTO> = [
       { ...genHousingOwnerDTO(owners[0]), rank: 1 },
@@ -351,7 +351,7 @@ describe('HousingOwnersView', () => {
   });
 
   it('should set a secondary owner as deceased', async () => {
-    const housing = genHousingDTO(null);
+    const housing = genHousingDTO();
     const owners: ReadonlyArray<OwnerDTO> = [genOwnerDTO(), genOwnerDTO()];
     const housingOwners: ReadonlyArray<HousingOwnerDTO> = [
       { ...genHousingOwnerDTO(owners[0]), rank: 1 },
@@ -395,7 +395,7 @@ describe('HousingOwnersView', () => {
 
   describe('Link an owner to a housing', () => {
     it('should display a message if no owner was found', async () => {
-      const housing = genHousingDTO(null);
+      const housing = genHousingDTO();
       const owners: ReadonlyArray<OwnerDTO> = [];
       const housingOwners: ReadonlyArray<HousingOwnerDTO> = [];
 
@@ -416,7 +416,7 @@ describe('HousingOwnersView', () => {
     });
 
     it('should hide owners that are already linked to this housing', async () => {
-      const housing = genHousingDTO(null);
+      const housing = genHousingDTO();
       const owners: ReadonlyArray<OwnerDTO> = [
         { ...genOwnerDTO(), fullName: 'Jean Rousseau' },
         { ...genOwnerDTO(), fullName: 'Marie Curie' },
@@ -452,7 +452,7 @@ describe('HousingOwnersView', () => {
     });
 
     it('should display differently a owner who is not an individual', async () => {
-      const housing = genHousingDTO(null);
+      const housing = genHousingDTO();
       const owners: ReadonlyArray<OwnerDTO> = [
         {
           ...genOwnerDTO(),
@@ -493,7 +493,7 @@ describe('HousingOwnersView', () => {
 
     describe('If there is already a primary owner', () => {
       it('should add the owner as secondary to the housing ', async () => {
-        const housing = genHousingDTO(null);
+        const housing = genHousingDTO();
         const owners: ReadonlyArray<OwnerDTO> = faker.helpers.multiple(
           () => genOwnerDTO(),
           { count: 6 }
@@ -543,7 +543,7 @@ describe('HousingOwnersView', () => {
 
     describe('If there is no primary owner', () => {
       it('should add the owner as primary to the housing', async () => {
-        const housing = genHousingDTO(null);
+        const housing = genHousingDTO();
         const owners: ReadonlyArray<OwnerDTO> = faker.helpers.multiple(
           () => genOwnerDTO(),
           { count: 6 }
@@ -589,7 +589,7 @@ describe('HousingOwnersView', () => {
 
   describe('Improvable addresses', () => {
     it('should ignore an improvable address', async () => {
-      const housing = genHousingDTO(null);
+      const housing = genHousingDTO();
       const owner: OwnerDTO = {
         ...genOwnerDTO(),
         banAddress: {

@@ -59,7 +59,11 @@ function mapper() {
     rnbId: building.rnb_id,
     rnbIdScore: building.rnb_id_score,
     rentHousingCount: 0,
-    vacantHousingCount: 0
+    vacantHousingCount: 0,
+    dpe: null,
+    ges: null,
+    heating: null,
+    rnb: null
   }));
 }
 

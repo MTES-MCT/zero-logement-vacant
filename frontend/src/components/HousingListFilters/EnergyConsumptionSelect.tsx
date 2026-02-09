@@ -6,7 +6,13 @@ import type { AppSelectNextProps } from '../_app/AppSelect/AppSelectNext';
 
 export type EnergyConsumptionSelectProps<Multiple extends boolean> = Pick<
   AppSelectNextProps<EnergyConsumption | null, Multiple>,
-  'className' | 'disabled' | 'error' | 'multiple' | 'value' | 'onChange'
+  | 'className'
+  | 'disabled'
+  | 'error'
+  | 'label'
+  | 'multiple'
+  | 'value'
+  | 'onChange'
 >;
 
 const ENERGY_CONSUMPTION_EMPTY_OPTION = {
@@ -14,17 +20,18 @@ const ENERGY_CONSUMPTION_EMPTY_OPTION = {
   label: 'Pas d’information'
 };
 
-function VacancyRateSelect<Multiple extends boolean = false>(
+function EnergyConsumptionSelect<Multiple extends boolean = false>(
   props: EnergyConsumptionSelectProps<Multiple>
 ) {
   return (
     <AppSelectNext
       {...props}
+      displayEmpty
       options={[
         ENERGY_CONSUMPTION_EMPTY_OPTION.value,
         ...ENERGY_CONSUMPTION_VALUES
       ]}
-      label="Étiquette DPE représentatif (CSTB)"
+      emptyLabel={ENERGY_CONSUMPTION_EMPTY_OPTION.label}
       getOptionLabel={(option) =>
         option === ENERGY_CONSUMPTION_EMPTY_OPTION.value ? (
           ENERGY_CONSUMPTION_EMPTY_OPTION.label
@@ -36,4 +43,4 @@ function VacancyRateSelect<Multiple extends boolean = false>(
   );
 }
 
-export default VacancyRateSelect;
+export default EnergyConsumptionSelect;

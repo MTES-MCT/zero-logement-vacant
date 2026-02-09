@@ -16,6 +16,13 @@ import { useUser } from '~/hooks/useUser';
 export interface DocumentCardProps {
   document: DocumentDTO;
   index: number;
+  /**
+   * Display mode of the card.
+   * 'compact' only provides document removal.
+   * 'detailed' shows all action buttons.
+   * @default 'all'
+   */
+  actions?: 'remove-only' | 'all';
   onDelete(document: DocumentDTO): void;
   onDownload(document: DocumentDTO): Promise<void>;
   onRename(document: DocumentDTO): void;
@@ -25,8 +32,12 @@ export interface DocumentCardProps {
 const FullWidthButton = styled(Button)({
   width: '100% !important'
 });
+const FullWidthCenteredButton = styled(FullWidthButton)({
+  justifyContent: 'center'
+});
 
 function DocumentCard(props: Readonly<DocumentCardProps>) {
+  const actions = props.actions ?? 'all';
   const size = prettyBytes(props.document.sizeBytes, {
     locale: 'fr',
     space: true
@@ -77,67 +88,70 @@ function DocumentCard(props: Readonly<DocumentCardProps>) {
           padding: '1rem'
         }}
       >
-        <Box
-          component="header"
-          sx={{ display: 'flex', justifyContent: 'flex-end' }}
-        >
-          <Dropdown
-            label="Options"
-            buttonProps={{ size: 'small' }}
-            popoverProps={{
-              anchorOrigin: {
-                vertical: 'bottom',
-                horizontal: 'right'
-              },
-              transformOrigin: {
-                vertical: 'top',
-                horizontal: 'right'
-              }
-            }}
-            open={dropdownOpen}
-            onOpen={onOpen}
+        {actions === 'all' ? (
+          <Box
+            component="header"
+            sx={{ display: 'flex', justifyContent: 'flex-end' }}
           >
-            <Stack spacing="0.5rem" useFlexGap sx={{ p: '1rem' }}>
-              <FullWidthButton
-                priority="tertiary no outline"
-                iconId="fr-icon-eye-line"
-                size="small"
-                onClick={onVisualize}
-              >
-                Visualiser
-              </FullWidthButton>
+            <Dropdown
+              label="Options"
+              buttonProps={{ size: 'small' }}
+              popoverProps={{
+                anchorOrigin: {
+                  vertical: 'bottom',
+                  horizontal: 'right'
+                },
+                transformOrigin: {
+                  vertical: 'top',
+                  horizontal: 'right'
+                }
+              }}
+              open={dropdownOpen}
+              onOpen={onOpen}
+            >
+              <Stack spacing="0.5rem" useFlexGap sx={{ p: '1rem' }}>
+                <FullWidthButton
+                  priority="tertiary no outline"
+                  iconId="fr-icon-eye-line"
+                  size="small"
+                  onClick={onVisualize}
+                >
+                  Visualiser
+                </FullWidthButton>
 
-              {canWrite ? (
+                {canWrite ? (
+                  <FullWidthButton
+                    priority="tertiary no outline"
+                    iconId="fr-icon-edit-fill"
+                    size="small"
+                    onClick={onRename}
+                  >
+                    Renommer
+                  </FullWidthButton>
+                ) : null}
                 <FullWidthButton
                   priority="tertiary no outline"
-                  iconId="fr-icon-edit-fill"
+                  iconId="fr-icon-download-line"
                   size="small"
-                  onClick={onRename}
+                  onClick={onDownload}
                 >
-                  Renommer
+                  Télécharger
                 </FullWidthButton>
-              ) : null}
-              <FullWidthButton
-                priority="tertiary no outline"
-                iconId="fr-icon-download-line"
-                size="small"
-                onClick={onDownload}
-              >
-                Télécharger
-              </FullWidthButton>
-              {canWrite ? (
-                <FullWidthButton
-                  priority="tertiary no outline"
-                  iconId="ri-delete-bin-line"
-                  size="small"
-                  onClick={onDelete}
-                >
-                  Supprimer
-                </FullWidthButton>
-              ) : null}
-            </Stack>
-          </Dropdown>
-        </Box>
+                {canWrite ? (
+                  <FullWidthButton
+                    priority="tertiary no outline"
+                    iconId="ri-delete-bin-line"
+                    size="small"
+                    onClick={onDelete}
+                  >
+                    Supprimer
+                  </FullWidthButton>
+                ) : null}
+              </Stack>
+            </Dropdown>
+          </Box>
+        ) : null}
+
         <Box
           component="section"
           sx={{
@@ -156,24 +170,43 @@ function DocumentCard(props: Readonly<DocumentCardProps>) {
             onClick={onVisualize}
           />
         </Box>
-        <Stack component="footer" spacing="0.5rem" useFlexGap>
+
+        <Stack component="section" spacing="0.5rem" useFlexGap>
           <Typography
             sx={{
               fontWeight: 500,
               color: fr.colors.decisions.text.title.grey.default,
               whiteSpace: 'nowrap',
-              overflowY: 'clip',
+              overflow: 'hidden',
               textOverflow: 'ellipsis'
             }}
           >
             {props.document.filename}
           </Typography>
+
           <Typography
             variant="body2"
             sx={{ color: fr.colors.decisions.text.mention.grey.default }}
           >
             {contentType} — {size}
           </Typography>
+        </Stack>
+
+        <Stack component="footer">
+          {canWrite && actions === 'remove-only' ? (
+            <FullWidthCenteredButton
+              priority="tertiary"
+              iconId="ri-delete-bin-line"
+              size="small"
+              title={`Supprimer ${props.document.filename}`}
+              nativeButtonProps={{
+                'aria-label': `Supprimer ${props.document.filename}`
+              }}
+              onClick={onDelete}
+            >
+              Supprimer
+            </FullWidthCenteredButton>
+          ) : null}
         </Stack>
       </Stack>
     </>

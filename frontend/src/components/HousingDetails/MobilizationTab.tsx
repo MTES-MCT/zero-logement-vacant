@@ -7,7 +7,6 @@ import { type ReactNode } from 'react';
 import { match, Pattern } from 'ts-pattern';
 
 import { useHousing } from '~/hooks/useHousing';
-import { lastUpdate } from '~/models/Housing';
 import { useFindCampaignsQuery } from '~/services/campaign.service';
 import { useFindPrecisionsByHousingQuery } from '~/services/precision.service';
 import HousingStatusBadge from '../HousingStatusBadge/HousingStatusBadge';
@@ -20,8 +19,6 @@ function MobilizationTab() {
   const { data: housingPrecisions } = useFindPrecisionsByHousingQuery(
     housing ? { housingId: housing.id } : skipToken
   );
-
-  const updated = lastUpdate();
 
   if (!housing) {
     return null;
@@ -46,10 +43,6 @@ function MobilizationTab() {
           label="Sous-statut de suivi"
           value={housing.subStatus}
           fallback="Pas applicable"
-        />
-        <HousingAttribute
-          label="Dernière mise à jour"
-          value={updated ?? 'Aucune mise à jour'}
         />
         {match(findCampaignsQuery)
           .returnType<ReactNode>()

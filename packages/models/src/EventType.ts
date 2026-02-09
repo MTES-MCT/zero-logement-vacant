@@ -3,6 +3,7 @@ import { EventPayloads } from './EventPayloads';
 export type EventType = keyof EventPayloads;
 export const EVENT_TYPE_VALUES = [
   'housing:created',
+  'housing:updated',
   'housing:occupancy-updated',
   'housing:status-updated',
   'housing:precision-attached',

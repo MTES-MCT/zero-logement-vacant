@@ -30,10 +30,7 @@ import CampaignMissingError from '~/errors/campaignMissingError';
 import CampaignStatusError from '~/errors/campaignStatusError';
 import GroupMissingError from '~/errors/groupMissingError';
 import config from '~/infra/config';
-import {
-  startTransaction,
-  withinTransaction
-} from '~/infra/database/transaction';
+import { startTransaction } from '~/infra/database/transaction';
 import { logger } from '~/infra/logger';
 import {
   CampaignApi,
@@ -268,7 +265,7 @@ async function createCampaignFromGroup(request: Request, response: Response) {
     establishmentId: auth.establishmentId
   };
 
-  await withinTransaction(async () => {
+  await startTransaction(async () => {
     await campaignRepository.save(campaign);
 
     const housings = await housingRepository.find({
@@ -276,7 +273,9 @@ async function createCampaignFromGroup(request: Request, response: Response) {
         establishmentIds: [auth.establishmentId],
         groupIds: [group.id]
       },
-      pagination: { paginate: false }
+      pagination: {
+        paginate: false
+      }
     });
     const events = housings.map<CampaignHousingEventApi>((housing) => ({
       id: uuidv4(),
@@ -428,6 +427,9 @@ async function update(request: Request, response: Response) {
             establishmentIds: [updated.establishmentId],
             campaignIds: [updated.id],
             status: HousingStatus.NEVER_CONTACTED
+          },
+          pagination: {
+            paginate: false
           }
         });
         const updatedHouses = housings.map((housing) => ({

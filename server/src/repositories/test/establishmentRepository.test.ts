@@ -409,7 +409,7 @@ describe('Establishment repository', () => {
       const establishment = {
         ...genEstablishmentApi(),
         name: 'Commune de Paris',
-        kind: 'Commune' as const
+        kind: 'COM' as const
       };
       const dbo = formatEstablishmentApi(establishment);
       const api = parseEstablishmentApi(dbo);

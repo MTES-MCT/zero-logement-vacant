@@ -18,6 +18,22 @@ DGALN_SOURCES = [
         file_type=FileType.PARQUET,
         description="Zonage ABC pour les aides au logement",
     ),
+
+   ExternalSourceConfig(
+        name="loyers_appart_2025",
+        url="https://object.files.data.gouv.fr/hydra-parquet/hydra-parquet/55b34088-0964-415f-9df7-d87dd98a09be.parquet",
+        producer=Producer.DGALN,
+        file_type=FileType.PARQUET,
+        description="Indicateurs de loyers d'annonce des appartements par commune en 2025",
+    ),
+    
+  ExternalSourceConfig(
+        name="loyers_maisons_2025",
+        url="https://object.files.data.gouv.fr/hydra-parquet/hydra-parquet/129f764d-b613-44e4-952c-5ff50a8c9b73.parquet",
+        producer=Producer.DGALN,
+        file_type=FileType.PARQUET,
+        description=""Indicateurs de loyers d'annonce des maisons par commune en 2025",
+    ),
 ]
 
 # Convert to dict format for backward compatibility

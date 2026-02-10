@@ -32,7 +32,7 @@ DGALN_SOURCES = [
         url="https://object.files.data.gouv.fr/hydra-parquet/hydra-parquet/129f764d-b613-44e4-952c-5ff50a8c9b73.parquet",
         producer=Producer.DGALN,
         file_type=FileType.PARQUET,
-        description=""Indicateurs de loyers d'annonce des maisons par commune en 2025",
+        description="Indicateurs de loyers d'annonce des maisons par commune en 2025",
     ),
 ]
 

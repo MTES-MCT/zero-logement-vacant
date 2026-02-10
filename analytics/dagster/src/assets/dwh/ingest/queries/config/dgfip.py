@@ -20,7 +20,7 @@ DGFIP_SOURCES = [
         read_options={"auto_detect": True},
     ),
   ExternalSourceConfig(
-        name="liste_communes_tlv1-2",
+        name="liste_communes_tlv1_tlv2",
         url="https://object.files.data.gouv.fr/hydra-parquet/hydra-parquet/efe71da1-15f8-4526-bcb8-5b9a9419c58c.parquet",
         producer=Producer.DGFIP,
         file_type=FileType.PARQUET,

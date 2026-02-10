@@ -18,7 +18,6 @@ DGALN_SOURCES = [
         file_type=FileType.PARQUET,
         description="Zonage ABC pour les aides au logement",
     ),
-
    ExternalSourceConfig(
         name="loyers_appart_2025",
         url="https://object.files.data.gouv.fr/hydra-parquet/hydra-parquet/55b34088-0964-415f-9df7-d87dd98a09be.parquet",

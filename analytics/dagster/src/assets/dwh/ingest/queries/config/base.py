@@ -37,6 +37,7 @@ class ExternalSourceConfig:
     """
     name: str  # Source name (will be used in table name and asset key)
     url: str  # Can be HTTP URL or s3:// path
+    url_documentation: Optional[str] = None
     producer: Producer
     file_type: FileType
     description: str

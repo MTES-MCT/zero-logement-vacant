@@ -1,8 +1,8 @@
 # Import Establishments Scripts
 
-Scripts Python pour la gestion des établissements dans ZLV.
+Python scripts for managing establishments in ZLV.
 
-## Prérequis
+## Prerequisites
 
 ```bash
 cd server/src/scripts/import-establishments
@@ -11,19 +11,19 @@ source venv/bin/activate
 pip install -r requirements.txt
 ```
 
-## Ordre d'exécution
+## Execution Order
 
-**Important** : Respecter cet ordre lors d'un changement de millésime :
+**Important**: Follow this order when updating to a new vintage (millésime):
 
-1. **Mettre à jour les localities** (fusions/scissions de communes)
-2. **Importer les établissements** (valide les geo_codes contre localities)
-3. **Détecter les orphelins** (établissements obsolètes)
+1. **Update localities** (commune fusions/splits)
+2. **Import establishments** (validates geo_codes against localities)
+3. **Detect orphans** (obsolete establishments)
 
 ## Scripts
 
 ### 1. update_localities.py
 
-Met à jour la table `localities` avec les changements de codes INSEE (fusions/scissions).
+Updates the `localities` table with INSEE code changes (fusions/splits).
 
 ```bash
 # Dry-run
@@ -32,7 +32,7 @@ python ../update-localities/update_localities.py \
   --db-url postgresql://user:pass@host:port/db \
   --dry-run
 
-# Exécution
+# Execute
 python ../update-localities/update_localities.py \
   --excel table_passage_annuelle_2025.xlsx \
   --db-url postgresql://user:pass@host:port/db
@@ -40,7 +40,7 @@ python ../update-localities/update_localities.py \
 
 ### 2. import_gold_establishments.py
 
-Importe les établissements depuis le CSV Gold Layer.
+Imports establishments from the Gold Layer CSV.
 
 ```bash
 # Dry-run
@@ -49,13 +49,13 @@ python import_gold_establishments.py \
   --db-url postgresql://user:pass@host:port/db \
   --dry-run
 
-# Import avec limite
+# Import with limit
 python import_gold_establishments.py \
   --csv collectivities_processed.csv \
   --db-url postgresql://user:pass@host:port/db \
   --limit 100
 
-# Import complet
+# Full import
 python import_gold_establishments.py \
   --csv collectivities_processed.csv \
   --db-url postgresql://user:pass@host:port/db
@@ -63,27 +63,27 @@ python import_gold_establishments.py \
 
 ### 3. detect_orphan_establishments.py
 
-Détecte les établissements en base mais absents du CSV (orphelins).
+Detects establishments in DB but missing from CSV (orphans).
 
 ```bash
-# Rapport seulement
+# Report only
 python detect_orphan_establishments.py \
   --csv collectivities_processed.csv \
   --db-url postgresql://user:pass@host:port/db
 
-# Export CSV des orphelins
+# Export orphans to CSV
 python detect_orphan_establishments.py \
   --csv collectivities_processed.csv \
   --db-url postgresql://user:pass@host:port/db \
   --output orphans.csv
 
-# Supprimer les orphelins sûrs (sans users/campaigns)
+# Delete safe orphans (no users/campaigns)
 python detect_orphan_establishments.py \
   --csv collectivities_processed.csv \
   --db-url postgresql://user:pass@host:port/db \
   --delete
 
-# Migrer données d'un établissement vers un autre
+# Migrate data from one establishment to another
 python detect_orphan_establishments.py \
   --csv collectivities_processed.csv \
   --db-url postgresql://user:pass@host:port/db \
@@ -93,7 +93,7 @@ python detect_orphan_establishments.py \
 
 ### 4. check_uniqueness.py
 
-Vérifie l'unicité des SIREN/SIRET dans les CSV avant import.
+Checks SIREN/SIRET uniqueness in CSV files before import.
 
 ```bash
 python check_uniqueness.py
@@ -102,19 +102,19 @@ python check_uniqueness.py
 ## Tests
 
 ```bash
-# Tous les tests
+# All tests
 pytest -v
 
-# Tests spécifiques
+# Specific tests
 pytest test_import_gold_establishments.py -v
 pytest test_detect_orphan_establishments.py -v
 
-# Test par nom
+# Test by name
 pytest -v -k "test_parse_siren"
 ```
 
 ## Documentation
 
-- [ANALYSIS.md](ANALYSIS.md) - Analyse du schéma et plan d'import
-- [ORPHAN_ESTABLISHMENTS_REPORT.md](ORPHAN_ESTABLISHMENTS_REPORT.md) - Rapport des orphelins détectés
-- [../../docs/database/establishments.md](../../docs/database/establishments.md) - Documentation des valeurs `kind`
+- [ANALYSIS.md](ANALYSIS.md) - Schema analysis and import plan
+- [ORPHAN_ESTABLISHMENTS_REPORT.md](ORPHAN_ESTABLISHMENTS_REPORT.md) - Detected orphans report
+- [../../docs/database/establishments.md](../../docs/database/establishments.md) - `kind` values documentation

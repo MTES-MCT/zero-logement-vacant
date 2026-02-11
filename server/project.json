@@ -28,6 +28,11 @@
             "glob": "**/*",
             "input": "{projectRoot}/src/infra/database/seeds",
             "output": "./seeds"
+          },
+          {
+            "glob": "*.otf",
+            "input": "packages/draft/src/fonts",
+            "output": "./fonts"
           }
         ],
         "esbuildOptions": {
@@ -50,7 +55,7 @@
       }
     },
 
-    "serve": {
+    "dev": {
       "continuous": true,
       "executor": "@nx/js:node",
       "defaultConfiguration": "development",

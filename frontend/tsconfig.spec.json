@@ -1,8 +1,10 @@
 {
-  "extends": "../tsconfig.base.json",
+  "extends": ["@tsconfig/vite-react/tsconfig.json", "../tsconfig.base.json"],
   "compilerOptions": {
     "outDir": "dist/spec",
     "tsBuildInfoFile": "dist/spec/tsconfig.tsbuildinfo",
+    "noEmit": false,
+    "allowImportingTsExtensions": false,
     "paths": {
       "~/*": ["./src/*"]
     },
@@ -14,8 +16,7 @@
       "vitest",
       "@nx/react/typings/cssmodule.d.ts",
       "@nx/react/typings/image.d.ts"
-    ],
-    "jsx": "react-jsx"
+    ]
   },
   "include": [
     "vite.config.ts",

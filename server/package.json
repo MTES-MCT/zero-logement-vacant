@@ -91,7 +91,7 @@
   },
   "devDependencies": {
     "@fast-check/vitest": "0.2.2",
-    "@tsconfig/node20": "20.1.6",
+    "@tsconfig/node24": "24.0.4",
     "@turf/turf": "7.1.0",
     "@types/async": "3.2.25",
     "@types/bcryptjs": "2.4.6",

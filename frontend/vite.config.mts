@@ -1,5 +1,4 @@
 /// <reference types='vitest' />
-import path from 'node:path';
 import { defineConfig } from 'vite';
 import react from '@vitejs/plugin-react-swc';
 import { nxViteTsPaths } from '@nx/vite/plugins/nx-tsconfig-paths.plugin';

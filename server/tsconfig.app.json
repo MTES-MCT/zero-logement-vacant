@@ -1,8 +1,8 @@
 {
-  "extends": "../tsconfig.base.json",
+  "extends": ["@tsconfig/node24/tsconfig.json", "../tsconfig.base.json"],
   "compilerOptions": {
     "baseUrl": "./",
-    "sourceRoot": "src",
+    "rootDir": "src",
     "outDir": "dist/app",
     "paths": {
       "~/*": ["./src/*"]

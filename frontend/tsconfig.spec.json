@@ -3,6 +3,9 @@
   "compilerOptions": {
     "outDir": "dist/spec",
     "tsBuildInfoFile": "dist/spec/tsconfig.tsbuildinfo",
+    "paths": {
+      "~/*": ["./src/*"]
+    },
     "types": [
       "vitest/globals",
       "vitest/importMeta",

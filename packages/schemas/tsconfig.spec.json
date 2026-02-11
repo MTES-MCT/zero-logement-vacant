@@ -1,6 +1,7 @@
 {
   "extends": ["@tsconfig/node24/tsconfig.json", "../../tsconfig.base.json"],
   "compilerOptions": {
+    "rootDir": "src",
     "outDir": "dist/spec",
     "tsBuildInfoFile": "dist/spec/tsconfig.tsbuildinfo",
     "types": ["jest-extended", "node", "vitest/globals"]

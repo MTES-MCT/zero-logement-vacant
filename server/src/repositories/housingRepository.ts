@@ -896,7 +896,12 @@ function filteredQuery(opts: FilteredQueryOptions) {
             .whereNull('data_file_years')
             .orWhereRaw('cardinality(data_file_years) = 0');
         }
-        const dataFileYears = filters.dataFileYearsIncluded?.filter(isNotNull);
+        if (filters.dataFileYearsIncluded?.includes('datafoncier-manual' as any)) {
+          where.orWhere('data_source', 'datafoncier-manual');
+        }
+        const dataFileYears = filters.dataFileYearsIncluded?.filter(
+          (v): v is DataFileYear => isNotNull(v) && v !== 'datafoncier-manual'
+        );
         if (dataFileYears?.length) {
           where.orWhereRaw('data_file_years && ?::text[]', [dataFileYears]);
         }
@@ -909,7 +914,14 @@ function filteredQuery(opts: FilteredQueryOptions) {
             .whereNotNull('data_file_years')
             .whereRaw('cardinality(data_file_years) > 0');
         }
-        const dataFileYears = filters.dataFileYearsExcluded?.filter(isNotNull);
+        if (filters.dataFileYearsExcluded?.includes('datafoncier-manual' as any)) {
+          where.where((sub) => {
+            sub.whereNull('data_source').orWhereNot('data_source', 'datafoncier-manual');
+          });
+        }
+        const dataFileYears = filters.dataFileYearsExcluded?.filter(
+          (v): v is DataFileYear => isNotNull(v) && v !== 'datafoncier-manual'
+        );
         if (dataFileYears?.length) {
           where.orWhereRaw('not(data_file_years && ?::text[])', [
             dataFileYears

@@ -5,6 +5,9 @@
     "sourceRoot": "src",
     "outDir": "dist/app",
     "tsBuildInfoFile": "dist/app/tsconfig.tsbuildinfo",
+    "paths": {
+      "~/*": ["./src/*"]
+    },
     "typeRoots": ["node_modules", "src/types"],
     "types": ["express", "express-jwt"]
   },

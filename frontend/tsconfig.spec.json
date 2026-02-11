@@ -1,5 +1,5 @@
 {
-  "extends": "./tsconfig.json",
+  "extends": "../tsconfig.base.json",
   "compilerOptions": {
     "outDir": "dist/spec",
     "tsBuildInfoFile": "dist/spec/tsconfig.tsbuildinfo",
@@ -8,10 +8,17 @@
       "vitest/importMeta",
       "vite/client",
       "node",
-      "vitest"
-    ]
+      "vitest",
+      "@nx/react/typings/cssmodule.d.ts",
+      "@nx/react/typings/image.d.ts"
+    ],
+    "jsx": "react-jsx"
   },
   "include": [
+    "vite.config.ts",
+    "vite.config.mts",
+    "vitest.config.ts",
+    "vitest.config.mts",
     // Config files are handled by their own TS configs; exclude from build typecheck to avoid rootDir issues
     "src/mocks/**/*.ts",
     "src/setupTests.ts",

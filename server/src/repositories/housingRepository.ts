@@ -640,30 +640,62 @@ function filteredQuery(opts: FilteredQueryOptions) {
     }
 
     if (filters.beneficiaryCounts?.length) {
-      // Count secondary owners, e.g., those who have a rank >= 2
-      queryBuilder.whereIn(`${housingTable}.id`, (subquery) => {
-        subquery
-          .select(`${housingOwnersTable}.housing_id`)
-          .from(housingOwnersTable)
-          // Include the main owner otherwise housings that have
-          // no secondary owner will not appear in the GROUP BY clause
-          .where(`${housingOwnersTable}.rank`, '>=', 1)
-          .groupBy(`${housingOwnersTable}.housing_id`)
-          .modify((query) => {
-            const counts = filters.beneficiaryCounts
-              ?.map(Number)
-              ?.filter((count) => !Number.isNaN(count))
-              // Beneficiary count = 0 implies there is a main owner
-              // but no secondary owner
-              ?.map((count) => count + 1);
-            if (counts && counts.length) {
-              query.havingRaw(`COUNT(*) IN ${toRawArray(counts)}`, [...counts]);
+      // Count active owners, e.g., those who have a rank > 2
+      queryBuilder.where((where) => {
+        const counts = filters.beneficiaryCounts
+          ?.map(Number)
+          ?.filter((count) => !Number.isNaN(count) && count > 0);
+        const hasGte5 = filters.beneficiaryCounts?.includes('gte5') ?? false;
+        const hasZero = filters.beneficiaryCounts?.includes('0') ?? false;
+
+        if (counts?.length || hasGte5) {
+          where.whereIn(
+            [`${housingTable}.geo_code`, `${housingTable}.id`],
+            (subquery) => {
+              subquery
+                .select(
+                  `${housingOwnersTable}.housing_geo_code`,
+                  `${housingOwnersTable}.housing_id`
+                )
+                .from(housingOwnersTable)
+                // Include the main owner otherwise housings that have
+                // no secondary owner will not appear in the GROUP BY clause
+                .where(`${housingOwnersTable}.rank`, '>=', 1)
+                .groupBy(
+                  `${housingOwnersTable}.housing_geo_code`,
+                  `${housingOwnersTable}.housing_id`
+                )
+                .modify((query) => {
+                  if (counts?.length) {
+                    query.havingRaw(`COUNT(*) IN ${toRawArray(counts)}`, [
+                      ...counts
+                    ]);
+                  }
+                  if (hasGte5) {
+                    // At least 5 housing owners (including the main owner)
+                    query.orHavingRaw('COUNT(*) >= 5');
+                  }
+                });
             }
-            if (filters.beneficiaryCounts?.includes('gte5')) {
-              // At least 6 housing owners (including the main owner)
-              query.orHavingRaw('COUNT(*) >= 6');
-            }
+          );
+        }
+
+        if (hasZero) {
+          where.orWhereNotExists((subquery) => {
+            subquery
+              .select(1)
+              .from(housingOwnersTable)
+              .where(
+                `${housingOwnersTable}.housing_geo_code`,
+                db.ref(`${housingTable}.geo_code`)
+              )
+              .andWhere(
+                `${housingOwnersTable}.housing_id`,
+                db.ref(`${housingTable}.id`)
+              )
+              .andWhere(`${housingOwnersTable}.rank`, '>=', 1);
           });
+        }
       });
     }
     if (filters.housingKinds?.length) {
@@ -896,7 +928,7 @@ function filteredQuery(opts: FilteredQueryOptions) {
             .whereNull('data_file_years')
             .orWhereRaw('cardinality(data_file_years) = 0');
         }
-        if (filters.dataFileYearsIncluded?.includes('datafoncier-manual' as any)) {
+        if (filters.dataFileYearsIncluded?.includes('datafoncier-manual')) {
           where.orWhere('data_source', 'datafoncier-manual');
         }
         const dataFileYears = filters.dataFileYearsIncluded?.filter(
@@ -914,9 +946,11 @@ function filteredQuery(opts: FilteredQueryOptions) {
             .whereNotNull('data_file_years')
             .whereRaw('cardinality(data_file_years) > 0');
         }
-        if (filters.dataFileYearsExcluded?.includes('datafoncier-manual' as any)) {
+        if (filters.dataFileYearsExcluded?.includes('datafoncier-manual')) {
           where.where((sub) => {
-            sub.whereNull('data_source').orWhereNot('data_source', 'datafoncier-manual');
+            sub
+              .whereNull('data_source')
+              .orWhereNot('data_source', 'datafoncier-manual');
           });
         }
         const dataFileYears = filters.dataFileYearsExcluded?.filter(

@@ -52,7 +52,7 @@ import OwnerKindSelect from './OwnerKindSelect';
 import OwnershipKindSelect from './OwnershipKindSelect';
 import PerimeterSearchableSelect from './PerimeterSearchableSelect';
 import RoomCountSelect from './RoomCountSelect';
-import SecondaryOwnerSelect from './SecondaryOwnerSelect';
+import ActiveOwnerCountSelect from './ActiveOwnerCountSelect';
 import SurfaceSelect from './SurfaceSelect';
 import VacancyRateSelect from './VacancyRateSelect';
 import VacancyYearSelect from './VacancyYearSelect';
@@ -687,7 +687,7 @@ function HousingListFiltersSidemenu(props: Props) {
               />
             </Grid>
             <Grid component="article" mb={2} size={12}>
-              <SecondaryOwnerSelect
+              <ActiveOwnerCountSelect
                 multiple
                 value={filters.beneficiaryCounts ?? []}
                 onChange={(values) => {

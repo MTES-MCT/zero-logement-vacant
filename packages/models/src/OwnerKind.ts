@@ -1,5 +1,4 @@
 export const OWNER_KIND_VALUES = [
-  'absent',
   'particulier',
   'sci-copro',
   'promoteur',
@@ -16,14 +15,12 @@ export type OwnerKindLabel =
   | 'Promoteur, Investisseur privé'
   | 'Etat et collectivité territoriale'
   | 'Bailleur social, Aménageur, Investisseur public'
-  | 'Autres'
-  | 'Absence de propriétaire';
+  | 'Autres';
 export const OWNER_KIND_LABELS: Record<OwnerKind, OwnerKindLabel> = {
   particulier: 'Particulier',
   'sci-copro': 'SCI, Copropriété, Autres personnes morales',
   promoteur: 'Promoteur, Investisseur privé',
   'etat-collectivite': 'Etat et collectivité territoriale',
   'bailleur-social': 'Bailleur social, Aménageur, Investisseur public',
-  autres: 'Autres',
-  absent: 'Absence de propriétaire'
+  autres: 'Autres'
 };

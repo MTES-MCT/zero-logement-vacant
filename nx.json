@@ -86,11 +86,9 @@
       "plugin": "@nx/vite/plugin",
       "options": {
         "buildTargetName": "build",
-        "serveTargetName": "serve",
         "devTargetName": "dev",
         "previewTargetName": "preview",
-        "serveStaticTargetName": "serve-static",
-        "typecheckTargetName": "typecheck"
+        "serveStaticTargetName": "serve-static"
       }
     },
     {
@@ -103,15 +101,6 @@
           "targetName": "build",
           "configName": "tsconfig.lib.json"
         }
-      }
-    },
-    {
-      "plugin": "@nx/react/router-plugin",
-      "options": {
-        "buildTargetName": "build",
-        "devTargetName": "dev",
-        "startTargetName": "start",
-        "typecheckTargetName": "typecheck"
       }
     },
     {

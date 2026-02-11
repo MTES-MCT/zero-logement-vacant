@@ -1,16 +1,7 @@
 {
   "extends": ["@tsconfig/vite-react/tsconfig.json", "../tsconfig.base.json"],
   "files": [],
-  "compilerOptions": {
-    "types": ["vite/client"],
-    "outDir": "dist",
-    "rootDir": "src",
-    "allowImportingTsExtensions": false,
-    "noEmit": false,
-    "paths": {
-      "~/*": ["./src/*"]
-    }
-  },
+  "include": [],
   "references": [
     {
       "path": "./tsconfig.app.json"

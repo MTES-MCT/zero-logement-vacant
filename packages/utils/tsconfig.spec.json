@@ -1,5 +1,5 @@
 {
-  "extends": "./tsconfig.json",
+  "extends": ["@tsconfig/node24/tsconfig.json", "../../tsconfig.base.json"],
   "compilerOptions": {
     "outDir": "dist/spec",
     "tsBuildInfoFile": "dist/spec/tsconfig.tsbuildinfo",
@@ -11,9 +11,7 @@
       "vitest"
     ]
   },
-  "include": [
-    "src/**/*.test.ts"
-  ],
+  "include": ["src/**/*.test.ts"],
   "references": [
     {
       "path": "./tsconfig.lib.json"

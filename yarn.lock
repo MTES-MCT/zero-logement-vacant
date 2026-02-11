@@ -9762,10 +9762,17 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@tsconfig/vite-react@npm:7.0.0":
-  version: 7.0.0
-  resolution: "@tsconfig/vite-react@npm:7.0.0"
-  checksum: 10c0/2b29bbad53456c614eeae368fe2fe24c85e957b104546c38671744c88aa7004900d51501980089055e60cfa40bdc0fe3ae30b8eed8f470cfb2994886e55d9da6
+"@tsconfig/node24@npm:24.0.4":
+  version: 24.0.4
+  resolution: "@tsconfig/node24@npm:24.0.4"
+  checksum: 10c0/9c5d4173204c6935c45d3ff0584fd423bd7d8bc3f6b246e646320ae584e4226b34ea1c66ec67cd16769c73e7e80f4cc562287b0acaa4ec81aa482463972ff83f
+  languageName: node
+  linkType: hard
+
+"@tsconfig/vite-react@npm:7.0.2":
+  version: 7.0.2
+  resolution: "@tsconfig/vite-react@npm:7.0.2"
+  checksum: 10c0/cc63685e4f7b70a2ca34becb81939dad3f852f5640b6072aeeb2671b41f8bd1d80746ac7438c166090d6f22ca41db89282238e09a8877b8ac495c9fb0fa58257
   languageName: node
   linkType: hard
 
@@ -13359,7 +13366,7 @@ __metadata:
     "@swc/jest": "npm:0.2.39"
     "@testing-library/dom": "npm:10.4.1"
     "@testing-library/jest-dom": "npm:6.6.4"
-    "@tsconfig/node20": "npm:20.1.6"
+    "@tsconfig/node24": "npm:24.0.4"
     "@types/jest": "npm:29.5.14"
     "@types/node": "npm:20.19.10"
     "@zerologementvacant/utils": "workspace:*"
@@ -13418,7 +13425,7 @@ __metadata:
     "@testing-library/jest-dom": "npm:6.6.4"
     "@testing-library/react": "npm:16.3.0"
     "@testing-library/user-event": "npm:14.6.1"
-    "@tsconfig/vite-react": "npm:7.0.0"
+    "@tsconfig/vite-react": "npm:7.0.2"
     "@turf/turf": "npm:7.1.0"
     "@typeform/embed-react": "npm:2.31.0"
     "@types/async": "npm:3.2.25"
@@ -13494,7 +13501,7 @@ __metadata:
   resolution: "@zerologementvacant/healthcheck@workspace:packages/healthcheck"
   dependencies:
     "@aws-sdk/client-s3": "npm:3.864.0"
-    "@tsconfig/node20": "npm:20.1.6"
+    "@tsconfig/node24": "npm:24.0.4"
     "@types/async": "npm:3.2.25"
     "@types/express": "npm:4.17.23"
     "@types/jest": "npm:29.5.14"
@@ -13516,7 +13523,7 @@ __metadata:
   resolution: "@zerologementvacant/models@workspace:packages/models"
   dependencies:
     "@faker-js/faker": "npm:8.4.1"
-    "@tsconfig/node20": "npm:20.1.6"
+    "@tsconfig/node24": "npm:24.0.4"
     "@turf/turf": "npm:7.1.0"
     "@types/geojson": "npm:7946.0.16"
     "@types/node": "npm:20.19.10"
@@ -13543,7 +13550,7 @@ __metadata:
     "@sentry/integrations": "npm:7.120.4"
     "@sentry/node": "npm:7.120.4"
     "@swc/core": "npm:1.13.3"
-    "@tsconfig/node20": "npm:20.1.6"
+    "@tsconfig/node24": "npm:24.0.4"
     "@types/archiver": "npm:6.0.3"
     "@types/async": "npm:3.2.25"
     "@types/convict": "npm:6.1.6"
@@ -13589,7 +13596,7 @@ __metadata:
   resolution: "@zerologementvacant/schemas@workspace:packages/schemas"
   dependencies:
     "@fast-check/vitest": "npm:0.2.2"
-    "@tsconfig/node20": "npm:20.1.6"
+    "@tsconfig/node24": "npm:24.0.4"
     "@types/node": "npm:20.19.10"
     "@zerologementvacant/models": "workspace:*"
     yup: "npm:1.7.0"
@@ -13614,7 +13621,7 @@ __metadata:
     "@sendinblue/client": "npm:3.3.1"
     "@sentry/integrations": "npm:7.120.4"
     "@sentry/node": "npm:7.120.4"
-    "@tsconfig/node20": "npm:20.1.6"
+    "@tsconfig/node24": "npm:24.0.4"
     "@turf/turf": "npm:7.1.0"
     "@types/async": "npm:3.2.25"
     "@types/bcryptjs": "npm:2.4.6"
@@ -13731,7 +13738,7 @@ __metadata:
   resolution: "@zerologementvacant/utils@workspace:packages/utils"
   dependencies:
     "@aws-sdk/client-s3": "npm:3.864.0"
-    "@tsconfig/node20": "npm:20.1.6"
+    "@tsconfig/node24": "npm:24.0.4"
     "@types/node": "npm:20.19.10"
     effect: "npm:3.17.7"
     pino: "npm:9.8.0"

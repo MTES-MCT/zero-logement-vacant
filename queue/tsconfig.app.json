@@ -1,8 +1,10 @@
 {
-  "extends": "./tsconfig.json",
+  "extends": ["@tsconfig/node24/tsconfig.json", "../tsconfig.base.json"],
   "compilerOptions": {
+    "rootDir": "src",
     "outDir": "dist/app",
-    "tsBuildInfoFile": "dist/app/tsconfig.tsbuildinfo"
+    "tsBuildInfoFile": "dist/app/tsconfig.tsbuildinfo",
+    "types": ["node", "bullmq"]
   },
   "include": ["src/**/*.ts"],
   "exclude": ["src/**/*.test.ts", "src/test"],

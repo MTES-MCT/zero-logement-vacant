@@ -1,11 +1,10 @@
 {
-  "extends": "../tsconfig.base.json",
+  "extends": ["@tsconfig/vite-react/tsconfig.json", "../tsconfig.base.json"],
   "compilerOptions": {
-    "rootDir": "src",
     "outDir": "dist/app",
     "tsBuildInfoFile": "dist/app/tsconfig.tsbuildinfo",
-    "jsx": "react-jsx",
-    "lib": ["dom"],
+    "noEmit": false,
+    "allowImportingTsExtensions": false,
     "paths": {
       "~/*": ["./src/*"]
     },

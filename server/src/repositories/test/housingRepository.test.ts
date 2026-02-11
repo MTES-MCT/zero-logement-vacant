@@ -1817,6 +1817,25 @@ describe('Housing repository', () => {
             );
           });
         });
+
+        it('should keep housings with source datafoncier-manual when datafoncier-manual is included', async () => {
+          const housings: ReadonlyArray<HousingApi> = [
+            { ...genHousingApi(), source: 'datafoncier-manual', dataFileYears: ['ff-2024'] },
+            { ...genHousingApi(), source: 'lovac', dataFileYears: ['lovac-2024'] }
+          ];
+          await Housing().insert(housings.map(formatHousingRecordApi));
+
+          const actual = await housingRepository.find({
+            filters: {
+              dataFileYearsIncluded: ['datafoncier-manual']
+            }
+          });
+
+          expect(actual.length).toBeGreaterThan(0);
+          expect(actual).toSatisfyAll<HousingApi>((housing) => {
+            return housing.source === 'datafoncier-manual';
+          });
+        });
       });
 
       describe('by excluded data file year', () => {
@@ -1863,6 +1882,25 @@ describe('Housing repository', () => {
             return !housing.dataFileYears.some((dataFileYear) =>
               set.has(dataFileYear as DataFileYear)
             );
+          });
+        });
+
+        it('should exclude housings with source datafoncier-manual when datafoncier-manual is excluded', async () => {
+          const housings: ReadonlyArray<HousingApi> = [
+            { ...genHousingApi(), source: 'datafoncier-manual', dataFileYears: ['ff-2024'] },
+            { ...genHousingApi(), source: 'lovac', dataFileYears: ['lovac-2024'] }
+          ];
+          await Housing().insert(housings.map(formatHousingRecordApi));
+
+          const actual = await housingRepository.find({
+            filters: {
+              dataFileYearsExcluded: ['datafoncier-manual']
+            }
+          });
+
+          expect(actual.length).toBeGreaterThan(0);
+          expect(actual).toSatisfyAll<HousingApi>((housing) => {
+            return housing.source !== 'datafoncier-manual';
           });
         });
       });

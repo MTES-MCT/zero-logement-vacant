@@ -36,7 +36,7 @@ jobs:
           --health-timeout 5s
           --health-retries 5
       s3:
-        image: adobe/s3mock:3.5.2
+        image: adobe/s3mock:4.11.0
         ports:
           - 9090:9090
         env:
@@ -64,22 +64,18 @@ jobs:
           CYPRESS_INSTALL_BINARY: 0
           PUPPETEER_SKIP_CHROMIUM_DOWNLOAD: true
 
-      - name: Build
-        run: yarn nx affected --exclude=zero-logement-vacant -t build --base ${{ github.event.pull_request.base.sha }}
-        env:
-          METABASE_TOKEN: token
-
       # Check source and **test** files
       - name: Check types
-        run: yarn nx affected --exclude=zero-logement-vacant -t typecheck --base ${{ github.event.pull_request.base.sha }}
+        run: yarn nx affected -t typecheck --base ${{ github.event.pull_request.base.sha }}
         env:
           DISABLE_ESLINT_PLUGIN: true
           METABASE_TOKEN: token
 
       - name: Lint
-        run: yarn nx affected --exclude=zero-logement-vacant -t lint --base ${{ github.event.pull_request.base.sha }}
+        run: yarn nx affected -t lint --base ${{ github.event.pull_request.base.sha }}
+
       - name: Test
-        run: yarn nx affected --exclude=zero-logement-vacant -t test --base ${{ github.event.pull_request.base.sha }}
+        run: yarn nx affected -t test --base ${{ github.event.pull_request.base.sha }}
         env:
           LOG_LEVEL: fatal
           NODE_OPTIONS: --experimental-transform-types

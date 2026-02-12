@@ -1,8 +1,12 @@
 {
-  "extends": "./tsconfig.json",
+  "extends": ["@tsconfig/node24/tsconfig.json", "../tsconfig.base.json"],
   "compilerOptions": {
+    "rootDir": "src",
     "outDir": "dist/spec",
     "tsBuildInfoFile": "dist/spec/tsconfig.tsbuildinfo",
+    "paths": {
+      "~/*": ["./src/*"]
+    },
     "typeRoots": ["../node_modules", "node_modules", "src/types"],
     "types": [
       "express",

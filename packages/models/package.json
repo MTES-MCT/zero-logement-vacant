@@ -23,7 +23,7 @@
   },
   "devDependencies": {
     "@faker-js/faker": "8.4.1",
-    "@tsconfig/node20": "20.1.6",
+    "@tsconfig/node24": "24.0.4",
     "@turf/turf": "7.1.0",
     "@types/geojson": "7946.0.16",
     "@types/node": "20.19.10"

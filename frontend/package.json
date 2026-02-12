@@ -83,7 +83,7 @@
     "@testing-library/jest-dom": "6.6.4",
     "@testing-library/react": "16.3.0",
     "@testing-library/user-event": "14.6.1",
-    "@tsconfig/vite-react": "7.0.0",
+    "@tsconfig/vite-react": "7.0.2",
     "@types/async": "3.2.25",
     "@types/geojson": "7946.0.16",
     "@types/jsonwebtoken": "9.0.3",

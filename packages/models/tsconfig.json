@@ -1,19 +1,8 @@
 {
-  "extends": "../../tsconfig.base.json",
+  "extends": ["@tsconfig/node24/tsconfig.json", "../../tsconfig.base.json"],
   "files": [],
-  "compilerOptions": {
-    "outDir": "dist",
-    "tsBuildInfoFile": "dist/tsconfig.tsbuildinfo",
-    "rootDir": "src"
-  },
+  "include": [],
   "references": [
-    {
-      "path": "../utils"
-    },
-    {
-      "path": "../draft"
-    },
-    // Other project dependencies
     {
       "path": "./tsconfig.lib.json"
     },

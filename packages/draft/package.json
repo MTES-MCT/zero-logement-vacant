@@ -24,7 +24,7 @@
     "@swc/jest": "0.2.39",
     "@testing-library/dom": "10.4.1",
     "@testing-library/jest-dom": "6.6.4",
-    "@tsconfig/node20": "20.1.6",
+    "@tsconfig/node24": "24.0.4",
     "@types/jest": "29.5.14",
     "@types/node": "20.19.10",
     "copyfiles": "2.4.1",

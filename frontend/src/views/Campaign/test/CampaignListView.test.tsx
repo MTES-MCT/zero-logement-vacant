@@ -123,7 +123,7 @@ describe('CampaignListView', () => {
         descending: true,
         compare: (a: string, b: string) => {
           const map = (date: string): Date =>
-            new Date(date.split('/').toReversed().join('-'));
+            new Date(date.split('/').reverse().join('-'));
           return DEFAULT_ORDER(map(a), map(b));
         }
       });

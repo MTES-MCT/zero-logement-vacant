@@ -1,6 +1,6 @@
 {
   "extends": "./tsconfig.base.json",
-  "files": [], // intentionally empty
+  "files": [],
   "references": [
     {
       "path": "./packages/healthcheck"

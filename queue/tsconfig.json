@@ -1,28 +1,8 @@
 {
-  "extends": "../tsconfig.base.json",
+  "extends": ["@tsconfig/node24/tsconfig.json", "../tsconfig.base.json"],
   "files": [],
-  "compilerOptions": {
-    "outDir": "dist",
-    "tsBuildInfoFile": "dist/tsconfig.tsbuildinfo",
-    "rootDir": "src"
-  },
-  "exclude": ["**/node_modules", "**/dist", "**/.*"],
+  "include": [],
   "references": [
-    {
-      "path": "../packages/utils"
-    },
-    {
-      "path": "../packages/models"
-    },
-    {
-      "path": "../packages/healthcheck"
-    },
-    {
-      "path": "../packages/draft"
-    },
-    {
-      "path": "../packages/api-sdk"
-    },
     {
       "path": "./tsconfig.app.json"
     },
@@ -31,4 +11,3 @@
     }
   ]
 }
-

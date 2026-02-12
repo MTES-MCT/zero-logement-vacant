@@ -1,4 +1,4 @@
-import { vi } from 'vitest';
+import { vi, type MockedFunction } from 'vitest';
 import { subDays } from 'date-fns';
 import { constants } from 'http2';
 import request from 'supertest';
@@ -39,6 +39,19 @@ describe('Reset link API', () => {
   describe('POST /reset-links', () => {
     const testRoute = '/api/reset-links';
 
+    let createLink: MockedFunction<typeof resetLinkRepository.insert>;
+    let sendEmail: MockedFunction<typeof mailService.sendPasswordReset>;
+
+    beforeEach(() => {
+      createLink = vi.spyOn(resetLinkRepository, 'insert');
+      sendEmail = vi.spyOn(mailService, 'sendPasswordReset');
+    });
+
+    afterEach(() => {
+      createLink.mockClear();
+      sendEmail.mockClear();
+    });
+
     it('should validate the email', async () => {
       // Without email
       await request(url)
@@ -77,8 +90,6 @@ describe('Reset link API', () => {
     });
 
     it('should return OK if the user is missing without sending an email', async () => {
-      const createLink = vi.spyOn(resetLinkRepository, 'insert');
-      const sendEmail = vi.spyOn(mailService, 'sendPasswordReset');
       const email = 'test@test.test';
 
       const { status } = await request(url).post(testRoute).send({ email });

@@ -1,13 +1,12 @@
 {
-  "extends": "./tsconfig.json",
+  "extends": ["@tsconfig/node24/tsconfig.json", "../../tsconfig.base.json"],
   "compilerOptions": {
+    "rootDir": "src",
     "outDir": "dist/spec",
     "tsBuildInfoFile": "dist/spec/tsconfig.tsbuildinfo",
     "types": ["jest", "jest-extended", "node"]
   },
-  "include": [
-    "src/**/*.test.ts"
-  ],
+  "include": ["src/**/*.test.ts"],
   "references": [
     {
       "path": "./tsconfig.lib.json"

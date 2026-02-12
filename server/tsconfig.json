@@ -2,6 +2,11 @@
   "extends": ["@tsconfig/node24/tsconfig.json", "../tsconfig.base.json"],
   "files": [],
   "include": [],
+  "compilerOptions": {
+    "paths": {
+      "~/*": ["./src/*"]
+    }
+  },
   "references": [
     {
       "path": "./tsconfig.app.json"

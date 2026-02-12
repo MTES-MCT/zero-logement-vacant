@@ -66,16 +66,16 @@ jobs:
 
       # Check source and **test** files
       - name: Check types
-        run: yarn nx affected --exclude=zero-logement-vacant -t typecheck --base ${{ github.event.pull_request.base.sha }}
+        run: yarn nx affected -t typecheck --base ${{ github.event.pull_request.base.sha }}
         env:
           DISABLE_ESLINT_PLUGIN: true
           METABASE_TOKEN: token
 
       - name: Lint
-        run: yarn nx affected --exclude=zero-logement-vacant -t lint --base ${{ github.event.pull_request.base.sha }}
+        run: yarn nx affected -t lint --base ${{ github.event.pull_request.base.sha }}
 
       - name: Test
-        run: yarn nx affected --exclude=zero-logement-vacant -t test --base ${{ github.event.pull_request.base.sha }}
+        run: yarn nx affected -t test --base ${{ github.event.pull_request.base.sha }}
         env:
           LOG_LEVEL: fatal
           NODE_OPTIONS: --experimental-transform-types

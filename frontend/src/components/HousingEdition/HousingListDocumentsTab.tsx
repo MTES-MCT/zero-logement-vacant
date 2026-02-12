@@ -65,7 +65,10 @@ function HousingListDocumentsTab() {
 
       <Stack component="section" spacing="2rem" useFlexGap>
         <Stack component="header">
-          <HousingDocumentUpload onUpload={onUpload} />
+          <HousingDocumentUpload
+            label="Associez un ou plusieurs documents à ces logements"
+            onUpload={onUpload}
+          />
         </Stack>
 
         <Stack spacing="1rem" useFlexGap>

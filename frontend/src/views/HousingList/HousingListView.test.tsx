@@ -1961,7 +1961,7 @@ describe('Housing list view', () => {
         });
 
         const accordion = await screen.findByRole('button', {
-          name: /^Vie du logement$/,
+          name: /^Logement$/,
           expanded: false
         });
         await user.click(accordion);

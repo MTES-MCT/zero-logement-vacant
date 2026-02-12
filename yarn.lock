@@ -18400,15 +18400,6 @@ __metadata:
   languageName: node
   linkType: hard
 
-"esbuild-plugin-tsconfig-paths@npm:1.0.2":
-  version: 1.0.2
-  resolution: "esbuild-plugin-tsconfig-paths@npm:1.0.2"
-  dependencies:
-    tsconfig-paths: "npm:4.2.0"
-  checksum: 10c0/f4b97c4c8f4d68b301c70938881e609ef3d83e36b3eedfdcef2d1b63b7e34104ba12fa62f57345fe36140f704d136a99ac2863aa7531687553923e2da8fbd691
-  languageName: node
-  linkType: hard
-
 "esbuild@npm:0.25.5":
   version: 0.25.5
   resolution: "esbuild@npm:0.25.5"
@@ -32517,17 +32508,6 @@ __metadata:
   languageName: node
   linkType: hard
 
-"tsconfig-paths@npm:4.2.0, tsconfig-paths@npm:^4.1.2":
-  version: 4.2.0
-  resolution: "tsconfig-paths@npm:4.2.0"
-  dependencies:
-    json5: "npm:^2.2.2"
-    minimist: "npm:^1.2.6"
-    strip-bom: "npm:^3.0.0"
-  checksum: 10c0/09a5877402d082bb1134930c10249edeebc0211f36150c35e1c542e5b91f1047b1ccf7da1e59babca1ef1f014c525510f4f870de7c9bda470c73bb4e2721b3ea
-  languageName: node
-  linkType: hard
-
 "tsconfig-paths@npm:^3.15.0":
   version: 3.15.0
   resolution: "tsconfig-paths@npm:3.15.0"
@@ -32537,6 +32517,17 @@ __metadata:
     minimist: "npm:^1.2.6"
     strip-bom: "npm:^3.0.0"
   checksum: 10c0/5b4f301a2b7a3766a986baf8fc0e177eb80bdba6e396792ff92dc23b5bca8bb279fc96517dcaaef63a3b49bebc6c4c833653ec58155780bc906bdbcf7dda0ef5
+  languageName: node
+  linkType: hard
+
+"tsconfig-paths@npm:^4.1.2":
+  version: 4.2.0
+  resolution: "tsconfig-paths@npm:4.2.0"
+  dependencies:
+    json5: "npm:^2.2.2"
+    minimist: "npm:^1.2.6"
+    strip-bom: "npm:^3.0.0"
+  checksum: 10c0/09a5877402d082bb1134930c10249edeebc0211f36150c35e1c542e5b91f1047b1ccf7da1e59babca1ef1f014c525510f4f870de7c9bda470c73bb4e2721b3ea
   languageName: node
   linkType: hard
 
@@ -34452,7 +34443,6 @@ __metadata:
     clever-tools: "npm:4.4.0"
     cypress: "npm:15.9.0"
     esbuild: "npm:0.27.3"
-    esbuild-plugin-tsconfig-paths: "npm:1.0.2"
     eslint: "npm:9.38.0"
     eslint-config-prettier: "npm:10.1.8"
     eslint-plugin-cypress: "npm:5.2.0"

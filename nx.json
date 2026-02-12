@@ -37,7 +37,7 @@
       "inputs": ["default", "^default", "{workspaceRoot}/tsconfig.base.json"],
       "outputs": [
         "{projectRoot}/dist/**/*.d.ts",
-        "{projectRoot}/*.tsbuildinfo"
+        "{projectRoot}/dist/**/*.tsbuildinfo"
       ],
       "cache": true
     },

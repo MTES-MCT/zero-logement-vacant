@@ -13847,7 +13847,7 @@ __metadata:
   languageName: unknown
   linkType: soft
 
-"@zerologementvacant/pdf@workspace:packages/pdf":
+"@zerologementvacant/pdf@workspace:*, @zerologementvacant/pdf@workspace:packages/pdf":
   version: 0.0.0-use.local
   resolution: "@zerologementvacant/pdf@workspace:packages/pdf"
   dependencies:
@@ -13861,6 +13861,8 @@ __metadata:
     react: "npm:18.3.1"
     react-pdf-html: "npm:2.1.5"
     ts-pattern: "npm:5.8.0"
+  peerDependencies:
+    react: 18.3.1
   languageName: unknown
   linkType: soft
 
@@ -13946,6 +13948,7 @@ __metadata:
     "@pdfme/common": "npm:5.4.2"
     "@pdfme/generator": "npm:5.4.2"
     "@pdfme/schemas": "npm:5.4.2"
+    "@react-pdf/renderer": "npm:4.3.2"
     "@sendinblue/client": "npm:3.3.1"
     "@sentry/integrations": "npm:7.120.4"
     "@sentry/node": "npm:7.120.4"
@@ -13988,6 +13991,7 @@ __metadata:
     "@zerologementvacant/draft": "workspace:*"
     "@zerologementvacant/healthcheck": "workspace:*"
     "@zerologementvacant/models": "workspace:*"
+    "@zerologementvacant/pdf": "workspace:*"
     "@zerologementvacant/queue": "workspace:*"
     "@zerologementvacant/schemas": "workspace:*"
     "@zerologementvacant/utils": "workspace:*"
@@ -14043,6 +14047,7 @@ __metadata:
     puppeteer: "npm:22.15.0"
     qs: "npm:6.14.1"
     randomstring: "npm:1.3.1"
+    react: "npm:18.3.1"
     redis: "npm:4.7.1"
     rimraf: "npm:5.0.10"
     shapefile: "npm:0.6.6"

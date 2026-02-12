@@ -26,5 +26,8 @@
     "@types/node": "20.19.10",
     "@types/react": "18.3.18",
     "pdf-to-png-converter": "3.11.0"
+  },
+  "peerDependencies": {
+    "react": "18.3.1"
   }
 }

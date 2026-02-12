@@ -286,7 +286,7 @@ function AppSelectNext<Value, Multiple extends boolean = false>(
           },
           variant: 'menu',
           elevation: 0,
-          disableScrollLock: true,
+          disableScrollLock: false,
           slotProps: {
             paper: {
               sx: {
@@ -359,7 +359,7 @@ function AppSelectNext<Value, Multiple extends boolean = false>(
                     }}
                   >
                     {props.groupClickable === false ? (
-                      <Typography variant="subtitle2" sx={{ fontWeight: 700 }}>
+                      <Typography variant="body2" sx={{ fontWeight: 700 }}>
                         {renderGroup(group)}
                       </Typography>
                     ) : (

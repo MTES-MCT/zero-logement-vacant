@@ -23,6 +23,7 @@ import { array, mixed, number, object, string, type InferType } from 'yup';
 import { useHousing } from '~/hooks/useHousing';
 
 import HousingEditionInformationTab from '~/components/HousingEdition/HousingEditionInformationTab';
+
 import { useNotification } from '~/hooks/useNotification';
 import { HousingStates } from '~/models/HousingState';
 import {

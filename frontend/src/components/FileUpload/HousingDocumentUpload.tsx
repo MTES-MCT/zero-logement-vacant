@@ -4,7 +4,10 @@ import {
 } from '@zerologementvacant/models';
 import { Array } from 'effect';
 import { match } from 'ts-pattern';
-import DocumentUpload from '~/components/FileUpload/DocumentUpload';
+
+import DocumentUpload, {
+  type DocumentUploadProps
+} from '~/components/FileUpload/DocumentUpload';
 import {
   type FileValidationError,
   isFileValidationError
@@ -12,13 +15,13 @@ import {
 import { useUploadDocumentsMutation } from '~/services/document.service';
 import { isFetchBaseQueryError } from '~/store/store';
 
-export interface HousingDocumentUploadProps {
+export type HousingDocumentUploadProps = Pick<DocumentUploadProps, 'label'> & {
   /**
    * Called every time documents are successfully uploaded.
    * @param documents
    */
   onUpload(documents: ReadonlyArray<DocumentDTO>): void;
-}
+};
 
 function HousingDocumentUpload(props: Readonly<HousingDocumentUploadProps>) {
   const [uploadDocuments, uploadMutation] = useUploadDocumentsMutation();
@@ -77,7 +80,7 @@ function HousingDocumentUpload(props: Readonly<HousingDocumentUploadProps>) {
       isError={isError}
       isLoading={isLoading}
       isSuccess={isSuccess}
-      label="Associez un ou plusieurs documents à ce logement"
+      label={props.label ?? 'Associez un ou plusieurs documents à ce logement'}
       maxSize={25}
       multiple
       onUpload={onUpload}

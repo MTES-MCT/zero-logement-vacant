@@ -83,6 +83,7 @@ function HousingListTab(props: HousingListTabProps) {
       note: payload.note ?? undefined,
       precisions:
         payload.precisions?.map((precision) => precision.id) ?? undefined,
+      documents: payload.documents?.map(document => document.id) ?? undefined,
       filters: {
         ...props.filters,
         all: selected.all,

@@ -4,22 +4,22 @@ import { BENEFICIARY_COUNT_OPTIONS } from '../../models/HousingFilters';
 import AppSelectNext from '../_app/AppSelect/AppSelectNext';
 import type { AppSelectNextProps } from '../_app/AppSelect/AppSelectNext';
 
-export type SecondaryOwnerSelectProps<Multiple extends boolean> = Pick<
+export type ActiveOwnerCountSelectProps<Multiple extends boolean> = Pick<
   AppSelectNextProps<BeneficiaryCount, Multiple>,
   'className' | 'disabled' | 'error' | 'multiple' | 'value' | 'onChange'
 >;
 
-function SecondaryOwnerSelect<Multiple extends boolean = false>(
-  props: SecondaryOwnerSelectProps<Multiple>
+function ActiveOwnerCountSelect<Multiple extends boolean = false>(
+  props: ActiveOwnerCountSelectProps<Multiple>
 ) {
   return (
     <AppSelectNext
       {...props}
       options={BENEFIARY_COUNT_VALUES}
-      label="Propriétaires secondaires"
+      label="Nombre de propriétaires"
       getOptionLabel={(option) => BENEFICIARY_COUNT_OPTIONS[option].label}
     />
   );
 }
 
-export default SecondaryOwnerSelect;
+export default ActiveOwnerCountSelect;

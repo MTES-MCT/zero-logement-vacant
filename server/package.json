@@ -131,6 +131,7 @@
     "rimraf": "5.0.10",
     "superagent": "8.1.2",
     "supertest": "7.1.4",
+    "ts-node": "10.9.2",
     "tsx": "4.20.3"
   }
 }

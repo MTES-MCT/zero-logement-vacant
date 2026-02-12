@@ -2,22 +2,23 @@
   "name": "@zerologementvacant/pdf",
   "version": "0.0.1",
   "type": "module",
+  "main": "./src/browser.ts",
+  "module": "./src/browser.ts",
   "exports": {
     "./package.json": "./package.json",
     ".": {
-      "types": "./dist/lib/index.d.ts",
-      "default": "./dist/lib/index.js"
+      "default": "./src/browser.ts"
     },
-    "./templates": {
-      "types": "./dist/lib/templates/index.d.ts",
-      "default": "./dist/lib/templates/index.js"
+    "./node": {
+      "default": "./src/node.ts"
     }
   },
   "dependencies": {
     "@react-pdf/renderer": "4.3.2",
     "@zerologementvacant/models": "workspace:*",
     "react": "18.3.1",
-    "react-pdf-html": "2.1.5"
+    "react-pdf-html": "2.1.5",
+    "ts-pattern": "5.8.0"
   },
   "devDependencies": {
     "@faker-js/faker": "8.4.1",

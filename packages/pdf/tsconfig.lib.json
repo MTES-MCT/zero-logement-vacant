@@ -1,14 +1,19 @@
 {
-  "extends": "./tsconfig.json",
+  "extends": "../../tsconfig.base.json",
   "compilerOptions": {
+    "rootDir": "src",
     "outDir": "dist/lib",
     "tsBuildInfoFile": "dist/lib/tsconfig.tsbuildinfo",
+    "jsx": "react-jsx",
     "types": [
-      "vitest/importMeta"
+      "node",
+      "@nx/react/typings/cssmodule.d.ts",
+      "@nx/react/typings/image.d.ts",
+      "vite/client"
     ]
   },
   "include": ["src/**/*.ts", "src/**/*.tsx"],
-  "exclude": ["src/**/*.test.ts", "src/**/*.test.tsx"],
+  "exclude": ["dist", "src/**/*.test.ts", "src/**/*.test.tsx"],
   "references": [
     {
       "path": "../models/tsconfig.lib.json"

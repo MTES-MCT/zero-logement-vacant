@@ -7,7 +7,7 @@ import { replaceVariables } from '@zerologementvacant/models';
 
 interface GenerateCampaignOptions {
   housings: HousingDTO[];
-  draft: Pick<DraftDTO, 'subject' | 'body' | 'writtenAt' | 'writtenFrom'>;
+  draft: Pick<DraftDTO, 'subject' | 'body' | 'sender' | 'writtenAt' | 'writtenFrom'>;
 }
 
 export async function generate(options: GenerateCampaignOptions) {
@@ -32,6 +32,7 @@ export async function generate(options: GenerateCampaignOptions) {
           <CampaignTemplate
             key={housing.id}
             draft={personalizedDraft}
+            housings={options.housings}
           />
         );
       })}

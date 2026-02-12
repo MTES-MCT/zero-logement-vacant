@@ -13860,6 +13860,7 @@ __metadata:
     pdf-to-png-converter: "npm:3.11.0"
     react: "npm:18.3.1"
     react-pdf-html: "npm:2.1.5"
+    ts-pattern: "npm:5.8.0"
   languageName: unknown
   linkType: soft
 

@@ -1,12 +1,7 @@
 {
   "extends": "../../tsconfig.base.json",
   "files": [],
-  "compilerOptions": {
-    "outDir": "dist",
-    "tsBuildInfoFile": "dist/tsconfig.tsbuildinfo",
-    "rootDir": "src",
-    "jsx": "react"
-  },
+  "include": [],
   "references": [
     {
       "path": "../models"

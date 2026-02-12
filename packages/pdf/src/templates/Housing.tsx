@@ -8,17 +8,26 @@ interface HousingTemplateProps {
   housing: HousingDTO;
 }
 
+const styles = StyleSheet.create({
+  page: {
+    padding: 40,
+    backgroundColor: '#ffffff'
+  }
+});
+
 export function HousingTemplate({ housing }: HousingTemplateProps) {
   return (
     <Page size="A4" style={styles.page}>
-      <Stack spacing={8}>
+      <Stack direction="column" spacing={8}>
         <Typography variant="h1">Fiche Logement</Typography>
 
         {/* Address section */}
         <View>
           <Typography variant="h3">Adresse</Typography>
           {housing.rawAddress.map((line, index) => (
-            <Typography key={index} variant="body">{line}</Typography>
+            <Typography key={index} variant="body">
+              {line}
+            </Typography>
           ))}
         </View>
 
@@ -39,19 +48,10 @@ export function HousingTemplate({ housing }: HousingTemplateProps) {
         {housing.owner && (
           <View>
             <Typography variant="h3">Propriétaire</Typography>
-            <Typography variant="body">
-              {housing.owner.fullName}
-            </Typography>
+            <Typography variant="body">{housing.owner.fullName}</Typography>
           </View>
         )}
       </Stack>
     </Page>
   );
 }
-
-const styles = StyleSheet.create({
-  page: {
-    padding: 40,
-    backgroundColor: '#ffffff'
-  }
-});

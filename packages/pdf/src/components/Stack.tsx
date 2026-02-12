@@ -1,28 +1,34 @@
+import { StyleSheet, View, type ViewProps } from '@react-pdf/renderer';
 import React from 'react';
-import { View, StyleSheet } from '@react-pdf/renderer';
+import { match, Pattern } from 'ts-pattern';
 
 interface StackProps {
-  direction?: 'row' | 'column';
-  spacing?: number;
   children: React.ReactNode;
-}
-
-export function Stack({
-  direction = 'column',
-  spacing = 8,
-  children
-}: StackProps) {
-  return (
-    <View style={[
-      styles[direction],
-      { gap: spacing }
-    ]}>
-      {children}
-    </View>
-  );
+  direction: 'row' | 'column';
+  spacing?: number | string;
+  style?: ViewProps['style'];
 }
 
 const styles = StyleSheet.create({
-  row: { flexDirection: 'row' },
-  column: { flexDirection: 'column' }
+  row: {
+    flexDirection: 'row'
+  },
+  column: {
+    flexDirection: 'column'
+  }
 });
+
+export function Stack(props: Readonly<StackProps>) {
+  const direction = match(props.direction)
+    .with('row', () => styles.row)
+    .with('column', () => styles.column)
+    .exhaustive();
+
+  const additionalStyle = match(props.style)
+    .with(undefined, () => [])
+    .with(Pattern.array(Pattern.any), (style) => style)
+    .with(Pattern.any, (style) => [style])
+    .exhaustive();
+
+  return <View style={[direction, ...additionalStyle]}>{props.children}</View>;
+}

@@ -465,7 +465,7 @@ describe('Housing list view', () => {
     it('should upload documents', async () => {
       const establishment = genEstablishmentDTO();
       const auth = genUserDTO(UserRole.USUAL, establishment);
-      const housings = faker.helpers.multiple(() => genHousingDTO(null), {
+      const housings = faker.helpers.multiple(() => genHousingDTO(), {
         count: 3
       });
 

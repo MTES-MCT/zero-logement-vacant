@@ -395,7 +395,7 @@ describe('Housing list view', () => {
         name: /Documents/
       });
       const input = await within(documentPanel).findByLabelText(
-        /associez un ou plusieurs documents à ces logements/i
+        /associez un ou plusieurs documents à ce logement/i
       );
       const file = new File(['dummy content'], 'example.pdf', {
         type: 'application/pdf'
@@ -436,7 +436,7 @@ describe('Housing list view', () => {
         name: /Documents/
       });
       const input = await within(documentPanel).findByLabelText(
-        /associez un ou plusieurs documents à ces logements/i
+        /associez un ou plusieurs documents à ce logement/i
       );
       const file = new File(['dummy content'], 'example.pdf', {
         type: 'application/pdf'

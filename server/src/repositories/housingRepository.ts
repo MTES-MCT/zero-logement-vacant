@@ -929,7 +929,7 @@ function filteredQuery(opts: FilteredQueryOptions) {
             .orWhereRaw('cardinality(data_file_years) = 0');
         }
         if (filters.dataFileYearsIncluded?.includes('datafoncier-manual')) {
-          where.orWhere('data_source', 'datafoncier-manual');
+          where.orWhere(`${housingTable}.data_source`, 'datafoncier-manual');
         }
         const dataFileYears = filters.dataFileYearsIncluded?.filter(
           (v): v is DataFileYear => isNotNull(v) && v !== 'datafoncier-manual'
@@ -949,8 +949,8 @@ function filteredQuery(opts: FilteredQueryOptions) {
         if (filters.dataFileYearsExcluded?.includes('datafoncier-manual')) {
           where.where((sub) => {
             sub
-              .whereNull('data_source')
-              .orWhereNot('data_source', 'datafoncier-manual');
+              .whereNull(`${housingTable}.data_source`)
+              .orWhereNot(`${housingTable}.data_source`, 'datafoncier-manual');
           });
         }
         const dataFileYears = filters.dataFileYearsExcluded?.filter(

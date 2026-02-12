@@ -36,7 +36,7 @@ jobs:
           --health-timeout 5s
           --health-retries 5
       s3:
-        image: adobe/s3mock:4.1.1
+        image: adobe/s3mock:4.11.0
         ports:
           - 9090:9090
         env:

@@ -1,13 +1,33 @@
 {
-  "extends": "./tsconfig.json",
+  "extends": "../../tsconfig.base.json",
   "compilerOptions": {
+    "jsx": "react-jsx",
+    "module": "nodenext",
+    "moduleResolution": "nodenext",
+    "rootDir": "src",
     "outDir": "dist/spec",
-    "tsBuildInfoFile": "dist/spec/tsconfig.tsbuildinfo",
-    "types": ["vitest/globals", "jest-extended", "node"]
+    "types": [
+      "vitest/globals",
+      "vitest/importMeta",
+      "vite/client",
+      "node",
+      "vitest"
+    ]
   },
   "include": [
+    "vite.config.ts",
+    "vite.config.mts",
+    "vitest.config.ts",
+    "vitest.config.mts",
     "src/**/*.test.ts",
-    "src/**/*.test.tsx"
+    "src/**/*.spec.ts",
+    "src/**/*.test.tsx",
+    "src/**/*.spec.tsx",
+    "src/**/*.test.js",
+    "src/**/*.spec.js",
+    "src/**/*.test.jsx",
+    "src/**/*.spec.jsx",
+    "src/**/*.d.ts"
   ],
   "references": [
     {

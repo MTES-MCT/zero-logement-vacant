@@ -1,9 +1,8 @@
-// packages/pdf/src/generators/housings.tsx
-import React from 'react';
-import { renderToStream, Document } from '@react-pdf/renderer';
-import { Readable } from 'stream';
-import { HousingTemplate } from '../templates';
+import { Document, renderToStream } from '@react-pdf/renderer';
 import type { HousingDTO } from '@zerologementvacant/models';
+import { Readable } from 'node:stream';
+
+import { HousingTemplate } from '../templates/index.js';
 
 interface GenerateOptions {
   housings: HousingDTO[];
@@ -19,7 +18,7 @@ export async function generate(options: GenerateOptions) {
   // Create document with all housing pages
   const document = (
     <Document>
-      {housings.map(housing => (
+      {housings.map((housing) => (
         <HousingTemplate key={housing.id} housing={housing} />
       ))}
     </Document>

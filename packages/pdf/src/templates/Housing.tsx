@@ -1,8 +1,7 @@
-// packages/pdf/src/templates/Housing.tsx
-import React from 'react';
-import { Page, View, StyleSheet } from '@react-pdf/renderer';
-import { Typography, Stack } from '../components';
+import { Page, StyleSheet, View } from '@react-pdf/renderer';
 import type { HousingDTO } from '@zerologementvacant/models';
+
+import { Stack, Typography } from '../components/index.js';
 
 interface HousingTemplateProps {
   housing: HousingDTO;

@@ -4,7 +4,7 @@ import { describe, it, expect } from 'vitest';
 import { genHousingDTO, genOwnerDTO } from '@zerologementvacant/models/fixtures';
 
 // Import only the implementation, not @react-pdf/renderer
-const housingsModule = await import('./housings');
+const housingsModule = await import('../housings.js');
 
 describe('generate housings PDF', () => {
   it('should accept single housing in options', () => {

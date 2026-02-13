@@ -1,2 +1,2 @@
-export { HousingTemplate } from './Housing';
-export { CampaignTemplate } from './Campaign';
+export { HousingTemplate } from './Housing.js';
+export { CampaignTemplate } from './Campaign.js';

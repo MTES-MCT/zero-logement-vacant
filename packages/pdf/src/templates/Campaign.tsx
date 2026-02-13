@@ -1,18 +1,18 @@
-import React from 'react';
-import { Page, View, StyleSheet, Image } from '@react-pdf/renderer';
-import Html from 'react-pdf-html';
+import { Image, Page, StyleSheet } from '@react-pdf/renderer';
 import type { DraftDTO, HousingDTO } from '@zerologementvacant/models';
-import { Stack, Typography } from '../components';
+import Html from 'react-pdf-html';
+
+import { Stack, Typography } from '../components/index.js';
 
 interface CampaignTemplateProps {
   draft: Pick<
     DraftDTO,
     'subject' | 'body' | 'logo' | 'sender' | 'writtenAt' | 'writtenFrom'
   >;
-  housings: ReadonlyArray<HousingDTO>;
+  housing: HousingDTO;
 }
 
-export function CampaignTemplate({ draft, housings }: CampaignTemplateProps) {
+export function CampaignTemplate({ draft, housing }: CampaignTemplateProps) {
   return (
     <Page size="A4" style={styles.page}>
       <Stack direction="row" style={{ alignItems: 'flex-end' }}>

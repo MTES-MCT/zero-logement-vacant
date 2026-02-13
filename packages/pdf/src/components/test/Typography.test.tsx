@@ -1,7 +1,6 @@
-// packages/pdf/src/components/Typography.test.tsx
 import { describe, it, expect } from 'vitest';
-import React from 'react';
-import { Typography } from './Typography';
+
+import { Typography } from '../Typography.js';
 
 describe('Typography', () => {
   it('should render with body variant by default', () => {
@@ -65,9 +64,11 @@ describe('Typography', () => {
   });
 
   it('should accept React nodes as children', () => {
-    const element = <Typography variant="h1">
-      <React.Fragment>Complex content</React.Fragment>
-    </Typography>;
+    const element = (
+      <Typography variant="h1">
+        <React.Fragment>Complex content</React.Fragment>
+      </Typography>
+    );
 
     expect(element.type).toBe(Typography);
     expect(element.props.children).toBeDefined();

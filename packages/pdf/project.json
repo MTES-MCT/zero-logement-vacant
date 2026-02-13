@@ -8,6 +8,10 @@
       "executor": "@nx/vite:build",
       "dependsOn": ["^build"],
       "cache": true,
+      "options": {
+        "configFile": "packages/pdf/vite.config.mts",
+        "outputPath": "packages/pdf/dist/lib"
+      },
       "inputs": [
         "{projectRoot}/package.json",
         "{projectRoot}/tsconfig.json",

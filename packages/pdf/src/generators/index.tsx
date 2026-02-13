@@ -1,2 +1,2 @@
-export { generate as generateCampaignPDF } from './campaigns';
-export { generate as generateHousingsPDF } from './housings';
+export { generate as generateCampaignPDF } from './campaigns.js';
+export { generate as generateHousingsPDF } from './housings.js';

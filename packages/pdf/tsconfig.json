@@ -2,10 +2,11 @@
   "extends": "../../tsconfig.base.json",
   "files": [],
   "include": [],
+  "compilerOptions": {
+    "module": "nodenext",
+    "moduleResolution": "nodenext"
+  },
   "references": [
-    {
-      "path": "../models"
-    },
     {
       "path": "./tsconfig.lib.json"
     },

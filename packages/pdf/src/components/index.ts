@@ -1,2 +1,2 @@
-export { Stack } from './Stack';
-export { Typography } from './Typography';
+export { Stack } from './Stack.js';
+export { Typography } from './Typography.js';

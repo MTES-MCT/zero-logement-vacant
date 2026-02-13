@@ -1,13 +1,16 @@
-import React from 'react';
-import { renderToStream, Document } from '@react-pdf/renderer';
-import { Readable } from 'stream';
-import { CampaignTemplate } from '../templates/Campaign';
-import type { HousingDTO, DraftDTO } from '@zerologementvacant/models';
+import { Document, renderToStream } from '@react-pdf/renderer';
+import type { DraftDTO, HousingDTO } from '@zerologementvacant/models';
 import { replaceVariables } from '@zerologementvacant/models';
+import { Readable } from 'node:stream';
+
+import { CampaignTemplate } from '../templates/Campaign.js';
 
 interface GenerateCampaignOptions {
   housings: HousingDTO[];
-  draft: Pick<DraftDTO, 'subject' | 'body' | 'sender' | 'writtenAt' | 'writtenFrom'>;
+  draft: Pick<
+    DraftDTO,
+    'subject' | 'body' | 'sender' | 'writtenAt' | 'writtenFrom'
+  >;
 }
 
 export async function generate(options: GenerateCampaignOptions) {
@@ -15,7 +18,7 @@ export async function generate(options: GenerateCampaignOptions) {
 
   const nodeStream = await renderToStream(
     <Document>
-      {housings.map(housing => {
+      {housings.map((housing) => {
         // Replace variables for each housing
         const personalizedBody = replaceVariables(draft.body ?? '', {
           housing,

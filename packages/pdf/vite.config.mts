@@ -25,11 +25,16 @@ export default defineConfig(() => ({
     },
     rollupOptions: {
       external: [
+        // Peer dependencies - consumers must provide these
         'react',
         'react-dom',
         'react/jsx-runtime',
-        'node:stream',
-        '@react-pdf/renderer'
+        '@react-pdf/renderer',
+        // Workspace dependencies - already available in monorepo
+        '@zerologementvacant/models',
+        // Node.js built-ins
+        'node:stream'
+        // Bundle everything else (react-pdf-html, ts-pattern, etc.)
       ]
     },
     outDir: './dist/lib',

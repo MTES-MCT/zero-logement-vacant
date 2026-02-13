@@ -616,6 +616,15 @@ async function removeHousing(
   response.status(constants.HTTP_STATUS_OK).send();
 }
 
+const updateNext: RequestHandler<{ id: string }> = async (
+  request,
+  response
+): Promise<void> => {
+  response.status(constants.HTTP_STATUS_NOT_IMPLEMENTED).json({
+    message: 'New campaign update flow not yet implemented'
+  });
+};
+
 const campaignController = {
   getCampaignValidators,
   getCampaign,
@@ -627,6 +636,7 @@ const campaignController = {
   createCampaignFromGroup,
   createCampaignFromGroupValidators,
   update,
+  updateNext,
   updateValidators,
   removeCampaign,
   removeHousingValidators,

@@ -194,10 +194,10 @@ jobs:
         run: |
           if [ "${{ github.event.inputs.iso_prod }}" == "true" ]; then
             echo "🔧 Iso prod mode: creating Postgres L Giant"
-            clever addon create postgresql-addon $PR_NAME-postgres --org $CLEVER_ORG --plan l_gnt --region par
+            clever addon create postgresql-addon $PR_NAME-postgres --org $CLEVER_ORG --plan l_gnt --region par --addon-version 15
           else
             echo "🔧 Standard mode: creating Postgres XXS Small"
-            clever addon create postgresql-addon $PR_NAME-postgres --org $CLEVER_ORG --plan xxs_sml --region par
+            clever addon create postgresql-addon $PR_NAME-postgres --org $CLEVER_ORG --plan xxs_sml --region par --addon-version 15
           fi
 
       - name: Create redis addon

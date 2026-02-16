@@ -81,6 +81,7 @@ export function toHousingDTO(housing: HousingApi): HousingDTO {
     lastMutationDate: housing.lastMutationDate,
     lastTransactionDate: housing.lastTransactionDate,
     lastTransactionValue: housing.lastTransactionValue,
+    plotId: housing.plotId,
     plotArea: housing.plotArea
   };
 }

@@ -13472,7 +13472,7 @@ __metadata:
     "@types/qs": "npm:6.14.0"
     "@zerologementvacant/models": "workspace:*"
     "@zerologementvacant/utils": "workspace:*"
-    axios: "npm:1.12.0"
+    axios: "npm:1.13.5"
     convict: "npm:6.2.4"
     dotenv: "npm:16.6.1"
     jsonwebtoken: "npm:9.0.2"
@@ -13793,7 +13793,7 @@ __metadata:
     "@zerologementvacant/schemas": "workspace:*"
     "@zerologementvacant/utils": "workspace:*"
     async: "npm:3.2.6"
-    axios: "npm:1.12.0"
+    axios: "npm:1.13.5"
     bcryptjs: "npm:2.4.3"
     clamscan: "npm:2.4.0"
     cli-progress: "npm:3.12.0"
@@ -14735,17 +14735,6 @@ __metadata:
   version: 4.10.3
   resolution: "axe-core@npm:4.10.3"
   checksum: 10c0/1b1c24f435b2ffe89d76eca0001cbfff42dbf012ad9bd37398b70b11f0d614281a38a28bc3069e8972e3c90ec929a8937994bd24b0ebcbaab87b8d1e241ab0c7
-  languageName: node
-  linkType: hard
-
-"axios@npm:1.12.0":
-  version: 1.12.0
-  resolution: "axios@npm:1.12.0"
-  dependencies:
-    follow-redirects: "npm:^1.15.6"
-    form-data: "npm:^4.0.4"
-    proxy-from-env: "npm:^1.1.0"
-  checksum: 10c0/44a1e4cfb69a2d59aa12bbc441a336e5c18e87c02b904c509fd33607d94e8cb8cc221c17e9d53f67841a4efe13abf1aa1497c85df390cdb8681ee723998d11b0
   languageName: node
   linkType: hard
 

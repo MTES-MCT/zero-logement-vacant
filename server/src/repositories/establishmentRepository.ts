@@ -208,7 +208,7 @@ export interface EstablishmentDBO {
   available: boolean;
   localities_geo_code: string[];
   kind: EstablishmentKind;
-  kind_meta?: string | null;
+  kind_admin_meta?: string | null;
   millesime?: string | null;
   source: EstablishmentSource;
   updated_at: Date;
@@ -228,20 +228,12 @@ export const formatEstablishmentApi = (
   source: establishment.source
 });
 
-const computeShortName = (name: string, kind: string): string => {
-  if (['COM', 'COM-TOM', 'Commune'].includes(kind)) {
-    return name.replaceAll(/^Commune d(e\s|')/g, '');
-  }
-  return name;
-};
-
 export const parseEstablishmentApi = (
   establishment: EstablishmentDBO
 ): EstablishmentApi => ({
   id: establishment.id,
   name: establishment.name,
-  shortName:
-    establishment.short_name ?? computeShortName(establishment.name, establishment.kind),
+  shortName: establishment.short_name ?? establishment.name,
   siren: establishment.siren.toString(),
   available: establishment.available,
   geoCodes: establishment.localities_geo_code,

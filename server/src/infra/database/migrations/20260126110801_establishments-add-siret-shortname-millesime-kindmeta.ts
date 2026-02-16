@@ -11,22 +11,12 @@ export async function up(knex: Knex): Promise<void> {
     // Millesime: year/vintage of the data source
     table.string('millesime', 4).nullable();
 
-    // Kind meta: metadata about the kind (e.g., "COM", "EPCI", "CC", "CA", "CU", "MET")
-    table.string('kind_meta', 50).nullable();
+    // Kind admin meta: metadata about the kind (e.g., "Collectivité Territoriale", "EPCI", etc.)
+    table.string('kind_admin_meta', 50).nullable();
 
     // Add index on siret for lookups
     table.index('siret');
   });
-
-  // Populate short_name for existing communes
-  await knex.raw(`
-    UPDATE establishments
-    SET short_name = CASE
-      WHEN kind IN ('COM', 'COM-TOM', 'Commune') THEN regexp_replace(name, '^Commune d(e\\s|'')', '')
-      ELSE name
-    END
-    WHERE short_name IS NULL
-  `);
 }
 
 export async function down(knex: Knex): Promise<void> {
@@ -35,6 +25,6 @@ export async function down(knex: Knex): Promise<void> {
     table.dropColumn('siret');
     table.dropColumn('short_name');
     table.dropColumn('millesime');
-    table.dropColumn('kind_meta');
+    table.dropColumn('kind_admin_meta');
   });
 }

@@ -692,6 +692,11 @@ export function genHousingDTO(geoCode = genGeoCode()): HousingDTO {
     occupancyIntended: faker.helpers.arrayElement(READ_WRITE_OCCUPANCY_VALUES),
     campaignIds: [],
     source: faker.helpers.arrayElement(HOUSING_SOURCE_VALUES),
+    plotId:
+      geoCode +
+      faker.string.numeric({ length: 3, allowLeadingZeros: true }) +
+      faker.string.alpha({ length: 2, casing: 'upper' }) +
+      faker.string.numeric({ length: 4, allowLeadingZeros: true }),
     plotArea: faker.number.int({ min: 100, max: 10000 }),
     beneficiaryCount: null,
     rentalValue: faker.number.int({ min: 500, max: 1000 }),

@@ -261,7 +261,7 @@ function HousingTab() {
               <Stack spacing="0.5rem">
                 <HousingAttribute
                   label="Référence cadastrale"
-                  value={housing.cadastralReference}
+                  value={housing.plotId}
                 />
                 {isActualDpeEnabled && (
                   <HousingAttribute

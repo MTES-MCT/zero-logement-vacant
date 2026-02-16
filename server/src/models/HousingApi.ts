@@ -23,7 +23,6 @@ import { diff } from '~/utils/diff';
 export type HousingId = Pick<HousingDTO, 'geoCode' | 'id'>;
 
 export interface HousingRecordApi extends Omit<HousingDTO, 'owner'> {
-  plotId: string | null;
   buildingId: string | null;
   buildingGroupId: string | null;
   geolocation: Point | null;

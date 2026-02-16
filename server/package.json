@@ -33,7 +33,7 @@
     "@zerologementvacant/schemas": "workspace:*",
     "@zerologementvacant/utils": "workspace:*",
     "async": "3.2.6",
-    "axios": "1.12.0",
+    "axios": "1.13.5",
     "bcryptjs": "2.4.3",
     "clamscan": "2.4.0",
     "cli-progress": "3.12.0",

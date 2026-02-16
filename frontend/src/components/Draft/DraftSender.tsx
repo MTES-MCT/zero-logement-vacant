@@ -1,6 +1,7 @@
 import * as yup from 'yup';
 import type { ChangeEvent, ChangeEventHandler } from 'react';
 
+import { PHONE_REGEXP } from '@zerologementvacant/schemas';
 import { useForm } from '../../hooks/useForm';
 import styles from './draft.module.scss';
 import AppTextInput from '../_app/AppTextInput/AppTextInput';
@@ -23,7 +24,7 @@ export const senderSchema = yup.object({
   phone: yup.string()
     .nullable()
     .default(undefined)
-    .matches(/^\d{10}$/, {
+    .matches(PHONE_REGEXP, {
       message:
         'Veuillez renseigner un numéro de téléphone valide. Exemple de format valide : +33123456789 ou 0612345678',
       excludeEmptyString: true

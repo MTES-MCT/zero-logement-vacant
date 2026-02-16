@@ -4,6 +4,7 @@ import Box from '@mui/material/Box';
 import Stack from '@mui/material/Stack';
 import Typography from '@mui/material/Typography';
 import { TIME_PER_WEEK_VALUES, type TimePerWeek } from '@zerologementvacant/models';
+import { PHONE_REGEXP } from '@zerologementvacant/schemas';
 import { Controller, FormProvider, useForm } from 'react-hook-form';
 import { object, ref, string, type InferType } from 'yup';
 
@@ -20,7 +21,14 @@ import { skipToken } from '@reduxjs/toolkit/query';
 const schema = object({
   firstName: string().nullable().default(null),
   lastName: string().nullable().default(null),
-  phone: string().nullable().default(null),
+  phone: string()
+    .matches(PHONE_REGEXP, {
+      message:
+        'Numéro de téléphone invalide. Formats valides : +33XXXXXXXXX ou 0XXXXXXXXX',
+      excludeEmptyString: true
+    })
+    .nullable()
+    .default(null),
   position: string().nullable().default(null),
   timePerWeek: string()
     .oneOf([...TIME_PER_WEEK_VALUES])

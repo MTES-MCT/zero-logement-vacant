@@ -2,6 +2,7 @@ import { fr } from '@codegouvfr/react-dsfr';
 import Grid from '@mui/material/Grid';
 import Stack from '@mui/material/Stack';
 import Typography from '@mui/material/Typography';
+import { PHONE_REGEXP } from '@zerologementvacant/schemas';
 import { Controller, useFormContext } from 'react-hook-form';
 import { number, object, string, type InferType } from 'yup';
 
@@ -9,8 +10,6 @@ import AppTextInputNext from '~/components/_app/AppTextInput/AppTextInputNext';
 import OwnerAddressEditionNext from '~/components/Owner/OwnerAddressEditionNext';
 import Icon from '~/components/ui/Icon';
 import type { Owner } from '~/models/Owner';
-
-const PHONE_REGEXP = /^(\+33|0)[1-9][0-9]{8}$/;
 
 export const OWNER_FORM_FIELD_SCHEMA = object({
   fullName: string().required(

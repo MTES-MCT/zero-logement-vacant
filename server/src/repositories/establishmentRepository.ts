@@ -1,5 +1,6 @@
-import highland from 'highland';
 import { Knex } from 'knex';
+import { Readable } from 'node:stream';
+import { ReadableStream } from 'node:stream/web';
 
 import {
   EstablishmentFiltersDTO,
@@ -86,16 +87,18 @@ interface StreamOptions {
   includes?: EstablishmentInclude[];
 }
 
-async function stream(options?: StreamOptions) {
-  const stream = listQuery({ includes: options?.includes })
-    .orderBy('name')
-    .modify((query) => {
-      if (options?.updatedAfter) {
-        query.andWhere('updated_at', '>', options.updatedAfter);
-      }
-    })
-    .stream();
-  return highland<EstablishmentDBO>(stream).map(parseEstablishmentApi);
+function stream(options?: StreamOptions): ReadableStream<EstablishmentApi> {
+  return Readable.toWeb(
+    listQuery({ includes: options?.includes })
+      .orderBy('name')
+      .modify((query) => {
+        if (options?.updatedAfter) {
+          query.andWhere('updated_at', '>', options.updatedAfter);
+        }
+      })
+      .stream()
+      .map(parseEstablishmentApi)
+  );
 }
 
 async function save(establishment: EstablishmentDBO): Promise<void> {

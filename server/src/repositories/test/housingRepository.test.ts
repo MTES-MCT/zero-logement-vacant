@@ -2493,15 +2493,17 @@ describe('Housing repository', () => {
     });
 
     it('should stream a list of housing', async () => {
-      const actual = await housingRepository
-        .stream({
-          filters: {
-            establishmentIds: [establishment.id]
-          },
-          includes: ['owner']
-        })
-        .collect()
-        .toPromise(Promise);
+      const stream = housingRepository.stream({
+        filters: {
+          localities: establishment.geoCodes
+        },
+        includes: ['owner']
+      });
+
+      const actual: HousingApi[] = [];
+      for await (const housing of stream) {
+        actual.push(housing);
+      }
 
       expect(actual).toSatisfyAll((housing) =>
         establishment.geoCodes.includes(housing.geoCode)

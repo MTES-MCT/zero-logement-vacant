@@ -21,7 +21,6 @@ import {
 import { compactNullable, isNotNull } from '@zerologementvacant/utils';
 import { Array, identity, Predicate, Struct } from 'effect';
 import type { Point } from 'geojson';
-import highland from 'highland';
 import { Set } from 'immutable';
 import { Knex } from 'knex';
 import { uniq } from 'lodash-es';
@@ -123,38 +122,12 @@ async function find(opts: FindOptions): Promise<HousingApi[]> {
   return housingList.map(parseHousingApi);
 }
 
-type StreamOptions = FindOptions & {
+interface StreamOptions {
+  filters?: HousingFiltersApi;
   includes?: HousingInclude[];
-};
-
-/**
- * @deprecated Should be replaced by {@link betterStream} to get out of
- * the highland library, and allow `opts` to be optional.
- * @param opts
- */
-function stream(opts: StreamOptions): Highland.Stream<HousingApi> {
-  return highland(fetchGeoCodes(opts.filters?.establishmentIds ?? []))
-    .flatMap((geoCodes) => {
-      return highland<HousingDBO>(
-        fastListQuery({
-          filters: {
-            ...opts.filters,
-            localities: opts.filters.localities?.length
-              ? opts.filters.localities
-              : geoCodes
-          },
-          includes: opts.includes
-        })
-          .modify(paginationQuery(opts.pagination as PaginationApi))
-          .stream()
-      );
-    })
-    .map(parseHousingApi);
 }
 
-function betterStream(
-  opts?: Pick<StreamOptions, 'filters' | 'includes'>
-): ReadableStream<HousingApi> {
+function stream(opts?: StreamOptions): ReadableStream<HousingApi> {
   return Readable.toWeb(
     fastListQuery({
       filters: opts?.filters ?? {},
@@ -1416,7 +1389,6 @@ export default {
   find,
   findOne,
   stream,
-  betterStream,
   count,
   update,
   updateMany,

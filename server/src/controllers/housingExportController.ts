@@ -68,7 +68,7 @@ async function exportCampaign(request: Request, response: Response) {
     fileName: `${file}.xlsx`
   });
 
-  const housingStream = housingRepository.betterStream({
+  const housingStream = housingRepository.stream({
     filters: {
       campaignIds: [campaign.id],
       establishmentIds: [auth.establishmentId],
@@ -130,7 +130,7 @@ async function exportGroup(request: Request, response: Response) {
     fileName: `${file}.xlsx`
   });
 
-  const housingStream = housingRepository.betterStream({
+  const housingStream = housingRepository.stream({
     filters: {
       groupIds: [params.id],
       establishmentIds: [auth.establishmentId]

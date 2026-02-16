@@ -373,7 +373,7 @@ class EstablishmentImporter:
         # New fields
         siret = self.parse_siret(row)
         short_name = self.compute_short_name(name, kind)
-        kind_meta = row.get("Kind-admin_meta", "").strip() or None
+        kind_admin_meta = row.get("Kind-admin_meta", "").strip() or None
 
         return {
             "siren": siren,
@@ -381,7 +381,7 @@ class EstablishmentImporter:
             "name": name[:255],  # Truncate to VARCHAR(255)
             "short_name": short_name[:255],
             "kind": kind[:255],
-            "kind_meta": kind_meta[:50] if kind_meta else None,
+            "kind_admin_meta": kind_admin_meta[:50] if kind_admin_meta else None,
             "millesime": millesime[:4] if millesime else None,
             "localities_geo_code": localities,
             "available": True,
@@ -464,7 +464,7 @@ class EstablishmentImporter:
                     r["name"],
                     r["short_name"],
                     r["kind"],
-                    r["kind_meta"],
+                    r["kind_admin_meta"],
                     r["millesime"],
                     r["localities_geo_code"],
                     r["available"],
@@ -477,7 +477,7 @@ class EstablishmentImporter:
                 self.cursor,
                 """
                 INSERT INTO establishments
-                    (siren, siret, name, short_name, kind, kind_meta, millesime,
+                    (siren, siret, name, short_name, kind, kind_admin_meta, millesime,
                      localities_geo_code, available, source, updated_at)
                 VALUES %s
                 """,
@@ -496,7 +496,7 @@ class EstablishmentImporter:
                     r["name"],
                     r["short_name"],
                     r["kind"],
-                    r["kind_meta"],
+                    r["kind_admin_meta"],
                     r["millesime"],
                     r["localities_geo_code"],
                     r["source"],
@@ -514,12 +514,12 @@ class EstablishmentImporter:
                     name = data.name,
                     short_name = data.short_name,
                     kind = data.kind,
-                    kind_meta = data.kind_meta,
+                    kind_admin_meta = data.kind_admin_meta,
                     millesime = data.millesime,
                     localities_geo_code = data.localities_geo_code,
                     source = data.source,
                     updated_at = NOW()
-                FROM (VALUES %s) AS data(siret, name, short_name, kind, kind_meta, millesime, localities_geo_code, source, siren)
+                FROM (VALUES %s) AS data(siret, name, short_name, kind, kind_admin_meta, millesime, localities_geo_code, source, siren)
                 WHERE e.siren = data.siren::integer
                 """,
                 update_data,

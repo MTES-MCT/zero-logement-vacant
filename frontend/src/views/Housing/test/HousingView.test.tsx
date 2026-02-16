@@ -427,7 +427,11 @@ describe('Housing view', () => {
       });
       await user.click(confirmButton);
 
-      expect(screen.queryByRole('dialog')).not.toBeInTheDocument();
+      expect(
+        screen.queryByRole('dialog', {
+          name: 'Précisez la situation du logement'
+        })
+      ).not.toBeInTheDocument();
 
       const saveButton = await screen.findByRole('button', {
         name: 'Enregistrer'

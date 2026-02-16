@@ -375,6 +375,13 @@ class EstablishmentImporter:
         short_name = self.compute_short_name(name, kind)
         kind_admin_meta = row.get("Kind-admin_meta", "").strip() or None
 
+        # Geographic metadata
+        layer_geo_label = row.get("Layer-geo_label", "").strip() or None
+        dep_code = row.get("Dep_Code", "").strip() or None
+        dep_name = row.get("Dep_Name", "").strip() or None
+        reg_code = row.get("Reg_Code", "").strip() or None
+        reg_name = row.get("Reg_Name", "").strip() or None
+
         return {
             "siren": siren,
             "siret": siret,
@@ -383,6 +390,11 @@ class EstablishmentImporter:
             "kind": kind[:255],
             "kind_admin_meta": kind_admin_meta[:50] if kind_admin_meta else None,
             "millesime": millesime[:4] if millesime else None,
+            "layer_geo_label": layer_geo_label[:100] if layer_geo_label else None,
+            "dep_code": dep_code[:3] if dep_code else None,
+            "dep_name": dep_name[:100] if dep_name else None,
+            "reg_code": reg_code[:3] if reg_code else None,
+            "reg_name": reg_name[:100] if reg_name else None,
             "localities_geo_code": localities,
             "available": True,
             "source": source,
@@ -466,6 +478,11 @@ class EstablishmentImporter:
                     r["kind"],
                     r["kind_admin_meta"],
                     r["millesime"],
+                    r["layer_geo_label"],
+                    r["dep_code"],
+                    r["dep_name"],
+                    r["reg_code"],
+                    r["reg_name"],
                     r["localities_geo_code"],
                     r["available"],
                     r["source"],
@@ -478,11 +495,12 @@ class EstablishmentImporter:
                 """
                 INSERT INTO establishments
                     (siren, siret, name, short_name, kind, kind_admin_meta, millesime,
+                     layer_geo_label, dep_code, dep_name, reg_code, reg_name,
                      localities_geo_code, available, source, updated_at)
                 VALUES %s
                 """,
                 insert_data,
-                template="(%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, NOW())",
+                template="(%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, NOW())",
                 page_size=500,
             )
 
@@ -498,6 +516,11 @@ class EstablishmentImporter:
                     r["kind"],
                     r["kind_admin_meta"],
                     r["millesime"],
+                    r["layer_geo_label"],
+                    r["dep_code"],
+                    r["dep_name"],
+                    r["reg_code"],
+                    r["reg_name"],
                     r["localities_geo_code"],
                     r["source"],
                     r["siren"],
@@ -516,10 +539,15 @@ class EstablishmentImporter:
                     kind = data.kind,
                     kind_admin_meta = data.kind_admin_meta,
                     millesime = data.millesime,
+                    layer_geo_label = data.layer_geo_label,
+                    dep_code = data.dep_code,
+                    dep_name = data.dep_name,
+                    reg_code = data.reg_code,
+                    reg_name = data.reg_name,
                     localities_geo_code = data.localities_geo_code,
                     source = data.source,
                     updated_at = NOW()
-                FROM (VALUES %s) AS data(siret, name, short_name, kind, kind_admin_meta, millesime, localities_geo_code, source, siren)
+                FROM (VALUES %s) AS data(siret, name, short_name, kind, kind_admin_meta, millesime, layer_geo_label, dep_code, dep_name, reg_code, reg_name, localities_geo_code, source, siren)
                 WHERE e.siren = data.siren::integer
                 """,
                 update_data,

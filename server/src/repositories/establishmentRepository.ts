@@ -210,6 +210,11 @@ export interface EstablishmentDBO {
   kind: EstablishmentKind;
   kind_admin_meta?: string | null;
   millesime?: string | null;
+  layer_geo_label?: string | null;
+  dep_code?: string | null;
+  dep_name?: string | null;
+  reg_code?: string | null;
+  reg_name?: string | null;
   source: EstablishmentSource;
   updated_at: Date;
   users?: UserDBO[];

@@ -15,11 +15,13 @@ import { id } from './id';
 import { notePayload } from './note-payload';
 import { ownerFilters } from './owner-filters';
 import { password, passwordConfirmation } from './password';
+import { phone } from './phone';
 import { siren } from './siren';
 import { userFilters } from './user-filters';
 import { userUpdatePayload } from './user-update-payload';
 
 export { GEO_CODE_REGEXP } from './geo-code';
+export { PHONE_REGEXP } from './phone';
 export { SIREN_REGEXP } from './siren';
 export { type HousingDocumentPayload } from './housing-document-payload';
 
@@ -42,6 +44,7 @@ const schemas = {
   ownerFilters,
   password,
   passwordConfirmation,
+  phone,
   siren,
   userFilters,
   userUpdatePayload

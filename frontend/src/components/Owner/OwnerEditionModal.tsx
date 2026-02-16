@@ -3,6 +3,7 @@ import { yupResolver } from '@hookform/resolvers/yup';
 import Grid from '@mui/material/Grid';
 import Stack from '@mui/material/Stack';
 import Typography from '@mui/material/Typography';
+import schemas from '@zerologementvacant/schemas';
 import { Controller, FormProvider, useForm } from 'react-hook-form';
 import { number, object, string, type InferType } from 'yup';
 
@@ -16,8 +17,6 @@ import { useNotification } from '~/hooks/useNotification';
 import type { Owner } from '~/models/Owner';
 import { useUpdateOwnerMutation } from '~/services/owner.service';
 import OwnerAddressEdition from '../OwnerAddressEdition/OwnerAddressEdition';
-
-const PHONE_REGEXP = /^(\+33|0)[1-9][0-9]{8}$/;
 
 const schema = object({
   fullName: string().required(
@@ -38,13 +37,7 @@ const schema = object({
     .email('Email invalide. Exemple de format valide : exemple@gmail.com')
     .nullable()
     .defined(),
-  phone: string()
-    .matches(
-      PHONE_REGEXP,
-      'Téléphone invalide. Exemple de format valide : +33XXXXXXXXX ou 0XXXXXXXXX'
-    )
-    .nullable()
-    .defined()
+  phone: schemas.phone.nullable().defined()
 }).required();
 type FormSchema = InferType<typeof schema>;
 

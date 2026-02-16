@@ -1,6 +1,7 @@
 import * as yup from 'yup';
 import type { ChangeEvent, ChangeEventHandler } from 'react';
 
+import schemas from '@zerologementvacant/schemas';
 import { useForm } from '../../hooks/useForm';
 import styles from './draft.module.scss';
 import AppTextInput from '../_app/AppTextInput/AppTextInput';
@@ -20,14 +21,7 @@ export const senderSchema = yup.object({
     .email(
       'Veuillez renseigner un courriel valide. Exemple de format valide : exemple@gmail.com'
     ),
-  phone: yup.string()
-    .nullable()
-    .default(undefined)
-    .matches(/^\d{10}$/, {
-      message:
-        'Veuillez renseigner un numéro de téléphone valide. Exemple de format valide : +33123456789 ou 0612345678',
-      excludeEmptyString: true
-    })
+  phone: schemas.phone.nullable().default(undefined)
 });
 
 interface Props {

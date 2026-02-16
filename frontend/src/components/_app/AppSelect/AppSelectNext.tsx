@@ -291,7 +291,7 @@ function AppSelectNext<Value, Multiple extends boolean = false>(
             paper: {
               sx: {
                 filter: 'drop-shadow(var(--raised-shadow))',
-                maxHeight: '13.125rem',
+                maxHeight: '20rem',
                 maxWidth: ref.current?.clientWidth
               }
             }

@@ -14,6 +14,17 @@ export async function up(knex: Knex): Promise<void> {
     // Kind admin meta: metadata about the kind (e.g., "Collectivité Territoriale", "EPCI", etc.)
     table.string('kind_admin_meta', 50).nullable();
 
+    // Layer geo label: geographic layer label
+    table.string('layer_geo_label', 100).nullable();
+
+    // Department info
+    table.string('dep_code', 3).nullable();
+    table.string('dep_name', 100).nullable();
+
+    // Region info
+    table.string('reg_code', 3).nullable();
+    table.string('reg_name', 100).nullable();
+
     // Add index on siret for lookups
     table.index('siret');
   });
@@ -26,5 +37,10 @@ export async function down(knex: Knex): Promise<void> {
     table.dropColumn('short_name');
     table.dropColumn('millesime');
     table.dropColumn('kind_admin_meta');
+    table.dropColumn('layer_geo_label');
+    table.dropColumn('dep_code');
+    table.dropColumn('dep_name');
+    table.dropColumn('reg_code');
+    table.dropColumn('reg_name');
   });
 }

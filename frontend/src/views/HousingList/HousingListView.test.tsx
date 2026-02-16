@@ -53,6 +53,7 @@ vi.mock('../../components/Aside/Aside.tsx');
 interface RenderViewOptions {
   establishment: EstablishmentDTO;
   auth: UserDTO;
+  establishment: EstablishmentDTO;
   housings: ReadonlyArray<HousingDTO>;
   owners: ReadonlyArray<OwnerDTO>;
   housingOwners: ReadonlyArray<
@@ -384,7 +385,7 @@ describe('Housing list view', () => {
         name: /Tous/
       });
       const [editHousing] = await within(housingPanel).findAllByRole('button', {
-        name: 'Éditer'
+        name: /^Éditer le logement/i
       });
       await user.click(editHousing);
       const documentTab = await screen.findByRole('tab', {
@@ -425,7 +426,7 @@ describe('Housing list view', () => {
         name: /Tous/
       });
       const [editHousing] = await within(housingPanel).findAllByRole('button', {
-        name: 'Éditer'
+        name: /^Éditer le logement/i
       });
       await user.click(editHousing);
       const documentTab = await screen.findByRole('tab', {
@@ -446,7 +447,7 @@ describe('Housing list view', () => {
       await user.click(cancel);
       const [editHousingAgain] = await within(housingPanel).findAllByRole(
         'button',
-        { name: 'Éditer' }
+        { name: /^Éditer le logement/i }
       );
       await user.click(editHousingAgain);
       const documentTabAgain = await screen.findByRole('tab', {
@@ -458,6 +459,80 @@ describe('Housing list view', () => {
       });
       const document = within(documentPanelAgain).queryByText('example.pdf');
       expect(document).not.toBeInTheDocument();
+    });
+  });
+
+  describe('Upload documents for several housings', () => {
+    it('should upload documents', async () => {
+      const establishment = genEstablishmentDTO();
+      const auth = genUserDTO(UserRole.USUAL, establishment);
+      const housings = faker.helpers.multiple(() => genHousingDTO(), {
+        count: 3
+      });
+
+      renderView({
+        establishment,
+        auth,
+        housings,
+        owners: [],
+        housingOwners: [],
+        campaigns: [],
+        campaignHousings: [],
+        groups: []
+      });
+
+      const housingPanel = await screen.findByRole('tabpanel', {
+        name: /Tous/
+      });
+      const checkboxes = await within(housingPanel)
+        .findAllByRole('checkbox', {
+          name: /^Sélectionner le logement/
+        })
+        .then((checkboxes) => checkboxes.slice(0, 2));
+      await async.forEachSeries(checkboxes, async (checkbox) => {
+        await user.click(checkbox);
+      });
+      const editHousings = await screen.findByRole('button', {
+        name: 'Édition groupée'
+      });
+      await user.click(editHousings);
+      const documentTab = await screen.findByRole('tab', {
+        name: /Documents/
+      });
+      await user.click(documentTab);
+      const documentPanel = await screen.findByRole('tabpanel', {
+        name: /Documents/
+      });
+      const input = await within(documentPanel).findByLabelText(
+        /associez un ou plusieurs documents à ces logements/i
+      );
+      const file = new File(['dummy content'], 'example.pdf', {
+        type: 'application/pdf'
+      });
+      await user.upload(input, file);
+      const submit = await screen.findByRole('button', { name: 'Enregistrer' });
+      await user.click(submit);
+      await async.forEachSeries(housings, async (housing) => {
+        const edit = await screen.findByRole('button', {
+          name: new RegExp(
+            `Éditer le logement "${housing.rawAddress.join(', ')}"`,
+            'i'
+          )
+        });
+        await user.click(edit);
+        const documentTabAgain = await screen.findByRole('tab', {
+          name: /Documents/
+        });
+        await user.click(documentTabAgain);
+        const documentPanelAgain = await screen.findByRole('tabpanel', {
+          name: /Documents/
+        });
+        const document =
+          await within(documentPanelAgain).findByText('example.pdf');
+        expect(document).toBeVisible();
+        const cancel = await screen.findByRole('button', { name: 'Annuler' });
+        await user.click(cancel);
+      });
     });
   });
 

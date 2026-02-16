@@ -1,5 +1,4 @@
 import { faker } from '@faker-js/faker/locale/fr';
-
 import {
   type BaseHousingOwnerDTO,
   type CampaignDTO,
@@ -11,6 +10,7 @@ import {
   type FileUploadDTO,
   type GroupDTO,
   type HousingDTO,
+  type LocalityDTO,
   type NoteDTO,
   type OwnerDTO,
   type Precision,
@@ -75,6 +75,8 @@ const housingPrecisions = new Map<
   ReadonlyArray<Precision['id']>
 >();
 
+const localities = new Map<LocalityDTO['geoCode'], LocalityDTO>();
+
 const notes: NoteDTO[] = [];
 
 const precisions: Precision[] = PRECISION_CATEGORY_VALUES.map((category) => ({
@@ -105,6 +107,7 @@ function reset(): void {
   housingNotes.clear();
   housingOwners.clear();
   housingPrecisions.clear();
+  localities.clear();
   notes.length = 0;
   owners.length = 0;
   prospects.length = 0;
@@ -133,6 +136,7 @@ export default {
   housingNotes,
   housingOwners,
   housingPrecisions,
+  localities,
   notes,
   owners,
   precisions,

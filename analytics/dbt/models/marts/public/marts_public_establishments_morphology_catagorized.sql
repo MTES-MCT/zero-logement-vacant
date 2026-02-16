@@ -71,7 +71,7 @@ vacant_housing_quartiles AS (
     GROUP BY year
 ),
 
--- Données 2019 et 2023 pour calculer les évolutions
+-- Données pour calculer les évolutions
 data_2019 AS (
     SELECT 
         establishment_id,
@@ -98,6 +98,7 @@ data_2024 AS (
     FROM establishment_yearly_data
     WHERE year = 2024
 ),
+
 data_2025 AS (
     SELECT 
         establishment_id,
@@ -120,9 +121,9 @@ evolution_data AS (
         -- Évolution 2023-2024
         (d24.vacant_housing_2024 - d23.vacant_housing_2023) AS housing_vacant_evolution_23_24,
         (d24.vacant_rate_2024 - d23.vacant_rate_2023) AS housing_vacant_rate_evolution_23_24,
-        -- Évolution 2024-2025.
+        -- Évolution 2024-2025
         (d25.vacant_housing_2025 - d24.vacant_housing_2024) AS housing_vacant_evolution_24_25,
-        (d25.vacant_rate_2025 - d24.vacant_rate_2024) AS housing_vacant_rate_evolution_24_25,
+        (d25.vacant_rate_2025 - d24.vacant_rate_2024) AS housing_vacant_rate_evolution_24_25
     FROM data_2025 d25
     LEFT JOIN data_2024 d24 ON d24.establishment_id = d25.establishment_id
     LEFT JOIN data_2019 d19 ON d25.establishment_id = d19.establishment_id
@@ -132,10 +133,9 @@ evolution_data AS (
 -- Statistiques sur les évolutions
 evolution_stats AS (
     SELECT
+        -- 19-24
         PERCENTILE_CONT(0.5) WITHIN GROUP (ORDER BY housing_vacant_evolution_19_24) AS median_evolution_19_24,
         PERCENTILE_CONT(0.5) WITHIN GROUP (ORDER BY housing_vacant_rate_evolution_19_24) AS median_rate_evolution_19_24,
-        PERCENTILE_CONT(0.5) WITHIN GROUP (ORDER BY housing_vacant_evolution_23_24) AS median_evolution_23_24,
-        PERCENTILE_CONT(0.5) WITHIN GROUP (ORDER BY housing_vacant_rate_evolution_23_24) AS median_rate_evolution_23_24,
         PERCENTILE_CONT(0.25) WITHIN GROUP (ORDER BY housing_vacant_evolution_19_24) AS q1_evolution_19_24,
         PERCENTILE_CONT(0.50) WITHIN GROUP (ORDER BY housing_vacant_evolution_19_24) AS q2_evolution_19_24,
         PERCENTILE_CONT(0.75) WITHIN GROUP (ORDER BY housing_vacant_evolution_19_24) AS q3_evolution_19_24,
@@ -143,9 +143,24 @@ evolution_stats AS (
         PERCENTILE_CONT(0.50) WITHIN GROUP (ORDER BY housing_vacant_rate_evolution_19_24) AS q2_rate_evolution_19_24,
         PERCENTILE_CONT(0.75) WITHIN GROUP (ORDER BY housing_vacant_rate_evolution_19_24) AS q3_rate_evolution_19_24,
 
-        PERCENTILE_CONT(0.75) WITHIN GROUP (ORDER BY housing_vacant_evolution_19_25) AS q3_rate_evolution_19_25,
+        -- 19-25
+        PERCENTILE_CONT(0.5) WITHIN GROUP (ORDER BY housing_vacant_evolution_19_25) AS median_evolution_19_25,
+        PERCENTILE_CONT(0.5) WITHIN GROUP (ORDER BY housing_vacant_rate_evolution_19_25) AS median_rate_evolution_19_25,
+        PERCENTILE_CONT(0.25) WITHIN GROUP (ORDER BY housing_vacant_evolution_19_25) AS q1_evolution_19_25,
+        PERCENTILE_CONT(0.50) WITHIN GROUP (ORDER BY housing_vacant_evolution_19_25) AS q2_evolution_19_25,
+        PERCENTILE_CONT(0.75) WITHIN GROUP (ORDER BY housing_vacant_evolution_19_25) AS q3_evolution_19_25,
+        PERCENTILE_CONT(0.25) WITHIN GROUP (ORDER BY housing_vacant_rate_evolution_19_25) AS q1_rate_evolution_19_25,
+        PERCENTILE_CONT(0.50) WITHIN GROUP (ORDER BY housing_vacant_rate_evolution_19_25) AS q2_rate_evolution_19_25,
         PERCENTILE_CONT(0.75) WITHIN GROUP (ORDER BY housing_vacant_rate_evolution_19_25) AS q3_rate_evolution_19_25,
-        PERCENTILE_CONT(0.75) WITHIN GROUP (ORDER BY housing_vacant_evolution_24_25) AS q3_rate_evolution_24_25,
+
+        -- 24-25
+        PERCENTILE_CONT(0.5) WITHIN GROUP (ORDER BY housing_vacant_evolution_24_25) AS median_evolution_24_25,
+        PERCENTILE_CONT(0.5) WITHIN GROUP (ORDER BY housing_vacant_rate_evolution_24_25) AS median_rate_evolution_24_25,
+        PERCENTILE_CONT(0.25) WITHIN GROUP (ORDER BY housing_vacant_evolution_24_25) AS q1_evolution_24_25,
+        PERCENTILE_CONT(0.50) WITHIN GROUP (ORDER BY housing_vacant_evolution_24_25) AS q2_evolution_24_25,
+        PERCENTILE_CONT(0.75) WITHIN GROUP (ORDER BY housing_vacant_evolution_24_25) AS q3_evolution_24_25,
+        PERCENTILE_CONT(0.25) WITHIN GROUP (ORDER BY housing_vacant_rate_evolution_24_25) AS q1_rate_evolution_24_25,
+        PERCENTILE_CONT(0.50) WITHIN GROUP (ORDER BY housing_vacant_rate_evolution_24_25) AS q2_rate_evolution_24_25,
         PERCENTILE_CONT(0.75) WITHIN GROUP (ORDER BY housing_vacant_rate_evolution_24_25) AS q3_rate_evolution_24_25
 
     FROM evolution_data
@@ -155,8 +170,8 @@ evolution_stats AS (
 evolution_stats_by_echelon AS (
     SELECT
         e.establishment_echelon,
-        PERCENTILE_CONT(0.5) WITHIN GROUP (ORDER BY ed.housing_vacant_evolution_19_24) AS median_evolution_19_24_echelon,
-        PERCENTILE_CONT(0.5) WITHIN GROUP (ORDER BY ed.housing_vacant_rate_evolution_19_24) AS median_rate_evolution_19_24_echelon
+        PERCENTILE_CONT(0.5) WITHIN GROUP (ORDER BY ed.housing_vacant_evolution_19_25) AS median_evolution_19_25_echelon,
+        PERCENTILE_CONT(0.5) WITHIN GROUP (ORDER BY ed.housing_vacant_rate_evolution_19_25) AS median_rate_evolution_19_25_echelon
     FROM evolution_data ed
     JOIN establishments e ON ed.establishment_id = e.establishment_id
     WHERE e.establishment_echelon IS NOT NULL
@@ -173,12 +188,12 @@ SELECT
     e.housing_vacant_rate,
     
     -- Écarts par rapport aux médianes tous établissements
-    (e.count_vacant_housing_private_fil_ccthp - g.median_vacant_housing) AS housing_vacant_compared_2024,
-    (e.housing_vacant_rate - g.median_vacant_rate) AS housing_vacant_rate_compared_2024,
+    (e.count_vacant_housing_private_fil_ccthp - g.median_vacant_housing) AS housing_vacant_compared_2025,
+    (e.housing_vacant_rate - g.median_vacant_rate) AS housing_vacant_rate_compared_2025,
     
     -- Écarts par rapport aux médianes même échelon
-    (e.count_vacant_housing_private_fil_ccthp - ech.median_vacant_housing_echelon) AS housing_vacant_compared_same_as_2024,
-    (e.housing_vacant_rate - ech.median_vacant_rate_echelon) AS housing_vacant_rate_compared_same_as_2024,
+    (e.count_vacant_housing_private_fil_ccthp - ech.median_vacant_housing_echelon) AS housing_vacant_compared_same_as_2025,
+    (e.housing_vacant_rate - ech.median_vacant_rate_echelon) AS housing_vacant_rate_compared_same_as_2025,
     
     -- Typologie quartile pour le nombre de logements vacants
     CASE
@@ -186,7 +201,7 @@ SELECT
         WHEN e.count_vacant_housing_private_fil_ccthp <= q.q2_vacant_housing THEN '25%-50% = Vacance relative assez importante'
         WHEN e.count_vacant_housing_private_fil_ccthp <= q.q3_vacant_housing THEN '50%-75% = Vacance relative peu importante'
         ELSE '75%-100% = Vacance relative faible'
-    END AS kind_housing_vacant_2024,
+    END AS kind_housing_vacant_2025,
     
     -- Typologie quartile pour le même échelon
     CASE
@@ -194,7 +209,7 @@ SELECT
         WHEN e.count_vacant_housing_private_fil_ccthp <= q.q2_vacant_housing THEN '25%-50% = Vacance relative assez importante'
         WHEN e.count_vacant_housing_private_fil_ccthp <= q.q3_vacant_housing THEN '50%-75% = Vacance relative peu importante'
         ELSE '75%-100% = Vacance relative faible'
-    END AS kind_housing_vacant_same_as_2024,
+    END AS kind_housing_vacant_same_as_2025,
     
     -- Typologie quartile pour le taux de logements vacants
     CASE
@@ -202,7 +217,7 @@ SELECT
         WHEN e.housing_vacant_rate <= q.q2_vacant_rate THEN '25%-50% = Taux de vacance relative assez importante'
         WHEN e.housing_vacant_rate <= q.q3_vacant_rate THEN '50%-75% = Taux de vacance relative peu importante'
         ELSE '75%-100% = Taux de vacance relative faible'
-    END AS kind_housing_vacant_rate_2024,
+    END AS kind_housing_vacant_rate_2025,
     
     -- Typologie quartile pour le taux de logements vacants même échelon
     CASE
@@ -210,53 +225,53 @@ SELECT
         WHEN e.housing_vacant_rate <= q.q2_vacant_rate THEN '25%-50% = Taux de vacance relative assez importante'
         WHEN e.housing_vacant_rate <= q.q3_vacant_rate THEN '50%-75% = Taux de vacance relative peu importante'
         ELSE '75%-100% = Taux de vacance relative faible'
-    END AS kind_housing_vacant_rate_same_as_2024,
+    END AS kind_housing_vacant_rate_same_as_2025,
     
-    -- Évolutions 2019-2024 et 2023-2024
-    ed.housing_vacant_evolution_19_24,
-    ed.housing_vacant_rate_evolution_19_24,
-    ed.housing_vacant_evolution_23_24,
-    ed.housing_vacant_rate_evolution_23_24,
+    -- Évolutions 2019-2025 et 2024-2025
+    ed.housing_vacant_evolution_19_25,
+    ed.housing_vacant_rate_evolution_19_25,
+    ed.housing_vacant_evolution_24_25,
+    ed.housing_vacant_rate_evolution_24_25,
     
     -- Écarts par rapport aux médianes d'évolution
-    (ed.housing_vacant_evolution_19_24 - es.median_evolution_19_24) AS housing_vacant_evolution_compared_19_24,
-    (ed.housing_vacant_rate_evolution_19_24 - es.median_rate_evolution_19_24) AS housing_vacant_rate_evolution_compared_19_24,
+    (ed.housing_vacant_evolution_19_25 - es.median_evolution_19_25) AS housing_vacant_evolution_compared_19_25,
+    (ed.housing_vacant_rate_evolution_19_25 - es.median_rate_evolution_19_25) AS housing_vacant_rate_evolution_compared_19_25,
     
     -- Écarts par rapport aux médianes d'évolution même échelon
-    (ed.housing_vacant_evolution_19_24 - ese.median_evolution_19_24_echelon) AS housing_vacant_evolution_compared_same_as_19_24,
-    (ed.housing_vacant_rate_evolution_19_24 - ese.median_rate_evolution_19_24_echelon) AS housing_vacant_rate_evolution_compared_same_as_19_24,
+    (ed.housing_vacant_evolution_19_25 - ese.median_evolution_19_25_echelon) AS housing_vacant_evolution_compared_same_as_19_25,
+    (ed.housing_vacant_rate_evolution_19_25 - ese.median_rate_evolution_19_25_echelon) AS housing_vacant_rate_evolution_compared_same_as_19_25,
     
     -- Typologie quartile pour l'évolution
     CASE
-        WHEN ed.housing_vacant_evolution_19_24 <= es.q1_evolution_19_24 THEN '0%-25% = Évolution très négative'
-        WHEN ed.housing_vacant_evolution_19_24 <= es.q2_evolution_19_24 THEN '25%-50% = Évolution assez négative'
-        WHEN ed.housing_vacant_evolution_19_24 <= es.q3_evolution_19_24 THEN '50%-75% = Évolution assez positive'
+        WHEN ed.housing_vacant_evolution_19_25 <= es.q1_evolution_19_25 THEN '0%-25% = Évolution très négative'
+        WHEN ed.housing_vacant_evolution_19_25 <= es.q2_evolution_19_25 THEN '25%-50% = Évolution assez négative'
+        WHEN ed.housing_vacant_evolution_19_25 <= es.q3_evolution_19_25 THEN '50%-75% = Évolution assez positive'
         ELSE '75%-100% = Évolution très positive'
-    END AS kind_housing_vacant_evolution_19_24,
+    END AS kind_housing_vacant_evolution_19_25,
     
     -- Typologie quartile pour l'évolution du taux
     CASE
-        WHEN ed.housing_vacant_rate_evolution_19_24 <= es.q1_rate_evolution_19_24 THEN '0%-25% = Évolution très négative'
-        WHEN ed.housing_vacant_rate_evolution_19_24 <= es.q2_rate_evolution_19_24 THEN '25%-50% = Évolution assez négative'
-        WHEN ed.housing_vacant_rate_evolution_19_24 <= es.q3_rate_evolution_19_24 THEN '50%-75% = Évolution assez positive'
+        WHEN ed.housing_vacant_rate_evolution_19_25 <= es.q1_rate_evolution_19_25 THEN '0%-25% = Évolution très négative'
+        WHEN ed.housing_vacant_rate_evolution_19_25 <= es.q2_rate_evolution_19_25 THEN '25%-50% = Évolution assez négative'
+        WHEN ed.housing_vacant_rate_evolution_19_25 <= es.q3_rate_evolution_19_25 THEN '50%-75% = Évolution assez positive'
         ELSE '75%-100% = Évolution très positive'
-    END AS kind_housing_vacant_rate_evolution_19_24,
+    END AS kind_housing_vacant_rate_evolution_19_25,
     
     -- Typologie quartile pour l'évolution même échelon
     CASE
-        WHEN ed.housing_vacant_evolution_19_24 <= es.q1_evolution_19_24 THEN '0%-25% = Évolution très négative'
-        WHEN ed.housing_vacant_evolution_19_24 <= es.q2_evolution_19_24 THEN '25%-50% = Évolution assez négative'
-        WHEN ed.housing_vacant_evolution_19_24 <= es.q3_evolution_19_24 THEN '50%-75% = Évolution assez positive'
+        WHEN ed.housing_vacant_evolution_19_25 <= es.q1_evolution_19_25 THEN '0%-25% = Évolution très négative'
+        WHEN ed.housing_vacant_evolution_19_25 <= es.q2_evolution_19_25 THEN '25%-50% = Évolution assez négative'
+        WHEN ed.housing_vacant_evolution_19_25 <= es.q3_evolution_19_25 THEN '50%-75% = Évolution assez positive'
         ELSE '75%-100% = Évolution très positive'
-    END AS kind_housing_vacant_evolution_same_as_19_24,
+    END AS kind_housing_vacant_evolution_same_as_19_25,
     
     -- Typologie quartile pour l'évolution du taux même échelon
     CASE
-        WHEN ed.housing_vacant_rate_evolution_19_24 <= es.q1_rate_evolution_19_24 THEN '0%-25% = Évolution très négative'
-        WHEN ed.housing_vacant_rate_evolution_19_24 <= es.q2_rate_evolution_19_24 THEN '25%-50% = Évolution assez négative'
-        WHEN ed.housing_vacant_rate_evolution_19_24 <= es.q3_rate_evolution_19_24 THEN '50%-75% = Évolution assez positive'
+        WHEN ed.housing_vacant_rate_evolution_19_25 <= es.q1_rate_evolution_19_25 THEN '0%-25% = Évolution très négative'
+        WHEN ed.housing_vacant_rate_evolution_19_25 <= es.q2_rate_evolution_19_25 THEN '25%-50% = Évolution assez négative'
+        WHEN ed.housing_vacant_rate_evolution_19_25 <= es.q3_rate_evolution_19_25 THEN '50%-75% = Évolution assez positive'
         ELSE '75%-100% = Évolution très positive'
-    END AS kind_housing_vacant_rate_evolution_same_as_19_24
+    END AS kind_housing_vacant_rate_evolution_same_as_19_25
 
 FROM establishment_yearly_data e
 JOIN establishments est ON e.establishment_id = est.establishment_id
@@ -266,4 +281,4 @@ LEFT JOIN vacant_housing_quartiles q ON e.year = q.year
 LEFT JOIN evolution_data ed ON e.establishment_id = ed.establishment_id
 LEFT JOIN evolution_stats es ON 1=1
 LEFT JOIN evolution_stats_by_echelon ese ON e.establishment_echelon = ese.establishment_echelon
-WHERE e.year = 2024
+WHERE e.year = 2025

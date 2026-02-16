@@ -2,7 +2,7 @@ import { fr } from '@codegouvfr/react-dsfr';
 import Grid from '@mui/material/Grid';
 import Stack from '@mui/material/Stack';
 import Typography from '@mui/material/Typography';
-import { PHONE_REGEXP } from '@zerologementvacant/schemas';
+import schemas from '@zerologementvacant/schemas';
 import { Controller, useFormContext } from 'react-hook-form';
 import { number, object, string, type InferType } from 'yup';
 
@@ -30,13 +30,7 @@ export const OWNER_FORM_FIELD_SCHEMA = object({
     .email('Email invalide. Exemple de format valide : exemple@gmail.com')
     .defined()
     .nullable(),
-  phone: string()
-    .matches(
-      PHONE_REGEXP,
-      'Téléphone invalide. Exemple de format valide : +33XXXXXXXXX ou 0XXXXXXXXX'
-    )
-    .defined()
-    .nullable()
+  phone: schemas.phone.defined().nullable()
 });
 
 export type OwnerFormFieldsSchema = InferType<typeof OWNER_FORM_FIELD_SCHEMA>;

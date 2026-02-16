@@ -3,7 +3,7 @@ import { yupResolver } from '@hookform/resolvers/yup';
 import Grid from '@mui/material/Grid';
 import Stack from '@mui/material/Stack';
 import Typography from '@mui/material/Typography';
-import { PHONE_REGEXP } from '@zerologementvacant/schemas';
+import schemas from '@zerologementvacant/schemas';
 import { Controller, FormProvider, useForm } from 'react-hook-form';
 import { number, object, string, type InferType } from 'yup';
 
@@ -37,13 +37,7 @@ const schema = object({
     .email('Email invalide. Exemple de format valide : exemple@gmail.com')
     .nullable()
     .defined(),
-  phone: string()
-    .matches(
-      PHONE_REGEXP,
-      'Téléphone invalide. Exemple de format valide : +33XXXXXXXXX ou 0XXXXXXXXX'
-    )
-    .nullable()
-    .defined()
+  phone: schemas.phone.nullable().defined()
 }).required();
 type FormSchema = InferType<typeof schema>;
 

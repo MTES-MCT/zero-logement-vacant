@@ -3,7 +3,10 @@ import {
   HousingStatus
 } from '@zerologementvacant/models';
 import { groupBy } from '@zerologementvacant/utils/node';
-import { Readable } from 'node:stream';
+import jsonlines from 'jsonlines';
+import fs from 'node:fs';
+import path from 'node:path';
+import { Readable, Transform } from 'node:stream';
 import { v4 as uuidv4 } from 'uuid';
 import type { HousingEventApi } from '~/models/EventApi';
 
@@ -11,14 +14,8 @@ import UserMissingError from '~/errors/userMissingError';
 import { startTransaction } from '~/infra/database/transaction';
 import { createLogger } from '~/infra/logger';
 import type { UserApi } from '~/models/UserApi';
-import { campaignsHousingTable } from '~/repositories/campaignHousingRepository';
-import { campaignsTable } from '~/repositories/campaignRepository';
 import eventRepository from '~/repositories/eventRepository';
-import housingRepository, {
-  Housing,
-  HousingRecordDBO,
-  housingTable
-} from '~/repositories/housingRepository';
+import housingRepository from '~/repositories/housingRepository';
 import userRepository from '~/repositories/userRepository';
 
 const logger = createLogger('script');
@@ -31,12 +28,8 @@ async function run() {
     throw new UserMissingError('admin@zerologementvacant.beta.gouv.fr');
   }
 
-  await Readable.toWeb(input())
-    .pipeThrough(
-      groupBy<HousingRecordDBO & { campaign: string }>(
-        (a, b) => a.campaign === b.campaign
-      )
-    )
+  await input()
+    .pipeThrough(groupBy((a, b) => a.campaign_id === b.campaign_id))
     .pipeTo(writer({ creator }));
 }
 
@@ -48,7 +41,7 @@ function writer(options: WriterOptions) {
   const now = new Date().toJSON();
 
   return new WritableStream<
-    ReadonlyArray<HousingRecordDBO & { campaign: string }>
+    ReadonlyArray<Input>
   >({
     async write(housings) {
       const events = housings.map<HousingEventApi>((housing) => ({
@@ -63,13 +56,13 @@ function writer(options: WriterOptions) {
         },
         createdAt: now,
         createdBy: options.creator.id,
-        housingGeoCode: housing.geo_code,
-        housingId: housing.id
+        housingGeoCode: housing.housing_geo_code,
+        housingId: housing.housing_id
       }));
 
       await startTransaction(async () => {
         logger.debug('Processing...', {
-          campaign: housings[0].campaign,
+          campaign: housings[0].campaign_id,
           housings: housings.length,
           events: events.length
         });
@@ -77,8 +70,8 @@ function writer(options: WriterOptions) {
           eventRepository.insertManyHousingEvents(events),
           housingRepository.updateMany(
             housings.map((housing) => ({
-              geoCode: housing.geo_code,
-              id: housing.id
+              geoCode: housing.housing_geo_code,
+              id: housing.housing_id
             })),
             {
               status: HousingStatus.WAITING
@@ -90,24 +83,21 @@ function writer(options: WriterOptions) {
   });
 }
 
-function input() {
-  return Housing()
-    .join(campaignsHousingTable, (join) => {
-      join.on({
-        [`${campaignsHousingTable}.housing_geo_code`]: `${housingTable}.geo_code`,
-        [`${campaignsHousingTable}.housing_id`]: `${housingTable}.id`
-      });
-    })
-    .join(
-      campaignsTable,
-      `${campaignsHousingTable}.campaign_id`,
-      `${campaignsTable}.id`
-    )
-    .whereIn(`${campaignsTable}.status`, ['sending', 'in-progress'])
-    .where(`${housingTable}.status`, HousingStatus.NEVER_CONTACTED)
-    .select(`${campaignsTable}.id as campaign`, `${housingTable}.*`)
-    .orderBy(`${campaignsTable}.id`)
-    .stream();
+interface Input {
+  campaign_id: string;
+  campaign_title: string;
+  housing_geo_code: string;
+  housing_id: string;
+}
+
+function input(): ReadableStream<Input> {
+  const parser = jsonlines.parse({ emitInvalidLines: true });
+  const stream = fs.createReadStream(
+    path.join(import.meta.dirname, 'touched.jsonl'),
+    'utf-8'
+  );
+
+  return Readable.toWeb(stream).pipeThrough(Transform.toWeb(parser));
 }
 
 run().finally(() => {

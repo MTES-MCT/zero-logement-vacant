@@ -1,4 +1,5 @@
 export const RELATIVE_LOCATION_VALUES = [
+  'same-address',
   'same-commune',
   'same-department',
   'same-region',
@@ -6,6 +7,8 @@ export const RELATIVE_LOCATION_VALUES = [
   'metropolitan',
   // The owner lives in overseas France but not in the same region
   'overseas',
+  // The owner lives in a foreign country
+  'foreign-country',
   // Other cases or missing data
   'other'
 ] as const;

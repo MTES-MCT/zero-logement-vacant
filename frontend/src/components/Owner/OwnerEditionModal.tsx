@@ -28,7 +28,11 @@ const schema = object({
     label: string().required(),
     score: number().required().min(0).max(1),
     longitude: number().min(-180).max(180).nullable().defined(),
-    latitude: number().min(-90).max(90).nullable().defined()
+    latitude: number().min(-90).max(90).nullable().defined(),
+    postalCode: string().nullable().defined(),
+    city: string().nullable().defined(),
+    street: string().nullable().defined(),
+    houseNumber: string().nullable().defined()
   })
     .nullable()
     .defined(),
@@ -67,7 +71,11 @@ function createOwnerEditionModalNext() {
                 label: props.owner.banAddress.label,
                 score: props.owner.banAddress.score ?? 0,
                 longitude: props.owner.banAddress.longitude ?? null,
-                latitude: props.owner.banAddress.latitude ?? null
+                latitude: props.owner.banAddress.latitude ?? null,
+                postalCode: props.owner.banAddress.postalCode ?? null,
+                city: props.owner.banAddress.city ?? null,
+                street: props.owner.banAddress.street ?? null,
+                houseNumber: props.owner.banAddress.houseNumber ?? null
               }
             : null,
           additionalAddress: props.owner.additionalAddress ?? null,
@@ -114,8 +122,10 @@ function createOwnerEditionModalNext() {
                 banId: payload.banAddress.id,
                 label: payload.banAddress.label,
                 score: payload.banAddress.score,
-                postalCode: '',
-                city: '',
+                postalCode: payload.banAddress.postalCode ?? '',
+                city: payload.banAddress.city ?? '',
+                street: payload.banAddress.street ?? '',
+                houseNumber: payload.banAddress.houseNumber ?? '',
                 longitude: payload.banAddress.longitude ?? undefined,
                 latitude: payload.banAddress.latitude ?? undefined
               }
@@ -233,8 +243,8 @@ function createOwnerEditionModalNext() {
                                 banId: field.value.id,
                                 label: field.value.label,
                                 score: field.value.score ?? 0,
-                                postalCode: '',
-                                city: ''
+                                postalCode: field.value.postalCode ?? '',
+                                city: field.value.city ?? ''
                               }
                             : null
                         }
@@ -246,7 +256,11 @@ function createOwnerEditionModalNext() {
                                   label: value.label,
                                   score: value.score ?? 0,
                                   longitude: value.longitude,
-                                  latitude: value.latitude
+                                  latitude: value.latitude,
+                                  postalCode: value.postalCode ?? null,
+                                  city: value.city ?? null,
+                                  street: value.street ?? null,
+                                  houseNumber: value.houseNumber ?? null
                                 }
                               : null
                           );

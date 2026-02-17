@@ -2,7 +2,7 @@ import { AddressKinds, RelativeLocation } from '@zerologementvacant/models';
 import { createLogger } from '~/infra/logger';
 import { AddressApi } from '~/models/AddressApi';
 import banAddressesRepository from '~/repositories/banAddressesRepository';
-import housingOwnerRepository, {
+import {
   HousingOwners,
   toRelativeLocationDBO
 } from '~/repositories/housingOwnerRepository';
@@ -158,10 +158,14 @@ export function calculateDistance(
   // Calculate absolute distance if both have coordinates
   let absoluteDistance: number | null = null;
   if (
-    ownerAddress?.latitude != null &&
-    ownerAddress?.longitude != null &&
-    housingAddress?.latitude != null &&
-    housingAddress?.longitude != null
+    ownerAddress?.latitude !== null &&
+    ownerAddress?.latitude !== undefined &&
+    ownerAddress?.longitude !== null &&
+    ownerAddress?.longitude !== undefined &&
+    housingAddress?.latitude !== null &&
+    housingAddress?.latitude !== undefined &&
+    housingAddress?.longitude !== null &&
+    housingAddress?.longitude !== undefined
   ) {
     absoluteDistance = haversineDistance(
       ownerAddress.latitude,

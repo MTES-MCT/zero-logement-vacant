@@ -23,6 +23,7 @@ export interface HousingFiltersApi
     | 'energyConsumption'
     | 'ownerKinds'
     | 'ownerAges'
+    | 'relativeLocations'
     | 'localityKinds'
     | 'cadastralClassifications'
     | 'lastMutationYears'
@@ -68,6 +69,7 @@ const validators = (property = 'filters'): ValidationChain[] => [
     .optional(),
   body(`${property}.ownerKinds`).custom(isArrayOf(isString)).optional(),
   body(`${property}.ownerAges`).custom(isArrayOf(isString)).optional(),
+  body(`${property}.relativeLocations`).custom(isArrayOf(isString)).optional(),
   body(`${property}.multiOwners`).custom(isArrayOf(isBoolean)).optional(),
   body(`${property}.beneficiaryCounts`).custom(isArrayOf(isString)).optional(),
   body(`${property}.housingKinds`).custom(isArrayOf(isString)).optional(),

@@ -18,6 +18,7 @@ import {
   OWNER_AGE_VALUES,
   OWNER_KIND_VALUES,
   OWNERSHIP_KIND_VALUES,
+  RELATIVE_LOCATION_VALUES,
   ROOM_COUNT_VALUES,
   VACANCY_RATE_VALUES,
   VACANCY_YEAR_VALUES
@@ -61,6 +62,9 @@ export const housingFilters: ObjectSchema<HousingFiltersDTO> = object({
     .transform(commaSeparatedString)
     .transform(parseNull)
     .of(string().oneOf(OWNER_AGE_VALUES).defined().nullable()),
+  relativeLocations: array()
+    .transform(commaSeparatedString)
+    .of(string().oneOf(RELATIVE_LOCATION_VALUES).required()),
   multiOwners: array().transform(commaSeparatedString).of(boolean().required()),
   beneficiaryCounts: array()
     .transform(commaSeparatedString)

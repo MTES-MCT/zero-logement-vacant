@@ -35,7 +35,7 @@ function AddressSearchableSelectNext(props: AddressSearchableSelectNextProps) {
   const [loading, setLoading] = useState(false);
 
   async function search(query: string | undefined): Promise<void> {
-    if (query) {
+    if (query && query.length >= 3) {
       await addressService
         .quickSearch(query)
         .then((addresses) => {

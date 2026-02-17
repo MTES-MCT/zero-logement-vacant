@@ -34,6 +34,7 @@ import eventRepository from '~/repositories/eventRepository';
 import housingOwnerRepository from '~/repositories/housingOwnerRepository';
 import housingRepository from '~/repositories/housingRepository';
 import ownerRepository from '~/repositories/ownerRepository';
+import ownerDistanceService from '~/services/ownerDistanceService';
 import { isArrayOf, isString } from '~/utils/validators';
 
 type ListOwnersQuery = ParsedQs & PaginationApi & {
@@ -313,6 +314,19 @@ async function update(
       : banAddressesRepository.remove(existingOwner.id, AddressKinds.Owner),
     eventRepository.insertManyOwnerEvents(events)
   ]);
+
+  // Update owner-housing distances when address changes
+  const addressChanged = existingOwner.banAddress?.label !== banAddress?.label;
+  if (addressChanged) {
+    ownerDistanceService
+      .updateOwnerHousingDistances(owner.id, banAddress)
+      .catch((error) => {
+        logger.error('Failed to update owner-housing distances', {
+          ownerId: owner.id,
+          error
+        });
+      });
+  }
 
   response.status(constants.HTTP_STATUS_OK).json(toOwnerDTO(owner));
 }

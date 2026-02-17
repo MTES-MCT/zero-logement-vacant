@@ -827,7 +827,7 @@ describe('Housing repository', () => {
               filters: { relativeLocations: [relativeLocation] }
             });
 
-            expect(actual).toSatisfyAny<HousingApi>(
+            expect(actual).toSatisfyAny(
               (h) => h.id === housing.id
             );
           }

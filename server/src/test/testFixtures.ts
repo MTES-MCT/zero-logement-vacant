@@ -313,12 +313,11 @@ export const genHousingApi = (
     buildingVacancyRate: faker.number.float(),
     contactCount: genNumber(1),
     geolocation: null,
-    plotId: null,
     buildingId: building?.id ?? null,
     buildingGroupId: null,
     buildingHousingCount: null,
     geoPerimeters: [],
-    precisions: [],
+    precisions: []
   };
 };
 

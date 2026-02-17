@@ -214,7 +214,7 @@ const previewValidators: ValidationChain[] = [
     .withMessage('geoCode is required'),
   body('housing.localId').isString().isLength({ min: 12, max: 12 }),
   body('housing.rawAddress').isArray().isLength({ min: 1 }),
-  body('housing.cadastralReference').isString().optional({
+  body('housing.plotId').isString().optional({
     nullable: true
   }),
   body('housing.housingKind')

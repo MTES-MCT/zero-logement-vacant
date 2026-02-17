@@ -90,7 +90,11 @@ function HousingOwnerEditionAside(props: HousingOwnerEditionAsideProps) {
               label: housingOwner.banAddress.label,
               score: housingOwner.banAddress.score,
               longitude: housingOwner.banAddress.longitude,
-              latitude: housingOwner.banAddress.latitude
+              latitude: housingOwner.banAddress.latitude,
+              postalCode: housingOwner.banAddress.postalCode ?? null,
+              city: housingOwner.banAddress.city ?? null,
+              street: housingOwner.banAddress.street ?? null,
+              houseNumber: housingOwner.banAddress.houseNumber ?? null
             }
           : null,
       additionalAddress: housingOwner?.additionalAddress ?? null,

@@ -18,7 +18,11 @@ export const OWNER_FORM_FIELD_SCHEMA = object({
     label: string().required(),
     score: number().required().min(0).max(1),
     longitude: number().min(-180).max(180).required(),
-    latitude: number().min(-90).max(90).required()
+    latitude: number().min(-90).max(90).required(),
+    postalCode: string().defined().nullable(),
+    city: string().defined().nullable(),
+    street: string().defined().nullable(),
+    houseNumber: string().defined().nullable()
   })
     .defined()
     .nullable(),
@@ -97,10 +101,15 @@ function OwnerFormFields(props: OwnerFormFieldsProps) {
               address={
                 field.value
                   ? {
-                      ...field.value,
                       banId: field.value.id,
-                      postalCode: '',
-                      city: ''
+                      label: field.value.label,
+                      score: field.value.score,
+                      longitude: field.value.longitude,
+                      latitude: field.value.latitude,
+                      postalCode: field.value.postalCode ?? '',
+                      city: field.value.city ?? '',
+                      street: field.value.street ?? undefined,
+                      houseNumber: field.value.houseNumber ?? undefined
                     }
                   : null
               }
@@ -116,7 +125,11 @@ function OwnerFormFields(props: OwnerFormFieldsProps) {
                         label: address.label,
                         score: address.score,
                         longitude: address.longitude,
-                        latitude: address.latitude
+                        latitude: address.latitude,
+                        postalCode: address.postalCode ?? null,
+                        city: address.city ?? null,
+                        street: address.street ?? null,
+                        houseNumber: address.houseNumber ?? null
                       } satisfies OwnerFormFieldsSchema['banAddress'])
                     : null
                 );

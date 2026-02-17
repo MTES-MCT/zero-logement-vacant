@@ -206,12 +206,11 @@ export const fromRelativeLocationDBO = (
     .with(3, () => 'same-region')
     .with(4, () => 'metropolitan')
     .with(5, () => 'overseas')
-    .with(null, () => null)
-    .otherwise(() => 'other');
+    .with(6, () => 'foreign-country')
+    .with(7, () => 'other')
+    .otherwise(() => null);
 
-export const toRelativeLocationDBO = (
-  loc: RelativeLocation | null
-): number | null =>
+export const toRelativeLocationDBO = (loc: RelativeLocation | null): number | null =>
   match(loc)
     .returnType<number | null>()
     .with('same-address', () => 0)
@@ -220,7 +219,8 @@ export const toRelativeLocationDBO = (
     .with('same-region', () => 3)
     .with('metropolitan', () => 4)
     .with('overseas', () => 5)
-    .with('other', () => 6)
+    .with('foreign-country', () => 6)
+    .with('other', () => 7)
     .with(null, () => null)
     .exhaustive();
 

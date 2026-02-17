@@ -30,6 +30,7 @@ import { createMemoryRouter, RouterProvider } from 'react-router-dom';
 
 import data from '~/mocks/handlers/data';
 import { fromEstablishmentDTO } from '~/models/Establishment';
+import { RELATIVE_LOCATION_LABELS } from '~/models/HousingOwner';
 import { fromUserDTO } from '~/models/User';
 import { genAuthUser } from '~/test/fixtures';
 import configureTestStore from '~/utils/storeUtils';
@@ -115,6 +116,61 @@ describe('Housing view', () => {
       name: 'Page non trouvée'
     });
     expect(error).toBeVisible();
+  });
+
+  describe('Relative location tag', () => {
+    it('should display the relative location tag for the primary owner', async () => {
+      const establishment = genEstablishmentDTO();
+      const auth = genUserDTO(UserRole.USUAL, establishment);
+      const owner = genOwnerDTO();
+      const housing = genHousingDTO();
+      const housingOwner: HousingOwnerDTO = {
+        ...genHousingOwnerDTO(owner),
+        rank: 1 as OwnerRank,
+        relativeLocation: 'same-commune'
+      };
+
+      renderView(housing, {
+        auth,
+        establishment,
+        owners: [owner],
+        housingOwners: [housingOwner]
+      });
+
+      const tag = await screen.findByText(
+        RELATIVE_LOCATION_LABELS['same-commune']
+      );
+      expect(tag).toBeVisible();
+    });
+
+    it.each(
+      Object.entries(RELATIVE_LOCATION_LABELS) as Array<
+        [HousingOwnerDTO['relativeLocation'], string]
+      >
+    )(
+      'should display the relative location "%s" for the primary owner with label "%s"',
+      async (relativeLocation, expectedLabel) => {
+        const establishment = genEstablishmentDTO();
+        const auth = genUserDTO(UserRole.USUAL, establishment);
+        const owner = genOwnerDTO();
+        const housing = genHousingDTO();
+        const housingOwner: HousingOwnerDTO = {
+          ...genHousingOwnerDTO(owner),
+          rank: 1 as OwnerRank,
+          relativeLocation
+        };
+
+        renderView(housing, {
+          auth,
+          establishment,
+          owners: [owner],
+          housingOwners: [housingOwner]
+        });
+
+        const tag = await screen.findByText(expectedLabel);
+        expect(tag).toBeVisible();
+      }
+    );
   });
 
   it('should display the main owner', async () => {

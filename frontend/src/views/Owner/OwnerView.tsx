@@ -73,6 +73,7 @@ function OwnerView() {
             additionalAddress={owner?.additionalAddress ?? null}
             email={owner?.email ?? null}
             phone={owner?.phone ?? null}
+            relativeLocation={null}
           />
         </Grid>
 

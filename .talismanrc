@@ -67,6 +67,8 @@ fileignoreconfig:
   checksum: ac444aed1f4427b4d3928842fac8fa67bc32ddae8547dd561d622d057ad0840e
 - filename: docs/guides/document-upload-architecture.md
   checksum: 11ec4499248e685ea168b05df23d74a6357f21a54e9f26a8cf0937be8ba59f61
+- filename: frontend/src/components/HousingListFilters/DataFileYearSelect.tsx
+  checksum: c4e85a92672ddd7bce82931823c2cebbdd0516e04d47f7603d5fd04f23fab6b2
 scopeconfig:
 - scope: node
 allowed_patterns:

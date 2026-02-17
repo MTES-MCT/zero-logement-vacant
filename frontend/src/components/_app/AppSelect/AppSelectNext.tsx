@@ -24,6 +24,7 @@ export type AppSelectNextProps<Value, Multiple extends boolean> = Pick<
   getOptionLabel?(value: Value): ReactNode;
   getOptionValue?(value: Value): string;
   groupBy?(value: Value): string | null;
+  groupClickable?: boolean;
   isOptionEqualToValue?(option: Value, value: Value): boolean;
   // Keep this until upgrading to MUI v6
   multiple?: Multiple;
@@ -285,12 +286,12 @@ function AppSelectNext<Value, Multiple extends boolean = false>(
           },
           variant: 'menu',
           elevation: 0,
-          disableScrollLock: true,
+          disableScrollLock: false,
           slotProps: {
             paper: {
               sx: {
                 filter: 'drop-shadow(var(--raised-shadow))',
-                maxHeight: '13.125rem',
+                maxHeight: '20rem',
                 maxWidth: ref.current?.clientWidth
               }
             }
@@ -339,9 +340,10 @@ function AppSelectNext<Value, Multiple extends boolean = false>(
                 [
                   <MenuItem
                     key={group}
-                    value={group}
+                    value={props.groupClickable === false ? undefined : group}
                     dense
                     disableRipple
+                    disabled={props.groupClickable === false}
                     sx={{
                       position: 'sticky',
                       top: 0,
@@ -350,27 +352,36 @@ function AppSelectNext<Value, Multiple extends boolean = false>(
                       backgroundColor:
                         fr.colors.decisions.background.default.grey.default,
                       whiteSpace: 'normal',
-                      wordBreak: 'break-word'
+                      wordBreak: 'break-word',
+                      '&.Mui-disabled': {
+                        opacity: 1
+                      }
                     }}
                   >
-                    <Checkbox
-                      classes={{
-                        root: fr.cx('fr-mb-0'),
-                        inputGroup: fr.cx('fr-mt-0')
-                      }}
-                      options={[
-                        {
-                          label: renderGroup(group),
-                          nativeInputProps: {
-                            checked: isGroupSelected(group),
-                            onClick: noop,
-                            onChange: noop
+                    {props.groupClickable === false ? (
+                      <Typography variant="body2" sx={{ fontWeight: 700 }}>
+                        {renderGroup(group)}
+                      </Typography>
+                    ) : (
+                      <Checkbox
+                        classes={{
+                          root: fr.cx('fr-mb-0'),
+                          inputGroup: fr.cx('fr-mt-0')
+                        }}
+                        options={[
+                          {
+                            label: renderGroup(group),
+                            nativeInputProps: {
+                              checked: isGroupSelected(group),
+                              onClick: noop,
+                              onChange: noop
+                            }
                           }
-                        }
-                      ]}
-                      orientation="vertical"
-                      small
-                    />
+                        ]}
+                        orientation="vertical"
+                        small
+                      />
+                    )}
                   </MenuItem>
                 ].concat(...options.map(renderOption))
               )

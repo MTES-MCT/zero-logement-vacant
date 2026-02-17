@@ -56,7 +56,10 @@ import { campaignsTable } from './campaignRepository';
 import establishmentRepository from './establishmentRepository';
 import { geoPerimetersTable } from './geoRepository';
 import { GROUPS_HOUSING_TABLE } from './groupRepository';
-import { housingOwnersTable } from './housingOwnerRepository';
+import {
+  housingOwnersTable,
+  toRelativeLocationDBO
+} from './housingOwnerRepository';
 import { localitiesTable } from './localityRepository';
 import { OwnerDBO, ownerTable, parseOwnerApi } from './ownerRepository';
 
@@ -627,6 +630,23 @@ function filteredQuery(opts: FilteredQueryOptions) {
         if (filters.ownerAges?.includes('gte100')) {
           where.orWhereRaw('EXTRACT(YEAR FROM AGE(birth_date)) >= 100');
         }
+      });
+    }
+    if (filters.relativeLocations?.length) {
+      const numericValues = filters.relativeLocations.map(toRelativeLocationDBO);
+      queryBuilder.whereExists((subquery) => {
+        subquery
+          .from(housingOwnersTable)
+          .where(
+            `${housingOwnersTable}.housing_id`,
+            db.ref(`${housingTable}.id`)
+          )
+          .andWhere(
+            `${housingOwnersTable}.housing_geo_code`,
+            db.ref(`${housingTable}.geo_code`)
+          )
+          .andWhere(`${housingOwnersTable}.rank`, 1)
+          .whereIn(`${housingOwnersTable}.locprop_relative_ban`, numericValues);
       });
     }
     if (filters.multiOwners?.length) {

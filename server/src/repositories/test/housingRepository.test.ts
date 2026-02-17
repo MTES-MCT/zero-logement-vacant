@@ -23,6 +23,7 @@ import {
   Precision,
   READ_ONLY_OCCUPANCY_VALUES,
   READ_WRITE_OCCUPANCY_VALUES,
+  RELATIVE_LOCATION_VALUES,
   ROOM_COUNT_VALUES
 } from '@zerologementvacant/models';
 import { genGeoCode } from '@zerologementvacant/models/fixtures';
@@ -94,7 +95,8 @@ import {
 import {
   formatHousingOwnersApi,
   HousingOwnerDBO,
-  HousingOwners
+  HousingOwners,
+  toRelativeLocationDBO
 } from '../housingOwnerRepository';
 import housingRepository, {
   formatHousingRecordApi,
@@ -805,6 +807,31 @@ describe('Housing repository', () => {
             return housing.owner?.kind === OWNER_KIND_LABELS[kind];
           });
         });
+      });
+
+      describe('by relative location', () => {
+        test.each(RELATIVE_LOCATION_VALUES)(
+          'should include housing whose primary owner has relative location %s',
+          async (relativeLocation) => {
+            const housing = genHousingApi();
+            const owner = genOwnerApi();
+            await Housing().insert(formatHousingRecordApi(housing));
+            await Owners().insert(formatOwnerApi(owner));
+            const [housingOwnerRow] = formatHousingOwnersApi(housing, [owner]);
+            await HousingOwners().insert({
+              ...housingOwnerRow,
+              locprop_relative_ban: toRelativeLocationDBO(relativeLocation)
+            });
+
+            const actual = await housingRepository.find({
+              filters: { relativeLocations: [relativeLocation] }
+            });
+
+            expect(actual).toSatisfyAny<HousingApi>(
+              (h) => h.id === housing.id
+            );
+          }
+        );
       });
 
       describe('by multi owners', () => {

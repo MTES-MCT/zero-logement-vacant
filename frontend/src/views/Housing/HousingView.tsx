@@ -114,6 +114,7 @@ function HousingView() {
                 phone={owner?.phone ?? null}
                 isLoading={findOwnersQuery.isLoading}
                 housingCount={count?.housing ?? null}
+                relativeLocation={owner?.relativeLocation ?? null}
                 onAdd={() => {
                   navigate(`/logements/${housingId}/proprietaires`, {
                     state: {

@@ -30,6 +30,7 @@ import { createMemoryRouter, RouterProvider } from 'react-router-dom';
 
 import data from '~/mocks/handlers/data';
 import { fromEstablishmentDTO } from '~/models/Establishment';
+import { RELATIVE_LOCATION_LABELS } from '~/models/HousingOwner';
 import { fromUserDTO } from '~/models/User';
 import { genAuthUser } from '~/test/fixtures';
 import configureTestStore from '~/utils/storeUtils';
@@ -113,6 +114,63 @@ describe('Housing view', () => {
     expect(error).toBeVisible();
   });
 
+  describe('Relative location tag', () => {
+    it('should display the relative location tag for the primary owner', async () => {
+      const establishment = genEstablishmentDTO();
+      const auth = genUserDTO(UserRole.USUAL, establishment);
+      const owner = genOwnerDTO();
+      const housing = genHousingDTO();
+      const housingOwner: HousingOwnerDTO = {
+        ...genHousingOwnerDTO(owner),
+        rank: 1 as OwnerRank,
+        relativeLocation: 'same-commune'
+      };
+
+      renderView(housing, {
+        auth,
+        establishment,
+        owners: [owner],
+        housingOwners: [housingOwner]
+      });
+
+      const tag = await screen.findByLabelText(
+        'Localisation du destinataire principal'
+      );
+      expect(tag).toHaveTextContent(RELATIVE_LOCATION_LABELS['same-commune']);
+    });
+
+    it.each(
+      Object.entries(RELATIVE_LOCATION_LABELS) as Array<
+        [HousingOwnerDTO['relativeLocation'], string]
+      >
+    )(
+      'should display the relative location "%s" for the primary owner with label "%s"',
+      async (relativeLocation, expectedLabel) => {
+        const establishment = genEstablishmentDTO();
+        const auth = genUserDTO(UserRole.USUAL, establishment);
+        const owner = genOwnerDTO();
+        const housing = genHousingDTO();
+        const housingOwner: HousingOwnerDTO = {
+          ...genHousingOwnerDTO(owner),
+          rank: 1 as OwnerRank,
+          relativeLocation
+        };
+
+        renderView(housing, {
+          auth,
+          establishment,
+          owners: [owner],
+          housingOwners: [housingOwner]
+        });
+
+        const tag = await screen.findByLabelText(
+          'Localisation du destinataire principal'
+        );
+        expect(tag).toHaveTextContent(expectedLabel);
+      }
+    );
+  });
+
   it('should display the main owner', async () => {
     const establishment = genEstablishmentDTO();
     const auth = genUserDTO(UserRole.USUAL, establishment);
@@ -154,7 +212,10 @@ describe('Housing view', () => {
   it('should hide the button to edit owners from visitors', async () => {
     const housing = genHousingDTO();
     const owner = genOwnerDTO();
-    const housingOwner = genHousingOwnerDTO(owner);
+    const housingOwner: HousingOwnerDTO = {
+      ...genHousingOwnerDTO(owner),
+      rank: 1 as OwnerRank
+    };
     const establishment = genEstablishmentDTO();
     const auth = genUserDTO(UserRole.VISITOR, establishment);
 
@@ -165,7 +226,7 @@ describe('Housing view', () => {
       establishment: establishment
     });
 
-    const name = await screen.findByText(owner.fullName);
+    const name = await screen.findByText(new RegExp(owner.fullName, 'i'));
     expect(name).toBeVisible();
     const title = screen.queryByTitle('Modifier les propriétaires');
     expect(title).not.toBeInTheDocument();

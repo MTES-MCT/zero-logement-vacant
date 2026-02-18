@@ -24,7 +24,8 @@ import {
   READ_ONLY_OCCUPANCY_VALUES,
   READ_WRITE_OCCUPANCY_VALUES,
   RELATIVE_LOCATION_VALUES,
-  ROOM_COUNT_VALUES
+  ROOM_COUNT_VALUES,
+  type RelativeLocationFilter
 } from '@zerologementvacant/models';
 import { genGeoCode } from '@zerologementvacant/models/fixtures';
 import { isDefined } from '@zerologementvacant/utils';
@@ -96,6 +97,7 @@ import {
   formatHousingOwnersApi,
   HousingOwnerDBO,
   HousingOwners,
+  relativeLocationFilterToDBO,
   toRelativeLocationDBO
 } from '../housingOwnerRepository';
 import housingRepository, {
@@ -822,13 +824,33 @@ describe('Housing repository', () => {
               ...housingOwnerRow,
               locprop_relative_ban: toRelativeLocationDBO(relativeLocation)
             });
+            const filter = match(relativeLocation)
+              .returnType<RelativeLocationFilter>()
+              .with('metropolitan', 'overseas', () => 'other-region')
+              .with('foreign-country', () => 'other')
+              .otherwise((value) => value);
 
             const actual = await housingRepository.find({
-              filters: { relativeLocations: [relativeLocation] }
+              filters: {
+                relativeLocations: [filter]
+              }
             });
 
-            expect(actual).toSatisfyAny(
-              (h) => h.id === housing.id
+            const actualHousingOwners = await HousingOwners()
+              .where({ rank: 1 })
+              .whereIn(
+                ['housing_geo_code', 'housing_id'],
+                actual.map((housing) => [housing.geoCode, housing.id])
+              );
+            expect(actualHousingOwners).toSatisfyAll<HousingOwnerDBO>(
+              (housing) => {
+                return (
+                  housing.locprop_relative_ban !== null &&
+                  relativeLocationFilterToDBO(filter).includes(
+                    housing.locprop_relative_ban
+                  )
+                );
+              }
             );
           }
         );

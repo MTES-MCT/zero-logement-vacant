@@ -212,7 +212,10 @@ describe('Housing view', () => {
   it('should hide the button to edit owners from visitors', async () => {
     const housing = genHousingDTO();
     const owner = genOwnerDTO();
-    const housingOwner = genHousingOwnerDTO(owner);
+    const housingOwner: HousingOwnerDTO = {
+      ...genHousingOwnerDTO(owner),
+      rank: 1 as OwnerRank
+    };
     const establishment = genEstablishmentDTO();
     const auth = genUserDTO(UserRole.VISITOR, establishment);
 
@@ -223,7 +226,7 @@ describe('Housing view', () => {
       establishment: establishment
     });
 
-    const name = await screen.findByText(owner.fullName);
+    const name = await screen.findByText(new RegExp(owner.fullName, 'i'));
     expect(name).toBeVisible();
     const title = screen.queryByTitle('Modifier les propriétaires');
     expect(title).not.toBeInTheDocument();

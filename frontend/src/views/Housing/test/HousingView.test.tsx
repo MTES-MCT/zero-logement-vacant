@@ -137,10 +137,10 @@ describe('Housing view', () => {
         housingOwners: [housingOwner]
       });
 
-      const tag = await screen.findByText(
-        RELATIVE_LOCATION_LABELS['same-commune']
+      const tag = await screen.findByLabelText(
+        'Localisation du destinataire principal'
       );
-      expect(tag).toBeVisible();
+      expect(tag).toHaveTextContent(RELATIVE_LOCATION_LABELS['same-commune']);
     });
 
     it.each(
@@ -167,8 +167,10 @@ describe('Housing view', () => {
           housingOwners: [housingOwner]
         });
 
-        const tag = await screen.findByText(expectedLabel);
-        expect(tag).toBeVisible();
+        const tag = await screen.findByLabelText(
+          'Localisation du destinataire principal'
+        );
+        expect(tag).toHaveTextContent(expectedLabel);
       }
     );
   });

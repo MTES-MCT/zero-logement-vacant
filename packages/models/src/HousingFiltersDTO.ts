@@ -15,7 +15,7 @@ import { OwnerAge } from './OwnerAge';
 import { OwnerKind } from './OwnerKind';
 import { OwnershipKind } from './OwnershipKind';
 import { Precision } from './Precision';
-import type { RelativeLocation } from './RelativeLocation';
+import type { RelativeLocationFilter } from './RelativeLocation';
 import { RoomCount } from './RoomCount';
 import { VacancyRate } from './VacancyRate';
 import { VacancyYear } from './VacancyYear';
@@ -64,5 +64,5 @@ export interface HousingFiltersDTO {
   lastMutationYears?: Array<LastMutationYearFilter | null>;
   lastMutationTypes?: Array<LastMutationTypeFilter | null>;
   // Owner filters
-  relativeLocations?: Array<RelativeLocation>;
+  relativeLocations?: Array<RelativeLocationFilter>;
 }

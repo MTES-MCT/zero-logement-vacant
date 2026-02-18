@@ -23,8 +23,8 @@ import {
   type OwnerAge,
   type OwnerKind,
   type OwnershipKind,
-  RELATIVE_LOCATION_VALUES,
-  type RelativeLocation,
+  RELATIVE_LOCATION_FILTER_VALUES,
+  type RelativeLocationFilter,
   type RoomCount,
   type VacancyRate,
   type VacancyYear
@@ -35,7 +35,6 @@ import { match, NonExhaustiveError, Pattern } from 'ts-pattern';
 import EnergyConsumptionOption from '../components/_app/AppMultiSelect/EnergyConsumptionOption';
 import type { Establishment } from './Establishment';
 import { HousingStates } from './HousingState';
-import { RELATIVE_LOCATION_LABELS } from './HousingOwner';
 import { LocalityKindLabels } from './Locality';
 import type { SelectOption } from './SelectOption';
 
@@ -143,18 +142,28 @@ export const OWNER_KIND_OPTIONS: Record<
   {} as Record<OwnerKind, { label: string; badgeLabel: string }>
 );
 
+const RELATIVE_LOCATION_FILTER_LABELS: Record<RelativeLocationFilter, string> =
+  {
+    'same-address': 'Habite la même adresse',
+    'same-commune': 'Habite dans la même commune',
+    'same-department': 'Habite dans le même département',
+    'same-region': 'Habite dans la même région',
+    'other-region': 'Habite dans une autre région',
+    other: "Pas d'information"
+  };
+
 export const RELATIVE_LOCATION_OPTIONS: Record<
-  RelativeLocation,
+  RelativeLocationFilter,
   { label: string; badgeLabel: string }
-> = RELATIVE_LOCATION_VALUES.reduce(
+> = RELATIVE_LOCATION_FILTER_VALUES.reduce(
   (record, value) => ({
     ...record,
     [value]: {
-      label: RELATIVE_LOCATION_LABELS[value],
-      badgeLabel: `Localisation du contact principal\u00a0: ${RELATIVE_LOCATION_LABELS[value].toLowerCase()}`
+      label: RELATIVE_LOCATION_FILTER_LABELS[value],
+      badgeLabel: `Localisation du contact principal\u00a0: ${RELATIVE_LOCATION_FILTER_LABELS[value].toLowerCase()}`
     }
   }),
-  {} as Record<RelativeLocation, { label: string; badgeLabel: string }>
+  {} as Record<RelativeLocationFilter, { label: string; badgeLabel: string }>
 );
 
 export const statusOptions = (

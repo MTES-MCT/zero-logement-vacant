@@ -18,7 +18,7 @@ import {
   OWNER_AGE_VALUES,
   OWNER_KIND_VALUES,
   OWNERSHIP_KIND_VALUES,
-  RELATIVE_LOCATION_VALUES,
+  RELATIVE_LOCATION_FILTER_VALUES,
   ROOM_COUNT_VALUES,
   VACANCY_RATE_VALUES,
   VACANCY_YEAR_VALUES
@@ -64,7 +64,7 @@ export const housingFilters: ObjectSchema<HousingFiltersDTO> = object({
     .of(string().oneOf(OWNER_AGE_VALUES).defined().nullable()),
   relativeLocations: array()
     .transform(commaSeparatedString)
-    .of(string().oneOf(RELATIVE_LOCATION_VALUES).required()),
+    .of(string().oneOf(RELATIVE_LOCATION_FILTER_VALUES).required()),
   multiOwners: array().transform(commaSeparatedString).of(boolean().required()),
   beneficiaryCounts: array()
     .transform(commaSeparatedString)
@@ -124,11 +124,21 @@ export const housingFilters: ObjectSchema<HousingFiltersDTO> = object({
   dataFileYearsIncluded: array()
     .transform(commaSeparatedString)
     .transform(parseNull)
-    .of(string().oneOf([...DATA_FILE_YEAR_VALUES, 'datafoncier-manual']).defined().nullable()),
+    .of(
+      string()
+        .oneOf([...DATA_FILE_YEAR_VALUES, 'datafoncier-manual'])
+        .defined()
+        .nullable()
+    ),
   dataFileYearsExcluded: array()
     .transform(commaSeparatedString)
     .transform(parseNull)
-    .of(string().oneOf([...DATA_FILE_YEAR_VALUES, 'datafoncier-manual']).defined().nullable()),
+    .of(
+      string()
+        .oneOf([...DATA_FILE_YEAR_VALUES, 'datafoncier-manual'])
+        .defined()
+        .nullable()
+    ),
   status: number().oneOf(HOUSING_STATUS_VALUES),
   statusList: array()
     .transform(commaSeparatedString)

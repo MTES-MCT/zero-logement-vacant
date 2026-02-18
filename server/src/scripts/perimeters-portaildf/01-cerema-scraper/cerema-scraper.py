@@ -547,7 +547,11 @@ def run_scraper_for_type(config: Config, data_type: DataType):
             
             # Update state
             state.last_completed_page = page_number
-            state.next_url = data.get('next')
+            # Fix malformed next URL (some endpoints return /#? instead of /?)
+            next_url = data.get('next')
+            if next_url:
+                next_url = next_url.replace('/#?', '/?').replace('/%23?', '/?')
+            state.next_url = next_url
             
             # Display statistics
             total_count = data.get('count', 0)
@@ -613,9 +617,9 @@ def run_scraper(config: Config, data_types: list):
 )
 @click.option(
     '--base-url', '-u',
-    default='https://portaildf.cerema.fr/api',
+    default='http://portaildf.cerema.fr/api',
     envvar='CEREMA_BASE_URL',
-    help='Base API URL (default: https://portaildf.cerema.fr/api)'
+    help='Base API URL (default: http://portaildf.cerema.fr/api)'
 )
 @click.option(
     '--structures-output',

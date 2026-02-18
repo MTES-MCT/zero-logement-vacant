@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-Script to retrieve structures and users from the Cerema DF Portal API
+Script to retrieve structures, users and groups from the Cerema DF Portal API
 and save them to JSON Lines files with automatic resume capability.
 
 Modern configuration with CLI, environment variables and validation.
@@ -34,6 +34,7 @@ class DataType(Enum):
     """Supported data types for scraping."""
     STRUCTURES = "structures"
     USERS = "users"
+    GROUPS = "groups"
 
 @dataclass
 class ScriptState:
@@ -55,8 +56,10 @@ class Config:
     base_url: str
     structures_output: str
     users_output: str
+    groups_output: str
     structures_state_file: str
     users_state_file: str
+    groups_state_file: str
     delay_between_requests: float
     max_retries: int
     retry_delay: float
@@ -94,6 +97,8 @@ def get_endpoint_url(base_url: str, data_type: DataType) -> str:
         return urljoin(base_url.rstrip('/') + '/', 'structures')
     elif data_type == DataType.USERS:
         return urljoin(base_url.rstrip('/') + '/', 'utilisateurs')
+    elif data_type == DataType.GROUPS:
+        return urljoin(base_url.rstrip('/') + '/', 'groupes')
     else:
         raise ValueError(f"Unknown data type: {data_type}")
 
@@ -177,14 +182,16 @@ def load_existing_item_ids(filename: str, data_type: DataType) -> Set[int]:
                         item_id = item.get('id') or item.get('id_structure')
                     elif data_type == DataType.USERS:
                         # Try multiple possible ID fields for users including id_user
-                        item_id = (item.get('id') or 
-                                 item.get('id_utilisateur') or 
-                                 item.get('id_user') or 
-                                 item.get('user_id') or 
+                        item_id = (item.get('id') or
+                                 item.get('id_utilisateur') or
+                                 item.get('id_user') or
+                                 item.get('user_id') or
                                  item.get('pk'))
+                    elif data_type == DataType.GROUPS:
+                        item_id = item.get('id') or item.get('id_groupe')
                     else:
                         continue
-                    
+
                     if item_id:
                         existing_ids.add(item_id)
                         
@@ -254,11 +261,13 @@ def save_new_items_to_jsonl(items: list, existing_ids: Set[int], filename: str, 
                     item_id = item.get('id') or item.get('id_structure')
                 elif data_type == DataType.USERS:
                     # Try multiple possible ID fields for users including id_user
-                    item_id = (item.get('id') or 
-                             item.get('id_utilisateur') or 
-                             item.get('id_user') or 
-                             item.get('user_id') or 
+                    item_id = (item.get('id') or
+                             item.get('id_utilisateur') or
+                             item.get('id_user') or
+                             item.get('user_id') or
                              item.get('pk'))
+                elif data_type == DataType.GROUPS:
+                    item_id = item.get('id') or item.get('id_groupe')
                 else:
                     continue
                 
@@ -408,6 +417,59 @@ def analyze_users(filename: str):
     except IOError as e:
         logger.error(f"Error during analysis: {e}")
 
+def analyze_groups(filename: str):
+    """
+    Analyze retrieved groups and display statistics.
+
+    Args:
+        filename: Name of the JSON Lines groups file
+    """
+    if not os.path.exists(filename):
+        logger.warning(f"Groups file {filename} does not exist")
+        return
+
+    total_groups = 0
+    with_lovac = 0
+    without_lovac = 0
+    access_levels = {}
+
+    try:
+        with open(filename, 'r', encoding='utf-8') as f:
+            for line in f:
+                line = line.strip()
+                if not line:
+                    continue
+
+                try:
+                    group = json.loads(line)
+                    total_groups += 1
+
+                    # Analyze LOVAC access
+                    if group.get('lovac'):
+                        with_lovac += 1
+                    else:
+                        without_lovac += 1
+
+                    # Analyze access levels
+                    niveau = group.get('niveau_acces', 'Unknown')
+                    access_levels[niveau] = access_levels.get(niveau, 0) + 1
+
+                except json.JSONDecodeError:
+                    continue
+
+        logger.info(f"=== GROUP ANALYSIS ===")
+        logger.info(f"Total groups: {total_groups}")
+        logger.info(f"With LOVAC access: {with_lovac}")
+        logger.info(f"Without LOVAC access: {without_lovac}")
+
+        if access_levels:
+            logger.info(f"=== DISTRIBUTION BY ACCESS LEVEL ===")
+            for level, count in sorted(access_levels.items(), key=lambda x: x[1], reverse=True):
+                logger.info(f"  {level}: {count} groups")
+
+    except IOError as e:
+        logger.error(f"Error during analysis: {e}")
+
 def run_scraper_for_type(config: Config, data_type: DataType):
     """
     Run scraper for a specific data type.
@@ -426,6 +488,9 @@ def run_scraper_for_type(config: Config, data_type: DataType):
     elif data_type == DataType.USERS:
         output_file = config.users_output
         state_file = config.users_state_file
+    elif data_type == DataType.GROUPS:
+        output_file = config.groups_output
+        state_file = config.groups_state_file
     else:
         logger.error(f"Unknown data type: {data_type}")
         return
@@ -512,6 +577,8 @@ def run_scraper_for_type(config: Config, data_type: DataType):
             analyze_structures(output_file)
         elif data_type == DataType.USERS:
             analyze_users(output_file)
+        elif data_type == DataType.GROUPS:
+            analyze_groups(output_file)
         
         # Clean up state file
         cleanup_state_file(state_file)
@@ -563,6 +630,12 @@ def run_scraper(config: Config, data_types: list):
     help='Users JSON Lines output file (default: users.jsonl)'
 )
 @click.option(
+    '--groups-output',
+    default='groups.jsonl',
+    type=click.Path(),
+    help='Groups JSON Lines output file (default: groups.jsonl)'
+)
+@click.option(
     '--structures-state-file',
     default='api_structures_state.json',
     type=click.Path(),
@@ -573,6 +646,12 @@ def run_scraper(config: Config, data_types: list):
     default='api_users_state.json',
     type=click.Path(),
     help='Users state file for resume (default: api_users_state.json)'
+)
+@click.option(
+    '--groups-state-file',
+    default='api_groups_state.json',
+    type=click.Path(),
+    help='Groups state file for resume (default: api_groups_state.json)'
 )
 @click.option(
     '--delay',
@@ -605,72 +684,86 @@ def run_scraper(config: Config, data_types: list):
 @click.option(
     '--structures-only',
     is_flag=True,
-    help='Only scrape structures (skip users)'
+    help='Only scrape structures (skip users and groups)'
 )
 @click.option(
     '--users-only',
     is_flag=True,
-    help='Only scrape users (skip structures)'
+    help='Only scrape users (skip structures and groups)'
 )
-@click.version_option(version='2.1.0')
-def main(token, base_url, structures_output, users_output, structures_state_file, users_state_file, 
-         delay, max_retries, retry_delay, verbose, reset_state, structures_only, users_only):
+@click.option(
+    '--groups-only',
+    is_flag=True,
+    help='Only scrape groups (skip structures and users)'
+)
+@click.version_option(version='3.0.0')
+def main(token, base_url, structures_output, users_output, groups_output,
+         structures_state_file, users_state_file, groups_state_file,
+         delay, max_retries, retry_delay, verbose, reset_state,
+         structures_only, users_only, groups_only):
     """
-    Script to retrieve structures and users from the Cerema DF Portal API.
-    
+    Script to retrieve structures, users and groups from the Cerema DF Portal API.
+
     The script supports automatic resume on interruption and avoids
-    duplicates by checking existing IDs. Can scrape both structures
-    and users, or either one individually.
-    
+    duplicates by checking existing IDs. Can scrape structures, users,
+    groups, or any combination.
+
     Usage examples:
-    
+
     \b
-    # Scrape both structures and users
+    # Scrape all data types (structures, users, groups)
     export CEREMA_BEARER_TOKEN="your_token_here"
     python cerema-scraper.py
-    
+
     \b
     # Scrape only structures
     python cerema-scraper.py --structures-only
-    
+
     \b
     # Scrape only users
     python cerema-scraper.py --users-only
-    
+
+    \b
+    # Scrape only groups
+    python cerema-scraper.py --groups-only
+
     \b
     # Custom output files
-    python cerema-scraper.py --structures-output data/structures.jsonl --users-output data/users.jsonl
-    
+    python cerema-scraper.py --groups-output data/groups.jsonl
+
     \b
     # Restart from beginning
     python cerema-scraper.py --reset-state
-    
+
     \b
     # Verbose mode
     python cerema-scraper.py --verbose
     """
-    
+
     # Configure log level
     if verbose:
         logging.getLogger().setLevel(logging.DEBUG)
-    
+
     # Validate mutually exclusive options
-    if structures_only and users_only:
-        logger.error("Cannot specify both --structures-only and --users-only")
+    exclusive_options = [structures_only, users_only, groups_only]
+    if sum(exclusive_options) > 1:
+        logger.error("Cannot specify multiple --*-only options at the same time")
         sys.exit(1)
-    
+
     # Determine what to scrape
     data_types = []
     if structures_only:
         data_types = [DataType.STRUCTURES]
     elif users_only:
         data_types = [DataType.USERS]
+    elif groups_only:
+        data_types = [DataType.GROUPS]
     else:
-        data_types = [DataType.STRUCTURES, DataType.USERS]
-    
+        data_types = [DataType.STRUCTURES, DataType.USERS, DataType.GROUPS]
+
     # Remove state files if requested
     if reset_state:
-        for state_file in [structures_state_file, users_state_file]:
+        for state_file in [structures_state_file, users_state_file, groups_state_file]:
             if os.path.exists(state_file):
                 os.remove(state_file)
                 logger.info(f"State file {state_file} removed")
@@ -684,8 +777,10 @@ def main(token, base_url, structures_output, users_output, structures_state_file
             base_url=base_url,
             structures_output=structures_output,
             users_output=users_output,
+            groups_output=groups_output,
             structures_state_file=structures_state_file,
             users_state_file=users_state_file,
+            groups_state_file=groups_state_file,
             delay_between_requests=delay,
             max_retries=max_retries,
             retry_delay=retry_delay,

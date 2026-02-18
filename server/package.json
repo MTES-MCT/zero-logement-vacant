@@ -3,8 +3,6 @@
   "version": "0.0.1",
   "type": "module",
   "scripts": {
-    "dev": "tsx --watch src/index.ts",
-    "start": "tsx src/index.ts",
     "test:migrations": "vitest run --config vitest.database.config.ts",
     "db": "NODE_OPTIONS='--import tsx/esm' knex --knexfile=src/infra/database/knexfile.ts",
     "migrate": "yarn db migrate:latest",
@@ -93,7 +91,7 @@
   },
   "devDependencies": {
     "@fast-check/vitest": "0.2.2",
-    "@tsconfig/node20": "20.1.6",
+    "@tsconfig/node24": "24.0.4",
     "@turf/turf": "7.1.0",
     "@types/async": "3.2.25",
     "@types/bcryptjs": "2.4.6",
@@ -133,6 +131,7 @@
     "rimraf": "5.0.10",
     "superagent": "8.1.2",
     "supertest": "7.1.4",
+    "ts-node": "10.9.2",
     "tsx": "4.20.3"
   }
 }

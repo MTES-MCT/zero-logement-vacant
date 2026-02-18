@@ -21,7 +21,7 @@
     "ts-essentials": "10.1.1"
   },
   "devDependencies": {
-    "@tsconfig/node20": "20.1.6",
+    "@tsconfig/node24": "24.0.4",
     "@types/node": "20.19.10"
   }
 }

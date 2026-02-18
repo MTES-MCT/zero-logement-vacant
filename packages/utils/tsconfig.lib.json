@@ -1,8 +1,11 @@
 {
-  "extends": "./tsconfig.json",
+  "extends": ["@tsconfig/node24/tsconfig.json", "../../tsconfig.base.json"],
   "compilerOptions": {
+    "baseUrl": ".",
+    "rootDir": "src",
     "outDir": "dist/lib",
-    "tsBuildInfoFile": "dist/lib/tsconfig.tsbuildinfo"
+    "tsBuildInfoFile": "dist/lib/tsconfig.tsbuildinfo",
+    "types": ["node"]
   },
   "include": ["src/**/*.ts"],
   "exclude": ["src/**/*.test.ts"]

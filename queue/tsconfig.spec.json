@@ -1,8 +1,15 @@
 {
-  "extends": "./tsconfig.json",
+  "extends": ["@tsconfig/node24/tsconfig.json", "../tsconfig.base.json"],
   "compilerOptions": {
+    "rootDir": "src",
     "outDir": "dist/spec",
-    "tsBuildInfoFile": "dist/spec/tsconfig.tsbuildinfo"
+    "tsBuildInfoFile": "dist/spec/tsconfig.tsbuildinfo",
+    "types": ["node", "bullmq", "jest-extended", "vitest/globals"]
   },
-  "include": ["src/**/*.test.ts"]
+  "include": ["src/**/*.test.ts"],
+  "references": [
+    {
+      "path": "./tsconfig.app.json"
+    }
+  ]
 }

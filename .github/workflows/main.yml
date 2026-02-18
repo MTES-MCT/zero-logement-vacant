@@ -37,7 +37,7 @@ jobs:
           --health-timeout 5s
           --health-retries 5
       s3:
-        image: adobe/s3mock:3.5.2
+        image: adobe/s3mock:4.11.0
         ports:
           - 9090:9090
         env:
@@ -60,13 +60,6 @@ jobs:
         env:
           CYPRESS_INSTALL_BINARY: 0
           PUPPETEER_SKIP_CHROMIUM_DOWNLOAD: true
-
-      # Building is required before typechecking
-      - name: Build
-        run: yarn build
-        env:
-          DISABLE_ESLINT_PLUGIN: true
-          METABASE_TOKEN: token
 
       # Check source and **test** files
       - name: Check types

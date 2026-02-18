@@ -23,46 +23,48 @@ vi.mock('~/infra/logger', () => ({
 // Mock AdmZip
 vi.mock('adm-zip', () => {
   return {
-    default: vi.fn().mockImplementation((buffer: Buffer) => {
-      // Simple mock that returns entries based on buffer content
-      if (buffer.toString().includes('VALID_SHAPEFILE')) {
+    default: class AdmZip {
+      constructor(buffer: Buffer) {
+        // Simple mock that returns entries based on buffer content
+        if (buffer.toString().includes('VALID_SHAPEFILE')) {
+          return {
+            getEntries: vi.fn().mockReturnValue([
+              {
+                entryName: 'test.shp',
+                getData: vi.fn().mockReturnValue(Buffer.from('mock shp data'))
+              },
+              {
+                entryName: 'test.dbf',
+                getData: vi.fn().mockReturnValue(Buffer.from('mock dbf data'))
+              }
+            ])
+          };
+        }
+        if (buffer.toString().includes('NO_SHP')) {
+          return {
+            getEntries: vi.fn().mockReturnValue([
+              {
+                entryName: 'test.dbf',
+                getData: vi.fn().mockReturnValue(Buffer.from('mock dbf data'))
+              }
+            ])
+          };
+        }
+        if (buffer.toString().includes('NO_DBF')) {
+          return {
+            getEntries: vi.fn().mockReturnValue([
+              {
+                entryName: 'test.shp',
+                getData: vi.fn().mockReturnValue(Buffer.from('mock shp data'))
+              }
+            ])
+          };
+        }
         return {
-          getEntries: vi.fn().mockReturnValue([
-            {
-              entryName: 'test.shp',
-              getData: vi.fn().mockReturnValue(Buffer.from('mock shp data')),
-            },
-            {
-              entryName: 'test.dbf',
-              getData: vi.fn().mockReturnValue(Buffer.from('mock dbf data')),
-            },
-          ]),
+          getEntries: vi.fn().mockReturnValue([])
         };
       }
-      if (buffer.toString().includes('NO_SHP')) {
-        return {
-          getEntries: vi.fn().mockReturnValue([
-            {
-              entryName: 'test.dbf',
-              getData: vi.fn().mockReturnValue(Buffer.from('mock dbf data')),
-            },
-          ]),
-        };
-      }
-      if (buffer.toString().includes('NO_DBF')) {
-        return {
-          getEntries: vi.fn().mockReturnValue([
-            {
-              entryName: 'test.shp',
-              getData: vi.fn().mockReturnValue(Buffer.from('mock shp data')),
-            },
-          ]),
-        };
-      }
-      return {
-        getEntries: vi.fn().mockReturnValue([]),
-      };
-    }),
+    }
   };
 });
 

@@ -1,9 +1,10 @@
 #!/usr/bin/env python3
 """
 Script to retrieve structures, users and groups from the Cerema DF Portal API
-and save them to JSON Lines files with automatic resume capability.
+and save them to JSON Lines or CSV files with automatic resume capability.
 
 Modern configuration with CLI, environment variables and validation.
+Supports JSONL (default) and CSV output formats.
 """
 
 import requests
@@ -11,7 +12,8 @@ import json
 import time
 import os
 import sys
-from typing import Optional, Set
+import csv
+from typing import Optional, Set, List, Dict, Any
 from dataclasses import dataclass
 from pathlib import Path
 import click
@@ -35,6 +37,12 @@ class DataType(Enum):
     STRUCTURES = "structures"
     USERS = "users"
     GROUPS = "groups"
+    PERIMETERS = "perimeters"
+
+class OutputFormat(Enum):
+    """Supported output formats."""
+    JSONL = "jsonl"
+    CSV = "csv"
 
 @dataclass
 class ScriptState:
@@ -57,12 +65,15 @@ class Config:
     structures_output: str
     users_output: str
     groups_output: str
+    perimeters_output: str
     structures_state_file: str
     users_state_file: str
     groups_state_file: str
+    perimeters_state_file: str
     delay_between_requests: float
     max_retries: int
     retry_delay: float
+    output_format: OutputFormat = OutputFormat.JSONL
     verbose: bool = False
     
     def __post_init__(self):
@@ -92,11 +103,15 @@ def get_headers(token: str) -> dict:
     }
 
 def clean_url(url: str) -> str:
-    """Remove any # or %23 from URL and ensure proper formatting."""
+    """Remove any # or %23 from URL, upgrade HTTP to HTTPS, and ensure proper formatting."""
     if not url:
         return url
-    # Handle URLs like /groupes#?page=2 or /groupes%23?page=2
+    # Upgrade HTTP to HTTPS to avoid redirects that add %23
+    if url.startswith('http://portaildf.cerema.fr'):
+        url = url.replace('http://', 'https://', 1)
+    # Handle URLs like /groupes#?page=2 or /groupes%23?page=2 or /groupes/%23?page=2
     # by removing the # or %23 but keeping the query params
+    url = url.replace('/%23?', '/?').replace('/%23', '/')
     url = url.replace('%23?', '?').replace('#?', '?')
     url = url.replace('%23', '').replace('#', '')
     return url
@@ -110,6 +125,8 @@ def get_endpoint_url(base_url: str, data_type: DataType) -> str:
         return f"{base}/utilisateurs"
     elif data_type == DataType.GROUPS:
         return f"{base}/groupes"
+    elif data_type == DataType.PERIMETERS:
+        return f"{base}/perimetres"
     else:
         raise ValueError(f"Unknown data type: {data_type}")
 
@@ -306,6 +323,150 @@ def save_new_items_to_jsonl(items: list, existing_ids: Set[int], filename: str, 
     
     return new_items_count
 
+def flatten_dict(d: Dict[str, Any], parent_key: str = '', sep: str = '_') -> Dict[str, Any]:
+    """Flatten a nested dictionary for CSV export."""
+    items: List[tuple] = []
+    for k, v in d.items():
+        new_key = f"{parent_key}{sep}{k}" if parent_key else k
+        if isinstance(v, dict):
+            items.extend(flatten_dict(v, new_key, sep).items())
+        elif isinstance(v, list):
+            # Convert lists to JSON strings for CSV
+            items.append((new_key, json.dumps(v, ensure_ascii=False)))
+        else:
+            items.append((new_key, v))
+    return dict(items)
+
+def get_item_id(item: dict, data_type: DataType) -> Optional[int]:
+    """Extract item ID based on data type."""
+    if data_type == DataType.STRUCTURES:
+        return item.get('id') or item.get('id_structure')
+    elif data_type == DataType.USERS:
+        return (item.get('id') or
+                item.get('id_utilisateur') or
+                item.get('id_user') or
+                item.get('user_id') or
+                item.get('pk'))
+    elif data_type == DataType.GROUPS:
+        return item.get('id') or item.get('id_groupe')
+    elif data_type == DataType.PERIMETERS:
+        return (item.get('perimetre_id') or
+                item.get('id') or
+                item.get('id_perimetre') or
+                item.get('pk'))
+    return None
+
+def save_new_items_to_csv(items: list, existing_ids: Set[int], filename: str, data_type: DataType) -> int:
+    """
+    Save only new items to a CSV file.
+
+    Args:
+        items: List of items to process
+        existing_ids: Set of already existing IDs
+        filename: Output filename
+        data_type: Type of data being processed
+
+    Returns:
+        int: Number of new items saved
+    """
+    new_items_count = 0
+    new_items = []
+
+    # Filter new items
+    for item in items:
+        item_id = get_item_id(item, data_type)
+        if item_id and item_id not in existing_ids:
+            new_items.append(flatten_dict(item))
+            existing_ids.add(item_id)
+            new_items_count += 1
+
+    if not new_items:
+        return 0
+
+    try:
+        file_exists = os.path.exists(filename) and os.path.getsize(filename) > 0
+
+        # Get all fieldnames from new items
+        all_fieldnames = set()
+        for item in new_items:
+            all_fieldnames.update(item.keys())
+
+        # If file exists, read existing headers
+        if file_exists:
+            with open(filename, 'r', encoding='utf-8', newline='') as f:
+                reader = csv.DictReader(f)
+                existing_fieldnames = set(reader.fieldnames or [])
+                all_fieldnames.update(existing_fieldnames)
+
+        fieldnames = sorted(all_fieldnames)
+
+        # If file doesn't exist or we have new columns, we need to rewrite
+        if not file_exists:
+            with open(filename, 'w', encoding='utf-8', newline='') as f:
+                writer = csv.DictWriter(f, fieldnames=fieldnames, extrasaction='ignore')
+                writer.writeheader()
+                writer.writerows(new_items)
+        else:
+            # Check if we need to add new columns
+            with open(filename, 'r', encoding='utf-8', newline='') as f:
+                reader = csv.DictReader(f)
+                existing_fieldnames = set(reader.fieldnames or [])
+
+            if all_fieldnames == existing_fieldnames:
+                # Just append
+                with open(filename, 'a', encoding='utf-8', newline='') as f:
+                    writer = csv.DictWriter(f, fieldnames=fieldnames, extrasaction='ignore')
+                    writer.writerows(new_items)
+            else:
+                # Need to rewrite with new columns - read all existing data
+                existing_rows = []
+                with open(filename, 'r', encoding='utf-8', newline='') as f:
+                    reader = csv.DictReader(f)
+                    existing_rows = list(reader)
+
+                with open(filename, 'w', encoding='utf-8', newline='') as f:
+                    writer = csv.DictWriter(f, fieldnames=fieldnames, extrasaction='ignore')
+                    writer.writeheader()
+                    writer.writerows(existing_rows)
+                    writer.writerows(new_items)
+
+    except IOError as e:
+        logger.error(f"Error writing to file {filename}: {e}")
+
+    return new_items_count
+
+def load_existing_item_ids_csv(filename: str, data_type: DataType) -> Set[int]:
+    """
+    Load IDs of items already present in the CSV file.
+
+    Args:
+        filename: Name of the CSV file
+        data_type: Type of data to determine ID field
+
+    Returns:
+        Set[int]: Set of existing item IDs
+    """
+    existing_ids = set()
+
+    if not os.path.exists(filename):
+        return existing_ids
+
+    try:
+        with open(filename, 'r', encoding='utf-8', newline='') as f:
+            reader = csv.DictReader(f)
+            for row in reader:
+                item_id = get_item_id(row, data_type)
+                # CSV values are strings, try to convert to int
+                if item_id:
+                    try:
+                        existing_ids.add(int(item_id))
+                    except (ValueError, TypeError):
+                        existing_ids.add(item_id)
+    except IOError as e:
+        logger.error(f"Error reading {filename}: {e}")
+
+    return existing_ids
+
 def cleanup_state_file(state_file: str):
     """Remove state file at the end of processing."""
     try:
@@ -481,6 +642,49 @@ def analyze_groups(filename: str):
     except IOError as e:
         logger.error(f"Error during analysis: {e}")
 
+def analyze_perimeters(filename: str):
+    """
+    Analyze retrieved perimeters and display statistics.
+
+    Args:
+        filename: Name of the JSON Lines perimeters file
+    """
+    if not os.path.exists(filename):
+        logger.warning(f"Perimeters file {filename} does not exist")
+        return
+
+    total_perimeters = 0
+    perimeter_types = {}
+
+    try:
+        with open(filename, 'r', encoding='utf-8') as f:
+            for line in f:
+                line = line.strip()
+                if not line:
+                    continue
+
+                try:
+                    perimeter = json.loads(line)
+                    total_perimeters += 1
+
+                    # Analyze perimeter types
+                    ptype = perimeter.get('type', perimeter.get('kind', 'Unknown'))
+                    perimeter_types[ptype] = perimeter_types.get(ptype, 0) + 1
+
+                except json.JSONDecodeError:
+                    continue
+
+        logger.info(f"=== PERIMETER ANALYSIS ===")
+        logger.info(f"Total perimeters: {total_perimeters}")
+
+        if perimeter_types:
+            logger.info(f"=== DISTRIBUTION BY TYPE ===")
+            for ptype, count in sorted(perimeter_types.items(), key=lambda x: x[1], reverse=True):
+                logger.info(f"  {ptype}: {count} perimeters")
+
+    except IOError as e:
+        logger.error(f"Error during analysis: {e}")
+
 def run_scraper_for_type(config: Config, data_type: DataType):
     """
     Run scraper for a specific data type.
@@ -491,6 +695,7 @@ def run_scraper_for_type(config: Config, data_type: DataType):
     """
     type_name = data_type.value
     logger.info(f"Starting {type_name} retrieval...")
+    logger.info(f"Output format: {config.output_format.value.upper()}")
     
     # Determine output file and state file
     if data_type == DataType.STRUCTURES:
@@ -502,6 +707,9 @@ def run_scraper_for_type(config: Config, data_type: DataType):
     elif data_type == DataType.GROUPS:
         output_file = config.groups_output
         state_file = config.groups_state_file
+    elif data_type == DataType.PERIMETERS:
+        output_file = config.perimeters_output
+        state_file = config.perimeters_state_file
     else:
         logger.error(f"Unknown data type: {data_type}")
         return
@@ -512,6 +720,10 @@ def run_scraper_for_type(config: Config, data_type: DataType):
     # Initialize next_url if necessary
     if state.next_url is None:
         state.next_url = get_endpoint_url(config.base_url, data_type)
+
+    # Debug: print actual URL being used
+    logger.info(f"Base URL from config: {config.base_url}")
+    logger.info(f"Starting URL: {state.next_url}")
     
     # If resuming, load existing IDs from file
     if state.last_completed_page > 0:
@@ -519,7 +731,10 @@ def run_scraper_for_type(config: Config, data_type: DataType):
         logger.info(f"{state.total_items_processed} {type_name} already processed")
         if not state.existing_item_ids:
             logger.info(f"Reading existing {type_name}...")
-            state.existing_item_ids = load_existing_item_ids(output_file, data_type)
+            if config.output_format == OutputFormat.CSV:
+                state.existing_item_ids = load_existing_item_ids_csv(output_file, data_type)
+            else:
+                state.existing_item_ids = load_existing_item_ids(output_file, data_type)
     else:
         logger.info(f"New {type_name} processing session")
         Path(output_file).touch()
@@ -543,10 +758,20 @@ def run_scraper_for_type(config: Config, data_type: DataType):
             
             # Extract items
             items = data.get('results', [])
+
+            # Debug: show first item keys for perimeters
+            if items and page_number == 1 and data_type == DataType.PERIMETERS:
+                logger.info(f"First perimeter item keys: {list(items[0].keys())}")
+
             if items:
-                new_items_count = save_new_items_to_jsonl(
-                    items, state.existing_item_ids, output_file, data_type
-                )
+                if config.output_format == OutputFormat.CSV:
+                    new_items_count = save_new_items_to_csv(
+                        items, state.existing_item_ids, output_file, data_type
+                    )
+                else:
+                    new_items_count = save_new_items_to_jsonl(
+                        items, state.existing_item_ids, output_file, data_type
+                    )
                 state.total_items_processed += len(items)
                 
                 if new_items_count > 0:
@@ -560,8 +785,10 @@ def run_scraper_for_type(config: Config, data_type: DataType):
             state.last_completed_page = page_number
             # Fix malformed next URL (API sometimes adds # or %23)
             next_url = data.get('next')
+            logger.info(f"Raw next URL from API: {next_url}")
             if next_url:
                 next_url = clean_url(next_url)
+                logger.info(f"Cleaned next URL: {next_url}")
             state.next_url = next_url
             
             # Display statistics
@@ -594,6 +821,8 @@ def run_scraper_for_type(config: Config, data_type: DataType):
             analyze_users(output_file)
         elif data_type == DataType.GROUPS:
             analyze_groups(output_file)
+        elif data_type == DataType.PERIMETERS:
+            analyze_perimeters(output_file)
         
         # Clean up state file
         cleanup_state_file(state_file)
@@ -628,9 +857,9 @@ def run_scraper(config: Config, data_types: list):
 )
 @click.option(
     '--base-url', '-u',
-    default='http://portaildf.cerema.fr/api',
+    default='https://portaildf.cerema.fr/api',
     envvar='CEREMA_BASE_URL',
-    help='Base API URL (default: http://portaildf.cerema.fr/api)'
+    help='Base API URL (default: https://portaildf.cerema.fr/api)'
 )
 @click.option(
     '--structures-output',
@@ -651,6 +880,12 @@ def run_scraper(config: Config, data_types: list):
     help='Groups JSON Lines output file (default: groups.jsonl)'
 )
 @click.option(
+    '--perimeters-output',
+    default='perimeters.jsonl',
+    type=click.Path(),
+    help='Perimeters JSON Lines output file (default: perimeters.jsonl)'
+)
+@click.option(
     '--structures-state-file',
     default='api_structures_state.json',
     type=click.Path(),
@@ -667,6 +902,12 @@ def run_scraper(config: Config, data_types: list):
     default='api_groups_state.json',
     type=click.Path(),
     help='Groups state file for resume (default: api_groups_state.json)'
+)
+@click.option(
+    '--perimeters-state-file',
+    default='api_perimeters_state.json',
+    type=click.Path(),
+    help='Perimeters state file for resume (default: api_perimeters_state.json)'
 )
 @click.option(
     '--delay',
@@ -709,13 +950,26 @@ def run_scraper(config: Config, data_types: list):
 @click.option(
     '--groups-only',
     is_flag=True,
-    help='Only scrape groups (skip structures and users)'
+    help='Only scrape groups (skip structures, users and perimeters)'
 )
-@click.version_option(version='3.0.0')
+@click.option(
+    '--perimeters-only',
+    is_flag=True,
+    help='Only scrape perimeters (skip structures, users and groups)'
+)
+@click.option(
+    '--format', '-f',
+    'output_format',
+    type=click.Choice(['jsonl', 'csv'], case_sensitive=False),
+    default='jsonl',
+    help='Output format: jsonl (default) or csv'
+)
+@click.version_option(version='3.2.0')
 def main(token, base_url, structures_output, users_output, groups_output,
-         structures_state_file, users_state_file, groups_state_file,
+         perimeters_output, structures_state_file, users_state_file,
+         groups_state_file, perimeters_state_file,
          delay, max_retries, retry_delay, verbose, reset_state,
-         structures_only, users_only, groups_only):
+         structures_only, users_only, groups_only, perimeters_only, output_format):
     """
     Script to retrieve structures, users and groups from the Cerema DF Portal API.
 
@@ -753,6 +1007,18 @@ def main(token, base_url, structures_output, users_output, groups_output,
     \b
     # Verbose mode
     python cerema-scraper.py --verbose
+
+    \b
+    # Export to CSV format
+    python cerema-scraper.py --format csv
+
+    \b
+    # Export groups to CSV
+    python cerema-scraper.py --groups-only --format csv
+
+    \b
+    # Scrape only perimeters
+    python cerema-scraper.py --perimeters-only
     """
 
     # Configure log level
@@ -760,7 +1026,7 @@ def main(token, base_url, structures_output, users_output, groups_output,
         logging.getLogger().setLevel(logging.DEBUG)
 
     # Validate mutually exclusive options
-    exclusive_options = [structures_only, users_only, groups_only]
+    exclusive_options = [structures_only, users_only, groups_only, perimeters_only]
     if sum(exclusive_options) > 1:
         logger.error("Cannot specify multiple --*-only options at the same time")
         sys.exit(1)
@@ -773,12 +1039,14 @@ def main(token, base_url, structures_output, users_output, groups_output,
         data_types = [DataType.USERS]
     elif groups_only:
         data_types = [DataType.GROUPS]
+    elif perimeters_only:
+        data_types = [DataType.PERIMETERS]
     else:
-        data_types = [DataType.STRUCTURES, DataType.USERS, DataType.GROUPS]
+        data_types = [DataType.STRUCTURES, DataType.USERS, DataType.GROUPS, DataType.PERIMETERS]
 
     # Remove state files if requested
     if reset_state:
-        for state_file in [structures_state_file, users_state_file, groups_state_file]:
+        for state_file in [structures_state_file, users_state_file, groups_state_file, perimeters_state_file]:
             if os.path.exists(state_file):
                 os.remove(state_file)
                 logger.info(f"State file {state_file} removed")
@@ -786,6 +1054,20 @@ def main(token, base_url, structures_output, users_output, groups_output,
                 logger.info(f"No state file to remove: {state_file}")
     
     try:
+        # Parse output format
+        fmt = OutputFormat.CSV if output_format.lower() == 'csv' else OutputFormat.JSONL
+
+        # Adjust output file extensions based on format
+        if fmt == OutputFormat.CSV:
+            if structures_output.endswith('.jsonl'):
+                structures_output = structures_output.replace('.jsonl', '.csv')
+            if users_output.endswith('.jsonl'):
+                users_output = users_output.replace('.jsonl', '.csv')
+            if groups_output.endswith('.jsonl'):
+                groups_output = groups_output.replace('.jsonl', '.csv')
+            if perimeters_output.endswith('.jsonl'):
+                perimeters_output = perimeters_output.replace('.jsonl', '.csv')
+
         # Create configuration
         config = Config(
             bearer_token=token,
@@ -793,12 +1075,15 @@ def main(token, base_url, structures_output, users_output, groups_output,
             structures_output=structures_output,
             users_output=users_output,
             groups_output=groups_output,
+            perimeters_output=perimeters_output,
             structures_state_file=structures_state_file,
             users_state_file=users_state_file,
             groups_state_file=groups_state_file,
+            perimeters_state_file=perimeters_state_file,
             delay_between_requests=delay,
             max_retries=max_retries,
             retry_delay=retry_delay,
+            output_format=fmt,
             verbose=verbose
         )
         

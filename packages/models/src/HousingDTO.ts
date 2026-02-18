@@ -64,6 +64,7 @@ export interface HousingDTO {
   lastMutationDate: string | null;
   lastTransactionDate: string | null;
   lastTransactionValue: number | null;
+  plotId: string | null;
   /**
    * The surface of the plot associated with the housing, in square meters.
    */

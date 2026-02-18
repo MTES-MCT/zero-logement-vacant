@@ -37,6 +37,8 @@ fileignoreconfig:
   checksum: cfcc1023edac4d29c305f00a4bd86f27d491e4e9535bec2bd905a917b3f396b7
 - filename: frontend/src/components/Draft/DraftSignature.tsx
   checksum: 8abd2b819601d46cc6a3d0a61a60b76391601f2d89d9126f5167b684878bd2d1
+- filename: frontend/src/components/HousingListFilters/DataFileYearSelect.tsx
+  checksum: c4e85a92672ddd7bce82931823c2cebbdd0516e04d47f7603d5fd04f23fab6b2
 - filename: frontend/src/components/HousingListFilters/HousingListFiltersSidemenu.tsx
   checksum: a28fb2302d2d59d11ca517bc6d01ea8ab7b0c68a86bf1db14abc0735a90e8e8e
 - filename: frontend/src/components/Precision/PrecisionSelect.tsx
@@ -67,6 +69,8 @@ fileignoreconfig:
   checksum: e0ac5ee5bf05b8a692d5255de0ce21fb4071b8a484ddf6cc93324f9f03680a2d
 - filename: server/src/controllers/test/user-api.test.ts
   checksum: 67d6c9c214ecbd872172a5eedfc1b137c94089fa2b62015ab0668ba1c8684fdb
+- filename: server/src/infra/database/migrations/20251215164103_dpe-import-optimization-indexes.ts
+  checksum: ef2763a2a7a64427aef3017f3ceeff80162ead0fbac9a5a329006d85d87a30d6
 - filename: server/src/infra/database/scripts/010-load-sder-sded.sql
   checksum: 780da83bced54995ae72c9f963c8bdeea7217b22793fd33c966bd8b28073acad
 - filename: server/src/infra/database/seeds/development/20240404235457_users.ts
@@ -75,6 +79,10 @@ fileignoreconfig:
   checksum: 1d816ff7b060a0100cbd90a60182bb7c3e230ab5761909b18871af6ced2a6efb
 - filename: server/src/repositories/documentRepository.ts
   checksum: 08cf7ff79afbf8604d02913f97a4a3a7a5ba21921a104096a6973f293b81d107
+- filename: server/src/scripts/import-dpe/import-dpe.py
+  checksum: ba1ea278d8321501976c7c9da7e9428fe8819776369f7eef0ff1fbf1ee4ed8bf
+- filename: server/src/scripts/import-dpe/import_dpe_raw.py
+  checksum: 49c0bd05ec24ec5ad408541392e444e2b2d86f0d777e428032215d08045f784a
 - filename: server/src/services/ceremaService/ceremaService.ts
   checksum: 2005ee48d86de2c6e6e57b187862cdeaafcb9f0c49e9a82ec7031910957174e8
 - filename: server/src/services/document-upload.ts

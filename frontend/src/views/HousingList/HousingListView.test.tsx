@@ -1962,7 +1962,7 @@ describe('Housing list view', () => {
         });
 
         const accordion = await screen.findByRole('button', {
-          name: /^Vie du logement$/,
+          name: /^Logement$/,
           expanded: false
         });
         await user.click(accordion);
@@ -1988,7 +1988,7 @@ describe('Housing list view', () => {
         });
 
         const accordion = await screen.findByRole('button', {
-          name: 'Vie du logement'
+          name: 'Suivi et campagnes'
         });
         await user.click(accordion);
 
@@ -2482,7 +2482,7 @@ describe('Housing list view', () => {
       });
     });
 
-    describe('Secondary owner filter', () => {
+    describe('Active owner filter', () => {
       it('should display a badge', async () => {
         const establishment = genEstablishmentDTO();
         const auth = genUserDTO(UserRole.USUAL, establishment);
@@ -2503,17 +2503,17 @@ describe('Housing list view', () => {
         });
         await user.click(accordion);
 
-        const secondaryOwners = await screen.findByRole('combobox', {
-          name: 'Propriétaires secondaires'
+        const activeOwners = await screen.findByRole('combobox', {
+          name: 'Nombre de propriétaires'
         });
-        await user.click(secondaryOwners);
+        await user.click(activeOwners);
         const options = await screen.findByRole('listbox');
         const option = await within(options).findByText('Aucun');
         await user.click(option);
         await user.keyboard('{Escape}');
 
         const badge = await screen.findByText(
-          'Propriétaires secondaires : aucun bénéficiaire'
+          'Nombre de propriétaires : aucun bénéficiaire'
         );
         expect(badge).toBeVisible();
       });

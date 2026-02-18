@@ -68,7 +68,7 @@ async function exportCampaign(request: Request, response: Response) {
     fileName: `${file}.xlsx`
   });
 
-  const housingStream = housingRepository.betterStream({
+  const housingStream = housingRepository.stream({
     filters: {
       campaignIds: [campaign.id],
       establishmentIds: [auth.establishmentId],
@@ -130,7 +130,7 @@ async function exportGroup(request: Request, response: Response) {
     fileName: `${file}.xlsx`
   });
 
-  const housingStream = housingRepository.betterStream({
+  const housingStream = housingRepository.stream({
     filters: {
       groupIds: [params.id],
       establishmentIds: [auth.establishmentId]
@@ -248,7 +248,7 @@ async function createHousingWorksheet(
         return {
           invariant: housing.invariant,
           localId: housing.localId,
-          cadastralReference: housing.cadastralReference,
+          plotId: housing.plotId,
           geoCode: housing.geoCode,
           housingRawAddress: housing.rawAddress
             .filter(Predicate.isNotNullable)
@@ -312,7 +312,7 @@ async function createHousingWorksheet(
         columns: [
           { header: 'Identifiant fiscal départemental', key: 'invariant' },
           { header: 'Identifiant fiscal national', key: 'localId' },
-          { header: 'Référence cadastrale', key: 'cadastralReference' },
+          { header: 'Référence cadastrale', key: 'plotId' },
           { header: 'Code INSEE commune du logement', key: 'geoCode' },
           { header: 'Adresse LOVAC du logement', key: 'housingRawAddress' },
           { header: 'Adresse BAN du logement', key: 'housingAddress' },

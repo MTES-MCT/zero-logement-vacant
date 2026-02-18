@@ -13,6 +13,30 @@ import request from 'supertest';
 import { v4 as uuidv4 } from 'uuid';
 
 import db from '~/infra/database';
+
+// Generate valid French phone numbers
+function genFrenchPhone(): string {
+  const prefix = faker.helpers.arrayElement(['+33', '0']);
+  const firstDigit = faker.helpers.arrayElement([1, 2, 3, 4, 5, 6, 7, 9]);
+  const rest = faker.string.numeric(8);
+  return `${prefix}${firstDigit}${rest}`;
+}
+
+// Fast-check arbitrary for valid French phone numbers
+const validPhoneArb = fc.oneof(
+  fc
+    .tuple(
+      fc.constantFrom(1, 2, 3, 4, 5, 6, 7, 9),
+      fc.stringMatching(/^[0-9]{8}$/)
+    )
+    .map(([first, rest]) => `+33${first}${rest}`),
+  fc
+    .tuple(
+      fc.constantFrom(1, 2, 3, 4, 5, 6, 7, 9),
+      fc.stringMatching(/^[0-9]{8}$/)
+    )
+    .map(([first, rest]) => `0${first}${rest}`)
+);
 import { createServer } from '~/infra/server';
 import { EstablishmentApi } from '~/models/EstablishmentApi';
 import { ProspectApi } from '~/models/ProspectApi';
@@ -354,7 +378,7 @@ describe('User API', () => {
         const payload: UserUpdatePayload = {
           firstName: faker.person.firstName(),
           lastName: faker.person.lastName(),
-          phone: faker.phone.number(),
+          phone: genFrenchPhone(),
           position: faker.person.jobTitle(),
           timePerWeek: faker.helpers.arrayElement(TIME_PER_WEEK_VALUES)
         };
@@ -373,7 +397,7 @@ describe('User API', () => {
         const payload: UserUpdatePayload = {
           firstName: faker.person.firstName(),
           lastName: faker.person.lastName(),
-          phone: faker.phone.number(),
+          phone: genFrenchPhone(),
           position: faker.person.jobTitle(),
           timePerWeek: faker.helpers.arrayElement(TIME_PER_WEEK_VALUES)
         };
@@ -393,7 +417,7 @@ describe('User API', () => {
         const payload: UserUpdatePayload = {
           firstName: faker.person.firstName(),
           lastName: faker.person.lastName(),
-          phone: faker.phone.number(),
+          phone: genFrenchPhone(),
           position: faker.person.jobTitle(),
           timePerWeek: faker.helpers.arrayElement(TIME_PER_WEEK_VALUES)
         };
@@ -411,7 +435,7 @@ describe('User API', () => {
         const payload: UserUpdatePayload = {
           firstName: faker.person.firstName(),
           lastName: faker.person.lastName(),
-          phone: faker.phone.number(),
+          phone: genFrenchPhone(),
           position: faker.person.jobTitle(),
           timePerWeek: faker.helpers.arrayElement(TIME_PER_WEEK_VALUES)
         };
@@ -435,7 +459,7 @@ describe('User API', () => {
         const payload: UserUpdatePayload = {
           firstName: faker.person.firstName(),
           lastName: faker.person.lastName(),
-          phone: faker.phone.number(),
+          phone: genFrenchPhone(),
           position: faker.person.jobTitle(),
           timePerWeek: faker.helpers.arrayElement(TIME_PER_WEEK_VALUES)
         };
@@ -487,7 +511,7 @@ describe('User API', () => {
         {
           firstName: fc.string({ minLength: 1, maxLength: 255 }),
           lastName: fc.string({ minLength: 1, maxLength: 255 }),
-          phone: fc.option(fc.string({ minLength: 1, maxLength: 50 })),
+          phone: fc.option(validPhoneArb),
           position: fc.option(fc.string({ minLength: 1, maxLength: 255 })),
           timePerWeek: fc.option(fc.constantFrom(...TIME_PER_WEEK_VALUES)),
           password: fc.option(

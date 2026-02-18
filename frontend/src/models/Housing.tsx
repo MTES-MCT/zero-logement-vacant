@@ -32,6 +32,7 @@ export interface Housing
     | 'cadastralReference'
     | 'uncomfortable'
     | 'livingArea'
+    | 'plotId'
     | 'plotArea'
     | 'housingKind'
     | 'roomsCount'
@@ -273,6 +274,7 @@ export function toHousingDTO(housing: Housing): HousingDTO {
     beneficiaryCount: null,
     campaignIds: housing.campaignIds,
     rentalValue: null,
+    plotId: housing.plotId,
     plotArea: housing.plotArea
   };
 }

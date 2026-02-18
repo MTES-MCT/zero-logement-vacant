@@ -91,14 +91,25 @@ def get_headers(token: str) -> dict:
         "User-Agent": "Python API Client - Cerema Scraper/2.0"
     }
 
+def clean_url(url: str) -> str:
+    """Remove any # or %23 from URL and ensure proper formatting."""
+    if not url:
+        return url
+    # Handle URLs like /groupes#?page=2 or /groupes%23?page=2
+    # by removing the # or %23 but keeping the query params
+    url = url.replace('%23?', '?').replace('#?', '?')
+    url = url.replace('%23', '').replace('#', '')
+    return url
+
 def get_endpoint_url(base_url: str, data_type: DataType) -> str:
     """Get the appropriate endpoint URL for the data type."""
+    base = clean_url(base_url)
     if data_type == DataType.STRUCTURES:
-        return urljoin(base_url.rstrip('/') + '/', 'structures')
+        return f"{base}/structures"
     elif data_type == DataType.USERS:
-        return urljoin(base_url.rstrip('/') + '/', 'utilisateurs')
+        return f"{base}/utilisateurs"
     elif data_type == DataType.GROUPS:
-        return urljoin(base_url.rstrip('/') + '/', 'groupes')
+        return f"{base}/groupes"
     else:
         raise ValueError(f"Unknown data type: {data_type}")
 
@@ -547,10 +558,10 @@ def run_scraper_for_type(config: Config, data_type: DataType):
             
             # Update state
             state.last_completed_page = page_number
-            # Fix malformed next URL (some endpoints return /#? instead of /?)
+            # Fix malformed next URL (API sometimes adds # or %23)
             next_url = data.get('next')
             if next_url:
-                next_url = next_url.replace('/#?', '/?').replace('/%23?', '/?')
+                next_url = clean_url(next_url)
             state.next_url = next_url
             
             # Display statistics

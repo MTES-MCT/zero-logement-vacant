@@ -14,3 +14,14 @@ export const RELATIVE_LOCATION_VALUES = [
 ] as const;
 
 export type RelativeLocation = (typeof RELATIVE_LOCATION_VALUES)[number];
+
+export const RELATIVE_LOCATION_FILTER_VALUES = [
+  'same-address',
+  'same-commune',
+  'same-department',
+  'same-region',
+  'other-region',
+  'other'
+] as const;
+export type RelativeLocationFilter =
+  (typeof RELATIVE_LOCATION_FILTER_VALUES)[number];

@@ -1,4 +1,7 @@
-import type { RelativeLocation } from '@zerologementvacant/models';
+import type {
+  RelativeLocation,
+  RelativeLocationFilter
+} from '@zerologementvacant/models';
 import { OwnerRank, PropertyRight } from '@zerologementvacant/models';
 import { match } from 'ts-pattern';
 
@@ -222,6 +225,23 @@ export const toRelativeLocationDBO = (loc: RelativeLocation | null): number | nu
     .with('foreign-country', () => 6)
     .with('other', () => 7)
     .with(null, () => null)
+    .exhaustive();
+
+/**
+ * Maps a RelativeLocationFilter to its corresponding DBO numeric values.
+ * 'other-region' expands to both 'metropolitan' (4) and 'overseas' (5).
+ */
+export const relativeLocationFilterToDBO = (
+  filter: RelativeLocationFilter
+): number[] =>
+  match(filter)
+    .returnType<number[]>()
+    .with('same-address', () => [0])
+    .with('same-commune', () => [1])
+    .with('same-department', () => [2])
+    .with('same-region', () => [3])
+    .with('other-region', () => [4, 5])
+    .with('other', () => [7])
     .exhaustive();
 
 const housingOwnerRepository = {

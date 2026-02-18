@@ -58,7 +58,7 @@ import { geoPerimetersTable } from './geoRepository';
 import { GROUPS_HOUSING_TABLE } from './groupRepository';
 import {
   housingOwnersTable,
-  toRelativeLocationDBO
+  relativeLocationFilterToDBO
 } from './housingOwnerRepository';
 import { localitiesTable } from './localityRepository';
 import { OwnerDBO, ownerTable, parseOwnerApi } from './ownerRepository';
@@ -633,7 +633,7 @@ function filteredQuery(opts: FilteredQueryOptions) {
       });
     }
     if (filters.relativeLocations?.length) {
-      const numericValues = filters.relativeLocations.map(toRelativeLocationDBO);
+      const numericValues = filters.relativeLocations.flatMap(relativeLocationFilterToDBO);
       queryBuilder.whereExists((subquery) => {
         subquery
           .from(housingOwnersTable)

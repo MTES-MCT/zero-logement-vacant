@@ -26,7 +26,7 @@ function AddressSearchableSelect(props: Props) {
   const [options, { set: setOptions }] = useList<AddressSearchResult>([]);
 
   async function search(query: string | undefined): Promise<void> {
-    if (query && query.length >= 3) {
+    if (query && query.trim().length >= 3) {
       const addresses = await addressService.quickSearch(query);
       setOptions(addresses);
     }

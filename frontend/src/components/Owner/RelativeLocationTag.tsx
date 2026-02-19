@@ -14,6 +14,7 @@ export interface RelativeLocationTagProps {
 function RelativeLocationTag(props: RelativeLocationTagProps) {
   const value = match(props.value)
     .returnType<string>()
+    .with('same-address', () => 'Habite à cette adresse')
     .with('same-commune', () =>
       props.commune
         ? `Habite la commune de ${props.commune}`
@@ -31,7 +32,7 @@ function RelativeLocationTag(props: RelativeLocationTagProps) {
     )
     .with('metropolitan', () => 'Habite en France métropolitaine')
     .with('overseas', () => 'Habite en Outre-mer')
-    .with('other', () => 'Pas d’information')
+    .with('other', () => "Pas d'information")
     .exhaustive();
 
   return <Tag {...props.tagProps}>{value}</Tag>;

@@ -3,6 +3,7 @@
   "version": "0.0.1",
   "type": "module",
   "scripts": {
+    "start": "node dist/app/index.js",
     "test:migrations": "vitest run --config vitest.database.config.ts",
     "db": "NODE_OPTIONS='--import tsx/esm' knex --knexfile=src/infra/database/knexfile.ts",
     "migrate": "yarn db migrate:latest",

@@ -105,39 +105,6 @@ describe('HousingOwnersView', () => {
     expect(error).toBeVisible();
   });
 
-  it('should edit a housing owner’s details', async () => {
-    const housing = genHousingDTO();
-    const owners: ReadonlyArray<OwnerDTO> = [genOwnerDTO()];
-    const housingOwners: ReadonlyArray<HousingOwnerDTO> = [
-      { ...genHousingOwnerDTO(owners[0]), rank: 1 }
-    ];
-
-    renderView({
-      housing,
-      owners,
-      housingOwners
-    });
-
-    const button = await screen.findByRole('button', {
-      name: `Éditer ${owners[0].fullName}`
-    });
-    await user.click(button);
-    const name = await screen.findByRole('textbox', {
-      name: /^Nom et prénom/
-    });
-    const newName = faker.person.fullName();
-    await user.clear(name);
-    await user.type(name, newName);
-    const save = await screen.findByRole('button', {
-      name: 'Enregistrer'
-    });
-    await user.click(save);
-    const cell = await screen.findByRole('cell', {
-      name: newName
-    });
-    expect(cell).toHaveTextContent(newName);
-  });
-
   it('should change a secondary owner to primary', async () => {
     const housing = genHousingDTO();
     const owners: ReadonlyArray<OwnerDTO> = [genOwnerDTO(), genOwnerDTO()];

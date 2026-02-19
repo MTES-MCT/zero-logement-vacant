@@ -121,7 +121,7 @@ function HousingOwnersView() {
       },
       {
         email: payload.email,
-        fullName: payload.fullName,
+        fullName: selectedOwner.fullName,
         birthDate: payload.birthDate,
         phone: payload.phone,
         banAddress: payload.banAddress?.id
@@ -133,8 +133,8 @@ function HousingOwnersView() {
     if (!ownerEquals) {
       await updateOwner({
         id: selectedOwner.id,
+        fullName: selectedOwner.fullName,
         email: payload.email,
-        fullName: payload.fullName,
         birthDate: payload.birthDate,
         phone: payload.phone,
         banAddress: payload.banAddress

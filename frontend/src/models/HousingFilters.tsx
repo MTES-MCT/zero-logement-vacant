@@ -154,16 +154,20 @@ const RELATIVE_LOCATION_FILTER_LABELS: Record<RelativeLocationFilter, string> =
 
 export const RELATIVE_LOCATION_OPTIONS: Record<
   RelativeLocationFilter,
-  { label: string; badgeLabel: string }
+  { value: RelativeLocationFilter; label: string; badgeLabel: string }
 > = RELATIVE_LOCATION_FILTER_VALUES.reduce(
   (record, value) => ({
     ...record,
     [value]: {
+      value: value,
       label: RELATIVE_LOCATION_FILTER_LABELS[value],
       badgeLabel: `Localisation du contact principal\u00a0: ${RELATIVE_LOCATION_FILTER_LABELS[value].toLowerCase()}`
     }
   }),
-  {} as Record<RelativeLocationFilter, { label: string; badgeLabel: string }>
+  {} as Record<
+    RelativeLocationFilter,
+    { value: RelativeLocationFilter; label: string; badgeLabel: string }
+  >
 );
 
 export const statusOptions = (

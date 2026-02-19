@@ -717,7 +717,8 @@ export function genHousingOwnerDTO(owner: OwnerDTO): HousingOwnerDTO {
   const relativeLocation = faker.helpers.arrayElement(RELATIVE_LOCATION_VALUES);
   const absoluteDistance = match(relativeLocation)
     .returnType<number | null>()
-    .with('same-commune', () => faker.number.int({ min: 0, max: 100 }))
+    .with('same-address', () => faker.number.int({ min: 0, max: 49 }))
+    .with('same-commune', () => faker.number.int({ min: 50, max: 100 }))
     .with('same-department', () => faker.number.int({ min: 100, max: 200 }))
     .with('same-region', () => faker.number.int({ min: 200, max: 500 }))
     .with('metropolitan', () => faker.number.int({ min: 500, max: 1000 }))

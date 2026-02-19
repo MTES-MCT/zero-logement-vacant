@@ -2534,6 +2534,7 @@ describe('Housing repository', () => {
         street: address.street,
         postalCode: address.postalCode,
         city: address.city,
+        cityCode: address.cityCode,
         latitude: address.latitude,
         longitude: address.longitude,
         score: address.score,

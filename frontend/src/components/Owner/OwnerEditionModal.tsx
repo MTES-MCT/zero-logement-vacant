@@ -119,6 +119,15 @@ function createOwnerEditionModalNext() {
           return;
         }
 
+        // Prevent submission if user cleared the address by typing without selecting
+        if (props.owner.banAddress && !payload.banAddress) {
+          form.setError('banAddress', {
+            type: 'manual',
+            message: "Veuillez sélectionner une adresse depuis la liste de suggestions."
+          });
+          return;
+        }
+
         updateOwner({
           id: props.owner.id,
           fullName: payload.fullName,

@@ -23,6 +23,8 @@ import {
   type OwnerAge,
   type OwnerKind,
   type OwnershipKind,
+  RELATIVE_LOCATION_FILTER_VALUES,
+  type RelativeLocationFilter,
   type RoomCount,
   type VacancyRate,
   type VacancyYear
@@ -138,6 +140,34 @@ export const OWNER_KIND_OPTIONS: Record<
     };
   },
   {} as Record<OwnerKind, { label: string; badgeLabel: string }>
+);
+
+const RELATIVE_LOCATION_FILTER_LABELS: Record<RelativeLocationFilter, string> =
+  {
+    'same-address': 'Habite la même adresse',
+    'same-commune': 'Habite dans la même commune',
+    'same-department': 'Habite dans le même département',
+    'same-region': 'Habite dans la même région',
+    'other-region': 'Habite dans une autre région',
+    other: "Pas d'information"
+  };
+
+export const RELATIVE_LOCATION_OPTIONS: Record<
+  RelativeLocationFilter,
+  { value: RelativeLocationFilter; label: string; badgeLabel: string }
+> = RELATIVE_LOCATION_FILTER_VALUES.reduce(
+  (record, value) => ({
+    ...record,
+    [value]: {
+      value: value,
+      label: RELATIVE_LOCATION_FILTER_LABELS[value],
+      badgeLabel: `Localisation du contact principal\u00a0: ${RELATIVE_LOCATION_FILTER_LABELS[value].toLowerCase()}`
+    }
+  }),
+  {} as Record<
+    RelativeLocationFilter,
+    { value: RelativeLocationFilter; label: string; badgeLabel: string }
+  >
 );
 
 export const statusOptions = (

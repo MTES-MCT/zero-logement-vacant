@@ -1,5 +1,10 @@
 import Box from '@mui/material/Box';
 import Typography from '@mui/material/Typography';
+import type {
+  CadastralClassification,
+  DataFileYear,
+  Precision
+} from '@zerologementvacant/models';
 import {
   isPrecisionBlockingPointCategory,
   isPrecisionEvolutionCategory,
@@ -7,11 +12,6 @@ import {
 } from '@zerologementvacant/models';
 import { Struct } from 'effect';
 import { match, Pattern } from 'ts-pattern';
-import type {
-  CadastralClassification,
-  DataFileYear,
-  Precision
-} from '@zerologementvacant/models';
 
 import { useCampaignList } from '../../hooks/useCampaignList';
 import { useIntercommunalities } from '../../hooks/useIntercommunalities';
@@ -45,6 +45,7 @@ import {
   ownerAgeOptions,
   ownerKindOptions,
   ownershipKindsOptions,
+  RELATIVE_LOCATION_OPTIONS,
   roomsCountOptions,
   statusOptions,
   vacancyRateOptions,
@@ -121,6 +122,12 @@ function HousingFiltersBadges(props: HousingFiltersBadgesProps) {
         values={filters.occupancies}
         small={small}
         onChange={(values) => onChange?.({ occupancies: values })}
+      />
+      <FilterBadges
+        options={Object.values(RELATIVE_LOCATION_OPTIONS)}
+        values={filters.relativeLocations}
+        small={small}
+        onChange={(values) => onChange?.({ relativeLocations: values })}
       />
       <FilterBadges
         options={[OWNER_KIND_EMPTY_OPTION, ...ownerKindOptions]}

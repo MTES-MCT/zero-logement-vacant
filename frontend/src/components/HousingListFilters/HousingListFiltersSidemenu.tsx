@@ -53,6 +53,7 @@ import MultiOwnerSelect from './MultiOwnerSelect';
 import OccupancySelect from './OccupancySelect';
 import OwnerAgeSelect from './OwnerAgeSelect';
 import OwnerKindSelect from './OwnerKindSelect';
+import RelativeLocationSelect from './RelativeLocationSelect';
 import OwnershipKindSelect from './OwnershipKindSelect';
 import PerimeterSearchableSelect from './PerimeterSearchableSelect';
 import RoomCountSelect from './RoomCountSelect';
@@ -646,6 +647,16 @@ function HousingListFiltersSidemenu(props: Props) {
               <TitleWithIcon icon="fr-icon-user-line" title="Propriétaires" />
             }
           >
+            <Grid component="article" mb={2} size={12}>
+              <RelativeLocationSelect
+                multiple
+                value={filters.relativeLocations ?? []}
+                onChange={(values) => {
+                  onChangeFilters({ relativeLocations: values });
+                  posthog.capture('filtre-localisation-contact-principal');
+                }}
+              />
+            </Grid>
             <Grid component="article" mb={2} size={12}>
               <OwnerKindSelect
                 multiple

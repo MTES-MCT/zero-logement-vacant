@@ -26,8 +26,13 @@ const schema = object({
     score: number().required().min(0).max(1),
     longitude: number().min(-180).max(180).nullable().defined(),
     latitude: number().min(-90).max(90).nullable().defined(),
-    postalCode: string().nullable().defined(),
-    city: string().nullable().defined(),
+    postalCode: string()
+      .required("L'adresse doit avoir un code postal. Veuillez re-sélectionner l'adresse.")
+      .min(1, "L'adresse doit avoir un code postal. Veuillez re-sélectionner l'adresse."),
+    city: string()
+      .required("L'adresse doit avoir une ville. Veuillez re-sélectionner l'adresse.")
+      .min(1, "L'adresse doit avoir une ville. Veuillez re-sélectionner l'adresse."),
+    cityCode: string().nullable().defined(),
     street: string().nullable().defined(),
     houseNumber: string().nullable().defined()
   })
@@ -68,8 +73,9 @@ function createOwnerEditionModalNext() {
                 score: props.owner.banAddress.score ?? 0,
                 longitude: props.owner.banAddress.longitude ?? null,
                 latitude: props.owner.banAddress.latitude ?? null,
-                postalCode: props.owner.banAddress.postalCode ?? null,
-                city: props.owner.banAddress.city ?? null,
+                postalCode: props.owner.banAddress.postalCode ?? '',
+                city: props.owner.banAddress.city ?? '',
+                cityCode: props.owner.banAddress.cityCode ?? null,
                 street: props.owner.banAddress.street ?? null,
                 houseNumber: props.owner.banAddress.houseNumber ?? null
               }
@@ -118,8 +124,9 @@ function createOwnerEditionModalNext() {
                 banId: payload.banAddress.id,
                 label: payload.banAddress.label,
                 score: payload.banAddress.score,
-                postalCode: payload.banAddress.postalCode ?? '',
-                city: payload.banAddress.city ?? '',
+                postalCode: payload.banAddress.postalCode,
+                city: payload.banAddress.city,
+                cityCode: payload.banAddress.cityCode ?? undefined,
                 street: payload.banAddress.street ?? '',
                 houseNumber: payload.banAddress.houseNumber ?? '',
                 longitude: payload.banAddress.longitude ?? undefined,
@@ -254,8 +261,9 @@ function createOwnerEditionModalNext() {
                                   score: value.score ?? 0,
                                   longitude: value.longitude,
                                   latitude: value.latitude,
-                                  postalCode: value.postalCode ?? null,
-                                  city: value.city ?? null,
+                                  postalCode: value.postalCode,
+                                  city: value.city,
+                                  cityCode: value.cityCode ?? null,
                                   street: value.street ?? null,
                                   houseNumber: value.houseNumber ?? null
                                 }

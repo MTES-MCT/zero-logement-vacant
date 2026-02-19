@@ -200,6 +200,7 @@ export const fromRelativeLocationDBO = (
 ): RelativeLocation | null =>
   match(loc)
     .returnType<RelativeLocation | null>()
+    .with(0, () => 'same-address')
     .with(1, () => 'same-commune')
     .with(2, () => 'same-department')
     .with(3, () => 'same-region')
@@ -213,6 +214,7 @@ export const toRelativeLocationDBO = (
 ): number | null =>
   match(loc)
     .returnType<number | null>()
+    .with('same-address', () => 0)
     .with('same-commune', () => 1)
     .with('same-department', () => 2)
     .with('same-region', () => 3)

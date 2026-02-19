@@ -90,10 +90,14 @@ export function getRegionFromPostalCode(postalCode: string | undefined): string 
   return getRegionFromDept(dept);
 }
 
+// Threshold in meters to consider two addresses as "same address"
+const SAME_ADDRESS_THRESHOLD_METERS = 50;
+
 /**
  * Calculate geographic classification between owner and housing.
  *
  * Classifications:
+ * - 0 (same-address): Same address (distance < 50m or same banId)
  * - 1 (same-commune): Same postal code
  * - 2 (same-department): Same department (first 2 digits of postal code)
  * - 3 (same-region): Same region
@@ -103,11 +107,24 @@ export function getRegionFromPostalCode(postalCode: string | undefined): string 
  */
 export function calculateGeographicClassification(
   ownerPostalCode: string | undefined,
-  housingPostalCode: string | undefined
+  housingPostalCode: string | undefined,
+  options?: {
+    absoluteDistance?: number | null;
+    ownerBanId?: string;
+    housingBanId?: string;
+  }
 ): RelativeLocation {
   // Missing data
   if (!ownerPostalCode || !housingPostalCode) {
     return 'other';
+  }
+
+  // Rule 0: Same address (same banId or very close distance)
+  if (options?.ownerBanId && options?.housingBanId && options.ownerBanId === options.housingBanId) {
+    return 'same-address';
+  }
+  if (options?.absoluteDistance !== null && options?.absoluteDistance !== undefined && options.absoluteDistance < SAME_ADDRESS_THRESHOLD_METERS) {
+    return 'same-address';
   }
 
   // Rule 1: Same postal code (same commune)
@@ -178,7 +195,12 @@ export function calculateDistance(
   // Calculate geographic classification
   const relativeLocation = calculateGeographicClassification(
     ownerAddress?.postalCode,
-    housingAddress?.postalCode
+    housingAddress?.postalCode,
+    {
+      absoluteDistance,
+      ownerBanId: ownerAddress?.banId,
+      housingBanId: housingAddress?.banId
+    }
   );
 
   return { relativeLocation, absoluteDistance };

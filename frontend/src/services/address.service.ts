@@ -10,6 +10,7 @@ export interface AddressSearchResult {
   street?: string;
   postalCode: string;
   city: string;
+  cityCode?: string;
   latitude: number;
   longitude: number;
   score: number;
@@ -35,6 +36,7 @@ async function quickSearch(query: string): Promise<AddressSearchResult[]> {
       houseNumber: properties.housenumber,
       postalCode: properties.postcode,
       city: properties.city,
+      cityCode: properties.citycode,
       longitude: longitude,
       latitude: latitude,
       score: properties.score

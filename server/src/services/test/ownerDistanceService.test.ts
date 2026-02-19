@@ -124,7 +124,29 @@ describe('Owner Distance Service', () => {
   });
 
   describe('calculateGeographicClassification', () => {
-    it('should return same-commune for identical postal codes', () => {
+    it('should return same-address for same banId', () => {
+      const result = calculateGeographicClassification('75001', '75001', {
+        ownerBanId: 'ban-123',
+        housingBanId: 'ban-123'
+      });
+      expect(result).toBe('same-address');
+    });
+
+    it('should return same-address for very close distance (< 50m)', () => {
+      const result = calculateGeographicClassification('75001', '75001', {
+        absoluteDistance: 30
+      });
+      expect(result).toBe('same-address');
+    });
+
+    it('should return same-commune for identical postal codes but distance >= 50m', () => {
+      const result = calculateGeographicClassification('75001', '75001', {
+        absoluteDistance: 100
+      });
+      expect(result).toBe('same-commune');
+    });
+
+    it('should return same-commune for identical postal codes (no options)', () => {
       const result = calculateGeographicClassification('75001', '75001');
       expect(result).toBe('same-commune');
     });
@@ -221,14 +243,42 @@ describe('Owner Distance Service', () => {
       expect(result.absoluteDistance).toBeNull();
     });
 
-    it('should return same-commune for same postal code', () => {
-      const ownerAddress = createMockAddress('75001', 48.86, 2.35);
-      const housingAddress = createMockAddress('75001', 48.86, 2.35);
+    it('should return same-address for very close addresses (< 50m)', () => {
+      // Two addresses very close to each other (same building)
+      const ownerAddress = createMockAddress('75001', 48.8566, 2.3522);
+      const housingAddress = createMockAddress('75001', 48.8566, 2.3522);
+
+      const result = calculateDistance(ownerAddress, housingAddress);
+
+      expect(result.relativeLocation).toBe('same-address');
+      expect(result.absoluteDistance).toBe(0);
+    });
+
+    it('should return same-commune for same postal code but different location (>= 50m)', () => {
+      // Two addresses in the same commune but different streets (~500m apart)
+      const ownerAddress = createMockAddress('75001', 48.8566, 2.3522);
+      const housingAddress = createMockAddress('75001', 48.8610, 2.3470);
 
       const result = calculateDistance(ownerAddress, housingAddress);
 
       expect(result.relativeLocation).toBe('same-commune');
-      expect(result.absoluteDistance).toBe(0);
+      expect(result.absoluteDistance).not.toBeNull();
+      expect(result.absoluteDistance!).toBeGreaterThanOrEqual(50);
+    });
+
+    it('should return same-address for same banId', () => {
+      const ownerAddress: AddressApi = {
+        ...createMockAddress('75001', 48.8566, 2.3522),
+        banId: 'same-ban-id'
+      };
+      const housingAddress: AddressApi = {
+        ...createMockAddress('75001', 48.8610, 2.3470),
+        banId: 'same-ban-id'
+      };
+
+      const result = calculateDistance(ownerAddress, housingAddress);
+
+      expect(result.relativeLocation).toBe('same-address');
     });
   });
 });

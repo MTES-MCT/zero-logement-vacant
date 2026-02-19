@@ -1,7 +1,5 @@
-import { fr } from '@codegouvfr/react-dsfr';
 import Input, { type InputProps } from '@codegouvfr/react-dsfr/Input';
 import Autocomplete from '@mui/material/Autocomplete';
-import Grid from '@mui/material/Grid';
 import { useDebounce, useList, usePreviousDistinct } from 'react-use';
 import type { MarkOptional } from 'ts-essentials';
 import type { Address } from '../../models/Address';
@@ -107,28 +105,10 @@ function AddressSearchableSelect(props: Props) {
       renderInput={(params) => (
         <>
           <Input
+            label={null}
             nativeLabelProps={{
               'aria-label': 'Rechercher une adresse'
             }}
-            label={
-              <Grid
-                container
-                flexDirection="row"
-                justifyContent="space-between"
-                size={{
-                  sm: 'grow'
-                }}
-              >
-                <a
-                  className={fr.cx('fr-link--sm')}
-                  href="https://zerologementvacant.crisp.help/fr/article/comment-choisir-entre-ladresse-ban-et-ladresse-lovac-1ivvuep/?bust=1705403706774"
-                  rel="noreferrer"
-                  target="_blank"
-                >
-                  Je ne trouve pas l’adresse dans la liste
-                </a>
-              </Grid>
-            }
             hintText="Adresse la plus proche dans la BAN, au format recommandé pour vos courriers (modifiable)."
             nativeInputProps={{
               type: 'search',

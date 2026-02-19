@@ -19,16 +19,12 @@ function OwnerAddressEdition(props: Props) {
   const [inputValue, setInputValue] = useState('');
   const [open, setOpen] = useState(false);
 
-  // Show error if user has typed something but hasn't selected from the list
-  const needsSelection = inputValue.trim().length > 0 && !props.banAddress;
-  const errorMessage = props.errorMessage || (needsSelection ? "Veuillez sélectionner une adresse depuis la liste de suggestions." : undefined);
-
   return (
     <>
       <AddressSearchableSelect
         disabled={props.disabled}
-        state={errorMessage ? 'error' : 'default'}
-        stateRelatedMessage={errorMessage}
+        state={props.errorMessage ? 'error' : 'default'}
+        stateRelatedMessage={props.errorMessage}
         value={props.banAddress ?? null}
         inputValue={inputValue}
         open={open}

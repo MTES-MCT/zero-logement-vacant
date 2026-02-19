@@ -29,7 +29,9 @@ async function quickSearch(query: string): Promise<AddressSearchResult[]> {
     return [];
   }
   const params = new URLSearchParams({ q: trimmed });
-  const response = await http.get(`/search?${params}`);
+  const response = await http.get(`/search?${params}`, {
+    cache: 'no-store'
+  });
   const addresses: FeatureCollection<Point> = await response.json();
   return addresses.features.map((point): AddressSearchResult => {
     const [longitude, latitude] = point.geometry.coordinates;

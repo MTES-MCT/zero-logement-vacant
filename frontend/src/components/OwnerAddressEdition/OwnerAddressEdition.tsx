@@ -36,6 +36,7 @@ function OwnerAddressEdition(props: Props) {
                   banId: address.banId ?? '',
                   latitude: address.latitude ?? 0,
                   longitude: address.longitude ?? 0,
+                  cityCode: address.cityCode ?? undefined,
                   // Consider that the user has validated the address
                   score: 1
                 }

@@ -485,15 +485,21 @@ const ownerValidators: ValidationChain[] = [
   body('rawAddress').custom(isArrayOf(isString)).optional({ nullable: true }),
   body('email').optional({ checkFalsy: true }).isEmail(),
   body('phone').isString().optional({ nullable: true }),
-  body('banAddress.banId').isString().optional(),
-  body('banAddress.label').isString().optional(),
-  body('banAddress.houseNumber').isString().optional({ nullable: true }),
-  body('banAddress.street').isString().optional({ nullable: true }),
-  body('banAddress.postalCode').isString().optional({ nullable: true }),
-  body('banAddress.city').isString().optional({ nullable: true }),
-  body('banAddress.latitude').isNumeric().optional({ nullable: true }),
-  body('banAddress.longitude').isNumeric().optional({ nullable: true }),
-  body('banAddress.score').isNumeric().optional({ nullable: true }),
+  body('banAddress').optional({ nullable: true }).custom((value) => {
+    if (value === null || value === undefined) {
+      return true;
+    }
+    if (!value.label || typeof value.label !== 'string') {
+      throw new Error("L'adresse BAN doit avoir un libellé (label)");
+    }
+    if (!value.postalCode || typeof value.postalCode !== 'string' || value.postalCode.trim() === '') {
+      throw new Error("L'adresse BAN doit avoir un code postal. Veuillez re-sélectionner l'adresse depuis la liste.");
+    }
+    if (!value.city || typeof value.city !== 'string' || value.city.trim() === '') {
+      throw new Error("L'adresse BAN doit avoir une ville. Veuillez re-sélectionner l'adresse depuis la liste.");
+    }
+    return true;
+  }),
   body('additionalAddress').isString().optional({ nullable: true })
 ];
 

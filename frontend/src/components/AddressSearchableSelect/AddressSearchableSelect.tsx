@@ -51,6 +51,7 @@ function AddressSearchableSelect(props: Props) {
         street: props.value.street,
         postalCode: props.value.postalCode,
         city: props.value.city,
+        cityCode: props.value.cityCode ?? undefined,
         latitude: props.value.latitude ?? 0,
         longitude: props.value.longitude ?? 0,
         score: props.value.score ?? 0
@@ -81,8 +82,17 @@ function AddressSearchableSelect(props: Props) {
       open={props.open}
       onOpen={props.onOpen}
       onClose={props.onClose}
-      onChange={(_, value) => {
-        if (typeof value !== 'string') {
+      onChange={(_, value, reason) => {
+        if (typeof value === 'string') {
+          // User typed free text without selecting from the list
+          // Invalidate the address to force re-selection
+          if (reason === 'clear' || value === '') {
+            props.onChange(null);
+          }
+          // If user is typing, we keep the current value until they select
+          // But if they blur without selecting, clearOnBlur will clear
+        } else {
+          // User selected from the list or cleared
           props.onChange(value);
         }
       }}

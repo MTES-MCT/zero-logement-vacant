@@ -32,7 +32,7 @@ function RelativeLocationTag(props: RelativeLocationTagProps) {
     )
     .with('metropolitan', () => 'Habite en France métropolitaine')
     .with('overseas', () => 'Habite en Outre-mer')
-    .with('other', () => 'Pas d'information')
+    .with('other', () => "Pas d'information")
     .exhaustive();
 
   return <Tag {...props.tagProps}>{value}</Tag>;

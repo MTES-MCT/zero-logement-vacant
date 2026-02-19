@@ -489,14 +489,17 @@ const ownerValidators: ValidationChain[] = [
     if (value === null || value === undefined) {
       return true;
     }
-    if (!value.label || typeof value.label !== 'string') {
-      throw new Error("L'adresse BAN doit avoir un libellé (label)");
+    if (!value.banId || typeof value.banId !== 'string' || value.banId.trim() === '') {
+      throw new Error("L'adresse BAN doit avoir un identifiant BAN. Veuillez sélectionner une adresse depuis la liste de suggestions.");
+    }
+    if (!value.label || typeof value.label !== 'string' || value.label.trim() === '') {
+      throw new Error("L'adresse BAN doit avoir un libellé. Veuillez sélectionner une adresse depuis la liste de suggestions.");
     }
     if (!value.postalCode || typeof value.postalCode !== 'string' || value.postalCode.trim() === '') {
-      throw new Error("L'adresse BAN doit avoir un code postal. Veuillez re-sélectionner l'adresse depuis la liste.");
+      throw new Error("L'adresse BAN doit avoir un code postal. Veuillez sélectionner une adresse depuis la liste de suggestions.");
     }
     if (!value.city || typeof value.city !== 'string' || value.city.trim() === '') {
-      throw new Error("L'adresse BAN doit avoir une ville. Veuillez re-sélectionner l'adresse depuis la liste.");
+      throw new Error("L'adresse BAN doit avoir une ville. Veuillez sélectionner une adresse depuis la liste de suggestions.");
     }
     return true;
   }),

@@ -96,8 +96,13 @@ function AddressSearchableSelect(props: Props) {
           props.onChange(value);
         }
       }}
-      onInputChange={(_, query) => {
+      onInputChange={(_, query, reason) => {
         props.onInputChange(query);
+        // If user is typing (not selecting), invalidate current address
+        // This forces re-selection from the autocomplete list
+        if (reason === 'input' && value && query !== value.label) {
+          props.onChange(null);
+        }
       }}
       renderInput={(params) => (
         <>

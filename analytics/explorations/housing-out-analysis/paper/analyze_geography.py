@@ -36,13 +36,26 @@ CATEGORICAL_FEATURES = [
     "loyer_confiance_prediction",
     
     # Market
-    "dvg_marche_dynamisme",
+    "dvf_marche_dynamisme",
     
     # Housing kind (for cross-analysis)
     "housing_kind",
     
     # Department
     "departement_code",
+
+    "taux_th_category",
+    "taux_tfb_category",
+    "taux_teom_category",
+    "taux_tfnb_category",
+
+    # String/code columns (not numeric)
+    "th_surtaxe_indicateur",
+    "epci_regime_fiscal",
+    "tlv_2026",
+    "tlv_2023",
+    "tlv_2013",
+    "date_thlv",
 ]
 
 BOOLEAN_FEATURES = [
@@ -50,15 +63,13 @@ BOOLEAN_FEATURES = [
     ("is_population_declining", "Population en declin", "Population stable/croissante"),
     
     # Special territories
-    ("is_in_tlv", "Zone TLV", "Hors TLV"),
     ("action_coeur_de_ville", "Action Coeur de Ville", "Hors ACV"),
     ("petite_ville_de_demain", "Petite Ville de Demain", "Hors PVD"),
     ("village_davenir", "Village d Avenir", "Hors VDA"),
     ("has_opah", "Avec OPAH", "Sans OPAH"),
     ("ort_signed", "ORT signe", "Sans ORT"),
-    ("is_in_tlv1_territory", "Zone TLV1", "Hors TLV1"),
-    ("is_in_tlv2_territory", "Zone TLV2", "Hors TLV2"),
     ("is_in_tlv_territory", "Zone TLV", "Hors TLV"),
+    ("is_in_thlv_territory", "Zone THLV", "Hors THLV"),
 ]
 
 CONTINUOUS_FEATURES = [
@@ -80,25 +91,40 @@ CONTINUOUS_FEATURES = [
     "prix_median_m2_appartements_2024",
     
     # Market transactions
-    "dvg_total_transactions_2019_2024",
-    "dvg_evolution_prix_m2_2019_2023_pct",
+    "dvf_total_transactions_2019_2024",
+    "dvf_evolution_prix_m2_2019_2023_pct",
     
     # Fiscality
     "taux_tfb",
-    "pression_fiscale_tfb_teom",
     
     # Land consumption
     "taux_artificialisation_pct",
 
-    "tfb_taux_commune",
     "taux_tfnb",
     "taux_th",
     "teom_taux",
-    "th_surtaxe_indicateur",
     "th_surtaxe_residences_secondaires_pct",
-    "pression_fiscale_tfb_teom",
-    "epci_regime_fiscal",
-    "fiscalite_annee_reference"
+    "fiscalite_annee_reference",
+    "evolution_taux_th_2021_2024_pct",
+    "evolution_taux_tfb_2021_2024_pct",
+    "evolution_taux_teom_2021_2024_pct",
+    "evolution_taux_tfnb_2021_2024_pct",
+
+    "years_in_tlv",
+
+    "count_housing",
+    "count_housing_private",
+    "count_housing_private_rented",
+    "count_vacant_housing",
+    "count_vacant_housing_private",
+    "count_vacant_housing_private_fil",
+    "housing_vacant_rate",
+    "kind_housing_vacant_2025",
+    "kind_housing_vacant_same_as_2025",
+    "kind_housing_vacant_rate_2025",
+    "kind_housing_vacant_rate_same_as_2025",
+    "housing_vacant_evolution_19_25",
+    "housing_vacant_rate_evolution_19_25"
 ]
 
 

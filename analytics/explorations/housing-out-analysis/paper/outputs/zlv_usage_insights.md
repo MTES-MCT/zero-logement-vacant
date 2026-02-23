@@ -16,10 +16,10 @@
 
 | Rang | Feature | Impact (max/min) | Taux max | Taux min |
 |------|---------|------------------|----------|----------|
-| 1 | group_intensity | x 2.24 | 48.1% (Aucun groupe) | 21.5% (4+ groupes) |
-| 2 | was_exported_from_group | x 1.62 | 48.1% (Non exporte) | 29.7% (Exporte depuis groupe) |
-| 3 | is_in_group | x 1.59 | 48.1% (Pas dans un groupe) | 30.3% (Dans un groupe) |
-| 4 | zlv_engagement_category | x 1.43 | 54.2% (Engagement moyen) | 37.9% (Engagement faible) |
+| 1 | group_intensity | x 2.18 | 48.2% (Aucun groupe) | 22.1% (4+ groupes) |
+| 2 | was_exported_from_group | x 1.66 | 48.2% (Non exporte) | 29.1% (Exporte depuis groupe) |
+| 3 | is_in_group | x 1.62 | 48.2% (Pas dans un groupe) | 29.8% (Dans un groupe) |
+| 4 | zlv_engagement_category | x 1.46 | 54.2% (Engagement moyen) | 37.2% (Engagement faible) |
 | 5 | establishment_kind | x 1.36 | 57.0% (CU) | 42.0% (CC) |
 
 ---
@@ -28,46 +28,46 @@
 
 ### group_intensity
 
-*Type: categorical | Impact: x 2.24*
+*Type: categorical | Impact: x 2.18*
 
 | Modalite | N | Taux sortie | Multiplicateur |
 |----------|---|-------------|----------------|
-| Aucun groupe | 2,329,638 | 48.1% | x 1.03 |
-| 2-3 groupes | 67,183 | 34.0% | x 0.73 |
-| 1 groupe | 113,613 | 29.7% | x 0.64 |
-| 4+ groupes | 19,296 | 21.5% | x 0.46 |
+| Aucun groupe | 2,321,081 | 48.2% | x 1.03 |
+| 2-3 groupes | 72,084 | 32.2% | x 0.69 |
+| 1 groupe | 115,756 | 29.6% | x 0.63 |
+| 4+ groupes | 20,809 | 22.1% | x 0.47 |
 
 
 ### was_exported_from_group
+
+*Type: boolean | Impact: x 1.66*
+
+| Modalite | N | Taux sortie | Multiplicateur |
+|----------|---|-------------|----------------|
+| Non exporte | 2,335,125 | 48.2% | x 1.03 |
+| Exporte depuis groupe | 194,605 | 29.1% | x 0.62 |
+
+
+### is_in_group
 
 *Type: boolean | Impact: x 1.62*
 
 | Modalite | N | Taux sortie | Multiplicateur |
 |----------|---|-------------|----------------|
-| Non exporte | 2,342,581 | 48.1% | x 1.03 |
-| Exporte depuis groupe | 187,149 | 29.7% | x 0.64 |
-
-
-### is_in_group
-
-*Type: boolean | Impact: x 1.59*
-
-| Modalite | N | Taux sortie | Multiplicateur |
-|----------|---|-------------|----------------|
-| Pas dans un groupe | 2,329,638 | 48.1% | x 1.03 |
-| Dans un groupe | 200,092 | 30.3% | x 0.65 |
+| Pas dans un groupe | 2,321,081 | 48.2% | x 1.03 |
+| Dans un groupe | 208,649 | 29.8% | x 0.64 |
 
 
 ### zlv_engagement_category
 
-*Type: categorical | Impact: x 1.43*
+*Type: categorical | Impact: x 1.46*
 
 | Modalite | N | Taux sortie | Multiplicateur |
 |----------|---|-------------|----------------|
-| Engagement moyen | 36,573 | 54.2% | x 1.16 |
-| Aucun engagement | 2,238,244 | 47.5% | x 1.02 |
-| Engagement fort | 42,847 | 43.4% | x 0.93 |
-| Engagement faible | 212,066 | 37.9% | x 0.81 |
+| Engagement moyen | 37,403 | 54.2% | x 1.16 |
+| Aucun engagement | 2,230,063 | 47.6% | x 1.02 |
+| Engagement fort | 42,595 | 43.1% | x 0.92 |
+| Engagement faible | 219,669 | 37.2% | x 0.80 |
 
 
 ### establishment_kind
@@ -99,24 +99,14 @@
 | Communauté des Communes | 122,894 | 42.0% | x 0.90 |
 
 
-### connecte_60_derniers_jours
-
-*Type: boolean | Impact: x 1.13*
-
-| Modalite | N | Taux sortie | Multiplicateur |
-|----------|---|-------------|----------------|
-| Connecte 60j | 137,400 | 51.5% | x 1.10 |
-| Non connecte 60j | 454,918 | 45.6% | x 0.98 |
-
-
 ### connecte_90_derniers_jours
 
-*Type: boolean | Impact: x 1.12*
+*Type: boolean | Impact: x 1.11*
 
 | Modalite | N | Taux sortie | Multiplicateur |
 |----------|---|-------------|----------------|
-| Connecte 90j | 156,016 | 51.0% | x 1.09 |
-| Non connecte 90j | 436,302 | 45.5% | x 0.97 |
+| Connecte 90j | 158,034 | 50.6% | x 1.08 |
+| Non connecte 90j | 434,284 | 45.6% | x 0.98 |
 
 
 ### a_depose_1_perimetre
@@ -125,8 +115,8 @@
 
 | Modalite | N | Taux sortie | Multiplicateur |
 |----------|---|-------------|----------------|
-| A depose perimetre | 108,341 | 50.6% | x 1.08 |
-| Pas de perimetre | 483,977 | 46.1% | x 0.99 |
+| A depose perimetre | 108,958 | 50.6% | x 1.08 |
+| Pas de perimetre | 483,360 | 46.1% | x 0.99 |
 
 
 ### a_envoye_1_campagne
@@ -135,59 +125,69 @@
 
 | Modalite | N | Taux sortie | Multiplicateur |
 |----------|---|-------------|----------------|
-| A envoye campagne | 75,067 | 51.0% | x 1.09 |
-| Pas de campagne envoyee | 517,251 | 46.4% | x 0.99 |
+| A envoye campagne | 75,575 | 51.0% | x 1.09 |
+| Pas de campagne envoyee | 516,743 | 46.4% | x 0.99 |
 
 
-### a_cree_1_groupe
+### contact_intensity
+
+*Type: categorical | Impact: x 1.09*
+
+| Modalite | N | Taux sortie | Multiplicateur |
+|----------|---|-------------|----------------|
+| Non contacte | 2,509,776 | 46.7% | x 1.00 |
+| 2-3 contacts | 2,648 | 44.2% | x 0.95 |
+| 1 contact | 17,255 | 42.8% | x 0.92 |
+
+
+### was_contacted_by_zlv
 
 *Type: boolean | Impact: x 1.09*
 
 | Modalite | N | Taux sortie | Multiplicateur |
 |----------|---|-------------|----------------|
-| A cree groupe | 160,125 | 49.9% | x 1.07 |
-| Pas de groupe | 432,193 | 45.9% | x 0.98 |
-
-
-### contact_intensity
-
-*Type: categorical | Impact: x 1.08*
-
-| Modalite | N | Taux sortie | Multiplicateur |
-|----------|---|-------------|----------------|
-| Non contacte | 2,510,240 | 46.7% | x 1.00 |
-| 2-3 contacts | 2,546 | 44.9% | x 0.96 |
-| 1 contact | 16,893 | 43.4% | x 0.93 |
-
-
-### was_contacted_by_zlv
-
-*Type: boolean | Impact: x 1.07*
-
-| Modalite | N | Taux sortie | Multiplicateur |
-|----------|---|-------------|----------------|
-| Non contacte | 2,510,240 | 46.7% | x 1.00 |
-| Contacte par ZLV | 19,490 | 43.6% | x 0.93 |
+| Non contacte | 2,509,776 | 46.7% | x 1.00 |
+| Contacte par ZLV | 19,954 | 43.0% | x 0.92 |
 
 
 ### has_received_campaign
 
-*Type: boolean | Impact: x 1.07*
+*Type: boolean | Impact: x 1.09*
 
 | Modalite | N | Taux sortie | Multiplicateur |
 |----------|---|-------------|----------------|
-| Pas de campagne | 2,510,240 | 46.7% | x 1.00 |
-| A recu une campagne | 19,490 | 43.6% | x 0.93 |
+| Pas de campagne | 2,509,776 | 46.7% | x 1.00 |
+| A recu une campagne | 19,954 | 43.0% | x 0.92 |
+
+
+### a_cree_1_groupe
+
+*Type: boolean | Impact: x 1.08*
+
+| Modalite | N | Taux sortie | Multiplicateur |
+|----------|---|-------------|----------------|
+| A cree groupe | 162,679 | 49.8% | x 1.07 |
+| Pas de groupe | 429,639 | 45.9% | x 0.98 |
+
+
+### connecte_30_derniers_jours
+
+*Type: boolean | Impact: x 1.06*
+
+| Modalite | N | Taux sortie | Multiplicateur |
+|----------|---|-------------|----------------|
+| Connecte 30j | 107,786 | 49.3% | x 1.06 |
+| Non connecte 30j | 484,532 | 46.4% | x 0.99 |
 
 
 ### a_cree_1_campagne
 
-*Type: boolean | Impact: x 1.07*
+*Type: boolean | Impact: x 1.06*
 
 | Modalite | N | Taux sortie | Multiplicateur |
 |----------|---|-------------|----------------|
-| A cree campagne | 110,801 | 49.4% | x 1.06 |
-| Pas de campagne creee | 481,517 | 46.4% | x 0.99 |
+| A cree campagne | 111,575 | 49.4% | x 1.06 |
+| Pas de campagne creee | 480,743 | 46.4% | x 0.99 |
 
 
 ### establishment_has_active_users
@@ -196,8 +196,18 @@
 
 | Modalite | N | Taux sortie | Multiplicateur |
 |----------|---|-------------|----------------|
-| Avec utilisateurs actifs | 221,056 | 49.4% | x 1.06 |
-| Sans utilisateurs | 2,308,674 | 46.5% | x 0.99 |
+| Avec utilisateurs actifs | 221,916 | 49.4% | x 1.06 |
+| Sans utilisateurs | 2,307,814 | 46.5% | x 0.99 |
+
+
+### connecte_60_derniers_jours
+
+*Type: boolean | Impact: x 1.05*
+
+| Modalite | N | Taux sortie | Multiplicateur |
+|----------|---|-------------|----------------|
+| Connecte 60j | 125,652 | 48.9% | x 1.05 |
+| Non connecte 60j | 466,666 | 46.4% | x 0.99 |
 
 
 ### establishment_type_regroupe
@@ -219,14 +229,4 @@
 |----------|---|-------------|----------------|
 | Territoire avec utilisateurs | 590,544 | 46.9% | x 1.00 |
 | Territoire sans utilisateurs | 1,939,186 | 46.6% | x 1.00 |
-
-
-### connecte_30_derniers_jours
-
-*Type: boolean | Impact: x 1.00*
-
-| Modalite | N | Taux sortie | Multiplicateur |
-|----------|---|-------------|----------------|
-| Connecte 30j | 63,342 | 47.0% | x 1.01 |
-| Non connecte 30j | 528,976 | 46.9% | x 1.00 |
 

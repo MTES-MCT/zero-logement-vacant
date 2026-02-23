@@ -10,6 +10,8 @@ WHERE type NOT IN (
     -- Événements de statut/occupation
     'housing:status-updated', 
     'housing:occupancy-updated',
+    -- Événements de mise à jour
+    'housing:updated',
     -- Événements de groupe
     'housing:group-attached', 
     'housing:group-removed', 
@@ -28,10 +30,21 @@ WHERE type NOT IN (
     -- Événements de précision
     'housing:precision-attached', 
     'housing:precision-detached',
+    -- Événements de périmètre
+    'housing:perimeter-attached',
+    'housing:perimeter-detached',
+    -- Événements de document (housing)
+    'housing:document-attached',
+    'housing:document-detached',
+    'housing:document-removed',
+    -- Événements document directs
+    'document:created',
+    'document:updated',
+    'document:removed',
     -- Événements owner directs
     'owner:updated', 
     'owner:created',
     -- Événements campagne directs
     'campaign:updated'
 ) 
-AND type IS NOT NULL  -- NULL est accepté pour les anciens événements (version = 'old')
+AND type IS NOT NULL

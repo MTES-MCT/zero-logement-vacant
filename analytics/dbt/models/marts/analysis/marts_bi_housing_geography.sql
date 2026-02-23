@@ -147,13 +147,11 @@ SELECT
     
     -- Fiscalite (Updated logic)
     cf.taux_tfb_2024 AS taux_tfb,
-    cf.tfb_taux_commune_2024 AS tfb_taux_commune,
     cf.taux_tfnb_2024 AS taux_tfnb,
     cf.taux_th_2024 AS taux_th,
     cf.teom_taux_2024 AS teom_taux,
-    cf.th_surtaxe_indicateur,
+    cf.th_surtaxe_indicateur ,
     cf.th_surtaxe_residences_secondaires_pct,
-    cf.pression_fiscale_tfb_teom_2024 AS pression_fiscale_tfb_teom,
     cf.epci_regime_fiscal,
     cf.fiscalite_annee_reference,
     

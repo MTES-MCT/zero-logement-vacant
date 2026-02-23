@@ -45,7 +45,7 @@ EXTERNAL_SOURCES: dict[str, SourceConfig] = {
     **INSEE_CONFIG,
     **URSSAF_CONFIG,
     **DGFIP_CONFIG,
-    **PRIVATE_CONFIG, 
+    **PRIVATE_CONFIG,
     **ANAH_CONFIG,
     **ANCT_CONFIG
 }

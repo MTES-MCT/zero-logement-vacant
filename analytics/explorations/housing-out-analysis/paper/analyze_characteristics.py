@@ -38,6 +38,7 @@ CATEGORICAL_FEATURES = [
     "vacancy_duration_category",
     "vacancy_severity",
     "vacancy_status_label",
+    "condominium",
     # EXCLUDED: "data_source" - tautological
 ]
 
@@ -51,7 +52,6 @@ BOOLEAN_FEATURES = [
     # True comparison (excluding NULL): Non taxé 52.88% vs Taxé 19.97%
     ("is_taxed", "Taxe vacance", "Non taxe"),
     ("has_recent_mutation", "Mutation recente", "Pas de mutation recente"),
-    ("condominium", "Copropriete", "Hors copropriete"),
 ]
 
 CONTINUOUS_FEATURES = [

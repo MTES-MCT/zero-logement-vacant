@@ -13,7 +13,11 @@ export interface RelativeLocationTagProps {
 }
 
 function RelativeLocationTag(props: RelativeLocationTagProps) {
-  const value = RELATIVE_LOCATION_LABELS[props.value];
+  const text = RELATIVE_LOCATION_LABELS[props.value];
+
+  if (props.value === 'other') {
+    return null;
+  }
 
   return (
     <Tag
@@ -24,7 +28,7 @@ function RelativeLocationTag(props: RelativeLocationTagProps) {
         'aria-label': 'Lieu de résidence'
       }}
     >
-      {value}
+      {text}
     </Tag>
   );
 }

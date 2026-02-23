@@ -35,6 +35,10 @@ import { genAuthUser } from '~/test/fixtures';
 import configureTestStore from '~/utils/storeUtils';
 import HousingView from '~/views/Housing/HousingView';
 
+vi.mock('posthog-js/react', () => ({
+  useFeatureFlagEnabled: vi.fn().mockReturnValue(false)
+}));
+
 describe('Housing view', () => {
   const user = userEvent.setup();
 
@@ -272,6 +276,42 @@ describe('Housing view', () => {
       await user.click(save);
       const newOccupancy = await screen.findByText(/Occupation :/);
       expect(newOccupancy).toHaveTextContent(/En location/i);
+    });
+
+    it('should update the actual energy consumption', async () => {
+      const { useFeatureFlagEnabled } = await import('posthog-js/react');
+      vi.mocked(useFeatureFlagEnabled).mockReturnValue(true);
+
+      const housing = genHousingDTO();
+      housing.status = HousingStatus.NEVER_CONTACTED;
+      housing.subStatus = null;
+      housing.occupancy = Occupancy.VACANT;
+      housing.occupancyIntended = null;
+      housing.actualEnergyConsumption = null;
+
+      const establishment = genEstablishmentDTO();
+      const auth = genUserDTO(UserRole.USUAL, establishment);
+
+      renderView(housing, { auth, establishment });
+
+      const update = await screen.findByRole('button', {
+        name: /Éditer/,
+        description: 'Mettre à jour le logement'
+      });
+      await user.click(update);
+      const panel = await screen.findByRole('tabpanel', {
+        name: 'Informations sur le logement'
+      });
+      const dpeSelect = await within(panel).findByLabelText('Étiquette DPE renseignée');
+      await user.click(dpeSelect);
+      const options = await screen.findByRole('listbox');
+      const option = await within(options).findByRole('option', { name: 'B' });
+      await user.click(option);
+      const save = await screen.findByRole('button', { name: 'Enregistrer' });
+      await user.click(save);
+
+      const updatedHousing = data.housings.find((h) => h.id === housing.id);
+      expect(updatedHousing?.actualEnergyConsumption).toBe('B');
     });
 
     it('should update the status', async () => {

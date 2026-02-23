@@ -34,6 +34,7 @@ import { HousingEditionProvider } from '../HousingEdition/useHousingEdition';
 import HousingStatusBadge from '../HousingStatusBadge/HousingStatusBadge';
 import OccupancyTag from '../OccupancyTag/OccupancyTag';
 import SelectableListHeader from '../SelectableListHeader/SelectableListHeader';
+import { HousingProvider } from '~/hooks/useHousing';
 
 export interface HousingListProps {
   actions?: (housing: Housing) => ReactNode | ReactNode[];
@@ -230,9 +231,12 @@ function HousingList(props: HousingListProps) {
               sx={{ justifyContent: 'flex-end' }}
             >
               <Button
-                title="Mettre à jour"
                 size="small"
                 priority="secondary"
+                title={`Éditer le logement "${row.original.rawAddress.join(', ')}"`}
+                nativeButtonProps={{
+                  'aria-label': `Éditer le logement "${row.original.rawAddress.join(', ')}"`
+                }}
                 onClick={() => setUpdatingHousing(row.original)}
               >
                 Éditer
@@ -276,13 +280,20 @@ function HousingList(props: HousingListProps) {
         onSelectionChange={setSelected}
       />
 
-      <HousingEditionProvider>
-        <HousingEditionSideMenu
-          housing={updatingHousing ?? null}
-          expand={!!updatingHousing}
-          onClose={() => setUpdatingHousing(undefined)}
-        />
-      </HousingEditionProvider>
+      <HousingProvider
+        housing={updatingHousing ?? null}
+        error={null}
+        isError={false}
+        isLoading={false}
+        isSuccess={true}
+      >
+        <HousingEditionProvider>
+          <HousingEditionSideMenu
+            expand={!!updatingHousing}
+            onClose={() => setUpdatingHousing(undefined)}
+          />
+        </HousingEditionProvider>
+      </HousingProvider>
     </Stack>
   );
 }

@@ -117,3 +117,100 @@ models:
       - name: has_lovac_history
         description: "Indicateur de présence dans LOVAC"
 
+  - name: int_analysis_housing_owners
+    description: |
+      Caractéristiques des propriétaires au niveau logement (rang=1 uniquement).
+      Prépare les features propriétaires pour l'analyse des déterminants de sortie de vacance.
+    columns:
+      - name: housing_id
+        description: "Identifiant unique du logement"
+      - name: owner_id
+        description: "Identifiant unique du propriétaire"
+      - name: owner_kind_class
+        description: "Type de propriétaire (Particulier, SCI, Personne morale, Indivision)"
+      - name: owner_is_individual
+        description: "TRUE si le propriétaire est un particulier"
+      - name: owner_is_sci
+        description: "TRUE si le propriétaire est une SCI"
+      - name: owner_is_company
+        description: "TRUE si le propriétaire est une personne morale"
+      - name: owner_is_indivision
+        description: "TRUE si le propriétaire est en indivision"
+      - name: owner_age
+        description: "Âge calculé du propriétaire (particuliers uniquement)"
+      - name: owner_age_category
+        description: "Catégorie d'âge (Moins de 40 ans, 40-59 ans, 60-74 ans, 75 ans et plus)"
+      - name: owner_generation
+        description: "Génération du propriétaire (Baby Boomer, Gen X, Millennial, etc.)"
+      - name: owner_location_relative_label
+        description: "Localisation relative (Même commune, Même département, Même région, Autre région)"
+      - name: owner_is_local
+        description: "TRUE si le propriétaire est dans la même commune ou département"
+      - name: owner_is_distant
+        description: "TRUE si le propriétaire est dans une autre région"
+      - name: owner_distance_km
+        description: "Distance propriétaire-logement en kilomètres"
+      - name: owner_distance_category
+        description: "Catégorie de distance (Moins de 5 km, 5-20 km, etc.)"
+      - name: property_right
+        description: "Type de droit de propriété"
+      - name: owner_is_full_owner
+        description: "TRUE si pleine propriété"
+      - name: owner_housing_count
+        description: "Nombre de logements possédés par ce propriétaire"
+      - name: owner_is_multi_owner
+        description: "TRUE si le propriétaire possède plus d'un logement"
+      - name: owner_contactable
+        description: "TRUE si le propriétaire a un email ou téléphone"
+
+  - name: int_analysis_housing_zlv_usage
+    description: |
+      Métriques d'utilisation de l'application ZLV au niveau logement.
+      Combine les données de campagnes, activation des établissements et pro-activité.
+    columns:
+      - name: housing_id
+        description: "Identifiant unique du logement"
+      - name: establishment_id
+        description: "Identifiant de l'établissement principal couvrant ce logement"
+      - name: was_contacted_by_zlv
+        description: "TRUE si le logement a reçu au moins une campagne ZLV"
+      - name: contact_count
+        description: "Nombre de contacts de campagne reçus"
+      - name: contact_intensity
+        description: "Intensité de contact (Non contacté, 1 contact, 2-3 contacts, 4+ contacts)"
+      - name: contact_recency_category
+        description: "Récence du contact (Récent, Moyen, Ancien, Jamais contacté)"
+      - name: total_campaigns_received
+        description: "Nombre total de campagnes reçues"
+      - name: has_status_update
+        description: "TRUE si le logement a eu une mise à jour de suivi"
+      - name: has_occupancy_update
+        description: "TRUE si le logement a eu une mise à jour d'occupation"
+      - name: has_any_update
+        description: "TRUE si le logement a eu une mise à jour quelconque"
+      - name: update_intensity
+        description: "Intensité des MAJ (Aucune MAJ, MAJ suivi, MAJ occupation, MAJ complète)"
+      - name: establishment_name
+        description: "Nom de l'établissement"
+      - name: establishment_kind
+        description: "Type d'établissement (CA, CC, CU, ME, Commune)"
+      - name: establishment_type_regroupe
+        description: "Type regroupé (Intercommunalité, Commune, DDT/M, Autre)"
+      - name: typologie_activation_simple
+        description: "Typologie d'activation de l'établissement (CT inactive, en analyse, en campagne, activée)"
+      - name: typologie_activation_detaillee
+        description: "Typologie d'activation détaillée"
+      - name: activation_level
+        description: "Niveau d'activation (1-5)"
+      - name: kind_pro_activity_quantile
+        description: "Catégorie de pro-activité par quantile"
+      - name: kind_pro_activity_ntile
+        description: "Catégorie de pro-activité par ntile"
+      - name: total_pro_activity_score
+        description: "Score total de pro-activité"
+      - name: pro_activity_level
+        description: "Niveau de pro-activité (1-4)"
+      - name: zlv_engagement_score
+        description: "Score d'engagement ZLV composite (0-10)"
+      - name: zlv_engagement_category
+        description: "Catégorie d'engagement ZLV (Aucun, Faible, Moyen, Fort)"

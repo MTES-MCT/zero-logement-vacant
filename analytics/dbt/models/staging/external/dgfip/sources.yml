@@ -7,4 +7,7 @@ sources:
     tables:
       - name: dgfip_fiscalite_locale_particuliers_raw
         description: "Fiscalité locale des particuliers"
-
+      - name: dgfip_deliberation_fiscalite_locale_communes_raw
+        description: "Délibérations de fiscalité directe locale des communes 2025 (hors taux)"
+      - name: dgfip_liste_communes_tlv1_tlv2_raw
+        description: "Liste des communes selon le zonage TLV"

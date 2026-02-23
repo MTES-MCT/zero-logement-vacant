@@ -1,6 +1,6 @@
 SELECT 
 COM as geo_code,
-TNC as tncc,
+TNCC as tncc,
 NCC as ncc,
 NCCENR as nccenr,
 LIBELLE as commune_name,

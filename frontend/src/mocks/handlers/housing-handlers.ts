@@ -49,6 +49,19 @@ export const housingHandlers: RequestHandler[] = [
 
       const subset = pipe(
         data.housings,
+        Array.map((housing) => {
+          const mainHousingOwner =
+            data.housingOwners
+              .get(housing.id)
+              ?.find((housingOwner) => housingOwner.rank === 1) ?? null;
+          const mainOwner =
+            data.owners.find((owner) => owner.id === mainHousingOwner?.id) ??
+            null;
+          return {
+            ...housing,
+            owner: mainOwner
+          };
+        }),
         filterByCampaign(campaignIds),
         filterByHousingKind(housingKinds),
         filterByStatus(statuses)
@@ -101,27 +114,27 @@ export const housingHandlers: RequestHandler[] = [
       });
     }
   ),
-    // Add a housing
-    http.post<never, HousingPayloadDTO, HousingDTO | Error>(
-      `${config.apiEndpoint}/api/housing`,
-      async ({ request }) => {
-        const payload = await request.json();
-        const datafoncierHousing = data.datafoncierHousings.find(
-          (datafoncierHousing) => datafoncierHousing.idlocal === payload.localId
+  // Add a housing
+  http.post<never, HousingPayloadDTO, HousingDTO | Error>(
+    `${config.apiEndpoint}/api/housing`,
+    async ({ request }) => {
+      const payload = await request.json();
+      const datafoncierHousing = data.datafoncierHousings.find(
+        (datafoncierHousing) => datafoncierHousing.idlocal === payload.localId
+      );
+      if (!datafoncierHousing) {
+        return HttpResponse.json(
+          {
+            name: 'HousingMissingError',
+            message: `Housing ${payload.localId} missing`
+          },
+          { status: constants.HTTP_STATUS_NOT_FOUND }
         );
-        if (!datafoncierHousing) {
-          return HttpResponse.json(
-            {
-              name: 'HousingMissingError',
-              message: `Housing ${payload.localId} missing`
-            },
-            { status: constants.HTTP_STATUS_NOT_FOUND }
-          );
-        }
+      }
 
       const owner = genOwnerDTO();
       const housing: HousingDTO = {
-        ...genHousingDTO(owner),
+        ...genHousingDTO(),
         localId: datafoncierHousing.idlocal,
         geoCode: datafoncierHousing.idcom,
         source: 'datafoncier-manual'
@@ -153,32 +166,65 @@ export const housingHandlers: RequestHandler[] = [
 
       // Get a random user, for now
       const user = faker.helpers.arrayElement(data.users) ?? genUserDTO();
-      const housings = pipe(data.housings);
+      const housings = pipe(
+        data.housings
+        // TODO: apply filters here
+      );
+      const precisions = (payload.precisions ?? []).map((id) => {
+        const precision = data.precisions.find(
+          (precision) => precision.id === id
+        );
+        if (!precision) {
+          throw new Error(`Precision ${id} missing`);
+        }
+        return precision;
+      });
+      const documents = (payload.documents ?? []).map((id) => {
+        const document = data.documents.get(id) ?? null;
+        if (!document) {
+          throw new Error(`Document ${id} missing`);
+        }
+        return document;
+      });
 
-        housings.forEach((housing) => {
-          housing.occupancy = payload.occupancy ?? housing.occupancy;
-          housing.occupancyIntended =
-            payload.occupancyIntended ?? housing.occupancyIntended;
-          housing.status = payload.status ?? housing.status;
-          housing.subStatus = payload.subStatus ?? housing.subStatus;
+      housings.forEach((housing) => {
+        housing.occupancy = payload.occupancy ?? housing.occupancy;
+        housing.occupancyIntended =
+          payload.occupancyIntended ?? housing.occupancyIntended;
+        housing.status = payload.status ?? housing.status;
+        housing.subStatus = payload.subStatus ?? housing.subStatus;
 
-          if (payload.note) {
-            const note: NoteDTO = {
-              id: faker.string.uuid(),
-              content: payload.note,
-              createdAt: new Date().toJSON(),
-              createdBy: user.id,
-              creator: user,
-              noteKind: 'Note courante',
-              updatedAt: null
-            };
-            data.notes.push(note);
-            const notes = (data.housingNotes.get(housing.id) ?? []).concat(
-              note.id
-            );
-            data.housingNotes.set(housing.id, notes);
-          }
-        });
+        if (payload.note) {
+          const note: NoteDTO = {
+            id: faker.string.uuid(),
+            content: payload.note,
+            createdAt: new Date().toJSON(),
+            createdBy: user.id,
+            creator: user,
+            noteKind: 'Note courante',
+            updatedAt: null
+          };
+          data.notes.push(note);
+          const notes = (data.housingNotes.get(housing.id) ?? []).concat(
+            note.id
+          );
+          data.housingNotes.set(housing.id, notes);
+        }
+
+        if (precisions.length) {
+          data.housingPrecisions.set(
+            housing.id,
+            precisions.map((precision) => precision.id)
+          );
+        }
+
+        if (documents.length) {
+          data.housingDocuments.set(
+            housing.id,
+            documents.map(Struct.pick('id'))
+          );
+        }
+      });
 
       return HttpResponse.json(housings);
     }

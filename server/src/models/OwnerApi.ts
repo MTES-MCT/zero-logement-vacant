@@ -159,7 +159,6 @@ export function fromDatafoncierOwner(
         () => 'SCI, Copropriété, Autres personnes morales'
       )
       .with('X1a', () => 'Particulier')
-      .with('999', () => 'Absence de propriétaire')
       .otherwise(() => 'Autres'),
     // Can be '1A' for example but we only need the first character
     entity: mapEntity(owner.ccogrm?.substring(0, 1) ?? null),

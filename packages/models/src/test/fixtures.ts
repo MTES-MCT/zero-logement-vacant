@@ -1,14 +1,24 @@
-import { point } from '@turf/turf';
 import { faker } from '@faker-js/faker/locale/fr';
+import { point } from '@turf/turf';
 import { Array, pipe } from 'effect';
 import { MarkRequired } from 'ts-essentials';
 
+import type { BBox } from 'geojson';
+import { match, Pattern } from 'ts-pattern';
 import { AddressDTO } from '../AddressDTO';
+import type { BuildingDTO } from '../BuildingDTO';
 import { CADASTRAL_CLASSIFICATION_VALUES } from '../CadastralClassification';
 import { CAMPAIGN_STATUS_VALUES, CampaignDTO } from '../CampaignDTO';
+import { DATA_FILE_YEAR_VALUES } from '../DataFileYear';
 import type { DatafoncierHousing } from '../DatafoncierHousing';
+import type { DatafoncierOwner } from '../DatafoncierOwner';
+import type { DocumentDTO } from '../DocumentDTO';
 import { DraftDTO } from '../DraftDTO';
-import { ENERGY_CONSUMPTION_VALUES } from '../EnergyConsumption';
+import {
+  ENERGY_CONSUMPTION_MATCH_VALUES,
+  ENERGY_CONSUMPTION_TYPE_VALUES,
+  ENERGY_CONSUMPTION_VALUES
+} from '../EnergyConsumption';
 import { EstablishmentDTO } from '../EstablishmentDTO';
 import { ESTABLISHMENT_KIND_VALUES } from '../EstablishmentKind';
 import { ESTABLISHMENT_SOURCE_VALUES } from '../EstablishmentSource';
@@ -16,32 +26,35 @@ import { EVENT_NAME_VALUES, EventDTO } from '../EventDTO';
 import { EventType } from '../EventType';
 import { FileUploadDTO } from '../FileUploadDTO';
 import { GroupDTO } from '../GroupDTO';
-import { HousingDTO } from '../HousingDTO';
-import { HousingDocumentDTO } from '../HousingDocumentDTO';
+import { HOUSING_SOURCE_VALUES, HousingDTO } from '../HousingDTO';
 import { HOUSING_KIND_VALUES } from '../HousingKind';
 import {
   ACTIVE_OWNER_RANKS,
   HousingOwnerDTO,
   type ActiveOwnerRank
 } from '../HousingOwnerDTO';
-import { HOUSING_STATUS_VALUES } from '../HousingStatus';
+import { HOUSING_STATUS_VALUES, HousingStatus } from '../HousingStatus';
 import { MUTATION_TYPE_VALUES } from '../Mutation';
 import { NoteDTO } from '../NoteDTO';
-import { Occupancy, OCCUPANCY_VALUES } from '../Occupancy';
+import {
+  Occupancy,
+  OCCUPANCY_VALUES,
+  READ_WRITE_OCCUPANCY_VALUES
+} from '../Occupancy';
 import { OwnerDTO } from '../OwnerDTO';
 import { OWNER_KIND_LABELS } from '../OwnerKind';
-import { OWNERSHIP_KIND_INTERNAL_VALUES } from '../OwnershipKind';
+import {
+  INTERNAL_CO_CONDOMINIUM_VALUES,
+  INTERNAL_MONO_CONDOMINIUM_VALUES
+} from '../OwnershipKind';
 import { PROPERTY_RIGHT_VALUES } from '../PropertyRight';
 import { ProspectDTO } from '../ProspectDTO';
+import { RELATIVE_LOCATION_VALUES } from '../RelativeLocation';
 import { SenderDTO, SignatoryDTO } from '../SenderDTO';
 import { SignupLinkDTO } from '../SignupLinkDTO';
 import { TIME_PER_WEEK_VALUES } from '../TimePerWeek';
 import { UserDTO } from '../UserDTO';
 import { UserRole } from '../UserRole';
-import { RELATIVE_LOCATION_VALUES } from '../RelativeLocation';
-import { match } from 'ts-pattern';
-import type { DatafoncierOwner } from '../DatafoncierOwner';
-import type { BuildingDTO } from '../BuildingDTO';
 
 export function genGeoCode(): string {
   const geoCode = faker.helpers.arrayElement([
@@ -93,18 +106,40 @@ export function genAddressDTO(): AddressDTO {
   };
 }
 
-export function genBuildingDTO(): BuildingDTO {
-  const housingCount = faker.number.int({ min: 0, max: 100 });
-  const rentHousingCount = faker.number.int({ min: 0, max: housingCount });
-  const vacantHousingCount = faker.number.int({
-    min: 0,
-    max: housingCount - rentHousingCount
-  });
+export interface GenBuildingDtoOptions {
+  hasEnergyConsumption?: boolean;
+}
+
+export function genBuildingDTO(options?: GenBuildingDtoOptions): BuildingDTO {
+  const hasEnergyConsumption =
+    options?.hasEnergyConsumption ??
+    faker.datatype.boolean({ probability: 0.8 });
+
   return {
-    id: faker.string.uuid(),
-    housingCount,
-    rentHousingCount,
-    vacantHousingCount
+    id:
+      genGeoCode() + faker.string.alphanumeric({ length: 7, casing: 'upper' }),
+    housingCount: 0,
+    vacantHousingCount: 0,
+    rentHousingCount: 0,
+    rnb: hasEnergyConsumption
+      ? {
+          id:
+            faker.helpers.maybe(
+              () => faker.string.alphanumeric({ casing: 'upper', length: 10 }),
+              { probability: 0.9 }
+            ) ?? null,
+          score: faker.helpers.arrayElement([0, 1, 2, 3, 8, 9])
+        }
+      : null,
+    dpe: hasEnergyConsumption
+      ? {
+          id: faker.string.alphanumeric({ casing: 'upper', length: 13 }),
+          class: faker.helpers.arrayElement(ENERGY_CONSUMPTION_VALUES),
+          doneAt: faker.date.past().toJSON().substring(0, 10),
+          type: faker.helpers.arrayElement(ENERGY_CONSUMPTION_TYPE_VALUES),
+          match: faker.helpers.arrayElement(ENERGY_CONSUMPTION_MATCH_VALUES)
+        }
+      : null
   };
 }
 
@@ -568,64 +603,113 @@ export function genGroupDTO(
   };
 }
 
-export function genHousingDTO(owner: OwnerDTO | null): HousingDTO {
-  // faker.location.zipCode() sometimes returns the department "20"
-  const geoCode = faker.helpers.fromRegExp(/[1-9][0-9]{4}/);
+export const FRANCE_BBOX: BBox = [-1.69, 43.19, 6.8, 49.49];
+
+export function genHousingDTO(geoCode = genGeoCode()): HousingDTO {
   const department = geoCode.substring(0, 2);
   const locality = geoCode.substring(2, 5);
   const invariant = genInvariant(locality);
+  const dataFileYears = faker.helpers
+    .arrayElements(DATA_FILE_YEAR_VALUES)
+    .toSorted();
+  const dataYears: Array<number> = dataFileYears
+    .map((dataFileYear) =>
+      match(dataFileYear)
+        .returnType<string>()
+        .with(Pattern.string.startsWith('ff-'), (dataFileYear) =>
+          dataFileYear.substring('ff-'.length, 'ff-YYYY'.length)
+        )
+        .with(Pattern.string.startsWith('lovac-'), (dataFileYear) =>
+          dataFileYear.substring('lovac-'.length, 'lovac-YYYY'.length)
+        )
+        .exhaustive()
+    )
+    .map((year) => Number(year));
+
   return {
     id: faker.string.uuid(),
     geoCode,
-    dataFileYears: ['lovac-2024'],
-    uncomfortable: faker.datatype.boolean(),
-    roomsCount: faker.number.int({ min: 1, max: 10 }),
-    livingArea: faker.number.int({ min: 8 }),
-    campaignIds: [],
-    dataYears: [
-      faker.number.int({
-        min: 2020,
-        max: new Date().getUTCFullYear()
-      })
-    ],
-    source: faker.helpers.arrayElement([
-      'lovac',
-      'datafoncier-import',
-      'datafoncier-manual'
-    ]),
-    vacancyStartYear: faker.date.past().getUTCFullYear(),
+    invariant,
     localId: genLocalId(department, invariant),
-    invariant: genInvariant(locality),
-    rawAddress: faker.location
-      .streetAddress({ useFullAddress: true })
-      .split(' '),
-    cadastralClassification: faker.helpers.arrayElement(
-      CADASTRAL_CLASSIFICATION_VALUES
-    ),
-    cadastralReference: null,
-    longitude: faker.location.longitude(),
-    latitude: faker.location.latitude(),
-    occupancy: faker.helpers.arrayElement(OCCUPANCY_VALUES),
-    occupancyIntended: faker.helpers.arrayElement(OCCUPANCY_VALUES),
+    rawAddress: [
+      faker.location.streetAddress(),
+      `${geoCode} ${faker.location.city()}`
+    ],
+    latitude: faker.location.latitude({
+      min: FRANCE_BBOX[1],
+      max: FRANCE_BBOX[3]
+    }),
+    longitude: faker.location.longitude({
+      min: FRANCE_BBOX[0],
+      max: FRANCE_BBOX[2]
+    }),
+    owner: null,
+    livingArea: faker.number.int({ min: 10, max: 300 }),
+    cadastralClassification: faker.helpers.arrayElement([
+      null,
+      ...CADASTRAL_CLASSIFICATION_VALUES
+    ]),
+    uncomfortable: faker.datatype.boolean(),
+    vacancyStartYear: faker.date.past({ years: 20 }).getUTCFullYear(),
     housingKind: faker.helpers.arrayElement(HOUSING_KIND_VALUES),
-    status: faker.helpers.arrayElement(HOUSING_STATUS_VALUES),
+    roomsCount: faker.number.int({ min: 0, max: 10 }),
+    cadastralReference: faker.string.alpha(),
+    buildingYear: faker.date.past({ years: 100 }).getUTCFullYear(),
+    taxed: faker.datatype.boolean(),
+    dataYears,
+    dataFileYears,
+    buildingLocation: faker.string.alpha(),
+    ownershipKind:
+      faker.helpers.maybe(() =>
+        faker.helpers.arrayElement([
+          ...INTERNAL_MONO_CONDOMINIUM_VALUES,
+          ...INTERNAL_CO_CONDOMINIUM_VALUES
+        ])
+      ) ?? null,
+    status: faker.helpers.weightedArrayElement([
+      {
+        value: HousingStatus.NEVER_CONTACTED,
+        weight: HOUSING_STATUS_VALUES.length - 1
+      },
+      ...HOUSING_STATUS_VALUES.filter(
+        (status) => status !== HousingStatus.NEVER_CONTACTED
+      ).map((status) => ({
+        value: status,
+        weight: 1
+      }))
+    ]),
     subStatus: null,
+    actualEnergyConsumption: faker.helpers.arrayElement([
+      null,
+      ...ENERGY_CONSUMPTION_VALUES
+    ]),
     energyConsumption: faker.helpers.arrayElement([
       null,
       ...ENERGY_CONSUMPTION_VALUES
     ]),
     energyConsumptionAt: faker.helpers.maybe(() => faker.date.past()) ?? null,
-    owner,
-    lastMutationType: faker.helpers.arrayElement(MUTATION_TYPE_VALUES),
-    lastMutationDate: faker.date.past().toJSON(),
-    lastTransactionDate: faker.date.past().toJSON(),
-    lastTransactionValue: faker.number.int({ min: 1_000_000, max: 10_000_000 }),
-    buildingYear: faker.date.past().getUTCFullYear(),
-    buildingLocation: null,
+    occupancy: faker.helpers.arrayElement(READ_WRITE_OCCUPANCY_VALUES),
+    occupancyIntended: faker.helpers.arrayElement(READ_WRITE_OCCUPANCY_VALUES),
+    campaignIds: [],
+    source: faker.helpers.arrayElement(HOUSING_SOURCE_VALUES),
+    plotId:
+      geoCode +
+      faker.string.numeric({ length: 3, allowLeadingZeros: true }) +
+      faker.string.alpha({ length: 2, casing: 'upper' }) +
+      faker.string.numeric({ length: 4, allowLeadingZeros: true }),
+    plotArea: faker.number.int({ min: 100, max: 10000 }),
     beneficiaryCount: null,
-    ownershipKind: faker.helpers.arrayElement(OWNERSHIP_KIND_INTERNAL_VALUES),
-    taxed: faker.datatype.boolean(),
-    rentalValue: faker.number.int({ min: 100, max: 10_000 })
+    rentalValue: faker.number.int({ min: 500, max: 1000 }),
+    lastMutationType: faker.helpers.arrayElement(MUTATION_TYPE_VALUES),
+    lastMutationDate:
+      faker.helpers.maybe(() => faker.date.past({ years: 20 }).toJSON()) ??
+      null,
+    lastTransactionDate:
+      faker.helpers.maybe(() => faker.date.past({ years: 20 }).toJSON()) ??
+      null,
+    lastTransactionValue:
+      faker.helpers.maybe(() => Number(faker.finance.amount({ dec: 0 }))) ??
+      null
   };
 }
 
@@ -784,7 +868,10 @@ export function genUserDTO(
   };
 }
 
-export function genDocumentDTO(creator: UserDTO): HousingDocumentDTO {
+export function genDocumentDTO(
+  creator: UserDTO,
+  establishment: Pick<EstablishmentDTO, 'id'>
+): DocumentDTO {
   return {
     id: faker.string.uuid(),
     filename: faker.system.fileName(),
@@ -798,6 +885,7 @@ export function genDocumentDTO(creator: UserDTO): HousingDocumentDTO {
     sizeBytes: faker.number.int({ min: 1000, max: 5000000 }),
     createdAt: faker.date.recent().toJSON(),
     updatedAt: null,
+    establishmentId: establishment.id,
     creator
   };
 }

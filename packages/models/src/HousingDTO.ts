@@ -8,6 +8,7 @@ import { Occupancy } from './Occupancy';
 import { OwnerDTO } from './OwnerDTO';
 import type { HousingFiltersDTO } from './HousingFiltersDTO';
 import type { CadastralClassification } from './CadastralClassification';
+import type { DocumentDTO } from './DocumentDTO';
 import type { Precision } from './Precision';
 
 export interface HousingDTO {
@@ -39,7 +40,21 @@ export interface HousingDTO {
   ownershipKind: string | null;
   status: HousingStatus;
   subStatus: string | null;
+  /**
+   * The actual energy consumption class of the housing.
+   * Prefilled from the building energy consumption
+   * when the building is an individual house.
+   *
+   * NB: this can be edited by users.
+   */
+  actualEnergyConsumption: EnergyConsumption | null;
+  /**
+   * @deprecated Use BuildingDTO.dpe.class instead
+   */
   energyConsumption: EnergyConsumption | null;
+  /**
+   * @deprecated Use BuildingDTO.dpe.doneAt instead
+   */
   energyConsumptionAt: Date | null;
   occupancy: Occupancy;
   occupancyIntended: Occupancy | null;
@@ -49,13 +64,18 @@ export interface HousingDTO {
   lastMutationDate: string | null;
   lastTransactionDate: string | null;
   lastTransactionValue: number | null;
+  plotId: string | null;
+  /**
+   * The surface of the plot associated with the housing, in square meters.
+   */
+  plotArea: number | null;
 }
 
 export type HousingPayloadDTO = Pick<HousingDTO, 'localId'>;
 
 export type HousingUpdatePayloadDTO =
   // Required keys
-  Pick<HousingDTO, 'status' | 'occupancy'> & {
+  Pick<HousingDTO, 'status' | 'occupancy' | 'actualEnergyConsumption'> & {
     // Nullable keys
     subStatus: string | null;
     occupancyIntended: Occupancy | null;
@@ -72,6 +92,7 @@ export type HousingBatchUpdatePayload = {
   subStatus?: string;
   note?: string;
   precisions?: Precision['id'][];
+  documents?: DocumentDTO['id'][];
 };
 
 interface Diff<A> {
@@ -89,7 +110,8 @@ export function diffHousingUpdatePayload(
       status: Equivalence.strict<HousingStatus>(),
       subStatus: Equivalence.strict<string | null>(),
       occupancy: Equivalence.strict<Occupancy>(),
-      occupancyIntended: Equivalence.strict<Occupancy | null>()
+      occupancyIntended: Equivalence.strict<Occupancy | null>(),
+      actualEnergyConsumption: Equivalence.strict<EnergyConsumption | null>()
     },
     Record.map((equivalence: Equivalence.Equivalence<any>, key) =>
       equivalence(before[key], after[key])

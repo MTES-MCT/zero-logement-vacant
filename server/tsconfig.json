@@ -1,32 +1,13 @@
 {
-  "extends": "../tsconfig.base.json",
+  "extends": ["@tsconfig/node24/tsconfig.json", "../tsconfig.base.json"],
   "files": [],
+  "include": [],
   "compilerOptions": {
-    "outDir": "dist",
-    "rootDir": "src",
     "paths": {
       "~/*": ["./src/*"]
     }
   },
   "references": [
-    {
-      "path": "../packages/utils"
-    },
-    {
-      "path": "../packages/schemas"
-    },
-    {
-      "path": "../queue"
-    },
-    {
-      "path": "../packages/models"
-    },
-    {
-      "path": "../packages/healthcheck"
-    },
-    {
-      "path": "../packages/draft"
-    },
     {
       "path": "./tsconfig.app.json"
     },

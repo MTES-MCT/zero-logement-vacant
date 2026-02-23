@@ -3,20 +3,11 @@ import * as turf from '@turf/turf';
 import {
   ACTIVE_OWNER_RANKS,
   AddressKinds,
-  CADASTRAL_CLASSIFICATION_VALUES,
-  DATA_FILE_YEAR_VALUES,
   DatafoncierHousing,
   ENERGY_CONSUMPTION_VALUES,
   ESTABLISHMENT_KIND_VALUES,
   EventType,
-  HOUSING_KIND_VALUES,
-  HOUSING_SOURCE_VALUES,
-  HOUSING_STATUS_VALUES,
-  HousingStatus,
-  INTERNAL_CO_CONDOMINIUM_VALUES,
-  INTERNAL_MONO_CONDOMINIUM_VALUES,
   LOCALITY_KIND_VALUES,
-  MUTATION_TYPE_VALUES,
   OWNER_ENTITY_VALUES,
   OWNER_KIND_LABELS,
   PRECISION_CATEGORY_VALUES,
@@ -26,18 +17,20 @@ import {
   TIME_PER_WEEK_VALUES,
   UserAccountDTO
 } from '@zerologementvacant/models';
-
 import {
+  genBuildingDTO,
+  genDatafoncierHousing as genDatafoncierHousingDTO,
+  genDocumentDTO,
   genEventDTO,
   genGeoCode,
+  genHousingDTO,
   genNoteDTO,
   genUserDTO,
-  genDatafoncierHousing as genDatafoncierHousingDTO,
-  genDocumentDTO
+  type GenBuildingDtoOptions
 } from '@zerologementvacant/models/fixtures';
 import { addHours } from 'date-fns';
 import type { BBox } from 'geojson';
-import { padStart, range } from 'lodash-es';
+import { padStart } from 'lodash-es';
 import randomstring from 'randomstring';
 import { MarkRequired } from 'ts-essentials';
 import { v4 as uuidv4 } from 'uuid';
@@ -46,13 +39,14 @@ import { logger } from '~/infra/logger';
 import { AddressApi } from '~/models/AddressApi';
 import { BuildingApi } from '~/models/BuildingApi';
 import { CampaignApi } from '~/models/CampaignApi';
+import { DocumentApi } from '~/models/DocumentApi';
 import { DraftApi } from '~/models/DraftApi';
 import { EstablishmentApi } from '~/models/EstablishmentApi';
 import { EventApi, fromEventDTO } from '~/models/EventApi';
-import { HousingDocumentApi } from '~/models/HousingDocumentApi';
 import { GeoPerimeterApi } from '~/models/GeoPerimeterApi';
 import { GroupApi } from '~/models/GroupApi';
 import { HousingApi } from '~/models/HousingApi';
+import { HousingDocumentApi } from '~/models/HousingDocumentApi';
 import { HousingOwnerApi } from '~/models/HousingOwnerApi';
 import { LocalityApi } from '~/models/LocalityApi';
 import { fromNoteDTO, HousingNoteApi, NoteApi } from '~/models/NoteApi';
@@ -143,6 +137,32 @@ export function genUserApi(establishmentId: string): UserApi {
     ...fromUserDTO(genUserDTO()),
     password: '123QWEasd',
     establishmentId: establishmentId
+  };
+}
+
+export function genDocumentApi(
+  overrides?: Partial<DocumentApi>
+): DocumentApi {
+  // If creator is provided, use their establishmentId unless explicitly overridden
+  const establishmentId = overrides?.establishmentId ??
+    overrides?.creator?.establishmentId ??
+    uuidv4();
+  const creator = overrides?.creator ?? genUserApi(establishmentId);
+  const baseDocument = genDocumentDTO(creator, { id: establishmentId });
+  const id = overrides?.id ?? baseDocument.id;
+
+  return {
+    id,
+    filename: overrides?.filename ?? baseDocument.filename,
+    s3Key: overrides?.s3Key ?? `documents/${faker.string.uuid()}/${id}`,
+    contentType: overrides?.contentType ?? baseDocument.contentType,
+    sizeBytes: overrides?.sizeBytes ?? baseDocument.sizeBytes,
+    establishmentId,
+    createdBy: overrides?.createdBy ?? creator.id,
+    createdAt: overrides?.createdAt ?? baseDocument.createdAt,
+    updatedAt: overrides?.updatedAt ?? baseDocument.updatedAt,
+    deletedAt: overrides?.deletedAt ?? null,
+    creator
   };
 }
 
@@ -252,136 +272,52 @@ export const genHousingOwnerApi = (
   absoluteDistance: null
 });
 
-export function genBuildingApi(): BuildingApi {
-  const geoCode = genGeoCode();
-  const housingCount = faker.number.int({ min: 1, max: 10 });
-  const vacantHousingCount = faker.number.int({ min: 0, max: housingCount });
-  const rentHousingCount = faker.number.int({
-    min: housingCount - vacantHousingCount,
-    max: housingCount
-  });
+export function genBuildingApi(options?: GenBuildingDtoOptions): BuildingApi {
+  const building = genBuildingDTO(options);
+  const hasEnergyConsumption = building.dpe !== null;
 
   return {
-    id: geoCode + faker.string.alphanumeric(7),
-    housingCount,
-    vacantHousingCount,
-    rentHousingCount,
-    rnbId: faker.string.alphanumeric({ casing: 'upper' }),
-    rnbIdScore: faker.helpers.arrayElement([0, 1, 2, 3, 8, 9])
+    ...building,
+    ges: hasEnergyConsumption
+      ? {
+          class: faker.helpers.arrayElement(ENERGY_CONSUMPTION_VALUES)
+        }
+      : null,
+    heating: faker.helpers.arrayElement([
+      'Gaz naturel',
+      'Électricité',
+      'GPL',
+      'Fioul domestique',
+      'Bois - Bûches'
+    ])
   };
 }
 
 export const genHousingApi = (
-  geoCode: string = genGeoCode(),
+  geoCode?: string,
   building?: BuildingApi
 ): Omit<HousingApi, 'owner'> & { owner: OwnerApi } => {
-  const id = uuidv4();
-  const department = geoCode.substring(0, 2);
-  const locality = geoCode.substring(2, 5);
-  const invariant = genInvariant(locality);
-  const dataYears = faker.helpers.arrayElements(
-    range(2019, new Date().getUTCFullYear() + 1),
-    {
-      min: 1,
-      max: new Date().getUTCFullYear() + 1 - 2019
-    }
-  );
-  const dataFileYears = faker.helpers
-    .arrayElements(DATA_FILE_YEAR_VALUES)
-    .toSorted();
+  const owner = genOwnerApi();
+  const housing = genHousingDTO(geoCode);
 
   return {
-    id,
-    invariant,
-    localId: genLocalId(department, invariant),
-    rawAddress: [
-      faker.location.streetAddress(),
-      `${geoCode} ${faker.location.city()}`
-    ],
-    latitude: faker.location.latitude({
-      min: FRANCE_BBOX[1],
-      max: FRANCE_BBOX[3]
-    }),
-    longitude: faker.location.longitude({
-      min: FRANCE_BBOX[0],
-      max: FRANCE_BBOX[2]
-    }),
-    geoCode,
+    ...housing,
+    owner,
     localityKind: faker.helpers.maybe(
       () => faker.helpers.arrayElement(['ACV', 'PVD']),
       { probability: 0.2 }
     ),
-    owner: genOwnerApi(),
-    livingArea: faker.number.int({ min: 10, max: 300 }),
-    cadastralClassification: faker.helpers.arrayElement([
-      null,
-      ...CADASTRAL_CLASSIFICATION_VALUES
-    ]),
-    uncomfortable: faker.datatype.boolean(),
-    vacancyStartYear: faker.date.past({ years: 20 }).getUTCFullYear(),
-    housingKind: faker.helpers.arrayElement(HOUSING_KIND_VALUES),
-    roomsCount: faker.number.int({ min: 0, max: 10 }),
-    cadastralReference: randomstring.generate(),
-    buildingYear: faker.date.past({ years: 100 }).getUTCFullYear(),
-    taxed: faker.datatype.boolean(),
-    deprecatedVacancyReasons: [],
-    dataYears,
-    dataFileYears,
-    buildingLocation: randomstring.generate(),
-    ownershipKind:
-      faker.helpers.maybe(() =>
-        faker.helpers.arrayElement([
-          ...INTERNAL_MONO_CONDOMINIUM_VALUES,
-          ...INTERNAL_CO_CONDOMINIUM_VALUES
-        ])
-      ) ?? null,
-    status: faker.helpers.weightedArrayElement([
-      {
-        value: HousingStatus.NEVER_CONTACTED,
-        weight: HOUSING_STATUS_VALUES.length - 1
-      },
-      ...HOUSING_STATUS_VALUES.filter(
-        (status) => status !== HousingStatus.NEVER_CONTACTED
-      ).map((status) => ({
-        value: status,
-        weight: 1
-      }))
-    ]),
-    subStatus: null,
-    energyConsumption: faker.helpers.arrayElement([
-      null,
-      ...ENERGY_CONSUMPTION_VALUES
-    ]),
-    energyConsumptionAt: faker.helpers.maybe(() => faker.date.past()) ?? null,
-    occupancy: faker.helpers.arrayElement(READ_WRITE_OCCUPANCY_VALUES),
     occupancyRegistered: faker.helpers.arrayElement(
       READ_WRITE_OCCUPANCY_VALUES
     ),
-    occupancyIntended: faker.helpers.arrayElement(READ_WRITE_OCCUPANCY_VALUES),
     buildingVacancyRate: faker.number.float(),
-    campaignIds: [],
     contactCount: genNumber(1),
-    source: faker.helpers.arrayElement(HOUSING_SOURCE_VALUES),
     geolocation: null,
-    plotId: null,
-    beneficiaryCount: null,
     buildingId: building?.id ?? null,
     buildingGroupId: null,
     buildingHousingCount: null,
     geoPerimeters: [],
-    precisions: [],
-    rentalValue: faker.number.int({ min: 500, max: 1000 }),
-    deprecatedPrecisions: [],
-    lastMutationType: faker.helpers.arrayElement(MUTATION_TYPE_VALUES),
-    lastMutationDate:
-      faker.helpers.maybe(() => faker.date.past({ years: 20 }).toJSON()) ??
-      null,
-    lastTransactionDate:
-      faker.helpers.maybe(() => faker.date.past({ years: 20 }).toJSON()) ??
-      null,
-    lastTransactionValue:
-      faker.helpers.maybe(() => Number(faker.finance.amount({ dec: 0 }))) ??
-      null
+    precisions: []
   };
 };
 
@@ -678,17 +614,14 @@ export function genPrecisionApi(order: number): PrecisionApi {
 }
 
 export function genHousingDocumentApi(
-  housing: HousingApi,
-  creator: UserApi
+  overrides?: Partial<HousingDocumentApi>
 ): HousingDocumentApi {
-  const baseDocument = genDocumentDTO(creator);
+  const baseDocument = genDocumentApi(overrides);
+
   return {
     ...baseDocument,
-    housingId: housing.id,
-    housingGeoCode: housing.geoCode,
-    s3Key: `documents/${faker.string.uuid()}/${baseDocument.filename}`,
-    createdBy: creator.id,
-    deletedAt: null,
-    creator
+    housingId: overrides?.housingId ?? faker.string.uuid(),
+    housingGeoCode:
+      overrides?.housingGeoCode ?? faker.location.zipCode('######')
   };
 }

@@ -84,6 +84,66 @@ class AdemeApiClient:
         
         return f"{self.base_url}?size={limit_per_page}&after={after_param}"
     
+    def get_progress_file_path(self, output_dir: str) -> str:
+        """
+        Returns the path to the progress file for a given output directory
+
+        Args:
+            output_dir: Output directory
+
+        Returns:
+            Path to the progress file
+        """
+        return os.path.join(output_dir, '.progress.json')
+
+    def load_progress(self, output_dir: str) -> Optional[Dict[str, Any]]:
+        """
+        Loads progress from the progress file
+
+        Args:
+            output_dir: Output directory containing the progress file
+
+        Returns:
+            Dictionary with '_i' and '_rand' or None if no progress file exists
+        """
+        progress_file = self.get_progress_file_path(output_dir)
+        try:
+            if os.path.exists(progress_file):
+                with open(progress_file, 'r', encoding='utf-8') as f:
+                    progress = json.load(f)
+                    if '_i' in progress and '_rand' in progress:
+                        print(f"📂 Loaded progress from {progress_file}")
+                        print(f"   _i: {progress['_i']}, _rand: {progress['_rand']}")
+                        if 'timestamp' in progress:
+                            print(f"   Last updated: {progress['timestamp']}")
+                        return progress
+        except Exception as e:
+            print(f"⚠️  Error loading progress file: {e}")
+        return None
+
+    def save_progress(self, output_dir: str, last_record: Dict[str, Any]) -> None:
+        """
+        Saves progress to the progress file
+
+        Args:
+            output_dir: Output directory
+            last_record: Last processed record (must contain '_i' and '_rand')
+        """
+        from datetime import datetime
+
+        progress_file = self.get_progress_file_path(output_dir)
+        try:
+            progress = {
+                '_i': last_record.get('_i'),
+                '_rand': last_record.get('_rand'),
+                'timestamp': datetime.now().isoformat(),
+                'numero_dpe': last_record.get('numero_dpe', 'unknown')
+            }
+            with open(progress_file, 'w', encoding='utf-8') as f:
+                json.dump(progress, f, indent=2)
+        except Exception as e:
+            print(f"⚠️  Error saving progress: {e}")
+
     def count_lines_in_file(self, filename: str) -> int:
         """
         Counts the number of lines in a file
@@ -206,7 +266,8 @@ class AdemeApiClient:
         return None
     
     def fetch_all_data(self, limit_per_page: int = 1000, max_pages: Optional[int] = None,
-                      output_dir: str = "dpe_split", resume_from: Optional[Dict[str, Any]] = None) -> int:
+                      output_dir: str = "dpe_split", resume_from: Optional[Dict[str, Any]] = None,
+                      no_wait: bool = False) -> int:
         """
         Retrieves all data by iterating through all pages and writes to year/month structure
         Supports resuming from a specific record
@@ -216,6 +277,7 @@ class AdemeApiClient:
             max_pages: Maximum number of pages to retrieve (None = all)
             output_dir: Output directory for year/month structure (default: dpe_split)
             resume_from: Dictionary with '_i' and '_rand' to resume from, or None to start from beginning
+            no_wait: If True, disable rate limiting wait between requests
 
         Returns:
             Total number of records retrieved
@@ -264,6 +326,7 @@ class AdemeApiClient:
         # Track open file handles by year/month
         file_handles = {}
         records_by_month = {}
+        last_record_processed = None
 
         print(f"🚀 Starting DPE data retrieval...")
         print(f"📝 Writing to: {output_dir}/YYYY/YYYY-MM.jsonl")
@@ -315,6 +378,7 @@ class AdemeApiClient:
                             file_handles[year_month_key].write(json.dumps(record, ensure_ascii=False) + '\n')
                             records_by_month[year_month_key] += 1
                             new_records += 1
+                            last_record_processed = record
 
                         except (ValueError, TypeError) as e:
                             continue
@@ -323,10 +387,13 @@ class AdemeApiClient:
                     if pbar:
                         pbar.update(len(page_data["results"]))
 
-                    # Flush files every 10 pages
+                    # Flush files and save progress every 10 pages
                     if page_count % 10 == 0:
                         for fh in file_handles.values():
                             fh.flush()
+                        # Save progress
+                        if last_record_processed:
+                            self.save_progress(output_dir, last_record_processed)
 
                 # Check if there's a next page
                 current_url = page_data.get("next")
@@ -337,7 +404,7 @@ class AdemeApiClient:
                     break
 
                 # Calculate wait time based on response size to respect 1 MB/s limit
-                if current_url:
+                if current_url and not no_wait:
                     size_mb = response_size / (1024 * 1024)
                     wait_time = size_mb / 1  # 1 MB/s limit
                     print(f"⏳ Waiting {wait_time:.1f}s (rate limit: 1 MB/s for {size_mb:.2f} MB)...")
@@ -351,6 +418,11 @@ class AdemeApiClient:
             # Close all file handles
             for fh in file_handles.values():
                 fh.close()
+
+            # Save final progress
+            if last_record_processed:
+                self.save_progress(output_dir, last_record_processed)
+                print(f"💾 Progress saved to {self.get_progress_file_path(output_dir)}")
 
         print(f"\n🎉 Retrieval completed:")
         print(f"   📊 Total records: {new_records}")
@@ -430,8 +502,10 @@ def main():
     parser.add_argument('--output-dir', default='dpe_split', help='Output directory for year/month structure (default: dpe_split)')
     parser.add_argument('--limit-per-page', type=int, default=1000, help='Items per page (default: 1000, max: 10000)')
     parser.add_argument('--max-pages', type=int, help='Maximum number of pages to retrieve')
-    parser.add_argument('--resume-i', type=int, help='Resume from specific _i value')
-    parser.add_argument('--resume-rand', type=int, help='Resume from specific _rand value')
+    parser.add_argument('--resume', action='store_true', help='Automatically resume from last saved progress')
+    parser.add_argument('--resume-i', type=int, help='Resume from specific _i value (manual override)')
+    parser.add_argument('--resume-rand', type=int, help='Resume from specific _rand value (manual override)')
+    parser.add_argument('--no-wait', action='store_true', help='Disable rate limiting wait between requests')
 
     args = parser.parse_args()
 
@@ -447,7 +521,9 @@ def main():
         print("   OR")
         print("   export ADEME_API_KEY=YOUR_KEY")
         print("   python import-ademe.py")
-        print("\nResume from last record:")
+        print("\nResume from last progress (automatic):")
+        print("   python import-ademe.py --resume")
+        print("\nResume from specific record (manual):")
         print("   python import-ademe.py --resume-i 1362404395012 --resume-rand 361733")
         return
 
@@ -467,14 +543,24 @@ def main():
 
     print("✅ Authentication validated, continuing script...")
 
-    # Build resume_from dict if parameters provided
+    # Build resume_from dict based on arguments
     resume_from = None
+
+    # Priority 1: Manual override with --resume-i and --resume-rand
     if args.resume_i is not None and args.resume_rand is not None:
         resume_from = {
             '_i': args.resume_i,
             '_rand': args.resume_rand
         }
-        print(f"\n🔄 Resume parameters provided: _i={args.resume_i}, _rand={args.resume_rand}")
+        print(f"\n🔄 Manual resume parameters: _i={args.resume_i}, _rand={args.resume_rand}")
+
+    # Priority 2: Automatic resume from progress file with --resume
+    elif args.resume:
+        resume_from = client.load_progress(args.output_dir)
+        if resume_from:
+            print(f"\n🔄 Resuming from saved progress")
+        else:
+            print(f"\n⚠️  No progress file found in {args.output_dir}, starting from beginning")
 
     # Retrieve all data with year/month structure
     print("\n=== Retrieving data with year/month structure ===")
@@ -484,7 +570,8 @@ def main():
         output_dir=args.output_dir,
         limit_per_page=args.limit_per_page,
         max_pages=args.max_pages,
-        resume_from=resume_from
+        resume_from=resume_from,
+        no_wait=args.no_wait
     )
 
     print(f"\n🎯 Retrieval completed!")

@@ -7,6 +7,18 @@ into the dpe_raw PostgreSQL table for archival and analysis purposes.
 
 This version imports ALL 224 fields from the ADEME DPE JSON data, not just a subset.
 
+SUPPORTED INPUT FORMATS:
+1. Single JSONL file (legacy): dpe_data.jsonl
+2. Year-based directory structure (new):
+   dpe_split/
+   ├── 2021/
+   │   ├── 2021-01.jsonl
+   │   ├── 2021-02.jsonl
+   │   └── ...
+   ├── 2022/
+   │   └── ...
+   └── ...
+
 REQUIRED SETUP:
 1. Generate the complete schema and field list:
    python generate_complete_schema.py dpe_raw_import_YYYYMMDD/
@@ -27,12 +39,13 @@ The following indexes are created by the table creation script for optimal perfo
 
 FEATURES:
 - Imports ALL 224 fields from DPE JSON data
+- Supports year-based directory structure with progress per year
 - Parallel batch processing with configurable workers (default: 6)
 - Automatic resume capability: skips already imported DPE records
-- Department-based partitioning for memory efficiency
+- Department-based partitioning for memory efficiency (single file mode)
 - Idempotent partitioning: automatically recreates partitions if source/limit changes
 - Robust error handling and retry logic
-- Progress tracking with tqdm
+- Progress tracking with tqdm (per year or per department)
 - Dry-run mode for testing
 - Sequential or parallel department processing
 
@@ -40,7 +53,13 @@ DEPENDENCIES:
     pip install psycopg2-binary tqdm
 
 USAGE:
-    # Import all departments in parallel (default)
+    # Import from year-based directory structure (recommended)
+    python import_dpe_raw.py /path/to/dpe_split --db-url "postgresql://user:pass@localhost:5432/mydb"
+
+    # Import specific year only
+    python import_dpe_raw.py /path/to/dpe_split --year 2023 --db-url "postgresql://user:pass@localhost:5432/mydb"
+
+    # Import from single JSONL file (legacy mode)
     python import_dpe_raw.py dpe_data_complete.jsonl --db-url "postgresql://user:pass@localhost:5432/mydb"
 
     # Import all departments sequentially (one at a time)
@@ -115,8 +134,13 @@ class DPERawImporter:
             'records_failed': 0,
             'duplicates_found': 0,
             'departments_processed': 0,
-            'departments_total': 0
+            'departments_total': 0,
+            'years_processed': 0,
+            'years_total': 0
         }
+
+        # Per-year statistics for year-based imports
+        self.year_stats = {}
 
     def _setup_logger(self) -> logging.Logger:
         """Configure logging system"""
@@ -215,29 +239,238 @@ class DPERawImporter:
                 self.conn.rollback()
             return False
 
-    def _count_lines(self, file_path: str) -> int:
-        """Count the number of lines in a file with progress bar"""
+    def _count_lines(self, file_path: str, show_progress: bool = False) -> int:
+        """Count the number of lines in a file
+
+        Args:
+            file_path: Path to the file
+            show_progress: If True, show a progress bar (default: False for cleaner output)
+        """
         file_size = Path(file_path).stat().st_size
+        lines = 0
+        buffer_size = 1024 * 1024  # 1MB buffer
 
         with open(file_path, 'rb') as f:
-            with tqdm(
-                total=file_size,
-                desc="Counting lines",
-                unit="B",
-                unit_scale=True,
-                ncols=80
-            ) as pbar:
-                lines = 0
-                buffer_size = 1024 * 1024  # 1MB buffer
-
+            if show_progress:
+                with tqdm(
+                    total=file_size,
+                    desc=f"Counting {Path(file_path).name}",
+                    unit="B",
+                    unit_scale=True,
+                    ncols=80,
+                    leave=False
+                ) as pbar:
+                    while True:
+                        buffer = f.read(buffer_size)
+                        if not buffer:
+                            break
+                        lines += buffer.count(b'\n')
+                        pbar.update(len(buffer))
+            else:
+                # Fast count without progress bar
                 while True:
                     buffer = f.read(buffer_size)
                     if not buffer:
                         break
                     lines += buffer.count(b'\n')
-                    pbar.update(len(buffer))
 
-                return lines
+        return lines
+
+    def _is_year_based_directory(self, input_path: str) -> bool:
+        """Check if input path is a year-based directory structure"""
+        path = Path(input_path)
+        if not path.is_dir():
+            return False
+
+        # Check for year subdirectories (2021, 2022, 2023, 2024, etc.)
+        for item in path.iterdir():
+            if item.is_dir() and item.name.isdigit() and len(item.name) == 4:
+                # Check if it contains JSONL files
+                jsonl_files = list(item.glob("*.jsonl"))
+                if jsonl_files:
+                    return True
+        return False
+
+    def _get_year_directories(self, input_path: str, target_year: Optional[int] = None,
+                               start_year: Optional[int] = None) -> List[tuple]:
+        """
+        Get list of year directories with their JSONL files
+
+        Args:
+            input_path: Root directory containing year subdirectories
+            target_year: Optional specific year to process (only this year)
+            start_year: Optional starting year (process this year and all following)
+
+        Returns:
+            List of tuples (year, list_of_jsonl_files)
+        """
+        path = Path(input_path)
+        year_dirs = []
+
+        for item in sorted(path.iterdir()):
+            if item.is_dir() and item.name.isdigit() and len(item.name) == 4:
+                year = int(item.name)
+
+                # Filter by target year if specified (exact match)
+                if target_year and year != target_year:
+                    continue
+
+                # Filter by start year (skip years before start_year)
+                if start_year and year < start_year:
+                    continue
+
+                # Get all JSONL files for this year, sorted by month
+                jsonl_files = sorted(item.glob("*.jsonl"))
+                if jsonl_files:
+                    year_dirs.append((year, [str(f) for f in jsonl_files]))
+
+        return year_dirs
+
+    def _count_lines_in_files(self, files: List[str]) -> int:
+        """Count total lines across multiple files"""
+        total = 0
+        for f in files:
+            total += self._count_lines(f)
+        return total
+
+    def _process_year_files(self, year: int, files: List[str]) -> Dict[str, int]:
+        """
+        Process all JSONL files for a given year
+
+        Args:
+            year: Year being processed
+            files: List of JSONL file paths for this year
+
+        Returns:
+            Dict with statistics (inserted, skipped, failed)
+        """
+        # Count total lines for this year
+        print(f"📊 Counting lines for year {year}...")
+        total_lines = self._count_lines_in_files(files)
+        print(f"   Found {total_lines:,} lines across {len(files)} files")
+
+        year_inserted = 0
+        year_skipped = 0
+        year_failed = 0
+        year_start = datetime.now()
+
+        # Create progress bar for this year (use total_lines or None for unknown)
+        pbar_total = total_lines if total_lines > 0 else None
+        with tqdm(
+            total=pbar_total,
+            desc=f"📅 {year}",
+            unit="rec",
+            ncols=120,
+            bar_format='{l_bar}{bar}| {n_fmt}/{total_fmt} [{elapsed}<{remaining}, {rate_fmt}]'
+        ) as pbar:
+
+            for file_path in files:
+                month_name = Path(file_path).stem  # e.g., "2023-07"
+
+                # Read and process records from file
+                records = []
+                lines_in_file = 0
+
+                with open(file_path, 'r', encoding='utf-8') as f:
+                    for line in f:
+                        lines_in_file += 1
+                        try:
+                            data = json.loads(line.strip())
+                            record = self._parse_dpe_record(data)
+                            if record:
+                                records.append(record)
+                        except Exception as e:
+                            self.logger.debug(f"Error parsing line in {month_name}: {e}")
+                            continue
+
+                if not records:
+                    pbar.update(lines_in_file)
+                    continue
+
+                if self.dry_run:
+                    year_inserted += len(records)
+                    pbar.update(lines_in_file)
+                    continue
+
+                # Split into batches and process
+                batches = []
+                for i in range(0, len(records), self.batch_size):
+                    batch = records[i:i + self.batch_size]
+                    batches.append((i // self.batch_size, batch, self.db_url))
+
+                # Process batches in parallel
+                with ThreadPoolExecutor(max_workers=self.max_workers) as executor:
+                    futures = {
+                        executor.submit(self._insert_batch_worker, batch_data): batch_data
+                        for batch_data in batches
+                    }
+
+                    for future in as_completed(futures):
+                        batch_id, inserted, skipped, error = future.result()
+
+                        if error:
+                            self.logger.error(f"Batch error in {month_name}: {error}")
+                            year_failed += len(batches[batch_id][1])
+                        else:
+                            year_inserted += inserted
+                            year_skipped += skipped
+
+                pbar.update(lines_in_file)
+
+        year_duration = datetime.now() - year_start
+        return {
+            'inserted': year_inserted,
+            'skipped': year_skipped,
+            'failed': year_failed,
+            'duration': year_duration
+        }
+
+    def import_year_based(self, input_path: str, target_year: Optional[int] = None,
+                          start_year: Optional[int] = None) -> None:
+        """
+        Import from year-based directory structure
+
+        Args:
+            input_path: Root directory containing year subdirectories
+            target_year: Optional specific year to process (only this year)
+            start_year: Optional starting year (resume from this year)
+        """
+        year_dirs = self._get_year_directories(input_path, target_year, start_year)
+
+        if not year_dirs:
+            self.logger.error(f"No year directories found in {input_path}")
+            return
+
+        self.stats['years_total'] = len(year_dirs)
+
+        print(f"\n📊 Found {len(year_dirs)} year(s) to process:")
+        for year, files in year_dirs:
+            file_count = len(files)
+            print(f"   {year}: {file_count} file(s)")
+        print()
+
+        # Process each year
+        for year, files in year_dirs:
+            print(f"\n{'='*80}")
+            print(f"📅 Processing year {year} ({len(files)} files)")
+            print(f"{'='*80}")
+
+            result = self._process_year_files(year, files)
+
+            # Store per-year stats
+            self.year_stats[year] = result
+
+            # Update global stats
+            self.stats['records_inserted'] += result['inserted']
+            self.stats['records_skipped'] += result['skipped']
+            self.stats['records_failed'] += result['failed']
+            self.stats['years_processed'] += 1
+
+            # Print one-line summary for this year
+            duration_str = str(result['duration']).split('.')[0]  # Remove microseconds
+            rate = result['inserted'] / max(result['duration'].total_seconds(), 1)
+            print(f"✅ {year}: {result['inserted']:,} inserted, {result['skipped']:,} skipped, "
+                  f"{result['failed']:,} failed | ⏱️ {duration_str} ({rate:.0f} rec/s)")
 
     def partition_by_department(self, input_file: str, output_dir: str,
                                 max_lines: Optional[int] = None,
@@ -476,80 +709,110 @@ class DPERawImporter:
             self.logger.debug(f"Error parsing record: {e}")
             return None
 
-    def _insert_batch_worker(self, batch_data: tuple) -> tuple:
+    def _insert_batch_worker(self, batch_data: tuple, max_retries: int = 3) -> tuple:
         """
-        Worker function to insert a single batch in parallel
+        Worker function to insert a single batch in parallel with retry logic
 
         Args:
             batch_data: Tuple of (batch_id, batch_records, db_url)
+            max_retries: Maximum number of retry attempts on connection errors
 
         Returns:
             Tuple of (batch_id, inserted_count, skipped_count, error)
         """
+        import time as time_module
+
         batch_id, batch, db_url = batch_data
 
-        conn = None
-        try:
-            # Each worker creates its own connection
-            conn = psycopg2.connect(db_url)
-            cursor = conn.cursor()
+        # Prepare insert data once - use ALL fields
+        insert_data = []
+        for record in batch:
+            # Build tuple with all fields in the same order as DPE_RAW_FIELDS
+            row = tuple(record.get(field) for field in DPE_RAW_FIELDS)
+            insert_data.append(row)
 
-            # Use asynchronous commits for better performance
-            cursor.execute("SET synchronous_commit = off")
+        # Generate column list (excluding internal fields like _geopoint, _i, _rand, _score)
+        db_columns = [f for f in DPE_RAW_FIELDS if not f.startswith('_') or f == 'dpe_id']
 
-            # Prepare insert data - use ALL fields
-            insert_data = []
-            for record in batch:
-                # Build tuple with all fields in the same order as DPE_RAW_FIELDS
-                row = tuple(record.get(field) for field in DPE_RAW_FIELDS)
-                insert_data.append(row)
+        # Build INSERT query dynamically
+        columns_str = ', '.join(db_columns)
+        insert_query = f"""
+        INSERT INTO dpe_raw ({columns_str})
+        VALUES %s
+        ON CONFLICT (dpe_id) DO NOTHING
+        """
 
-            # Generate column list (excluding internal fields like _geopoint, _i, _rand, _score)
-            db_columns = [f for f in DPE_RAW_FIELDS if not f.startswith('_') or f == 'dpe_id']
+        # Filter out internal fields from insert data
+        filtered_insert_data = []
+        internal_indices = [i for i, f in enumerate(DPE_RAW_FIELDS) if f.startswith('_') and f != 'dpe_id']
 
-            # Build INSERT query dynamically
-            columns_str = ', '.join(db_columns)
-            insert_query = f"""
-            INSERT INTO dpe_raw ({columns_str})
-            VALUES %s
-            ON CONFLICT (dpe_id) DO NOTHING
-            """
+        for row in insert_data:
+            filtered_row = tuple(v for i, v in enumerate(row) if i not in internal_indices)
+            filtered_insert_data.append(filtered_row)
 
-            # Get count before insert
-            cursor.execute("SELECT COUNT(*) FROM dpe_raw WHERE dpe_id = ANY(%s)",
-                          ([r[DPE_RAW_FIELDS.index('dpe_id')] for r in insert_data],))
-            existing_count = cursor.fetchone()[0]
+        # Retry loop with exponential backoff
+        last_error = None
+        for attempt in range(max_retries):
+            conn = None
+            try:
+                # Each worker creates its own connection with timeout
+                conn = psycopg2.connect(db_url, connect_timeout=30)
+                cursor = conn.cursor()
 
-            # Filter out internal fields from insert data
-            filtered_insert_data = []
-            internal_indices = [i for i, f in enumerate(DPE_RAW_FIELDS) if f.startswith('_') and f != 'dpe_id']
+                # Set statement timeout to avoid hanging
+                cursor.execute("SET statement_timeout = '120s'")
 
-            for row in insert_data:
-                filtered_row = tuple(v for i, v in enumerate(row) if i not in internal_indices)
-                filtered_insert_data.append(filtered_row)
+                # Use asynchronous commits for better performance
+                cursor.execute("SET synchronous_commit = off")
 
-            # Execute insert
-            execute_values(cursor, insert_query, filtered_insert_data, page_size=1000)
+                # Get count before insert
+                cursor.execute("SELECT COUNT(*) FROM dpe_raw WHERE dpe_id = ANY(%s)",
+                              ([r[DPE_RAW_FIELDS.index('dpe_id')] for r in insert_data],))
+                existing_count = cursor.fetchone()[0]
 
-            # Commit
-            conn.commit()
+                # Execute insert
+                execute_values(cursor, insert_query, filtered_insert_data, page_size=1000)
 
-            cursor.close()
-            conn.close()
+                # Commit
+                conn.commit()
 
-            inserted_count = len(insert_data) - existing_count
-            skipped_count = existing_count
+                cursor.close()
+                conn.close()
 
-            return (batch_id, inserted_count, skipped_count, None)
+                inserted_count = len(insert_data) - existing_count
+                skipped_count = existing_count
 
-        except Exception as e:
-            if conn:
-                try:
-                    conn.rollback()
-                    conn.close()
-                except:
-                    pass
-            return (batch_id, 0, 0, str(e))
+                return (batch_id, inserted_count, skipped_count, None)
+
+            except (psycopg2.OperationalError, psycopg2.InterfaceError) as e:
+                # Connection errors - retry with backoff
+                last_error = e
+                if conn:
+                    try:
+                        conn.close()
+                    except:
+                        pass
+
+                if attempt < max_retries - 1:
+                    wait_time = (2 ** attempt) + (attempt * 0.5)  # Exponential backoff: 1s, 2.5s, 5s
+                    self.logger.warning(f"Batch {batch_id} connection error (attempt {attempt + 1}/{max_retries}): {e}")
+                    self.logger.warning(f"Retrying in {wait_time:.1f}s...")
+                    time_module.sleep(wait_time)
+                else:
+                    self.logger.error(f"Batch {batch_id} failed after {max_retries} attempts: {e}")
+
+            except Exception as e:
+                # Other errors - don't retry
+                if conn:
+                    try:
+                        conn.rollback()
+                        conn.close()
+                    except:
+                        pass
+                return (batch_id, 0, 0, str(e))
+
+        # All retries exhausted for connection errors
+        return (batch_id, 0, 0, str(last_error) if last_error else "Unknown error")
 
     def _process_department(self, dept_file: str) -> Dict[str, int]:
         """
@@ -722,8 +985,25 @@ class DPERawImporter:
         print(f"Parallel workers: {self.max_workers}")
         print(f"Batch size: {self.batch_size}")
         print()
-        print("STATISTICS:")
-        print(f"  Departments processed: {self.stats['departments_processed']}/{self.stats['departments_total']}")
+
+        # Show year-based stats if available
+        if self.year_stats:
+            print("STATISTICS BY YEAR:")
+            print("-" * 60)
+            for year in sorted(self.year_stats.keys()):
+                stats = self.year_stats[year]
+                duration_str = str(stats['duration']).split('.')[0]
+                rate = stats['inserted'] / max(stats['duration'].total_seconds(), 1)
+                print(f"  {year}: {stats['inserted']:,} inserted, {stats['skipped']:,} skipped, "
+                      f"{stats['failed']:,} failed ({duration_str}, {rate:.0f}/s)")
+            print("-" * 60)
+            print()
+
+        print("GLOBAL STATISTICS:")
+        if self.stats['years_total'] > 0:
+            print(f"  Years processed: {self.stats['years_processed']}/{self.stats['years_total']}")
+        if self.stats['departments_total'] > 0:
+            print(f"  Departments processed: {self.stats['departments_processed']}/{self.stats['departments_total']}")
         print(f"  Records inserted: {self.stats['records_inserted']:,}")
         print(f"  Records skipped (duplicates): {self.stats['records_skipped']:,}")
         print(f"  Records failed: {self.stats['records_failed']:,}")
@@ -738,20 +1018,26 @@ class DPERawImporter:
         print(f"Detailed logs: {self.log_filename}")
         print("="*80)
 
-    def run(self, input_file: str, output_dir: str = None,
+    def run(self, input_path: str, output_dir: str = None,
             limit: Optional[int] = None, department: Optional[str] = None,
-            sequential: bool = False, start_department: Optional[str] = None):
+            sequential: bool = False, start_department: Optional[str] = None,
+            target_year: Optional[int] = None, start_year: Optional[int] = None):
         """
         Main execution method
 
         Args:
-            input_file: Input JSONL file path
+            input_path: Input JSONL file path or year-based directory
             output_dir: Output directory for partitions (default: auto-generated)
-            limit: Maximum number of lines to process
-            department: Specific department to process
+            limit: Maximum number of lines to process (single file mode only)
+            department: Specific department to process (single file mode only)
             sequential: If True, process departments one at a time
-            start_department: Starting department code
+            start_department: Starting department code (single file mode only)
+            target_year: Specific year to process (year-based mode only)
+            start_year: Starting year for resume (year-based mode only)
         """
+        # Detect input type
+        is_year_based = self._is_year_based_directory(input_path)
+
         # Set default output directory
         if not output_dir:
             timestamp = datetime.now().strftime("%Y%m%d")
@@ -760,18 +1046,29 @@ class DPERawImporter:
         print("="*80)
         print("DPE RAW DATA IMPORTER")
         print("="*80)
-        print(f"Input file: {input_file}")
-        print(f"Output directory: {output_dir}")
+        print(f"Input: {input_path}")
+        print(f"Input type: {'Year-based directory' if is_year_based else 'Single JSONL file'}")
         print(f"Mode: {'DRY RUN' if self.dry_run else 'PRODUCTION'}")
         print(f"Workers: {self.max_workers}")
         print(f"Batch size: {self.batch_size}")
         print(f"Truncate table: {'YES ⚠️' if self.truncate else 'NO'}")
-        print(f"Record limit: {limit if limit else 'ALL'}")
-        if department:
-            print(f"Target department: {department}")
-        if start_department:
-            print(f"Starting from department: {start_department}")
-        print(f"Processing mode: {'Sequential' if sequential or department else 'Parallel'}")
+
+        if is_year_based:
+            if target_year:
+                print(f"Target year: {target_year}")
+            elif start_year:
+                print(f"Starting from year: {start_year}")
+            else:
+                print("Target year: ALL")
+        else:
+            print(f"Output directory: {output_dir}")
+            print(f"Record limit: {limit if limit else 'ALL'}")
+            if department:
+                print(f"Target department: {department}")
+            if start_department:
+                print(f"Starting from department: {start_department}")
+            print(f"Processing mode: {'Sequential' if sequential or department else 'Parallel'}")
+
         print("="*80)
         print()
 
@@ -798,24 +1095,33 @@ class DPERawImporter:
                     sys.exit(1)
                 print()
 
-            # Step 1: Partition by department
-            print("Step 1: Partitioning by department...")
-            dept_files = self.partition_by_department(
-                input_file, output_dir, limit, department
-            )
+            # Branch based on input type
+            if is_year_based:
+                # Year-based directory processing
+                print("📅 Year-based import mode")
+                self.import_year_based(input_path, target_year, start_year)
+            else:
+                # Legacy single file mode with department partitioning
+                print("📁 Single file import mode (department partitioning)")
 
-            if not dept_files:
-                self.logger.error("No department files generated!")
-                sys.exit(1)
+                # Step 1: Partition by department
+                print("\nStep 1: Partitioning by department...")
+                dept_files = self.partition_by_department(
+                    input_path, output_dir, limit, department
+                )
 
-            print(f"\n✅ Created {len(dept_files)} department partition(s)")
-            print()
+                if not dept_files:
+                    self.logger.error("No department files generated!")
+                    sys.exit(1)
 
-            # Step 2: Import departments
-            print("Step 2: Importing to database...")
-            self.import_departments(dept_files, sequential, start_department)
+                print(f"\n✅ Created {len(dept_files)} department partition(s)")
+                print()
 
-            # Step 3: Print report
+                # Step 2: Import departments
+                print("Step 2: Importing to database...")
+                self.import_departments(dept_files, sequential, start_department)
+
+            # Print final report
             self.print_report()
 
         except KeyboardInterrupt:
@@ -837,7 +1143,16 @@ def main():
         formatter_class=argparse.RawDescriptionHelpFormatter,
         epilog="""
 Examples:
-  # Import all departments in parallel
+  # Import from year-based directory structure (recommended)
+  python import_dpe_raw.py /path/to/dpe_split --db-url "postgresql://user:pass@localhost:5432/db"
+
+  # Import specific year only
+  python import_dpe_raw.py /path/to/dpe_split --year 2023 --db-url "$DATABASE_URL"
+
+  # Resume from year 2023 (imports 2023, 2024, etc.)
+  python import_dpe_raw.py /path/to/dpe_split --start-year 2023 --db-url "$DATABASE_URL"
+
+  # Import from single JSONL file (legacy mode)
   python import_dpe_raw.py data.jsonl --db-url "postgresql://user:pass@localhost:5432/db"
 
   # Import all departments sequentially
@@ -855,18 +1170,22 @@ Examples:
     )
 
     # Main arguments
-    parser.add_argument('input_file', help='Input JSONL file')
-    parser.add_argument('--output-dir', help='Output directory for partitions')
-    parser.add_argument('--limit', type=int, help='Maximum number of lines to process (default: all)')
+    parser.add_argument('input_path', help='Input JSONL file or year-based directory')
+    parser.add_argument('--output-dir', help='Output directory for partitions (single file mode)')
+    parser.add_argument('--limit', type=int, help='Maximum number of lines to process (single file mode)')
     parser.add_argument('--dry-run', action='store_true', help='Simulation mode (no DB modifications)')
     parser.add_argument('--truncate', action='store_true',
                        help='Truncate table before import (WARNING: deletes all existing data)')
 
-    # Department filtering
+    # Year-based mode
+    parser.add_argument('--year', type=int, help='Specific year to process (year-based mode)')
+    parser.add_argument('--start-year', type=int, help='Starting year for resume (year-based mode)')
+
+    # Department filtering (single file mode)
     parser.add_argument('--department', '--dept', type=str,
-                       help='Specific department code to process (e.g., 75, 01, 2A)')
+                       help='Specific department code to process (e.g., 75, 01, 2A) - single file mode')
     parser.add_argument('--start-department', '--start-dept', type=str,
-                       help='Starting department code when processing multiple (e.g., 50, 2A)')
+                       help='Starting department code when processing multiple - single file mode')
     parser.add_argument('--sequential', action='store_true',
                        help='Process departments one at a time instead of in parallel')
 
@@ -888,6 +1207,8 @@ Examples:
     # Validate arguments
     if args.start_department and args.department:
         parser.error("--start-department cannot be used with --department")
+    if args.start_year and args.year:
+        parser.error("--start-year cannot be used with --year")
 
     # Initialize importer
     importer = DPERawImporter(
@@ -907,12 +1228,14 @@ Examples:
     # Run import
     try:
         importer.run(
-            input_file=args.input_file,
+            input_path=args.input_path,
             output_dir=args.output_dir,
             limit=args.limit,
             department=args.department,
             sequential=args.sequential,
-            start_department=args.start_department
+            start_department=args.start_department,
+            target_year=args.year,
+            start_year=args.start_year
         )
         print("\n✅ Import completed successfully")
     except Exception as e:

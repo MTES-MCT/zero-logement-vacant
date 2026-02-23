@@ -9,18 +9,9 @@
  */
 import { vi } from 'vitest';
 
-// const { TextDecoder, TextEncoder } = require('node:util');
-// const { ReadableStream, TransformStream } = require('node:stream/web');
-
-// Object.defineProperties(globalThis, {
-//   ReadableStream: { value: ReadableStream },
-//   TransformStream: { value: TransformStream },
-//   TextDecoder: { value: TextDecoder },
-//   TextEncoder: { value: TextEncoder }
-// });
-//
-import { Blob, File } from 'node:buffer';
 import { fetch, Headers, FormData, Request, Response } from 'undici';
+import { Blob } from '@web-std/blob';
+import { File } from '@web-std/file';
 
 Object.defineProperties(globalThis, {
   fetch: { value: fetch, writable: true },

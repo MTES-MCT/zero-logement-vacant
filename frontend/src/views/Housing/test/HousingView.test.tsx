@@ -3,6 +3,7 @@ import { render, screen, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import {
   type DocumentDTO,
+  type EstablishmentDTO,
   type HousingDTO,
   type HousingOwnerDTO,
   HousingStatus,
@@ -15,6 +16,7 @@ import {
 } from '@zerologementvacant/models';
 import {
   genDocumentDTO,
+  genEstablishmentDTO,
   genHousingDTO,
   genHousingOwnerDTO,
   genNoteDTO,
@@ -27,6 +29,7 @@ import { Provider } from 'react-redux';
 import { createMemoryRouter, RouterProvider } from 'react-router-dom';
 
 import data from '~/mocks/handlers/data';
+import { fromEstablishmentDTO } from '~/models/Establishment';
 import { fromUserDTO } from '~/models/User';
 import { genAuthUser } from '~/test/fixtures';
 import configureTestStore from '~/utils/storeUtils';
@@ -36,7 +39,8 @@ describe('Housing view', () => {
   const user = userEvent.setup();
 
   interface RenderViewOptions {
-    user?: UserDTO;
+    establishment: EstablishmentDTO;
+    auth: UserDTO;
     owners?: ReadonlyArray<OwnerDTO>;
     housingOwners?: ReadonlyArray<HousingOwnerDTO>;
     notes?: ReadonlyArray<NoteDTO>;
@@ -47,7 +51,7 @@ describe('Housing view', () => {
     createHousing?: boolean;
   }
 
-  function renderView(housing: HousingDTO, options?: RenderViewOptions) {
+  function renderView(housing: HousingDTO, options: RenderViewOptions) {
     const createHousing = options?.createHousing ?? true;
     if (housing && createHousing) {
       data.housings.push(housing);
@@ -72,9 +76,13 @@ describe('Housing view', () => {
       data.housingDocuments.set(housing.id, options.documents);
     }
 
-    const user = options?.user ?? genUserDTO(UserRole.USUAL);
-    const auth = genAuthUser(fromUserDTO(user));
-    const store = configureTestStore({ auth });
+    const { auth, establishment } = options;
+    data.users.push(auth);
+    data.establishments.push(establishment);
+
+    const store = configureTestStore({
+      auth: genAuthUser(fromUserDTO(auth), fromEstablishmentDTO(establishment))
+    });
     const router = createMemoryRouter(
       [{ path: '/housing/:housingId', element: <HousingView /> }],
       {
@@ -89,10 +97,13 @@ describe('Housing view', () => {
   }
 
   it('should throw an error if the housing is missing', async () => {
-    const owner = genOwnerDTO();
-    const missingHousing = genHousingDTO(owner);
+    const establishment = genEstablishmentDTO();
+    const auth = genUserDTO(UserRole.USUAL, establishment);
+    const missingHousing = genHousingDTO();
 
     renderView(missingHousing, {
+      auth,
+      establishment,
       createHousing: false
     });
 
@@ -103,10 +114,14 @@ describe('Housing view', () => {
   });
 
   it('should display the main owner', async () => {
+    const establishment = genEstablishmentDTO();
+    const auth = genUserDTO(UserRole.USUAL, establishment);
     const owner = genOwnerDTO();
-    const housing = genHousingDTO(owner);
+    const housing = genHousingDTO();
 
     renderView(housing, {
+      auth,
+      establishment,
       owners: [owner],
       housingOwners: [{ ...genHousingOwnerDTO(owner), rank: 1 as OwnerRank }]
     });
@@ -116,18 +131,20 @@ describe('Housing view', () => {
   });
 
   it('should allow users to modify owners', async () => {
-    const housing = genHousingDTO(null);
+    const housing = genHousingDTO();
     const owner = genOwnerDTO();
     const housingOwner: HousingOwnerDTO = {
       ...genHousingOwnerDTO(owner),
       rank: 1
     };
-    const auth = genUserDTO(UserRole.USUAL);
+    const establishment = genEstablishmentDTO();
+    const auth = genUserDTO(UserRole.USUAL, establishment);
 
     renderView(housing, {
       owners: [owner],
       housingOwners: [housingOwner],
-      user: auth
+      auth: auth,
+      establishment: establishment
     });
 
     const modify = await screen.findByTitle('Modifier les propriétaires');
@@ -135,15 +152,17 @@ describe('Housing view', () => {
   });
 
   it('should hide the button to edit owners from visitors', async () => {
-    const housing = genHousingDTO(null);
+    const housing = genHousingDTO();
     const owner = genOwnerDTO();
     const housingOwner = genHousingOwnerDTO(owner);
-    const auth = genUserDTO(UserRole.VISITOR);
+    const establishment = genEstablishmentDTO();
+    const auth = genUserDTO(UserRole.VISITOR, establishment);
 
     renderView(housing, {
       owners: [owner],
       housingOwners: [housingOwner],
-      user: auth
+      auth: auth,
+      establishment: establishment
     });
 
     const name = await screen.findByText(owner.fullName);
@@ -155,11 +174,16 @@ describe('Housing view', () => {
   describe('Show housing details', () => {
     describe('Vacancy start year', () => {
       it('should be unknown', async () => {
-        const housing = genHousingDTO(null);
+        const establishment = genEstablishmentDTO();
+        const auth = genUserDTO(UserRole.USUAL, establishment);
+        const housing = genHousingDTO();
         housing.occupancy = Occupancy.RENT;
         housing.vacancyStartYear = null;
 
-        renderView(housing);
+        renderView(housing, {
+          auth,
+          establishment
+        });
 
         const vacancyStartYear = await screen.findByLabelText(
           'Année de début de vacance déclarée'
@@ -168,11 +192,17 @@ describe('Housing view', () => {
       });
 
       it('should be defined', async () => {
-        const housing = genHousingDTO(null);
+        const housing = genHousingDTO();
         housing.occupancy = Occupancy.VACANT;
         housing.vacancyStartYear = new Date().getFullYear() - 1;
 
-        renderView(housing);
+        const establishment = genEstablishmentDTO();
+        const auth = genUserDTO(UserRole.USUAL, establishment);
+
+        renderView(housing, {
+          auth,
+          establishment
+        });
 
         const vacancyStartYear = await screen
           .findByText(/^Année de début de vacance déclarée/)
@@ -185,10 +215,15 @@ describe('Housing view', () => {
 
     describe('Source', () => {
       it('should be "Fichiers fonciers (2023)"', async () => {
-        const housing = genHousingDTO(null);
+        const housing = genHousingDTO();
         housing.dataFileYears = ['ff-2023-locatif'];
+        const establishment = genEstablishmentDTO();
+        const auth = genUserDTO(UserRole.USUAL, establishment);
 
-        renderView(housing);
+        renderView(housing, {
+          auth,
+          establishment
+        });
 
         const source = await screen.findByText(/^Source des informations/);
         expect(source).toHaveTextContent('Fichiers fonciers (2023)');
@@ -200,13 +235,19 @@ describe('Housing view', () => {
     it.todo('should hide the edit button from visitors');
 
     it('should update the occupancy', async () => {
-      const housing = genHousingDTO(null);
+      const housing = genHousingDTO();
       housing.status = HousingStatus.NEVER_CONTACTED;
       housing.subStatus = null;
       housing.occupancy = Occupancy.VACANT;
       housing.occupancyIntended = null;
 
-      renderView(housing);
+      const establishment = genEstablishmentDTO();
+      const auth = genUserDTO(UserRole.USUAL, establishment);
+
+      renderView(housing, {
+        auth,
+        establishment
+      });
 
       const update = await screen.findByRole('button', {
         name: /Éditer/,
@@ -214,7 +255,7 @@ describe('Housing view', () => {
       });
       await user.click(update);
       const panel = await screen.findByRole('tabpanel', {
-        name: 'Occupation'
+        name: 'Informations sur le logement'
       });
       const occupancy = await within(panel).findByLabelText(
         'Occupation actuelle'
@@ -234,13 +275,19 @@ describe('Housing view', () => {
     });
 
     it('should update the status', async () => {
-      const housing = genHousingDTO(null);
+      const housing = genHousingDTO();
       housing.status = HousingStatus.NEVER_CONTACTED;
       housing.subStatus = null;
       housing.occupancy = Occupancy.VACANT;
       housing.occupancyIntended = null;
 
-      renderView(housing);
+      const establishment = genEstablishmentDTO();
+      const auth = genUserDTO(UserRole.USUAL, establishment);
+
+      renderView(housing, {
+        auth,
+        establishment
+      });
 
       const [update] = await screen.findAllByRole('button', {
         name: /Éditer/
@@ -275,13 +322,19 @@ describe('Housing view', () => {
     });
 
     it('should create a note', async () => {
-      const housing = genHousingDTO(null);
+      const housing = genHousingDTO();
       housing.status = HousingStatus.NEVER_CONTACTED;
       housing.subStatus = null;
       housing.occupancy = Occupancy.VACANT;
       housing.occupancyIntended = null;
 
-      renderView(housing);
+      const establishment = genEstablishmentDTO();
+      const auth = genUserDTO(UserRole.USUAL, establishment);
+
+      renderView(housing, {
+        auth,
+        establishment
+      });
 
       const [update] = await screen.findAllByRole('button', {
         name: /Éditer/
@@ -315,7 +368,7 @@ describe('Housing view', () => {
   describe('Update housing precisions', () => {
     it('should save precisions when "Enregistrer" is clicked in sidebar', async () => {
       const owner = genOwnerDTO();
-      const housing = genHousingDTO(owner);
+      const housing = genHousingDTO();
       const housingOwner: HousingOwnerDTO = {
         ...genHousingOwnerDTO(owner),
         rank: 1 as OwnerRank
@@ -325,7 +378,12 @@ describe('Housing view', () => {
       housing.occupancy = Occupancy.VACANT;
       housing.occupancyIntended = null;
 
+      const establishment = genEstablishmentDTO();
+      const auth = genUserDTO(UserRole.USUAL, establishment);
+
       renderView(housing, {
+        auth,
+        establishment,
         owners: [owner],
         housingOwners: [housingOwner]
       });
@@ -369,7 +427,11 @@ describe('Housing view', () => {
       });
       await user.click(confirmButton);
 
-      expect(screen.queryByRole('dialog')).not.toBeInTheDocument();
+      expect(
+        screen.queryByRole('dialog', {
+          name: 'Précisez la situation du logement'
+        })
+      ).not.toBeInTheDocument();
 
       const saveButton = await screen.findByRole('button', {
         name: 'Enregistrer'
@@ -381,7 +443,7 @@ describe('Housing view', () => {
     });
 
     it('should reset precisions when sidebar is closed without saving', async () => {
-      const housing = genHousingDTO(null);
+      const housing = genHousingDTO();
       housing.status = HousingStatus.NEVER_CONTACTED;
       housing.subStatus = null;
       housing.occupancy = Occupancy.VACANT;
@@ -395,7 +457,13 @@ describe('Housing view', () => {
         existingPrecisions.map((precision) => precision.id)
       );
 
-      renderView(housing);
+      const establishment = genEstablishmentDTO();
+      const auth = genUserDTO(UserRole.USUAL, establishment);
+
+      renderView(housing, {
+        auth,
+        establishment
+      });
 
       const [update] = await screen.findAllByRole('button', {
         name: /Éditer/
@@ -466,7 +534,7 @@ describe('Housing view', () => {
 
     it('should not save precisions if they are not modified', async () => {
       const owner = genOwnerDTO();
-      const housing = genHousingDTO(owner);
+      const housing = genHousingDTO();
       const housingOwner: HousingOwnerDTO = {
         ...genHousingOwnerDTO(owner),
         rank: 1 as OwnerRank
@@ -484,7 +552,12 @@ describe('Housing view', () => {
         ...(data.housingPrecisions.get(housing.id) ?? [])
       ];
 
+      const establishment = genEstablishmentDTO();
+      const auth = genUserDTO(UserRole.USUAL, establishment);
+
       renderView(housing, {
+        auth,
+        establishment,
         owners: [owner],
         housingOwners: [housingOwner]
       });
@@ -509,7 +582,7 @@ describe('Housing view', () => {
 
     it('should save both housing fields and precisions atomically', async () => {
       const owner = genOwnerDTO();
-      const housing = genHousingDTO(owner);
+      const housing = genHousingDTO();
       const housingOwner: HousingOwnerDTO = {
         ...genHousingOwnerDTO(owner),
         rank: 1 as OwnerRank
@@ -519,7 +592,12 @@ describe('Housing view', () => {
       housing.occupancy = Occupancy.VACANT;
       housing.occupancyIntended = null;
 
+      const establishment = genEstablishmentDTO();
+      const auth = genUserDTO(UserRole.USUAL, establishment);
+
       renderView(housing, {
+        auth,
+        establishment,
         owners: [owner],
         housingOwners: [housingOwner]
       });
@@ -530,11 +608,11 @@ describe('Housing view', () => {
       await user.click(update);
 
       const occupancyTab = await screen.findByRole('tab', {
-        name: 'Occupation'
+        name: 'Informations sur le logement'
       });
       await user.click(occupancyTab);
       const occupancyPanel = await screen.findByRole('tabpanel', {
-        name: 'Occupation'
+        name: 'Informations sur le logement'
       });
       const occupancy = await within(occupancyPanel).findByLabelText(
         'Occupation actuelle'
@@ -595,11 +673,13 @@ describe('Housing view', () => {
 
   describe('Add a note', () => {
     it('should add a note', async () => {
-      const housing = genHousingDTO(null);
-      const auth = genUserDTO(UserRole.USUAL);
+      const housing = genHousingDTO();
+      const establishment = genEstablishmentDTO();
+      const auth = genUserDTO(UserRole.USUAL, establishment);
 
       renderView(housing, {
-        user: auth,
+        auth,
+        establishment,
         notes: []
       });
 
@@ -626,13 +706,15 @@ describe('Housing view', () => {
 
   describe('Filter the event history', () => {
     it('should filter by event type', async () => {
-      const housing = genHousingDTO(null);
-      const creator = genUserDTO(UserRole.USUAL);
+      const housing = genHousingDTO();
+      const establishment = genEstablishmentDTO();
+      const creator = genUserDTO(UserRole.USUAL, establishment);
       const note = genNoteDTO(creator);
 
       renderView(housing, {
-        notes: [note],
-        user: creator
+        auth: creator,
+        establishment,
+        notes: [note]
       });
 
       const tab = await screen.findByRole('tab', {
@@ -660,13 +742,15 @@ describe('Housing view', () => {
     });
 
     it('should filter by creator', async () => {
-      const housing = genHousingDTO(null);
-      const creator = genUserDTO(UserRole.USUAL);
+      const housing = genHousingDTO();
+      const establishment = genEstablishmentDTO();
+      const creator = genUserDTO(UserRole.USUAL, establishment);
       const note = genNoteDTO(creator);
 
       renderView(housing, {
-        notes: [note],
-        user: creator
+        auth: creator,
+        establishment,
+        notes: [note]
       });
 
       const tab = await screen.findByRole('tab', {
@@ -679,7 +763,7 @@ describe('Housing view', () => {
       await user.click(author);
       const options = await screen.findByRole('listbox');
       const option = await within(options).findByRole('option', {
-        name: `${creator.firstName} ${creator.lastName}`
+        name: new RegExp(`^${creator.firstName} ${creator.lastName}`)
       });
       await user.click(option);
       await user.keyboard('{Escape}');
@@ -688,20 +772,24 @@ describe('Housing view', () => {
       });
       notes.forEach((note) => {
         expect(
-          within(note).queryByText(`${creator.firstName} ${creator.lastName}`)
+          within(note).queryByText(
+            new RegExp(`^${creator.firstName} ${creator.lastName}`)
+          )
         ).toBeInTheDocument();
       });
     });
 
     it('should filter by date', async () => {
-      const housing = genHousingDTO(null);
-      const creator = genUserDTO(UserRole.USUAL);
+      const housing = genHousingDTO();
+      const establishment = genEstablishmentDTO();
+      const creator = genUserDTO(UserRole.USUAL, establishment);
       const note = genNoteDTO(creator);
       note.createdAt = '2000-01-01T12:00:00Z';
 
       renderView(housing, {
-        notes: [note],
-        user: creator
+        auth: creator,
+        establishment,
+        notes: [note]
       });
 
       const tab = await screen.findByRole('tab', {
@@ -722,13 +810,15 @@ describe('Housing view', () => {
     });
 
     it('should reset filters', async () => {
-      const housing = genHousingDTO(null);
-      const creator = genUserDTO(UserRole.USUAL);
+      const housing = genHousingDTO();
+      const establishment = genEstablishmentDTO();
+      const creator = genUserDTO(UserRole.USUAL, establishment);
       const note = genNoteDTO(creator);
 
       renderView(housing, {
-        notes: [note],
-        user: creator
+        auth: creator,
+        establishment,
+        notes: [note]
       });
 
       const tab = await screen.findByRole('tab', {
@@ -758,13 +848,15 @@ describe('Housing view', () => {
 
   describe('Edit a note', () => {
     it('should edit the note', async () => {
-      const housing = genHousingDTO(null);
-      const admin = genUserDTO(UserRole.ADMIN);
+      const housing = genHousingDTO();
+      const establishment = genEstablishmentDTO();
+      const admin = genUserDTO(UserRole.ADMIN, establishment);
       const note = genNoteDTO(admin);
 
       renderView(housing, {
-        notes: [note],
-        user: admin
+        auth: admin,
+        establishment,
+        notes: [note]
       });
 
       const history = await screen.findByRole('tab', {
@@ -789,14 +881,16 @@ describe('Housing view', () => {
     });
 
     it('should be invisible to a non-admin user who is not the creator of the note', async () => {
-      const housing = genHousingDTO(null);
-      const creator = genUserDTO(UserRole.USUAL);
+      const housing = genHousingDTO();
+      const establishment = genEstablishmentDTO();
+      const creator = genUserDTO(UserRole.USUAL, establishment);
       const note = genNoteDTO(creator);
-      const auth = genUserDTO(UserRole.USUAL);
+      const auth = genUserDTO(UserRole.USUAL, establishment);
 
       renderView(housing, {
-        notes: [note],
-        user: auth
+        auth,
+        establishment,
+        notes: [note]
       });
 
       const history = await screen.findByRole('tab', {
@@ -816,13 +910,15 @@ describe('Housing view', () => {
     it.todo('should be invisible to a common user who did not create the note');
 
     it('should allow the creator to remove their note', async () => {
-      const creator = genUserDTO(UserRole.USUAL);
-      const housing = genHousingDTO(null);
+      const establishment = genEstablishmentDTO();
+      const creator = genUserDTO(UserRole.USUAL, establishment);
+      const housing = genHousingDTO();
       const note = genNoteDTO(creator);
 
       renderView(housing, {
-        notes: [note],
-        user: creator
+        auth: creator,
+        establishment,
+        notes: [note]
       });
 
       const history = await screen.findByRole('tab', {
@@ -848,12 +944,14 @@ describe('Housing view', () => {
 
   describe('View documents', () => {
     it('should display a message if there is no document', async () => {
-      const housing = genHousingDTO(null);
-      const auth = genUserDTO(UserRole.USUAL);
+      const housing = genHousingDTO();
+      const establishment = genEstablishmentDTO();
+      const auth = genUserDTO(UserRole.USUAL, establishment);
 
       renderView(housing, {
-        documents: [],
-        user: auth
+        auth,
+        establishment,
+        documents: []
       });
 
       const tab = await screen.findByRole('tab', {
@@ -870,13 +968,17 @@ describe('Housing view', () => {
     });
 
     it('should display documents', async () => {
-      const housing = genHousingDTO(null);
-      const auth = genUserDTO(UserRole.USUAL);
-      const documents = faker.helpers.multiple(() => genDocumentDTO(auth));
+      const housing = genHousingDTO();
+      const establishment = genEstablishmentDTO();
+      const auth = genUserDTO(UserRole.USUAL, establishment);
+      const documents = faker.helpers.multiple(() =>
+        genDocumentDTO(auth, establishment)
+      );
 
       renderView(housing, {
-        documents,
-        user: auth
+        auth,
+        establishment,
+        documents
       });
 
       const tab = await screen.findByRole('tab', {
@@ -897,13 +999,15 @@ describe('Housing view', () => {
 
   describe('Rename a document', () => {
     it('should rename a document', async () => {
-      const housing = genHousingDTO(null);
-      const auth = genUserDTO(UserRole.USUAL);
-      const document = genDocumentDTO(auth);
+      const housing = genHousingDTO();
+      const establishment = genEstablishmentDTO();
+      const auth = genUserDTO(UserRole.USUAL, establishment);
+      const document = genDocumentDTO(auth, establishment);
 
       renderView(housing, {
-        documents: [document],
-        user: auth
+        auth,
+        establishment,
+        documents: [document]
       });
 
       const tab = await screen.findByRole('tab', {
@@ -940,14 +1044,55 @@ describe('Housing view', () => {
     });
 
     it('should be invisible to a visitor', async () => {
-      const housing = genHousingDTO(null);
-      const creator = genUserDTO(UserRole.USUAL);
-      const document = genDocumentDTO(creator);
-      const visitor = genUserDTO(UserRole.VISITOR);
+      const housing = genHousingDTO();
+      const establishment = genEstablishmentDTO();
+      const creator = genUserDTO(UserRole.USUAL, establishment);
+      const document = genDocumentDTO(creator, establishment);
+      const visitor = genUserDTO(UserRole.VISITOR, establishment);
 
       renderView(housing, {
-        documents: [document],
-        user: visitor
+        auth: visitor,
+        establishment,
+        documents: [document]
+      });
+
+      const tab = await screen.findByRole('tab', {
+        name: 'Documents'
+      });
+      await user.click(tab);
+      const tabpanel = await screen.findByRole('tabpanel', {
+        name: 'Documents'
+      });
+      const name = await within(tabpanel).findByText(
+        new RegExp(document.filename, 'i')
+      );
+      expect(name).toBeVisible();
+
+      const dropdown = await within(tabpanel).findByRole('button', {
+        name: 'Options'
+      });
+      await user.click(dropdown);
+
+      expect(
+        screen.queryByRole('button', { name: 'Renommer' })
+      ).not.toBeInTheDocument();
+    });
+
+    it('should be invisible to a user from a different establishment', async () => {
+      const housing = genHousingDTO();
+      const establishmentA = genEstablishmentDTO();
+      const creator = genUserDTO(UserRole.USUAL, establishmentA);
+      const document = genDocumentDTO(creator, establishmentA);
+      const establishmentB = genEstablishmentDTO();
+      const userFromOtherEstablishment = genUserDTO(
+        UserRole.USUAL,
+        establishmentB
+      );
+
+      renderView(housing, {
+        auth: userFromOtherEstablishment,
+        establishment: establishmentB,
+        documents: [document]
       });
 
       const tab = await screen.findByRole('tab', {
@@ -975,13 +1120,15 @@ describe('Housing view', () => {
 
   describe('Delete a document', () => {
     it('should delete a document', async () => {
-      const housing = genHousingDTO(null);
-      const auth = genUserDTO(UserRole.USUAL);
-      const document = genDocumentDTO(auth);
+      const housing = genHousingDTO();
+      const establishment = genEstablishmentDTO();
+      const auth = genUserDTO(UserRole.USUAL, establishment);
+      const document = genDocumentDTO(auth, establishment);
 
       renderView(housing, {
-        documents: [document],
-        user: auth
+        auth,
+        establishment,
+        documents: [document]
       });
 
       const tab = await screen.findByRole('tab', {
@@ -1013,14 +1160,55 @@ describe('Housing view', () => {
     });
 
     it('should be invisible to a visitor', async () => {
-      const housing = genHousingDTO(null);
-      const creator = genUserDTO(UserRole.USUAL);
-      const document = genDocumentDTO(creator);
-      const visitor = genUserDTO(UserRole.VISITOR);
+      const housing = genHousingDTO();
+      const establishment = genEstablishmentDTO();
+      const creator = genUserDTO(UserRole.USUAL, establishment);
+      const document = genDocumentDTO(creator, establishment);
+      const visitor = genUserDTO(UserRole.VISITOR, establishment);
 
       renderView(housing, {
-        documents: [document],
-        user: visitor
+        auth: visitor,
+        establishment,
+        documents: [document]
+      });
+
+      const tab = await screen.findByRole('tab', {
+        name: 'Documents'
+      });
+      await user.click(tab);
+      const tabpanel = await screen.findByRole('tabpanel', {
+        name: 'Documents'
+      });
+      const name = await within(tabpanel).findByText(
+        new RegExp(document.filename, 'i')
+      );
+      expect(name).toBeVisible();
+
+      const dropdown = await within(tabpanel).findByRole('button', {
+        name: 'Options'
+      });
+      await user.click(dropdown);
+
+      expect(
+        screen.queryByRole('button', { name: 'Supprimer' })
+      ).not.toBeInTheDocument();
+    });
+
+    it('should be invisible to a user from a different establishment', async () => {
+      const housing = genHousingDTO();
+      const establishmentA = genEstablishmentDTO();
+      const establishmentB = genEstablishmentDTO();
+      const creator = genUserDTO(UserRole.USUAL, establishmentA);
+      const document = genDocumentDTO(creator, establishmentA);
+      const userFromOtherEstablishment = genUserDTO(
+        UserRole.USUAL,
+        establishmentB
+      );
+
+      renderView(housing, {
+        auth: userFromOtherEstablishment,
+        establishment: establishmentB,
+        documents: [document]
       });
 
       const tab = await screen.findByRole('tab', {
@@ -1048,13 +1236,15 @@ describe('Housing view', () => {
 
   describe('Visualize documents in fullscreen', () => {
     it('should open fullscreen preview when clicking visualize', async () => {
-      const housing = genHousingDTO(null);
-      const auth = genUserDTO(UserRole.USUAL);
-      const document = genDocumentDTO(auth);
+      const housing = genHousingDTO();
+      const establishment = genEstablishmentDTO();
+      const auth = genUserDTO(UserRole.USUAL, establishment);
+      const document = genDocumentDTO(auth, establishment);
 
       renderView(housing, {
-        documents: [document],
-        user: auth
+        auth,
+        establishment,
+        documents: [document]
       });
 
       const tab = await screen.findByRole('tab', {
@@ -1078,17 +1268,19 @@ describe('Housing view', () => {
     });
 
     it('should cycle through multiple documents in fullscreen', async () => {
-      const housing = genHousingDTO(null);
-      const auth = genUserDTO(UserRole.USUAL);
+      const housing = genHousingDTO();
+      const establishment = genEstablishmentDTO();
+      const auth = genUserDTO(UserRole.USUAL, establishment);
       const documents = [
-        genDocumentDTO(auth),
-        genDocumentDTO(auth),
-        genDocumentDTO(auth)
+        genDocumentDTO(auth, establishment),
+        genDocumentDTO(auth, establishment),
+        genDocumentDTO(auth, establishment)
       ];
 
       renderView(housing, {
-        documents,
-        user: auth
+        auth,
+        establishment,
+        documents
       });
 
       const tab = await screen.findByRole('tab', {
@@ -1138,13 +1330,15 @@ describe('Housing view', () => {
     });
 
     it('should close fullscreen preview with close button', async () => {
-      const housing = genHousingDTO(null);
-      const auth = genUserDTO(UserRole.USUAL);
-      const document = genDocumentDTO(auth);
+      const housing = genHousingDTO();
+      const establishment = genEstablishmentDTO();
+      const auth = genUserDTO(UserRole.USUAL, establishment);
+      const document = genDocumentDTO(auth, establishment);
 
       renderView(housing, {
-        documents: [document],
-        user: auth
+        auth,
+        establishment,
+        documents: [document]
       });
 
       const tab = await screen.findByRole('tab', {
@@ -1176,13 +1370,15 @@ describe('Housing view', () => {
     });
 
     it('should close fullscreen preview', async () => {
-      const housing = genHousingDTO(null);
-      const auth = genUserDTO(UserRole.USUAL);
-      const document = genDocumentDTO(auth);
+      const housing = genHousingDTO();
+      const establishment = genEstablishmentDTO();
+      const auth = genUserDTO(UserRole.USUAL, establishment);
+      const document = genDocumentDTO(auth, establishment);
 
       renderView(housing, {
-        documents: [document],
-        user: auth
+        auth,
+        establishment,
+        documents: [document]
       });
 
       const tab = await screen.findByRole('tab', {
@@ -1213,13 +1409,15 @@ describe('Housing view', () => {
 
   describe('Download documents', () => {
     it('should show download button in dropdown', async () => {
-      const housing = genHousingDTO(null);
-      const auth = genUserDTO(UserRole.USUAL);
-      const document = genDocumentDTO(auth);
+      const housing = genHousingDTO();
+      const establishment = genEstablishmentDTO();
+      const auth = genUserDTO(UserRole.USUAL, establishment);
+      const document = genDocumentDTO(auth, establishment);
 
       renderView(housing, {
-        documents: [document],
-        user: auth
+        auth,
+        establishment,
+        documents: [document]
       });
 
       const tab = await screen.findByRole('tab', {
@@ -1241,18 +1439,20 @@ describe('Housing view', () => {
     });
 
     it('should show download button in fullscreen preview for unsupported file types', async () => {
-      const housing = genHousingDTO(null);
-      const auth = genUserDTO(UserRole.USUAL);
+      const housing = genHousingDTO();
+      const establishment = genEstablishmentDTO();
+      const auth = genUserDTO(UserRole.USUAL, establishment);
       // Create a document with an unsupported type (not image or PDF)
       const document: DocumentDTO = {
-        ...genDocumentDTO(auth),
+        ...genDocumentDTO(auth, establishment),
         contentType: 'application/vnd.ms-excel',
         filename: 'document.xls'
       };
 
       renderView(housing, {
-        documents: [document],
-        user: auth
+        auth,
+        establishment,
+        documents: [document]
       });
 
       const tab = await screen.findByRole('tab', {
@@ -1282,12 +1482,14 @@ describe('Housing view', () => {
 
   describe('Upload documents', () => {
     it('should hide the upload input from visitors', async () => {
-      const housing = genHousingDTO(null);
-      const visitor = genUserDTO(UserRole.VISITOR);
+      const housing = genHousingDTO();
+      const establishment = genEstablishmentDTO();
+      const visitor = genUserDTO(UserRole.VISITOR, establishment);
 
       renderView(housing, {
-        documents: [],
-        user: visitor
+        auth: visitor,
+        establishment,
+        documents: []
       });
 
       const tab = await screen.findByRole('tab', {
@@ -1300,5 +1502,128 @@ describe('Housing view', () => {
       );
       expect(input).not.toBeInTheDocument();
     });
+
+    it('should upload a document', async () => {
+      const housing = genHousingDTO();
+      const establishment = genEstablishmentDTO();
+      const auth = genUserDTO(UserRole.USUAL, establishment);
+
+      renderView(housing, {
+        auth,
+        establishment,
+        documents: []
+      });
+
+      const tab = await screen.findByRole('tab', {
+        name: 'Documents'
+      });
+      await user.click(tab);
+
+      const file = new File(['dummy content'], 'example.pdf', {
+        type: 'application/pdf'
+      });
+
+      const input = await screen.findByLabelText(
+        /associez un ou plusieurs documents à ce logement/i
+      );
+      await user.upload(input, file);
+
+      const uploadedDocument = await screen.findByText('example.pdf');
+      expect(uploadedDocument).toBeVisible();
+    });
+  });
+
+  describe('Remove documents from the side panel', () => {
+    it('should remove a document on submit', async () => {
+      const establishment = genEstablishmentDTO();
+      const auth = genUserDTO(UserRole.USUAL, establishment);
+      const housing = genHousingDTO();
+      const documents = faker.helpers.multiple(() =>
+        genDocumentDTO(auth, establishment)
+      );
+
+      renderView(housing, {
+        auth,
+        establishment,
+        documents
+      });
+
+      const edit = await screen.findByRole('button', {
+        name: 'Éditer'
+      });
+      await user.click(edit);
+      const tab = await screen.findByRole('tab', {
+        name: 'Documents'
+      });
+      await user.click(tab);
+      const panel = await screen.findByRole('tabpanel', {
+        name: 'Documents'
+      });
+      const remove = await within(panel).findByRole('button', {
+        name: new RegExp(`Supprimer ${documents[0].filename}`)
+      });
+      await user.click(remove);
+      const confirmRemoval = await screen.findByRole('button', {
+        name: 'Confirmer'
+      });
+      await user.click(confirmRemoval);
+      const submit = await screen.findByRole('button', {
+        name: 'Enregistrer'
+      });
+      await user.click(submit);
+      const panelAgain = await screen.findByRole('tabpanel', {
+        name: 'Documents'
+      });
+      const document = within(panelAgain).queryByText(
+        new RegExp(documents[0].filename, 'i')
+      );
+      expect(document).not.toBeInTheDocument();
+    });
+
+    it('should cancel the removal of a document', async () => {
+     const establishment = genEstablishmentDTO();
+      const auth = genUserDTO(UserRole.USUAL, establishment);
+      const housing = genHousingDTO();
+      const documents = faker.helpers.multiple(() =>
+        genDocumentDTO(auth, establishment)
+      );
+
+      renderView(housing, {
+        auth,
+        establishment,
+        documents
+      });
+
+      const edit = await screen.findByRole('button', {
+        name: 'Éditer'
+      });
+      await user.click(edit);
+      const tab = await screen.findByRole('tab', {
+        name: 'Documents'
+      });
+      await user.click(tab);
+      const panel = await screen.findByRole('tabpanel', {
+        name: 'Documents'
+      });
+      const remove = await within(panel).findByRole('button', {
+        name: new RegExp(`Supprimer ${documents[0].filename}`)
+      });
+      await user.click(remove);
+      const confirmRemoval = await screen.findByRole('button', {
+        name: 'Confirmer'
+      });
+      await user.click(confirmRemoval);
+      const cancel = await screen.findByRole('button', {
+        name: 'Annuler'
+      });
+      await user.click(cancel);
+      const panelAgain = await screen.findByRole('tabpanel', {
+        name: 'Documents'
+      });
+      const document = within(panelAgain).queryByText(
+        new RegExp(documents[0].filename, 'i')
+      );
+      expect(document).toBeInTheDocument(); 
+    })
   });
 });

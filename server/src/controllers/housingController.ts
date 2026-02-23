@@ -19,12 +19,21 @@ import {
   type HousingBatchUpdatePayload
 } from '@zerologementvacant/models';
 import { compactNullable } from '@zerologementvacant/utils';
-import { Array, Either, HashMap, pipe, Record, Struct } from 'effect';
+import {
+  Array,
+  Either,
+  HashMap,
+  pipe,
+  Predicate,
+  Record,
+  Struct
+} from 'effect';
 import { Request, RequestHandler, Response } from 'express';
 import { AuthenticatedRequest } from 'express-jwt';
 import { oneOf, param } from 'express-validator';
 import { constants } from 'http2';
 import { v4 as uuidv4 } from 'uuid';
+import DocumentMissingError from '~/errors/documentMissingError';
 import HousingExistsError from '~/errors/housingExistsError';
 import HousingMissingError from '~/errors/housingMissingError';
 import HousingUpdateForbiddenError from '~/errors/housingUpdateForbiddenError';
@@ -34,6 +43,7 @@ import { createLogger } from '~/infra/logger';
 import type { AddressApi } from '~/models/AddressApi';
 import {
   HousingEventApi,
+  type HousingDocumentEventApi,
   type HousingOwnerEventApi,
   type OwnerEventApi,
   type PrecisionHousingEventApi
@@ -59,9 +69,12 @@ import {
 } from '~/models/PaginatedResultApi';
 import { type PrecisionApi } from '~/models/PrecisionApi';
 import sortApi from '~/models/SortApi';
+import { type DocumentApi } from '~/models/DocumentApi';
 import banAddressesRepository from '~/repositories/banAddressesRepository';
 import createDatafoncierHousingRepository from '~/repositories/datafoncierHousingRepository';
 import createDatafoncierOwnersRepository from '~/repositories/datafoncierOwnersRepository';
+import documentRepository from '~/repositories/documentRepository';
+import housingDocumentRepository from '~/repositories/housingDocumentRepository';
 import eventRepository from '~/repositories/eventRepository';
 import housingOwnerRepository from '~/repositories/housingOwnerRepository';
 
@@ -453,10 +466,7 @@ const create: RequestHandler<
 };
 
 export interface HousingUpdateBody {
-  statusUpdate?: Pick<
-    HousingApi,
-    'status' | 'subStatus' | 'deprecatedPrecisions' | 'deprecatedVacancyReasons'
-  >;
+  statusUpdate?: Pick<HousingApi, 'status' | 'subStatus'>;
   occupancyUpdate?: Pick<HousingApi, 'occupancy' | 'occupancyIntended'>;
   note?: Pick<NoteApi, 'content' | 'noteKind'>;
 }
@@ -488,7 +498,8 @@ async function update(
     status: body.status,
     subStatus: body.subStatus,
     occupancy: body.occupancy,
-    occupancyIntended: body.occupancyIntended
+    occupancyIntended: body.occupancyIntended,
+    actualEnergyConsumption: body.actualEnergyConsumption
   };
 
   const housingStatusDiff = diffHousingStatusUpdated(
@@ -542,6 +553,23 @@ async function update(
       housingGeoCode: housing.geoCode,
       housingId: housing.id
     });
+  }
+  if (housing.actualEnergyConsumption !== updated.actualEnergyConsumption) {
+    events.push({
+      id: uuidv4(),
+      type: 'housing:updated',
+      name: 'Modification du logement',
+      nextOld: {
+        actualEnergyConsumption: housing.actualEnergyConsumption
+      },
+      nextNew: {
+        actualEnergyConsumption: updated.actualEnergyConsumption
+      },
+      createdAt: new Date().toJSON(),
+      createdBy: auth.userId,
+      housingGeoCode: housing.geoCode,
+      housingId: housing.id
+    })
   }
 
   await startTransaction(async () => {
@@ -766,6 +794,53 @@ const updateMany: RequestHandler<
       : [];
   const precisionEvents = precisionLinks.flatMap((link) => link.events);
 
+  // Validate documents if provided
+  const shouldLinkDocuments = body.documents?.length && housings.length;
+  let documents: DocumentApi[] = [];
+  if (shouldLinkDocuments) {
+    logger.info('Linking documents to housings', {
+      documentCount: body.documents!.length,
+      housingCount: housings.length
+    });
+
+    // Validate documents exist and belong to establishment
+    documents = await documentRepository.find({
+      filters: {
+        ids: body.documents!,
+        establishmentIds: [establishment.id],
+        deleted: false
+      }
+    });
+
+    if (documents.length !== body.documents!.length) {
+      const foundIds = documents.map((document) => document.id);
+      const missingIds = body.documents!.filter((id) => !foundIds.includes(id));
+      throw new DocumentMissingError(...missingIds);
+    }
+  }
+
+  // Create housing:document-attached events (cartesian product)
+  const documentAttachEvents: ReadonlyArray<HousingDocumentEventApi> =
+    shouldLinkDocuments && body.documents
+      ? body.documents
+          .map((id) => documents.find((document) => document.id === id))
+          .filter(Predicate.isNotNullable)
+          .flatMap((document) => {
+            return housings.map((housing) => ({
+              id: uuidv4(),
+              type: 'housing:document-attached',
+              name: 'Ajout d’un document au logement',
+              nextOld: null,
+              nextNew: { filename: document.filename },
+              createdAt: new Date().toJSON(),
+              createdBy: user.id,
+              documentId: document.id,
+              housingGeoCode: housing.geoCode,
+              housingId: housing.id
+            }));
+          })
+      : [];
+
   await startTransaction(async () => {
     await Promise.all([
       housingRepository.updateMany(ids, {
@@ -791,6 +866,22 @@ const updateMany: RequestHandler<
       // Insert precision events (if any)
       precisionEvents.length > 0
         ? eventRepository.insertManyPrecisionHousingEvents(precisionEvents)
+        : Promise.resolve(),
+      // Link documents (if any) - create cartesian product
+      shouldLinkDocuments
+        ? housingDocumentRepository.linkMany(
+            body.documents!.flatMap((documentId) =>
+              housings.map((housing) => ({
+                document_id: documentId,
+                housing_id: housing.id,
+                housing_geo_code: housing.geoCode
+              }))
+            )
+          )
+        : Promise.resolve(),
+      // Insert document attach events (if any)
+      documentAttachEvents.length > 0
+        ? eventRepository.insertManyHousingDocumentEvents(documentAttachEvents)
         : Promise.resolve()
     ]);
   });

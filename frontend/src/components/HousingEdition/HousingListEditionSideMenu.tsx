@@ -3,9 +3,7 @@ import { yupResolver } from '@hookform/resolvers/yup';
 import { Stack, Typography } from '@mui/material';
 import {
   HOUSING_STATUS_VALUES,
-  HousingStatus,
   isPrecisionEvolutionCategory,
-  Occupancy,
   OCCUPANCY_VALUES,
   PRECISION_CATEGORY_VALUES
 } from '@zerologementvacant/models';
@@ -24,6 +22,9 @@ import LabelNext from '../Label/LabelNext';
 import AppTextInputNext from '../_app/AppTextInput/AppTextInputNext';
 import { createConfirmationModal } from '../modals/ConfirmationModal/ConfirmationModalNext';
 import HousingEditionMobilizationTab from './HousingEditionMobilizationTab';
+import HousingListDocumentsTab, {
+  documentsSchema
+} from './HousingListDocumentsTab';
 
 const WIDTH = '700px';
 
@@ -66,7 +67,9 @@ const schema = object({
     .optional()
     .nullable()
     .default(null)
-}).required();
+})
+  .concat(documentsSchema)
+  .required();
 
 const modal = createConfirmationModal({
   id: 'housing-list-edition-modal',
@@ -90,7 +93,8 @@ function HousingListEditionSideMenu(props: Props) {
       occupancyIntended: null,
       status: null,
       note: null,
-      precisions: []
+      precisions: [],
+      documents: []
     },
     mode: 'onSubmit',
     resolver: yupResolver(schema)
@@ -110,25 +114,13 @@ function HousingListEditionSideMenu(props: Props) {
         isPrecisionEvolutionCategory(precision.category)
       ));
 
-  const [tab, setTab] = useState<'occupancy' | 'mobilization' | 'note'>(
-    'occupancy'
-  );
+  const [tab, setTab] = useState<
+    'occupancy' | 'mobilization' | 'documents' | 'note'
+  >('occupancy');
 
   function close(): void {
     props.onClose();
     form.reset();
-  }
-
-  async function save(): Promise<void> {
-    if (!isDirty) {
-      close();
-      return;
-    }
-
-    const isValid = await form.trigger();
-    if (isValid) {
-      modal.open();
-    }
   }
 
   function submit(data: BatchEditionFormSchema) {
@@ -137,14 +129,17 @@ function HousingListEditionSideMenu(props: Props) {
       return;
     }
 
-    props.onSubmit({
-      occupancy: data.occupancy as Occupancy | null,
-      occupancyIntended: data.occupancyIntended as Occupancy | null,
-      status: data.status as HousingStatus | null,
-      subStatus: data.subStatus,
-      note: data.note,
-      precisions: data.precisions
-    });
+    if (needsConfirmation) {
+      modal.open();
+      return;
+    }
+
+    props.onSubmit(data);
+    close();
+  }
+
+  function doSubmit() {
+    props.onSubmit(form.getValues());
     close();
   }
 
@@ -160,7 +155,7 @@ function HousingListEditionSideMenu(props: Props) {
               disabled={field.disabled}
               error={fieldState.error?.message}
               invalid={fieldState.invalid}
-              value={field.value as Occupancy | null}
+              value={field.value}
               onChange={field.onChange}
             />
           )}
@@ -180,6 +175,7 @@ function HousingListEditionSideMenu(props: Props) {
         />
       </Stack>
     ))
+    .with('documents', () => <HousingListDocumentsTab />)
     .with('mobilization', () => (
       <HousingEditionMobilizationTab
         precisionListProps={{ multiple: true, showNullOption: false }}
@@ -223,8 +219,9 @@ function HousingListEditionSideMenu(props: Props) {
         <FormProvider {...form}>
           <Tabs
             tabs={[
-              { tabId: 'occupancy', label: 'Occupation' },
+              { tabId: 'occupancy', label: 'Informations sur les logements' },
               { tabId: 'mobilization', label: 'Suivi' },
+              { tabId: 'documents', label: 'Documents' },
               { tabId: 'note', label: 'Note' }
             ]}
             selectedTabId={tab}
@@ -235,7 +232,7 @@ function HousingListEditionSideMenu(props: Props) {
 
           <modal.Component
             title={`Vous êtes sur le point d’éditer ${props.count} logements`}
-            onSubmit={form.handleSubmit(submit)}
+            onSubmit={doSubmit}
           >
             <Stack spacing={2}>
               <Typography>
@@ -280,7 +277,7 @@ function HousingListEditionSideMenu(props: Props) {
       }
       open={props.open}
       onClose={close}
-      onSave={needsConfirmation ? save : form.handleSubmit(submit)}
+      onSave={form.handleSubmit(submit)}
     />
   );
 }

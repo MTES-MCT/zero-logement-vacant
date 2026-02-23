@@ -8,10 +8,12 @@ import { http, HttpResponse, type RequestHandler } from 'msw';
 import { constants } from 'node:http2';
 import { v4 as uuidv4 } from 'uuid';
 
+import { toUserDTO } from '~/models/User';
 import config from '~/utils/config';
+import { decodeAuth } from './auth-helpers';
 import data from './data';
 
-const listByHousing = http.get<{ id: string }, never, DocumentDTO[]>(
+const findByHousing = http.get<{ id: string }, never, DocumentDTO[]>(
   `${config.apiEndpoint}/api/housing/:id/documents`,
   async ({ params }) => {
     const documents = (data.housingDocuments.get(params.id) ?? [])
@@ -24,48 +26,30 @@ const listByHousing = http.get<{ id: string }, never, DocumentDTO[]>(
   }
 );
 
-const createByHousing = http.post<{ id: string }, never, DocumentDTO[] | Error>(
-  `${config.apiEndpoint}/api/housing/:id/documents`,
-  async ({ params, request }) => {
+const upload = http.post<never, FormData, DocumentDTO[] | Error>(
+  `${config.apiEndpoint}/api/documents`,
+  async ({ request }) => {
+    // Simulate auth by decoding token (without verifying signature)
+    const auth = decodeAuth(request);
+    if (!auth) {
+      return HttpResponse.json(
+        { name: 'AuthenticationError', message: 'Invalid access token' },
+        { status: constants.HTTP_STATUS_UNAUTHORIZED }
+      );
+    }
+
     const formData = await request.formData();
     const files = formData.getAll('files') as File[];
-
     if (!files.length) {
       return HttpResponse.json(
-        {
-          name: 'Error',
-          message: 'No file uploaded'
-        },
-        {
-          status: constants.HTTP_STATUS_BAD_REQUEST
-        }
+        { name: 'FilesMissingError', message: 'No files uploaded' },
+        { status: constants.HTTP_STATUS_BAD_REQUEST }
       );
     }
-
-    const housing = data.housings.find((housing) => housing.id === params.id);
-    if (!housing) {
+    if (files.some((file) => !(file instanceof File))) {
       return HttpResponse.json(
-        {
-          name: 'HousingMissingError',
-          message: `Housing ${params.id} missing`
-        },
-        {
-          status: constants.HTTP_STATUS_NOT_FOUND
-        }
-      );
-    }
-
-    // Get a user from the data to use as creator
-    const creator = data.users[0];
-    if (!creator) {
-      return HttpResponse.json(
-        {
-          name: 'Error',
-          message: 'No user available'
-        },
-        {
-          status: constants.HTTP_STATUS_INTERNAL_SERVER_ERROR
-        }
+        { name: 'InvalidFileError', message: 'Invalid file uploaded' },
+        { status: constants.HTTP_STATUS_BAD_REQUEST }
       );
     }
 
@@ -78,17 +62,12 @@ const createByHousing = http.post<{ id: string }, never, DocumentDTO[] | Error>(
         sizeBytes: file.size,
         createdAt: new Date().toJSON(),
         updatedAt: null,
-        creator
+        establishmentId: auth.establishment.id,
+        creator: toUserDTO(auth.user)
       };
       data.documents.set(document.id, document);
       return document;
     });
-
-    const existingDocs = data.housingDocuments.get(params.id) ?? [];
-    data.housingDocuments.set(params.id, [
-      ...existingDocs,
-      ...documents.map((doc) => ({ id: doc.id }))
-    ]);
 
     return HttpResponse.json(documents, {
       status: constants.HTTP_STATUS_CREATED
@@ -96,40 +75,107 @@ const createByHousing = http.post<{ id: string }, never, DocumentDTO[] | Error>(
   }
 );
 
-const updateByHousing = http.put<
-  { housingId: HousingDTO['id']; documentId: DocumentDTO['id'] },
-  DocumentPayload,
-  DocumentDTO | Error
+const linkToHousing = http.post<
+  { id: HousingDTO['id'] },
+  { documentIds: DocumentDTO['id'][] },
+  DocumentDTO[] | Error
 >(
-  `${config.apiEndpoint}/api/housing/:housingId/documents/:documentId`,
+  `${config.apiEndpoint}/api/housing/:id/documents`,
   async ({ params, request }) => {
-    const document = data.documents.get(params.documentId);
-    if (!document) {
+    const { documentIds } = await request.json();
+
+    const housing = data.housings.find((housing) => housing.id === params.id);
+    if (!housing) {
       return HttpResponse.json(
         {
-          name: 'DocumentMissingError',
-          message: `Document ${params.documentId} missing`
+          name: 'HousingMissingError',
+          message: `Housing ${params.id} missing`
         },
-        {
-          status: constants.HTTP_STATUS_NOT_FOUND
-        }
+        { status: constants.HTTP_STATUS_NOT_FOUND }
       );
     }
 
-    const payload = await request.json();
-    const updated: DocumentDTO = {
-      ...document,
-      filename: payload.filename,
-      updatedAt: new Date().toJSON()
-    };
-    data.documents.set(document.id, updated);
-    return HttpResponse.json(document, {
-      status: constants.HTTP_STATUS_OK
+    // Verify all documents exist
+    const documents = documentIds
+      .map((id) => data.documents.get(id))
+      .filter(Predicate.isNotUndefined);
+
+    if (documents.length !== documentIds.length) {
+      return HttpResponse.json(
+        { name: 'DocumentMissingError', message: 'Some documents not found' },
+        { status: constants.HTTP_STATUS_BAD_REQUEST }
+      );
+    }
+
+    // Link documents to housing
+    const existingDocuments = data.housingDocuments.get(params.id) ?? [];
+    const newRefs = documentIds.map((id) => ({ id }));
+    data.housingDocuments.set(params.id, [...existingDocuments, ...newRefs]);
+
+    return HttpResponse.json(documents, {
+      status: constants.HTTP_STATUS_CREATED
     });
   }
 );
 
-const removeByHousing = http.delete<
+const update = http.put<
+  { id: DocumentDTO['id'] },
+  DocumentPayload,
+  DocumentDTO | Error
+>(`${config.apiEndpoint}/api/documents/:id`, async ({ params, request }) => {
+  const document = data.documents.get(params.id);
+  if (!document) {
+    return HttpResponse.json(
+      {
+        name: 'DocumentMissingError',
+        message: `Document ${params.id} missing`
+      },
+      { status: constants.HTTP_STATUS_NOT_FOUND }
+    );
+  }
+
+  const payload = await request.json();
+  const updated: DocumentDTO = {
+    ...document,
+    filename: payload.filename,
+    updatedAt: new Date().toJSON()
+  };
+  data.documents.set(document.id, updated);
+
+  return HttpResponse.json(updated, {
+    status: constants.HTTP_STATUS_OK
+  });
+});
+
+const remove = http.delete<{ id: DocumentDTO['id'] }, never, null | Error>(
+  `${config.apiEndpoint}/api/documents/:id`,
+  async ({ params }) => {
+    const document = data.documents.get(params.id);
+    if (!document) {
+      return HttpResponse.json(
+        {
+          name: 'DocumentMissingError',
+          message: `Document ${params.id} missing`
+        },
+        { status: constants.HTTP_STATUS_NOT_FOUND }
+      );
+    }
+
+    data.documents.delete(params.id);
+    data.housingDocuments.forEach((documents, housingId) => {
+      data.housingDocuments.set(
+        housingId,
+        documents.filter((doc) => doc.id !== params.id)
+      );
+    });
+
+    return HttpResponse.json(null, {
+      status: constants.HTTP_STATUS_NO_CONTENT
+    });
+  }
+);
+
+const unlinkFromHousing = http.delete<
   { housingId: HousingDTO['id']; documentId: DocumentDTO['id'] },
   never,
   null | Error
@@ -144,7 +190,7 @@ const removeByHousing = http.delete<
       return HttpResponse.json(
         {
           name: 'DocumentMissingError',
-          message: `Document ${params.documentId} missing`
+          message: `Document ${params.documentId} not linked to housing`
         },
         {
           status: constants.HTTP_STATUS_NOT_FOUND
@@ -152,13 +198,13 @@ const removeByHousing = http.delete<
       );
     }
 
-    data.documents.delete(params.documentId);
     data.housingDocuments.set(
       params.housingId,
       (data.housingDocuments.get(params.housingId) ?? []).filter(
         (document) => document.id !== params.documentId
       )
     );
+
     return HttpResponse.json(null, {
       status: constants.HTTP_STATUS_NO_CONTENT
     });
@@ -166,8 +212,10 @@ const removeByHousing = http.delete<
 );
 
 export const documentHandlers: RequestHandler[] = [
-  listByHousing,
-  createByHousing,
-  updateByHousing,
-  removeByHousing
+  upload,
+  update,
+  remove,
+  findByHousing,
+  linkToHousing,
+  unlinkFromHousing
 ];

@@ -78,7 +78,6 @@ function HousingOwnerEditionAside(props: HousingOwnerEditionAsideProps) {
           (rank) => rank
         )
         .otherwise(() => null),
-      fullName: housingOwner?.fullName ?? '',
       birthDate: housingOwner?.birthDate ?? null,
       banAddress:
         housingOwner?.banAddress &&
@@ -132,7 +131,6 @@ function HousingOwnerEditionAside(props: HousingOwnerEditionAsideProps) {
       banAddress: payload.banAddress,
       birthDate: payload.birthDate,
       email: payload.email,
-      fullName: payload.fullName,
       phone: payload.phone,
       rank: payload.rank,
       inactiveRank: payload.inactiveRank

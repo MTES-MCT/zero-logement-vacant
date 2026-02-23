@@ -2,21 +2,23 @@ import type { FrIconClassName, RiIconClassName } from '@codegouvfr/react-dsfr';
 import Accordion from '@codegouvfr/react-dsfr/Accordion';
 import Button from '@codegouvfr/react-dsfr/Button';
 import MuiDrawer from '@mui/material/Drawer';
+import Grid from '@mui/material/Grid';
+import Stack from '@mui/material/Stack';
 import { type CSSObject, styled, type Theme } from '@mui/material/styles';
 import Typography from '@mui/material/Typography';
-import Grid from '@mui/material/Grid';
 import {
   HOUSING_KIND_VALUES,
   HOUSING_STATUS_VALUES,
   isPrecisionBlockingPointCategory,
   isPrecisionEvolutionCategory,
-  isPrecisionMechanismCategory
+  isPrecisionMechanismCategory,
+  Occupancy
 } from '@zerologementvacant/models';
-import { Occupancy } from '@zerologementvacant/models';
 import { isDefined } from '@zerologementvacant/utils';
 import classNames from 'classnames';
 import { usePostHog } from 'posthog-js/react';
 
+import Tooltip from '~/Tooltip/Tooltip';
 import { useIntercommunalities } from '../../hooks/useIntercommunalities';
 import { useToggle } from '../../hooks/useToggle';
 import { useUser } from '../../hooks/useUser';
@@ -28,9 +30,11 @@ import { useListGeoPerimetersQuery } from '../../services/geo.service';
 import { useFindPrecisionsQuery } from '../../services/precision.service';
 import { Icon } from '../_dsfr';
 import GroupHeader from '../GroupHeader/GroupHeader';
+import createPerimetersModal from '../modals/GeoPerimetersModal/PerimetersModal';
 import PerimetersModalOpener from '../modals/GeoPerimetersModal/PerimetersModalOpener';
 import PrecisionSelect from '../Precision/PrecisionSelect';
 import SearchableSelectNext from '../SearchableSelectNext/SearchableSelectNext';
+import ActiveOwnerCountSelect from './ActiveOwnerCountSelect';
 import BuildingPeriodSelect from './BuildingPeriodSelect';
 import CadastralClassificationSelect from './CadastralClassificationSelect';
 import CampaignSelect from './CampaignSelect';
@@ -52,13 +56,9 @@ import OwnerKindSelect from './OwnerKindSelect';
 import OwnershipKindSelect from './OwnershipKindSelect';
 import PerimeterSearchableSelect from './PerimeterSearchableSelect';
 import RoomCountSelect from './RoomCountSelect';
-import SecondaryOwnerSelect from './SecondaryOwnerSelect';
 import SurfaceSelect from './SurfaceSelect';
 import VacancyRateSelect from './VacancyRateSelect';
 import VacancyYearSelect from './VacancyYearSelect';
-import createPerimetersModal from '../modals/GeoPerimetersModal/PerimetersModal';
-import Stack from '@mui/material/Stack';
-import Tooltip from '~/Tooltip/Tooltip';
 
 interface TitleWithIconProps {
   icon: FrIconClassName | RiIconClassName;
@@ -248,8 +248,8 @@ function HousingListFiltersSidemenu(props: Props) {
           <Accordion
             label={
               <TitleWithIcon
-                icon="fr-icon-map-pin-user-line"
-                title="Vie du logement"
+                icon="fr-icon-folder-2-line"
+                title="Suivi et campagnes"
               />
             }
           >
@@ -272,59 +272,6 @@ function HousingListFiltersSidemenu(props: Props) {
                 onChange={(values) => {
                   onChangeFilters({ vacancyYears: values });
                   posthog.capture('filtre-annee-debut-vacance');
-                }}
-              />
-            </Grid>
-            <Grid component="article" mb={2} size={{ xs: 12 }}>
-              <LastMutationTypeSelect
-                multiple
-                value={filters.lastMutationTypes ?? []}
-                onChange={(values) => {
-                  onChangeFilters({ lastMutationTypes: values });
-                  posthog.capture('filtre-type-derniere-mutation');
-                }}
-              />
-            </Grid>
-            <Grid component="article" mb={2} size={{ xs: 12 }}>
-              <LastMutationYearSelect
-                multiple
-                value={filters.lastMutationYears ?? []}
-                onChange={(values) => {
-                  onChangeFilters({ lastMutationYears: values });
-                  posthog.capture('filtre-annee-derniere-mutation');
-                }}
-              />
-            </Grid>
-          </Accordion>
-
-          <Accordion
-            label={
-              <TitleWithIcon
-                icon="fr-icon-folder-2-line"
-                title="Suivi et campagnes"
-              />
-            }
-          >
-            <Grid component="article" mb={2} size={12}>
-              <HousingStatusSelect
-                multiple
-                options={HOUSING_STATUS_VALUES}
-                value={filters.statusList ?? []}
-                onChange={(values) => {
-                  onChangeFilters({ statusList: values });
-                  posthog.capture('filtre-statut-suivi');
-                }}
-              />
-            </Grid>
-            <Grid component="article" mb={2} size={12}>
-              <HousingSubStatusSelect
-                grouped={true}
-                multiple
-                options={filters.statusList?.flatMap(getSubStatuses) ?? []}
-                value={filters.subStatus ?? []}
-                onChange={(values) => {
-                  onChangeFilters({ subStatus: values });
-                  posthog.capture('filtre-sous-statut-suivi');
                 }}
               />
             </Grid>
@@ -352,36 +299,25 @@ function HousingListFiltersSidemenu(props: Props) {
               />
             </Grid>
             <Grid component="article" mb={2} size={12}>
-              <PrecisionSelect
-                label="Dispositifs"
-                options={precisionOptions.filter((precision) =>
-                  isPrecisionMechanismCategory(precision.category)
-                )}
-                values={
-                  filters.precisions && hasFetchedPrecisions
-                    ? filters.precisions
-                        .map(getPrecision(precisionOptions))
-                        .filter((precision) =>
-                          isPrecisionMechanismCategory(precision.category)
-                        )
-                    : []
-                }
+              <HousingStatusSelect
+                multiple
+                options={HOUSING_STATUS_VALUES}
+                value={filters.statusList ?? []}
                 onChange={(values) => {
-                  const otherPrecisions =
-                    filters.precisions && hasFetchedPrecisions
-                      ? filters.precisions
-                          .map(getPrecision(precisionOptions))
-                          .filter(
-                            (precision) =>
-                              !isPrecisionMechanismCategory(precision.category)
-                          )
-                      : [];
-                  onChangeFilters({
-                    precisions: values
-                      .concat(otherPrecisions)
-                      .map((precision) => precision.id)
-                  });
-                  posthog.capture('filtre-dispositifs');
+                  onChangeFilters({ statusList: values });
+                  posthog.capture('filtre-statut-suivi');
+                }}
+              />
+            </Grid>
+            <Grid component="article" mb={2} size={12}>
+              <HousingSubStatusSelect
+                grouped={true}
+                multiple
+                options={filters.statusList?.flatMap(getSubStatuses) ?? []}
+                value={filters.subStatus ?? []}
+                onChange={(values) => {
+                  onChangeFilters({ subStatus: values });
+                  posthog.capture('filtre-sous-statut-suivi');
                 }}
               />
             </Grid>
@@ -452,6 +388,40 @@ function HousingListFiltersSidemenu(props: Props) {
                       .map((precision) => precision.id)
                   });
                   posthog.capture('filtre-evolutions');
+                }}
+              />
+            </Grid>
+            <Grid component="article" mb={2} size={12}>
+              <PrecisionSelect
+                label="Dispositifs"
+                options={precisionOptions.filter((precision) =>
+                  isPrecisionMechanismCategory(precision.category)
+                )}
+                values={
+                  filters.precisions && hasFetchedPrecisions
+                    ? filters.precisions
+                        .map(getPrecision(precisionOptions))
+                        .filter((precision) =>
+                          isPrecisionMechanismCategory(precision.category)
+                        )
+                    : []
+                }
+                onChange={(values) => {
+                  const otherPrecisions =
+                    filters.precisions && hasFetchedPrecisions
+                      ? filters.precisions
+                          .map(getPrecision(precisionOptions))
+                          .filter(
+                            (precision) =>
+                              !isPrecisionMechanismCategory(precision.category)
+                          )
+                      : [];
+                  onChangeFilters({
+                    precisions: values
+                      .concat(otherPrecisions)
+                      .map((precision) => precision.id)
+                  });
+                  posthog.capture('filtre-dispositifs');
                 }}
               />
             </Grid>
@@ -562,6 +532,7 @@ function HousingListFiltersSidemenu(props: Props) {
             </Grid>
             <Grid component="article" mb={2} size={12}>
               <EnergyConsumptionSelect
+                label="Étiquette DPE représentatif (ADEME)"
                 multiple
                 value={filters.energyConsumption ?? []}
                 onChange={(values) => {
@@ -649,6 +620,26 @@ function HousingListFiltersSidemenu(props: Props) {
                 }}
               />
             </Grid>
+            <Grid component="article" mb={2} size={{ xs: 12 }}>
+              <LastMutationTypeSelect
+                multiple
+                value={filters.lastMutationTypes ?? []}
+                onChange={(values) => {
+                  onChangeFilters({ lastMutationTypes: values });
+                  posthog.capture('filtre-type-derniere-mutation');
+                }}
+              />
+            </Grid>
+            <Grid component="article" mb={2} size={{ xs: 12 }}>
+              <LastMutationYearSelect
+                multiple
+                value={filters.lastMutationYears ?? []}
+                onChange={(values) => {
+                  onChangeFilters({ lastMutationYears: values });
+                  posthog.capture('filtre-annee-derniere-mutation');
+                }}
+              />
+            </Grid>
           </Accordion>
           <Accordion
             label={
@@ -686,7 +677,7 @@ function HousingListFiltersSidemenu(props: Props) {
               />
             </Grid>
             <Grid component="article" mb={2} size={12}>
-              <SecondaryOwnerSelect
+              <ActiveOwnerCountSelect
                 multiple
                 value={filters.beneficiaryCounts ?? []}
                 onChange={(values) => {

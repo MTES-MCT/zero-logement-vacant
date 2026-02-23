@@ -5,14 +5,8 @@
   "exports": {
     "./package.json": "./package.json",
     ".": {
-      "import": {
-        "types": "./dist/lib/index.d.ts",
-        "default": "./dist/lib/index.js"
-      },
-      "require": {
-        "types": "./dist/lib/index.d.cts",
-        "default": "./dist/lib/index.cjs"
-      }
+      "types": "./dist/lib/index.d.ts",
+      "default": "./dist/lib/index.js"
     }
   },
   "devDependencies": {
@@ -29,12 +23,12 @@
   "dependencies": {
     "@zerologementvacant/models": "workspace:*",
     "@zerologementvacant/utils": "workspace:*",
-    "axios": "1.12.0",
+    "axios": "1.13.5",
     "convict": "6.2.4",
     "dotenv": "16.6.1",
     "jsonwebtoken": "9.0.2",
     "knex": "3.1.0",
     "pg": "8.16.3",
-    "qs": "6.14.1"
+    "qs": "6.14.2"
   }
 }

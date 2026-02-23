@@ -2,6 +2,7 @@ import { fr } from '@codegouvfr/react-dsfr';
 import Grid from '@mui/material/Grid';
 import Stack from '@mui/material/Stack';
 import Typography from '@mui/material/Typography';
+import schemas from '@zerologementvacant/schemas';
 import { Controller, useFormContext } from 'react-hook-form';
 import { number, object, string, type InferType } from 'yup';
 
@@ -10,12 +11,7 @@ import OwnerAddressEditionNext from '~/components/Owner/OwnerAddressEditionNext'
 import Icon from '~/components/ui/Icon';
 import type { Owner } from '~/models/Owner';
 
-const PHONE_REGEXP = /^(\+33|0)[1-9][0-9]{8}$/;
-
 export const OWNER_FORM_FIELD_SCHEMA = object({
-  fullName: string().required(
-    'Veuillez saisir le nom et prénom du propriétaire'
-  ),
   birthDate: string().defined().nullable(),
   banAddress: object({
     id: string().required(),
@@ -31,13 +27,7 @@ export const OWNER_FORM_FIELD_SCHEMA = object({
     .email('Email invalide. Exemple de format valide : exemple@gmail.com')
     .defined()
     .nullable(),
-  phone: string()
-    .matches(
-      PHONE_REGEXP,
-      'Téléphone invalide. Exemple de format valide : +33XXXXXXXXX ou 0XXXXXXXXX'
-    )
-    .defined()
-    .nullable()
+  phone: schemas.phone.defined().nullable()
 });
 
 export type OwnerFormFieldsSchema = InferType<typeof OWNER_FORM_FIELD_SCHEMA>;
@@ -51,31 +41,30 @@ function OwnerFormFields(props: OwnerFormFieldsProps) {
 
   return (
     <Stack spacing="1.5rem">
-      <Grid
-        component="section"
-        container
-        columnSpacing="1rem"
-        sx={{ justifyContent: 'space-between' }}
-      >
-        <Grid size={{ xs: 12, md: 6 }}>
-          <AppTextInputNext
-            name="fullName"
-            label="Nom et prénom (obligatoire)"
-          />
-        </Grid>
-        <Grid size={{ xs: 12, md: 6 }}>
-          <AppTextInputNext<OwnerFormFieldsSchema>
-            name="birthDate"
-            label="Date de naissance"
-            nativeInputProps={{
-              type: 'date',
-              max: new Date().toISOString().substring(0, 'yyyy-mm-dd'.length)
-            }}
-            mapValue={(value): string => value ?? ''}
-            contramapValue={(value): string | null => value || null}
-          />
-        </Grid>
-      </Grid>
+      <Stack>
+        <Typography>
+          {props.owner.kind === 'Particulier' ? 'Nom et prénom' : 'Désignation'}
+        </Typography>
+        <Typography
+          sx={{
+            color: fr.colors.decisions.text.mention.grey.default,
+            fontWeight: 500
+          }}
+        >
+          {props.owner.fullName}
+        </Typography>
+      </Stack>
+
+      <AppTextInputNext<OwnerFormFieldsSchema>
+        name="birthDate"
+        label="Date de naissance"
+        nativeInputProps={{
+          type: 'date',
+          max: new Date().toISOString().substring(0, 'yyyy-mm-dd'.length)
+        }}
+        mapValue={(value): string => value ?? ''}
+        contramapValue={(value): string | null => value || null}
+      />
 
       <Stack component="section">
         <Stack direction="row" spacing="0.25rem" sx={{ alignItems: 'center' }}>

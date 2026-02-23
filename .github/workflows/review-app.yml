@@ -6,10 +6,6 @@ on:
     branches: [main]
   workflow_dispatch:
     inputs:
-      pull_request_number:
-        description: 'Numéro de la pull request'
-        required: true
-        type: number
       action_type:
         description: 'Action'
         required: true
@@ -18,12 +14,16 @@ on:
           - Créer
           - Mettre à jour
           - Supprimer
+      iso_prod:
+        description: 'Iso prod (Postgres L Giant, sans seed)'
+        required: false
+        type: boolean
+        default: false
 
 env:
   CLEVER_SECRET: ${{ secrets.CLEVER_SECRET }}
   CLEVER_TOKEN: ${{ secrets.CLEVER_TOKEN }}
   CLEVER_ORG: ${{ secrets.CLEVER_ORG }}
-  PR_NAME: pr${{ github.event.inputs.pull_request_number || github.event.number }}
   MAILER_HOST: ${{ secrets.MAILER_HOST }}
   MAILER_PORT: ${{ secrets.MAILER_PORT }}
   MAILER_USER: ${{ secrets.MAILER_USER }}
@@ -35,9 +35,66 @@ env:
   E2E_PASSWORD: ${{ secrets.CYPRESS_PASSWORD }}
 
 jobs:
+  resolve-pr:
+    runs-on: ubuntu-latest
+    outputs:
+      pr_number: ${{ steps.get-pr.outputs.pr_number }}
+      pr_name: ${{ steps.get-pr.outputs.pr_name }}
+      pr_title: ${{ steps.get-pr.outputs.pr_title }}
+    steps:
+      - name: Get PR number from branch
+        id: get-pr
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          if [ "${{ github.event_name }}" == "pull_request_target" ]; then
+            # PR closed event - use the PR number from the event
+            PR_NUMBER="${{ github.event.number }}"
+            PR_TITLE="${{ github.event.pull_request.title }}"
+          else
+            # workflow_dispatch - find PR from branch
+            BRANCH="${{ github.ref_name }}"
+            echo "🔍 Looking for open PR on branch: $BRANCH"
+
+            PR_DATA=$(gh pr list --repo ${{ github.repository }} --head "$BRANCH" --state open --json number,title --jq '.[0] // empty')
+
+            if [ -z "$PR_DATA" ]; then
+              echo "❌ ERROR: No open PR found for branch '$BRANCH'"
+              echo "Please ensure there is an open PR for this branch before running the workflow."
+              exit 1
+            fi
+
+            PR_NUMBER=$(echo "$PR_DATA" | jq -r '.number')
+            PR_TITLE=$(echo "$PR_DATA" | jq -r '.title')
+          fi
+
+          echo ""
+          echo "╔════════════════════════════════════════════════════════════════╗"
+          echo "║  📋 PR #$PR_NUMBER"
+          echo "║  📝 $PR_TITLE"
+          echo "╚════════════════════════════════════════════════════════════════╝"
+          echo ""
+
+          echo "pr_number=$PR_NUMBER" >> $GITHUB_OUTPUT
+          echo "pr_name=pr$PR_NUMBER" >> $GITHUB_OUTPUT
+          echo "pr_title=$PR_TITLE" >> $GITHUB_OUTPUT
+
+      - name: Display summary
+        run: |
+          echo "### 🚀 Review App Configuration" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "| Property | Value |" >> $GITHUB_STEP_SUMMARY
+          echo "|----------|-------|" >> $GITHUB_STEP_SUMMARY
+          echo "| **PR** | #${{ steps.get-pr.outputs.pr_number }} |" >> $GITHUB_STEP_SUMMARY
+          echo "| **Title** | ${{ steps.get-pr.outputs.pr_title }} |" >> $GITHUB_STEP_SUMMARY
+          echo "| **App prefix** | ${{ steps.get-pr.outputs.pr_name }} |" >> $GITHUB_STEP_SUMMARY
+          echo "| **Iso prod** | ${{ github.event.inputs.iso_prod || 'false' }} |" >> $GITHUB_STEP_SUMMARY
   check-duplicates:
     if: github.event.inputs.action_type == 'Créer'
+    needs: [resolve-pr]
     runs-on: ubuntu-latest
+    env:
+      PR_NAME: ${{ needs.resolve-pr.outputs.pr_name }}
     steps:
       - name: Setup Node.js
         uses: actions/setup-node@v4
@@ -49,7 +106,7 @@ jobs:
 
       - name: Check for existing applications
         run: |
-          echo "🔍 Checking for existing review apps for PR ${{ github.event.inputs.pull_request_number || github.event.number }}..."
+          echo "🔍 Checking for existing review apps for PR ${{ needs.resolve-pr.outputs.pr_number }}..."
 
           # Debug: Check if environment variables are set
           echo "CLEVER_TOKEN is set: ${CLEVER_TOKEN:+yes}"
@@ -115,13 +172,15 @@ jobs:
             exit 1
           fi
 
-          echo "✅ No existing applications or addons found for PR ${{ github.event.inputs.pull_request_number || github.event.number }}"
+          echo "✅ No existing applications or addons found for PR ${{ needs.resolve-pr.outputs.pr_number }}"
           echo "Proceeding with creation..."
 
   deploy-addons:
     if: github.event.inputs.action_type == 'Créer'
-    needs: [check-duplicates]
+    needs: [resolve-pr, check-duplicates]
     runs-on: ubuntu-latest
+    env:
+      PR_NAME: ${{ needs.resolve-pr.outputs.pr_name }}
     steps:
       - name: Setup Node.js
         uses: actions/setup-node@v4
@@ -132,20 +191,28 @@ jobs:
         run: npm install -g clever-tools@4.4.0
 
       - name: Create postgres addon
-        run: clever addon create postgresql-addon $PR_NAME-postgres --org $CLEVER_ORG --plan xxs_sml --region par
+        run: |
+          if [ "${{ github.event.inputs.iso_prod }}" == "true" ]; then
+            echo "🔧 Iso prod mode: creating Postgres L Giant"
+            clever addon create postgresql-addon $PR_NAME-postgres --org $CLEVER_ORG --plan l_gnt --region par --addon-version 15
+          else
+            echo "🔧 Standard mode: creating Postgres XXS Small"
+            clever addon create postgresql-addon $PR_NAME-postgres --org $CLEVER_ORG --plan xxs_sml --region par --addon-version 15
+          fi
 
       - name: Create redis addon
         run: clever addon create redis-addon $PR_NAME-redis --org $CLEVER_ORG --plan s_mono --region par
 
   deploy-api:
     if: github.event.inputs.action_type == 'Créer'
-    needs: [check-duplicates, deploy-addons]
+    needs: [resolve-pr, check-duplicates, deploy-addons]
     runs-on: ubuntu-latest
     environment:
-      name: pr${{ github.event.inputs.pull_request_number || github.event.number }}-api
-      url: https://pr${{ github.event.inputs.pull_request_number || github.event.number }}-api.cleverapps.io
+      name: ${{ needs.resolve-pr.outputs.pr_name }}-api
+      url: https://${{ needs.resolve-pr.outputs.pr_name }}-api.cleverapps.io
     env:
-      APP_ALIAS: pr${{ github.event.inputs.pull_request_number || github.event.number }}-api
+      PR_NAME: ${{ needs.resolve-pr.outputs.pr_name }}
+      APP_ALIAS: ${{ needs.resolve-pr.outputs.pr_name }}-api
     steps:
       - name: Extract branch name
         shell: bash
@@ -274,7 +341,13 @@ jobs:
           clever env set AUTH_SECRET "secret" -a $APP_ALIAS
           clever env set CC_HEALTH_CHECK_PATH "/" -a $APP_ALIAS
           clever env set CC_OVERRIDE_BUILDCACHE ".:../.cache/puppeteer" -a $APP_ALIAS
-          clever env set CC_PRE_RUN_HOOK "corepack yarn workspace \$WORKSPACE migrate && corepack yarn workspace \$WORKSPACE seed" -a $APP_ALIAS
+          if [ "${{ github.event.inputs.iso_prod }}" == "true" ]; then
+            echo "🔧 Iso prod mode: CC_PRE_RUN_HOOK without seed"
+            clever env set CC_PRE_RUN_HOOK "corepack yarn workspace \$WORKSPACE migrate" -a $APP_ALIAS
+          else
+            echo "🔧 Standard mode: CC_PRE_RUN_HOOK with seed"
+            clever env set CC_PRE_RUN_HOOK "corepack yarn workspace \$WORKSPACE migrate && corepack yarn workspace \$WORKSPACE seed" -a $APP_ALIAS
+          fi
           clever env set CEREMA_API "https://api.cerema.fr" -a $APP_ALIAS
           clever env set CEREMA_ENABLED "false" -a $APP_ALIAS
           clever env set CEREMA_USERNAME "unused" -a $APP_ALIAS
@@ -309,13 +382,14 @@ jobs:
 
   deploy-queue:
     if: github.event.inputs.action_type == 'Créer'
-    needs: [check-duplicates, deploy-addons]
+    needs: [resolve-pr, check-duplicates, deploy-addons]
     runs-on: ubuntu-latest
     environment:
-      name: pr${{ github.event.inputs.pull_request_number || github.event.number }}-queue
-      url: https://pr${{ github.event.inputs.pull_request_number || github.event.number }}-queue.cleverapps.io
+      name: ${{ needs.resolve-pr.outputs.pr_name }}-queue
+      url: https://${{ needs.resolve-pr.outputs.pr_name }}-queue.cleverapps.io
     env:
-      APP_ALIAS: pr${{ github.event.inputs.pull_request_number || github.event.number }}-queue
+      PR_NAME: ${{ needs.resolve-pr.outputs.pr_name }}
+      APP_ALIAS: ${{ needs.resolve-pr.outputs.pr_name }}-queue
     steps:
       - name: Extract branch name
         shell: bash
@@ -466,13 +540,14 @@ jobs:
 
   deploy-front:
     if: github.event.inputs.action_type == 'Créer'
-    needs: [check-duplicates, deploy-addons]
+    needs: [resolve-pr, check-duplicates, deploy-addons]
     runs-on: ubuntu-latest
     environment:
-      name: pr${{ github.event.inputs.pull_request_number || github.event.number }}-front
-      url: https://pr${{ github.event.inputs.pull_request_number || github.event.number }}-front.cleverapps.io
+      name: ${{ needs.resolve-pr.outputs.pr_name }}-front
+      url: https://${{ needs.resolve-pr.outputs.pr_name }}-front.cleverapps.io
     env:
-      APP_ALIAS: pr${{ github.event.inputs.pull_request_number || github.event.number }}-front
+      PR_NAME: ${{ needs.resolve-pr.outputs.pr_name }}
+      APP_ALIAS: ${{ needs.resolve-pr.outputs.pr_name }}-front
     steps:
       - name: Extract branch name
         shell: bash
@@ -526,12 +601,13 @@ jobs:
 
   update-api:
     if: github.event.inputs.action_type == 'Mettre à jour'
+    needs: [resolve-pr]
     runs-on: ubuntu-latest
     environment:
-      name: pr${{ github.event.inputs.pull_request_number || github.event.number }}-api
-      url: https://pr${{ github.event.inputs.pull_request_number || github.event.number }}-api.cleverapps.io
+      name: ${{ needs.resolve-pr.outputs.pr_name }}-api
+      url: https://${{ needs.resolve-pr.outputs.pr_name }}-api.cleverapps.io
     env:
-      APP_ALIAS: pr${{ github.event.inputs.pull_request_number || github.event.number }}-api
+      APP_ALIAS: ${{ needs.resolve-pr.outputs.pr_name }}-api
     steps:
       - name: Extract branch name
         shell: bash
@@ -562,12 +638,13 @@ jobs:
 
   update-front:
     if: github.event.inputs.action_type == 'Mettre à jour'
+    needs: [resolve-pr]
     runs-on: ubuntu-latest
     environment:
-      name: pr${{ github.event.inputs.pull_request_number || github.event.number }}-front
-      url: https://pr${{ github.event.inputs.pull_request_number || github.event.number }}-front.cleverapps.io
+      name: ${{ needs.resolve-pr.outputs.pr_name }}-front
+      url: https://${{ needs.resolve-pr.outputs.pr_name }}-front.cleverapps.io
     env:
-      APP_ALIAS: pr${{ github.event.inputs.pull_request_number || github.event.number }}-front
+      APP_ALIAS: ${{ needs.resolve-pr.outputs.pr_name }}-front
     steps:
       - name: Extract branch name
         shell: bash
@@ -604,12 +681,13 @@ jobs:
 
   update-queue:
     if: github.event.inputs.action_type == 'Mettre à jour'
+    needs: [resolve-pr]
     runs-on: ubuntu-latest
     environment:
-      name: pr${{ github.event.inputs.pull_request_number || github.event.number }}-queue
-      url: https://pr${{ github.event.inputs.pull_request_number || github.event.number }}-queue.cleverapps.io
+      name: ${{ needs.resolve-pr.outputs.pr_name }}-queue
+      url: https://${{ needs.resolve-pr.outputs.pr_name }}-queue.cleverapps.io
     env:
-      APP_ALIAS: pr${{ github.event.inputs.pull_request_number || github.event.number }}-queue
+      APP_ALIAS: ${{ needs.resolve-pr.outputs.pr_name }}-queue
     steps:
       - name: Extract branch name
         shell: bash
@@ -646,9 +724,10 @@ jobs:
 
   delete-queue:
     runs-on: ubuntu-latest
+    needs: [resolve-pr]
     if: always() && (github.event.inputs.action_type == 'Supprimer' || (github.event_name == 'pull_request_target' && github.event.action == 'closed'))
     env:
-      APP_ALIAS: pr${{ github.event.inputs.pull_request_number || github.event.number }}-queue
+      APP_ALIAS: ${{ needs.resolve-pr.outputs.pr_name }}-queue
     steps:
       - name: Setup Node.js
         uses: actions/setup-node@v4
@@ -665,9 +744,10 @@ jobs:
 
   delete-api:
     runs-on: ubuntu-latest
+    needs: [resolve-pr]
     if: always() && (github.event.inputs.action_type == 'Supprimer' || (github.event_name == 'pull_request_target' && github.event.action == 'closed'))
     env:
-      APP_ALIAS: pr${{ github.event.inputs.pull_request_number || github.event.number }}-api
+      APP_ALIAS: ${{ needs.resolve-pr.outputs.pr_name }}-api
     steps:
       - name: Setup Node.js
         uses: actions/setup-node@v4
@@ -684,9 +764,10 @@ jobs:
 
   delete-front:
     runs-on: ubuntu-latest
+    needs: [resolve-pr]
     if: always() && (github.event.inputs.action_type == 'Supprimer' || (github.event_name == 'pull_request_target' && github.event.action == 'closed'))
     env:
-      APP_ALIAS: pr${{ github.event.inputs.pull_request_number || github.event.number }}-front
+      APP_ALIAS: ${{ needs.resolve-pr.outputs.pr_name }}-front
     steps:
       - name: Setup Node.js
         uses: actions/setup-node@v4
@@ -703,7 +784,10 @@ jobs:
 
   delete-addons:
     runs-on: ubuntu-latest
+    needs: [resolve-pr]
     if: always() && (github.event.inputs.action_type == 'Supprimer' || (github.event_name == 'pull_request_target' && github.event.action == 'closed'))
+    env:
+      PR_NAME: ${{ needs.resolve-pr.outputs.pr_name }}
     steps:
       - name: Setup Node.js
         uses: actions/setup-node@v4

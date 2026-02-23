@@ -20,6 +20,7 @@ export const EVENT_NAME_VALUES = [
   "Modification d'identité",
   'Modification du statut de la campagne',
   'Création du logement',
+  'Modification du logement',
   "Création d'un nouveau propriétaire",
   'Conflit d’informations possible venant d’une source externe concernant le propriétaire et/ou la propriété',
   // New events
@@ -29,7 +30,14 @@ export const EVENT_NAME_VALUES = [
   'Propriétaire retiré du logement',
   'Propriétaire mis à jour',
   'Modification de la campagne',
-  'Retrait d’une campagne'
+  'Retrait d’une campagne',
+  // Document events
+  'Création d’un document',
+  'Modification d’un document',
+  'Suppression d’un document',
+  'Ajout d’un document au logement',
+  'Retrait d’un document du logement',
+  'Suppression d’un document du logement'
 ] as const;
 export type EventName = (typeof EVENT_NAME_VALUES)[number];
 

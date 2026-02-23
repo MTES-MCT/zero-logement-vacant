@@ -117,13 +117,13 @@ export function createSourceHousingProcessor(opts: ProcessorOptions) {
               ? sourceHousing.last_transaction_date.toISOString()
               : null,
             lastTransactionValue: sourceHousing.last_transaction_value,
-            deprecatedVacancyReasons: null,
-            deprecatedPrecisions: null,
             source: 'lovac',
             dataYears: [2024],
             dataFileYears: ['lovac-2025'],
             status: HousingStatus.NEVER_CONTACTED,
             subStatus: null,
+            plotArea: null,
+            actualEnergyConsumption: null,
             energyConsumption: null,
             energyConsumptionAt: null
           };

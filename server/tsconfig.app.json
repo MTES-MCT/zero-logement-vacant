@@ -1,8 +1,11 @@
 {
-  "extends": "./tsconfig.json",
+  "extends": ["@tsconfig/node24/tsconfig.json", "../tsconfig.base.json"],
   "compilerOptions": {
-    "baseUrl": "./",
+    "rootDir": "src",
     "outDir": "dist/app",
+    "paths": {
+      "~/*": ["./src/*"]
+    },
     "tsBuildInfoFile": "dist/app/tsconfig.tsbuildinfo",
     "typeRoots": ["node_modules", "src/types"],
     "types": ["express", "express-jwt"]
@@ -13,7 +16,7 @@
     "src/test/global-setup.ts",
     "src/test/setup-env.ts",
     "src/test/setup-tests.ts",
-    "src/test/testUtils.ts",
+    "src/test/testUtils.ts"
   ],
   "references": [
     {

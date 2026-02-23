@@ -3,6 +3,7 @@ import { EventPayloads } from './EventPayloads';
 export type EventType = keyof EventPayloads;
 export const EVENT_TYPE_VALUES = [
   'housing:created',
+  'housing:updated',
   'housing:occupancy-updated',
   'housing:status-updated',
   'housing:precision-attached',
@@ -18,6 +19,12 @@ export const EVENT_TYPE_VALUES = [
   'housing:campaign-attached',
   'housing:campaign-detached',
   'housing:campaign-removed',
+  'housing:document-attached',
+  'housing:document-detached',
+  'housing:document-removed',
+  'document:created',
+  'document:updated',
+  'document:removed',
   'owner:updated',
   'campaign:updated'
 ] as const satisfies ReadonlyArray<EventType>;

@@ -23,7 +23,7 @@ export type DocumentFullscreenPreviewProps = Pick<
   ModalProps,
   ExtractedModalProps
 > & {
-  documents: DocumentDTO[];
+  documents: ReadonlyArray<DocumentDTO>;
   modalProps?: Omit<ModalProps, ExtractedModalProps>;
   index: number;
   onClose(): void;

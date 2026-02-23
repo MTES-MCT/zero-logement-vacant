@@ -10,6 +10,10 @@ interface Props {
   housingId: Housing['id'] | null;
 }
 
+interface NoteSchema {
+  note: string | null;
+}
+
 function HousingEditionNoteTab(props: Props) {
   const { data: notes = [] } = useFindNotesByHousingQuery(
     props.housingId ?? skipToken
@@ -17,11 +21,13 @@ function HousingEditionNoteTab(props: Props) {
 
   return (
     <Stack rowGap={2}>
-      <AppTextInputNext
+      <AppTextInputNext<NoteSchema, string | null>
         label="Nouvelle note"
         name="note"
         nativeTextAreaProps={{ rows: 8 }}
         textArea
+        mapValue={(value: string | null) => value ?? ''}
+        contramapValue={(value) => (value === '' ? null : value)}
       />
 
       {notes.length > 0 && (

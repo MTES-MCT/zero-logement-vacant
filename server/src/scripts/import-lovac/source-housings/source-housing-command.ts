@@ -346,7 +346,7 @@ export function createSourceHousingCommand() {
 
       logger.info('Checking for missing housings from the file...');
       const housingCount = await count(
-        housingRepository.betterStream({
+        housingRepository.stream({
           filters: {}
           // For some reason, we cannot optimize by fetching
           // only vacant housing, excluding lovac-2025.
@@ -359,7 +359,7 @@ export function createSourceHousingCommand() {
         })
       );
       const [housingUpdates2, eventCreations2] = housingRepository
-        .betterStream({
+        .stream({
           filters: {}
         })
         .pipeThrough(
@@ -510,7 +510,6 @@ export async function updateHousings(
         'last_transaction_date',
         'last_transaction_value',
         'taxed',
-        'deprecated_vacancy_reasons',
         'data_years',
         'data_file_years',
         'data_source',
@@ -520,7 +519,6 @@ export async function updateHousings(
         'condominium',
         'status',
         'sub_status',
-        'deprecated_precisions',
         'occupancy',
         'occupancy_source',
         'occupancy_intended',

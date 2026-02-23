@@ -1,12 +1,9 @@
 import { AddressKinds, OwnerEntity } from '@zerologementvacant/models';
-import highland from 'highland';
 import { Knex } from 'knex';
 import _ from 'lodash';
 import { Readable } from 'node:stream';
 import { ReadableStream } from 'node:stream/web';
 import { match, Pattern } from 'ts-pattern';
-
-import { OwnerExportStreamApi } from '~/controllers/housingExportController';
 import db, {
   ConflictOptions,
   groupBy,
@@ -29,13 +26,7 @@ import {
 import { campaignsHousingTable } from './campaignHousingRepository';
 import { GROUPS_HOUSING_TABLE } from './groupRepository';
 import { fromRelativeLocationDBO, HousingOwnerDBO, housingOwnersTable } from './housingOwnerRepository';
-import {
-  HousingDBO,
-  housingTable,
-  ownerHousingJoinClause,
-  parseHousingApi
-} from './housingRepository';
-import Stream = Highland.Stream;
+import { housingTable, ownerHousingJoinClause } from './housingRepository';
 import { withinTransaction } from '~/infra/database/transaction';
 
 const logger = createLogger('ownerRepository');
@@ -162,33 +153,6 @@ function stream(
 
   return Readable.toWeb(stream);
 }
-
-type OwnerExportStreamDBO = OwnerDBO & {
-  housing_list: HousingDBO[];
-};
-
-const exportStream = (opts: StreamOptions): Stream<OwnerExportStreamApi> => {
-  const stream = Owners()
-    .modify(filter(opts.filters))
-    .select(
-      `${ownerTable}.id`,
-      `${ownerTable}.address_dgfip`,
-      `${ownerTable}.full_name`,
-      db.raw(`array_agg (to_json(fast_housing.*)) as housing_list`)
-    )
-    .groupBy(`${ownerTable}.id`)
-    .orderByRaw(`count(distinct(${housingOwnersTable}.housing_id)) desc`)
-    .stream();
-
-  return highland<OwnerExportStreamDBO>(stream).map(
-    (result: OwnerExportStreamDBO): OwnerExportStreamApi => ({
-      ...parseOwnerApi(result),
-      housingList: result.housing_list.map((housing) =>
-        parseHousingApi(housing)
-      )
-    })
-  );
-};
 
 interface FindOneOptions
   extends Partial<
@@ -687,7 +651,6 @@ export default {
   find,
   count,
   stream,
-  exportStream,
   get,
   findOne,
   searchOwners,

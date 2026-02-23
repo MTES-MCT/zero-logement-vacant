@@ -3,6 +3,7 @@ import { yupResolver } from '@hookform/resolvers/yup';
 import Grid from '@mui/material/Grid';
 import Stack from '@mui/material/Stack';
 import Typography from '@mui/material/Typography';
+import schemas from '@zerologementvacant/schemas';
 import { Controller, FormProvider, useForm } from 'react-hook-form';
 import { number, object, string, type InferType } from 'yup';
 
@@ -17,12 +18,7 @@ import type { Owner } from '~/models/Owner';
 import { useUpdateOwnerMutation } from '~/services/owner.service';
 import OwnerAddressEdition from '../OwnerAddressEdition/OwnerAddressEdition';
 
-const PHONE_REGEXP = /^(\+33|0)[1-9][0-9]{8}$/;
-
 const schema = object({
-  fullName: string().required(
-    'Veuillez saisir le nom et prénom du propriétaire'
-  ),
   birthDate: string().nullable().defined(),
   banAddress: object({
     id: string().required(),
@@ -38,13 +34,7 @@ const schema = object({
     .email('Email invalide. Exemple de format valide : exemple@gmail.com')
     .nullable()
     .defined(),
-  phone: string()
-    .matches(
-      PHONE_REGEXP,
-      'Téléphone invalide. Exemple de format valide : +33XXXXXXXXX ou 0XXXXXXXXX'
-    )
-    .nullable()
-    .defined()
+  phone: schemas.phone.nullable().defined()
 }).required();
 type FormSchema = InferType<typeof schema>;
 
@@ -66,7 +56,6 @@ function createOwnerEditionModalNext() {
     Component(props: OwnerEditionModalProps) {
       const form = useForm<FormSchema>({
         values: {
-          fullName: props.owner.fullName,
           birthDate: props.owner.birthDate ?? null,
           banAddress: props.owner.banAddress
             ? {
@@ -114,7 +103,7 @@ function createOwnerEditionModalNext() {
 
         updateOwner({
           id: props.owner.id,
-          fullName: payload.fullName,
+          fullName: props.owner.fullName,
           birthDate: payload.birthDate,
           banAddress: payload.banAddress
             ? {
@@ -157,34 +146,35 @@ function createOwnerEditionModalNext() {
                 }
               ]}
               {...props}
-              title='Éditer les informations du propriétaire'
+              title="Éditer les informations du propriétaire"
             >
-              <Stack spacing="1.5rem">
-                <Grid
-                  component="section"
-                  container
-                  columnSpacing="1rem"
-                  sx={{ justifyContent: 'space-between' }}
-                >
-                  <Grid size={{ xs: 12, md: 6 }}>
-                    <AppTextInputNext
-                      name="fullName"
-                      label="Nom et prénom (obligatoire)"
-                    />
-                  </Grid>
-                  <Grid size={{ xs: 12, md: 6 }}>
-                    <AppTextInputNext<FormSchema>
-                      name="birthDate"
-                      label="Date de naissance"
-                      nativeInputProps={{
-                        type: 'date',
-                        max: new Date()
-                          .toISOString()
-                          .substring(0, 'yyyy-mm-dd'.length)
-                      }}
-                    />
-                  </Grid>
-                </Grid>
+              <Stack spacing="1rem">
+                <Stack component="section">
+                  <Typography>
+                    {props.owner.kind === 'Particulier'
+                      ? 'Nom et prénom'
+                      : 'Désignation'}
+                  </Typography>
+                  <Typography
+                    sx={{
+                      color: fr.colors.decisions.text.mention.grey.default,
+                      fontWeight: 500
+                    }}
+                  >
+                    {props.owner.fullName}
+                  </Typography>
+                </Stack>
+
+                <AppTextInputNext<FormSchema>
+                  name="birthDate"
+                  label="Date de naissance"
+                  nativeInputProps={{
+                    type: 'date',
+                    max: new Date()
+                      .toISOString()
+                      .substring(0, 'yyyy-mm-dd'.length)
+                  }}
+                />
 
                 <Stack component="section">
                   <Stack

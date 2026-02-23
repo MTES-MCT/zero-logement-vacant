@@ -190,3 +190,4 @@ else:
         st.caption("Agrégation SQL indisponible pour cette feature.")
 
 
+

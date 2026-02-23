@@ -2,13 +2,119 @@ version: 2
 
 models:
   - name: int_production_events
+    description: "Union des événements anciens (texte) et nouveaux (JSON) avec enrichissement user_source et labels"
+    columns:
+      - name: id
+        description: "Identifiant unique de l'événement"
+        tests:
+          - unique
+          - not_null
+      - name: housing_id
+        description: "Identifiant du logement concerné"
+      - name: type
+        description: "Type d'événement (housing:status-updated, housing:occupancy-updated, etc.)"
+      - name: user_source
+        description: "Source de l'événement (zlv=automatique, user=utilisateur)"
+      - name: version
+        description: "Version du format (old=texte, new=JSON)"
+        tests:
+          - accepted_values:
+              values: ['old', 'new']
+
   - name: int_production_housing
+    description: "Logements avec code commune mappé"
+    columns:
+      - name: id
+        description: "Identifiant unique du logement"
+        tests:
+          - unique
+          - not_null
+      - name: city_code
+        description: "Code commune INSEE mappé"
+
   - name: int_production_housing_last_status
+    description: "Dernier statut de suivi et d'occupation par logement selon 6 catégories (zlv/user/all × followup/occupancy)"
+    columns:
+      - name: housing_id
+        description: "Identifiant unique du logement"
+        tests:
+          - unique
+          - not_null
+      - name: last_event_status_user_followup
+        description: "Dernier statut de suivi par utilisateur (0-5)"
+      - name: last_event_status_label_user_followup
+        description: "Label du dernier statut de suivi par utilisateur"
+        tests:
+          - accepted_values:
+              values: ['Non-suivi', 'En attente de retour', 'Premier contact', 'Suivi en cours', 'Suivi terminé', 'Bloqué']
+      - name: last_event_date_user_followup
+        description: "Date du dernier événement de suivi par utilisateur"
+      - name: last_event_status_zlv_followup
+        description: "Dernier statut de suivi par ZLV (0-5)"
+      - name: last_event_status_label_zlv_followup
+        description: "Label du dernier statut de suivi par ZLV"
+      - name: last_event_date_zlv_followup
+        description: "Date du dernier événement de suivi par ZLV"
+      - name: last_event_status_followup
+        description: "Dernier statut de suivi toutes sources confondues"
+      - name: last_event_status_label_followup
+        description: "Label du dernier statut de suivi toutes sources"
+      - name: last_event_date_followup
+        description: "Date du dernier événement de suivi toutes sources"
+      - name: last_event_status_user_occupancy
+        description: "Dernier statut d'occupation par utilisateur"
+      - name: last_event_date_user_occupancy
+        description: "Date du dernier événement d'occupation par utilisateur"
+      - name: last_event_status_zlv_occupancy
+        description: "Dernier statut d'occupation par ZLV"
+      - name: last_event_date_zlv_occupancy
+        description: "Date du dernier événement d'occupation par ZLV"
+      - name: last_event_status_occupancy
+        description: "Dernier statut d'occupation toutes sources"
+      - name: last_event_date_occupancy
+        description: "Date du dernier événement d'occupation toutes sources"
+
   - name: int_production_owners
+    description: "Propriétaires avec adresses nettoyées et parsées"
+    columns:
+      - name: id
+        description: "Identifiant unique du propriétaire"
+        tests:
+          - unique
+          - not_null
+
   - name: int_production_establishments
+    description: "Établissements avec labels de type et indicateur couvert par service État"
+    columns:
+      - name: id
+        description: "Identifiant unique de l'établissement"
+        tests:
+          - unique
+          - not_null
+      - name: establishment_kind_label
+        description: "Libellé du type d'établissement"
+      - name: establishment_synthetic_type_label
+        description: "Type regroupé (Intercommunalité, Commune, DDT/M, Autre)"
+        tests:
+          - accepted_values:
+              values: ['Intercommunalité', 'Commune', 'DDT/M', 'Autre']
+      - name: covered_by_state_service
+        description: "Indicateur si couvert par un service de l'État (DDT/M)"
+
   - name: int_production_establishments_housing
+    description: "Relation établissement-logement via geo_code"
+
   - name: int_production_establishments_localities
+    description: "Localités couvertes par chaque établissement"
+
   - name: stg_production_housing_groups
+    description: "Relation logement-groupe"
+
   - name: int_production_housing_users
+    description: "Indicateur si le logement est sur le territoire d'un utilisateur"
+
   - name: int_production_housing_establishments
+    description: "Relation logement-établissements couvrants"
+
   - name: int_production_notes_as_events
+    description: "Notes transformées en pseudo-événements pour traitement unifié"

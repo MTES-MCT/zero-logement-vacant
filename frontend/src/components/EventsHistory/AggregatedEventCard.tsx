@@ -1,6 +1,6 @@
 import { Array, Order, Predicate } from 'effect';
 import type { ReactNode } from 'react';
-import { match } from 'ts-pattern';
+import { match, Pattern } from 'ts-pattern';
 
 import type { Event } from '../../models/Event';
 import EventCard from './EventCard';
@@ -146,7 +146,21 @@ function AggregatedEventCard(props: AggregatedEventCardProps) {
           })
         )
         // Not yet needed thus not implemented
-        .with({ type: 'campaign:updated' }, () => null)
+        .with(
+          {
+            type: Pattern.union(
+              'campaign:updated',
+              'document:created',
+              'document:updated',
+              'document:removed',
+              'housing:updated',
+              'housing:document-attached',
+              'housing:document-detached',
+              'housing:document-removed'
+            )
+          },
+          () => null
+        )
         .exhaustive()
     )
     .flat()

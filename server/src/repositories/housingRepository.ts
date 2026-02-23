@@ -21,7 +21,6 @@ import {
 import { compactNullable, isNotNull } from '@zerologementvacant/utils';
 import { Array, identity, Predicate, Struct } from 'effect';
 import type { Point } from 'geojson';
-import highland from 'highland';
 import { Set } from 'immutable';
 import { Knex } from 'knex';
 import { uniq } from 'lodash-es';
@@ -133,48 +132,12 @@ async function find(opts: FindOptions): Promise<HousingApi[]> {
   return housingList.map(parseHousingApi);
 }
 
-type StreamOptions = FindOptions & {
+interface StreamOptions {
+  filters?: HousingFiltersApi;
   includes?: HousingInclude[];
-};
-
-/**
- * @deprecated Should be replaced by {@link betterStream} to get out of
- * the highland library, and allow `opts` to be optional.
- * @param opts
- */
-function stream(opts: StreamOptions): Highland.Stream<HousingApi> {
-  // If localities is explicitly set to an empty array, return empty stream
-  // This happens when a user's perimeter has no intersection with their establishment
-  if (
-    opts.filters.localities !== undefined &&
-    opts.filters.localities.length === 0
-  ) {
-    logger.debug('housingRepository.stream: empty localities, returning empty stream');
-    return highland<HousingApi>([]);
-  }
-
-  return highland(fetchGeoCodes(opts.filters?.establishmentIds ?? []))
-    .flatMap((geoCodes) => {
-      return highland<HousingDBO>(
-        fastListQuery({
-          filters: {
-            ...opts.filters,
-            localities: opts.filters.localities?.length
-              ? opts.filters.localities
-              : geoCodes
-          },
-          includes: opts.includes
-        })
-          .modify(paginationQuery(opts.pagination as PaginationApi))
-          .stream()
-      );
-    })
-    .map(parseHousingApi);
 }
 
-function betterStream(
-  opts?: Pick<StreamOptions, 'filters' | 'includes'>
-): ReadableStream<HousingApi> {
+function stream(opts?: StreamOptions): ReadableStream<HousingApi> {
   return Readable.toWeb(
     fastListQuery({
       filters: opts?.filters ?? {},
@@ -440,12 +403,7 @@ async function update(housing: HousingApi): Promise<void> {
       occupancy_intended: housing.occupancyIntended ?? null,
       status: housing.status,
       sub_status: housing.subStatus ?? null,
-      deprecated_precisions: housing.deprecatedPrecisions?.length
-        ? housing.deprecatedPrecisions
-        : null,
-      deprecated_vacancy_reasons: housing.deprecatedVacancyReasons?.length
-        ? housing.deprecatedVacancyReasons
-        : null
+      actual_dpe: housing.actualEnergyConsumption
     });
 }
 
@@ -549,11 +507,29 @@ function filteredQuery(opts: FilteredQueryOptions) {
     if (filters.energyConsumption?.length) {
       queryBuilder.where((where) => {
         if (filters.energyConsumption?.includes(null)) {
-          where.whereNull('energy_consumption_bdnb');
+          where.orWhereExists((subquery) => {
+            subquery
+              .select(`${buildingTable}.id`)
+              .from(buildingTable)
+              .where(
+                `${buildingTable}.id`,
+                db.ref(`${housingTable}.building_id`)
+              )
+              .whereNull(`${buildingTable}.class_dpe`);
+          });
         }
         const energyConsumptions = filters.energyConsumption?.filter(isNotNull);
         if (energyConsumptions?.length) {
-          where.orWhereIn('energy_consumption_bdnb', energyConsumptions);
+          where.orWhereExists((subquery) => {
+            subquery
+              .select(`${buildingTable}.id`)
+              .from(buildingTable)
+              .where(
+                `${buildingTable}.id`,
+                db.ref(`${housingTable}.building_id`)
+              )
+              .whereIn(`${buildingTable}.class_dpe`, energyConsumptions);
+          });
         }
       });
     }
@@ -681,30 +657,62 @@ function filteredQuery(opts: FilteredQueryOptions) {
     }
 
     if (filters.beneficiaryCounts?.length) {
-      // Count secondary owners, e.g., those who have a rank >= 2
-      queryBuilder.whereIn(`${housingTable}.id`, (subquery) => {
-        subquery
-          .select(`${housingOwnersTable}.housing_id`)
-          .from(housingOwnersTable)
-          // Include the main owner otherwise housings that have
-          // no secondary owner will not appear in the GROUP BY clause
-          .where(`${housingOwnersTable}.rank`, '>=', 1)
-          .groupBy(`${housingOwnersTable}.housing_id`)
-          .modify((query) => {
-            const counts = filters.beneficiaryCounts
-              ?.map(Number)
-              ?.filter((count) => !Number.isNaN(count))
-              // Beneficiary count = 0 implies there is a main owner
-              // but no secondary owner
-              ?.map((count) => count + 1);
-            if (counts && counts.length) {
-              query.havingRaw(`COUNT(*) IN ${toRawArray(counts)}`, [...counts]);
+      // Count active owners, e.g., those who have a rank > 2
+      queryBuilder.where((where) => {
+        const counts = filters.beneficiaryCounts
+          ?.map(Number)
+          ?.filter((count) => !Number.isNaN(count) && count > 0);
+        const hasGte5 = filters.beneficiaryCounts?.includes('gte5') ?? false;
+        const hasZero = filters.beneficiaryCounts?.includes('0') ?? false;
+
+        if (counts?.length || hasGte5) {
+          where.whereIn(
+            [`${housingTable}.geo_code`, `${housingTable}.id`],
+            (subquery) => {
+              subquery
+                .select(
+                  `${housingOwnersTable}.housing_geo_code`,
+                  `${housingOwnersTable}.housing_id`
+                )
+                .from(housingOwnersTable)
+                // Include the main owner otherwise housings that have
+                // no secondary owner will not appear in the GROUP BY clause
+                .where(`${housingOwnersTable}.rank`, '>=', 1)
+                .groupBy(
+                  `${housingOwnersTable}.housing_geo_code`,
+                  `${housingOwnersTable}.housing_id`
+                )
+                .modify((query) => {
+                  if (counts?.length) {
+                    query.havingRaw(`COUNT(*) IN ${toRawArray(counts)}`, [
+                      ...counts
+                    ]);
+                  }
+                  if (hasGte5) {
+                    // At least 5 housing owners (including the main owner)
+                    query.orHavingRaw('COUNT(*) >= 5');
+                  }
+                });
             }
-            if (filters.beneficiaryCounts?.includes('gte5')) {
-              // At least 6 housing owners (including the main owner)
-              query.orHavingRaw('COUNT(*) >= 6');
-            }
+          );
+        }
+
+        if (hasZero) {
+          where.orWhereNotExists((subquery) => {
+            subquery
+              .select(1)
+              .from(housingOwnersTable)
+              .where(
+                `${housingOwnersTable}.housing_geo_code`,
+                db.ref(`${housingTable}.geo_code`)
+              )
+              .andWhere(
+                `${housingOwnersTable}.housing_id`,
+                db.ref(`${housingTable}.id`)
+              )
+              .andWhere(`${housingOwnersTable}.rank`, '>=', 1);
           });
+        }
       });
     }
     if (filters.housingKinds?.length) {
@@ -937,7 +945,12 @@ function filteredQuery(opts: FilteredQueryOptions) {
             .whereNull('data_file_years')
             .orWhereRaw('cardinality(data_file_years) = 0');
         }
-        const dataFileYears = filters.dataFileYearsIncluded?.filter(isNotNull);
+        if (filters.dataFileYearsIncluded?.includes('datafoncier-manual')) {
+          where.orWhere(`${housingTable}.data_source`, 'datafoncier-manual');
+        }
+        const dataFileYears = filters.dataFileYearsIncluded?.filter(
+          (v): v is DataFileYear => isNotNull(v) && v !== 'datafoncier-manual'
+        );
         if (dataFileYears?.length) {
           where.orWhereRaw('data_file_years && ?::text[]', [dataFileYears]);
         }
@@ -950,7 +963,16 @@ function filteredQuery(opts: FilteredQueryOptions) {
             .whereNotNull('data_file_years')
             .whereRaw('cardinality(data_file_years) > 0');
         }
-        const dataFileYears = filters.dataFileYearsExcluded?.filter(isNotNull);
+        if (filters.dataFileYearsExcluded?.includes('datafoncier-manual')) {
+          where.where((sub) => {
+            sub
+              .whereNull(`${housingTable}.data_source`)
+              .orWhereNot(`${housingTable}.data_source`, 'datafoncier-manual');
+          });
+        }
+        const dataFileYears = filters.dataFileYearsExcluded?.filter(
+          (v): v is DataFileYear => isNotNull(v) && v !== 'datafoncier-manual'
+        );
         if (dataFileYears?.length) {
           where.orWhereRaw('not(data_file_years && ?::text[])', [
             dataFileYears
@@ -1202,10 +1224,6 @@ export interface HousingRecordDBO {
   mutation_date: Date | string | null;
   taxed: boolean | null;
   /**
-   * @deprecated See the tables `precisions` and `housing_precisions`
-   */
-  deprecated_vacancy_reasons: string[] | null;
-  /**
    * @deprecated See {@link data_file_years}
    */
   data_years: number[];
@@ -1215,16 +1233,19 @@ export interface HousingRecordDBO {
   condominium: string | null;
   status: HousingStatus;
   sub_status: string | null;
+  actual_dpe: EnergyConsumption | null;
   /**
-   * @deprecated See {@link HousingDBO.precisions}
+   * @deprecated Use `BuildingDBO.dpe_class` instead.
    */
-  deprecated_precisions: string[] | null;
   energy_consumption_bdnb: EnergyConsumption | null;
+  /**
+   * @deprecated Use `BuildingDBO.dpe_date_at` instead.
+   */
+  energy_consumption_at_bdnb: Date | string | null;
   occupancy_source: Occupancy;
   occupancy: Occupancy;
   occupancy_intended: Occupancy | null;
   plot_id: string | null;
-  energy_consumption_at_bdnb: Date | string | null;
   building_group_id: string | null;
   data_source: HousingSource | null;
   /**
@@ -1262,6 +1283,7 @@ export const parseHousingRecordApi = (
   invariant: housing.invariant,
   localId: housing.local_id,
   plotId: housing.plot_id,
+  plotArea: housing.plot_area,
   buildingGroupId: housing.building_group_id,
   buildingId: housing.building_id,
   buildingYear: housing.building_year,
@@ -1287,8 +1309,7 @@ export const parseHousingRecordApi = (
   source: housing.data_source,
   status: housing.status,
   subStatus: housing.sub_status,
-  deprecatedVacancyReasons: housing.deprecated_vacancy_reasons,
-  deprecatedPrecisions: housing.deprecated_precisions,
+  actualEnergyConsumption: housing.actual_dpe,
   energyConsumption: housing.energy_consumption_bdnb,
   energyConsumptionAt: housing.energy_consumption_at_bdnb
     ? new Date(housing.energy_consumption_at_bdnb)
@@ -1311,6 +1332,7 @@ export const parseHousingApi = (housing: HousingDBO): HousingApi => ({
   invariant: housing.invariant,
   localId: housing.local_id,
   plotId: housing.plot_id,
+  plotArea: housing.plot_area,
   buildingGroupId: housing.building_group_id,
   buildingHousingCount: housing.housing_count,
   buildingId: housing.building_id,
@@ -1342,9 +1364,8 @@ export const parseHousingApi = (housing: HousingDBO): HousingApi => ({
   ownershipKind: housing.condominium,
   status: housing.status,
   subStatus: housing.sub_status,
-  deprecatedVacancyReasons: housing.deprecated_vacancy_reasons,
-  deprecatedPrecisions: housing.deprecated_precisions,
   precisions: housing.precisions,
+  actualEnergyConsumption: housing.actual_dpe,
   energyConsumption: housing.energy_consumption_bdnb,
   energyConsumptionAt: housing.energy_consumption_at_bdnb
     ? new Date(housing.energy_consumption_at_bdnb)
@@ -1404,18 +1425,13 @@ export const formatHousingRecordApi = (
   rooms_count: housing.roomsCount,
   living_area: housing.livingArea,
   cadastral_reference: housing.cadastralReference,
-  deprecated_vacancy_reasons: !housing.deprecatedVacancyReasons?.length
-    ? null
-    : housing.deprecatedVacancyReasons,
-  deprecated_precisions: housing.deprecatedPrecisions?.length
-    ? housing.deprecatedPrecisions
-    : null,
   taxed: housing.taxed,
   condominium: housing.ownershipKind,
   data_years: housing.dataYears,
   data_file_years: housing.dataFileYears,
   status: housing.status,
   sub_status: housing.subStatus ?? null,
+  actual_dpe: housing.actualEnergyConsumption,
   energy_consumption_bdnb: housing.energyConsumption,
   energy_consumption_at_bdnb: housing.energyConsumptionAt,
   occupancy: housing.occupancy,
@@ -1436,7 +1452,6 @@ export default {
   find,
   findOne,
   stream,
-  betterStream,
   count,
   update,
   updateMany,

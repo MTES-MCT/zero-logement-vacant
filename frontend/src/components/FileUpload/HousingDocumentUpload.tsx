@@ -1,21 +1,34 @@
-import { ACCEPTED_HOUSING_DOCUMENT_EXTENSIONS } from '@zerologementvacant/models';
+import {
+  ACCEPTED_HOUSING_DOCUMENT_EXTENSIONS,
+  type DocumentDTO
+} from '@zerologementvacant/models';
 import { Array } from 'effect';
 import { match } from 'ts-pattern';
-import DocumentUpload from '~/components/FileUpload/DocumentUpload';
+
+import DocumentUpload, {
+  type DocumentUploadProps
+} from '~/components/FileUpload/DocumentUpload';
 import {
   type FileValidationError,
   isFileValidationError
 } from '~/models/FileValidationError';
-import type { Housing } from '~/models/Housing';
-import { useUploadHousingDocumentsMutation } from '~/services/document.service';
+import { useUploadDocumentsMutation } from '~/services/document.service';
 import { isFetchBaseQueryError } from '~/store/store';
 
-export interface HousingDocumentUploadProps {
-  housing: Housing;
-}
+export type HousingDocumentUploadProps = Pick<DocumentUploadProps, 'label'> & {
+  /**
+   * Called every time documents are successfully uploaded.
+   * @param documents
+   */
+  onUpload(documents: ReadonlyArray<DocumentDTO>): void;
+};
 
 function HousingDocumentUpload(props: Readonly<HousingDocumentUploadProps>) {
-  const [upload, uploadMutation] = useUploadHousingDocumentsMutation();
+  const [uploadDocuments, uploadMutation] = useUploadDocumentsMutation();
+
+  const isLoading = uploadMutation.isLoading;
+  const isSuccess = uploadMutation.isSuccess;
+  const isError = uploadMutation.isError;
 
   const documentsOrErrors = uploadMutation.data ?? [];
   const errors: ReadonlyArray<FileValidationError> =
@@ -47,10 +60,15 @@ function HousingDocumentUpload(props: Readonly<HousingDocumentUploadProps>) {
       return;
     }
 
-    upload({
-      housingId: props.housing.id,
-      files: files
-    });
+    uploadDocuments({ files })
+      .unwrap()
+      .then((documentsOrErrors) => {
+        const documents: DocumentDTO[] = documentsOrErrors.filter(
+          (item): item is DocumentDTO => !isFileValidationError(item)
+        );
+
+        props.onUpload(documents);
+      });
   }
 
   return (
@@ -59,10 +77,10 @@ function HousingDocumentUpload(props: Readonly<HousingDocumentUploadProps>) {
       accept={ACCEPTED_HOUSING_DOCUMENT_EXTENSIONS as string[]}
       error={error}
       hint="Taille maximale par fichier : 25Mo. Formats supportés : images (png, jpg, heic, webp) et documents (pdf, doc, docx, xls, xlsx, ppt, pptx). Le nom du fichier doit faire moins de 255 caractères. Plusieurs fichiers possibles."
-      isError={uploadMutation.isError}
-      isLoading={uploadMutation.isLoading}
-      isSuccess={uploadMutation.isSuccess}
-      label="Associez un ou plusieurs documents à ce logement"
+      isError={isError}
+      isLoading={isLoading}
+      isSuccess={isSuccess}
+      label={props.label ?? 'Associez un ou plusieurs documents à ce logement'}
       maxSize={25}
       multiple
       onUpload={onUpload}

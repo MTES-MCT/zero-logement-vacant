@@ -96,6 +96,7 @@ import { formatUserApi, Users } from '~/repositories/userRepository';
 import {
   genBuildingApi,
   genCampaignApi,
+  genDocumentApi,
   genEstablishmentApi,
   genEventApi,
   genHousingApi,
@@ -104,6 +105,11 @@ import {
   oneOf
 } from '~/test/testFixtures';
 import { tokenProvider } from '~/test/testUtils';
+import { Documents, toDocumentDBO } from '~/repositories/documentRepository';
+import housingDocumentRepository, {
+  HousingDocumentDBO,
+  HousingDocuments
+} from '~/repositories/housingDocumentRepository';
 
 describe('Housing API', () => {
   let url: string;
@@ -1426,6 +1432,104 @@ describe('Housing API', () => {
         }
       ])
     });
+
+    it('should link documents to multiple housings in batch update', async () => {
+      const { housings } = await createHousings({ count: 2 });
+      const document = genDocumentApi({
+        createdBy: user.id,
+        creator: user,
+        establishmentId: establishment.id
+      });
+      await Documents().insert(toDocumentDBO(document));
+
+      const { status, body } = await request(url)
+        .put(testRoute)
+        .send({
+          filters: {
+            establishmentIds: [establishment.id],
+            housingIds: housings.map(housing => housing.id)
+          },
+          documents: [document.id],
+          status: HousingStatus.IN_PROGRESS
+        } satisfies HousingBatchUpdatePayload)
+        .use(tokenProvider(user));
+
+      expect(status).toBe(constants.HTTP_STATUS_OK);
+      expect(body).toHaveLength(2);
+
+      // Verify both housings have the document linked
+      const actual = await HousingDocuments().where({
+        document_id: document.id
+      });
+      expect(actual).toHaveLength(2);
+      expect(actual).toIncludeAllPartialMembers<HousingDocumentDBO>([
+        {
+          housing_geo_code: housings[0].geoCode,
+          housing_id: housings[0].id,
+          document_id: document.id
+        },
+        {
+          housing_geo_code: housings[1].geoCode,
+          housing_id: housings[1].id,
+          document_id: document.id
+        }
+      ]);
+    });
+
+    it('should update status AND link documents in same request', async () => {
+      const { housings } = await createHousings({ count: 1 });
+      const document = genDocumentApi({
+        createdBy: user.id,
+        creator: user,
+        establishmentId: establishment.id
+      });
+      await Documents().insert(toDocumentDBO(document));
+
+      const { status, body } = await request(url)
+        .put(testRoute)
+        .send({
+          filters: {
+            establishmentIds: [establishment.id],
+            housingIds: [housings[0].id]
+          },
+          status: HousingStatus.IN_PROGRESS,
+          note: 'Batch update with docs',
+          documents: [document.id]
+        } satisfies HousingBatchUpdatePayload)
+        .use(tokenProvider(user));
+
+      expect(status).toBe(constants.HTTP_STATUS_OK);
+      expect(body[0]).toMatchObject({
+        id: housings[0].id,
+        status: HousingStatus.IN_PROGRESS
+      });
+
+      // Verify document linked
+      const links = await housingDocumentRepository.find({
+        filters: {
+          housingIds: [{ id: housings[0].id, geoCode: housings[0].geoCode }]
+        }
+      });
+      expect(links).toHaveLength(1);
+    });
+
+    it('should handle empty documents gracefully', async () => {
+      const { housings } = await createHousings({ count: 1 });
+
+      const { status } = await request(url)
+        .put(testRoute)
+        .send({
+          filters: {
+            establishmentIds: [establishment.id],
+            housingIds: [housings[0].id]
+          },
+          status: HousingStatus.IN_PROGRESS,
+          documents: []
+        } satisfies HousingBatchUpdatePayload)
+        .use(tokenProvider(user));
+
+      expect(status).toBe(constants.HTTP_STATUS_OK);
+    });
   });
 
   describe('PUT /housing/{id}', () => {
@@ -1434,7 +1538,8 @@ describe('Housing API', () => {
       status: HousingStatus.NEVER_CONTACTED,
       subStatus: null,
       occupancy: Occupancy.VACANT,
-      occupancyIntended: null
+      occupancyIntended: null,
+      actualEnergyConsumption: null
     };
 
     async function createHousing(
@@ -1509,7 +1614,8 @@ describe('Housing API', () => {
         status: HousingStatus.COMPLETED,
         subStatus: 'Remis en location',
         occupancy: Occupancy.RENT,
-        occupancyIntended: Occupancy.RENT
+        occupancyIntended: Occupancy.RENT,
+        actualEnergyConsumption: null
       };
 
       const { status } = await request(url)
@@ -1540,7 +1646,8 @@ describe('Housing API', () => {
         status: housing.status,
         subStatus: housing.subStatus,
         occupancy: housing.occupancy,
-        occupancyIntended: housing.occupancyIntended
+        occupancyIntended: housing.occupancyIntended,
+        actualEnergyConsumption: housing.actualEnergyConsumption
       };
 
       const { status } = await request(url)
@@ -1568,7 +1675,8 @@ describe('Housing API', () => {
         status: HousingStatus.IN_PROGRESS,
         subStatus: 'En cours de traitement',
         occupancy: housing.occupancy,
-        occupancyIntended: housing.occupancyIntended
+        occupancyIntended: housing.occupancyIntended,
+        actualEnergyConsumption: null
       };
 
       const { status } = await request(url)
@@ -1613,7 +1721,8 @@ describe('Housing API', () => {
         status: housing.status,
         subStatus: housing.subStatus,
         occupancy: Occupancy.DEMOLISHED_OR_DIVIDED,
-        occupancyIntended: Occupancy.DEMOLISHED_OR_DIVIDED
+        occupancyIntended: Occupancy.DEMOLISHED_OR_DIVIDED,
+        actualEnergyConsumption: null
       };
 
       const { status } = await request(url)
@@ -1658,7 +1767,8 @@ describe('Housing API', () => {
         status: HousingStatus.IN_PROGRESS,
         subStatus: null,
         occupancy: housing.occupancy,
-        occupancyIntended: Occupancy.RENT
+        occupancyIntended: Occupancy.RENT,
+        actualEnergyConsumption: null
       };
 
       const { status } = await request(url)
@@ -1705,6 +1815,150 @@ describe('Housing API', () => {
         },
         next_new: {
           occupancyIntended: OCCUPANCY_LABELS[payload.occupancyIntended!]
+        },
+        created_by: user.id
+      });
+    });
+
+    it('should update the actual energy consumption', async () => {
+      const housing = await createHousing({
+        actualEnergyConsumption: 'D'
+      });
+      const payload: HousingUpdatePayloadDTO = {
+        status: housing.status,
+        subStatus: housing.subStatus,
+        occupancy: housing.occupancy,
+        occupancyIntended: housing.occupancyIntended,
+        actualEnergyConsumption: 'B'
+      };
+
+      const { body, status } = await request(url)
+        .put(testRoute(housing.id))
+        .send(payload)
+        .type('json')
+        .use(tokenProvider(user));
+
+      expect(status).toBe(constants.HTTP_STATUS_OK);
+      expect(body).toMatchObject<Partial<HousingDTO>>({
+        id: housing.id,
+        actualEnergyConsumption: 'B'
+      });
+
+      const actual = await Housing().where('id', housing.id).first();
+      expect(actual).toMatchObject<Partial<HousingRecordDBO>>({
+        id: housing.id,
+        actual_dpe: 'B'
+      });
+    });
+
+    it('should create an event when actual energy consumption changes', async () => {
+      const housing = await createHousing({
+        actualEnergyConsumption: 'E'
+      });
+      const payload: HousingUpdatePayloadDTO = {
+        status: housing.status,
+        subStatus: housing.subStatus,
+        occupancy: housing.occupancy,
+        occupancyIntended: housing.occupancyIntended,
+        actualEnergyConsumption: 'C'
+      };
+
+      const { status } = await request(url)
+        .put(testRoute(housing.id))
+        .send(payload)
+        .type('json')
+        .use(tokenProvider(user));
+
+      expect(status).toBe(constants.HTTP_STATUS_OK);
+      const event = await Events()
+        .join(HOUSING_EVENTS_TABLE, 'event_id', 'id')
+        .where({
+          housing_geo_code: housing.geoCode,
+          housing_id: housing.id,
+          type: 'housing:updated'
+        })
+        .first();
+      expect(event).toMatchObject<Partial<EventRecordDBO<'housing:updated'>>>({
+        type: 'housing:updated',
+        name: 'Modification du logement',
+        next_old: {
+          actualEnergyConsumption: 'E'
+        },
+        next_new: {
+          actualEnergyConsumption: 'C'
+        },
+        created_by: user.id
+      });
+    });
+
+    it('should not create an event when actual energy consumption does not change', async () => {
+      const housing = await createHousing({
+        actualEnergyConsumption: 'C'
+      });
+      const payload: HousingUpdatePayloadDTO = {
+        status: housing.status,
+        subStatus: housing.subStatus,
+        occupancy: housing.occupancy,
+        occupancyIntended: housing.occupancyIntended,
+        actualEnergyConsumption: 'C'
+      };
+
+      const { status } = await request(url)
+        .put(testRoute(housing.id))
+        .send(payload)
+        .type('json')
+        .use(tokenProvider(user));
+
+      expect(status).toBe(constants.HTTP_STATUS_OK);
+      const events = await Events()
+        .join(HOUSING_EVENTS_TABLE, 'event_id', 'id')
+        .where({
+          housing_geo_code: housing.geoCode,
+          housing_id: housing.id,
+          type: 'housing:updated'
+        });
+      expect(events).toHaveLength(0);
+    });
+
+    it('should set actual energy consumption to null', async () => {
+      const housing = await createHousing({
+        actualEnergyConsumption: 'F'
+      });
+      const payload: HousingUpdatePayloadDTO = {
+        status: housing.status,
+        subStatus: housing.subStatus,
+        occupancy: housing.occupancy,
+        occupancyIntended: housing.occupancyIntended,
+        actualEnergyConsumption: null
+      };
+
+      const { body, status } = await request(url)
+        .put(testRoute(housing.id))
+        .send(payload)
+        .type('json')
+        .use(tokenProvider(user));
+
+      expect(status).toBe(constants.HTTP_STATUS_OK);
+      expect(body).toMatchObject<Partial<HousingDTO>>({
+        id: housing.id,
+        actualEnergyConsumption: null
+      });
+
+      const event = await Events()
+        .join(HOUSING_EVENTS_TABLE, 'event_id', 'id')
+        .where({
+          housing_geo_code: housing.geoCode,
+          housing_id: housing.id,
+          type: 'housing:updated'
+        })
+        .first();
+      expect(event).toMatchObject<Partial<EventRecordDBO<'housing:updated'>>>({
+        type: 'housing:updated',
+        next_old: {
+          actualEnergyConsumption: 'F'
+        },
+        next_new: {
+          actualEnergyConsumption: null
         },
         created_by: user.id
       });

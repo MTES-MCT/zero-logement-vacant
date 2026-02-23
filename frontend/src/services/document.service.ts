@@ -10,7 +10,25 @@ import { zlvApi } from '~/services/api.service';
 
 export const documentApi = zlvApi.injectEndpoints({
   endpoints: (builder) => ({
-    listHousingDocuments: builder.query<HousingDocumentDTO[], string>({
+    uploadDocuments: builder.mutation<
+      ReadonlyArray<DocumentDTO | FileValidationError>,
+      { files: ReadonlyArray<File> }
+    >({
+      query: ({ files }) => {
+        const formData = new FormData();
+        files.forEach((file) => {
+          formData.append('files', file);
+        });
+        return {
+          url: 'documents',
+          method: 'POST',
+          body: formData
+        };
+      },
+      invalidatesTags: ['Document']
+    }),
+
+    findHousingDocuments: builder.query<HousingDocumentDTO[], string>({
       query: (housingId) => `housing/${housingId}/documents`,
       providesTags: (documents, _error, housingId) =>
         documents
@@ -19,67 +37,38 @@ export const documentApi = zlvApi.injectEndpoints({
                 type: 'Document' as const,
                 id: document.id
               })),
-              { type: 'Document' as const, id: `LIST-${housingId}` }
+              { type: 'Document', id: `LIST-${housingId}` }
             ]
-          : [{ type: 'Document' as const, id: `LIST-${housingId}` }]
+          : [{ type: 'Document', id: `LIST-${housingId}` }]
     }),
 
-    uploadHousingDocuments: builder.mutation<
-      ReadonlyArray<HousingDocumentDTO | FileValidationError>,
-      { housingId: string; files: ReadonlyArray<File> }
+    linkDocumentsToHousing: builder.mutation<
+      ReadonlyArray<HousingDocumentDTO>,
+      { housingId: HousingDTO['id']; documentIds: DocumentDTO['id'][] }
     >({
-      query: ({ housingId, files }) => {
-        const formData = new FormData();
-        files.forEach((file) => {
-          formData.append('files', file);
-        });
-        return {
-          url: `housing/${housingId}/documents`,
-          method: 'POST',
-          body: formData
-        };
-      },
-      invalidatesTags: (_documents, _error, { housingId }) => [
+      query: ({ housingId, documentIds }) => ({
+        url: `housing/${housingId}/documents`,
+        method: 'POST',
+        body: { documentIds }
+      }),
+      invalidatesTags: (_result, _error, { housingId }) => [
         { type: 'Document', id: `LIST-${housingId}` }
       ]
     }),
 
     updateDocument: builder.mutation<
       DocumentDTO,
-      DocumentPayload & {
-        housingId: HousingDTO['id'];
-        documentId: DocumentDTO['id'];
-      }
+      { id: DocumentDTO['id'] } & DocumentPayload
     >({
-      query: ({ housingId, documentId, ...payload }) => ({
-        url: `housing/${housingId}/documents/${documentId}`,
+      query: ({ id, ...payload }) => ({
+        url: `documents/${id}`,
         method: 'PUT',
         body: payload
       }),
-      async onQueryStarted(
-        { housingId, documentId, ...patch },
-        { dispatch, queryFulfilled }
-      ) {
-        const patchResult = dispatch(
-          documentApi.util.updateQueryData(
-            'listHousingDocuments',
-            housingId,
-            (documents) => {
-              const document = documents.find(
-                (draft) => draft.id === documentId
-              );
-              if (document) {
-                Object.assign(document, patch);
-              }
-            }
-          )
-        );
-
-        queryFulfilled.catch(patchResult.undo);
-      }
+      invalidatesTags: (_result, _error, { id }) => [{ type: 'Document', id }]
     }),
 
-    removeDocument: builder.mutation<
+    unlinkDocument: builder.mutation<
       void,
       { housingId: HousingDTO['id']; documentId: DocumentDTO['id'] }
     >({
@@ -87,10 +76,13 @@ export const documentApi = zlvApi.injectEndpoints({
         url: `housing/${housingId}/documents/${documentId}`,
         method: 'DELETE'
       }),
-      async onQueryStarted({ housingId, documentId }, { dispatch, queryFulfilled }) {
+      async onQueryStarted(
+        { housingId, documentId },
+        { dispatch, queryFulfilled }
+      ) {
         const patchResult = dispatch(
           documentApi.util.updateQueryData(
-            'listHousingDocuments',
+            'findHousingDocuments',
             housingId,
             (documents) => {
               const index = documents.findIndex(
@@ -105,13 +97,23 @@ export const documentApi = zlvApi.injectEndpoints({
 
         queryFulfilled.catch(patchResult.undo);
       }
+    }),
+
+    deleteDocument: builder.mutation<void, DocumentDTO['id']>({
+      query: (id) => ({
+        url: `documents/${id}`,
+        method: 'DELETE'
+      }),
+      invalidatesTags: (_result, _error, id) => [{ type: 'Document', id }]
     })
   })
 });
 
 export const {
-  useListHousingDocumentsQuery,
-  useUploadHousingDocumentsMutation,
+  useFindHousingDocumentsQuery,
+  useUploadDocumentsMutation,
+  useLinkDocumentsToHousingMutation,
   useUpdateDocumentMutation,
-  useRemoveDocumentMutation
+  useUnlinkDocumentMutation,
+  useDeleteDocumentMutation
 } = documentApi;

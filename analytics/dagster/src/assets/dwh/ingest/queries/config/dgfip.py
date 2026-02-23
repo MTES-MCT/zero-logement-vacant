@@ -12,11 +12,19 @@ DGFIP_SOURCES = [
         read_options={"auto_detect": True},
     ),
     ExternalSourceConfig(
-        name="deliberation fiscalite locale communes",
+        name="deliberation_fiscalite_locale_communes",
         url="https://object.files.data.gouv.fr/hydra-parquet/hydra-parquet/7906b3eb-c42f-41f7-b984-de5e00ba62a6.parquet",
         producer=Producer.DGFIP,
-        file_type=FileType.Parquet,
+        file_type=FileType.PARQUET,
         description="Délibérations de fiscalité directe locale des communes 2025 (hors taux)",
+        read_options={"auto_detect": True},
+    ),
+  ExternalSourceConfig(
+        name="liste_communes_tlv1_tlv2",
+        url="https://object.files.data.gouv.fr/hydra-parquet/hydra-parquet/efe71da1-15f8-4526-bcb8-5b9a9419c58c.parquet",
+        producer=Producer.DGFIP,
+        file_type=FileType.PARQUET,
+        description="Liste des communes selon le zonage TLV",
         read_options={"auto_detect": True},
     ),
 ]

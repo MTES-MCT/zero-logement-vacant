@@ -648,21 +648,6 @@ function HousingListFiltersSidemenu(props: Props) {
               <TitleWithIcon icon="fr-icon-user-line" title="Propriétaires" />
             }
           >
-            <FeatureFlagLayout
-              flag="relative-location"
-              then={(
-                <Grid component="article" mb={2} size={12}>
-                  <RelativeLocationSelect
-                    multiple
-                    value={filters.relativeLocations ?? []}
-                    onChange={(values) => {
-                      onChangeFilters({ relativeLocations: values });
-                      posthog.capture('filtre-localisation-contact-principal');
-                    }}
-                  />
-                </Grid>
-              )}
-            />
             <Grid component="article" mb={2} size={12}>
               <OwnerKindSelect
                 multiple
@@ -683,6 +668,21 @@ function HousingListFiltersSidemenu(props: Props) {
                 }}
               />
             </Grid>
+            <FeatureFlagLayout
+              flag="relative-location"
+              then={
+                <Grid component="article" mb={2} size={12}>
+                  <RelativeLocationSelect
+                    multiple
+                    value={filters.relativeLocations ?? []}
+                    onChange={(values) => {
+                      onChangeFilters({ relativeLocations: values });
+                      posthog.capture('filtre-localisation-relative');
+                    }}
+                  />
+                </Grid>
+              }
+            />
             <Grid component="article" mb={2} size={12}>
               <MultiOwnerSelect
                 multiple

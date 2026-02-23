@@ -27,7 +27,7 @@ function RelativeLocationSelect<Multiple extends boolean = false>(
     <AppSelectNext
       {...props}
       options={values}
-      label="Localisation du contact principal"
+      label="Lieu de résidence"
       getOptionLabel={getOptionLabel}
     />
   );

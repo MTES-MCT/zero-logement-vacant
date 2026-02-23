@@ -5,14 +5,8 @@
   "exports": {
     "./package.json": "./package.json",
     ".": {
-      "import": {
-        "types": "./dist/lib/index.d.ts",
-        "default": "./dist/lib/index.js"
-      },
-      "require": {
-        "types": "./dist/lib/index.d.cts",
-        "default": "./dist/lib/index.cjs"
-      }
+      "types": "./dist/lib/index.d.ts",
+      "default": "./dist/lib/index.js"
     }
   },
   "devDependencies": {
@@ -35,6 +29,6 @@
     "jsonwebtoken": "9.0.2",
     "knex": "3.1.0",
     "pg": "8.16.3",
-    "qs": "6.14.2"
+    "qs": "6.15.0"
   }
 }

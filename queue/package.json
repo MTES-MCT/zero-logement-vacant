@@ -47,7 +47,7 @@
   "devDependencies": {
     "@faker-js/faker": "8.4.1",
     "@swc/core": "1.13.3",
-    "@tsconfig/node20": "20.1.6",
+    "@tsconfig/node24": "24.0.4",
     "@types/archiver": "6.0.3",
     "@types/async": "3.2.25",
     "@types/convict": "6.1.6",

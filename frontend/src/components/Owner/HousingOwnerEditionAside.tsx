@@ -78,7 +78,6 @@ function HousingOwnerEditionAside(props: HousingOwnerEditionAsideProps) {
           (rank) => rank
         )
         .otherwise(() => null),
-      fullName: housingOwner?.fullName ?? '',
       birthDate: housingOwner?.birthDate ?? null,
       banAddress:
         housingOwner?.banAddress &&
@@ -91,7 +90,11 @@ function HousingOwnerEditionAside(props: HousingOwnerEditionAsideProps) {
               label: housingOwner.banAddress.label,
               score: housingOwner.banAddress.score,
               longitude: housingOwner.banAddress.longitude,
-              latitude: housingOwner.banAddress.latitude
+              latitude: housingOwner.banAddress.latitude,
+              postalCode: housingOwner.banAddress.postalCode ?? null,
+              city: housingOwner.banAddress.city ?? null,
+              street: housingOwner.banAddress.street ?? null,
+              houseNumber: housingOwner.banAddress.houseNumber ?? null
             }
           : null,
       additionalAddress: housingOwner?.additionalAddress ?? null,
@@ -126,13 +129,21 @@ function HousingOwnerEditionAside(props: HousingOwnerEditionAsideProps) {
       return;
     }
 
+    // Prevent submission if user cleared the address by typing without selecting
+    if (housingOwner.banAddress && !payload.banAddress) {
+      form.setError('banAddress', {
+        type: 'manual',
+        message: "Veuillez sélectionner une adresse depuis la liste de suggestions."
+      });
+      return;
+    }
+
     props.onSave({
       isActive: payload.isActive,
       additionalAddress: payload.additionalAddress,
       banAddress: payload.banAddress,
       birthDate: payload.birthDate,
       email: payload.email,
-      fullName: payload.fullName,
       phone: payload.phone,
       rank: payload.rank,
       inactiveRank: payload.inactiveRank
@@ -156,7 +167,7 @@ function HousingOwnerEditionAside(props: HousingOwnerEditionAsideProps) {
           }}
           header={
             <Typography component="h2" variant="h6">
-              Éditer les informations du propriétaire
+              Éditer les informations du propriétairesss
             </Typography>
           }
           main={

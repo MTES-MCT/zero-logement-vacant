@@ -121,7 +121,7 @@ function HousingOwnersView() {
       },
       {
         email: payload.email,
-        fullName: payload.fullName,
+        fullName: selectedOwner.fullName,
         birthDate: payload.birthDate,
         phone: payload.phone,
         banAddress: payload.banAddress?.id
@@ -133,8 +133,8 @@ function HousingOwnersView() {
     if (!ownerEquals) {
       await updateOwner({
         id: selectedOwner.id,
+        fullName: selectedOwner.fullName,
         email: payload.email,
-        fullName: payload.fullName,
         birthDate: payload.birthDate,
         phone: payload.phone,
         banAddress: payload.banAddress
@@ -144,8 +144,8 @@ function HousingOwnersView() {
               score: payload.banAddress.score,
               longitude: payload.banAddress.longitude,
               latitude: payload.banAddress.latitude,
-              postalCode: '',
-              city: ''
+              postalCode: payload.banAddress.postalCode ?? '',
+              city: payload.banAddress.city ?? ''
             }
           : null,
         additionalAddress: payload.additionalAddress

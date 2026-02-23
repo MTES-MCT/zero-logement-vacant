@@ -1,7 +1,5 @@
-import { fr } from '@codegouvfr/react-dsfr';
 import Input, { type InputProps } from '@codegouvfr/react-dsfr/Input';
 import Autocomplete from '@mui/material/Autocomplete';
-import Grid from '@mui/material/Grid';
 import { useDebounce, useList, usePreviousDistinct } from 'react-use';
 import type { MarkOptional } from 'ts-essentials';
 import type { Address } from '../../models/Address';
@@ -26,7 +24,7 @@ function AddressSearchableSelect(props: Props) {
   const [options, { set: setOptions }] = useList<AddressSearchResult>([]);
 
   async function search(query: string | undefined): Promise<void> {
-    if (query && query.length >= 3) {
+    if (query && query.trim().length >= 3) {
       const addresses = await addressService.quickSearch(query);
       setOptions(addresses);
     }
@@ -51,6 +49,7 @@ function AddressSearchableSelect(props: Props) {
         street: props.value.street,
         postalCode: props.value.postalCode,
         city: props.value.city,
+        cityCode: props.value.cityCode ?? undefined,
         latitude: props.value.latitude ?? 0,
         longitude: props.value.longitude ?? 0,
         score: props.value.score ?? 0
@@ -71,7 +70,6 @@ function AddressSearchableSelect(props: Props) {
       inputValue={props.inputValue}
       disablePortal={true}
       value={value}
-      clearOnBlur
       openOnFocus
       clearText="Supprimer"
       closeText="Fermer"
@@ -81,39 +79,35 @@ function AddressSearchableSelect(props: Props) {
       open={props.open}
       onOpen={props.onOpen}
       onClose={props.onClose}
-      onChange={(_, value) => {
-        if (typeof value !== 'string') {
+      onChange={(_, value, reason) => {
+        if (typeof value === 'string') {
+          // User typed free text without selecting from the list
+          // Invalidate the address to force re-selection
+          if (reason === 'clear' || value === '') {
+            props.onChange(null);
+          }
+          // If user is typing, we keep the current value until they select
+          // But if they blur without selecting, clearOnBlur will clear
+        } else {
+          // User selected from the list or cleared
           props.onChange(value);
         }
       }}
-      onInputChange={(_, query) => {
+      onInputChange={(_, query, reason) => {
         props.onInputChange(query);
+        // If user is typing (not selecting), invalidate current address
+        // This forces re-selection from the autocomplete list
+        if (reason === 'input' && value && query !== value.label) {
+          props.onChange(null);
+        }
       }}
       renderInput={(params) => (
         <>
           <Input
+            label={null}
             nativeLabelProps={{
               'aria-label': 'Rechercher une adresse'
             }}
-            label={
-              <Grid
-                container
-                flexDirection="row"
-                justifyContent="space-between"
-                size={{
-                  sm: 'grow'
-                }}
-              >
-                <a
-                  className={fr.cx('fr-link--sm')}
-                  href="https://zerologementvacant.crisp.help/fr/article/comment-choisir-entre-ladresse-ban-et-ladresse-lovac-1ivvuep/?bust=1705403706774"
-                  rel="noreferrer"
-                  target="_blank"
-                >
-                  Je ne trouve pas l’adresse dans la liste
-                </a>
-              </Grid>
-            }
             hintText="Adresse la plus proche dans la BAN, au format recommandé pour vos courriers (modifiable)."
             nativeInputProps={{
               type: 'search',

@@ -91,6 +91,10 @@ fileignoreconfig:
   checksum: d72231d6b3e4620d79c61ac6470bce501b70780ca88a64b7e91d5510eab66fc5
 - filename: server/src/test/testFixtures.ts
   checksum: 85991d7ad1b2c8cb325947dfacc773689ff6bdf1b479d819725d7b2a878902be
+- filename: server/src/controllers/documentController.ts
+  checksum: 8deb9be993a9fcd96cb51229661cb4337102874f3047fe9fc0e4b9309070c36b
+- filename: docs/performance-improvements.md
+  checksum: 89082f320ef3eb9d8a7ee811b5ff9948bbbe162e9ba0caf88d11de3d51466e4b
 scopeconfig:
 - scope: node
 allowed_patterns:

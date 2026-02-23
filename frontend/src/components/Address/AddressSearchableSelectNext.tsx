@@ -3,27 +3,16 @@ import Stack from '@mui/material/Stack';
 import Typography from '@mui/material/Typography';
 import { useState } from 'react';
 
-import AppLink from '~/components/_app/AppLink/AppLink';
-import SearchableSelectNext, {
-  type SearchableSelectNextProps
-} from '~/components/SearchableSelectNext/SearchableSelectNext';
-import Icon from '~/components/ui/Icon';
+import SearchableSelectNext from '~/components/SearchableSelectNext/SearchableSelectNext';
 import addressService, {
   type AddressSearchResult
 } from '~/services/address.service';
 
-type Multiple = false;
-type DisableClearable = false;
-type FreeSolo = false;
-export type AddressSearchableSelectNextProps = Pick<
-  SearchableSelectNextProps<
-    AddressSearchResult,
-    Multiple,
-    DisableClearable,
-    FreeSolo
-  >,
-  'disabled' | 'error' | 'value' | 'onChange'
-> & {
+export type AddressSearchableSelectNextProps = {
+  disabled?: boolean;
+  error?: string;
+  value: AddressSearchResult | null;
+  onChange(address: AddressSearchResult | null): void;
   warning: boolean;
   onIgnoreWarning(): void;
 };
@@ -35,7 +24,7 @@ function AddressSearchableSelectNext(props: AddressSearchableSelectNextProps) {
   const [loading, setLoading] = useState(false);
 
   async function search(query: string | undefined): Promise<void> {
-    if (query) {
+    if (query && query.length >= 3) {
       await addressService
         .quickSearch(query)
         .then((addresses) => {
@@ -47,7 +36,11 @@ function AddressSearchableSelectNext(props: AddressSearchableSelectNextProps) {
     }
   }
 
-  function onChange(address: AddressSearchResult | null): void {
+  function onChange(address: string | AddressSearchResult | null): void {
+    // Ignore string values (user typed without selecting)
+    if (typeof address === 'string') {
+      return;
+    }
     props.onChange(
       address
         ? // Consider that the user has validated the address
@@ -62,32 +55,11 @@ function AddressSearchableSelectNext(props: AddressSearchableSelectNextProps) {
         debounce={250}
         disabled={props.disabled}
         error={props.error}
+        freeSolo
         search={search}
         options={options}
         loading={loading}
-        label={
-          <Stack spacing="0.25rem">
-            <Stack
-              direction="row"
-              spacing="0.25rem"
-              sx={{ alignItems: 'center' }}
-            >
-              <Icon name="fr-icon-home-4-line" size="sm" />
-              <Typography>
-                Adresse postale (source: Base Adresse Nationale)
-              </Typography>
-            </Stack>
-            <AppLink
-              to="https://zerologementvacant.crisp.help/fr/article/comment-choisir-entre-ladresse-ban-et-ladresse-lovac-1ivvuep/?bust=1705403706774"
-              isSimple
-              rel="noreferrer noopener"
-              target="_blank"
-              style={{ fontSize: '0.875rem' }}
-            >
-              Je ne trouve pas l’adresse dans la liste
-            </AppLink>
-          </Stack>
-        }
+        label={null}
         hintText="Adresse la plus proche dans la BAN, au format recommandé pour vos courriers (modifiable)."
         autocompleteProps={{
           autoHighlight: true,
@@ -99,7 +71,12 @@ function AddressSearchableSelectNext(props: AddressSearchableSelectNextProps) {
           }
         }}
         placeholder="Rechercher une adresse"
-        isOptionEqualToValue={(option, value) => option.banId === value.banId}
+        isOptionEqualToValue={(option, value) => {
+          if (typeof option === 'string' || typeof value === 'string') {
+            return false;
+          }
+          return option.banId === value.banId;
+        }}
         value={props.value}
         onChange={onChange}
       />

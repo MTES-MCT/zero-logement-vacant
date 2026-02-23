@@ -113,7 +113,7 @@ import { housingUpdatePayload } from '@zerologementvacant/schemas';
 
 // Frontend extends DTOs with parsed values
 interface Housing extends HousingDTO {
-  lastContact?: Date;  // Parsed from ISO string
+  lastContact?: Date; // Parsed from ISO string
 }
 
 // Backend uses DTOs directly or creates API models
@@ -131,6 +131,7 @@ interface HousingApi extends HousingDTO {
 - **Anything not following this pattern is legacy and should be refactored**
 
 Example:
+
 ```typescript
 // In @zerologementvacant/models
 export function genHousingDTO(): HousingDTO { ... }
@@ -155,26 +156,31 @@ export function genHousing(): Housing {
 ## Testing Strategy
 
 **Test-Driven Development (TDD) is mandatory:**
+
 - **Tests MUST be written BEFORE implementation**
 - Write failing tests first, then implement to make them pass
 
 **Framework:**
+
 - **All apps and packages use Vitest** (not Jest!)
 - Any workspace still using Jest is legacy or forced to do so for compatibility reasons
 - E2E tests use **Cypress**
 
 **Property-based testing:**
+
 - **Must use `@fast-check/vitest`** for:
   - API input validation tests
   - Schema validation tests
   - Any test validating data structures
 
 **Test file locations:**
+
 - API endpoint tests: `src/controllers/test/<name>-api.test.ts`
 - Repository tests: `src/repositories/test/<name>Repository.test.ts`
 - Component tests: Co-located with components
 
 **Running tests:**
+
 ```bash
 yarn nx test <project>                  # Test specific workspace
 yarn nx test <project> -- <pattern>     # Filter by file pattern
@@ -186,11 +192,13 @@ yarn test                               # Test all workspaces
 **Package manager:** Yarn v4 (requires Node v24)
 
 **Adding dependencies:**
+
 ```bash
 yarn workspace @zerologementvacant/<workspace> add <package>
 ```
 
 **Security:** Use `npq` for dependency auditing:
+
 ```bash
 npx npq install <package-name>     # Checks vulnerabilities before install
 ```
@@ -200,6 +208,7 @@ npx npq install <package-name>     # Checks vulnerabilities before install
 GitHub Actions runs E2E tests on PRs. See badge in README.
 
 **Environments:**
+
 - Staging: <https://zerologementvacant-staging.incubateur.net>
 - Production: <https://zerologementvacant.beta.gouv.fr>
 
@@ -218,7 +227,28 @@ GitHub Actions runs E2E tests on PRs. See badge in README.
 
 Husky configured for pre-commit linting. Configured via `.husky/`.
 
+## Git Conventions
+
+- **Commit messages**: Always in English
+- **PR titles and descriptions**: Always in English
+- **Branch naming**: Use prefixes like `feat/`, `fix/`, `chore/`, `refactor/`
+
 ## Workspace-Specific Documentation
 
 - **Frontend development** → [frontend/AGENTS.md](frontend/AGENTS.md)
 - **Backend/API development** → [server/AGENTS.md](server/AGENTS.md)
+
+<!-- nx configuration start-->
+<!-- Leave the start & end comments to automatically receive updates. -->
+
+# General Guidelines for working with Nx
+
+- When running tasks (for example build, lint, test, e2e, etc.), always prefer running the task through `nx` (i.e. `nx run`, `nx run-many`, `nx affected`) instead of using the underlying tooling directly
+- You have access to the Nx MCP server and its tools, use them to help the user
+- When answering questions about the repository, use the `nx_workspace` tool first to gain an understanding of the workspace architecture where applicable.
+- When working in individual projects, use the `nx_project_details` mcp tool to analyze and understand the specific project structure and dependencies
+- For questions around nx configuration, best practices or if you're unsure, use the `nx_docs` tool to get relevant, up-to-date docs. Always use this instead of assuming things about nx configuration
+- If the user needs help with an Nx configuration or project graph error, use the `nx_workspace` tool to get any errors
+- For Nx plugin best practices, check `node_modules/@nx/<plugin>/PLUGIN.md`. Not all plugins have this file - proceed without it if unavailable.
+
+<!-- nx configuration end-->

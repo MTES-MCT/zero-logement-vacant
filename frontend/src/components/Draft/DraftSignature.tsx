@@ -26,14 +26,18 @@ function DraftSignature(props: Readonly<Props>) {
     return (e: ChangeEvent<HTMLInputElement>) => {
       const value = e.target.value === '' ? null : e.target.value;
       const signatory = props.value?.[index];
-      const signatories = props.value?.with(index, {
-        firstName: signatory?.firstName ?? null,
-        lastName: signatory?.lastName ?? null,
-        role: signatory?.role ?? null,
-        file: signatory?.file ?? null,
-        [key]: value
+      const signatories = props.value?.map((s, i) =>
+        i === index
+          ? {
+              firstName: signatory?.firstName ?? null,
+              lastName: signatory?.lastName ?? null,
+              role: signatory?.role ?? null,
+              file: signatory?.file ?? null,
+              [key]: value
+            }
+          : s
         // Typescript does not understand that there are always 2 elements
-      }) as SignatoriesPayload;
+      ) as SignatoriesPayload;
       props.onChange(signatories);
     };
   }
@@ -46,7 +50,9 @@ function DraftSignature(props: Readonly<Props>) {
       file: null
     };
     const signatories =
-      props.value?.with(index, { ...signatory, file }) ?? null;
+      props.value?.map((s, i) =>
+        i === index ? { ...signatory, file } : s
+      ) ?? null;
     props.onChange(signatories as SignatoriesPayload);
   }
 
@@ -59,7 +65,9 @@ function DraftSignature(props: Readonly<Props>) {
       role: null,
       file: null
     };
-    const signatories = props?.value?.with(index, { ...signatory, file: null });
+    const signatories = props?.value?.map((s, i) =>
+      i === index ? { ...signatory, file: null } : s
+    );
     props.onChange(signatories as SignatoriesPayload);
     const input = document.getElementById(
       uploadIds[index]

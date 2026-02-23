@@ -16,6 +16,7 @@ import {
   Fragment,
   type ReactNode,
   type SyntheticEvent,
+  useEffect,
   useState
 } from 'react';
 import { useDebounce } from 'react-use';
@@ -105,7 +106,20 @@ function SearchableSelectNext<
   }
 
   const value = props.value;
-  const [inputChange, setInputChange] = useState('');
+
+  function getValueLabel(): string {
+    if (!value || Array.isArray(value)) return '';
+    if (props.getOptionLabel) {
+      return props.getOptionLabel(value as Value);
+    }
+    return (value as { label?: string })?.label ?? '';
+  }
+
+  const [inputChange, setInputChange] = useState(getValueLabel);
+
+  useEffect(() => {
+    setInputChange(getValueLabel());
+  }, [value]);
 
   useDebounce(
     () => {
@@ -207,6 +221,7 @@ function SearchableSelectNext<
     <Autocomplete
       {...props.autocompleteProps}
       multiple={props.multiple}
+      freeSolo={props.freeSolo}
       className={props.className}
       options={props.options ?? []}
       disabled={disabled}
@@ -354,8 +369,23 @@ function SearchableSelectNext<
       }}
       filterOptions={props.freeSolo ? (x) => x : undefined}
       inputValue={inputChange}
-      onInputChange={(_, query) => {
+      onInputChange={(_, query, reason) => {
         setInputChange(query);
+        // Invalidate selection when user types something different from current value
+        // This ensures the form value becomes null when user modifies without selecting
+        if (reason === 'input' && !props.multiple && props.value) {
+          const currentLabel = getValueLabel();
+          if (query !== currentLabel) {
+            props.onChange(
+              null as AutocompleteValue<
+                Value,
+                Multiple,
+                DisableClearable,
+                FreeSolo
+              >
+            );
+          }
+        }
       }}
       value={props.value}
       onChange={onChange}

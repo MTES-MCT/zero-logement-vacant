@@ -34,6 +34,7 @@ import eventRepository from '~/repositories/eventRepository';
 import housingOwnerRepository from '~/repositories/housingOwnerRepository';
 import housingRepository from '~/repositories/housingRepository';
 import ownerRepository from '~/repositories/ownerRepository';
+import ownerDistanceService from '~/services/ownerDistanceService';
 import { isArrayOf, isString } from '~/utils/validators';
 
 type ListOwnersQuery = ParsedQs & PaginationApi & {
@@ -314,6 +315,19 @@ async function update(
     eventRepository.insertManyOwnerEvents(events)
   ]);
 
+  // Update owner-housing distances when address changes
+  const addressChanged = existingOwner.banAddress?.label !== banAddress?.label;
+  if (addressChanged) {
+    ownerDistanceService
+      .updateOwnerHousingDistances(owner.id, banAddress)
+      .catch((error) => {
+        logger.error('Failed to update owner-housing distances', {
+          ownerId: owner.id,
+          error
+        });
+      });
+  }
+
   response.status(constants.HTTP_STATUS_OK).json(toOwnerDTO(owner));
 }
 
@@ -471,15 +485,24 @@ const ownerValidators: ValidationChain[] = [
   body('rawAddress').custom(isArrayOf(isString)).optional({ nullable: true }),
   body('email').optional({ checkFalsy: true }).isEmail(),
   body('phone').isString().optional({ nullable: true }),
-  body('banAddress.banId').isString().optional(),
-  body('banAddress.label').isString().optional(),
-  body('banAddress.houseNumber').isString().optional({ nullable: true }),
-  body('banAddress.street').isString().optional({ nullable: true }),
-  body('banAddress.postalCode').isString().optional({ nullable: true }),
-  body('banAddress.city').isString().optional({ nullable: true }),
-  body('banAddress.latitude').isNumeric().optional({ nullable: true }),
-  body('banAddress.longitude').isNumeric().optional({ nullable: true }),
-  body('banAddress.score').isNumeric().optional({ nullable: true }),
+  body('banAddress').optional({ nullable: true }).custom((value) => {
+    if (value === null || value === undefined) {
+      return true;
+    }
+    if (!value.banId || typeof value.banId !== 'string' || value.banId.trim() === '') {
+      throw new Error("L'adresse BAN doit avoir un identifiant BAN. Veuillez sélectionner une adresse depuis la liste de suggestions.");
+    }
+    if (!value.label || typeof value.label !== 'string' || value.label.trim() === '') {
+      throw new Error("L'adresse BAN doit avoir un libellé. Veuillez sélectionner une adresse depuis la liste de suggestions.");
+    }
+    if (!value.postalCode || typeof value.postalCode !== 'string' || value.postalCode.trim() === '') {
+      throw new Error("L'adresse BAN doit avoir un code postal. Veuillez sélectionner une adresse depuis la liste de suggestions.");
+    }
+    if (!value.city || typeof value.city !== 'string' || value.city.trim() === '') {
+      throw new Error("L'adresse BAN doit avoir une ville. Veuillez sélectionner une adresse depuis la liste de suggestions.");
+    }
+    return true;
+  }),
   body('additionalAddress').isString().optional({ nullable: true })
 ];
 

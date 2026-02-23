@@ -2,11 +2,9 @@
 import { defineConfig } from 'vite';
 import react from '@vitejs/plugin-react-swc';
 import { nxViteTsPaths } from '@nx/vite/plugins/nx-tsconfig-paths.plugin';
-import { nxCopyAssetsPlugin } from '@nx/vite/plugins/nx-copy-assets.plugin';
 
-// https://vitejs.dev/config/
 export default defineConfig(() => ({
-  root: __dirname,
+  root: import.meta.dirname,
   cacheDir: '../node_modules/.vite/frontend',
   server: {
     port: 3000,
@@ -16,10 +14,10 @@ export default defineConfig(() => ({
     port: 3000,
     host: 'localhost'
   },
-  plugins: [react(), nxViteTsPaths(), nxCopyAssetsPlugin(['*.md'])],
+  plugins: [react(), nxViteTsPaths()],
   // Uncomment this if you are using workers.
   // worker: {
-  //  plugins: [ nxViteTsPaths() ],
+  //  plugins: [],
   // },
   build: {
     outDir: './dist',

@@ -21,7 +21,7 @@ function RelativeLocationTag(props: RelativeLocationTagProps) {
       as="span"
       nativeSpanProps={{
         ...props.tagProps?.nativeSpanProps,
-        'aria-label': 'Localisation du destinataire principal'
+        'aria-label': 'Lieu de résidence'
       }}
     >
       {value}

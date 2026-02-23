@@ -32,7 +32,7 @@ RUN curl "https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip" -o "awscliv2
     rm -rf /var/lib/apt/lists/*
 
 # Download Metabase and DuckDB driver
-ADD https://downloads.metabase.com/v0.57.3/metabase.jar /home
+ADD https://downloads.metabase.com/latest/metabase.jar /home
 ADD https://github.com/motherduckdb/metabase_duckdb_driver/releases/download/1.4.1.0/duckdb.metabase-driver.jar $MB_PLUGINS_DIR
 
 # Create necessary directories and set permissions

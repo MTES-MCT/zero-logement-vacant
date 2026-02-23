@@ -10,7 +10,7 @@ IMPLEMENTATION RULES:
 - R2: Skip rows with missing/empty SIREN
 - R3: Geo_Perimeter → localities_geo_code (Python list string → PostgreSQL array)
 - R4: Name-zlv → name
-- R5: Kind-admin → kind (direct mapping, no transformation)
+- R5: Kind-admin → kind_admin_meta (does NOT update 'kind' column)
 - R6: Source = "gold_establishments_{Millesime}"
 - R8: Idempotent: UPDATE if SIREN exists, INSERT otherwise
 - R9: Dry-run mode required for validation
@@ -203,7 +203,7 @@ class EstablishmentImporter:
 
         return siret_str
 
-    def compute_short_name(self, name: str, kind: str) -> str:
+    def compute_short_name(self, name: str, kind_admin_meta: Optional[str]) -> Optional[str]:
         """
         Compute short name from full name.
 
@@ -211,16 +211,16 @@ class EstablishmentImporter:
 
         Args:
             name: Full establishment name
-            kind: Establishment kind (COM, COM-TOM, etc.)
+            kind_admin_meta: Establishment kind from CSV (COM, COM-TOM, etc.)
 
         Returns:
-            Short name
+            Short name or None
         """
         import re
 
-        if kind in ("COM", "COM-TOM"):
+        if kind_admin_meta in ("COM", "COM-TOM"):
             return re.sub(r"^Commune d(e\s|')", "", name)
-        return name
+        return None
 
     def normalize_name(self, name: str) -> str:
         """
@@ -327,7 +327,7 @@ class EstablishmentImporter:
                     "reason": "missing_or_invalid_siren",
                     "siren": siren_value,
                     "name": row.get("Name-zlv", ""),
-                    "kind": row.get("Kind-admin", ""),
+                    "kind_admin_meta": row.get("Kind-admin", ""),
                 }
             )
             return None
@@ -344,7 +344,7 @@ class EstablishmentImporter:
                     "reason": "invalid_localities",
                     "siren": str(siren),
                     "name": row.get("Name-zlv", ""),
-                    "kind": row.get("Kind-admin", ""),
+                    "kind_admin_meta": row.get("Kind-admin", ""),
                     "invalid_codes": invalid_codes[:5],  # Show first 5 invalid codes
                     "total_invalid": len(invalid_codes),
                 }
@@ -361,19 +361,16 @@ class EstablishmentImporter:
             name = row.get("Name-source", "Unknown")
         name = self.normalize_name(name)
 
-        # R5: Kind (direct mapping)
-        kind = row.get("Kind-admin", "").strip()
-        if not kind:
-            kind = "UNKNOWN"
-
-        # R6: Source with millesime
+        # R5: Source with millesime
         millesime = row.get("Millesime", "2025").strip() if row.get("Millesime") else "2025"
         source = f"gold_establishments_{millesime}"
 
         # New fields
         siret = self.parse_siret(row)
-        short_name = self.compute_short_name(name, kind)
-        kind_admin_meta = row.get("Kind-admin_meta", "").strip() or None
+        # kind_admin_meta stores the Kind-admin value from CSV (e.g., "COM", "METRO")
+        # We do NOT update the 'kind' column - it is managed separately
+        kind_admin_meta = row.get("Kind-admin", "").strip() or None
+        short_name = self.compute_short_name(name, kind_admin_meta)
 
         # Geographic metadata
         layer_geo_label = row.get("Layer-geo_label", "").strip() or None
@@ -386,8 +383,7 @@ class EstablishmentImporter:
             "siren": siren,
             "siret": siret,
             "name": name[:255],  # Truncate to VARCHAR(255)
-            "short_name": short_name[:255],
-            "kind": kind[:255],
+            "short_name": short_name[:255] if short_name else None,
             "kind_admin_meta": kind_admin_meta[:50] if kind_admin_meta else None,
             "millesime": millesime[:4] if millesime else None,
             "layer_geo_label": layer_geo_label[:100] if layer_geo_label else None,
@@ -475,7 +471,6 @@ class EstablishmentImporter:
                     r["siret"],
                     r["name"],
                     r["short_name"],
-                    r["kind"],
                     r["kind_admin_meta"],
                     r["millesime"],
                     r["layer_geo_label"],
@@ -494,13 +489,13 @@ class EstablishmentImporter:
                 self.cursor,
                 """
                 INSERT INTO establishments
-                    (siren, siret, name, short_name, kind, kind_admin_meta, millesime,
+                    (siren, siret, name, short_name, kind_admin_meta, millesime,
                      layer_geo_label, dep_code, dep_name, reg_code, reg_name,
                      localities_geo_code, available, source, updated_at)
                 VALUES %s
                 """,
                 insert_data,
-                template="(%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, NOW())",
+                template="(%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, NOW())",
                 page_size=500,
             )
 
@@ -513,7 +508,6 @@ class EstablishmentImporter:
                     r["siret"],
                     r["name"],
                     r["short_name"],
-                    r["kind"],
                     r["kind_admin_meta"],
                     r["millesime"],
                     r["layer_geo_label"],
@@ -536,7 +530,6 @@ class EstablishmentImporter:
                     siret = data.siret,
                     name = data.name,
                     short_name = data.short_name,
-                    kind = data.kind,
                     kind_admin_meta = data.kind_admin_meta,
                     millesime = data.millesime,
                     layer_geo_label = data.layer_geo_label,
@@ -547,7 +540,7 @@ class EstablishmentImporter:
                     localities_geo_code = data.localities_geo_code,
                     source = data.source,
                     updated_at = NOW()
-                FROM (VALUES %s) AS data(siret, name, short_name, kind, kind_admin_meta, millesime, layer_geo_label, dep_code, dep_name, reg_code, reg_name, localities_geo_code, source, siren)
+                FROM (VALUES %s) AS data(siret, name, short_name, kind_admin_meta, millesime, layer_geo_label, dep_code, dep_name, reg_code, reg_name, localities_geo_code, source, siren)
                 WHERE e.siren = data.siren::integer
                 """,
                 update_data,

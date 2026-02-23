@@ -25,12 +25,22 @@ fileignoreconfig:
   checksum: 41d324e68fa7dd0d64faebc29b6e462491462d9ac0b8a6f1b7182f047c28d7f2
 - filename: analytics/uv.lock
   checksum: 3a0fe35b0711a326c15fd78001844e35c69e61bce7b613c3ba5c1788270232e1
+- filename: docs/guides/document-upload-architecture.md
+  checksum: 11ec4499248e685ea168b05df23d74a6357f21a54e9f26a8cf0937be8ba59f61
+- filename: docs/performance-improvements.md
+  checksum: 89082f320ef3eb9d8a7ee811b5ff9948bbbe162e9ba0caf88d11de3d51466e4b
+- filename: docs/plans/2026-01-28-document-upload-refactoring.md
+  checksum: ac444aed1f4427b4d3928842fac8fa67bc32ddae8547dd561d622d057ad0840e
 - filename: frontend/.env.example
   checksum: 7e2a5ff197c49ff9f715b3d189da7282bdb40de53ea49735e9f183ece19168fc
+- filename: frontend/AGENTS.md
+  checksum: e61269bb50cfcf72e05f504edc4e72dddca39e35f6994c958f62ca453467368d
 - filename: frontend/src/components/Draft/DraftSender.tsx
   checksum: cfcc1023edac4d29c305f00a4bd86f27d491e4e9535bec2bd905a917b3f396b7
 - filename: frontend/src/components/Draft/DraftSignature.tsx
   checksum: 8abd2b819601d46cc6a3d0a61a60b76391601f2d89d9126f5167b684878bd2d1
+- filename: frontend/src/components/HousingListFilters/DataFileYearSelect.tsx
+  checksum: c4e85a92672ddd7bce82931823c2cebbdd0516e04d47f7603d5fd04f23fab6b2
 - filename: frontend/src/components/HousingListFilters/HousingListFiltersSidemenu.tsx
   checksum: a28fb2302d2d59d11ca517bc6d01ea8ab7b0c68a86bf1db14abc0735a90e8e8e
 - filename: frontend/src/components/Precision/PrecisionSelect.tsx
@@ -49,8 +59,14 @@ fileignoreconfig:
   checksum: 9893602dd7197e44a7c361e44c31b5fb86a025227af95c02998a6857bd1a694b
 - filename: server/.env.example
   checksum: 4955533b2ba29ebc4a052e65ce2aab5b911ebf8e4b4eeecff50b5e83d1857c35
+- filename: server/AGENTS.md
+  checksum: 7dcff7f92233af9d77b5756e39af3d2aa71cd7dab25d91c2a96bfb7cdd609bca
 - filename: server/src/controllers/campaignController.ts
   checksum: 73a5c525402f4354bc0ad41cf33aa17dadade2ba05608bfe9894b659b2a51246
+- filename: server/src/controllers/documentController.ts
+  checksum: 089d6558761d5075b371a9bdb5607b0073093b968a6fdf54e1631c78e9d68192
+- filename: server/src/controllers/documentController.ts
+  checksum: 8deb9be993a9fcd96cb51229661cb4337102874f3047fe9fc0e4b9309070c36b
 - filename: server/src/controllers/housingExportController.ts
   checksum: cb506387b49506b7ba0ed426001c221b80aff9f953e544d52c1c6d287741cf64
 - filename: server/src/controllers/test/document-api.test.ts
@@ -63,36 +79,22 @@ fileignoreconfig:
   checksum: 780da83bced54995ae72c9f963c8bdeea7217b22793fd33c966bd8b28073acad
 - filename: server/src/infra/database/seeds/development/20240404235457_users.ts
   checksum: 459ad7c52a09b1a5d885f0e13acd68a894b862470125529ecc28a4116c737df7
+- filename: server/src/models/test/DocumentApi.test.ts
+  checksum: 1d816ff7b060a0100cbd90a60182bb7c3e230ab5761909b18871af6ced2a6efb
+- filename: server/src/repositories/documentRepository.ts
+  checksum: 08cf7ff79afbf8604d02913f97a4a3a7a5ba21921a104096a6973f293b81d107
 - filename: server/src/scripts/import-dpe/import-dpe.py
   checksum: ba1ea278d8321501976c7c9da7e9428fe8819776369f7eef0ff1fbf1ee4ed8bf
 - filename: server/src/scripts/import-dpe/import_dpe_raw.py
   checksum: 49c0bd05ec24ec5ad408541392e444e2b2d86f0d777e428032215d08045f784a
 - filename: server/src/services/ceremaService/ceremaService.ts
   checksum: 2005ee48d86de2c6e6e57b187862cdeaafcb9f0c49e9a82ec7031910957174e8
-- filename: frontend/AGENTS.md
-  checksum: e61269bb50cfcf72e05f504edc4e72dddca39e35f6994c958f62ca453467368d
-- filename: server/AGENTS.md
-  checksum: 7dcff7f92233af9d77b5756e39af3d2aa71cd7dab25d91c2a96bfb7cdd609bca
-- filename: server/src/test/testFixtures.ts
-  checksum: 85991d7ad1b2c8cb325947dfacc773689ff6bdf1b479d819725d7b2a878902be
-- filename: server/src/models/test/DocumentApi.test.ts
-  checksum: 1d816ff7b060a0100cbd90a60182bb7c3e230ab5761909b18871af6ced2a6efb
-- filename: server/src/repositories/documentRepository.ts
-  checksum: 08cf7ff79afbf8604d02913f97a4a3a7a5ba21921a104096a6973f293b81d107
 - filename: server/src/services/document-upload.ts
   checksum: 0cb813413285efbcff1805170c8c6017b54d8708a0dab34a89ba08524ce9724b
 - filename: server/src/services/test/document-upload.test.ts
   checksum: d72231d6b3e4620d79c61ac6470bce501b70780ca88a64b7e91d5510eab66fc5
-- filename: server/src/controllers/documentController.ts
-  checksum: 8deb9be993a9fcd96cb51229661cb4337102874f3047fe9fc0e4b9309070c36b
-- filename: docs/plans/2026-01-28-document-upload-refactoring.md
-  checksum: ac444aed1f4427b4d3928842fac8fa67bc32ddae8547dd561d622d057ad0840e
-- filename: docs/guides/document-upload-architecture.md
-  checksum: 11ec4499248e685ea168b05df23d74a6357f21a54e9f26a8cf0937be8ba59f61
-- filename: frontend/src/components/HousingListFilters/DataFileYearSelect.tsx
-  checksum: c4e85a92672ddd7bce82931823c2cebbdd0516e04d47f7603d5fd04f23fab6b2
-- filename: docs/performance-improvements.md
-  checksum: 89082f320ef3eb9d8a7ee811b5ff9948bbbe162e9ba0caf88d11de3d51466e4b
+- filename: server/src/test/testFixtures.ts
+  checksum: 85991d7ad1b2c8cb325947dfacc773689ff6bdf1b479d819725d7b2a878902be
 scopeconfig:
 - scope: node
 allowed_patterns:

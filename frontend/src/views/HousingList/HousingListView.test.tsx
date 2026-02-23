@@ -2493,7 +2493,7 @@ describe('Housing list view', () => {
       it.each([
         {
           filterValue: 'same-address' as const,
-          optionLabel: 'A la même adresse que le logement',
+          optionLabel: 'À la même adresse que le logement',
           matchingLocations: ['same-address'] as const
         },
         {
@@ -2619,9 +2619,9 @@ describe('Housing list view', () => {
 
       it.each([
         {
-          optionLabel: 'A la même adresse que le logement',
+          optionLabel: 'À la même adresse que le logement',
           badgeLabel:
-            'Lieu de résidence\u00a0: a la même adresse que le logement'
+            'Lieu de résidence\u00a0: à la même adresse que le logement'
         },
         {
           optionLabel: 'Dans la même commune',

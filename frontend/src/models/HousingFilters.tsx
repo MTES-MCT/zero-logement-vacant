@@ -144,7 +144,7 @@ export const OWNER_KIND_OPTIONS: Record<
 
 const RELATIVE_LOCATION_FILTER_LABELS: Record<RelativeLocationFilter, string> =
   {
-    'same-address': 'A la même adresse que le logement',
+    'same-address': 'À la même adresse que le logement',
     'same-commune': 'Dans la même commune',
     'same-department': 'Dans le même département',
     'same-region': 'Dans la même région',

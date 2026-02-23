@@ -227,6 +227,12 @@ GitHub Actions runs E2E tests on PRs. See badge in README.
 
 Husky configured for pre-commit linting. Configured via `.husky/`.
 
+## Git Conventions
+
+- **Commit messages**: Always in English
+- **PR titles and descriptions**: Always in English
+- **Branch naming**: Use prefixes like `feat/`, `fix/`, `chore/`, `refactor/`
+
 ## Workspace-Specific Documentation
 
 - **Frontend development** → [frontend/AGENTS.md](frontend/AGENTS.md)

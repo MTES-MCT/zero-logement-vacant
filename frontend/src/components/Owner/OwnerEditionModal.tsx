@@ -25,7 +25,16 @@ const schema = object({
     label: string().required(),
     score: number().required().min(0).max(1),
     longitude: number().min(-180).max(180).nullable().defined(),
-    latitude: number().min(-90).max(90).nullable().defined()
+    latitude: number().min(-90).max(90).nullable().defined(),
+    postalCode: string()
+      .required("L'adresse doit avoir un code postal. Veuillez re-sélectionner l'adresse.")
+      .min(1, "L'adresse doit avoir un code postal. Veuillez re-sélectionner l'adresse."),
+    city: string()
+      .required("L'adresse doit avoir une ville. Veuillez re-sélectionner l'adresse.")
+      .min(1, "L'adresse doit avoir une ville. Veuillez re-sélectionner l'adresse."),
+    cityCode: string().nullable().defined(),
+    street: string().nullable().defined(),
+    houseNumber: string().nullable().defined()
   })
     .nullable()
     .defined(),
@@ -63,7 +72,12 @@ function createOwnerEditionModalNext() {
                 label: props.owner.banAddress.label,
                 score: props.owner.banAddress.score ?? 0,
                 longitude: props.owner.banAddress.longitude ?? null,
-                latitude: props.owner.banAddress.latitude ?? null
+                latitude: props.owner.banAddress.latitude ?? null,
+                postalCode: props.owner.banAddress.postalCode ?? '',
+                city: props.owner.banAddress.city ?? '',
+                cityCode: props.owner.banAddress.cityCode ?? null,
+                street: props.owner.banAddress.street ?? null,
+                houseNumber: props.owner.banAddress.houseNumber ?? null
               }
             : null,
           additionalAddress: props.owner.additionalAddress ?? null,
@@ -101,6 +115,15 @@ function createOwnerEditionModalNext() {
           return;
         }
 
+        // Prevent submission if user cleared the address by typing without selecting
+        if (props.owner.banAddress && !payload.banAddress) {
+          form.setError('banAddress', {
+            type: 'manual',
+            message: "Veuillez sélectionner une adresse depuis la liste de suggestions."
+          });
+          return;
+        }
+
         updateOwner({
           id: props.owner.id,
           fullName: props.owner.fullName,
@@ -110,8 +133,11 @@ function createOwnerEditionModalNext() {
                 banId: payload.banAddress.id,
                 label: payload.banAddress.label,
                 score: payload.banAddress.score,
-                postalCode: '',
-                city: '',
+                postalCode: payload.banAddress.postalCode,
+                city: payload.banAddress.city,
+                cityCode: payload.banAddress.cityCode ?? undefined,
+                street: payload.banAddress.street ?? '',
+                houseNumber: payload.banAddress.houseNumber ?? '',
                 longitude: payload.banAddress.longitude ?? undefined,
                 latitude: payload.banAddress.latitude ?? undefined
               }
@@ -123,6 +149,15 @@ function createOwnerEditionModalNext() {
           .unwrap()
           .then(() => {
             modal.close();
+          })
+          .catch((error: { data?: { message?: string } }) => {
+            const message = error?.data?.message;
+            if (message && message.toLowerCase().includes('adresse')) {
+              form.setError('banAddress', {
+                type: 'server',
+                message
+              });
+            }
           });
       }
 
@@ -203,11 +238,7 @@ function createOwnerEditionModalNext() {
                 </Stack>
 
                 <Stack component="section">
-                  <Stack
-                    direction="row"
-                    spacing="0.25rem"
-                    sx={{ alignItems: 'center' }}
-                  >
+                  <Stack direction="row" spacing="0.25rem" sx={{ alignItems: 'center' }}>
                     <Icon name="fr-icon-home-4-line" size="sm" />
                     <Typography
                       color={fr.colors.decisions.text.active.grey.default}
@@ -215,6 +246,14 @@ function createOwnerEditionModalNext() {
                       Adresse postale (source: Base Adresse Nationale)
                     </Typography>
                   </Stack>
+                  <a
+                    className={fr.cx('fr-link--sm')}
+                    href="https://zerologementvacant.crisp.help/fr/article/comment-choisir-entre-ladresse-ban-et-ladresse-lovac-1ivvuep/?bust=1705403706774"
+                    rel="noreferrer"
+                    target="_blank"
+                  >
+                    Je ne trouve pas l&apos;adresse dans la liste
+                  </a>
                   <Controller
                     control={form.control}
                     name="banAddress"
@@ -230,8 +269,8 @@ function createOwnerEditionModalNext() {
                                 banId: field.value.id,
                                 label: field.value.label,
                                 score: field.value.score ?? 0,
-                                postalCode: '',
-                                city: ''
+                                postalCode: field.value.postalCode ?? '',
+                                city: field.value.city ?? ''
                               }
                             : null
                         }
@@ -243,7 +282,12 @@ function createOwnerEditionModalNext() {
                                   label: value.label,
                                   score: value.score ?? 0,
                                   longitude: value.longitude,
-                                  latitude: value.latitude
+                                  latitude: value.latitude,
+                                  postalCode: value.postalCode,
+                                  city: value.city,
+                                  cityCode: value.cityCode ?? null,
+                                  street: value.street ?? null,
+                                  houseNumber: value.houseNumber ?? null
                                 }
                               : null
                           );

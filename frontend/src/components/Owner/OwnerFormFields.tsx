@@ -18,7 +18,11 @@ export const OWNER_FORM_FIELD_SCHEMA = object({
     label: string().required(),
     score: number().required().min(0).max(1),
     longitude: number().min(-180).max(180).required(),
-    latitude: number().min(-90).max(90).required()
+    latitude: number().min(-90).max(90).required(),
+    postalCode: string().defined().nullable(),
+    city: string().defined().nullable(),
+    street: string().defined().nullable(),
+    houseNumber: string().defined().nullable()
   })
     .defined()
     .nullable(),
@@ -87,6 +91,20 @@ function OwnerFormFields(props: OwnerFormFieldsProps) {
       </Stack>
 
       <Stack component="section">
+        <Stack direction="row" spacing="0.25rem" sx={{ alignItems: 'center' }}>
+          <Icon name="fr-icon-home-4-line" size="sm" />
+          <Typography color={fr.colors.decisions.text.active.grey.default}>
+            Adresse postale (source: Base Adresse Nationale)
+          </Typography>
+        </Stack>
+        <a
+          className={fr.cx('fr-link--sm')}
+          href="https://zerologementvacant.crisp.help/fr/article/comment-choisir-entre-ladresse-ban-et-ladresse-lovac-1ivvuep/?bust=1705403706774"
+          rel="noreferrer"
+          target="_blank"
+        >
+          Je ne trouve pas l&apos;adresse dans la liste
+        </a>
         <Controller
           control={form.control}
           name="banAddress"
@@ -97,10 +115,15 @@ function OwnerFormFields(props: OwnerFormFieldsProps) {
               address={
                 field.value
                   ? {
-                      ...field.value,
                       banId: field.value.id,
-                      postalCode: '',
-                      city: ''
+                      label: field.value.label,
+                      score: field.value.score,
+                      longitude: field.value.longitude,
+                      latitude: field.value.latitude,
+                      postalCode: field.value.postalCode ?? '',
+                      city: field.value.city ?? '',
+                      street: field.value.street ?? undefined,
+                      houseNumber: field.value.houseNumber ?? undefined
                     }
                   : null
               }
@@ -116,7 +139,11 @@ function OwnerFormFields(props: OwnerFormFieldsProps) {
                         label: address.label,
                         score: address.score,
                         longitude: address.longitude,
-                        latitude: address.latitude
+                        latitude: address.latitude,
+                        postalCode: address.postalCode ?? null,
+                        city: address.city ?? null,
+                        street: address.street ?? null,
+                        houseNumber: address.houseNumber ?? null
                       } satisfies OwnerFormFieldsSchema['banAddress'])
                     : null
                 );

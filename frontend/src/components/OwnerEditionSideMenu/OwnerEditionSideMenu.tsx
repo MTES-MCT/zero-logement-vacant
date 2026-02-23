@@ -70,6 +70,15 @@ function OwnerEditionSideMenu(props: OwnerEditionSideMenuProps) {
 
   async function save(values: OwnerEditionFormSchema): Promise<void> {
     if (props.owner) {
+      // Prevent submission if user cleared the address by typing without selecting
+      if (props.owner.banAddress && !values.address) {
+        form.setError('address', {
+          type: 'manual',
+          message: "Veuillez sélectionner une adresse depuis la liste de suggestions."
+        });
+        return;
+      }
+
       localStorage.setItem(
         'OwnerEdition.warningVisible',
         warningVisible.toString()
@@ -88,8 +97,20 @@ function OwnerEditionSideMenu(props: OwnerEditionSideMenuProps) {
           longitude: values.address.longitude ?? undefined
         } : null,
         additionalAddress: values.additionalAddress
-      });
-      props.onClose?.();
+      })
+        .unwrap()
+        .then(() => {
+          props.onClose?.();
+        })
+        .catch((error: { data?: { message?: string } }) => {
+          const message = error?.data?.message;
+          if (message && message.toLowerCase().includes('adresse')) {
+            form.setError('address', {
+              type: 'server',
+              message
+            });
+          }
+        });
     }
   }
 
@@ -137,11 +158,12 @@ function OwnerEditionSideMenu(props: OwnerEditionSideMenuProps) {
                   Adresse fiscale (source: DGFIP)
                 </Typography>
                 <Grid>
-                  <span className="fr-hint-text">
+                  <Typography className="fr-hint-text">
                     Adresse issue des fichiers LOVAC (non modifiable).
-                  </span>
+                  </Typography>
                   <Typography
                     color={fr.colors.decisions.text.default.grey.default}
+                    sx={{ mt: '0.5rem' }}
                   >
                     {props.owner.rawAddress
                       ? props.owner.rawAddress.join(' ')
@@ -164,6 +186,14 @@ function OwnerEditionSideMenu(props: OwnerEditionSideMenuProps) {
                   />
                   Adresse postale (source: Base Adresse Nationale)
                 </Typography>
+                <a
+                  className={fr.cx('fr-link--sm')}
+                  href="https://zerologementvacant.crisp.help/fr/article/comment-choisir-entre-ladresse-ban-et-ladresse-lovac-1ivvuep/?bust=1705403706774"
+                  rel="noreferrer"
+                  target="_blank"
+                >
+                  Je ne trouve pas l&apos;adresse dans la liste
+                </a>
                 <Controller<OwnerEditionFormSchema, 'address'>
                   name="address"
                   render={({ field, fieldState }) => (

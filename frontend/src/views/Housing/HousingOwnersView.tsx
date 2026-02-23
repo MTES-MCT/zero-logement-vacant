@@ -144,8 +144,8 @@ function HousingOwnersView() {
               score: payload.banAddress.score,
               longitude: payload.banAddress.longitude,
               latitude: payload.banAddress.latitude,
-              postalCode: '',
-              city: ''
+              postalCode: payload.banAddress.postalCode ?? '',
+              city: payload.banAddress.city ?? ''
             }
           : null,
         additionalAddress: payload.additionalAddress

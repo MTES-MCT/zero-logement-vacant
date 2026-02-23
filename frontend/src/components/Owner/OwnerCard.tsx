@@ -14,6 +14,7 @@ import {
   type PropertyRight,
   type RelativeLocation
 } from '@zerologementvacant/models';
+import { useFeatureFlagEnabled } from 'posthog-js/react';
 
 import { useId, type ReactNode } from 'react';
 import { match, Pattern } from 'ts-pattern';
@@ -51,6 +52,8 @@ interface OwnerCardProps {
 }
 
 function OwnerCardNext(props: OwnerCardProps) {
+  const isRelativeLocationEnabled = useFeatureFlagEnabled('relative-location');
+
   if (props.isLoading) {
     return (
       <Skeleton
@@ -174,7 +177,7 @@ function OwnerCardNext(props: OwnerCardProps) {
               : formatAddress(props.banAddress).join(', ')
           }
           footer={
-            props.relativeLocation ? (
+            props.relativeLocation && isRelativeLocationEnabled ? (
               <RelativeLocationTag
                 value={props.relativeLocation}
                 tagProps={{ small: true }}

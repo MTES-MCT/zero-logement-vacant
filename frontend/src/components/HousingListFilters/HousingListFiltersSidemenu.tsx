@@ -60,6 +60,7 @@ import RoomCountSelect from './RoomCountSelect';
 import SurfaceSelect from './SurfaceSelect';
 import VacancyRateSelect from './VacancyRateSelect';
 import VacancyYearSelect from './VacancyYearSelect';
+import FeatureFlagLayout from '~/layouts/FeatureFlagLayout';
 
 interface TitleWithIconProps {
   icon: FrIconClassName | RiIconClassName;
@@ -647,16 +648,21 @@ function HousingListFiltersSidemenu(props: Props) {
               <TitleWithIcon icon="fr-icon-user-line" title="Propriétaires" />
             }
           >
-            <Grid component="article" mb={2} size={12}>
-              <RelativeLocationSelect
-                multiple
-                value={filters.relativeLocations ?? []}
-                onChange={(values) => {
-                  onChangeFilters({ relativeLocations: values });
-                  posthog.capture('filtre-localisation-contact-principal');
-                }}
-              />
-            </Grid>
+            <FeatureFlagLayout
+              flag="relative-location"
+              then={(
+                <Grid component="article" mb={2} size={12}>
+                  <RelativeLocationSelect
+                    multiple
+                    value={filters.relativeLocations ?? []}
+                    onChange={(values) => {
+                      onChangeFilters({ relativeLocations: values });
+                      posthog.capture('filtre-localisation-contact-principal');
+                    }}
+                  />
+                </Grid>
+              )}
+            />
             <Grid component="article" mb={2} size={12}>
               <OwnerKindSelect
                 multiple

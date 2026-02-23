@@ -3,25 +3,16 @@ import Stack from '@mui/material/Stack';
 import Typography from '@mui/material/Typography';
 import { useState } from 'react';
 
-import SearchableSelectNext, {
-  type SearchableSelectNextProps
-} from '~/components/SearchableSelectNext/SearchableSelectNext';
+import SearchableSelectNext from '~/components/SearchableSelectNext/SearchableSelectNext';
 import addressService, {
   type AddressSearchResult
 } from '~/services/address.service';
 
-type Multiple = false;
-type DisableClearable = false;
-type FreeSolo = false;
-export type AddressSearchableSelectNextProps = Pick<
-  SearchableSelectNextProps<
-    AddressSearchResult,
-    Multiple,
-    DisableClearable,
-    FreeSolo
-  >,
-  'disabled' | 'error' | 'value' | 'onChange'
-> & {
+export type AddressSearchableSelectNextProps = {
+  disabled?: boolean;
+  error?: string;
+  value: AddressSearchResult | null;
+  onChange(address: AddressSearchResult | null): void;
   warning: boolean;
   onIgnoreWarning(): void;
 };
@@ -45,7 +36,11 @@ function AddressSearchableSelectNext(props: AddressSearchableSelectNextProps) {
     }
   }
 
-  function onChange(address: AddressSearchResult | null): void {
+  function onChange(address: string | AddressSearchResult | null): void {
+    // Ignore string values (user typed without selecting)
+    if (typeof address === 'string') {
+      return;
+    }
     props.onChange(
       address
         ? // Consider that the user has validated the address
@@ -60,6 +55,7 @@ function AddressSearchableSelectNext(props: AddressSearchableSelectNextProps) {
         debounce={250}
         disabled={props.disabled}
         error={props.error}
+        freeSolo
         search={search}
         options={options}
         loading={loading}
@@ -75,7 +71,12 @@ function AddressSearchableSelectNext(props: AddressSearchableSelectNextProps) {
           }
         }}
         placeholder="Rechercher une adresse"
-        isOptionEqualToValue={(option, value) => option.banId === value.banId}
+        isOptionEqualToValue={(option, value) => {
+          if (typeof option === 'string' || typeof value === 'string') {
+            return false;
+          }
+          return option.banId === value.banId;
+        }}
         value={props.value}
         onChange={onChange}
       />

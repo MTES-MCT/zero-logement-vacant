@@ -70,6 +70,15 @@ function OwnerEditionSideMenu(props: OwnerEditionSideMenuProps) {
 
   async function save(values: OwnerEditionFormSchema): Promise<void> {
     if (props.owner) {
+      // Prevent submission if user cleared the address by typing without selecting
+      if (props.owner.banAddress && !values.address) {
+        form.setError('address', {
+          type: 'manual',
+          message: "Veuillez sélectionner une adresse depuis la liste de suggestions."
+        });
+        return;
+      }
+
       localStorage.setItem(
         'OwnerEdition.warningVisible',
         warningVisible.toString()
@@ -163,33 +172,28 @@ function OwnerEditionSideMenu(props: OwnerEditionSideMenuProps) {
                 </Grid>
               </Grid>
               <section className="fr-mb-3w fr-mt-3w">
-                <Grid
-                  container
-                  sx={{ alignItems: 'center', justifyContent: 'space-between' }}
+                <Typography
+                  component="h3"
+                  color={fr.colors.decisions.text.active.grey.default}
                 >
-                  <Typography
-                    component="h3"
-                    color={fr.colors.decisions.text.active.grey.default}
-                  >
-                    <span
-                      className={fr.cx(
-                        'fr-icon-home-4-line',
-                        'fr-icon--sm',
-                        'fr-mr-1w'
-                      )}
-                      aria-hidden={true}
-                    />
-                    Adresse postale (source: Base Adresse Nationale)
-                  </Typography>
-                  <a
-                    className={fr.cx('fr-link--sm')}
-                    href="https://zerologementvacant.crisp.help/fr/article/comment-choisir-entre-ladresse-ban-et-ladresse-lovac-1ivvuep/?bust=1705403706774"
-                    rel="noreferrer"
-                    target="_blank"
-                  >
-                    Je ne trouve pas l&apos;adresse dans la liste
-                  </a>
-                </Grid>
+                  <span
+                    className={fr.cx(
+                      'fr-icon-home-4-line',
+                      'fr-icon--sm',
+                      'fr-mr-1w'
+                    )}
+                    aria-hidden={true}
+                  />
+                  Adresse postale (source: Base Adresse Nationale)
+                </Typography>
+                <a
+                  className={fr.cx('fr-link--sm')}
+                  href="https://zerologementvacant.crisp.help/fr/article/comment-choisir-entre-ladresse-ban-et-ladresse-lovac-1ivvuep/?bust=1705403706774"
+                  rel="noreferrer"
+                  target="_blank"
+                >
+                  Je ne trouve pas l&apos;adresse dans la liste
+                </a>
                 <Controller<OwnerEditionFormSchema, 'address'>
                   name="address"
                   render={({ field, fieldState }) => (

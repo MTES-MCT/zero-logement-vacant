@@ -91,26 +91,20 @@ function OwnerFormFields(props: OwnerFormFieldsProps) {
       </Stack>
 
       <Stack component="section">
-        <Stack
-          direction="row"
-          spacing="0.25rem"
-          sx={{ alignItems: 'center', justifyContent: 'space-between', mb: '0.5rem' }}
-        >
-          <Stack direction="row" spacing="0.25rem" sx={{ alignItems: 'center' }}>
-            <Icon name="fr-icon-home-4-line" size="sm" />
-            <Typography color={fr.colors.decisions.text.active.grey.default}>
-              Adresse postale (source: Base Adresse Nationale)
-            </Typography>
-          </Stack>
-          <a
-            className={fr.cx('fr-link--sm')}
-            href="https://zerologementvacant.crisp.help/fr/article/comment-choisir-entre-ladresse-ban-et-ladresse-lovac-1ivvuep/?bust=1705403706774"
-            rel="noreferrer"
-            target="_blank"
-          >
-            Je ne trouve pas l&apos;adresse dans la liste
-          </a>
+        <Stack direction="row" spacing="0.25rem" sx={{ alignItems: 'center' }}>
+          <Icon name="fr-icon-home-4-line" size="sm" />
+          <Typography color={fr.colors.decisions.text.active.grey.default}>
+            Adresse postale (source: Base Adresse Nationale)
+          </Typography>
         </Stack>
+        <a
+          className={fr.cx('fr-link--sm')}
+          href="https://zerologementvacant.crisp.help/fr/article/comment-choisir-entre-ladresse-ban-et-ladresse-lovac-1ivvuep/?bust=1705403706774"
+          rel="noreferrer"
+          target="_blank"
+        >
+          Je ne trouve pas l&apos;adresse dans la liste
+        </a>
         <Controller
           control={form.control}
           name="banAddress"

@@ -70,7 +70,6 @@ function AddressSearchableSelect(props: Props) {
       inputValue={props.inputValue}
       disablePortal={true}
       value={value}
-      clearOnBlur
       openOnFocus
       clearText="Supprimer"
       closeText="Fermer"

@@ -129,6 +129,15 @@ function HousingOwnerEditionAside(props: HousingOwnerEditionAsideProps) {
       return;
     }
 
+    // Prevent submission if user cleared the address by typing without selecting
+    if (housingOwner.banAddress && !payload.banAddress) {
+      form.setError('banAddress', {
+        type: 'manual',
+        message: "Veuillez sélectionner une adresse depuis la liste de suggestions."
+      });
+      return;
+    }
+
     props.onSave({
       isActive: payload.isActive,
       additionalAddress: payload.additionalAddress,
@@ -158,7 +167,7 @@ function HousingOwnerEditionAside(props: HousingOwnerEditionAsideProps) {
           }}
           header={
             <Typography component="h2" variant="h6">
-              Éditer les informations du propriétaire
+              Éditer les informations du propriétairesss
             </Typography>
           }
           main={

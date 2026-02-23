@@ -81,6 +81,14 @@
         "cwd": "server",
         "command": "eslint . --cache"
       }
+    },
+
+    "start": {
+      "executor": "nx:run-commands",
+      "dependsOn": ["build"],
+      "options": {
+        "command": "node server/dist/app/index.js"
+      }
     }
   }
 }

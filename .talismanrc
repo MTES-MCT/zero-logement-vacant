@@ -11,6 +11,20 @@ fileignoreconfig:
   checksum: 034c6924978983da0ca5897bb06b64598a5a813dc93d1d9e8f8a62da952d4d22
 - filename: analytics/dagster/src/resources/database_resources.py
   checksum: 7e069553595840740111497cb6dccf89f13f07a224c0e1cf439882a43fe03d51
+- filename: analytics/dbt/models/intermediate/analysis/int_analysis_city_features.sql
+  checksum: d715f66cce85ad8b53b0a393862cbcebb3c7814e63be0a2e2b3dfb2c0bb6d89f
+- filename: analytics/dbt/models/marts/analysis/marts_bi_housing_geography.sql
+  checksum: 98bc58352cb1e18a4054f89282acf0d235a16d2451a0eddf646dbfe80d0d5dce
+- filename: analytics/dbt/models/marts/public/marts_public_establishments_morphology_catagorized.sql
+  checksum: cbc05c70b2131535f28d14f3824af20028eb610c823badcc55dc944553de8cfb
+- filename: analytics/dbt/models/staging/external/dgaln/stg_external_dgaln_loyers_2025.sql
+  checksum: a3944c6ae4111753592d793d8abb38c9a453d512c4b322641453fc94ac6faed0
+- filename: analytics/dbt/models/staging/external/dgfip/stg_external_dgfip_deliberation_fiscalite_locale_communes.sql
+  checksum: 3c2f2b774ef9336fc3af06c304f07370a1849eb450977308064b77f1842d1428
+- filename: analytics/dbt/models/staging/external/dgfip/stg_external_dgfip_liste_communes_tlv.sql
+  checksum: 41d324e68fa7dd0d64faebc29b6e462491462d9ac0b8a6f1b7182f047c28d7f2
+- filename: analytics/uv.lock
+  checksum: 3a0fe35b0711a326c15fd78001844e35c69e61bce7b613c3ba5c1788270232e1
 - filename: frontend/.env.example
   checksum: 7e2a5ff197c49ff9f715b3d189da7282bdb40de53ea49735e9f183ece19168fc
 - filename: frontend/src/components/Draft/DraftSender.tsx
@@ -39,12 +53,20 @@ fileignoreconfig:
   checksum: 73a5c525402f4354bc0ad41cf33aa17dadade2ba05608bfe9894b659b2a51246
 - filename: server/src/controllers/housingExportController.ts
   checksum: cb506387b49506b7ba0ed426001c221b80aff9f953e544d52c1c6d287741cf64
+- filename: server/src/controllers/test/document-api.test.ts
+  checksum: e0ac5ee5bf05b8a692d5255de0ce21fb4071b8a484ddf6cc93324f9f03680a2d
 - filename: server/src/controllers/test/user-api.test.ts
   checksum: 67d6c9c214ecbd872172a5eedfc1b137c94089fa2b62015ab0668ba1c8684fdb
+- filename: server/src/infra/database/migrations/20251215164103_dpe-import-optimization-indexes.ts
+  checksum: ef2763a2a7a64427aef3017f3ceeff80162ead0fbac9a5a329006d85d87a30d6
 - filename: server/src/infra/database/scripts/010-load-sder-sded.sql
   checksum: 780da83bced54995ae72c9f963c8bdeea7217b22793fd33c966bd8b28073acad
 - filename: server/src/infra/database/seeds/development/20240404235457_users.ts
   checksum: 459ad7c52a09b1a5d885f0e13acd68a894b862470125529ecc28a4116c737df7
+- filename: server/src/scripts/import-dpe/import-dpe.py
+  checksum: ba1ea278d8321501976c7c9da7e9428fe8819776369f7eef0ff1fbf1ee4ed8bf
+- filename: server/src/scripts/import-dpe/import_dpe_raw.py
+  checksum: 49c0bd05ec24ec5ad408541392e444e2b2d86f0d777e428032215d08045f784a
 - filename: server/src/services/ceremaService/ceremaService.ts
   checksum: 2005ee48d86de2c6e6e57b187862cdeaafcb9f0c49e9a82ec7031910957174e8
 - filename: frontend/AGENTS.md

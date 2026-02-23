@@ -204,7 +204,9 @@ function HousingEditionSideMenu(props: HousingEditionSideMenuProps) {
           occupancyIntended:
             payload.occupancyIntended ?? housing.occupancyIntended,
           status: payload.status ?? housing.status,
-          subStatus: payload.subStatus ?? housing.subStatus
+          subStatus: payload.subStatus ?? housing.subStatus,
+          actualEnergyConsumption:
+            payload.actualEnergyConsumption ?? housing.actualEnergyConsumption
         });
       }
 

@@ -24,11 +24,21 @@ import {
   genUserDTO
 } from '@zerologementvacant/models/fixtures';
 import async from 'async';
+import { vi } from 'vitest';
 import { format, subYears } from 'date-fns';
 import { Provider } from 'react-redux';
 import { createMemoryRouter, RouterProvider } from 'react-router-dom';
 
 import data from '~/mocks/handlers/data';
+
+vi.mock('posthog-js/react', async (importOriginal) => {
+  const mod = await importOriginal<typeof import('posthog-js/react')>();
+  return {
+    ...mod,
+    useFeatureFlagEnabled: vi.fn().mockReturnValue(true),
+    usePostHog: () => ({ capture: vi.fn() })
+  };
+});
 import { fromEstablishmentDTO } from '~/models/Establishment';
 import { RELATIVE_LOCATION_LABELS } from '~/models/HousingOwner';
 import { fromUserDTO } from '~/models/User';
@@ -138,7 +148,7 @@ describe('Housing view', () => {
       });
 
       const tag = await screen.findByLabelText(
-        'Localisation du destinataire principal'
+        'Lieu de résidence'
       );
       expect(tag).toHaveTextContent(RELATIVE_LOCATION_LABELS['same-commune']);
     });
@@ -168,7 +178,7 @@ describe('Housing view', () => {
         });
 
         const tag = await screen.findByLabelText(
-          'Localisation du destinataire principal'
+          'Lieu de résidence'
         );
         expect(tag).toHaveTextContent(expectedLabel);
       }

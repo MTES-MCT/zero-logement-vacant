@@ -51,7 +51,6 @@ import { fromUserDTO } from '~/models/User';
 vi.mock('../../components/Aside/Aside.tsx');
 
 interface RenderViewOptions {
-  establishment: EstablishmentDTO;
   auth: UserDTO;
   establishment: EstablishmentDTO;
   housings: ReadonlyArray<HousingDTO>;

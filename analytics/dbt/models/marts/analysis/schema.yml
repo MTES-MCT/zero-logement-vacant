@@ -102,8 +102,9 @@ models:
   - name: marts_bi_housing_zlv_usage
     description: |
       Table BI - Utilisation de l application ZLV et activite des etablissements.
+      Contient les metriques au niveau logement (contact, statuts, campagnes) ET les metriques
+      agregees au niveau etablissement (prefixe establishment_) jointes depuis int_analysis_establishments_zlv_usage.
       Question cle - L utilisation de ZLV est-elle un determinant de la sortie de vacance?
-      Features - Contact par ZLV, campagnes, MAJ suivi/occupation, activation etablissement, pro-activite, score engagement.
     columns:
       - name: housing_id
         description: Identifiant unique du logement
@@ -124,6 +125,66 @@ models:
         description: Score d engagement ZLV 0-10
       - name: zlv_engagement_category
         description: Categorie d engagement Aucun, Faible, Moyen, Fort
+      - name: establishment_nom
+        description: Nom de l etablissement
+      - name: establishment_ouvert
+        description: TRUE si l etablissement est ouvert et actif
+      - name: establishment_date_ouverture
+        description: Date de premiere activation
+      - name: establishment_annee_ouverture
+        description: Annee de premiere activation
+      - name: establishment_utilisateurs_inscrits
+        description: Nombre d utilisateurs inscrits
+      - name: establishment_connexions_30_jours
+        description: Nombre d utilisateurs actifs dans les 30 derniers jours (proxy)
+      - name: establishment_connexions_60_jours
+        description: Nombre d utilisateurs actifs dans les 60 derniers jours (proxy)
+      - name: establishment_connexions_90_jours
+        description: Nombre d utilisateurs actifs dans les 90 derniers jours (proxy)
+      - name: establishment_logements_maj_situation
+        description: Nombre de logements avec MAJ situation dans l etablissement
+      - name: establishment_logements_maj_occupation
+        description: Nombre de logements avec MAJ occupation dans l etablissement
+      - name: establishment_logements_maj_suivi
+        description: Nombre de logements avec MAJ suivi dans l etablissement
+      - name: establishment_logements_maj_enrichissement
+        description: Nombre de logements avec MAJ enrichissement dans l etablissement
+      - name: establishment_logements_maj_mails
+        description: Nombre de logements avec MAJ email proprietaire
+      - name: establishment_logements_maj_phone
+        description: Nombre de logements avec MAJ telephone proprietaire
+      - name: establishment_logements_maj_owners
+        description: Nombre de logements avec MAJ nom ou rang proprietaire
+      - name: establishment_logements_maj_owners_address
+        description: Nombre de logements avec MAJ adresse proprietaire
+      - name: establishment_logements_maj_notes
+        description: Nombre de logements avec notes utilisateur
+      - name: establishment_logements_maj_documents
+        description: Nombre de logements avec au moins 1 document
+      - name: establishment_documents_importes
+        description: Nombre total de documents importes
+      - name: establishment_logements_contactes_via_campagnes
+        description: Nombre de logements contactes via campagnes
+      - name: establishment_logements_exportes_via_groupes
+        description: Nombre de logements exportes via groupes
+      - name: establishment_campagnes_creees
+        description: Nombre total de campagnes creees
+      - name: establishment_campagnes_envoyees
+        description: Nombre total de campagnes envoyees
+      - name: establishment_groupes_crees
+        description: Nombre total de groupes crees
+      - name: establishment_perimetres_importes
+        description: Nombre total de perimetres importes
+      - name: establishment_region
+        description: Region de l etablissement
+      - name: establishment_departement
+        description: Departement de l etablissement
+      - name: establishment_type_detaille
+        description: Type detaille de l etablissement
+      - name: establishment_type_simple
+        description: Type simple de l etablissement
+      - name: establishment_mails_utilisateurs
+        description: Emails des utilisateurs de l etablissement
 
   - name: marts_bi_housing_complete
     description: |

@@ -13,9 +13,8 @@ Sources are organized by producer in separate modules in the config/ directory.
 
 from typing import TypedDict, Literal, Optional
 
-from analytics.dagster.src.assets.dwh.ingest.queries.config.anah import ANAH_CONFIG
-from analytics.dagster.src.assets.dwh.ingest.queries.config.anct import ANCT_CONFIG
-
+from .config.anah import ANAH_CONFIG
+from .config.anct import ANCT_CONFIG
 from .config.private import PRIVATE_CONFIG
 from .config.cerema import CEREMA_CONFIG
 from .config.dgaln import DGALN_CONFIG

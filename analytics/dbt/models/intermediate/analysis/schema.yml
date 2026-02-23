@@ -163,6 +163,103 @@ models:
       - name: owner_contactable
         description: "TRUE si le propriétaire a un email ou téléphone"
 
+  - name: int_analysis_establishments_zlv_usage
+    description: |
+      Metriques d'utilisation ZLV au niveau etablissement.
+      Agregat de toutes les activites par collectivite - MAJ situation, enrichissement proprietaires,
+      campagnes, groupes, documents, connexions utilisateurs.
+      Filtre sur les collectivites locales (CC, CU, ME, CA, Commune, SIVOM, CTU).
+    columns:
+      - name: establishment_id
+        description: "Identifiant unique de l'etablissement"
+        tests:
+          - not_null
+          - unique
+      - name: nom
+        description: "Nom de l'etablissement"
+      - name: ouvert
+        description: "TRUE si l'etablissement est disponible et a au moins 1 utilisateur"
+      - name: date_ouverture
+        description: "Date de premiere activation de l'etablissement"
+      - name: annee_ouverture
+        description: "Annee de premiere activation"
+      - name: utilisateurs_inscrits
+        description: "Nombre d'utilisateurs inscrits"
+      - name: date_derniere_connexion
+        description: "Date de derniere connexion d'un utilisateur"
+      - name: connecte_30_jours
+        description: "TRUE si au moins un utilisateur connecte dans les 30 derniers jours"
+      - name: connecte_60_jours
+        description: "TRUE si au moins un utilisateur connecte dans les 60 derniers jours"
+      - name: connecte_90_jours
+        description: "TRUE si au moins un utilisateur connecte dans les 90 derniers jours"
+      - name: connexions_30_jours
+        description: "Nombre d'utilisateurs actifs dans les 30 derniers jours (proxy)"
+      - name: connexions_60_jours
+        description: "Nombre d'utilisateurs actifs dans les 60 derniers jours (proxy)"
+      - name: connexions_90_jours
+        description: "Nombre d'utilisateurs actifs dans les 90 derniers jours (proxy)"
+      - name: logements_maj_situation
+        description: "Nombre de logements avec MAJ situation (suivi ou occupation)"
+      - name: logements_maj_occupation
+        description: "Nombre de logements avec MAJ occupation"
+      - name: logements_maj_suivi
+        description: "Nombre de logements avec MAJ suivi"
+      - name: logements_maj_non_suivi
+        description: "Nombre de logements avec dernier statut Non-suivi"
+      - name: logements_maj_en_attente
+        description: "Nombre de logements avec dernier statut En attente de retour"
+      - name: logements_maj_premier_contact
+        description: "Nombre de logements avec dernier statut Premier contact"
+      - name: logements_maj_suivi_en_cours
+        description: "Nombre de logements avec dernier statut Suivi en cours"
+      - name: logements_maj_suivi_termine
+        description: "Nombre de logements avec dernier statut Suivi termine"
+      - name: logements_maj_suivi_termine_sortis
+        description: "Nombre de logements Suivi termine avec sortie de vacance/passoire/objectif rempli"
+      - name: logements_maj_suivi_termine_fiabilises
+        description: "Nombre de logements Suivi termine fiabilises (n etait pas vacant/passoire)"
+      - name: logements_maj_bloque
+        description: "Nombre de logements avec dernier statut Bloque"
+      - name: logements_maj_mails
+        description: "Nombre de logements avec MAJ email proprietaire"
+      - name: logements_maj_phone
+        description: "Nombre de logements avec MAJ telephone proprietaire"
+      - name: logements_maj_owners
+        description: "Nombre de logements avec MAJ nom ou rang proprietaire"
+      - name: logements_maj_owners_address
+        description: "Nombre de logements avec MAJ adresse proprietaire"
+      - name: logements_maj_dpe
+        description: "Nombre de logements avec MAJ DPE (NULL - pas d evenements DPE dans ZLV)"
+      - name: logements_maj_notes
+        description: "Nombre de logements avec des notes utilisateur"
+      - name: logements_maj_documents
+        description: "Nombre de logements avec au moins 1 document attache"
+      - name: logements_maj_enrichissement
+        description: "Nombre total de logements avec MAJ enrichissement (mails + phone + owners + address + notes + documents)"
+      - name: documents_importes
+        description: "Nombre total de documents importes"
+      - name: date_dernier_document_importe
+        description: "Date du dernier document importe"
+      - name: logements_contactes_via_campagnes
+        description: "Nombre de logements contactes via campagnes envoyees"
+      - name: logements_exportes_via_groupes
+        description: "Nombre de logements exportes via groupes"
+      - name: logements_maj_situation_pct_parc_vacant_25
+        description: "Ratio logements MAJ situation / parc LOVAC 2025 (%)"
+      - name: logements_maj_situation_pct_parc_locatif_24
+        description: "Ratio logements MAJ situation / parc FF 2024 (%)"
+      - name: region
+        description: "Nom de la region de l etablissement"
+      - name: departement
+        description: "Nom du departement de l etablissement"
+      - name: type_detaille
+        description: "Type detaille de l etablissement (Metropole, CA, CC, etc.)"
+      - name: type_simple
+        description: "Type simple regroupe (Intercommunalite, Commune)"
+      - name: mails_utilisateurs
+        description: "Emails des utilisateurs de l etablissement"
+
   - name: int_analysis_housing_zlv_usage
     description: |
       Métriques d'utilisation de l'application ZLV au niveau logement.

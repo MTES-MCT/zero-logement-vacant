@@ -222,9 +222,9 @@ class TestComputeShortName:
         assert result == "Orléans"
 
     def test_short_name_non_commune(self, importer):
-        """Non-commune short name should be unchanged."""
+        """Non-commune short name should be None."""
         result = importer.compute_short_name("Préfecture de Paris", "PREF")
-        assert result == "Préfecture de Paris"
+        assert result is None
 
     def test_short_name_com_tom(self, importer):
         """COM-TOM kind should also have prefix removed."""
@@ -310,7 +310,7 @@ class TestTransformRow:
         assert result is not None
         assert result["siren"] == 123456789
         assert result["siret"] == "12345678901234"
-        assert result["kind"] == "COM"
+        assert result["kind_admin_meta"] == "COM"
         assert result["localities_geo_code"] == ["75001", "75002"]
         assert result["source"] == "gold_establishments_2025"
         assert result["available"] is True
@@ -390,8 +390,8 @@ class TestTransformRow:
         assert result is not None
         assert result["name"] == "Fallback Name"
 
-    def test_transform_row_default_kind(self, importer):
-        """Missing kind should default to UNKNOWN."""
+    def test_transform_row_missing_kind(self, importer):
+        """Missing kind should be None."""
         row = {
             "Siren": "123456789",
             "Name-zlv": "Test",
@@ -400,7 +400,7 @@ class TestTransformRow:
         result = importer.transform_row(row)
 
         assert result is not None
-        assert result["kind"] == "UNKNOWN"
+        assert result["kind_admin_meta"] is None
 
 
 class TestGetExistingSirens:
@@ -464,8 +464,7 @@ class TestBatchUpsert:
                 "siret": "12345678901234",
                 "name": "Test",
                 "short_name": "Test",
-                "kind": "COM",
-                "kind_admin_meta": None,
+                "kind_admin_meta": "COM",
                 "millesime": "2025",
                 "layer_geo_label": None,
                 "dep_code": "75",
@@ -494,8 +493,7 @@ class TestBatchUpsert:
                 "siret": "12345678901234",
                 "name": "Test Updated",
                 "short_name": "Test",
-                "kind": "COM",
-                "kind_admin_meta": None,
+                "kind_admin_meta": "COM",
                 "millesime": "2025",
                 "layer_geo_label": None,
                 "dep_code": "75",
@@ -525,8 +523,7 @@ class TestBatchUpsert:
                 "siret": "12345678901234",
                 "name": "Test",
                 "short_name": "Test",
-                "kind": "COM",
-                "kind_admin_meta": None,
+                "kind_admin_meta": "COM",
                 "millesime": "2025",
                 "layer_geo_label": None,
                 "dep_code": "75",
@@ -596,5 +593,5 @@ class TestProcessSinglePair:
         result = importer.transform_row(row)
 
         assert result is not None
-        assert result["kind"] == "COM-TOM"
+        assert result["kind_admin_meta"] == "COM-TOM"
         assert result["localities_geo_code"] == ["97101"]

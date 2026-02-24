@@ -605,7 +605,10 @@ export function genGroupDTO(
 
 export const FRANCE_BBOX: BBox = [-1.69, 43.19, 6.8, 49.49];
 
-export function genHousingDTO(geoCode = genGeoCode()): HousingDTO {
+export function genHousingDTO(
+  geoCode = genGeoCode(),
+  building: BuildingDTO | null = null
+): HousingDTO {
   const department = geoCode.substring(0, 2);
   const locality = geoCode.substring(2, 5);
   const invariant = genInvariant(locality);
@@ -654,6 +657,7 @@ export function genHousingDTO(geoCode = genGeoCode()): HousingDTO {
     housingKind: faker.helpers.arrayElement(HOUSING_KIND_VALUES),
     roomsCount: faker.number.int({ min: 0, max: 10 }),
     cadastralReference: faker.string.alpha(),
+    buildingId: building?.id ?? null,
     buildingYear: faker.date.past({ years: 100 }).getUTCFullYear(),
     taxed: faker.datatype.boolean(),
     dataYears,

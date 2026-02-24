@@ -27,6 +27,7 @@ export interface HousingDTO {
   housingKind: HousingKind;
   roomsCount: number | null;
   livingArea: number | null;
+  buildingId: string | null;
   buildingYear: number | null;
   taxed: boolean | null;
   /**

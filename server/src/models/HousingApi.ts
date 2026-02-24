@@ -23,7 +23,6 @@ import { diff } from '~/utils/diff';
 export type HousingId = Pick<HousingDTO, 'geoCode' | 'id'>;
 
 export interface HousingRecordApi extends Omit<HousingDTO, 'owner'> {
-  buildingId: string | null;
   buildingGroupId: string | null;
   geolocation: Point | null;
   occupancyRegistered: Occupancy;
@@ -60,6 +59,7 @@ export function toHousingDTO(housing: HousingApi): HousingDTO {
     housingKind: housing.housingKind,
     roomsCount: housing.roomsCount,
     livingArea: housing.livingArea,
+    buildingId: housing.buildingId,
     buildingYear: housing.buildingYear,
     taxed: housing.taxed,
     dataYears: housing.dataYears,

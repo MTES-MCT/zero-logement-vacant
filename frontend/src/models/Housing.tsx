@@ -248,6 +248,7 @@ export function toHousingDTO(housing: Housing): HousingDTO {
     roomsCount: housing.roomsCount,
     livingArea: housing.livingArea,
     cadastralReference: housing.cadastralReference,
+    buildingId: housing.buildingId,
     buildingYear: housing.buildingYear ?? null,
     taxed: housing.taxed,
     dataYears: housing.dataFileYears

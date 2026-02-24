@@ -39,6 +39,10 @@ import psycopg2
 from psycopg2.extras import RealDictCursor, execute_values
 from tqdm import tqdm
 
+# Increase CSV field size limit to handle large Geo_Perimeter fields
+# (national entities have ~35,000 commune codes)
+csv.field_size_limit(sys.maxsize)
+
 
 class EstablishmentImporter:
     """Import establishments from Gold layer CSV."""
@@ -73,7 +77,8 @@ class EstablishmentImporter:
             "updated": 0,
             "skipped_no_siren": 0,
             "skipped_invalid_siren": 0,
-            "skipped_invalid_localities": 0,
+            "filtered_localities_count": 0,  # Total invalid locality codes filtered out
+            "records_with_filtered_localities": 0,  # Records that had some invalid codes filtered
             "errors": 0,
         }
 
@@ -99,21 +104,22 @@ class EstablishmentImporter:
         self.valid_localities = {row["geo_code"] for row in self.cursor.fetchall()}
         print(f"Loaded {len(self.valid_localities):,} valid localities from database")
 
-    def validate_localities(self, geo_codes: Optional[List[str]]) -> Tuple[bool, List[str]]:
+    def validate_and_filter_localities(self, geo_codes: Optional[List[str]]) -> Tuple[List[str], List[str]]:
         """
-        Validate that all geo_codes exist in the localities table.
+        Filter geo_codes to keep only valid ones that exist in the localities table.
 
         Args:
             geo_codes: List of geo codes to validate
 
         Returns:
-            Tuple of (is_valid, list_of_invalid_codes)
+            Tuple of (valid_codes, invalid_codes)
         """
         if not geo_codes:
-            return True, []
+            return [], []
 
+        valid_codes = [code for code in geo_codes if code in self.valid_localities]
         invalid_codes = [code for code in geo_codes if code not in self.valid_localities]
-        return len(invalid_codes) == 0, invalid_codes
+        return valid_codes, invalid_codes
 
     def disconnect(self):
         """Close database connection."""
@@ -333,27 +339,34 @@ class EstablishmentImporter:
             return None
 
         # R3: Parse Geo_Perimeter
-        localities = self.parse_geo_perimeter(row.get("Geo_Perimeter", ""))
+        raw_localities = self.parse_geo_perimeter(row.get("Geo_Perimeter", ""))
 
-        # Validate localities against DB
-        is_valid, invalid_codes = self.validate_localities(localities)
-        if not is_valid:
-            self.stats["skipped_invalid_localities"] += 1
-            self.skipped_rows.append(
-                {
-                    "reason": "invalid_localities",
-                    "siren": str(siren),
-                    "name": row.get("Name-zlv", ""),
-                    "kind_admin_meta": row.get("Kind-admin", ""),
-                    "invalid_codes": invalid_codes[:5],  # Show first 5 invalid codes
-                    "total_invalid": len(invalid_codes),
-                }
-            )
-            logging.error(
-                f"SIREN {siren}: {len(invalid_codes)} invalid locality codes - "
+        # Filter invalid localities (keep valid ones, log warnings for invalid)
+        localities, invalid_codes = self.validate_and_filter_localities(raw_localities)
+
+        if invalid_codes:
+            # Track stats
+            self.stats["filtered_localities_count"] += len(invalid_codes)
+            self.stats["records_with_filtered_localities"] += 1
+
+            # Log warning but continue with valid codes
+            logging.warning(
+                f"SIREN {siren}: filtered {len(invalid_codes)} invalid locality codes - "
                 f"first 5: {invalid_codes[:5]}"
             )
-            return None
+            # Track for reporting but don't skip
+            if len(invalid_codes) > 10:  # Only report if significant number of invalid codes
+                self.skipped_rows.append(
+                    {
+                        "reason": "filtered_localities",
+                        "siren": str(siren),
+                        "name": row.get("Name-zlv", ""),
+                        "kind_admin_meta": row.get("Kind-admin", ""),
+                        "invalid_codes": invalid_codes[:5],
+                        "total_invalid": len(invalid_codes),
+                        "valid_count": len(localities),
+                    }
+                )
 
         # R4: Name (normalize from uppercase legacy format)
         name = row.get("Name-zlv", "").strip()
@@ -471,6 +484,7 @@ class EstablishmentImporter:
                     r["siret"],
                     r["name"],
                     r["short_name"],
+                    r["kind_admin_meta"],  # Also used for 'kind' column
                     r["kind_admin_meta"],
                     r["millesime"],
                     r["layer_geo_label"],
@@ -489,13 +503,13 @@ class EstablishmentImporter:
                 self.cursor,
                 """
                 INSERT INTO establishments
-                    (siren, siret, name, short_name, kind_admin_meta, millesime,
+                    (siren, siret, name, short_name, kind, kind_admin_meta, millesime,
                      layer_geo_label, dep_code, dep_name, reg_code, reg_name,
                      localities_geo_code, available, source, updated_at)
                 VALUES %s
                 """,
                 insert_data,
-                template="(%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, NOW())",
+                template="(%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, NOW())",
                 page_size=500,
             )
 
@@ -601,28 +615,33 @@ class EstablishmentImporter:
             print(f"Inserted: {self.stats['inserted']:,}")
             print(f"Updated: {self.stats['updated']:,}")
             print(f"Skipped (no SIREN): {self.stats['skipped_no_siren']:,}")
-            print(f"Skipped (invalid localities): {self.stats['skipped_invalid_localities']:,}")
+            print(f"Records with filtered localities: {self.stats['records_with_filtered_localities']:,}")
+            print(f"Total invalid locality codes filtered: {self.stats['filtered_localities_count']:,}")
             print(f"Errors: {self.stats['errors']:,}")
 
             if self.dry_run:
                 print("\n[DRY-RUN] No changes were made to the database")
 
-            # Report skipped rows
-            if self.skipped_rows:
-                print(f"\n--- Skipped rows sample (first 10) ---")
-                for row in self.skipped_rows[:10]:
-                    if row["reason"] == "invalid_localities":
-                        print(
-                            f"  {row['reason']}: SIREN={row['siren']}, name={row['name'][:30]}, "
-                            f"{row['total_invalid']} invalid codes: {row['invalid_codes']}"
-                        )
-                    else:
-                        print(
-                            f"  {row['reason']}: SIREN={row['siren']}, name={row['name'][:40]}"
-                        )
+            # Report rows with significant filtered localities
+            filtered_rows = [r for r in self.skipped_rows if r.get("reason") == "filtered_localities"]
+            skipped_rows = [r for r in self.skipped_rows if r.get("reason") != "filtered_localities"]
 
-                if len(self.skipped_rows) > 10:
-                    print(f"  ... and {len(self.skipped_rows) - 10} more")
+            if filtered_rows:
+                print(f"\n--- Records with filtered localities (showing first 10 with >10 invalid codes) ---")
+                for row in filtered_rows[:10]:
+                    print(
+                        f"  SIREN={row['siren']}, name={row['name'][:30]}, "
+                        f"filtered {row['total_invalid']} codes, kept {row['valid_count']} valid"
+                    )
+                if len(filtered_rows) > 10:
+                    print(f"  ... and {len(filtered_rows) - 10} more")
+
+            if skipped_rows:
+                print(f"\n--- Skipped rows (first 10) ---")
+                for row in skipped_rows[:10]:
+                    print(f"  {row['reason']}: SIREN={row['siren']}, name={row['name'][:40]}")
+                if len(skipped_rows) > 10:
+                    print(f"  ... and {len(skipped_rows) - 10} more")
 
         except Exception as e:
             logging.error(f"Import failed: {e}")

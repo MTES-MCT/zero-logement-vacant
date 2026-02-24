@@ -159,17 +159,24 @@ SELECT
     cf.zonage_en_vigueur,
 
     -- =====================================================
-    -- RENT DATA (DGALN)
+    -- RENT DATA (DGALN) - Appartements
     -- =====================================================
-    cf.loyer_predit_m2,
-    cf.loyer_intervalle_bas_m2,
-    cf.loyer_intervalle_haut_m2,
-    cf.loyer_type_prediction,
-    cf.loyer_nb_obs_commune,
-    cf.loyer_nb_obs_maille,
-    cf.loyer_r2_adjusted,
-    cf.niveau_loyer,
-    cf.loyer_confiance_prediction,
+    cf.loyer_predit_m2_appartements,
+    cf.loyer_intervalle_bas_m2_appartements,
+    cf.loyer_intervalle_haut_m2_appartements,
+    cf.type_prediction_appartements,
+    cf.nb_observations_commune_appartements,
+    cf.nb_observations_maille_appartements,
+    cf.r2_adjusted_appartements,
+
+    -- RENT DATA (DGALN) - Maisons
+    cf.loyer_predit_m2_maisons,
+    cf.loyer_intervalle_bas_m2_maisons,
+    cf.loyer_intervalle_haut_m2_maisons,
+    cf.type_prediction_maisons,
+    cf.nb_observations_commune_maisons,
+    cf.nb_observations_maille_maisons,
+    cf.r2_adjusted_maisons,
     
     -- =====================================================
     -- REAL ESTATE PRICES (CEREMA PRIX VOLUMES)
@@ -180,9 +187,6 @@ SELECT
     cf.prix_q25_m2_maisons_{{ year }},
     cf.prix_q75_m2_maisons_{{ year }},
     cf.valeur_fonciere_totale_maisons_{{ year }},
-    cf.valeur_fonciere_q25_maisons_{{ year }},
-    cf.valeur_fonciere_median_maisons_{{ year }},
-    cf.valeur_fonciere_q75_maisons_{{ year }},
     cf.nb_mutations_maisons_{{ year }},
     
     -- Appartements
@@ -190,9 +194,6 @@ SELECT
     cf.prix_q25_m2_appartements_{{ year }},
     cf.prix_q75_m2_appartements_{{ year }},
     cf.valeur_fonciere_totale_appartements_{{ year }},
-    cf.valeur_fonciere_q25_appartements_{{ year }},
-    cf.valeur_fonciere_median_appartements_{{ year }},
-    cf.valeur_fonciere_q75_appartements_{{ year }},
     cf.nb_mutations_appartements_{{ year }},
     {% endfor %}
     
@@ -202,17 +203,17 @@ SELECT
     cf.total_mutations_appartements_2019_2024,
     
     -- =====================================================
-    -- MARKET TRANSACTIONS (DVG)
+    -- MARKET TRANSACTIONS (DVF)
     -- =====================================================
     {% for year in years %}
-    cf.dvg_nb_transactions_{{ year }},
-    cf.dvg_prix_m2_moyen_{{ year }},
+    cf.dvf_nb_transactions_{{ year }},
+    cf.dvf_prix_m2_moyen_{{ year }},
     {% endfor %}
     
-    cf.dvg_total_transactions_2019_2024,
-    cf.dvg_avg_annual_transactions,
-    cf.dvg_evolution_prix_m2_2019_2023_pct,
-    cf.dvg_marche_dynamisme,
+    cf.dvf_total_transactions_2019_2024,
+    cf.dvf_avg_annual_transactions,
+    cf.dvf_evolution_prix_m2_2019_2023_pct,
+    cf.dvf_marche_dynamisme,
     
     -- =====================================================
     -- LAND CONSUMPTION (CEREMA)
@@ -234,14 +235,14 @@ SELECT
     -- =====================================================
     -- LOCAL TAXATION (DGFIP)
     -- =====================================================
-    cf.taux_tfb,
-    cf.tfb_taux_commune,
-    cf.taux_tfnb,
-    cf.taux_th,
-    cf.teom_taux,
+    cf.taux_tfb_2024,
+    cf.tfb_taux_commune_2024,
+    cf.taux_tfnb_2024,
+    cf.taux_th_2024,
+    cf.teom_taux_2024,
     cf.th_surtaxe_indicateur,
     cf.th_surtaxe_residences_secondaires_pct,
-    cf.pression_fiscale_tfb_teom,
+    cf.pression_fiscale_tfb_teom_2024,
     cf.epci_regime_fiscal,
     cf.fiscalite_annee_reference
 

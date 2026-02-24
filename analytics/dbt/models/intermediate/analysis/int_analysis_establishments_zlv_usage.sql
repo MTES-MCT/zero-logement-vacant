@@ -1,3 +1,9 @@
+{{
+config (
+    materialized = 'table',
+)
+}}
+
 -- Intermediate model: Establishment-level ZLV usage metrics
 -- Aggregates housing updates, campaigns, groups, documents, enrichment events
 -- per establishment for BI reporting at establishment granularity
@@ -153,48 +159,48 @@ housing_status_counts AS (
 
 owner_enrichment_events AS (
     SELECT
-        eh.establishment_id,
+        oeh.establishment_id,
         COUNT(DISTINCT CASE
-            WHEN (e.next_new::JSON->>'email') IS DISTINCT FROM (e.next_old::JSON->>'email')
-            THEN oh.housing_id
+            WHEN (oev.next_new ->> 'email') IS DISTINCT FROM (oev.next_old ->> 'email')
+            THEN ooh.housing_id
         END) AS logements_maj_mails,
         COUNT(DISTINCT CASE
-            WHEN (e.next_new::JSON->>'phone') IS DISTINCT FROM (e.next_old::JSON->>'phone')
-            THEN oh.housing_id
+            WHEN (oev.next_new ->> 'phone') IS DISTINCT FROM (oev.next_old ->> 'phone')
+            THEN ooh.housing_id
         END) AS logements_maj_phone,
         COUNT(DISTINCT CASE
-            WHEN (e.next_new::JSON->>'name') IS DISTINCT FROM (e.next_old::JSON->>'name')
-            THEN oh.housing_id
+            WHEN (oev.next_new ->> 'name') IS DISTINCT FROM (oev.next_old ->> 'name')
+            THEN ooh.housing_id
         END) AS logements_maj_owners,
         COUNT(DISTINCT CASE
-            WHEN (e.next_new::JSON->>'address') IS DISTINCT FROM (e.next_old::JSON->>'address')
-              OR (e.next_new::JSON->>'additionalAddress') IS DISTINCT FROM (e.next_old::JSON->>'additionalAddress')
-            THEN oh.housing_id
+            WHEN (oev.next_new ->> 'address') IS DISTINCT FROM (oev.next_old ->> 'address')
+              OR (oev.next_new ->> 'additionalAddress') IS DISTINCT FROM (oev.next_old ->> 'additionalAddress')
+            THEN ooh.housing_id
         END) AS logements_maj_owners_address,
-        MIN(e.created_at) AS date_premiere_enrichissement_owner,
-        MAX(e.created_at) AS date_derniere_enrichissement_owner
+        MIN(oev.created_at) AS date_premiere_enrichissement_owner,
+        MAX(oev.created_at) AS date_derniere_enrichissement_owner
     FROM {{ ref('stg_production_owner_events') }} oe
-    JOIN {{ ref('int_production_events') }} e ON oe.event_id = e.id
-    JOIN {{ ref('stg_production_owners_housing') }} oh ON oe.owner_id = oh.owner_id
-    JOIN {{ ref('int_production_establishments_housing') }} eh ON oh.housing_id = eh.housing_id
-    WHERE e.type = 'owner:updated'
-    AND e.user_source = 'user'
-    GROUP BY eh.establishment_id
+    JOIN {{ ref('stg_production_events') }} oev ON oe.event_id = oev.id
+    JOIN {{ ref('stg_production_owners_housing') }} ooh ON oe.owner_id = ooh.owner_id
+    JOIN {{ ref('int_production_establishments_housing') }} oeh ON ooh.housing_id = oeh.housing_id
+    JOIN {{ ref('int_production_users') }} ou ON oev.created_by = ou.id
+    WHERE oev.type = 'owner:updated'
+    GROUP BY oeh.establishment_id
 ),
 
 rank_change_events AS (
     SELECT
-        eh.establishment_id,
+        reh.establishment_id,
         COUNT(DISTINCT CASE
-            WHEN (e.next_new::JSON->>'rank') IS DISTINCT FROM (e.next_old::JSON->>'rank')
-            THEN he.housing_id
+            WHEN (rev.next_new ->> 'rank') IS DISTINCT FROM (rev.next_old ->> 'rank')
+            THEN rhe.housing_id
         END) AS logements_maj_owners_rank
-    FROM {{ ref('stg_production_housing_events') }} he
-    JOIN {{ ref('int_production_events') }} e ON he.event_id = e.id
-    JOIN {{ ref('int_production_establishments_housing') }} eh ON he.housing_id = eh.housing_id
-    WHERE e.type = 'housing:owner-updated'
-    AND e.user_source = 'user'
-    GROUP BY eh.establishment_id
+    FROM {{ ref('stg_production_housing_events') }} rhe
+    JOIN {{ ref('stg_production_events') }} rev ON rhe.event_id = rev.id
+    JOIN {{ ref('int_production_establishments_housing') }} reh ON rhe.housing_id = reh.housing_id
+    JOIN {{ ref('int_production_users') }} ru ON rev.created_by = ru.id
+    WHERE rev.type = 'housing:owner-updated'
+    GROUP BY reh.establishment_id
 ),
 
 notes_stats AS (
@@ -209,15 +215,15 @@ notes_stats AS (
 
 document_stats AS (
     SELECT
-        eh.establishment_id,
-        COUNT(DISTINCT he.housing_id) AS logements_maj_documents,
+        deh.establishment_id,
+        COUNT(DISTINCT dhe.housing_id) AS logements_maj_documents,
         COUNT(*) AS documents_importes,
-        MAX(e.created_at) AS date_dernier_document_importe
-    FROM {{ ref('stg_production_housing_events') }} he
-    JOIN {{ ref('int_production_events') }} e ON he.event_id = e.id
-    JOIN {{ ref('int_production_establishments_housing') }} eh ON he.housing_id = eh.housing_id
-    WHERE e.type = 'housing:document-attached'
-    GROUP BY eh.establishment_id
+        MAX(dev.created_at) AS date_dernier_document_importe
+    FROM {{ ref('stg_production_housing_events') }} dhe
+    JOIN {{ ref('stg_production_events') }} dev ON dhe.event_id = dev.id
+    JOIN {{ ref('int_production_establishments_housing') }} deh ON dhe.housing_id = deh.housing_id
+    WHERE dev.type = 'housing:document-attached'
+    GROUP BY deh.establishment_id
 ),
 
 campaign_housing_stats AS (

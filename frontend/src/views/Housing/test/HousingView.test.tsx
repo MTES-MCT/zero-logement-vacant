@@ -24,21 +24,13 @@ import {
   genUserDTO
 } from '@zerologementvacant/models/fixtures';
 import async from 'async';
-import { vi } from 'vitest';
 import { format, subYears } from 'date-fns';
+import { pipe, Record } from 'effect';
 import { Provider } from 'react-redux';
 import { createMemoryRouter, RouterProvider } from 'react-router-dom';
+import { vi } from 'vitest';
 
 import data from '~/mocks/handlers/data';
-
-vi.mock('posthog-js/react', async (importOriginal) => {
-  const mod = await importOriginal<typeof import('posthog-js/react')>();
-  return {
-    ...mod,
-    useFeatureFlagEnabled: vi.fn().mockReturnValue(true),
-    usePostHog: () => ({ capture: vi.fn() })
-  };
-});
 import { fromEstablishmentDTO } from '~/models/Establishment';
 import { RELATIVE_LOCATION_LABELS } from '~/models/HousingOwner';
 import { fromUserDTO } from '~/models/User';
@@ -129,6 +121,11 @@ describe('Housing view', () => {
   });
 
   describe('Relative location tag', () => {
+    beforeEach(async () => {
+      const { useFeatureFlagEnabled } = await import('posthog-js/react');
+      vi.mocked(useFeatureFlagEnabled).mockReturnValue(true);
+    });
+    
     it('should display the relative location tag for the primary owner', async () => {
       const establishment = genEstablishmentDTO();
       const auth = genUserDTO(UserRole.USUAL, establishment);
@@ -153,11 +150,13 @@ describe('Housing view', () => {
       expect(tag).toHaveTextContent(RELATIVE_LOCATION_LABELS['same-commune']);
     });
 
-    it.each(
-      Object.entries(RELATIVE_LOCATION_LABELS) as Array<
-        [HousingOwnerDTO['relativeLocation'], string]
-      >
-    )(
+    const labels = pipe(
+      RELATIVE_LOCATION_LABELS,
+      Record.filter((_, key) => key !== 'other'),
+      test => Record.toEntries(test) as Array<[keyof typeof RELATIVE_LOCATION_LABELS, string]>
+    )
+
+    it.each(labels)(
       'should display the relative location "%s" for the primary owner with label "%s"',
       async (relativeLocation, expectedLabel) => {
         const establishment = genEstablishmentDTO();

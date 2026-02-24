@@ -14,8 +14,7 @@ import {
   HOUSING_STATUS_LABELS,
   HousingFiltersDTO,
   HousingStatus,
-  nextStatus,
-  UserRole
+  nextStatus
 } from '@zerologementvacant/models';
 import { slugify, timestamp } from '@zerologementvacant/utils';
 import { createS3 } from '@zerologementvacant/utils/node';
@@ -125,32 +124,17 @@ const listValidators: ValidationChain[] = [
 ];
 
 async function list(request: Request, response: Response) {
-  const { auth, effectiveGeoCodes } = request as AuthenticatedRequest;
+  const { auth } = request as AuthenticatedRequest;
   const query = request.query as CampaignQuery;
   const sort = sortApi.parse<CampaignSortableApi>(
     request.query.sort as string[] | undefined
   );
   logger.info('List campaigns', query);
 
-  // ADMIN and VISITOR users bypass perimeter filtering
-  const isAdminOrVisitor = [UserRole.ADMIN, UserRole.VISITOR].includes(
-    auth.role
-  );
-  // effectiveGeoCodes is undefined when no restriction applies (no perimeter or fr_entiere)
-  // effectiveGeoCodes is an array (possibly empty) when restriction applies
-  const hasPerimeterRestriction = effectiveGeoCodes !== undefined;
-
   const campaigns = await campaignRepository.find({
     filters: {
       establishmentId: auth.establishmentId,
-      groupIds:
-        typeof query.groups === 'string' ? [query.groups] : query.groups,
-      // Only show campaigns where ALL housings are within user's perimeter (bypass for ADMIN/VISITOR)
-      // If effectiveGeoCodes is empty array, user should see nothing
-      geoCodes:
-        isAdminOrVisitor || !hasPerimeterRestriction
-          ? undefined
-          : effectiveGeoCodes
+      groupIds: typeof query.groups === 'string' ? [query.groups] : query.groups
     },
     sort
   });

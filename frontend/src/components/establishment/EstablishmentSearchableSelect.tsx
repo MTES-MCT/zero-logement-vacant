@@ -4,23 +4,21 @@ import {
   type AutocompleteValue
 } from '@mui/material/Autocomplete';
 
+import type { EstablishmentDTO } from '@zerologementvacant/models';
 import { type ReactNode } from 'react';
-import { type Establishment } from '../../models/Establishment';
 import { useLazyFindEstablishmentsQuery } from '../../services/establishment.service';
 import SearchableSelectNext from '../SearchableSelectNext/SearchableSelectNext';
 
 type Props<Multiple extends boolean, DisableClearable extends boolean> = Pick<
-  AutocompleteProps<Establishment, Multiple, DisableClearable, false>,
+  AutocompleteProps<EstablishmentDTO, Multiple, DisableClearable, false>,
   'disableClearable' | 'multiple'
 > & {
   className?: string;
   label?: ReactNode;
-  /** Pre-defined options to use instead of API search. When provided, no API call is made. */
-  options?: ReadonlyArray<Establishment>;
-  value: AutocompleteValue<Establishment, Multiple, DisableClearable, false>;
+  value: AutocompleteValue<EstablishmentDTO, Multiple, DisableClearable, false>;
   onChange(
     establishment: AutocompleteValue<
-      Establishment,
+      EstablishmentDTO,
       Multiple,
       DisableClearable,
       false
@@ -35,17 +33,10 @@ function EstablishmentSearchableSelect<
   const [findEstablishments, { data: establishments, isFetching }] =
     useLazyFindEstablishmentsQuery();
 
-  // Use pre-defined options if provided, otherwise use API search results
-  const hasPreDefinedOptions = props.options !== undefined;
-  const options: ReadonlyArray<Establishment> = hasPreDefinedOptions
-    ? (props.options ?? [])
-    : (establishments ?? []);
+  const options = (establishments ??
+    []) as unknown as ReadonlyArray<EstablishmentDTO>;
 
   async function search(query: string | undefined): Promise<void> {
-    // Skip API search if we have pre-defined options
-    if (hasPreDefinedOptions) {
-      return;
-    }
     if (query) {
       await findEstablishments({ query }).unwrap();
     }
@@ -55,10 +46,10 @@ function EstablishmentSearchableSelect<
     <SearchableSelectNext
       className={props.className}
       disableClearable={props.disableClearable}
-      debounce={hasPreDefinedOptions ? 0 : 250}
+      debounce={250}
       search={search}
       options={options}
-      loading={hasPreDefinedOptions ? false : isFetching}
+      loading={isFetching}
       label={props.label ?? null}
       getOptionKey={(option) => option.id}
       getOptionLabel={(option) => option.name}

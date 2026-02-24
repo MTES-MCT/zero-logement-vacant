@@ -197,51 +197,6 @@ async function createBaseUsers(
       role: UserRole.USUAL,
       suspendedAt: now,
       suspendedCause: 'droits utilisateur expires, droits structure expires, cgu vides'
-    }),
-    // New suspension causes for Portail DF access verification
-    createBaseUser({
-      email: 'test.suspended.access@zlv.fr',
-      password: hashedPassword,
-      firstName: 'Suspendu',
-      lastName: 'Niveau Accès',
-      establishmentId: strasbourg.id,
-      activatedAt: now,
-      role: UserRole.USUAL,
-      suspendedAt: now,
-      suspendedCause: 'niveau_acces_invalide'
-    }),
-    createBaseUser({
-      email: 'test.suspended.perimeter@zlv.fr',
-      password: hashedPassword,
-      firstName: 'Suspendu',
-      lastName: 'Périmètre',
-      establishmentId: saintLo.id,
-      activatedAt: now,
-      role: UserRole.USUAL,
-      suspendedAt: now,
-      suspendedCause: 'perimetre_invalide'
-    }),
-    createBaseUser({
-      email: 'test.suspended.access.perimeter@zlv.fr',
-      password: hashedPassword,
-      firstName: 'Suspendu',
-      lastName: 'Accès + Périmètre',
-      establishmentId: strasbourg.id,
-      activatedAt: now,
-      role: UserRole.USUAL,
-      suspendedAt: now,
-      suspendedCause: 'niveau_acces_invalide, perimetre_invalide'
-    }),
-    // Deleted user - for testing account deletion (LOGIN-09)
-    createBaseUser({
-      email: 'test.deleted@zlv.fr',
-      password: hashedPassword,
-      firstName: 'Supprimé',
-      lastName: 'Compte',
-      establishmentId: strasbourg.id,
-      activatedAt: now,
-      role: UserRole.USUAL,
-      deletedAt: now
     })
   ];
 }

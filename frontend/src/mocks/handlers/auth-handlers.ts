@@ -1,7 +1,7 @@
 import { http, HttpResponse, RequestHandler } from 'msw';
 import { constants } from 'node:http2';
 
-import type { EstablishmentDTO, UserDTO } from '@zerologementvacant/models';
+import type { UserDTO } from '@zerologementvacant/models';
 import config from '../../utils/config';
 import data from './data';
 
@@ -14,7 +14,6 @@ interface AuthPayload {
 interface Auth {
   user: UserDTO;
   accessToken: string;
-  establishment: EstablishmentDTO;
 }
 
 export const authHandlers: RequestHandler[] = [
@@ -29,24 +28,9 @@ export const authHandlers: RequestHandler[] = [
         });
       }
 
-      // Find establishment for the user
-      const establishment: EstablishmentDTO = data.establishments.find(
-        (e) => e.id === user.establishmentId
-      ) ?? {
-        id: user.establishmentId ?? 'test-establishment-id',
-        name: 'Test Establishment',
-        shortName: 'Test',
-        siren: '123456789',
-        geoCodes: ['75056'],
-        available: true,
-        kind: 'CA',
-        source: 'seed'
-      };
-
       return HttpResponse.json({
         user,
-        accessToken: 'fake-access-token',
-        establishment
+        accessToken: 'fake-access-token'
       });
     }
   )

@@ -10,7 +10,6 @@ import EstablishmentMissingError from '~/errors/establishmentMissingError';
 import ResetLinkExpiredError from '~/errors/resetLinkExpiredError';
 import ResetLinkMissingError from '~/errors/resetLinkMissingError';
 import UnprocessableEntityError from '~/errors/unprocessableEntityError';
-import UserDeletedError from '~/errors/userDeletedError';
 import UserMissingError from '~/errors/userMissingError';
 import config from '~/infra/config';
 import { logger } from '~/infra/logger';
@@ -25,13 +24,7 @@ import {
 import establishmentRepository from '~/repositories/establishmentRepository';
 import resetLinkRepository from '~/repositories/resetLinkRepository';
 import userRepository from '~/repositories/userRepository';
-import ceremaService from '~/services/ceremaService';
-import {
-  verifyAccessRights,
-  accessErrorsToSuspensionCause
-} from '~/services/ceremaService/perimeterService';
 import { fetchUserKind } from '~/services/ceremaService/userKindService';
-import userPerimeterRepository from '~/repositories/userPerimeterRepository';
 import mailService from '~/services/mailService';
 import {
   generateSimpleCode,
@@ -57,228 +50,17 @@ const signInValidators = {
   body: signInSchema
 };
 
-/**
- * Refresh authorized establishments for a user from Portail DF.
- * This is called at login to keep the users_establishments table in sync
- * with current Portail DF rights.
- *
- * Also verifies access rights (LOVAC access level + geographic perimeter)
- * and suspends user if rights are no longer valid.
- */
-async function refreshAuthorizedEstablishments(user: UserApi): Promise<void> {
-  try {
-    // Fetch current rights from Portail DF
-    const ceremaUsers = await ceremaService.consultUsers(user.email);
-
-    if (ceremaUsers.length === 0) {
-      logger.info('No Portail DF rights found for user at login', {
-        userId: user.id,
-        email: user.email
-      });
-      return;
-    }
-
-    // Filter users with valid LOVAC commitment
-    const ceremaUsersWithCommitment = ceremaUsers.filter((cu) => cu.hasCommitment);
-    const establishmentSirens = ceremaUsersWithCommitment.map((cu) => cu.establishmentSiren);
-
-    // Find all known establishments matching the SIRENs
-    const knownEstablishments = await establishmentRepository.find({
-      filters: { siren: establishmentSirens }
-    });
-
-    // Build authorized establishments list with access rights verification
-    const authorizedEstablishments: Array<{
-      establishmentId: string;
-      establishmentSiren: string;
-      hasCommitment: boolean;
-    }> = [];
-
-    const accessErrors: string[] = [];
-
-    for (const est of knownEstablishments) {
-      const ceremaUser = ceremaUsersWithCommitment.find(
-        (cu) => cu.establishmentSiren === est.siren || cu.establishmentSiren === '*'
-      );
-
-      if (ceremaUser) {
-        // Verify access rights for this establishment (pass SIREN for EPCI perimeter check)
-        const accessRights = verifyAccessRights(ceremaUser, est.geoCodes, est.siren);
-
-        if (accessRights.isValid) {
-          authorizedEstablishments.push({
-            establishmentId: est.id,
-            establishmentSiren: est.siren,
-            hasCommitment: ceremaUser.hasCommitment
-          });
-        } else {
-          logger.warn('Access rights verification failed for establishment at login', {
-            userId: user.id,
-            email: user.email,
-            establishmentId: est.id,
-            establishmentSiren: est.siren,
-            errors: accessRights.errors
-          });
-          accessErrors.push(...accessRights.errors);
-        }
-      }
-    }
-
-    // Check if user's current establishment lost access rights
-    if (user.establishmentId) {
-      const currentEstablishmentStillValid = authorizedEstablishments.some(
-        (e) => e.establishmentId === user.establishmentId
-      );
-
-      if (!currentEstablishmentStillValid && accessErrors.length > 0) {
-        // Suspend user if their current establishment lost access
-        const suspensionCause = accessErrorsToSuspensionCause(
-          [...new Set(accessErrors)] as any
-        );
-
-        logger.warn('Suspending user at login due to lost access rights', {
-          userId: user.id,
-          email: user.email,
-          establishmentId: user.establishmentId,
-          suspensionCause
-        });
-
-        // Re-fetch user to get latest lastAuthenticatedAt (updated by signIn)
-        const currentUser = await userRepository.get(user.id);
-        if (currentUser) {
-          await userRepository.update({
-            ...currentUser,
-            suspendedAt: new Date().toJSON(),
-            suspendedCause: suspensionCause
-          });
-        }
-      }
-    }
-
-    // Get current authorized establishments for comparison
-    const currentAuthorized = await userRepository.getAuthorizedEstablishments(user.id);
-    const currentIds = new Set(currentAuthorized.map((e) => e.establishmentId));
-    const newIds = new Set(authorizedEstablishments.map((e) => e.establishmentId));
-
-    // Check if there are changes
-    const hasChanges =
-      currentIds.size !== newIds.size ||
-      [...currentIds].some((id) => !newIds.has(id)) ||
-      [...newIds].some((id) => !currentIds.has(id));
-
-    if (hasChanges) {
-      logger.info('Updating authorized establishments for user at login', {
-        userId: user.id,
-        email: user.email,
-        previousCount: currentAuthorized.length,
-        newCount: authorizedEstablishments.length,
-        previousIds: [...currentIds],
-        newIds: [...newIds]
-      });
-
-      // Update authorized establishments
-      await userRepository.setAuthorizedEstablishments(user.id, authorizedEstablishments);
-
-      // Log multi-structure status
-      const isMultiStructure = authorizedEstablishments.filter((e) => e.hasCommitment).length > 1;
-      if (isMultiStructure) {
-        logger.info('User identified as multi-structure at login', {
-          userId: user.id,
-          email: user.email,
-          authorizedEstablishmentsCount: authorizedEstablishments.length
-        });
-      }
-    } else {
-      logger.debug('No changes to authorized establishments for user', {
-        userId: user.id,
-        email: user.email
-      });
-    }
-
-    // Save user perimeter from Portail DF for filtering
-    // Use the perimeter from the user's current establishment
-    if (user.establishmentId) {
-      const currentEstablishment = knownEstablishments.find(
-        (est) => est.id === user.establishmentId
-      );
-      if (currentEstablishment) {
-        const currentCeremaUser = ceremaUsersWithCommitment.find(
-          (cu) =>
-            cu.establishmentSiren === currentEstablishment.siren ||
-            cu.establishmentSiren === '*'
-        );
-
-        if (currentCeremaUser?.perimeter) {
-          const perimeter = currentCeremaUser.perimeter;
-          await userPerimeterRepository.upsert({
-            userId: user.id,
-            geoCodes: perimeter.comm || [],
-            departments: perimeter.dep || [],
-            regions: perimeter.reg || [],
-            epci: perimeter.epci || [],
-            frEntiere: perimeter.fr_entiere || false,
-            updatedAt: new Date().toJSON()
-          });
-
-          logger.info('User perimeter saved from Portail DF', {
-            userId: user.id,
-            email: user.email,
-            frEntiere: perimeter.fr_entiere,
-            communesCount: perimeter.comm?.length || 0,
-            departmentsCount: perimeter.dep?.length || 0,
-            regionsCount: perimeter.reg?.length || 0,
-            epciCount: perimeter.epci?.length || 0
-          });
-        }
-      }
-    }
-  } catch (error) {
-    // Log error but don't fail login
-    logger.error('Failed to refresh authorized establishments at login', {
-      userId: user.id,
-      email: user.email,
-      error
-    });
-  }
-}
-
 async function signIn(request: Request, response: Response) {
   const payload = request.body;
 
-  // Use getByEmailIncludingDeleted to be able to detect deleted users
-  // and return a proper 403 error instead of 401
-  const user = await userRepository.getByEmailIncludingDeleted(payload.email);
+  const user = await userRepository.getByEmail(payload.email);
   if (!user) {
     throw new AuthenticationFailedError();
-  }
-
-  // Check if user account is deleted before password validation
-  // to return proper 403 error for deleted accounts
-  if (user.deletedAt) {
-    logger.warn('Login attempt on deleted account', {
-      userId: user.id,
-      email: user.email,
-      deletedAt: user.deletedAt
-    });
-    throw new UserDeletedError();
   }
 
   const isPasswordValid = await bcrypt.compare(payload.password, user.password);
   if (!isPasswordValid) {
     throw new AuthenticationFailedError();
-  }
-
-  // Log suspended account login (but allow login - frontend will show modal)
-  if (user.suspendedAt) {
-    logger.info('Login on suspended account - modal will be displayed', {
-      userId: user.id,
-      email: user.email,
-      suspendedAt: user.suspendedAt,
-      suspendedCause: user.suspendedCause
-    });
-    // Note: We don't throw an error here anymore.
-    // The login proceeds and the frontend displays the suspension modal
-    // based on user.suspendedAt and user.suspendedCause
   }
 
   // Check if 2FA is required for admin users
@@ -356,29 +138,6 @@ async function signInToEstablishment(
     throw new EstablishmentMissingError(establishmentId);
   }
 
-  // Get authorized establishments for multi-structure dropdown
-  const authorizedEstablishmentLinks = await userRepository.getAuthorizedEstablishments(user.id);
-  const authorizedEstablishmentIds = authorizedEstablishmentLinks
-    .filter((e) => e.hasCommitment)
-    .map((e) => e.establishmentId);
-
-  // Fetch full establishment details for authorized establishments
-  let authorizedEstablishments: Awaited<ReturnType<typeof establishmentRepository.find>> = [];
-  if (authorizedEstablishmentIds.length > 1) {
-    authorizedEstablishments = await establishmentRepository.find({
-      filters: { id: authorizedEstablishmentIds }
-    });
-  }
-
-  // Refresh authorized establishments from Portail DF at login
-  // This runs asynchronously and doesn't block login
-  refreshAuthorizedEstablishments(user).catch((error) => {
-    logger.error('Failed to refresh authorized establishments', {
-      userId: user.id,
-      error
-    });
-  });
-
   const accessToken = jwt.sign(
     {
       userId: user.id,
@@ -392,44 +151,18 @@ async function signInToEstablishment(
   response.status(constants.HTTP_STATUS_OK).json({
     user: toUserDTO(user),
     establishment,
-    accessToken,
-    // Include authorized establishments for multi-structure users
-    ...(authorizedEstablishments.length > 1 && { authorizedEstablishments })
+    accessToken
   });
 }
 
 async function changeEstablishment(request: Request, response: Response) {
   const { user } = request as AuthenticatedRequest;
-  const establishmentId = request.params.establishmentId;
 
-  // ADMIN and VISITOR can change to any establishment
-  if (user.role === UserRole.ADMIN || user.role === UserRole.VISITOR) {
-    await signInToEstablishment(user, establishmentId, response);
-    return;
-  }
-
-  // USUAL users can only change to their authorized establishments
-  const authorizedEstablishments = await userRepository.getAuthorizedEstablishments(user.id);
-  const authorizedIds = authorizedEstablishments
-    .filter((e) => e.hasCommitment)
-    .map((e) => e.establishmentId);
-
-  if (!authorizedIds.includes(establishmentId)) {
-    logger.warn('USUAL user tried to change to unauthorized establishment', {
-      userId: user.id,
-      email: user.email,
-      requestedEstablishment: establishmentId,
-      authorizedEstablishments: authorizedIds
-    });
+  if (user.role !== UserRole.ADMIN && user.role !== UserRole.VISITOR) {
     throw new AuthenticationFailedError();
   }
 
-  // Update user's current establishment
-  await userRepository.update({
-    ...user,
-    establishmentId,
-    updatedAt: new Date().toJSON()
-  });
+  const establishmentId = request.params.establishmentId;
 
   await signInToEstablishment(user, establishmentId, response);
 }

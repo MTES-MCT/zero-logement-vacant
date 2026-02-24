@@ -15,7 +15,11 @@ import logo from '../../assets/images/zlv.svg';
 import { useFilters } from '../../hooks/useFilters';
 import { useAppDispatch } from '../../hooks/useStore';
 import { useUser } from '../../hooks/useUser';
-import { type Establishment } from '../../models/Establishment';
+import {
+  type Establishment,
+  fromEstablishmentDTO,
+  toEstablishmentDTO
+} from '../../models/Establishment';
 import { getUserNavItem, UserNavItems } from '../../models/UserNavItem';
 import { zlvApi } from '../../services/api.service';
 import { changeEstablishment } from '../../store/actions/authenticationAction';
@@ -25,7 +29,7 @@ import styles from './small-header.module.scss';
 function SmallHeader() {
   const dispatch = useAppDispatch();
   const location = useLocation();
-  const { establishment, isAdmin, isVisitor, isAuthenticated, canChangeEstablishment, authorizedEstablishments } = useUser();
+  const { establishment, isAdmin, isVisitor, isAuthenticated } = useUser();
 
   function getMainNavigationItem(
     navItem: UserNavItems
@@ -115,32 +119,20 @@ function SmallHeader() {
           />
           <Grid alignItems="center" display="flex" ml="auto">
             {isAuthenticated ? (
-              canChangeEstablishment ? (
+              isAdmin || isVisitor ? (
                 establishment ? (
-                  isAdmin || isVisitor ? (
-                    <EstablishmentSearchableSelect
-                      className={fr.cx('fr-mr-2w')}
-                      disableClearable
-                      value={establishment}
-                      onChange={(establishment) => {
-                        if (establishment) {
-                          onChangeEstablishment(establishment);
-                        }
-                      }}
-                    />
-                  ) : (
-                    <EstablishmentSearchableSelect
-                      className={fr.cx('fr-mr-2w')}
-                      disableClearable
-                      options={authorizedEstablishments ?? []}
-                      value={establishment}
-                      onChange={(establishment) => {
-                        if (establishment) {
-                          onChangeEstablishment(establishment);
-                        }
-                      }}
-                    />
-                  )
+                  <EstablishmentSearchableSelect
+                    className={fr.cx('fr-mr-2w')}
+                    disableClearable
+                    value={toEstablishmentDTO(establishment)}
+                    onChange={(establishment) => {
+                      if (establishment) {
+                        onChangeEstablishment(
+                          fromEstablishmentDTO(establishment)
+                        );
+                      }
+                    }}
+                  />
                 ) : null
               ) : (
                 <Typography

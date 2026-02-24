@@ -17,15 +17,6 @@ export type SuspendedCause = (typeof SUSPENDED_CAUSE_VALUES)[number];
  */
 export type SuspendedCauseField = string | null;
 
-/**
- * Represents an establishment that a user has access to via Portail DF.
- */
-export interface UserEstablishment {
-  establishmentId: string;
-  establishmentSiren: string;
-  hasCommitment: boolean;
-}
-
 export interface UserDTO {
   id: string;
   email: string;
@@ -34,10 +25,7 @@ export interface UserDTO {
   phone: string | null;
   position: string | null;
   timePerWeek: TimePerWeek | null;
-  /** Current/primary establishment ID */
   establishmentId: string | null;
-  /** List of all establishments the user has access to (multi-structure support) */
-  authorizedEstablishments?: UserEstablishment[];
   role: UserRole;
   activatedAt: string;
   lastAuthenticatedAt: string | null;

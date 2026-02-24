@@ -1,4 +1,4 @@
-import { GroupDTO, GroupPayloadDTO, UserRole } from '@zerologementvacant/models';
+import { GroupDTO, GroupPayloadDTO } from '@zerologementvacant/models';
 import { Array, pipe, Predicate } from 'effect';
 import { Request, RequestHandler, Response } from 'express';
 import { AuthenticatedRequest } from 'express-jwt';
@@ -20,7 +20,7 @@ import { isArrayOf, isString, isUUIDParam } from '~/utils/validators';
 import { HousingApi } from '~/models/HousingApi';
 
 const list = async (request: Request, response: Response): Promise<void> => {
-  const { auth, effectiveGeoCodes } = request as AuthenticatedRequest;
+  const { auth } = request as AuthenticatedRequest;
   const { establishmentId, userId } = auth;
 
   logger.info('Find groups', {
@@ -28,23 +28,9 @@ const list = async (request: Request, response: Response): Promise<void> => {
     establishment: establishmentId
   });
 
-  // ADMIN and VISITOR users bypass perimeter filtering
-  const isAdminOrVisitor = [UserRole.ADMIN, UserRole.VISITOR].includes(
-    auth.role
-  );
-  // effectiveGeoCodes is undefined when no restriction applies (no perimeter or fr_entiere)
-  // effectiveGeoCodes is an array (possibly empty) when restriction applies
-  const hasPerimeterRestriction = effectiveGeoCodes !== undefined;
-
   const groups = await groupRepository.find({
     filters: {
-      establishmentId,
-      // Only show groups where ALL housings are within user's perimeter (bypass for ADMIN/VISITOR)
-      // If effectiveGeoCodes is empty array, user should see nothing
-      geoCodes:
-        isAdminOrVisitor || !hasPerimeterRestriction
-          ? undefined
-          : effectiveGeoCodes
+      establishmentId
     }
   });
   response.status(constants.HTTP_STATUS_OK).json(groups.map(toGroupDTO));

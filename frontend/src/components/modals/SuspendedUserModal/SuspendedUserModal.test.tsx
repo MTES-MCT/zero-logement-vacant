@@ -83,25 +83,7 @@ describe('SuspendedUserModal', () => {
   it('should render when user is suspended with multiple reasons', () => {
     renderWithUser('2025-01-01T00:00:00Z', 'droits utilisateur expires, droits structure expires, cgu vides');
     expect(screen.getByText(/Vos droits d.accès à Zéro Logement Vacant ne sont plus valides/i)).toBeInTheDocument();
-    expect(screen.getByText(/Plusieurs problèmes ont été détectés/i)).toBeInTheDocument();
-  });
-
-  it('should render when user is suspended with invalid access level', () => {
-    renderWithUser('2025-01-01T00:00:00Z', 'niveau_acces_invalide');
-    expect(screen.getByText(/Vos droits d.accès à Zéro Logement Vacant ne sont plus valides/i)).toBeInTheDocument();
-    expect(screen.getByText(/Votre niveau d.accès aux données LOVAC sur le portail Données Foncières du Cerema n.est pas valide/i)).toBeInTheDocument();
-  });
-
-  it('should render when user is suspended with invalid perimeter', () => {
-    renderWithUser('2025-01-01T00:00:00Z', 'perimetre_invalide');
-    expect(screen.getByText(/Vos droits d.accès à Zéro Logement Vacant ne sont plus valides/i)).toBeInTheDocument();
-    expect(screen.getByText(/Votre périmètre géographique sur le portail Données Foncières du Cerema ne correspond pas à votre établissement/i)).toBeInTheDocument();
-  });
-
-  it('should render when user is suspended with both invalid access level and perimeter', () => {
-    renderWithUser('2025-01-01T00:00:00Z', 'niveau_acces_invalide, perimetre_invalide');
-    expect(screen.getByText(/Vos droits d.accès à Zéro Logement Vacant ne sont plus valides/i)).toBeInTheDocument();
-    expect(screen.getByText(/Plusieurs problèmes ont été détectés/i)).toBeInTheDocument();
+    expect(screen.getByText(/La date d.expiration de vos droits d.accès aux données LOVAC en tant qu.utilisateur ou ceux de votre structure a été dépassée/i)).toBeInTheDocument();
   });
 
   it('should have a link to Portail des Données Foncières', () => {

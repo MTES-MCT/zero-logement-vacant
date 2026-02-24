@@ -59,7 +59,7 @@ interface Props {
 }
 
 function CampaignDraft(props: Readonly<Props>) {
-  const { count, draft, isLoadingDraft } = useCampaign();
+  const { count, countHousingQuery, draft, isLoadingDraft } = useCampaign();
 
   const [values, setValues] = useState<DraftCreationPayload>({
     subject: '',
@@ -200,11 +200,7 @@ function CampaignDraft(props: Readonly<Props>) {
             className="fr-mb-1w"
           />
           <Grid size={6}>
-            <CampaignCounts
-              display="row"
-              housing={count?.housing}
-              owners={count?.owners}
-            />
+            <CampaignCounts housing={count?.housing ?? null} owners={count?.owners ?? null} isLoading={countHousingQuery.isLoading} />
           </Grid>
           {props.campaign.description && (
             <Grid mt={2} size={12}>

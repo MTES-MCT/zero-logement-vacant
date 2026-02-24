@@ -14,9 +14,10 @@ export function useCampaign() {
   const { data: drafts, isLoading: isLoadingDraft } = useFindDraftsQuery({
     campaign: id
   });
-  const { data: count } = useCountHousingQuery({
+  const countHousingQuery = useCountHousingQuery({
     campaignIds: [id as string]
   });
+  const { data: count } = countHousingQuery;
 
   const step = useMemo<CampaignSteps | null>(() => {
     return campaign ? campaignStep(campaign) : null;
@@ -26,6 +27,7 @@ export function useCampaign() {
     campaign,
     draft: drafts?.[0],
     count,
+    countHousingQuery,
     isLoadingCampaign,
     isLoadingDraft,
     step

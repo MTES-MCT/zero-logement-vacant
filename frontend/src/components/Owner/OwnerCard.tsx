@@ -9,7 +9,12 @@ import Box from '@mui/material/Box';
 import Skeleton from '@mui/material/Skeleton';
 import Stack from '@mui/material/Stack';
 import Typography from '@mui/material/Typography';
-import { formatAddress, type PropertyRight } from '@zerologementvacant/models';
+import {
+  formatAddress,
+  type PropertyRight,
+  type RelativeLocation
+} from '@zerologementvacant/models';
+import { useFeatureFlagEnabled } from 'posthog-js/react';
 
 import { useId, type ReactNode } from 'react';
 import { match, Pattern } from 'ts-pattern';
@@ -21,6 +26,7 @@ import { isBanEligible, type Address } from '~/models/Address';
 import { age, birthdate } from '~/utils/dateUtils';
 import { mailto } from '~/utils/stringUtils';
 import PropertyRightTag from './PropertyRightTag';
+import RelativeLocationTag from './RelativeLocationTag';
 
 interface OwnerCardProps {
   title?: string;
@@ -37,6 +43,7 @@ interface OwnerCardProps {
   phone: string | null;
   isLoading: boolean;
   housingCount?: number | null;
+  relativeLocation: RelativeLocation | null;
   /**
    * @deprecated
    */
@@ -45,6 +52,8 @@ interface OwnerCardProps {
 }
 
 function OwnerCardNext(props: OwnerCardProps) {
+  const isRelativeLocationEnabled = useFeatureFlagEnabled('relative-location');
+
   if (props.isLoading) {
     return (
       <Skeleton
@@ -167,6 +176,14 @@ function OwnerCardNext(props: OwnerCardProps) {
               ? null
               : formatAddress(props.banAddress).join(', ')
           }
+          footer={
+            props.relativeLocation && isRelativeLocationEnabled ? (
+              <RelativeLocationTag
+                value={props.relativeLocation}
+                tagProps={{ small: true }}
+              />
+            ) : null
+          }
         />
 
         {!isBanEligible(props.banAddress) && (
@@ -254,12 +271,13 @@ interface OwnerPropertyProps {
   icon: FrIconClassName | RiIconClassName;
   label: string;
   value: ReactNode;
+  footer?: ReactNode;
 }
 
 function OwnerAttribute(props: OwnerPropertyProps) {
   const label = useId();
 
-  return (
+  const main = (
     <Stack component="section">
       <LabelNext component="h4" id={label} sx={{ fontWeight: 700 }}>
         <span
@@ -272,6 +290,15 @@ function OwnerAttribute(props: OwnerPropertyProps) {
         {props.value ?? 'Pas d’information'}
       </Typography>
     </Stack>
+  );
+
+  return props.footer ? (
+    <Stack component="section" spacing="0.25rem" useFlexGap>
+      {main}
+      <Stack component="footer">{props.footer}</Stack>
+    </Stack>
+  ) : (
+    main
   );
 }
 

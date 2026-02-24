@@ -53,12 +53,14 @@ import MultiOwnerSelect from './MultiOwnerSelect';
 import OccupancySelect from './OccupancySelect';
 import OwnerAgeSelect from './OwnerAgeSelect';
 import OwnerKindSelect from './OwnerKindSelect';
+import RelativeLocationSelect from './RelativeLocationSelect';
 import OwnershipKindSelect from './OwnershipKindSelect';
 import PerimeterSearchableSelect from './PerimeterSearchableSelect';
 import RoomCountSelect from './RoomCountSelect';
 import SurfaceSelect from './SurfaceSelect';
 import VacancyRateSelect from './VacancyRateSelect';
 import VacancyYearSelect from './VacancyYearSelect';
+import FeatureFlagLayout from '~/layouts/FeatureFlagLayout';
 
 interface TitleWithIconProps {
   icon: FrIconClassName | RiIconClassName;
@@ -666,6 +668,21 @@ function HousingListFiltersSidemenu(props: Props) {
                 }}
               />
             </Grid>
+            <FeatureFlagLayout
+              flag="relative-location"
+              then={
+                <Grid component="article" mb={2} size={12}>
+                  <RelativeLocationSelect
+                    multiple
+                    value={filters.relativeLocations ?? []}
+                    onChange={(values) => {
+                      onChangeFilters({ relativeLocations: values });
+                      posthog.capture('filtre-localisation-relative');
+                    }}
+                  />
+                </Grid>
+              }
+            />
             <Grid component="article" mb={2} size={12}>
               <MultiOwnerSelect
                 multiple

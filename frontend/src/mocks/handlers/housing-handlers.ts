@@ -14,12 +14,102 @@ import {
   genOwnerDTO,
   genUserDTO
 } from '@zerologementvacant/models/fixtures';
-import { Array, pipe, Struct } from 'effect';
+import { Array, pipe, Predicate, Struct } from 'effect';
 import { constants } from 'http2';
 import { http, HttpResponse, RequestHandler } from 'msw';
+import qs from 'qs';
+import { match } from 'ts-pattern';
 
 import config from '../../utils/config';
 import data from './data';
+
+interface HousingQueryParams {
+  campaignIds?: string;
+  housingKinds?: string;
+  relativeLocations?: string;
+  status?: string;
+  statusList?: string;
+}
+
+function parseQueryParams(url: URL): FilterParams {
+  const params = qs.parse(url.search, {
+    ignoreQueryPrefix: true
+  }) as HousingQueryParams;
+
+  const statusList = params.status
+    ? [Number(params.status)]
+    : params.statusList?.split(',').map(Number);
+
+  return {
+    campaignIds: params.campaignIds
+      ? new Set(params.campaignIds.split(','))
+      : undefined,
+    housingKinds: params.housingKinds
+      ? new Set(params.housingKinds.split(','))
+      : undefined,
+    relativeLocations: params.relativeLocations
+      ? new Set(params.relativeLocations.split(','))
+      : undefined,
+    statuses: statusList ? new Set(statusList) : undefined
+  };
+}
+
+const find = http.get<
+  Record<string, never>,
+  HousingPayload,
+  Paginated<HousingDTO>
+>(`${config.apiEndpoint}/api/housing`, async ({ request }) => {
+  const url = new URL(request.url);
+  const { campaignIds, housingKinds, relativeLocations, statuses } =
+    parseQueryParams(url);
+
+  const subset = pipe(
+    data.housings,
+    Array.map((housing) => {
+      const mainHousingOwner =
+        data.housingOwners
+          .get(housing.id)
+          ?.find((housingOwner) => housingOwner.rank === 1) ?? null;
+      const mainOwner =
+        data.owners.find((owner) => owner.id === mainHousingOwner?.id) ?? null;
+      return {
+        ...housing,
+        owner: mainOwner
+      };
+    }),
+    filter({ campaignIds, housingKinds, statuses, relativeLocations })
+  );
+
+  return HttpResponse.json({
+    page: 1,
+    perPage: 50,
+    filteredCount: subset.length,
+    totalCount: data.housings.length,
+    entities: subset
+  });
+});
+
+const count = http.get<Record<string, never>, HousingPayload, HousingCountDTO>(
+  `${config.apiEndpoint}/api/housing/count`,
+  async ({ request }) => {
+    const url = new URL(request.url);
+    const query = parseQueryParams(url);
+
+    const subset: HousingDTO[] = pipe(data.housings, filter(query));
+
+    const owners: number = pipe(
+      subset,
+      Array.flatMap((housing) => data.housingOwners.get(housing.id) ?? []),
+      Array.dedupeWith((a, b) => a.id === b.id),
+      Array.length
+    );
+
+    return HttpResponse.json({
+      housing: subset.length,
+      owners: owners
+    });
+  }
+);
 
 type HousingParams = {
   id: string;
@@ -30,90 +120,9 @@ type HousingPayload = {
 };
 
 export const housingHandlers: RequestHandler[] = [
-  http.get<Record<string, never>, HousingPayload, Paginated<HousingDTO>>(
-    `${config.apiEndpoint}/api/housing`,
-    async ({ request }) => {
-      const url = new URL(request.url);
-      const queryParams = url.searchParams;
-      const campaignIds =
-        queryParams.get('campaignIds')?.split(',') ?? undefined;
-      const housingKinds =
-        queryParams.get('housingKinds')?.split(',') ?? undefined;
-      const status = queryParams.get('status')
-        ? [Number(queryParams.get('status'))]
-        : undefined;
-      const statuses =
-        status ??
-        queryParams.get('statusList')?.split(',').map(Number) ??
-        undefined;
+  find,
+  count,
 
-      const subset = pipe(
-        data.housings,
-        Array.map((housing) => {
-          const mainHousingOwner =
-            data.housingOwners
-              .get(housing.id)
-              ?.find((housingOwner) => housingOwner.rank === 1) ?? null;
-          const mainOwner =
-            data.owners.find((owner) => owner.id === mainHousingOwner?.id) ??
-            null;
-          return {
-            ...housing,
-            owner: mainOwner
-          };
-        }),
-        filterByCampaign(campaignIds),
-        filterByHousingKind(housingKinds),
-        filterByStatus(statuses)
-      );
-
-      return HttpResponse.json({
-        page: 1,
-        perPage: 50,
-        filteredCount: subset.length,
-        totalCount: data.housings.length,
-        entities: subset
-      });
-    }
-  ),
-
-  http.get<Record<string, never>, HousingPayload, HousingCountDTO>(
-    `${config.apiEndpoint}/api/housing/count`,
-    async ({ request }) => {
-      const url = new URL(request.url);
-      const queryParams = url.searchParams;
-      const campaignIds =
-        queryParams.get('campaignIds')?.split(',') ?? undefined;
-      const housingKinds =
-        queryParams.get('housingKinds')?.split(',') ?? undefined;
-      const status = queryParams.get('status')
-        ? [Number(queryParams.get('status'))]
-        : undefined;
-      const statuses =
-        status ??
-        queryParams.get('statusList')?.split(',').map(Number) ??
-        undefined;
-
-      const subset: HousingDTO[] = pipe(
-        data.housings,
-        filterByCampaign(campaignIds),
-        filterByHousingKind(housingKinds),
-        filterByStatus(statuses)
-      );
-
-      const owners: number = pipe(
-        subset,
-        Array.flatMap((housing) => data.housingOwners.get(housing.id) ?? []),
-        Array.dedupeWith((a, b) => a.id === b.id),
-        Array.length
-      );
-
-      return HttpResponse.json({
-        housing: subset.length,
-        owners: owners
-      });
-    }
-  ),
   // Add a housing
   http.post<never, HousingPayloadDTO, HousingDTO | Error>(
     `${config.apiEndpoint}/api/housing`,
@@ -328,40 +337,60 @@ export function filterByHousingIds(
   };
 }
 
-export function filterByCampaign(campaigns?: Array<string | null>) {
-  return (housings: HousingDTO[]): HousingDTO[] => {
-    if (!campaigns || campaigns.length === 0) {
-      return housings;
-    }
+interface FilterParams {
+  campaignIds?: Set<string>;
+  housingKinds?: Set<string>;
+  statuses?: Set<number>;
+  relativeLocations?: Set<string>;
+}
 
-    return housings.filter((housing) => {
-      return data.housingCampaigns
-        .get(housing.id)
-        ?.some((campaign) => campaigns.includes(campaign.id));
-    });
+export function byCampaign(
+  campaigns: Set<string>
+): Predicate.Predicate<HousingDTO> {
+  return (housing) =>
+    !!data.housingCampaigns
+      .get(housing.id)
+      ?.some((campaign) => campaigns.has(campaign.id));
+}
+
+export function byKind(kinds: Set<string>): Predicate.Predicate<HousingDTO> {
+  return (housing) => kinds.has(housing.housingKind);
+}
+
+export function byStatus(
+  statuses: Set<number>
+): Predicate.Predicate<HousingDTO> {
+  return (housing) => statuses.has(housing.status);
+}
+
+export function byRelativeLocation(
+  locations: Set<string>
+): Predicate.Predicate<HousingDTO> {
+  return (housing) => {
+    const mainHousingOwner =
+      data.housingOwners.get(housing.id)?.find((ho) => ho.rank === 1) ?? null;
+    const relativeLocation = mainHousingOwner?.relativeLocation ?? null;
+    return match(relativeLocation)
+      .with(null, () => locations.has('other'))
+      .with(
+        'metropolitan',
+        'overseas',
+        (loc) => locations.has('other-region') || locations.has(loc)
+      )
+      .otherwise((loc) => locations.has(loc));
   };
 }
 
-export function filterByHousingKind(kinds?: string[]) {
-  return (housings: HousingDTO[]): HousingDTO[] => {
-    if (!kinds || kinds.length === 0) {
-      return housings;
-    }
+export function filter(params: FilterParams) {
+  const predicates: Predicate.Predicate<HousingDTO>[] = [
+    params.campaignIds ? byCampaign(params.campaignIds) : null,
+    params.housingKinds ? byKind(params.housingKinds) : null,
+    params.statuses ? byStatus(params.statuses) : null,
+    params.relativeLocations
+      ? byRelativeLocation(params.relativeLocations)
+      : null
+  ].filter(Predicate.isNotNull);
 
-    return housings.filter((housing) => {
-      return kinds.includes(housing.housingKind);
-    });
-  };
-}
-
-export function filterByStatus(statuses?: number[]) {
-  return (housings: HousingDTO[]): HousingDTO[] => {
-    if (!statuses || statuses.length === 0) {
-      return housings;
-    }
-
-    return housings.filter((housing) => {
-      return statuses.includes(housing.status);
-    });
-  };
+  return (housings: HousingDTO[]): HousingDTO[] =>
+    pipe(housings, Array.filter(Predicate.every(predicates)));
 }

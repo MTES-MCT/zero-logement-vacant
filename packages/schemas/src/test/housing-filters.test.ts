@@ -19,6 +19,7 @@ import {
   OWNER_AGE_VALUES,
   OWNER_KIND_VALUES,
   OWNERSHIP_KIND_VALUES,
+  RELATIVE_LOCATION_FILTER_VALUES,
   ROOM_COUNT_VALUES,
   VACANCY_RATE_VALUES,
   VACANCY_YEAR_VALUES
@@ -43,6 +44,9 @@ describe('Housing filters', () => {
       ownerIds: fc.array(fc.uuid({ version: 4 })),
       ownerKinds: fc.array(fc.constantFrom(null, ...OWNER_KIND_VALUES)),
       ownerAges: fc.array(fc.constantFrom(null, ...OWNER_AGE_VALUES)),
+      relativeLocations: fc.array(
+        fc.constantFrom(...RELATIVE_LOCATION_FILTER_VALUES)
+      ),
       multiOwners: fc.array(fc.boolean()),
       beneficiaryCounts: fc.array(fc.constantFrom(...BENEFIARY_COUNT_VALUES)),
       housingKinds: fc.array(fc.constantFrom(...HOUSING_KIND_VALUES)),

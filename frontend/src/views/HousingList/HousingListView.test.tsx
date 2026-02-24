@@ -39,16 +39,24 @@ import { Provider } from 'react-redux';
 import { createMemoryRouter, RouterProvider } from 'react-router-dom';
 import { vi } from 'vitest';
 
+import { fromEstablishmentDTO } from '~/models/Establishment';
+import { fromUserDTO } from '~/models/User';
+import { genAuthUser } from '~/test/fixtures';
 import data from '../../mocks/handlers/data';
 import configureTestStore from '../../utils/storeUtils';
 import CampaignView from '../Campaign/CampaignView';
 import HousingListTabsProvider from './HousingListTabsProvider';
 import HousingListView from './HousingListView';
-import { genAuthUser } from '~/test/fixtures';
-import { fromEstablishmentDTO } from '~/models/Establishment';
-import { fromUserDTO } from '~/models/User';
 
 vi.mock('../../components/Aside/Aside.tsx');
+vi.mock('posthog-js/react', async (importOriginal) => {
+  const mod = await importOriginal<typeof import('posthog-js/react')>();
+  return {
+    ...mod,
+    useFeatureFlagEnabled: vi.fn().mockReturnValue(false),
+    usePostHog: () => ({ capture: vi.fn() })
+  };
+});
 
 interface RenderViewOptions {
   auth: UserDTO;
@@ -2479,6 +2487,203 @@ describe('Housing list view', () => {
         const badge = await screen.findByText('Multi-propriétaire : oui');
         expect(badge).toBeVisible();
       });
+    });
+
+    describe('Relative location filter', () => {
+      it.each([
+        {
+          filterValue: 'same-address' as const,
+          optionLabel: 'À la même adresse que le logement',
+          matchingLocations: ['same-address'] as const
+        },
+        {
+          filterValue: 'same-commune' as const,
+          optionLabel: 'Dans la même commune',
+          matchingLocations: ['same-commune'] as const
+        },
+        {
+          filterValue: 'same-department' as const,
+          optionLabel: 'Dans le même département',
+          matchingLocations: ['same-department'] as const
+        },
+        {
+          filterValue: 'same-region' as const,
+          optionLabel: 'Dans la même région',
+          matchingLocations: ['same-region'] as const
+        },
+        {
+          filterValue: 'other-region' as const,
+          optionLabel: 'Dans une autre région',
+          matchingLocations: ['metropolitan', 'overseas'] as const
+        },
+        {
+          filterValue: 'other' as const,
+          optionLabel: 'Pas d’information',
+          matchingLocations: ['other', null] as const
+        }
+      ])(
+        'should filter housings by "$filterValue"',
+        async ({ optionLabel, matchingLocations }) => {
+          const { useFeatureFlagEnabled } = await import('posthog-js/react');
+          vi.mocked(useFeatureFlagEnabled).mockImplementation(
+            (flag) => flag === 'relative-location'
+          );
+
+          const establishment = genEstablishmentDTO();
+          const auth = genUserDTO(UserRole.USUAL, establishment);
+
+          const matchingOwners = matchingLocations.map(() => genOwnerDTO());
+          const matchingHousings = matchingLocations.map(() => genHousingDTO());
+          const nonMatchingOwner = genOwnerDTO();
+          const nonMatchingHousing = genHousingDTO();
+
+          renderView({
+            establishment,
+            auth,
+            housings: [...matchingHousings, nonMatchingHousing],
+            owners: [...matchingOwners, nonMatchingOwner],
+            housingOwners: [
+              ...matchingLocations.map((loc, i) => ({
+                ...genHousingOwnerDTO(matchingOwners[i]),
+                rank: 1 as const,
+                housingId: matchingHousings[i].id,
+                ownerId: matchingOwners[i].id,
+                relativeLocation: loc
+              })),
+              {
+                ...genHousingOwnerDTO(nonMatchingOwner),
+                rank: 1 as const,
+                housingId: nonMatchingHousing.id,
+                ownerId: nonMatchingOwner.id,
+                relativeLocation: 'foreign-country' as const
+              }
+            ],
+            groups: [],
+            campaigns: [],
+            campaignHousings: []
+          });
+
+          const accordion = await screen.findByRole('button', {
+            name: 'Propriétaires'
+          });
+          await user.click(accordion);
+          const select = await screen.findByRole('combobox', {
+            name: 'Lieu de résidence'
+          });
+          await user.click(select);
+          const listbox = await screen.findByRole('listbox');
+          await user.click(within(listbox).getByText(optionLabel));
+          await user.keyboard('{Escape}');
+
+          const panel = await screen.findByRole('tabpanel', { name: /Tous/ });
+          const expected = matchingLocations.length;
+          const total = matchingLocations.length + 1;
+          await within(panel).findByText(
+            new RegExp(
+              `${expected} logements? .* filtr.* sur un total de ${total} logements`
+            )
+          );
+        }
+      );
+
+      it('should display the relative location select with its label', async () => {
+        const { useFeatureFlagEnabled } = await import('posthog-js/react');
+        vi.mocked(useFeatureFlagEnabled).mockImplementation(
+          (flag) => flag === 'relative-location'
+        );
+
+        const establishment = genEstablishmentDTO();
+        const auth = genUserDTO(UserRole.USUAL, establishment);
+
+        renderView({
+          establishment,
+          auth,
+          housings: [],
+          owners: [],
+          housingOwners: [],
+          groups: [],
+          campaigns: [],
+          campaignHousings: []
+        });
+
+        const accordion = await screen.findByRole('button', {
+          name: 'Propriétaires'
+        });
+        await user.click(accordion);
+
+        const select = await screen.findByRole('combobox', {
+          name: 'Lieu de résidence'
+        });
+        expect(select).toBeVisible();
+      });
+
+      it.each([
+        {
+          optionLabel: 'À la même adresse que le logement',
+          badgeLabel:
+            'Lieu de résidence\u00a0: à la même adresse que le logement'
+        },
+        {
+          optionLabel: 'Dans la même commune',
+          badgeLabel: 'Lieu de résidence\u00a0: dans la même commune'
+        },
+        {
+          optionLabel: 'Dans le même département',
+          badgeLabel: 'Lieu de résidence\u00a0: dans le même département'
+        },
+        {
+          optionLabel: 'Dans la même région',
+          badgeLabel: 'Lieu de résidence\u00a0: dans la même région'
+        },
+        {
+          optionLabel: 'Dans une autre région',
+          badgeLabel: 'Lieu de résidence\u00a0: dans une autre région'
+        },
+        {
+          optionLabel: 'Pas d’information',
+          badgeLabel: 'Lieu de résidence\u00a0: pas d’information'
+        }
+      ])(
+        'should display a badge "$badgeLabel"',
+        async ({ optionLabel, badgeLabel }) => {
+          const { useFeatureFlagEnabled } = await import('posthog-js/react');
+          vi.mocked(useFeatureFlagEnabled).mockImplementation(
+            (flag) => flag === 'relative-location'
+          );
+
+          const establishment = genEstablishmentDTO();
+          const auth = genUserDTO(UserRole.USUAL, establishment);
+
+          renderView({
+            establishment,
+            auth,
+            housings: [],
+            owners: [],
+            housingOwners: [],
+            groups: [],
+            campaigns: [],
+            campaignHousings: []
+          });
+
+          const accordion = await screen.findByRole('button', {
+            name: 'Propriétaires'
+          });
+          await user.click(accordion);
+
+          const select = await screen.findByRole('combobox', {
+            name: 'Lieu de résidence'
+          });
+          await user.click(select);
+          const listbox = await screen.findByRole('listbox');
+          await user.click(within(listbox).getByText(optionLabel));
+          await user.keyboard('{Escape}');
+
+          const badge = await screen.findByText(badgeLabel, {
+            normalizer: (text) => text
+          });
+          expect(badge).toBeVisible();
+        }
+      );
     });
 
     describe('Active owner filter', () => {

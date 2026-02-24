@@ -46,8 +46,8 @@ function DraftSender(props: Readonly<Props>) {
   }
 
   return (
-    <Container as="article" className={styles.article}>
-      <Typography component="h4" variant="h6" mb={2}>
+    <Container as="article" role="group" aria-labelledby="draft-sender-label" className={styles.article}>
+      <Typography id="draft-sender-label" component="h4" variant="h6" mb={2}>
         Coordonnées de l’expéditeur
       </Typography>
       <AppTextInput

@@ -20,7 +20,7 @@ export interface Body {
 
 function DraftBody(props: Readonly<Props>) {
   return (
-    <Container as="article" className={styles.article} fluid>
+    <Container as="article" role="group" aria-labelledby="draft-body-label" className={styles.article} fluid>
       <Row className="fr-mb-2w justify-space-between">
         <Typography id="draft-body-label" component="h4" variant="h6">
           Contenu de votre courrier

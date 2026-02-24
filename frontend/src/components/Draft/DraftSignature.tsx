@@ -57,6 +57,7 @@ function DraftSignature(props: Readonly<Props>) {
   }
 
   const uploadIds = [useId(), useId()];
+  const titleIds = [useId(), useId()];
 
   function onFileRemoval(index: number) {
     const signatory: SignatoryPayload = props.value?.[index] ?? {
@@ -88,6 +89,7 @@ function DraftSignature(props: Readonly<Props>) {
     <Grid
       container
       component="article"
+      role="group"
       alignItems="flex-start"
       justifyContent="flex-end"
       size={10}
@@ -97,13 +99,15 @@ function DraftSignature(props: Readonly<Props>) {
         <Grid
           container
           key={index}
+          role="group"
+          aria-labelledby={titleIds[index]}
           className={styles.article}
           sx={{ ml: 2, p: 2 }}
           size="grow"
         >
           <Grid container spacing={2}>
             <Grid size={12}>
-              <Typography component="h4" variant="h6" mb={2}>
+              <Typography id={titleIds[index]} component="h4" variant="h6" mb={2}>
                 {title(index)}
               </Typography>
             </Grid>

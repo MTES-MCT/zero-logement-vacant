@@ -5,353 +5,170 @@ config (
 )
 }}
 
--- Marts BI: ZLV application usage and establishment activity at housing level
--- Contains housing-level contact/status data + establishment-level metrics from EPCI mapping
--- MAPPING: Housing geo_code -> EPCI/CA/CC/ME establishment via int_production_establishments_localities
--- Establishment metrics sourced from marts_zlv_usage
+-- Marts BI: Dual-echelon ZLV usage at housing level
+-- For each housing, provides establishment metrics from TWO echelons:
+--   EPCI (CA, CC, CU, ME) and Commune
+-- Fields strictly follow fields_usage_housing_establishments.csv spec
 
 WITH housing_out AS (
     SELECT
-        housing_id,
-        geo_code
+        housing_id
     FROM {{ ref('int_analysis_housing_with_out_flag') }}
 ),
 
-housing_zlv AS (
-    SELECT * FROM {{ ref('int_analysis_housing_zlv_usage') }}
-),
-
--- Map geo_code to EPCI/CA/CC/ME establishment (one per commune)
-geo_code_to_epci AS (
-    SELECT
-        el.geo_code,
-        CAST(el.establishment_id AS VARCHAR) AS establishment_id
-    FROM {{ ref('int_production_establishments_localities') }} el
-    JOIN {{ ref('int_production_establishments') }} est ON el.establishment_id = est.id
-    WHERE est.kind IN ('CC', 'CU', 'ME', 'CA')
-    QUALIFY ROW_NUMBER() OVER (PARTITION BY el.geo_code ORDER BY est.kind) = 1
+echelons AS (
+    SELECT * FROM {{ ref('int_analysis_housing_establishment_echelons') }}
 ),
 
 establishment_metrics AS (
-    SELECT * FROM {{ ref('marts_zlv_usage') }}
+    SELECT * FROM {{ ref('int_analysis_establishments_zlv_usage') }}
 )
 
 SELECT
-    -- =====================================================
-    -- IDENTIFIERS
-    -- =====================================================
     CAST(ho.housing_id AS VARCHAR) AS housing_id,
-    epci.establishment_id,
-    COALESCE(hz.establishment_count, 0) AS establishment_count,
 
     -- =====================================================
-    -- HOUSING CONTACT STATUS
+    -- EPCI ESTABLISHMENT (CA, CC, CU, ME)
     -- =====================================================
-    COALESCE(hz.was_contacted_by_zlv, FALSE) AS was_contacted_by_zlv,
-    COALESCE(hz.contact_count, 0) AS contact_count,
-    COALESCE(hz.contact_intensity, 'Non contacte') AS contact_intensity,
-    hz.first_contact_date,
-    hz.last_contact_date,
-    hz.days_since_first_contact,
-    hz.days_since_last_contact,
-    COALESCE(hz.contact_recency_category, 'Jamais contacte') AS contact_recency_category,
+    epci.establishment_id AS epci_establishment_id,
+    epci.nom AS epci_nom,
+    epci.ouvert AS epci_ouvert,
+    epci.date_ouverture AS epci_date_ouverture,
+    epci.annee_ouverture AS epci_annee_ouverture,
+    COALESCE(epci.utilisateurs_inscrits, 0) AS epci_utilisateurs_inscrits,
+    epci.date_derniere_connexion AS epci_date_derniere_connexion,
+    COALESCE(epci.connecte_30_jours, FALSE) AS epci_connecte_30_jours,
+    COALESCE(epci.connecte_60_jours, FALSE) AS epci_connecte_60_jours,
+    COALESCE(epci.connecte_90_jours, FALSE) AS epci_connecte_90_jours,
+    COALESCE(epci.a_1_logement_maj_situation, FALSE) AS epci_a_1_logement_maj_situation,
+    COALESCE(epci.a_1_logement_maj_occupation, FALSE) AS epci_a_1_logement_maj_occupation,
+    COALESCE(epci.a_1_logement_maj_suivi, FALSE) AS epci_a_1_logement_maj_suivi,
+    COALESCE(epci.a_1_logement_maj_enrichissement, FALSE) AS epci_a_1_logement_maj_enrichissement,
+    COALESCE(epci.logements_maj_situation, 0) AS epci_logements_maj_situation,
+    COALESCE(epci.logements_maj_enrichissement, 0) AS epci_logements_maj_enrichissement,
+    epci.date_premiere_maj_situation AS epci_date_premiere_maj_situation,
+    epci.date_premiere_maj_enrichissement AS epci_date_premiere_maj_enrichissement,
+    epci.date_derniere_maj_situation AS epci_date_derniere_maj_situation,
+    epci.date_derniere_maj_enrichissement AS epci_date_derniere_maj_enrichissement,
+    epci.logements_maj_situation_pct_parc_vacant_25 AS epci_logements_maj_situation_pct_parc_vacant_25,
+    epci.logements_maj_situation_pct_parc_locatif_24 AS epci_logements_maj_situation_pct_parc_locatif_24,
+    COALESCE(epci.logements_maj_occupation, 0) AS epci_logements_maj_occupation,
+    COALESCE(epci.logements_maj_suivi, 0) AS epci_logements_maj_suivi,
+    COALESCE(epci.logements_maj_non_suivi, 0) AS epci_logements_maj_non_suivi,
+    COALESCE(epci.logements_maj_en_attente, 0) AS epci_logements_maj_en_attente,
+    COALESCE(epci.logements_maj_premier_contact, 0) AS epci_logements_maj_premier_contact,
+    COALESCE(epci.logements_maj_suivi_en_cours, 0) AS epci_logements_maj_suivi_en_cours,
+    COALESCE(epci.logements_maj_suivi_termine, 0) AS epci_logements_maj_suivi_termine,
+    COALESCE(epci.logements_maj_suivi_termine_sortis, 0) AS epci_logements_maj_suivi_termine_sortis,
+    COALESCE(epci.logements_maj_suivi_termine_fiabilises, 0) AS epci_logements_maj_suivi_termine_fiabilises,
+    COALESCE(epci.logements_maj_bloque, 0) AS epci_logements_maj_bloque,
+    COALESCE(epci.logements_maj_mails, 0) AS epci_logements_maj_mails,
+    COALESCE(epci.logements_maj_phone, 0) AS epci_logements_maj_phone,
+    COALESCE(epci.logements_maj_owners, 0) AS epci_logements_maj_owners,
+    COALESCE(epci.logements_maj_owners_address, 0) AS epci_logements_maj_owners_address,
+    epci.logements_maj_dpe AS epci_logements_maj_dpe,
+    COALESCE(epci.logements_maj_notes, 0) AS epci_logements_maj_notes,
+    COALESCE(epci.logements_maj_documents, 0) AS epci_logements_maj_documents,
+    COALESCE(epci.documents_importes, 0) AS epci_documents_importes,
+    epci.date_dernier_document_importe AS epci_date_dernier_document_importe,
+    COALESCE(epci.a_1_groupe_cree, FALSE) AS epci_a_1_groupe_cree,
+    COALESCE(epci.logements_exportes_via_groupes, 0) AS epci_logements_exportes_via_groupes,
+    COALESCE(epci.groupes_exportes, 0) AS epci_groupes_exportes,
+    COALESCE(epci.groupes_crees, 0) AS epci_groupes_crees,
+    epci.date_dernier_groupe_cree AS epci_date_dernier_groupe_cree,
+    COALESCE(epci.logements_contactes_via_campagnes, 0) AS epci_logements_contactes_via_campagnes,
+    COALESCE(epci.a_1_campagne_envoyee_et_1_maj_situation, FALSE) AS epci_a_1_campagne_envoyee_et_1_maj_situation,
+    COALESCE(epci.a_1_campagne_creee, FALSE) AS epci_a_1_campagne_creee,
+    COALESCE(epci.a_1_campagne_creee_30_jours, FALSE) AS epci_a_1_campagne_creee_30_jours,
+    COALESCE(epci.a_1_campagne_envoyee, FALSE) AS epci_a_1_campagne_envoyee,
+    COALESCE(epci.campagnes_envoyees, 0) AS epci_campagnes_envoyees,
+    COALESCE(epci.campagnes_exportees, 0) AS epci_campagnes_exportees,
+    COALESCE(epci.campagnes_creees, 0) AS epci_campagnes_creees,
+    epci.date_premiere_campagne_creee AS epci_date_premiere_campagne_creee,
+    epci.date_derniere_campagne_creee AS epci_date_derniere_campagne_creee,
+    COALESCE(epci.a_1_perimetre_importe, FALSE) AS epci_a_1_perimetre_importe,
+    COALESCE(epci.perimetres_importes, 0) AS epci_perimetres_importes,
+    COALESCE(epci.couches_perimetres_importes, 0) AS epci_couches_perimetres_importes,
+    epci.region AS epci_region,
+    epci.departement AS epci_departement,
+    epci.type_detaille AS epci_type_detaille,
+    epci.type_simple AS epci_type_simple,
+    epci.mails_utilisateurs AS epci_mails_utilisateurs,
+    epci.communes_inscrites AS epci_communes_inscrites,
+    epci.communes_inscrites_pct AS epci_communes_inscrites_pct,
 
     -- =====================================================
-    -- CAMPAIGN DETAILS
+    -- COMMUNE ESTABLISHMENT
     -- =====================================================
-    hz.first_campaign_created,
-    hz.last_campaign_created,
-    hz.first_campaign_sent_date,
-    hz.last_campaign_sent_date,
-    COALESCE(hz.total_campaigns_validated, 0) AS total_campaigns_validated,
-    COALESCE(hz.total_campaigns_confirmed, 0) AS total_campaigns_confirmed,
-    COALESCE(hz.total_campaigns_received, 0) AS total_campaigns_received,
-    COALESCE(hz.total_campaigns_sent, 0) AS total_campaigns_sent,
-    COALESCE(hz.has_received_campaign, FALSE) AS has_received_campaign,
-
-    -- =====================================================
-    -- GROUP DETAILS
-    -- =====================================================
-    COALESCE(hz.total_groups, 0) AS total_groups,
-    hz.group_titles,
-    hz.first_group_created,
-    hz.last_group_created,
-    hz.first_group_exported,
-    hz.last_group_exported,
-    COALESCE(hz.is_in_group, FALSE) AS is_in_group,
-    COALESCE(hz.group_intensity, 'Aucun groupe') AS group_intensity,
-    COALESCE(hz.was_exported_from_group, FALSE) AS was_exported_from_group,
-
-    -- =====================================================
-    -- STATUS UPDATES - FOLLOWUP (SUIVI)
-    -- =====================================================
-    hz.last_event_status_followup,
-    hz.last_event_status_label_followup,
-    hz.last_event_date_followup,
-    hz.last_event_status_zlv_followup,
-    hz.last_event_status_label_zlv_followup,
-    hz.last_event_date_zlv_followup,
-    hz.last_event_status_user_followup,
-    hz.last_event_status_label_user_followup,
-    hz.last_event_date_user_followup,
-    hz.last_event_sub_status_label_user_followup,
-    COALESCE(hz.has_status_update, FALSE) AS has_status_update,
-    COALESCE(hz.has_user_followup_update, FALSE) AS has_user_followup_update,
-    COALESCE(hz.has_zlv_followup_update, FALSE) AS has_zlv_followup_update,
-
-    -- =====================================================
-    -- STATUS UPDATES - OCCUPANCY
-    -- =====================================================
-    hz.last_event_status_occupancy,
-    hz.last_event_status_label_occupancy,
-    hz.last_event_date_occupancy,
-    hz.last_event_status_zlv_occupancy,
-    hz.last_event_status_label_zlv_occupancy,
-    hz.last_event_date_zlv_occupancy,
-    hz.last_event_status_user_occupancy,
-    hz.last_event_status_label_user_occupancy,
-    hz.last_event_date_user_occupancy,
-    hz.last_event_sub_status_label_user_occupancy,
-    COALESCE(hz.has_occupancy_update, FALSE) AS has_occupancy_update,
-    COALESCE(hz.has_user_occupancy_update, FALSE) AS has_user_occupancy_update,
-    COALESCE(hz.has_zlv_occupancy_update, FALSE) AS has_zlv_occupancy_update,
-
-    -- =====================================================
-    -- COMBINED STATUS UPDATE INDICATORS
-    -- =====================================================
-    COALESCE(hz.has_any_update, FALSE) AS has_any_update,
-    COALESCE(hz.update_intensity, 'Aucune MAJ') AS update_intensity,
-    hz.days_since_last_followup_update,
-    hz.days_since_last_occupancy_update,
-
-    -- =====================================================
-    -- USER TERRITORY COVERAGE
-    -- =====================================================
-    COALESCE(hz.is_on_user_territory, FALSE) AS is_on_user_territory,
-
-    -- =====================================================
-    -- ESTABLISHMENT INFO (from EPCI -> marts_zlv_usage)
-    -- =====================================================
-    em.nom AS establishment_name,
-    em.kind AS establishment_kind,
-    em.establishment_kind_label,
-    em.type_simple AS establishment_type_regroupe,
-
-    -- =====================================================
-    -- ESTABLISHMENT ACTIVATION (from EPCI)
-    -- =====================================================
-    em.connecte_90_derniers_jours,
-    em.connecte_60_derniers_jours,
-    em.connecte_30_derniers_jours,
-    em.a_depose_1_perimetre,
-    em.a_cree_1_groupe,
-    em.a_cree_1_campagne,
-    em.a_envoye_1_campagne,
-    em.a_fait_1_maj_suivi,
-    em.a_fait_1_maj_occupation,
-    em.a_fait_1_maj,
-    em.a_fait_1_campagne_ET_1_maj,
-    em.typologie_activation_simple,
-    em.typologie_activation_detaillee,
-    COALESCE(em.activation_level, 0) AS activation_level,
-
-    -- =====================================================
-    -- ESTABLISHMENT PRO-ACTIVITY (from EPCI)
-    -- =====================================================
-    em.kind_pro_activity_quantile,
-    em.kind_pro_activity_ntile,
-    COALESCE(em.total_pro_activity_score, 0) AS total_pro_activity_score,
-    COALESCE(em.pro_activity_level, 0) AS pro_activity_level,
-
-    -- =====================================================
-    -- ESTABLISHMENT METRICS (from EPCI)
-    -- =====================================================
-    COALESCE(em.campagnes_envoyees, 0) AS total_campaigns_sent_establishment,
-    COALESCE(em.contacted_housing_2024, 0) AS housing_contacted_2024,
-    COALESCE(em.contacted_housing_2023, 0) AS housing_contacted_2023,
-    em.housing_rate_contacted_2024,
-    COALESCE(em.establishment_user_count, 0) AS establishment_user_count,
-    CASE WHEN COALESCE(em.establishment_user_count, 0) > 0 THEN TRUE ELSE FALSE END AS establishment_has_active_users,
-
-    -- =====================================================
-    -- COMPOSITE ZLV ENGAGEMENT (recomputed with EPCI data)
-    -- =====================================================
-    (
-        CASE WHEN COALESCE(hz.total_campaigns_sent, 0) > 0 THEN 3 ELSE 0 END +
-        CASE WHEN COALESCE(hz.total_groups, 0) > 0 THEN 1 ELSE 0 END +
-        CASE
-            WHEN em.typologie_activation_simple LIKE '(4)%' OR em.typologie_activation_simple LIKE '(5)%' THEN 3
-            WHEN em.typologie_activation_simple LIKE '(3)%' THEN 2
-            WHEN em.typologie_activation_simple LIKE '(2)%' THEN 1
-            ELSE 0
-        END +
-        CASE
-            WHEN em.kind_pro_activity_ntile = 'Très pro-actif' THEN 3
-            WHEN em.kind_pro_activity_ntile = 'Pro-actif' THEN 2
-            WHEN em.kind_pro_activity_ntile = 'Peu pro-actif' THEN 1
-            ELSE 0
-        END
-    ) AS zlv_engagement_score,
-
-    CASE
-        WHEN (
-            CASE WHEN COALESCE(hz.total_campaigns_sent, 0) > 0 THEN 3 ELSE 0 END +
-            CASE WHEN COALESCE(hz.total_groups, 0) > 0 THEN 1 ELSE 0 END +
-            CASE
-                WHEN em.typologie_activation_simple LIKE '(4)%' OR em.typologie_activation_simple LIKE '(5)%' THEN 3
-                WHEN em.typologie_activation_simple LIKE '(3)%' THEN 2
-                WHEN em.typologie_activation_simple LIKE '(2)%' THEN 1
-                ELSE 0
-            END +
-            CASE
-                WHEN em.kind_pro_activity_ntile = 'Très pro-actif' THEN 3
-                WHEN em.kind_pro_activity_ntile = 'Pro-actif' THEN 2
-                WHEN em.kind_pro_activity_ntile = 'Peu pro-actif' THEN 1
-                ELSE 0
-            END
-        ) = 0 THEN 'Aucun engagement'
-        WHEN (
-            CASE WHEN COALESCE(hz.total_campaigns_sent, 0) > 0 THEN 3 ELSE 0 END +
-            CASE WHEN COALESCE(hz.total_groups, 0) > 0 THEN 1 ELSE 0 END +
-            CASE
-                WHEN em.typologie_activation_simple LIKE '(4)%' OR em.typologie_activation_simple LIKE '(5)%' THEN 3
-                WHEN em.typologie_activation_simple LIKE '(3)%' THEN 2
-                WHEN em.typologie_activation_simple LIKE '(2)%' THEN 1
-                ELSE 0
-            END +
-            CASE
-                WHEN em.kind_pro_activity_ntile = 'Très pro-actif' THEN 3
-                WHEN em.kind_pro_activity_ntile = 'Pro-actif' THEN 2
-                WHEN em.kind_pro_activity_ntile = 'Peu pro-actif' THEN 1
-                ELSE 0
-            END
-        ) <= 3 THEN 'Engagement faible'
-        WHEN (
-            CASE WHEN COALESCE(hz.total_campaigns_sent, 0) > 0 THEN 3 ELSE 0 END +
-            CASE WHEN COALESCE(hz.total_groups, 0) > 0 THEN 1 ELSE 0 END +
-            CASE
-                WHEN em.typologie_activation_simple LIKE '(4)%' OR em.typologie_activation_simple LIKE '(5)%' THEN 3
-                WHEN em.typologie_activation_simple LIKE '(3)%' THEN 2
-                WHEN em.typologie_activation_simple LIKE '(2)%' THEN 1
-                ELSE 0
-            END +
-            CASE
-                WHEN em.kind_pro_activity_ntile = 'Très pro-actif' THEN 3
-                WHEN em.kind_pro_activity_ntile = 'Pro-actif' THEN 2
-                WHEN em.kind_pro_activity_ntile = 'Peu pro-actif' THEN 1
-                ELSE 0
-            END
-        ) <= 6 THEN 'Engagement moyen'
-        ELSE 'Engagement fort'
-    END AS zlv_engagement_category,
-
-    -- =====================================================
-    -- ESTABLISHMENT DIMENSIONS (from marts_zlv_usage)
-    -- =====================================================
-    em.nom AS establishment_nom,
-    COALESCE(em.ouvert, FALSE) AS establishment_ouvert,
-    em.date_ouverture AS establishment_date_ouverture,
-    em.annee_ouverture AS establishment_annee_ouverture,
-
-    -- =====================================================
-    -- ESTABLISHMENT UTILISATEURS / CONNEXIONS
-    -- =====================================================
-    COALESCE(em.utilisateurs_inscrits, 0) AS establishment_utilisateurs_inscrits,
-    em.date_derniere_connexion AS establishment_date_derniere_connexion,
-    COALESCE(em.connecte_30_jours, FALSE) AS establishment_connecte_30_jours,
-    COALESCE(em.connecte_60_jours, FALSE) AS establishment_connecte_60_jours,
-    COALESCE(em.connecte_90_jours, FALSE) AS establishment_connecte_90_jours,
-    COALESCE(em.connexions_30_jours, 0) AS establishment_connexions_30_jours,
-    COALESCE(em.connexions_60_jours, 0) AS establishment_connexions_60_jours,
-    COALESCE(em.connexions_90_jours, 0) AS establishment_connexions_90_jours,
-
-    -- =====================================================
-    -- ESTABLISHMENT LOGEMENTS MAJ SITUATION
-    -- =====================================================
-    COALESCE(em.a_1_logement_maj_situation, FALSE) AS establishment_a_1_logement_maj_situation,
-    COALESCE(em.a_1_logement_maj_occupation, FALSE) AS establishment_a_1_logement_maj_occupation,
-    COALESCE(em.a_1_logement_maj_suivi, FALSE) AS establishment_a_1_logement_maj_suivi,
-    COALESCE(em.logements_maj_situation, 0) AS establishment_logements_maj_situation,
-    COALESCE(em.logements_maj_occupation, 0) AS establishment_logements_maj_occupation,
-    COALESCE(em.logements_maj_suivi, 0) AS establishment_logements_maj_suivi,
-    COALESCE(em.logements_maj_non_suivi, 0) AS establishment_logements_maj_non_suivi,
-    COALESCE(em.logements_maj_en_attente, 0) AS establishment_logements_maj_en_attente,
-    COALESCE(em.logements_maj_premier_contact, 0) AS establishment_logements_maj_premier_contact,
-    COALESCE(em.logements_maj_suivi_en_cours, 0) AS establishment_logements_maj_suivi_en_cours,
-    COALESCE(em.logements_maj_suivi_termine, 0) AS establishment_logements_maj_suivi_termine,
-    COALESCE(em.logements_maj_suivi_termine_sortis, 0) AS establishment_logements_maj_suivi_termine_sortis,
-    COALESCE(em.logements_maj_suivi_termine_fiabilises, 0) AS establishment_logements_maj_suivi_termine_fiabilises,
-    COALESCE(em.logements_maj_bloque, 0) AS establishment_logements_maj_bloque,
-    em.date_premiere_maj_situation AS establishment_date_premiere_maj_situation,
-    em.date_derniere_maj_situation AS establishment_date_derniere_maj_situation,
-    em.logements_maj_situation_pct_parc_vacant_25 AS establishment_logements_maj_situation_pct_parc_vacant_25,
-    em.logements_maj_situation_pct_parc_locatif_24 AS establishment_logements_maj_situation_pct_parc_locatif_24,
-
-    -- =====================================================
-    -- ESTABLISHMENT LOGEMENTS MAJ ENRICHISSEMENT
-    -- =====================================================
-    COALESCE(em.a_1_logement_maj_enrichissement, FALSE) AS establishment_a_1_logement_maj_enrichissement,
-    COALESCE(em.logements_maj_enrichissement, 0) AS establishment_logements_maj_enrichissement,
-    COALESCE(em.logements_maj_mails, 0) AS establishment_logements_maj_mails,
-    COALESCE(em.logements_maj_phone, 0) AS establishment_logements_maj_phone,
-    COALESCE(em.logements_maj_owners, 0) AS establishment_logements_maj_owners,
-    COALESCE(em.logements_maj_owners_address, 0) AS establishment_logements_maj_owners_address,
-    em.logements_maj_dpe AS establishment_logements_maj_dpe,
-    COALESCE(em.logements_maj_notes, 0) AS establishment_logements_maj_notes,
-    COALESCE(em.logements_maj_documents, 0) AS establishment_logements_maj_documents,
-    em.date_premiere_maj_enrichissement AS establishment_date_premiere_maj_enrichissement,
-    em.date_derniere_maj_enrichissement AS establishment_date_derniere_maj_enrichissement,
-
-    -- =====================================================
-    -- ESTABLISHMENT DOCUMENTS
-    -- =====================================================
-    COALESCE(em.documents_importes, 0) AS establishment_documents_importes,
-    em.date_dernier_document_importe AS establishment_date_dernier_document_importe,
-
-    -- =====================================================
-    -- ESTABLISHMENT GROUPES
-    -- =====================================================
-    COALESCE(em.a_1_groupe_cree, FALSE) AS establishment_a_1_groupe_cree,
-    COALESCE(em.logements_exportes_via_groupes, 0) AS establishment_logements_exportes_via_groupes,
-    COALESCE(em.groupes_exportes, 0) AS establishment_groupes_exportes,
-    COALESCE(em.groupes_crees, 0) AS establishment_groupes_crees,
-    em.date_dernier_groupe_cree AS establishment_date_dernier_groupe_cree,
-
-    -- =====================================================
-    -- ESTABLISHMENT CAMPAGNES
-    -- =====================================================
-    COALESCE(em.logements_contactes_via_campagnes, 0) AS establishment_logements_contactes_via_campagnes,
-    COALESCE(em.a_1_campagne_envoyee_et_1_maj_situation, FALSE) AS establishment_a_1_campagne_envoyee_et_1_maj_situation,
-    COALESCE(em.a_1_campagne_creee, FALSE) AS establishment_a_1_campagne_creee,
-    COALESCE(em.a_1_campagne_creee_30_jours, FALSE) AS establishment_a_1_campagne_creee_30_jours,
-    COALESCE(em.a_1_campagne_envoyee, FALSE) AS establishment_a_1_campagne_envoyee,
-    COALESCE(em.campagnes_envoyees, 0) AS establishment_campagnes_envoyees,
-    COALESCE(em.campagnes_exportees, 0) AS establishment_campagnes_exportees,
-    COALESCE(em.campagnes_creees, 0) AS establishment_campagnes_creees,
-    em.date_premiere_campagne_creee AS establishment_date_premiere_campagne_creee,
-    em.date_derniere_campagne_creee AS establishment_date_derniere_campagne_creee,
-
-    -- =====================================================
-    -- ESTABLISHMENT PERIMETRES
-    -- =====================================================
-    COALESCE(em.a_1_perimetre_importe, FALSE) AS establishment_a_1_perimetre_importe,
-    COALESCE(em.perimetres_importes, 0) AS establishment_perimetres_importes,
-    COALESCE(em.couches_perimetres_importes, 0) AS establishment_couches_perimetres_importes,
-
-    -- =====================================================
-    -- ESTABLISHMENT REFERENTS COMPARATIFS
-    -- =====================================================
-    em.region AS establishment_region,
-    em.departement AS establishment_departement,
-    em.type_detaille AS establishment_type_detaille,
-    em.type_simple AS establishment_type_simple,
-
-    -- =====================================================
-    -- ESTABLISHMENT PRISE DE CONTACT
-    -- =====================================================
-    em.mails_utilisateurs AS establishment_mails_utilisateurs
+    city.establishment_id AS city_establishment_id,
+    city.nom AS city_nom,
+    city.ouvert AS city_ouvert,
+    city.date_ouverture AS city_date_ouverture,
+    city.annee_ouverture AS city_annee_ouverture,
+    COALESCE(city.utilisateurs_inscrits, 0) AS city_utilisateurs_inscrits,
+    city.date_derniere_connexion AS city_date_derniere_connexion,
+    COALESCE(city.connecte_30_jours, FALSE) AS city_connecte_30_jours,
+    COALESCE(city.connecte_60_jours, FALSE) AS city_connecte_60_jours,
+    COALESCE(city.connecte_90_jours, FALSE) AS city_connecte_90_jours,
+    COALESCE(city.connexions_30_jours, 0) AS city_connexions_30_jours,
+    COALESCE(city.connexions_60_jours, 0) AS city_connexions_60_jours,
+    COALESCE(city.connexions_90_jours, 0) AS city_connexions_90_jours,
+    COALESCE(city.a_1_logement_maj_situation, FALSE) AS city_a_1_logement_maj_situation,
+    COALESCE(city.a_1_logement_maj_occupation, FALSE) AS city_a_1_logement_maj_occupation,
+    COALESCE(city.a_1_logement_maj_suivi, FALSE) AS city_a_1_logement_maj_suivi,
+    COALESCE(city.a_1_logement_maj_enrichissement, FALSE) AS city_a_1_logement_maj_enrichissement,
+    COALESCE(city.logements_maj_situation, 0) AS city_logements_maj_situation,
+    COALESCE(city.logements_maj_enrichissement, 0) AS city_logements_maj_enrichissement,
+    city.date_premiere_maj_situation AS city_date_premiere_maj_situation,
+    city.date_premiere_maj_enrichissement AS city_date_premiere_maj_enrichissement,
+    city.date_derniere_maj_situation AS city_date_derniere_maj_situation,
+    city.date_derniere_maj_enrichissement AS city_date_derniere_maj_enrichissement,
+    city.logements_maj_situation_pct_parc_vacant_25 AS city_logements_maj_situation_pct_parc_vacant_25,
+    city.logements_maj_situation_pct_parc_locatif_24 AS city_logements_maj_situation_pct_parc_locatif_24,
+    COALESCE(city.logements_maj_occupation, 0) AS city_logements_maj_occupation,
+    COALESCE(city.logements_maj_suivi, 0) AS city_logements_maj_suivi,
+    COALESCE(city.logements_maj_non_suivi, 0) AS city_logements_maj_non_suivi,
+    COALESCE(city.logements_maj_en_attente, 0) AS city_logements_maj_en_attente,
+    COALESCE(city.logements_maj_premier_contact, 0) AS city_logements_maj_premier_contact,
+    COALESCE(city.logements_maj_suivi_en_cours, 0) AS city_logements_maj_suivi_en_cours,
+    COALESCE(city.logements_maj_suivi_termine, 0) AS city_logements_maj_suivi_termine,
+    COALESCE(city.logements_maj_suivi_termine_sortis, 0) AS city_logements_maj_suivi_termine_sortis,
+    COALESCE(city.logements_maj_suivi_termine_fiabilises, 0) AS city_logements_maj_suivi_termine_fiabilises,
+    COALESCE(city.logements_maj_bloque, 0) AS city_logements_maj_bloque,
+    COALESCE(city.logements_maj_mails, 0) AS city_logements_maj_mails,
+    COALESCE(city.logements_maj_phone, 0) AS city_logements_maj_phone,
+    COALESCE(city.logements_maj_owners, 0) AS city_logements_maj_owners,
+    COALESCE(city.logements_maj_owners_address, 0) AS city_logements_maj_owners_address,
+    city.logements_maj_dpe AS city_logements_maj_dpe,
+    COALESCE(city.logements_maj_notes, 0) AS city_logements_maj_notes,
+    COALESCE(city.logements_maj_documents, 0) AS city_logements_maj_documents,
+    COALESCE(city.documents_importes, 0) AS city_documents_importes,
+    city.date_dernier_document_importe AS city_date_dernier_document_importe,
+    COALESCE(city.a_1_groupe_cree, FALSE) AS city_a_1_groupe_cree,
+    COALESCE(city.logements_exportes_via_groupes, 0) AS city_logements_exportes_via_groupes,
+    COALESCE(city.groupes_exportes, 0) AS city_groupes_exportes,
+    COALESCE(city.groupes_crees, 0) AS city_groupes_crees,
+    city.date_dernier_groupe_cree AS city_date_dernier_groupe_cree,
+    COALESCE(city.logements_contactes_via_campagnes, 0) AS city_logements_contactes_via_campagnes,
+    COALESCE(city.a_1_campagne_envoyee_et_1_maj_situation, FALSE) AS city_a_1_campagne_envoyee_et_1_maj_situation,
+    COALESCE(city.a_1_campagne_creee, FALSE) AS city_a_1_campagne_creee,
+    COALESCE(city.a_1_campagne_creee_30_jours, FALSE) AS city_a_1_campagne_creee_30_jours,
+    COALESCE(city.a_1_campagne_envoyee, FALSE) AS city_a_1_campagne_envoyee,
+    COALESCE(city.campagnes_envoyees, 0) AS city_campagnes_envoyees,
+    COALESCE(city.campagnes_exportees, 0) AS city_campagnes_exportees,
+    COALESCE(city.campagnes_creees, 0) AS city_campagnes_creees,
+    city.date_premiere_campagne_creee AS city_date_premiere_campagne_creee,
+    city.date_derniere_campagne_creee AS city_date_derniere_campagne_creee,
+    COALESCE(city.a_1_perimetre_importe, FALSE) AS city_a_1_perimetre_importe,
+    COALESCE(city.perimetres_importes, 0) AS city_perimetres_importes,
+    COALESCE(city.couches_perimetres_importes, 0) AS city_couches_perimetres_importes,
+    city.region AS city_region,
+    city.departement AS city_departement,
+    city.type_detaille AS city_type_detaille,
+    city.type_simple AS city_type_simple,
+    city.mails_utilisateurs AS city_mails_utilisateurs
 
 FROM housing_out ho
-LEFT JOIN housing_zlv hz ON ho.housing_id = hz.housing_id
-LEFT JOIN geo_code_to_epci epci ON ho.geo_code = epci.geo_code
-LEFT JOIN establishment_metrics em ON epci.establishment_id = em.establishment_id
+LEFT JOIN echelons ec ON CAST(ho.housing_id AS VARCHAR) = ec.housing_id
+LEFT JOIN establishment_metrics epci ON ec.epci_establishment_id = epci.establishment_id
+LEFT JOIN establishment_metrics city ON ec.city_establishment_id = city.establishment_id

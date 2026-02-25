@@ -266,6 +266,36 @@ geo_reference AS (
     JOIN {{ ref('marts_common_morphology') }} mcm ON el.geo_code = mcm.geo_code
     WHERE mcm.year = 2025
       AND mcm.region_label IS NOT NULL
+),
+
+communes_with_commune_establishment AS (
+    SELECT DISTINCT cel.geo_code
+    FROM {{ ref('int_production_establishments_localities') }} cel
+    JOIN {{ ref('marts_production_establishments') }} ce
+        ON CAST(cel.establishment_id AS VARCHAR) = ce.establishment_id
+    WHERE ce.kind = 'Commune'
+),
+
+echelons_inscrits AS (
+    SELECT
+        CAST(el.establishment_id AS VARCHAR) AS establishment_id,
+        COUNT(DISTINCT el.geo_code) AS total_communes_in_territory,
+        COUNT(DISTINCT cwce.geo_code) AS communes_inscrites,
+        CASE
+            WHEN COUNT(DISTINCT el.geo_code) > 0
+            THEN ROUND(
+                COUNT(DISTINCT cwce.geo_code)::FLOAT
+                / COUNT(DISTINCT el.geo_code) * 100, 0
+            )
+            ELSE NULL
+        END AS communes_inscrites_pct
+    FROM {{ ref('int_production_establishments_localities') }} el
+    JOIN {{ ref('marts_production_establishments') }} e
+        ON CAST(el.establishment_id AS VARCHAR) = e.establishment_id
+    LEFT JOIN communes_with_commune_establishment cwce
+        ON el.geo_code = cwce.geo_code
+    WHERE e.kind IN ('CA', 'CC', 'CU', 'ME')
+    GROUP BY el.establishment_id
 )
 
 SELECT
@@ -439,7 +469,19 @@ SELECT
         ELSE 0
     END AS pro_activity_level,
     eb.housing_rate_contacted_2024,
-    eb.housing_vacant_rate_contacted_2024
+    eb.housing_vacant_rate_contacted_2024,
+
+    -- =====================================================
+    -- ECHELONS INSCRITS
+    -- =====================================================
+    ei.communes_inscrites,
+    ei.communes_inscrites_pct,
+    CAST(NULL AS INTEGER) AS intercommunalites_inscrites,
+    CAST(NULL AS FLOAT) AS intercommunalites_inscrites_pct,
+    CAST(NULL AS INTEGER) AS departements_inscrits,
+    CAST(NULL AS FLOAT) AS departements_inscrits_pct,
+    CAST(NULL AS INTEGER) AS sded_inscrits,
+    CAST(NULL AS FLOAT) AS sded_inscrits_pct
 
 FROM establishment_base eb
 LEFT JOIN establishment_connexions ec ON eb.establishment_id = CAST(ec.establishment_id AS VARCHAR)
@@ -452,3 +494,4 @@ LEFT JOIN campaign_housing_stats chs ON eb.establishment_id = CAST(chs.establish
 LEFT JOIN group_housing_stats ghs ON eb.establishment_id = CAST(ghs.establishment_id AS VARCHAR)
 LEFT JOIN housing_park_counts hpc ON eb.establishment_id = CAST(hpc.establishment_id AS VARCHAR)
 LEFT JOIN geo_reference gr ON eb.establishment_id = CAST(gr.establishment_id AS VARCHAR)
+LEFT JOIN echelons_inscrits ei ON eb.establishment_id = ei.establishment_id

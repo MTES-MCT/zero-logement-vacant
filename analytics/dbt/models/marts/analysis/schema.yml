@@ -101,11 +101,9 @@ models:
 
   - name: marts_zlv_usage
     description: |
-      Table etablissement - Metriques d utilisation de ZLV par etablissement.
-      Grain: un enregistrement par etablissement (CC, CU, ME, CA, Commune, SIVOM, CTU).
-      Source principale: int_analysis_establishments_zlv_usage enrichi avec les Echelons inscrits.
-      Sections: Dimensions, Utilisateurs/Connexions, Logements MAJ Situation, Logements MAJ Enrichissement,
-      Documents, Groupes, Campagnes, Perimetres, Referents comparatifs, Prise de contact, Echelons inscrits.
+      Table Marts - Metriques d utilisation ZLV au niveau etablissement.
+      Champs strictement issus du spec fields_usage_establishments.csv.
+      Inclut les echelons inscrits (communes inscrites dans les EPCI, etc).
     columns:
       - name: establishment_id
         description: Identifiant unique de l etablissement
@@ -115,119 +113,69 @@ models:
       - name: nom
         description: Nom de l etablissement
       - name: ouvert
-        description: TRUE si l etablissement est ouvert et a au moins un utilisateur
-      - name: kind
-        description: Type d etablissement (CC, CU, ME, CA, Commune, SIVOM, CTU)
-      - name: type_simple
-        description: Type regroupe (Intercommunalite, Commune, Autre)
-      - name: type_detaille
-        description: Type detaille (Metropole, Communaute d Agglomeration, etc.)
+        description: TRUE si l etablissement est disponible et a au moins 1 utilisateur
       - name: communes_inscrites
-        description: Nombre de communes inscrites dans ZLV au sein du territoire de l intercommunalite (NULL pour communes)
+        description: Nombre de communes inscrites dans le territoire de l EPCI
       - name: communes_inscrites_pct
-        description: Pourcentage de communes inscrites dans ZLV sur total communes du territoire (NULL pour communes)
+        description: Pourcentage de communes inscrites dans le territoire de l EPCI
       - name: intercommunalites_inscrites
-        description: Nombre d intercommunalites inscrites (NULL pour collectivites locales - echelon departemental)
+        description: Nombre d intercommunalites inscrites dans le departement
+      - name: intercommunalites_inscrites_pct
+        description: Pourcentage d intercommunalites inscrites dans le departement
       - name: departements_inscrits
-        description: Nombre de departements inscrits (NULL pour collectivites locales - echelon regional)
+        description: Nombre de departements inscrits dans la region
+      - name: departements_inscrits_pct
+        description: Pourcentage de departements inscrits dans la region
       - name: sded_inscrits
-        description: Nombre de SDED inscrits (NULL pour collectivites locales - echelon regional)
+        description: Nombre de SDED inscrits dans la region
+      - name: sded_inscrits_pct
+        description: Pourcentage de SDED inscrits dans la region
 
   - name: marts_bi_housing_zlv_usage
     description: |
-      Table BI - Utilisation de l application ZLV et activite des etablissements au niveau logement.
-      Mapping: Housing geo_code -> EPCI/CA/CC/ME via int_production_establishments_localities.
-      Contient les metriques au niveau logement (contact, statuts, campagnes) ET les metriques
-      agregees au niveau etablissement (prefixe establishment_) jointes depuis marts_zlv_usage via mapping EPCI.
-      Question cle - L utilisation de ZLV est-elle un determinant de la sortie de vacance?
+      Table BI - Dual-echelon establishment features par logement.
+      Pour chaque logement, fournit les metriques de l etablissement EPCI (CA/CC/CU/ME)
+      et de l etablissement Commune correspondants.
+      Champs strictement issus du spec fields_usage_housing_establishments.csv.
+      Prefixes - epci_ pour l echelon intercommunal, city_ pour l echelon communal.
     columns:
       - name: housing_id
         description: Identifiant unique du logement
         tests:
           - not_null
           - unique
-      - name: was_contacted_by_zlv
-        description: TRUE si le logement a ete contacte par ZLV
-      - name: contact_intensity
-        description: Intensite de contact Non contacte, 1 contact, 2-3 contacts, 4+ contacts
-      - name: typologie_activation_simple
-        description: Typologie d activation de la CT
-      - name: activation_level
-        description: Niveau d activation 1-5
-      - name: kind_pro_activity_ntile
-        description: Categorie de pro-activite
-      - name: zlv_engagement_score
-        description: Score d engagement ZLV 0-10
-      - name: zlv_engagement_category
-        description: Categorie d engagement Aucun, Faible, Moyen, Fort
-      - name: establishment_nom
-        description: Nom de l etablissement
-      - name: establishment_ouvert
-        description: TRUE si l etablissement est ouvert et actif
-      - name: establishment_date_ouverture
-        description: Date de premiere activation
-      - name: establishment_annee_ouverture
-        description: Annee de premiere activation
-      - name: establishment_utilisateurs_inscrits
-        description: Nombre d utilisateurs inscrits
-      - name: establishment_connexions_30_jours
-        description: Nombre d utilisateurs actifs dans les 30 derniers jours (proxy)
-      - name: establishment_connexions_60_jours
-        description: Nombre d utilisateurs actifs dans les 60 derniers jours (proxy)
-      - name: establishment_connexions_90_jours
-        description: Nombre d utilisateurs actifs dans les 90 derniers jours (proxy)
-      - name: establishment_logements_maj_situation
-        description: Nombre de logements avec MAJ situation dans l etablissement
-      - name: establishment_logements_maj_occupation
-        description: Nombre de logements avec MAJ occupation dans l etablissement
-      - name: establishment_logements_maj_suivi
-        description: Nombre de logements avec MAJ suivi dans l etablissement
-      - name: establishment_logements_maj_enrichissement
-        description: Nombre de logements avec MAJ enrichissement dans l etablissement
-      - name: establishment_logements_maj_mails
-        description: Nombre de logements avec MAJ email proprietaire
-      - name: establishment_logements_maj_phone
-        description: Nombre de logements avec MAJ telephone proprietaire
-      - name: establishment_logements_maj_owners
-        description: Nombre de logements avec MAJ nom ou rang proprietaire
-      - name: establishment_logements_maj_owners_address
-        description: Nombre de logements avec MAJ adresse proprietaire
-      - name: establishment_logements_maj_notes
-        description: Nombre de logements avec notes utilisateur
-      - name: establishment_logements_maj_documents
-        description: Nombre de logements avec au moins 1 document
-      - name: establishment_documents_importes
-        description: Nombre total de documents importes
-      - name: establishment_logements_contactes_via_campagnes
-        description: Nombre de logements contactes via campagnes
-      - name: establishment_logements_exportes_via_groupes
-        description: Nombre de logements exportes via groupes
-      - name: establishment_campagnes_creees
-        description: Nombre total de campagnes creees
-      - name: establishment_campagnes_envoyees
-        description: Nombre total de campagnes envoyees
-      - name: establishment_groupes_crees
-        description: Nombre total de groupes crees
-      - name: establishment_perimetres_importes
-        description: Nombre total de perimetres importes
-      - name: establishment_region
-        description: Region de l etablissement
-      - name: establishment_departement
-        description: Departement de l etablissement
-      - name: establishment_type_detaille
-        description: Type detaille de l etablissement
-      - name: establishment_type_simple
-        description: Type simple de l etablissement
-      - name: establishment_mails_utilisateurs
-        description: Emails des utilisateurs de l etablissement
+      - name: epci_establishment_id
+        description: Identifiant de l etablissement EPCI
+      - name: epci_nom
+        description: Nom de l EPCI
+      - name: epci_ouvert
+        description: TRUE si l EPCI est ouvert et actif
+      - name: epci_communes_inscrites
+        description: Nombre de communes inscrites dans le territoire de l EPCI
+      - name: epci_communes_inscrites_pct
+        description: Pourcentage de communes inscrites dans le territoire de l EPCI
+      - name: city_establishment_id
+        description: Identifiant de l etablissement Commune
+      - name: city_nom
+        description: Nom de la Commune
+      - name: city_ouvert
+        description: TRUE si la Commune est ouverte et active
+      - name: city_connexions_30_jours
+        description: Nombre d utilisateurs actifs dans les 30 derniers jours (Commune uniquement)
+      - name: city_connexions_60_jours
+        description: Nombre d utilisateurs actifs dans les 60 derniers jours (Commune uniquement)
+      - name: city_connexions_90_jours
+        description: Nombre d utilisateurs actifs dans les 90 derniers jours (Commune uniquement)
 
   - name: marts_bi_housing_complete
     description: |
       Table BI complete - Jointure de toutes les dimensions pour l analyse des determinants.
       Table principale pour analyser les facteurs de sortie de vacance et mesurer l impact de ZLV.
-      Dimensions - Caracteristiques logement, contexte geographique, profil proprietaire, usage ZLV.
-      Features d interaction - owner_x_territory, housing_x_market, vacancy_x_energy, contact_x_activation.
-      Flags d analyse - is_favorable_for_exit, is_at_risk_long_vacancy, zlv_treatment_group.
+      Dimensions - Caracteristiques logement, contexte geographique, profil proprietaire.
+      Usage ZLV au niveau logement (contact, statuts, campagnes) depuis int_analysis_housing_zlv_usage.
+      Metriques etablissement dual-echelon (epci_ et city_) depuis marts_bi_housing_zlv_usage.
+      Features d interaction - owner_x_territory, housing_x_market, vacancy_x_energy.
+      Flags d analyse - is_favorable_for_exit, is_at_risk_long_vacancy.
     columns:
       - name: housing_id
         description: Identifiant unique du logement
@@ -240,19 +188,23 @@ models:
           - not_null
           - accepted_values:
               values: [0, 1]
+      - name: was_contacted_by_zlv
+        description: TRUE si le logement a ete contacte par ZLV
+      - name: contact_intensity
+        description: Intensite de contact Non contacte, 1 contact, 2-3 contacts, 4+ contacts
+      - name: epci_establishment_id
+        description: Identifiant de l etablissement EPCI couvrant le logement
+      - name: city_establishment_id
+        description: Identifiant de l etablissement Commune couvrant le logement
       - name: owner_x_territory
         description: Interaction proprietaire x territoire
       - name: housing_x_market
         description: Interaction logement x marche
       - name: vacancy_x_energy
         description: Interaction vacance x energie
-      - name: contact_x_activation
-        description: Interaction contact ZLV x activation CT
       - name: is_favorable_for_exit
         description: TRUE si conditions favorables a la sortie
       - name: is_at_risk_long_vacancy
         description: TRUE si risque de vacance longue
-      - name: zlv_treatment_group
-        description: Groupe de traitement pour analyse quasi-experimentale
       - name: total_count
         description: Toujours 1, utile pour les agregations BI

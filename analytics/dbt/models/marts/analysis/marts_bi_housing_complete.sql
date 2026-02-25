@@ -6,7 +6,9 @@ config (
 }}
 
 -- Marts BI: Complete denormalized table for comprehensive vacancy exit analysis
--- Joins all 4 modular tables with additional composite features
+-- Joins all modular tables with additional composite features
+-- Housing-level ZLV features from int_analysis_housing_zlv_usage
+-- Dual-echelon establishment features from marts_bi_housing_zlv_usage (EPCI + Commune)
 
 WITH characteristics AS (
     SELECT * FROM {{ ref('marts_bi_housing_characteristics') }}
@@ -22,6 +24,10 @@ owners AS (
 
 zlv_usage AS (
     SELECT * FROM {{ ref('marts_bi_housing_zlv_usage') }}
+),
+
+housing_zlv AS (
+    SELECT * FROM {{ ref('int_analysis_housing_zlv_usage') }}
 )
 
 SELECT
@@ -188,120 +194,210 @@ SELECT
     o.owner_contactable,
     
     -- =====================================================
-    -- ZLV USAGE
+    -- HOUSING-LEVEL ZLV USAGE (from int_analysis_housing_zlv_usage)
     -- =====================================================
-    z.establishment_id,
-    z.was_contacted_by_zlv,
-    z.contact_intensity,
-    z.first_contact_date,
-    z.last_contact_date,
-    z.days_since_first_contact,
-    z.days_since_last_contact,
-    z.contact_recency_category,
-    z.total_campaigns_received,
-    z.total_campaigns_sent,
-    z.has_received_campaign,
-    z.has_status_update,
-    z.has_occupancy_update,
-    z.has_any_update,
-    z.update_intensity,
-    z.establishment_name,
-    z.establishment_kind,
-    z.establishment_kind_label,
-    z.establishment_type_regroupe,
-    z.connecte_90_derniers_jours,
-    z.connecte_60_derniers_jours,
-    z.connecte_30_derniers_jours,
-    z.typologie_activation_simple,
-    z.typologie_activation_detaillee,
-    z.activation_level,
-    z.kind_pro_activity_quantile,
-    z.kind_pro_activity_ntile,
-    z.total_pro_activity_score,
-    z.pro_activity_level,
-    z.total_campaigns_sent_establishment,
-    z.housing_contacted_2024,
-    z.housing_contacted_2023,
-    z.housing_rate_contacted_2024,
-    z.establishment_user_count,
-    z.establishment_has_active_users,
-    z.zlv_engagement_score,
-    z.zlv_engagement_category,
+    COALESCE(hz.was_contacted_by_zlv, FALSE) AS was_contacted_by_zlv,
+    COALESCE(hz.contact_count, 0) AS contact_count,
+    COALESCE(hz.contact_intensity, 'Non contacte') AS contact_intensity,
+    hz.first_contact_date,
+    hz.last_contact_date,
+    hz.days_since_first_contact,
+    hz.days_since_last_contact,
+    COALESCE(hz.contact_recency_category, 'Jamais contacte') AS contact_recency_category,
+    hz.first_campaign_created,
+    hz.last_campaign_created,
+    hz.first_campaign_sent_date,
+    hz.last_campaign_sent_date,
+    COALESCE(hz.total_campaigns_validated, 0) AS total_campaigns_validated,
+    COALESCE(hz.total_campaigns_confirmed, 0) AS total_campaigns_confirmed,
+    COALESCE(hz.total_campaigns_received, 0) AS total_campaigns_received,
+    COALESCE(hz.total_campaigns_sent, 0) AS total_campaigns_sent,
+    COALESCE(hz.has_received_campaign, FALSE) AS has_received_campaign,
+    COALESCE(hz.total_groups, 0) AS total_groups,
+    hz.group_titles,
+    hz.first_group_created,
+    hz.last_group_created,
+    hz.first_group_exported,
+    hz.last_group_exported,
+    COALESCE(hz.is_in_group, FALSE) AS is_in_group,
+    COALESCE(hz.group_intensity, 'Aucun groupe') AS group_intensity,
+    COALESCE(hz.was_exported_from_group, FALSE) AS was_exported_from_group,
+    hz.last_event_status_followup,
+    hz.last_event_status_label_followup,
+    hz.last_event_date_followup,
+    hz.last_event_status_zlv_followup,
+    hz.last_event_status_label_zlv_followup,
+    hz.last_event_date_zlv_followup,
+    hz.last_event_status_user_followup,
+    hz.last_event_status_label_user_followup,
+    hz.last_event_date_user_followup,
+    hz.last_event_sub_status_label_user_followup,
+    COALESCE(hz.has_status_update, FALSE) AS has_status_update,
+    COALESCE(hz.has_user_followup_update, FALSE) AS has_user_followup_update,
+    COALESCE(hz.has_zlv_followup_update, FALSE) AS has_zlv_followup_update,
+    hz.last_event_status_occupancy,
+    hz.last_event_status_label_occupancy,
+    hz.last_event_date_occupancy,
+    hz.last_event_status_zlv_occupancy,
+    hz.last_event_status_label_zlv_occupancy,
+    hz.last_event_date_zlv_occupancy,
+    hz.last_event_status_user_occupancy,
+    hz.last_event_status_label_user_occupancy,
+    hz.last_event_date_user_occupancy,
+    hz.last_event_sub_status_label_user_occupancy,
+    COALESCE(hz.has_occupancy_update, FALSE) AS has_occupancy_update,
+    COALESCE(hz.has_user_occupancy_update, FALSE) AS has_user_occupancy_update,
+    COALESCE(hz.has_zlv_occupancy_update, FALSE) AS has_zlv_occupancy_update,
+    COALESCE(hz.has_any_update, FALSE) AS has_any_update,
+    COALESCE(hz.update_intensity, 'Aucune MAJ') AS update_intensity,
+    hz.days_since_last_followup_update,
+    hz.days_since_last_occupancy_update,
+    COALESCE(hz.is_on_user_territory, FALSE) AS is_on_user_territory,
 
     -- =====================================================
-    -- ESTABLISHMENT AGGREGATED METRICS
+    -- EPCI ESTABLISHMENT (from dual-echelon marts_bi_housing_zlv_usage)
     -- =====================================================
-    z.establishment_nom,
-    z.establishment_ouvert,
-    z.establishment_date_ouverture,
-    z.establishment_annee_ouverture,
-    z.establishment_utilisateurs_inscrits,
-    z.establishment_date_derniere_connexion,
-    z.establishment_connecte_30_jours,
-    z.establishment_connecte_60_jours,
-    z.establishment_connecte_90_jours,
-    z.establishment_connexions_30_jours,
-    z.establishment_connexions_60_jours,
-    z.establishment_connexions_90_jours,
-    z.establishment_a_1_logement_maj_situation,
-    z.establishment_a_1_logement_maj_occupation,
-    z.establishment_a_1_logement_maj_suivi,
-    z.establishment_logements_maj_situation,
-    z.establishment_logements_maj_occupation,
-    z.establishment_logements_maj_suivi,
-    z.establishment_logements_maj_non_suivi,
-    z.establishment_logements_maj_en_attente,
-    z.establishment_logements_maj_premier_contact,
-    z.establishment_logements_maj_suivi_en_cours,
-    z.establishment_logements_maj_suivi_termine,
-    z.establishment_logements_maj_suivi_termine_sortis,
-    z.establishment_logements_maj_suivi_termine_fiabilises,
-    z.establishment_logements_maj_bloque,
-    z.establishment_date_premiere_maj_situation,
-    z.establishment_date_derniere_maj_situation,
-    z.establishment_logements_maj_situation_pct_parc_vacant_25,
-    z.establishment_logements_maj_situation_pct_parc_locatif_24,
-    z.establishment_a_1_logement_maj_enrichissement,
-    z.establishment_logements_maj_enrichissement,
-    z.establishment_logements_maj_mails,
-    z.establishment_logements_maj_phone,
-    z.establishment_logements_maj_owners,
-    z.establishment_logements_maj_owners_address,
-    z.establishment_logements_maj_dpe,
-    z.establishment_logements_maj_notes,
-    z.establishment_logements_maj_documents,
-    z.establishment_date_premiere_maj_enrichissement,
-    z.establishment_date_derniere_maj_enrichissement,
-    z.establishment_documents_importes,
-    z.establishment_date_dernier_document_importe,
-    z.establishment_a_1_groupe_cree,
-    z.establishment_logements_exportes_via_groupes,
-    z.establishment_groupes_exportes,
-    z.establishment_groupes_crees,
-    z.establishment_date_dernier_groupe_cree,
-    z.establishment_logements_contactes_via_campagnes,
-    z.establishment_a_1_campagne_envoyee_et_1_maj_situation,
-    z.establishment_a_1_campagne_creee,
-    z.establishment_a_1_campagne_creee_30_jours,
-    z.establishment_a_1_campagne_envoyee,
-    z.establishment_campagnes_envoyees,
-    z.establishment_campagnes_exportees,
-    z.establishment_campagnes_creees,
-    z.establishment_date_premiere_campagne_creee,
-    z.establishment_date_derniere_campagne_creee,
-    z.establishment_a_1_perimetre_importe,
-    z.establishment_perimetres_importes,
-    z.establishment_couches_perimetres_importes,
-    z.establishment_region,
-    z.establishment_departement,
-    z.establishment_type_detaille,
-    z.establishment_type_simple,
-    z.establishment_mails_utilisateurs,
+    z.epci_establishment_id,
+    z.epci_nom,
+    z.epci_ouvert,
+    z.epci_date_ouverture,
+    z.epci_annee_ouverture,
+    z.epci_utilisateurs_inscrits,
+    z.epci_date_derniere_connexion,
+    z.epci_connecte_30_jours,
+    z.epci_connecte_60_jours,
+    z.epci_connecte_90_jours,
+    z.epci_a_1_logement_maj_situation,
+    z.epci_a_1_logement_maj_occupation,
+    z.epci_a_1_logement_maj_suivi,
+    z.epci_a_1_logement_maj_enrichissement,
+    z.epci_logements_maj_situation,
+    z.epci_logements_maj_enrichissement,
+    z.epci_date_premiere_maj_situation,
+    z.epci_date_premiere_maj_enrichissement,
+    z.epci_date_derniere_maj_situation,
+    z.epci_date_derniere_maj_enrichissement,
+    z.epci_logements_maj_situation_pct_parc_vacant_25,
+    z.epci_logements_maj_situation_pct_parc_locatif_24,
+    z.epci_logements_maj_occupation,
+    z.epci_logements_maj_suivi,
+    z.epci_logements_maj_non_suivi,
+    z.epci_logements_maj_en_attente,
+    z.epci_logements_maj_premier_contact,
+    z.epci_logements_maj_suivi_en_cours,
+    z.epci_logements_maj_suivi_termine,
+    z.epci_logements_maj_suivi_termine_sortis,
+    z.epci_logements_maj_suivi_termine_fiabilises,
+    z.epci_logements_maj_bloque,
+    z.epci_logements_maj_mails,
+    z.epci_logements_maj_phone,
+    z.epci_logements_maj_owners,
+    z.epci_logements_maj_owners_address,
+    z.epci_logements_maj_dpe,
+    z.epci_logements_maj_notes,
+    z.epci_logements_maj_documents,
+    z.epci_documents_importes,
+    z.epci_date_dernier_document_importe,
+    z.epci_a_1_groupe_cree,
+    z.epci_logements_exportes_via_groupes,
+    z.epci_groupes_exportes,
+    z.epci_groupes_crees,
+    z.epci_date_dernier_groupe_cree,
+    z.epci_logements_contactes_via_campagnes,
+    z.epci_a_1_campagne_envoyee_et_1_maj_situation,
+    z.epci_a_1_campagne_creee,
+    z.epci_a_1_campagne_creee_30_jours,
+    z.epci_a_1_campagne_envoyee,
+    z.epci_campagnes_envoyees,
+    z.epci_campagnes_exportees,
+    z.epci_campagnes_creees,
+    z.epci_date_premiere_campagne_creee,
+    z.epci_date_derniere_campagne_creee,
+    z.epci_a_1_perimetre_importe,
+    z.epci_perimetres_importes,
+    z.epci_couches_perimetres_importes,
+    z.epci_region,
+    z.epci_departement,
+    z.epci_type_detaille,
+    z.epci_type_simple,
+    z.epci_mails_utilisateurs,
+    z.epci_communes_inscrites,
+    z.epci_communes_inscrites_pct,
+
+    -- =====================================================
+    -- COMMUNE ESTABLISHMENT (from dual-echelon marts_bi_housing_zlv_usage)
+    -- =====================================================
+    z.city_establishment_id,
+    z.city_nom,
+    z.city_ouvert,
+    z.city_date_ouverture,
+    z.city_annee_ouverture,
+    z.city_utilisateurs_inscrits,
+    z.city_date_derniere_connexion,
+    z.city_connecte_30_jours,
+    z.city_connecte_60_jours,
+    z.city_connecte_90_jours,
+    z.city_connexions_30_jours,
+    z.city_connexions_60_jours,
+    z.city_connexions_90_jours,
+    z.city_a_1_logement_maj_situation,
+    z.city_a_1_logement_maj_occupation,
+    z.city_a_1_logement_maj_suivi,
+    z.city_a_1_logement_maj_enrichissement,
+    z.city_logements_maj_situation,
+    z.city_logements_maj_enrichissement,
+    z.city_date_premiere_maj_situation,
+    z.city_date_premiere_maj_enrichissement,
+    z.city_date_derniere_maj_situation,
+    z.city_date_derniere_maj_enrichissement,
+    z.city_logements_maj_situation_pct_parc_vacant_25,
+    z.city_logements_maj_situation_pct_parc_locatif_24,
+    z.city_logements_maj_occupation,
+    z.city_logements_maj_suivi,
+    z.city_logements_maj_non_suivi,
+    z.city_logements_maj_en_attente,
+    z.city_logements_maj_premier_contact,
+    z.city_logements_maj_suivi_en_cours,
+    z.city_logements_maj_suivi_termine,
+    z.city_logements_maj_suivi_termine_sortis,
+    z.city_logements_maj_suivi_termine_fiabilises,
+    z.city_logements_maj_bloque,
+    z.city_logements_maj_mails,
+    z.city_logements_maj_phone,
+    z.city_logements_maj_owners,
+    z.city_logements_maj_owners_address,
+    z.city_logements_maj_dpe,
+    z.city_logements_maj_notes,
+    z.city_logements_maj_documents,
+    z.city_documents_importes,
+    z.city_date_dernier_document_importe,
+    z.city_a_1_groupe_cree,
+    z.city_logements_exportes_via_groupes,
+    z.city_groupes_exportes,
+    z.city_groupes_crees,
+    z.city_date_dernier_groupe_cree,
+    z.city_logements_contactes_via_campagnes,
+    z.city_a_1_campagne_envoyee_et_1_maj_situation,
+    z.city_a_1_campagne_creee,
+    z.city_a_1_campagne_creee_30_jours,
+    z.city_a_1_campagne_envoyee,
+    z.city_campagnes_envoyees,
+    z.city_campagnes_exportees,
+    z.city_campagnes_creees,
+    z.city_date_premiere_campagne_creee,
+    z.city_date_derniere_campagne_creee,
+    z.city_a_1_perimetre_importe,
+    z.city_perimetres_importes,
+    z.city_couches_perimetres_importes,
+    z.city_region,
+    z.city_departement,
+    z.city_type_detaille,
+    z.city_type_simple,
+    z.city_mails_utilisateurs,
 
     -- =====================================================
     -- CROSS-DIMENSION INTERACTIONS
     -- =====================================================
-    -- Owner x Territory
     CASE 
         WHEN o.owner_is_local AND g.zonage_category = 'Zone tendue' THEN 'Local + Zone tendue'
         WHEN o.owner_is_local AND g.zonage_category = 'Zone detendue' THEN 'Local + Zone detendue'
@@ -312,7 +408,6 @@ SELECT
         ELSE 'Autre'
     END AS owner_x_territory,
     
-    -- Housing x Market
     CASE 
         WHEN c.housing_kind = 'maison' AND g.dvg_marche_dynamisme IN ('Tres dynamique', 'Dynamique') THEN 'Maison + Marche dynamique'
         WHEN c.housing_kind = 'maison' AND g.dvg_marche_dynamisme IN ('Peu dynamique', 'Atone') THEN 'Maison + Marche atone'
@@ -321,7 +416,6 @@ SELECT
         ELSE 'Autre'
     END AS housing_x_market,
     
-    -- Vacancy x Energy
     CASE 
         WHEN c.vacancy_duration_category = 'Plus de 10 ans' AND c.is_energy_sieve THEN 'Longue duree + Passoire'
         WHEN c.vacancy_duration_category IN ('6-10 ans', 'Plus de 10 ans') AND c.is_energy_sieve THEN 'Moyenne-longue duree + Passoire'
@@ -329,57 +423,29 @@ SELECT
         WHEN c.vacancy_duration_category IN ('0-2 ans', '3-5 ans') AND NOT c.is_energy_sieve THEN 'Courte-moyenne duree + Performant'
         ELSE 'Autre'
     END AS vacancy_x_energy,
-    
-    -- Contact x Activation
-    CASE 
-        WHEN z.was_contacted_by_zlv AND z.typologie_activation_simple LIKE '(4)%' THEN 'Contacte + CT activee'
-        WHEN z.was_contacted_by_zlv AND z.typologie_activation_simple LIKE '(3)%' THEN 'Contacte + CT en campagne'
-        WHEN NOT z.was_contacted_by_zlv AND z.typologie_activation_simple LIKE '(4)%' THEN 'Non contacte + CT activee'
-        WHEN NOT z.was_contacted_by_zlv AND z.typologie_activation_simple LIKE '(1)%' THEN 'Non contacte + CT inactive'
-        ELSE 'Autre'
-    END AS contact_x_activation,
-    
+
     -- =====================================================
     -- ANALYSIS-READY FLAGS
     -- =====================================================
-    -- Favorable for exit: combination of positive factors
     CASE 
         WHEN (
-            -- Good market conditions
             (g.dvg_marche_dynamisme IN ('Tres dynamique', 'Dynamique') OR g.zonage_category = 'Zone tendue')
-            -- Local owner
             AND o.owner_is_local
-            -- Short vacancy
             AND c.vacancy_duration_category IN ('0-2 ans', '3-5 ans')
-            -- Good energy
             AND NOT c.is_energy_sieve
         ) THEN TRUE
         ELSE FALSE
     END AS is_favorable_for_exit,
     
-    -- At risk for long vacancy: combination of negative factors
     CASE 
         WHEN (
-            -- Bad market conditions
             (g.dvg_marche_dynamisme IN ('Peu dynamique', 'Atone') AND g.is_population_declining)
-            -- Distant owner OR company
             AND (o.owner_is_distant OR NOT o.owner_is_individual)
-            -- Long vacancy
             AND c.vacancy_duration_category IN ('6-10 ans', 'Plus de 10 ans')
-            -- Energy sieve
             AND c.is_energy_sieve
         ) THEN TRUE
         ELSE FALSE
     END AS is_at_risk_long_vacancy,
-    
-    -- ZLV treatment flag (for quasi-experimental analysis)
-    CASE 
-        WHEN z.was_contacted_by_zlv AND z.activation_level >= 3 THEN 'Traitement fort'
-        WHEN z.was_contacted_by_zlv AND z.activation_level < 3 THEN 'Traitement faible'
-        WHEN NOT z.was_contacted_by_zlv AND z.activation_level >= 3 THEN 'Non traite - CT active'
-        WHEN NOT z.was_contacted_by_zlv AND z.activation_level < 3 THEN 'Non traite - CT inactive'
-        ELSE 'Indetermine'
-    END AS zlv_treatment_group,
     
     -- =====================================================
     -- ROW COUNT FOR AGGREGATION
@@ -390,3 +456,4 @@ FROM characteristics c
 LEFT JOIN geography g ON c.housing_id = g.housing_id
 LEFT JOIN owners o ON c.housing_id = o.housing_id
 LEFT JOIN zlv_usage z ON c.housing_id = z.housing_id
+LEFT JOIN housing_zlv hz ON c.housing_id = CAST(hz.housing_id AS VARCHAR)

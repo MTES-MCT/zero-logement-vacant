@@ -99,11 +99,46 @@ models:
       - name: owner_contactable
         description: TRUE si email ou telephone disponible
 
+  - name: marts_zlv_usage
+    description: |
+      Table etablissement - Metriques d utilisation de ZLV par etablissement.
+      Grain: un enregistrement par etablissement (CC, CU, ME, CA, Commune, SIVOM, CTU).
+      Source principale: int_analysis_establishments_zlv_usage enrichi avec les Echelons inscrits.
+      Sections: Dimensions, Utilisateurs/Connexions, Logements MAJ Situation, Logements MAJ Enrichissement,
+      Documents, Groupes, Campagnes, Perimetres, Referents comparatifs, Prise de contact, Echelons inscrits.
+    columns:
+      - name: establishment_id
+        description: Identifiant unique de l etablissement
+        tests:
+          - not_null
+          - unique
+      - name: nom
+        description: Nom de l etablissement
+      - name: ouvert
+        description: TRUE si l etablissement est ouvert et a au moins un utilisateur
+      - name: kind
+        description: Type d etablissement (CC, CU, ME, CA, Commune, SIVOM, CTU)
+      - name: type_simple
+        description: Type regroupe (Intercommunalite, Commune, Autre)
+      - name: type_detaille
+        description: Type detaille (Metropole, Communaute d Agglomeration, etc.)
+      - name: communes_inscrites
+        description: Nombre de communes inscrites dans ZLV au sein du territoire de l intercommunalite (NULL pour communes)
+      - name: communes_inscrites_pct
+        description: Pourcentage de communes inscrites dans ZLV sur total communes du territoire (NULL pour communes)
+      - name: intercommunalites_inscrites
+        description: Nombre d intercommunalites inscrites (NULL pour collectivites locales - echelon departemental)
+      - name: departements_inscrits
+        description: Nombre de departements inscrits (NULL pour collectivites locales - echelon regional)
+      - name: sded_inscrits
+        description: Nombre de SDED inscrits (NULL pour collectivites locales - echelon regional)
+
   - name: marts_bi_housing_zlv_usage
     description: |
-      Table BI - Utilisation de l application ZLV et activite des etablissements.
+      Table BI - Utilisation de l application ZLV et activite des etablissements au niveau logement.
+      Mapping: Housing geo_code -> EPCI/CA/CC/ME via int_production_establishments_localities.
       Contient les metriques au niveau logement (contact, statuts, campagnes) ET les metriques
-      agregees au niveau etablissement (prefixe establishment_) jointes depuis int_analysis_establishments_zlv_usage.
+      agregees au niveau etablissement (prefixe establishment_) jointes depuis marts_zlv_usage via mapping EPCI.
       Question cle - L utilisation de ZLV est-elle un determinant de la sortie de vacance?
     columns:
       - name: housing_id

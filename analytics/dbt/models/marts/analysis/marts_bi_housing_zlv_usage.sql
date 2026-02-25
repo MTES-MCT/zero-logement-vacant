@@ -5,14 +5,13 @@ config (
 )
 }}
 
--- Marts BI: ZLV application usage and establishment activity
--- Contains ZLV engagement metrics for vacancy exit analysis
--- Includes housing-level contact/status data + establishment-level aggregated metrics
--- FILTER: Only includes housing with LOCAL collectivities (CC, CU, ME, CA, Commune)
--- Excludes departmental/regional establishments (SDED, SDER, DEP, REG) that cover entire territories
+-- Marts BI: ZLV application usage and establishment activity at housing level
+-- Contains housing-level contact/status data + establishment-level metrics from EPCI mapping
+-- MAPPING: Housing geo_code -> EPCI/CA/CC/ME establishment via int_production_establishments_localities
+-- Establishment metrics sourced from marts_zlv_usage
 
 WITH housing_out AS (
-    SELECT 
+    SELECT
         housing_id,
         geo_code
     FROM {{ ref('int_analysis_housing_with_out_flag') }}
@@ -20,11 +19,21 @@ WITH housing_out AS (
 
 housing_zlv AS (
     SELECT * FROM {{ ref('int_analysis_housing_zlv_usage') }}
-    WHERE establishment_kind IS NOT NULL
+),
+
+-- Map geo_code to EPCI/CA/CC/ME establishment (one per commune)
+geo_code_to_epci AS (
+    SELECT
+        el.geo_code,
+        CAST(el.establishment_id AS VARCHAR) AS establishment_id
+    FROM {{ ref('int_production_establishments_localities') }} el
+    JOIN {{ ref('int_production_establishments') }} est ON el.establishment_id = est.id
+    WHERE est.kind IN ('CC', 'CU', 'ME', 'CA')
+    QUALIFY ROW_NUMBER() OVER (PARTITION BY el.geo_code ORDER BY est.kind) = 1
 ),
 
 establishment_metrics AS (
-    SELECT * FROM {{ ref('int_analysis_establishments_zlv_usage') }}
+    SELECT * FROM {{ ref('marts_zlv_usage') }}
 )
 
 SELECT
@@ -32,9 +41,9 @@ SELECT
     -- IDENTIFIERS
     -- =====================================================
     CAST(ho.housing_id AS VARCHAR) AS housing_id,
-    hz.establishment_id,
+    epci.establishment_id,
     COALESCE(hz.establishment_count, 0) AS establishment_count,
-    
+
     -- =====================================================
     -- HOUSING CONTACT STATUS
     -- =====================================================
@@ -46,7 +55,7 @@ SELECT
     hz.days_since_first_contact,
     hz.days_since_last_contact,
     COALESCE(hz.contact_recency_category, 'Jamais contacte') AS contact_recency_category,
-    
+
     -- =====================================================
     -- CAMPAIGN DETAILS
     -- =====================================================
@@ -59,7 +68,7 @@ SELECT
     COALESCE(hz.total_campaigns_received, 0) AS total_campaigns_received,
     COALESCE(hz.total_campaigns_sent, 0) AS total_campaigns_sent,
     COALESCE(hz.has_received_campaign, FALSE) AS has_received_campaign,
-    
+
     -- =====================================================
     -- GROUP DETAILS
     -- =====================================================
@@ -72,7 +81,7 @@ SELECT
     COALESCE(hz.is_in_group, FALSE) AS is_in_group,
     COALESCE(hz.group_intensity, 'Aucun groupe') AS group_intensity,
     COALESCE(hz.was_exported_from_group, FALSE) AS was_exported_from_group,
-    
+
     -- =====================================================
     -- STATUS UPDATES - FOLLOWUP (SUIVI)
     -- =====================================================
@@ -89,7 +98,7 @@ SELECT
     COALESCE(hz.has_status_update, FALSE) AS has_status_update,
     COALESCE(hz.has_user_followup_update, FALSE) AS has_user_followup_update,
     COALESCE(hz.has_zlv_followup_update, FALSE) AS has_zlv_followup_update,
-    
+
     -- =====================================================
     -- STATUS UPDATES - OCCUPANCY
     -- =====================================================
@@ -106,7 +115,7 @@ SELECT
     COALESCE(hz.has_occupancy_update, FALSE) AS has_occupancy_update,
     COALESCE(hz.has_user_occupancy_update, FALSE) AS has_user_occupancy_update,
     COALESCE(hz.has_zlv_occupancy_update, FALSE) AS has_zlv_occupancy_update,
-    
+
     -- =====================================================
     -- COMBINED STATUS UPDATE INDICATORS
     -- =====================================================
@@ -114,64 +123,130 @@ SELECT
     COALESCE(hz.update_intensity, 'Aucune MAJ') AS update_intensity,
     hz.days_since_last_followup_update,
     hz.days_since_last_occupancy_update,
-    
+
     -- =====================================================
     -- USER TERRITORY COVERAGE
     -- =====================================================
     COALESCE(hz.is_on_user_territory, FALSE) AS is_on_user_territory,
-    
-    -- =====================================================
-    -- ESTABLISHMENT INFO
-    -- =====================================================
-    hz.establishment_name,
-    hz.establishment_kind,
-    hz.establishment_kind_label,
-    hz.establishment_type_regroupe,
-    
-    -- =====================================================
-    -- ESTABLISHMENT ACTIVATION
-    -- =====================================================
-    hz.connecte_90_derniers_jours,
-    hz.connecte_60_derniers_jours,
-    hz.connecte_30_derniers_jours,
-    hz.a_depose_1_perimetre,
-    hz.a_cree_1_groupe,
-    hz.a_cree_1_campagne,
-    hz.a_envoye_1_campagne,
-    hz.a_fait_1_maj_suivi,
-    hz.a_fait_1_maj_occupation,
-    hz.a_fait_1_maj,
-    hz.a_fait_1_campagne_ET_1_maj,
-    hz.typologie_activation_simple,
-    hz.typologie_activation_detaillee,
-    COALESCE(hz.activation_level, 0) AS activation_level,
-    
-    -- =====================================================
-    -- ESTABLISHMENT PRO-ACTIVITY
-    -- =====================================================
-    hz.kind_pro_activity_quantile,
-    hz.kind_pro_activity_ntile,
-    COALESCE(hz.total_pro_activity_score, 0) AS total_pro_activity_score,
-    COALESCE(hz.pro_activity_level, 0) AS pro_activity_level,
-    
-    -- =====================================================
-    -- ESTABLISHMENT METRICS
-    -- =====================================================
-    COALESCE(hz.total_campaigns_sent_establishment, 0) AS total_campaigns_sent_establishment,
-    COALESCE(hz.housing_contacted_2024, 0) AS housing_contacted_2024,
-    COALESCE(hz.housing_contacted_2023, 0) AS housing_contacted_2023,
-    hz.housing_rate_contacted_2024,
-    COALESCE(hz.establishment_user_count, 0) AS establishment_user_count,
-    COALESCE(hz.establishment_has_active_users, FALSE) AS establishment_has_active_users,
-    
-    -- =====================================================
-    -- COMPOSITE ZLV ENGAGEMENT
-    -- =====================================================
-    COALESCE(hz.zlv_engagement_score, 0) AS zlv_engagement_score,
-    COALESCE(hz.zlv_engagement_category, 'Aucun engagement') AS zlv_engagement_category,
 
     -- =====================================================
-    -- ESTABLISHMENT DIMENSIONS (from int_analysis_establishments_zlv_usage)
+    -- ESTABLISHMENT INFO (from EPCI -> marts_zlv_usage)
+    -- =====================================================
+    em.nom AS establishment_name,
+    em.kind AS establishment_kind,
+    em.establishment_kind_label,
+    em.type_simple AS establishment_type_regroupe,
+
+    -- =====================================================
+    -- ESTABLISHMENT ACTIVATION (from EPCI)
+    -- =====================================================
+    em.connecte_90_derniers_jours,
+    em.connecte_60_derniers_jours,
+    em.connecte_30_derniers_jours,
+    em.a_depose_1_perimetre,
+    em.a_cree_1_groupe,
+    em.a_cree_1_campagne,
+    em.a_envoye_1_campagne,
+    em.a_fait_1_maj_suivi,
+    em.a_fait_1_maj_occupation,
+    em.a_fait_1_maj,
+    em.a_fait_1_campagne_ET_1_maj,
+    em.typologie_activation_simple,
+    em.typologie_activation_detaillee,
+    COALESCE(em.activation_level, 0) AS activation_level,
+
+    -- =====================================================
+    -- ESTABLISHMENT PRO-ACTIVITY (from EPCI)
+    -- =====================================================
+    em.kind_pro_activity_quantile,
+    em.kind_pro_activity_ntile,
+    COALESCE(em.total_pro_activity_score, 0) AS total_pro_activity_score,
+    COALESCE(em.pro_activity_level, 0) AS pro_activity_level,
+
+    -- =====================================================
+    -- ESTABLISHMENT METRICS (from EPCI)
+    -- =====================================================
+    COALESCE(em.campagnes_envoyees, 0) AS total_campaigns_sent_establishment,
+    COALESCE(em.contacted_housing_2024, 0) AS housing_contacted_2024,
+    COALESCE(em.contacted_housing_2023, 0) AS housing_contacted_2023,
+    em.housing_rate_contacted_2024,
+    COALESCE(em.establishment_user_count, 0) AS establishment_user_count,
+    CASE WHEN COALESCE(em.establishment_user_count, 0) > 0 THEN TRUE ELSE FALSE END AS establishment_has_active_users,
+
+    -- =====================================================
+    -- COMPOSITE ZLV ENGAGEMENT (recomputed with EPCI data)
+    -- =====================================================
+    (
+        CASE WHEN COALESCE(hz.total_campaigns_sent, 0) > 0 THEN 3 ELSE 0 END +
+        CASE WHEN COALESCE(hz.total_groups, 0) > 0 THEN 1 ELSE 0 END +
+        CASE
+            WHEN em.typologie_activation_simple LIKE '(4)%' OR em.typologie_activation_simple LIKE '(5)%' THEN 3
+            WHEN em.typologie_activation_simple LIKE '(3)%' THEN 2
+            WHEN em.typologie_activation_simple LIKE '(2)%' THEN 1
+            ELSE 0
+        END +
+        CASE
+            WHEN em.kind_pro_activity_ntile = 'Très pro-actif' THEN 3
+            WHEN em.kind_pro_activity_ntile = 'Pro-actif' THEN 2
+            WHEN em.kind_pro_activity_ntile = 'Peu pro-actif' THEN 1
+            ELSE 0
+        END
+    ) AS zlv_engagement_score,
+
+    CASE
+        WHEN (
+            CASE WHEN COALESCE(hz.total_campaigns_sent, 0) > 0 THEN 3 ELSE 0 END +
+            CASE WHEN COALESCE(hz.total_groups, 0) > 0 THEN 1 ELSE 0 END +
+            CASE
+                WHEN em.typologie_activation_simple LIKE '(4)%' OR em.typologie_activation_simple LIKE '(5)%' THEN 3
+                WHEN em.typologie_activation_simple LIKE '(3)%' THEN 2
+                WHEN em.typologie_activation_simple LIKE '(2)%' THEN 1
+                ELSE 0
+            END +
+            CASE
+                WHEN em.kind_pro_activity_ntile = 'Très pro-actif' THEN 3
+                WHEN em.kind_pro_activity_ntile = 'Pro-actif' THEN 2
+                WHEN em.kind_pro_activity_ntile = 'Peu pro-actif' THEN 1
+                ELSE 0
+            END
+        ) = 0 THEN 'Aucun engagement'
+        WHEN (
+            CASE WHEN COALESCE(hz.total_campaigns_sent, 0) > 0 THEN 3 ELSE 0 END +
+            CASE WHEN COALESCE(hz.total_groups, 0) > 0 THEN 1 ELSE 0 END +
+            CASE
+                WHEN em.typologie_activation_simple LIKE '(4)%' OR em.typologie_activation_simple LIKE '(5)%' THEN 3
+                WHEN em.typologie_activation_simple LIKE '(3)%' THEN 2
+                WHEN em.typologie_activation_simple LIKE '(2)%' THEN 1
+                ELSE 0
+            END +
+            CASE
+                WHEN em.kind_pro_activity_ntile = 'Très pro-actif' THEN 3
+                WHEN em.kind_pro_activity_ntile = 'Pro-actif' THEN 2
+                WHEN em.kind_pro_activity_ntile = 'Peu pro-actif' THEN 1
+                ELSE 0
+            END
+        ) <= 3 THEN 'Engagement faible'
+        WHEN (
+            CASE WHEN COALESCE(hz.total_campaigns_sent, 0) > 0 THEN 3 ELSE 0 END +
+            CASE WHEN COALESCE(hz.total_groups, 0) > 0 THEN 1 ELSE 0 END +
+            CASE
+                WHEN em.typologie_activation_simple LIKE '(4)%' OR em.typologie_activation_simple LIKE '(5)%' THEN 3
+                WHEN em.typologie_activation_simple LIKE '(3)%' THEN 2
+                WHEN em.typologie_activation_simple LIKE '(2)%' THEN 1
+                ELSE 0
+            END +
+            CASE
+                WHEN em.kind_pro_activity_ntile = 'Très pro-actif' THEN 3
+                WHEN em.kind_pro_activity_ntile = 'Pro-actif' THEN 2
+                WHEN em.kind_pro_activity_ntile = 'Peu pro-actif' THEN 1
+                ELSE 0
+            END
+        ) <= 6 THEN 'Engagement moyen'
+        ELSE 'Engagement fort'
+    END AS zlv_engagement_category,
+
+    -- =====================================================
+    -- ESTABLISHMENT DIMENSIONS (from marts_zlv_usage)
     -- =====================================================
     em.nom AS establishment_nom,
     COALESCE(em.ouvert, FALSE) AS establishment_ouvert,
@@ -278,4 +353,5 @@ SELECT
 
 FROM housing_out ho
 LEFT JOIN housing_zlv hz ON ho.housing_id = hz.housing_id
-LEFT JOIN establishment_metrics em ON hz.establishment_id = em.establishment_id
+LEFT JOIN geo_code_to_epci epci ON ho.geo_code = epci.geo_code
+LEFT JOIN establishment_metrics em ON epci.establishment_id = em.establishment_id

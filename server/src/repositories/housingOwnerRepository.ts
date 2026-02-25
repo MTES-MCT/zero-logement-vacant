@@ -41,20 +41,11 @@ async function findByOwner(
         owner_id: owner.id
       })
       .modify((query) => {
-        // Filter by geoCodes (user perimeter filtering)
-        // Note: geoCodes is an array when a restriction applies
-        //   - non-empty array: filter to housings in these geoCodes
-        //   - empty array: user should see NO housings (intersection with perimeter is empty)
-        if (options?.geoCodes !== undefined) {
-          if (options.geoCodes.length === 0) {
-            // Empty geoCodes means no access - return no results
-            query.whereRaw('1 = 0');
-          } else {
-            query.whereIn(
-              `${housingOwnersTable}.housing_geo_code`,
-              options.geoCodes as string[]
-            );
-          }
+        if (options?.geoCodes?.length) {
+          query.whereIn(
+            `${housingOwnersTable}.housing_geo_code`,
+            options.geoCodes
+          );
         }
       })
       .join(housingTable, (join) => {

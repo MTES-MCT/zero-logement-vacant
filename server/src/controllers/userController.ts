@@ -25,12 +25,7 @@ import { SALT_LENGTH, toUserDTO, UserApi } from '~/models/UserApi';
 import establishmentRepository from '~/repositories/establishmentRepository';
 import prospectRepository from '~/repositories/prospectRepository';
 import userRepository from '~/repositories/userRepository';
-import ceremaService from '~/services/ceremaService';
 import { isTestAccount } from '~/services/ceremaService/consultUserService';
-import {
-  verifyAccessRights,
-  accessErrorsToSuspensionCause
-} from '~/services/ceremaService/perimeterService';
 import { fetchUserKind } from '~/services/ceremaService/userKindService';
 import mailService from '~/services/mailService';
 
@@ -112,53 +107,6 @@ async function create(request: Request, response: Response) {
     throw new EstablishmentMissingError(body.establishmentId);
   }
 
-  // Re-verify Portail DF rights at account creation time
-  // The prospect may have been created some time ago and rights may have changed
-  const ceremaUsers = await ceremaService.consultUsers(body.email);
-
-  // Find the user entry matching this establishment
-  // Note: '*' is a wildcard SIREN used in mock service for tests
-  const matchingCeremaUser = ceremaUsers.find(
-    (user) => user.establishmentSiren === userEstablishment.siren || user.establishmentSiren === '*'
-  );
-
-  if (!matchingCeremaUser) {
-    logger.warn('No matching Portail DF user found for establishment', {
-      email: body.email,
-      establishmentId: body.establishmentId,
-      establishmentSiren: userEstablishment.siren,
-      ceremaUsers
-    });
-    throw new ProspectInvalidError(prospect);
-  }
-
-  // Check structure LOVAC commitment (acces_lovac date in future)
-  if (!matchingCeremaUser.hasCommitment) {
-    logger.warn('User does not have valid LOVAC commitment at account creation', {
-      email: body.email,
-      establishmentId: body.establishmentId,
-      establishmentSiren: userEstablishment.siren
-    });
-    throw new ProspectInvalidError(prospect);
-  }
-
-  // Verify access rights: LOVAC access level and geographic perimeter (pass SIREN for EPCI perimeter check)
-  const accessRights = verifyAccessRights(
-    matchingCeremaUser,
-    userEstablishment.geoCodes,
-    userEstablishment.siren
-  );
-
-  if (!accessRights.isValid) {
-    logger.warn('User access rights verification failed at account creation', {
-      email: body.email,
-      establishmentId: body.establishmentId,
-      errors: accessRights.errors,
-      suspensionCause: accessErrorsToSuspensionCause(accessRights.errors)
-    });
-    throw new ProspectInvalidError(prospect);
-  }
-
   // Fetch user kind from Portail DF API
   const kind = await fetchUserKind(body.email);
 
@@ -199,50 +147,6 @@ async function create(request: Request, response: Response) {
   });
 
   const createdUser = await userRepository.insert(user);
-
-  // Populate users_establishments with all establishments the user has access to
-  // Filter Cerema users that have LOVAC commitment and find matching establishments
-  const ceremaUsersWithCommitment = ceremaUsers.filter((cu) => cu.hasCommitment);
-  // Filter out the wildcard SIREN '*' used in mock tests (not a valid SIREN for DB queries)
-  const establishmentSirens = ceremaUsersWithCommitment
-    .map((cu) => cu.establishmentSiren)
-    .filter((siren) => siren !== '*');
-
-  // Find all known establishments matching the SIRENs
-  const knownEstablishments = establishmentSirens.length > 0
-    ? await establishmentRepository.find({
-        filters: { siren: establishmentSirens }
-      })
-    : [];
-
-  // Create authorized establishments entries
-  const authorizedEstablishments = knownEstablishments.map((est) => {
-    const ceremaUser = ceremaUsersWithCommitment.find(
-      (cu) => cu.establishmentSiren === est.siren || cu.establishmentSiren === '*'
-    );
-    return {
-      establishmentId: est.id,
-      establishmentSiren: est.siren,
-      hasCommitment: ceremaUser?.hasCommitment ?? false
-    };
-  });
-
-  // Store authorized establishments (multi-structure support)
-  if (authorizedEstablishments.length > 0) {
-    await userRepository.setAuthorizedEstablishments(
-      createdUser.id,
-      authorizedEstablishments
-    );
-
-    const isMultiStructure = authorizedEstablishments.filter((e) => e.hasCommitment).length > 1;
-    if (isMultiStructure) {
-      logger.info('User created as multi-structure user', {
-        userId: createdUser.id,
-        email: createdUser.email,
-        authorizedEstablishmentsCount: authorizedEstablishments.length
-      });
-    }
-  }
 
   if (!userEstablishment.available) {
     await establishmentRepository.setAvailable(userEstablishment);

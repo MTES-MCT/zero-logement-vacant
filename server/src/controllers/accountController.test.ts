@@ -166,50 +166,6 @@ describe('Account controller', () => {
         accessToken: expect.any(String)
       });
     });
-
-    it('should allow login for suspended user (modal will be displayed on frontend)', async () => {
-      const suspendedUser: UserApi = {
-        ...genUserApi(establishment.id),
-        password: bcrypt.hashSync('TestPassword123!', SALT_LENGTH),
-        suspendedAt: new Date().toJSON(),
-        suspendedCause: 'droits utilisateur expires'
-      };
-      await Users().insert(formatUserApi(suspendedUser));
-
-      const { body, status } = await request(url).post(testRoute).send({
-        email: suspendedUser.email,
-        password: 'TestPassword123!'
-      });
-
-      // Suspended users can login - the frontend will display the suspension modal
-      expect(status).toBe(constants.HTTP_STATUS_OK);
-      expect(body).toMatchObject({
-        establishment,
-        accessToken: expect.any(String)
-      });
-
-      // Cleanup
-      await Users().where('id', suspendedUser.id).delete();
-    });
-
-    it('should fail if the user is deleted', async () => {
-      const deletedUser: UserApi = {
-        ...genUserApi(establishment.id),
-        password: bcrypt.hashSync('TestPassword123!', SALT_LENGTH),
-        deletedAt: new Date().toJSON()
-      };
-      await Users().insert(formatUserApi(deletedUser));
-
-      const { status } = await request(url).post(testRoute).send({
-        email: deletedUser.email,
-        password: 'TestPassword123!'
-      });
-
-      expect(status).toBe(constants.HTTP_STATUS_FORBIDDEN);
-
-      // Cleanup
-      await Users().where('id', deletedUser.id).delete();
-    });
   });
 
   describe('Verify 2FA', () => {

@@ -8,7 +8,9 @@ import EstablishmentMissingError from '~/errors/establishmentMissingError';
 import ForbiddenError from '~/errors/forbiddenError';
 import UserMissingError from '~/errors/userMissingError';
 import config from '~/infra/config';
+import { filterGeoCodesByPerimeter } from '~/models/UserPerimeterApi';
 import establishmentRepository from '~/repositories/establishmentRepository';
+import userPerimeterRepository from '~/repositories/userPerimeterRepository';
 import userRepository from '~/repositories/userRepository';
 
 interface CheckOptions {
@@ -38,6 +40,10 @@ export function userCheck(options?: CheckOptions) {
     promise: true,
     primitive: true
   });
+  const getUserPerimeter = memoize(userPerimeterRepository.get, {
+    promise: true,
+    primitive: true
+  });
 
   return async (request: Request, _: Response, next: NextFunction) => {
     if (!request.auth || !request.auth.userId) {
@@ -47,9 +53,10 @@ export function userCheck(options?: CheckOptions) {
       return next();
     }
 
-    const [user, establishment] = await Promise.all([
+    const [user, establishment, userPerimeter] = await Promise.all([
       getUser(request.auth.userId),
-      getEstablishment(request.auth.establishmentId)
+      getEstablishment(request.auth.establishmentId),
+      getUserPerimeter(request.auth.userId)
     ]);
     if (!user) {
       // Should never happen
@@ -62,6 +69,14 @@ export function userCheck(options?: CheckOptions) {
 
     request.user = user;
     request.establishment = establishment;
+    request.userPerimeter = userPerimeter;
+    // Compute filtered geoCodes based on user perimeter
+    // Pass establishment SIREN for EPCI perimeter check
+    request.effectiveGeoCodes = filterGeoCodesByPerimeter(
+      establishment.geoCodes,
+      userPerimeter,
+      establishment.siren
+    );
     next();
   };
 }

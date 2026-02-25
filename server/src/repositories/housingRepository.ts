@@ -82,6 +82,16 @@ interface FindOptions extends PaginationOptions {
 async function find(opts: FindOptions): Promise<HousingApi[]> {
   logger.debug('housingRepository.find', opts);
 
+  // If localities is explicitly set to an empty array, return no results
+  // This happens when a user's perimeter has no intersection with their establishment
+  if (
+    opts.filters.localities !== undefined &&
+    opts.filters.localities.length === 0
+  ) {
+    logger.debug('housingRepository.find: empty localities, returning []');
+    return [];
+  }
+
   const [allowedGeoCodes, intercommunalities] = await Promise.all([
     fetchGeoCodes(opts.filters.establishmentIds ?? []),
     fetchGeoCodes(opts.filters.intercommunalities ?? [])
@@ -144,6 +154,13 @@ function stream(opts?: StreamOptions): ReadableStream<HousingApi> {
 
 async function count(filters: HousingFiltersApi): Promise<HousingCountApi> {
   logger.debug('Count housing', filters);
+
+  // If localities is explicitly set to an empty array, return 0
+  // This happens when a user's perimeter has no intersection with their establishment
+  if (filters.localities !== undefined && filters.localities.length === 0) {
+    logger.debug('housingRepository.count: empty localities, returning 0');
+    return { housing: 0, owners: 0 };
+  }
 
   const [allowedGeoCodes, intercommunalities] = await Promise.all([
     fetchGeoCodes(filters.establishmentIds ?? []),

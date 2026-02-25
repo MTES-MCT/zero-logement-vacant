@@ -8,11 +8,16 @@ This script reads tests.csv and creates:
 - Basic perimeter information
 
 Usage:
-    python populate_test_db.py [--database-url URL] [--csv-file PATH] [--dry-run]
+    python populate_test_db.py <database_url> [--csv-file PATH] [--dry-run] [--clear]
 
-Environment variables:
-    DATABASE_URL: PostgreSQL connection string
-    TEST_PASSWORD: Password to use for test users (optional, default: 'test123')
+Arguments:
+    database_url: PostgreSQL connection string (required)
+
+Options:
+    --csv-file PATH: Path to tests.csv file (default: tests.csv in same directory)
+    --dry-run: Print what would be done without making changes
+    --clear: Clear existing test data before inserting
+    --password: Password for test users (default: 'test123')
 """
 
 import argparse
@@ -22,7 +27,6 @@ import os
 import sys
 import uuid
 from datetime import datetime
-from typing import Optional
 
 import bcrypt
 import psycopg2
@@ -34,14 +38,18 @@ def parse_args():
         description="Populate test database with Portail DF test data"
     )
     parser.add_argument(
-        "--database-url",
-        default=os.environ.get("DATABASE_URL"),
-        help="PostgreSQL connection string (default: $DATABASE_URL)",
+        "database_url",
+        help="PostgreSQL connection string (e.g., postgres://user:pass@host:port/db)",
     )
     parser.add_argument(
         "--csv-file",
         default=os.path.join(os.path.dirname(__file__), "tests.csv"),
-        help="Path to tests.csv file",
+        help="Path to tests.csv file (default: tests.csv in same directory)",
+    )
+    parser.add_argument(
+        "--password",
+        default="test123",
+        help="Password for test users (default: 'test123')",
     )
     parser.add_argument(
         "--dry-run",
@@ -359,18 +367,13 @@ def print_summary(establishments: dict, users: list[dict]):
 def main():
     args = parse_args()
 
-    if not args.database_url:
-        print("Error: DATABASE_URL not set", file=sys.stderr)
-        sys.exit(1)
-
     # Read CSV
     print(f"Reading CSV: {args.csv_file}")
     rows = read_csv(args.csv_file)
     print(f"Found {len(rows)} rows")
 
     # Get password
-    password = os.environ.get("TEST_PASSWORD", "test123")
-    password_hash = hash_password(password)
+    password_hash = hash_password(args.password)
 
     # Extract data
     establishments = extract_establishments(rows)

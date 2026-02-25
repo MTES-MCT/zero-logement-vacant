@@ -15,6 +15,7 @@ import {
   HousingFiltersDTO,
   HousingStatus,
   nextStatus,
+  UserRole,
   type CampaignCreationPayload,
   type CampaignUpdatePayload,
   type GroupDTO
@@ -152,7 +153,7 @@ const list: RequestHandler<
   never,
   CampaignQuery
 > = async (request, response) => {
-  const { auth, query } = request as AuthenticatedRequest<
+  const { auth, query, effectiveGeoCodes } = request as AuthenticatedRequest<
     never,
     ReadonlyArray<CampaignDTO>,
     never,
@@ -163,10 +164,25 @@ const list: RequestHandler<
   );
   logger.info('List campaigns', query);
 
+  // ADMIN and VISITOR users bypass perimeter filtering
+  const isAdminOrVisitor = [UserRole.ADMIN, UserRole.VISITOR].includes(
+    auth.role
+  );
+  // effectiveGeoCodes is undefined when no restriction applies (no perimeter or fr_entiere)
+  // effectiveGeoCodes is an array (possibly empty) when restriction applies
+  const hasPerimeterRestriction = effectiveGeoCodes !== undefined;
+
   const campaigns = await campaignRepository.find({
     filters: {
       establishmentId: auth.establishmentId,
-      groupIds: typeof query.groups === 'string' ? [query.groups] : query.groups
+      groupIds:
+        typeof query.groups === 'string' ? [query.groups] : query.groups,
+      // Only show campaigns where ALL housings are within user's perimeter (bypass for ADMIN/VISITOR)
+      // If effectiveGeoCodes is empty array, user should see nothing
+      geoCodes:
+        isAdminOrVisitor || !hasPerimeterRestriction
+          ? undefined
+          : effectiveGeoCodes
     },
     sort
   });

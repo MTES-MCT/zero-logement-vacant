@@ -25,7 +25,7 @@ EPT_PATH = "data/EPT.xlsx"
 PARQUET_PATH = 'StockUniteLegale_utf8.parquet'
 PARQUET_GEOLOC_PATH = None  # Not available - TOM commune lookup will be skipped
 MILLESIME = "2025"
-SLEEP_TIME = 0.15
+SLEEP_TIME = 0.5  # Increased to avoid 429 rate limiting
 
 requests_cache.install_cache('cache', expire_after=36000000)
 
@@ -305,9 +305,9 @@ class CollectivityProcessor:
             
             # Fetch SIREN and SIRET from API (add "D" suffix for departments)
             if dep_code:
-                siren, siret = SIREN_PARIS, SIRET_PARIS
-            else:
                 siren, siret = self.get_siren_siret_from_collectivite_api(f"{dep_code}D")
+            else:
+                siren, siret = SIREN_PARIS, SIRET_PARIS
             
             # Fallback to query by name if not found (for special departments like Corse-du-Sud, Paris, etc.)
             if siren is None or siret is None:

@@ -83,7 +83,7 @@ convert_mermaid_diagrams() {
 
     # Process line by line
     while IFS= read -r line || [[ -n "$line" ]]; do
-        ((line_num++))
+        line_num=$((line_num + 1))
 
         if [[ "$line" =~ ^\`\`\`mermaid ]]; then
             in_mermaid=true
@@ -95,7 +95,7 @@ convert_mermaid_diagrams() {
         if [[ "$in_mermaid" == true ]]; then
             if [[ "$line" =~ ^\`\`\` ]]; then
                 in_mermaid=false
-                ((diagram_count++))
+                diagram_count=$((diagram_count + 1))
 
                 # Save mermaid content to file
                 local mmd_file="$images_dir/diagram_${diagram_count}.mmd"
@@ -123,7 +123,7 @@ convert_mermaid_diagrams() {
     while IFS= read -r line || [[ -n "$line" ]]; do
         if [[ "$line" =~ ^\`\`\`mermaid ]]; then
             in_mermaid=true
-            ((diagram_count++))
+            diagram_count=$((diagram_count + 1))
             local png_file="$images_dir/diagram_${diagram_count}.png"
 
             if [ -f "$png_file" ]; then

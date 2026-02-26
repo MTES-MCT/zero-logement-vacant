@@ -46,6 +46,32 @@ const router = Router();
 router.use(jwtCheck());
 router.use(userCheck());
 
+/**
+ * @openapi
+ * /files:
+ *   post:
+ *     summary: Upload un fichier
+ *     tags: [Files]
+ *     security:
+ *       - bearerAuth: []
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         multipart/form-data:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               file:
+ *                 type: string
+ *                 format: binary
+ *     responses:
+ *       201:
+ *         description: Fichier uploadé avec succès
+ *       400:
+ *         description: Type de fichier non autorisé
+ *       413:
+ *         description: Fichier trop volumineux
+ */
 router.post(
   '/files',
   upload(),
@@ -114,6 +140,58 @@ router.delete(
   documentController.removeByHousing
 );
 
+/**
+ * @openapi
+ * /housing:
+ *   get:
+ *     summary: Lister les logements vacants
+ *     tags: [Housing]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: query
+ *         name: page
+ *         schema:
+ *           type: integer
+ *           default: 1
+ *       - in: query
+ *         name: perPage
+ *         schema:
+ *           type: integer
+ *           default: 50
+ *       - in: query
+ *         name: status
+ *         schema:
+ *           type: array
+ *           items:
+ *             type: integer
+ *         description: Filtrer par statut
+ *       - in: query
+ *         name: query
+ *         schema:
+ *           type: string
+ *         description: Recherche textuelle
+ *     responses:
+ *       200:
+ *         description: Liste paginée des logements
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 entities:
+ *                   type: array
+ *                   items:
+ *                     $ref: '#/components/schemas/Housing'
+ *                 page:
+ *                   type: integer
+ *                 perPage:
+ *                   type: integer
+ *                 totalCount:
+ *                   type: integer
+ *       401:
+ *         description: Non authentifié
+ */
 router.get(
   '/housing',
   validatorNext.validate({
@@ -123,6 +201,32 @@ router.get(
   }),
   housingController.list
 );
+
+/**
+ * @openapi
+ * /housing:
+ *   post:
+ *     summary: Créer un logement
+ *     tags: [Housing]
+ *     security:
+ *       - bearerAuth: []
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required: [localId]
+ *             properties:
+ *               localId:
+ *                 type: string
+ *                 description: Identifiant fiscal local (12 caractères)
+ *     responses:
+ *       201:
+ *         description: Logement créé
+ *       400:
+ *         description: Données invalides
+ */
 router.post(
   '/housing',
   validatorNext.validate({
@@ -132,6 +236,35 @@ router.post(
   }),
   housingController.create
 );
+
+/**
+ * @openapi
+ * /housing/count:
+ *   get:
+ *     summary: Compter les logements
+ *     tags: [Housing]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: query
+ *         name: status
+ *         schema:
+ *           type: array
+ *           items:
+ *             type: integer
+ *     responses:
+ *       200:
+ *         description: Nombre de logements
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 housing:
+ *                   type: integer
+ *                 owners:
+ *                   type: integer
+ */
 router.get(
   '/housing/count',
   validatorNext.validate({
@@ -141,12 +274,63 @@ router.get(
   }),
   housingController.count
 );
+
+/**
+ * @openapi
+ * /housing/{id}:
+ *   get:
+ *     summary: Récupérer un logement par ID
+ *     tags: [Housing]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: string
+ *           format: uuid
+ *     responses:
+ *       200:
+ *         description: Détails du logement
+ *       404:
+ *         description: Logement non trouvé
+ */
 router.get(
   '/housing/:id',
   housingController.getValidators,
   validator.validate,
   housingController.get
 );
+
+/**
+ * @openapi
+ * /housing:
+ *   put:
+ *     summary: Mettre à jour plusieurs logements
+ *     tags: [Housing]
+ *     security:
+ *       - bearerAuth: []
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               ids:
+ *                 type: array
+ *                 items:
+ *                   type: string
+ *                   format: uuid
+ *               status:
+ *                 type: integer
+ *               subStatus:
+ *                 type: string
+ *     responses:
+ *       200:
+ *         description: Logements mis à jour
+ */
 router.put(
   '/housing',
   hasRole([UserRole.USUAL, UserRole.ADMIN]),
@@ -155,6 +339,41 @@ router.put(
   }),
   housingController.updateMany
 );
+
+/**
+ * @openapi
+ * /housing/{id}:
+ *   put:
+ *     summary: Mettre à jour un logement
+ *     tags: [Housing]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: string
+ *           format: uuid
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               status:
+ *                 type: integer
+ *               subStatus:
+ *                 type: string
+ *               occupancy:
+ *                 type: string
+ *     responses:
+ *       200:
+ *         description: Logement mis à jour
+ *       404:
+ *         description: Logement non trouvé
+ */
 router.put(
   '/housing/:id',
   hasRole([UserRole.USUAL, UserRole.ADMIN]),
@@ -233,12 +452,68 @@ router.delete(
   groupController.removeHousing
 );
 
+/**
+ * @openapi
+ * /campaigns:
+ *   get:
+ *     summary: Lister les campagnes
+ *     tags: [Campaigns]
+ *     security:
+ *       - bearerAuth: []
+ *     responses:
+ *       200:
+ *         description: Liste des campagnes
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: array
+ *               items:
+ *                 type: object
+ *                 properties:
+ *                   id:
+ *                     type: string
+ *                     format: uuid
+ *                   title:
+ *                     type: string
+ *                   status:
+ *                     type: string
+ *                     enum: [draft, sending, sent, archived]
+ *                   sentAt:
+ *                     type: string
+ *                     format: date-time
+ */
 router.get(
   '/campaigns',
   campaignController.listValidators,
   validator.validate,
   campaignController.list
 );
+
+/**
+ * @openapi
+ * /campaigns:
+ *   post:
+ *     summary: Créer une campagne
+ *     tags: [Campaigns]
+ *     security:
+ *       - bearerAuth: []
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required: [title, groupId]
+ *             properties:
+ *               title:
+ *                 type: string
+ *               groupId:
+ *                 type: string
+ *                 format: uuid
+ *     responses:
+ *       201:
+ *         description: Campagne créée
+ */
 router.post(
   '/campaigns',
   validatorNext.validate({
@@ -246,18 +521,82 @@ router.post(
   }),
   campaignController.create
 );
+
+/**
+ * @openapi
+ * /campaigns/{id}:
+ *   get:
+ *     summary: Récupérer une campagne
+ *     tags: [Campaigns]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: string
+ *           format: uuid
+ *     responses:
+ *       200:
+ *         description: Détails de la campagne
+ *       404:
+ *         description: Campagne non trouvée
+ */
 router.get(
   '/campaigns/:id',
   campaignController.getCampaignValidators,
   validator.validate,
   campaignController.getCampaign
 );
+
+/**
+ * @openapi
+ * /campaigns/{id}:
+ *   put:
+ *     summary: Mettre à jour une campagne
+ *     tags: [Campaigns]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: string
+ *           format: uuid
+ *     responses:
+ *       200:
+ *         description: Campagne mise à jour
+ */
 router.put(
   '/campaigns/:id',
   campaignController.updateValidators,
   validator.validate,
   campaignController.update
 );
+
+/**
+ * @openapi
+ * /campaigns/{id}:
+ *   delete:
+ *     summary: Supprimer une campagne
+ *     tags: [Campaigns]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: string
+ *           format: uuid
+ *     responses:
+ *       204:
+ *         description: Campagne supprimée
+ *       404:
+ *         description: Campagne non trouvée
+ */
 router.delete(
   '/campaigns/:id',
   [isUUIDParam('id')],
@@ -311,6 +650,32 @@ router.post(
   draftController.preview
 );
 
+/**
+ * @openapi
+ * /owners:
+ *   get:
+ *     summary: Lister les propriétaires
+ *     tags: [Owners]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: query
+ *         name: page
+ *         schema:
+ *           type: integer
+ *       - in: query
+ *         name: perPage
+ *         schema:
+ *           type: integer
+ *       - in: query
+ *         name: query
+ *         schema:
+ *           type: string
+ *         description: Recherche par nom
+ *     responses:
+ *       200:
+ *         description: Liste paginée des propriétaires
+ */
 router.get(
   '/owners',
   validatorNext.validate({
@@ -318,7 +683,50 @@ router.get(
   }),
   ownerController.list
 );
+
+/**
+ * @openapi
+ * /owners:
+ *   post:
+ *     summary: Rechercher des propriétaires
+ *     tags: [Owners]
+ *     security:
+ *       - bearerAuth: []
+ *     requestBody:
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               query:
+ *                 type: string
+ *     responses:
+ *       200:
+ *         description: Résultats de recherche
+ */
 router.post('/owners', ownerController.search);
+
+/**
+ * @openapi
+ * /owners/{id}:
+ *   get:
+ *     summary: Récupérer un propriétaire
+ *     tags: [Owners]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: string
+ *           format: uuid
+ *     responses:
+ *       200:
+ *         description: Détails du propriétaire
+ *       404:
+ *         description: Propriétaire non trouvé
+ */
 router.get('/owners/:id', ownerController.get);
 router.post(
   '/owners/creation',
@@ -395,8 +803,67 @@ router.delete(
   noteController.remove
 );
 
-// TODO: rework and merge this API with the User API
+/**
+ * @openapi
+ * /account:
+ *   get:
+ *     summary: Récupérer le compte de l'utilisateur connecté
+ *     tags: [Authentication]
+ *     security:
+ *       - bearerAuth: []
+ *     responses:
+ *       200:
+ *         description: Informations du compte
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 id:
+ *                   type: string
+ *                   format: uuid
+ *                 email:
+ *                   type: string
+ *                 firstName:
+ *                   type: string
+ *                 lastName:
+ *                   type: string
+ *                 role:
+ *                   type: string
+ *                   enum: [visitor, usual, admin]
+ *                 establishment:
+ *                   type: object
+ *       401:
+ *         description: Non authentifié
+ */
 router.get('/account', [], validator.validate, accountController.get);
+
+/**
+ * @openapi
+ * /account:
+ *   put:
+ *     summary: Mettre à jour le compte de l'utilisateur connecté
+ *     tags: [Authentication]
+ *     security:
+ *       - bearerAuth: []
+ *     requestBody:
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               firstName:
+ *                 type: string
+ *               lastName:
+ *                 type: string
+ *               phone:
+ *                 type: string
+ *               password:
+ *                 type: string
+ *     responses:
+ *       200:
+ *         description: Compte mis à jour
+ */
 router.put(
   '/account',
   validatorNext.validate(accountController.updateAccountValidators),

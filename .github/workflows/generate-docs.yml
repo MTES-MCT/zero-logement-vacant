@@ -1,0 +1,114 @@
+name: Generate Technical Documentation
+
+on:
+  pull_request:
+    paths:
+      - 'docs/technical/**'
+      - '.github/workflows/generate-docs.yml'
+  workflow_dispatch:
+    inputs:
+      version:
+        description: 'Version number (optional, defaults to run number)'
+        required: false
+        type: string
+
+jobs:
+  generate-pdfs:
+    name: Generate PDF Documentation
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Install Mermaid CLI
+        run: npm install -g @mermaid-js/mermaid-cli
+
+      - name: Install Pandoc
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y pandoc
+
+      - name: Install TeX Live
+        run: |
+          sudo apt-get install -y texlive-xetex texlive-fonts-recommended texlive-fonts-extra texlive-latex-extra
+
+      - name: Set version number
+        id: version
+        run: |
+          if [ -n "${{ github.event.inputs.version }}" ]; then
+            VERSION="${{ github.event.inputs.version }}"
+          else
+            VERSION="1.0.${{ github.run_number }}"
+          fi
+          echo "version=$VERSION" >> $GITHUB_OUTPUT
+          echo "Documentation version: $VERSION"
+
+      - name: Update version in documents
+        run: |
+          VERSION="${{ steps.version.outputs.version }}"
+
+          # Update version in markdown files
+          for file in docs/technical/DAT-*.md docs/technical/DE-*.md docs/technical/DI-*.md; do
+            if [ -f "$file" ]; then
+              sed -i "s/\*\*Version:\*\* .*/\*\*Version:\*\* $VERSION/" "$file"
+              echo "Updated version in $file"
+            fi
+          done
+
+      - name: Generate PDFs
+        run: |
+          cd docs/technical
+          chmod +x generate-pdf.sh
+          ./generate-pdf.sh
+        env:
+          PROJECT_VERSION: ${{ steps.version.outputs.version }}
+
+      - name: List generated files
+        run: |
+          echo "Generated PDFs:"
+          ls -la docs/technical/pdf/
+
+      - name: Upload PDF artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: technical-documentation-v${{ steps.version.outputs.version }}
+          path: docs/technical/pdf/*.pdf
+          retention-days: 90
+          if-no-files-found: error
+
+      - name: Add comment to PR with download link
+        if: github.event_name == 'pull_request'
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const version = '${{ steps.version.outputs.version }}';
+            const runId = context.runId;
+            const artifactUrl = `https://github.com/${context.repo.owner}/${context.repo.repo}/actions/runs/${runId}`;
+
+            const body = `## Documentation Generated
+
+            The technical documentation PDFs have been generated successfully.
+
+            **Version:** ${version}
+
+            **Download:** [View artifacts](${artifactUrl})
+
+            ### Files included:
+            - DAT - Dossier d'Architecture Technique
+            - DE - Dossier d'Exploitation
+            - DI - Dossier d'Installation
+
+            _Generated automatically by GitHub Actions_`;
+
+            github.rest.issues.createComment({
+              issue_number: context.issue.number,
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              body: body
+            });

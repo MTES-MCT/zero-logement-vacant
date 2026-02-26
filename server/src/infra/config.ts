@@ -19,6 +19,7 @@ dotenvx.config({
 });
 
 const isProduction = process.env.NODE_ENV === 'production';
+const isReviewApp = process.env.IS_REVIEW_APP === 'true';
 
 convict.addFormats(formats);
 convict.addFormat({
@@ -528,7 +529,7 @@ const config = convict<Config>({
     enabled: {
       env: 'SWAGGER_ENABLED',
       format: Boolean,
-      default: false
+      default: isReviewApp
     }
   }
 })

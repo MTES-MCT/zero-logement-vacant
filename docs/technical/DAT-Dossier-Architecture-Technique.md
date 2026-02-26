@@ -625,7 +625,8 @@ L'API ZLV dispose d'une documentation interactive au format OpenAPI/Swagger :
 
 **En production :**
 - Désactivé par défaut pour des raisons de sécurité
-- Activation possible via la variable d'environnement `ENABLE_SWAGGER=true`
+- Activation possible via la variable d'environnement `SWAGGER_ENABLED=true`
+- Activé automatiquement sur les review apps (`IS_REVIEW_APP=true`)
 
 **Fonctionnalités de la documentation :**
 - Liste de tous les endpoints disponibles

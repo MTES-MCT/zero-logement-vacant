@@ -10,37 +10,32 @@ import { isEqual } from 'lodash-es';
 import { useEffect, useState } from 'react';
 import * as yup from 'yup';
 
-import {
-  Col,
-  Container as DeprecatedContainer,
-  Row
-} from '../../components/_dsfr';
-import CampaignCounts from '../../components/Campaign/CampaignCounts';
-import CampaignCreatedFromGroup from '../../components/Campaign/CampaignCreatedFromGroup';
-import CampaignRecipients from '../../components/Campaign/CampaignRecipients';
-import CampaignTitle from '../../components/Campaign/CampaignTitle';
-import DraftBody, { type Body } from '../../components/Draft/DraftBody';
+import CampaignCounts from '~/components/Campaign/CampaignCounts';
+import CampaignCreatedFromGroup from '~/components/Campaign/CampaignCreatedFromGroup';
+import CampaignRecipients from '~/components/Campaign/CampaignRecipients';
+import CampaignTitle from '~/components/Campaign/CampaignTitle';
+import DraftBody, { type Body } from '~/components/Draft/DraftBody';
 import DraftMailInfo, {
   type Written,
   writtenSchema
-} from '../../components/Draft/DraftMailInfo';
-import DraftSender, { senderSchema } from '../../components/Draft/DraftSender';
-import DraftSenderLogo from '../../components/Draft/DraftSenderLogo';
-import DraftSignature from '../../components/Draft/DraftSignature';
-import PreviewButton from '../../components/Draft/PreviewButton';
-import SendButton from '../../components/Draft/SendButton';
-import SaveButton from '../../components/SaveButton/SaveButton';
-import { useCampaign } from '../../hooks/useCampaign';
-import { useForm } from '../../hooks/useForm';
-import useUnsavedChanges from '../../hooks/useUnsavedChanges';
-import type { Campaign } from '../../models/Campaign';
-import type { DraftCreationPayload } from '../../models/Draft';
-import type { SenderPayload, SignatoriesPayload } from '../../models/Sender';
-import { useUpdateCampaignMutation } from '../../services/campaign.service';
+} from '~/components/Draft/DraftMailInfo';
+import DraftSender, { senderSchema } from '~/components/Draft/DraftSender';
+import DraftSenderLogo from '~/components/Draft/DraftSenderLogo';
+import DraftSignature from '~/components/Draft/DraftSignature';
+import PreviewButton from '~/components/Draft/PreviewButton';
+import SendButton from '~/components/Draft/SendButton';
+import SaveButton from '~/components/SaveButton/SaveButton';
+import { useCampaign } from '~/hooks/useCampaign';
+import { useForm } from '~/hooks/useForm';
+import useUnsavedChanges from '~/hooks/useUnsavedChanges';
+import type { Campaign } from '~/models/Campaign';
+import type { DraftCreationPayload } from '~/models/Draft';
+import type { SenderPayload, SignatoriesPayload } from '~/models/Sender';
+import { useUpdateCampaignMutation } from '~/services/campaign.service';
 import {
   useCreateDraftMutation,
   useUpdateDraftMutation
-} from '../../services/draft.service';
+} from '~/services/draft.service';
 import styles from './campaign.module.scss';
 
 const schema = yup
@@ -230,8 +225,8 @@ function CampaignDraft(props: Readonly<Props>) {
                     description='Rédigez votre courrier et insérez des champs personnalisés pour intégrer des informations sur les logements ou les propriétaires. Pour prévisualiser le format du courrier, cliquez sur "Visualiser mon brouillon". Une fois votre courrier rédigé, cliquez sur "Valider et passer au téléchargement" pour télécharger les courriers au format PDF.'
                     className="fr-mt-2w fr-mb-2w"
                   />
-                  <DeprecatedContainer as="section" fluid>
-                    <Row justifyContent="right" spacing="mb-2w">
+                  <Stack component="section" spacing="1rem" useFlexGap>
+                    <Stack direction="row" justifyContent="flex-end">
                       <SaveButton
                         className="fr-mr-1w"
                         autoClose={5000}
@@ -245,9 +240,9 @@ function CampaignDraft(props: Readonly<Props>) {
                         onSave={save}
                       />
                       <PreviewButton disabled={!exists} draft={draft} />
-                    </Row>
-                    <Row gutters spacing="mb-2w">
-                      <Col n="5">
+                    </Stack>
+                    <Grid container spacing={2}>
+                      <Grid size={5}>
                         <DraftSenderLogo
                           className="fr-mb-2w"
                           value={values.logo}
@@ -259,31 +254,29 @@ function CampaignDraft(props: Readonly<Props>) {
                           writtenFrom={values.writtenFrom}
                           onChange={setWritten}
                         />
-                      </Col>
-                      <Col n="7">
+                      </Grid>
+                      <Grid size={7}>
                         <DraftSender
                           form={form}
                           value={values.sender}
                           onChange={setSender}
                         />
-                      </Col>
-                    </Row>
-                    <Row spacing="mb-2w">
-                      <Col>
-                        <DraftBody
-                          body={values.body}
-                          form={form}
-                          subject={values.subject}
-                          onChange={setBody}
-                        />
-                      </Col>
-                    </Row>
+                      </Grid>
+                    </Grid>
+                    <Box>
+                      <DraftBody
+                        body={values.body}
+                        form={form}
+                        subject={values.subject}
+                        onChange={setBody}
+                      />
+                    </Box>
                     <DraftSignature
                       form={form}
                       value={values.sender.signatories}
                       onChange={setSignatories}
                     />
-                  </DeprecatedContainer>
+                  </Stack>
                 </form>
               )
             }

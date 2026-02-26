@@ -1,10 +1,13 @@
-import { useForm } from '../../hooks/useForm';
-import styles from './draft.module.scss';
-import RichEditor from '../RichEditor/RichEditor';
-import AppTextInput from '../_app/AppTextInput/AppTextInput';
-import { Col, Container, Row } from '../_dsfr';
-import AppLink from '../_app/AppLink/AppLink';
+import Box from '@mui/material/Box';
+import Grid from '@mui/material/Grid';
+import Stack from '@mui/material/Stack';
 import Typography from '@mui/material/Typography';
+
+import RichEditor from '~/components/RichEditor/RichEditor';
+import AppLink from '~/components/_app/AppLink/AppLink';
+import AppTextInput from '~/components/_app/AppTextInput/AppTextInput';
+import { useForm } from '~/hooks/useForm';
+import styles from './draft.module.scss';
 
 interface Props {
   form: ReturnType<typeof useForm>;
@@ -20,8 +23,8 @@ export interface Body {
 
 function DraftBody(props: Readonly<Props>) {
   return (
-    <Container as="article" className={styles.article} fluid>
-      <Row className="fr-mb-2w justify-space-between">
+    <Box component="article" className={styles.article}>
+      <Stack direction="row" justifyContent="space-between" mb={2}>
         <Typography id="draft-body-label" component="h4" variant="h6">
           Contenu de votre courrier
         </Typography>
@@ -32,9 +35,9 @@ function DraftBody(props: Readonly<Props>) {
         >
           Comment rédiger un bon courrier ?
         </AppLink>
-      </Row>
-      <Row className="fr-mb-2w">
-        <Col n="7">
+      </Stack>
+      <Grid container mb={2}>
+        <Grid size={7}>
           <AppTextInput
             inputForm={props.form}
             inputKey="subject"
@@ -47,21 +50,19 @@ function DraftBody(props: Readonly<Props>) {
               })
             }
           />
-        </Col>
-      </Row>
-      <Row>
-        <RichEditor
-          ariaLabelledBy="draft-body-label"
-          content={props.body}
-          onChange={(content) =>
-            props.onChange({
-              subject: props.subject,
-              body: content
-            })
-          }
-        />
-      </Row>
-    </Container>
+        </Grid>
+      </Grid>
+      <RichEditor
+        ariaLabelledBy="draft-body-label"
+        content={props.body}
+        onChange={(content) =>
+          props.onChange({
+            subject: props.subject,
+            body: content
+          })
+        }
+      />
+    </Box>
   );
 }
 

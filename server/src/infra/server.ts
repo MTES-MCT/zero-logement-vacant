@@ -17,6 +17,7 @@ import config from '~/infra/config';
 import gracefulShutdown from '~/infra/graceful-shutdown';
 import { logger } from '~/infra/logger';
 import sentry from '~/infra/sentry';
+import { setupSwagger } from '~/infra/swagger';
 import unprotectedRouter from '~/routers/unprotected';
 import protectedRouter from '~/routers/protected';
 import errorHandler from '~/middlewares/error-handler';
@@ -133,6 +134,9 @@ export function createServer(): Server {
       logger
     })
   );
+
+  // Swagger API documentation (disabled by default, enable with SWAGGER_ENABLED=true)
+  setupSwagger(app);
 
   app.use('/api', unprotectedRouter);
   app.use('/api', protectedRouter);

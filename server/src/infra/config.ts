@@ -153,6 +153,9 @@ interface Config {
     dsn: string | null;
     enabled: boolean;
   };
+  swagger: {
+    enabled: boolean;
+  };
 }
 
 const config = convict<Config>({
@@ -549,6 +552,13 @@ const config = convict<Config>({
       env: 'SENTRY_ENABLED',
       format: Boolean,
       default: isProduction
+    }
+  },
+  swagger: {
+    enabled: {
+      env: 'SWAGGER_ENABLED',
+      format: Boolean,
+      default: false
     }
   }
 })

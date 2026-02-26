@@ -46,7 +46,7 @@ interface Props {
 function CampaignSending(props: Readonly<Props>) {
   const [sentAt, setSentAt] = useState('');
   const [downloaded, setDownloaded] = useState(false);
-  const { count } = useCampaign();
+  const { count, countHousingQuery } = useCampaign();
   const [updateCampaign, mutation] = useUpdateCampaignMutation();
 
   const form = useForm(schema as any, {
@@ -160,9 +160,9 @@ function CampaignSending(props: Readonly<Props>) {
               className="fr-mb-1w"
             />
             <CampaignCounts
-              display="row"
-              housing={count?.housing}
-              owners={count?.owners}
+              housing={count?.housing ?? null}
+              owners={count?.owners ?? null}
+              isLoading={countHousingQuery.isLoading}
             />
             {props.campaign.description && (
               <Grid mt={2} size={12}>

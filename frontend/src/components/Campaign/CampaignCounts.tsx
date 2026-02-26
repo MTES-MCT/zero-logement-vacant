@@ -1,41 +1,43 @@
-import classNames from 'classnames';
+import Skeleton from '@mui/material/Skeleton';
+import Stack from '@mui/material/Stack';
+import Typography from '@mui/material/Typography';
 
-import { displayCount } from '../../utils/stringUtils';
-import styles from './campaign.module.scss';
+import Icon from '~/components/ui/Icon';
+import { displayCount } from '~/utils/stringUtils';
 
-interface CampaignCountsProps {
-  housing?: number;
-  owners?: number;
-  className?: string;
-  display?: 'row' | 'column';
+export interface CampaignCountsProps {
+  housing: number | null;
+  owners: number | null;
+  isLoading: boolean;
 }
 
-const CampaignCounts = (props: CampaignCountsProps) => {
-  const display = props.display ?? 'column';
-  const classes = classNames(
-    styles.count,
-    {
-      [styles.inline]: display === 'row'
-    },
-    props.className
-  );
+function CampaignCounts(props: Readonly<CampaignCountsProps>) {
+  const housingCount =
+    props.housing !== null ? displayCount(props.housing, 'logement') : null;
+  const ownerCount =
+    props.owners !== null ? displayCount(props.owners, 'propriétaire') : null;
 
   return (
-    <section className={classes}>
-      <span
-        className={classNames('fr-icon--sm fr-icon-home-4-fill', {
-          'fr-mr-1w': display === 'row'
-        })}
-        aria-hidden
-      >
-         {props.housing ? displayCount(props.housing ?? 0, 'logement') : '...'}
-      </span>
-      <span className="fr-icon--sm fr-icon-user-fill">
-         
-        {props.owners ? displayCount(props.owners ?? 0, 'propriétaire') : '...'}
-      </span>
-    </section>
+    <Stack component="article" direction="row" spacing="0.5rem" useFlexGap>
+      <Stack component="section" direction="row" spacing="0.25rem" useFlexGap>
+        <Icon name="fr-icon-home-4-fill" size="sm" />
+        {props.isLoading || housingCount === null ? (
+          <Skeleton animation="wave" variant="text" />
+        ) : (
+          <Typography component="span">{housingCount}</Typography>
+        )}
+      </Stack>
+
+      <Stack component="section" direction="row" spacing="0.25rem" useFlexGap>
+        <Icon name="fr-icon-user-fill" size="sm" />
+        {props.isLoading || ownerCount === null ? (
+          <Skeleton animation="wave" variant="text" />
+        ) : (
+          <Typography component="span">{ownerCount}</Typography>
+        )}
+      </Stack>
+    </Stack>
   );
-};
+}
 
 export default CampaignCounts;

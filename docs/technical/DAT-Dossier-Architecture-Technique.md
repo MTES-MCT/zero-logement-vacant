@@ -645,6 +645,37 @@ Le projet utilise GitHub Actions pour l'intégration et le déploiement continus
 | Deploy | `deploy.yml` | Push sur main | Déploiement sur Clever Cloud |
 | Release | `release.yml` | Tag créé | Création de release |
 | CodeQL | `codeql-analysis.yml` | Hebdomadaire | Analyse de sécurité du code |
+| **Documentation** | `generate-docs.yml` | PR sur `docs/technical/**` | Génération des PDFs |
+
+## 11.5 Génération automatique de la documentation
+
+La documentation technique (DAT, DE, DI) est automatiquement générée en PDF à chaque pull request modifiant les fichiers dans `docs/technical/`.
+
+**Fonctionnement :**
+
+1. Le workflow `generate-docs.yml` se déclenche automatiquement
+2. Les diagrammes Mermaid sont convertis en images PNG
+3. Les fichiers Markdown sont convertis en PDF via Pandoc/XeLaTeX
+4. Les PDFs sont uploadés comme artefacts GitHub
+
+**Versioning :**
+
+- Format : `1.0.X` où X est le numéro de run GitHub Actions
+- La version est automatiquement mise à jour dans les documents
+- Possibilité de spécifier une version manuellement via `workflow_dispatch`
+
+**Artefacts :**
+
+| Propriété | Valeur |
+|-----------|--------|
+| Nom | `technical-documentation-vX.X.X` |
+| Contenu | DAT, DE, DI en PDF |
+| Rétention | **90 jours** |
+| Téléchargement | Via l'onglet "Actions" de la PR |
+
+**Déclenchement manuel :**
+
+Le workflow peut aussi être déclenché manuellement depuis GitHub Actions → "Generate Technical Documentation" → "Run workflow".
 
 ---
 

@@ -404,7 +404,7 @@ L'API dispose d'une documentation interactive Swagger accessible en développeme
 - Possibilité de tester les endpoints directement
 - Authentification JWT supportée
 
-**En production :** Désactivé par défaut. Activation possible via `ENABLE_SWAGGER=true`.
+**En production :** Désactivé par défaut. Activation possible via `SWAGGER_ENABLED=true`. Activé automatiquement sur les review apps.
 
 ### 4.4 Exécuter les tests
 

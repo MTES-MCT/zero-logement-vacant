@@ -80,7 +80,7 @@ export function genAuthUser(
   return {
     accessToken,
     user,
-    establishment
+establishment
   };
 }
 

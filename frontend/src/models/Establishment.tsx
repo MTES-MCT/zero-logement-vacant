@@ -25,7 +25,7 @@ export function toEstablishmentDTO(
 }
 
 export const getEstablishmentUrl = (establishment: Establishment) =>
-  establishment.kind === 'Commune'
+  ['COM', 'COM-TOM'].includes(establishment.kind)
     ? `/communes/${normalizeUrlSegment(establishment.shortName)}-${
         establishment.geoCodes[0]
       }`

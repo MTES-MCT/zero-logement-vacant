@@ -198,7 +198,9 @@ function filter(filters?: EstablishmentFiltersDTO) {
 export interface EstablishmentDBO {
   id: string;
   name: string;
+  short_name?: string | null;
   siren: number;
+  siret?: string | null;
   /**
    * @deprecated An establishment is considered available
    * if it has at least one active user.
@@ -206,6 +208,13 @@ export interface EstablishmentDBO {
   available: boolean;
   localities_geo_code: string[];
   kind: EstablishmentKind;
+  kind_admin_meta?: string | null;
+  millesime?: string | null;
+  layer_geo_label?: string | null;
+  dep_code?: string | null;
+  dep_name?: string | null;
+  reg_code?: string | null;
+  reg_name?: string | null;
   source: EstablishmentSource;
   updated_at: Date;
   users?: UserDBO[];
@@ -229,10 +238,7 @@ export const parseEstablishmentApi = (
 ): EstablishmentApi => ({
   id: establishment.id,
   name: establishment.name,
-  shortName:
-    establishment.kind === 'Commune'
-      ? establishment.name.replaceAll(/^Commune d(e\s|')/g, '')
-      : establishment.name,
+  shortName: establishment.short_name ?? establishment.name,
   siren: establishment.siren.toString(),
   available: establishment.available,
   geoCodes: establishment.localities_geo_code,

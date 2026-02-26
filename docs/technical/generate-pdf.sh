@@ -333,8 +333,6 @@ BEFOREBODY
             -V colorlinks=true \
             -V linkcolor=blue \
             -V urlcolor=blue \
-            -V mainfont="Helvetica Neue" \
-            -V monofont="Menlo" \
             -V toc-own-page=true \
             -B "$TEMPLATE_DIR/before-body.tex" \
             -o "$output_file"

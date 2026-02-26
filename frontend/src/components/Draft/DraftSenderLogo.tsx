@@ -39,19 +39,23 @@ function DraftSenderLogo(props: Readonly<Props>) {
   return (
     <Container
       as="section"
+      role="group"
+      aria-labelledby="draft-sender-logo-label"
       className={classNames(styles.article, props.className)}
       fluid
     >
       <Row>
-        <FileUpload
-          id="fileUploadLogo0"
-          label={
-            <Typography component="h4" variant="h6" mb={2}>
-              Logos de l’expéditeur
-            </Typography>
-          }
-          onUpload={onUpload(0)}
-        />
+        <Typography
+          id="draft-sender-logo-label"
+          component="h4"
+          variant="h6"
+          sx={{ mb: '0.25rem' }}
+        >
+          Logos de l’expéditeur
+        </Typography>
+      </Row>
+      <Row>
+        <FileUpload id="fileUploadLogo0" label={null} onUpload={onUpload(0)} />
         <LogoViewer
           index={0}
           logo={props.value[0]}

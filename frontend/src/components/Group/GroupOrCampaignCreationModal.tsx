@@ -15,6 +15,10 @@ interface GroupOrCampaignCreationModalProps {
   onGroup(): void;
 }
 
+/**
+ * @deprecated Should be removed when the feature flag `new-campaigns` gets enabled.
+ * @returns 
+ */
 function createGroupOrCampaignCreationModal() {
   const options = {
     id: 'group-or-campaign-creation-modal',

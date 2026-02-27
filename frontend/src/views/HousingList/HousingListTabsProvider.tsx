@@ -1,4 +1,7 @@
-import { HOUSING_STATUS_VALUES } from '@zerologementvacant/models';
+import {
+  HOUSING_STATUS_VALUES,
+  toHousingStatusId
+} from '@zerologementvacant/models';
 import {
   createContext,
   type Dispatch,
@@ -18,12 +21,9 @@ interface ContextType {
 const statuses = [
   { id: 'all', label: 'Tous', value: undefined },
   ...HOUSING_STATUS_VALUES.map((status) => {
-    const label = getHousingState(status).title;
-
-    const id = label.toLowerCase().replace(/\s+/g, '-');
     return {
-      id,
-      label,
+      id: toHousingStatusId(status),
+      label: getHousingState(status).title,
       value: status
     };
   })

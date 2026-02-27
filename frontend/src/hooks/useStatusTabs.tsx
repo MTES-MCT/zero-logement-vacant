@@ -1,52 +1,94 @@
-import { useState } from 'react';
+import type { TabsProps } from '@codegouvfr/react-dsfr/Tabs';
+import {
+  HOUSING_STATUS_LABELS,
+  HousingStatus,
+  toHousingStatusId
+} from '@zerologementvacant/models';
+import { Array, Number, pipe } from 'effect';
+import type { ElementOf } from 'ts-essentials';
+import { match, Pattern } from 'ts-pattern';
 
-import type { HousingStatus } from '@zerologementvacant/models';
-import type { HousingCount } from '../models/HousingCount';
-import { useHousingListTabs } from '../views/HousingList/HousingListTabsProvider';
+import type { HousingFilters } from '~/models/HousingFilters';
+import { useCountHousingQuery } from '~/services/housing.service';
+import { useHousingListTabs } from '~/views/HousingList/HousingListTabsProvider';
 
-interface Status {
-  id: string;
-  label: string;
-  value: HousingStatus | undefined;
+function createTab(
+  status: HousingStatus,
+  query: ReturnType<typeof useCountHousingQuery>
+): ElementOf<TabsProps.Controlled['tabs']> {
+  return {
+    tabId: toHousingStatusId(status),
+    label: match(query)
+      .with({ isLoading: true }, () => `${HOUSING_STATUS_LABELS[status]} (...)`)
+      .with(
+        { isSuccess: true, data: Pattern.nonNullable.select() },
+        (count) => `${HOUSING_STATUS_LABELS[status]} (${count.housing})`
+      )
+      .otherwise(() => null)
+  };
 }
 
-export function useStatusTabs(statuses: Status[]) {
-  const { activeTab, setActiveTab } = useHousingListTabs();
+export function useStatusTabs(filters: HousingFilters) {
+  const { activeStatus, activeTab, setActiveTab } = useHousingListTabs();
 
-  const [statusCounts, setStatusCounts] = useState<
-    (HousingCount | undefined)[]
-  >(new Array(statuses.length));
+  const countNeverContactedQuery = useCountHousingQuery({
+    ...filters,
+    status: HousingStatus.NEVER_CONTACTED
+  });
+  const countWaitingQuery = useCountHousingQuery({
+    ...filters,
+    status: HousingStatus.WAITING
+  });
+  const countFirstContactQuery = useCountHousingQuery({
+    ...filters,
+    status: HousingStatus.FIRST_CONTACT
+  });
+  const countInProgressQuery = useCountHousingQuery({
+    ...filters,
+    status: HousingStatus.IN_PROGRESS
+  });
+  const countCompletedQuery = useCountHousingQuery({
+    ...filters,
+    status: HousingStatus.COMPLETED
+  });
+  const countBlockedQuery = useCountHousingQuery({
+    ...filters,
+    status: HousingStatus.BLOCKED
+  });
+  const queries = [
+    countNeverContactedQuery,
+    countWaitingQuery,
+    countFirstContactQuery,
+    countInProgressQuery,
+    countCompletedQuery,
+    countBlockedQuery
+  ];
 
-  const setStatusCount = (status: Status) => {
-    return (count: HousingCount) => {
-      // Use of prevState is required to prevent concurrency issues
-      setStatusCounts((prevState) => {
-        const tmp = [...prevState];
-        const index = statuses.findIndex((s) => s.id === status.id);
-        if (index === -1) {
-          throw new Error('Not found');
-        }
-        tmp.splice(index, 1, count);
-        return tmp;
-      });
-    };
-  };
+  const sum: number | null = queries.every((query) => query.isSuccess)
+    ? pipe(
+        queries,
+        Array.map((query) => query.data.housing),
+        Number.sumAll
+      )
+    : null;
 
-  function isActive(status: Status): boolean {
-    return activeTab === status.id;
-  }
-
-  const getTabLabel = (status: Status): string => {
-    const i = statuses.findIndex((s) => s.id === status.id);
-    const count = statusCounts[i];
-    return `${status.label} (${count?.housing ?? '...'})`;
-  };
+  const tabs: TabsProps.Controlled['tabs'] = [
+    {
+      tabId: 'all',
+      label: sum !== null ? `Tous (${sum})` : 'Tous'
+    },
+    createTab(HousingStatus.NEVER_CONTACTED, countNeverContactedQuery),
+    createTab(HousingStatus.WAITING, countWaitingQuery),
+    createTab(HousingStatus.FIRST_CONTACT, countFirstContactQuery),
+    createTab(HousingStatus.IN_PROGRESS, countInProgressQuery),
+    createTab(HousingStatus.COMPLETED, countCompletedQuery),
+    createTab(HousingStatus.BLOCKED, countBlockedQuery)
+  ];
 
   return {
+    activeStatus,
     activeTab,
-    isActive,
-    getTabLabel,
-    setActiveTab,
-    setStatusCount
+    tabs,
+    setActiveTab
   };
 }

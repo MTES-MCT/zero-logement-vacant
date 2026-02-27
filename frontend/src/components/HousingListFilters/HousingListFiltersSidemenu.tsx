@@ -120,7 +120,7 @@ function HousingListFiltersSidemenu(props: Props) {
             zIndex: theme.zIndex.appBar - 1
           },
           '& .MuiPaper-root': {
-            padding: '0.75rem 0.75rem 0.75rem 1.5rem;',
+            padding: '0.75rem 0.75rem 0.75rem 1.5rem',
             position: 'relative'
           }
         })}

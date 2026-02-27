@@ -1,6 +1,7 @@
 import { Alert } from '@codegouvfr/react-dsfr/Alert';
 import Button from '@codegouvfr/react-dsfr/Button';
 import Grid from '@mui/material/Grid';
+import Stack from '@mui/material/Stack';
 import { useState } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 
@@ -135,98 +136,113 @@ const HousingListView = () => {
 
   return (
     <HousingEditionProvider>
-      <Grid container>
-        <Grid size="auto">
-          <HousingListFiltersSidemenu
-            filters={filters}
-            expand={expand}
-            onChange={onChangeFilters}
-            onReset={onResetFilters}
-            onClose={() => setExpand(false)}
-          />
-        </Grid>
+      <Stack direction="row">
+        <HousingListFiltersSidemenu
+          filters={filters}
+          expand={expand}
+          onChange={onChangeFilters}
+          onReset={onResetFilters}
+          onClose={() => setExpand(false)}
+        />
 
-        <Grid container flexDirection="column" px={3} py={4} size="grow">
-          <Alert
-            severity="success"
-            description={alert}
-            closable
-            small
-            className="fr-mb-2w"
-            isClosed={!isAlertVisible}
-            onClose={() => {
-              setIsAlertVisible(false);
-            }}
-            {...{ role: 'status' }}
-          />
-
-          <Grid container mb={1} spacing={2}>
-            <Grid size="grow">
-              <AppSearchBar
-                initialQuery={filters.query}
-                label="Rechercher (propriétaire, identifiant fiscal, ref. cadastrale...)"
-                placeholder="Rechercher (propriétaire, identifiant fiscal, ref. cadastrale...)"
-                onSearch={searchWithQuery}
-              />
-            </Grid>
-            <Grid size="auto" sx={{ display: 'flex', alignItems: 'center' }}>
-              <Tooltip
-                align="start"
-                place="bottom"
-                title="Pour retrouver une liste de logements, copiez-collez dans la barre de recherche la liste de leurs identifiants fiscaux séparés par un espace. Exemple : « 750123456789 750123456790 750123456791 »"
-              />
-            </Grid>
-            <Grid size="auto">
-              <HousingDisplaySwitch />
-            </Grid>
-            <Grid size="auto">
-              {!isVisitor && <HousingCreationModal onFinish={onFinish} />}
-            </Grid>
-            <Grid size="auto">
-              <Button
-                priority="primary"
-                onClick={() => {
-                  if (hasSelected) {
-                    groupOrCampaignCreationModal.open();
-                    if (showExportAlert) {
-                      setShowExportAlert(false);
-                    }
-                  } else {
-                    setShowExportAlert(true);
-                  }
+        <Grid
+          container
+          component="section"
+          sx={{ padding: '1.5rem', width: '100%' }}
+        >
+          <Grid size="grow">
+            <Stack
+              component="header"
+              spacing="0.75rem"
+              useFlexGap
+              sx={{ flexGrow: 1 }}
+            >
+              <Alert
+                severity="success"
+                description={alert}
+                closable
+                small
+                className="fr-mb-2w"
+                isClosed={!isAlertVisible}
+                onClose={() => {
+                  setIsAlertVisible(false);
                 }}
+                {...{ role: 'status' }}
+              />
+
+              <Stack
+                direction="row"
+                spacing="0.75rem"
+                useFlexGap
+                sx={{ alignItems: 'center' }}
               >
-                Exporter ou contacter
-              </Button>
-            </Grid>
-          </Grid>
+                <Stack sx={{ flex: 1 }}>
+                  <AppSearchBar
+                    initialQuery={filters.query}
+                    label="Rechercher (propriétaire, identifiant fiscal, ref. cadastrale...)"
+                    placeholder="Rechercher (propriétaire, identifiant fiscal, ref. cadastrale...)"
+                    onSearch={searchWithQuery}
+                  />
+                </Stack>
+                <Tooltip
+                  align="start"
+                  place="bottom"
+                  title="Pour retrouver une liste de logements, copiez-collez dans la barre de recherche la liste de leurs identifiants fiscaux séparés par un espace. Exemple : « 750123456789 750123456790 750123456791 »"
+                />
+                <HousingDisplaySwitch />
+              </Stack>
 
-          <Grid sx={{ mb: 3 }} size={12}>
-            <HousingFiltersBadges
-              filters={filters}
-              onChange={onChangeFilters}
-            />
-          </Grid>
+              <HousingFiltersBadges
+                filters={filters}
+                onChange={onChangeFilters}
+              />
+            </Stack>
 
-          <Alert
-            className="fr-mb-2w"
-            closable
-            isClosed={!showExportAlert}
-            severity="info"
-            title="Aucun logement sélectionné"
-            description="Sélectionnez d’abord les logements à intégrer dans le groupe, puis cliquez sur le bouton “Intégrer dans un groupe“."
-            onClose={() => setShowExportAlert(false)}
-          />
+            <Stack spacing="1rem" useFlexGap>
+              <Stack
+                direction="row"
+                component="section"
+                sx={{ justifyContent: 'flex-end' }}
+              >
+                {!isVisitor && <HousingCreationModal onFinish={onFinish} />}
 
-          <Grid mb={1} size={12}>
-            {view === 'map' ? (
-              <HousingListMap filters={filters} />
-            ) : (
-              <HousingListTabs filters={filters} />
-            )}
+                <Button
+                  className="fr-ml-3v"
+                  priority="primary"
+                  onClick={() => {
+                    if (hasSelected) {
+                      groupOrCampaignCreationModal.open();
+                      if (showExportAlert) {
+                        setShowExportAlert(false);
+                      }
+                    } else {
+                      setShowExportAlert(true);
+                    }
+                  }}
+                >
+                  Exporter ou contacter
+                </Button>
+              </Stack>
+
+              <Alert
+                className="fr-mb-2w"
+                closable
+                isClosed={!showExportAlert}
+                severity="info"
+                title="Aucun logement sélectionné"
+                description="Sélectionnez d’abord les logements à intégrer dans le groupe, puis cliquez sur le bouton “Intégrer dans un groupe“."
+                onClose={() => setShowExportAlert(false)}
+              />
+
+              {view === 'map' ? (
+                <HousingListMap filters={filters} />
+              ) : (
+                <HousingListTabs filters={filters} />
+              )}
+            </Stack>
           </Grid>
         </Grid>
-      </Grid>
+      </Stack>
 
       <groupOrCampaignCreationModal.Component
         count={count}

@@ -3,9 +3,10 @@ import Button from '@codegouvfr/react-dsfr/Button';
 import Skeleton from '@mui/material/Skeleton';
 import Typography from '@mui/material/Typography';
 import { HousingStatus, type Occupancy } from '@zerologementvacant/models';
-import { useEffect, useState } from 'react';
+import { useState } from 'react';
 import { useParams } from 'react-router-dom';
 
+import { useNotification } from '~/hooks/useNotification';
 import GroupRemoveHousingModal from '../../components/GroupRemoveHousingModal/GroupRemoveHousingModal';
 import HousingListEditionSideMenu, {
   type BatchEditionFormSchema
@@ -25,7 +26,6 @@ import {
   useCountHousingQuery,
   useUpdateManyHousingMutation
 } from '../../services/housing.service';
-import { useNotification } from '~/hooks/useNotification';
 
 export type HousingListTabProps = {
   isActive: boolean;
@@ -51,10 +51,9 @@ function HousingListTab(props: HousingListTabProps) {
   });
   const totalCount = housingCount?.housing;
 
-  const { data: count, isLoading: isCounting } = useCountHousingQuery(
+  const { data: filteredCount, isLoading: isCounting } = useCountHousingQuery(
     props.filters
   );
-  const filteredCount = count;
 
   const { selectedCount, selected, setSelected, unselectAll } = useSelection(
     filteredCount?.housing,
@@ -62,12 +61,6 @@ function HousingListTab(props: HousingListTabProps) {
   );
   const filteredHousingCount = filteredCount?.housing;
   const filteredOwnerCount = filteredCount?.owners;
-
-  useEffect(() => {
-    if (filteredCount !== undefined) {
-      props.onCountFilteredHousing?.(filteredCount);
-    }
-  }, [filteredCount]); //eslint-disable-line react-hooks/exhaustive-deps
 
   const [updateManyHousing, updateManyHousingMutation] =
     useUpdateManyHousingMutation();

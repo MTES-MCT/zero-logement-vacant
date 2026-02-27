@@ -7,6 +7,23 @@ export enum HousingStatus {
   BLOCKED
 }
 
+/**
+ * A value for the transition to remove the enum `HousingStatus`.
+ */
+export const HOUSING_STATUS_IDS = [
+  'never-contacted',
+  'waiting',
+  'first-contact',
+  'in-progress',
+  'completed',
+  'blocked'
+] as const;
+export type HousingStatusId = (typeof HOUSING_STATUS_IDS)[number];
+
+export function toHousingStatusId(status: HousingStatus): HousingStatusId {
+  return HOUSING_STATUS_IDS[status];
+};
+
 export const HOUSING_STATUS_VALUES: HousingStatus[] = Object.values(
   HousingStatus
 ).filter((status): status is HousingStatus => typeof status !== 'string');

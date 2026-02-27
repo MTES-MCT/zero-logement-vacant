@@ -21,8 +21,8 @@ function createTab(
     label: match(query)
       .with({ isLoading: true }, () => `${HOUSING_STATUS_LABELS[status]} (...)`)
       .with(
-        { isSuccess: true, data: Pattern.nonNullable.select() },
-        (count) => `${HOUSING_STATUS_LABELS[status]} (${count.housing})`
+        { isSuccess: true, data: { housing: Pattern.number.select() } },
+        (housing) => `${HOUSING_STATUS_LABELS[status]} (${housing})`
       )
       .otherwise(() => null)
   };

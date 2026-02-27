@@ -9,7 +9,7 @@ describe('GroupCard', () => {
   it('should render', () => {
     render(
       <Router>
-        <GroupCard group={group} />
+        <GroupCard isActive group={group} />
       </Router>
     );
 
@@ -20,7 +20,7 @@ describe('GroupCard', () => {
   it('should show the number of housing', () => {
     render(
       <Router>
-        <GroupCard group={group} />
+        <GroupCard isActive group={group} />
       </Router>
     );
 
@@ -31,7 +31,7 @@ describe('GroupCard', () => {
   it('should show the number of owners', () => {
     render(
       <Router>
-        <GroupCard group={group} />
+        <GroupCard isActive group={group} />
       </Router>
     );
 
@@ -42,7 +42,7 @@ describe('GroupCard', () => {
   it('should have a link that redirects to the group view', () => {
     render(
       <Router>
-        <GroupCard group={group} />
+        <GroupCard isActive group={group} />
       </Router>
     );
 

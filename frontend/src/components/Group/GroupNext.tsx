@@ -1,0 +1,207 @@
+import { fr } from '@codegouvfr/react-dsfr';
+import { Button } from '@codegouvfr/react-dsfr/Button';
+import Grid from '@mui/material/Grid';
+import Stack from '@mui/material/Stack';
+import Typography from '@mui/material/Typography';
+import type { ReactNode } from 'react';
+
+import type { Campaign } from '../../models/Campaign';
+import type { Group as GroupModel } from '../../models/Group';
+import type { GroupPayload } from '../../models/GroupPayload';
+import { createdBy } from '../../models/User';
+import { dateShortFormat } from '../../utils/dateUtils';
+import { pluralize } from '../../utils/stringUtils';
+import AppLink from '../_app/AppLink/AppLink';
+import { Col, Container, Row, Text } from '../_dsfr';
+import GroupCampaignCreationModal from '../modals/GroupCampaignCreationModal/GroupCampaignCreationModal';
+import GroupRemovalModal from '../modals/GroupRemovalModal/GroupRemovalModal';
+import GroupEditionModal from '../modals/GroupUpdateModal/GroupEditionModal';
+import styles from './group.module.scss';
+import RemoveGroupButton, {
+  createRemoveGroupModal
+} from '~/components/Group/RemoveGroupModal';
+import { createConfirmationModal } from '~/components/modals/ConfirmationModal/ConfirmationModalNext';
+
+const removeGroupModal = createRemoveGroupModal();
+
+interface GroupProps {
+  campaigns?: Campaign[];
+  className?: string;
+  group: GroupModel;
+  onCampaignCreate?: (
+    campaign: Pick<Campaign, 'title' | 'description'>
+  ) => void;
+  onExport?: () => void;
+  onUpdate?: (group: GroupPayload) => void;
+  onRemove?: () => Promise<void>;
+}
+
+function Group(props: GroupProps) {
+  const housing = pluralize(props.group.housingCount)('logement');
+  const owners = pluralize(props.group.ownerCount)('propriétaire');
+
+  const creator: ReactNode = props.group.createdBy
+    ? ` par ${createdBy(props.group.createdBy)}`
+    : null;
+
+  function createCampaign(
+    campaign: Pick<Campaign, 'title' | 'description'>
+  ): void {
+    props.onCampaignCreate?.(campaign);
+  }
+
+  async function removeGroup(): Promise<void> {
+    await props.onRemove?.();
+  }
+
+  function updateGroup(group: GroupPayload): void {
+    props.onUpdate?.(group);
+  }
+
+  return (
+    <Stack component="header">
+      <Grid container component="section">
+        <Grid size={{ xs: 12, md: 9 }}>
+          <Stack direction="row">
+            <Typography component="h1" variant="h4">
+              {props.group.title}
+            </Typography>
+          </Stack>
+        </Grid>
+
+        <Grid
+          size={{ xs: 12, md: 3 }}
+          sx={{ display: 'flex', justifyContent: 'flex-end' }}
+        >
+          <Button
+            priority="tertiary"
+            iconId="ri-delete-bin-line"
+            onClick={removeGroupModal.open}
+          >
+            Supprimer le groupe
+          </Button>
+        </Grid>
+      </Grid>
+
+      <removeGroupModal.Component />
+    </Stack>
+  );
+
+  return (
+    <Stack>
+      <Grid container component="header">
+        <Grid size={{ xs: 12, md: 9 }} spacing="pr-2w">
+          <Container as="header" fluid spacing="mb-1w">
+            <Row alignItems="bottom" spacing="mb-1w">
+              <Typography variant="h2" mr={1} mb={0}>
+                {props.group.title}
+              </Typography>
+              <GroupEditionModal
+                title="Modifier les informations du groupe"
+                openingButtonProps={{
+                  children: 'Modifier',
+                  priority: 'tertiary no outline',
+                  iconId: 'ri-edit-line',
+                  iconPosition: 'right',
+                  size: 'small'
+                }}
+                group={props.group}
+                onSubmit={updateGroup}
+              />
+            </Row>
+            <Row className="weight-500">
+              <Text as="span" spacing="mr-2w mb-0" size="sm">
+                <i
+                  className={fr.cx('ri-home-2-fill', 'fr-icon--sm', 'fr-mr-1v')}
+                />
+                {props.group.housingCount} {housing}
+              </Text>
+              <Text as="span" spacing="mr-2w mb-0" size="sm">
+                <i
+                  className={fr.cx('ri-user-fill', 'fr-icon--sm', 'fr-mr-1v')}
+                />
+                {props.group.ownerCount} {owners}
+              </Text>
+              <Text as="span" spacing="mb-0" size="sm">
+                <i
+                  className={fr.cx(
+                    'ri-edit-box-fill',
+                    'fr-icon--sm',
+                    'fr-mr-1v'
+                  )}
+                />
+                Créé le {dateShortFormat(props.group.createdAt)}
+                {creator}
+              </Text>
+            </Row>
+          </Container>
+
+          <Container as="main" fluid>
+            <Row>
+              <Col n="12">
+                <Typography component="h3" variant="body1" mb={1}>
+                  Description
+                </Typography>
+              </Col>
+              <Col n="12">
+                <Text>{props.group.description}</Text>
+              </Col>
+            </Row>
+            {(props.campaigns?.length ?? 0) > 0 && (
+              <Row spacing="mb-2w">
+                <Col n="12">
+                  <Text className="weight-500" spacing="mb-1w">
+                    Campagnes basées sur ce groupe :
+                  </Text>
+                </Col>
+                {props.campaigns?.map((campaign) => (
+                  <Col n="12" key={campaign.id}>
+                    <AppLink
+                      iconId="ri-mail-fill"
+                      iconPosition="left"
+                      isSimple
+                      key={campaign.id}
+                      to={`/campagnes/${campaign.id}`}
+                    >
+                      {campaign.title}
+                    </AppLink>
+                  </Col>
+                ))}
+              </Row>
+            )}
+          </Container>
+        </Grid>
+
+        <Grid size={{ xs: 12, md: 3 }}>
+          <Container as="aside" className={styles.actions} fluid>
+            <GroupCampaignCreationModal
+              group={props.group}
+              housingCount={props.group.housingCount}
+              openingButtonProps={{
+                className: styles.action
+              }}
+              onSubmit={createCampaign}
+            />
+            <Button
+              className={styles.action}
+              priority="secondary"
+              iconId="ri-upload-2-line"
+              onClick={props.onExport}
+            >
+              Exporter
+            </Button>
+            <GroupRemovalModal
+              campaigns={props.campaigns}
+              openingButtonProps={{
+                className: styles.action
+              }}
+              onSubmit={removeGroup}
+            />
+          </Container>
+        </Grid>
+      </Grid>
+    </Stack>
+  );
+}
+
+export default Group;

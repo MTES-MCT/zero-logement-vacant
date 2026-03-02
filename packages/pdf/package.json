@@ -5,14 +5,12 @@
   "exports": {
     "./package.json": "./package.json",
     ".": {
-      "node": {
-        "types": "./dist/lib/node.d.ts",
-        "import": "./dist/lib/node.js"
-      },
-      "default": {
-        "types": "./dist/lib/browser.d.ts",
-        "import": "./dist/lib/browser.js"
-      }
+      "types": "./dist/lib/browser.d.ts",
+      "import": "./dist/lib/browser.js"
+    },
+    "./node": {
+      "types": "./dist/lib/node.d.ts",
+      "import": "./dist/lib/node.js"
     }
   },
   "dependencies": {
@@ -27,7 +25,9 @@
     "@tsconfig/node20": "20.1.6",
     "@types/node": "20.19.10",
     "@types/react": "18.3.18",
+    "@types/react-dom": "18.3.5",
     "pdf-to-png-converter": "3.11.0",
+    "react-dom": "18.3.1",
     "vite-plugin-dts": "4.5.4"
   },
   "peerDependencies": {

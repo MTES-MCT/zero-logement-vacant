@@ -6,10 +6,12 @@ import { Readable } from 'node:stream';
 import { CampaignTemplate } from '../templates/Campaign.js';
 
 interface GenerateCampaignOptions {
-  housings: HousingDTO[];
+  housings: Array<
+    Omit<HousingDTO, 'owner'> & { owner: NonNullable<HousingDTO['owner']> }
+  >;
   draft: Pick<
     DraftDTO,
-    'subject' | 'body' | 'sender' | 'writtenAt' | 'writtenFrom'
+    'subject' | 'body' | 'logo' | 'sender' | 'writtenAt' | 'writtenFrom'
   >;
 }
 
@@ -35,7 +37,8 @@ export async function generate(options: GenerateCampaignOptions) {
           <CampaignTemplate
             key={housing.id}
             draft={personalizedDraft}
-            housings={options.housings}
+            housing={housing}
+            owner={housing.owner}
           />
         );
       })}

@@ -8,9 +8,11 @@ import { useCountHousingQuery } from '../services/housing.service';
 export function useCampaign() {
   const { id } = useParams<{ id: string }>();
 
-  const { data: campaign, isLoading: isLoadingCampaign } = useGetCampaignQuery(
-    id as string
-  );
+  const {
+    data: campaign,
+    isLoading: isLoadingCampaign,
+    refetch
+  } = useGetCampaignQuery(id as string);
   const { data: drafts, isLoading: isLoadingDraft } = useFindDraftsQuery({
     campaign: id
   });
@@ -24,6 +26,7 @@ export function useCampaign() {
 
   return {
     campaign,
+    refetchCampaign: refetch,
     draft: drafts?.[0],
     count,
     isLoadingCampaign,

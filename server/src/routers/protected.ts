@@ -3,12 +3,9 @@ import {
   MAX_HOUSING_DOCUMENT_SIZE_IN_MiB,
   UserRole
 } from '@zerologementvacant/models';
-import { generateCampaignPDF } from '@zerologementvacant/pdf/node';
 import schemas from '@zerologementvacant/schemas';
 import Router from 'express-promise-router';
 import { param } from 'express-validator';
-import { createWriteStream } from 'fs';
-import { Writable } from 'stream';
 import { object, string } from 'yup';
 
 import accountController from '~/controllers/accountController';
@@ -31,7 +28,6 @@ import ownerController from '~/controllers/ownerController';
 import precisionController from '~/controllers/precisionController';
 import settingsController from '~/controllers/settingsController';
 import userController from '~/controllers/userController';
-import DraftMissingError from '~/errors/draftMissingError';
 import config from '~/infra/config';
 import antivirusMiddleware from '~/middlewares/antivirus';
 import { hasRole, jwtCheck, userCheck } from '~/middlewares/auth';
@@ -42,52 +38,11 @@ import { upload } from '~/middlewares/upload';
 import validator from '~/middlewares/validator';
 import validatorNext from '~/middlewares/validator-next';
 import zipValidationMiddleware from '~/middlewares/zipValidation';
-import { toHousingDTO } from '~/models/HousingApi';
 import { paginationSchema } from '~/models/PaginationApi';
 import sortApi from '~/models/SortApi';
-import draftRepository from '~/repositories/draftRepository';
-import housingRepository from '~/repositories/housingRepository';
 import { isUUIDParam } from '~/utils/validators';
 
 const router = Router();
-
-router.get('/generate', async (request, response) => {
-  
-
-  const [draft, housings] = await Promise.all([
-    draftRepository.findOne({
-      id: '1cb8bd1c-3a99-4d0e-9f13-7481fe76adef',
-      establishmentId: '5b639b6b-f61f-462b-91ea-f5bfbae073cd'
-    }),
-    housingRepository.find({
-      filters: {
-        campaignIds: ['06f9c1d0-2073-4552-b901-7b4d0f3fc897'],
-        establishmentIds: ['5b639b6b-f61f-462b-91ea-f5bfbae073cd']
-      },
-      includes: ['owner'],
-      pagination: {
-        paginate: false
-      }
-    })
-  ]);
-  if (!draft) {
-    throw new DraftMissingError('');
-  }
-
-  console.time('PDF generation');
-  const filteredHousings = housings
-    .filter((housing) => !!housing.owner)
-    .map(toHousingDTO);
-  const stream = await generateCampaignPDF({
-    draft,
-    housings: filteredHousings
-  });
-  console.log(`Generating PDF for ${filteredHousings.length} housings`);
-  const output = createWriteStream('output.pdf', 'binary');
-  await stream.pipeTo(Writable.toWeb(output));
-  console.timeEnd('PDF generation');
-  response.status(200).send();
-});
 
 router.use(jwtCheck());
 router.use(userCheck());

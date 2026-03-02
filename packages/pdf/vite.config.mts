@@ -4,7 +4,7 @@ import * as path from 'path';
 import { defineConfig } from 'vite';
 import dts from 'vite-plugin-dts';
 
-export default defineConfig(() => ({
+export default defineConfig(({ mode }) => ({
   root: import.meta.dirname,
   cacheDir: '../../node_modules/.vite/pdf',
   plugins: [
@@ -14,6 +14,10 @@ export default defineConfig(() => ({
       tsconfigPath: path.join(import.meta.dirname, 'tsconfig.lib.json')
     })
   ],
+  // Development server configuration for previewer
+  server: {
+    open: '/src/preview/index.html'
+  },
   build: {
     emptyOutDir: true,
     lib: {
@@ -23,6 +27,8 @@ export default defineConfig(() => ({
       },
       formats: ['es' as const]
     },
+    // Exclude preview directory from production build
+    sourcemap: mode !== 'production',
     rollupOptions: {
       external: [
         // Peer dependencies - consumers must provide these

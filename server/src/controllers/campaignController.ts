@@ -14,20 +14,24 @@ import {
   HOUSING_STATUS_LABELS,
   HousingFiltersDTO,
   HousingStatus,
-  nextStatus
+  nextStatus,
+  type HousingDTO
 } from '@zerologementvacant/models';
+import { generateCampaignPDF } from '@zerologementvacant/pdf/node';
 import { slugify, timestamp } from '@zerologementvacant/utils';
 import { createS3 } from '@zerologementvacant/utils/node';
 import { Request, RequestHandler, Response } from 'express';
 import { AuthenticatedRequest } from 'express-jwt';
 import { body, param, ValidationChain } from 'express-validator';
 import { constants } from 'http2';
+import { createWriteStream } from 'node:fs';
+import { Writable } from 'node:stream';
 import { v4 as uuidv4 } from 'uuid';
-
 import CampaignEmptyError from '~/errors/campaignEmptyError';
 import CampaignFileMissingError from '~/errors/CampaignFileMissingError';
 import CampaignMissingError from '~/errors/campaignMissingError';
 import CampaignStatusError from '~/errors/campaignStatusError';
+import DraftMissingError from '~/errors/draftMissingError';
 import GroupMissingError from '~/errors/groupMissingError';
 import config from '~/infra/config';
 import {
@@ -44,22 +48,23 @@ import {
   campaignFiltersValidators,
   CampaignQuery
 } from '~/models/CampaignFiltersApi';
+import { toDraftDTO } from '~/models/DraftApi';
 import {
   CampaignEventApi,
   CampaignHousingEventApi,
   HousingEventApi
 } from '~/models/EventApi';
-import { HousingApi, shouldReset } from '~/models/HousingApi';
+import { HousingApi, shouldReset, toHousingDTO } from '~/models/HousingApi';
 import housingFiltersApi from '~/models/HousingFiltersApi';
 import sortApi from '~/models/SortApi';
 import campaignHousingRepository from '~/repositories/campaignHousingRepository';
 import campaignRepository from '~/repositories/campaignRepository';
+import draftRepository from '~/repositories/draftRepository';
 import eventRepository from '~/repositories/eventRepository';
 import groupRepository from '~/repositories/groupRepository';
 import housingRepository from '~/repositories/housingRepository';
 import mailService from '~/services/mailService';
 import { isArrayOf, isString, isUUID, isUUIDParam } from '~/utils/validators';
-
 const getCampaignValidators = [param('id').notEmpty().isUUID()];
 
 async function getCampaign(request: Request, response: Response) {
@@ -616,13 +621,66 @@ async function removeHousing(
   response.status(constants.HTTP_STATUS_OK).send();
 }
 
-const updateNext: RequestHandler<{ id: string }> = async (
+type PathParams = Record<string, string>;
+
+const updateNext: RequestHandler<PathParams, CampaignDTO> = async (
   request,
   response
 ): Promise<void> => {
-  response.status(constants.HTTP_STATUS_NOT_IMPLEMENTED).json({
-    message: 'New campaign update flow not yet implemented'
+  const { establishment, params } = request as AuthenticatedRequest<PathParams>;
+  console.log('Generate campaign PDF', {
+    campaignId: params.id,
+    establishment
   });
+
+  const [campaign, drafts, housings] = await Promise.all([
+    campaignRepository.findOne({
+      id: params.id,
+      establishmentId: establishment.id
+    }),
+    draftRepository.find({
+      filters: {
+        campaign: params.id,
+        establishment: establishment.id
+      }
+    }),
+    housingRepository.find({
+      filters: {
+        campaignIds: [params.id],
+        establishmentIds: [establishment.id]
+      },
+      includes: ['owner'],
+      pagination: { paginate: false }
+    })
+  ]);
+  if (!campaign) {
+    throw new CampaignMissingError(params.id);
+  }
+  const [draft] = drafts;
+  if (!draft) {
+    throw new DraftMissingError(params.id);
+  }
+
+  const stream = await generateCampaignPDF({
+    draft: toDraftDTO(draft),
+    housings: housings.map(toHousingDTO).filter(
+      (
+        housing
+      ): housing is Omit<HousingDTO, 'owner'> & {
+        owner: NonNullable<HousingDTO['owner']>;
+      } => housing.owner !== null
+    )
+  });
+  const file = createWriteStream(
+    `${import.meta.dirname}/../../assets/pdf/${campaign.id}.pdf`
+  );
+  await stream.pipeTo(Writable.toWeb(file));
+  const updated: CampaignApi = {
+    ...campaign,
+    file: `http://localhost:3001/assets/pdf/${campaign.id}.pdf`
+  };
+  await campaignRepository.save(updated)
+  response.status(constants.HTTP_STATUS_OK).json(toCampaignDTO(updated));
 };
 
 const campaignController = {

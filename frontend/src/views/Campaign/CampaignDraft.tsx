@@ -42,6 +42,12 @@ import {
   useUpdateDraftMutation
 } from '../../services/draft.service';
 import styles from './campaign.module.scss';
+import { PDFViewer, Document } from '@react-pdf/renderer';
+import { CampaignTemplate } from '@zerologementvacant/pdf';
+import { useFindHousingQuery } from '~/services/housing.service';
+import { toHousingDTO } from '~/models/Housing';
+import { toOwnerDTO } from '~/models/Owner';
+import { useNotification } from '~/hooks/useNotification';
 
 const schema = yup
   .object({
@@ -59,7 +65,19 @@ interface Props {
 }
 
 function CampaignDraft(props: Readonly<Props>) {
-  const { count, draft, isLoadingDraft } = useCampaign();
+  const { count, draft, isLoadingDraft, refetchCampaign } = useCampaign();
+  const { data: housings } = useFindHousingQuery({
+    filters: {
+      campaignIds: [props.campaign.id]
+    },
+    pagination: {
+      paginate: true,
+      page: 1,
+      perPage: 1
+    }
+  });
+  const housing =
+    housings?.entities?.find((housing) => housing.owner !== null) ?? null;
 
   const [values, setValues] = useState<DraftCreationPayload>({
     subject: '',
@@ -133,11 +151,45 @@ function CampaignDraft(props: Readonly<Props>) {
     ? [update, updateDraftMutation]
     : [create, createDraftMutation];
 
-  const [updateCampaign] = useUpdateCampaignMutation();
+  useEffect(() => {
+    function onKeyDown(event: KeyboardEvent): void {
+      if (
+        event.key.toLowerCase() === 's' &&
+        (event.metaKey || event.ctrlKey) &&
+        !mutation.isLoading
+      ) {
+        event.preventDefault();
+        void save();
+      }
+    }
+
+    window.addEventListener('keydown', onKeyDown);
+    return () => {
+      window.removeEventListener('keydown', onKeyDown);
+    };
+  }, [mutation.isLoading, save]);
+
+  const [updateCampaign, updateCampaignMutation] = useUpdateCampaignMutation();
   async function send(): Promise<void> {
     await save();
-    await updateCampaign({ ...props.campaign, status: 'sending' });
+    await updateCampaign({ ...props.campaign, status: 'sending' }).unwrap();
+    const campaign = await refetchCampaign().unwrap();
+    if (campaign.file) {
+      window.open(campaign.file, '_blank');
+    }
   }
+
+  useNotification({
+    toastId: 'pdf-generation',
+    isError: updateCampaignMutation.isError,
+    isLoading: updateCampaignMutation.isLoading,
+    isSuccess: updateCampaignMutation.isSuccess,
+    message: {
+      error: 'Une erreur est survenue lors de la génération du PDF',
+      loading: 'Génération du PDF...',
+      success: 'PDF généré !'
+    }
+  });
 
   function setBody(body: Body): void {
     setValues({ ...values, ...body });
@@ -280,6 +332,20 @@ function CampaignDraft(props: Readonly<Props>) {
                           subject={values.subject}
                           onChange={setBody}
                         />
+                      </Col>
+
+                      <Col>
+                        {!!draft && !!housing && !!housing.owner ? (
+                          <PDFViewer height="100%" width="100%">
+                            <Document>
+                              <CampaignTemplate
+                                draft={draft}
+                                housing={toHousingDTO(housing)}
+                                owner={toOwnerDTO(housing.owner)}
+                              />
+                            </Document>
+                          </PDFViewer>
+                        ) : null}
                       </Col>
                     </Row>
                     <DraftSignature

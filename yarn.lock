@@ -12895,6 +12895,15 @@ __metadata:
   languageName: node
   linkType: hard
 
+"@types/react-dom@npm:18.3.5":
+  version: 18.3.5
+  resolution: "@types/react-dom@npm:18.3.5"
+  peerDependencies:
+    "@types/react": ^18.0.0
+  checksum: 10c0/b163d35a6b32a79f5782574a7aeb12a31a647e248792bf437e6d596e2676961c394c5e3c6e91d1ce44ae90441dbaf93158efb4f051c0d61e2612f1cb04ce4faa
+  languageName: node
+  linkType: hard
+
 "@types/react-dom@npm:18.3.7":
   version: 18.3.7
   resolution: "@types/react-dom@npm:18.3.7"
@@ -14342,9 +14351,11 @@ __metadata:
     "@tsconfig/node20": "npm:20.1.6"
     "@types/node": "npm:20.19.10"
     "@types/react": "npm:18.3.18"
+    "@types/react-dom": "npm:18.3.5"
     "@zerologementvacant/models": "workspace:*"
     pdf-to-png-converter: "npm:3.11.0"
     react: "npm:18.3.1"
+    react-dom: "npm:18.3.1"
     react-pdf-html: "npm:2.1.5"
     ts-pattern: "npm:5.8.0"
     vite-plugin-dts: "npm:4.5.4"

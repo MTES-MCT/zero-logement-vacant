@@ -206,6 +206,44 @@ describe('Campaign view', () => {
     expect(alert).toBeVisible();
   });
 
+  it('should save the draft on Cmd+S', async () => {
+    campaign.status = 'draft';
+
+    renderView({ campaign, housings, draft });
+
+    const form = await screen.findByRole('form');
+    const name = await within(form).findByLabelText(
+      /^Nom de la collectivité ou de l’administration/
+    );
+    if (sender.name) {
+      await user.type(name, sender.name);
+    }
+
+    await user.keyboard('{Meta>}s{/Meta}');
+
+    const alert = await screen.findByRole('alert');
+    expect(alert).toBeVisible();
+  });
+
+  it('should save the draft on Ctrl+S', async () => {
+    campaign.status = 'draft';
+
+    renderView({ campaign, housings, draft });
+
+    const form = await screen.findByRole('form');
+    const name = await within(form).findByLabelText(
+      /^Nom de la collectivité ou de l’administration/
+    );
+    if (sender.name) {
+      await user.type(name, sender.name);
+    }
+
+    await user.keyboard('{Control>}s{/Control}');
+
+    const alert = await screen.findByRole('alert');
+    expect(alert).toBeVisible();
+  });
+
   it.skip('should update the draft on button click', async () => {
     renderView({ campaign, housings, draft });
 

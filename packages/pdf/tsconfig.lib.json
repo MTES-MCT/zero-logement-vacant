@@ -10,7 +10,7 @@
     "strict": true,
     "rootDir": "src",
     "outDir": "dist/lib",
-    "types": ["vite/client"]
+    "types": ["node", "vite/client"]
   },
   "include": ["src/**/*.ts", "src/**/*.tsx"],
   "exclude": [

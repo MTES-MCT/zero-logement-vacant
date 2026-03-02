@@ -25,6 +25,7 @@ function SendButton(props: Readonly<Props>) {
   }
 
   async function submit(): Promise<void> {
+    modal.close();
     await props.onSend();
   }
 

@@ -23,7 +23,7 @@
           "dependentTasksOutputFiles": "**/*.d.ts"
         }
       ],
-      "outputs": ["{projectRoot}/dist"]
+      "outputs": ["{projectRoot}/dist/lib"]
     }
   }
 }

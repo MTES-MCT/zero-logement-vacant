@@ -2,13 +2,13 @@ import { StyleSheet, View, type ViewProps } from '@react-pdf/renderer';
 import { type ReactNode } from 'react';
 import { match, Pattern } from 'ts-pattern';
 
-interface StackProps {
+interface StackProps extends ViewProps {
   children: ReactNode;
   /**
    * @default 'column'
    */
   direction?: 'row' | 'column';
-  spacing?: number | string;
+  spacing?: string | number;
   style?: ViewProps['style'];
 }
 
@@ -27,11 +27,15 @@ export function Stack(props: Readonly<StackProps>) {
     .with('column', () => styles.column)
     .exhaustive();
 
+  const gap = { gap: props.spacing };
+
   const additionalStyle = match(props.style)
     .with(undefined, () => [])
     .with(Pattern.array(Pattern.any), (style) => style)
     .with(Pattern.any, (style) => [style])
     .exhaustive();
 
-  return <View style={[direction, ...additionalStyle]}>{props.children}</View>;
+  return (
+    <View style={[direction, gap, ...additionalStyle]}>{props.children}</View>
+  );
 }

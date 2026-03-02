@@ -349,7 +349,8 @@ class EntityProcessor:
     def _call_api_entreprise(self, nature_juridique: str, query: str, page: int = 1) -> Optional[Dict]:
         """Call the API Entreprise to search for entities."""
         time.sleep(0.5)  # Rate limiting
-        url = f"https://recherche-entreprises.api.gouv.fr/search?nature_juridique={nature_juridique}&q={query}&per_page=25&page={page}"
+        # etat_administratif=A filters for active establishments only (excludes closed/ceased)
+        url = f"https://recherche-entreprises.api.gouv.fr/search?nature_juridique={nature_juridique}&q={query}&etat_administratif=A&per_page=25&page={page}"
         try:
             response = requests.get(url, timeout=10)
             if response.status_code == 200:

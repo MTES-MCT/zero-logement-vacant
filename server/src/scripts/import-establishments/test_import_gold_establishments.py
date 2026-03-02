@@ -302,6 +302,7 @@ class TestTransformRow:
             "Siret": "12345678901234",
             "Name-zlv": "COMMUNE DE PARIS",
             "Kind-admin": "COM",
+            "Kind-admin_meta": "Collectivité Territoriale",
             "Geo_Perimeter": "['75001', '75002']",
             "Millesime": "2025",
         }
@@ -310,7 +311,8 @@ class TestTransformRow:
         assert result is not None
         assert result["siren"] == 123456789
         assert result["siret"] == "12345678901234"
-        assert result["kind_admin_meta"] == "COM"
+        assert result["kind_admin"] == "COM"
+        assert result["kind_admin_meta"] == "Collectivité Territoriale"
         assert result["localities_geo_code"] == ["75001", "75002"]
         assert result["source"] == "gold_establishments_2025"
         assert result["available"] is True
@@ -396,10 +398,12 @@ class TestTransformRow:
             "Siren": "123456789",
             "Name-zlv": "Test",
             "Kind-admin": "",
+            "Kind-admin_meta": "",
         }
         result = importer.transform_row(row)
 
         assert result is not None
+        assert result["kind_admin"] is None
         assert result["kind_admin_meta"] is None
 
 
@@ -464,7 +468,8 @@ class TestBatchUpsert:
                 "siret": "12345678901234",
                 "name": "Test",
                 "short_name": "Test",
-                "kind_admin_meta": "COM",
+                "kind_admin": "COM",
+                "kind_admin_meta": "Collectivité Territoriale",
                 "millesime": "2025",
                 "layer_geo_label": None,
                 "dep_code": "75",
@@ -493,7 +498,8 @@ class TestBatchUpsert:
                 "siret": "12345678901234",
                 "name": "Test Updated",
                 "short_name": "Test",
-                "kind_admin_meta": "COM",
+                "kind_admin": "COM",
+                "kind_admin_meta": "Collectivité Territoriale",
                 "millesime": "2025",
                 "layer_geo_label": None,
                 "dep_code": "75",
@@ -523,7 +529,8 @@ class TestBatchUpsert:
                 "siret": "12345678901234",
                 "name": "Test",
                 "short_name": "Test",
-                "kind_admin_meta": "COM",
+                "kind_admin": "COM",
+                "kind_admin_meta": "Collectivité Territoriale",
                 "millesime": "2025",
                 "layer_geo_label": None,
                 "dep_code": "75",
@@ -588,10 +595,12 @@ class TestProcessSinglePair:
             "Siren": "219710015",
             "Name-zlv": "COMMUNE DE BASSE-TERRE",
             "Kind-admin": "COM-TOM",
+            "Kind-admin_meta": "Collectivité Territoriale",
             "Geo_Perimeter": "['97101']",
         }
         result = importer.transform_row(row)
 
         assert result is not None
-        assert result["kind_admin_meta"] == "COM-TOM"
+        assert result["kind_admin"] == "COM-TOM"
+        assert result["kind_admin_meta"] == "Collectivité Territoriale"
         assert result["localities_geo_code"] == ["97101"]

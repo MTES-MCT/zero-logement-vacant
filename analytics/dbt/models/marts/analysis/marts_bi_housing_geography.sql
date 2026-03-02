@@ -6,7 +6,7 @@ config (
 }}
 
 -- Marts BI: Housing with geographic context
--- Joins housing to city features with all computed columns needed by marts_bi_housing_complete
+-- Joins housing to city features with all computed columns needed
 
 WITH city_features AS (
     SELECT * FROM {{ ref('int_analysis_city_features') }}

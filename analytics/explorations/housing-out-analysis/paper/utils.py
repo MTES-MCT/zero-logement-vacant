@@ -95,6 +95,42 @@ class FeatureAnalysisResult:
     notes: str = ""
 
 
+@dataclass
+class StratificationConfig:
+    """Configuration for a stratification variable."""
+    feature: str
+    table: str
+    feature_type: str  # 'categorical' or 'boolean'
+    true_label: str = "Oui"
+    false_label: str = "Non"
+    label: str = ""  # Human-readable name
+
+    def __post_init__(self):
+        if not self.label:
+            self.label = self.feature
+
+
+@dataclass
+class StratifiedFeatureAnalysisResult:
+    """Analysis result for a feature within a single stratum."""
+    stratify_feature: str
+    stratify_value: str
+    stratum_n: int
+    stratum_n_out: int
+    stratum_exit_rate: float
+    category: str
+    feature: str
+    feature_type: str
+    modalities: list[ModalityResult] = field(default_factory=list)
+    global_exit_rate: float = 0.0
+    max_exit_rate: float = 0.0
+    min_exit_rate: float = 0.0
+    max_modality: str = ""
+    min_modality: str = ""
+    impact_score: float = 0.0
+    notes: str = ""
+
+
 # =============================================================================
 # FEATURE ANALYSIS FUNCTIONS
 # =============================================================================
@@ -387,6 +423,291 @@ def analyze_continuous_feature(
 
 
 # =============================================================================
+# STRATIFIED FEATURE ANALYSIS FUNCTIONS
+# =============================================================================
+
+def _build_stratified_from(
+    table: str,
+    join_table: Optional[str],
+    join_key: str,
+    stratify_table: str,
+) -> tuple[str, str, str, str]:
+    """Build FROM/JOIN clause for stratified queries.
+
+    All marts tables share housing_id as unique key, so joins are 1:1.
+    Deduplicates tables when stratify_table matches feature or join table.
+
+    Returns (from_clause, feature_alias, out_alias, strat_alias)
+    """
+    parts = [f"FROM {table} t"]
+    feature_alias = "t"
+
+    if join_table:
+        parts.append(f"JOIN {join_table} c ON t.{join_key} = c.{join_key}")
+        out_alias = "c"
+    else:
+        out_alias = "t"
+
+    if stratify_table == table:
+        strat_alias = "t"
+    elif join_table and stratify_table == join_table:
+        strat_alias = out_alias
+    else:
+        base = out_alias if join_table else "t"
+        parts.append(f"JOIN {stratify_table} s ON {base}.{join_key} = s.{join_key}")
+        strat_alias = "s"
+
+    from_clause = "\n    ".join(parts)
+    return from_clause, feature_alias, out_alias, strat_alias
+
+
+def _strat_value_expr(alias: str, config: StratificationConfig) -> str:
+    """SQL expression that converts the stratification column to a string label."""
+    if config.feature_type == "boolean":
+        return (
+            f"CASE WHEN {alias}.{config.feature} "
+            f"THEN '{config.true_label}' "
+            f"ELSE '{config.false_label}' END"
+        )
+    return f"CAST({alias}.{config.feature} AS VARCHAR)"
+
+
+def _query_stratum_stats(
+    from_clause: str,
+    out_alias: str,
+    strat_alias: str,
+    strat_expr: str,
+    stratify_feature: str,
+) -> pd.DataFrame:
+    """Query exit rate statistics per stratum."""
+    sql = f"""
+    SELECT
+        {strat_expr} as stratum,
+        COUNT(*) as stratum_n,
+        SUM({out_alias}.is_housing_out) as stratum_n_out,
+        ROUND(AVG({out_alias}.is_housing_out) * 100, 4) as stratum_exit_rate
+    {from_clause}
+    WHERE {strat_alias}.{stratify_feature} IS NOT NULL
+    GROUP BY 1
+    """
+    return query_df(sql)
+
+
+def _build_stratified_results(
+    cross_df: pd.DataFrame,
+    strat_df: pd.DataFrame,
+    category: str,
+    feature: str,
+    feature_type: str,
+    global_exit_rate: float,
+    stratify_feature: str,
+) -> list[StratifiedFeatureAnalysisResult]:
+    """Build StratifiedFeatureAnalysisResult list from cross-tab + stratum stats DataFrames."""
+    if cross_df.empty:
+        return []
+
+    strat_map = {str(row["stratum"]): row for _, row in strat_df.iterrows()}
+    results = []
+
+    for stratum_value, group in cross_df.groupby("stratum", sort=True):
+        stratum_value = str(stratum_value)
+        strat_info = strat_map.get(stratum_value, {})
+        stratum_exit_rate = float(strat_info.get("stratum_exit_rate", 0))
+
+        modalities = []
+        for _, row in group.iterrows():
+            multiplier = (
+                round(row["exit_rate_pct"] / global_exit_rate, 2)
+                if global_exit_rate > 0 else 0
+            )
+            modalities.append(ModalityResult(
+                modality=str(row["modality"]),
+                n=int(row["n"]),
+                n_out=int(row["n_out"]),
+                exit_rate_pct=float(row["exit_rate_pct"]),
+                multiplier=multiplier,
+            ))
+
+        rates = group["exit_rate_pct"]
+        max_rate = float(rates.max())
+        min_rate = float(rates.min())
+        impact = round(max_rate / min_rate, 2) if min_rate > 0 else 0
+
+        sorted_group = group.sort_values("exit_rate_pct", ascending=False)
+
+        results.append(StratifiedFeatureAnalysisResult(
+            stratify_feature=stratify_feature,
+            stratify_value=stratum_value,
+            stratum_n=int(strat_info.get("stratum_n", 0)),
+            stratum_n_out=int(strat_info.get("stratum_n_out", 0)),
+            stratum_exit_rate=stratum_exit_rate,
+            category=category,
+            feature=feature,
+            feature_type=feature_type,
+            modalities=modalities,
+            global_exit_rate=global_exit_rate,
+            max_exit_rate=max_rate,
+            min_exit_rate=min_rate,
+            max_modality=str(sorted_group.iloc[0]["modality"]) if len(sorted_group) > 0 else "",
+            min_modality=str(sorted_group.iloc[-1]["modality"]) if len(sorted_group) > 0 else "",
+            impact_score=impact,
+        ))
+
+    return results
+
+
+def analyze_categorical_feature_stratified(
+    table: str,
+    feature: str,
+    category: str,
+    global_exit_rate: float,
+    stratify: StratificationConfig,
+    min_count: int = 100,
+    join_table: Optional[str] = None,
+    join_key: str = "housing_id",
+) -> list[StratifiedFeatureAnalysisResult]:
+    """Analyze a categorical feature stratified by another variable.
+
+    Returns one StratifiedFeatureAnalysisResult per stratum value.
+    """
+    from_clause, feat_a, out_a, strat_a = _build_stratified_from(
+        table, join_table, join_key, stratify.table
+    )
+    strat_expr = _strat_value_expr(strat_a, stratify)
+
+    strat_df = _query_stratum_stats(
+        from_clause, out_a, strat_a, strat_expr, stratify.feature
+    )
+
+    cross_sql = f"""
+    SELECT
+        CAST({feat_a}.{feature} AS VARCHAR) as modality,
+        {strat_expr} as stratum,
+        COUNT(*) as n,
+        SUM({out_a}.is_housing_out) as n_out,
+        ROUND(AVG({out_a}.is_housing_out) * 100, 2) as exit_rate_pct
+    {from_clause}
+    WHERE {feat_a}.{feature} IS NOT NULL
+      AND {strat_a}.{stratify.feature} IS NOT NULL
+    GROUP BY 1, 2
+    HAVING COUNT(*) >= {min_count}
+    ORDER BY stratum, exit_rate_pct DESC
+    """
+    cross_df = query_df(cross_sql)
+
+    return _build_stratified_results(
+        cross_df, strat_df, category, feature, "categorical",
+        global_exit_rate, stratify.feature,
+    )
+
+
+def analyze_boolean_feature_stratified(
+    table: str,
+    feature: str,
+    category: str,
+    global_exit_rate: float,
+    stratify: StratificationConfig,
+    true_label: str = "Oui",
+    false_label: str = "Non",
+    min_count: int = 100,
+    join_table: Optional[str] = None,
+    join_key: str = "housing_id",
+) -> list[StratifiedFeatureAnalysisResult]:
+    """Analyze a boolean feature stratified by another variable."""
+    from_clause, feat_a, out_a, strat_a = _build_stratified_from(
+        table, join_table, join_key, stratify.table
+    )
+    strat_expr = _strat_value_expr(strat_a, stratify)
+    feat_expr = (
+        f"CASE WHEN {feat_a}.{feature} "
+        f"THEN '{true_label}' ELSE '{false_label}' END"
+    )
+
+    strat_df = _query_stratum_stats(
+        from_clause, out_a, strat_a, strat_expr, stratify.feature
+    )
+
+    cross_sql = f"""
+    SELECT
+        {feat_expr} as modality,
+        {strat_expr} as stratum,
+        COUNT(*) as n,
+        SUM({out_a}.is_housing_out) as n_out,
+        ROUND(AVG({out_a}.is_housing_out) * 100, 2) as exit_rate_pct
+    {from_clause}
+    WHERE {feat_a}.{feature} IS NOT NULL
+      AND {strat_a}.{stratify.feature} IS NOT NULL
+    GROUP BY 1, 2
+    ORDER BY stratum, exit_rate_pct DESC
+    """
+    cross_df = query_df(cross_sql)
+
+    return _build_stratified_results(
+        cross_df, strat_df, category, feature, "boolean",
+        global_exit_rate, stratify.feature,
+    )
+
+
+def analyze_continuous_feature_stratified(
+    table: str,
+    feature: str,
+    category: str,
+    global_exit_rate: float,
+    stratify: StratificationConfig,
+    n_buckets: int = 10,
+    min_count: int = 100,
+    join_table: Optional[str] = None,
+    join_key: str = "housing_id",
+) -> list[StratifiedFeatureAnalysisResult]:
+    """Analyze a continuous feature (NTILE buckets) stratified by another variable.
+
+    NTILE is partitioned by stratum so each stratum gets its own quantile buckets.
+    """
+    from_clause, feat_a, out_a, strat_a = _build_stratified_from(
+        table, join_table, join_key, stratify.table
+    )
+    strat_expr = _strat_value_expr(strat_a, stratify)
+
+    strat_df = _query_stratum_stats(
+        from_clause, out_a, strat_a, strat_expr, stratify.feature
+    )
+
+    cross_sql = f"""
+    WITH bucketed AS (
+        SELECT
+            {feat_a}.{feature},
+            {out_a}.is_housing_out,
+            {strat_expr} as stratum,
+            NTILE({n_buckets}) OVER (
+                PARTITION BY {strat_expr}
+                ORDER BY {feat_a}.{feature}
+            ) as bucket
+        {from_clause}
+        WHERE {feat_a}.{feature} IS NOT NULL
+          AND {strat_a}.{stratify.feature} IS NOT NULL
+    )
+    SELECT
+        'Q' || bucket || ': ' || CAST(MIN({feature}) AS INTEGER)
+            || '-' || CAST(MAX({feature}) AS INTEGER) as modality,
+        stratum,
+        bucket,
+        COUNT(*) as n,
+        SUM(is_housing_out) as n_out,
+        ROUND(AVG(is_housing_out) * 100, 2) as exit_rate_pct
+    FROM bucketed
+    GROUP BY bucket, stratum
+    HAVING COUNT(*) >= {min_count}
+    ORDER BY stratum, bucket
+    """
+    cross_df = query_df(cross_sql)
+
+    return _build_stratified_results(
+        cross_df, strat_df, category, feature, "continuous",
+        global_exit_rate, stratify.feature,
+    )
+
+
+# =============================================================================
 # OUTPUT GENERATION
 # =============================================================================
 
@@ -414,6 +735,45 @@ def results_to_csv_rows(results: list[FeatureAnalysisResult]) -> list[dict]:
 def results_to_dataframe(results: list[FeatureAnalysisResult]) -> pd.DataFrame:
     """Convert analysis results to a DataFrame."""
     rows = results_to_csv_rows(results)
+    return pd.DataFrame(rows)
+
+
+def stratified_results_to_csv_rows(
+    results: list[StratifiedFeatureAnalysisResult],
+) -> list[dict]:
+    """Convert stratified analysis results to CSV rows with stratum columns."""
+    rows = []
+    for result in results:
+        for mod in result.modalities:
+            stratum_multiplier = (
+                round(mod.exit_rate_pct / result.stratum_exit_rate, 2)
+                if result.stratum_exit_rate > 0 else 0
+            )
+            rows.append({
+                "category": result.category,
+                "feature": result.feature,
+                "feature_type": result.feature_type,
+                "modality": mod.modality,
+                "n": mod.n,
+                "n_out": mod.n_out,
+                "exit_rate_pct": mod.exit_rate_pct,
+                "global_exit_rate": result.global_exit_rate,
+                "multiplier": mod.multiplier,
+                "impact_score": result.impact_score,
+                "notes": result.notes,
+                "stratify_feature": result.stratify_feature,
+                "stratify_value": result.stratify_value,
+                "stratum_exit_rate": result.stratum_exit_rate,
+                "stratum_multiplier": stratum_multiplier,
+            })
+    return rows
+
+
+def stratified_results_to_dataframe(
+    results: list[StratifiedFeatureAnalysisResult],
+) -> pd.DataFrame:
+    """Convert stratified results to a DataFrame."""
+    rows = stratified_results_to_csv_rows(results)
     return pd.DataFrame(rows)
 
 
@@ -570,4 +930,130 @@ def generate_summary_markdown(
         "",
     ])
     
+    return "\n".join(lines)
+
+
+def generate_stratified_markdown_report(
+    results: list[StratifiedFeatureAnalysisResult],
+    title: str,
+    global_stats: dict,
+    stratify_feature: str,
+    top_n: int = 5,
+) -> str:
+    """Generate a markdown report with per-stratum analysis sections."""
+    from collections import defaultdict
+
+    by_stratum: dict[str, list[StratifiedFeatureAnalysisResult]] = defaultdict(list)
+    for r in results:
+        by_stratum[r.stratify_value].append(r)
+
+    lines = [
+        f"# {title}",
+        "",
+        f"*Analyse stratifiee par **{stratify_feature}***",
+        "",
+        "---",
+        "",
+        "## Statistiques globales",
+        "",
+        f"- **Total logements**: {global_stats['total_housing']:,}",
+        f"- **Taux de sortie global**: {global_stats['exit_rate_pct']:.2f}%",
+        f"- **Variable de stratification**: {stratify_feature}",
+        f"- **Nombre de strates**: {len(by_stratum)}",
+        "",
+    ]
+
+    # Stratum overview table
+    lines.extend([
+        "## Taux de sortie par strate",
+        "",
+        "| Strate | N | N sortis | Taux sortie |",
+        "|--------|---|----------|-------------|",
+    ])
+    for stratum_value in sorted(by_stratum.keys()):
+        stratum_results = by_stratum[stratum_value]
+        if stratum_results:
+            s = stratum_results[0]
+            lines.append(
+                f"| {stratum_value} | {s.stratum_n:,} | "
+                f"{s.stratum_n_out:,} | {s.stratum_exit_rate:.2f}% |"
+            )
+    lines.extend(["", "---", ""])
+
+    # Per-stratum detail
+    for stratum_value in sorted(by_stratum.keys()):
+        stratum_results = by_stratum[stratum_value]
+        if not stratum_results:
+            continue
+        sample = stratum_results[0]
+
+        lines.extend([
+            f"## Strate: {stratify_feature} = {stratum_value}",
+            "",
+            f"- **N**: {sample.stratum_n:,}",
+            f"- **Taux de sortie strate**: {sample.stratum_exit_rate:.2f}%",
+            f"- **Taux de sortie global**: {global_stats['exit_rate_pct']:.2f}%",
+            "",
+        ])
+
+        sorted_results = sorted(
+            stratum_results, key=lambda x: x.impact_score, reverse=True
+        )
+
+        lines.append("### Top facteurs")
+        lines.append("")
+        lines.append("| Rang | Feature | Type | Impact | Taux max | Taux min |")
+        lines.append("|------|---------|------|--------|----------|----------|")
+
+        for i, result in enumerate(sorted_results[:top_n], 1):
+            lines.append(
+                f"| {i} | {result.feature} | {result.feature_type} "
+                f"| x {result.impact_score:.2f} "
+                f"| {result.max_exit_rate:.1f}% ({result.max_modality}) "
+                f"| {result.min_exit_rate:.1f}% ({result.min_modality}) |"
+            )
+
+        lines.extend(["", "### Detail par feature", ""])
+
+        for result in sorted_results:
+            lines.append(f"#### {result.feature}")
+            lines.append("")
+            lines.append(
+                f"*Type: {result.feature_type} | Impact: x {result.impact_score:.2f}*"
+            )
+            lines.append("")
+
+            lines.append("| Modalite | N | Taux sortie | vs global | vs strate |")
+            lines.append("|----------|---|-------------|-----------|-----------|")
+
+            for mod in result.modalities[:10]:
+                strat_mult = (
+                    round(mod.exit_rate_pct / result.stratum_exit_rate, 2)
+                    if result.stratum_exit_rate > 0 else 0
+                )
+                lines.append(
+                    f"| {mod.modality} | {mod.n:,} | {mod.exit_rate_pct:.1f}% "
+                    f"| x {mod.multiplier:.2f} | x {strat_mult:.2f} |"
+                )
+
+            if len(result.modalities) > 10:
+                lines.append(
+                    f"| ... | ({len(result.modalities) - 10} autres) | ... | ... | ... |"
+                )
+
+            lines.extend(["", ""])
+
+        lines.extend(["---", ""])
+
+    # Methodology footer
+    lines.extend([
+        "## Notes methodologiques",
+        "",
+        f"- **Stratification**: Analyse par sous-population definie par {stratify_feature}",
+        "- **vs global**: Multiplicateur par rapport au taux de sortie global",
+        "- **vs strate**: Multiplicateur par rapport au taux de sortie de la strate",
+        f"- **Seuil minimum**: Modalites avec < 100 observations exclues",
+        "",
+    ])
+
     return "\n".join(lines)

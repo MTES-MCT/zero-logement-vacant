@@ -18,11 +18,11 @@ soit **1,181,700** logements sur **2,529,730** analyses.
 | 1 | proprietaires | owner_age_category | x 5.03 | 69.7% vs 13.8% |
 | 2 | proprietaires | owner_generation | x 4.94 | 68.4% vs 13.8% |
 | 3 | caracteristiques | is_taxed | x 3.98 | 79.5% vs 20.0% |
-| 4 | proprietaires | owner_is_company | x 3.68 | 53.3% vs 14.5% |
-| 5 | caracteristiques | cadastral_classification_label | x 3.20 | 93.1% vs 29.1% |
-| 6 | caracteristiques | has_recent_mutation | x 3.11 | 52.1% vs 16.7% |
-| 7 | caracteristiques | vacancy_duration_category | x 2.58 | 69.0% vs 26.8% |
-| 8 | caracteristiques | vacancy_severity | x 2.55 | 68.3% vs 26.8% |
+| 4 | caracteristiques | vacancy_severity | x 3.93 | 66.9% vs 17.0% |
+| 5 | caracteristiques | vacancy_duration_category | x 3.88 | 66.1% vs 17.0% |
+| 6 | proprietaires | owner_is_company | x 3.68 | 53.3% vs 14.5% |
+| 7 | caracteristiques | cadastral_classification_label | x 3.20 | 93.1% vs 29.1% |
+| 8 | caracteristiques | has_recent_mutation | x 3.10 | 52.0% vs 16.8% |
 | 9 | caracteristiques | rental_value_category | x 2.54 | 100.0% vs 39.4% |
 | 10 | caracteristiques | condominium | x 2.54 | 100.0% vs 39.4% |
 
@@ -33,17 +33,17 @@ soit **1,181,700** logements sur **2,529,730** analyses.
 - **is_taxed** -> **x 3.98** (Non taxe vs Taxe vacance)
   - Taux de sortie: 79.5% vs 20.0%
 
+- **vacancy_severity** -> **x 3.93** (Moderee vs Legere)
+  - Taux de sortie: 66.9% vs 17.0%
+
+- **vacancy_duration_category** -> **x 3.88** (3-5 ans vs 0-2 ans)
+  - Taux de sortie: 66.1% vs 17.0%
+
 - **cadastral_classification_label** -> **x 3.20** (Inconnu vs Tres mediocre)
   - Taux de sortie: 93.1% vs 29.1%
 
-- **has_recent_mutation** -> **x 3.11** (Pas de mutation recente vs Mutation recente)
-  - Taux de sortie: 52.1% vs 16.7%
-
-- **vacancy_duration_category** -> **x 2.58** (3-5 ans vs 0-2 ans)
-  - Taux de sortie: 69.0% vs 26.8%
-
-- **vacancy_severity** -> **x 2.55** (Moderee vs Legere)
-  - Taux de sortie: 68.3% vs 26.8%
+- **has_recent_mutation** -> **x 3.10** (Pas de mutation recente vs Mutation recente)
+  - Taux de sortie: 52.0% vs 16.8%
 
 ---
 
@@ -55,14 +55,14 @@ soit **1,181,700** logements sur **2,529,730** analyses.
 - **departement_code** -> **x 1.66** (76 vs 23)
   - Taux de sortie: 55.9% vs 33.7%
 
-- **dvf_total_transactions_2019_2024** -> **x 1.55** (Q10 vs Q1)
-  - Taux de sortie: 56.5% vs 36.5%
+- **dvf_total_transactions_2019_2024** -> **x 1.56** (Q10 vs Q1)
+  - Taux de sortie: 56.8% vs 36.5%
 
-- **population_2022** -> **x 1.52** (Q10 vs Q1)
-  - Taux de sortie: 55.6% vs 36.6%
+- **population_2022** -> **x 1.55** (Q10 vs Q1)
+  - Taux de sortie: 56.6% vs 36.6%
 
-- **densite_label_7** -> **x 1.51** (Grands centres urbains vs Rural à habitat très dispersé)
-  - Taux de sortie: 53.6% vs 35.5%
+- **densite_grid_7** -> **x 1.52** (Q2 vs Q10)
+  - Taux de sortie: 55.4% vs 36.5%
 
 ---
 
@@ -78,29 +78,29 @@ soit **1,181,700** logements sur **2,529,730** analyses.
   - Taux de sortie: 53.3% vs 14.5%
 
 - **owner_has_phone** -> **x 1.70** (A un telephone vs Sans telephone)
-  - Taux de sortie: 79.4% vs 46.6%
+  - Taux de sortie: 79.2% vs 46.6%
 
-- **owner_has_email** -> **x 1.68** (A un email vs Sans email)
-  - Taux de sortie: 78.5% vs 46.7%
+- **owner_contactable** -> **x 1.68** (Contactable vs Non contactable)
+  - Taux de sortie: 78.3% vs 46.6%
 
 ---
 
 ## Zlv_Usage
 
-- **group_intensity** -> **x 2.18** (Aucun groupe vs 4+ groupes)
-  - Taux de sortie: 48.2% vs 22.1%
+- **city_campagnes_envoyees** -> **x 1.36** (Q8 vs Q1)
+  - Taux de sortie: 55.9% vs 41.2%
 
-- **was_exported_from_group** -> **x 1.66** (Non exporte vs Exporte depuis groupe)
-  - Taux de sortie: 48.2% vs 29.1%
+- **city_groupes_crees** -> **x 1.34** (Q9 vs Q5)
+  - Taux de sortie: 56.3% vs 42.0%
 
-- **is_in_group** -> **x 1.62** (Pas dans un groupe vs Dans un groupe)
-  - Taux de sortie: 48.2% vs 29.8%
+- **city_logements_maj_situation** -> **x 1.31** (Q10 vs Q3)
+  - Taux de sortie: 53.9% vs 41.2%
 
-- **zlv_engagement_category** -> **x 1.46** (Engagement moyen vs Engagement faible)
-  - Taux de sortie: 54.2% vs 37.2%
+- **epci_type_detaille** -> **x 1.28** (Communauté Urbaine vs Communauté des Communes)
+  - Taux de sortie: 54.1% vs 42.2%
 
-- **establishment_kind** -> **x 1.36** (CU vs CC)
-  - Taux de sortie: 57.0% vs 42.0%
+- **city_logements_contactes_via_campagnes** -> **x 1.28** (Q5 vs Q6)
+  - Taux de sortie: 52.0% vs 40.5%
 
 ---
 

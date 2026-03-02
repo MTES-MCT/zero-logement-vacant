@@ -10,7 +10,7 @@ IMPLEMENTATION RULES:
 - R2: Skip rows with missing/empty SIREN
 - R3: Geo_Perimeter → localities_geo_code (Python list string → PostgreSQL array)
 - R4: Name-zlv → name
-- R5: Kind-admin → kind_admin_meta (does NOT update 'kind' column)
+- R5: Kind-admin_meta → kind_admin_meta, Kind-admin → kind
 - R6: Source = "gold_establishments_{Millesime}"
 - R8: Idempotent: UPDATE if SIREN exists, INSERT otherwise
 - R9: Dry-run mode required for validation
@@ -209,7 +209,7 @@ class EstablishmentImporter:
 
         return siret_str
 
-    def compute_short_name(self, name: str, kind_admin_meta: Optional[str]) -> Optional[str]:
+    def compute_short_name(self, name: str, kind_admin: Optional[str]) -> Optional[str]:
         """
         Compute short name from full name.
 
@@ -217,14 +217,14 @@ class EstablishmentImporter:
 
         Args:
             name: Full establishment name
-            kind_admin_meta: Establishment kind from CSV (COM, COM-TOM, etc.)
+            kind_admin: Establishment kind from CSV Kind-admin column (COM, COM-TOM, etc.)
 
         Returns:
             Short name or None
         """
         import re
 
-        if kind_admin_meta in ("COM", "COM-TOM"):
+        if kind_admin in ("COM", "COM-TOM"):
             return re.sub(r"^Commune d(e\s|')", "", name)
         return None
 
@@ -380,10 +380,11 @@ class EstablishmentImporter:
 
         # New fields
         siret = self.parse_siret(row)
-        # kind_admin_meta stores the Kind-admin value from CSV (e.g., "COM", "METRO")
-        # We do NOT update the 'kind' column - it is managed separately
-        kind_admin_meta = row.get("Kind-admin", "").strip() or None
-        short_name = self.compute_short_name(name, kind_admin_meta)
+        # kind_admin: sub-type from CSV Kind-admin column (e.g., "COM", "REG", "DREAL")
+        # kind_admin_meta: macro-category from CSV Kind-admin_meta column (e.g., "Collectivité Territoriale")
+        kind_admin = row.get("Kind-admin", "").strip() or None
+        kind_admin_meta = row.get("Kind-admin_meta", "").strip() or None
+        short_name = self.compute_short_name(name, kind_admin)
 
         # Geographic metadata
         layer_geo_label = row.get("Layer-geo_label", "").strip() or None
@@ -397,6 +398,7 @@ class EstablishmentImporter:
             "siret": siret,
             "name": name[:255],  # Truncate to VARCHAR(255)
             "short_name": short_name[:255] if short_name else None,
+            "kind_admin": kind_admin[:255] if kind_admin else None,  # For DB 'kind' column
             "kind_admin_meta": kind_admin_meta[:50] if kind_admin_meta else None,
             "millesime": millesime[:4] if millesime else None,
             "layer_geo_label": layer_geo_label[:100] if layer_geo_label else None,
@@ -484,8 +486,8 @@ class EstablishmentImporter:
                     r["siret"],
                     r["name"],
                     r["short_name"],
-                    r["kind_admin_meta"],  # Also used for 'kind' column
-                    r["kind_admin_meta"],
+                    r["kind_admin"],  # CSV Kind-admin → DB kind
+                    r["kind_admin_meta"],  # CSV Kind-admin_meta → DB kind_admin_meta
                     r["millesime"],
                     r["layer_geo_label"],
                     r["dep_code"],
@@ -522,7 +524,8 @@ class EstablishmentImporter:
                     r["siret"],
                     r["name"],
                     r["short_name"],
-                    r["kind_admin_meta"],
+                    r["kind_admin"],  # CSV Kind-admin → DB kind
+                    r["kind_admin_meta"],  # CSV Kind-admin_meta → DB kind_admin_meta
                     r["millesime"],
                     r["layer_geo_label"],
                     r["dep_code"],
@@ -544,6 +547,7 @@ class EstablishmentImporter:
                     siret = data.siret,
                     name = data.name,
                     short_name = data.short_name,
+                    kind = data.kind,
                     kind_admin_meta = data.kind_admin_meta,
                     millesime = data.millesime,
                     layer_geo_label = data.layer_geo_label,
@@ -554,7 +558,7 @@ class EstablishmentImporter:
                     localities_geo_code = data.localities_geo_code,
                     source = data.source,
                     updated_at = NOW()
-                FROM (VALUES %s) AS data(siret, name, short_name, kind_admin_meta, millesime, layer_geo_label, dep_code, dep_name, reg_code, reg_name, localities_geo_code, source, siren)
+                FROM (VALUES %s) AS data(siret, name, short_name, kind, kind_admin_meta, millesime, layer_geo_label, dep_code, dep_name, reg_code, reg_name, localities_geo_code, source, siren)
                 WHERE e.siren = data.siren::integer
                 """,
                 update_data,

@@ -3,6 +3,15 @@ import { MemoryRouter as Router } from 'react-router-dom';
 import { genGroup } from '../../test/fixtures';
 import GroupCard from './GroupCard';
 
+vi.mock('posthog-js/react', async (importOriginal) => {
+  const mod = await importOriginal<typeof import('posthog-js/react')>();
+  return {
+    ...mod,
+    useFeatureFlagEnabled: vi.fn().mockReturnValue(false),
+    usePostHog: () => ({ capture: vi.fn() })
+  };
+});
+
 describe('GroupCard', () => {
   const group = genGroup();
 

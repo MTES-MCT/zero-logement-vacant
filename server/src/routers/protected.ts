@@ -53,7 +53,7 @@ router.use(userCheck());
  * @openapi
  * /files:
  *   post:
- *     summary: Upload un fichier
+ *     summary: Upload a file
  *     tags: [Files]
  *     security:
  *       - bearerAuth: []
@@ -69,11 +69,11 @@ router.use(userCheck());
  *                 format: binary
  *     responses:
  *       201:
- *         description: Fichier uploadé avec succès
+ *         description: File uploaded successfully
  *       400:
- *         description: Type de fichier non autorisé
+ *         description: File type not allowed
  *       413:
- *         description: Fichier trop volumineux
+ *         description: File too large
  */
 router.post(
   '/files',
@@ -155,8 +155,9 @@ router.delete(
  * @openapi
  * /housing:
  *   get:
- *     summary: Lister les logements vacants
+ *     summary: List vacant housing
  *     tags: [Housing]
+ *     description: Returns a paginated list of vacant housing filtered by various criteria
  *     security:
  *       - bearerAuth: []
  *     parameters:
@@ -165,43 +166,92 @@ router.delete(
  *         schema:
  *           type: integer
  *           default: 1
+ *           minimum: 1
+ *         description: Page number
  *       - in: query
  *         name: perPage
  *         schema:
  *           type: integer
  *           default: 50
+ *           minimum: 1
+ *           maximum: 500
+ *         description: Items per page
  *       - in: query
- *         name: status
+ *         name: statusList
  *         schema:
  *           type: array
  *           items:
  *             type: integer
- *         description: Filtrer par statut
+ *             enum: [0, 1, 2, 3, 4, 5]
+ *         description: "Filter by status: 0=Never contacted, 1=Waiting, 2=First contact, 3=In progress, 4=Completed, 5=Blocked"
+ *       - in: query
+ *         name: occupancies
+ *         schema:
+ *           type: array
+ *           items:
+ *             type: string
+ *             enum: [V, L, B, RS, P, N, T, D, G, F, R, U, X, A, inconnu]
+ *         description: "Filter by occupancy: V=Vacant, L=Rented, RS=Secondary residence"
+ *       - in: query
+ *         name: housingKinds
+ *         schema:
+ *           type: array
+ *           items:
+ *             type: string
+ *             enum: [APPART, MAISON]
+ *         description: Filter by housing type
+ *       - in: query
+ *         name: energyConsumption
+ *         schema:
+ *           type: array
+ *           items:
+ *             type: string
+ *             enum: [A, B, C, D, E, F, G]
+ *         description: Filter by DPE energy class
+ *       - in: query
+ *         name: localities
+ *         schema:
+ *           type: array
+ *           items:
+ *             type: string
+ *         description: Filter by INSEE codes
  *       - in: query
  *         name: query
  *         schema:
  *           type: string
- *         description: Recherche textuelle
+ *         description: Text search on address, owner name, or invariant
+ *         example: "75002"
  *     responses:
  *       200:
- *         description: Liste paginée des logements
+ *         description: Paginated list of housing
  *         content:
  *           application/json:
  *             schema:
- *               type: object
- *               properties:
- *                 entities:
- *                   type: array
- *                   items:
- *                     $ref: '#/components/schemas/Housing'
- *                 page:
- *                   type: integer
- *                 perPage:
- *                   type: integer
- *                 totalCount:
- *                   type: integer
+ *               $ref: '#/components/schemas/PaginatedHousing'
+ *             example:
+ *               entities:
+ *                 - id: 123e4567-e89b-12d3-a456-426614174000
+ *                   localId: "123456789012"
+ *                   rawAddress: ["12 RUE DE LA PAIX", "75002 PARIS"]
+ *                   geoCode: "75102"
+ *                   housingKind: APPART
+ *                   roomsCount: 3
+ *                   livingArea: 65.5
+ *                   status: 0
+ *                   occupancy: V
+ *                   vacancyStartYear: 2020
+ *                   owner:
+ *                     id: 223e4567-e89b-12d3-a456-426614174001
+ *                     fullName: DUPONT Jean
+ *               page: 1
+ *               perPage: 50
+ *               totalCount: 1234
  *       401:
- *         description: Non authentifié
+ *         description: Not authenticated
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/Error'
  */
 router.get(
   '/housing',
@@ -217,7 +267,7 @@ router.get(
  * @openapi
  * /housing:
  *   post:
- *     summary: Créer un logement
+ *     summary: Create a housing
  *     tags: [Housing]
  *     security:
  *       - bearerAuth: []
@@ -231,12 +281,12 @@ router.get(
  *             properties:
  *               localId:
  *                 type: string
- *                 description: Identifiant fiscal local (12 caractères)
+ *                 description: Local fiscal identifier (12 characters)
  *     responses:
  *       201:
- *         description: Logement créé
+ *         description: Housing created
  *       400:
- *         description: Données invalides
+ *         description: Invalid data
  */
 router.post(
   '/housing',
@@ -252,7 +302,7 @@ router.post(
  * @openapi
  * /housing/count:
  *   get:
- *     summary: Compter les logements
+ *     summary: Count housing
  *     tags: [Housing]
  *     security:
  *       - bearerAuth: []
@@ -265,7 +315,7 @@ router.post(
  *             type: integer
  *     responses:
  *       200:
- *         description: Nombre de logements
+ *         description: Housing count
  *         content:
  *           application/json:
  *             schema:
@@ -290,7 +340,7 @@ router.get(
  * @openapi
  * /housing/{id}:
  *   get:
- *     summary: Récupérer un logement par ID
+ *     summary: Get a housing by ID
  *     tags: [Housing]
  *     security:
  *       - bearerAuth: []
@@ -303,9 +353,9 @@ router.get(
  *           format: uuid
  *     responses:
  *       200:
- *         description: Détails du logement
+ *         description: Housing details
  *       404:
- *         description: Logement non trouvé
+ *         description: Housing not found
  */
 router.get(
   '/housing/:id',
@@ -318,7 +368,7 @@ router.get(
  * @openapi
  * /housing:
  *   put:
- *     summary: Mettre à jour plusieurs logements
+ *     summary: Update multiple housing
  *     tags: [Housing]
  *     security:
  *       - bearerAuth: []
@@ -340,7 +390,7 @@ router.get(
  *                 type: string
  *     responses:
  *       200:
- *         description: Logements mis à jour
+ *         description: Housing updated
  */
 router.put(
   '/housing',
@@ -355,8 +405,9 @@ router.put(
  * @openapi
  * /housing/{id}:
  *   put:
- *     summary: Mettre à jour un logement
+ *     summary: Update a housing
  *     tags: [Housing]
+ *     description: Update status, occupancy, and other attributes of a specific housing
  *     security:
  *       - bearerAuth: []
  *     parameters:
@@ -366,24 +417,34 @@ router.put(
  *         schema:
  *           type: string
  *           format: uuid
+ *         example: 123e4567-e89b-12d3-a456-426614174000
  *     requestBody:
  *       required: true
  *       content:
  *         application/json:
  *           schema:
- *             type: object
- *             properties:
- *               status:
- *                 type: integer
- *               subStatus:
- *                 type: string
- *               occupancy:
- *                 type: string
+ *             $ref: '#/components/schemas/HousingUpdatePayload'
+ *           example:
+ *             status: 2
+ *             subStatus: "Premier contact établi"
+ *             occupancy: V
+ *             occupancyIntended: L
+ *             actualEnergyConsumption: D
  *     responses:
  *       200:
- *         description: Logement mis à jour
+ *         description: Housing updated successfully
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/Housing'
+ *       400:
+ *         description: Invalid data
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/Error'
  *       404:
- *         description: Logement non trouvé
+ *         description: Housing not found
  */
 router.put(
   '/housing/:id',
@@ -467,13 +528,13 @@ router.delete(
  * @openapi
  * /campaigns:
  *   get:
- *     summary: Lister les campagnes
+ *     summary: List campaigns
  *     tags: [Campaigns]
  *     security:
  *       - bearerAuth: []
  *     responses:
  *       200:
- *         description: Liste des campagnes
+ *         description: List of campaigns
  *         content:
  *           application/json:
  *             schema:
@@ -504,7 +565,7 @@ router.get(
  * @openapi
  * /campaigns:
  *   post:
- *     summary: Créer une campagne
+ *     summary: Create a campaign
  *     tags: [Campaigns]
  *     security:
  *       - bearerAuth: []
@@ -523,7 +584,7 @@ router.get(
  *                 format: uuid
  *     responses:
  *       201:
- *         description: Campagne créée
+ *         description: Campaign created
  */
 router.post(
   '/campaigns',
@@ -537,7 +598,7 @@ router.post(
  * @openapi
  * /campaigns/{id}:
  *   get:
- *     summary: Récupérer une campagne
+ *     summary: Get a campaign
  *     tags: [Campaigns]
  *     security:
  *       - bearerAuth: []
@@ -550,9 +611,9 @@ router.post(
  *           format: uuid
  *     responses:
  *       200:
- *         description: Détails de la campagne
+ *         description: Campaign details
  *       404:
- *         description: Campagne non trouvée
+ *         description: Campaign not found
  */
 router.get(
   '/campaigns/:id',
@@ -582,7 +643,7 @@ router.put(
  * @openapi
  * /campaigns/{id}:
  *   put:
- *     summary: Mettre à jour une campagne
+ *     summary: Update a campaign
  *     tags: [Campaigns]
  *     security:
  *       - bearerAuth: []
@@ -595,7 +656,7 @@ router.put(
  *           format: uuid
  *     responses:
  *       200:
- *         description: Campagne mise à jour
+ *         description: Campaign updated
  */
 router.put(
   '/campaigns/:id',
@@ -608,7 +669,7 @@ router.put(
  * @openapi
  * /campaigns/{id}:
  *   delete:
- *     summary: Supprimer une campagne
+ *     summary: Delete a campaign
  *     tags: [Campaigns]
  *     security:
  *       - bearerAuth: []
@@ -621,9 +682,9 @@ router.put(
  *           format: uuid
  *     responses:
  *       204:
- *         description: Campagne supprimée
+ *         description: Campaign deleted
  *       404:
- *         description: Campagne non trouvée
+ *         description: Campaign not found
  */
 router.delete(
   '/campaigns/:id',
@@ -731,8 +792,9 @@ router.post(
  * @openapi
  * /owners:
  *   get:
- *     summary: Lister les propriétaires
+ *     summary: List owners
  *     tags: [Owners]
+ *     description: Returns a paginated list of property owners
  *     security:
  *       - bearerAuth: []
  *     parameters:
@@ -740,18 +802,37 @@ router.post(
  *         name: page
  *         schema:
  *           type: integer
+ *           default: 1
  *       - in: query
  *         name: perPage
  *         schema:
  *           type: integer
+ *           default: 50
  *       - in: query
- *         name: query
+ *         name: search
  *         schema:
  *           type: string
- *         description: Recherche par nom
+ *         description: Search by owner name
+ *         example: DUPONT
  *     responses:
  *       200:
- *         description: Liste paginée des propriétaires
+ *         description: Paginated list of owners
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/PaginatedOwners'
+ *             example:
+ *               entities:
+ *                 - id: 123e4567-e89b-12d3-a456-426614174001
+ *                   fullName: DUPONT Jean
+ *                   email: jean.dupont@email.com
+ *                   phone: "+33612345678"
+ *                   birthDate: "1965-03-15"
+ *                   kind: particulier
+ *                   rawAddress: ["15 AVENUE VICTOR HUGO", "75016 PARIS"]
+ *               page: 1
+ *               perPage: 50
+ *               totalCount: 567
  */
 router.get(
   '/owners',
@@ -765,7 +846,7 @@ router.get(
  * @openapi
  * /owners:
  *   post:
- *     summary: Rechercher des propriétaires
+ *     summary: Search owners
  *     tags: [Owners]
  *     security:
  *       - bearerAuth: []
@@ -779,7 +860,7 @@ router.get(
  *                 type: string
  *     responses:
  *       200:
- *         description: Résultats de recherche
+ *         description: Search results
  */
 router.post('/owners', ownerController.search);
 
@@ -787,7 +868,7 @@ router.post('/owners', ownerController.search);
  * @openapi
  * /owners/{id}:
  *   get:
- *     summary: Récupérer un propriétaire
+ *     summary: Get an owner
  *     tags: [Owners]
  *     security:
  *       - bearerAuth: []
@@ -800,9 +881,9 @@ router.post('/owners', ownerController.search);
  *           format: uuid
  *     responses:
  *       200:
- *         description: Détails du propriétaire
+ *         description: Owner details
  *       404:
- *         description: Propriétaire non trouvé
+ *         description: Owner not found
  */
 router.get('/owners/:id', ownerController.get);
 router.post(
@@ -884,13 +965,13 @@ router.delete(
  * @openapi
  * /account:
  *   get:
- *     summary: Récupérer le compte de l'utilisateur connecté
+ *     summary: Get the current user's account
  *     tags: [Authentication]
  *     security:
  *       - bearerAuth: []
  *     responses:
  *       200:
- *         description: Informations du compte
+ *         description: Account information
  *         content:
  *           application/json:
  *             schema:
@@ -911,7 +992,7 @@ router.delete(
  *                 establishment:
  *                   type: object
  *       401:
- *         description: Non authentifié
+ *         description: Not authenticated
  */
 router.get('/account', [], validator.validate, authController.get);
 
@@ -919,7 +1000,7 @@ router.get('/account', [], validator.validate, authController.get);
  * @openapi
  * /account:
  *   put:
- *     summary: Mettre à jour le compte de l'utilisateur connecté
+ *     summary: Update the current user's account
  *     tags: [Authentication]
  *     security:
  *       - bearerAuth: []
@@ -939,7 +1020,7 @@ router.get('/account', [], validator.validate, authController.get);
  *                 type: string
  *     responses:
  *       200:
- *         description: Compte mis à jour
+ *         description: Account updated
  */
 router.put(
   '/account',
@@ -1028,6 +1109,42 @@ router.put(
   settingsController.updateSettings
 );
 
+/**
+ * @openapi
+ * /dashboards/{id}:
+ *   get:
+ *     summary: Get Metabase dashboard URL
+ *     tags: [Statistics]
+ *     description: Returns a signed Metabase embed URL for the specified dashboard
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: string
+ *           enum:
+ *             - 6-utilisateurs-de-zlv-sur-votre-structure
+ *             - 7-autres-structures-de-votre-territoires-inscrites-sur-zlv
+ *             - 13-analyses
+ *             - 15-analyses-activites
+ *         description: Dashboard identifier
+ *     responses:
+ *       200:
+ *         description: Dashboard URL
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 url:
+ *                   type: string
+ *                   format: uri
+ *                   description: Signed Metabase embed URL (valid for 10 minutes)
+ *       400:
+ *         description: Invalid dashboard ID
+ *       401:
+ *         description: Not authenticated
+ */
 router.get(
   '/dashboards/:id',
   dashboardController.findOneValidators,

@@ -127,6 +127,61 @@ export function createServer(): Server {
     })
   );
 
+  /**
+   * @openapi
+   * /:
+   *   get:
+   *     summary: Health check
+   *     tags: [Health]
+   *     security: []
+   *     description: |
+   *       Returns the health status of all service dependencies.
+   *       **Note:** This endpoint is at the root URL `/`, not under `/api`.
+   *     servers:
+   *       - url: /
+   *         description: Root
+   *     responses:
+   *       200:
+   *         description: All services are healthy
+   *         content:
+   *           application/json:
+   *             schema:
+   *               type: object
+   *               properties:
+   *                 uptime:
+   *                   type: number
+   *                   description: Server uptime in seconds
+   *                 checks:
+   *                   type: array
+   *                   items:
+   *                     type: object
+   *                     properties:
+   *                       name:
+   *                         type: string
+   *                         enum: [postgres, redis, brevo, s3]
+   *                       status:
+   *                         type: string
+   *                         enum: [up, down]
+   *       503:
+   *         description: One or more services are unhealthy
+   *         content:
+   *           application/json:
+   *             schema:
+   *               type: object
+   *               properties:
+   *                 uptime:
+   *                   type: number
+   *                 checks:
+   *                   type: array
+   *                   items:
+   *                     type: object
+   *                     properties:
+   *                       name:
+   *                         type: string
+   *                       status:
+   *                         type: string
+   *                         enum: [up, down]
+   */
   app.get(
     '/',
     healthcheck({

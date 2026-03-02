@@ -39,10 +39,10 @@ function rateLimiter() {
  *   get:
  *     summary: Server-Sent Events endpoint
  *     tags: [Events]
- *     description: Établit une connexion SSE pour recevoir des événements en temps réel
+ *     description: Establishes an SSE connection to receive real-time events
  *     responses:
  *       200:
- *         description: Connexion SSE établie
+ *         description: SSE connection established
  */
 router.get('/sse', serverSentEventController.handle);
 
@@ -50,7 +50,7 @@ router.get('/sse', serverSentEventController.handle);
  * @openapi
  * /prospects/{email}:
  *   get:
- *     summary: Récupérer un prospect par email
+ *     summary: Get a prospect by email
  *     tags: [Users]
  *     security: []
  *     parameters:
@@ -62,9 +62,9 @@ router.get('/sse', serverSentEventController.handle);
  *           format: email
  *     responses:
  *       200:
- *         description: Prospect trouvé
+ *         description: Prospect found
  *       404:
- *         description: Prospect non trouvé
+ *         description: Prospect not found
  */
 router.get(
   '/prospects/:email',
@@ -77,7 +77,7 @@ router.get(
  * @openapi
  * /users/creation:
  *   post:
- *     summary: Créer un compte utilisateur
+ *     summary: Create a user account
  *     tags: [Users]
  *     security: []
  *     requestBody:
@@ -103,11 +103,11 @@ router.get(
  *                 format: uuid
  *     responses:
  *       201:
- *         description: Utilisateur créé avec succès
+ *         description: User created successfully
  *       400:
- *         description: Données invalides
+ *         description: Invalid data
  *       409:
- *         description: Email déjà utilisé
+ *         description: Email already in use
  */
 router.post(
   '/users/creation',
@@ -121,7 +121,7 @@ router.post(
  * @openapi
  * /authenticate:
  *   post:
- *     summary: Authentifier un utilisateur
+ *     summary: Authenticate a user
  *     tags: [Authentication]
  *     security: []
  *     requestBody:
@@ -135,37 +135,57 @@ router.post(
  *               email:
  *                 type: string
  *                 format: email
- *                 example: user@example.com
+ *                 example: user@collectivite.fr
  *               password:
  *                 type: string
- *                 example: password123
+ *                 format: password
+ *                 example: MySecureP@ssword123
+ *           example:
+ *             email: user@collectivite.fr
+ *             password: MySecureP@ssword123
  *     responses:
  *       200:
- *         description: Authentification réussie
+ *         description: Authentication successful (or 2FA required)
  *         content:
  *           application/json:
  *             schema:
- *               type: object
- *               properties:
- *                 accessToken:
- *                   type: string
- *                   description: Token JWT à utiliser pour les requêtes authentifiées
- *                 user:
- *                   type: object
- *                   properties:
- *                     id:
- *                       type: string
- *                       format: uuid
- *                     email:
- *                       type: string
- *                     firstName:
- *                       type: string
- *                     lastName:
- *                       type: string
+ *               oneOf:
+ *                 - $ref: '#/components/schemas/AuthResponse'
+ *                 - $ref: '#/components/schemas/TwoFactorRequired'
+ *             examples:
+ *               success:
+ *                 summary: Successful authentication
+ *                 value:
+ *                   accessToken: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOiIxMjM0NTY3OC0xMjM0LTEyMzQtMTIzNC0xMjM0NTY3ODkwYWIiLCJpYXQiOjE2NDAwMDAwMDB9.signature
+ *                   user:
+ *                     id: 12345678-1234-1234-1234-1234567890ab
+ *                     email: user@collectivite.fr
+ *                     firstName: Marie
+ *                     lastName: MARTIN
+ *                     role: 0
+ *               twoFactor:
+ *                 summary: 2FA code required
+ *                 value:
+ *                   userId: 12345678-1234-1234-1234-1234567890ab
+ *                   require2FA: true
  *       401:
- *         description: Email ou mot de passe incorrect
+ *         description: Invalid email or password
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/Error'
+ *             example:
+ *               name: AuthenticationError
+ *               message: Invalid email or password
  *       403:
- *         description: Compte désactivé
+ *         description: Account suspended
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/Error'
+ *             example:
+ *               name: ForbiddenError
+ *               message: Account suspended
  */
 router.post(
   '/authenticate',
@@ -180,7 +200,7 @@ router.post(
  * @openapi
  * /authenticate/verify-2fa:
  *   post:
- *     summary: Vérifier le code 2FA
+ *     summary: Verify 2FA code
  *     tags: [Authentication]
  *     security: []
  *     requestBody:
@@ -199,9 +219,9 @@ router.post(
  *                 pattern: '^\d{6}$'
  *     responses:
  *       200:
- *         description: Code 2FA validé, token JWT retourné
+ *         description: 2FA code validated, JWT token returned
  *       401:
- *         description: Code invalide ou expiré
+ *         description: Invalid or expired code
  */
 router.post(
   '/authenticate/verify-2fa',
@@ -214,7 +234,7 @@ router.post(
  * @openapi
  * /account/reset-password:
  *   post:
- *     summary: Réinitialiser le mot de passe
+ *     summary: Reset password
  *     tags: [Authentication]
  *     security: []
  *     requestBody:
@@ -233,9 +253,9 @@ router.post(
  *                 minLength: 8
  *     responses:
  *       200:
- *         description: Mot de passe réinitialisé avec succès
+ *         description: Password reset successfully
  *       400:
- *         description: Lien invalide ou expiré
+ *         description: Invalid or expired link
  */
 router.post(
   '/account/reset-password',
@@ -248,7 +268,7 @@ router.post(
  * @openapi
  * /reset-links:
  *   post:
- *     summary: Créer un lien de réinitialisation de mot de passe
+ *     summary: Create a password reset link
  *     tags: [Authentication]
  *     security: []
  *     requestBody:
@@ -264,9 +284,9 @@ router.post(
  *                 format: email
  *     responses:
  *       201:
- *         description: Lien de réinitialisation créé (email envoyé)
+ *         description: Reset link created (email sent)
  *       404:
- *         description: Email non trouvé
+ *         description: Email not found
  */
 router.post(
   '/reset-links',
@@ -280,7 +300,7 @@ router.post(
  * @openapi
  * /reset-links/{id}:
  *   get:
- *     summary: Vérifier la validité d'un lien de réinitialisation
+ *     summary: Check reset link validity
  *     tags: [Authentication]
  *     security: []
  *     parameters:
@@ -292,9 +312,9 @@ router.post(
  *           format: uuid
  *     responses:
  *       200:
- *         description: Lien valide
+ *         description: Link is valid
  *       404:
- *         description: Lien invalide ou expiré
+ *         description: Invalid or expired link
  */
 router.get(
   '/reset-links/:id',
@@ -308,7 +328,7 @@ router.get(
  * @openapi
  * /signup-links:
  *   post:
- *     summary: Créer un lien d'inscription
+ *     summary: Create a signup link
  *     tags: [Users]
  *     security: []
  *     requestBody:
@@ -324,7 +344,7 @@ router.get(
  *                 format: uuid
  *     responses:
  *       201:
- *         description: Lien d'inscription créé
+ *         description: Signup link created
  */
 router.post(
   '/signup-links',
@@ -338,7 +358,7 @@ router.post(
  * @openapi
  * /signup-links/{id}:
  *   get:
- *     summary: Récupérer les informations d'un lien d'inscription
+ *     summary: Get signup link information
  *     tags: [Users]
  *     security: []
  *     parameters:
@@ -350,9 +370,9 @@ router.post(
  *           format: uuid
  *     responses:
  *       200:
- *         description: Informations du lien
+ *         description: Link information
  *       404:
- *         description: Lien non trouvé ou expiré
+ *         description: Link not found or expired
  */
 router.get(
   '/signup-links/:id',
@@ -366,7 +386,7 @@ router.get(
  * @openapi
  * /signup-links/{id}/prospect:
  *   put:
- *     summary: Mettre à jour les informations d'un prospect
+ *     summary: Update prospect information
  *     tags: [Users]
  *     security: []
  *     parameters:
@@ -391,7 +411,7 @@ router.get(
  *                 type: string
  *     responses:
  *       200:
- *         description: Prospect mis à jour
+ *         description: Prospect updated
  */
 router.put(
   '/signup-links/:id/prospect',
@@ -405,7 +425,7 @@ router.put(
  * @openapi
  * /establishments:
  *   get:
- *     summary: Lister les établissements (collectivités)
+ *     summary: List establishments (local authorities)
  *     tags: [Establishments]
  *     security: []
  *     parameters:
@@ -413,32 +433,46 @@ router.put(
  *         name: query
  *         schema:
  *           type: string
- *         description: Recherche par nom ou SIREN
+ *         description: Search by name or SIREN
+ *         example: Nantes
  *       - in: query
  *         name: available
  *         schema:
  *           type: boolean
- *         description: Filtrer les établissements disponibles
+ *         description: Filter establishments available for registration
+ *         example: true
+ *       - in: query
+ *         name: kind
+ *         schema:
+ *           type: array
+ *           items:
+ *             type: string
+ *             enum: [Commune, CA, CC, CU, ME, DEP, REG, ASSO, PETR, SIVOM]
+ *         description: Filter by establishment type
  *     responses:
  *       200:
- *         description: Liste des établissements
+ *         description: List of establishments
  *         content:
  *           application/json:
  *             schema:
  *               type: array
  *               items:
- *                 type: object
- *                 properties:
- *                   id:
- *                     type: string
- *                     format: uuid
- *                   name:
- *                     type: string
- *                   siren:
- *                     type: integer
- *                   kind:
- *                     type: string
- *                     enum: [Commune, EPCI, Département, Région]
+ *                 $ref: '#/components/schemas/Establishment'
+ *             example:
+ *               - id: 123e4567-e89b-12d3-a456-426614174000
+ *                 name: Nantes Métropole
+ *                 shortName: Nantes Métropole
+ *                 siren: "244400404"
+ *                 kind: ME
+ *                 available: true
+ *                 geoCodes: ["44109", "44020", "44143"]
+ *               - id: 223e4567-e89b-12d3-a456-426614174001
+ *                 name: Commune de Nantes
+ *                 shortName: Nantes
+ *                 siren: "214401093"
+ *                 kind: Commune
+ *                 available: false
+ *                 geoCodes: ["44109"]
  */
 router.get(
   '/establishments',
@@ -454,7 +488,7 @@ router.get(
  * @openapi
  * /establishments/{id}/settings:
  *   get:
- *     summary: Récupérer les paramètres d'un établissement
+ *     summary: Get establishment settings
  *     tags: [Establishments, Settings]
  *     security: []
  *     parameters:
@@ -466,9 +500,9 @@ router.get(
  *           format: uuid
  *     responses:
  *       200:
- *         description: Paramètres de l'établissement
+ *         description: Establishment settings
  *       404:
- *         description: Établissement non trouvé
+ *         description: Establishment not found
  */
 router.get(
   '/establishments/:id',
@@ -486,7 +520,7 @@ router.get(
  * @openapi
  * /localities:
  *   get:
- *     summary: Lister les localités (communes)
+ *     summary: List localities (municipalities)
  *     tags: [Geo]
  *     security: []
  *     parameters:
@@ -494,16 +528,16 @@ router.get(
  *         name: query
  *         schema:
  *           type: string
- *         description: Recherche par nom ou code postal
+ *         description: Search by name or postal code
  *       - in: query
  *         name: establishmentId
  *         schema:
  *           type: string
  *           format: uuid
- *         description: Filtrer par établissement
+ *         description: Filter by establishment
  *     responses:
  *       200:
- *         description: Liste des localités
+ *         description: List of localities
  */
 router.get(
   '/localities',
@@ -516,7 +550,7 @@ router.get(
  * @openapi
  * /localities/{geoCode}:
  *   get:
- *     summary: Récupérer une localité par son code géographique
+ *     summary: Get a locality by geographic code
  *     tags: [Geo]
  *     security: []
  *     parameters:
@@ -525,12 +559,12 @@ router.get(
  *         required: true
  *         schema:
  *           type: string
- *         description: Code INSEE de la commune
+ *         description: INSEE code of the municipality
  *     responses:
  *       200:
- *         description: Détails de la localité
+ *         description: Locality details
  *       404:
- *         description: Localité non trouvée
+ *         description: Locality not found
  */
 router.get(
   '/localities/:geoCode',

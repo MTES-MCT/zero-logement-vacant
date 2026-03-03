@@ -66,14 +66,14 @@ function HousingView() {
           <Grid container columnSpacing={3}>
             {/* Set a custom order to facilitate accessibility:
         housing first, owner second */}
-            <Grid order={2} size={8}>
+            <Grid order={2} size={{ xs: 12, md: 8 }}>
               <HousingDetailsCard />
             </Grid>
             <Grid
               order={1}
               rowGap="1.5rem"
-              sx={{ display: 'flex', flexFlow: 'column nowrap' }}
-              size={4}
+              sx={{ display: 'flex', flexFlow: 'column nowrap', mb: { xs: '1.5rem', md: 0 } }}
+              size={{ xs: 12, md: 4 }}
             >
               <Stack
                 component="section"

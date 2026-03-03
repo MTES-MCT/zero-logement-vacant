@@ -8,7 +8,7 @@ paths: ["frontend/**"]
 ## Styling — priority order
 1. DSFR components (`@codegouvfr/react-dsfr`) for anything the design system covers.
 2. MUI layout primitives (`Box`, `Stack`, `Grid`) for structure.
-3. Emotion `styled()` from `@mui/material/styles` for reusable custom styles; `sx` prop for small one-off overrides.
+3. Emotion `styled()` from `@mui/material/styles` for custom styles.
 - Never use SCSS modules — refactor to Emotion when touching a file that uses them.
 - Never use inline styles.
 - Never import from `@emotion/styled` directly.

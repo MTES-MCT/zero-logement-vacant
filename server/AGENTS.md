@@ -225,9 +225,7 @@ test.prop([
 
 **Validation conventions:**
 
-- Validation happens in routers, NOT controllers
 - Use `validatorNext.validate()` (preferred) or express-validator (legacy)
-- Don't mix validation approaches
 - Errors wrapped in `ValidationError` extending `HttpError`
 
 ### Step 5: Models
@@ -271,9 +269,7 @@ export interface HousingUpdatePayload {
 
 ## Validation Patterns
 
-### Two Systems (Don't Mix!)
-
-**Preferred: Yup + validatorNext (Modern)**
+**Yup + validatorNext (Modern)**
 
 ```typescript
 // In router
@@ -294,7 +290,7 @@ router.put(
 **Legacy: express-validator**
 
 ```typescript
-// In router (legacy pattern - avoid for new code)
+// In router (legacy pattern)
 import { param, body } from 'express-validator';
 
 import { validator } from '~/middlewares/validator';
@@ -310,8 +306,6 @@ router.put(
   controller.update
 );
 ```
-
-**Key principle:** Validation happens in routers BEFORE controllers
 
 ## Repository Patterns
 
@@ -761,19 +755,6 @@ yarn workspace @zerologementvacant/server seed       # Seed database
 - Tables have `deleted_at` column
 - Use `notDeleted()` filter in queries
 - Repositories handle soft delete logic
-
-## Common Pitfalls
-
-1. **Wrong test runner** → Use Vitest, not Jest
-2. **Validation in controllers** → Validate in routers instead
-3. **Mixing validation systems** → Use validatorNext (Yup), avoid express-validator for new code
-4. **No TDD** → Write tests BEFORE implementation
-5. **Starting transactions in repositories** → Start in controllers, use `withinTransaction()` in repos
-6. **Legacy test fixtures** → Ensure fixtures extend `gen*DTO()` from `@zerologementvacant/models`
-7. **Wrong payload naming** → Use `HousingUpdatePayload`, not `HousingUpdatePayloadDTO`
-8. **Try-catch in controllers** → Not needed, express-promise-router handles async errors
-9. **Direct database queries** → Use repositories, not direct Knex queries in controllers
-10. **Missing property-based tests** → Use `@fast-check/vitest` for validation tests
 
 ## Key Dependencies
 

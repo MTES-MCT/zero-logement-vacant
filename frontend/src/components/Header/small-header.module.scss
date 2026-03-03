@@ -1,7 +1,3 @@
-.root {
-  height: 84px;
-}
-
 .linkList {
   height: 84px;
   margin: 0 !important;
@@ -31,35 +27,62 @@
   margin-left: 0px !important;
 }
 
-@media screen and (max-width: 1484px) {
-  .establishmentName {
-    max-width: 200px;
-    overflow: hidden;
-    text-overflow: ellipsis;
-    white-space: nowrap;
+/* Establishment name: always visible, allow wrapping */
+.establishmentName {
+  white-space: normal;
+  word-break: break-word;
+}
+
+/* ---- Responsive menu (200% zoom) ---- */
+
+/* Right-side items: establishment + menu + account with 8px gap */
+.rightItems {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin-left: auto;
+  flex-shrink: 0;
+}
+
+/* Burger button: hidden at desktop, visible at narrow viewports */
+.navbar {
+  display: none;
+  align-items: center;
+  flex-shrink: 0;
+}
+
+@media screen and (max-width: 61.9375em) {
+  /* Hide inline nav at narrow viewports */
+  .mainNav {
+    display: none !important;
+  }
+
+  /* Show burger button */
+  .navbar {
+    display: flex;
   }
 }
 
-@media screen and (max-width: 1412px) {
-  .establishmentName {
-    max-width: 150px;
-    overflow: hidden;
-    text-overflow: ellipsis;
-    white-space: nowrap;
-  }
+/* Menu overlay: simple full-screen white panel */
+.menuOverlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 1300;
+  background-color: var(--background-default-grey);
+  overflow-y: auto;
+  padding: 1rem 1.5rem;
 }
 
-@media screen and (max-width: 1362px) {
-  .establishmentName {
-    max-width: 100px;
-    overflow: hidden;
-    text-overflow: ellipsis;
-    white-space: nowrap;
-  }
+.menuHeader {
+  display: flex;
+  justify-content: flex-end;
+  margin-bottom: 1rem;
 }
 
-@media screen and (max-width: 1312px) {
-  .establishmentName {
-    display: none;
-  }
+/* Hide icons in mobile menu */
+.menuOverlay .icon {
+  display: none;
 }

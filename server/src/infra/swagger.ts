@@ -14,12 +14,21 @@ const basePath = isInDist
   ? path.resolve(import.meta.dirname, '../..', 'src')
   : path.resolve(import.meta.dirname, '..');
 
+/**
+ * Documentation version - INCREMENT ONLY when markdown content changes.
+ * This includes: endpoint descriptions, field descriptions in schemas,
+ * the main API description, and any other user-facing documentation text.
+ * DO NOT increment for: adding new schemas, adding new endpoints without
+ * changing documentation prose, or technical/structural changes.
+ */
+const DOC_VERSION = '1.0.0';
+
 const options: swaggerJsdoc.Options = {
   definition: {
     openapi: '3.0.0',
     info: {
       title: 'Zéro Logement Vacant API',
-      version: '1.0.0',
+      version: DOC_VERSION,
       description: `
 REST API for the Zéro Logement Vacant application (French vacant housing tracking platform).
 

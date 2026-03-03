@@ -33,7 +33,9 @@ jobs:
 
       - name: Install Mermaid CLI
         run: |
-          npm install -g @mermaid-js/mermaid-cli
+          # Pin to 10.6.1 which is stable and works with global install
+          # Newer versions have a bug with dist/index.html missing
+          npm install -g @mermaid-js/mermaid-cli@10.6.1
           # Configure puppeteer to use system Chromium
           echo '{"executablePath": "/usr/bin/chromium-browser", "args": ["--no-sandbox"]}' > ~/.puppeteerrc.json
 

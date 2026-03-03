@@ -160,6 +160,7 @@ const HousingListView = () => {
             {...{ role: 'status' }}
           />
 
+          {/* RGAA 10.4: flexWrap + minWidth force the segmented control to wrap below the search bar at 200% zoom */}
           <Grid container mb={1} spacing={2} sx={{ flexWrap: 'wrap' }}>
             <Grid size="grow" sx={{ minWidth: '300px' }}>
               <AppSearchBar
@@ -170,6 +171,7 @@ const HousingListView = () => {
               />
             </Grid>
             <Grid size="auto" sx={{ display: 'flex', alignItems: 'center' }}>
+              {/* RGAA 10.4: manual placement keeps tooltip within viewport at all zoom levels */}
               <Tooltip
                 align="end"
                 place="bottom"

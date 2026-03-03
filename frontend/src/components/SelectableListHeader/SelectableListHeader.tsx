@@ -1,11 +1,11 @@
 import { fr } from '@codegouvfr/react-dsfr';
+import Button from '@codegouvfr/react-dsfr/Button';
 import Grid from '@mui/material/Grid';
-import classNames from 'classnames';
+import Typography from '@mui/material/Typography';
 import type { ReactElement } from 'react';
 import { pluralize } from '../../utils/stringUtils';
 import SelectableListHeaderActions from './SelectableListHeaderActions';
 import { findChild } from '../../utils/elementUtils';
-import styles from './selectable-list-header.module.scss';
 
 export type SelectableEntity = 'logement' | 'périmètre';
 
@@ -33,8 +33,6 @@ function SelectableListHeader(props: SelectableListHeaderProps) {
 
   const hasSelected = (): boolean => selected > 0;
 
-  const buttonClasses = classNames('fr-link fr-link--md', styles.unselect);
-
   if (!hasSelected() && props.default) {
     return props.default;
   }
@@ -56,15 +54,19 @@ function SelectableListHeader(props: SelectableListHeaderProps) {
       size={12}
     >
       <Grid size="auto">
-        <span className={styles.selection} role="status">
+        <Typography component="span" role="status" sx={{ fontWeight: 500 }}>
           {selected} {pluralizeMany(props.entity)}{' '}
           {pluralizeMany('sélectionné')}
-        </span>
+        </Typography>
       </Grid>
       <Grid size="auto">
-        <button className={buttonClasses} onClick={props.onUnselectAll}>
+        <Button
+          priority="tertiary no outline"
+          size="small"
+          onClick={props.onUnselectAll}
+        >
           Décocher la sélection
-        </button>
+        </Button>
       </Grid>
       <Grid size="auto">
         <SelectableListHeaderActions {...actions?.props} />

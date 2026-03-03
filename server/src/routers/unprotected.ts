@@ -51,6 +51,9 @@ router.get('/sse', serverSentEventController.handle);
  * /prospects/{email}:
  *   get:
  *     summary: Récupérer un prospect par email
+ *     description: |
+ *       Vérifie si un email correspond à un prospect (utilisateur potentiel).
+ *       Retourne des informations sur l'existence d'un compte et l'établissement associé.
  *     tags: [Users]
  *     security: []
  *     parameters:
@@ -60,9 +63,22 @@ router.get('/sse', serverSentEventController.handle);
  *         schema:
  *           type: string
  *           format: email
+ *         description: Email du prospect à rechercher
+ *         example: "prospect@collectivite.fr"
  *     responses:
  *       200:
  *         description: Prospect trouvé
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/Prospect'
+ *             example:
+ *               email: "prospect@collectivite.fr"
+ *               establishment:
+ *                 id: "123e4567-e89b-12d3-a456-426614174000"
+ *                 siren: "200012345"
+ *               hasAccount: false
+ *               hasCommitment: true
  *       404:
  *         description: Prospect non trouvé
  */
@@ -78,6 +94,9 @@ router.get(
  * /users/creation:
  *   post:
  *     summary: Créer un compte utilisateur
+ *     description: |
+ *       Crée un nouveau compte utilisateur via un lien d'invitation.
+ *       Cette route est publique mais nécessite un lien d'invitation valide.
  *     tags: [Users]
  *     security: []
  *     requestBody:
@@ -91,21 +110,34 @@ router.get(
  *               email:
  *                 type: string
  *                 format: email
+ *                 example: nouveau@collectivite.fr
  *               password:
  *                 type: string
  *                 minLength: 8
+ *                 description: Mot de passe (min 8 caractères)
  *               firstName:
  *                 type: string
+ *                 example: Jean
  *               lastName:
  *                 type: string
+ *                 example: DUPONT
  *               establishmentId:
  *                 type: string
  *                 format: uuid
+ *                 description: ID de l'établissement de rattachement
  *     responses:
  *       201:
  *         description: Utilisateur créé avec succès
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/User'
  *       400:
  *         description: Données invalides
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/Error'
  *       409:
  *         description: Email déjà utilisé
  */
@@ -309,6 +341,9 @@ router.get(
  * /signup-links:
  *   post:
  *     summary: Créer un lien d'inscription
+ *     description: |
+ *       Crée un lien d'inscription pour un nouvel utilisateur.
+ *       Le lien sera envoyé par email au prospect.
  *     tags: [Users]
  *     security: []
  *     requestBody:
@@ -316,15 +351,14 @@ router.get(
  *       content:
  *         application/json:
  *           schema:
- *             type: object
- *             required: [establishmentId]
- *             properties:
- *               establishmentId:
- *                 type: string
- *                 format: uuid
+ *             $ref: '#/components/schemas/SignupLinkPayload'
  *     responses:
  *       201:
  *         description: Lien d'inscription créé
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/SignupLink'
  */
 router.post(
   '/signup-links',
@@ -339,6 +373,9 @@ router.post(
  * /signup-links/{id}:
  *   get:
  *     summary: Récupérer les informations d'un lien d'inscription
+ *     description: |
+ *       Retourne les informations du lien d'inscription, incluant l'établissement associé.
+ *       Utilisé par le frontend pour pré-remplir le formulaire d'inscription.
  *     tags: [Users]
  *     security: []
  *     parameters:
@@ -348,9 +385,22 @@ router.post(
  *         schema:
  *           type: string
  *           format: uuid
+ *         description: ID du lien d'inscription
  *     responses:
  *       200:
  *         description: Informations du lien
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/SignupLinkResponse'
+ *             example:
+ *               id: "123e4567-e89b-12d3-a456-426614174000"
+ *               prospectEmail: "nouveau@collectivite.fr"
+ *               expiresAt: "2024-02-15T14:30:00Z"
+ *               establishment:
+ *                 id: "123e4567-e89b-12d3-a456-426614174001"
+ *                 name: "Communauté de communes du Val de Loire"
+ *                 siren: "200012345"
  *       404:
  *         description: Lien non trouvé ou expiré
  */
@@ -406,6 +456,23 @@ router.put(
  * /establishments:
  *   get:
  *     summary: Lister les établissements (collectivités)
+ *     description: |
+ *       Retourne la liste des établissements (collectivités territoriales).
+ *       Cette route est publique mais peut être enrichie avec un token JWT pour filtrer par permissions.
+ *
+ *       **Types d'établissements disponibles:**
+ *       - **Commune**: Commune
+ *       - **CA**: Communauté d'Agglomération
+ *       - **CC**: Communauté de Communes
+ *       - **CU**: Communauté Urbaine
+ *       - **ME**: Métropole
+ *       - **DEP**: Département
+ *       - **REG**: Région
+ *       - **PETR**: Pôle d'Équilibre Territorial et Rural
+ *       - **SIVOM**: Syndicat Intercommunal à Vocation Multiple
+ *       - **CTU**: Collectivité Territoriale Unique
+ *       - **SDED/SDER**: Services Déconcentrés de l'État
+ *       - **ASSO**: Association
  *     tags: [Establishments]
  *     security: []
  *     parameters:
@@ -414,11 +481,12 @@ router.put(
  *         schema:
  *           type: string
  *         description: Recherche par nom ou SIREN
+ *         example: "Communauté de communes"
  *       - in: query
  *         name: available
  *         schema:
  *           type: boolean
- *         description: Filtrer les établissements disponibles
+ *         description: Filtrer les établissements disponibles pour inscription
  *     responses:
  *       200:
  *         description: Liste des établissements
@@ -427,18 +495,16 @@ router.put(
  *             schema:
  *               type: array
  *               items:
- *                 type: object
- *                 properties:
- *                   id:
- *                     type: string
- *                     format: uuid
- *                   name:
- *                     type: string
- *                   siren:
- *                     type: integer
- *                   kind:
- *                     type: string
- *                     enum: [Commune, EPCI, Département, Région]
+ *                 $ref: '#/components/schemas/EstablishmentComplete'
+ *             example:
+ *               - id: "123e4567-e89b-12d3-a456-426614174000"
+ *                 name: "Communauté de communes du Val de Loire"
+ *                 shortName: "CC Val de Loire"
+ *                 siren: "200012345"
+ *                 available: true
+ *                 geoCodes: ["37001", "37002", "37003"]
+ *                 kind: "CC"
+ *                 source: "api-geo"
  */
 router.get(
   '/establishments',
@@ -455,6 +521,7 @@ router.get(
  * /establishments/{id}/settings:
  *   get:
  *     summary: Récupérer les paramètres d'un établissement
+ *     description: Retourne les paramètres de configuration de l'établissement (inbox, etc.)
  *     tags: [Establishments, Settings]
  *     security: []
  *     parameters:
@@ -464,9 +531,17 @@ router.get(
  *         schema:
  *           type: string
  *           format: uuid
+ *         description: ID de l'établissement
  *     responses:
  *       200:
  *         description: Paramètres de l'établissement
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/SettingsComplete'
+ *             example:
+ *               inbox:
+ *                 enabled: true
  *       404:
  *         description: Établissement non trouvé
  */
@@ -487,6 +562,7 @@ router.get(
  * /localities:
  *   get:
  *     summary: Lister les localités (communes)
+ *     description: Retourne la liste des communes avec leurs informations fiscales (TLV, THLV)
  *     tags: [Geo]
  *     security: []
  *     parameters:
@@ -495,6 +571,7 @@ router.get(
  *         schema:
  *           type: string
  *         description: Recherche par nom ou code postal
+ *         example: "Paris"
  *       - in: query
  *         name: establishmentId
  *         schema:
@@ -504,6 +581,18 @@ router.get(
  *     responses:
  *       200:
  *         description: Liste des localités
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: array
+ *               items:
+ *                 $ref: '#/components/schemas/LocalityComplete'
+ *             example:
+ *               - geoCode: "75102"
+ *                 name: "Paris 2e Arrondissement"
+ *                 kind: "ACV"
+ *                 taxKind: "TLV"
+ *                 taxRate: 17
  */
 router.get(
   '/localities',

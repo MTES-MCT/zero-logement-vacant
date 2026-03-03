@@ -26,18 +26,19 @@ jobs:
         with:
           node-version: '20'
 
-      - name: Install Chromium dependencies (for Mermaid)
-        run: |
-          sudo apt-get update
-          sudo apt-get install -y chromium-browser
-
       - name: Install Mermaid CLI
         run: |
-          # Pin to 10.6.1 which is stable and works with global install
-          # Newer versions have a bug with dist/index.html missing
-          npm install -g @mermaid-js/mermaid-cli@10.6.1
-          # Configure puppeteer to use system Chromium
-          echo '{"executablePath": "/usr/bin/chromium-browser", "args": ["--no-sandbox"]}' > ~/.puppeteerrc.json
+          # Install mermaid-cli locally to avoid global install issues with dist/index.html
+          mkdir -p /tmp/mermaid-cli
+          cd /tmp/mermaid-cli
+          npm init -y
+          npm install @mermaid-js/mermaid-cli@10.6.1
+          # Create wrapper script to use local mmdc
+          echo '#!/bin/bash' > /usr/local/bin/mmdc
+          echo 'exec /tmp/mermaid-cli/node_modules/.bin/mmdc "$@"' >> /usr/local/bin/mmdc
+          chmod +x /usr/local/bin/mmdc
+          # Configure puppeteer to use bundled Chromium with no-sandbox for CI
+          echo '{"args": ["--no-sandbox", "--disable-setuid-sandbox"]}' > ~/.puppeteerrc.json
 
       - name: Install Pandoc
         run: |

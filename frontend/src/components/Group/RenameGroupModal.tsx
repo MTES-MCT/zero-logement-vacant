@@ -54,6 +54,7 @@ export function createRenameGroupModal(options?: Readonly<RenameGroupModalOption
 
       return (
         <modal.Component
+          size="large"
           {...rest}
           title="Modifier le groupe"
           onSubmit={form.handleSubmit(handleSubmit)}

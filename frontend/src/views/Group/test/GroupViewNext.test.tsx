@@ -25,15 +25,13 @@ import { createMemoryRouter, RouterProvider } from 'react-router-dom';
 
 import data from '~/mocks/handlers/data';
 import configureTestStore from '~/utils/storeUtils';
-import GroupView from '../GroupViewNext';
+import GroupViewNext from '../GroupViewNext';
 
 vi.mock('posthog-js/react', async (importOriginal) => {
   const mod = await importOriginal<typeof import('posthog-js/react')>();
   return {
     ...mod,
-    useFeatureFlagEnabled: vi
-      .fn()
-      .mockImplementation((flag: string) => flag === 'new-campaigns'),
+    useFeatureFlagEnabled: vi.fn(),
     usePostHog: () => ({ capture: vi.fn() })
   };
 });
@@ -48,6 +46,13 @@ interface RenderViewOptions {
 describe('Group view', () => {
   const auth = genUserDTO(UserRole.USUAL);
   const user = userEvent.setup();
+
+  beforeEach(async () => {
+    const { useFeatureFlagEnabled } = await import('posthog-js/react');
+    vi.mocked(useFeatureFlagEnabled).mockImplementation(
+      (flag: string) => flag === 'new-campaigns'
+    );
+  });
 
   beforeAll(async () => {
     data.users.push(auth);
@@ -89,7 +94,7 @@ describe('Group view', () => {
     const router = createMemoryRouter(
       [
         { path: '/parc-de-logements', element: 'Parc de logements' },
-        { path: '/groupes/:id', element: <GroupView /> },
+        { path: '/groupes/:id', element: <GroupViewNext /> },
         { path: '/campagnes/:id', element: 'Campagne' }
       ],
       {
@@ -102,6 +107,8 @@ describe('Group view', () => {
         <RouterProvider router={router} />
       </Provider>
     );
+
+    return { router };
   }
 
   it('should show NotFoundView if the group does not exist', async () => {
@@ -136,12 +143,12 @@ describe('Group view', () => {
   });
 
   describe('Create a campaign from the group', () => {
-    it('should display a modal to create a campaign', async () => {
+    it('should create a campaign without sending date', async () => {
       const housings = faker.helpers.multiple(() => genHousingDTO());
       const group = genGroupDTO(auth, housings);
       const campaign = null;
 
-      renderView({
+      const { router } = renderView({
         auth,
         group,
         housings,
@@ -154,16 +161,45 @@ describe('Group view', () => {
       expect(createCampaign).toBeEnabled();
       await user.click(createCampaign);
       const modal = await screen.findByRole('dialog');
-      const title = await within(modal).findByLabelText(
-        /^Titre de la campagne/
-      );
+      const title = await within(modal).findByLabelText(/^Nom/);
       await user.type(title, 'Logements prioritaires');
+      const description = await within(modal).findByLabelText(/Description/);
+      await user.type(description, 'Campagne pour les logements prioritaires');
       const confirm = await within(modal).findByText('Confirmer');
       await user.click(confirm);
 
-      const page = await screen.findByText('Campagne');
-      expect(page).toBeVisible();
+      expect(router.state.location.pathname).toMatch(/\/campagnes\/.+/);
     });
+
+    it('should create a campaign with a sending date', async () => {
+      const housings = faker.helpers.multiple(() => genHousingDTO());
+      const group = genGroupDTO(auth, housings);
+      const campaign = null;
+
+      const { router } = renderView({
+        auth,
+        group,
+        housings,
+        campaign
+      });
+
+      const createCampaign = await screen.findByRole('button', {
+        name: /^Créer une campagne/
+      });
+      expect(createCampaign).toBeEnabled();
+      await user.click(createCampaign);
+      const modal = await screen.findByRole('dialog');
+      const title = await within(modal).findByLabelText(/^Nom/);
+      await user.type(title, 'Logements prioritaires');
+      const description = await within(modal).findByLabelText(/Description/);
+      await user.type(description, 'Campagne pour les logements prioritaires');
+      const sentAt = await within(modal).findByLabelText(/Date d’envoi/);
+      await user.type(sentAt, '2024-12-31');
+      const confirm = await within(modal).findByText('Confirmer');
+      await user.click(confirm);
+
+      expect(router.state.location.pathname).toMatch(/\/campagnes\/.+/);
+    })
   });
 
   describe('Rename the group', () => {

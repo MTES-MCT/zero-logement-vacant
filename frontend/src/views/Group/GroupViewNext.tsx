@@ -132,7 +132,14 @@ function GroupViewNext() {
           component="section"
           sx={{ padding: '1.5rem', width: '100%' }}
         >
-          <Grid size="grow">
+          <Grid
+            size="grow"
+            sx={{
+              display: 'flex',
+              flexFlow: 'column nowrap',
+              gap: '1rem'
+            }}
+          >
             <GroupNext
               group={group}
               onCreateCampaign={onCampaignCreate}
@@ -144,11 +151,10 @@ function GroupViewNext() {
             <Alert
               severity="success"
               description={alert}
-              closable
+              closable={false}
               small
               isClosed={!alert.length}
               onClose={() => {}}
-              className="fr-mb-5w"
             />
 
             <Stack

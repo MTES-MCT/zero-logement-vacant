@@ -15,10 +15,7 @@ import { useAppSelector } from '~/hooks/useStore';
 import type { Campaign } from '~/models/Campaign';
 import type { GroupPayload } from '~/models/GroupPayload';
 import authService from '~/services/auth.service';
-import {
-  useCreateCampaignFromGroupMutation,
-  useFindCampaignsQuery
-} from '~/services/campaign.service';
+import { useCreateCampaignFromGroupMutation } from '~/services/campaign.service';
 import {
   useGetGroupQuery,
   useRemoveGroupMutation,
@@ -111,12 +108,6 @@ function GroupViewNext() {
     }
   }
 
-  const { data: campaigns } = useFindCampaignsQuery({
-    filters: {
-      groupIds: [id as string]
-    }
-  });
-
   if (isLoadingGroup) {
     return null;
   }
@@ -143,9 +134,8 @@ function GroupViewNext() {
         >
           <Grid size="grow">
             <GroupNext
-              campaigns={campaigns}
               group={group}
-              onCampaignCreate={onCampaignCreate}
+              onCreateCampaign={onCampaignCreate}
               onExport={onGroupExport}
               onUpdate={onGroupUpdate}
               onRemove={onGroupRemove}

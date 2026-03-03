@@ -5,13 +5,12 @@ import { createRenameGroupModal } from './RenameGroupModal';
 
 describe('RenameGroupModal', () => {
   it('calls onSubmit with updated title and description', async () => {
-    const modal = createRenameGroupModal();
+    const modal = createRenameGroupModal({ isOpenedByDefault: true });
     const onSubmit = vi.fn();
     render(
       <modal.Component
         group={{ id: '1', title: 'Old title', description: 'Old desc', housingCount: 0, ownerCount: 0, createdAt: new Date(), archivedAt: null }}
         onSubmit={onSubmit}
-        isOpenedByDefault
       />
     );
     const titleInput = screen.getByLabelText(/Nom du groupe/i);

@@ -128,6 +128,12 @@ export function createServer(): Server {
    *     description: |
    *       Returns the health status of all service dependencies.
    *       **Note:** This endpoint is at the root URL `/`, not under `/api`.
+   *
+   *       ## Checked services
+   *       - **postgres**: Base de données PostgreSQL
+   *       - **redis**: Cache Redis pour les sessions et jobs
+   *       - **brevo**: Service d'envoi d'emails (uniquement en production)
+   *       - **s3**: Stockage S3/Cellar pour les fichiers
    *     servers:
    *       - url: /
    *         description: Root
@@ -137,41 +143,35 @@ export function createServer(): Server {
    *         content:
    *           application/json:
    *             schema:
-   *               type: object
-   *               properties:
-   *                 uptime:
-   *                   type: number
-   *                   description: Server uptime in seconds
-   *                 checks:
-   *                   type: array
-   *                   items:
-   *                     type: object
-   *                     properties:
-   *                       name:
-   *                         type: string
-   *                         enum: [postgres, redis, brevo, s3]
-   *                       status:
-   *                         type: string
-   *                         enum: [up, down]
+   *               $ref: '#/components/schemas/HealthResponse'
+   *             example:
+   *               uptime: 86400.123
+   *               checks:
+   *                 - name: postgres
+   *                   status: up
+   *                 - name: redis
+   *                   status: up
+   *                 - name: brevo
+   *                   status: up
+   *                 - name: s3
+   *                   status: up
    *       503:
    *         description: One or more services are unhealthy
    *         content:
    *           application/json:
    *             schema:
-   *               type: object
-   *               properties:
-   *                 uptime:
-   *                   type: number
-   *                 checks:
-   *                   type: array
-   *                   items:
-   *                     type: object
-   *                     properties:
-   *                       name:
-   *                         type: string
-   *                       status:
-   *                         type: string
-   *                         enum: [up, down]
+   *               $ref: '#/components/schemas/HealthResponse'
+   *             example:
+   *               uptime: 86400.123
+   *               checks:
+   *                 - name: postgres
+   *                   status: up
+   *                 - name: redis
+   *                   status: down
+   *                 - name: brevo
+   *                   status: up
+   *                 - name: s3
+   *                   status: up
    */
   app.get(
     '/',

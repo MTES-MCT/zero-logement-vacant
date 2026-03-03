@@ -68,56 +68,120 @@ The API uses JWT (JSON Web Token) authentication. To access protected endpoints:
         // Core entities
         Housing: {
           type: 'object',
+          description: 'Logement vacant suivi par ZLV',
           properties: {
             id: { type: 'string', format: 'uuid', example: '123e4567-e89b-12d3-a456-426614174000' },
-            invariant: { type: 'string', example: '1234567890' },
-            localId: { type: 'string', description: 'Local fiscal identifier (12 chars)', example: '123456789012' },
-            rawAddress: { type: 'array', items: { type: 'string' }, example: ['12 RUE DE LA PAIX', '75002 PARIS'] },
-            geoCode: { type: 'string', description: 'INSEE code', example: '75102' },
+            invariant: { type: 'string', description: 'Identifiant invariant fiscal', example: '1234567890' },
+            localId: { type: 'string', description: 'Identifiant local fiscal (12 caractères)', example: '123456789012' },
+            rawAddress: { type: 'array', items: { type: 'string' }, description: 'Adresse brute', example: ['12 RUE DE LA PAIX', '75002 PARIS'] },
+            geoCode: { type: 'string', description: 'Code INSEE de la commune', example: '75102' },
+            campaignIds: { type: 'array', items: { type: 'string', format: 'uuid' }, nullable: true, description: 'IDs des campagnes associées' },
             longitude: { type: 'number', nullable: true, example: 2.3522 },
             latitude: { type: 'number', nullable: true, example: 48.8566 },
-            housingKind: { type: 'string', enum: ['APPART', 'MAISON'], example: 'APPART' },
-            roomsCount: { type: 'integer', nullable: true, example: 3 },
-            livingArea: { type: 'number', nullable: true, description: 'In square meters', example: 65.5 },
-            buildingYear: { type: 'integer', nullable: true, example: 1920 },
-            vacancyStartYear: { type: 'integer', nullable: true, example: 2020 },
+            cadastralClassification: { type: 'integer', enum: [1, 2, 3, 4, 5, 6, 7, 8], nullable: true, description: 'Classification cadastrale', example: 4 },
+            cadastralReference: { type: 'string', nullable: true, description: 'Référence cadastrale', example: '000AB0123' },
+            uncomfortable: { type: 'boolean', description: 'Logement inconfortable', example: false },
+            vacancyStartYear: { type: 'integer', nullable: true, description: 'Année de début de vacance', example: 2020 },
+            housingKind: { type: 'string', enum: ['APPART', 'MAISON'], description: 'Type de logement', example: 'APPART' },
+            roomsCount: { type: 'integer', nullable: true, description: 'Nombre de pièces', example: 3 },
+            livingArea: { type: 'number', nullable: true, description: 'Surface habitable en m²', example: 65.5 },
+            buildingId: { type: 'string', nullable: true, description: 'ID du bâtiment' },
+            buildingYear: { type: 'integer', nullable: true, description: 'Année de construction', example: 1920 },
+            taxed: { type: 'boolean', nullable: true, description: 'Soumis à la taxe sur les logements vacants', example: true },
+            dataYears: { type: 'array', items: { type: 'integer' }, deprecated: true, description: 'Années des données (deprecated, voir dataFileYears)' },
+            dataFileYears: { type: 'array', items: { type: 'string' }, description: 'Fichiers sources par année' },
+            beneficiaryCount: { type: 'integer', nullable: true, description: 'Nombre de bénéficiaires' },
+            buildingLocation: { type: 'string', nullable: true, description: 'Emplacement dans le bâtiment' },
+            rentalValue: { type: 'number', nullable: true, description: 'Valeur locative' },
+            ownershipKind: { type: 'string', nullable: true, description: 'Type de propriété' },
             status: {
               type: 'integer',
               enum: [0, 1, 2, 3, 4, 5],
-              description: '0=Never contacted, 1=Waiting, 2=First contact, 3=In progress, 4=Completed, 5=Blocked',
+              description: '0=Non suivi, 1=En attente de retour, 2=Premier contact, 3=Suivi en cours, 4=Suivi terminé, 5=Suivi bloqué',
               example: 0
             },
-            subStatus: { type: 'string', nullable: true, example: 'En attente de réponse' },
-            occupancy: {
-              type: 'string',
-              enum: ['V', 'L', 'B', 'RS', 'P', 'N', 'T', 'D', 'G', 'F', 'R', 'U', 'X', 'A', 'inconnu'],
-              description: 'V=Vacant, L=Rented, RS=Secondary residence, etc.',
-              example: 'V'
-            },
+            subStatus: { type: 'string', nullable: true, description: 'Sous-statut détaillé', example: 'En attente de réponse' },
             actualEnergyConsumption: {
               type: 'string',
               enum: ['A', 'B', 'C', 'D', 'E', 'F', 'G'],
               nullable: true,
-              description: 'DPE energy class',
+              description: 'Classe énergétique DPE (modifiable par l\'utilisateur)',
               example: 'D'
             },
-            cadastralClassification: { type: 'integer', enum: [1, 2, 3, 4, 5, 6, 7, 8], nullable: true, example: 4 },
-            cadastralReference: { type: 'string', nullable: true, example: '000AB0123' },
-            taxed: { type: 'boolean', nullable: true, example: true },
-            uncomfortable: { type: 'boolean', example: false },
-            owner: { $ref: '#/components/schemas/Owner' }
+            energyConsumption: { type: 'string', enum: ['A', 'B', 'C', 'D', 'E', 'F', 'G'], nullable: true, deprecated: true, description: 'Utiliser BuildingDTO.dpe.class' },
+            energyConsumptionAt: { type: 'string', format: 'date-time', nullable: true, deprecated: true, description: 'Utiliser BuildingDTO.dpe.doneAt' },
+            occupancy: {
+              type: 'string',
+              enum: ['V', 'L', 'B', 'RS', 'P', 'N', 'T', 'D', 'G', 'F', 'R', 'U', 'X', 'A', 'inconnu'],
+              description: 'V=Vacant, L=Loué, B=Bail, RS=Résidence secondaire, P=Propriétaire, N=Non vacant, etc.',
+              example: 'V'
+            },
+            occupancyIntended: {
+              type: 'string',
+              enum: ['V', 'L', 'B', 'RS', 'P', 'N', 'T', 'D', 'G', 'F', 'R', 'U', 'X', 'A', 'inconnu'],
+              nullable: true,
+              description: 'Occupation visée'
+            },
+            source: { type: 'string', enum: ['lovac', 'datafoncier-manual', 'datafoncier-import'], nullable: true, description: 'Source des données' },
+            owner: { $ref: '#/components/schemas/Owner' },
+            lastMutationType: { type: 'string', nullable: true, description: 'Type de dernière mutation' },
+            lastMutationDate: { type: 'string', format: 'date', nullable: true, description: 'Date de dernière mutation' },
+            lastTransactionDate: { type: 'string', format: 'date', nullable: true, description: 'Date de dernière transaction' },
+            lastTransactionValue: { type: 'number', nullable: true, description: 'Valeur de dernière transaction en euros' },
+            plotId: { type: 'string', nullable: true, description: 'ID de la parcelle' },
+            plotArea: { type: 'number', nullable: true, description: 'Surface de la parcelle en m²' }
           },
-          required: ['id', 'localId', 'geoCode', 'status', 'occupancy']
+          required: ['id', 'invariant', 'localId', 'rawAddress', 'geoCode', 'uncomfortable', 'housingKind', 'status', 'occupancy']
         },
         HousingUpdatePayload: {
           type: 'object',
+          description: 'Données pour mettre à jour un logement',
           properties: {
-            status: { type: 'integer', enum: [0, 1, 2, 3, 4, 5] },
-            subStatus: { type: 'string', nullable: true },
+            status: { type: 'integer', enum: [0, 1, 2, 3, 4, 5], description: 'Nouveau statut de suivi' },
+            subStatus: { type: 'string', nullable: true, description: 'Sous-statut détaillé' },
+            occupancy: { type: 'string', enum: ['V', 'L', 'B', 'RS', 'P', 'N', 'T', 'D', 'G', 'F', 'R', 'U', 'X', 'A', 'inconnu'], description: 'Occupation actuelle' },
+            occupancyIntended: { type: 'string', enum: ['V', 'L', 'B', 'RS', 'P', 'N', 'T', 'D', 'G', 'F', 'R', 'U', 'X', 'A', 'inconnu'], nullable: true, description: 'Occupation visée' },
+            actualEnergyConsumption: { type: 'string', enum: ['A', 'B', 'C', 'D', 'E', 'F', 'G'], nullable: true, description: 'Classe énergétique DPE' }
+          },
+          required: ['status', 'occupancy', 'actualEnergyConsumption']
+        },
+        HousingBatchUpdatePayload: {
+          type: 'object',
+          description: 'Données pour mettre à jour plusieurs logements',
+          properties: {
+            filters: { $ref: '#/components/schemas/HousingFilters' },
             occupancy: { type: 'string', enum: ['V', 'L', 'B', 'RS', 'P', 'N', 'T', 'D', 'G', 'F', 'R', 'U', 'X', 'A', 'inconnu'] },
-            occupancyIntended: { type: 'string', enum: ['V', 'L', 'B', 'RS', 'P', 'N', 'T', 'D', 'G', 'F', 'R', 'U', 'X', 'A', 'inconnu'], nullable: true },
-            actualEnergyConsumption: { type: 'string', enum: ['A', 'B', 'C', 'D', 'E', 'F', 'G'], nullable: true }
+            occupancyIntended: { type: 'string', enum: ['V', 'L', 'B', 'RS', 'P', 'N', 'T', 'D', 'G', 'F', 'R', 'U', 'X', 'A', 'inconnu'] },
+            status: { type: 'integer', enum: [0, 1, 2, 3, 4, 5] },
+            subStatus: { type: 'string' },
+            note: { type: 'string', description: 'Note à ajouter aux logements' },
+            precisions: { type: 'array', items: { type: 'string', format: 'uuid' }, description: 'IDs des précisions à associer' },
+            documents: { type: 'array', items: { type: 'string', format: 'uuid' }, description: 'IDs des documents à associer' }
+          },
+          required: ['filters']
+        },
+        HousingFilters: {
+          type: 'object',
+          description: 'Filtres de recherche de logements',
+          properties: {
+            establishmentIds: { type: 'array', items: { type: 'string', format: 'uuid' } },
+            groupIds: { type: 'array', items: { type: 'string', format: 'uuid' } },
+            campaignIds: { type: 'array', items: { type: 'string', format: 'uuid' } },
+            status: { type: 'array', items: { type: 'integer', enum: [0, 1, 2, 3, 4, 5] } },
+            occupancies: { type: 'array', items: { type: 'string' } },
+            energyConsumption: { type: 'array', items: { type: 'string', enum: ['A', 'B', 'C', 'D', 'E', 'F', 'G'] } },
+            housingKinds: { type: 'array', items: { type: 'string', enum: ['APPART', 'MAISON'] } },
+            query: { type: 'string', description: 'Recherche textuelle (adresse, propriétaire...)' }
           }
+        },
+        HousingCount: {
+          type: 'object',
+          description: 'Comptage de logements et propriétaires',
+          properties: {
+            housing: { type: 'integer', description: 'Nombre de logements', example: 1234 },
+            owners: { type: 'integer', description: 'Nombre de propriétaires uniques', example: 987 }
+          },
+          required: ['housing', 'owners']
         },
         Owner: {
           type: 'object',
@@ -155,6 +219,7 @@ The API uses JWT (JSON Web Token) authentication. To access protected endpoints:
         },
         User: {
           type: 'object',
+          description: 'Utilisateur de la plateforme ZLV',
           properties: {
             id: { type: 'string', format: 'uuid', example: '123e4567-e89b-12d3-a456-426614174002' },
             email: { type: 'string', format: 'email', example: 'user@collectivite.fr' },
@@ -162,28 +227,74 @@ The API uses JWT (JSON Web Token) authentication. To access protected endpoints:
             lastName: { type: 'string', nullable: true, example: 'MARTIN' },
             phone: { type: 'string', nullable: true, example: '+33123456789' },
             position: { type: 'string', nullable: true, example: 'Chargé de mission habitat' },
+            timePerWeek: {
+              type: 'string',
+              nullable: true,
+              enum: ['Moins de 0,5 jour', '0,5 jour', '1 jour', '2 jours', 'Plus de 2 jours'],
+              description: 'Temps consacré à ZLV par semaine',
+              example: '1 jour'
+            },
+            establishmentId: { type: 'string', format: 'uuid', nullable: true },
             role: {
               type: 'integer',
               enum: [0, 1, 2],
-              description: '0=Usual, 1=Admin, 2=Visitor',
+              description: '0=USUAL (utilisateur standard), 1=ADMIN (administrateur), 2=VISITOR (visiteur)',
               example: 0
             },
-            establishmentId: { type: 'string', format: 'uuid', nullable: true },
-            activatedAt: { type: 'string', format: 'date-time' },
-            lastAuthenticatedAt: { type: 'string', format: 'date-time', nullable: true }
+            activatedAt: { type: 'string', format: 'date-time', description: 'Date d\'activation du compte' },
+            lastAuthenticatedAt: { type: 'string', format: 'date-time', nullable: true, description: 'Dernière connexion' },
+            suspendedAt: { type: 'string', format: 'date-time', nullable: true, description: 'Date de suspension (null si actif)' },
+            suspendedCause: {
+              type: 'string',
+              nullable: true,
+              description: 'Cause(s) de suspension (séparées par virgule)',
+              example: 'droits utilisateur expires'
+            },
+            updatedAt: { type: 'string', format: 'date-time', description: 'Dernière mise à jour' },
+            kind: { type: 'string', nullable: true, description: 'Type d\'utilisateur' }
           },
-          required: ['id', 'email', 'role']
+          required: ['id', 'email', 'role', 'activatedAt', 'updatedAt']
         },
         UserCreationPayload: {
           type: 'object',
+          description: 'Données pour créer un utilisateur',
           properties: {
             email: { type: 'string', format: 'email', example: 'nouveau@collectivite.fr' },
-            password: { type: 'string', minLength: 8, example: 'SecureP@ss123' },
-            firstName: { type: 'string', example: 'Jean' },
-            lastName: { type: 'string', example: 'DUPONT' },
-            establishmentId: { type: 'string', format: 'uuid' }
+            firstName: { type: 'string', nullable: true, example: 'Jean' },
+            lastName: { type: 'string', nullable: true, example: 'DUPONT' },
+            phone: { type: 'string', nullable: true, example: '+33612345678' },
+            position: { type: 'string', nullable: true, example: 'Chargé de mission habitat' },
+            timePerWeek: {
+              type: 'string',
+              nullable: true,
+              enum: ['Moins de 0,5 jour', '0,5 jour', '1 jour', '2 jours', 'Plus de 2 jours']
+            }
           },
-          required: ['email', 'password', 'firstName', 'lastName', 'establishmentId']
+          required: ['email']
+        },
+        UserUpdatePayload: {
+          type: 'object',
+          description: 'Données pour mettre à jour un utilisateur',
+          properties: {
+            firstName: { type: 'string', nullable: true, example: 'Jean' },
+            lastName: { type: 'string', nullable: true, example: 'DUPONT' },
+            phone: { type: 'string', nullable: true, example: '+33612345678' },
+            position: { type: 'string', nullable: true, example: 'Chargé de mission habitat' },
+            timePerWeek: {
+              type: 'string',
+              nullable: true,
+              enum: ['Moins de 0,5 jour', '0,5 jour', '1 jour', '2 jours', 'Plus de 2 jours']
+            },
+            password: {
+              type: 'object',
+              description: 'Changement de mot de passe',
+              properties: {
+                before: { type: 'string', description: 'Ancien mot de passe' },
+                after: { type: 'string', description: 'Nouveau mot de passe' }
+              },
+              required: ['before', 'after']
+            }
+          }
         },
         Establishment: {
           type: 'object',
@@ -376,6 +487,494 @@ The API uses JWT (JSON Web Token) authentication. To access protected endpoints:
             }
           },
           required: ['name', 'message']
+        },
+        // Authentication - Reset & Signup links
+        ResetLink: {
+          type: 'object',
+          description: 'Lien de réinitialisation de mot de passe',
+          properties: {
+            id: { type: 'string', format: 'uuid' },
+            createdAt: { type: 'string', format: 'date-time' },
+            expiresAt: { type: 'string', format: 'date-time' },
+            usedAt: { type: 'string', format: 'date-time', nullable: true }
+          },
+          required: ['id', 'createdAt', 'expiresAt']
+        },
+        SignupLink: {
+          type: 'object',
+          description: 'Lien d\'inscription',
+          properties: {
+            id: { type: 'string', format: 'uuid' },
+            prospectEmail: { type: 'string', format: 'email' },
+            expiresAt: { type: 'string', format: 'date-time' }
+          },
+          required: ['id', 'prospectEmail', 'expiresAt']
+        },
+        SignupLinkPayload: {
+          type: 'object',
+          properties: {
+            email: { type: 'string', format: 'email' }
+          },
+          required: ['email']
+        },
+        // Users - Filters
+        UserFilters: {
+          type: 'object',
+          description: 'Filtres de recherche d\'utilisateurs',
+          properties: {
+            establishments: {
+              type: 'array',
+              items: { type: 'string', format: 'uuid' },
+              description: 'IDs des établissements'
+            }
+          }
+        },
+        // Owners - Complete schemas
+        OwnerComplete: {
+          type: 'object',
+          description: 'Propriétaire complet avec tous les champs',
+          properties: {
+            id: { type: 'string', format: 'uuid' },
+            idpersonne: { type: 'string', nullable: true, description: 'Identifiant personne (source fiscale)' },
+            rawAddress: { type: 'array', items: { type: 'string' }, nullable: true },
+            fullName: { type: 'string', example: 'DUPONT Jean' },
+            administrator: { type: 'string', nullable: true, description: 'Administrateur de bien' },
+            birthDate: { type: 'string', format: 'date', nullable: true },
+            email: { type: 'string', format: 'email', nullable: true },
+            phone: { type: 'string', nullable: true },
+            banAddress: { $ref: '#/components/schemas/Address' },
+            additionalAddress: { type: 'string', nullable: true },
+            kind: {
+              type: 'string',
+              enum: ['particulier', 'sci-copro', 'promoteur', 'etat-collectivite', 'bailleur-social', 'autres'],
+              nullable: true,
+              description: 'Type de propriétaire'
+            },
+            siren: { type: 'string', nullable: true, description: 'SIREN pour les personnes morales' },
+            createdAt: { type: 'string', format: 'date-time', nullable: true },
+            updatedAt: { type: 'string', format: 'date-time', nullable: true }
+          },
+          required: ['id', 'fullName']
+        },
+        OwnerFilters: {
+          type: 'object',
+          description: 'Filtres de recherche de propriétaires',
+          properties: {
+            search: { type: 'string', description: 'Recherche textuelle (nom, adresse)' },
+            idpersonne: {
+              oneOf: [
+                { type: 'boolean' },
+                { type: 'array', items: { type: 'string' } }
+              ],
+              description: 'Filtrer par identifiant personne'
+            }
+          }
+        },
+        OwnerCreationPayload: {
+          type: 'object',
+          description: 'Données pour créer un propriétaire',
+          properties: {
+            fullName: { type: 'string', example: 'DUPONT Jean' },
+            birthDate: { type: 'string', format: 'date', nullable: true },
+            email: { type: 'string', format: 'email', nullable: true },
+            phone: { type: 'string', nullable: true },
+            rawAddress: { type: 'array', items: { type: 'string' } }
+          },
+          required: ['fullName']
+        },
+        OwnerUpdatePayload: {
+          type: 'object',
+          description: 'Données pour mettre à jour un propriétaire',
+          properties: {
+            fullName: { type: 'string' },
+            birthDate: { type: 'string', format: 'date', nullable: true },
+            email: { type: 'string', format: 'email', nullable: true },
+            phone: { type: 'string', nullable: true },
+            additionalAddress: { type: 'string', nullable: true },
+            banAddress: { $ref: '#/components/schemas/AddressPayload' }
+          },
+          required: ['fullName']
+        },
+        // Campaigns - Complete schemas
+        CampaignComplete: {
+          type: 'object',
+          description: 'Campagne de contact complète',
+          properties: {
+            id: { type: 'string', format: 'uuid' },
+            title: { type: 'string', example: 'Campagne courrier janvier 2024' },
+            description: { type: 'string' },
+            status: {
+              type: 'string',
+              enum: ['draft', 'sending', 'in-progress', 'archived'],
+              description: 'draft=Envoi en attente, sending=En cours d\'envoi, in-progress=Envoyée, archived=Archivée'
+            },
+            filters: { $ref: '#/components/schemas/HousingFilters' },
+            file: { type: 'string', nullable: true, description: 'Fichier de campagne' },
+            createdAt: { type: 'string', format: 'date-time' },
+            validatedAt: { type: 'string', format: 'date-time', nullable: true },
+            exportedAt: { type: 'string', format: 'date-time', nullable: true },
+            sentAt: { type: 'string', format: 'date-time', nullable: true },
+            archivedAt: { type: 'string', format: 'date-time', nullable: true },
+            confirmedAt: { type: 'string', format: 'date-time', nullable: true },
+            groupId: { type: 'string', format: 'uuid', nullable: true }
+          },
+          required: ['id', 'title', 'description', 'status', 'filters', 'createdAt']
+        },
+        CampaignCreationPayload: {
+          type: 'object',
+          description: 'Données pour créer une campagne',
+          properties: {
+            title: { type: 'string', example: 'Nouvelle campagne' },
+            description: { type: 'string' },
+            housing: {
+              type: 'object',
+              properties: {
+                all: { type: 'boolean', description: 'Inclure tous les logements correspondant aux filtres' },
+                ids: { type: 'array', items: { type: 'string', format: 'uuid' }, description: 'IDs de logements spécifiques' },
+                filters: { $ref: '#/components/schemas/HousingFilters' }
+              },
+              required: ['all', 'ids', 'filters']
+            }
+          },
+          required: ['title', 'description', 'housing']
+        },
+        CampaignUpdatePayload: {
+          type: 'object',
+          description: 'Données pour mettre à jour une campagne',
+          properties: {
+            title: { type: 'string' },
+            description: { type: 'string' },
+            status: { type: 'string', enum: ['draft', 'sending', 'in-progress', 'archived'] },
+            file: { type: 'string' },
+            sentAt: { type: 'string', format: 'date-time' }
+          }
+        },
+        // Events - Complete schema
+        Event: {
+          type: 'object',
+          description: 'Événement de l\'historique d\'un logement ou propriétaire',
+          properties: {
+            id: { type: 'string', format: 'uuid' },
+            name: {
+              type: 'string',
+              description: 'Nom lisible de l\'événement',
+              example: 'Changement de statut de suivi'
+            },
+            type: {
+              type: 'string',
+              enum: [
+                'housing:created', 'housing:updated', 'housing:occupancy-updated', 'housing:status-updated',
+                'housing:precision-attached', 'housing:precision-detached',
+                'housing:owner-attached', 'housing:owner-updated', 'housing:owner-detached',
+                'housing:perimeter-attached', 'housing:perimeter-detached',
+                'housing:group-attached', 'housing:group-detached', 'housing:group-removed',
+                'housing:campaign-attached', 'housing:campaign-detached', 'housing:campaign-removed',
+                'housing:document-attached', 'housing:document-detached', 'housing:document-removed',
+                'document:created', 'document:updated', 'document:removed',
+                'owner:updated', 'campaign:updated'
+              ],
+              description: 'Type technique de l\'événement'
+            },
+            conflict: { type: 'boolean', description: 'Indique un conflit d\'informations' },
+            nextOld: { type: 'object', description: 'Valeur avant modification', additionalProperties: true },
+            nextNew: { type: 'object', description: 'Valeur après modification', additionalProperties: true },
+            createdAt: { type: 'string', format: 'date-time' },
+            createdBy: { type: 'string', format: 'uuid' },
+            creator: { $ref: '#/components/schemas/User' }
+          },
+          required: ['id', 'name', 'type', 'createdAt', 'createdBy']
+        },
+        // Groups - Complete schemas
+        GroupComplete: {
+          type: 'object',
+          description: 'Groupe de logements complet',
+          properties: {
+            id: { type: 'string', format: 'uuid' },
+            title: { type: 'string', example: 'Logements prioritaires centre-ville' },
+            description: { type: 'string' },
+            housingCount: { type: 'integer', example: 42 },
+            ownerCount: { type: 'integer', example: 38 },
+            createdAt: { type: 'string', format: 'date-time' },
+            createdBy: { $ref: '#/components/schemas/User' },
+            archivedAt: { type: 'string', format: 'date-time', nullable: true }
+          },
+          required: ['id', 'title', 'description', 'housingCount', 'ownerCount', 'createdAt']
+        },
+        GroupPayload: {
+          type: 'object',
+          description: 'Données pour créer ou modifier un groupe',
+          properties: {
+            title: { type: 'string', example: 'Mon groupe de logements' },
+            description: { type: 'string' },
+            housing: {
+              type: 'object',
+              properties: {
+                all: { type: 'boolean' },
+                ids: { type: 'array', items: { type: 'string', format: 'uuid' } },
+                filters: { $ref: '#/components/schemas/HousingFilters' }
+              },
+              required: ['all', 'ids', 'filters']
+            }
+          },
+          required: ['title', 'description', 'housing']
+        },
+        // Establishments - Complete schemas
+        EstablishmentComplete: {
+          type: 'object',
+          description: 'Établissement (collectivité) complet',
+          properties: {
+            id: { type: 'string', format: 'uuid' },
+            name: { type: 'string', example: 'Communauté de communes du Val de Loire' },
+            shortName: { type: 'string', example: 'CC Val de Loire' },
+            siren: { type: 'string', pattern: '^[0-9]{9}$', example: '200012345' },
+            available: { type: 'boolean', description: 'Disponible pour inscription' },
+            geoCodes: { type: 'array', items: { type: 'string' }, description: 'Codes INSEE des communes', example: ['37001', '37002'] },
+            kind: {
+              type: 'string',
+              enum: ['ASSO', 'CA', 'CC', 'Commune', 'CTU', 'CU', 'DEP', 'ME', 'PETR', 'REG', 'SDED', 'SDER', "Service déconcentré de l'État à compétence (inter) départementale", 'SIVOM'],
+              description: 'Type d\'établissement'
+            },
+            source: {
+              type: 'string',
+              enum: ['api-geo', 'ods', 'manual'],
+              description: 'Source des données'
+            },
+            users: {
+              type: 'array',
+              items: { $ref: '#/components/schemas/User' },
+              description: 'Utilisateurs (si autorisé)'
+            }
+          },
+          required: ['id', 'name', 'shortName', 'siren', 'available', 'geoCodes', 'kind', 'source']
+        },
+        EstablishmentFilters: {
+          type: 'object',
+          description: 'Filtres de recherche d\'établissements',
+          properties: {
+            query: { type: 'string', description: 'Recherche par nom ou SIREN' },
+            available: { type: 'boolean', description: 'Filtrer les établissements disponibles' }
+          }
+        },
+        // Geo - Complete schemas
+        GeoPerimeter: {
+          type: 'object',
+          description: 'Périmètre géographique personnalisé',
+          properties: {
+            id: { type: 'string', format: 'uuid' },
+            name: { type: 'string', example: 'Centre-ville historique' },
+            kind: { type: 'string', example: 'Quartier prioritaire' },
+            geometry: {
+              type: 'object',
+              description: 'Géométrie GeoJSON MultiPolygon',
+              properties: {
+                type: { type: 'string', enum: ['MultiPolygon'] },
+                coordinates: {
+                  type: 'array',
+                  items: {
+                    type: 'array',
+                    items: {
+                      type: 'array',
+                      items: {
+                        type: 'array',
+                        items: { type: 'number' }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          required: ['id', 'name', 'kind', 'geometry']
+        },
+        LocalityComplete: {
+          type: 'object',
+          description: 'Commune avec informations fiscales',
+          properties: {
+            geoCode: { type: 'string', description: 'Code INSEE', example: '75102' },
+            name: { type: 'string', example: 'Paris 2e Arrondissement' },
+            kind: {
+              type: 'string',
+              enum: ['ACV', 'PVD'],
+              nullable: true,
+              description: 'ACV=Action Cœur de Ville, PVD=Petites Villes de Demain'
+            },
+            taxKind: {
+              type: 'string',
+              enum: ['TLV', 'THLV', 'None'],
+              description: 'Type de taxe sur les logements vacants'
+            },
+            taxRate: {
+              type: 'number',
+              description: 'Taux de taxe applicable (%)',
+              example: 17
+            }
+          },
+          required: ['geoCode', 'name', 'taxKind']
+        },
+        // Settings - Complete schema
+        SettingsComplete: {
+          type: 'object',
+          description: 'Paramètres d\'un établissement',
+          properties: {
+            inbox: {
+              type: 'object',
+              properties: {
+                enabled: { type: 'boolean', description: 'Activer la boîte de réception', example: true }
+              },
+              required: ['enabled']
+            }
+          },
+          required: ['inbox']
+        },
+        // Documents & Files - Complete schemas with limits
+        DocumentComplete: {
+          type: 'object',
+          description: 'Document attaché à un logement',
+          properties: {
+            id: { type: 'string', format: 'uuid' },
+            filename: { type: 'string', example: 'courrier_relance.pdf' },
+            url: { type: 'string', format: 'uri', description: 'URL de téléchargement pré-signée' },
+            contentType: { type: 'string', example: 'application/pdf' },
+            sizeBytes: { type: 'integer', example: 102400, description: 'Taille en octets' },
+            createdAt: { type: 'string', format: 'date-time' },
+            updatedAt: { type: 'string', format: 'date-time', nullable: true },
+            establishmentId: { type: 'string', format: 'uuid' },
+            creator: { $ref: '#/components/schemas/User' }
+          },
+          required: ['id', 'filename', 'url', 'contentType', 'sizeBytes', 'createdAt', 'establishmentId', 'creator']
+        },
+        DocumentPayload: {
+          type: 'object',
+          description: 'Données pour modifier un document',
+          properties: {
+            filename: { type: 'string', example: 'nouveau_nom.pdf' }
+          },
+          required: ['filename']
+        },
+        FileUploadInfo: {
+          type: 'object',
+          description: 'Informations sur les limites d\'upload de fichiers',
+          properties: {
+            acceptedExtensions: {
+              type: 'array',
+              items: { type: 'string' },
+              description: 'Extensions de fichier acceptées pour les documents de logement',
+              example: ['png', 'jpg', 'heic', 'webp', 'pdf', 'doc', 'docx', 'xls', 'xlsx', 'ppt', 'pptx']
+            },
+            maxSizeInMiB: {
+              type: 'integer',
+              description: 'Taille maximale en MiB',
+              example: 25
+            },
+            maxSizeInBytes: {
+              type: 'integer',
+              description: 'Taille maximale en octets',
+              example: 26214400
+            }
+          }
+        },
+        FileUpload: {
+          type: 'object',
+          description: 'Fichier uploadé',
+          properties: {
+            id: { type: 'string', format: 'uuid' },
+            type: { type: 'string', description: 'Type MIME', example: 'image/png' },
+            url: { type: 'string', format: 'uri' },
+            content: { type: 'string', description: 'Contenu encodé' }
+          },
+          required: ['id', 'type', 'url', 'content']
+        },
+        // Notes - Complete schema
+        NoteComplete: {
+          type: 'object',
+          description: 'Note sur un logement',
+          properties: {
+            id: { type: 'string', format: 'uuid' },
+            content: { type: 'string', example: 'Propriétaire contacté par téléphone, RDV prévu le 15/03' },
+            noteKind: { type: 'string', example: 'Suivi' },
+            createdBy: { type: 'string', format: 'uuid' },
+            createdAt: { type: 'string', format: 'date-time' },
+            updatedAt: { type: 'string', format: 'date-time', nullable: true },
+            creator: { $ref: '#/components/schemas/User' }
+          },
+          required: ['id', 'content', 'noteKind', 'createdBy', 'createdAt', 'creator']
+        },
+        NotePayload: {
+          type: 'object',
+          description: 'Données pour créer ou modifier une note',
+          properties: {
+            content: { type: 'string', minLength: 1 }
+          },
+          required: ['content']
+        },
+        // Health - Response schema with example
+        HealthResponse: {
+          type: 'object',
+          description: 'Réponse du healthcheck',
+          properties: {
+            uptime: { type: 'number', description: 'Uptime du serveur en secondes', example: 3600.5 },
+            checks: {
+              type: 'array',
+              items: {
+                type: 'object',
+                properties: {
+                  name: { type: 'string', enum: ['postgres', 'redis', 'brevo', 's3'] },
+                  status: { type: 'string', enum: ['up', 'down'] }
+                }
+              }
+            }
+          },
+          example: {
+            uptime: 86400.123,
+            checks: [
+              { name: 'postgres', status: 'up' },
+              { name: 'redis', status: 'up' },
+              { name: 'brevo', status: 'up' },
+              { name: 's3', status: 'up' }
+            ]
+          }
+        },
+        // Precision schema
+        Precision: {
+          type: 'object',
+          description: 'Précision sur un logement',
+          properties: {
+            id: { type: 'string', format: 'uuid' },
+            label: { type: 'string', example: 'Logement insalubre' },
+            category: { type: 'string', example: 'État du logement' }
+          },
+          required: ['id', 'label']
+        },
+        // Prospect schema
+        Prospect: {
+          type: 'object',
+          description: 'Prospect (utilisateur potentiel avant création de compte)',
+          properties: {
+            email: { type: 'string', format: 'email', example: 'prospect@collectivite.fr' },
+            establishment: {
+              type: 'object',
+              nullable: true,
+              properties: {
+                id: { type: 'string', format: 'uuid' },
+                siren: { type: 'string', example: '200012345' }
+              }
+            },
+            hasAccount: { type: 'boolean', description: 'Indique si le prospect a déjà un compte', example: false },
+            hasCommitment: { type: 'boolean', description: 'Indique si l\'établissement a signé une convention', example: true }
+          },
+          required: ['email', 'hasAccount', 'hasCommitment']
+        },
+        // SignupLink response schema
+        SignupLinkResponse: {
+          type: 'object',
+          description: 'Informations d\'un lien d\'inscription',
+          properties: {
+            id: { type: 'string', format: 'uuid' },
+            prospectEmail: { type: 'string', format: 'email' },
+            expiresAt: { type: 'string', format: 'date-time' },
+            establishment: { $ref: '#/components/schemas/EstablishmentComplete' }
+          },
+          required: ['id', 'prospectEmail', 'expiresAt']
         }
       }
     },

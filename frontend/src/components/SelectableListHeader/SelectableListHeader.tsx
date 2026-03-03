@@ -35,17 +35,6 @@ function SelectableListHeader(props: SelectableListHeaderProps) {
 
   const buttonClasses = classNames('fr-link fr-link--md', styles.unselect);
 
-  const selectedCount = hasSelected() && (
-    <>
-      <span className={styles.selection} role="status">
-        {selected} {pluralizeMany(props.entity)} {pluralizeMany('sélectionné')}
-      </span>
-      <button className={buttonClasses} onClick={props.onUnselectAll}>
-        Décocher la sélection
-      </button>
-    </>
-  );
-
   if (!hasSelected() && props.default) {
     return props.default;
   }
@@ -60,19 +49,24 @@ function SelectableListHeader(props: SelectableListHeaderProps) {
             ? fr.colors.decisions.background.actionLow.blueCumulus.default
             : undefined,
         padding: '0.5rem 0.5rem 0.5rem 1rem',
-        margin: '1rem 0'
+        margin: '1rem 0',
+        flexWrap: 'wrap',
+        gap: '0.5rem'
       }}
       size={12}
     >
-      <Grid size="auto">{selectedCount}</Grid>
-      <Grid
-        sx={{
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'flex-end'
-        }}
-        size="grow"
-      >
+      <Grid size="auto">
+        <span className={styles.selection} role="status">
+          {selected} {pluralizeMany(props.entity)}{' '}
+          {pluralizeMany('sélectionné')}
+        </span>
+      </Grid>
+      <Grid size="auto">
+        <button className={buttonClasses} onClick={props.onUnselectAll}>
+          Décocher la sélection
+        </button>
+      </Grid>
+      <Grid size="auto">
         <SelectableListHeaderActions {...actions?.props} />
       </Grid>
     </Grid>

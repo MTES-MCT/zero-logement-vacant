@@ -316,7 +316,11 @@ function AdvancedTable<Data extends object>(props: AdvancedTableProps<Data>) {
           direction="row"
           spacing="1rem"
           useFlexGap
-          sx={{ justifyContent: 'center', alignItems: 'center' }}
+          sx={{
+            justifyContent: 'center',
+            alignItems: 'center',
+            flexWrap: 'wrap'
+          }}
         >
           <SelectNext
             label={null}

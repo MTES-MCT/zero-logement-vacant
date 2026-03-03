@@ -160,8 +160,8 @@ const HousingListView = () => {
             {...{ role: 'status' }}
           />
 
-          <Grid container mb={1} spacing={2}>
-            <Grid size="grow">
+          <Grid container mb={1} spacing={2} sx={{ flexWrap: 'wrap' }}>
+            <Grid size="grow" sx={{ minWidth: '300px' }}>
               <AppSearchBar
                 initialQuery={filters.query}
                 label="Rechercher (propriétaire, identifiant fiscal, ref. cadastrale...)"
@@ -171,7 +171,7 @@ const HousingListView = () => {
             </Grid>
             <Grid size="auto" sx={{ display: 'flex', alignItems: 'center' }}>
               <Tooltip
-                align="start"
+                align="end"
                 place="bottom"
                 title="Pour retrouver une liste de logements, copiez-collez dans la barre de recherche la liste de leurs identifiants fiscaux séparés par un espace. Exemple : « 750123456789 750123456790 750123456791 »"
               />

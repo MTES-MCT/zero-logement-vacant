@@ -34,6 +34,9 @@ paths: ["frontend/**"]
 
 ## Testing
 - MSW handlers in `src/mocks/handlers/`. Fixtures extend `gen*DTO()`.
+- Every new user flow requires two levels of tests:
+  1. **Unit test** in a `test/` directory next to the component (`components/<Feature>/test/ComponentName.test.tsx`).
+  2. **View-level integration test** in `views/<Feature>/test/<FeatureView>.test.tsx` — covers the full flow from button click to API call, following the pattern in `GroupViewNext.test.tsx`.
 
 ## Legacy → current (do not replicate legacy)
 | Legacy | Current |

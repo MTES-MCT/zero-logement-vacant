@@ -1,3 +1,5 @@
+import { createPortal } from 'react-dom';
+
 import {
   createConfirmationModal,
   type ConfirmationModalOptions,
@@ -22,11 +24,13 @@ export function createRemoveGroupModal(
   return {
     ...modal,
     Component(props?: Readonly<CreateRemoveGroupModalProps>) {
-      return (
+      const component = (
         <modal.Component {...props} title="Supprimer le groupe">
           Êtes-vous sûr de vouloir supprimer ce groupe ?
         </modal.Component>
       );
+
+      return createPortal(component, document.body);
     }
   };
 }

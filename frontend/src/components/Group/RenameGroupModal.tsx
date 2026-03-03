@@ -1,4 +1,5 @@
 import { yupResolver } from '@hookform/resolvers/yup';
+import { createPortal } from 'react-dom';
 import { useForm, type SubmitHandler } from 'react-hook-form';
 import { object, string, type InferType } from 'yup';
 
@@ -52,26 +53,31 @@ export function createRenameGroupModal(options?: Readonly<RenameGroupModalOption
         onSubmit({ title: data.title, description: data.description });
       };
 
-      return (
-        <modal.Component
-          size="large"
-          {...rest}
-          title="Modifier le groupe"
-          onSubmit={form.handleSubmit(handleSubmit)}
-        >
-          <AppTextInputNext<FormSchema>
-            label="Nom du groupe (obligatoire)"
-            name="title"
-            control={form.control}
-          />
-          <AppTextInputNext<FormSchema>
-            label="Description"
-            name="description"
-            control={form.control}
-            textArea
-          />
-        </modal.Component>
+      const component = (
+        <form onSubmit={form.handleSubmit(handleSubmit)}>
+          <modal.Component
+            size="large"
+            {...rest}
+            title="Modifier le groupe"
+            onSubmit={form.handleSubmit(handleSubmit)}
+            onClose={() => form.reset()}
+          >
+            <AppTextInputNext<FormSchema>
+              label="Nom du groupe (obligatoire)"
+              name="title"
+              control={form.control}
+            />
+            <AppTextInputNext<FormSchema>
+              label="Description"
+              name="description"
+              control={form.control}
+              textArea
+            />
+          </modal.Component>
+        </form>
       );
+
+      return createPortal(component, document.body);
     }
   };
 }

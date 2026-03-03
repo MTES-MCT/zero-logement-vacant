@@ -26,6 +26,7 @@ paths: ["frontend/**"]
 
 ## State
 - RTK Query for server state. Redux slices for global UI state. Context + hook for scoped state.
+- `useState` for local component state only.
 
 ## Forms
 - react-hook-form + yup resolver for all new forms.

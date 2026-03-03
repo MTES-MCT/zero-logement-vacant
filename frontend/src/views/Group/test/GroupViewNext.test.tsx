@@ -166,6 +166,36 @@ describe('Group view', () => {
     });
   });
 
+  describe('Rename the group', () => {
+    it('should display a modal to rename the group', async () => {
+      const housings = faker.helpers.multiple(() => genHousingDTO());
+      const group = genGroupDTO(auth, housings);
+      const campaign = null;
+
+      renderView({
+        auth,
+        group,
+        housings,
+        campaign
+      });
+
+      const modifier = await screen.findByRole('button', { name: /Modifier/ });
+      await user.click(modifier);
+      const modal = await screen.findByRole('dialog');
+      const titleInput = await within(modal).findByLabelText(/Nom du groupe/i);
+      await user.clear(titleInput);
+      await user.type(titleInput, 'Nouveau nom');
+      const confirm = await within(modal).findByText('Confirmer');
+      await user.click(confirm);
+
+      const heading = await screen.findByRole('heading', {
+        name: 'Nouveau nom',
+        level: 1
+      });
+      expect(heading).toBeVisible();
+    });
+  });
+
   describe('Remove the group', () => {
     it('should display a modal to archive the group', async () => {
       const group = genGroupDTO(auth);

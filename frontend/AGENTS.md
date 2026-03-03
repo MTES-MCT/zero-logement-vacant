@@ -62,12 +62,9 @@ frontend/src/
 
 **For layout and UI components:**
 
-- Use **MUI Material components** with default imports (not barrel imports)
-- ✅ Correct: `import Typography from '@mui/material/Typography'`
-- ❌ Avoid: `import { Typography } from '@mui/material'`
-- Why: Efficient bundling, faster builds
+- Use **MUI Material components** with direct imports for efficient bundling
 - Common components: `Grid`, `Stack`, `Typography`, `Box`
-- Spacing: Use explicit rem values like `spacing="1rem"`, avoid numeric multipliers like `spacing={2}`
+- Spacing: Use explicit rem values like `spacing="1rem"`
 
 **For French government design compliance:**
 
@@ -78,12 +75,6 @@ frontend/src/
   - Colors: `fr.colors.*` for DSFR-compliant colors
   - Spacing: Use explicit rem values like `spacing="1rem"`
 - Note: `src/components/_dsfr/` wrappers are **legacy** and scheduled for removal
-
-**Legacy patterns to avoid:**
-
-- ❌ SCSS modules (`.module.scss`) - legacy, use styled components instead
-- ❌ Inline styles - avoid unless absolutely necessary
-- ❌ Emotion/styled imports from `@emotion/styled` - use `@mui/material/styles` instead
 
 ### Migration note
 
@@ -472,13 +463,3 @@ import { HousingUpdatePayload } from '@zerologementvacant/models';
 - **Dev server:** `localhost:3000`
 - **API endpoint:** `localhost:3001/api` (configurable via [utils/config.ts](src/utils/config.ts))
 
-## Common Pitfalls
-
-1. **SCSS modules** → Use styled components instead (legacy pattern)
-2. **Barrel imports** → Use default imports: `import Box from '@mui/material/Box'`
-3. **Numeric spacing** → Use explicit rem: `spacing="1rem"` not `spacing={2}`
-4. **Duplicating types** → Always check `@zerologementvacant/models` first
-5. **Legacy useForm hook** → Use react-hook-form + yup instead
-6. **Test fixtures** → Must extend `gen*DTO()` from shared models
-7. **Not following TDD** → Write tests BEFORE implementation
-8. **Jest** → We use Vitest, not Jest

@@ -317,7 +317,7 @@ generate_pdf() {
 {\\Large Zéro Logement Vacant}\\\\[0.5cm]
 {\\normalsize Application de lutte contre la vacance de logements}\\\\[3cm]
 \\rule{\\textwidth}{0.4pt}\\\\[1cm]
-{\\large\\bfseries Auteur :} Loïc Guillois\\\\[0.5cm]
+{\\large\\bfseries Auteur :} Équipe Zéro Logement Vacant\\\\[0.5cm]
 {\\large\\bfseries Date :} $PROJECT_DATE\\\\[0.5cm]
 {\\large\\bfseries Version :} $PROJECT_VERSION\\\\[1cm]
 \\rule{\\textwidth}{0.4pt}
@@ -352,7 +352,7 @@ BEFOREBODY
             --pdf-engine=wkhtmltopdf \
             -V title="$title" \
             -V subtitle="$subtitle" \
-            -V author="Loïc Guillois" \
+            -V author="Équipe Zéro Logement Vacant" \
             -V date="$PROJECT_DATE" \
             -V version="$PROJECT_VERSION" \
             -V status="En vigueur" \
@@ -369,7 +369,7 @@ BEFOREBODY
                     --highlight-style=tango \
                     -V title="$title" \
                     -V subtitle="$subtitle" \
-                    -V author="Loïc Guillois" \
+                    -V author="Équipe Zéro Logement Vacant" \
                     -V date="$PROJECT_DATE" \
                     -o "$output_file"
             }

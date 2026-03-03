@@ -3,7 +3,7 @@
 
 **Version:** 1.0
 **Date:** 26 février 2026
-**Auteur:** Loïc Guillois
+**Auteur:** Équipe Zéro Logement Vacant
 
 ---
 

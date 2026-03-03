@@ -32,6 +32,21 @@ requests_cache.install_cache('cache', expire_after=36000000)
 SIREN_PARIS = "217500016"
 SIRET_PARIS = "21750001600019"
 
+# Special departmental collectivities that merged multiple departments
+# CEA (Collectivité Européenne d'Alsace) merged Bas-Rhin (67) and Haut-Rhin (68) in 2021
+SPECIAL_DEPARTMENTAL_COLLECTIVITIES = [
+    {
+        'code': '6AE',
+        'name_zlv': 'Collectivité Européenne d\'Alsace',
+        'name_source': 'COLLECTIVITE EUROPEENNE D\'ALSACE',
+        'siren': '200094332',
+        'siret': '20009433200018',
+        'departments': ['67', '68'],  # Covers both Bas-Rhin and Haut-Rhin
+        'region_code': '44',  # Grand Est
+        'region_name': 'Grand Est',
+    }
+]
+
 class CollectivityProcessor:
     """Process and standardize territorial collectivities data."""
     
@@ -190,8 +205,11 @@ class CollectivityProcessor:
         dep_codes = set()
         for code in commune_codes:
             if code in self.commune_to_dep:
-                dep_codes.add(self.commune_to_dep[code])
-        
+                dep_code = self.commune_to_dep[code]
+                # Filter out None/NaN values and ensure string type
+                if dep_code is not None and not (isinstance(dep_code, float) and np.isnan(dep_code)):
+                    dep_codes.add(str(dep_code))
+
         dep_codes = sorted(list(dep_codes))
         dep_names = [self.dep_code_to_name.get(code, '') for code in dep_codes]
         return dep_codes, dep_names
@@ -201,8 +219,11 @@ class CollectivityProcessor:
         reg_codes = set()
         for code in commune_codes:
             if code in self.commune_to_reg:
-                reg_codes.add(self.commune_to_reg[code])
-        
+                reg_code = self.commune_to_reg[code]
+                # Filter out None/NaN values and ensure string type
+                if reg_code is not None and not (isinstance(reg_code, float) and np.isnan(reg_code)):
+                    reg_codes.add(str(reg_code))
+
         # Usually should be one region, but handle multiple
         if len(reg_codes) == 1:
             reg_code = list(reg_codes)[0]
@@ -332,6 +353,51 @@ class CollectivityProcessor:
             results.append(data)
         
         print(f"Processed {len(results)} departments")
+        return results
+
+    def process_special_departmental_collectivities(self) -> List[Dict]:
+        """
+        Process special departmental collectivities that merged multiple departments.
+
+        Example: Collectivité Européenne d'Alsace (CEA) merged Bas-Rhin (67) and Haut-Rhin (68) in 2021.
+        """
+        print("Processing special departmental collectivities...")
+        results = []
+
+        for collectivity in SPECIAL_DEPARTMENTAL_COLLECTIVITIES:
+            # Get all communes from the merged departments
+            communes = []
+            dep_names = []
+            for dep_code in collectivity['departments']:
+                dep_communes = self.df_communes[
+                    self.df_communes['DEP_norm'] == dep_code
+                ]['COM_norm'].tolist()
+                communes.extend([c for c in dep_communes if c is not None])
+
+                # Get department name
+                dep_row = self.df_departements[self.df_departements['DEP_norm'] == dep_code]
+                if not dep_row.empty:
+                    dep_names.append(dep_row.iloc[0]['LIBELLE'])
+
+            data = self._create_base_row()
+            data.update({
+                'Name-zlv': collectivity['name_zlv'],
+                'Name-source': collectivity['name_source'],
+                'Kind-admin': 'DEP',  # Treated as departmental level
+                'Kind-admin_label': 'Collectivité à statut particulier',
+                'Siren': collectivity['siren'],
+                'Siret': collectivity['siret'],
+                'Layer-geo_label': 'Département',
+                'Geo_Perimeter': communes,
+                'Dep_Code': collectivity['departments'],
+                'Dep_Name': dep_names,
+                'Reg_Code': [collectivity['region_code']],
+                'Reg_Name': [collectivity['region_name']]
+            })
+            results.append(data)
+            print(f"  Added {collectivity['name_zlv']} ({len(communes)} communes)")
+
+        print(f"Processed {len(results)} special departmental collectivities")
         return results
 
     def get_siren_siret_from_insee_code(self, insee_code: str):
@@ -667,7 +733,13 @@ class CollectivityProcessor:
             reg_code, reg_name = self._get_reg_info(communes_in_epci)
             siret = self.get_siret_from_siren(epci_code)
             # Determine name and label based on nature
-            main_dep_code = dep_codes[0] if isinstance(dep_codes, list) else dep_codes
+            # Handle empty list case
+            if isinstance(dep_codes, list) and len(dep_codes) > 0:
+                main_dep_code = dep_codes[0]
+            elif isinstance(dep_codes, list):
+                main_dep_code = ''
+            else:
+                main_dep_code = dep_codes or ''
             if nature == 'ME':
                 name_zlv = epci_name  # Métropole de Lyon, Bordeaux Métropole, etc.
                 kind_admin = 'METRO'
@@ -884,6 +956,7 @@ class CollectivityProcessor:
         # Process each type
         all_results.extend(self.process_regions())
         all_results.extend(self.process_departements())
+        all_results.extend(self.process_special_departmental_collectivities())
         all_results.extend(self.process_tom_departments())
         all_results.extend(self.process_ept())
         all_results.extend(self.process_epci())

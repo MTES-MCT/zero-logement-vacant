@@ -63,6 +63,12 @@ ADMINISTRATION_CENTRALE = [
         'name_source': 'INSTITUT NATIONAL DE LA STATISTIQUE ET DES ETUDES ECONOMIQUES',
         'search_query': 'INSTITUT NATIONAL DE LA STATISTIQUE ET DES ETUDES ECONOMIQUES',
         'nature_juridique': '7120'
+    },
+    {
+        'name_zlv': 'DGOM',
+        'name_source': 'DIRECTION GENERALE DES OUTRE-MER',
+        'search_query': 'DIRECTION GENERALE DES OUTRE-MER',
+        'nature_juridique': '7120'
     }
 ]
 

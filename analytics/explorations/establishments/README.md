@@ -212,6 +212,21 @@ Remarques:
 - Confusion échelon vs nature juridique: séparation claire entre « Layer-geo » (où s’applique le périmètre) et « Layer-admin »/« Kind_admin* » (nature/organisation)
 - Absence de SIRET: reconstruction systématique (Sirene parquet) ou récupération du `siege.siret` (API Entreprises)
 
+## Cas particuliers et choix architecturaux
+
+### Collectivité Européenne d'Alsace (CEA)
+La CEA (SIREN 200094332) est une collectivité à statut particulier créée en 2021 par fusion des conseils départementaux du Bas-Rhin (67) et du Haut-Rhin (68). Elle est traitée dans `collectivities.py` comme un cas spécial (`SPECIAL_DEPARTMENTAL_COLLECTIVITIES`) avec :
+- Code: `6AE`
+- Périmètre: toutes les communes des départements 67 et 68
+- Kind-admin: `DEP` (niveau départemental)
+
+### ACT (Autres Collectivités Territoriales) dans entities.py
+Les ACT (nature juridique 7229) sont traitées dans `entities.py` plutôt que `collectivities.py` car :
+- Elles ne suivent pas la hiérarchie INSEE standard (COG)
+- Leurs périmètres sont souvent identiques aux départements ou régions existants
+- Exemples : Collectivité de Corse, Collectivité Territoriale de Martinique
+- Le Kind-admin_meta est "Autre Collectivité Territoriale" pour les distinguer
+
 ## Complexités et limites connues
 
 - Codes atypiques et TOM: gestion des 2A/2B, codes décimaux importés, TOM sans région → périmètres hybrides et cas particuliers

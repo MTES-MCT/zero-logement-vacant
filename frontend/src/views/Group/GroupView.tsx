@@ -156,8 +156,8 @@ function GroupView() {
             className="fr-mb-5w"
           />
 
-          <Grid container mb={1} spacing={2} size={12}>
-            <Grid size="grow">
+          <Grid container mb={1} spacing={2} size={12} sx={{ flexWrap: 'wrap' }}>
+            <Grid size="grow" sx={{ minWidth: '300px' }}>
               <AppSearchBar
                 initialQuery={filters.query}
                 label="Rechercher (propriétaire, identifiant fiscal, ref. cadastrale...)"

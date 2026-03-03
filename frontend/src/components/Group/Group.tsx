@@ -52,7 +52,7 @@ function Group(props: GroupProps) {
   return (
     <Container as="article" className={props.className} fluid>
       <Row className="justify-space-between">
-        <Col n="9" spacing="pr-2w">
+        <Col n="12 md-9" spacing="pr-2w">
           <Container as="header" fluid spacing="mb-1w">
             <Row alignItems="bottom" spacing="mb-1w">
               <Typography variant="h2" mr={1} mb={0}>
@@ -133,7 +133,7 @@ function Group(props: GroupProps) {
             )}
           </Container>
         </Col>
-        <Col n="3">
+        <Col n="12 md-3">
           <Container as="aside" className={styles.actions} fluid>
             <GroupCampaignCreationModal
               group={props.group}

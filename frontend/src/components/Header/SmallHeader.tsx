@@ -4,8 +4,10 @@ import {
   MainNavigation,
   type MainNavigationProps
 } from '@codegouvfr/react-dsfr/MainNavigation';
+import Box from '@mui/material/Box';
 import Grid from '@mui/material/Grid';
 import Paper from '@mui/material/Paper';
+import Stack from '@mui/material/Stack';
 import Typography from '@mui/material/Typography';
 import { useEffect, useState } from 'react';
 import LoadingBar from 'react-redux-loading-bar';
@@ -139,18 +141,32 @@ function SmallHeader() {
             />
           </Link>
 
-          {/* 2. Inline nav: hidden at narrow viewports via CSS */}
-          <MainNavigation
-            className={`fr-mr-5w ${styles.mainNav}`}
-            classes={{
-              list: styles.linkList,
-              link: styles.link
+          {/* 2. Inline nav: hidden at narrow viewports (RGAA 10.4) */}
+          <Box
+            className="fr-mr-5w"
+            sx={{
+              [fr.breakpoints.down('lg')]: { display: 'none !important' }
             }}
-            items={navItems}
-          />
+          >
+            <MainNavigation
+              classes={{
+                list: styles.linkList,
+                link: styles.link
+              }}
+              items={navItems}
+            />
+          </Box>
 
-          {/* Right-side items: establishment + menu + account (8px gap) */}
-          <div className={styles.rightItems}>
+          {/* Right-side items: establishment + menu + account */}
+          <Stack
+            direction="row"
+            sx={{
+              alignItems: 'center',
+              gap: '0.5rem',
+              ml: 'auto',
+              flexShrink: 0
+            }}
+          >
             {/* Establishment info */}
             {isAuthenticated ? (
               isAdmin || isVisitor ? (
@@ -169,18 +185,25 @@ function SmallHeader() {
                 ) : null
               ) : (
                 <Typography
-                  className={styles.establishmentName}
                   component="span"
                   variant="body2"
+                  sx={{ whiteSpace: 'normal', wordBreak: 'break-word' }}
                 >
                   {establishment?.name}
                 </Typography>
               )
             ) : null}
 
-            {/* Burger button: visible only at narrow viewports */}
+            {/* Burger button: visible only at narrow viewports (RGAA 10.4) */}
             {isAuthenticated && (
-              <div className={styles.navbar}>
+              <Box
+                sx={{
+                  display: 'none',
+                  alignItems: 'center',
+                  flexShrink: 0,
+                  [fr.breakpoints.down('lg')]: { display: 'flex' }
+                }}
+              >
                 <Button
                   iconId="fr-icon-menu-fill"
                   priority="tertiary"
@@ -190,7 +213,7 @@ function SmallHeader() {
                 >
                   Menu
                 </Button>
-              </div>
+              </Box>
             )}
 
             {/* Account / Connexion */}
@@ -207,7 +230,7 @@ function SmallHeader() {
                 Connexion
               </Button>
             )}
-          </div>
+          </Stack>
         </Grid>
 
         <LoadingBar
@@ -218,15 +241,26 @@ function SmallHeader() {
         />
       </Paper>
 
-      {/* Mobile/zoom menu overlay */}
+      {/* Mobile/zoom menu overlay (RGAA 10.4) */}
       {menuOpen && (
-        <div
-          className={styles.menuOverlay}
+        <Box
+          component="nav"
           role="dialog"
           aria-modal="true"
           aria-label="Menu de navigation"
+          sx={{
+            position: 'fixed',
+            top: 0,
+            left: 0,
+            right: 0,
+            bottom: 0,
+            zIndex: 1300,
+            backgroundColor: 'var(--background-default-grey)',
+            overflowY: 'auto',
+            padding: '1rem 1.5rem'
+          }}
         >
-          <div className={styles.menuHeader}>
+          <Box sx={{ display: 'flex', justifyContent: 'flex-end', mb: '1rem' }}>
             <Button
               iconId="fr-icon-close-line"
               priority="tertiary no outline"
@@ -236,9 +270,9 @@ function SmallHeader() {
             >
               Fermer
             </Button>
-          </div>
+          </Box>
           <MainNavigation items={mobileNavItems} />
-        </div>
+        </Box>
       )}
     </>
   );

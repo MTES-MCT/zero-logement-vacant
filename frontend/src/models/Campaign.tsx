@@ -55,3 +55,23 @@ export const campaignSort = (c1: Campaign, c2: Campaign) =>
 
 export const isCampaignDeletable = (campaign: Campaign) =>
   campaign.status !== 'archived';
+
+export function fromCampaignDTO(campaign: CampaignDTO): Campaign {
+  return {
+    id: campaign.id,
+    title: campaign.title,
+    description: campaign.description,
+    groupId: campaign.groupId,
+    createdAt: campaign.createdAt,
+    validatedAt: campaign.validatedAt,
+    exportedAt: campaign.exportedAt,
+    sentAt: campaign.sentAt,
+    confirmedAt: campaign.confirmedAt,
+    archivedAt: campaign.archivedAt,
+    status: campaign.status,
+    filters: campaign.filters,
+    file: campaign.file,
+    // TODO: fix this
+    exportURL: ''
+  };
+}

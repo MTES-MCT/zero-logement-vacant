@@ -104,10 +104,16 @@ convert_mermaid_diagrams() {
                 echo "$mermaid_content" > "$mmd_file"
 
                 # Convert to PNG using mmdc
-                if mmdc -i "$mmd_file" -o "$png_file" -b transparent -w 800 2>/dev/null; then
+                # Check if puppeteer config exists (for CI environments)
+                local PUPPETEER_CONFIG=""
+                if [ -f "$HOME/.puppeteerrc.json" ]; then
+                    PUPPETEER_CONFIG="-p $HOME/.puppeteerrc.json"
+                fi
+
+                if mmdc -i "$mmd_file" -o "$png_file" -b transparent -w 800 $PUPPETEER_CONFIG 2>&1; then
                     echo -e "${GREEN}    ✓ Diagram $diagram_count converted${NC}"
                 else
-                    echo -e "${YELLOW}    ⚠ Diagram $diagram_count failed, keeping as text${NC}"
+                    echo -e "${YELLOW}    ⚠ Diagram $diagram_count failed (see error above), keeping as text${NC}"
                 fi
             else
                 mermaid_content+="$line"$'\n'

@@ -32,8 +32,6 @@ function SendButton(props: Readonly<Props>) {
     <>
       <Stack direction="row" spacing="1rem" sx={{ alignItems: 'center' }}>
         <Tooltip
-          place="top"
-          align="end"
           title={
             <>
               <Typography

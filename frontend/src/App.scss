@@ -573,6 +573,8 @@ button.no-sort::after {
 }
 
 /* RGAA 10.4: Prevent tooltips from overflowing the viewport */
-.fr-tooltip {
-  max-width: calc(100vw - 2rem) !important;
+@media screen and (max-width: 61.9375em) {
+  .fr-tooltip {
+    max-width: calc(100vw - 2rem) !important;
+  }
 }

@@ -55,6 +55,7 @@ import eventRepository from '~/repositories/eventRepository';
 import groupRepository from '~/repositories/groupRepository';
 import housingRepository from '~/repositories/housingRepository';
 import mailService from '~/services/mailService';
+import { isFeatureEnabled } from '~/services/posthogService';
 import { isArrayOf, isString, isUUID, isUUIDParam } from '~/utils/validators';
 
 const getCampaignValidators = [param('id').notEmpty().isUUID()];
@@ -176,6 +177,15 @@ const create: RequestHandler<
   >;
 
   logger.info('Create campaign', { body });
+
+  const flagEnabled = await isFeatureEnabled(
+    'new-campaigns',
+    auth.establishmentId
+  );
+  if (flagEnabled) {
+    response.status(constants.HTTP_STATUS_NOT_FOUND).end();
+    return;
+  }
 
   const filters: HousingFiltersDTO = {
     ...body.housing.filters,

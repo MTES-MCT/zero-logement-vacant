@@ -1,5 +1,6 @@
 import { faker } from '@faker-js/faker/locale/fr';
 import { fc, test } from '@fast-check/vitest';
+import { vi } from 'vitest';
 import {
   BENEFIARY_COUNT_VALUES,
   BUILDING_PERIOD_VALUES,
@@ -35,6 +36,7 @@ import { v4 as uuidv4 } from 'uuid';
 
 import { createServer } from '~/infra/server';
 import { CampaignApi } from '~/models/CampaignApi';
+import * as posthogService from '~/services/posthogService';
 import { CampaignEventApi } from '~/models/EventApi';
 import { GroupApi } from '~/models/GroupApi';
 import { HousingApi } from '~/models/HousingApi';
@@ -369,6 +371,26 @@ describe('Campaign API', () => {
       expect(events).toIncludeAllPartialMembers(
         payload.housing.ids.map((id) => ({ housing_id: id }))
       );
+    });
+  });
+
+  describe('POST /campaigns when new-campaigns flag is enabled', () => {
+    const testRoute = '/api/campaigns';
+    const validPayload: CampaignCreationPayloadDTO = {
+      title: 'Logements prioritaires',
+      description: 'Campagne pour les logements prioritaires',
+      housing: { all: false, ids: [], filters: {} }
+    };
+
+    it('should return 404', async () => {
+      vi.spyOn(posthogService, 'isFeatureEnabled').mockResolvedValue(true);
+
+      const { status } = await request(url)
+        .post(testRoute)
+        .use(tokenProvider(user))
+        .send(validPayload);
+
+      expect(status).toBe(constants.HTTP_STATUS_NOT_FOUND);
     });
   });
 

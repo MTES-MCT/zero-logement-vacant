@@ -143,6 +143,10 @@ interface Config {
     accessKeyId: string;
     secretAccessKey: string;
   };
+  posthog: {
+    apiKey: string;
+    host: string;
+  };
   sentry: {
     dsn: string | null;
     enabled: boolean;
@@ -506,6 +510,20 @@ const config = convict<Config>({
       format: String,
       default: isProduction ? null : 'secret',
       sensitive: true
+    }
+  },
+  posthog: {
+    apiKey: {
+      doc: 'PostHog API key',
+      format: String,
+      default: '',
+      env: 'POSTHOG_API_KEY'
+    },
+    host: {
+      doc: 'PostHog host',
+      format: String,
+      default: 'https://eu.i.posthog.com',
+      env: 'POSTHOG_HOST'
     }
   },
   sentry: {

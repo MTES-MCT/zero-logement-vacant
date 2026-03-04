@@ -71,6 +71,7 @@ export function fromCampaignDTO(campaign: CampaignDTO): Campaign {
     status: campaign.status,
     filters: campaign.filters,
     file: campaign.file,
+    returnCount: campaign.returnCount,
     // TODO: fix this
     exportURL: ''
   };

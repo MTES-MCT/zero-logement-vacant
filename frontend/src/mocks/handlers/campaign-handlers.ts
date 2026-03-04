@@ -50,7 +50,8 @@ export const campaignHandlers: RequestHandler[] = [
         description: payload.description,
         filters: payload.housing.filters,
         status: 'draft',
-        createdAt: new Date().toJSON()
+        createdAt: new Date().toJSON(),
+        returnCount: null
       };
       data.campaigns.push(campaign);
       // For now, add random housings to the campaign
@@ -89,7 +90,8 @@ export const campaignHandlers: RequestHandler[] = [
         },
         status: 'draft',
         createdAt: new Date().toJSON(),
-        groupId: group.id
+        groupId: group.id,
+        returnCount: null
       };
       data.campaigns.push(campaign);
       const housings = faker.helpers.arrayElements(data.housings);

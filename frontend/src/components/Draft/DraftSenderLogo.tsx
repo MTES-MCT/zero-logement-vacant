@@ -1,10 +1,11 @@
-import { Container, Row } from '../_dsfr';
-import FileUpload from '../FileUpload/FileUpload';
-import styles from './draft.module.scss';
-import classNames from 'classnames';
-import LogoViewer from './LogoViewer';
+import Stack from '@mui/material/Stack';
 import Typography from '@mui/material/Typography';
 import type { FileUploadDTO } from '@zerologementvacant/models';
+import classNames from 'classnames';
+
+import FileUpload from '~/components/FileUpload/FileUpload';
+import styles from './draft.module.scss';
+import LogoViewer from './LogoViewer';
 
 interface Props {
   className?: string;
@@ -37,14 +38,13 @@ function DraftSenderLogo(props: Readonly<Props>) {
   }
 
   return (
-    <Container
-      as="section"
+    <Stack
+      component="section"
       role="group"
       aria-labelledby="draft-sender-logo-label"
       className={classNames(styles.article, props.className)}
-      fluid
     >
-      <Row>
+      <Stack>
         <Typography
           id="draft-sender-logo-label"
           component="h4"
@@ -53,16 +53,14 @@ function DraftSenderLogo(props: Readonly<Props>) {
         >
           Logos de l’expéditeur
         </Typography>
-      </Row>
-      <Row>
         <FileUpload id="fileUploadLogo0" label={null} onUpload={onUpload(0)} />
         <LogoViewer
           index={0}
           logo={props.value[0]}
           onDelete={deleteLogo(props.value[0]?.id, 0)}
         />
-      </Row>
-      <Row spacing="mb-2w mt-6w">
+      </Stack>
+      <Stack sx={{ mb: 2, mt: 6 }}>
         <FileUpload
           id="fileUploadLogo1"
           hint=""
@@ -74,8 +72,8 @@ function DraftSenderLogo(props: Readonly<Props>) {
           logo={props.value[1]}
           onDelete={deleteLogo(props.value[1]?.id, 1)}
         />
-      </Row>
-    </Container>
+      </Stack>
+    </Stack>
   );
 }
 

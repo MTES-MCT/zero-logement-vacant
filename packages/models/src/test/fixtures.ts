@@ -151,7 +151,8 @@ export function genCampaignDTO(group?: GroupDTO): CampaignDTO {
     filters: {},
     status: faker.helpers.arrayElement(CAMPAIGN_STATUS_VALUES),
     createdAt: faker.date.past().toJSON(),
-    groupId: group?.id
+    groupId: group?.id,
+    returnCount: null
   };
 }
 

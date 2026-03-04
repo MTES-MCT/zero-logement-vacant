@@ -19,6 +19,7 @@ export interface CampaignDTO {
   sendingDate?: string;
   confirmedAt?: string;
   groupId?: string;
+  returnCount: number | null;
 }
 
 export const CAMPAIGN_STATUS_VALUES = [

@@ -136,6 +136,7 @@ export interface CampaignDBO {
   confirmed_at?: Date;
   establishment_id: string;
   group_id?: string;
+  return_count: number;
 }
 
 export const parseCampaignApi = (campaign: CampaignDBO): CampaignApi => ({
@@ -153,7 +154,8 @@ export const parseCampaignApi = (campaign: CampaignDBO): CampaignApi => ({
   confirmedAt: campaign.confirmed_at?.toJSON(),
   title: campaign.title,
   description: campaign.description,
-  groupId: campaign.group_id
+  groupId: campaign.group_id,
+  returnCount: campaign.sent_at ? campaign.return_count : null
 });
 
 export const formatCampaignApi = (campaign: CampaignApi): CampaignDBO => ({
@@ -175,7 +177,8 @@ export const formatCampaignApi = (campaign: CampaignApi): CampaignDBO => ({
   confirmed_at: campaign.confirmedAt
     ? new Date(campaign.confirmedAt)
     : undefined,
-  group_id: campaign.groupId
+  group_id: campaign.groupId,
+  return_count: campaign.returnCount ?? 0
 });
 
 export default {

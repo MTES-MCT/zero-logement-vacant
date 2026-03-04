@@ -330,7 +330,8 @@ describe('Campaign API', () => {
           ...payload.housing.filters,
           establishmentIds: [establishment.id]
         },
-        createdAt: expect.any(String)
+        createdAt: expect.any(String),
+        returnCount: null
       });
       const campaign = await Campaigns().where({ id: body.id }).first();
       expect(campaign).not.toBeNull();
@@ -553,7 +554,8 @@ describe('Campaign API', () => {
         filters: {
           groupIds: [group.id]
         },
-        createdAt: expect.any(String)
+        createdAt: expect.any(String),
+        returnCount: null
       });
     });
 
@@ -698,7 +700,8 @@ describe('Campaign API', () => {
         filters: {
           groupIds: [group.id]
         },
-        createdAt: expect.any(String)
+        createdAt: expect.any(String),
+        returnCount: null
       });
     });
 

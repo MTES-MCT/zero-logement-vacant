@@ -189,7 +189,8 @@ const create: RequestHandler<
     filters,
     createdAt: new Date().toJSON(),
     userId: auth.userId,
-    establishmentId: auth.establishmentId
+    establishmentId: auth.establishmentId,
+    returnCount: null
   };
 
   const houses =
@@ -267,7 +268,8 @@ async function createCampaignFromGroup(request: Request, response: Response) {
     createdAt: new Date().toJSON(),
     groupId,
     userId: auth.userId,
-    establishmentId: auth.establishmentId
+    establishmentId: auth.establishmentId,
+    returnCount: null
   };
 
   await startTransaction(async () => {
@@ -346,7 +348,8 @@ const createFromGroup: RequestHandler<
     sentAt: body.sentAt,
     groupId,
     userId: auth.userId,
-    establishmentId: auth.establishmentId
+    establishmentId: auth.establishmentId,
+    returnCount: null
   };
 
   await startTransaction(async () => {

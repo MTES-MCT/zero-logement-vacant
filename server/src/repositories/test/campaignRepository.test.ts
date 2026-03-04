@@ -42,6 +42,32 @@ describe('Campaign repository', () => {
     await Users().insert(formatUserApi(user));
   });
 
+  describe('findOne', () => {
+    it('should expose returnCount from the database', async () => {
+      const campaign = genCampaignApi(establishment.id, user.id);
+      await Campaigns().insert({ ...formatCampaignApi(campaign), return_count: 5, sent_at: new Date() });
+
+      const result = await campaignRepository.findOne({
+        id: campaign.id,
+        establishmentId: campaign.establishmentId
+      });
+
+      expect(result?.returnCount).toBe(5);
+    });
+
+    it('should expose returnCount as null when sentAt is null', async () => {
+      const campaign = genCampaignApi(establishment.id, user.id);
+      await Campaigns().insert({ ...formatCampaignApi(campaign), return_count: 0 });
+
+      const result = await campaignRepository.findOne({
+        id: campaign.id,
+        establishmentId: campaign.establishmentId
+      });
+
+      expect(result?.returnCount).toBeNull();
+    });
+  });
+
   describe('remove', () => {
     const campaign = genCampaignApi(establishment.id, user.id);
     const housings = faker.helpers.multiple(() => genHousingApi());

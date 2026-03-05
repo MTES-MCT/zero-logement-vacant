@@ -1,6 +1,9 @@
 import { useFeatureFlagEnabled } from 'posthog-js/react';
 
-type AvailableFeatureFlag = 'actual-dpe' | 'relative-location';
+type AvailableFeatureFlag =
+  | 'actual-dpe'
+  | 'relative-location'
+  | 'new-campaigns';
 
 export interface FeatureFlagLayoutProps {
   flag: AvailableFeatureFlag;

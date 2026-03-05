@@ -74,7 +74,7 @@ async function getCampaign(request: Request, response: Response) {
     throw new CampaignMissingError(campaignId);
   }
 
-  response.status(constants.HTTP_STATUS_OK).json(campaign);
+  response.status(constants.HTTP_STATUS_OK).json(toCampaignDTO(campaign));
 }
 
 async function downloadCampaign(request: Request, response: Response) {
@@ -199,6 +199,7 @@ const create: RequestHandler<
     filters,
     createdAt: new Date().toJSON(),
     userId: auth.userId,
+    createdBy: user,
     establishmentId: auth.establishmentId,
     returnCount: null
   };
@@ -255,7 +256,7 @@ const create: RequestHandler<
  * @param response 
  */
 async function createCampaignFromGroup(request: Request, response: Response) {
-  const { auth, body, params } = request as AuthenticatedRequest;
+  const { auth, body, params, user } = request as AuthenticatedRequest;
   const groupId = params.id;
   logger.info('Create campaign from group', { groupId });
 
@@ -278,6 +279,7 @@ async function createCampaignFromGroup(request: Request, response: Response) {
     createdAt: new Date().toJSON(),
     groupId,
     userId: auth.userId,
+    createdBy: user,
     establishmentId: auth.establishmentId,
     returnCount: null
   };
@@ -328,7 +330,7 @@ const createFromGroup: RequestHandler<
   CampaignCreationPayloadDTO,
   never
 > = async (request, response) => {
-  const { auth, body, params } = request as AuthenticatedRequest<
+  const { auth, body, params, user } = request as AuthenticatedRequest<
     { id: string },
     CampaignDTO,
     CampaignCreationPayloadDTO,
@@ -358,6 +360,7 @@ const createFromGroup: RequestHandler<
     sentAt: body.sentAt,
     groupId,
     userId: auth.userId,
+    createdBy: user,
     establishmentId: auth.establishmentId,
     returnCount: null
   };

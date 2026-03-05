@@ -51,6 +51,7 @@ export const campaignHandlers: RequestHandler[] = [
         filters: payload.housing.filters,
         status: 'draft',
         createdAt: new Date().toJSON(),
+        createdBy: data.users[0],
         returnCount: null
       };
       data.campaigns.push(campaign);
@@ -90,6 +91,7 @@ export const campaignHandlers: RequestHandler[] = [
         },
         status: 'draft',
         createdAt: new Date().toJSON(),
+        createdBy: data.users[0],
         groupId: group.id,
         returnCount: null
       };

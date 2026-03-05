@@ -1,5 +1,7 @@
 import { contramap, DEFAULT_ORDER, Ord } from '@zerologementvacant/utils';
+
 import { HousingFiltersDTO } from './HousingFiltersDTO';
+import type { UserDTO } from './UserDTO';
 
 export interface CampaignDTO {
   id: string;
@@ -9,6 +11,7 @@ export interface CampaignDTO {
   filters: HousingFiltersDTO;
   file?: string;
   createdAt: string;
+  createdBy: UserDTO;
   validatedAt?: string;
   exportedAt?: string;
   sentAt?: string;

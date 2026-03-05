@@ -19,6 +19,7 @@ export function toCampaignDTO(campaign: CampaignApi): CampaignDTO {
     'filters',
     'file',
     'createdAt',
+    'createdBy',
     'validatedAt',
     'exportedAt',
     'sentAt',

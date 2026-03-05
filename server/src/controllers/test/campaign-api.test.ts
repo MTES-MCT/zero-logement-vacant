@@ -113,7 +113,7 @@ describe('Campaign API', () => {
   });
 
   describe('GET /campaigns/{id}', () => {
-    const campaign = genCampaignApi(establishment.id, user.id);
+    const campaign = genCampaignApi(establishment.id, user);
     const testRoute = (id: string) => `/api/campaigns/${id}`;
 
     beforeAll(async () => {
@@ -159,7 +159,7 @@ describe('Campaign API', () => {
     const testRoute = '/api/campaigns';
 
     const campaigns: CampaignApi[] = Array.from({ length: 3 }).map(() =>
-      genCampaignApi(establishment.id, user.id)
+      genCampaignApi(establishment.id, user)
     );
 
     beforeAll(async () => {
@@ -193,7 +193,7 @@ describe('Campaign API', () => {
       );
       await Groups().insert(groups.map(formatGroupApi));
       const campaigns = groups.map((group) => {
-        return genCampaignApi(establishment.id, user.id, group);
+        return genCampaignApi(establishment.id, user, group);
       });
       await Campaigns().insert(campaigns.map(formatCampaignApi));
       const query = 'groups=' + groups.map((group) => group.id).join(',');
@@ -333,6 +333,7 @@ describe('Campaign API', () => {
           establishmentIds: [establishment.id]
         },
         createdAt: expect.any(String),
+        createdBy: expect.objectContaining({ id: user.id }),
         returnCount: null
       });
       const campaign = await Campaigns().where({ id: body.id }).first();
@@ -577,6 +578,7 @@ describe('Campaign API', () => {
           groupIds: [group.id]
         },
         createdAt: expect.any(String),
+        createdBy: expect.objectContaining({ id: user.id }),
         returnCount: null
       });
     });
@@ -723,6 +725,7 @@ describe('Campaign API', () => {
           groupIds: [group.id]
         },
         createdAt: expect.any(String),
+        createdBy: expect.objectContaining({ id: user.id }),
         returnCount: null
       });
     });
@@ -782,7 +785,7 @@ describe('Campaign API', () => {
 
     async function createCampaign(status: CampaignStatus) {
       const campaign: CampaignApi = {
-        ...genCampaignApi(establishment.id, user.id),
+        ...genCampaignApi(establishment.id, user),
         status: status
       };
       await Campaigns().insert(formatCampaignApi(campaign));
@@ -1056,7 +1059,7 @@ describe('Campaign API', () => {
     let campaign: CampaignApi;
 
     beforeEach(async () => {
-      campaign = genCampaignApi(establishment.id, user.id);
+      campaign = genCampaignApi(establishment.id, user);
       await Campaigns().insert(formatCampaignApi(campaign));
     });
 
@@ -1232,7 +1235,7 @@ describe('Campaign API', () => {
     let housings: HousingApi[];
 
     beforeEach(async () => {
-      campaign = genCampaignApi(establishment.id, user.id);
+      campaign = genCampaignApi(establishment.id, user);
       await Campaigns().insert(formatCampaignApi(campaign));
 
       housings = faker.helpers.multiple(() =>

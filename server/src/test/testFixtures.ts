@@ -323,7 +323,7 @@ export const genHousingApi = (
 
 export const genCampaignApi = (
   establishmentId: string,
-  createdBy: string,
+  createdBy: UserApi,
   group?: GroupApi
 ): CampaignApi => {
   return {
@@ -337,7 +337,8 @@ export const genCampaignApi = (
       geoPerimetersExcluded: [randomstring.generate()]
     },
     createdAt: new Date().toJSON(),
-    userId: createdBy,
+    userId: createdBy.id,
+    createdBy,
     groupId: group?.id,
     returnCount: null
   };

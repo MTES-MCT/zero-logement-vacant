@@ -63,6 +63,7 @@ export function fromCampaignDTO(campaign: CampaignDTO): Campaign {
     description: campaign.description,
     groupId: campaign.groupId,
     createdAt: campaign.createdAt,
+    createdBy: campaign.createdBy,
     validatedAt: campaign.validatedAt,
     exportedAt: campaign.exportedAt,
     sentAt: campaign.sentAt,

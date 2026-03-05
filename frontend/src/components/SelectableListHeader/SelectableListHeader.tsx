@@ -32,6 +32,7 @@ function SelectableListHeader(props: SelectableListHeaderProps) {
   const pluralizeMany = pluralize(selected);
 
   const hasSelected = (): boolean => selected > 0;
+  const statusText = `${selected} ${pluralizeMany(props.entity)} ${pluralizeMany('sélectionné')}`;
 
   if (!hasSelected() && props.default) {
     return props.default;
@@ -55,8 +56,7 @@ function SelectableListHeader(props: SelectableListHeaderProps) {
     >
       <Grid size="auto">
         <Typography component="span" role="status" sx={{ fontWeight: 500 }}>
-          {selected} {pluralizeMany(props.entity)}{' '}
-          {pluralizeMany('sélectionné')}
+          {statusText}
         </Typography>
       </Grid>
       <Grid size="auto">
@@ -64,6 +64,10 @@ function SelectableListHeader(props: SelectableListHeaderProps) {
           priority="tertiary no outline"
           size="small"
           onClick={props.onUnselectAll}
+          title="Décocher la sélection"
+          nativeButtonProps={{
+            'aria-label': 'Décocher la sélection'
+          }}
         >
           Décocher la sélection
         </Button>

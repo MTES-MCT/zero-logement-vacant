@@ -8,6 +8,7 @@ import Box from '@mui/material/Box';
 import Grid from '@mui/material/Grid';
 import Paper from '@mui/material/Paper';
 import Stack from '@mui/material/Stack';
+import { styled } from '@mui/material/styles';
 import Typography from '@mui/material/Typography';
 import { useEffect, useState } from 'react';
 import LoadingBar from 'react-redux-loading-bar';
@@ -28,6 +29,18 @@ import { zlvApi } from '../../services/api.service';
 import { changeEstablishment } from '../../store/actions/authenticationAction';
 import AccountDropdown from '~/components/Account/AccountDropdown';
 import styles from './small-header.module.scss';
+
+const MenuOverlay = styled(Box)(({ theme }) => ({
+  position: 'fixed',
+  top: 0,
+  left: 0,
+  right: 0,
+  bottom: 0,
+  zIndex: theme.zIndex.modal,
+  backgroundColor: fr.colors.decisions.background.default.grey.default,
+  overflowY: 'auto',
+  padding: '1rem 1.5rem'
+}));
 
 function SmallHeader() {
   const dispatch = useAppDispatch();
@@ -211,7 +224,11 @@ function SmallHeader() {
                   priority="tertiary"
                   size="small"
                   onClick={() => setMenuOpen(true)}
-                  aria-expanded={menuOpen}
+                  title="Ouvrir le menu"
+                  nativeButtonProps={{
+                    'aria-label': 'Ouvrir le menu',
+                    'aria-expanded': menuOpen
+                  }}
                 >
                   Menu
                 </Button>
@@ -247,22 +264,11 @@ function SmallHeader() {
 
       {/* Mobile/zoom menu overlay (RGAA 10.4) */}
       {menuOpen && (
-        <Box
+        <MenuOverlay
           component="nav"
           role="dialog"
           aria-modal="true"
           aria-label="Menu de navigation"
-          sx={{
-            position: 'fixed',
-            top: 0,
-            left: 0,
-            right: 0,
-            bottom: 0,
-            zIndex: 1300,
-            backgroundColor: 'var(--background-default-grey)',
-            overflowY: 'auto',
-            padding: '1rem 1.5rem'
-          }}
         >
           <Box sx={{ display: 'flex', justifyContent: 'flex-end', mb: '1rem' }}>
             <Button
@@ -270,13 +276,16 @@ function SmallHeader() {
               priority="tertiary no outline"
               size="small"
               onClick={() => setMenuOpen(false)}
-              title="Fermer"
+              title="Fermer le menu"
+              nativeButtonProps={{
+                'aria-label': 'Fermer le menu'
+              }}
             >
               Fermer
             </Button>
           </Box>
           <MainNavigation items={mobileNavItems} />
-        </Box>
+        </MenuOverlay>
       )}
     </>
   );

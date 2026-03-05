@@ -7,6 +7,9 @@ export interface CampaignDTO {
   id: string;
   title: string;
   description: string;
+  /**
+   * @deprecated Status will be unnecessary.
+   */
   status: CampaignStatus;
   filters: HousingFiltersDTO;
   file?: string;
@@ -80,6 +83,12 @@ export interface CampaignCreationPayloadDTO
 export interface CampaignUpdatePayloadDTO
   extends Pick<CampaignDTO, 'title' | 'description' | 'status' | 'file'> {
   sentAt?: string;
+}
+
+export interface CampaignUpdatePayload {
+  title: string;
+  description: string;
+  sentAt: string | null;
 }
 
 export interface CampaignRemovalPayloadDTO {

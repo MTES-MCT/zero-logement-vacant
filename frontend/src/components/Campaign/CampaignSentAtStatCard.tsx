@@ -12,7 +12,8 @@ interface Props {
   onOpenModal(): void;
 }
 
-function CampaignSentAtStatCard({ campaign, onOpenModal }: Readonly<Props>) {
+function CampaignSentAtStatCard(props: Readonly<Props>) {
+  const { campaign, onOpenModal } = props;
   const variant = campaign.sentAt ? 'default' : 'muted';
 
   return (

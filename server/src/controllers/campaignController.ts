@@ -14,7 +14,8 @@ import {
   HOUSING_STATUS_LABELS,
   HousingFiltersDTO,
   HousingStatus,
-  nextStatus
+  nextStatus,
+  type CampaignUpdatePayload
 } from '@zerologementvacant/models';
 import { slugify, timestamp } from '@zerologementvacant/utils';
 import { createS3 } from '@zerologementvacant/utils/node';
@@ -23,6 +24,7 @@ import { AuthenticatedRequest } from 'express-jwt';
 import { body, param, ValidationChain } from 'express-validator';
 import { constants } from 'http2';
 import { v4 as uuidv4 } from 'uuid';
+import BadRequestError from '~/errors/badRequestError';
 
 import CampaignEmptyError from '~/errors/campaignEmptyError';
 import CampaignFileMissingError from '~/errors/CampaignFileMissingError';
@@ -400,6 +402,43 @@ const createFromGroup: RequestHandler<
   response.status(constants.HTTP_STATUS_CREATED).json(toCampaignDTO(campaign));
 };
 
+const updateNext: RequestHandler<
+  { id: CampaignApi['id'] },
+  CampaignDTO,
+  CampaignUpdatePayload,
+  never
+> = async (request, response): Promise<void> => {
+  const { auth, body, params } = request as AuthenticatedRequest<
+    { id: CampaignApi['id'] },
+    never,
+    CampaignUpdatePayload,
+    never
+  >;
+  logger.info('Update campaign', { id: params.id, body });
+
+  const campaign = await campaignRepository.findOne({
+    id: params.id,
+    establishmentId: auth.establishmentId
+  });
+  if (!campaign) {
+    throw new CampaignMissingError(params.id);
+  }
+
+  if (campaign.sentAt != null && body.sentAt === null) {
+    throw new BadRequestError('sentAt cannot be unset once it has been set');
+  }
+
+  const updated: CampaignApi = {
+    ...campaign,
+    title: body.title,
+    description: body.description,
+    sentAt: body.sentAt ?? campaign.sentAt
+  };
+
+  await campaignRepository.save(updated);
+  response.status(constants.HTTP_STATUS_OK).json(toCampaignDTO(updated));
+};
+
 const updateValidators: ValidationChain[] = [
   param('id').notEmpty().isUUID(),
   body('title').isString().notEmpty(),
@@ -726,6 +765,7 @@ const campaignController = {
   createCampaignFromGroupValidators,
   update,
   updateValidators,
+  updateNext,
   removeCampaign,
   removeHousingValidators,
   removeHousing

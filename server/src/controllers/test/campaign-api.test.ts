@@ -11,6 +11,7 @@ import {
   CampaignDTO,
   CampaignRemovalPayloadDTO,
   CampaignStatus,
+  CampaignUpdatePayload,
   CampaignUpdatePayloadDTO,
   DATA_FILE_YEAR_VALUES,
   ENERGY_CONSUMPTION_VALUES,
@@ -1053,7 +1054,146 @@ describe('Campaign API', () => {
     });
   });
 
-  describe('DELETE /campaigns/{id}', () => {
+  describe('PUT /campaigns/{id} when new-campaigns flag is enabled', () => {
+    const testRoute = (id: string) => `/api/campaigns/${id}`;
+
+    let campaign: CampaignApi;
+
+    beforeEach(async () => {
+      campaign = genCampaignApi(establishment.id, user);
+      await Campaigns().insert(formatCampaignApi(campaign));
+      vi.spyOn(posthogService, 'isFeatureEnabled').mockResolvedValue(true);
+    });
+
+    afterEach(() => {
+      vi.restoreAllMocks();
+    });
+
+    it('should be forbidden for a non-authenticated user', async () => {
+      const { status } = await request(url).put(testRoute(campaign.id));
+
+      expect(status).toBe(constants.HTTP_STATUS_UNAUTHORIZED);
+    });
+
+    it('should require a valid campaign id', async () => {
+      const payload: CampaignUpdatePayload = {
+        title: 'Title',
+        description: 'Description',
+        sentAt: null
+      };
+
+      const { status } = await request(url)
+        .put(testRoute(randomstring.generate()))
+        .send(payload)
+        .use(tokenProvider(user));
+
+      expect(status).toBe(constants.HTTP_STATUS_BAD_REQUEST);
+    });
+
+    it('should return 404 when the campaign is missing', async () => {
+      const payload: CampaignUpdatePayload = {
+        title: 'Title',
+        description: 'Description',
+        sentAt: null
+      };
+
+      const { status } = await request(url)
+        .put(testRoute(uuidv4()))
+        .send(payload)
+        .use(tokenProvider(user));
+
+      expect(status).toBe(constants.HTTP_STATUS_NOT_FOUND);
+    });
+
+    test.prop<CampaignUpdatePayload>(
+      {
+        title: fc.stringMatching(/S+/),
+        description: fc.stringMatching(/S+/),
+        sentAt: fc
+          .date({
+            min: new Date('0001-01-01'),
+            max: new Date('9999-12-31'),
+            noInvalidDate: true
+          })
+          .map((date) => date.toISOString().substring(0, 'yyyy-mm-dd'.length))
+      },
+      { numRuns: 20 }
+    )('should accept valid inputs', async (payload) => {
+      const { status } = await request(url)
+        .put(testRoute(campaign.id))
+        .send(payload)
+        .type('json')
+        .use(tokenProvider(user));
+
+      expect(status).toBe(constants.HTTP_STATUS_OK);
+    });
+
+    it('should update title, description, and sentAt', async () => {
+      const payload: CampaignUpdatePayload = {
+        title: faker.lorem.word(),
+        description: faker.lorem.words(),
+        sentAt: '2024-06-15'
+      };
+
+      const { body, status } = await request(url)
+        .put(testRoute(campaign.id))
+        .send(payload)
+        .use(tokenProvider(user));
+
+      expect(status).toBe(constants.HTTP_STATUS_OK);
+      expect(body).toMatchObject<Partial<CampaignDTO>>({
+        id: campaign.id,
+        title: payload.title,
+        description: payload.description,
+        sentAt: payload.sentAt
+      });
+
+      const actual = await Campaigns().where({ id: campaign.id }).first();
+      expect(actual).toMatchObject({
+        title: payload.title,
+        description: payload.description
+      });
+    });
+
+    it('should keep sentAt unchanged when null is sent and sentAt is unset', async () => {
+      const payload: CampaignUpdatePayload = {
+        title: faker.lorem.word(),
+        description: faker.lorem.words(),
+        sentAt: null
+      };
+
+      const { body, status } = await request(url)
+        .put(testRoute(campaign.id))
+        .send(payload)
+        .use(tokenProvider(user));
+
+      expect(status).toBe(constants.HTTP_STATUS_OK);
+      expect(body).not.toHaveProperty('sentAt');
+    });
+
+    it('should reject unsetting sentAt once it has been set', async () => {
+      const campaignWithSentAt: CampaignApi = {
+        ...genCampaignApi(establishment.id, user),
+        sentAt: '2024-06-15'
+      };
+      await Campaigns().insert(formatCampaignApi(campaignWithSentAt));
+
+      const payload: CampaignUpdatePayload = {
+        title: campaignWithSentAt.title,
+        description: campaignWithSentAt.description,
+        sentAt: null
+      };
+
+      const { status } = await request(url)
+        .put(testRoute(campaignWithSentAt.id))
+        .send(payload)
+        .use(tokenProvider(user));
+
+      expect(status).toBe(constants.HTTP_STATUS_BAD_REQUEST);
+    });
+  });
+
+    describe('DELETE /campaigns/{id}', () => {
     const testRoute = (id: string) => `/api/campaigns/${id}`;
 
     let campaign: CampaignApi;

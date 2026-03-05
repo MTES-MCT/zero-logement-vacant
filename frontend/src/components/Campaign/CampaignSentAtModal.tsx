@@ -1,20 +1,28 @@
-import Input from '@codegouvfr/react-dsfr/Input';
-import { createModal } from '@codegouvfr/react-dsfr/Modal';
+import { yupResolver } from '@hookform/resolvers/yup';
 import Typography from '@mui/material/Typography';
-import { useForm } from 'react-hook-form';
+import schemas from '@zerologementvacant/schemas';
 import { createPortal } from 'react-dom';
+import { FormProvider, useForm, type SubmitHandler } from 'react-hook-form';
+import { object, type InferType } from 'yup';
 
-interface FormValues {
-  sentAt: string;
-}
+import { createConfirmationModal } from '~/components/modals/ConfirmationModal/ConfirmationModalNext';
+import AppTextInputNext from '../_app/AppTextInput/AppTextInputNext';
+
+const schema = object({
+  sentAt: schemas.dateString.required('Veuillez renseigner une date d’envoi')
+});
+type FormValues = InferType<typeof schema>;
 
 interface Props {
-  defaultValue?: string;
-  onConfirm: (isoDate: string) => void;
+  sentAt: string | null;
+  /**
+   * @param date - An ISO date (YYYY-MM-DD)
+   */
+  onConfirm(sentAt: string): void;
 }
 
 export function createCampaignSentAtModal() {
-  const modal = createModal({
+  const modal = createConfirmationModal({
     id: 'campaign-sent-at-modal',
     isOpenedByDefault: false
   });
@@ -22,42 +30,42 @@ export function createCampaignSentAtModal() {
   return {
     ...modal,
     Component(props: Readonly<Props>) {
-      const { register, handleSubmit } = useForm<FormValues>({
-        defaultValues: { sentAt: props.defaultValue ?? '' }
+      const form = useForm<FormValues>({
+        values: {
+          sentAt: props.sentAt ?? ''
+        },
+        resolver: yupResolver(schema)
       });
 
-      function onSubmit(values: FormValues): void {
+      const onSubmit: SubmitHandler<FormValues> = (values) => {
         props.onConfirm(values.sentAt);
         modal.close();
-      }
+        form.reset();
+      };
 
       return createPortal(
-        <modal.Component
-          title="Indiquer la date d\u2019envoi"
-          buttons={[
-            {
-              children: 'Annuler',
-              priority: 'secondary',
-              doClosesModal: true
-            },
-            {
-              children: 'Confirmer',
-              onClick: handleSubmit(onSubmit),
-              doClosesModal: false
-            }
-          ]}
-        >
-          <Typography sx={{ mb: '1rem' }}>
-            {`Indiquer la date d\u2019envoi permet d\u2019afficher le taux de retour de la campagne et d\u2019inscrire cette date dans l\u2019historique de chacun des logements.`}
-          </Typography>
-          <Input
-            label="Date d\u2019envoi"
-            nativeInputProps={{
-              type: 'date',
-              ...register('sentAt')
-            }}
-          />
-        </modal.Component>,
+        <FormProvider {...form}>
+          <form onSubmit={form.handleSubmit(onSubmit)}>
+            <modal.Component title="Indiquer la date d’envoi">
+              <Typography sx={{ mb: '1rem' }}>
+                {`Indiquer la date d’envoi permet d'afficher le taux de retour de la campagne et d'inscrire cette date dans l'historique de chacun des logements.`}
+              </Typography>
+              <AppTextInputNext
+                label="Date d’envoi"
+                name="sentAt"
+                control={form.control}
+                nativeInputProps={{
+                  type: 'date'
+                }}
+                mapValue={(value) => value}
+                contramapValue={value => {
+                  console.log(value)
+                  return value
+                }}
+              />
+            </modal.Component>
+          </form>
+        </FormProvider>,
         document.body
       );
     }

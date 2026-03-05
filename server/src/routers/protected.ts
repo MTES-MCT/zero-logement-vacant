@@ -4,6 +4,7 @@ import {
   UserRole
 } from '@zerologementvacant/models';
 import schemas from '@zerologementvacant/schemas';
+import { AuthenticatedRequest } from 'express-jwt';
 import Router from 'express-promise-router';
 import { param } from 'express-validator';
 import { object, string } from 'yup';
@@ -39,6 +40,7 @@ import validatorNext from '~/middlewares/validator-next';
 import zipValidationMiddleware from '~/middlewares/zipValidation';
 import { paginationSchema } from '~/models/PaginationApi';
 import sortApi from '~/models/SortApi';
+import { isFeatureEnabled } from '~/services/posthogService';
 import { isUUIDParam } from '~/utils/validators';
 
 const router = Router();
@@ -251,6 +253,23 @@ router.get(
   campaignController.getCampaignValidators,
   validator.validate,
   campaignController.getCampaign
+);
+router.put(
+  '/campaigns/:id',
+  async (req, res, next) => {
+    const { auth } = req as AuthenticatedRequest;
+    const enabled = await isFeatureEnabled(
+      'new-campaigns',
+      auth.establishmentId
+    );
+    if (!enabled) return next('route');
+    next();
+  },
+  validatorNext.validate({
+    params: object({ id: schemas.id }),
+    body: schemas.campaignUpdateNextPayload
+  }),
+  campaignController.updateNext
 );
 router.put(
   '/campaigns/:id',

@@ -29,11 +29,23 @@ This script fetches user information from the Portail DF API and updates the loc
 
 ## Authentication
 
-The script uses token-based authentication with the Portail DF API:
-1. Authenticates via POST to `/api-token-auth/` with username and password
-2. Uses the returned token in `Authorization: Token <token>` header for subsequent requests
+The script supports two authentication versions for the Portail DF API:
 
-Credentials must be provided via command-line arguments or environment variables.
+### V1 (Legacy - Default)
+- **Endpoint**: POST `/api/api-token-auth/`
+- **Response**: `{ "token": "..." }`
+- **Header**: `Authorization: Token <token>`
+- **URL**: `https://portaildf.cerema.fr/api`
+
+### V2 (New DataFoncier API)
+- **Endpoint**: POST `/api/token/`
+- **Response**: `{ "access": "...", "refresh": "..." }`
+- **Header**: `Authorization: Bearer <access>`
+- **URL**: `https://datafoncier.cerema.fr/api`
+
+Use `--auth-version v2` to switch to the new API.
+
+Credentials must be provided via command-line arguments.
 
 ## Usage
 
@@ -45,7 +57,7 @@ python sync_user_kind.py \
   --api-url "https://portaildf.cerema.fr/api"
 ```
 
-### With Custom Credentials
+### With V1 Authentication (Legacy - Default)
 
 ```bash
 python sync_user_kind.py \
@@ -53,6 +65,17 @@ python sync_user_kind.py \
   --api-url "https://portaildf.cerema.fr/api" \
   --username "my_user" \
   --password "my_password"
+```
+
+### With V2 Authentication (New DataFoncier API)
+
+```bash
+python sync_user_kind.py \
+  --db-url "postgresql://user:pass@localhost:5432/dbname" \
+  --api-url "https://datafoncier.cerema.fr/api" \
+  --username "my_user" \
+  --password "my_password" \
+  --auth-version v2
 ```
 
 ### Dry Run (Test Mode)
@@ -103,6 +126,7 @@ python sync_user_kind.py \
 | `--api-url` | Yes | - | Portail DF API base URL |
 | `--username` | Yes | - | API username for authentication |
 | `--password` | Yes | - | API password for authentication |
+| `--auth-version` | No | `v1` | Auth version: `v1` (legacy) or `v2` (DataFoncier) |
 | `--dry-run` | No | `false` | Simulation mode (no DB changes) |
 | `--limit` | No | - | Limit number of users to process |
 | `--batch-size` | No | `1000` | Batch size for DB updates |

@@ -1,14 +1,17 @@
 import { render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { describe, it, expect, vi } from 'vitest';
-import CampaignSentAtModal, { sentAtModal } from '../CampaignSentAtModal';
+import { createCampaignSentAtModal } from '../CampaignSentAtModal';
 
-describe('CampaignSentAtModal', () => {
+describe('createCampaignSentAtModal', () => {
   it('renders the title', () => {
-    // Arrange + Act
-    render(<CampaignSentAtModal onConfirm={vi.fn()} />);
+    // Arrange
+    const modal = createCampaignSentAtModal();
 
-    // Assert — modal is in the DOM (dialog element), title always rendered
+    // Act
+    render(<modal.Component onConfirm={vi.fn()} />);
+
+    // Assert
     const dialog = document.getElementById('campaign-sent-at-modal');
     expect(dialog?.textContent).toContain('Indiquer la date d\u2019envoi');
   });
@@ -17,8 +20,9 @@ describe('CampaignSentAtModal', () => {
     // Arrange
     const user = userEvent.setup();
     const onConfirm = vi.fn();
-    render(<CampaignSentAtModal onConfirm={onConfirm} />);
-    sentAtModal.open();
+    const modal = createCampaignSentAtModal();
+    render(<modal.Component onConfirm={onConfirm} />);
+    modal.open();
 
     // Act
     const dateInput = document.querySelector<HTMLInputElement>(

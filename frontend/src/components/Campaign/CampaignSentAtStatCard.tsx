@@ -6,24 +6,29 @@ import { fr as dateFr } from 'date-fns/locale';
 import type { CampaignDTO } from '@zerologementvacant/models';
 
 import CampaignStatCard from '~/components/Campaign/CampaignStatCard';
-import { sentAtModal } from '~/components/Campaign/CampaignSentAtModal';
 
 interface Props {
   campaign: CampaignDTO;
+  onOpenModal(): void;
 }
 
-function CampaignSentAtStatCard({ campaign }: Readonly<Props>) {
+function CampaignSentAtStatCard({ campaign, onOpenModal }: Readonly<Props>) {
   const variant = campaign.sentAt ? 'default' : 'muted';
 
   return (
     <CampaignStatCard
       iconId="fr-icon-mail-send-line"
-      label={`Date d\u2019envoi`}
+      label="Date d’envoi"
       variant={variant}
     >
       {campaign.sentAt ? (
-        <Stack direction="row" alignItems="center" spacing="0.5rem">
-          <Typography>
+        <Stack
+          direction="row"
+          spacing="0.5rem"
+          useFlexGap
+          sx={{ alignItems: 'center' }}
+        >
+          <Typography variant="h5" component="span">
             {format(new Date(campaign.sentAt), 'd MMMM yyyy', {
               locale: dateFr
             })}
@@ -32,19 +37,15 @@ function CampaignSentAtStatCard({ campaign }: Readonly<Props>) {
             iconId="fr-icon-edit-line"
             priority="tertiary no outline"
             size="small"
-            title={`Modifier la date d’envoi`}
+            title="Modifier la date d’envoi"
             nativeButtonProps={{
-              'aria-label': `Modifier la date d’envoi`
+              'aria-label': 'Modifier la date d’envoi'
             }}
-            onClick={() => sentAtModal.open()}
+            onClick={onOpenModal}
           />
         </Stack>
       ) : (
-        <Button
-          priority="secondary"
-          size="small"
-          onClick={() => sentAtModal.open()}
-        >
+        <Button priority="secondary" size="small" onClick={onOpenModal}>
           Indiquer la date d’envoi
         </Button>
       )}

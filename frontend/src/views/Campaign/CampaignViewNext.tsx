@@ -2,16 +2,17 @@ import Breadcrumb from '@codegouvfr/react-dsfr/Breadcrumb';
 import Button from '@codegouvfr/react-dsfr/Button';
 import Tabs from '@codegouvfr/react-dsfr/Tabs';
 import Container from '@mui/material/Container';
+
 import Stack from '@mui/material/Stack';
 import Typography from '@mui/material/Typography';
 import { useNavigate, useParams } from 'react-router-dom';
 
-import CampaignCreatedFromGroup from '~/components/Campaign/CampaignCreatedFromGroup';
+import CampaignCreatedFromGroupNext from '~/components/Campaign/CampaignCreatedFromGroupNext';
 import { createCampaignDeleteModal } from '~/components/Campaign/CampaignDeleteModal';
-import CampaignRecipients from '~/components/Campaign/CampaignRecipients';
+import CampaignRecipientsNext from '~/components/Campaign/CampaignRecipientsNext';
 import CampaignReturnCountStatCard from '~/components/Campaign/CampaignReturnCountStatCard';
 import CampaignReturnRateStatCard from '~/components/Campaign/CampaignReturnRateStatCard';
-import CampaignSentAtModal from '~/components/Campaign/CampaignSentAtModal';
+import { createCampaignSentAtModal } from '~/components/Campaign/CampaignSentAtModal';
 import CampaignSentAtStatCard from '~/components/Campaign/CampaignSentAtStatCard';
 import CampaignStatCard from '~/components/Campaign/CampaignStatCard';
 import CampaignTitle from '~/components/Campaign/CampaignTitle';
@@ -22,9 +23,10 @@ import {
   useUpdateCampaignMutation
 } from '~/services/campaign.service';
 import { useCountHousingQuery } from '~/services/housing.service';
-import CampaignDraftContent from './CampaignDraftContent';
+import CampaignDraftContent from '~/views/Campaign/CampaignDraftContent';
 
 const campaignDeleteModal = createCampaignDeleteModal();
+const sentAtModal = createCampaignSentAtModal();
 
 function CampaignViewNext() {
   const { id } = useParams<{ id: string }>();
@@ -59,7 +61,7 @@ function CampaignViewNext() {
     if (!campaign) return;
     await updateCampaign({
       ...campaign,
-      sentAt: new Date(isoDate).toJSON()
+      sentAt: new Date(isoDate).toJSON().slice(0, 'yyyy-mm-dd'.length)
     });
   }
 
@@ -73,26 +75,33 @@ function CampaignViewNext() {
 
   return (
     <Container maxWidth={false} sx={{ py: '1.5rem' }}>
-      <Stack spacing="2rem">
+      <Stack spacing="2rem" useFlexGap>
         <Stack
           component="header"
-          direction="row"
+          direction={{ xs: 'column-reverse', md: 'row' }}
           justifyContent="space-between"
           alignItems="flex-start"
           spacing="1rem"
           useFlexGap
         >
-          <Stack spacing="0.5rem">
+          <Stack component="section" spacing="0.75rem" useFlexGap>
             <Breadcrumb
+              className="fr-m-0"
               currentPageLabel={campaign.title}
               segments={[
                 { label: 'Campagnes', linkProps: { href: '/campagnes' } }
               ]}
             />
-            <CampaignTitle as="h1" look="h4" campaign={campaign} />
+            <CampaignTitle
+              className="fr-mt-0"
+              as="h1"
+              look="h4"
+              campaign={campaign}
+            />
+
             {campaign.description && (
-              <Stack spacing="0.25rem">
-                <Typography component="label" variant="h6">
+              <Stack spacing="0.5rem" useFlexGap>
+                <Typography component="p" variant="h6">
                   Description
                 </Typography>
                 <Typography sx={{ fontStyle: 'italic' }}>
@@ -100,7 +109,8 @@ function CampaignViewNext() {
                 </Typography>
               </Stack>
             )}
-            <CampaignCreatedFromGroup campaign={campaign} />
+
+            <CampaignCreatedFromGroupNext campaign={campaign} />
           </Stack>
 
           <Button
@@ -113,32 +123,47 @@ function CampaignViewNext() {
         </Stack>
 
         {/* Metrics */}
-        <Stack direction="row" spacing="0.75rem" useFlexGap>
+        <Stack
+          direction={{ xs: 'column', md: 'row' }}
+          spacing="0.75rem"
+          useFlexGap
+          sx={{ flexWrap: 'wrap' }}
+        >
           <CampaignStatCard
             iconId="fr-icon-building-line"
             label="Nombre de logements"
           >
-            <Typography variant="h6">{housingCount}</Typography>
+            <Typography variant="h5" component="span">
+              {housingCount}
+            </Typography>
           </CampaignStatCard>
 
           <CampaignStatCard
-            iconId="fr-icon-group-fill"
+            iconId="fr-icon-group-line"
             label="Nombre de propriétaires"
           >
-            <Typography variant="h6">{count?.owners ?? '\u2014'}</Typography>
+            <Typography variant="h5">{count?.owners}</Typography>
           </CampaignStatCard>
 
-          <CampaignSentAtStatCard campaign={campaign} />
-          <CampaignReturnCountStatCard campaign={campaign} returnCount={returnCount} />
-          <CampaignReturnRateStatCard campaign={campaign} returnRate={returnRate} />
+          <CampaignSentAtStatCard
+            campaign={campaign}
+            onOpenModal={sentAtModal.open}
+          />
+          <CampaignReturnCountStatCard
+            campaign={campaign}
+            returnCount={returnCount}
+          />
+          <CampaignReturnRateStatCard
+            campaign={campaign}
+            returnRate={returnRate}
+          />
         </Stack>
 
-        {/* Tabs */}
         <Tabs
           tabs={[
             {
               label: 'Destinataires',
-              content: <CampaignRecipients campaign={campaign} />
+              content: <CampaignRecipientsNext campaign={campaign} />
             },
             {
               label: 'Courrier',
@@ -147,7 +172,7 @@ function CampaignViewNext() {
           ]}
         />
 
-        <CampaignSentAtModal
+        <sentAtModal.Component
           defaultValue={campaign.sentAt?.slice(0, 10)}
           onConfirm={handleSentAtConfirm}
         />

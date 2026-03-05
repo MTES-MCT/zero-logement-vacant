@@ -12,6 +12,7 @@ import { useUpdateCampaignMutation } from '../../services/campaign.service';
 import AppTextInputNext from '../_app/AppTextInput/AppTextInputNext';
 import { createConfirmationModal } from '../modals/ConfirmationModal/ConfirmationModalNext';
 import styles from './campaign.module.scss';
+import { createPortal } from 'react-dom';
 
 type TitleAs = 'h1' | 'h2' | 'h3' | 'h4' | 'h5' | 'h6';
 
@@ -83,6 +84,30 @@ function CampaignTitle({ campaign, className, as, look }: Readonly<Props>) {
       });
   }
 
+  const Portal = createPortal(
+    <modal.Component
+      title="Modifier les informations de la campagne"
+      onSubmit={form.handleSubmit(submit)}
+    >
+      <FormProvider {...form}>
+        <form onSubmit={form.handleSubmit(submit)}>
+          <Stack>
+            <AppTextInputNext<FormSchema>
+              label="Titre de la campagne (obligatoire)"
+              name="title"
+            />
+            <AppTextInputNext<FormSchema>
+              textArea
+              label="Description de la campagne (obligatoire)"
+              name="description"
+            />
+          </Stack>
+        </form>
+      </FormProvider>
+    </modal.Component>,
+    document.body
+  );
+
   return (
     <>
       <Stack
@@ -107,26 +132,7 @@ function CampaignTitle({ campaign, className, as, look }: Readonly<Props>) {
           Modifier le nom
         </Button>
       </Stack>
-      <modal.Component
-        title="Modifier les informations de la campagne"
-        onSubmit={form.handleSubmit(submit)}
-      >
-        <FormProvider {...form}>
-          <form onSubmit={form.handleSubmit(submit)}>
-            <Stack>
-              <AppTextInputNext<FormSchema>
-                label="Titre de la campagne (obligatoire)"
-                name="title"
-              />
-              <AppTextInputNext<FormSchema>
-                textArea
-                label="Description de la campagne (obligatoire)"
-                name="description"
-              />
-            </Stack>
-          </form>
-        </FormProvider>
-      </modal.Component>
+      {Portal}
     </>
   );
 }

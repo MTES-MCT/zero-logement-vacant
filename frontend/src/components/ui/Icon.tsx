@@ -16,14 +16,17 @@ export interface IconProps {
   className?: string;
 }
 
-function Icon(props: IconProps) {
+function Icon(props: Readonly<IconProps>) {
   const size = props.size ?? 'md';
   const color = props.color ?? fr.colors.decisions.text.default.grey.default;
 
   return (
     <Box
       component="span"
-      className={classNames(fr.cx(props.name, `fr-icon--${size}`), props.className)}
+      className={classNames(
+        props.className,
+        fr.cx(props.name, `fr-icon--${size}`)
+      )}
       sx={{ color }}
       aria-hidden={true}
     />

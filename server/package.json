@@ -74,6 +74,7 @@
     "pdf-lib": "1.17.1",
     "pg": "8.16.3",
     "pg-query-stream": "4.10.3",
+    "posthog-node": "^5.26.2",
     "proj4": "^2.20.2",
     "puppeteer": "22.15.0",
     "qs": "6.15.0",

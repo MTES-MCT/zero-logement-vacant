@@ -167,7 +167,7 @@ function HousingOwnerEditionAside(props: HousingOwnerEditionAsideProps) {
           }}
           header={
             <Typography component="h2" variant="h6">
-              Éditer les informations du propriétairesss
+              Éditer les informations du propriétaire
             </Typography>
           }
           main={

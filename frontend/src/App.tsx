@@ -1,5 +1,3 @@
-import { fr } from '@codegouvfr/react-dsfr';
-import GlobalStyles from '@mui/material/GlobalStyles';
 import { useEffect } from 'react';
 import { hideLoading, showLoading } from 'react-redux-loading-bar';
 import {
@@ -138,21 +136,7 @@ function App() {
   }, [dispatch, isSomeQueryPending]);
 
   return (
-    <>
-      {/* RGAA 10.4: Full-height modals at 200% zoom */}
-      <GlobalStyles
-        styles={{
-          [fr.breakpoints.down('lg')]: {
-            '.fr-modal__body': {
-              maxHeight: 'calc(100vh - 2rem) !important',
-              height: 'calc(100vh - 2rem)',
-              margin: '1rem 0'
-            }
-          }
-        }}
-      />
-      <RouterProvider router={router} future={{ v7_startTransition: true }} />
-    </>
+    <RouterProvider router={router} future={{ v7_startTransition: true }} />
   );
 }
 

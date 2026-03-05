@@ -11,12 +11,21 @@ This is NOT a failure of ZLV - it's SELECTION BIAS:
 1. ZLV targets DIFFICULT cases (long vacancy, complex owners)
 2. "Easy" housing exits naturally without intervention
 3. More groups = housing is considered more "problematic"
+
+NOTE: The table uses a dual-echelon structure (EPCI + Commune).
+Features are prefixed with epci_ or city_ accordingly.
 """
 
 from utils import (
     analyze_categorical_feature,
     analyze_boolean_feature,
+    analyze_continuous_feature,
+    analyze_categorical_feature_stratified,
+    analyze_boolean_feature_stratified,
+    analyze_continuous_feature_stratified,
     FeatureAnalysisResult,
+    StratifiedFeatureAnalysisResult,
+    StratificationConfig,
 )
 
 TABLE = "main_marts.marts_bi_housing_zlv_usage"
@@ -26,67 +35,77 @@ CATEGORY = "zlv_usage"
 
 # =============================================================================
 # FEATURE DEFINITIONS
+# Columns from marts_bi_housing_zlv_usage (dual-echelon: epci_ and city_)
 # =============================================================================
 
-# EXCLUDED FEATURES:
-# 
-# TAUTOLOGICAL (encode the target):
-# - last_event_status_label_*: "Suivi terminé" = 98% exit (tracking ended BECAUSE housing exited)
-# - update_intensity: "MAJ complete" is set WHEN housing exits
-# - has_*_update: Updates are often made BECAUSE housing exited
-#
-# TEMPORAL BIAS:
-# - contact_recency_category: "Recent (<6 mois)" = low rate because no time to exit yet
-# - days_since_first_contact: Longer time = more chance to exit (not causal)
-#
-# SPARSE CONTINUOUS (>60% zeros - NTILE bucketing produces meaningless "0-0" ranges):
-# - contact_count, total_groups, total_campaigns_*, activation_level, etc.
-# - These are analyzed in the markdown report with MANUAL categorical buckets
-
 CATEGORICAL_FEATURES = [
-    # Group status (SELECTION BIAS - ZLV selects difficult cases)
-    "group_intensity",
-    
-    # Engagement category (SELECTION BIAS)
-    "zlv_engagement_category",
-    
-    # Establishment type (contextual - territory characteristics)
-    # This is the ONLY feature without strong selection bias
-    "establishment_kind",
-    "establishment_kind_label",
-    "establishment_type_regroupe",
-    
-    # Contact intensity (categorical version)
-    "contact_intensity",
+    # EPCI establishment type (contextual - territory characteristics)
+    "epci_type_simple",
+    "epci_type_detaille",
+
+    # City establishment type
+    "city_type_simple",
+    "city_type_detaille",
 ]
 
 BOOLEAN_FEATURES = [
-    # Group membership (SELECTION BIAS)
-    ("is_in_group", "Dans un groupe", "Pas dans un groupe"),
-    ("was_exported_from_group", "Exporte depuis groupe", "Non exporte"),
-    
-    # Contact (very low volume - only 4% contacted)
-    ("was_contacted_by_zlv", "Contacte par ZLV", "Non contacte"),
-    ("has_received_campaign", "A recu une campagne", "Pas de campagne"),
-    
-    # Territory (contextual)
-    ("is_on_user_territory", "Territoire avec utilisateurs", "Territoire sans utilisateurs"),
-    
-    # Establishment activity flags (weak impact)
-    ("connecte_90_derniers_jours", "Connecte 90j", "Non connecte 90j"),
-    ("connecte_60_derniers_jours", "Connecte 60j", "Non connecte 60j"),
-    ("connecte_30_derniers_jours", "Connecte 30j", "Non connecte 30j"),
-    ("a_depose_1_perimetre", "A depose perimetre", "Pas de perimetre"),
-    ("a_cree_1_groupe", "A cree groupe", "Pas de groupe"),
-    ("a_cree_1_campagne", "A cree campagne", "Pas de campagne creee"),
-    ("a_envoye_1_campagne", "A envoye campagne", "Pas de campagne envoyee"),
-    ("establishment_has_active_users", "Avec utilisateurs actifs", "Sans utilisateurs"),
+    # EPCI: Is the establishment open on ZLV?
+    ("epci_ouvert", "EPCI ouvert sur ZLV", "EPCI non ouvert"),
+
+    # EPCI: Recent connection activity
+    ("epci_connecte_90_jours", "EPCI connecte 90j", "EPCI non connecte 90j"),
+    ("epci_connecte_60_jours", "EPCI connecte 60j", "EPCI non connecte 60j"),
+    ("epci_connecte_30_jours", "EPCI connecte 30j", "EPCI non connecte 30j"),
+
+    # EPCI: Data update activity flags
+    ("epci_a_1_logement_maj_situation", "EPCI a MAJ situation", "EPCI sans MAJ situation"),
+    ("epci_a_1_logement_maj_occupation", "EPCI a MAJ occupation", "EPCI sans MAJ occupation"),
+    ("epci_a_1_logement_maj_suivi", "EPCI a MAJ suivi", "EPCI sans MAJ suivi"),
+
+    # EPCI: Group and campaign activity
+    ("epci_a_1_groupe_cree", "EPCI a cree groupe", "EPCI pas de groupe"),
+    ("epci_a_1_campagne_creee", "EPCI a cree campagne", "EPCI pas de campagne"),
+    ("epci_a_1_campagne_envoyee", "EPCI a envoye campagne", "EPCI pas de campagne envoyee"),
+    ("epci_a_1_campagne_envoyee_et_1_maj_situation", "EPCI campagne+MAJ", "EPCI sans campagne+MAJ"),
+    ("epci_a_1_perimetre_importe", "EPCI a importe perimetre", "EPCI pas de perimetre"),
+
+    # City: Is the commune open on ZLV?
+    ("city_ouvert", "Commune ouverte sur ZLV", "Commune non ouverte"),
+
+    # City: Recent connection activity
+    ("city_connecte_90_jours", "Commune connectee 90j", "Commune non connectee 90j"),
+    ("city_connecte_60_jours", "Commune connectee 60j", "Commune non connectee 60j"),
+    ("city_connecte_30_jours", "Commune connectee 30j", "Commune non connectee 30j"),
+
+    # City: Data update activity flags
+    ("city_a_1_logement_maj_situation", "Commune a MAJ situation", "Commune sans MAJ situation"),
+    ("city_a_1_logement_maj_occupation", "Commune a MAJ occupation", "Commune sans MAJ occupation"),
+    ("city_a_1_logement_maj_suivi", "Commune a MAJ suivi", "Commune sans MAJ suivi"),
+
+    # City: Group and campaign activity
+    ("city_a_1_groupe_cree", "Commune a cree groupe", "Commune pas de groupe"),
+    ("city_a_1_campagne_creee", "Commune a cree campagne", "Commune pas de campagne"),
+    ("city_a_1_campagne_envoyee", "Commune a envoye campagne", "Commune pas de campagne envoyee"),
+    ("city_a_1_perimetre_importe", "Commune a importe perimetre", "Commune pas de perimetre"),
 ]
 
-# NOTE: We intentionally DO NOT include continuous features because:
-# 1. Most have >60% zeros (contact_count: 96%, total_groups: 66%, engagement_score: 61%)
-# 2. NTILE bucketing on sparse data produces meaningless "Q1: 0-0", "Q2: 0-0" ranges
-# 3. Better to use manual categorical buckets (done in markdown report)
+CONTINUOUS_FEATURES = [
+    # EPCI metrics
+    "epci_utilisateurs_inscrits",
+    "epci_logements_maj_situation",
+    "epci_logements_contactes_via_campagnes",
+    "epci_groupes_crees",
+    "epci_campagnes_envoyees",
+    "epci_campagnes_creees",
+
+    # City metrics
+    "city_utilisateurs_inscrits",
+    "city_logements_maj_situation",
+    "city_logements_contactes_via_campagnes",
+    "city_groupes_crees",
+    "city_campagnes_envoyees",
+    "city_campagnes_creees",
+]
 
 
 def analyze_all(global_exit_rate: float) -> list[FeatureAnalysisResult]:
@@ -105,9 +124,8 @@ def analyze_all(global_exit_rate: float) -> list[FeatureAnalysisResult]:
     results = []
     
     print(f"Analyzing {CATEGORY} features...")
-    print("  ⚠️ Warning: ZLV features have SELECTION BIAS (higher engagement = lower exit)")
+    print("  Warning: ZLV features have SELECTION BIAS (higher engagement = lower exit)")
     
-    # Categorical features
     for feature in CATEGORICAL_FEATURES:
         print(f"  - {feature} (categorical)")
         try:
@@ -123,7 +141,6 @@ def analyze_all(global_exit_rate: float) -> list[FeatureAnalysisResult]:
         except Exception as e:
             print(f"    ERROR: {e}")
     
-    # Boolean features
     for feature_tuple in BOOLEAN_FEATURES:
         feature, true_label, false_label = feature_tuple
         print(f"  - {feature} (boolean)")
@@ -141,8 +158,94 @@ def analyze_all(global_exit_rate: float) -> list[FeatureAnalysisResult]:
             results.append(result)
         except Exception as e:
             print(f"    ERROR: {e}")
+
+    for feature in CONTINUOUS_FEATURES:
+        print(f"  - {feature} (continuous)")
+        try:
+            result = analyze_continuous_feature(
+                table=TABLE,
+                feature=feature,
+                category=CATEGORY,
+                global_exit_rate=global_exit_rate,
+                join_table=JOIN_TABLE,
+                join_key="housing_id"
+            )
+            results.append(result)
+        except Exception as e:
+            print(f"    ERROR: {e}")
     
     print(f"  Completed: {len(results)} features analyzed")
+    return results
+
+
+def analyze_all_stratified(
+    global_exit_rate: float,
+    stratify: StratificationConfig,
+) -> list[StratifiedFeatureAnalysisResult]:
+    """Analyze all ZLV usage features stratified by another variable.
+
+    Skips features that match the stratification variable to avoid tautology.
+    """
+    results: list[StratifiedFeatureAnalysisResult] = []
+
+    print(f"Analyzing {CATEGORY} features (stratified by {stratify.feature})...")
+    print("  Warning: ZLV features have SELECTION BIAS (higher engagement = lower exit)")
+
+    for feature in CATEGORICAL_FEATURES:
+        if feature == stratify.feature:
+            continue
+        print(f"  - {feature} (categorical x {stratify.feature})")
+        try:
+            results.extend(analyze_categorical_feature_stratified(
+                table=TABLE,
+                feature=feature,
+                category=CATEGORY,
+                global_exit_rate=global_exit_rate,
+                stratify=stratify,
+                join_table=JOIN_TABLE,
+                join_key="housing_id",
+            ))
+        except Exception as e:
+            print(f"    ERROR: {e}")
+
+    for feature_tuple in BOOLEAN_FEATURES:
+        feature, true_label, false_label = feature_tuple
+        if feature == stratify.feature:
+            continue
+        print(f"  - {feature} (boolean x {stratify.feature})")
+        try:
+            results.extend(analyze_boolean_feature_stratified(
+                table=TABLE,
+                feature=feature,
+                category=CATEGORY,
+                global_exit_rate=global_exit_rate,
+                stratify=stratify,
+                true_label=true_label,
+                false_label=false_label,
+                join_table=JOIN_TABLE,
+                join_key="housing_id",
+            ))
+        except Exception as e:
+            print(f"    ERROR: {e}")
+
+    for feature in CONTINUOUS_FEATURES:
+        if feature == stratify.feature:
+            continue
+        print(f"  - {feature} (continuous x {stratify.feature})")
+        try:
+            results.extend(analyze_continuous_feature_stratified(
+                table=TABLE,
+                feature=feature,
+                category=CATEGORY,
+                global_exit_rate=global_exit_rate,
+                stratify=stratify,
+                join_table=JOIN_TABLE,
+                join_key="housing_id",
+            ))
+        except Exception as e:
+            print(f"    ERROR: {e}")
+
+    print(f"  Completed: {len(results)} stratified results")
     return results
 
 

@@ -154,6 +154,7 @@ dbt compile --select marts_production_housing
 ### `int_production_housing_last_status`
 
 Calcule le dernier statut par logement pour 6 catégories :
+
 - `zlv_followup` : Suivi par l'app ZLV
 - `user_followup` : Suivi par utilisateur
 - `all_followup` : Tous les suivis
@@ -162,17 +163,11 @@ Calcule le dernier statut par logement pour 6 catégories :
 ### `marts_production_housing`
 
 Table principale avec 136 colonnes incluant :
+
 - Données du logement (surface, année, DPE)
 - Derniers statuts
 - Territoires spéciaux (OPAH, TLV, Action Cœur de Ville)
 - Métriques campagnes
-
-### `marts_bi_housing_complete`
-
-Table d'analyse pour mesurer l'impact ZLV avec :
-- `is_housing_out` : Sortie de vacance (0/1)
-- `was_contacted_by_zlv` : Contacté par ZLV
-- Features propriétaires, territoires, engagement ZLV
 
 ## Macros importantes
 
@@ -215,6 +210,7 @@ dbt test --select int_production_housing_last_status
 Le projet utilise MotherDuck en production. Base de données : `dwh`
 
 Schémas :
+
 - `main_marts` : Tables marts
 - `main_int` : Tables intermediate
 - `external` : Sources externes

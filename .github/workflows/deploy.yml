@@ -58,6 +58,8 @@ jobs:
           CLEVER_SECRET: ${{ secrets.CLEVER_SECRET }}
           CLEVER_TOKEN: ${{ secrets.CLEVER_TOKEN }}
           ORGA_ID: ${{ secrets.CLEVER_ORG }}
+          APP_NAME: ${{ inputs.app }}
+          APP_ALIAS: ${{ inputs.alias }}
         run: |
-          clever link --org $ORGA_ID --alias ${{ inputs.alias }} '${{ inputs.app }}'
-          clever deploy --alias ${{ inputs.alias }} --same-commit-policy rebuild
+          clever link --org "$ORGA_ID" --alias "$APP_ALIAS" "$APP_NAME"
+          clever deploy --alias "$APP_ALIAS" --same-commit-policy rebuild

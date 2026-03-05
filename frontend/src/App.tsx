@@ -26,6 +26,7 @@ import GroupView from '~/views/Group/GroupView';
 import HousingView from '~/views/Housing/HousingView';
 import HousingListTabsProvider from '~/views/HousingList/HousingListTabsProvider';
 import HousingListView from '~/views/HousingList/HousingListView';
+import HousingListViewNext from '~/views/HousingList/HousingListViewNext';
 import LoginView from '~/views/Login/LoginView';
 import NotFoundView from '~/views/NotFoundView';
 import OwnerView from '~/views/Owner/OwnerView';
@@ -34,6 +35,7 @@ import StatusView from '~/views/Resources/StatusView';
 import HousingOwnersView from '~/views/Housing/HousingOwnersView';
 import SiteMapView from '~/views/SiteMapView';
 import TwoFactorView from '~/views/Login/TwoFactorView';
+import FeatureFlagLayout from './layouts/FeatureFlagLayout';
 
 const router = sentry.createBrowserRouter(
   createRoutesFromElements(
@@ -45,7 +47,11 @@ const router = sentry.createBrowserRouter(
           path="/parc-de-logements"
           element={
             <HousingListTabsProvider>
-              <HousingListView />
+              <FeatureFlagLayout
+                flag="new-campaigns"
+                then={<HousingListViewNext />}
+                else={<HousingListView />}
+              />
             </HousingListTabsProvider>
           }
         />

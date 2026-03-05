@@ -169,17 +169,17 @@ SELECT
     cf.total_mutations_appartements_2019_2024,
     
     -- =====================================================
-    -- MARKET TRANSACTIONS (DVG)
+    -- MARKET TRANSACTIONS (DVF)
     -- =====================================================
     {% for year in years %}
-    cf.dvg_nb_transactions_{{ year }},
-    cf.dvg_prix_m2_moyen_{{ year }},
+    cf.dvf_nb_transactions_{{ year }},
+    cf.dvf_prix_m2_moyen_{{ year }},
     {% endfor %}
     
-    cf.dvg_total_transactions_2019_2024,
-    cf.dvg_avg_annual_transactions,
-    cf.dvg_evolution_prix_m2_2019_2023_pct,
-    cf.dvg_marche_dynamisme,
+    cf.dvf_total_transactions_2019_2024,
+    cf.dvf_avg_annual_transactions,
+    cf.dvf_evolution_prix_m2_2019_2023_pct,
+    cf.dvf_marche_dynamisme,
     
     -- =====================================================
     -- LAND CONSUMPTION (CEREMA)

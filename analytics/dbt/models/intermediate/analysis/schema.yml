@@ -259,6 +259,38 @@ models:
         description: "Type simple regroupe (Intercommunalite, Commune)"
       - name: mails_utilisateurs
         description: "Emails des utilisateurs de l etablissement"
+      - name: communes_inscrites
+        description: "Nombre de communes inscrites dans le territoire de l EPCI (NULL pour les communes)"
+      - name: communes_inscrites_pct
+        description: "Pourcentage de communes inscrites dans le territoire de l EPCI"
+      - name: intercommunalites_inscrites
+        description: "Nombre d intercommunalites inscrites dans le departement (NULL pour echelons locaux)"
+      - name: intercommunalites_inscrites_pct
+        description: "Pourcentage d intercommunalites inscrites dans le departement"
+      - name: departements_inscrits
+        description: "Nombre de departements inscrits dans la region (NULL pour echelons locaux)"
+      - name: departements_inscrits_pct
+        description: "Pourcentage de departements inscrits dans la region"
+      - name: sded_inscrits
+        description: "Nombre de SDED inscrits dans la region (NULL pour echelons locaux)"
+      - name: sded_inscrits_pct
+        description: "Pourcentage de SDED inscrits dans la region"
+
+  - name: int_analysis_housing_establishment_echelons
+    description: |
+      Mapping entre logements et etablissements par echelon.
+      Pour chaque logement, identifie l etablissement EPCI (CA/CC/CU/ME)
+      et l etablissement Commune correspondants via le geo_code.
+    columns:
+      - name: housing_id
+        description: "Identifiant unique du logement"
+        tests:
+          - not_null
+          - unique
+      - name: epci_establishment_id
+        description: "Identifiant de l etablissement EPCI (CA/CC/CU/ME) couvrant le logement"
+      - name: city_establishment_id
+        description: "Identifiant de l etablissement Commune couvrant le logement"
 
   - name: int_analysis_housing_zlv_usage
     description: |

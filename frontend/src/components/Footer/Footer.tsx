@@ -74,7 +74,6 @@ function Footer() {
                 }
               ]
         },
-        { categoryName: '', links: [{ linkProps: { to: '' }, text: '' }] },
         {
           categoryName: 'Liens utiles',
           links: [

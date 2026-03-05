@@ -39,8 +39,8 @@ function DraftMailInfo(props: Readonly<Props>) {
   }
 
   return (
-    <article className={styles.article}>
-      <Typography component="h4" variant="h6" mb={2}>
+    <article className={styles.article} role="group" aria-labelledby="draft-mail-info-label">
+      <Typography id="draft-mail-info-label" component="h4" variant="h6" mb={2}>
         Informations sur le courrier
       </Typography>
       <AppTextInput

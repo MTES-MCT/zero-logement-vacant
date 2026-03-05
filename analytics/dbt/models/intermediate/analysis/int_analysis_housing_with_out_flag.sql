@@ -3,7 +3,7 @@
 -- 
 -- Logic:
 -- - is_housing_out = 1: Housing was in LOVAC but is NOT in LOVAC 2025 (exited vacancy)
--- - is_housing_out = 0: Housing is still in LOVAC 2025 (still vacant)
+-- - is_housing_out = 0: Housing is still in LOVAC 2026 (still vacant)
 
 WITH production_housing AS (
     SELECT
@@ -57,16 +57,16 @@ with_out_flag AS (
         -- Years in vacancy (if vacancy_start_year is available)
         CASE 
             WHEN vacancy_start_year IS NOT NULL AND vacancy_start_year > 0
-            THEN 2025 - vacancy_start_year
+            THEN 2026 - vacancy_start_year
             ELSE NULL
         END AS years_in_vacancy,
         
         -- Duration category
         CASE 
             WHEN vacancy_start_year IS NULL OR vacancy_start_year <= 0 THEN 'Inconnu'
-            WHEN 2025 - vacancy_start_year <= 2 THEN '0-2 ans'
-            WHEN 2025 - vacancy_start_year <= 5 THEN '3-5 ans'
-            WHEN 2025 - vacancy_start_year <= 10 THEN '6-10 ans'
+            WHEN 2026 - vacancy_start_year <= 2 THEN '0-2 ans'
+            WHEN 2026 - vacancy_start_year <= 5 THEN '3-5 ans'
+            WHEN 2026 - vacancy_start_year <= 10 THEN '6-10 ans'
             ELSE 'Plus de 10 ans'
         END AS vacancy_duration_category
         

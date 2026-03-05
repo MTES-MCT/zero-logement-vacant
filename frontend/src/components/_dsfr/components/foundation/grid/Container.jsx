@@ -10,6 +10,7 @@ const Container = ({
   children = null,
   className = '',
   role = '',
+  'aria-labelledby': ariaLabelledBy = undefined,
   spacing = '',
 }) => {
   const HtmlTag = `${as}`;
@@ -24,7 +25,7 @@ const Container = ({
     className
   );
   return (
-    <HtmlTag role={role || undefined} className={_className}>
+    <HtmlTag role={role || undefined} aria-labelledby={ariaLabelledBy} className={_className}>
       {children}
     </HtmlTag>
   );
@@ -54,6 +55,7 @@ Container.propTypes = {
   fluid: PropTypes.bool,
   spacing: PropTypes.string,
   role: PropTypes.string,
+  'aria-labelledby': PropTypes.string,
   className: PropTypes.string,
 };
 

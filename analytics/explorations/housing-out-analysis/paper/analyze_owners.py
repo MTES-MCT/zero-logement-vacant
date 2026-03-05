@@ -7,7 +7,12 @@ from utils import (
     analyze_categorical_feature,
     analyze_boolean_feature,
     analyze_continuous_feature,
+    analyze_categorical_feature_stratified,
+    analyze_boolean_feature_stratified,
+    analyze_continuous_feature_stratified,
     FeatureAnalysisResult,
+    StratifiedFeatureAnalysisResult,
+    StratificationConfig,
 )
 
 TABLE = "main_marts.marts_bi_housing_owners"
@@ -141,6 +146,76 @@ def analyze_all(global_exit_rate: float) -> list[FeatureAnalysisResult]:
             print(f"    ERROR: {e}")
     
     print(f"  Completed: {len(results)} features analyzed")
+    return results
+
+
+def analyze_all_stratified(
+    global_exit_rate: float,
+    stratify: StratificationConfig,
+) -> list[StratifiedFeatureAnalysisResult]:
+    """Analyze all owner features stratified by another variable.
+
+    Skips features that match the stratification variable to avoid tautology.
+    """
+    results: list[StratifiedFeatureAnalysisResult] = []
+
+    print(f"Analyzing {CATEGORY} features (stratified by {stratify.feature})...")
+
+    for feature in CATEGORICAL_FEATURES:
+        if feature == stratify.feature:
+            continue
+        print(f"  - {feature} (categorical x {stratify.feature})")
+        try:
+            results.extend(analyze_categorical_feature_stratified(
+                table=TABLE,
+                feature=feature,
+                category=CATEGORY,
+                global_exit_rate=global_exit_rate,
+                stratify=stratify,
+                join_table=JOIN_TABLE,
+                join_key="housing_id",
+            ))
+        except Exception as e:
+            print(f"    ERROR: {e}")
+
+    for feature_tuple in BOOLEAN_FEATURES:
+        feature, true_label, false_label = feature_tuple
+        if feature == stratify.feature:
+            continue
+        print(f"  - {feature} (boolean x {stratify.feature})")
+        try:
+            results.extend(analyze_boolean_feature_stratified(
+                table=TABLE,
+                feature=feature,
+                category=CATEGORY,
+                global_exit_rate=global_exit_rate,
+                stratify=stratify,
+                true_label=true_label,
+                false_label=false_label,
+                join_table=JOIN_TABLE,
+                join_key="housing_id",
+            ))
+        except Exception as e:
+            print(f"    ERROR: {e}")
+
+    for feature in CONTINUOUS_FEATURES:
+        if feature == stratify.feature:
+            continue
+        print(f"  - {feature} (continuous x {stratify.feature})")
+        try:
+            results.extend(analyze_continuous_feature_stratified(
+                table=TABLE,
+                feature=feature,
+                category=CATEGORY,
+                global_exit_rate=global_exit_rate,
+                stratify=stratify,
+                join_table=JOIN_TABLE,
+                join_key="housing_id",
+            ))
+        except Exception as e:
+            print(f"    ERROR: {e}")
+
+    print(f"  Completed: {len(results)} stratified results")
     return results
 
 

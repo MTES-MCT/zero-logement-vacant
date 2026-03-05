@@ -7,6 +7,7 @@ import Typography from '@mui/material/Typography';
 import { useNavigate, useParams } from 'react-router-dom';
 
 import CampaignCreatedFromGroup from '~/components/Campaign/CampaignCreatedFromGroup';
+import { createCampaignDeleteModal } from '~/components/Campaign/CampaignDeleteModal';
 import CampaignRecipients from '~/components/Campaign/CampaignRecipients';
 import CampaignReturnCountStatCard from '~/components/Campaign/CampaignReturnCountStatCard';
 import CampaignReturnRateStatCard from '~/components/Campaign/CampaignReturnRateStatCard';
@@ -22,6 +23,8 @@ import {
 } from '~/services/campaign.service';
 import { useCountHousingQuery } from '~/services/housing.service';
 import CampaignDraftContent from './CampaignDraftContent';
+
+const campaignDeleteModal = createCampaignDeleteModal();
 
 function CampaignViewNext() {
   const { id } = useParams<{ id: string }>();
@@ -46,7 +49,7 @@ function CampaignViewNext() {
     }
   });
 
-  async function handleDelete(): Promise<void> {
+  async function handleDeleteConfirm(): Promise<void> {
     if (!campaign) return;
     await removeCampaign(campaign.id).unwrap();
     navigate('/campagnes');
@@ -103,7 +106,7 @@ function CampaignViewNext() {
           <Button
             iconId="fr-icon-delete-line"
             priority="tertiary"
-            onClick={handleDelete}
+            onClick={() => campaignDeleteModal.open()}
           >
             Supprimer la campagne
           </Button>
@@ -148,6 +151,7 @@ function CampaignViewNext() {
           defaultValue={campaign.sentAt?.slice(0, 10)}
           onConfirm={handleSentAtConfirm}
         />
+        <campaignDeleteModal.Component onSubmit={handleDeleteConfirm} />
       </Stack>
     </Container>
   );

@@ -84,7 +84,22 @@ describe('CampaignViewNext', () => {
     expect(modal?.textContent).toMatch(/permet/);
   });
 
-  it('navigates to /campagnes after deleting the campaign', async () => {
+  it('opens a confirmation modal when clicking delete', async () => {
+    // Arrange
+    const campaign = { ...genCampaignDTO(), sentAt: undefined, returnCount: null };
+    renderView(campaign);
+    await screen.findByRole('heading', { level: 1 });
+
+    // Act
+    await user.click(screen.getByRole('button', { name: /supprimer la campagne/i }));
+
+    // Assert
+    expect(
+      await screen.findByRole('dialog', { name: /supprimer la campagne/i })
+    ).toBeVisible();
+  });
+
+  it('navigates to /campagnes after confirming deletion', async () => {
     // Arrange
     const campaign = { ...genCampaignDTO(), sentAt: undefined, returnCount: null };
     const { router } = renderView(campaign);
@@ -92,8 +107,25 @@ describe('CampaignViewNext', () => {
 
     // Act
     await user.click(screen.getByRole('button', { name: /supprimer la campagne/i }));
+    await screen.findByRole('dialog', { name: /supprimer la campagne/i });
+    await user.click(screen.getByRole('button', { name: /confirmer/i }));
 
     // Assert
     await waitFor(() => expect(router.state.location.pathname).toBe('/campagnes'));
+  });
+
+  it('does not navigate when cancelling deletion', async () => {
+    // Arrange
+    const campaign = { ...genCampaignDTO(), sentAt: undefined, returnCount: null };
+    const { router } = renderView(campaign);
+    await screen.findByRole('heading', { level: 1 });
+
+    // Act
+    await user.click(screen.getByRole('button', { name: /supprimer la campagne/i }));
+    await screen.findByRole('dialog', { name: /supprimer la campagne/i });
+    await user.click(screen.getByRole('button', { name: /annuler/i }));
+
+    // Assert
+    expect(router.state.location.pathname).toBe(`/campagnes/${campaign.id}`);
   });
 });

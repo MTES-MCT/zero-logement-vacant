@@ -13,8 +13,14 @@ interface Props {
 }
 
 function CampaignSentAtStatCard({ campaign }: Readonly<Props>) {
+  const variant = campaign.sentAt ? 'default' : 'muted';
+
   return (
-    <CampaignStatCard iconId="fr-icon-mail-send-line" label="Date d’envoi">
+    <CampaignStatCard
+      iconId="fr-icon-mail-send-line"
+      label={`Date d\u2019envoi`}
+      variant={variant}
+    >
       {campaign.sentAt ? (
         <Stack direction="row" alignItems="center" spacing="0.5rem">
           <Typography>
@@ -26,9 +32,9 @@ function CampaignSentAtStatCard({ campaign }: Readonly<Props>) {
             iconId="fr-icon-edit-line"
             priority="tertiary no outline"
             size="small"
-            title="Modifier la date d’envoi"
+            title={`Modifier la date d’envoi`}
             nativeButtonProps={{
-              'aria-label': 'Modifier la date d’envoi'
+              'aria-label': `Modifier la date d’envoi`
             }}
             onClick={() => sentAtModal.open()}
           />

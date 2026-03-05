@@ -8,19 +8,19 @@ interface Props {
   returnCount: number | null;
 }
 
-const waitingState = (
-  <Typography variant="body2" color="text.disabled">
-    {`En attente de la date d'envoi`}
-  </Typography>
-);
-
 function CampaignReturnCountStatCard({ campaign, returnCount }: Readonly<Props>) {
+  const variant = campaign.sentAt ? 'default' : 'muted';
+
   return (
-    <CampaignStatCard iconId="ri-discuss-line" label="Nombre de retours">
+    <CampaignStatCard
+      iconId="ri-discuss-line"
+      label="Nombre de retours"
+      variant={variant}
+    >
       {campaign.sentAt ? (
-        <Typography variant="h6">{returnCount ?? '\u2014'}</Typography>
+        <Typography variant="h6">{returnCount}</Typography>
       ) : (
-        waitingState
+        <Typography variant="body2">En attente de la date d’envoi</Typography>
       )}
     </CampaignStatCard>
   );

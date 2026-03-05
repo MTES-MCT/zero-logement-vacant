@@ -15,8 +15,10 @@ const waitingState = (
 );
 
 function CampaignReturnRateStatCard({ campaign, returnRate }: Readonly<Props>) {
+  const variant = campaign.sentAt ? 'default' : 'muted';
+
   return (
-    <CampaignStatCard iconId="ri-discuss-line" label="Taux de retour">
+    <CampaignStatCard iconId="ri-discuss-line" label="Taux de retour" variant={variant}>
       {campaign.sentAt ? (
         <Typography variant="h6">{returnRate ?? '\u2014'}</Typography>
       ) : (

@@ -30,7 +30,7 @@ import { useCountHousingQuery } from '../../services/housing.service';
 import HousingListMap from './HousingListMap';
 import HousingListTabs from './HousingListTabs';
 import { useHousingListTabs } from './HousingListTabsProvider';
-import Tooltip from '~/Tooltip/Tooltip';
+import Tooltip from '~/components/ui/Tooltip/Tooltip';
 import type { Housing } from '~/models/Housing';
 
 const campaignCreationInfoModal = createCampaignCreationInfoModal();

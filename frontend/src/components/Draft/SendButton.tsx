@@ -3,7 +3,7 @@ import Typography from '@mui/material/Typography';
 import Button from '@codegouvfr/react-dsfr/Button';
 import { useForm } from '../../hooks/useForm';
 import { createConfirmationModal } from '../modals/ConfirmationModal/ConfirmationModalNext';
-import Tooltip from '~/Tooltip/Tooltip';
+import Tooltip from '~/components/ui/Tooltip/Tooltip';
 import Stack from '@mui/material/Stack';
 
 interface Props {

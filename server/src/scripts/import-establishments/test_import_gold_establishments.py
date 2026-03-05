@@ -604,3 +604,163 @@ class TestProcessSinglePair:
         assert result["kind_admin"] == "COM-TOM"
         assert result["kind_admin_meta"] == "Collectivité Territoriale"
         assert result["localities_geo_code"] == ["97101"]
+
+
+class TestKindColumnPreservation:
+    """Tests to ensure the 'kind' column is NOT modified by the import script.
+
+    CRITICAL: The 'kind' column contains user-defined establishment types (e.g., "Commune", "EPCI").
+    The import script should write CSV 'Kind-admin' to 'kind_admin' column, NOT 'kind'.
+    """
+
+    @pytest.fixture
+    def importer(self):
+        """Create an importer instance with mocked valid localities."""
+        with patch.object(EstablishmentImporter, '__init__', lambda x, **kwargs: None):
+            imp = EstablishmentImporter()
+            imp.stats = {
+                "total": 0,
+                "inserted": 0,
+                "updated": 0,
+                "skipped_no_siren": 0,
+                "skipped_invalid_siren": 0,
+                "filtered_localities_count": 0,
+                "records_with_filtered_localities": 0,
+                "errors": 0,
+            }
+            imp.skipped_rows = []
+            imp.valid_localities = {"75001", "75002", "75003"}
+            return imp
+
+    def test_transform_row_does_not_produce_kind_key(self, importer):
+        """Transform should produce 'kind_admin' key, NOT 'kind' key."""
+        row = {
+            "Siren": "123456789",
+            "Name-zlv": "COMMUNE DE PARIS",
+            "Kind-admin": "COM",
+            "Kind-admin_meta": "Collectivité Territoriale",
+            "Geo_Perimeter": "['75001']",
+        }
+        result = importer.transform_row(row)
+
+        assert result is not None
+        # Should have kind_admin
+        assert "kind_admin" in result
+        assert result["kind_admin"] == "COM"
+        # Should NOT have a 'kind' key (that's a DB column managed elsewhere)
+        assert "kind" not in result
+
+    def test_kind_admin_is_separate_from_kind(self, importer):
+        """kind_admin should be distinct from kind column."""
+        row = {
+            "Siren": "123456789",
+            "Name-zlv": "EPCI Test",
+            "Kind-admin": "EPCI",
+            "Kind-admin_meta": "EPCI",
+        }
+        result = importer.transform_row(row)
+
+        assert result is not None
+        assert result["kind_admin"] == "EPCI"
+        # The 'kind' key should not exist in transformed data
+        assert "kind" not in result
+
+    def test_batch_upsert_uses_kind_admin_column(self, importer):
+        """Batch upsert SQL should reference 'kind_admin' column, not 'kind'."""
+        from import_gold_establishments import EstablishmentImporter as RealImporter
+
+        # Get the source code of batch_upsert method
+        import inspect
+        source = inspect.getsource(RealImporter.batch_upsert)
+
+        # INSERT statement should use kind_admin, not kind
+        assert "kind_admin, kind_admin_meta" in source or "kind_admin," in source
+        # Should NOT be setting 'kind' column
+        assert "kind = data.kind," not in source
+        # Should be setting 'kind_admin' column
+        assert "kind_admin = data.kind_admin" in source
+
+    def test_insert_sql_uses_kind_admin(self):
+        """INSERT SQL should insert into kind_admin column."""
+        from import_gold_establishments import EstablishmentImporter as RealImporter
+
+        import inspect
+        source = inspect.getsource(RealImporter.batch_upsert)
+
+        # Find INSERT statement - should have kind_admin, not kind
+        # The column list should be: (siren, siret, name, short_name, kind_admin, kind_admin_meta, ...)
+        assert "(siren, siret, name, short_name, kind_admin, kind_admin_meta" in source
+
+    def test_update_sql_uses_kind_admin(self):
+        """UPDATE SQL should update kind_admin column, not kind."""
+        from import_gold_establishments import EstablishmentImporter as RealImporter
+
+        import inspect
+        source = inspect.getsource(RealImporter.batch_upsert)
+
+        # UPDATE statement should set kind_admin, not kind
+        assert "kind_admin = data.kind_admin" in source
+        # Should NOT have "kind = data.kind"
+        assert "kind = data.kind," not in source
+
+
+class TestColumnsNotModifiedByImport:
+    """Tests to verify which columns are and are not modified by the import.
+
+    Columns that SHOULD be modified:
+    - siret, name, short_name, kind_admin, kind_admin_meta, millesime
+    - layer_geo_label, dep_code, dep_name, reg_code, reg_name
+    - localities_geo_code, available, source, updated_at
+
+    Columns that should NOT be modified:
+    - kind (user-defined establishment type)
+    - id, created_at, deleted_at (managed by DB/application)
+    """
+
+    def test_insert_columns_list(self):
+        """Verify the exact columns used in INSERT statement."""
+        from import_gold_establishments import EstablishmentImporter as RealImporter
+
+        import inspect
+        source = inspect.getsource(RealImporter.batch_upsert)
+
+        # These columns should be in INSERT
+        expected_insert_columns = [
+            "siren", "siret", "name", "short_name",
+            "kind_admin",  # NOT 'kind'!
+            "kind_admin_meta", "millesime",
+            "layer_geo_label", "dep_code", "dep_name", "reg_code", "reg_name",
+            "localities_geo_code", "available", "source", "updated_at"
+        ]
+
+        for col in expected_insert_columns:
+            assert col in source, f"Column '{col}' should be in INSERT statement"
+
+        # 'kind' should NOT be a standalone column in INSERT (only kind_admin)
+        # We check that "kind," doesn't appear without "kind_admin" or "kind_admin_meta"
+        import re
+        # Find all occurrences of 'kind' that are NOT 'kind_admin' or 'kind_admin_meta'
+        standalone_kind = re.findall(r'\bkind\b(?!_admin)', source)
+        # Filter out comments
+        assert len(standalone_kind) == 0, "Found standalone 'kind' column - should only use 'kind_admin'"
+
+    def test_update_columns_list(self):
+        """Verify the exact columns used in UPDATE statement."""
+        from import_gold_establishments import EstablishmentImporter as RealImporter
+
+        import inspect
+        source = inspect.getsource(RealImporter.batch_upsert)
+
+        # These columns should be SET in UPDATE
+        expected_update_columns = [
+            "siret", "name", "short_name",
+            "kind_admin",  # NOT 'kind'!
+            "kind_admin_meta", "millesime",
+            "layer_geo_label", "dep_code", "dep_name", "reg_code", "reg_name",
+            "localities_geo_code", "source", "updated_at"
+        ]
+
+        # Check UPDATE SET clause
+        for col in expected_update_columns:
+            pattern = f"{col} = data.{col}" if col != "updated_at" else f"{col} = NOW()"
+            assert pattern in source or col in source, f"Column '{col}' should be in UPDATE SET clause"

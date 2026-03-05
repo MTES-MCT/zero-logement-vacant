@@ -10,7 +10,7 @@ IMPLEMENTATION RULES:
 - R2: Skip rows with missing/empty SIREN
 - R3: Geo_Perimeter → localities_geo_code (Python list string → PostgreSQL array)
 - R4: Name-zlv → name
-- R5: Kind-admin_meta → kind_admin_meta, Kind-admin → kind
+- R5: Kind-admin_meta → kind_admin_meta, Kind-admin → kind_admin (NOT kind!)
 - R6: Source = "gold_establishments_{Millesime}"
 - R8: Idempotent: UPDATE if SIREN exists, INSERT otherwise
 - R9: Dry-run mode required for validation
@@ -398,7 +398,7 @@ class EstablishmentImporter:
             "siret": siret,
             "name": name[:255],  # Truncate to VARCHAR(255)
             "short_name": short_name[:255] if short_name else None,
-            "kind_admin": kind_admin[:255] if kind_admin else None,  # For DB 'kind' column
+            "kind_admin": kind_admin[:50] if kind_admin else None,  # For DB 'kind_admin' column
             "kind_admin_meta": kind_admin_meta[:50] if kind_admin_meta else None,
             "millesime": millesime[:4] if millesime else None,
             "layer_geo_label": layer_geo_label[:100] if layer_geo_label else None,
@@ -486,7 +486,7 @@ class EstablishmentImporter:
                     r["siret"],
                     r["name"],
                     r["short_name"],
-                    r["kind_admin"],  # CSV Kind-admin → DB kind
+                    r["kind_admin"],  # CSV Kind-admin → DB kind_admin
                     r["kind_admin_meta"],  # CSV Kind-admin_meta → DB kind_admin_meta
                     r["millesime"],
                     r["layer_geo_label"],
@@ -505,7 +505,7 @@ class EstablishmentImporter:
                 self.cursor,
                 """
                 INSERT INTO establishments
-                    (siren, siret, name, short_name, kind, kind_admin_meta, millesime,
+                    (siren, siret, name, short_name, kind_admin, kind_admin_meta, millesime,
                      layer_geo_label, dep_code, dep_name, reg_code, reg_name,
                      localities_geo_code, available, source, updated_at)
                 VALUES %s
@@ -524,7 +524,7 @@ class EstablishmentImporter:
                     r["siret"],
                     r["name"],
                     r["short_name"],
-                    r["kind_admin"],  # CSV Kind-admin → DB kind
+                    r["kind_admin"],  # CSV Kind-admin → DB kind_admin
                     r["kind_admin_meta"],  # CSV Kind-admin_meta → DB kind_admin_meta
                     r["millesime"],
                     r["layer_geo_label"],
@@ -547,7 +547,7 @@ class EstablishmentImporter:
                     siret = data.siret,
                     name = data.name,
                     short_name = data.short_name,
-                    kind = data.kind,
+                    kind_admin = data.kind_admin,
                     kind_admin_meta = data.kind_admin_meta,
                     millesime = data.millesime,
                     layer_geo_label = data.layer_geo_label,
@@ -558,7 +558,7 @@ class EstablishmentImporter:
                     localities_geo_code = data.localities_geo_code,
                     source = data.source,
                     updated_at = NOW()
-                FROM (VALUES %s) AS data(siret, name, short_name, kind, kind_admin_meta, millesime, layer_geo_label, dep_code, dep_name, reg_code, reg_name, localities_geo_code, source, siren)
+                FROM (VALUES %s) AS data(siret, name, short_name, kind_admin, kind_admin_meta, millesime, layer_geo_label, dep_code, dep_name, reg_code, reg_name, localities_geo_code, source, siren)
                 WHERE e.siren = data.siren::integer
                 """,
                 update_data,

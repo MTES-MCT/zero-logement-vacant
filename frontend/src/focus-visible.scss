@@ -1,44 +1,16 @@
-// RGAA 10.7: Enhance focus visibility for all interactive elements
-// Ensures focus indicators are clearly visible with adequate contrast ratio (≥ 3:1)
+// RGAA 10.7: Focus visibility
+// Use DSFR native focus styling for all interactive elements
 
 /**
- * Links focus styling
- * Apply to all anchor elements to ensure visible focus indicator
+ * Logo header focus - visible indicator for header logos
+ * Use box-shadow instead of outline to work with fr-enlarge-link pseudo-elements
+ * Minimal DSFR-compliant styling
  */
-a:focus-visible {
-  outline: 3px solid var(--blue-france-main-525);
-  outline-offset: 2px;
-}
-
 /**
- * Button focus styling
- * Includes native button, DSFR buttons, and all button-like elements
+ * Logo header focus - use box-shadow for robust focus indicator
+ * DSFR renders as: <div class="fr-header__operator"><a>...</a></div>
+ * box-shadow is more reliable than outline for this nested structure
  */
-button:focus-visible,
-input[type='button']:focus-visible,
-input[type='submit']:focus-visible,
-input[type='reset']:focus-visible {
-  outline: 3px solid var(--blue-france-main-525);
-  outline-offset: 2px;
-}
-
-/**
- * Form input focus styling
- * Includes text, email, password, number, search, url, tel, and other input types
- */
-input:focus-visible:not([type='checkbox']):not([type='radio']),
-textarea:focus-visible,
-select:focus-visible {
-  outline: 3px solid var(--blue-france-main-525);
-  outline-offset: 2px;
-}
-
-/**
- * Checkbox and radio button focus styling
- * These are typically wrapped, so target the wrapper or the element itself
- */
-input[type='checkbox']:focus-visible,
-input[type='radio']:focus-visible {
-  outline: 3px solid var(--blue-france-main-525);
-  outline-offset: 2px;
+.fr-header__operator:focus-within {
+  box-shadow: inset 0 0 0 2px #0a76f6 !important;
 }

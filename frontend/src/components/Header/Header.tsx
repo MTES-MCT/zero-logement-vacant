@@ -16,12 +16,18 @@ function Header() {
       className={styles.shadowless}
       homeLinkProps={{
         to: '/',
-        title: 'Accueil - Zéro Logement Vacant'
+        title: 'Accueil - Zéro Logement Vacant',
+        tabIndex: 0
       }}
       operatorLogo={{
         alt: 'Zéro Logement Vacant',
         imgUrl: logo,
-        orientation: 'horizontal'
+        orientation: 'horizontal',
+        linkProps: {
+          to: '/',
+          title: 'Accueil - Zéro Logement Vacant',
+          tabIndex: 0
+        }
       }}
     />
   );

@@ -1,0 +1,44 @@
+// RGAA 10.7: Enhance focus visibility for all interactive elements
+// Ensures focus indicators are clearly visible with adequate contrast ratio (≥ 3:1)
+
+/**
+ * Links focus styling
+ * Apply to all anchor elements to ensure visible focus indicator
+ */
+a:focus-visible {
+  outline: 3px solid var(--blue-france-main-525);
+  outline-offset: 2px;
+}
+
+/**
+ * Button focus styling
+ * Includes native button, DSFR buttons, and all button-like elements
+ */
+button:focus-visible,
+input[type='button']:focus-visible,
+input[type='submit']:focus-visible,
+input[type='reset']:focus-visible {
+  outline: 3px solid var(--blue-france-main-525);
+  outline-offset: 2px;
+}
+
+/**
+ * Form input focus styling
+ * Includes text, email, password, number, search, url, tel, and other input types
+ */
+input:focus-visible:not([type='checkbox']):not([type='radio']),
+textarea:focus-visible,
+select:focus-visible {
+  outline: 3px solid var(--blue-france-main-525);
+  outline-offset: 2px;
+}
+
+/**
+ * Checkbox and radio button focus styling
+ * These are typically wrapped, so target the wrapper or the element itself
+ */
+input[type='checkbox']:focus-visible,
+input[type='radio']:focus-visible {
+  outline: 3px solid var(--blue-france-main-525);
+  outline-offset: 2px;
+}

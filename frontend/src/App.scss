@@ -22,6 +22,13 @@
     white-space: nowrap;
   }
 
+  // RGAA 10.12: Support for text spacing modifications (WCAG 1.4.12)
+  // Allow text to wrap and break properly when user increases spacing
+  .fr-cell--multiline {
+    overflow-wrap: break-word;
+    word-break: break-word;
+  }
+
   &.with-select {
     th:first-child {
       width: 48px;

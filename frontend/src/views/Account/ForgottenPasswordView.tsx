@@ -114,7 +114,8 @@ function ForgottenPasswordView() {
                   label="Adresse email (obligatoire)"
                   nativeInputProps={{
                     type: 'email',
-                    placeholder: 'exemple@gmail.com'
+                    placeholder: 'exemple@gmail.com',
+                    autoComplete: 'email'
                   }}
                 />
                 <Row justifyContent="right">

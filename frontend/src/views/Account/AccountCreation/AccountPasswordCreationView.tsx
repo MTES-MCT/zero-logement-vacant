@@ -118,7 +118,8 @@ function AccountPasswordCreationView() {
                   label="Définissez votre mot de passe (obligatoire)"
                   name="password"
                   nativeInputProps={{
-                    type: 'password'
+                    type: 'password',
+                    autoComplete: 'new-password'
                   }}
                 />
 
@@ -126,7 +127,8 @@ function AccountPasswordCreationView() {
                   label="Confirmez votre mot de passe (obligatoire)"
                   name="confirmation"
                   nativeInputProps={{
-                    type: 'password'
+                    type: 'password',
+                    autoComplete: 'new-password'
                   }}
                 />
               </Grid>

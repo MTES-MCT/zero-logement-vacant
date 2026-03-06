@@ -64,7 +64,8 @@ function OwnerFormFields(props: OwnerFormFieldsProps) {
         label="Date de naissance"
         nativeInputProps={{
           type: 'date',
-          max: new Date().toISOString().substring(0, 'yyyy-mm-dd'.length)
+          max: new Date().toISOString().substring(0, 'yyyy-mm-dd'.length),
+          autoComplete: 'bday'
         }}
         mapValue={(value): string => value ?? ''}
         contramapValue={(value): string | null => value || null}

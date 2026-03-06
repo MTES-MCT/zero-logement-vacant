@@ -152,7 +152,9 @@ function GroupView() {
             closable
             small
             isClosed={!alert.length}
-            onClose={() => {}}
+            onClose={() =>
+              navigate(location.pathname, { replace: true, state: null })
+            }
             className="fr-mb-5w"
           />
 

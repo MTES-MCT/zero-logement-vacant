@@ -47,11 +47,9 @@ function GroupHeader(props: Readonly<GroupHeaderProps>) {
     return group.id === params.id;
   }
 
-  const isNewCampaigns = useFeatureFlagEnabled('new-campaigns');
-
-  if (isNewCampaigns === undefined) {
-    return null;
-  }
+  // Default to false when PostHog is not initialized or still loading,
+  // so that the legacy group UI is displayed as a fallback
+  const isNewCampaigns = useFeatureFlagEnabled('new-campaigns') ?? false;
 
   if (isNewCampaigns) {
     return (

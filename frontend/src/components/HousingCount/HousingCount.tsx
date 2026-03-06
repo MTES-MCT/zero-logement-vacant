@@ -26,11 +26,9 @@ function HousingCount(props: Readonly<HousingCountProps>) {
     ? `${props.ownerCount} ${pluralize(props.ownerCount)('propriétaire')}`
     : props.ownerCount;
 
-  const isNewCampaigns = useFeatureFlagEnabled('new-campaigns');
-
-  if (isNewCampaigns === undefined) {
-    return null;
-  }
+  // Default to false when PostHog is not initialized or still loading,
+  // so that the legacy housing count is displayed as a fallback
+  const isNewCampaigns = useFeatureFlagEnabled('new-campaigns') ?? false;
 
   if (isNewCampaigns) {
     return (

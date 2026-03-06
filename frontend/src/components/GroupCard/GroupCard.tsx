@@ -46,11 +46,9 @@ export interface GroupCardProps {
 function GroupCard(props: Readonly<GroupCardProps>) {
   const title = `Groupe de logements - ${props.group.title} - nombre de logements : ${props.group.housingCount}, nombre de propriétaires : ${props.group.ownerCount}`;
 
-  const isNewCampaigns = useFeatureFlagEnabled('new-campaigns');
-
-  if (isNewCampaigns === undefined) {
-    return null;
-  }
+  // Default to false when PostHog is not initialized or still loading,
+  // so that the legacy group card is displayed as a fallback
+  const isNewCampaigns = useFeatureFlagEnabled('new-campaigns') ?? false;
 
   if (isNewCampaigns) {
     return (

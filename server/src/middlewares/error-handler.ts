@@ -65,7 +65,11 @@ function respond(
 
   // Handle all HttpError instances (including custom errors)
   if (isHttpError(error)) {
-    response.status(error.status).json(error.toJSON());
+    const json =
+      typeof error.toJSON === 'function'
+        ? error.toJSON()
+        : { name: error.name, message: error.message, status: error.status };
+    response.status(error.status).json(json);
     return;
   }
 

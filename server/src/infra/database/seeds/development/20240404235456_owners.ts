@@ -80,25 +80,33 @@ export async function seed(knex: Knex): Promise<void> {
       return addresses.filter((address) => !!address.label);
     })
     .catch((error) => {
-      console.error('Error during BAN reverse geocoding:', error);
-      throw error;
+      console.warn(
+        'BAN reverse geocoding failed (API may be unavailable):',
+        error.message
+      );
+      console.warn('Continuing without owner addresses...');
+      return [];
     });
 
   console.log(`Inserting ${owners.length} owners...`);
   await knex.batchInsert(ownerTable, owners.map(formatOwnerApi));
 
-  console.log(`Inserting ${addresses.length} addresses...`);
-  console.log(`Linking addresses to owners...`);
-  const ownerAddresses = addresses.map<AddressApi>((address) => ({
-    ...address,
-    addressKind: AddressKinds.Owner,
-    banId: address.id,
-    score: faker.number.float({ min: 0, max: 1, multipleOf: 0.01 })
-  }));
-  await knex.batchInsert(
-    banAddressesTable,
-    ownerAddresses.map(formatAddressApi)
-  );
+  if (addresses.length > 0) {
+    console.log(`Inserting ${addresses.length} addresses...`);
+    console.log(`Linking addresses to owners...`);
+    const ownerAddresses = addresses.map<AddressApi>((address) => ({
+      ...address,
+      addressKind: AddressKinds.Owner,
+      banId: address.id,
+      score: faker.number.float({ min: 0, max: 1, multipleOf: 0.01 })
+    }));
+    await knex.batchInsert(
+      banAddressesTable,
+      ownerAddresses.map(formatAddressApi)
+    );
+  } else {
+    console.log('No addresses to insert (BAN API unavailable).');
+  }
 }
 
 async function fetchCommunes(

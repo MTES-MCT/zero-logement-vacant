@@ -333,7 +333,7 @@ class EstablishmentImporter:
                     "reason": "missing_or_invalid_siren",
                     "siren": siren_value,
                     "name": row.get("Name-zlv", ""),
-                    "kind_admin_meta": row.get("Kind-admin", ""),
+                    "kind_admin_meta": row.get("Kind-admin_meta", ""),
                 }
             )
             return None
@@ -361,7 +361,7 @@ class EstablishmentImporter:
                         "reason": "filtered_localities",
                         "siren": str(siren),
                         "name": row.get("Name-zlv", ""),
-                        "kind_admin_meta": row.get("Kind-admin", ""),
+                        "kind_admin_meta": row.get("Kind-admin_meta", ""),
                         "invalid_codes": invalid_codes[:5],
                         "total_invalid": len(invalid_codes),
                         "valid_count": len(localities),
@@ -486,6 +486,7 @@ class EstablishmentImporter:
                     r["siret"],
                     r["name"],
                     r["short_name"],
+                    "",  # kind = empty string for new records (not modified by import)
                     r["kind_admin"],  # CSV Kind-admin → DB kind_admin
                     r["kind_admin_meta"],  # CSV Kind-admin_meta → DB kind_admin_meta
                     r["millesime"],
@@ -505,13 +506,13 @@ class EstablishmentImporter:
                 self.cursor,
                 """
                 INSERT INTO establishments
-                    (siren, siret, name, short_name, kind_admin, kind_admin_meta, millesime,
+                    (siren, siret, name, short_name, kind, kind_admin, kind_admin_meta, millesime,
                      layer_geo_label, dep_code, dep_name, reg_code, reg_name,
                      localities_geo_code, available, source, updated_at)
                 VALUES %s
                 """,
                 insert_data,
-                template="(%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, NOW())",
+                template="(%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, NOW())",
                 page_size=500,
             )
 

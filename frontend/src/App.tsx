@@ -23,6 +23,7 @@ import AnalysisView from '~/views/Analysis/AnalysisView';
 import CampaignListView from '~/views/Campaign/CampaignListView';
 import CampaignView from '~/views/Campaign/CampaignView';
 import GroupView from '~/views/Group/GroupView';
+import GroupViewNext from '~/views/Group/GroupViewNext';
 import HousingView from '~/views/Housing/HousingView';
 import HousingListTabsProvider from '~/views/HousingList/HousingListTabsProvider';
 import HousingListView from '~/views/HousingList/HousingListView';
@@ -67,7 +68,16 @@ const router = sentry.createBrowserRouter(
           path="/analyses/lutte"
           element={<AnalysisView id="15-analyses-activites" />}
         />
-        <Route path="/groupes/:id" element={<GroupView />} />
+        <Route
+          path="/groupes/:id"
+          element={
+            <FeatureFlagLayout
+              flag="new-campaigns"
+              then={<GroupViewNext />}
+              else={<GroupView />}
+            />
+          }
+        />
         <Route path="/campagnes" element={<CampaignListView />} />
         <Route path="/campagnes/:id" element={<CampaignView />} />
 

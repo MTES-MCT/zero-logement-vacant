@@ -22,11 +22,22 @@ import {
   VACANCY_YEAR_VALUES
 } from '@zerologementvacant/models';
 import { campaignCreationPayload } from '../campaign-creation-payload';
+import { DATE_LENGTH } from '../date-string';
 
 describe('Campaign creation payload', () => {
   test.prop<CampaignCreationPayloadDTO>({
     title: fc.stringMatching(/\S/),
     description: fc.stringMatching(/\S/),
+    sentAt: fc.option(
+      fc
+        .date({
+          min: new Date('0001-01-01'),
+          max: new Date('9999-12-31'),
+          noInvalidDate: true
+        })
+        .map((date) => date.toISOString().substring(0, DATE_LENGTH)),
+      { nil: undefined }
+    ),
     housing: fc.record({
       all: fc.boolean(),
       ids: fc.array(fc.uuid({ version: 4 })),

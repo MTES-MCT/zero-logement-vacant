@@ -65,7 +65,7 @@ export const bySentAt: Ord<CampaignDTO> = contramap(
 )(DEFAULT_ORDER);
 
 export interface CampaignCreationPayloadDTO
-  extends Pick<CampaignDTO, 'title' | 'description'> {
+  extends Pick<CampaignDTO, 'title' | 'description' | 'sentAt'> {
   housing: {
     all: boolean;
     ids: string[];

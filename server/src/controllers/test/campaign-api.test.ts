@@ -371,6 +371,254 @@ describe('Campaign API', () => {
     });
   });
 
+  describe('POST /groups/{id}/campaigns', () => {
+    const testRoute = (id: string) => `/api/groups/${id}/campaigns`;
+
+    const geoCode = faker.helpers.arrayElement(establishment.geoCodes);
+    const group = genGroupApi(user, establishment);
+    const groupHousing = [
+      genHousingApi(geoCode),
+      genHousingApi(geoCode),
+      genHousingApi(geoCode)
+    ];
+    const owners = groupHousing
+      .map((housing) => housing.owner)
+      .filter(isDefined);
+    const housingOwners = groupHousing.map((housing) =>
+      genHousingOwnerApi(housing, housing.owner!)
+    );
+
+    beforeAll(async () => {
+      await Groups().insert(formatGroupApi(group));
+      await Housing().insert(groupHousing.map(formatHousingRecordApi));
+      await Owners().insert(owners.map(formatOwnerApi));
+      await HousingOwners().insert(housingOwners.map(formatHousingOwnerApi));
+      await GroupsHousing().insert(formatGroupHousingApi(group, groupHousing));
+    });
+
+    test.prop<CampaignCreationPayloadDTO>(
+      {
+        title: fc.stringMatching(/\S/),
+        description: fc.stringMatching(/\S/),
+        sentAt: fc.option(
+          fc
+            .date({
+              min: new Date('0001-01-01'),
+              max: new Date('9999-12-31'),
+              noInvalidDate: true
+            })
+            .map((date) =>
+              date.toISOString().substring(0, 'yyyy-mm-dd'.length)
+            ),
+          { nil: undefined }
+        ),
+        housing: fc.record({
+          all: fc.boolean(),
+          ids: fc.array(fc.uuid({ version: 4 })),
+          filters: fc.record({
+            housingIds: fc.array(fc.uuid({ version: 4 })),
+            occupancies: fc.array(fc.constantFrom(...OCCUPANCY_VALUES)),
+            energyConsumption: fc.array(
+              fc.constantFrom(...ENERGY_CONSUMPTION_VALUES)
+            ),
+            establishmentIds: fc.array(fc.uuid({ version: 4 })),
+            groupIds: fc.array(fc.uuid({ version: 4 })),
+            campaignsCounts: fc.array(
+              fc.constantFrom(...CAMPAIGN_COUNT_VALUES)
+            ),
+            campaignIds: fc.array(
+              fc.oneof(fc.constant(null), fc.uuid({ version: 4 }))
+            ),
+            ownerIds: fc.array(fc.uuid({ version: 4 })),
+            ownerKinds: fc.array(fc.constantFrom(...OWNER_KIND_VALUES)),
+            ownerAges: fc.array(fc.constantFrom(...OWNER_AGE_VALUES)),
+            multiOwners: fc.array(fc.boolean()),
+            beneficiaryCounts: fc.array(
+              fc.constantFrom(...BENEFIARY_COUNT_VALUES)
+            ),
+            housingKinds: fc.array(fc.constantFrom(...HOUSING_KIND_VALUES)),
+            housingAreas: fc.array(fc.constantFrom(...LIVING_AREA_VALUES)),
+            roomsCounts: fc.array(fc.constantFrom(...ROOM_COUNT_VALUES)),
+            cadastralClassifications: fc.array(
+              fc.constantFrom(...CADASTRAL_CLASSIFICATION_VALUES)
+            ),
+            buildingPeriods: fc.array(
+              fc.constantFrom(...BUILDING_PERIOD_VALUES)
+            ),
+            vacancyYears: fc.array(fc.constantFrom(...VACANCY_YEAR_VALUES)),
+            isTaxedValues: fc.array(fc.boolean()),
+            ownershipKinds: fc.array(fc.constantFrom(...OWNERSHIP_KIND_VALUES)),
+            housingCounts: fc.array(
+              fc.constantFrom(...HOUSING_BY_BUILDING_VALUES)
+            ),
+            vacancyRates: fc.array(fc.constantFrom(...VACANCY_RATE_VALUES)),
+            intercommunalities: fc.array(fc.uuid({ version: 4 })),
+            localities: fc.array(fc.string({ minLength: 5, maxLength: 5 })),
+            localityKinds: fc.array(fc.constantFrom(...LOCALITY_KIND_VALUES)),
+            geoPerimetersIncluded: fc.array(fc.string({ minLength: 1 })),
+            geoPerimetersExcluded: fc.array(fc.string({ minLength: 1 })),
+            dataFileYearsIncluded: fc.array(
+              fc.constantFrom(...DATA_FILE_YEAR_VALUES)
+            ),
+            dataFileYearsExcluded: fc.array(
+              fc.constantFrom(...DATA_FILE_YEAR_VALUES)
+            ),
+            status: fc.constantFrom(...HOUSING_STATUS_VALUES),
+            statusList: fc.array(fc.constantFrom(...HOUSING_STATUS_VALUES)),
+            subStatus: fc.array(fc.string({ minLength: 1 })),
+            query: fc.stringMatching(/[a-zA-Z0-9-]/)
+          })
+        })
+      },
+      { numRuns: 20 }
+    )('should validate inputs', async (payload) => {
+      const { status } = await request(url)
+        .post(testRoute(group.id))
+        .send(payload)
+        .type('json')
+        .use(tokenProvider(user));
+
+      expect(status).toBe(constants.HTTP_STATUS_CREATED);
+    });
+
+    it('should throw if the group is missing', async () => {
+      const payload: CampaignCreationPayloadDTO = {
+        title: 'Logements prioritaires',
+        description: 'Campagne pour les logements prioritaires',
+        housing: {
+          all: true,
+          ids: [],
+          filters: {}
+        }
+      };
+
+      const { status } = await request(url)
+        .post(testRoute(uuidv4()))
+        .send(payload)
+        .type('json')
+        .use(tokenProvider(user));
+
+      expect(status).toBe(constants.HTTP_STATUS_NOT_FOUND);
+    });
+
+    it('should throw if the group has been archived', async () => {
+      const payload: CampaignCreationPayloadDTO = {
+        title: 'Logements prioritaires',
+        description: 'Campagne pour les logements prioritaires',
+        housing: {
+          all: true,
+          ids: [],
+          filters: {}
+        }
+      };
+      const group: GroupApi = {
+        ...genGroupApi(user, establishment),
+        archivedAt: new Date()
+      };
+      await Groups().insert(formatGroupApi(group));
+
+      const { status } = await request(url)
+        .post(testRoute(group.id))
+        .send(payload)
+        .type('json')
+        .use(tokenProvider(user));
+
+      expect(status).toBe(constants.HTTP_STATUS_NOT_FOUND);
+    });
+
+    it('should create the campaign', async () => {
+      const payload: CampaignCreationPayloadDTO = {
+        title: 'Logements prioritaires',
+        description: 'Campagne pour les logements prioritaires',
+        housing: {
+          all: true,
+          ids: [],
+          filters: {}
+        }
+      };
+
+      const { body, status } = await request(url)
+        .post(testRoute(group.id))
+        .send(payload)
+        .type('json')
+        .use(tokenProvider(user));
+
+      expect(status).toBe(constants.HTTP_STATUS_CREATED);
+      expect(body).toStrictEqual<CampaignDTO>({
+        id: expect.any(String),
+        groupId: group.id,
+        title: 'Logements prioritaires',
+        description: 'Campagne pour les logements prioritaires',
+        status: 'draft',
+        filters: {
+          groupIds: [group.id]
+        },
+        createdAt: expect.any(String)
+      });
+    });
+
+    it("should add the group's housing to this campaign", async () => {
+      const payload: CampaignCreationPayloadDTO = {
+        title: 'Logements prioritaires',
+        description: 'Campagne pour les logements prioritaires',
+        housing: {
+          all: true,
+          ids: [],
+          filters: {}
+        }
+      };
+
+      const { body, status } = await request(url)
+        .post(testRoute(group.id))
+        .send(payload)
+        .type('json')
+        .use(tokenProvider(user));
+
+      expect(status).toBe(constants.HTTP_STATUS_CREATED);
+      const campaignHousing = await CampaignsHousing().where(
+        'campaign_id',
+        body.id
+      );
+      expect(campaignHousing).toBeArrayOfSize(groupHousing.length);
+      expect(campaignHousing).toIncludeAllPartialMembers(
+        groupHousing.map((housing) => ({ housing_id: housing.id }))
+      );
+    });
+
+    it('should create an event for each attached housing', async () => {
+      const payload: CampaignCreationPayloadDTO = {
+        title: 'Logements prioritaires',
+        description: 'Campagne pour les logements prioritaires',
+        housing: {
+          all: true,
+          ids: [],
+          filters: {}
+        }
+      };
+
+      const { body, status } = await request(url)
+        .post(testRoute(group.id))
+        .send(payload)
+        .type('json')
+        .use(tokenProvider(user));
+
+      expect(status).toBe(constants.HTTP_STATUS_CREATED);
+      const events = await Events()
+        .join(CAMPAIGN_HOUSING_EVENTS_TABLE, 'event_id', 'id')
+        .where({
+          campaign_id: body.id,
+          type: 'housing:campaign-attached'
+        });
+      expect(events).toBeArrayOfSize(groupHousing.length);
+      expect(events).toIncludeAllPartialMembers(
+        groupHousing.map((housing) => ({
+          housing_id: housing.id,
+          type: 'housing:campaign-attached'
+        }))
+      );
+    });
+  });
+
   describe('POST /campaigns/{id}/groups', () => {
     const testRoute = (id: string) => `/api/campaigns/${id}/groups`;
 

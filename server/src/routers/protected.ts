@@ -265,12 +265,25 @@ router.delete(
   campaignController.removeCampaign
 );
 // TODO: replace by /groups/:id/campaigns
+/**
+ * @deprecated Replace by POST /groups/:id/campaigns
+ * whenever the feature flag "new-campaigns" gets removed
+ */
 router.post(
   '/campaigns/:id/groups',
   campaignController.createCampaignFromGroupValidators,
   validator.validate,
   campaignController.createCampaignFromGroup
 );
+router.post(
+  '/groups/:id/campaigns',
+  validatorNext.validate({
+    body: schemas.campaignCreationPayload,
+    params: object({ id: schemas.id })
+  }),
+  campaignController.createFromGroup
+);
+
 router.get(
   '/campaigns/:id/export',
   housingExportController.exportCampaignValidators,

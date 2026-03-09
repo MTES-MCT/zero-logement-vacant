@@ -1,6 +1,5 @@
 import { faker } from '@faker-js/faker/locale/fr';
 import { fc, test } from '@fast-check/vitest';
-import { vi } from 'vitest';
 import {
   BENEFIARY_COUNT_VALUES,
   BUILDING_PERIOD_VALUES,
@@ -27,17 +26,19 @@ import {
   OWNERSHIP_KIND_VALUES,
   ROOM_COUNT_VALUES,
   VACANCY_RATE_VALUES,
-  VACANCY_YEAR_VALUES
+  VACANCY_YEAR_VALUES,
+  type CampaignCreationPayload,
+  type UserDTO
 } from '@zerologementvacant/models';
 import { isDefined } from '@zerologementvacant/utils';
 import { constants } from 'http2';
 import randomstring from 'randomstring';
 import request from 'supertest';
 import { v4 as uuidv4 } from 'uuid';
+import { vi } from 'vitest';
 
 import { createServer } from '~/infra/server';
 import { CampaignApi } from '~/models/CampaignApi';
-import * as posthogService from '~/services/posthogService';
 import { CampaignEventApi } from '~/models/EventApi';
 import { GroupApi } from '~/models/GroupApi';
 import { HousingApi } from '~/models/HousingApi';
@@ -79,13 +80,16 @@ import {
 } from '~/repositories/housingOwnerRepository';
 import {
   formatHousingRecordApi,
-  Housing
+  Housing,
+  type HousingRecordDBO
 } from '~/repositories/housingRepository';
 import { formatOwnerApi, Owners } from '~/repositories/ownerRepository';
 import { formatSenderApi, Senders } from '~/repositories/senderRepository';
 import { formatUserApi, Users } from '~/repositories/userRepository';
+import * as posthogService from '~/services/posthogService';
 import {
   genCampaignApi,
+  genCampaignApiNext,
   genDraftApi,
   genEstablishmentApi,
   genEventApi,
@@ -114,10 +118,22 @@ describe('Campaign API', () => {
   });
 
   describe('GET /campaigns/{id}', () => {
-    const campaign = genCampaignApi(establishment.id, user);
+    const group = genGroupApi(user, establishment);
+    const campaign = genCampaignApiNext({
+      group,
+      creator: user,
+      establishment
+    });
+    campaign.sentAt = faker.date
+      .past()
+      .toISOString()
+      .slice(0, 'yyyy-mm-dd'.length);
+    campaign.returnCount = 0;
+
     const testRoute = (id: string) => `/api/campaigns/${id}`;
 
     beforeAll(async () => {
+      await Groups().insert(formatGroupApi(group));
       await Campaigns().insert(formatCampaignApi(campaign));
     });
 
@@ -152,6 +168,25 @@ describe('Campaign API', () => {
       expect(body).toMatchObject({
         id: campaign.id,
         filters: expect.objectContaining(campaign.filters)
+      });
+    });
+
+    it('should return campaign fields', async () => {
+      const { body, status } = await request(url)
+        .get(testRoute(campaign.id))
+        .use(tokenProvider(user));
+
+      expect(status).toBe(constants.HTTP_STATUS_OK);
+      expect(body).toMatchObject<Partial<CampaignDTO>>({
+        id: campaign.id,
+        title: campaign.title,
+        description: campaign.description,
+        createdBy: expect.objectContaining<Partial<UserDTO>>({
+          id: user.id
+        }),
+        sentAt: campaign.sentAt,
+        returnCount: campaign.returnCount,
+        groupId: campaign.groupId
       });
     });
   });
@@ -401,24 +436,25 @@ describe('Campaign API', () => {
 
     const geoCode = faker.helpers.arrayElement(establishment.geoCodes);
     const group = genGroupApi(user, establishment);
-    const groupHousing = [
-      genHousingApi(geoCode),
-      genHousingApi(geoCode),
-      genHousingApi(geoCode)
-    ];
-    const owners = groupHousing
+    const groupHousings = faker.helpers.multiple(() => genHousingApi(geoCode), {
+      count: {
+        min: 10,
+        max: 100
+      }
+    });
+    const owners = groupHousings
       .map((housing) => housing.owner)
       .filter(isDefined);
-    const housingOwners = groupHousing.map((housing) =>
+    const housingOwners = groupHousings.map((housing) =>
       genHousingOwnerApi(housing, housing.owner!)
     );
 
     beforeAll(async () => {
       await Groups().insert(formatGroupApi(group));
-      await Housing().insert(groupHousing.map(formatHousingRecordApi));
+      await Housing().insert(groupHousings.map(formatHousingRecordApi));
       await Owners().insert(owners.map(formatOwnerApi));
       await HousingOwners().insert(housingOwners.map(formatHousingOwnerApi));
-      await GroupsHousing().insert(formatGroupHousingApi(group, groupHousing));
+      await GroupsHousing().insert(formatGroupHousingApi(group, groupHousings));
     });
 
     test.prop<CampaignCreationPayloadDTO>(
@@ -507,14 +543,10 @@ describe('Campaign API', () => {
     });
 
     it('should throw if the group is missing', async () => {
-      const payload: CampaignCreationPayloadDTO = {
+      const payload: CampaignCreationPayload = {
         title: 'Logements prioritaires',
         description: 'Campagne pour les logements prioritaires',
-        housing: {
-          all: true,
-          ids: [],
-          filters: {}
-        }
+        sentAt: null
       };
 
       const { status } = await request(url)
@@ -527,14 +559,10 @@ describe('Campaign API', () => {
     });
 
     it('should throw if the group has been archived', async () => {
-      const payload: CampaignCreationPayloadDTO = {
+      const payload: CampaignCreationPayload = {
         title: 'Logements prioritaires',
         description: 'Campagne pour les logements prioritaires',
-        housing: {
-          all: true,
-          ids: [],
-          filters: {}
-        }
+        sentAt: null
       };
       const group: GroupApi = {
         ...genGroupApi(user, establishment),
@@ -552,14 +580,10 @@ describe('Campaign API', () => {
     });
 
     it('should create the campaign', async () => {
-      const payload: CampaignCreationPayloadDTO = {
+      const payload: CampaignCreationPayload = {
         title: 'Logements prioritaires',
         description: 'Campagne pour les logements prioritaires',
-        housing: {
-          all: true,
-          ids: [],
-          filters: {}
-        }
+        sentAt: faker.date.anytime().toISOString().slice(0, 'yyyy-mm-dd'.length)
       };
 
       const { body, status } = await request(url)
@@ -578,6 +602,7 @@ describe('Campaign API', () => {
         filters: {
           groupIds: [group.id]
         },
+        sentAt: payload.sentAt,
         createdAt: expect.any(String),
         createdBy: expect.objectContaining({ id: user.id }),
         returnCount: null
@@ -606,21 +631,17 @@ describe('Campaign API', () => {
         'campaign_id',
         body.id
       );
-      expect(campaignHousing).toBeArrayOfSize(groupHousing.length);
+      expect(campaignHousing).toBeArrayOfSize(groupHousings.length);
       expect(campaignHousing).toIncludeAllPartialMembers(
-        groupHousing.map((housing) => ({ housing_id: housing.id }))
+        groupHousings.map((housing) => ({ housing_id: housing.id }))
       );
     });
 
-    it('should create an event for each attached housing', async () => {
-      const payload: CampaignCreationPayloadDTO = {
+    it('should create an event "housing:campaign-attached" for each attached housing', async () => {
+      const payload: CampaignCreationPayload = {
         title: 'Logements prioritaires',
         description: 'Campagne pour les logements prioritaires',
-        housing: {
-          all: true,
-          ids: [],
-          filters: {}
-        }
+        sentAt: null
       };
 
       const { body, status } = await request(url)
@@ -636,13 +657,70 @@ describe('Campaign API', () => {
           campaign_id: body.id,
           type: 'housing:campaign-attached'
         });
-      expect(events).toBeArrayOfSize(groupHousing.length);
+      expect(events).toBeArrayOfSize(groupHousings.length);
       expect(events).toIncludeAllPartialMembers(
-        groupHousing.map((housing) => ({
+        groupHousings.map((housing) => ({
           housing_id: housing.id,
           type: 'housing:campaign-attached'
         }))
       );
+    });
+
+    it('should change each "never contacted" housing’ status to "waiting"', async () => {
+      const payload: CampaignCreationPayload = {
+        title: 'Logements prioritaires',
+        description: 'Campagne pour les logements prioritaires',
+        sentAt: null
+      };
+
+      const { status } = await request(url)
+        .post(testRoute(group.id))
+        .send(payload)
+        .type('json')
+        .use(tokenProvider(user));
+
+      expect(status).toBe(constants.HTTP_STATUS_CREATED);
+      const neverContactedHousings = groupHousings.filter(
+        (groupHousing) => groupHousing.status === HousingStatus.NEVER_CONTACTED
+      );
+      const actual = await Housing().whereIn(
+        ['geo_code', 'id'],
+        neverContactedHousings.map((housing) => [housing.geoCode, housing.id])
+      );
+      expect(actual).toSatisfyAll<HousingRecordDBO>(
+        (housing) => housing.status === HousingStatus.WAITING
+      );
+    });
+
+    it('should create an event "housing:status-updated" for each "never contacted" housing that became "waiting"', async () => {
+      const payload: CampaignCreationPayload = {
+        title: 'Logements prioritaires',
+        description: 'Campagne pour les logements prioritaires',
+        sentAt: null
+      };
+
+      const { status } = await request(url)
+        .post(testRoute(group.id))
+        .send(payload)
+        .type('json')
+        .use(tokenProvider(user));
+
+      expect(status).toBe(constants.HTTP_STATUS_CREATED);
+      const events = await Events()
+        .where({ type: 'housing:status-updated' })
+        .join(HOUSING_EVENTS_TABLE, 'event_id', 'id')
+        .whereIn(
+          ['housing_geo_code', 'housing_id'],
+          groupHousings.map((groupHousing) => [
+            groupHousing.geoCode,
+            groupHousing.id
+          ])
+        );
+      const neverContactedHousings = groupHousings.filter(
+        (groupHousing) => groupHousing.status === HousingStatus.NEVER_CONTACTED
+      );
+      expect(events.length).toBeGreaterThan(0);
+      expect(events.length).toBe(neverContactedHousings.length);
     });
   });
 
@@ -1193,7 +1271,7 @@ describe('Campaign API', () => {
     });
   });
 
-    describe('DELETE /campaigns/{id}', () => {
+  describe('DELETE /campaigns/{id}', () => {
     const testRoute = (id: string) => `/api/campaigns/${id}`;
 
     let campaign: CampaignApi;

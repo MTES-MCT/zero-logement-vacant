@@ -252,7 +252,7 @@ router.get(
   '/campaigns/:id',
   campaignController.getCampaignValidators,
   validator.validate,
-  campaignController.getCampaign
+  campaignController.get
 );
 router.put(
   '/campaigns/:id',

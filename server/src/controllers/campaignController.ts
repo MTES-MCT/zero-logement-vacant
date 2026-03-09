@@ -15,17 +15,19 @@ import {
   HousingFiltersDTO,
   HousingStatus,
   nextStatus,
-  type CampaignUpdatePayload
+  type CampaignCreationPayload,
+  type CampaignUpdatePayload,
+  type GroupDTO
 } from '@zerologementvacant/models';
 import { slugify, timestamp } from '@zerologementvacant/utils';
 import { createS3 } from '@zerologementvacant/utils/node';
+import { Struct } from 'effect';
 import { Request, RequestHandler, Response } from 'express';
 import { AuthenticatedRequest } from 'express-jwt';
 import { body, param, ValidationChain } from 'express-validator';
 import { constants } from 'http2';
 import { v4 as uuidv4 } from 'uuid';
 import BadRequestError from '~/errors/badRequestError';
-
 import CampaignEmptyError from '~/errors/campaignEmptyError';
 import CampaignFileMissingError from '~/errors/CampaignFileMissingError';
 import CampaignMissingError from '~/errors/campaignMissingError';
@@ -62,22 +64,28 @@ import { isArrayOf, isString, isUUID, isUUIDParam } from '~/utils/validators';
 
 const getCampaignValidators = [param('id').notEmpty().isUUID()];
 
-async function getCampaign(request: Request, response: Response) {
-  const campaignId = request.params.id;
-  const { establishmentId } = (request as AuthenticatedRequest).auth;
-
-  logger.info('Get campaign', { campaignId, establishmentId });
+const get: RequestHandler<{ id: CampaignDTO['id'] }, CampaignDTO> = async (
+  request,
+  response
+): Promise<void> => {
+  const { auth, params } = request as AuthenticatedRequest<
+    { id: CampaignDTO['id'] },
+    CampaignDTO
+  >;
+  logger.info('Get campaign', {
+    campaign: params.id
+  });
 
   const campaign = await campaignRepository.findOne({
-    id: campaignId,
-    establishmentId
+    id: params.id,
+    establishmentId: auth.establishmentId
   });
   if (!campaign) {
-    throw new CampaignMissingError(campaignId);
+    throw new CampaignMissingError(params.id);
   }
 
   response.status(constants.HTTP_STATUS_OK).json(toCampaignDTO(campaign));
-}
+};
 
 async function downloadCampaign(request: Request, response: Response) {
   const campaignId = request.params.id;
@@ -327,23 +335,25 @@ const createCampaignFromGroupValidators: ValidationChain[] = [
 ];
 
 const createFromGroup: RequestHandler<
-  { id: string },
+  { id: GroupDTO['id'] },
   CampaignDTO,
-  CampaignCreationPayloadDTO,
+  CampaignCreationPayload,
   never
 > = async (request, response) => {
   const { auth, body, params, user } = request as AuthenticatedRequest<
-    { id: string },
+    { id: GroupDTO['id'] },
     CampaignDTO,
-    CampaignCreationPayloadDTO,
+    CampaignCreationPayload,
     never
   >;
 
-  const groupId = params.id;
-  logger.info('Create campaign from group', { groupId });
+  logger.info('Create campaign from group', {
+    group: params.id,
+    body
+  });
 
   const group = await groupRepository.findOne({
-    id: groupId,
+    id: params.id,
     establishmentId: auth.establishmentId
   });
   if (!group || !!group.archivedAt) {
@@ -360,26 +370,24 @@ const createFromGroup: RequestHandler<
     },
     createdAt: new Date().toJSON(),
     sentAt: body.sentAt,
-    groupId,
+    groupId: params.id,
     userId: auth.userId,
     createdBy: user,
     establishmentId: auth.establishmentId,
     returnCount: null
   };
 
-  await startTransaction(async () => {
-    await campaignRepository.save(campaign);
-
-    const housings = await housingRepository.find({
-      filters: {
-        establishmentIds: [auth.establishmentId],
-        groupIds: [group.id]
-      },
-      pagination: {
-        paginate: false
-      }
-    });
-    const events = housings.map<CampaignHousingEventApi>((housing) => ({
+  const housings = await housingRepository.find({
+    filters: {
+      establishmentIds: [auth.establishmentId],
+      groupIds: [group.id]
+    },
+    pagination: {
+      paginate: false
+    }
+  });
+  const campaignHousingEvents = housings.map<CampaignHousingEventApi>(
+    (housing) => ({
       id: uuidv4(),
       name: 'Ajout dans une campagne',
       type: 'housing:campaign-attached',
@@ -392,10 +400,44 @@ const createFromGroup: RequestHandler<
       housingId: housing.id,
       housingGeoCode: housing.geoCode,
       campaignId: campaign.id
-    }));
+    })
+  );
+
+  const neverContactedHousings = housings.filter(
+    (housing) => housing.status === HousingStatus.NEVER_CONTACTED
+  );
+  const housingEvents = neverContactedHousings.map<HousingEventApi>(
+    (housing) => ({
+      id: uuidv4(),
+      type: 'housing:status-updated',
+      name: 'Changement de statut de suivi',
+      nextOld: {
+        status: HOUSING_STATUS_LABELS[HousingStatus.NEVER_CONTACTED]
+      },
+      nextNew: {
+        status: HOUSING_STATUS_LABELS[HousingStatus.WAITING]
+      },
+      createdAt: new Date().toJSON(),
+      createdBy: auth.userId,
+      housingGeoCode: housing.geoCode,
+      housingId: housing.id
+    })
+  );
+
+  await startTransaction(async () => {
+    await campaignRepository.save(campaign);
+
     await Promise.all([
       campaignHousingRepository.insertHousingList(campaign.id, housings),
-      eventRepository.insertManyCampaignHousingEvents(events)
+      housingRepository.updateMany(
+        housings.map((housing) => Struct.pick(housing, 'geoCode', 'id')),
+        {
+          status: HousingStatus.WAITING,
+          subStatus: null
+        }
+      ),
+      eventRepository.insertManyCampaignHousingEvents(campaignHousingEvents),
+      eventRepository.insertManyHousingEvents(housingEvents)
     ]);
   });
 
@@ -424,7 +466,7 @@ const updateNext: RequestHandler<
     throw new CampaignMissingError(params.id);
   }
 
-  if (campaign.sentAt != null && body.sentAt === null) {
+  if (campaign.sentAt !== null && campaign.sentAt !== undefined && body.sentAt === null) {
     throw new BadRequestError('sentAt cannot be unset once it has been set');
   }
 
@@ -754,7 +796,7 @@ async function removeHousing(
 
 const campaignController = {
   getCampaignValidators,
-  getCampaign,
+  get,
   downloadCampaign,
   listValidators,
   list,

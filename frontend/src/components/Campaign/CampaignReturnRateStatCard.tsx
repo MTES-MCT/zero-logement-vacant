@@ -7,11 +7,18 @@ import Tooltip from '~/components/ui/Tooltip/Tooltip';
 
 interface Props {
   campaign: CampaignDTO;
-  returnRate: string | null;
+  housingCount: number;
 }
 
-function CampaignReturnRateStatCard({ campaign, returnRate }: Readonly<Props>) {
+function CampaignReturnRateStatCard(props: Readonly<Props>) {
+  const { campaign, housingCount } = props;
   const variant = campaign.sentAt ? 'default' : 'muted';
+
+  const returnCount = campaign.returnCount;
+  const returnRate =
+    campaign.sentAt && returnCount !== null && housingCount > 0
+      ? `${Math.round((returnCount / housingCount) * 100)}\u00a0%`
+      : null;
 
   return (
     <CampaignStatCard
@@ -20,7 +27,9 @@ function CampaignReturnRateStatCard({ campaign, returnRate }: Readonly<Props>) {
       variant={variant}
     >
       {campaign.sentAt ? (
-        <Typography variant="h6">{returnRate ?? '\u2014'}</Typography>
+        <Typography variant="h5" component="span">
+          {returnRate}
+        </Typography>
       ) : (
         <Stack
           direction="row"
@@ -31,7 +40,7 @@ function CampaignReturnRateStatCard({ campaign, returnRate }: Readonly<Props>) {
           <Typography variant="body2" sx={{ fontWeight: 700 }}>
             En attente de la date d’envoi
           </Typography>
-          <Tooltip title="Nombre de logements au sein de la campagne qui ont fait l’objet d’une mise à jour après la date d’envoi indiquée." />
+          <Tooltip title="Part de logements au sein de la campagne qui ont fait l’objet d’une mise à jour après la date d’envoi indiquée." />
         </Stack>
       )}
     </CampaignStatCard>

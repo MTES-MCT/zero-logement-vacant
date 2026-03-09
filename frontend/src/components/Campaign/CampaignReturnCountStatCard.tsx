@@ -7,13 +7,10 @@ import Tooltip from '~/components/ui/Tooltip/Tooltip';
 
 interface Props {
   campaign: CampaignDTO;
-  returnCount: number | null;
 }
 
-function CampaignReturnCountStatCard({
-  campaign,
-  returnCount
-}: Readonly<Props>) {
+function CampaignReturnCountStatCard(props: Readonly<Props>) {
+  const { campaign } = props;
   const variant = campaign.sentAt ? 'default' : 'muted';
 
   return (
@@ -23,7 +20,13 @@ function CampaignReturnCountStatCard({
       variant={variant}
     >
       {campaign.sentAt ? (
-        <Typography variant="h6">{returnCount}</Typography>
+        <Typography
+          variant="h5"
+          component="span"
+          aria-label={`Nombre de retours : ${campaign.returnCount}`}
+        >
+          {campaign.returnCount}
+        </Typography>
       ) : (
         <Stack
           direction="row"

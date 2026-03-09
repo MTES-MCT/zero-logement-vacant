@@ -51,27 +51,22 @@ function CampaignViewNext() {
     }
   });
 
-  async function handleDeleteConfirm(): Promise<void> {
+  async function onRemoveCampaign(): Promise<void> {
     if (!campaign) return;
     await removeCampaign(campaign.id).unwrap();
     navigate('/campagnes');
   }
 
-  async function handleSentAtConfirm(isoDate: string): Promise<void> {
+  async function updateSentAt(date: string): Promise<void> {
     if (!campaign) return;
+
     await updateCampaign({
       ...campaign,
-      sentAt: new Date(isoDate).toJSON().slice(0, 'yyyy-mm-dd'.length)
+      sentAt: date
     });
   }
 
   if (isLoading || !campaign) return null;
-
-  const returnCount = campaign.returnCount;
-  const returnRate =
-    campaign.sentAt && returnCount !== null && housingCount > 0
-      ? `${Math.round((returnCount / housingCount) * 100)}\u00a0%`
-      : null;
 
   return (
     <Container maxWidth={false} sx={{ py: '1.5rem' }}>
@@ -142,20 +137,19 @@ function CampaignViewNext() {
             iconId="fr-icon-group-line"
             label="Nombre de propriétaires"
           >
-            <Typography variant="h5">{count?.owners}</Typography>
+            <Typography variant="h5" component="span">
+              {count?.owners}
+            </Typography>
           </CampaignStatCard>
 
           <CampaignSentAtStatCard
             campaign={campaign}
             onOpenModal={sentAtModal.open}
           />
-          <CampaignReturnCountStatCard
-            campaign={campaign}
-            returnCount={returnCount}
-          />
+          <CampaignReturnCountStatCard campaign={campaign} />
           <CampaignReturnRateStatCard
             campaign={campaign}
-            returnRate={returnRate}
+            housingCount={housingCount}
           />
         </Stack>
 
@@ -173,10 +167,10 @@ function CampaignViewNext() {
         />
 
         <sentAtModal.Component
-          defaultValue={campaign.sentAt?.slice(0, 10)}
-          onConfirm={handleSentAtConfirm}
+          sentAt={campaign.sentAt ?? null}
+          onConfirm={updateSentAt}
         />
-        <campaignDeleteModal.Component onSubmit={handleDeleteConfirm} />
+        <campaignDeleteModal.Component onSubmit={onRemoveCampaign} />
       </Stack>
     </Container>
   );

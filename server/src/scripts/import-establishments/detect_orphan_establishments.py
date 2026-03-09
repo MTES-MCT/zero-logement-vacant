@@ -26,6 +26,9 @@ import csv
 import sys
 from typing import Set
 
+# Increase CSV field size limit for large Geo_Perimeter fields
+csv.field_size_limit(10_000_000)
+
 import psycopg2
 from psycopg2.extras import RealDictCursor
 
@@ -106,7 +109,7 @@ def check_orphan_usage(db_url: str, orphan_ids: list) -> dict:
     cursor.execute("""
         SELECT establishment_id, COUNT(*) as cnt
         FROM users
-        WHERE establishment_id = ANY(%s)
+        WHERE establishment_id = ANY(%s::uuid[])
           AND deleted_at IS NULL
         GROUP BY establishment_id
     """, (orphan_ids,))
@@ -117,8 +120,8 @@ def check_orphan_usage(db_url: str, orphan_ids: list) -> dict:
     cursor.execute("""
         SELECT establishment_id, COUNT(*) as cnt
         FROM campaigns
-        WHERE establishment_id = ANY(%s)
-          AND deleted_at IS NULL
+        WHERE establishment_id = ANY(%s::uuid[])
+          AND archived_at IS NULL
         GROUP BY establishment_id
     """, (orphan_ids,))
     for row in cursor.fetchall():
@@ -128,7 +131,7 @@ def check_orphan_usage(db_url: str, orphan_ids: list) -> dict:
     cursor.execute("""
         SELECT establishment_id, COUNT(*) as cnt
         FROM groups
-        WHERE establishment_id = ANY(%s)
+        WHERE establishment_id = ANY(%s::uuid[])
           AND archived_at IS NULL
         GROUP BY establishment_id
     """, (orphan_ids,))
@@ -139,7 +142,7 @@ def check_orphan_usage(db_url: str, orphan_ids: list) -> dict:
     cursor.execute("""
         SELECT establishment_id, COUNT(*) as cnt
         FROM geo_perimeters
-        WHERE establishment_id = ANY(%s)
+        WHERE establishment_id = ANY(%s::uuid[])
         GROUP BY establishment_id
     """, (orphan_ids,))
     for row in cursor.fetchall():
@@ -149,7 +152,7 @@ def check_orphan_usage(db_url: str, orphan_ids: list) -> dict:
     cursor.execute("""
         SELECT establishment_id, COUNT(*) as cnt
         FROM drafts
-        WHERE establishment_id = ANY(%s)
+        WHERE establishment_id = ANY(%s::uuid[])
         GROUP BY establishment_id
     """, (orphan_ids,))
     for row in cursor.fetchall():
@@ -159,7 +162,7 @@ def check_orphan_usage(db_url: str, orphan_ids: list) -> dict:
     cursor.execute("""
         SELECT establishment_id, COUNT(*) as cnt
         FROM contact_points
-        WHERE establishment_id = ANY(%s)
+        WHERE establishment_id = ANY(%s::uuid[])
         GROUP BY establishment_id
     """, (orphan_ids,))
     for row in cursor.fetchall():
@@ -169,7 +172,7 @@ def check_orphan_usage(db_url: str, orphan_ids: list) -> dict:
     cursor.execute("""
         SELECT establishment_id, COUNT(*) as cnt
         FROM senders
-        WHERE establishment_id = ANY(%s)
+        WHERE establishment_id = ANY(%s::uuid[])
         GROUP BY establishment_id
     """, (orphan_ids,))
     for row in cursor.fetchall():
@@ -179,7 +182,7 @@ def check_orphan_usage(db_url: str, orphan_ids: list) -> dict:
     cursor.execute("""
         SELECT establishment_id, COUNT(*) as cnt
         FROM settings
-        WHERE establishment_id = ANY(%s)
+        WHERE establishment_id = ANY(%s::uuid[])
         GROUP BY establishment_id
     """, (orphan_ids,))
     for row in cursor.fetchall():
@@ -378,14 +381,14 @@ def delete_orphans(db_url: str, orphans: list) -> dict:
     for table, column in tables_to_clean:
         cursor.execute(f"""
             DELETE FROM {table}
-            WHERE {column} = ANY(%s)
+            WHERE {column} = ANY(%s::uuid[])
         """, (orphan_ids,))
         deleted[table] = cursor.rowcount
 
     # Delete establishments
     cursor.execute("""
         DELETE FROM establishments
-        WHERE id = ANY(%s)
+        WHERE id = ANY(%s::uuid[])
     """, (orphan_ids,))
     deleted["establishments"] = cursor.rowcount
 
@@ -483,7 +486,8 @@ def main():
     parser.add_argument(
         "--csv",
         required=True,
-        help="Path to the gold establishments CSV file",
+        nargs="+",
+        help="Path(s) to the gold establishments CSV file(s)",
     )
     parser.add_argument(
         "--db-url",
@@ -523,14 +527,18 @@ def main():
     print("=" * 80)
     print("ORPHAN ESTABLISHMENTS DETECTOR")
     print("=" * 80)
-    print(f"CSV file: {args.csv}")
+    print(f"CSV files: {', '.join(args.csv)}")
     print(f"Mode: {mode}")
     print()
 
-    # Load data
-    print("Loading SIRENs from CSV...")
-    csv_sirens = load_csv_sirens(args.csv)
-    print(f"  Found {len(csv_sirens):,} unique SIRENs in CSV")
+    # Load data from all CSV files
+    print("Loading SIRENs from CSV files...")
+    csv_sirens: Set[int] = set()
+    for csv_file in args.csv:
+        file_sirens = load_csv_sirens(csv_file)
+        print(f"  {csv_file}: {len(file_sirens):,} SIRENs")
+        csv_sirens.update(file_sirens)
+    print(f"  Total unique SIRENs: {len(csv_sirens):,}")
 
     print("Loading establishments from database...")
     db_establishments = load_db_establishments(args.db_url)

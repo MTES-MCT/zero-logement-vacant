@@ -207,7 +207,8 @@ function createOwnerEditionModalNext() {
                     type: 'date',
                     max: new Date()
                       .toISOString()
-                      .substring(0, 'yyyy-mm-dd'.length)
+                      .substring(0, 'yyyy-mm-dd'.length),
+                    autoComplete: 'bday'
                   }}
                 />
 
@@ -313,7 +314,8 @@ function createOwnerEditionModalNext() {
                       label="Adresse e-mail"
                       nativeInputProps={{
                         type: 'email',
-                        inputMode: 'email'
+                        inputMode: 'email',
+                        autoComplete: 'email'
                       }}
                       mapValue={(value): string => value ?? ''}
                       contramapValue={(value): string | null => value || null}
@@ -325,7 +327,8 @@ function createOwnerEditionModalNext() {
                       label="Numéro de téléphone"
                       nativeInputProps={{
                         type: 'tel',
-                        inputMode: 'tel'
+                        inputMode: 'tel',
+                        autoComplete: 'tel'
                       }}
                       mapValue={(value): string => value ?? ''}
                       contramapValue={(value): string | null => value || null}

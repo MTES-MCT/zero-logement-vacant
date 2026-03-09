@@ -13,7 +13,6 @@ import {
   type UserDTO
 } from '@zerologementvacant/models';
 import {
-  genCampaignDTO,
   genGroupDTO,
   genHousingDTO,
   genHousingOwnerDTO,
@@ -233,29 +232,7 @@ describe('Group view', () => {
   });
 
   describe('Remove the group', () => {
-    it('should display a modal to archive the group', async () => {
-      const group = genGroupDTO(auth);
-      const housings = faker.helpers.multiple(() => genHousingDTO());
-      const campaign = genCampaignDTO(group);
-
-      renderView({
-        auth,
-        group,
-        housings,
-        campaign
-      });
-
-      const archiveGroup = await screen.findByText(/^Archiver le groupe/);
-      await user.click(archiveGroup);
-      const modal = await screen.findByRole('dialog');
-      const confirm = await within(modal).findByText(/^Confirmer/);
-      await user.click(confirm);
-
-      const page = await screen.findByText('Parc de logements');
-      expect(page).toBeVisible();
-    });
-
-    it('should display a "Remove" button if no campaign was created from the group', async () => {
+    it('should display a "Remove" button', async () => {
       const group = genGroupDTO(auth);
       const housings = faker.helpers.multiple(() => genHousingDTO());
       const campaign = null;
@@ -267,7 +244,9 @@ describe('Group view', () => {
         campaign
       });
 
-      const removeGroup = await screen.findByText(/^Supprimer le groupe/);
+      const removeGroup = await screen.findByRole('button', {
+        name: /^Supprimer le groupe/
+      });
       expect(removeGroup).toBeVisible();
     });
   });

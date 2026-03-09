@@ -158,7 +158,7 @@ export const parseCampaignApi = (campaign: CampaignDBO): CampaignApi => ({
   createdAt: campaign.created_at.toJSON(),
   validatedAt: campaign.validated_at?.toJSON(),
   exportedAt: campaign.exported_at?.toJSON(),
-  sentAt: campaign.sent_at?.toJSON(),
+  sentAt: campaign.sent_at?.toJSON()?.slice(0, 'yyyy-mm-dd'.length) ?? null,
   archivedAt: campaign.archived_at?.toJSON(),
   confirmedAt: campaign.confirmed_at?.toJSON(),
   title: campaign.title,
@@ -181,7 +181,9 @@ export const formatCampaignApi = (campaign: CampaignApi): CampaignDBO => ({
     ? new Date(campaign.validatedAt)
     : undefined,
   exported_at: campaign.exportedAt ? new Date(campaign.exportedAt) : undefined,
-  sent_at: campaign.sentAt ? new Date(campaign.sentAt) : undefined,
+  sent_at: campaign.sentAt
+    ? new Date(campaign.sentAt?.slice(0, 'yyyy-mm-dd'.length))
+    : undefined,
   archived_at: campaign.archivedAt ? new Date(campaign.archivedAt) : undefined,
   confirmed_at: campaign.confirmedAt
     ? new Date(campaign.confirmedAt)

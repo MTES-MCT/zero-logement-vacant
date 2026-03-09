@@ -25,6 +25,7 @@ import { createMemoryRouter, RouterProvider } from 'react-router-dom';
 import data from '~/mocks/handlers/data';
 import configureTestStore from '~/utils/storeUtils';
 import GroupViewNext from '../GroupViewNext';
+import CampaignViewNext from '~/views/Campaign/CampaignViewNext';
 
 vi.mock('posthog-js/react', async (importOriginal) => {
   const mod = await importOriginal<typeof import('posthog-js/react')>();
@@ -94,7 +95,7 @@ describe('Group view', () => {
       [
         { path: '/parc-de-logements', element: 'Parc de logements' },
         { path: '/groupes/:id', element: <GroupViewNext /> },
-        { path: '/campagnes/:id', element: 'Campagne' }
+        { path: '/campagnes/:id', element: <CampaignViewNext /> }
       ],
       {
         initialEntries: [`/groupes/${id}`]
@@ -168,6 +169,10 @@ describe('Group view', () => {
       await user.click(confirm);
 
       expect(router.state.location.pathname).toMatch(/\/campagnes\/.+/);
+      const sentAt = await screen.findByRole('button', {
+        name: /Indiquer la date d’envoi/
+      });
+      expect(sentAt).toBeInTheDocument();
     });
 
     it('should create a campaign with a sending date', async () => {
@@ -198,6 +203,8 @@ describe('Group view', () => {
       await user.click(confirm);
 
       expect(router.state.location.pathname).toMatch(/\/campagnes\/.+/);
+      const sentAtParagraph = await screen.findByText('Nombre de retours : 0');
+      expect(sentAtParagraph).toBeInTheDocument();
     })
   });
 

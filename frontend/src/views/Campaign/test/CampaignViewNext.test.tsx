@@ -128,4 +128,15 @@ describe('CampaignViewNext', () => {
     // Assert
     expect(router.state.location.pathname).toBe(`/campagnes/${campaign.id}`);
   });
+
+  it('displays the sentAt date in dd/MM/yyyy format when set', async () => {
+    // Arrange
+    const campaign = { ...genCampaignDTO(), sentAt: '2024-03-15T00:00:00.000Z', returnCount: null };
+
+    // Act
+    renderView(campaign);
+
+    // Assert
+    expect(await screen.findByText('15/03/2024')).toBeInTheDocument();
+  });
 });

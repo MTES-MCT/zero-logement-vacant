@@ -66,7 +66,7 @@ export function createCampaignFromGroupModal(
         onSubmit({
           title: data.title,
           description: data.description,
-          sentAt: data.sentAt?.toISOString()
+          sentAt: data.sentAt?.toISOString()?.slice(0, 'yyyy-mm-dd'.length)
         });
       };
 

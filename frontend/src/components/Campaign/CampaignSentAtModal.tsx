@@ -57,11 +57,6 @@ export function createCampaignSentAtModal() {
                 nativeInputProps={{
                   type: 'date'
                 }}
-                mapValue={(value) => value}
-                contramapValue={value => {
-                  console.log(value)
-                  return value
-                }}
               />
             </modal.Component>
           </form>

@@ -30,7 +30,7 @@ function CampaignSentAtStatCard(props: Readonly<Props>) {
           sx={{ alignItems: 'center' }}
         >
           <Typography variant="h5" component="span">
-            {format(new Date(campaign.sentAt), 'd MMMM yyyy', {
+            {format(new Date(campaign.sentAt), 'dd/MM/yyyy', {
               locale: dateFr
             })}
           </Typography>

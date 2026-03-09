@@ -11,18 +11,36 @@ export interface CampaignDTO {
    * @deprecated Status will be unnecessary.
    */
   status: CampaignStatus;
+  /**
+   * @deprecated
+   */
   filters: HousingFiltersDTO;
+  /**
+   * @deprecated
+   */
   file?: string;
   createdAt: string;
   createdBy: UserDTO;
+  /**
+   * @deprecated
+   */
   validatedAt?: string;
   exportedAt?: string;
-  sentAt?: string;
+  /**
+   * `sentAt` should become `string | null`.
+   */
+  sentAt?: string | null;
+  /**
+   * @deprecated
+   */
   archivedAt?: string;
   /**
    * @deprecated
    */
   sendingDate?: string;
+  /**
+   * @deprecated
+   */
   confirmedAt?: string;
   groupId?: string;
   returnCount: number | null;
@@ -85,11 +103,15 @@ export interface CampaignUpdatePayloadDTO
   sentAt?: string;
 }
 
-export interface CampaignUpdatePayload {
+export type CampaignPayload = {
   title: string;
   description: string;
   sentAt: string | null;
-}
+};
+
+export type CampaignCreationPayload = CampaignPayload;
+
+export type CampaignUpdatePayload = CampaignPayload;
 
 export interface CampaignRemovalPayloadDTO {
   all: boolean;

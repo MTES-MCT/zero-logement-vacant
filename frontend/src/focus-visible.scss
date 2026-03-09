@@ -1,0 +1,16 @@
+// RGAA 10.7: Focus visibility
+// Use DSFR native focus styling for all interactive elements
+
+/**
+ * Logo header focus - visible indicator for header logos
+ * Use box-shadow instead of outline to work with fr-enlarge-link pseudo-elements
+ * Minimal DSFR-compliant styling
+ */
+/**
+ * Logo header focus - use box-shadow for robust focus indicator
+ * DSFR renders as: <div class="fr-header__operator"><a>...</a></div>
+ * box-shadow is more reliable than outline for this nested structure
+ */
+.fr-header__operator:focus-within {
+  box-shadow: inset 0 0 0 2px #0a76f6 !important;
+}

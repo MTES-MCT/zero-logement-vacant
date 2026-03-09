@@ -3,6 +3,7 @@
 @use "dsfr-fix";
 @use "components/Map/housing-popup-overrides";
 @use "notification";
+@use "focus-visible";
 
 :root[data-fr-scrolling] body {
   overflow: auto;

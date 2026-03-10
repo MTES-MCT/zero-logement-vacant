@@ -80,20 +80,17 @@ function CampaignListView() {
 
   return (
     <MainContainer
-      title={
-        <>
-          Vos campagnes
-          <Button
-            priority="secondary"
-            linkProps={{
-              to: 'https://zlv.notion.site/R-diger-un-courrier-15e88e19d2bc404eaf371ddcb4ca42c5',
-              target: '_blank'
-            }}
-            className="float-right"
-          >
-            Voir la bibliothèque des courriers
-          </Button>
-        </>
+      title="Vos campagnes"
+      titleAction={
+        <Button
+          priority="secondary"
+          linkProps={{
+            to: 'https://zlv.notion.site/R-diger-un-courrier-15e88e19d2bc404eaf371ddcb4ca42c5',
+            target: '_blank'
+          }}
+        >
+          Voir la bibliothèque des courriers
+        </Button>
       }
     >
       <CampaignTable onArchive={onArchive} onRemove={onRemove} />

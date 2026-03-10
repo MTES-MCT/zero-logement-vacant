@@ -102,14 +102,15 @@ function PrecisionColumn(props: PrecisionColumnProps) {
   }
 
   return (
-    <Fieldset
-      legend={
-        <LegendContent>
-          <LegendIcon className={fr.cx(props.icon, 'fr-mr-1w')} />
-          {props.title}
-        </LegendContent>
-      }
-      options={allOptions.map(
+    <>
+      <LegendContent aria-hidden="true">
+        <LegendIcon className={fr.cx(props.icon, 'fr-mr-1w')} />
+        {props.title}
+      </LegendContent>
+      <Fieldset
+        legend={props.title}
+        classes={{ legend: 'fr-sr-only' }}
+        options={allOptions.map(
         (option): ElementOf<CheckboxProps['options']> => ({
           label: option.label,
           nativeInputProps: {
@@ -119,7 +120,8 @@ function PrecisionColumn(props: PrecisionColumnProps) {
           }
         })
       )}
-    />
+      />
+    </>
   );
 }
 

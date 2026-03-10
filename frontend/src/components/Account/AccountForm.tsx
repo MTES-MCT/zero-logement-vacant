@@ -162,7 +162,7 @@ function AccountForm() {
 
   return (
     <FormProvider {...form}>
-      <form id="account-form" onSubmit={form.handleSubmit(submit)}>
+      <form id="account-form" onSubmit={form.handleSubmit(submit)} noValidate>
         <Stack spacing={4} useFlexGap sx={{ maxWidth: '25rem' }}>
           <Box>
             <Typography component="h2" variant="h6" mb={2}>
@@ -173,7 +173,7 @@ function AccountForm() {
               <AppTextInputNext<FormSchema>
                 name="currentPassword"
                 label="Mot de passe actuel (obligatoire)"
-                nativeInputProps={{ type: 'password', autoComplete: 'current-password' }}
+                nativeInputProps={{ type: 'password', autoComplete: 'current-password', 'aria-required': 'true' }}
                 mapValue={(value) => value ?? ''}
                 contramapValue={(value) => (value === '' ? null : value)}
               />
@@ -181,14 +181,14 @@ function AccountForm() {
                 name="password"
                 label="Nouveau mot de passe (obligatoire)"
                 hintText="Votre nouveau mot de passe doit contenir au moins 12 caractères, une majuscule, une minuscule et un chiffre."
-                nativeInputProps={{ type: 'password', autoComplete: 'new-password' }}
+                nativeInputProps={{ type: 'password', autoComplete: 'new-password', 'aria-required': 'true' }}
                 mapValue={(value) => value ?? ''}
                 contramapValue={(value) => (value === '' ? null : value)}
               />
               <AppTextInputNext<FormSchema>
                 name="passwordConfirmation"
                 label="Confirmation du nouveau mot de passe (obligatoire)"
-                nativeInputProps={{ type: 'password', autoComplete: 'new-password' }}
+                nativeInputProps={{ type: 'password', autoComplete: 'new-password', 'aria-required': 'true' }}
                 mapValue={(value) => value ?? ''}
                 contramapValue={(value) => (value === '' ? null : value)}
               />
@@ -216,12 +216,12 @@ function AccountForm() {
               <AppTextInputNext<FormSchema>
                 name="phone"
                 label="Téléphone"
+                hintText="Format attendu : 0123456789 ou +33123456789"
                 mapValue={(value) => value ?? ''}
                 contramapValue={(value) => (value === '' ? null : value)}
                 nativeInputProps={{
                   type: 'tel',
-                  autoComplete: 'tel',
-                  placeholder: '0123456789 ou +33123456789'
+                  autoComplete: 'tel'
                 }}
               />
               <AppTextInputNext<FormSchema>

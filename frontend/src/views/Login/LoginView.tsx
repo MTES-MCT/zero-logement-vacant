@@ -119,13 +119,14 @@ const LoginView = () => {
             <Typography component="h1" variant="h2" mb={3}>
               Connexion
             </Typography>
-            <form onSubmit={form.handleSubmit(submitLoginForm)} id="login_form">
+            <form onSubmit={form.handleSubmit(submitLoginForm)} id="login_form" noValidate>
               <AppTextInputNext
                 name="email"
                 label="Adresse e-mail (obligatoire)"
+                hintText="Format attendu : prenom.nom@domaine.fr"
                 nativeInputProps={{
                   type: 'email',
-                  autoComplete: 'email',
+                  autoComplete: 'email'
                 }}
               />
               <AppTextInputNext

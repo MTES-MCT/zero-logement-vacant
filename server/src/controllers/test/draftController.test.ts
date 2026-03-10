@@ -191,7 +191,8 @@ describe('Draft API', () => {
                   firstName: fc.option(fc.string({ minLength: 1 })),
                   lastName: fc.option(fc.string({ minLength: 1 })),
                   role: fc.option(fc.string({ minLength: 1 })),
-                  file: fc.constant(null)
+                  file: fc.constant(null),
+                  document: fc.constant(null)
                 })
               ),
               fc.option(
@@ -199,7 +200,8 @@ describe('Draft API', () => {
                   firstName: fc.option(fc.string({ minLength: 1 })),
                   lastName: fc.option(fc.string({ minLength: 1 })),
                   role: fc.option(fc.string({ minLength: 1 })),
-                  file: fc.constant(null)
+                  file: fc.constant(null),
+                  document: fc.constant(null)
                 })
               )
             )
@@ -278,6 +280,8 @@ describe('Draft API', () => {
         subject: payload.subject,
         body: payload.body,
         logo: payload.logo?.map((logo) => logo.id) ?? null,
+        logo_next_one: null,
+        logo_next_two: null,
         sender_id: expect.any(String),
         written_at: payload.writtenAt,
         written_from: payload.writtenFrom,
@@ -390,6 +394,7 @@ describe('Draft API', () => {
         subject: payload.subject,
         body: payload.body,
         logo: payload.logo,
+        logoNext: [null, null],
         sender: {
           id: expect.any(String),
           name: sender.name,
@@ -415,6 +420,8 @@ describe('Draft API', () => {
         subject: payload.subject,
         body: payload.body,
         logo: payload.logo?.map((logo) => logo.id) ?? null,
+        logo_next_one: null,
+        logo_next_two: null,
         written_at: payload.writtenAt,
         written_from: payload.writtenFrom,
         created_at: expect.any(Date),
@@ -459,10 +466,12 @@ describe('Draft API', () => {
         signatory_one_last_name: sender.signatories?.[0]?.lastName ?? null,
         signatory_one_role: sender.signatories?.[0]?.role ?? null,
         signatory_one_file: sender.signatories?.[0]?.file?.id ?? null,
+        signatory_one_document_id: null,
         signatory_two_first_name: sender.signatories?.[1]?.firstName ?? null,
         signatory_two_last_name: sender.signatories?.[1]?.lastName ?? null,
         signatory_two_role: sender.signatories?.[1]?.role ?? null,
         signatory_two_file: sender.signatories?.[1]?.file?.id ?? null,
+        signatory_two_document_id: null,
         created_at: expect.any(Date),
         updated_at: expect.any(Date),
         establishment_id: sender.establishmentId

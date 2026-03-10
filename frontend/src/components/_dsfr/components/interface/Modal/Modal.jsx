@@ -12,7 +12,6 @@ import classNames from 'classnames';
 import useFocusTrap from '../../../hooks/useFocusTrap';
 import ModalClose from './ModalClose';
 import dataAttributes from '../../../utils/data-attributes';
-import './Modal.css';
 
 /**
  *

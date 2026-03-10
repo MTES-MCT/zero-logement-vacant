@@ -6,6 +6,7 @@ import Box from '@mui/material/Box';
 import Stack from '@mui/material/Stack';
 import Typography from '@mui/material/Typography';
 import { useState } from 'react';
+import { useLocation } from 'react-router-dom';
 
 import Dropdown from '~/components/Dropdown/Dropdown';
 import { useUser } from '~/hooks/useUser';
@@ -20,6 +21,7 @@ const MutedButton = styled(Button)({
 
 function AccountDropdown() {
   const { displayName, establishment, user, logOut } = useUser();
+  const location = useLocation();
 
   const [open, setOpen] = useState(false);
 
@@ -77,7 +79,8 @@ function AccountDropdown() {
           <MutedButton
             linkProps={{
               to: '/compte',
-              onClick: doClose
+              onClick: doClose,
+              'aria-current': location.pathname === '/compte' ? 'page' : undefined
             }}
             size="small"
             priority="tertiary no outline"
@@ -98,7 +101,8 @@ function AccountDropdown() {
           <MutedButton
             linkProps={{
               to: '/utilisateurs',
-              onClick: doClose
+              onClick: doClose,
+              'aria-current': location.pathname === '/utilisateurs' ? 'page' : undefined
             }}
             priority="tertiary no outline"
             size="small"
@@ -111,7 +115,8 @@ function AccountDropdown() {
           <MutedButton
             linkProps={{
               to: '/autres-structures',
-              onClick: doClose
+              onClick: doClose,
+              'aria-current': location.pathname === '/autres-structures' ? 'page' : undefined
             }}
             priority="tertiary no outline"
             size="small"

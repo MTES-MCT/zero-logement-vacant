@@ -3,16 +3,11 @@ import type { FrIconClassName, RiIconClassName } from '@codegouvfr/react-dsfr';
 import Checkbox from '@codegouvfr/react-dsfr/Checkbox';
 import type { CheckboxProps } from '@codegouvfr/react-dsfr/Checkbox';
 import RadioButtons from '@codegouvfr/react-dsfr/RadioButtons';
-import { styled } from '@mui/material/styles';
 import Typography from '@mui/material/Typography';
 import type { ElementOf } from 'ts-essentials';
 
 import type { Precision, PrecisionCategory } from '@zerologementvacant/models';
 import { NULL_PRECISION_ID } from '../../models/Precision';
-
-const ColumnIcon = styled('span')({
-  color: 'var(--blue-france-113)'
-});
 
 type PrecisionColumnCommonProps = {
   category: PrecisionCategory;
@@ -96,10 +91,15 @@ function PrecisionColumn(props: PrecisionColumnProps) {
   return (
     <>
       <Typography
-        sx={{ fontWeight: 700, lineHeight: '1.5rem', mb: '0.5rem' }}
+        sx={{
+          fontWeight: 700,
+          lineHeight: '1.5rem',
+          mb: '0.5rem',
+          '& > span': { color: 'var(--blue-france-113)' }
+        }}
         aria-hidden="true"
       >
-        <ColumnIcon className={fr.cx(props.icon, 'fr-mr-1w')} />
+        <span className={fr.cx(props.icon, 'fr-mr-1w')} />
         {props.title}
       </Typography>
       <Fieldset

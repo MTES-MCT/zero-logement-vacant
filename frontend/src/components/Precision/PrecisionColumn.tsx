@@ -4,21 +4,13 @@ import Checkbox from '@codegouvfr/react-dsfr/Checkbox';
 import type { CheckboxProps } from '@codegouvfr/react-dsfr/Checkbox';
 import RadioButtons from '@codegouvfr/react-dsfr/RadioButtons';
 import { styled } from '@mui/material/styles';
+import Typography from '@mui/material/Typography';
 import type { ElementOf } from 'ts-essentials';
 
 import type { Precision, PrecisionCategory } from '@zerologementvacant/models';
 import { NULL_PRECISION_ID } from '../../models/Precision';
 
-const LegendContent = styled('span')({
-  display: 'flex',
-  alignItems: 'center',
-  fontWeight: 700,
-  lineHeight: '1.5rem'
-});
-
-const LegendIcon = styled('span')({
-  display: 'inline-flex',
-  verticalAlign: 'middle',
+const ColumnIcon = styled('span')({
   color: 'var(--blue-france-113)'
 });
 
@@ -103,10 +95,13 @@ function PrecisionColumn(props: PrecisionColumnProps) {
 
   return (
     <>
-      <LegendContent aria-hidden="true">
-        <LegendIcon className={fr.cx(props.icon, 'fr-mr-1w')} />
+      <Typography
+        sx={{ fontWeight: 700, lineHeight: '1.5rem', mb: '0.5rem' }}
+        aria-hidden="true"
+      >
+        <ColumnIcon className={fr.cx(props.icon, 'fr-mr-1w')} />
         {props.title}
-      </LegendContent>
+      </Typography>
       <Fieldset
         legend={props.title}
         classes={{ legend: 'fr-sr-only' }}

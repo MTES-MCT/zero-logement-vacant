@@ -55,6 +55,8 @@ fileignoreconfig:
   checksum: 5a2e7162cb75423a1a967f93bdb36d3ed60811e06164b642ce431c0c1130d636
 - filename: packages/api-sdk/src/test/campaign-api.test.ts
   checksum: b200d9e1fec310660a91e99cd048b24cbe983e0f9f965861d061a7f0992af43e
+- filename: packages/schemas/src/test/draft-update-payload.test.ts
+  checksum: 3a053d1e3f7b1b3f9be6b5c240157e215c9b57a65f44089bdede6e69551a9ccd
 - filename: packages/healthcheck/src/checks/brevo.ts
   checksum: bf698fc5af96ed3a4b5f1dc466ccd11a0996c3ec60b1f8f456ef934c9cca0b7d
 - filename: packages/utils/src/object.ts

@@ -3,7 +3,6 @@ import type { FrIconClassName, RiIconClassName } from '@codegouvfr/react-dsfr';
 import Checkbox from '@codegouvfr/react-dsfr/Checkbox';
 import type { CheckboxProps } from '@codegouvfr/react-dsfr/Checkbox';
 import RadioButtons from '@codegouvfr/react-dsfr/RadioButtons';
-import Typography from '@mui/material/Typography';
 import classNames from 'classnames';
 import type { ElementOf } from 'ts-essentials';
 
@@ -91,26 +90,26 @@ function PrecisionColumn(props: PrecisionColumnProps) {
   }
 
   return (
-    <>
-      <Typography sx={{ fontWeight: 700, lineHeight: '1.5rem', mb: 2 }}>
-        <span
-          className={classNames(fr.cx(props.icon, 'fr-mr-1w'), styles.icon)}
-        />
-        {props.title}
-      </Typography>
-      <Fieldset
-        options={allOptions.map(
-          (option): ElementOf<CheckboxProps['options']> => ({
-            label: option.label,
-            nativeInputProps: {
-              checked: isOptionChecked(option),
-              onChange: () =>
-                handleOptionClick(option, !isOptionChecked(option))
-            }
-          })
-        )}
-      />
-    </>
+    <Fieldset
+      legend={
+        <span className={styles.legendContent}>
+          <span
+            className={classNames(fr.cx(props.icon, 'fr-mr-1w'), styles.icon)}
+          />
+          {props.title}
+        </span>
+      }
+      options={allOptions.map(
+        (option): ElementOf<CheckboxProps['options']> => ({
+          label: option.label,
+          nativeInputProps: {
+            checked: isOptionChecked(option),
+            onChange: () =>
+              handleOptionClick(option, !isOptionChecked(option))
+          }
+        })
+      )}
+    />
   );
 }
 

@@ -1,6 +1,7 @@
 import {
   type DraftCreationPayloadDTO,
   type DraftDTO,
+  type DraftUpdatePayload as DraftUpdatePayloadNext,
   type DraftUpdatePayloadDTO,
   type SenderPayloadDTO
 } from '@zerologementvacant/models';
@@ -54,6 +55,14 @@ export const draftApi = zlvApi.injectEndpoints({
       invalidatesTags: (_result, _error, draft) => [
         { type: 'Draft', id: draft.id }
       ]
+    }),
+    updateDraftNext: builder.mutation<DraftDTO, DraftUpdatePayloadNext>({
+      query: ({ id, ...payload }) => ({
+        url: `drafts/${id}`,
+        method: 'PUT',
+        body: payload
+      }),
+      invalidatesTags: (_result, _error, { id }) => [{ type: 'Draft', id }]
     })
   })
 });
@@ -64,6 +73,7 @@ function fromDraftDTO(draft: DraftDTO): Draft {
     subject: draft.subject,
     body: draft.body?.replaceAll('<br />', '\n') ?? '',
     logo: draft.logo,
+    logoNext: draft.logoNext,
     sender: draft.sender,
     writtenAt: draft.writtenAt,
     writtenFrom: draft.writtenFrom,
@@ -123,5 +133,6 @@ export function emptyToNull<T extends Record<any, any>>(obj: T): T {
 export const {
   useFindDraftsQuery,
   useCreateDraftMutation,
-  useUpdateDraftMutation
+  useUpdateDraftMutation,
+  useUpdateDraftNextMutation
 } = draftApi;

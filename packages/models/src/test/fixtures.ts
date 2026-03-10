@@ -538,6 +538,7 @@ export function genDraftDTO(
     subject: faker.lorem.sentence(),
     body: faker.lorem.paragraphs(),
     logo: logo ?? null,
+    logoNext: [null, null],
     createdAt: new Date().toJSON(),
     updatedAt: new Date().toJSON(),
     sender,
@@ -839,6 +840,7 @@ export function genSenderDTO(): SenderDTO {
 function genSignatoryDTO(signature?: FileUploadDTO): SignatoryDTO {
   return {
     file: signature ?? null,
+    document: null,
     role: faker.person.jobTitle(),
     firstName: faker.person.firstName(),
     lastName: faker.person.lastName()

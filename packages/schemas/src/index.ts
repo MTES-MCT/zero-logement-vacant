@@ -4,6 +4,8 @@ import { campaignUpdateNextPayload } from './campaign-update-next-payload';
 import { dateString } from './date-string';
 import { documentPayload } from './document-payload';
 import { draft } from './draft';
+import { draftCreationPayload } from './draft-creation-payload';
+import { draftUpdatePayload } from './draft-update-payload';
 import { email } from './email';
 import { establishmentFilters } from './establishment-filters';
 import { geoCode } from './geo-code';
@@ -33,6 +35,8 @@ const schemas = {
   dateString,
   documentPayload,
   draft,
+  draftCreationPayload,
+  draftUpdatePayload,
   email,
   establishmentFilters,
   geoCode,

@@ -11,6 +11,7 @@ import styles from './resources.module.scss';
 
 interface Props {
   title: string;
+  titleAs?: `h${2 | 3 | 4 | 5 | 6}`;
   linkHref: string;
   linkHrefTarget?: string;
   children: string;
@@ -20,6 +21,7 @@ interface Props {
 
 function ResourceTile({
   title,
+  titleAs = 'h3',
   linkHref,
   linkHrefTarget = '_blank',
   children,
@@ -29,6 +31,7 @@ function ResourceTile({
   return (
     <Tile
       desc={children}
+      titleAs={titleAs}
       classes={{ root: 'fr-p-3w', content: styles.tileBody }}
       title={
         <Stack component="section">
@@ -60,6 +63,7 @@ function ResourcesView() {
         <Grid size={6}>
           <ResourceTile
             title="Documentation"
+            titleAs="h2"
             linkHref="https://zerologementvacant.beta.gouv.fr/documentation/"
             icon="fr-icon-folder-2-fill"
             iconStyle={styles.iconResource}
@@ -72,6 +76,7 @@ function ResourcesView() {
         <Grid size={6}>
           <ResourceTile
             title="Communauté"
+            titleAs="h2"
             linkHref="https://zerologementvacant.beta.gouv.fr/communaut%C3%A9/"
             icon="fr-icon-group-fill"
             iconStyle={styles.iconCommunity}
@@ -83,7 +88,8 @@ function ResourcesView() {
 
         <Grid size={6}>
           <ResourceTile
-            title="Besoin d'aide ?"
+            title="Besoin d’aide ?"
+            titleAs="h2"
             linkHref="https://zerologementvacant.crisp.help/fr/"
             icon="fr-icon-question-mark"
             iconStyle={styles.iconHelp}
@@ -96,6 +102,7 @@ function ResourcesView() {
         <Grid size={6}>
           <ResourceTile
             title="Prendre rendez-vous"
+            titleAs="h2"
             linkHref="https://zerologementvacant.beta.gouv.fr/prendre-rendez-vous/"
             icon="fr-icon-calendar-fill"
             iconStyle={styles.iconAgenda}
@@ -111,6 +118,7 @@ function ResourcesView() {
         <Grid component="article" size={4}>
           <ResourceTile
             title="Ajouter un filtre géographique"
+            titleAs="h3"
             linkHref="https://zerologementvacant.crisp.help/fr/article/comment-ajouter-un-perimetre-geographique-9f0gk2/"
             icon="fr-icon-road-map-fill"
             iconStyle={styles.iconStep}
@@ -123,6 +131,7 @@ function ResourcesView() {
         <Grid component="article" size={4}>
           <ResourceTile
             title="Rédiger un courrier"
+            titleAs="h3"
             linkHref="https://zlv.notion.site/R-diger-un-courrier-15e88e19d2bc404eaf371ddcb4ca42c5"
             icon="fr-icon-mail-fill"
             iconStyle={styles.iconStep}
@@ -135,6 +144,7 @@ function ResourcesView() {
         <Grid component="article" size={4}>
           <ResourceTile
             title="Comprendre les statuts de suivi"
+            titleAs="h3"
             linkHref="/ressources/statuts"
             linkHrefTarget="_self"
             icon="fr-icon-git-merge-line"

@@ -196,7 +196,19 @@ function AdvancedTable<Data extends object>(props: AdvancedTableProps<Data>) {
                     )}
 
                     {headers.map((header, i) => (
-                      <th key={i} scope="col">
+                      <th
+                        key={i}
+                        scope="col"
+                        aria-sort={
+                          header.column.getCanSort()
+                            ? header.column.getIsSorted() === 'asc'
+                              ? 'ascending'
+                              : header.column.getIsSorted() === 'desc'
+                                ? 'descending'
+                                : 'none'
+                            : undefined
+                        }
+                      >
                         {header.column.getCanSort() ? (
                           <Stack
                             direction="row"

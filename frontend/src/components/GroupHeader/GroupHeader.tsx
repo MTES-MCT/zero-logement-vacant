@@ -87,6 +87,7 @@ function GroupHeader(props: Readonly<GroupHeaderProps>) {
                   <Button
                     priority="tertiary"
                     size="small"
+                    nativeButtonProps={{ 'aria-expanded': showAll }}
                     onClick={toggleShowAll}
                   >
                     {showAll ? 'Voir moins' : `Voir plus (${more})`}
@@ -119,7 +120,11 @@ function GroupHeader(props: Readonly<GroupHeaderProps>) {
 
           {more > 0 && (
             <Grid component="footer">
-              <Button priority="tertiary" onClick={toggleShowAll}>
+              <Button
+                priority="tertiary"
+                nativeButtonProps={{ 'aria-expanded': showAll }}
+                onClick={toggleShowAll}
+              >
                 {showAll ? 'Afficher moins' : `Afficher plus (${more})`}
               </Button>
             </Grid>

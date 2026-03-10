@@ -132,6 +132,7 @@ async function create(
     subject: body.subject,
     body: body.body,
     logo: body.logo,
+    logoNext: [null, null],
     sender,
     senderId: sender.id,
     writtenAt: body.writtenAt,

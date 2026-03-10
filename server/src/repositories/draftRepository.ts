@@ -67,6 +67,8 @@ async function save(draft: DraftApi): Promise<void> {
       'subject',
       'body',
       'logo',
+      'logo_next_one',
+      'logo_next_two',
       'written_at',
       'written_from',
       'updated_at',
@@ -82,7 +84,33 @@ function listQuery(query: Knex.QueryBuilder): void {
       `${draftsTable}.sender_id`,
       `${sendersTable}.id`
     )
-    .select(db.raw(`to_json(${sendersTable}.*) AS sender`));
+    .select(db.raw(`to_json(${sendersTable}.*) AS sender`))
+    // signatory documents
+    .leftJoin(
+      { signatory_one_doc: 'documents' },
+      `${sendersTable}.signatory_one_document_id`,
+      'signatory_one_doc.id'
+    )
+    .select(db.raw(`to_json(signatory_one_doc.*) AS signatory_one_doc`))
+    .leftJoin(
+      { signatory_two_doc: 'documents' },
+      `${sendersTable}.signatory_two_document_id`,
+      'signatory_two_doc.id'
+    )
+    .select(db.raw(`to_json(signatory_two_doc.*) AS signatory_two_doc`))
+    // logo next documents
+    .leftJoin(
+      { logo_next_one_doc: 'documents' },
+      `${draftsTable}.logo_next_one`,
+      'logo_next_one_doc.id'
+    )
+    .select(db.raw(`to_json(logo_next_one_doc.*) AS logo_next_one_doc`))
+    .leftJoin(
+      { logo_next_two_doc: 'documents' },
+      `${draftsTable}.logo_next_two`,
+      'logo_next_two_doc.id'
+    )
+    .select(db.raw(`to_json(logo_next_two_doc.*) AS logo_next_two_doc`));
 }
 
 function filterQuery(filters?: DraftFilters) {
@@ -112,6 +140,8 @@ export interface DraftRecordDBO {
   subject: string | null;
   body: string | null;
   logo: string[] | null;
+  logo_next_one: string | null;
+  logo_next_two: string | null;
   written_at: string | null;
   written_from: string | null;
   created_at: Date;
@@ -122,6 +152,10 @@ export interface DraftRecordDBO {
 
 export interface DraftDBO extends DraftRecordDBO {
   sender: SenderDBO;
+  signatory_one_doc: null;
+  signatory_two_doc: null;
+  logo_next_one_doc: null;
+  logo_next_two_doc: null;
 }
 
 export const formatDraftApi = (draft: DraftApi): DraftRecordDBO => ({
@@ -129,6 +163,8 @@ export const formatDraftApi = (draft: DraftApi): DraftRecordDBO => ({
   subject: draft.subject,
   body: draft.body,
   logo: draft.logo?.map((logo) => logo.id) ?? null,
+  logo_next_one: draft.logoNext?.[0]?.id ?? null,
+  logo_next_two: draft.logoNext?.[1]?.id ?? null,
   written_at: draft.writtenAt,
   written_from: draft.writtenFrom,
   establishment_id: draft.establishmentId,
@@ -153,6 +189,7 @@ export const parseDraftApi = async (draft: DraftDBO): Promise<DraftApi> => {
     subject: draft.subject,
     body: draft.body,
     logo: logo,
+    logoNext: [null, null],
     writtenAt: draft.written_at,
     writtenFrom: draft.written_from,
     establishmentId: draft.establishment_id,

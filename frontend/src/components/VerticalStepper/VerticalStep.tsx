@@ -53,13 +53,13 @@ function VerticalStep(props: VerticalStepProps) {
             {props.title}
           </Text>
         </header>
-        <main>
+        <div>
           {typeof props.content === 'string' ? (
             <Text as="p">{props.content}</Text>
           ) : (
             props.content
           )}
-        </main>
+        </div>
         <footer>{props.actions}</footer>
       </article>
     </section>

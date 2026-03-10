@@ -44,7 +44,7 @@ function Aside(props: AsideProps) {
         ) : (
           props.title
         )}
-        <main className={styles.main}>{props.content}</main>
+        <div className={styles.main}>{props.content}</div>
         <footer>{props.footer}</footer>
       </article>
     </aside>

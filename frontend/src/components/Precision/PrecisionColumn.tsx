@@ -17,6 +17,8 @@ const LegendContent = styled('span')({
 });
 
 const LegendIcon = styled('span')({
+  display: 'inline-flex',
+  verticalAlign: 'middle',
   color: 'var(--blue-france-113)'
 });
 

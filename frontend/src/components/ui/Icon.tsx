@@ -12,6 +12,7 @@ export interface IconProps {
    */
   size?: 'xs' | 'sm' | 'md' | 'lg';
   color?: string;
+  className?: string;
 }
 
 function Icon(props: IconProps) {
@@ -21,7 +22,9 @@ function Icon(props: IconProps) {
   return (
     <Box
       component="span"
-      className={fr.cx(props.name, `fr-icon--${size}`)}
+      className={[fr.cx(props.name, `fr-icon--${size}`), props.className]
+          .filter(Boolean)
+          .join(' ')}
       sx={{ color }}
       aria-hidden={true}
     />

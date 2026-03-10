@@ -3,12 +3,22 @@ import type { FrIconClassName, RiIconClassName } from '@codegouvfr/react-dsfr';
 import Checkbox from '@codegouvfr/react-dsfr/Checkbox';
 import type { CheckboxProps } from '@codegouvfr/react-dsfr/Checkbox';
 import RadioButtons from '@codegouvfr/react-dsfr/RadioButtons';
-import classNames from 'classnames';
+import { styled } from '@mui/material/styles';
 import type { ElementOf } from 'ts-essentials';
 
 import type { Precision, PrecisionCategory } from '@zerologementvacant/models';
 import { NULL_PRECISION_ID } from '../../models/Precision';
-import styles from './precision-modal.module.scss';
+
+const LegendContent = styled('span')({
+  display: 'flex',
+  alignItems: 'center',
+  fontWeight: 700,
+  lineHeight: '1.5rem'
+});
+
+const LegendIcon = styled('span')({
+  color: 'var(--blue-france-113)'
+});
 
 type PrecisionColumnCommonProps = {
   category: PrecisionCategory;
@@ -47,7 +57,7 @@ function PrecisionColumn(props: PrecisionColumnProps) {
     isRadio && showNullOption
       ? {
           id: NULL_PRECISION_ID,
-          label: 'Pas d’information',
+          label: 'Pas d'information',
           category: props.category
         }
       : null;
@@ -92,12 +102,10 @@ function PrecisionColumn(props: PrecisionColumnProps) {
   return (
     <Fieldset
       legend={
-        <span className={styles.legendContent}>
-          <span
-            className={classNames(fr.cx(props.icon, 'fr-mr-1w'), styles.icon)}
-          />
+        <LegendContent>
+          <LegendIcon className={fr.cx(props.icon, 'fr-mr-1w')} />
           {props.title}
-        </span>
+        </LegendContent>
       }
       options={allOptions.map(
         (option): ElementOf<CheckboxProps['options']> => ({

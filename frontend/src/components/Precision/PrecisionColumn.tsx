@@ -8,6 +8,7 @@ import type { ElementOf } from 'ts-essentials';
 
 import type { Precision, PrecisionCategory } from '@zerologementvacant/models';
 import { NULL_PRECISION_ID } from '../../models/Precision';
+import Icon from '~/components/ui/Icon';
 
 type PrecisionColumnCommonProps = {
   category: PrecisionCategory;
@@ -46,7 +47,7 @@ function PrecisionColumn(props: PrecisionColumnProps) {
     isRadio && showNullOption
       ? {
           id: NULL_PRECISION_ID,
-          label: "Pas d'information",
+          label: 'Pas d\u2019information',
           category: props.category
         }
       : null;
@@ -94,12 +95,15 @@ function PrecisionColumn(props: PrecisionColumnProps) {
         sx={{
           fontWeight: 700,
           lineHeight: '1.5rem',
-          mb: '0.5rem',
-          '& > span': { color: 'var(--blue-france-113)' }
+          mb: '0.5rem'
         }}
         aria-hidden="true"
       >
-        <span className={fr.cx(props.icon, 'fr-mr-1w')} />
+        <Icon
+          name={props.icon}
+          color={fr.colors.decisions.text.label.blueFrance.default}
+          className={fr.cx('fr-mr-1w')}
+        />
         {props.title}
       </Typography>
       <Fieldset

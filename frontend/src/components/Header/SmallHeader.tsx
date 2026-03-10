@@ -147,7 +147,9 @@ function SmallHeader() {
             ) : null}
 
             {isAuthenticated ? (
-              <AccountDropdown />
+              <nav aria-label="Navigation du compte utilisateur">
+                <AccountDropdown />
+              </nav>
             ) : (
               <Button
                 iconId="fr-icon-user-fill"

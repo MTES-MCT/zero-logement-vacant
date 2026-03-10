@@ -58,6 +58,7 @@ export const draftHandlers: RequestHandler[] = [
           updatedAt: new Date().toJSON()
         },
         logo: payload.logo,
+        logoNext: [null, null],
         writtenAt: payload.writtenAt,
         writtenFrom: payload.writtenFrom,
         createdAt: new Date().toJSON(),

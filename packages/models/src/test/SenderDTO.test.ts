@@ -7,7 +7,8 @@ describe('SenderDTO', () => {
         firstName: null,
         lastName: null,
         role: null,
-        file: null
+        file: null,
+        document: null
       };
 
       const actual = isEmpty(signatory);
@@ -20,7 +21,8 @@ describe('SenderDTO', () => {
         firstName: 'John',
         lastName: null,
         role: null,
-        file: null
+        file: null,
+        document: null
       };
 
       const actual = isEmpty(signatory);

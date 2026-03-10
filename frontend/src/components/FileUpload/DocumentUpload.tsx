@@ -5,8 +5,8 @@ import type { AsyncOrSync } from 'ts-essentials';
 
 import { useNotification } from '~/hooks/useNotification';
 
-const DEFAULT_EXTENSIONS = ['pdf', 'jpg', 'png'];
-const MAX_SIZE = 5; // MB
+export const DEFAULT_EXTENSIONS = ['pdf', 'jpg', 'png'];
+export const DEFAULT_MAX_SIZE = 5; // MB
 
 export type DocumentUploadProps = UploadProps & {
   /**
@@ -34,7 +34,7 @@ function DocumentUpload(props: Readonly<DocumentUploadProps>) {
   const types = accept ?? DEFAULT_EXTENSIONS;
   const hint =
     props.hint ??
-    `Taille maximale : ${props.maxSize ?? MAX_SIZE} Mo. Formats supportés : ${types.join(', ')}`;
+    `Taille maximale : ${props.maxSize ?? DEFAULT_MAX_SIZE} Mo. Formats supportés : ${types.join(', ')}`;
 
   useNotification({
     isError: props.isError,

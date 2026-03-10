@@ -325,10 +325,35 @@ router.delete(
 router.get('/drafts', draftController.list);
 router.post(
   '/drafts',
+  async (req, res, next) => {
+    const { auth } = req as AuthenticatedRequest;
+    const enabled = await isFeatureEnabled('new-campaigns', auth.establishmentId);
+    if (!enabled) return next('route');
+    next();
+  },
+  validatorNext.validate({ body: schemas.draftCreationPayload }),
+  draftController.createNext
+);
+router.post(
+  '/drafts',
   validatorNext.validate({
     body: schemas.draft
   }),
   draftController.create
+);
+router.put(
+  '/drafts/:id',
+  async (req, res, next) => {
+    const { auth } = req as AuthenticatedRequest;
+    const enabled = await isFeatureEnabled('new-campaigns', auth.establishmentId);
+    if (!enabled) return next('route');
+    next();
+  },
+  validatorNext.validate({
+    params: object({ id: schemas.id }),
+    body: schemas.draftUpdatePayload
+  }),
+  draftController.updateNext
 );
 router.put(
   '/drafts/:id',

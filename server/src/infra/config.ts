@@ -516,7 +516,7 @@ const config = convict<Config>({
     apiKey: {
       doc: 'PostHog API key',
       format: String,
-      default: '',
+      default: isProduction ? null : 'secret',
       env: 'POSTHOG_API_KEY'
     },
     host: {

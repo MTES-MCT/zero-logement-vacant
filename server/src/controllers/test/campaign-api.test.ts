@@ -856,6 +856,14 @@ describe('Campaign API', () => {
   describe('PUT /campaigns/{id}', () => {
     const testRoute = (id: string) => `/api/campaigns/${id}`;
 
+    beforeEach(async () => {
+      vi.spyOn(posthogService, 'isFeatureEnabled').mockResolvedValue(false);
+    });
+
+    afterEach(() => {
+      vi.restoreAllMocks();
+    });
+
     const defaultPayload: CampaignUpdatePayloadDTO = {
       title: 'New title',
       description: '',
@@ -1246,7 +1254,7 @@ describe('Campaign API', () => {
         .use(tokenProvider(user));
 
       expect(status).toBe(constants.HTTP_STATUS_OK);
-      expect(body).not.toHaveProperty('sentAt');
+      expect(body.sentAt).toBeNull();
     });
 
     it('should reject unsetting sentAt once it has been set', async () => {

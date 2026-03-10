@@ -19,7 +19,14 @@ import { useUpdateOwnerMutation } from '~/services/owner.service';
 import OwnerAddressEdition from '../OwnerAddressEdition/OwnerAddressEdition';
 
 const schema = object({
-  birthDate: string().nullable().defined(),
+  birthDate: string()
+    .nullable()
+    .defined()
+    .test(
+      'birth-date-required',
+      'Veuillez renseigner une date de naissance.',
+      (value) => Boolean(value)
+    ),
   banAddress: object({
     id: string().required(),
     label: string().required(),
@@ -163,7 +170,7 @@ function createOwnerEditionModalNext() {
 
       return (
         <FormProvider {...form}>
-          <form onSubmit={form.handleSubmit(onSubmit)}>
+          <form onSubmit={form.handleSubmit(onSubmit)} noValidate>
             <modal.Component
               size="large"
               buttons={[
@@ -202,14 +209,18 @@ function createOwnerEditionModalNext() {
 
                 <AppTextInputNext<FormSchema>
                   name="birthDate"
-                  label="Date de naissance"
+                  label="Date de naissance (obligatoire)"
+                  hintText="Format attendu : jj/mm/aaaa"
                   nativeInputProps={{
                     type: 'date',
                     max: new Date()
                       .toISOString()
                       .substring(0, 'yyyy-mm-dd'.length),
-                    autoComplete: 'bday'
+                    autoComplete: 'bday',
+                    'aria-required': 'true'
                   }}
+                  mapValue={(value): string => value ?? ''}
+                  contramapValue={(value): string | null => value || null}
                 />
 
                 <Stack component="section">
@@ -244,7 +255,7 @@ function createOwnerEditionModalNext() {
                     <Typography
                       color={fr.colors.decisions.text.active.grey.default}
                     >
-                      Adresse postale (source: Base Adresse Nationale)
+                      Adresse postale (obligatoire) — source: Base Adresse Nationale
                     </Typography>
                   </Stack>
                   <a
@@ -312,6 +323,7 @@ function createOwnerEditionModalNext() {
                     <AppTextInputNext<FormSchema>
                       name="email"
                       label="Adresse e-mail"
+                      hintText="Format attendu : prenom.nom@domaine.fr"
                       nativeInputProps={{
                         type: 'email',
                         inputMode: 'email',
@@ -325,6 +337,7 @@ function createOwnerEditionModalNext() {
                     <AppTextInputNext<FormSchema>
                       name="phone"
                       label="Numéro de téléphone"
+                      hintText="Format attendu : 0123456789 ou +33123456789"
                       nativeInputProps={{
                         type: 'tel',
                         inputMode: 'tel',

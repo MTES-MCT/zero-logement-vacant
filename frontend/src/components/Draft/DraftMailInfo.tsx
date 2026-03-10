@@ -47,6 +47,7 @@ function DraftMailInfo(props: Readonly<Props>) {
         inputForm={props.form}
         inputKey="writtenAt"
         label="En date du ..."
+        hintText="Format attendu : jj/mm/aaaa"
         type="date"
         value={props.writtenAt}
         onChange={onChange('at')}

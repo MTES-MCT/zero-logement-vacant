@@ -152,7 +152,7 @@ function HousingOwnerEditionAside(props: HousingOwnerEditionAsideProps) {
 
   return (
     <FormProvider {...form}>
-      <form onSubmit={form.handleSubmit(onSubmit)}>
+      <form onSubmit={form.handleSubmit(onSubmit)} noValidate>
         <Aside
           open={props.open}
           width="40rem"

@@ -57,7 +57,7 @@ function PrecisionColumn(props: PrecisionColumnProps) {
     isRadio && showNullOption
       ? {
           id: NULL_PRECISION_ID,
-          label: 'Pas d'information',
+          label: "Pas d'information",
           category: props.category
         }
       : null;

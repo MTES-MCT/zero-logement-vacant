@@ -65,8 +65,8 @@ function GroupView() {
 
   const { view } = useAppSelector((state) => state.housing);
 
-  const location: { state?: RouterState } = useLocation();
-  const alert = location.state?.alert ?? '';
+  const location = useLocation();
+  const alert = (location.state as RouterState | null)?.alert ?? '';
   const [removeGroup] = useRemoveGroupMutation();
   async function onGroupRemove(): Promise<void> {
     if (group) {

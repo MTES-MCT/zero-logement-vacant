@@ -57,6 +57,10 @@ fileignoreconfig:
   checksum: b200d9e1fec310660a91e99cd048b24cbe983e0f9f965861d061a7f0992af43e
 - filename: packages/schemas/src/test/draft-update-payload.test.ts
   checksum: 3a053d1e3f7b1b3f9be6b5c240157e215c9b57a65f44089bdede6e69551a9ccd
+- filename: frontend/src/components/Draft/DraftBodyNext.tsx
+  checksum: f273fc8f74f28fb35e4ccc088894819af61584e4d2fb465c681541b6b05b030a
+- filename: docs/plans/2026-03-10-signatory-document-upload.md
+  checksum: 5fc6d0a38dfacd3145943fd929a153ca68fd51a4424ceead78735f622f7a94e1
 - filename: packages/healthcheck/src/checks/brevo.ts
   checksum: bf698fc5af96ed3a4b5f1dc466ccd11a0996c3ec60b1f8f456ef934c9cca0b7d
 - filename: packages/utils/src/object.ts

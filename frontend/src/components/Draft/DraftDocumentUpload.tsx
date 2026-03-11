@@ -29,6 +29,7 @@ function DraftDocumentUpload(props: Readonly<DraftDocumentUploadProps>) {
       isSuccess={isSuccess}
       label={props.label ?? 'Ajouter un fichier'}
       maxSize={5}
+      multiple={false}
       onUpload={upload}
     />
   );

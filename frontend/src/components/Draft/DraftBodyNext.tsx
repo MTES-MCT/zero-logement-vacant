@@ -18,7 +18,11 @@ function DraftBodyNext() {
       aria-labelledby="draft-body-label"
       className={styles.article}
     >
-      <Stack direction="row" justifyContent="space-between" mb={2}>
+      <Stack
+        direction={{ xs: 'column', md: 'row' }}
+        justifyContent="space-between"
+        mb={2}
+      >
         <Typography id="draft-body-label" component="h4" variant="h6">
           Contenu de votre courrier
         </Typography>

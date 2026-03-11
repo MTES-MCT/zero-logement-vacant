@@ -12,20 +12,27 @@ import {
   isEmpty,
   replaceVariables,
   SignatoryDTO,
-  SignatoryPayload
+  SignatoryPayload,
+  type EstablishmentDTO
 } from '@zerologementvacant/models';
 import { not } from '@zerologementvacant/utils';
+import { createS3, generatePresignedUrl } from '@zerologementvacant/utils/node';
+import async from 'async';
+import { Predicate } from 'effect';
 import { Request, RequestHandler, Response } from 'express';
 import { AuthenticatedRequest } from 'express-jwt';
 import { body, ValidationChain } from 'express-validator';
 import { constants } from 'http2';
 import { pick } from 'lodash-es';
 import { v4 as uuidv4 } from 'uuid';
+
 import CampaignMissingError from '~/errors/campaignMissingError';
+import DocumentMissingError from '~/errors/documentMissingError';
 import DraftMissingError from '~/errors/draftMissingError';
 import config from '~/infra/config';
+import { startTransaction } from '~/infra/database/transaction';
 import { createLogger } from '~/infra/logger';
-import { toDocumentDTO } from '~/models/DocumentApi';
+import { toDocumentDTO, type DocumentApi } from '~/models/DocumentApi';
 import { DraftApi, toDraftDTO } from '~/models/DraftApi';
 import { SenderApi } from '~/models/SenderApi';
 import campaignDraftRepository from '~/repositories/campaignDraftRepository';
@@ -34,7 +41,6 @@ import documentRepository from '~/repositories/documentRepository';
 import draftRepository, { DraftFilters } from '~/repositories/draftRepository';
 import senderRepository from '~/repositories/senderRepository';
 import { isUUIDParam } from '~/utils/validators';
-import { createS3, generatePresignedUrl } from '@zerologementvacant/utils/node';
 
 const logger = createLogger('draftController');
 
@@ -176,7 +182,7 @@ async function preview(
   const transformer = pdf.createTransformer({ logger });
   const pdfBuffer = await transformer.generatePDF({
     subject: draft.subject,
-    logo: draft.logo?.map(logo => pick(logo, 'id', 'content')) ?? null,
+    logo: draft.logo?.map((logo) => pick(logo, 'id', 'content')) ?? null,
     body: draft.body
       ? replaceVariables(draft.body, {
           housing: body.housing,
@@ -331,28 +337,53 @@ const updateValidators: ValidationChain[] = [
   ...senderValidators
 ];
 
-async function resolveDocuments(
-  ids: ReadonlyArray<string | null>,
-  establishmentId: string
-): Promise<Map<string, DocumentDTO>> {
-  const validIds = ids.filter(Boolean) as string[];
-  if (!validIds.length) return new Map();
+interface ResolveDocumentsOptions {
+  ids: ReadonlyArray<DocumentDTO['id'] | null>;
+  establishmentId: EstablishmentDTO['id'];
+}
 
-  const docs = await documentRepository.find({
-    filters: { ids: validIds, establishmentIds: [establishmentId], deleted: false }
+async function resolveDocuments(
+  options: ResolveDocumentsOptions
+): Promise<Map<DocumentDTO['id'], DocumentDTO>> {
+  const ids = options.ids.filter(Predicate.isNotNull);
+  if (ids.length === 0) {
+    return new Map();
+  }
+
+  const documents = await documentRepository.find({
+    filters: {
+      ids: ids,
+      establishmentIds: [options.establishmentId],
+      deleted: false
+    }
   });
+  const missing = ids.filter(
+    (id) => documents.find((document) => document.id === id) !== undefined
+  );
+  if (missing.length > 0) {
+    logger.warn('Some documents are missing', {
+      missingDocumentIds: missing,
+      establishment: options.establishmentId
+    });
+    throw new DocumentMissingError(...missing);
+  }
 
   const s3 = createS3(config.s3);
-  const map = new Map<string, DocumentDTO>();
-  for (const doc of docs) {
-    const url = await generatePresignedUrl({
-      s3,
-      bucket: config.s3.bucket,
-      key: doc.s3Key
-    });
-    map.set(doc.id, toDocumentDTO(doc, url));
-  }
-  return map;
+  const documentsWithURLs = await async.map(
+    documents,
+    async (document: DocumentApi) => {
+      const presignedUrl = await generatePresignedUrl({
+        s3,
+        bucket: config.s3.bucket,
+        key: document.s3Key
+      });
+      return toDocumentDTO(document, presignedUrl);
+    }
+  );
+
+  return new Map<DocumentDTO['id'], DocumentDTO>(
+    documentsWithURLs.map((doc) => [doc.id, doc])
+  );
 }
 
 function buildSignatory(
@@ -369,140 +400,158 @@ function buildSignatory(
   };
 }
 
-const createNext: RequestHandler<never, DraftDTO, DraftCreationPayload, never> =
-  async (request, response): Promise<void> => {
-    const { auth, body } = request as AuthenticatedRequest<
-      never,
-      DraftDTO,
-      DraftCreationPayload,
-      never
-    >;
+const createNext: RequestHandler<
+  never,
+  DraftDTO,
+  DraftCreationPayload,
+  never
+> = async (request, response): Promise<void> => {
+  const { auth, body } = request as AuthenticatedRequest<
+    never,
+    DraftDTO,
+    DraftCreationPayload,
+    never
+  >;
 
-    const campaign = await campaignRepository.findOne({
-      id: body.campaign,
-      establishmentId: auth.establishmentId
-    });
-    if (!campaign) {
-      throw new CampaignMissingError(body.campaign);
-    }
+  const campaign = await campaignRepository.findOne({
+    id: body.campaign,
+    establishmentId: auth.establishmentId
+  });
+  if (!campaign) {
+    throw new CampaignMissingError(body.campaign);
+  }
 
-    const allDocIds = [
-      body.logo[0],
-      body.logo[1],
-      body.sender?.signatories?.[0]?.document ?? null,
-      body.sender?.signatories?.[1]?.document ?? null
-    ];
-    const docsMap = await resolveDocuments(allDocIds, auth.establishmentId);
+  const documentIds = [
+    body.logo[0],
+    body.logo[1],
+    body.sender?.signatories?.[0]?.document ?? null,
+    body.sender?.signatories?.[1]?.document ?? null
+  ];
+  const documents = await resolveDocuments({
+    ids: documentIds,
+    establishmentId: auth.establishmentId
+  });
 
-    const logoNext: [DocumentDTO | null, DocumentDTO | null] = [
-      body.logo[0] ? (docsMap.get(body.logo[0]) ?? null) : null,
-      body.logo[1] ? (docsMap.get(body.logo[1]) ?? null) : null
-    ];
+  const logoNext: [DocumentDTO | null, DocumentDTO | null] = [
+    body.logo[0] ? (documents.get(body.logo[0]) ?? null) : null,
+    body.logo[1] ? (documents.get(body.logo[1]) ?? null) : null
+  ];
 
-    const sender: SenderApi = {
-      id: uuidv4(),
-      name: body.sender?.name ?? null,
-      service: body.sender?.service ?? null,
-      firstName: body.sender?.firstName ?? null,
-      lastName: body.sender?.lastName ?? null,
-      address: body.sender?.address ?? null,
-      email: body.sender?.email ?? null,
-      phone: body.sender?.phone ?? null,
-      signatories: [
-        buildSignatory(body.sender?.signatories?.[0], docsMap),
-        buildSignatory(body.sender?.signatories?.[1], docsMap)
-      ],
-      establishmentId: auth.establishmentId,
-      createdAt: new Date().toJSON(),
-      updatedAt: new Date().toJSON()
-    };
+  const sender: SenderApi = {
+    id: uuidv4(),
+    name: body.sender?.name ?? null,
+    service: body.sender?.service ?? null,
+    firstName: body.sender?.firstName ?? null,
+    lastName: body.sender?.lastName ?? null,
+    address: body.sender?.address ?? null,
+    email: body.sender?.email ?? null,
+    phone: body.sender?.phone ?? null,
+    signatories: [
+      buildSignatory(body.sender?.signatories?.[0], documents),
+      buildSignatory(body.sender?.signatories?.[1], documents)
+    ],
+    establishmentId: auth.establishmentId,
+    createdAt: new Date().toJSON(),
+    updatedAt: new Date().toJSON()
+  };
 
-    const draft: DraftApi = {
-      id: uuidv4(),
-      subject: body.subject,
-      body: body.body,
-      logo: null,
-      logoNext,
-      sender,
-      senderId: sender.id,
-      writtenAt: body.writtenAt,
-      writtenFrom: body.writtenFrom,
-      createdAt: new Date().toJSON(),
-      updatedAt: new Date().toJSON(),
-      establishmentId: auth.establishmentId
-    };
+  const draft: DraftApi = {
+    id: uuidv4(),
+    subject: body.subject,
+    body: body.body,
+    logo: null,
+    logoNext,
+    sender,
+    senderId: sender.id,
+    writtenAt: body.writtenAt,
+    writtenFrom: body.writtenFrom,
+    createdAt: new Date().toJSON(),
+    updatedAt: new Date().toJSON(),
+    establishmentId: auth.establishmentId
+  };
 
+  await startTransaction(async () => {
     await senderRepository.save(sender);
     await draftRepository.save(draft);
     await campaignDraftRepository.save(campaign, draft);
+  });
 
-    response.status(constants.HTTP_STATUS_CREATED).json(toDraftDTO(draft));
+  response.status(constants.HTTP_STATUS_CREATED).json(toDraftDTO(draft));
+};
+
+const updateNext: RequestHandler<
+  DraftParams,
+  DraftDTO,
+  DraftUpdatePayload,
+  never
+> = async (request, response): Promise<void> => {
+  const { auth, params, body } = request as AuthenticatedRequest<
+    DraftParams,
+    DraftDTO,
+    DraftUpdatePayload,
+    never
+  >;
+
+  const draft = await draftRepository.findOne({
+    id: params.id,
+    establishmentId: auth.establishmentId
+  });
+  if (!draft) throw new DraftMissingError(params.id);
+
+  const documentIds = [
+    body.logo[0],
+    body.logo[1],
+    body.sender?.signatories?.[0]?.document ?? null,
+    body.sender?.signatories?.[1]?.document ?? null
+  ];
+  const documents = await resolveDocuments({
+    ids: documentIds,
+    establishmentId: auth.establishmentId
+  });
+
+  const logoNext: [DocumentDTO | null, DocumentDTO | null] = [
+    body.logo[0] ? (documents.get(body.logo[0]) ?? null) : null,
+    body.logo[1] ? (documents.get(body.logo[1]) ?? null) : null
+  ];
+
+  const sender: SenderApi = {
+    id: draft.sender.id,
+    name: body.sender?.name ?? null,
+    service: body.sender?.service ?? null,
+    firstName: body.sender?.firstName ?? null,
+    lastName: body.sender?.lastName ?? null,
+    address: body.sender?.address ?? null,
+    email: body.sender?.email ?? null,
+    phone: body.sender?.phone ?? null,
+    signatories: [
+      buildSignatory(body.sender?.signatories?.[0], documents),
+      buildSignatory(body.sender?.signatories?.[1], documents)
+    ],
+    createdAt: draft.sender.createdAt,
+    updatedAt: new Date().toJSON(),
+    establishmentId: draft.sender.establishmentId
   };
 
-const updateNext: RequestHandler<DraftParams, DraftDTO, DraftUpdatePayload, never> =
-  async (request, response): Promise<void> => {
-    const { auth, params, body } = request as AuthenticatedRequest<
-      DraftParams,
-      DraftDTO,
-      DraftUpdatePayload,
-      never
-    >;
+  const updated: DraftApi = {
+    ...draft,
+    subject: body.subject,
+    body: body.body,
+    logo: null,
+    logoNext,
+    sender,
+    senderId: sender.id,
+    writtenAt: body.writtenAt,
+    writtenFrom: body.writtenFrom,
+    updatedAt: new Date().toJSON()
+  };
 
-    const draft = await draftRepository.findOne({
-      id: params.id,
-      establishmentId: auth.establishmentId
-    });
-    if (!draft) throw new DraftMissingError(params.id);
-
-    const allDocIds = [
-      body.logo[0],
-      body.logo[1],
-      body.sender?.signatories?.[0]?.document ?? null,
-      body.sender?.signatories?.[1]?.document ?? null
-    ];
-    const docsMap = await resolveDocuments(allDocIds, auth.establishmentId);
-
-    const logoNext: [DocumentDTO | null, DocumentDTO | null] = [
-      body.logo[0] ? (docsMap.get(body.logo[0]) ?? null) : null,
-      body.logo[1] ? (docsMap.get(body.logo[1]) ?? null) : null
-    ];
-
-    const sender: SenderApi = {
-      id: draft.sender.id,
-      name: body.sender?.name ?? null,
-      service: body.sender?.service ?? null,
-      firstName: body.sender?.firstName ?? null,
-      lastName: body.sender?.lastName ?? null,
-      address: body.sender?.address ?? null,
-      email: body.sender?.email ?? null,
-      phone: body.sender?.phone ?? null,
-      signatories: [
-        buildSignatory(body.sender?.signatories?.[0], docsMap),
-        buildSignatory(body.sender?.signatories?.[1], docsMap)
-      ],
-      createdAt: draft.sender.createdAt,
-      updatedAt: new Date().toJSON(),
-      establishmentId: draft.sender.establishmentId
-    };
-
-    const updated: DraftApi = {
-      ...draft,
-      subject: body.subject,
-      body: body.body,
-      logo: null,
-      logoNext,
-      sender,
-      senderId: sender.id,
-      writtenAt: body.writtenAt,
-      writtenFrom: body.writtenFrom,
-      updatedAt: new Date().toJSON()
-    };
-
+  await startTransaction(async () => {
     await senderRepository.save(sender);
     await draftRepository.save(updated);
+  });
 
-    response.status(constants.HTTP_STATUS_OK).json(toDraftDTO(updated));
-  };
+  response.status(constants.HTTP_STATUS_OK).json(toDraftDTO(updated));
+};
 
 const draftController = {
   list,

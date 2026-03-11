@@ -500,266 +500,264 @@ describe('Draft API', () => {
       expect(actualDraft).toHaveProperty('sender_id', actualSender?.id);
     });
   });
-});
 
-describe('POST /api/drafts — new-campaigns', () => {
-  let url: string;
+  describe('POST /api/drafts — new-campaigns', () => {
+    const establishment = genEstablishmentApi();
+    const user = genUserApi(establishment.id);
 
-  beforeAll(async () => {
-    url = await createServer().testing();
-  });
-
-  const establishment = genEstablishmentApi();
-  const user = genUserApi(establishment.id);
-
-  beforeAll(async () => {
-    await Establishments().insert(formatEstablishmentApi(establishment));
-    await Users().insert(formatUserApi(user));
-  });
-
-  const testRoute = '/api/drafts';
-  let campaign: CampaignApi;
-
-  beforeEach(async () => {
-    vi.spyOn(posthogService, 'isFeatureEnabled').mockResolvedValue(true);
-    campaign = genCampaignApi(establishment.id, user);
-    await Campaigns().insert(formatCampaignApi(campaign));
-  });
-
-  afterEach(() => vi.restoreAllMocks());
-
-  it('should fall back to legacy handler when flag is off', async () => {
-    vi.spyOn(posthogService, 'isFeatureEnabled').mockResolvedValue(false);
-    const payload: DraftCreationPayloadDTO = {
-      campaign: campaign.id,
-      subject: null,
-      body: null,
-      logo: [],
-      writtenAt: null,
-      writtenFrom: null,
-      sender: null
-    };
-    const { status } = await request(url)
-      .post(testRoute)
-      .send(payload)
-      .use(tokenProvider(user));
-    expect(status).toBe(constants.HTTP_STATUS_CREATED);
-  });
-
-  it('should create a draft with logoNext [null, null] and signatories [null, null]', async () => {
-    const payload: DraftCreationPayload = {
-      campaign: campaign.id,
-      subject: 'Test',
-      body: 'Body',
-      logo: [null, null],
-      writtenAt: null,
-      writtenFrom: null,
-      sender: {
-        name: 'Mairie',
-        service: null,
-        firstName: null,
-        lastName: null,
-        address: null,
-        email: null,
-        phone: null,
-        signatories: [null, null]
-      }
-    };
-
-    const { body, status } = await request(url)
-      .post(testRoute)
-      .send(payload)
-      .use(tokenProvider(user));
-
-    expect(status).toBe(constants.HTTP_STATUS_CREATED);
-    expect(body).toMatchObject({ logoNext: [null, null] });
-
-    const actualSender = await Senders().where({ id: body.sender.id }).first() as SenderDBO;
-    expect(actualSender.signatory_one_document_id).toBeNull();
-    expect(actualSender.signatory_two_document_id).toBeNull();
-
-    const actualDraft = await Drafts().where({ id: body.id }).first() as DraftRecordDBO;
-    expect(actualDraft.logo_next_one).toBeNull();
-    expect(actualDraft.logo_next_two).toBeNull();
-  });
-
-  it('should link signatory document', async () => {
-    const document = genDocumentApi({
-      establishmentId: establishment.id,
-      creator: user
+    beforeAll(async () => {
+      await Establishments().insert(formatEstablishmentApi(establishment));
+      await Users().insert(formatUserApi(user));
     });
-    await Documents().insert(toDocumentDBO(document));
 
-    const payload: DraftCreationPayload = {
-      campaign: campaign.id,
-      subject: null,
-      body: null,
-      logo: [null, null],
-      writtenAt: null,
-      writtenFrom: null,
-      sender: {
-        name: null,
-        service: null,
-        firstName: null,
-        lastName: null,
-        address: null,
-        email: null,
-        phone: null,
-        signatories: [
-          {
-            firstName: 'Alice',
-            lastName: 'Dupont',
-            role: 'Maire',
-            document: document.id
-          },
-          null
-        ]
-      }
-    };
+    const testRoute = '/api/drafts';
+    let campaign: CampaignApi;
 
-    const { body, status } = await request(url)
-      .post(testRoute)
-      .send(payload)
-      .use(tokenProvider(user));
-
-    expect(status).toBe(constants.HTTP_STATUS_CREATED);
-
-    const actualSender = await Senders().where({ id: body.sender.id }).first() as SenderDBO;
-    expect(actualSender.signatory_one_document_id).toBe(document.id);
-    expect(actualSender.signatory_two_document_id).toBeNull();
-  });
-
-  it('should link logo documents', async () => {
-    const logoDoc = genDocumentApi({
-      establishmentId: establishment.id,
-      creator: user
+    beforeEach(async () => {
+      vi.spyOn(posthogService, 'isFeatureEnabled').mockResolvedValue(true);
+      campaign = genCampaignApi(establishment.id, user);
+      await Campaigns().insert(formatCampaignApi(campaign));
     });
-    await Documents().insert(toDocumentDBO(logoDoc));
 
-    const payload: DraftCreationPayload = {
-      campaign: campaign.id,
-      subject: null,
-      body: null,
-      logo: [logoDoc.id, null],
-      writtenAt: null,
-      writtenFrom: null,
-      sender: null
-    };
+    afterEach(() => vi.restoreAllMocks());
 
-    const { body, status } = await request(url)
-      .post(testRoute)
-      .send(payload)
-      .use(tokenProvider(user));
-
-    expect(status).toBe(constants.HTTP_STATUS_CREATED);
-
-    const actualDraft = await Drafts().where({ id: body.id }).first() as DraftRecordDBO;
-    expect(actualDraft.logo_next_one).toBe(logoDoc.id);
-    expect(actualDraft.logo_next_two).toBeNull();
-  });
-});
-
-describe('PUT /api/drafts/:id — new-campaigns', () => {
-  let url: string;
-
-  beforeAll(async () => {
-    url = await createServer().testing();
-  });
-
-  const establishment = genEstablishmentApi();
-  const user = genUserApi(establishment.id);
-
-  beforeAll(async () => {
-    await Establishments().insert(formatEstablishmentApi(establishment));
-    await Users().insert(formatUserApi(user));
-  });
-
-  const testRoute = (id: string) => `/api/drafts/${id}`;
-  let draft: DraftApi;
-  let sender: SenderApi;
-
-  beforeEach(async () => {
-    vi.spyOn(posthogService, 'isFeatureEnabled').mockResolvedValue(true);
-    sender = genSenderApi(establishment);
-    draft = genDraftApi(establishment, sender);
-    await Senders().insert(formatSenderApi(sender));
-    await Drafts().insert(formatDraftApi(draft));
-  });
-
-  afterEach(() => vi.restoreAllMocks());
-
-  it('should update logoNext and signatory document', async () => {
-    const document = genDocumentApi({
-      establishmentId: establishment.id,
-      creator: user
+    it('should fall back to legacy handler when flag is off', async () => {
+      vi.spyOn(posthogService, 'isFeatureEnabled').mockResolvedValue(false);
+      const payload: DraftCreationPayloadDTO = {
+        campaign: campaign.id,
+        subject: null,
+        body: null,
+        logo: [],
+        writtenAt: null,
+        writtenFrom: null,
+        sender: null
+      };
+      const { status } = await request(url)
+        .post(testRoute)
+        .send(payload)
+        .use(tokenProvider(user));
+      expect(status).toBe(constants.HTTP_STATUS_CREATED);
     });
-    await Documents().insert(toDocumentDBO(document));
 
-    const payload: DraftUpdatePayload = {
-      id: draft.id,
-      subject: 'Updated',
-      body: null,
-      logo: [document.id, null],
-      writtenAt: null,
-      writtenFrom: null,
-      sender: {
-        name: null,
-        service: null,
-        firstName: null,
-        lastName: null,
-        address: null,
-        email: null,
-        phone: null,
-        signatories: [
-          {
-            firstName: 'Bob',
-            lastName: 'Martin',
-            role: 'DGA',
-            document: document.id
-          },
-          null
-        ]
-      }
-    };
+    it('should create a draft with logoNext [null, null] and signatories [null, null]', async () => {
+      const payload: DraftCreationPayload = {
+        campaign: campaign.id,
+        subject: 'Test',
+        body: 'Body',
+        logo: [null, null],
+        writtenAt: null,
+        writtenFrom: null,
+        sender: {
+          name: 'Mairie',
+          service: null,
+          firstName: null,
+          lastName: null,
+          address: null,
+          email: null,
+          phone: null,
+          signatories: [null, null]
+        }
+      };
 
-    const { body, status } = await request(url)
-      .put(testRoute(draft.id))
-      .send(payload)
-      .use(tokenProvider(user));
+      const { body, status } = await request(url)
+        .post(testRoute)
+        .send(payload)
+        .use(tokenProvider(user));
 
-    expect(status).toBe(constants.HTTP_STATUS_OK);
+      expect(status).toBe(constants.HTTP_STATUS_CREATED);
+      expect(body).toMatchObject({ logoNext: [null, null] });
 
-    const actualDraft = await Drafts().where({ id: draft.id }).first() as DraftRecordDBO;
-    expect(actualDraft.logo_next_one).toBe(document.id);
+      const actualSender = await Senders()
+        .where({ id: body.sender.id })
+        .first();
+      expect(actualSender!.signatory_one_document_id).toBeNull();
+      expect(actualSender!.signatory_two_document_id).toBeNull();
 
-    const actualSender = await Senders().where({ id: body.sender.id }).first() as SenderDBO;
-    expect(actualSender.signatory_one_document_id).toBe(document.id);
+      const actualDraft = await Drafts().where({ id: body.id }).first();
+      expect(actualDraft!.logo_next_one).toBeNull();
+      expect(actualDraft!.logo_next_two).toBeNull();
+    });
+
+    it('should link signatory document', async () => {
+      const document = genDocumentApi({
+        establishmentId: establishment.id,
+        creator: user
+      });
+      await Documents().insert(toDocumentDBO(document));
+
+      const payload: DraftCreationPayload = {
+        campaign: campaign.id,
+        subject: null,
+        body: null,
+        logo: [null, null],
+        writtenAt: null,
+        writtenFrom: null,
+        sender: {
+          name: null,
+          service: null,
+          firstName: null,
+          lastName: null,
+          address: null,
+          email: null,
+          phone: null,
+          signatories: [
+            {
+              firstName: 'Alice',
+              lastName: 'Dupont',
+              role: 'Maire',
+              document: document.id
+            },
+            null
+          ]
+        }
+      };
+
+      const { body, status } = await request(url)
+        .post(testRoute)
+        .send(payload)
+        .use(tokenProvider(user));
+
+      expect(status).toBe(constants.HTTP_STATUS_CREATED);
+
+      const actualSender = (await Senders()
+        .where({ id: body.sender.id })
+        .first()) as SenderDBO;
+      expect(actualSender.signatory_one_document_id).toBe(document.id);
+      expect(actualSender.signatory_two_document_id).toBeNull();
+    });
+
+    it('should link logo documents', async () => {
+      const logoDoc = genDocumentApi({
+        establishmentId: establishment.id,
+        creator: user
+      });
+      await Documents().insert(toDocumentDBO(logoDoc));
+
+      const payload: DraftCreationPayload = {
+        campaign: campaign.id,
+        subject: null,
+        body: null,
+        logo: [logoDoc.id, null],
+        writtenAt: null,
+        writtenFrom: null,
+        sender: null
+      };
+
+      const { body, status } = await request(url)
+        .post(testRoute)
+        .send(payload)
+        .use(tokenProvider(user));
+
+      expect(status).toBe(constants.HTTP_STATUS_CREATED);
+
+      const actualDraft = (await Drafts()
+        .where({ id: body.id })
+        .first()) as DraftRecordDBO;
+      expect(actualDraft.logo_next_one).toBe(logoDoc.id);
+      expect(actualDraft.logo_next_two).toBeNull();
+    });
   });
 
-  it('should fall back to legacy when flag is off', async () => {
-    vi.spyOn(posthogService, 'isFeatureEnabled').mockResolvedValue(false);
-    const payload = {
-      id: draft.id,
-      subject: 'Old',
-      body: null,
-      logo: [],
-      writtenAt: null,
-      writtenFrom: null,
-      sender: {
-        name: null,
-        service: null,
-        firstName: null,
-        lastName: null,
-        address: null,
-        email: null,
-        phone: null,
-        signatories: null
-      }
-    };
-    const { status } = await request(url)
-      .put(testRoute(draft.id))
-      .send(payload)
-      .use(tokenProvider(user));
-    expect(status).toBe(constants.HTTP_STATUS_OK);
+  describe('PUT /api/drafts/:id — new-campaigns', () => {
+    const establishment = genEstablishmentApi();
+    const user = genUserApi(establishment.id);
+
+    beforeAll(async () => {
+      await Establishments().insert(formatEstablishmentApi(establishment));
+      await Users().insert(formatUserApi(user));
+    });
+
+    const testRoute = (id: string) => `/api/drafts/${id}`;
+    let draft: DraftApi;
+    let sender: SenderApi;
+
+    beforeEach(async () => {
+      vi.spyOn(posthogService, 'isFeatureEnabled').mockResolvedValue(true);
+      sender = genSenderApi(establishment);
+      draft = genDraftApi(establishment, sender);
+      await Senders().insert(formatSenderApi(sender));
+      await Drafts().insert(formatDraftApi(draft));
+    });
+
+    afterEach(() => vi.restoreAllMocks());
+
+    it('should update logoNext and signatory document', async () => {
+      const document = genDocumentApi({
+        establishmentId: establishment.id,
+        creator: user
+      });
+      await Documents().insert(toDocumentDBO(document));
+
+      const payload: DraftUpdatePayload = {
+        id: draft.id,
+        subject: 'Updated',
+        body: null,
+        logo: [document.id, null],
+        writtenAt: null,
+        writtenFrom: null,
+        sender: {
+          name: null,
+          service: null,
+          firstName: null,
+          lastName: null,
+          address: null,
+          email: null,
+          phone: null,
+          signatories: [
+            {
+              firstName: 'Bob',
+              lastName: 'Martin',
+              role: 'DGA',
+              document: document.id
+            },
+            null
+          ]
+        }
+      };
+
+      const { body, status } = await request(url)
+        .put(testRoute(draft.id))
+        .send(payload)
+        .use(tokenProvider(user));
+
+      expect(status).toBe(constants.HTTP_STATUS_OK);
+
+      const actualDraft = (await Drafts()
+        .where({ id: draft.id })
+        .first()) as DraftRecordDBO;
+      expect(actualDraft.logo_next_one).toBe(document.id);
+
+      const actualSender = (await Senders()
+        .where({ id: body.sender.id })
+        .first()) as SenderDBO;
+      expect(actualSender.signatory_one_document_id).toBe(document.id);
+    });
+
+    it('should fall back to legacy when flag is off', async () => {
+      vi.spyOn(posthogService, 'isFeatureEnabled').mockResolvedValue(false);
+      const payload = {
+        id: draft.id,
+        subject: 'Old',
+        body: null,
+        logo: [],
+        writtenAt: null,
+        writtenFrom: null,
+        sender: {
+          name: null,
+          service: null,
+          firstName: null,
+          lastName: null,
+          address: null,
+          email: null,
+          phone: null,
+          signatories: null
+        }
+      };
+      const { status } = await request(url)
+        .put(testRoute(draft.id))
+        .send(payload)
+        .use(tokenProvider(user));
+      expect(status).toBe(constants.HTTP_STATUS_OK);
+    });
   });
 });

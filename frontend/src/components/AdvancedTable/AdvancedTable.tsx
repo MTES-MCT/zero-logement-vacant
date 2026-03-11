@@ -56,9 +56,9 @@ export type AdvancedTableProps<Data extends object> = Pick<
      */
     getRowSelectionLabel?(row: Data): string;
     /**
-     * Accessible caption for the table (RGAA 5.4).
-     * Rendered as a visually-hidden <caption> (fr-sr-only) inside <table>.
-     * Required when the table has a visible title elsewhere on the page.
+     * Accessible label for the table (RGAA 5.4).
+     * Rendered as aria-label on the <table> element.
+     * Use alongside noCaption: true in tableProps to preserve DSFR padding.
      */
     caption?: string;
   };
@@ -177,10 +177,7 @@ function AdvancedTable<Data extends object>(props: AdvancedTableProps<Data>) {
         <div className={fr.cx('fr-table__wrapper')}>
           <div className={fr.cx('fr-table__container')}>
             <div className={fr.cx('fr-table__content')}>
-              <table>
-                {props.caption && (
-                  <caption className={fr.cx('fr-sr-only')}>{props.caption}</caption>
-                )}
+              <table aria-label={props.caption}>
                 <thead>
                   <tr>
                     {!enableSelection ? null : (

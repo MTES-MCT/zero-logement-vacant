@@ -376,6 +376,7 @@ jobs:
           clever env set TEST_PASSWORD "$TEST_PASSWORD" -a $APP_ALIAS
           clever env set METABASE_DOMAIN "$METABASE_DOMAIN" -a $APP_ALIAS
           clever env set METABASE_API_TOKEN "$METABASE_API_TOKEN" -a $APP_ALIAS
+          clever env set POSTHOG_API_KEY "unused" -a $APP_ALIAS
 
       - name: Deploy the app
         run: |

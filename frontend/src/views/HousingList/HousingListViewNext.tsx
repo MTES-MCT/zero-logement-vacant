@@ -181,28 +181,35 @@ const HousingListView = () => {
             <Stack spacing="1rem" useFlexGap>
               <Stack
                 direction="row"
-                component="section"
-                sx={{ justifyContent: 'flex-end' }}
+                component="ul"
+                role="list"
+                sx={{ justifyContent: 'flex-end', listStyle: 'none', padding: 0, margin: 0 }}
               >
-                {!isVisitor && <HousingCreationModal onFinish={onFinish} />}
+                {!isVisitor && (
+                  <li role="listitem">
+                    <HousingCreationModal onFinish={onFinish} />
+                  </li>
+                )}
 
-                <Button
-                  className="fr-ml-3v"
-                  priority="primary"
-                  iconId="fr-icon-building-line"
-                  onClick={() => {
-                    if (hasSelected) {
-                      groupAddHousingModal.open();
-                      if (showExportAlert) {
-                        setShowExportAlert(false);
+                <li role="listitem">
+                  <Button
+                    className="fr-ml-3v"
+                    priority="primary"
+                    iconId="fr-icon-building-line"
+                    onClick={() => {
+                      if (hasSelected) {
+                        groupAddHousingModal.open();
+                        if (showExportAlert) {
+                          setShowExportAlert(false);
+                        }
+                      } else {
+                        setShowExportAlert(true);
                       }
-                    } else {
-                      setShowExportAlert(true);
-                    }
-                  }}
-                >
-                  Intégrer dans un groupe
-                </Button>
+                    }}
+                  >
+                    Intégrer dans un groupe
+                  </Button>
+                </li>
               </Stack>
 
               <Alert

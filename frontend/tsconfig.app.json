@@ -40,6 +40,9 @@
       "path": "../queue/tsconfig.app.json"
     },
     {
+      "path": "../packages/pdf/tsconfig.lib.json"
+    },
+    {
       "path": "../packages/models/tsconfig.lib.json"
     }
   ]

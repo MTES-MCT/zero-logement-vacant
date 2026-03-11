@@ -1,25 +1,34 @@
 import Grid from '@mui/material/Grid';
 import Typography from '@mui/material/Typography';
-import { match } from 'ts-pattern';
+import type { DocumentDTO } from '@zerologementvacant/models';
 import { useFormContext } from 'react-hook-form';
+import { match } from 'ts-pattern';
 
+import Stack from '@mui/material/Stack';
+import { skipToken } from '@reduxjs/toolkit/query';
 import DraftDocumentUpload from '~/components/Draft/DraftDocumentUpload';
 import type { DraftFormSchema } from '~/components/Draft/DraftForm';
-import styles from './draft.module.scss';
+import DocumentPreview from '~/components/FileUpload/DocumentPreview';
+import { useGetDocumentQuery } from '~/services/document.service';
 import AppTextInputNext from '../_app/AppTextInput/AppTextInputNext';
-import type { DocumentDTO } from '@zerologementvacant/models';
+import styles from './draft.module.scss';
 
 function DraftSignatureNext() {
-  const { setValue } = useFormContext<DraftFormSchema>();
+  const { watch, setValue } = useFormContext<DraftFormSchema>();
 
-  function onUpload(index: 0 | 1): (documents: ReadonlyArray<DocumentDTO>) => void {
+  const document0 = watch('sender.signatories.0.document');
+  const document1 = watch('sender.signatories.1.document');
+  const documentQuery0 = useGetDocumentQuery(document0 ?? skipToken);
+  const documentQuery1 = useGetDocumentQuery(document1 ?? skipToken);
+
+  function onUpload(
+    index: 0 | 1
+  ): (documents: ReadonlyArray<DocumentDTO>) => void {
     return (documents) => {
-      const doc = documents[0] ?? null;
-      setValue(
-        `sender.signatories.${index}.document`,
-        doc?.id ?? null,
-        { shouldDirty: true }
-      );
+      const document = documents[0] ?? null;
+      setValue(`sender.signatories.${index}.document`, document?.id ?? null, {
+        shouldDirty: true
+      });
     };
   }
 
@@ -32,16 +41,23 @@ function DraftSignatureNext() {
 
   return (
     <Grid
-      className={styles.article}
       container
       component="article"
       role="group"
-      alignItems="flex-start"
-      justifyContent="flex-end"
+      sx={{
+        alignItems: 'flex-start',
+        justifyContent: 'flex-end'
+      }}
       size={{ xs: 12, md: 10 }}
       offset={{ xs: 0, md: 2 }}
+      spacing="1rem"
     >
-      <Grid container size={{ xs: 12, md: 6 }} spacing="1rem">
+      <Grid
+        className={styles.article}
+        container
+        size={{ xs: 12, md: 6 }}
+        spacing="1rem"
+      >
         <Grid size={12}>
           <Typography component="h4" variant="h6">
             {title(0)}
@@ -70,14 +86,25 @@ function DraftSignatureNext() {
         </Grid>
 
         <Grid size={12}>
-          <DraftDocumentUpload
-            label={title(0)}
-            onUpload={onUpload(0)}
-          />
+          <Stack direction="column" spacing="1rem">
+            <DraftDocumentUpload label={title(0)} onUpload={onUpload(0)} />
+            <DocumentPreview
+              document={documentQuery0.data}
+              isError={documentQuery0.isError}
+              isLoading={documentQuery0.isLoading}
+              responsive="max-width"
+              fit="contain"
+            />
+          </Stack>
         </Grid>
       </Grid>
 
-      <Grid container size={{ xs: 12, md: 6 }} spacing="1rem">
+      <Grid
+        className={styles.article}
+        container
+        size={{ xs: 12, md: 6 }}
+        spacing="1rem"
+      >
         <Grid size={12}>
           <Typography component="h4" variant="h6">
             {title(1)}
@@ -106,10 +133,16 @@ function DraftSignatureNext() {
         </Grid>
 
         <Grid size={12}>
-          <DraftDocumentUpload
-            label={title(1)}
-            onUpload={onUpload(1)}
-          />
+          <Stack direction="column" spacing="1rem">
+            <DraftDocumentUpload label={title(1)} onUpload={onUpload(1)} />
+            <DocumentPreview
+              document={documentQuery1.data}
+              isError={documentQuery1.isError}
+              isLoading={documentQuery1.isLoading}
+              responsive="max-width"
+              fit="contain"
+            />
+          </Stack>
         </Grid>
       </Grid>
     </Grid>

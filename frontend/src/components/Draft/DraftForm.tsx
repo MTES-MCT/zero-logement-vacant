@@ -2,12 +2,7 @@ import { yupResolver } from '@hookform/resolvers/yup';
 import Grid from '@mui/material/Grid';
 import type { SignatoryPayload } from '@zerologementvacant/models';
 import schemas from '@zerologementvacant/schemas';
-import {
-  FormProvider,
-  useForm,
-  type Resolver,
-  type SubmitHandler
-} from 'react-hook-form';
+import { FormProvider, useForm, type SubmitHandler } from 'react-hook-form';
 import { type InferType } from 'yup';
 
 import type { Draft } from '~/models/Draft';
@@ -61,9 +56,7 @@ function DraftForm(props: Readonly<DraftFormProps>) {
         ]
       }
     },
-    resolver: yupResolver(
-      schemas.draftUpdatePayload
-    ) as Resolver<DraftFormSchema>
+    resolver: yupResolver(schemas.draftUpdatePayload)
   });
 
   const submit: SubmitHandler<DraftFormSchema> = async (data) => {

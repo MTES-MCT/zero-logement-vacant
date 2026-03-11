@@ -9,6 +9,7 @@ export const signatory = object({
   document: string().uuid().optional().nullable().default(null)
 });
 
+const NULL_LOGO: [null, null] = [null, null];
 const NULL_SIGNATORIES: [null, null] = [null, null];
 
 export const sender = object({
@@ -39,8 +40,8 @@ export const draftCreationPayload = object({
   ])
     .optional()
     .nullable()
-    .transform((value) => value ?? [null, null])
-    .default([null, null]),
+    .transform((value) => value ?? NULL_LOGO)
+    .default(NULL_LOGO),
   sender: sender.optional().nullable().default(null),
   writtenAt: dateString.optional().nullable().default(null),
   writtenFrom: string().optional().nullable().default(null)

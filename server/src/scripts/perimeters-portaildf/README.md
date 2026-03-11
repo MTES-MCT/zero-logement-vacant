@@ -52,13 +52,27 @@ export POSTGRESQL_ADDON_USER="your_username"
 export POSTGRESQL_ADDON_PASSWORD="your_password"
 ```
 
-**Note**: Le script `cerema-sync.sh` s'authentifie automatiquement à chaque exécution :
+**Note**: Le script `cerema-sync.sh` s'authentifie automatiquement à chaque exécution.
+
+### Authentication Versions
+
+L'API Portail DF supporte deux versions d'authentification :
+
+| Version | Endpoint | Response | Header | URL |
+|---------|----------|----------|--------|-----|
+| **V1** (legacy) | `POST /api/api-token-auth/` | `{ "token": "..." }` | `Authorization: Token <token>` | `https://portaildf.cerema.fr` |
+| **V2** (DataFoncier) | `POST /api/token/` | `{ "access": "...", "refresh": "..." }` | `Authorization: Bearer <access>` | `https://datafoncier.cerema.fr` |
+
+#### Configuration (variables d'environnement)
+
 ```bash
-# Authentication is done automatically by cerema-sync.sh
-# It calls: POST https://portaildf.cerema.fr/api/api-token-auth/
-# With form-data: username=xxx&password=xxx
-# Response: {"token": "222a9ac058496742ff2922533d90847621314629"}
-# The token is then used as CEREMA_BEARER_TOKEN for API calls
+# V1 (défaut)
+export CEREMA_AUTH_VERSION=v1
+export CEREMA_API=https://portaildf.cerema.fr
+
+# V2 (nouvelle API DataFoncier)
+export CEREMA_AUTH_VERSION=v2
+export CEREMA_API_V2=https://datafoncier.cerema.fr
 ```
 
 ### 2. Data Retrieval
@@ -359,57 +373,59 @@ python cerema-scraper.py --max-retries 5
 
 ### API Token Authentication
 
+#### V1 Authentication (Legacy)
+
 ```bash
-# Method 1: Using curl
+# Using curl
 curl -X POST https://portaildf.cerema.fr/api/api-token-auth/ \
     -H "Content-Type: application/json" \
     -d '{"username": "your_username", "password": "your_password"}'
 
-# Method 2: Using Python
-python -c "
-import requests
-import json
-
-response = requests.post(
-        'https://portaildf.cerema.fr/api/api-token-auth/',
-        headers={'Content-Type': 'application/json'},
-        data=json.dumps({
-                'username': 'your_username',
-                'password': 'your_password'
-        })
-)
-
-if response.status_code == 200:
-        token = response.json()['token']
-        print(f'export CEREMA_BEARER_TOKEN=\"{token}\"')
-else:
-        print(f'Error: {response.status_code} - {response.text}')
-"
-
-# Method 3: Using Postman
-# 1. Create a new POST request to https://portaildf.cerema.fr/api/api-token-auth/
-# 2. Set Headers: Content-Type: application/json
-# 3. Set Body to raw JSON:
-#    {
-#      "username": "your_username",
-#      "password": "your_password"
-#    }
-# 4. Send the request
-# 5. Copy the token value from the response
+# Response: { "token": "abcd1234..." }
+# Use as: Authorization: Token abcd1234...
 ```
 
-**Response format:**
-```json
-{
-  "token": "abcd1234567890abcdef1234567890abcdef12"
-}
+#### V2 Authentication (DataFoncier)
+
+```bash
+# Using curl
+curl -X POST https://datafoncier.cerema.fr/api/token/ \
+    -H "Content-Type: application/json" \
+    -d '{"username": "your_username", "password": "your_password"}'
+
+# Response: { "access": "eyJ0...", "refresh": "eyJ0..." }
+# Use as: Authorization: Bearer eyJ0...
+```
+
+#### Using Python
+
+```python
+import requests
+
+# V1
+response = requests.post(
+    'https://portaildf.cerema.fr/api/api-token-auth/',
+    headers={'Content-Type': 'application/json'},
+    json={'username': 'your_username', 'password': 'your_password'}
+)
+token = response.json()['token']
+print(f'Authorization: Token {token}')
+
+# V2
+response = requests.post(
+    'https://datafoncier.cerema.fr/api/token/',
+    headers={'Content-Type': 'application/json'},
+    json={'username': 'your_username', 'password': 'your_password'}
+)
+access = response.json()['access']
+print(f'Authorization: Bearer {access}')
 ```
 
 **Important Notes:**
-- Tokens don't expire automatically but may be revoked
+- V1 tokens don't expire automatically but may be revoked
+- V2 tokens (JWT) have expiration times
 - Store tokens securely using environment variables
 - Never commit tokens to version control
-- Regenerate tokens if compromised
 
 #### 5. File Permission Errors
 ```bash

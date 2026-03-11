@@ -1,36 +1,25 @@
 import { CeremaUser, ConsultUserService } from './consultUserService';
+import { createAuthProvider } from './ceremaAuthProvider';
 
-import config from '~/infra/config';
 import { logger } from '~/infra/logger';
 
 export class CeremaService implements ConsultUserService {
+  private authProvider = createAuthProvider();
 
   async consultUsers(email: string): Promise<CeremaUser[]> {
     try {
+      const { token, authPrefix, apiUrl } =
+        await this.authProvider.authenticate();
 
-      const authResponse = await fetch(
-        `${config.cerema.api}/api/api-token-auth/`,
-        {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify({
-            username: config.cerema.username,
-            password: config.cerema.password,
-          }),
-        }
-      );
-      const { token }: any = await authResponse.json();
       const userResponse = await fetch(
-        `${config.cerema.api}/api/utilisateurs?email=${email}`,
+        `${apiUrl}/api/utilisateurs?email=${email}`,
         {
           method: 'GET',
           headers: {
-            Authorization: `Token ${token}`,
-            'Content-Type': 'application/json',
-          },
-        },
+            Authorization: `${authPrefix} ${token}`,
+            'Content-Type': 'application/json'
+          }
+        }
       );
       const userContent: any = await userResponse.json();
       if (userResponse.status !== 200) {
@@ -38,32 +27,38 @@ export class CeremaService implements ConsultUserService {
       }
 
       if (userContent) {
-        const users = await Promise.all(userContent.results.map(
-          async (user: { email: any; structure: number; }) => {
-            const establishmentResponse = await fetch(
-              `${config.cerema.api}/api/structures/${user.structure}`,
-              {
-                method: 'GET',
-                headers: {
-                  Authorization: `Token ${token}`,
-                  'Content-Type': 'application/json',
-                },
-              },
-            );
-            
-            const establishmentContent: any = await establishmentResponse.json();
-            if (establishmentResponse.status !== 200) {
-              throw establishmentContent.detail;
-            }
+        const users = await Promise.all(
+          userContent.results.map(
+            async (user: { email: any; structure: number }) => {
+              const establishmentResponse = await fetch(
+                `${apiUrl}/api/structures/${user.structure}`,
+                {
+                  method: 'GET',
+                  headers: {
+                    Authorization: `${authPrefix} ${token}`,
+                    'Content-Type': 'application/json'
+                  }
+                }
+              );
 
-            const u = {
-              email: user.email,
-              establishmentSiren: parseInt(establishmentContent.siret.substring(0, 9)),
-              hasAccount: true,
-              hasCommitment: establishmentContent.acces_lovac !== null,
-            };
-            return u;
-        }));
+              const establishmentContent: any =
+                await establishmentResponse.json();
+              if (establishmentResponse.status !== 200) {
+                throw establishmentContent.detail;
+              }
+
+              const u = {
+                email: user.email,
+                establishmentSiren: parseInt(
+                  establishmentContent.siret.substring(0, 9)
+                ),
+                hasAccount: true,
+                hasCommitment: establishmentContent.acces_lovac !== null
+              };
+              return u;
+            }
+          )
+        );
         return users;
       }
       return [];

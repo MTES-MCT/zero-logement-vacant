@@ -379,7 +379,7 @@ jobs:
 
       - name: Deploy the app
         run: |
-          clever domain add $APP_ALIAS.cleverapps.io -a $APP_ALIAS || true
+          clever domain add $APP_ALIAS.cleverapps.io -a $APP_ALIAS
           clever deploy -a $APP_ALIAS --same-commit-policy rebuild
 
   deploy-queue:
@@ -534,7 +534,7 @@ jobs:
 
       - name: Deploy the app
         run: |
-          clever domain add $APP_ALIAS.cleverapps.io -a $APP_ALIAS || true
+          clever domain add $APP_ALIAS.cleverapps.io -a $APP_ALIAS
           clever deploy -a $APP_ALIAS --same-commit-policy rebuild
 
       - name: Scale down for the run
@@ -595,7 +595,7 @@ jobs:
 
       - name: Deploy the app
         run: |
-          clever domain add $APP_ALIAS.cleverapps.io -a $APP_ALIAS || true
+          clever domain add $APP_ALIAS.cleverapps.io -a $APP_ALIAS
           clever deploy -a $APP_ALIAS --same-commit-policy rebuild
 
       - name: Scale down for the run

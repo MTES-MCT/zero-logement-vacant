@@ -1,15 +1,17 @@
 import { yupResolver } from '@hookform/resolvers/yup';
 import Grid from '@mui/material/Grid';
+import Stack from '@mui/material/Stack';
 import type { SignatoryPayload } from '@zerologementvacant/models';
 import schemas from '@zerologementvacant/schemas';
 import { FormProvider, useForm, type SubmitHandler } from 'react-hook-form';
 import { type InferType } from 'yup';
 
-import type { Draft } from '~/models/Draft';
 import DraftBodyNext from '~/components/Draft/DraftBodyNext';
 import DraftRedaction from '~/components/Draft/DraftRedaction';
+import DraftSenderLogoNext from '~/components/Draft/DraftSenderLogoNext';
 import DraftSenderNext from '~/components/Draft/DraftSenderNext';
 import DraftSignatureNext from '~/components/Draft/DraftSignatureNext';
+import type { Draft } from '~/models/Draft';
 import { useUpdateDraftNextMutation } from '~/services/draft.service';
 
 export type DraftFormSchema = InferType<typeof schemas.draftUpdatePayload>;
@@ -80,7 +82,10 @@ function DraftForm(props: Readonly<DraftFormProps>) {
       <form id="draft-form" onSubmit={form.handleSubmit(submit)}>
         <Grid container spacing="1rem">
           <Grid size={{ xs: 12, md: 5 }}>
-            <DraftRedaction />
+            <Stack spacing="1rem" useFlexGap>
+              <DraftSenderLogoNext />
+              <DraftRedaction />
+            </Stack>
           </Grid>
 
           <Grid size={{ xs: 12, md: 7 }}>

@@ -5,7 +5,10 @@ import DocumentUpload, {
 } from '~/components/FileUpload/DocumentUpload';
 import { useDocumentUpload } from '~/components/FileUpload/useDocumentUpload';
 
-export type DraftDocumentUploadProps = Pick<DocumentUploadProps, 'label'> & {
+export type DraftDocumentUploadProps = Pick<
+  DocumentUploadProps,
+  'hint' | 'label'
+> & {
   /**
    * Called every time documents are successfully uploaded.
    * @param document
@@ -14,20 +17,20 @@ export type DraftDocumentUploadProps = Pick<DocumentUploadProps, 'label'> & {
 };
 
 function DraftDocumentUpload(props: Readonly<DraftDocumentUploadProps>) {
+  const { onUpload, ...documentUploadProps } = props;
   const { error, isError, isLoading, isSuccess, upload } = useDocumentUpload({
-    onUpload: props.onUpload
+    onUpload
   });
 
   return (
     <DocumentUpload
+      {...documentUploadProps}
       id="draft-document-upload"
       accept={DEFAULT_EXTENSIONS}
       error={error}
-      hint="Taille maximale par fichier : 5Mo. Formats supportés : pdf, jpg, png"
       isError={isError}
       isLoading={isLoading}
       isSuccess={isSuccess}
-      label={props.label ?? 'Ajouter un fichier'}
       maxSize={5}
       multiple={false}
       onUpload={upload}

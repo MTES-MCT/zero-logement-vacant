@@ -2,7 +2,6 @@ import Grid from '@mui/material/Grid';
 import Typography from '@mui/material/Typography';
 import type { DocumentDTO } from '@zerologementvacant/models';
 import { useFormContext } from 'react-hook-form';
-import { match } from 'ts-pattern';
 
 import Stack from '@mui/material/Stack';
 import { skipToken } from '@reduxjs/toolkit/query';
@@ -21,22 +20,13 @@ function DraftSignatureNext() {
   const documentQuery0 = useGetDocumentQuery(document0 ?? skipToken);
   const documentQuery1 = useGetDocumentQuery(document1 ?? skipToken);
 
-  function onUpload(
-    index: 0 | 1
-  ): (documents: ReadonlyArray<DocumentDTO>) => void {
-    return (documents) => {
+  function onUpload(index: 0 | 1) {
+    return (documents: ReadonlyArray<DocumentDTO>): void => {
       const document = documents[0] ?? null;
       setValue(`sender.signatories.${index}.document`, document?.id ?? null, {
         shouldDirty: true
       });
     };
-  }
-
-  function title(index: number): string {
-    return match(index)
-      .with(0, () => 'Signature du premier expéditeur')
-      .with(1, () => 'Signature du second expéditeur')
-      .otherwise(() => "Signature de l'expéditeur");
   }
 
   return (
@@ -60,7 +50,7 @@ function DraftSignatureNext() {
       >
         <Grid size={12}>
           <Typography component="h4" variant="h6">
-            {title(0)}
+            Signature du premier expéditeur
           </Typography>
         </Grid>
 
@@ -87,7 +77,7 @@ function DraftSignatureNext() {
 
         <Grid size={12}>
           <Stack direction="column" spacing="1rem">
-            <DraftDocumentUpload label={title(0)} onUpload={onUpload(0)} />
+            <DraftDocumentUpload onUpload={onUpload(0)} />
             <DocumentPreview
               document={documentQuery0.data}
               isError={documentQuery0.isError}
@@ -107,7 +97,7 @@ function DraftSignatureNext() {
       >
         <Grid size={12}>
           <Typography component="h4" variant="h6">
-            {title(1)}
+            Signature du second expéditeur
           </Typography>
         </Grid>
 
@@ -134,7 +124,7 @@ function DraftSignatureNext() {
 
         <Grid size={12}>
           <Stack direction="column" spacing="1rem">
-            <DraftDocumentUpload label={title(1)} onUpload={onUpload(1)} />
+            <DraftDocumentUpload onUpload={onUpload(1)} />
             <DocumentPreview
               document={documentQuery1.data}
               isError={documentQuery1.isError}

@@ -946,7 +946,7 @@ describe('Group API', () => {
 
       beforeEach(async () => {
         campaign = {
-          ...genCampaignApi(establishment.id, user.id),
+          ...genCampaignApi(establishment.id, user),
           groupId: group.id
         };
         await Campaigns().insert(

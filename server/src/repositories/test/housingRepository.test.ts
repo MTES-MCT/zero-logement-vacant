@@ -544,7 +544,7 @@ describe('Housing repository', () => {
 
         beforeEach(async () => {
           campaigns = faker.helpers.multiple(
-            () => genCampaignApi(establishment.id, user.id),
+            () => genCampaignApi(establishment.id, user),
             { count: 3 }
           );
           await Campaigns().insert(campaigns.map(formatCampaignApi));
@@ -2681,7 +2681,7 @@ describe('Housing repository', () => {
     it('should remove the links with a campaign in cascade', async () => {
       const housing = genHousingApi();
       await Housing().insert(formatHousingRecordApi(housing));
-      const campaign = genCampaignApi(establishment.id, user.id);
+      const campaign = genCampaignApi(establishment.id, user);
       await Campaigns().insert(formatCampaignApi(campaign));
       await CampaignsHousing().insert(
         formatCampaignHousingApi(campaign, [housing])

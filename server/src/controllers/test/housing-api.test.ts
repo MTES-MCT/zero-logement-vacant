@@ -1016,7 +1016,7 @@ describe('Housing API', () => {
       const { housings } = await createHousings({
         status: HousingStatus.WAITING
       });
-      const campaign = genCampaignApi(establishment.id, user.id);
+      const campaign = genCampaignApi(establishment.id, user);
       await Campaigns().insert(formatCampaignApi(campaign));
       await CampaignsHousing().insert(
         formatCampaignHousingApi(campaign, housings)

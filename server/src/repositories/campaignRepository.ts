@@ -8,6 +8,7 @@ import { CampaignApi, CampaignSortApi } from '~/models/CampaignApi';
 import { CampaignFiltersApi } from '~/models/CampaignFiltersApi';
 import { sortQuery } from '~/models/SortApi';
 import eventRepository from '~/repositories/eventRepository';
+import { parseUserApi, UserDBO, usersTable } from '~/repositories/userRepository';
 
 export const campaignsTable = 'campaigns';
 export const Campaigns = (transaction = db) =>
@@ -20,8 +21,7 @@ interface FindOneOptions {
 
 const findOne = async (opts: FindOneOptions): Promise<CampaignApi | null> => {
   logger.debug('Finding campaign...', opts);
-  const campaign: CampaignDBO | undefined = await Campaigns()
-    .modify(filterQuery(opts))
+  const campaign: CampaignDBO | undefined = await listQuery(opts)
     .where(`${campaignsTable}.id`, opts.id)
     .first();
   if (!campaign) {
@@ -38,21 +38,28 @@ interface FindOptions {
 }
 
 const find = async (opts: FindOptions): Promise<CampaignApi[]> => {
-  const campaigns: CampaignDBO[] = await Campaigns()
-    .modify(filterQuery(opts.filters))
+  const campaigns: CampaignDBO[] = await listQuery(opts.filters)
     .modify(campaignSortQuery(opts.sort))
     .orderBy('created_at');
 
   return campaigns.map(parseCampaignApi);
 };
 
+function listQuery(filters: CampaignFiltersApi) {
+  return Campaigns()
+    .select(`${campaignsTable}.*`)
+    .select(db.raw(`to_json(${usersTable}.*) as creator`))
+    .join(usersTable, `${usersTable}.id`, `${campaignsTable}.user_id`)
+    .modify(filterQuery(filters));
+}
+
 const filterQuery = (filters: CampaignFiltersApi) => {
   return function (query: Knex.QueryBuilder<CampaignDBO>) {
     if (filters?.establishmentId) {
-      query.where('establishment_id', filters.establishmentId);
+      query.where(`${campaignsTable}.establishment_id`, filters.establishmentId);
     }
     if (filters.groupIds?.length) {
-      query.whereIn('group_id', filters.groupIds);
+      query.whereIn(`${campaignsTable}.group_id`, filters.groupIds);
     }
   };
 };
@@ -136,6 +143,8 @@ export interface CampaignDBO {
   confirmed_at?: Date;
   establishment_id: string;
   group_id?: string;
+  return_count: number;
+  creator?: UserDBO;
 }
 
 export const parseCampaignApi = (campaign: CampaignDBO): CampaignApi => ({
@@ -145,15 +154,17 @@ export const parseCampaignApi = (campaign: CampaignDBO): CampaignApi => ({
   filters: campaign.filters,
   file: campaign.file,
   userId: campaign.user_id,
+  createdBy: parseUserApi(campaign.creator!),
   createdAt: campaign.created_at.toJSON(),
   validatedAt: campaign.validated_at?.toJSON(),
   exportedAt: campaign.exported_at?.toJSON(),
-  sentAt: campaign.sent_at?.toJSON(),
+  sentAt: campaign.sent_at?.toJSON()?.slice(0, 'yyyy-mm-dd'.length) ?? null,
   archivedAt: campaign.archived_at?.toJSON(),
   confirmedAt: campaign.confirmed_at?.toJSON(),
   title: campaign.title,
   description: campaign.description,
-  groupId: campaign.group_id
+  groupId: campaign.group_id,
+  returnCount: campaign.sent_at ? campaign.return_count : null
 });
 
 export const formatCampaignApi = (campaign: CampaignApi): CampaignDBO => ({
@@ -170,12 +181,15 @@ export const formatCampaignApi = (campaign: CampaignApi): CampaignDBO => ({
     ? new Date(campaign.validatedAt)
     : undefined,
   exported_at: campaign.exportedAt ? new Date(campaign.exportedAt) : undefined,
-  sent_at: campaign.sentAt ? new Date(campaign.sentAt) : undefined,
+  sent_at: campaign.sentAt
+    ? new Date(campaign.sentAt?.slice(0, 'yyyy-mm-dd'.length))
+    : undefined,
   archived_at: campaign.archivedAt ? new Date(campaign.archivedAt) : undefined,
   confirmed_at: campaign.confirmedAt
     ? new Date(campaign.confirmedAt)
     : undefined,
-  group_id: campaign.groupId
+  group_id: campaign.groupId,
+  return_count: campaign.returnCount ?? 0
 });
 
 export default {

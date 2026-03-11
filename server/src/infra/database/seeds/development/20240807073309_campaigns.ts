@@ -10,7 +10,7 @@ import {
 } from '~/repositories/campaignRepository';
 import { Establishments } from '~/repositories/establishmentRepository';
 import { genCampaignApi } from '~/test/testFixtures';
-import { Users } from '~/repositories/userRepository';
+import { parseUserApi, Users } from '~/repositories/userRepository';
 import { Groups, parseGroupApi } from '~/repositories/groupRepository';
 import { Housing } from '~/repositories/housingRepository';
 import {
@@ -38,7 +38,7 @@ export async function seed(knex: Knex): Promise<void> {
           () => parseGroupApi(faker.helpers.arrayElement(groups)),
           { probability: 0.1 }
         );
-        return genCampaignApi(establishment.id, creator.id, group);
+        return genCampaignApi(establishment.id, parseUserApi(creator), group);
       },
       {
         count: { min: 1, max: 5 }

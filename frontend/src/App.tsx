@@ -7,36 +7,37 @@ import {
   RouterProvider
 } from 'react-router-dom';
 
-import ProfileLayout from '~/views/Account/Profile/ProfileLayout';
-import './App.scss';
 import { useAppDispatch, useAppSelector } from '~/hooks/useStore';
 import AuthenticatedLayout from '~/layouts/AuthenticatedLayout';
+import FeatureFlagLayout from '~/layouts/FeatureFlagLayout';
 import GuestLayout from '~/layouts/GuestLayout';
 import sentry from '~/utils/sentry';
 import AccountCreationView from '~/views/Account/AccountCreationView';
 import AccountView from '~/views/Account/AccountView';
 import ForgottenPasswordView from '~/views/Account/ForgottenPasswordView';
+import ProfileLayout from '~/views/Account/Profile/ProfileLayout';
 import TerritoryEstablishmentsView from '~/views/Account/Profile/TerritoryEstablishmentsView';
 import UsersView from '~/views/Account/Profile/UsersView';
 import ResetPasswordView from '~/views/Account/ResetPasswordView';
 import AnalysisView from '~/views/Analysis/AnalysisView';
 import CampaignListView from '~/views/Campaign/CampaignListView';
 import CampaignView from '~/views/Campaign/CampaignView';
+import CampaignViewNext from '~/views/Campaign/CampaignViewNext';
 import GroupView from '~/views/Group/GroupView';
 import GroupViewNext from '~/views/Group/GroupViewNext';
+import HousingOwnersView from '~/views/Housing/HousingOwnersView';
 import HousingView from '~/views/Housing/HousingView';
 import HousingListTabsProvider from '~/views/HousingList/HousingListTabsProvider';
 import HousingListView from '~/views/HousingList/HousingListView';
 import HousingListViewNext from '~/views/HousingList/HousingListViewNext';
 import LoginView from '~/views/Login/LoginView';
+import TwoFactorView from '~/views/Login/TwoFactorView';
 import NotFoundView from '~/views/NotFoundView';
 import OwnerView from '~/views/Owner/OwnerView';
 import ResourcesView from '~/views/Resources/ResourcesView';
 import StatusView from '~/views/Resources/StatusView';
-import HousingOwnersView from '~/views/Housing/HousingOwnersView';
 import SiteMapView from '~/views/SiteMapView';
-import TwoFactorView from '~/views/Login/TwoFactorView';
-import FeatureFlagLayout from './layouts/FeatureFlagLayout';
+import './App.scss';
 
 const router = sentry.createBrowserRouter(
   createRoutesFromElements(
@@ -79,8 +80,16 @@ const router = sentry.createBrowserRouter(
           }
         />
         <Route path="/campagnes" element={<CampaignListView />} />
-        <Route path="/campagnes/:id" element={<CampaignView />} />
-
+        <Route
+          path="/campagnes/:id"
+          element={
+            <FeatureFlagLayout
+              flag="new-campaigns"
+              then={<CampaignViewNext />}
+              else={<CampaignView />}
+            />
+          }
+        />
         <Route path="/proprietaires/:id" element={<OwnerView />} />
         <Route path="/logements/:housingId" element={<HousingView />} />
         <Route

@@ -10,6 +10,7 @@ import {
   CampaignDTO,
   CampaignRemovalPayloadDTO,
   CampaignStatus,
+  CampaignUpdatePayload,
   CampaignUpdatePayloadDTO,
   DATA_FILE_YEAR_VALUES,
   ENERGY_CONSUMPTION_VALUES,
@@ -25,13 +26,16 @@ import {
   OWNERSHIP_KIND_VALUES,
   ROOM_COUNT_VALUES,
   VACANCY_RATE_VALUES,
-  VACANCY_YEAR_VALUES
+  VACANCY_YEAR_VALUES,
+  type CampaignCreationPayload,
+  type UserDTO
 } from '@zerologementvacant/models';
 import { isDefined } from '@zerologementvacant/utils';
 import { constants } from 'http2';
 import randomstring from 'randomstring';
 import request from 'supertest';
 import { v4 as uuidv4 } from 'uuid';
+import { vi } from 'vitest';
 
 import { createServer } from '~/infra/server';
 import { CampaignApi } from '~/models/CampaignApi';
@@ -76,13 +80,16 @@ import {
 } from '~/repositories/housingOwnerRepository';
 import {
   formatHousingRecordApi,
-  Housing
+  Housing,
+  type HousingRecordDBO
 } from '~/repositories/housingRepository';
 import { formatOwnerApi, Owners } from '~/repositories/ownerRepository';
 import { formatSenderApi, Senders } from '~/repositories/senderRepository';
 import { formatUserApi, Users } from '~/repositories/userRepository';
+import * as posthogService from '~/services/posthogService';
 import {
   genCampaignApi,
+  genCampaignApiNext,
   genDraftApi,
   genEstablishmentApi,
   genEventApi,
@@ -111,10 +118,22 @@ describe('Campaign API', () => {
   });
 
   describe('GET /campaigns/{id}', () => {
-    const campaign = genCampaignApi(establishment.id, user.id);
+    const group = genGroupApi(user, establishment);
+    const campaign = genCampaignApiNext({
+      group,
+      creator: user,
+      establishment
+    });
+    campaign.sentAt = faker.date
+      .past()
+      .toISOString()
+      .slice(0, 'yyyy-mm-dd'.length);
+    campaign.returnCount = 0;
+
     const testRoute = (id: string) => `/api/campaigns/${id}`;
 
     beforeAll(async () => {
+      await Groups().insert(formatGroupApi(group));
       await Campaigns().insert(formatCampaignApi(campaign));
     });
 
@@ -151,13 +170,32 @@ describe('Campaign API', () => {
         filters: expect.objectContaining(campaign.filters)
       });
     });
+
+    it('should return campaign fields', async () => {
+      const { body, status } = await request(url)
+        .get(testRoute(campaign.id))
+        .use(tokenProvider(user));
+
+      expect(status).toBe(constants.HTTP_STATUS_OK);
+      expect(body).toMatchObject<Partial<CampaignDTO>>({
+        id: campaign.id,
+        title: campaign.title,
+        description: campaign.description,
+        createdBy: expect.objectContaining<Partial<UserDTO>>({
+          id: user.id
+        }),
+        sentAt: campaign.sentAt,
+        returnCount: campaign.returnCount,
+        groupId: campaign.groupId
+      });
+    });
   });
 
   describe('GET /campaigns', () => {
     const testRoute = '/api/campaigns';
 
     const campaigns: CampaignApi[] = Array.from({ length: 3 }).map(() =>
-      genCampaignApi(establishment.id, user.id)
+      genCampaignApi(establishment.id, user)
     );
 
     beforeAll(async () => {
@@ -191,7 +229,7 @@ describe('Campaign API', () => {
       );
       await Groups().insert(groups.map(formatGroupApi));
       const campaigns = groups.map((group) => {
-        return genCampaignApi(establishment.id, user.id, group);
+        return genCampaignApi(establishment.id, user, group);
       });
       await Campaigns().insert(campaigns.map(formatCampaignApi));
       const query = 'groups=' + groups.map((group) => group.id).join(',');
@@ -330,7 +368,9 @@ describe('Campaign API', () => {
           ...payload.housing.filters,
           establishmentIds: [establishment.id]
         },
-        createdAt: expect.any(String)
+        createdAt: expect.any(String),
+        createdBy: expect.objectContaining({ id: user.id }),
+        returnCount: null
       });
       const campaign = await Campaigns().where({ id: body.id }).first();
       expect(campaign).not.toBeNull();
@@ -371,29 +411,50 @@ describe('Campaign API', () => {
     });
   });
 
+  describe('POST /campaigns when new-campaigns flag is enabled', () => {
+    const testRoute = '/api/campaigns';
+    const validPayload: CampaignCreationPayloadDTO = {
+      title: 'Logements prioritaires',
+      description: 'Campagne pour les logements prioritaires',
+      housing: { all: false, ids: [], filters: {} }
+    };
+
+    it('should return 404', async () => {
+      vi.spyOn(posthogService, 'isFeatureEnabled').mockResolvedValue(true);
+
+      const { status } = await request(url)
+        .post(testRoute)
+        .use(tokenProvider(user))
+        .send(validPayload);
+
+      expect(status).toBe(constants.HTTP_STATUS_NOT_FOUND);
+    });
+  });
+
   describe('POST /groups/{id}/campaigns', () => {
     const testRoute = (id: string) => `/api/groups/${id}/campaigns`;
 
     const geoCode = faker.helpers.arrayElement(establishment.geoCodes);
     const group = genGroupApi(user, establishment);
-    const groupHousing = [
-      genHousingApi(geoCode),
-      genHousingApi(geoCode),
-      genHousingApi(geoCode)
-    ];
-    const owners = groupHousing
+    const groupHousings = faker.helpers.multiple(() => genHousingApi(geoCode), {
+      count: {
+        min: 10,
+        max: 100
+      }
+    });
+    const owners = groupHousings
       .map((housing) => housing.owner)
       .filter(isDefined);
-    const housingOwners = groupHousing.map((housing) =>
+    const housingOwners = groupHousings.map((housing) =>
       genHousingOwnerApi(housing, housing.owner!)
     );
 
     beforeAll(async () => {
       await Groups().insert(formatGroupApi(group));
-      await Housing().insert(groupHousing.map(formatHousingRecordApi));
+      await Housing().insert(groupHousings.map(formatHousingRecordApi));
       await Owners().insert(owners.map(formatOwnerApi));
       await HousingOwners().insert(housingOwners.map(formatHousingOwnerApi));
-      await GroupsHousing().insert(formatGroupHousingApi(group, groupHousing));
+      await GroupsHousing().insert(formatGroupHousingApi(group, groupHousings));
     });
 
     test.prop<CampaignCreationPayloadDTO>(
@@ -482,14 +543,10 @@ describe('Campaign API', () => {
     });
 
     it('should throw if the group is missing', async () => {
-      const payload: CampaignCreationPayloadDTO = {
+      const payload: CampaignCreationPayload = {
         title: 'Logements prioritaires',
         description: 'Campagne pour les logements prioritaires',
-        housing: {
-          all: true,
-          ids: [],
-          filters: {}
-        }
+        sentAt: null
       };
 
       const { status } = await request(url)
@@ -502,14 +559,10 @@ describe('Campaign API', () => {
     });
 
     it('should throw if the group has been archived', async () => {
-      const payload: CampaignCreationPayloadDTO = {
+      const payload: CampaignCreationPayload = {
         title: 'Logements prioritaires',
         description: 'Campagne pour les logements prioritaires',
-        housing: {
-          all: true,
-          ids: [],
-          filters: {}
-        }
+        sentAt: null
       };
       const group: GroupApi = {
         ...genGroupApi(user, establishment),
@@ -527,14 +580,10 @@ describe('Campaign API', () => {
     });
 
     it('should create the campaign', async () => {
-      const payload: CampaignCreationPayloadDTO = {
+      const payload: CampaignCreationPayload = {
         title: 'Logements prioritaires',
         description: 'Campagne pour les logements prioritaires',
-        housing: {
-          all: true,
-          ids: [],
-          filters: {}
-        }
+        sentAt: faker.date.anytime().toISOString().slice(0, 'yyyy-mm-dd'.length)
       };
 
       const { body, status } = await request(url)
@@ -553,7 +602,10 @@ describe('Campaign API', () => {
         filters: {
           groupIds: [group.id]
         },
-        createdAt: expect.any(String)
+        sentAt: payload.sentAt,
+        createdAt: expect.any(String),
+        createdBy: expect.objectContaining({ id: user.id }),
+        returnCount: null
       });
     });
 
@@ -579,21 +631,17 @@ describe('Campaign API', () => {
         'campaign_id',
         body.id
       );
-      expect(campaignHousing).toBeArrayOfSize(groupHousing.length);
+      expect(campaignHousing).toBeArrayOfSize(groupHousings.length);
       expect(campaignHousing).toIncludeAllPartialMembers(
-        groupHousing.map((housing) => ({ housing_id: housing.id }))
+        groupHousings.map((housing) => ({ housing_id: housing.id }))
       );
     });
 
-    it('should create an event for each attached housing', async () => {
-      const payload: CampaignCreationPayloadDTO = {
+    it('should create an event "housing:campaign-attached" for each attached housing', async () => {
+      const payload: CampaignCreationPayload = {
         title: 'Logements prioritaires',
         description: 'Campagne pour les logements prioritaires',
-        housing: {
-          all: true,
-          ids: [],
-          filters: {}
-        }
+        sentAt: null
       };
 
       const { body, status } = await request(url)
@@ -609,13 +657,70 @@ describe('Campaign API', () => {
           campaign_id: body.id,
           type: 'housing:campaign-attached'
         });
-      expect(events).toBeArrayOfSize(groupHousing.length);
+      expect(events).toBeArrayOfSize(groupHousings.length);
       expect(events).toIncludeAllPartialMembers(
-        groupHousing.map((housing) => ({
+        groupHousings.map((housing) => ({
           housing_id: housing.id,
           type: 'housing:campaign-attached'
         }))
       );
+    });
+
+    it('should change each "never contacted" housing’ status to "waiting"', async () => {
+      const payload: CampaignCreationPayload = {
+        title: 'Logements prioritaires',
+        description: 'Campagne pour les logements prioritaires',
+        sentAt: null
+      };
+
+      const { status } = await request(url)
+        .post(testRoute(group.id))
+        .send(payload)
+        .type('json')
+        .use(tokenProvider(user));
+
+      expect(status).toBe(constants.HTTP_STATUS_CREATED);
+      const neverContactedHousings = groupHousings.filter(
+        (groupHousing) => groupHousing.status === HousingStatus.NEVER_CONTACTED
+      );
+      const actual = await Housing().whereIn(
+        ['geo_code', 'id'],
+        neverContactedHousings.map((housing) => [housing.geoCode, housing.id])
+      );
+      expect(actual).toSatisfyAll<HousingRecordDBO>(
+        (housing) => housing.status === HousingStatus.WAITING
+      );
+    });
+
+    it('should create an event "housing:status-updated" for each "never contacted" housing that became "waiting"', async () => {
+      const payload: CampaignCreationPayload = {
+        title: 'Logements prioritaires',
+        description: 'Campagne pour les logements prioritaires',
+        sentAt: null
+      };
+
+      const { status } = await request(url)
+        .post(testRoute(group.id))
+        .send(payload)
+        .type('json')
+        .use(tokenProvider(user));
+
+      expect(status).toBe(constants.HTTP_STATUS_CREATED);
+      const events = await Events()
+        .where({ type: 'housing:status-updated' })
+        .join(HOUSING_EVENTS_TABLE, 'event_id', 'id')
+        .whereIn(
+          ['housing_geo_code', 'housing_id'],
+          groupHousings.map((groupHousing) => [
+            groupHousing.geoCode,
+            groupHousing.id
+          ])
+        );
+      const neverContactedHousings = groupHousings.filter(
+        (groupHousing) => groupHousing.status === HousingStatus.NEVER_CONTACTED
+      );
+      expect(events.length).toBeGreaterThan(0);
+      expect(events.length).toBe(neverContactedHousings.length);
     });
   });
 
@@ -698,7 +803,9 @@ describe('Campaign API', () => {
         filters: {
           groupIds: [group.id]
         },
-        createdAt: expect.any(String)
+        createdAt: expect.any(String),
+        createdBy: expect.objectContaining({ id: user.id }),
+        returnCount: null
       });
     });
 
@@ -749,6 +856,14 @@ describe('Campaign API', () => {
   describe('PUT /campaigns/{id}', () => {
     const testRoute = (id: string) => `/api/campaigns/${id}`;
 
+    beforeEach(async () => {
+      vi.spyOn(posthogService, 'isFeatureEnabled').mockResolvedValue(false);
+    });
+
+    afterEach(() => {
+      vi.restoreAllMocks();
+    });
+
     const defaultPayload: CampaignUpdatePayloadDTO = {
       title: 'New title',
       description: '',
@@ -757,7 +872,7 @@ describe('Campaign API', () => {
 
     async function createCampaign(status: CampaignStatus) {
       const campaign: CampaignApi = {
-        ...genCampaignApi(establishment.id, user.id),
+        ...genCampaignApi(establishment.id, user),
         status: status
       };
       await Campaigns().insert(formatCampaignApi(campaign));
@@ -1025,13 +1140,152 @@ describe('Campaign API', () => {
     });
   });
 
+  describe('PUT /campaigns/{id} when new-campaigns flag is enabled', () => {
+    const testRoute = (id: string) => `/api/campaigns/${id}`;
+
+    let campaign: CampaignApi;
+
+    beforeEach(async () => {
+      campaign = genCampaignApi(establishment.id, user);
+      await Campaigns().insert(formatCampaignApi(campaign));
+      vi.spyOn(posthogService, 'isFeatureEnabled').mockResolvedValue(true);
+    });
+
+    afterEach(() => {
+      vi.restoreAllMocks();
+    });
+
+    it('should be forbidden for a non-authenticated user', async () => {
+      const { status } = await request(url).put(testRoute(campaign.id));
+
+      expect(status).toBe(constants.HTTP_STATUS_UNAUTHORIZED);
+    });
+
+    it('should require a valid campaign id', async () => {
+      const payload: CampaignUpdatePayload = {
+        title: 'Title',
+        description: 'Description',
+        sentAt: null
+      };
+
+      const { status } = await request(url)
+        .put(testRoute(randomstring.generate()))
+        .send(payload)
+        .use(tokenProvider(user));
+
+      expect(status).toBe(constants.HTTP_STATUS_BAD_REQUEST);
+    });
+
+    it('should return 404 when the campaign is missing', async () => {
+      const payload: CampaignUpdatePayload = {
+        title: 'Title',
+        description: 'Description',
+        sentAt: null
+      };
+
+      const { status } = await request(url)
+        .put(testRoute(uuidv4()))
+        .send(payload)
+        .use(tokenProvider(user));
+
+      expect(status).toBe(constants.HTTP_STATUS_NOT_FOUND);
+    });
+
+    test.prop<CampaignUpdatePayload>(
+      {
+        title: fc.stringMatching(/S+/),
+        description: fc.stringMatching(/S+/),
+        sentAt: fc
+          .date({
+            min: new Date('0001-01-01'),
+            max: new Date('9999-12-31'),
+            noInvalidDate: true
+          })
+          .map((date) => date.toISOString().substring(0, 'yyyy-mm-dd'.length))
+      },
+      { numRuns: 20 }
+    )('should accept valid inputs', async (payload) => {
+      const { status } = await request(url)
+        .put(testRoute(campaign.id))
+        .send(payload)
+        .type('json')
+        .use(tokenProvider(user));
+
+      expect(status).toBe(constants.HTTP_STATUS_OK);
+    });
+
+    it('should update title, description, and sentAt', async () => {
+      const payload: CampaignUpdatePayload = {
+        title: faker.lorem.word(),
+        description: faker.lorem.words(),
+        sentAt: '2024-06-15'
+      };
+
+      const { body, status } = await request(url)
+        .put(testRoute(campaign.id))
+        .send(payload)
+        .use(tokenProvider(user));
+
+      expect(status).toBe(constants.HTTP_STATUS_OK);
+      expect(body).toMatchObject<Partial<CampaignDTO>>({
+        id: campaign.id,
+        title: payload.title,
+        description: payload.description,
+        sentAt: payload.sentAt
+      });
+
+      const actual = await Campaigns().where({ id: campaign.id }).first();
+      expect(actual).toMatchObject({
+        title: payload.title,
+        description: payload.description
+      });
+    });
+
+    it('should keep sentAt unchanged when null is sent and sentAt is unset', async () => {
+      const payload: CampaignUpdatePayload = {
+        title: faker.lorem.word(),
+        description: faker.lorem.words(),
+        sentAt: null
+      };
+
+      const { body, status } = await request(url)
+        .put(testRoute(campaign.id))
+        .send(payload)
+        .use(tokenProvider(user));
+
+      expect(status).toBe(constants.HTTP_STATUS_OK);
+      expect(body.sentAt).toBeNull();
+    });
+
+    it('should reject unsetting sentAt once it has been set', async () => {
+      const campaignWithSentAt: CampaignApi = {
+        ...genCampaignApi(establishment.id, user),
+        sentAt: '2024-06-15'
+      };
+      await Campaigns().insert(formatCampaignApi(campaignWithSentAt));
+
+      const payload: CampaignUpdatePayload = {
+        title: campaignWithSentAt.title,
+        description: campaignWithSentAt.description,
+        sentAt: null
+      };
+
+      const { status } = await request(url)
+        .put(testRoute(campaignWithSentAt.id))
+        .send(payload)
+        .use(tokenProvider(user));
+
+      expect(status).toBe(constants.HTTP_STATUS_BAD_REQUEST);
+    });
+  });
+
   describe('DELETE /campaigns/{id}', () => {
     const testRoute = (id: string) => `/api/campaigns/${id}`;
 
     let campaign: CampaignApi;
 
     beforeEach(async () => {
-      campaign = genCampaignApi(establishment.id, user.id);
+      campaign = genCampaignApi(establishment.id, user);
       await Campaigns().insert(formatCampaignApi(campaign));
     });
 
@@ -1207,7 +1461,7 @@ describe('Campaign API', () => {
     let housings: HousingApi[];
 
     beforeEach(async () => {
-      campaign = genCampaignApi(establishment.id, user.id);
+      campaign = genCampaignApi(establishment.id, user);
       await Campaigns().insert(formatCampaignApi(campaign));
 
       housings = faker.helpers.multiple(() =>

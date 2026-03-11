@@ -7329,6 +7329,15 @@ __metadata:
   languageName: node
   linkType: hard
 
+"@posthog/core@npm:1.23.2":
+  version: 1.23.2
+  resolution: "@posthog/core@npm:1.23.2"
+  dependencies:
+    cross-spawn: "npm:^7.0.6"
+  checksum: 10c0/13d86e63e9a74255e33167c266fc10c3f485221093b235239543ebaaa80c07614e4485e02da3b0850281f9341f4c4014fdfa3998ed96fab8f6bf76bd39116c60
+  languageName: node
+  linkType: hard
+
 "@posthog/types@npm:1.335.0":
   version: 1.335.0
   resolution: "@posthog/types@npm:1.335.0"
@@ -13666,6 +13675,7 @@ __metadata:
     pdf-lib: "npm:1.17.1"
     pg: "npm:8.16.3"
     pg-query-stream: "npm:4.10.3"
+    posthog-node: "npm:^5.26.2"
     proj4: "npm:^2.20.2"
     puppeteer: "npm:22.15.0"
     qs: "npm:6.15.0"
@@ -27897,6 +27907,15 @@ __metadata:
     query-selector-shadow-dom: "npm:^1.0.1"
     web-vitals: "npm:^5.1.0"
   checksum: 10c0/29a72ef3fef430ed311f91926f43d3137983b9bb1922df9ce1f14f87fa2f181b20e4326ebc76ab08a28314bd6df56465d34d3d7227686e2519ac87ec9f9a0955
+  languageName: node
+  linkType: hard
+
+"posthog-node@npm:^5.26.2":
+  version: 5.26.2
+  resolution: "posthog-node@npm:5.26.2"
+  dependencies:
+    "@posthog/core": "npm:1.23.2"
+  checksum: 10c0/8f9b8844658885a816edcbe1b7b22269b056e12ea88cea67c684b21e3ca6617c457c124afdd465827e9022e06d97d645161f67917b89b68204ab96a407b92fd6
   languageName: node
   linkType: hard
 

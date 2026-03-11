@@ -275,7 +275,7 @@ describe('Event API', () => {
         housingGeoCode: housing.geoCode,
         housingId: housing.id
       }));
-      const campaign = genCampaignApi(establishment.id, user.id);
+      const campaign = genCampaignApi(establishment.id, user);
       await Campaigns().insert(formatCampaignApi(campaign));
       const campaignHousingEvents: ReadonlyArray<CampaignHousingEventApi> = [
         genEventApi({

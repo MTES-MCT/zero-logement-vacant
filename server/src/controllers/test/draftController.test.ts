@@ -104,7 +104,7 @@ describe('Draft API', () => {
 
     it('should list drafts by campaign', async () => {
       const [firstDraft] = drafts;
-      const campaign: CampaignApi = genCampaignApi(establishment.id, user.id);
+      const campaign: CampaignApi = genCampaignApi(establishment.id, user);
       await Campaigns().insert(formatCampaignApi(campaign));
       await CampaignsDrafts().insert({
         campaign_id: campaign.id,
@@ -141,7 +141,7 @@ describe('Draft API', () => {
     let senderPayload: SenderPayloadDTO;
 
     beforeEach(async () => {
-      campaign = genCampaignApi(establishment.id, user.id);
+      campaign = genCampaignApi(establishment.id, user);
       sender = genSenderApi(establishment);
       senderPayload = fp.pick(
         [
@@ -216,7 +216,7 @@ describe('Draft API', () => {
     });
 
     it('should fail if the campaign to attach is missing', async () => {
-      const missingCampaign = genCampaignApi(anotherEstablishment.id, user.id);
+      const missingCampaign = genCampaignApi(anotherEstablishment.id, user);
       const payload: DraftCreationPayloadDTO = {
         subject: draft.subject,
         body: draft.body,

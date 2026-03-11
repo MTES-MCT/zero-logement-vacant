@@ -63,6 +63,7 @@ export function fromCampaignDTO(campaign: CampaignDTO): Campaign {
     description: campaign.description,
     groupId: campaign.groupId,
     createdAt: campaign.createdAt,
+    createdBy: campaign.createdBy,
     validatedAt: campaign.validatedAt,
     exportedAt: campaign.exportedAt,
     sentAt: campaign.sentAt,
@@ -71,6 +72,7 @@ export function fromCampaignDTO(campaign: CampaignDTO): Campaign {
     status: campaign.status,
     filters: campaign.filters,
     file: campaign.file,
+    returnCount: campaign.returnCount,
     // TODO: fix this
     exportURL: ''
   };

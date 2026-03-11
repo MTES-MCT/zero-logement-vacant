@@ -4,7 +4,7 @@ import Skeleton from '@mui/material/Skeleton';
 import Stack from '@mui/material/Stack';
 import Typography from '@mui/material/Typography';
 
-import Tooltip from '~/Tooltip/Tooltip';
+import Tooltip from '~/components/ui/Tooltip/Tooltip';
 import { useHousing } from '~/hooks/useHousing';
 import { useUser } from '../../hooks/useUser';
 import { getSource } from '../../models/Housing';

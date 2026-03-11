@@ -42,8 +42,49 @@ describe('Campaign repository', () => {
     await Users().insert(formatUserApi(user));
   });
 
+  describe('findOne', () => {
+    it('should include the campaign creator', async () => {
+      const campaign = genCampaignApi(establishment.id, user);
+      await Campaigns().insert(formatCampaignApi(campaign));
+
+      const actual = await campaignRepository.findOne({
+        id: campaign.id,
+        establishmentId: campaign.establishmentId
+      });
+
+      expect(actual?.createdBy).toMatchObject({
+        id: user.id,
+        email: user.email
+      });
+    });
+
+    it('should expose returnCount from the database', async () => {
+      const campaign = genCampaignApi(establishment.id, user);
+      await Campaigns().insert({ ...formatCampaignApi(campaign), return_count: 5, sent_at: new Date() });
+
+      const result = await campaignRepository.findOne({
+        id: campaign.id,
+        establishmentId: campaign.establishmentId
+      });
+
+      expect(result?.returnCount).toBe(5);
+    });
+
+    it('should expose returnCount as null when sentAt is null', async () => {
+      const campaign = genCampaignApi(establishment.id, user);
+      await Campaigns().insert({ ...formatCampaignApi(campaign), return_count: 0 });
+
+      const result = await campaignRepository.findOne({
+        id: campaign.id,
+        establishmentId: campaign.establishmentId
+      });
+
+      expect(result?.returnCount).toBeNull();
+    });
+  });
+
   describe('remove', () => {
-    const campaign = genCampaignApi(establishment.id, user.id);
+    const campaign = genCampaignApi(establishment.id, user);
     const housings = faker.helpers.multiple(() => genHousingApi());
     const campaignEvents: ReadonlyArray<CampaignEventApi> = [
       {

@@ -1,24 +1,49 @@
 import { contramap, DEFAULT_ORDER, Ord } from '@zerologementvacant/utils';
+
 import { HousingFiltersDTO } from './HousingFiltersDTO';
+import type { UserDTO } from './UserDTO';
 
 export interface CampaignDTO {
   id: string;
   title: string;
   description: string;
+  /**
+   * @deprecated Status will be unnecessary.
+   */
   status: CampaignStatus;
+  /**
+   * @deprecated
+   */
   filters: HousingFiltersDTO;
+  /**
+   * @deprecated
+   */
   file?: string;
   createdAt: string;
+  createdBy: UserDTO;
+  /**
+   * @deprecated
+   */
   validatedAt?: string;
   exportedAt?: string;
-  sentAt?: string;
+  /**
+   * `sentAt` should become `string | null`.
+   */
+  sentAt?: string | null;
+  /**
+   * @deprecated
+   */
   archivedAt?: string;
   /**
    * @deprecated
    */
   sendingDate?: string;
+  /**
+   * @deprecated
+   */
   confirmedAt?: string;
   groupId?: string;
+  returnCount: number | null;
 }
 
 export const CAMPAIGN_STATUS_VALUES = [
@@ -77,6 +102,16 @@ export interface CampaignUpdatePayloadDTO
   extends Pick<CampaignDTO, 'title' | 'description' | 'status' | 'file'> {
   sentAt?: string;
 }
+
+export type CampaignPayload = {
+  title: string;
+  description: string;
+  sentAt: string | null;
+};
+
+export type CampaignCreationPayload = CampaignPayload;
+
+export type CampaignUpdatePayload = CampaignPayload;
 
 export interface CampaignRemovalPayloadDTO {
   all: boolean;

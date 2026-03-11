@@ -19,6 +19,7 @@ import {
 } from '@zerologementvacant/models';
 import {
   genBuildingDTO,
+  genCampaignDTO,
   genDatafoncierHousing as genDatafoncierHousingDTO,
   genDocumentDTO,
   genEventDTO,
@@ -38,13 +39,13 @@ import { v4 as uuidv4 } from 'uuid';
 import { logger } from '~/infra/logger';
 import { AddressApi } from '~/models/AddressApi';
 import { BuildingApi } from '~/models/BuildingApi';
-import { CampaignApi } from '~/models/CampaignApi';
+import { CampaignApi, fromCampaignDTO } from '~/models/CampaignApi';
 import { DocumentApi } from '~/models/DocumentApi';
 import { DraftApi } from '~/models/DraftApi';
 import { EstablishmentApi } from '~/models/EstablishmentApi';
 import { EventApi, fromEventDTO } from '~/models/EventApi';
 import { GeoPerimeterApi } from '~/models/GeoPerimeterApi';
-import { GroupApi } from '~/models/GroupApi';
+import { GroupApi, toGroupDTO } from '~/models/GroupApi';
 import { HousingApi } from '~/models/HousingApi';
 import { HousingDocumentApi } from '~/models/HousingDocumentApi';
 import { HousingOwnerApi } from '~/models/HousingOwnerApi';
@@ -321,9 +322,21 @@ export const genHousingApi = (
   };
 };
 
+interface GenCampaignOptions {
+  group: GroupApi;
+  establishment: EstablishmentApi;
+  creator: UserApi;
+}
+
+export function genCampaignApiNext(options: GenCampaignOptions): CampaignApi {
+  const { group, establishment, creator } = options;
+  const campaign = genCampaignDTO(toGroupDTO(group), creator);
+  return fromCampaignDTO(campaign, establishment);
+}
+
 export const genCampaignApi = (
   establishmentId: string,
-  createdBy: string,
+  createdBy: UserApi,
   group?: GroupApi
 ): CampaignApi => {
   return {
@@ -337,8 +350,10 @@ export const genCampaignApi = (
       geoPerimetersExcluded: [randomstring.generate()]
     },
     createdAt: new Date().toJSON(),
-    userId: createdBy,
-    groupId: group?.id
+    userId: createdBy.id,
+    createdBy,
+    groupId: group?.id,
+    returnCount: null
   };
 };
 

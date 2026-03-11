@@ -50,7 +50,7 @@ describe('Draft repository', () => {
 
     it('should find drafts by campaign', async () => {
       const [firstDraft] = drafts;
-      const campaign = genCampaignApi(establishment.id, user.id);
+      const campaign = genCampaignApi(establishment.id, user);
       await Campaigns().insert(formatCampaignApi(campaign));
       await CampaignsDrafts().insert({
         campaign_id: campaign.id,

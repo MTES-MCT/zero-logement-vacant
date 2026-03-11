@@ -1,5 +1,6 @@
 import Router from 'express-promise-router';
 import rateLimit from 'express-rate-limit';
+import { object } from 'yup';
 
 import accountController from '~/controllers/accountController';
 import establishmentController from '~/controllers/establishmentController';
@@ -112,6 +113,11 @@ router.get(
     query: schemas.establishmentFilters
   }),
   establishmentController.list
+);
+router.get(
+  '/establishments/:id',
+  validatorNext.validate({ params: object({ id: schemas.id }) }),
+  establishmentController.get
 );
 router.get(
   '/establishments/:id/settings',

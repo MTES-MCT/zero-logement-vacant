@@ -31,6 +31,8 @@ fileignoreconfig:
   checksum: 89082f320ef3eb9d8a7ee811b5ff9948bbbe162e9ba0caf88d11de3d51466e4b
 - filename: docs/plans/2026-01-28-document-upload-refactoring.md
   checksum: ac444aed1f4427b4d3928842fac8fa67bc32ddae8547dd561d622d057ad0840e
+- filename: docs/plans/2026-03-04-campaign-view-rework.md
+  checksum: 3d029146348a92af21c5d517a98df77d95510bd7c8ef363dd73cc7b79b1f9c3b
 - filename: frontend/.env.example
   checksum: 7e2a5ff197c49ff9f715b3d189da7282bdb40de53ea49735e9f183ece19168fc
 - filename: frontend/AGENTS.md

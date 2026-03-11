@@ -28,7 +28,7 @@ import {
 } from '../../services/campaign.service';
 import config from '../../utils/config';
 import styles from './campaign.module.scss';
-import Tooltip from '~/Tooltip/Tooltip';
+import Tooltip from '~/components/ui/Tooltip/Tooltip';
 
 const modal = createModal({
   id: 'campaign-sending-modal',

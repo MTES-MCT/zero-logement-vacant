@@ -65,7 +65,7 @@ function respond(
 
   // Handle all HttpError instances (including custom errors)
   if (isHttpError(error)) {
-    response.status(error.status).json(error.toJSON());
+    response.status(error.status).json(error);
     return;
   }
 

@@ -1,6 +1,10 @@
+import { FileUploadDTO } from '@zerologementvacant/models';
+import async from 'async';
 import { Knex } from 'knex';
 
+import { download } from '~/controllers/fileRepository';
 import db from '~/infra/database';
+import { withinTransaction } from '~/infra/database/transaction';
 import { createLogger } from '~/infra/logger';
 import { DraftApi } from '~/models/DraftApi';
 import { campaignsDraftsTable } from '~/repositories/campaignDraftRepository';
@@ -9,9 +13,6 @@ import {
   SenderDBO,
   sendersTable
 } from '~/repositories/senderRepository';
-import { download } from '~/controllers/fileRepository';
-import async from 'async';
-import { FileUploadDTO } from '@zerologementvacant/models';
 
 const logger = createLogger('draftRepository');
 
@@ -60,20 +61,24 @@ async function findOne(opts: FindOneOptions): Promise<DraftApi | null> {
 }
 
 async function save(draft: DraftApi): Promise<void> {
-  await Drafts()
-    .insert(formatDraftApi(draft))
-    .onConflict('id')
-    .merge([
-      'subject',
-      'body',
-      'logo',
-      'logo_next_one',
-      'logo_next_two',
-      'written_at',
-      'written_from',
-      'updated_at',
-      'sender_id'
-    ]);
+  logger.debug('Saving draft...', draft);
+  await withinTransaction(async (transaction) => {
+    await Drafts(transaction)
+      .insert(formatDraftApi(draft))
+      .onConflict('id')
+      .merge([
+        'subject',
+        'body',
+        'logo',
+        'logo_next_one',
+        'logo_next_two',
+        'written_at',
+        'written_from',
+        'updated_at',
+        'sender_id'
+      ]);
+  });
+  logger.debug('Saved draft', draft);
 }
 
 function listQuery(query: Knex.QueryBuilder): void {
@@ -196,7 +201,7 @@ export const parseDraftApi = async (draft: DraftDBO): Promise<DraftApi> => {
     senderId: draft.sender_id,
     sender: await parseSenderApi(draft.sender),
     createdAt: draft.created_at.toJSON(),
-    updatedAt: draft.updated_at.toJSON(),
+    updatedAt: draft.updated_at.toJSON()
   };
 };
 

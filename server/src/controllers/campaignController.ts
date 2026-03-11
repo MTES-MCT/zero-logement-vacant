@@ -238,6 +238,11 @@ const create: RequestHandler<
   });
 };
 
+/**
+ * @deprecated Use {createFromGroup} instead.
+ * @param request
+ * @param response 
+ */
 async function createCampaignFromGroup(request: Request, response: Response) {
   const { auth, body, params } = request as AuthenticatedRequest;
   const groupId = params.id;
@@ -248,7 +253,7 @@ async function createCampaignFromGroup(request: Request, response: Response) {
     establishmentId: auth.establishmentId
   });
   if (!group || !!group.archivedAt) {
-    throw new GroupMissingError(groupId);
+    throw new GroupMissingError(params.id);
   }
 
   const campaign: CampaignApi = {
@@ -304,6 +309,80 @@ const createCampaignFromGroupValidators: ValidationChain[] = [
   body('title').isString().notEmpty(),
   body('description').optional({ nullable: true }).isString()
 ];
+
+const createFromGroup: RequestHandler<
+  { id: string },
+  CampaignDTO,
+  CampaignCreationPayloadDTO,
+  never
+> = async (request, response) => {
+  const { auth, body, params } = request as AuthenticatedRequest<
+    { id: string },
+    CampaignDTO,
+    CampaignCreationPayloadDTO,
+    never
+  >;
+
+  const groupId = params.id;
+  logger.info('Create campaign from group', { groupId });
+
+  const group = await groupRepository.findOne({
+    id: groupId,
+    establishmentId: auth.establishmentId
+  });
+  if (!group || !!group.archivedAt) {
+    throw new GroupMissingError(params.id);
+  }
+
+  const campaign: CampaignApi = {
+    id: uuidv4(),
+    title: body.title,
+    description: body.description,
+    status: 'draft',
+    filters: {
+      groupIds: [group.id]
+    },
+    createdAt: new Date().toJSON(),
+    sentAt: body.sentAt,
+    groupId,
+    userId: auth.userId,
+    establishmentId: auth.establishmentId
+  };
+
+  await startTransaction(async () => {
+    await campaignRepository.save(campaign);
+
+    const housings = await housingRepository.find({
+      filters: {
+        establishmentIds: [auth.establishmentId],
+        groupIds: [group.id]
+      },
+      pagination: {
+        paginate: false
+      }
+    });
+    const events = housings.map<CampaignHousingEventApi>((housing) => ({
+      id: uuidv4(),
+      name: 'Ajout dans une campagne',
+      type: 'housing:campaign-attached',
+      nextOld: null,
+      nextNew: {
+        name: campaign.title
+      },
+      createdBy: auth.userId,
+      createdAt: new Date().toJSON(),
+      housingId: housing.id,
+      housingGeoCode: housing.geoCode,
+      campaignId: campaign.id
+    }));
+    await Promise.all([
+      campaignHousingRepository.insertHousingList(campaign.id, housings),
+      eventRepository.insertManyCampaignHousingEvents(events)
+    ]);
+  });
+
+  response.status(constants.HTTP_STATUS_CREATED).json(toCampaignDTO(campaign));
+};
 
 const updateValidators: ValidationChain[] = [
   param('id').notEmpty().isUUID(),
@@ -626,6 +705,7 @@ const campaignController = {
   list,
   create,
   createValidators,
+  createFromGroup,
   createCampaignFromGroup,
   createCampaignFromGroupValidators,
   update,

@@ -91,7 +91,7 @@ function SmallHeader() {
         })}
       >
         <Grid alignItems="center" container px={3} sx={{ height: '84px' }}>
-          <Link className="fr-header-operator fr-enlarge-link fr-mr-5w" to="/">
+          <Link className="fr-header-operator fr-enlarge-link fr-mr-5w" to="/" tabIndex={0}>
             <img
               className="fr-responsive-img-1x1"
               height={44}
@@ -147,7 +147,9 @@ function SmallHeader() {
             ) : null}
 
             {isAuthenticated ? (
-              <AccountDropdown />
+              <nav aria-label="Navigation du compte utilisateur">
+                <AccountDropdown />
+              </nav>
             ) : (
               <Button
                 iconId="fr-icon-user-fill"

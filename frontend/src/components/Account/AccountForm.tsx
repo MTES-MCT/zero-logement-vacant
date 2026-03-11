@@ -173,7 +173,7 @@ function AccountForm() {
               <AppTextInputNext<FormSchema>
                 name="currentPassword"
                 label="Mot de passe actuel (obligatoire)"
-                nativeInputProps={{ type: 'password' }}
+                nativeInputProps={{ type: 'password', autoComplete: 'current-password' }}
                 mapValue={(value) => value ?? ''}
                 contramapValue={(value) => (value === '' ? null : value)}
               />
@@ -181,14 +181,14 @@ function AccountForm() {
                 name="password"
                 label="Nouveau mot de passe (obligatoire)"
                 hintText="Votre nouveau mot de passe doit contenir au moins 12 caractères, une majuscule, une minuscule et un chiffre."
-                nativeInputProps={{ type: 'password' }}
+                nativeInputProps={{ type: 'password', autoComplete: 'new-password' }}
                 mapValue={(value) => value ?? ''}
                 contramapValue={(value) => (value === '' ? null : value)}
               />
               <AppTextInputNext<FormSchema>
                 name="passwordConfirmation"
                 label="Confirmation du nouveau mot de passe (obligatoire)"
-                nativeInputProps={{ type: 'password' }}
+                nativeInputProps={{ type: 'password', autoComplete: 'new-password' }}
                 mapValue={(value) => value ?? ''}
                 contramapValue={(value) => (value === '' ? null : value)}
               />

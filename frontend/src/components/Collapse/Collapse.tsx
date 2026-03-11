@@ -81,7 +81,7 @@ function Collapse(props: Props) {
           </>
         )}
       </header>
-      {props.content && <main className={contentClasses}>{props.content}</main>}
+      {props.content && <div className={contentClasses}>{props.content}</div>}
     </article>
   );
 }

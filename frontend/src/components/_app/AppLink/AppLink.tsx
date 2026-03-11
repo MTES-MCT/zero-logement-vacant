@@ -36,13 +36,14 @@ function AppLink({
         className={className}
         href={typeof to === 'string' ? to : to.pathname}
         rel="noopener noreferrer"
+        tabIndex={0}
       >
         {linkProps.children}
       </a>
     );
   }
 
-  return <Link {...linkProps} className={className} to={to} />;
+  return <Link {...linkProps} className={className} to={to} tabIndex={0} />;
 }
 
 function isPartialPath(link: To): link is Partial<Path> {

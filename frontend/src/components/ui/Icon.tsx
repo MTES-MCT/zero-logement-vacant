@@ -4,6 +4,7 @@ import {
   type RiIconClassName
 } from '@codegouvfr/react-dsfr';
 import Box from '@mui/material/Box';
+import classNames from 'classnames';
 
 export interface IconProps {
   name: FrIconClassName | RiIconClassName;
@@ -12,6 +13,7 @@ export interface IconProps {
    */
   size?: 'xs' | 'sm' | 'md' | 'lg';
   color?: string;
+  className?: string;
 }
 
 function Icon(props: IconProps) {
@@ -21,7 +23,7 @@ function Icon(props: IconProps) {
   return (
     <Box
       component="span"
-      className={fr.cx(props.name, `fr-icon--${size}`)}
+      className={classNames(fr.cx(props.name, `fr-icon--${size}`), props.className)}
       sx={{ color }}
       aria-hidden={true}
     />

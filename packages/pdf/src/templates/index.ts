@@ -1,0 +1,1 @@
+export { CampaignTemplate } from './Campaign.js';

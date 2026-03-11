@@ -11,17 +11,22 @@ import DraftRedaction from '~/components/Draft/DraftRedaction';
 import DraftSenderLogoNext from '~/components/Draft/DraftSenderLogoNext';
 import DraftSenderNext from '~/components/Draft/DraftSenderNext';
 import DraftSignatureNext from '~/components/Draft/DraftSignatureNext';
+import PreviewButtonNext from '~/components/Draft/PreviewButtonNext';
+import SaveButton from '~/components/SaveButton/SaveButton';
+import type { Campaign } from '~/models/Campaign';
 import type { Draft } from '~/models/Draft';
 import { useUpdateDraftNextMutation } from '~/services/draft.service';
 
 export type DraftFormSchema = InferType<typeof schemas.draftUpdatePayload>;
 
 export interface DraftFormProps {
+  campaign: Campaign;
   draft: Draft;
 }
 
 function DraftForm(props: Readonly<DraftFormProps>) {
-  const [updateDraftNext] = useUpdateDraftNextMutation();
+  const [updateDraftNext, updateDraftNextMutation] =
+    useUpdateDraftNextMutation();
 
   const form = useForm<DraftFormSchema>({
     mode: 'onSubmit',
@@ -70,7 +75,7 @@ function DraftForm(props: Readonly<DraftFormProps>) {
       id: props.draft.id,
       subject: data.subject ?? null,
       body: data.body ?? null,
-      logo: (data.logo ?? [null, null]) as [string | null, string | null],
+      logo: data.logo ?? [null, null],
       writtenAt: data.writtenAt ?? null,
       writtenFrom: data.writtenFrom ?? null,
       sender: data.sender ? { ...data.sender, signatories } : null
@@ -81,6 +86,32 @@ function DraftForm(props: Readonly<DraftFormProps>) {
     <FormProvider {...form}>
       <form id="draft-form" onSubmit={form.handleSubmit(submit)}>
         <Grid container spacing="1rem">
+          <Grid size={12}>
+            <Stack
+              direction={{ xs: 'column', sm: 'row' }}
+              spacing="0.5rem"
+              sx={{ justifyContent: 'flex-end' }}
+            >
+              <SaveButton
+                isError={updateDraftNextMutation.isError}
+                isLoading={updateDraftNextMutation.isLoading}
+                isSuccess={updateDraftNextMutation.isSuccess}
+                message={{
+                  error: 'Erreur lors de la sauvegarde du brouillon',
+                  loading: 'Sauvegarde du brouillon...',
+                  success: 'Brouillon sauvegardé !'
+                }}
+                type="submit"
+              />
+
+              <PreviewButtonNext
+                campaign={props.campaign}
+                draft={props.draft}
+                type="button"
+              />
+            </Stack>
+          </Grid>
+
           <Grid size={{ xs: 12, md: 5 }}>
             <Stack spacing="1rem" useFlexGap>
               <DraftSenderLogoNext />

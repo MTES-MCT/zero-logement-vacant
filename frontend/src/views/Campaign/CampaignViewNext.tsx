@@ -164,7 +164,7 @@ function CampaignViewNext() {
             {
               label: 'Courrier',
               content: getCampaignDraftQuery.isSuccess && getCampaignDraftQuery.data ? (
-                <DraftForm draft={getCampaignDraftQuery.data} />
+                <DraftForm campaign={campaign} draft={getCampaignDraftQuery.data} />
               ) : null
             }
           ]}

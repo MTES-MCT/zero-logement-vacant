@@ -160,8 +160,9 @@ const HousingListView = () => {
             {...{ role: 'status' }}
           />
 
-          <Grid container mb={1} spacing={2}>
-            <Grid size="grow">
+          {/* RGAA 10.4: flexWrap + minWidth force the segmented control to wrap below the search bar at 200% zoom */}
+          <Grid container mb={1} spacing={2} sx={{ flexWrap: 'wrap' }}>
+            <Grid size="grow" sx={{ minWidth: '300px' }}>
               <AppSearchBar
                 initialQuery={filters.query}
                 label="Rechercher (propriétaire, identifiant fiscal, ref. cadastrale...)"
@@ -170,8 +171,9 @@ const HousingListView = () => {
               />
             </Grid>
             <Grid size="auto" sx={{ display: 'flex', alignItems: 'center' }}>
+              {/* RGAA 10.4: manual placement keeps tooltip within viewport at all zoom levels */}
               <Tooltip
-                align="start"
+                align="end"
                 place="bottom"
                 title="Pour retrouver une liste de logements, copiez-collez dans la barre de recherche la liste de leurs identifiants fiscaux séparés par un espace. Exemple : « 750123456789 750123456790 750123456791 »"
               />

@@ -1,7 +1,3 @@
-.root {
-  height: 84px;
-}
-
 .linkList {
   height: 84px;
   margin: 0 !important;
@@ -29,37 +25,4 @@
 
 .mainNavigationItem {
   margin-left: 0px !important;
-}
-
-@media screen and (max-width: 1484px) {
-  .establishmentName {
-    max-width: 200px;
-    overflow: hidden;
-    text-overflow: ellipsis;
-    white-space: nowrap;
-  }
-}
-
-@media screen and (max-width: 1412px) {
-  .establishmentName {
-    max-width: 150px;
-    overflow: hidden;
-    text-overflow: ellipsis;
-    white-space: nowrap;
-  }
-}
-
-@media screen and (max-width: 1362px) {
-  .establishmentName {
-    max-width: 100px;
-    overflow: hidden;
-    text-overflow: ellipsis;
-    white-space: nowrap;
-  }
-}
-
-@media screen and (max-width: 1312px) {
-  .establishmentName {
-    display: none;
-  }
 }

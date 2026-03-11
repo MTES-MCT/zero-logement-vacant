@@ -31,9 +31,8 @@ function SendButton(props: Readonly<Props>) {
   return (
     <>
       <Stack direction="row" spacing="1rem" sx={{ alignItems: 'center' }}>
+        {/* RGAA 10.4: no manual placement — let DSFR auto-placement handle viewport containment */}
         <Tooltip
-          place="top"
-          align="end"
           title={
             <>
               <Typography

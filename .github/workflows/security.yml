@@ -1,0 +1,26 @@
+name: Security
+
+on:
+  push:
+    branches: [main, master]
+  pull_request:
+    branches: [main, master]
+
+jobs:
+  slopwatch:
+    name: Dependency Trust Scan
+    runs-on: ubuntu-latest
+    permissions:
+      security-events: write
+      contents: read
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Run Slopwatch security scan
+        uses: loicguillois/slopwatch@0046140f371a105e5a63ac81107da5e4ebfb6f67
+        with:
+          path: "."
+          format: "sarif"
+          threshold: "22"
+          fail-on-critical: "true"

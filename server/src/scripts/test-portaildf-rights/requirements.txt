@@ -1,0 +1,5 @@
+# Dependencies for Portail DF test data population script
+# Used by: populate_test_db.py
+
+psycopg2-binary>=2.9.9
+bcrypt>=4.0.0

@@ -158,6 +158,35 @@ const create: RequestHandler<
   response.status(status).json(Array.map(documentsOrErrors, Either.merge));
 };
 
+const get: RequestHandler<Pick<DocumentDTO, 'id'>, DocumentDTO> = async (
+  request,
+  response
+) => {
+  const { params, establishment } = request as AuthenticatedRequest<
+    Pick<DocumentDTO, 'id'>,
+    DocumentDTO
+  >;
+
+  logger.debug('Finding document...', { id: params.id });
+
+  const document = await documentRepository.findOne(params.id, {
+    filters: {
+      establishmentIds: [establishment.id],
+      deleted: false
+    }
+  });
+  if (!document) {
+    throw new DocumentMissingError(params.id);
+  }
+
+  const url = await generatePresignedUrl({
+    s3,
+    bucket: config.s3.bucket,
+    key: document.s3Key
+  });
+  response.status(constants.HTTP_STATUS_OK).json(toDocumentDTO(document, url));
+};
+
 const update: RequestHandler<
   Pick<DocumentDTO, 'id'>,
   DocumentDTO,
@@ -483,6 +512,7 @@ const removeByHousing: RequestHandler<
 
 const documentController = {
   create,
+  get,
   update,
   remove,
   linkToHousing,

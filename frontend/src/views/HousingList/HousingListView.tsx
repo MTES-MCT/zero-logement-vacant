@@ -1,6 +1,7 @@
 import { Alert } from '@codegouvfr/react-dsfr/Alert';
 import Button from '@codegouvfr/react-dsfr/Button';
 import Grid from '@mui/material/Grid';
+import Stack from '@mui/material/Stack';
 import { useState } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 
@@ -182,24 +183,36 @@ const HousingListView = () => {
               <HousingDisplaySwitch />
             </Grid>
             <Grid size="auto">
-              {!isVisitor && <HousingCreationModal onFinish={onFinish} />}
-            </Grid>
-            <Grid size="auto">
-              <Button
-                priority="primary"
-                onClick={() => {
-                  if (hasSelected) {
-                    groupOrCampaignCreationModal.open();
-                    if (showExportAlert) {
-                      setShowExportAlert(false);
-                    }
-                  } else {
-                    setShowExportAlert(true);
-                  }
-                }}
+              <Stack
+                component="ul"
+                direction="row"
+                spacing="0.75rem"
+                useFlexGap
+                sx={{ listStyle: 'none', padding: 0, margin: 0 }}
               >
-                Exporter ou contacter
-              </Button>
+                {!isVisitor && (
+                  <li role="listitem">
+                    <HousingCreationModal onFinish={onFinish} />
+                  </li>
+                )}
+                <li role="listitem">
+                  <Button
+                    priority="primary"
+                    onClick={() => {
+                      if (hasSelected) {
+                        groupOrCampaignCreationModal.open();
+                        if (showExportAlert) {
+                          setShowExportAlert(false);
+                        }
+                      } else {
+                        setShowExportAlert(true);
+                      }
+                    }}
+                  >
+                    Exporter ou contacter
+                  </Button>
+                </li>
+              </Stack>
             </Grid>
           </Grid>
 

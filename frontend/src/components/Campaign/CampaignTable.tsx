@@ -196,6 +196,7 @@ function CampaignTable(props: CampaignTableProps) {
         enableSortingRemoval
         manualSorting
         state={{ sorting }}
+        tableProps={{ noCaption: true }}
         onSortingChange={setSorting}
       />
     </>

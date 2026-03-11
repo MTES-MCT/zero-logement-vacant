@@ -2,8 +2,8 @@ import Button from '@codegouvfr/react-dsfr/Button';
 
 import {
   type NotificationProps,
-  useNotification,
-} from '../../hooks/useNotification';
+  useNotification
+} from '~/hooks/useNotification';
 
 interface Props
   extends Pick<
@@ -30,7 +30,6 @@ function SaveButton(props: Readonly<Props>) {
       disabled={props.isLoading}
       iconId="fr-icon-save-line"
       priority="secondary"
-      type="button"
       onClick={props.onSave}
     >
       Sauvegarder mon brouillon

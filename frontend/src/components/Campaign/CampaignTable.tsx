@@ -188,6 +188,7 @@ function CampaignTable(props: CampaignTableProps) {
       )}
 
       <AdvancedTable
+        caption="Vos campagnes"
         columns={columns}
         data={campaigns}
         isLoading={isLoading}

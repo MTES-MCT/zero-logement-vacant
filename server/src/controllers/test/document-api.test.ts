@@ -184,6 +184,61 @@ describe('Document API', () => {
     });
   });
 
+  describe('GET /documents/:id', () => {
+    const testRoute = (id: DocumentDTO['id']) => `/api/documents/${id}`;
+
+    it('should return 404 if document not found', async () => {
+      const { status } = await request(url)
+        .get(testRoute(faker.string.uuid()))
+        .use(tokenProvider(user));
+
+      expect(status).toBe(constants.HTTP_STATUS_NOT_FOUND);
+    });
+
+    it('should only allow viewing a document in user establishment', async () => {
+      const document = genDocumentApi({
+        createdBy: userFromAnotherEstablishment.id,
+        creator: userFromAnotherEstablishment,
+        establishmentId: anotherEstablishment.id
+      });
+      await Documents().insert(toDocumentDBO(document));
+
+      const { status } = await request(url)
+        .get(testRoute(document.id))
+        .use(tokenProvider(user));
+
+      expect(status).toBe(constants.HTTP_STATUS_NOT_FOUND);
+    });
+
+    it('should return the document with a pre-signed URL', async () => {
+      const document = genDocumentApi({
+        createdBy: user.id,
+        creator: user,
+        establishmentId: establishment.id
+      });
+      await Documents().insert(toDocumentDBO(document));
+
+      const { status, body } = await request(url)
+        .get(testRoute(document.id))
+        .use(tokenProvider(user));
+
+      expect(status).toBe(constants.HTTP_STATUS_OK);
+      expect(body).toMatchObject<Partial<DocumentDTO>>({
+        id: document.id,
+        filename: document.filename,
+        url: expect.stringContaining('http')
+      });
+    });
+
+    it('should be forbidden for a non-authenticated user', async () => {
+      const { status } = await request(url).get(
+        testRoute(faker.string.uuid())
+      );
+
+      expect(status).toBe(constants.HTTP_STATUS_UNAUTHORIZED);
+    });
+  });
+
   describe('PUT /documents/:id', () => {
     const testRoute = (id: string) => `/api/documents/${id}`;
 
@@ -369,11 +424,13 @@ describe('Document API', () => {
       await Documents().insert(toDocumentDBO(document));
       const housings = faker.helpers.multiple(() => genHousingApi());
       await Housing().insert(housings.map(formatHousingRecordApi));
-      await HousingDocuments().insert(housings.map(housing => ({
-        document_id: document.id,
-        housing_geo_code: housing.geoCode,
-        housing_id: housing.id
-      })));
+      await HousingDocuments().insert(
+        housings.map((housing) => ({
+          document_id: document.id,
+          housing_geo_code: housing.geoCode,
+          housing_id: housing.id
+        }))
+      );
 
       const { status } = await request(url)
         .delete(testRoute(document.id))

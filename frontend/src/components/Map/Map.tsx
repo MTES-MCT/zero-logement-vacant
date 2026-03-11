@@ -145,6 +145,7 @@ function Map(props: MapProps) {
     <>
       <ReactiveMap
         {...viewState}
+        aria-label="Carte de localisation"
         attributionControl={{}}
         id="housingMap"
         mapStyle={mapStyles.simple}

@@ -27,7 +27,7 @@ function LogoViewer(props: Readonly<Props>) {
       {logo.type !== 'application/pdf' && (
         <img
           src={logo.content}
-          alt={`logo de l'expéditeur numéro ${props.index}`}
+          alt={`Logo de l\u2019expéditeur ${props.index + 1}`}
           className="fr-mb-2w fr-mt-2w"
         />
       )}

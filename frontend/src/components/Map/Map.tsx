@@ -126,6 +126,14 @@ function Map(props: MapProps) {
     }
   }, [map, points]);
 
+  // MapLibre GL hardcodes aria-label="Map" on the canvas element.
+  // Override it after the map is ready to satisfy RGAA 1.3.
+  useEffect(() => {
+    if (map) {
+      map.getCanvas().setAttribute('aria-label', 'Carte de localisation');
+    }
+  }, [map]);
+
   const [selected, setSelected] = useState<Building | null>(null);
   const isOpen = selected !== null;
 
@@ -145,7 +153,6 @@ function Map(props: MapProps) {
     <>
       <ReactiveMap
         {...viewState}
-        aria-label="Carte de localisation"
         attributionControl={{}}
         id="housingMap"
         mapStyle={mapStyles.simple}

@@ -57,9 +57,8 @@ export type AdvancedTableProps<Data extends object> = Pick<
     getRowSelectionLabel?(row: Data): string;
     /**
      * Accessible caption for the table (RGAA 5.4).
-     * Rendered as a <caption> inside <table>. Use alongside noCaption in
-     * tableProps to keep the caption visually hidden when the title is already
-     * visible on the page.
+     * Rendered as a visually-hidden <caption> (fr-sr-only) inside <table>.
+     * Required when the table has a visible title elsewhere on the page.
      */
     caption?: string;
   };
@@ -180,7 +179,7 @@ function AdvancedTable<Data extends object>(props: AdvancedTableProps<Data>) {
             <div className={fr.cx('fr-table__content')}>
               <table>
                 {props.caption && (
-                  <caption>{props.caption}</caption>
+                  <caption className={fr.cx('fr-sr-only')}>{props.caption}</caption>
                 )}
                 <thead>
                   <tr>

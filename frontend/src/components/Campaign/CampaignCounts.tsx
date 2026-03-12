@@ -15,7 +15,7 @@ function CampaignCounts(props: Readonly<CampaignCountsProps>) {
   const housingCount =
     props.housing !== null ? displayCount(props.housing, 'logement') : null;
   const ownerCount =
-    props.owners !== null ? displayCount(props.owners, 'propriétaire') : null;
+    props.owners !== null ? displayCount(props.owners, 'propri\u00e9taire') : null;
 
   return (
     <Stack component="article" direction="row" spacing="0.5rem" useFlexGap>
@@ -24,7 +24,7 @@ function CampaignCounts(props: Readonly<CampaignCountsProps>) {
         {props.isLoading || housingCount === null ? (
           <Skeleton animation="wave" variant="text" />
         ) : (
-          <Typography component="span">{housingCount}</Typography>
+          <Typography component="p">{housingCount}</Typography>
         )}
       </Stack>
 
@@ -33,7 +33,7 @@ function CampaignCounts(props: Readonly<CampaignCountsProps>) {
         {props.isLoading || ownerCount === null ? (
           <Skeleton animation="wave" variant="text" />
         ) : (
-          <Typography component="span">{ownerCount}</Typography>
+          <Typography component="p">{ownerCount}</Typography>
         )}
       </Stack>
     </Stack>

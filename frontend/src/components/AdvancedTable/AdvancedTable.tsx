@@ -55,6 +55,12 @@ export type AdvancedTableProps<Data extends object> = Pick<
      * @returns Accessible label for the checkbox
      */
     getRowSelectionLabel?(row: Data): string;
+    /**
+     * Accessible label for the table (RGAA 5.4).
+     * Rendered as aria-label on the <table> element.
+     * Use alongside noCaption: true in tableProps to preserve DSFR padding.
+     */
+    caption?: string;
   };
 
 interface PaginationProps {
@@ -171,7 +177,7 @@ function AdvancedTable<Data extends object>(props: AdvancedTableProps<Data>) {
         <div className={fr.cx('fr-table__wrapper')}>
           <div className={fr.cx('fr-table__container')}>
             <div className={fr.cx('fr-table__content')}>
-              <table>
+              <table aria-label={props.caption}>
                 <thead>
                   <tr>
                     {!enableSelection ? null : (

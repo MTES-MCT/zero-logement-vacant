@@ -128,7 +128,7 @@ function DraftForm(props: Readonly<DraftFormProps>) {
           </Grid>
 
           <Grid size={12}>
-            <DraftSignatureNext />
+            <DraftSignatureNext draft={props.draft} />
           </Grid>
         </Grid>
       </form>

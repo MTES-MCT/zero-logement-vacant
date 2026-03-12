@@ -1,57 +1,125 @@
+#!/usr/bin/env python3
 """
-Script to process French territorial collectivities data.
-Creates a standardized dataset with administrative metadata and geographic perimeters.
+Process French territorial collectivities data.
+
+Creates a standardized dataset with administrative metadata and geographic perimeters
+for all French territorial collectivities (regions, departments, EPCI, communes, etc.).
+
+Usage:
+    python collectivities.py --parquet-path StockUniteLegale.parquet
+    python collectivities.py --parquet-path data.parquet --parquet-geoloc-path geoloc.parquet
+    python collectivities.py --output-dir ./output --dry-run --limit 100
 """
 
+import argparse
+import logging
+import os
+import re
+import time
+from datetime import datetime
+from typing import Dict, List, Optional
+
+import duckdb
+import numpy as np
 import pandas as pd
 import requests
-from typing import List, Dict, Optional
-import numpy as np
-import duckdb
-from tqdm import tqdm
-import time
 import requests_cache
-import re
+from tqdm import tqdm
 
-# Data sources
+# =============================================================================
+# Configuration
+# =============================================================================
+
+# Data sources - Official French government datasets
 URL_COMMUNES = "https://www.data.gouv.fr/api/1/datasets/r/91a95bee-c7c8-45f9-a8aa-f14cc4697545"
 URL_COMMUNES_TOM = "https://www.data.gouv.fr/api/1/datasets/r/6fcfb772-1c24-41c9-b7f8-08a26cf3f585"
 URL_DEPARTEMENTS = "https://www.data.gouv.fr/api/1/datasets/r/54a8263d-6e2d-48d5-b214-aa17cc13f7a0"
 URL_DEPARTMENTS_TOM = "https://www.data.gouv.fr/api/1/datasets/r/d4f01365-a3a7-41b2-9907-01a6cb42c9f2"
 URL_REGIONS = "https://www.data.gouv.fr/api/1/datasets/r/2486b351-5d85-4e1a-8d12-5df082c75104"
-URL_MAPPING_SIREN_INSEE = "data/mapping_siren_insee.xlsx"
+URL_MAPPING_SIREN_INSEE = "data/mapping_siren_insee.csv"
 EPCI_PATH = "data/EPCI.xlsx"
 EPT_PATH = "data/EPT.xlsx"
-PARQUET_PATH = '/Users/raphaelcourivaud/Downloads/Base Sirene SIREN SIRET.parquet'
-PARQUET_GEOLOC_PATH = '/Users/raphaelcourivaud/Downloads/Geolocalisation Etablissement Sirene Statistiques.parquet'
 MILLESIME = "2025"
-SLEEP_TIME = 0.15
+SLEEP_TIME = 0.5  # Rate limiting delay to avoid HTTP 429
 
+# Install request cache for API calls (10000 hours expiry)
 requests_cache.install_cache('cache', expire_after=36000000)
 
+# Special SIREN/SIRET for Paris (used as fallback)
 SIREN_PARIS = "217500016"
 SIRET_PARIS = "21750001600019"
 
+# Special departmental collectivities that merged multiple departments
+# Example: CEA (Collectivité Européenne d'Alsace) merged Bas-Rhin (67) and Haut-Rhin (68) in 2021
+SPECIAL_DEPARTMENTAL_COLLECTIVITIES = [
+    {
+        'code': '6AE',
+        'name_zlv': 'Collectivité Européenne d\'Alsace',
+        'name_source': 'COLLECTIVITE EUROPEENNE D\'ALSACE',
+        'siren': '200094332',
+        'siret': '20009433200018',
+        'departments': ['67', '68'],  # Covers both Bas-Rhin and Haut-Rhin
+        'region_code': '44',  # Grand Est
+        'region_name': 'Grand Est',
+    }
+]
+
 class CollectivityProcessor:
     """Process and standardize territorial collectivities data."""
-    
-    def __init__(self):
-        """Initialize the processor and load all data sources."""
+
+    def __init__(self, dry_run: bool = False, limit: int = None,
+                 parquet_path: str = None, parquet_geoloc_path: str = None):
+        """
+        Initialize the processor and load all data sources.
+
+        Args:
+            dry_run: If True, process data but don't save output files
+            limit: Maximum number of items to process per category (for testing)
+            parquet_path: Path to the Sirene parquet file (StockUniteLegale)
+            parquet_geoloc_path: Path to the geolocation parquet file (optional)
+        """
+        self.dry_run = dry_run
+        self.limit = limit
+        self.parquet_path = parquet_path
+        self.parquet_geoloc_path = parquet_geoloc_path
+        self.logger = logging.getLogger(__name__)
+
+        # Statistics tracking
+        self.stats = {
+            'regions': {'processed': 0, 'successful': 0, 'failed': 0},
+            'departments': {'processed': 0, 'successful': 0, 'failed': 0},
+            'special_collectivities': {'processed': 0, 'successful': 0, 'failed': 0},
+            'tom_departments': {'processed': 0, 'successful': 0, 'failed': 0},
+            'ept': {'processed': 0, 'successful': 0, 'failed': 0},
+            'epci': {'processed': 0, 'successful': 0, 'failed': 0},
+            'communes': {'processed': 0, 'successful': 0, 'failed': 0},
+            'tom_communes': {'processed': 0, 'successful': 0, 'failed': 0},
+        }
+
+        self._load_data_sources()
+        self._build_lookups()
+
+    def _load_data_sources(self):
+        """Load all required data sources."""
+        self.logger.info("Loading data sources...")
         print("Loading data sources...")
+
         self.df_communes = pd.read_csv(URL_COMMUNES)
         self.df_communes_tom = pd.read_csv(URL_COMMUNES_TOM)
         self.df_departements = pd.read_csv(URL_DEPARTEMENTS)
         self.df_departements_tom = pd.read_csv(URL_DEPARTMENTS_TOM)
         self.df_regions = pd.read_csv(URL_REGIONS)
-        self.df_epci_main = pd.read_excel(EPCI_PATH, sheet_name='EPCI')
-        self.df_epci_composition = pd.read_excel(EPCI_PATH, sheet_name='Composition')
-        self.df_ept_main = pd.read_excel(EPT_PATH, sheet_name='EPT')
-        self.df_ept_composition = pd.read_excel(EPT_PATH, sheet_name='Composition')
-        self.df_mapping_siren_insee = pd.read_excel(URL_MAPPING_SIREN_INSEE)
+        self.df_epci_main = pd.read_excel(EPCI_PATH, sheet_name='EPCI', engine='calamine', header=5)
+        self.df_epci_composition = pd.read_excel(EPCI_PATH, sheet_name='Composition_communale', engine='calamine', header=5)
+        self.df_ept_main = pd.read_excel(EPT_PATH, sheet_name='EPT', engine='calamine', header=5)
+        self.df_ept_composition = pd.read_excel(EPT_PATH, sheet_name='Composition_communale', engine='calamine', header=5)
+        self.df_mapping_siren_insee = pd.read_csv(
+            URL_MAPPING_SIREN_INSEE, sep=';',
+            dtype={'siren': str, 'insee': str}, encoding='latin-1'
+        )
+
+        self.logger.info("Data sources loaded successfully!")
         print("Data sources loaded successfully!")
-        
-        # Build lookup dictionaries
-        self._build_lookups()
     
     def _normalize_code(self, value):
         """
@@ -190,8 +258,11 @@ class CollectivityProcessor:
         dep_codes = set()
         for code in commune_codes:
             if code in self.commune_to_dep:
-                dep_codes.add(self.commune_to_dep[code])
-        
+                dep_code = self.commune_to_dep[code]
+                # Filter out None/NaN values and ensure string type
+                if dep_code is not None and not (isinstance(dep_code, float) and np.isnan(dep_code)):
+                    dep_codes.add(str(dep_code))
+
         dep_codes = sorted(list(dep_codes))
         dep_names = [self.dep_code_to_name.get(code, '') for code in dep_codes]
         return dep_codes, dep_names
@@ -201,8 +272,11 @@ class CollectivityProcessor:
         reg_codes = set()
         for code in commune_codes:
             if code in self.commune_to_reg:
-                reg_codes.add(self.commune_to_reg[code])
-        
+                reg_code = self.commune_to_reg[code]
+                # Filter out None/NaN values and ensure string type
+                if reg_code is not None and not (isinstance(reg_code, float) and np.isnan(reg_code)):
+                    reg_codes.add(str(reg_code))
+
         # Usually should be one region, but handle multiple
         if len(reg_codes) == 1:
             reg_code = list(reg_codes)[0]
@@ -237,101 +311,176 @@ class CollectivityProcessor:
     def process_regions(self) -> List[Dict]:
         """Process all regions."""
         print("Processing regions...")
+        self.logger.info("Processing regions")
         results = []
-        
-        for _, row in tqdm(self.df_regions.iterrows(), total=len(self.df_regions), desc="Processing regions"):
-            reg_code = row['REG_norm']
-            reg_name = row['LIBELLE']
-            
-            if reg_code is None:
-                continue
-            
-            # Get all communes in this region using normalized columns
-            communes_in_region = self.df_communes[
-                self.df_communes['REG_norm'] == reg_code
-            ]['COM_norm'].tolist()
-            # Filter out None values
-            communes_in_region = [c for c in communes_in_region if c is not None]
-            
-            # Get departments in this region using normalized columns
-            deps_in_region = self.df_departements[
-                self.df_departements['REG_norm'] == reg_code
-            ]['DEP_norm'].tolist()
-            dep_names = [self.dep_code_to_name.get(d, '') for d in deps_in_region]
-            
-            # Fetch SIREN and SIRET from API
-            siren, siret = self.get_siren_siret_from_collectivite_api(reg_code)
-            
-            data = self._create_base_row()
-            data.update({
-                'Name-zlv': f'Région {reg_name}',
-                'Name-source': reg_name,
-                'Kind-admin': 'REG',
-                'Kind-admin_label': 'Région',
-                'Siren': siren,
-                'Siret': siret,
-                'Layer-geo_label': 'Région',
-                'Geo_Perimeter': communes_in_region,
-                'Dep_Code': deps_in_region,
-                'Dep_Name': dep_names,
-                'Reg_Code': [reg_code],
-                'Reg_Name': [reg_name]
-            })
-            results.append(data)
-        
+
+        df_to_process = self.df_regions
+        if self.limit:
+            df_to_process = df_to_process.head(self.limit)
+
+        for _, row in tqdm(df_to_process.iterrows(), total=len(df_to_process), desc="Processing regions"):
+            self.stats['regions']['processed'] += 1
+            try:
+                reg_code = row['REG_norm']
+                reg_name = row['LIBELLE']
+
+                if reg_code is None:
+                    continue
+
+                # Get all communes in this region
+                communes_in_region = self.df_communes[
+                    self.df_communes['REG_norm'] == reg_code
+                ]['COM_norm'].tolist()
+                communes_in_region = [c for c in communes_in_region if c is not None]
+
+                # Get departments in this region
+                deps_in_region = self.df_departements[
+                    self.df_departements['REG_norm'] == reg_code
+                ]['DEP_norm'].tolist()
+                dep_names = [self.dep_code_to_name.get(d, '') for d in deps_in_region]
+
+                # Fetch SIREN and SIRET from API
+                siren, siret = self.get_siren_siret_from_collectivite_api(reg_code)
+
+                data = self._create_base_row()
+                data.update({
+                    'Name-zlv': f'Région {reg_name}',
+                    'Name-source': reg_name,
+                    'Kind-admin': 'REG',
+                    'Kind-admin_label': 'Région',
+                    'Siren': siren,
+                    'Siret': siret,
+                    'Layer-geo_label': 'Région',
+                    'Geo_Perimeter': communes_in_region,
+                    'Dep_Code': deps_in_region,
+                    'Dep_Name': dep_names,
+                    'Reg_Code': [reg_code],
+                    'Reg_Name': [reg_name]
+                })
+                results.append(data)
+                self.stats['regions']['successful'] += 1
+
+            except Exception as e:
+                self.stats['regions']['failed'] += 1
+                self.logger.error(f"Error processing region: {e}")
+
         print(f"Processed {len(results)} regions")
         return results
     
     def process_departements(self) -> List[Dict]:
         """Process all departments."""
         print("Processing departments...")
+        self.logger.info("Processing departments")
         results = []
-        
-        for _, row in tqdm(self.df_departements.iterrows(), total=len(self.df_departements), desc="Processing departments"):
-            dep_code = row['DEP_norm']
-            dep_name = row['LIBELLE']
-            reg_code = row['REG_norm']
-            reg_name = self.reg_code_to_name.get(reg_code, '')
-            
-            if dep_code is None:
-                continue
-            
-            # Get all communes in this department using normalized columns
-            communes_in_dep = self.df_communes[
-                self.df_communes['DEP_norm'] == dep_code
-            ]['COM_norm'].tolist()
-            # Filter out None values
-            communes_in_dep = [c for c in communes_in_dep if c is not None]
-            
-            # Fetch SIREN and SIRET from API (add "D" suffix for departments)
-            if dep_code:
-                siren, siret = SIREN_PARIS, SIRET_PARIS
-            else:
-                siren, siret = self.get_siren_siret_from_collectivite_api(f"{dep_code}D")
-            
-            # Fallback to query by name if not found (for special departments like Corse-du-Sud, Paris, etc.)
-            if siren is None or siret is None:
-                print("-> Fall back using the query and nature juridique")
-                siren, siret = self.get_siren_siret_from_query_and_nature_juridique(dep_name, '7220')
-            
-            data = self._create_base_row()
-            data.update({
-                'Name-zlv': f'Département {dep_name}',
-                'Name-source': dep_name,
-                'Kind-admin': 'DEP',
-                'Kind-admin_label': 'Département',
-                'Siren': siren,
-                'Siret': siret,
-                'Layer-geo_label': 'Département',
-                'Geo_Perimeter': communes_in_dep,
-                'Dep_Code': [dep_code],
-                'Dep_Name': [dep_name],
-                'Reg_Code': [reg_code],
-                'Reg_Name': [reg_name]
-            })
-            results.append(data)
-        
+
+        df_to_process = self.df_departements
+        if self.limit:
+            df_to_process = df_to_process.head(self.limit)
+
+        for _, row in tqdm(df_to_process.iterrows(), total=len(df_to_process), desc="Processing departments"):
+            self.stats['departments']['processed'] += 1
+            try:
+                dep_code = row['DEP_norm']
+                dep_name = row['LIBELLE']
+                reg_code = row['REG_norm']
+                reg_name = self.reg_code_to_name.get(reg_code, '')
+
+                if dep_code is None:
+                    continue
+
+                # Get all communes in this department
+                communes_in_dep = self.df_communes[
+                    self.df_communes['DEP_norm'] == dep_code
+                ]['COM_norm'].tolist()
+                communes_in_dep = [c for c in communes_in_dep if c is not None]
+
+                # Fetch SIREN and SIRET from API (add "D" suffix for departments)
+                if dep_code:
+                    siren, siret = self.get_siren_siret_from_collectivite_api(f"{dep_code}D")
+                else:
+                    siren, siret = SIREN_PARIS, SIRET_PARIS
+
+                # Fallback to query by name if not found
+                if siren is None or siret is None:
+                    self.logger.debug(f"Fallback to query for department {dep_name}")
+                    siren, siret = self.get_siren_siret_from_query_and_nature_juridique(dep_name, '7220')
+
+                data = self._create_base_row()
+                data.update({
+                    'Name-zlv': f'Département {dep_name}',
+                    'Name-source': dep_name,
+                    'Kind-admin': 'DEP',
+                    'Kind-admin_label': 'Département',
+                    'Siren': siren,
+                    'Siret': siret,
+                    'Layer-geo_label': 'Département',
+                    'Geo_Perimeter': communes_in_dep,
+                    'Dep_Code': [dep_code],
+                    'Dep_Name': [dep_name],
+                    'Reg_Code': [reg_code],
+                    'Reg_Name': [reg_name]
+                })
+                results.append(data)
+                self.stats['departments']['successful'] += 1
+
+            except Exception as e:
+                self.stats['departments']['failed'] += 1
+                self.logger.error(f"Error processing department: {e}")
+
         print(f"Processed {len(results)} departments")
+        return results
+
+    def process_special_departmental_collectivities(self) -> List[Dict]:
+        """
+        Process special departmental collectivities that merged multiple departments.
+
+        Example: CEA (Collectivité Européenne d'Alsace) merged Bas-Rhin (67) and Haut-Rhin (68) in 2021.
+        """
+        print("Processing special departmental collectivities...")
+        self.logger.info("Processing special departmental collectivities")
+        results = []
+
+        for collectivity in SPECIAL_DEPARTMENTAL_COLLECTIVITIES:
+            self.stats['special_collectivities']['processed'] += 1
+            try:
+                # Get all communes from the merged departments
+                communes = []
+                dep_names = []
+                for dep_code in collectivity['departments']:
+                    dep_communes = self.df_communes[
+                        self.df_communes['DEP_norm'] == dep_code
+                    ]['COM_norm'].tolist()
+                    communes.extend([c for c in dep_communes if c is not None])
+
+                    # Get department name
+                    dep_row = self.df_departements[self.df_departements['DEP_norm'] == dep_code]
+                    if not dep_row.empty:
+                        dep_names.append(dep_row.iloc[0]['LIBELLE'])
+
+                data = self._create_base_row()
+                data.update({
+                    'Name-zlv': collectivity['name_zlv'],
+                    'Name-source': collectivity['name_source'],
+                    'Kind-admin': 'DEP',
+                    'Kind-admin_label': 'Collectivité à statut particulier',
+                    'Siren': collectivity['siren'],
+                    'Siret': collectivity['siret'],
+                    'Layer-geo_label': 'Département',
+                    'Geo_Perimeter': communes,
+                    'Dep_Code': collectivity['departments'],
+                    'Dep_Name': dep_names,
+                    'Reg_Code': [collectivity['region_code']],
+                    'Reg_Name': [collectivity['region_name']]
+                })
+                results.append(data)
+                self.stats['special_collectivities']['successful'] += 1
+                self.logger.debug(f"Added {collectivity['name_zlv']} ({len(communes)} communes)")
+
+            except Exception as e:
+                self.stats['special_collectivities']['failed'] += 1
+                self.logger.error(f"Error processing special collectivity: {e}")
+
+        print(f"Processed {len(results)} special departmental collectivities")
         return results
 
     def get_siren_siret_from_insee_code(self, insee_code: str):
@@ -357,9 +506,12 @@ class CollectivityProcessor:
         """
         Returns the SIRET for a given SIREN.
         """
+        if not self.parquet_path:
+            return None
+
         query = f"""
             SELECT nicSiegeUniteLegale
-            FROM '{PARQUET_PATH}'
+            FROM '{self.parquet_path}'
             WHERE siren = '{siren}'
             LIMIT 1;
         """
@@ -425,9 +577,12 @@ class CollectivityProcessor:
             print(f"⚠️ No French ordinal mapping for arrondissement number: {arrond_number}")
             return None, None
         
+        if not self.parquet_path:
+            return None, None
+
         query = f"""
             SELECT siren, nicSiegeUniteLegale
-            FROM '{PARQUET_PATH}'
+            FROM '{self.parquet_path}'
             WHERE denominationUniteLegale LIKE '%ARRONDISSEMENT%'
             AND (denominationUniteLegale LIKE 'COM %' OR denominationUniteLegale LIKE 'COMMUNE%')
             AND denominationUniteLegale LIKE '%PARIS%'
@@ -452,20 +607,24 @@ class CollectivityProcessor:
     def get_siren_siret_for_tom_commune(self, commune_name: str, dep_code: str) -> tuple:
         """
         Get SIREN and SIRET for TOM communes from the Sirene parquet file.
-        
+
         Args:
             commune_name: Name of the commune (e.g., "Ua Huka", "Kouaoua")
             dep_code: Department code (e.g., "975" for Mayotte)
         Returns:
             tuple: (siren, siret) or (None, None) if not found
         """
+        # Skip if parquet files are not available
+        if not self.parquet_path or not self.parquet_geoloc_path:
+            return None, None
+
         # Normalize the commune name: replace special characters with space and uppercase
         normalized_name = re.sub(r'[^A-Za-z0-9\s]', ' ', commune_name).upper()
-        
+
         query = f"""
             SELECT siren, nicSiegeUniteLegale
-            FROM '{PARQUET_PATH}' siren_db
-            JOIN '{PARQUET_GEOLOC_PATH}' siren_geo_db 
+            FROM '{self.parquet_path}' siren_db
+            JOIN '{self.parquet_geoloc_path}' siren_geo_db
                 ON (siren_db.siren || lpad(CAST(siren_db.nicSiegeUniteLegale as VARCHAR), 5, '0')) = siren_geo_db.siret
             WHERE denominationUniteLegale LIKE '%COMMUNE%'
             AND denominationUniteLegale LIKE '%{normalized_name}%'
@@ -591,330 +750,541 @@ class CollectivityProcessor:
     def process_ept(self) -> List[Dict]:
         """Process all EPT (Établissement Public Territorial)."""
         print("Processing EPT...")
+        self.logger.info("Processing EPT")
         results = []
-        
-        for _, row in self.df_ept_main.iterrows():
-            ept_code = row['EPT_norm']
-            ept_name = row['LIBEPT']
-            
-            if ept_code is None:
-                continue
-            
-            # Get communes in this EPT from composition sheet using normalized columns
-            communes_in_ept = self.df_ept_composition[
-                self.df_ept_composition['EPT_norm'] == ept_code
-            ]['CODGEO_norm'].tolist()
-            # Filter out None values
-            communes_in_ept = [c for c in communes_in_ept if c is not None]
-            
-            if not communes_in_ept:
-                continue
-            
-            # Get department and region info
-            dep_codes, dep_names = self._get_dep_info(communes_in_ept)
-            reg_code, reg_name = self._get_reg_info(communes_in_ept)
-            siret = self.get_siret_from_siren(ept_code)
-            
-            data = self._create_base_row()
-            data.update({
-                'Name-zlv': f'EPT {ept_name}',
-                'Name-source': ept_name,
-                'Kind-admin': 'EPT',
-                'Kind-admin_label': 'Établissement Public Territorial',
-                'Siren': ept_code,
-                'Siret': siret,
-                'Layer-geo_label': 'Intercommunalité',
-                'Geo_Perimeter': communes_in_ept,
-                'Dep_Code': dep_codes,
-                'Dep_Name': dep_names,
-                'Reg_Code': [reg_code] if reg_code else [],
-                'Reg_Name': [reg_name] if reg_name else []
-            })
-            results.append(data)
-        
+
+        df_to_process = self.df_ept_main
+        if self.limit:
+            df_to_process = df_to_process.head(self.limit)
+
+        for _, row in df_to_process.iterrows():
+            self.stats['ept']['processed'] += 1
+            try:
+                ept_code = row['EPT_norm']
+                ept_name = row['LIBEPT']
+
+                if ept_code is None:
+                    continue
+
+                # Get communes in this EPT
+                communes_in_ept = self.df_ept_composition[
+                    self.df_ept_composition['EPT_norm'] == ept_code
+                ]['CODGEO_norm'].tolist()
+                communes_in_ept = [c for c in communes_in_ept if c is not None]
+
+                if not communes_in_ept:
+                    continue
+
+                # Get department and region info
+                dep_codes, dep_names = self._get_dep_info(communes_in_ept)
+                reg_code, reg_name = self._get_reg_info(communes_in_ept)
+                siret = self.get_siret_from_siren(ept_code)
+
+                data = self._create_base_row()
+                data.update({
+                    'Name-zlv': f'EPT {ept_name}',
+                    'Name-source': ept_name,
+                    'Kind-admin': 'EPT',
+                    'Kind-admin_label': 'Établissement Public Territorial',
+                    'Siren': ept_code,
+                    'Siret': siret,
+                    'Layer-geo_label': 'Intercommunalité',
+                    'Geo_Perimeter': communes_in_ept,
+                    'Dep_Code': dep_codes,
+                    'Dep_Name': dep_names,
+                    'Reg_Code': [reg_code] if reg_code else [],
+                    'Reg_Name': [reg_name] if reg_name else []
+                })
+                results.append(data)
+                self.stats['ept']['successful'] += 1
+
+            except Exception as e:
+                self.stats['ept']['failed'] += 1
+                self.logger.error(f"Error processing EPT: {e}")
+
         print(f"Processed {len(results)} EPT")
         return results
     
     def process_epci(self) -> List[Dict]:
-        """Process all EPCI (ME, CU, CA, CC)."""
+        """Process all EPCI (Métropole, Communauté Urbaine, CA, CC)."""
         print("Processing EPCI...")
+        self.logger.info("Processing EPCI")
         results = []
-        
-        for _, row in self.df_epci_main.iterrows():
-            epci_code = row['EPCI_norm']
-            epci_name = row['LIBEPCI']
-            nature = row['NATURE_EPCI']
-            
-            if epci_code is None:
-                continue
-            
-            # Get communes in this EPCI from composition sheet using normalized columns
-            communes_in_epci = self.df_epci_composition[
-                self.df_epci_composition['EPCI_norm'] == epci_code
-            ]['CODGEO_norm'].tolist()
-            # Filter out None values
-            communes_in_epci = [c for c in communes_in_epci if c is not None]
-            
-            if not communes_in_epci:
-                continue
-            
-            # Get department and region info
-            dep_codes, dep_names = self._get_dep_info(communes_in_epci)
-            reg_code, reg_name = self._get_reg_info(communes_in_epci)
-            siret = self.get_siret_from_siren(epci_code)
-            # Determine name and label based on nature
-            main_dep_code = dep_codes[0] if isinstance(dep_codes, list) else dep_codes
-            if nature == 'ME':
-                name_zlv = epci_name  # Métropole de Lyon, Bordeaux Métropole, etc.
-                kind_admin = 'METRO'
-                kind_label = 'Métropole'
-            elif nature == 'CU':
-                kind_admin = nature
-                # Remove "Communauté urbaine" from name
-                name_cleaned = epci_name.replace('Communauté urbaine ', '').replace('Communauté Urbaine ', '')
-                name_zlv = f'CU {name_cleaned}'
-                kind_label = 'Communauté Urbaine'
-            elif nature == 'CA':
-                kind_admin = nature
-                # Remove "Communauté d'agglomération" from name
-                name_cleaned = epci_name.replace("Communauté d'agglomération ", '').replace("Communauté d'Agglomération ", '')
-                name_cleaned = name_cleaned.replace("Communauté d'agglomération de ", '').replace("Communauté d'agglomération du ", '')
-                name_zlv = f'CA {name_cleaned}'
-                kind_label = "Communauté d'Agglomération"
-            elif nature == 'CC':
-                kind_admin = nature
-                # Remove "Communauté de communes" from name
-                name_cleaned = epci_name.replace('Communauté de communes ', '').replace('Communauté de Communes ', '')
-                name_cleaned = name_cleaned.replace('Communauté de communes de ', '').replace('Communauté de communes du ', '')
-                name_zlv = f'CC {name_cleaned}'
-                kind_label = 'Communauté des Communes'
-            else:
-                kind_admin = nature
-                name_zlv = epci_name
-                kind_label = nature if nature != 'METRO' else 'Métropole'
 
-            name_zlv = f'{name_zlv} ({main_dep_code})'
-            
-            data = self._create_base_row()
-            data.update({
-                'Name-zlv': name_zlv,
-                'Name-source': epci_name,
-                'Kind-admin': kind_admin,
-                'Kind-admin_label': kind_label,
-                'Siren': epci_code,
-                'Siret': siret,
-                'Layer-geo_label': 'Intercommunalité',
-                'Geo_Perimeter': communes_in_epci,
-                'Dep_Code': dep_codes,
-                'Dep_Name': dep_names,
-                'Reg_Code': [reg_code] if reg_code else [],
-                'Reg_Name': [reg_name] if reg_name else []
-            })
-            results.append(data)
-        
+        df_to_process = self.df_epci_main
+        if self.limit:
+            df_to_process = df_to_process.head(self.limit)
+
+        for _, row in df_to_process.iterrows():
+            self.stats['epci']['processed'] += 1
+            try:
+                epci_code = row['EPCI_norm']
+                epci_name = row['LIBEPCI']
+                nature = row['NATURE_EPCI']
+
+                if epci_code is None:
+                    continue
+
+                # Get communes in this EPCI
+                communes_in_epci = self.df_epci_composition[
+                    self.df_epci_composition['EPCI_norm'] == epci_code
+                ]['CODGEO_norm'].tolist()
+                communes_in_epci = [c for c in communes_in_epci if c is not None]
+
+                if not communes_in_epci:
+                    continue
+
+                # Get department and region info
+                dep_codes, dep_names = self._get_dep_info(communes_in_epci)
+                reg_code, reg_name = self._get_reg_info(communes_in_epci)
+                siret = self.get_siret_from_siren(epci_code)
+
+                # Determine name and label based on EPCI nature
+                if isinstance(dep_codes, list) and len(dep_codes) > 0:
+                    main_dep_code = dep_codes[0]
+                elif isinstance(dep_codes, list):
+                    main_dep_code = ''
+                else:
+                    main_dep_code = dep_codes or ''
+
+                if nature == 'ME':
+                    name_zlv = epci_name
+                    kind_admin = 'METRO'
+                    kind_label = 'Métropole'
+                elif nature == 'CU':
+                    kind_admin = nature
+                    name_cleaned = epci_name.replace('Communauté urbaine ', '').replace('Communauté Urbaine ', '')
+                    name_zlv = f'CU {name_cleaned}'
+                    kind_label = 'Communauté Urbaine'
+                elif nature == 'CA':
+                    kind_admin = nature
+                    name_cleaned = epci_name.replace("Communauté d'agglomération ", '').replace("Communauté d'Agglomération ", '')
+                    name_cleaned = name_cleaned.replace("Communauté d'agglomération de ", '').replace("Communauté d'agglomération du ", '')
+                    name_zlv = f'CA {name_cleaned}'
+                    kind_label = "Communauté d'Agglomération"
+                elif nature == 'CC':
+                    kind_admin = nature
+                    name_cleaned = epci_name.replace('Communauté de communes ', '').replace('Communauté de Communes ', '')
+                    name_cleaned = name_cleaned.replace('Communauté de communes de ', '').replace('Communauté de communes du ', '')
+                    name_zlv = f'CC {name_cleaned}'
+                    kind_label = 'Communauté des Communes'
+                else:
+                    kind_admin = nature
+                    name_zlv = epci_name
+                    kind_label = nature if nature != 'METRO' else 'Métropole'
+
+                name_zlv = f'{name_zlv} ({main_dep_code})'
+
+                data = self._create_base_row()
+                data.update({
+                    'Name-zlv': name_zlv,
+                    'Name-source': epci_name,
+                    'Kind-admin': kind_admin,
+                    'Kind-admin_label': kind_label,
+                    'Siren': epci_code,
+                    'Siret': siret,
+                    'Layer-geo_label': 'Intercommunalité',
+                    'Geo_Perimeter': communes_in_epci,
+                    'Dep_Code': dep_codes,
+                    'Dep_Name': dep_names,
+                    'Reg_Code': [reg_code] if reg_code else [],
+                    'Reg_Name': [reg_name] if reg_name else []
+                })
+                results.append(data)
+                self.stats['epci']['successful'] += 1
+
+            except Exception as e:
+                self.stats['epci']['failed'] += 1
+                self.logger.error(f"Error processing EPCI: {e}")
+
         print(f"Processed {len(results)} EPCI")
         return results
     
     def process_communes(self) -> List[Dict]:
         """Process all communes."""
         print("Processing communes...")
+        self.logger.info("Processing communes")
         results = []
-        
-        for _, row in tqdm(self.df_communes.iterrows(), total=len(self.df_communes), desc="Processing communes"):
-            com_code = row['COM_norm']
-            com_name = row['LIBELLE']
-            dep_code = row['DEP_norm']
-            reg_code = row['REG_norm']
-            typecom = row.get('TYPECOM', 'COM')
-            
-            # Skip if essential data is missing
-            if com_code is None or dep_code is None or reg_code is None:
-                continue
-            
-            dep_name = self.dep_code_to_name.get(dep_code, '')
-            reg_name = self.reg_code_to_name.get(reg_code, '')
-            
-            # Handle different types of communes
-            siren = None
-            siret = None
-            
-            if typecom == 'ARM':
-                # Arrondissement
-                name_zlv = com_name
-                kind_admin = 'ARR'
-                kind_label = 'Arrondissement'
-                layer_label = 'Arrondissement'
-                
-                # For Paris arrondissements, query the parquet file
-                if 'Paris' in com_name:
-                    siren, siret = self.get_siren_siret_for_paris_arrondissement(com_name)
-                # For Lyon and Marseille arrondissements, no SIREN/SIRET in parquet file
-                # so they remain None
-                
-            elif com_name == 'Paris':
-                # Special case for Paris
-                name_zlv = 'Ville de Paris'
-                kind_admin = 'COM'
-                kind_label = 'Commune'
-                layer_label = 'Commune'
-                # Get SIREN and SIRET from INSEE code
-                siren, siret = self.get_siren_siret_from_insee_code(com_code)
-            else:
-                # Regular commune
-                name_zlv = f'Commune de {com_name} ({dep_code})'
-                kind_admin = 'COM'
-                kind_label = 'Commune'
-                layer_label = 'Commune'
-                # Get SIREN and SIRET from INSEE code
-                siren, siret = self.get_siren_siret_from_insee_code(com_code)
-            
-            data = self._create_base_row()
-            data.update({
-                'Name-zlv': name_zlv,
-                'Name-source': com_name,
-                'Kind-admin': kind_admin,
-                'Kind-admin_label': kind_label,
-                'Siren': siren,
-                'Siret': siret,
-                'Layer-geo_label': layer_label,
-                'Geo_Perimeter': [com_code],
-                'Dep_Code': [dep_code],
-                'Dep_Name': [dep_name],
-                'Reg_Code': [reg_code],
-                'Reg_Name': [reg_name]
-            })
-            
-            results.append(data)
-        
+
+        df_to_process = self.df_communes
+        if self.limit:
+            df_to_process = df_to_process.head(self.limit)
+
+        for _, row in tqdm(df_to_process.iterrows(), total=len(df_to_process), desc="Processing communes"):
+            self.stats['communes']['processed'] += 1
+            try:
+                com_code = row['COM_norm']
+                com_name = row['LIBELLE']
+                dep_code = row['DEP_norm']
+                reg_code = row['REG_norm']
+                typecom = row.get('TYPECOM', 'COM')
+
+                # Skip if essential data is missing
+                if com_code is None or dep_code is None or reg_code is None:
+                    continue
+
+                dep_name = self.dep_code_to_name.get(dep_code, '')
+                reg_name = self.reg_code_to_name.get(reg_code, '')
+
+                # Handle different types of communes
+                siren = None
+                siret = None
+
+                if typecom == 'ARM':
+                    # Arrondissement (Paris, Lyon, Marseille)
+                    name_zlv = com_name
+                    kind_admin = 'ARR'
+                    kind_label = 'Arrondissement'
+                    layer_label = 'Arrondissement'
+
+                    # For Paris arrondissements, query the parquet file
+                    if 'Paris' in com_name:
+                        siren, siret = self.get_siren_siret_for_paris_arrondissement(com_name)
+                    # Lyon and Marseille arrondissements have no SIREN/SIRET
+
+                elif com_name == 'Paris':
+                    # Special case for Paris city
+                    name_zlv = 'Ville de Paris'
+                    kind_admin = 'COM'
+                    kind_label = 'Commune'
+                    layer_label = 'Commune'
+                    siren, siret = self.get_siren_siret_from_insee_code(com_code)
+                else:
+                    # Regular commune
+                    name_zlv = f'Commune de {com_name} ({dep_code})'
+                    kind_admin = 'COM'
+                    kind_label = 'Commune'
+                    layer_label = 'Commune'
+                    siren, siret = self.get_siren_siret_from_insee_code(com_code)
+
+                data = self._create_base_row()
+                data.update({
+                    'Name-zlv': name_zlv,
+                    'Name-source': com_name,
+                    'Kind-admin': kind_admin,
+                    'Kind-admin_label': kind_label,
+                    'Siren': siren,
+                    'Siret': siret,
+                    'Layer-geo_label': layer_label,
+                    'Geo_Perimeter': [com_code],
+                    'Dep_Code': [dep_code],
+                    'Dep_Name': [dep_name],
+                    'Reg_Code': [reg_code],
+                    'Reg_Name': [reg_name]
+                })
+
+                results.append(data)
+                self.stats['communes']['successful'] += 1
+
+            except Exception as e:
+                self.stats['communes']['failed'] += 1
+                self.logger.error(f"Error processing commune: {e}")
+
         print(f"Processed {len(results)} communes")
         return results
     
     def process_tom_departments(self) -> List[Dict]:
         """Process TOM (Territoires d'Outre-Mer) collectivities."""
         print("Processing TOM collectivities...")
+        self.logger.info("Processing TOM collectivities")
         results = []
-        
-        for _, row in tqdm(self.df_departements_tom.iterrows(), total=len(self.df_departements_tom), desc="Processing TOM collectivities"):
-            dep_code = row['DEP_norm']
-            dep_name = row['LIBELLE']
-            
-            if dep_code is None:
-                continue
-            
-            # Get all communes in this TOM department using normalized columns
-            communes_in_dep = self.df_communes_tom[
-                self.df_communes_tom['DEP_norm'] == dep_code
-            ]['COM_norm'].tolist()
-            # Filter out None values
-            communes_in_dep = [c for c in communes_in_dep if c is not None]
-            
-            # Fetch SIREN and SIRET from API for the TOM collectivity
-            siren, siret = self.get_siren_siret_from_tom_collectivity_api(dep_code, '7229')
-            if siren is None or siret is None:
-                siren, siret = self.get_siren_siret_from_tom_collectivity_api(dep_code, '7225')
-            
-            data = self._create_base_row()
-            data.update({
-                'Name-zlv': f'Collectivité {dep_name}',
-                'Name-source': dep_name,
-                'Kind-admin': 'TOM',
-                'Kind-admin_label': 'Territoire d\'Outre-Mer',
-                'Siren': siren,
-                'Siret': siret,
-                'Layer-geo_label': 'Collectivité TOM',
-                'Geo_Perimeter': communes_in_dep,
-                'Dep_Code': [dep_code],
-                'Dep_Name': [dep_name],
-                'Reg_Code': [],  # TOM collectivities don't have regions
-                'Reg_Name': []
-            })
-            results.append(data)
-        
+
+        df_to_process = self.df_departements_tom
+        if self.limit:
+            df_to_process = df_to_process.head(self.limit)
+
+        for _, row in tqdm(df_to_process.iterrows(), total=len(df_to_process), desc="Processing TOM collectivities"):
+            self.stats['tom_departments']['processed'] += 1
+            try:
+                dep_code = row['DEP_norm']
+                dep_name = row['LIBELLE']
+
+                if dep_code is None:
+                    continue
+
+                # Get all communes in this TOM department
+                communes_in_dep = self.df_communes_tom[
+                    self.df_communes_tom['DEP_norm'] == dep_code
+                ]['COM_norm'].tolist()
+                communes_in_dep = [c for c in communes_in_dep if c is not None]
+
+                # Fetch SIREN and SIRET from API
+                siren, siret = self.get_siren_siret_from_tom_collectivity_api(dep_code, '7229')
+                if siren is None or siret is None:
+                    siren, siret = self.get_siren_siret_from_tom_collectivity_api(dep_code, '7225')
+
+                data = self._create_base_row()
+                data.update({
+                    'Name-zlv': f'Collectivité {dep_name}',
+                    'Name-source': dep_name,
+                    'Kind-admin': 'TOM',
+                    'Kind-admin_label': 'Territoire d\'Outre-Mer',
+                    'Siren': siren,
+                    'Siret': siret,
+                    'Layer-geo_label': 'Collectivité TOM',
+                    'Geo_Perimeter': communes_in_dep,
+                    'Dep_Code': [dep_code],
+                    'Dep_Name': [dep_name],
+                    'Reg_Code': [],  # TOM collectivities don't have regions
+                    'Reg_Name': []
+                })
+                results.append(data)
+                self.stats['tom_departments']['successful'] += 1
+
+            except Exception as e:
+                self.stats['tom_departments']['failed'] += 1
+                self.logger.error(f"Error processing TOM department: {e}")
+
         print(f"Processed {len(results)} TOM collectivities")
         return results
     
     def process_tom_communes(self) -> List[Dict]:
         """Process TOM communes."""
         print("Processing TOM communes...")
+        self.logger.info("Processing TOM communes")
         results = []
-        
-        for _, row in tqdm(self.df_communes_tom.iterrows(), total=len(self.df_communes_tom), desc="Processing TOM communes"):
-            com_code = row['COM_norm']
-            com_name = row['LIBELLE']
-            dep_code = row['DEP_norm']
-            
-            if com_code is None or dep_code is None:
-                continue
-            
-            dep_name = self.dep_code_to_name.get(dep_code, '')
-            
-            # Get SIREN/SIRET from the parquet file using commune name
-            siren, siret = self.get_siren_siret_for_tom_commune(com_name, dep_code)
-            
-            data = self._create_base_row()
-            data.update({
-                'Name-zlv': f'Commune de {com_name} ({dep_code})',
-                'Name-source': com_name,
-                'Kind-admin': 'COM-TOM',
-                'Kind-admin_label': 'Commune TOM',
-                'Siren': siren,
-                'Siret': siret,
-                'Layer-geo_label': 'Commune',
-                'Geo_Perimeter': [com_code],
-                'Dep_Code': [dep_code],
-                'Dep_Name': [dep_name],
-                'Reg_Code': [],  # TOM communes don't have regions
-                'Reg_Name': []
-            })
-            results.append(data)
-        
+
+        df_to_process = self.df_communes_tom
+        if self.limit:
+            df_to_process = df_to_process.head(self.limit)
+
+        for _, row in tqdm(df_to_process.iterrows(), total=len(df_to_process), desc="Processing TOM communes"):
+            self.stats['tom_communes']['processed'] += 1
+            try:
+                com_code = row['COM_norm']
+                com_name = row['LIBELLE']
+                dep_code = row['DEP_norm']
+
+                if com_code is None or dep_code is None:
+                    continue
+
+                dep_name = self.dep_code_to_name.get(dep_code, '')
+
+                # Get SIREN/SIRET from the parquet file
+                siren, siret = self.get_siren_siret_for_tom_commune(com_name, dep_code)
+
+                data = self._create_base_row()
+                data.update({
+                    'Name-zlv': f'Commune de {com_name} ({dep_code})',
+                    'Name-source': com_name,
+                    'Kind-admin': 'COM-TOM',
+                    'Kind-admin_label': 'Commune TOM',
+                    'Siren': siren,
+                    'Siret': siret,
+                    'Layer-geo_label': 'Commune',
+                    'Geo_Perimeter': [com_code],
+                    'Dep_Code': [dep_code],
+                    'Dep_Name': [dep_name],
+                    'Reg_Code': [],  # TOM communes don't have regions
+                    'Reg_Name': []
+                })
+                results.append(data)
+                self.stats['tom_communes']['successful'] += 1
+
+            except Exception as e:
+                self.stats['tom_communes']['failed'] += 1
+                self.logger.error(f"Error processing TOM commune: {e}")
+
         print(f"Processed {len(results)} TOM communes")
         return results
     
     def process_all(self) -> pd.DataFrame:
-        """Process all collectivities and return a combined DataFrame."""
+        """
+        Process all collectivities and return a combined DataFrame.
+
+        Returns:
+            DataFrame containing all processed collectivities
+        """
         print("\n=== Starting collectivity processing ===\n")
-        
+        self.logger.info("Starting collectivity processing")
+
         all_results = []
-        
-        # Process each type
+
+        # Process each type in order
         all_results.extend(self.process_regions())
         all_results.extend(self.process_departements())
+        all_results.extend(self.process_special_departmental_collectivities())
         all_results.extend(self.process_tom_departments())
         all_results.extend(self.process_ept())
         all_results.extend(self.process_epci())
         all_results.extend(self.process_communes())
         all_results.extend(self.process_tom_communes())
-        
+
         # Convert to DataFrame
         df = pd.DataFrame(all_results)
-        
+
         print(f"\n=== Processing complete! ===")
-        print(f"Total collectivities: {len(df)}")
+        print(f"Total collectivities: {len(df):,}")
+        self.logger.info(f"Processing complete - {len(df)} collectivities")
+
         return df
 
 
+def setup_logging(verbose: bool = False, debug: bool = False) -> logging.Logger:
+    """
+    Configure logging for the script.
+
+    Args:
+        verbose: Enable INFO level logging to console
+        debug: Enable DEBUG level logging
+
+    Returns:
+        Configured logger instance
+    """
+    logger = logging.getLogger(__name__)
+
+    # Set level based on options
+    if debug:
+        level = logging.DEBUG
+    elif verbose:
+        level = logging.INFO
+    else:
+        level = logging.WARNING
+
+    logger.setLevel(level)
+
+    # Clear existing handlers
+    for handler in logger.handlers[:]:
+        logger.removeHandler(handler)
+
+    # Log file (always INFO level)
+    timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+    log_file = f'collectivities_{timestamp}.log'
+    file_handler = logging.FileHandler(log_file, encoding='utf-8')
+    file_handler.setLevel(logging.INFO)
+
+    # Console handler
+    console_handler = logging.StreamHandler()
+    console_handler.setLevel(level)
+
+    # Simple format
+    formatter = logging.Formatter('%(levelname)s - %(message)s')
+    file_handler.setFormatter(formatter)
+    console_handler.setFormatter(formatter)
+
+    logger.addHandler(file_handler)
+    logger.addHandler(console_handler)
+
+    return logger
+
+
 def main():
-    """Main execution function."""
-    # Initialize processor
-    processor = CollectivityProcessor()
-    
-    # Process all data
-    df_collectivities = processor.process_all()
-    
-    # Save to CSV
-    output_file = 'collectivities_processed.csv'
-    df_collectivities.to_csv(output_file, index=False)
-    print(f"\nData saved to {output_file}")
-    
-    # Save to Excel with better formatting
-    output_excel = 'collectivities_processed.xlsx'
-    df_collectivities.to_excel(output_excel, index=False)
-    print(f"Data saved to {output_excel}")
-    return df_collectivities
+    """Main execution function with CLI argument parsing."""
+    parser = argparse.ArgumentParser(
+        description='Process French territorial collectivities data',
+        formatter_class=argparse.RawDescriptionHelpFormatter,
+        epilog="""
+Examples:
+    python collectivities.py --parquet-path StockUniteLegale.parquet
+    python collectivities.py --parquet-path data.parquet --output-dir ./output
+    python collectivities.py --dry-run --limit 100 --debug
+        """
+    )
+
+    # Output options
+    parser.add_argument('--output-dir', type=str, default='.',
+                        help='Output directory for generated files (default: current directory)')
+
+    # Data source options
+    parser.add_argument('--parquet-path', type=str,
+                        help='Path to Sirene parquet file (StockUniteLegale). Required for SIRET lookups.')
+    parser.add_argument('--parquet-geoloc-path', type=str,
+                        help='Path to geolocation parquet file. If not provided, TOM commune lookup will be skipped.')
+
+    # Processing options
+    parser.add_argument('--dry-run', action='store_true',
+                        help='Simulation mode - process data but do not save files')
+    parser.add_argument('--limit', type=int,
+                        help='Limit number of items processed per category (for testing)')
+
+    # Debug options
+    parser.add_argument('--debug', action='store_true',
+                        help='Enable debug logging')
+    parser.add_argument('--verbose', '-v', action='store_true',
+                        help='Enable verbose output')
+
+    args = parser.parse_args()
+
+    # Setup logging
+    logger = setup_logging(verbose=args.verbose, debug=args.debug)
+
+    # Print header
+    print("=" * 80)
+    print("TERRITORIAL COLLECTIVITIES PROCESSOR")
+    print("=" * 80)
+    if args.dry_run:
+        print("Mode: DRY RUN (no files will be saved)")
+    if args.limit:
+        print(f"Limit: {args.limit} items per category")
+    if args.parquet_path:
+        print(f"Parquet: {args.parquet_path}")
+    else:
+        print("Parquet: not provided (SIRET lookups will be skipped)")
+    if args.parquet_geoloc_path:
+        print(f"Parquet geoloc: {args.parquet_geoloc_path}")
+    print()
+
+    try:
+        # Initialize processor
+        processor = CollectivityProcessor(
+            dry_run=args.dry_run,
+            limit=args.limit,
+            parquet_path=args.parquet_path,
+            parquet_geoloc_path=args.parquet_geoloc_path
+        )
+
+        # Process all data
+        df_collectivities = processor.process_all()
+
+        # Print statistics
+        print("\n" + "=" * 80)
+        print("STATISTICS")
+        print("=" * 80)
+        total_processed = 0
+        total_successful = 0
+        total_failed = 0
+        for category, stats in processor.stats.items():
+            if stats['processed'] > 0:
+                print(f"  {category}: {stats['successful']:,} successful, {stats['failed']:,} failed")
+                total_processed += stats['processed']
+                total_successful += stats['successful']
+                total_failed += stats['failed']
+        print(f"\n  TOTAL: {total_successful:,} successful, {total_failed:,} failed")
+        print("=" * 80)
+
+        # Save output files
+        if not args.dry_run:
+            # Ensure output directory exists
+            if args.output_dir != '.':
+                os.makedirs(args.output_dir, exist_ok=True)
+
+            # Save to CSV
+            output_csv = os.path.join(args.output_dir, 'collectivities_processed.csv')
+            df_collectivities.to_csv(output_csv, index=False)
+            print(f"\n✅ Data saved to {output_csv}")
+
+            # Save to Excel
+            output_excel = os.path.join(args.output_dir, 'collectivities_processed.xlsx')
+            df_collectivities.to_excel(output_excel, index=False)
+            print(f"✅ Data saved to {output_excel}")
+        else:
+            print("\n⚠️  Dry run mode - no files saved")
+
+        print("\n✅ Processing completed successfully")
+        return df_collectivities
+
+    except KeyboardInterrupt:
+        print("\n⚠️  Interrupted by user")
+        return None
+    except Exception as e:
+        logger.error(f"Processing failed: {e}")
+        print(f"\n❌ Failed: {e}")
+        if args.debug:
+            import traceback
+            traceback.print_exc()
+        return None
 
 
 if __name__ == '__main__':
-    df = main()
-    df.to_csv('collectivities_processed.csv', index=False)
+    main()
 

@@ -1,5 +1,6 @@
 import { buildingFilters } from './building-filters';
 import { campaignCreationPayload } from './campaign-creation-payload';
+import { campaignUpdateNextPayload } from './campaign-update-next-payload';
 import { dateString } from './date-string';
 import { documentPayload } from './document-payload';
 import { draft } from './draft';
@@ -28,6 +29,7 @@ export { type HousingDocumentPayload } from './housing-document-payload';
 const schemas = {
   buildingFilters,
   campaignCreationPayload,
+  campaignUpdateNextPayload,
   dateString,
   documentPayload,
   draft,

@@ -76,6 +76,8 @@ interface Config {
     enabled: boolean;
     username: string;
     password: string;
+    authVersion: 'v1' | 'v2';
+    apiV2: string;
   };
   datafoncier: {
     api: string;
@@ -142,6 +144,10 @@ interface Config {
     bucket: string;
     accessKeyId: string;
     secretAccessKey: string;
+  };
+  posthog: {
+    apiKey: string;
+    host: string;
   };
   sentry: {
     dsn: string | null;
@@ -277,6 +283,16 @@ const config = convict<Config>({
       sensitive: true,
       default: null,
       nullable: !isProduction
+    },
+    authVersion: {
+      env: 'CEREMA_AUTH_VERSION',
+      format: ['v1', 'v2'],
+      default: 'v1'
+    },
+    apiV2: {
+      env: 'CEREMA_API_V2',
+      format: 'url',
+      default: 'https://datafoncier-dev.osc-fr1.scalingo.io'
     }
   },
   datafoncier: {
@@ -506,6 +522,20 @@ const config = convict<Config>({
       format: String,
       default: isProduction ? null : 'secret',
       sensitive: true
+    }
+  },
+  posthog: {
+    apiKey: {
+      doc: 'PostHog API key',
+      format: String,
+      default: isProduction ? null : 'secret',
+      env: 'POSTHOG_API_KEY'
+    },
+    host: {
+      doc: 'PostHog host',
+      format: String,
+      default: 'https://eu.i.posthog.com',
+      env: 'POSTHOG_HOST'
     }
   },
   sentry: {

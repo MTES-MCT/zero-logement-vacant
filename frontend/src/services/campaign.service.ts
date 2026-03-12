@@ -1,4 +1,5 @@
 import type {
+  CampaignCreationPayload,
   CampaignCreationPayloadDTO,
   CampaignDTO,
   CampaignUpdatePayloadDTO
@@ -73,23 +74,43 @@ export const campaignApi = zlvApi.injectEndpoints({
     createCampaignFromGroup: builder.mutation<
       Campaign,
       {
+        campaign: Pick<CampaignCreationPayloadDTO, 'title' | 'description'>;
+        group: Group;
+      }
+    >({
+      query: (payload) => {
+        return {
+          url: `campaigns/${payload.group.id}/groups`,
+          method: 'POST',
+          body: payload.campaign
+        };
+      },
+      invalidatesTags: [{ type: 'Campaign', id: 'LIST' }],
+      transformResponse: (campaign: CampaignDTO) => fromCampaignDTO(campaign)
+    }),
+
+    createCampaignFromGroupNext: builder.mutation<
+      Campaign,
+      {
         campaign: Pick<
-          CampaignCreationPayloadDTO,
+          CampaignCreationPayload,
           'title' | 'description' | 'sentAt'
         >;
         group: Group;
       }
     >({
-      query: (payload) => ({
-        url: `campaigns/${payload.group.id}/groups`,
-        method: 'POST',
-        body: {
-          title: payload.campaign.title,
-          description: payload.campaign.description,
-          sentAt: payload.campaign.sentAt
-          // TODO: should the filters be taken into account ?
-        }
-      }),
+      query: (payload) => {
+        const body: CampaignCreationPayload = {
+          ...payload.campaign,
+          sentAt: payload.campaign.sentAt?.slice(0, 'yyyy-mm-dd'.length) ?? null
+        };
+
+        return {
+          url: `groups/${payload.group.id}/campaigns`,
+          method: 'POST',
+          body
+        };
+      },
       invalidatesTags: [{ type: 'Campaign', id: 'LIST' }],
       transformResponse: (campaign: CampaignDTO) => fromCampaignDTO(campaign)
     }),
@@ -104,6 +125,7 @@ export const campaignApi = zlvApi.injectEndpoints({
         { type: 'Campaign', id: args.id }
       ]
     }),
+
     removeCampaignHousing: builder.mutation<
       void,
       {
@@ -147,7 +169,7 @@ function toCampaignPayloadDTO(campaign: Campaign): CampaignUpdatePayloadDTO {
     title: campaign.title,
     description: campaign.description,
     status: campaign.status,
-    sentAt: campaign.sentAt
+    sentAt: campaign.sentAt ?? undefined
   };
 }
 
@@ -167,5 +189,6 @@ export const {
   useRemoveCampaignHousingMutation,
   useRemoveCampaignMutation,
   useCreateCampaignMutation,
-  useCreateCampaignFromGroupMutation
+  useCreateCampaignFromGroupMutation,
+  useCreateCampaignFromGroupNextMutation
 } = campaignApi;

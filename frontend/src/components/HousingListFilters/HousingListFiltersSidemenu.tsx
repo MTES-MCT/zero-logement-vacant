@@ -18,7 +18,7 @@ import { isDefined } from '@zerologementvacant/utils';
 import classNames from 'classnames';
 import { usePostHog } from 'posthog-js/react';
 
-import Tooltip from '~/Tooltip/Tooltip';
+import Tooltip from '~/components/ui/Tooltip/Tooltip';
 import { useIntercommunalities } from '../../hooks/useIntercommunalities';
 import { useToggle } from '../../hooks/useToggle';
 import { useUser } from '../../hooks/useUser';

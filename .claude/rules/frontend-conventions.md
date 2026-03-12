@@ -13,7 +13,10 @@ paths: ["frontend/**"]
 - Never use inline styles.
 - Never import from `@emotion/styled` directly.
 - Never hardcode hex colors — use CSS variables from `src/colors.scss` or `fr.colors.*`.
+- Never use CSS variables in TSX `sx` props or `styled()` — use `fr.colors.*` from `import { fr } from '@codegouvfr/react-dsfr'` instead.
 - Spacing: explicit rem values (`"1rem"`), never MUI numeric multipliers (`spacing={2}`).
+- Never use `px` units — always use `rem` (e.g. `borderRadius: '0.25rem'` not `'4px'`).
+- Stack: use `direction="row"` prop directly, never `sx={{ flexDirection: 'row' }}`.
 
 ## Imports
 - MUI: direct imports only. `import Box from '@mui/material/Box'`, not `import { Box } from '@mui/material'`.
@@ -34,9 +37,24 @@ paths: ["frontend/**"]
 
 ## Testing
 - MSW handlers in `src/mocks/handlers/`. Fixtures extend `gen*DTO()`.
+- The MSW server is started automatically by Vitest setup — never call `server.listen()` / `server.close()` manually in test files.
+- Always use `userEvent.setup()` for user interactions — never call `fireEvent` directly.
+  ```typescript
+  const user = userEvent.setup();
+  await user.click(screen.getByRole('button', { name: /confirm/i }));
+  ```
+- Tests follow Arrange → Act → Assert with a blank line between each block.
 - Every new user flow requires two levels of tests:
   1. **Unit test** in a `test/` directory next to the component (`components/<Feature>/test/ComponentName.test.tsx`).
   2. **View-level integration test** in `views/<Feature>/test/<FeatureView>.test.tsx` — covers the full flow from button click to API call, following the pattern in `GroupViewNext.test.tsx`.
+
+## DSFR modals
+- Opened imperatively via the object returned by `createModal` or `createConfirmationModal` — never through state.
+- For modals that submit a form (date input, confirmation with action), use `createConfirmationModal` from `@codegouvfr/react-dsfr/Modal`.
+- Always use `react-hook-form` to handle form state and validation inside modals.
+
+## French text
+- Always use the French apostrophe `’` (U+2019), never the English straight apostrophe `'` (U+0027) in user-facing strings.
 
 ## Legacy → current (do not replicate legacy)
 | Legacy | Current |

@@ -5,17 +5,16 @@ import { useEffect } from 'react';
 import { useLocation, useNavigate, useParams } from 'react-router-dom';
 
 import AppSearchBar from '~/components/_app/AppSearchBar/AppSearchBar';
-import GroupNext from '~/components/Group/GroupNext';
+import GroupNext, { type GroupProps } from '~/components/Group/GroupNext';
 import { HousingDisplaySwitch } from '~/components/HousingDisplaySwitch/HousingDisplaySwitch';
 import HousingFiltersBadges from '~/components/HousingFiltersBadges/HousingFiltersBadges';
 import HousingListFiltersSidemenu from '~/components/HousingListFilters/HousingListFiltersSidemenu';
 import { useDocumentTitle } from '~/hooks/useDocumentTitle';
 import { useFilters } from '~/hooks/useFilters';
 import { useAppSelector } from '~/hooks/useStore';
-import type { Campaign } from '~/models/Campaign';
 import type { GroupPayload } from '~/models/GroupPayload';
 import authService from '~/services/auth.service';
-import { useCreateCampaignFromGroupMutation } from '~/services/campaign.service';
+import { useCreateCampaignFromGroupNextMutation } from '~/services/campaign.service';
 import {
   useGetGroupQuery,
   useRemoveGroupMutation,
@@ -77,18 +76,20 @@ function GroupViewNext() {
     }
   }
 
-  const [createCampaignFromGroup] = useCreateCampaignFromGroupMutation();
-  async function onCampaignCreate(
-    campaign: Pick<Campaign, 'title' | 'description'>
-  ): Promise<void> {
+  const [createCampaignFromGroup] = useCreateCampaignFromGroupNextMutation();
+  const onCampaignCreate: GroupProps['onCreateCampaign'] = async (campaign) => {
     if (group) {
       const created = await createCampaignFromGroup({
-        campaign,
+        campaign: {
+          title: campaign.title,
+          description: campaign.description,
+          sentAt: campaign.sentAt ?? null
+        },
         group
       }).unwrap();
       navigate(`/campagnes/${created.id}`);
     }
-  }
+  };
 
   async function onGroupExport(): Promise<void> {
     if (group) {

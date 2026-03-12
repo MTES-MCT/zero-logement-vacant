@@ -15,9 +15,12 @@ cd "$SCRIPT_DIR"
 # Check Cerema credentials
 if [ -z "$CEREMA_USERNAME" ] || [ -z "$CEREMA_PASSWORD" ]; then
     echo "ERROR: CEREMA_USERNAME and CEREMA_PASSWORD environment variables must be set"
-    echo "These are used to authenticate with: https://portaildf.cerema.fr/api/api-token-auth/"
     exit 1
 fi
+
+# Auth version: v1 (legacy) or v2 (DataFoncier API)
+AUTH_VERSION="${CEREMA_AUTH_VERSION:-v1}"
+echo "Using auth version: $AUTH_VERSION"
 
 # Check database connection variables (Clever Cloud naming convention)
 if [ -z "$POSTGRESQL_ADDON_HOST" ] || [ -z "$POSTGRESQL_ADDON_DB" ] || [ -z "$POSTGRESQL_ADDON_USER" ] || [ -z "$POSTGRESQL_ADDON_PASSWORD" ]; then
@@ -43,12 +46,26 @@ LOG_FILE="logs/sync-$(date +%Y%m%d-%H%M%S).log"
 
 # Authenticate and get API token
 echo "Authenticating with Cerema API..."
-AUTH_RESPONSE=$(curl -s -X POST https://portaildf.cerema.fr/api/api-token-auth/ \
-    -d "username=$CEREMA_USERNAME" \
-    -d "password=$CEREMA_PASSWORD")
 
-# Extract token from JSON response
-export CEREMA_BEARER_TOKEN=$(echo "$AUTH_RESPONSE" | grep -o '"token":"[^"]*"' | cut -d'"' -f4)
+if [ "$AUTH_VERSION" = "v2" ]; then
+    # V2: POST /api/token/ with JSON body, returns { access, refresh }
+    API_URL="${CEREMA_API_V2:-https://datafoncier.cerema.fr}"
+    AUTH_RESPONSE=$(curl -s -X POST "$API_URL/api/token/" \
+        -H "Content-Type: application/json" \
+        -d "{\"username\": \"$CEREMA_USERNAME\", \"password\": \"$CEREMA_PASSWORD\"}")
+
+    # Extract access token from JSON response
+    export CEREMA_BEARER_TOKEN=$(echo "$AUTH_RESPONSE" | grep -o '"access":"[^"]*"' | cut -d'"' -f4)
+else
+    # V1: POST /api/api-token-auth/ with form-data, returns { token }
+    API_URL="${CEREMA_API:-https://portaildf.cerema.fr}"
+    AUTH_RESPONSE=$(curl -s -X POST "$API_URL/api/api-token-auth/" \
+        -d "username=$CEREMA_USERNAME" \
+        -d "password=$CEREMA_PASSWORD")
+
+    # Extract token from JSON response
+    export CEREMA_BEARER_TOKEN=$(echo "$AUTH_RESPONSE" | grep -o '"token":"[^"]*"' | cut -d'"' -f4)
+fi
 
 if [ -z "$CEREMA_BEARER_TOKEN" ]; then
     echo "✗ ERROR: Failed to obtain authentication token"
@@ -56,7 +73,7 @@ if [ -z "$CEREMA_BEARER_TOKEN" ]; then
     exit 1
 fi
 
-echo "✓ Authentication successful (token obtained)"
+echo "✓ Authentication successful (token obtained from $API_URL)"
 
 # Detect python command (python3 or python)
 PYTHON_CMD=$(command -v python3 || command -v python || echo "")

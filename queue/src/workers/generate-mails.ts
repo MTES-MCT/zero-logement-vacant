@@ -244,6 +244,7 @@ export default function createWorker() {
 
           await api.campaign.update(campaign.id, {
             ...campaign,
+            sentAt: campaign.sentAt ?? undefined,
             file: Key
           });
 

@@ -1,5 +1,6 @@
 import config from '~/infra/config';
 import { logger } from '~/infra/logger';
+import { createAuthProvider } from './ceremaAuthProvider';
 
 export interface PortailDFUser {
   id_user: number;
@@ -43,6 +44,8 @@ export function determineUserKind(
   }
 }
 
+const authProvider = createAuthProvider();
+
 /**
  * Fetch user kind from Portail DF API.
  *
@@ -59,36 +62,15 @@ export async function fetchUserKind(email: string): Promise<string | null> {
   }
 
   try {
-    // Authenticate with Portail DF API using multipart/form-data
-    const formData = new FormData();
-    formData.append('username', config.cerema.username);
-    formData.append('password', config.cerema.password);
-
-    const authResponse = await fetch(
-      `${config.cerema.api}/api/api-token-auth/`,
-      {
-        method: 'POST',
-        body: formData
-      }
-    );
-
-    if (!authResponse.ok) {
-      logger.error('Failed to authenticate with Portail DF API', {
-        status: authResponse.status,
-        email
-      });
-      return null;
-    }
-
-    const { token }: any = await authResponse.json();
+    const { token, authPrefix, apiUrl } = await authProvider.authenticate();
 
     // Fetch user data from Portail DF
     const userResponse = await fetch(
-      `${config.cerema.api}/api/utilisateurs?email=${encodeURIComponent(email)}`,
+      `${apiUrl}/api/utilisateurs?email=${encodeURIComponent(email)}`,
       {
         method: 'GET',
         headers: {
-          Authorization: `Token ${token}`,
+          Authorization: `${authPrefix} ${token}`,
           'Content-Type': 'application/json'
         }
       }
@@ -102,7 +84,7 @@ export async function fetchUserKind(email: string): Promise<string | null> {
       return null;
     }
 
-    const userContent = await userResponse.json() as PortailDFResponse;
+    const userContent = (await userResponse.json()) as PortailDFResponse;
 
     // No user found
     if (!userContent.results || userContent.results.length === 0) {

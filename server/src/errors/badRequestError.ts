@@ -3,10 +3,10 @@ import { constants } from 'http2';
 import { HttpError } from './httpError';
 
 export default class BadRequestError extends HttpError implements HttpError {
-  constructor() {
+  constructor(message = 'Bad request') {
     super({
       name: 'BadRequestError',
-      message: `Bad request`,
+      message,
       status: constants.HTTP_STATUS_BAD_REQUEST,
     });
   }

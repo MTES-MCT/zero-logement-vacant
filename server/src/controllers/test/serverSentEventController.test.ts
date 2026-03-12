@@ -39,7 +39,7 @@ describe('Server-sent event API', () => {
     { timeout: TIMEOUT },
     () =>
       new Promise<void>((resolve, reject) => {
-        const campaign = genCampaignApi(establishment.id, user.id);
+        const campaign = genCampaignApi(establishment.id, user);
         vi.spyOn(queue, 'on').mockImplementation((event, callback) => {
           setImmediate(() => {
             callback({ id: campaign.id });

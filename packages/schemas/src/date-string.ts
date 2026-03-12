@@ -5,7 +5,7 @@ export const DATE_LENGTH = 'yyyy-mm-dd'.length;
 
 export const dateString = string()
   .trim()
-  .length(DATE_LENGTH)
+  .length(DATE_LENGTH, 'La date doit être au format yyyy-mm-dd.')
   .test({
     name: 'is-iso-date',
     skipAbsent: true,

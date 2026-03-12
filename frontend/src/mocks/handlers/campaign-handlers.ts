@@ -5,9 +5,11 @@ import {
   bySentAt,
   byStatus,
   byTitle,
+  type CampaignCreationPayload,
   type CampaignCreationPayloadDTO,
   type CampaignDTO,
   type CampaignUpdatePayloadDTO,
+  type GroupDTO,
   type HousingDTO
 } from '@zerologementvacant/models';
 import { combineAll, desc, type Ord } from '@zerologementvacant/utils';
@@ -16,18 +18,78 @@ import { identity } from 'effect/Function';
 import { constants } from 'http2';
 import { List } from 'immutable';
 import { http, HttpResponse, RequestHandler } from 'msw';
+import { toUserDTO } from '~/models/User';
 import {
   type CampaignSortable,
   isCampaignSortable
 } from '../../models/Campaign';
 import config from '../../utils/config';
+import { decodeAuth } from './auth-helpers';
 import data from './data';
 
 type CampaignParams = {
   id: string;
 };
 
+const createFromGroup = http.post<
+  { id: GroupDTO['id'] },
+  CampaignCreationPayload,
+  CampaignDTO
+>(
+  `${config.apiEndpoint}/api/groups/:id/campaigns`,
+  async ({ params, request }) => {
+    const group = data.groups.find((group) => group.id === params.id);
+    if (!group) {
+      throw new HttpResponse(
+        {
+          name: 'GroupMissingError',
+          message: `Group ${params.id} missing`
+        },
+        {
+          status: constants.HTTP_STATUS_NOT_FOUND
+        }
+      );
+    }
+
+    const auth = decodeAuth(request);
+    if (!auth) {
+      throw new HttpResponse(
+        {
+          name: 'UnauthorizedError',
+          message: 'Unauthorized'
+        },
+        {
+          status: constants.HTTP_STATUS_UNAUTHORIZED
+        }
+      );
+    }
+
+    const payload = await request.json();
+    const campaign: CampaignDTO = {
+      id: faker.string.uuid(),
+      title: payload.title,
+      description: payload.description,
+      sentAt: payload.sentAt?.slice(0, 'yyyy-mm-dd'.length) ?? null,
+      filters: {
+        groupIds: [group.id]
+      },
+      status: 'draft',
+      createdAt: new Date().toJSON(),
+      createdBy: toUserDTO(auth.user),
+      groupId: group.id,
+      returnCount: null
+    };
+    data.campaigns.push(campaign);
+
+    return HttpResponse.json(campaign, {
+      status: constants.HTTP_STATUS_CREATED
+    });
+  }
+);
+
 export const campaignHandlers: RequestHandler[] = [
+  createFromGroup,
+
   http.get<Record<string, never>, never, CampaignDTO[]>(
     `${config.apiEndpoint}/api/campaigns`,
     ({ request }) => {
@@ -50,7 +112,9 @@ export const campaignHandlers: RequestHandler[] = [
         description: payload.description,
         filters: payload.housing.filters,
         status: 'draft',
-        createdAt: new Date().toJSON()
+        createdAt: new Date().toJSON(),
+        createdBy: data.users[0],
+        returnCount: null
       };
       data.campaigns.push(campaign);
       // For now, add random housings to the campaign
@@ -89,7 +153,9 @@ export const campaignHandlers: RequestHandler[] = [
         },
         status: 'draft',
         createdAt: new Date().toJSON(),
-        groupId: group.id
+        createdBy: data.users[0],
+        groupId: group.id,
+        returnCount: null
       };
       data.campaigns.push(campaign);
       const housings = faker.helpers.arrayElements(data.housings);

@@ -25,7 +25,7 @@ const campaignFromGroupModal = createCampaignFromGroupModal();
 const renameGroupModal = createRenameGroupModal();
 const removeGroupModal = createRemoveGroupModal();
 
-interface GroupProps {
+export interface GroupProps {
   className?: string;
   group: GroupModel;
   onCreateCampaign?(

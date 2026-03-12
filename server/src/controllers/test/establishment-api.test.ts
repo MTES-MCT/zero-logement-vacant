@@ -200,4 +200,29 @@ describe('Establishment API', () => {
       });
     });
   });
+
+  describe('GET /establishments/:id', () => {
+    const testRoute = (id: string) => `/api/establishments/${id}`;
+
+    it('should return 404 if the establishment does not exist', async () => {
+      const { status } = await request(url).get(testRoute(faker.string.uuid()));
+
+      expect(status).toBe(constants.HTTP_STATUS_NOT_FOUND);
+    });
+
+    it('should return the establishment', async () => {
+      const establishment = genEstablishmentApi();
+      await Establishments().insert(formatEstablishmentApi(establishment));
+
+      const { body, status } = await request(url).get(
+        testRoute(establishment.id)
+      );
+
+      expect(status).toBe(constants.HTTP_STATUS_OK);
+      expect(body).toMatchObject({
+        id: establishment.id,
+        name: establishment.name
+      });
+    });
+  });
 });

@@ -2,11 +2,12 @@ import type {
   EstablishmentDTO,
   EstablishmentFiltersDTO
 } from '@zerologementvacant/models';
+
 import {
   type Establishment,
   fromEstablishmentDTO
-} from '../models/Establishment';
-import { zlvApi } from './api.service';
+} from '~/models/Establishment';
+import { zlvApi } from '~/services/api.service';
 
 export const establishmentApi = zlvApi.injectEndpoints({
   endpoints: (builder) => ({
@@ -31,9 +32,18 @@ export const establishmentApi = zlvApi.injectEndpoints({
           : ['Establishment'],
       transformResponse: (establishments: ReadonlyArray<EstablishmentDTO>) =>
         establishments.map(fromEstablishmentDTO)
+    }),
+    getEstablishment: builder.query<Establishment, Establishment['id']>({
+      query: (id) => `establishments/${id}`,
+      providesTags: (_result, _error, id) => [{ type: 'Establishment', id }],
+      transformResponse: (establishment: EstablishmentDTO) =>
+        fromEstablishmentDTO(establishment)
     })
   })
 });
 
-export const { useFindEstablishmentsQuery, useLazyFindEstablishmentsQuery } =
-  establishmentApi;
+export const {
+  useGetEstablishmentQuery,
+  useFindEstablishmentsQuery,
+  useLazyFindEstablishmentsQuery
+} = establishmentApi;

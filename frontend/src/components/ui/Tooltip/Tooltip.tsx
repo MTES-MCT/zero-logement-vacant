@@ -1,7 +1,9 @@
+import { fr } from '@codegouvfr/react-dsfr';
 import DSFRTooltip, {
   type TooltipProps as DSFRTooltipProps
 } from '@codegouvfr/react-dsfr/Tooltip';
 import { memo, useEffect, useId, useRef } from 'react';
+import Icon from '~/components/ui/Icon';
 
 /**
  * If defined, the tooltip will be positioned manually according to the `align` and `place` props.
@@ -17,12 +19,13 @@ type ManualPlacement = {
   place?: 'top' | 'right' | 'bottom' | 'left';
 };
 
-export type TooltipProps = DSFRTooltipProps & ManualPlacement;
+export type TooltipProps = DSFRTooltipProps.Common &
+  DSFRTooltipProps.WithHoverAction &
+  ManualPlacement;
 
 function Tooltip(props: TooltipProps) {
   const ref = useRef<HTMLSpanElement>(null);
   const id = useId();
-
 
   useEffect(() => {
     const element = ref.current;
@@ -48,7 +51,16 @@ function Tooltip(props: TooltipProps) {
     };
   }, [props.align, props.place]);
 
-  return <DSFRTooltip {...props} ref={ref} id={id} />;
+  return (
+    <DSFRTooltip {...props} ref={ref} id={id}>
+      <Icon
+        className="fr-px-1w fr-py-1v"
+        name="fr-icon-question-line"
+        size="sm"
+        color={fr.colors.decisions.artwork.major.blueFrance.default}
+      />
+    </DSFRTooltip>
+  );
 }
 
 export default memo(Tooltip);

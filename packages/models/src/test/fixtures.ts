@@ -143,15 +143,17 @@ export function genBuildingDTO(options?: GenBuildingDtoOptions): BuildingDTO {
   };
 }
 
-export function genCampaignDTO(group?: GroupDTO): CampaignDTO {
+export function genCampaignDTO(group?: GroupDTO, author?: UserDTO): CampaignDTO {
   return {
     id: faker.string.uuid(),
     title: faker.commerce.productName(),
     description: faker.commerce.productDescription(),
+    createdBy: author ?? genUserDTO(),
     filters: {},
     status: faker.helpers.arrayElement(CAMPAIGN_STATUS_VALUES),
     createdAt: faker.date.past().toJSON(),
-    groupId: group?.id
+    groupId: group?.id,
+    returnCount: null
   };
 }
 

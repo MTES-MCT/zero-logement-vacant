@@ -5,7 +5,7 @@ import Stack from '@mui/material/Stack';
 import { useState } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 
-import Tooltip from '~/Tooltip/Tooltip';
+import Tooltip from '~/components/ui/Tooltip/Tooltip';
 import createGroupAddHousingModal from '~/components/Group/GroupAddHousingModal';
 import createGroupCreationModal from '~/components/Group/GroupCreationModal';
 import { HousingDisplaySwitch } from '~/components/HousingDisplaySwitch/HousingDisplaySwitch';

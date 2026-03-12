@@ -32,13 +32,12 @@ RUN curl "https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip" -o "awscliv2
     rm -rf /var/lib/apt/lists/*
 
 # Download Metabase and DuckDB driver
-ADD https://downloads.metabase.com/latest/metabase.jar /home
-ADD https://github.com/motherduckdb/metabase_duckdb_driver/releases/download/1.4.1.0/duckdb.metabase-driver.jar $MB_PLUGINS_DIR
+ADD https://downloads.metabase.com/v0.57.4.1/metabase.jar /home
+ADD https://github.com/motherduckdb/metabase_duckdb_driver/releases/download/1.4.3.1/duckdb.metabase-driver.jar $MB_PLUGINS_DIR
 
 # Create necessary directories and set permissions
 RUN mkdir -p /data/duckdb/ && \
     chmod 744 /home/plugins/duckdb.metabase-driver.jar
 
 # Command to start Metabase
-CMD aws s3 --endpoint-url $AWS_ENDPOINT_URL cp $FILE_PATH /data/duckdb/$FILENAME && \
-    java --add-opens java.base/java.nio=ALL-UNNAMED -jar /home/metabase.jar
+CMD java --add-opens java.base/java.nio=ALL-UNNAMED -jar /home/metabase.jar

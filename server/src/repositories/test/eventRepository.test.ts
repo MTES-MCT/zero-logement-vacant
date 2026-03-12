@@ -203,7 +203,7 @@ describe('Event repository', () => {
     );
     // Add campaign housing events fixtures
     const campaigns = faker.helpers.multiple(() =>
-      genCampaignApi(establishment.id, creator.id)
+      genCampaignApi(establishment.id, creator)
     );
 
     const housingEvents: ReadonlyArray<HousingEventApi> =
@@ -677,7 +677,7 @@ describe('Event repository', () => {
     const establishment = genEstablishmentApi();
     const user = genUserApi(establishment.id);
 
-    const campaign = genCampaignApi(establishment.id, user.id);
+    const campaign = genCampaignApi(establishment.id, user);
     const events: ReadonlyArray<CampaignEventApi> = [
       {
         ...genEventApi({

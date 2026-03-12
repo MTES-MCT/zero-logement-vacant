@@ -33,7 +33,7 @@ describe('Campaign housing repository', () => {
     });
 
     it('should remove housings from a campaign', async () => {
-      const campaign = genCampaignApi(establishment.id, user.id);
+      const campaign = genCampaignApi(establishment.id, user);
       await Campaigns().insert(formatCampaignApi(campaign));
       const housings = faker.helpers.multiple(() =>
         genHousingApi(faker.helpers.arrayElement(establishment.geoCodes))

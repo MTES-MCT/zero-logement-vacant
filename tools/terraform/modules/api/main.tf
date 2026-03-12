@@ -36,6 +36,8 @@ resource "clevercloud_nodejs" "api" {
 
     AUTH_SECRET          = var.auth_secret
     CEREMA_API           = "https://portaildf.cerema.fr"
+    CEREMA_API_V2        = "https://datafoncier.cerema.fr"
+    CEREMA_AUTH_VERSION  = "v1"
     CEREMA_ENABLED       = "false"
     CEREMA_PASSWORD      = "unused"
     CEREMA_USERNAME      = "unused"

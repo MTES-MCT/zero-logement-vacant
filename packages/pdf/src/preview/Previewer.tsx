@@ -1,9 +1,13 @@
 import { Document, PDFViewer } from '@react-pdf/renderer';
 import {
+  genDocumentDTO,
   genDraftDTO,
+  genEstablishmentDTO,
   genHousingDTO,
   genOwnerDTO,
-  genSenderDTO
+  genSenderDTO,
+  genSignatoryDTO,
+  genUserDTO
 } from '@zerologementvacant/models/fixtures';
 import { useState } from 'react';
 
@@ -16,10 +20,41 @@ export function Previewer() {
     useState<TemplateName>('campaign');
 
   // Generate sample data
+  const creator = genUserDTO();
+  const establishment = genEstablishmentDTO();
   const housing = genHousingDTO();
   const owner = genOwnerDTO();
   const sender = genSenderDTO();
   const draft = genDraftDTO(sender);
+  draft.logoNext = [
+    {
+      ...genDocumentDTO(creator, establishment),
+      url: '/logo-1.jpg'
+    },
+    {
+      ...genDocumentDTO(creator, establishment),
+      url: '/logo-2.png'
+    }
+  ];
+  draft.sender = {
+    ...draft.sender,
+    signatories: [
+      {
+        ...genSignatoryDTO(),
+        document: {
+          ...genDocumentDTO(creator, establishment),
+          url: '/logo-1.jpg'
+        }
+      },
+      {
+        ...genSignatoryDTO(),
+        document: {
+          ...genDocumentDTO(creator, establishment),
+          url: '/logo-2.png'
+        }
+      }
+    ]
+  };
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', height: '100vh' }}>

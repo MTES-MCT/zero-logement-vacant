@@ -9,10 +9,7 @@ interface GenerateCampaignOptions {
   housings: Array<
     Omit<HousingDTO, 'owner'> & { owner: NonNullable<HousingDTO['owner']> }
   >;
-  draft: Pick<
-    DraftDTO,
-    'subject' | 'body' | 'logo' | 'sender' | 'writtenAt' | 'writtenFrom'
-  >;
+  draft: DraftDTO;
 }
 
 export async function generate(options: GenerateCampaignOptions) {
@@ -28,7 +25,7 @@ export async function generate(options: GenerateCampaignOptions) {
         });
 
         // Create personalized draft
-        const personalizedDraft = {
+        const personalizedDraft: DraftDTO = {
           ...draft,
           body: personalizedBody
         };

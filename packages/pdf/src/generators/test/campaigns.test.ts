@@ -1,6 +1,17 @@
 import {
+  UserRole,
+  type DraftDTO,
+  type HousingWithOwnerDTO
+} from '@zerologementvacant/models';
+import {
+  genCampaignDTO,
+  genDraftDTO,
+  genEstablishmentDTO,
+  genGroupDTO,
   genHousingDTO,
-  genOwnerDTO
+  genOwnerDTO,
+  genSenderDTO,
+  genUserDTO
 } from '@zerologementvacant/models/fixtures';
 import { describe, expect, it } from 'vitest';
 
@@ -10,14 +21,18 @@ describe('generate campaign PDF', () => {
   it('should return ReadableStream', async () => {
     const housing = genHousingDTO();
     housing.owner = genOwnerDTO();
-    const draft = {
-      subject: 'Test Subject',
-      body: '<p>Hello {{owner.fullName}}</p>',
-      writtenAt: '2026-02-04',
-      writtenFrom: 'Paris'
-    };
+    const sender = genSenderDTO();
+    const draft: DraftDTO = genDraftDTO(sender);
+    const establishment = genEstablishmentDTO();
+    const creator = genUserDTO(UserRole.USUAL, establishment);
+    const group = genGroupDTO(creator, [housing]);
+    const campaign = genCampaignDTO(group);
 
-    const stream = await generate({ housings: [housing], draft });
+    const stream = await generate({
+      campaign,
+      housings: [housing as HousingWithOwnerDTO],
+      draft
+    });
 
     expect(stream).toBeInstanceOf(ReadableStream);
   });

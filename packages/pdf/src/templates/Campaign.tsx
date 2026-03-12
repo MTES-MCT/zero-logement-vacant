@@ -1,4 +1,8 @@
-import { Image, Page, StyleSheet } from '@react-pdf/renderer';
+import { Font, Image, Page, StyleSheet } from '@react-pdf/renderer';
+import MarianneBold from '@codegouvfr/react-dsfr/dsfr/fonts/Marianne-Bold.woff';
+import MarianneBoldItalic from '@codegouvfr/react-dsfr/dsfr/fonts/Marianne-Bold_Italic.woff';
+import MarianneRegular from '@codegouvfr/react-dsfr/dsfr/fonts/Marianne-Regular.woff';
+import MarianneRegularItalic from '@codegouvfr/react-dsfr/dsfr/fonts/Marianne-Regular_Italic.woff';
 import type {
   DraftDTO,
   HousingDTO,
@@ -9,10 +13,7 @@ import Html from 'react-pdf-html';
 import { Stack, Typography } from '~/components/index.js';
 
 interface CampaignTemplateProps {
-  draft: Pick<
-    DraftDTO,
-    'subject' | 'body' | 'logo' | 'sender' | 'writtenAt' | 'writtenFrom'
-  >;
+  draft: DraftDTO;
   housing: HousingDTO;
   owner: OwnerDTO;
 }
@@ -20,35 +21,39 @@ interface CampaignTemplateProps {
 export function CampaignTemplate({ draft, owner }: CampaignTemplateProps) {
   return (
     <Page size="A4" style={styles.page}>
-      <Stack direction="row" style={{ justifyContent: 'space-between' }}>
-        <Stack direction="row">
-          {draft.logo?.map((logo) => (
-            <Image src={logo.url} />
-          ))}
+      <Stack direction="row">
+        <Stack direction="column" spacing="1rem">
+          {draft.logoNext
+            .filter((logo) => logo !== null)
+            .map((logo) => (
+              <Image
+                key={logo.id}
+                src={logo.url}
+                style={{ maxWidth: '16rem' }}
+              />
+            ))}
         </Stack>
 
-        <Stack direction="column" style={{ alignItems: 'flex-end' }}>
-          <Typography>{draft.sender.name}</Typography>
-          <Typography>{draft.sender.service}</Typography>
-          <Typography>
-            {draft.sender.firstName} {draft.sender.lastName}
-          </Typography>
-          <Typography>{draft.sender.email}</Typography>
-          <Typography>{draft.sender.phone}</Typography>
-        </Stack>
-      </Stack>
+        <Stack direction="column" spacing="2rem" style={{ flex: 1 }}>
+          <Stack direction="column" style={{ alignItems: 'flex-end' }}>
+            <Typography>{draft.sender.name}</Typography>
+            <Typography>{draft.sender.service}</Typography>
+            <Typography>
+              {draft.sender.firstName} {draft.sender.lastName}
+            </Typography>
+            <Typography>{draft.sender.email}</Typography>
+            <Typography>{draft.sender.phone}</Typography>
+          </Stack>
 
-      <Stack
-        style={{
-          transform: 'translateX(300vw)'
-        }}
-      >
-        <Typography style={{ marginBottom: 10, fontWeight: 700 }}>
-          À l’attention de
-        </Typography>
-        <Typography>{owner.fullName}</Typography>
-        <Typography>{owner.additionalAddress}</Typography>
-        <Typography>{owner.banAddress?.label}</Typography>
+          <Stack style={{ marginLeft: 150 }}>
+            <Typography style={{ marginBottom: 10, fontWeight: 700 }}>
+              À l’attention de
+            </Typography>
+            <Typography>{owner.fullName}</Typography>
+            <Typography>{owner.additionalAddress}</Typography>
+            <Typography>{owner.banAddress?.label}</Typography>
+          </Stack>
+        </Stack>
       </Stack>
 
       <Stack direction="column" spacing="1rem">
@@ -65,6 +70,7 @@ export function CampaignTemplate({ draft, owner }: CampaignTemplateProps) {
 
         <Stack
           direction="row"
+          spacing="2rem"
           style={{ justifyContent: 'flex-end', marginTop: 32 }}
         >
           {draft.sender.signatories?.map((signatory, index) => (
@@ -73,6 +79,11 @@ export function CampaignTemplate({ draft, owner }: CampaignTemplateProps) {
                 {signatory?.firstName} {signatory?.lastName}
               </Typography>
               <Typography>{signatory?.role}</Typography>
+
+              <Image
+                src={signatory?.document?.url}
+                style={{ marginTop: 16, maxWidth: '16rem' }}
+              />
             </Stack>
           ))}
         </Stack>
@@ -81,8 +92,19 @@ export function CampaignTemplate({ draft, owner }: CampaignTemplateProps) {
   );
 }
 
+Font.register({
+  family: 'Marianne',
+  fonts: [
+    { src: MarianneRegular },
+    { src: MarianneRegularItalic, fontStyle: 'italic' },
+    { src: MarianneBold, fontWeight: 700 },
+    { src: MarianneBoldItalic, fontWeight: 700, fontStyle: 'italic' }
+  ]
+});
+
 const styles = StyleSheet.create({
   page: {
+    fontFamily: 'Marianne',
     fontSize: 10,
     paddingVertical: 32,
     paddingHorizontal: 40,

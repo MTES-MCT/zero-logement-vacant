@@ -14,11 +14,11 @@ export default defineConfig(({ mode }) => ({
     dts({
       entryRoot: 'src',
       tsconfigPath: path.join(import.meta.dirname, 'tsconfig.lib.json')
-    })
+    }),
   ],
   // Development server configuration for previewer
   server: {
-    open: '/src/preview/index.html'
+    open: '/src/preview/index.html',
   },
   build: {
     emptyOutDir: true,

@@ -1,3 +1,4 @@
+import Breadcrumb from '@codegouvfr/react-dsfr/Breadcrumb';
 import Button from '@codegouvfr/react-dsfr/Button';
 import Container from '@mui/material/Container';
 import Grid from '@mui/material/Grid';
@@ -61,7 +62,21 @@ function HousingView() {
     >
       <HousingEditionProvider>
         <Container maxWidth={false} sx={{ my: '2rem' }}>
-          <HousingHeader className="fr-mb-3w" />
+          <Stack component="header" sx={{ mb: '2rem' }}>
+            <Breadcrumb
+              className="fr-mb-0"
+              currentPageLabel={housing?.rawAddress?.join(' ') ?? ''}
+              segments={[
+                {
+                  label: 'Parc de logements',
+                  linkProps: {
+                    to: '/parc-de-logements'
+                  }
+                }
+              ]}
+            />
+            <HousingHeader className="fr-mb-0" />
+          </Stack>
 
           <Grid container columnSpacing={3}>
             {/* Set a custom order to facilitate accessibility:

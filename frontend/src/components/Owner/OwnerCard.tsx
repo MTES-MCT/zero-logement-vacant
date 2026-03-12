@@ -100,6 +100,7 @@ function OwnerCardNext(props: OwnerCardProps) {
               label="Nom et prénom"
               value={
                 <Typography
+                  component="span"
                   sx={{ fontWeight: 700, textTransform: 'capitalize' }}
                 >
                   {value?.toLowerCase()}
@@ -113,7 +114,7 @@ function OwnerCardNext(props: OwnerCardProps) {
           label={`Date de ${props.kind === 'Particulier' ? 'naissance' : 'création'}`}
           value={
             !props.birthdate ? null : (
-              <Typography>
+              <Typography component="span">
                 {birthdate(props.birthdate)} ({age(props.birthdate)}&nbsp;ans)
               </Typography>
             )
@@ -163,7 +164,7 @@ function OwnerCardNext(props: OwnerCardProps) {
           label="Adresse fiscale (source : DGFIP)"
           value={
             !props.dgfipAddress ? null : (
-              <Typography>{props.dgfipAddress.join(', ')}</Typography>
+              <Typography component="span">{props.dgfipAddress.join(', ')}</Typography>
             )
           }
         />
@@ -211,7 +212,7 @@ function OwnerCardNext(props: OwnerCardProps) {
           label="Complément d’adresse"
           value={
             !props.additionalAddress ? null : (
-              <Typography>{props.additionalAddress}</Typography>
+              <Typography component="span">{props.additionalAddress}</Typography>
             )
           }
         />
@@ -221,7 +222,7 @@ function OwnerCardNext(props: OwnerCardProps) {
           label="Adresse e-mail"
           value={
             !props.email ? null : (
-              <Typography>
+              <Typography component="span">
                 <AppLink isSimple to={mailto(props.email)}>
                   {props.email}
                 </AppLink>
@@ -233,7 +234,7 @@ function OwnerCardNext(props: OwnerCardProps) {
         <OwnerAttribute
           icon="fr-icon-phone-line"
           label="Téléphone"
-          value={!props.phone ? null : <Typography>{props.phone}</Typography>}
+          value={!props.phone ? null : <Typography component="span">{props.phone}</Typography>}
         />
 
         {match(props.housingCount)
@@ -286,8 +287,8 @@ function OwnerAttribute(props: OwnerPropertyProps) {
         />
         {props.label}
       </LabelNext>
-      <Typography component="span" aria-labelledby={label}>
-        {props.value ?? 'Pas d’information'}
+      <Typography component="p" aria-labelledby={label}>
+        {props.value ?? "Pas d\u2019information"}
       </Typography>
     </Stack>
   );

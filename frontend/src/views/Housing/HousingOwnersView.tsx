@@ -247,11 +247,17 @@ function HousingOwnersView() {
           <Skeleton variant="rectangular" width={600} height={32} />
         </Stack>
       ) : (
-        <Stack component="header" sx={{ mb: '1.5rem' }}>
+        <Stack component="header" sx={{ mb: '2rem' }}>
           <Breadcrumb
             className="fr-mb-0"
             currentPageLabel="Modifier les propriétaires"
             segments={[
+              {
+                label: 'Parc de logements',
+                linkProps: {
+                  to: '/parc-de-logements'
+                }
+              },
               {
                 label: housingAddress,
                 linkProps: {

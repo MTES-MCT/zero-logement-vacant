@@ -137,7 +137,7 @@ function SmallHeader() {
               ) : (
                 <Typography
                   className={styles.establishmentName}
-                  component="span"
+                  component="p"
                   mr={2}
                   variant="body2"
                 >

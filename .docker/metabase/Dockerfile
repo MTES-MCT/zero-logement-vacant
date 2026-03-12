@@ -42,4 +42,4 @@ RUN mkdir -p /data/duckdb/ && \
     chmod 744 /home/plugins/duckdb.metabase-driver.jar
 
 # Command to start Metabase
-CMD java --add-opens java.base/java.nio=ALL-UNNAMED -jar /home/metabase.jar migrate down
+CMD java --add-opens java.base/java.nio=ALL-UNNAMED -jar /home/metabase.jar

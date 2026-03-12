@@ -12,7 +12,7 @@ export interface SenderDTO {
   address: string | null;
   email: string | null;
   phone: string | null;
-  signatories: SignatoriesDTO | null;
+  signatories: SignatoriesDTO;
   createdAt: string;
   updatedAt: string;
 }

@@ -1,4 +1,5 @@
 import Alert from '@codegouvfr/react-dsfr/Alert';
+import Breadcrumb from '@codegouvfr/react-dsfr/Breadcrumb';
 import Grid from '@mui/material/Grid';
 import { useEffect } from 'react';
 import { useLocation, useNavigate, useParams } from 'react-router-dom';
@@ -136,15 +137,32 @@ function GroupView() {
         />
 
         <Grid display="flex" flexDirection="column" px={3} py={4} size="grow">
-          <Group
-            campaigns={campaigns}
-            className="fr-mb-8w"
-            group={group}
-            onCampaignCreate={onCampaignCreate}
-            onExport={onGroupExport}
-            onUpdate={onGroupUpdate}
-            onRemove={onGroupRemove}
-          />
+          <div style={{ marginTop: '-1rem', marginBottom: '2rem' }}>
+            <Breadcrumb
+              className="fr-mb-0"
+              currentPageLabel={group?.title ?? ''}
+              segments={[
+                {
+                  label: 'Parc de logements',
+                  linkProps: {
+                    to: '/parc-de-logements'
+                  }
+                }
+              ]}
+            />
+          </div>
+
+          <div style={{ marginTop: '-2rem' }}>
+            <Group
+              campaigns={campaigns}
+              className="fr-mb-8w"
+              group={group}
+              onCampaignCreate={onCampaignCreate}
+              onExport={onGroupExport}
+              onUpdate={onGroupUpdate}
+              onRemove={onGroupRemove}
+            />
+          </div>
 
           <Alert
             severity="success"

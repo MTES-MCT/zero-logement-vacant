@@ -1,143 +1,164 @@
 # @zerologementvacant/pdf
 
-PDF generation package for housing exports using React components.
+Génération de PDF pour les courriers de campagne. Remplace `@zerologementvacant/draft`.
 
-## Features
+## Pourquoi ce package ?
 
-- 🖥️ **Browser & Node.js** - Works in both environments
-- ⚛️ **React-based** - Build PDFs with React components
-- 🎨 **DSFR-compliant** - French government design system
-- 📄 **Templates** - Reusable Housing and Campaign templates
-- 🔄 **Streaming** - Handle 1000+ housings efficiently
+- **Flexible** : nouvelles templates sans toucher au serveur
+- **Rapide** : streaming Node.js natif (~1000 logements sans timeout)
+- **Isomorphique** : même code React dans le navigateur et sur le serveur
 
-## Installation
+## Structure
 
-```bash
-yarn add @zerologementvacant/pdf
+```
+src/
+  browser.ts        # Point d'entrée navigateur (Viewer, DownloadLink, usePDF…)
+  node.ts           # Point d'entrée Node.js (generateCampaignPDF)
+  components/       # Primitives réutilisables (Typography, Stack)
+  templates/        # Layouts de page (CampaignDocument, CampaignTemplate)
+  generators/       # Fonctions de génération avec streaming
+  preview/          # App Vite de prévisualisation (dev only)
 ```
 
-## Usage
+## Entrées d'export
 
-### Browser - Display PDF
+| Import                         | Environnement | Contenu                                              |
+|--------------------------------|---------------|------------------------------------------------------|
+| `@zerologementvacant/pdf`      | Navigateur    | Viewer, DownloadLink, BlobProvider, usePDF, composants, templates |
+| `@zerologementvacant/pdf/node` | Node.js       | `generateCampaignPDF`                                |
+
+## Usage navigateur
 
 ```tsx
-import { Viewer, HousingTemplate } from '@zerologementvacant/pdf';
+// Afficher un PDF inline
+import { Viewer, CampaignDocument, CampaignTemplate } from '@zerologementvacant/pdf';
 
-function HousingPDF({ housing }) {
-  return (
-    <Viewer>
-      <HousingTemplate housing={housing} />
-    </Viewer>
-  );
-}
-```
+<Viewer>
+  <CampaignDocument campaign={campaign}>
+    <CampaignTemplate draft={draft} housing={housing} owner={owner} />
+  </CampaignDocument>
+</Viewer>
 
-### Browser - Download PDF
+// Lien de téléchargement
+import { DownloadLink, CampaignDocument, CampaignTemplate } from '@zerologementvacant/pdf';
 
-```tsx
-import { DownloadLink, HousingTemplate } from '@zerologementvacant/pdf';
-
-function DownloadButton({ housing }) {
-  return (
-    <DownloadLink
-      document={<HousingTemplate housing={housing} />}
-      fileName="logement.pdf"
-    >
-      Télécharger PDF
-    </DownloadLink>
-  );
-}
-```
-
-### Node.js - Generate PDF
-
-```typescript
-import { generateHousingsPDF } from '@zerologementvacant/pdf';
-
-app.get('/api/export', async (req, res) => {
-  const housings = await getHousings();
-  const stream = await generateHousingsPDF({ housings });
-
-  res.setHeader('Content-Type', 'application/pdf');
-  stream.pipeTo(res);
-});
-```
-
-### Campaign with Variable Replacement
-
-```typescript
-import { generateCampaignPDF } from '@zerologementvacant/pdf';
-
-const stream = await generateCampaignPDF({
-  housings: [housing1, housing2],
-  draft: {
-    subject: 'Important Notice',
-    body: '<p>Bonjour {{owner.fullName}},</p>'
+<DownloadLink
+  document={
+    <CampaignDocument campaign={campaign}>
+      <CampaignTemplate draft={draft} housing={housing} owner={owner} />
+    </CampaignDocument>
   }
-});
+  fileName="courrier.pdf"
+>
+  Télécharger
+</DownloadLink>
 ```
 
-## Components
+## Usage Node.js (streaming)
 
-### Typography
+```typescript
+import { generateCampaignPDF } from '@zerologementvacant/pdf/node';
 
-```tsx
-import { Typography } from '@zerologementvacant/pdf';
-
-<Typography variant="h1">Heading</Typography>
-<Typography variant="body">Body text</Typography>
+const stream = await generateCampaignPDF({ campaign, housings, draft });
+res.setHeader('Content-Type', 'application/pdf');
+stream.pipeTo(res);
 ```
 
-Variants: `h1`, `h2`, `h3`, `h4`, `h5`, `h6`, `body`
-
-### Stack
-
-```tsx
-import { Stack } from '@zerologementvacant/pdf';
-
-<Stack direction="column" spacing={16}>
-  <Typography>Item 1</Typography>
-  <Typography>Item 2</Typography>
-</Stack>;
-```
+`housings` doit contenir `owner` non-null — chaque courrier est personnalisé par logement.
 
 ## Templates
 
-### HousingTemplate
+### CampaignDocument
 
-Displays housing information (address, characteristics, owner).
+Racine du document PDF. Porte les métadonnées (titre, description, auteur, langue, date).
+
+```tsx
+import { CampaignDocument } from '@zerologementvacant/pdf';
+
+<CampaignDocument campaign={campaign}>
+  {/* une ou plusieurs CampaignTemplate */}
+</CampaignDocument>
+```
+
+| Prop       | Type          | Description                    |
+|------------|---------------|--------------------------------|
+| `campaign` | `CampaignDTO` | Source des métadonnées PDF     |
+| `children` | `ReactNode`   | Pages du document              |
 
 ### CampaignTemplate
 
-Renders personalized campaign letters with HTML content and variable replacement.
+Rendu d'un courrier de campagne personnalisé. Une page A4 par logement.
 
-## Testing
+```tsx
+import { CampaignTemplate } from '@zerologementvacant/pdf';
 
-```bash
-# Run all tests
-yarn nx test pdf
-
-# Run with visual snapshots update
-yarn nx test pdf -- -u
-
-# Run specific test file
-yarn nx test pdf -- Housing
+<CampaignTemplate draft={draft} housing={housing} owner={owner} />
 ```
 
-## Development
+| Prop      | Type         | Description                                           |
+|-----------|--------------|-------------------------------------------------------|
+| `draft`   | `DraftDTO`   | Contenu du courrier (sujet, corps HTML, logos, expéditeur, signataires) |
+| `housing` | `HousingDTO` | Données du logement (pour la substitution de variables) |
+| `owner`   | `OwnerDTO`   | Destinataire (nom, adresse)                           |
+
+**Substitution de variables** : le corps HTML (`draft.body`) supporte `{{owner.fullName}}`, `{{housing.*}}` etc. via `replaceVariables()` de `@zerologementvacant/models`.
+
+## Composants primitifs
+
+| Composant    | Description                                               |
+|--------------|-----------------------------------------------------------|
+| `Typography` | Texte avec variantes `h1`–`h6`, `body`. Police Marianne.  |
+| `Stack`      | Flexbox : props `direction`, `spacing`, `style`.          |
+
+Ces composants utilisent `@react-pdf/renderer` (pas du DOM) — ne pas les utiliser hors d'un contexte PDF.
+
+## Référence API
+
+### `generateCampaignPDF(options)` — Node.js uniquement
+
+| Paramètre          | Type           | Description                                    |
+|--------------------|----------------|------------------------------------------------|
+| `options.campaign` | `CampaignDTO`  | Métadonnées PDF (titre, description, langue)   |
+| `options.draft`    | `DraftDTO`     | Contenu du courrier                            |
+| `options.housings` | `HousingDTO[]` | Logements (chacun doit avoir `owner` non-null) |
+
+Retourne une `ReadableStream` (Web Streams API) à piper dans la réponse HTTP.
+
+> **Note :** ne jamais importer depuis `@react-pdf/renderer` directement dans le frontend ou le serveur — toujours passer par `@zerologementvacant/pdf`.
+
+## Prévisualiseur
+
+Un prévisualiseur Vite tourne dans le package pour itérer sur les templates sans passer par le serveur ou le frontend.
 
 ```bash
-# Build package
-yarn nx build pdf
-
-# Type check
-yarn nx typecheck pdf
+yarn nx preview pdf   # lance le prévisualiseur sur localhost
 ```
 
-## Architecture
+Il génère des données factices via les fixtures de `@zerologementvacant/models` et charge des logos depuis `packages/pdf/public/`.
 
-- **Components**: Reusable primitives (Typography, Stack)
-- **Templates**: Composable page layouts (Housing, Campaign)
-- **Generators**: PDF creation functions with streaming support
+Pour ajouter une template au prévisualiseur : éditer `src/preview/Previewer.tsx`, ajouter un bouton dans la nav et le rendu conditionnel.
 
-Uses @react-pdf/renderer for PDF generation and react-pdf-html for HTML parsing.
+## Ajouter une template
+
+1. Créer `src/templates/MonDocument.tsx` — un composant `MonDocument` (racine `<Document>`) et un composant `MonTemplate` (une `<Page>`)
+2. Les exporter depuis `src/templates/index.ts`
+3. Si génération côté serveur : créer `src/generators/mon-template.tsx`, l'exporter depuis `src/generators/index.ts`
+4. Ajouter au prévisualiseur pour valider visuellement
+5. Builder : `yarn nx build pdf`
+
+## Tests
+
+```bash
+yarn nx test pdf                  # tous les tests
+yarn nx test pdf -- campaigns     # fichier spécifique
+yarn nx test pdf -- -u            # mettre à jour les snapshots visuels
+```
+
+Les tests de générateurs produisent des snapshots PNG via `pdf-to-png-converter`.
+
+## Build
+
+```bash
+yarn nx build pdf      # compile le package
+yarn nx typecheck pdf  # vérification de types
+```

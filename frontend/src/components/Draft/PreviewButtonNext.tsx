@@ -1,5 +1,5 @@
 import { Button, type ButtonProps } from '@codegouvfr/react-dsfr/Button';
-import { CampaignTemplate, Document, usePDF } from '@zerologementvacant/pdf';
+import { CampaignDocument, CampaignPage, usePDF } from '@zerologementvacant/pdf';
 import { useEffect } from 'react';
 import type { Campaign } from '~/models/Campaign';
 import type { Draft } from '~/models/Draft';
@@ -40,16 +40,16 @@ function PreviewButtonNext(props: Readonly<PreviewButtonProps>) {
   useEffect(() => {
     if (!!housing && !!owner) {
       updatePDF(
-        <Document>
-          <CampaignTemplate
+        <CampaignDocument campaign={props.campaign}>
+          <CampaignPage
             draft={props.draft}
             housing={toHousingDTO(housing)}
             owner={toOwnerDTO(owner)}
           />
-        </Document>
+        </CampaignDocument>
       );
     }
-  }, [housing, owner, props.draft, updatePDF]);
+  }, [housing, owner, props.campaign, props.draft, updatePDF]);
 
   async function preview() {
     if (pdf.url) {

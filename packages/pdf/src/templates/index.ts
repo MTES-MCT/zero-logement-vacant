@@ -1,1 +1,1 @@
-export { CampaignTemplate } from './Campaign.js';
+export { CampaignDocument, CampaignPage } from './Campaign.js';

@@ -1,6 +1,5 @@
 export {
-  Document,
-  BlobProvider as BlobProvider,
+  BlobProvider,
   PDFViewer as Viewer,
   PDFDownloadLink as DownloadLink,
   usePDF

@@ -128,7 +128,7 @@ function CampaignViewNext() {
             iconId="fr-icon-building-line"
             label="Nombre de logements"
           >
-            <Typography variant="h5" component="span">
+            <Typography variant="h5" component="p">
               {housingCount}
             </Typography>
           </CampaignStatCard>
@@ -137,7 +137,7 @@ function CampaignViewNext() {
             iconId="fr-icon-group-line"
             label="Nombre de propriétaires"
           >
-            <Typography variant="h5" component="span">
+            <Typography variant="h5" component="p">
               {count?.owners}
             </Typography>
           </CampaignStatCard>

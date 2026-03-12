@@ -19,14 +19,14 @@ interface Props {
 function HousingResult(props: Props) {
   const display = props.display ?? 'one-line';
   const floor = props.floor ? (
-    <Typography>- Étage {props.floor}</Typography>
+    <Typography component="span">- Étage {props.floor}</Typography>
   ) : null;
   const appartment = props.apartment ? (
-    <Typography>- Appartement {props.apartment}</Typography>
+    <Typography component="span">- Appartement {props.apartment}</Typography>
   ) : null;
   const occupancy = (
-    <Stack direction="row" sx={{ alignItems: 'center' }}>
-      <Typography component="span">Statut d’occupation :&nbsp;</Typography>
+    <Stack component="p" direction="row" sx={{ alignItems: 'center', margin: 0 }}>
+      <Typography component="span">{"Statut d\u2019occupation\u00a0:"}&nbsp;</Typography>
       <OccupancyBadge occupancy={props.occupancy} tagProps={{ as: 'span' }} />
     </Stack>
   );
@@ -38,7 +38,7 @@ function HousingResult(props: Props) {
       </Typography>
       {display === 'two-lines' && (
         <Stack direction="column" spacing="0.5rem">
-          <Stack direction="row" sx={{ alignItems: 'center' }}>
+          <Stack component="p" direction="row" sx={{ alignItems: 'center', margin: 0 }}>
             <Typography component="span">
               Identifiant du local :&nbsp;
             </Typography>

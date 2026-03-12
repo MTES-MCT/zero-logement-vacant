@@ -1,7 +1,15 @@
-import db, { where } from '~/infra/database';
-import { logger } from '~/infra/logger';
-import { SenderApi } from '~/models/SenderApi';
 import { download } from '~/controllers/fileRepository';
+import db, { where } from '~/infra/database';
+import { withinTransaction } from '~/infra/database/transaction';
+import { createLogger } from '~/infra/logger';
+import { SenderApi } from '~/models/SenderApi';
+import {
+  fromDocumentDBO,
+  joinDocumentWithCreator,
+  type DocumentWithCreatorDBO
+} from '~/repositories/documentRepository';
+
+const logger = createLogger('senderRepository');
 
 export const sendersTable = 'senders';
 export const Senders = (transaction = db) =>
@@ -18,7 +26,11 @@ async function findOne(opts: FindOneOptions): Promise<SenderApi | null> {
     { table: sendersTable }
   );
 
-  const sender = await Senders().where(whereOptions(opts)).first();
+  const query = Senders().where(whereOptions(opts));
+  joinDocumentWithCreator(query, `${sendersTable}.signatory_one_document_id`, 'signatory_one_document');
+  joinDocumentWithCreator(query, `${sendersTable}.signatory_two_document_id`, 'signatory_two_document');
+
+  const sender = await query.select(`${sendersTable}.*`).first() as SenderDBOWithDocuments | undefined;
   if (!sender) {
     return null;
   }
@@ -29,27 +41,31 @@ async function findOne(opts: FindOneOptions): Promise<SenderApi | null> {
 
 async function save(sender: SenderApi): Promise<void> {
   logger.debug('Saving sender...', sender);
-  await Senders()
-    .insert(formatSenderApi(sender))
-    .onConflict('id')
-    .merge([
-      'name',
-      'service',
-      'first_name',
-      'last_name',
-      'address',
-      'email',
-      'phone',
-      'signatory_one_last_name',
-      'signatory_one_first_name',
-      'signatory_one_role',
-      'signatory_one_file',
-      'signatory_two_first_name',
-      'signatory_two_last_name',
-      'signatory_two_role',
-      'signatory_two_file',
-      'updated_at'
-    ]);
+  await withinTransaction(async (transaction) => {
+    await Senders(transaction)
+      .insert(formatSenderApi(sender))
+      .onConflict('id')
+      .merge([
+        'name',
+        'service',
+        'first_name',
+        'last_name',
+        'address',
+        'email',
+        'phone',
+        'signatory_one_last_name',
+        'signatory_one_first_name',
+        'signatory_one_role',
+        'signatory_one_file',
+        'signatory_one_document_id',
+        'signatory_two_first_name',
+        'signatory_two_last_name',
+        'signatory_two_role',
+        'signatory_two_file',
+        'signatory_two_document_id',
+        'updated_at'
+      ]);
+  });
   logger.debug('Saved sender', sender);
 }
 
@@ -66,10 +82,12 @@ export interface SenderDBO {
   signatory_one_first_name: string | null;
   signatory_one_role: string | null;
   signatory_one_file: string | null;
+  signatory_one_document_id: string | null;
   signatory_two_first_name: string | null;
   signatory_two_last_name: string | null;
   signatory_two_role: string | null;
   signatory_two_file: string | null;
+  signatory_two_document_id: string | null;
   created_at: Date | string;
   updated_at: Date | string;
   establishment_id: string;
@@ -88,28 +106,37 @@ export const formatSenderApi = (sender: SenderApi): SenderDBO => ({
   signatory_one_last_name: sender.signatories?.[0]?.lastName ?? null,
   signatory_one_role: sender.signatories?.[0]?.role ?? null,
   signatory_one_file: sender.signatories?.[0]?.file?.id ?? null,
+  signatory_one_document_id: sender.signatories?.[0]?.document?.id ?? null,
   signatory_two_first_name: sender.signatories?.[1]?.firstName ?? null,
   signatory_two_last_name: sender.signatories?.[1]?.lastName ?? null,
   signatory_two_role: sender.signatories?.[1]?.role ?? null,
   signatory_two_file: sender.signatories?.[1]?.file?.id ?? null,
+  signatory_two_document_id: sender.signatories?.[1]?.document?.id ?? null,
   created_at: new Date(sender.createdAt),
   updated_at: new Date(sender.updatedAt),
   establishment_id: sender.establishmentId
 });
 
-export const parseSenderApi = async (
-  sender: SenderDBO
-): Promise<SenderApi> => {
+type SenderDBOWithDocuments = SenderDBO & {
+  signatory_one_document: DocumentWithCreatorDBO | null;
+  signatory_two_document: DocumentWithCreatorDBO | null;
+};
+
+export const parseSenderApi = async (sender: SenderDBOWithDocuments): Promise<SenderApi> => {
   let signatory_one_file;
   try {
-    signatory_one_file = sender.signatory_one_file ? await download(sender.signatory_one_file) : null;
+    signatory_one_file = sender.signatory_one_file
+      ? await download(sender.signatory_one_file)
+      : null;
   } catch {
     signatory_one_file = null;
   }
 
   let signatory_two_file;
   try {
-    signatory_two_file = sender.signatory_two_file ? await download(sender.signatory_two_file) : null;
+    signatory_two_file = sender.signatory_two_file
+      ? await download(sender.signatory_two_file)
+      : null;
   } catch {
     signatory_two_file = null;
   }
@@ -128,13 +155,19 @@ export const parseSenderApi = async (
         firstName: sender.signatory_one_first_name,
         lastName: sender.signatory_one_last_name,
         role: sender.signatory_one_role,
-        file: signatory_one_file
+        file: signatory_one_file,
+        document: sender.signatory_one_document
+          ? fromDocumentDBO(sender.signatory_one_document)
+          : null
       },
       {
         firstName: sender.signatory_two_first_name,
         lastName: sender.signatory_two_last_name,
         role: sender.signatory_two_role,
-        file: signatory_two_file
+        file: signatory_two_file,
+        document: sender.signatory_two_document
+          ? fromDocumentDBO(sender.signatory_two_document)
+          : null
       }
     ],
     createdAt: new Date(sender.created_at).toJSON(),

@@ -1,4 +1,6 @@
+import type { SetNonNullable } from 'type-fest';
 import { Equivalence, pipe, Record, Struct } from 'effect';
+
 import { DataFileYear } from './DataFileYear';
 import { EnergyConsumption } from './EnergyConsumption';
 import { HousingKind } from './HousingKind';
@@ -71,6 +73,8 @@ export interface HousingDTO {
    */
   plotArea: number | null;
 }
+
+export type HousingWithOwnerDTO = SetNonNullable<HousingDTO, 'owner'>;
 
 export type HousingPayloadDTO = Pick<HousingDTO, 'localId'>;
 

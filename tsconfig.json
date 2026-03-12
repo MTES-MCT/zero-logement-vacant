@@ -31,6 +31,9 @@
     },
     {
       "path": "./e2e"
+    },
+    {
+      "path": "./packages/pdf"
     }
   ]
 }

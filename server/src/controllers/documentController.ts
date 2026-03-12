@@ -8,7 +8,7 @@ import {
   type HousingDTO
 } from '@zerologementvacant/models';
 import { type HousingDocumentPayload } from '@zerologementvacant/schemas';
-import { createS3, generatePresignedUrl } from '@zerologementvacant/utils/node';
+import { createS3 } from '@zerologementvacant/utils/node';
 import async from 'async';
 import { Array, Either } from 'effect';
 import { RequestHandler } from 'express';
@@ -102,13 +102,12 @@ const create: RequestHandler<
         };
         await documentRepository.insert(document);
 
-        const url = await generatePresignedUrl({
-          s3,
-          bucket: config.s3.bucket,
-          key: document.s3Key
-        });
-
-        return Either.right(toDocumentDTO(document, url));
+        return Either.right(
+          await toDocumentDTO(document, {
+            s3,
+            bucket: config.s3.bucket
+          })
+        );
       } catch (error) {
         if (error instanceof FileValidationError) {
           return Either.left(error);
@@ -156,6 +155,35 @@ const create: RequestHandler<
     .otherwise(() => constants.HTTP_STATUS_MULTI_STATUS);
 
   response.status(status).json(Array.map(documentsOrErrors, Either.merge));
+};
+
+const get: RequestHandler<Pick<DocumentDTO, 'id'>, DocumentDTO> = async (
+  request,
+  response
+) => {
+  const { params, establishment } = request as AuthenticatedRequest<
+    Pick<DocumentDTO, 'id'>,
+    DocumentDTO
+  >;
+
+  logger.debug('Finding document...', { id: params.id });
+
+  const document = await documentRepository.findOne(params.id, {
+    filters: {
+      establishmentIds: [establishment.id],
+      deleted: false
+    }
+  });
+  if (!document) {
+    throw new DocumentMissingError(params.id);
+  }
+
+  response.status(constants.HTTP_STATUS_OK).json(
+    await toDocumentDTO(document, {
+      s3,
+      bucket: config.s3.bucket
+    })
+  );
 };
 
 const update: RequestHandler<
@@ -212,12 +240,9 @@ const update: RequestHandler<
     ]);
   });
 
-  const url = await generatePresignedUrl({
-    s3,
-    bucket: config.s3.bucket,
-    key: updated.s3Key
-  });
-  response.status(constants.HTTP_STATUS_OK).json(toDocumentDTO(updated, url));
+  response
+    .status(constants.HTTP_STATUS_OK)
+    .json(await toDocumentDTO(updated, { s3, bucket: config.s3.bucket }));
 };
 
 const remove: RequestHandler<Pick<DocumentDTO, 'id'>, void, never> = async (
@@ -365,12 +390,7 @@ const linkToHousing: RequestHandler<
   const documentsWithURLs = await async.map(
     documents,
     async (document: DocumentApi) => {
-      const url = await generatePresignedUrl({
-        s3,
-        bucket: config.s3.bucket,
-        key: document.s3Key
-      });
-      return toDocumentDTO(document, url);
+      return toDocumentDTO(document, { s3, bucket: config.s3.bucket });
     }
   );
 
@@ -405,12 +425,10 @@ const listByHousing: RequestHandler<
   const documentsWithURLs = await async.map(
     [...documents],
     async (document: HousingDocumentApi) => {
-      const presignedUrl = await generatePresignedUrl({
+      return toHousingDocumentDTO(document, {
         s3,
-        bucket: config.s3.bucket,
-        key: document.s3Key
+        bucket: config.s3.bucket
       });
-      return toHousingDocumentDTO(document, presignedUrl);
     }
   );
 
@@ -483,6 +501,7 @@ const removeByHousing: RequestHandler<
 
 const documentController = {
   create,
+  get,
   update,
   remove,
   linkToHousing,

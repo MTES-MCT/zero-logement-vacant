@@ -132,6 +132,11 @@ yarn test --scope @zerologementvacant/server --include-dependents
 La commande échoue si le package ne comporte pas de commande `test`, ou si un
 test échoue.
 
+## Documentation
+
+- [Génération de PDF](docs/guides/pdf.md) — courriers de campagne (agents produit)
+- [packages/pdf](packages/pdf/README.md) — documentation technique du package PDF
+
 ## Démo
 
 La version de démo de l'application est accessible à l'adresse <https://zerologementvacant-staging.incubateur.net>

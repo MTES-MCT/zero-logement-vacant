@@ -83,4 +83,12 @@ export function toRawArray<A>(items: ReadonlyArray<A>): string {
   return `(${bindings})`;
 }
 
+export function fromDateDBO(date: Date | string): string {
+  return Predicate.isDate(date) ? date.toJSON() : date;
+}
+
+export function toDateDBO(date: Date | string): Date {
+  return Predicate.isDate(date) ? date : new Date(date);
+}
+
 export default db;

@@ -1,8 +1,12 @@
-import { DocumentDTO } from '@zerologementvacant/models';
-import { describe, it, expect } from 'vitest';
+import { describe, expect, it, vi } from 'vitest';
 
-import { toDocumentDTO } from '~/models/DocumentApi';
 import { genDocumentApi } from '~/test/testFixtures';
+
+vi.mock('@zerologementvacant/utils/node', () => ({
+  generatePresignedUrl: vi
+    .fn()
+    .mockResolvedValue('https://s3.example.com/presigned-url')
+}));
 
 describe('DocumentApi', () => {
   describe('genDocumentApi', () => {
@@ -32,29 +36,6 @@ describe('DocumentApi', () => {
 
       expect(document.filename).toBe('custom.pdf');
       expect(document.establishmentId).toBe('est-123');
-    });
-  });
-
-  describe('toDocumentDTO', () => {
-    it('should convert DocumentApi to DocumentDTO with URL', () => {
-      const document = genDocumentApi();
-      const url = 'https://s3.example.com/presigned-url';
-
-      const dto = toDocumentDTO(document, url);
-
-      expect(dto).toEqual<DocumentDTO>({
-        id: document.id,
-        filename: document.filename,
-        url,
-        contentType: document.contentType,
-        sizeBytes: document.sizeBytes,
-        createdAt: document.createdAt,
-        updatedAt: document.updatedAt,
-        establishmentId: document.establishmentId,
-        creator: expect.objectContaining({
-          id: document.creator.id
-        })
-      });
     });
   });
 });

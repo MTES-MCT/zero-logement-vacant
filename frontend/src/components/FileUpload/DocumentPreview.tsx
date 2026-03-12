@@ -4,6 +4,7 @@ import DocumentPicto from '@codegouvfr/react-dsfr/picto/Document';
 import Box from '@mui/material/Box';
 import CircularProgress from '@mui/material/CircularProgress';
 import Paper, { type PaperProps } from '@mui/material/Paper';
+import Skeleton from '@mui/material/Skeleton';
 import Stack from '@mui/material/Stack';
 import { styled } from '@mui/material/styles';
 import Typography, { type TypographyProps } from '@mui/material/Typography';
@@ -19,10 +20,12 @@ import Image from '~/components/Image/Image';
 
 pdfjs.GlobalWorkerOptions.workerSrc = `//unpkg.com/pdfjs-dist@${pdfjs.version}/build/pdf.worker.min.mjs`;
 
-export interface DocumentPreviewProps {
+interface DocumentCommon {
   className?: string;
-  document: DocumentDTO;
   firstPageOnly?: boolean;
+  isError?: boolean;
+  isLoading?: boolean;
+  document: DocumentDTO | undefined;
   /**
    * @default undefined
    */
@@ -35,6 +38,8 @@ export interface DocumentPreviewProps {
   onClick?(): void;
   onDownload?(): void;
 }
+
+export type DocumentPreviewProps = DocumentCommon; 
 
 const PreviewButton = styled('button')({
   width: '100%',
@@ -58,48 +63,62 @@ const PreviewButton = styled('button')({
 
 function DocumentPreview(props: DocumentPreviewProps) {
   const fit = props.fit ?? 'contain';
+  const { document, isError, isLoading } = props;
 
-  const Preview = match(props.document)
-    .when(isImage, (image) => (
-      <Image
-        className={props.className}
-        responsive={props.responsive}
-        fit={fit}
-        src={image.url}
-        alt={image.filename}
-      />
-    ))
-    .when(isPDF, (pdf) => (
-      <PDF
-        url={pdf.url}
-        firstPageOnly={props.firstPageOnly}
-        responsive={props.responsive}
-        fit={fit}
-      />
-    ))
-    .otherwise(() => (
-      <Fallback
-        {...props.fallbackProps}
-        className={props.className}
-        onDownload={props.onDownload}
-      />
-    ));
-
-  const isSupported = isImage(props.document) || isPDF(props.document);
-
-  if (props.onClick && isSupported) {
-    return (
-      <PreviewButton
-        className={props.className}
-        onClick={props.onClick}
-        aria-label={`Visualiser ${props.document.filename}`}
-      >
-        {Preview}
-      </PreviewButton>
-    );
+  if (isLoading) {
+    return <Loading />;
   }
 
-  return Preview;
+  if (isError) {
+    return <Error />;
+  }
+
+  if (document) {
+    const isSupported = isImage(document) || isPDF(document);
+
+    const Preview = match(document)
+      .when(
+        (document) => !!document && isImage(document),
+        (image) => (
+          <Image
+            className={props.className}
+            responsive={props.responsive}
+            fit={fit}
+            src={image.url}
+            alt={image.filename}
+          />
+        )
+      )
+      .when(isPDF, (pdf) => (
+        <PDF
+          url={pdf.url}
+          firstPageOnly={props.firstPageOnly}
+          responsive={props.responsive}
+          fit={fit}
+        />
+      ))
+      .otherwise(() => (
+        <Fallback
+          {...props.fallbackProps}
+          className={props.className}
+          onDownload={props.onDownload}
+        />
+      ));
+
+    if (props.onClick && isSupported) {
+      return (
+        <PreviewButton
+          className={props.className}
+          onClick={props.onClick}
+          aria-label={`Visualiser ${document.filename}`}
+        >
+          {Preview}
+        </PreviewButton>
+      );
+    }
+
+    return Preview;
+  }
 }
 
 const Document = styled(UnstyledDocument)<{
@@ -340,6 +359,21 @@ function Fallback(
       </Paper>
     </Box>
   );
+}
+
+function Loading() {
+  return (
+    <Skeleton
+      animation="wave"
+      variant="rectangular"
+      width="100%"
+      height={200}
+    />
+  );
+}
+
+function Error() {
+  return <Typography color="error">Une erreur est survenue.</Typography>;
 }
 
 export default memo(DocumentPreview);

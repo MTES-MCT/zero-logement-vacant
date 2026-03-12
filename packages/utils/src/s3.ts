@@ -58,7 +58,7 @@ export async function getContent(
   return { response, content };
 }
 
-interface GeneratePresignedUrlOptions {
+export interface GeneratePresignedUrlOptions {
   s3: S3Client;
   bucket: string;
   key: string;

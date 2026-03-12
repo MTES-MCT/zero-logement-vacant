@@ -201,39 +201,8 @@ class TestNormalizeName:
         assert " de " in result or " la " in result
 
 
-class TestComputeShortName:
-    """Tests for short name computation."""
-
-    @pytest.fixture
-    def importer(self):
-        """Create an importer instance without DB connection."""
-        with patch.object(EstablishmentImporter, '__init__', lambda x, **kwargs: None):
-            imp = EstablishmentImporter()
-            return imp
-
-    def test_short_name_commune(self, importer):
-        """Commune short name should remove prefix."""
-        result = importer.compute_short_name("Commune de Paris", "COM")
-        assert result == "Paris"
-
-    def test_short_name_commune_d_apostrophe(self, importer):
-        """Commune d' prefix should be removed."""
-        result = importer.compute_short_name("Commune d'Orléans", "COM")
-        assert result == "Orléans"
-
-    def test_short_name_non_commune(self, importer):
-        """Non-commune short name should be None."""
-        result = importer.compute_short_name("Préfecture de Paris", "PREF")
-        assert result is None
-
-    def test_short_name_com_tom(self, importer):
-        """COM-TOM kind should also have prefix removed."""
-        result = importer.compute_short_name("Commune de Papeete", "COM-TOM")
-        assert result == "Papeete"
-
-
-class TestValidateLocalities:
-    """Tests for locality validation."""
+class TestValidateAndFilterLocalities:
+    """Tests for locality validation and filtering."""
 
     @pytest.fixture
     def importer(self):
@@ -244,33 +213,33 @@ class TestValidateLocalities:
             return imp
 
     def test_validate_all_valid(self, importer):
-        """All valid codes should pass."""
-        is_valid, invalid = importer.validate_localities(["75001", "75002"])
-        assert is_valid is True
+        """All valid codes should return valid list and empty invalid list."""
+        valid, invalid = importer.validate_and_filter_localities(["75001", "75002"])
+        assert valid == ["75001", "75002"]
         assert invalid == []
 
     def test_validate_some_invalid(self, importer):
-        """Some invalid codes should fail."""
-        is_valid, invalid = importer.validate_localities(["75001", "99999"])
-        assert is_valid is False
-        assert "99999" in invalid
+        """Some invalid codes should be filtered out."""
+        valid, invalid = importer.validate_and_filter_localities(["75001", "99999"])
+        assert valid == ["75001"]
+        assert invalid == ["99999"]
 
     def test_validate_all_invalid(self, importer):
-        """All invalid codes should fail."""
-        is_valid, invalid = importer.validate_localities(["99998", "99999"])
-        assert is_valid is False
+        """All invalid codes should result in empty valid list."""
+        valid, invalid = importer.validate_and_filter_localities(["99998", "99999"])
+        assert valid == []
         assert len(invalid) == 2
 
     def test_validate_empty_list(self, importer):
-        """Empty list should pass."""
-        is_valid, invalid = importer.validate_localities([])
-        assert is_valid is True
+        """Empty list should return empty lists."""
+        valid, invalid = importer.validate_and_filter_localities([])
+        assert valid == []
         assert invalid == []
 
     def test_validate_none(self, importer):
-        """None should pass."""
-        is_valid, invalid = importer.validate_localities(None)
-        assert is_valid is True
+        """None should return empty lists."""
+        valid, invalid = importer.validate_and_filter_localities(None)
+        assert valid == []
         assert invalid == []
 
 
@@ -289,6 +258,8 @@ class TestTransformRow:
                 "skipped_no_siren": 0,
                 "skipped_invalid_siren": 0,
                 "skipped_invalid_localities": 0,
+                "filtered_localities_count": 0,
+                "records_with_filtered_localities": 0,
                 "errors": 0,
             }
             imp.skipped_rows = []
@@ -330,20 +301,23 @@ class TestTransformRow:
         assert importer.stats["skipped_no_siren"] == 1
 
     def test_transform_row_invalid_localities(self, importer):
-        """Row with invalid localities should be skipped."""
+        """Row with invalid localities should keep valid ones and filter invalid."""
         row = {
             "Siren": "123456789",
             "Name-zlv": "Test",
             "Kind-admin": "COM",
-            "Geo_Perimeter": "['99999']",
+            "Geo_Perimeter": "['75001', '99999']",
         }
         result = importer.transform_row(row)
 
-        assert result is None
-        assert importer.stats["skipped_invalid_localities"] == 1
+        # Should return the row with only valid localities
+        assert result is not None
+        assert result["localities_geo_code"] == ["75001"]
+        assert importer.stats["filtered_localities_count"] == 1
+        assert importer.stats["records_with_filtered_localities"] == 1
 
     def test_transform_row_no_geo_perimeter(self, importer):
-        """Row without Geo_Perimeter should still be valid."""
+        """Row without Geo_Perimeter should still be valid with empty localities."""
         row = {
             "Siren": "123456789",
             "Name-zlv": "Test",
@@ -353,7 +327,7 @@ class TestTransformRow:
         result = importer.transform_row(row)
 
         assert result is not None
-        assert result["localities_geo_code"] is None
+        assert result["localities_geo_code"] == []
 
     def test_transform_row_default_millesime(self, importer):
         """Row without Millesime should use default 2025."""
@@ -681,15 +655,16 @@ class TestKindColumnPreservation:
         assert "kind_admin = data.kind_admin" in source
 
     def test_insert_sql_uses_kind_admin(self):
-        """INSERT SQL should insert into kind_admin column."""
+        """INSERT SQL should insert into kind_admin column (separate from kind)."""
         from import_gold_establishments import EstablishmentImporter as RealImporter
 
         import inspect
         source = inspect.getsource(RealImporter.batch_upsert)
 
-        # Find INSERT statement - should have kind_admin, not kind
-        # The column list should be: (siren, siret, name, short_name, kind_admin, kind_admin_meta, ...)
-        assert "(siren, siret, name, short_name, kind_admin, kind_admin_meta" in source
+        # Find INSERT statement - should have both kind and kind_admin
+        # kind is set to empty string for new records (NOT NULL column)
+        # kind_admin is the CSV Kind-admin value
+        assert "(siren, siret, name, kind, kind_admin, kind_admin_meta" in source
 
     def test_update_sql_uses_kind_admin(self):
         """UPDATE SQL should update kind_admin column, not kind."""
@@ -707,13 +682,13 @@ class TestKindColumnPreservation:
 class TestColumnsNotModifiedByImport:
     """Tests to verify which columns are and are not modified by the import.
 
-    Columns that SHOULD be modified:
-    - siret, name, short_name, kind_admin, kind_admin_meta, millesime
-    - layer_geo_label, dep_code, dep_name, reg_code, reg_name
+    Columns that SHOULD be modified on INSERT (new records):
+    - siren, siret, name, kind (set to empty string), kind_admin, kind_admin_meta
+    - millesime, layer_geo_label, dep_code, dep_name, reg_code, reg_name
     - localities_geo_code, available, source, updated_at
 
-    Columns that should NOT be modified:
-    - kind (user-defined establishment type)
+    Columns that should NOT be modified on UPDATE (existing records):
+    - kind (user-defined establishment type - only set on INSERT, never updated)
     - id, created_at, deleted_at (managed by DB/application)
     """
 
@@ -725,9 +700,11 @@ class TestColumnsNotModifiedByImport:
         source = inspect.getsource(RealImporter.batch_upsert)
 
         # These columns should be in INSERT
+        # NOTE: 'kind' is set to empty string for new records (NOT NULL column)
         expected_insert_columns = [
-            "siren", "siret", "name", "short_name",
-            "kind_admin",  # NOT 'kind'!
+            "siren", "siret", "name",
+            "kind",  # Set to empty string for new records (NOT NULL, never updated)
+            "kind_admin",
             "kind_admin_meta", "millesime",
             "layer_geo_label", "dep_code", "dep_name", "reg_code", "reg_name",
             "localities_geo_code", "available", "source", "updated_at"
@@ -735,14 +712,6 @@ class TestColumnsNotModifiedByImport:
 
         for col in expected_insert_columns:
             assert col in source, f"Column '{col}' should be in INSERT statement"
-
-        # 'kind' should NOT be a standalone column in INSERT (only kind_admin)
-        # We check that "kind," doesn't appear without "kind_admin" or "kind_admin_meta"
-        import re
-        # Find all occurrences of 'kind' that are NOT 'kind_admin' or 'kind_admin_meta'
-        standalone_kind = re.findall(r'\bkind\b(?!_admin)', source)
-        # Filter out comments
-        assert len(standalone_kind) == 0, "Found standalone 'kind' column - should only use 'kind_admin'"
 
     def test_update_columns_list(self):
         """Verify the exact columns used in UPDATE statement."""
@@ -753,7 +722,7 @@ class TestColumnsNotModifiedByImport:
 
         # These columns should be SET in UPDATE
         expected_update_columns = [
-            "siret", "name", "short_name",
+            "siret", "name",
             "kind_admin",  # NOT 'kind'!
             "kind_admin_meta", "millesime",
             "layer_geo_label", "dep_code", "dep_name", "reg_code", "reg_name",

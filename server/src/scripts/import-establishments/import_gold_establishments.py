@@ -209,24 +209,40 @@ class EstablishmentImporter:
 
         return siret_str
 
-    def compute_short_name(self, name: str, kind_admin: Optional[str]) -> Optional[str]:
+    def parse_code_array(self, value: str) -> Optional[List[str]]:
         """
-        Compute short name from full name.
-
-        For communes, removes "Commune de " or "Commune d'" prefix.
+        Parse a JSON-like array string into a Python list for PostgreSQL TEXT[].
 
         Args:
-            name: Full establishment name
-            kind_admin: Establishment kind from CSV Kind-admin column (COM, COM-TOM, etc.)
+            value: String like "['01', '02', '03']" or empty
 
         Returns:
-            Short name or None
+            List of codes or None if empty/invalid
         """
-        import re
+        import ast
 
-        if kind_admin in ("COM", "COM-TOM"):
-            return re.sub(r"^Commune d(e\s|')", "", name)
-        return None
+        if not value or not value.strip():
+            return None
+
+        value = value.strip()
+
+        # Handle empty array
+        if value == "[]":
+            return None
+
+        # Handle 'na' or invalid values
+        if value.lower() in ("na", "n/a", "null", "none"):
+            return None
+
+        try:
+            parsed = ast.literal_eval(value)
+            if isinstance(parsed, list) and len(parsed) > 0:
+                # Ensure all elements are strings
+                return [str(code).strip() for code in parsed if code]
+            return None
+        except (ValueError, SyntaxError):
+            # If parsing fails, return None
+            return None
 
     def normalize_name(self, name: str) -> str:
         """
@@ -384,27 +400,25 @@ class EstablishmentImporter:
         # kind_admin_meta: macro-category from CSV Kind-admin_meta column (e.g., "Collectivité Territoriale")
         kind_admin = row.get("Kind-admin", "").strip() or None
         kind_admin_meta = row.get("Kind-admin_meta", "").strip() or None
-        short_name = self.compute_short_name(name, kind_admin)
 
         # Geographic metadata
         layer_geo_label = row.get("Layer-geo_label", "").strip() or None
-        dep_code = row.get("Dep_Code", "").strip() or None
+        dep_code = self.parse_code_array(row.get("Dep_Code", ""))
         dep_name = row.get("Dep_Name", "").strip() or None
-        reg_code = row.get("Reg_Code", "").strip() or None
+        reg_code = self.parse_code_array(row.get("Reg_Code", ""))
         reg_name = row.get("Reg_Name", "").strip() or None
 
         return {
             "siren": siren,
             "siret": siret,
             "name": name[:255],  # Truncate to VARCHAR(255)
-            "short_name": short_name[:255] if short_name else None,
             "kind_admin": kind_admin[:50] if kind_admin else None,  # For DB 'kind_admin' column
             "kind_admin_meta": kind_admin_meta[:50] if kind_admin_meta else None,
             "millesime": millesime[:4] if millesime else None,
             "layer_geo_label": layer_geo_label[:100] if layer_geo_label else None,
-            "dep_code": dep_code[:3] if dep_code else None,
+            "dep_code": dep_code,  # PostgreSQL TEXT[] array
             "dep_name": dep_name[:100] if dep_name else None,
-            "reg_code": reg_code[:3] if reg_code else None,
+            "reg_code": reg_code,  # PostgreSQL TEXT[] array
             "reg_name": reg_name[:100] if reg_name else None,
             "localities_geo_code": localities,
             "available": True,
@@ -479,21 +493,22 @@ class EstablishmentImporter:
         to_update = [r for r in records if r["siren"] in existing_sirens]
 
         # INSERT new records
+        # NOTE: 'kind' is set to empty string for new records (column is NOT NULL)
+        #       but is NEVER updated for existing records
         if to_insert and not self.dry_run:
             insert_data = [
                 (
                     r["siren"],
                     r["siret"],
                     r["name"],
-                    r["short_name"],
-                    "",  # kind = empty string for new records (not modified by import)
+                    "",  # kind = empty string (NOT NULL column, never updated)
                     r["kind_admin"],  # CSV Kind-admin → DB kind_admin
                     r["kind_admin_meta"],  # CSV Kind-admin_meta → DB kind_admin_meta
                     r["millesime"],
                     r["layer_geo_label"],
-                    r["dep_code"],
+                    r["dep_code"],  # List[str] for PostgreSQL TEXT[]
                     r["dep_name"],
-                    r["reg_code"],
+                    r["reg_code"],  # List[str] for PostgreSQL TEXT[]
                     r["reg_name"],
                     r["localities_geo_code"],
                     r["available"],
@@ -506,13 +521,13 @@ class EstablishmentImporter:
                 self.cursor,
                 """
                 INSERT INTO establishments
-                    (siren, siret, name, short_name, kind, kind_admin, kind_admin_meta, millesime,
+                    (siren, siret, name, kind, kind_admin, kind_admin_meta, millesime,
                      layer_geo_label, dep_code, dep_name, reg_code, reg_name,
                      localities_geo_code, available, source, updated_at)
                 VALUES %s
                 """,
                 insert_data,
-                template="(%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, NOW())",
+                template="(%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, NOW())",
                 page_size=500,
             )
 
@@ -524,14 +539,13 @@ class EstablishmentImporter:
                 (
                     r["siret"],
                     r["name"],
-                    r["short_name"],
                     r["kind_admin"],  # CSV Kind-admin → DB kind_admin
                     r["kind_admin_meta"],  # CSV Kind-admin_meta → DB kind_admin_meta
                     r["millesime"],
                     r["layer_geo_label"],
-                    r["dep_code"],
+                    r["dep_code"],  # List[str] for PostgreSQL TEXT[]
                     r["dep_name"],
-                    r["reg_code"],
+                    r["reg_code"],  # List[str] for PostgreSQL TEXT[]
                     r["reg_name"],
                     r["localities_geo_code"],
                     r["source"],
@@ -547,19 +561,18 @@ class EstablishmentImporter:
                 SET
                     siret = data.siret,
                     name = data.name,
-                    short_name = data.short_name,
                     kind_admin = data.kind_admin,
                     kind_admin_meta = data.kind_admin_meta,
                     millesime = data.millesime,
                     layer_geo_label = data.layer_geo_label,
-                    dep_code = data.dep_code,
+                    dep_code = data.dep_code::TEXT[],
                     dep_name = data.dep_name,
-                    reg_code = data.reg_code,
+                    reg_code = data.reg_code::TEXT[],
                     reg_name = data.reg_name,
                     localities_geo_code = data.localities_geo_code,
                     source = data.source,
                     updated_at = NOW()
-                FROM (VALUES %s) AS data(siret, name, short_name, kind_admin, kind_admin_meta, millesime, layer_geo_label, dep_code, dep_name, reg_code, reg_name, localities_geo_code, source, siren)
+                FROM (VALUES %s) AS data(siret, name, kind_admin, kind_admin_meta, millesime, layer_geo_label, dep_code, dep_name, reg_code, reg_name, localities_geo_code, source, siren)
                 WHERE e.siren = data.siren::integer
                 """,
                 update_data,

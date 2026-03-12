@@ -405,17 +405,7 @@ describe('Establishment repository', () => {
       expect(api.users![0].id).toBe(user.id);
     });
 
-    it('should use short_name when available', async () => {
-      const dbo: EstablishmentDBO = {
-        ...formatEstablishmentApi(genEstablishmentApi()),
-        short_name: 'Paris'
-      };
-      const api = parseEstablishmentApi(dbo);
-
-      expect(api.shortName).toBe('Paris');
-    });
-
-    it('should fallback to name when short_name is null', async () => {
+    it('should set shortName to name', async () => {
       const establishment = {
         ...genEstablishmentApi(),
         name: 'Commune de Paris'

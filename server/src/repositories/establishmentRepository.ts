@@ -198,7 +198,6 @@ function filter(filters?: EstablishmentFiltersDTO) {
 export interface EstablishmentDBO {
   id: string;
   name: string;
-  short_name?: string | null;
   siren: number;
   siret?: string | null;
   /**
@@ -211,9 +210,9 @@ export interface EstablishmentDBO {
   kind_admin_meta?: string | null;
   millesime?: string | null;
   layer_geo_label?: string | null;
-  dep_code?: string | null;
+  dep_code?: string[] | null;
   dep_name?: string | null;
-  reg_code?: string | null;
+  reg_code?: string[] | null;
   reg_name?: string | null;
   source: EstablishmentSource;
   updated_at: Date;
@@ -238,7 +237,7 @@ export const parseEstablishmentApi = (
 ): EstablishmentApi => ({
   id: establishment.id,
   name: establishment.name,
-  shortName: establishment.short_name ?? establishment.name,
+  shortName: establishment.name,
   siren: establishment.siren.toString(),
   available: establishment.available,
   geoCodes: establishment.localities_geo_code,

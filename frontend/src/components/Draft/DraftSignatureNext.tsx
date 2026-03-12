@@ -4,21 +4,19 @@ import type { DocumentDTO } from '@zerologementvacant/models';
 import { useFormContext } from 'react-hook-form';
 
 import Stack from '@mui/material/Stack';
-import { skipToken } from '@reduxjs/toolkit/query';
 import DraftDocumentUpload from '~/components/Draft/DraftDocumentUpload';
 import type { DraftFormSchema } from '~/components/Draft/DraftForm';
 import DocumentPreview from '~/components/FileUpload/DocumentPreview';
-import { useGetDocumentQuery } from '~/services/document.service';
+import type { Draft } from '~/models/Draft';
 import AppTextInputNext from '../_app/AppTextInput/AppTextInputNext';
 import styles from './draft.module.scss';
 
-function DraftSignatureNext() {
-  const { watch, setValue } = useFormContext<DraftFormSchema>();
+export interface DraftSignatureNextProps {
+  draft: Draft;
+}
 
-  const document0 = watch('sender.signatories.0.document');
-  const document1 = watch('sender.signatories.1.document');
-  const documentQuery0 = useGetDocumentQuery(document0 ?? skipToken);
-  const documentQuery1 = useGetDocumentQuery(document1 ?? skipToken);
+function DraftSignatureNext(props: Readonly<DraftSignatureNextProps>) {
+  const { setValue } = useFormContext<DraftFormSchema>();
 
   function onUpload(index: 0 | 1) {
     return (documents: ReadonlyArray<DocumentDTO>): void => {
@@ -79,9 +77,9 @@ function DraftSignatureNext() {
           <Stack direction="column" spacing="1rem">
             <DraftDocumentUpload onUpload={onUpload(0)} />
             <DocumentPreview
-              document={documentQuery0.data}
-              isError={documentQuery0.isError}
-              isLoading={documentQuery0.isLoading}
+              document={
+                props.draft.sender.signatories[0]?.document ?? undefined
+              }
               responsive="max-width"
               fit="contain"
             />
@@ -126,9 +124,9 @@ function DraftSignatureNext() {
           <Stack direction="column" spacing="1rem">
             <DraftDocumentUpload onUpload={onUpload(1)} />
             <DocumentPreview
-              document={documentQuery1.data}
-              isError={documentQuery1.isError}
-              isLoading={documentQuery1.isLoading}
+              document={
+                props.draft.sender.signatories[1]?.document ?? undefined
+              }
               responsive="max-width"
               fit="contain"
             />

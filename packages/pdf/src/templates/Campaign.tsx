@@ -1,9 +1,10 @@
-import { Font, Image, Page, StyleSheet } from '@react-pdf/renderer';
+import { Document, Font, Image, Page, StyleSheet } from '@react-pdf/renderer';
 import MarianneBold from '@codegouvfr/react-dsfr/dsfr/fonts/Marianne-Bold.woff';
 import MarianneBoldItalic from '@codegouvfr/react-dsfr/dsfr/fonts/Marianne-Bold_Italic.woff';
 import MarianneRegular from '@codegouvfr/react-dsfr/dsfr/fonts/Marianne-Regular.woff';
 import MarianneRegularItalic from '@codegouvfr/react-dsfr/dsfr/fonts/Marianne-Regular_Italic.woff';
 import type {
+  CampaignDTO,
   DraftDTO,
   HousingDTO,
   OwnerDTO
@@ -12,13 +13,35 @@ import Html from 'react-pdf-html';
 
 import { Stack, Typography } from '~/components/index.js';
 
-interface CampaignTemplateProps {
+export interface CampaignDocumentProps {
+  campaign: CampaignDTO;
+  children: React.ReactNode;
+}
+
+export function CampaignDocument({
+  campaign,
+  children
+}: CampaignDocumentProps) {
+  return (
+    <Document
+      author="Zéro Logement Vacant"
+      title={campaign.title}
+      subject={campaign.description}
+      creationDate={new Date()}
+      language="fr"
+    >
+      {children}
+    </Document>
+  );
+}
+
+export interface CampaignPageProps {
   draft: DraftDTO;
   housing: HousingDTO;
   owner: OwnerDTO;
 }
 
-export function CampaignTemplate({ draft, owner }: CampaignTemplateProps) {
+export function CampaignPage({ draft, owner }: CampaignPageProps) {
   return (
     <Page size="A4" style={styles.page}>
       <Stack direction="row">
@@ -47,7 +70,7 @@ export function CampaignTemplate({ draft, owner }: CampaignTemplateProps) {
 
           <Stack style={{ marginLeft: 150 }}>
             <Typography style={{ marginBottom: 10, fontWeight: 700 }}>
-              À l’attention de
+              À l'attention de
             </Typography>
             <Typography>{owner.fullName}</Typography>
             <Typography>{owner.additionalAddress}</Typography>

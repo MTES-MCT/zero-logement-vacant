@@ -1,11 +1,16 @@
-import { Document, renderToStream } from '@react-pdf/renderer';
-import type { DraftDTO, HousingDTO } from '@zerologementvacant/models';
+import { renderToStream } from '@react-pdf/renderer';
+import type {
+  CampaignDTO,
+  DraftDTO,
+  HousingDTO
+} from '@zerologementvacant/models';
 import { replaceVariables } from '@zerologementvacant/models';
 import { Readable } from 'node:stream';
 
-import { CampaignTemplate } from '../templates/Campaign.js';
+import { CampaignDocument, CampaignPage } from '../templates/Campaign.js';
 
 interface GenerateCampaignOptions {
+  campaign: CampaignDTO;
   housings: Array<
     Omit<HousingDTO, 'owner'> & { owner: NonNullable<HousingDTO['owner']> }
   >;
@@ -13,25 +18,23 @@ interface GenerateCampaignOptions {
 }
 
 export async function generate(options: GenerateCampaignOptions) {
-  const { housings, draft } = options;
+  const { campaign, housings, draft } = options;
 
   const nodeStream = await renderToStream(
-    <Document>
+    <CampaignDocument campaign={campaign}>
       {housings.map((housing) => {
-        // Replace variables for each housing
         const personalizedBody = replaceVariables(draft.body ?? '', {
           housing,
           owner: housing.owner ?? { fullName: '' }
         });
 
-        // Create personalized draft
         const personalizedDraft: DraftDTO = {
           ...draft,
           body: personalizedBody
         };
 
         return (
-          <CampaignTemplate
+          <CampaignPage
             key={housing.id}
             draft={personalizedDraft}
             housing={housing}
@@ -39,7 +42,7 @@ export async function generate(options: GenerateCampaignOptions) {
           />
         );
       })}
-    </Document>
+    </CampaignDocument>
   );
 
   return Readable.toWeb(nodeStream as unknown as Readable);

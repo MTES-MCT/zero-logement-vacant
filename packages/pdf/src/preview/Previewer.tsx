@@ -1,5 +1,6 @@
-import { Document, PDFViewer } from '@react-pdf/renderer';
+import { PDFViewer } from '@react-pdf/renderer';
 import {
+  genCampaignDTO,
   genDocumentDTO,
   genDraftDTO,
   genEstablishmentDTO,
@@ -11,7 +12,7 @@ import {
 } from '@zerologementvacant/models/fixtures';
 import { useState } from 'react';
 
-import { CampaignTemplate } from '~/templates/Campaign.js';
+import { CampaignDocument, CampaignPage } from '~/templates/Campaign.js';
 
 type TemplateName = 'campaign';
 
@@ -25,6 +26,7 @@ export function Previewer() {
   const housing = genHousingDTO();
   const owner = genOwnerDTO();
   const sender = genSenderDTO();
+  const campaign = genCampaignDTO();
   const draft = genDraftDTO(sender);
   draft.logoNext = [
     {
@@ -93,11 +95,11 @@ export function Previewer() {
 
       {/* PDF Viewer */}
       <PDFViewer style={{ flex: 1, border: 'none' }}>
-        <Document>
+        <CampaignDocument campaign={campaign}>
           {selectedTemplate === 'campaign' && (
-            <CampaignTemplate draft={draft} housing={housing} owner={owner} />
+            <CampaignPage draft={draft} housing={housing} owner={owner} />
           )}
-        </Document>
+        </CampaignDocument>
       </PDFViewer>
     </div>
   );

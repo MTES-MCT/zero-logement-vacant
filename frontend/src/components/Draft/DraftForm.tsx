@@ -114,7 +114,7 @@ function DraftForm(props: Readonly<DraftFormProps>) {
 
           <Grid size={{ xs: 12, md: 5 }}>
             <Stack spacing="1rem" useFlexGap>
-              <DraftSenderLogoNext />
+              <DraftSenderLogoNext draft={props.draft} />
               <DraftRedaction />
             </Stack>
           </Grid>

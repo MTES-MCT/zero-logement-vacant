@@ -1,22 +1,20 @@
 import Stack from '@mui/material/Stack';
 import Typography from '@mui/material/Typography';
 import type { DocumentDTO } from '@zerologementvacant/models';
-import { skipToken } from '@reduxjs/toolkit/query';
 import { useFormContext } from 'react-hook-form';
 
-import type { DraftFormSchema } from '~/components/Draft/DraftForm';
 import DraftDocumentUpload from '~/components/Draft/DraftDocumentUpload';
+import type { DraftFormSchema } from '~/components/Draft/DraftForm';
 import DocumentPreview from '~/components/FileUpload/DocumentPreview';
-import { useGetDocumentQuery } from '~/services/document.service';
+import type { Draft } from '~/models/Draft';
 import styles from './draft.module.scss';
 
-function DraftSenderLogoNext() {
-  const { watch, setValue } = useFormContext<DraftFormSchema>();
+export interface DraftSenderLogoNextProps {
+  draft: Draft;
+}
 
-  const logo0 = watch('logo.0');
-  const logo1 = watch('logo.1');
-  const logoQuery0 = useGetDocumentQuery(logo0 ?? skipToken);
-  const logoQuery1 = useGetDocumentQuery(logo1 ?? skipToken);
+function DraftSenderLogoNext(props: Readonly<DraftSenderLogoNextProps>) {
+  const { setValue } = useFormContext<DraftFormSchema>();
 
   function onUpload(
     index: 0 | 1
@@ -46,9 +44,7 @@ function DraftSenderLogoNext() {
       <Stack spacing="1rem">
         <DraftDocumentUpload label={null} onUpload={onUpload(0)} />
         <DocumentPreview
-          document={logoQuery0.data}
-          isError={logoQuery0.isError}
-          isLoading={logoQuery0.isLoading}
+          document={props.draft.logoNext[0] ?? undefined}
           responsive="max-width"
           fit="contain"
         />
@@ -57,9 +53,7 @@ function DraftSenderLogoNext() {
       <Stack spacing="1rem" sx={{ mt: '1.5rem' }}>
         <DraftDocumentUpload hint={null} label={null} onUpload={onUpload(1)} />
         <DocumentPreview
-          document={logoQuery1.data}
-          isError={logoQuery1.isError}
-          isLoading={logoQuery1.isLoading}
+          document={props.draft.logoNext[1] ?? undefined}
           responsive="max-width"
           fit="contain"
         />

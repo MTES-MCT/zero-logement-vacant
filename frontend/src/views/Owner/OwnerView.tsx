@@ -1,3 +1,4 @@
+import Breadcrumb from '@codegouvfr/react-dsfr/Breadcrumb';
 import Button from '@codegouvfr/react-dsfr/Button';
 import { Typography } from '@mui/material';
 import Container from '@mui/material/Container';
@@ -29,19 +30,28 @@ function OwnerView() {
 
   return (
     <Container maxWidth={false} sx={{ pt: '2rem', pb: '3rem' }}>
+      <Stack component="header" sx={{ mt: '-1rem', mb: '2rem' }}>
+        <Breadcrumb
+          className="fr-mb-0"
+          currentPageLabel={owner?.fullName ?? ''}
+          segments={[
+            {
+              label: 'Parc de logements',
+              linkProps: {
+                to: '/parc-de-logements'
+              }
+            }
+          ]}
+        />
+        <Stack spacing="0.25rem" useFlexGap>
+          <Typography component="h1" variant="h3">
+            {owner?.fullName}
+          </Typography>
+          {owner?.kind ? <OwnerKindIcon kind={owner.kind} /> : null}
+        </Stack>
+      </Stack>
       <Grid container columnSpacing="3rem">
         <Grid size={{ xs: 12, md: 4 }}>
-          <Stack
-            component="header"
-            spacing="0.25rem"
-            useFlexGap
-            sx={{ mb: '1rem' }}
-          >
-            <Typography component="h1" variant="h3">
-              {owner?.fullName}
-            </Typography>
-            {owner?.kind ? <OwnerKindIcon kind={owner.kind} /> : null}
-          </Stack>
 
           <Stack
             direction="row"

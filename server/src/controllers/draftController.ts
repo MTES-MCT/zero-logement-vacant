@@ -11,12 +11,11 @@ import {
   HOUSING_KIND_VALUES,
   isEmpty,
   replaceVariables,
-  SignatoryDTO,
   SignatoryPayload,
   type EstablishmentDTO
 } from '@zerologementvacant/models';
 import { not } from '@zerologementvacant/utils';
-import { createS3, generatePresignedUrl } from '@zerologementvacant/utils/node';
+import { createS3 } from '@zerologementvacant/utils/node';
 import async from 'async';
 import { Predicate } from 'effect';
 import { Request, RequestHandler, Response } from 'express';
@@ -24,6 +23,7 @@ import { AuthenticatedRequest } from 'express-jwt';
 import { body, ValidationChain } from 'express-validator';
 import { constants } from 'http2';
 import { pick } from 'lodash-es';
+import type { ElementOf } from 'ts-essentials';
 import { v4 as uuidv4 } from 'uuid';
 
 import CampaignMissingError from '~/errors/campaignMissingError';
@@ -32,17 +32,22 @@ import DraftMissingError from '~/errors/draftMissingError';
 import config from '~/infra/config';
 import { startTransaction } from '~/infra/database/transaction';
 import { createLogger } from '~/infra/logger';
-import { toDocumentDTO, type DocumentApi } from '~/models/DocumentApi';
+import { type DocumentApi } from '~/models/DocumentApi';
 import { DraftApi, toDraftDTO } from '~/models/DraftApi';
-import { SenderApi } from '~/models/SenderApi';
+import {
+  fromSignatoryDTO,
+  SenderApi,
+  type SignatoryApi
+} from '~/models/SenderApi';
 import campaignDraftRepository from '~/repositories/campaignDraftRepository';
 import campaignRepository from '~/repositories/campaignRepository';
 import documentRepository from '~/repositories/documentRepository';
-import draftRepository, { DraftFilters } from '~/repositories/draftRepository';
+import draftRepository from '~/repositories/draftRepository';
 import senderRepository from '~/repositories/senderRepository';
 import { isUUIDParam } from '~/utils/validators';
 
 const logger = createLogger('draftController');
+const s3 = createS3(config.s3);
 
 export interface DraftParams extends Record<string, string> {
   id: string;
@@ -52,10 +57,10 @@ interface DraftQuery {
   campaign?: string;
 }
 
-async function list(
-  request: Request<never, DraftDTO[], never, DraftQuery>,
-  response: Response<DraftDTO[]>
-) {
+const list: RequestHandler<never, DraftDTO[], never, DraftQuery> = async (
+  request,
+  response
+): Promise<void> => {
   const { auth, query } = request as AuthenticatedRequest<
     never,
     DraftDTO[],
@@ -67,16 +72,23 @@ async function list(
     query
   });
 
-  const filters: DraftFilters = {
-    campaign: query.campaign,
-    establishment: auth.establishmentId
-  };
   const drafts: DraftApi[] = await draftRepository.find({
-    filters
+    filters: {
+      campaign: query.campaign,
+      establishment: auth.establishmentId
+    }
   });
 
-  response.status(constants.HTTP_STATUS_OK).json(drafts.map(toDraftDTO));
-}
+  const dtos = await async.map(
+    drafts,
+    async (draft: ElementOf<typeof drafts>) =>
+      toDraftDTO(draft, {
+        s3,
+        bucket: config.s3.bucket
+      })
+  );
+  response.status(constants.HTTP_STATUS_OK).json(dtos);
+};
 
 const partialDraftValidators: ValidationChain[] = [
   body('body').optional({ nullable: true }).isString(),
@@ -137,7 +149,14 @@ async function create(
     address: body.sender?.address ?? null,
     email: body.sender?.email ?? null,
     phone: body.sender?.phone ?? null,
-    signatories: body.sender?.signatories ?? null,
+    signatories: [
+      !!body.sender?.signatories?.[0]
+        ? fromSignatoryDTO(body.sender.signatories[0])
+        : null,
+      !!body.sender?.signatories?.[1]
+        ? fromSignatoryDTO(body.sender.signatories[1])
+        : null
+    ],
     establishmentId: auth.establishmentId,
     createdAt: new Date().toJSON(),
     updatedAt: new Date().toJSON()
@@ -159,7 +178,12 @@ async function create(
   await senderRepository.save(sender);
   await draftRepository.save(draft);
   await campaignDraftRepository.save(campaign, draft);
-  response.status(constants.HTTP_STATUS_CREATED).json(toDraftDTO(draft));
+  response.status(constants.HTTP_STATUS_CREATED).json(
+    await toDraftDTO(draft, {
+      s3,
+      bucket: config.s3.bucket
+    })
+  );
 }
 
 async function preview(
@@ -275,6 +299,7 @@ async function update(request: Request, response: Response<DraftDTO>) {
     throw new DraftMissingError(params.id);
   }
 
+  const signatories = body.sender?.signatories ?? [null, null];
   const sender: SenderApi = {
     id: draft.sender.id,
     name: body.sender.name,
@@ -284,7 +309,10 @@ async function update(request: Request, response: Response<DraftDTO>) {
     address: body.sender.address,
     email: body.sender.email,
     phone: body.sender.phone,
-    signatories: body.sender.signatories,
+    signatories: [
+      signatories[0] ? fromSignatoryDTO(signatories[0]) : null,
+      signatories[1] ? fromSignatoryDTO(signatories[1]) : null
+    ],
     createdAt: draft.sender.createdAt,
     updatedAt: new Date().toJSON(),
     establishmentId: draft.sender.establishmentId
@@ -307,7 +335,12 @@ async function update(request: Request, response: Response<DraftDTO>) {
     establishment: auth.establishmentId
   });
 
-  response.status(constants.HTTP_STATUS_OK).json(toDraftDTO(updated));
+  response.status(constants.HTTP_STATUS_OK).json(
+    await toDraftDTO(updated, {
+      s3,
+      bucket: config.s3.bucket
+    })
+  );
 }
 const updateValidators: ValidationChain[] = [
   isUUIDParam('id'),
@@ -344,7 +377,7 @@ interface ResolveDocumentsOptions {
 
 async function resolveDocuments(
   options: ResolveDocumentsOptions
-): Promise<Map<DocumentDTO['id'], DocumentDTO>> {
+): Promise<Map<DocumentApi['id'], DocumentApi>> {
   const ids = options.ids.filter(Predicate.isNotNull);
   if (ids.length === 0) {
     return new Map();
@@ -358,7 +391,7 @@ async function resolveDocuments(
     }
   });
   const missing = ids.filter(
-    (id) => documents.find((document) => document.id === id) !== undefined
+    (id) => !documents.some((document) => document.id === id)
   );
   if (missing.length > 0) {
     logger.warn('Some documents are missing', {
@@ -368,35 +401,27 @@ async function resolveDocuments(
     throw new DocumentMissingError(...missing);
   }
 
-  const s3 = createS3(config.s3);
-  const documentsWithURLs = await async.map(
-    documents,
-    async (document: DocumentApi) => {
-      const presignedUrl = await generatePresignedUrl({
-        s3,
-        bucket: config.s3.bucket,
-        key: document.s3Key
-      });
-      return toDocumentDTO(document, presignedUrl);
-    }
-  );
-
-  return new Map<DocumentDTO['id'], DocumentDTO>(
-    documentsWithURLs.map((doc) => [doc.id, doc])
+  return new Map<DocumentApi['id'], DocumentApi>(
+    documents.map((document) => [document.id, document])
   );
 }
 
 function buildSignatory(
   payload: SignatoryPayload | null | undefined,
-  docsMap: Map<string, DocumentDTO>
-): SignatoryDTO | null {
-  if (!payload) return null;
+  documents: Map<DocumentApi['id'], DocumentApi>
+): SignatoryApi | null {
+  if (!payload) {
+    return null;
+  }
+
   return {
     firstName: payload.firstName,
     lastName: payload.lastName,
     role: payload.role,
     file: null,
-    document: payload.document ? (docsMap.get(payload.document) ?? null) : null
+    document: payload.document
+      ? (documents.get(payload.document) ?? null)
+      : null
   };
 }
 
@@ -432,11 +457,12 @@ const createNext: RequestHandler<
     establishmentId: auth.establishmentId
   });
 
-  const logoNext: [DocumentDTO | null, DocumentDTO | null] = [
+  const logoNext: [DocumentApi | null, DocumentApi | null] = [
     body.logo[0] ? (documents.get(body.logo[0]) ?? null) : null,
     body.logo[1] ? (documents.get(body.logo[1]) ?? null) : null
   ];
 
+  const now = new Date().toJSON();
   const sender: SenderApi = {
     id: uuidv4(),
     name: body.sender?.name ?? null,
@@ -451,8 +477,8 @@ const createNext: RequestHandler<
       buildSignatory(body.sender?.signatories?.[1], documents)
     ],
     establishmentId: auth.establishmentId,
-    createdAt: new Date().toJSON(),
-    updatedAt: new Date().toJSON()
+    createdAt: now,
+    updatedAt: now
   };
 
   const draft: DraftApi = {
@@ -465,8 +491,8 @@ const createNext: RequestHandler<
     senderId: sender.id,
     writtenAt: body.writtenAt,
     writtenFrom: body.writtenFrom,
-    createdAt: new Date().toJSON(),
-    updatedAt: new Date().toJSON(),
+    createdAt: now,
+    updatedAt: now,
     establishmentId: auth.establishmentId
   };
 
@@ -476,7 +502,12 @@ const createNext: RequestHandler<
     await campaignDraftRepository.save(campaign, draft);
   });
 
-  response.status(constants.HTTP_STATUS_CREATED).json(toDraftDTO(draft));
+  response.status(constants.HTTP_STATUS_CREATED).json(
+    await toDraftDTO(draft, {
+      s3,
+      bucket: config.s3.bucket
+    })
+  );
 };
 
 const updateNext: RequestHandler<
@@ -509,7 +540,7 @@ const updateNext: RequestHandler<
     establishmentId: auth.establishmentId
   });
 
-  const logoNext: [DocumentDTO | null, DocumentDTO | null] = [
+  const logoNext: [DocumentApi | null, DocumentApi | null] = [
     body.logo[0] ? (documents.get(body.logo[0]) ?? null) : null,
     body.logo[1] ? (documents.get(body.logo[1]) ?? null) : null
   ];
@@ -550,7 +581,12 @@ const updateNext: RequestHandler<
     await draftRepository.save(updated);
   });
 
-  response.status(constants.HTTP_STATUS_OK).json(toDraftDTO(updated));
+  response.status(constants.HTTP_STATUS_OK).json(
+    await toDraftDTO(updated, {
+      s3,
+      bucket: config.s3.bucket
+    })
+  );
 };
 
 const draftController = {

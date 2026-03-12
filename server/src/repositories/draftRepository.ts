@@ -9,6 +9,11 @@ import { createLogger } from '~/infra/logger';
 import { DraftApi } from '~/models/DraftApi';
 import { campaignsDraftsTable } from '~/repositories/campaignDraftRepository';
 import {
+  fromDocumentDBO,
+  joinDocumentWithCreator,
+  type DocumentWithCreatorDBO
+} from '~/repositories/documentRepository';
+import {
   parseSenderApi,
   SenderDBO,
   sendersTable
@@ -90,32 +95,20 @@ function listQuery(query: Knex.QueryBuilder): void {
       `${sendersTable}.id`
     )
     .select(db.raw(`to_json(${sendersTable}.*) AS sender`))
-    // signatory documents
-    .leftJoin(
-      { signatory_one_doc: 'documents' },
-      `${sendersTable}.signatory_one_document_id`,
-      'signatory_one_doc.id'
-    )
-    .select(db.raw(`to_json(signatory_one_doc.*) AS signatory_one_doc`))
-    .leftJoin(
-      { signatory_two_doc: 'documents' },
-      `${sendersTable}.signatory_two_document_id`,
-      'signatory_two_doc.id'
-    )
-    .select(db.raw(`to_json(signatory_two_doc.*) AS signatory_two_doc`))
-    // logo next documents
-    .leftJoin(
-      { logo_next_one_doc: 'documents' },
-      `${draftsTable}.logo_next_one`,
-      'logo_next_one_doc.id'
-    )
-    .select(db.raw(`to_json(logo_next_one_doc.*) AS logo_next_one_doc`))
-    .leftJoin(
-      { logo_next_two_doc: 'documents' },
-      `${draftsTable}.logo_next_two`,
-      'logo_next_two_doc.id'
-    )
-    .select(db.raw(`to_json(logo_next_two_doc.*) AS logo_next_two_doc`));
+  // signatory documents
+  joinDocumentWithCreator(
+    query,
+    `${sendersTable}.signatory_one_document_id`,
+    'signatory_one_doc'
+  );
+  joinDocumentWithCreator(
+    query,
+    `${sendersTable}.signatory_two_document_id`,
+    'signatory_two_doc'
+  );
+  // logo next documents
+  joinDocumentWithCreator(query, `${draftsTable}.logo_next_one`, 'logo_next_one_doc');
+  joinDocumentWithCreator(query, `${draftsTable}.logo_next_two`, 'logo_next_two_doc');
 }
 
 function filterQuery(filters?: DraftFilters) {
@@ -157,10 +150,10 @@ export interface DraftRecordDBO {
 
 export interface DraftDBO extends DraftRecordDBO {
   sender: SenderDBO;
-  signatory_one_doc: null;
-  signatory_two_doc: null;
-  logo_next_one_doc: null;
-  logo_next_two_doc: null;
+  signatory_one_doc: DocumentWithCreatorDBO | null;
+  signatory_two_doc: DocumentWithCreatorDBO | null;
+  logo_next_one_doc: DocumentWithCreatorDBO | null;
+  logo_next_two_doc: DocumentWithCreatorDBO | null;
 }
 
 export const formatDraftApi = (draft: DraftApi): DraftRecordDBO => ({
@@ -194,12 +187,19 @@ export const parseDraftApi = async (draft: DraftDBO): Promise<DraftApi> => {
     subject: draft.subject,
     body: draft.body,
     logo: logo,
-    logoNext: [null, null],
+    logoNext: [
+      draft.logo_next_one_doc ? fromDocumentDBO(draft.logo_next_one_doc) : null,
+      draft.logo_next_two_doc ? fromDocumentDBO(draft.logo_next_two_doc) : null
+    ],
     writtenAt: draft.written_at,
     writtenFrom: draft.written_from,
     establishmentId: draft.establishment_id,
     senderId: draft.sender_id,
-    sender: await parseSenderApi(draft.sender),
+    sender: await parseSenderApi({
+      ...draft.sender,
+      signatory_one_document: draft.signatory_one_doc ?? null,
+      signatory_two_document: draft.signatory_two_doc ?? null
+    }),
     createdAt: draft.created_at.toJSON(),
     updatedAt: draft.updated_at.toJSON()
   };

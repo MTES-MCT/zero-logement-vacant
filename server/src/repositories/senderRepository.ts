@@ -3,6 +3,11 @@ import db, { where } from '~/infra/database';
 import { withinTransaction } from '~/infra/database/transaction';
 import { createLogger } from '~/infra/logger';
 import { SenderApi } from '~/models/SenderApi';
+import {
+  fromDocumentDBO,
+  joinDocumentWithCreator,
+  type DocumentWithCreatorDBO
+} from '~/repositories/documentRepository';
 
 const logger = createLogger('senderRepository');
 
@@ -21,7 +26,11 @@ async function findOne(opts: FindOneOptions): Promise<SenderApi | null> {
     { table: sendersTable }
   );
 
-  const sender = await Senders().where(whereOptions(opts)).first();
+  const query = Senders().where(whereOptions(opts));
+  joinDocumentWithCreator(query, `${sendersTable}.signatory_one_document_id`, 'signatory_one_document');
+  joinDocumentWithCreator(query, `${sendersTable}.signatory_two_document_id`, 'signatory_two_document');
+
+  const sender = await query.select(`${sendersTable}.*`).first() as SenderDBOWithDocuments | undefined;
   if (!sender) {
     return null;
   }
@@ -108,7 +117,12 @@ export const formatSenderApi = (sender: SenderApi): SenderDBO => ({
   establishment_id: sender.establishmentId
 });
 
-export const parseSenderApi = async (sender: SenderDBO): Promise<SenderApi> => {
+type SenderDBOWithDocuments = SenderDBO & {
+  signatory_one_document: DocumentWithCreatorDBO | null;
+  signatory_two_document: DocumentWithCreatorDBO | null;
+};
+
+export const parseSenderApi = async (sender: SenderDBOWithDocuments): Promise<SenderApi> => {
   let signatory_one_file;
   try {
     signatory_one_file = sender.signatory_one_file
@@ -142,14 +156,18 @@ export const parseSenderApi = async (sender: SenderDBO): Promise<SenderApi> => {
         lastName: sender.signatory_one_last_name,
         role: sender.signatory_one_role,
         file: signatory_one_file,
-        document: null
+        document: sender.signatory_one_document
+          ? fromDocumentDBO(sender.signatory_one_document)
+          : null
       },
       {
         firstName: sender.signatory_two_first_name,
         lastName: sender.signatory_two_last_name,
         role: sender.signatory_two_role,
         file: signatory_two_file,
-        document: null
+        document: sender.signatory_two_document
+          ? fromDocumentDBO(sender.signatory_two_document)
+          : null
       }
     ],
     createdAt: new Date(sender.created_at).toJSON(),

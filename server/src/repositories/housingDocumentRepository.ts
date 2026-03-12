@@ -4,14 +4,11 @@ import { withinTransaction } from '~/infra/database/transaction';
 import { createLogger } from '~/infra/logger';
 import { HousingId } from '~/models/HousingApi';
 import { HousingDocumentApi } from '~/models/HousingDocumentApi';
-import {
-  parseUserApi,
-  UserDBO,
-  usersTable
-} from '~/repositories/userRepository';
+import { UserDBO, usersTable } from '~/repositories/userRepository';
 import {
   Documents,
   DOCUMENTS_TABLE,
+  fromDocumentDBO,
   type DocumentDBO
 } from './documentRepository';
 
@@ -209,21 +206,6 @@ function listQuery() {
     .join(usersTable, `${usersTable}.id`, `${DOCUMENTS_TABLE}.created_by`);
 }
 
-export function toDocumentDBO(document: HousingDocumentApi): DocumentDBO {
-  return {
-    id: document.id,
-    filename: document.filename,
-    s3_key: document.s3Key,
-    content_type: document.contentType,
-    size_bytes: document.sizeBytes,
-    establishment_id: document.establishmentId,
-    created_by: document.createdBy,
-    created_at: document.createdAt,
-    updated_at: document.updatedAt ? new Date(document.updatedAt) : null,
-    deleted_at: document.deletedAt ? new Date(document.deletedAt) : null
-  };
-}
-
 export function toHousingDocumentDBO(
   document: HousingDocumentApi
 ): HousingDocumentDBO {
@@ -242,19 +224,9 @@ export function fromHousingDocumentDBO(
   }
 
   return {
-    id: dbo.id,
-    housingId: dbo.housing_id,
+    ...fromDocumentDBO(dbo),
     housingGeoCode: dbo.housing_geo_code,
-    filename: dbo.filename,
-    s3Key: dbo.s3_key,
-    contentType: dbo.content_type,
-    sizeBytes: dbo.size_bytes,
-    establishmentId: dbo.establishment_id,
-    createdBy: dbo.created_by,
-    createdAt: dbo.created_at,
-    updatedAt: dbo.updated_at?.toJSON() ?? null,
-    deletedAt: dbo.deleted_at?.toJSON() ?? null,
-    creator: parseUserApi(dbo.creator)
+    housingId: dbo.housing_id
   };
 }
 

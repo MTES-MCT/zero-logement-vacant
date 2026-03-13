@@ -68,7 +68,7 @@ export function CampaignPage({ draft, owner }: CampaignPageProps) {
             <Typography>{draft.sender.phone}</Typography>
           </Stack>
 
-          <Stack style={{ marginLeft: 150 }}>
+          <Stack style={{ alignItems: 'flex-end', marginRight: 96 }}>
             <Typography style={{ marginBottom: 10, fontWeight: 700 }}>
               À l'attention de
             </Typography>

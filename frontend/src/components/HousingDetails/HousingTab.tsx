@@ -284,6 +284,7 @@ function HousingTab() {
               <Map
                 housingList={[housing]}
                 showMapSettings={false}
+                fitBoundsMaxZoom={10}
                 style={{ minHeight: '21rem' }}
               />
               <Stack component="section" sx={{ alignItems: 'flex-end' }}>

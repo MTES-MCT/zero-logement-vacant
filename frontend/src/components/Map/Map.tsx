@@ -40,6 +40,7 @@ export interface MapProps {
   viewState?: ViewState;
   minZoom?: number;
   maxZoom?: number;
+  fitBoundsMaxZoom?: number;
   showMapSettings?: boolean;
   style?: CSSProperties;
   onMove?: (viewState: ViewState) => void;
@@ -117,14 +118,23 @@ function Map(props: MapProps) {
 
   useEffect(() => {
     if (map && points.length > 0) {
-      const bounds = turf.bbox(turf.featureCollection(points));
-      map.fitBounds(bounds as [number, number, number, number], {
-        padding: 64,
-        duration: 800,
-        maxZoom: 12
-      });
+      if (points.length === 1) {
+        const [lng, lat] = points[0].geometry.coordinates as [number, number];
+        map.flyTo({
+          center: [lng, lat],
+          zoom: props.fitBoundsMaxZoom ?? 12,
+          duration: 800
+        });
+      } else {
+        const bounds = turf.bbox(turf.featureCollection(points));
+        map.fitBounds(bounds as [number, number, number, number], {
+          padding: 64,
+          duration: 800,
+          maxZoom: props.fitBoundsMaxZoom ?? 12
+        });
+      }
     }
-  }, [map, points]);
+  }, [map, points, props.fitBoundsMaxZoom]);
 
   const [selected, setSelected] = useState<Building | null>(null);
   const isOpen = selected !== null;

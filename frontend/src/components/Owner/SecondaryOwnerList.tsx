@@ -24,7 +24,7 @@ function SecondaryOwnerList(props: SecondaryOwnerListProps) {
 
   return (
     <Stack>
-      <Typography component="h2" variant="h6">
+      <Typography component="h3" variant="h6">
         Destinataires secondaires ({secondaryOwners.length})
       </Typography>
       <hr />

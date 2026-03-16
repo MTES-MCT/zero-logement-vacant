@@ -51,6 +51,7 @@ const s3 = createS3({
 const create: RequestHandler<
   never,
   ReadonlyArray<DocumentDTO | FileValidationError>,
+  never,
   never
 > = async (request, response) => {
   const { establishment, user } = request as AuthenticatedRequest<
@@ -157,10 +158,12 @@ const create: RequestHandler<
   response.status(status).json(Array.map(documentsOrErrors, Either.merge));
 };
 
-const get: RequestHandler<Pick<DocumentDTO, 'id'>, DocumentDTO> = async (
-  request,
-  response
-) => {
+const get: RequestHandler<
+  Pick<DocumentDTO, 'id'>,
+  DocumentDTO,
+  never,
+  never
+> = async (request, response) => {
   const { params, establishment } = request as AuthenticatedRequest<
     Pick<DocumentDTO, 'id'>,
     DocumentDTO
@@ -189,12 +192,14 @@ const get: RequestHandler<Pick<DocumentDTO, 'id'>, DocumentDTO> = async (
 const update: RequestHandler<
   Pick<DocumentDTO, 'id'>,
   DocumentDTO,
-  DocumentPayload
+  DocumentPayload,
+  never
 > = async (request, response) => {
   const { body, params, user, establishment } = request as AuthenticatedRequest<
     Pick<DocumentDTO, 'id'>,
     DocumentDTO,
-    DocumentPayload
+    DocumentPayload,
+    never
   >;
 
   logger.info('Updating document', { id: params.id });
@@ -245,13 +250,16 @@ const update: RequestHandler<
     .json(await toDocumentDTO(updated, { s3, bucket: config.s3.bucket }));
 };
 
-const remove: RequestHandler<Pick<DocumentDTO, 'id'>, void, never> = async (
-  request,
-  response
-) => {
+const remove: RequestHandler<
+  Pick<DocumentDTO, 'id'>,
+  void,
+  never,
+  never
+> = async (request, response) => {
   const { establishment, params, user } = request as AuthenticatedRequest<
     Pick<DocumentDTO, 'id'>,
     void,
+    never,
     never
   >;
 
@@ -320,12 +328,14 @@ const remove: RequestHandler<Pick<DocumentDTO, 'id'>, void, never> = async (
 const linkToHousing: RequestHandler<
   { id: HousingDTO['id'] },
   ReadonlyArray<DocumentDTO>,
-  HousingDocumentPayload
+  HousingDocumentPayload,
+  never
 > = async (request, response) => {
   const { establishment, params, body } = request as AuthenticatedRequest<
     { id: HousingDTO['id'] },
     ReadonlyArray<DocumentDTO>,
-    HousingDocumentPayload
+    HousingDocumentPayload,
+    never
   >;
 
   logger.info('Linking documents to housing', {
@@ -399,11 +409,18 @@ const linkToHousing: RequestHandler<
 
 const listByHousing: RequestHandler<
   { id: HousingDTO['id'] },
-  HousingDocumentDTO[]
+  HousingDocumentDTO[],
+  never,
+  never
 > = async (request, response): Promise<void> => {
-  const { establishment, params } = request as AuthenticatedRequest<{
-    id: HousingDTO['id'];
-  }>;
+  const { establishment, params } = request as AuthenticatedRequest<
+    {
+      id: HousingDTO['id'];
+    },
+    HousingDocumentDTO[],
+    never,
+    never
+  >;
   logger.debug('Finding documents by housing...', { housing: params.id });
   const housing = await housingRepository.findOne({
     establishment: establishment.id,
@@ -437,11 +454,15 @@ const listByHousing: RequestHandler<
 
 const removeByHousing: RequestHandler<
   { housingId: HousingDTO['id']; documentId: DocumentDTO['id'] },
-  void
+  void,
+  never,
+  never
 > = async (request, response) => {
   const { params, establishment } = request as AuthenticatedRequest<
     { housingId: HousingDTO['id']; documentId: DocumentDTO['id'] },
-    void
+    void,
+    never,
+    never
   >;
 
   logger.info('Removing document-housing association', {

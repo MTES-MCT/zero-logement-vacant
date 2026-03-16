@@ -4,7 +4,7 @@ import { constants } from 'http2';
 import request from 'supertest';
 
 import { createServer } from '~/infra/server';
-import { DraftApi, toDraftDTO } from '../../models/DraftApi';
+import { DraftApi } from '../../models/DraftApi';
 import {
   genCampaignApi,
   genDocumentApi,
@@ -127,16 +127,33 @@ describe('Draft API', () => {
       expect(status).toBe(constants.HTTP_STATUS_OK);
       expect(body).toBeArrayOfSize(1);
 
-      const draftDTO = toDraftDTO(firstDraft);
-      // Overwriting because S3 is not mocked, causing it to fail, and there is no logo available
-      draftDTO.logo = [];
-      draftDTO.sender.signatories?.forEach((signatory) => {
-        if (signatory) {
-          signatory.file = null;
-        }
-      });
+      // Build expected DTO manually — S3 is not mocked so toDraftDTO cannot fetch presigned URLs
+      const expectedDraftDTO: DraftDTO = {
+        id: firstDraft.id,
+        subject: firstDraft.subject,
+        body: firstDraft.body,
+        logo: [],
+        logoNext: [null, null],
+        sender: {
+          id: firstDraft.sender.id,
+          name: firstDraft.sender.name,
+          service: firstDraft.sender.service,
+          firstName: firstDraft.sender.firstName,
+          lastName: firstDraft.sender.lastName,
+          address: firstDraft.sender.address,
+          email: firstDraft.sender.email,
+          phone: firstDraft.sender.phone,
+          signatories: firstDraft.sender.signatories as SignatoriesDTO,
+          createdAt: firstDraft.sender.createdAt,
+          updatedAt: firstDraft.sender.updatedAt
+        },
+        writtenAt: firstDraft.writtenAt,
+        writtenFrom: firstDraft.writtenFrom,
+        createdAt: firstDraft.createdAt,
+        updatedAt: firstDraft.updatedAt
+      };
 
-      expect(body).toContainEqual(draftDTO);
+      expect(body).toContainEqual(expectedDraftDTO);
     });
   });
 
@@ -164,7 +181,7 @@ describe('Draft API', () => {
           'signatories'
         ],
         sender
-      );
+      ) as SenderPayloadDTO;
       draft = genDraftApi(establishment, sender);
       await Campaigns().insert(formatCampaignApi(campaign));
     });
@@ -277,7 +294,7 @@ describe('Draft API', () => {
           address: payload.sender?.address ?? null,
           email: payload.sender?.email ?? null,
           phone: payload.sender?.phone ?? null,
-          signatories: payload.sender?.signatories ?? null,
+          signatories: payload.sender!.signatories,
           createdAt: expect.any(String),
           updatedAt: expect.any(String)
         },
@@ -343,7 +360,7 @@ describe('Draft API', () => {
         subject: faker.lorem.sentence(),
         body: faker.lorem.paragraph(),
         logo: [],
-        sender: fp.omit(['id', 'createdAt', 'updatedAt'], sender),
+        sender: fp.omit(['id', 'createdAt', 'updatedAt'], sender) as SenderPayloadDTO,
         writtenAt: faker.date.recent().toISOString().substring(0, 10),
         writtenFrom: faker.location.city()
       };
@@ -418,7 +435,7 @@ describe('Draft API', () => {
           address: sender.address,
           email: sender.email,
           phone: sender.phone,
-          signatories: sender.signatories ?? null,
+          signatories: sender.signatories as SignatoriesDTO,
           createdAt: expect.any(String),
           updatedAt: expect.any(String)
         },

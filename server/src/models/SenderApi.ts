@@ -1,4 +1,5 @@
 import { SenderDTO, type SignatoryDTO } from '@zerologementvacant/models';
+import { pipe, Predicate, Record } from 'effect';
 
 import {
   fromDocumentDTO,
@@ -42,6 +43,10 @@ export async function toSenderDTO(
     createdAt: sender.createdAt,
     updatedAt: sender.updatedAt
   };
+}
+
+export function isEmpty(signatory: SignatoryApi): boolean {
+  return pipe(signatory, Record.every(Predicate.isNull));
 }
 
 export async function toSignatoryDTO(

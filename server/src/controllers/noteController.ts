@@ -1,5 +1,5 @@
 import { isAdmin, NoteDTO, NotePayloadDTO } from '@zerologementvacant/models';
-import { Request, RequestHandler, Response } from 'express';
+import { RequestHandler } from 'express';
 import { AuthenticatedRequest } from 'express-jwt';
 import { constants } from 'http2';
 import { v4 as uuidv4 } from 'uuid';
@@ -16,11 +16,18 @@ interface PathParams extends Record<string, string> {
   id: string;
 }
 
-const findByHousing: RequestHandler<PathParams, NoteDTO[]> = async (
-  request,
-  response
-): Promise<void> => {
-  const { establishment, params } = request as AuthenticatedRequest<PathParams>;
+const findByHousing: RequestHandler<
+  PathParams,
+  NoteDTO[],
+  never,
+  never
+> = async (request, response): Promise<void> => {
+  const { establishment, params } = request as AuthenticatedRequest<
+    PathParams,
+    NoteDTO[],
+    never,
+    never
+  >;
 
   logger.debug('Finding notes by housing...', { housing: params.id });
   const housing = await housingRepository.findOne({
@@ -40,10 +47,12 @@ const findByHousing: RequestHandler<PathParams, NoteDTO[]> = async (
   response.status(constants.HTTP_STATUS_OK).json(notes.map(toNoteDTO));
 };
 
-async function createByHousing(
-  request: Request<PathParams, NoteDTO, NotePayloadDTO, never>,
-  response: Response<NoteDTO>
-) {
+const createByHousing: RequestHandler<
+  PathParams,
+  NoteDTO,
+  NotePayloadDTO,
+  never
+> = async (request, response): Promise<void> => {
   const { body, establishment, params, user } = request as AuthenticatedRequest<
     PathParams,
     NoteDTO,
@@ -75,16 +84,19 @@ async function createByHousing(
   };
   await noteRepository.createByHousing(note);
   response.status(constants.HTTP_STATUS_CREATED).json(toNoteDTO(note));
-}
+};
 
-const update: RequestHandler<{ id: string }, NoteDTO, NotePayloadDTO> = async (
-  request,
-  response
-) => {
+const update: RequestHandler<
+  PathParams,
+  NoteDTO,
+  NotePayloadDTO,
+  never
+> = async (request, response) => {
   const { body, params, user } = request as AuthenticatedRequest<
-    { id: string },
+    PathParams,
     NoteDTO,
-    NotePayloadDTO
+    NotePayloadDTO,
+    never
   >;
   logger.debug('Updating note...', { id: params.id, content: body.content });
 
@@ -112,11 +124,16 @@ const update: RequestHandler<{ id: string }, NoteDTO, NotePayloadDTO> = async (
   response.status(constants.HTTP_STATUS_OK).json(toNoteDTO(updated));
 };
 
-const remove: RequestHandler<{ id: string }, void> = async (
+const remove: RequestHandler<PathParams, void, never, never> = async (
   request,
   response
 ) => {
-  const { params, user } = request as AuthenticatedRequest<{ id: string }>;
+  const { params, user } = request as AuthenticatedRequest<
+    PathParams,
+    void,
+    never,
+    never
+  >;
 
   const note = await noteRepository.get(params.id);
   if (!note) {

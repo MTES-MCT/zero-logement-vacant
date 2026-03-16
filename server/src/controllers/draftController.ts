@@ -9,12 +9,10 @@ import {
   DraftUpdatePayloadDTO,
   getAddress,
   HOUSING_KIND_VALUES,
-  isEmpty,
   replaceVariables,
   SignatoryPayload,
   type EstablishmentDTO
 } from '@zerologementvacant/models';
-import { not } from '@zerologementvacant/utils';
 import { createS3 } from '@zerologementvacant/utils/node';
 import async from 'async';
 import { Predicate } from 'effect';
@@ -36,6 +34,7 @@ import { type DocumentApi } from '~/models/DocumentApi';
 import { DraftApi, toDraftDTO } from '~/models/DraftApi';
 import {
   fromSignatoryDTO,
+  isEmpty,
   SenderApi,
   type SignatoryApi
 } from '~/models/SenderApi';
@@ -224,7 +223,7 @@ async function preview(
       signatories:
         draft.sender.signatories
           ?.filter((signatory) => signatory !== null)
-          ?.filter(not(isEmpty))
+          ?.filter(Predicate.not(isEmpty))
           ?.map((signatory) => ({
             ...signatory,
             file: signatory.file

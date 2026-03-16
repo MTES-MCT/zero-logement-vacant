@@ -8,13 +8,14 @@ import {
 } from '@zerologementvacant/models';
 import async from 'async';
 import { Array, pipe, Record } from 'effect';
-import { Request, RequestHandler, Response } from 'express';
+import { RequestHandler } from 'express';
 import { AuthenticatedRequest } from 'express-jwt';
 import { body, ValidationChain } from 'express-validator';
 import { constants } from 'http2';
 import type { ParsedQs } from 'qs';
 import { match } from 'ts-pattern';
 import { v4 as uuidv4 } from 'uuid';
+
 import HousingMissingError from '~/errors/housingMissingError';
 import OwnerMissingError from '~/errors/ownerMissingError';
 import { startTransaction } from '~/infra/database/transaction';
@@ -28,6 +29,7 @@ import {
   toHousingOwnerDTO
 } from '~/models/HousingOwnerApi';
 import { diffUpdatedOwner, OwnerApi, toOwnerDTO } from '~/models/OwnerApi';
+import type { PaginatedResultApi } from '~/models/PaginatedResultApi';
 import { type PaginationApi } from '~/models/PaginationApi';
 import banAddressesRepository from '~/repositories/banAddressesRepository';
 import eventRepository from '~/repositories/eventRepository';
@@ -97,7 +99,10 @@ interface PathParams extends Record<string, string> {
   id: string;
 }
 
-async function get(request: Request, response: Response) {
+const get: RequestHandler<PathParams, OwnerDTO, never, never> = async (
+  request,
+  response
+): Promise<void> => {
   const { id } = request.params;
   logger.info('Get owner', id);
 
@@ -107,14 +112,19 @@ async function get(request: Request, response: Response) {
   }
 
   response.status(constants.HTTP_STATUS_OK).json(owner);
-}
+};
 
 /**
  * @deprecated Use {@link find} instead
  * @param request
  * @param response
  */
-async function search(request: Request, response: Response) {
+const search: RequestHandler<
+  never,
+  PaginatedResultApi<OwnerApi>,
+  any,
+  never
+> = async (request, response): Promise<void> => {
   const q = request.body.q;
   const page = request.body.page;
   const perPage = request.body.perPage;
@@ -123,15 +133,19 @@ async function search(request: Request, response: Response) {
 
   const owners = await ownerRepository.searchOwners(q, page, perPage);
   response.status(constants.HTTP_STATUS_OK).json(owners);
-}
+};
 
 const listByHousing: RequestHandler<
   PathParams,
-  ReadonlyArray<HousingOwnerDTO>
+  ReadonlyArray<HousingOwnerDTO>,
+  never,
+  never
 > = async (request, response): Promise<void> => {
   const { establishment, params } = request as AuthenticatedRequest<
     PathParams,
-    ReadonlyArray<HousingOwnerDTO>
+    ReadonlyArray<HousingOwnerDTO>,
+    never,
+    never
   >;
 
   logger.info('List owner for housing', { id: params.id });
@@ -215,10 +229,12 @@ const create: RequestHandler<
   response.status(constants.HTTP_STATUS_OK).json(toOwnerDTO(owner));
 };
 
-async function update(
-  request: Request<PathParams, OwnerDTO, OwnerUpdatePayload, never>,
-  response: Response<OwnerDTO>
-) {
+const update: RequestHandler<
+  PathParams,
+  OwnerDTO,
+  OwnerUpdatePayload,
+  never
+> = async (request, response): Promise<void> => {
   const { auth, body, params } = request as AuthenticatedRequest<
     PathParams,
     OwnerDTO,
@@ -329,20 +345,17 @@ async function update(
   }
 
   response.status(constants.HTTP_STATUS_OK).json(toOwnerDTO(owner));
-}
+};
 
-async function updateHousingOwners(
-  request: Request<
-    PathParams,
-    HousingOwnerDTO[],
-    HousingOwnerPayloadDTO[],
-    never
-  >,
-  response: Response<HousingOwnerDTO[]>
-) {
+const updateHousingOwners: RequestHandler<
+  PathParams,
+  HousingOwnerDTO[] | void,
+  HousingOwnerPayloadDTO[],
+  never
+> = async (request, response): Promise<void> => {
   const { auth, body, params, establishment } = request as AuthenticatedRequest<
     PathParams,
-    HousingOwnerDTO[],
+    HousingOwnerDTO[] | void,
     HousingOwnerPayloadDTO[],
     never
   >;
@@ -367,7 +380,8 @@ async function updateHousingOwners(
       return found && found.rank === existingHousingOwner.rank;
     })
   ) {
-    return response.status(constants.HTTP_STATUS_NOT_MODIFIED).send();
+    response.status(constants.HTTP_STATUS_NOT_MODIFIED).send();
+    return;
   }
 
   const housingOwners: HousingOwnerApi[] = await async.map(
@@ -477,7 +491,7 @@ async function updateHousingOwners(
   response
     .status(constants.HTTP_STATUS_OK)
     .json(housingOwners.map(toHousingOwnerDTO));
-}
+};
 
 const ownerValidators: ValidationChain[] = [
   body('fullName').isString(),

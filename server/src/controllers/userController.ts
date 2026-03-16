@@ -6,7 +6,7 @@ import {
   type UserUpdatePayload
 } from '@zerologementvacant/models';
 import bcrypt from 'bcryptjs';
-import { Request, Response, type RequestHandler } from 'express';
+import { type RequestHandler } from 'express';
 import { type AuthenticatedRequest } from 'express-jwt';
 import { body, param, ValidationChain } from 'express-validator';
 import { constants } from 'http2';
@@ -85,8 +85,8 @@ interface CreateUserBody {
   lastName?: string;
 }
 
-async function create(request: Request, response: Response) {
-  const body = request.body as CreateUserBody;
+const create: RequestHandler<never, UserDTO, CreateUserBody, never> = async (request, response): Promise<void> => {
+  const { body } = request
 
   if (isTestAccount(body.email)) {
     throw new TestAccountError(body.email);
@@ -158,13 +158,13 @@ async function create(request: Request, response: Response) {
   mailService.emit('user:created', prospect.email, {
     createdAt: new Date()
   });
-}
+};
 
 interface PathParams extends Record<string, string> {
   id: string;
 }
 
-const get: RequestHandler<PathParams, UserDTO> = async (
+const get: RequestHandler<PathParams, UserDTO, never, never> = async (
   request,
   response
 ): Promise<void> => {
@@ -181,7 +181,7 @@ const get: RequestHandler<PathParams, UserDTO> = async (
   response.status(constants.HTTP_STATUS_OK).json(toUserDTO(user));
 };
 
-const update: RequestHandler<PathParams, UserDTO, UserUpdatePayload> = async (
+const update: RequestHandler<PathParams, UserDTO, UserUpdatePayload, never> = async (
   request,
   response
 ): Promise<void> => {
@@ -233,7 +233,7 @@ const update: RequestHandler<PathParams, UserDTO, UserUpdatePayload> = async (
   response.status(constants.HTTP_STATUS_OK).json(toUserDTO(updated));
 };
 
-const remove: RequestHandler<PathParams, void> = async (
+const remove: RequestHandler<PathParams, void, never, never> = async (
   request,
   response
 ): Promise<void> => {

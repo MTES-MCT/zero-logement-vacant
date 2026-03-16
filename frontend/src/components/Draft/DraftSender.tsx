@@ -103,6 +103,7 @@ function DraftSender(props: Readonly<Props>) {
           inputForm={props.form}
           inputKey="sender.email"
           label="Adresse e-mail"
+          hintText="Format attendu : prenom.nom@domaine.fr"
           value={email}
           type="email"
           onChange={onChange('email')}
@@ -113,6 +114,7 @@ function DraftSender(props: Readonly<Props>) {
           inputForm={props.form}
           inputKey="sender.phone"
           label="Téléphone"
+          hintText="Format attendu : 0123456789 ou +33123456789"
           value={phone}
           type="tel"
           onChange={onChange('phone')}

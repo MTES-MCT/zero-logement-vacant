@@ -20,3 +20,7 @@ export interface GroupPayloadDTO
     filters: HousingFiltersDTO;
   };
 }
+
+export type GroupPayload = GroupPayloadDTO;
+export type GroupAddHousingPayload = GroupPayload['housing'];
+export type GroupRemoveHousingPayload = GroupAddHousingPayload;

@@ -42,14 +42,20 @@ describe('generate campaign PDF', () => {
     owner.fullName = 'Jean Dupont';
     const housing = genHousingDTO();
     housing.owner = owner;
-    const draft = {
+    const sender = genSenderDTO();
+    const establishment = genEstablishmentDTO();
+    const creator = genUserDTO(UserRole.USUAL, establishment);
+    const group = genGroupDTO(creator, [housing]);
+    const campaign = genCampaignDTO(group);
+    const draft: DraftDTO = {
+      ...genDraftDTO(sender),
       subject: 'Test',
       body: '<p>Bonjour {{owner.fullName}},</p>',
       writtenAt: null,
       writtenFrom: null
     };
 
-    const stream = await generate({ housings: [housing], draft });
+    const stream = await generate({ campaign, housings: [housing as HousingWithOwnerDTO], draft });
     const reader = stream.getReader();
     const chunks: Uint8Array[] = [];
 

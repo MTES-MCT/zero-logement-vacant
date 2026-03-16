@@ -76,6 +76,12 @@ export interface HousingDTO {
 
 export type HousingWithOwnerDTO = SetNonNullable<HousingDTO, 'owner'>;
 
+export function hasPrimaryOwner(
+  housing: HousingDTO
+): housing is HousingWithOwnerDTO {
+  return housing.owner !== null;
+}
+
 export type HousingPayloadDTO = Pick<HousingDTO, 'localId'>;
 
 export type HousingUpdatePayloadDTO =

@@ -31,9 +31,11 @@ RUN curl "https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip" -o "awscliv2
     apt-get autoremove -y && \
     rm -rf /var/lib/apt/lists/*
 
-# Download Metabase and DuckDB driver
-# ADD https://downloads.metabase.com/v0.59.x/metabase.jar /home
-ADD https://downloads.metabase.com/v0.57.15/metabase.jar /home
+# Download Metabase v0.59.2 (only for running migrate down, will be removed after)
+ADD https://downloads.metabase.com/v0.59.2/metabase.jar /home/metabase-v59.jar
+
+# Download Metabase v0.57.15 (the actual version to run — only DuckDB driver available)
+ADD https://downloads.metabase.com/v0.57.15/metabase.jar /home/metabase.jar
 
 ADD https://github.com/motherduckdb/metabase_duckdb_driver/releases/download/1.4.3.1/duckdb.metabase-driver.jar $MB_PLUGINS_DIR
 
@@ -41,5 +43,6 @@ ADD https://github.com/motherduckdb/metabase_duckdb_driver/releases/download/1.4
 RUN mkdir -p /data/duckdb/ && \
     chmod 744 /home/plugins/duckdb.metabase-driver.jar
 
-# Command to start Metabase
-CMD java --add-opens java.base/java.nio=ALL-UNNAMED -jar /home/metabase.jar
+# First roll back DB migrations using v0.59, then start v0.57
+CMD java --add-opens java.base/java.nio=ALL-UNNAMED -jar /home/metabase-v59.jar migrate down && \
+    java --add-opens java.base/java.nio=ALL-UNNAMED -jar /home/metabase.jar

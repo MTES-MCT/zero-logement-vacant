@@ -53,7 +53,7 @@ export const draftHandlers: RequestHandler[] = [
           phone: payload.sender?.phone ?? null,
           address: payload.sender?.address ?? null,
           service: payload.sender?.service ?? null,
-          signatories: payload.sender?.signatories ?? null,
+          signatories: payload.sender?.signatories ?? [null, null],
           createdAt: new Date().toJSON(),
           updatedAt: new Date().toJSON()
         },

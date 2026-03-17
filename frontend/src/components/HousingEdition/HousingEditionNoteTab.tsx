@@ -21,7 +21,7 @@ function HousingEditionNoteTab(props: Props) {
 
   return (
     <Stack rowGap={2}>
-      <AppTextInputNext<NoteSchema, string | null>
+      <AppTextInputNext<NoteSchema, 'note'>
         label="Nouvelle note"
         name="note"
         nativeTextAreaProps={{ rows: 8 }}

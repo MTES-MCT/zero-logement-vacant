@@ -26,6 +26,7 @@
     "@tsconfig/node24": "24.0.4",
     "@turf/turf": "7.1.0",
     "@types/geojson": "7946.0.16",
-    "@types/node": "20.19.10"
+    "@types/node": "24",
+    "type-fest": "5.4.4"
   }
 }

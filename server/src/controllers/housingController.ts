@@ -28,7 +28,7 @@ import {
   Record,
   Struct
 } from 'effect';
-import { Request, RequestHandler, Response } from 'express';
+import { RequestHandler } from 'express';
 import { AuthenticatedRequest } from 'express-jwt';
 import { oneOf, param } from 'express-validator';
 import { constants } from 'http2';
@@ -41,6 +41,7 @@ import PrecisionMissingError from '~/errors/precisionMissingError';
 import { startTransaction } from '~/infra/database/transaction';
 import { createLogger } from '~/infra/logger';
 import type { AddressApi } from '~/models/AddressApi';
+import { type DocumentApi } from '~/models/DocumentApi';
 import {
   HousingEventApi,
   type HousingDocumentEventApi,
@@ -69,13 +70,12 @@ import {
 } from '~/models/PaginatedResultApi';
 import { type PrecisionApi } from '~/models/PrecisionApi';
 import sortApi from '~/models/SortApi';
-import { type DocumentApi } from '~/models/DocumentApi';
 import banAddressesRepository from '~/repositories/banAddressesRepository';
 import createDatafoncierHousingRepository from '~/repositories/datafoncierHousingRepository';
 import createDatafoncierOwnersRepository from '~/repositories/datafoncierOwnersRepository';
 import documentRepository from '~/repositories/documentRepository';
-import housingDocumentRepository from '~/repositories/housingDocumentRepository';
 import eventRepository from '~/repositories/eventRepository';
+import housingDocumentRepository from '~/repositories/housingDocumentRepository';
 import housingOwnerRepository from '~/repositories/housingOwnerRepository';
 
 import housingRepository from '~/repositories/housingRepository';
@@ -95,8 +95,18 @@ const getValidators = oneOf([
   param('id').isString().isLength({ min: 12, max: 12 }), // localId
   param('id').isUUID() // id
 ]);
-async function get(request: Request, response: Response) {
-  const { params, establishment } = request as AuthenticatedRequest;
+const get: RequestHandler<
+  { id: HousingDTO['id'] },
+  HousingApi,
+  never,
+  never
+> = async (request, response): Promise<void> => {
+  const { params, establishment } = request as AuthenticatedRequest<
+    { id: HousingDTO['id'] },
+    HousingApi,
+    never,
+    never
+  >;
 
   logger.info('Get housing', params.id);
 
@@ -115,7 +125,7 @@ async function get(request: Request, response: Response) {
   }
 
   response.status(constants.HTTP_STATUS_OK).json(housing);
-}
+};
 
 type ListHousingPayload = Pagination & {
   filters?: HousingFiltersDTO;
@@ -437,14 +447,17 @@ export interface HousingUpdateBody {
   note?: Pick<NoteApi, 'content' | 'noteKind'>;
 }
 
-async function update(
-  request: Request<HousingPathParams, HousingDTO, HousingUpdatePayloadDTO>,
-  response: Response
-): Promise<void> {
+const update: RequestHandler<
+  HousingPathParams,
+  HousingDTO,
+  HousingUpdatePayloadDTO,
+  never
+> = async (request, response): Promise<void> => {
   const { auth, body, establishment, params } = request as AuthenticatedRequest<
     HousingPathParams,
     HousingDTO,
-    HousingUpdatePayloadDTO
+    HousingUpdatePayloadDTO,
+    never
   >;
 
   const housing = await housingRepository.findOne({
@@ -533,7 +546,7 @@ async function update(
       createdBy: auth.userId,
       housingGeoCode: housing.geoCode,
       housingId: housing.id
-    })
+    });
   }
 
   await startTransaction(async () => {
@@ -544,17 +557,19 @@ async function update(
   });
 
   response.status(constants.HTTP_STATUS_OK).json(toHousingDTO(updated));
-}
+};
 
 const updateMany: RequestHandler<
   never,
   ReadonlyArray<HousingDTO>,
-  HousingBatchUpdatePayload
+  HousingBatchUpdatePayload,
+  never
 > = async (request, response): Promise<void> => {
   const { body, establishment, user } = request as AuthenticatedRequest<
     never,
     ReadonlyArray<HousingDTO>,
-    HousingBatchUpdatePayload
+    HousingBatchUpdatePayload,
+    never
   >;
   logger.info('Updating many housings...', { body });
 

@@ -1,4 +1,4 @@
-import { Request, RequestHandler, Response } from 'express';
+import { RequestHandler } from 'express';
 import { constants } from 'http2';
 
 import {
@@ -12,15 +12,12 @@ import establishmentRepository from '~/repositories/establishmentRepository';
 
 const logger = createLogger('establishmentController');
 
-async function list(
-  request: Request<
-    never,
-    ReadonlyArray<EstablishmentDTO>,
-    never,
-    EstablishmentFiltersDTO
-  >,
-  response: Response<ReadonlyArray<EstablishmentDTO>>
-) {
+const list: RequestHandler<
+  never,
+  ReadonlyArray<EstablishmentDTO>,
+  never,
+  EstablishmentFiltersDTO
+> = async (request, response): Promise<void> => {
   const { query, user } = request;
   logger.info('List establishments', {
     query
@@ -36,12 +33,14 @@ async function list(
         : []
   });
   response.status(constants.HTTP_STATUS_OK).json(establishments);
-}
+};
 
-const get: RequestHandler<{ id: string }, EstablishmentDTO> = async (
-  request,
-  response
-): Promise<void> => {
+const get: RequestHandler<
+  { id: string },
+  EstablishmentDTO,
+  never,
+  never
+> = async (request, response): Promise<void> => {
   const { params } = request;
   logger.info('Get establishment', { id: params.id });
 
@@ -49,9 +48,9 @@ const get: RequestHandler<{ id: string }, EstablishmentDTO> = async (
   if (!establishment) {
     throw new EstablishmentMissingError(params.id);
   }
-  
+
   response.status(constants.HTTP_STATUS_OK).json(establishment);
-}
+};
 
 export default {
   list,

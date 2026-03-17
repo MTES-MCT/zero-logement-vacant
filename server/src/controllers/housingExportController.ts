@@ -13,6 +13,7 @@ import { type Column, type Workbook } from 'exceljs';
 import { Request, Response } from 'express';
 import { AuthenticatedRequest } from 'express-jwt';
 import { param, ValidationChain } from 'express-validator';
+import { ReadableStream, TransformStream } from 'node:stream/web';
 import { map } from 'web-streams-utils';
 
 import CampaignMissingError from '~/errors/campaignMissingError';
@@ -206,6 +207,7 @@ export const OWNER_WORKSHEET_COLUMNS: Array<
 function createOwnerWorksheet(options: CreateOwnerWorksheetOptions) {
   const { workbook, stream } = options;
 
+  // @ts-expect-error - Type inference issue in @types/node (https://github.com/microsoft/TypeScript-DOM-lib-generator/pull/1676)
   return stream.pipeThrough(map(toOwnerExcelRow)).pipeTo(
     excelUtils.createWorksheet(workbook, {
       name: 'Propriétaires',
@@ -243,6 +245,7 @@ async function createHousingWorksheet(
       })
     )
     .pipeThrough(
+      // @ts-expect-error - Type inference issue in @types/node (https://github.com/microsoft/TypeScript-DOM-lib-generator/pull/1676)
       map(({ housing, banAddress }) => {
         const building = getBuildingLocation(housing);
         return {

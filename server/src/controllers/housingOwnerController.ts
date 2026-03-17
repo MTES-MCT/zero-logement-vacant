@@ -24,7 +24,9 @@ type OwnerHousingDTO = BaseHousingOwnerDTO & HousingDTO;
 
 const listByOwner: RequestHandler<
   PathParams,
-  ReadonlyArray<OwnerHousingDTO>
+  ReadonlyArray<OwnerHousingDTO>,
+  never,
+  never
 > = async (request, response): Promise<void> => {
   const { establishment, params } = request as AuthenticatedRequest<
     PathParams,
@@ -32,7 +34,7 @@ const listByOwner: RequestHandler<
   >;
   logger.info('List housings by owners', {
     params,
-    establishment,
+    establishment
   });
 
   const owner = await ownerRepository.get(params.id);

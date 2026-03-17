@@ -66,7 +66,7 @@ function OwnerFormFields(props: OwnerFormFieldsProps) {
         </Typography>
       </Stack>
 
-      <AppTextInputNext<OwnerFormFieldsSchema>
+      <AppTextInputNext<OwnerFormFieldsSchema, 'birthDate'>
         name="birthDate"
         label="Date de naissance (obligatoire)"
         hintText="Format attendu : jj/mm/aaaa"
@@ -76,8 +76,8 @@ function OwnerFormFields(props: OwnerFormFieldsProps) {
           autoComplete: 'bday',
           'aria-required': 'true'
         }}
-        mapValue={(value): string => value ?? ''}
-        contramapValue={(value): string | null => value || null}
+        mapValue={(value) => value ?? ''}
+        contramapValue={(value) => value || null}
       />
 
       <Stack component="section">
@@ -164,7 +164,7 @@ function OwnerFormFields(props: OwnerFormFieldsProps) {
       </Stack>
 
       <Stack component="section">
-        <AppTextInputNext<OwnerFormFieldsSchema>
+        <AppTextInputNext<OwnerFormFieldsSchema, 'additionalAddress'>
           name="additionalAddress"
           label="Complément d'adresse"
           mapValue={(value): string => value ?? ''}
@@ -174,7 +174,7 @@ function OwnerFormFields(props: OwnerFormFieldsProps) {
 
       <Grid container component="section" columnSpacing="1rem">
         <Grid size={{ xs: 12, md: 6 }}>
-          <AppTextInputNext<OwnerFormFieldsSchema>
+          <AppTextInputNext<OwnerFormFieldsSchema, 'email'>
             name="email"
             label="Adresse e-mail"
             hintText="Format attendu : prenom.nom@domaine.fr"
@@ -182,12 +182,12 @@ function OwnerFormFields(props: OwnerFormFieldsProps) {
               type: 'email',
               autoComplete: 'email'
             }}
-            mapValue={(value): string => value ?? ''}
-            contramapValue={(value): string | null => value || null}
+            mapValue={(value) => value ?? ''}
+            contramapValue={(value) => value || null}
           />
         </Grid>
         <Grid size={{ xs: 12, md: 6 }}>
-          <AppTextInputNext<OwnerFormFieldsSchema>
+          <AppTextInputNext<OwnerFormFieldsSchema, 'phone'>
             name="phone"
             label="Numéro de téléphone"
             hintText="Format attendu : 0123456789 ou +33123456789"
@@ -195,8 +195,8 @@ function OwnerFormFields(props: OwnerFormFieldsProps) {
               type: 'tel',
               autoComplete: 'tel'
             }}
-            mapValue={(value): string => value ?? ''}
-            contramapValue={(value): string | null => value || null}
+            mapValue={(value) => value ?? ''}
+            contramapValue={(value) => value || null}
           />
         </Grid>
       </Grid>

@@ -28,7 +28,7 @@ const find: RequestHandler<never, BuildingDTO[], never, BuildingQuery> = async (
   response.status(constants.HTTP_STATUS_OK).json(buildings.map(toBuildingDTO));
 };
 
-const get: RequestHandler<BuildingParams, BuildingDTO> = async (
+const get: RequestHandler<BuildingParams, BuildingDTO, never, never> = async (
   request,
   response
 ): Promise<void> => {

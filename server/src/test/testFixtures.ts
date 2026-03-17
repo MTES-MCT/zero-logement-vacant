@@ -575,6 +575,7 @@ export function genDraftApi(
     subject: faker.lorem.sentence(),
     body: faker.lorem.paragraph(),
     logo: [],
+    logoNext: [null, null],
     createdAt: new Date().toJSON(),
     updatedAt: new Date().toJSON(),
     sender,
@@ -604,13 +605,15 @@ export function genSenderApi(
         firstName: faker.helpers.maybe(() => faker.person.firstName()) ?? null,
         lastName: faker.helpers.maybe(() => faker.person.lastName()) ?? null,
         role: faker.helpers.maybe(() => faker.person.jobTitle()) ?? null,
-        file: null
+        file: null,
+        document: null
       },
       {
         firstName: faker.helpers.maybe(() => faker.person.firstName()) ?? null,
         lastName: faker.helpers.maybe(() => faker.person.lastName()) ?? null,
         role: faker.helpers.maybe(() => faker.person.jobTitle()) ?? null,
-        file: null
+        file: null,
+        document: null
       }
     ],
     createdAt: faker.date.past().toJSON(),

@@ -207,7 +207,7 @@ function createOwnerEditionModalNext() {
                   </Typography>
                 </Stack>
 
-                <AppTextInputNext<FormSchema>
+                <AppTextInputNext<FormSchema, 'birthDate'>
                   name="birthDate"
                   label="Date de naissance (obligatoire)"
                   hintText="Format attendu : jj/mm/aaaa"
@@ -219,8 +219,8 @@ function createOwnerEditionModalNext() {
                     autoComplete: 'bday',
                     'aria-required': 'true'
                   }}
-                  mapValue={(value): string => value ?? ''}
-                  contramapValue={(value): string | null => value || null}
+                  mapValue={(value) => value ?? ''}
+                  contramapValue={(value) => value || null}
                 />
 
                 <Stack component="section">
@@ -250,12 +250,17 @@ function createOwnerEditionModalNext() {
                 </Stack>
 
                 <Stack component="section">
-                  <Stack direction="row" spacing="0.25rem" sx={{ alignItems: 'center' }}>
+                  <Stack
+                    direction="row"
+                    spacing="0.25rem"
+                    sx={{ alignItems: 'center' }}
+                  >
                     <Icon name="fr-icon-home-4-line" size="sm" />
                     <Typography
                       color={fr.colors.decisions.text.active.grey.default}
                     >
-                      Adresse postale (obligatoire) — source: Base Adresse Nationale
+                      Adresse postale (obligatoire) — source: Base Adresse
+                      Nationale
                     </Typography>
                   </Stack>
                   <a
@@ -310,7 +315,7 @@ function createOwnerEditionModalNext() {
                 </Stack>
 
                 <Stack component="section">
-                  <AppTextInputNext<FormSchema>
+                  <AppTextInputNext<FormSchema, 'additionalAddress'>
                     name="additionalAddress"
                     label="Complément d’adresse"
                     mapValue={(value): string => value ?? ''}
@@ -320,7 +325,7 @@ function createOwnerEditionModalNext() {
 
                 <Grid container component="section" columnSpacing="1rem">
                   <Grid size={{ xs: 12, md: 6 }}>
-                    <AppTextInputNext<FormSchema>
+                    <AppTextInputNext<FormSchema, 'email'>
                       name="email"
                       label="Adresse e-mail"
                       hintText="Format attendu : prenom.nom@domaine.fr"
@@ -334,7 +339,7 @@ function createOwnerEditionModalNext() {
                     />
                   </Grid>
                   <Grid size={{ xs: 12, md: 6 }}>
-                    <AppTextInputNext<FormSchema>
+                    <AppTextInputNext<FormSchema, 'phone'>
                       name="phone"
                       label="Numéro de téléphone"
                       hintText="Format attendu : 0123456789 ou +33123456789"

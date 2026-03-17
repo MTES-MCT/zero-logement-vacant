@@ -8,7 +8,7 @@ import {
   type HousingDTO
 } from '@zerologementvacant/models';
 import { type HousingDocumentPayload } from '@zerologementvacant/schemas';
-import { createS3, generatePresignedUrl } from '@zerologementvacant/utils/node';
+import { createS3 } from '@zerologementvacant/utils/node';
 import async from 'async';
 import { Array, Either } from 'effect';
 import { RequestHandler } from 'express';
@@ -51,6 +51,7 @@ const s3 = createS3({
 const create: RequestHandler<
   never,
   ReadonlyArray<DocumentDTO | FileValidationError>,
+  never,
   never
 > = async (request, response) => {
   const { establishment, user } = request as AuthenticatedRequest<
@@ -102,13 +103,12 @@ const create: RequestHandler<
         };
         await documentRepository.insert(document);
 
-        const url = await generatePresignedUrl({
-          s3,
-          bucket: config.s3.bucket,
-          key: document.s3Key
-        });
-
-        return Either.right(toDocumentDTO(document, url));
+        return Either.right(
+          await toDocumentDTO(document, {
+            s3,
+            bucket: config.s3.bucket
+          })
+        );
       } catch (error) {
         if (error instanceof FileValidationError) {
           return Either.left(error);
@@ -158,15 +158,48 @@ const create: RequestHandler<
   response.status(status).json(Array.map(documentsOrErrors, Either.merge));
 };
 
+const get: RequestHandler<
+  Pick<DocumentDTO, 'id'>,
+  DocumentDTO,
+  never,
+  never
+> = async (request, response) => {
+  const { params, establishment } = request as AuthenticatedRequest<
+    Pick<DocumentDTO, 'id'>,
+    DocumentDTO
+  >;
+
+  logger.debug('Finding document...', { id: params.id });
+
+  const document = await documentRepository.findOne(params.id, {
+    filters: {
+      establishmentIds: [establishment.id],
+      deleted: false
+    }
+  });
+  if (!document) {
+    throw new DocumentMissingError(params.id);
+  }
+
+  response.status(constants.HTTP_STATUS_OK).json(
+    await toDocumentDTO(document, {
+      s3,
+      bucket: config.s3.bucket
+    })
+  );
+};
+
 const update: RequestHandler<
   Pick<DocumentDTO, 'id'>,
   DocumentDTO,
-  DocumentPayload
+  DocumentPayload,
+  never
 > = async (request, response) => {
   const { body, params, user, establishment } = request as AuthenticatedRequest<
     Pick<DocumentDTO, 'id'>,
     DocumentDTO,
-    DocumentPayload
+    DocumentPayload,
+    never
   >;
 
   logger.info('Updating document', { id: params.id });
@@ -212,21 +245,21 @@ const update: RequestHandler<
     ]);
   });
 
-  const url = await generatePresignedUrl({
-    s3,
-    bucket: config.s3.bucket,
-    key: updated.s3Key
-  });
-  response.status(constants.HTTP_STATUS_OK).json(toDocumentDTO(updated, url));
+  response
+    .status(constants.HTTP_STATUS_OK)
+    .json(await toDocumentDTO(updated, { s3, bucket: config.s3.bucket }));
 };
 
-const remove: RequestHandler<Pick<DocumentDTO, 'id'>, void, never> = async (
-  request,
-  response
-) => {
+const remove: RequestHandler<
+  Pick<DocumentDTO, 'id'>,
+  void,
+  never,
+  never
+> = async (request, response) => {
   const { establishment, params, user } = request as AuthenticatedRequest<
     Pick<DocumentDTO, 'id'>,
     void,
+    never,
     never
   >;
 
@@ -295,12 +328,14 @@ const remove: RequestHandler<Pick<DocumentDTO, 'id'>, void, never> = async (
 const linkToHousing: RequestHandler<
   { id: HousingDTO['id'] },
   ReadonlyArray<DocumentDTO>,
-  HousingDocumentPayload
+  HousingDocumentPayload,
+  never
 > = async (request, response) => {
   const { establishment, params, body } = request as AuthenticatedRequest<
     { id: HousingDTO['id'] },
     ReadonlyArray<DocumentDTO>,
-    HousingDocumentPayload
+    HousingDocumentPayload,
+    never
   >;
 
   logger.info('Linking documents to housing', {
@@ -365,12 +400,7 @@ const linkToHousing: RequestHandler<
   const documentsWithURLs = await async.map(
     documents,
     async (document: DocumentApi) => {
-      const url = await generatePresignedUrl({
-        s3,
-        bucket: config.s3.bucket,
-        key: document.s3Key
-      });
-      return toDocumentDTO(document, url);
+      return toDocumentDTO(document, { s3, bucket: config.s3.bucket });
     }
   );
 
@@ -379,11 +409,18 @@ const linkToHousing: RequestHandler<
 
 const listByHousing: RequestHandler<
   { id: HousingDTO['id'] },
-  HousingDocumentDTO[]
+  HousingDocumentDTO[],
+  never,
+  never
 > = async (request, response): Promise<void> => {
-  const { establishment, params } = request as AuthenticatedRequest<{
-    id: HousingDTO['id'];
-  }>;
+  const { establishment, params } = request as AuthenticatedRequest<
+    {
+      id: HousingDTO['id'];
+    },
+    HousingDocumentDTO[],
+    never,
+    never
+  >;
   logger.debug('Finding documents by housing...', { housing: params.id });
   const housing = await housingRepository.findOne({
     establishment: establishment.id,
@@ -405,12 +442,10 @@ const listByHousing: RequestHandler<
   const documentsWithURLs = await async.map(
     [...documents],
     async (document: HousingDocumentApi) => {
-      const presignedUrl = await generatePresignedUrl({
+      return toHousingDocumentDTO(document, {
         s3,
-        bucket: config.s3.bucket,
-        key: document.s3Key
+        bucket: config.s3.bucket
       });
-      return toHousingDocumentDTO(document, presignedUrl);
     }
   );
 
@@ -419,11 +454,15 @@ const listByHousing: RequestHandler<
 
 const removeByHousing: RequestHandler<
   { housingId: HousingDTO['id']; documentId: DocumentDTO['id'] },
-  void
+  void,
+  never,
+  never
 > = async (request, response) => {
   const { params, establishment } = request as AuthenticatedRequest<
     { housingId: HousingDTO['id']; documentId: DocumentDTO['id'] },
-    void
+    void,
+    never,
+    never
   >;
 
   logger.info('Removing document-housing association', {
@@ -483,6 +522,7 @@ const removeByHousing: RequestHandler<
 
 const documentController = {
   create,
+  get,
   update,
   remove,
   linkToHousing,

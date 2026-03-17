@@ -1,18 +1,18 @@
-import { array, object, ObjectSchema, string } from 'yup';
-
 import {
   DraftCreationPayloadDTO,
-  SenderPayloadDTO,
-  SignatoryDTO
+  SenderPayloadDTO
 } from '@zerologementvacant/models';
+import { array, object, ObjectSchema, string } from 'yup';
+
 import { dateString } from './date-string';
 import { fileUpload } from './file-upload';
-
-export const signatory: ObjectSchema<SignatoryDTO> = object({
+// @deprecated Use the signatory schema from draft-creation-payload instead.
+export const signatory = object({
   firstName: string().nullable().defined(),
   lastName: string().nullable().defined(),
   role: string().nullable().defined(),
-  file: fileUpload.nullable().defined()
+  file: fileUpload.nullable().defined(),
+  document: string().uuid().nullable().defined()
 });
 
 // @ts-expect-error: expects 2 signatories, but it cannot be the case when

@@ -538,6 +538,7 @@ export function genDraftDTO(
     subject: faker.lorem.sentence(),
     body: faker.lorem.paragraphs(),
     logo: logo ?? null,
+    logoNext: [null, null],
     createdAt: new Date().toJSON(),
     updatedAt: new Date().toJSON(),
     sender,
@@ -826,19 +827,19 @@ export function genSenderDTO(): SenderDTO {
     address: faker.location.streetAddress({ useFullAddress: true }),
     email: faker.internet.email({ firstName, lastName }),
     phone: faker.helpers.fromRegExp(/0[1-9][0-9]{8}/),
-    signatories:
-      faker.helpers.maybe(() => [
-        faker.helpers.maybe(genSignatoryDTO) ?? null,
-        faker.helpers.maybe(genSignatoryDTO) ?? null
-      ]) ?? null,
+    signatories: [
+      faker.helpers.maybe(genSignatoryDTO) ?? null,
+      faker.helpers.maybe(genSignatoryDTO) ?? null
+    ],
     createdAt: faker.date.past().toJSON(),
     updatedAt: faker.date.recent().toJSON()
   };
 }
 
-function genSignatoryDTO(signature?: FileUploadDTO): SignatoryDTO {
+export function genSignatoryDTO(signature?: FileUploadDTO): SignatoryDTO {
   return {
     file: signature ?? null,
+    document: null,
     role: faker.person.jobTitle(),
     firstName: faker.person.firstName(),
     lastName: faker.person.lastName()

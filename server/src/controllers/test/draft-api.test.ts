@@ -4,9 +4,10 @@ import { constants } from 'http2';
 import request from 'supertest';
 
 import { createServer } from '~/infra/server';
-import { DraftApi, toDraftDTO } from '../../models/DraftApi';
+import { DraftApi } from '../../models/DraftApi';
 import {
   genCampaignApi,
+  genDocumentApi,
   genDraftApi,
   genEstablishmentApi,
   genSenderApi,
@@ -25,8 +26,10 @@ import {
 } from '../../repositories/campaignRepository';
 import { CampaignsDrafts } from '../../repositories/campaignDraftRepository';
 import {
+  DraftCreationPayload,
   DraftCreationPayloadDTO,
   DraftDTO,
+  DraftUpdatePayload,
   DraftUpdatePayloadDTO,
   SenderPayloadDTO,
   SignatoriesDTO,
@@ -44,6 +47,11 @@ import {
   SenderDBO,
   Senders
 } from '../../repositories/senderRepository';
+import * as posthogService from '~/services/posthogService';
+import {
+  Documents,
+  toDocumentDBO
+} from '../../repositories/documentRepository';
 
 describe('Draft API', () => {
   let url: string;
@@ -119,16 +127,33 @@ describe('Draft API', () => {
       expect(status).toBe(constants.HTTP_STATUS_OK);
       expect(body).toBeArrayOfSize(1);
 
-      const draftDTO = toDraftDTO(firstDraft);
-      // Overwriting because S3 is not mocked, causing it to fail, and there is no logo available
-      draftDTO.logo = [];
-      draftDTO.sender.signatories?.forEach((signatory) => {
-        if (signatory) {
-          signatory.file = null;
-        }
-      });
+      // Build expected DTO manually — S3 is not mocked so toDraftDTO cannot fetch presigned URLs
+      const expectedDraftDTO: DraftDTO = {
+        id: firstDraft.id,
+        subject: firstDraft.subject,
+        body: firstDraft.body,
+        logo: [],
+        logoNext: [null, null],
+        sender: {
+          id: firstDraft.sender.id,
+          name: firstDraft.sender.name,
+          service: firstDraft.sender.service,
+          firstName: firstDraft.sender.firstName,
+          lastName: firstDraft.sender.lastName,
+          address: firstDraft.sender.address,
+          email: firstDraft.sender.email,
+          phone: firstDraft.sender.phone,
+          signatories: firstDraft.sender.signatories as SignatoriesDTO,
+          createdAt: firstDraft.sender.createdAt,
+          updatedAt: firstDraft.sender.updatedAt
+        },
+        writtenAt: firstDraft.writtenAt,
+        writtenFrom: firstDraft.writtenFrom,
+        createdAt: firstDraft.createdAt,
+        updatedAt: firstDraft.updatedAt
+      };
 
-      expect(body).toContainEqual(draftDTO);
+      expect(body).toContainEqual(expectedDraftDTO);
     });
   });
 
@@ -141,6 +166,7 @@ describe('Draft API', () => {
     let senderPayload: SenderPayloadDTO;
 
     beforeEach(async () => {
+      vi.spyOn(posthogService, 'isFeatureEnabled').mockResolvedValue(false);
       campaign = genCampaignApi(establishment.id, user);
       sender = genSenderApi(establishment);
       senderPayload = fp.pick(
@@ -155,10 +181,12 @@ describe('Draft API', () => {
           'signatories'
         ],
         sender
-      );
+      ) as SenderPayloadDTO;
       draft = genDraftApi(establishment, sender);
       await Campaigns().insert(formatCampaignApi(campaign));
     });
+
+    afterEach(() => vi.restoreAllMocks());
 
     test.prop<DraftCreationPayloadDTO>({
       campaign: fc.uuid({ version: 4 }),
@@ -191,7 +219,8 @@ describe('Draft API', () => {
                   firstName: fc.option(fc.string({ minLength: 1 })),
                   lastName: fc.option(fc.string({ minLength: 1 })),
                   role: fc.option(fc.string({ minLength: 1 })),
-                  file: fc.constant(null)
+                  file: fc.constant(null),
+                  document: fc.constant(null)
                 })
               ),
               fc.option(
@@ -199,7 +228,8 @@ describe('Draft API', () => {
                   firstName: fc.option(fc.string({ minLength: 1 })),
                   lastName: fc.option(fc.string({ minLength: 1 })),
                   role: fc.option(fc.string({ minLength: 1 })),
-                  file: fc.constant(null)
+                  file: fc.constant(null),
+                  document: fc.constant(null)
                 })
               )
             )
@@ -264,7 +294,7 @@ describe('Draft API', () => {
           address: payload.sender?.address ?? null,
           email: payload.sender?.email ?? null,
           phone: payload.sender?.phone ?? null,
-          signatories: payload.sender?.signatories ?? null,
+          signatories: payload.sender!.signatories,
           createdAt: expect.any(String),
           updatedAt: expect.any(String)
         },
@@ -278,6 +308,8 @@ describe('Draft API', () => {
         subject: payload.subject,
         body: payload.body,
         logo: payload.logo?.map((logo) => logo.id) ?? null,
+        logo_next_one: null,
+        logo_next_two: null,
         sender_id: expect.any(String),
         written_at: payload.writtenAt,
         written_from: payload.writtenFrom,
@@ -320,6 +352,7 @@ describe('Draft API', () => {
     let payload: DraftUpdatePayloadDTO;
 
     beforeEach(async () => {
+      vi.spyOn(posthogService, 'isFeatureEnabled').mockResolvedValue(false);
       sender = genSenderApi(establishment);
       draft = genDraftApi(establishment, sender);
       payload = {
@@ -327,13 +360,15 @@ describe('Draft API', () => {
         subject: faker.lorem.sentence(),
         body: faker.lorem.paragraph(),
         logo: [],
-        sender: fp.omit(['id', 'createdAt', 'updatedAt'], sender),
+        sender: fp.omit(['id', 'createdAt', 'updatedAt'], sender) as SenderPayloadDTO,
         writtenAt: faker.date.recent().toISOString().substring(0, 10),
         writtenFrom: faker.location.city()
       };
       await Senders().insert(formatSenderApi(sender));
       await Drafts().insert(formatDraftApi(draft));
     });
+
+    afterEach(() => vi.restoreAllMocks());
 
     it('should be forbidden for a non-authenticated user', async () => {
       const { status } = await request(url).put(testRoute(draft.id));
@@ -390,6 +425,7 @@ describe('Draft API', () => {
         subject: payload.subject,
         body: payload.body,
         logo: payload.logo,
+        logoNext: [null, null],
         sender: {
           id: expect.any(String),
           name: sender.name,
@@ -399,7 +435,7 @@ describe('Draft API', () => {
           address: sender.address,
           email: sender.email,
           phone: sender.phone,
-          signatories: sender.signatories ?? null,
+          signatories: sender.signatories as SignatoriesDTO,
           createdAt: expect.any(String),
           updatedAt: expect.any(String)
         },
@@ -415,6 +451,8 @@ describe('Draft API', () => {
         subject: payload.subject,
         body: payload.body,
         logo: payload.logo?.map((logo) => logo.id) ?? null,
+        logo_next_one: null,
+        logo_next_two: null,
         written_at: payload.writtenAt,
         written_from: payload.writtenFrom,
         created_at: expect.any(Date),
@@ -459,10 +497,12 @@ describe('Draft API', () => {
         signatory_one_last_name: sender.signatories?.[0]?.lastName ?? null,
         signatory_one_role: sender.signatories?.[0]?.role ?? null,
         signatory_one_file: sender.signatories?.[0]?.file?.id ?? null,
+        signatory_one_document_id: null,
         signatory_two_first_name: sender.signatories?.[1]?.firstName ?? null,
         signatory_two_last_name: sender.signatories?.[1]?.lastName ?? null,
         signatory_two_role: sender.signatories?.[1]?.role ?? null,
         signatory_two_file: sender.signatories?.[1]?.file?.id ?? null,
+        signatory_two_document_id: null,
         created_at: expect.any(Date),
         updated_at: expect.any(Date),
         establishment_id: sender.establishmentId
@@ -475,6 +515,266 @@ describe('Draft API', () => {
         })
         .first();
       expect(actualDraft).toHaveProperty('sender_id', actualSender?.id);
+    });
+  });
+
+  describe('POST /api/drafts — new-campaigns', () => {
+    const establishment = genEstablishmentApi();
+    const user = genUserApi(establishment.id);
+
+    beforeAll(async () => {
+      await Establishments().insert(formatEstablishmentApi(establishment));
+      await Users().insert(formatUserApi(user));
+    });
+
+    const testRoute = '/api/drafts';
+    let campaign: CampaignApi;
+
+    beforeEach(async () => {
+      vi.spyOn(posthogService, 'isFeatureEnabled').mockResolvedValue(true);
+      campaign = genCampaignApi(establishment.id, user);
+      await Campaigns().insert(formatCampaignApi(campaign));
+    });
+
+    afterEach(() => vi.restoreAllMocks());
+
+    it('should fall back to legacy handler when flag is off', async () => {
+      vi.spyOn(posthogService, 'isFeatureEnabled').mockResolvedValue(false);
+      const payload: DraftCreationPayloadDTO = {
+        campaign: campaign.id,
+        subject: null,
+        body: null,
+        logo: [],
+        writtenAt: null,
+        writtenFrom: null,
+        sender: null
+      };
+      const { status } = await request(url)
+        .post(testRoute)
+        .send(payload)
+        .use(tokenProvider(user));
+      expect(status).toBe(constants.HTTP_STATUS_CREATED);
+    });
+
+    it('should create a draft with logoNext [null, null] and signatories [null, null]', async () => {
+      const payload: DraftCreationPayload = {
+        campaign: campaign.id,
+        subject: 'Test',
+        body: 'Body',
+        logo: [null, null],
+        writtenAt: null,
+        writtenFrom: null,
+        sender: {
+          name: 'Mairie',
+          service: null,
+          firstName: null,
+          lastName: null,
+          address: null,
+          email: null,
+          phone: null,
+          signatories: [null, null]
+        }
+      };
+
+      const { body, status } = await request(url)
+        .post(testRoute)
+        .send(payload)
+        .use(tokenProvider(user));
+
+      expect(status).toBe(constants.HTTP_STATUS_CREATED);
+      expect(body).toMatchObject({ logoNext: [null, null] });
+
+      const actualSender = await Senders()
+        .where({ id: body.sender.id })
+        .first();
+      expect(actualSender!.signatory_one_document_id).toBeNull();
+      expect(actualSender!.signatory_two_document_id).toBeNull();
+
+      const actualDraft = await Drafts().where({ id: body.id }).first();
+      expect(actualDraft!.logo_next_one).toBeNull();
+      expect(actualDraft!.logo_next_two).toBeNull();
+    });
+
+    it('should link signatory document', async () => {
+      const document = genDocumentApi({
+        establishmentId: establishment.id,
+        creator: user
+      });
+      await Documents().insert(toDocumentDBO(document));
+
+      const payload: DraftCreationPayload = {
+        campaign: campaign.id,
+        subject: null,
+        body: null,
+        logo: [null, null],
+        writtenAt: null,
+        writtenFrom: null,
+        sender: {
+          name: null,
+          service: null,
+          firstName: null,
+          lastName: null,
+          address: null,
+          email: null,
+          phone: null,
+          signatories: [
+            {
+              firstName: 'Alice',
+              lastName: 'Dupont',
+              role: 'Maire',
+              document: document.id
+            },
+            null
+          ]
+        }
+      };
+
+      const { body, status } = await request(url)
+        .post(testRoute)
+        .send(payload)
+        .use(tokenProvider(user));
+
+      expect(status).toBe(constants.HTTP_STATUS_CREATED);
+
+      const actualSender = (await Senders()
+        .where({ id: body.sender.id })
+        .first()) as SenderDBO;
+      expect(actualSender.signatory_one_document_id).toBe(document.id);
+      expect(actualSender.signatory_two_document_id).toBeNull();
+    });
+
+    it('should link logo documents', async () => {
+      const logoDoc = genDocumentApi({
+        establishmentId: establishment.id,
+        creator: user
+      });
+      await Documents().insert(toDocumentDBO(logoDoc));
+
+      const payload: DraftCreationPayload = {
+        campaign: campaign.id,
+        subject: null,
+        body: null,
+        logo: [logoDoc.id, null],
+        writtenAt: null,
+        writtenFrom: null,
+        sender: null
+      };
+
+      const { body, status } = await request(url)
+        .post(testRoute)
+        .send(payload)
+        .use(tokenProvider(user));
+
+      expect(status).toBe(constants.HTTP_STATUS_CREATED);
+
+      const actualDraft = (await Drafts()
+        .where({ id: body.id })
+        .first()) as DraftRecordDBO;
+      expect(actualDraft.logo_next_one).toBe(logoDoc.id);
+      expect(actualDraft.logo_next_two).toBeNull();
+    });
+  });
+
+  describe('PUT /api/drafts/:id — new-campaigns', () => {
+    const establishment = genEstablishmentApi();
+    const user = genUserApi(establishment.id);
+
+    beforeAll(async () => {
+      await Establishments().insert(formatEstablishmentApi(establishment));
+      await Users().insert(formatUserApi(user));
+    });
+
+    const testRoute = (id: string) => `/api/drafts/${id}`;
+    let draft: DraftApi;
+    let sender: SenderApi;
+
+    beforeEach(async () => {
+      vi.spyOn(posthogService, 'isFeatureEnabled').mockResolvedValue(true);
+      sender = genSenderApi(establishment);
+      draft = genDraftApi(establishment, sender);
+      await Senders().insert(formatSenderApi(sender));
+      await Drafts().insert(formatDraftApi(draft));
+    });
+
+    afterEach(() => vi.restoreAllMocks());
+
+    it('should update logoNext and signatory document', async () => {
+      const document = genDocumentApi({
+        establishmentId: establishment.id,
+        creator: user
+      });
+      await Documents().insert(toDocumentDBO(document));
+
+      const payload: DraftUpdatePayload = {
+        id: draft.id,
+        subject: 'Updated',
+        body: null,
+        logo: [document.id, null],
+        writtenAt: null,
+        writtenFrom: null,
+        sender: {
+          name: null,
+          service: null,
+          firstName: null,
+          lastName: null,
+          address: null,
+          email: null,
+          phone: null,
+          signatories: [
+            {
+              firstName: 'Bob',
+              lastName: 'Martin',
+              role: 'DGA',
+              document: document.id
+            },
+            null
+          ]
+        }
+      };
+
+      const { body, status } = await request(url)
+        .put(testRoute(draft.id))
+        .send(payload)
+        .use(tokenProvider(user));
+
+      expect(status).toBe(constants.HTTP_STATUS_OK);
+
+      const actualDraft = (await Drafts()
+        .where({ id: draft.id })
+        .first()) as DraftRecordDBO;
+      expect(actualDraft.logo_next_one).toBe(document.id);
+
+      const actualSender = (await Senders()
+        .where({ id: body.sender.id })
+        .first()) as SenderDBO;
+      expect(actualSender.signatory_one_document_id).toBe(document.id);
+    });
+
+    it('should fall back to legacy when flag is off', async () => {
+      vi.spyOn(posthogService, 'isFeatureEnabled').mockResolvedValue(false);
+      const payload = {
+        id: draft.id,
+        subject: 'Old',
+        body: null,
+        logo: [],
+        writtenAt: null,
+        writtenFrom: null,
+        sender: {
+          name: null,
+          service: null,
+          firstName: null,
+          lastName: null,
+          address: null,
+          email: null,
+          phone: null,
+          signatories: null
+        }
+      };
+      const { status } = await request(url)
+        .put(testRoute(draft.id))
+        .send(payload)
+        .use(tokenProvider(user));
+      expect(status).toBe(constants.HTTP_STATUS_OK);
     });
   });
 });

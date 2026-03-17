@@ -1,6 +1,6 @@
 import { render, screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
-import { genCampaignDTO } from '@zerologementvacant/models/fixtures';
+import { genCampaignDTO, genDraftDTO, genSenderDTO } from '@zerologementvacant/models/fixtures';
 import { describe, it, expect } from 'vitest';
 import { Provider } from 'react-redux';
 import { createMemoryRouter, RouterProvider } from 'react-router-dom';
@@ -8,6 +8,12 @@ import { createMemoryRouter, RouterProvider } from 'react-router-dom';
 import data from '~/mocks/handlers/data';
 import configureTestStore from '~/utils/storeUtils';
 import CampaignViewNext from '../CampaignViewNext';
+
+vi.mock('@zerologementvacant/pdf', () => ({
+  usePDF: vi.fn(() => [{ url: null, loading: false, error: undefined }, vi.fn()]),
+  CampaignDocument: ({ children }: any) => children,
+  CampaignPage: vi.fn(() => null)
+}));
 
 vi.mock('posthog-js/react', async (importOriginal) => {
   const mod = await importOriginal<typeof import('posthog-js/react')>();
@@ -138,5 +144,26 @@ describe('CampaignViewNext', () => {
 
     // Assert
     expect(await screen.findByText('15/03/2024')).toBeInTheDocument();
+  });
+
+  it('renders the signatory upload sections in the Courrier tab', async () => {
+    // Arrange
+    const campaign = { ...genCampaignDTO(), sentAt: undefined, returnCount: null };
+    const draft = genDraftDTO(genSenderDTO());
+    data.drafts.push(draft);
+    data.campaignDrafts.set(campaign.id, [{ id: draft.id }]);
+    renderView(campaign);
+    await screen.findByRole('heading', { level: 1 });
+
+    // Act
+    await user.click(screen.getByRole('tab', { name: /courrier/i }));
+
+    // Assert
+    expect(
+      await screen.findByRole('heading', { name: 'Signature du premier expéditeur', level: 4 })
+    ).toBeInTheDocument();
+    expect(
+      screen.getByRole('heading', { name: 'Signature du second expéditeur', level: 4 })
+    ).toBeInTheDocument();
   });
 });

@@ -9,6 +9,12 @@ import data from '~/mocks/handlers/data';
 import configureTestStore from '~/utils/storeUtils';
 import CampaignViewNext from '../CampaignViewNext';
 
+vi.mock('@zerologementvacant/pdf', () => ({
+  usePDF: vi.fn(() => [{ url: null, loading: false, error: undefined }, vi.fn()]),
+  CampaignDocument: ({ children }: any) => children,
+  CampaignPage: vi.fn(() => null)
+}));
+
 vi.mock('posthog-js/react', async (importOriginal) => {
   const mod = await importOriginal<typeof import('posthog-js/react')>();
   return {

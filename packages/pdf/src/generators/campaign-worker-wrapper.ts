@@ -21,7 +21,14 @@ export function generateCampaignPDFInWorker(
   return new Promise((resolve, reject) => {
     const worker = new Worker(resolveWorkerPath(), { workerData: options });
     worker.on('message', (buffer: Buffer) => {
-      resolve(new Response(new Uint8Array(buffer)).body!);
+      resolve(
+        new ReadableStream({
+          start(controller) {
+            controller.enqueue(buffer);
+            controller.close();
+          }
+        })
+      );
     });
     worker.on('error', reject);
   });

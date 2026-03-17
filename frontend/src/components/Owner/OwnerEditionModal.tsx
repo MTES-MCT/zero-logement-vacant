@@ -207,7 +207,7 @@ function createOwnerEditionModalNext() {
                   </Typography>
                 </Stack>
 
-                <AppTextInputNext<FormSchema>
+                <AppTextInputNext<FormSchema, 'birthDate'>
                   name="birthDate"
                   label="Date de naissance (obligatoire)"
                   hintText="Format attendu : jj/mm/aaaa"
@@ -219,8 +219,8 @@ function createOwnerEditionModalNext() {
                     autoComplete: 'bday',
                     'aria-required': 'true'
                   }}
-                  mapValue={(value): string => value ?? ''}
-                  contramapValue={(value): string | null => value || null}
+                  mapValue={(value) => value ?? ''}
+                  contramapValue={(value) => value || null}
                 />
 
                 <Stack component="section">
@@ -259,7 +259,8 @@ function createOwnerEditionModalNext() {
                     <Typography
                       color={fr.colors.decisions.text.active.grey.default}
                     >
-                      Adresse postale (obligatoire) — source: Base Adresse Nationale
+                      Adresse postale (obligatoire) — source: Base Adresse
+                      Nationale
                     </Typography>
                   </Stack>
                   <a

@@ -191,11 +191,11 @@ const HousingListView = () => {
                 sx={{ listStyle: 'none', padding: 0, margin: 0 }}
               >
                 {!isVisitor && (
-                  <li role="listitem">
+                  <li>
                     <HousingCreationModal onFinish={onFinish} />
                   </li>
                 )}
-                <li role="listitem">
+                <li>
                   <Button
                     priority="primary"
                     onClick={() => {

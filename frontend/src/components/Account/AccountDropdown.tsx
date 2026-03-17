@@ -76,8 +76,8 @@ function AccountDropdown() {
 
           <Divider aria-hidden="true" sx={{ padding: 0 }} />
 
-          <ul role="list" style={{ listStyle: 'none', padding: 0, margin: 0 }}>
-            <li role="listitem">
+          <ul style={{ listStyle: 'none', padding: 0, margin: 0 }}>
+            <li>
               <MutedButton
                 linkProps={{
                   to: '/compte',
@@ -102,8 +102,8 @@ function AccountDropdown() {
 
           <Divider aria-hidden="true" sx={{ padding: 0 }} />
 
-          <ul role="list" style={{ listStyle: 'none', padding: 0, margin: 0 }}>
-            <li role="listitem">
+          <ul style={{ listStyle: 'none', padding: 0, margin: 0 }}>
+            <li>
               <MutedButton
                 linkProps={{
                   to: '/utilisateurs',
@@ -116,10 +116,10 @@ function AccountDropdown() {
                 Utilisateurs rattachés à votre structure
               </MutedButton>
             </li>
-
-            <Divider aria-hidden="true" sx={{ padding: 0 }} />
-
-            <li role="listitem">
+            <li>
+              <Divider aria-hidden="true" sx={{ padding: 0 }} />
+            </li>
+            <li>
               <MutedButton
                 linkProps={{
                   to: '/autres-structures',

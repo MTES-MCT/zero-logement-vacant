@@ -25,13 +25,13 @@ function OwnerList(props: OwnerListProps) {
   return (
     <Stack
       component="ul"
-      role="list"
+     
       spacing="0.75rem"
       useFlexGap
       sx={{ listStyle: 'none', padding: 0, margin: 0 }}
     >
       {props.owners.map((owner) => (
-        <li key={owner.id} role="listitem">
+        <li key={owner.id}>
           <OtherOwnerCard
             id={owner.id}
             name={owner.fullName}

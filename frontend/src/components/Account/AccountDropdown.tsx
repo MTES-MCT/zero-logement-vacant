@@ -116,8 +116,8 @@ function AccountDropdown() {
                 Utilisateurs rattachés à votre structure
               </MutedButton>
             </li>
-            <li>
-              <Divider aria-hidden="true" sx={{ padding: 0 }} />
+            <li role="separator" aria-hidden="true">
+              <Divider sx={{ padding: 0 }} />
             </li>
             <li>
               <MutedButton

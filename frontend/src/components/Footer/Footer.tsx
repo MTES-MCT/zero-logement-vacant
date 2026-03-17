@@ -31,9 +31,18 @@ function Footer() {
         title: 'Ministère de la Ville et du Logement'
       }}
       termsLinkProps={{
-        to: 'https://zerologementvacant.beta.gouv.fr/mentions-legales',
-        content: 'Politique de confidentialité'
+        to: 'https://zerologementvacant.beta.gouv.fr/mentions-legales'
       }}
+      bottomItems={[
+        {
+          text: 'Politique de confidentialité',
+          linkProps: {
+            to: 'https://zerologementvacant.beta.gouv.fr/politique-de-confidentialite-de-zero-logement-vacant/',
+            target: '_blank',
+            rel: 'noopener noreferrer'
+          }
+        }
+      ]}
       contentDescription="Zéro Logement Vacant aide les collectivités à mobiliser les propriétaires de logements vacants de longue durée."
       linkList={[
         {

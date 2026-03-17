@@ -8,6 +8,21 @@ import dts from 'vite-plugin-dts';
 export default defineConfig(({ mode }) => ({
   root: import.meta.dirname,
   cacheDir: '../../node_modules/.vite/pdf',
+  resolve: {
+    // In Vitest, .woff imports become browser URLs that @react-pdf/renderer
+    // cannot read via fs. Redirect them to a stub returning the real file path.
+    alias: process.env.VITEST
+      ? [
+          {
+            find: /^.*\.(woff2?)$/,
+            replacement: path.resolve(
+              import.meta.dirname,
+              'src/__mocks__/font.ts'
+            )
+          }
+        ]
+      : []
+  },
   plugins: [
     react(),
     nxViteTsPaths(),

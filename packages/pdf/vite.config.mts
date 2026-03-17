@@ -40,7 +40,8 @@ export default defineConfig(({ mode }) => ({
     lib: {
       entry: {
         browser: './src/browser.ts',
-        node: './src/node.ts'
+        node: './src/node.ts',
+        'generators/campaign.worker': './src/generators/campaign.worker.ts'
       },
       formats: ['es' as const]
     },
@@ -56,7 +57,9 @@ export default defineConfig(({ mode }) => ({
         // Workspace dependencies - already available in monorepo
         '@zerologementvacant/models',
         // Node.js built-ins
-        'node:stream'
+        'node:stream',
+        'node:worker_threads',
+        'node:url'
         // Bundle everything else (react-pdf-html, ts-pattern, etc.)
       ]
     },

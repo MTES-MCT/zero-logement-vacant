@@ -288,7 +288,7 @@ function OwnerAttribute(props: OwnerPropertyProps) {
         {props.label}
       </LabelNext>
       <Typography component="p" aria-labelledby={label}>
-        {props.value ?? "Pas d\u2019information"}
+        {props.value ?? "Pas d’information"}
       </Typography>
     </Stack>
   );

@@ -168,7 +168,7 @@ function Group(props: Readonly<GroupProps>) {
             }}
           >
             <ul
-              role="list"
+             
               style={{
                 listStyle: 'none',
                 padding: 0,
@@ -180,7 +180,7 @@ function Group(props: Readonly<GroupProps>) {
                 alignItems: 'flex-end'
               }}
             >
-              <li role="listitem" style={{ width: '100%' }}>
+              <li style={{ width: '100%' }}>
                 <FullWidthButton
                   priority="primary"
                   onClick={campaignFromGroupModal.open}
@@ -190,7 +190,7 @@ function Group(props: Readonly<GroupProps>) {
                 </FullWidthButton>
               </li>
 
-              <li role="listitem" style={{ width: '100%' }}>
+              <li style={{ width: '100%' }}>
                 <FullWidthButton
                   priority="secondary"
                   iconId="ri-upload-2-line"
@@ -200,7 +200,7 @@ function Group(props: Readonly<GroupProps>) {
                 </FullWidthButton>
               </li>
 
-              <li role="listitem" style={{ width: '100%' }}>
+              <li style={{ width: '100%' }}>
                 <FullWidthButton
                   priority="tertiary"
                   iconId="ri-delete-bin-line"

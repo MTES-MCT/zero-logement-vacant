@@ -73,13 +73,13 @@ function Footer() {
               },
               {
                 linkProps: { to: 'https://zerologementvacant.crisp.help/fr/' },
-                text: "Centre d\u2019aide et guide d\u2019utilisation"
+                text: "Centre d’aide et guide d’utilisation"
               },
               {
                 linkProps: {
                   to: 'https://zlv.notion.site/Feuille-route-publique-Z-ro-Logement-Vacant-19355f27a5d740e4888b57027eed6441'
                 },
-                text: 'Nouveaut\u00e9s'
+                text: 'Nouveautés'
               },
               {
                 linkProps: { to: 'https://zerologementvacant.beta.gouv.fr/statistiques' },

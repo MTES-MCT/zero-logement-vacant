@@ -142,7 +142,7 @@ function Group(props: GroupProps) {
               useFlexGap
               sx={{ listStyle: 'none', padding: 0, margin: 0, width: '100%' }}
             >
-              <li role="listitem">
+              <li>
                 <GroupCampaignCreationModal
                   group={props.group}
                   housingCount={props.group.housingCount}
@@ -152,7 +152,7 @@ function Group(props: GroupProps) {
                   onSubmit={createCampaign}
                 />
               </li>
-              <li role="listitem">
+              <li>
                 <Button
                   className={styles.action}
                   priority="secondary"
@@ -162,7 +162,7 @@ function Group(props: GroupProps) {
                   Exporter
                 </Button>
               </li>
-              <li role="listitem">
+              <li>
                 <GroupRemovalModal
                   campaigns={props.campaigns}
                   openingButtonProps={{

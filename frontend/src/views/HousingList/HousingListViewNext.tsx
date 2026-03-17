@@ -182,16 +182,16 @@ const HousingListView = () => {
               <Stack
                 direction="row"
                 component="ul"
-                role="list"
+               
                 sx={{ justifyContent: 'flex-end', listStyle: 'none', padding: 0, margin: 0 }}
               >
                 {!isVisitor && (
-                  <li role="listitem">
+                  <li>
                     <HousingCreationModal onFinish={onFinish} />
                   </li>
                 )}
 
-                <li role="listitem">
+                <li>
                   <Button
                     className="fr-ml-3v"
                     priority="primary"

@@ -35,8 +35,8 @@ function ToolbarPlugin(props: Readonly<Props>) {
       className={classNames(styles.toolbar, props.className)}
       fluid
     >
-      <section role="list">
-        <span role="listitem">
+      <ul style={{ listStyle: 'none', padding: 0, margin: 0, display: 'flex' }}>
+        <li>
           <IconToggle
             iconId="fr-icon-bold"
             isActive={toolbar.state.bold}
@@ -45,8 +45,8 @@ function ToolbarPlugin(props: Readonly<Props>) {
               editor.dispatchCommand(FORMAT_TEXT_COMMAND, 'bold');
             }}
           />
-        </span>
-        <span role="listitem">
+        </li>
+        <li>
           <IconToggle
             iconId="fr-icon-italic"
             isActive={toolbar.state.italic}
@@ -55,8 +55,8 @@ function ToolbarPlugin(props: Readonly<Props>) {
               editor.dispatchCommand(FORMAT_TEXT_COMMAND, 'italic');
             }}
           />
-        </span>
-        <span role="listitem">
+        </li>
+        <li>
           <IconToggle
             iconId="ri-underline"
             isActive={toolbar.state.underline}
@@ -65,8 +65,8 @@ function ToolbarPlugin(props: Readonly<Props>) {
               editor.dispatchCommand(FORMAT_TEXT_COMMAND, 'underline');
             }}
           />
-        </span>
-        <span role="listitem">
+        </li>
+        <li>
           <IconToggle
             iconId="ri-align-left"
             isActive={toolbar.state.align === 'left'}
@@ -75,8 +75,8 @@ function ToolbarPlugin(props: Readonly<Props>) {
               editor.dispatchCommand(FORMAT_ELEMENT_COMMAND, 'left');
             }}
           />
-        </span>
-        <span role="listitem">
+        </li>
+        <li>
           <IconToggle
             iconId="ri-align-center"
             isActive={toolbar.state.align === 'center'}
@@ -85,8 +85,8 @@ function ToolbarPlugin(props: Readonly<Props>) {
               editor.dispatchCommand(FORMAT_ELEMENT_COMMAND, 'center');
             }}
           />
-        </span>
-        <span role="listitem">
+        </li>
+        <li>
           <IconToggle
             iconId="ri-align-right"
             isActive={toolbar.state.align === 'right'}
@@ -95,8 +95,8 @@ function ToolbarPlugin(props: Readonly<Props>) {
               editor.dispatchCommand(FORMAT_ELEMENT_COMMAND, 'right');
             }}
           />
-        </span>
-        <span role="listitem">
+        </li>
+        <li>
           <IconToggle
             iconId="ri-align-justify"
             isActive={toolbar.state.align === 'justify'}
@@ -105,8 +105,8 @@ function ToolbarPlugin(props: Readonly<Props>) {
               editor.dispatchCommand(FORMAT_ELEMENT_COMMAND, 'justify');
             }}
           />
-        </span>
-        <span role="listitem">
+        </li>
+        <li>
           <IconToggle
             iconId="fr-icon-list-unordered"
             title="Liste à puces"
@@ -114,8 +114,8 @@ function ToolbarPlugin(props: Readonly<Props>) {
               editor.dispatchCommand(INSERT_UNORDERED_LIST_COMMAND, undefined);
             }}
           />
-        </span>
-        <span role="listitem">
+        </li>
+        <li>
           <IconToggle
             iconId="fr-icon-list-ordered"
             title="Liste ordonnée"
@@ -123,8 +123,8 @@ function ToolbarPlugin(props: Readonly<Props>) {
               editor.dispatchCommand(INSERT_ORDERED_LIST_COMMAND, undefined);
             }}
           />
-        </span>
-      </section>
+        </li>
+      </ul>
       <section className={styles.toolbar__right}>
         <VariableSelect
           options={props.variableOptions}

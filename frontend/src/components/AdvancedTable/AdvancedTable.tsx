@@ -15,6 +15,7 @@ import {
   type TableOptions
 } from '@tanstack/react-table';
 import classNames from 'classnames';
+import { match } from 'ts-pattern';
 import { createRef, memo, useEffect, useState, type MouseEvent } from 'react';
 
 import SelectNext from '@codegouvfr/react-dsfr/SelectNext';
@@ -205,15 +206,15 @@ function AdvancedTable<Data extends object>(props: AdvancedTableProps<Data>) {
                       <th
                         key={i}
                         scope="col"
-                        aria-sort={
+                        aria-sort={match(
                           header.column.getCanSort()
-                            ? header.column.getIsSorted() === 'asc'
-                              ? 'ascending'
-                              : header.column.getIsSorted() === 'desc'
-                                ? 'descending'
-                                : 'none'
-                            : undefined
-                        }
+                            ? header.column.getIsSorted()
+                            : null
+                        )
+                          .with('asc', () => 'ascending' as const)
+                          .with('desc', () => 'descending' as const)
+                          .with(false, () => 'none' as const)
+                          .otherwise(() => undefined)}
                       >
                         {header.column.getCanSort() ? (
                           <Stack

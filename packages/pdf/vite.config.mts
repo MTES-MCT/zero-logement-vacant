@@ -54,13 +54,13 @@ export default defineConfig(({ mode }) => ({
         'react-dom',
         'react/jsx-runtime',
         '@react-pdf/renderer',
-        // Workspace dependencies - already available in monorepo
-        '@zerologementvacant/models',
         // Node.js built-ins
         'node:stream',
         'node:worker_threads',
         'node:url'
-        // Bundle everything else (react-pdf-html, ts-pattern, etc.)
+        // @zerologementvacant/models is intentionally bundled:
+        // the campaign worker runs in a standalone Node worker thread
+        // where native ESM resolution would fail on models' dist output.
       ]
     },
     outDir: './dist/lib',

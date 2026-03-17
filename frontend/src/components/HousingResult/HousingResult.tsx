@@ -26,7 +26,7 @@ function HousingResult(props: Props) {
   ) : null;
   const occupancy = (
     <Stack component="p" direction="row" sx={{ alignItems: 'center', margin: 0 }}>
-      <Typography component="span">{"Statut d’occupation\u00a0:"}&nbsp;</Typography>
+      <Typography component="span">{"Statut d’occupation"}&nbsp;</Typography>
       <OccupancyBadge occupancy={props.occupancy} tagProps={{ as: 'span' }} />
     </Stack>
   );

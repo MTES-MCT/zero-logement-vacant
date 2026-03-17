@@ -389,21 +389,14 @@ restore_section() {
     pg_restore_cmd="$pg_restore_cmd --verbose --no-owner --no-privileges --no-comments"
     pg_restore_cmd="$pg_restore_cmd --format=c --section=$section"
 
-    # Exclude PostGIS system schemas that require superuser/owner privileges
-    # These schemas (tiger.*, topology.*) are managed by PostGIS extension
-    # Note: --exclude-table doesn't exist in pg_restore, spatial_ref_sys errors are handled gracefully
-    pg_restore_cmd="$pg_restore_cmd --exclude-schema=tiger --exclude-schema=tiger_data --exclude-schema=topology"
-
     # Add section-specific options
     case "$section" in
       "pre-data")
         pg_restore_cmd="$pg_restore_cmd --clean --if-exists"
         ;;
       "data")
-        # Note: --disable-triggers requires superuser, not available on Clever Cloud
-        # Use single transaction and no parallelism to ensure tables are restored in order
-        # and triggers don't fire on incomplete data
-        pg_restore_cmd="$pg_restore_cmd --single-transaction --jobs=1"
+        # Disable triggers during data load for better performance
+        pg_restore_cmd="$pg_restore_cmd --disable-triggers --jobs=$PARALLEL_JOBS"
         ;;
       "post-data")
         # Post-data includes indexes and constraints
@@ -411,35 +404,14 @@ restore_section() {
         ;;
     esac
 
-    # Run pg_restore and capture exit code properly
-    # Note: PIPESTATUS[0] gives us pg_restore's exit code, not tee's
-    $pg_restore_cmd "$dump_file" 2>&1 | tee "restore_${section}_attempt_${attempt}.log"
-    local exit_code=${PIPESTATUS[0]}
-
-    if [ $exit_code -eq 0 ]; then
+    # Run pg_restore
+    if $pg_restore_cmd "$dump_file" 2>&1 | tee "restore_${section}_attempt_${attempt}.log"; then
       success=true
       echo "✓ Section $section completed successfully"
       save_progress "$section" "$dump_file"
       rm -f "restore_${section}_attempt_${attempt}.log"
     else
-      # For pre-data phase, check if errors are only extension/schema related (expected on managed PostgreSQL)
-      if [ "$section" = "pre-data" ]; then
-        # Count real errors (excluding expected extension/schema errors on Clever Cloud)
-        local real_errors=$(grep -E "^pg_restore: error:" "restore_${section}_attempt_${attempt}.log" 2>/dev/null | \
-          grep -v "must be owner of extension" | \
-          grep -v "schema .* already exists" | \
-          grep -v "cannot drop schema .* because other objects depend on it" | \
-          wc -l | xargs)
-
-        if [ "$real_errors" -eq 0 ]; then
-          echo "✓ Section $section completed (ignored ${exit_code} expected extension/schema errors on managed PostgreSQL)"
-          success=true
-          save_progress "$section" "$dump_file"
-          rm -f "restore_${section}_attempt_${attempt}.log"
-          continue
-        fi
-      fi
-
+      local exit_code=${PIPESTATUS[0]}
       echo ""
       echo "⚠️  Section $section failed with exit code: $exit_code"
 
@@ -598,35 +570,6 @@ export PGPASSWORD="$DB_PASSWORD"
 # Track overall success
 RESTORE_SUCCESS=true
 
-# Phase 0: Clean all data before restore (only when starting fresh or from pre-data)
-if [ "$START_PHASE" = "pre-data" ]; then
-  echo ""
-  echo "=========================================="
-  echo "Cleaning target database before restore"
-  echo "=========================================="
-  echo "Truncating all tables to ensure clean restore..."
-
-  # Get all tables and truncate them with CASCADE to handle foreign keys
-  # We truncate in a single statement to avoid FK constraint issues
-  TABLES=$(psql -h "$DB_HOST" -p "$DB_PORT" -U "$DB_USER" -d "$DB_NAME" -t -c "
-    SELECT string_agg('public.' || quote_ident(tablename), ', ')
-    FROM pg_tables
-    WHERE schemaname = 'public';" | xargs)
-
-  if [ -n "$TABLES" ] && [ "$TABLES" != "" ]; then
-    psql -h "$DB_HOST" -p "$DB_PORT" -U "$DB_USER" -d "$DB_NAME" -c "TRUNCATE $TABLES CASCADE;"
-  else
-    echo "No tables to truncate"
-  fi
-
-  if [ $? -eq 0 ]; then
-    echo "✓ All tables truncated successfully"
-  else
-    echo "❌ Failed to truncate tables"
-    exit 1
-  fi
-fi
-
 # Phase 1: Pre-data (schema, extensions, functions)
 if [ "$START_PHASE" = "pre-data" ]; then
   if ! restore_section "pre-data" "$FILE"; then
@@ -639,31 +582,8 @@ if [ "$START_PHASE" = "pre-data" ]; then
   START_PHASE="data"
 fi
 
-# Phase 2: Data (sequential, single transaction)
+# Phase 2: Data (parallel, triggers disabled)
 if [ "$START_PHASE" = "data" ]; then
-  # Disable user triggers before data load (we own the tables, so this works)
-  echo ""
-  echo "Disabling user triggers before data load..."
-  psql -h "$DB_HOST" -p "$DB_PORT" -U "$DB_USER" -d "$DB_NAME" -c "
-  DO \$\$
-  DECLARE
-      r RECORD;
-  BEGIN
-      FOR r IN (
-          SELECT DISTINCT event_object_schema || '.' || event_object_table AS table_name
-          FROM information_schema.triggers
-          WHERE trigger_schema = 'public'
-          AND event_object_schema = 'public'
-      ) LOOP
-          BEGIN
-              EXECUTE 'ALTER TABLE ' || r.table_name || ' DISABLE TRIGGER USER';
-          EXCEPTION WHEN OTHERS THEN
-              RAISE NOTICE 'Could not disable triggers on %: %', r.table_name, SQLERRM;
-          END;
-      END LOOP;
-  END \$\$;"
-  echo "✓ User triggers disabled"
-
   if ! restore_section "data" "$FILE"; then
     RESTORE_SUCCESS=false
     echo ""
@@ -671,29 +591,6 @@ if [ "$START_PHASE" = "data" ]; then
     echo "To resume, run this script again - it will offer to resume."
     exit 1
   fi
-
-  # Re-enable user triggers after data load
-  echo ""
-  echo "Re-enabling user triggers after data load..."
-  psql -h "$DB_HOST" -p "$DB_PORT" -U "$DB_USER" -d "$DB_NAME" -c "
-  DO \$\$
-  DECLARE
-      r RECORD;
-  BEGIN
-      FOR r IN (
-          SELECT DISTINCT event_object_schema || '.' || event_object_table AS table_name
-          FROM information_schema.triggers
-          WHERE trigger_schema = 'public'
-          AND event_object_schema = 'public'
-      ) LOOP
-          BEGIN
-              EXECUTE 'ALTER TABLE ' || r.table_name || ' ENABLE TRIGGER USER';
-          EXCEPTION WHEN OTHERS THEN
-              RAISE NOTICE 'Could not enable triggers on %: %', r.table_name, SQLERRM;
-          END;
-      END LOOP;
-  END \$\$;"
-  echo "✓ User triggers re-enabled"
 
   # Verify data was loaded correctly before moving to post-data
   echo ""

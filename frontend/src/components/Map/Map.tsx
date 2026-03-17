@@ -1,4 +1,5 @@
 import * as turf from '@turf/turf';
+import Button from '@codegouvfr/react-dsfr/Button';
 import { mapStyles } from 'carte-facile';
 import { type CSSProperties, memo, useEffect, useMemo, useState } from 'react';
 import ReactiveMap, {
@@ -8,6 +9,8 @@ import ReactiveMap, {
   type ViewStateChangeEvent
 } from 'react-map-gl/maplibre';
 import { useNavigate } from 'react-router-dom';
+import Box from '@mui/material/Box';
+import { styled } from '@mui/material/styles';
 
 import { useMapImage } from '../../hooks/useMapImage';
 import {
@@ -25,11 +28,19 @@ import BuildingAside from './BuildingAside';
 import Clusters from './Clusters';
 import LayerControl from './LayerControl';
 import MapControls from './MapControls';
+import MapLegend from './MapLegend';
 import Perimeters from './Perimeters';
 import Points from './Points';
 
 import 'maplibre-gl/dist/maplibre-gl.css';
 import 'carte-facile/carte-facile.css';
+
+const LegendButtonContainer = styled(Box)({
+  position: 'absolute',
+  bottom: '0.5rem',
+  left: '3.5rem',
+  zIndex: 1
+});
 
 export interface MapProps {
   housingList?: Housing[];
@@ -126,6 +137,8 @@ function Map(props: MapProps) {
     }
   }, [map, points]);
 
+  const [isLegendOpen, setIsLegendOpen] = useState(false);
+
   const [selected, setSelected] = useState<Building | null>(null);
   const isOpen = selected !== null;
 
@@ -204,6 +217,20 @@ function Map(props: MapProps) {
           onClusterizeChange={setClusterize}
           onPerimetersChange={setShowPerimeters}
         />
+        {isLegendOpen && (
+          <MapLegend onClose={() => setIsLegendOpen(false)} />
+        )}
+        {!isLegendOpen && (
+          <LegendButtonContainer>
+            <Button
+              priority="secondary"
+              size="small"
+              onClick={() => setIsLegendOpen(true)}
+            >
+              Légende
+            </Button>
+          </LegendButtonContainer>
+        )}
         <LayerControl />
         <NavigationControl
           showCompass={false}

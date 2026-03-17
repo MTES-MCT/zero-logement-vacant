@@ -11,6 +11,10 @@
     "./node": {
       "types": "./dist/lib/node.d.ts",
       "import": "./dist/lib/node.js"
+    },
+    "./worker": {
+      "import": "./dist/lib/generators/campaign.worker.js",
+      "default": "./dist/lib/generators/campaign.worker.js"
     }
   },
   "dependencies": {

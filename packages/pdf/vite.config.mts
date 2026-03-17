@@ -55,9 +55,10 @@ export default defineConfig(({ mode }) => ({
         'react/jsx-runtime',
         '@react-pdf/renderer',
         // Node.js built-ins
+        'node:module',
         'node:stream',
-        'node:worker_threads',
-        'node:url'
+        'node:url',
+        'node:worker_threads'
         // @zerologementvacant/models is intentionally bundled:
         // the campaign worker runs in a standalone Node worker thread
         // where native ESM resolution would fail on models' dist output.

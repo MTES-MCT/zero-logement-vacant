@@ -1,25 +1,18 @@
-import { fileURLToPath } from 'node:url';
+import { createRequire } from 'node:module';
 import { Worker } from 'node:worker_threads';
 
 import type { GenerateCampaignOptions } from './campaigns.js';
 
-function resolveWorkerPath(): string {
-  // Avoid new URL('./file', import.meta.url) — Vite inlines it as a data URL.
-  // Use fileURLToPath + string ops instead, which Vite leaves untouched.
-  const thisFile = fileURLToPath(import.meta.url);
-  const dir = thisFile.slice(0, thisFile.lastIndexOf('/') + 1);
-  // In Vitest (source mode), this file is src/generators/*.ts — resolve to dist.
-  if (thisFile.endsWith('.ts')) {
-    return `${dir}../../dist/lib/generators/campaign.worker.js`;
-  }
-  return `${dir}campaign.worker.js`;
-}
+// Resolve via the package exports map — works regardless of where this
+// wrapper ends up (server bundle, monorepo dist, etc.).
+const require = createRequire(import.meta.url);
+const workerPath = require.resolve('@zerologementvacant/pdf/worker');
 
 export function generateCampaignPDFInWorker(
   options: GenerateCampaignOptions
 ): Promise<ReadableStream<Uint8Array>> {
   return new Promise((resolve, reject) => {
-    const worker = new Worker(resolveWorkerPath(), { workerData: options });
+    const worker = new Worker(workerPath, { workerData: options });
     worker.on('message', (buffer: Buffer) => {
       resolve(
         new ReadableStream({

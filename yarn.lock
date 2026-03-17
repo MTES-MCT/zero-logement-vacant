@@ -14264,6 +14264,7 @@ __metadata:
     "@zerologementvacant/draft": "workspace:*"
     "@zerologementvacant/healthcheck": "workspace:*"
     "@zerologementvacant/models": "workspace:*"
+    "@zerologementvacant/pdf": "workspace:*"
     "@zerologementvacant/queue": "workspace:*"
     "@zerologementvacant/schemas": "workspace:*"
     "@zerologementvacant/utils": "workspace:*"
@@ -14332,7 +14333,7 @@ __metadata:
     unzip-stream: "npm:0.3.4"
     uuid: "npm:9.0.1"
     validator: "npm:13.15.26"
-    web-streams-utils: "npm:0.3.0"
+    web-streams-utils: "npm:1.1.0"
     wuzzy: "npm:0.1.8"
     yup: "npm:1.7.0"
   languageName: unknown
@@ -34579,10 +34580,10 @@ __metadata:
   languageName: node
   linkType: hard
 
-"web-streams-utils@npm:0.3.0":
-  version: 0.3.0
-  resolution: "web-streams-utils@npm:0.3.0"
-  checksum: 10c0/2425b2dbe1d89cfa76f1a10acae932a0e070a1221e62daf187e6dc64f5759b332fd822cf7a212f0a09f4bca545e8008f1dd1a3a9ddc385f6d207a395ae5036a7
+"web-streams-utils@npm:1.1.0":
+  version: 1.1.0
+  resolution: "web-streams-utils@npm:1.1.0"
+  checksum: 10c0/c3c7428fb21654ca37ffb2bd5889e6067bca173eb1b08f527d2bc55ad9c066453dd86d6a592777328fa87aa40d869fb375c1565d0e2378fddae0ac8b6fde85d7
   languageName: node
   linkType: hard
 

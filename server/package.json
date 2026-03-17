@@ -29,6 +29,7 @@
     "@zerologementvacant/draft": "workspace:*",
     "@zerologementvacant/healthcheck": "workspace:*",
     "@zerologementvacant/models": "workspace:*",
+    "@zerologementvacant/pdf": "workspace:*",
     "@zerologementvacant/queue": "workspace:*",
     "@zerologementvacant/schemas": "workspace:*",
     "@zerologementvacant/utils": "workspace:*",
@@ -88,7 +89,7 @@
     "unzip-stream": "0.3.4",
     "uuid": "9.0.1",
     "validator": "13.15.26",
-    "web-streams-utils": "0.3.0",
+    "web-streams-utils": "1.1.0",
     "wuzzy": "0.1.8",
     "yup": "1.7.0"
   },

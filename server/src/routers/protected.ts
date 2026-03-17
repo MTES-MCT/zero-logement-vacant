@@ -17,6 +17,7 @@ import datafoncierController from '~/controllers/datafoncierHousingController';
 import documentController from '~/controllers/documentController';
 import draftController from '~/controllers/draftController';
 import eventController from '~/controllers/eventController';
+import exportController from '~/controllers/exportController';
 import fileController from '~/controllers/fileController';
 import geoController from '~/controllers/geoController';
 import groupController from '~/controllers/groupController';
@@ -311,6 +312,14 @@ router.post(
   campaignController.createFromGroup
 );
 
+// New route
+router.post(
+  '/campaigns/:id/exports',
+  validatorNext.validate({
+    params: object({ id: schemas.id })
+  }),
+  exportController.exportCampaign
+);
 router.get(
   '/campaigns/:id/export',
   housingExportController.exportCampaignValidators,

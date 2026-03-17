@@ -16,6 +16,7 @@ import SaveButton from '~/components/SaveButton/SaveButton';
 import type { Campaign } from '~/models/Campaign';
 import type { Draft } from '~/models/Draft';
 import { useUpdateDraftNextMutation } from '~/services/draft.service';
+import DraftDownloaderButton from './DraftDownloaderButton';
 
 export type DraftFormSchema = InferType<typeof schemas.draftUpdatePayload>;
 
@@ -109,6 +110,8 @@ function DraftForm(props: Readonly<DraftFormProps>) {
                 draft={props.draft}
                 type="button"
               />
+
+              <DraftDownloaderButton campaign={props.campaign} />
             </Stack>
           </Grid>
 

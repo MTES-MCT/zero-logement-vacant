@@ -103,10 +103,12 @@ export function CampaignPage({ draft, owner }: CampaignPageProps) {
               </Typography>
               <Typography>{signatory?.role}</Typography>
 
-              <Image
-                src={signatory?.document?.url}
-                style={{ marginTop: 16, maxWidth: '16rem' }}
-              />
+              {signatory?.document?.url ? (
+                <Image
+                  src={signatory?.document?.url}
+                  style={{ marginTop: 16, maxWidth: '16rem' }}
+                />
+              ) : null}
             </Stack>
           ))}
         </Stack>

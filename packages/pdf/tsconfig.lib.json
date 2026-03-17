@@ -15,7 +15,7 @@
     },
     "types": ["node", "vite/client"]
   },
-  "include": ["src/**/*.ts", "src/**/*.tsx"],
+  "include": ["src/**/*.ts", "src/**/*.tsx", "src/generators/campaign.worker.ts"],
   "exclude": [
     "dist",
     "src/**/*.test.ts",

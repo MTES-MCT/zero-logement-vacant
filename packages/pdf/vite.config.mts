@@ -29,11 +29,11 @@ export default defineConfig(({ mode }) => ({
     dts({
       entryRoot: 'src',
       tsconfigPath: path.join(import.meta.dirname, 'tsconfig.lib.json')
-    }),
+    })
   ],
   // Development server configuration for previewer
   server: {
-    open: '/src/preview/index.html',
+    open: '/src/preview/index.html'
   },
   build: {
     emptyOutDir: true,
@@ -41,6 +41,8 @@ export default defineConfig(({ mode }) => ({
       entry: {
         browser: './src/browser.ts',
         node: './src/node.ts',
+        'generators/campaign-worker-wrapper':
+          './src/generators/campaign-worker-wrapper.ts',
         'generators/campaign.worker': './src/generators/campaign.worker.ts'
       },
       formats: ['es' as const]
@@ -56,6 +58,7 @@ export default defineConfig(({ mode }) => ({
         '@react-pdf/renderer',
         // Node.js built-ins
         'node:module',
+        'node:path',
         'node:stream',
         'node:url',
         'node:worker_threads'

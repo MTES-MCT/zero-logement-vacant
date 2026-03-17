@@ -24,6 +24,7 @@ import {
 } from '~/services/campaign.service';
 import { useCountHousingQuery } from '~/services/housing.service';
 import CampaignDraftContent from '~/views/Campaign/CampaignDraftContent';
+import DraftFormProvider from '~/views/Campaign/DraftFormProvider';
 
 const campaignDeleteModal = createCampaignDeleteModal();
 const sentAtModal = createCampaignSentAtModal();
@@ -153,18 +154,20 @@ function CampaignViewNext() {
           />
         </Stack>
 
-        <Tabs
-          tabs={[
-            {
-              label: 'Destinataires',
-              content: <CampaignRecipientsNext campaign={campaign} />
-            },
-            {
-              label: 'Courrier',
-              content: <CampaignDraftContent campaign={campaign} />
-            }
-          ]}
-        />
+        <DraftFormProvider campaignId={campaign.id}>
+          <Tabs
+            tabs={[
+              {
+                label: 'Destinataires',
+                content: <CampaignRecipientsNext campaign={campaign} />
+              },
+              {
+                label: 'Courrier',
+                content: <CampaignDraftContent />
+              }
+            ]}
+          />
+        </DraftFormProvider>
 
         <sentAtModal.Component
           sentAt={campaign.sentAt ?? null}

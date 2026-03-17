@@ -55,6 +55,7 @@ import housingFiltersApi from '~/models/HousingFiltersApi';
 import sortApi from '~/models/SortApi';
 import campaignHousingRepository from '~/repositories/campaignHousingRepository';
 import campaignRepository from '~/repositories/campaignRepository';
+import draftRepository from '~/repositories/draftRepository';
 import eventRepository from '~/repositories/eventRepository';
 import groupRepository from '~/repositories/groupRepository';
 import housingRepository from '~/repositories/housingRepository';
@@ -573,6 +574,14 @@ async function update(request: Request, response: Response) {
     logger.info('Campaign updated', updated);
 
     if (campaign.status !== body.status && body.status === 'sending') {
+      const drafts = await draftRepository.find({
+        filters: { campaign: campaign.id }
+      });
+      if (drafts.length === 0) {
+        throw new BadRequestError(
+          'Cannot send campaign without a draft. Please create a draft first.'
+        );
+      }
       await campaignRepository.generateMails(updated);
     }
 

@@ -40,7 +40,6 @@ export interface MapProps {
   viewState?: ViewState;
   minZoom?: number;
   maxZoom?: number;
-  fitBoundsMaxZoom?: number;
   showMapSettings?: boolean;
   style?: CSSProperties;
   onMove?: (viewState: ViewState) => void;
@@ -122,7 +121,7 @@ function Map(props: MapProps) {
         const [lng, lat] = points[0].geometry.coordinates as [number, number];
         map.flyTo({
           center: [lng, lat],
-          zoom: props.fitBoundsMaxZoom ?? 12,
+          zoom: 10,
           duration: 800
         });
       } else {
@@ -130,11 +129,11 @@ function Map(props: MapProps) {
         map.fitBounds(bounds as [number, number, number, number], {
           padding: 64,
           duration: 800,
-          maxZoom: props.fitBoundsMaxZoom ?? 12
+          maxZoom: 10
         });
       }
     }
-  }, [map, points, props.fitBoundsMaxZoom]);
+  }, [map, points]);
 
   // MapLibre GL hardcodes aria-label="Map" on the canvas element.
   // Override it after the map is ready to satisfy RGAA 1.3.

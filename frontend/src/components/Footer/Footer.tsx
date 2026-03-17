@@ -45,9 +45,9 @@ function Footer() {
       ]}
       contentDescription="Zéro Logement Vacant aide les collectivités à mobiliser les propriétaires de logements vacants de longue durée."
       bottomItems={
-        !isAuthenticated
-          ? [{ linkProps: { to: '/connexion' }, text: 'Connexion' }]
-          : []
+        isAuthenticated
+          ? []
+          : [{ linkProps: { to: '/connexion' }, text: 'Connexion' }]
       }
       linkList={
         [

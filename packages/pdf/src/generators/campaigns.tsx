@@ -9,7 +9,7 @@ import { Readable } from 'node:stream';
 
 import { CampaignDocument, CampaignPage } from '../templates/Campaign.js';
 
-interface GenerateCampaignOptions {
+export interface GenerateCampaignOptions {
   campaign: CampaignDTO;
   housings: Array<
     Omit<HousingDTO, 'owner'> & { owner: NonNullable<HousingDTO['owner']> }

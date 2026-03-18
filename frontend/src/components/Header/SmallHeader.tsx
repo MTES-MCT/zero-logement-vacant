@@ -40,7 +40,7 @@ const MenuOverlay = styled(Box)(({ theme }) => ({
   backgroundColor: fr.colors.decisions.background.default.grey.default,
   overflowY: 'auto',
   padding: '1rem 1.5rem'
-}));
+})) as typeof Box;
 
 function SmallHeader() {
   const dispatch = useAppDispatch();

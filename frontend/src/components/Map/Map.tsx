@@ -1,4 +1,5 @@
 import * as turf from '@turf/turf';
+import { fr } from '@codegouvfr/react-dsfr';
 import Button from '@codegouvfr/react-dsfr/Button';
 import { mapStyles } from 'carte-facile';
 import { type CSSProperties, memo, useEffect, useMemo, useState } from 'react';
@@ -35,11 +36,22 @@ import Points from './Points';
 import 'maplibre-gl/dist/maplibre-gl.css';
 import 'carte-facile/carte-facile.css';
 
+const hex = fr.colors.getHex({ isDark: false });
+
+const MapWrapper = styled(Box)({
+  position: 'relative',
+  border: `1px solid ${hex.decisions.border.default.grey.default}`,
+  borderRadius: '0.25rem',
+  overflow: 'hidden'
+});
+
 const LegendButtonContainer = styled(Box)({
   position: 'absolute',
   bottom: '0.5rem',
   left: '3.5rem',
-  zIndex: 1
+  zIndex: 1,
+  backgroundColor: hex.decisions.background.default.grey.default,
+  borderRadius: '0.25rem'
 });
 
 export interface MapProps {
@@ -156,6 +168,7 @@ function Map(props: MapProps) {
 
   return (
     <>
+      <MapWrapper>
       <ReactiveMap
         {...viewState}
         attributionControl={{}}
@@ -217,20 +230,19 @@ function Map(props: MapProps) {
           onClusterizeChange={setClusterize}
           onPerimetersChange={setShowPerimeters}
         />
-        {isLegendOpen && (
-          <MapLegend onClose={() => setIsLegendOpen(false)} />
-        )}
-        {!isLegendOpen && (
-          <LegendButtonContainer>
-            <Button
-              priority="secondary"
-              size="small"
-              onClick={() => setIsLegendOpen(true)}
-            >
-              Légende
-            </Button>
-          </LegendButtonContainer>
-        )}
+        <MapLegend
+          isOpen={isLegendOpen}
+          onClose={() => setIsLegendOpen(false)}
+        />
+        <LegendButtonContainer>
+          <Button
+            priority="secondary"
+            size="small"
+            onClick={() => setIsLegendOpen(true)}
+          >
+            Légende
+          </Button>
+        </LegendButtonContainer>
         <LayerControl />
         <NavigationControl
           showCompass={false}
@@ -238,6 +250,7 @@ function Map(props: MapProps) {
           visualizePitch={false}
         />
       </ReactiveMap>
+      </MapWrapper>
 
       <BuildingAside
         building={selected}

@@ -45,6 +45,7 @@ import {
   campaignFiltersValidators,
   CampaignQuery
 } from '~/models/CampaignFiltersApi';
+import type { DraftApi } from '~/models/DraftApi';
 import {
   CampaignEventApi,
   CampaignHousingEventApi,
@@ -52,12 +53,15 @@ import {
 } from '~/models/EventApi';
 import { HousingApi, shouldReset } from '~/models/HousingApi';
 import housingFiltersApi from '~/models/HousingFiltersApi';
+import type { SenderApi } from '~/models/SenderApi';
 import sortApi from '~/models/SortApi';
 import campaignHousingRepository from '~/repositories/campaignHousingRepository';
 import campaignRepository from '~/repositories/campaignRepository';
+import draftRepository from '~/repositories/draftRepository';
 import eventRepository from '~/repositories/eventRepository';
 import groupRepository from '~/repositories/groupRepository';
 import housingRepository from '~/repositories/housingRepository';
+import senderRepository from '~/repositories/senderRepository';
 import mailService from '~/services/mailService';
 import { isFeatureEnabled } from '~/services/posthogService';
 import { isArrayOf, isString, isUUID, isUUIDParam } from '~/utils/validators';
@@ -403,6 +407,35 @@ const createFromGroup: RequestHandler<
     returnCount: null
   };
 
+  const sender: SenderApi = {
+    id: uuidv4(),
+    name: null,
+    service: null,
+    firstName: null,
+    lastName: null,
+    address: null,
+    email: null,
+    phone: null,
+    signatories: [null, null],
+    establishmentId: auth.establishmentId,
+    createdAt: new Date().toJSON(),
+    updatedAt: new Date().toJSON(),
+  }
+  const draft: DraftApi= {
+    id: uuidv4(),
+    body: null,
+    subject: null,
+    writtenAt: null,
+    writtenFrom: null,
+    logo: null,
+    logoNext: [null, null],
+    sender,
+    senderId: sender.id,
+    establishmentId: auth.establishmentId,
+    createdAt: new Date().toJSON(),
+    updatedAt: new Date().toJSON()
+  }
+
   const housings = await housingRepository.find({
     filters: {
       establishmentIds: [auth.establishmentId],
@@ -451,6 +484,8 @@ const createFromGroup: RequestHandler<
   );
 
   await startTransaction(async () => {
+    await senderRepository.save(sender);
+    await draftRepository.save(draft);
     await campaignRepository.save(campaign);
 
     await Promise.all([

@@ -29,18 +29,21 @@ export default defineConfig(({ mode }) => ({
     dts({
       entryRoot: 'src',
       tsconfigPath: path.join(import.meta.dirname, 'tsconfig.lib.json')
-    }),
+    })
   ],
   // Development server configuration for previewer
   server: {
-    open: '/src/preview/index.html',
+    open: '/src/preview/index.html'
   },
   build: {
     emptyOutDir: true,
     lib: {
       entry: {
         browser: './src/browser.ts',
-        node: './src/node.ts'
+        node: './src/node.ts',
+        'generators/campaign-worker-wrapper':
+          './src/generators/campaign-worker-wrapper.ts',
+        'generators/campaign.worker': './src/generators/campaign.worker.ts'
       },
       formats: ['es' as const]
     },
@@ -53,11 +56,15 @@ export default defineConfig(({ mode }) => ({
         'react-dom',
         'react/jsx-runtime',
         '@react-pdf/renderer',
-        // Workspace dependencies - already available in monorepo
-        '@zerologementvacant/models',
         // Node.js built-ins
-        'node:stream'
-        // Bundle everything else (react-pdf-html, ts-pattern, etc.)
+        'node:module',
+        'node:path',
+        'node:stream',
+        'node:url',
+        'node:worker_threads'
+        // @zerologementvacant/models is intentionally bundled:
+        // the campaign worker runs in a standalone Node worker thread
+        // where native ESM resolution would fail on models' dist output.
       ]
     },
     outDir: './dist/lib',

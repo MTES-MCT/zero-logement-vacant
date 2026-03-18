@@ -22,8 +22,8 @@ const STATUS_LEGEND_ITEMS: Array<{
   {
     status: HousingStatus.NEVER_CONTACTED,
     label: 'Logement non suivi',
-    backgroundColor: hex.decisions.background.contrast.beigeGrisGalet.default,
-    borderColor: hex.decisions.text.label.beigeGrisGalet.default
+    backgroundColor: hex.decisions.background.actionHigh.blueFrance.default,
+    borderColor: hex.decisions.text.inverted.grey.default
   },
   {
     status: HousingStatus.WAITING,

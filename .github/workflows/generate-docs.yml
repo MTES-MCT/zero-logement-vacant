@@ -49,7 +49,7 @@ jobs:
         run: |
           sudo apt-get install -y texlive-xetex texlive-fonts-recommended texlive-fonts-extra texlive-latex-extra
 
-      - name: Set version number
+      - name: Set version and date
         id: version
         run: |
           if [ -n "${{ github.event.inputs.version }}" ]; then
@@ -60,15 +60,40 @@ jobs:
           echo "version=$VERSION" >> $GITHUB_OUTPUT
           echo "Documentation version: $VERSION"
 
-      - name: Update version in documents
+          # Generate date in French format (e.g., "18 mars 2026")
+          # Use C locale with manual French month names for consistency
+          DAY=$(date +"%d")
+          MONTH_NUM=$(date +"%m")
+          YEAR=$(date +"%Y")
+          case $MONTH_NUM in
+            01) MONTH="janvier" ;;
+            02) MONTH="février" ;;
+            03) MONTH="mars" ;;
+            04) MONTH="avril" ;;
+            05) MONTH="mai" ;;
+            06) MONTH="juin" ;;
+            07) MONTH="juillet" ;;
+            08) MONTH="août" ;;
+            09) MONTH="septembre" ;;
+            10) MONTH="octobre" ;;
+            11) MONTH="novembre" ;;
+            12) MONTH="décembre" ;;
+          esac
+          PROJECT_DATE="$DAY $MONTH $YEAR"
+          echo "date=$PROJECT_DATE" >> $GITHUB_OUTPUT
+          echo "Documentation date: $PROJECT_DATE"
+
+      - name: Update version and date in documents
         run: |
           VERSION="${{ steps.version.outputs.version }}"
+          PROJECT_DATE="${{ steps.version.outputs.date }}"
 
-          # Update version in markdown files
+          # Update version and date in markdown files
           for file in docs/technical/DAT-*.md docs/technical/DE-*.md docs/technical/DI-*.md; do
             if [ -f "$file" ]; then
               sed -i "s/\*\*Version:\*\* .*/\*\*Version:\*\* $VERSION/" "$file"
-              echo "Updated version in $file"
+              sed -i "s/\*\*Date:\*\* .*/\*\*Date:\*\* $PROJECT_DATE/" "$file"
+              echo "Updated version and date in $file"
             fi
           done
 
@@ -79,6 +104,7 @@ jobs:
           ./generate-pdf.sh
         env:
           PROJECT_VERSION: ${{ steps.version.outputs.version }}
+          PROJECT_DATE: ${{ steps.version.outputs.date }}
 
       - name: List generated files
         run: |

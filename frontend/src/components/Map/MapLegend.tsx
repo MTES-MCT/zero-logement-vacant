@@ -7,6 +7,7 @@ import Typography from '@mui/material/Typography';
 import { styled } from '@mui/material/styles';
 
 interface Props {
+  isOpen: boolean;
   onClose(): void;
 }
 
@@ -58,7 +59,9 @@ const STATUS_LEGEND_ITEMS: Array<{
   }
 ];
 
-const Panel = styled(Box)({
+const Panel = styled(Box, {
+  shouldForwardProp: (prop) => prop !== 'isOpen'
+})<{ isOpen: boolean }>(({ isOpen }) => ({
   position: 'absolute',
   left: 0,
   top: 0,
@@ -71,8 +74,11 @@ const Panel = styled(Box)({
   display: 'flex',
   flexDirection: 'column',
   gap: '0.75rem',
-  padding: '1rem 1rem 1rem 1.5rem'
-});
+  padding: '1rem 1rem 1rem 1.5rem',
+  transform: isOpen ? 'translateX(0)' : 'translateX(-100%)',
+  transition: 'transform 0.3s ease-in-out',
+  pointerEvents: isOpen ? 'auto' : 'none'
+}));
 
 const SectionTitle = styled(Typography)({
   fontWeight: 700,
@@ -97,7 +103,7 @@ const CircleIcon = styled(Box, {
     height: '1.125rem',
     borderRadius: '50%',
     backgroundColor,
-    border: `2px solid ${borderColor}`,
+    border: `1px solid ${borderColor}`,
     flexShrink: 0
   })
 );
@@ -105,7 +111,7 @@ const CircleIcon = styled(Box, {
 const SquareIcon = styled(Box)({
   width: '1.125rem',
   height: '1.125rem',
-  border: `2px solid ${hex.decisions.border.plain.grey.default}`,
+  border: `1px solid ${hex.decisions.border.plain.grey.default}`,
   flexShrink: 0
 });
 
@@ -113,8 +119,9 @@ const ClusterIcon = styled(Box)({
   width: '1.125rem',
   height: '1.125rem',
   borderRadius: '50%',
-  backgroundColor: hex.decisions.background.actionHigh.blueFrance.default,
-  color: hex.decisions.text.inverted.grey.default,
+  backgroundColor: hex.decisions.background.contrast.blueFrance.default,
+  border: `1px solid ${hex.decisions.border.plain.blueFrance.default}`,
+  color: hex.decisions.text.label.blueFrance.default,
   display: 'flex',
   alignItems: 'center',
   justifyContent: 'center',
@@ -127,13 +134,13 @@ const OutlineCircleIcon = styled(Box)({
   width: '1.125rem',
   height: '1.125rem',
   borderRadius: '50%',
-  border: `2px solid ${hex.decisions.border.plain.grey.default}`,
+  border: `1px solid ${hex.decisions.border.plain.grey.default}`,
   flexShrink: 0
 });
 
 function MapLegend(props: Readonly<Props>) {
   return (
-    <Panel>
+    <Panel isOpen={props.isOpen}>
       <Stack direction="row" justifyContent="flex-end">
         <Button
           iconId="fr-icon-close-line"

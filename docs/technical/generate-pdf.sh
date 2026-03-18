@@ -335,6 +335,14 @@ generate_pdf() {
 % URL handling - xurl allows proper line breaks in URLs
 \usepackage{xurl}
 
+% Table column width handling
+\usepackage{array}
+\usepackage{tabularx}
+
+% Make tables use full page width with proportional columns
+\usepackage{etoolbox}
+\AtBeginEnvironment{longtable}{\footnotesize}
+
 % Ensure hyperref is loaded with proper settings
 \hypersetup{
     breaklinks=true,

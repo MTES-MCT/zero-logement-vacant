@@ -1014,4 +1014,4 @@ clever ssh                              # Se connecter au conteneur
 
 ---
 
-*Document mis à jour le 26 février 2026*
+*Document mis à jour le 18 mars 2026*

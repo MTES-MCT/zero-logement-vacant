@@ -736,4 +736,4 @@ Le workflow peut aussi être déclenché manuellement depuis GitHub Actions → 
 
 ---
 
-*Document généré le 26 février 2026*
+*Document généré le 18 mars 2026*

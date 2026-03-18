@@ -91,8 +91,12 @@ jobs:
           # Update version and date in markdown files
           for file in docs/technical/DAT-*.md docs/technical/DE-*.md docs/technical/DI-*.md; do
             if [ -f "$file" ]; then
+              # Update header metadata
               sed -i "s/\*\*Version:\*\* .*/\*\*Version:\*\* $VERSION/" "$file"
               sed -i "s/\*\*Date:\*\* .*/\*\*Date:\*\* $PROJECT_DATE/" "$file"
+              # Update footer dates
+              sed -i "s/\*Document généré le [^*]*\*/\*Document généré le $PROJECT_DATE\*/" "$file"
+              sed -i "s/\*Document mis à jour le [^*]*\*/\*Document mis à jour le $PROJECT_DATE\*/" "$file"
               echo "Updated version and date in $file"
             fi
           done

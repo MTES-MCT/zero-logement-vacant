@@ -149,6 +149,7 @@ const RELATIVE_LOCATION_FILTER_LABELS: Record<RelativeLocationFilter, string> =
     'same-department': 'Dans le même département',
     'same-region': 'Dans la même région',
     'other-region': 'Dans une autre région',
+    'foreign-country': 'À l’étranger',
     other: 'Pas d’information'
   };
 
@@ -161,7 +162,7 @@ export const RELATIVE_LOCATION_OPTIONS: Record<
     [value]: {
       value: value,
       label: RELATIVE_LOCATION_FILTER_LABELS[value],
-      badgeLabel: `Lieu de résidence\u00a0: ${RELATIVE_LOCATION_FILTER_LABELS[value].toLowerCase()}`
+      badgeLabel: `Lieu de résidence : ${RELATIVE_LOCATION_FILTER_LABELS[value].toLowerCase()}`
     }
   }),
   {} as Record<

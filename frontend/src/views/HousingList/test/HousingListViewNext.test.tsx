@@ -2126,28 +2126,31 @@ describe('Housing list view', () => {
       it.each([
         {
           optionLabel: 'À la même adresse que le logement',
-          badgeLabel:
-            'Lieu de résidence\u00a0: à la même adresse que le logement'
+          badgeLabel: 'Lieu de résidence : à la même adresse que le logement'
         },
         {
           optionLabel: 'Dans la même commune',
-          badgeLabel: 'Lieu de résidence\u00a0: dans la même commune'
+          badgeLabel: 'Lieu de résidence : dans la même commune'
         },
         {
           optionLabel: 'Dans le même département',
-          badgeLabel: 'Lieu de résidence\u00a0: dans le même département'
+          badgeLabel: 'Lieu de résidence : dans le même département'
         },
         {
           optionLabel: 'Dans la même région',
-          badgeLabel: 'Lieu de résidence\u00a0: dans la même région'
+          badgeLabel: 'Lieu de résidence : dans la même région'
         },
         {
           optionLabel: 'Dans une autre région',
-          badgeLabel: 'Lieu de résidence\u00a0: dans une autre région'
+          badgeLabel: 'Lieu de résidence : dans une autre région'
+        },
+        {
+          optionLabel: 'À l’étranger',
+          badgeLabel: 'Lieu de résidence : à l’étranger'
         },
         {
           optionLabel: 'Pas d’information',
-          badgeLabel: 'Lieu de résidence\u00a0: pas d’information'
+          badgeLabel: 'Lieu de résidence : pas d’information'
         }
       ])(
         'should display a badge "$badgeLabel"',

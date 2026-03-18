@@ -33,11 +33,15 @@ function Tooltip(props: TooltipProps) {
       return;
     }
 
+    // Let DSFR handle auto-placement natively when no manual placement is requested
+    if (!props.align && !props.place) {
+      return;
+    }
+
     function placeTooltip(event: Event): void {
       // @ts-expect-error dsfr is not typed on window
       const tooltip = window.dsfr(event.target).tooltip;
-      tooltip.mode =
-        !!props.align || !!props.place ? 'placement_manual' : 'placement_auto';
+      tooltip.mode = 'placement_manual';
       tooltip.align = props.align ? `align_${props.align}` : undefined;
       tooltip.place = props.place ? `place_${props.place}` : undefined;
     }

@@ -19,7 +19,28 @@ NC='\033[0m' # No Color
 # Configuration
 PROJECT_NAME="Zéro Logement Vacant"
 PROJECT_VERSION="${PROJECT_VERSION:-1.0}"  # Use env var or default to 1.0
-PROJECT_DATE=$(date +"%d %B %Y")
+
+# Use PROJECT_DATE env var if set, otherwise generate French date locally
+if [ -z "$PROJECT_DATE" ]; then
+    DAY=$(date +"%d")
+    MONTH_NUM=$(date +"%m")
+    YEAR=$(date +"%Y")
+    case $MONTH_NUM in
+        01) MONTH="janvier" ;;
+        02) MONTH="février" ;;
+        03) MONTH="mars" ;;
+        04) MONTH="avril" ;;
+        05) MONTH="mai" ;;
+        06) MONTH="juin" ;;
+        07) MONTH="juillet" ;;
+        08) MONTH="août" ;;
+        09) MONTH="septembre" ;;
+        10) MONTH="octobre" ;;
+        11) MONTH="novembre" ;;
+        12) MONTH="décembre" ;;
+    esac
+    PROJECT_DATE="$DAY $MONTH $YEAR"
+fi
 
 # Check prerequisites
 check_prerequisites() {
@@ -308,6 +329,19 @@ generate_pdf() {
     if [ "$USE_LATEX" = true ]; then
         # Generation via LaTeX (best quality)
         # Use xelatex for better Unicode support
+
+        # Create header file with URL handling packages
+        cat > "$TEMPLATE_DIR/header.tex" << 'HEADER'
+% URL handling - xurl allows proper line breaks in URLs
+\usepackage{xurl}
+
+% Ensure hyperref is loaded with proper settings
+\hypersetup{
+    breaklinks=true,
+    pdfborder={0 0 0}
+}
+HEADER
+
         # Create before-body file with title page
         cat > "$TEMPLATE_DIR/before-body.tex" << BEFOREBODY
 \\thispagestyle{empty}
@@ -340,6 +374,7 @@ BEFOREBODY
             -V linkcolor=blue \
             -V urlcolor=blue \
             -V toc-own-page=true \
+            -H "$TEMPLATE_DIR/header.tex" \
             -B "$TEMPLATE_DIR/before-body.tex" \
             -o "$output_file"
     else

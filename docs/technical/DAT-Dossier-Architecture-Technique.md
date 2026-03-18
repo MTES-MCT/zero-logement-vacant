@@ -2,7 +2,7 @@
 # Zéro Logement Vacant
 
 **Version:** 1.0
-**Date:** 26 février 2026
+**Date:** 18 mars 2026
 **Auteur:** Équipe Zéro Logement Vacant
 
 ---
@@ -590,8 +590,38 @@ L'application est protégée contre les attaques courantes :
 
 L'application est surveillée en permanence :
 - **Logs** : Toutes les actions sont enregistrées
-- **Alertes** : L'équipe est notifiée en cas d'anomalie
+- **Alertes** : L'équipe est notifiée en cas d'anomalie (Sentry)
 - **Monitoring** : Suivi en temps réel des performances
+
+### Infrastructure de logs (externe à l'application)
+
+La gestion des logs repose sur des **add-ons Clever Cloud**, externes à l'application elle-même :
+
+```
+┌─────────────────────────────────────────────────────────────┐
+│                     Clever Cloud                            │
+│  ┌──────────┐      ┌─────────┐      ┌──────────────────┐   │
+│  │ Backend  │─────▶│  Drain  │─────▶│   Elasticsearch  │   │
+│  │ Frontend │      │         │      │   (add-on CC)    │   │
+│  │ Queue    │      └─────────┘      └────────┬─────────┘   │
+│  └──────────┘                                │             │
+│       ▲                                      ▼             │
+│       │                              ┌──────────────┐      │
+│       │                              │    Kibana    │      │
+│       │                              │ (add-on CC)  │      │
+│       │                              └──────────────┘      │
+└───────┼─────────────────────────────────────────────────────┘
+        │
+   Logs applicatifs
+```
+
+| Composant | Type | Rôle |
+|-----------|------|------|
+| **Drain** | Configuration Clever Cloud | Redirige les logs vers Elasticsearch |
+| **Elasticsearch** | Add-on Clever Cloud | Stocke et indexe les logs (rétention 30 jours) |
+| **Kibana** | Add-on Clever Cloud | Interface de recherche et tableaux de bord |
+
+> **Note importante** : Ces composants ne font pas partie du code applicatif. Ce sont des services managés fournis par l'hébergeur. Voir le [DE - Dossier d'Exploitation](./DE-Dossier-Exploitation.md) section 8 pour les procédures de consultation et d'archivage des logs.
 
 ---
 

@@ -605,14 +605,14 @@ clever logs -f
 
 Avant de considérer le déploiement comme terminé :
 
-- [ ] Variables d'environnement configurées
-- [ ] Add-ons liés (PostgreSQL, Redis, Cellar)
-- [ ] Migrations de base de données appliquées
-- [ ] Certificats SSL valides (automatique sur Clever Cloud)
-- [ ] Health checks fonctionnels
-- [ ] Log drains configurés (vers Elasticsearch)
-- [ ] Tâches cron enregistrées
-- [ ] Sentry configuré pour le monitoring des erreurs
+- Variables d'environnement configurées
+- Add-ons liés (PostgreSQL, Redis, Cellar)
+- Migrations de base de données appliquées
+- Certificats SSL valides (automatique sur Clever Cloud)
+- Health checks fonctionnels
+- Log drains configurés (vers Elasticsearch)
+- Tâches cron enregistrées
+- Sentry configuré pour le monitoring des erreurs
 
 ---
 
@@ -930,30 +930,30 @@ clever ssh                              # Se connecter au conteneur
 
 #### Développement local
 
-- [ ] Node.js v24+ installé (`node --version`)
-- [ ] Yarn v4 activé (`corepack enable`)
-- [ ] Docker installé et démarré
-- [ ] Repository cloné
-- [ ] `yarn install` exécuté sans erreur
-- [ ] Services Docker démarrés
-- [ ] Fichiers `.env` créés (frontend, server, queue)
-- [ ] Migrations appliquées
-- [ ] Seed exécuté
-- [ ] Frontend démarre (http://localhost:3000)
-- [ ] Backend démarre (http://localhost:3001/api)
-- [ ] Tests passent (`yarn test`)
+- Node.js v24+ installé (`node --version`)
+- Yarn v4 activé (`corepack enable`)
+- Docker installé et démarré
+- Repository cloné
+- `yarn install` exécuté sans erreur
+- Services Docker démarrés
+- Fichiers `.env` créés (frontend, server, queue)
+- Migrations appliquées
+- Seed exécuté
+- Frontend démarre (http://localhost:3000)
+- Backend démarre (http://localhost:3001/api)
+- Tests passent (`yarn test`)
 
 #### Production (Clever Cloud)
 
-- [ ] Application créée
-- [ ] Add-ons liés (PostgreSQL, Redis, Cellar)
-- [ ] Variables d'environnement configurées
-- [ ] Déploiement réussi
-- [ ] Health check OK
-- [ ] Migrations appliquées
-- [ ] Crons configurés
-- [ ] Monitoring (Sentry) fonctionnel
-- [ ] SSL valide
+- Application créée
+- Add-ons liés (PostgreSQL, Redis, Cellar)
+- Variables d'environnement configurées
+- Déploiement réussi
+- Health check OK
+- Migrations appliquées
+- Crons configurés
+- Monitoring (Sentry) fonctionnel
+- SSL valide
 
 ---
 

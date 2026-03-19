@@ -44,6 +44,10 @@ export interface CampaignDTO {
   confirmedAt?: string;
   groupId?: string;
   returnCount: number | null;
+  // New fields
+  returnRate: number | null;
+  housingCount: number;
+  ownerCount: number;
 }
 
 export const CAMPAIGN_STATUS_VALUES = [

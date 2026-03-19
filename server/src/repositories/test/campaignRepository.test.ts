@@ -18,7 +18,8 @@ import {
   Events,
   formatCampaignEventApi,
   formatCampaignHousingEventApi,
-  formatEventApi
+  formatEventApi,
+  HousingEvents
 } from '~/repositories/eventRepository';
 import {
   formatHousingRecordApi,
@@ -392,12 +393,16 @@ describe('Campaign repository', () => {
       const primaryOwner = genOwnerApi();
       await Owners().insert(formatOwnerApi(primaryOwner));
       const primaryHousingOwner = genHousingOwnerApi(housing, primaryOwner);
-      await HousingOwners().insert(formatHousingOwnerApi({ ...primaryHousingOwner, rank: 1 }));
+      await HousingOwners().insert(
+        formatHousingOwnerApi({ ...primaryHousingOwner, rank: 1 })
+      );
 
       const secondaryOwner = genOwnerApi();
       await Owners().insert(formatOwnerApi(secondaryOwner));
       const secondaryHousingOwner = genHousingOwnerApi(housing, secondaryOwner);
-      await HousingOwners().insert(formatHousingOwnerApi({ ...secondaryHousingOwner, rank: 2 }));
+      await HousingOwners().insert(
+        formatHousingOwnerApi({ ...secondaryHousingOwner, rank: 2 })
+      );
 
       await HousingOwners()
         .where({ owner_id: secondaryOwner.id, housing_id: housing.id })
@@ -409,6 +414,48 @@ describe('Campaign repository', () => {
       });
 
       expect(result?.ownerCount).toBe(1);
+    });
+
+    it('should decrement return_count when a housing with return events is detached', async () => {
+      const sentAt = faker.date.past();
+      const campaign = genCampaignApi(establishment.id, user);
+      await Campaigns().insert({ ...formatCampaignApi(campaign), sent_at: sentAt });
+
+      const housing = genHousingApi();
+      await Housing().insert(formatHousingRecordApi(housing));
+
+      await CampaignsHousing().insert({
+        campaign_id: campaign.id,
+        housing_id: housing.id,
+        housing_geo_code: housing.geoCode
+      });
+
+      const event = genEventApi({
+        creator: user,
+        type: 'housing:status-updated',
+        nextOld: {},
+        nextNew: {}
+      });
+      await Events().insert({
+        ...formatEventApi(event),
+        created_at: new Date(sentAt.getTime() + 1000)
+      });
+      await HousingEvents().insert({
+        event_id: event.id,
+        housing_id: housing.id,
+        housing_geo_code: housing.geoCode
+      });
+
+      await CampaignsHousing()
+        .where({ campaign_id: campaign.id, housing_id: housing.id })
+        .delete();
+
+      const result = await campaignRepository.findOne({
+        id: campaign.id,
+        establishmentId: campaign.establishmentId
+      });
+
+      expect(result?.returnCount).toBe(0);
     });
 
     it('should compute return_rate as return_count / housing_count', async () => {

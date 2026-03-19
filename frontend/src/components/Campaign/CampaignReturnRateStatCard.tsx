@@ -4,21 +4,18 @@ import type { CampaignDTO } from '@zerologementvacant/models';
 
 import CampaignStatCard from '~/components/Campaign/CampaignStatCard';
 import Tooltip from '~/components/ui/Tooltip/Tooltip';
+import { toPercentage } from '~/utils/number-utils';
 
 interface Props {
   campaign: CampaignDTO;
-  housingCount: number;
 }
 
 function CampaignReturnRateStatCard(props: Readonly<Props>) {
-  const { campaign, housingCount } = props;
+  const { campaign } = props;
   const variant = campaign.sentAt ? 'default' : 'muted';
 
-  const returnCount = campaign.returnCount;
   const returnRate =
-    campaign.sentAt && returnCount !== null && housingCount > 0
-      ? `${Math.round((returnCount / housingCount) * 100)} %`
-      : null;
+    campaign.returnRate !== null ? toPercentage(campaign.returnRate) : null;
 
   return (
     <CampaignStatCard

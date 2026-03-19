@@ -1,5 +1,6 @@
 import { fr } from '@codegouvfr/react-dsfr';
 import { Button } from '@codegouvfr/react-dsfr/Button';
+import Stack from '@mui/material/Stack';
 import Typography from '@mui/material/Typography';
 import type { ReactNode } from 'react';
 import type { Campaign } from '../../models/Campaign';
@@ -135,29 +136,42 @@ function Group(props: GroupProps) {
         </Col>
         <Col n="12 md-3">
           <Container as="aside" className={styles.actions} fluid>
-            <GroupCampaignCreationModal
-              group={props.group}
-              housingCount={props.group.housingCount}
-              openingButtonProps={{
-                className: styles.action
-              }}
-              onSubmit={createCampaign}
-            />
-            <Button
-              className={styles.action}
-              priority="secondary"
-              iconId="ri-upload-2-line"
-              onClick={props.onExport}
+            <Stack
+              component="ul"
+              spacing="1rem"
+              useFlexGap
+              sx={{ listStyle: 'none', padding: 0, margin: 0, width: '100%' }}
             >
-              Exporter
-            </Button>
-            <GroupRemovalModal
-              campaigns={props.campaigns}
-              openingButtonProps={{
-                className: styles.action
-              }}
-              onSubmit={removeGroup}
-            />
+              <li>
+                <GroupCampaignCreationModal
+                  group={props.group}
+                  housingCount={props.group.housingCount}
+                  openingButtonProps={{
+                    className: styles.action
+                  }}
+                  onSubmit={createCampaign}
+                />
+              </li>
+              <li>
+                <Button
+                  className={styles.action}
+                  priority="secondary"
+                  iconId="ri-upload-2-line"
+                  onClick={props.onExport}
+                >
+                  Exporter
+                </Button>
+              </li>
+              <li>
+                <GroupRemovalModal
+                  campaigns={props.campaigns}
+                  openingButtonProps={{
+                    className: styles.action
+                  }}
+                  onSubmit={removeGroup}
+                />
+              </li>
+            </Stack>
           </Container>
         </Col>
       </Row>

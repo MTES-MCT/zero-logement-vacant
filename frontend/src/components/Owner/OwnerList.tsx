@@ -23,14 +23,21 @@ function OwnerList(props: OwnerListProps) {
   }
 
   return (
-    <Stack component="article" spacing="0.75rem" useFlexGap>
+    <Stack
+      component="ul"
+     
+      spacing="0.75rem"
+      useFlexGap
+      sx={{ listStyle: 'none', padding: 0, margin: 0 }}
+    >
       {props.owners.map((owner) => (
-        <OtherOwnerCard
-          key={owner.id}
-          id={owner.id}
-          name={owner.fullName}
-          propertyRight={owner.propertyRight}
-        />
+        <li key={owner.id}>
+          <OtherOwnerCard
+            id={owner.id}
+            name={owner.fullName}
+            propertyRight={owner.propertyRight}
+          />
+        </li>
       ))}
     </Stack>
   );

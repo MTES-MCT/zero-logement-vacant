@@ -5,9 +5,16 @@
       "entry": [],
       "project": [],
       "ignoreDependencies": [
+        "@eslint/compat",
+        "@eslint/eslintrc",
         "clever-tools",
+        "eslint-plugin-jest",
+        "eslint-plugin-prettier",
+        "eslint-plugin-testing-library",
+        "jsonc-eslint-parser",
         "madr",
-        "npq"
+        "npq",
+        "prettier"
       ]
     },
     "frontend": {
@@ -29,11 +36,17 @@
         "src/scripts/**/index.ts",
         "src/scripts/**/cli.ts"
       ],
-      "project": ["src/**/*.ts"]
+      "project": ["src/**/*.ts"],
+      "ignoreDependencies": [
+        "pg",
+        "pg-query-stream",
+        "@sentry/integrations"
+      ]
     },
     "queue": {
       "entry": ["src/bin/index.ts"],
-      "project": ["src/**/*.ts"]
+      "project": ["src/**/*.ts"],
+      "ignoreDependencies": ["@sentry/integrations"]
     },
     "e2e": {
       "entry": ["cypress/**/*.ts"],
@@ -69,7 +82,8 @@
     },
     "packages/utils": {
       "entry": ["src/index.ts", "src/node.ts"],
-      "project": ["src/**/*.ts"]
+      "project": ["src/**/*.ts"],
+      "ignoreDependencies": ["pino-pretty"]
     }
   }
 }

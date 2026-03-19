@@ -198,7 +198,12 @@ export const parseCampaignApi = (campaign: CampaignDBO): CampaignApi => ({
   returnRate: campaign.sent_at ? campaign.return_rate : null
 });
 
-export const formatCampaignApi = (campaign: CampaignApi): Omit<CampaignDBO, 'housing_count' | 'owner_count' | 'return_rate' | 'creator'> => ({
+export const formatCampaignApi = (
+  campaign: CampaignApi
+): Omit<
+  CampaignDBO,
+  'housing_count' | 'owner_count' | 'return_rate' | 'creator'
+> => ({
   id: campaign.id,
   establishment_id: campaign.establishmentId,
   status: campaign.status,

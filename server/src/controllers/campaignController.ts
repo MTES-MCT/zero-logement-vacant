@@ -55,6 +55,7 @@ import { HousingApi, shouldReset } from '~/models/HousingApi';
 import housingFiltersApi from '~/models/HousingFiltersApi';
 import type { SenderApi } from '~/models/SenderApi';
 import sortApi from '~/models/SortApi';
+import campaignDraftRepository from '~/repositories/campaignDraftRepository';
 import campaignHousingRepository from '~/repositories/campaignHousingRepository';
 import campaignRepository from '~/repositories/campaignRepository';
 import draftRepository from '~/repositories/draftRepository';
@@ -496,6 +497,7 @@ const createFromGroup: RequestHandler<
     await senderRepository.save(sender);
     await draftRepository.save(draft);
     await campaignRepository.save(campaign);
+    await campaignDraftRepository.save(campaign, draft);
 
     await Promise.all([
       campaignHousingRepository.insertHousingList(campaign.id, housings),

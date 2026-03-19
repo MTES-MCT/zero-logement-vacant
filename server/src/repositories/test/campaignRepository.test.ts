@@ -24,12 +24,19 @@ import {
   formatHousingRecordApi,
   Housing
 } from '~/repositories/housingRepository';
+import {
+  formatHousingOwnerApi,
+  HousingOwners
+} from '~/repositories/housingOwnerRepository';
+import { formatOwnerApi, Owners } from '~/repositories/ownerRepository';
 import { formatUserApi, Users } from '~/repositories/userRepository';
 import {
   genCampaignApi,
   genEstablishmentApi,
   genEventApi,
   genHousingApi,
+  genHousingOwnerApi,
+  genOwnerApi,
   genUserApi
 } from '~/test/testFixtures';
 
@@ -222,6 +229,209 @@ describe('Campaign repository', () => {
       expect(actual).toSatisfyAll<CampaignHousingEventDBO>(
         (event) => event.campaign_id === null
       );
+    });
+  });
+
+  describe('triggers', () => {
+    const establishment = genEstablishmentApi();
+    const user = genUserApi(establishment.id);
+
+    beforeAll(async () => {
+      await Establishments().insert(formatEstablishmentApi(establishment));
+      await Users().insert(formatUserApi(user));
+    });
+
+    it('should increment housing_count when housing is added to campaign', async () => {
+      const campaign = genCampaignApi(establishment.id, user);
+      await Campaigns().insert(formatCampaignApi(campaign));
+
+      const housing = genHousingApi();
+      await Housing().insert(formatHousingRecordApi(housing));
+
+      await CampaignsHousing().insert({
+        campaign_id: campaign.id,
+        housing_id: housing.id,
+        housing_geo_code: housing.geoCode
+      });
+
+      const result = await campaignRepository.findOne({
+        id: campaign.id,
+        establishmentId: campaign.establishmentId
+      });
+
+      expect(result?.housingCount).toBe(1);
+    });
+
+    it('should decrement housing_count when housing is removed from campaign', async () => {
+      const campaign = genCampaignApi(establishment.id, user);
+      await Campaigns().insert(formatCampaignApi(campaign));
+
+      const housing = genHousingApi();
+      await Housing().insert(formatHousingRecordApi(housing));
+
+      await CampaignsHousing().insert({
+        campaign_id: campaign.id,
+        housing_id: housing.id,
+        housing_geo_code: housing.geoCode
+      });
+
+      await CampaignsHousing()
+        .where({ campaign_id: campaign.id, housing_id: housing.id })
+        .delete();
+
+      const result = await campaignRepository.findOne({
+        id: campaign.id,
+        establishmentId: campaign.establishmentId
+      });
+
+      expect(result?.housingCount).toBe(0);
+    });
+
+    it('should increment owner_count when a primary owner is added to housing in campaign', async () => {
+      const campaign = genCampaignApi(establishment.id, user);
+      await Campaigns().insert(formatCampaignApi(campaign));
+
+      const housing = genHousingApi();
+      await Housing().insert(formatHousingRecordApi(housing));
+
+      await CampaignsHousing().insert({
+        campaign_id: campaign.id,
+        housing_id: housing.id,
+        housing_geo_code: housing.geoCode
+      });
+
+      const owner = genOwnerApi();
+      await Owners().insert(formatOwnerApi(owner));
+
+      const housingOwner = genHousingOwnerApi(housing, owner);
+      await HousingOwners().insert(formatHousingOwnerApi({ ...housingOwner, rank: 1 }));
+
+      const result = await campaignRepository.findOne({
+        id: campaign.id,
+        establishmentId: campaign.establishmentId
+      });
+
+      expect(result?.ownerCount).toBe(1);
+    });
+
+    it('should decrement owner_count when a primary owner is removed from housing in campaign', async () => {
+      const campaign = genCampaignApi(establishment.id, user);
+      await Campaigns().insert(formatCampaignApi(campaign));
+
+      const housing = genHousingApi();
+      await Housing().insert(formatHousingRecordApi(housing));
+
+      await CampaignsHousing().insert({
+        campaign_id: campaign.id,
+        housing_id: housing.id,
+        housing_geo_code: housing.geoCode
+      });
+
+      const owner = genOwnerApi();
+      await Owners().insert(formatOwnerApi(owner));
+
+      const housingOwner = genHousingOwnerApi(housing, owner);
+      await HousingOwners().insert(formatHousingOwnerApi({ ...housingOwner, rank: 1 }));
+
+      await HousingOwners()
+        .where({ owner_id: owner.id, housing_id: housing.id })
+        .delete();
+
+      const result = await campaignRepository.findOne({
+        id: campaign.id,
+        establishmentId: campaign.establishmentId
+      });
+
+      expect(result?.ownerCount).toBe(0);
+    });
+
+    it('should decrement owner_count when owner rank changes from 1 to 2', async () => {
+      const campaign = genCampaignApi(establishment.id, user);
+      await Campaigns().insert(formatCampaignApi(campaign));
+
+      const housing = genHousingApi();
+      await Housing().insert(formatHousingRecordApi(housing));
+
+      await CampaignsHousing().insert({
+        campaign_id: campaign.id,
+        housing_id: housing.id,
+        housing_geo_code: housing.geoCode
+      });
+
+      const owner = genOwnerApi();
+      await Owners().insert(formatOwnerApi(owner));
+
+      const housingOwner = genHousingOwnerApi(housing, owner);
+      await HousingOwners().insert(formatHousingOwnerApi({ ...housingOwner, rank: 1 }));
+
+      await HousingOwners()
+        .where({ owner_id: owner.id, housing_id: housing.id })
+        .update({ rank: 2 });
+
+      const result = await campaignRepository.findOne({
+        id: campaign.id,
+        establishmentId: campaign.establishmentId
+      });
+
+      expect(result?.ownerCount).toBe(0);
+    });
+
+    it('should not change owner_count when rank changes between non-primary values', async () => {
+      const campaign = genCampaignApi(establishment.id, user);
+      await Campaigns().insert(formatCampaignApi(campaign));
+
+      const housing = genHousingApi();
+      await Housing().insert(formatHousingRecordApi(housing));
+
+      await CampaignsHousing().insert({
+        campaign_id: campaign.id,
+        housing_id: housing.id,
+        housing_geo_code: housing.geoCode
+      });
+
+      const primaryOwner = genOwnerApi();
+      await Owners().insert(formatOwnerApi(primaryOwner));
+      const primaryHousingOwner = genHousingOwnerApi(housing, primaryOwner);
+      await HousingOwners().insert(formatHousingOwnerApi({ ...primaryHousingOwner, rank: 1 }));
+
+      const secondaryOwner = genOwnerApi();
+      await Owners().insert(formatOwnerApi(secondaryOwner));
+      const secondaryHousingOwner = genHousingOwnerApi(housing, secondaryOwner);
+      await HousingOwners().insert(formatHousingOwnerApi({ ...secondaryHousingOwner, rank: 2 }));
+
+      await HousingOwners()
+        .where({ owner_id: secondaryOwner.id, housing_id: housing.id })
+        .update({ rank: 3 });
+
+      const result = await campaignRepository.findOne({
+        id: campaign.id,
+        establishmentId: campaign.establishmentId
+      });
+
+      expect(result?.ownerCount).toBe(1);
+    });
+
+    it('should compute return_rate as return_count / housing_count', async () => {
+      const campaign = genCampaignApi(establishment.id, user);
+      await Campaigns().insert({ ...formatCampaignApi(campaign), return_count: 4, sent_at: new Date() });
+
+      const housings = faker.helpers.multiple(() => genHousingApi(), { count: 10 });
+      await Housing().insert(housings.map(formatHousingRecordApi));
+
+      await CampaignsHousing().insert(
+        housings.map((housing) => ({
+          campaign_id: campaign.id,
+          housing_id: housing.id,
+          housing_geo_code: housing.geoCode
+        }))
+      );
+
+      const result = await campaignRepository.findOne({
+        id: campaign.id,
+        establishmentId: campaign.establishmentId
+      });
+
+      expect(result?.returnRate).toBeCloseTo(0.4);
     });
   });
 });

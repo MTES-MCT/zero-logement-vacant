@@ -52,21 +52,6 @@ const get: RequestHandler<
   response.status(constants.HTTP_STATUS_OK).json(establishment);
 };
 
-const get: RequestHandler<{ id: string }, EstablishmentDTO> = async (
-  request,
-  response
-): Promise<void> => {
-  const { params } = request;
-  logger.info('Get establishment', { id: params.id });
-
-  const establishment = await establishmentRepository.get(params.id);
-  if (!establishment) {
-    throw new EstablishmentMissingError(params.id);
-  }
-  
-  response.status(constants.HTTP_STATUS_OK).json(establishment);
-}
-
 export default {
   list,
   get

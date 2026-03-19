@@ -131,20 +131,48 @@ export interface CampaignDBO {
   id: string;
   title: string;
   description: string;
+  /**
+   * @deprecated
+   */
   status: CampaignStatus;
+  /**
+   * @deprecated
+   */
   filters: HousingFiltersDTO;
+  /**
+   * @deprecated
+   */
   file?: string;
+
   user_id: string;
+  creator?: UserDBO;
+
   created_at: Date;
+  /**
+   * @deprecated
+   */
   validated_at?: Date;
+  /**
+   * @deprecated
+   */
   exported_at?: Date;
   sent_at?: Date;
+  /**
+   * @deprecated
+   */
   archived_at?: Date;
+  /**
+   * @deprecated
+   */
   confirmed_at?: Date;
+
   establishment_id: string;
   group_id?: string;
+
+  housing_count: number;
+  owner_count: number;
   return_count: number;
-  creator?: UserDBO;
+  return_rate: number | null;
 }
 
 export const parseCampaignApi = (campaign: CampaignDBO): CampaignApi => ({
@@ -164,10 +192,18 @@ export const parseCampaignApi = (campaign: CampaignDBO): CampaignApi => ({
   title: campaign.title,
   description: campaign.description,
   groupId: campaign.group_id,
-  returnCount: campaign.sent_at ? campaign.return_count : null
+  returnCount: campaign.sent_at ? campaign.return_count : null,
+  housingCount: campaign.housing_count,
+  ownerCount: campaign.owner_count,
+  returnRate: campaign.sent_at ? campaign.return_rate : null
 });
 
-export const formatCampaignApi = (campaign: CampaignApi): CampaignDBO => ({
+export const formatCampaignApi = (
+  campaign: CampaignApi
+): Omit<
+  CampaignDBO,
+  'housing_count' | 'owner_count' | 'return_rate' | 'creator'
+> => ({
   id: campaign.id,
   establishment_id: campaign.establishmentId,
   status: campaign.status,

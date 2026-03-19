@@ -149,10 +149,7 @@ function CampaignViewNext() {
             onOpenModal={sentAtModal.open}
           />
           <CampaignReturnCountStatCard campaign={campaign} />
-          <CampaignReturnRateStatCard
-            campaign={campaign}
-            housingCount={housingCount}
-          />
+          <CampaignReturnRateStatCard campaign={campaign} />
         </Stack>
 
         <Tabs
@@ -163,9 +160,14 @@ function CampaignViewNext() {
             },
             {
               label: 'Courrier',
-              content: getCampaignDraftQuery.isSuccess && getCampaignDraftQuery.data ? (
-                <DraftForm campaign={campaign} draft={getCampaignDraftQuery.data} />
-              ) : null
+              content:
+                getCampaignDraftQuery.isSuccess &&
+                getCampaignDraftQuery.data ? (
+                  <DraftForm
+                    campaign={campaign}
+                    draft={getCampaignDraftQuery.data}
+                  />
+                ) : null
             }
           ]}
         />

@@ -13,7 +13,7 @@ const schema = object({
 });
 type FormValues = InferType<typeof schema>;
 
-interface Props {
+export interface CampaignSentAtModalProps {
   sentAt: string | null;
   /**
    * @param date - An ISO date (YYYY-MM-DD)
@@ -29,7 +29,7 @@ export function createCampaignSentAtModal() {
 
   return {
     ...modal,
-    Component(props: Readonly<Props>) {
+    Component(props: Readonly<CampaignSentAtModalProps>) {
       const form = useForm<FormValues>({
         values: {
           sentAt: props.sentAt ?? ''

@@ -1,10 +1,15 @@
-import { dateSort } from '../utils/dateUtils';
-import type { Sort } from './Sort';
 import type { CampaignDTO, CampaignStatus } from '@zerologementvacant/models';
 
+import type { Group } from '~/models/Group';
+import type { Sort } from '~/models/Sort';
+import { dateSort } from '~/utils/dateUtils';
+
 export interface Campaign extends CampaignDTO {
+  /**
+   * @deprecated
+   */
   exportURL: string;
-  groupId?: string;
+  groupId?: Group['id'];
 }
 
 export const CampaignSteps = {
@@ -73,6 +78,9 @@ export function fromCampaignDTO(campaign: CampaignDTO): Campaign {
     filters: campaign.filters,
     file: campaign.file,
     returnCount: campaign.returnCount,
+    returnRate: campaign.returnRate,
+    housingCount: campaign.housingCount,
+    ownerCount: campaign.ownerCount,
     // TODO: fix this
     exportURL: ''
   };

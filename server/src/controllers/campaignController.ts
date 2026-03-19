@@ -55,6 +55,7 @@ import { HousingApi, shouldReset } from '~/models/HousingApi';
 import housingFiltersApi from '~/models/HousingFiltersApi';
 import type { SenderApi } from '~/models/SenderApi';
 import sortApi from '~/models/SortApi';
+import campaignDraftRepository from '~/repositories/campaignDraftRepository';
 import campaignHousingRepository from '~/repositories/campaignHousingRepository';
 import campaignRepository from '~/repositories/campaignRepository';
 import draftRepository from '~/repositories/draftRepository';
@@ -323,9 +324,40 @@ const createCampaignFromGroup: RequestHandler<
     establishmentId: auth.establishmentId,
     returnCount: null
   };
+  const sender: SenderApi = {
+    id: uuidv4(),
+    name: null,
+    service: null,
+    firstName: null,
+    lastName: null,
+    address: null,
+    email: null,
+    phone: null,
+    signatories: [null, null],
+    establishmentId: auth.establishmentId,
+    createdAt: new Date().toJSON(),
+    updatedAt: new Date().toJSON()
+  };
+  const draft: DraftApi = {
+    id: uuidv4(),
+    body: null,
+    subject: null,
+    writtenAt: null,
+    writtenFrom: null,
+    logo: null,
+    logoNext: [null, null],
+    sender,
+    senderId: sender.id,
+    establishmentId: auth.establishmentId,
+    createdAt: new Date().toJSON(),
+    updatedAt: new Date().toJSON()
+  };
 
   await startTransaction(async () => {
     await campaignRepository.save(campaign);
+    await senderRepository.save(sender);
+    await draftRepository.save(draft);
+    await campaignDraftRepository.save(campaign, draft);
 
     const housings = await housingRepository.find({
       filters: {
@@ -487,6 +519,7 @@ const createFromGroup: RequestHandler<
     await senderRepository.save(sender);
     await draftRepository.save(draft);
     await campaignRepository.save(campaign);
+    await campaignDraftRepository.save(campaign, draft);
 
     await Promise.all([
       campaignHousingRepository.insertHousingList(campaign.id, housings),

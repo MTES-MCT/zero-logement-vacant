@@ -81,6 +81,63 @@ describe('Campaign repository', () => {
 
       expect(result?.returnCount).toBeNull();
     });
+
+    it('should expose housingCount from the database', async () => {
+      const campaign = genCampaignApi(establishment.id, user);
+      await Campaigns().insert({ ...formatCampaignApi(campaign), housing_count: 3 });
+
+      const result = await campaignRepository.findOne({
+        id: campaign.id,
+        establishmentId: campaign.establishmentId
+      });
+
+      expect(result?.housingCount).toBe(3);
+    });
+
+    it('should expose ownerCount from the database', async () => {
+      const campaign = genCampaignApi(establishment.id, user);
+      await Campaigns().insert({ ...formatCampaignApi(campaign), owner_count: 2 });
+
+      const result = await campaignRepository.findOne({
+        id: campaign.id,
+        establishmentId: campaign.establishmentId
+      });
+
+      expect(result?.ownerCount).toBe(2);
+    });
+
+    it('should expose returnRate from the database when sentAt is set', async () => {
+      const campaign = genCampaignApi(establishment.id, user);
+      await Campaigns().insert({
+        ...formatCampaignApi(campaign),
+        housing_count: 10,
+        return_count: 4,
+        sent_at: new Date()
+      });
+
+      const result = await campaignRepository.findOne({
+        id: campaign.id,
+        establishmentId: campaign.establishmentId
+      });
+
+      expect(result?.returnRate).toBeCloseTo(0.4);
+    });
+
+    it('should expose returnRate as null when sentAt is null', async () => {
+      const campaign = genCampaignApi(establishment.id, user);
+      await Campaigns().insert({
+        ...formatCampaignApi(campaign),
+        housing_count: 10,
+        return_count: 0
+      });
+
+      const result = await campaignRepository.findOne({
+        id: campaign.id,
+        establishmentId: campaign.establishmentId
+      });
+
+      expect(result?.returnRate).toBeNull();
+    });
   });
 
   describe('remove', () => {

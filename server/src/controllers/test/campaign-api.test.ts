@@ -370,7 +370,10 @@ describe('Campaign API', () => {
         },
         createdAt: expect.any(String),
         createdBy: expect.objectContaining({ id: user.id }),
-        returnCount: null
+        returnCount: null,
+        returnRate: null,
+        housingCount: expect.any(Number),
+        ownerCount: expect.any(Number)
       });
       const campaign = await Campaigns().where({ id: body.id }).first();
       expect(campaign).not.toBeNull();
@@ -605,7 +608,10 @@ describe('Campaign API', () => {
         sentAt: payload.sentAt,
         createdAt: expect.any(String),
         createdBy: expect.objectContaining({ id: user.id }),
-        returnCount: null
+        returnCount: null,
+        returnRate: null,
+        housingCount: expect.any(Number),
+        ownerCount: expect.any(Number)
       });
     });
 
@@ -805,7 +811,10 @@ describe('Campaign API', () => {
         },
         createdAt: expect.any(String),
         createdBy: expect.objectContaining({ id: user.id }),
-        returnCount: null
+        returnCount: null,
+        returnRate: null,
+        housingCount: expect.any(Number),
+        ownerCount: expect.any(Number)
       });
     });
 

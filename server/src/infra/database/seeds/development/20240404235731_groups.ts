@@ -19,6 +19,7 @@ import { parseUserApi, Users } from '~/repositories/userRepository';
 import { genGroupApi } from '~/test/testFixtures';
 
 export async function seed(knex: Knex): Promise<void> {
+  console.time('20240404235731_groups');
   await GroupsHousing(knex).delete();
   await Groups(knex).delete();
 
@@ -40,7 +41,7 @@ export async function seed(knex: Knex): Promise<void> {
         );
       },
       {
-        count: { min: 1, max: 5 }
+        count: { min: 2, max: 5 }
       }
     );
     const groupHousings = groups.flatMap((group) => {
@@ -62,6 +63,9 @@ export async function seed(knex: Knex): Promise<void> {
       housings: groupHousings.length
     });
     await knex.batchInsert(GROUPS_TABLE, groups.map(formatGroupApi));
+    console.log(`Linking ${groupHousings.length} housings to groups...`);
     await knex.batchInsert(GROUPS_HOUSING_TABLE, groupHousings);
   });
+  console.timeEnd('20240404235731_groups');
+  console.log('\n')
 }

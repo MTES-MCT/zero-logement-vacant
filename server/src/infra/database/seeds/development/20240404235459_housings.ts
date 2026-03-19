@@ -1,13 +1,14 @@
 import { faker } from '@faker-js/faker/locale/fr';
 import * as turf from '@turf/turf';
-
 import { AddressKinds, OWNER_RANKS } from '@zerologementvacant/models';
 import async from 'async';
 import { Array, pipe } from 'effect';
 import { Feature, MultiPolygon, Polygon, Position } from 'geojson';
 import { Knex } from 'knex';
-import { memoize } from 'lodash-es';
+import pMemoize from 'p-memoize';
+import pRetry from 'p-retry';
 import { ElementOf } from 'ts-essentials';
+
 import { AddressApi } from '~/models/AddressApi';
 import { HousingApi } from '~/models/HousingApi';
 import { HousingOwnerApi } from '~/models/HousingOwnerApi';
@@ -34,6 +35,7 @@ import { createBanAPI } from '~/services/ban/ban-api';
 import { genHousingApi, genHousingOwnerApi } from '~/test/testFixtures';
 
 export async function seed(knex: Knex): Promise<void> {
+  console.time('20240404235459_housings');
   const ban = createBanAPI();
 
   await knex.raw(`TRUNCATE TABLE ${housingOwnersTable} CASCADE`);
@@ -47,7 +49,7 @@ export async function seed(knex: Knex): Promise<void> {
       .then((owners) => owners.map(parseOwnerApi))
   ]);
 
-  await async.forEachSeries(establishments, async (establishment) => {
+  await async.forEach(establishments, async (establishment) => {
     const geoCodes = faker.helpers.arrayElements(
       establishment.localities_geo_code,
       30
@@ -162,27 +164,38 @@ export async function seed(knex: Knex): Promise<void> {
       housingOwners.map(formatHousingOwnerApi)
     );
   });
+  console.timeEnd('20240404235459_housings');
+  console.log('\n')
 }
 
 async function perimeter(
   geoCode: string
 ): Promise<Feature<Polygon | MultiPolygon>> {
-  const response = await fetch(
-    `https://geo.api.gouv.fr/communes/${geoCode}?format=geojson&geometry=contour`
-  );
-  if (!response.ok) {
-    const error = await response.json();
-    console.log(error);
-    throw new Error('Failed to fetch geojson');
-  }
+  return pRetry(
+    async () => {
+      const response = await fetch(
+        `https://geo.api.gouv.fr/communes/${geoCode}?format=geojson&geometry=contour`
+      );
+      if (!response.ok) {
+        console.warn(
+          `Failed to fetch communes ${geoCode}: ${response.status} ${response.statusText}`
+        );
+        throw new Error('Failed to fetch geojson');
+      }
 
-  const perimeter = await response.json();
-  return perimeter as Feature<Polygon | MultiPolygon>;
+      const perimeter = await response.json();
+      return perimeter as Feature<Polygon | MultiPolygon>;
+    },
+    {
+      retries: 10,
+      maxRetryTime: 60_000
+    }
+  );
 }
 
 // Memoize this function to avoid fetching the same perimeter multiple times
 // and running out of requests on geo.api.gouv.fr
-const fetchPerimeter = memoize(perimeter);
+const fetchPerimeter = pMemoize(perimeter);
 
 function generatePointInside(perimeter: Polygon | MultiPolygon): Position {
   function generate(): Position {

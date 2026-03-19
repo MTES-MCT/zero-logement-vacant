@@ -11,6 +11,7 @@ import { parseUserApi, Users } from '~/repositories/userRepository';
 import { genGeoPerimeterApi } from '~/test/testFixtures';
 
 export async function seed(knex: Knex): Promise<void> {
+  console.time('20241001160603_perimeters');
   await GeoPerimeters(knex).delete();
 
   const establishments = await Establishments(knex).where({ available: true });
@@ -29,10 +30,11 @@ export async function seed(knex: Knex): Promise<void> {
         count: { min: 3, max: 10 }
       }
     );
-    console.log('Inserting perimeters...', {
-      establishment: establishment.name,
-      perimeters: perimeters.length
+    console.log(`Inserting ${perimeters.length} perimeters...`, {
+      establishment: establishment.name
     });
     await GeoPerimeters(knex).insert(perimeters.map(formatGeoPerimeterApi));
   });
+  console.timeEnd('20241001160603_perimeters');
+  console.log('\n')
 }

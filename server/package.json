@@ -71,6 +71,7 @@
     "multer": "2.1.0",
     "nock": "13.5.6",
     "nodemailer": "7.0.11",
+    "p-memoize": "8.0.0",
     "p-retry": "6.2.1",
     "parse-redis-url-simple": "1.0.2",
     "pdf-lib": "1.17.1",

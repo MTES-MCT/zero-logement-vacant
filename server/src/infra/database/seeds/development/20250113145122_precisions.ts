@@ -15,6 +15,7 @@ import {
 const PRECISION_TABLE = 'precisions';
 
 export async function seed(knex: Knex): Promise<void> {
+  console.time('20250113145122_precisions');
   await knex.raw(`TRUNCATE TABLE ${PRECISION_TABLE} CASCADE`);
 
   const precisions: ReadonlyArray<PrecisionApi> =
@@ -56,9 +57,10 @@ export async function seed(knex: Knex): Promise<void> {
     })
     .flat();
 
-  console.log('Linking precisions to housings...', {
-    precisions: precisions.length,
-    housings: housingPrecisions.length
-  });
+  console.log(
+    `Linking ${precisions.length} precisions to ${housingPrecisions.length} housings...`
+  );
   await knex.batchInsert(HOUSING_PRECISION_TABLE, housingPrecisions);
+  console.timeEnd('20250113145122_precisions');
+  console.log('\n')
 }

@@ -11,6 +11,7 @@ import { resetLinkTable } from '~/repositories/resetLinkRepository';
 import { signupLinkTable } from '~/repositories/signupLinkRepository';
 
 export async function seed(knex: Knex): Promise<void> {
+  console.time('20240404234042_load-common-data');
   // Clean up
   const tables = [
     establishmentsTable,
@@ -52,6 +53,8 @@ export async function seed(knex: Knex): Promise<void> {
     await load(file.script, file.data);
   });
   console.log('Loaded common data.');
+  console.timeEnd('20240404234042_load-common-data');
+  console.log('\n')
 }
 
 /**

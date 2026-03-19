@@ -1,6 +1,8 @@
 import { faker } from '@faker-js/faker/locale/fr';
 import * as turf from '@turf/turf';
 import { AddressKinds } from '@zerologementvacant/models';
+import { genGeoCode } from '@zerologementvacant/models/fixtures';
+import async from 'async';
 import {
   MultiPolygon,
   Polygon,
@@ -8,9 +10,10 @@ import {
   type FeatureCollection
 } from 'geojson';
 import { Knex } from 'knex';
+import pMemoize from 'p-memoize';
+import pRetry from 'p-retry';
 
-import { genGeoCode } from '@zerologementvacant/models/fixtures';
-import async from 'async';
+import { AddressApi } from '~/models/AddressApi';
 import {
   Addresses,
   banAddressesTable,
@@ -20,9 +23,9 @@ import { Establishments } from '~/repositories/establishmentRepository';
 import { formatOwnerApi, ownerTable } from '~/repositories/ownerRepository';
 import { createBanAPI } from '~/services/ban/ban-api';
 import { genOwnerApi } from '~/test/testFixtures';
-import { AddressApi } from '~/models/AddressApi';
 
 export async function seed(knex: Knex): Promise<void> {
+  console.time('20240404235456_owners');
   await knex.raw(`TRUNCATE TABLE ${ownerTable} CASCADE`);
   await Addresses(knex).where({ address_kind: AddressKinds.Owner }).delete();
 
@@ -32,6 +35,7 @@ export async function seed(knex: Knex): Promise<void> {
   // Skip seeding if no establishments are available
   if (establishments.length === 0) {
     console.log('No available establishments found. Skipping owners seed.');
+    console.timeEnd('20240404235456_owners');
     return;
   }
 
@@ -52,6 +56,7 @@ export async function seed(knex: Knex): Promise<void> {
   // Skip if no valid communes were fetched
   if (communesByDepartment.length === 0) {
     console.log('No valid communes fetched. Skipping owners seed.');
+    console.timeEnd('20240404235456_owners');
     return;
   }
 
@@ -88,7 +93,7 @@ export async function seed(knex: Knex): Promise<void> {
   await knex.batchInsert(ownerTable, owners.map(formatOwnerApi));
 
   console.log(`Inserting ${addresses.length} addresses...`);
-  console.log(`Linking addresses to owners...`);
+  console.log(`Linking ${addresses.length} addresses to owners...`);
   const ownerAddresses = addresses.map<AddressApi>((address) => ({
     ...address,
     addressKind: AddressKinds.Owner,
@@ -99,26 +104,36 @@ export async function seed(knex: Knex): Promise<void> {
     banAddressesTable,
     ownerAddresses.map(formatAddressApi)
   );
+  console.timeEnd('20240404235456_owners');
+  console.log('\n')
 }
 
-async function fetchCommunes(
+async function doFetchCommunes(
   department: string
 ): Promise<FeatureCollection<Polygon | MultiPolygon>> {
-  const response = await fetch(
-    `https://geo.api.gouv.fr/departements/${department}/communes?format=geojson&geometry=contour`
-  );
-  if (!response.ok) {
-    console.warn(`Failed to fetch communes for department ${department}: ${response.status} ${response.statusText}`);
-    // Return empty FeatureCollection instead of throwing
-    return {
-      type: 'FeatureCollection',
-      features: []
-    };
-  }
+  return pRetry(
+    async () => {
+      const response = await fetch(
+        `https://geo.api.gouv.fr/departements/${department}/communes?format=geojson&geometry=contour`
+      );
+      if (!response.ok) {
+        console.warn(
+          `Failed to fetch communes for department ${department}: ${response.status} ${response.statusText}`
+        );
+        throw new Error('Failed to fetch communes');
+      }
 
-  const perimeters = await response.json();
-  return perimeters as FeatureCollection<Polygon | MultiPolygon>;
+      const perimeters = await response.json();
+      return perimeters as FeatureCollection<Polygon | MultiPolygon>;
+    },
+    {
+      retries: 10,
+      maxRetryTime: 30_000
+    }
+  );
 }
+
+const fetchCommunes = pMemoize(doFetchCommunes);
 
 function generatePointInside(perimeter: Polygon | MultiPolygon): Position {
   function generate(): Position {

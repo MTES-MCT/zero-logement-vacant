@@ -128,8 +128,9 @@ export async function down(knex: Knex): Promise<void> {
   await knex.raw('DROP FUNCTION IF EXISTS update_campaign_owner_count');
   await knex.raw('DROP TRIGGER IF EXISTS trg_update_campaign_counts ON campaigns_housing');
   await knex.raw('DROP FUNCTION IF EXISTS update_campaign_counts');
+  // Drop return_rate first — it is GENERATED ALWAYS AS and references housing_count
+  await knex.raw('ALTER TABLE campaigns DROP COLUMN IF EXISTS return_rate');
   await knex.schema.alterTable('campaigns', (table) => {
-    table.dropColumn('return_rate');
     table.dropColumn('owner_count');
     table.dropColumn('housing_count');
   });

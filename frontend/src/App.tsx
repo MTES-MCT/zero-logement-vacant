@@ -21,6 +21,7 @@ import UsersView from '~/views/Account/Profile/UsersView';
 import ResetPasswordView from '~/views/Account/ResetPasswordView';
 import AnalysisView from '~/views/Analysis/AnalysisView';
 import CampaignListView from '~/views/Campaign/CampaignListView';
+import CampaignListViewNext from '~/views/Campaign/CampaignListViewNext';
 import CampaignView from '~/views/Campaign/CampaignView';
 import CampaignViewNext from '~/views/Campaign/CampaignViewNext';
 import GroupView from '~/views/Group/GroupView';
@@ -79,7 +80,16 @@ const router = sentry.createBrowserRouter(
             />
           }
         />
-        <Route path="/campagnes" element={<CampaignListView />} />
+        <Route
+          path="/campagnes"
+          element={
+            <FeatureFlagLayout
+              flag="new-campaigns"
+              then={<CampaignListViewNext />}
+              else={<CampaignListView />}
+            />
+          }
+        />
         <Route
           path="/campagnes/:id"
           element={

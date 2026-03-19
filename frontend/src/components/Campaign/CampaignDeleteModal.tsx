@@ -1,3 +1,4 @@
+import type { SetRequired } from 'type-fest';
 import { createPortal } from 'react-dom';
 
 import {
@@ -6,11 +7,12 @@ import {
   type ConfirmationModalProps
 } from '~/components/modals/ConfirmationModal/ConfirmationModalNext';
 
-export type CreateCampaignDeleteModalOptions = Partial<ConfirmationModalOptions>;
+export type CreateCampaignDeleteModalOptions =
+  Partial<ConfirmationModalOptions>;
 
-export type CampaignDeleteModalProps = Omit<
-  ConfirmationModalProps,
-  'title' | 'children'
+export type CampaignDeleteModalProps = SetRequired<
+  Omit<ConfirmationModalProps, 'title' | 'children'>,
+  'onSubmit'
 >;
 
 export function createCampaignDeleteModal(

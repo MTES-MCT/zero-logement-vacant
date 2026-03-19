@@ -1,0 +1,186 @@
+import { faker } from '@faker-js/faker/locale/fr';
+import { render, screen, within } from '@testing-library/react';
+import userEvent from '@testing-library/user-event';
+import {
+  UserRole,
+  type CampaignDTO,
+  type EstablishmentDTO,
+  type UserDTO
+} from '@zerologementvacant/models';
+import {
+  genCampaignDTO,
+  genEstablishmentDTO,
+  genGroupDTO,
+  genHousingDTO,
+  genUserDTO
+} from '@zerologementvacant/models/fixtures';
+import { DEFAULT_ORDER } from '@zerologementvacant/utils';
+import { Provider } from 'react-redux';
+import { createMemoryRouter, RouterProvider } from 'react-router-dom';
+
+import data from '~/mocks/handlers/data';
+import { fromEstablishmentDTO } from '~/models/Establishment';
+import { fromUserDTO } from '~/models/User';
+import { genAuthUser } from '~/test/fixtures';
+import configureTestStore from '~/utils/storeUtils';
+import CampaignListViewNext from '~/views/Campaign/CampaignListView';
+import CampaignViewNext from '~/views/Campaign/CampaignViewNext';
+
+describe('CampaignListView', () => {
+  const user = userEvent.setup();
+
+  describe('Name', () => {
+    it('should sort by name', async () => {
+      renderView();
+
+      const table = await screen.findByRole('table');
+      const sort = await within(table).findByRole('button', {
+        name: 'Trier par nom'
+      });
+      await user.click(sort);
+      await user.click(sort);
+      const links = await within(table).findAllByRole('link', {
+        name: (content) =>
+          data.campaigns.some((campaign) => campaign.title === content)
+      });
+      const titles = links.map((link) => link.textContent);
+      expect(titles.length).toBeGreaterThan(0);
+      expect(titles).toBeSorted({
+        descending: true
+      });
+    });
+
+    it('should link to the campaign page', async () => {
+      renderView();
+
+      const table = await screen.findByRole('table');
+      const links = await within(table).findAllByRole('link', {
+        name: (content) =>
+          data.campaigns.some((campaign) => campaign.title === content)
+      });
+      expect(links.length).toBeGreaterThan(0);
+      expect(links).toSatisfyAll<HTMLLinkElement>((link) => {
+        return /\/campagnes\/.+$/.test(link.href);
+      });
+    });
+  });
+
+  describe('Creation date', () => {
+    it('should sort by creation date', async () => {
+      renderView();
+
+      const table = await screen.findByRole('table');
+      const sort = await within(table).findByRole('button', {
+        name: 'Trier par date de création'
+      });
+      await user.click(sort);
+      const dates = await within(table)
+        .findAllByText(/^\d{2}\/\d{2}\/\d{4}$/)
+        .then((elements) => elements.map((element) => element.textContent));
+      expect(dates.length).toBeGreaterThan(0);
+      expect(dates).toBeSorted({
+        descending: true,
+        compare: (a: string, b: string) => {
+          const map = (date: string): Date =>
+            new Date(date.split('/').reverse().join('-'));
+          return DEFAULT_ORDER(map(a), map(b));
+        }
+      });
+    });
+  });
+
+  describe('Housing count', () => {
+    // TODO
+  })
+
+  describe('Owner count', () => {
+    // TODO
+  })
+
+  describe('Sending date', () => {
+    // TODO
+  });
+
+  describe('Return count', () => {
+    // TODO
+  })
+
+  describe('Return rate', () => {
+    // TODO
+  })
+
+  describe('Actions', () => {
+    it('should remove a campaign', async () => {
+      async function count() {
+        return screen
+          .findByText(/^\d+ campagnes$/)
+          .then((element) => element.textContent?.split(' ').at(0) ?? '')
+          .then((count) => Number(count));
+      }
+
+      renderView();
+
+      const table = await screen.findByRole('table');
+      const countBefore = await count();
+      const [remove] = await within(table).findAllByRole('button', {
+        name: 'Supprimer la campagne'
+      });
+      await user.click(remove);
+      const dialog = await screen.findByRole('dialog');
+      const confirm = await within(dialog).findByRole('button', {
+        name: 'Confirmer'
+      });
+      await user.click(confirm);
+      const countAfter = await count();
+      expect(countAfter).toBe(countBefore ? countBefore - 1 : false);
+    });
+  });
+});
+
+interface RenderViewOptions {
+  auth?: UserDTO;
+  establishment?: EstablishmentDTO;
+  campaigns?: ReadonlyArray<CampaignDTO>;
+}
+
+function renderView(options?: RenderViewOptions) {
+  const establishment = options?.establishment ?? genEstablishmentDTO();
+  const auth = options?.auth ?? genUserDTO(UserRole.USUAL, establishment);
+  const housings = faker.helpers.multiple(() => genHousingDTO(), {
+    count: { min: 1, max: 10 }
+  });
+  const group = genGroupDTO(auth, housings);
+  const campaigns = faker.helpers.multiple(() => genCampaignDTO(group, auth));
+
+  data.establishments.push(establishment);
+  data.users.push(auth);
+  data.campaigns.push(...campaigns);
+
+  const store = configureTestStore({
+    auth: genAuthUser(
+      fromUserDTO(auth),
+      fromEstablishmentDTO(establishment)
+    )
+  });
+  const router = createMemoryRouter(
+    [
+      {
+        path: '/campagnes',
+        element: <CampaignListViewNext />
+      },
+      {
+        path: '/campagnes/:id',
+        element: <CampaignViewNext />
+      }
+    ],
+    { initialEntries: ['/campagnes'] }
+  );
+
+  render(
+    <Provider store={store}>
+      <RouterProvider router={router} />
+    </Provider>
+  );
+
+  return { router };
+}

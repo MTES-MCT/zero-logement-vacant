@@ -30,7 +30,10 @@ export function fromCampaignDTO(
       'archivedAt',
       'confirmedAt',
       'groupId',
-      'returnCount'
+      'returnCount',
+      'returnRate',
+      'housingCount',
+      'ownerCount'
     ),
     createdBy: fromUserDTO(campaign.createdBy),
     userId: campaign.createdBy.id,
@@ -55,7 +58,10 @@ export function toCampaignDTO(campaign: CampaignApi): CampaignDTO {
     'archivedAt',
     'confirmedAt',
     'groupId',
-    'returnCount'
+    'returnCount',
+    'returnRate',
+    'housingCount',
+    'ownerCount'
   );
 }
 

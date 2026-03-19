@@ -231,7 +231,10 @@ const create: RequestHandler<
     userId: auth.userId,
     createdBy: user,
     establishmentId: auth.establishmentId,
-    returnCount: null
+    returnCount: null,
+    returnRate: null,
+    housingCount: 0,
+    ownerCount: 0
   };
 
   const houses =
@@ -321,7 +324,10 @@ const createCampaignFromGroup: RequestHandler<
     userId: auth.userId,
     createdBy: user,
     establishmentId: auth.establishmentId,
-    returnCount: null
+    returnCount: null,
+    returnRate: null,
+    housingCount: 0,
+    ownerCount: 0
   };
 
   await startTransaction(async () => {
@@ -404,7 +410,10 @@ const createFromGroup: RequestHandler<
     userId: auth.userId,
     createdBy: user,
     establishmentId: auth.establishmentId,
-    returnCount: null
+    returnCount: null,
+    returnRate: null,
+    housingCount: 0,
+    ownerCount: 0
   };
 
   const sender: SenderApi = {

@@ -353,7 +353,10 @@ export const genCampaignApi = (
     userId: createdBy.id,
     createdBy,
     groupId: group?.id,
-    returnCount: null
+    returnCount: null,
+    returnRate: null,
+    housingCount: 0,
+    ownerCount: 0
   };
 };
 

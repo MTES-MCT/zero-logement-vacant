@@ -13,6 +13,7 @@ export interface CampaignFiltersApi {
 
 export interface CampaignQuery {
   groups?: string;
+  sort?: string[];
 }
 
 export const campaignFiltersValidators: ValidationChain[] = [

@@ -1,9 +1,9 @@
-import Button from '@codegouvfr/react-dsfr/Button';
+import Button, { type ButtonProps } from '@codegouvfr/react-dsfr/Button';
 
 import {
   type NotificationProps,
-  useNotification,
-} from '../../hooks/useNotification';
+  useNotification
+} from '~/hooks/useNotification';
 
 interface Props
   extends Pick<
@@ -11,7 +11,8 @@ interface Props
     'autoClose' | 'isError' | 'isLoading' | 'isSuccess' | 'message'
   > {
   className?: string;
-  onSave(): void;
+  type?: ButtonProps.AsButton['type'];
+  onSave?(): void;
 }
 
 function SaveButton(props: Readonly<Props>) {
@@ -21,7 +22,7 @@ function SaveButton(props: Readonly<Props>) {
     isLoading: props.isLoading,
     isSuccess: props.isSuccess,
     message: props.message,
-    toastId: 'save',
+    toastId: 'save'
   });
 
   return (
@@ -30,7 +31,7 @@ function SaveButton(props: Readonly<Props>) {
       disabled={props.isLoading}
       iconId="fr-icon-save-line"
       priority="secondary"
-      type="button"
+      type={props.type}
       onClick={props.onSave}
     >
       Sauvegarder mon brouillon

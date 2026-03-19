@@ -22,7 +22,7 @@ import {
 import { slugify, timestamp } from '@zerologementvacant/utils';
 import { createS3 } from '@zerologementvacant/utils/node';
 import { Struct } from 'effect';
-import { Request, RequestHandler, Response } from 'express';
+import { RequestHandler } from 'express';
 import { AuthenticatedRequest } from 'express-jwt';
 import { body, param, ValidationChain } from 'express-validator';
 import { constants } from 'http2';
@@ -45,6 +45,7 @@ import {
   campaignFiltersValidators,
   CampaignQuery
 } from '~/models/CampaignFiltersApi';
+import type { DraftApi } from '~/models/DraftApi';
 import {
   CampaignEventApi,
   CampaignHousingEventApi,
@@ -52,22 +53,27 @@ import {
 } from '~/models/EventApi';
 import { HousingApi, shouldReset } from '~/models/HousingApi';
 import housingFiltersApi from '~/models/HousingFiltersApi';
+import type { SenderApi } from '~/models/SenderApi';
 import sortApi from '~/models/SortApi';
 import campaignHousingRepository from '~/repositories/campaignHousingRepository';
 import campaignRepository from '~/repositories/campaignRepository';
+import draftRepository from '~/repositories/draftRepository';
 import eventRepository from '~/repositories/eventRepository';
 import groupRepository from '~/repositories/groupRepository';
 import housingRepository from '~/repositories/housingRepository';
+import senderRepository from '~/repositories/senderRepository';
 import mailService from '~/services/mailService';
 import { isFeatureEnabled } from '~/services/posthogService';
 import { isArrayOf, isString, isUUID, isUUIDParam } from '~/utils/validators';
 
 const getCampaignValidators = [param('id').notEmpty().isUUID()];
 
-const get: RequestHandler<{ id: CampaignDTO['id'] }, CampaignDTO> = async (
-  request,
-  response
-): Promise<void> => {
+const get: RequestHandler<
+  { id: CampaignDTO['id'] },
+  CampaignDTO,
+  never,
+  never
+> = async (request, response): Promise<void> => {
   const { auth, params } = request as AuthenticatedRequest<
     { id: CampaignDTO['id'] },
     CampaignDTO
@@ -87,7 +93,12 @@ const get: RequestHandler<{ id: CampaignDTO['id'] }, CampaignDTO> = async (
   response.status(constants.HTTP_STATUS_OK).json(toCampaignDTO(campaign));
 };
 
-async function downloadCampaign(request: Request, response: Response) {
+const downloadCampaign: RequestHandler<
+  { id: CampaignDTO['id'] },
+  string,
+  never,
+  never
+> = async (request, response) => {
   const campaignId = request.params.id;
   const { establishmentId } = (request as AuthenticatedRequest).auth;
 
@@ -127,16 +138,25 @@ async function downloadCampaign(request: Request, response: Response) {
   logger.debug(`Generated signed URL: ${signedUrl}`);
 
   response.redirect(signedUrl);
-}
+};
 
 const listValidators: ValidationChain[] = [
   ...campaignFiltersValidators,
   ...sortApi.queryValidators
 ];
 
-async function list(request: Request, response: Response) {
-  const { auth } = request as AuthenticatedRequest;
-  const query = request.query as CampaignQuery;
+const list: RequestHandler<
+  never,
+  ReadonlyArray<CampaignDTO>,
+  never,
+  CampaignQuery
+> = async (request, response) => {
+  const { auth, query } = request as AuthenticatedRequest<
+    never,
+    ReadonlyArray<CampaignDTO>,
+    never,
+    CampaignQuery
+  >;
   const sort = sortApi.parse<CampaignSortableApi>(
     request.query.sort as string[] | undefined
   );
@@ -150,7 +170,7 @@ async function list(request: Request, response: Response) {
     sort
   });
   response.status(constants.HTTP_STATUS_OK).json(campaigns);
-}
+};
 
 const createValidators: ValidationChain[] = [
   body('title')
@@ -265,8 +285,18 @@ const create: RequestHandler<
  * @param request
  * @param response 
  */
-async function createCampaignFromGroup(request: Request, response: Response) {
-  const { auth, body, params, user } = request as AuthenticatedRequest;
+const createCampaignFromGroup: RequestHandler<
+  { id: GroupDTO['id'] },
+  CampaignDTO,
+  CampaignCreationPayloadDTO,
+  never
+> = async (request, response): Promise<void> => {
+  const { auth, body, params, user } = request as AuthenticatedRequest<
+    { id: GroupDTO['id'] },
+    CampaignDTO,
+    CampaignCreationPayloadDTO,
+    never
+  >;
   const groupId = params.id;
   logger.info('Create campaign from group', { groupId });
 
@@ -327,7 +357,7 @@ async function createCampaignFromGroup(request: Request, response: Response) {
   });
 
   response.status(constants.HTTP_STATUS_CREATED).json(toCampaignDTO(campaign));
-}
+};
 const createCampaignFromGroupValidators: ValidationChain[] = [
   param('id').isUUID().notEmpty(),
   body('title').isString().notEmpty(),
@@ -377,6 +407,35 @@ const createFromGroup: RequestHandler<
     returnCount: null
   };
 
+  const sender: SenderApi = {
+    id: uuidv4(),
+    name: null,
+    service: null,
+    firstName: null,
+    lastName: null,
+    address: null,
+    email: null,
+    phone: null,
+    signatories: [null, null],
+    establishmentId: auth.establishmentId,
+    createdAt: new Date().toJSON(),
+    updatedAt: new Date().toJSON(),
+  }
+  const draft: DraftApi= {
+    id: uuidv4(),
+    body: null,
+    subject: null,
+    writtenAt: null,
+    writtenFrom: null,
+    logo: null,
+    logoNext: [null, null],
+    sender,
+    senderId: sender.id,
+    establishmentId: auth.establishmentId,
+    createdAt: new Date().toJSON(),
+    updatedAt: new Date().toJSON()
+  }
+
   const housings = await housingRepository.find({
     filters: {
       establishmentIds: [auth.establishmentId],
@@ -425,6 +484,8 @@ const createFromGroup: RequestHandler<
   );
 
   await startTransaction(async () => {
+    await senderRepository.save(sender);
+    await draftRepository.save(draft);
     await campaignRepository.save(campaign);
 
     await Promise.all([
@@ -492,9 +553,18 @@ const updateValidators: ValidationChain[] = [
     .notEmpty(),
   body('file').optional({ nullable: true }).isString()
 ];
-async function update(request: Request, response: Response) {
-  const { auth, params } = request as AuthenticatedRequest;
-  const body = request.body as CampaignUpdatePayloadDTO;
+const update: RequestHandler<
+  { id: CampaignDTO['id'] },
+  CampaignDTO,
+  CampaignUpdatePayloadDTO,
+  never
+> = async (request, response): Promise<void> => {
+  const { auth, body, params } = request as AuthenticatedRequest<
+    { id: CampaignDTO['id'] },
+    CampaignDTO,
+    CampaignUpdatePayloadDTO,
+    never
+  >;
 
   const campaign = await campaignRepository.findOne({
     id: params.id,
@@ -642,15 +712,17 @@ async function update(request: Request, response: Response) {
     }
   });
   response.status(constants.HTTP_STATUS_OK).json(toCampaignDTO(updated));
-}
+};
 
-const removeCampaign: RequestHandler<{ id: string }> = async (
-  request,
-  response
-): Promise<void> => {
+const removeCampaign: RequestHandler<
+  { id: CampaignDTO['id'] },
+  void,
+  never,
+  never
+> = async (request, response): Promise<void> => {
   const { auth, params } = request as AuthenticatedRequest<
     { id: string },
-    never,
+    void,
     never,
     never
   >;
@@ -735,14 +807,16 @@ const removeHousingValidators: ValidationChain[] = [
   body('ids').custom(isArrayOf(isString)),
   ...housingFiltersApi.validators('filters')
 ];
-async function removeHousing(
-  request: Request,
-  response: Response
-): Promise<void> {
+const removeHousing: RequestHandler<
+  { id: CampaignDTO['id'] },
+  never,
+  CampaignRemovalPayloadDTO,
+  never
+> = async (request, response): Promise<void> => {
   logger.info('Remove campaign housing list');
 
   const { auth, body, params } = request as AuthenticatedRequest<
-    { id: string },
+    { id: CampaignDTO['id'] },
     never,
     CampaignRemovalPayloadDTO,
     never
@@ -792,7 +866,7 @@ async function removeHousing(
   });
   // TODO: return the remaining housings ?
   response.status(constants.HTTP_STATUS_OK).send();
-}
+};
 
 const campaignController = {
   getCampaignValidators,

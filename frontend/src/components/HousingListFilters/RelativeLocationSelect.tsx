@@ -11,10 +11,7 @@ export type RelativeLocationSelectProps<Multiple extends boolean> = Pick<
 >;
 
 // Reorder the values as we wish to display them
-const values: RelativeLocationFilter[] = [
-  'other',
-  ...RELATIVE_LOCATION_FILTER_VALUES.filter((value) => value !== 'other')
-];
+const values = RELATIVE_LOCATION_FILTER_VALUES;
 
 function getOptionLabel(option: RelativeLocationFilter) {
   return RELATIVE_LOCATION_OPTIONS[option].label;

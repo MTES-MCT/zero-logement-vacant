@@ -24,7 +24,7 @@ function CampaignCounts(props: Readonly<CampaignCountsProps>) {
         {props.isLoading || housingCount === null ? (
           <Skeleton animation="wave" variant="text" />
         ) : (
-          <Typography component="span">{housingCount}</Typography>
+          <Typography component="p">{housingCount}</Typography>
         )}
       </Stack>
 
@@ -33,7 +33,7 @@ function CampaignCounts(props: Readonly<CampaignCountsProps>) {
         {props.isLoading || ownerCount === null ? (
           <Skeleton animation="wave" variant="text" />
         ) : (
-          <Typography component="span">{ownerCount}</Typography>
+          <Typography component="p">{ownerCount}</Typography>
         )}
       </Stack>
     </Stack>

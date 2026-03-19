@@ -6,16 +6,25 @@ import type {
   LabelHTMLAttributes,
   ReactNode
 } from 'react';
-import { useController, type Control, type FieldValues, type Path } from 'react-hook-form';
+import {
+  useController,
+  type FieldPath,
+  type FieldPathValue,
+  type FieldValues,
+  type UseControllerProps
+} from 'react-hook-form';
 import { match, Pattern } from 'ts-pattern';
 
-export type AppTextInputNextProps<TFieldValues extends FieldValues = FieldValues, TValueType = string> = InputProps & {
-  name: Path<TFieldValues>;
-  control?: Control<TFieldValues>;
-  // TODO: require these functions when TValueType is not a string
-  mapValue?(value: TValueType): string;
-  contramapValue?(value: string): TValueType | null;
-};
+export type AppTextInputNextProps<
+  TFieldValues extends FieldValues = FieldValues,
+  TName extends FieldPath<TFieldValues> = FieldPath<TFieldValues>,
+  TTransformedValues = TFieldValues
+> = InputProps &
+  UseControllerProps<TFieldValues, TName, TTransformedValues> & {
+    // TODO: require these functions when TValueType is not a string
+    mapValue?(value: FieldPathValue<TFieldValues, TName>): string;
+    contramapValue?(value: string): FieldPathValue<TFieldValues, TName> | null;
+  };
 /**
  * A text input based on the [DSFR Input](https://components.react-dsfr.codegouv.studio/?path=/docs/components-input--default) component and [react-hook-form](https://react-hook-form.com/).
  * It supports both regular inputs and text areas.
@@ -59,8 +68,14 @@ export type AppTextInputNextProps<TFieldValues extends FieldValues = FieldValues
  * </FormProvider>
  * ```
  */
-function AppTextInputNext<TFieldValues extends FieldValues = FieldValues, TValueType = string>(
-  props: AppTextInputNextProps<TFieldValues, TValueType>
+function AppTextInputNext<
+  TFieldValues extends FieldValues = FieldValues,
+  TName extends FieldPath<TFieldValues> = FieldPath<TFieldValues>,
+  TTransformedValues = TFieldValues
+>(
+  props: Readonly<
+    AppTextInputNextProps<TFieldValues, TName, TTransformedValues>
+  >
 ) {
   const {
     nativeLabelProps,
@@ -74,7 +89,11 @@ function AppTextInputNext<TFieldValues extends FieldValues = FieldValues, TValue
     disabled,
     ...rest
   } = props;
-  const { field, fieldState } = useController<TFieldValues>({
+  const { field, fieldState } = useController<
+    TFieldValues,
+    TName,
+    TTransformedValues
+  >({
     name,
     control,
     disabled

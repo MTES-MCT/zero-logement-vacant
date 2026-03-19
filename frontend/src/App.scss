@@ -562,3 +562,12 @@ button.no-sort::after {
 .disabled {
   color: var(--text-disabled-grey);
 }
+
+/* RGAA 10.4: Full-height modals at 200% zoom */
+@media screen and (max-width: 62em) {
+  .fr-modal__body {
+    max-height: calc(100vh - 2rem) !important;
+    height: calc(100vh - 2rem);
+    margin: 1rem 0;
+  }
+}

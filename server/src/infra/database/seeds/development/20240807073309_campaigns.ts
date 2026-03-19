@@ -18,8 +18,10 @@ import {
   CampaignsHousing,
   campaignsHousingTable
 } from '~/repositories/campaignHousingRepository';
+import { Array, pipe } from 'effect';
 
 export async function seed(knex: Knex): Promise<void> {
+  console.time('20240807073309_campaigns');
   await CampaignsHousing(knex).delete();
   await Campaigns(knex).delete();
 
@@ -30,24 +32,22 @@ export async function seed(knex: Knex): Promise<void> {
       Groups(knex).where({ establishment_id: establishment.id })
     ]);
 
-    const campaigns = faker.helpers.multiple(
-      () => {
-        const creator = faker.helpers.arrayElement(users);
-        // Optionally link the campaign to a group with a 10% probability
-        const group = faker.helpers.maybe(
-          () => parseGroupApi(faker.helpers.arrayElement(groups)),
-          { probability: 0.1 }
-        );
-        return genCampaignApi(establishment.id, parseUserApi(creator), group);
-      },
-      {
-        count: { min: 1, max: 5 }
-      }
+    const campaigns = pipe(
+      faker.helpers.arrayElements(groups, {
+        min: 2,
+        max: 10
+      }),
+      Array.map((group) =>
+        genCampaignApi(
+          establishment.id,
+          parseUserApi(faker.helpers.arrayElement(users)),
+          parseGroupApi(group)
+        )
+      )
     );
 
-    console.log('Inserting campaigns...', {
-      establishment: establishment.name,
-      campaigns: campaigns.length
+    console.log(`Inserting ${campaigns.length} campaigns...`, {
+      establishment: establishment.name
     });
     await knex.batchInsert<CampaignDBO>(
       campaignsTable,
@@ -63,14 +63,15 @@ export async function seed(knex: Knex): Promise<void> {
         housing_geo_code: housing.geo_code,
         housing_id: housing.id
       }));
-      console.log('Linking campaigns to housings...', {
-        campaign: campaign.title,
-        housings: campaignHousings.length
-      });
+      console.log(
+        `Adding ${campaignHousings.length} housings to the campaign ${campaign.title}...`
+      );
       await knex.batchInsert<CampaignHousingDBO>(
         campaignsHousingTable,
         campaignHousings
       );
     });
   });
+  console.timeEnd('20240807073309_campaigns');
+  console.log('\n')
 }

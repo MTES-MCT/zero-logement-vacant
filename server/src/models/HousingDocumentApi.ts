@@ -1,6 +1,10 @@
 import { HousingDocumentDTO } from '@zerologementvacant/models';
 
-import { DocumentApi, toDocumentDTO } from './DocumentApi';
+import {
+  DocumentApi,
+  toDocumentDTO,
+  type FetchDocumentURLOptions
+} from './DocumentApi';
 
 /**
  * Backend representation of a document linked to a housing
@@ -16,9 +20,9 @@ export interface HousingDocumentApi extends DocumentApi {
  * @param url A pre-signed URL returned from the S3-compatible storage
  * @returns
  */
-export function toHousingDocumentDTO(
+export async function toHousingDocumentDTO(
   document: HousingDocumentApi,
-  url: string
-): HousingDocumentDTO {
-  return toDocumentDTO(document, url);
+  options: FetchDocumentURLOptions
+): Promise<HousingDocumentDTO> {
+  return toDocumentDTO(document, options);
 }

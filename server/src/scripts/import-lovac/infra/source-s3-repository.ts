@@ -3,8 +3,7 @@ import { createS3 } from '@zerologementvacant/utils/node';
 import async from 'async';
 import { parse as parseJSONL } from 'jsonlines';
 import { Transform } from 'node:stream';
-import { ReadableStream } from 'node:stream/web';
-import { ReadableStreamReadResult } from 'stream/web';
+import { ReadableStream, ReadableStreamReadResult } from 'node:stream/web';
 
 import { SourceRepository } from '~/scripts/import-lovac/infra/source-repository';
 
@@ -47,7 +46,8 @@ export abstract class SourceS3Repository<A> implements SourceRepository<A> {
           throw new Error(`Bad response: ${response}`);
         }
 
-        jsonStream = response.Body.transformToWebStream();
+        jsonStream =
+          response.Body.transformToWebStream() as unknown as ReadableStream<any>;
         if (!jsonStream) {
           throw new Error('JSON stream is not initialized');
         }
@@ -67,7 +67,15 @@ export abstract class SourceS3Repository<A> implements SourceRepository<A> {
         controller.close();
       }
     })
-      .pipeThrough(new TextDecoderStream('utf-8'))
+      .pipeThrough(
+        Transform.toWeb(
+          new Transform({
+            transform(chunk, _, callback) {
+              callback(null, Buffer.from(chunk).toString('utf-8'));
+            }
+          })
+        )
+      )
       .pipeThrough(Transform.toWeb(parseJSONL()));
   }
 }

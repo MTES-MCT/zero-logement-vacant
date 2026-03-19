@@ -119,13 +119,14 @@ const LoginView = () => {
             <Typography component="h1" variant="h2" mb={3}>
               Connexion
             </Typography>
-            <form onSubmit={form.handleSubmit(submitLoginForm)} id="login_form">
+            <form onSubmit={form.handleSubmit(submitLoginForm)} id="login_form" noValidate>
               <AppTextInputNext
                 name="email"
                 label="Adresse e-mail (obligatoire)"
+                hintText="Format attendu : prenom.nom@domaine.fr"
                 nativeInputProps={{
                   type: 'email',
-                  autoComplete: 'email',
+                  autoComplete: 'email'
                 }}
               />
               <AppTextInputNext
@@ -157,17 +158,17 @@ const LoginView = () => {
               </Box>
               <Grid container alignItems="center" spacing={2}>
                 <Grid size={{ xs: 12, md: 9 }}>
-                  <Typography component="span" variant="body1">
+                  <Typography component="p" variant="body1">
                     Première visite ?&nbsp;
+                    <AppLink
+                      to="/inscription"
+                      isSimple
+                      iconId="fr-icon-arrow-right-line"
+                      iconPosition="right"
+                    >
+                      Créer votre compte
+                    </AppLink>
                   </Typography>
-                  <AppLink
-                    to="/inscription"
-                    isSimple
-                    iconId="fr-icon-arrow-right-line"
-                    iconPosition="right"
-                  >
-                    Créer votre compte
-                  </AppLink>
                 </Grid>
                 <Grid size={{ xs: 12, md: 3 }} sx={{ textAlign: 'right' }}>
                   <Button type="submit">

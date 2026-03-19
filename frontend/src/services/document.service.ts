@@ -105,6 +105,11 @@ export const documentApi = zlvApi.injectEndpoints({
         method: 'DELETE'
       }),
       invalidatesTags: (_result, _error, id) => [{ type: 'Document', id }]
+    }),
+
+    getDocument: builder.query<DocumentDTO, DocumentDTO['id']>({
+      query: (id) => `documents/${id}`,
+      providesTags: (_result, _error, id) => [{ type: 'Document', id }]
     })
   })
 });
@@ -115,5 +120,6 @@ export const {
   useLinkDocumentsToHousingMutation,
   useUpdateDocumentMutation,
   useUnlinkDocumentMutation,
-  useDeleteDocumentMutation
+  useDeleteDocumentMutation,
+  useGetDocumentQuery
 } = documentApi;

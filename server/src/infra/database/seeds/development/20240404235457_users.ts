@@ -1,13 +1,16 @@
 import { faker } from '@faker-js/faker/locale/fr';
 import { UserRole } from '@zerologementvacant/models';
-import async from 'async';
 import bcrypt from 'bcryptjs';
 import { Knex } from 'knex';
 import { v4 as uuidv4 } from 'uuid';
 import config from '~/infra/config';
 import { SALT_LENGTH, UserApi } from '~/models/UserApi';
 import { Establishments } from '~/repositories/establishmentRepository';
-import { formatUserApi, Users } from '~/repositories/userRepository';
+import {
+  formatUserApi,
+  Users,
+  usersTable
+} from '~/repositories/userRepository';
 import { genUserApi } from '~/test/testFixtures';
 
 import {
@@ -24,6 +27,7 @@ interface EstablishmentsData {
 }
 
 export async function seed(knex: Knex): Promise<void> {
+  console.time('20240404235457_users');
   await clearExistingData(knex);
   validateEnvironmentVariables();
 
@@ -33,6 +37,7 @@ export async function seed(knex: Knex): Promise<void> {
 
   await insertBaseUsers(baseUsers);
   await generateRandomUsers(knex);
+  console.timeEnd('20240404235457_users');
 }
 
 async function clearExistingData(knex: Knex): Promise<void> {
@@ -202,6 +207,7 @@ async function createBaseUsers(
 }
 
 async function insertBaseUsers(baseUsers: UserApi[]): Promise<void> {
+  console.log(`Inserting ${baseUsers.length} base users...`);
   await Users()
     .insert(baseUsers.map(formatUserApi))
     .onConflict('email')
@@ -210,12 +216,14 @@ async function insertBaseUsers(baseUsers: UserApi[]): Promise<void> {
 
 async function generateRandomUsers(knex: Knex): Promise<void> {
   const establishments = await Establishments(knex).where({ available: true });
-  await async.forEachSeries(establishments, async (establishment) => {
-    const users = faker.helpers
-      .multiple(() => genUserApi(establishment.id), {
+  const users = establishments.flatMap((establishments) => {
+    return faker.helpers
+      .multiple(() => genUserApi(establishments.id), {
         count: { min: 1, max: 10 }
       })
       .map(formatUserApi);
-    await Users(knex).insert(users);
   });
+  console.log(`Inserting ${users.length} random users...`);
+  await knex.batchInsert(usersTable, users);
+  console.log('\n')
 }

@@ -1,4 +1,6 @@
+import type { SetNonNullable } from 'type-fest';
 import { Equivalence, pipe, Record, Struct } from 'effect';
+
 import { DataFileYear } from './DataFileYear';
 import { EnergyConsumption } from './EnergyConsumption';
 import { HousingKind } from './HousingKind';
@@ -70,6 +72,14 @@ export interface HousingDTO {
    * The surface of the plot associated with the housing, in square meters.
    */
   plotArea: number | null;
+}
+
+export type HousingWithOwnerDTO = SetNonNullable<HousingDTO, 'owner'>;
+
+export function hasPrimaryOwner(
+  housing: HousingDTO
+): housing is HousingWithOwnerDTO {
+  return housing.owner !== null;
 }
 
 export type HousingPayloadDTO = Pick<HousingDTO, 'localId'>;

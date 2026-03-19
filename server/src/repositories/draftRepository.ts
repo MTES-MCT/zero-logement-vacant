@@ -1,17 +1,23 @@
+import { FileUploadDTO } from '@zerologementvacant/models';
+import async from 'async';
 import { Knex } from 'knex';
 
+import { download } from '~/controllers/fileRepository';
 import db from '~/infra/database';
+import { withinTransaction } from '~/infra/database/transaction';
 import { createLogger } from '~/infra/logger';
 import { DraftApi } from '~/models/DraftApi';
 import { campaignsDraftsTable } from '~/repositories/campaignDraftRepository';
+import {
+  fromDocumentDBO,
+  joinDocumentWithCreator,
+  type DocumentWithCreatorDBO
+} from '~/repositories/documentRepository';
 import {
   parseSenderApi,
   SenderDBO,
   sendersTable
 } from '~/repositories/senderRepository';
-import { download } from '~/controllers/fileRepository';
-import async from 'async';
-import { FileUploadDTO } from '@zerologementvacant/models';
 
 const logger = createLogger('draftRepository');
 
@@ -60,18 +66,24 @@ async function findOne(opts: FindOneOptions): Promise<DraftApi | null> {
 }
 
 async function save(draft: DraftApi): Promise<void> {
-  await Drafts()
-    .insert(formatDraftApi(draft))
-    .onConflict('id')
-    .merge([
-      'subject',
-      'body',
-      'logo',
-      'written_at',
-      'written_from',
-      'updated_at',
-      'sender_id'
-    ]);
+  logger.debug('Saving draft...', draft);
+  await withinTransaction(async (transaction) => {
+    await Drafts(transaction)
+      .insert(formatDraftApi(draft))
+      .onConflict('id')
+      .merge([
+        'subject',
+        'body',
+        'logo',
+        'logo_next_one',
+        'logo_next_two',
+        'written_at',
+        'written_from',
+        'updated_at',
+        'sender_id'
+      ]);
+  });
+  logger.debug('Saved draft', draft);
 }
 
 function listQuery(query: Knex.QueryBuilder): void {
@@ -82,7 +94,21 @@ function listQuery(query: Knex.QueryBuilder): void {
       `${draftsTable}.sender_id`,
       `${sendersTable}.id`
     )
-    .select(db.raw(`to_json(${sendersTable}.*) AS sender`));
+    .select(db.raw(`to_json(${sendersTable}.*) AS sender`))
+  // signatory documents
+  joinDocumentWithCreator(
+    query,
+    `${sendersTable}.signatory_one_document_id`,
+    'signatory_one_doc'
+  );
+  joinDocumentWithCreator(
+    query,
+    `${sendersTable}.signatory_two_document_id`,
+    'signatory_two_doc'
+  );
+  // logo next documents
+  joinDocumentWithCreator(query, `${draftsTable}.logo_next_one`, 'logo_next_one_doc');
+  joinDocumentWithCreator(query, `${draftsTable}.logo_next_two`, 'logo_next_two_doc');
 }
 
 function filterQuery(filters?: DraftFilters) {
@@ -112,6 +138,8 @@ export interface DraftRecordDBO {
   subject: string | null;
   body: string | null;
   logo: string[] | null;
+  logo_next_one: string | null;
+  logo_next_two: string | null;
   written_at: string | null;
   written_from: string | null;
   created_at: Date;
@@ -122,6 +150,10 @@ export interface DraftRecordDBO {
 
 export interface DraftDBO extends DraftRecordDBO {
   sender: SenderDBO;
+  signatory_one_doc: DocumentWithCreatorDBO | null;
+  signatory_two_doc: DocumentWithCreatorDBO | null;
+  logo_next_one_doc: DocumentWithCreatorDBO | null;
+  logo_next_two_doc: DocumentWithCreatorDBO | null;
 }
 
 export const formatDraftApi = (draft: DraftApi): DraftRecordDBO => ({
@@ -129,6 +161,8 @@ export const formatDraftApi = (draft: DraftApi): DraftRecordDBO => ({
   subject: draft.subject,
   body: draft.body,
   logo: draft.logo?.map((logo) => logo.id) ?? null,
+  logo_next_one: draft.logoNext?.[0]?.id ?? null,
+  logo_next_two: draft.logoNext?.[1]?.id ?? null,
   written_at: draft.writtenAt,
   written_from: draft.writtenFrom,
   establishment_id: draft.establishmentId,
@@ -153,13 +187,21 @@ export const parseDraftApi = async (draft: DraftDBO): Promise<DraftApi> => {
     subject: draft.subject,
     body: draft.body,
     logo: logo,
+    logoNext: [
+      draft.logo_next_one_doc ? fromDocumentDBO(draft.logo_next_one_doc) : null,
+      draft.logo_next_two_doc ? fromDocumentDBO(draft.logo_next_two_doc) : null
+    ],
     writtenAt: draft.written_at,
     writtenFrom: draft.written_from,
     establishmentId: draft.establishment_id,
     senderId: draft.sender_id,
-    sender: await parseSenderApi(draft.sender),
+    sender: await parseSenderApi({
+      ...draft.sender,
+      signatory_one_document: draft.signatory_one_doc ?? null,
+      signatory_two_document: draft.signatory_two_doc ?? null
+    }),
     createdAt: draft.created_at.toJSON(),
-    updatedAt: draft.updated_at.toJSON(),
+    updatedAt: draft.updated_at.toJSON()
   };
 };
 

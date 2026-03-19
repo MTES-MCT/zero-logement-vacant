@@ -40,7 +40,8 @@
           "sourcemap": true,
           "outExtension": {
             ".js": ".js"
-          }
+          },
+          "external": ["@zerologementvacant/pdf"]
         }
       },
       "configurations": {
@@ -50,7 +51,8 @@
             "sourcemap": false,
             "outExtension": {
               ".js": ".js"
-            }
+            },
+            "external": ["@zerologementvacant/pdf"]
           }
         }
       }

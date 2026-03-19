@@ -12,6 +12,7 @@ import { Establishments } from '~/repositories/establishmentRepository';
 const TABLE = 'df_housing_nat_2024';
 
 export async function seed(knex: Knex): Promise<void> {
+  console.time('20251113090613_df-housing-nat-2024');
   await knex(TABLE).truncate();
 
   const [buildings, establishments] = await Promise.all([
@@ -49,6 +50,8 @@ export async function seed(knex: Knex): Promise<void> {
     })),
     500
   );
+  console.timeEnd('20251113090613_df-housing-nat-2024');
+  console.log('\n')
 }
 
 function fromGeoJSON(db: Knex, geometry: Geometry | null): Knex.Raw | null {

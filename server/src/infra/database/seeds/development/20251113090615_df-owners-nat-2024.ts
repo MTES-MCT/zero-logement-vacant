@@ -10,6 +10,7 @@ import { DatafoncierHouses } from '~/repositories/datafoncierHousingRepository';
 const TABLE = 'df_owners_nat_2024';
 
 export async function seed(knex: Knex): Promise<void> {
+  console.time('20251113090615_df-owners-nat-2024');
   await knex(TABLE).truncate();
 
   const datafoncierHousings = await DatafoncierHouses();
@@ -22,4 +23,6 @@ export async function seed(knex: Knex): Promise<void> {
 
   console.log(`Inserting ${datafoncierOwners.length} datafoncier owners...`);
   await knex.batchInsert(TABLE, datafoncierOwners);
+  console.timeEnd('20251113090615_df-owners-nat-2024');
+  console.log('\n');
 }

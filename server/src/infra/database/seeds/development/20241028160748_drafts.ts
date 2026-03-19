@@ -22,6 +22,7 @@ import {
 } from '~/repositories/senderRepository';
 
 export async function seed(knex: Knex): Promise<void> {
+  console.time('20241028160748_drafts');
   await knex.raw(`TRUNCATE TABLE ${draftsTable} CASCADE`);
 
   const establishments = await Establishments(knex).where({ available: true });
@@ -43,20 +44,16 @@ export async function seed(knex: Knex): Promise<void> {
     const drafts: DraftRecordDBO[] = entities
       .map((entity) => entity.draft)
       .map(formatDraftApi);
-    console.log('Inserting drafts...', {
-      establishment: establishment.name,
-      drafts: drafts.length
-    });
+    console.log(
+      `Inserting ${drafts.length} drafts into ${establishment.name}...`
+    );
     await knex.batchInsert<DraftDBO>(draftsTable, drafts);
 
     const campaignDrafts = entities.map<CampaignDraftDBO>((entity) => ({
       campaign_id: entity.campaign.id,
       draft_id: entity.draft.id
     }));
-    console.log('Linking drafts to campaigns...', {
-      establishment: establishment.name,
-      campaignDrafts: campaignDrafts.length
-    });
+    console.log(`Linking ${campaignDrafts.length} drafts to campaigns...`);
     await knex.batchInsert<CampaignDraftDBO>(
       campaignsDraftsTable,
       campaignDrafts
@@ -64,4 +61,6 @@ export async function seed(knex: Knex): Promise<void> {
   });
 
   await Drafts(knex);
+  console.timeEnd('20241028160748_drafts');
+  console.log('\n')
 }

@@ -21,6 +21,7 @@ export const RELATIVE_LOCATION_FILTER_VALUES = [
   'same-department',
   'same-region',
   'other-region',
+  'foreign-country',
   'other'
 ] as const;
 export type RelativeLocationFilter =

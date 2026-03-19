@@ -16,6 +16,8 @@ import { createCampaignSentAtModal } from '~/components/Campaign/CampaignSentAtM
 import CampaignSentAtStatCard from '~/components/Campaign/CampaignSentAtStatCard';
 import CampaignStatCard from '~/components/Campaign/CampaignStatCard';
 import CampaignTitle from '~/components/Campaign/CampaignTitle';
+import DraftForm from '~/components/Draft/DraftForm';
+import { useGetCampaignDraftQuery } from '~/hooks/useGetCampaignDraftQuery';
 import { useNotification } from '~/hooks/useNotification';
 import {
   useGetCampaignQuery,
@@ -23,7 +25,6 @@ import {
   useUpdateCampaignMutation
 } from '~/services/campaign.service';
 import { useCountHousingQuery } from '~/services/housing.service';
-import CampaignDraftContent from '~/views/Campaign/CampaignDraftContent';
 
 const campaignDeleteModal = createCampaignDeleteModal();
 const sentAtModal = createCampaignSentAtModal();
@@ -35,6 +36,7 @@ function CampaignViewNext() {
   const { data: campaign, isLoading } = useGetCampaignQuery(id as string);
   const { data: count } = useCountHousingQuery({ campaignIds: [id as string] });
   const housingCount = count?.housing ?? 0;
+  const getCampaignDraftQuery = useGetCampaignDraftQuery(id as string);
 
   const [updateCampaign] = useUpdateCampaignMutation();
   const [removeCampaign, removeMutation] = useRemoveCampaignMutation();
@@ -128,7 +130,7 @@ function CampaignViewNext() {
             iconId="fr-icon-building-line"
             label="Nombre de logements"
           >
-            <Typography variant="h5" component="span">
+            <Typography variant="h5" component="p">
               {housingCount}
             </Typography>
           </CampaignStatCard>
@@ -137,7 +139,7 @@ function CampaignViewNext() {
             iconId="fr-icon-group-line"
             label="Nombre de propriétaires"
           >
-            <Typography variant="h5" component="span">
+            <Typography variant="h5" component="p">
               {count?.owners}
             </Typography>
           </CampaignStatCard>
@@ -161,7 +163,9 @@ function CampaignViewNext() {
             },
             {
               label: 'Courrier',
-              content: <CampaignDraftContent campaign={campaign} />
+              content: getCampaignDraftQuery.isSuccess && getCampaignDraftQuery.data ? (
+                <DraftForm campaign={campaign} draft={getCampaignDraftQuery.data} />
+              ) : null
             }
           ]}
         />

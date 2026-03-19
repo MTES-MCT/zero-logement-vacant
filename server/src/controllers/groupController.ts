@@ -1,6 +1,11 @@
-import { GroupDTO, GroupPayloadDTO } from '@zerologementvacant/models';
+import {
+  GroupDTO,
+  GroupPayloadDTO,
+  type GroupAddHousingPayload,
+  type GroupRemoveHousingPayload
+} from '@zerologementvacant/models';
 import { Array, pipe, Predicate } from 'effect';
-import { Request, RequestHandler, Response } from 'express';
+import { RequestHandler } from 'express';
 import { AuthenticatedRequest } from 'express-jwt';
 import { body, param, ValidationChain } from 'express-validator';
 import { constants } from 'http2';
@@ -11,16 +16,26 @@ import { startTransaction } from '~/infra/database/transaction';
 import { logger } from '~/infra/logger';
 import { GroupHousingEventApi } from '~/models/EventApi';
 import { GroupApi, toGroupDTO } from '~/models/GroupApi';
+import { HousingApi } from '~/models/HousingApi';
 import housingFiltersApi from '~/models/HousingFiltersApi';
 import campaignRepository from '~/repositories/campaignRepository';
 import eventRepository from '~/repositories/eventRepository';
 import groupRepository from '~/repositories/groupRepository';
 import housingRepository from '~/repositories/housingRepository';
 import { isArrayOf, isString, isUUIDParam } from '~/utils/validators';
-import { HousingApi } from '~/models/HousingApi';
 
-const list = async (request: Request, response: Response): Promise<void> => {
-  const { auth } = request as AuthenticatedRequest;
+const list: RequestHandler<
+  never,
+  ReadonlyArray<GroupDTO>,
+  never,
+  never
+> = async (request, response): Promise<void> => {
+  const { auth } = request as AuthenticatedRequest<
+    never,
+    ReadonlyArray<GroupDTO>,
+    never,
+    never
+  >;
   const { establishmentId, userId } = auth;
 
   logger.info('Find groups', {
@@ -36,14 +51,15 @@ const list = async (request: Request, response: Response): Promise<void> => {
   response.status(constants.HTTP_STATUS_OK).json(groups.map(toGroupDTO));
 };
 
-const create: RequestHandler<never, GroupDTO, GroupPayloadDTO> = async (
+const create: RequestHandler<never, GroupDTO, GroupPayloadDTO, never> = async (
   request,
   response
 ): Promise<void> => {
   const { body, establishment, user } = request as AuthenticatedRequest<
     never,
     GroupDTO,
-    GroupPayloadDTO
+    GroupPayloadDTO,
+    never
   >;
 
   // Keep the housing list that are in the same establishment as the group
@@ -119,8 +135,18 @@ const createValidators: ValidationChain[] = [
   ...housingFiltersApi.validators('housing.filters')
 ];
 
-const show = async (request: Request, response: Response): Promise<void> => {
-  const { auth, params } = request as AuthenticatedRequest;
+const show: RequestHandler<
+  { id: GroupDTO['id'] },
+  GroupDTO,
+  never,
+  never
+> = async (request, response): Promise<void> => {
+  const { auth, params } = request as AuthenticatedRequest<
+    { id: GroupDTO['id'] },
+    GroupDTO,
+    never,
+    never
+  >;
 
   const group = await groupRepository.findOne({
     id: params.id,
@@ -134,8 +160,18 @@ const show = async (request: Request, response: Response): Promise<void> => {
 };
 const showValidators: ValidationChain[] = [param('id').isString().notEmpty()];
 
-const update = async (request: Request, response: Response): Promise<void> => {
-  const { auth, body, params } = request as AuthenticatedRequest;
+const update: RequestHandler<
+  { id: GroupDTO['id'] },
+  GroupDTO,
+  GroupPayloadDTO,
+  never
+> = async (request, response): Promise<void> => {
+  const { auth, body, params } = request as AuthenticatedRequest<
+    { id: GroupDTO['id'] },
+    GroupDTO,
+    GroupPayloadDTO,
+    never
+  >;
 
   const group = await groupRepository.findOne({
     id: params.id,
@@ -168,11 +204,18 @@ const updateValidators: ValidationChain[] = [
   isUUIDParam('id')
 ];
 
-const addHousing = async (
-  request: Request,
-  response: Response
-): Promise<void> => {
-  const { auth, body, params } = request as AuthenticatedRequest;
+const addHousing: RequestHandler<
+  { id: GroupDTO['id'] },
+  GroupDTO,
+  GroupAddHousingPayload,
+  never
+> = async (request, response): Promise<void> => {
+  const { auth, body, params } = request as AuthenticatedRequest<
+    { id: GroupDTO['id'] },
+    GroupDTO,
+    GroupAddHousingPayload,
+    never
+  >;
 
   const group = await groupRepository.findOne({
     id: params.id,
@@ -253,8 +296,18 @@ const addHousingValidators: ValidationChain[] = [
   ...housingFiltersApi.validators('filters')
 ];
 
-const removeHousing = async (request: Request, response: Response) => {
-  const { auth, body, params } = request as AuthenticatedRequest;
+const removeHousing: RequestHandler<
+  { id: GroupDTO['id'] },
+  GroupDTO,
+  GroupRemoveHousingPayload,
+  never
+> = async (request, response): Promise<void> => {
+  const { auth, body, params } = request as AuthenticatedRequest<
+    { id: GroupDTO['id'] },
+    GroupDTO,
+    GroupRemoveHousingPayload,
+    never
+  >;
 
   const group = await groupRepository.findOne({
     id: params.id,
@@ -329,8 +382,18 @@ const removeHousing = async (request: Request, response: Response) => {
 };
 const removeHousingValidators: ValidationChain[] = addHousingValidators;
 
-const remove = async (request: Request, response: Response): Promise<void> => {
-  const { auth, params } = request as AuthenticatedRequest;
+const remove: RequestHandler<
+  { id: GroupDTO['id'] },
+  GroupDTO,
+  never,
+  never
+> = async (request, response): Promise<void> => {
+  const { auth, params } = request as AuthenticatedRequest<
+    { id: GroupDTO['id'] },
+    GroupDTO,
+    never,
+    never
+  >;
 
   const group = await groupRepository.findOne({
     id: params.id,

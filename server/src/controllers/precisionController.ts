@@ -14,7 +14,7 @@ import eventRepository from '~/repositories/eventRepository';
 import housingRepository from '~/repositories/housingRepository';
 import precisionRepository from '~/repositories/precisionRepository';
 
-const find: RequestHandler<never, Precision[]> = async (
+const find: RequestHandler<never, Precision[], never, never> = async (
   _,
   response
 ): Promise<void> => {
@@ -28,13 +28,17 @@ interface PathParams extends Record<string, string> {
   id: string;
 }
 
-const findByHousing: RequestHandler<PathParams, Precision[]> = async (
-  request,
-  response
-): Promise<void> => {
+const findByHousing: RequestHandler<
+  PathParams,
+  Precision[],
+  never,
+  never
+> = async (request, response): Promise<void> => {
   const { establishment, params } = request as AuthenticatedRequest<
     PathParams,
-    Precision[]
+    Precision[],
+    never,
+    never
   >;
 
   const [housing, precisions] = await Promise.all([
@@ -60,11 +64,15 @@ const findByHousing: RequestHandler<PathParams, Precision[]> = async (
 
 const updatePrecisionsByHousing: RequestHandler<
   PathParams,
-  Precision[]
+  Array<Precision>,
+  Array<Precision['id']>,
+  never
 > = async (request, response): Promise<void> => {
   const { auth, body, establishment, params } = request as AuthenticatedRequest<
     PathParams,
-    Precision[]
+    Array<Precision>,
+    Array<Precision['id']>,
+    never
   >;
 
   const [housing, precisions] = await Promise.all([

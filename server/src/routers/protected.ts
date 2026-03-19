@@ -17,6 +17,7 @@ import datafoncierController from '~/controllers/datafoncierHousingController';
 import documentController from '~/controllers/documentController';
 import draftController from '~/controllers/draftController';
 import eventController from '~/controllers/eventController';
+import exportController from '~/controllers/exportController';
 import fileController from '~/controllers/fileController';
 import geoController from '~/controllers/geoController';
 import groupController from '~/controllers/groupController';
@@ -65,6 +66,14 @@ router.post(
     maxSizeMiB: MAX_HOUSING_DOCUMENT_SIZE_IN_MiB
   }),
   documentController.create
+);
+
+router.get(
+  '/documents/:id',
+  validatorNext.validate({
+    params: object({ id: schemas.id })
+  }),
+  documentController.get
 );
 
 router.put(
@@ -303,6 +312,14 @@ router.post(
   campaignController.createFromGroup
 );
 
+// New route
+router.post(
+  '/campaigns/:id/exports',
+  validatorNext.validate({
+    params: object({ id: schemas.id })
+  }),
+  exportController.exportCampaign
+);
 router.get(
   '/campaigns/:id/export',
   housingExportController.exportCampaignValidators,
@@ -325,10 +342,35 @@ router.delete(
 router.get('/drafts', draftController.list);
 router.post(
   '/drafts',
+  async (req, res, next) => {
+    const { auth } = req as AuthenticatedRequest;
+    const enabled = await isFeatureEnabled('new-campaigns', auth.establishmentId);
+    if (!enabled) return next('route');
+    next();
+  },
+  validatorNext.validate({ body: schemas.draftCreationPayload }),
+  draftController.createNext
+);
+router.post(
+  '/drafts',
   validatorNext.validate({
     body: schemas.draft
   }),
   draftController.create
+);
+router.put(
+  '/drafts/:id',
+  async (req, res, next) => {
+    const { auth } = req as AuthenticatedRequest;
+    const enabled = await isFeatureEnabled('new-campaigns', auth.establishmentId);
+    if (!enabled) return next('route');
+    next();
+  },
+  validatorNext.validate({
+    params: object({ id: schemas.id }),
+    body: schemas.draftUpdatePayload
+  }),
+  draftController.updateNext
 );
 router.put(
   '/drafts/:id',

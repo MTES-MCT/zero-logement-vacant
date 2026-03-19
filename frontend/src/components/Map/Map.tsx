@@ -117,14 +117,31 @@ function Map(props: MapProps) {
 
   useEffect(() => {
     if (map && points.length > 0) {
-      const bounds = turf.bbox(turf.featureCollection(points));
-      map.fitBounds(bounds as [number, number, number, number], {
-        padding: 64,
-        duration: 800,
-        maxZoom: 12
-      });
+      if (points.length === 1) {
+        const [lng, lat] = points[0].geometry.coordinates as [number, number];
+        map.flyTo({
+          center: [lng, lat],
+          zoom: 10,
+          duration: 800
+        });
+      } else {
+        const bounds = turf.bbox(turf.featureCollection(points));
+        map.fitBounds(bounds as [number, number, number, number], {
+          padding: 64,
+          duration: 800,
+          maxZoom: 10
+        });
+      }
     }
   }, [map, points]);
+
+  // MapLibre GL hardcodes aria-label="Map" on the canvas element.
+  // Override it after the map is ready to satisfy RGAA 1.3.
+  useEffect(() => {
+    if (map) {
+      map.getCanvas().setAttribute('aria-label', 'Carte de localisation');
+    }
+  }, [map]);
 
   const [selected, setSelected] = useState<Building | null>(null);
   const isOpen = selected !== null;

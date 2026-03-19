@@ -28,12 +28,21 @@ function Footer() {
       homeLinkProps={{
         className: styles.brandLink,
         to: 'https://www.ecologie.gouv.fr/',
-        title: 'Accueil - Zéro Logement Vacant'
+        title: 'Ministère de la Ville et du Logement'
       }}
       termsLinkProps={{
-        to: 'https://zerologementvacant.beta.gouv.fr/mentions-legales',
-        content: 'Politique de confidentialité'
+        to: 'https://zerologementvacant.beta.gouv.fr/mentions-legales'
       }}
+      bottomItems={[
+        {
+          text: 'Politique de confidentialité',
+          linkProps: {
+            to: 'https://zerologementvacant.beta.gouv.fr/politique-de-confidentialite-de-zero-logement-vacant/',
+            target: '_blank',
+            rel: 'noopener noreferrer'
+          }
+        }
+      ]}
       contentDescription="Zéro Logement Vacant aide les collectivités à mobiliser les propriétaires de logements vacants de longue durée."
       linkList={[
         {
@@ -107,15 +116,15 @@ function Footer() {
       partnersLogos={{
         sub: [
           {
-            alt: "Logo de l'Agence nationale de l’habitat",
+            alt: "Agence nationale de l’habitat",
             imgUrl: anah,
             linkProps: {
               to: 'https://www.anah.gouv.fr/',
-              title: 'Agence national de l’habitat'
+              title: "Agence nationale de l’habitat"
             }
           },
           {
-            alt: 'Logo de France Nation Verte',
+            alt: 'France Nation Verte',
             imgUrl: fnv,
             linkProps: {
               to: 'https://www.info.gouv.fr/france-nation-verte',

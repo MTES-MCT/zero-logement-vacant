@@ -232,6 +232,7 @@ export const relativeLocationFilterToDBO = (
     .with('same-department', () => [2])
     .with('same-region', () => [3])
     .with('other-region', () => [4, 5])
+    .with('foreign-country', () => [6])
     .with('other', () => [7])
     .exhaustive();
 

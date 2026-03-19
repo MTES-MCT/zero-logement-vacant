@@ -15,6 +15,7 @@ import {
   type TableOptions
 } from '@tanstack/react-table';
 import classNames from 'classnames';
+import { match } from 'ts-pattern';
 import { createRef, memo, useEffect, useState, type MouseEvent } from 'react';
 
 import SelectNext from '@codegouvfr/react-dsfr/SelectNext';
@@ -55,6 +56,12 @@ export type AdvancedTableProps<Data extends object> = Pick<
      * @returns Accessible label for the checkbox
      */
     getRowSelectionLabel?(row: Data): string;
+    /**
+     * Accessible label for the table (RGAA 5.4).
+     * Rendered as aria-label on the <table> element.
+     * Use alongside noCaption: true in tableProps to preserve DSFR padding.
+     */
+    caption?: string;
   };
 
 interface PaginationProps {
@@ -171,7 +178,7 @@ function AdvancedTable<Data extends object>(props: AdvancedTableProps<Data>) {
         <div className={fr.cx('fr-table__wrapper')}>
           <div className={fr.cx('fr-table__container')}>
             <div className={fr.cx('fr-table__content')}>
-              <table>
+              <table aria-label={props.caption}>
                 <thead>
                   <tr>
                     {!enableSelection ? null : (
@@ -196,7 +203,19 @@ function AdvancedTable<Data extends object>(props: AdvancedTableProps<Data>) {
                     )}
 
                     {headers.map((header, i) => (
-                      <th key={i} scope="col">
+                      <th
+                        key={i}
+                        scope="col"
+                        aria-sort={match(
+                          header.column.getCanSort()
+                            ? header.column.getIsSorted()
+                            : null
+                        )
+                          .with('asc', () => 'ascending' as const)
+                          .with('desc', () => 'descending' as const)
+                          .with(false, () => 'none' as const)
+                          .otherwise(() => undefined)}
+                      >
                         {header.column.getCanSort() ? (
                           <Stack
                             direction="row"
@@ -297,7 +316,11 @@ function AdvancedTable<Data extends object>(props: AdvancedTableProps<Data>) {
           direction="row"
           spacing="1rem"
           useFlexGap
-          sx={{ justifyContent: 'center', alignItems: 'center' }}
+          sx={{
+            justifyContent: 'center',
+            alignItems: 'center',
+            flexWrap: 'wrap'
+          }}
         >
           <SelectNext
             label={null}

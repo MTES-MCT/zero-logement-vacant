@@ -182,7 +182,7 @@ function HousingListEditionSideMenu(props: Props) {
       />
     ))
     .with('note', () => (
-      <AppTextInputNext<BatchEditionFormSchema>
+      <AppTextInputNext<BatchEditionFormSchema, 'note'>
         label="Nouvelle note"
         name="note"
         nativeTextAreaProps={{

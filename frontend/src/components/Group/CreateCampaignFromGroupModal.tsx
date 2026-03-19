@@ -3,7 +3,8 @@ import { yupResolver } from '@hookform/resolvers/yup';
 import Stack from '@mui/material/Stack';
 import Typography from '@mui/material/Typography';
 import { useForm, type SubmitHandler } from 'react-hook-form';
-import { date, object, string, type InferType } from 'yup';
+import schemas from '@zerologementvacant/schemas';
+import { object, string, type InferType } from 'yup';
 import { createPortal } from 'react-dom';
 
 import AppTextInputNext from '~/components/_app/AppTextInput/AppTextInputNext';
@@ -31,7 +32,7 @@ export type CreateCampaignFromGroupModalProps = Omit<
 const schema = object({
   title: string().trim().required('Veuillez renseigner un nom'),
   description: string().trim().required('Veuillez renseigner une description'),
-  sentAt: date().optional().nullable().default(null)
+  sentAt: schemas.dateString.optional().nullable().default(null)
 });
 
 type FormSchema = InferType<typeof schema>;
@@ -66,7 +67,7 @@ export function createCampaignFromGroupModal(
         onSubmit({
           title: data.title,
           description: data.description,
-          sentAt: data.sentAt?.toISOString()?.slice(0, 'yyyy-mm-dd'.length)
+          sentAt: data.sentAt
         });
       };
 
@@ -112,13 +113,13 @@ export function createCampaignFromGroupModal(
               textArea
             />
 
-            <AppTextInputNext<FormSchema, FormSchema['sentAt']>
+            <AppTextInputNext<FormSchema>
               label="Date d’envoi"
               name="sentAt"
               control={form.control}
               nativeInputProps={{ type: 'date' }}
-              mapValue={(value) => value?.toISOString().slice(0, 10) ?? ''}
-              contramapValue={(value) => (value ? new Date(value) : null)}
+              mapValue={(value) => value ?? ''}
+              contramapValue={(value) => value || null}
             />
 
             <Alert

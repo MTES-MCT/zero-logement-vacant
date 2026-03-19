@@ -130,7 +130,7 @@ function CampaignDraftContent(props: Readonly<Props>) {
     setValues({ ...values, sender });
   }
 
-  function setSignatories(signatories: SignatoriesPayload | null): void {
+  function setSignatories(signatories: SignatoriesPayload | [null, null]): void {
     setSender({ ...values.sender, signatories });
   }
 

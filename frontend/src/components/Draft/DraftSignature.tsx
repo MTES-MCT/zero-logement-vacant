@@ -47,7 +47,8 @@ function DraftSignature(props: Readonly<Props>) {
       firstName: null,
       lastName: null,
       role: null,
-      file: null
+      file: null,
+      document: null
     };
     const signatories =
       props.value?.map((s, i) =>
@@ -64,7 +65,8 @@ function DraftSignature(props: Readonly<Props>) {
       firstName: null,
       lastName: null,
       role: null,
-      file: null
+      file: null,
+      document: null
     };
     const signatories = props?.value?.map((s, i) =>
       i === index ? { ...signatory, file: null } : s

@@ -12,7 +12,14 @@ import Icon from '~/components/ui/Icon';
 import type { Owner } from '~/models/Owner';
 
 export const OWNER_FORM_FIELD_SCHEMA = object({
-  birthDate: string().defined().nullable(),
+  birthDate: string()
+    .defined()
+    .nullable()
+    .test(
+      'birth-date-required',
+      'Veuillez renseigner une date de naissance.',
+      (value) => Boolean(value)
+    ),
   banAddress: object({
     id: string().required(),
     label: string().required(),
@@ -59,16 +66,18 @@ function OwnerFormFields(props: OwnerFormFieldsProps) {
         </Typography>
       </Stack>
 
-      <AppTextInputNext<OwnerFormFieldsSchema>
+      <AppTextInputNext<OwnerFormFieldsSchema, 'birthDate'>
         name="birthDate"
-        label="Date de naissance"
+        label="Date de naissance (obligatoire)"
+        hintText="Format attendu : jj/mm/aaaa"
         nativeInputProps={{
           type: 'date',
           max: new Date().toISOString().substring(0, 'yyyy-mm-dd'.length),
-          autoComplete: 'bday'
+          autoComplete: 'bday',
+          'aria-required': 'true'
         }}
-        mapValue={(value): string => value ?? ''}
-        contramapValue={(value): string | null => value || null}
+        mapValue={(value) => value ?? ''}
+        contramapValue={(value) => value || null}
       />
 
       <Stack component="section">
@@ -95,7 +104,7 @@ function OwnerFormFields(props: OwnerFormFieldsProps) {
         <Stack direction="row" spacing="0.25rem" sx={{ alignItems: 'center' }}>
           <Icon name="fr-icon-home-4-line" size="sm" />
           <Typography color={fr.colors.decisions.text.active.grey.default}>
-            Adresse postale (source: Base Adresse Nationale)
+            Adresse postale (obligatoire) — source: Base Adresse Nationale
           </Typography>
         </Stack>
         <a
@@ -155,7 +164,7 @@ function OwnerFormFields(props: OwnerFormFieldsProps) {
       </Stack>
 
       <Stack component="section">
-        <AppTextInputNext<OwnerFormFieldsSchema>
+        <AppTextInputNext<OwnerFormFieldsSchema, 'additionalAddress'>
           name="additionalAddress"
           label="Complément d'adresse"
           mapValue={(value): string => value ?? ''}
@@ -165,27 +174,29 @@ function OwnerFormFields(props: OwnerFormFieldsProps) {
 
       <Grid container component="section" columnSpacing="1rem">
         <Grid size={{ xs: 12, md: 6 }}>
-          <AppTextInputNext<OwnerFormFieldsSchema>
+          <AppTextInputNext<OwnerFormFieldsSchema, 'email'>
             name="email"
             label="Adresse e-mail"
+            hintText="Format attendu : prenom.nom@domaine.fr"
             nativeInputProps={{
               type: 'email',
               autoComplete: 'email'
             }}
-            mapValue={(value): string => value ?? ''}
-            contramapValue={(value): string | null => value || null}
+            mapValue={(value) => value ?? ''}
+            contramapValue={(value) => value || null}
           />
         </Grid>
         <Grid size={{ xs: 12, md: 6 }}>
-          <AppTextInputNext<OwnerFormFieldsSchema>
+          <AppTextInputNext<OwnerFormFieldsSchema, 'phone'>
             name="phone"
             label="Numéro de téléphone"
+            hintText="Format attendu : 0123456789 ou +33123456789"
             nativeInputProps={{
               type: 'tel',
               autoComplete: 'tel'
             }}
-            mapValue={(value): string => value ?? ''}
-            contramapValue={(value): string | null => value || null}
+            mapValue={(value) => value ?? ''}
+            contramapValue={(value) => value || null}
           />
         </Grid>
       </Grid>

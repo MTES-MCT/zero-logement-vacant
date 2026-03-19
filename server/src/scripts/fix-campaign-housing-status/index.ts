@@ -29,6 +29,7 @@ async function run() {
   }
 
   await input()
+    // @ts-expect-error - Type inference issue in @types/node (https://github.com/microsoft/TypeScript-DOM-lib-generator/pull/1676)
     .pipeThrough(groupBy((a, b) => a.campaign_id === b.campaign_id))
     .pipeTo(writer({ creator }));
 }
@@ -97,6 +98,7 @@ function input(): ReadableStream<Input> {
     'utf-8'
   );
 
+  // @ts-expect-error - Type inference issue in @types/node (https://github.com/microsoft/TypeScript-DOM-lib-generator/pull/1676)
   return Readable.toWeb(stream).pipeThrough(Transform.toWeb(parser));
 }
 

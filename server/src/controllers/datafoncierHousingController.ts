@@ -12,13 +12,17 @@ interface FindOneParams extends Record<string, string> {
   localId: string;
 }
 
-const findOne: RequestHandler<FindOneParams, DatafoncierHousing> = async (
-  request,
-  response
-) => {
+const findOne: RequestHandler<
+  FindOneParams,
+  DatafoncierHousing,
+  never,
+  never
+> = async (request, response) => {
   const { establishment } = request as AuthenticatedRequest<
     FindOneParams,
-    DatafoncierHousing
+    DatafoncierHousing,
+    never,
+    never
   >;
 
   const housing = await datafoncierHousingRepository.findOne({

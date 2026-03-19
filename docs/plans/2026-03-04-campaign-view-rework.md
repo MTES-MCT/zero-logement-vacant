@@ -916,7 +916,7 @@ function CampaignViewNext() {
   const returnCount = campaign.returnCount;
   const returnRate =
     campaign.sentAt && returnCount !== null && housingCount > 0
-      ? `${Math.round((returnCount / housingCount) * 100)}\u00a0%`
+      ? `${Math.round((returnCount / housingCount) * 100)} %`
       : null;
 
   return (

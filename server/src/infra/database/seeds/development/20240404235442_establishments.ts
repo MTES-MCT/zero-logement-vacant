@@ -11,6 +11,7 @@ export const ZeroLogementVacantEstablishment =
   'Zéro Logement Vacant à Marseille';
 
 export async function seed(knex: Knex): Promise<void> {
+  console.time('20240404235442_establishments');
   await Establishments(knex)
     .whereIn('siren', [SirenStrasbourg, SirenSaintLo, SirenBasRhin])
     .update({ available: true });
@@ -29,4 +30,6 @@ export async function seed(knex: Knex): Promise<void> {
     source: 'seed',
     updated_at: new Date()
   });
+  console.timeEnd('20240404235442_establishments');
+  console.log('\n')
 }

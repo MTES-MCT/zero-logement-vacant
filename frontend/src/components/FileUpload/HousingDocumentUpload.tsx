@@ -2,18 +2,11 @@ import {
   ACCEPTED_HOUSING_DOCUMENT_EXTENSIONS,
   type DocumentDTO
 } from '@zerologementvacant/models';
-import { Array } from 'effect';
-import { match } from 'ts-pattern';
 
 import DocumentUpload, {
   type DocumentUploadProps
 } from '~/components/FileUpload/DocumentUpload';
-import {
-  type FileValidationError,
-  isFileValidationError
-} from '~/models/FileValidationError';
-import { useUploadDocumentsMutation } from '~/services/document.service';
-import { isFetchBaseQueryError } from '~/store/store';
+import { useDocumentUpload } from '~/components/FileUpload/useDocumentUpload';
 
 export type HousingDocumentUploadProps = Pick<DocumentUploadProps, 'label'> & {
   /**
@@ -24,52 +17,9 @@ export type HousingDocumentUploadProps = Pick<DocumentUploadProps, 'label'> & {
 };
 
 function HousingDocumentUpload(props: Readonly<HousingDocumentUploadProps>) {
-  const [uploadDocuments, uploadMutation] = useUploadDocumentsMutation();
-
-  const isLoading = uploadMutation.isLoading;
-  const isSuccess = uploadMutation.isSuccess;
-  const isError = uploadMutation.isError;
-
-  const documentsOrErrors = uploadMutation.data ?? [];
-  const errors: ReadonlyArray<FileValidationError> =
-    uploadMutation.isError &&
-    uploadMutation.error &&
-    isFetchBaseQueryError(uploadMutation.error) &&
-    uploadMutation.error.data &&
-    Array.isArray(uploadMutation.error.data) &&
-    Array.every(uploadMutation.error.data, isFileValidationError)
-      ? uploadMutation.error.data
-      : documentsOrErrors.filter(isFileValidationError);
-
-  const error: string | undefined = match(errors.length)
-    .returnType<string | undefined>()
-    .with(0, () => undefined)
-    .with(
-      documentsOrErrors.length,
-      () =>
-        'Aucun fichier n’a pu être importé, car le format ne respecte pas les consignes d’import. Essayez avec d’autres documents ou modifiez les documents que vous souhaitez importer.'
-    )
-    .otherwise(
-      () =>
-        'Certains fichiers n’ont pas pu être importés, car le format ne respecte pas les consignes d’import. Essayez avec d’autres documents ou modifiez les documents que vous souhaitez importer.'
-    );
-
-  function onUpload(files: ReadonlyArray<File>) {
-    if (!files.length) {
-      uploadMutation.reset();
-      return;
-    }
-
-    uploadDocuments({ files })
-      .unwrap()
-      .then((documentsOrErrors) => {
-        const documents: DocumentDTO[] = documentsOrErrors.filter(
-          (item): item is DocumentDTO => !isFileValidationError(item)
-        );
-
-        props.onUpload(documents);
-      });
-  }
+  const { error, isError, isLoading, isSuccess, upload } = useDocumentUpload({
+    onUpload: props.onUpload
+  });
 
   return (
     <DocumentUpload
@@ -83,7 +33,7 @@ function HousingDocumentUpload(props: Readonly<HousingDocumentUploadProps>) {
       label={props.label ?? 'Associez un ou plusieurs documents à ce logement'}
       maxSize={25}
       multiple
-      onUpload={onUpload}
+      onUpload={upload}
     />
   );
 }

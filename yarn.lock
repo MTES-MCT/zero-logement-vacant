@@ -7159,19 +7159,20 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@pdfme/schemas@npm:5.4.2":
-  version: 5.4.2
-  resolution: "@pdfme/schemas@npm:5.4.2"
+"@pdfme/schemas@npm:5.5.9":
+  version: 5.5.9
+  resolution: "@pdfme/schemas@npm:5.5.9"
   dependencies:
     "@pdfme/pdf-lib": "npm:*"
     air-datepicker: "npm:^3.6.0"
-    bwip-js: "npm:^4.6.0"
+    bwip-js: "npm:^4.8.0"
     date-fns: "npm:^4.1.0"
+    dompurify: "npm:^3.3.1"
     fontkit: "npm:^2.0.2"
-    lucide: "npm:^0.525.0"
+    lucide: "npm:^0.575.0"
   peerDependencies:
     "@pdfme/common": "*"
-  checksum: 10c0/0ab33c71936b3b8807d091ec7fd6d1859cfe6829adf27b2e66a11f1523b69b50e3d04349c8bdb370f7be5d9cfa19413d1582cb247bdfc54021e2c42c304545e7
+  checksum: 10c0/010ad7aa277080652c54408a7bf84292ba34bdf085e68a359bcbcc57c4d81708bd9e181cc34129b98f0b7602398daee60b6072329e34ad7e60054ef58d36e9de
   languageName: node
   linkType: hard
 
@@ -13940,7 +13941,7 @@ __metadata:
     "@codegouvfr/react-dsfr": "npm:1.28.0"
     "@pdfme/common": "npm:5.4.2"
     "@pdfme/generator": "npm:5.4.2"
-    "@pdfme/schemas": "npm:5.4.2"
+    "@pdfme/schemas": "npm:5.5.9"
     "@swc/core": "npm:1.13.3"
     "@swc/jest": "npm:0.2.39"
     "@testing-library/dom": "npm:10.4.1"
@@ -14066,7 +14067,7 @@ __metadata:
     ts-essentials: "npm:10.1.1"
     ts-pattern: "npm:5.8.0"
     tsx: "npm:4.20.3"
-    undici: "npm:7.20.0"
+    undici: "npm:7.24.0"
     uuid: "npm:9.0.1"
     web-vitals: "npm:5.1.0"
     whatwg-fetch: "npm:3.6.20"
@@ -14221,7 +14222,7 @@ __metadata:
     "@godaddy/terminus": "npm:4.12.1"
     "@pdfme/common": "npm:5.4.2"
     "@pdfme/generator": "npm:5.4.2"
-    "@pdfme/schemas": "npm:5.4.2"
+    "@pdfme/schemas": "npm:5.5.9"
     "@react-pdf/renderer": "npm:4.3.2"
     "@sendinblue/client": "npm:3.3.1"
     "@sentry/integrations": "npm:7.120.4"
@@ -14306,7 +14307,7 @@ __metadata:
     memoizee: "npm:0.4.17"
     mime: "npm:4.1.0"
     ms: "npm:2.1.3"
-    multer: "npm:2.1.0"
+    multer: "npm:2.1.1"
     nock: "npm:13.5.6"
     nodemailer: "npm:7.0.11"
     nodemon: "npm:3.1.10"
@@ -16149,7 +16150,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"bwip-js@npm:^4.6.0":
+"bwip-js@npm:^4.8.0":
   version: 4.8.0
   resolution: "bwip-js@npm:4.8.0"
   bin:
@@ -25803,10 +25804,10 @@ __metadata:
   languageName: node
   linkType: hard
 
-"lucide@npm:^0.525.0":
-  version: 0.525.0
-  resolution: "lucide@npm:0.525.0"
-  checksum: 10c0/14ab51b6ab84289dbe4cdde4aa78b2e72a007513ec855f908b02b8bd0bf80a562cf6f19052965665c583b3ba295c97bac1f4578e554455b24c9446f9a32d2fc7
+"lucide@npm:^0.575.0":
+  version: 0.575.0
+  resolution: "lucide@npm:0.575.0"
+  checksum: 10c0/5392d4ad22fd12691fc56881d74eca7ec721bf4a0f992132245b0ed8e516ed37b39c6a44f26e3d31a4f23eda8d513ec0f4b27863c1e751c8ab7af1fe5cb349d2
   languageName: node
   linkType: hard
 
@@ -26616,15 +26617,15 @@ __metadata:
   languageName: node
   linkType: hard
 
-"multer@npm:2.1.0":
-  version: 2.1.0
-  resolution: "multer@npm:2.1.0"
+"multer@npm:2.1.1":
+  version: 2.1.1
+  resolution: "multer@npm:2.1.1"
   dependencies:
     append-field: "npm:^1.0.0"
     busboy: "npm:^1.6.0"
     concat-stream: "npm:^2.0.0"
     type-is: "npm:^1.6.18"
-  checksum: 10c0/5b374b9a3dbdfe28bbcacbc070cfa8d81a94f74d2fbf979d96802750b7a463ea54c996faee9d25f323a0c67f55e4f82b2b5f034d91e174daf7bcfb7e0f52c165
+  checksum: 10c0/2ec4e02833b20f403cfb879d4b64d2a9070d902b9deae7aef18a6faadb707d7665385456cf540aa8a6dadfe3d4c5fc8e0e7b0675b94e1077048b1125426deee6
   languageName: node
   linkType: hard
 
@@ -33811,10 +33812,10 @@ __metadata:
   languageName: node
   linkType: hard
 
-"undici@npm:7.20.0":
-  version: 7.20.0
-  resolution: "undici@npm:7.20.0"
-  checksum: 10c0/99054958a07b4105e1461bf5f38550746a15e01d6807e7a2b0849f18e1bc3f481c1ad080ea87b255a39264cec5d80ebf2b3bc82c3e732d81e6a0cc3c920c05c6
+"undici@npm:7.24.0":
+  version: 7.24.0
+  resolution: "undici@npm:7.24.0"
+  checksum: 10c0/ccb2f3407ae35fec66183b80fff696dcc56c308bf568277c0c022d5dffa09e3ab35734ea4d99c77e837522c9c83fd284932816dec2cfc9023fcee4e02686514e
   languageName: node
   linkType: hard
 

@@ -4,7 +4,7 @@ import Stack from '@mui/material/Stack';
 import Typography from '@mui/material/Typography';
 import { createColumnHelper, type SortingState } from '@tanstack/react-table';
 import { format } from 'date-fns';
-import { Record } from 'effect';
+import { Number, pipe, Record } from 'effect';
 import { useMemo, useState } from 'react';
 
 import { useUser } from '../../hooks/useUser';
@@ -42,7 +42,7 @@ function CampaignTable(props: CampaignTableProps) {
         header: 'Titre',
         meta: {
           sort: {
-            title: 'Trier par titre'
+            title: 'Trier par nom'
           },
           styles: {
             multiline: true
@@ -98,6 +98,59 @@ function CampaignTable(props: CampaignTableProps) {
         cell: ({ cell }) => {
           const value = cell.getValue();
           return value ? format(new Date(value), 'dd/MM/yyyy') : null;
+        }
+      }),
+      columnHelper.accessor('housingCount', {
+        header: 'Logements',
+        meta: {
+          sort: {
+            title: 'Trier par nombre de logements'
+          }
+        },
+        cell: ({ cell }) =>
+          `${cell.getValue()} logement${cell.getValue() > 1 ? 's' : ''}`
+      }),
+      columnHelper.accessor('ownerCount', {
+        header: 'Propriétaires',
+        meta: {
+          sort: {
+            title: 'Trier par nombre de propriétaires'
+          }
+        },
+        cell: ({ cell }) =>
+          `${cell.getValue()} propriétaire${cell.getValue() > 1 ? 's' : ''}`
+      }),
+      columnHelper.accessor('returnCount', {
+        header: 'Retours',
+        meta: {
+          sort: {
+            title: 'Trier par nombre de retours'
+          }
+        },
+        cell: ({ cell }) => `${cell.getValue()} retours`
+      }),
+      columnHelper.accessor('returnRate', {
+        header: 'Taux de retour',
+        meta: {
+          sort: {
+            title: 'Trier par taux de retour'
+          }
+        },
+        cell: ({ cell, row }) => {
+          const value = cell.getValue();
+          if (!row.original.sentAt) {
+            return null;
+          }
+          if (!value) {
+            return null;
+          }
+          const formatted = pipe(
+            value,
+            Number.round(2),
+            Number.multiply(100),
+            (n) => `${n} %`
+          );
+          return formatted;
         }
       }),
       columnHelper.display({

@@ -69,11 +69,21 @@ function CampaignTableNext(props: CampaignTableProps) {
       }),
       columnHelper.accessor('housingCount', {
         header: 'Logements',
+        meta: {
+          sort: {
+            title: 'Trier par nombre de logements'
+          }
+        },
         cell: ({ cell }) =>
           `${cell.getValue()} logement${cell.getValue() > 1 ? 's' : ''}`
       }),
       columnHelper.accessor('ownerCount', {
         header: 'Propriétaires',
+        meta: {
+          sort: {
+            title: 'Trier par nombre de propriétaires'
+          }
+        },
         cell: ({ cell }) =>
           `${cell.getValue()} propriétaire${cell.getValue() > 1 ? 's' : ''}`
       }),
@@ -95,6 +105,11 @@ function CampaignTableNext(props: CampaignTableProps) {
       }),
       columnHelper.accessor('returnCount', {
         header: 'Retours',
+        meta: {
+          sort: {
+            title: 'Trier par nombre de retours'
+          }
+        },
         cell: ({ cell, row }) => {
           const value = `${cell.getValue()} retours`;
           return row.original.sentAt ? value : <WaitingBadge />;
@@ -102,6 +117,11 @@ function CampaignTableNext(props: CampaignTableProps) {
       }),
       columnHelper.accessor('returnRate', {
         header: 'Taux de retour',
+        meta: {
+          sort: {
+            title: 'Trier par taux de retour'
+          }
+        },
         cell: ({ cell, row }) => {
           if (!row.original.sentAt) {
             return <WaitingBadge />;

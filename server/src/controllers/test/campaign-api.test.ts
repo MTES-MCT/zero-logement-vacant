@@ -271,6 +271,14 @@ describe('Campaign API', () => {
         ]);
       });
 
+      afterEach(async () => {
+        if (sortCampaigns?.length) {
+          await Campaigns()
+            .whereIn('id', sortCampaigns.map((c) => c.id))
+            .delete();
+        }
+      });
+
       it('should sort by housingCount ascending', async () => {
         const { body, status } = await request(url)
           .get(testRoute)

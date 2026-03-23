@@ -75,6 +75,16 @@ const campaignSortQuery = (sort?: CampaignSortApi) =>
       status: (query) =>
         query.orderByRaw(
           `(case ${campaignsTable}.status when 'archived' then 3 when 'in-progress' then 2 when 'sending' then 1 else 0 end) ${sort?.status}`
+        ),
+      housingCount: (query) =>
+        query.orderBy(`${campaignsTable}.housing_count`, sort?.housingCount),
+      ownerCount: (query) =>
+        query.orderBy(`${campaignsTable}.owner_count`, sort?.ownerCount),
+      returnCount: (query) =>
+        query.orderBy(`${campaignsTable}.return_count`, sort?.returnCount),
+      returnRate: (query) =>
+        query.orderByRaw(
+          `${campaignsTable}.return_rate ${sort?.returnRate} NULLS LAST`
         )
     },
     default: (query) => query.orderBy('created_at', 'desc')

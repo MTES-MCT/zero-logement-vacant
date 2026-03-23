@@ -11,7 +11,10 @@ function DraftDownloaderButton(props: Readonly<DraftDownloaderButtonProps>) {
   const [exportCampaign, exportCampaignMutation] = useExportCampaignMutation();
 
   async function download() {
-    const url = await exportCampaign({ id: props.campaign.id }).unwrap();
+    const url = await exportCampaign({
+      id: props.campaign.id,
+      type: 'drafts'
+    }).unwrap();
     const a = document.createElement('a');
     a.href = url;
     a.download = `${props.campaign.title}.pdf`;

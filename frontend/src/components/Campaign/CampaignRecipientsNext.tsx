@@ -1,32 +1,34 @@
+import { fr } from '@codegouvfr/react-dsfr';
 import Badge from '@codegouvfr/react-dsfr/Badge';
 import Button from '@codegouvfr/react-dsfr/Button';
 import { createModal } from '@codegouvfr/react-dsfr/Modal';
+import Skeleton from '@mui/material/Skeleton';
 import Stack from '@mui/material/Stack';
 import Typography from '@mui/material/Typography';
+import type { PaginationState } from '@tanstack/react-table';
 import { createColumnHelper } from '@tanstack/react-table';
-
 import {
   formatAddress as formatAddressDTO,
   type Pagination
 } from '@zerologementvacant/models';
 import { Fragment, type ReactNode, useMemo, useState } from 'react';
-import type { PaginationState } from '@tanstack/react-table';
-import { useNotification } from '../../hooks/useNotification';
-import { type Address, isBanEligible } from '../../models/Address';
-import type { Campaign } from '../../models/Campaign';
-import type { Housing } from '../../models/Housing';
-import { useRemoveCampaignHousingMutation } from '../../services/campaign.service';
+import { match } from 'ts-pattern';
+
+import AdvancedTable from '~/components/AdvancedTable/AdvancedTable';
+import AdvancedTableHeader from '~/components/AdvancedTable/AdvancedTableHeader';
+import OwnerEditionSideMenu from '~/components/OwnerEditionSideMenu/OwnerEditionSideMenu';
+import { useNotification } from '~/hooks/useNotification';
+import { type Address, isBanEligible } from '~/models/Address';
+import type { Campaign } from '~/models/Campaign';
+import type { Housing } from '~/models/Housing';
+import { useRemoveCampaignHousingMutation } from '~/services/campaign.service';
 import {
   useCountHousingQuery,
   useFindHousingQuery
-} from '../../services/housing.service';
+} from '~/services/housing.service';
 import AppLink from '../_app/AppLink/AppLink';
-import AdvancedTable from '../AdvancedTable/AdvancedTable';
-import AdvancedTableHeader from '../AdvancedTable/AdvancedTableHeader';
-import OwnerEditionSideMenu from '../OwnerEditionSideMenu/OwnerEditionSideMenu';
-import { match } from 'ts-pattern';
-import Skeleton from '@mui/material/Skeleton';
-import { fr } from '@codegouvfr/react-dsfr';
+
+import { useExportCampaignMutation } from '~/services/export.service';
 
 interface CampaignRecipientsProps {
   campaign: Campaign;
@@ -212,8 +214,32 @@ function CampaignRecipients(props: Readonly<CampaignRecipientsProps>) {
     []
   );
 
+  const [exportCampaign] = useExportCampaignMutation();
+
+  async function downloadRecipients(): Promise<void> {
+    const url = await exportCampaign({
+      id: props.campaign.id,
+      type: 'recipients'
+    }).unwrap();
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `${props.campaign.title}.pdf`;
+    a.click();
+    URL.revokeObjectURL(url);
+  }
+
   return (
     <Stack>
+      <Stack direction="row" sx={{ justifyContent: 'flex-end' }}>
+        <Button
+          priority="primary"
+          iconId="ri-download-2-fill"
+          onClick={downloadRecipients}
+        >
+          Télécharger les destinataires
+        </Button>
+      </Stack>
+
       {match(countHousingQuery)
         .with({ isLoading: true }, () => (
           <Skeleton animation="wave" variant="text" />

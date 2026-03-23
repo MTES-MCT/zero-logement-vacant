@@ -14,7 +14,7 @@ import {
   genHousingDTO,
   genUserDTO
 } from '@zerologementvacant/models/fixtures';
-import { DEFAULT_ORDER } from '@zerologementvacant/utils';
+import { Order } from 'effect';
 import { Provider } from 'react-redux';
 import { createMemoryRouter, RouterProvider } from 'react-router-dom';
 
@@ -83,31 +83,142 @@ describe('CampaignListView', () => {
         compare: (a: string, b: string) => {
           const map = (date: string): Date =>
             new Date(date.split('/').reverse().join('-'));
-          return DEFAULT_ORDER(map(a), map(b));
+          return Order.mapInput(map)(Order.Date)(a, b);
         }
       });
     });
   });
 
   describe('Housing count', () => {
-    // TODO
-  })
+    it('should sort by housing count ascending', async () => {
+      renderView({
+        campaigns: [
+          { ...genCampaignDTO(), housingCount: 10 },
+          { ...genCampaignDTO(), housingCount: 3 },
+          { ...genCampaignDTO(), housingCount: 7 }
+        ]
+      });
+
+      const table = await screen.findByRole('table');
+      const sort = await within(table).findByRole('button', {
+        name: 'Trier par nombre de logements'
+      });
+      await user.click(sort);
+
+      const cells = await within(table).findAllByText(/^\d+ logements?$/);
+      const counts = cells.map((cell) => Number(cell.textContent?.split(' ')[0]));
+      expect(counts.length).toBeGreaterThan(0);
+      expect(counts).toBeSorted();
+    });
+  });
 
   describe('Owner count', () => {
-    // TODO
-  })
+    it('should sort by owner count ascending', async () => {
+      renderView({
+        campaigns: [
+          { ...genCampaignDTO(), ownerCount: 8 },
+          { ...genCampaignDTO(), ownerCount: 2 },
+          { ...genCampaignDTO(), ownerCount: 5 }
+        ]
+      });
+
+      const table = await screen.findByRole('table');
+      const sort = await within(table).findByRole('button', {
+        name: 'Trier par nombre de propriétaires'
+      });
+      await user.click(sort);
+
+      const cells = await within(table).findAllByText(/^\d+ propriétaires?$/);
+      const counts = cells.map((cell) => Number(cell.textContent?.split(' ')[0]));
+      expect(counts.length).toBeGreaterThan(0);
+      expect(counts).toBeSorted();
+    });
+  });
 
   describe('Sending date', () => {
-    // TODO
+    it('should sort by sending date ascending', async () => {
+      renderView({
+        campaigns: [
+          { ...genCampaignDTO(), sentAt: '2024-03-15' },
+          { ...genCampaignDTO(), sentAt: '2024-01-10' },
+          { ...genCampaignDTO(), sentAt: '2024-06-01' }
+        ]
+      });
+
+      const table = await screen.findByRole('table');
+      const sort = await within(table).findByRole('button', {
+        name: 'Trier par date d\u2019envoi'
+      });
+      await user.click(sort);
+
+      const headers = within(table).getAllByRole('columnheader');
+      const sentAtIndex = headers.findIndex(
+        (h) => h.textContent === 'Date d\u2019envoi'
+      );
+      const rows = within(table).getAllByRole('row');
+      const dataRows = rows.slice(1);
+      const dates = dataRows.map((row) => {
+        const cells = Array.from(row.querySelectorAll('td'));
+        return cells[sentAtIndex]?.textContent ?? '';
+      });
+      const nonEmpty = dates.filter(Boolean);
+      expect(nonEmpty.length).toBeGreaterThan(0);
+      expect(nonEmpty).toBeSorted({
+        compare: (a: string, b: string) => {
+          const parse = (d: string) => new Date(d.split('/').reverse().join('-'));
+          return Order.mapInput(parse)(Order.Date)(a, b);
+        }
+      });
+    });
   });
 
   describe('Return count', () => {
-    // TODO
-  })
+    it('should sort by return count ascending', async () => {
+      renderView({
+        campaigns: [
+          { ...genCampaignDTO(), sentAt: '2024-01-01', housingCount: 10, returnCount: 5, returnRate: 0.5 },
+          { ...genCampaignDTO(), sentAt: '2024-01-01', housingCount: 10, returnCount: 1, returnRate: 0.1 },
+          { ...genCampaignDTO(), sentAt: '2024-01-01', housingCount: 10, returnCount: 3, returnRate: 0.3 }
+        ]
+      });
+
+      const table = await screen.findByRole('table');
+      const sort = await within(table).findByRole('button', {
+        name: 'Trier par nombre de retours'
+      });
+      await user.click(sort);
+
+      const cells = await within(table).findAllByText(/^\d+ retours$/);
+      const counts = cells.map((cell) => Number(cell.textContent?.split(' ')[0]));
+      expect(counts.length).toBeGreaterThan(0);
+      expect(counts).toBeSorted();
+    });
+  });
 
   describe('Return rate', () => {
-    // TODO
-  })
+    it('should sort by return rate ascending', async () => {
+      renderView({
+        campaigns: [
+          { ...genCampaignDTO(), sentAt: '2024-01-01', housingCount: 10, returnCount: 5, returnRate: 0.5 },
+          { ...genCampaignDTO(), sentAt: '2024-01-01', housingCount: 10, returnCount: 1, returnRate: 0.1 },
+          { ...genCampaignDTO(), sentAt: '2024-01-01', housingCount: 10, returnCount: 3, returnRate: 0.3 }
+        ]
+      });
+
+      const table = await screen.findByRole('table');
+      const sort = await within(table).findByRole('button', {
+        name: 'Trier par taux de retour'
+      });
+      await user.click(sort);
+
+      const cells = await within(table).findAllByText(/^\d+(\.\d+)? %$/);
+      const rates = cells.map((cell) =>
+        parseFloat(cell.textContent?.replace(' %', '') ?? '0')
+      );
+      expect(rates.length).toBeGreaterThan(0);
+      expect(rates).toBeSorted();
+    });
+  });
 
   describe('Actions', () => {
     it('should remove a campaign', async () => {
@@ -150,7 +261,9 @@ function renderView(options?: RenderViewOptions) {
     count: { min: 1, max: 10 }
   });
   const group = genGroupDTO(auth, housings);
-  const campaigns = faker.helpers.multiple(() => genCampaignDTO(group, auth));
+  const campaigns =
+    options?.campaigns ??
+    faker.helpers.multiple(() => genCampaignDTO(group, auth));
 
   data.establishments.push(establishment);
   data.users.push(auth);

@@ -77,7 +77,7 @@ export enum CampaignSteps {
 
 export type CampaignSortableApi = Pick<
   CampaignApi,
-  'title' | 'createdAt' | 'sentAt'
+  'title' | 'createdAt' | 'sentAt' | 'housingCount' | 'ownerCount' | 'returnCount' | 'returnRate'
 > & {
   status: string;
 };

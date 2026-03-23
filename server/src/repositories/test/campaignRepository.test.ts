@@ -499,7 +499,10 @@ describe('Campaign repository', () => {
             housingId: housing.id
           };
         });
-      await Events().insert(housingEvents.map(formatEventApi));
+      const afterSentAt = new Date(sentAt.getTime() + 1000);
+      await Events().insert(
+        housingEvents.map((e) => ({ ...formatEventApi(e), created_at: afterSentAt }))
+      );
       await HousingEvents().insert(housingEvents.map(formatHousingEventApi));
 
       const result = await campaignRepository.findOne({

@@ -569,7 +569,7 @@ class EstablishmentImporter:
                     dep_name = data.dep_name,
                     reg_code = data.reg_code::TEXT[],
                     reg_name = data.reg_name,
-                    localities_geo_code = data.localities_geo_code,
+                    localities_geo_code = data.localities_geo_code::TEXT[],
                     source = data.source,
                     updated_at = NOW()
                 FROM (VALUES %s) AS data(siret, name, kind_admin, kind_admin_meta, millesime, layer_geo_label, dep_code, dep_name, reg_code, reg_name, localities_geo_code, source, siren)

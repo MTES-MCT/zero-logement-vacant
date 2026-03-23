@@ -49,6 +49,17 @@ requests_cache.install_cache('cache', expire_after=36000000)
 SIREN_PARIS = "217500016"
 SIRET_PARIS = "21750001600019"
 
+# Arrondissements for Paris, Lyon, Marseille
+# These cities have arrondissements that should be included in their Geo_Perimeter
+CITIES_WITH_ARRONDISSEMENTS = {
+    '75056': ['75101', '75102', '75103', '75104', '75105', '75106', '75107', '75108',
+              '75109', '75110', '75111', '75112', '75113', '75114', '75115', '75116',
+              '75117', '75118', '75119', '75120'],
+    '69123': ['69381', '69382', '69383', '69384', '69385', '69386', '69387', '69388', '69389'],
+    '13055': ['13201', '13202', '13203', '13204', '13205', '13206', '13207', '13208',
+              '13209', '13210', '13211', '13212', '13213', '13214', '13215', '13216'],
+}
+
 # Special departmental collectivities that merged multiple departments
 # Example: CEA (Collectivité Européenne d'Alsace) merged Bas-Rhin (67) and Haut-Rhin (68) in 2021
 SPECIAL_DEPARTMENTAL_COLLECTIVITIES = [
@@ -253,6 +264,24 @@ class CollectivityProcessor:
             self.df_departements['REG_norm']
         ))
     
+    def _expand_with_arrondissements(self, commune_codes: List[str]) -> List[str]:
+        """
+        Expand a list of commune codes to include arrondissements for Paris, Lyon, Marseille.
+
+        Args:
+            commune_codes: List of commune codes
+
+        Returns:
+            List of commune codes with arrondissements added for Paris, Lyon, Marseille
+        """
+        expanded = list(commune_codes)
+        for city_code, arrondissements in CITIES_WITH_ARRONDISSEMENTS.items():
+            if city_code in expanded:
+                for arr_code in arrondissements:
+                    if arr_code not in expanded:
+                        expanded.append(arr_code)
+        return expanded
+
     def _get_dep_info(self, commune_codes: List[str]) -> tuple:
         """Get department codes and names from commune codes."""
         dep_codes = set()
@@ -332,6 +361,8 @@ class CollectivityProcessor:
                     self.df_communes['REG_norm'] == reg_code
                 ]['COM_norm'].tolist()
                 communes_in_region = [c for c in communes_in_region if c is not None]
+                # Expand with arrondissements for Paris, Lyon, Marseille
+                communes_in_region = self._expand_with_arrondissements(communes_in_region)
 
                 # Get departments in this region
                 deps_in_region = self.df_departements[
@@ -393,6 +424,8 @@ class CollectivityProcessor:
                     self.df_communes['DEP_norm'] == dep_code
                 ]['COM_norm'].tolist()
                 communes_in_dep = [c for c in communes_in_dep if c is not None]
+                # Expand with arrondissements for Paris, Lyon, Marseille
+                communes_in_dep = self._expand_with_arrondissements(communes_in_dep)
 
                 # Fetch SIREN and SIRET from API (add "D" suffix for departments)
                 if dep_code:
@@ -456,6 +489,9 @@ class CollectivityProcessor:
                     dep_row = self.df_departements[self.df_departements['DEP_norm'] == dep_code]
                     if not dep_row.empty:
                         dep_names.append(dep_row.iloc[0]['LIBELLE'])
+
+                # Expand with arrondissements for Paris, Lyon, Marseille
+                communes = self._expand_with_arrondissements(communes)
 
                 data = self._create_base_row()
                 data.update({
@@ -775,6 +811,9 @@ class CollectivityProcessor:
                 if not communes_in_ept:
                     continue
 
+                # Expand with arrondissements for Paris, Lyon, Marseille
+                communes_in_ept = self._expand_with_arrondissements(communes_in_ept)
+
                 # Get department and region info
                 dep_codes, dep_names = self._get_dep_info(communes_in_ept)
                 reg_code, reg_name = self._get_reg_info(communes_in_ept)
@@ -833,6 +872,9 @@ class CollectivityProcessor:
 
                 if not communes_in_epci:
                     continue
+
+                # Expand with arrondissements for Paris, Lyon, Marseille
+                communes_in_epci = self._expand_with_arrondissements(communes_in_epci)
 
                 # Get department and region info
                 dep_codes, dep_names = self._get_dep_info(communes_in_epci)
@@ -957,6 +999,11 @@ class CollectivityProcessor:
                     layer_label = 'Commune'
                     siren, siret = self.get_siren_siret_from_insee_code(com_code)
 
+                # Build Geo_Perimeter - include arrondissements for Paris, Lyon, Marseille
+                geo_perimeter = [com_code]
+                if com_code in CITIES_WITH_ARRONDISSEMENTS:
+                    geo_perimeter = geo_perimeter + CITIES_WITH_ARRONDISSEMENTS[com_code]
+
                 data = self._create_base_row()
                 data.update({
                     'Name-zlv': name_zlv,
@@ -966,7 +1013,7 @@ class CollectivityProcessor:
                     'Siren': siren,
                     'Siret': siret,
                     'Layer-geo_label': layer_label,
-                    'Geo_Perimeter': [com_code],
+                    'Geo_Perimeter': geo_perimeter,
                     'Dep_Code': [dep_code],
                     'Dep_Name': [dep_name],
                     'Reg_Code': [reg_code],

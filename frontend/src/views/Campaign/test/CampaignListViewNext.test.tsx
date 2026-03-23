@@ -228,6 +228,55 @@ describe('CampaignListView', () => {
     });
   });
 
+  describe('Pagination', () => {
+    beforeEach(() => data.reset());
+
+    it('should render a page size selector', async () => {
+      renderView();
+
+      await screen.findByRole('table');
+
+      expect(
+        screen.getByDisplayValue('50 résultats par page')
+      ).toBeInTheDocument();
+    });
+
+    it('should limit visible rows according to page size', async () => {
+      const campaigns = faker.helpers.multiple(() => genCampaignDTO(), {
+        count: 15
+      });
+      renderView({ campaigns });
+
+      await screen.findByRole('table');
+      const select = screen.getByDisplayValue('50 résultats par page');
+      await user.selectOptions(select, '10');
+
+      const table = screen.getByRole('table');
+      const rows = within(table).getAllByRole('row');
+      // 1 header row + 10 data rows
+      expect(rows).toHaveLength(11);
+    });
+
+    it('should navigate to the next page', async () => {
+      const campaigns = faker.helpers.multiple(() => genCampaignDTO(), {
+        count: 15
+      });
+      renderView({ campaigns });
+
+      await screen.findByRole('table');
+      const select = screen.getByDisplayValue('50 résultats par page');
+      await user.selectOptions(select, '10');
+
+      const page2 = await screen.findByTitle('Page 2');
+      await user.click(page2);
+
+      const table = screen.getByRole('table');
+      const rows = within(table).getAllByRole('row');
+      // 1 header row + 5 data rows
+      expect(rows).toHaveLength(6);
+    });
+  });
+
   describe('Actions', () => {
     it('should remove a campaign', async () => {
       async function count() {

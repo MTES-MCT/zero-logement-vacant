@@ -1,6 +1,10 @@
 import { faker } from '@faker-js/faker/locale/fr';
 
-import { CampaignEventApi, CampaignHousingEventApi } from '~/models/EventApi';
+import {
+  CampaignEventApi,
+  CampaignHousingEventApi,
+  HousingEventApi
+} from '~/models/EventApi';
 import { CampaignsDrafts } from '~/repositories/campaignDraftRepository';
 import { CampaignsHousing } from '~/repositories/campaignHousingRepository';
 import campaignRepository, {
@@ -19,6 +23,7 @@ import {
   formatCampaignEventApi,
   formatCampaignHousingEventApi,
   formatEventApi,
+  formatHousingEventApi,
   HousingEvents
 } from '~/repositories/eventRepository';
 import {
@@ -40,6 +45,7 @@ import {
   genOwnerApi,
   genUserApi
 } from '~/test/testFixtures';
+import { HousingStatus } from '@zerologementvacant/models';
 
 describe('Campaign repository', () => {
   const establishment = genEstablishmentApi();
@@ -459,12 +465,17 @@ describe('Campaign repository', () => {
     });
 
     it('should compute return_rate as return_count / housing_count', async () => {
+      const sentAt = faker.date.past();
       const campaign = genCampaignApi(establishment.id, user);
-      await Campaigns().insert({ ...formatCampaignApi(campaign), return_count: 4, sent_at: new Date() });
-
-      const housings = faker.helpers.multiple(() => genHousingApi(), { count: 10 });
+      await Campaigns().insert({
+        ...formatCampaignApi(campaign),
+        sent_at: sentAt
+      });
+      const housings = faker.helpers.multiple(
+        () => ({ ...genHousingApi(), status: HousingStatus.NEVER_CONTACTED }),
+        { count: 10 }
+      );
       await Housing().insert(housings.map(formatHousingRecordApi));
-
       await CampaignsHousing().insert(
         housings.map((housing) => ({
           campaign_id: campaign.id,
@@ -472,6 +483,24 @@ describe('Campaign repository', () => {
           housing_geo_code: housing.geoCode
         }))
       );
+      // 4 out of 10 housings get a qualifying event created after sentAt
+      const housingEvents = housings
+        .slice(0, 4)
+        .map<HousingEventApi>((housing) => {
+          const event = genEventApi({
+            type: 'housing:status-updated',
+            creator: user,
+            nextOld: { status: 'Jamais contacté' },
+            nextNew: { status: 'En attente de retour' }
+          });
+          return {
+            ...event,
+            housingGeoCode: housing.geoCode,
+            housingId: housing.id
+          };
+        });
+      await Events().insert(housingEvents.map(formatEventApi));
+      await HousingEvents().insert(housingEvents.map(formatHousingEventApi));
 
       const result = await campaignRepository.findOne({
         id: campaign.id,

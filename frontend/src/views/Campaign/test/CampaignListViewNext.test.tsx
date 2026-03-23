@@ -23,7 +23,7 @@ import { fromEstablishmentDTO } from '~/models/Establishment';
 import { fromUserDTO } from '~/models/User';
 import { genAuthUser } from '~/test/fixtures';
 import configureTestStore from '~/utils/storeUtils';
-import CampaignListViewNext from '~/views/Campaign/CampaignListView';
+import CampaignListViewNext from '~/views/Campaign/CampaignListViewNext';
 import CampaignViewNext from '~/views/Campaign/CampaignViewNext';
 
 describe('CampaignListView', () => {
@@ -66,14 +66,10 @@ describe('CampaignListView', () => {
   });
 
   describe('Creation date', () => {
-    it('should sort by creation date', async () => {
+    it('should sort by creation date by default', async () => {
       renderView();
 
       const table = await screen.findByRole('table');
-      const sort = await within(table).findByRole('button', {
-        name: 'Trier par date de création'
-      });
-      await user.click(sort);
       const dates = await within(table)
         .findAllByText(/^\d{2}\/\d{2}\/\d{4}$/)
         .then((elements) => elements.map((element) => element.textContent));
@@ -90,7 +86,7 @@ describe('CampaignListView', () => {
   });
 
   describe('Housing count', () => {
-    it('should sort by housing count ascending', async () => {
+    it('should sort by housing count descending', async () => {
       renderView({
         campaigns: [
           { ...genCampaignDTO(), housingCount: 10 },
@@ -106,9 +102,13 @@ describe('CampaignListView', () => {
       await user.click(sort);
 
       const cells = await within(table).findAllByText(/^\d+ logements?$/);
-      const counts = cells.map((cell) => Number(cell.textContent?.split(' ')[0]));
+      const counts = cells.map((cell) =>
+        Number(cell.textContent?.split(' ')[0])
+      );
       expect(counts.length).toBeGreaterThan(0);
-      expect(counts).toBeSorted();
+      expect(counts).toBeSorted({
+        descending: true
+      });
     });
   });
 
@@ -131,7 +131,9 @@ describe('CampaignListView', () => {
       const cells = await within(table).findAllByText(/^\d+ propriétaires?$/);
       const counts = cells.map((cell) => Number(cell.textContent?.split(' ')[0]));
       expect(counts.length).toBeGreaterThan(0);
-      expect(counts).toBeSorted();
+      expect(counts).toBeSorted({
+        descending: true
+      });
     });
   });
 
@@ -164,8 +166,10 @@ describe('CampaignListView', () => {
       const nonEmpty = dates.filter(Boolean);
       expect(nonEmpty.length).toBeGreaterThan(0);
       expect(nonEmpty).toBeSorted({
+        descending: true,
         compare: (a: string, b: string) => {
-          const parse = (d: string) => new Date(d.split('/').reverse().join('-'));
+          const parse = (d: string) =>
+            new Date(d.split('/').reverse().join('-'));
           return Order.mapInput(parse)(Order.Date)(a, b);
         }
       });
@@ -191,7 +195,9 @@ describe('CampaignListView', () => {
       const cells = await within(table).findAllByText(/^\d+ retours$/);
       const counts = cells.map((cell) => Number(cell.textContent?.split(' ')[0]));
       expect(counts.length).toBeGreaterThan(0);
-      expect(counts).toBeSorted();
+      expect(counts).toBeSorted({
+        descending: true
+      });
     });
   });
 
@@ -216,7 +222,9 @@ describe('CampaignListView', () => {
         parseFloat(cell.textContent?.replace(' %', '') ?? '0')
       );
       expect(rates.length).toBeGreaterThan(0);
-      expect(rates).toBeSorted();
+      expect(rates).toBeSorted({
+        descending: true
+      });
     });
   });
 
@@ -234,7 +242,7 @@ describe('CampaignListView', () => {
       const table = await screen.findByRole('table');
       const countBefore = await count();
       const [remove] = await within(table).findAllByRole('button', {
-        name: 'Supprimer la campagne'
+        name: /^Supprimer la campagne/
       });
       await user.click(remove);
       const dialog = await screen.findByRole('dialog');

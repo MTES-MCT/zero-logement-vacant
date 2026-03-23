@@ -2,13 +2,13 @@ import { faker } from '@faker-js/faker/locale/fr';
 
 import {
   byCreatedAt,
-  bySentAt,
-  byStatus,
-  byTitle,
   byHousingCount,
   byOwnerCount,
   byReturnCount,
   byReturnRate,
+  bySentAt,
+  byStatus,
+  byTitle,
   type CampaignCreationPayload,
   type CampaignCreationPayloadDTO,
   type CampaignDTO,
@@ -16,11 +16,9 @@ import {
   type GroupDTO,
   type HousingDTO
 } from '@zerologementvacant/models';
-import { combineAll, desc, type Ord } from '@zerologementvacant/utils';
-import { Array, pipe, Predicate } from 'effect';
+import { Array, Order, pipe, Predicate } from 'effect';
 import { identity } from 'effect/Function';
 import { constants } from 'http2';
-import { List } from 'immutable';
 import { http, HttpResponse, RequestHandler } from 'msw';
 import { toUserDTO } from '~/models/User';
 import {
@@ -324,8 +322,10 @@ function filter(
     : identity;
 }
 
-function sort(keys?: ReadonlyArray<string>) {
-  const ordering: Partial<Record<keyof CampaignSortable, Ord<CampaignDTO>>> = {
+function sort(
+  keys: ReadonlyArray<string> = []
+): (campaigns: CampaignDTO[]) => CampaignDTO[] {
+  const ordering: Record<keyof CampaignSortable, Order.Order<CampaignDTO>> = {
     title: byTitle,
     status: byStatus,
     createdAt: byCreatedAt,
@@ -336,19 +336,20 @@ function sort(keys?: ReadonlyArray<string>) {
     returnRate: byReturnRate
   };
 
-  const sortFns = List(keys)
-    .map((key) => {
+  const sortFn = pipe(
+    keys,
+    Array.map((key) => {
       const keyWithoutMinus = key.startsWith('-') ? key.slice(1) : key;
       if (!isCampaignSortable(keyWithoutMinus)) {
         return null;
       }
       return key.startsWith('-')
-        ? desc(ordering[keyWithoutMinus])
+        ? Order.reverse(ordering[keyWithoutMinus])
         : ordering[keyWithoutMinus];
-    })
-    .filter((fn) => !!fn);
-  const sortFn = combineAll(sortFns.toArray());
+    }),
+    Array.filter(Predicate.isNotNull),
+    Order.combineAll
+  );
 
-  return (campaigns: CampaignDTO[]): CampaignDTO[] =>
-    keys?.length ? [...campaigns].sort(sortFn) : campaigns;
+  return keys.length > 0 ? Array.sort(sortFn) : identity;
 }

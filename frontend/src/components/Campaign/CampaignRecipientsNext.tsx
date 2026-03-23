@@ -24,8 +24,11 @@ import AppLink from '../_app/AppLink/AppLink';
 import AdvancedTable from '../AdvancedTable/AdvancedTable';
 import AdvancedTableHeader from '../AdvancedTable/AdvancedTableHeader';
 import OwnerEditionSideMenu from '../OwnerEditionSideMenu/OwnerEditionSideMenu';
+import { match } from 'ts-pattern';
+import Skeleton from '@mui/material/Skeleton';
+import { fr } from '@codegouvfr/react-dsfr';
 
-interface Props {
+interface CampaignRecipientsProps {
   campaign: Campaign;
 }
 
@@ -35,7 +38,7 @@ const removeCampaignHousingModal = createModal({
 });
 const columnHelper = createColumnHelper<Housing>();
 
-function CampaignRecipients(props: Props) {
+function CampaignRecipients(props: Readonly<CampaignRecipientsProps>) {
   const [pagination, setPagination] = useState<PaginationState>({
     pageIndex: 0,
     pageSize: 50
@@ -51,7 +54,8 @@ function CampaignRecipients(props: Props) {
     filters,
     pagination: apiPagination
   });
-  const { data: count } = useCountHousingQuery(filters);
+  const countHousingQuery = useCountHousingQuery(filters);
+  const { data: count } = countHousingQuery;
   const filteredCount = count?.housing ?? 0;
 
   function formatAddress(address: Address): ReactNode[] {
@@ -210,6 +214,20 @@ function CampaignRecipients(props: Props) {
 
   return (
     <Stack>
+      {match(countHousingQuery)
+        .with({ isLoading: true }, () => (
+          <Skeleton animation="wave" variant="text" />
+        ))
+        .with({ isSuccess: true }, ({ data: count }) => (
+          <Typography
+            variant="body2"
+            sx={{ color: fr.colors.decisions.text.mention.grey.default }}
+          >
+            {count.owners} destinataire{count.owners > 1 ? 's' : ''}
+          </Typography>
+        ))
+        .otherwise(() => null)}
+
       <AdvancedTable
         columns={columns}
         data={housings?.entities}

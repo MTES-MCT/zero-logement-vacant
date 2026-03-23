@@ -93,6 +93,22 @@ export const bySentAt: Ord<CampaignDTO> = contramap(
   (campaign: CampaignDTO) => campaign.sentAt
 )(DEFAULT_ORDER);
 
+export const byHousingCount: Ord<CampaignDTO> = contramap(
+  (campaign: CampaignDTO) => campaign.housingCount
+)(DEFAULT_ORDER);
+
+export const byOwnerCount: Ord<CampaignDTO> = contramap(
+  (campaign: CampaignDTO) => campaign.ownerCount
+)(DEFAULT_ORDER);
+
+export const byReturnCount: Ord<CampaignDTO> = contramap(
+  (campaign: CampaignDTO) => campaign.returnCount ?? 0
+)(DEFAULT_ORDER);
+
+export const byReturnRate: Ord<CampaignDTO> = contramap(
+  (campaign: CampaignDTO) => campaign.returnRate ?? 0
+)(DEFAULT_ORDER);
+
 export interface CampaignCreationPayloadDTO
   extends Pick<CampaignDTO, 'title' | 'description' | 'sentAt'> {
   housing: {

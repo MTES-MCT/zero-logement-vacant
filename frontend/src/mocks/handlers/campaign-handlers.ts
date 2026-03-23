@@ -5,6 +5,10 @@ import {
   bySentAt,
   byStatus,
   byTitle,
+  byHousingCount,
+  byOwnerCount,
+  byReturnCount,
+  byReturnRate,
   type CampaignCreationPayload,
   type CampaignCreationPayloadDTO,
   type CampaignDTO,
@@ -77,7 +81,10 @@ const createFromGroup = http.post<
       createdAt: new Date().toJSON(),
       createdBy: toUserDTO(auth.user),
       groupId: group.id,
-      returnCount: null
+      returnCount: null,
+      returnRate: null,
+      housingCount: 0,
+      ownerCount: 0
     };
     data.campaigns.push(campaign);
 
@@ -114,7 +121,10 @@ export const campaignHandlers: RequestHandler[] = [
         status: 'draft',
         createdAt: new Date().toJSON(),
         createdBy: data.users[0],
-        returnCount: null
+        returnCount: null,
+        returnRate: null,
+        housingCount: 0,
+        ownerCount: 0
       };
       data.campaigns.push(campaign);
       // For now, add random housings to the campaign
@@ -155,7 +165,10 @@ export const campaignHandlers: RequestHandler[] = [
         createdAt: new Date().toJSON(),
         createdBy: data.users[0],
         groupId: group.id,
-        returnCount: null
+        returnCount: null,
+        returnRate: null,
+        housingCount: 0,
+        ownerCount: 0
       };
       data.campaigns.push(campaign);
       const housings = faker.helpers.arrayElements(data.housings);
@@ -316,7 +329,11 @@ function sort(keys?: ReadonlyArray<string>) {
     title: byTitle,
     status: byStatus,
     createdAt: byCreatedAt,
-    sentAt: bySentAt
+    sentAt: bySentAt,
+    housingCount: byHousingCount,
+    ownerCount: byOwnerCount,
+    returnCount: byReturnCount,
+    returnRate: byReturnRate
   };
 
   const sortFns = List(keys)

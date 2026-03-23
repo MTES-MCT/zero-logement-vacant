@@ -45,14 +45,29 @@ export const campaignStep = (campaign: Campaign) => {
 
 export type CampaignSortable = Pick<
   Campaign,
-  'title' | 'createdAt' | 'sentAt'
+  | 'title'
+  | 'createdAt'
+  | 'sentAt'
+  | 'housingCount'
+  | 'ownerCount'
+  | 'returnCount'
+  | 'returnRate'
 > & {
   status: string;
 };
 export type CampaignSort = Sort<CampaignSortable>;
 
 export function isCampaignSortable(key: string): key is keyof CampaignSortable {
-  return ['title', 'status', 'createdAt', 'sentAt'].includes(key);
+  return [
+    'title',
+    'status',
+    'createdAt',
+    'sentAt',
+    'housingCount',
+    'ownerCount',
+    'returnCount',
+    'returnRate'
+  ].includes(key);
 }
 
 export const campaignSort = (c1: Campaign, c2: Campaign) =>

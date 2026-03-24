@@ -215,7 +215,7 @@ function NoteCard(props: NoteCardProps) {
             <FormProvider {...form}>
               <AppTextInputNext
                 label={null}
-                hintText="Veuillez ne communiquer que les données strictement nécessaires et ne pas partager de données sensibles."
+                hintText="Veillez à ne pas partager de données sensibles."
                 nativeTextAreaProps={{ 'aria-label': 'Contenu de la note' }}
                 name="content"
                 textArea

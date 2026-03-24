@@ -36,9 +36,9 @@
   },
   "dependencies": {
     "@codegouvfr/react-dsfr": "1.28.0",
-    "@pdfme/common": "5.4.2",
+    "@pdfme/common": "5.5.10",
     "@pdfme/generator": "5.4.2",
-    "@pdfme/schemas": "5.5.9",
+    "@pdfme/schemas": "5.5.10",
     "@zerologementvacant/utils": "workspace:*",
     "async": "3.2.6",
     "date-fns": "4.1.0",

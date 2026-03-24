@@ -16,8 +16,6 @@
 
 Un dossier d'installation est un guide qui explique **comment installer et configurer** l'application, que ce soit pour développer dessus ou pour la déployer en production.
 
-**Analogie :** C'est comme le manuel de montage d'un meuble IKEA : une liste des pièces nécessaires, puis les étapes à suivre dans l'ordre.
-
 ### À qui s'adresse ce document ?
 
 - **Nouveaux développeurs** : pour installer l'environnement de travail
@@ -131,8 +129,8 @@ L'installation se déroule en 4 étapes principales :
 ```mermaid
 flowchart LR
     A["1. Télécharger<br/>le code"] --> B["2. Installer<br/>les dépendances"]
-    B --> C["3. Lancer<br/>les services"]
-    C --> D["4. Configurer<br/>les variables"]
+    B --> C["3. Configurer<br/>les variables"]
+    C --> D["4. Lancer<br/>les services"]
 ```
 
 ### 2.2 Étape 1 : Télécharger le code source
@@ -172,29 +170,7 @@ zero-logement-vacant/
     └── utils/         # Fonctions utilitaires
 ```
 
-### 2.4 Étape 3 : Lancer les services avec Docker
-
-L'application a besoin de plusieurs services pour fonctionner : une base de données (PostgreSQL), un cache (Redis), etc. Docker les fait tous tourner ensemble.
-
-```bash
-# Démarrer les services en arrière-plan
-docker compose -f .docker/docker-compose.yml up -d
-
-# Vérifier qu'ils sont bien lancés
-docker compose -f .docker/docker-compose.yml ps
-```
-
-**Services démarrés :**
-
-| Service | Port | Rôle |
-|---------|------|------|
-| PostgreSQL | 5432 | Stocke toutes les données (logements, utilisateurs, etc.) |
-| Redis | 6379 | File d'attente pour les tâches en arrière-plan |
-| Elasticsearch | 9200 | Recherche dans les logs (optionnel en développement) |
-
-**Que signifie "-d" ?** C'est l'option "detached" (détaché). Les services tournent en arrière-plan, vous récupérez votre terminal.
-
-### 2.5 Étape 4 : Configurer les variables d'environnement
+### 2.4 Étape 3 : Configurer les variables d'environnement
 
 Les "variables d'environnement" sont des paramètres de configuration (mots de passe, URLs, clés API) qui ne doivent pas être dans le code source.
 
@@ -263,6 +239,28 @@ DATABASE_URL=postgres://postgres:postgres@localhost:5432/zlv
 REDIS_URL=redis://localhost:6379
 ```
 
+### 2.5 Étape 4 : Lancer les services avec Docker
+
+L'application a besoin de plusieurs services pour fonctionner : une base de données (PostgreSQL), un cache (Redis), etc. Docker les fait tous tourner ensemble.
+
+```bash
+# Démarrer les services en arrière-plan
+docker compose -f .docker/docker-compose.yml up -d
+
+# Vérifier qu'ils sont bien lancés
+docker compose -f .docker/docker-compose.yml ps
+```
+
+**Services démarrés :**
+
+| Service | Port | Rôle |
+|---------|------|------|
+| PostgreSQL | 5432 | Stocke toutes les données (logements, utilisateurs, etc.) |
+| Redis | 6379 | File d'attente pour les tâches en arrière-plan |
+| Elasticsearch | 9200 | Recherche dans les logs (optionnel en développement) |
+
+**Que signifie "-d" ?** C'est l'option "detached" (détaché). Les services tournent en arrière-plan, vous récupérez votre terminal.
+
 ### 2.6 Script d'installation automatique
 
 Pour simplifier, un script fait tout automatiquement :
@@ -289,8 +287,6 @@ Ce script :
 ### 3.1 Qu'est-ce qu'une migration ?
 
 Une "migration" est un script qui modifie la structure de la base de données (création de tables, ajout de colonnes, etc.). Les migrations sont versionnées et exécutées dans l'ordre.
-
-**Analogie :** C'est comme des mises à jour du plan d'un bâtiment. Chaque migration ajoute ou modifie une pièce.
 
 ### 3.2 Créer et migrer la base
 
@@ -324,7 +320,13 @@ Le seed crée des données pour deux collectivités de test et plusieurs utilisa
 | `test.admin@zlv.fr` | Administrateur | National |
 | `test.visitor@zlv.fr` | Lecture seule | France entière |
 
-**Mots de passe :** Les mots de passe sont partagés sur Vaultwarden : https://vaultwarden.incubateur.net/
+**Mot de passe :** Tous les comptes de test utilisent le même mot de passe, défini par la variable d'environnement `TEST_PASSWORD` lors du seed. En développement local, ajoutez cette variable dans `server/.env` :
+
+```env
+TEST_PASSWORD=Test1234!
+```
+
+**Note :** En staging/production, le mot de passe est partagé sur Vaultwarden : https://vaultwarden.incubateur.net/
 
 ### 3.5 Commandes de migration utiles
 
@@ -397,6 +399,7 @@ yarn workspace @zerologementvacant/queue dev
 L'API dispose d'une documentation interactive Swagger accessible en développement :
 
 **Accès :**
+
 - **Interface Swagger UI** : http://localhost:3001/api-docs
 - **Spécification OpenAPI (JSON)** : http://localhost:3001/api-docs.json
 
@@ -425,17 +428,20 @@ yarn nx test frontend
 
 ---
 
-## 5. Déploiement sur Clever Cloud (Production)
+## 5. Déploiement sur Clever Cloud (Production, Staging, Review Apps)
 
 ### 5.1 Qu'est-ce que Clever Cloud ?
 
 Clever Cloud est une plateforme française de type "PaaS" (Platform as a Service). Au lieu de gérer des serveurs, vous déployez votre code et Clever Cloud s'occupe du reste : sécurité, mises à jour, sauvegardes, certificats SSL.
 
 **Avantages :**
+
 - Hébergement en France (conformité RGPD)
 - Déploiement automatique depuis Git
 - Sauvegardes automatiques
 - Mise à l'échelle automatique
+
+**Documentation officielle :** https://www.clever-cloud.com/developers/doc/
 
 ### 5.2 Architecture sur Clever Cloud
 
@@ -456,6 +462,17 @@ flowchart TB
         end
     end
 
+    subgraph External["Services Externes"]
+        Brevo["Brevo<br/>Emails"]
+        Sentry["Sentry<br/>Monitoring"]
+        Cerema["API Cerema<br/>Périmètres"]
+        BAN["BAN<br/>Géocodage"]
+        GeoAPI["API Géo<br/>Communes/EPCI"]
+        EntAPI["API Entreprises<br/>SIREN/SIRET"]
+        BDNB["BDNB/ADEME<br/>DPE"]
+        INSEE["INSEE<br/>Statistiques"]
+    end
+
     Frontend --> Backend
     Backend --> PostgreSQL
     Backend --> Redis
@@ -463,6 +480,14 @@ flowchart TB
     Backend --> Cellar
     Queue --> Redis
     Queue --> PostgreSQL
+    Backend --> Brevo
+    Backend --> Sentry
+    Backend --> Cerema
+    Backend --> BAN
+    Backend --> GeoAPI
+    Backend --> EntAPI
+    Backend --> BDNB
+    Backend --> INSEE
 ```
 
 ### 5.3 Prérequis pour la production
@@ -622,6 +647,26 @@ Avant de considérer le déploiement comme terminé :
 
 Un service externe est une application tierce avec laquelle ZLV communique via des API. Chaque service a son propre compte et ses propres identifiants.
 
+```mermaid
+flowchart LR
+    subgraph Authentifié["🔐 Services avec authentification"]
+        Brevo["Brevo<br/>Emails"]
+        Sentry["Sentry<br/>Monitoring"]
+        Cerema["API Cerema<br/>Périmètres"]
+    end
+
+    subgraph Public["🌐 APIs publiques (sans clé)"]
+        BAN["BAN<br/>Géocodage"]
+        GeoAPI["API Géo<br/>Communes/EPCI"]
+        EntAPI["API Entreprises<br/>SIREN/SIRET"]
+        BDNB["BDNB/ADEME<br/>DPE"]
+        INSEE["INSEE<br/>Statistiques"]
+    end
+
+    ZLV["ZLV<br/>Backend"] --> Authentifié
+    ZLV --> Public
+```
+
 ### 6.2 Brevo (Envoi d'emails)
 
 **Rôle :** Envoyer des emails transactionnels (confirmation d'inscription, notifications, etc.)
@@ -684,6 +729,69 @@ Cellar est le service S3 de Clever Cloud, compatible avec l'API Amazon S3.
    - `S3_ACCESS_KEY_ID`
    - `S3_SECRET_ACCESS_KEY`
    - `S3_BUCKET`
+
+### 6.7 API Recherche Entreprises (SIREN/SIRET)
+
+**Rôle :** Rechercher les informations des établissements publics et collectivités (SIREN, SIRET, raison sociale).
+
+**Configuration :** Aucune ! L'API est publique et gratuite.
+
+**Endpoint :** https://recherche-entreprises.api.gouv.fr/
+
+**Exemple d'utilisation :**
+```bash
+curl "https://recherche-entreprises.api.gouv.fr/search?q=mairie+paris&per_page=5"
+```
+
+### 6.8 API Géo (Données géographiques)
+
+**Rôle :** Récupérer les données géographiques françaises (communes, EPCI, départements, régions).
+
+**Configuration :** Aucune ! L'API est publique et gratuite.
+
+**Endpoint :** https://geo.api.gouv.fr/
+
+**Ressources disponibles :**
+
+- `/communes` - Liste des communes
+- `/epcis` - Liste des EPCI (intercommunalités)
+- `/departements` - Liste des départements
+- `/regions` - Liste des régions
+
+**Exemple d'utilisation :**
+```bash
+# Rechercher une commune par code postal
+curl "https://geo.api.gouv.fr/communes?codePostal=75001"
+
+# Obtenir les communes d'un EPCI
+curl "https://geo.api.gouv.fr/epcis/200054781/communes"
+```
+
+### 6.9 BDNB / ADEME (DPE - Diagnostic de Performance Énergétique)
+
+**Rôle :** Récupérer les données DPE (étiquettes énergétiques) des bâtiments pour enrichir les données logements.
+
+**Source :** Base de Données Nationale des Bâtiments (BDNB), alimentée par l'ADEME.
+
+**Configuration :** Aucune ! Les données sont en open data.
+
+**Endpoint :** https://open-data.s3.fr-par.scw.cloud/bdnb_millesime_2023-01-a/
+
+**Note :** Les données sont volumineuses (plusieurs Go) et mises à jour périodiquement. Elles sont téléchargées et importées via des scripts dédiés dans `server/src/scripts/import-dpe/`.
+
+### 6.10 INSEE (Données statistiques)
+
+**Rôle :** Récupérer les données statistiques (population, densité, grille de densité communale).
+
+**Configuration :** Aucune ! Les données sont en open data.
+
+**Endpoint :** https://www.insee.fr/
+
+**Données utilisées :**
+
+- Population communale
+- Grille de densité (communes denses, intermédiaires, peu denses, très peu denses)
+- Données démographiques
 
 ---
 

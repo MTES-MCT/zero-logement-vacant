@@ -2,7 +2,7 @@
 # Zéro Logement Vacant
 
 **Version:** 1.0
-**Date:** 18 mars 2026
+**Date:** 24 mars 2026
 **Auteur:** Équipe Zéro Logement Vacant
 
 ---

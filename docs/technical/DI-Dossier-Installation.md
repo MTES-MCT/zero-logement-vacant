@@ -2,7 +2,7 @@
 # Zéro Logement Vacant
 
 **Version:** 1.1
-**Date:** 18 mars 2026
+**Date:** 24 mars 2026
 **Auteur:** Équipe Zéro Logement Vacant
 **Statut:** En vigueur
 
@@ -1016,4 +1016,4 @@ clever ssh                              # Se connecter au conteneur
 
 ---
 
-*Document mis à jour le 18 mars 2026*
+*Document mis à jour le 24 mars 2026*

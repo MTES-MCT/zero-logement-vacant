@@ -23,6 +23,7 @@ import {
   genDocumentDTO,
   genEventDTO,
   genGeoCode,
+  genGroupDTO,
   genHousingDTO,
   genNoteDTO,
   genOwnerDTO,
@@ -406,18 +407,19 @@ export const genGroupApi = (
   creator: UserApi,
   establishment: EstablishmentApi
 ): GroupApi => {
+  const dto = genGroupDTO(toUserDTO(creator));
   return {
-    id: uuidv4(),
-    title: faker.commerce.productName(),
-    description: faker.commerce.productDescription(),
-    housingCount: 0,
-    ownerCount: 0,
-    createdAt: new Date(),
+    id: dto.id,
+    title: dto.title,
+    description: dto.description,
+    housingCount: dto.housingCount,
+    ownerCount: dto.ownerCount,
     userId: creator.id,
+    createdAt: new Date(dto.createdAt),
     createdBy: creator,
     establishmentId: establishment.id,
     exportedAt: null,
-    archivedAt: null
+    archivedAt: dto.archivedAt ? new Date(dto.archivedAt) : null
   };
 };
 

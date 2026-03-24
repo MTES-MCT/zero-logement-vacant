@@ -91,7 +91,11 @@ export async function seed(knex: Knex): Promise<void> {
     }));
     const addresses = await ban.reverseMany(points).then((addresses) => {
       return addresses.filter((address) => !!address.label);
+    }).catch(error => {
+      console.warn('Error during BAN reverse geocoding:', error);
+      return [];
     });
+
     const housings = geolocatedHousings
       .filter((housing) => {
         return addresses.some(
@@ -119,17 +123,19 @@ export async function seed(knex: Knex): Promise<void> {
     await knex.batchInsert(housingTable, housings.map(formatHousingRecordApi));
 
     // Insert BAN housing addresses
-    const housingAddresses: ReadonlyArray<AddressApi> = addresses.map(
-      (address) => ({ ...address, addressKind: AddressKinds.Housing })
-    );
-    console.log(
-      `Inserting ${housingAddresses.length} BAN housing addresses...`,
-      { establishment: establishment.name }
-    );
-    await knex.batchInsert(
-      banAddressesTable,
-      housingAddresses.map(formatAddressApi)
-    );
+    if (addresses.length > 0) {
+      const housingAddresses: ReadonlyArray<AddressApi> = addresses.map(
+        (address) => ({ ...address, addressKind: AddressKinds.Housing })
+      );
+      console.log(
+        `Inserting ${housingAddresses.length} BAN housing addresses...`,
+        { establishment: establishment.name }
+      );
+      await knex.batchInsert(
+        banAddressesTable,
+        housingAddresses.map(formatAddressApi)
+      );
+    }
 
     // Link owners to housings
     const housingOwners: ReadonlyArray<HousingOwnerApi> = housings.flatMap(

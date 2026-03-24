@@ -313,24 +313,15 @@ export const genCampaignApi = (
   createdBy: UserApi,
   group?: GroupApi
 ): CampaignApi => {
+  const dto = genCampaignDTO(
+    group ? toGroupDTO(group) : undefined,
+    toUserDTO(createdBy)
+  );
   return {
-    id: uuidv4(),
-    establishmentId,
-    title: randomstring.generate(),
-    description: randomstring.generate(),
-    status: 'draft',
-    filters: {
-      geoPerimetersIncluded: [randomstring.generate()],
-      geoPerimetersExcluded: [randomstring.generate()]
-    },
-    createdAt: new Date().toJSON(),
-    userId: createdBy.id,
+    ...dto,
     createdBy,
-    groupId: group?.id,
-    returnCount: null,
-    returnRate: null,
-    housingCount: 0,
-    ownerCount: 0
+    userId: createdBy.id,
+    establishmentId
   };
 };
 

@@ -204,7 +204,7 @@ export const OWNER_WORKSHEET_COLUMNS: Array<
   }
 ];
 
-function createOwnerWorksheet(options: CreateOwnerWorksheetOptions) {
+export function createOwnerWorksheet(options: CreateOwnerWorksheetOptions) {
   const { workbook, stream } = options;
 
   // @ts-expect-error - Type inference issue in @types/node (https://github.com/microsoft/TypeScript-DOM-lib-generator/pull/1676)
@@ -222,7 +222,7 @@ export interface CreateHousingWorksheetOptions {
   campaigns: ReadonlyArray<CampaignApi>;
 }
 
-async function createHousingWorksheet(
+export async function createHousingWorksheet(
   options: CreateHousingWorksheetOptions
 ): Promise<void> {
   const { workbook, stream, campaigns } = options;

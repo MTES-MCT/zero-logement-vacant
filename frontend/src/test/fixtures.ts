@@ -7,11 +7,13 @@ import {
 } from '@zerologementvacant/models';
 import {
   genAddressDTO,
+  genEstablishmentDTO,
   genEventDTO,
   genHousingDTO,
   genHousingOwnerDTO,
   genNoteDTO,
   genOwnerDTO,
+  genProspectDTO,
   genUserDTO
 } from '@zerologementvacant/models/fixtures';
 import { addHours } from 'date-fns';
@@ -121,15 +123,7 @@ export function genSignupLink(email: string): SignupLink {
 }
 
 export function genProspect(): Prospect {
-  return {
-    email: genEmail(),
-    establishment: {
-      id: randomstring.generate(),
-      siren: genSiren()
-    },
-    hasAccount: genBoolean(),
-    hasCommitment: genBoolean()
-  };
+  return genProspectDTO(genEstablishmentDTO());
 }
 
 export function genGroup(): Group {

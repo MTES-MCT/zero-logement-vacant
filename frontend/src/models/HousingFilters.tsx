@@ -191,32 +191,32 @@ export const beneficiaryCountOptions: SelectOption<BeneficiaryCount>[] = [
   {
     value: '0',
     label: 'Aucun',
-    badgeLabel: 'Nombre de propriétaires : aucun bénéficiaire'
+    badgeLabel: 'Nombre de propriétaires : aucun propriétaire'
   },
   {
     value: '1',
     label: '1',
-    badgeLabel: 'Nombre de propriétaires : 1 bénéficiaire'
+    badgeLabel: 'Nombre de propriétaires : 1 propriétaire'
   },
   {
     value: '2',
     label: '2',
-    badgeLabel: 'Nombre de propriétaires : 2 bénéficiaires'
+    badgeLabel: 'Nombre de propriétaires : 2 propriétaires'
   },
   {
     value: '3',
     label: '3',
-    badgeLabel: 'Nombre de propriétaires : 3 bénéficiaires'
+    badgeLabel: 'Nombre de propriétaires : 3 propriétaires'
   },
   {
     value: '4',
     label: '4',
-    badgeLabel: 'Nombre de propriétaires : 4 bénéficiaires'
+    badgeLabel: 'Nombre de propriétaires : 4 propriétaires'
   },
   {
     value: 'gte5',
     label: '5 et plus',
-    badgeLabel: 'Nombre de propriétaires : 5 bénéficiaires et plus'
+    badgeLabel: 'Nombre de propriétaires : 5 propriétaires et plus'
   }
 ];
 export const BENEFICIARY_COUNT_OPTIONS: Record<
@@ -228,27 +228,27 @@ export const BENEFICIARY_COUNT_OPTIONS: Record<
 > = {
   '0': {
     label: 'Aucun',
-    badgeLabel: 'Nombre de propriétaires : aucun bénéficiaire'
+    badgeLabel: 'Nombre de propriétaires : aucun propriétaire'
   },
   '1': {
     label: '1',
-    badgeLabel: 'Nombre de propriétaires : 1 bénéficiaire'
+    badgeLabel: 'Nombre de propriétaires : 1 propriétaire'
   },
   '2': {
     label: '2',
-    badgeLabel: 'Nombre de propriétaires : 2 bénéficiaires'
+    badgeLabel: 'Nombre de propriétaires : 2 propriétaires'
   },
   '3': {
     label: '3',
-    badgeLabel: 'Nombre de propriétaires : 3 bénéficiaires'
+    badgeLabel: 'Nombre de propriétaires : 3 propriétaires'
   },
   '4': {
     label: '4',
-    badgeLabel: 'Nombre de propriétaires : 4 bénéficiaires'
+    badgeLabel: 'Nombre de propriétaires : 4 propriétaires'
   },
   gte5: {
     label: '5 et plus',
-    badgeLabel: 'Nombre de propriétaires : 5 bénéficiaires et plus'
+    badgeLabel: 'Nombre de propriétaires : 5 propriétaires et plus'
   }
 };
 

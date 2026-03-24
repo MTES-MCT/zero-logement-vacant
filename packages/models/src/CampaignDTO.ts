@@ -1,4 +1,4 @@
-import { contramap, DEFAULT_ORDER, Ord } from '@zerologementvacant/utils';
+import { Order } from 'effect';
 
 import { HousingFiltersDTO } from './HousingFiltersDTO';
 import type { UserDTO } from './UserDTO';
@@ -44,6 +44,10 @@ export interface CampaignDTO {
   confirmedAt?: string;
   groupId?: string;
   returnCount: number | null;
+  // New fields
+  returnRate: number | null;
+  housingCount: number;
+  ownerCount: number;
 }
 
 export const CAMPAIGN_STATUS_VALUES = [
@@ -73,21 +77,45 @@ export function isCampaignStatus(value: unknown): value is CampaignStatus {
   );
 }
 
-export const byTitle: Ord<CampaignDTO> = contramap(
-  (campaign: CampaignDTO) => campaign.title
-)(DEFAULT_ORDER);
+export const byTitle: Order.Order<CampaignDTO> = Order.mapInput(
+  Order.string,
+  (campaign) => campaign.title
+);
 
-export const byStatus: Ord<CampaignDTO> = contramap((campaign: CampaignDTO) =>
-  CAMPAIGN_STATUS_VALUES.indexOf(campaign.status)
-)(DEFAULT_ORDER);
+export const byStatus: Order.Order<CampaignDTO> = Order.mapInput(
+  Order.number,
+  (campaign) => CAMPAIGN_STATUS_VALUES.indexOf(campaign.status)
+);
 
-export const byCreatedAt: Ord<CampaignDTO> = contramap(
-  (campaign: CampaignDTO) => new Date(campaign.createdAt)
-)(DEFAULT_ORDER);
+export const byCreatedAt: Order.Order<CampaignDTO> = Order.mapInput(
+  Order.Date,
+  (campaign) => new Date(campaign.createdAt)
+);
 
-export const bySentAt: Ord<CampaignDTO> = contramap(
-  (campaign: CampaignDTO) => campaign.sentAt
-)(DEFAULT_ORDER);
+export const bySentAt: Order.Order<CampaignDTO> = Order.mapInput(
+  Order.string,
+  (campaign) => campaign.sentAt ?? ''
+);
+
+export const byHousingCount: Order.Order<CampaignDTO> = Order.mapInput(
+  Order.number,
+  (campaign) => campaign.housingCount
+);
+
+export const byOwnerCount: Order.Order<CampaignDTO> = Order.mapInput(
+  Order.number,
+  (campaign) => campaign.ownerCount
+);
+
+export const byReturnCount: Order.Order<CampaignDTO> = Order.mapInput(
+  Order.number,
+  (campaign) => campaign.returnCount ?? 0
+);
+
+export const byReturnRate: Order.Order<CampaignDTO> = Order.mapInput(
+  Order.number,
+  (campaign) => campaign.returnRate ?? 0
+);
 
 export interface CampaignCreationPayloadDTO
   extends Pick<CampaignDTO, 'title' | 'description' | 'sentAt'> {

@@ -30,7 +30,10 @@ export function fromCampaignDTO(
       'archivedAt',
       'confirmedAt',
       'groupId',
-      'returnCount'
+      'returnCount',
+      'returnRate',
+      'housingCount',
+      'ownerCount'
     ),
     createdBy: fromUserDTO(campaign.createdBy),
     userId: campaign.createdBy.id,
@@ -55,7 +58,10 @@ export function toCampaignDTO(campaign: CampaignApi): CampaignDTO {
     'archivedAt',
     'confirmedAt',
     'groupId',
-    'returnCount'
+    'returnCount',
+    'returnRate',
+    'housingCount',
+    'ownerCount'
   );
 }
 
@@ -71,7 +77,7 @@ export enum CampaignSteps {
 
 export type CampaignSortableApi = Pick<
   CampaignApi,
-  'title' | 'createdAt' | 'sentAt'
+  'title' | 'createdAt' | 'sentAt' | 'housingCount' | 'ownerCount' | 'returnCount' | 'returnRate'
 > & {
   status: string;
 };

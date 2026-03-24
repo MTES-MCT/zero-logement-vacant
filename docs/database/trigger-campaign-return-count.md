@@ -186,3 +186,167 @@ EXECUTE FUNCTION recompute_campaign_return_count();
 
 - `trg_increment_return_count` fires on INSERT only. If a `housing_events` row is deleted (which should not happen in normal operation due to cascade constraints), `return_count` is not decremented. A full recompute via `trg_recompute_return_count_on_sent_at_change` (by touching `sent_at`) would correct it.
 - Neither trigger fires on `UPDATE` of `events.type` or `events.created_at`. These columns are considered immutable after creation.
+
+---
+
+## Campaign housing count, owner count, and return rate
+
+**Introduced in:** migration `20260319181202_campaigns-add-counts.ts`
+**Updated in:** migration `20260319192744_campaigns-update-counts-on-housing-detach.ts`
+
+### What are these columns?
+
+| Column | Type | Description |
+|--------|------|-------------|
+| `housing_count` | `integer` | Number of housings attached to the campaign via `campaigns_housing` |
+| `owner_count` | `integer` | Number of distinct primary owners (`rank = 1`) across those housings |
+| `return_rate` | `float` (generated) | `return_count::float / NULLIF(housing_count, 0)` — computed automatically by PostgreSQL, never written directly |
+
+`return_rate` is a `STORED GENERATED ALWAYS AS` column; it is recomputed by Postgres whenever `return_count` or `housing_count` changes.
+
+### Two-trigger design
+
+| Trigger | Table | Timing | Updates |
+|---------|-------|--------|---------|
+| `trg_update_campaign_counts` | `campaigns_housing` | `AFTER INSERT OR DELETE` | `housing_count`, `owner_count`, and (when `sent_at IS NOT NULL`) `return_count` |
+| `trg_update_campaign_owner_count` | `owners_housing` | `AFTER INSERT OR DELETE OR UPDATE OF rank` | `owner_count` only |
+
+Both triggers perform a **full recompute** (not incremental) because attach/detach operations are rare and correctness is simpler to guarantee with a fresh count.
+
+### `trg_update_campaign_counts`
+
+**Table:** `campaigns_housing` — **Timing:** `AFTER INSERT OR DELETE FOR EACH ROW`
+
+Fires whenever a housing is attached to or detached from a campaign. Recomputes `housing_count` and `owner_count` from scratch. Also recomputes `return_count` when `sent_at IS NOT NULL`, so that detaching a housing that had qualifying events does not leave `return_count` stale.
+
+**Key behavior:** `v_campaign_id` is resolved as `COALESCE(NEW.campaign_id, OLD.campaign_id)` to handle both INSERT and DELETE in a single function body.
+
+```sql
+CREATE OR REPLACE FUNCTION update_campaign_counts()
+RETURNS TRIGGER AS $$
+DECLARE
+  v_campaign_id UUID;
+  v_sent_at     TIMESTAMPTZ;
+BEGIN
+  v_campaign_id := COALESCE(NEW.campaign_id, OLD.campaign_id);
+
+  SELECT sent_at INTO v_sent_at FROM campaigns WHERE id = v_campaign_id;
+
+  UPDATE campaigns
+  SET
+    housing_count = (
+      SELECT COUNT(*)
+      FROM campaigns_housing
+      WHERE campaign_id = v_campaign_id
+    ),
+    owner_count = (
+      SELECT COUNT(DISTINCT oh.owner_id)
+      FROM campaigns_housing ch
+      JOIN owners_housing oh
+        ON oh.housing_id = ch.housing_id
+       AND oh.housing_geo_code = ch.housing_geo_code
+       AND oh.rank = 1
+      WHERE ch.campaign_id = v_campaign_id
+    ),
+    return_count = CASE
+      WHEN v_sent_at IS NOT NULL THEN (
+        SELECT COUNT(DISTINCT ch2.housing_id)
+        FROM campaigns_housing ch2
+        WHERE ch2.campaign_id = v_campaign_id
+          AND EXISTS (
+            SELECT 1
+            FROM housing_events he
+            JOIN events e ON e.id = he.event_id
+            WHERE he.housing_geo_code = ch2.housing_geo_code
+              AND he.housing_id       = ch2.housing_id
+              AND e.type IN ('housing:status-updated', 'housing:occupancy-updated')
+              AND e.created_at        > v_sent_at
+          )
+      )
+      ELSE return_count
+    END
+  WHERE id = v_campaign_id;
+
+  RETURN COALESCE(NEW, OLD);
+END;
+$$ LANGUAGE plpgsql;
+
+CREATE TRIGGER trg_update_campaign_counts
+AFTER INSERT OR DELETE ON campaigns_housing
+FOR EACH ROW
+EXECUTE FUNCTION update_campaign_counts();
+```
+
+---
+
+### `trg_update_campaign_owner_count`
+
+**Table:** `owners_housing` — **Timing:** `AFTER INSERT OR DELETE OR UPDATE OF rank FOR EACH ROW`
+
+Fires when a primary-owner relationship changes. Updates `owner_count` for every campaign that contains the affected housing.
+
+**Early exit conditions (no DB writes):**
+- INSERT with `rank != 1`
+- DELETE with `rank != 1`
+- UPDATE where neither `OLD.rank` nor `NEW.rank` is 1
+
+```sql
+CREATE OR REPLACE FUNCTION update_campaign_owner_count()
+RETURNS TRIGGER AS $$
+DECLARE
+  v_campaign_id      UUID;
+  v_housing_id       UUID;
+  v_housing_geo_code VARCHAR(255);
+BEGIN
+  IF TG_OP = 'INSERT' THEN
+    IF NEW.rank != 1 THEN RETURN NEW; END IF;
+    v_housing_id := NEW.housing_id;
+    v_housing_geo_code := NEW.housing_geo_code;
+  ELSIF TG_OP = 'DELETE' THEN
+    IF OLD.rank != 1 THEN RETURN OLD; END IF;
+    v_housing_id := OLD.housing_id;
+    v_housing_geo_code := OLD.housing_geo_code;
+  ELSIF TG_OP = 'UPDATE' THEN
+    IF OLD.rank != 1 AND NEW.rank != 1 THEN RETURN NEW; END IF;
+    v_housing_id := NEW.housing_id;
+    v_housing_geo_code := NEW.housing_geo_code;
+  END IF;
+
+  FOR v_campaign_id IN (
+    SELECT campaign_id FROM campaigns_housing
+    WHERE housing_id = v_housing_id
+      AND housing_geo_code = v_housing_geo_code
+  ) LOOP
+    UPDATE campaigns
+    SET owner_count = (
+      SELECT COUNT(DISTINCT oh.owner_id)
+      FROM campaigns_housing ch
+      JOIN owners_housing oh
+        ON oh.housing_id = ch.housing_id
+       AND oh.housing_geo_code = ch.housing_geo_code
+       AND oh.rank = 1
+      WHERE ch.campaign_id = v_campaign_id
+    )
+    WHERE id = v_campaign_id;
+  END LOOP;
+
+  RETURN COALESCE(NEW, OLD);
+END;
+$$ LANGUAGE plpgsql;
+
+CREATE TRIGGER trg_update_campaign_owner_count
+AFTER INSERT OR DELETE OR UPDATE OF rank ON owners_housing
+FOR EACH ROW
+EXECUTE FUNCTION update_campaign_owner_count();
+```
+
+---
+
+## Full trigger inventory
+
+| Trigger | Table | Timing | Function | Updates |
+|---------|-------|--------|----------|---------|
+| `trg_increment_return_count` | `housing_events` | `AFTER INSERT` | `increment_campaign_return_count()` | `return_count` (+1 incremental) |
+| `trg_recompute_return_count_on_sent_at_change` | `campaigns` | `AFTER UPDATE OF sent_at` | `recompute_campaign_return_count()` | `return_count` (full recompute) |
+| `trg_update_campaign_counts` | `campaigns_housing` | `AFTER INSERT OR DELETE` | `update_campaign_counts()` | `housing_count`, `owner_count`, `return_count` (full recompute) |
+| `trg_update_campaign_owner_count` | `owners_housing` | `AFTER INSERT OR DELETE OR UPDATE OF rank` | `update_campaign_owner_count()` | `owner_count` (full recompute) |

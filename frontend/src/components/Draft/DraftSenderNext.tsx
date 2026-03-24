@@ -78,6 +78,7 @@ function DraftSenderNext() {
         <AppTextInputNext<DraftFormSchema, 'sender.email'>
           name="sender.email"
           label="Adresse e-mail"
+          hintText="Format attendu : prenom.nom@domaine.fr"
           nativeInputProps={{
             type: 'email',
             autoComplete: 'email'
@@ -91,6 +92,7 @@ function DraftSenderNext() {
         <AppTextInputNext<DraftFormSchema, 'sender.phone'>
           name="sender.phone"
           label="Téléphone"
+          hintText="Format attendu : 0123456789 ou +33123456789"
           nativeInputProps={{
             type: 'tel',
             autoComplete: 'tel'

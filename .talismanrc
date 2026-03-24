@@ -59,6 +59,8 @@ fileignoreconfig:
   checksum: 3a053d1e3f7b1b3f9be6b5c240157e215c9b57a65f44089bdede6e69551a9ccd
 - filename: frontend/src/components/Draft/DraftBodyNext.tsx
   checksum: f273fc8f74f28fb35e4ccc088894819af61584e4d2fb465c681541b6b05b030a
+- filename: docs/database/trigger-campaign-return-count.md
+  checksum: d0c595c5d764fc565b8b594d5d224ae246a5d4c58812563ff1c4dcd3a18653e8
 - filename: docs/plans/2026-03-10-signatory-document-upload.md
   checksum: 5fc6d0a38dfacd3145943fd929a153ca68fd51a4424ceead78735f622f7a94e1
 - filename: packages/healthcheck/src/checks/brevo.ts

@@ -1,4 +1,5 @@
 import Alert from '@codegouvfr/react-dsfr/Alert';
+import { Breadcrumb } from '@codegouvfr/react-dsfr/Breadcrumb';
 import Grid from '@mui/material/Grid';
 import Stack from '@mui/material/Stack';
 import { useEffect } from 'react';
@@ -141,6 +142,19 @@ function GroupViewNext() {
               gap: '1rem'
             }}
           >
+            <Breadcrumb
+              className="fr-mb-0"
+              currentPageLabel={group?.title ?? ''}
+              segments={[
+                {
+                  label: 'Parc de logements',
+                  linkProps: {
+                    to: '/parc-de-logements'
+                  }
+                }
+              ]}
+            />
+
             <GroupNext
               group={group}
               onCreateCampaign={onCampaignCreate}
@@ -159,7 +173,7 @@ function GroupViewNext() {
             />
 
             <Stack
-              direction="row"
+              direction={{ xs: 'column', md: 'row' }}
               spacing="0.75rem"
               useFlexGap
               sx={{ alignItems: 'center' }}

@@ -1,0 +1,17 @@
+{
+  "version": "0.0.1",
+  "configurations": [
+    {
+      "name": "frontend",
+      "runtimeExecutable": "yarn",
+      "runtimeArgs": ["nx", "run-many", "-t", "dev"],
+      "port": 3000
+    },
+    {
+      "name": "server",
+      "runtimeExecutable": "yarn",
+      "runtimeArgs": ["nx", "run-many", "-t", "dev"],
+      "port": 3001
+    }
+  ]
+}

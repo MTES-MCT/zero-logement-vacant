@@ -49,14 +49,17 @@ describe('Owner repository', () => {
       it('should filter by idpersonne', async () => {
         const owners = faker.helpers.multiple(() => genOwnerApi());
         await Owners().insert(owners.map(formatOwnerApi));
+        const idpersonnes = owners
+          .map((owner) => owner.idpersonne)
+          .filter((id): id is string => id !== null);
 
         const actual = await ownerRepository.find({
           filters: {
-            idpersonne: owners.map((owner) => owner.idpersonne as string)
+            idpersonne: idpersonnes
           }
         });
 
-        expect(actual).toBeArrayOfSize(owners.length);
+        expect(actual).toBeArrayOfSize(idpersonnes.length);
       });
     });
 
@@ -205,14 +208,17 @@ describe('Owner repository', () => {
         count: 5
       });
       await Owners().insert(owners.map(formatOwnerApi));
+      const idpersonnes = owners
+        .map((owner) => owner.idpersonne)
+        .filter((id): id is string => id !== null);
 
       const actual = await ownerRepository.count({
         filters: {
-          idpersonne: owners.map((owner) => owner.idpersonne as string)
+          idpersonne: idpersonnes
         }
       });
 
-      expect(actual).toBe(5);
+      expect(actual).toBe(idpersonnes.length);
     });
   });
 

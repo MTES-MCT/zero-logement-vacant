@@ -310,7 +310,7 @@ describe('Owner API', () => {
     });
 
     it('should create an event if the owner has changed', async () => {
-      const original = genOwnerApi();
+      const original = { ...genOwnerApi(), banAddress: null };
       await Owners().insert(formatOwnerApi(original));
 
       const payload = {
@@ -344,7 +344,7 @@ describe('Owner API', () => {
             original.birthDate?.substring(0, 'yyyy-mm-dd'.length) ?? null,
           phone: original.phone,
           email: original.email,
-          address: original.banAddress?.label ?? null,
+          address: null,
           additionalAddress: original.additionalAddress
         },
         next_new: {

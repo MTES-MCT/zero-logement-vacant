@@ -9,7 +9,6 @@ import {
   EventType,
   LOCALITY_KIND_VALUES,
   OWNER_ENTITY_VALUES,
-  OWNER_KIND_LABELS,
   PRECISION_CATEGORY_VALUES,
   PROPERTY_RIGHT_VALUES,
   READ_WRITE_OCCUPANCY_VALUES,
@@ -26,6 +25,7 @@ import {
   genGeoCode,
   genHousingDTO,
   genNoteDTO,
+  genOwnerDTO,
   genUserDTO,
   type GenBuildingDtoOptions
 } from '@zerologementvacant/models/fixtures';
@@ -190,36 +190,10 @@ export const genProspectApi = (
   };
 };
 
-export const genOwnerApi = (): OwnerApi => {
-  const id = uuidv4();
-  return {
-    id,
-    idpersonne:
-      faker.string.numeric(2) +
-      faker.string.alphanumeric({ length: 6, casing: 'upper' }),
-    rawAddress: [
-      faker.location.streetAddress(),
-      `${faker.location.zipCode()}, ${faker.location.city()}`
-    ],
-    // Get the start of the day to avoid time zone issues
-    birthDate:
-      faker.helpers.maybe(() => faker.date.birthdate().toJSON()) ?? null,
-    fullName: faker.person.fullName(),
-    email: genEmail(),
-    phone: faker.phone.number(),
-    kind: faker.helpers.arrayElement([
-      null,
-      ...Object.values(OWNER_KIND_LABELS)
-    ]),
-    administrator: null,
-    banAddress: null,
-    additionalAddress: randomstring.generate(),
-    siren: null,
-    createdAt: new Date().toJSON(),
-    updatedAt: new Date().toJSON(),
-    entity: faker.helpers.arrayElement(OWNER_ENTITY_VALUES)
-  };
-};
+export const genOwnerApi = (): OwnerApi => ({
+  ...genOwnerDTO(),
+  entity: faker.helpers.arrayElement([null, ...OWNER_ENTITY_VALUES])
+});
 
 export const genAddressApi = (
   refId: string,

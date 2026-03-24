@@ -7118,18 +7118,18 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@pdfme/common@npm:5.4.2":
-  version: 5.4.2
-  resolution: "@pdfme/common@npm:5.4.2"
+"@pdfme/common@npm:5.5.10":
+  version: 5.5.10
+  resolution: "@pdfme/common@npm:5.5.10"
   dependencies:
     "@pdfme/pdf-lib": "npm:*"
-    acorn: "npm:^8.15.0"
+    acorn: "npm:^8.16.0"
     buffer: "npm:^6.0.3"
-    zod: "npm:^3.25.67"
+    zod: "npm:^4.3.6"
   peerDependencies:
     antd: ^5.11.2
     form-render: ^2.2.20
-  checksum: 10c0/58f9306b2ffba03278cc41dc30143b4654cdf6f31b8f905e228b85f38f5b5cf0cfdeced966505c963f2c64e16e4bfdd1e1c64bf30e4a4c9cebc084389166e803
+  checksum: 10c0/33873820394c7c38d0b005ee2e7e1531139ae9913935c613f914bb92a9084524b3c11f70e001f7048e5d5e1204a71a730da7d5c6aa5fede397b68ee285dd2a57
   languageName: node
   linkType: hard
 
@@ -7159,19 +7159,20 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@pdfme/schemas@npm:5.4.2":
-  version: 5.4.2
-  resolution: "@pdfme/schemas@npm:5.4.2"
+"@pdfme/schemas@npm:5.5.10":
+  version: 5.5.10
+  resolution: "@pdfme/schemas@npm:5.5.10"
   dependencies:
     "@pdfme/pdf-lib": "npm:*"
     air-datepicker: "npm:^3.6.0"
-    bwip-js: "npm:^4.6.0"
+    bwip-js: "npm:^4.8.0"
     date-fns: "npm:^4.1.0"
+    dompurify: "npm:^3.3.3"
     fontkit: "npm:^2.0.2"
-    lucide: "npm:^0.525.0"
+    lucide: "npm:^0.577.0"
   peerDependencies:
     "@pdfme/common": "*"
-  checksum: 10c0/0ab33c71936b3b8807d091ec7fd6d1859cfe6829adf27b2e66a11f1523b69b50e3d04349c8bdb370f7be5d9cfa19413d1582cb247bdfc54021e2c42c304545e7
+  checksum: 10c0/3239cd44f7649db6e56756c389bb12dbfae134ef09d9083969593df35a3c347643fd3640a6563141ffe5ac5ca8aa5f950b62d43101adee80f4754727a9b52716
   languageName: node
   linkType: hard
 
@@ -13938,9 +13939,9 @@ __metadata:
   resolution: "@zerologementvacant/draft@workspace:packages/draft"
   dependencies:
     "@codegouvfr/react-dsfr": "npm:1.28.0"
-    "@pdfme/common": "npm:5.4.2"
+    "@pdfme/common": "npm:5.5.10"
     "@pdfme/generator": "npm:5.4.2"
-    "@pdfme/schemas": "npm:5.4.2"
+    "@pdfme/schemas": "npm:5.5.10"
     "@swc/core": "npm:1.13.3"
     "@swc/jest": "npm:0.2.39"
     "@testing-library/dom": "npm:10.4.1"
@@ -14032,7 +14033,7 @@ __metadata:
     classnames: "npm:2.5.1"
     copyfiles: "npm:2.4.1"
     date-fns: "npm:2.30.0"
-    effect: "npm:3.19.14"
+    effect: "npm:3.20.0"
     fetch-intercept: "npm:2.4.0"
     happy-dom: "npm:20.0.2"
     immutable: "npm:5.1.5"
@@ -14066,7 +14067,7 @@ __metadata:
     ts-essentials: "npm:10.1.1"
     ts-pattern: "npm:5.8.0"
     tsx: "npm:4.20.3"
-    undici: "npm:7.20.0"
+    undici: "npm:7.24.0"
     uuid: "npm:9.0.1"
     web-vitals: "npm:5.1.0"
     whatwg-fetch: "npm:3.6.20"
@@ -14110,7 +14111,7 @@ __metadata:
     "@types/node": "npm:24"
     "@zerologementvacant/draft": "workspace:*"
     "@zerologementvacant/utils": "workspace:*"
-    effect: "npm:3.17.7"
+    effect: "npm:3.20.0"
     mime: "npm:4.1.0"
     ts-essentials: "npm:10.1.1"
     ts-pattern: "npm:5.8.0"
@@ -14219,9 +14220,9 @@ __metadata:
     "@fast-check/vitest": "npm:0.2.2"
     "@getbrevo/brevo": "npm:1.0.1"
     "@godaddy/terminus": "npm:4.12.1"
-    "@pdfme/common": "npm:5.4.2"
+    "@pdfme/common": "npm:5.5.10"
     "@pdfme/generator": "npm:5.4.2"
-    "@pdfme/schemas": "npm:5.4.2"
+    "@pdfme/schemas": "npm:5.5.10"
     "@react-pdf/renderer": "npm:4.3.2"
     "@sendinblue/client": "npm:3.3.1"
     "@sentry/integrations": "npm:7.120.4"
@@ -14282,7 +14283,7 @@ __metadata:
     csv-stringify: "npm:6.6.0"
     date-fns: "npm:3.6.0"
     download: "npm:8.0.0"
-    effect: "npm:3.17.7"
+    effect: "npm:3.20.0"
     exceljs: "npm:4.4.0"
     express: "npm:4.22.0"
     express-fileupload: "npm:1.5.2"
@@ -14306,7 +14307,7 @@ __metadata:
     memoizee: "npm:0.4.17"
     mime: "npm:4.1.0"
     ms: "npm:2.1.3"
-    multer: "npm:2.1.0"
+    multer: "npm:2.1.1"
     nock: "npm:13.5.6"
     nodemailer: "npm:7.0.11"
     nodemon: "npm:3.1.10"
@@ -14347,7 +14348,7 @@ __metadata:
     "@aws-sdk/client-s3": "npm:3.864.0"
     "@tsconfig/node24": "npm:24.0.4"
     "@types/node": "npm:24"
-    effect: "npm:3.17.7"
+    effect: "npm:3.20.0"
     pino: "npm:9.8.0"
     pino-pretty: "npm:11.3.0"
     ts-essentials: "npm:10.1.1"
@@ -16149,7 +16150,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"bwip-js@npm:^4.6.0":
+"bwip-js@npm:^4.8.0":
   version: 4.8.0
   resolution: "bwip-js@npm:4.8.0"
   bin:
@@ -18507,7 +18508,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"dompurify@npm:^3.3.1":
+"dompurify@npm:^3.3.1, dompurify@npm:^3.3.3":
   version: 3.3.3
   resolution: "dompurify@npm:3.3.3"
   dependencies:
@@ -18684,23 +18685,13 @@ __metadata:
   languageName: node
   linkType: hard
 
-"effect@npm:3.17.7":
-  version: 3.17.7
-  resolution: "effect@npm:3.17.7"
+"effect@npm:3.20.0":
+  version: 3.20.0
+  resolution: "effect@npm:3.20.0"
   dependencies:
     "@standard-schema/spec": "npm:^1.0.0"
     fast-check: "npm:^3.23.1"
-  checksum: 10c0/f701dcd8b1b1bba3bf8cf2831bd30a3ee2a9a6e0c190154f3800a457ab9f329ec66903f458a378a4da919445a9f7bc675ee4474a19c4d527aa058798985a66d7
-  languageName: node
-  linkType: hard
-
-"effect@npm:3.19.14":
-  version: 3.19.14
-  resolution: "effect@npm:3.19.14"
-  dependencies:
-    "@standard-schema/spec": "npm:^1.0.0"
-    fast-check: "npm:^3.23.1"
-  checksum: 10c0/8ada627fedb6596e19d21d4adb8ad43109b9f303f7b8e864493cb9f26edccfbd16915cbe10cb6c0fa6a2ece4d3781a91a2309e72882278e85fdd37ee2177acc8
+  checksum: 10c0/7dedae57f8eab18ae4d08a0b993ad8551c15aef4f0f5d7728bc00aba8664d9d01eab6dd1e8e544ecfec8bc0dcfe472e80a7e581c4ac80258c316445536446e3d
   languageName: node
   linkType: hard
 
@@ -20724,9 +20715,9 @@ __metadata:
   linkType: hard
 
 "flatted@npm:^3.2.7, flatted@npm:^3.2.9, flatted@npm:^3.3.3":
-  version: 3.4.1
-  resolution: "flatted@npm:3.4.1"
-  checksum: 10c0/3987a7f1e39bc7215cece001354313b462cdb4fb2dde0df4f7acd9e5016fbae56ee6fb3f0870b2150145033be8bda4f01af6f87a00946049651131bbfca7dfa6
+  version: 3.4.2
+  resolution: "flatted@npm:3.4.2"
+  checksum: 10c0/a65b67aae7172d6cdf63691be7de6c5cd5adbdfdfe2e9da1a09b617c9512ed794037741ee53d93114276bff3f93cd3b0d97d54f9b316e1e4885dde6e9ffdf7ed
   languageName: node
   linkType: hard
 
@@ -25803,10 +25794,10 @@ __metadata:
   languageName: node
   linkType: hard
 
-"lucide@npm:^0.525.0":
-  version: 0.525.0
-  resolution: "lucide@npm:0.525.0"
-  checksum: 10c0/14ab51b6ab84289dbe4cdde4aa78b2e72a007513ec855f908b02b8bd0bf80a562cf6f19052965665c583b3ba295c97bac1f4578e554455b24c9446f9a32d2fc7
+"lucide@npm:^0.577.0":
+  version: 0.577.0
+  resolution: "lucide@npm:0.577.0"
+  checksum: 10c0/82ec050e03a21268d00c76158accb0caf35c3417964e0f5755a6681a46d91022c224305059e8157fa0b117c8abab83f08392e4332e4ee31cf4098e7cacacb89f
   languageName: node
   linkType: hard
 
@@ -26616,15 +26607,15 @@ __metadata:
   languageName: node
   linkType: hard
 
-"multer@npm:2.1.0":
-  version: 2.1.0
-  resolution: "multer@npm:2.1.0"
+"multer@npm:2.1.1":
+  version: 2.1.1
+  resolution: "multer@npm:2.1.1"
   dependencies:
     append-field: "npm:^1.0.0"
     busboy: "npm:^1.6.0"
     concat-stream: "npm:^2.0.0"
     type-is: "npm:^1.6.18"
-  checksum: 10c0/5b374b9a3dbdfe28bbcacbc070cfa8d81a94f74d2fbf979d96802750b7a463ea54c996faee9d25f323a0c67f55e4f82b2b5f034d91e174daf7bcfb7e0f52c165
+  checksum: 10c0/2ec4e02833b20f403cfb879d4b64d2a9070d902b9deae7aef18a6faadb707d7665385456cf540aa8a6dadfe3d4c5fc8e0e7b0675b94e1077048b1125426deee6
   languageName: node
   linkType: hard
 
@@ -33811,10 +33802,10 @@ __metadata:
   languageName: node
   linkType: hard
 
-"undici@npm:7.20.0":
-  version: 7.20.0
-  resolution: "undici@npm:7.20.0"
-  checksum: 10c0/99054958a07b4105e1461bf5f38550746a15e01d6807e7a2b0849f18e1bc3f481c1ad080ea87b255a39264cec5d80ebf2b3bc82c3e732d81e6a0cc3c920c05c6
+"undici@npm:7.24.0":
+  version: 7.24.0
+  resolution: "undici@npm:7.24.0"
+  checksum: 10c0/ccb2f3407ae35fec66183b80fff696dcc56c308bf568277c0c022d5dffa09e3ab35734ea4d99c77e837522c9c83fd284932816dec2cfc9023fcee4e02686514e
   languageName: node
   linkType: hard
 
@@ -35503,16 +35494,9 @@ __metadata:
   languageName: node
   linkType: hard
 
-"zod@npm:^3.25.0 || ^4.0.0":
+"zod@npm:^3.25.0 || ^4.0.0, zod@npm:^4.3.6":
   version: 4.3.6
   resolution: "zod@npm:4.3.6"
   checksum: 10c0/860d25a81ab41d33aa25f8d0d07b091a04acb426e605f396227a796e9e800c44723ed96d0f53a512b57be3d1520f45bf69c0cb3b378a232a00787a2609625307
-  languageName: node
-  linkType: hard
-
-"zod@npm:^3.25.67":
-  version: 3.25.76
-  resolution: "zod@npm:3.25.76"
-  checksum: 10c0/5718ec35e3c40b600316c5b4c5e4976f7fee68151bc8f8d90ec18a469be9571f072e1bbaace10f1e85cf8892ea12d90821b200e980ab46916a6166a4260a983c
   languageName: node
   linkType: hard

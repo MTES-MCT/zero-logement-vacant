@@ -429,15 +429,20 @@ restore_section() {
     else
       # For pre-data phase, check if errors are only extension/schema related (expected on managed PostgreSQL)
       if [ "$section" = "pre-data" ]; then
-        # Count real errors (excluding expected extension/schema errors on Clever Cloud)
+        # Count real errors (excluding expected errors on managed PostgreSQL)
+        # - "must be owner of extension" - can't modify managed extensions
+        # - "schema .* already exists" - schema already present
+        # - "cannot drop .* because other objects depend on it" - FK dependencies prevent DROP
+        # - "relation .* already exists" - table already exists (because DROP failed)
         local real_errors=$(grep -E "^pg_restore: error:" "restore_${section}_attempt_${attempt}.log" 2>/dev/null | \
           grep -v "must be owner of extension" | \
           grep -v "schema .* already exists" | \
-          grep -v "cannot drop schema .* because other objects depend on it" | \
+          grep -v "cannot drop .* because other objects depend on it" | \
+          grep -v "relation .* already exists" | \
           wc -l | xargs)
 
         if [ "$real_errors" -eq 0 ]; then
-          echo "✓ Section $section completed (ignored ${exit_code} expected extension/schema errors on managed PostgreSQL)"
+          echo "✓ Section $section completed (ignored ${exit_code} expected errors on managed PostgreSQL)"
           success=true
           save_progress "$section" "$dump_file"
           rm -f "restore_${section}_attempt_${attempt}.log"

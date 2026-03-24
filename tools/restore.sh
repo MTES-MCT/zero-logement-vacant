@@ -1,8 +1,14 @@
 #!/usr/bin/env bash
 
 # PostgreSQL backup restoration script
-# Restores a backup from Clever Cloud to a target database specified by URI
+# Restores a backup from Clever Cloud or a local file to a target database
 # Supports resumable restores using 3-phase approach (pre-data, data, post-data)
+#
+# Usage:
+#   ./restore.sh [dump_file]
+#
+# If dump_file is provided and exists, it will be used directly.
+# Otherwise, the script downloads the latest backup from Clever Cloud.
 
 set -e
 
@@ -12,15 +18,28 @@ RETRY_DELAY=10  # seconds
 PARALLEL_JOBS=2  # Reduce if memory is limited
 PROGRESS_FILE=".restore_progress"
 
-# Check that required variables are defined
-if [ -z "$CLEVER_DATABASE_ID" ]; then
-  echo "Error: The variable CLEVER_DATABASE_ID must be defined."
-  exit 1
+# Check for local file argument
+LOCAL_FILE=""
+if [ -n "$1" ]; then
+  if [ -f "$1" ] || [ -d "$1" ]; then
+    LOCAL_FILE="$1"
+    echo "Using local dump file: $LOCAL_FILE"
+  else
+    echo "Warning: File '$1' not found, will download from Clever Cloud"
+  fi
 fi
 
-if [ -z "$CLEVER_ORG_ID" ]; then
-  echo "Error: The variable CLEVER_ORG_ID must be defined."
-  exit 1
+# Check that required variables are defined (only required if no local file)
+if [ -z "$LOCAL_FILE" ]; then
+  if [ -z "$CLEVER_DATABASE_ID" ]; then
+    echo "Error: The variable CLEVER_DATABASE_ID must be defined (or provide a local dump file)."
+    exit 1
+  fi
+
+  if [ -z "$CLEVER_ORG_ID" ]; then
+    echo "Error: The variable CLEVER_ORG_ID must be defined (or provide a local dump file)."
+    exit 1
+  fi
 fi
 
 if [ -z "$TARGET_DATABASE_URI" ]; then
@@ -525,45 +544,55 @@ fi
 
 # Download backup if not resuming
 if [ "$RESUME_MODE" = false ]; then
-  # Retrieve and download the latest production backup
-  echo ""
-  echo "Retrieving latest backup information..."
-  BACKUP_ID=$(clever --org "$CLEVER_ORG_ID" database backups "$CLEVER_DATABASE_ID" --format json | jq -r 'max_by(.creationDate) | .backupId')
-
-  if [ -z "$BACKUP_ID" ] || [ "$BACKUP_ID" = "null" ]; then
-    echo "Error: Could not retrieve backup ID from Clever Cloud."
-    exit 1
-  fi
-
-  BACKUP_DATE=$(clever --org "$CLEVER_ORG_ID" database backups "$CLEVER_DATABASE_ID" --format json | jq -r 'max_by(.creationDate) | .creationDate')
-  FILE="${BACKUP_DATE}.dump"
-
-  echo "Latest backup found:"
-  echo "  Backup ID: $BACKUP_ID"
-  echo "  Date: $BACKUP_DATE"
-  echo "  Output file: $FILE"
-
-  # Check if dump file already exists
-  if [ -f "$FILE" ]; then
+  # Use local file if provided
+  if [ -n "$LOCAL_FILE" ]; then
+    FILE="$LOCAL_FILE"
+    if [ -d "$FILE" ]; then
+      echo "Using local dump directory: $FILE ($(du -sh "$FILE" | cut -f1))"
+    else
+      echo "Using local dump file: $FILE ($(ls -lh "$FILE" | awk '{print $5}'))"
+    fi
+  else
+    # Retrieve and download the latest production backup from Clever Cloud
     echo ""
-    echo "Dump file already exists: $FILE ($(ls -lh "$FILE" | awk '{print $5}'))"
-    read -p "Use existing file? (Y/n): " -n 1 -r
-    echo
-    if [[ $REPLY =~ ^[Nn]$ ]]; then
+    echo "Retrieving latest backup information..."
+    BACKUP_ID=$(clever --org "$CLEVER_ORG_ID" database backups "$CLEVER_DATABASE_ID" --format json | jq -r 'max_by(.creationDate) | .backupId')
+
+    if [ -z "$BACKUP_ID" ] || [ "$BACKUP_ID" = "null" ]; then
+      echo "Error: Could not retrieve backup ID from Clever Cloud."
+      exit 1
+    fi
+
+    BACKUP_DATE=$(clever --org "$CLEVER_ORG_ID" database backups "$CLEVER_DATABASE_ID" --format json | jq -r 'max_by(.creationDate) | .creationDate')
+    FILE="${BACKUP_DATE}.dump"
+
+    echo "Latest backup found:"
+    echo "  Backup ID: $BACKUP_ID"
+    echo "  Date: $BACKUP_DATE"
+    echo "  Output file: $FILE"
+
+    # Check if dump file already exists
+    if [ -f "$FILE" ]; then
+      echo ""
+      echo "Dump file already exists: $FILE ($(ls -lh "$FILE" | awk '{print $5}'))"
+      read -p "Use existing file? (Y/n): " -n 1 -r
+      echo
+      if [[ $REPLY =~ ^[Nn]$ ]]; then
+        echo "Downloading backup..."
+        clever --org "$CLEVER_ORG_ID" database backups download "$CLEVER_DATABASE_ID" "$BACKUP_ID" --output "$FILE"
+      fi
+    else
       echo "Downloading backup..."
       clever --org "$CLEVER_ORG_ID" database backups download "$CLEVER_DATABASE_ID" "$BACKUP_ID" --output "$FILE"
     fi
-  else
-    echo "Downloading backup..."
-    clever --org "$CLEVER_ORG_ID" database backups download "$CLEVER_DATABASE_ID" "$BACKUP_ID" --output "$FILE"
-  fi
 
-  if [ ! -f "$FILE" ]; then
-    echo "Error: Backup file $FILE was not created."
-    exit 1
-  fi
+    if [ ! -f "$FILE" ]; then
+      echo "Error: Backup file $FILE was not created."
+      exit 1
+    fi
 
-  echo "Backup ready: $(ls -lh "$FILE" | awk '{print $5}')"
+    echo "Backup ready: $(ls -lh "$FILE" | awk '{print $5}')"
+  fi
 fi
 
 # Extract expected table list from dump (for verification later)

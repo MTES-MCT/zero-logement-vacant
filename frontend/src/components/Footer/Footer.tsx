@@ -33,6 +33,7 @@ function Footer() {
       termsLinkProps={{
         to: 'https://zerologementvacant.beta.gouv.fr/mentions-legales'
       }}
+      contentDescription="Zéro Logement Vacant aide les collectivités à mobiliser les propriétaires de logements vacants de longue durée."
       bottomItems={[
         {
           text: 'Politique de confidentialité',
@@ -41,14 +42,9 @@ function Footer() {
             target: '_blank',
             rel: 'noopener noreferrer'
           }
-        }
+        },
+        ...(isAuthenticated ? [] : [{ linkProps: { to: '/connexion' }, text: 'Connexion' }])
       ]}
-      contentDescription="Zéro Logement Vacant aide les collectivités à mobiliser les propriétaires de logements vacants de longue durée."
-      bottomItems={
-        isAuthenticated
-          ? []
-          : [{ linkProps: { to: '/connexion' }, text: 'Connexion' }]
-      }
       linkList={
         [
           ...(isAuthenticated

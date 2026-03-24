@@ -332,6 +332,9 @@ generate_pdf() {
 
         # Create header file with URL handling packages
         cat > "$TEMPLATE_DIR/header.tex" << 'HEADER'
+% Hyperref must be loaded first for hypersetup to work
+\usepackage{hyperref}
+
 % URL handling - xurl allows proper line breaks in URLs
 \usepackage{xurl}
 
@@ -343,7 +346,7 @@ generate_pdf() {
 \usepackage{etoolbox}
 \AtBeginEnvironment{longtable}{\footnotesize}
 
-% Ensure hyperref is loaded with proper settings
+% Configure hyperref settings
 \hypersetup{
     breaklinks=true,
     pdfborder={0 0 0}

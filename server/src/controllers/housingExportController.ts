@@ -184,6 +184,10 @@ export function toOwnerExcelRow(
     ownerBanAddressScore: owner.banAddress?.score
       ? `${Math.trunc(owner.banAddress.score * 100)} %`
       : null,
+    ownerBanHouseNumber: owner.banAddress?.houseNumber,
+    ownerBanStreet: owner.banAddress?.street,
+    ownerBanPostalCode: owner.banAddress?.postalCode,
+    ownerBanCity: owner.banAddress?.city,
     ownerAdditionalAddress: owner.additionalAddress
   };
 }
@@ -198,6 +202,10 @@ export const OWNER_WORKSHEET_COLUMNS: Array<
     header: 'Adresse BAN du propriétaire - Fiabilité',
     key: 'ownerBanAddressScore'
   },
+  { header: 'Numéro', key: 'ownerBanHouseNumber' },
+  { header: 'Voie', key: 'ownerBanStreet' },
+  { header: 'Code postal', key: 'ownerBanPostalCode' },
+  { header: 'Commune', key: 'ownerBanCity' },
   {
     header: 'Complément d’adresse du propriétaire',
     key: 'ownerAdditionalAddress'

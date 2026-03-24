@@ -23,7 +23,7 @@ function HousingEditionNoteTab(props: Props) {
     <Stack rowGap={2}>
       <AppTextInputNext<NoteSchema, 'note'>
         label="Nouvelle note"
-        hintText="Veuillez ne communiquer que les données strictement nécessaires et ne pas partager de données sensibles."
+        hintText="Veillez à ne pas partager de données sensibles."
         name="note"
         nativeTextAreaProps={{ rows: 8 }}
         textArea

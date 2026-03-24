@@ -158,6 +158,8 @@ describe('Two-Factor Authentication', () => {
     cy.get('button[type="submit"]').click();
 
     // Should show validation error
-    cy.contains('Le code doit contenir uniquement des chiffres').should('be.visible');
+    cy.contains('Le code doit contenir uniquement des chiffres').should(
+      'be.visible'
+    );
   });
 });

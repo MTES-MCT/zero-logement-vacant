@@ -11,7 +11,8 @@
     "frontend",
     "queue",
     "server",
-    "packages/*"
+    "packages/*",
+    "apps/*"
   ],
   "scripts": {
     "prepare": "husky",
@@ -63,7 +64,7 @@
     "@vitest/coverage-v8": "4.0.9",
     "@vitest/ui": "4.0.9",
     "clever-tools": "4.4.0",
-    "cypress": "15.9.0",
+    "cypress": "15.8.0",
     "esbuild": "0.27.3",
     "eslint": "9.38.0",
     "eslint-config-prettier": "10.1.8",

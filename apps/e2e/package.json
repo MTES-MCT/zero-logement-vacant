@@ -6,9 +6,9 @@
     "@faker-js/faker": "8.4.1",
     "@testing-library/cypress": "10.1.0",
     "@types/convict": "6.1.6",
-    "axe-core": "4.11.0",
+    "axe-core": "4.11.1",
     "convict": "6.2.4",
-    "cypress": "15.5.0",
+    "cypress": "15.8.0",
     "cypress-axe": "1.7.0"
   }
 }

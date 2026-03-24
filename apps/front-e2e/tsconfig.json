@@ -8,7 +8,14 @@
     "lib": ["es5", "dom"],
     "sourceMap": true,
     "esModuleInterop": true,
+    "module": "esnext",
+    "moduleResolution": "bundler",
     "types": ["@testing-library/cypress", "cypress", "cypress-axe", "node"]
   },
-  "include": ["**/*.ts"]
+  "include": ["**/*.ts"],
+  "references": [
+    {
+      "path": "../../packages/models"
+    }
+  ]
 }

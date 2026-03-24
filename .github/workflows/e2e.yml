@@ -26,7 +26,7 @@ jobs:
         run: corepack enable
 
       - name: Use Node.js ${{ matrix.node-version }}
-        uses: actions/setup-node@v4
+        uses: actions/setup-node@v6
         with:
           node-version: ${{ matrix.node-version }}
           cache: yarn
@@ -37,7 +37,7 @@ jobs:
         run: yarn --immutable
 
       - name: Run cypress tests
-        run: yarn nx run e2e:start
+        run: yarn nx e2e front-e2e
         env:
           CYPRESS_API: ${{ vars.API_HOST }}
           CYPRESS_BASE_URL: ${{ vars.HOST }}
@@ -48,9 +48,9 @@ jobs:
           CYPRESS_MAILER_PASSWORD: ${{ secrets.CYPRESS_MAILER_PASSWORD }}
 
       - name: Upload screenshots
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v6
         if: failure()
         with:
           name: cypress-screenshots
-          path: e2e/cypress/screenshots
+          path: apps/e2e/cypress/screenshots
           retention-days: 7

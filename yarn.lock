@@ -13967,14 +13967,15 @@ __metadata:
   languageName: unknown
   linkType: soft
 
-"@zerologementvacant/e2e@workspace:apps/e2e":
+"@zerologementvacant/front-e2e@workspace:apps/front-e2e":
   version: 0.0.0-use.local
-  resolution: "@zerologementvacant/e2e@workspace:apps/e2e"
+  resolution: "@zerologementvacant/front-e2e@workspace:apps/front-e2e"
   dependencies:
     "@dotenvx/dotenvx": "npm:1.48.4"
     "@faker-js/faker": "npm:8.4.1"
     "@testing-library/cypress": "npm:10.1.0"
     "@types/convict": "npm:6.1.6"
+    "@zerologementvacant/models": "workspace:*"
     axe-core: "npm:4.11.1"
     convict: "npm:6.2.4"
     cypress: "npm:15.8.0"

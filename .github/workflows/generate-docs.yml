@@ -2,6 +2,7 @@ name: Generate Technical Documentation
 
 on:
   pull_request:
+    types: [opened, synchronize, reopened]
     paths:
       - 'docs/technical/**'
       - '.github/workflows/generate-docs.yml'

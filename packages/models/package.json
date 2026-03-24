@@ -16,7 +16,7 @@
   "dependencies": {
     "@zerologementvacant/draft": "workspace:*",
     "@zerologementvacant/utils": "workspace:*",
-    "effect": "3.17.7",
+    "effect": "3.20.0",
     "mime": "4.1.0",
     "ts-essentials": "10.1.1",
     "ts-pattern": "5.8.0"

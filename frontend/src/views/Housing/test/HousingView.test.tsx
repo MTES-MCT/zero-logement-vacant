@@ -457,7 +457,7 @@ describe('Housing view', () => {
       const notePanel = await screen.findByRole('tabpanel', {
         name: 'Note'
       });
-      const textbox = await within(notePanel).findByLabelText('Nouvelle note');
+      const textbox = await within(notePanel).findByLabelText(/Nouvelle note/);
       await user.type(textbox, faker.lorem.paragraph());
       const save = await screen.findByRole('button', {
         name: 'Enregistrer'

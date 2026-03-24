@@ -30,6 +30,7 @@ function DraftRedaction() {
         <AppTextInputNext<DraftFormSchema, 'writtenAt'>
           name="writtenAt"
           label="En date du ..."
+          hintText="Format attendu : jj/mm/aaaa"
           nativeInputProps={{
             type: 'date'
           }}
@@ -40,6 +41,8 @@ function DraftRedaction() {
         <AppTextInputNext<DraftFormSchema, 'writtenFrom'>
           name="writtenFrom"
           label="Écrit à ..."
+          mapValue={(value) => value ?? ''}
+          contramapValue={(value) => (value === '' ? null : value)}
         />
       </Grid>
     </Grid>

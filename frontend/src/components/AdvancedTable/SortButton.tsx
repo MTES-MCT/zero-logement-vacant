@@ -21,6 +21,9 @@ function SortButton(props: SortButtonProps) {
       priority="tertiary"
       size="small"
       title={title}
+      nativeButtonProps={{
+        'aria-label': title
+      }}
       onClick={onCycleSort}
     />
   );

@@ -1,6 +1,6 @@
 import { faker } from '@faker-js/faker/locale/fr';
 import { point } from '@turf/turf';
-import { Array, pipe } from 'effect';
+import { Array, pipe, Predicate } from 'effect';
 import { MarkRequired } from 'ts-essentials';
 
 import type { BBox } from 'geojson';
@@ -146,7 +146,10 @@ export function genBuildingDTO(options?: GenBuildingDtoOptions): BuildingDTO {
   };
 }
 
-export function genCampaignDTO(group?: GroupDTO, author?: UserDTO): CampaignDTO {
+export function genCampaignDTO(
+  group?: GroupDTO,
+  author?: UserDTO
+): CampaignDTO {
   return {
     id: faker.string.uuid(),
     title: faker.commerce.productName(),
@@ -156,7 +159,45 @@ export function genCampaignDTO(group?: GroupDTO, author?: UserDTO): CampaignDTO 
     status: faker.helpers.arrayElement(CAMPAIGN_STATUS_VALUES),
     createdAt: faker.date.past().toJSON(),
     groupId: group?.id,
-    returnCount: null
+    sentAt: null,
+    housingCount: 0,
+    ownerCount: 0,
+    returnCount: 0,
+    returnRate: null
+  };
+}
+
+interface GenCampaignDtoOptions {
+  group: GroupDTO;
+  author: UserDTO;
+  housings: ReadonlyArray<HousingDTO>;
+  sentAt: Date | null;
+}
+
+export function genCampaignDTONext(
+  options: GenCampaignDtoOptions
+): MarkRequired<CampaignDTO, 'groupId' | 'createdBy'> {
+  const { author, group, housings } = options;
+
+  return {
+    id: faker.string.uuid(),
+    title: faker.commerce.productName(),
+    description: faker.commerce.productDescription(),
+    filters: {},
+    status: faker.helpers.arrayElement(CAMPAIGN_STATUS_VALUES),
+    createdBy: author,
+    createdAt: faker.date.past().toJSON(),
+    groupId: group.id,
+    housingCount: housings.length,
+    ownerCount: pipe(
+      housings,
+      Array.map((housing) => housing.owner),
+      Array.filter(Predicate.isNotNull),
+      Array.dedupeWith((a, b) => a.id === b.id),
+      Array.length
+    ),
+    returnCount: 0,
+    returnRate: 0
   };
 }
 

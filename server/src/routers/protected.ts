@@ -316,9 +316,12 @@ router.post(
 router.post(
   '/campaigns/:id/exports',
   validatorNext.validate({
-    params: object({ id: schemas.id })
+    params: object({ id: schemas.id }),
+    body: object({
+      type: string().oneOf(['drafts', 'recipients']).required()
+    })
   }),
-  exportController.exportCampaign
+  exportController.exporter
 );
 router.get(
   '/campaigns/:id/export',

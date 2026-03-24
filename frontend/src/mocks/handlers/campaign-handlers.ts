@@ -2,6 +2,10 @@ import { faker } from '@faker-js/faker/locale/fr';
 
 import {
   byCreatedAt,
+  byHousingCount,
+  byOwnerCount,
+  byReturnCount,
+  byReturnRate,
   bySentAt,
   byStatus,
   byTitle,
@@ -12,11 +16,9 @@ import {
   type GroupDTO,
   type HousingDTO
 } from '@zerologementvacant/models';
-import { combineAll, desc, type Ord } from '@zerologementvacant/utils';
-import { Array, pipe, Predicate } from 'effect';
+import { Array, Order, pipe, Predicate } from 'effect';
 import { identity } from 'effect/Function';
 import { constants } from 'http2';
-import { List } from 'immutable';
 import { http, HttpResponse, RequestHandler } from 'msw';
 import { toUserDTO } from '~/models/User';
 import {
@@ -77,7 +79,10 @@ const createFromGroup = http.post<
       createdAt: new Date().toJSON(),
       createdBy: toUserDTO(auth.user),
       groupId: group.id,
-      returnCount: null
+      returnCount: null,
+      returnRate: null,
+      housingCount: 0,
+      ownerCount: 0
     };
     data.campaigns.push(campaign);
 
@@ -114,7 +119,10 @@ export const campaignHandlers: RequestHandler[] = [
         status: 'draft',
         createdAt: new Date().toJSON(),
         createdBy: data.users[0],
-        returnCount: null
+        returnCount: null,
+        returnRate: null,
+        housingCount: 0,
+        ownerCount: 0
       };
       data.campaigns.push(campaign);
       // For now, add random housings to the campaign
@@ -155,7 +163,10 @@ export const campaignHandlers: RequestHandler[] = [
         createdAt: new Date().toJSON(),
         createdBy: data.users[0],
         groupId: group.id,
-        returnCount: null
+        returnCount: null,
+        returnRate: null,
+        housingCount: 0,
+        ownerCount: 0
       };
       data.campaigns.push(campaign);
       const housings = faker.helpers.arrayElements(data.housings);
@@ -311,27 +322,34 @@ function filter(
     : identity;
 }
 
-function sort(keys?: ReadonlyArray<string>) {
-  const ordering: Partial<Record<keyof CampaignSortable, Ord<CampaignDTO>>> = {
+function sort(
+  keys: ReadonlyArray<string> = []
+): (campaigns: CampaignDTO[]) => CampaignDTO[] {
+  const ordering: Record<keyof CampaignSortable, Order.Order<CampaignDTO>> = {
     title: byTitle,
     status: byStatus,
     createdAt: byCreatedAt,
-    sentAt: bySentAt
+    sentAt: bySentAt,
+    housingCount: byHousingCount,
+    ownerCount: byOwnerCount,
+    returnCount: byReturnCount,
+    returnRate: byReturnRate
   };
 
-  const sortFns = List(keys)
-    .map((key) => {
+  const sortFn = pipe(
+    keys,
+    Array.map((key) => {
       const keyWithoutMinus = key.startsWith('-') ? key.slice(1) : key;
       if (!isCampaignSortable(keyWithoutMinus)) {
         return null;
       }
       return key.startsWith('-')
-        ? desc(ordering[keyWithoutMinus])
+        ? Order.reverse(ordering[keyWithoutMinus])
         : ordering[keyWithoutMinus];
-    })
-    .filter((fn) => !!fn);
-  const sortFn = combineAll(sortFns.toArray());
+    }),
+    Array.filter(Predicate.isNotNull),
+    Order.combineAll
+  );
 
-  return (campaigns: CampaignDTO[]): CampaignDTO[] =>
-    keys?.length ? [...campaigns].sort(sortFn) : campaigns;
+  return keys.length > 0 ? Array.sort(sortFn) : identity;
 }

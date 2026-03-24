@@ -249,6 +249,108 @@ describe('Campaign API', () => {
         })
       );
     });
+
+    describe('sorting', () => {
+      let sortCampaigns: CampaignApi[];
+
+      beforeEach(async () => {
+        sortCampaigns = Array.from({ length: 3 }).map(() =>
+          genCampaignApi(establishment.id, user)
+        );
+        await Campaigns().insert(sortCampaigns.map(formatCampaignApi));
+        await Promise.all([
+          Campaigns()
+            .where({ id: sortCampaigns[0].id })
+            .update({ housing_count: 10, owner_count: 5, return_count: 1 }),
+          Campaigns()
+            .where({ id: sortCampaigns[1].id })
+            .update({ housing_count: 20, owner_count: 3, return_count: 4 }),
+          Campaigns()
+            .where({ id: sortCampaigns[2].id })
+            .update({ housing_count: 5, owner_count: 8, return_count: 2 })
+        ]);
+      });
+
+      afterEach(async () => {
+        if (sortCampaigns?.length) {
+          await Campaigns()
+            .whereIn('id', sortCampaigns.map((c) => c.id))
+            .delete();
+        }
+      });
+
+      it('should sort by housingCount ascending', async () => {
+        const { body, status } = await request(url)
+          .get(testRoute)
+          .query('sort=housingCount')
+          .use(tokenProvider(user));
+
+        expect(status).toBe(constants.HTTP_STATUS_OK);
+        const ids = body.map((c: CampaignDTO) => c.id);
+        expect(
+          ids.filter((id: string) => sortCampaigns.some((c) => c.id === id))
+        ).toEqual([
+          sortCampaigns[2].id, // housing_count: 5
+          sortCampaigns[0].id, // housing_count: 10
+          sortCampaigns[1].id  // housing_count: 20
+        ]);
+      });
+
+      it('should sort by ownerCount descending', async () => {
+        const { body, status } = await request(url)
+          .get(testRoute)
+          .query('sort=-ownerCount')
+          .use(tokenProvider(user));
+
+        expect(status).toBe(constants.HTTP_STATUS_OK);
+        const ids = body.map((c: CampaignDTO) => c.id);
+        expect(
+          ids.filter((id: string) => sortCampaigns.some((c) => c.id === id))
+        ).toEqual([
+          sortCampaigns[2].id, // owner_count: 8
+          sortCampaigns[0].id, // owner_count: 5
+          sortCampaigns[1].id  // owner_count: 3
+        ]);
+      });
+
+      it('should sort by returnCount ascending', async () => {
+        const { body, status } = await request(url)
+          .get(testRoute)
+          .query('sort=returnCount')
+          .use(tokenProvider(user));
+
+        expect(status).toBe(constants.HTTP_STATUS_OK);
+        const ids = body.map((c: CampaignDTO) => c.id);
+        expect(
+          ids.filter((id: string) => sortCampaigns.some((c) => c.id === id))
+        ).toEqual([
+          sortCampaigns[0].id, // return_count: 1
+          sortCampaigns[2].id, // return_count: 2
+          sortCampaigns[1].id  // return_count: 4
+        ]);
+      });
+
+      it('should sort by returnRate ascending', async () => {
+        // return_rate = return_count / housing_count (GENERATED ALWAYS AS)
+        // sortCampaigns[0]: 1/10 = 0.1
+        // sortCampaigns[1]: 4/20 = 0.2
+        // sortCampaigns[2]: 2/5  = 0.4
+        const { body, status } = await request(url)
+          .get(testRoute)
+          .query('sort=returnRate')
+          .use(tokenProvider(user));
+
+        expect(status).toBe(constants.HTTP_STATUS_OK);
+        const ids = body.map((c: CampaignDTO) => c.id);
+        expect(
+          ids.filter((id: string) => sortCampaigns.some((c) => c.id === id))
+        ).toEqual([
+          sortCampaigns[0].id, // 0.1
+          sortCampaigns[1].id, // 0.2
+          sortCampaigns[2].id  // 0.4
+        ]);
+      });
+    });
   });
 
   describe('POST /campaigns', () => {
@@ -370,7 +472,10 @@ describe('Campaign API', () => {
         },
         createdAt: expect.any(String),
         createdBy: expect.objectContaining({ id: user.id }),
-        returnCount: null
+        returnCount: null,
+        returnRate: null,
+        housingCount: expect.any(Number),
+        ownerCount: expect.any(Number)
       });
       const campaign = await Campaigns().where({ id: body.id }).first();
       expect(campaign).not.toBeNull();
@@ -605,7 +710,10 @@ describe('Campaign API', () => {
         sentAt: payload.sentAt,
         createdAt: expect.any(String),
         createdBy: expect.objectContaining({ id: user.id }),
-        returnCount: null
+        returnCount: null,
+        returnRate: null,
+        housingCount: expect.any(Number),
+        ownerCount: expect.any(Number)
       });
     });
 
@@ -805,7 +913,10 @@ describe('Campaign API', () => {
         },
         createdAt: expect.any(String),
         createdBy: expect.objectContaining({ id: user.id }),
-        returnCount: null
+        returnCount: null,
+        returnRate: null,
+        housingCount: expect.any(Number),
+        ownerCount: expect.any(Number)
       });
     });
 

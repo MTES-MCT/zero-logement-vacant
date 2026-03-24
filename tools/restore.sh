@@ -632,31 +632,33 @@ export PGPASSWORD="$DB_PASSWORD"
 # Track overall success
 RESTORE_SUCCESS=true
 
-# Phase 0: Clean all data before restore (only when starting fresh or from pre-data)
+# Phase 0: Drop all tables before restore (only when starting fresh or from pre-data)
+# Using DROP CASCADE instead of TRUNCATE to ensure schema changes are applied
 if [ "$START_PHASE" = "pre-data" ]; then
   echo ""
   echo "=========================================="
   echo "Cleaning target database before restore"
   echo "=========================================="
-  echo "Truncating all tables to ensure clean restore..."
+  echo "Dropping all tables with CASCADE to allow schema changes..."
 
-  # Get all tables and truncate them with CASCADE to handle foreign keys
-  # We truncate in a single statement to avoid FK constraint issues
-  TABLES=$(psql -h "$DB_HOST" -p "$DB_PORT" -U "$DB_USER" -d "$DB_NAME" -t -c "
-    SELECT string_agg('public.' || quote_ident(tablename), ', ')
-    FROM pg_tables
-    WHERE schemaname = 'public';" | xargs)
-
-  if [ -n "$TABLES" ] && [ "$TABLES" != "" ]; then
-    psql -h "$DB_HOST" -p "$DB_PORT" -U "$DB_USER" -d "$DB_NAME" -c "TRUNCATE $TABLES CASCADE;"
-  else
-    echo "No tables to truncate"
-  fi
+  # Drop all tables in public schema with CASCADE
+  psql -h "$DB_HOST" -p "$DB_PORT" -U "$DB_USER" -d "$DB_NAME" -c "
+    DO \$\$
+    DECLARE
+      r RECORD;
+      dropped_count INTEGER := 0;
+    BEGIN
+      FOR r IN (SELECT tablename FROM pg_tables WHERE schemaname = 'public') LOOP
+        EXECUTE 'DROP TABLE IF EXISTS public.' || quote_ident(r.tablename) || ' CASCADE';
+        dropped_count := dropped_count + 1;
+      END LOOP;
+      RAISE NOTICE 'Dropped % tables', dropped_count;
+    END \$\$;"
 
   if [ $? -eq 0 ]; then
-    echo "✓ All tables truncated successfully"
+    echo "✓ All tables dropped successfully"
   else
-    echo "❌ Failed to truncate tables"
+    echo "❌ Failed to drop tables"
     exit 1
   fi
 fi

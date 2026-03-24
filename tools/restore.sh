@@ -385,9 +385,10 @@ restore_section() {
     fi
 
     # Build pg_restore command based on section
+    # Note: --format is omitted to let pg_restore auto-detect (supports custom and directory formats)
     local pg_restore_cmd="pg_restore -h $DB_HOST -p $DB_PORT -U $DB_USER -d $DB_NAME"
     pg_restore_cmd="$pg_restore_cmd --verbose --no-owner --no-privileges --no-comments"
-    pg_restore_cmd="$pg_restore_cmd --format=c --section=$section"
+    pg_restore_cmd="$pg_restore_cmd --section=$section"
 
     # Exclude PostGIS system schemas that require superuser/owner privileges
     # These schemas (tiger.*, topology.*) are managed by PostGIS extension

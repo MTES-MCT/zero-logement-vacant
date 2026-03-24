@@ -405,16 +405,15 @@ describe('Establishment repository', () => {
       expect(api.users![0].id).toBe(user.id);
     });
 
-    it('should handle shortName for Commune establishments', async () => {
+    it('should set shortName to name', async () => {
       const establishment = {
         ...genEstablishmentApi(),
-        name: 'Commune de Paris',
-        kind: 'Commune' as const
+        name: 'Commune de Paris'
       };
       const dbo = formatEstablishmentApi(establishment);
       const api = parseEstablishmentApi(dbo);
 
-      expect(api.shortName).toBe('Paris');
+      expect(api.shortName).toBe('Commune de Paris');
     });
   });
 });

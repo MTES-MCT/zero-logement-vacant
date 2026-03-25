@@ -1,8 +1,12 @@
 #!/usr/bin/env bash
 
 # PostgreSQL backup restoration script
-# Restores a backup from Clever Cloud to a target database specified by URI
+# Restores a backup from Clever Cloud or a local file to a target database specified by URI
 # Supports resumable restores using 3-phase approach (pre-data, data, post-data)
+#
+# Usage:
+#   ./restore.sh                    # Download latest backup from Clever Cloud
+#   ./restore.sh local-backup.dump  # Use local dump file (custom or directory format)
 
 set -e
 
@@ -423,22 +427,20 @@ restore_section() {
       save_progress "$section" "$dump_file"
       rm -f "restore_${section}_attempt_${attempt}.log"
     else
-      # For pre-data phase, check if errors are only extension/schema related (expected on managed PostgreSQL)
-      if [ "$section" = "pre-data" ]; then
-        # Count real errors (excluding expected extension/schema errors on Clever Cloud)
-        local real_errors=$(grep -E "^pg_restore: error:" "restore_${section}_attempt_${attempt}.log" 2>/dev/null | \
-          grep -v "must be owner of extension" | \
-          grep -v "schema .* already exists" | \
-          grep -v "cannot drop schema .* because other objects depend on it" | \
-          wc -l | xargs)
+      # Check if errors are only expected ones (on managed PostgreSQL)
+      # Count real errors (excluding expected errors)
+      local real_errors=$(grep -E "^pg_restore: error:" "restore_${section}_attempt_${attempt}.log" 2>/dev/null | \
+        grep -v "must be owner of extension" | \
+        grep -v "already exists" | \
+        grep -v "cannot drop .* because other objects depend on it" | \
+        wc -l | xargs)
 
-        if [ "$real_errors" -eq 0 ]; then
-          echo "✓ Section $section completed (ignored ${exit_code} expected extension/schema errors on managed PostgreSQL)"
-          success=true
-          save_progress "$section" "$dump_file"
-          rm -f "restore_${section}_attempt_${attempt}.log"
-          continue
-        fi
+      if [ "$real_errors" -eq 0 ]; then
+        echo "✓ Section $section completed (ignored expected errors on managed PostgreSQL)"
+        success=true
+        save_progress "$section" "$dump_file"
+        rm -f "restore_${section}_attempt_${attempt}.log"
+        continue
       fi
 
       echo ""
@@ -474,6 +476,17 @@ echo "=========================================="
 echo "PostgreSQL Backup Restoration Script"
 echo "=========================================="
 echo ""
+
+# Check for local file argument
+LOCAL_FILE=""
+if [[ -n "$1" ]]; then
+  if [[ -f "$1" ]] || [[ -d "$1" ]]; then
+    LOCAL_FILE="$1"
+    echo "Using local dump file: $LOCAL_FILE"
+  else
+    echo "Warning: File '$1' not found, will download from Clever Cloud"
+  fi
+fi
 
 # Parse the target database URI
 echo "Parsing target database URI..."
@@ -524,46 +537,59 @@ if load_progress; then
 fi
 
 # Download backup if not resuming
-if [ "$RESUME_MODE" = false ]; then
-  # Retrieve and download the latest production backup
-  echo ""
-  echo "Retrieving latest backup information..."
-  BACKUP_ID=$(clever --org "$CLEVER_ORG_ID" database backups "$CLEVER_DATABASE_ID" --format json | jq -r 'max_by(.creationDate) | .backupId')
-
-  if [ -z "$BACKUP_ID" ] || [ "$BACKUP_ID" = "null" ]; then
-    echo "Error: Could not retrieve backup ID from Clever Cloud."
-    exit 1
-  fi
-
-  BACKUP_DATE=$(clever --org "$CLEVER_ORG_ID" database backups "$CLEVER_DATABASE_ID" --format json | jq -r 'max_by(.creationDate) | .creationDate')
-  FILE="${BACKUP_DATE}.dump"
-
-  echo "Latest backup found:"
-  echo "  Backup ID: $BACKUP_ID"
-  echo "  Date: $BACKUP_DATE"
-  echo "  Output file: $FILE"
-
-  # Check if dump file already exists
-  if [ -f "$FILE" ]; then
+if [[ "$RESUME_MODE" = false ]]; then
+  # Use local file if provided, otherwise download from Clever Cloud
+  if [[ -n "$LOCAL_FILE" ]]; then
+    FILE="$LOCAL_FILE"
     echo ""
-    echo "Dump file already exists: $FILE ($(ls -lh "$FILE" | awk '{print $5}'))"
-    read -p "Use existing file? (Y/n): " -n 1 -r
-    echo
-    if [[ $REPLY =~ ^[Nn]$ ]]; then
+    echo "Using local dump file: $FILE"
+    if [[ -d "$FILE" ]]; then
+      echo "  Format: directory (parallel dump)"
+      echo "  Size: $(du -sh "$FILE" | cut -f1)"
+    else
+      echo "  Size: $(ls -lh "$FILE" | awk '{print $5}')"
+    fi
+  else
+    # Retrieve and download the latest production backup
+    echo ""
+    echo "Retrieving latest backup information..."
+    BACKUP_ID=$(clever --org "$CLEVER_ORG_ID" database backups "$CLEVER_DATABASE_ID" --format json | jq -r 'max_by(.creationDate) | .backupId')
+
+    if [ -z "$BACKUP_ID" ] || [ "$BACKUP_ID" = "null" ]; then
+      echo "Error: Could not retrieve backup ID from Clever Cloud."
+      exit 1
+    fi
+
+    BACKUP_DATE=$(clever --org "$CLEVER_ORG_ID" database backups "$CLEVER_DATABASE_ID" --format json | jq -r 'max_by(.creationDate) | .creationDate')
+    FILE="${BACKUP_DATE}.dump"
+
+    echo "Latest backup found:"
+    echo "  Backup ID: $BACKUP_ID"
+    echo "  Date: $BACKUP_DATE"
+    echo "  Output file: $FILE"
+
+    # Check if dump file already exists
+    if [ -f "$FILE" ]; then
+      echo ""
+      echo "Dump file already exists: $FILE ($(ls -lh "$FILE" | awk '{print $5}'))"
+      read -p "Use existing file? (Y/n): " -n 1 -r
+      echo
+      if [[ $REPLY =~ ^[Nn]$ ]]; then
+        echo "Downloading backup..."
+        clever --org "$CLEVER_ORG_ID" database backups download "$CLEVER_DATABASE_ID" "$BACKUP_ID" --output "$FILE"
+      fi
+    else
       echo "Downloading backup..."
       clever --org "$CLEVER_ORG_ID" database backups download "$CLEVER_DATABASE_ID" "$BACKUP_ID" --output "$FILE"
     fi
-  else
-    echo "Downloading backup..."
-    clever --org "$CLEVER_ORG_ID" database backups download "$CLEVER_DATABASE_ID" "$BACKUP_ID" --output "$FILE"
-  fi
 
-  if [ ! -f "$FILE" ]; then
-    echo "Error: Backup file $FILE was not created."
-    exit 1
-  fi
+    if [ ! -f "$FILE" ]; then
+      echo "Error: Backup file $FILE was not created."
+      exit 1
+    fi
 
-  echo "Backup ready: $(ls -lh "$FILE" | awk '{print $5}')"
+    echo "Backup ready: $(ls -lh "$FILE" | awk '{print $5}')"
+  fi
 fi
 
 # Extract expected table list from dump (for verification later)
@@ -599,31 +625,40 @@ export PGPASSWORD="$DB_PASSWORD"
 # Track overall success
 RESTORE_SUCCESS=true
 
-# Phase 0: Clean all data before restore (only when starting fresh or from pre-data)
+# Phase 0: Drop all tables before restore (only when starting fresh or from pre-data)
+# Using DROP CASCADE instead of TRUNCATE to ensure schema changes are applied
 if [ "$START_PHASE" = "pre-data" ]; then
   echo ""
   echo "=========================================="
   echo "Cleaning target database before restore"
   echo "=========================================="
-  echo "Truncating all tables to ensure clean restore..."
+  echo "Dropping all tables with CASCADE to allow schema changes..."
 
-  # Get all tables and truncate them with CASCADE to handle foreign keys
-  # We truncate in a single statement to avoid FK constraint issues
-  TABLES=$(psql -h "$DB_HOST" -p "$DB_PORT" -U "$DB_USER" -d "$DB_NAME" -t -c "
-    SELECT string_agg('public.' || quote_ident(tablename), ', ')
-    FROM pg_tables
-    WHERE schemaname = 'public';" | xargs)
-
-  if [ -n "$TABLES" ] && [ "$TABLES" != "" ]; then
-    psql -h "$DB_HOST" -p "$DB_PORT" -U "$DB_USER" -d "$DB_NAME" -c "TRUNCATE $TABLES CASCADE;"
-  else
-    echo "No tables to truncate"
-  fi
+  # Drop all tables in public schema with CASCADE
+  # Exclude PostGIS system tables (required by extensions)
+  psql -h "$DB_HOST" -p "$DB_PORT" -U "$DB_USER" -d "$DB_NAME" -c "
+    DO \$\$
+    DECLARE
+      r RECORD;
+      dropped_count INTEGER := 0;
+      -- PostGIS system tables that cannot be dropped
+      excluded_tables TEXT[] := ARRAY['spatial_ref_sys', 'geography_columns', 'geometry_columns', 'raster_columns', 'raster_overviews'];
+    BEGIN
+      FOR r IN (
+        SELECT tablename FROM pg_tables
+        WHERE schemaname = 'public'
+        AND tablename != ALL(excluded_tables)
+      ) LOOP
+        EXECUTE 'DROP TABLE IF EXISTS public.' || quote_ident(r.tablename) || ' CASCADE';
+        dropped_count := dropped_count + 1;
+      END LOOP;
+      RAISE NOTICE 'Dropped % tables', dropped_count;
+    END \$\$;"
 
   if [ $? -eq 0 ]; then
-    echo "✓ All tables truncated successfully"
+    echo "✓ All tables dropped successfully"
   else
-    echo "❌ Failed to truncate tables"
+    echo "❌ Failed to drop tables"
     exit 1
   fi
 fi

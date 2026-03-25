@@ -46,6 +46,7 @@ import {
 } from '@zerologementvacant/models';
 
 declare global {
+  // eslint-disable-next-line @typescript-eslint/no-namespace
   namespace Cypress {
     interface Chainable {
       logIn(email?: string, password?: string): Chainable<void>;
@@ -53,7 +54,10 @@ declare global {
       // API SDK
       listHousings(): Chainable<Response<PaginatedResponse<HousingDTO>>>;
       createGroup(payload: GroupPayload): Chainable<Response<GroupDTO>>;
-      createCampaignFromGroup(groupId: GroupDTO['id'], payload: CampaignCreationPayload): Chainable<Response<CampaignDTO>>;
+      createCampaignFromGroup(
+        groupId: GroupDTO['id'],
+        payload: CampaignCreationPayload
+      ): Chainable<Response<CampaignDTO>>;
     }
   }
 }

@@ -25,7 +25,7 @@ export default defineConfig([
     'tools/**/*.dump'
   ]),
   {
-    files: ['**/src/**/*.{ts,tsx}', 'e2e/**/*.ts'],
+    files: ['**/src/**/*.{ts,tsx}', '**/cypress/**/*.ts'],
     plugins: {
       '@typescript-eslint': tsPlugin,
       import: importPlugin
@@ -46,7 +46,7 @@ export default defineConfig([
     }
   },
   {
-    files: ['e2e/**/*.cy.ts'],
+    files: ['**/*.cy.ts'],
     extends: [cypressPlugin.configs.globals, cypressPlugin.configs.recommended]
   },
   {

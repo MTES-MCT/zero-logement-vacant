@@ -74,6 +74,8 @@ function DraftSignatureNext(props: Readonly<DraftSignatureNextProps>) {
           <AppTextInputNext<DraftFormSchema, 'sender.signatories.0.role'>
             name="sender.signatories.0.role"
             label="Rôle du signataire"
+            mapValue={(value) => value ?? ''}
+            contramapValue={(value) => (value === '' ? null : value)}
           />
         </Grid>
 
@@ -107,6 +109,8 @@ function DraftSignatureNext(props: Readonly<DraftSignatureNextProps>) {
           <AppTextInputNext<DraftFormSchema, 'sender.signatories.1.firstName'>
             name="sender.signatories.1.firstName"
             label="Prénom du signataire"
+            mapValue={(value) => value ?? ''}
+            contramapValue={(value) => (value === '' ? null : value)}
           />
         </Grid>
 
@@ -114,6 +118,8 @@ function DraftSignatureNext(props: Readonly<DraftSignatureNextProps>) {
           <AppTextInputNext<DraftFormSchema, 'sender.signatories.1.lastName'>
             name="sender.signatories.1.lastName"
             label="Nom du signataire"
+            mapValue={(value) => value ?? ''}
+            contramapValue={(value) => (value === '' ? null : value)}
           />
         </Grid>
 
@@ -121,6 +127,8 @@ function DraftSignatureNext(props: Readonly<DraftSignatureNextProps>) {
           <AppTextInputNext<DraftFormSchema, 'sender.signatories.1.role'>
             name="sender.signatories.1.role"
             label="Rôle du signataire"
+            mapValue={(value) => value ?? ''}
+            contramapValue={(value) => (value === '' ? null : value)}
           />
         </Grid>
 

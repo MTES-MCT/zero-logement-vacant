@@ -4,7 +4,7 @@
     "incremental": true,
     "outDir": "dist",
     "tsBuildInfoFile": "dist/tsconfig.tsbuildinfo",
-    "target": "es5",
+    "target": "esnext",
     "lib": ["es5", "dom"],
     "sourceMap": true,
     "esModuleInterop": true,
@@ -12,7 +12,7 @@
     "moduleResolution": "bundler",
     "types": ["@testing-library/cypress", "cypress", "cypress-axe", "node"]
   },
-  "include": ["**/*.ts"],
+  "include": ["cypress/**/*.ts"],
   "references": [
     {
       "path": "../../packages/models"

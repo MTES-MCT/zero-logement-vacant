@@ -39,6 +39,7 @@
 import {
   GroupPayload,
   type CampaignCreationPayload,
+  type CampaignDTO,
   type GroupDTO,
   type HousingDTO,
   type PaginatedResponse

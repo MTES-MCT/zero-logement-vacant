@@ -32,9 +32,9 @@ function CampaignListViewNext() {
     isError: campaignUpdateMutation.isError,
     isSuccess: campaignUpdateMutation.isSuccess,
     message: {
-      error: 'Erreur lors de l’archivage de la campagne',
-      loading: 'Archivage de la campagne...',
-      success: 'Campagne archivée !'
+      error: 'Erreur lors de la modification de la campagne',
+      loading: 'Modification de la campagne...',
+      success: 'Campagne modifée !'
     }
   });
 

@@ -7,18 +7,26 @@ import {
 } from '@zerologementvacant/models';
 import {
   genAddressDTO,
+  genCampaignDTO,
+  genDraftDTO,
+  genEstablishmentDTO,
   genEventDTO,
+  genGroupDTO,
   genHousingDTO,
   genHousingOwnerDTO,
   genNoteDTO,
   genOwnerDTO,
+  genProspectDTO,
+  genSenderDTO,
   genUserDTO
 } from '@zerologementvacant/models/fixtures';
 import { addHours } from 'date-fns';
 import randomstring from 'randomstring';
 import type { Address } from '../models/Address';
 import { type Event, fromEventDTO } from '../models/Event';
-import type { Group } from '../models/Group';
+import { type Group, fromGroupDTO } from '../models/Group';
+import { type Campaign, fromCampaignDTO } from '../models/Campaign';
+import type { Draft } from '../models/Draft';
 import type { Housing } from '../models/Housing';
 import { fromNoteDTO, type Note } from '../models/Note';
 import {
@@ -121,30 +129,16 @@ export function genSignupLink(email: string): SignupLink {
 }
 
 export function genProspect(): Prospect {
-  return {
-    email: genEmail(),
-    establishment: {
-      id: randomstring.generate(),
-      siren: genSiren()
-    },
-    hasAccount: genBoolean(),
-    hasCommitment: genBoolean()
-  };
+  return genProspectDTO(genEstablishmentDTO());
 }
 
 export function genGroup(): Group {
-  const ownerCount = faker.number.int({ min: 1, max: 10 });
-  const housingCount = ownerCount + faker.number.int({ min: 1, max: 10 });
-  return {
-    id: randomstring.generate(),
-    title: randomstring.generate(),
-    description: randomstring.generate(),
-    housingCount,
-    ownerCount,
-    createdAt: new Date(),
-    createdBy: genUser(),
-    archivedAt: null
-  };
+  const owner = genOwnerDTO();
+  const housings = faker.helpers.multiple(
+    () => ({ ...genHousingDTO(), owner }),
+    { count: { min: 2, max: 5 } }
+  );
+  return fromGroupDTO(genGroupDTO(genUserDTO(), housings));
 }
 
 type EventOptions<Type extends EventType> = Pick<
@@ -167,4 +161,12 @@ export function genEvent<Type extends EventType>(
 
 export function genNote(creator: User): Note {
   return fromNoteDTO(genNoteDTO(toUserDTO(creator)));
+}
+
+export function genCampaign(): Campaign {
+  return fromCampaignDTO(genCampaignDTO());
+}
+
+export function genDraft(): Draft {
+  return genDraftDTO(genSenderDTO());
 }

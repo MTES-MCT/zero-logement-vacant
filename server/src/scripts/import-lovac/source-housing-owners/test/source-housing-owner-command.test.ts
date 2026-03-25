@@ -54,6 +54,15 @@ import {
 } from '~/test/testFixtures';
 
 describe('Source housing owner command', () => {
+  function genValidOwnerApi() {
+    return {
+      ...genOwnerApi(),
+      idpersonne:
+        faker.string.numeric(2) +
+        faker.string.alphanumeric({ length: 6, casing: 'upper' })
+    };
+  }
+
   const command = createSourceHousingOwnerCommand();
   const file = path.join(import.meta.dirname, 'housing-owners.jsonl');
 
@@ -63,13 +72,13 @@ describe('Source housing owner command', () => {
       0,
       faker.number.int({ min: 0, max: ACTIVE_OWNER_RANKS.length - 1 })
     ).map((rank) => ({
-      ...genHousingOwnerApi(missingOwnersHousing, genOwnerApi()),
+      ...genHousingOwnerApi(missingOwnersHousing, genValidOwnerApi()),
       rank
     }));
 
   const missingHousing = genHousingApi();
   const missingHousingOwners: ReadonlyArray<OwnerApi> = faker.helpers.multiple(
-    () => genOwnerApi(),
+    () => genValidOwnerApi(),
     {
       count: { min: 1, max: 6 }
     }
@@ -81,20 +90,20 @@ describe('Source housing owner command', () => {
     }));
 
   const newHousing = genHousingApi();
-  const newOwner = genOwnerApi();
+  const newOwner = genValidOwnerApi();
   const newHousingOwners: ReadonlyArray<HousingOwnerApi> = [
     { ...genHousingOwnerApi(newHousing, newOwner), rank: 1 }
   ];
 
   const existingHousing = genHousingApi();
-  const existingOwners = faker.helpers.multiple(genOwnerApi, {
+  const existingOwners = faker.helpers.multiple(genValidOwnerApi, {
     count: { min: 1, max: 6 }
   });
   const existingHousingOwners = existingOwners.map((owner, i) => ({
     ...genHousingOwnerApi(existingHousing, owner),
     rank: (i + 1) as ActiveOwnerRank
   }));
-  const replacingOwners = faker.helpers.multiple(genOwnerApi, {
+  const replacingOwners = faker.helpers.multiple(genValidOwnerApi, {
     count: { min: 1, max: 6 }
   });
   const replacingHousingOwners = replacingOwners.map((owner, i) => ({

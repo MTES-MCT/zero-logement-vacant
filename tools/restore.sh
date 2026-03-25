@@ -427,27 +427,20 @@ restore_section() {
       save_progress "$section" "$dump_file"
       rm -f "restore_${section}_attempt_${attempt}.log"
     else
-      # For pre-data phase, check if errors are only extension/schema related (expected on managed PostgreSQL)
-      if [ "$section" = "pre-data" ]; then
-        # Count real errors (excluding expected errors on managed PostgreSQL)
-        # - "must be owner of extension" - can't modify managed extensions
-        # - "schema .* already exists" - schema already present
-        # - "cannot drop .* because other objects depend on it" - FK dependencies prevent DROP
-        # - "relation .* already exists" - table already exists (because DROP failed)
-        local real_errors=$(grep -E "^pg_restore: error:" "restore_${section}_attempt_${attempt}.log" 2>/dev/null | \
-          grep -v "must be owner of extension" | \
-          grep -v "schema .* already exists" | \
-          grep -v "cannot drop .* because other objects depend on it" | \
-          grep -v "relation .* already exists" | \
-          wc -l | xargs)
+      # Check if errors are only expected ones (on managed PostgreSQL)
+      # Count real errors (excluding expected errors)
+      local real_errors=$(grep -E "^pg_restore: error:" "restore_${section}_attempt_${attempt}.log" 2>/dev/null | \
+        grep -v "must be owner of extension" | \
+        grep -v "already exists" | \
+        grep -v "cannot drop .* because other objects depend on it" | \
+        wc -l | xargs)
 
-        if [ "$real_errors" -eq 0 ]; then
-          echo "✓ Section $section completed (ignored ${exit_code} expected errors on managed PostgreSQL)"
-          success=true
-          save_progress "$section" "$dump_file"
-          rm -f "restore_${section}_attempt_${attempt}.log"
-          continue
-        fi
+      if [ "$real_errors" -eq 0 ]; then
+        echo "✓ Section $section completed (ignored expected errors on managed PostgreSQL)"
+        success=true
+        save_progress "$section" "$dump_file"
+        rm -f "restore_${section}_attempt_${attempt}.log"
+        continue
       fi
 
       echo ""
@@ -642,13 +635,20 @@ if [ "$START_PHASE" = "pre-data" ]; then
   echo "Dropping all tables with CASCADE to allow schema changes..."
 
   # Drop all tables in public schema with CASCADE
+  # Exclude PostGIS system tables (required by extensions)
   psql -h "$DB_HOST" -p "$DB_PORT" -U "$DB_USER" -d "$DB_NAME" -c "
     DO \$\$
     DECLARE
       r RECORD;
       dropped_count INTEGER := 0;
+      -- PostGIS system tables that cannot be dropped
+      excluded_tables TEXT[] := ARRAY['spatial_ref_sys', 'geography_columns', 'geometry_columns', 'raster_columns', 'raster_overviews'];
     BEGIN
-      FOR r IN (SELECT tablename FROM pg_tables WHERE schemaname = 'public') LOOP
+      FOR r IN (
+        SELECT tablename FROM pg_tables
+        WHERE schemaname = 'public'
+        AND tablename != ALL(excluded_tables)
+      ) LOOP
         EXECUTE 'DROP TABLE IF EXISTS public.' || quote_ident(r.tablename) || ' CASCADE';
         dropped_count := dropped_count + 1;
       END LOOP;

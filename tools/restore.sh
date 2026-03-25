@@ -479,8 +479,8 @@ echo ""
 
 # Check for local file argument
 LOCAL_FILE=""
-if [ -n "$1" ]; then
-  if [ -f "$1" ] || [ -d "$1" ]; then
+if [[ -n "$1" ]]; then
+  if [[ -f "$1" ]] || [[ -d "$1" ]]; then
     LOCAL_FILE="$1"
     echo "Using local dump file: $LOCAL_FILE"
   else
@@ -537,13 +537,13 @@ if load_progress; then
 fi
 
 # Download backup if not resuming
-if [ "$RESUME_MODE" = false ]; then
+if [[ "$RESUME_MODE" = false ]]; then
   # Use local file if provided, otherwise download from Clever Cloud
-  if [ -n "$LOCAL_FILE" ]; then
+  if [[ -n "$LOCAL_FILE" ]]; then
     FILE="$LOCAL_FILE"
     echo ""
     echo "Using local dump file: $FILE"
-    if [ -d "$FILE" ]; then
+    if [[ -d "$FILE" ]]; then
       echo "  Format: directory (parallel dump)"
       echo "  Size: $(du -sh "$FILE" | cut -f1)"
     else

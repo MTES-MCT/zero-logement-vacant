@@ -113,6 +113,7 @@ function CampaignViewNext() {
           <Button
             iconId="fr-icon-delete-line"
             priority="tertiary"
+            style={{ flexShrink: 0 }}
             onClick={() => campaignDeleteModal.open()}
           >
             Supprimer la campagne

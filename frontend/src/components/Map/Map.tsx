@@ -1,6 +1,5 @@
 import * as turf from '@turf/turf';
 import { fr } from '@codegouvfr/react-dsfr';
-import Button from '@codegouvfr/react-dsfr/Button';
 import { mapStyles } from 'carte-facile';
 import { type CSSProperties, memo, useEffect, useMemo, useState } from 'react';
 import ReactiveMap, {
@@ -28,6 +27,7 @@ import {
 import BuildingAside from './BuildingAside';
 import Clusters from './Clusters';
 import LayerControl from './LayerControl';
+import LegendButtonControl from './LegendButtonControl';
 import MapControls from './MapControls';
 import MapLegend from './MapLegend';
 import Perimeters from './Perimeters';
@@ -45,14 +45,6 @@ const MapWrapper = styled(Box)({
   overflow: 'hidden'
 });
 
-const LegendButtonContainer = styled(Box)({
-  position: 'absolute',
-  bottom: '0.5rem',
-  left: '3.5rem',
-  zIndex: 1,
-  backgroundColor: hex.decisions.background.default.grey.default,
-  borderRadius: '0.25rem'
-});
 
 export interface MapProps {
   housingList?: Housing[];
@@ -250,15 +242,7 @@ function Map(props: MapProps) {
           isOpen={isLegendOpen}
           onClose={() => setIsLegendOpen(false)}
         />
-        <LegendButtonContainer>
-          <Button
-            priority="secondary"
-            size="small"
-            onClick={() => setIsLegendOpen(true)}
-          >
-            Légende
-          </Button>
-        </LegendButtonContainer>
+        <LegendButtonControl onOpen={() => setIsLegendOpen(true)} />
         <LayerControl />
         <NavigationControl
           showCompass={false}

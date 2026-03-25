@@ -1,3 +1,4 @@
+import React from 'react';
 import { render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { Provider } from 'react-redux';
@@ -30,6 +31,11 @@ vi.mock('@turf/turf', () => ({
 vi.mock('~/hooks/useMapImage', () => ({ useMapImage: vi.fn() }));
 vi.mock('~/hooks/useUser', () => ({
   useUser: () => ({ isVisitor: false })
+}));
+
+vi.mock('../LegendButtonControl', () => ({
+  default: ({ onOpen }: { onOpen: () => void }) =>
+    React.createElement('button', { onClick: onOpen }, 'Légende')
 }));
 
 // Unmock Map.tsx so we test the real implementation (globally mocked in vitest.setup.ts)

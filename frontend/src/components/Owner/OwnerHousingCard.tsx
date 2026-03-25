@@ -3,7 +3,6 @@ import Stack from '@mui/material/Stack';
 import Typography from '@mui/material/Typography';
 import {
   HousingKind,
-  isPrimaryOwner,
   type HousingStatus,
   type Occupancy,
   type OwnerRank,
@@ -42,9 +41,7 @@ const PropertyRight = (props: Pick<OwnerHousingCardProps, 'propertyRight'>) =>
   );
 
 const Rank = (props: Pick<OwnerHousingCardProps, 'rank'>) =>
-  props.rank && isPrimaryOwner({ rank: props.rank }) ? (
-    <RankBadge value={props.rank} />
-  ) : null;
+  props.rank !== null ? <RankBadge value={props.rank} /> : null;
 
 function OwnerHousingCard(props: OwnerHousingCardProps) {
   const kind = match(props.kind)

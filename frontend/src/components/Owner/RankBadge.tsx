@@ -1,6 +1,10 @@
 import { type BadgeProps } from '@codegouvfr/react-dsfr/Badge';
 import {
+  isAwaitingOwnerRank,
+  isDeceasedOwnerRank,
+  isIncorrectOwnerRank,
   isPrimaryOwner,
+  isPreviousOwnerRank,
   isSecondaryOwner,
   type OwnerRank
 } from '@zerologementvacant/models';
@@ -24,6 +28,10 @@ function RankBadge(props: RankBadgeProps) {
       (rank) => isSecondaryOwner({ rank }),
       () => 'Destinataire secondaire'
     )
+    .when(isDeceasedOwnerRank, () => 'Propriétaire décédé')
+    .when(isIncorrectOwnerRank, () => 'Propriétaire incorrect')
+    .when(isAwaitingOwnerRank, () => 'Propriétaire en attente')
+    .when(isPreviousOwnerRank, () => 'Ancien propriétaire')
     .otherwise(() => null);
 
   const colorFamily = match(props.value)
@@ -36,6 +44,10 @@ function RankBadge(props: RankBadgeProps) {
       (rank) => isSecondaryOwner({ rank }),
       () => 'beige-gris-galet'
     )
+    .when(isDeceasedOwnerRank, () => 'beige-gris-galet' as ColorFamily)
+    .when(isIncorrectOwnerRank, () => 'beige-gris-galet' as ColorFamily)
+    .when(isAwaitingOwnerRank, () => 'beige-gris-galet' as ColorFamily)
+    .when(isPreviousOwnerRank, () => 'beige-gris-galet' as ColorFamily)
     .otherwise(() => undefined);
 
   if (!value) {

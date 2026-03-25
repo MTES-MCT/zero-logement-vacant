@@ -26,7 +26,7 @@ export async function seed(knex: Knex): Promise<void> {
   await knex.raw(`TRUNCATE TABLE ${draftsTable} CASCADE`);
 
   const establishments = await Establishments(knex).where({ available: true });
-  await async.forEach(establishments, async (establishment) => {
+  await async.forEachSeries(establishments, async (establishment) => {
     const campaigns = await Campaigns(knex).where({
       establishment_id: establishment.id
     });

@@ -49,7 +49,7 @@ export async function seed(knex: Knex): Promise<void> {
       .then((owners) => owners.map(parseOwnerApi))
   ]);
 
-  await async.forEach(establishments, async (establishment) => {
+  await async.forEachSeries(establishments, async (establishment) => {
     const geoCodes = faker.helpers.arrayElements(
       establishment.localities_geo_code,
       30
@@ -89,12 +89,15 @@ export async function seed(knex: Knex): Promise<void> {
       longitude: housing.longitude,
       latitude: housing.latitude
     }));
-    const addresses = await ban.reverseMany(points).then((addresses) => {
-      return addresses.filter((address) => !!address.label);
-    }).catch(error => {
-      console.warn('Error during BAN reverse geocoding:', error);
-      return [];
-    });
+    const addresses = await ban
+      .reverseMany(points)
+      .then((addresses) => {
+        return addresses.filter((address) => !!address.label);
+      })
+      .catch((error) => {
+        console.warn('Error during BAN reverse geocoding:', error);
+        return [];
+      });
 
     const housings = geolocatedHousings
       .filter((housing) => {

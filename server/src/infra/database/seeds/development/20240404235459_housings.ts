@@ -120,7 +120,11 @@ export async function seed(knex: Knex): Promise<void> {
     console.log(`Inserting ${housings.length} housings...`, {
       establishment: establishment.name
     });
-    await knex.batchInsert(housingTable, housings.map(formatHousingRecordApi));
+    await knex.batchInsert(
+      housingTable,
+      housings.map(formatHousingRecordApi),
+      100
+    );
 
     // Insert BAN housing addresses
     if (addresses.length > 0) {

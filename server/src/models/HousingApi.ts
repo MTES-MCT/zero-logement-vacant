@@ -176,21 +176,6 @@ export enum OwnershipKindsApi {
   Other = 'other'
 }
 
-export const getOwnershipKindFromValue = (value?: string) => {
-  return !value
-    ? OwnershipKindsApi.Single
-    : OwnershipKindValues[OwnershipKindsApi.CoOwnership].indexOf(value) !== -1
-      ? OwnershipKindsApi.CoOwnership
-      : OwnershipKindValues[OwnershipKindsApi.Other].indexOf(value) !== -1
-        ? OwnershipKindsApi.Other
-        : undefined;
-};
-
-export const OwnershipKindValues = {
-  [OwnershipKindsApi.CoOwnership]: ['CL'],
-  [OwnershipKindsApi.Other]: ['BND', 'CLV', 'CV', 'MP', 'TF']
-};
-
 const trimStartingZeros = (str: string): string => str.replace(/^0+/, '');
 
 export function getBuildingLocation(housing: HousingApi) {

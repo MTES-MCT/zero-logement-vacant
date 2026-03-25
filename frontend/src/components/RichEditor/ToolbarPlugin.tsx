@@ -1,41 +1,51 @@
-import { useLexicalComposerContext } from '@lexical/react/LexicalComposerContext';
+import { fr } from '@codegouvfr/react-dsfr';
 import {
   INSERT_ORDERED_LIST_COMMAND,
-  INSERT_UNORDERED_LIST_COMMAND,
+  INSERT_UNORDERED_LIST_COMMAND
 } from '@lexical/list';
+import { useLexicalComposerContext } from '@lexical/react/LexicalComposerContext';
+import Stack from '@mui/material/Stack';
+import { styled } from '@mui/material/styles';
 import classNames from 'classnames';
 import { FORMAT_ELEMENT_COMMAND, FORMAT_TEXT_COMMAND } from 'lexical';
 
-import { useToolbarPlugin } from './useToolbarPlugin';
-import { Container } from '../_dsfr';
-import IconToggle from '../IconToggle/IconToggle';
-import styles from './toolbar.module.scss';
-import VariableSelect from './VariableSelect';
-import { useVariablePlugin } from './useVariablePlugin';
-import type { Variable } from './Variable';
+import IconToggle from '~/components/IconToggle/IconToggle';
+import { useToolbarPlugin } from '~/components/RichEditor/useToolbarPlugin';
+import { useVariablePlugin } from '~/components/RichEditor/useVariablePlugin';
+import type { Variable } from '~/components/RichEditor/Variable';
+import VariableSelect from '~/components/RichEditor/VariableSelect';
 
-interface Props {
+interface ToolbarPluginProps {
   className?: string;
   variableOptions: Variable[];
 }
 
-function ToolbarPlugin(props: Readonly<Props>) {
+const ToolbarContainer = styled(Stack, {
+  shouldForwardProp: (prop) => !['component'].includes(prop as string)
+})({
+  backgroundColor: fr.colors.decisions.background.alt.grey.default,
+  justifyContent: 'space-between',
+  padding: '1rem 1.5rem'
+});
+
+function ToolbarPlugin(props: Readonly<ToolbarPluginProps>) {
   const [editor] = useLexicalComposerContext();
 
   const toolbar = useToolbarPlugin({
-    editor,
+    editor
   });
   const { insertVariable } = useVariablePlugin({
-    editor,
+    editor
   });
 
   return (
-    <Container
-      as="header"
-      className={classNames(styles.toolbar, props.className)}
-      fluid
+    <ToolbarContainer
+      className={classNames(props.className)}
+      direction="row"
+      spacing="1rem"
+      useFlexGap
     >
-      <section>
+      <Stack direction="row" spacing="0.5rem" useFlexGap>
         <IconToggle
           iconId="fr-icon-bold"
           isActive={toolbar.state.bold}
@@ -106,14 +116,14 @@ function ToolbarPlugin(props: Readonly<Props>) {
             editor.dispatchCommand(INSERT_ORDERED_LIST_COMMAND, undefined);
           }}
         />
-      </section>
-      <section className={styles.toolbar__right}>
+      </Stack>
+      <Stack direction="row">
         <VariableSelect
           options={props.variableOptions}
           onSelect={insertVariable}
         />
-      </section>
-    </Container>
+      </Stack>
+    </ToolbarContainer>
   );
 }
 

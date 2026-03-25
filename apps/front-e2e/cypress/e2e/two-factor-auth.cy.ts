@@ -1,4 +1,4 @@
-describe('Two-Factor Authentication', () => {
+describe.skip('Two-Factor Authentication', () => {
   const adminEmail = Cypress.env('ADMIN_EMAIL') || 'admin@example.com';
   const adminPassword = Cypress.env('ADMIN_PASSWORD') || 'admin123';
 

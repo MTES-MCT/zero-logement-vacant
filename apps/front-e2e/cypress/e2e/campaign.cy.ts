@@ -38,6 +38,8 @@ describe('Campaign', () => {
   }
 
   it('should create a campaign from a group', () => {
+    init();
+
     cy.findByRole('button', { name: /Créer une campagne/ }).click();
     cy.findByRole('dialog', { name: /Créer une campagne/ }).within(() => {
       cy.findByLabelText(/Nom/).type('Campagne 2025');
@@ -56,7 +58,7 @@ describe('Campaign', () => {
     });
   });
 
-  it.only('should fill the draft form', () => {
+  it('should fill the draft form', () => {
     init().then((group) => {
       return cy
         .createCampaignFromGroup(group.id, {

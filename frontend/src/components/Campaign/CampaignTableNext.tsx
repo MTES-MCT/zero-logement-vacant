@@ -4,7 +4,7 @@ import Stack from '@mui/material/Stack';
 import Typography from '@mui/material/Typography';
 import { createColumnHelper, type SortingState } from '@tanstack/react-table';
 import { format } from 'date-fns';
-import { Number, pipe, Record } from 'effect';
+import { Record } from 'effect';
 import { useMemo, useState } from 'react';
 
 import AdvancedTable from '~/components/AdvancedTable/AdvancedTable';
@@ -12,6 +12,7 @@ import CampaignSentAtButton from '~/components/Campaign/CampaignSentAtButton';
 import { useUser } from '~/hooks/useUser';
 import { type Campaign } from '~/models/Campaign';
 import { useFindCampaignsQuery } from '~/services/campaign.service';
+import { toPercentage } from '~/utils/number-utils';
 import { displayCount } from '~/utils/stringUtils';
 import AppLink from '../_app/AppLink/AppLink';
 import WaitingBadge from './WaitingBadge';
@@ -97,7 +98,20 @@ function CampaignTableNext(props: CampaignTableProps) {
         cell: ({ cell, row }) => {
           const value = cell.getValue();
           return value ? (
-            format(new Date(value), 'dd/MM/yyyy')
+            <Stack
+              direction="row"
+              spacing="0.5rem"
+              useFlexGap
+              sx={{ alignItems: 'center' }}
+            >
+              <Typography variant="body2">
+                {format(new Date(value), 'dd/MM/yyyy')}
+              </Typography>
+              <CampaignSentAtButton
+                variant="icon"
+                onClick={() => onSentAt(row.original)}
+              />
+            </Stack>
           ) : (
             <CampaignSentAtButton onClick={() => onSentAt(row.original)} />
           );
@@ -132,13 +146,7 @@ function CampaignTableNext(props: CampaignTableProps) {
             return null;
           }
 
-          const formatted = pipe(
-            value,
-            Number.round(2),
-            Number.multiply(100),
-            (n) => `${n} %`
-          );
-          return formatted;
+          return toPercentage(value);
         }
       }),
       columnHelper.display({

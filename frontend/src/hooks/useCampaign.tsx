@@ -1,4 +1,4 @@
-import { useParams } from 'react-router-dom';
+import { useParams } from 'react-router';
 import { useGetCampaignQuery } from '../services/campaign.service';
 import { useMemo } from 'react';
 import { campaignStep, CampaignSteps } from '../models/Campaign';

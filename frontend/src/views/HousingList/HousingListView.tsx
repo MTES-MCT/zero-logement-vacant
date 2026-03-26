@@ -2,7 +2,7 @@ import { Alert } from '@codegouvfr/react-dsfr/Alert';
 import Button from '@codegouvfr/react-dsfr/Button';
 import Grid from '@mui/material/Grid';
 import { useState } from 'react';
-import { useLocation, useNavigate } from 'react-router-dom';
+import { useLocation, useNavigate } from 'react-router';
 
 import { HousingEditionProvider } from '~/components/HousingEdition/useHousingEdition';
 import AppSearchBar from '../../components/_app/AppSearchBar/AppSearchBar';

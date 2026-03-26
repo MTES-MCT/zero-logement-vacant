@@ -36,7 +36,7 @@ import {
 import async from 'async';
 import { Array, pipe, Predicate } from 'effect';
 import { Provider } from 'react-redux';
-import { createMemoryRouter, RouterProvider } from 'react-router-dom';
+import { createMemoryRouter, RouterProvider } from 'react-router';
 import { vi } from 'vitest';
 
 import { fromEstablishmentDTO } from '~/models/Establishment';

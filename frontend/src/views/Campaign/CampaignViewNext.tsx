@@ -5,7 +5,7 @@ import Container from '@mui/material/Container';
 
 import Stack from '@mui/material/Stack';
 import Typography from '@mui/material/Typography';
-import { useNavigate, useParams } from 'react-router-dom';
+import { useNavigate, useParams } from 'react-router';
 
 import CampaignCreatedFromGroupNext from '~/components/Campaign/CampaignCreatedFromGroupNext';
 import { createCampaignDeleteModal } from '~/components/Campaign/CampaignDeleteModal';

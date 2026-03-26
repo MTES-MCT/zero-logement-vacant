@@ -5,7 +5,7 @@ import {
   Navigate,
   Route,
   RouterProvider
-} from 'react-router-dom';
+} from 'react-router';
 
 import { useAppDispatch, useAppSelector } from '~/hooks/useStore';
 import AuthenticatedLayout from '~/layouts/AuthenticatedLayout';
@@ -135,16 +135,7 @@ const router = sentry.createBrowserRouter(
 
       <Route path="*" element={<NotFoundView />} />
     </Route>
-  ),
-  {
-    future: {
-      v7_relativeSplatPath: true,
-      v7_fetcherPersist: true,
-      v7_normalizeFormMethod: true,
-      v7_partialHydration: true,
-      v7_skipActionErrorRevalidation: true
-    }
-  }
+  )
 );
 
 function App() {
@@ -163,7 +154,7 @@ function App() {
     }
   }, [dispatch, isSomeQueryPending]);
 
-  return <RouterProvider router={router} future={{ v7_startTransition: true }} />;
+  return <RouterProvider router={router} />;
 }
 
 export default App;

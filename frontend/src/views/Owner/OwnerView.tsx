@@ -5,7 +5,7 @@ import Container from '@mui/material/Container';
 import Grid from '@mui/material/Grid';
 import Stack from '@mui/material/Stack';
 import { skipToken } from '@reduxjs/toolkit/query';
-import { useParams } from 'react-router-dom';
+import { useParams } from 'react-router';
 
 import OwnerCard from '~/components/Owner/OwnerCard';
 import createOwnerEditionModal from '~/components/Owner/OwnerEditionModal';

@@ -27,7 +27,7 @@ import async from 'async';
 import { format, subYears } from 'date-fns';
 import { pipe, Record } from 'effect';
 import { Provider } from 'react-redux';
-import { createMemoryRouter, RouterProvider } from 'react-router-dom';
+import { createMemoryRouter, RouterProvider } from 'react-router';
 import { vi } from 'vitest';
 
 import data from '~/mocks/handlers/data';

@@ -4,7 +4,7 @@ import Grid from '@mui/material/Grid';
 import Stepper from '@codegouvfr/react-dsfr/Stepper';
 import { yupResolver } from '@hookform/resolvers/yup';
 import { FormProvider, useForm } from 'react-hook-form';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate } from 'react-router';
 import { toast } from 'react-toastify';
 import { type InferType, object } from 'yup';
 

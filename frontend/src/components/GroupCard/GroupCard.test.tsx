@@ -1,5 +1,5 @@
 import { render, screen } from '@testing-library/react';
-import { MemoryRouter as Router } from 'react-router-dom';
+import { MemoryRouter as Router } from 'react-router';
 import { genGroup } from '../../test/fixtures';
 import GroupCard from './GroupCard';
 

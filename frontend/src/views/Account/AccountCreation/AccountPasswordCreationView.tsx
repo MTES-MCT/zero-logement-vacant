@@ -4,7 +4,7 @@ import { yupResolver } from '@hookform/resolvers/yup';
 import Grid from '@mui/material/Grid';
 import Typography from '@mui/material/Typography';
 import { FormProvider, useForm } from 'react-hook-form';
-import { Navigate, useNavigate } from 'react-router-dom';
+import { Navigate, useNavigate } from 'react-router';
 import { type InferType, object } from 'yup';
 
 import {

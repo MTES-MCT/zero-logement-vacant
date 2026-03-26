@@ -21,7 +21,7 @@ import {
   genUserDTO
 } from '@zerologementvacant/models/fixtures';
 import { Provider } from 'react-redux';
-import { createMemoryRouter, RouterProvider } from 'react-router-dom';
+import { createMemoryRouter, RouterProvider } from 'react-router';
 
 import data from '~/mocks/handlers/data';
 import configureTestStore from '~/utils/storeUtils';

@@ -16,7 +16,7 @@ import {
   genSenderDTO
 } from '@zerologementvacant/models/fixtures';
 import { Provider } from 'react-redux';
-import { createMemoryRouter, RouterProvider } from 'react-router-dom';
+import { createMemoryRouter, RouterProvider } from 'react-router';
 import { sources } from '../../../test/event-source-mock';
 import Notification from '../../../components/Notification/Notification';
 

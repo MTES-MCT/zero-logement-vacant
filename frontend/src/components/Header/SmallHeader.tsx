@@ -12,7 +12,7 @@ import { styled } from '@mui/material/styles';
 import Typography from '@mui/material/Typography';
 import { useEffect, useState } from 'react';
 import LoadingBar from 'react-redux-loading-bar';
-import { Link, useLocation } from 'react-router-dom';
+import { Link, useLocation } from 'react-router';
 
 import EstablishmentSearchableSelect from '~/components/establishment/EstablishmentSearchableSelect';
 import logo from '../../assets/images/zlv.svg';

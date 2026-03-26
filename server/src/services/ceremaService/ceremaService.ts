@@ -4,7 +4,7 @@ import {
   CeremaUser,
   ConsultUserService
 } from './consultUserService';
-import config from '~/infra/config';
+import { createAuthProvider, AuthResult } from './ceremaAuthProvider';
 
 import { logger } from '~/infra/logger';
 
@@ -29,14 +29,14 @@ function isLovacAccessValid(accesLovac: string | null): boolean {
  * Make an authenticated API call to Portail DF
  */
 async function fetchPortailDF<T>(
-  token: string,
+  auth: AuthResult,
   endpoint: string
 ): Promise<T | null> {
   try {
-    const response = await fetch(`${config.cerema.api}${endpoint}`, {
+    const response = await fetch(`${auth.apiUrl}${endpoint}`, {
       method: 'GET',
       headers: {
-        Authorization: `Token ${token}`,
+        Authorization: `${auth.authPrefix} ${auth.token}`,
         'Content-Type': 'application/json'
       }
     });
@@ -57,41 +57,22 @@ async function fetchPortailDF<T>(
 }
 
 export class CeremaService implements ConsultUserService {
+  private authProvider = createAuthProvider();
+
   async consultUsers(email: string): Promise<CeremaUser[]> {
     try {
-      // Authenticate with Portail DF API using multipart/form-data
-      const formData = new FormData();
-      formData.append('username', config.cerema.username);
-      formData.append('password', config.cerema.password);
-
-      const authResponse = await fetch(
-        `${config.cerema.api}/api/api-token-auth/`,
-        {
-          method: 'POST',
-          body: formData
-        }
-      );
-
-      if (!authResponse.ok) {
-        logger.error('Failed to authenticate with Portail DF API', {
-          status: authResponse.status
-        });
-        return [];
-      }
-
-      const { token }: any = await authResponse.json();
+      const auth = await this.authProvider.authenticate();
 
       const userResponse = await fetch(
-        `${config.cerema.api}/api/utilisateurs/?email=${encodeURIComponent(email)}`,
+        `${auth.apiUrl}/api/utilisateurs?email=${encodeURIComponent(email)}`,
         {
           method: 'GET',
           headers: {
-            Authorization: `Token ${token}`,
+            Authorization: `${auth.authPrefix} ${auth.token}`,
             'Content-Type': 'application/json'
           }
         }
       );
-
       const userContent: any = await userResponse.json();
       if (userResponse.status !== 200) {
         throw userContent.detail;
@@ -102,11 +83,11 @@ export class CeremaService implements ConsultUserService {
           userContent.results.map(
             async (user: { email: any; structure: number; groupe: number }) => {
               const establishmentResponse = await fetch(
-                `${config.cerema.api}/api/structures/${user.structure}/`,
+                `${auth.apiUrl}/api/structures/${user.structure}`,
                 {
                   method: 'GET',
                   headers: {
-                    Authorization: `Token ${token}`,
+                    Authorization: `${auth.authPrefix} ${auth.token}`,
                     'Content-Type': 'application/json'
                   }
                 }
@@ -123,17 +104,19 @@ export class CeremaService implements ConsultUserService {
               let perimeter: CeremaPerimeter | undefined;
 
               if (user.groupe) {
-                group = await fetchPortailDF<CeremaGroup>(
-                  token,
-                  `/api/groupes/${user.groupe}/`
-                ) ?? undefined;
+                group =
+                  (await fetchPortailDF<CeremaGroup>(
+                    auth,
+                    `/api/groupes/${user.groupe}/`
+                  )) ?? undefined;
 
                 // Fetch perimeter if group has one
                 if (group?.perimetre) {
-                  perimeter = await fetchPortailDF<CeremaPerimeter>(
-                    token,
-                    `/api/perimetres/${group.perimetre}/`
-                  ) ?? undefined;
+                  perimeter =
+                    (await fetchPortailDF<CeremaPerimeter>(
+                      auth,
+                      `/api/perimetres/${group.perimetre}/`
+                    )) ?? undefined;
                 }
               }
 

@@ -72,7 +72,11 @@ function SmallHeader() {
       ) : (
         link.label
       ),
-      isActive: location.pathname.startsWith(link.url)
+      isActive:
+        location.pathname.startsWith(link.url) ||
+        (link.activeFor?.some((path) =>
+          location.pathname.startsWith(path)
+        ) ?? false)
     };
     const props = link.items?.length
       ? {

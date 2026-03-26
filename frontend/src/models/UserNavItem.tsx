@@ -13,6 +13,7 @@ export interface UserNavItem {
   showNewBadge?: boolean;
   icon: string;
   items?: { url: string; label: string }[];
+  activeFor?: string[];
 }
 
 export const getUserNavItem = (userNavItem: UserNavItems): UserNavItem => {
@@ -27,7 +28,8 @@ export const getUserNavItem = (userNavItem: UserNavItems): UserNavItem => {
       return {
         url: '/parc-de-logements',
         label: 'Parc de logements',
-        icon: 'fr-icon-building-line'
+        icon: 'fr-icon-building-line',
+        activeFor: ['/groupes', '/logements', '/proprietaires']
       };
     case UserNavItems.Resources:
       return {

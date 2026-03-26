@@ -1,5 +1,5 @@
 import { render, screen } from '@testing-library/react';
-import { createMemoryRouter, Outlet, RouterProvider } from 'react-router-dom';
+import { createMemoryRouter, Outlet, RouterProvider } from 'react-router';
 import AccountEmailCreationView from '../AccountEmailCreationView';
 import userEvent from '@testing-library/user-event';
 import { store } from '../../../../store/store';

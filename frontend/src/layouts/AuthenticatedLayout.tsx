@@ -1,5 +1,5 @@
 import SkipLinks from '@codegouvfr/react-dsfr/SkipLinks';
-import { Outlet } from 'react-router-dom';
+import { Outlet } from 'react-router';
 
 import RequireAuth from '~/components/Auth/RequireAuth';
 import Footer from '~/components/Footer/Footer';

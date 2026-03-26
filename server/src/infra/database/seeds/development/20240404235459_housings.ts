@@ -49,7 +49,7 @@ export async function seed(knex: Knex): Promise<void> {
       .then((owners) => owners.map(parseOwnerApi))
   ]);
 
-  await async.forEach(establishments, async (establishment) => {
+  await async.forEachSeries(establishments, async (establishment) => {
     const geoCodes = faker.helpers.arrayElements(
       establishment.localities_geo_code,
       30
@@ -89,9 +89,16 @@ export async function seed(knex: Knex): Promise<void> {
       longitude: housing.longitude,
       latitude: housing.latitude
     }));
-    const addresses = await ban.reverseMany(points).then((addresses) => {
-      return addresses.filter((address) => !!address.label);
-    });
+    const addresses = await ban
+      .reverseMany(points)
+      .then((addresses) => {
+        return addresses.filter((address) => !!address.label);
+      })
+      .catch((error) => {
+        console.warn('Error during BAN reverse geocoding:', error);
+        return [];
+      });
+
     const housings = geolocatedHousings
       .filter((housing) => {
         return addresses.some(
@@ -116,20 +123,26 @@ export async function seed(knex: Knex): Promise<void> {
     console.log(`Inserting ${housings.length} housings...`, {
       establishment: establishment.name
     });
-    await knex.batchInsert(housingTable, housings.map(formatHousingRecordApi));
+    await knex.batchInsert(
+      housingTable,
+      housings.map(formatHousingRecordApi),
+      100
+    );
 
     // Insert BAN housing addresses
-    const housingAddresses: ReadonlyArray<AddressApi> = addresses.map(
-      (address) => ({ ...address, addressKind: AddressKinds.Housing })
-    );
-    console.log(
-      `Inserting ${housingAddresses.length} BAN housing addresses...`,
-      { establishment: establishment.name }
-    );
-    await knex.batchInsert(
-      banAddressesTable,
-      housingAddresses.map(formatAddressApi)
-    );
+    if (addresses.length > 0) {
+      const housingAddresses: ReadonlyArray<AddressApi> = addresses.map(
+        (address) => ({ ...address, addressKind: AddressKinds.Housing })
+      );
+      console.log(
+        `Inserting ${housingAddresses.length} BAN housing addresses...`,
+        { establishment: establishment.name }
+      );
+      await knex.batchInsert(
+        banAddressesTable,
+        housingAddresses.map(formatAddressApi)
+      );
+    }
 
     // Link owners to housings
     const housingOwners: ReadonlyArray<HousingOwnerApi> = housings.flatMap(

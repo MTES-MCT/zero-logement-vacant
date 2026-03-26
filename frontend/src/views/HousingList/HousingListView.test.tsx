@@ -2716,7 +2716,7 @@ describe('Housing list view', () => {
         await user.keyboard('{Escape}');
 
         const badge = await screen.findByText(
-          'Nombre de propriétaires : aucun bénéficiaire'
+          'Nombre de propriétaires : aucun propriétaire'
         );
         expect(badge).toBeVisible();
       });

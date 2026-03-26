@@ -156,7 +156,7 @@ convert_mermaid_diagrams() {
             if [ -f "$png_file" ]; then
                 # Replace with image reference
                 echo "" >> "$result_file"
-                echo "![Diagramme $diagram_count]($png_file){ width=100% }" >> "$result_file"
+                echo "![]($png_file){ width=100% }" >> "$result_file"
                 echo "" >> "$result_file"
             else
                 # Keep original mermaid block
@@ -377,7 +377,6 @@ BEFOREBODY
             --pdf-engine=xelatex \
             --toc \
             --toc-depth=3 \
-            --number-sections \
             -V geometry:margin=2.5cm \
             -V documentclass=article \
             -V lang=fr \
@@ -393,7 +392,6 @@ BEFOREBODY
         pandoc "$processed_file" \
             --toc \
             --toc-depth=3 \
-            --number-sections \
             --highlight-style=tango \
             --pdf-engine=wkhtmltopdf \
             -V title="$title" \
@@ -411,7 +409,6 @@ BEFOREBODY
                     --standalone \
                     --toc \
                     --toc-depth=3 \
-                    --number-sections \
                     --highlight-style=tango \
                     -V title="$title" \
                     -V subtitle="$subtitle" \

@@ -1100,28 +1100,49 @@ clever ssh                              # Se connecter au conteneur
 
 | Terme | Définition |
 |-------|------------|
-| **Add-on** | Service géré par Clever Cloud (PostgreSQL, Redis, etc.) |
-| **API** | Interface de programmation permettant à des applications de communiquer |
+| **Add-on** | Service géré par Clever Cloud (PostgreSQL, Redis, Elasticsearch, Cellar S3) |
+| **API** | Application Programming Interface - Interface permettant à des applications de communiquer |
+| **BAN** | Base Adresse Nationale - Référentiel officiel des adresses françaises |
+| **Brevo** | Service d'envoi d'emails transactionnels (ex-Sendinblue) |
 | **Build** | Compilation du code source en code exécutable |
-| **CLI** | Command Line Interface - outil en ligne de commande |
+| **Cellar** | Service de stockage S3 compatible de Clever Cloud |
+| **Cerema** | Centre d'études qui gère les données des collectivités territoriales |
+| **CI/CD** | Continuous Integration / Continuous Deployment - Automatisation des tests et déploiements |
+| **CLI** | Command Line Interface - Outil en ligne de commande |
+| **Clever Cloud** | Plateforme française d'hébergement PaaS utilisée par ZLV |
 | **Conteneur** | Environnement isolé qui contient une application et ses dépendances |
 | **Dépendance** | Bibliothèque externe utilisée par le code |
 | **Déploiement** | Mise en ligne d'une nouvelle version de l'application |
 | **Docker** | Outil pour créer et gérer des conteneurs |
-| **Docker Compose** | Outil pour orchestrer plusieurs conteneurs ensemble |
+| **Docker Compose** | Outil pour orchestrer plusieurs conteneurs Docker ensemble |
+| **Elasticsearch** | Moteur de recherche et d'analyse de logs |
 | **Endpoint** | URL à laquelle une API est accessible |
-| **Git** | Système de gestion de versions du code |
-| **Health Check** | Vérification que l'application fonctionne |
-| **Migration** | Script qui modifie la structure de la base de données |
-| **Monorepo** | Un seul repository contenant plusieurs projets |
+| **Express** | Framework web minimaliste pour Node.js |
+| **Git** | Système de gestion de versions du code source |
+| **GitHub Actions** | Service d'automatisation CI/CD intégré à GitHub |
+| **Health Check** | Vérification automatique que l'application fonctionne |
+| **Knex** | Query builder SQL pour Node.js (gestion des migrations) |
+| **Migration** | Script versionné qui modifie la structure de la base de données |
+| **Monorepo** | Dépôt Git unique contenant plusieurs projets liés |
 | **Node.js** | Environnement d'exécution JavaScript côté serveur |
-| **nvm** | Node Version Manager - gestionnaire de versions Node.js |
-| **PaaS** | Platform as a Service - plateforme d'hébergement gérée |
+| **nvm** | Node Version Manager - Gestionnaire de versions Node.js |
+| **Nx** | Outil d'orchestration pour les monorepos (builds, tests, cache intelligent) |
+| **OpenAPI** | Spécification standard pour documenter les API REST |
+| **PaaS** | Platform as a Service - Plateforme d'hébergement gérée |
+| **PostgreSQL** | Système de base de données relationnelle open source |
+| **React** | Bibliothèque JavaScript pour construire des interfaces utilisateur |
+| **Redis** | Base de données en mémoire pour le cache et les files d'attente |
+| **Review App** | Environnement temporaire créé pour tester une Pull Request |
 | **Seed** | Données initiales chargées dans la base pour les tests |
-| **Variable d'environnement** | Paramètre de configuration externe au code |
-| **Workspace** | Sous-projet dans un monorepo |
-| **Yarn** | Gestionnaire de packages JavaScript |
+| **Sentry** | Plateforme de monitoring des erreurs applicatives |
+| **Swagger** | Outil de documentation interactive des API (voir OpenAPI) |
+| **TypeScript** | Langage de programmation typé basé sur JavaScript |
+| **Variable d'environnement** | Paramètre de configuration externe au code (ex: mots de passe) |
+| **Vitest** | Framework de tests unitaires pour projets TypeScript |
+| **Workspace** | Sous-projet dans un monorepo Yarn |
+| **Yarn** | Gestionnaire de packages JavaScript (alternative à npm) |
+| **ZLV** | Zéro Logement Vacant - Nom du projet |
 
 ---
 
-*Document mis à jour le 24 mars 2026*
+*Document mis à jour le 25 mars 2026*

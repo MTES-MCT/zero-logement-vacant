@@ -14077,7 +14077,7 @@ __metadata:
     ts-essentials: "npm:10.1.1"
     ts-pattern: "npm:5.8.0"
     tsx: "npm:4.20.3"
-    undici: "npm:7.24.2"
+    undici: "npm:7.24.3"
     uuid: "npm:9.0.1"
     web-vitals: "npm:5.1.0"
     whatwg-fetch: "npm:3.6.20"
@@ -33773,10 +33773,10 @@ __metadata:
   languageName: node
   linkType: hard
 
-"undici@npm:7.24.2":
-  version: 7.24.2
-  resolution: "undici@npm:7.24.2"
-  checksum: 10c0/04a0d10f021f2fa88121bd8f90d8013064ae954af255402f4d41dec7fdada8d47aa6f42d7c6e25394057c7e56f2a6e1a400ba08f701b13cf11eaf342e674f184
+"undici@npm:7.24.3":
+  version: 7.24.3
+  resolution: "undici@npm:7.24.3"
+  checksum: 10c0/f837c3e99963688eeeef830148f1d20ec3b492022e519ae6ccad1954a944a813d1e0b6b454818e816210dba6adc70180530575023c2c96aeb996fe42135d2d2c
   languageName: node
   linkType: hard
 

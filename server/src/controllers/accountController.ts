@@ -356,7 +356,11 @@ async function signInToEstablishment(
     throw new EstablishmentMissingError(establishmentId);
   }
 
-  // Get authorized establishments for multi-structure dropdown
+  // Refresh authorized establishments and save perimeter from Portail DF at login
+  // This MUST complete before returning the token to ensure perimeter filtering works
+  await refreshAuthorizedEstablishments(user);
+
+  // Get authorized establishments for multi-structure dropdown (after refresh)
   const authorizedEstablishmentLinks = await userRepository.getAuthorizedEstablishments(user.id);
   const authorizedEstablishmentIds = authorizedEstablishmentLinks
     .filter((e) => e.hasCommitment)
@@ -369,15 +373,6 @@ async function signInToEstablishment(
       filters: { id: authorizedEstablishmentIds }
     });
   }
-
-  // Refresh authorized establishments from Portail DF at login
-  // This runs asynchronously and doesn't block login
-  refreshAuthorizedEstablishments(user).catch((error) => {
-    logger.error('Failed to refresh authorized establishments', {
-      userId: user.id,
-      error
-    });
-  });
 
   const accessToken = jwt.sign(
     {

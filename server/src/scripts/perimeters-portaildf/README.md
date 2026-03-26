@@ -52,8 +52,6 @@ export POSTGRESQL_ADDON_USER="your_username"
 export POSTGRESQL_ADDON_PASSWORD="your_password"
 ```
 
-**Note**: Le script `cerema-sync.sh` s'authentifie automatiquement à chaque exécution.
-
 ### Authentication Versions
 
 L'API Portail DF supporte deux versions d'authentification :
@@ -138,11 +136,7 @@ cerema-data-management/
 │   ├── user-verifier.py           # User verification
 │   ├── README.md                  # User verifier documentation
 │   └── user_deactivation.log      # User verification logs
-├── README.md                      # This global documentation
-└── scripts/
-    ├── cerema-sync.sh              # Daily synchronization script
-    ├── health-check.sh            # Health monitoring script
-    └── integration-test.sh        # Integration testing script
+└── README.md                      # This global documentation
 ```
 
 ## 🔧 Detailed Components
@@ -236,82 +230,12 @@ python users-verifier.py \
 
 **Documentation**: See `03-users-verifier/README.md` for detailed usage instructions.
 
-## 🗓️ Recommended Schedule
-
-### Daily Operations
-
-```bash
-#!/bin/bash
-# cerema-sync.sh - Daily data synchronization
-
-set -e
-
-echo "=== Daily Cerema Data Sync - $(date) ==="
-
-# Navigate to project root
-cd "$(dirname "$0")/.."
-
-# Check if API credentials are set
-if [ -z "$CEREMA_USERNAME" ] || [ -z "$CEREMA_PASSWORD" ]; then
-    echo "ERROR: CEREMA_USERNAME and CEREMA_PASSWORD environment variables must be set"
-    exit 1
-fi
-
-# Authenticate and obtain token
-AUTH_RESPONSE=$(curl -s -X POST https://portaildf.cerema.fr/api/api-token-auth/ \
-    -d "username=$CEREMA_USERNAME" \
-    -d "password=$CEREMA_PASSWORD")
-export CEREMA_BEARER_TOKEN=$(echo "$AUTH_RESPONSE" | grep -o '"token":"[^"]*"' | cut -d'"' -f4)
-
-# 1. Retrieve latest data
-echo "Step 1: Retrieving data from API..."
-cd 01-cerema-scraper/
-python cerema-scraper.py
-
-# 2. Verify structures
-echo "Step 2: Verifying structures..."
-cd ../02-establishment-verifier/
-python establishment-verifier.py --jsonl-file ../01-cerema-scraper/structures.jsonl --dry-run > /tmp/structure-preview.log
-if [ $? -eq 0 ]; then
-    python establishment-verifier.py --jsonl-file ../01-cerema-scraper/structures.jsonl
-else
-    echo "ERROR: Structure verification failed"
-    exit 1
-fi
-
-# 3. Verify users
-echo "Step 3: Verifying users..."
-cd ../03-users-verifier/
-python user-verifier.py \
-  --users-file ../01-cerema-scraper/users.jsonl \
-  --structures-file ../01-cerema-scraper/structures.jsonl \
-  --dry-run > /tmp/user-preview.log
-if [ $? -eq 0 ]; then
-    python user-verifier.py \
-      --users-file ../01-cerema-scraper/users.jsonl \
-      --structures-file ../01-cerema-scraper/structures.jsonl
-else
-    echo "ERROR: User verification failed"
-    exit 1
-fi
-
-echo "=== Sync completed successfully ==="
-```
-
-### Cron Configuration
-
-```bash
-# Add to crontab for daily execution at 2 AM
-0 2 * * * cd /path/to/cerema-data-management && ./scripts/cerema-sync.sh >> /var/log/cerema-sync.log 2>&1
-```
-
 ## 🛡️ Security Best Practices
 
 ### Credential Management
 
 ```bash
 # Set Cerema API credentials
-# The cerema-sync.sh script will automatically authenticate and get a token
 export CEREMA_USERNAME="your_cerema_username"
 export CEREMA_PASSWORD="your_cerema_password"
 

@@ -29,6 +29,20 @@ from typing import Dict, List, Optional, Set
 import requests
 
 
+def clean_url(url: str) -> str:
+    """Remove any # or %23 from URL and upgrade HTTP to HTTPS."""
+    if not url:
+        return url
+    # Upgrade HTTP to HTTPS to avoid redirects that add %23
+    if url.startswith('http://portaildf.cerema.fr'):
+        url = url.replace('http://', 'https://', 1)
+    # Handle URLs with # or %23 corruption
+    url = url.replace('/%23?', '/?').replace('/%23', '/')
+    url = url.replace('%23?', '?').replace('#?', '?')
+    url = url.replace('%23', '').replace('#', '')
+    return url
+
+
 class LovacUsersExporter:
     """Export users with LOVAC access from Portail DF."""
 
@@ -64,7 +78,9 @@ class LovacUsersExporter:
                 items = data.get("results", [])
                 results.extend(items)
 
-                url = data.get("next")
+                # Clean next URL to fix redirect corruption issues
+                next_url = data.get("next")
+                url = clean_url(next_url) if next_url else None
                 page += 1
 
                 # Rate limiting

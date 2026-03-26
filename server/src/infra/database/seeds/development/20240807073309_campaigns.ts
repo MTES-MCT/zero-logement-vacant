@@ -26,7 +26,7 @@ export async function seed(knex: Knex): Promise<void> {
   await Campaigns(knex).delete();
 
   const establishments = await Establishments(knex).where({ available: true });
-  await async.forEach(establishments, async (establishment) => {
+  await async.forEachSeries(establishments, async (establishment) => {
     const [users, groups] = await Promise.all([
       Users(knex).where({ establishment_id: establishment.id }),
       Groups(knex).where({ establishment_id: establishment.id })
@@ -54,7 +54,7 @@ export async function seed(knex: Knex): Promise<void> {
       campaigns.map(formatCampaignApi)
     );
 
-    await async.forEach(campaigns, async (campaign) => {
+    await async.forEachSeries(campaigns, async (campaign) => {
       const housings = await Housing(knex)
         .whereIn('geo_code', establishment.localities_geo_code)
         .limit(faker.number.int({ min: 1, max: 1000 }));

@@ -12,9 +12,12 @@ function PropertyRightTag(props: PropertyRightTagProps) {
   const value = match(props.value)
     .with('proprietaire-entier', () => 'Plein propriétaire')
     .with('nu-proprietaire', () => 'Nu-propriétaire')
+    .with('usufruitier', () => 'Usufruitier')
+    .with('administrateur', () => 'Administrateur')
+    .with('syndic', () => 'Syndic')
     .with('associe-sci-ir', () => 'Associé SCI IR')
-    // Capitalize first letter for other values
-    .otherwise((value) => `${value[0].toUpperCase()}${value.slice(1)}`);
+    .with('autre', () => 'Autre')
+    .exhaustive();
 
   return (
     <Tag small {...props.tagProps}>

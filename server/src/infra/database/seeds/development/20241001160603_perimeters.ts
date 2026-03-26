@@ -15,7 +15,7 @@ export async function seed(knex: Knex): Promise<void> {
   await GeoPerimeters(knex).delete();
 
   const establishments = await Establishments(knex).where({ available: true });
-  await async.forEach(establishments, async (establishment) => {
+  await async.forEachSeries(establishments, async (establishment) => {
     const users = await Users(knex).where({
       establishment_id: establishment.id
     });

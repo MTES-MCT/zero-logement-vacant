@@ -24,7 +24,7 @@ export async function seed(knex: Knex): Promise<void> {
   await Groups(knex).delete();
 
   const establishments = await Establishments(knex).where({ available: true });
-  await async.forEach(establishments, async (establishment) => {
+  await async.forEachSeries(establishments, async (establishment) => {
     const [users, housings] = await Promise.all([
       Users(knex).where({ establishment_id: establishment.id }),
       Housing(knex)

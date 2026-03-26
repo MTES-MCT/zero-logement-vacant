@@ -73,6 +73,7 @@ describe('SourceOwnerProcessor', () => {
       });
       const existingOwner: OwnerApi = {
         ...genOwnerApi(),
+        banAddress: null,
         idpersonne: sourceOwner.idpersonne
       };
 

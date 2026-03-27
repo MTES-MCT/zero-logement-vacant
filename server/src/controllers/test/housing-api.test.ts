@@ -1742,7 +1742,6 @@ describe('Housing API', () => {
       expect(event).toMatchObject<
         Partial<EventRecordDBO<'housing:occupancy-updated'>>
       >({
-        name: "Modification du statut d'occupation",
         type: 'housing:occupancy-updated',
         next_old: {
           occupancy: OCCUPANCY_LABELS[housing.occupancy],
@@ -1880,7 +1879,6 @@ describe('Housing API', () => {
         .first();
       expect(event).toMatchObject<Partial<EventRecordDBO<'housing:updated'>>>({
         type: 'housing:updated',
-        name: 'Modification du logement',
         next_old: {
           actualEnergyConsumption: 'E'
         },

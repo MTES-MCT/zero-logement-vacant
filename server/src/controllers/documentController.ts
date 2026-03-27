@@ -138,7 +138,6 @@ const create: RequestHandler<
     const events = documents.map<DocumentEventApi>((document) => ({
       id: uuidv4(),
       type: 'document:created',
-      name: 'Création d’un document',
       nextOld: null,
       nextNew: { filename: document.filename },
       createdAt: new Date().toJSON(),
@@ -227,7 +226,6 @@ const update: RequestHandler<
         // Create document:updated event
         id: uuidv4(),
         type: 'document:updated',
-        name: 'Modification d’un document',
         nextOld: { filename: document.filename },
         nextNew: { filename: updated.filename },
         createdAt: new Date().toJSON(),
@@ -285,7 +283,6 @@ const remove: RequestHandler<
     (housingDocument) => ({
       id: uuidv4(),
       type: 'housing:document-removed',
-      name: 'Suppression d’un document du logement',
       nextOld: { filename: document.filename },
       nextNew: null,
       createdAt: new Date().toJSON(),
@@ -300,7 +297,6 @@ const remove: RequestHandler<
   const documentRemoveEvent: DocumentEventApi = {
     id: uuidv4(),
     type: 'document:removed',
-    name: 'Suppression d’un document',
     nextOld: { filename: document.filename },
     nextNew: null,
     createdAt: new Date().toJSON(),
@@ -379,7 +375,6 @@ const linkToHousing: RequestHandler<
   const attachEvents = documents.map<HousingDocumentEventApi>((document) => ({
     id: uuidv4(),
     type: 'housing:document-attached',
-    name: 'Ajout d’un document au logement',
     nextOld: null,
     nextNew: { filename: document.filename },
     createdAt: new Date().toJSON(),
@@ -495,7 +490,6 @@ const removeByHousing: RequestHandler<
   const detachEvent: HousingDocumentEventApi = {
     id: uuidv4(),
     type: 'housing:document-detached',
-    name: 'Retrait d’un document du logement',
     nextOld: { filename: document.filename },
     nextNew: null,
     createdAt: new Date().toJSON(),

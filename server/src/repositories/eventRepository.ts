@@ -1,5 +1,4 @@
 import {
-  EventName,
   EventPayloads,
   EventType
 } from '@zerologementvacant/models';
@@ -373,16 +372,7 @@ async function removeCampaignEvents(campaignId: string): Promise<void> {
 
 export interface EventRecordDBO<Type extends EventType> {
   id: string;
-  name: EventName;
   type: Type;
-  /**
-   * @deprecated
-   */
-  contact_kind?: string;
-  /**
-   * @deprecated
-   */
-  conflict?: boolean;
   next_old: EventPayloads[Type]['old'] | null;
   next_new: EventPayloads[Type]['new'] | null;
   created_at: Date;
@@ -398,9 +388,7 @@ export function formatEventApi<Type extends EventType>(
 ): EventRecordDBO<Type> {
   return {
     id: event.id,
-    name: event.name,
     type: event.type,
-    conflict: event.conflict,
     next_old: event.nextOld,
     next_new: event.nextNew,
     created_at: new Date(event.createdAt),
@@ -413,9 +401,7 @@ export function parseEventApi<Type extends EventType>(
 ): EventApi<Type> {
   return {
     id: event.id,
-    name: event.name,
     type: event.type,
-    conflict: event.conflict,
     nextOld: event.next_old,
     nextNew: event.next_new,
     createdAt: event.created_at.toJSON(),

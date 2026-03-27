@@ -254,7 +254,6 @@ describe('Source housing processor', () => {
             type: 'event',
             kind: 'create',
             value: expect.objectContaining<Partial<HousingEventApi>>({
-              name: 'Changement de statut d’occupation'
             })
           });
         });
@@ -264,7 +263,6 @@ describe('Source housing processor', () => {
             type: 'event',
             kind: 'create',
             value: expect.objectContaining<Partial<HousingEventApi>>({
-              name: 'Changement de statut de suivi'
             })
           });
         });

@@ -293,7 +293,6 @@ describe('Document API', () => {
         .first();
       expect(event).toMatchObject<Partial<EventDBO<'document:updated'>>>({
         type: 'document:updated',
-        name: 'Modification d’un document',
         next_old: { filename: document.filename },
         next_new: { filename: payload.filename },
         created_by: user.id
@@ -408,7 +407,6 @@ describe('Document API', () => {
         .first();
       expect(event).toMatchObject<Partial<EventDBO<'document:removed'>>>({
         type: 'document:removed',
-        name: 'Suppression d’un document',
         next_old: { filename: document.filename },
         next_new: null,
         created_by: user.id
@@ -450,7 +448,6 @@ describe('Document API', () => {
           Partial<EventDBO<'housing:document-removed'>>
         >({
           type: 'housing:document-removed',
-          name: 'Suppression d’un document du logement',
           next_old: { filename: document.filename },
           next_new: null,
           created_by: user.id
@@ -663,7 +660,6 @@ describe('Document API', () => {
         Partial<EventDBO<'housing:document-detached'>>
       >({
         type: 'housing:document-detached',
-        name: 'Retrait d’un document du logement',
         next_old: { filename: document.filename },
         next_new: null,
         created_by: user.id

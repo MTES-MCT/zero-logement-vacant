@@ -48,7 +48,6 @@ function writer(options: WriterOptions) {
       const events = housings.map<HousingEventApi>((housing) => ({
         id: uuidv4(),
         type: 'housing:status-updated',
-        name: 'Changement de statut de suivi',
         nextOld: {
           status: HOUSING_STATUS_LABELS[HousingStatus.NEVER_CONTACTED]
         },

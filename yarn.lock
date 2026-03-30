@@ -12493,6 +12493,15 @@ __metadata:
   languageName: node
   linkType: hard
 
+"@types/node@npm:>=20.0.0":
+  version: 25.5.0
+  resolution: "@types/node@npm:25.5.0"
+  dependencies:
+    undici-types: "npm:~7.18.0"
+  checksum: 10c0/70c508165b6758c4f88d4f91abca526c3985eee1985503d4c2bd994dbaf588e52ac57e571160f18f117d76e963570ac82bd20e743c18987e82564312b3b62119
+  languageName: node
+  linkType: hard
+
 "@types/node@npm:^14.0.1":
   version: 14.18.63
   resolution: "@types/node@npm:14.18.63"
@@ -12500,7 +12509,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@types/node@npm:^20.0.0, @types/node@npm:^20.13.0":
+"@types/node@npm:^20.13.0":
   version: 20.19.37
   resolution: "@types/node@npm:20.19.37"
   dependencies:
@@ -12854,7 +12863,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@types/ws@npm:^8.5.10":
+"@types/ws@npm:^8.18.1, @types/ws@npm:^8.5.10":
   version: 8.18.1
   resolution: "@types/ws@npm:8.18.1"
   dependencies:
@@ -13924,7 +13933,7 @@ __metadata:
     "@zerologementvacant/models": "workspace:*"
     "@zerologementvacant/utils": "workspace:*"
     axios: "npm:1.13.5"
-    convict: "npm:6.2.4"
+    convict: "npm:6.2.5"
     dotenv: "npm:16.6.1"
     jsonwebtoken: "npm:9.0.2"
     knex: "npm:3.1.0"
@@ -13953,7 +13962,7 @@ __metadata:
     async: "npm:3.2.6"
     copyfiles: "npm:2.4.1"
     date-fns: "npm:4.1.0"
-    handlebars: "npm:4.7.8"
+    handlebars: "npm:4.7.9"
     jest: "npm:29.7.0"
     jest-environment-jsdom: "npm:29.7.0"
     jest-extended: "npm:4.0.2"
@@ -13977,7 +13986,7 @@ __metadata:
     "@types/convict": "npm:6.1.6"
     "@zerologementvacant/models": "workspace:*"
     axe-core: "npm:4.11.1"
-    convict: "npm:6.2.4"
+    convict: "npm:6.2.5"
     cypress: "npm:15.8.0"
     cypress-axe: "npm:1.7.0"
   languageName: unknown
@@ -14036,7 +14045,7 @@ __metadata:
     date-fns: "npm:2.30.0"
     effect: "npm:3.20.0"
     fetch-intercept: "npm:2.4.0"
-    happy-dom: "npm:20.0.2"
+    happy-dom: "npm:20.8.9"
     immutable: "npm:5.1.5"
     jest-extended: "npm:4.0.2"
     jest-sorted: "npm:1.0.15"
@@ -14068,7 +14077,7 @@ __metadata:
     ts-essentials: "npm:10.1.1"
     ts-pattern: "npm:5.8.0"
     tsx: "npm:4.20.3"
-    undici: "npm:7.24.2"
+    undici: "npm:7.24.3"
     uuid: "npm:9.0.1"
     web-vitals: "npm:5.1.0"
     whatwg-fetch: "npm:3.6.20"
@@ -14173,7 +14182,7 @@ __metadata:
     archiver: "npm:7.0.1"
     async: "npm:3.2.6"
     bullmq: "npm:5.56.10"
-    convict: "npm:6.2.4"
+    convict: "npm:6.2.5"
     dotenv: "npm:16.6.1"
     exceljs: "npm:4.4.0"
     express: "npm:4.22.0"
@@ -14277,7 +14286,7 @@ __metadata:
     cli-progress: "npm:3.12.0"
     commander: "npm:14.0.0"
     compose-middleware: "npm:5.0.1"
-    convict: "npm:6.2.4"
+    convict: "npm:6.2.5"
     convict-format-with-validator: "npm:6.2.0"
     cors: "npm:2.8.5"
     csv-parse: "npm:5.6.0"
@@ -14294,7 +14303,7 @@ __metadata:
     express-validator: "npm:6.15.0"
     geojson: "npm:0.5.0"
     get-port: "npm:7.1.0"
-    handlebars: "npm:4.7.8"
+    handlebars: "npm:4.7.9"
     helmet: "npm:8.1.0"
     immutable: "npm:5.1.5"
     jest-extended: "npm:4.0.2"
@@ -14310,7 +14319,7 @@ __metadata:
     ms: "npm:2.1.3"
     multer: "npm:2.1.1"
     nock: "npm:13.5.6"
-    nodemailer: "npm:7.0.11"
+    nodemailer: "npm:8.0.4"
     nodemon: "npm:3.1.10"
     p-memoize: "npm:8.0.0"
     p-retry: "npm:6.2.1"
@@ -17180,13 +17189,13 @@ __metadata:
   languageName: node
   linkType: hard
 
-"convict@npm:6.2.4":
-  version: 6.2.4
-  resolution: "convict@npm:6.2.4"
+"convict@npm:6.2.5":
+  version: 6.2.5
+  resolution: "convict@npm:6.2.5"
   dependencies:
     lodash.clonedeep: "npm:^4.5.0"
     yargs-parser: "npm:^20.2.7"
-  checksum: 10c0/82d4cd93bfe028948f4b145562d4a1650881952d0e4b615b014bbcdf3e5caaad6f5dc12b647eeb82c135eba1ce1a0922f7823c34d17162646f7030dc002985ad
+  checksum: 10c0/4773180a3d02eb9d5cf6a3b6ec2b6bc94e6b8dd5073cbf6035cb55f615286835af1fe7f549aee085909a1130f6b461476f9b6a0d1fdbdee733402289e5196c1e
   languageName: node
   linkType: hard
 
@@ -21492,7 +21501,25 @@ __metadata:
   languageName: node
   linkType: hard
 
-"handlebars@npm:4.7.8, handlebars@npm:^4.7.8":
+"handlebars@npm:4.7.9":
+  version: 4.7.9
+  resolution: "handlebars@npm:4.7.9"
+  dependencies:
+    minimist: "npm:^1.2.5"
+    neo-async: "npm:^2.6.2"
+    source-map: "npm:^0.6.1"
+    uglify-js: "npm:^3.1.4"
+    wordwrap: "npm:^1.0.0"
+  dependenciesMeta:
+    uglify-js:
+      optional: true
+  bin:
+    handlebars: bin/handlebars
+  checksum: 10c0/22f8105a7e68e81aff2662bb434edf05f757d21d850731d71cec886d69c10cd33d3c43e34b2892968ec62de8241611851d3d0674c8ef324ea3e01dc66262faa9
+  languageName: node
+  linkType: hard
+
+"handlebars@npm:^4.7.8":
   version: 4.7.8
   resolution: "handlebars@npm:4.7.8"
   dependencies:
@@ -21510,14 +21537,17 @@ __metadata:
   languageName: node
   linkType: hard
 
-"happy-dom@npm:20.0.2":
-  version: 20.0.2
-  resolution: "happy-dom@npm:20.0.2"
+"happy-dom@npm:20.8.9":
+  version: 20.8.9
+  resolution: "happy-dom@npm:20.8.9"
   dependencies:
-    "@types/node": "npm:^20.0.0"
+    "@types/node": "npm:>=20.0.0"
     "@types/whatwg-mimetype": "npm:^3.0.2"
+    "@types/ws": "npm:^8.18.1"
+    entities: "npm:^7.0.1"
     whatwg-mimetype: "npm:^3.0.0"
-  checksum: 10c0/d4449e087cb7566fb493f9e6ee99221c64177732bf944ec3e2f464033107832c637e201e3e78e81a8b35871d41aa510806f3f1a2f18b924fc6120226f337a845
+    ws: "npm:^8.18.3"
+  checksum: 10c0/12fe9b85891b1289935b2a4f726e2839e7c92e3f55401bd20cb5500763dd994364645acaab20a754fd90d5e1b2ffdf734b39a32ea02704c3e3ee0c4d30cf958e
   languageName: node
   linkType: hard
 
@@ -26869,10 +26899,10 @@ __metadata:
   languageName: node
   linkType: hard
 
-"nodemailer@npm:7.0.11":
-  version: 7.0.11
-  resolution: "nodemailer@npm:7.0.11"
-  checksum: 10c0/208f108fdb4c5dd0e3a2f013578d53dad505cf1b9c7a084f6d22fc9d6f3912daafb4a23793ca568ff848afc35f15f4eb24382d3f6f9fb8ede4a8410d4ca63618
+"nodemailer@npm:8.0.4":
+  version: 8.0.4
+  resolution: "nodemailer@npm:8.0.4"
+  checksum: 10c0/5fb6fa72645b541c18b84b861de46f4740449e1d7c987b4d9ef715d815d613f93262225bc319e217df6215d6f123efadb9a412dcf937fe0a41cbecf279dfb2a0
   languageName: node
   linkType: hard
 
@@ -27733,9 +27763,9 @@ __metadata:
   linkType: hard
 
 "path-to-regexp@npm:~0.1.12":
-  version: 0.1.12
-  resolution: "path-to-regexp@npm:0.1.12"
-  checksum: 10c0/1c6ff10ca169b773f3bba943bbc6a07182e332464704572962d277b900aeee81ac6aa5d060ff9e01149636c30b1f63af6e69dd7786ba6e0ddb39d4dee1f0645b
+  version: 0.1.13
+  resolution: "path-to-regexp@npm:0.1.13"
+  checksum: 10c0/1cae3921739c154a8926e136185a10c916f79a249b9072a5001b266d96e193860ca03867e8e8cc808b786862d750f427ed93686bc259355442c3407a62deab1a
   languageName: node
   linkType: hard
 
@@ -33743,10 +33773,10 @@ __metadata:
   languageName: node
   linkType: hard
 
-"undici@npm:7.24.2":
-  version: 7.24.2
-  resolution: "undici@npm:7.24.2"
-  checksum: 10c0/04a0d10f021f2fa88121bd8f90d8013064ae954af255402f4d41dec7fdada8d47aa6f42d7c6e25394057c7e56f2a6e1a400ba08f701b13cf11eaf342e674f184
+"undici@npm:7.24.3":
+  version: 7.24.3
+  resolution: "undici@npm:7.24.3"
+  checksum: 10c0/f837c3e99963688eeeef830148f1d20ec3b492022e519ae6ccad1954a944a813d1e0b6b454818e816210dba6adc70180530575023c2c96aeb996fe42135d2d2c
   languageName: node
   linkType: hard
 
@@ -35066,6 +35096,21 @@ __metadata:
     utf-8-validate:
       optional: true
   checksum: 10c0/4741d9b9bc3f9c791880882414f96e36b8b254e34d4b503279d6400d9a4b87a033834856dbdd94ee4b637944df17ea8afc4bce0ff4a1560d2166be8855da5b04
+  languageName: node
+  linkType: hard
+
+"ws@npm:^8.18.3":
+  version: 8.20.0
+  resolution: "ws@npm:8.20.0"
+  peerDependencies:
+    bufferutil: ^4.0.1
+    utf-8-validate: ">=5.0.2"
+  peerDependenciesMeta:
+    bufferutil:
+      optional: true
+    utf-8-validate:
+      optional: true
+  checksum: 10c0/956ac5f11738c914089b65878b9223692ace77337ba55379ae68e1ecbeae9b47a0c6eb9403688f609999a58c80d83d99865fe0029b229d308b08c1ef93d4ea14
   languageName: node
   linkType: hard
 

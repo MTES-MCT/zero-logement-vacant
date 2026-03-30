@@ -34,7 +34,7 @@
     "archiver": "7.0.1",
     "async": "3.2.6",
     "bullmq": "5.56.10",
-    "convict": "6.2.4",
+    "convict": "6.2.5",
     "dotenv": "16.6.1",
     "exceljs": "4.4.0",
     "express": "4.22.0",

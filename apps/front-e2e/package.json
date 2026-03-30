@@ -8,7 +8,7 @@
     "@types/convict": "6.1.6",
     "@zerologementvacant/models": "workspace:*",
     "axe-core": "4.11.1",
-    "convict": "6.2.4",
+    "convict": "6.2.5",
     "cypress": "15.8.0",
     "cypress-axe": "1.7.0"
   }

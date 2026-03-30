@@ -1,8 +1,12 @@
 import { zlvApi } from './api.service';
 
+export interface SendActivationEmailResponse {
+  awaitingAccess?: boolean;
+}
+
 export const signupLinkApi = zlvApi.injectEndpoints({
   endpoints: (builder) => ({
-    sendActivationEmail: builder.mutation<void, string>({
+    sendActivationEmail: builder.mutation<SendActivationEmailResponse, string>({
       query: (email) => ({
         url: 'signup-links',
         method: 'POST',

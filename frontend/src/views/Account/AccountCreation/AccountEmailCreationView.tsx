@@ -33,7 +33,14 @@ function AccountEmailCreationView() {
   });
 
   async function submit(values: InferType<typeof schema>): Promise<void> {
-    await sendActivationEmail(values.email).unwrap();
+    const result = await sendActivationEmail(values.email).unwrap();
+
+    // If user doesn't have LOVAC access yet, redirect to awaiting access page
+    if (result?.awaitingAccess) {
+      navigate('/inscription/en-attente');
+      return;
+    }
+
     toast.success('Email envoyé');
     navigate('/inscription/activation', {
       state: {

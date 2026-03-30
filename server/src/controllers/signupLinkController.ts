@@ -15,6 +15,8 @@ import SignupLinkMissingError from '~/errors/signupLinkMissingError';
 import { constants } from 'http2';
 import SignupLinkExpiredError from '~/errors/signupLinkExpiredError';
 import userRepository from '~/repositories/userRepository';
+import ceremaService from '~/services/ceremaService';
+import { logger } from '~/infra/logger';
 
 async function create(request: Request, response: Response) {
   const { email } = request.body;
@@ -24,6 +26,23 @@ async function create(request: Request, response: Response) {
     // Return a success code to avoid giving information to an attacker
     // that an account already exists with the given email
     response.status(constants.HTTP_STATUS_CREATED).json();
+    return;
+  }
+
+  // Check LOVAC rights before sending the signup email
+  const ceremaUsers = await ceremaService.consultUsers(email);
+  const hasCommitment = ceremaUsers.some((u) => u.hasCommitment);
+
+  logger.info('Signup link request', {
+    email,
+    ceremaUsersCount: ceremaUsers.length,
+    hasCommitment
+  });
+
+  if (!hasCommitment) {
+    // User doesn't have LOVAC access yet - don't send the email
+    // Return a specific response so frontend can redirect to "awaiting access" page
+    response.status(constants.HTTP_STATUS_OK).json({ awaitingAccess: true });
     return;
   }
 

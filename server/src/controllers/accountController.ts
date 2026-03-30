@@ -32,6 +32,7 @@ import {
 } from '~/services/ceremaService/perimeterService';
 import { fetchUserKind } from '~/services/ceremaService/userKindService';
 import userPerimeterRepository from '~/repositories/userPerimeterRepository';
+import { filterGeoCodesByPerimeter } from '~/models/UserPerimeterApi';
 import mailService from '~/services/mailService';
 import {
   generateSimpleCode,
@@ -374,6 +375,18 @@ async function signInToEstablishment(
     });
   }
 
+  // Compute effective geoCodes based on user's perimeter
+  // ADMIN and VISITOR users have no restriction (effectiveGeoCodes = undefined)
+  let effectiveGeoCodes: string[] | undefined;
+  if (user.role !== UserRole.ADMIN && user.role !== UserRole.VISITOR) {
+    const userPerimeter = await userPerimeterRepository.get(user.id);
+    effectiveGeoCodes = filterGeoCodesByPerimeter(
+      establishment.geoCodes,
+      userPerimeter,
+      establishment.siren
+    );
+  }
+
   const accessToken = jwt.sign(
     {
       userId: user.id,
@@ -389,7 +402,9 @@ async function signInToEstablishment(
     establishment,
     accessToken,
     // Include authorized establishments for multi-structure users
-    ...(authorizedEstablishments.length > 1 && { authorizedEstablishments })
+    ...(authorizedEstablishments.length > 1 && { authorizedEstablishments }),
+    // Include effective geoCodes for perimeter filtering (undefined = no restriction)
+    effectiveGeoCodes
   });
 }
 

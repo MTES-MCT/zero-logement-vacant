@@ -14,6 +14,7 @@ interface AuthUserRaw {
   accessToken: string;
   establishment: EstablishmentDTO;
   authorizedEstablishments?: EstablishmentDTO[];
+  effectiveGeoCodes?: string[];
 }
 
 function transformAuthUser(raw: AuthUserRaw): AuthUser {
@@ -21,7 +22,8 @@ function transformAuthUser(raw: AuthUserRaw): AuthUser {
     user: raw.user,
     accessToken: raw.accessToken,
     establishment: fromEstablishmentDTO(raw.establishment),
-    authorizedEstablishments: raw.authorizedEstablishments?.map(fromEstablishmentDTO)
+    authorizedEstablishments: raw.authorizedEstablishments?.map(fromEstablishmentDTO),
+    effectiveGeoCodes: raw.effectiveGeoCodes
   };
 }
 

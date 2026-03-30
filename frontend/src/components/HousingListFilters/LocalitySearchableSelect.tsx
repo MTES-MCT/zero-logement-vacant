@@ -15,9 +15,12 @@ interface Props {
 }
 
 function LocalitySearchableSelect(props: Props) {
-  const establishment = useAppSelector(
-    (state) => state.authentication.logIn.data?.establishment
+  const authData = useAppSelector(
+    (state) => state.authentication.logIn.data
   );
+  const establishment = authData?.establishment;
+  // effectiveGeoCodes is undefined when no perimeter restriction applies
+  const effectiveGeoCodes = authData?.effectiveGeoCodes;
 
   const { localities, listLocalitiesQuery } = useLocalityList(
     establishment?.id ?? null
@@ -25,7 +28,8 @@ function LocalitySearchableSelect(props: Props) {
 
   const { data: intercommunalities } = useIntercommunalities();
 
-  const allowedGeoCodes = useMemo(() => {
+  // Filter by intercommunalities (user-selected filter)
+  const allowedByIntercommunalities = useMemo(() => {
     if (!props.intercommunalities?.length || !intercommunalities) {
       return null;
     }
@@ -37,13 +41,28 @@ function LocalitySearchableSelect(props: Props) {
     );
   }, [props.intercommunalities, intercommunalities]);
 
+  // Filter by user's perimeter (from Portail DF)
+  const allowedByPerimeter = useMemo(() => {
+    if (!effectiveGeoCodes) {
+      return null; // No perimeter restriction
+    }
+    return new Set(effectiveGeoCodes);
+  }, [effectiveGeoCodes]);
+
   const sortedOptions = useMemo(() => {
     if (!localities) return [];
 
     const filtered = localities.filter((locality) => {
       if (getDistricts(locality.geoCode) !== null) return false;
-      if (!allowedGeoCodes) return true;
-      return allowedGeoCodes.has(locality.geoCode);
+      // First apply perimeter restriction (if any)
+      if (allowedByPerimeter && !allowedByPerimeter.has(locality.geoCode)) {
+        return false;
+      }
+      // Then apply intercommunalities filter (if any)
+      if (allowedByIntercommunalities && !allowedByIntercommunalities.has(locality.geoCode)) {
+        return false;
+      }
+      return true;
     });
 
     return filtered.sort((a, b) => {
@@ -51,7 +70,7 @@ function LocalitySearchableSelect(props: Props) {
       const cityB = getCity(b.geoCode) ?? '';
       return cityA.localeCompare(cityB);
     });
-  }, [localities, allowedGeoCodes]);
+  }, [localities, allowedByPerimeter, allowedByIntercommunalities]);
 
   const localityMap = useMemo(() => {
     if (!localities) return new Map();

@@ -5,7 +5,7 @@ describe('Log in', () => {
 
     cy.visit('/connexion');
 
-    cy.findByLabelText(/^Adresse email/i).type(email);
+    cy.findByLabelText(/^Adresse e-mail/i).type(email);
     cy.findByLabelText(/^Mot de passe/i).type(password);
     cy.findByRole('button', { name: /Se connecter/i }).click();
 

@@ -30,10 +30,10 @@
       "path": "./frontend"
     },
     {
-      "path": "./e2e"
+      "path": "./packages/pdf"
     },
     {
-      "path": "./packages/pdf"
+      "path": "./apps/front-e2e"
     }
   ]
 }

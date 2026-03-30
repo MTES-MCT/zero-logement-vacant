@@ -45,6 +45,8 @@ function DraftSignatureNext(props: Readonly<DraftSignatureNextProps>) {
         container
         size={{ xs: 12, md: 6 }}
         spacing="1rem"
+        role="group"
+        aria-label="Signature du premier expéditeur"
       >
         <Grid size={12}>
           <Typography component="h4" variant="h6">
@@ -98,6 +100,8 @@ function DraftSignatureNext(props: Readonly<DraftSignatureNextProps>) {
         container
         size={{ xs: 12, md: 6 }}
         spacing="1rem"
+        role="group"
+        aria-label="Signature du second expéditeur"
       >
         <Grid size={12}>
           <Typography component="h4" variant="h6">

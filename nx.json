@@ -8,7 +8,10 @@
       "!{projectRoot}/**/?(*.)+(spec|test).[jt]s?(x)?(.snap)",
       "!{projectRoot}/tsconfig.spec.json",
       "!{projectRoot}/**/*.md",
-      "!{projectRoot}/src/test-setup.[jt]s"
+      "!{projectRoot}/src/test-setup.[jt]s",
+      "!{projectRoot}/apps/e2e/cypress/**/*",
+      "!{projectRoot}/**/*.cy.[jt]s?(x)",
+      "!{projectRoot}/apps/e2e/cypress.config.[jt]s"
     ],
     "sharedGlobals": [
       "{workspaceRoot}/tsconfig.base.json",
@@ -78,7 +81,6 @@
       "options": {
         "targetName": "e2e",
         "openTargetName": "open-cypress",
-        "componentTestingTargetName": "component-test",
         "ciTargetName": "e2e-ci"
       }
     },

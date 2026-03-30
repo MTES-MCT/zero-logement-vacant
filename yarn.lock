@@ -2276,7 +2276,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@cypress/request@npm:^3.0.10, @cypress/request@npm:^3.0.9":
+"@cypress/request@npm:^3.0.9":
   version: 3.0.10
   resolution: "@cypress/request@npm:3.0.10"
   dependencies:
@@ -13967,17 +13967,18 @@ __metadata:
   languageName: unknown
   linkType: soft
 
-"@zerologementvacant/e2e@workspace:e2e":
+"@zerologementvacant/front-e2e@workspace:apps/front-e2e":
   version: 0.0.0-use.local
-  resolution: "@zerologementvacant/e2e@workspace:e2e"
+  resolution: "@zerologementvacant/front-e2e@workspace:apps/front-e2e"
   dependencies:
     "@dotenvx/dotenvx": "npm:1.48.4"
     "@faker-js/faker": "npm:8.4.1"
     "@testing-library/cypress": "npm:10.1.0"
     "@types/convict": "npm:6.1.6"
-    axe-core: "npm:4.11.0"
+    "@zerologementvacant/models": "workspace:*"
+    axe-core: "npm:4.11.1"
     convict: "npm:6.2.4"
-    cypress: "npm:15.5.0"
+    cypress: "npm:15.8.0"
     cypress-axe: "npm:1.7.0"
   languageName: unknown
   linkType: soft
@@ -15253,14 +15254,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"axe-core@npm:4.11.0":
-  version: 4.11.0
-  resolution: "axe-core@npm:4.11.0"
-  checksum: 10c0/7d7020a568a824c303711858c2fcfe56d001d27e46c0c2ff75dc31b436cfddfd4857a301e70536cc9e64829d25338f7fb782102d23497ebdc66801e9900fc895
-  languageName: node
-  linkType: hard
-
-"axe-core@npm:^4.10.0":
+"axe-core@npm:4.11.1, axe-core@npm:^4.10.0":
   version: 4.11.1
   resolution: "axe-core@npm:4.11.1"
   checksum: 10c0/1e6997454b61c7c9a4d740f395952835dcf87f2c04fd81577217d68634d197d602c224f9e8f17b22815db4c117a2519980cfc8911fc0027c54a6d8ebca47c6a7
@@ -17742,9 +17736,9 @@ __metadata:
   languageName: node
   linkType: hard
 
-"cypress@npm:15.5.0":
-  version: 15.5.0
-  resolution: "cypress@npm:15.5.0"
+"cypress@npm:15.8.0":
+  version: 15.8.0
+  resolution: "cypress@npm:15.8.0"
   dependencies:
     "@cypress/request": "npm:^3.0.9"
     "@cypress/xvfb": "npm:^1.2.4"
@@ -17782,7 +17776,6 @@ __metadata:
     process: "npm:^0.11.10"
     proxy-from-env: "npm:1.0.0"
     request-progress: "npm:^3.0.0"
-    semver: "npm:^7.7.1"
     supports-color: "npm:^8.1.1"
     systeminformation: "npm:5.27.7"
     tmp: "npm:~0.2.4"
@@ -17791,59 +17784,7 @@ __metadata:
     yauzl: "npm:^2.10.0"
   bin:
     cypress: bin/cypress
-  checksum: 10c0/0a7aabc9920a808f5257f111b9b4bb6602e9b7146dd945a49e16a0811c201d5f5837f9ae439756556b686e020155483542505bf8499b72307236047b85a1130b
-  languageName: node
-  linkType: hard
-
-"cypress@npm:15.9.0":
-  version: 15.9.0
-  resolution: "cypress@npm:15.9.0"
-  dependencies:
-    "@cypress/request": "npm:^3.0.10"
-    "@cypress/xvfb": "npm:^1.2.4"
-    "@types/sinonjs__fake-timers": "npm:8.1.1"
-    "@types/sizzle": "npm:^2.3.2"
-    "@types/tmp": "npm:^0.2.3"
-    arch: "npm:^2.2.0"
-    blob-util: "npm:^2.0.2"
-    bluebird: "npm:^3.7.2"
-    buffer: "npm:^5.7.1"
-    cachedir: "npm:^2.3.0"
-    chalk: "npm:^4.1.0"
-    ci-info: "npm:^4.1.0"
-    cli-cursor: "npm:^3.1.0"
-    cli-table3: "npm:0.6.1"
-    commander: "npm:^6.2.1"
-    common-tags: "npm:^1.8.0"
-    dayjs: "npm:^1.10.4"
-    debug: "npm:^4.3.4"
-    enquirer: "npm:^2.3.6"
-    eventemitter2: "npm:6.4.7"
-    execa: "npm:4.1.0"
-    executable: "npm:^4.1.1"
-    extract-zip: "npm:2.0.1"
-    figures: "npm:^3.2.0"
-    fs-extra: "npm:^9.1.0"
-    hasha: "npm:5.2.2"
-    is-installed-globally: "npm:~0.4.0"
-    listr2: "npm:^3.8.3"
-    lodash: "npm:^4.17.21"
-    log-symbols: "npm:^4.0.0"
-    minimist: "npm:^1.2.8"
-    ospath: "npm:^1.2.2"
-    pretty-bytes: "npm:^5.6.0"
-    process: "npm:^0.11.10"
-    proxy-from-env: "npm:1.0.0"
-    request-progress: "npm:^3.0.0"
-    supports-color: "npm:^8.1.1"
-    systeminformation: "npm:^5.27.14"
-    tmp: "npm:~0.2.4"
-    tree-kill: "npm:1.2.2"
-    untildify: "npm:^4.0.0"
-    yauzl: "npm:^2.10.0"
-  bin:
-    cypress: bin/cypress
-  checksum: 10c0/3626f778d32741262dfe34b810b3ac91ba7c4f66202154512f72bab4cce8c59dc184b76bb627ee3027c4ef6e81439c23b2459f902f05a704050e04329720101c
+  checksum: 10c0/f0cddee7d2ebfb251db3ca9d6fd3bff489f6fedf84f95f5c74579f515eac0bfadadfb69f2505a9959e911c21a5a5ff8f5667ccb2c28c8f7371ffe7bf7b8625d3
   languageName: node
   linkType: hard
 
@@ -31161,7 +31102,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"semver@npm:^7.3.4, semver@npm:^7.3.5, semver@npm:^7.3.8, semver@npm:^7.5.3, semver@npm:^7.5.4, semver@npm:^7.6.0, semver@npm:^7.6.3, semver@npm:^7.7.1, semver@npm:^7.7.2, semver@npm:^7.7.3":
+"semver@npm:^7.3.4, semver@npm:^7.3.5, semver@npm:^7.3.8, semver@npm:^7.5.3, semver@npm:^7.5.4, semver@npm:^7.6.0, semver@npm:^7.6.3, semver@npm:^7.7.2, semver@npm:^7.7.3":
   version: 7.7.4
   resolution: "semver@npm:7.7.4"
   bin:
@@ -35387,7 +35328,7 @@ __metadata:
     "@vitest/ui": "npm:4.0.9"
     axios: "npm:1.13.5"
     clever-tools: "npm:4.4.0"
-    cypress: "npm:15.9.0"
+    cypress: "npm:15.8.0"
     esbuild: "npm:0.27.3"
     eslint: "npm:9.38.0"
     eslint-config-prettier: "npm:10.1.8"

@@ -74,3 +74,4 @@ vitest.config.*.timestamp*
 
 # Claude and others
 *.local.json
+test-output

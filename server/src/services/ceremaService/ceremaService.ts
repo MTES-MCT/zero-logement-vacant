@@ -26,6 +26,19 @@ function isLovacAccessValid(accesLovac: string | null): boolean {
 }
 
 /**
+ * Check if a group has LOVAC access.
+ * A group has LOVAC access if:
+ * - niveau_acces is 'lovac', OR
+ * - the lovac boolean flag is true
+ */
+function hasGroupLovacAccess(group: CeremaGroup | undefined): boolean {
+  if (!group) {
+    return false;
+  }
+  return group.niveau_acces === 'lovac' || group.lovac === true;
+}
+
+/**
  * Make an authenticated API call to Portail DF
  */
 async function fetchPortailDF<T>(
@@ -120,14 +133,31 @@ export class CeremaService implements ConsultUserService {
                 }
               }
 
+              // hasCommitment is true only if:
+              // 1. Structure has a valid LOVAC access date (future date)
+              // 2. AND user's group has LOVAC access (niveau_acces === 'lovac' OR lovac === true)
+              const structureHasLovac = isLovacAccessValid(
+                establishmentContent.acces_lovac
+              );
+              const groupHasLovac = hasGroupLovacAccess(group);
+
+              logger.debug('LOVAC access check', {
+                email: user.email,
+                structureId: user.structure,
+                accesLovac: establishmentContent.acces_lovac,
+                structureHasLovac,
+                groupId: user.groupe,
+                groupNiveauAcces: group?.niveau_acces,
+                groupLovac: group?.lovac,
+                groupHasLovac,
+                hasCommitment: structureHasLovac && groupHasLovac
+              });
+
               const u: CeremaUser = {
                 email: user.email,
                 establishmentSiren: establishmentContent.siret.substring(0, 9),
                 hasAccount: true,
-                // Check that acces_lovac is not null AND is a valid future date
-                hasCommitment: isLovacAccessValid(
-                  establishmentContent.acces_lovac
-                ),
+                hasCommitment: structureHasLovac && groupHasLovac,
                 group,
                 perimeter
               };

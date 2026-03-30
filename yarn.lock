@@ -13924,7 +13924,7 @@ __metadata:
     "@zerologementvacant/models": "workspace:*"
     "@zerologementvacant/utils": "workspace:*"
     axios: "npm:1.13.5"
-    convict: "npm:6.2.4"
+    convict: "npm:6.2.5"
     dotenv: "npm:16.6.1"
     jsonwebtoken: "npm:9.0.2"
     knex: "npm:3.1.0"
@@ -13977,7 +13977,7 @@ __metadata:
     "@types/convict": "npm:6.1.6"
     "@zerologementvacant/models": "workspace:*"
     axe-core: "npm:4.11.1"
-    convict: "npm:6.2.4"
+    convict: "npm:6.2.5"
     cypress: "npm:15.8.0"
     cypress-axe: "npm:1.7.0"
   languageName: unknown
@@ -14173,7 +14173,7 @@ __metadata:
     archiver: "npm:7.0.1"
     async: "npm:3.2.6"
     bullmq: "npm:5.56.10"
-    convict: "npm:6.2.4"
+    convict: "npm:6.2.5"
     dotenv: "npm:16.6.1"
     exceljs: "npm:4.4.0"
     express: "npm:4.22.0"
@@ -14277,7 +14277,7 @@ __metadata:
     cli-progress: "npm:3.12.0"
     commander: "npm:14.0.0"
     compose-middleware: "npm:5.0.1"
-    convict: "npm:6.2.4"
+    convict: "npm:6.2.5"
     convict-format-with-validator: "npm:6.2.0"
     cors: "npm:2.8.5"
     csv-parse: "npm:5.6.0"
@@ -17180,13 +17180,13 @@ __metadata:
   languageName: node
   linkType: hard
 
-"convict@npm:6.2.4":
-  version: 6.2.4
-  resolution: "convict@npm:6.2.4"
+"convict@npm:6.2.5":
+  version: 6.2.5
+  resolution: "convict@npm:6.2.5"
   dependencies:
     lodash.clonedeep: "npm:^4.5.0"
     yargs-parser: "npm:^20.2.7"
-  checksum: 10c0/82d4cd93bfe028948f4b145562d4a1650881952d0e4b615b014bbcdf3e5caaad6f5dc12b647eeb82c135eba1ce1a0922f7823c34d17162646f7030dc002985ad
+  checksum: 10c0/4773180a3d02eb9d5cf6a3b6ec2b6bc94e6b8dd5073cbf6035cb55f615286835af1fe7f549aee085909a1130f6b461476f9b6a0d1fdbdee733402289e5196c1e
   languageName: node
   linkType: hard
 

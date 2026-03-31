@@ -1,7 +1,7 @@
 import { zlvApi } from './api.service';
 
 export interface SendActivationEmailResponse {
-  awaitingAccess?: boolean;
+  accessForbidden?: boolean;
 }
 
 export const signupLinkApi = zlvApi.injectEndpoints({

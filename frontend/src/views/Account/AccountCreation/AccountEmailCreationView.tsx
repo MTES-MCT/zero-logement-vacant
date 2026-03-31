@@ -35,9 +35,9 @@ function AccountEmailCreationView() {
   async function submit(values: InferType<typeof schema>): Promise<void> {
     const result = await sendActivationEmail(values.email).unwrap();
 
-    // If user doesn't have LOVAC access yet, redirect to awaiting access page
-    if (result?.awaitingAccess) {
-      navigate('/inscription/en-attente');
+    // If user doesn't have LOVAC access, redirect to access forbidden page
+    if (result?.accessForbidden) {
+      navigate('/inscription/impossible');
       return;
     }
 

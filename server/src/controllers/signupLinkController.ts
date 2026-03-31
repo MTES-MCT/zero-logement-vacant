@@ -40,9 +40,9 @@ async function create(request: Request, response: Response) {
   });
 
   if (!hasCommitment) {
-    // User doesn't have LOVAC access yet - don't send the email
-    // Return a specific response so frontend can redirect to "awaiting access" page
-    response.status(constants.HTTP_STATUS_OK).json({ awaitingAccess: true });
+    // User doesn't have LOVAC access - don't send the email
+    // Return a specific response so frontend can redirect to "access forbidden" page
+    response.status(constants.HTTP_STATUS_OK).json({ accessForbidden: true });
     return;
   }
 

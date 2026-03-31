@@ -410,29 +410,38 @@ app.use(cors({
 
 ### Event Sourcing
 
-All changes are logged as events:
+All changes are logged as events. The system uses specialized event tables linked to the main `events` table:
 
 ```typescript
-// Event types
+// Event types (namespaced by entity)
 type EventType =
-  | 'HousingCreated'
-  | 'HousingUpdated'
-  | 'HousingStatusChanged'
-  | 'OwnerUpdated'
-  | 'CampaignCreated'
-  | 'UserLogin';
+  | 'housing:created'
+  | 'housing:updated'
+  | 'housing:status-updated'
+  | 'housing:campaign-attached'
+  | 'owner:created'
+  | 'owner:updated'
+  | 'campaign:updated';
 
-// Event structure
+// Base event structure (events table)
 interface Event {
   id: string;
   type: EventType;
-  entityId: string;
-  entityType: 'Housing' | 'Owner' | 'Campaign';
-  oldValue: object;
-  newValue: object;
-  userId: string;
-  timestamp: Date;
+  old: object | null;
+  new: object | null;
+  createdBy: string;  // User ID
+  createdAt: Date;
 }
+
+// Entity-specific event tables reference the base event
+// Example: housing_events table
+interface HousingEvent {
+  eventId: string;      // FK to events.id
+  housingId: string;    // FK to fast_housing.id
+  housingGeoCode: string;
+}
+
+// Other specialized tables: campaign_housing_events, group_housing_events, etc.
 ```
 
 ### Log Structure

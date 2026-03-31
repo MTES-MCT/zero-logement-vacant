@@ -216,13 +216,12 @@ notes_stats AS (
 document_stats AS (
     SELECT
         du.establishment_id,
-        COUNT(DISTINCT dhe.housing_id) AS logements_maj_documents,
+        COUNT(DISTINCT hde.housing_id) AS logements_maj_documents,
         COUNT(*) AS documents_importes,
         MAX(dev.created_at) AS date_dernier_document_importe
-    FROM {{ ref('stg_production_housing_events') }} dhe
-    JOIN {{ ref('stg_production_events') }} dev ON dhe.event_id = dev.id
+    FROM {{ ref('stg_production_housing_document_events') }} hde
+    JOIN {{ ref('stg_production_events') }} dev ON hde.event_id = dev.id
     JOIN {{ ref('int_production_users') }} du ON dev.created_by = du.id
-    WHERE dev.type = 'housing:document-attached'
     GROUP BY du.establishment_id
 ),
 
@@ -386,7 +385,7 @@ SELECT
         + COALESCE(ns.logements_maj_notes, 0)
         + COALESCE(ds.logements_maj_documents, 0)
     ) AS logements_maj_enrichissement,
-
+int_analysis_establishments_zlv_usage
     COALESCE(oee.logements_maj_mails, 0) AS logements_maj_mails,
     COALESCE(oee.logements_maj_phone, 0) AS logements_maj_phone,
     COALESCE(oee.logements_maj_owners, 0) + COALESCE(rce.logements_maj_owners_rank, 0) AS logements_maj_owners,

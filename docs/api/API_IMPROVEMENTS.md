@@ -33,60 +33,13 @@ Ce document recense les bonnes pratiques identifiées dans l'API ZLV ainsi que l
 
 ### 1. Conventions REST à Corriger
 
-#### 1.1 `POST /housing/:housingId` → `PUT /housing/:housingId`
+#### 1.1 `POST /campaigns/:id/groups` → `POST /groups/:id/campaigns` ✅
 
-**Problème** : POST est utilisé pour mettre à jour un logement existant, alors que PUT est la méthode HTTP standard pour les mises à jour idempotentes.
-
-**Arguments** :
-- ✅ **Sémantique HTTP** : PUT signifie "remplacer/mettre à jour une ressource existante", POST signifie "créer une nouvelle ressource"
-- ✅ **Idempotence** : PUT est idempotent (plusieurs appels identiques = même résultat), ce qui correspond au comportement attendu
-- ✅ **Cohérence** : Les autres endpoints de mise à jour utilisent déjà PUT (`PUT /groups/:id`, `PUT /campaigns/:id`)
-- ✅ **Documentation** : Les développeurs externes s'attendront à PUT pour une mise à jour
-
-**Impact** :
-- 🔴 **Breaking change frontend** : Toutes les requêtes de mise à jour de logement doivent être modifiées
-- Fichiers impactés : `frontend/src/services/housing-service.ts`, composants React utilisant ce service
-
-**Coût** : ⭐ Faible (2-4h)
-- Modifier le verbe dans `protected.ts`
-- Mettre à jour le frontend (1 fichier service + tests)
-- Vérifier les tests E2E
+**Statut** : Déjà implémenté. Le nouvel endpoint `POST /groups/:id/campaigns` existe, l'ancien est marqué comme déprécié.
 
 ---
 
-#### 1.2 `POST /housing/list` → `PATCH /housing/bulk`
-
-**Problème** : POST utilisé pour une mise à jour en lot, sémantique confuse.
-
-**Arguments** :
-- ✅ **Sémantique** : PATCH est prévu pour les modifications partielles, parfait pour les mises à jour en lot
-- ✅ **Clarté** : `/bulk` indique explicitement une opération en masse
-- ❌ **Risque** : PATCH moins bien supporté par certains proxies/firewalls anciens (rare)
-
-**Impact** :
-- 🔴 **Breaking change frontend**
-
-**Coût** : ⭐ Faible (2-4h)
-
----
-
-#### 1.3 `POST /campaigns/:id/groups` → `POST /groups/:id/campaigns`
-
-**Problème** : La sémantique est inversée. On crée une campagne DEPUIS un groupe, pas un groupe depuis une campagne.
-
-**Arguments** :
-- ✅ **RESTful** : L'URL devrait refléter l'action : "créer une campagne pour ce groupe"
-- ✅ **Intuitivité** : Un développeur comprendra immédiatement que POST sur `/groups/:id/campaigns` crée une campagne liée au groupe
-
-**Impact** :
-- 🔴 **Breaking change frontend**
-- Possibilité de garder l'ancien endpoint en parallèle avec deprecation warning
-
-**Coût** : ⭐ Faible (2-4h)
-
----
-
-#### 1.4 `POST /owners` (recherche) → `GET /owners?q=...`
+#### 1.2 `POST /owners` (recherche) → `GET /owners?q=...`
 
 **Problème** : POST est utilisé pour une opération de lecture (recherche).
 
@@ -107,7 +60,7 @@ Ce document recense les bonnes pratiques identifiées dans l'API ZLV ainsi que l
 
 ---
 
-#### 1.5 `/geo/perimeters` → `/geo-perimeters`
+#### 1.3 `/geo/perimeters` → `/geo-perimeters`
 
 **Problème** : Incohérence de nommage avec les autres endpoints.
 
@@ -243,7 +196,11 @@ Ce document recense les bonnes pratiques identifiées dans l'API ZLV ainsi que l
 
 ### 6. Compression GZIP/Brotli
 
-**Problème** : Les réponses volumineuses (liste de logements, exports) ne sont pas compressées.
+> **Note** : Clever Cloud utilise un reverse proxy (nginx/Envoy) qui gère probablement déjà la compression au niveau infrastructure. À vérifier avant d'ajouter un middleware `compression` côté applicatif.
+
+**Vérification** : Tester avec `curl -H "Accept-Encoding: gzip" -I https://zerologementvacant.beta.gouv.fr/api` et vérifier le header `Content-Encoding`.
+
+**Si non activé au niveau infra** :
 
 **Arguments** :
 - ✅ **Performance** : Réduction de 70-90% de la taille des réponses JSON
@@ -265,7 +222,7 @@ app.use(compression());
 - Installer le package `compression`
 - Ajouter une ligne dans `server.ts`
 
-**Recommandation** : ✅ **À faire immédiatement**, excellent ROI.
+**Recommandation** : Vérifier d'abord si la compression est activée au niveau Clever Cloud.
 
 ---
 
@@ -387,10 +344,9 @@ if (ifMatch && ifMatch !== currentETag) {
 
 | Amélioration | Coût | Impact | Quand |
 |--------------|------|--------|-------|
-| [ ] `POST /housing/:id` → `PUT` | ⭐ (2-4h) | Breaking frontend | Prochain sprint |
+| ✅ `POST /campaigns/:id/groups` → `POST /groups/:id/campaigns` | ⭐ (2-4h) | Breaking frontend | Déjà implémenté |
 | [ ] `/geo/perimeters` → `/geo-perimeters` | ⭐ (1-2h) | Breaking frontend | Prochain sprint |
 | [ ] `POST /owners` → `GET /owners?q=` | ⭐⭐ (4-8h) | Breaking frontend | Prochain sprint |
-| [ ] `POST /housing/list` → `PATCH /housing/bulk` | ⭐ (2-4h) | Breaking frontend | Prochain sprint |
 
 ### Priorité 3 - Améliorations structurelles
 

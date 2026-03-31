@@ -66,7 +66,8 @@ flowchart TB
 | Environment | URL | Purpose |
 |-------------|-----|---------|
 | **Production** | https://zerologementvacant.beta.gouv.fr | Live system |
-| **Staging** | https://<staging-url> | Pre-production |
+| **Staging** | https://zerologementvacant-staging.incubateur.net | Pre-production testing |
+| **Review Apps** | https://prXXXX-api.cleverapps.io | Temporary PR environments |
 | **Development** | http://localhost:3000 / :3001 | Local dev |
 
 ## Clever Cloud Configuration

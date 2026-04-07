@@ -28,6 +28,7 @@ type AppTextInputProps<T extends ObjectShape> = Partial<
 function AppTextInput<T extends ObjectShape>(props: AppTextInputProps<T>) {
   const {
     textArea,
+    hintText,
     inputKey,
     inputForm,
     whenValid,
@@ -43,6 +44,7 @@ function AppTextInput<T extends ObjectShape>(props: AppTextInputProps<T>) {
         <Input
           label={textInputProps.label ?? ''}
           textArea
+          hintText={hintText}
           {...textInputProps}
           nativeTextAreaProps={{
             ...textInputProps,

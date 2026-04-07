@@ -8,7 +8,7 @@ describe('MapLegend', () => {
   const user = userEvent.setup();
 
   function renderComponent(onClose = vi.fn()) {
-    render(<MapLegend onClose={onClose} />);
+    render(<MapLegend onClose={onClose} isOpen={true} />);
   }
 
   it('should display the Localisation section', () => {

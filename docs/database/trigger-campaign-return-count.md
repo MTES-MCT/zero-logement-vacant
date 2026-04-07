@@ -3,10 +3,13 @@
 ## Campaign return count
 
 **Introduced in:** migration `20260304_campaigns-add-return-count.ts`
+**Updated in:** migration `20260407092027_campaigns-return-count-add-status-filter.ts`
 
 ### What is the return count?
 
-`campaigns.return_count` is the number of **distinct housings** in a campaign that had at least one `housing:status-updated` or `housing:occupancy-updated` event created **after** the campaign's `sent_at` date.
+`campaigns.return_count` is the number of **distinct housings** in a campaign that:
+- have a current status in the range **FIRST_CONTACT..BLOCKED** (numeric values 2–5), and
+- had at least one `housing:status-updated` or `housing:occupancy-updated` event created **after** the campaign's `sent_at` date.
 
 It is displayed in the campaign view as "Nombre de retours". The return rate ("Taux de retour") is derived on the frontend: `returnCount / housingCount`.
 
@@ -16,16 +19,17 @@ It is displayed in the campaign view as "Nombre de retours". The return rate ("T
 
 Reads (campaign view loads) are far more frequent than writes (new events, `sent_at` updates). Computing this on every read would require a full aggregation join across `housing_events` and `events`. Two triggers keep the column always up to date at write time.
 
-### Two-trigger design
+### Three-trigger design for return_count
 
-Two separate triggers are required because the two events that invalidate `return_count` happen on **different tables**. PostgreSQL triggers are always bound to a single table.
+Three separate triggers maintain `return_count` because the events that invalidate it happen on different tables. PostgreSQL triggers are always bound to a single table.
 
 | Trigger | Table | Timing | Strategy |
 |---------|-------|--------|----------|
-| `trg_increment_return_count` | `housing_events` | `AFTER INSERT` | **Incremental** — `+1` if this is the first qualifying event for a housing/campaign pair |
+| `trg_increment_return_count` | `housing_events` | `AFTER INSERT` | **Incremental** — `+1` if this is the first qualifying event for a housing/campaign pair (housing status also checked) |
 | `trg_recompute_return_count_on_sent_at_change` | `campaigns` | `AFTER UPDATE OF sent_at` | **Full recompute** — recounts from scratch because changing `sent_at` can qualify or disqualify any previously inserted events |
+| `trg_recompute_return_count_on_housing_status_change` | `fast_housing` | `AFTER UPDATE OF status` | **Full recompute** — fires only when a housing's status crosses the 2..5 boundary, updating all campaigns containing that housing |
 
-The incremental strategy is used for `housing_events` because it is the hot path (many events, frequent). The full recompute strategy is used for `sent_at` changes because they are rare and the incremental approach cannot handle retroactive qualification of existing events.
+The incremental strategy is used for `housing_events` because it is the hot path (many events, frequent). Full recomputes are used for the other two because they are rare and the incremental approach cannot handle retroactive qualification changes.
 
 ### Deduplication invariant
 
@@ -49,6 +53,7 @@ Fires on every insert into `housing_events`. Increments `return_count` by 1 for 
 
 **Early exit conditions (no DB writes):**
 - The event type (fetched from `events`) is not `housing:status-updated` or `housing:occupancy-updated`
+- The housing's current status is outside FIRST_CONTACT..BLOCKED (2..5)
 - No campaign contains this housing with a matching `sent_at`
 
 **Important:** `housing_events` is a junction table — it only stores `(event_id, housing_geo_code, housing_id)`. The event's `type` and `created_at` must be fetched from the `events` table via `NEW.event_id`.
@@ -62,6 +67,7 @@ DECLARE
   already_counted     BOOLEAN;
   v_event_type        TEXT;
   v_event_created_at  TIMESTAMPTZ;
+  v_housing_status    INT;
 BEGIN
   -- housing_events only stores event_id; type and created_at live on events.
   SELECT e.type, e.created_at
@@ -71,6 +77,16 @@ BEGIN
 
   -- Early exit: ignore events that cannot contribute to the return count.
   IF v_event_type NOT IN ('housing:status-updated', 'housing:occupancy-updated') THEN
+    RETURN NEW;
+  END IF;
+
+  -- Only housings with status FIRST_CONTACT..BLOCKED (2..5) are counted.
+  SELECT h.status INTO v_housing_status
+  FROM fast_housing h
+  WHERE h.id = NEW.housing_id
+    AND h.geo_code = NEW.housing_geo_code;
+
+  IF v_housing_status NOT BETWEEN 2 AND 5 THEN
     RETURN NEW;
   END IF;
 
@@ -152,12 +168,14 @@ BEGIN
   END IF;
 
   -- Full recompute: count distinct housings in this campaign that have
-  -- at least one qualifying event created after the new sent_at.
+  -- a qualifying status and at least one qualifying event after sent_at.
   UPDATE campaigns
   SET return_count = (
     SELECT COUNT(DISTINCT ch.housing_id)
     FROM campaigns_housing ch
+    JOIN fast_housing h ON h.id = ch.housing_id AND h.geo_code = ch.housing_geo_code
     WHERE ch.campaign_id = NEW.id
+      AND h.status BETWEEN 2 AND 5
       AND EXISTS (
         SELECT 1
         FROM housing_events he
@@ -182,10 +200,78 @@ EXECUTE FUNCTION recompute_campaign_return_count();
 
 ---
 
+---
+
+## `trg_recompute_return_count_on_housing_status_change`
+
+**Table:** `fast_housing` — **Timing:** `AFTER UPDATE OF status FOR EACH ROW`
+
+Fires whenever a housing's `status` column changes. Performs a **full recompute** for every campaign that contains this housing, but only when the status crosses the qualifying boundary (i.e., moves from inside 2..5 to outside, or vice versa). Changes within the same side of the boundary are no-ops.
+
+**No-op conditions:**
+- `status` did not change
+- Both `OLD.status` and `NEW.status` are inside 2..5 (still qualifying — count unchanged)
+- Both `OLD.status` and `NEW.status` are outside 2..5 (still non-qualifying — count unchanged)
+
+```sql
+CREATE OR REPLACE FUNCTION recompute_return_count_on_housing_status_change()
+RETURNS TRIGGER AS $$
+DECLARE
+  v_campaign_id UUID;
+  v_sent_at     TIMESTAMPTZ;
+BEGIN
+  IF NEW.status IS NOT DISTINCT FROM OLD.status THEN
+    RETURN NEW;
+  END IF;
+
+  IF (OLD.status BETWEEN 2 AND 5) = (NEW.status BETWEEN 2 AND 5) THEN
+    RETURN NEW;
+  END IF;
+
+  FOR v_campaign_id, v_sent_at IN (
+    SELECT c.id, c.sent_at
+    FROM campaigns_housing ch
+    JOIN campaigns c ON c.id = ch.campaign_id
+    WHERE ch.housing_id       = NEW.id
+      AND ch.housing_geo_code = NEW.geo_code
+      AND c.sent_at IS NOT NULL
+  ) LOOP
+    UPDATE campaigns
+    SET return_count = (
+      SELECT COUNT(DISTINCT ch2.housing_id)
+      FROM campaigns_housing ch2
+      JOIN fast_housing h ON h.id = ch2.housing_id AND h.geo_code = ch2.housing_geo_code
+      WHERE ch2.campaign_id = v_campaign_id
+        AND h.status BETWEEN 2 AND 5
+        AND EXISTS (
+          SELECT 1
+          FROM housing_events he
+          JOIN events e ON e.id = he.event_id
+          WHERE he.housing_geo_code = ch2.housing_geo_code
+            AND he.housing_id       = ch2.housing_id
+            AND e.type IN ('housing:status-updated', 'housing:occupancy-updated')
+            AND e.created_at        > v_sent_at
+        )
+    )
+    WHERE id = v_campaign_id;
+  END LOOP;
+
+  RETURN NEW;
+END;
+$$ LANGUAGE plpgsql;
+
+CREATE TRIGGER trg_recompute_return_count_on_housing_status_change
+AFTER UPDATE OF status ON fast_housing
+FOR EACH ROW
+EXECUTE FUNCTION recompute_return_count_on_housing_status_change();
+```
+
+---
+
 ## Known limitations
 
 - `trg_increment_return_count` fires on INSERT only. If a `housing_events` row is deleted (which should not happen in normal operation due to cascade constraints), `return_count` is not decremented. A full recompute via `trg_recompute_return_count_on_sent_at_change` (by touching `sent_at`) would correct it.
-- Neither trigger fires on `UPDATE` of `events.type` or `events.created_at`. These columns are considered immutable after creation.
+- Neither the `housing_events` nor the `fast_housing` triggers fire on `UPDATE` of `events.type` or `events.created_at`. These columns are considered immutable after creation.
 
 ---
 
@@ -346,7 +432,8 @@ EXECUTE FUNCTION update_campaign_owner_count();
 
 | Trigger | Table | Timing | Function | Updates |
 |---------|-------|--------|----------|---------|
-| `trg_increment_return_count` | `housing_events` | `AFTER INSERT` | `increment_campaign_return_count()` | `return_count` (+1 incremental) |
-| `trg_recompute_return_count_on_sent_at_change` | `campaigns` | `AFTER UPDATE OF sent_at` | `recompute_campaign_return_count()` | `return_count` (full recompute) |
-| `trg_update_campaign_counts` | `campaigns_housing` | `AFTER INSERT OR DELETE` | `update_campaign_counts()` | `housing_count`, `owner_count`, `return_count` (full recompute) |
+| `trg_increment_return_count` | `housing_events` | `AFTER INSERT` | `increment_campaign_return_count()` | `return_count` (+1 incremental, status-filtered) |
+| `trg_recompute_return_count_on_sent_at_change` | `campaigns` | `AFTER UPDATE OF sent_at` | `recompute_campaign_return_count()` | `return_count` (full recompute, status-filtered) |
+| `trg_recompute_return_count_on_housing_status_change` | `fast_housing` | `AFTER UPDATE OF status` | `recompute_return_count_on_housing_status_change()` | `return_count` (full recompute, boundary crossings only) |
+| `trg_update_campaign_counts` | `campaigns_housing` | `AFTER INSERT OR DELETE` | `update_campaign_counts()` | `housing_count`, `owner_count`, `return_count` (full recompute, status-filtered) |
 | `trg_update_campaign_owner_count` | `owners_housing` | `AFTER INSERT OR DELETE OR UPDATE OF rank` | `update_campaign_owner_count()` | `owner_count` (full recompute) |

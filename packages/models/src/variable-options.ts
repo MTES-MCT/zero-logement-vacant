@@ -1,4 +1,5 @@
 import { match } from 'ts-pattern';
+
 import { EnergyConsumption } from './EnergyConsumption';
 import { HousingKind } from './HousingKind';
 
@@ -63,7 +64,6 @@ export function replaceVariables(
         .with(HousingKind.APARTMENT, () => 'appartement')
         .with(HousingKind.HOUSE, () => 'appartement')
         .otherwise((value) => {
-          console.error(`Unknown housing kind: ${value}`);
           throw new Error(`Unknown housing kind: ${value}`);
         })
     )

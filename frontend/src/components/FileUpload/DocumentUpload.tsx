@@ -33,9 +33,8 @@ function DocumentUpload(props: Readonly<DocumentUploadProps>) {
   const { accept = DEFAULT_EXTENSIONS, ...uploadProps } = props;
   const types = accept ?? DEFAULT_EXTENSIONS;
   const hint =
-    props.hint === undefined
-      ? `Taille maximale : ${props.maxSize ?? DEFAULT_MAX_SIZE} Mo. Formats supportés : ${types.join(', ')}`
-      : null;
+    props.hint ??
+    `Taille maximale : ${props.maxSize ?? DEFAULT_MAX_SIZE} Mo. Formats supportés : ${types.join(', ')}`;
 
   useNotification({
     isError: props.isError,

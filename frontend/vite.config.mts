@@ -47,7 +47,6 @@ export default defineConfig(() => ({
       TZ: 'UTC'
     },
     include: ['{src,tests}/**/*.{test,spec}.{js,mjs,cjs,ts,mts,cts,jsx,tsx}'],
-    reporters: ['default'],
     coverage: {
       reportsDirectory: '../coverage/frontend',
       provider: 'v8' as const

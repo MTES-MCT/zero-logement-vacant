@@ -1,29 +1,25 @@
 import Button from '@codegouvfr/react-dsfr/Button';
 import type { IControl } from 'maplibre-gl';
-import React from 'react';
 import { createRoot, type Root } from 'react-dom/client';
 import { useControl } from 'react-map-gl/maplibre';
 
 class LegendControl implements IControl {
   private container: HTMLElement | null = null;
   private root: Root | null = null;
+  private readonly onOpen: () => void;
 
-  constructor(private readonly onOpen: () => void) {}
+  constructor(onOpen: () => void) {
+    this.onOpen = onOpen;
+  }
 
   onAdd(): HTMLElement {
     this.container = document.createElement('div');
     this.container.className = 'maplibregl-ctrl maplibregl-ctrl-group';
     this.root = createRoot(this.container);
     this.root.render(
-      React.createElement(
-        Button,
-        {
-          priority: 'secondary',
-          size: 'small',
-          onClick: this.onOpen
-        },
-        'Légende'
-      )
+      <Button priority="secondary" size="small" onClick={this.onOpen}>
+        Légende
+      </Button>
     );
     return this.container;
   }
@@ -35,12 +31,20 @@ class LegendControl implements IControl {
   }
 }
 
-interface Props {
-  onOpen: () => void;
+export interface LegendButtonControlProps {
+  onOpen(): void;
 }
 
-function LegendButtonControl({ onOpen }: Readonly<Props>) {
-  useControl(() => new LegendControl(onOpen), { position: 'bottom-left' });
+function LegendButtonControl({ onOpen }: Readonly<LegendButtonControlProps>) {
+  const control = new LegendControl(onOpen);
+  useControl(
+    () => control,
+    () => control.onAdd(),
+    () => control.onRemove(),
+    {
+      position: 'bottom-left'
+    }
+  );
   return null;
 }
 

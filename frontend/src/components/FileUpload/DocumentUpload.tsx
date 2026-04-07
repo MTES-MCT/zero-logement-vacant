@@ -35,7 +35,7 @@ function DocumentUpload(props: Readonly<DocumentUploadProps>) {
   const hint =
     props.hint === undefined
       ? `Taille maximale : ${props.maxSize ?? DEFAULT_MAX_SIZE} Mo. Formats supportés : ${types.join(', ')}`
-      : null;
+      : props.hint;
 
   useNotification({
     isError: props.isError,

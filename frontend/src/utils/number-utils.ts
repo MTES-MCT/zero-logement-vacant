@@ -6,7 +6,7 @@ export function toPercentage(
   value: number,
   options?: ToPercentageOptions
 ): string {
-  const decimals = options?.decimals ?? 0;
+  const decimals = options?.decimals ?? 1;
   return new Intl.NumberFormat('fr', {
     style: 'percent',
     maximumFractionDigits: decimals

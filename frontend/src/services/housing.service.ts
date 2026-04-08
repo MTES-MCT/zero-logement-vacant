@@ -125,7 +125,8 @@ export const housingApi = zlvApi.injectEndpoints({
         'HousingByStatus',
         'HousingCountByStatus',
         'Event',
-        { type: 'Precision', id: payload.id }
+        { type: 'Precision', id: payload.id },
+        'Campaign'
       ]
     }),
 
@@ -144,7 +145,8 @@ export const housingApi = zlvApi.injectEndpoints({
           'HousingByStatus',
           'HousingCountByStatus',
           'Event',
-          'HousingEvent'
+          'HousingEvent',
+          'Campaign'
         ];
         return tags
           .concat(payload.precisions?.length ? ['Precision'] : [])

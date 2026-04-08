@@ -229,8 +229,6 @@ describe('CampaignListView', () => {
   });
 
   describe('Pagination', () => {
-    beforeEach(() => data.reset());
-
     it('should render a page size selector', async () => {
       renderView();
 

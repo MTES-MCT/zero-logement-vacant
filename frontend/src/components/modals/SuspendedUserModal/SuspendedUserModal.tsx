@@ -42,10 +42,6 @@ function SuspendedUserModal() {
     }
   }, [isSuspended, ready]);
 
-  if (!isSuspended) {
-    return null;
-  }
-
   return (
     <modal.Component
       concealingBackdrop={true}

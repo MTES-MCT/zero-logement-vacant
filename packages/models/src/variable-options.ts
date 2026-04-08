@@ -1,4 +1,7 @@
+import { match } from 'ts-pattern';
+
 import { EnergyConsumption } from './EnergyConsumption';
+import { HousingKind } from './HousingKind';
 
 const VARIABLES_OPTIONS = [
   '{{owner.fullName}}',
@@ -56,7 +59,13 @@ export function replaceVariables(
     )
     .replaceAll(
       '{{housing.housingKind}}',
-      replacement.housing.housingKind ?? ''
+      match(replacement.housing.housingKind)
+        .with(null, undefined, () => '')
+        .with(HousingKind.APARTMENT, () => 'appartement')
+        .with(HousingKind.HOUSE, () => 'appartement')
+        .otherwise((value) => {
+          throw new Error(`Unknown housing kind: ${value}`);
+        })
     )
     .replaceAll(
       '{{housing.livingArea}}',

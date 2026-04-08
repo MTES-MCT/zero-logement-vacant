@@ -1,8 +1,52 @@
-post-start = [
-  { copy-env = "wt step copy-ignored" },
-  { setup-dbs = "bash scripts/wt-setup-dbs.sh {{ branch | sanitize_db }}" },
-  { install = "yarn install" }
-]
+[list]
+url = "http://localhost:{{ branch | hash_port }}"
 
-[pre-remove]
-teardown-dbs = "bash scripts/wt-teardown-dbs.sh {{ branch | sanitize_db }}"
+[pre-start]
+copy = "wt step copy-ignored"
+install = "yarn install --immutable --immutable-cache"
+
+[[post-start]]
+setup-env = """
+PORT='{{ branch | hash_port }}'
+grep -q '^PORT=' server/.env && sed -i '' "s|^PORT=.*|PORT=${PORT}|" server/.env || echo "PORT=${PORT}" >> server/.env
+grep -q '^VITE_API_URL=' frontend/.env && sed -i '' "s|^VITE_API_URL=.*|VITE_API_URL=http://localhost:${PORT}|" frontend/.env || echo "VITE_API_URL=http://localhost:${PORT}" >> frontend/.env
+"""
+# Set up databases in parallel
+setup-dev-db = """
+DB="dev_{{ branch | sanitize_db }}"
+docker exec zlv createdb -U postgres ${DB} 2>/dev/null || echo ${DB} already exists
+sed -i '' "s|DATABASE_URL=.*|DATABASE_URL=postgres://postgres:postgres@localhost/${DB}|" server/.env
+"""
+setup-test-db = """
+DB='test_{{ branch | sanitize_db }}'
+docker exec zlv createdb -U postgres ${DB} 2>/dev/null || echo ${DB} already exists
+sed -i '' "s|DATABASE_URL=.*|DATABASE_URL=postgres://postgres:postgres@localhost/${DB}|" server/.env.test
+"""
+
+[[post-start]]
+build = "yarn build"
+
+[[post-start]]
+migrate = "yarn workspace @zerologementvacant/server migrate"
+
+[[post-start]]
+seed = "yarn workspace @zerologementvacant/server seed"
+
+# Run dev servers after migrate
+[[post-start]]
+dev = "yarn nx run-many -t dev -p=front,server"
+
+[pre-commit]
+lint = "yarn nx affected -t lint"
+typecheck = "yarn nx affected -t typecheck"
+
+[post-remove]
+remove-dev-db = """
+DB="dev_{{ branch | sanitize_db }}"
+docker exec zlv dropdb -U postgres --if-exists ${DB} || echo "Warning: could not drop ${DB}"
+"""
+remove-test-db = """
+DB="test_{{ branch | sanitize_db }}"
+docker exec zlv dropdb -U postgres --if-exists ${DB} || echo "Warning: could not drop ${DB}"
+"""
+kill-server = "lsof -ti :{{ branch | hash_port }} -sTCP:LISTEN | xargs kill 2>/dev/null || true"

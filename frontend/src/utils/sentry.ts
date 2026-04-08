@@ -6,7 +6,7 @@ import {
   matchRoutes,
   useLocation,
   useNavigationType
-} from 'react-router-dom';
+} from 'react-router';
 
 import config from './config';
 
@@ -25,8 +25,8 @@ function init(): void {
       integrations: [
         // Browser performance and error tracking
         Sentry.browserTracingIntegration(),
-        // React Router v6 integration
-        Sentry.reactRouterV6BrowserTracingIntegration({
+        // React Router v7 integration
+        Sentry.reactRouterV7BrowserTracingIntegration({
           useEffect,
           useLocation,
           useNavigationType,
@@ -191,7 +191,7 @@ function initWebVitals() {
   });
 }
 
-const createSentryRouter: typeof createBrowserRouter = Sentry.wrapCreateBrowserRouterV6(createBrowserRouter);
+const createSentryRouter: typeof createBrowserRouter = Sentry.wrapCreateBrowserRouterV7(createBrowserRouter);
 
 // Export Sentry ErrorBoundary and utilities
 const ErrorBoundary = Sentry.ErrorBoundary;

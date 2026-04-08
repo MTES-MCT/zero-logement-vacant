@@ -9,7 +9,7 @@ import {
   genSignupLinkDTO
 } from '@zerologementvacant/models/fixtures';
 import { Provider } from 'react-redux';
-import { createMemoryRouter, RouterProvider } from 'react-router-dom';
+import { createMemoryRouter, RouterProvider } from 'react-router';
 import OnboardingModal from '../../../../components/modals/OnboardingModal/OnboardingModal';
 import data from '../../../../mocks/handlers/data';
 import configureTestStore from '../../../../utils/storeUtils';

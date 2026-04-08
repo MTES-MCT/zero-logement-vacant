@@ -1,5 +1,5 @@
 import SideMenu, { type SideMenuProps } from '@codegouvfr/react-dsfr/SideMenu';
-import { useLocation } from 'react-router-dom';
+import { useLocation } from 'react-router';
 
 import { useUser } from '~/hooks/useUser';
 

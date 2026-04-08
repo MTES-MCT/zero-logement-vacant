@@ -5,7 +5,7 @@ import Stepper from '@codegouvfr/react-dsfr/Stepper';
 import Grid from '@mui/material/Grid';
 import Typography from '@mui/material/Typography';
 import classNames from 'classnames';
-import { Navigate, useLocation } from 'react-router-dom';
+import { Navigate, useLocation } from 'react-router';
 
 import styles from '../forgotten-password-view.module.scss';
 import { useActivationEmail } from '../../../hooks/useActivationEmail';

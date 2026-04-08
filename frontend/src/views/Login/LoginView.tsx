@@ -9,7 +9,7 @@ import Typography from '@mui/material/Typography';
 import type { EstablishmentDTO } from '@zerologementvacant/models';
 import { useState } from 'react';
 import { FormProvider, useForm } from 'react-hook-form';
-import { useLocation, useNavigate } from 'react-router-dom';
+import { useLocation, useNavigate } from 'react-router';
 import * as yup from 'yup';
 
 import EstablishmentSearchableSelect from '~/components/establishment/EstablishmentSearchableSelect';

@@ -3,7 +3,7 @@ import userEvent from '@testing-library/user-event';
 import { genCampaignDTO, genDraftDTO, genSenderDTO } from '@zerologementvacant/models/fixtures';
 import { describe, it, expect } from 'vitest';
 import { Provider } from 'react-redux';
-import { createMemoryRouter, RouterProvider } from 'react-router-dom';
+import { createMemoryRouter, RouterProvider } from 'react-router';
 
 import data from '~/mocks/handlers/data';
 import configureTestStore from '~/utils/storeUtils';

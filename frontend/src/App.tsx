@@ -5,7 +5,7 @@ import {
   Navigate,
   Route,
   RouterProvider
-} from 'react-router-dom';
+} from 'react-router';
 
 import { useAppDispatch, useAppSelector } from '~/hooks/useStore';
 import AuthenticatedLayout from '~/layouts/AuthenticatedLayout';
@@ -154,9 +154,7 @@ function App() {
     }
   }, [dispatch, isSomeQueryPending]);
 
-  return (
-    <RouterProvider router={router} future={{ v7_startTransition: true }} />
-  );
+  return <RouterProvider router={router} />;
 }
 
 export default App;

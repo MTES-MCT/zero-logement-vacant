@@ -1,7 +1,7 @@
 import { render, screen, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { Provider } from 'react-redux';
-import { createMemoryRouter, RouterProvider } from 'react-router-dom';
+import { createMemoryRouter, RouterProvider } from 'react-router';
 
 import { byStatus, CAMPAIGN_STATUS_LABELS } from '@zerologementvacant/models';
 import { genCampaignDTO } from '@zerologementvacant/models/fixtures';

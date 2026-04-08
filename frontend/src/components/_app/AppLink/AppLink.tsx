@@ -1,7 +1,7 @@
 import type { FrIconClassName, RiIconClassName } from '@codegouvfr/react-dsfr';
 import classNames from 'classnames';
-import { Link } from 'react-router-dom';
-import type { LinkProps, Path, To } from 'react-router-dom';
+import { Link } from 'react-router';
+import type { LinkProps, Path, To } from 'react-router';
 
 export type AppLinkProps = LinkProps & {
   isSimple?: boolean;

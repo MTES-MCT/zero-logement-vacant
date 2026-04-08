@@ -1,6 +1,6 @@
 import { fr } from '@codegouvfr/react-dsfr';
 import Grid from '@mui/material/Grid';
-import { Navigate, Route, Routes } from 'react-router-dom';
+import { Navigate, Route, Routes } from 'react-router';
 
 import AccountEmailCreationView from './AccountCreation/AccountEmailCreationView';
 import AccountEmailActivationView from './AccountCreation/AccountEmailActivationView';

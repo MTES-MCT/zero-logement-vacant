@@ -3,7 +3,7 @@ import { render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { http, HttpResponse } from 'msw';
 import { Provider } from 'react-redux';
-import { MemoryRouter as Router } from 'react-router-dom';
+import { MemoryRouter as Router } from 'react-router';
 
 import type { GroupDTO } from '@zerologementvacant/models';
 import { genGroupDTO, genUserDTO } from '@zerologementvacant/models/fixtures';

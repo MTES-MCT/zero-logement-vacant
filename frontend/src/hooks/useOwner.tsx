@@ -1,4 +1,4 @@
-import { useParams } from 'react-router-dom';
+import { useParams } from 'react-router';
 import { assert } from 'ts-essentials';
 
 import { useFindEventsByOwnerQuery } from '../services/event.service';

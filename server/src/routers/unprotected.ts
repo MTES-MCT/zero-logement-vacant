@@ -221,14 +221,19 @@ router.post(
  *         application/json:
  *           schema:
  *             type: object
- *             required: [userId, code]
+ *             required: [email, code]
  *             properties:
- *               userId:
+ *               email:
  *                 type: string
- *                 format: uuid
+ *                 format: email
  *               code:
  *                 type: string
  *                 pattern: '^\d{6}$'
+ *                 minLength: 6
+ *                 maxLength: 6
+ *               establishmentId:
+ *                 type: string
+ *                 format: uuid
  *     responses:
  *       200:
  *         description: 2FA code validated, JWT token returned
@@ -255,14 +260,15 @@ router.post(
  *         application/json:
  *           schema:
  *             type: object
- *             required: [resetLinkId, password]
+ *             required: [key, password]
  *             properties:
- *               resetLinkId:
+ *               key:
  *                 type: string
- *                 format: uuid
+ *                 pattern: '^[a-zA-Z0-9]+$'
  *               password:
  *                 type: string
- *                 minLength: 8
+ *                 minLength: 12
+ *                 description: 'Min 12 chars, must include uppercase, lowercase, digit, and special character'
  *     responses:
  *       200:
  *         description: Mot de passe réinitialisé avec succès

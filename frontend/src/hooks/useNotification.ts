@@ -22,44 +22,27 @@ export function useNotification(props: NotificationProps) {
       toast(loading, {
         autoClose: false,
         isLoading: true,
-        toastId,
+        toastId
       });
-      return;
-    }
-
-    if (props.isError) {
+    } else if (props.isError) {
       const error = props.message?.error ?? 'Erreur lors de la sauvegarde';
       toast.update(toastId, {
         autoClose: props.autoClose ?? null,
         isLoading: false,
         render: error,
         type: 'error',
-        toastId,
+        toastId
       });
-      return;
-    }
-
-    if (props.isSuccess) {
+    } else if (props.isSuccess) {
       const success = props.message?.success ?? 'Sauvegardé !';
-      if (toast.isActive(toastId)) {
-        toast.update(toastId, {
-          autoClose: props.autoClose ?? null,
-          isLoading: false,
-          render: success,
-          type: 'success',
-          toastId,
-        });
-      } else {
-        toast.success(success, {
-          type: 'success',
-          autoClose: props.autoClose,
-          toastId,
-        });
-      }
-      return;
+      toast.update(toastId, {
+        autoClose: props.autoClose ?? null,
+        isLoading: false,
+        render: success,
+        type: 'success',
+        toastId
+      });
     }
-
-    return () => toast.dismiss(toastId);
   }, [
     props.autoClose,
     props.isError,

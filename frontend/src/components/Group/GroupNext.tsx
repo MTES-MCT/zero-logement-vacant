@@ -54,14 +54,17 @@ function Group(props: Readonly<GroupProps>) {
     campaign: Pick<Campaign, 'title' | 'description' | 'sentAt'>
   ): void {
     props.onCreateCampaign?.(campaign);
+    campaignFromGroupModal.close();
   }
 
-  async function removeGroup(): Promise<void> {
-    await props.onRemove?.();
+  function removeGroup(): void {
+    props.onRemove?.();
+    removeGroupModal.close();
   }
 
   function updateGroup(group: GroupPayload): void {
     props.onUpdate?.(group);
+    renameGroupModal.close();
   }
 
   return (

@@ -45,7 +45,6 @@ const MapWrapper = styled(Box)({
   overflow: 'hidden'
 });
 
-
 export interface MapProps {
   housingList?: Housing[];
   hasPerimetersFilter?: boolean;
@@ -177,79 +176,79 @@ function Map(props: MapProps) {
   return (
     <>
       <MapWrapper>
-      <ReactiveMap
-        {...viewState}
-        attributionControl={{}}
-        id="housingMap"
-        mapStyle={mapStyles.simple}
-        minZoom={props.minZoom}
-        maxZoom={props.maxZoom}
-        onMove={onMove}
-        style={{
-          minHeight: '600px',
-          height: 'auto',
-          fontFamily: 'Marianne, sans-serif',
-          ...props.style
-        }}
-      >
-        <Perimeters
-          id="remaining-perimeters"
-          isVisible={showPerimeters}
-          map={map}
-          perimeters={perimeters}
-        />
-        <Perimeters
-          id="excluded-perimeters"
-          backgroundColor={props.hasPerimetersFilter ? '#ffe9e6' : undefined}
-          borderColor={props.hasPerimetersFilter ? '#ce0500' : undefined}
-          isVisible={showPerimeters}
-          map={map}
-          perimeters={excludedPerimeters}
-        />
-        <Perimeters
-          id="included-perimeters"
-          backgroundColor={props.hasPerimetersFilter ? '#b8fec9' : undefined}
-          borderColor={props.hasPerimetersFilter ? '#18753c' : undefined}
-          isVisible={showPerimeters}
-          map={map}
-          perimeters={includedPerimeters}
-        />
-        {clusterize ? (
-          <Clusters
-            id="housing"
-            points={points}
+        <ReactiveMap
+          {...viewState}
+          attributionControl={{}}
+          id="housingMap"
+          mapStyle={mapStyles.simple}
+          minZoom={props.minZoom}
+          maxZoom={props.maxZoom}
+          onMove={onMove}
+          style={{
+            minHeight: '600px',
+            height: 'auto',
+            fontFamily: 'Marianne, sans-serif',
+            ...props.style
+          }}
+        >
+          <Perimeters
+            id="remaining-perimeters"
+            isVisible={showPerimeters}
             map={map}
-            selected={selected}
-            onClick={select}
+            perimeters={perimeters}
           />
-        ) : (
-          <Points
-            id="housing"
-            points={points}
+          <Perimeters
+            id="excluded-perimeters"
+            backgroundColor={props.hasPerimetersFilter ? '#ffe9e6' : undefined}
+            borderColor={props.hasPerimetersFilter ? '#ce0500' : undefined}
+            isVisible={showPerimeters}
             map={map}
-            selected={selected}
-            onClick={select}
+            perimeters={excludedPerimeters}
           />
-        )}
-        <MapControls
-          clusterize={clusterize}
-          perimeters={showPerimeters}
-          show={props.showMapSettings}
-          onClusterizeChange={setClusterize}
-          onPerimetersChange={setShowPerimeters}
-        />
-        <MapLegend
-          isOpen={isLegendOpen}
-          onClose={() => setIsLegendOpen(false)}
-        />
-        <LegendButtonControl onOpen={() => setIsLegendOpen(true)} />
-        <LayerControl />
-        <NavigationControl
-          showCompass={false}
-          showZoom
-          visualizePitch={false}
-        />
-      </ReactiveMap>
+          <Perimeters
+            id="included-perimeters"
+            backgroundColor={props.hasPerimetersFilter ? '#b8fec9' : undefined}
+            borderColor={props.hasPerimetersFilter ? '#18753c' : undefined}
+            isVisible={showPerimeters}
+            map={map}
+            perimeters={includedPerimeters}
+          />
+          {clusterize ? (
+            <Clusters
+              id="housing"
+              points={points}
+              map={map}
+              selected={selected}
+              onClick={select}
+            />
+          ) : (
+            <Points
+              id="housing"
+              points={points}
+              map={map}
+              selected={selected}
+              onClick={select}
+            />
+          )}
+          <MapControls
+            clusterize={clusterize}
+            perimeters={showPerimeters}
+            show={props.showMapSettings}
+            onClusterizeChange={setClusterize}
+            onPerimetersChange={setShowPerimeters}
+          />
+          <MapLegend
+            isOpen={isLegendOpen}
+            onClose={() => setIsLegendOpen(false)}
+          />
+          <LegendButtonControl onOpen={() => setIsLegendOpen(true)} />
+          <LayerControl />
+          <NavigationControl
+            showCompass={false}
+            showZoom
+            visualizePitch={false}
+          />
+        </ReactiveMap>
       </MapWrapper>
 
       <BuildingAside

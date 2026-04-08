@@ -140,7 +140,7 @@ const OutlineCircleIcon = styled(Box)({
 
 function MapLegend(props: Readonly<Props>) {
   return (
-    <Panel isOpen={props.isOpen}>
+    <Panel isOpen={props.isOpen} role="region" aria-label="Légende de la carte">
       <Stack direction="row" justifyContent="flex-end">
         <Button
           iconId="fr-icon-close-line"
@@ -164,9 +164,7 @@ function MapLegend(props: Readonly<Props>) {
 
         <Stack direction="row" gap="0.5rem" alignItems="center">
           <SquareIcon />
-          <ItemLabel>
-            Carré : Plusieurs logements à l&apos;adresse
-          </ItemLabel>
+          <ItemLabel>Carré : Plusieurs logements à l&apos;adresse</ItemLabel>
         </Stack>
 
         <Stack direction="row" gap="0.5rem" alignItems="center">

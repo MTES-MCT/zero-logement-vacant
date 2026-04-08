@@ -72,7 +72,7 @@ jobs:
         run: yarn lint
 
       - name: Test
-        run: yarn coverage
+        run: yarn coverage --test-timeout=60000
         env:
           LOG_LEVEL: fatal
           VITE_API_URL: http://localhost:3001

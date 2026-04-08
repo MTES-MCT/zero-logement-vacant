@@ -318,7 +318,7 @@ if (ifMatch && ifMatch !== currentETag) {
 **Nouvellement implémenté** :
 - Swagger UI disponible à `/api-docs`
 - Spécification OpenAPI à `/api-docs.json`
-- Désactivé en production par défaut (activer avec `ENABLE_SWAGGER=true`)
+- Désactivé en production par défaut (activer avec `SWAGGER_ENABLED=true`)
 
 **Améliorations futures** :
 

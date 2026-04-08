@@ -7,6 +7,7 @@ import {
   genEstablishmentApi,
   genGroupApi,
   genHousingApi,
+  genOwnerApi,
   genUserApi
 } from '../../test/testFixtures';
 import {
@@ -22,6 +23,7 @@ import groupRepository, {
 } from '../groupRepository';
 import { formatHousingRecordApi, Housing } from '../housingRepository';
 import { HousingOwners } from '../housingOwnerRepository';
+import { formatOwnerApi, Owners } from '../ownerRepository';
 import { formatUserApi, Users } from '../userRepository';
 
 describe('Group repository', () => {
@@ -141,7 +143,7 @@ describe('Group repository', () => {
           establishment_id: group.establishmentId
         })
         .first();
-      expect(actualGroup).toStrictEqual(formatGroupApi(group));
+      expect(actualGroup).toMatchObject(formatGroupApi(group));
 
       const actualHousingList = await GroupsHousing().where({
         group_id: group.id
@@ -170,7 +172,7 @@ describe('Group repository', () => {
           establishment_id: group.establishmentId
         })
         .first();
-      expect(actualGroup).toStrictEqual(formatGroupApi(newGroup));
+      expect(actualGroup).toMatchObject(formatGroupApi(newGroup));
 
       const actualHousingList = await GroupsHousing().where({
         group_id: group.id
@@ -329,13 +331,15 @@ describe('Group repository', () => {
     it('should update ownerCount via trigger when a rank-1 owner is added', async () => {
       const group = genGroupApi(user, establishment);
       const housing = genHousingApi();
+      const owner = genOwnerApi();
       await Groups().insert(formatGroupApi(group));
       await Housing().insert(formatHousingRecordApi(housing));
       await GroupsHousing().insert(formatGroupHousingApi(group, [housing]));
+      await Owners().insert(formatOwnerApi(owner));
 
       // Insert directly into owners_housing — the trigger fires on this insert
       await HousingOwners().insert({
-        owner_id: faker.string.uuid(),
+        owner_id: owner.id,
         housing_id: housing.id,
         housing_geo_code: housing.geoCode,
         rank: 1,

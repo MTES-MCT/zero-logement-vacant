@@ -174,7 +174,6 @@ export function createSourceHousingOwnerProcessor(options: ProcessorOptions) {
         ...added.map<HousingOwnerEventApi>((housingOwner) => ({
           id: uuidv4(),
           type: 'housing:owner-attached',
-          name: 'Propriétaire ajouté au logement',
           nextOld: null,
           nextNew: {
             name: housingOwner.fullName,
@@ -189,7 +188,6 @@ export function createSourceHousingOwnerProcessor(options: ProcessorOptions) {
         ...removed.map<HousingOwnerEventApi>((housingOwner) => ({
           id: uuidv4(),
           type: 'housing:owner-detached',
-          name: 'Propriétaire retiré du logement',
           nextOld: {
             name: housingOwner.fullName,
             rank: housingOwner.rank
@@ -208,7 +206,6 @@ export function createSourceHousingOwnerProcessor(options: ProcessorOptions) {
           return {
             id: uuidv4(),
             type: 'housing:owner-updated',
-            name: 'Propriétaire mis à jour',
             nextOld: {
               name: housingOwner.fullName,
               rank: housingOwner.rank

@@ -93,7 +93,6 @@ export async function removeEvents(
       `${EVENTS_TABLE}.id`,
       `${HOUSING_EVENTS_TABLE}.event_id`
     )
-    .where({ name: 'Changement de propriétaires' })
     .whereRaw(
       `${EVENTS_TABLE}.created_at::date BETWEEN '2024-09-08' AND '2024-09-09'`
     )

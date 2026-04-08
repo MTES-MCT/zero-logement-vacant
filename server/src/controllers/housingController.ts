@@ -364,7 +364,6 @@ const create: RequestHandler<
     {
       id: uuidv4(),
       type: 'housing:created',
-      name: 'Création du logement',
       nextOld: null,
       nextNew: {
         occupancy: OCCUPANCY_LABELS[housing.occupancy],
@@ -374,13 +373,11 @@ const create: RequestHandler<
       createdBy: auth.userId,
       housingGeoCode: housing.geoCode,
       housingId: housing.id,
-      conflict: false
     }
   ];
   const ownerEvents: OwnerEventApi[] = missingOwners.map<OwnerEventApi>(
     (owner) => ({
       id: uuidv4(),
-      name: "Création d'un nouveau propriétaire",
       type: 'owner:created',
       createdAt: new Date().toJSON(),
       createdBy: auth.userId,
@@ -404,7 +401,6 @@ const create: RequestHandler<
       return {
         id: uuidv4(),
         type: 'housing:owner-attached',
-        name: 'Propriétaire ajouté au logement',
         nextOld: null,
         nextNew: {
           name: owner.fullName,
@@ -415,7 +411,6 @@ const create: RequestHandler<
         housingGeoCode: housingOwner.housingGeoCode,
         housingId: housingOwner.housingId,
         ownerId: housingOwner.ownerId,
-        conflict: false
       };
     });
 
@@ -509,7 +504,6 @@ const update: RequestHandler<
     events.push({
       id: uuidv4(),
       type: 'housing:status-updated',
-      name: 'Changement de statut de suivi',
       nextOld: housingStatusDiff.before,
       nextNew: housingStatusDiff.after,
       createdAt: new Date().toJSON(),
@@ -522,7 +516,6 @@ const update: RequestHandler<
     events.push({
       id: uuidv4(),
       type: 'housing:occupancy-updated',
-      name: "Modification du statut d'occupation",
       nextOld: housingOccupancyDiff.before,
       nextNew: housingOccupancyDiff.after,
       createdAt: new Date().toJSON(),
@@ -535,7 +528,6 @@ const update: RequestHandler<
     events.push({
       id: uuidv4(),
       type: 'housing:updated',
-      name: 'Modification du logement',
       nextOld: {
         actualEnergyConsumption: housing.actualEnergyConsumption
       },
@@ -669,7 +661,6 @@ const updateMany: RequestHandler<
         events.push({
           id: uuidv4(),
           type: 'housing:occupancy-updated',
-          name: "Modification du statut d'occupation",
           nextOld: occupancyDiff.before,
           nextNew: occupancyDiff.after,
           createdAt: new Date().toJSON(),
@@ -682,7 +673,6 @@ const updateMany: RequestHandler<
         events.push({
           id: uuidv4(),
           type: 'housing:status-updated',
-          name: 'Changement de statut de suivi',
           nextOld: statusDiff.before,
           nextNew: statusDiff.after,
           createdAt: new Date().toJSON(),
@@ -740,7 +730,6 @@ const updateMany: RequestHandler<
             events: added.map<PrecisionHousingEventApi>((precision) => ({
               id: uuidv4(),
               type: 'housing:precision-attached',
-              name: 'Ajout d’une précision au logement',
               nextOld: null,
               nextNew: {
                 category: precision.category,
@@ -792,7 +781,6 @@ const updateMany: RequestHandler<
             return housings.map((housing) => ({
               id: uuidv4(),
               type: 'housing:document-attached',
-              name: 'Ajout d’un document au logement',
               nextOld: null,
               nextNew: { filename: document.filename },
               createdAt: new Date().toJSON(),

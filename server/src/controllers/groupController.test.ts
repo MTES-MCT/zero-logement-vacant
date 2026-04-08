@@ -449,7 +449,6 @@ describe('Group API', () => {
           Partial<EventRecordDBO<'housing:group-attached'>>
         >({
           type: 'housing:group-attached',
-          name: 'Ajout dans un groupe',
           next_old: null,
           next_new: { name: payload.title },
           created_by: user.id
@@ -846,7 +845,6 @@ describe('Group API', () => {
           Partial<EventRecordDBO<'housing:group-detached'>>
         >({
           type: 'housing:group-detached',
-          name: 'Retrait d’un groupe',
           next_old: { name: group.title },
           next_new: null,
           created_by: user.id
@@ -934,7 +932,6 @@ describe('Group API', () => {
         .where({ type: 'housing:group-removed' });
       expect(actual.length).toBeGreaterThan(0);
       expect(actual).toPartiallyContain({
-        name: 'Suppression d’un groupe',
         type: 'housing:group-removed',
         created_by: user.id,
         group_id: null
@@ -992,7 +989,6 @@ describe('Group API', () => {
           });
         expect(actual.length).toBeGreaterThan(0);
         expect(actual).toPartiallyContain({
-          name: 'Archivage d’un groupe',
           type: 'housing:group-archived',
           created_by: user.id,
           group_id: group.id

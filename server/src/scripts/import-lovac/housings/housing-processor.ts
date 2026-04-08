@@ -54,7 +54,6 @@ export function createHousingProcessor(opts: ProcessorOptions) {
                 kind: 'create',
                 value: {
                   id: uuidv4(),
-                  name: 'Changement de statut d’occupation',
                   type: 'housing:occupancy-updated',
                   // Retain only the interesting values
                   nextOld: { occupancy: OCCUPANCY_LABELS[housing.occupancy] },
@@ -70,7 +69,6 @@ export function createHousingProcessor(opts: ProcessorOptions) {
                 kind: 'create',
                 value: {
                   id: uuidv4(),
-                  name: 'Changement de statut de suivi',
                   type: 'housing:status-updated',
                   // Retain only the interesting values
                   nextOld: {

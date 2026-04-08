@@ -260,7 +260,6 @@ const create: RequestHandler<
   const events: ReadonlyArray<CampaignHousingEventApi> =
     houses.map<CampaignHousingEventApi>((housing) => ({
       id: uuidv4(),
-      name: 'Ajout dans une campagne',
       type: 'housing:campaign-attached',
       nextOld: null,
       nextNew: {
@@ -376,7 +375,6 @@ const createCampaignFromGroup: RequestHandler<
     });
     const events = housings.map<CampaignHousingEventApi>((housing) => ({
       id: uuidv4(),
-      name: 'Ajout dans une campagne',
       type: 'housing:campaign-attached',
       nextOld: null,
       nextNew: {
@@ -489,7 +487,6 @@ const createFromGroup: RequestHandler<
   const campaignHousingEvents = housings.map<CampaignHousingEventApi>(
     (housing) => ({
       id: uuidv4(),
-      name: 'Ajout dans une campagne',
       type: 'housing:campaign-attached',
       nextOld: null,
       nextNew: {
@@ -510,7 +507,6 @@ const createFromGroup: RequestHandler<
     (housing) => ({
       id: uuidv4(),
       type: 'housing:status-updated',
-      name: 'Changement de statut de suivi',
       nextOld: {
         status: HOUSING_STATUS_LABELS[HousingStatus.NEVER_CONTACTED]
       },
@@ -691,7 +687,6 @@ const update: RequestHandler<
     if (campaign.status !== updated.status) {
       const campaignEvent: CampaignEventApi = {
         id: uuidv4(),
-        name: 'Modification de la campagne',
         type: 'campaign:updated',
         nextOld: {
           status: CAMPAIGN_STATUS_LABELS[campaign.status],
@@ -733,7 +728,6 @@ const update: RequestHandler<
           eventRepository.insertManyHousingEvents(
             housings.map((housing) => ({
               id: uuidv4(),
-              name: 'Changement de statut de suivi',
               type: 'housing:status-updated',
               nextOld: {
                 status: HOUSING_STATUS_LABELS[housing.status],
@@ -792,7 +786,6 @@ const removeCampaign: RequestHandler<
     (housing) => ({
       id: uuidv4(),
       type: 'housing:campaign-removed',
-      name: 'Retrait d’une campagne',
       nextOld: { name: campaign.title },
       nextNew: null,
       createdAt: new Date().toJSON(),
@@ -813,7 +806,6 @@ const removeCampaign: RequestHandler<
     .map<HousingEventApi>((housing) => ({
       id: uuidv4(),
       type: 'housing:status-updated',
-      name: 'Changement de statut de suivi',
       nextOld: {
         status: 'waiting',
         subStatus: housing.subStatus
@@ -890,7 +882,6 @@ const removeHousing: RequestHandler<
   const events = housings.map<CampaignHousingEventApi>((housing) => ({
     id: uuidv4(),
     type: 'housing:campaign-detached',
-    name: 'Retrait d’une campagne',
     nextOld: { name: campaign.title },
     nextNew: null,
     createdAt: new Date().toJSON(),

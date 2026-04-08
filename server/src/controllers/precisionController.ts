@@ -108,7 +108,6 @@ const updatePrecisionsByHousing: RequestHandler<
     ...added.map<PrecisionHousingEventApi>((precision) => ({
       id: uuidv4(),
       type: 'housing:precision-attached',
-      name: 'Ajout d’une précision au logement',
       nextOld: null,
       nextNew: {
         category: precision.category,
@@ -123,7 +122,6 @@ const updatePrecisionsByHousing: RequestHandler<
     ...removed.map<PrecisionHousingEventApi>((precision) => ({
       id: uuidv4(),
       type: 'housing:precision-detached',
-      name: 'Retrait d’une précision du logement',
       nextOld: {
         category: precision.category,
         label: precision.label

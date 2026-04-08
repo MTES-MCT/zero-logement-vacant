@@ -209,7 +209,6 @@ const create: RequestHandler<
   await eventRepository.insertManyOwnerEvents([
     {
       id: uuidv4(),
-      name: "Création d'un nouveau propriétaire",
       type: 'owner:created',
       createdAt: new Date().toJSON(),
       createdBy: auth.userId,
@@ -297,7 +296,6 @@ const update: RequestHandler<
   if (changed.length > 0) {
     events.push({
       id: uuidv4(),
-      name: 'Propriétaire mis à jour',
       type: 'owner:updated',
       nextOld: {
         ...before,
@@ -432,7 +430,6 @@ const updateHousingOwners: RequestHandler<
     ...added.map<HousingOwnerEventApi>((housingOwner) => ({
       id: uuidv4(),
       type: 'housing:owner-attached',
-      name: 'Propriétaire ajouté au logement',
       nextOld: null,
       nextNew: {
         name: housingOwner.fullName,
@@ -447,7 +444,6 @@ const updateHousingOwners: RequestHandler<
     ...removed.map<HousingOwnerEventApi>((housingOwner) => ({
       id: uuidv4(),
       type: 'housing:owner-detached',
-      name: 'Propriétaire retiré du logement',
       nextOld: {
         name: housingOwner.fullName,
         rank: housingOwner.rank
@@ -466,7 +462,6 @@ const updateHousingOwners: RequestHandler<
       return {
         id: uuidv4(),
         type: 'housing:owner-updated',
-        name: 'Propriétaire mis à jour',
         nextOld: {
           name: housingOwner.fullName,
           rank: housingOwner.rank

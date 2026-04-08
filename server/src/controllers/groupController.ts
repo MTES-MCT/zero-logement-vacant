@@ -103,9 +103,7 @@ const create: RequestHandler<never, GroupDTO, GroupPayloadDTO, never> = async (
   };
   const events = housings.map<GroupHousingEventApi>((housing) => ({
     id: uuidv4(),
-    name: 'Ajout dans un groupe',
     type: 'housing:group-attached',
-    conflict: false,
     nextOld: null,
     nextNew: {
       name: group.title
@@ -264,9 +262,7 @@ const addHousing: RequestHandler<
 
   const events = diff.map<GroupHousingEventApi>((housing) => ({
     id: uuidv4(),
-    name: 'Ajout dans un groupe',
     type: 'housing:group-attached',
-    conflict: false,
     nextOld: null,
     nextNew: {
       name: group.title
@@ -353,9 +349,7 @@ const removeHousing: RequestHandler<
 
   const events = removingHousingList.map<GroupHousingEventApi>((housing) => ({
     id: uuidv4(),
-    name: 'Retrait d’un groupe',
     type: 'housing:group-detached',
-    conflict: false,
     nextOld: {
       name: group.title
     },
@@ -422,9 +416,7 @@ const remove: RequestHandler<
   if (campaigns.length > 0) {
     const events = housingList.map<GroupHousingEventApi>((housing) => ({
       id: uuidv4(),
-      name: 'Archivage d’un groupe',
       type: 'housing:group-archived',
-      conflict: false,
       nextOld: {
         name: group.title
       },
@@ -449,9 +441,7 @@ const remove: RequestHandler<
 
   const events = housingList.map<GroupHousingEventApi>((housing) => ({
     id: uuidv4(),
-    name: 'Suppression d’un groupe',
     type: 'housing:group-removed',
-    conflict: false,
     nextOld: {
       name: group.title
     },

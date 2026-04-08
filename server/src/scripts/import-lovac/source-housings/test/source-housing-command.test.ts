@@ -454,14 +454,12 @@ describe('Source housing command', () => {
         >({
           housing_geo_code: actualHousing.geo_code,
           housing_id: actualHousing.id,
-          name: 'Changement de statut d’occupation'
         });
         expect(actualEvents).toPartiallyContain<
           Partial<EventRecordDBO<any> & HousingEventDBO>
         >({
           housing_geo_code: actualHousing.geo_code,
           housing_id: actualHousing.id,
-          name: 'Changement de statut de suivi'
         });
       });
     });
@@ -501,14 +499,12 @@ describe('Source housing command', () => {
         >({
           housing_geo_code: actualHousing.geo_code,
           housing_id: actualHousing.id,
-          name: 'Changement de statut d’occupation'
         });
         expect(actualEvents).toPartiallyContain<
           Partial<EventRecordDBO<any> & HousingEventDBO>
         >({
           housing_geo_code: actualHousing.geo_code,
           housing_id: actualHousing.id,
-          name: 'Changement de statut de suivi'
         });
       });
     });

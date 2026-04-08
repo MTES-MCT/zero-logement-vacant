@@ -151,45 +151,6 @@ export function hasCoordinates(
   );
 }
 
-export const OccupancyKind = {
-  Vacant: 'V',
-  Rent: 'L',
-  ShortRent: 'B',
-  PrimaryResidence: 'P',
-  SecondaryResidence: 'RS',
-  CommercialOrOffice: 'T',
-  Dependency: 'N',
-  DemolishedOrDivided: 'D',
-  Others: 'A'
-} as const;
-
-export type OccupancyKind = (typeof OccupancyKind)[keyof typeof OccupancyKind];
-
-export const OccupancyUnknown = 'inconnu';
-
-export type OccupancyKindUnknown = typeof OccupancyUnknown;
-
-/**
- * @deprecated See {@link OCCUPANCY_LABELS}
- */
-export const OccupancyKindLabels = {
-  [OccupancyKind.Vacant]: 'Vacant',
-  [OccupancyKind.Rent]: 'En location',
-  [OccupancyKind.ShortRent]: 'Meublé de tourisme',
-  [OccupancyKind.PrimaryResidence]: 'Occupé par le propriétaire',
-  [OccupancyKind.SecondaryResidence]: 'Résidence secondaire non louée',
-  [OccupancyKind.CommercialOrOffice]: 'Local commercial ou bureau',
-  [OccupancyKind.Dependency]: 'Dépendance',
-  [OccupancyKind.DemolishedOrDivided]: 'Local démoli ou divisé',
-  [OccupancyKind.Others]: 'Autres',
-  [OccupancyUnknown]: 'Pas d’information'
-};
-
-export const OccupancyKindBadgeLabels = {
-  ...OccupancyKindLabels,
-  [OccupancyKind.Others]: 'Occupation : Autres'
-};
-
 export function getOccupancy(
   occupancy: Occupancy | null | undefined
 ): Occupancy {

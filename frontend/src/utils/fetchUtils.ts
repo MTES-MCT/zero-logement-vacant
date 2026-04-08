@@ -78,10 +78,6 @@ function abortSafely(id: string): void {
   controller?.abort();
 }
 
-export function toJSON(response: Response): any {
-  return response.json();
-}
-
 export interface AbortOptions {
   abortable?: boolean;
 }
@@ -90,7 +86,3 @@ export const normalizeUrlSegment = (segment: string) =>
   kebabCase(segment.replaceAll(/\(.*\)/g, ''))
     .normalize('NFD')
     .replace(/[\u0300-\u036f]/g, '');
-
-export interface AbortOptions {
-  abortable?: boolean;
-}

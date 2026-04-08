@@ -1,5 +1,5 @@
 import validator from 'validator';
-import { body, param, ValidationChain } from 'express-validator';
+import { param, ValidationChain } from 'express-validator';
 import { Predicate } from '@zerologementvacant/utils';
 
 type Refinement = (value: unknown) => boolean;
@@ -14,16 +14,6 @@ export function isArrayOf(refine: Refinement) {
 
 export function every<T>(predicate: Predicate<T>) {
   return (values: T[]): boolean => values.every(predicate);
-}
-
-type Coerce<T> = (value: string) => T;
-
-export function toArrayOf<T>(coerce: Coerce<T>) {
-  return (values: string[]): T[] => values.map(coerce);
-}
-
-export function toNumber(value: string): number {
-  return Number(value);
 }
 
 export function isString(value: unknown): value is string {
@@ -61,30 +51,6 @@ export function isGeoCode(value: string): boolean {
     validator.isLength(value, { min: 5, max: 5 })
   );
 }
-
-export function hasKeys(value: Record<string, unknown>): boolean {
-  return Object.keys(value).length > 0;
-}
-
-export const emailValidator = () =>
-  body('email').isEmail().withMessage('Must be an email');
-
-export const PASSWORD_MIN_LENGTH = 8;
-
-export const passwordCreationValidator = (
-  field = 'password'
-): ValidationChain =>
-  body(field)
-    .isStrongPassword({
-      minLength: PASSWORD_MIN_LENGTH,
-      minNumbers: 1,
-      minUppercase: 1,
-      minSymbols: 0,
-      minLowercase: 1
-    })
-    .withMessage(
-      `Must be at least ${PASSWORD_MIN_LENGTH} characters long, have 1 number, 1 uppercase, 1 lowercase`
-    );
 
 export const isUUIDParam = (paramField: string): ValidationChain =>
   param(paramField).isUUID().notEmpty().withMessage('Must be a UUID');

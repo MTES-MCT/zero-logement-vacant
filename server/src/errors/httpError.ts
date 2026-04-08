@@ -36,6 +36,3 @@ export function isHttpError(error: Error): error is HttpError {
   return 'status' in error;
 }
 
-export function isClientError(error: HttpError): boolean {
-  return 400 <= error.status && error.status < 500;
-}

@@ -33,10 +33,6 @@ export function toNoteDTO(note: NoteApi): NoteDTO {
   };
 }
 
-export interface OwnerNoteApi extends NoteApi {
-  ownerId: string;
-}
-
 export interface HousingNoteApi extends NoteApi {
   housingId: string;
   housingGeoCode: string;
@@ -47,3 +43,4 @@ export function isUserModified<Note extends NoteApi>(note: Note): boolean {
   const isBeta = /@(zerologementvacant\.)?beta\.gouv\.fr$/;
   return !isBeta.test(note.creator.email);
 }
+

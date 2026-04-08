@@ -1,4 +1,4 @@
-import { UserAccountDTO, UserDTO, UserRole } from '@zerologementvacant/models';
+import { UserAccountDTO, UserDTO } from '@zerologementvacant/models';
 
 export const SALT_LENGTH = 10;
 
@@ -71,19 +71,3 @@ export interface TokenPayload {
   establishmentId: string;
 }
 
-// Keep the old enum for backward compatibility but mark as deprecated
-/**
- * @deprecated Use UserRole from @zerologementvacant/models instead
- */
-export enum UserRoles {
-  Usual,
-  Admin,
-  Visitor
-}
-
-// Map local UserRoles to imported UserRole
-export const userRolesToUserRole = {
-  [UserRoles.Usual]: UserRole.USUAL,
-  [UserRoles.Admin]: UserRole.ADMIN,
-  [UserRoles.Visitor]: UserRole.VISITOR
-};

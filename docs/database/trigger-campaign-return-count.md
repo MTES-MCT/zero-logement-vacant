@@ -428,6 +428,49 @@ EXECUTE FUNCTION update_campaign_owner_count();
 
 ---
 
+## Group housing count and owner count
+
+**Introduced in:** migration `20260407174838_groups-add-counts.ts`
+
+### What are these columns?
+
+| Column | Type | Description |
+|--------|------|-------------|
+| `housing_count` | `integer` | Number of housings attached to the group via `groups_housing` |
+| `owner_count` | `integer` | Number of distinct primary owners (`rank = 1`) across those housings |
+
+These replace a `LEFT JOIN LATERAL COUNT(DISTINCT …)` that was computed on every listing request, causing ~8s latency for large groups (e.g. 90k housings).
+
+### Two-trigger design
+
+Same pattern as the campaign counts (`trg_update_campaign_counts` / `trg_update_campaign_owner_count`).
+
+| Trigger | Table | Timing | Updates |
+|---------|-------|--------|---------|
+| `trg_update_group_counts` | `groups_housing` | `AFTER INSERT OR DELETE` | `housing_count`, `owner_count` (full recompute) |
+| `trg_update_group_owner_count` | `owners_housing` | `AFTER INSERT OR DELETE OR UPDATE OF rank` | `owner_count` only (full recompute) |
+
+Both triggers perform a **full recompute** rather than incremental `±1` because group membership changes are infrequent and correctness is simpler to guarantee.
+
+### `trg_update_group_counts`
+
+**Table:** `groups_housing` — **Timing:** `AFTER INSERT OR DELETE FOR EACH ROW`
+
+Resolves `v_group_id` as `COALESCE(NEW.group_id, OLD.group_id)` to handle both INSERT and DELETE. Recomputes `housing_count` as `COUNT(*) FROM groups_housing WHERE group_id = v_group_id` and `owner_count` as `COUNT(DISTINCT oh.owner_id)` joining `owners_housing` on rank=1.
+
+### `trg_update_group_owner_count`
+
+**Table:** `owners_housing` — **Timing:** `AFTER INSERT OR DELETE OR UPDATE OF rank FOR EACH ROW`
+
+**Early exit conditions (no DB writes):**
+- INSERT with `rank != 1`
+- DELETE with `rank != 1`
+- UPDATE where neither `OLD.rank` nor `NEW.rank` is 1
+
+Iterates over all `group_id` values in `groups_housing` that contain the affected housing and recomputes `owner_count` for each.
+
+---
+
 ## Full trigger inventory
 
 | Trigger | Table | Timing | Function | Updates |
@@ -437,3 +480,5 @@ EXECUTE FUNCTION update_campaign_owner_count();
 | `trg_recompute_return_count_on_housing_status_change` | `fast_housing` | `AFTER UPDATE OF status` | `recompute_return_count_on_housing_status_change()` | `return_count` (full recompute, boundary crossings only) |
 | `trg_update_campaign_counts` | `campaigns_housing` | `AFTER INSERT OR DELETE` | `update_campaign_counts()` | `housing_count`, `owner_count`, `return_count` (full recompute, status-filtered) |
 | `trg_update_campaign_owner_count` | `owners_housing` | `AFTER INSERT OR DELETE OR UPDATE OF rank` | `update_campaign_owner_count()` | `owner_count` (full recompute) |
+| `trg_update_group_counts` | `groups_housing` | `AFTER INSERT OR DELETE` | `update_group_counts()` | `housing_count`, `owner_count` (full recompute) |
+| `trg_update_group_owner_count` | `owners_housing` | `AFTER INSERT OR DELETE OR UPDATE OF rank` | `update_group_owner_count()` | `owner_count` (full recompute) |

@@ -1,5 +1,8 @@
 post-start = [
   { copy-env = "wt step copy-ignored" },
-  { setup-dbs = "bash scripts/wt-setup-dbs.sh '{{ branch | sanitize_db }}'" },
+  { setup-dbs = "bash scripts/wt-setup-dbs.sh {{ branch | sanitize_db }}" },
   { install = "yarn install" }
 ]
+
+[pre-remove]
+teardown-dbs = "bash scripts/wt-teardown-dbs.sh {{ branch | sanitize_db }}"

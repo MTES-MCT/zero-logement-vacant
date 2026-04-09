@@ -2,33 +2,37 @@ version: 2
 
 models:
   - name: int_zlovac_housing
+    description: "Gold Housing table for LOVAC 2026 - maps to Table Housing_26 specification."
     config:
       materialized: view
-      meta:
-        +enabled: table
   - name: int_zlovac
+    description: "Base structured model from LOVAC 2026 with all fields standardized."
     config:
-      materialized: table
-      meta:
-        +enabled: false
+      materialized: view
   - name: int_zlovac_unique_owners
     config:
       materialized: view
-      meta:
-        +enabled: false
   - name: int_zlovac_owners
+    description: "Gold Owners table for LOVAC 2026 - maps to Table Owners_26 specification."
     config:
-      materialized: table
-      meta:
-        +enabled: false
+      materialized: view
   - name: int_zlovac_owner_housing
-    description: "Description de ce que fait le modèle lovac, par exemple, analyse des locaux vacants."
+    description: "Gold Owners Housing table for LOVAC 2026 - maps to Table Owners Housing_26 specification."
     config:
-      meta:
-        +enabled: false
+      materialized: view
   - name: int_zlovac_owner_housing_scored
+    description: "Owner-housing matching with fuzzy scoring to determine most likely owner."
+    config:
+      materialized: view
+  - name: int_zlovac_buildings
+    description: "Gold Buildings table for LOVAC 2026 - maps to Table Buildings_26 specification."
+    config:
+      materialized: view
+  - name: int_zlovac_evol_housing_owners
+    description: "Identifies housing where ownership changed between LOVAC 2025 and 2026 (account or ownership order changes)."
     config:
       materialized: table
-      tags: ['python']
-      meta:
-        +enabled: false
+  - name: int_zlovac_owners_rematched
+    description: "Matches owners between ZLOVAC and ZFF data based on exact fullname and address matches."
+    config:
+      materialized: view

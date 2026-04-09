@@ -11,3 +11,4 @@ sources:
       - name: cerema_lovac_2023_raw
       - name: cerema_lovac_2024_raw
       - name: cerema_lovac_2025_raw
+      - name: cerema_lovac_2026_raw

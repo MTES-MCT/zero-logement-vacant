@@ -131,6 +131,33 @@ WITH structured_data AS (
         6 AS rank
     FROM {{ ref('int_zlovac') }}
     WHERE ff_owner_6_fullname IS NOT NULL
+
+    UNION ALL
+
+    -- Housing without any owner
+    SELECT
+        local_id,
+        owner_fullname,
+        owner_postal_code,
+        owner_raw_address,
+        owner_city,
+        mutation_date,
+        NULL AS ff_owner_fullname,
+        NULL AS ff_owner_postal_code,
+        NULL::DATE AS ff_owner_birth_date,
+        NULL AS ff_owner_raw_address,
+        NULL AS ff_owner_idprodroit,
+        NULL AS ff_owner_idpersonne,
+        NULL AS ff_owner_locprop,
+        NULL AS ff_owner_property_rights,
+        0 AS rank
+    FROM {{ ref('int_zlovac') }}
+    WHERE ff_owner_1_fullname IS NULL
+      AND ff_owner_2_fullname IS NULL
+      AND ff_owner_3_fullname IS NULL
+      AND ff_owner_4_fullname IS NULL
+      AND ff_owner_5_fullname IS NULL
+      AND ff_owner_6_fullname IS NULL
 ),
 
 -- Note: In SQL we can't directly reproduce the fuzzy matching that's done in Python
@@ -292,5 +319,3 @@ SELECT
     final_owner_score,
     final_owner_reason
 FROM rank_processed
--- Only keep records with a score > 0, as in the Python code
-WHERE final_owner_score > 0

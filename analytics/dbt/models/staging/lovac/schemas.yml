@@ -36,3 +36,8 @@ models:
       meta:
         +schema: stg
         +enabled: true
+  - name: stg_lovac_2026
+    config:
+      meta:
+        +schema: stg
+        +enabled: true

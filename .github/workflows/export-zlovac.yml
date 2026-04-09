@@ -1,0 +1,102 @@
+name: Export ZLOVAC to S3
+
+on:
+  workflow_dispatch:
+    inputs:
+      date:
+        description: "Export date prefix (YYYYMMDD). Defaults to today."
+        required: false
+        type: string
+      bucket:
+        description: "S3 bucket name"
+        required: false
+        type: string
+        default: "zlv-production"
+      rebuild_models:
+        description: "Run dbt build before export (rebuilds views)"
+        required: false
+        type: boolean
+        default: true
+
+jobs:
+  export-zlovac:
+    name: Build & Export ZLOVAC JSONL
+    runs-on: ubuntu-latest
+    env:
+      ZLV_MD_TOKEN: ${{ secrets.MD_TOKEN }}
+      CELLAR_KEY_ID: ${{ secrets.CELLAR_KEY_ID }}
+      CELLAR_KEY_SECRET: ${{ secrets.CELLAR_KEY_SECRET }}
+      CELLAR_HOST: ${{ vars.CELLAR_HOST_URL || 'cellar-c2.services.clever-cloud.com' }}
+      CELLAR_REGION: ${{ vars.CELLAR_REGION || 'us-east-1' }}
+      BUCKET: ${{ inputs.bucket || 'zlv-production' }}
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set export date
+        id: date
+        env:
+          INPUT_DATE: ${{ inputs.date }}
+        run: |
+          if [ -n "$INPUT_DATE" ]; then
+            echo "value=$INPUT_DATE" >> "$GITHUB_OUTPUT"
+          else
+            echo "value=$(date +%Y%m%d)" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Install uv
+        uses: astral-sh/setup-uv@v5
+
+      - name: Set up Python
+        run: uv python install 3.11
+
+      - name: Install dbt
+        run: uv tool install dbt-core --with dbt-duckdb
+
+      - name: Install dbt packages
+        working-directory: analytics/dbt
+        run: dbt deps
+
+      - name: Build ZLOVAC models
+        if: inputs.rebuild_models
+        working-directory: analytics/dbt
+        run: |
+          dbt run \
+            --target prod \
+            --select "stg_zlovac+ int_zlovac+ int_zlovac_housing int_zlovac_owners int_zlovac_owner_housing int_zlovac_buildings"
+
+      - name: Install DuckDB CLI
+        run: |
+          curl -fsSL https://github.com/duckdb/duckdb/releases/download/v1.3.0/duckdb_cli-linux-amd64.zip -o duckdb.zip
+          unzip duckdb.zip
+          chmod +x duckdb
+          sudo mv duckdb /usr/local/bin/
+
+      - name: Export ZLOVAC tables as JSONL to S3
+        env:
+          EXPORT_DATE: ${{ steps.date.outputs.value }}
+        run: |
+          S3_PREFIX="s3://${BUCKET}/production/${EXPORT_DATE}"
+
+          echo "Exporting ZLOVAC tables to ${S3_PREFIX}/"
+
+          duckdb "md:dwh?motherduck_token=${ZLV_MD_TOKEN}" <<SQL
+            INSTALL httpfs;
+            LOAD httpfs;
+
+            CREATE SECRET cellar_secret (
+              TYPE S3,
+              KEY_ID '${CELLAR_KEY_ID}',
+              SECRET '${CELLAR_KEY_SECRET}',
+              ENDPOINT '${CELLAR_HOST}',
+              REGION '${CELLAR_REGION}'
+            );
+
+            COPY (SELECT * FROM main_int.int_zlovac_housing) TO '${S3_PREFIX}/zff_housings.jsonl';
+            COPY (SELECT * FROM main_int.int_zlovac_owners) TO '${S3_PREFIX}/zff_owners.jsonl';
+            COPY (SELECT * FROM main_int.int_zlovac_owner_housing) TO '${S3_PREFIX}/zff_owner_housing.jsonl';
+            COPY (SELECT * FROM main_int.int_zlovac_buildings) TO '${S3_PREFIX}/zff_buildings.jsonl';
+          SQL
+
+          echo "Export complete: ${S3_PREFIX}/"

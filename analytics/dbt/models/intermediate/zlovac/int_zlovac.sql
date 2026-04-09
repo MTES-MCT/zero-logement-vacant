@@ -1,36 +1,77 @@
 -- int_zlovac.sql
--- This model is used to structure the data from the ZLV database.
--- It is used to prepare the data for the analysis.
+-- This model structures the data from the LOVAC 2026 source for the ZLV pipeline.
+-- It maps raw LOVAC/FF fields to standardized column names.
+-- Note: Heavy geometry columns (geomrnb, ff_geomloc, ban_geom) are excluded
+-- to fit MotherDuck Pulse tier memory limits. They are joined back in int_zlovac_housing (view).
+-- Additional raw fields (loc_voie, libcom, ff_dvltrt, etc.) are available via int_lovac_fil_2026.
 
-FROM {{ ref ("int_lovac_fil_2025") }}
-SELECT 
+FROM {{ ref ("int_lovac_fil_2026") }}
+SELECT
+        -- Metadata
         annee as data_year,
         ff_millesime,
+        'lovac-2026' as data_file_years,
+
+        -- Local identification
         invariant,
         ff_idlocal as local_id,
         ff_idbat as building_id,
         ff_idpar as plot_id,
         ff_idsec as section_id,
-        loc_num, -- TODO: Concatener loc_num + loc_voie + libvoie + libcom
+
+        -- Local localisation
+        loc_num,
+        loc_voie,
+        libvoie,
+        libcom,
         ban_result_score,
         ban_result_label,
+        ban_result_postcode as ban_postcode,
         ban_result_id,
         idcom,
+        intercommunalite,
         TRY_CAST(ban_latitude as DOUBLE) as ban_latitude,
         TRY_CAST(ban_longitude as DOUBLE) as ban_longitude,
         REGEXP_REPLACE(
-            TRIM(REGEXP_REPLACE(libvoie || ' ' || libcom, '^\s*0+', '')),
+            TRIM(REGEXP_REPLACE(
+                CONCAT_WS(' ',
+                    NULLIF(TRIM(CAST(loc_num AS VARCHAR)), ''),
+                    NULLIF(TRIM(loc_voie), ''),
+                    NULLIF(TRIM(libvoie), ''),
+                    NULLIF(TRIM(libcom), '')
+                ),
+                '^\s*0+', ''
+            )),
             ' {2,}',
             ' '
         ) as dgfip_address,
-        CONCAT_WS(LTRIM(TRIM(libvoie), '0'), TRIM(libcom)) as raw_address,
-        LPAD(ccodep, 2, '0') || LPAD(commune, 3, '0') as geo_code,
-        TRY_CAST(ff_y as DOUBLE) as y,
-        TRY_CAST(ff_x as DOUBLE) as x,
+        CONCAT_WS(' ', LTRIM(TRIM(libvoie), '0'), TRIM(libcom)) as raw_address,
+        idcom as geo_code,
         TRY_CAST(ff_y_4326 as DOUBLE) as latitude,
         TRY_CAST(ff_x_4326 as DOUBLE) as longitude,
-        ff_dcapec2 as cadastral_classification,
 
+        -- Geolocation (RNB > FF > BAN)
+        rnb_id,
+        rnb_id_score,
+        ff_rnb_emp as rnb_emp,
+        geomrnb,
+        ff_geomloc,
+        ban_geom,
+        CASE
+            WHEN geomrnb IS NOT NULL THEN geomrnb
+            WHEN ff_geomloc IS NOT NULL THEN ff_geomloc
+            WHEN ban_geom IS NOT NULL THEN ban_geom
+            ELSE NULL
+        END AS geolocation,
+        CASE
+            WHEN geomrnb IS NOT NULL THEN 'bati-rnb'
+            WHEN ff_geomloc IS NOT NULL THEN 'parcelle-ff'
+            WHEN ban_geom IS NOT NULL THEN 'adresse-ban'
+            ELSE NULL
+        END AS geolocation_source,
+
+        -- Local characteristics
+        ff_dcapec2 as cadastral_classification,
         nature as housing_kind,
         ff_npiece_p2 as rooms_count,
         COALESCE(ff_dcapec2) > 6
@@ -45,21 +86,35 @@ SELECT
             else 0
         end as building_year,
         FLOOR(ff_stoth) as living_area,
-        refcad as cadastral_reference,
+        ff_slocal,
+        ff_dcntpa as plot_area,
+        ff_ndroit as beneficiary_count,
+        batloc as building_location,
+        ff_ctpdl as ownership_kind,
+
+        -- Local usage
+        vlcad as rental_value,
+        CAST(vl_revpro as INTEGER) as vl_revpro,
+        ff_dvltrt,
+        aff,
+        anrefthlv,
+        txtlv,
+        potentiel_tlv_thlv,
+        case
+            when potentiel_tlv_thlv = '*' then TRUE
+            else FALSE
+        end as taxed,
+        ff_ccthp,
+        ffh_ccthp,
+        debutvacance as vacancy_start_year,
+        cer_h1767,
+        distance_ban_ff,
+
+        -- Local mutation
         TRY_STRPTIME(anmutation, '{{ var("dateFormat") }}') as mutation_date,
         ff_jdatat,
         ffh_jdatat,
-        potentiel_tlv_thlv as taxed,
-        ff_ndroit as beneficiary_count,
-        batloc as building_location,
-        vlcad as rental_value,
-        ff_ctpdl as ownership_kind,
-        ff_ccthp,
-        TRY_CAST(groupe as INTEGER) as groupe,
-        debutvacance as vacancy_start_year,
-        aff,
-        CAST(vl_revpro as INTEGER) as vl_revpro,
-        potentiel_tlv_thlv,
+
         -- DVF
         dvf_datemut,
         dvf_nblocmut,
@@ -73,8 +128,11 @@ SELECT
         dvf_filtre,
         dvf_codtypprov,
         dvf_codtypproa,
-        -- Owner
+
+        -- Owner (1767 source)
         proprietaire as raw_owner_fullname,
+        cer_gestionnaire,
+        "cer_propriétaire" as cer_proprietaire,
         case
             when
                 TRIM(proprietaire) <> ''
@@ -99,7 +157,13 @@ SELECT
         adresse4 as owner_adresse4,
         NULLIF(TRIM(adresse4), '') as owner_city,
         REGEXP_EXTRACT(adresse4, '\d{5}') as owner_postal_code,
-        -- FF owners
+        TRY_CAST(groupe as INTEGER) as groupe,
+        CASE
+            WHEN TRIM(groupe::TEXT) = '' THEN 'Particulier'
+            ELSE 'Autre'
+        END AS owner_kind,
+
+        -- FF owners (1 to 6)
         cer_ff_adresse_1 as ff_owner_1_raw_address,
         cer_ff_adresse_2 as ff_owner_2_raw_address,
         cer_ff_adresse_3 as ff_owner_3_raw_address,
@@ -154,6 +218,18 @@ SELECT
             as ff_owner_5_birth_date,
         TRY_STRPTIME(CAST(ff_jdatnss_6 as VARCHAR), '{{ var("dateFormat") }}')
             as ff_owner_6_birth_date,
+        ff_dldnss_1 as ff_owner_1_birth_place,
+        ff_dldnss_2 as ff_owner_2_birth_place,
+        ff_dldnss_3 as ff_owner_3_birth_place,
+        ff_dldnss_4 as ff_owner_4_birth_place,
+        ff_dldnss_5 as ff_owner_5_birth_place,
+        ff_dldnss_6 as ff_owner_6_birth_place,
+        cer_nom_usage_1 as ff_owner_1_username,
+        cer_nom_usage_2 as ff_owner_2_username,
+        cer_nom_usage_3 as ff_owner_3_username,
+        cer_nom_usage_4 as ff_owner_4_username,
+        cer_nom_usage_5 as ff_owner_5_username,
+        cer_nom_usage_6 as ff_owner_6_username,
         ff_catpro2txt_1 as ff_owner_1_kind,
         ff_catpro2txt_2 as ff_owner_2_kind,
         ff_catpro2txt_3 as ff_owner_3_kind,
@@ -183,8 +259,4 @@ SELECT
         ff_ccogrm_3 as ff_owner_3_entity,
         ff_ccogrm_4 as ff_owner_4_entity,
         ff_ccogrm_5 as ff_owner_5_entity,
-        ff_ccogrm_6 as ff_owner_6_entity,
-        CASE
-        WHEN TRIM (groupe::TEXT) = '' THEN 'Particulier'
-        ELSE 'Autre'
-        END AS owner_kind
+        ff_ccogrm_6 as ff_owner_6_entity

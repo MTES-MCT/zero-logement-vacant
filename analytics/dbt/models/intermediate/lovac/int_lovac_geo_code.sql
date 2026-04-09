@@ -1,4 +1,31 @@
-WITH vacancies_2025 AS (
+WITH vacancies_2026 AS (
+    SELECT
+        geo_code,
+        COUNT(
+            CASE WHEN data_year = 2026 AND vacancy_start_year = 2024 THEN 1 END
+        ) AS vac_2026_1an,
+        COUNT(
+            CASE WHEN data_year = 2026 AND vacancy_start_year = 2023 THEN 1 END
+        ) AS vac_2026_2ans,
+        COUNT(
+            CASE WHEN data_year = 2026 AND vacancy_start_year <= 2023 THEN 1 END
+        ) AS vac_2026_plus_2ans,
+        COUNT(
+            CASE WHEN data_year = 2026 AND vacancy_start_year >= 2024 THEN 1 END
+        ) AS vac_2026_moins_2ans,
+        COUNT(
+            CASE WHEN data_year = 2026 AND vacancy_start_year = 2023 THEN 1 END
+        ) AS vac_2026_3ans,
+        COUNT(
+            CASE WHEN data_year = 2026 AND vacancy_start_year <= 2022 THEN 1 END
+        ) AS vac_2026_4ans_plus,
+        COUNT(
+            CASE WHEN data_year = 2026 AND vacancy_start_year = 2026 THEN 1 END
+        ) AS vac_2026_moins_1an,
+        COUNT(*) AS vac_2026_total
+    FROM {{ ref ('int_lovac_ex_2026') }}
+    GROUP BY geo_code
+),vacancies_2025 AS (
     SELECT
         geo_code,
         COUNT(
@@ -103,13 +130,18 @@ vacancies_2020 AS (
 all_data AS (
 
     SELECT
-        COALESCE(v2025.geo_code, v2025.geo_code, v2023.geo_code) AS geo_code,
+        COALESCE(v2026.geo_code, v2025.geo_code, v2024.geo_code, v2023.geo_code) AS geo_code,
+        COALESCE(v2026.vac_2026_moins_1an, 0) AS vac_2026_moins_1an,
+        COALESCE(v2026.vac_2026_1an, 0) AS vac_2026_1an,
+        COALESCE(v2026.vac_2026_2ans, 0) AS vac_2026_2ans,
+        COALESCE(v2026.vac_2026_3ans, 0) AS vac_2026_3ans,
+        COALESCE(v2026.vac_2026_4ans_plus, 0) AS vac_2026_4ans_plus,
+
         COALESCE(v2025.vac_2025_moins_1an, 0) AS vac_2025_moins_1an,
         COALESCE(v2025.vac_2025_1an, 0) AS vac_2025_1an,
         COALESCE(v2025.vac_2025_2ans, 0) AS vac_2025_2ans,
         COALESCE(v2025.vac_2025_3ans, 0) AS vac_2025_3ans,
         COALESCE(v2025.vac_2025_4ans_plus, 0) AS vac_2025_4ans_plus,
-        
 
         COALESCE(v2024.vac_2024_moins_1an, 0) AS vac_2024_moins_1an,
         COALESCE(v2024.vac_2024_1an, 0) AS vac_2024_1an,
@@ -134,9 +166,21 @@ all_data AS (
         COALESCE(v2023.vac_2023_total, 0) AS vac_2023_total,
         COALESCE(v2024.vac_2024_total, 0) AS vac_2024_total,
         COALESCE(v2024.vac_2024_plus_2ans, 0) AS vac_2024_plus_2ans,
-        COALESCE(v2024.vac_2024_moins_2ans, 0) AS vac_2024_moins_2ans
+        COALESCE(v2024.vac_2024_moins_2ans, 0) AS vac_2024_moins_2ans,
+
+        COALESCE(v2025.vac_2025_plus_2ans, 0) AS vac_2025_plus_2ans,
+        COALESCE(v2025.vac_2025_moins_2ans, 0) AS vac_2025_moins_2ans,
+        COALESCE(v2025.vac_2025_total, 0) AS vac_2025_total,
+
+        COALESCE(v2026.vac_2026_plus_2ans, 0) AS vac_2026_plus_2ans,
+        COALESCE(v2026.vac_2026_moins_2ans, 0) AS vac_2026_moins_2ans,
+        COALESCE(v2026.vac_2026_total, 0) AS vac_2026_total
     FROM
+        vacancies_2026 v2026
+    FULL OUTER JOIN
         vacancies_2025 v2025
+        ON
+            v2026.geo_code = v2025.geo_code
     FULL OUTER JOIN
         vacancies_2024 v2024
         ON

@@ -1,5 +1,20 @@
 WITH all_lovac AS (
     SELECT
+        2026 AS year,
+        local_id,
+        geo_code,
+        vacancy_start_year,
+        data_year,
+        ff_ccthp,
+        housing_kind,
+        aff,
+        groupe,
+        plot_area,
+        living_area
+    FROM {{ ref ("stg_lovac_2026") }}
+    UNION ALL
+
+    SELECT
         2025 AS year,
         local_id,
         geo_code,
@@ -8,8 +23,8 @@ WITH all_lovac AS (
         ff_ccthp,
         housing_kind,
         aff,
-        groupe, 
-        plot_area, 
+        groupe,
+        plot_area,
         living_area
     FROM {{ ref ("stg_lovac_2025") }}
     UNION ALL
@@ -101,9 +116,13 @@ WITH all_lovac AS (
 
 all_ff AS (
     SELECT
+        2026 AS year, ff_idlocal, geo_code, ff_ccogrm, ff_ccthp, ff_dteloc
+    FROM {{ ref ("stg_lovac_ff_ext_2024") }}
+    UNION ALL
+    SELECT
         2025 AS year, ff_idlocal, geo_code, ff_ccogrm, ff_ccthp, ff_dteloc
     FROM {{ ref ("stg_lovac_ff_ext_2024") }}
-    UNION ALL 
+    UNION ALL
     SELECT
         2024 AS year, ff_idlocal, geo_code, ff_ccogrm, ff_ccthp, ff_dteloc
     FROM {{ ref ("stg_lovac_ff_ext_2024") }}
@@ -238,14 +257,14 @@ ff_geo_code_year AS (
 production AS (
     SELECT
         geo_code,
-        SUM(CASE WHEN list_contains(data_file_years, 'lovac-2024') THEN 1 ELSE 0 END) AS housing_last_lovac_count,
+        SUM(CASE WHEN list_contains(data_file_years, 'lovac-2025') THEN 1 ELSE 0 END) AS housing_last_lovac_count,
         SUM(CASE WHEN list_contains(data_file_years, 'ff-2023-locatif') THEN 1 ELSE 0 END) AS housing_last_ff_count,
         SUM(CASE WHEN occupancy = 'L' THEN 1 ELSE 0 END) AS housing_rented_count,
         SUM(CASE WHEN occupancy = 'V' THEN 1 ELSE 0 END) AS housing_vacant_count,
         SUM(CASE WHEN energy_consumption_bdnb IN ('G', 'F') THEN 1 ELSE 0 END) AS housing_energy_sieve_count,
-        2024 AS year
+        2025 AS year
     FROM {{ ref ("int_production_housing") }} as h
-    WHERE list_contains(data_file_years, 'lovac-2024')
+    WHERE list_contains(data_file_years, 'lovac-2025')
     GROUP BY geo_code
 )
 SELECT
@@ -262,7 +281,7 @@ SELECT
     , lovac.count_vacant_housing_private
     , lovac.count_vacant_housing_private_fil
     , lovac.count_vacant_housing_private_fil_ccthp
-    , CASE WHEN year > 2024 THEN lovac.count_vacant_housing_private_fil ELSE count_vacant_housing_private_fil_ccthp END AS count_vacant_housing_private_fil_public
+    , CASE WHEN year > 2025 THEN lovac.count_vacant_housing_private_fil ELSE count_vacant_housing_private_fil_ccthp END AS count_vacant_housing_private_fil_public
     , lovac.sum_living_area_vacant_housing_private_fil_ccthp
     , lovac.sum_plot_area_vacant_housing_private_fil_ccthp
     , ff.count_housing

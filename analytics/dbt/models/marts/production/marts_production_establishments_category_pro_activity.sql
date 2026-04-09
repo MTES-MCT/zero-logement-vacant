@@ -20,13 +20,13 @@ WITH operational_establishments AS (
 establishment_housing_data AS (
     SELECT
         oe.establishment_id,
+        SUM(CASE WHEN mcm.year = 2025 THEN mcm.count_vacant_housing_private_fil_public ELSE 0 END) AS lovac_2025_count,
         SUM(CASE WHEN mcm.year = 2024 THEN mcm.count_vacant_housing_private_fil_public ELSE 0 END) AS lovac_2024_count,
-        SUM(CASE WHEN mcm.year = 2023 THEN mcm.count_vacant_housing_private_fil_public ELSE 0 END) AS lovac_2023_count,
-        SUM(CASE WHEN mcm.year = 2024 THEN mcm.count_housing_private_rented ELSE 0 END) AS ff_2023_count
+        SUM(CASE WHEN mcm.year = 2025 THEN mcm.count_housing_private_rented ELSE 0 END) AS ff_2024_count
     FROM operational_establishments oe
     LEFT JOIN {{ ref('int_production_establishments_localities') }} pel ON oe.establishment_id = pel.establishment_id
     LEFT JOIN {{ ref('marts_common_morphology') }} mcm ON pel.geo_code = mcm.geo_code
-    WHERE mcm.year IN (2023, 2024)
+    WHERE mcm.year IN (2024, 2025)
     GROUP BY oe.establishment_id
 ),
 
@@ -36,7 +36,8 @@ establishment_campaign_data AS (
         oe.establishment_id,
         COALESCE(me.total_sent_campaigns, 0) AS total_campaigns_sent,
         COALESCE(me.contacted_housing_2024, 0) AS housing_contacted_2024,
-        COALESCE(me.contacted_housing_2023, 0) AS housing_contacted_2023
+        COALESCE(me.contacted_housing_2023, 0) AS housing_contacted_2023,
+        COALESCE(me.contacted_housing_2025, 0) AS housing_contacted_2025
     FROM operational_establishments oe
     LEFT JOIN {{ ref('marts_production_establishments') }} me ON oe.establishment_id = me.establishment_id
 ),
@@ -53,33 +54,33 @@ base_metrics AS (
         ecd.housing_contacted_2023,
         
         -- Données de parc de logements
+        ehd.lovac_2025_count,
         ehd.lovac_2024_count,
-        ehd.lovac_2023_count,
-        ehd.ff_2023_count,
-        
+        ehd.ff_2024_count,
+
         -- Calcul des taux
-        CASE 
-            WHEN (ehd.lovac_2024_count + ehd.ff_2023_count) > 0 
-            THEN ROUND((ecd.housing_contacted_2024::FLOAT / (ehd.lovac_2024_count + ehd.ff_2023_count)) * 100, 2)
-            ELSE 0 
+        CASE
+            WHEN (ehd.lovac_2025_count + ehd.ff_2024_count) > 0
+            THEN ROUND((ecd.housing_contacted_2024::FLOAT / (ehd.lovac_2025_count + ehd.ff_2024_count)) * 100, 2)
+            ELSE 0
         END AS housing_rate_contacted_2024,
-        
-        CASE 
-            WHEN ehd.lovac_2024_count > 0 
-            THEN ROUND((ecd.housing_contacted_2024::FLOAT / ehd.lovac_2024_count) * 100, 2)
-            ELSE 0 
+
+        CASE
+            WHEN ehd.lovac_2025_count > 0
+            THEN ROUND((ecd.housing_contacted_2024::FLOAT / ehd.lovac_2025_count) * 100, 2)
+            ELSE 0
         END AS housing_vacant_rate_contacted_2024,
-        
-        CASE 
-            WHEN ehd.lovac_2023_count > 0 
-            THEN ROUND((ecd.housing_contacted_2023::FLOAT / ehd.lovac_2023_count) * 100, 2)
-            ELSE 0 
+
+        CASE
+            WHEN ehd.lovac_2024_count > 0
+            THEN ROUND((ecd.housing_contacted_2023::FLOAT / ehd.lovac_2024_count) * 100, 2)
+            ELSE 0
         END AS housing_vacant_rate_contacted_2023,
-        
-        CASE 
-            WHEN ehd.ff_2023_count > 0 
-            THEN ROUND((ecd.housing_contacted_2024::FLOAT / ehd.ff_2023_count) * 100, 2)
-            ELSE 0 
+
+        CASE
+            WHEN ehd.ff_2024_count > 0
+            THEN ROUND((ecd.housing_contacted_2024::FLOAT / ehd.ff_2024_count) * 100, 2)
+            ELSE 0
         END AS housing_rented_rate_contacted_2024
         
     FROM operational_establishments oe

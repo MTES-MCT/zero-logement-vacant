@@ -385,7 +385,7 @@ SELECT
         + COALESCE(ns.logements_maj_notes, 0)
         + COALESCE(ds.logements_maj_documents, 0)
     ) AS logements_maj_enrichissement,
-int_analysis_establishments_zlv_usage
+
     COALESCE(oee.logements_maj_mails, 0) AS logements_maj_mails,
     COALESCE(oee.logements_maj_phone, 0) AS logements_maj_phone,
     COALESCE(oee.logements_maj_owners, 0) + COALESCE(rce.logements_maj_owners_rank, 0) AS logements_maj_owners,

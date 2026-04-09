@@ -25,6 +25,7 @@ import { SALT_LENGTH, toUserDTO, UserApi } from '~/models/UserApi';
 import establishmentRepository from '~/repositories/establishmentRepository';
 import prospectRepository from '~/repositories/prospectRepository';
 import userRepository from '~/repositories/userRepository';
+import userEstablishmentRepository from '~/repositories/userEstablishmentRepository';
 import ceremaService from '~/services/ceremaService';
 import { isTestAccount } from '~/services/ceremaService/consultUserService';
 import {
@@ -229,7 +230,7 @@ const create: RequestHandler<never, UserDTO, CreateUserBody, never> = async (req
 
   // Store authorized establishments (multi-structure support)
   if (authorizedEstablishments.length > 0) {
-    await userRepository.setAuthorizedEstablishments(
+    await userEstablishmentRepository.setAuthorizedEstablishments(
       createdUser.id,
       authorizedEstablishments
     );

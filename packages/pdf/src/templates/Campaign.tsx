@@ -3,11 +3,12 @@ import MarianneBold from '@codegouvfr/react-dsfr/dsfr/fonts/Marianne-Bold.woff';
 import MarianneBoldItalic from '@codegouvfr/react-dsfr/dsfr/fonts/Marianne-Bold_Italic.woff';
 import MarianneRegular from '@codegouvfr/react-dsfr/dsfr/fonts/Marianne-Regular.woff';
 import MarianneRegularItalic from '@codegouvfr/react-dsfr/dsfr/fonts/Marianne-Regular_Italic.woff';
-import type {
-  CampaignDTO,
-  DraftDTO,
-  HousingDTO,
-  OwnerDTO
+import {
+  replaceVariables,
+  type CampaignDTO,
+  type DraftDTO,
+  type HousingDTO,
+  type OwnerDTO
 } from '@zerologementvacant/models';
 import Html from 'react-pdf-html';
 
@@ -41,7 +42,32 @@ export interface CampaignPageProps {
   owner: OwnerDTO;
 }
 
-export function CampaignPage({ draft, owner }: CampaignPageProps) {
+export function CampaignPage({ draft, housing, owner }: CampaignPageProps) {
+  const body = draft.body
+    ? replaceVariables(draft.body, {
+        owner: {
+          fullName: owner.fullName
+        },
+        housing: {
+          buildingYear: housing.buildingYear,
+          cadastralReference: housing.cadastralReference,
+          invariant: housing.invariant,
+          localId: housing.localId,
+          livingArea: housing.livingArea,
+          plotId: housing.plotId,
+          rawAddress: housing.rawAddress,
+          roomsCount: housing.roomsCount,
+          vacancyStartYear: housing.vacancyStartYear,
+          energyConsumption: housing.energyConsumption,
+          housingKind: housing.housingKind
+        }
+      })
+    : null;
+
+  const writtenAt = draft.writtenAt
+    ? new Intl.DateTimeFormat('fr').format(new Date(draft.writtenAt))
+    : null;
+
   return (
     <Page size="A4" style={styles.page}>
       <Stack direction="row">
@@ -81,7 +107,7 @@ export function CampaignPage({ draft, owner }: CampaignPageProps) {
 
       <Stack direction="column" spacing="1rem">
         <Typography>
-          À {draft.writtenFrom}, le {draft.writtenAt}
+          À {draft.writtenFrom}, le {writtenAt}
         </Typography>
 
         <Stack direction="row">
@@ -89,7 +115,11 @@ export function CampaignPage({ draft, owner }: CampaignPageProps) {
           <Typography>{draft.subject}</Typography>
         </Stack>
 
-        {draft.body && <Html style={{ fontSize: 10 }}>{draft.body}</Html>}
+        {body && (
+          <Html style={{ fontSize: 10 }} collapse={false}>
+            {body}
+          </Html>
+        )}
 
         <Stack
           direction="row"

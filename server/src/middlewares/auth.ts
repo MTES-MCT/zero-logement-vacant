@@ -31,18 +31,26 @@ export function jwtCheck(options?: CheckOptions) {
   });
 }
 
+/**
+ * Cache results for 5 minutes
+ */
+const CACHE_MAX_AGE = 5 * 60 * 1000;
+
 export function userCheck(options?: CheckOptions) {
   const getUser = memoize(userRepository.get, {
     promise: true,
-    primitive: true
+    primitive: true,
+    maxAge: CACHE_MAX_AGE
   });
   const getEstablishment = memoize(establishmentRepository.get, {
     promise: true,
-    primitive: true
+    primitive: true,
+    maxAge: CACHE_MAX_AGE
   });
   const getUserPerimeter = memoize(userPerimeterRepository.get, {
     promise: true,
-    primitive: true
+    primitive: true,
+    maxAge: CACHE_MAX_AGE
   });
 
   return async (request: Request, _: Response, next: NextFunction) => {

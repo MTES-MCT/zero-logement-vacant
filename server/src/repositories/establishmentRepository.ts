@@ -10,7 +10,7 @@ import {
 import db, { likeUnaccent, notDeleted } from '~/infra/database';
 import { createLogger } from '~/infra/logger';
 import { EstablishmentApi } from '~/models/EstablishmentApi';
-import { parseUserApi, UserDBO, USERS_TABLE } from './userRepository';
+import { fromUserDBO, UserDBO, USERS_TABLE } from './userRepository';
 
 export const establishmentsTable = 'establishments';
 export const Establishments = (transaction = db) =>
@@ -243,7 +243,7 @@ export const parseEstablishmentApi = (
   geoCodes: establishment.localities_geo_code,
   kind: establishment.kind,
   source: establishment.source,
-  users: establishment.users?.map(parseUserApi)
+  users: establishment.users?.map(fromUserDBO)
 });
 
 export default {

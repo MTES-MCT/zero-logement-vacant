@@ -9,7 +9,7 @@ import { GroupApi } from '~/models/GroupApi';
 import { HousingApi } from '~/models/HousingApi';
 import { housingOwnersTable } from './housingOwnerRepository';
 import { housingTable } from './housingRepository';
-import { parseUserApi, UserDBO, USERS_TABLE } from './userRepository';
+import { fromUserDBO, UserDBO, USERS_TABLE } from './userRepository';
 
 export const GROUPS_TABLE = 'groups';
 export const GROUPS_HOUSING_TABLE = 'groups_housing';
@@ -271,7 +271,7 @@ export const parseGroupApi = (group: GroupDBO): GroupApi => {
     createdAt: group.created_at,
     exportedAt: group.exported_at,
     userId: group.user_id,
-    createdBy: group.user ? parseUserApi(group.user) : undefined,
+    createdBy: group.user ? fromUserDBO(group.user) : undefined,
     establishmentId: group.establishment_id,
     archivedAt: group.archived_at
   };

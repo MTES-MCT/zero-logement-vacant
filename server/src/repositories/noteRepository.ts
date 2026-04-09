@@ -5,7 +5,7 @@ import { createLogger } from '~/infra/logger';
 import { HousingId } from '~/models/HousingApi';
 import { HousingNoteApi, NoteApi } from '~/models/NoteApi';
 import {
-  parseUserApi,
+  fromUserDBO,
   UserDBO,
   USERS_TABLE
 } from '~/repositories/userRepository';
@@ -170,7 +170,7 @@ export function parseNoteApi(note: NoteDBO): NoteApi {
     createdAt: note.created_at.toJSON(),
     updatedAt: note.updated_at ? note.updated_at.toJSON() : null,
     deletedAt: note.deleted_at ? note.deleted_at.toJSON() : null,
-    creator: parseUserApi(note.creator)
+    creator: fromUserDBO(note.creator)
   };
 }
 

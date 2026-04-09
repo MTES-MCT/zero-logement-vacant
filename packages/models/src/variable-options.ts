@@ -9,6 +9,7 @@ const VARIABLES_OPTIONS = [
   '{{housing.localId}}',
   '{{housing.invariant}}',
   '{{housing.cadastralReference}}',
+  '{{housing.plotId}}',
   '{{housing.housingKind}}',
   '{{housing.livingArea}}',
   '{{housing.roomsCount}}',
@@ -32,6 +33,7 @@ interface Replacement {
     localId?: string;
     invariant?: string;
     cadastralReference?: string | null;
+    plotId?: string | null;
     housingKind?: string | null;
     livingArea?: number | null;
     roomsCount?: number | null;
@@ -57,6 +59,7 @@ export function replaceVariables(
       '{{housing.cadastralReference}}',
       replacement.housing.cadastralReference ?? ''
     )
+    .replaceAll('{{housing.plotId}}', replacement.housing.plotId ?? '')
     .replaceAll(
       '{{housing.housingKind}}',
       match(replacement.housing.housingKind)

@@ -4,7 +4,6 @@ import type {
   DraftDTO,
   HousingDTO
 } from '@zerologementvacant/models';
-import { replaceVariables } from '@zerologementvacant/models';
 import { Readable } from 'node:stream';
 
 import { CampaignDocument, CampaignPage } from '../templates/Campaign.js';
@@ -23,20 +22,10 @@ export async function generate(options: GenerateCampaignOptions) {
   const nodeStream = await renderToStream(
     <CampaignDocument campaign={campaign}>
       {housings.map((housing) => {
-        const personalizedBody = replaceVariables(draft.body ?? '', {
-          housing,
-          owner: housing.owner ?? { fullName: '' }
-        });
-
-        const personalizedDraft: DraftDTO = {
-          ...draft,
-          body: personalizedBody
-        };
-
         return (
           <CampaignPage
             key={housing.id}
-            draft={personalizedDraft}
+            draft={draft}
             housing={housing}
             owner={housing.owner}
           />

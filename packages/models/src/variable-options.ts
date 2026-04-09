@@ -62,7 +62,7 @@ export function replaceVariables(
       match(replacement.housing.housingKind)
         .with(null, undefined, () => '')
         .with(HousingKind.APARTMENT, () => 'appartement')
-        .with(HousingKind.HOUSE, () => 'appartement')
+        .with(HousingKind.HOUSE, () => 'maison')
         .otherwise((value) => {
           throw new Error(`Unknown housing kind: ${value}`);
         })

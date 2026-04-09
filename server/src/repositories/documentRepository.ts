@@ -4,7 +4,7 @@ import db, { fromDateDBO, toDateDBO } from '~/infra/database';
 import { withinTransaction } from '~/infra/database/transaction';
 import { createLogger } from '~/infra/logger';
 import { DocumentApi } from '~/models/DocumentApi';
-import { UserDBO, parseUserApi, USERS_TABLE } from './userRepository';
+import { UserDBO, fromUserDBO, USERS_TABLE } from './userRepository';
 
 const logger = createLogger('documentRepository');
 
@@ -228,7 +228,7 @@ export function fromDocumentDBO(dbo: DocumentWithCreatorDBO): DocumentApi {
     createdAt: fromDateDBO(dbo.created_at),
     updatedAt: dbo.updated_at ? fromDateDBO(dbo.updated_at) : null,
     deletedAt: dbo.deleted_at ? fromDateDBO(dbo.deleted_at) : null,
-    creator: parseUserApi(dbo.creator)
+    creator: fromUserDBO(dbo.creator)
   };
 }
 

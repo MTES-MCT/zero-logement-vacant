@@ -9,7 +9,7 @@ import { CampaignFiltersApi } from '~/models/CampaignFiltersApi';
 import { campaignsHousingTable } from '~/repositories/campaignHousingRepository';
 import { sortQuery } from '~/models/SortApi';
 import eventRepository from '~/repositories/eventRepository';
-import { parseUserApi, UserDBO, USERS_TABLE } from '~/repositories/userRepository';
+import { fromUserDBO, UserDBO, USERS_TABLE } from '~/repositories/userRepository';
 
 export const campaignsTable = 'campaigns';
 export const Campaigns = (transaction = db) =>
@@ -216,7 +216,7 @@ export const parseCampaignApi = (campaign: CampaignDBO): CampaignApi => ({
   filters: campaign.filters,
   file: campaign.file,
   userId: campaign.user_id,
-  createdBy: parseUserApi(campaign.creator!),
+  createdBy: fromUserDBO(campaign.creator!),
   createdAt: campaign.created_at.toJSON(),
   validatedAt: campaign.validated_at?.toJSON(),
   exportedAt: campaign.exported_at?.toJSON(),

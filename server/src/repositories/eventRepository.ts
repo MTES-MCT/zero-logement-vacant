@@ -23,7 +23,7 @@ import {
 import { HousingId } from '~/models/HousingApi';
 import { OwnerApi } from '~/models/OwnerApi';
 import {
-  parseUserApi,
+  fromUserDBO,
   UserDBO,
   USERS_TABLE
 } from '~/repositories/userRepository';
@@ -406,7 +406,7 @@ export function parseEventApi<Type extends EventType>(
     nextNew: event.next_new,
     createdAt: event.created_at.toJSON(),
     createdBy: event.created_by,
-    creator: event.creator ? parseUserApi(event.creator) : undefined
+    creator: event.creator ? fromUserDBO(event.creator) : undefined
   };
 }
 

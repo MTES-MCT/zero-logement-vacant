@@ -18,7 +18,7 @@ async function get(id: string): Promise<UserApi | null> {
     .andWhere(notDeleted)
     .first();
 
-  return result ? parseUserApi(result) : null;
+  return result ? fromUserDBO(result) : null;
 }
 
 async function getByEmail(email: string): Promise<UserApi | null> {
@@ -29,7 +29,7 @@ async function getByEmail(email: string): Promise<UserApi | null> {
     .andWhere(notDeleted)
     .first();
 
-  return result ? parseUserApi(result) : null;
+  return result ? fromUserDBO(result) : null;
 }
 
 async function getByEmailIncludingDeleted(email: string): Promise<UserApi | null> {
@@ -39,7 +39,7 @@ async function getByEmailIncludingDeleted(email: string): Promise<UserApi | null
     .whereRaw('upper(email) = upper(?)', email)
     .first();
 
-  return result ? parseUserApi(result) : null;
+  return result ? fromUserDBO(result) : null;
 }
 
 async function update(user: UserApi): Promise<void> {
@@ -52,7 +52,7 @@ async function insert(userApi: UserApi): Promise<UserApi> {
   return db(USERS_TABLE)
     .insert(formatUserApi(userApi))
     .returning('*')
-    .then((_) => parseUserApi(_[0]));
+    .then((_) => fromUserDBO(_[0]));
 }
 
 interface FindOptions {
@@ -72,7 +72,7 @@ async function find(opts?: FindOptions): Promise<UserApi[]> {
     .orderBy(['last_name', 'first_name'])
     .modify(paginationQuery(opts?.pagination));
 
-  return users.map(parseUserApi);
+  return users.map(fromUserDBO);
 }
 
 interface CountOptions {
@@ -128,7 +128,7 @@ export interface UserDBO {
   two_factor_locked_until: Date | string | null;
 }
 
-export const parseUserApi = (userDBO: UserDBO): UserApi => ({
+export const fromUserDBO = (userDBO: UserDBO): UserApi => ({
   id: userDBO.id,
   email: userDBO.email,
   password: userDBO.password,

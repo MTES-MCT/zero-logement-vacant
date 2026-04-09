@@ -25,7 +25,7 @@ import { SALT_LENGTH, toUserDTO, UserApi } from '~/models/UserApi';
 import establishmentRepository from '~/repositories/establishmentRepository';
 import prospectRepository from '~/repositories/prospectRepository';
 import userRepository from '~/repositories/userRepository';
-import userEstablishmentRepository from '~/repositories/userEstablishmentRepository';
+import userEstablishmentRepository from '~/repositories/user-establishment-repository';
 import ceremaService from '~/services/ceremaService';
 import { isTestAccount } from '~/services/ceremaService/consultUserService';
 import {
@@ -144,7 +144,7 @@ const create: RequestHandler<never, UserDTO, CreateUserBody, never> = async (req
   }
 
   // Verify access rights: LOVAC access level and geographic perimeter (pass SIREN for EPCI perimeter check)
-  const accessRights = verifyAccessRights(
+  const accessRights = await verifyAccessRights(
     matchingCeremaUser,
     userEstablishment.geoCodes,
     userEstablishment.siren

@@ -124,7 +124,7 @@ function CampaignRecipients(props: Readonly<CampaignRecipientsProps>) {
         }
       }),
       columnHelper.accessor('owner.fullName', {
-        header: () => <AdvancedTableHeader title="Propriétaire principal" />,
+        header: () => <AdvancedTableHeader title="Destinataire principal" />,
         meta: {
           styles: {
             multiline: true
@@ -144,7 +144,7 @@ function CampaignRecipients(props: Readonly<CampaignRecipientsProps>) {
       columnHelper.accessor((row) => row.owner?.banAddress ?? null, {
         id: 'address',
         header: () => (
-          <AdvancedTableHeader title="Adresse BAN du propriétaire" />
+          <AdvancedTableHeader title="Adresse BAN du destinataire" />
         ),
         cell: ({ cell }) => {
           const address = cell.getValue();
@@ -223,7 +223,7 @@ function CampaignRecipients(props: Readonly<CampaignRecipientsProps>) {
     }).unwrap();
     const a = document.createElement('a');
     a.href = url;
-    a.download = `${props.campaign.title}.pdf`;
+    a.download = `${props.campaign.title}.xlsx`;
     a.click();
     URL.revokeObjectURL(url);
   }

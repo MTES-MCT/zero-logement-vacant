@@ -28,6 +28,11 @@ const ToolbarContainer = styled(Stack, {
   padding: '1rem 1.5rem'
 });
 
+const ToolbarItem = styled('li')({
+  listStyle: 'none',
+  padding: 0
+});
+
 function ToolbarPlugin(props: Readonly<ToolbarPluginProps>) {
   const [editor] = useLexicalComposerContext();
 
@@ -45,8 +50,14 @@ function ToolbarPlugin(props: Readonly<ToolbarPluginProps>) {
       spacing="1rem"
       useFlexGap
     >
-      <Stack component="ul" direction="row" spacing="0.5rem" useFlexGap>
-        <li>
+      <Stack
+        component="ul"
+        direction="row"
+        spacing="0.5rem"
+        useFlexGap
+        sx={{ padding: 0, flexWrap: 'wrap' }}
+      >
+        <ToolbarItem>
           <IconToggle
             iconId="fr-icon-bold"
             isActive={toolbar.state.bold}
@@ -55,8 +66,8 @@ function ToolbarPlugin(props: Readonly<ToolbarPluginProps>) {
               editor.dispatchCommand(FORMAT_TEXT_COMMAND, 'bold');
             }}
           />
-        </li>
-        <li>
+        </ToolbarItem>
+        <ToolbarItem>
           <IconToggle
             iconId="fr-icon-italic"
             isActive={toolbar.state.italic}
@@ -65,8 +76,8 @@ function ToolbarPlugin(props: Readonly<ToolbarPluginProps>) {
               editor.dispatchCommand(FORMAT_TEXT_COMMAND, 'italic');
             }}
           />
-        </li>
-        <li>
+        </ToolbarItem>
+        <ToolbarItem>
           <IconToggle
             iconId="ri-underline"
             isActive={toolbar.state.underline}
@@ -75,8 +86,8 @@ function ToolbarPlugin(props: Readonly<ToolbarPluginProps>) {
               editor.dispatchCommand(FORMAT_TEXT_COMMAND, 'underline');
             }}
           />
-        </li>
-        <li>
+        </ToolbarItem>
+        <ToolbarItem>
           <IconToggle
             iconId="ri-align-left"
             isActive={toolbar.state.align === 'left'}
@@ -85,8 +96,8 @@ function ToolbarPlugin(props: Readonly<ToolbarPluginProps>) {
               editor.dispatchCommand(FORMAT_ELEMENT_COMMAND, 'left');
             }}
           />
-        </li>
-        <li>
+        </ToolbarItem>
+        <ToolbarItem>
           <IconToggle
             iconId="ri-align-center"
             isActive={toolbar.state.align === 'center'}
@@ -95,8 +106,8 @@ function ToolbarPlugin(props: Readonly<ToolbarPluginProps>) {
               editor.dispatchCommand(FORMAT_ELEMENT_COMMAND, 'center');
             }}
           />
-        </li>
-        <li>
+        </ToolbarItem>
+        <ToolbarItem>
           <IconToggle
             iconId="ri-align-right"
             isActive={toolbar.state.align === 'right'}
@@ -105,8 +116,8 @@ function ToolbarPlugin(props: Readonly<ToolbarPluginProps>) {
               editor.dispatchCommand(FORMAT_ELEMENT_COMMAND, 'right');
             }}
           />
-        </li>
-        <li>
+        </ToolbarItem>
+        <ToolbarItem>
           <IconToggle
             iconId="ri-align-justify"
             isActive={toolbar.state.align === 'justify'}
@@ -115,8 +126,8 @@ function ToolbarPlugin(props: Readonly<ToolbarPluginProps>) {
               editor.dispatchCommand(FORMAT_ELEMENT_COMMAND, 'justify');
             }}
           />
-        </li>
-        <li>
+        </ToolbarItem>
+        <ToolbarItem>
           <IconToggle
             iconId="fr-icon-list-unordered"
             title="Liste à puces"
@@ -124,8 +135,8 @@ function ToolbarPlugin(props: Readonly<ToolbarPluginProps>) {
               editor.dispatchCommand(INSERT_UNORDERED_LIST_COMMAND, undefined);
             }}
           />
-        </li>
-        <li>
+        </ToolbarItem>
+        <ToolbarItem>
           <IconToggle
             iconId="fr-icon-list-ordered"
             title="Liste ordonnée"
@@ -133,7 +144,7 @@ function ToolbarPlugin(props: Readonly<ToolbarPluginProps>) {
               editor.dispatchCommand(INSERT_ORDERED_LIST_COMMAND, undefined);
             }}
           />
-        </li>
+        </ToolbarItem>
       </Stack>
       <Stack direction="row">
         <VariableSelect

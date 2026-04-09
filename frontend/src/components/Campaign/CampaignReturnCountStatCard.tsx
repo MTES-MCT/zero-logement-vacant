@@ -19,27 +19,27 @@ function CampaignReturnCountStatCard(props: Readonly<Props>) {
       label="Nombre de retours"
       variant={variant}
     >
-      {campaign.sentAt ? (
-        <Typography
-          variant="h5"
-          component="span"
-          aria-label={`Nombre de retours : ${campaign.returnCount}`}
-        >
-          {campaign.returnCount}
-        </Typography>
-      ) : (
-        <Stack
-          direction="row"
-          spacing="0.25rem"
-          useFlexGap
-          sx={{ alignItems: 'center' }}
-        >
+      <Stack
+        direction="row"
+        spacing="0.25rem"
+        useFlexGap
+        sx={{ alignItems: 'center' }}
+      >
+        {campaign.sentAt ? (
+          <Typography
+            variant="h5"
+            component="span"
+            aria-label={`Nombre de retours : ${campaign.returnCount}`}
+          >
+            {campaign.returnCount}
+          </Typography>
+        ) : (
           <Typography variant="body2" sx={{ fontWeight: 700 }}>
             En attente de la date d’envoi
           </Typography>
-          <Tooltip title="Nombre de logements au sein de la campagne qui ont fait l’objet d’une mise à jour après la date d’envoi indiquée." />
-        </Stack>
-      )}
+        )}
+        <Tooltip title="Nombre de logements au sein de la campagne qui ont fait l’objet d’une mise à jour après la date d’envoi indiquée." />
+      </Stack>
     </CampaignStatCard>
   );
 }

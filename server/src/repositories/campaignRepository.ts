@@ -9,7 +9,7 @@ import { CampaignFiltersApi } from '~/models/CampaignFiltersApi';
 import { campaignsHousingTable } from '~/repositories/campaignHousingRepository';
 import { sortQuery } from '~/models/SortApi';
 import eventRepository from '~/repositories/eventRepository';
-import { parseUserApi, UserDBO, usersTable } from '~/repositories/userRepository';
+import { parseUserApi, UserDBO, USERS_TABLE } from '~/repositories/userRepository';
 
 export const campaignsTable = 'campaigns';
 export const Campaigns = (transaction = db) =>
@@ -49,8 +49,8 @@ const find = async (opts: FindOptions): Promise<CampaignApi[]> => {
 function listQuery(filters: CampaignFiltersApi) {
   return Campaigns()
     .select(`${campaignsTable}.*`)
-    .select(db.raw(`to_json(${usersTable}.*) as creator`))
-    .join(usersTable, `${usersTable}.id`, `${campaignsTable}.user_id`)
+    .select(db.raw(`to_json(${USERS_TABLE}.*) as creator`))
+    .join(USERS_TABLE, `${USERS_TABLE}.id`, `${campaignsTable}.user_id`)
     .modify(filterQuery(filters));
 }
 

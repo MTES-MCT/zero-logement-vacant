@@ -9,7 +9,7 @@ import { GroupApi } from '~/models/GroupApi';
 import { HousingApi } from '~/models/HousingApi';
 import { housingOwnersTable } from './housingOwnerRepository';
 import { housingTable } from './housingRepository';
-import { parseUserApi, UserDBO, usersTable } from './userRepository';
+import { parseUserApi, UserDBO, USERS_TABLE } from './userRepository';
 
 export const GROUPS_TABLE = 'groups';
 export const GROUPS_HOUSING_TABLE = 'groups_housing';
@@ -64,8 +64,8 @@ const findOne = async (opts: FindOneOptions): Promise<GroupApi | null> => {
 const listQuery = (query: Knex.QueryBuilder): void => {
   query
     .select(`${GROUPS_TABLE}.*`)
-    .join<UserDBO>(usersTable, `${usersTable}.id`, `${GROUPS_TABLE}.user_id`)
-    .select(db.raw(`to_json(${usersTable}.*) AS user`))
+    .join<UserDBO>(USERS_TABLE, `${USERS_TABLE}.id`, `${GROUPS_TABLE}.user_id`)
+    .select(db.raw(`to_json(${USERS_TABLE}.*) AS user`))
     .joinRaw(
       `
       LEFT JOIN LATERAL (

@@ -15,7 +15,7 @@ import {
   ownerTable,
   parseHousingOwnerApi
 } from '~/repositories/ownerRepository';
-import { usersTable } from '~/repositories/userRepository';
+import { USERS_TABLE } from '~/repositories/userRepository';
 import {
   createProcessor,
   FindHousingOwnersOptions,
@@ -96,7 +96,7 @@ export async function removeEvents(
     .whereRaw(
       `${EVENTS_TABLE}.created_at::date BETWEEN '2024-09-08' AND '2024-09-09'`
     )
-    .join(usersTable, `${usersTable}.id`, `${EVENTS_TABLE}.created_by`)
-    .where(`${usersTable}.email`, '=', 'admin@zerologementvacant.beta.gouv.fr')
+    .join(USERS_TABLE, `${USERS_TABLE}.id`, `${EVENTS_TABLE}.created_by`)
+    .where(`${USERS_TABLE}.email`, '=', 'admin@zerologementvacant.beta.gouv.fr')
     .delete();
 }

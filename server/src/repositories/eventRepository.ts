@@ -25,7 +25,7 @@ import { OwnerApi } from '~/models/OwnerApi';
 import {
   parseUserApi,
   UserDBO,
-  usersTable
+  USERS_TABLE
 } from '~/repositories/userRepository';
 
 const logger = createLogger('eventRepository');
@@ -245,8 +245,8 @@ async function find<Type extends EventType>(
   logger.debug('Finding events...', { options });
   const events = await Events()
     .select(`${EVENTS_TABLE}.*`)
-    .join(usersTable, `${usersTable}.id`, `${EVENTS_TABLE}.created_by`)
-    .select(db.raw(`to_json(${usersTable}.*) AS creator`))
+    .join(USERS_TABLE, `${USERS_TABLE}.id`, `${EVENTS_TABLE}.created_by`)
+    .select(db.raw(`to_json(${USERS_TABLE}.*) AS creator`))
     .modify((query) => {
       const types = options?.filters?.types ?? [];
       const housings = options?.filters?.housings ?? [];

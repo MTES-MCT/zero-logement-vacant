@@ -50,6 +50,7 @@ exploration/data/*
 data/
 data/*
 analytics/plugins/
+analytics/explorations/
 
 # DPE Import - Large data files
 server/src/scripts/import-dpe/dpe_processing_*/

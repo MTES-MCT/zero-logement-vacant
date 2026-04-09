@@ -215,6 +215,19 @@ function NoteCard(props: NoteCardProps) {
             <FormProvider {...form}>
               <AppTextInputNext
                 label={null}
+                hintText={
+                  <>
+                    Veillez à ne pas partager de{' '}
+                    <a
+                      href="https://cnil.fr/fr/definition/donnee-sensible#:~:text=Ce%20sont%20des%20informations%20qui,physique%20de%20mani%C3%A8re%20unique%2C%20des."
+                      target="_blank"
+                      rel="noopener noreferrer"
+                    >
+                      données sensibles
+                    </a>
+                    .
+                  </>
+                }
                 nativeTextAreaProps={{ 'aria-label': 'Contenu de la note' }}
                 name="content"
                 textArea

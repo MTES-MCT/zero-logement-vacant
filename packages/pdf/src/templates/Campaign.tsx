@@ -64,6 +64,10 @@ export function CampaignPage({ draft, housing, owner }: CampaignPageProps) {
       })
     : null;
 
+  const writtenAt = draft.writtenAt
+    ? new Intl.DateTimeFormat('fr').format(new Date(draft.writtenAt))
+    : null;
+
   return (
     <Page size="A4" style={styles.page}>
       <Stack direction="row">
@@ -103,7 +107,7 @@ export function CampaignPage({ draft, housing, owner }: CampaignPageProps) {
 
       <Stack direction="column" spacing="1rem">
         <Typography>
-          À {draft.writtenFrom}, le {draft.writtenAt}
+          À {draft.writtenFrom}, le {writtenAt}
         </Typography>
 
         <Stack direction="row">
@@ -111,7 +115,11 @@ export function CampaignPage({ draft, housing, owner }: CampaignPageProps) {
           <Typography>{draft.subject}</Typography>
         </Stack>
 
-        {body && <Html style={{ fontSize: 10 }}>{body}</Html>}
+        {body && (
+          <Html style={{ fontSize: 10 }} collapse={false}>
+            {body}
+          </Html>
+        )}
 
         <Stack
           direction="row"

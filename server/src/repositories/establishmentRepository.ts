@@ -10,7 +10,7 @@ import {
 import db, { likeUnaccent, notDeleted } from '~/infra/database';
 import { createLogger } from '~/infra/logger';
 import { EstablishmentApi } from '~/models/EstablishmentApi';
-import { parseUserApi, UserDBO, usersTable } from './userRepository';
+import { parseUserApi, UserDBO, USERS_TABLE } from './userRepository';
 
 export const establishmentsTable = 'establishments';
 export const Establishments = (transaction = db) =>
@@ -132,10 +132,10 @@ function include(includes: EstablishmentInclude[]) {
     users: (query) =>
       query.select('u.users').joinRaw(
         `LEFT JOIN LATERAL (
-          SELECT COALESCE(json_agg(${usersTable}.*), '[]'::json) AS users
-          FROM ${usersTable}
-          WHERE ${usersTable}.establishment_id = ${establishmentsTable}.id
-            AND ${usersTable}.deleted_at IS NULL
+          SELECT COALESCE(json_agg(${USERS_TABLE}.*), '[]'::json) AS users
+          FROM ${USERS_TABLE}
+          WHERE ${USERS_TABLE}.establishment_id = ${establishmentsTable}.id
+            AND ${USERS_TABLE}.deleted_at IS NULL
         ) u ON true`
       )
   };
@@ -159,7 +159,7 @@ function filter(filters?: EstablishmentFiltersDTO) {
       builder.whereExists((subquery) => {
         subquery
           .select('id')
-          .from(usersTable)
+          .from(USERS_TABLE)
           .where({
             establishment_id: db.ref(`${establishmentsTable}.id`)
           })

@@ -4,7 +4,7 @@ import { Knex } from 'knex';
 import { v4 as uuidv4 } from 'uuid';
 
 import { UserApi } from '~/models/UserApi';
-import { formatUserApi, usersTable } from '~/repositories/userRepository';
+import { formatUserApi, USERS_TABLE } from '~/repositories/userRepository';
 
 export const Lovac2023: UserApi = {
   id: uuidv4(),
@@ -39,5 +39,5 @@ export async function seed(knex: Knex): Promise<void> {
       password: bcrypt.hashSync(user.password)
     }))
     .map(formatUserApi);
-  await knex.table(usersTable).insert(users);
+  await knex.table(USERS_TABLE).insert(users);
 }

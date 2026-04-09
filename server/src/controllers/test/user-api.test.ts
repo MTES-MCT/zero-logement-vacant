@@ -52,7 +52,7 @@ import {
 import {
   formatUserApi,
   Users,
-  usersTable
+  USERS_TABLE
 } from '~/repositories/userRepository';
 import { TEST_ACCOUNTS } from '~/services/ceremaService/consultUserService';
 import {
@@ -225,7 +225,7 @@ describe('User API', () => {
       responses.forEach((response) => {
         expect(response.status).toBe(constants.HTTP_STATUS_FORBIDDEN);
       });
-      const users = await db(usersTable)
+      const users = await db(USERS_TABLE)
         .count('email as count')
         .whereIn('email', emails)
         .first();

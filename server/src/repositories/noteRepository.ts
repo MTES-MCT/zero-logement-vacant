@@ -7,7 +7,7 @@ import { HousingNoteApi, NoteApi } from '~/models/NoteApi';
 import {
   parseUserApi,
   UserDBO,
-  usersTable
+  USERS_TABLE
 } from '~/repositories/userRepository';
 
 const logger = createLogger('noteRepository');
@@ -177,8 +177,8 @@ export function parseNoteApi(note: NoteDBO): NoteApi {
 const listQuery = () =>
   Notes()
     .select(`${NOTES_TABLE}.*`)
-    .join(usersTable, `${usersTable}.id`, `${NOTES_TABLE}.created_by`)
-    .select(db.raw(`to_json(${usersTable}.*) AS creator`))
+    .join(USERS_TABLE, `${USERS_TABLE}.id`, `${NOTES_TABLE}.created_by`)
+    .select(db.raw(`to_json(${USERS_TABLE}.*) AS creator`))
     .orderBy(`${NOTES_TABLE}.created_at`, 'desc');
 
 export default {

@@ -322,7 +322,6 @@ describe('Housing list view', () => {
       const modal = await screen.findByRole('dialog', {
         name: /^Ajouter un logement/
       });
-      screen.debug(modal);
       const input = await within(modal).findByRole('textbox', {
         name: /^Saisissez l’identifiant fiscal national/
       });

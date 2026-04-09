@@ -184,7 +184,6 @@ export function createSourceHousingProcessor(opts: ProcessorOptions) {
         ) {
           events.push({
             id: uuidv4(),
-            name: 'Changement de statut d’occupation',
             type: 'housing:occupancy-updated',
             nextOld: { occupancy: existingHousing.occupancy },
             nextNew: { occupancy: patch.occupancy },
@@ -200,7 +199,6 @@ export function createSourceHousingProcessor(opts: ProcessorOptions) {
         ) {
           events.push({
             id: uuidv4(),
-            name: 'Changement de statut de suivi',
             type: 'housing:status-updated',
             nextOld: {
               status: toEventHousingStatus(existingHousing.status),

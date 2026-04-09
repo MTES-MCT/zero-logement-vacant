@@ -76,17 +76,21 @@ function AccountDropdown() {
 
           <Divider aria-hidden="true" sx={{ padding: 0 }} />
 
-          <MutedButton
-            linkProps={{
-              to: '/compte',
-              onClick: doClose,
-              'aria-current': location.pathname === '/compte' ? 'page' : undefined
-            }}
-            size="small"
-            priority="tertiary no outline"
-          >
-            Gérer mon profil
-          </MutedButton>
+          <ul style={{ listStyle: 'none', padding: 0, margin: 0 }}>
+            <li>
+              <MutedButton
+                linkProps={{
+                  to: '/compte',
+                  onClick: doClose,
+                  'aria-current': location.pathname === '/compte' ? 'page' : undefined
+                }}
+                size="small"
+                priority="tertiary no outline"
+              >
+                Gérer mon profil
+              </MutedButton>
+            </li>
+          </ul>
 
           <Divider aria-hidden="true" sx={{ padding: 0 }} />
         </Box>
@@ -98,31 +102,37 @@ function AccountDropdown() {
 
           <Divider aria-hidden="true" sx={{ padding: 0 }} />
 
-          <MutedButton
-            linkProps={{
-              to: '/utilisateurs',
-              onClick: doClose,
-              'aria-current': location.pathname === '/utilisateurs' ? 'page' : undefined
-            }}
-            priority="tertiary no outline"
-            size="small"
-          >
-            Utilisateurs rattachés à votre structure
-          </MutedButton>
-
-          <Divider aria-hidden="true" sx={{ padding: 0 }} />
-
-          <MutedButton
-            linkProps={{
-              to: '/autres-structures',
-              onClick: doClose,
-              'aria-current': location.pathname === '/autres-structures' ? 'page' : undefined
-            }}
-            priority="tertiary no outline"
-            size="small"
-          >
-            Autres structures sur votre territoire
-          </MutedButton>
+          <ul style={{ listStyle: 'none', padding: 0, margin: 0 }}>
+            <li>
+              <MutedButton
+                linkProps={{
+                  to: '/utilisateurs',
+                  onClick: doClose,
+                  'aria-current': location.pathname === '/utilisateurs' ? 'page' : undefined
+                }}
+                priority="tertiary no outline"
+                size="small"
+              >
+                Utilisateurs rattachés à votre structure
+              </MutedButton>
+            </li>
+            <li role="separator" aria-hidden="true">
+              <Divider sx={{ padding: 0 }} />
+            </li>
+            <li>
+              <MutedButton
+                linkProps={{
+                  to: '/autres-structures',
+                  onClick: doClose,
+                  'aria-current': location.pathname === '/autres-structures' ? 'page' : undefined
+                }}
+                priority="tertiary no outline"
+                size="small"
+              >
+                Autres structures sur votre territoire
+              </MutedButton>
+            </li>
+          </ul>
         </Box>
 
         <Stack

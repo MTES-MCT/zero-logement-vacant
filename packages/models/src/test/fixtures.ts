@@ -22,7 +22,7 @@ import {
 import { EstablishmentDTO } from '../EstablishmentDTO';
 import { ESTABLISHMENT_KIND_VALUES } from '../EstablishmentKind';
 import { ESTABLISHMENT_SOURCE_VALUES } from '../EstablishmentSource';
-import { EVENT_NAME_VALUES, EventDTO } from '../EventDTO';
+import { EventDTO } from '../EventDTO';
 import { EventType } from '../EventType';
 import { FileUploadDTO } from '../FileUploadDTO';
 import { GroupDTO } from '../GroupDTO';
@@ -617,9 +617,7 @@ export function genEventDTO<Type extends EventType>(
   const { type, creator, nextOld, nextNew } = options;
   return {
     id: faker.string.uuid(),
-    name: faker.helpers.arrayElement(EVENT_NAME_VALUES),
     type: type,
-    conflict: faker.datatype.boolean(),
     nextOld: nextOld,
     nextNew: nextNew,
     createdAt: faker.date.past().toJSON(),

@@ -15,6 +15,7 @@ SELECT
     owner_fullname,
     owner_address,
     owner_birth_date,
+    owner_birth_place,
     owner_idprodroit,
     owner_idpersonne,
     owner_kind_detail,
@@ -25,5 +26,7 @@ SELECT
     owner_locprop,
     owner_postal_code,
     owner_city,
-    owner_entity
+    owner_entity,
+    owner_username,
+    administrator
 FROM all_owners

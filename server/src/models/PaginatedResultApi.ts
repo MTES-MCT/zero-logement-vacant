@@ -9,10 +9,6 @@ export interface PaginatedResultApi<T> {
   perPage: number;
 }
 
-export function isPartial(page: PaginatedResultApi<any>): boolean {
-  return page.filteredCount < page.totalCount;
-}
-
 export type HousingPaginatedResultApi = PaginatedResultApi<HousingApi> & {
   filteredOwnerCount: number;
 };

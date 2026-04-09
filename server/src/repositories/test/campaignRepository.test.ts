@@ -427,7 +427,7 @@ describe('Campaign repository', () => {
       const campaign = genCampaignApi(establishment.id, user);
       await Campaigns().insert({ ...formatCampaignApi(campaign), sent_at: sentAt });
 
-      const housing = genHousingApi();
+      const housing = { ...genHousingApi(), status: HousingStatus.FIRST_CONTACT };
       await Housing().insert(formatHousingRecordApi(housing));
 
       await CampaignsHousing().insert({
@@ -472,7 +472,7 @@ describe('Campaign repository', () => {
         sent_at: sentAt
       });
       const housings = faker.helpers.multiple(
-        () => ({ ...genHousingApi(), status: HousingStatus.NEVER_CONTACTED }),
+        () => ({ ...genHousingApi(), status: HousingStatus.FIRST_CONTACT }),
         { count: 10 }
       );
       await Housing().insert(housings.map(formatHousingRecordApi));
@@ -511,6 +511,159 @@ describe('Campaign repository', () => {
       });
 
       expect(result?.returnRate).toBeCloseTo(0.4);
+    });
+
+    describe('return_count status filter', () => {
+      async function setupCampaignWithHousing(status: HousingStatus) {
+        const sentAt = faker.date.past();
+        const campaign = genCampaignApi(establishment.id, user);
+        await Campaigns().insert({ ...formatCampaignApi(campaign), sent_at: sentAt });
+
+        const housing = { ...genHousingApi(), status };
+        await Housing().insert(formatHousingRecordApi(housing));
+        await CampaignsHousing().insert({
+          campaign_id: campaign.id,
+          housing_id: housing.id,
+          housing_geo_code: housing.geoCode
+        });
+
+        const event = genEventApi({
+          creator: user,
+          type: 'housing:status-updated',
+          nextOld: {},
+          nextNew: {}
+        });
+        await Events().insert({
+          ...formatEventApi(event),
+          created_at: new Date(sentAt.getTime() + 1000)
+        });
+        await HousingEvents().insert({
+          event_id: event.id,
+          housing_id: housing.id,
+          housing_geo_code: housing.geoCode
+        });
+
+        return { campaign, housing };
+      }
+
+      it.each([
+        [HousingStatus.NEVER_CONTACTED, 0],
+        [HousingStatus.WAITING, 0],
+        [HousingStatus.FIRST_CONTACT, 1],
+        [HousingStatus.IN_PROGRESS, 1],
+        [HousingStatus.COMPLETED, 1],
+        [HousingStatus.BLOCKED, 1]
+      ])(
+        'should count %s housing as %i in return_count',
+        async (status, expected) => {
+          const { campaign } = await setupCampaignWithHousing(status);
+
+          const result = await campaignRepository.findOne({
+            id: campaign.id,
+            establishmentId: campaign.establishmentId
+          });
+
+          expect(result?.returnCount).toBe(expected);
+        }
+      );
+    });
+
+    describe('return_count on housing status change', () => {
+      it('should decrement return_count when housing status moves from qualifying to non-qualifying', async () => {
+        const sentAt = faker.date.past();
+        const campaign = genCampaignApi(establishment.id, user);
+        await Campaigns().insert({ ...formatCampaignApi(campaign), sent_at: sentAt });
+
+        const housing = { ...genHousingApi(), status: HousingStatus.FIRST_CONTACT };
+        await Housing().insert(formatHousingRecordApi(housing));
+        await CampaignsHousing().insert({
+          campaign_id: campaign.id,
+          housing_id: housing.id,
+          housing_geo_code: housing.geoCode
+        });
+
+        const event = genEventApi({
+          creator: user,
+          type: 'housing:status-updated',
+          nextOld: {},
+          nextNew: {}
+        });
+        await Events().insert({
+          ...formatEventApi(event),
+          created_at: new Date(sentAt.getTime() + 1000)
+        });
+        await HousingEvents().insert({
+          event_id: event.id,
+          housing_id: housing.id,
+          housing_geo_code: housing.geoCode
+        });
+
+        // Verify housing is counted before status change
+        const before = await campaignRepository.findOne({
+          id: campaign.id,
+          establishmentId: campaign.establishmentId
+        });
+        expect(before?.returnCount).toBe(1);
+
+        // Move status out of qualifying range
+        await Housing()
+          .where({ id: housing.id, geo_code: housing.geoCode })
+          .update({ status: HousingStatus.WAITING });
+
+        const after = await campaignRepository.findOne({
+          id: campaign.id,
+          establishmentId: campaign.establishmentId
+        });
+        expect(after?.returnCount).toBe(0);
+      });
+
+      it('should increment return_count when housing status moves from non-qualifying to qualifying', async () => {
+        const sentAt = faker.date.past();
+        const campaign = genCampaignApi(establishment.id, user);
+        await Campaigns().insert({ ...formatCampaignApi(campaign), sent_at: sentAt });
+
+        const housing = { ...genHousingApi(), status: HousingStatus.WAITING };
+        await Housing().insert(formatHousingRecordApi(housing));
+        await CampaignsHousing().insert({
+          campaign_id: campaign.id,
+          housing_id: housing.id,
+          housing_geo_code: housing.geoCode
+        });
+
+        const event = genEventApi({
+          creator: user,
+          type: 'housing:status-updated',
+          nextOld: {},
+          nextNew: {}
+        });
+        await Events().insert({
+          ...formatEventApi(event),
+          created_at: new Date(sentAt.getTime() + 1000)
+        });
+        await HousingEvents().insert({
+          event_id: event.id,
+          housing_id: housing.id,
+          housing_geo_code: housing.geoCode
+        });
+
+        // Verify housing is not counted before status change
+        const before = await campaignRepository.findOne({
+          id: campaign.id,
+          establishmentId: campaign.establishmentId
+        });
+        expect(before?.returnCount).toBe(0);
+
+        // Move status into qualifying range
+        await Housing()
+          .where({ id: housing.id, geo_code: housing.geoCode })
+          .update({ status: HousingStatus.FIRST_CONTACT });
+
+        const after = await campaignRepository.findOne({
+          id: campaign.id,
+          establishmentId: campaign.establishmentId
+        });
+        expect(after?.returnCount).toBe(1);
+      });
     });
   });
 });

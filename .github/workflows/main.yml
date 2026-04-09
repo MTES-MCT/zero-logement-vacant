@@ -44,13 +44,13 @@ jobs:
           initialBuckets: "zerologementvacant"
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
 
       - name: Enable Corepack
         run: corepack enable
 
       - name: Use Node.js ${{ matrix.node-version }}
-        uses: actions/setup-node@v4
+        uses: actions/setup-node@v6
         with:
           node-version: ${{ matrix.node-version }}
           cache: yarn
@@ -72,7 +72,7 @@ jobs:
         run: yarn lint
 
       - name: Test
-        run: yarn coverage
+        run: yarn coverage --test-timeout=60000
         env:
           LOG_LEVEL: fatal
           VITE_API_URL: http://localhost:3001

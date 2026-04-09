@@ -2,21 +2,6 @@ import { compose } from 'effect/Function';
 
 import type { Identifiable } from '../models/Identifiable';
 
-export function ensure<T>(
-  argument: T | undefined | null,
-  message = 'This value was promised to be there.'
-): T {
-  if (argument === undefined || argument === null) {
-    throw new TypeError(message);
-  }
-
-  return argument;
-}
-
-export function concat<T>(array: Array<T> | undefined, ...items: Array<T>) {
-  return [...(array ?? []), ...items];
-}
-
 export function includeWith<T, K extends keyof T>(
   included: Array<T[K]>,
   map: (item: T) => T[K]

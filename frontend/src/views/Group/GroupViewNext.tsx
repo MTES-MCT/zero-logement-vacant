@@ -26,6 +26,7 @@ import HousingListMap from '../HousingList/HousingListMap';
 import HousingListTabs from '../HousingList/HousingListTabs';
 import HousingListTabsProvider from '../HousingList/HousingListTabsProvider';
 import NotFoundView from '../NotFoundView';
+import { useNotification } from '~/hooks/useNotification';
 
 interface RouterState {
   alert?: string;
@@ -65,7 +66,7 @@ function GroupViewNext() {
 
   const location: { state?: RouterState } = useLocation();
   const alert = location.state?.alert ?? '';
-  const [removeGroup] = useRemoveGroupMutation();
+  const [removeGroup, removeGroupMutation] = useRemoveGroupMutation();
   async function onGroupRemove(): Promise<void> {
     if (group) {
       try {
@@ -76,8 +77,20 @@ function GroupViewNext() {
       }
     }
   }
+  useNotification({
+    toastId: 'remove-group',
+    isError: removeGroupMutation.isError,
+    isLoading: removeGroupMutation.isLoading,
+    isSuccess: removeGroupMutation.isSuccess,
+    message: {
+      error: 'Erreur lors de la suppression du groupe',
+      loading: 'Suppression du groupe...',
+      success: 'Groupe supprimé !'
+    }
+  });
 
-  const [createCampaignFromGroup] = useCreateCampaignFromGroupNextMutation();
+  const [createCampaignFromGroup, createCampaignFromGroupMutation] =
+    useCreateCampaignFromGroupNextMutation();
   const onCampaignCreate: GroupProps['onCreateCampaign'] = async (campaign) => {
     if (group) {
       const created = await createCampaignFromGroup({
@@ -91,6 +104,17 @@ function GroupViewNext() {
       navigate(`/campagnes/${created.id}`);
     }
   };
+  useNotification({
+    toastId: 'create-campaign-from-group',
+    isError: createCampaignFromGroupMutation.isError,
+    isLoading: createCampaignFromGroupMutation.isLoading,
+    isSuccess: createCampaignFromGroupMutation.isSuccess,
+    message: {
+      error: 'Erreur lors de la création de la campagne',
+      loading: 'Création de la campagne...',
+      success: 'Campagne créée !'
+    }
+  });
 
   async function onGroupExport(): Promise<void> {
     if (group) {
@@ -100,7 +124,7 @@ function GroupViewNext() {
     }
   }
 
-  const [updateGroup] = useUpdateGroupMutation();
+  const [updateGroup, updateGroupMutation] = useUpdateGroupMutation();
   function onGroupUpdate(payload: GroupPayload): void {
     if (group) {
       updateGroup({
@@ -109,6 +133,17 @@ function GroupViewNext() {
       });
     }
   }
+  useNotification({
+    toastId: 'update-group',
+    isError: updateGroupMutation.isError,
+    isLoading: updateGroupMutation.isLoading,
+    isSuccess: updateGroupMutation.isSuccess,
+    message: {
+      error: 'Erreur lors de la mise à jour du groupe',
+      loading: 'Mise à jour du groupe...',
+      success: 'Groupe mis à jour !'
+    }
+  });
 
   if (isLoadingGroup) {
     return null;

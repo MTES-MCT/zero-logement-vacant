@@ -50,6 +50,7 @@ exploration/data/*
 data/
 data/*
 analytics/plugins/
+analytics/explorations/
 
 # DPE Import - Large data files
 server/src/scripts/import-dpe/dpe_processing_*/
@@ -74,3 +75,4 @@ vitest.config.*.timestamp*
 
 # Claude and others
 *.local.json
+test-output

@@ -62,7 +62,7 @@ WITH establishment_base AS (
         ON e.establishment_id = ea.establishment_id
     LEFT JOIN {{ ref('marts_production_establishments_category_pro_activity') }} epa
         ON e.establishment_id = epa.establishment_id
-    WHERE e.kind IN ('CC', 'CU', 'ME', 'CA', 'Commune', 'SIVOM', 'CTU')
+    WHERE e.kind IS NOT NULL
 ),
 
 establishment_connexions AS (
@@ -215,15 +215,14 @@ notes_stats AS (
 
 document_stats AS (
     SELECT
-        deh.establishment_id,
-        COUNT(DISTINCT dhe.housing_id) AS logements_maj_documents,
+        du.establishment_id,
+        COUNT(DISTINCT hde.housing_id) AS logements_maj_documents,
         COUNT(*) AS documents_importes,
         MAX(dev.created_at) AS date_dernier_document_importe
-    FROM {{ ref('stg_production_housing_events') }} dhe
-    JOIN {{ ref('stg_production_events') }} dev ON dhe.event_id = dev.id
-    JOIN {{ ref('int_production_establishments_housing') }} deh ON dhe.housing_id = deh.housing_id
-    WHERE dev.type = 'housing:document-attached'
-    GROUP BY deh.establishment_id
+    FROM {{ ref('stg_production_housing_document_events') }} hde
+    JOIN {{ ref('stg_production_events') }} dev ON hde.event_id = dev.id
+    JOIN {{ ref('int_production_users') }} du ON dev.created_by = du.id
+    GROUP BY du.establishment_id
 ),
 
 campaign_housing_stats AS (
@@ -244,6 +243,18 @@ group_housing_stats AS (
     JOIN {{ ref('stg_production_groups_housing') }} phg ON pg.id = phg.group_id
     WHERE pg.exported_at IS NOT NULL
     GROUP BY pg.establishment_id
+),
+
+dpe_stats AS (
+    SELECT
+        eh.establishment_id,
+        COUNT(DISTINCT CASE
+            WHEN h.actual_dpe IS NOT NULL
+            THEN eh.housing_id
+        END) AS logements_maj_dpe
+    FROM {{ ref('int_production_establishments_housing') }} eh
+    JOIN {{ ref('stg_production_housing') }} h ON CAST(h.id AS VARCHAR) = eh.housing_id
+    GROUP BY eh.establishment_id
 ),
 
 housing_park_counts AS (
@@ -274,6 +285,7 @@ communes_with_commune_establishment AS (
     JOIN {{ ref('marts_production_establishments') }} ce
         ON CAST(cel.establishment_id AS VARCHAR) = ce.establishment_id
     WHERE ce.kind = 'Commune'
+      AND COALESCE(ce.user_number, 0) > 0
 ),
 
 echelons_inscrits AS (
@@ -378,7 +390,7 @@ SELECT
     COALESCE(oee.logements_maj_phone, 0) AS logements_maj_phone,
     COALESCE(oee.logements_maj_owners, 0) + COALESCE(rce.logements_maj_owners_rank, 0) AS logements_maj_owners,
     COALESCE(oee.logements_maj_owners_address, 0) AS logements_maj_owners_address,
-    CAST(NULL AS INTEGER) AS logements_maj_dpe,
+    COALESCE(dpes.logements_maj_dpe, 0) AS logements_maj_dpe,
     COALESCE(ns.logements_maj_notes, 0) AS logements_maj_notes,
     COALESCE(ds.logements_maj_documents, 0) AS logements_maj_documents,
 
@@ -492,6 +504,7 @@ LEFT JOIN notes_stats ns ON eb.establishment_id = CAST(ns.establishment_id AS VA
 LEFT JOIN document_stats ds ON eb.establishment_id = CAST(ds.establishment_id AS VARCHAR)
 LEFT JOIN campaign_housing_stats chs ON eb.establishment_id = CAST(chs.establishment_id AS VARCHAR)
 LEFT JOIN group_housing_stats ghs ON eb.establishment_id = CAST(ghs.establishment_id AS VARCHAR)
+LEFT JOIN dpe_stats dpes ON eb.establishment_id = CAST(dpes.establishment_id AS VARCHAR)
 LEFT JOIN housing_park_counts hpc ON eb.establishment_id = CAST(hpc.establishment_id AS VARCHAR)
 LEFT JOIN geo_reference gr ON eb.establishment_id = CAST(gr.establishment_id AS VARCHAR)
 LEFT JOIN echelons_inscrits ei ON eb.establishment_id = ei.establishment_id

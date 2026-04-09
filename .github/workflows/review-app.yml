@@ -97,7 +97,7 @@ jobs:
       PR_NAME: ${{ needs.resolve-pr.outputs.pr_name }}
     steps:
       - name: Setup Node.js
-        uses: actions/setup-node@v4
+        uses: actions/setup-node@v6
         with:
           node-version: 24
 
@@ -183,7 +183,7 @@ jobs:
       PR_NAME: ${{ needs.resolve-pr.outputs.pr_name }}
     steps:
       - name: Setup Node.js
-        uses: actions/setup-node@v4
+        uses: actions/setup-node@v6
         with:
           node-version: 24
 
@@ -220,7 +220,7 @@ jobs:
         id: extract_branch
 
       - name: Checkout code
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
         with:
           repository: ${{ github.repository }}
           ref: ${{ steps.extract_branch.outputs.branch }}
@@ -228,7 +228,7 @@ jobs:
           fetch-depth: 0
 
       - name: Setup Node.js
-        uses: actions/setup-node@v4
+        uses: actions/setup-node@v6
         with:
           node-version: 24
 
@@ -400,7 +400,7 @@ jobs:
         id: extract_branch
 
       - name: Checkout code
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
         with:
           repository: ${{ github.repository }}
           ref: ${{ steps.extract_branch.outputs.branch }}
@@ -408,7 +408,7 @@ jobs:
           fetch-depth: 0
 
       - name: Setup Node.js
-        uses: actions/setup-node@v4
+        uses: actions/setup-node@v6
         with:
           node-version: 24
 
@@ -558,7 +558,7 @@ jobs:
         id: extract_branch
 
       - name: Checkout code
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
         with:
           repository: ${{ github.repository }}
           ref: ${{ steps.extract_branch.outputs.branch }}
@@ -566,7 +566,7 @@ jobs:
           fetch-depth: 0
 
       - name: Setup Node.js
-        uses: actions/setup-node@v4
+        uses: actions/setup-node@v6
         with:
           node-version: 24
 
@@ -618,7 +618,7 @@ jobs:
         id: extract_branch
 
       - name: Checkout code
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
         with:
           repository: ${{ github.repository }}
           ref: ${{ steps.extract_branch.outputs.branch }}
@@ -626,7 +626,7 @@ jobs:
           fetch-depth: 0
 
       - name: Setup Node.js
-        uses: actions/setup-node@v4
+        uses: actions/setup-node@v6
         with:
           node-version: 24
 
@@ -655,7 +655,7 @@ jobs:
         id: extract_branch
 
       - name: Checkout code
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
         with:
           repository: ${{ github.repository }}
           ref: ${{ steps.extract_branch.outputs.branch }}
@@ -663,7 +663,7 @@ jobs:
           fetch-depth: 0
 
       - name: Setup Node.js
-        uses: actions/setup-node@v4
+        uses: actions/setup-node@v6
         with:
           node-version: 24
 
@@ -698,7 +698,7 @@ jobs:
         id: extract_branch
 
       - name: Checkout code
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
         with:
           repository: ${{ github.repository }}
           ref: ${{ steps.extract_branch.outputs.branch }}
@@ -706,7 +706,7 @@ jobs:
           fetch-depth: 0
 
       - name: Setup Node.js
-        uses: actions/setup-node@v4
+        uses: actions/setup-node@v6
         with:
           node-version: 24
 
@@ -733,7 +733,7 @@ jobs:
       APP_ALIAS: ${{ needs.resolve-pr.outputs.pr_name }}-queue
     steps:
       - name: Setup Node.js
-        uses: actions/setup-node@v4
+        uses: actions/setup-node@v6
         with:
           node-version: 24
 
@@ -753,7 +753,7 @@ jobs:
       APP_ALIAS: ${{ needs.resolve-pr.outputs.pr_name }}-api
     steps:
       - name: Setup Node.js
-        uses: actions/setup-node@v4
+        uses: actions/setup-node@v6
         with:
           node-version: 24
 
@@ -773,7 +773,7 @@ jobs:
       APP_ALIAS: ${{ needs.resolve-pr.outputs.pr_name }}-front
     steps:
       - name: Setup Node.js
-        uses: actions/setup-node@v4
+        uses: actions/setup-node@v6
         with:
           node-version: 24
 
@@ -793,7 +793,7 @@ jobs:
       PR_NAME: ${{ needs.resolve-pr.outputs.pr_name }}
     steps:
       - name: Setup Node.js
-        uses: actions/setup-node@v4
+        uses: actions/setup-node@v6
         with:
           node-version: 24
 

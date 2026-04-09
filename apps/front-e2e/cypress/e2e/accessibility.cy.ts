@@ -35,14 +35,18 @@ describe('Accessibility', () => {
 
   it('should be accessible on /groupes/:id', () => {
     cy.intercept('GET', '/api/groups').as('listGroups');
+    cy.intercept('GET', '/api/groups/*').as('getGroup');
 
     cy.logIn();
     cy.visit('/parc-de-logements');
 
     cy.wait(['@listGroups']);
 
-    cy.findAllByRole('group-card').first().click();
-    cy.location('pathname').should('eq', '/groupes/*');
+    cy.findAllByRole('link', { name: /^Groupe de logements/ })
+      .first()
+      .click();
+    cy.wait(['@getGroup']);
+    cy.location('pathname').should('match', /\/groupes\/.+/);
 
     testAccessibility();
   });

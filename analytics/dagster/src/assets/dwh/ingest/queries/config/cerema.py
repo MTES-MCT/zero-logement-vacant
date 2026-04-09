@@ -33,7 +33,17 @@ CEREMA_SOURCES = [
     # -------------------------------------------------------------------------
     # LOVAC Sources
     # -------------------------------------------------------------------------
-    
+
+    ExternalSourceConfig(
+        name="lovac_2026",
+        url=f"s3://{Config.CELLAR_DATA_LAKE_BUCKET_NAME}/lake/lovac/2026/raw.csv",
+        producer=Producer.CEREMA,
+        file_type=FileType.CSV,
+        description="Fichier LOVAC 2026 (Logements Vacants)",
+        type_overrides=LOVAC_TYPE_OVERRIDES,
+        read_options={"auto_detect": True, "escape": '"', "quote": '"'},
+    ),
+
     ExternalSourceConfig(
         name="lovac_2025",
         url=f"s3://{Config.CELLAR_DATA_LAKE_BUCKET_NAME}/lake/cerema/lovac/2025/raw.csv",

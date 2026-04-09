@@ -7,15 +7,6 @@ import { contramap, DEFAULT_ORDER, type Ord } from '@zerologementvacant/utils';
 import { isEqual, pick, pickBy } from 'lodash-es';
 import { type Address } from './Address';
 
-export interface DraftOwner {
-  rawAddress: string[];
-  fullName: string;
-  birthDate?: Date;
-  email?: string;
-  phone?: string;
-  rank: number;
-}
-
 export interface Owner extends Omit<OwnerDTO, 'banAddress'> {
   banAddress: Address | null;
 }
@@ -79,27 +70,6 @@ export function fromHousingOwnerDTO(
     propertyRight: housingOwner.propertyRight
   };
 }
-
-export const getHousingOwnerRankLabel = (rank: number) => {
-  if (!rank) {
-    rank = 0;
-  }
-
-  const labels = [
-    { rank: 1, label: 'Propriétaire principal' },
-    { rank: 0, label: 'Ancien propriétaire' },
-    { rank: -1, label: 'Propriétaire incorrect' },
-    {
-      rank: -2,
-      label:
-        'Propriétaire doublon LOVAC 2024 - En attente de traitement par ZLV'
-    },
-    { rank: -3, label: 'Propriétaire décédé.e' }
-  ];
-
-  const label = labels.find((label) => label.rank === rank)?.label;
-  return label ? label : `${rank}ème ayant droit`;
-};
 
 function compare(before: Owner, after: Owner): Partial<Owner> {
   const keys: ReadonlyArray<keyof Owner> = [

@@ -73,7 +73,12 @@ export function createCampaignFromGroupModal(
 
       const component = (
         <form onSubmit={form.handleSubmit(handleSubmit)}>
-          <modal.Component size="large" {...rest} title="Créer une campagne">
+          <modal.Component
+            size="large"
+            {...rest}
+            onClose={form.reset}
+            title="Créer une campagne"
+          >
             <Stack direction="row" spacing="1rem" useFlexGap sx={{ mb: 2 }}>
               <Stack
                 direction="row"

@@ -15,7 +15,7 @@ jobs:
       contents: read
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
 
       - name: Run Slopwatch security scan
         uses: loicguillois/slopwatch@0046140f371a105e5a63ac81107da5e4ebfb6f67

@@ -45,77 +45,95 @@ function ToolbarPlugin(props: Readonly<ToolbarPluginProps>) {
       spacing="1rem"
       useFlexGap
     >
-      <Stack direction="row" spacing="0.5rem" useFlexGap>
-        <IconToggle
-          iconId="fr-icon-bold"
-          isActive={toolbar.state.bold}
-          title="Gras"
-          onClick={() => {
-            editor.dispatchCommand(FORMAT_TEXT_COMMAND, 'bold');
-          }}
-        />
-        <IconToggle
-          iconId="fr-icon-italic"
-          isActive={toolbar.state.italic}
-          title="Italique"
-          onClick={() => {
-            editor.dispatchCommand(FORMAT_TEXT_COMMAND, 'italic');
-          }}
-        />
-        <IconToggle
-          iconId="ri-underline"
-          isActive={toolbar.state.underline}
-          title="Souligner"
-          onClick={() => {
-            editor.dispatchCommand(FORMAT_TEXT_COMMAND, 'underline');
-          }}
-        />
-        <IconToggle
-          iconId="ri-align-left"
-          isActive={toolbar.state.align === 'left'}
-          title="Aligner à gauche"
-          onClick={() => {
-            editor.dispatchCommand(FORMAT_ELEMENT_COMMAND, 'left');
-          }}
-        />
-        <IconToggle
-          iconId="ri-align-center"
-          isActive={toolbar.state.align === 'center'}
-          title="Centrer"
-          onClick={() => {
-            editor.dispatchCommand(FORMAT_ELEMENT_COMMAND, 'center');
-          }}
-        />
-        <IconToggle
-          iconId="ri-align-right"
-          isActive={toolbar.state.align === 'right'}
-          title="Aligner à droite"
-          onClick={() => {
-            editor.dispatchCommand(FORMAT_ELEMENT_COMMAND, 'right');
-          }}
-        />
-        <IconToggle
-          iconId="ri-align-justify"
-          isActive={toolbar.state.align === 'justify'}
-          title="Justifier"
-          onClick={() => {
-            editor.dispatchCommand(FORMAT_ELEMENT_COMMAND, 'justify');
-          }}
-        />
-        <IconToggle
-          iconId="fr-icon-list-unordered"
-          title="Liste à puces"
-          onClick={() => {
-            editor.dispatchCommand(INSERT_UNORDERED_LIST_COMMAND, undefined);
-          }}
-        />
-        <IconToggle
-          iconId="fr-icon-list-ordered"
-          title="Liste ordonnée"
-          onClick={() => {
-            editor.dispatchCommand(INSERT_ORDERED_LIST_COMMAND, undefined);
-          }}
-        />
+      <Stack component="ul" direction="row" spacing="0.5rem" useFlexGap>
+        <li>
+          <IconToggle
+            iconId="fr-icon-bold"
+            isActive={toolbar.state.bold}
+            title="Gras"
+            onClick={() => {
+              editor.dispatchCommand(FORMAT_TEXT_COMMAND, 'bold');
+            }}
+          />
+        </li>
+        <li>
+          <IconToggle
+            iconId="fr-icon-italic"
+            isActive={toolbar.state.italic}
+            title="Italique"
+            onClick={() => {
+              editor.dispatchCommand(FORMAT_TEXT_COMMAND, 'italic');
+            }}
+          />
+        </li>
+        <li>
+          <IconToggle
+            iconId="ri-underline"
+            isActive={toolbar.state.underline}
+            title="Souligner"
+            onClick={() => {
+              editor.dispatchCommand(FORMAT_TEXT_COMMAND, 'underline');
+            }}
+          />
+        </li>
+        <li>
+          <IconToggle
+            iconId="ri-align-left"
+            isActive={toolbar.state.align === 'left'}
+            title="Aligner à gauche"
+            onClick={() => {
+              editor.dispatchCommand(FORMAT_ELEMENT_COMMAND, 'left');
+            }}
+          />
+        </li>
+        <li>
+          <IconToggle
+            iconId="ri-align-center"
+            isActive={toolbar.state.align === 'center'}
+            title="Centrer"
+            onClick={() => {
+              editor.dispatchCommand(FORMAT_ELEMENT_COMMAND, 'center');
+            }}
+          />
+        </li>
+        <li>
+          <IconToggle
+            iconId="ri-align-right"
+            isActive={toolbar.state.align === 'right'}
+            title="Aligner à droite"
+            onClick={() => {
+              editor.dispatchCommand(FORMAT_ELEMENT_COMMAND, 'right');
+            }}
+          />
+        </li>
+        <li>
+          <IconToggle
+            iconId="ri-align-justify"
+            isActive={toolbar.state.align === 'justify'}
+            title="Justifier"
+            onClick={() => {
+              editor.dispatchCommand(FORMAT_ELEMENT_COMMAND, 'justify');
+            }}
+          />
+        </li>
+        <li>
+          <IconToggle
+            iconId="fr-icon-list-unordered"
+            title="Liste à puces"
+            onClick={() => {
+              editor.dispatchCommand(INSERT_UNORDERED_LIST_COMMAND, undefined);
+            }}
+          />
+        </li>
+        <li>
+          <IconToggle
+            iconId="fr-icon-list-ordered"
+            title="Liste ordonnée"
+            onClick={() => {
+              editor.dispatchCommand(INSERT_ORDERED_LIST_COMMAND, undefined);
+            }}
+          />
+        </li>
       </Stack>
       <Stack direction="row">
         <VariableSelect

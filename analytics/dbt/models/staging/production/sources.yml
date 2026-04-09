@@ -10,6 +10,7 @@ sources:
       - name: events
       - name: old_events
       - name: housing_events
+      - name: housing_document_events
       - name: establishments
       - name: users
       - name: campaigns_housing

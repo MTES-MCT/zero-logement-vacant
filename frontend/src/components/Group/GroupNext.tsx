@@ -54,14 +54,17 @@ function Group(props: Readonly<GroupProps>) {
     campaign: Pick<Campaign, 'title' | 'description' | 'sentAt'>
   ): void {
     props.onCreateCampaign?.(campaign);
+    campaignFromGroupModal.close();
   }
 
-  async function removeGroup(): Promise<void> {
-    await props.onRemove?.();
+  function removeGroup(): void {
+    props.onRemove?.();
+    removeGroupModal.close();
   }
 
   function updateGroup(group: GroupPayload): void {
     props.onUpdate?.(group);
+    renameGroupModal.close();
   }
 
   return (
@@ -164,33 +167,52 @@ function Group(props: Readonly<GroupProps>) {
             sx={{
               display: 'flex',
               flexFlow: 'column nowrap',
-              alignItems: 'flex-end',
-              rowGap: '1rem'
+              alignItems: 'flex-end'
             }}
           >
-            <FullWidthButton
-              priority="primary"
-              onClick={campaignFromGroupModal.open}
-              disabled={props.group.housingCount === 0}
+            <ul
+             
+              style={{
+                listStyle: 'none',
+                padding: 0,
+                margin: 0,
+                display: 'flex',
+                flexDirection: 'column',
+                gap: '1rem',
+                width: '100%',
+                alignItems: 'flex-end'
+              }}
             >
-              Créer une campagne
-            </FullWidthButton>
+              <li style={{ width: '100%' }}>
+                <FullWidthButton
+                  priority="primary"
+                  onClick={campaignFromGroupModal.open}
+                  disabled={props.group.housingCount === 0}
+                >
+                  Créer une campagne
+                </FullWidthButton>
+              </li>
 
-            <FullWidthButton
-              priority="secondary"
-              iconId="ri-upload-2-line"
-              onClick={props.onExport}
-            >
-              Exporter les données
-            </FullWidthButton>
+              <li style={{ width: '100%' }}>
+                <FullWidthButton
+                  priority="secondary"
+                  iconId="ri-upload-2-line"
+                  onClick={props.onExport}
+                >
+                  Exporter les données
+                </FullWidthButton>
+              </li>
 
-            <FullWidthButton
-              priority="tertiary"
-              iconId="ri-delete-bin-line"
-              onClick={removeGroupModal.open}
-            >
-              Supprimer le groupe
-            </FullWidthButton>
+              <li style={{ width: '100%' }}>
+                <FullWidthButton
+                  priority="tertiary"
+                  iconId="ri-delete-bin-line"
+                  onClick={removeGroupModal.open}
+                >
+                  Supprimer le groupe
+                </FullWidthButton>
+              </li>
+            </ul>
           </Grid>
         </Grid>
 

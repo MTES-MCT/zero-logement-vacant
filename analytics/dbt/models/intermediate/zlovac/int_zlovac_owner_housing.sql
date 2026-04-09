@@ -19,7 +19,6 @@ WITH owner_housing AS (
     FROM {{ ref ('int_zlovac_owner_housing_scored') }} as zlovac
     LEFT JOIN {{ ref ('int_zlovac') }} as zlovac_housing
     ON zlovac_housing.local_id = zlovac.local_id
-    WHERE zlovac.ff_owner_fullname IS NOT NULL
 )
 
 SELECT

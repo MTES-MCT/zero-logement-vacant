@@ -10,16 +10,18 @@ export function useModalReady(id: string) {
 
   useEffect(() => {
     const dialog = document.getElementById(id);
-    const observer = new MutationObserver(() => {
-      setIsReady(true);
-    });
+    if (dialog) {
+      const observer = new MutationObserver(() => {
+        setIsReady(true);
+      });
 
-    observer.observe(dialog!, {
-      attributes: true,
-      attributeFilter: ['data-fr-js-modal']
-    });
+      observer.observe(dialog!, {
+        attributes: true,
+        attributeFilter: ['data-fr-js-modal']
+      });
 
-    return () => observer.disconnect();
+      return () => observer.disconnect();
+    }
   }, [id]);
 
   return isReady;

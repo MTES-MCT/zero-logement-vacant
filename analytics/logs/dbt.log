@@ -30,3 +30,19 @@ Runtime Error
 [0m21:17:30.363929 [debug] [MainThread]: Sending event: {'category': 'dbt', 'action': 'invocation', 'label': 'end', 'context': [<snowplow_tracker.self_describing_json.SelfDescribingJson object at 0x10d767ad0>, <snowplow_tracker.self_describing_json.SelfDescribingJson object at 0x10d767b10>, <snowplow_tracker.self_describing_json.SelfDescribingJson object at 0x104fd1bd0>]}
 [0m21:17:30.364151 [debug] [MainThread]: Flushing usage events
 [0m21:17:31.942139 [debug] [MainThread]: An error was encountered while trying to flush usage events
+[0m22:00:45.086655 [debug] [MainThread]: Sending event: {'category': 'dbt', 'action': 'invocation', 'label': 'start', 'context': [<snowplow_tracker.self_describing_json.SelfDescribingJson object at 0x10daba490>, <snowplow_tracker.self_describing_json.SelfDescribingJson object at 0x10daef610>, <snowplow_tracker.self_describing_json.SelfDescribingJson object at 0x10daf9150>]}
+
+
+============================== 22:00:45.090072 | 99273b59-3769-4ee6-9c93-08081892a473 ==============================
+[0m22:00:45.090072 [info ] [MainThread]: Running with dbt=1.9.10
+[0m22:00:45.090409 [debug] [MainThread]: running dbt with arguments {'profiles_dir': '/Users/raphaelcourivaud/.dbt', 'log_path': 'logs', 'warn_error': 'None', 'version_check': 'True', 'partial_parse': 'True', 'log_format': 'default', 'fail_fast': 'False', 'use_experimental_parser': 'False', 'introspect': 'True', 'quiet': 'False', 'write_json': 'True', 'static_parser': 'True', 'debug': 'False', 'send_anonymous_usage_stats': 'True', 'use_colors': 'True', 'invocation_command': 'dbt run --select stg_lovac_2026+ int_lovac_fil_2026+ int_lovac_ex_2026+ int_lovac_history_housing+ int_lovac_geo_code+ int_zlovac+ int_zlovac_owner_housing_scored+ int_zlovac_owner_housing+', 'empty': 'False', 'log_cache_events': 'False', 'no_print': 'None', 'cache_selected_only': 'False', 'indirect_selection': 'eager', 'target_path': 'None', 'printer_width': '80', 'warn_error_options': 'WarnErrorOptions(include=[], exclude=[])'}
+[0m22:00:45.090742 [error] [MainThread]: Encountered an error:
+Runtime Error
+  No dbt_project.yml found at expected path /Users/raphaelcourivaud/dev/zlv/zero-logement-vacant/analytics/dbt_project.yml
+  Verify that each entry within packages.yml (and their transitive dependencies) contains a file named dbt_project.yml
+  
+[0m22:00:45.091048 [debug] [MainThread]: Resource report: {"command_name": "run", "command_success": false, "command_wall_clock_time": 0.047859125, "process_in_blocks": "0", "process_kernel_time": 0.204445, "process_mem_max_rss": "111525888", "process_out_blocks": "0", "process_user_time": 0.643597}
+[0m22:00:45.091273 [debug] [MainThread]: Command `dbt run` failed at 22:00:45.091226 after 0.05 seconds
+[0m22:00:45.091481 [debug] [MainThread]: Sending event: {'category': 'dbt', 'action': 'invocation', 'label': 'end', 'context': [<snowplow_tracker.self_describing_json.SelfDescribingJson object at 0x10daef910>, <snowplow_tracker.self_describing_json.SelfDescribingJson object at 0x10daf9010>, <snowplow_tracker.self_describing_json.SelfDescribingJson object at 0x105138a90>]}
+[0m22:00:45.091668 [debug] [MainThread]: Flushing usage events
+[0m22:00:47.030966 [debug] [MainThread]: An error was encountered while trying to flush usage events

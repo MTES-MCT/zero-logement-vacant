@@ -1,4 +1,5 @@
 import axios from 'axios';
+import pMemoize from 'p-memoize';
 import z from 'zod';
 
 import type {
@@ -9,18 +10,30 @@ import type {
   Region
 } from './administrative-division-service';
 
+/**
+ * Extract department code from a commune INSEE code.
+ * Pure string manipulation — no API call needed.
+ *
+ * INSEE codes are 5 chars:
+ *  - DOM-TOM (starts with 97): first 3 chars are the department code
+ *  - Corsica (starts with 2A or 2B): first 2 chars
+ *  - Metropolitan France: first 2 digits
+ */
+export function getDepartmentFromCommune(communeCode: string): string {
+  if (!communeCode || communeCode.length < 2) return '';
+  if (communeCode.startsWith('97')) return communeCode.substring(0, 3);
+  if (communeCode.startsWith('2A') || communeCode.startsWith('2B')) {
+    return communeCode.substring(0, 2);
+  }
+  return communeCode.substring(0, 2);
+}
+
 class GeoAPI implements AdministrativeDivisionService {
   private readonly http = axios.create({
     baseURL: 'https://geo.api.gouv.fr',
     timeout: 5000
   });
 
-  /**
-   *
-   * @param code
-   * @returns
-   * @throws Will throw an error if the API call fails or if the response data is invalid
-   */
   async getCommune(code: string): Promise<Commune | null> {
     const { data } = await this.http.get<unknown>(`/communes/${code}`);
     const commune = communeSchema.parse(data);
@@ -44,13 +57,19 @@ class GeoAPI implements AdministrativeDivisionService {
   }
 
   async getDepartment(code: string): Promise<Department | null> {
-    const { data } = await this.http.get<unknown>(`/departements/${code}`);
-    const department = departmentSchema.parse(data);
-    return {
-      code: department.code,
-      name: department.nom,
-      region: department.codeRegion
-    };
+    try {
+      const { data } = await this.http.get<unknown>(`/departements/${code}`, {
+        params: { fields: 'codeRegion' }
+      });
+      const department = departmentSchema.parse(data);
+      return {
+        code: department.code,
+        name: department.nom,
+        region: department.codeRegion
+      };
+    } catch {
+      return null;
+    }
   }
 
   async getRegion(code: string): Promise<Region | null> {
@@ -89,5 +108,17 @@ const regionSchema = z.object({
 });
 
 export function createGeoAPI(): AdministrativeDivisionService {
-  return new GeoAPI();
+  const api = new GeoAPI();
+  return {
+    getCommune: pMemoize(api.getCommune.bind(api)),
+    getIntercommunality: pMemoize(api.getIntercommunality.bind(api)),
+    getDepartment: pMemoize(api.getDepartment.bind(api)),
+    getRegion: pMemoize(api.getRegion.bind(api))
+  };
 }
+
+/**
+ * Singleton GeoAPI instance with per-argument memoization.
+ * Use this throughout the server — do not call createGeoAPI() directly.
+ */
+export const geoAPI = createGeoAPI();

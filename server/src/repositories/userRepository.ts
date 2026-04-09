@@ -44,13 +44,13 @@ async function getByEmailIncludingDeleted(email: string): Promise<UserApi | null
 
 async function update(user: UserApi): Promise<void> {
   logger.debug('Updating user...', { id: user.id });
-  await Users().where({ id: user.id }).update(formatUserApi(user));
+  await Users().where({ id: user.id }).update(toUserDBO(user));
 }
 
 async function insert(userApi: UserApi): Promise<UserApi> {
   logger.info('Insert user with email', userApi.email);
   return db(USERS_TABLE)
-    .insert(formatUserApi(userApi))
+    .insert(toUserDBO(userApi))
     .returning('*')
     .then((_) => fromUserDBO(_[0]));
 }
@@ -164,7 +164,7 @@ export const fromUserDBO = (userDBO: UserDBO): UserApi => ({
     : null
 });
 
-export const formatUserApi = (userApi: UserApi): UserDBO => ({
+export const toUserDBO = (userApi: UserApi): UserDBO => ({
   id: userApi.id,
   email: userApi.email,
   password: userApi.password,
@@ -208,6 +208,6 @@ export default {
   count,
   find,
   insert,
-  formatUserApi,
+  toUserDBO,
   remove
 };

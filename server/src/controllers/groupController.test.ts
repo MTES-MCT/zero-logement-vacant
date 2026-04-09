@@ -69,7 +69,7 @@ import {
   housingTable
 } from '~/repositories/housingRepository';
 import { formatOwnerApi, Owners } from '~/repositories/ownerRepository';
-import { formatUserApi, Users } from '~/repositories/userRepository';
+import { toUserDBO, Users } from '~/repositories/userRepository';
 import {
   genCampaignApi,
   genEstablishmentApi,
@@ -98,7 +98,7 @@ describe('Group API', () => {
     await Establishments().insert(
       [establishment, otherEstablishment].map(formatEstablishmentApi)
     );
-    await Users().insert([user, otherUser].map(formatUserApi));
+    await Users().insert([user, otherUser].map(toUserDBO));
   });
 
   describe('GET /groups', () => {

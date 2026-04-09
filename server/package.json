@@ -92,7 +92,8 @@
     "validator": "13.15.26",
     "web-streams-utils": "1.1.0",
     "wuzzy": "0.1.8",
-    "yup": "1.7.0"
+    "yup": "1.7.0",
+    "zod": "4.3.6"
   },
   "devDependencies": {
     "@fast-check/vitest": "0.2.2",

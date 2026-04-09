@@ -31,7 +31,7 @@ import {
   formatHousingRecordApi,
   Housing
 } from '~/repositories/housingRepository';
-import { formatUserApi, Users } from '~/repositories/userRepository';
+import { toUserDBO, Users } from '~/repositories/userRepository';
 import {
   genDocumentApi,
   genEstablishmentApi,
@@ -73,7 +73,7 @@ describe('Document API', () => {
     );
     await Users().insert(
       [user, admin, anotherUser, visitor, userFromAnotherEstablishment].map(
-        formatUserApi
+        toUserDBO
       )
     );
   });
@@ -90,7 +90,7 @@ describe('Document API', () => {
 
     beforeAll(async () => {
       await Establishments().insert(formatEstablishmentApi(establishment));
-      await Users().insert(formatUserApi(user));
+      await Users().insert(toUserDBO(user));
     });
 
     const samplePdfPath = path.join(__dirname, '../../test/sample.pdf');

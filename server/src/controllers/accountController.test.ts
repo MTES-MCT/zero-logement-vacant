@@ -60,7 +60,7 @@ import {
   formatResetLinkApi,
   ResetLinks
 } from '~/repositories/resetLinkRepository';
-import { formatUserApi, Users } from '~/repositories/userRepository';
+import { toUserDBO, Users } from '~/repositories/userRepository';
 import userRepository from '~/repositories/userRepository';
 
 import {
@@ -93,7 +93,7 @@ describe('Account controller', () => {
       ...user,
       password: bcrypt.hashSync(user.password, SALT_LENGTH)
     }));
-    await Users().insert(users.map(formatUserApi));
+    await Users().insert(users.map(toUserDBO));
   });
 
   describe('Sign in', () => {
@@ -174,7 +174,7 @@ describe('Account controller', () => {
         suspendedAt: new Date().toJSON(),
         suspendedCause: 'droits utilisateur expires'
       };
-      await Users().insert(formatUserApi(suspendedUser));
+      await Users().insert(toUserDBO(suspendedUser));
 
       const { body, status } = await request(url).post(testRoute).send({
         email: suspendedUser.email,
@@ -198,7 +198,7 @@ describe('Account controller', () => {
         password: bcrypt.hashSync('TestPassword123!', SALT_LENGTH),
         deletedAt: new Date().toJSON()
       };
-      await Users().insert(formatUserApi(deletedUser));
+      await Users().insert(toUserDBO(deletedUser));
 
       const { status } = await request(url).post(testRoute).send({
         email: deletedUser.email,

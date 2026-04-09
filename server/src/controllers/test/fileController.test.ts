@@ -11,7 +11,7 @@ import {
   Establishments,
   formatEstablishmentApi
 } from '../../repositories/establishmentRepository';
-import { formatUserApi, Users } from '../../repositories/userRepository';
+import { toUserDBO, Users } from '../../repositories/userRepository';
 
 // EICAR test file - standard antivirus test string
 const EICAR_TEST_FILE = 'X5O!P%@AP[4\\PZX54(P^)7CC)7}$EICAR-STANDARD-ANTIVIRUS-TEST-FILE!$H+H*';
@@ -28,7 +28,7 @@ describe('File API', () => {
 
   beforeAll(async () => {
     await Establishments().insert(formatEstablishmentApi(establishment));
-    await Users().insert(formatUserApi(user));
+    await Users().insert(toUserDBO(user));
   });
 
   describe('POST /files', () => {

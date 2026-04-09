@@ -21,7 +21,7 @@ import {
   Establishments,
   formatEstablishmentApi
 } from '~/repositories/establishmentRepository';
-import { formatUserApi, Users } from '~/repositories/userRepository';
+import { toUserDBO, Users } from '~/repositories/userRepository';
 import { GeoPerimeterApi } from '~/models/GeoPerimeterApi';
 
 // EICAR test file - standard antivirus test string
@@ -42,7 +42,7 @@ describe('Geo perimeters API', () => {
     await Establishments().insert(
       [establishment, anotherEstablishment].map(formatEstablishmentApi)
     );
-    await Users().insert(formatUserApi(user));
+    await Users().insert(toUserDBO(user));
   });
 
   describe('GET /geo/perimeters', () => {

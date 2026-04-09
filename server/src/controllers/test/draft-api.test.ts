@@ -39,7 +39,7 @@ import {
   Establishments,
   formatEstablishmentApi
 } from '../../repositories/establishmentRepository';
-import { formatUserApi, Users } from '../../repositories/userRepository';
+import { toUserDBO, Users } from '../../repositories/userRepository';
 import { SenderApi } from '../../models/SenderApi';
 import fp from 'lodash/fp';
 import {
@@ -69,7 +69,7 @@ describe('Draft API', () => {
     await Establishments().insert(
       [establishment, anotherEstablishment].map(formatEstablishmentApi)
     );
-    await Users().insert([user, anotherUser].map(formatUserApi));
+    await Users().insert([user, anotherUser].map(toUserDBO));
   });
 
   describe('GET /drafts', () => {
@@ -524,7 +524,7 @@ describe('Draft API', () => {
 
     beforeAll(async () => {
       await Establishments().insert(formatEstablishmentApi(establishment));
-      await Users().insert(formatUserApi(user));
+      await Users().insert(toUserDBO(user));
     });
 
     const testRoute = '/api/drafts';
@@ -681,7 +681,7 @@ describe('Draft API', () => {
 
     beforeAll(async () => {
       await Establishments().insert(formatEstablishmentApi(establishment));
-      await Users().insert(formatUserApi(user));
+      await Users().insert(toUserDBO(user));
     });
 
     const testRoute = (id: string) => `/api/drafts/${id}`;

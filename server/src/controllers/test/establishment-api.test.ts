@@ -18,7 +18,7 @@ import {
   formatEstablishmentApi
 } from '~/repositories/establishmentRepository';
 import { tokenProvider } from '~/test/testUtils';
-import { formatUserApi, Users } from '~/repositories/userRepository';
+import { toUserDBO, Users } from '~/repositories/userRepository';
 import type { UserApi } from '~/models/UserApi';
 
 describe('Establishment API', () => {
@@ -174,7 +174,7 @@ describe('Establishment API', () => {
 
       beforeAll(async () => {
         await Establishments().insert(formatEstablishmentApi(establishment));
-        await Users().insert(formatUserApi(user));
+        await Users().insert(toUserDBO(user));
       });
 
       it('should include users if the user is authenticated', async () => {

@@ -17,7 +17,7 @@ import {
   Housing
 } from '~/repositories/housingRepository';
 import { formatOwnerApi, Owners } from '~/repositories/ownerRepository';
-import { formatUserApi, Users } from '~/repositories/userRepository';
+import { toUserDBO, Users } from '~/repositories/userRepository';
 import {
   genEstablishmentApi,
   genHousingApi,
@@ -37,7 +37,7 @@ describe('Housing owner API', () => {
     url = await createServer().testing();
 
     await Establishments().insert(formatEstablishmentApi(establishment));
-    await Users().insert(formatUserApi(user));
+    await Users().insert(toUserDBO(user));
   });
 
   describe('GET /owners/:id/housings', () => {

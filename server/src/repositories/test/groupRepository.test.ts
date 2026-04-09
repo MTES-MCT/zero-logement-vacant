@@ -21,7 +21,7 @@ import groupRepository, {
   GroupsHousing
 } from '../groupRepository';
 import { formatHousingRecordApi, Housing } from '../housingRepository';
-import { formatUserApi, Users } from '../userRepository';
+import { toUserDBO, Users } from '../userRepository';
 
 describe('Group repository', () => {
   describe('find', () => {
@@ -39,7 +39,7 @@ describe('Group repository', () => {
       await Establishments().insert(
         [establishment, anotherEstablishment].map(formatEstablishmentApi)
       );
-      await Users().insert([user, anotherUser].map(formatUserApi));
+      await Users().insert([user, anotherUser].map(toUserDBO));
       await Groups().insert(groups.map(formatGroupApi));
     });
 
@@ -77,7 +77,7 @@ describe('Group repository', () => {
       await Establishments().insert(
         [establishment, anotherEstablishment].map(formatEstablishmentApi)
       );
-      await Users().insert([user, anotherUser].map(formatUserApi));
+      await Users().insert([user, anotherUser].map(toUserDBO));
       await Groups().insert([group, anotherGroup].map(formatGroupApi));
     });
 
@@ -126,7 +126,7 @@ describe('Group repository', () => {
 
     beforeAll(async () => {
       await Establishments().insert(formatEstablishmentApi(establishment));
-      await Users().insert(formatUserApi(user));
+      await Users().insert(toUserDBO(user));
       await Housing().insert(housings.map(formatHousingRecordApi));
     });
 
@@ -226,7 +226,7 @@ describe('Group repository', () => {
 
     beforeEach(async () => {
       await Establishments().insert(formatEstablishmentApi(establishment));
-      await Users().insert(formatUserApi(user));
+      await Users().insert(toUserDBO(user));
     });
 
     it('should archive a group', async () => {
@@ -254,7 +254,7 @@ describe('Group repository', () => {
 
     beforeEach(async () => {
       await Establishments().insert(formatEstablishmentApi(establishment));
-      await Users().insert(formatUserApi(user));
+      await Users().insert(toUserDBO(user));
       await Groups().insert(formatGroupApi(group));
       await Housing().insert(housingList.map(formatHousingRecordApi));
       await GroupsHousing().insert(formatGroupHousingApi(group, housingList));

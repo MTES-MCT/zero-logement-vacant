@@ -50,7 +50,7 @@ import {
   Prospects
 } from '~/repositories/prospectRepository';
 import {
-  formatUserApi,
+  toUserDBO,
   Users,
   USERS_TABLE
 } from '~/repositories/userRepository';
@@ -85,7 +85,7 @@ describe('User API', () => {
 
   beforeAll(async () => {
     await Establishments().insert(formatEstablishmentApi(establishment));
-    await Users().insert([visitor, user, admin].map(formatUserApi));
+    await Users().insert([visitor, user, admin].map(toUserDBO));
   });
 
   describe('GET /users', () => {
@@ -134,7 +134,7 @@ describe('User API', () => {
         await Establishments().insert(
           formatEstablishmentApi(otherEstablishment)
         );
-        await Users().insert(otherUsers.map(formatUserApi));
+        await Users().insert(otherUsers.map(toUserDBO));
 
         const { body, status } = await request(url)
           .get(route)
@@ -316,7 +316,7 @@ describe('User API', () => {
     const testRoute = (id: string) => `/api/users/${id}`;
 
     beforeAll(async () => {
-      await Users().insert(formatUserApi(user));
+      await Users().insert(toUserDBO(user));
     });
 
     it('should be forbidden for a non-authenticated user', async () => {
@@ -341,7 +341,7 @@ describe('User API', () => {
         ...genUserApi(establishment.id),
         role: UserRole.ADMIN
       };
-      await Users().insert(formatUserApi(admin));
+      await Users().insert(toUserDBO(admin));
 
       const { body, status } = await request(url)
         .get(testRoute(user.id))
@@ -370,7 +370,7 @@ describe('User API', () => {
     const testRoute = (id: string) => `/api/users/${id}`;
 
     beforeAll(async () => {
-      await Users().insert([visitor, user, admin].map(formatUserApi));
+      await Users().insert([visitor, user, admin].map(toUserDBO));
     });
 
     describe('As an unauthenticated guest', () => {
@@ -538,7 +538,7 @@ describe('User API', () => {
           ...genUserApi(establishment.id),
           password: await bcrypt.hash(TEST_PASSWORD, SALT_LENGTH)
         };
-        await Users().insert(formatUserApi(user));
+        await Users().insert(toUserDBO(user));
 
         const { status } = await request(url)
           .put(testRoute(user.id))

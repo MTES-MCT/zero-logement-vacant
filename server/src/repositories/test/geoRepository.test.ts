@@ -5,7 +5,7 @@ import {
   Establishments,
   formatEstablishmentApi
 } from '~/repositories/establishmentRepository';
-import { formatUserApi, Users } from '~/repositories/userRepository';
+import { toUserDBO, Users } from '~/repositories/userRepository';
 import {
   genEstablishmentApi,
   genGeoPerimeterApi,
@@ -26,7 +26,7 @@ describe('Perimeter repository', () => {
 
     beforeAll(async () => {
       await Establishments().insert(formatEstablishmentApi(establishment));
-      await Users().insert(formatUserApi(user));
+      await Users().insert(toUserDBO(user));
       await GeoPerimeters().insert(perimeters.map(formatGeoPerimeterApi));
     });
 
@@ -39,7 +39,7 @@ describe('Perimeter repository', () => {
       await Establishments().insert(
         formatEstablishmentApi(anotherEstablishment)
       );
-      await Users().insert(formatUserApi(anotherUser));
+      await Users().insert(toUserDBO(anotherUser));
       await GeoPerimeters().insert(perimeters.map(formatGeoPerimeterApi));
 
       const actual = await perimeterRepository.find(anotherEstablishment.id);

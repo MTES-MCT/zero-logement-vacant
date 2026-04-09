@@ -107,7 +107,7 @@ import housingRepository, {
 } from '../housingRepository';
 import { formatLocalityApi, Localities } from '../localityRepository';
 import { formatOwnerApi, Owners } from '../ownerRepository';
-import { formatUserApi, Users } from '../userRepository';
+import { toUserDBO, Users } from '../userRepository';
 
 describe('Housing repository', () => {
   const establishment = genEstablishmentApi();
@@ -115,7 +115,7 @@ describe('Housing repository', () => {
 
   beforeAll(async () => {
     await Establishments().insert(formatEstablishmentApi(establishment));
-    await Users().insert(formatUserApi(user));
+    await Users().insert(toUserDBO(user));
   });
 
   describe('find', () => {

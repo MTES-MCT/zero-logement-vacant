@@ -15,7 +15,7 @@ import {
   Establishments,
   formatEstablishmentApi
 } from '../establishmentRepository';
-import { formatUserApi, Users } from '../userRepository';
+import { toUserDBO, Users } from '../userRepository';
 import { SenderApi } from '~/models/SenderApi';
 import { formatSenderApi, Senders } from '../senderRepository';
 
@@ -28,7 +28,7 @@ describe('Draft repository', () => {
     await Establishments().insert(
       [establishment, anotherEstablishment].map(formatEstablishmentApi)
     );
-    await Users().insert(formatUserApi(user));
+    await Users().insert(toUserDBO(user));
   });
 
   describe('find', () => {

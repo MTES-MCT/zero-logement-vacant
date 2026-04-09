@@ -42,7 +42,7 @@ import {
   OwnerRecordDBO,
   Owners
 } from '~/repositories/ownerRepository';
-import { formatUserApi, Users } from '~/repositories/userRepository';
+import { toUserDBO, Users } from '~/repositories/userRepository';
 import { SourceHousingOwner } from '~/scripts/import-lovac/source-housing-owners/source-housing-owner';
 import { createSourceHousingOwnerCommand } from '~/scripts/import-lovac/source-housing-owners/source-housing-owner-command';
 import {
@@ -153,7 +153,7 @@ describe('Source housing owner command', () => {
       ...genUserApi(establishment.id),
       email: config.app.system
     };
-    await Users().insert([auth].map(formatUserApi));
+    await Users().insert([auth].map(toUserDBO));
   });
 
   // Write the file and run

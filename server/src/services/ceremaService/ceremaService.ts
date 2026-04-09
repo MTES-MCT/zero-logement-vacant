@@ -62,7 +62,7 @@ async function fetchPortailDF<T>(
       return null;
     }
 
-    return (await response.json()) as T;
+    return response.json() as Promise<T>;
   } catch (error) {
     logger.error('Error fetching from Portail DF', { endpoint, error });
     return null;

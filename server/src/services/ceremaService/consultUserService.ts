@@ -8,10 +8,14 @@ export interface CeremaPerimeter {
   perimetre_id: number;
   origine: string;
   fr_entiere: boolean;
-  reg: string[];  // Region codes
-  dep: string[];  // Department codes (2-3 chars)
-  epci: string[]; // EPCI SIREN codes (9 chars)
-  comm: string[]; // Commune INSEE codes (5 chars)
+  /** Region codes */
+  reg: string[];
+  /** Department codes (2-3 chars) */
+  dep: string[];
+  /** EPCI SIREN codes (9 chars) */
+  epci: string[];
+  /** Commune INSEE codes (5 chars) */
+  comm: string[];
 }
 
 /**
@@ -23,7 +27,10 @@ export interface CeremaGroup {
   nom: string;
   structure: number;
   perimetre: number;
-  niveau_acces: string; // 'lovac', 'df', etc.
+  /**
+   * 'lovac', 'df', etc.
+   */
+  niveau_acces: string;
   df_ano: boolean;
   df_non_ano: boolean;
   lovac: boolean;

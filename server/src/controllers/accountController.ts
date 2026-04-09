@@ -25,6 +25,7 @@ import {
 import establishmentRepository from '~/repositories/establishmentRepository';
 import resetLinkRepository from '~/repositories/resetLinkRepository';
 import userRepository from '~/repositories/userRepository';
+import userEstablishmentRepository from '~/repositories/userEstablishmentRepository';
 import ceremaService from '~/services/ceremaService';
 import {
   verifyAccessRights,
@@ -157,7 +158,7 @@ async function refreshAuthorizedEstablishments(user: UserApi): Promise<void> {
     }
 
     // Get current authorized establishments for comparison
-    const currentAuthorized = await userRepository.getAuthorizedEstablishments(user.id);
+    const currentAuthorized = await userEstablishmentRepository.getAuthorizedEstablishments(user.id);
     const currentIds = new Set(currentAuthorized.map((e) => e.establishmentId));
     const newIds = new Set(authorizedEstablishments.map((e) => e.establishmentId));
 
@@ -178,7 +179,7 @@ async function refreshAuthorizedEstablishments(user: UserApi): Promise<void> {
       });
 
       // Update authorized establishments
-      await userRepository.setAuthorizedEstablishments(user.id, authorizedEstablishments);
+      await userEstablishmentRepository.setAuthorizedEstablishments(user.id, authorizedEstablishments);
 
       // Log multi-structure status
       const isMultiStructure = authorizedEstablishments.filter((e) => e.hasCommitment).length > 1;
@@ -362,7 +363,7 @@ async function signInToEstablishment(
   await refreshAuthorizedEstablishments(user);
 
   // Get authorized establishments for multi-structure dropdown (after refresh)
-  const authorizedEstablishmentLinks = await userRepository.getAuthorizedEstablishments(user.id);
+  const authorizedEstablishmentLinks = await userEstablishmentRepository.getAuthorizedEstablishments(user.id);
   const authorizedEstablishmentIds = authorizedEstablishmentLinks
     .filter((e) => e.hasCommitment)
     .map((e) => e.establishmentId);
@@ -419,7 +420,7 @@ async function changeEstablishment(request: Request, response: Response) {
   }
 
   // USUAL users can only change to their authorized establishments
-  const authorizedEstablishments = await userRepository.getAuthorizedEstablishments(user.id);
+  const authorizedEstablishments = await userEstablishmentRepository.getAuthorizedEstablishments(user.id);
   const authorizedIds = authorizedEstablishments
     .filter((e) => e.hasCommitment)
     .map((e) => e.establishmentId);

@@ -109,7 +109,7 @@ function PrecisionTabs(props: PrecisionTabs) {
   };
 
   const EvolutionsTab: PrecisionTab = {
-    label: 'Évolutions',
+    label: 'Évolutions du logement',
     tabId: 'evolutions',
     children: (
       <Grid container columnSpacing={2}>

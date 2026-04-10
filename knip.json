@@ -1,0 +1,89 @@
+{
+  "$schema": "https://unpkg.com/knip@5/schema.json",
+  "workspaces": {
+    ".": {
+      "entry": [],
+      "project": [],
+      "ignoreDependencies": [
+        "@eslint/compat",
+        "@eslint/eslintrc",
+        "clever-tools",
+        "eslint-plugin-jest",
+        "eslint-plugin-prettier",
+        "eslint-plugin-testing-library",
+        "jsonc-eslint-parser",
+        "madr",
+        "npq",
+        "prettier"
+      ]
+    },
+    "frontend": {
+      "entry": [
+        "src/mocks/**/*.{ts,tsx}",
+        "src/scripts/**/*.ts"
+      ],
+      "project": ["src/**/*.{ts,tsx}"],
+      "ignoreDependencies": [
+        "prop-types"
+      ]
+    },
+    "server": {
+      "entry": [
+        "src/index.ts",
+        "src/infra/database/knexfile.ts",
+        "src/infra/database/migrations/*.ts",
+        "src/infra/database/seeds/**/*.ts",
+        "src/scripts/**/index.ts",
+        "src/scripts/**/cli.ts"
+      ],
+      "project": ["src/**/*.ts"],
+      "ignoreDependencies": [
+        "pg",
+        "pg-query-stream",
+        "@sentry/integrations"
+      ]
+    },
+    "queue": {
+      "entry": ["src/bin/index.ts"],
+      "project": ["src/**/*.ts"],
+      "ignoreDependencies": ["@sentry/integrations"]
+    },
+    "e2e": {
+      "entry": ["cypress/**/*.ts"],
+      "project": ["cypress/**/*.ts"]
+    },
+    "packages/api-sdk": {
+      "entry": ["src/index.ts"],
+      "project": ["src/**/*.ts"]
+    },
+    "packages/draft": {
+      "entry": ["src/index.ts"],
+      "project": ["src/**/*.{ts,tsx}"]
+    },
+    "packages/healthcheck": {
+      "entry": ["src/index.ts"],
+      "project": ["src/**/*.ts"]
+    },
+    "packages/models": {
+      "entry": ["src/index.ts", "src/test/fixtures.ts"],
+      "project": ["src/**/*.ts"]
+    },
+    "packages/pdf": {
+      "entry": [
+        "src/browser.ts",
+        "src/node.ts",
+        "src/generators/campaign.worker.ts"
+      ],
+      "project": ["src/**/*.{ts,tsx}"]
+    },
+    "packages/schemas": {
+      "entry": ["src/index.ts"],
+      "project": ["src/**/*.ts"]
+    },
+    "packages/utils": {
+      "entry": ["src/index.ts", "src/node.ts"],
+      "project": ["src/**/*.ts"],
+      "ignoreDependencies": ["pino-pretty"]
+    }
+  }
+}

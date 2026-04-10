@@ -20,7 +20,8 @@
     "build": "nx run-many -t build",
     "lint": "nx run-many -t lint",
     "test": "nx run-many -t test",
-    "coverage": "nx run-many -t test --coverage"
+    "coverage": "nx run-many -t test --coverage",
+    "knip": "knip"
   },
   "keywords": [],
   "author": "",
@@ -83,6 +84,7 @@
     "jest-util": "30.0.5",
     "jiti": "2.5.1",
     "jsonc-eslint-parser": "^2.1.0",
+    "knip": "5.88.0",
     "lint-staged": "13.3.0",
     "madr": "4.0.0",
     "node-talisman": "1.29.22",
@@ -108,8 +110,6 @@
     "systeminformation": "5.31.0"
   },
   "dependencies": {
-    "@emotion/react": "11.14.0",
-    "@emotion/styled": "11.14.1",
     "axios": "1.13.5",
     "express": "4.22.1",
     "otpauth": "9.4.1",

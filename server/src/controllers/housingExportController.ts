@@ -5,7 +5,8 @@ import {
   isPrecisionBlockingPointCategory,
   isPrecisionEvolutionCategory,
   isPrecisionMechanismCategory,
-  OCCUPANCY_LABELS
+  OCCUPANCY_LABELS,
+  RELATIVE_LOCATION_LABELS
 } from '@zerologementvacant/models';
 import { slugify, timestamp } from '@zerologementvacant/utils';
 import { Predicate } from 'effect';
@@ -146,7 +147,7 @@ async function exportGroup(request: Request, response: Response) {
   });
 
   await Promise.all([
-    createHousingWorksheet({
+    createGroupHousingWorksheet({
       workbook,
       stream: housingStream,
       campaigns
@@ -349,6 +350,163 @@ export async function createHousingWorksheet(
           { header: 'Évolution(s)', key: 'evolutions' },
           { header: 'Campagne(s)', key: 'campaigns' },
           ...OWNER_WORKSHEET_COLUMNS
+        ]
+      })
+    );
+}
+
+/**
+ * Columns for the owner section in group exports.
+ * Compared to campaign exports:
+ * - "Propriétaire" renamed to "Propriétaire destinataire principal"
+ * - Address columns removed (LOVAC, BAN, Fiabilité, Numéro, Voie, Code postal, Commune, Complément)
+ * - New column: "Localisation du propriétaire destinataire principal"
+ */
+export const GROUP_OWNER_WORKSHEET_COLUMNS: Array<
+  Partial<Column> & { key: string }
+> = [
+  {
+    header: 'Propriétaire destinataire principal',
+    key: 'ownerName'
+  },
+  {
+    header: 'Localisation du propriétaire destinataire principal',
+    key: 'ownerRelativeLocation'
+  }
+];
+
+/**
+ * Housing worksheet for group exports with differentiated columns:
+ * - "Identifiant fiscal national" before "Identifiant fiscal départemental" (swapped)
+ * - "Point(s) de blocage", "Évolution(s)", "Dispositif(s)" (reordered)
+ * - Owner address columns removed
+ * - "Propriétaire" renamed
+ * - Alternating column colors (white/grey)
+ * - New: "Localisation du propriétaire destinataire principal"
+ */
+export async function createGroupHousingWorksheet(
+  options: CreateHousingWorksheetOptions
+): Promise<void> {
+  const { workbook, stream, campaigns } = options;
+  return stream
+    .pipeThrough(
+      new TransformStream<
+        HousingApi,
+        { housing: HousingApi; banAddress: AddressApi | null }
+      >({
+        async transform(housing, controller) {
+          const banAddress = await banAddressesRepository.getByRefId(
+            housing.id,
+            AddressKinds.Housing
+          );
+          controller.enqueue({
+            housing,
+            banAddress
+          });
+        }
+      })
+    )
+    .pipeThrough(
+      // @ts-expect-error - Type inference issue in @types/node (https://github.com/microsoft/TypeScript-DOM-lib-generator/pull/1676)
+      map(({ housing, banAddress }) => {
+        const building = getBuildingLocation(housing);
+        return {
+          localId: housing.localId,
+          invariant: housing.invariant,
+          plotId: housing.plotId,
+          geoCode: housing.geoCode,
+          housingRawAddress: housing.rawAddress
+            .filter(Predicate.isNotNullable)
+            .join('\n'),
+          housingAddress: banAddress
+            ? formatAddress(banAddress).join('\n')
+            : null,
+          housingAddressScore: banAddress?.score,
+          latitude: housing.latitude ?? banAddress?.latitude,
+          longitude: housing.longitude ?? banAddress?.longitude,
+          buildingLocation: building
+            ? [
+                building.building,
+                building.entrance,
+                building.level,
+                building.local
+              ].join('\n')
+            : null,
+          housingKind:
+            housing.housingKind === 'APPART' ? 'Appartement' : 'Maison',
+          energyConsumption: housing.energyConsumption,
+          energyConsumptionAt: housing.energyConsumptionAt,
+          livingArea: housing.livingArea,
+          roomsCount: housing.roomsCount,
+          buildingYear: housing.buildingYear,
+          occupancy: OCCUPANCY_LABELS[housing.occupancy],
+          vacancyStartYear: housing.vacancyStartYear,
+          status: HOUSING_STATUS_LABELS[housing.status],
+          subStatus: housing.subStatus,
+          blockingPoints: housing.precisions
+            ?.filter((precision) =>
+              isPrecisionBlockingPointCategory(precision.category)
+            )
+            ?.map((precision) => precision.label)
+            ?.join('\n'),
+          evolutions: housing.precisions
+            ?.filter((precision) =>
+              isPrecisionEvolutionCategory(precision.category)
+            )
+            ?.map((precision) => precision.label)
+            ?.join('\n'),
+          mechanisms: housing.precisions
+            ?.filter((precision) =>
+              isPrecisionMechanismCategory(precision.category)
+            )
+            ?.map((precision) => precision.label)
+            ?.join('\n'),
+          campaigns: housing.campaignIds
+            ?.filter(Predicate.isNotNullable)
+            ?.map((id) => campaigns.find((campaign) => campaign.id === id))
+            ?.map((campaign) => campaign?.title)
+            ?.join('\n'),
+          // Owner properties (only name, no address columns)
+          ownerName: housing.owner?.fullName,
+          ownerRelativeLocation: housing.ownerRelativeLocation
+            ? RELATIVE_LOCATION_LABELS[housing.ownerRelativeLocation]
+            : null
+        };
+      })
+    )
+    .pipeTo(
+      excelUtils.createWorksheet(workbook, {
+        name: 'Logements',
+        alternateColumnColors: true,
+        columns: [
+          { header: 'Identifiant fiscal national', key: 'localId' },
+          { header: 'Identifiant fiscal départemental', key: 'invariant' },
+          { header: 'Référence cadastrale', key: 'plotId' },
+          { header: 'Code INSEE commune du logement', key: 'geoCode' },
+          { header: 'Adresse LOVAC du logement', key: 'housingRawAddress' },
+          { header: 'Adresse BAN du logement', key: 'housingAddress' },
+          {
+            header: 'Adresse BAN du logement - Fiabilité',
+            key: 'housingAddressScore'
+          },
+          { header: 'Latitude', key: 'latitude' },
+          { header: 'Longitude', key: 'longitude' },
+          { header: 'Localisation', key: 'buildingLocation' },
+          { header: 'Type de logement', key: 'housingKind' },
+          { header: 'DPE représentatif', key: 'energyConsumption' },
+          { header: 'Date DPE', key: 'energyConsumptionAt' },
+          { header: 'Surface', key: 'livingArea' },
+          { header: 'Nombre de pièces', key: 'roomsCount' },
+          { header: 'Date de construction', key: 'buildingYear' },
+          { header: 'Occupation', key: 'occupancy' },
+          { header: 'Date de début de vacance', key: 'vacancyStartYear' },
+          { header: 'Statut', key: 'status' },
+          { header: 'Sous-statut', key: 'subStatus' },
+          { header: 'Point(s) de blocage', key: 'blockingPoints' },
+          { header: 'Évolution(s)', key: 'evolutions' },
+          { header: 'Dispositif(s)', key: 'mechanisms' },
+          { header: 'Campagne(s)', key: 'campaigns' },
+          ...GROUP_OWNER_WORKSHEET_COLUMNS
         ]
       })
     );

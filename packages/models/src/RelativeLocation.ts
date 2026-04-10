@@ -26,3 +26,14 @@ export const RELATIVE_LOCATION_FILTER_VALUES = [
 ] as const;
 export type RelativeLocationFilter =
   (typeof RELATIVE_LOCATION_FILTER_VALUES)[number];
+
+export const RELATIVE_LOCATION_LABELS: Record<RelativeLocation, string> = {
+  'same-address': 'Habite la même adresse',
+  'same-commune': 'Habite dans la même commune',
+  'same-department': 'Habite dans le même département',
+  'same-region': 'Habite dans la même région',
+  metropolitan: 'Habite dans une autre région',
+  overseas: 'Habite dans une autre région',
+  'foreign-country': 'Habite à l\u2019étranger',
+  other: 'Pas d\u2019information'
+};

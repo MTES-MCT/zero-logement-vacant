@@ -63,6 +63,92 @@ describe('Group repository', () => {
 
       expect(actual).toIncludeAllPartialMembers(filteredGroups);
     });
+
+    describe('geoCodes filter', () => {
+      const establishment3 = genEstablishmentApi();
+      const user3 = genUserApi(establishment3.id);
+
+      beforeAll(async () => {
+        await Establishments().insert(formatEstablishmentApi(establishment3));
+        await Users().insert(toUserDBO(user3));
+      });
+
+      it('should return no groups when geoCodes is empty', async () => {
+        const group = genGroupApi(user3, establishment3);
+        const housing = genHousingApi(establishment3.geoCodes[0]);
+        await Groups().insert(formatGroupApi(group));
+        await Housing().insert(formatHousingRecordApi(housing));
+        await GroupsHousing().insert(formatGroupHousingApi(group, [housing]));
+
+        const result = await groupRepository.find({
+          filters: { establishmentId: establishment3.id, geoCodes: [] }
+        });
+
+        expect(result).toBeArrayOfSize(0);
+      });
+
+      it('should return only groups whose housings are all within geoCodes', async () => {
+        const establishment4 = genEstablishmentApi();
+        const user4 = genUserApi(establishment4.id);
+        await Establishments().insert(formatEstablishmentApi(establishment4));
+        await Users().insert(toUserDBO(user4));
+
+        const inGeoCode = establishment4.geoCodes[0];
+        const outGeoCode = establishment3.geoCodes[0];
+
+        const groupIn = genGroupApi(user4, establishment4);
+        const groupOut = genGroupApi(user4, establishment4);
+        const housingIn = genHousingApi(inGeoCode);
+        const housingOut = genHousingApi(outGeoCode);
+
+        await Groups().insert([formatGroupApi(groupIn), formatGroupApi(groupOut)]);
+        await Housing().insert([
+          formatHousingRecordApi(housingIn),
+          formatHousingRecordApi(housingOut)
+        ]);
+        await GroupsHousing().insert([
+          ...formatGroupHousingApi(groupIn, [housingIn]),
+          ...formatGroupHousingApi(groupOut, [housingOut])
+        ]);
+
+        const result = await groupRepository.find({
+          filters: { establishmentId: establishment4.id, geoCodes: [inGeoCode] }
+        });
+
+        const ids = result.map((group) => group.id);
+        expect(ids).toContain(groupIn.id);
+        expect(ids).not.toContain(groupOut.id);
+      });
+
+      it('should exclude groups that have any housing outside geoCodes', async () => {
+        const establishment5 = genEstablishmentApi();
+        const user5 = genUserApi(establishment5.id);
+        await Establishments().insert(formatEstablishmentApi(establishment5));
+        await Users().insert(toUserDBO(user5));
+
+        const inGeoCode = establishment5.geoCodes[0];
+        const outGeoCode = establishment3.geoCodes[0];
+
+        const group = genGroupApi(user5, establishment5);
+        const housingIn = genHousingApi(inGeoCode);
+        const housingOut = genHousingApi(outGeoCode);
+
+        await Groups().insert(formatGroupApi(group));
+        await Housing().insert([
+          formatHousingRecordApi(housingIn),
+          formatHousingRecordApi(housingOut)
+        ]);
+        await GroupsHousing().insert(
+          formatGroupHousingApi(group, [housingIn, housingOut])
+        );
+
+        const result = await groupRepository.find({
+          filters: { establishmentId: establishment5.id, geoCodes: [inGeoCode] }
+        });
+
+        expect(result.map((group) => group.id)).not.toContain(group.id);
+      });
+    });
   });
 
   describe('findOne', () => {

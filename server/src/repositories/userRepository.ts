@@ -1,4 +1,4 @@
-import type { TimePerWeek, UserFilters } from '@zerologementvacant/models';
+import type { TimePerWeek, UserFilters, UserEstablishment } from '@zerologementvacant/models';
 import { Knex } from 'knex';
 
 import db, { notDeleted } from '~/infra/database';
@@ -7,6 +7,7 @@ import { PaginationApi, paginationQuery } from '~/models/PaginationApi';
 import { UserApi } from '~/models/UserApi';
 
 export const usersTable = 'users';
+export const usersEstablishmentsTable = 'users_establishments';
 
 export const Users = (transaction = db) => transaction<UserDBO>(usersTable);
 
@@ -27,6 +28,16 @@ async function getByEmail(email: string): Promise<UserApi | null> {
   const result = await Users()
     .whereRaw('upper(email) = upper(?)', email)
     .andWhere(notDeleted)
+    .first();
+
+  return result ? parseUserApi(result) : null;
+}
+
+async function getByEmailIncludingDeleted(email: string): Promise<UserApi | null> {
+  logger.debug('Get user by email (including deleted)', email);
+
+  const result = await Users()
+    .whereRaw('upper(email) = upper(?)', email)
     .first();
 
   return result ? parseUserApi(result) : null;
@@ -91,6 +102,140 @@ async function remove(userId: string): Promise<void> {
   logger.info('Remove user', userId);
   await db(usersTable).where('id', userId).update({ deleted_at: new Date() });
 }
+
+// ============================================================================
+// User Establishments (multi-structure support)
+// ============================================================================
+
+export const UsersEstablishments = (transaction = db) =>
+  transaction<UserEstablishmentDBO>(usersEstablishmentsTable);
+
+export interface UserEstablishmentDBO {
+  user_id: string;
+  establishment_id: string;
+  establishment_siren: string;
+  has_commitment: boolean;
+  created_at: Date | string;
+  updated_at: Date | string;
+}
+
+/**
+ * Get all authorized establishments for a user
+ */
+async function getAuthorizedEstablishments(userId: string): Promise<UserEstablishment[]> {
+  logger.debug('Get authorized establishments for user', userId);
+
+  const results = await UsersEstablishments()
+    .where('user_id', userId)
+    .orderBy('created_at', 'asc');
+
+  return results.map(parseUserEstablishment);
+}
+
+/**
+ * Set authorized establishments for a user (replaces existing)
+ */
+async function setAuthorizedEstablishments(
+  userId: string,
+  establishments: Array<{
+    establishmentId: string;
+    establishmentSiren: string;
+    hasCommitment: boolean;
+  }>
+): Promise<void> {
+  logger.info('Setting authorized establishments for user', {
+    userId,
+    count: establishments.length
+  });
+
+  await db.transaction(async (trx) => {
+    // Remove existing entries
+    await UsersEstablishments(trx).where('user_id', userId).delete();
+
+    // Insert new entries
+    if (establishments.length > 0) {
+      const now = new Date();
+      await UsersEstablishments(trx).insert(
+        establishments.map((e) => ({
+          user_id: userId,
+          establishment_id: e.establishmentId,
+          establishment_siren: e.establishmentSiren,
+          has_commitment: e.hasCommitment,
+          created_at: now,
+          updated_at: now
+        }))
+      );
+    }
+  });
+}
+
+/**
+ * Add an authorized establishment for a user (upsert)
+ */
+async function addAuthorizedEstablishment(
+  userId: string,
+  establishment: {
+    establishmentId: string;
+    establishmentSiren: string;
+    hasCommitment: boolean;
+  }
+): Promise<void> {
+  logger.info('Adding authorized establishment for user', {
+    userId,
+    establishmentId: establishment.establishmentId
+  });
+
+  const now = new Date();
+  await db.raw(
+    `
+    INSERT INTO ${usersEstablishmentsTable} (user_id, establishment_id, establishment_siren, has_commitment, created_at, updated_at)
+    VALUES (?, ?, ?, ?, ?, ?)
+    ON CONFLICT (user_id, establishment_id)
+    DO UPDATE SET has_commitment = EXCLUDED.has_commitment, updated_at = EXCLUDED.updated_at
+    `,
+    [
+      userId,
+      establishment.establishmentId,
+      establishment.establishmentSiren,
+      establishment.hasCommitment,
+      now,
+      now
+    ]
+  );
+}
+
+/**
+ * Check if user has access to a specific establishment
+ */
+async function hasAccessToEstablishment(
+  userId: string,
+  establishmentId: string
+): Promise<boolean> {
+  const result = await UsersEstablishments()
+    .where({ user_id: userId, establishment_id: establishmentId })
+    .first();
+
+  return !!result;
+}
+
+/**
+ * Check if user is multi-structure (has access to more than one establishment with commitment)
+ */
+async function isMultiStructure(userId: string): Promise<boolean> {
+  const result = await UsersEstablishments()
+    .where({ user_id: userId, has_commitment: true })
+    .count('establishment_id as count')
+    .first();
+
+  const count = result as { count: string } | undefined;
+  return Number(count?.count) > 1;
+}
+
+const parseUserEstablishment = (dbo: UserEstablishmentDBO): UserEstablishment => ({
+  establishmentId: dbo.establishment_id,
+  establishmentSiren: dbo.establishment_siren,
+  hasCommitment: dbo.has_commitment
+});
 
 export interface UserDBO {
   id: string;
@@ -193,10 +338,17 @@ export const formatUserApi = (userApi: UserApi): UserDBO => ({
 export default {
   get,
   getByEmail,
+  getByEmailIncludingDeleted,
   update,
   count,
   find,
   insert,
   formatUserApi,
-  remove
+  remove,
+  // Multi-structure support
+  getAuthorizedEstablishments,
+  setAuthorizedEstablishments,
+  addAuthorizedEstablishment,
+  hasAccessToEstablishment,
+  isMultiStructure
 };

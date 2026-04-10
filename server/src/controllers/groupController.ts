@@ -1,6 +1,7 @@
 import {
   GroupDTO,
   GroupPayloadDTO,
+  UserRole,
   type GroupAddHousingPayload,
   type GroupRemoveHousingPayload
 } from '@zerologementvacant/models';
@@ -30,7 +31,7 @@ const list: RequestHandler<
   never,
   never
 > = async (request, response): Promise<void> => {
-  const { auth } = request as AuthenticatedRequest<
+  const { auth, effectiveGeoCodes } = request as AuthenticatedRequest<
     never,
     ReadonlyArray<GroupDTO>,
     never,
@@ -43,9 +44,23 @@ const list: RequestHandler<
     establishment: establishmentId
   });
 
+  // ADMIN and VISITOR users bypass perimeter filtering
+  const isAdminOrVisitor = [UserRole.ADMIN, UserRole.VISITOR].includes(
+    auth.role
+  );
+  // effectiveGeoCodes is undefined when no restriction applies (no perimeter or fr_entiere)
+  // effectiveGeoCodes is an array (possibly empty) when restriction applies
+  const hasPerimeterRestriction = effectiveGeoCodes !== undefined;
+
   const groups = await groupRepository.find({
     filters: {
-      establishmentId
+      establishmentId,
+      // Only show groups where ALL housings are within user's perimeter (bypass for ADMIN/VISITOR)
+      // If effectiveGeoCodes is empty array, user should see nothing
+      geoCodes:
+        isAdminOrVisitor || !hasPerimeterRestriction
+          ? undefined
+          : effectiveGeoCodes
     }
   });
   response.status(constants.HTTP_STATUS_OK).json(groups.map(toGroupDTO));

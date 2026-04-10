@@ -72,16 +72,15 @@ const filterQuery = (filters: CampaignFiltersApi) => {
         query.whereRaw('1 = 0');
       } else {
         const geoCodes = filters.geoCodes;
-        query.whereNotExists(function () {
-          this.select(db.raw('1'))
+        query.whereNotExists((subquery) => {
+          subquery
+            .select(db.raw('1'))
             .from(campaignsHousingTable)
-            .whereRaw(
-              `${campaignsHousingTable}.campaign_id = ${campaignsTable}.id`
+            .where(
+              `${campaignsHousingTable}.campaign_id`,
+              db.ref(`${campaignsTable}.id`)
             )
-            .whereRaw(
-              `${campaignsHousingTable}.housing_geo_code NOT IN (${geoCodes.map(() => '?').join(', ')})`,
-              geoCodes
-            );
+            .whereNotIn(`${campaignsHousingTable}.housing_geo_code`, geoCodes);
         });
       }
     }

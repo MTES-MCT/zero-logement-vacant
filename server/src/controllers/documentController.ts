@@ -327,7 +327,7 @@ const linkToHousing: RequestHandler<
   HousingDocumentPayload,
   never
 > = async (request, response) => {
-  const { establishment, params, body } = request as AuthenticatedRequest<
+  const { effectiveGeoCodes, establishment, params, body } = request as AuthenticatedRequest<
     { id: HousingDTO['id'] },
     ReadonlyArray<DocumentDTO>,
     HousingDocumentPayload,
@@ -342,7 +342,7 @@ const linkToHousing: RequestHandler<
   // Validate housing exists and belongs to establishment
   const housing = await housingRepository.findOne({
     establishment: establishment.id,
-    geoCode: establishment.geoCodes,
+    geoCode: effectiveGeoCodes ?? establishment.geoCodes,
     id: params.id
   });
 
@@ -408,7 +408,7 @@ const listByHousing: RequestHandler<
   never,
   never
 > = async (request, response): Promise<void> => {
-  const { establishment, params } = request as AuthenticatedRequest<
+  const { effectiveGeoCodes, establishment, params } = request as AuthenticatedRequest<
     {
       id: HousingDTO['id'];
     },
@@ -419,7 +419,7 @@ const listByHousing: RequestHandler<
   logger.debug('Finding documents by housing...', { housing: params.id });
   const housing = await housingRepository.findOne({
     establishment: establishment.id,
-    geoCode: establishment.geoCodes,
+    geoCode: effectiveGeoCodes ?? establishment.geoCodes,
     id: params.id
   });
   if (!housing) {
@@ -453,7 +453,7 @@ const removeByHousing: RequestHandler<
   never,
   never
 > = async (request, response) => {
-  const { params, establishment } = request as AuthenticatedRequest<
+  const { effectiveGeoCodes, establishment, params } = request as AuthenticatedRequest<
     { housingId: HousingDTO['id']; documentId: DocumentDTO['id'] },
     void,
     never,
@@ -468,7 +468,7 @@ const removeByHousing: RequestHandler<
   // Validate housing exists and belongs to establishment
   const housing = await housingRepository.findOne({
     establishment: establishment.id,
-    geoCode: establishment.geoCodes,
+    geoCode: effectiveGeoCodes ?? establishment.geoCodes,
     id: params.housingId
   });
   if (!housing) {

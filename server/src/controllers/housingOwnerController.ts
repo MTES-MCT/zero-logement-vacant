@@ -28,7 +28,7 @@ const listByOwner: RequestHandler<
   never,
   never
 > = async (request, response): Promise<void> => {
-  const { establishment, params } = request as AuthenticatedRequest<
+  const { effectiveGeoCodes, establishment, params } = request as AuthenticatedRequest<
     PathParams,
     ReadonlyArray<OwnerHousingDTO>
   >;
@@ -43,7 +43,7 @@ const listByOwner: RequestHandler<
   }
 
   const ownerHousings = await housingOwnerRepository.findByOwner(owner, {
-    geoCodes: establishment.geoCodes
+    geoCodes: effectiveGeoCodes ?? establishment.geoCodes
   });
 
   response

@@ -157,27 +157,20 @@ const list: RequestHandler<
   const sort = sortApi.parse<HousingSortableApi>(query.sort);
   const rawFilters = Struct.omit(query, 'paginate', 'page', 'perPage', 'sort');
 
-  // For non-admin users, apply user perimeter filtering via localities
   const isAdminOrVisitor = [UserRole.ADMIN, UserRole.VISITOR].includes(role);
-  // effectiveGeoCodes is undefined when no restriction applies (no perimeter or fr_entiere)
-  // effectiveGeoCodes is an array (possibly empty) when restriction applies
-  const hasPerimeterRestriction = effectiveGeoCodes !== undefined;
   const filters: HousingFiltersApi = {
     ...rawFilters,
     establishmentIds:
       isAdminOrVisitor && rawFilters?.establishmentIds?.length
         ? rawFilters?.establishmentIds
         : [auth.establishmentId],
-    // Apply user perimeter filtering for non-admin users
+    // effectiveGeoCodes is undefined when no restriction applies (ADMIN/VISITOR, no perimeter, or fr_entiere)
     // If effectiveGeoCodes is empty array, user should see nothing (no communes in their perimeter)
-    localities:
-      isAdminOrVisitor || !hasPerimeterRestriction
-        ? rawFilters.localities
-        : rawFilters.localities?.length
-          ? rawFilters.localities.filter((loc) =>
-              effectiveGeoCodes.includes(loc)
-            )
-          : effectiveGeoCodes
+    localities: effectiveGeoCodes
+      ? rawFilters.localities?.length
+        ? rawFilters.localities.filter((loc) => effectiveGeoCodes.includes(loc))
+        : effectiveGeoCodes
+      : rawFilters.localities
   };
 
   logger.debug('List housing', {
@@ -232,23 +225,17 @@ const count: RequestHandler<
   const isAdminOrVisitor = [UserRole.ADMIN, UserRole.VISITOR].includes(
     auth.role
   );
-  // effectiveGeoCodes is undefined when no restriction applies (no perimeter or fr_entiere)
-  // effectiveGeoCodes is an array (possibly empty) when restriction applies
-  const hasPerimeterRestriction = effectiveGeoCodes !== undefined;
   const count = await housingRepository.count({
     ...query,
     establishmentIds:
       isAdminOrVisitor && query.establishmentIds?.length
         ? query.establishmentIds
         : [auth.establishmentId],
-    // Apply user perimeter filtering for non-admin users
-    // If effectiveGeoCodes is empty array, user should see nothing
-    localities:
-      isAdminOrVisitor || !hasPerimeterRestriction
-        ? query.localities
-        : query.localities?.length
-          ? query.localities.filter((loc) => effectiveGeoCodes.includes(loc))
-          : effectiveGeoCodes
+    localities: effectiveGeoCodes
+      ? query.localities?.length
+        ? query.localities.filter((loc) => effectiveGeoCodes.includes(loc))
+        : effectiveGeoCodes
+      : query.localities
   });
   response.status(constants.HTTP_STATUS_OK).json(count);
 };
@@ -602,9 +589,6 @@ const updateMany: RequestHandler<
   const isAdminOrVisitor = [UserRole.ADMIN, UserRole.VISITOR].includes(
     user.role
   );
-  // effectiveGeoCodes is undefined when no restriction applies (no perimeter or fr_entiere)
-  // effectiveGeoCodes is an array (possibly empty) when restriction applies
-  const hasPerimeterRestriction = effectiveGeoCodes !== undefined;
   const [housings, referential] = await Promise.all([
     housingRepository.find({
       filters: {
@@ -613,16 +597,13 @@ const updateMany: RequestHandler<
           isAdminOrVisitor && body.filters.establishmentIds?.length
             ? body.filters.establishmentIds
             : [establishment.id],
-        // Apply user perimeter filtering for non-admin users
-        // If effectiveGeoCodes is empty array, user should see nothing
-        localities:
-          isAdminOrVisitor || !hasPerimeterRestriction
-            ? body.filters.localities
-            : body.filters.localities?.length
-              ? body.filters.localities.filter((loc) =>
-                  effectiveGeoCodes.includes(loc)
-                )
-              : effectiveGeoCodes
+        localities: effectiveGeoCodes
+          ? body.filters.localities?.length
+            ? body.filters.localities.filter((loc) =>
+                effectiveGeoCodes.includes(loc)
+              )
+            : effectiveGeoCodes
+          : body.filters.localities
       },
       includes: ['campaigns', 'owner', 'precisions'],
       pagination: { paginate: false }

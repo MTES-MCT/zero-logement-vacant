@@ -78,13 +78,18 @@ export function userCheck(options?: CheckOptions) {
     request.user = user;
     request.establishment = establishment;
     request.userPerimeter = userPerimeter;
-    // Compute filtered geoCodes based on user perimeter
-    // Pass establishment SIREN for EPCI perimeter check
-    request.effectiveGeoCodes = await filterGeoCodesByPerimeter(
-      establishment.geoCodes,
-      userPerimeter,
-      establishment.siren
-    );
+    // ADMIN and VISITOR bypass perimeter filtering entirely
+    const isAdminOrVisitor = [UserRole.ADMIN, UserRole.VISITOR].includes(user.role);
+    // Compute filtered geoCodes based on user perimeter.
+    // undefined = no restriction (ADMIN/VISITOR, no perimeter, or fr_entiere)
+    // string[] = restricted (may be empty if perimeter has no intersecting communes)
+    request.effectiveGeoCodes = isAdminOrVisitor
+      ? undefined
+      : await filterGeoCodesByPerimeter(
+          establishment.geoCodes,
+          userPerimeter,
+          establishment.siren
+        );
     next();
   };
 }

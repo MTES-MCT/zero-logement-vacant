@@ -18,6 +18,7 @@ export const Campaigns = (transaction = db) =>
 interface FindOneOptions {
   id: string;
   establishmentId: string;
+  geoCodes?: string[];
 }
 
 const findOne = async (opts: FindOneOptions): Promise<CampaignApi | null> => {

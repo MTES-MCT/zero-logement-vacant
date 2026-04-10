@@ -1,0 +1,6 @@
+# Generated files
+pdf/
+templates/
+
+# OS files
+.DS_Store

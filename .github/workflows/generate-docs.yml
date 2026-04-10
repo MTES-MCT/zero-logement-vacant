@@ -1,0 +1,156 @@
+name: Generate Technical Documentation
+
+on:
+  pull_request:
+    types: [opened, synchronize, reopened]
+    paths:
+      - 'docs/technical/**'
+      - '.github/workflows/generate-docs.yml'
+  workflow_dispatch:
+    inputs:
+      version:
+        description: 'Version number (optional, defaults to run number)'
+        required: false
+        type: string
+
+jobs:
+  generate-pdfs:
+    name: Generate PDF Documentation
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Install Mermaid CLI
+        run: |
+          # Install mermaid-cli locally to avoid global install issues with dist/index.html
+          mkdir -p /tmp/mermaid-cli
+          cd /tmp/mermaid-cli
+          npm init -y
+          npm install @mermaid-js/mermaid-cli@10.6.1
+          # Create wrapper script to use local mmdc
+          echo '#!/bin/bash' > /usr/local/bin/mmdc
+          echo 'exec /tmp/mermaid-cli/node_modules/.bin/mmdc "$@"' >> /usr/local/bin/mmdc
+          chmod +x /usr/local/bin/mmdc
+          # Configure puppeteer to use bundled Chromium with no-sandbox for CI
+          echo '{"args": ["--no-sandbox", "--disable-setuid-sandbox"]}' > ~/.puppeteerrc.json
+
+      - name: Install Pandoc
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y pandoc
+
+      - name: Install TeX Live
+        run: |
+          sudo apt-get install -y texlive-xetex texlive-fonts-recommended texlive-fonts-extra texlive-latex-extra texlive-latex-recommended lmodern
+
+      - name: Set version and date
+        id: version
+        run: |
+          if [ -n "${{ github.event.inputs.version }}" ]; then
+            VERSION="${{ github.event.inputs.version }}"
+          else
+            VERSION="1.0.${{ github.run_number }}"
+          fi
+          echo "version=$VERSION" >> $GITHUB_OUTPUT
+          echo "Documentation version: $VERSION"
+
+          # Generate date in French format (e.g., "18 mars 2026")
+          # Use C locale with manual French month names for consistency
+          DAY=$(date +"%d")
+          MONTH_NUM=$(date +"%m")
+          YEAR=$(date +"%Y")
+          case $MONTH_NUM in
+            01) MONTH="janvier" ;;
+            02) MONTH="février" ;;
+            03) MONTH="mars" ;;
+            04) MONTH="avril" ;;
+            05) MONTH="mai" ;;
+            06) MONTH="juin" ;;
+            07) MONTH="juillet" ;;
+            08) MONTH="août" ;;
+            09) MONTH="septembre" ;;
+            10) MONTH="octobre" ;;
+            11) MONTH="novembre" ;;
+            12) MONTH="décembre" ;;
+          esac
+          PROJECT_DATE="$DAY $MONTH $YEAR"
+          echo "date=$PROJECT_DATE" >> $GITHUB_OUTPUT
+          echo "Documentation date: $PROJECT_DATE"
+
+      - name: Update version and date in documents
+        run: |
+          VERSION="${{ steps.version.outputs.version }}"
+          PROJECT_DATE="${{ steps.version.outputs.date }}"
+
+          # Update version and date in markdown files
+          for file in docs/technical/DAT-*.md docs/technical/DE-*.md docs/technical/DI-*.md; do
+            if [ -f "$file" ]; then
+              # Update header metadata
+              sed -i "s/\*\*Version:\*\* .*/\*\*Version:\*\* $VERSION/" "$file"
+              sed -i "s/\*\*Date:\*\* .*/\*\*Date:\*\* $PROJECT_DATE/" "$file"
+              # Update footer dates
+              sed -i "s/\*Document généré le [^*]*\*/\*Document généré le $PROJECT_DATE\*/" "$file"
+              sed -i "s/\*Document mis à jour le [^*]*\*/\*Document mis à jour le $PROJECT_DATE\*/" "$file"
+              echo "Updated version and date in $file"
+            fi
+          done
+
+      - name: Generate PDFs
+        run: |
+          cd docs/technical
+          chmod +x generate-pdf.sh
+          ./generate-pdf.sh
+        env:
+          PROJECT_VERSION: ${{ steps.version.outputs.version }}
+          PROJECT_DATE: ${{ steps.version.outputs.date }}
+
+      - name: List generated files
+        run: |
+          echo "Generated PDFs:"
+          ls -la docs/technical/pdf/
+
+      - name: Upload PDF artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: technical-documentation-v${{ steps.version.outputs.version }}
+          path: docs/technical/pdf/*.pdf
+          retention-days: 90
+          if-no-files-found: error
+
+      - name: Add comment to PR with download link
+        if: github.event_name == 'pull_request'
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const version = '${{ steps.version.outputs.version }}';
+            const runId = context.runId;
+            const artifactUrl = `https://github.com/${context.repo.owner}/${context.repo.repo}/actions/runs/${runId}`;
+
+            const body = `## Documentation Generated
+
+            The technical documentation PDFs have been generated successfully.
+
+            **Version:** ${version}
+
+            **Download:** [View artifacts](${artifactUrl})
+
+            ### Files included:
+            - DAT - Dossier d'Architecture Technique
+            - DE - Dossier d'Exploitation
+            - DI - Dossier d'Installation
+
+            _Generated automatically by GitHub Actions_`;
+
+            github.rest.issues.createComment({
+              issue_number: context.issue.number,
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              body: body
+            });

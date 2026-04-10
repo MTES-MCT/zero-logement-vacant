@@ -1,16 +1,7 @@
-import type { RelativeLocation } from '@zerologementvacant/models';
+import { RELATIVE_LOCATION_LABELS } from '@zerologementvacant/models';
 import { match } from 'ts-pattern';
 
-export const RELATIVE_LOCATION_LABELS: Record<RelativeLocation, string> = {
-  'same-address': 'Habite la même adresse',
-  'same-commune': 'Habite dans la même commune',
-  'same-department': 'Habite dans le même département',
-  'same-region': 'Habite dans la même région',
-  metropolitan: 'Habite dans une autre région',
-  overseas: 'Habite dans une autre région',
-  'foreign-country': 'Habite à l’étranger',
-  other: 'Pas d’information'
-};
+export { RELATIVE_LOCATION_LABELS };
 
 export function getHousingOwnerRankLabel(rank: number): string {
   return match(rank)

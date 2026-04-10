@@ -1,3 +1,4 @@
+import axios from 'axios';
 import {
   CeremaGroup,
   CeremaPerimeter,
@@ -38,6 +39,13 @@ function hasGroupLovacAccess(group: CeremaGroup | undefined): boolean {
   return group.niveau_acces === 'lovac' || group.lovac === true;
 }
 
+function authHeaders(auth: AuthResult) {
+  return {
+    Authorization: `${auth.authPrefix} ${auth.token}`,
+    'Content-Type': 'application/json'
+  };
+}
+
 /**
  * Make an authenticated API call to Portail DF
  */
@@ -46,25 +54,12 @@ async function fetchPortailDF<T>(
   endpoint: string
 ): Promise<T | null> {
   try {
-    const response = await fetch(`${auth.apiUrl}${endpoint}`, {
-      method: 'GET',
-      headers: {
-        Authorization: `${auth.authPrefix} ${auth.token}`,
-        'Content-Type': 'application/json'
-      }
+    const { data } = await axios.get<T>(`${auth.apiUrl}${endpoint}`, {
+      headers: authHeaders(auth)
     });
-
-    if (!response.ok) {
-      logger.warn('Failed to fetch from Portail DF', {
-        endpoint,
-        status: response.status
-      });
-      return null;
-    }
-
-    return response.json() as Promise<T>;
+    return data;
   } catch (error) {
-    logger.error('Error fetching from Portail DF', { endpoint, error });
+    logger.warn('Failed to fetch from Portail DF', { endpoint, error });
     return null;
   }
 }
@@ -76,41 +71,21 @@ export class CeremaService implements ConsultUserService {
     try {
       const auth = await this.authProvider.authenticate();
 
-      const userResponse = await fetch(
-        `${auth.apiUrl}/api/utilisateurs?email=${encodeURIComponent(email)}`,
-        {
-          method: 'GET',
-          headers: {
-            Authorization: `${auth.authPrefix} ${auth.token}`,
-            'Content-Type': 'application/json'
-          }
-        }
-      );
-      const userContent: any = await userResponse.json();
-      if (userResponse.status !== 200) {
-        throw userContent.detail;
-      }
+      const { data: userContent } = await axios.get<{
+        results: Array<{ email: string; structure: number; groupe: number }>;
+      }>(`${auth.apiUrl}/api/utilisateurs`, {
+        params: { email },
+        headers: authHeaders(auth)
+      });
 
       if (userContent) {
         const users = await Promise.all(
           userContent.results.map(
             async (user: { email: any; structure: number; groupe: number }) => {
-              const establishmentResponse = await fetch(
+              const { data: establishmentContent } = await axios.get<any>(
                 `${auth.apiUrl}/api/structures/${user.structure}`,
-                {
-                  method: 'GET',
-                  headers: {
-                    Authorization: `${auth.authPrefix} ${auth.token}`,
-                    'Content-Type': 'application/json'
-                  }
-                }
+                { headers: authHeaders(auth) }
               );
-
-              const establishmentContent: any =
-                await establishmentResponse.json();
-              if (establishmentResponse.status !== 200) {
-                throw establishmentContent.detail;
-              }
 
               // Fetch group info if available
               let group: CeremaGroup | undefined;

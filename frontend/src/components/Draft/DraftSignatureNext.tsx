@@ -7,25 +7,25 @@ import Stack from '@mui/material/Stack';
 import DraftDocumentUpload from '~/components/Draft/DraftDocumentUpload';
 import type { DraftFormSchema } from '~/components/Draft/DraftForm';
 import DocumentPreview from '~/components/FileUpload/DocumentPreview';
-import type { Draft } from '~/models/Draft';
 import AppTextInputNext from '../_app/AppTextInput/AppTextInputNext';
 import styles from './draft.module.scss';
 
-export interface DraftSignatureNextProps {
-  draft: Draft;
-}
-
-function DraftSignatureNext(props: Readonly<DraftSignatureNextProps>) {
-  const { setValue } = useFormContext<DraftFormSchema>();
+function DraftSignatureNext() {
+  const { watch, setValue } = useFormContext<DraftFormSchema>();
 
   function onUpload(index: 0 | 1) {
     return (documents: ReadonlyArray<DocumentDTO>): void => {
-      const document = documents[0] ?? null;
-      setValue(`sender.signatories.${index}.document`, document?.id ?? null, {
+      const document = documents.at(0) ?? null;
+      setValue(`sender.signatories.${index}.document`, document, {
         shouldDirty: true
       });
     };
   }
+
+  const [firstSignatoryDocument, secondSignatoryDocument] = watch([
+    'sender.signatories.0.document',
+    'sender.signatories.1.document'
+  ]);
 
   return (
     <Grid
@@ -85,9 +85,7 @@ function DraftSignatureNext(props: Readonly<DraftSignatureNextProps>) {
           <Stack direction="column" spacing="1rem">
             <DraftDocumentUpload onUpload={onUpload(0)} />
             <DocumentPreview
-              document={
-                props.draft.sender.signatories[0]?.document ?? undefined
-              }
+              document={firstSignatoryDocument ?? undefined}
               responsive="max-width"
               fit="contain"
             />
@@ -140,9 +138,7 @@ function DraftSignatureNext(props: Readonly<DraftSignatureNextProps>) {
           <Stack direction="column" spacing="1rem">
             <DraftDocumentUpload onUpload={onUpload(1)} />
             <DocumentPreview
-              document={
-                props.draft.sender.signatories[1]?.document ?? undefined
-              }
+              document={secondSignatoryDocument ?? undefined}
               responsive="max-width"
               fit="contain"
             />

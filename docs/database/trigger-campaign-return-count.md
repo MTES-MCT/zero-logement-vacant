@@ -428,6 +428,56 @@ EXECUTE FUNCTION update_campaign_owner_count();
 
 ---
 
+## Group housing count and owner count
+
+**Introduced in:** migration `20260407174838_groups-add-counts.ts`
+
+### What are these columns?
+
+| Column | Type | Description |
+|--------|------|-------------|
+| `housing_count` | `integer` | Number of housings attached to the group via `groups_housing` |
+| `owner_count` | `integer` | Number of distinct primary owners (`rank = 1`) across those housings |
+
+These replace a `LEFT JOIN LATERAL COUNT(DISTINCT …)` that was computed on every listing request, causing ~8s latency for large groups (e.g. 90k housings).
+
+### Three-trigger design
+
+| Trigger | Table | Timing | Updates |
+|---------|-------|--------|---------|
+| `trg_update_group_counts_after_insert` | `groups_housing` | `AFTER INSERT` (statement-level) | `housing_count`, `owner_count` (full recompute, once per affected group_id) |
+| `trg_update_group_counts_after_delete` | `groups_housing` | `AFTER DELETE` (statement-level) | `housing_count`, `owner_count` (full recompute, once per affected group_id) |
+| `trg_update_group_owner_count` | `owners_housing` | `AFTER INSERT OR DELETE OR UPDATE OF rank` | `owner_count` only (full recompute per row) |
+
+The `groups_housing` triggers use `FOR EACH STATEMENT` with transition tables (`REFERENCING NEW TABLE` / `REFERENCING OLD TABLE`) so that bulk housing additions (e.g. 90k housings at Bordeaux Métropole) trigger a single recompute per affected group rather than O(N) recomputes. Separate INSERT and DELETE triggers are required because PostgreSQL only allows `NEW TABLE` in INSERT triggers and `OLD TABLE` in DELETE triggers.
+
+The `owners_housing` trigger remains `FOR EACH ROW` because ownership changes are rarely bulk operations and the logic must inspect individual row values to early-exit when `rank != 1`.
+
+### `trg_update_group_counts_after_insert`
+
+**Table:** `groups_housing` — **Timing:** `AFTER INSERT FOR EACH STATEMENT`
+
+Uses `REFERENCING NEW TABLE AS new_rows`. Selects all distinct `group_id` values from `new_rows` and recomputes `housing_count` and `owner_count` for each affected group. Fires exactly once per INSERT statement regardless of the number of rows inserted.
+
+### `trg_update_group_counts_after_delete`
+
+**Table:** `groups_housing` — **Timing:** `AFTER DELETE FOR EACH STATEMENT`
+
+Uses `REFERENCING OLD TABLE AS old_rows`. Selects all distinct `group_id` values from `old_rows` and recomputes `housing_count` and `owner_count` for each affected group. Fires exactly once per DELETE statement regardless of the number of rows deleted.
+
+### `trg_update_group_owner_count`
+
+**Table:** `owners_housing` — **Timing:** `AFTER INSERT OR DELETE OR UPDATE OF rank FOR EACH ROW`
+
+**Early exit conditions (no DB writes):**
+- INSERT with `rank != 1`
+- DELETE with `rank != 1`
+- UPDATE where neither `OLD.rank` nor `NEW.rank` is 1
+
+Iterates over all `group_id` values in `groups_housing` that contain the affected housing and recomputes `owner_count` for each.
+
+---
+
 ## Full trigger inventory
 
 | Trigger | Table | Timing | Function | Updates |
@@ -437,3 +487,6 @@ EXECUTE FUNCTION update_campaign_owner_count();
 | `trg_recompute_return_count_on_housing_status_change` | `fast_housing` | `AFTER UPDATE OF status` | `recompute_return_count_on_housing_status_change()` | `return_count` (full recompute, boundary crossings only) |
 | `trg_update_campaign_counts` | `campaigns_housing` | `AFTER INSERT OR DELETE` | `update_campaign_counts()` | `housing_count`, `owner_count`, `return_count` (full recompute, status-filtered) |
 | `trg_update_campaign_owner_count` | `owners_housing` | `AFTER INSERT OR DELETE OR UPDATE OF rank` | `update_campaign_owner_count()` | `owner_count` (full recompute) |
+| `trg_update_group_counts_after_insert` | `groups_housing` | `AFTER INSERT` (statement-level) | `update_group_counts_after_insert()` | `housing_count`, `owner_count` (full recompute, once per affected group) |
+| `trg_update_group_counts_after_delete` | `groups_housing` | `AFTER DELETE` (statement-level) | `update_group_counts_after_delete()` | `housing_count`, `owner_count` (full recompute, once per affected group) |
+| `trg_update_group_owner_count` | `owners_housing` | `AFTER INSERT OR DELETE OR UPDATE OF rank` | `update_group_owner_count()` | `owner_count` (full recompute) |

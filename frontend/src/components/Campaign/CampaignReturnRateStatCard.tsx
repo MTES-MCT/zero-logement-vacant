@@ -23,23 +23,24 @@ function CampaignReturnRateStatCard(props: Readonly<Props>) {
       label="Taux de retour"
       variant={variant}
     >
-      {campaign.sentAt ? (
-        <Typography variant="h5" component="span">
-          {returnRate}
-        </Typography>
-      ) : (
-        <Stack
-          direction="row"
-          spacing="0.25rem"
-          useFlexGap
-          sx={{ alignItems: 'center' }}
-        >
+      <Stack
+        direction="row"
+        spacing="0.25rem"
+        useFlexGap
+        sx={{ alignItems: 'center' }}
+      >
+        {campaign.sentAt ? (
+          <Typography variant="h5" component="span">
+            {returnRate}
+          </Typography>
+        ) : (
           <Typography variant="body2" sx={{ fontWeight: 700 }}>
             En attente de la date d’envoi
           </Typography>
-          <Tooltip title="Part de logements au sein de la campagne qui ont fait l’objet d’une mise à jour après la date d’envoi indiquée." />
-        </Stack>
-      )}
+        )}
+
+        <Tooltip title="Part de logements au sein de la campagne qui ont fait l’objet d’une mise à jour après la date d’envoi indiquée." />
+      </Stack>
     </CampaignStatCard>
   );
 }

@@ -7,8 +7,6 @@ import {
 import { logger } from '~/infra/logger';
 import { GroupApi } from '~/models/GroupApi';
 import { HousingApi } from '~/models/HousingApi';
-import { housingOwnersTable } from './housingOwnerRepository';
-import { housingTable } from './housingRepository';
 import { parseUserApi, UserDBO, usersTable } from './userRepository';
 
 export const GROUPS_TABLE = 'groups';
@@ -56,30 +54,13 @@ const findOne = async (opts: FindOneOptions): Promise<GroupApi | null> => {
   return group ? parseGroupApi(group) : null;
 };
 
+// After — housing_count and owner_count are now plain columns on groups,
+// selected automatically via groups.*
 const listQuery = (query: Knex.QueryBuilder): void => {
   query
     .select(`${GROUPS_TABLE}.*`)
     .join<UserDBO>(usersTable, `${usersTable}.id`, `${GROUPS_TABLE}.user_id`)
-    .select(db.raw(`to_json(${usersTable}.*) AS user`))
-    .joinRaw(
-      `
-      LEFT JOIN LATERAL (
-        SELECT
-          COUNT(DISTINCT ${housingTable}.id) AS housing_count,
-          COUNT(DISTINCT ${housingOwnersTable}.owner_id) AS owner_count
-        FROM ${GROUPS_HOUSING_TABLE}
-        JOIN ${housingTable}
-          ON ${housingTable}.geo_code = ${GROUPS_HOUSING_TABLE}.housing_geo_code
-          AND ${housingTable}.id = ${GROUPS_HOUSING_TABLE}.housing_id
-        LEFT JOIN ${housingOwnersTable}
-          ON ${housingOwnersTable}.housing_geo_code = ${housingTable}.geo_code
-          AND ${housingOwnersTable}.housing_id = ${housingTable}.id
-          AND ${housingOwnersTable}.rank = 1
-        WHERE ${GROUPS_TABLE}.id = ${GROUPS_HOUSING_TABLE}.group_id
-      ) counts ON true
-    `
-    )
-    .select(`counts.*`);
+    .select(db.raw(`to_json(${usersTable}.*) AS user`));
 };
 
 interface FilterOptions {
@@ -211,15 +192,17 @@ export interface GroupRecordDBO {
   archived_at: Date | null;
   user_id: string;
   establishment_id: string;
+  housing_count: number;
+  owner_count: number;
 }
 
 export interface GroupDBO extends GroupRecordDBO {
-  housing_count: string;
-  owner_count: string;
   user?: UserDBO;
 }
 
-export const formatGroupApi = (group: GroupApi): GroupRecordDBO => ({
+export const formatGroupApi = (
+  group: GroupApi
+): Omit<GroupRecordDBO, 'housing_count' | 'owner_count'> => ({
   id: group.id,
   title: group.title,
   description: group.description,
@@ -235,8 +218,8 @@ export const parseGroupApi = (group: GroupDBO): GroupApi => {
     id: group.id,
     title: group.title,
     description: group.description,
-    housingCount: Number(group.housing_count),
-    ownerCount: Number(group.owner_count),
+    housingCount: group.housing_count,
+    ownerCount: group.owner_count,
     createdAt: group.created_at,
     exportedAt: group.exported_at,
     userId: group.user_id,

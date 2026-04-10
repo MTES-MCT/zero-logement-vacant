@@ -42,7 +42,7 @@ export function createRenameGroupModal(options?: Readonly<RenameGroupModalOption
 
       const form = useForm<FormSchema>({
         resolver: yupResolver(schema),
-        defaultValues: {
+        values: {
           title: group.title,
           description: group.description ?? ''
         },
@@ -59,8 +59,7 @@ export function createRenameGroupModal(options?: Readonly<RenameGroupModalOption
             size="large"
             {...rest}
             title="Modifier le groupe"
-            onSubmit={form.handleSubmit(handleSubmit)}
-            onClose={() => form.reset()}
+            onOpen={() => form.reset()}
           >
             <AppTextInputNext<FormSchema>
               label="Nom du groupe (obligatoire)"

@@ -1,11 +1,15 @@
 import { yupResolver } from '@hookform/resolvers/yup';
 import Grid from '@mui/material/Grid';
 import Stack from '@mui/material/Stack';
-import type { SignatoryPayload } from '@zerologementvacant/models';
+import {
+  type DocumentDTO,
+  type SenderPayload
+} from '@zerologementvacant/models';
 import schemas from '@zerologementvacant/schemas';
 import { FormProvider, useForm, type SubmitHandler } from 'react-hook-form';
-import { type InferType } from 'yup';
+import { mixed, tuple, type InferType } from 'yup';
 
+import { Tuple } from 'effect';
 import DraftBodyNext from '~/components/Draft/DraftBodyNext';
 import DraftRedaction from '~/components/Draft/DraftRedaction';
 import DraftSenderLogoNext from '~/components/Draft/DraftSenderLogoNext';
@@ -18,7 +22,34 @@ import type { Draft } from '~/models/Draft';
 import { useUpdateDraftNextMutation } from '~/services/draft.service';
 import DraftDownloaderButton from './DraftDownloaderButton';
 
-export type DraftFormSchema = InferType<typeof schemas.draftUpdatePayload>;
+// Override logo and signatory’s document field to use DocumentDTO
+// instead of its id to simplify form management
+const signatory = schemas.signatory.shape({
+  document: mixed<DocumentDTO>().optional().nullable().default(null)
+});
+const draftUpdatePayload = schemas.draftUpdatePayload.shape({
+  logo: tuple([
+    mixed<DocumentDTO>().optional().nullable().default(null),
+    mixed<DocumentDTO>().optional().nullable().default(null)
+  ])
+    .defined()
+    .default([null, null]),
+  sender: schemas.sender
+    .optional()
+    .nullable()
+    .default(null)
+    .shape({
+      signatories: tuple([
+        signatory.optional().nullable().default(null),
+        signatory.optional().nullable().default(null)
+      ])
+        .optional()
+        .nullable()
+        .transform((value) => value ?? [null, null])
+        .default([null, null])
+    })
+});
+export type DraftFormSchema = InferType<typeof draftUpdatePayload>;
 
 export interface DraftFormProps {
   campaign: Campaign;
@@ -34,10 +65,7 @@ function DraftForm(props: Readonly<DraftFormProps>) {
     values: {
       subject: props.draft.subject,
       body: props.draft.body,
-      logo: [
-        props.draft.logoNext?.[0]?.id ?? null,
-        props.draft.logoNext?.[1]?.id ?? null
-      ],
+      logo: props.draft.logoNext,
       writtenAt: props.draft.writtenAt,
       writtenFrom: props.draft.writtenFrom,
       sender: {
@@ -53,30 +81,36 @@ function DraftForm(props: Readonly<DraftFormProps>) {
             firstName: props.draft.sender.signatories?.[0]?.firstName ?? null,
             lastName: props.draft.sender.signatories?.[0]?.lastName ?? null,
             role: props.draft.sender.signatories?.[0]?.role ?? null,
-            document: props.draft.sender.signatories?.[0]?.document?.id ?? null
+            document: props.draft.sender.signatories?.[0]?.document ?? null
           },
           {
             firstName: props.draft.sender.signatories?.[1]?.firstName ?? null,
             lastName: props.draft.sender.signatories?.[1]?.lastName ?? null,
             role: props.draft.sender.signatories?.[1]?.role ?? null,
-            document: props.draft.sender.signatories?.[1]?.document?.id ?? null
+            document: props.draft.sender.signatories?.[1]?.document ?? null
           }
         ]
       }
     },
-    resolver: yupResolver(schemas.draftUpdatePayload)
+    resolver: yupResolver(draftUpdatePayload)
   });
 
   const submit: SubmitHandler<DraftFormSchema> = async (data) => {
-    const signatories = (data.sender?.signatories ?? [null, null]) as [
-      SignatoryPayload | null,
-      SignatoryPayload | null
-    ];
+    const signatories: SenderPayload['signatories'] = data.sender?.signatories
+      ? Tuple.map(data.sender.signatories, (signatory) =>
+          signatory
+            ? {
+                ...signatory,
+                document: signatory?.document ? signatory.document.id : null
+              }
+            : null
+        )
+      : [null, null];
     await updateDraftNext({
       id: props.draft.id,
       subject: data.subject ?? null,
       body: data.body ?? null,
-      logo: data.logo ?? [null, null],
+      logo: Tuple.map(data.logo, (logo) => logo?.id ?? null) ?? [null, null],
       writtenAt: data.writtenAt ?? null,
       writtenFrom: data.writtenFrom ?? null,
       sender: data.sender ? { ...data.sender, signatories } : null
@@ -117,7 +151,7 @@ function DraftForm(props: Readonly<DraftFormProps>) {
 
           <Grid size={{ xs: 12, md: 5 }}>
             <Stack spacing="1rem" useFlexGap>
-              <DraftSenderLogoNext draft={props.draft} />
+              <DraftSenderLogoNext />
               <DraftRedaction />
             </Stack>
           </Grid>
@@ -131,7 +165,7 @@ function DraftForm(props: Readonly<DraftFormProps>) {
           </Grid>
 
           <Grid size={12}>
-            <DraftSignatureNext draft={props.draft} />
+            <DraftSignatureNext />
           </Grid>
         </Grid>
       </form>

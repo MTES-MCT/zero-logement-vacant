@@ -7,6 +7,7 @@ import {
   genEstablishmentApi,
   genGroupApi,
   genHousingApi,
+  genOwnerApi,
   genUserApi
 } from '../../test/testFixtures';
 import {
@@ -21,6 +22,8 @@ import groupRepository, {
   GroupsHousing
 } from '../groupRepository';
 import { formatHousingRecordApi, Housing } from '../housingRepository';
+import { HousingOwners } from '../housingOwnerRepository';
+import { formatOwnerApi, Owners } from '../ownerRepository';
 import { formatUserApi, Users } from '../userRepository';
 
 describe('Group repository', () => {
@@ -140,7 +143,7 @@ describe('Group repository', () => {
           establishment_id: group.establishmentId
         })
         .first();
-      expect(actualGroup).toStrictEqual(formatGroupApi(group));
+      expect(actualGroup).toMatchObject(formatGroupApi(group));
 
       const actualHousingList = await GroupsHousing().where({
         group_id: group.id
@@ -169,7 +172,7 @@ describe('Group repository', () => {
           establishment_id: group.establishmentId
         })
         .first();
-      expect(actualGroup).toStrictEqual(formatGroupApi(newGroup));
+      expect(actualGroup).toMatchObject(formatGroupApi(newGroup));
 
       const actualHousingList = await GroupsHousing().where({
         group_id: group.id
@@ -274,6 +277,88 @@ describe('Group repository', () => {
         group_id: group.id
       });
       expect(actualHousingList).toBeArrayOfSize(0);
+    });
+  });
+
+  describe('counts', () => {
+    const establishment = genEstablishmentApi();
+    const user = genUserApi(establishment.id);
+
+    beforeEach(async () => {
+      await Establishments().insert(formatEstablishmentApi(establishment)).onConflict('id').ignore();
+      await Users().insert(formatUserApi(user)).onConflict('id').ignore();
+    });
+
+    it('should expose housingCount from the database column', async () => {
+      const group = genGroupApi(user, establishment);
+      await Groups().insert({ ...formatGroupApi(group), housing_count: 7 });
+
+      const result = await groupRepository.find({
+        filters: { establishmentId: establishment.id }
+      });
+      const found = result.find((g) => g.id === group.id);
+
+      expect(found?.housingCount).toBe(7);
+    });
+
+    it('should expose ownerCount from the database column', async () => {
+      const group = genGroupApi(user, establishment);
+      await Groups().insert({ ...formatGroupApi(group), owner_count: 4 });
+
+      const result = await groupRepository.find({
+        filters: { establishmentId: establishment.id }
+      });
+      const found = result.find((g) => g.id === group.id);
+
+      expect(found?.ownerCount).toBe(4);
+    });
+
+    it('should update housingCount via trigger when housing is added', async () => {
+      const group = genGroupApi(user, establishment);
+      const housing = genHousingApi();
+      await Groups().insert(formatGroupApi(group));
+      await Housing().insert(formatHousingRecordApi(housing));
+
+      await groupRepository.addHousing(group, [housing]);
+
+      const result = await groupRepository.find({
+        filters: { establishmentId: establishment.id }
+      });
+      const found = result.find((g) => g.id === group.id);
+      expect(found?.housingCount).toBe(1);
+    });
+
+    it('should update ownerCount via trigger when a rank-1 owner is added', async () => {
+      const group = genGroupApi(user, establishment);
+      const housing = genHousingApi();
+      const owner = genOwnerApi();
+      await Groups().insert(formatGroupApi(group));
+      await Housing().insert(formatHousingRecordApi(housing));
+      await GroupsHousing().insert(formatGroupHousingApi(group, [housing]));
+      await Owners().insert(formatOwnerApi(owner));
+
+      // Insert directly into owners_housing — the trigger fires on this insert
+      await HousingOwners().insert({
+        owner_id: owner.id,
+        housing_id: housing.id,
+        housing_geo_code: housing.geoCode,
+        rank: 1,
+        start_date: null,
+        end_date: null,
+        origin: null,
+        idprocpte: null,
+        idprodroit: null,
+        locprop_source: null,
+        locprop_relative_ban: null,
+        locprop_distance_ban: null,
+        property_right: null
+      });
+
+      const result = await groupRepository.find({
+        filters: { establishmentId: establishment.id }
+      });
+      const found = result.find((g) => g.id === group.id);
+      expect(found?.ownerCount).toBe(1);
     });
   });
 });

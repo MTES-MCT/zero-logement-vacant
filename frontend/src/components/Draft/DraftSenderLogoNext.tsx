@@ -6,24 +6,21 @@ import { useFormContext } from 'react-hook-form';
 import DraftDocumentUpload from '~/components/Draft/DraftDocumentUpload';
 import type { DraftFormSchema } from '~/components/Draft/DraftForm';
 import DocumentPreview from '~/components/FileUpload/DocumentPreview';
-import type { Draft } from '~/models/Draft';
 import styles from './draft.module.scss';
 
-export interface DraftSenderLogoNextProps {
-  draft: Draft;
-}
-
-function DraftSenderLogoNext(props: Readonly<DraftSenderLogoNextProps>) {
-  const { setValue } = useFormContext<DraftFormSchema>();
+function DraftSenderLogoNext() {
+  const { watch, setValue } = useFormContext<DraftFormSchema>();
 
   function onUpload(
     index: 0 | 1
   ): (documents: ReadonlyArray<DocumentDTO>) => void {
     return (documents) => {
-      const document = documents[0] ?? null;
-      setValue(`logo.${index}`, document?.id ?? null, { shouldDirty: true });
+      const document = documents.at(0) ?? null;
+      setValue(`logo.${index}`, document, { shouldDirty: true });
     };
   }
+
+  const [firstLogo, secondLogo] = watch(['logo.0', 'logo.1']);
 
   return (
     <Stack
@@ -44,7 +41,7 @@ function DraftSenderLogoNext(props: Readonly<DraftSenderLogoNextProps>) {
       <Stack spacing="1rem">
         <DraftDocumentUpload label={null} onUpload={onUpload(0)} />
         <DocumentPreview
-          document={props.draft.logoNext[0] ?? undefined}
+          document={firstLogo ?? undefined}
           responsive="max-width"
           fit="contain"
         />
@@ -53,7 +50,7 @@ function DraftSenderLogoNext(props: Readonly<DraftSenderLogoNextProps>) {
       <Stack spacing="1rem" sx={{ mt: '1.5rem' }}>
         <DraftDocumentUpload hint={null} label={null} onUpload={onUpload(1)} />
         <DocumentPreview
-          document={props.draft.logoNext[1] ?? undefined}
+          document={secondLogo ?? undefined}
           responsive="max-width"
           fit="contain"
         />

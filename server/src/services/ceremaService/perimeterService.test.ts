@@ -169,6 +169,24 @@ describe('verifyAccessRights', () => {
       expect(result.isValid).toBe(true);
     });
 
+    it('returns invalid with perimetre_invalide when perimeter is empty', async () => {
+      const emptyPerimeter: CeremaPerimeter = {
+        perimetre_id: 6,
+        origine: 'test',
+        fr_entiere: false,
+        reg: [],
+        dep: [],
+        epci: [],
+        comm: []
+      };
+      const user = makeCeremaUser({ perimeter: emptyPerimeter });
+
+      const result = await verifyAccessRights(user, ['75056']);
+
+      expect(result.isValid).toBe(false);
+      expect(result.errors).toContain('perimetre_invalide');
+    });
+
     it('returns valid when user has no perimeter', async () => {
       const user = makeCeremaUser({ perimeter: undefined });
 

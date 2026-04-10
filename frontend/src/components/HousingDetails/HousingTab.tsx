@@ -308,13 +308,8 @@ function HousingTab() {
                   .with(
                     { isLoading: false, data: Pattern.nonNullable },
                     ({ data: perimeters }) => {
-                      const names = perimeters
-                        .filter((perimeter) => {
-                          return housing.geoPerimeters?.includes(
-                            perimeter.kind
-                          );
-                        })
-                        .map((perimeter) => perimeter.name)
+                      const names = (housing.geoPerimeters ?? [])
+                        .filter((kind) => perimeters.some((p) => p.kind === kind))
                         .join(' ; ');
                       return names.length > 0 ? (
                         <Typography>{names}</Typography>

@@ -42,13 +42,14 @@ const find = async (opts?: FindOptions): Promise<GroupApi[]> => {
 interface FindOneOptions {
   id: string;
   establishmentId: string;
+  geoCodes?: string[];
 }
 
 const findOne = async (opts: FindOneOptions): Promise<GroupApi | null> => {
   logger.debug('Finding group...', opts);
   const group: GroupDBO | undefined = await Groups()
     .modify(listQuery)
-    .modify(filterQuery({ establishmentId: opts.establishmentId }))
+    .modify(filterQuery({ establishmentId: opts.establishmentId, geoCodes: opts.geoCodes }))
     .where(`${GROUPS_TABLE}.id`, opts.id)
     .first();
   if (!group) {

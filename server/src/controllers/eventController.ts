@@ -54,7 +54,7 @@ async function listByHousingId(
   request: Request,
   response: Response<FindByHousingResponse>
 ) {
-  const { establishment, params } = request as AuthenticatedRequest<
+  const { effectiveGeoCodes, establishment, params } = request as AuthenticatedRequest<
     { id: string },
     FindByHousingResponse,
     never,
@@ -65,7 +65,7 @@ async function listByHousingId(
   const housing = await housingRepository.findOne({
     establishment: establishment.id,
     id: params.id,
-    geoCode: establishment.geoCodes
+    geoCode: effectiveGeoCodes ?? establishment.geoCodes
   });
   if (!housing) {
     throw new HousingMissingError(params.id);

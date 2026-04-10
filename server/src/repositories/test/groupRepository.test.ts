@@ -202,6 +202,67 @@ describe('Group repository', () => {
         }
       });
     });
+
+    describe('geoCodes filter', () => {
+      const establishment6 = genEstablishmentApi();
+      const user6 = genUserApi(establishment6.id);
+
+      beforeAll(async () => {
+        await Establishments().insert(formatEstablishmentApi(establishment6));
+        await Users().insert(toUserDBO(user6));
+      });
+
+      it('should return null when geoCodes is empty', async () => {
+        const targetGroup = genGroupApi(user6, establishment6);
+        const housing = genHousingApi(establishment6.geoCodes[0]);
+        await Groups().insert(formatGroupApi(targetGroup));
+        await Housing().insert(formatHousingRecordApi(housing));
+        await GroupsHousing().insert(formatGroupHousingApi(targetGroup, [housing]));
+
+        const result = await groupRepository.findOne({
+          id: targetGroup.id,
+          establishmentId: establishment6.id,
+          geoCodes: []
+        });
+
+        expect(result).toBeNull();
+      });
+
+      it('should return null when group has housing outside geoCodes', async () => {
+        const otherEstablishment = genEstablishmentApi();
+        const targetGroup = genGroupApi(user6, establishment6);
+        const outsideHousing = genHousingApi(otherEstablishment.geoCodes[0]);
+        await Groups().insert(formatGroupApi(targetGroup));
+        await Housing().insert(formatHousingRecordApi(outsideHousing));
+        await GroupsHousing().insert(formatGroupHousingApi(targetGroup, [outsideHousing]));
+
+        const result = await groupRepository.findOne({
+          id: targetGroup.id,
+          establishmentId: establishment6.id,
+          geoCodes: [establishment6.geoCodes[0]]
+        });
+
+        expect(result).toBeNull();
+      });
+
+      it('should return group when all housing is within geoCodes', async () => {
+        const inGeoCode = establishment6.geoCodes[0];
+        const targetGroup = genGroupApi(user6, establishment6);
+        const housing = genHousingApi(inGeoCode);
+        await Groups().insert(formatGroupApi(targetGroup));
+        await Housing().insert(formatHousingRecordApi(housing));
+        await GroupsHousing().insert(formatGroupHousingApi(targetGroup, [housing]));
+
+        const result = await groupRepository.findOne({
+          id: targetGroup.id,
+          establishmentId: establishment6.id,
+          geoCodes: [inGeoCode]
+        });
+
+        expect(result).not.toBeNull();
+        expect(result?.id).toBe(targetGroup.id);
+      });
+    });
   });
 
   describe('save', () => {

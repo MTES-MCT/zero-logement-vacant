@@ -9,7 +9,7 @@ export const UserPerimeters = (transaction = db) =>
 async function upsert(perimeter: UserPerimeterApi): Promise<void> {
   logger.debug('Upsert user perimeter', { userId: perimeter.userId });
 
-  const dbo = formatUserPerimeterApi(perimeter);
+  const dbo = toUserPerimeterDBO(perimeter);
 
   await UserPerimeters()
     .insert(dbo)
@@ -32,7 +32,7 @@ async function get(userId: string): Promise<UserPerimeterApi | null> {
     .where('user_id', userId)
     .first();
 
-  return perimeter ? parseUserPerimeterApi(perimeter) : null;
+  return perimeter ? fromUserPerimeterDBO(perimeter) : null;
 }
 
 async function remove(userId: string): Promise<void> {
@@ -50,7 +50,7 @@ export interface UserPerimeterDBO {
   updated_at: Date | string;
 }
 
-export const parseUserPerimeterApi = (
+export const fromUserPerimeterDBO = (
   dbo: UserPerimeterDBO
 ): UserPerimeterApi => ({
   userId: dbo.user_id,
@@ -62,7 +62,7 @@ export const parseUserPerimeterApi = (
   updatedAt: new Date(dbo.updated_at).toJSON()
 });
 
-export const formatUserPerimeterApi = (
+export const toUserPerimeterDBO = (
   api: UserPerimeterApi
 ): UserPerimeterDBO => ({
   user_id: api.userId,

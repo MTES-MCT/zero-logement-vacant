@@ -1,3 +1,4 @@
+import axios from 'axios';
 import config from '~/infra/config';
 import { createLogger } from '~/infra/logger';
 
@@ -31,30 +32,18 @@ export interface CeremaAuthProvider {
  */
 class CeremaAuthProviderV1 implements CeremaAuthProvider {
   async authenticate(): Promise<AuthResult> {
-    const response = await fetch(`${config.cerema.api}/api/api-token-auth/`, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json'
-      },
-      body: JSON.stringify({
-        username: config.cerema.username,
-        password: config.cerema.password
-      })
-    });
-
-    if (!response.ok) {
-      const error = await response.text();
-      logger.error('V1 authentication failed', { status: response.status, error });
-      throw new Error(`Cerema V1 authentication failed: ${response.status}`);
+    try {
+      const { data } = await axios.post<{ token: string }>(
+        `${config.cerema.api}/api/api-token-auth/`,
+        { username: config.cerema.username, password: config.cerema.password }
+      );
+      return { token: data.token, authPrefix: 'Token', apiUrl: config.cerema.api };
+    } catch (error) {
+      const status = axios.isAxiosError(error) ? error.response?.status : undefined;
+      const message = axios.isAxiosError(error) ? error.message : String(error);
+      logger.error('V1 authentication failed', { status, error: message });
+      throw new Error(`Cerema V1 authentication failed: ${status}`);
     }
-
-    const data = (await response.json()) as { token: string };
-
-    return {
-      token: data.token,
-      authPrefix: 'Token',
-      apiUrl: config.cerema.api
-    };
   }
 }
 
@@ -64,30 +53,22 @@ class CeremaAuthProviderV1 implements CeremaAuthProvider {
  */
 class CeremaAuthProviderV2 implements CeremaAuthProvider {
   async authenticate(): Promise<AuthResult> {
-    const response = await fetch(`${config.cerema.apiV2}/api/token/`, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json'
-      },
-      body: JSON.stringify({
-        username: config.cerema.username,
-        password: config.cerema.password
-      })
-    });
-
-    if (!response.ok) {
-      const error = await response.text();
-      logger.error('V2 authentication failed', { status: response.status, error });
-      throw new Error(`Cerema V2 authentication failed: ${response.status}`);
+    try {
+      const { data } = await axios.post<{ access: string; refresh: string }>(
+        `${config.cerema.apiV2}/api/token/`,
+        { username: config.cerema.username, password: config.cerema.password }
+      );
+      return {
+        token: data.access,
+        authPrefix: 'Bearer',
+        apiUrl: config.cerema.apiV2
+      };
+    } catch (error) {
+      const status = axios.isAxiosError(error) ? error.response?.status : undefined;
+      const message = axios.isAxiosError(error) ? error.message : String(error);
+      logger.error('V2 authentication failed', { status, error: message });
+      throw new Error(`Cerema V2 authentication failed: ${status}`);
     }
-
-    const data = (await response.json()) as { access: string; refresh: string };
-
-    return {
-      token: data.access,
-      authPrefix: 'Bearer',
-      apiUrl: config.cerema.apiV2
-    };
   }
 }
 

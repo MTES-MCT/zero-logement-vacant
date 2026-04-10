@@ -19,14 +19,10 @@ import { notePayload } from './note-payload';
 import { ownerFilters } from './owner-filters';
 import { password, passwordConfirmation } from './password';
 import { phone } from './phone';
+import { signIn } from './sign-in';
 import { siren } from './siren';
 import { userFilters } from './user-filters';
 import { userUpdatePayload } from './user-update-payload';
-
-export { GEO_CODE_REGEXP } from './geo-code';
-export { PHONE_REGEXP } from './phone';
-export { SIREN_REGEXP } from './siren';
-export { type HousingDocumentPayload } from './housing-document-payload';
 
 const schemas = {
   buildingFilters,
@@ -51,9 +47,15 @@ const schemas = {
   password,
   passwordConfirmation,
   phone,
+  signIn,
   siren,
   userFilters,
   userUpdatePayload
 };
+
+export { GEO_CODE_REGEXP } from './geo-code';
+export { type HousingDocumentPayload } from './housing-document-payload';
+export { PHONE_REGEXP } from './phone';
+export { SIREN_REGEXP } from './siren';
 
 export default schemas;

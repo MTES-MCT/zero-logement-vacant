@@ -37,9 +37,6 @@
       "path": "../packages/schemas/tsconfig.lib.json"
     },
     {
-      "path": "../queue/tsconfig.app.json"
-    },
-    {
       "path": "../packages/pdf/tsconfig.lib.json"
     },
     {

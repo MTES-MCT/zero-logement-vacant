@@ -119,6 +119,14 @@ describe('Housing repository', () => {
   });
 
   describe('find', () => {
+    it('should return empty array when localities is an empty array', async () => {
+      const result = await housingRepository.find({
+        filters: { localities: [] }
+      });
+
+      expect(result).toBeArrayOfSize(0);
+    });
+
     it('should return housings that have no main owner', async () => {
       const housing = genHousingApi();
       await Housing().insert(formatHousingRecordApi(housing));
@@ -2514,6 +2522,14 @@ describe('Housing repository', () => {
           });
         });
       });
+    });
+  });
+
+  describe('count', () => {
+    it('should return zero counts when localities is an empty array', async () => {
+      const result = await housingRepository.count({ localities: [] });
+
+      expect(result).toEqual({ housing: 0, owners: 0 });
     });
   });
 

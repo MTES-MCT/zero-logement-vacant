@@ -118,6 +118,7 @@ function CampaignViewNext() {
           <Stack direction="column" spacing="1rem" useFlexGap sx={{ flexShrink: 0 }}>
             <Button
               priority="secondary"
+              style={{ width: '100%', justifyContent: 'center' }}
               onClick={() => {
                 dispatch(
                   housingSlice.actions.changeFilters({
@@ -133,6 +134,7 @@ function CampaignViewNext() {
             <Button
               iconId="fr-icon-delete-line"
               priority="tertiary"
+              style={{ width: '100%', justifyContent: 'center' }}
               onClick={() => campaignDeleteModal.open()}
             >
               Supprimer la campagne

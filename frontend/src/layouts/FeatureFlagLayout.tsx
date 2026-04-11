@@ -11,8 +11,16 @@ export interface FeatureFlagLayoutProps {
   else?: React.ReactNode;
 }
 
+const localFlags: ReadonlyArray<string> = (
+  import.meta.env.VITE_FEATURE_FLAGS ?? ''
+)
+  .split(',')
+  .map((f: string) => f.trim())
+  .filter(Boolean);
+
 function FeatureFlagLayout(props: FeatureFlagLayoutProps) {
-  const isEnabled = useFeatureFlagEnabled(props.flag);
+  const isEnabledByPosthog = useFeatureFlagEnabled(props.flag);
+  const isEnabled = isEnabledByPosthog ?? localFlags.includes(props.flag);
   return isEnabled ? props.then : props.else;
 }
 

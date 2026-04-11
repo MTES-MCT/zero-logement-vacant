@@ -9,9 +9,13 @@ import { useMemo, useState } from 'react';
 
 import AdvancedTable from '~/components/AdvancedTable/AdvancedTable';
 import CampaignSentAtButton from '~/components/Campaign/CampaignSentAtButton';
+import { useAppDispatch } from '~/hooks/useStore';
 import { useUser } from '~/hooks/useUser';
 import { type Campaign } from '~/models/Campaign';
 import { useFindCampaignsQuery } from '~/services/campaign.service';
+import housingSlice, {
+  initialHousingFilters
+} from '~/store/reducers/housingReducer';
 import { toPercentage } from '~/utils/number-utils';
 import { displayCount } from '~/utils/stringUtils';
 import AppLink from '../_app/AppLink/AppLink';
@@ -28,6 +32,7 @@ function CampaignTableNext(props: CampaignTableProps) {
   const { onSentAt, onRemove } = props;
 
   const { isVisitor } = useUser();
+  const dispatch = useAppDispatch();
 
   const [sorting, setSorting] = useState<SortingState>([
     { id: 'createdAt', desc: true }
@@ -53,7 +58,19 @@ function CampaignTableNext(props: CampaignTableProps) {
         cell: ({ cell, row }) => {
           const campaign = row.original;
           return (
-            <AppLink isSimple size="sm" to={`/campagnes/${campaign.id}`}>
+            <AppLink
+              isSimple
+              size="sm"
+              to="/parc-de-logements"
+              onClick={() =>
+                dispatch(
+                  housingSlice.actions.changeFilters({
+                    ...initialHousingFilters,
+                    campaignIds: [campaign.id]
+                  })
+                )
+              }
+            >
               {cell.getValue()}
             </AppLink>
           );
@@ -189,7 +206,7 @@ function CampaignTableNext(props: CampaignTableProps) {
         }
       })
     ],
-    [isVisitor, onSentAt, onRemove]
+    [isVisitor, onSentAt, onRemove, dispatch]
   );
 
   return (

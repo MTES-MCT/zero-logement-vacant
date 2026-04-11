@@ -115,7 +115,7 @@ function CampaignViewNext() {
             <CampaignCreatedFromGroupNext campaign={campaign} />
           </Stack>
 
-          <Stack direction="row" spacing="1rem" useFlexGap sx={{ flexShrink: 0 }}>
+          <Stack direction="column" spacing="1rem" useFlexGap sx={{ flexShrink: 0 }}>
             <Button
               priority="secondary"
               onClick={() => {

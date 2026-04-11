@@ -1,5 +1,5 @@
 import { faker } from '@faker-js/faker/locale/fr';
-import { render, screen, within } from '@testing-library/react';
+import { render, screen, waitFor, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import {
   UserRole,
@@ -50,7 +50,7 @@ describe('CampaignListView', () => {
       });
     });
 
-    it('should link to the campaign page', async () => {
+    it('should link to the housing list page', async () => {
       renderView();
 
       const table = await screen.findByRole('table');
@@ -60,8 +60,42 @@ describe('CampaignListView', () => {
       });
       expect(links.length).toBeGreaterThan(0);
       expect(links).toSatisfyAll<HTMLLinkElement>((link) => {
-        return /\/campagnes\/.+$/.test(link.href);
+        return /\/parc-de-logements$/.test(link.href);
       });
+    });
+
+    it('clicking a campaign name navigates to /parc-de-logements', async () => {
+      const { router } = renderView();
+
+      const table = await screen.findByRole('table');
+      const [firstLink] = await within(table).findAllByRole('link', {
+        name: (content) =>
+          data.campaigns.some((campaign) => campaign.title === content)
+      });
+
+      await user.click(firstLink);
+
+      await waitFor(() =>
+        expect(router.state.location.pathname).toBe('/parc-de-logements')
+      );
+    });
+
+    it('clicking a campaign name sets the campaign filter in the store', async () => {
+      const campaign = genCampaignDTO();
+      const { store } = renderView({ campaigns: [campaign] });
+
+      const table = await screen.findByRole('table');
+      const link = await within(table).findByRole('link', {
+        name: campaign.title
+      });
+
+      await user.click(link);
+
+      await waitFor(() =>
+        expect(store.getState().housing.filters.campaignIds).toEqual([
+          campaign.id
+        ])
+      );
     });
   });
 
@@ -339,6 +373,10 @@ function renderView(options?: RenderViewOptions) {
       {
         path: '/campagnes/:id',
         element: <CampaignViewNext />
+      },
+      {
+        path: '/parc-de-logements',
+        element: <div>Parc de logements</div>
       }
     ],
     { initialEntries: ['/campagnes'] }
@@ -350,5 +388,5 @@ function renderView(options?: RenderViewOptions) {
     </Provider>
   );
 
-  return { router };
+  return { router, store };
 }

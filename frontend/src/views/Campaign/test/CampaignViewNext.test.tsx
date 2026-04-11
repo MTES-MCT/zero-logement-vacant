@@ -1,4 +1,5 @@
 import { render, screen, waitFor } from '@testing-library/react';
+import configureTestStore from '~/utils/storeUtils';
 import userEvent from '@testing-library/user-event';
 import { genCampaignDTO, genDraftDTO, genSenderDTO } from '@zerologementvacant/models/fixtures';
 import { describe, it, expect } from 'vitest';
@@ -30,21 +31,23 @@ describe('CampaignViewNext', () => {
   function renderView(campaign: ReturnType<typeof genCampaignDTO>) {
     data.campaigns.push(campaign);
 
+    const store = configureTestStore();
     const router = createMemoryRouter(
       [
         { path: '/campagnes', element: <div>Campagnes</div> },
-        { path: '/campagnes/:id', element: <CampaignViewNext /> }
+        { path: '/campagnes/:id', element: <CampaignViewNext /> },
+        { path: '/parc-de-logements', element: <div>Parc de logements</div> }
       ],
       { initialEntries: [`/campagnes/${campaign.id}`] }
     );
 
     render(
-      <Provider store={configureTestStore()}>
+      <Provider store={store}>
         <RouterProvider router={router} />
       </Provider>
     );
 
-    return { router };
+    return { router, store };
   }
 
   it('renders the campaign title', async () => {
@@ -133,6 +136,47 @@ describe('CampaignViewNext', () => {
 
     // Assert
     expect(router.state.location.pathname).toBe(`/campagnes/${campaign.id}`);
+  });
+
+  it('affiche le bouton "Voir les logements"', async () => {
+    // Arrange + Act
+    const campaign = { ...genCampaignDTO(), sentAt: undefined, returnCount: null };
+    renderView(campaign);
+
+    // Assert
+    expect(
+      await screen.findByRole('button', { name: /voir les logements/i })
+    ).toBeInTheDocument();
+  });
+
+  it('cliquer sur "Voir les logements" navigue vers /parc-de-logements', async () => {
+    // Arrange
+    const campaign = { ...genCampaignDTO(), sentAt: undefined, returnCount: null };
+    const { router } = renderView(campaign);
+    await screen.findByRole('heading', { level: 1 });
+
+    // Act
+    await user.click(screen.getByRole('button', { name: /voir les logements/i }));
+
+    // Assert
+    await waitFor(() =>
+      expect(router.state.location.pathname).toBe('/parc-de-logements')
+    );
+  });
+
+  it('cliquer sur "Voir les logements" configure le filtre campagne dans le store', async () => {
+    // Arrange
+    const campaign = { ...genCampaignDTO(), sentAt: undefined, returnCount: null };
+    const { store } = renderView(campaign);
+    await screen.findByRole('heading', { level: 1 });
+
+    // Act
+    await user.click(screen.getByRole('button', { name: /voir les logements/i }));
+
+    // Assert
+    await waitFor(() =>
+      expect(store.getState().housing.filters.campaignIds).toEqual([campaign.id])
+    );
   });
 
   it('displays the sentAt date in dd/MM/yyyy format when set', async () => {

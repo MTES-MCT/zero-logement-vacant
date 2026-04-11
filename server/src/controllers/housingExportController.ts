@@ -180,6 +180,7 @@ export function toOwnerExcelRow(
 ) {
   return {
     ownerName: owner.fullName,
+    ownerBirthDate: owner.birthDate,
     ownerRawAddress: owner.rawAddress?.join('\n'),
     ownerBanAddress: owner.banAddress?.label,
     ownerBanAddressScore: owner.banAddress?.score
@@ -197,6 +198,10 @@ export const OWNER_WORKSHEET_COLUMNS: Array<
   Partial<Column> & { key: keyof ReturnType<typeof toOwnerExcelRow> }
 > = [
   { header: ‘Propriétaire destinataire principal’, key: ‘ownerName’ },
+  {
+    header: ‘Date de naissance du propriétaire’,
+    key: ‘ownerBirthDate’
+  },
   { header: ‘Adresse LOVAC du propriétaire’, key: ‘ownerRawAddress’ },
   { header: ‘Adresse BAN du propriétaire’, key: ‘ownerBanAddress’ },
   {
@@ -214,7 +219,7 @@ export const OWNER_WORKSHEET_COLUMNS: Array<
 ];
 
 export const OWNER_LOCATION_COLUMN = {
-  header: ‘Localisation du propriétaire destinataire principal’,
+  header: ‘Localisation du propriétaire’,
   key: ‘ownerRelativeLocation’ as const
 };
 
@@ -339,6 +344,7 @@ export async function createHousingWorksheet(
           { header: 'Référence cadastrale', key: 'plotId' },
           { header: 'Code INSEE commune du logement', key: 'geoCode' },
           { header: 'Adresse LOVAC du logement', key: 'housingRawAddress' },
+          { header: 'Précisions adresse du logement', key: 'buildingLocation' },
           { header: 'Adresse BAN du logement', key: 'housingAddress' },
           {
             header: 'Fiabilité Adresse BAN du logement (%)',
@@ -346,7 +352,6 @@ export async function createHousingWorksheet(
           },
           { header: 'Latitude', key: 'latitude' },
           { header: 'Longitude', key: 'longitude' },
-          { header: 'Précisions adresse du logement', key: 'buildingLocation' },
           { header: 'Type de logement', key: 'housingKind' },
           { header: 'DPE représentatif', key: 'energyConsumption' },
           { header: 'Date DPE', key: 'energyConsumptionAt' },
@@ -378,6 +383,10 @@ export const GROUP_OWNER_WORKSHEET_COLUMNS = [
   {
     header: 'Propriétaire destinataire principal',
     key: 'ownerName' as const
+  },
+  {
+    header: 'Date de naissance du propriétaire',
+    key: 'ownerBirthDate' as const
   },
   OWNER_LOCATION_COLUMN
 ];
@@ -475,6 +484,7 @@ export async function createGroupHousingWorksheet(
             ?.join('\n'),
           // Owner properties (only name, no address columns)
           ownerName: housing.owner?.fullName,
+          ownerBirthDate: housing.owner?.birthDate,
           ownerRelativeLocation: housing.ownerRelativeLocation
             ? RELATIVE_LOCATION_LABELS[housing.ownerRelativeLocation]
             : null
@@ -491,6 +501,7 @@ export async function createGroupHousingWorksheet(
           { header: 'Référence cadastrale', key: 'plotId' },
           { header: 'Code INSEE commune du logement', key: 'geoCode' },
           { header: 'Adresse LOVAC du logement', key: 'housingRawAddress' },
+          { header: 'Précisions adresse du logement', key: 'buildingLocation' },
           { header: 'Adresse BAN du logement', key: 'housingAddress' },
           {
             header: 'Adresse BAN du logement - Fiabilité',
@@ -498,7 +509,6 @@ export async function createGroupHousingWorksheet(
           },
           { header: 'Latitude', key: 'latitude' },
           { header: 'Longitude', key: 'longitude' },
-          { header: 'Précisions adresse du logement', key: 'buildingLocation' },
           { header: 'Type de logement', key: 'housingKind' },
           { header: 'DPE représentatif', key: 'energyConsumption' },
           { header: 'Date DPE', key: 'energyConsumptionAt' },

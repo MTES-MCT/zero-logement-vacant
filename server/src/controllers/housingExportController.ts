@@ -196,22 +196,27 @@ export function toOwnerExcelRow(
 export const OWNER_WORKSHEET_COLUMNS: Array<
   Partial<Column> & { key: keyof ReturnType<typeof toOwnerExcelRow> }
 > = [
-  { header: 'Propriétaire', key: 'ownerName' },
-  { header: 'Adresse LOVAC du propriétaire', key: 'ownerRawAddress' },
-  { header: 'Adresse BAN du propriétaire', key: 'ownerBanAddress' },
+  { header: ‘Propriétaire destinataire principal’, key: ‘ownerName’ },
+  { header: ‘Adresse LOVAC du propriétaire’, key: ‘ownerRawAddress’ },
+  { header: ‘Adresse BAN du propriétaire’, key: ‘ownerBanAddress’ },
   {
-    header: 'Adresse BAN du propriétaire - Fiabilité',
-    key: 'ownerBanAddressScore'
+    header: ‘Adresse BAN du propriétaire - Fiabilité’,
+    key: ‘ownerBanAddressScore’
   },
-  { header: 'Numéro', key: 'ownerBanHouseNumber' },
-  { header: 'Voie', key: 'ownerBanStreet' },
-  { header: 'Code postal', key: 'ownerBanPostalCode' },
-  { header: 'Commune', key: 'ownerBanCity' },
+  { header: ‘Numéro’, key: ‘ownerBanHouseNumber’ },
+  { header: ‘Voie’, key: ‘ownerBanStreet’ },
+  { header: ‘Code postal’, key: ‘ownerBanPostalCode’ },
+  { header: ‘Commune’, key: ‘ownerBanCity’ },
   {
-    header: 'Complément d’adresse du propriétaire',
-    key: 'ownerAdditionalAddress'
+    header: ‘Complément d\u2019adresse du propriétaire’,
+    key: ‘ownerAdditionalAddress’
   }
 ];
+
+export const OWNER_LOCATION_COLUMN = {
+  header: ‘Localisation du propriétaire destinataire principal’,
+  key: ‘ownerRelativeLocation’ as const
+};
 
 export function createOwnerWorksheet(options: CreateOwnerWorksheetOptions) {
   const { workbook, stream } = options;
@@ -258,8 +263,8 @@ export async function createHousingWorksheet(
       map(({ housing, banAddress }) => {
         const building = getBuildingLocation(housing);
         return {
-          invariant: housing.invariant,
           localId: housing.localId,
+          invariant: housing.invariant,
           plotId: housing.plotId,
           geoCode: housing.geoCode,
           housingRawAddress: housing.rawAddress
@@ -268,7 +273,10 @@ export async function createHousingWorksheet(
           housingAddress: banAddress
             ? formatAddress(banAddress).join('\n')
             : null,
-          housingAddressScore: banAddress?.score,
+          housingAddressScore:
+            banAddress?.score != null
+              ? `${banAddress.score * 100} %`
+              : null,
           latitude: housing.latitude ?? banAddress?.latitude,
           longitude: housing.longitude ?? banAddress?.longitude,
           buildingLocation: building
@@ -290,12 +298,6 @@ export async function createHousingWorksheet(
           vacancyStartYear: housing.vacancyStartYear,
           status: HOUSING_STATUS_LABELS[housing.status],
           subStatus: housing.subStatus,
-          mechanisms: housing.precisions
-            ?.filter((precision) =>
-              isPrecisionMechanismCategory(precision.category)
-            )
-            ?.map((precision) => precision.label)
-            ?.join('\n'),
           blockingPoints: housing.precisions
             ?.filter((precision) =>
               isPrecisionBlockingPointCategory(precision.category)
@@ -308,48 +310,59 @@ export async function createHousingWorksheet(
             )
             ?.map((precision) => precision.label)
             ?.join('\n'),
+          mechanisms: housing.precisions
+            ?.filter((precision) =>
+              isPrecisionMechanismCategory(precision.category)
+            )
+            ?.map((precision) => precision.label)
+            ?.join('\n'),
           campaigns: housing.campaignIds
             ?.filter(Predicate.isNotNullable)
             ?.map((id) => campaigns.find((campaign) => campaign.id === id))
             ?.map((campaign) => campaign?.title)
             ?.join('\n'),
           // Owner properties
-          ...(housing.owner ? toOwnerExcelRow(housing.owner) : {})
+          ...(housing.owner ? toOwnerExcelRow(housing.owner) : {}),
+          ownerRelativeLocation: housing.ownerRelativeLocation
+            ? RELATIVE_LOCATION_LABELS[housing.ownerRelativeLocation]
+            : null
         };
       })
     )
     .pipeTo(
       excelUtils.createWorksheet(workbook, {
         name: 'Logements',
+        alternateColumnColors: true,
         columns: [
-          { header: 'Identifiant fiscal départemental', key: 'invariant' },
           { header: 'Identifiant fiscal national', key: 'localId' },
+          { header: 'Identifiant fiscal départemental', key: 'invariant' },
           { header: 'Référence cadastrale', key: 'plotId' },
           { header: 'Code INSEE commune du logement', key: 'geoCode' },
           { header: 'Adresse LOVAC du logement', key: 'housingRawAddress' },
           { header: 'Adresse BAN du logement', key: 'housingAddress' },
           {
-            header: 'Adresse BAN du logement - Fiabilité',
+            header: 'Fiabilité Adresse BAN du logement (%)',
             key: 'housingAddressScore'
           },
           { header: 'Latitude', key: 'latitude' },
           { header: 'Longitude', key: 'longitude' },
-          { header: 'Localisation', key: 'buildingLocation' },
+          { header: 'Précisions adresse du logement', key: 'buildingLocation' },
           { header: 'Type de logement', key: 'housingKind' },
           { header: 'DPE représentatif', key: 'energyConsumption' },
           { header: 'Date DPE', key: 'energyConsumptionAt' },
-          { header: 'Surface', key: 'livingArea' },
+          { header: 'Surface (m²)', key: 'livingArea' },
           { header: 'Nombre de pièces', key: 'roomsCount' },
-          { header: 'Date de construction', key: 'buildingYear' },
+          { header: 'Année de construction', key: 'buildingYear' },
           { header: 'Occupation', key: 'occupancy' },
-          { header: 'Date de début de vacance', key: 'vacancyStartYear' },
+          { header: 'Année de début de vacance', key: 'vacancyStartYear' },
           { header: 'Statut', key: 'status' },
           { header: 'Sous-statut', key: 'subStatus' },
-          { header: 'Dispositif(s)', key: 'mechanisms' },
-          { header: 'Point(s) de blocage', key: 'blockingPoints' },
-          { header: 'Évolution(s)', key: 'evolutions' },
-          { header: 'Campagne(s)', key: 'campaigns' },
-          ...OWNER_WORKSHEET_COLUMNS
+          { header: 'Points de blocage', key: 'blockingPoints' },
+          { header: 'Évolutions du logement', key: 'evolutions' },
+          { header: 'Dispositifs', key: 'mechanisms' },
+          { header: 'Campagnes', key: 'campaigns' },
+          ...OWNER_WORKSHEET_COLUMNS,
+          OWNER_LOCATION_COLUMN
         ]
       })
     );
@@ -358,21 +371,15 @@ export async function createHousingWorksheet(
 /**
  * Columns for the owner section in group exports.
  * Compared to campaign exports:
- * - "Propriétaire" renamed to "Propriétaire destinataire principal"
  * - Address columns removed (LOVAC, BAN, Fiabilité, Numéro, Voie, Code postal, Commune, Complément)
- * - New column: "Localisation du propriétaire destinataire principal"
+ * - Only keeps owner name + relative location
  */
-export const GROUP_OWNER_WORKSHEET_COLUMNS: Array<
-  Partial<Column> & { key: string }
-> = [
+export const GROUP_OWNER_WORKSHEET_COLUMNS = [
   {
     header: 'Propriétaire destinataire principal',
-    key: 'ownerName'
+    key: 'ownerName' as const
   },
-  {
-    header: 'Localisation du propriétaire destinataire principal',
-    key: 'ownerRelativeLocation'
-  }
+  OWNER_LOCATION_COLUMN
 ];
 
 /**
@@ -491,21 +498,21 @@ export async function createGroupHousingWorksheet(
           },
           { header: 'Latitude', key: 'latitude' },
           { header: 'Longitude', key: 'longitude' },
-          { header: 'Localisation', key: 'buildingLocation' },
+          { header: 'Précisions adresse du logement', key: 'buildingLocation' },
           { header: 'Type de logement', key: 'housingKind' },
           { header: 'DPE représentatif', key: 'energyConsumption' },
           { header: 'Date DPE', key: 'energyConsumptionAt' },
-          { header: 'Surface', key: 'livingArea' },
+          { header: 'Surface (m²)', key: 'livingArea' },
           { header: 'Nombre de pièces', key: 'roomsCount' },
-          { header: 'Date de construction', key: 'buildingYear' },
+          { header: 'Année de construction', key: 'buildingYear' },
           { header: 'Occupation', key: 'occupancy' },
-          { header: 'Date de début de vacance', key: 'vacancyStartYear' },
+          { header: 'Année de début de vacance', key: 'vacancyStartYear' },
           { header: 'Statut', key: 'status' },
           { header: 'Sous-statut', key: 'subStatus' },
-          { header: 'Point(s) de blocage', key: 'blockingPoints' },
-          { header: 'Évolution(s)', key: 'evolutions' },
-          { header: 'Dispositif(s)', key: 'mechanisms' },
-          { header: 'Campagne(s)', key: 'campaigns' },
+          { header: 'Points de blocage', key: 'blockingPoints' },
+          { header: 'Évolutions du logement', key: 'evolutions' },
+          { header: 'Dispositifs', key: 'mechanisms' },
+          { header: 'Campagnes', key: 'campaigns' },
           ...GROUP_OWNER_WORKSHEET_COLUMNS
         ]
       })

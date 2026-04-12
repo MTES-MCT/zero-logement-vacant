@@ -51,9 +51,8 @@ function CampaignTableNext(props: CampaignTableProps) {
           }
         },
         cell: ({ cell, row }) => {
-          const campaign = row.original;
           return (
-            <AppLink isSimple size="sm" to={`/campagnes/${campaign.id}`}>
+            <AppLink isSimple size="sm" to={`/campagnes/${row.original.id}`}>
               {cell.getValue()}
             </AppLink>
           );

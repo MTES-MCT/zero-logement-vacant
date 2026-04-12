@@ -197,30 +197,30 @@ export function toOwnerExcelRow(
 export const OWNER_WORKSHEET_COLUMNS: Array<
   Partial<Column> & { key: keyof ReturnType<typeof toOwnerExcelRow> }
 > = [
-  { header: ‘Propriétaire destinataire principal’, key: ‘ownerName’ },
+  { header: 'Propriétaire destinataire principal', key: 'ownerName' },
   {
-    header: ‘Date de naissance du propriétaire’,
-    key: ‘ownerBirthDate’
+    header: 'Date de naissance du propriétaire',
+    key: 'ownerBirthDate'
   },
-  { header: ‘Adresse LOVAC du propriétaire’, key: ‘ownerRawAddress’ },
-  { header: ‘Adresse BAN du propriétaire’, key: ‘ownerBanAddress’ },
+  { header: 'Adresse LOVAC du propriétaire', key: 'ownerRawAddress' },
+  { header: 'Adresse BAN du propriétaire', key: 'ownerBanAddress' },
   {
-    header: ‘Adresse BAN du propriétaire - Fiabilité’,
-    key: ‘ownerBanAddressScore’
+    header: 'Adresse BAN du propriétaire - Fiabilité',
+    key: 'ownerBanAddressScore'
   },
-  { header: ‘Numéro’, key: ‘ownerBanHouseNumber’ },
-  { header: ‘Voie’, key: ‘ownerBanStreet’ },
-  { header: ‘Code postal’, key: ‘ownerBanPostalCode’ },
-  { header: ‘Commune’, key: ‘ownerBanCity’ },
+  { header: 'Numéro', key: 'ownerBanHouseNumber' },
+  { header: 'Voie', key: 'ownerBanStreet' },
+  { header: 'Code postal', key: 'ownerBanPostalCode' },
+  { header: 'Commune', key: 'ownerBanCity' },
   {
-    header: ‘Complément d\u2019adresse du propriétaire’,
-    key: ‘ownerAdditionalAddress’
+    header: 'Complément d\u2019adresse du propriétaire',
+    key: 'ownerAdditionalAddress'
   }
 ];
 
 export const OWNER_LOCATION_COLUMN = {
-  header: ‘Localisation du propriétaire’,
-  key: ‘ownerRelativeLocation’ as const
+  header: 'Localisation du propriétaire',
+  key: 'ownerRelativeLocation' as const
 };
 
 export function createOwnerWorksheet(options: CreateOwnerWorksheetOptions) {

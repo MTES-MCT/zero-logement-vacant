@@ -279,7 +279,7 @@ export async function createHousingWorksheet(
             ? formatAddress(banAddress).join('\n')
             : null,
           housingAddressScore:
-            banAddress?.score != null
+            banAddress?.score !== null && banAddress?.score !== undefined
               ? `${banAddress.score * 100} %`
               : null,
           latitude: housing.latitude ?? banAddress?.latitude,

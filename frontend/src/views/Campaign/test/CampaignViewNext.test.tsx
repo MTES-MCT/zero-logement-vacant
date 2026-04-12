@@ -1,5 +1,4 @@
 import { render, screen, waitFor } from '@testing-library/react';
-import configureTestStore from '~/utils/storeUtils';
 import userEvent from '@testing-library/user-event';
 import { genCampaignDTO, genDraftDTO, genSenderDTO } from '@zerologementvacant/models/fixtures';
 import { describe, it, expect } from 'vitest';

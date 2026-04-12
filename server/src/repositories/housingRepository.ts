@@ -57,6 +57,7 @@ import establishmentRepository from './establishmentRepository';
 import { geoPerimetersTable } from './geoRepository';
 import { GROUPS_HOUSING_TABLE } from './groupRepository';
 import {
+  fromRelativeLocationDBO,
   housingOwnersTable,
   relativeLocationFilterToDBO
 } from './housingOwnerRepository';
@@ -303,6 +304,7 @@ function include(includes: HousingInclude[], filters?: HousingFiltersApi) {
         )
         .select(`${ownerTable}.id as owner_id`)
         .select(db.raw(`to_json(${ownerTable}.*) AS owner`))
+        .select(`${housingOwnersTable}.locprop_relative_ban`)
         .leftJoin({ ban: banAddressesTable }, (join) => {
           join
             .on(`${ownerTable}.id`, 'ban.ref_id')
@@ -1276,6 +1278,7 @@ export interface HousingDBO extends HousingRecordDBO {
   campaign_ids?: string[];
   contact_count?: number;
   precisions?: Precision[];
+  locprop_relative_ban?: number | null;
   // TODO: fix and fill this type
 }
 
@@ -1385,6 +1388,9 @@ export const parseHousingApi = (housing: HousingDBO): HousingApi => ({
         ban: housing.owner_ban_address
       })
     : null,
+  ownerRelativeLocation: fromRelativeLocationDBO(
+    housing.locprop_relative_ban ?? null
+  ),
   campaignIds: (housing.campaign_ids ?? []).filter((_: any) => _),
   contactCount: Number(housing.contact_count),
   source: housing.data_source,

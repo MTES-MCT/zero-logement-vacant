@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import type { UserDTO } from '@zerologementvacant/models';
-import { MemoryAdapter } from './memory-adapter';
+import { MemoryAdapter } from '../memory-adapter';
 
 describe('MemoryAdapter', () => {
   it('creates an entity and returns it unchanged', async () => {

@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import createFactories, { MemoryAdapter } from './index';
+import createFactories, { MemoryAdapter } from '../index';
 
 describe('createFactories', () => {
   it('returns factories for all entities', () => {

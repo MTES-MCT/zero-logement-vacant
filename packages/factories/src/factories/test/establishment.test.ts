@@ -1,6 +1,6 @@
 import { describe, expect, it, vi } from 'vitest';
-import { MemoryAdapter } from '../memory-adapter';
-import { createEstablishmentFactory } from './establishment';
+import { MemoryAdapter } from '../../memory-adapter';
+import { createEstablishmentFactory } from '../establishment';
 
 describe('createEstablishmentFactory', () => {
   it('builds an EstablishmentDTO with required fields', () => {

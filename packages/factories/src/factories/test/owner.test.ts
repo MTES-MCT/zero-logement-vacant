@@ -1,6 +1,6 @@
 import { describe, expect, it, vi } from 'vitest';
-import { MemoryAdapter } from '../memory-adapter';
-import { createOwnerFactory } from './owner';
+import { MemoryAdapter } from '../../memory-adapter';
+import { createOwnerFactory } from '../owner';
 
 describe('createOwnerFactory', () => {
   it('builds an OwnerDTO with required fields', () => {

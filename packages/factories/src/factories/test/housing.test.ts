@@ -1,6 +1,6 @@
 import { describe, expect, it, vi } from 'vitest';
-import { MemoryAdapter } from '../memory-adapter';
-import { createHousingFactory } from './housing';
+import { MemoryAdapter } from '../../memory-adapter';
+import { createHousingFactory } from '../housing';
 
 describe('createHousingFactory', () => {
   it('builds a HousingDTO with required fields', () => {

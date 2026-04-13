@@ -1,6 +1,6 @@
 import { describe, expect, it, vi } from 'vitest';
-import { MemoryAdapter } from '../memory-adapter';
-import { createGroupFactory } from './group';
+import { MemoryAdapter } from '../../memory-adapter';
+import { createGroupFactory } from '../group';
 
 describe('createGroupFactory', () => {
   it('builds a GroupDTO with required fields', () => {

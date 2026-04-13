@@ -1,7 +1,7 @@
 import { describe, expect, it, vi } from 'vitest';
-import { MemoryAdapter } from '../memory-adapter';
-import { createCampaignFactory } from './campaign';
-import { createUserFactory } from './user';
+import { MemoryAdapter } from '../../memory-adapter';
+import { createCampaignFactory } from '../campaign';
+import { createUserFactory } from '../user';
 
 describe('createCampaignFactory', () => {
   it('builds a CampaignDTO with the provided user association', () => {

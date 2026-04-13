@@ -1,0 +1,23 @@
+{
+  "name": "@zerologementvacant/factories",
+  "version": "0.0.1",
+  "type": "module",
+  "exports": {
+    "./package.json": "./package.json",
+    ".": {
+      "types": "./dist/lib/index.d.ts",
+      "default": "./dist/lib/index.js"
+    }
+  },
+  "dependencies": {
+    "@faker-js/faker": "8.4.1",
+    "@zerologementvacant/models": "workspace:*",
+    "fishery": "2.4.0",
+    "ts-pattern": "5.8.0"
+  },
+  "devDependencies": {
+    "@tsconfig/node24": "24.0.4",
+    "@types/node": "24",
+    "jest-extended": "4.0.2"
+  }
+}

@@ -15,13 +15,16 @@ describe('createFactories', () => {
 
   it('each factory builds its entity', () => {
     const factories = createFactories(new MemoryAdapter());
+    const user = factories.user.build();
 
-    expect(factories.user.build().id).toBeDefined();
+    expect(user.id).toBeDefined();
     expect(factories.establishment.build().siren).toBeDefined();
     expect(factories.owner.build().fullName).toBeDefined();
     expect(factories.housing.build().geoCode).toBeDefined();
     expect(factories.group.build().title).toBeDefined();
-    expect(factories.campaign.build().status).toBeDefined();
+    expect(
+      factories.campaign.build({}, { associations: { createdBy: user } }).status
+    ).toBeDefined();
   });
 
   it('each factory creates via the adapter', async () => {

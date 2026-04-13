@@ -13976,6 +13976,20 @@ __metadata:
   languageName: unknown
   linkType: soft
 
+"@zerologementvacant/factories@workspace:packages/factories":
+  version: 0.0.0-use.local
+  resolution: "@zerologementvacant/factories@workspace:packages/factories"
+  dependencies:
+    "@faker-js/faker": "npm:8.4.1"
+    "@tsconfig/node24": "npm:24.0.4"
+    "@types/node": "npm:24"
+    "@zerologementvacant/models": "workspace:*"
+    fishery: "npm:2.4.0"
+    jest-extended: "npm:4.0.2"
+    ts-pattern: "npm:5.8.0"
+  languageName: unknown
+  linkType: soft
+
 "@zerologementvacant/front-e2e@workspace:apps/front-e2e":
   version: 0.0.0-use.local
   resolution: "@zerologementvacant/front-e2e@workspace:apps/front-e2e"
@@ -20639,6 +20653,15 @@ __metadata:
   languageName: node
   linkType: hard
 
+"fishery@npm:2.4.0":
+  version: 2.4.0
+  resolution: "fishery@npm:2.4.0"
+  dependencies:
+    lodash.mergewith: "npm:^4.6.2"
+  checksum: 10c0/41452507933f854aed14535dd638d5524605a091b1807a4404a77a076b01deb00c34341effafdfb6d2037117b8669f05c16d193859cb627d1890deea76e0f883
+  languageName: node
+  linkType: hard
+
 "flat-cache@npm:^4.0.0":
   version: 4.0.1
   resolution: "flat-cache@npm:4.0.1"
@@ -25570,6 +25593,13 @@ __metadata:
   version: 4.6.2
   resolution: "lodash.merge@npm:4.6.2"
   checksum: 10c0/402fa16a1edd7538de5b5903a90228aa48eb5533986ba7fa26606a49db2572bf414ff73a2c9f5d5fd36b31c46a5d5c7e1527749c07cbcf965ccff5fbdf32c506
+  languageName: node
+  linkType: hard
+
+"lodash.mergewith@npm:^4.6.2":
+  version: 4.6.2
+  resolution: "lodash.mergewith@npm:4.6.2"
+  checksum: 10c0/4adbed65ff96fd65b0b3861f6899f98304f90fd71e7f1eb36c1270e05d500ee7f5ec44c02ef979b5ddbf75c0a0b9b99c35f0ad58f4011934c4d4e99e5200b3b5
   languageName: node
   linkType: hard
 

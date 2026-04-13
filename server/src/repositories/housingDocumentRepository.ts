@@ -4,7 +4,7 @@ import { withinTransaction } from '~/infra/database/transaction';
 import { createLogger } from '~/infra/logger';
 import { HousingId } from '~/models/HousingApi';
 import { HousingDocumentApi } from '~/models/HousingDocumentApi';
-import { UserDBO, usersTable } from '~/repositories/userRepository';
+import { UserDBO, USERS_TABLE } from '~/repositories/userRepository';
 import {
   Documents,
   DOCUMENTS_TABLE,
@@ -186,16 +186,16 @@ function listQuery() {
       `${HOUSING_DOCUMENT_TABLE}.housing_geo_code`,
       `${HOUSING_DOCUMENT_TABLE}.housing_id`,
       db.raw(`json_build_object(
-        'id', ${usersTable}.id,
-        'email', ${usersTable}.email,
-        'first_name', ${usersTable}.first_name,
-        'last_name', ${usersTable}.last_name,
-        'role', ${usersTable}.role,
-        'establishment_id', ${usersTable}.establishment_id,
-        'time_per_week', ${usersTable}.time_per_week,
-        'phone', ${usersTable}.phone,
-        'position', ${usersTable}.position,
-        'updated_at', ${usersTable}.updated_at
+        'id', ${USERS_TABLE}.id,
+        'email', ${USERS_TABLE}.email,
+        'first_name', ${USERS_TABLE}.first_name,
+        'last_name', ${USERS_TABLE}.last_name,
+        'role', ${USERS_TABLE}.role,
+        'establishment_id', ${USERS_TABLE}.establishment_id,
+        'time_per_week', ${USERS_TABLE}.time_per_week,
+        'phone', ${USERS_TABLE}.phone,
+        'position', ${USERS_TABLE}.position,
+        'updated_at', ${USERS_TABLE}.updated_at
       ) as creator`)
     )
     .join(
@@ -203,7 +203,7 @@ function listQuery() {
       `${HOUSING_DOCUMENT_TABLE}.document_id`,
       `${DOCUMENTS_TABLE}.id`
     )
-    .join(usersTable, `${usersTable}.id`, `${DOCUMENTS_TABLE}.created_by`);
+    .join(USERS_TABLE, `${USERS_TABLE}.id`, `${DOCUMENTS_TABLE}.created_by`);
 }
 
 export function toHousingDocumentDBO(

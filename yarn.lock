@@ -14348,6 +14348,7 @@ __metadata:
     web-streams-utils: "npm:1.1.0"
     wuzzy: "npm:0.1.8"
     yup: "npm:1.7.0"
+    zod: "npm:4.3.6"
   languageName: unknown
   linkType: soft
 
@@ -35480,7 +35481,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"zod@npm:^3.25.0 || ^4.0.0, zod@npm:^4.3.6":
+"zod@npm:4.3.6, zod@npm:^3.25.0 || ^4.0.0, zod@npm:^4.3.6":
   version: 4.3.6
   resolution: "zod@npm:4.3.6"
   checksum: 10c0/860d25a81ab41d33aa25f8d0d07b091a04acb426e605f396227a796e9e800c44723ed96d0f53a512b57be3d1520f45bf69c0cb3b378a232a00787a2609625307

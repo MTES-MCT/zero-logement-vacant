@@ -42,7 +42,7 @@ describe('Sign up', () => {
     cy.location('pathname').should('eq', '/parc-de-logements');
   });
 
-  it('should await access to LOVAC', () => {
+  it('should forbid access if no LOVAC commitment', () => {
     cy.visit('/connexion');
     cy.get('a').contains('Créer votre compte').click();
 
@@ -76,7 +76,7 @@ describe('Sign up', () => {
       cy.visit(link);
     });
 
-    cy.location('pathname').should('eq', '/inscription/en-attente');
+    cy.location('pathname').should('eq', '/inscription/impossible');
   });
 
   it('should forbid access to unauthorized users', () => {

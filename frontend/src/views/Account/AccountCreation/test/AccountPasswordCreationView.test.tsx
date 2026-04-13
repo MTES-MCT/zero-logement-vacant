@@ -22,7 +22,6 @@ describe('AccountPasswordCreationView', () => {
   function setup(link: SignupLinkDTO) {
     const router = createMemoryRouter(
       [
-        { path: '/inscription/en-attente', element: 'En attente' },
         { path: '/inscription/impossible', element: 'Impossible' },
         { path: '/inscription/email', element: 'Email' },
         {
@@ -91,7 +90,7 @@ describe('AccountPasswordCreationView', () => {
     expect(title).toBeVisible();
   });
 
-  it('should be forbidden if one has no account', async () => {
+  it('should be forbidden if one has no LOVAC commitment', async () => {
     const prospect: ProspectDTO = {
       ...genProspectDTO(establishment),
       hasCommitment: false
@@ -102,7 +101,7 @@ describe('AccountPasswordCreationView', () => {
 
     setup(link);
 
-    const title = await screen.findByText('En attente');
+    const title = await screen.findByText('Impossible');
     expect(title).toBeVisible();
   });
 

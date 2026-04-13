@@ -8,7 +8,9 @@ import EstablishmentMissingError from '~/errors/establishmentMissingError';
 import ForbiddenError from '~/errors/forbiddenError';
 import UserMissingError from '~/errors/userMissingError';
 import config from '~/infra/config';
+import { filterGeoCodesByPerimeter } from '~/models/UserPerimeterApi';
 import establishmentRepository from '~/repositories/establishmentRepository';
+import userPerimeterRepository from '~/repositories/userPerimeterRepository';
 import userRepository from '~/repositories/userRepository';
 
 interface CheckOptions {
@@ -29,14 +31,26 @@ export function jwtCheck(options?: CheckOptions) {
   });
 }
 
+/**
+ * Cache results for 5 minutes
+ */
+const CACHE_MAX_AGE = 5 * 60 * 1000;
+
 export function userCheck(options?: CheckOptions) {
   const getUser = memoize(userRepository.get, {
     promise: true,
-    primitive: true
+    primitive: true,
+    maxAge: CACHE_MAX_AGE
   });
   const getEstablishment = memoize(establishmentRepository.get, {
     promise: true,
-    primitive: true
+    primitive: true,
+    maxAge: CACHE_MAX_AGE
+  });
+  const getUserPerimeter = memoize(userPerimeterRepository.get, {
+    promise: true,
+    primitive: true,
+    maxAge: CACHE_MAX_AGE
   });
 
   return async (request: Request, _: Response, next: NextFunction) => {
@@ -47,9 +61,10 @@ export function userCheck(options?: CheckOptions) {
       return next();
     }
 
-    const [user, establishment] = await Promise.all([
+    const [user, establishment, userPerimeter] = await Promise.all([
       getUser(request.auth.userId),
-      getEstablishment(request.auth.establishmentId)
+      getEstablishment(request.auth.establishmentId),
+      getUserPerimeter(request.auth.userId)
     ]);
     if (!user) {
       // Should never happen
@@ -62,6 +77,19 @@ export function userCheck(options?: CheckOptions) {
 
     request.user = user;
     request.establishment = establishment;
+    request.userPerimeter = userPerimeter;
+    // ADMIN and VISITOR bypass perimeter filtering entirely
+    const isAdminOrVisitor = [UserRole.ADMIN, UserRole.VISITOR].includes(user.role);
+    // Compute filtered geoCodes based on user perimeter.
+    // undefined = no restriction (ADMIN/VISITOR, no perimeter, or fr_entiere)
+    // string[] = restricted (may be empty if perimeter has no intersecting communes)
+    request.effectiveGeoCodes = isAdminOrVisitor
+      ? undefined
+      : await filterGeoCodesByPerimeter(
+          establishment.geoCodes,
+          userPerimeter,
+          establishment.siren
+        );
     next();
   };
 }

@@ -7,7 +7,7 @@ import {
   formatGeoPerimeterApi,
   GeoPerimeters
 } from '~/repositories/geoRepository';
-import { parseUserApi, Users } from '~/repositories/userRepository';
+import { fromUserDBO, Users } from '~/repositories/userRepository';
 import { genGeoPerimeterApi } from '~/test/testFixtures';
 
 export async function seed(knex: Knex): Promise<void> {
@@ -23,7 +23,7 @@ export async function seed(knex: Knex): Promise<void> {
       () => {
         return genGeoPerimeterApi(
           establishment.id,
-          parseUserApi(faker.helpers.arrayElement(users))
+          fromUserDBO(faker.helpers.arrayElement(users))
         );
       },
       {

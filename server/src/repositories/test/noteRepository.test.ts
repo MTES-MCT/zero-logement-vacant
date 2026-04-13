@@ -18,7 +18,7 @@ import noteRepository, {
   NoteRecordDBO,
   Notes
 } from '~/repositories/noteRepository';
-import { formatUserApi, Users } from '~/repositories/userRepository';
+import { toUserDBO, Users } from '~/repositories/userRepository';
 import {
   genEstablishmentApi,
   genHousingApi,
@@ -32,7 +32,7 @@ describe('Note repository', () => {
 
   beforeAll(async () => {
     await Establishments().insert(formatEstablishmentApi(establishment));
-    await Users().insert(formatUserApi(user));
+    await Users().insert(toUserDBO(user));
   });
 
   describe('createByHousing', () => {
@@ -43,7 +43,7 @@ describe('Note repository', () => {
 
     beforeAll(async () => {
       await Establishments().insert(formatEstablishmentApi(establishment));
-      await Users().insert(formatUserApi(creator));
+      await Users().insert(toUserDBO(creator));
       await Housing().insert(formatHousingRecordApi(housing));
 
       await noteRepository.createByHousing(note);

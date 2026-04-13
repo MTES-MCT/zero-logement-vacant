@@ -9,7 +9,7 @@ import Router from 'express-promise-router';
 import { param } from 'express-validator';
 import { object, string } from 'yup';
 
-import accountController from '~/controllers/accountController';
+import authController from '~/controllers/auth-controller';
 import buildingController from '~/controllers/buildingController';
 import campaignController from '~/controllers/campaignController';
 import dashboardController from '~/controllers/dashboardController';
@@ -473,17 +473,17 @@ router.delete(
 );
 
 // TODO: rework and merge this API with the User API
-router.get('/account', [], validator.validate, accountController.get);
+router.get('/account', [], validator.validate, authController.get);
 router.put(
   '/account',
-  validatorNext.validate(accountController.updateAccountValidators),
-  accountController.updateAccount
+  validatorNext.validate(authController.updateAccountValidators),
+  authController.updateAccount
 );
 router.get(
   '/account/establishments/:establishmentId',
   [isUUIDParam('establishmentId')],
   validator.validate,
-  accountController.changeEstablishment
+  authController.changeEstablishment
 );
 
 /* Users */

@@ -6,19 +6,19 @@ import { logger } from '~/infra/logger';
 import { PaginationApi, paginationQuery } from '~/models/PaginationApi';
 import { UserApi } from '~/models/UserApi';
 
-export const usersTable = 'users';
+export const USERS_TABLE = 'users';
 
-export const Users = (transaction = db) => transaction<UserDBO>(usersTable);
+export const Users = (transaction = db) => transaction<UserDBO>(USERS_TABLE);
 
 async function get(id: string): Promise<UserApi | null> {
   logger.debug('Get user by id', id);
 
   const result = await Users()
-    .where(`${usersTable}.id`, id)
+    .where(`${USERS_TABLE}.id`, id)
     .andWhere(notDeleted)
     .first();
 
-  return result ? parseUserApi(result) : null;
+  return result ? fromUserDBO(result) : null;
 }
 
 async function getByEmail(email: string): Promise<UserApi | null> {
@@ -29,20 +29,30 @@ async function getByEmail(email: string): Promise<UserApi | null> {
     .andWhere(notDeleted)
     .first();
 
-  return result ? parseUserApi(result) : null;
+  return result ? fromUserDBO(result) : null;
+}
+
+async function getByEmailIncludingDeleted(email: string): Promise<UserApi | null> {
+  logger.debug('Get user by email (including deleted)', email);
+
+  const result = await Users()
+    .whereRaw('upper(email) = upper(?)', email)
+    .first();
+
+  return result ? fromUserDBO(result) : null;
 }
 
 async function update(user: UserApi): Promise<void> {
   logger.debug('Updating user...', { id: user.id });
-  await Users().where({ id: user.id }).update(formatUserApi(user));
+  await Users().where({ id: user.id }).update(toUserDBO(user));
 }
 
 async function insert(userApi: UserApi): Promise<UserApi> {
   logger.info('Insert user with email', userApi.email);
-  return db(usersTable)
-    .insert(formatUserApi(userApi))
+  return db(USERS_TABLE)
+    .insert(toUserDBO(userApi))
     .returning('*')
-    .then((_) => parseUserApi(_[0]));
+    .then((_) => fromUserDBO(_[0]));
 }
 
 interface FindOptions {
@@ -51,7 +61,7 @@ interface FindOptions {
 }
 
 async function find(opts?: FindOptions): Promise<UserApi[]> {
-  const users: UserDBO[] = await db<UserDBO>(usersTable)
+  const users: UserDBO[] = await db<UserDBO>(USERS_TABLE)
     .where(notDeleted)
     .modify((builder) => {
       if (opts?.filters?.establishments?.length) {
@@ -62,7 +72,7 @@ async function find(opts?: FindOptions): Promise<UserApi[]> {
     .orderBy(['last_name', 'first_name'])
     .modify(paginationQuery(opts?.pagination));
 
-  return users.map(parseUserApi);
+  return users.map(fromUserDBO);
 }
 
 interface CountOptions {
@@ -78,7 +88,7 @@ function filter(filters?: UserFilters) {
 }
 
 async function count(opts?: CountOptions): Promise<number> {
-  const result = await db<UserDBO>(usersTable)
+  const result = await db<UserDBO>(USERS_TABLE)
     .where(notDeleted)
     .modify(filter(opts?.filters))
     .count('id')
@@ -89,7 +99,7 @@ async function count(opts?: CountOptions): Promise<number> {
 
 async function remove(userId: string): Promise<void> {
   logger.info('Remove user', userId);
-  await db(usersTable).where('id', userId).update({ deleted_at: new Date() });
+  await db(USERS_TABLE).where('id', userId).update({ deleted_at: new Date() });
 }
 
 export interface UserDBO {
@@ -118,7 +128,7 @@ export interface UserDBO {
   two_factor_locked_until: Date | string | null;
 }
 
-export const parseUserApi = (userDBO: UserDBO): UserApi => ({
+export const fromUserDBO = (userDBO: UserDBO): UserApi => ({
   id: userDBO.id,
   email: userDBO.email,
   password: userDBO.password,
@@ -154,7 +164,7 @@ export const parseUserApi = (userDBO: UserDBO): UserApi => ({
     : null
 });
 
-export const formatUserApi = (userApi: UserApi): UserDBO => ({
+export const toUserDBO = (userApi: UserApi): UserDBO => ({
   id: userApi.id,
   email: userApi.email,
   password: userApi.password,
@@ -193,10 +203,11 @@ export const formatUserApi = (userApi: UserApi): UserDBO => ({
 export default {
   get,
   getByEmail,
+  getByEmailIncludingDeleted,
   update,
   count,
   find,
   insert,
-  formatUserApi,
+  toUserDBO,
   remove
 };

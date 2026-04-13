@@ -2,7 +2,7 @@ import { describe, it, expect, beforeAll } from 'vitest';
 import { v4 as uuidv4 } from 'uuid';
 
 import documentRepository, { Documents, toDocumentDBO } from '~/repositories/documentRepository';
-import { Users, formatUserApi } from '~/repositories/userRepository';
+import { Users, toUserDBO } from '~/repositories/userRepository';
 import {
   Establishments,
   formatEstablishmentApi
@@ -19,7 +19,7 @@ describe('documentRepository', () => {
 
   beforeAll(async () => {
     await Establishments().insert(formatEstablishmentApi(establishment));
-    await Users().insert(formatUserApi(user));
+    await Users().insert(toUserDBO(user));
   });
 
   describe('insert', () => {

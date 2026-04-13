@@ -9,7 +9,7 @@ import establishmentRepository, {
   formatEstablishmentApi,
   parseEstablishmentApi
 } from '../establishmentRepository';
-import { Users, formatUserApi } from '../userRepository';
+import { Users, toUserDBO } from '../userRepository';
 
 describe('Establishment repository', () => {
   describe('find', () => {
@@ -152,7 +152,7 @@ describe('Establishment repository', () => {
         )
         .flat();
       await Establishments().insert(establishments.map(formatEstablishmentApi));
-      await Users().insert(users.map(formatUserApi));
+      await Users().insert(users.map(toUserDBO));
 
       const actual = await establishmentRepository.find({
         filters: {
@@ -175,7 +175,7 @@ describe('Establishment repository', () => {
       });
 
       await Establishments().insert(formatEstablishmentApi(establishment));
-      await Users().insert(users.map(formatUserApi));
+      await Users().insert(users.map(toUserDBO));
 
       const actual = await establishmentRepository.find({
         filters: { id: [establishment.id] },
@@ -195,7 +195,7 @@ describe('Establishment repository', () => {
       const user = genUserApi(establishment.id);
 
       await Establishments().insert(formatEstablishmentApi(establishment));
-      await Users().insert(formatUserApi(user));
+      await Users().insert(toUserDBO(user));
 
       const actual = await establishmentRepository.find({
         filters: { id: [establishment.id] }
@@ -214,7 +214,7 @@ describe('Establishment repository', () => {
 
     beforeAll(async () => {
       await Establishments().insert(formatEstablishmentApi(establishment));
-      await Users().insert(users.map(formatUserApi));
+      await Users().insert(users.map(toUserDBO));
     });
 
     it('should get establishment by id', async () => {
@@ -249,7 +249,7 @@ describe('Establishment repository', () => {
         ...genUserApi(establishment.id),
         deletedAt: new Date().toJSON()
       };
-      await Users().insert(formatUserApi(deletedUser));
+      await Users().insert(toUserDBO(deletedUser));
 
       const actual = await establishmentRepository.get(establishment.id, {
         includes: ['users']
@@ -268,7 +268,7 @@ describe('Establishment repository', () => {
 
     beforeAll(async () => {
       await Establishments().insert(formatEstablishmentApi(establishment));
-      await Users().insert(formatUserApi(user));
+      await Users().insert(toUserDBO(user));
     });
 
     it('should find establishment by siren', async () => {
@@ -395,7 +395,7 @@ describe('Establishment repository', () => {
       const user = genUserApi(establishment.id);
       const dbo = {
         ...formatEstablishmentApi(establishment),
-        users: [formatUserApi(user)]
+        users: [toUserDBO(user)]
       };
 
       const api = parseEstablishmentApi(dbo);

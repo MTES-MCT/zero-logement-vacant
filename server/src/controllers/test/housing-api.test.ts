@@ -92,7 +92,7 @@ import {
   Precisions,
   type HousingPrecisionDBO
 } from '~/repositories/precisionRepository';
-import { formatUserApi, Users } from '~/repositories/userRepository';
+import { toUserDBO, Users } from '~/repositories/userRepository';
 import {
   genBuildingApi,
   genCampaignApi,
@@ -134,7 +134,7 @@ describe('Housing API', () => {
     await Establishments().insert(
       [establishment, anotherEstablishment].map(formatEstablishmentApi)
     );
-    await Users().insert([user, visitor, anotherUser].map(formatUserApi));
+    await Users().insert([user, visitor, anotherUser].map(toUserDBO));
   });
 
   describe('GET /housing/{id}', () => {
@@ -259,7 +259,7 @@ describe('Housing API', () => {
           [department, intercommunality, commune].map(formatEstablishmentApi)
         );
         await Users().insert(
-          [departmentUser, intercommunalityUser, communeUser].map(formatUserApi)
+          [departmentUser, intercommunalityUser, communeUser].map(toUserDBO)
         );
 
         const housings = department.geoCodes

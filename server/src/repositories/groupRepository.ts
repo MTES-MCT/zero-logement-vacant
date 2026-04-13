@@ -7,7 +7,7 @@ import {
 import { logger } from '~/infra/logger';
 import { GroupApi } from '~/models/GroupApi';
 import { HousingApi } from '~/models/HousingApi';
-import { parseUserApi, UserDBO, usersTable } from './userRepository';
+import { fromUserDBO, UserDBO, USERS_TABLE } from './userRepository';
 
 export const GROUPS_TABLE = 'groups';
 export const GROUPS_HOUSING_TABLE = 'groups_housing';
@@ -20,6 +20,11 @@ export const GroupsHousing = (transaction: Knex<GroupHousingDBO> = db) =>
 interface FindOptions {
   filters: {
     establishmentId: string;
+    /**
+     * If provided, only return groups where ALL housings are within these geoCodes.
+     * Groups with any housing outside these geoCodes will be excluded.
+     */
+    geoCodes?: string[];
   };
 }
 
@@ -37,13 +42,14 @@ const find = async (opts?: FindOptions): Promise<GroupApi[]> => {
 interface FindOneOptions {
   id: string;
   establishmentId: string;
+  geoCodes?: string[];
 }
 
 const findOne = async (opts: FindOneOptions): Promise<GroupApi | null> => {
   logger.debug('Finding group...', opts);
   const group: GroupDBO | undefined = await Groups()
     .modify(listQuery)
-    .modify(filterQuery({ establishmentId: opts.establishmentId }))
+    .modify(filterQuery({ establishmentId: opts.establishmentId, geoCodes: opts.geoCodes }))
     .where(`${GROUPS_TABLE}.id`, opts.id)
     .first();
   if (!group) {
@@ -59,18 +65,44 @@ const findOne = async (opts: FindOneOptions): Promise<GroupApi | null> => {
 const listQuery = (query: Knex.QueryBuilder): void => {
   query
     .select(`${GROUPS_TABLE}.*`)
-    .join<UserDBO>(usersTable, `${usersTable}.id`, `${GROUPS_TABLE}.user_id`)
-    .select(db.raw(`to_json(${usersTable}.*) AS user`));
+    .join<UserDBO>(USERS_TABLE, `${USERS_TABLE}.id`, `${GROUPS_TABLE}.user_id`)
+    .select(db.raw(`to_json(${USERS_TABLE}.*) AS user`));
 };
 
 interface FilterOptions {
   establishmentId?: string;
+  /**
+   * If provided, only return groups where ALL housings are within these geoCodes.
+   * Groups with any housing outside these geoCodes will be excluded.
+   */
+  geoCodes?: string[];
 }
 
 const filterQuery = (opts?: FilterOptions) => {
   return function (query: Knex.QueryBuilder): void {
     if (opts?.establishmentId) {
       query.where(`${GROUPS_TABLE}.establishment_id`, opts.establishmentId);
+    }
+    // Filter groups to only those where ALL housings are within the user's perimeter
+    // Note: geoCodes is an array when a restriction applies
+    //   - non-empty array: filter to groups with housings in these geoCodes
+    //   - empty array: user should see NO groups (intersection with perimeter is empty)
+    if (opts?.geoCodes !== undefined) {
+      if (opts.geoCodes.length === 0) {
+        // Empty geoCodes means no access - return no groups
+        query.whereRaw('1 = 0');
+      } else {
+        const geoCodes = opts.geoCodes;
+        query.whereNotExists(function () {
+          this.select(db.raw('1'))
+            .from(GROUPS_HOUSING_TABLE)
+            .whereRaw(`${GROUPS_HOUSING_TABLE}.group_id = ${GROUPS_TABLE}.id`)
+            .whereRaw(
+              `${GROUPS_HOUSING_TABLE}.housing_geo_code NOT IN (${geoCodes.map(() => '?').join(', ')})`,
+              geoCodes
+            );
+        });
+      }
     }
   };
 };
@@ -223,7 +255,7 @@ export const parseGroupApi = (group: GroupDBO): GroupApi => {
     createdAt: group.created_at,
     exportedAt: group.exported_at,
     userId: group.user_id,
-    createdBy: group.user ? parseUserApi(group.user) : undefined,
+    createdBy: group.user ? fromUserDBO(group.user) : undefined,
     establishmentId: group.establishment_id,
     archivedAt: group.archived_at
   };

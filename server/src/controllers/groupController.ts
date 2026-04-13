@@ -30,7 +30,7 @@ const list: RequestHandler<
   never,
   never
 > = async (request, response): Promise<void> => {
-  const { auth } = request as AuthenticatedRequest<
+  const { auth, effectiveGeoCodes } = request as AuthenticatedRequest<
     never,
     ReadonlyArray<GroupDTO>,
     never,
@@ -45,7 +45,8 @@ const list: RequestHandler<
 
   const groups = await groupRepository.find({
     filters: {
-      establishmentId
+      establishmentId,
+      geoCodes: effectiveGeoCodes
     }
   });
   response.status(constants.HTTP_STATUS_OK).json(groups.map(toGroupDTO));
@@ -139,7 +140,7 @@ const show: RequestHandler<
   never,
   never
 > = async (request, response): Promise<void> => {
-  const { auth, params } = request as AuthenticatedRequest<
+  const { auth, effectiveGeoCodes, params } = request as AuthenticatedRequest<
     { id: GroupDTO['id'] },
     GroupDTO,
     never,
@@ -148,7 +149,8 @@ const show: RequestHandler<
 
   const group = await groupRepository.findOne({
     id: params.id,
-    establishmentId: auth.establishmentId
+    establishmentId: auth.establishmentId,
+    geoCodes: effectiveGeoCodes
   });
   if (!group) {
     throw new GroupMissingError(params.id);
@@ -164,7 +166,7 @@ const update: RequestHandler<
   GroupPayloadDTO,
   never
 > = async (request, response): Promise<void> => {
-  const { auth, body, params } = request as AuthenticatedRequest<
+  const { auth, body, effectiveGeoCodes, params } = request as AuthenticatedRequest<
     { id: GroupDTO['id'] },
     GroupDTO,
     GroupPayloadDTO,
@@ -173,7 +175,8 @@ const update: RequestHandler<
 
   const group = await groupRepository.findOne({
     id: params.id,
-    establishmentId: auth.establishmentId
+    establishmentId: auth.establishmentId,
+    geoCodes: effectiveGeoCodes
   });
   if (!group || !!group.archivedAt) {
     throw new GroupMissingError(params.id);
@@ -208,7 +211,7 @@ const addHousing: RequestHandler<
   GroupAddHousingPayload,
   never
 > = async (request, response): Promise<void> => {
-  const { auth, body, params } = request as AuthenticatedRequest<
+  const { auth, body, effectiveGeoCodes, params } = request as AuthenticatedRequest<
     { id: GroupDTO['id'] },
     GroupDTO,
     GroupAddHousingPayload,
@@ -217,7 +220,8 @@ const addHousing: RequestHandler<
 
   const group = await groupRepository.findOne({
     id: params.id,
-    establishmentId: auth.establishmentId
+    establishmentId: auth.establishmentId,
+    geoCodes: effectiveGeoCodes
   });
   if (!group || !!group.archivedAt) {
     throw new GroupMissingError(params.id);
@@ -298,7 +302,7 @@ const removeHousing: RequestHandler<
   GroupRemoveHousingPayload,
   never
 > = async (request, response): Promise<void> => {
-  const { auth, body, params } = request as AuthenticatedRequest<
+  const { auth, body, effectiveGeoCodes, params } = request as AuthenticatedRequest<
     { id: GroupDTO['id'] },
     GroupDTO,
     GroupRemoveHousingPayload,
@@ -307,7 +311,8 @@ const removeHousing: RequestHandler<
 
   const group = await groupRepository.findOne({
     id: params.id,
-    establishmentId: auth.establishmentId
+    establishmentId: auth.establishmentId,
+    geoCodes: effectiveGeoCodes
   });
   if (!group || !!group.archivedAt) {
     throw new GroupMissingError(params.id);
@@ -382,7 +387,7 @@ const remove: RequestHandler<
   never,
   never
 > = async (request, response): Promise<void> => {
-  const { auth, params } = request as AuthenticatedRequest<
+  const { auth, effectiveGeoCodes, params } = request as AuthenticatedRequest<
     { id: GroupDTO['id'] },
     GroupDTO,
     never,
@@ -391,7 +396,8 @@ const remove: RequestHandler<
 
   const group = await groupRepository.findOne({
     id: params.id,
-    establishmentId: auth.establishmentId
+    establishmentId: auth.establishmentId,
+    geoCodes: effectiveGeoCodes
   });
   if (!group) {
     throw new GroupMissingError(params.id);

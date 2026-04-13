@@ -14,7 +14,7 @@ vi.mock('nodemailer', () => ({
 }));
 
 // Mock mailService to prevent actual email sending
-vi.mock('../services/mailService', () => ({
+vi.mock('../../services/mailService', () => ({
   default: {
     sendTwoFactorCode: vi.fn().mockResolvedValue(undefined),
     sendPasswordReset: vi.fn().mockResolvedValue(undefined),
@@ -25,11 +25,11 @@ vi.mock('../services/mailService', () => ({
   }
 }));
 
-vi.mock('../services/ceremaService/mockCeremaService');
+vi.mock('../../services/ceremaService/mockCeremaService');
 
 // Mock config to enable 2FA for tests
-vi.mock('../infra/config', async () => {
-  const actual = await vi.importActual('../infra/config');
+vi.mock('../../infra/config', async () => {
+  const actual = await vi.importActual('../../infra/config');
   return {
     ...actual,
     default: {
@@ -60,7 +60,7 @@ import {
   formatResetLinkApi,
   ResetLinks
 } from '~/repositories/resetLinkRepository';
-import { formatUserApi, Users } from '~/repositories/userRepository';
+import { toUserDBO, Users } from '~/repositories/userRepository';
 import userRepository from '~/repositories/userRepository';
 
 import {
@@ -93,7 +93,7 @@ describe('Account controller', () => {
       ...user,
       password: bcrypt.hashSync(user.password, SALT_LENGTH)
     }));
-    await Users().insert(users.map(formatUserApi));
+    await Users().insert(users.map(toUserDBO));
   });
 
   describe('Sign in', () => {
@@ -165,6 +165,50 @@ describe('Account controller', () => {
         establishment,
         accessToken: expect.any(String)
       });
+    });
+
+    it('should allow login for suspended user (modal will be displayed on frontend)', async () => {
+      const suspendedUser: UserApi = {
+        ...genUserApi(establishment.id),
+        password: bcrypt.hashSync('TestPassword123!', SALT_LENGTH),
+        suspendedAt: new Date().toJSON(),
+        suspendedCause: 'droits utilisateur expires'
+      };
+      await Users().insert(toUserDBO(suspendedUser));
+
+      const { body, status } = await request(url).post(testRoute).send({
+        email: suspendedUser.email,
+        password: 'TestPassword123!'
+      });
+
+      // Suspended users can login - the frontend will display the suspension modal
+      expect(status).toBe(constants.HTTP_STATUS_OK);
+      expect(body).toMatchObject({
+        establishment,
+        accessToken: expect.any(String)
+      });
+
+      // Cleanup
+      await Users().where('id', suspendedUser.id).delete();
+    });
+
+    it('should fail if the user is deleted', async () => {
+      const deletedUser: UserApi = {
+        ...genUserApi(establishment.id),
+        password: bcrypt.hashSync('TestPassword123!', SALT_LENGTH),
+        deletedAt: new Date().toJSON()
+      };
+      await Users().insert(toUserDBO(deletedUser));
+
+      const { status } = await request(url).post(testRoute).send({
+        email: deletedUser.email,
+        password: 'TestPassword123!'
+      });
+
+      expect(status).toBe(constants.HTTP_STATUS_FORBIDDEN);
+
+      // Cleanup
+      await Users().where('id', deletedUser.id).delete();
     });
   });
 

@@ -13,7 +13,7 @@ import {
   Establishments,
   formatEstablishmentApi
 } from '~/repositories/establishmentRepository';
-import { formatUserApi, Users } from '~/repositories/userRepository';
+import { toUserDBO, Users } from '~/repositories/userRepository';
 import { formatSettingsApi, Settings } from '~/repositories/settingsRepository';
 import { EstablishmentApi } from '~/models/EstablishmentApi';
 import { UserApi } from '~/models/UserApi';
@@ -32,7 +32,7 @@ describe('Settings API', () => {
     establishment = genEstablishmentApi();
     user = genUserApi(establishment.id);
     await Establishments().insert(formatEstablishmentApi(establishment));
-    await Users().insert(formatUserApi(user));
+    await Users().insert(toUserDBO(user));
   });
 
   describe('GET /establishments/{id}/settings', () => {

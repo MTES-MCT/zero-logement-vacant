@@ -1,9 +1,30 @@
+import type { EstablishmentDTO } from '@zerologementvacant/models';
+import { fromEstablishmentDTO } from '../models/Establishment';
+import type { AuthUser, User } from '../models/User';
 import config from '../utils/config';
-import type { AuthUser } from '../models/User';
 
 interface TwoFactorResponse {
   requiresTwoFactor: true;
   email: string;
+}
+
+// Raw API response before transformation
+interface AuthUserRaw {
+  user: User;
+  accessToken: string;
+  establishment: EstablishmentDTO;
+  authorizedEstablishments?: EstablishmentDTO[];
+  effectiveGeoCodes?: string[];
+}
+
+function transformAuthUser(raw: AuthUserRaw): AuthUser {
+  return {
+    user: raw.user,
+    accessToken: raw.accessToken,
+    establishment: fromEstablishmentDTO(raw.establishment),
+    authorizedEstablishments: raw.authorizedEstablishments?.map(fromEstablishmentDTO),
+    effectiveGeoCodes: raw.effectiveGeoCodes
+  };
 }
 
 type LoginResponse = AuthUser | TwoFactorResponse;
@@ -19,7 +40,13 @@ const login = async (
     body: JSON.stringify({ email, password, establishmentId })
   }).then((response) => {
     if (response.ok) {
-      return response.json();
+      return response.json().then((data) => {
+        // Check if 2FA is required
+        if ('requiresTwoFactor' in data) {
+          return data as TwoFactorResponse;
+        }
+        return transformAuthUser(data as AuthUserRaw);
+      });
     } else {
       throw new Error('Authentication failed');
     }
@@ -37,7 +64,7 @@ const verifyTwoFactor = async (
     body: JSON.stringify({ email, code, establishmentId })
   }).then((response) => {
     if (response.ok) {
-      return response.json();
+      return response.json().then((data) => transformAuthUser(data as AuthUserRaw));
     } else {
       throw new Error('2FA verification failed');
     }
@@ -62,7 +89,7 @@ const resetPassword = async (key: string, password: string) => {
   }
 };
 
-const changeEstablishment = async (establishmentId: string) => {
+const changeEstablishment = async (establishmentId: string): Promise<AuthUser> => {
   return fetch(
     `${config.apiEndpoint}/api/account/establishments/${establishmentId}`,
     {
@@ -74,7 +101,7 @@ const changeEstablishment = async (establishmentId: string) => {
     }
   ).then((response) => {
     if (response.ok) {
-      return response.json();
+      return response.json().then((data) => transformAuthUser(data as AuthUserRaw));
     } else {
       throw new Error('Authentication failed');
     }

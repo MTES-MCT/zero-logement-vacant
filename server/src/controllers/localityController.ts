@@ -29,12 +29,15 @@ async function getLocality(request: Request, response: Response) {
 const listLocalitiesValidators = [query('establishmentId').notEmpty().isUUID()];
 
 async function listLocalities(request: Request, response: Response) {
+  const { effectiveGeoCodes } = request as AuthenticatedRequest;
   const establishmentId = request.query.establishmentId as string;
 
   logger.info('List localities', { establishment: establishmentId });
+
   const localities = await localityRepository.find({
     filters: {
-      establishmentId
+      establishmentId,
+      geoCodes: effectiveGeoCodes
     }
   });
   response.status(constants.HTTP_STATUS_OK).json(localities);

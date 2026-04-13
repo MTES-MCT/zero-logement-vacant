@@ -22,7 +22,7 @@ import {
   NoteRecordDBO,
   Notes
 } from '~/repositories/noteRepository';
-import { formatUserApi, Users } from '~/repositories/userRepository';
+import { toUserDBO, Users } from '~/repositories/userRepository';
 import {
   genEstablishmentApi,
   genHousingApi,
@@ -53,7 +53,7 @@ describe('Note API', () => {
 
   beforeAll(async () => {
     await Establishments().insert(formatEstablishmentApi(establishment));
-    await Users().insert([user, visitor, admin].map(formatUserApi));
+    await Users().insert([user, visitor, admin].map(toUserDBO));
     await Housing().insert(formatHousingRecordApi(housing));
   });
 
@@ -196,7 +196,7 @@ describe('Note API', () => {
 
     it('should be forbidden for another user than the creator', async () => {
       const anotherUser = genUserApi(establishment.id);
-      await Users().insert(formatUserApi(anotherUser));
+      await Users().insert(toUserDBO(anotherUser));
 
       const { status } = await request(url)
         .put(testRoute(note.id))
@@ -289,7 +289,7 @@ describe('Note API', () => {
 
     it('should be forbidden for another user than the creator', async () => {
       const anotherUser = genUserApi(establishment.id);
-      await Users().insert(formatUserApi(anotherUser));
+      await Users().insert(toUserDBO(anotherUser));
 
       const { status } = await request(url)
         .delete(testRoute(note.id))

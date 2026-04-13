@@ -85,7 +85,7 @@ import {
 } from '~/repositories/housingRepository';
 import { formatOwnerApi, Owners } from '~/repositories/ownerRepository';
 import { formatSenderApi, Senders } from '~/repositories/senderRepository';
-import { formatUserApi, Users } from '~/repositories/userRepository';
+import { toUserDBO, Users } from '~/repositories/userRepository';
 import * as posthogService from '~/services/posthogService';
 import {
   genCampaignApi,
@@ -114,7 +114,7 @@ describe('Campaign API', () => {
 
   beforeAll(async () => {
     await Establishments().insert(formatEstablishmentApi(establishment));
-    await Users().insert(formatUserApi(user));
+    await Users().insert(toUserDBO(user));
   });
 
   describe('GET /campaigns/{id}', () => {

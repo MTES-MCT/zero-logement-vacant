@@ -2,7 +2,7 @@ import { Knex } from 'knex';
 
 import { Establishments } from '~/repositories/establishmentRepository';
 import { Housing } from '~/repositories/housingRepository';
-import { parseUserApi, Users } from '~/repositories/userRepository';
+import { fromUserDBO, Users } from '~/repositories/userRepository';
 
 export const LIMIT = Number.MAX_SAFE_INTEGER;
 export const BATCH_SIZE = 500;
@@ -34,7 +34,7 @@ export async function getAdmin(knex: Knex) {
   const admin = await Users(knex)
     .where({ email: 'admin@zerologementvacant.beta.gouv.fr' })
     .first()
-    .then((admin) => (admin ? parseUserApi(admin) : null));
+    .then((admin) => (admin ? fromUserDBO(admin) : null));
   if (!admin) {
     throw new Error('admin@zerologementvacant.beta.gouv.fr not found');
   }

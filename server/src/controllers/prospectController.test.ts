@@ -23,7 +23,7 @@ import {
   Establishments,
   formatEstablishmentApi
 } from '~/repositories/establishmentRepository';
-import { formatUserApi, Users } from '~/repositories/userRepository';
+import { toUserDBO, Users } from '~/repositories/userRepository';
 import {
   formatProspectApi,
   Prospects
@@ -59,7 +59,7 @@ describe('Prospect API', () => {
       const establishment = genEstablishmentApi();
       await Establishments().insert(formatEstablishmentApi(establishment));
       const user = genUserApi(establishment.id);
-      await Users().insert(formatUserApi(user));
+      await Users().insert(toUserDBO(user));
       const link = genSignupLinkApi(user.email);
       await SignupLinks().insert(formatSignupLinkApi(link));
 

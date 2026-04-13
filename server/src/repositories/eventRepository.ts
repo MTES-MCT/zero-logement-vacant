@@ -23,9 +23,9 @@ import {
 import { HousingId } from '~/models/HousingApi';
 import { OwnerApi } from '~/models/OwnerApi';
 import {
-  parseUserApi,
+  fromUserDBO,
   UserDBO,
-  usersTable
+  USERS_TABLE
 } from '~/repositories/userRepository';
 
 const logger = createLogger('eventRepository');
@@ -245,8 +245,8 @@ async function find<Type extends EventType>(
   logger.debug('Finding events...', { options });
   const events = await Events()
     .select(`${EVENTS_TABLE}.*`)
-    .join(usersTable, `${usersTable}.id`, `${EVENTS_TABLE}.created_by`)
-    .select(db.raw(`to_json(${usersTable}.*) AS creator`))
+    .join(USERS_TABLE, `${USERS_TABLE}.id`, `${EVENTS_TABLE}.created_by`)
+    .select(db.raw(`to_json(${USERS_TABLE}.*) AS creator`))
     .modify((query) => {
       const types = options?.filters?.types ?? [];
       const housings = options?.filters?.housings ?? [];
@@ -406,7 +406,7 @@ export function parseEventApi<Type extends EventType>(
     nextNew: event.next_new,
     createdAt: event.created_at.toJSON(),
     createdBy: event.created_by,
-    creator: event.creator ? parseUserApi(event.creator) : undefined
+    creator: event.creator ? fromUserDBO(event.creator) : undefined
   };
 }
 

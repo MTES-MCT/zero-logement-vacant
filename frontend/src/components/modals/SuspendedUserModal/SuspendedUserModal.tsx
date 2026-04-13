@@ -32,9 +32,21 @@ function SuspendedUserModal() {
 
   const isCguEmpty = user?.user.suspendedCause?.includes('cgu vides');
 
+  const isAccessLevelInvalid = user?.user.suspendedCause?.includes(
+    'niveau_acces_invalide'
+  );
+
+  const isPerimeterInvalid =
+    user?.user.suspendedCause?.includes('perimetre_invalide');
+
   const hasMultipleReasons =
-    [isCguEmpty, isUserExpired, isEstablishmentExpired].filter(Boolean).length >
-    1;
+    [
+      isCguEmpty,
+      isUserExpired,
+      isEstablishmentExpired,
+      isAccessLevelInvalid,
+      isPerimeterInvalid
+    ].filter(Boolean).length > 1;
 
   useEffect(() => {
     if (ready && isSuspended) {
@@ -62,14 +74,23 @@ function SuspendedUserModal() {
         <Grid component="section" size={12}>
           <Alert
             severity="error"
-            title="Vos droits d’accès à Zéro Logement Vacant ne sont plus valides"
+            title="Vos droits d'accès à Zéro Logement Vacant ne sont plus valides"
             description={
               <Typography>
                 {hasMultipleReasons ? (
                   <>
-                    La date d&apos;expiration de vos droits d&apos;accès aux
-                    données LOVAC en tant qu&apos;utilisateur ou ceux de votre
-                    structure a été dépassée.
+                    Plusieurs problèmes ont été détectés avec vos droits
+                    d&apos;accès aux données LOVAC.
+                  </>
+                ) : isAccessLevelInvalid ? (
+                  <>
+                    Votre niveau d&apos;accès aux données LOVAC sur le portail
+                    Données Foncières du Cerema n&apos;est pas valide.
+                  </>
+                ) : isPerimeterInvalid ? (
+                  <>
+                    Votre périmètre géographique sur le portail Données
+                    Foncières du Cerema ne correspond pas à votre établissement.
                   </>
                 ) : isCguEmpty ? (
                   <>
@@ -82,10 +103,15 @@ function SuspendedUserModal() {
                     La date d&apos;expiration de vos droits d&apos;accès aux
                     données LOVAC en tant qu&apos;utilisateur a été dépassée.
                   </>
-                ) : (
+                ) : isEstablishmentExpired ? (
                   <>
                     La date d&apos;expiration des droits d&apos;accès aux
                     données LOVAC de votre structure a été dépassée.
+                  </>
+                ) : (
+                  <>
+                    Vos droits d&apos;accès aux données LOVAC ne sont plus
+                    valides.
                   </>
                 )}
               </Typography>
@@ -98,8 +124,26 @@ function SuspendedUserModal() {
             {hasMultipleReasons ? (
               <>
                 Rendez-vous sur le portail Données Foncières du Cerema pour
-                vérifier vos droits d’accès aux données LOVAC et ceux de votre
-                structure.
+                vérifier vos droits d&apos;accès aux données LOVAC et ceux de
+                votre structure.
+                <br />
+                Si vous n&apos;avez pas de compte sur le portail Données
+                Foncières du Cerema, vous devez en créer un.
+              </>
+            ) : isAccessLevelInvalid ? (
+              <>
+                Rendez-vous sur le portail Données Foncières du Cerema pour
+                vérifier que votre groupe dispose bien d&apos;un accès aux
+                données LOVAC.
+                <br />
+                Si vous ne pouvez pas modifier votre groupe vous-même, demandez
+                au(x) gestionnaire(s) de votre structure de le faire.
+              </>
+            ) : isPerimeterInvalid ? (
+              <>
+                Rendez-vous sur le portail Données Foncières du Cerema pour
+                vérifier que votre périmètre géographique correspond bien à
+                votre établissement.
                 <br />
                 Si vous n’avez pas de compte sur le portail Données Foncières du
                 Cerema, vous devez en créer un.
@@ -107,26 +151,35 @@ function SuspendedUserModal() {
             ) : isCguEmpty ? (
               <>
                 Rendez-vous sur le portail Données Foncières du Cerema pour
-                valider les conditions générales d’utilisation.
+                valider les conditions générales d&apos;utilisation.
                 <br />
-                Si vous n’avez pas de compte sur le portail Données Foncières du
-                Cerema, vous devez en créer un.
+                Si vous n&apos;avez pas de compte sur le portail Données
+                Foncières du Cerema, vous devez en créer un.
               </>
             ) : isUserExpired ? (
               <>
                 Rendez-vous sur le portail Données Foncières du Cerema pour
-                modifier la date d’expiration de vos droits d’accès aux données.
+                modifier la date d&apos;expiration de vos droits d&apos;accès
+                aux données.
                 <br />
                 Si vous ne pouvez pas modifier la date vous-même, demandez au(x)
                 gestionnaire(s) de votre structure de le faire.
               </>
-            ) : (
+            ) : isEstablishmentExpired ? (
               <>
                 Rendez-vous sur le portail Données Foncières du Cerema pour
-                renouveler votre demande d’accès aux données LOVAC.
+                renouveler votre demande d&apos;accès aux données LOVAC.
                 <br />
                 Si vous ne pouvez pas renouveler la demande vous-même, demandez
                 au(x) gestionnaire(s) de votre structure de le faire.
+              </>
+            ) : (
+              <>
+                Rendez-vous sur le portail Données Foncières du Cerema pour
+                vérifier vos droits d&apos;accès.
+                <br />
+                Si vous n&apos;avez pas de compte sur le portail Données
+                Foncières du Cerema, vous devez en créer un.
               </>
             )}
           </Typography>

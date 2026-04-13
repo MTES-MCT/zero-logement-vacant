@@ -2,7 +2,7 @@ import Router from 'express-promise-router';
 import rateLimit from 'express-rate-limit';
 import { object } from 'yup';
 
-import accountController from '~/controllers/accountController';
+import authController from '~/controllers/auth-controller';
 import establishmentController from '~/controllers/establishmentController';
 import localityController from '~/controllers/localityController';
 import prospectController from '~/controllers/prospectController';
@@ -52,20 +52,22 @@ router.post(
 router.post(
   '/authenticate',
   rateLimiter(),
-  validatorNext.validate(accountController.signInValidators),
-  accountController.signIn
+  validatorNext.validate({
+    body: schemas.signIn
+  }),
+  authController.signIn
 );
 router.post(
   '/authenticate/verify-2fa',
   rateLimiter(),
-  validatorNext.validate(accountController.verifyTwoFactorValidators),
-  accountController.verifyTwoFactor
+  validatorNext.validate(authController.verifyTwoFactorValidators),
+  authController.verifyTwoFactor
 );
 router.post(
   '/account/reset-password',
   rateLimiter(),
-  validatorNext.validate(accountController.resetPasswordValidators),
-  accountController.resetPassword
+  validatorNext.validate(authController.resetPasswordValidators),
+  authController.resetPassword
 );
 
 router.post(

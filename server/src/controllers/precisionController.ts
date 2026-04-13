@@ -34,7 +34,7 @@ const findByHousing: RequestHandler<
   never,
   never
 > = async (request, response): Promise<void> => {
-  const { establishment, params } = request as AuthenticatedRequest<
+  const { effectiveGeoCodes, establishment, params } = request as AuthenticatedRequest<
     PathParams,
     Precision[],
     never,
@@ -44,7 +44,7 @@ const findByHousing: RequestHandler<
   const [housing, precisions] = await Promise.all([
     housingRepository.findOne({
       establishment: establishment.id,
-      geoCode: establishment.geoCodes,
+      geoCode: effectiveGeoCodes ?? establishment.geoCodes,
       id: params.id
     }),
     precisionRepository.find({
@@ -68,7 +68,7 @@ const updatePrecisionsByHousing: RequestHandler<
   Array<Precision['id']>,
   never
 > = async (request, response): Promise<void> => {
-  const { auth, body, establishment, params } = request as AuthenticatedRequest<
+  const { auth, body, effectiveGeoCodes, establishment, params } = request as AuthenticatedRequest<
     PathParams,
     Array<Precision>,
     Array<Precision['id']>,
@@ -78,7 +78,7 @@ const updatePrecisionsByHousing: RequestHandler<
   const [housing, precisions] = await Promise.all([
     housingRepository.findOne({
       establishment: establishment.id,
-      geoCode: establishment.geoCodes,
+      geoCode: effectiveGeoCodes ?? establishment.geoCodes,
       id: params.id
     }),
     body.length > 0

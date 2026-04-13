@@ -59,7 +59,7 @@ import {
   formatPrecisionApi,
   Precisions
 } from '~/repositories/precisionRepository';
-import { formatUserApi, Users } from '~/repositories/userRepository';
+import { toUserDBO, Users } from '~/repositories/userRepository';
 import { Documents, toDocumentDBO } from '~/repositories/documentRepository';
 import {
   genCampaignApi,
@@ -80,7 +80,7 @@ describe('Event repository', () => {
 
   beforeAll(async () => {
     await Establishments().insert(formatEstablishmentApi(establishment));
-    await Users().insert(formatUserApi(creator));
+    await Users().insert(toUserDBO(creator));
   });
 
   describe('insertManyHousingEvents', () => {
@@ -692,7 +692,7 @@ describe('Event repository', () => {
 
     beforeAll(async () => {
       await Establishments().insert(formatEstablishmentApi(establishment));
-      await Users().insert(formatUserApi(user));
+      await Users().insert(toUserDBO(user));
       await Campaigns().insert(formatCampaignApi(campaign));
       await Events().insert(events.map(formatEventApi));
       await CampaignEvents().insert(events.map(formatCampaignEventApi));

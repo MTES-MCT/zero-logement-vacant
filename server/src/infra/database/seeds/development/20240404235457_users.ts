@@ -7,9 +7,9 @@ import config from '~/infra/config';
 import { SALT_LENGTH, UserApi } from '~/models/UserApi';
 import { Establishments } from '~/repositories/establishmentRepository';
 import {
-  formatUserApi,
+  toUserDBO,
   Users,
-  usersTable
+  USERS_TABLE
 } from '~/repositories/userRepository';
 import { genUserApi } from '~/test/testFixtures';
 
@@ -202,6 +202,51 @@ async function createBaseUsers(
       role: UserRole.USUAL,
       suspendedAt: now,
       suspendedCause: 'droits utilisateur expires, droits structure expires, cgu vides'
+    }),
+    // New suspension causes for Portail DF access verification
+    createBaseUser({
+      email: 'test.suspended.access@zlv.fr',
+      password: hashedPassword,
+      firstName: 'Suspendu',
+      lastName: 'Niveau Accès',
+      establishmentId: strasbourg.id,
+      activatedAt: now,
+      role: UserRole.USUAL,
+      suspendedAt: now,
+      suspendedCause: 'niveau_acces_invalide'
+    }),
+    createBaseUser({
+      email: 'test.suspended.perimeter@zlv.fr',
+      password: hashedPassword,
+      firstName: 'Suspendu',
+      lastName: 'Périmètre',
+      establishmentId: saintLo.id,
+      activatedAt: now,
+      role: UserRole.USUAL,
+      suspendedAt: now,
+      suspendedCause: 'perimetre_invalide'
+    }),
+    createBaseUser({
+      email: 'test.suspended.access.perimeter@zlv.fr',
+      password: hashedPassword,
+      firstName: 'Suspendu',
+      lastName: 'Accès + Périmètre',
+      establishmentId: strasbourg.id,
+      activatedAt: now,
+      role: UserRole.USUAL,
+      suspendedAt: now,
+      suspendedCause: 'niveau_acces_invalide, perimetre_invalide'
+    }),
+    // Deleted user - for testing account deletion (LOGIN-09)
+    createBaseUser({
+      email: 'test.deleted@zlv.fr',
+      password: hashedPassword,
+      firstName: 'Supprimé',
+      lastName: 'Compte',
+      establishmentId: strasbourg.id,
+      activatedAt: now,
+      role: UserRole.USUAL,
+      deletedAt: now
     })
   ];
 }
@@ -209,7 +254,7 @@ async function createBaseUsers(
 async function insertBaseUsers(baseUsers: UserApi[]): Promise<void> {
   console.log(`Inserting ${baseUsers.length} base users...`);
   await Users()
-    .insert(baseUsers.map(formatUserApi))
+    .insert(baseUsers.map(toUserDBO))
     .onConflict('email')
     .merge(['establishment_id']);
 }
@@ -221,9 +266,9 @@ async function generateRandomUsers(knex: Knex): Promise<void> {
       .multiple(() => genUserApi(establishments.id), {
         count: { min: 1, max: 10 }
       })
-      .map(formatUserApi);
+      .map(toUserDBO);
   });
   console.log(`Inserting ${users.length} random users...`);
-  await knex.batchInsert(usersTable, users);
+  await knex.batchInsert(USERS_TABLE, users);
   console.log('\n')
 }

@@ -76,13 +76,8 @@ function AccountPasswordCreationView() {
   }
 
   if (prospect) {
-    if (prospect.hasAccount && !prospect.hasCommitment) {
-      return <Navigate to="/inscription/en-attente" />;
-    }
-    if (
-      !prospect.establishment ||
-      (!prospect.hasAccount && !prospect.hasCommitment)
-    ) {
+    // Redirect to access forbidden page if no LOVAC access
+    if (!prospect.establishment || !prospect.hasCommitment) {
       return <Navigate to="/inscription/impossible" />;
     }
   }

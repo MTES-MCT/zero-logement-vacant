@@ -25,7 +25,7 @@ import {
   PrecisionDBO,
   Precisions
 } from '~/repositories/precisionRepository';
-import { formatUserApi, Users } from '~/repositories/userRepository';
+import { toUserDBO, Users } from '~/repositories/userRepository';
 import {
   genEstablishmentApi,
   genHousingApi,
@@ -48,7 +48,7 @@ describe('Precision API', () => {
 
   beforeAll(async () => {
     await Establishments().insert(formatEstablishmentApi(establishment));
-    await Users().insert(formatUserApi(user));
+    await Users().insert(toUserDBO(user));
     precisions = await Precisions().select();
   });
 

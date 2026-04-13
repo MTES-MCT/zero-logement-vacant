@@ -22,7 +22,7 @@ const findByHousing: RequestHandler<
   never,
   never
 > = async (request, response): Promise<void> => {
-  const { establishment, params } = request as AuthenticatedRequest<
+  const { effectiveGeoCodes, establishment, params } = request as AuthenticatedRequest<
     PathParams,
     NoteDTO[],
     never,
@@ -32,7 +32,7 @@ const findByHousing: RequestHandler<
   logger.debug('Finding notes by housing...', { housing: params.id });
   const housing = await housingRepository.findOne({
     establishment: establishment.id,
-    geoCode: establishment.geoCodes,
+    geoCode: effectiveGeoCodes ?? establishment.geoCodes,
     id: params.id
   });
   if (!housing) {
@@ -53,7 +53,7 @@ const createByHousing: RequestHandler<
   NotePayloadDTO,
   never
 > = async (request, response): Promise<void> => {
-  const { body, establishment, params, user } = request as AuthenticatedRequest<
+  const { body, effectiveGeoCodes, establishment, params, user } = request as AuthenticatedRequest<
     PathParams,
     NoteDTO,
     NotePayloadDTO,
@@ -63,7 +63,7 @@ const createByHousing: RequestHandler<
 
   const housing = await housingRepository.findOne({
     establishment: establishment.id,
-    geoCode: establishment.geoCodes,
+    geoCode: effectiveGeoCodes ?? establishment.geoCodes,
     id: params.id
   });
   if (!housing) {

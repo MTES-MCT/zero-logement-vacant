@@ -6,10 +6,17 @@ copy = "wt step copy-ignored"
 install = "yarn install --immutable --immutable-cache"
 
 [[post-start]]
-setup-env = """
-PORT='{{ branch | hash_port }}'
-grep -q '^PORT=' server/.env && sed -i '' "s|^PORT=.*|PORT=${PORT}|" server/.env || echo "PORT=${PORT}" >> server/.env
-grep -q '^VITE_API_URL=' frontend/.env && sed -i '' "s|^VITE_API_URL=.*|VITE_API_URL=http://localhost:${PORT}|" frontend/.env || echo "VITE_API_URL=http://localhost:${PORT}" >> frontend/.env
+setup-front-env = """
+FRONT_PORT='{{ (branch ~ 'front') | hash_port }}'
+echo "VITE_PORT=${FRONT_PORT}" >> frontend/.env
+"""
+setup-api-env = """
+API_PORT='{{ (branch ~ 'api') | hash_port }}'
+grep -q '^PORT=' server/.env && sed -i '' "s|^PORT=.*|PORT=${API_PORT}|"
+server/.env || echo "PORT=${API_PORT}" >> server/.env
+grep -q '^VITE_API_URL=' frontend/.env && sed -i ''
+"s|^VITE_API_URL=.*|VITE_API_URL=http://localhost:${API_PORT}|" frontend/.env ||
+echo "VITE_API_URL=http://localhost:${API_PORT}" >> frontend/.env
 """
 # Set up databases in parallel
 setup-dev-db = """

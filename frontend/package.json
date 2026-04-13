@@ -23,6 +23,8 @@
   },
   "dependencies": {
     "@codegouvfr/react-dsfr": "1.28.0",
+    "@emotion/react": "11.14.0",
+    "@emotion/styled": "11.14.1",
     "@hookform/resolvers": "5.2.2",
     "@lexical/html": "0.39.0",
     "@lexical/list": "0.39.0",

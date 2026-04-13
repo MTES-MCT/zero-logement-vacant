@@ -1,5 +1,5 @@
 [list]
-url = "http://localhost:{{ branch | hash_port }}"
+url = "http://localhost:{{ (branch ~ 'front') | hash_port }}"
 
 [pre-start]
 copy = "wt step copy-ignored"

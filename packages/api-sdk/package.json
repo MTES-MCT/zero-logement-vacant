@@ -23,7 +23,7 @@
   "dependencies": {
     "@zerologementvacant/models": "workspace:*",
     "@zerologementvacant/utils": "workspace:*",
-    "axios": "1.13.5",
+    "axios": "1.15.0",
     "convict": "6.2.5",
     "dotenv": "16.6.1",
     "jsonwebtoken": "9.0.2",

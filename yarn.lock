@@ -14822,6 +14822,7 @@ __metadata:
     "@aws-sdk/client-s3": "npm:3.864.0"
     "@aws-sdk/s3-request-presigner": "npm:3.864.0"
     "@commander-js/extra-typings": "npm:14.0.0"
+    "@dotenvx/dotenvx": "npm:1.48.4"
     "@elastic/elasticsearch": "npm:8.19.0"
     "@faker-js/faker": "npm:8.4.1"
     "@fast-check/vitest": "npm:0.2.2"

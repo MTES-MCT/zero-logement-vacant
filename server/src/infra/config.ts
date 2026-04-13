@@ -2,19 +2,11 @@ import dotenvx from '@dotenvx/dotenvx';
 import convict from 'convict';
 import formats from 'convict-format-with-validator';
 import { StringValue } from 'ms';
-import path from 'node:path';
 
 import { LOG_LEVELS, LogLevel } from '@zerologementvacant/utils';
 
-const fromProjectRoot = (...paths: ReadonlyArray<string>): string =>
-  path.resolve(import.meta.dirname, '../..', ...paths);
-
 dotenvx.config({
   convention: 'nextjs',
-  path: [
-    fromProjectRoot(`.env.${process.env.NODE_ENV}`),
-    fromProjectRoot('.env')
-  ],
   quiet: process.env.NODE_ENV === 'test'
 });
 

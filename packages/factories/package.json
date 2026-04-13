@@ -2,6 +2,8 @@
   "name": "@zerologementvacant/factories",
   "version": "0.0.1",
   "type": "module",
+  "main": "dist/lib/index.js",
+  "types": "dist/lib/index.d.ts",
   "exports": {
     "./package.json": "./package.json",
     ".": {

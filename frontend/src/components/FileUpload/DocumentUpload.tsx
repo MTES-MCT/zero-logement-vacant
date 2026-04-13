@@ -1,6 +1,6 @@
 import { Upload, type UploadProps } from '@codegouvfr/react-dsfr/Upload';
 import mime from 'mime';
-import { type ChangeEvent, type ReactNode } from 'react';
+import { type ChangeEvent } from 'react';
 import type { AsyncOrSync } from 'ts-essentials';
 
 import { useNotification } from '~/hooks/useNotification';
@@ -8,14 +8,13 @@ import { useNotification } from '~/hooks/useNotification';
 export const DEFAULT_EXTENSIONS = ['pdf', 'jpg', 'png'];
 export const DEFAULT_MAX_SIZE = 5; // MB
 
-export type DocumentUploadProps = Omit<UploadProps, 'hint'> & {
+export type DocumentUploadProps = UploadProps & {
   /**
    * @example
    * ['pdf', 'jpg', 'png']
    */
   accept?: string[];
   error?: string;
-  hint?: string | ReactNode;
   isError: boolean;
   isLoading: boolean;
   isSuccess: boolean;

@@ -3,7 +3,7 @@ import { array, number, object, ObjectSchema, string } from 'yup';
 import {
   getSubStatuses,
   HOUSING_STATUS_VALUES,
-  HousingStatus,
+  isHousingStatus,
   OCCUPANCY_VALUES,
   type HousingBatchUpdatePayload
 } from '@zerologementvacant/models';
@@ -19,16 +19,18 @@ export const housingBatchUpdatePayload: ObjectSchema<HousingBatchUpdatePayload> 
       .nullable()
       .optional()
       .when('status', {
-        is: (status: HousingStatus | undefined) =>
-          status !== undefined && getSubStatuses(status).size === 0,
+        is: (status: number | undefined) =>
+          status !== undefined &&
+          isHousingStatus(status) &&
+          getSubStatuses(status).size === 0,
         then: (schema) => schema.transform(() => null),
         otherwise: (schema) =>
           schema.test({
             name: 'sub-status-coherence',
             test(value) {
               if (value === null || value === undefined) return true;
-              const { status } = this.parent as { status?: HousingStatus };
-              if (status === undefined) return true;
+              const { status } = this.parent as { status?: number };
+              if (status === undefined || !isHousingStatus(status)) return true;
               const validSubStatuses = getSubStatuses(status);
               if (validSubStatuses.has(value)) return true;
               return this.createError({

@@ -4,8 +4,8 @@ import {
   ENERGY_CONSUMPTION_VALUES,
   getSubStatuses,
   HOUSING_STATUS_VALUES,
-  HousingStatus,
   HousingUpdatePayloadDTO,
+  isHousingStatus,
   OCCUPANCY_VALUES
 } from '@zerologementvacant/models';
 
@@ -26,16 +26,17 @@ export const housingUpdatePayload: ObjectSchema<HousingUpdatePayloadDTO> =
       .optional()
       .default(null)
       .when('status', {
-        is: (status: HousingStatus) => getSubStatuses(status).size === 0,
+        is: (status: number) =>
+          !isHousingStatus(status) || getSubStatuses(status).size === 0,
         then: (schema) => schema.transform(() => null),
         otherwise: (schema) =>
           schema.test({
             name: 'sub-status-coherence',
             test(value) {
               if (value === null || value === undefined) return true;
-              const validSubStatuses = getSubStatuses(
-                this.parent.status as HousingStatus
-              );
+              const { status } = this.parent as { status: number };
+              if (!isHousingStatus(status)) return true;
+              const validSubStatuses = getSubStatuses(status);
               if (validSubStatuses.has(value)) return true;
               return this.createError({
                 message: `Le sous-statut "${value}" n\u2019est pas coh\u00e9rent avec le statut de suivi. Sous-statuts possibles\u00a0: ${[...validSubStatuses].join(', ')}`

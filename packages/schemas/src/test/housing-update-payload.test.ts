@@ -1,4 +1,5 @@
 import { fc, test } from '@fast-check/vitest';
+import { ValidationError } from 'yup';
 
 import {
   ENERGY_CONSUMPTION_VALUES,
@@ -79,5 +80,16 @@ describe('Housing update payload', () => {
         occupancyIntended: null
       })
     ).toThrow();
+  });
+
+  it('should throw a ValidationError (not TypeError) when status is an unknown number', () => {
+    expect(() =>
+      housingUpdatePayload.validateSync({
+        status: 99,
+        subStatus: 'some-sub-status',
+        occupancy: Occupancy.VACANT,
+        occupancyIntended: null
+      })
+    ).toThrow(ValidationError);
   });
 });

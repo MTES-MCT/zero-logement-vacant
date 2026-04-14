@@ -1,4 +1,5 @@
 import { fc, test } from '@fast-check/vitest';
+import { ValidationError } from 'yup';
 import {
   BENEFIARY_COUNT_VALUES,
   BUILDING_PERIOD_VALUES,
@@ -159,5 +160,15 @@ describe('Housing batch update payload', () => {
         subStatus: 'invalid-sub-status'
       })
     ).toThrow();
+  });
+
+  it('should throw a ValidationError (not TypeError) when status is an unknown number', () => {
+    expect(() =>
+      housingBatchUpdatePayload.validateSync({
+        filters: { all: false },
+        status: 99,
+        subStatus: 'some-sub-status'
+      })
+    ).toThrow(ValidationError);
   });
 });

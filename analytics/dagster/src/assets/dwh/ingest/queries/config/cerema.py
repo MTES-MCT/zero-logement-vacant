@@ -184,14 +184,35 @@ CEREMA_SOURCES = [
     ),
     
     ExternalSourceConfig(
-        name="ff_owners",
+        name="ff_2023_owners",
         url=f"s3://{Config.CELLAR_DATA_LAKE_BUCKET_NAME}/lake/cerema/ff/2023/owners.csv",
         producer=Producer.CEREMA,
         file_type=FileType.CSV,
-        description="Fichiers Fonciers - Owners",
+        description="Fichiers Fonciers - Owners 2023",
         type_overrides={"ccogrm": "VARCHAR"},
         read_options={"auto_detect": True, "ignore_errors": False},
     ),
+    ExternalSourceConfig(
+        name="ff_2024_owners",
+        url=f"s3://{Config.CELLAR_DATA_LAKE_BUCKET_NAME}/lake/cerema/ff/2024/owners.csv",
+        producer=Producer.CEREMA,
+        file_type=FileType.CSV,
+        description="Cerema - Fichiers Fonciers - Owners 2024 ",
+        type_overrides={"ccogrm": "VARCHAR"},
+        read_options={"auto_detect": True, "ignore_errors": False},
+    ),
+    
+    
+        ExternalSourceConfig(
+        name="ff_2025_owners",
+        url=f"s3://{Config.CELLAR_DATA_LAKE_BUCKET_NAME}/lake/cerema/ff/2025/owners.csv",
+        producer=Producer.CEREMA,
+        file_type=FileType.CSV,
+        description="Cerema - Fichiers Fonciers - Owners 2025 ",
+        type_overrides={"ccogrm": "VARCHAR"},
+        read_options={"auto_detect": True, "ignore_errors": False},
+    ),
+    
 
     # -------------------------------------------------------------------------
     # Private Sources

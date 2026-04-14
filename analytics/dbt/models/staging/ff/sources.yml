@@ -7,3 +7,4 @@ sources:
       - name: cerema_ff_2024_buildings_raw
       - name: cerema_ff_2024_housing_raw
       - name: cerema_ff_2024_owners_raw
+      - name: cerema_ff_2054_owners_raw

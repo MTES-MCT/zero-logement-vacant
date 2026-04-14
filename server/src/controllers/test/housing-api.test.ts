@@ -1020,9 +1020,16 @@ describe('Housing API', () => {
                   )
                   .chain((status) => {
                     const validSubs = [...getSubStatuses(status)];
-                    return fc
-                      .option(fc.constantFrom(...validSubs), { nil: undefined })
-                      .map((subStatus) => ({ status, subStatus }));
+                    const subStatusArb =
+                      validSubs.length > 0
+                        ? fc.option(fc.constantFrom(...validSubs), {
+                            nil: undefined
+                          })
+                        : fc.constant(undefined as string | undefined);
+                    return subStatusArb.map((subStatus) => ({
+                      status,
+                      subStatus
+                    }));
                   })
               )
               .map((ss) => ({ ...base, ...ss }))

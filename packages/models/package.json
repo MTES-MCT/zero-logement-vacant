@@ -14,7 +14,6 @@
     }
   },
   "dependencies": {
-    "@zerologementvacant/draft": "workspace:*",
     "@zerologementvacant/utils": "workspace:*",
     "effect": "3.20.0",
     "mime": "4.1.0",

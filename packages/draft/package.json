@@ -40,13 +40,9 @@
     "@pdfme/generator": "5.4.2",
     "@pdfme/schemas": "5.5.10",
     "@zerologementvacant/utils": "workspace:*",
-    "async": "3.2.6",
     "date-fns": "4.1.0",
-    "handlebars": "4.7.9",
-    "node-html-parser": "7.0.1",
     "pdf-lib": "1.17.1",
     "puppeteer": "22.15.0",
-    "ts-pattern": "5.8.0",
     "unpdf": "1.1.0"
   }
 }

@@ -26,6 +26,7 @@
     "@turf/turf": "7.1.0",
     "@types/geojson": "7946.0.16",
     "@types/node": "24",
+    "jest-extended": "4.0.2",
     "type-fest": "5.4.4"
   }
 }

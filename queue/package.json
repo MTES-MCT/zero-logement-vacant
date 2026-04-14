@@ -23,7 +23,6 @@
     "@bull-board/api": "6.13.0",
     "@bull-board/express": "6.13.0",
     "@bull-board/ui": "6.13.0",
-    "@godaddy/terminus": "4.12.1",
     "@sentry/integrations": "7.120.4",
     "@sentry/node": "7.120.4",
     "@zerologementvacant/api-sdk": "workspace:*",
@@ -44,8 +43,8 @@
     "parse-redis-url-simple": "1.0.2"
   },
   "devDependencies": {
-    "@faker-js/faker": "8.4.1",
     "@swc/core": "1.13.3",
+    "@swc/jest": "0.2.39",
     "@tsconfig/node24": "24.0.4",
     "@types/archiver": "6.0.3",
     "@types/async": "3.2.25",
@@ -54,13 +53,8 @@
     "@types/http-auth": "4.1.4",
     "@types/jest": "29.5.14",
     "@types/node": "24.2.1",
-    "@types/supertest": "6.0.3",
     "jest": "29.7.0",
     "jest-extended": "4.0.2",
-    "pkgroll": "2.15.3",
-    "supertest": "7.1.4",
-    "ts-jest": "29.4.1",
-    "tsx": "4.20.3",
-    "uuid": "9.0.1"
+    "tsx": "4.20.3"
   }
 }

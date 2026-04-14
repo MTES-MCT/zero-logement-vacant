@@ -25,6 +25,9 @@
       "project": ["src/**/*.{ts,tsx}"],
       "ignoreDependencies": [
         "prop-types"
+      ],
+      "ignoreFiles": [
+        "src/components/_dsfr/**/*.d.ts"
       ]
     },
     "server": {
@@ -41,12 +44,15 @@
         "pg",
         "pg-query-stream",
         "@sentry/integrations"
+      ],
+      "ignoreFiles": [
+        "src/types/**/*.d.ts"
       ]
     },
     "queue": {
-      "entry": ["src/bin/index.ts"],
+      "entry": ["src/bin/index.ts", "src/index.ts"],
       "project": ["src/**/*.ts"],
-      "ignoreDependencies": ["@sentry/integrations"]
+      "ignoreDependencies": ["@sentry/integrations", "@swc/core"]
     },
     "e2e": {
       "entry": ["cypress/**/*.ts"],
@@ -54,7 +60,8 @@
     },
     "packages/api-sdk": {
       "entry": ["src/index.ts"],
-      "project": ["src/**/*.ts"]
+      "project": ["src/**/*.ts"],
+      "ignoreDependencies": ["pg"]
     },
     "packages/draft": {
       "entry": ["src/index.ts"],
@@ -72,9 +79,13 @@
       "entry": [
         "src/browser.ts",
         "src/node.ts",
-        "src/generators/campaign.worker.ts"
+        "src/generators/campaign.worker.ts",
+        "src/preview/main.tsx"
       ],
-      "project": ["src/**/*.{ts,tsx}"]
+      "project": ["src/**/*.{ts,tsx}"],
+      "ignoreDependencies": [
+        "@codegouvfr/react-dsfr"
+      ]
     },
     "packages/schemas": {
       "entry": ["src/index.ts"],

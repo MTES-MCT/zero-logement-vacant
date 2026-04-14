@@ -108,6 +108,7 @@
     "@types/jsonlines": "0.1.5",
     "@types/jsonwebtoken": "9.0.10",
     "@types/lodash": "4.17.20",
+    "@types/lodash-es": "4.17.12",
     "@types/memoizee": "0.4.12",
     "@types/ms": "2.1.0",
     "@types/multer": "2.0.0",

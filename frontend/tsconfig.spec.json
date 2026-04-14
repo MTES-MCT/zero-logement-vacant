@@ -9,6 +9,9 @@
       "~/*": ["./src/*"]
     },
     "types": [
+      "@testing-library/jest-dom",
+      "jest-extended",
+      "jest-sorted",
       "vitest/globals",
       "vitest/importMeta",
       "vite/client",

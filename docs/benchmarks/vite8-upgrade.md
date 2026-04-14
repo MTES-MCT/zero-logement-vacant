@@ -19,14 +19,14 @@
 
 | Metric | Time |
 |---|---|
-| Production build | <!-- fill after upgrade --> |
-| Test suite | <!-- fill after upgrade --> |
-| Dev server cold start | <!-- fill after upgrade --> |
+| Production build | 3.229s |
+| Test suite | 1m 23.017s |
+| Dev server cold start | ready in 137 ms |
 
 ## Delta
 
 | Metric | Before | After | Δ |
 |---|---|---|---|
-| Production build | 11.756s | | |
-| Test suite | 1m 32.271s | | |
-| Dev server cold start | 229 ms | | |
+| Production build | 11.756s | 3.229s | -8.527s |
+| Test suite | 1m 32.271s | 1m 23.017s | -9.254s |
+| Dev server cold start | 229 ms | 137 ms | -92 ms |

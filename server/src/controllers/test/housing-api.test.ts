@@ -5,7 +5,6 @@ import {
   fromHousing,
   getSubStatuses,
   HOUSING_STATUS_LABELS,
-  HOUSING_STATUS_VALUES,
   HousingDTO,
   HousingStatus,
   HousingUpdatePayloadDTO,

@@ -89,6 +89,7 @@
     "zod": "4.3.6"
   },
   "devDependencies": {
+    "@elastic/elasticsearch": "^9.3.4",
     "@fast-check/vitest": "0.2.2",
     "@tsconfig/node24": "24.0.4",
     "@types/adm-zip": "0.5.8",

@@ -100,7 +100,7 @@ export type HousingBatchUpdatePayload = {
   occupancy?: Occupancy;
   occupancyIntended?: Occupancy;
   status?: HousingStatus;
-  subStatus?: string;
+  subStatus?: string | null;
   note?: string;
   precisions?: Precision['id'][];
   documents?: DocumentDTO['id'][];

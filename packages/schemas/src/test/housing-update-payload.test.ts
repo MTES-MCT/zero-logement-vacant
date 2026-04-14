@@ -2,6 +2,7 @@ import { fc, test } from '@fast-check/vitest';
 
 import {
   ENERGY_CONSUMPTION_VALUES,
+  getSubStatuses,
   HOUSING_STATUS_VALUES,
   HousingStatus,
   Occupancy,
@@ -10,31 +11,42 @@ import {
 import { housingUpdatePayload } from '../housing-update-payload';
 
 describe('Housing update payload', () => {
-  test.prop({
-    status: fc.constantFrom(...HOUSING_STATUS_VALUES),
-    occupancy: fc.constantFrom(...OCCUPANCY_VALUES),
-    subStatus: fc.oneof(
-      fc.stringMatching(/\S/),
-      fc.constant(null),
-      fc.constant(undefined)
-    ),
-    occupancyIntended: fc.oneof(
-      fc.constantFrom(...OCCUPANCY_VALUES),
-      fc.constant(null),
-      fc.constant(undefined)
-    ),
-    actualEnergyConsumption: fc.oneof(
-      fc.constantFrom(...ENERGY_CONSUMPTION_VALUES),
-      fc.constant(null),
-      fc.constant(undefined)
-    )
-  })('shoud validate inputs', (payload) => {
-    const validate = () => housingUpdatePayload.validateSync(payload);
-
-    expect(validate).not.toThrow();
+  test.prop(
+    [
+      fc
+        .constantFrom(...HOUSING_STATUS_VALUES)
+        .chain((status) => {
+          const validSubs = [...getSubStatuses(status)];
+          const subStatusArb =
+            validSubs.length > 0
+              ? fc.oneof(
+                  fc.constantFrom(...validSubs),
+                  fc.constant(null),
+                  fc.constant(undefined)
+                )
+              : fc.oneof(fc.constant(null), fc.constant(undefined));
+          return fc.record({
+            status: fc.constant(status),
+            subStatus: subStatusArb,
+            occupancy: fc.constantFrom(...OCCUPANCY_VALUES),
+            occupancyIntended: fc.oneof(
+              fc.constantFrom(...OCCUPANCY_VALUES),
+              fc.constant(null),
+              fc.constant(undefined)
+            ),
+            actualEnergyConsumption: fc.oneof(
+              fc.constantFrom(...ENERGY_CONSUMPTION_VALUES),
+              fc.constant(null),
+              fc.constant(undefined)
+            )
+          });
+        })
+    ]
+  )('should validate valid inputs', (payload) => {
+    expect(() => housingUpdatePayload.validateSync(payload)).not.toThrow();
   });
 
-  it('should ensure subStatus defaults to null', () => {
+  it('should ensure sub-status defaults to null', () => {
     const actual = housingUpdatePayload.validateSync({
       status: HousingStatus.NEVER_CONTACTED,
       occupancy: Occupancy.VACANT,
@@ -44,5 +56,28 @@ describe('Housing update payload', () => {
 
     expect(actual.subStatus).toBeNull();
     expect(actual.occupancyIntended).toBeNull();
+  });
+
+  it('should force the sub-status to null when the status has no sub-statuses', () => {
+    const actual = housingUpdatePayload.validateSync({
+      status: HousingStatus.NEVER_CONTACTED,
+      subStatus: 'Intérêt potentiel / En réflexion',
+      occupancy: Occupancy.VACANT,
+      occupancyIntended: null
+    });
+
+    expect(actual.status).toBe(HousingStatus.NEVER_CONTACTED);
+    expect(actual.subStatus).toBeNull();
+  });
+
+  it('should reject an invalid sub-status for a status that has sub-statuses', () => {
+    expect(() =>
+      housingUpdatePayload.validateSync({
+        status: HousingStatus.IN_PROGRESS,
+        subStatus: 'invalid-sub-status',
+        occupancy: Occupancy.VACANT,
+        occupancyIntended: null
+      })
+    ).toThrow();
   });
 });

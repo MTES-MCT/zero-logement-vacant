@@ -3,6 +3,7 @@ import { fc, test } from '@fast-check/vitest';
 import {
   ACTIVE_OWNER_RANKS,
   fromHousing,
+  getSubStatuses,
   HOUSING_STATUS_LABELS,
   HOUSING_STATUS_VALUES,
   HousingDTO,
@@ -975,32 +976,59 @@ describe('Housing API', () => {
       expect(status).toBe(constants.HTTP_STATUS_UNAUTHORIZED);
     });
 
-    test.prop<HousingBatchUpdatePayload>(
-      {
-        filters: fc.record(
-          // Reduced version because they are tested elsewhere
-          {
-            all: fc.boolean(),
-            housingIds: fc.array(fc.uuid({ version: 4 }))
-          },
-          {
-            requiredKeys: []
-          }
-        ),
-        status: fc.option(fc.constantFrom(...HOUSING_STATUS_VALUES), {
-          nil: undefined
-        }),
-        occupancy: fc.option(fc.constantFrom(...OCCUPANCY_VALUES), {
-          nil: undefined
-        }),
-        subStatus: fc.option(fc.stringMatching(/\S/), { nil: undefined }),
-        occupancyIntended: fc.option(fc.constantFrom(...OCCUPANCY_VALUES), {
-          nil: undefined
-        }),
-        note: fc.option(fc.stringMatching(/\S/), {
-          nil: undefined
-        })
-      },
+    test.prop(
+      [
+        fc
+          .record({
+            filters: fc.record(
+              // Reduced version because they are tested elsewhere
+              {
+                all: fc.boolean(),
+                housingIds: fc.array(fc.uuid({ version: 4 }))
+              },
+              { requiredKeys: [] }
+            ),
+            occupancy: fc.option(fc.constantFrom(...OCCUPANCY_VALUES), {
+              nil: undefined
+            }),
+            occupancyIntended: fc.option(fc.constantFrom(...OCCUPANCY_VALUES), {
+              nil: undefined
+            }),
+            note: fc.option(fc.stringMatching(/\S/), { nil: undefined })
+          })
+          .chain((base) =>
+            fc
+              .oneof(
+                fc.constant({
+                  status: undefined as HousingStatus | undefined,
+                  subStatus: undefined as string | undefined
+                }),
+                fc
+                  .constantFrom(
+                    HousingStatus.NEVER_CONTACTED,
+                    HousingStatus.WAITING
+                  )
+                  .map((status) => ({
+                    status,
+                    subStatus: undefined as string | undefined
+                  })),
+                fc
+                  .constantFrom(
+                    HousingStatus.FIRST_CONTACT,
+                    HousingStatus.IN_PROGRESS,
+                    HousingStatus.COMPLETED,
+                    HousingStatus.BLOCKED
+                  )
+                  .chain((status) => {
+                    const validSubs = [...getSubStatuses(status)];
+                    return fc
+                      .option(fc.constantFrom(...validSubs), { nil: undefined })
+                      .map((subStatus) => ({ status, subStatus }));
+                  })
+              )
+              .map((ss) => ({ ...base, ...ss }))
+          )
+      ],
       { verbose: true, numRuns: 20 }
     )('should validate inputs', async (payload) => {
       const { status } = await request(url)
@@ -1010,6 +1038,22 @@ describe('Housing API', () => {
         .use(tokenProvider(user));
 
       expect(status).toBe(constants.HTTP_STATUS_OK);
+    });
+
+    it('should return 400 when the sub-status is invalid for the given status', async () => {
+      const payload: HousingBatchUpdatePayload = {
+        filters: { all: false },
+        status: HousingStatus.IN_PROGRESS,
+        subStatus: 'invalid-sub-status'
+      };
+
+      const { status } = await request(url)
+        .put(testRoute)
+        .send(payload)
+        .type('json')
+        .use(tokenProvider(user));
+
+      expect(status).toBe(constants.HTTP_STATUS_BAD_REQUEST);
     });
 
     it('should be forbidden to set status "NeverContacted" for housings that have already been contacted', async () => {
@@ -1612,7 +1656,7 @@ describe('Housing API', () => {
       });
       const payload: HousingUpdatePayloadDTO = {
         status: HousingStatus.COMPLETED,
-        subStatus: 'Remis en location',
+        subStatus: 'Sortie de la vacance',
         occupancy: Occupancy.RENT,
         occupancyIntended: Occupancy.RENT,
         actualEnergyConsumption: null
@@ -1635,10 +1679,68 @@ describe('Housing API', () => {
       });
     });
 
+    it.each([HousingStatus.NEVER_CONTACTED, HousingStatus.WAITING])(
+      `should force the sub-status to null when the status becomes %s`,
+      async (statusAfter) => {
+        const housing = await createHousing({
+          status: HousingStatus.COMPLETED,
+          subStatus: 'Sortie de la vacance',
+          occupancy: Occupancy.RENT,
+          occupancyIntended: null
+        });
+        const payload: HousingUpdatePayloadDTO = {
+          status: statusAfter,
+          subStatus: housing.subStatus,
+          occupancy: housing.occupancy,
+          occupancyIntended: housing.occupancyIntended,
+          actualEnergyConsumption: housing.actualEnergyConsumption
+        };
+
+        const { body, status } = await request(url)
+          .put(testRoute(housing.id))
+          .send(payload)
+          .type('json')
+          .use(tokenProvider(user));
+
+        expect(status).toBe(constants.HTTP_STATUS_OK);
+        expect(body.subStatus).toBeNull();
+        const actual = await Housing()
+          .where({
+            geo_code: housing.geoCode,
+            id: housing.id
+          })
+          .first();
+        expect(actual).toMatchObject<Partial<HousingRecordDBO>>({
+          id: housing.id,
+          status: payload.status,
+          sub_status: null
+        });
+      }
+    );
+
+    it('should return 400 when the sub-status is invalid for the given status', async () => {
+      const housing = await createHousing();
+      const payload: HousingUpdatePayloadDTO = {
+        status: HousingStatus.IN_PROGRESS,
+        subStatus: 'invalid-sub-status',
+        occupancy: Occupancy.VACANT,
+        occupancyIntended: null,
+        actualEnergyConsumption: null
+      };
+
+      const { status } = await request(url)
+        .put(testRoute(housing.id))
+        .send(payload)
+        .type('json')
+        .use(tokenProvider(user));
+
+      expect(status).toBe(constants.HTTP_STATUS_BAD_REQUEST);
+    });
+
     it('should not create events if there is no change', async () => {
       const housing = await createHousing({
         status: HousingStatus.COMPLETED,
-        subStatus: 'Remis en location',
+        subStatus: 'Sortie de la vacance',
         occupancy: Occupancy.RENT,
         occupancyIntended: Occupancy.RENT
       });
@@ -1673,7 +1775,7 @@ describe('Housing API', () => {
       });
       const payload: HousingUpdatePayloadDTO = {
         status: HousingStatus.IN_PROGRESS,
-        subStatus: 'En cours de traitement',
+        subStatus: 'En accompagnement',
         occupancy: housing.occupancy,
         occupancyIntended: housing.occupancyIntended,
         actualEnergyConsumption: null

@@ -22,7 +22,7 @@ export type HousingStatusId = (typeof HOUSING_STATUS_IDS)[number];
 
 export function toHousingStatusId(status: HousingStatus): HousingStatusId {
   return HOUSING_STATUS_IDS[status];
-};
+}
 
 export const HOUSING_STATUS_VALUES: HousingStatus[] = Object.values(
   HousingStatus
@@ -40,3 +40,43 @@ export const HOUSING_STATUS_LABELS: Record<HousingStatus, string> = {
   [HousingStatus.COMPLETED]: 'Suivi terminé',
   [HousingStatus.BLOCKED]: 'Suivi bloqué'
 };
+
+const HOUSING_SUB_STATUS_LABELS: Record<HousingStatus, ReadonlySet<string>> = {
+  [HousingStatus.NEVER_CONTACTED]: new Set(),
+  [HousingStatus.WAITING]: new Set(),
+  [HousingStatus.FIRST_CONTACT]: new Set([
+    'Intérêt potentiel / En réflexion',
+    'En pré-accompagnement',
+    'N’habite pas à l’adresse indiquée'
+  ]),
+  [HousingStatus.IN_PROGRESS]: new Set([
+    'En accompagnement',
+    'Intervention publique',
+    'En sortie sans accompagnement',
+    'Mutation en cours ou effectuée'
+  ]),
+  [HousingStatus.COMPLETED]: new Set([
+    'Sortie de la vacance',
+    "N'était pas vacant",
+    'Sortie de la passoire énergétique',
+    "N'était pas une passoire énergétique",
+    'Autre objectif rempli'
+  ]),
+  [HousingStatus.BLOCKED]: new Set([
+    'Blocage involontaire du propriétaire',
+    'Blocage volontaire du propriétaire',
+    'Immeuble / Environnement',
+    'Tiers en cause'
+  ])
+} as const;
+
+export function isSubStatusAvailable(
+  status: HousingStatus,
+  subStatus: string
+): boolean {
+  return HOUSING_SUB_STATUS_LABELS[status].has(subStatus);
+}
+
+export function getSubStatuses(status: HousingStatus): ReadonlySet<string> {
+  return HOUSING_SUB_STATUS_LABELS[status];
+}

@@ -88,7 +88,7 @@ The app ID is stored as `ZLV_IMPORT_APP_ID` in the operator's local shell profil
 ```bash
 #!/bin/bash
 set -euo pipefail
-yarn workspace @zerologementvacant/server ts-node \
+yarn workspace @zerologementvacant/server tsx \
   src/scripts/import-lovac/cli.ts "$IMPORT_SUBCOMMAND" \
   --from s3 \
   --year "$IMPORT_YEAR" \

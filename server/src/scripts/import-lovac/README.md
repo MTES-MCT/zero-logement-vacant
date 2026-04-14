@@ -84,7 +84,7 @@ Sections générées :
 clever logs --app "$ZLV_IMPORT_APP_ID" --follow
 
 # Dry-run local (base locale)
-yarn workspace @zerologementvacant/server ts-node \
+yarn workspace @zerologementvacant/server tsx \
   src/scripts/import-lovac/cli.ts owners \
   --from file --year lovac-2026 --dry-run ~/owners.jsonl
 ```

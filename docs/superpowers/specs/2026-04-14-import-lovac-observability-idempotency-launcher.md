@@ -1,7 +1,7 @@
 # Import LOVAC — Observability, Idempotency & Launcher
 
 **Date:** 2026-04-14  
-**Scope:** Three improvements to the LOVAC import pipeline: better reporting, deterministic IDs for re-runability, and a Clever Cloud task launcher.
+**Scope:** Five improvements to the LOVAC import pipeline: better reporting, deterministic IDs for re-runability, a Clever Cloud task launcher, pre/post DB snapshot stats, and a Notion export Skill.
 
 ---
 
@@ -126,6 +126,109 @@ The operator runs each subcommand sequentially:
 
 ---
 
+---
+
+## 4. Pre/post DB snapshot stats
+
+### Tool stack
+
+- **DuckDB** — connects to PostgreSQL via the `postgres` extension, runs analytical queries locally
+- **Youplot** — renders bar charts in the terminal from DuckDB CSV output
+
+### Script
+
+`server/src/scripts/import-lovac/stats/snapshot.sh <entity> <label> <DATABASE_URL>`:
+
+1. Runs the SQL file for `<entity>` via DuckDB against the live DB
+2. Saves result as `snapshot-<entity>-<label>.json` (e.g. `snapshot-owners-pre.json`)
+3. Pipes distributions to `uplot bar` for immediate terminal visualization
+
+Called by `run-on-clevercloud.sh` automatically before and after each subcommand. Can also be run standalone.
+
+### Queries per entity
+
+**Owners** (`stats/queries/owners.sql`):
+- Total count
+- Count with `idpersonne` vs `NULL`
+- Count with `dgfip_address` vs `NULL`
+- Breakdown by `kind_class`
+- Breakdown by `data_source`
+
+**Housings** (`stats/queries/housings.sql`):
+- Total count
+- Breakdown by `occupancy`
+- Breakdown by `status`
+- Count tagged with current LOVAC year vs previous years
+- Count with `NULL` `rooms_count` or `living_area`
+
+**Housing-owners** (`stats/queries/housing-owners.sql`):
+- Total count
+- Breakdown by `rank`
+- Count with `idprocpte` vs `NULL`
+
+**Events** (`stats/queries/events.sql`):
+- Count by `type` (occupancy-updated, status-updated) for current LOVAC year
+
+**Validation failures** — sourced from the reporter JSON written to S3/disk, not from the DB.
+
+### Diff
+
+`stats/diff.sh <pre.json> <post.json>` — prints a delta table to stdout:
+```
+Propriétaires        Avant       Après       Δ
+Total                35 357 799  36 041 936  +684 137 (+1.9%)
+Avec idpersonne      18 000 000  18 684 000  +684 000
+Sans idpersonne       4 470 156   4 470 157       +1
+```
+
+---
+
+## 5. Notion export Skill
+
+### Scope
+
+Invoked by the operator **after all subcommands and snapshots are complete**. The import itself runs headlessly via shell scripts; the Skill is a post-process reporting step.
+
+### Invocation
+
+```
+/publish-lovac-report lovac-2026
+```
+
+### Skill location
+
+`.claude/skills/publish-lovac-report/SKILL.md` — project-local skill, version-controlled in the repo.
+
+### Steps the Skill performs
+
+1. Finds all `snapshot-*-pre.json` and `snapshot-*-post.json` files for the given year
+2. Reads reporter JSON files (owner/housing/housing-owner import summaries)
+3. Computes deltas for each entity
+4. Authenticates with Notion MCP
+5. Creates a new Notion sub-page under `NOTION_LOVAC_PARENT_PAGE_ID` (env var)
+6. Publishes **in French** with native Notion blocks:
+   - **Callout blocks** for key totals (e.g. _"36 041 936 propriétaires après import, +684 137 (+1,9 %)"_)
+   - **Table blocks** for each distribution (propriétaires par type, logements par occupation, etc.)
+   - **Section headings** per entity (Propriétaires, Logements, Droits de propriété)
+   - **Callout block** for validation failures (errors per field)
+
+### What is NOT generated
+
+- No ASCII charts (terminal-only, lost in Notion)
+- No Markdown file — Notion is the single output
+- Youplot charts remain a terminal-only tool during the import session
+
+### Configuration
+
+| Env var | Description |
+|---|---|
+| `NOTION_TOKEN` | Notion integration token |
+| `NOTION_LOVAC_PARENT_PAGE_ID` | ID of the parent Notion page where yearly reports are created |
+
+Stored in operator's local shell profile — never committed.
+
+---
+
 ## Files changed
 
 | File | Action |
@@ -142,3 +245,11 @@ The operator runs each subcommand sequentially:
 | `server/src/scripts/import-lovac/cli.ts` | **Modify** — add `--year` required option to all subcommands |
 | `clevercloud/import-lovac-entrypoint.sh` | **Create** — task app start script |
 | `server/src/scripts/import-lovac/run-on-clevercloud.sh` | **Create** — trigger script |
+| `server/src/scripts/import-lovac/stats/snapshot.sh` | **Create** — pre/post DB snapshot script |
+| `server/src/scripts/import-lovac/stats/diff.sh` | **Create** — delta comparison script |
+| `server/src/scripts/import-lovac/stats/queries/owners.sql` | **Create** — owner stats queries |
+| `server/src/scripts/import-lovac/stats/queries/housings.sql` | **Create** — housing stats queries |
+| `server/src/scripts/import-lovac/stats/queries/housing-owners.sql` | **Create** — housing-owner stats queries |
+| `server/src/scripts/import-lovac/stats/queries/events.sql` | **Create** — event stats queries |
+| `.claude/skills/publish-lovac-report/SKILL.md` | **Create** — Notion export skill (publishes in French) |
+| `server/src/scripts/import-lovac/README.md` | **Update** — operational runbook |

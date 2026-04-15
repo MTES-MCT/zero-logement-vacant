@@ -7,11 +7,13 @@ import {
 } from '@zerologementvacant/models';
 import { flatten, toArray } from '@zerologementvacant/utils/node';
 import { ReadableStream } from 'node:stream/web';
+import { v5 as uuidv5 } from 'uuid';
 import { AddressApi } from '~/models/AddressApi';
 import { HousingEventApi } from '~/models/EventApi';
 import { HousingApi } from '~/models/HousingApi';
 import { HousingNoteApi } from '~/models/NoteApi';
 import { UserApi } from '~/models/UserApi';
+import { LOVAC_NAMESPACE } from '~/scripts/import-lovac/infra';
 import { genSourceHousing } from '~/scripts/import-lovac/infra/fixtures';
 import { createNoopReporter } from '~/scripts/import-lovac/infra/reporters/noop-reporter';
 import { SourceHousing } from '~/scripts/import-lovac/source-housings/source-housing';
@@ -39,6 +41,7 @@ describe('Source housing processor', () => {
     ...genUserApi(establishment.id),
     email: 'admin@zerologementvacant.beta.gouv.fr'
   };
+  const year = 'lovac-2025';
   let auth: ProcessorOptions['auth'];
   let housingRepository: MockedObject<ProcessorOptions['housingRepository']>;
   let housingEventRepository: MockedObject<
@@ -61,6 +64,88 @@ describe('Source housing processor', () => {
     };
   });
 
+  describe('Determinism', () => {
+    it('should assign a deterministic UUID v5 id to a new housing', async () => {
+      const sourceHousing = genSourceHousing();
+      housingRepository.findOne.mockResolvedValue(null);
+
+      const stream = new ReadableStream<SourceHousing>({
+        start(controller) {
+          controller.enqueue(sourceHousing);
+          controller.close();
+        }
+      });
+      const processor = createSourceHousingProcessor({
+        auth,
+        year,
+        reporter: createNoopReporter(),
+        housingRepository,
+        housingEventRepository,
+        housingNoteRepository
+      });
+
+      const actual = await toArray(
+        stream.pipeThrough(processor).pipeThrough(flatten())
+      );
+
+      const housingChange = actual.find(
+        (c) => c.type === 'housing' && c.kind === 'create'
+      );
+      expect(housingChange).toBeDefined();
+      expect((housingChange as any).value.id).toBe(
+        uuidv5(
+          sourceHousing.local_id + ':' + sourceHousing.geo_code,
+          LOVAC_NAMESPACE
+        )
+      );
+    });
+
+    it('should assign a deterministic UUID v5 id to an occupancy-updated event', async () => {
+      const sourceHousing = genSourceHousing();
+      const housing: HousingApi = {
+        ...genHousingApi(),
+        occupancy: Occupancy.RENT,
+        status: HousingStatus.COMPLETED,
+        dataFileYears: ['lovac-2023', 'lovac-2024']
+      };
+      housingRepository.findOne.mockResolvedValue(housing);
+      housingEventRepository.find.mockResolvedValue([]);
+      housingNoteRepository.find.mockResolvedValue([]);
+
+      const stream = new ReadableStream<SourceHousing>({
+        start(controller) {
+          controller.enqueue(sourceHousing);
+          controller.close();
+        }
+      });
+      const processor = createSourceHousingProcessor({
+        auth,
+        year,
+        reporter: createNoopReporter(),
+        housingRepository,
+        housingEventRepository,
+        housingNoteRepository
+      });
+
+      const actual = await toArray(
+        stream.pipeThrough(processor).pipeThrough(flatten())
+      );
+
+      const occupancyEvent = actual.find(
+        (c) =>
+          c.type === 'event' &&
+          (c.value as HousingEventApi).type === 'housing:occupancy-updated'
+      );
+      expect(occupancyEvent).toBeDefined();
+      expect((occupancyEvent as any).value.id).toBe(
+        uuidv5(
+          housing.id + ':housing:occupancy-updated:' + year,
+          LOVAC_NAMESPACE
+        )
+      );
+    });
+  });
+
   describe('If the housing is missing from our database', () => {
     let sourceHousing: SourceHousing;
     let actual: ReadonlyArray<SourceHousingChange>;
@@ -77,6 +162,7 @@ describe('Source housing processor', () => {
       });
       const processor = createSourceHousingProcessor({
         auth,
+        year,
         reporter: createNoopReporter(),
         housingRepository,
         housingEventRepository,
@@ -140,6 +226,7 @@ describe('Source housing processor', () => {
       });
       processor = createSourceHousingProcessor({
         auth,
+        year,
         reporter: createNoopReporter(),
         housingRepository,
         housingEventRepository,

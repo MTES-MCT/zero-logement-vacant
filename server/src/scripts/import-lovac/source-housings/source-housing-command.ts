@@ -202,6 +202,7 @@ export function createSourceHousingCommand() {
           createSourceHousingProcessor({
             abortEarly: options.abortEarly,
             auth,
+            year: options.year,
             reporter: sourceHousingReporter,
             housingRepository: {
               async findOne(

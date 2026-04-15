@@ -1,10 +1,11 @@
-import { v4 as uuidv4 } from 'uuid';
+import { v5 as uuidv5 } from 'uuid';
 import { OwnerApi } from '~/models/OwnerApi';
 import { OwnerDBO } from '~/repositories/ownerRepository';
 import {
+  LOVAC_NAMESPACE,
   ReporterError,
   ReporterOptions
-} from '~/scripts/import-lovac/infra/reporters';
+} from '~/scripts/import-lovac/infra';
 import { EnrichedOwner } from '~/scripts/import-lovac/source-owners/source-owner-enricher';
 import { SourceOwner } from '~/scripts/import-lovac/source-owners/source-owner';
 
@@ -16,21 +17,21 @@ interface Change<Value, Type extends string> {
 
 export type OwnerChange = Change<OwnerApi, 'owner'>;
 
-type TransformOptions = ReporterOptions<SourceOwner>;
+type TransformOptions = ReporterOptions<SourceOwner> & { year?: string };
 
 /**
  * Returns a pure synchronous function mapping EnrichedOwner → OwnerChange.
  * No DB calls — all enrichment is pre-fetched by the enricher step.
  */
 export function createOwnerTransform(options: TransformOptions) {
-  const { reporter } = options;
+  const { reporter, year } = options;
 
   return function transform(enriched: EnrichedOwner): OwnerChange {
     const { source, existing } = enriched;
     try {
       const change: OwnerChange = existing
         ? toUpdate(source, existing)
-        : toCreate(source);
+        : toCreate(source, year);
       reporter.passed(source);
       return change;
     } catch (error) {
@@ -43,13 +44,13 @@ export function createOwnerTransform(options: TransformOptions) {
   };
 }
 
-function toCreate(source: SourceOwner): OwnerChange {
+function toCreate(source: SourceOwner, year?: string): OwnerChange {
   const now = new Date().toJSON();
   return {
     type: 'owner',
     kind: 'create',
     value: {
-      id: uuidv4(),
+      id: uuidv5(source.idpersonne, LOVAC_NAMESPACE),
       idpersonne: source.idpersonne,
       fullName: source.full_name,
       birthDate: source.birth_date?.toJSON() ?? null,
@@ -60,7 +61,7 @@ function toCreate(source: SourceOwner): OwnerChange {
       additionalAddress: null,
       email: null,
       phone: null,
-      dataSource: 'lovac-2026',
+      dataSource: year ?? 'lovac',
       kind: source.ownership_type,
       entity: source.entity,
       createdAt: now,

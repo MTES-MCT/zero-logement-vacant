@@ -62,6 +62,7 @@ program
   .addOption(departments)
   .addOption(dryRun)
   .addOption(from)
+  .addOption(program.createOption('--year <year>', 'The LOVAC year to import').default(''))
   .action(async (file, options) => {
     const command = createSourceOwnerCommand();
     await command(file, options).then(() => {

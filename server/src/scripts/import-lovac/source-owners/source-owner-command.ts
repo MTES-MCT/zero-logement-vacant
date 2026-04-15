@@ -1,6 +1,8 @@
-import { map, count } from '@zerologementvacant/utils/node';
+import { map, count, createS3 } from '@zerologementvacant/utils/node';
+import { PutObjectCommand } from '@aws-sdk/client-s3';
 import { match } from 'ts-pattern';
 import { WritableStream } from 'node:stream/web';
+import { writeFileSync } from 'node:fs';
 import db from '~/infra/database';
 import config from '~/infra/config';
 import { createLogger } from '~/infra/logger';
@@ -11,6 +13,7 @@ import {
   ownerTable
 } from '~/repositories/ownerRepository';
 import { createLoggerReporter } from '~/scripts/import-lovac/infra';
+import { Reporter } from '~/scripts/import-lovac/infra/reporters/reporter';
 import { FromOptionValue } from '~/scripts/import-lovac/infra/options/from';
 import { progress } from '~/scripts/import-lovac/infra/progress-bar';
 import validator from '~/scripts/import-lovac/infra/validator';
@@ -32,6 +35,7 @@ export interface ExecOptions {
   departments?: string[];
   dryRun?: boolean;
   from: FromOptionValue;
+  year: string;
 }
 
 const CHUNK_SIZE = 1_000;
@@ -73,17 +77,53 @@ export function createSourceOwnerCommand() {
         )
         .pipeThrough(createOwnerEnricher())
         .pipeThrough(map(createOwnerTransform({ reporter, abortEarly: options.abortEarly })))
-        .pipeTo(createOwnerLoadSink(options));
+        .pipeTo(createOwnerLoadSink(options, reporter));
 
       logger.info(`File ${file} imported.`);
     } finally {
       reporter.report();
+      await writeReport(file, options, reporter);
       console.timeEnd('Import owners');
     }
   };
 }
 
-function createOwnerLoadSink(options: ExecOptions): WritableStream<OwnerChange> {
+async function writeReport(
+  file: string,
+  options: ExecOptions,
+  reporter: Reporter<SourceOwner>
+): Promise<void> {
+  const json = JSON.stringify(reporter.getSummary(), null, 2);
+  try {
+    await match(options)
+      .with({ from: 's3' }, async () => {
+        const s3 = createS3(config.s3);
+        await s3.send(
+          new PutObjectCommand({
+            Bucket: config.s3.bucket,
+            Key: `${file}.report.json`,
+            Body: json,
+            ContentType: 'application/json'
+          })
+        );
+      })
+      .with({ from: 'file' }, async () => {
+        writeFileSync(
+          `./import-lovac-${options.year}-owners.report.json`,
+          json,
+          'utf8'
+        );
+      })
+      .exhaustive();
+  } catch (error) {
+    logger.warn('Failed to write report', { error });
+  }
+}
+
+function createOwnerLoadSink(
+  options: ExecOptions,
+  reporter: Reporter<SourceOwner>
+): WritableStream<OwnerChange> {
   const insertBuffer: OwnerApi[] = [];
   const upsertBuffer: OwnerApi[] = [];
 
@@ -93,6 +133,7 @@ function createOwnerLoadSink(options: ExecOptions): WritableStream<OwnerChange> 
     if (options.dryRun) return;
     logger.debug(`Inserting ${batch.length} owners...`);
     await Owners().insert(batch.map(formatOwnerApi));
+    reporter.created(batch.length);
   }
 
   async function flushUpserts(): Promise<void> {
@@ -106,6 +147,7 @@ function createOwnerLoadSink(options: ExecOptions): WritableStream<OwnerChange> 
         .onConflict('idpersonne')
         .merge([...UPSERT_COLUMNS]);
     });
+    reporter.updated(batch.length);
   }
 
   return new WritableStream<OwnerChange>({

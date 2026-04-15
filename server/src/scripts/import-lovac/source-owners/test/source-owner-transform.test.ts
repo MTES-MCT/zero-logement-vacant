@@ -1,5 +1,7 @@
+import { v5 as uuidv5 } from 'uuid';
 import { describe, expect, it } from 'vitest';
 import { formatOwnerApi } from '~/repositories/ownerRepository';
+import { LOVAC_NAMESPACE } from '~/scripts/import-lovac/infra';
 import { genSourceOwner } from '~/scripts/import-lovac/infra/fixtures';
 import { createNoopReporter } from '~/scripts/import-lovac/infra/reporters/noop-reporter';
 import {
@@ -23,7 +25,7 @@ describe('createOwnerTransform', () => {
       value: expect.objectContaining({
         idpersonne: source.idpersonne,
         fullName: source.full_name,
-        dataSource: 'lovac-2026'
+        dataSource: 'lovac'
       })
     });
     expect(change.value.id).toBeDefined();
@@ -71,5 +73,16 @@ describe('createOwnerTransform', () => {
     const change = transform({ source, existing });
 
     expect(change.value.siren).toBe('123456789');
+  });
+
+  it('should produce a deterministic ID on create (same idpersonne → same id)', () => {
+    const source = genSourceOwner();
+    const transform = createOwnerTransform({ reporter, abortEarly: false });
+
+    const change1 = transform({ source, existing: null });
+    const change2 = transform({ source, existing: null });
+
+    expect(change1.value.id).toBe(change2.value.id);
+    expect(change1.value.id).toBe(uuidv5(source.idpersonne, LOVAC_NAMESPACE));
   });
 });

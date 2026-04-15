@@ -1,6 +1,5 @@
 import { v5 as uuidv5 } from 'uuid';
-import { OwnerApi } from '~/models/OwnerApi';
-import { OwnerDBO } from '~/repositories/ownerRepository';
+import { OwnerDBO, OwnerRecordDBO } from '~/repositories/ownerRepository';
 import {
   LOVAC_NAMESPACE,
   ReporterError,
@@ -15,7 +14,7 @@ interface Change<Value, Type extends string> {
   value: Value;
 }
 
-export type OwnerChange = Change<OwnerApi, 'owner'>;
+export type OwnerChange = Change<OwnerRecordDBO, 'owner'>;
 
 type TransformOptions = ReporterOptions<SourceOwner> & { year?: string };
 
@@ -45,27 +44,26 @@ export function createOwnerTransform(options: TransformOptions) {
 }
 
 function toCreate(source: SourceOwner, year?: string): OwnerChange {
-  const now = new Date().toJSON();
+  const now = new Date();
   return {
     type: 'owner',
     kind: 'create',
     value: {
       id: uuidv5(source.idpersonne, LOVAC_NAMESPACE),
       idpersonne: source.idpersonne,
-      fullName: source.full_name,
-      birthDate: source.birth_date?.toJSON() ?? null,
+      full_name: source.full_name,
+      birth_date: source.birth_date ?? null,
       administrator: null,
       siren: source.siren ?? null,
-      rawAddress: source.dgfip_address ? [source.dgfip_address] : null,
-      banAddress: null,
-      additionalAddress: null,
+      address_dgfip: source.dgfip_address ? [source.dgfip_address] : null,
+      additional_address: null,
       email: null,
       phone: null,
-      dataSource: year ?? 'lovac',
-      kind: source.ownership_type,
+      data_source: year ?? 'lovac',
+      kind_class: source.ownership_type,
       entity: source.entity,
-      createdAt: now,
-      updatedAt: now
+      created_at: now,
+      updated_at: now
     }
   };
 }
@@ -77,26 +75,19 @@ function toUpdate(source: SourceOwner, existing: OwnerDBO): OwnerChange {
     value: {
       id: existing.id,
       idpersonne: source.idpersonne,
-      fullName: source.full_name,
-      birthDate: source.birth_date
-        ? source.birth_date.toJSON().substring(0, 'yyyy-mm-dd'.length)
-        : existing.birth_date
-          ? new Date(existing.birth_date).toJSON()
-          : null,
+      full_name: source.full_name,
+      birth_date: source.birth_date ?? existing.birth_date ?? null,
       administrator: existing.administrator ?? null,
       siren: source.siren ?? existing.siren ?? null,
-      rawAddress: source.dgfip_address ? [source.dgfip_address] : null,
-      banAddress: null,
-      additionalAddress: existing.additional_address ?? null,
+      address_dgfip: source.dgfip_address ? [source.dgfip_address] : null,
+      additional_address: existing.additional_address ?? null,
       email: existing.email ?? null,
       phone: existing.phone ?? null,
-      dataSource: existing.data_source ?? undefined,
-      kind: source.ownership_type,
+      data_source: existing.data_source ?? null,
+      kind_class: source.ownership_type,
       entity: source.entity,
-      createdAt: existing.created_at
-        ? new Date(existing.created_at).toJSON()
-        : null,
-      updatedAt: new Date().toJSON()
+      created_at: existing.created_at ?? null,
+      updated_at: new Date()
     }
   };
 }

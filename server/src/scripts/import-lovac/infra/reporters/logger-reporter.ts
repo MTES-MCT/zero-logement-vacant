@@ -5,7 +5,7 @@ import {
   ReporterError
 } from '~/scripts/import-lovac/infra/reporters/reporter';
 
-class LoggerReporter<T> implements Reporter<T> {
+class LoggerReporter<T extends object> implements Reporter<T> {
   private readonly logger = createLogger('reporter');
   private readonly startTime = Date.now();
   private pass = 0;
@@ -51,6 +51,6 @@ class LoggerReporter<T> implements Reporter<T> {
   }
 }
 
-export function createLoggerReporter<T>(): Reporter<T> {
+export function createLoggerReporter<T extends object>(): Reporter<T> {
   return new LoggerReporter<T>();
 }

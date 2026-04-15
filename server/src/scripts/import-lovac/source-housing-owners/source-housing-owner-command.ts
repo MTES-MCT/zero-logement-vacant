@@ -98,6 +98,7 @@ export function createSourceHousingOwnerCommand() {
             createSourceHousingOwnerProcessor({
               abortEarly: options.abortEarly,
               auth,
+              year: options.year,
               housingRepository: {
                 async findOne(geoCode, localId): Promise<HousingApi | null> {
                   return housingRepository.findOne({

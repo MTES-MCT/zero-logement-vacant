@@ -6,10 +6,9 @@ import { writeFileSync } from 'node:fs';
 import db from '~/infra/database';
 import config from '~/infra/config';
 import { createLogger } from '~/infra/logger';
-import { OwnerApi } from '~/models/OwnerApi';
 import {
-  formatOwnerApi,
   Owners,
+  OwnerRecordDBO,
   ownerTable
 } from '~/repositories/ownerRepository';
 import { createLoggerReporter } from '~/scripts/import-lovac/infra';
@@ -57,13 +56,21 @@ export function createSourceOwnerCommand() {
       console.time('Import owners');
       logger.info('Computing total...', { file });
       const total = await count(
-        createSourceOwnerRepository({ from: options.from, file, ...config.s3 }).stream({
+        createSourceOwnerRepository({
+          from: options.from,
+          file,
+          ...config.s3
+        }).stream({
           departments: options.departments
         })
       );
 
       logger.info('Starting import...', { file, total });
-      await createSourceOwnerRepository({ from: options.from, file, ...config.s3 })
+      await createSourceOwnerRepository({
+        from: options.from,
+        file,
+        ...config.s3
+      })
         .stream({ departments: options.departments })
         .pipeThrough(
           progress({
@@ -73,10 +80,21 @@ export function createSourceOwnerCommand() {
           })
         )
         .pipeThrough(
-          validator(sourceOwnerSchema, { abortEarly: options.abortEarly, reporter })
+          validator(sourceOwnerSchema, {
+            abortEarly: options.abortEarly,
+            reporter
+          })
         )
         .pipeThrough(createOwnerEnricher())
-        .pipeThrough(map(createOwnerTransform({ reporter, abortEarly: options.abortEarly, year: options.year })))
+        .pipeThrough(
+          map(
+            createOwnerTransform({
+              reporter,
+              abortEarly: options.abortEarly,
+              year: options.year
+            })
+          )
+        )
         .pipeTo(createOwnerLoadSink(options, reporter));
 
       logger.info(`File ${file} imported.`);
@@ -124,15 +142,15 @@ function createOwnerLoadSink(
   options: ExecOptions,
   reporter: Reporter<SourceOwner>
 ): WritableStream<OwnerChange> {
-  const insertBuffer: OwnerApi[] = [];
-  const upsertBuffer: OwnerApi[] = [];
+  const insertBuffer: OwnerRecordDBO[] = [];
+  const upsertBuffer: OwnerRecordDBO[] = [];
 
   async function flushInserts(): Promise<void> {
     if (insertBuffer.length === 0) return;
     const batch = insertBuffer.splice(0);
     if (options.dryRun) return;
     logger.debug(`Inserting ${batch.length} owners...`);
-    await Owners().insert(batch.map(formatOwnerApi));
+    await Owners().insert(batch);
     reporter.created(batch.length);
   }
 
@@ -143,7 +161,7 @@ function createOwnerLoadSink(
     logger.debug(`Upserting ${batch.length} owners...`);
     await db.transaction(async (trx) => {
       await trx(ownerTable)
-        .insert(batch.map(formatOwnerApi))
+        .insert(batch)
         .onConflict('idpersonne')
         .merge([...UPSERT_COLUMNS]);
     });

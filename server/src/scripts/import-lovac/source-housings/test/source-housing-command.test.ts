@@ -246,7 +246,7 @@ describe('Source housing command', () => {
   // Write the file and run
   beforeAll(async () => {
     await write(file, sourceHousings);
-    await command(file, { abortEarly: true, from: 'file' });
+    await command(file, { abortEarly: true, from: 'file', year: 'lovac-2025' });
   });
 
   afterAll(async () => {

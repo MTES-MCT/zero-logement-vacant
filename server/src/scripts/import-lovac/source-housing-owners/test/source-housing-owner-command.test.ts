@@ -171,7 +171,8 @@ describe('Source housing owner command', () => {
     await command(file, {
       abortEarly: false,
       dryRun: false,
-      from: 'file'
+      from: 'file',
+      year: 'lovac-2025'
     });
   });
 

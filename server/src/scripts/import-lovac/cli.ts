@@ -33,6 +33,9 @@ const from = program
   )
   .choices<FromOptionValue[]>(['file', 's3'])
   .default<FromOptionValue>('s3');
+const year = program
+  .createOption('--year <year>', 'LOVAC year identifier (e.g. lovac-2026)')
+  .makeOptionMandatory();
 
 program.hook('preAction', (_, actionCommand) => {
   logger.info('Options', actionCommand.opts());
@@ -47,6 +50,7 @@ program
   .addOption(abortEarly)
   .addOption(departments)
   .addOption(dryRun)
+  .addOption(year)
   .action(async (file, options) => {
     const command = createHistoryCommand();
     await command(file, options).then(() => {
@@ -62,7 +66,7 @@ program
   .addOption(departments)
   .addOption(dryRun)
   .addOption(from)
-  .addOption(program.createOption('--year <year>', 'The LOVAC year to import').default(''))
+  .addOption(year)
   .action(async (file, options) => {
     const command = createSourceOwnerCommand();
     await command(file, options).then(() => {
@@ -78,6 +82,7 @@ program
   .addOption(departments)
   .addOption(dryRun)
   .addOption(from)
+  .addOption(year)
   .action(async (file, options) => {
     const command = createSourceHousingCommand();
     await command(file, options).then(() => {
@@ -93,6 +98,7 @@ program
   .addOption(departments)
   .addOption(dryRun)
   .addOption(from)
+  .addOption(year)
   .action(async (file, options) => {
     const command = createSourceHousingOwnerCommand();
     await command(file, options).then(() => {
@@ -107,6 +113,7 @@ program
   .addOption(abortEarly)
   .addOption(departments)
   .addOption(dryRun)
+  .addOption(year)
   .action(async (file, options) => {
     const command = createSourceBuildingCommand();
     await command(file, options).then(() => {

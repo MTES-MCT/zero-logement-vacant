@@ -7,7 +7,7 @@ import {
 } from '@zerologementvacant/models';
 import { Predicate } from '@zerologementvacant/utils';
 import { map } from '@zerologementvacant/utils/node';
-import { v4 as uuidv4 } from 'uuid';
+import { v5 as uuidv5 } from 'uuid';
 import { createLogger } from '~/infra/logger';
 import { AddressApi } from '~/models/AddressApi';
 import {
@@ -24,7 +24,7 @@ import {
   isUserModified as isNoteUserModified
 } from '~/models/NoteApi';
 import { UserApi } from '~/models/UserApi';
-import { ReporterError, ReporterOptions } from '~/scripts/import-lovac/infra';
+import { LOVAC_NAMESPACE, ReporterError, ReporterOptions } from '~/scripts/import-lovac/infra';
 import { SourceHousing } from '~/scripts/import-lovac/source-housings/source-housing';
 
 const logger = createLogger('sourceHousingProcessor');
@@ -50,6 +50,7 @@ export type SourceHousingChange =
 
 export interface ProcessorOptions extends ReporterOptions<SourceHousing> {
   auth: UserApi;
+  year: string;
   housingEventRepository: {
     find(id: HousingId): Promise<ReadonlyArray<HousingEventApi>>;
   };
@@ -65,6 +66,7 @@ export function createSourceHousingProcessor(opts: ProcessorOptions) {
   const {
     abortEarly,
     auth,
+    year,
     housingEventRepository,
     housingNoteRepository,
     housingRepository,
@@ -82,7 +84,7 @@ export function createSourceHousingProcessor(opts: ProcessorOptions) {
         );
         if (!existingHousing) {
           const housing: HousingApi = {
-            id: uuidv4(),
+            id: uuidv5(sourceHousing.local_id + ':' + sourceHousing.geo_code, LOVAC_NAMESPACE),
             invariant: sourceHousing.invariant,
             localId: sourceHousing.local_id,
             buildingId: sourceHousing.building_id,
@@ -119,7 +121,7 @@ export function createSourceHousingProcessor(opts: ProcessorOptions) {
             lastTransactionValue: sourceHousing.last_transaction_value,
             source: 'lovac',
             dataYears: [2024],
-            dataFileYears: ['lovac-2025'],
+            dataFileYears: [year],
             status: HousingStatus.NEVER_CONTACTED,
             subStatus: null,
             plotArea: null,
@@ -169,7 +171,7 @@ export function createSourceHousingProcessor(opts: ProcessorOptions) {
         ]);
 
         const dataFileYears = normalizeDataFileYears(
-          existingHousing.dataFileYears.concat('lovac-2025')
+          existingHousing.dataFileYears.concat(year)
         ) as any;
         const events: HousingEventApi[] = [];
 
@@ -183,7 +185,7 @@ export function createSourceHousingProcessor(opts: ProcessorOptions) {
           existingHousing.occupancy !== patch.occupancy
         ) {
           events.push({
-            id: uuidv4(),
+            id: uuidv5(existingHousing.id + ':housing:occupancy-updated:' + year, LOVAC_NAMESPACE),
             type: 'housing:occupancy-updated',
             nextOld: { occupancy: existingHousing.occupancy },
             nextNew: { occupancy: patch.occupancy },
@@ -198,7 +200,7 @@ export function createSourceHousingProcessor(opts: ProcessorOptions) {
           existingHousing.status !== patch.status
         ) {
           events.push({
-            id: uuidv4(),
+            id: uuidv5(existingHousing.id + ':housing:status-updated:' + year, LOVAC_NAMESPACE),
             type: 'housing:status-updated',
             nextOld: {
               status: toEventHousingStatus(existingHousing.status),

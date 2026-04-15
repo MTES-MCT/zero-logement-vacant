@@ -6,7 +6,7 @@ import {
 import { map } from '@zerologementvacant/utils/node';
 import { Array, pipe } from 'effect';
 import fp from 'lodash/fp';
-import { v4 as uuidv4 } from 'uuid';
+import { v5 as uuidv5 } from 'uuid';
 
 import HousingMissingError from '~/errors/housingMissingError';
 import OwnerMissingError from '~/errors/ownerMissingError';
@@ -20,13 +20,14 @@ import {
 } from '~/models/HousingOwnerApi';
 import { OwnerApi } from '~/models/OwnerApi';
 import { UserApi } from '~/models/UserApi';
-import { ReporterError, ReporterOptions } from '~/scripts/import-lovac/infra';
+import { LOVAC_NAMESPACE, ReporterError, ReporterOptions } from '~/scripts/import-lovac/infra';
 import { SourceHousingOwner } from '~/scripts/import-lovac/source-housing-owners/source-housing-owner';
 
 const logger = createLogger('sourceHousingOwnerProcessor');
 
 export interface ProcessorOptions extends ReporterOptions<SourceHousingOwner> {
   auth: UserApi;
+  year: string;
   housingRepository: {
     findOne(geoCode: string, localId: string): Promise<HousingApi | null>;
   };
@@ -51,7 +52,7 @@ export type HousingEventChange = {
 export type HousingOwnerChanges = HousingOwnersChange | HousingEventChange;
 
 export function createSourceHousingOwnerProcessor(options: ProcessorOptions) {
-  const { abortEarly, housingRepository, ownerRepository, reporter, auth } =
+  const { abortEarly, housingRepository, ownerRepository, reporter, auth, year } =
     options;
 
   return map<
@@ -172,7 +173,7 @@ export function createSourceHousingOwnerProcessor(options: ProcessorOptions) {
 
       const events: ReadonlyArray<HousingOwnerEventApi> = [
         ...added.map<HousingOwnerEventApi>((housingOwner) => ({
-          id: uuidv4(),
+          id: uuidv5(housingOwner.housingId + ':housing:owner-attached:' + housingOwner.ownerId + ':' + year, LOVAC_NAMESPACE),
           type: 'housing:owner-attached',
           nextOld: null,
           nextNew: {
@@ -186,7 +187,7 @@ export function createSourceHousingOwnerProcessor(options: ProcessorOptions) {
           housingId: housingOwner.housingId
         })),
         ...removed.map<HousingOwnerEventApi>((housingOwner) => ({
-          id: uuidv4(),
+          id: uuidv5(housingOwner.housingId + ':housing:owner-detached:' + housingOwner.ownerId + ':' + year, LOVAC_NAMESPACE),
           type: 'housing:owner-detached',
           nextOld: {
             name: housingOwner.fullName,
@@ -204,7 +205,7 @@ export function createSourceHousingOwnerProcessor(options: ProcessorOptions) {
             HOUSING_OWNER_EQUIVALENCE(ho, housingOwner)
           ) as HousingOwnerApi;
           return {
-            id: uuidv4(),
+            id: uuidv5(housingOwner.housingId + ':housing:owner-updated:' + housingOwner.ownerId + ':' + year, LOVAC_NAMESPACE),
             type: 'housing:owner-updated',
             nextOld: {
               name: housingOwner.fullName,

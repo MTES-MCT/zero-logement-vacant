@@ -56,6 +56,7 @@ describe('Source housing owner processor', () => {
     const processor = createSourceHousingOwnerProcessor({
       abortEarly: options.abortEarly ?? true,
       auth,
+      year: 'lovac-2025',
       reporter,
       housingRepository: options.housingRepository,
       ownerRepository: options.ownerRepository
@@ -506,6 +507,38 @@ describe('Source housing owner processor', () => {
         })
       });
     });
+  });
+
+  it('should produce deterministic event IDs (same inputs → same IDs)', async () => {
+    const sourceHousing = genSourceHousing();
+    const sourceOwner = genSourceOwner();
+    const sourceHousingOwners = [genSourceHousingOwner(sourceHousing, sourceOwner)];
+    const housing: HousingApi = {
+      ...genHousingApi(),
+      geoCode: sourceHousing.geo_code,
+      localId: sourceHousing.local_id
+    };
+    const owner: OwnerApi = { ...genOwnerApi(), idpersonne: sourceOwner.idpersonne };
+
+    const run1 = await run(sourceHousingOwners, {
+      housingRepository: { findOne: vi.fn().mockResolvedValue(housing) },
+      ownerRepository: {
+        find: vi.fn().mockResolvedValue([owner]),
+        findByHousing: vi.fn().mockResolvedValue([])
+      }
+    });
+    const run2 = await run(sourceHousingOwners, {
+      housingRepository: { findOne: vi.fn().mockResolvedValue(housing) },
+      ownerRepository: {
+        find: vi.fn().mockResolvedValue([owner]),
+        findByHousing: vi.fn().mockResolvedValue([])
+      }
+    });
+
+    const events1 = run1.filter((c) => c.type === 'event');
+    const events2 = run2.filter((c) => c.type === 'event');
+    expect(events1.length).toBeGreaterThan(0);
+    expect(events1.map((c) => c.value.id)).toEqual(events2.map((c) => c.value.id));
   });
 
   it('should leave the existing inactive owners untouched if no change is detected', async () => {

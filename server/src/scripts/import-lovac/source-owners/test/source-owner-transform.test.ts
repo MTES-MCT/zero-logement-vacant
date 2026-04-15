@@ -24,8 +24,8 @@ describe('createOwnerTransform', () => {
       kind: 'create',
       value: expect.objectContaining({
         idpersonne: source.idpersonne,
-        fullName: source.full_name,
-        dataSource: 'lovac'
+        full_name: source.full_name,
+        data_source: 'lovac'
       })
     });
     expect(change.value.id).toBeDefined();
@@ -44,7 +44,7 @@ describe('createOwnerTransform', () => {
       value: expect.objectContaining({
         id: existing.id,
         idpersonne: source.idpersonne,
-        fullName: source.full_name
+        full_name: source.full_name
       })
     });
   });
@@ -81,7 +81,7 @@ describe('createOwnerTransform', () => {
 
     const change = transform({ source, existing: null });
 
-    expect(change.value.dataSource).toBe('lovac-2026');
+    expect(change.value.data_source).toBe('lovac-2026');
   });
 
   it('should produce a deterministic ID on create (same idpersonne → same id)', () => {

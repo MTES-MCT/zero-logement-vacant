@@ -146,6 +146,10 @@ describe('Source housing owner command', () => {
     await Establishments().insert(formatEstablishmentApi(establishment));
   });
 
+  afterAll(async () => {
+    fs.unlinkSync(file);
+  });
+
   // Write the file and run
   beforeAll(async () => {
     await new ReadableStream<SourceHousingOwner>({

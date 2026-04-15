@@ -1,38 +1,44 @@
 import {
   chunkify,
   count,
+  createS3,
   filter,
   flatten,
   groupBy,
   map
 } from '@zerologementvacant/utils/node';
+import { PutObjectCommand } from '@aws-sdk/client-s3';
+import { writeFileSync } from 'node:fs';
 import { WritableStream } from 'node:stream/web';
 import UserMissingError from '~/errors/userMissingError';
 import config from '~/infra/config';
 import { createLogger } from '~/infra/logger';
 import { HousingEventApi } from '~/models/EventApi';
-import { HousingApi } from '~/models/HousingApi';
-import { HousingOwnerApi } from '~/models/HousingOwnerApi';
-import { OwnerApi } from '~/models/OwnerApi';
 import eventRepository from '~/repositories/eventRepository';
-import housingOwnerRepository from '~/repositories/housingOwnerRepository';
-import housingRepository from '~/repositories/housingRepository';
-import ownerRepository from '~/repositories/ownerRepository';
+import {
+  HousingOwnerDBO,
+  HousingOwners
+} from '~/repositories/housingOwnerRepository';
+import { withinTransaction } from '~/infra/database/transaction';
 import userRepository from '~/repositories/userRepository';
 import { createLoggerReporter } from '~/scripts/import-lovac/infra';
 import { FromOptionValue } from '~/scripts/import-lovac/infra/options/from';
 import { progress } from '~/scripts/import-lovac/infra/progress-bar';
+import { Reporter } from '~/scripts/import-lovac/infra/reporters/reporter';
 import validator from '~/scripts/import-lovac/infra/validator';
 import {
   SourceHousingOwner,
   sourceHousingOwnerSchema
 } from '~/scripts/import-lovac/source-housing-owners/source-housing-owner';
+import { createSourceHousingOwnerEnricher } from '~/scripts/import-lovac/source-housing-owners/source-housing-owner-enricher';
 import {
-  createSourceHousingOwnerProcessor,
+  createHousingOwnerTransform,
   HousingEventChange,
+  HousingOwnerChange,
   HousingOwnersChange
-} from '~/scripts/import-lovac/source-housing-owners/source-housing-owner-processor';
+} from '~/scripts/import-lovac/source-housing-owners/source-housing-owner-transform';
 import { createSourceHousingOwnerRepository } from '~/scripts/import-lovac/source-housing-owners/source-housing-owner-repository';
+import { match } from 'ts-pattern';
 
 const logger = createLogger('sourceHousingOwnerCommand');
 
@@ -49,6 +55,7 @@ export function createSourceHousingOwnerCommand() {
 
   return async (file: string, options: ExecOptions): Promise<void> => {
     try {
+      console.time('Import housing owners');
       logger.debug('Starting source housing owner command...', {
         file,
         options
@@ -94,37 +101,18 @@ export function createSourceHousingOwnerCommand() {
             })
           )
           .pipeThrough(groupBy((a, b) => a.local_id === b.local_id))
+          .pipeThrough(createSourceHousingOwnerEnricher())
           .pipeThrough(
-            createSourceHousingOwnerProcessor({
-              abortEarly: options.abortEarly,
-              auth,
-              year: options.year,
-              housingRepository: {
-                async findOne(geoCode, localId): Promise<HousingApi | null> {
-                  return housingRepository.findOne({
-                    localId,
-                    geoCode: [geoCode]
-                  });
-                }
-              },
-              ownerRepository: {
-                async find(
-                  idpersonnes: string[]
-                ): Promise<ReadonlyArray<OwnerApi>> {
-                  return ownerRepository.find({
-                    filters: { idpersonne: idpersonnes }
-                  });
-                },
-                async findByHousing(
-                  housing: HousingApi
-                ): Promise<ReadonlyArray<HousingOwnerApi>> {
-                  return ownerRepository.findByHousing(housing);
-                }
-              },
-              reporter
-            })
+            map(
+              createHousingOwnerTransform({
+                abortEarly: options.abortEarly,
+                adminUserId: auth.id,
+                reporter,
+                year: options.year
+              })
+            )
           )
-          .pipeThrough(flatten())
+          .pipeThrough(flatten<HousingOwnerChange>())
           .tee();
 
       await Promise.all([
@@ -138,10 +126,22 @@ export function createSourceHousingOwnerCommand() {
           )
           .pipeThrough(map((change) => change.value))
           .pipeTo(
-            new WritableStream<HousingOwnerApi[]>({
+            new WritableStream<ReadonlyArray<HousingOwnerDBO>>({
               async write(housingOwners) {
-                if (!options.dryRun) {
-                  await housingOwnerRepository.saveMany(housingOwners);
+                if (!options.dryRun && housingOwners.length > 0) {
+                  const housingGeoCode = housingOwners[0].housing_geo_code;
+                  const housingId = housingOwners[0].housing_id;
+                  await withinTransaction(async (transaction) => {
+                    await HousingOwners(transaction)
+                      .where({
+                        housing_geo_code: housingGeoCode,
+                        housing_id: housingId
+                      })
+                      .delete();
+                    await HousingOwners(transaction).insert(
+                      housingOwners as HousingOwnerDBO[]
+                    );
+                  });
                 }
               }
             })
@@ -157,10 +157,12 @@ export function createSourceHousingOwnerCommand() {
           .pipeThrough(map((change) => change.value))
           .pipeThrough(chunkify({ size: 1_000 }))
           .pipeTo(
-            new WritableStream<HousingEventApi[]>({
+            new WritableStream({
               async write(events) {
                 if (!options.dryRun) {
-                  await eventRepository.insertManyHousingEvents(events);
+                  await eventRepository.insertManyHousingEvents(
+                    events as unknown as HousingEventApi[]
+                  );
                 }
               }
             })
@@ -173,6 +175,40 @@ export function createSourceHousingOwnerCommand() {
       throw error;
     } finally {
       reporter.report();
+      await writeReport(file, options, reporter);
+      console.timeEnd('Import housing owners');
     }
   };
+}
+
+async function writeReport(
+  file: string,
+  options: ExecOptions,
+  reporter: Reporter<SourceHousingOwner>
+): Promise<void> {
+  const json = JSON.stringify(reporter.getSummary(), null, 2);
+  try {
+    await match(options)
+      .with({ from: 's3' }, async () => {
+        const s3 = createS3(config.s3);
+        await s3.send(
+          new PutObjectCommand({
+            Bucket: config.s3.bucket,
+            Key: `${file}.report.json`,
+            Body: json,
+            ContentType: 'application/json'
+          })
+        );
+      })
+      .with({ from: 'file' }, async () => {
+        writeFileSync(
+          `./import-lovac-${options.year}-housing-owners.report.json`,
+          json,
+          'utf8'
+        );
+      })
+      .exhaustive();
+  } catch (error) {
+    logger.warn('Failed to write report', { error });
+  }
 }

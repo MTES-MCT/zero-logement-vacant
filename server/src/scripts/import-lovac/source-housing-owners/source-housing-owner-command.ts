@@ -41,6 +41,7 @@ export interface ExecOptions {
   departments?: string[];
   dryRun?: boolean;
   from: FromOptionValue;
+  year: string;
 }
 
 export function createSourceHousingOwnerCommand() {

@@ -76,7 +76,7 @@ export function createSourceOwnerCommand() {
           validator(sourceOwnerSchema, { abortEarly: options.abortEarly, reporter })
         )
         .pipeThrough(createOwnerEnricher())
-        .pipeThrough(map(createOwnerTransform({ reporter, abortEarly: options.abortEarly })))
+        .pipeThrough(map(createOwnerTransform({ reporter, abortEarly: options.abortEarly, year: options.year })))
         .pipeTo(createOwnerLoadSink(options, reporter));
 
       logger.info(`File ${file} imported.`);

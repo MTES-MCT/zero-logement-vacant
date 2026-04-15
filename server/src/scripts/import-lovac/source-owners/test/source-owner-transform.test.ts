@@ -75,6 +75,15 @@ describe('createOwnerTransform', () => {
     expect(change.value.siren).toBe('123456789');
   });
 
+  it('should stamp dataSource with the provided year on create', () => {
+    const source = genSourceOwner();
+    const transform = createOwnerTransform({ reporter, abortEarly: false, year: 'lovac-2026' });
+
+    const change = transform({ source, existing: null });
+
+    expect(change.value.dataSource).toBe('lovac-2026');
+  });
+
   it('should produce a deterministic ID on create (same idpersonne → same id)', () => {
     const source = genSourceOwner();
     const transform = createOwnerTransform({ reporter, abortEarly: false });

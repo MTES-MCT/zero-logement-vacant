@@ -2,24 +2,26 @@ import { isNotNull } from '@zerologementvacant/utils';
 import {
   chunkify,
   count,
+  createS3,
   filter,
   flatten,
   map
 } from '@zerologementvacant/utils/node';
+import { PutObjectCommand } from '@aws-sdk/client-s3';
 import async from 'async';
 import { List } from 'immutable';
 import { Knex } from 'knex';
 import fp from 'lodash/fp';
 import path from 'node:path';
+import { writeFileSync } from 'node:fs';
 import { WritableStream } from 'node:stream/web';
+import { match } from 'ts-pattern';
 
 import UserMissingError from '~/errors/userMissingError';
 import config from '~/infra/config';
 import db from '~/infra/database';
 import { createLogger } from '~/infra/logger';
-import { HousingEventApi } from '~/models/EventApi';
-import { HousingApi, HousingId } from '~/models/HousingApi';
-import { HousingNoteApi, NoteApi } from '~/models/NoteApi';
+import { HousingApi } from '~/models/HousingApi';
 import {
   Addresses,
   formatAddressApi
@@ -33,7 +35,6 @@ import housingRepository, {
   housingTable,
   parseHousingApi
 } from '~/repositories/housingRepository';
-import noteRepository from '~/repositories/noteRepository';
 import userRepository from '~/repositories/userRepository';
 import {
   createHousingProcessor,
@@ -42,17 +43,20 @@ import {
 import { createLoggerReporter } from '~/scripts/import-lovac/infra';
 import { FromOptionValue } from '~/scripts/import-lovac/infra/options/from';
 import { progress } from '~/scripts/import-lovac/infra/progress-bar';
+import { Reporter } from '~/scripts/import-lovac/infra/reporters/reporter';
 import { createUpdater } from '~/scripts/import-lovac/infra/updater';
 import validator from '~/scripts/import-lovac/infra/validator';
 import {
   SourceHousing,
   sourceHousingSchema
 } from '~/scripts/import-lovac/source-housings/source-housing';
+import { createSourceHousingEnricher } from '~/scripts/import-lovac/source-housings/source-housing-enricher';
 import {
   AddressChange,
-  createSourceHousingProcessor,
-  HousingChange
-} from '~/scripts/import-lovac/source-housings/source-housing-processor';
+  createHousingTransform,
+  HousingChange,
+  HousingRecordInsert
+} from '~/scripts/import-lovac/source-housings/source-housing-transform';
 import { createSourceHousingRepository } from '~/scripts/import-lovac/source-housings/source-housing-repository';
 
 const logger = createLogger('sourceHousingCommand');
@@ -131,15 +135,15 @@ export function createSourceHousingCommand() {
                   type: 'housing',
                   kind: 'update',
                   value: {
-                    ...housing,
-                    geoCode: sourceHousing.geo_code
+                    ...formatHousingRecordApi(housing),
+                    geo_code: sourceHousing.geo_code
                   }
                 }
               : null;
           })
         )
         .pipeThrough(filter(isNotNull))
-        .pipeThrough(map((change) => formatHousingRecordApi(change.value)))
+        .pipeThrough(map((change) => change.value))
         .pipeTo(
           createUpdater<HousingRecordDBO>({
             destination: options.dryRun ? 'file' : 'database',
@@ -198,59 +202,16 @@ export function createSourceHousingCommand() {
             reporter: sourceHousingReporter
           })
         )
+        .pipeThrough(createSourceHousingEnricher())
         .pipeThrough(
-          createSourceHousingProcessor({
-            abortEarly: options.abortEarly,
-            auth,
-            year: options.year,
-            reporter: sourceHousingReporter,
-            housingRepository: {
-              async findOne(
-                geoCode: string,
-                localId: string
-              ): Promise<HousingApi | null> {
-                return findOneHousing(geoCode, localId);
-              }
-            },
-            housingEventRepository: {
-              async find({
-                id,
-                geoCode
-              }: HousingId): Promise<ReadonlyArray<HousingEventApi>> {
-                const events = await eventRepository.find({
-                  filters: {
-                    types: [
-                      'housing:created',
-                      'housing:occupancy-updated',
-                      'housing:status-updated'
-                    ],
-                    housings: [{ geoCode, id }]
-                  }
-                });
-                return events.map((event) => ({
-                  ...event,
-                  housingId: id,
-                  housingGeoCode: geoCode
-                }));
-              }
-            },
-            housingNoteRepository: {
-              async find({
-                id,
-                geoCode
-              }: HousingId): Promise<ReadonlyArray<HousingNoteApi>> {
-                const notes = await noteRepository.findByHousing({
-                  id,
-                  geoCode
-                });
-                return notes.map((note: NoteApi) => ({
-                  ...note,
-                  housingId: id,
-                  housingGeoCode: geoCode
-                }));
-              }
-            }
-          })
+          map(
+            createHousingTransform({
+              abortEarly: options.abortEarly,
+              adminUserId: auth.id,
+              reporter: sourceHousingReporter,
+              year: options.year
+            })
+          )
         )
         .pipeThrough(flatten());
 
@@ -267,10 +228,10 @@ export function createSourceHousingCommand() {
               (change) => change.type === 'housing' && change.kind === 'create'
             )
           )
-          .pipeThrough(map((change) => change.value))
+          .pipeThrough(map((change) => change.value as HousingRecordInsert))
           .pipeThrough(chunkify({ size: 1_000 }))
           .pipeTo(
-            new WritableStream<ReadonlyArray<HousingApi>>({
+            new WritableStream<ReadonlyArray<HousingRecordInsert>>({
               async write(housings) {
                 if (!options.dryRun) {
                   await insertHousings(housings);
@@ -286,9 +247,9 @@ export function createSourceHousingCommand() {
             )
           )
           .pipeThrough(map((change) => change.value))
-          .pipeThrough(map(formatHousingRecordApi))
+          .pipeThrough(map(stripReadOnlyFields))
           .pipeTo(
-            createUpdater<HousingRecordDBO>({
+            createUpdater<HousingRecordInsert>({
               destination: options.dryRun ? 'file' : 'database',
               file: path.join(
                 import.meta.dirname,
@@ -297,7 +258,7 @@ export function createSourceHousingCommand() {
               temporaryTable: 'source_housing_updates_tmp',
               likeTable: housingTable,
               async update(housings): Promise<void> {
-                await updateHousings(housings, {
+                await updateHousings(housings as ReadonlyArray<HousingRecordDBO>, {
                   temporaryTable: 'source_housing_updates_tmp'
                 });
               }
@@ -453,6 +414,7 @@ export function createSourceHousingCommand() {
 
       sourceHousingReporter.report();
       housingReporter.report();
+      await writeReport(file, options, sourceHousingReporter);
       console.timeEnd('Import housings');
     }
   };
@@ -463,7 +425,7 @@ export async function findOneHousing(
   localId: string
 ): Promise<HousingApi | null> {
   const department = geoCode.slice(0, 2).toLowerCase();
-  // Needed because the housing’s locality we are trying to import
+  // Needed because the housing's locality we are trying to import
   // might have been removed, or merged with another locality.
   const housing = await db<HousingDBO>(`fast_housing_${department}`)
     .where({ local_id: localId })
@@ -472,9 +434,9 @@ export async function findOneHousing(
 }
 
 export async function insertHousings(
-  housings: ReadonlyArray<HousingApi>
+  housings: ReadonlyArray<HousingRecordInsert>
 ): Promise<void> {
-  await Housing().insert(housings.map(formatHousingRecordApi));
+  await Housing().insert(housings as ReadonlyArray<HousingRecordDBO>);
 }
 
 interface UpdateHousingsOptions {
@@ -540,4 +502,49 @@ export async function updateHousings(
       [`${temporaryTable}.geo_code`, `${temporaryTable}.id`],
       housings.map((housing) => [housing.geo_code, housing.id])
     );
+}
+
+function stripReadOnlyFields(housing: HousingRecordInsert): HousingRecordInsert {
+  const {
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    last_mutation_type,
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    occupancy_history,
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    plot_area,
+    ...rest
+  } = housing as unknown as HousingRecordDBO;
+  return rest as HousingRecordInsert;
+}
+
+async function writeReport(
+  file: string,
+  options: ExecOptions,
+  reporter: Reporter<SourceHousing>
+): Promise<void> {
+  const json = JSON.stringify(reporter.getSummary(), null, 2);
+  try {
+    await match(options)
+      .with({ from: 's3' }, async () => {
+        const s3 = createS3(config.s3);
+        await s3.send(
+          new PutObjectCommand({
+            Bucket: config.s3.bucket,
+            Key: `${file}.report.json`,
+            Body: json,
+            ContentType: 'application/json'
+          })
+        );
+      })
+      .with({ from: 'file' }, async () => {
+        writeFileSync(
+          `./import-lovac-${options.year}-housings.report.json`,
+          json,
+          'utf8'
+        );
+      })
+      .exhaustive();
+  } catch (error) {
+    logger.warn('Failed to write report', { error });
+  }
 }

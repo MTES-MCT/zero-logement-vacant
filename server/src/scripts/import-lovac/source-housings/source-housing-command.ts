@@ -55,6 +55,7 @@ import {
   AddressChange,
   createHousingTransform,
   HousingChange,
+  HousingEventChange as SourceHousingEventChange,
   HousingRecordInsert
 } from '~/scripts/import-lovac/source-housings/source-housing-transform';
 import { createSourceHousingRepository } from '~/scripts/import-lovac/source-housings/source-housing-repository';
@@ -145,7 +146,7 @@ export function createSourceHousingCommand() {
         .pipeThrough(filter(isNotNull))
         .pipeThrough(map((change) => change.value))
         .pipeTo(
-          createUpdater<HousingRecordDBO>({
+          createUpdater<HousingRecordInsert>({
             destination: options.dryRun ? 'file' : 'database',
             file: path.join(
               import.meta.dirname,
@@ -267,7 +268,7 @@ export function createSourceHousingCommand() {
         eventCreations
           .pipeThrough(
             filter(
-              (change): change is HousingEventChange =>
+              (change): change is SourceHousingEventChange =>
                 change.type === 'event' && change.kind === 'create'
             )
           )

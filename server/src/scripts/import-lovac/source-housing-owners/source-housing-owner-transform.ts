@@ -3,7 +3,7 @@ import {
   isInactiveOwnerRank,
   PREVIOUS_OWNER_RANK
 } from '@zerologementvacant/models';
-import fp from 'lodash/fp';
+import { Array as Arr } from 'effect';
 import { v5 as uuidv5 } from 'uuid';
 import HousingMissingError from '~/errors/housingMissingError';
 import OwnerMissingError from '~/errors/ownerMissingError';
@@ -52,12 +52,12 @@ export function createHousingOwnerTransform(options: TransformOptions) {
       }
 
       const missingOwners = source.filter(
-        (s) =>
-          !existing.owners.some((o) => o.idpersonne === s.idpersonne)
+        (sourceOwner) =>
+          !existing.owners.some((owner) => owner.idpersonne === sourceOwner.idpersonne)
       );
       if (missingOwners.length > 0) {
         throw new OwnerMissingError(
-          ...missingOwners.map((o) => o.idpersonne)
+          ...missingOwners.map((sourceOwner) => sourceOwner.idpersonne)
         );
       }
 
@@ -73,7 +73,7 @@ export function createHousingOwnerTransform(options: TransformOptions) {
       const activeOwners: HousingOwnerDBO[] = source.map(
         (sourceOwner): HousingOwnerDBO => {
           const owner = existing.owners.find(
-            (o) => o.idpersonne === sourceOwner.idpersonne
+            (owner) => owner.idpersonne === sourceOwner.idpersonne
           ) as OwnerDBO;
           return {
             owner_id: owner.id,
@@ -93,18 +93,16 @@ export function createHousingOwnerTransform(options: TransformOptions) {
         }
       );
 
-      const removedActive = fp.differenceBy(
-        'owner_id',
-        existingActive,
-        activeOwners
-      ) as HousingOwnerDBO[];
+      const byOwnerId = (a: HousingOwnerDBO, b: HousingOwnerDBO) =>
+        a.owner_id === b.owner_id;
+      const removedActive = Arr.differenceWith(byOwnerId)(existingActive, activeOwners);
       const inactiveOwners: HousingOwnerDBO[] = [
         ...removedActive.map((ho) => ({
           ...ho,
           rank: PREVIOUS_OWNER_RANK,
           end_date: new Date()
         })),
-        ...(fp.differenceBy('owner_id', existingInactive, activeOwners) as HousingOwnerDBO[])
+        ...Arr.differenceWith(byOwnerId)(existingInactive, activeOwners)
       ];
 
       const allOwners: ReadonlyArray<HousingOwnerDBO> = [
@@ -114,16 +112,16 @@ export function createHousingOwnerTransform(options: TransformOptions) {
 
       function ownerName(ownerId: string): string {
         return (
-          existing.owners.find((o) => o.id === ownerId)?.full_name ?? ''
+          existing.owners.find((owner) => owner.id === ownerId)?.full_name ?? ''
         );
       }
 
-      const added = fp.differenceBy('owner_id', activeOwners, existingActive) as HousingOwnerDBO[];
-      const removed = fp.differenceBy('owner_id', existingActive, activeOwners) as HousingOwnerDBO[];
-      const updated = (fp.intersectionBy('owner_id', existingActive, activeOwners) as HousingOwnerDBO[]).filter(
-        (existingHo: HousingOwnerDBO) => {
+      const added = Arr.differenceWith(byOwnerId)(activeOwners, existingActive);
+      const removed = Arr.differenceWith(byOwnerId)(existingActive, activeOwners);
+      const updated = Arr.intersectionWith(byOwnerId)(existingActive, activeOwners).filter(
+        (existingHo) => {
           const newHo = activeOwners.find(
-            (ho) => ho.owner_id === existingHo.owner_id
+            (activeHo) => activeHo.owner_id === existingHo.owner_id
           );
           return newHo && newHo.rank !== existingHo.rank;
         }
@@ -165,7 +163,7 @@ export function createHousingOwnerTransform(options: TransformOptions) {
         ...updated.map(
           (ho): HousingOwnerEventApi => {
             const newHo = activeOwners.find(
-              (a) => a.owner_id === ho.owner_id
+              (activeHo) => activeHo.owner_id === ho.owner_id
             )!;
             return {
               id: uuidv5(
@@ -185,7 +183,7 @@ export function createHousingOwnerTransform(options: TransformOptions) {
         )
       ];
 
-      source.forEach((s) => reporter.passed(s));
+      source.forEach((sourceOwner) => reporter.passed(sourceOwner));
 
       return [
         { type: 'housingOwners', kind: 'replace', value: allOwners },
@@ -198,10 +196,10 @@ export function createHousingOwnerTransform(options: TransformOptions) {
         )
       ];
     } catch (error) {
-      source.forEach((s) =>
+      source.forEach((sourceOwner) =>
         reporter.failed(
-          s,
-          new ReporterError((error as Error).message, s)
+          sourceOwner,
+          new ReporterError((error as Error).message, sourceOwner)
         )
       );
       if (abortEarly) throw error;

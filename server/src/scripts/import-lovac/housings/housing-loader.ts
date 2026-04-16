@@ -1,5 +1,4 @@
 import { Knex } from 'knex';
-import fp from 'lodash/fp';
 import { randomUUID } from 'node:crypto';
 import path from 'node:path';
 import { match } from 'ts-pattern';
@@ -130,7 +129,7 @@ async function updateHousings(
         'energy_consumption_bdnb',
         'energy_consumption_at_bdnb'
       ];
-  const updates: Record<string, Knex.Ref<string, any>> = fp.fromPairs(
+  const updates: Record<string, Knex.Ref<string, any>> = Object.fromEntries(
     keys.map((key) => [key, db.ref(`${temporaryTable}.${key}`)])
   );
 

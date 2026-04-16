@@ -111,12 +111,9 @@ export function createHousingLoader(
         .exhaustive();
     },
     async close() {
-      await Promise.all([
-        flushInserts(),
-        flushEvents(),
-        flushAddresses(),
-        updateWriterStream.close()
-      ]);
+      // Inserts must complete before events: housing_events has a FK to fast_housing.
+      await flushInserts();
+      await Promise.all([flushEvents(), flushAddresses(), updateWriterStream.close()]);
     }
   });
 }

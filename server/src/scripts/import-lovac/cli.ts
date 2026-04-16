@@ -6,6 +6,7 @@ import { FromOptionValue } from '~/scripts/import-lovac/infra/options/from';
 import { createSourceBuildingCommand } from '~/scripts/import-lovac/source-buildings/source-building-command';
 import { createSourceHousingOwnerCommand } from '~/scripts/import-lovac/source-housing-owners/source-housing-owner-command';
 import { createSourceHousingCommand } from '~/scripts/import-lovac/source-housings/source-housing-command';
+import { createExistingHousingCommand } from '~/scripts/import-lovac/housings/housing-command';
 import { createSourceOwnerCommand } from '~/scripts/import-lovac/source-owners/source-owner-command';
 
 const logger = createLogger('cli');
@@ -102,6 +103,21 @@ program
   .action(async (file, options) => {
     const command = createSourceHousingOwnerCommand();
     await command(file, options).then(() => {
+      process.exit();
+    });
+  });
+
+program
+  .command('existing-housings')
+  .description(
+    'Verify existing housings against the imported LOVAC year. Resets occupancy/status for housings missing from the file. Run after `housings`.'
+  )
+  .addOption(abortEarly)
+  .addOption(dryRun)
+  .addOption(year)
+  .action(async (options) => {
+    const command = createExistingHousingCommand();
+    await command(options).then(() => {
       process.exit();
     });
   });

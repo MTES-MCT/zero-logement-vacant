@@ -45,10 +45,8 @@ import { genSourceHousing } from '~/scripts/import-lovac/infra/fixtures';
 import { createUpdater } from '~/scripts/import-lovac/infra/updater';
 import { SourceHousing } from '~/scripts/import-lovac/source-housings/source-housing';
 
-import {
-  createSourceHousingCommand,
-  updateHousings
-} from '~/scripts/import-lovac/source-housings/source-housing-command';
+import { createSourceHousingCommand } from '~/scripts/import-lovac/source-housings/source-housing-command';
+import { updateHousings } from '~/scripts/import-lovac/source-housings/source-housing-loader';
 import {
   genBuildingApi,
   genEstablishmentApi,

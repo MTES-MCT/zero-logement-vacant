@@ -96,7 +96,7 @@ describe('Existing housing command', () => {
       ...genUserApi(establishment.id),
       email: config.app.system
     };
-    await Users().insert(toUserDBO(auth));
+    await Users().insert(toUserDBO(auth)).onConflict('email').ignore();
     await Housing().insert(
       [
         ...vacantUnsupervisedHousings,

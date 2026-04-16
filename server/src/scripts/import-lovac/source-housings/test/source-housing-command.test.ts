@@ -167,7 +167,7 @@ describe('Source housing command', () => {
       ...genUserApi(establishment.id),
       email: config.app.system
     };
-    await Users().insert([user, admin, auth].map(toUserDBO));
+    await Users().insert([user, admin, auth].map(toUserDBO)).onConflict('email').ignore();
     await Buildings().insert(formatBuildingApi(building));
     await Housing().insert(housingsBefore.map(formatHousingRecordApi));
 

@@ -8,15 +8,13 @@ import {
   Occupancy,
   toEventHousingStatus
 } from '@zerologementvacant/models';
+import { Array as Arr, Option, Order, pipe } from 'effect';
 import { v5 as uuidv5 } from 'uuid';
 import { AddressApi } from '~/models/AddressApi';
 import { HousingEventApi } from '~/models/EventApi';
 import { normalizeDataFileYears } from '~/models/HousingApi';
 import { EventRecordDBO } from '~/repositories/eventRepository';
-import {
-  HousingRecordDBO
-} from '~/repositories/housingRepository';
-import { NoteRecordDBO } from '~/repositories/noteRepository';
+import { HousingRecordDBO } from '~/repositories/housingRepository';
 import {
   LOVAC_NAMESPACE,
   ReporterError,
@@ -56,8 +54,11 @@ export function createHousingTransform(opts: TransformOptions) {
     const { source, existing } = enriched;
     try {
       const changes = existing.housing
-        ? toUpdate(source, existing.housing, existing.events, existing.notes, { adminUserId, year })
-        : toCreate(source, year);
+        ? toUpdate(source, existing.housing, existing.events, {
+            adminUserId,
+            year
+          })
+        : toCreate(source, { adminUserId, year });
       reporter.passed(source);
       return changes;
     } catch (error) {
@@ -71,7 +72,11 @@ export function createHousingTransform(opts: TransformOptions) {
   };
 }
 
-function toCreate(source: SourceHousing, year: string): SourceHousingChange[] {
+function toCreate(
+  source: SourceHousing,
+  opts: { adminUserId: string; year: string }
+): SourceHousingChange[] {
+  const { adminUserId, year } = opts;
   const id = uuidv5(source.local_id + ':' + source.geo_code, LOVAC_NAMESPACE);
 
   const housing: HousingRecordInsert = {
@@ -117,7 +122,24 @@ function toCreate(source: SourceHousing, year: string): SourceHousingChange[] {
   };
 
   const changes: SourceHousingChange[] = [
-    { type: 'housing', kind: 'create', value: housing }
+    { type: 'housing', kind: 'create', value: housing },
+    {
+      type: 'event',
+      kind: 'create',
+      value: {
+        id: uuidv5(id + ':housing:created:' + year, LOVAC_NAMESPACE),
+        type: 'housing:created',
+        nextOld: null,
+        nextNew: {
+          source: year as DataFileYear,
+          occupancy: Occupancy.VACANT
+        },
+        createdBy: adminUserId,
+        createdAt: new Date().toISOString(),
+        housingGeoCode: source.geo_code,
+        housingId: id
+      }
+    }
   ];
 
   if (source.ban_label) {
@@ -142,7 +164,6 @@ function toUpdate(
   source: SourceHousing,
   existing: HousingRecordDBO,
   events: ReadonlyArray<EventRecordDBO<EventType>>,
-  notes: ReadonlyArray<NoteRecordDBO>,
   opts: { adminUserId: string; year: string }
 ): SourceHousingChange[] {
   const { adminUserId, year } = opts;
@@ -150,13 +171,10 @@ function toUpdate(
     (existing.data_file_years ?? []).concat(year as DataFileYear)
   ) as DataFileYear[];
 
-  const patch = applyChanges(existing, events, notes, adminUserId);
+  const patch = applyChanges(events, adminUserId);
   const eventChanges: HousingEventChange[] = [];
 
-  if (
-    patch.occupancy !== undefined &&
-    existing.occupancy !== patch.occupancy
-  ) {
+  if (patch.occupancy !== undefined && existing.occupancy !== patch.occupancy) {
     eventChanges.push({
       type: 'event',
       kind: 'create',
@@ -176,10 +194,7 @@ function toUpdate(
     });
   }
 
-  if (
-    patch.status !== undefined &&
-    existing.status !== patch.status
-  ) {
+  if (patch.status !== undefined && existing.status !== patch.status) {
     eventChanges.push({
       type: 'event',
       kind: 'create',
@@ -234,29 +249,34 @@ function toUpdate(
     last_transaction_value: source.last_transaction_value
   };
 
-  return [
-    { type: 'housing', kind: 'update', value: housing },
-    ...eventChanges
-  ];
+  return [{ type: 'housing', kind: 'update', value: housing }, ...eventChanges];
 }
 
+const byCreatedAt = Order.mapInput(
+  Order.Date,
+  (event: EventRecordDBO<EventType>) => event.created_at
+);
+
 function applyChanges(
-  housing: HousingRecordDBO,
   events: ReadonlyArray<EventRecordDBO<EventType>>,
-  notes: ReadonlyArray<NoteRecordDBO>,
   adminUserId: string
 ): Partial<HousingRecordInsert> {
-  const rules: ReadonlyArray<() => boolean> = [
-    () => housing.occupancy !== Occupancy.VACANT,
-    () =>
-      events.length === 0 ||
-      !hasUserEvents(events, adminUserId),
-    () =>
-      notes.length === 0 ||
-      !hasUserNotes(notes, adminUserId)
-  ];
+  const lastStatusOccupancyEvent = pipe(
+    events,
+    Arr.filter((event) =>
+      ['housing:occupancy-updated', 'housing:status-updated'].includes(
+        event.type
+      )
+    ),
+    Arr.sort(byCreatedAt),
+    Arr.last,
+    Option.getOrNull
+  );
 
-  if (rules.every((rule) => rule())) {
+  if (
+    !lastStatusOccupancyEvent ||
+    lastStatusOccupancyEvent.created_by === adminUserId
+  ) {
     return {
       occupancy: Occupancy.VACANT,
       status: HousingStatus.NEVER_CONTACTED,
@@ -265,22 +285,4 @@ function applyChanges(
   }
 
   return {};
-}
-
-function hasUserEvents(
-  events: ReadonlyArray<EventRecordDBO<EventType>>,
-  adminUserId: string
-): boolean {
-  return events
-    .filter((e) =>
-      ['housing:occupancy-updated', 'housing:status-updated'].includes(e.type)
-    )
-    .some((e) => e.created_by !== adminUserId);
-}
-
-function hasUserNotes(
-  notes: ReadonlyArray<NoteRecordDBO>,
-  adminUserId: string
-): boolean {
-  return notes.some((n) => n.created_by !== adminUserId);
 }

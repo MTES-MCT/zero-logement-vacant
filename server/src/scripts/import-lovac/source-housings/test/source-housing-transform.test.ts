@@ -12,6 +12,7 @@ import { EnrichedSourceHousing } from '../source-housing-enricher';
 import {
   createHousingTransform,
   HousingChange,
+  HousingEventChange,
   HousingRecordInsert,
   SourceHousingChange
 } from '../source-housing-transform';
@@ -76,6 +77,22 @@ describe('createHousingTransform', () => {
       );
     });
 
+    it('should produce a housing:created event', () => {
+      const source = genSourceHousing();
+      const enriched: EnrichedSourceHousing = {
+        source,
+        existing: { housing: null, events: [], notes: [] }
+      };
+      const changes = transform(enriched);
+      const eventChanges = changes.filter(
+        (change: SourceHousingChange): change is HousingEventChange =>
+          change.type === 'event'
+      );
+      expect(
+        eventChanges.some((change: HousingEventChange) => change.value.type === 'housing:created')
+      ).toBe(true);
+    });
+
     it('should add an address change when ban_label is present', () => {
       const source = { ...genSourceHousing(), ban_label: 'some address' };
       const enriched: EnrichedSourceHousing = {
@@ -120,7 +137,7 @@ describe('createHousingTransform', () => {
       expect(housingChange.value.data_file_years).toContain('lovac-2025');
     });
 
-    describe('non-vacant housing with no user events or notes', () => {
+    describe('when no status/occupancy events exist', () => {
       it('should reset occupancy to VACANT and status to NEVER_CONTACTED', () => {
         const housing = formatHousingRecordApi({
           ...genHousingApi(),
@@ -163,30 +180,67 @@ describe('createHousingTransform', () => {
           existing: { housing: housing as any, events: [], notes: [] }
         };
         const changes = transform(enriched);
+        const eventChanges = changes.filter(
+          (change: SourceHousingChange): change is HousingEventChange =>
+            change.type === 'event'
+        );
         expect(
-          changes.some(
-            (c: SourceHousingChange) =>
-              c.type === 'event' &&
-              (c.value as any).type === 'housing:occupancy-updated'
+          eventChanges.some(
+            (change: HousingEventChange) => change.value.type === 'housing:occupancy-updated'
           )
         ).toBe(true);
       });
     });
 
-    describe('non-vacant housing with a user-authored occupancy event', () => {
-      it('should NOT reset occupancy', () => {
+    describe('when last status/occupancy event was authored by admin', () => {
+      it('should reset occupancy to VACANT and status to NEVER_CONTACTED', () => {
         const housing = formatHousingRecordApi({
           ...genHousingApi(),
           occupancy: Occupancy.RENT,
           status: HousingStatus.IN_PROGRESS
         });
-        // A user event: created_by is NOT the admin user
+        const adminEvent = {
+          id: faker.string.uuid(),
+          type: 'housing:status-updated',
+          next_old: { status: HousingStatus.NEVER_CONTACTED, subStatus: null },
+          next_new: { status: HousingStatus.IN_PROGRESS, subStatus: null },
+          created_by: ADMIN_USER_ID,
+          created_at: new Date()
+        };
+        const source = {
+          ...genSourceHousing(),
+          geo_code: housing.geo_code,
+          local_id: housing.local_id
+        };
+        const enriched: EnrichedSourceHousing = {
+          source,
+          existing: { housing: housing as any, events: [adminEvent as any], notes: [] }
+        };
+        const changes = transform(enriched);
+        const housingChange = changes.find(
+          (c: SourceHousingChange): c is HousingChange => c.type === 'housing'
+        )!;
+        expect(housingChange.value).toMatchObject<Partial<HousingRecordInsert>>({
+          occupancy: Occupancy.VACANT,
+          status: HousingStatus.NEVER_CONTACTED,
+          sub_status: null
+        });
+      });
+    });
+
+    describe('when last status/occupancy event was authored by a non-admin user', () => {
+      it('should NOT reset occupancy or status', () => {
+        const housing = formatHousingRecordApi({
+          ...genHousingApi(),
+          occupancy: Occupancy.RENT,
+          status: HousingStatus.IN_PROGRESS
+        });
         const userEvent = {
           id: faker.string.uuid(),
           type: 'housing:occupancy-updated',
           next_old: { occupancy: Occupancy.VACANT },
           next_new: { occupancy: Occupancy.RENT },
-          created_by: faker.string.uuid(), // different from ADMIN_USER_ID
+          created_by: faker.string.uuid(),
           created_at: new Date()
         };
         const source = {
@@ -203,6 +257,37 @@ describe('createHousingTransform', () => {
           (c: SourceHousingChange): c is HousingChange => c.type === 'housing'
         )!;
         expect(housingChange.value.occupancy).toBe(Occupancy.RENT);
+        expect(housingChange.value.status).toBe(HousingStatus.IN_PROGRESS);
+      });
+
+      it('should still add the year to data_file_years', () => {
+        const housing = formatHousingRecordApi({
+          ...genHousingApi(),
+          occupancy: Occupancy.RENT,
+          dataFileYears: ['lovac-2024']
+        });
+        const userEvent = {
+          id: faker.string.uuid(),
+          type: 'housing:status-updated',
+          next_old: { status: HousingStatus.NEVER_CONTACTED, subStatus: null },
+          next_new: { status: HousingStatus.IN_PROGRESS, subStatus: null },
+          created_by: faker.string.uuid(),
+          created_at: new Date()
+        };
+        const source = {
+          ...genSourceHousing(),
+          geo_code: housing.geo_code,
+          local_id: housing.local_id
+        };
+        const enriched: EnrichedSourceHousing = {
+          source,
+          existing: { housing: housing as any, events: [userEvent as any], notes: [] }
+        };
+        const changes = transform(enriched);
+        const housingChange = changes.find(
+          (c: SourceHousingChange): c is HousingChange => c.type === 'housing'
+        )!;
+        expect(housingChange.value.data_file_years).toContain('lovac-2025');
       });
     });
   });

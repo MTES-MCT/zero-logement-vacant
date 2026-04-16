@@ -1,9 +1,7 @@
 import { PutObjectCommand } from '@aws-sdk/client-s3';
 import {
-  chunkify,
   count,
   createS3,
-  filter,
   flatten,
   groupBy,
   map
@@ -11,6 +9,7 @@ import {
 import { writeFileSync } from 'node:fs';
 import { WritableStream } from 'node:stream/web';
 import { match } from 'ts-pattern';
+
 import UserMissingError from '~/errors/userMissingError';
 import config from '~/infra/config';
 import { withinTransaction } from '~/infra/database/transaction';
@@ -36,12 +35,12 @@ import {
 } from '~/scripts/import-lovac/source-housing-owners/source-housing-owner';
 import { createSourceHousingOwnerEnricher } from '~/scripts/import-lovac/source-housing-owners/source-housing-owner-enricher';
 import { createSourceHousingOwnerRepository } from '~/scripts/import-lovac/source-housing-owners/source-housing-owner-repository';
+import { createHousingOwnerLoader } from '~/scripts/import-lovac/source-housing-owners/source-housing-owner-loader';
 import {
   createHousingOwnerTransform,
-  HousingEventChange,
-  HousingOwnerChange,
-  HousingOwnersChange
+  HousingOwnerChange
 } from '~/scripts/import-lovac/source-housing-owners/source-housing-owner-transform';
+import { createSourceHousingOwnerRepository } from '~/scripts/import-lovac/source-housing-owners/source-housing-owner-repository';
 
 const logger = createLogger('sourceHousingOwnerCommand');
 
@@ -73,7 +72,7 @@ export function createSourceHousingOwnerCommand() {
       const total = await count(
         createSourceHousingOwnerRepository({
           ...config.s3,
-          file: file,
+          file,
           from: options.from
         }).stream({
           departments: options.departments
@@ -81,102 +80,41 @@ export function createSourceHousingOwnerCommand() {
       );
 
       logger.info('Starting import...', { file });
-      const [housingOwnerStream, eventStream] =
-        createSourceHousingOwnerRepository({
-          ...config.s3,
-          file: file,
-          from: options.from
+      await createSourceHousingOwnerRepository({
+        ...config.s3,
+        file,
+        from: options.from
+      })
+        .stream({
+          departments: options.departments
         })
-          .stream({
-            departments: options.departments
+        .pipeThrough(
+          progress({
+            initial: 0,
+            total,
+            name: '(1/1) Updating housing owners'
           })
-          .pipeThrough(
-            progress({
-              initial: 0,
-              total,
-              name: '(1/1) Updating housing owners'
-            })
-          )
-          .pipeThrough(
-            validator(sourceHousingOwnerSchema, {
+        )
+        .pipeThrough(
+          validator(sourceHousingOwnerSchema, {
+            abortEarly: options.abortEarly,
+            reporter
+          })
+        )
+        .pipeThrough(groupBy((a, b) => a.local_id === b.local_id))
+        .pipeThrough(createSourceHousingOwnerEnricher())
+        .pipeThrough(
+          map(
+            createHousingOwnerTransform({
               abortEarly: options.abortEarly,
-              reporter
+              adminUserId: auth.id,
+              reporter,
+              year: options.year
             })
           )
-          .pipeThrough(groupBy((a, b) => a.local_id === b.local_id))
-          .pipeThrough(createSourceHousingOwnerEnricher())
-          .pipeThrough(
-            map(
-              createHousingOwnerTransform({
-                abortEarly: options.abortEarly,
-                adminUserId: auth.id,
-                reporter,
-                year: options.year
-              })
-            )
-          )
-          .pipeThrough(flatten<HousingOwnerChange>())
-          .tee();
-
-      const allAffectedOwnerIds = new Set<string>();
-
-      await Promise.all([
-        // Update housing owners
-        housingOwnerStream
-          .pipeThrough(
-            filter(
-              (change): change is HousingOwnersChange =>
-                change.type === 'housingOwners' && change.kind === 'replace'
-            )
-          )
-          .pipeThrough(map((change) => change.value))
-          .pipeTo(
-            new WritableStream<ReadonlyArray<HousingOwnerDBO>>({
-              async write(housingOwners) {
-                if (!options.dryRun && housingOwners.length > 0) {
-                  const housingGeoCode = housingOwners[0].housing_geo_code;
-                  const housingId = housingOwners[0].housing_id;
-                  await withinTransaction(async (transaction) => {
-                    await HousingOwners(transaction)
-                      .where({
-                        housing_geo_code: housingGeoCode,
-                        housing_id: housingId
-                      })
-                      .delete();
-                    await HousingOwners(transaction).insert(
-                      housingOwners as HousingOwnerDBO[]
-                    );
-                  });
-                  const ids = housingOwners.map(
-                    (housingOwner) => housingOwner.owner_id
-                  );
-                  ids.forEach((id) => allAffectedOwnerIds.add(id));
-                }
-              }
-            })
-          ),
-        // Save events
-        eventStream
-          .pipeThrough(
-            filter(
-              (change): change is HousingEventChange =>
-                change.type === 'event' && change.kind === 'create'
-            )
-          )
-          .pipeThrough(map((change) => change.value))
-          .pipeThrough(chunkify({ size: 1_000 }))
-          .pipeTo(
-            new WritableStream({
-              async write(events) {
-                if (!options.dryRun) {
-                  await eventRepository.insertManyHousingEvents(
-                    events as unknown as HousingEventApi[]
-                  );
-                }
-              }
-            })
-          )
-      ]);
+        )
+        .pipeThrough(flatten<HousingOwnerChange>())
+        .pipeTo(createHousingOwnerLoader({ dryRun: options.dryRun, reporter }));
 
       if (!options.dryRun && allAffectedOwnerIds.size > 0) {
         logger.info('Refreshing multi-owner flags...', {
@@ -186,9 +124,6 @@ export function createSourceHousingOwnerCommand() {
       }
 
       logger.info(`File ${file} imported.`);
-    } catch (error) {
-      logger.error(error);
-      throw error;
     } finally {
       reporter.report();
       await writeReport(file, options, reporter);

@@ -1,8 +1,6 @@
 import { OWNER_ENTITY_VALUES, OwnerEntity } from '@zerologementvacant/models';
 import { match } from 'ts-pattern';
-import { date, object, string } from 'yup';
-
-import { toDate } from '~/scripts/import-lovac/infra/validator';
+import z from 'zod';
 
 // Cannot extend from OwnerRecordDBO, forced to write this by hand
 // because ts-json-schema-generator does not support union types yet
@@ -17,30 +15,21 @@ export interface SourceOwner {
   entity: OwnerEntity;
 }
 
-export const sourceOwnerSchema = object({
-  idpersonne: string().trim().required('idpersonne is required'),
-  full_name: string().trim().required('full_name is required'),
-  dgfip_address: string()
-    .trim()
-    .defined('dgfip_address must be defined')
-    .nullable(),
-  ownership_type: string().trim().required('ownership_type is required'),
-  birth_date: date()
-    .defined('birth_date must be defined')
-    .transform(toDate)
-    .nullable(),
-  siren: string().trim().defined('siren must be defined').nullable(),
-  entity: string()
-    .transform((value) => {
-      if (value === null) return null;
-      if (typeof value === 'string' && value.length >= 1) {
-        return mapEntity(value[0]);
-      }
-      return value;
-    })
-    .defined('entity must be defined')
-    .nullable()
-    .oneOf(OWNER_ENTITY_VALUES)
+export const sourceOwnerSchema = z.object({
+  idpersonne: z.string().trim().min(1, 'idpersonne is required'),
+  full_name: z.string().trim().min(1, 'full_name is required'),
+  dgfip_address: z.string().trim().nullable(),
+  ownership_type: z.string().trim().min(1, 'ownership_type is required'),
+  birth_date: z.preprocess(
+    (v) => (typeof v === 'number' ? new Date(v * 1000) : v),
+    z.date().nullable()
+  ),
+  siren: z.string().trim().nullable(),
+  entity: z.preprocess((v) => {
+    if (v === null) return null;
+    if (typeof v === 'string' && v.length >= 1) return mapEntity(v[0]);
+    return v;
+  }, z.enum(OWNER_ENTITY_VALUES).nullable())
 });
 
 export function mapEntity(entity: string | null): OwnerEntity {

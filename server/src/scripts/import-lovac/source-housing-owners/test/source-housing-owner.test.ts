@@ -21,7 +21,7 @@ describe('SourceHousingOwner', () => {
       property_right: fc.constantFrom(...PROPERTY_RIGHT_VALUES),
       rank: fc.constantFrom<ActiveOwnerRank>(1, 2, 3, 4, 5, 6)
     })('should validate a source housing owner', (sourceHousingOwner) => {
-      const actual = sourceHousingOwnerSchema.validateSync(sourceHousingOwner);
+      const actual = sourceHousingOwnerSchema.parse(sourceHousingOwner);
 
       expect(actual).toStrictEqual(sourceHousingOwner);
     });

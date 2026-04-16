@@ -1,16 +1,10 @@
-import { map, count, createS3 } from '@zerologementvacant/utils/node';
+import { count, createS3, map } from '@zerologementvacant/utils/node';
 import { PutObjectCommand } from '@aws-sdk/client-s3';
 import { match } from 'ts-pattern';
-import { WritableStream } from 'node:stream/web';
 import { writeFileSync } from 'node:fs';
-import db from '~/infra/database';
+
 import config from '~/infra/config';
 import { createLogger } from '~/infra/logger';
-import {
-  Owners,
-  OwnerRecordDBO,
-  ownerTable
-} from '~/repositories/ownerRepository';
 import { createLoggerReporter } from '~/scripts/import-lovac/infra';
 import { Reporter } from '~/scripts/import-lovac/infra/reporters/reporter';
 import { FromOptionValue } from '~/scripts/import-lovac/infra/options/from';
@@ -21,10 +15,8 @@ import {
   sourceOwnerSchema
 } from '~/scripts/import-lovac/source-owners/source-owner';
 import { createOwnerEnricher } from '~/scripts/import-lovac/source-owners/source-owner-enricher';
-import {
-  createOwnerTransform,
-  OwnerChange
-} from '~/scripts/import-lovac/source-owners/source-owner-transform';
+import { createOwnerLoader } from '~/scripts/import-lovac/source-owners/source-owner-loader';
+import { createOwnerTransform } from '~/scripts/import-lovac/source-owners/source-owner-transform';
 import { createSourceOwnerRepository } from '~/scripts/import-lovac/source-owners/source-owner-repository';
 
 const logger = createLogger('sourceOwnerCommand');
@@ -36,17 +28,6 @@ export interface ExecOptions {
   from: FromOptionValue;
   year: string;
 }
-
-const CHUNK_SIZE = 1_000;
-const UPSERT_COLUMNS = [
-  'full_name',
-  'birth_date',
-  'siren',
-  'address_dgfip',
-  'kind_class',
-  'data_source',
-  'updated_at'
-] as const;
 
 export function createSourceOwnerCommand() {
   const reporter = createLoggerReporter<SourceOwner>();
@@ -95,7 +76,7 @@ export function createSourceOwnerCommand() {
             })
           )
         )
-        .pipeTo(createOwnerLoadSink(options, reporter));
+        .pipeTo(createOwnerLoader({ dryRun: options.dryRun, reporter }));
 
       logger.info(`File ${file} imported.`);
     } finally {
@@ -136,53 +117,4 @@ async function writeReport(
   } catch (error) {
     logger.warn('Failed to write report', { error });
   }
-}
-
-function createOwnerLoadSink(
-  options: ExecOptions,
-  reporter: Reporter<SourceOwner>
-): WritableStream<OwnerChange> {
-  const insertBuffer: OwnerRecordDBO[] = [];
-  const upsertBuffer: OwnerRecordDBO[] = [];
-
-  async function flushInserts(): Promise<void> {
-    if (insertBuffer.length === 0) return;
-    const batch = insertBuffer.splice(0);
-    if (options.dryRun) return;
-    logger.debug(`Inserting ${batch.length} owners...`);
-    await Owners().insert(batch);
-    reporter.created(batch.length);
-  }
-
-  async function flushUpserts(): Promise<void> {
-    if (upsertBuffer.length === 0) return;
-    const batch = upsertBuffer.splice(0);
-    if (options.dryRun) return;
-    logger.debug(`Upserting ${batch.length} owners...`);
-    await db.transaction(async (trx) => {
-      await trx(ownerTable)
-        .insert(batch)
-        .onConflict('idpersonne')
-        .merge([...UPSERT_COLUMNS]);
-    });
-    reporter.updated(batch.length);
-  }
-
-  return new WritableStream<OwnerChange>({
-    async write(change) {
-      await match(change)
-        .with({ kind: 'create' }, async (c) => {
-          insertBuffer.push(c.value);
-          if (insertBuffer.length >= CHUNK_SIZE) await flushInserts();
-        })
-        .with({ kind: 'update' }, async (c) => {
-          upsertBuffer.push(c.value);
-          if (upsertBuffer.length >= CHUNK_SIZE) await flushUpserts();
-        })
-        .exhaustive();
-    },
-    async close() {
-      await Promise.all([flushInserts(), flushUpserts()]);
-    }
-  });
 }

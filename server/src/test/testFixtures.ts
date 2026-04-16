@@ -524,7 +524,7 @@ export const genOwnerMatch = (
   idpersonne: datafoncierOwner.idpersonne
 });
 
-const genNoteApi = (creator: UserApi): NoteApi =>
+export const genNoteApi = (creator: UserApi): NoteApi =>
   fromNoteDTO(genNoteDTO(toUserDTO(creator)));
 
 export const genHousingNoteApi = (

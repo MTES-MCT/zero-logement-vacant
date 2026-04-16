@@ -116,10 +116,13 @@ export function createSourceHousingCommand() {
           })
         )
         .pipeThrough(
-          validator(sourceHousingSchema.pick(['geo_code', 'local_id']), {
-            abortEarly: options.abortEarly,
-            reporter: sourceHousingReporter
-          })
+          validator(
+            sourceHousingSchema.pick({ geo_code: true, local_id: true }),
+            {
+              abortEarly: options.abortEarly,
+              reporter: sourceHousingReporter
+            }
+          )
         )
         .pipeThrough(
           map<SourceHousing, HousingChange | null>(async (sourceHousing) => {

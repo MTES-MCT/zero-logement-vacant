@@ -57,7 +57,7 @@ describe('SourceHousing', () => {
       last_transaction_date: fc.option(fc.date({ noInvalidDate: true })),
       last_transaction_value: fc.option(fc.integer({ min: 0 }))
     })('should validate a source housing', (sourceHousing) => {
-      const validate = () => sourceHousingSchema.validateSync(sourceHousing);
+      const validate = () => sourceHousingSchema.parse(sourceHousing);
 
       expect(validate).not.toThrow();
     });

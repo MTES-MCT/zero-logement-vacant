@@ -16,7 +16,7 @@ describe('SourceOwner', () => {
       siren: fc.option(fc.stringMatching(/\S+/)),
       entity: fc.option(fc.stringMatching(/^[0-9]/))
     })('should validate a source owner', (sourceOwner) => {
-      const validate = () => sourceOwnerSchema.validateSync(sourceOwner);
+      const validate = () => sourceOwnerSchema.parse(sourceOwner);
 
       expect(validate).not.toThrow();
       const actual = validate();
@@ -27,7 +27,7 @@ describe('SourceOwner', () => {
   });
 
   it('should parse birth date from number to date', () => {
-    const actual = sourceOwnerSchema.validateSync({
+    const actual = sourceOwnerSchema.parse({
       birth_date: -698716800,
       idpersonne: 'idpersonne',
       full_name: 'full_name',
@@ -41,7 +41,7 @@ describe('SourceOwner', () => {
   });
 
   it.skip('should parse birth date from string to date', () => {
-    const actual = sourceOwnerSchema.validateSync({
+    const actual = sourceOwnerSchema.parse({
       birth_date: '1947-11-11',
       idpersonne: 'idpersonne',
       full_name: 'full_name',

@@ -1,5 +1,4 @@
 import {
-  ACTIVE_OWNER_RANKS,
   ActiveOwnerRank,
   PROPERTY_RIGHT_VALUES,
   PropertyRight

@@ -1,5 +1,6 @@
 import { Knex } from 'knex';
 import fp from 'lodash/fp';
+import { randomUUID } from 'node:crypto';
 import path from 'node:path';
 import { match } from 'ts-pattern';
 import { WritableStream } from 'node:stream/web';
@@ -24,7 +25,6 @@ import { ExistingHousingChange } from './housing-transform';
 const logger = createLogger('createExistingHousingLoader');
 
 const EVENT_CHUNK_SIZE = 1_000;
-const TEMPORARY_TABLE = 'existing_housing_updates_tmp';
 
 export interface ExistingHousingLoaderOptions {
   dryRun?: boolean;
@@ -35,6 +35,8 @@ export function createExistingHousingLoader(
   options: ExistingHousingLoaderOptions
 ): WritableStream<ExistingHousingChange> {
   const eventBuffer: HousingEventApi[] = [];
+  // Use a unique suffix to avoid table name conflicts when tests run in parallel.
+  const temporaryTable = `existing_housing_updates_tmp_${randomUUID().replace(/-/g, '')}`;
 
   const updateWriter = options.dryRun
     ? createUpdater<HousingRecordInsert>({
@@ -43,11 +45,11 @@ export function createExistingHousingLoader(
       })
     : createUpdater<HousingRecordInsert>({
         destination: 'database',
-        temporaryTable: TEMPORARY_TABLE,
+        temporaryTable,
         likeTable: housingTable,
         async update(housings): Promise<void> {
           await updateHousings(housings as ReadonlyArray<HousingRecordDBO>, {
-            temporaryTable: TEMPORARY_TABLE
+            temporaryTable
           });
         }
       });

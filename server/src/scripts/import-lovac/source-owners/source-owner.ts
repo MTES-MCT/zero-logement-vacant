@@ -21,7 +21,11 @@ export const sourceOwnerSchema = z.object({
   dgfip_address: z.string().trim().nullable(),
   ownership_type: z.string().trim().min(1, 'ownership_type is required'),
   birth_date: z.preprocess(
-    (v) => (typeof v === 'number' ? new Date(v * 1000) : v),
+    (v) => {
+      if (typeof v === 'number') return new Date(v * 1000);
+      if (typeof v === 'string') return new Date(v);
+      return v;
+    },
     z.date().nullable()
   ),
   siren: z.string().trim().nullable(),

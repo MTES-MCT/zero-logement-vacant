@@ -53,11 +53,15 @@ export function createExistingHousingCommand() {
         ALTER TABLE fast_housing DISABLE TRIGGER housing_delete_building_trigger;
       `);
 
-      const total = await count(housingRepository.stream({ filters: {} }));
+      const filters = options.departments?.length
+        ? { departments: options.departments }
+        : {};
+
+      const total = await count(housingRepository.stream({ filters }));
 
       logger.info('Starting verification...', { total });
       await housingRepository
-        .stream({ filters: {} })
+        .stream({ filters })
         .pipeThrough(
           progress({
             initial: 0,

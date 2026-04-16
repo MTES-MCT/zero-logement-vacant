@@ -171,7 +171,7 @@ function toUpdate(
     (existing.data_file_years ?? []).concat(year as DataFileYear)
   ) as DataFileYear[];
 
-  const patch = applyChanges(events, adminUserId);
+  const patch = applyChanges(events, existing.occupancy, adminUserId);
   const eventChanges: HousingEventChange[] = [];
 
   if (patch.occupancy !== undefined && existing.occupancy !== patch.occupancy) {
@@ -254,13 +254,18 @@ function toUpdate(
 
 const byCreatedAt = Order.mapInput(
   Order.Date,
-  (event: EventRecordDBO<EventType>) => event.created_at
+  (event: EventRecordDBO<EventType>) => new Date(event.created_at)
 );
 
 function applyChanges(
   events: ReadonlyArray<EventRecordDBO<EventType>>,
+  existingOccupancy: string,
   adminUserId: string
 ): Partial<HousingRecordInsert> {
+  // Already vacant in our DB — LOVAC confirms it; preserve occupancy/status.
+  if (existingOccupancy === Occupancy.VACANT) {
+    return {};
+  }
   const lastStatusOccupancyEvent = pipe(
     events,
     Arr.filter((event) =>

@@ -1,5 +1,4 @@
 import { Knex } from 'knex';
-import fp from 'lodash/fp';
 import path from 'node:path';
 import { match } from 'ts-pattern';
 import { WritableStream } from 'node:stream/web';
@@ -173,7 +172,7 @@ export async function updateHousings(
         'energy_consumption_bdnb',
         'energy_consumption_at_bdnb'
       ];
-  const updates: Record<string, Knex.Ref<string, any>> = fp.fromPairs(
+  const updates: Record<string, Knex.Ref<string, any>> = Object.fromEntries(
     keys.map((key) => [key, db.ref(`${temporaryTable}.${key}`)])
   );
 

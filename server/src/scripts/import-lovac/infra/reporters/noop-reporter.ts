@@ -1,15 +1,15 @@
-import { ImportSummary, Reporter, ReporterError } from '~/scripts/import-lovac/infra/reporters/reporter';
+import { ImportSummary, Reporter } from '~/scripts/import-lovac/infra/reporters/reporter';
 
 class NoopReporter<T> implements Reporter<T> {
-  passed(_data: T): void {}
+  passed(): void {}
 
-  skipped(_data: T) {}
+  skipped() {}
 
-  failed(_data: T, _error: ReporterError): void {}
+  failed(): void {}
 
-  created(_n: number): void {}
+  created(): void {}
 
-  updated(_n: number): void {}
+  updated(): void {}
 
   getSummary(): ImportSummary {
     return { created: 0, updated: 0, skipped: 0, failed: 0, durationMs: 0 };

@@ -37,9 +37,15 @@ Remplacer `lovac-2026` par le millésime courant.
 ./stats/snapshot.sh housing-owners post "$DATABASE_URL"
 
 # 8. Voir les deltas dans le terminal
-./stats/diff.sh snapshot-owners-pre.json snapshot-owners-post.json
-./stats/diff.sh snapshot-housings-pre.json snapshot-housings-post.json
-./stats/diff.sh snapshot-housing-owners-pre.json snapshot-housing-owners-post.json
+for suffix in metrics types sources; do
+  ./stats/diff.sh snapshot-owners-${suffix}-pre.json snapshot-owners-${suffix}-post.json
+done
+for suffix in metrics occupancy status years; do
+  ./stats/diff.sh snapshot-housings-${suffix}-pre.json snapshot-housings-${suffix}-post.json
+done
+for suffix in metrics rank; do
+  ./stats/diff.sh snapshot-housing-owners-${suffix}-pre.json snapshot-housing-owners-${suffix}-post.json
+done
 
 # 9. Publier le rapport sur Notion (dans une session Claude Code)
 # /publish-lovac-report lovac-2026
@@ -68,7 +74,7 @@ Les identifiants sont déterministes (UUID v5) : relancer l'import avec le même
 ## Rapport Notion
 
 Le rapport est publié **en français** via le skill Claude Code `/publish-lovac-report`.  
-Il lit les fichiers `snapshot-*-pre.json` / `snapshot-*-post.json` produits par `stats/snapshot.sh`.
+Il lit les fichiers `snapshot-<entité>-<suffixe>-pre.json` / `snapshot-<entité>-<suffixe>-post.json` produits par `stats/snapshot.sh` (un fichier par requête SQL).
 
 Sections générées :
 - Propriétaires (total, par type, avec/sans `idpersonne`, avec/sans adresse DGFIP)

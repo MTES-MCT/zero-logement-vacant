@@ -1,6 +1,5 @@
 import { isNotNull } from '@zerologementvacant/utils';
 import {
-  chunkify,
   count,
   createS3,
   filter,
@@ -12,7 +11,6 @@ import async from 'async';
 import { List } from 'immutable';
 import path from 'node:path';
 import { writeFileSync } from 'node:fs';
-import { WritableStream } from 'node:stream/web';
 import { match } from 'ts-pattern';
 
 import UserMissingError from '~/errors/userMissingError';
@@ -20,19 +18,13 @@ import config from '~/infra/config';
 import db from '~/infra/database';
 import { createLogger } from '~/infra/logger';
 import { HousingApi } from '~/models/HousingApi';
-import eventRepository from '~/repositories/eventRepository';
-import housingRepository, {
+import {
   formatHousingRecordApi,
   HousingDBO,
-  HousingRecordDBO,
   housingTable,
   parseHousingApi
 } from '~/repositories/housingRepository';
 import userRepository from '~/repositories/userRepository';
-import {
-  createHousingProcessor,
-  HousingEventChange
-} from '~/scripts/import-lovac/housings/housing-processor';
 import { createLoggerReporter } from '~/scripts/import-lovac/infra';
 import { FromOptionValue } from '~/scripts/import-lovac/infra/options/from';
 import { progress } from '~/scripts/import-lovac/infra/progress-bar';
@@ -49,10 +41,7 @@ import {
   HousingChange,
   HousingRecordInsert
 } from '~/scripts/import-lovac/source-housings/source-housing-transform';
-import {
-  createHousingLoader,
-  updateHousings
-} from '~/scripts/import-lovac/source-housings/source-housing-loader';
+import { createHousingLoader } from '~/scripts/import-lovac/source-housings/source-housing-loader';
 import { createSourceHousingRepository } from '~/scripts/import-lovac/source-housings/source-housing-repository';
 
 const logger = createLogger('sourceHousingCommand');
@@ -67,7 +56,6 @@ export interface ExecOptions {
 
 export function createSourceHousingCommand() {
   const sourceHousingReporter = createLoggerReporter<SourceHousing>();
-  const housingReporter = createLoggerReporter<HousingApi>();
 
   return async (file: string, options: ExecOptions): Promise<void> => {
     try {
@@ -107,7 +95,7 @@ export function createSourceHousingCommand() {
           progress({
             initial: 0,
             total: total,
-            name: '(1/3) Updating housing geo codes'
+            name: '(1/2) Updating housing geo codes'
           })
         )
         .pipeThrough(
@@ -192,7 +180,7 @@ export function createSourceHousingCommand() {
           progress({
             initial: 0,
             total: total,
-            name: '(2/3) Importing from LOVAC'
+            name: '(2/2) Importing from LOVAC'
           })
         )
         .pipeThrough(
@@ -220,84 +208,6 @@ export function createSourceHousingCommand() {
           })
         );
       logger.info(`File ${file} imported.`);
-
-      logger.info('Checking for missing housings from the file...');
-      const housingCount = await count(
-        housingRepository.stream({
-          filters: {}
-          // For some reason, we cannot optimize by fetching
-          // only vacant housing, excluding lovac-2025.
-          // It seems to come from the `knex` package or `pg-query-stream`.
-          // filters: {
-          //   occupancies: [Occupancy.VACANT],
-          //   dataFileYearsExcluded: ['lovac-2025']
-          // },
-          // includes: []
-        })
-      );
-      const [housingUpdates2, eventCreations2] = housingRepository
-        .stream({
-          filters: {}
-        })
-        .pipeThrough(
-          progress({
-            initial: 0,
-            total: housingCount,
-            name: '(3/3) Updating housings missing from LOVAC'
-          })
-        )
-        .pipeThrough(
-          createHousingProcessor({
-            auth,
-            abortEarly: options.abortEarly,
-            reporter: housingReporter
-          })
-        )
-        .pipeThrough(flatten())
-        .tee();
-
-      await Promise.all([
-        housingUpdates2
-          .pipeThrough(
-            filter(
-              (change) => change.type === 'housing' && change.kind === 'update'
-            )
-          )
-          .pipeThrough(map((change) => change.value))
-          .pipeThrough(map(formatHousingRecordApi))
-          .pipeTo(
-            createUpdater<HousingRecordDBO>({
-              destination: options.dryRun ? 'file' : 'database',
-              file: path.join(import.meta.dirname, 'housing-updates.jsonl'),
-              temporaryTable: 'housing_updates_tmp',
-              likeTable: housingTable,
-              async update(housings): Promise<void> {
-                await updateHousings(housings, {
-                  temporaryTable: 'housing_updates_tmp'
-                });
-              }
-            })
-          ),
-        eventCreations2
-          .pipeThrough(
-            filter(
-              (change): change is HousingEventChange =>
-                change.type === 'event' && change.kind === 'create'
-            )
-          )
-          .pipeThrough(map((change) => change.value))
-          .pipeThrough(chunkify({ size: 1_000 }))
-          .pipeTo(
-            new WritableStream({
-              async write(events) {
-                if (!options.dryRun) {
-                  await eventRepository.insertManyHousingEvents(events);
-                }
-              }
-            })
-          )
-      ]);
-      logger.info('Check done.');
 
       logger.info('Updating building counts...');
       await db.raw(`
@@ -327,7 +237,6 @@ export function createSourceHousingCommand() {
       `);
 
       sourceHousingReporter.report();
-      housingReporter.report();
       await writeReport(file, options, sourceHousingReporter);
       console.timeEnd('Import housings');
     }

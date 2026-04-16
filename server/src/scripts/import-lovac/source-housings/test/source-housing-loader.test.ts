@@ -1,4 +1,3 @@
-import { faker } from '@faker-js/faker/locale/fr';
 import {
   AddressKinds,
   HousingStatus,
@@ -12,8 +11,7 @@ import { Addresses } from '~/repositories/banAddressesRepository';
 import { Events } from '~/repositories/eventRepository';
 import {
   formatHousingRecordApi,
-  Housing,
-  HousingRecordDBO
+  Housing
 } from '~/repositories/housingRepository';
 import { createNoopReporter } from '~/scripts/import-lovac/infra/reporters/noop-reporter';
 import { createHousingLoader } from '../source-housing-loader';

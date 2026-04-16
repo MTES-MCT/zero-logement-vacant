@@ -9,7 +9,6 @@ import { HousingApi } from '~/models/HousingApi';
 import { createNoopReporter } from '~/scripts/import-lovac/infra/reporters/noop-reporter';
 import {
   createExistingHousingTransform,
-  ExistingHousingChange,
   HousingUpdateChange,
   HousingEventChange,
   isCompleted,

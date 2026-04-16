@@ -97,15 +97,15 @@ export const sourceHousingSchema = z.object({
     .min(0)
     .max(new Date().getUTCFullYear()),
   mutation_date: z.preprocess(
-    (v) => (v != null && !(v instanceof Date) ? new Date(v as string) : v),
+    (v) => (v !== null && v !== undefined && !(v instanceof Date) ? new Date(v as string) : v),
     z.date().nullable()
   ),
   last_mutation_date: z.preprocess(
-    (v) => (v != null && !(v instanceof Date) ? new Date(v as string) : v),
+    (v) => (v !== null && v !== undefined && !(v instanceof Date) ? new Date(v as string) : v),
     z.date().nullable()
   ),
   last_transaction_date: z.preprocess(
-    (v) => (v != null && !(v instanceof Date) ? new Date(v as string) : v),
+    (v) => (v !== null && v !== undefined && !(v instanceof Date) ? new Date(v as string) : v),
     z.date().nullable()
   ),
   last_transaction_value: z.preprocess(

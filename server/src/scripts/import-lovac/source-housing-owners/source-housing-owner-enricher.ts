@@ -111,7 +111,7 @@ export function createSourceHousingOwnerEnricher(): TransformStream<
       };
 
       const existingHousingOwners: HousingOwnerDBO[] = rows
-        .filter((r: any) => r.owner_id != null)
+        .filter((r: any) => r.owner_id !== null && r.owner_id !== undefined)
         .map((r: any) => ({
           owner_id: r.owner_id,
           housing_id: housing.id,

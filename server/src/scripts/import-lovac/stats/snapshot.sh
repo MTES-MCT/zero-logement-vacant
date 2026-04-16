@@ -1,6 +1,7 @@
 #!/bin/bash
-# Run DuckDB stats query for a LOVAC entity and save results as JSON.
-# Also renders a bar chart in the terminal via Youplot.
+# Run DuckDB stats queries for a LOVAC entity and save results as JSON.
+# One output file is produced per query file (entity-<suffix>).
+# Also renders a bar chart in the terminal via Youplot for category/value results.
 #
 # Usage:
 #   ./stats/snapshot.sh <entity> <label> <DATABASE_URL>
@@ -10,7 +11,7 @@
 # DATABASE_URL: postgres://user:pass@host/dbname
 #
 # Output:
-#   snapshot-<entity>-<label>.json (in current directory)
+#   snapshot-<entity>-<suffix>-<label>.json (in current directory)
 set -euo pipefail
 
 ENTITY="${1:?Usage: $0 <entity> <label> <DATABASE_URL>}"
@@ -18,53 +19,58 @@ LABEL="${2:?Usage: $0 <entity> <label> <DATABASE_URL>}"
 DATABASE_URL="${3:?Usage: $0 <entity> <label> <DATABASE_URL>}"
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-QUERY_FILE="${SCRIPT_DIR}/queries/${ENTITY}.sql"
-OUTPUT_FILE="snapshot-${ENTITY}-${LABEL}.json"
+QUERIES_DIR="${SCRIPT_DIR}/queries"
 
-if [ ! -f "$QUERY_FILE" ]; then
-  echo "Error: query file not found: $QUERY_FILE" >&2
+# Normalize URL: DuckDB postgres extension requires postgresql:// scheme
+PG_URL="${DATABASE_URL/postgres:\/\//postgresql://}"
+
+TEMP_SQL=$(mktemp /tmp/duckdb-query.XXXXXX.sql)
+trap 'rm -f "$TEMP_SQL"' EXIT
+
+shopt -s nullglob
+QUERY_FILES=("${QUERIES_DIR}/${ENTITY}-"*.sql)
+
+if [ ${#QUERY_FILES[@]} -eq 0 ]; then
+  echo "Error: no query files found for entity '${ENTITY}' in ${QUERIES_DIR}" >&2
   exit 1
 fi
 
-echo "Running ${ENTITY} stats (${LABEL})..."
+for QUERY_FILE in "${QUERY_FILES[@]}"; do
+  BASENAME="$(basename "$QUERY_FILE" .sql)"   # e.g. owners-metrics
+  SUFFIX="${BASENAME#"${ENTITY}-"}"            # e.g. metrics
+  OUTPUT_FILE="snapshot-${ENTITY}-${SUFFIX}-${LABEL}.json"
 
-# DuckDB uses its own postgres URI format; extract components
-# DATABASE_URL format: postgres://user:pass@host:port/dbname
-DB_HOST=$(echo "$DATABASE_URL" | sed -E 's|postgres://[^@]+@([^:/]+).*|\1|')
-DB_PORT=$(echo "$DATABASE_URL" | sed -E 's|postgres://[^@]+@[^:]+:([0-9]+)/.*|\1|')
-DB_NAME=$(echo "$DATABASE_URL" | sed -E 's|.*/([^?]+).*|\1|')
-DB_USER=$(echo "$DATABASE_URL" | sed -E 's|postgres://([^:]+):.*|\1|')
-DB_PASS=$(echo "$DATABASE_URL" | sed -E 's|postgres://[^:]+:([^@]+)@.*|\1|')
+  echo "Running ${ENTITY}/${SUFFIX} stats (${LABEL})..."
 
-# Run DuckDB with the postgres secret and capture JSON output
-RESULT=$(duckdb -json -c "
-  INSTALL postgres;
-  LOAD postgres;
-  CREATE SECRET pg_secret (
-    TYPE postgres,
-    HOST '${DB_HOST}',
-    PORT ${DB_PORT:-5432},
-    DATABASE '${DB_NAME}',
-    USER '${DB_USER}',
-    PASSWORD '${DB_PASS}'
-  );
-  $(cat "$QUERY_FILE" | sed 's|ATTACH.*AS pg.*||g' | sed "s|pg\\.||g")
-" 2>/dev/null || duckdb :memory: -json < "$QUERY_FILE")
+  # Rewrite the ATTACH line to use the provided DATABASE_URL
+  python3 - "$QUERY_FILE" "$PG_URL" > "$TEMP_SQL" <<'PYEOF'
+import sys, re
+query_file, pg_url = sys.argv[1], sys.argv[2]
+with open(query_file) as f:
+    sql = f.read()
+sql = re.sub(r"ATTACH\s+'[^']*'\s+AS\s+pg[^;]*;",
+             f"ATTACH '{pg_url}' AS pg (TYPE postgres);",
+             sql)
+print(sql)
+PYEOF
 
-echo "$RESULT" > "$OUTPUT_FILE"
-echo "Saved to ${OUTPUT_FILE}"
+  RESULT=$(duckdb -json < "$TEMP_SQL")
+  echo "$RESULT" > "$OUTPUT_FILE"
+  echo "Saved to ${OUTPUT_FILE}"
 
-# Render bar chart if youplot is available and result has category+value
-if command -v uplot &>/dev/null; then
-  echo ""
-  echo "=== ${ENTITY} (${LABEL}) ==="
-  # Extract top-level metric rows for bar chart (category, value columns)
-  echo "$RESULT" | \
-    python3 -c "
+  # Render bar chart if youplot is available and result has category+value rows
+  if command -v uplot &>/dev/null; then
+    CHART_DATA=$(echo "$RESULT" | python3 -c "
 import json, sys
 data = json.load(sys.stdin)
-if isinstance(data, list) and data and 'category' in data[0]:
-    for row in data:
-        print(f\"{row['category']}\t{row['value']}\")
-" | uplot bar --delimiter="\t" --title="${ENTITY} (${LABEL})" 2>/dev/null || true
-fi
+rows = [r for r in data if 'category' in r and r['category'] is not None]
+for row in rows:
+    print(f\"{row['category']}\t{row['value']}\")
+" 2>/dev/null || true)
+    if [ -n "$CHART_DATA" ]; then
+      echo ""
+      echo "=== ${ENTITY}/${SUFFIX} (${LABEL}) ==="
+      echo "$CHART_DATA" | uplot bar --delimiter="\t" --title="${ENTITY}/${SUFFIX} (${LABEL})" 2>/dev/null || true
+    fi
+  fi
+done

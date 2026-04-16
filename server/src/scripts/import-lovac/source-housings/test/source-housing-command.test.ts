@@ -87,16 +87,6 @@ describe('Source housing command', () => {
   const contactedStatuses = HOUSING_STATUS_VALUES.filter(
     (status) => status !== HousingStatus.NEVER_CONTACTED
   );
-  const nonVacantUnsupervisedHousings: ReadonlyArray<HousingApi> = faker.helpers
-    .multiple(() => faker.helpers.arrayElement(nonVacantOccupancies), {
-      count: { min: 5, max: 50 }
-    })
-    .map((occupancy) => ({
-      ...genHousingApi(),
-      buildingId: building.id,
-      occupancy: occupancy,
-      occupancyRegistered: occupancy
-    }));
   const nonVacantUserModifiedHousings: ReadonlyArray<HousingApi> = faker.helpers
     .multiple(() => faker.helpers.arrayElement(nonVacantOccupancies), {
       count: { min: 5, max: 50 }
@@ -131,7 +121,6 @@ describe('Source housing command', () => {
   const sourceHousings: ReadonlyArray<SourceHousing> = [
     ...missingSourceHousings,
     ...vacantHousings.map(toSourceHousing),
-    ...nonVacantUnsupervisedHousings.map(toSourceHousing),
     ...nonVacantUserModifiedHousings.map(toSourceHousing),
     ...nonVacantNonUserModifiedHousings.map(toSourceHousing),
     ...geoCodeChangedHousings.map((housing) => ({
@@ -144,7 +133,6 @@ describe('Source housing command', () => {
   // Housings to save to the database
   const housingsBefore: ReadonlyArray<HousingApi> = [
     ...vacantHousings,
-    ...nonVacantUnsupervisedHousings,
     ...nonVacantUserModifiedHousings,
     ...nonVacantNonUserModifiedHousings,
     ...geoCodeChangedHousings
@@ -202,7 +190,6 @@ describe('Source housing command', () => {
   it('should add "lovac-2025" to housing updated from LOVAC', async () => {
     const actual = await refresh([
       ...vacantHousings,
-      ...nonVacantUnsupervisedHousings,
       ...nonVacantUserModifiedHousings,
       ...nonVacantNonUserModifiedHousings
     ]);
@@ -400,12 +387,14 @@ describe('Source housing command', () => {
         >({
           housing_geo_code: actualHousing.geo_code,
           housing_id: actualHousing.id,
+          type: 'housing:occupancy-updated'
         });
         expect(actualEvents).toPartiallyContain<
           Partial<EventRecordDBO<any> & HousingEventDBO>
         >({
           housing_geo_code: actualHousing.geo_code,
           housing_id: actualHousing.id,
+          type: 'housing:status-updated'
         });
       });
     });

@@ -4,9 +4,7 @@ import {
   Occupancy
 } from '@zerologementvacant/models';
 
-import config from '~/infra/config';
 import { HousingApi } from '~/models/HousingApi';
-import { UserApi } from '~/models/UserApi';
 import {
   Establishments,
   formatEstablishmentApi
@@ -21,13 +19,16 @@ import {
   Housing,
   HousingRecordDBO
 } from '~/repositories/housingRepository';
-import { toUserDBO, Users } from '~/repositories/userRepository';
 import { createExistingHousingCommand } from '~/scripts/import-lovac/housings/housing-command';
 import {
   genEstablishmentApi,
-  genHousingApi,
-  genUserApi
+  genHousingApi
 } from '~/test/testFixtures';
+
+// Use a unique department prefix to avoid processing housings from other parallel tests.
+const TEST_DEPARTMENT = '01';
+const testGeoCode = () =>
+  TEST_DEPARTMENT + faker.string.numeric({ length: 3 });
 
 describe('Existing housing command', () => {
   const command = createExistingHousingCommand();
@@ -36,7 +37,7 @@ describe('Existing housing command', () => {
   const vacantUnsupervisedHousings: ReadonlyArray<HousingApi> =
     faker.helpers.multiple(
       () => ({
-        ...genHousingApi(),
+        ...genHousingApi(testGeoCode()),
         dataFileYears: ['lovac-2024'],
         occupancy: Occupancy.VACANT,
         status: faker.helpers.arrayElement([
@@ -66,7 +67,7 @@ describe('Existing housing command', () => {
               ])
             : null;
         return {
-          ...genHousingApi(),
+          ...genHousingApi(testGeoCode()),
           dataFileYears: ['lovac-2024'],
           occupancy: Occupancy.VACANT,
           occupancyRegistered: Occupancy.VACANT,
@@ -80,7 +81,7 @@ describe('Existing housing command', () => {
   // Housings still present in LOVAC 2025: should be skipped
   const presentHousings: ReadonlyArray<HousingApi> = faker.helpers.multiple(
     () => ({
-      ...genHousingApi(),
+      ...genHousingApi(testGeoCode()),
       dataFileYears: ['lovac-2024', 'lovac-2025'],
       occupancy: Occupancy.VACANT,
       status: HousingStatus.NEVER_CONTACTED,
@@ -92,11 +93,6 @@ describe('Existing housing command', () => {
   beforeAll(async () => {
     const establishment = genEstablishmentApi();
     await Establishments().insert(formatEstablishmentApi(establishment));
-    const auth: UserApi = {
-      ...genUserApi(establishment.id),
-      email: config.app.system
-    };
-    await Users().insert(toUserDBO(auth)).onConflict('email').ignore();
     await Housing().insert(
       [
         ...vacantUnsupervisedHousings,
@@ -108,7 +104,8 @@ describe('Existing housing command', () => {
     await command({
       abortEarly: true,
       dryRun: false,
-      year: 'lovac-2025'
+      year: 'lovac-2025',
+      departments: [TEST_DEPARTMENT]
     });
   });
 

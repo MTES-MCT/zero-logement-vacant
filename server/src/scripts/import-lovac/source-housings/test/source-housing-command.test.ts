@@ -11,7 +11,6 @@ import { rm } from 'node:fs/promises';
 import path from 'node:path';
 import { Transform, Writable } from 'node:stream';
 import { ReadableStream } from 'node:stream/web';
-import config from '~/infra/config';
 import { BuildingApi } from '~/models/BuildingApi';
 import { HousingEventApi } from '~/models/EventApi';
 import { HousingApi } from '~/models/HousingApi';
@@ -163,11 +162,7 @@ describe('Source housing command', () => {
       ...genUserApi(establishment.id),
       email: `${faker.internet.userName().toLowerCase()}@zerologementvacant.beta.gouv.fr`
     };
-    const auth: UserApi = {
-      ...genUserApi(establishment.id),
-      email: config.app.system
-    };
-    await Users().insert([user, admin, auth].map(toUserDBO)).onConflict('email').ignore();
+    await Users().insert([user, admin].map(toUserDBO));
     await Buildings().insert(formatBuildingApi(building));
     await Housing().insert(housingsBefore.map(formatHousingRecordApi));
 

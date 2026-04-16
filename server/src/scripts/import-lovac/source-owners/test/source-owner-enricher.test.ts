@@ -1,5 +1,5 @@
 import { ReadableStream, WritableStream } from 'node:stream/web';
-import { beforeEach, describe, expect, it } from 'vitest';
+import { describe, expect, it } from 'vitest';
 import { formatOwnerApi, Owners } from '~/repositories/ownerRepository';
 import { genSourceOwner } from '~/scripts/import-lovac/infra/fixtures';
 import {
@@ -9,9 +9,6 @@ import {
 import { genOwnerApi } from '~/test/testFixtures';
 
 describe('createOwnerEnricher', () => {
-  beforeEach(async () => {
-    await Owners().delete();
-  });
 
   it('should annotate a known owner with its existing DB record', async () => {
     const source = genSourceOwner();

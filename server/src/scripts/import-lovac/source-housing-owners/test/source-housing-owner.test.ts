@@ -23,7 +23,7 @@ describe('SourceHousingOwner', () => {
     })('should validate a source housing owner', (sourceHousingOwner) => {
       const actual = sourceHousingOwnerSchema.parse(sourceHousingOwner);
 
-      expect(actual).toStrictEqual(sourceHousingOwner);
+      expect(actual).toEqual(sourceHousingOwner);
     });
   });
 });

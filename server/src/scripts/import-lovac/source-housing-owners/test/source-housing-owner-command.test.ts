@@ -12,11 +12,9 @@ import path from 'node:path';
 import { Transform, Writable } from 'node:stream';
 import { ReadableStream } from 'node:stream/web';
 
-import config from '~/infra/config';
 import { HousingApi } from '~/models/HousingApi';
 import { HousingOwnerApi } from '~/models/HousingOwnerApi';
 import { OwnerApi } from '~/models/OwnerApi';
-import { UserApi } from '~/models/UserApi';
 import {
   Establishments,
   formatEstablishmentApi
@@ -42,15 +40,13 @@ import {
   OwnerRecordDBO,
   Owners
 } from '~/repositories/ownerRepository';
-import { toUserDBO, Users } from '~/repositories/userRepository';
 import { SourceHousingOwner } from '~/scripts/import-lovac/source-housing-owners/source-housing-owner';
 import { createSourceHousingOwnerCommand } from '~/scripts/import-lovac/source-housing-owners/source-housing-owner-command';
 import {
   genEstablishmentApi,
   genHousingApi,
   genHousingOwnerApi,
-  genOwnerApi,
-  genUserApi
+  genOwnerApi
 } from '~/test/testFixtures';
 
 describe('Source housing owner command', () => {
@@ -149,11 +145,6 @@ describe('Source housing owner command', () => {
     const establishment = genEstablishmentApi();
     await Establishments().insert(formatEstablishmentApi(establishment));
 
-    const auth: UserApi = {
-      ...genUserApi(establishment.id),
-      email: config.app.system
-    };
-    await Users().insert([auth].map(toUserDBO));
   });
 
   afterAll(async () => {

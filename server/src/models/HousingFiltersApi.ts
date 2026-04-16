@@ -51,6 +51,7 @@ export interface HousingFiltersApi
   campaignCount?: number;
   campaignIds?: Array<string | null>;
   ownerIds?: string[];
+  departments?: string[];
   localities?: string[];
   geoPerimetersIncluded?: string[];
   geoPerimetersExcluded?: string[];

@@ -96,9 +96,18 @@ export const sourceHousingSchema = z.object({
     .int('vacancy_start_year must be an integer')
     .min(0)
     .max(new Date().getUTCFullYear()),
-  mutation_date: z.date().nullable(),
-  last_mutation_date: z.date().nullable(),
-  last_transaction_date: z.date().nullable(),
+  mutation_date: z.preprocess(
+    (v) => (v != null && !(v instanceof Date) ? new Date(v as string) : v),
+    z.date().nullable()
+  ),
+  last_mutation_date: z.preprocess(
+    (v) => (v != null && !(v instanceof Date) ? new Date(v as string) : v),
+    z.date().nullable()
+  ),
+  last_transaction_date: z.preprocess(
+    (v) => (v != null && !(v instanceof Date) ? new Date(v as string) : v),
+    z.date().nullable()
+  ),
   last_transaction_value: z.preprocess(
     (v) => (v !== null && typeof v === 'number' ? Math.round(v) : v),
     z.number().int().min(0).nullable()

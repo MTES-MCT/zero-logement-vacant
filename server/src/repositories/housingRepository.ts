@@ -914,6 +914,16 @@ function filteredQuery(opts: FilteredQueryOptions) {
         }
       });
     }
+    if (filters.departments?.length) {
+      queryBuilder.where((where) => {
+        filters.departments!.forEach((dept) => {
+          where.orWhereRaw(`LEFT(${housingTable}.geo_code, ?) = ?`, [
+            dept.length,
+            dept
+          ]);
+        });
+      });
+    }
     if (filters.localities?.length) {
       queryBuilder.whereIn(`${housingTable}.geo_code`, filters.localities);
     }

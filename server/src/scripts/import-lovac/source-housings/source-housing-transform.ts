@@ -8,7 +8,7 @@ import {
   Occupancy,
   toEventHousingStatus
 } from '@zerologementvacant/models';
-import { Array as Arr, Option, Order, pipe } from 'effect';
+import { Array, Option, Order, pipe } from 'effect';
 import { v5 as uuidv5 } from 'uuid';
 import { AddressApi } from '~/models/AddressApi';
 import { HousingEventApi } from '~/models/EventApi';
@@ -268,13 +268,13 @@ function applyChanges(
   }
   const lastStatusOccupancyEvent = pipe(
     events,
-    Arr.filter((event) =>
+    Array.filter((event) =>
       ['housing:occupancy-updated', 'housing:status-updated'].includes(
         event.type
       )
     ),
-    Arr.sort(byCreatedAt),
-    Arr.last,
+    Array.sort(byCreatedAt),
+    Array.last,
     Option.getOrNull
   );
 

@@ -10,8 +10,6 @@ import {
 import { PutObjectCommand } from '@aws-sdk/client-s3';
 import async from 'async';
 import { List } from 'immutable';
-import { Knex } from 'knex';
-import fp from 'lodash/fp';
 import path from 'node:path';
 import { writeFileSync } from 'node:fs';
 import { WritableStream } from 'node:stream/web';
@@ -22,14 +20,9 @@ import config from '~/infra/config';
 import db from '~/infra/database';
 import { createLogger } from '~/infra/logger';
 import { HousingApi } from '~/models/HousingApi';
-import {
-  Addresses,
-  formatAddressApi
-} from '~/repositories/banAddressesRepository';
 import eventRepository from '~/repositories/eventRepository';
 import housingRepository, {
   formatHousingRecordApi,
-  Housing,
   HousingDBO,
   HousingRecordDBO,
   housingTable,
@@ -52,12 +45,14 @@ import {
 } from '~/scripts/import-lovac/source-housings/source-housing';
 import { createSourceHousingEnricher } from '~/scripts/import-lovac/source-housings/source-housing-enricher';
 import {
-  AddressChange,
   createHousingTransform,
   HousingChange,
-  HousingEventChange as SourceHousingEventChange,
   HousingRecordInsert
 } from '~/scripts/import-lovac/source-housings/source-housing-transform';
+import {
+  createHousingLoader,
+  updateHousings
+} from '~/scripts/import-lovac/source-housings/source-housing-loader';
 import { createSourceHousingRepository } from '~/scripts/import-lovac/source-housings/source-housing-repository';
 
 const logger = createLogger('sourceHousingCommand');
@@ -187,7 +182,7 @@ export function createSourceHousingCommand() {
         );
 
       logger.info('Starting import...', { file });
-      const stream = createSourceHousingRepository({
+      await createSourceHousingRepository({
         ...config.s3,
         file: file,
         from: options.from
@@ -217,98 +212,13 @@ export function createSourceHousingCommand() {
             })
           )
         )
-        .pipeThrough(flatten());
-
-      const [housingCreations, housingUpdates, addressUpdates, eventCreations] =
-        stream
-          .tee()
-          .map((stream) => stream.tee())
-          .flat();
-
-      await Promise.all([
-        housingCreations
-          .pipeThrough(
-            filter(
-              (change) => change.type === 'housing' && change.kind === 'create'
-            )
-          )
-          .pipeThrough(map((change) => change.value as HousingRecordInsert))
-          .pipeThrough(chunkify({ size: 1_000 }))
-          .pipeTo(
-            new WritableStream<ReadonlyArray<HousingRecordInsert>>({
-              async write(housings) {
-                if (!options.dryRun) {
-                  await insertHousings(housings);
-                }
-              }
-            })
-          ),
-        housingUpdates
-          .pipeThrough(
-            filter(
-              (change): change is HousingChange =>
-                change.type === 'housing' && change.kind === 'update'
-            )
-          )
-          .pipeThrough(map((change) => change.value))
-          .pipeThrough(map(stripReadOnlyFields))
-          .pipeTo(
-            createUpdater<HousingRecordInsert>({
-              destination: options.dryRun ? 'file' : 'database',
-              file: path.join(
-                import.meta.dirname,
-                'source-housing-updates.jsonl'
-              ),
-              temporaryTable: 'source_housing_updates_tmp',
-              likeTable: housingTable,
-              async update(housings): Promise<void> {
-                await updateHousings(housings as ReadonlyArray<HousingRecordDBO>, {
-                  temporaryTable: 'source_housing_updates_tmp'
-                });
-              }
-            })
-          ),
-        eventCreations
-          .pipeThrough(
-            filter(
-              (change): change is SourceHousingEventChange =>
-                change.type === 'event' && change.kind === 'create'
-            )
-          )
-          .pipeThrough(map((change) => change.value))
-          .pipeThrough(chunkify({ size: 1_000 }))
-          .pipeTo(
-            new WritableStream({
-              async write(events) {
-                if (!options.dryRun) {
-                  await eventRepository.insertManyHousingEvents(events);
-                }
-              }
-            })
-          ),
-
-        addressUpdates
-          .pipeThrough(
-            filter(
-              (change): change is AddressChange =>
-                change.type === 'address' && change.kind === 'create'
-            )
-          )
-          .pipeThrough(map((change) => change.value))
-          .pipeThrough(chunkify({ size: 1_000 }))
-          .pipeTo(
-            new WritableStream({
-              async write(addresses) {
-                if (!options.dryRun) {
-                  await Addresses()
-                    .insert(addresses.map(formatAddressApi))
-                    .onConflict(['ref_id', 'address_kind'])
-                    .ignore();
-                }
-              }
-            })
-          )
-      ]);
+        .pipeThrough(flatten())
+        .pipeTo(
+          createHousingLoader({
+            dryRun: options.dryRun,
+            reporter: sourceHousingReporter
+          })
+        );
       logger.info(`File ${file} imported.`);
 
       logger.info('Checking for missing housings from the file...');
@@ -435,90 +345,6 @@ export async function findOneHousing(
     .where({ local_id: localId })
     .first();
   return housing ? parseHousingApi(housing) : null;
-}
-
-export async function insertHousings(
-  housings: ReadonlyArray<HousingRecordInsert>
-): Promise<void> {
-  await Housing().insert(housings as ReadonlyArray<HousingRecordDBO>);
-}
-
-interface UpdateHousingsOptions {
-  temporaryTable: string;
-  keys?: ReadonlyArray<keyof HousingRecordDBO>;
-}
-
-export async function updateHousings(
-  housings: ReadonlyArray<HousingRecordDBO>,
-  opts: UpdateHousingsOptions
-): Promise<void> {
-  const { temporaryTable } = opts;
-  // The keys to update in the housing table
-  const keys: ReadonlyArray<keyof HousingRecordDBO> = opts.keys?.length
-    ? opts.keys
-    : [
-        'invariant',
-        'building_id',
-        'building_group_id',
-        'plot_id',
-        'address_dgfip',
-        'longitude_dgfip',
-        'latitude_dgfip',
-        'geolocation',
-        'cadastral_classification',
-        'uncomfortable',
-        'vacancy_start_year',
-        'housing_kind',
-        'rooms_count',
-        'living_area',
-        'cadastral_reference',
-        'building_year',
-        'mutation_date',
-        'last_mutation_date',
-        'last_transaction_date',
-        'last_transaction_value',
-        'taxed',
-        'data_years',
-        'data_file_years',
-        'data_source',
-        'beneficiary_count',
-        'building_location',
-        'rental_value',
-        'condominium',
-        'status',
-        'sub_status',
-        'occupancy',
-        'occupancy_source',
-        'occupancy_intended',
-        'energy_consumption_bdnb',
-        'energy_consumption_at_bdnb'
-      ];
-  const updates: Record<string, Knex.Ref<string, any>> = fp.fromPairs(
-    keys.map((key) => [key, db.ref(`${temporaryTable}.${key}`)])
-  );
-
-  await Housing()
-    .update(updates)
-    .updateFrom(temporaryTable)
-    .where(`${housingTable}.geo_code`, db.ref(`${temporaryTable}.geo_code`))
-    .where(`${housingTable}.id`, db.ref(`${temporaryTable}.id`))
-    .whereIn(
-      [`${temporaryTable}.geo_code`, `${temporaryTable}.id`],
-      housings.map((housing) => [housing.geo_code, housing.id])
-    );
-}
-
-function stripReadOnlyFields(housing: HousingRecordInsert): HousingRecordInsert {
-  const {
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    last_mutation_type,
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    occupancy_history,
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    plot_area,
-    ...rest
-  } = housing as unknown as HousingRecordDBO;
-  return rest as HousingRecordInsert;
 }
 
 async function writeReport(

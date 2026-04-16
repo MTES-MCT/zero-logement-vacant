@@ -101,7 +101,7 @@ export function createSourceHousingOwnerCommand() {
             reporter
           })
         )
-        .pipeThrough(groupBy((a, b) => a.local_id === b.local_id))
+        .pipeThrough(groupBy((current, next) => current.local_id === next.local_id))
         .pipeThrough(createSourceHousingOwnerEnricher())
         .pipeThrough(
           map(

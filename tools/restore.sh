@@ -352,6 +352,18 @@ clear_progress() {
   rm -f "$PROGRESS_FILE"
 }
 
+# Generate a filtered TOC file that excludes EXTENSION entries.
+# The target database already has extensions installed (provisioned by the platform),
+# so attempting to DROP/CREATE them causes ownership or availability errors.
+get_filtered_toc() {
+  local dump_file="$1"
+  local toc_file
+  toc_file=$(mktemp /tmp/pg_restore_toc.XXXXXX)
+  pg_restore --list "$dump_file" 2>/dev/null | \
+    grep -Ev "^[0-9]+;.*[[:space:]]EXTENSION[[:space:]]" > "$toc_file"
+  echo "$toc_file"
+}
+
 # Restart Docker container if needed
 restart_docker_if_needed() {
   if docker ps --format '{{.Names}}' 2>/dev/null | grep -q postgres; then
@@ -400,15 +412,21 @@ restore_section() {
     pg_restore_cmd="$pg_restore_cmd --exclude-schema=tiger --exclude-schema=tiger_data --exclude-schema=topology"
 
     # Add section-specific options
+    local toc_file=""
     case "$section" in
       "pre-data")
-        pg_restore_cmd="$pg_restore_cmd --clean --if-exists"
+        # Use a filtered TOC to skip EXTENSION entries — the target database
+        # already has extensions provisioned and we lack owner privileges to drop them.
+        toc_file=$(get_filtered_toc "$dump_file")
+        pg_restore_cmd="$pg_restore_cmd --clean --if-exists --use-list=$toc_file"
         ;;
       "data")
         # Note: --disable-triggers requires superuser, not available on Clever Cloud
-        # Use single transaction and no parallelism to ensure tables are restored in order
-        # and triggers don't fire on incomplete data
-        pg_restore_cmd="$pg_restore_cmd --single-transaction --jobs=1"
+        # Note: --single-transaction is intentionally NOT used here — any error (e.g.,
+        # PostGIS extension-managed tables like spatial_ref_sys in public schema) would
+        # roll back the entire transaction and leave all tables empty, even when the
+        # script considers those errors ignorable.
+        pg_restore_cmd="$pg_restore_cmd --jobs=1"
         ;;
       "post-data")
         # Post-data includes indexes and constraints
@@ -420,6 +438,7 @@ restore_section() {
     # Note: PIPESTATUS[0] gives us pg_restore's exit code, not tee's
     $pg_restore_cmd "$dump_file" 2>&1 | tee "restore_${section}_attempt_${attempt}.log"
     local exit_code=${PIPESTATUS[0]}
+    [ -n "$toc_file" ] && rm -f "$toc_file"
 
     if [ $exit_code -eq 0 ]; then
       success=true
@@ -430,9 +449,9 @@ restore_section() {
       # Check if errors are only expected ones (on managed PostgreSQL)
       # Count real errors (excluding expected errors)
       local real_errors=$(grep -E "^pg_restore: error:" "restore_${section}_attempt_${attempt}.log" 2>/dev/null | \
-        grep -v "must be owner of extension" | \
         grep -v "already exists" | \
         grep -v "cannot drop .* because other objects depend on it" | \
+        grep -v "unrecognized configuration parameter .transaction_timeout." | \
         wc -l | xargs)
 
       if [ "$real_errors" -eq 0 ]; then

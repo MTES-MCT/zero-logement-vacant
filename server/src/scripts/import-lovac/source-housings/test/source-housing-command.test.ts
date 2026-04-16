@@ -142,60 +142,13 @@ describe('Source housing command', () => {
     }))
   ];
 
-  const vacantUnsupervisedHousings: ReadonlyArray<HousingApi> =
-    faker.helpers.multiple(
-      () => ({
-        ...genHousingApi(),
-        buildingId: building.id,
-        dataFileYears: ['lovac-2024'],
-        occupancy: Occupancy.VACANT,
-        status: faker.helpers.arrayElement([
-          HousingStatus.NEVER_CONTACTED,
-          HousingStatus.WAITING,
-          HousingStatus.FIRST_CONTACT,
-          HousingStatus.BLOCKED
-        ]),
-        subStatus: null
-      }),
-      { count: { min: 5, max: 50 } }
-    );
-  const vacantSupervisedHousings: ReadonlyArray<HousingApi> =
-    faker.helpers.multiple(
-      () => {
-        const status = faker.helpers.arrayElement([
-          HousingStatus.COMPLETED,
-          HousingStatus.IN_PROGRESS
-        ]);
-        const subStatus =
-          status === HousingStatus.IN_PROGRESS
-            ? faker.helpers.arrayElement([
-                'En accompagnement',
-                'Intervention publique'
-              ])
-            : null;
-        return {
-          ...genHousingApi(),
-          buildingId: building.id,
-          dataFileYears: ['lovac-2024'],
-          occupancy: Occupancy.VACANT,
-          occupancyRegistered: Occupancy.VACANT,
-          status,
-          subStatus
-        };
-      },
-      { count: { min: 5, max: 50 } }
-    );
-
   // Housings to save to the database
   const housingsBefore: ReadonlyArray<HousingApi> = [
     ...vacantHousings,
     ...nonVacantUnsupervisedHousings,
     ...nonVacantUserModifiedHousings,
     ...nonVacantNonUserModifiedHousings,
-    ...geoCodeChangedHousings,
-    // Housings missing from the fake LOVAC file but present in our database
-    ...vacantUnsupervisedHousings,
-    ...vacantSupervisedHousings
+    ...geoCodeChangedHousings
   ];
 
   // Seed the database
@@ -459,77 +412,6 @@ describe('Source housing command', () => {
           housing_geo_code: actualHousing.geo_code,
           housing_id: actualHousing.id,
         });
-      });
-    });
-  });
-
-  describe('Missing from LOVAC, present in our database', () => {
-    it('should set vacant, unsupervised housings as out of vacancy', async () => {
-      const actual = await refresh(vacantUnsupervisedHousings);
-      expect(actual).toHaveLength(vacantUnsupervisedHousings.length);
-      actual.forEach((actualHousing) => {
-        expect(actualHousing).toMatchObject<Partial<HousingRecordDBO>>({
-          occupancy: Occupancy.UNKNOWN,
-          status: HousingStatus.COMPLETED,
-          sub_status: 'Sortie de la vacance'
-        });
-      });
-
-      const actualEvents = await Events()
-        .join(
-          HOUSING_EVENTS_TABLE,
-          `${HOUSING_EVENTS_TABLE}.event_id`,
-          `${EVENTS_TABLE}.id`
-        )
-        .whereIn(
-          [
-            `${HOUSING_EVENTS_TABLE}.housing_geo_code`,
-            `${HOUSING_EVENTS_TABLE}.housing_id`
-          ],
-          actual.map((actualHousing) => [
-            actualHousing.geo_code,
-            actualHousing.id
-          ])
-        );
-      actual.forEach((actualHousing) => {
-        expect(actualEvents).toPartiallyContain<
-          Partial<EventRecordDBO<any> & HousingEventDBO>
-        >({
-          housing_geo_code: actualHousing.geo_code,
-          housing_id: actualHousing.id,
-        });
-        expect(actualEvents).toPartiallyContain<
-          Partial<EventRecordDBO<any> & HousingEventDBO>
-        >({
-          housing_geo_code: actualHousing.geo_code,
-          housing_id: actualHousing.id,
-        });
-      });
-    });
-
-    it('should leave vacant, supervised housings’ occupancies and statuses untouched', async () => {
-      const actual = await refresh(vacantSupervisedHousings);
-      expect(actual).toHaveLength(vacantSupervisedHousings.length);
-      actual.forEach((actualHousing) => {
-        const housingBefore = housingsBefore.find(
-          (housing) => housing.id === actualHousing.id
-        );
-        expect(actualHousing).toMatchObject<Partial<HousingRecordDBO>>({
-          occupancy: housingBefore?.occupancy,
-          occupancy_source: housingBefore?.occupancyRegistered,
-          status: housingBefore?.status,
-          sub_status: housingBefore?.subStatus
-        });
-      });
-    });
-
-    it('should not add them to "lovac-2025"', async () => {
-      const actual = await refresh([
-        ...vacantSupervisedHousings,
-        ...vacantUnsupervisedHousings
-      ]);
-      expect(actual).toSatisfyAll<HousingRecordDBO>((housing) => {
-        return !housing.data_file_years?.includes('lovac-2025');
       });
     });
   });

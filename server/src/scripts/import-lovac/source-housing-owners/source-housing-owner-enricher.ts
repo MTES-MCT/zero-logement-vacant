@@ -26,7 +26,7 @@ export function createSourceHousingOwnerEnricher(): TransformStream<
   >({
     async transform(group, controller) {
       const { geo_code: geoCode, local_id: localId } = group[0];
-      const sourceIdpersonnes = group.map((s) => s.idpersonne);
+      const sourceIdpersonnes = group.map((sourceOwner) => sourceOwner.idpersonne);
 
       // Query 1: housing + existing housing owners (single JOIN)
       const rows: Array<HousingRecordDBO & Partial<HousingOwnerDBO>> =

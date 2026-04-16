@@ -117,7 +117,6 @@ export function createHousingOwnerTransform(options: TransformOptions) {
       }
 
       const added = Array.differenceWith(byOwnerId)(activeOwners, existingActive);
-      const removed = Array.differenceWith(byOwnerId)(existingActive, activeOwners);
       const updated = Array.intersectionWith(byOwnerId)(existingActive, activeOwners).filter(
         (existingHo) => {
           const newHo = activeOwners.find(
@@ -144,7 +143,7 @@ export function createHousingOwnerTransform(options: TransformOptions) {
             housingId: ho.housing_id
           })
         ),
-        ...removed.map(
+        ...removedActive.map(
           (ho): HousingOwnerEventApi => ({
             id: uuidv5(
               ho.housing_id + ':housing:owner-detached:' + ho.owner_id + ':' + year,

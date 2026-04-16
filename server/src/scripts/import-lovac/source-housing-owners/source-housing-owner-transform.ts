@@ -3,7 +3,7 @@ import {
   isInactiveOwnerRank,
   PREVIOUS_OWNER_RANK
 } from '@zerologementvacant/models';
-import { Array as Arr } from 'effect';
+import { Array } from 'effect';
 import { v5 as uuidv5 } from 'uuid';
 import HousingMissingError from '~/errors/housingMissingError';
 import OwnerMissingError from '~/errors/ownerMissingError';
@@ -95,14 +95,14 @@ export function createHousingOwnerTransform(options: TransformOptions) {
 
       const byOwnerId = (a: HousingOwnerDBO, b: HousingOwnerDBO) =>
         a.owner_id === b.owner_id;
-      const removedActive = Arr.differenceWith(byOwnerId)(existingActive, activeOwners);
+      const removedActive = Array.differenceWith(byOwnerId)(existingActive, activeOwners);
       const inactiveOwners: HousingOwnerDBO[] = [
         ...removedActive.map((ho) => ({
           ...ho,
           rank: PREVIOUS_OWNER_RANK,
           end_date: new Date()
         })),
-        ...Arr.differenceWith(byOwnerId)(existingInactive, activeOwners)
+        ...Array.differenceWith(byOwnerId)(existingInactive, activeOwners)
       ];
 
       const allOwners: ReadonlyArray<HousingOwnerDBO> = [
@@ -116,9 +116,9 @@ export function createHousingOwnerTransform(options: TransformOptions) {
         );
       }
 
-      const added = Arr.differenceWith(byOwnerId)(activeOwners, existingActive);
-      const removed = Arr.differenceWith(byOwnerId)(existingActive, activeOwners);
-      const updated = Arr.intersectionWith(byOwnerId)(existingActive, activeOwners).filter(
+      const added = Array.differenceWith(byOwnerId)(activeOwners, existingActive);
+      const removed = Array.differenceWith(byOwnerId)(existingActive, activeOwners);
+      const updated = Array.intersectionWith(byOwnerId)(existingActive, activeOwners).filter(
         (existingHo) => {
           const newHo = activeOwners.find(
             (activeHo) => activeHo.owner_id === existingHo.owner_id

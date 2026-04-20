@@ -12,7 +12,7 @@ dotenvx.config({
 // Treat empty-string env vars the same as unset so Zod defaults kick in.
 const e = (key: string): string | undefined => process.env[key] || undefined;
 
-const envEnum = z.literal(['development', 'test', 'production'] as const);
+const envEnum = z.literal(['development', 'test', 'production']);
 const isProduction = envEnum.parse(process.env.NODE_ENV) === 'production';
 
 export const configSchema = z.object({
@@ -180,15 +180,15 @@ const config = configSchema.parse({
   cerema: {
     enabled: e('CEREMA_ENABLED'),
     api: e('CEREMA_API'),
-    username: e('CEREMA_USERNAME') ?? null,
-    password: e('CEREMA_PASSWORD') ?? null,
+    username: e('CEREMA_USERNAME'),
+    password: e('CEREMA_PASSWORD'),
     authVersion: e('CEREMA_AUTH_VERSION'),
     apiV2: e('CEREMA_API_V2')
   },
   datafoncier: {
     api: e('DATAFONCIER_API'),
     enabled: e('DATAFONCIER_ENABLED'),
-    token: e('DATAFONCIER_TOKEN') ?? null
+    token: e('DATAFONCIER_TOKEN')
   },
   db: {
     env: e('DATABASE_ENV'),
@@ -208,8 +208,8 @@ const config = configSchema.parse({
     }
   },
   e2e: {
-    email: e('E2E_EMAIL') ?? null,
-    password: e('E2E_PASSWORD') ?? null
+    email: e('E2E_EMAIL'),
+    password: e('E2E_PASSWORD')
   },
   upload: {
     maxSizeMB: e('FILE_UPLOAD_MAX_SIZE_MB'),
@@ -224,18 +224,18 @@ const config = configSchema.parse({
   mailer: {
     from: e('MAIL_FROM'),
     provider: e('MAILER_PROVIDER'),
-    host: e('MAILER_HOST') ?? null,
-    port: e('MAILER_PORT') ?? null,
-    user: e('MAILER_USER') ?? null,
-    password: e('MAILER_PASSWORD') ?? null,
-    apiKey: e('MAILER_API_KEY') ?? null,
-    eventApiKey: e('MAILER_EVENT_API_KEY') ?? null,
+    host: e('MAILER_HOST'),
+    port: e('MAILER_PORT'),
+    user: e('MAILER_USER'),
+    password: e('MAILER_PASSWORD'),
+    apiKey: e('MAILER_API_KEY'),
+    eventApiKey: e('MAILER_EVENT_API_KEY'),
     secure: e('MAILER_SECURE')
   },
   metabase: {
-    domain: e('METABASE_DOMAIN') ?? null,
-    token: e('METABASE_TOKEN') ?? (isProduction ? undefined : null),
-    apiToken: e('METABASE_API_TOKEN') ?? (isProduction ? undefined : null)
+    domain: e('METABASE_DOMAIN'),
+    token: e('METABASE_TOKEN'),
+    apiToken: e('METABASE_API_TOKEN')
   },
   rateLimit: {
     max: e('RATE_LIMIT_MAX')
@@ -257,7 +257,7 @@ const config = configSchema.parse({
     host: e('POSTHOG_HOST')
   },
   sentry: {
-    dsn: e('SENTRY_DSN') ?? null,
+    dsn: e('SENTRY_DSN'),
     enabled: e('SENTRY_ENABLED')
   },
   swagger: {

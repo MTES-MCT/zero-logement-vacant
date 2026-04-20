@@ -19,6 +19,7 @@ dotenvx.config({
 });
 
 const isProduction = process.env.NODE_ENV === 'production';
+const isReviewApp = process.env.IS_REVIEW_APP === 'true';
 
 convict.addFormats(formats);
 convict.addFormat({
@@ -151,6 +152,9 @@ interface Config {
   };
   sentry: {
     dsn: string | null;
+    enabled: boolean;
+  };
+  swagger: {
     enabled: boolean;
   };
 }
@@ -549,6 +553,13 @@ const config = convict<Config>({
       env: 'SENTRY_ENABLED',
       format: Boolean,
       default: isProduction
+    }
+  },
+  swagger: {
+    enabled: {
+      env: 'SWAGGER_ENABLED',
+      format: Boolean,
+      default: isReviewApp
     }
   }
 })

@@ -7483,12 +7483,12 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@posthog/core@npm:1.23.3":
-  version: 1.23.3
-  resolution: "@posthog/core@npm:1.23.3"
+"@posthog/core@npm:1.23.2":
+  version: 1.23.2
+  resolution: "@posthog/core@npm:1.23.2"
   dependencies:
     cross-spawn: "npm:^7.0.6"
-  checksum: 10c0/db35a2bb763168fe504a9b56ea6a82871e3e57f7f514207f53adb05963fab90b8c0d95f1649282ad6df060410f4bb4bbb3986de9de3931e1b11508f90b56833d
+  checksum: 10c0/13d86e63e9a74255e33167c266fc10c3f485221093b235239543ebaaa80c07614e4485e02da3b0850281f9341f4c4014fdfa3998ed96fab8f6bf76bd39116c60
   languageName: node
   linkType: hard
 
@@ -12601,7 +12601,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@types/proj4@npm:^2.19.0":
+"@types/proj4@npm:2.19.0":
   version: 2.19.0
   resolution: "@types/proj4@npm:2.19.0"
   dependencies:
@@ -12861,14 +12861,14 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@types/swagger-jsdoc@npm:^6.0.4":
+"@types/swagger-jsdoc@npm:6.0.4":
   version: 6.0.4
   resolution: "@types/swagger-jsdoc@npm:6.0.4"
   checksum: 10c0/fbe17d91a12e1e60a255b02e6def6877c81b356c75ffcd0e5167fbaf1476e2d6600cd7eea79e6b3e0ff7929dec33ade345147509ed3b98026f63c782b74514f6
   languageName: node
   linkType: hard
 
-"@types/swagger-ui-express@npm:^4.1.8":
+"@types/swagger-ui-express@npm:4.1.8":
   version: 4.1.8
   resolution: "@types/swagger-ui-express@npm:4.1.8"
   dependencies:
@@ -14347,15 +14347,15 @@ __metadata:
     "@types/node": "npm:24"
     "@types/nodemailer": "npm:6.4.17"
     "@types/pg": "npm:8.15.5"
-    "@types/proj4": "npm:^2.19.0"
+    "@types/proj4": "npm:2.19.0"
     "@types/qs": "npm:6.14.0"
     "@types/randomstring": "npm:1.3.0"
     "@types/shapefile": "npm:0"
     "@types/shpjs": "npm:3.4.7"
     "@types/superagent": "npm:8.1.9"
     "@types/supertest": "npm:6.0.3"
-    "@types/swagger-jsdoc": "npm:^6.0.4"
-    "@types/swagger-ui-express": "npm:^4.1.8"
+    "@types/swagger-jsdoc": "npm:6.0.4"
+    "@types/swagger-ui-express": "npm:4.1.8"
     "@types/unzip-stream": "npm:0.3.4"
     "@types/uuid": "npm:9.0.8"
     "@types/validator": "npm:13.15.10"
@@ -14416,8 +14416,8 @@ __metadata:
     pdf-lib: "npm:1.17.1"
     pg: "npm:8.16.3"
     pg-query-stream: "npm:4.10.3"
-    posthog-node: "npm:^5.26.2"
-    proj4: "npm:^2.20.2"
+    posthog-node: "npm:5.26.2"
+    proj4: "npm:2.20.2"
     puppeteer: "npm:22.15.0"
     qs: "npm:6.15.0"
     randomstring: "npm:1.3.1"
@@ -14427,8 +14427,8 @@ __metadata:
     shpjs: "npm:4.0.4"
     superagent: "npm:8.1.2"
     supertest: "npm:7.1.4"
-    swagger-jsdoc: "npm:^6.2.8"
-    swagger-ui-express: "npm:^5.0.1"
+    swagger-jsdoc: "npm:6.2.8"
+    swagger-ui-express: "npm:5.0.1"
     ts-essentials: "npm:10.1.1"
     ts-node: "npm:10.9.2"
     ts-pattern: "npm:5.8.0"
@@ -28877,17 +28877,12 @@ __metadata:
   languageName: node
   linkType: hard
 
-"posthog-node@npm:^5.26.2":
-  version: 5.28.1
-  resolution: "posthog-node@npm:5.28.1"
+"posthog-node@npm:5.26.2":
+  version: 5.26.2
+  resolution: "posthog-node@npm:5.26.2"
   dependencies:
-    "@posthog/core": "npm:1.23.3"
-  peerDependencies:
-    rxjs: ^7.0.0
-  peerDependenciesMeta:
-    rxjs:
-      optional: true
-  checksum: 10c0/70e4bf811f11050af0deb24b311fbbeea143efe2db3a6f7a39c84f5265c5a1a3cd4bceeb9da2a5ab6b65baf4a104d4ca8053329504d09d329de60768e29f10ff
+    "@posthog/core": "npm:1.23.2"
+  checksum: 10c0/8f9b8844658885a816edcbe1b7b22269b056e12ea88cea67c684b21e3ca6617c457c124afdd465827e9022e06d97d645161f67917b89b68204ab96a407b92fd6
   languageName: node
   linkType: hard
 
@@ -29044,13 +29039,23 @@ __metadata:
   languageName: node
   linkType: hard
 
-"proj4@npm:*, proj4@npm:^2.1.4, proj4@npm:^2.20.2":
+"proj4@npm:*, proj4@npm:^2.1.4":
   version: 2.20.4
   resolution: "proj4@npm:2.20.4"
   dependencies:
     mgrs: "npm:1.0.0"
     wkt-parser: "npm:^1.5.3"
   checksum: 10c0/bb83915ae7973068f02ca440099faca7efd6b1add3cd2903fe8ce816f4d589bd72ac77c9a882d3d60c7beff2cb9d9fb38924590978a87a7165156cb120c8328c
+  languageName: node
+  linkType: hard
+
+"proj4@npm:2.20.2":
+  version: 2.20.2
+  resolution: "proj4@npm:2.20.2"
+  dependencies:
+    mgrs: "npm:1.0.0"
+    wkt-parser: "npm:^1.5.1"
+  checksum: 10c0/7b65fcb12a896a110779f6a0e28e947c4c208ccb4a2e381052f1b7c8bad5306d4315a1dac7b4d6316687a48cfbce63d6ff6017c9946c5ef12f440cbf67d8f0e5
   languageName: node
   linkType: hard
 
@@ -32734,7 +32739,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"swagger-jsdoc@npm:^6.2.8":
+"swagger-jsdoc@npm:6.2.8":
   version: 6.2.8
   resolution: "swagger-jsdoc@npm:6.2.8"
   dependencies:
@@ -32768,7 +32773,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"swagger-ui-express@npm:^5.0.1":
+"swagger-ui-express@npm:5.0.1":
   version: 5.0.1
   resolution: "swagger-ui-express@npm:5.0.1"
   dependencies:
@@ -35171,6 +35176,13 @@ __metadata:
     isstream: "npm:0.1.x"
     stack-trace: "npm:0.0.x"
   checksum: 10c0/8c6f7365955d93a78f3345db9259052fd68c64096898c5787cdd766a26555d869e56c6607db29c85733d342fe86b8e8b65862843cb751391e594752b1565a89b
+  languageName: node
+  linkType: hard
+
+"wkt-parser@npm:^1.5.1":
+  version: 1.5.5
+  resolution: "wkt-parser@npm:1.5.5"
+  checksum: 10c0/4ed71c407a7f13b2ea49441f3e9607eb421fac513c384b71a52a33abbeafeeb67ab32ffce327894a2b276fadaa352f204c21d0a02e34183644fe41d3282fd735
   languageName: node
   linkType: hard
 

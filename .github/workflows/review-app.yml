@@ -118,7 +118,7 @@ jobs:
           PROFILE_OUTPUT=$(clever profile 2>&1)
           echo "Profile output: $PROFILE_OUTPUT"
 
-          if ! echo "$PROFILE_OUTPUT" | grep -q "You're currently logged in"; then
+          if ! echo "$PROFILE_OUTPUT" | grep -q "[active]"; then
             echo "❌ ERROR: Not authenticated with Clever Cloud"
             echo "Please ensure CLEVER_TOKEN and CLEVER_SECRET are properly configured"
             echo "Current CLEVER_TOKEN starts with: ${CLEVER_TOKEN:0:10}..."
@@ -128,7 +128,7 @@ jobs:
 
           # Check for existing applications
           echo "📋 Checking applications..."
-          APPS_JSON=$(clever curl https://api.clever-cloud.com/v2/organisations/$CLEVER_ORG/applications) || {
+          APPS_JSON=$(clever applications list --format=json --org=${CLEVER_ORG}) || {
             echo "❌ ERROR: Failed to list applications"
             exit 1
           }

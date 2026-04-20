@@ -20,8 +20,8 @@ models:
     description: "Gold Owners Housing table for LOVAC 2026 - maps to Table Owners Housing_26 specification."
     config:
       materialized: view
-  - name: int_zlovac_owner_housing_scored
-    description: "Owner-housing matching with fuzzy scoring to determine most likely owner."
+  - name: int_zlovac_owner_matching
+    description: "Matches CER 1767 owners against FF25 by name+address (jaro_winkler >= 0.9) to retrieve idpersonne, then applies rank logic."
     config:
       materialized: view
   - name: int_zlovac_buildings
@@ -32,7 +32,3 @@ models:
     description: "Identifies housing where ownership changed between LOVAC 2025 and 2026 (account or ownership order changes)."
     config:
       materialized: table
-  - name: int_zlovac_owners_rematched
-    description: "Matches owners between ZLOVAC and ZFF data based on exact fullname and address matches."
-    config:
-      materialized: view

@@ -21,5 +21,5 @@ dlign3 as owner_address_line_3,
 dlign4 as owner_address_line_4,
 dlign5 as owner_address_line_5,
 dlign6 as owner_address_line_6
-FROM {{ ref ('stg_ff_owners_2024') }}
+FROM {{ ref ('stg_ff_owners_2025') }}
 WHERE entity NOT IN (1, 2, 3, 4, 5, 6, 9) OR entity IS NULL

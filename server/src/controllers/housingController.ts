@@ -101,7 +101,7 @@ const get: RequestHandler<
   never,
   never
 > = async (request, response): Promise<void> => {
-  const { params, establishment } = request as AuthenticatedRequest<
+  const { params, establishment, effectiveGeoCodes } = request as AuthenticatedRequest<
     { id: HousingDTO['id'] },
     HousingApi,
     never,
@@ -113,9 +113,10 @@ const get: RequestHandler<
   const id = params.id.length !== 12 ? params.id : undefined;
   const localId = params.id.length === 12 ? params.id : undefined;
 
+  // effectiveGeoCodes is undefined when no restriction applies, use all establishment geoCodes
   const housing = await housingRepository.findOne({
     establishment: establishment.id,
-    geoCode: establishment.geoCodes,
+    geoCode: effectiveGeoCodes ?? establishment.geoCodes,
     id,
     localId,
     includes: ['owner', 'perimeters', 'campaigns']
@@ -140,7 +141,7 @@ const list: RequestHandler<
   ListHousingPayload,
   HousingQuery
 > = async (request, response): Promise<void> => {
-  const { auth, user, query } = request as AuthenticatedRequest<
+  const { auth, user, query, effectiveGeoCodes } = request as AuthenticatedRequest<
     never,
     HousingPaginatedResultApi,
     ListHousingPayload,
@@ -155,13 +156,21 @@ const list: RequestHandler<
   const role = user.role;
   const sort = sortApi.parse<HousingSortableApi>(query.sort);
   const rawFilters = Struct.omit(query, 'paginate', 'page', 'perPage', 'sort');
+
+  const isAdminOrVisitor = [UserRole.ADMIN, UserRole.VISITOR].includes(role);
   const filters: HousingFiltersApi = {
     ...rawFilters,
     establishmentIds:
-      [UserRole.ADMIN, UserRole.VISITOR].includes(role) &&
-      rawFilters?.establishmentIds?.length
+      isAdminOrVisitor && rawFilters?.establishmentIds?.length
         ? rawFilters?.establishmentIds
-        : [auth.establishmentId]
+        : [auth.establishmentId],
+    // effectiveGeoCodes is undefined when no restriction applies (ADMIN/VISITOR, no perimeter, or fr_entiere)
+    // If effectiveGeoCodes is empty array, user should see nothing (no communes in their perimeter)
+    localities: effectiveGeoCodes
+      ? rawFilters.localities?.length
+        ? rawFilters.localities.filter((loc) => effectiveGeoCodes.includes(loc))
+        : effectiveGeoCodes
+      : rawFilters.localities
   };
 
   logger.debug('List housing', {
@@ -205,7 +214,7 @@ const count: RequestHandler<
   never,
   HousingFiltersDTO
 > = async (request, response): Promise<void> => {
-  const { auth, query } = request as AuthenticatedRequest<
+  const { auth, query, effectiveGeoCodes } = request as AuthenticatedRequest<
     never,
     HousingCountApi,
     never,
@@ -213,13 +222,20 @@ const count: RequestHandler<
   >;
   logger.debug('Count housings', { query });
 
+  const isAdminOrVisitor = [UserRole.ADMIN, UserRole.VISITOR].includes(
+    auth.role
+  );
   const count = await housingRepository.count({
     ...query,
     establishmentIds:
-      [UserRole.ADMIN, UserRole.VISITOR].includes(auth.role) &&
-      query.establishmentIds?.length
+      isAdminOrVisitor && query.establishmentIds?.length
         ? query.establishmentIds
-        : [auth.establishmentId]
+        : [auth.establishmentId],
+    localities: effectiveGeoCodes
+      ? query.localities?.length
+        ? query.localities.filter((loc) => effectiveGeoCodes.includes(loc))
+        : effectiveGeoCodes
+      : query.localities
   });
   response.status(constants.HTTP_STATUS_OK).json(count);
 };
@@ -237,16 +253,20 @@ const create: RequestHandler<
   HousingCreationPayload,
   never
 > = async (request, response): Promise<void> => {
-  const { auth, body, establishment } = request as AuthenticatedRequest<
-    never,
-    HousingDTO,
-    HousingCreationPayload,
-    never
-  >;
+  const { auth, body, establishment, effectiveGeoCodes } =
+    request as AuthenticatedRequest<
+      never,
+      HousingDTO,
+      HousingCreationPayload,
+      never
+    >;
+
+  // effectiveGeoCodes is undefined when no restriction applies, use all establishment geoCodes
+  const allowedGeoCodes = effectiveGeoCodes ?? establishment.geoCodes;
 
   const existing = await housingRepository.findOne({
     establishment: establishment.id,
-    geoCode: establishment.geoCodes,
+    geoCode: allowedGeoCodes,
     localId: body.localId
   });
   if (existing) {
@@ -258,7 +278,7 @@ const create: RequestHandler<
   });
   if (
     !datafoncierHousing ||
-    !establishment.geoCodes.includes(datafoncierHousing.idcom)
+    !allowedGeoCodes.includes(datafoncierHousing.idcom)
   ) {
     throw new HousingMissingError(body.localId);
   }
@@ -448,17 +468,18 @@ const update: RequestHandler<
   HousingUpdatePayloadDTO,
   never
 > = async (request, response): Promise<void> => {
-  const { auth, body, establishment, params } = request as AuthenticatedRequest<
+  const { auth, body, establishment, effectiveGeoCodes, params } = request as AuthenticatedRequest<
     HousingPathParams,
     HousingDTO,
     HousingUpdatePayloadDTO,
     never
   >;
 
+  // effectiveGeoCodes is undefined when no restriction applies, use all establishment geoCodes
   const housing = await housingRepository.findOne({
     establishment: establishment.id,
     id: params.id,
-    geoCode: establishment.geoCodes,
+    geoCode: effectiveGeoCodes ?? establishment.geoCodes,
     includes: ['owner']
   });
   if (!housing) {
@@ -557,7 +578,7 @@ const updateMany: RequestHandler<
   HousingBatchUpdatePayload,
   never
 > = async (request, response): Promise<void> => {
-  const { body, establishment, user } = request as AuthenticatedRequest<
+  const { body, establishment, user, effectiveGeoCodes } = request as AuthenticatedRequest<
     never,
     ReadonlyArray<HousingDTO>,
     HousingBatchUpdatePayload,
@@ -565,15 +586,24 @@ const updateMany: RequestHandler<
   >;
   logger.info('Updating many housings...', { body });
 
+  const isAdminOrVisitor = [UserRole.ADMIN, UserRole.VISITOR].includes(
+    user.role
+  );
   const [housings, referential] = await Promise.all([
     housingRepository.find({
       filters: {
         ...body.filters,
         establishmentIds:
-          [UserRole.ADMIN, UserRole.VISITOR].includes(user.role) &&
-          body.filters.establishmentIds?.length
+          isAdminOrVisitor && body.filters.establishmentIds?.length
             ? body.filters.establishmentIds
-            : [establishment.id]
+            : [establishment.id],
+        localities: effectiveGeoCodes
+          ? body.filters.localities?.length
+            ? body.filters.localities.filter((loc) =>
+                effectiveGeoCodes.includes(loc)
+              )
+            : effectiveGeoCodes
+          : body.filters.localities
       },
       includes: ['campaigns', 'owner', 'precisions'],
       pagination: { paginate: false }

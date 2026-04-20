@@ -15,7 +15,7 @@ import {
   GroupsHousing
 } from '~/repositories/groupRepository';
 import { Housing } from '~/repositories/housingRepository';
-import { parseUserApi, Users } from '~/repositories/userRepository';
+import { fromUserDBO, Users } from '~/repositories/userRepository';
 import { genGroupApi } from '~/test/testFixtures';
 
 export async function seed(knex: Knex): Promise<void> {
@@ -36,7 +36,7 @@ export async function seed(knex: Knex): Promise<void> {
       () => {
         const creator = faker.helpers.arrayElement(users);
         return genGroupApi(
-          parseUserApi(creator),
+          fromUserDBO(creator),
           parseEstablishmentApi(establishment)
         );
       },

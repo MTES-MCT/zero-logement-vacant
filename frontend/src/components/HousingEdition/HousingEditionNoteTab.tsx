@@ -14,6 +14,20 @@ interface NoteSchema {
   note: string | null;
 }
 
+const sensitiveDataHint = (
+  <>
+    Veillez à ne pas partager de{' '}
+    <a
+      href="https://cnil.fr/fr/definition/donnee-sensible#:~:text=Ce%20sont%20des%20informations%20qui,physique%20de%20mani%C3%A8re%20unique%2C%20des."
+      target="_blank"
+      rel="noopener noreferrer"
+    >
+      données sensibles
+    </a>
+    .
+  </>
+);
+
 function HousingEditionNoteTab(props: Props) {
   const { data: notes = [] } = useFindNotesByHousingQuery(
     props.housingId ?? skipToken
@@ -23,7 +37,7 @@ function HousingEditionNoteTab(props: Props) {
     <Stack rowGap={2}>
       <AppTextInputNext<NoteSchema, 'note'>
         label="Nouvelle note"
-        hintText="Veillez à ne pas partager de données sensibles."
+        hintText={sensitiveDataHint}
         name="note"
         nativeTextAreaProps={{ rows: 8 }}
         textArea

@@ -28,5 +28,6 @@ SELECT
     ff_jdatat as last_mutation_date,
     dvf_datemut as last_transaction_date,
     dvf_valeurfonc as last_transaction_value,
-    ffh_ccthp as occupancy_history
+    ffh_ccthp as occupancy_history,
+    dvf_libnatmut as last_mutation_type
 FROM {{ ref ('int_zlovac') }}

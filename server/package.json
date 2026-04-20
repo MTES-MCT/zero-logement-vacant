@@ -34,7 +34,7 @@
     "@zerologementvacant/schemas": "workspace:*",
     "@zerologementvacant/utils": "workspace:*",
     "async": "3.2.6",
-    "axios": "1.13.5",
+    "axios": "1.15.0",
     "bcryptjs": "2.4.3",
     "clamscan": "2.4.0",
     "cli-progress": "3.12.0",
@@ -92,7 +92,8 @@
     "validator": "13.15.26",
     "web-streams-utils": "1.1.0",
     "wuzzy": "0.1.8",
-    "yup": "1.7.0"
+    "yup": "1.7.0",
+    "zod": "4.3.6"
   },
   "devDependencies": {
     "@fast-check/vitest": "0.2.2",

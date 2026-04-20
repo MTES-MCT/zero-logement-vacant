@@ -1,9 +1,9 @@
 -- int_zlovac_owners.sql
 -- Gold Owners table for LOVAC 2026.
--- Maps to Table Owners_26 specification from the LOVAC documentation.
+-- Dedup by idpersonne when available, by owner_fullname otherwise.
 
 WITH all_owners AS (
-    SELECT DISTINCT ON (owner_idpersonne)
+    SELECT DISTINCT ON (COALESCE(owner_idpersonne, owner_fullname))
         owner_idpersonne,
         owner_idprodroit,
         owner_fullname,
@@ -20,9 +20,8 @@ WITH all_owners AS (
         owner_entity,
         owner_username,
         administrator,
-        'lovac' as data_source
-    FROM {{ ref ('int_zlovac_unique_owners') }} lovac_owners
+        'lovac' AS data_source
+    FROM {{ ref('int_zlovac_unique_owners') }}
 )
-SELECT
-    *
-FROM all_owners
+
+SELECT * FROM all_owners

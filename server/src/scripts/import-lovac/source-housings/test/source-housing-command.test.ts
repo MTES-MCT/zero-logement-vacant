@@ -40,7 +40,7 @@ import {
   HousingRecordDBO,
   housingTable
 } from '~/repositories/housingRepository';
-import { formatUserApi, Users } from '~/repositories/userRepository';
+import { toUserDBO, Users } from '~/repositories/userRepository';
 import { genSourceHousing } from '~/scripts/import-lovac/infra/fixtures';
 import { createUpdater } from '~/scripts/import-lovac/infra/updater';
 import { SourceHousing } from '~/scripts/import-lovac/source-housings/source-housing';
@@ -216,7 +216,7 @@ describe('Source housing command', () => {
       ...genUserApi(establishment.id),
       email: config.app.system
     };
-    await Users().insert([user, admin, auth].map(formatUserApi));
+    await Users().insert([user, admin, auth].map(toUserDBO));
     await Buildings().insert(formatBuildingApi(building));
     await Housing().insert(housingsBefore.map(formatHousingRecordApi));
 

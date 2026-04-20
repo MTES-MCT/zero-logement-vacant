@@ -14,7 +14,7 @@ import localityRepository, {
   Localities,
   LocalityDBO
 } from '~/repositories/localityRepository';
-import { formatUserApi, Users } from '~/repositories/userRepository';
+import { toUserDBO, Users } from '~/repositories/userRepository';
 import {
   genEstablishmentApi,
   genLocalityApi,
@@ -49,7 +49,7 @@ describe('Locality API', () => {
         locality_id: anotherLocality.id
       }
     ]);
-    await Users().insert(formatUserApi(user));
+    await Users().insert(toUserDBO(user));
   });
 
   describe('GET /localities/{geoCode}', () => {

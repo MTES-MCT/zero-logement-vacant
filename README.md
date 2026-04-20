@@ -1,6 +1,7 @@
 # zero-logement-vacant
 
 [![End-to-end tests](https://github.com/MTES-MCT/zero-logement-vacant/actions/workflows/e2e.yml/badge.svg?branch=main)](https://github.com/MTES-MCT/zero-logement-vacant/actions/workflows/e2e.yml)
+[![codecov](https://codecov.io/gh/MTES-MCT/zero-logement-vacant/graph/badge.svg?token=B35SRUWNI7)](https://codecov.io/gh/MTES-MCT/zero-logement-vacant)
 
 [Fiche produit](https://beta.gouv.fr/startups/zero-logement-vacant.html)
 

@@ -75,7 +75,7 @@ const get: RequestHandler<
   never,
   never
 > = async (request, response): Promise<void> => {
-  const { auth, params } = request as AuthenticatedRequest<
+  const { auth, effectiveGeoCodes, params } = request as AuthenticatedRequest<
     { id: CampaignDTO['id'] },
     CampaignDTO
   >;
@@ -85,7 +85,8 @@ const get: RequestHandler<
 
   const campaign = await campaignRepository.findOne({
     id: params.id,
-    establishmentId: auth.establishmentId
+    establishmentId: auth.establishmentId,
+    geoCodes: effectiveGeoCodes
   });
   if (!campaign) {
     throw new CampaignMissingError(params.id);
@@ -101,13 +102,15 @@ const downloadCampaign: RequestHandler<
   never
 > = async (request, response) => {
   const campaignId = request.params.id;
-  const { establishmentId } = (request as AuthenticatedRequest).auth;
+  const { auth, effectiveGeoCodes } = request as AuthenticatedRequest;
+  const { establishmentId } = auth;
 
   logger.info('Download campaign', { campaignId });
 
   const campaign = await campaignRepository.findOne({
     id: campaignId,
-    establishmentId
+    establishmentId,
+    geoCodes: effectiveGeoCodes
   });
   if (!campaign) {
     throw new CampaignMissingError(campaignId);
@@ -152,7 +155,7 @@ const list: RequestHandler<
   never,
   CampaignQuery
 > = async (request, response) => {
-  const { auth, query } = request as AuthenticatedRequest<
+  const { auth, query, effectiveGeoCodes } = request as AuthenticatedRequest<
     never,
     ReadonlyArray<CampaignDTO>,
     never,
@@ -166,7 +169,9 @@ const list: RequestHandler<
   const campaigns = await campaignRepository.find({
     filters: {
       establishmentId: auth.establishmentId,
-      groupIds: typeof query.groups === 'string' ? [query.groups] : query.groups
+      groupIds:
+        typeof query.groups === 'string' ? [query.groups] : query.groups,
+      geoCodes: effectiveGeoCodes
     },
     sort
   });
@@ -549,7 +554,7 @@ const updateNext: RequestHandler<
   CampaignUpdatePayload,
   never
 > = async (request, response): Promise<void> => {
-  const { auth, body, params } = request as AuthenticatedRequest<
+  const { auth, body, effectiveGeoCodes, params } = request as AuthenticatedRequest<
     { id: CampaignApi['id'] },
     never,
     CampaignUpdatePayload,
@@ -559,7 +564,8 @@ const updateNext: RequestHandler<
 
   const campaign = await campaignRepository.findOne({
     id: params.id,
-    establishmentId: auth.establishmentId
+    establishmentId: auth.establishmentId,
+    geoCodes: effectiveGeoCodes
   });
   if (!campaign) {
     throw new CampaignMissingError(params.id);
@@ -597,7 +603,7 @@ const update: RequestHandler<
   CampaignUpdatePayloadDTO,
   never
 > = async (request, response): Promise<void> => {
-  const { auth, body, params } = request as AuthenticatedRequest<
+  const { auth, body, effectiveGeoCodes, params } = request as AuthenticatedRequest<
     { id: CampaignDTO['id'] },
     CampaignDTO,
     CampaignUpdatePayloadDTO,
@@ -606,7 +612,8 @@ const update: RequestHandler<
 
   const campaign = await campaignRepository.findOne({
     id: params.id,
-    establishmentId: auth.establishmentId
+    establishmentId: auth.establishmentId,
+    geoCodes: effectiveGeoCodes
   });
   if (!campaign) {
     throw new CampaignMissingError(params.id);
@@ -756,7 +763,7 @@ const removeCampaign: RequestHandler<
   never,
   never
 > = async (request, response): Promise<void> => {
-  const { auth, params } = request as AuthenticatedRequest<
+  const { auth, effectiveGeoCodes, params } = request as AuthenticatedRequest<
     { id: string },
     void,
     never,
@@ -767,7 +774,8 @@ const removeCampaign: RequestHandler<
 
   const campaign = await campaignRepository.findOne({
     id: params.id,
-    establishmentId: auth.establishmentId
+    establishmentId: auth.establishmentId,
+    geoCodes: effectiveGeoCodes
   });
   if (!campaign) {
     throw new CampaignMissingError(params.id);
@@ -849,7 +857,7 @@ const removeHousing: RequestHandler<
 > = async (request, response): Promise<void> => {
   logger.info('Remove campaign housing list');
 
-  const { auth, body, params } = request as AuthenticatedRequest<
+  const { auth, body, effectiveGeoCodes, params } = request as AuthenticatedRequest<
     { id: CampaignDTO['id'] },
     never,
     CampaignRemovalPayloadDTO,
@@ -858,7 +866,8 @@ const removeHousing: RequestHandler<
 
   const campaign = await campaignRepository.findOne({
     id: params.id,
-    establishmentId: auth.establishmentId
+    establishmentId: auth.establishmentId,
+    geoCodes: effectiveGeoCodes
   });
   if (!campaign) {
     throw new CampaignMissingError(params.id);

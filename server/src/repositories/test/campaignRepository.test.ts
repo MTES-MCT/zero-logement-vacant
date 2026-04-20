@@ -35,7 +35,7 @@ import {
   HousingOwners
 } from '~/repositories/housingOwnerRepository';
 import { formatOwnerApi, Owners } from '~/repositories/ownerRepository';
-import { formatUserApi, Users } from '~/repositories/userRepository';
+import { toUserDBO, Users } from '~/repositories/userRepository';
 import {
   genCampaignApi,
   genEstablishmentApi,
@@ -53,7 +53,109 @@ describe('Campaign repository', () => {
 
   beforeAll(async () => {
     await Establishments().insert(formatEstablishmentApi(establishment));
-    await Users().insert(formatUserApi(user));
+    await Users().insert(toUserDBO(user));
+  });
+
+  describe('find', () => {
+    const establishment2 = genEstablishmentApi();
+
+    beforeAll(async () => {
+      await Establishments().insert(formatEstablishmentApi(establishment2));
+    });
+
+    describe('geoCodes filter', () => {
+      it('should return all campaigns when geoCodes is undefined', async () => {
+        const campaign = genCampaignApi(establishment.id, user);
+        const housing = genHousingApi(establishment.geoCodes[0]);
+        await Campaigns().insert(formatCampaignApi(campaign));
+        await Housing().insert(formatHousingRecordApi(housing));
+        await CampaignsHousing().insert({
+          campaign_id: campaign.id,
+          housing_id: housing.id,
+          housing_geo_code: housing.geoCode
+        });
+
+        const result = await campaignRepository.find({
+          filters: { establishmentId: establishment.id }
+        });
+
+        expect(result.map((campaign) => campaign.id)).toContain(campaign.id);
+      });
+
+      it('should return no campaigns when geoCodes is empty', async () => {
+        const campaign = genCampaignApi(establishment.id, user);
+        const housing = genHousingApi(establishment.geoCodes[0]);
+        await Campaigns().insert(formatCampaignApi(campaign));
+        await Housing().insert(formatHousingRecordApi(housing));
+        await CampaignsHousing().insert({
+          campaign_id: campaign.id,
+          housing_id: housing.id,
+          housing_geo_code: housing.geoCode
+        });
+
+        const result = await campaignRepository.find({
+          filters: { establishmentId: establishment.id, geoCodes: [] }
+        });
+
+        expect(result).toBeArrayOfSize(0);
+      });
+
+      it('should return only campaigns whose housings are all within geoCodes', async () => {
+        const inGeoCode = establishment.geoCodes[0];
+        const outGeoCode = establishment2.geoCodes[0];
+
+        const campaignIn = genCampaignApi(establishment.id, user);
+        const campaignOut = genCampaignApi(establishment.id, user);
+        const housingIn = genHousingApi(inGeoCode);
+        const housingOut = genHousingApi(outGeoCode);
+
+        await Campaigns().insert([
+          formatCampaignApi(campaignIn),
+          formatCampaignApi(campaignOut)
+        ]);
+        await Housing().insert([
+          formatHousingRecordApi(housingIn),
+          formatHousingRecordApi(housingOut)
+        ]);
+        await CampaignsHousing().insert([
+          { campaign_id: campaignIn.id, housing_id: housingIn.id, housing_geo_code: housingIn.geoCode },
+          { campaign_id: campaignOut.id, housing_id: housingOut.id, housing_geo_code: housingOut.geoCode }
+        ]);
+
+        const result = await campaignRepository.find({
+          filters: { establishmentId: establishment.id, geoCodes: [inGeoCode] }
+        });
+
+        const ids = result.map((campaign) => campaign.id);
+        expect(ids).toContain(campaignIn.id);
+        expect(ids).not.toContain(campaignOut.id);
+      });
+
+      it('should exclude campaigns that have any housing outside geoCodes', async () => {
+        const inGeoCode = establishment.geoCodes[0];
+        const outGeoCode = establishment2.geoCodes[0];
+
+        const campaign = genCampaignApi(establishment.id, user);
+        const housingIn = genHousingApi(inGeoCode);
+        const housingOut = genHousingApi(outGeoCode);
+
+        await Campaigns().insert(formatCampaignApi(campaign));
+        await Housing().insert([
+          formatHousingRecordApi(housingIn),
+          formatHousingRecordApi(housingOut)
+        ]);
+        await CampaignsHousing().insert([
+          { campaign_id: campaign.id, housing_id: housingIn.id, housing_geo_code: housingIn.geoCode },
+          { campaign_id: campaign.id, housing_id: housingOut.id, housing_geo_code: housingOut.geoCode }
+        ]);
+
+        const result = await campaignRepository.find({
+          filters: { establishmentId: establishment.id, geoCodes: [inGeoCode] }
+        });
+
+        expect(result.map((campaign) => campaign.id)).not.toContain(campaign.id);
+      });
+    });
   });
 
   describe('findOne', () => {
@@ -152,6 +254,71 @@ describe('Campaign repository', () => {
 
       expect(result?.returnRate).toBeNull();
     });
+
+    describe('geoCodes filter', () => {
+      it('should return null when geoCodes is empty', async () => {
+        const campaign = genCampaignApi(establishment.id, user);
+        const housing = genHousingApi(establishment.geoCodes[0]);
+        await Campaigns().insert(formatCampaignApi(campaign));
+        await Housing().insert(formatHousingRecordApi(housing));
+        await CampaignsHousing().insert({
+          campaign_id: campaign.id,
+          housing_id: housing.id,
+          housing_geo_code: housing.geoCode
+        });
+
+        const result = await campaignRepository.findOne({
+          id: campaign.id,
+          establishmentId: establishment.id,
+          geoCodes: []
+        });
+
+        expect(result).toBeNull();
+      });
+
+      it('should return null when campaign has housing outside geoCodes', async () => {
+        const establishment2 = genEstablishmentApi();
+        const campaign = genCampaignApi(establishment.id, user);
+        const outsideHousing = genHousingApi(establishment2.geoCodes[0]);
+        await Campaigns().insert(formatCampaignApi(campaign));
+        await Housing().insert(formatHousingRecordApi(outsideHousing));
+        await CampaignsHousing().insert({
+          campaign_id: campaign.id,
+          housing_id: outsideHousing.id,
+          housing_geo_code: outsideHousing.geoCode
+        });
+
+        const result = await campaignRepository.findOne({
+          id: campaign.id,
+          establishmentId: establishment.id,
+          geoCodes: [establishment.geoCodes[0]]
+        });
+
+        expect(result).toBeNull();
+      });
+
+      it('should return campaign when all housing is within geoCodes', async () => {
+        const inGeoCode = establishment.geoCodes[0];
+        const campaign = genCampaignApi(establishment.id, user);
+        const housing = genHousingApi(inGeoCode);
+        await Campaigns().insert(formatCampaignApi(campaign));
+        await Housing().insert(formatHousingRecordApi(housing));
+        await CampaignsHousing().insert({
+          campaign_id: campaign.id,
+          housing_id: housing.id,
+          housing_geo_code: housing.geoCode
+        });
+
+        const result = await campaignRepository.findOne({
+          id: campaign.id,
+          establishmentId: establishment.id,
+          geoCodes: [inGeoCode]
+        });
+
+        expect(result).not.toBeNull();
+        expect(result?.id).toBe(campaign.id);
+      });
+    });
   });
 
   describe('remove', () => {
@@ -245,7 +412,7 @@ describe('Campaign repository', () => {
 
     beforeAll(async () => {
       await Establishments().insert(formatEstablishmentApi(establishment));
-      await Users().insert(formatUserApi(user));
+      await Users().insert(toUserDBO(user));
     });
 
     it('should increment housing_count when housing is added to campaign', async () => {

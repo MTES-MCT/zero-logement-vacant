@@ -6,9 +6,10 @@ import { logger } from '~/infra/logger';
 import queue from '~/infra/queue';
 import { CampaignApi, CampaignSortApi } from '~/models/CampaignApi';
 import { CampaignFiltersApi } from '~/models/CampaignFiltersApi';
+import { campaignsHousingTable } from '~/repositories/campaignHousingRepository';
 import { sortQuery } from '~/models/SortApi';
 import eventRepository from '~/repositories/eventRepository';
-import { parseUserApi, UserDBO, usersTable } from '~/repositories/userRepository';
+import { fromUserDBO, UserDBO, USERS_TABLE } from '~/repositories/userRepository';
 
 export const campaignsTable = 'campaigns';
 export const Campaigns = (transaction = db) =>
@@ -17,6 +18,7 @@ export const Campaigns = (transaction = db) =>
 interface FindOneOptions {
   id: string;
   establishmentId: string;
+  geoCodes?: string[];
 }
 
 const findOne = async (opts: FindOneOptions): Promise<CampaignApi | null> => {
@@ -48,8 +50,8 @@ const find = async (opts: FindOptions): Promise<CampaignApi[]> => {
 function listQuery(filters: CampaignFiltersApi) {
   return Campaigns()
     .select(`${campaignsTable}.*`)
-    .select(db.raw(`to_json(${usersTable}.*) as creator`))
-    .join(usersTable, `${usersTable}.id`, `${campaignsTable}.user_id`)
+    .select(db.raw(`to_json(${USERS_TABLE}.*) as creator`))
+    .join(USERS_TABLE, `${USERS_TABLE}.id`, `${campaignsTable}.user_id`)
     .modify(filterQuery(filters));
 }
 
@@ -60,6 +62,28 @@ const filterQuery = (filters: CampaignFiltersApi) => {
     }
     if (filters.groupIds?.length) {
       query.whereIn(`${campaignsTable}.group_id`, filters.groupIds);
+    }
+    // Filter campaigns to only those where ALL housings are within the user's perimeter
+    // Note: geoCodes is an array when a restriction applies
+    //   - non-empty array: filter to campaigns with housings in these geoCodes
+    //   - empty array: user should see NO campaigns (intersection with perimeter is empty)
+    if (filters?.geoCodes !== undefined) {
+      if (filters.geoCodes.length === 0) {
+        // Empty geoCodes means no access - return no campaigns
+        query.whereRaw('1 = 0');
+      } else {
+        const geoCodes = filters.geoCodes;
+        query.whereNotExists((subquery) => {
+          subquery
+            .select(db.raw('1'))
+            .from(campaignsHousingTable)
+            .where(
+              `${campaignsHousingTable}.campaign_id`,
+              db.ref(`${campaignsTable}.id`)
+            )
+            .whereNotIn(`${campaignsHousingTable}.housing_geo_code`, geoCodes);
+        });
+      }
     }
   };
 };
@@ -192,7 +216,7 @@ export const parseCampaignApi = (campaign: CampaignDBO): CampaignApi => ({
   filters: campaign.filters,
   file: campaign.file,
   userId: campaign.user_id,
-  createdBy: parseUserApi(campaign.creator!),
+  createdBy: fromUserDBO(campaign.creator!),
   createdAt: campaign.created_at.toJSON(),
   validatedAt: campaign.validated_at?.toJSON(),
   exportedAt: campaign.exported_at?.toJSON(),

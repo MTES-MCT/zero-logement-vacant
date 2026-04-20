@@ -41,7 +41,7 @@ const exportCampaignValidators: ValidationChain[] = [
 ];
 
 async function exportCampaign(request: Request, response: Response) {
-  const { auth, establishment, params } = request as AuthenticatedRequest;
+  const { auth, effectiveGeoCodes, params } = request as AuthenticatedRequest;
 
   logger.info('Export campaign', {
     id: params.id
@@ -73,7 +73,7 @@ async function exportCampaign(request: Request, response: Response) {
     filters: {
       campaignIds: [campaign.id],
       establishmentIds: [auth.establishmentId],
-      localities: establishment.geoCodes
+      localities: effectiveGeoCodes
     },
     includes: ['owner', 'campaigns', 'precisions']
   });

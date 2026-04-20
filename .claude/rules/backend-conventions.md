@@ -24,9 +24,6 @@ Router → Controller test → Controller → Repository test → Repository
 - Always apply `notDeleted()` for soft deletes.
 - Transactions: `startTransaction()` in controllers, `withinTransaction()` in repos. Never start transactions in repositories.
 
-## Migrations
-- Always create migration files with `yarn workspace @zerologementvacant/server db migrate:make <name>` — never create them manually. This ensures the timestamp in the filename is correct.
-
 ## Testing
 - API tests: `controllers/test/*-api.test.ts` with supertest.
 - Assert with primitive table accessors (`Events()`, `Housings()`), not the repository under test.

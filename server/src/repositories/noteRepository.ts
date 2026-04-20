@@ -5,9 +5,9 @@ import { createLogger } from '~/infra/logger';
 import { HousingId } from '~/models/HousingApi';
 import { HousingNoteApi, NoteApi } from '~/models/NoteApi';
 import {
-  parseUserApi,
+  fromUserDBO,
   UserDBO,
-  usersTable
+  USERS_TABLE
 } from '~/repositories/userRepository';
 
 const logger = createLogger('noteRepository');
@@ -170,15 +170,15 @@ export function parseNoteApi(note: NoteDBO): NoteApi {
     createdAt: note.created_at.toJSON(),
     updatedAt: note.updated_at ? note.updated_at.toJSON() : null,
     deletedAt: note.deleted_at ? note.deleted_at.toJSON() : null,
-    creator: parseUserApi(note.creator)
+    creator: fromUserDBO(note.creator)
   };
 }
 
 const listQuery = () =>
   Notes()
     .select(`${NOTES_TABLE}.*`)
-    .join(usersTable, `${usersTable}.id`, `${NOTES_TABLE}.created_by`)
-    .select(db.raw(`to_json(${usersTable}.*) AS creator`))
+    .join(USERS_TABLE, `${USERS_TABLE}.id`, `${NOTES_TABLE}.created_by`)
+    .select(db.raw(`to_json(${USERS_TABLE}.*) AS creator`))
     .orderBy(`${NOTES_TABLE}.created_at`, 'desc');
 
 export default {

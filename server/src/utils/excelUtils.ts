@@ -64,9 +64,48 @@ function setResponseHeaders(
   response.setHeader('Content-Disposition', 'attachment; filename=' + file);
 }
 
+const GREY_FILL: excel.Fill = {
+  type: 'pattern',
+  pattern: 'solid',
+  fgColor: { argb: 'FFF2F2F2' }
+};
+
+const DEFAULT_COLUMN_WIDTH = 22;
+
 export interface WorksheetOptions<A extends Record<string, unknown>> {
   name: string;
   columns: Array<Partial<excel.Column> & { key: keyof A }>;
+  /**
+   * When true, applies alternating white/grey fill on columns for readability.
+   * Also sets a default column width for better readability.
+   */
+  alternateColumnColors?: boolean;
+}
+
+/**
+ * Apply alternating grey fill on even-indexed columns (1-based: 2, 4, 6...).
+ */
+function applyAlternateColumnFill(
+  row: excel.Row,
+  columnCount: number
+): void {
+  for (let i = 1; i <= columnCount; i++) {
+    if (i % 2 === 0) {
+      row.getCell(i).fill = GREY_FILL;
+    }
+  }
+}
+
+/**
+ * Enhance column definitions with default widths.
+ */
+function withDefaultWidths<A extends Record<string, unknown>>(
+  columns: WorksheetOptions<A>['columns']
+): WorksheetOptions<A>['columns'] {
+  return columns.map((col) => ({
+    ...col,
+    width: col.width ?? DEFAULT_COLUMN_WIDTH
+  }));
 }
 
 /**
@@ -83,16 +122,29 @@ function createWorksheet<A extends Record<string, unknown>>(
   workbook: Workbook,
   options: WorksheetOptions<A>
 ) {
-  const { columns, name } = options;
+  const { name, alternateColumnColors } = options;
+  const columns = alternateColumnColors
+    ? withDefaultWidths(options.columns)
+    : options.columns;
+  const columnCount = columns.length;
 
   return new WritableStream<A>({
     start() {
       const worksheet = workbook.addWorksheet(name);
       worksheet.columns = columns;
+      if (alternateColumnColors) {
+        applyAlternateColumnFill(worksheet.getRow(1), columnCount);
+      }
     },
     write(chunk) {
       logger.debug('Processing chunk...', chunk);
-      workbook.getWorksheet(name)?.addRow(chunk)?.commit();
+      const row = workbook.getWorksheet(name)?.addRow(chunk);
+      if (row) {
+        if (alternateColumnColors) {
+          applyAlternateColumnFill(row, columnCount);
+        }
+        row.commit();
+      }
       logger.debug('Wrote row', chunk);
     },
     close() {

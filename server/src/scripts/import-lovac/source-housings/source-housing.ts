@@ -1,14 +1,12 @@
 import {
   CADASTRAL_CLASSIFICATION_VALUES,
-  HOUSING_KIND_VALUES,
+  CadastralClassification,
   HousingKind,
   Occupancy,
-  OCCUPANCY_VALUES,
   OWNERSHIP_KIND_INTERNAL_VALUES,
-  OwnershipKindInternal,
-  type CadastralClassification
+  OwnershipKindInternal
 } from '@zerologementvacant/models';
-import { boolean, date, number, object, ObjectSchema, string } from 'yup';
+import z from 'zod';
 
 export interface SourceHousing {
   data_file_year: string;
@@ -44,103 +42,74 @@ export interface SourceHousing {
   last_transaction_value: number | null;
 }
 
-export const sourceHousingSchema: ObjectSchema<SourceHousing> = object({
-  data_file_year: string()
-    .required('data_file_years is required')
-    .oneOf(['lovac-2025']),
-  invariant: string().required('invariant is required'),
-  local_id: string().required('local_id is required'),
-  building_id: string().defined('building_id must be defined').nullable(),
-  building_location: string()
-    .defined('building_location must be defined')
-    .nullable(),
-  building_year: number()
-    .integer('building_year must be an integer')
-    .defined('building_year must be defined')
-    .nullable()
-    .transform((value) => (value === 0 ? null : value))
+export const sourceHousingSchema = z.object({
+  data_file_year: z.literal('lovac-2025'),
+  invariant: z.string().min(1, 'invariant is required'),
+  local_id: z.string().min(1, 'local_id is required'),
+  building_id: z.string().nullable(),
+  building_location: z.string().nullable(),
+  building_year: z.preprocess(
+    (v) => (v === 0 ? null : v),
+    z
+      .number()
+      .int('building_year must be an integer')
+      .min(1)
+      .max(new Date().getUTCFullYear())
+      .nullable()
+  ),
+  plot_id: z.string().nullable(),
+  geo_code: z.string().length(5, 'geo_code is required'),
+  ban_id: z.string().nullable(),
+  ban_label: z.string().nullable(),
+  ban_score: z.number().nullable(),
+  ban_latitude: z.number().min(-90).max(90).nullable(),
+  ban_longitude: z.number().min(-180).max(180).nullable(),
+  dgfip_address: z.string().min(1, 'dgfip_address is required'),
+  dgfip_latitude: z.number().min(-90).max(90).nullable(),
+  dgfip_longitude: z.number().min(-180).max(180).nullable(),
+  housing_kind: z.nativeEnum(HousingKind),
+  condominium: z.enum(OWNERSHIP_KIND_INTERNAL_VALUES).nullable(),
+  living_area: z
+    .number()
     .min(1)
+    .nullable()
+    .transform((v) => (v !== null ? Math.trunc(v) : v)),
+  rooms_count: z
+    .number()
+    .int('rooms_count must be an integer')
+    .min(0)
+    .nullable(),
+  uncomfortable: z.boolean().nullable().default(false),
+  cadastral_classification: z
+    .number()
+    .int()
+    .refine((v): v is CadastralClassification =>
+      (CADASTRAL_CLASSIFICATION_VALUES as readonly number[]).includes(v)
+    )
+    .nullable(),
+  cadastral_reference: z.string().trim().nullable(),
+  taxed: z.boolean(),
+  rental_value: z.number().int().min(0).nullable(),
+  occupancy_source: z.nativeEnum(Occupancy),
+  vacancy_start_year: z
+    .number()
+    .int('vacancy_start_year must be an integer')
+    .min(0)
     .max(new Date().getUTCFullYear()),
-  plot_id: string().defined('plot_id is required').nullable(),
-  geo_code: string().length(5).required('geo_code is required'),
-  ban_id: string().defined('ban_id must be defined').nullable(),
-  ban_label: string().defined('ban_id must be defined').nullable(),
-  ban_score: number().defined('ban_score must be defined').nullable(),
-  ban_latitude: number()
-    .defined('ban_latitude must be defined')
-    .min(-90)
-    .max(90)
-    .nullable(),
-  ban_longitude: number()
-    .required('ban_longitude is required')
-    .min(-180)
-    .max(180)
-    .nullable(),
-  dgfip_address: string().required('dgfip_address is required'),
-  dgfip_latitude: number()
-    .defined('dgfip_latitude must be defined')
-    .nullable()
-    .min(-90)
-    .max(90),
-  dgfip_longitude: number()
-    .defined('dgfip_longitude must be defined')
-    .nullable()
-    .min(-180)
-    .max(180),
-  housing_kind: string()
-    .oneOf(HOUSING_KIND_VALUES)
-    .required('housing_kind is required'),
-  condominium: string()
-    .oneOf(OWNERSHIP_KIND_INTERNAL_VALUES)
-    .defined('condominium must be defined')
-    .nullable(),
-  living_area: number()
-    .defined('living_area must be defined')
-    .nullable()
-    .min(1)
-    .truncate(),
-  rooms_count: number()
-    .defined('rooms_count must be defined')
-    .nullable()
-    .integer('rooms_count must be an integer')
-    .min(0),
-  uncomfortable: boolean()
-    .defined('uncomfortable must be defined')
-    .nullable()
-    .default(false),
-  cadastral_classification: number<CadastralClassification>()
-    .defined('cadastral_classification must be defined')
-    .nullable()
-    .oneOf(CADASTRAL_CLASSIFICATION_VALUES),
-  cadastral_reference: string()
-    .defined('cadastral_reference must be defined')
-    .nullable()
-    .trim(),
-  taxed: boolean().required('taxed is required'),
-  rental_value: number()
-    .defined('rental_value must be defined')
-    .nullable()
-    .integer()
-    .min(0),
-  occupancy_source: string()
-    .required('occupancy_source is required')
-    .oneOf(OCCUPANCY_VALUES),
-  vacancy_start_year: number()
-    .integer('vacancy_start_year must be an integer')
-    .min(0)
-    .max(new Date().getUTCFullYear())
-    .required('vacancy_start_year is required'),
-  mutation_date: date().defined('mutation_Date must be defined').nullable(),
-  last_mutation_date: date()
-    .defined('last_mutation_date must be defined')
-    .nullable(),
-  last_transaction_date: date()
-    .defined('last_transaction_date must be defined')
-    .nullable(),
-  last_transaction_value: number()
-    .defined('last_transaction_value must be defined')
-    .nullable()
-    .integer()
-    .round()
-    .min(0)
+  mutation_date: z.preprocess(
+    (v) => (v !== null && v !== undefined && !(v instanceof Date) ? new Date(v as string) : v),
+    z.date().nullable()
+  ),
+  last_mutation_date: z.preprocess(
+    (v) => (v !== null && v !== undefined && !(v instanceof Date) ? new Date(v as string) : v),
+    z.date().nullable()
+  ),
+  last_transaction_date: z.preprocess(
+    (v) => (v !== null && v !== undefined && !(v instanceof Date) ? new Date(v as string) : v),
+    z.date().nullable()
+  ),
+  last_transaction_value: z.preprocess(
+    (v) => (v !== null && typeof v === 'number' ? Math.round(v) : v),
+    z.number().int().min(0).nullable()
+  )
 });

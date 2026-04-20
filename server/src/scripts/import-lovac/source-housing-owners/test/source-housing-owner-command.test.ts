@@ -4,7 +4,8 @@ import {
   ActiveOwnerRank,
   isActiveOwnerRank,
   isPreviousOwnerRank,
-  OwnerRank
+  OwnerRank,
+  PREVIOUS_OWNER_RANK
 } from '@zerologementvacant/models';
 import { stringify as writeJSONL } from 'jsonlines';
 import fs from 'node:fs';
@@ -12,11 +13,9 @@ import path from 'node:path';
 import { Transform, Writable } from 'node:stream';
 import { ReadableStream } from 'node:stream/web';
 
-import config from '~/infra/config';
 import { HousingApi } from '~/models/HousingApi';
 import { HousingOwnerApi } from '~/models/HousingOwnerApi';
 import { OwnerApi } from '~/models/OwnerApi';
-import { UserApi } from '~/models/UserApi';
 import {
   Establishments,
   formatEstablishmentApi
@@ -42,15 +41,13 @@ import {
   OwnerRecordDBO,
   Owners
 } from '~/repositories/ownerRepository';
-import { toUserDBO, Users } from '~/repositories/userRepository';
 import { SourceHousingOwner } from '~/scripts/import-lovac/source-housing-owners/source-housing-owner';
 import { createSourceHousingOwnerCommand } from '~/scripts/import-lovac/source-housing-owners/source-housing-owner-command';
 import {
   genEstablishmentApi,
   genHousingApi,
   genHousingOwnerApi,
-  genOwnerApi,
-  genUserApi
+  genOwnerApi
 } from '~/test/testFixtures';
 
 describe('Source housing owner command', () => {
@@ -70,7 +67,7 @@ describe('Source housing owner command', () => {
   const missingOwnersHousingOwners: ReadonlyArray<HousingOwnerApi> =
     ACTIVE_OWNER_RANKS.slice(
       0,
-      faker.number.int({ min: 0, max: ACTIVE_OWNER_RANKS.length - 1 })
+      faker.number.int({ min: 1, max: ACTIVE_OWNER_RANKS.length - 1 })
     ).map((rank) => ({
       ...genHousingOwnerApi(missingOwnersHousing, genValidOwnerApi()),
       rank
@@ -111,6 +108,27 @@ describe('Source housing owner command', () => {
     rank: (i + 1) as ActiveOwnerRank
   }));
 
+  // Rank change scenario: same owner reappears at a different rank
+  const rankChangeHousing = genHousingApi();
+  const rankChangedOwner = genValidOwnerApi();
+  const rankChangedHousingOwner: HousingOwnerApi = {
+    ...genHousingOwnerApi(rankChangeHousing, rankChangedOwner),
+    rank: 1 as ActiveOwnerRank
+  };
+
+  // Inactive owner preserved scenario: inactive owner stays untouched
+  const inactivePreservedHousing = genHousingApi();
+  const preservedInactiveOwner = genValidOwnerApi();
+  const preservedInactiveHousingOwner: HousingOwnerApi = {
+    ...genHousingOwnerApi(inactivePreservedHousing, preservedInactiveOwner),
+    rank: PREVIOUS_OWNER_RANK
+  };
+  const newOwnerForInactiveTest = genValidOwnerApi();
+  const newHousingOwnerForInactiveTest: HousingOwnerApi = {
+    ...genHousingOwnerApi(inactivePreservedHousing, newOwnerForInactiveTest),
+    rank: 1 as ActiveOwnerRank
+  };
+
   const sourceHousingOwners: ReadonlyArray<SourceHousingOwner> = [
     ...missingOwnersHousingOwners.map((housingOwner) =>
       toSourceHousingOwner(housingOwner, missingOwnersHousing)
@@ -123,7 +141,11 @@ describe('Source housing owner command', () => {
     ),
     ...replacingHousingOwners.map((housingOwner) =>
       toSourceHousingOwner(housingOwner, existingHousing)
-    )
+    ),
+    // Rank change: same owner at a new rank
+    { ...toSourceHousingOwner(rankChangedHousingOwner, rankChangeHousing), rank: 2 as ActiveOwnerRank },
+    // Inactive preserved: only the new active owner appears in source
+    toSourceHousingOwner(newHousingOwnerForInactiveTest, inactivePreservedHousing)
   ];
 
   // Seed the database
@@ -132,28 +154,36 @@ describe('Source housing owner command', () => {
       ...missingHousingOwners,
       newOwner,
       ...existingOwners,
-      ...replacingOwners
+      ...replacingOwners,
+      rankChangedOwner,
+      preservedInactiveOwner,
+      newOwnerForInactiveTest
     ].map(formatOwnerApi);
     await Owners().insert(owners);
 
-    const housings = [missingOwnersHousing, newHousing, existingHousing].map(
-      formatHousingRecordApi
-    );
+    const housings = [
+      missingOwnersHousing,
+      newHousing,
+      existingHousing,
+      rankChangeHousing,
+      inactivePreservedHousing
+    ].map(formatHousingRecordApi);
     await Housing().insert(housings);
 
     const housingOwners: ReadonlyArray<HousingOwnerDBO> = [
-      ...existingHousingOwners
+      ...existingHousingOwners,
+      rankChangedHousingOwner,
+      preservedInactiveHousingOwner
     ].map(formatHousingOwnerApi);
     await HousingOwners().insert(housingOwners);
 
     const establishment = genEstablishmentApi();
     await Establishments().insert(formatEstablishmentApi(establishment));
 
-    const auth: UserApi = {
-      ...genUserApi(establishment.id),
-      email: config.app.system
-    };
-    await Users().insert([auth].map(toUserDBO));
+  });
+
+  afterAll(async () => {
+    fs.unlinkSync(file);
   });
 
   // Write the file and run
@@ -171,7 +201,8 @@ describe('Source housing owner command', () => {
     await command(file, {
       abortEarly: false,
       dryRun: false,
-      from: 'file'
+      from: 'file',
+      year: 'lovac-2025'
     });
   });
 
@@ -264,7 +295,7 @@ describe('Source housing owner command', () => {
       });
     });
 
-    it('should create an event "Changement de propriétaires"', async () => {
+    it('should create owner-attached and owner-detached events', async () => {
       const actual = await HousingEvents()
         .where({
           housing_geo_code: existingHousing.geoCode,
@@ -282,6 +313,57 @@ describe('Source housing owner command', () => {
         housing_id: existingHousing.id,
         type: 'housing:owner-attached'
       });
+      expect(actual).toPartiallyContain<
+        Partial<EventDBO<any> & HousingEventDBO>
+      >({
+        housing_geo_code: existingHousing.geoCode,
+        housing_id: existingHousing.id,
+        type: 'housing:owner-detached'
+      });
+    });
+  });
+
+  describe('Present in LOVAC 2025, rank change', () => {
+    it('should update the owner rank', async () => {
+      const actual = await HousingOwners().where({
+        housing_geo_code: rankChangeHousing.geoCode,
+        housing_id: rankChangeHousing.id,
+        owner_id: rankChangedOwner.id
+      });
+      expect(actual).toHaveLength(1);
+      expect(actual[0].rank).toBe(2);
+    });
+
+    it('should create an owner-updated event', async () => {
+      const actual = await HousingEvents()
+        .where({
+          housing_geo_code: rankChangeHousing.geoCode,
+          housing_id: rankChangeHousing.id
+        })
+        .join(
+          EVENTS_TABLE,
+          `${EVENTS_TABLE}.id`,
+          `${HOUSING_EVENTS_TABLE}.event_id`
+        );
+      expect(actual).toPartiallyContain<
+        Partial<EventDBO<any> & HousingEventDBO>
+      >({
+        housing_geo_code: rankChangeHousing.geoCode,
+        housing_id: rankChangeHousing.id,
+        type: 'housing:owner-updated'
+      });
+    });
+  });
+
+  describe('Present in LOVAC 2025, inactive owner', () => {
+    it('should preserve the inactive housing owner', async () => {
+      const actual = await HousingOwners().where({
+        housing_geo_code: inactivePreservedHousing.geoCode,
+        housing_id: inactivePreservedHousing.id,
+        owner_id: preservedInactiveOwner.id
+      });
+      expect(actual).toHaveLength(1);
+      expect(actual[0].rank).toBe(PREVIOUS_OWNER_RANK);
     });
   });
 

@@ -1,36 +1,96 @@
 # Import LOVAC
 
-This script imports data from LOVAC into a database.
-It consists of the following steps:
+Pipeline EETL annuel pour importer propriétaires, logements et droits de propriété depuis les fichiers LOVAC.
 
-- Read data from a CSV or JSONL file
-- Validate the data using a [yup](https://www.npmjs.com/package/yup) schema
-- Create or replace the owner (if `idpersonne` exists) and overwrite the
-  following fields:
-  - `raw_address`
-  - `full_name`
-  - `birth_date`
+## Prérequis
 
-## Prerequisites
+- `clever` CLI installé et authentifié (`clever login`)
+- `duckdb` installé
+- `youplot` installé (`gem install youplot`)
+- `ZLV_IMPORT_APP_ID` — ID de l'application Clever Cloud dédiée à l'import (dans votre shell profile, jamais commité)
+- `NOTION_TOKEN` + `NOTION_LOVAC_PARENT_PAGE_ID` — pour l'export Notion (dans votre shell profile)
 
-A database must be migrated and configured in the `server/.env` using the
-`DATABASE_URL` environment variable.
+## Ordre d'exécution
 
-## Usage
+Remplacer `lovac-2026` par le millésime courant.
 
-```shell
-yarn workspace @zerologementvacant/server ts-node src/scripts/import-lovac/cli.ts -h
+```bash
+# 1. Snapshot avant import
+./stats/snapshot.sh owners pre "$DATABASE_URL"
+
+# 2. Import propriétaires
+./run-on-clevercloud.sh owners --year lovac-2026 --file owners.jsonl
+
+# 3. Snapshot après propriétaires
+./stats/snapshot.sh owners post "$DATABASE_URL"
+
+# 4. Import logements
+./run-on-clevercloud.sh housings --year lovac-2026 --file housings.jsonl
+
+# 5. Snapshot après logements
+./stats/snapshot.sh housings post "$DATABASE_URL"
+
+# 6. Import droits de propriété
+./run-on-clevercloud.sh housing-owners --year lovac-2026 --file housing-owners.jsonl
+
+# 7. Snapshot après droits de propriété
+./stats/snapshot.sh housing-owners post "$DATABASE_URL"
+
+# 8. Voir les deltas dans le terminal
+for suffix in metrics types sources; do
+  ./stats/diff.sh snapshot-owners-${suffix}-pre.json snapshot-owners-${suffix}-post.json
+done
+for suffix in metrics occupancy status years; do
+  ./stats/diff.sh snapshot-housings-${suffix}-pre.json snapshot-housings-${suffix}-post.json
+done
+for suffix in metrics rank; do
+  ./stats/diff.sh snapshot-housing-owners-${suffix}-pre.json snapshot-housing-owners-${suffix}-post.json
+done
+
+# 9. Publier le rapport sur Notion (dans une session Claude Code)
+# /publish-lovac-report lovac-2026
 ```
 
-The script can be ran with a CSV file or a JSONL file.
+## Options disponibles
 
-A progress bar is displayed when running manually.
-It is displayed correctly when `LOG_LEVEL` is at least `info`.
-If `LOG_LEVEL=debug`, the debug logs will "overflow" the progress bar,
-hiding it de facto.
+| Option | Description |
+|---|---|
+| `--year <millésime>` | Obligatoire. Ex: `lovac-2026` |
+| `--file <clé-s3>` | Fichier source sur S3 |
+| `--dry-run` | Simule l'import sans écrire en base |
+| `--abort-early` | Arrête au premier échec de validation |
+| `--departments <dep...>` | Filtre par département(s) |
 
-### Example usage
+## Architecture
 
-```shell
-yarn workspace @zerologementvacant/server ts-node src/scripts/import-lovac/cli.ts owners [--dry-run] ~/owners.csv
+Le pipeline owner suit le modèle EETL :
+
+```
+Source → Validate → Enrich (bulk SELECT) → Transform (pure) → Load (ON CONFLICT)
+```
+
+Les identifiants sont déterministes (UUID v5) : relancer l'import avec le même `--year` et le même fichier est sans effet.
+
+## Rapport Notion
+
+Le rapport est publié **en français** via le skill Claude Code `/publish-lovac-report`.  
+Il lit les fichiers `snapshot-<entité>-<suffixe>-pre.json` / `snapshot-<entité>-<suffixe>-post.json` produits par `stats/snapshot.sh` (un fichier par requête SQL).
+
+Sections générées :
+- Propriétaires (total, par type, avec/sans `idpersonne`, avec/sans adresse DGFIP)
+- Logements (total, par occupation, par statut de suivi)
+- Droits de propriété (total, par rang, avec/sans `idprocpte`)
+- Événements générés (par type)
+- Erreurs de validation (par champ)
+
+## Débogage
+
+```bash
+# Voir les logs en temps réel
+clever logs --app "$ZLV_IMPORT_APP_ID" --follow
+
+# Dry-run local (base locale)
+yarn workspace @zerologementvacant/server tsx \
+  src/scripts/import-lovac/cli.ts owners \
+  --from file --year lovac-2026 --dry-run ~/owners.jsonl
 ```

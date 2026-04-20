@@ -11,7 +11,6 @@ import { rm } from 'node:fs/promises';
 import path from 'node:path';
 import { Transform, Writable } from 'node:stream';
 import { ReadableStream } from 'node:stream/web';
-import config from '~/infra/config';
 import { BuildingApi } from '~/models/BuildingApi';
 import { HousingEventApi } from '~/models/EventApi';
 import { HousingApi } from '~/models/HousingApi';
@@ -45,10 +44,8 @@ import { genSourceHousing } from '~/scripts/import-lovac/infra/fixtures';
 import { createUpdater } from '~/scripts/import-lovac/infra/updater';
 import { SourceHousing } from '~/scripts/import-lovac/source-housings/source-housing';
 
-import {
-  createSourceHousingCommand,
-  updateHousings
-} from '~/scripts/import-lovac/source-housings/source-housing-command';
+import { createSourceHousingCommand } from '~/scripts/import-lovac/source-housings/source-housing-command';
+import { updateHousings } from '~/scripts/import-lovac/source-housings/source-housing-loader';
 import {
   genBuildingApi,
   genEstablishmentApi,
@@ -90,16 +87,6 @@ describe('Source housing command', () => {
   const contactedStatuses = HOUSING_STATUS_VALUES.filter(
     (status) => status !== HousingStatus.NEVER_CONTACTED
   );
-  const nonVacantUnsupervisedHousings: ReadonlyArray<HousingApi> = faker.helpers
-    .multiple(() => faker.helpers.arrayElement(nonVacantOccupancies), {
-      count: { min: 5, max: 50 }
-    })
-    .map((occupancy) => ({
-      ...genHousingApi(),
-      buildingId: building.id,
-      occupancy: occupancy,
-      occupancyRegistered: occupancy
-    }));
   const nonVacantUserModifiedHousings: ReadonlyArray<HousingApi> = faker.helpers
     .multiple(() => faker.helpers.arrayElement(nonVacantOccupancies), {
       count: { min: 5, max: 50 }
@@ -134,7 +121,6 @@ describe('Source housing command', () => {
   const sourceHousings: ReadonlyArray<SourceHousing> = [
     ...missingSourceHousings,
     ...vacantHousings.map(toSourceHousing),
-    ...nonVacantUnsupervisedHousings.map(toSourceHousing),
     ...nonVacantUserModifiedHousings.map(toSourceHousing),
     ...nonVacantNonUserModifiedHousings.map(toSourceHousing),
     ...geoCodeChangedHousings.map((housing) => ({
@@ -144,60 +130,12 @@ describe('Source housing command', () => {
     }))
   ];
 
-  const vacantUnsupervisedHousings: ReadonlyArray<HousingApi> =
-    faker.helpers.multiple(
-      () => ({
-        ...genHousingApi(),
-        buildingId: building.id,
-        dataFileYears: ['lovac-2024'],
-        occupancy: Occupancy.VACANT,
-        status: faker.helpers.arrayElement([
-          HousingStatus.NEVER_CONTACTED,
-          HousingStatus.WAITING,
-          HousingStatus.FIRST_CONTACT,
-          HousingStatus.BLOCKED
-        ]),
-        subStatus: null
-      }),
-      { count: { min: 5, max: 50 } }
-    );
-  const vacantSupervisedHousings: ReadonlyArray<HousingApi> =
-    faker.helpers.multiple(
-      () => {
-        const status = faker.helpers.arrayElement([
-          HousingStatus.COMPLETED,
-          HousingStatus.IN_PROGRESS
-        ]);
-        const subStatus =
-          status === HousingStatus.IN_PROGRESS
-            ? faker.helpers.arrayElement([
-                'En accompagnement',
-                'Intervention publique'
-              ])
-            : null;
-        return {
-          ...genHousingApi(),
-          buildingId: building.id,
-          dataFileYears: ['lovac-2024'],
-          occupancy: Occupancy.VACANT,
-          occupancyRegistered: Occupancy.VACANT,
-          status,
-          subStatus
-        };
-      },
-      { count: { min: 5, max: 50 } }
-    );
-
   // Housings to save to the database
   const housingsBefore: ReadonlyArray<HousingApi> = [
     ...vacantHousings,
-    ...nonVacantUnsupervisedHousings,
     ...nonVacantUserModifiedHousings,
     ...nonVacantNonUserModifiedHousings,
-    ...geoCodeChangedHousings,
-    // Housings missing from the fake LOVAC file but present in our database
-    ...vacantUnsupervisedHousings,
-    ...vacantSupervisedHousings
+    ...geoCodeChangedHousings
   ];
 
   // Seed the database
@@ -212,11 +150,7 @@ describe('Source housing command', () => {
       ...genUserApi(establishment.id),
       email: `${faker.internet.userName().toLowerCase()}@zerologementvacant.beta.gouv.fr`
     };
-    const auth: UserApi = {
-      ...genUserApi(establishment.id),
-      email: config.app.system
-    };
-    await Users().insert([user, admin, auth].map(toUserDBO));
+    await Users().insert([user, admin].map(toUserDBO));
     await Buildings().insert(formatBuildingApi(building));
     await Housing().insert(housingsBefore.map(formatHousingRecordApi));
 
@@ -246,7 +180,7 @@ describe('Source housing command', () => {
   // Write the file and run
   beforeAll(async () => {
     await write(file, sourceHousings);
-    await command(file, { abortEarly: true, from: 'file' });
+    await command(file, { abortEarly: true, from: 'file', year: 'lovac-2025' });
   });
 
   afterAll(async () => {
@@ -256,7 +190,6 @@ describe('Source housing command', () => {
   it('should add "lovac-2025" to housing updated from LOVAC', async () => {
     const actual = await refresh([
       ...vacantHousings,
-      ...nonVacantUnsupervisedHousings,
       ...nonVacantUserModifiedHousings,
       ...nonVacantNonUserModifiedHousings
     ]);
@@ -454,84 +387,15 @@ describe('Source housing command', () => {
         >({
           housing_geo_code: actualHousing.geo_code,
           housing_id: actualHousing.id,
+          type: 'housing:occupancy-updated'
         });
         expect(actualEvents).toPartiallyContain<
           Partial<EventRecordDBO<any> & HousingEventDBO>
         >({
           housing_geo_code: actualHousing.geo_code,
           housing_id: actualHousing.id,
+          type: 'housing:status-updated'
         });
-      });
-    });
-  });
-
-  describe('Missing from LOVAC, present in our database', () => {
-    it('should set vacant, unsupervised housings as out of vacancy', async () => {
-      const actual = await refresh(vacantUnsupervisedHousings);
-      expect(actual).toHaveLength(vacantUnsupervisedHousings.length);
-      actual.forEach((actualHousing) => {
-        expect(actualHousing).toMatchObject<Partial<HousingRecordDBO>>({
-          occupancy: Occupancy.UNKNOWN,
-          status: HousingStatus.COMPLETED,
-          sub_status: 'Sortie de la vacance'
-        });
-      });
-
-      const actualEvents = await Events()
-        .join(
-          HOUSING_EVENTS_TABLE,
-          `${HOUSING_EVENTS_TABLE}.event_id`,
-          `${EVENTS_TABLE}.id`
-        )
-        .whereIn(
-          [
-            `${HOUSING_EVENTS_TABLE}.housing_geo_code`,
-            `${HOUSING_EVENTS_TABLE}.housing_id`
-          ],
-          actual.map((actualHousing) => [
-            actualHousing.geo_code,
-            actualHousing.id
-          ])
-        );
-      actual.forEach((actualHousing) => {
-        expect(actualEvents).toPartiallyContain<
-          Partial<EventRecordDBO<any> & HousingEventDBO>
-        >({
-          housing_geo_code: actualHousing.geo_code,
-          housing_id: actualHousing.id,
-        });
-        expect(actualEvents).toPartiallyContain<
-          Partial<EventRecordDBO<any> & HousingEventDBO>
-        >({
-          housing_geo_code: actualHousing.geo_code,
-          housing_id: actualHousing.id,
-        });
-      });
-    });
-
-    it('should leave vacant, supervised housings’ occupancies and statuses untouched', async () => {
-      const actual = await refresh(vacantSupervisedHousings);
-      expect(actual).toHaveLength(vacantSupervisedHousings.length);
-      actual.forEach((actualHousing) => {
-        const housingBefore = housingsBefore.find(
-          (housing) => housing.id === actualHousing.id
-        );
-        expect(actualHousing).toMatchObject<Partial<HousingRecordDBO>>({
-          occupancy: housingBefore?.occupancy,
-          occupancy_source: housingBefore?.occupancyRegistered,
-          status: housingBefore?.status,
-          sub_status: housingBefore?.subStatus
-        });
-      });
-    });
-
-    it('should not add them to "lovac-2025"', async () => {
-      const actual = await refresh([
-        ...vacantSupervisedHousings,
-        ...vacantUnsupervisedHousings
-      ]);
-      expect(actual).toSatisfyAll<HousingRecordDBO>((housing) => {
-        return !housing.data_file_years?.includes('lovac-2025');
       });
     });
   });

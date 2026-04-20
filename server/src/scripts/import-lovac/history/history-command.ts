@@ -14,6 +14,7 @@ export interface ExecOptions {
   abortEarly?: boolean;
   departments?: string[];
   dryRun?: boolean;
+  year: string;
 }
 
 export function createHistoryCommand() {

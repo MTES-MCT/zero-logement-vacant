@@ -1,37 +1,33 @@
 import {
-  chunkify,
   count,
-  filter,
+  createS3,
   flatten,
   groupBy,
   map
 } from '@zerologementvacant/utils/node';
-import { WritableStream } from 'node:stream/web';
+import { PutObjectCommand } from '@aws-sdk/client-s3';
+import { writeFileSync } from 'node:fs';
+import { match } from 'ts-pattern';
+
 import UserMissingError from '~/errors/userMissingError';
 import config from '~/infra/config';
 import { createLogger } from '~/infra/logger';
-import { HousingEventApi } from '~/models/EventApi';
-import { HousingApi } from '~/models/HousingApi';
-import { HousingOwnerApi } from '~/models/HousingOwnerApi';
-import { OwnerApi } from '~/models/OwnerApi';
-import eventRepository from '~/repositories/eventRepository';
-import housingOwnerRepository from '~/repositories/housingOwnerRepository';
-import housingRepository from '~/repositories/housingRepository';
-import ownerRepository from '~/repositories/ownerRepository';
 import userRepository from '~/repositories/userRepository';
 import { createLoggerReporter } from '~/scripts/import-lovac/infra';
 import { FromOptionValue } from '~/scripts/import-lovac/infra/options/from';
 import { progress } from '~/scripts/import-lovac/infra/progress-bar';
+import { Reporter } from '~/scripts/import-lovac/infra/reporters/reporter';
 import validator from '~/scripts/import-lovac/infra/validator';
 import {
   SourceHousingOwner,
   sourceHousingOwnerSchema
 } from '~/scripts/import-lovac/source-housing-owners/source-housing-owner';
+import { createSourceHousingOwnerEnricher } from '~/scripts/import-lovac/source-housing-owners/source-housing-owner-enricher';
+import { createHousingOwnerLoader } from '~/scripts/import-lovac/source-housing-owners/source-housing-owner-loader';
 import {
-  createSourceHousingOwnerProcessor,
-  HousingEventChange,
-  HousingOwnersChange
-} from '~/scripts/import-lovac/source-housing-owners/source-housing-owner-processor';
+  createHousingOwnerTransform,
+  HousingOwnerChange
+} from '~/scripts/import-lovac/source-housing-owners/source-housing-owner-transform';
 import { createSourceHousingOwnerRepository } from '~/scripts/import-lovac/source-housing-owners/source-housing-owner-repository';
 
 const logger = createLogger('sourceHousingOwnerCommand');
@@ -41,6 +37,7 @@ export interface ExecOptions {
   departments?: string[];
   dryRun?: boolean;
   from: FromOptionValue;
+  year: string;
 }
 
 export function createSourceHousingOwnerCommand() {
@@ -48,6 +45,7 @@ export function createSourceHousingOwnerCommand() {
 
   return async (file: string, options: ExecOptions): Promise<void> => {
     try {
+      console.time('Import housing owners');
       logger.debug('Starting source housing owner command...', {
         file,
         options
@@ -62,7 +60,7 @@ export function createSourceHousingOwnerCommand() {
       const total = await count(
         createSourceHousingOwnerRepository({
           ...config.s3,
-          file: file,
+          file,
           from: options.from
         }).stream({
           departments: options.departments
@@ -70,107 +68,79 @@ export function createSourceHousingOwnerCommand() {
       );
 
       logger.info('Starting import...', { file });
-      const [housingOwnerStream, eventStream] =
-        createSourceHousingOwnerRepository({
-          ...config.s3,
-          file: file,
-          from: options.from
+      await createSourceHousingOwnerRepository({
+        ...config.s3,
+        file,
+        from: options.from
+      })
+        .stream({
+          departments: options.departments
         })
-          .stream({
-            departments: options.departments
+        .pipeThrough(
+          progress({
+            initial: 0,
+            total,
+            name: '(1/1) Updating housing owners'
           })
-          .pipeThrough(
-            progress({
-              initial: 0,
-              total,
-              name: '(1/1) Updating housing owners'
-            })
-          )
-          .pipeThrough(
-            validator(sourceHousingOwnerSchema, {
+        )
+        .pipeThrough(
+          validator(sourceHousingOwnerSchema, {
+            abortEarly: options.abortEarly,
+            reporter
+          })
+        )
+        .pipeThrough(groupBy((current, next) => current.local_id === next.local_id))
+        .pipeThrough(createSourceHousingOwnerEnricher())
+        .pipeThrough(
+          map(
+            createHousingOwnerTransform({
               abortEarly: options.abortEarly,
-              reporter
+              adminUserId: auth.id,
+              reporter,
+              year: options.year
             })
           )
-          .pipeThrough(groupBy((a, b) => a.local_id === b.local_id))
-          .pipeThrough(
-            createSourceHousingOwnerProcessor({
-              abortEarly: options.abortEarly,
-              auth,
-              housingRepository: {
-                async findOne(geoCode, localId): Promise<HousingApi | null> {
-                  return housingRepository.findOne({
-                    localId,
-                    geoCode: [geoCode]
-                  });
-                }
-              },
-              ownerRepository: {
-                async find(
-                  idpersonnes: string[]
-                ): Promise<ReadonlyArray<OwnerApi>> {
-                  return ownerRepository.find({
-                    filters: { idpersonne: idpersonnes }
-                  });
-                },
-                async findByHousing(
-                  housing: HousingApi
-                ): Promise<ReadonlyArray<HousingOwnerApi>> {
-                  return ownerRepository.findByHousing(housing);
-                }
-              },
-              reporter
-            })
-          )
-          .pipeThrough(flatten())
-          .tee();
-
-      await Promise.all([
-        // Update housing owners
-        housingOwnerStream
-          .pipeThrough(
-            filter(
-              (change): change is HousingOwnersChange =>
-                change.type === 'housingOwners' && change.kind === 'replace'
-            )
-          )
-          .pipeThrough(map((change) => change.value))
-          .pipeTo(
-            new WritableStream<HousingOwnerApi[]>({
-              async write(housingOwners) {
-                if (!options.dryRun) {
-                  await housingOwnerRepository.saveMany(housingOwners);
-                }
-              }
-            })
-          ),
-        // Save events
-        eventStream
-          .pipeThrough(
-            filter(
-              (change): change is HousingEventChange =>
-                change.type === 'event' && change.kind === 'create'
-            )
-          )
-          .pipeThrough(map((change) => change.value))
-          .pipeThrough(chunkify({ size: 1_000 }))
-          .pipeTo(
-            new WritableStream<HousingEventApi[]>({
-              async write(events) {
-                if (!options.dryRun) {
-                  await eventRepository.insertManyHousingEvents(events);
-                }
-              }
-            })
-          )
-      ]);
+        )
+        .pipeThrough(flatten<HousingOwnerChange>())
+        .pipeTo(createHousingOwnerLoader({ dryRun: options.dryRun, reporter }));
 
       logger.info(`File ${file} imported.`);
-    } catch (error) {
-      logger.error(error);
-      throw error;
     } finally {
       reporter.report();
+      await writeReport(file, options, reporter);
+      console.timeEnd('Import housing owners');
     }
   };
+}
+
+async function writeReport(
+  file: string,
+  options: ExecOptions,
+  reporter: Reporter<SourceHousingOwner>
+): Promise<void> {
+  const json = JSON.stringify(reporter.getSummary(), null, 2);
+  try {
+    await match(options)
+      .with({ from: 's3' }, async () => {
+        const s3 = createS3(config.s3);
+        await s3.send(
+          new PutObjectCommand({
+            Bucket: config.s3.bucket,
+            Key: `${file}.report.json`,
+            Body: json,
+            ContentType: 'application/json'
+          })
+        );
+      })
+      .with({ from: 'file' }, async () => {
+        writeFileSync(
+          `./import-lovac-${options.year}-housing-owners.report.json`,
+          json,
+          'utf8'
+        );
+      })
+      .exhaustive();
+  } catch (error) {
+    logger.warn('Failed to write report', { error });
+  }
 }

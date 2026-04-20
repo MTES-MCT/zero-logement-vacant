@@ -20,6 +20,9 @@ describe('Source building processor', () => {
       passed: vi.fn(),
       skipped: vi.fn(),
       failed: vi.fn(),
+      created: vi.fn(),
+      updated: vi.fn(),
+      getSummary: vi.fn().mockReturnValue({ created: 0, updated: 0, skipped: 0, failed: 0, durationMs: 0 }),
       report: vi.fn()
     };
   });

@@ -9,22 +9,17 @@ dotenvx.config({
   quiet: process.env.NODE_ENV === 'test'
 });
 
-const isProduction = process.env.NODE_ENV === 'production';
-const isReviewApp = process.env.IS_REVIEW_APP === 'true';
-
 // Treat empty-string env vars the same as unset so Zod defaults kick in.
 const e = (key: string): string | undefined => process.env[key] || undefined;
 
-const boolFromString = z.preprocess(
-  (val) => val === 'true' || val === true,
-  z.boolean()
-);
+const envEnum = z.literal(['development', 'test', 'production'] as const);
+const isProduction = envEnum.parse(process.env.NODE_ENV) === 'production';
 
 export const configSchema = z.object({
   app: z.object({
     batchSize: z.coerce.number().int().default(1_000),
-    env: z.enum(['development', 'test', 'production']).default('development'),
-    isReviewApp: boolFromString.default(false),
+    env: envEnum.default('development'),
+    isReviewApp: z.stringbool().default(false),
     host: z.string().default('http://localhost:3001'),
     port: z.coerce.number().int().min(1).max(65535).default(3001),
     system: z.string().default('admin@zerologementvacant.beta.gouv.fr')
@@ -32,11 +27,11 @@ export const configSchema = z.object({
   auth: z.object({
     secret: z.string().min(1),
     expiresIn: z.string().default('12 hours'),
-    admin2faEnabled: boolFromString.default(false)
+    admin2faEnabled: z.stringbool().default(false)
   }),
   ban: z.object({
     api: z.object({
-      endpoint: z.string().url().default('https://api-adresse.data.gouv.fr')
+      endpoint: z.url().default('https://api-adresse.data.gouv.fr')
     }),
     update: z.object({
       pageSize: z.coerce.number().int().default(2_000),
@@ -44,7 +39,7 @@ export const configSchema = z.object({
     })
   }),
   clamav: z.object({
-    enabled: boolFromString.default(false),
+    enabled: z.stringbool().default(false),
     socket: z.string().default('/var/run/clamav/clamd.sock'),
     host: z.string().default('127.0.0.1'),
     port: z.coerce.number().int().min(1).max(65535).default(3310),
@@ -52,46 +47,39 @@ export const configSchema = z.object({
     configFile: z.string().default('/etc/clamav/clamd.conf')
   }),
   cerema: z.object({
-    enabled: boolFromString.default(isProduction),
-    api: z.string().url().default('https://getdf.cerema.fr'),
+    enabled: z.stringbool().default(isProduction),
+    api: z.url().default('https://getdf.cerema.fr'),
     username: z.string().nullable().default(null),
     password: z.string().nullable().default(null),
-    authVersion: z.enum(['v1', 'v2']).default('v1'),
-    apiV2: z
-      .string()
-      .url()
-      .default('https://datafoncier-dev.osc-fr1.scalingo.io')
+    authVersion: z.literal(['v1', 'v2']).default('v1'),
+    apiV2: z.url().default('https://datafoncier-dev.osc-fr1.scalingo.io')
   }),
   datafoncier: z.object({
     api: z.string().default('https://apidf-preprod.cerema.fr'),
-    enabled: boolFromString.default(false),
+    enabled: z.stringbool().default(false),
     token: z.string().nullable().default(null)
   }),
   db: z.object({
-    env: z
-      .enum(['development', 'test', 'production'])
-      .default(
-        (process.env.NODE_ENV as
-          | 'development'
-          | 'test'
-          | 'production'
-          | undefined) ?? 'development'
-      ),
+    env: envEnum.default(
+      (process.env.NODE_ENV as
+        | 'development'
+        | 'test'
+        | 'production'
+        | undefined) ?? 'development'
+    ),
     url: z.string().min(1),
     pool: z.object({
       max: z.coerce.number().int().default(10)
     })
   }),
   elastic: z.object({
-    env: z
-      .enum(['development', 'test', 'production'])
-      .default(
-        (process.env.NODE_ENV as
-          | 'development'
-          | 'test'
-          | 'production'
-          | undefined) ?? 'development'
-      ),
+    env: envEnum.default(
+      (process.env.NODE_ENV as
+        | 'development'
+        | 'test'
+        | 'production'
+        | undefined) ?? 'development'
+    ),
     node: z.string().default(''),
     auth: z.object({
       username: z.string().default(''),
@@ -99,7 +87,7 @@ export const configSchema = z.object({
     })
   }),
   e2e: z.object({
-    email: z.string().email().nullable().default(null),
+    email: z.email().nullable().default(null),
     password: z.string().nullable().default(null)
   }),
   upload: z.object({
@@ -116,17 +104,17 @@ export const configSchema = z.object({
   }),
   mailer: z.object({
     from: z.string().default('contact@zerologementvacant.beta.gouv.fr'),
-    provider: z.enum(['brevo', 'nodemailer']).default('nodemailer'),
+    provider: z.literal(['brevo', 'nodemailer'] as const).default('nodemailer'),
     host: z.string().nullable().default(null),
     port: z.coerce.number().int().min(1).max(65535).nullable().default(null),
     user: z.string().nullable().default(null),
     password: z.string().nullable().default(null),
     apiKey: z.string().nullable().default(null),
     eventApiKey: z.string().nullable().default(null),
-    secure: boolFromString.default(false)
+    secure: z.stringbool().default(false)
   }),
   metabase: z.object({
-    domain: z.string().url().nullable().default(null),
+    domain: z.url().nullable().default(null),
     token: z.string().nullable().default(null),
     apiToken: z.string().nullable().default(null)
   }),
@@ -149,7 +137,7 @@ export const configSchema = z.object({
   }),
   sentry: z.object({
     dsn: z.string().nullable().default(null),
-    enabled: boolFromString.default(isProduction)
+    enabled: z.stringbool().default(isProduction)
   }),
   swagger: z.object({
     enabled: z.stringbool()

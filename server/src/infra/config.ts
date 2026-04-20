@@ -198,13 +198,21 @@ export const configSchema = z.object({
       .min(1)
       .prefault(isProduction ? '' : 'secret')
   }),
-  posthog: z.object({
-    apiKey: z
-      .string()
-      .min(1)
-      .prefault(isProduction ? '' : 'secret'),
-    host: z.string().default('https://eu.i.posthog.com')
-  }),
+  posthog: z
+    .object({
+      enabled: z.stringbool().default(isProduction),
+      apiKey: z.string().nullable().default(null),
+      host: z.string().default('https://eu.i.posthog.com')
+    })
+    .superRefine((val, ctx) => {
+      if (val.enabled && !val.apiKey) {
+        ctx.addIssue({
+          code: 'custom',
+          path: ['apiKey'],
+          message: 'Required when posthog.enabled is true'
+        });
+      }
+    }),
   sentry: z
     .object({
       dsn: z.string().nullable().default(null),
@@ -327,6 +335,7 @@ const config = configSchema.parse({
     secretAccessKey: env('S3_SECRET_ACCESS_KEY')
   },
   posthog: {
+    enabled: env('POSTHOG_ENABLED'),
     apiKey: env('POSTHOG_API_KEY'),
     host: env('POSTHOG_HOST')
   },

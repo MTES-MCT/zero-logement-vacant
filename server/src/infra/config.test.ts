@@ -79,7 +79,7 @@ const validRaw = {
     accessKeyId: 'key',
     secretAccessKey: 'secret',
   },
-  posthog: { apiKey: 'secret', host: 'https://eu.i.posthog.com' },
+  posthog: { enabled: 'false', apiKey: null, host: 'https://eu.i.posthog.com' },
   sentry: { dsn: null, enabled: 'false' },
 };
 

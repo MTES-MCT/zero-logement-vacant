@@ -12,7 +12,9 @@ dotenvx.config({
 // Treat empty-string env vars the same as unset so Zod defaults kick in.
 const env = (key: string): string | undefined => process.env[key] || undefined;
 
-const envEnum = z.literal(['development', 'test', 'production']);
+const envEnum = z
+  .literal(['development', 'test', 'production'])
+  .default('development');
 const isProduction = envEnum.parse(process.env.NODE_ENV) === 'production';
 
 export const configSchema = z.object({
@@ -103,7 +105,7 @@ export const configSchema = z.object({
       .string()
       .min(1)
       .prefault(
-        isProduction ? '' : 'postgresql://postgres:postgres@localhost:5432/zlv'
+        isProduction ? '' : 'postgresql://postgres:postgres@localhost:5432/dev'
       ),
     pool: z.object({
       max: z.coerce.number().int().default(10)

@@ -2,7 +2,9 @@
 -- Matches CER 1767 owners (proprietaire/gestionnaire) against FF25 owner table
 -- to retrieve idpersonne, then applies rank logic for owner-housing relationships.
 --
--- Matching: exact name + jaro_winkler_similarity on normalized address >= 0.9
+-- Matching: exact name + jaro_winkler_similarity on normalized address >= 0.85
+-- Address normalization: strip leading zeros, remove building prefixes (BAT/ESC/APPT),
+-- normalize SAINT→ST / SAINTE→STE, fix bis/ter spacing, collapse multi-spaces
 -- Fallback: cer_proprietaire first, then cer_gestionnaire
 --
 -- Three outcome cases:
@@ -38,15 +40,7 @@ WITH zlovac AS (
 cer_normalized AS (
     SELECT
         *,
-        REGEXP_REPLACE(
-            UPPER(TRIM(CONCAT_WS(' ',
-                NULLIF(TRIM(owner_adresse1), ''),
-                NULLIF(TRIM(owner_adresse2), ''),
-                NULLIF(TRIM(owner_adresse3), ''),
-                NULLIF(TRIM(owner_adresse4), '')
-            ))),
-            '(^|\s)0+(\d)', '\1\2', 'g'
-        ) AS cer_address_norm
+        {{ normalize_address("CONCAT_WS(' ', NULLIF(TRIM(owner_adresse1), ''), NULLIF(TRIM(owner_adresse2), ''), NULLIF(TRIM(owner_adresse3), ''), NULLIF(TRIM(owner_adresse4), ''))") }} AS cer_address_norm
     FROM zlovac
 ),
 
@@ -54,7 +48,7 @@ ff25 AS (
     SELECT
         idpersonne,
         owner_fullname_concat,
-        REGEXP_REPLACE(owner_full_address, '(^|\s)0+(\d)', '\1\2', 'g') AS ff25_address_norm
+        {{ normalize_address("owner_full_address") }} AS ff25_address_norm
     FROM {{ ref('stg_ff_owners_idperson_2025') }}
     WHERE owner_full_address IS NOT NULL AND TRIM(owner_full_address) != ''
 ),
@@ -75,7 +69,7 @@ match_proprio AS (
         ON UPPER(TRIM(z.cer_proprietaire)) = f.owner_fullname_concat
     WHERE z.cer_proprietaire IS NOT NULL
         AND TRIM(z.cer_proprietaire) != ''
-        AND jaro_winkler_similarity(z.cer_address_norm, f.ff25_address_norm) >= 0.9
+        AND jaro_winkler_similarity(z.cer_address_norm, f.ff25_address_norm) >= 0.85
 ),
 
 best_match_proprio AS (
@@ -107,7 +101,7 @@ match_gestionnaire AS (
         ON UPPER(TRIM(z.cer_gestionnaire)) = f.owner_fullname_concat
     WHERE z.cer_gestionnaire IS NOT NULL
         AND TRIM(z.cer_gestionnaire) != ''
-        AND jaro_winkler_similarity(z.cer_address_norm, f.ff25_address_norm) >= 0.9
+        AND jaro_winkler_similarity(z.cer_address_norm, f.ff25_address_norm) >= 0.85
 ),
 
 best_match_gestionnaire AS (

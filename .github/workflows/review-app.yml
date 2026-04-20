@@ -243,7 +243,9 @@ jobs:
           clever service link-addon $PR_NAME-postgres -a $APP_ALIAS
           clever service link-addon $PR_NAME-redis -a $APP_ALIAS
 
-          clever config update -a $APP_ALIAS --enable-zero-downtime --enable-cancel-on-push --enable-force-https
+          clever config set -a $APP_ALIAS zero-downtime true
+          clever config set -a $APP_ALIAS cancel-on-push true
+          clever config set -a $APP_ALIAS force-https true
           clever scale --flavor S --build-flavor L -a $APP_ALIAS
 
       - name: Wait for PostgreSQL addon to be ready
@@ -394,7 +396,9 @@ jobs:
           clever service link-addon $PR_NAME-postgres -a $APP_ALIAS
           clever service link-addon $PR_NAME-redis -a $APP_ALIAS
 
-          clever config update -a $APP_ALIAS --enable-zero-downtime --enable-cancel-on-push --enable-force-https
+          clever config set -a $APP_ALIAS zero-downtime true
+          clever config set -a $APP_ALIAS cancel-on-push true
+          clever config set -a $APP_ALIAS force-https true
 
       - name: Wait for PostgreSQL addon to be ready
         run: |
@@ -548,7 +552,9 @@ jobs:
         run: |
           clever create $APP_ALIAS --type static-apache --alias $APP_ALIAS --region par --org $CLEVER_ORG
 
-          clever config update -a $APP_ALIAS --enable-zero-downtime --enable-cancel-on-push --enable-force-https
+          clever config set -a $APP_ALIAS zero-downtime true
+          clever config set -a $APP_ALIAS cancel-on-push true
+          clever config set -a $APP_ALIAS force-https true
           clever scale --flavor S --build-flavor L -a $APP_ALIAS
 
           echo "List the app’s environment variables and export them"

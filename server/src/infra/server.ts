@@ -17,7 +17,7 @@ import config from '~/infra/config';
 import gracefulShutdown from '~/infra/graceful-shutdown';
 import { logger } from '~/infra/logger';
 import sentry from '~/infra/sentry';
-import { setupSwagger } from '~/infra/swagger';
+import { setupApiDocs } from '~/infra/openapi';
 import unprotectedRouter from '~/routers/unprotected';
 import protectedRouter from '~/routers/protected';
 import errorHandler from '~/middlewares/error-handler';
@@ -62,6 +62,7 @@ export function createServer(): Server {
             'https://client.crisp.chat',
             'https://www.googletagmanager.com',
             'https://googleads.g.doubleclick.net',
+            'https://cdn.jsdelivr.net/npm/@scalar/api-reference'
           ],
           frameSrc: [
             'https://zerologementvacant-metabase-prod.osc-secnum-fr1.scalingo.io',
@@ -89,6 +90,7 @@ export function createServer(): Server {
             'https://cdn.jsdelivr.net/npm/remixicon@2.5.0/fonts/remixicon.woff2',
             'https://cdn.jsdelivr.net/npm/remixicon@2.5.0/fonts/remixicon.ttf',
             'https://client.crisp.chat',
+            'https://fonts.scalar.com',
             'data:'
           ],
           objectSrc: ["'self'"],
@@ -102,6 +104,8 @@ export function createServer(): Server {
             'https://openmaptiles.geo.data.gouv.fr',
             'https://openmaptiles.github.io',
             'https://unpkg.com',
+            'https://cdn.jsdelivr.net',
+            'https://api.scalar.com'
           ],
           workerSrc: ["'self'", 'blob:']
         }
@@ -127,61 +131,6 @@ export function createServer(): Server {
     })
   );
 
-  /**
-   * @openapi
-   * /:
-   *   get:
-   *     summary: Health check
-   *     tags: [Health]
-   *     security: []
-   *     description: |
-   *       Returns the health status of all service dependencies.
-   *       **Note:** This endpoint is at the root URL `/`, not under `/api`.
-   *
-   *       ## Checked services
-   *       - **postgres**: Base de données PostgreSQL
-   *       - **redis**: Cache Redis pour les sessions et jobs
-   *       - **brevo**: Service d'envoi d'emails (uniquement en production)
-   *       - **s3**: Stockage S3/Cellar pour les fichiers
-   *     servers:
-   *       - url: /
-   *         description: Root
-   *     responses:
-   *       200:
-   *         description: All services are healthy
-   *         content:
-   *           application/json:
-   *             schema:
-   *               $ref: '#/components/schemas/HealthResponse'
-   *             example:
-   *               uptime: 86400.123
-   *               checks:
-   *                 - name: postgres
-   *                   status: up
-   *                 - name: redis
-   *                   status: up
-   *                 - name: brevo
-   *                   status: up
-   *                 - name: s3
-   *                   status: up
-   *       503:
-   *         description: One or more services are unhealthy
-   *         content:
-   *           application/json:
-   *             schema:
-   *               $ref: '#/components/schemas/HealthResponse'
-   *             example:
-   *               uptime: 86400.123
-   *               checks:
-   *                 - name: postgres
-   *                   status: up
-   *                 - name: redis
-   *                   status: down
-   *                 - name: brevo
-   *                   status: up
-   *                 - name: s3
-   *                   status: up
-   */
   app.get(
     '/',
     healthcheck({
@@ -199,8 +148,8 @@ export function createServer(): Server {
     })
   );
 
-  // Swagger API documentation (disabled by default, enable with SWAGGER_ENABLED=true)
-  setupSwagger(app);
+  // API documentation (disabled by default, enable with SWAGGER_ENABLED=true)
+  setupApiDocs(app);
 
   app.use('/api', unprotectedRouter);
   app.use('/api', protectedRouter);

@@ -25,7 +25,7 @@ export const configSchema = z.object({
     system: z.string().default('admin@zerologementvacant.beta.gouv.fr')
   }),
   auth: z.object({
-    secret: z.string().min(1),
+    secret: z.string().min(1).prefault(isProduction ? '' : 'secret'),
     expiresIn: z.string().default('12 hours'),
     admin2faEnabled: z.stringbool().default(false)
   }),
@@ -67,7 +67,12 @@ export const configSchema = z.object({
         | 'production'
         | undefined) ?? 'development'
     ),
-    url: z.string().min(1),
+    url: z
+      .string()
+      .min(1)
+      .prefault(
+        isProduction ? '' : 'postgresql://postgres:postgres@localhost:5432/zlv'
+      ),
     pool: z.object({
       max: z.coerce.number().int().default(10)
     })
@@ -104,7 +109,7 @@ export const configSchema = z.object({
   }),
   mailer: z.object({
     from: z.string().default('contact@zerologementvacant.beta.gouv.fr'),
-    provider: z.literal(['brevo', 'nodemailer'] as const).default('nodemailer'),
+    provider: z.literal(['brevo', 'nodemailer']).default('nodemailer'),
     host: z.string().nullable().default(null),
     port: z.coerce.number().int().min(1).max(65535).nullable().default(null),
     user: z.string().nullable().default(null),
@@ -122,17 +127,20 @@ export const configSchema = z.object({
     max: z.coerce.number().int().default(10_000)
   }),
   redis: z.object({
-    url: z.string().min(1)
+    url: z.string().min(1).prefault(isProduction ? '' : 'redis://localhost:6379')
   }),
   s3: z.object({
-    endpoint: z.string().min(1),
-    region: z.string().min(1),
+    endpoint: z
+      .string()
+      .min(1)
+      .prefault(isProduction ? '' : 'http://localhost:9090'),
+    region: z.string().min(1).prefault(isProduction ? '' : 'whatever'),
     bucket: z.string().default('zerologementvacant'),
-    accessKeyId: z.string().min(1),
-    secretAccessKey: z.string().min(1)
+    accessKeyId: z.string().min(1).prefault(isProduction ? '' : 'key'),
+    secretAccessKey: z.string().min(1).prefault(isProduction ? '' : 'secret')
   }),
   posthog: z.object({
-    apiKey: z.string().min(1),
+    apiKey: z.string().min(1).prefault(isProduction ? '' : 'secret'),
     host: z.string().default('https://eu.i.posthog.com')
   }),
   sentry: z.object({
@@ -158,7 +166,7 @@ const config = configSchema.parse({
     system: e('SYSTEM_ACCOUNT')
   },
   auth: {
-    secret: e('AUTH_SECRET') ?? (isProduction ? undefined : 'secret'),
+    secret: e('AUTH_SECRET'),
     expiresIn: e('AUTH_EXPIRES_IN'),
     admin2faEnabled: e('ADMIN_2FA_ENABLED')
   },
@@ -192,11 +200,7 @@ const config = configSchema.parse({
   },
   db: {
     env: e('DATABASE_ENV'),
-    url:
-      e('DATABASE_URL') ??
-      (isProduction
-        ? undefined
-        : 'postgresql://postgres:postgres@localhost:5432/zlv'),
+    url: e('DATABASE_URL'),
     pool: { max: e('DATABASE_POOL_MAX') }
   },
   elastic: {
@@ -241,19 +245,17 @@ const config = configSchema.parse({
     max: e('RATE_LIMIT_MAX')
   },
   redis: {
-    url: e('REDIS_URL') ?? (isProduction ? undefined : 'redis://localhost:6379')
+    url: e('REDIS_URL')
   },
   s3: {
-    endpoint:
-      e('S3_ENDPOINT') ?? (isProduction ? undefined : 'http://localhost:9090'),
-    region: e('S3_REGION') ?? (isProduction ? undefined : 'whatever'),
+    endpoint: e('S3_ENDPOINT'),
+    region: e('S3_REGION'),
     bucket: e('S3_BUCKET'),
-    accessKeyId: e('S3_ACCESS_KEY_ID') ?? (isProduction ? undefined : 'key'),
-    secretAccessKey:
-      e('S3_SECRET_ACCESS_KEY') ?? (isProduction ? undefined : 'secret')
+    accessKeyId: e('S3_ACCESS_KEY_ID'),
+    secretAccessKey: e('S3_SECRET_ACCESS_KEY')
   },
   posthog: {
-    apiKey: e('POSTHOG_API_KEY') ?? (isProduction ? undefined : 'secret'),
+    apiKey: e('POSTHOG_API_KEY'),
     host: e('POSTHOG_HOST')
   },
   sentry: {

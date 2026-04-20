@@ -552,6 +552,8 @@ jobs:
         run: |
           clever create $APP_ALIAS --type static-apache --alias $APP_ALIAS --region par --org $CLEVER_ORG
 
+          clever service link-addon "config-staging-front" -a $APP_ALIAS
+
           clever config set -a $APP_ALIAS zero-downtime true
           clever config set -a $APP_ALIAS cancel-on-push true
           clever config set -a $APP_ALIAS force-https true

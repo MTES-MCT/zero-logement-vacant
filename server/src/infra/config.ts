@@ -49,19 +49,48 @@ export const configSchema = z.object({
     binPath: z.string().default('/usr/bin/clamdscan'),
     configFile: z.string().default('/etc/clamav/clamd.conf')
   }),
-  cerema: z.object({
-    enabled: z.stringbool().default(isProduction),
-    api: z.url().default('https://getdf.cerema.fr'),
-    username: z.string().nullable().default(null),
-    password: z.string().nullable().default(null),
-    authVersion: z.literal(['v1', 'v2']).default('v1'),
-    apiV2: z.url().default('https://datafoncier-dev.osc-fr1.scalingo.io')
-  }),
-  datafoncier: z.object({
-    api: z.string().default('https://apidf-preprod.cerema.fr'),
-    enabled: z.stringbool().default(false),
-    token: z.string().nullable().default(null)
-  }),
+  cerema: z
+    .object({
+      enabled: z.stringbool().default(isProduction),
+      api: z.url().default('https://getdf.cerema.fr'),
+      username: z.string().nullable().default(null),
+      password: z.string().nullable().default(null),
+      authVersion: z.literal(['v1', 'v2']).default('v1'),
+      apiV2: z.url().default('https://datafoncier-dev.osc-fr1.scalingo.io')
+    })
+    .superRefine((val, ctx) => {
+      if (val.enabled) {
+        if (!val.username) {
+          ctx.addIssue({
+            code: 'custom',
+            path: ['username'],
+            message: 'Required when cerema.enabled is true'
+          });
+        }
+        if (!val.password) {
+          ctx.addIssue({
+            code: 'custom',
+            path: ['password'],
+            message: 'Required when cerema.enabled is true'
+          });
+        }
+      }
+    }),
+  datafoncier: z
+    .object({
+      api: z.string().default('https://apidf-preprod.cerema.fr'),
+      enabled: z.stringbool().default(false),
+      token: z.string().nullable().default(null)
+    })
+    .superRefine((val, ctx) => {
+      if (val.enabled && !val.token) {
+        ctx.addIssue({
+          code: 'custom',
+          path: ['token'],
+          message: 'Required when datafoncier.enabled is true'
+        });
+      }
+    }),
   db: z.object({
     env: envEnum.default(
       (process.env.NODE_ENV as
@@ -110,17 +139,30 @@ export const configSchema = z.object({
       .enum(LOG_LEVELS as [LogLevel, ...LogLevel[]])
       .default(LogLevel.INFO)
   }),
-  mailer: z.object({
-    from: z.string().default('contact@zerologementvacant.beta.gouv.fr'),
-    provider: z.literal(['brevo', 'nodemailer']).default('nodemailer'),
-    host: z.string().nullable().default(null),
-    port: z.coerce.number().int().min(1).max(65535).nullable().default(null),
-    user: z.string().nullable().default(null),
-    password: z.string().nullable().default(null),
-    apiKey: z.string().nullable().default(null),
-    eventApiKey: z.string().nullable().default(null),
-    secure: z.stringbool().default(false)
-  }),
+  mailer: z.discriminatedUnion('provider', [
+    z.object({
+      from: z.string().default('contact@zerologementvacant.beta.gouv.fr'),
+      provider: z.literal('brevo'),
+      host: z.string().nullable().default(null),
+      port: z.coerce.number().int().min(1).max(65535).nullable().default(null),
+      user: z.string().nullable().default(null),
+      password: z.string().nullable().default(null),
+      apiKey: z.string(),
+      eventApiKey: z.string().nullable().default(null),
+      secure: z.stringbool().default(false)
+    }),
+    z.object({
+      from: z.string().default('contact@zerologementvacant.beta.gouv.fr'),
+      provider: z.literal('nodemailer'),
+      host: z.string().nullable().default(null),
+      port: z.coerce.number().int().min(1).max(65535).nullable().default(null),
+      user: z.string().nullable().default(null),
+      password: z.string().nullable().default(null),
+      apiKey: z.string().nullable().default(null),
+      eventApiKey: z.string().nullable().default(null),
+      secure: z.stringbool().default(false)
+    })
+  ]),
   metabase: z.object({
     domain: z.url().nullable().default(null),
     token: z.string().nullable().default(null),
@@ -161,10 +203,20 @@ export const configSchema = z.object({
       .prefault(isProduction ? '' : 'secret'),
     host: z.string().default('https://eu.i.posthog.com')
   }),
-  sentry: z.object({
-    dsn: z.string().nullable().default(null),
-    enabled: z.stringbool().default(isProduction)
-  }),
+  sentry: z
+    .object({
+      dsn: z.string().nullable().default(null),
+      enabled: z.stringbool().default(isProduction)
+    })
+    .superRefine((val, ctx) => {
+      if (val.enabled && !val.dsn) {
+        ctx.addIssue({
+          code: 'custom',
+          path: ['dsn'],
+          message: 'Required when sentry.enabled is true'
+        });
+      }
+    }),
   swagger: z.object({
     enabled: z.stringbool()
   })
@@ -245,7 +297,7 @@ const config = configSchema.parse({
   },
   mailer: {
     from: env('MAIL_FROM'),
-    provider: env('MAILER_PROVIDER'),
+    provider: env('MAILER_PROVIDER') ?? 'nodemailer',
     host: env('MAILER_HOST'),
     port: env('MAILER_PORT'),
     user: env('MAILER_USER'),

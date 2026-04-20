@@ -119,4 +119,49 @@ describe('configSchema', () => {
       })
     ).toThrow();
   });
+
+  it('rejects cerema config when enabled but username/password missing', () => {
+    expect(() =>
+      configSchema.parse({
+        ...validRaw,
+        cerema: { ...validRaw.cerema, enabled: 'true', username: null, password: null },
+      })
+    ).toThrow(/Required when cerema\.enabled/);
+  });
+
+  it('accepts cerema config when enabled and username/password provided', () => {
+    expect(() =>
+      configSchema.parse({
+        ...validRaw,
+        cerema: { ...validRaw.cerema, enabled: 'true', username: 'user', password: 'pass' },
+      })
+    ).not.toThrow();
+  });
+
+  it('rejects datafoncier config when enabled but token missing', () => {
+    expect(() =>
+      configSchema.parse({
+        ...validRaw,
+        datafoncier: { ...validRaw.datafoncier, enabled: 'true', token: null },
+      })
+    ).toThrow(/Required when datafoncier\.enabled/);
+  });
+
+  it('rejects sentry config when enabled but dsn missing', () => {
+    expect(() =>
+      configSchema.parse({
+        ...validRaw,
+        sentry: { dsn: null, enabled: 'true' },
+      })
+    ).toThrow(/Required when sentry\.enabled/);
+  });
+
+  it('rejects mailer config when provider is brevo but apiKey missing', () => {
+    expect(() =>
+      configSchema.parse({
+        ...validRaw,
+        mailer: { ...validRaw.mailer, provider: 'brevo', apiKey: null },
+      })
+    ).toThrow();
+  });
 });

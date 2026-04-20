@@ -2,7 +2,7 @@ import { PostHog } from 'posthog-node';
 import config from '~/infra/config';
 
 const posthog = new PostHog(config.posthog.apiKey, {
-  host: config.posthog.host
+  host: config.posthog.host,
 });
 
 export async function isFeatureEnabled(

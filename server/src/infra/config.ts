@@ -201,7 +201,7 @@ export const configSchema = z.object({
   posthog: z
     .object({
       enabled: z.stringbool().default(isProduction),
-      apiKey: z.string().nullable().default(null),
+      apiKey: z.string().default(''),
       host: z.string().default('https://eu.i.posthog.com')
     })
     .superRefine((val, ctx) => {
@@ -228,7 +228,7 @@ export const configSchema = z.object({
       }
     }),
   swagger: z.object({
-    enabled: z.stringbool()
+    enabled: z.stringbool().default(true)
   })
 });
 

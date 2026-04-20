@@ -10,7 +10,7 @@ dotenvx.config({
 });
 
 // Treat empty-string env vars the same as unset so Zod defaults kick in.
-const e = (key: string): string | undefined => process.env[key] || undefined;
+const env = (key: string): string | undefined => process.env[key] || undefined;
 
 const envEnum = z.literal(['development', 'test', 'production']);
 const isProduction = envEnum.parse(process.env.NODE_ENV) === 'production';
@@ -25,7 +25,10 @@ export const configSchema = z.object({
     system: z.string().default('admin@zerologementvacant.beta.gouv.fr')
   }),
   auth: z.object({
-    secret: z.string().min(1).prefault(isProduction ? '' : 'secret'),
+    secret: z
+      .string()
+      .min(1)
+      .prefault(isProduction ? '' : 'secret'),
     expiresIn: z.string().default('12 hours'),
     admin2faEnabled: z.stringbool().default(false)
   }),
@@ -127,20 +130,35 @@ export const configSchema = z.object({
     max: z.coerce.number().int().default(10_000)
   }),
   redis: z.object({
-    url: z.string().min(1).prefault(isProduction ? '' : 'redis://localhost:6379')
+    url: z
+      .string()
+      .min(1)
+      .prefault(isProduction ? '' : 'redis://localhost:6379')
   }),
   s3: z.object({
     endpoint: z
       .string()
       .min(1)
       .prefault(isProduction ? '' : 'http://localhost:9090'),
-    region: z.string().min(1).prefault(isProduction ? '' : 'whatever'),
+    region: z
+      .string()
+      .min(1)
+      .prefault(isProduction ? '' : 'whatever'),
     bucket: z.string().default('zerologementvacant'),
-    accessKeyId: z.string().min(1).prefault(isProduction ? '' : 'key'),
-    secretAccessKey: z.string().min(1).prefault(isProduction ? '' : 'secret')
+    accessKeyId: z
+      .string()
+      .min(1)
+      .prefault(isProduction ? '' : 'key'),
+    secretAccessKey: z
+      .string()
+      .min(1)
+      .prefault(isProduction ? '' : 'secret')
   }),
   posthog: z.object({
-    apiKey: z.string().min(1).prefault(isProduction ? '' : 'secret'),
+    apiKey: z
+      .string()
+      .min(1)
+      .prefault(isProduction ? '' : 'secret'),
     host: z.string().default('https://eu.i.posthog.com')
   }),
   sentry: z.object({
@@ -158,112 +176,112 @@ export type Env = 'development' | 'test' | 'production';
 
 const config = configSchema.parse({
   app: {
-    batchSize: e('BATCH_SIZE'),
-    env: e('NODE_ENV'),
-    isReviewApp: e('IS_REVIEW_APP'),
-    host: e('HOST'),
-    port: e('PORT'),
-    system: e('SYSTEM_ACCOUNT')
+    batchSize: env('BATCH_SIZE'),
+    env: env('NODE_ENV'),
+    isReviewApp: env('IS_REVIEW_APP'),
+    host: env('HOST'),
+    port: env('PORT'),
+    system: env('SYSTEM_ACCOUNT')
   },
   auth: {
-    secret: e('AUTH_SECRET'),
-    expiresIn: e('AUTH_EXPIRES_IN'),
-    admin2faEnabled: e('ADMIN_2FA_ENABLED')
+    secret: env('AUTH_SECRET'),
+    expiresIn: env('AUTH_EXPIRES_IN'),
+    admin2faEnabled: env('ADMIN_2FA_ENABLED')
   },
   ban: {
-    api: { endpoint: e('BAN_API_ENDPOINT') },
+    api: { endpoint: env('BAN_API_ENDPOINT') },
     update: {
-      pageSize: e('BAN_UPDATE_PAGE_SIZE'),
-      delay: e('BAN_UPDATE_DELAY')
+      pageSize: env('BAN_UPDATE_PAGE_SIZE'),
+      delay: env('BAN_UPDATE_DELAY')
     }
   },
   clamav: {
-    enabled: e('CLAMAV_ENABLED'),
-    socket: e('CLAMAV_SOCKET'),
-    host: e('CLAMAV_HOST'),
-    port: e('CLAMAV_PORT'),
-    binPath: e('CLAMAV_BIN_PATH'),
-    configFile: e('CLAMAV_CONFIG_FILE')
+    enabled: env('CLAMAV_ENABLED'),
+    socket: env('CLAMAV_SOCKET'),
+    host: env('CLAMAV_HOST'),
+    port: env('CLAMAV_PORT'),
+    binPath: env('CLAMAV_BIN_PATH'),
+    configFile: env('CLAMAV_CONFIG_FILE')
   },
   cerema: {
-    enabled: e('CEREMA_ENABLED'),
-    api: e('CEREMA_API'),
-    username: e('CEREMA_USERNAME'),
-    password: e('CEREMA_PASSWORD'),
-    authVersion: e('CEREMA_AUTH_VERSION'),
-    apiV2: e('CEREMA_API_V2')
+    enabled: env('CEREMA_ENABLED'),
+    api: env('CEREMA_API'),
+    username: env('CEREMA_USERNAME'),
+    password: env('CEREMA_PASSWORD'),
+    authVersion: env('CEREMA_AUTH_VERSION'),
+    apiV2: env('CEREMA_API_V2')
   },
   datafoncier: {
-    api: e('DATAFONCIER_API'),
-    enabled: e('DATAFONCIER_ENABLED'),
-    token: e('DATAFONCIER_TOKEN')
+    api: env('DATAFONCIER_API'),
+    enabled: env('DATAFONCIER_ENABLED'),
+    token: env('DATAFONCIER_TOKEN')
   },
   db: {
-    env: e('DATABASE_ENV'),
-    url: e('DATABASE_URL'),
-    pool: { max: e('DATABASE_POOL_MAX') }
+    env: env('DATABASE_ENV'),
+    url: env('DATABASE_URL'),
+    pool: { max: env('DATABASE_POOL_MAX') }
   },
   elastic: {
-    env: e('ELASTIC_ENV'),
-    node: e('ELASTIC_NODE'),
+    env: env('ELASTIC_ENV'),
+    node: env('ELASTIC_NODE'),
     auth: {
-      username: e('ELASTIC_USERNAME'),
-      password: e('ELASTIC_PASSWORD')
+      username: env('ELASTIC_USERNAME'),
+      password: env('ELASTIC_PASSWORD')
     }
   },
   e2e: {
-    email: e('E2E_EMAIL'),
-    password: e('E2E_PASSWORD')
+    email: env('E2E_EMAIL'),
+    password: env('E2E_PASSWORD')
   },
   upload: {
-    maxSizeMB: e('FILE_UPLOAD_MAX_SIZE_MB'),
+    maxSizeMB: env('FILE_UPLOAD_MAX_SIZE_MB'),
     geo: {
-      maxSizeMB: e('GEO_UPLOAD_MAX_SIZE_MB'),
-      maxShapefileFeatures: e('MAX_SHAPEFILE_FEATURES')
+      maxSizeMB: env('GEO_UPLOAD_MAX_SIZE_MB'),
+      maxShapefileFeatures: env('MAX_SHAPEFILE_FEATURES')
     }
   },
   log: {
-    level: e('LOG_LEVEL')
+    level: env('LOG_LEVEL')
   },
   mailer: {
-    from: e('MAIL_FROM'),
-    provider: e('MAILER_PROVIDER'),
-    host: e('MAILER_HOST'),
-    port: e('MAILER_PORT'),
-    user: e('MAILER_USER'),
-    password: e('MAILER_PASSWORD'),
-    apiKey: e('MAILER_API_KEY'),
-    eventApiKey: e('MAILER_EVENT_API_KEY'),
-    secure: e('MAILER_SECURE')
+    from: env('MAIL_FROM'),
+    provider: env('MAILER_PROVIDER'),
+    host: env('MAILER_HOST'),
+    port: env('MAILER_PORT'),
+    user: env('MAILER_USER'),
+    password: env('MAILER_PASSWORD'),
+    apiKey: env('MAILER_API_KEY'),
+    eventApiKey: env('MAILER_EVENT_API_KEY'),
+    secure: env('MAILER_SECURE')
   },
   metabase: {
-    domain: e('METABASE_DOMAIN'),
-    token: e('METABASE_TOKEN'),
-    apiToken: e('METABASE_API_TOKEN')
+    domain: env('METABASE_DOMAIN'),
+    token: env('METABASE_TOKEN'),
+    apiToken: env('METABASE_API_TOKEN')
   },
   rateLimit: {
-    max: e('RATE_LIMIT_MAX')
+    max: env('RATE_LIMIT_MAX')
   },
   redis: {
-    url: e('REDIS_URL')
+    url: env('REDIS_URL')
   },
   s3: {
-    endpoint: e('S3_ENDPOINT'),
-    region: e('S3_REGION'),
-    bucket: e('S3_BUCKET'),
-    accessKeyId: e('S3_ACCESS_KEY_ID'),
-    secretAccessKey: e('S3_SECRET_ACCESS_KEY')
+    endpoint: env('S3_ENDPOINT'),
+    region: env('S3_REGION'),
+    bucket: env('S3_BUCKET'),
+    accessKeyId: env('S3_ACCESS_KEY_ID'),
+    secretAccessKey: env('S3_SECRET_ACCESS_KEY')
   },
   posthog: {
-    apiKey: e('POSTHOG_API_KEY'),
-    host: e('POSTHOG_HOST')
+    apiKey: env('POSTHOG_API_KEY'),
+    host: env('POSTHOG_HOST')
   },
   sentry: {
-    dsn: e('SENTRY_DSN'),
-    enabled: e('SENTRY_ENABLED')
+    dsn: env('SENTRY_DSN'),
+    enabled: env('SENTRY_ENABLED')
   },
   swagger: {
-    enabled: e('SWAGGER_ENABLED')
+    enabled: env('SWAGGER_ENABLED')
   }
 });
 

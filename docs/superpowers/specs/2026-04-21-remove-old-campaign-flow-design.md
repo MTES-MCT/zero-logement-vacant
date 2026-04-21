@@ -22,6 +22,8 @@ The old campaign flow used a BullMQ queue worker to asynchronously generate PDF 
 - Delete `src/controllers/serverSentEventController.ts` and its route registration
 - Remove `generateMails()` from `src/repositories/campaignRepository.ts`
 - Remove the `generateMails()` call from `src/controllers/campaignController.ts` (triggered on `status === 'sending'`)
+- Remove `redisCheck(config.redis.url)` from `src/infra/server.ts` healthcheck registration
+- Remove `config.redis` from server config and its env var validation
 - Remove `@zerologementvacant/queue`, `@zerologementvacant/api-sdk`, `@zerologementvacant/draft` from `server/package.json`
 - Audit `src/controllers/draftController.ts` — if it still imports from `packages/draft`, update or remove as needed
 
@@ -78,6 +80,12 @@ Update all internal imports after rename.
 - Remove `clever addon delete $PR_NAME-redis` from `delete-addons` job
 - Remove `clever service link-addon $PR_NAME-redis` from `deploy-api` job
 - Remove `CC_OVERRIDE_BUILDCACHE` with puppeteer path from `deploy-api` env vars
+
+## Healthcheck Package (`packages/healthcheck/`)
+
+- Delete `src/checks/redis.ts`
+- Remove `export * from './checks/redis'` from `src/index.ts`
+- Remove `redis` npm package from `packages/healthcheck/package.json`
 
 ## Root / Workspace Cleanup
 

@@ -58,16 +58,18 @@ program
 
 program
   .command('housings')
-  .description('Import housings from a file to an existing database')
-  .argument('<file>', 'The .jsonl file to import')
+  .description(
+    'Import housings from pre-split parquet files (output of prepare-housings.sh)'
+  )
+  .argument('<deptsDir>', 'Path to the hive-partitioned depts/ directory')
   .addOption(abortEarly)
   .addOption(departments)
   .addOption(dryRun)
   .addOption(from)
   .addOption(year)
-  .action(async (file, options) => {
+  .action(async (deptsDir, options) => {
     const command = createSourceHousingCommand();
-    await command(file, options).then(() => {
+    await command(deptsDir, options).then(() => {
       process.exit();
     });
   });

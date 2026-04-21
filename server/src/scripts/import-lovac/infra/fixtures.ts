@@ -10,7 +10,6 @@ import {
 } from '@zerologementvacant/models';
 
 import { genGeoCode } from '@zerologementvacant/models/fixtures';
-import { SourceBuilding } from '~/scripts/import-lovac/source-buildings/source-building';
 import { SourceHousingOwner } from '~/scripts/import-lovac/source-housing-owners/source-housing-owner';
 import { SourceHousing } from '~/scripts/import-lovac/source-housings/source-housing';
 import { SourceOwner } from '~/scripts/import-lovac/source-owners/source-owner';
@@ -81,10 +80,3 @@ export function genSourceHousingOwner(
   };
 }
 
-export function genSourceBuilding(): SourceBuilding {
-  return {
-    building_id: faker.string.alphanumeric(15),
-    housing_vacant_count: faker.number.int({ min: 0, max: 10 }),
-    housing_rent_count: faker.number.int({ min: 0, max: 10 })
-  };
-}

@@ -11,7 +11,6 @@ import { rm } from 'node:fs/promises';
 import path from 'node:path';
 import { Transform, Writable } from 'node:stream';
 import { ReadableStream } from 'node:stream/web';
-import config from '~/infra/config';
 import { BuildingApi } from '~/models/BuildingApi';
 import { HousingEventApi } from '~/models/EventApi';
 import { HousingApi } from '~/models/HousingApi';

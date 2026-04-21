@@ -51,7 +51,7 @@ jobs:
           node-version: 24
 
       - name: Install clever-tools
-        run: npm install -g clever-tools@4.4.0
+        run: npm install -g clever-tools@4.8.0
 
       - name: Deploy
         env:

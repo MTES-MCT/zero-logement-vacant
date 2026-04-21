@@ -1,569 +1,347 @@
 import dotenvx from '@dotenvx/dotenvx';
-import convict from 'convict';
-import formats from 'convict-format-with-validator';
 import { StringValue } from 'ms';
-import path from 'node:path';
+import { z } from 'zod';
 
 import { LOG_LEVELS, LogLevel } from '@zerologementvacant/utils';
 
-const fromProjectRoot = (...paths: ReadonlyArray<string>): string =>
-  path.resolve(import.meta.dirname, '../..', ...paths);
-
 dotenvx.config({
   convention: 'nextjs',
-  path: [
-    fromProjectRoot(`.env.${process.env.NODE_ENV}`),
-    fromProjectRoot('.env')
-  ],
   quiet: process.env.NODE_ENV === 'test'
 });
 
-const isProduction = process.env.NODE_ENV === 'production';
-const isReviewApp = process.env.IS_REVIEW_APP === 'true';
+// Treat empty-string env vars the same as unset so Zod defaults kick in.
+const env = (key: string): string | undefined => process.env[key] || undefined;
 
-convict.addFormats(formats);
-convict.addFormat({
-  name: 'strict-boolean',
-  validate(val: any) {
-    return typeof val === 'string' && val === 'true';
-  },
-  coerce: (val: string): boolean => val === 'true'
+const envEnum = z
+  .literal(['development', 'test', 'production'])
+  .default('development');
+const isProduction = envEnum.parse(process.env.NODE_ENV) === 'production';
+
+export const configSchema = z.object({
+  app: z.object({
+    batchSize: z.coerce.number().int().default(1_000),
+    env: envEnum,
+    isReviewApp: z.stringbool().default(false),
+    host: z.string().default('http://localhost:3001'),
+    port: z.coerce.number().int().min(1).max(65535).default(3001),
+    system: z.string().default('admin@zerologementvacant.beta.gouv.fr')
+  }),
+  auth: z.object({
+    secret: z
+      .string()
+      .min(1)
+      .prefault(isProduction ? '' : 'secret'),
+    expiresIn: z.string().default('12 hours'),
+    admin2faEnabled: z.stringbool().default(false),
+    testPassword: z.string().default('test')
+  }),
+  ban: z.object({
+    api: z.object({
+      endpoint: z.url().default('https://api-adresse.data.gouv.fr')
+    }),
+    update: z.object({
+      pageSize: z.coerce.number().int().default(2_000),
+      delay: z.string().default('1 months')
+    })
+  }),
+  clamav: z.object({
+    enabled: z.stringbool().default(false),
+    socket: z.string().default('/var/run/clamav/clamd.sock'),
+    host: z.string().default('127.0.0.1'),
+    port: z.coerce.number().int().min(1).max(65535).default(3310),
+    binPath: z.string().default('/usr/bin/clamdscan'),
+    configFile: z.string().default('/etc/clamav/clamd.conf')
+  }),
+  cerema: z
+    .object({
+      enabled: z.stringbool().default(isProduction),
+      api: z.url().default('https://getdf.cerema.fr'),
+      username: z.string().nullable().default(null),
+      password: z.string().nullable().default(null),
+      authVersion: z.literal(['v1', 'v2']).default('v1'),
+      apiV2: z.url().default('https://datafoncier-dev.osc-fr1.scalingo.io')
+    })
+    .superRefine((val, ctx) => {
+      if (val.enabled) {
+        if (!val.username) {
+          ctx.addIssue({
+            code: 'custom',
+            path: ['username'],
+            message: 'Required when cerema.enabled is true'
+          });
+        }
+        if (!val.password) {
+          ctx.addIssue({
+            code: 'custom',
+            path: ['password'],
+            message: 'Required when cerema.enabled is true'
+          });
+        }
+      }
+    }),
+  datafoncier: z
+    .object({
+      api: z.string().default('https://apidf-preprod.cerema.fr'),
+      enabled: z.stringbool().default(false),
+      token: z.string().nullable().default(null)
+    })
+    .superRefine((val, ctx) => {
+      if (val.enabled && !val.token) {
+        ctx.addIssue({
+          code: 'custom',
+          path: ['token'],
+          message: 'Required when datafoncier.enabled is true'
+        });
+      }
+    }),
+  db: z.object({
+    env: envEnum,
+    url: z
+      .string()
+      .min(1)
+      .prefault(
+        isProduction ? '' : 'postgresql://postgres:postgres@localhost:5432/dev'
+      ),
+    pool: z.object({
+      max: z.coerce.number().int().default(10)
+    })
+  }),
+  elastic: z.object({
+    env: envEnum,
+    node: z.string().default(''),
+    auth: z.object({
+      username: z.string().default(''),
+      password: z.string().default('')
+    })
+  }),
+  e2e: z.object({
+    email: z.email().nullable().default('e2e@zerologementvacant.beta.gouv.fr'),
+    password: z.string().nullable().default('123QWEasd!')
+  }),
+  upload: z.object({
+    maxSizeMB: z.coerce.number().int().default(5),
+    geo: z.object({
+      maxSizeMB: z.coerce.number().int().default(100),
+      maxShapefileFeatures: z.coerce.number().int().default(10_000)
+    })
+  }),
+  log: z.object({
+    level: z
+      .enum(LOG_LEVELS as [LogLevel, ...LogLevel[]])
+      .default(LogLevel.INFO)
+  }),
+  mailer: z.discriminatedUnion('provider', [
+    z.object({
+      from: z.string().default('contact@zerologementvacant.beta.gouv.fr'),
+      provider: z.literal('brevo'),
+      host: z.string().nullable().default(null),
+      port: z.coerce.number().int().min(1).max(65535).nullable().default(null),
+      user: z.string().nullable().default(null),
+      password: z.string().nullable().default(null),
+      apiKey: z.string(),
+      eventApiKey: z.string().nullable().default(null),
+      secure: z.stringbool().default(false)
+    }),
+    z.object({
+      from: z.string().default('contact@zerologementvacant.beta.gouv.fr'),
+      provider: z.literal('nodemailer'),
+      host: z.string().nullable().default(null),
+      port: z.coerce.number().int().min(1).max(65535).nullable().default(null),
+      user: z.string().nullable().default(null),
+      password: z.string().nullable().default(null),
+      apiKey: z.string().nullable().default(null),
+      eventApiKey: z.string().nullable().default(null),
+      secure: z.stringbool().default(false)
+    })
+  ]),
+  metabase: z.object({
+    domain: z.url().nullable().default(null),
+    token: z.string().nullable().default(null),
+    apiToken: z.string().nullable().default(null)
+  }),
+  rateLimit: z.object({
+    max: z.coerce.number().int().default(10_000)
+  }),
+  redis: z.object({
+    url: z
+      .string()
+      .min(1)
+      .prefault(isProduction ? '' : 'redis://localhost:6379')
+  }),
+  s3: z.object({
+    endpoint: z
+      .string()
+      .min(1)
+      .prefault(isProduction ? '' : 'http://localhost:9090'),
+    region: z
+      .string()
+      .min(1)
+      .prefault(isProduction ? '' : 'whatever'),
+    bucket: z.string().default('zerologementvacant'),
+    accessKeyId: z
+      .string()
+      .min(1)
+      .prefault(isProduction ? '' : 'key'),
+    secretAccessKey: z
+      .string()
+      .min(1)
+      .prefault(isProduction ? '' : 'secret')
+  }),
+  posthog: z
+    .object({
+      enabled: z.stringbool().default(isProduction),
+      apiKey: z.string().default('unused'),
+      host: z.string().default('https://eu.i.posthog.com')
+    })
+    .superRefine((val, ctx) => {
+      if (val.enabled && !val.apiKey) {
+        ctx.addIssue({
+          code: 'custom',
+          path: ['apiKey'],
+          message: 'Required when posthog.enabled is true'
+        });
+      }
+    }),
+  sentry: z
+    .object({
+      dsn: z.string().nullable().default(null),
+      enabled: z.stringbool().default(isProduction)
+    })
+    .superRefine((val, ctx) => {
+      if (val.enabled && !val.dsn) {
+        ctx.addIssue({
+          code: 'custom',
+          path: ['dsn'],
+          message: 'Required when sentry.enabled is true'
+        });
+      }
+    }),
+  swagger: z.object({
+    enabled: z.stringbool().default(true)
+  })
 });
-convict.addFormat({
-  name: 'comma-separated string',
-  validate(val: any) {
-    return typeof val === 'string';
-  },
-  coerce(val: string): string[] {
-    return val.split(',').map((str) => str.trim());
-  }
-});
+
+export type Config = z.infer<typeof configSchema>;
 
 export type Env = 'development' | 'test' | 'production';
 
-interface Config {
+const config = configSchema.parse({
   app: {
-    batchSize: number;
-    env: Env;
-    isReviewApp: boolean;
-    host: string;
-    port: number;
-    system: string;
-  };
-  auth: {
-    secret: string;
-    expiresIn: StringValue;
-    admin2faEnabled: boolean;
-  };
-  ban: {
-    api: {
-      endpoint: string;
-    };
-    update: {
-      pageSize: number;
-      delay: string;
-    };
-  };
-  clamav: {
-    enabled: boolean;
-    socket: string;
-    host: string;
-    port: number;
-    binPath: string;
-    configFile: string;
-  };
-  cerema: {
-    api: string;
-    enabled: boolean;
-    username: string;
-    password: string;
-    authVersion: 'v1' | 'v2';
-    apiV2: string;
-  };
-  datafoncier: {
-    api: string;
-    enabled: boolean;
-    token: string | null;
-  };
-  db: {
-    env: Env;
-    url: string;
-    pool: {
-      max: number;
-    };
-  };
-  elastic: {
-    env: Env;
-    node: string;
-    auth: {
-      username: string;
-      password: string;
-    };
-  };
-  e2e: {
-    email: string | null;
-    password: string | null;
-  };
-  upload: {
-    maxSizeMB: number;
-    geo: {
-      maxSizeMB: number;
-      maxShapefileFeatures: number;
-    };
-  };
-  log: {
-    level: LogLevel;
-  };
-  mailer: {
-    from: string;
-    provider: 'brevo' | 'nodemailer';
-    host: string | null;
-    port: number | null;
-    user: string | null;
-    password: string | null;
-    /**
-     * Provide this if the provider is sendinblue
-     */
-    apiKey: string | null;
-    eventApiKey: string | null;
-    secure: boolean;
-  };
-  metabase: {
-    domain: string;
-    token: string;
-    apiToken: string;
-  };
-  rateLimit: {
-    max: number;
-  };
-  redis: {
-    url: string;
-  };
-  s3: {
-    endpoint: string;
-    region: string;
-    bucket: string;
-    accessKeyId: string;
-    secretAccessKey: string;
-  };
-  posthog: {
-    apiKey: string;
-    host: string;
-  };
-  sentry: {
-    dsn: string | null;
-    enabled: boolean;
-  };
-  swagger: {
-    enabled: boolean;
-  };
-}
-
-const config = convict<Config>({
-  app: {
-    batchSize: {
-      env: 'BATCH_SIZE',
-      format: 'int',
-      default: 1_000
-    },
-    env: {
-      env: 'NODE_ENV',
-      format: ['development', 'test', 'production'],
-      default: 'development'
-    },
-    isReviewApp: {
-      env: 'IS_REVIEW_APP',
-      format: 'strict-boolean',
-      default: false
-    },
-    host: {
-      env: 'HOST',
-      format: String,
-      default: 'http://localhost:3001'
-    },
-    port: {
-      env: 'PORT',
-      format: 'port',
-      default: 3001
-    },
-    system: {
-      env: 'SYSTEM_ACCOUNT',
-      format: String,
-      default: 'admin@zerologementvacant.beta.gouv.fr'
-    }
+    batchSize: env('BATCH_SIZE'),
+    env: env('NODE_ENV'),
+    isReviewApp: env('IS_REVIEW_APP'),
+    host: env('HOST'),
+    port: env('PORT'),
+    system: env('SYSTEM_ACCOUNT')
   },
   auth: {
-    secret: {
-      env: 'AUTH_SECRET',
-      format: String,
-      sensitive: true,
-      default: isProduction ? null : 'secret'
-    },
-    expiresIn: {
-      env: 'AUTH_EXPIRES_IN',
-      format: String,
-      default: '12 hours'
-    },
-    admin2faEnabled: {
-      env: 'ADMIN_2FA_ENABLED',
-      format: Boolean,
-      default: false
-    }
+    secret: env('AUTH_SECRET'),
+    expiresIn: env('AUTH_EXPIRES_IN'),
+    admin2faEnabled: env('ADMIN_2FA_ENABLED'),
+    testPassword: env('TEST_PASSWORD')
   },
   ban: {
-    api: {
-      endpoint: {
-        env: 'BAN_API_ENDPOINT',
-        format: 'url',
-        default: 'https://api-adresse.data.gouv.fr'
-      }
-    },
+    api: { endpoint: env('BAN_API_ENDPOINT') },
     update: {
-      pageSize: {
-        env: 'BAN_UPDATE_PAGE_SIZE',
-        format: 'int',
-        default: 2_000
-      },
-      delay: {
-        env: 'BAN_UPDATE_DELAY',
-        format: String,
-        default: '1 months'
-      }
+      pageSize: env('BAN_UPDATE_PAGE_SIZE'),
+      delay: env('BAN_UPDATE_DELAY')
     }
   },
   clamav: {
-    enabled: {
-      env: 'CLAMAV_ENABLED',
-      format: Boolean,
-      default: false
-    },
-    socket: {
-      env: 'CLAMAV_SOCKET',
-      format: String,
-      default: '/var/run/clamav/clamd.sock'
-    },
-    host: {
-      env: 'CLAMAV_HOST',
-      format: String,
-      default: '127.0.0.1'
-    },
-    port: {
-      env: 'CLAMAV_PORT',
-      format: 'port',
-      default: 3310
-    },
-    binPath: {
-      env: 'CLAMAV_BIN_PATH',
-      format: String,
-      default: '/usr/bin/clamdscan'
-    },
-    configFile: {
-      env: 'CLAMAV_CONFIG_FILE',
-      format: String,
-      default: '/etc/clamav/clamd.conf'
-    }
+    enabled: env('CLAMAV_ENABLED'),
+    socket: env('CLAMAV_SOCKET'),
+    host: env('CLAMAV_HOST'),
+    port: env('CLAMAV_PORT'),
+    binPath: env('CLAMAV_BIN_PATH'),
+    configFile: env('CLAMAV_CONFIG_FILE')
   },
   cerema: {
-    enabled: {
-      env: 'CEREMA_ENABLED',
-      format: 'strict-boolean',
-      default: isProduction
-    },
-    api: {
-      env: 'CEREMA_API',
-      format: 'url',
-      default: 'https://getdf.cerema.fr'
-    },
-    username: {
-      env: 'CEREMA_USERNAME',
-      format: String,
-      sensitive: true,
-      default: null,
-      nullable: !isProduction
-    },
-    password: {
-      env: 'CEREMA_PASSWORD',
-      format: String,
-      sensitive: true,
-      default: null,
-      nullable: !isProduction
-    },
-    authVersion: {
-      env: 'CEREMA_AUTH_VERSION',
-      format: ['v1', 'v2'],
-      default: 'v1'
-    },
-    apiV2: {
-      env: 'CEREMA_API_V2',
-      format: 'url',
-      default: 'https://datafoncier-dev.osc-fr1.scalingo.io'
-    }
+    enabled: env('CEREMA_ENABLED'),
+    api: env('CEREMA_API'),
+    username: env('CEREMA_USERNAME'),
+    password: env('CEREMA_PASSWORD'),
+    authVersion: env('CEREMA_AUTH_VERSION'),
+    apiV2: env('CEREMA_API_V2')
   },
   datafoncier: {
-    api: {
-      env: 'DATAFONCIER_API',
-      format: String,
-      default: 'https://apidf-preprod.cerema.fr'
-    },
-    enabled: {
-      env: 'DATAFONCIER_ENABLED',
-      format: 'strict-boolean',
-      default: false
-    },
-    token: {
-      env: 'DATAFONCIER_TOKEN',
-      format: String,
-      default: null,
-      nullable: true,
-      sensitive: true
-    }
+    api: env('DATAFONCIER_API'),
+    enabled: env('DATAFONCIER_ENABLED'),
+    token: env('DATAFONCIER_TOKEN')
   },
   db: {
-    env: {
-      env: 'DATABASE_ENV',
-      format: ['development', 'test', 'production'],
-      default: (process.env.NODE_ENV as Env | null) ?? 'development'
-    },
-    url: {
-      env: 'DATABASE_URL',
-      format: String,
-      default: isProduction
-        ? null
-        : 'postgresql://postgres:postgres@localhost:5432/zlv',
-      nullable: false
-    },
-    pool: {
-      max: {
-        env: 'DATABASE_POOL_MAX',
-        format: 'int',
-        default: 10
-      }
+    env: env('DATABASE_ENV') ?? env('NODE_ENV'),
+    url: env('DATABASE_URL'),
+    pool: { max: env('DATABASE_POOL_MAX') }
+  },
+  elastic: {
+    env: env('ELASTIC_ENV'),
+    node: env('ELASTIC_NODE'),
+    auth: {
+      username: env('ELASTIC_USERNAME'),
+      password: env('ELASTIC_PASSWORD')
     }
   },
   e2e: {
-    email: {
-      env: 'E2E_EMAIL',
-      format: 'email',
-      sensitive: true,
-      default: null,
-      nullable: true
-    },
-    password: {
-      env: 'E2E_PASSWORD',
-      format: String,
-      sensitive: true,
-      default: null,
-      nullable: true
-    }
+    email: env('E2E_EMAIL'),
+    password: env('E2E_PASSWORD')
   },
   upload: {
-    maxSizeMB: {
-      env: 'FILE_UPLOAD_MAX_SIZE_MB',
-      format: 'int',
-      default: 5
-    },
+    maxSizeMB: env('FILE_UPLOAD_MAX_SIZE_MB'),
     geo: {
-      maxSizeMB: {
-        env: 'GEO_UPLOAD_MAX_SIZE_MB',
-        format: 'int',
-        default: 100
-      },
-      maxShapefileFeatures: {
-        env: 'MAX_SHAPEFILE_FEATURES',
-        format: 'int',
-        default: 10000
-      }
-    }
-  },
-  elastic: {
-    env: {
-      env: 'ELASTIC_ENV',
-      format: ['development', 'test', 'production'],
-      default: (process.env.NODE_ENV as Env | null) ?? 'development'
-    },
-    node: {
-      env: 'ELASTIC_NODE',
-      format: String,
-      default: ''
-    },
-    auth: {
-      username: {
-        env: 'ELASTIC_USERNAME',
-        format: String,
-        default: ''
-      },
-      password: {
-        env: 'ELASTIC_PASSWORD',
-        format: String,
-        default: ''
-      }
+      maxSizeMB: env('GEO_UPLOAD_MAX_SIZE_MB'),
+      maxShapefileFeatures: env('MAX_SHAPEFILE_FEATURES')
     }
   },
   log: {
-    level: {
-      env: 'LOG_LEVEL',
-      format: LOG_LEVELS,
-      default: LogLevel.INFO
-    }
+    level: env('LOG_LEVEL')
   },
   mailer: {
-    from: {
-      // TODO: change this to 'MAILER_FROM'
-      env: 'MAIL_FROM',
-      format: String,
-      default: 'contact@zerologementvacant.beta.gouv.fr'
-    },
-    provider: {
-      env: 'MAILER_PROVIDER',
-      format: ['brevo', 'nodemailer'],
-      default: 'nodemailer'
-    },
-    host: {
-      env: 'MAILER_HOST',
-      format: String,
-      default: null,
-      nullable: true
-    },
-    port: {
-      env: 'MAILER_PORT',
-      format: 'port',
-      default: null,
-      nullable: true
-    },
-    user: {
-      env: 'MAILER_USER',
-      format: String,
-      default: null,
-      nullable: true
-    },
-    password: {
-      env: 'MAILER_PASSWORD',
-      format: String,
-      sensitive: true,
-      default: null,
-      nullable: true
-    },
-    apiKey: {
-      env: 'MAILER_API_KEY',
-      format: String,
-      sensitive: true,
-      default: null,
-      nullable: true
-    },
-    eventApiKey: {
-      env: 'MAILER_EVENT_API_KEY',
-      format: String,
-      sensitive: true,
-      default: null,
-      nullable: true
-    },
-    secure: {
-      env: 'MAILER_SECURE',
-      format: Boolean,
-      default: false
-    }
+    from: env('MAIL_FROM'),
+    provider: env('MAILER_PROVIDER') ?? 'nodemailer',
+    host: env('MAILER_HOST'),
+    port: env('MAILER_PORT'),
+    user: env('MAILER_USER'),
+    password: env('MAILER_PASSWORD'),
+    apiKey: env('MAILER_API_KEY'),
+    eventApiKey: env('MAILER_EVENT_API_KEY'),
+    secure: env('MAILER_SECURE')
   },
   metabase: {
-    domain: {
-      env: 'METABASE_DOMAIN',
-      format: 'url',
-      nullable: true,
-      default: null
-    },
-    token: {
-      env: 'METABASE_TOKEN',
-      format: String,
-      default: null,
-      nullable: !isProduction,
-      sensitive: true
-    },
-    apiToken: {
-      env: 'METABASE_API_TOKEN',
-      format: String,
-      default: null,
-      nullable: !isProduction,
-      sensitive: true
-    }
+    domain: env('METABASE_DOMAIN'),
+    token: env('METABASE_TOKEN'),
+    apiToken: env('METABASE_API_TOKEN')
   },
   rateLimit: {
-    max: {
-      env: 'RATE_LIMIT_MAX',
-      format: 'int',
-      default: 10_000
-    }
+    max: env('RATE_LIMIT_MAX')
   },
   redis: {
-    url: {
-      env: 'REDIS_URL',
-      format: String,
-      default: isProduction ? null : 'redis://localhost:6379'
-    }
+    url: env('REDIS_URL')
   },
   s3: {
-    endpoint: {
-      env: 'S3_ENDPOINT',
-      format: String,
-      default: isProduction ? null : 'http://localhost:9090'
-    },
-    region: {
-      env: 'S3_REGION',
-      format: String,
-      default: isProduction ? null : 'whatever'
-    },
-    bucket: {
-      env: 'S3_BUCKET',
-      format: String,
-      default: 'zerologementvacant'
-    },
-    accessKeyId: {
-      env: 'S3_ACCESS_KEY_ID',
-      format: String,
-      default: isProduction ? null : 'key',
-      sensitive: true
-    },
-    secretAccessKey: {
-      env: 'S3_SECRET_ACCESS_KEY',
-      format: String,
-      default: isProduction ? null : 'secret',
-      sensitive: true
-    }
+    endpoint: env('S3_ENDPOINT'),
+    region: env('S3_REGION'),
+    bucket: env('S3_BUCKET'),
+    accessKeyId: env('S3_ACCESS_KEY_ID'),
+    secretAccessKey: env('S3_SECRET_ACCESS_KEY')
   },
   posthog: {
-    apiKey: {
-      doc: 'PostHog API key',
-      format: String,
-      default: isProduction ? null : 'secret',
-      env: 'POSTHOG_API_KEY'
-    },
-    host: {
-      doc: 'PostHog host',
-      format: String,
-      default: 'https://eu.i.posthog.com',
-      env: 'POSTHOG_HOST'
-    }
+    enabled: env('POSTHOG_ENABLED'),
+    apiKey: env('POSTHOG_API_KEY'),
+    host: env('POSTHOG_HOST')
   },
   sentry: {
-    dsn: {
-      env: 'SENTRY_DSN',
-      format: String,
-      default: null,
-      nullable: true
-    },
-    enabled: {
-      env: 'SENTRY_ENABLED',
-      format: Boolean,
-      default: isProduction
-    }
+    dsn: env('SENTRY_DSN'),
+    enabled: env('SENTRY_ENABLED')
   },
   swagger: {
-    enabled: {
-      env: 'SWAGGER_ENABLED',
-      format: Boolean,
-      default: isReviewApp
-    }
+    enabled: env('SWAGGER_ENABLED')
   }
-})
-  .validate({ allowed: 'strict' })
-  .get();
+});
 
-export default config;
+// Cast to match the contract expected by the rest of the codebase:
+// - auth.expiresIn typed as ms StringValue
+// - metabase.token / apiToken typed as string (required in production; null only in dev)
+export default config as Omit<Config, 'auth' | 'metabase'> & {
+  auth: Omit<Config['auth'], 'expiresIn'> & { expiresIn: StringValue };
+  metabase: { domain: string; token: string; apiToken: string };
+};

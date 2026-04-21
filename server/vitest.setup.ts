@@ -1,7 +1,7 @@
 import type { Jobs, Queue } from '@zerologementvacant/queue';
 import * as extended from 'jest-extended';
 import 'jest-sorted';
-import { vi } from 'vitest';
+import { expect, vi } from 'vitest';
 
 // Extend expect with jest-extended matchers
 expect.extend(extended);

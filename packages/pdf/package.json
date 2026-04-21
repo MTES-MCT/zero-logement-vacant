@@ -25,13 +25,10 @@
     "ts-pattern": "5.8.0"
   },
   "devDependencies": {
-    "@faker-js/faker": "8.4.1",
-    "@tsconfig/node24": "24.0.4",
     "@types/node": "24",
     "@types/react": "18.3.23",
-    "@types/react-dom": "18.3.7",
-    "pdf-to-png-converter": "3.11.0",
-    "react-dom": "18.3.1",
+    "happy-dom": "20.8.9",
+    "jest-extended": "4.0.2",
     "vite-plugin-dts": "4.5.4"
   },
   "peerDependencies": {

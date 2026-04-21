@@ -31,7 +31,7 @@ export async function seed(knex: Knex): Promise<void> {
   await clearExistingData(knex);
   validateEnvironmentVariables();
 
-  const password = getTestPassword();
+  const password = config.auth.testPassword;
   const establishments = await fetchEstablishments(knex);
   const baseUsers = await createBaseUsers(password, establishments);
 
@@ -48,14 +48,6 @@ function validateEnvironmentVariables(): void {
   if (!config.e2e.email || !config.e2e.password) {
     throw new Error('You must provide E2E_EMAIL and E2E_PASSWORD');
   }
-}
-
-function getTestPassword(): string {
-  const password = process.env.TEST_PASSWORD || '';
-  if (password === '') {
-    throw new Error('You must provide TEST_PASSWORD');
-  }
-  return password;
 }
 
 async function fetchEstablishments(knex: Knex): Promise<EstablishmentsData> {

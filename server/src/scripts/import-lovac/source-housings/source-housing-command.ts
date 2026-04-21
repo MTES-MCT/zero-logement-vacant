@@ -99,6 +99,7 @@ export function createSourceHousingCommand() {
             .pipeThrough(flatten())
             .pipeTo(
               createHousingLoader({
+                dept,
                 dryRun: options.dryRun,
                 reporter: sourceHousingReporter
               })

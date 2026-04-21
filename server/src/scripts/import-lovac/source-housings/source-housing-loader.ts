@@ -31,6 +31,7 @@ const CHUNK_SIZE = 1_000;
 const TEMPORARY_TABLE = 'source_housing_updates_tmp';
 
 export interface HousingLoaderOptions {
+  dept?: string;
   dryRun?: boolean;
   reporter: Reporter<SourceHousing>;
 }
@@ -42,6 +43,10 @@ export function createHousingLoader(
   const eventBuffer: HousingEventApi[] = [];
   const addressBuffer: AddressApi[] = [];
 
+  const tableName = options.dept
+    ? `${TEMPORARY_TABLE}_${options.dept}`
+    : TEMPORARY_TABLE;
+
   // Updates go through a temporary-table-based bulk updater (createUpdater handles its own chunking).
   const updateWriter = options.dryRun
     ? createUpdater<HousingRecordInsert>({
@@ -50,11 +55,11 @@ export function createHousingLoader(
       })
     : createUpdater<HousingRecordInsert>({
         destination: 'database',
-        temporaryTable: TEMPORARY_TABLE,
+        temporaryTable: tableName,
         likeTable: housingTable,
         async update(housings): Promise<void> {
           await updateHousings(housings as ReadonlyArray<HousingRecordDBO>, {
-            temporaryTable: TEMPORARY_TABLE
+            temporaryTable: tableName
           });
         }
       });

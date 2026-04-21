@@ -1,11 +1,5 @@
-import { isNotNull } from '@zerologementvacant/utils';
-import {
-  count,
-  createS3,
-  filter,
-  flatten,
-  map
-} from '@zerologementvacant/utils/node';
+import { count, createS3, flatten, map } from '@zerologementvacant/utils/node';
+import { ReadableStream, WritableStream } from 'node:stream/web';
 import { PutObjectCommand } from '@aws-sdk/client-s3';
 import async from 'async';
 import { List } from 'immutable';
@@ -17,13 +11,7 @@ import UserMissingError from '~/errors/userMissingError';
 import config from '~/infra/config';
 import db from '~/infra/database';
 import { createLogger } from '~/infra/logger';
-import { HousingApi } from '~/models/HousingApi';
-import {
-  formatHousingRecordApi,
-  HousingDBO,
-  housingTable,
-  parseHousingApi
-} from '~/repositories/housingRepository';
+import { HousingDBO, housingTable } from '~/repositories/housingRepository';
 import userRepository from '~/repositories/userRepository';
 import { createLoggerReporter } from '~/scripts/import-lovac/infra';
 import { FromOptionValue } from '~/scripts/import-lovac/infra/options/from';
@@ -38,7 +26,6 @@ import {
 import { createSourceHousingEnricher } from '~/scripts/import-lovac/source-housings/source-housing-enricher';
 import {
   createHousingTransform,
-  HousingChange,
   HousingRecordInsert
 } from '~/scripts/import-lovac/source-housings/source-housing-transform';
 import { createHousingLoader } from '~/scripts/import-lovac/source-housings/source-housing-loader';
@@ -85,6 +72,8 @@ export function createSourceHousingCommand() {
       );
 
       // Update geo codes before importing
+      // Step A: single file pass — group (local_id → new_geo_code) by department
+      const sourcesByDept = new Map<string, Map<string, string>>();
       await createSourceHousingRepository({
         ...config.s3,
         file: file,
@@ -107,67 +96,73 @@ export function createSourceHousingCommand() {
             }
           )
         )
-        .pipeThrough(
-          map<SourceHousing, HousingChange | null>(async (sourceHousing) => {
-            const housing = await findOneHousing(
-              sourceHousing.geo_code,
-              sourceHousing.local_id
-            );
-            if (!housing) {
-              return null;
-            }
-
-            return housing.geoCode !== sourceHousing.geo_code
-              ? {
-                  type: 'housing',
-                  kind: 'update',
-                  value: {
-                    ...formatHousingRecordApi(housing),
-                    geo_code: sourceHousing.geo_code
-                  }
-                }
-              : null;
-          })
-        )
-        .pipeThrough(filter(isNotNull))
-        .pipeThrough(map((change) => change.value))
         .pipeTo(
-          createUpdater<HousingRecordInsert>({
-            destination: options.dryRun ? 'file' : 'database',
-            file: path.join(
-              import.meta.dirname,
-              'housing-geo-code-updates.jsonl'
-            ),
-            temporaryTable: 'housing_geo_code_updates_tmp',
-            likeTable: housingTable,
-            // Custom update because we cannot find housings
-            // using their geo code, because it is to be replaced
-            // by the new LOVAC
-            async update(housings): Promise<void> {
-              const temporaryTable = 'housing_geo_code_updates_tmp';
-              const housingsByDepartment = List(housings).groupBy((housing) =>
-                housing.geo_code.substring(0, 2)
+          new WritableStream({
+            write(sourceHousing) {
+              const dept = sourceHousing.geo_code.substring(0, 2);
+              if (!sourcesByDept.has(dept)) {
+                sourcesByDept.set(dept, new Map());
+              }
+              sourcesByDept.get(dept)!.set(
+                sourceHousing.local_id,
+                sourceHousing.geo_code
               );
-              const departments = housingsByDepartment.keySeq().toArray();
-              await async.forEachSeries(departments, async (department) => {
-                const departmentHousingTable = `${housingTable}_${department.toLowerCase()}`;
-                await db(departmentHousingTable)
-                  .update({
-                    geo_code: db.ref(`${temporaryTable}.geo_code`)
-                  })
-                  .updateFrom(temporaryTable)
-                  .where(
-                    `${departmentHousingTable}.id`,
-                    db.ref(`${temporaryTable}.id`)
-                  )
-                  .whereIn(
-                    `${temporaryTable}.id`,
-                    housings.map((housing) => housing.id)
-                  );
-              });
             }
           })
         );
+
+      // Step B: one bulk query per department — find changed geo codes
+      const geoCodeChanges: HousingRecordInsert[] = [];
+      for (const [dept, localIdToNewGeoCode] of sourcesByDept) {
+        const localIds = [...localIdToNewGeoCode.keys()];
+        const existing = await db<HousingDBO>(
+          `fast_housing_${dept.toLowerCase()}`
+        ).whereIn('local_id', localIds);
+        for (const housing of existing) {
+          const newGeoCode = localIdToNewGeoCode.get(housing.local_id);
+          if (newGeoCode !== undefined && housing.geo_code !== newGeoCode) {
+            // eslint-disable-next-line @typescript-eslint/no-unused-vars
+            const { last_mutation_type, plot_area, occupancy_history, ...fields } = housing;
+            geoCodeChanges.push({ ...fields, geo_code: newGeoCode });
+          }
+        }
+      }
+
+      // Step C: apply updates via temp table (partition-aware)
+      await ReadableStream.from(geoCodeChanges).pipeTo(
+        createUpdater<HousingRecordInsert>({
+          destination: options.dryRun ? 'file' : 'database',
+          file: path.join(
+            import.meta.dirname,
+            'housing-geo-code-updates.jsonl'
+          ),
+          temporaryTable: 'housing_geo_code_updates_tmp',
+          likeTable: housingTable,
+          async update(housings): Promise<void> {
+            const temporaryTable = 'housing_geo_code_updates_tmp';
+            const housingsByDepartment = List(housings).groupBy((housing) =>
+              housing.geo_code.substring(0, 2)
+            );
+            const departments = housingsByDepartment.keySeq().toArray();
+            await async.forEachSeries(departments, async (department) => {
+              const departmentHousingTable = `${housingTable}_${department.toLowerCase()}`;
+              await db(departmentHousingTable)
+                .update({
+                  geo_code: db.ref(`${temporaryTable}.geo_code`)
+                })
+                .updateFrom(temporaryTable)
+                .where(
+                  `${departmentHousingTable}.id`,
+                  db.ref(`${temporaryTable}.id`)
+                )
+                .whereIn(
+                  `${temporaryTable}.id`,
+                  housings.map((housing) => housing.id)
+                );
+            });
+          }
+        })
+      );
 
       logger.info('Starting import...', { file });
       await createSourceHousingRepository({
@@ -241,19 +236,6 @@ export function createSourceHousingCommand() {
       console.timeEnd('Import housings');
     }
   };
-}
-
-export async function findOneHousing(
-  geoCode: string,
-  localId: string
-): Promise<HousingApi | null> {
-  const department = geoCode.slice(0, 2).toLowerCase();
-  // Needed because the housing's locality we are trying to import
-  // might have been removed, or merged with another locality.
-  const housing = await db<HousingDBO>(`fast_housing_${department}`)
-    .where({ local_id: localId })
-    .first();
-  return housing ? parseHousingApi(housing) : null;
 }
 
 async function writeReport(

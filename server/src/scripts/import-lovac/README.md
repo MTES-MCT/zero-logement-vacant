@@ -24,19 +24,22 @@ Remplacer `lovac-2026` par le millésime courant.
 # 3. Snapshot après propriétaires
 ./stats/snapshot.sh owners post "$DATABASE_URL"
 
-# 4. Import logements
+# 4. Import bâtiments (génère import-lovac-buildings.report.json)
+./source-buildings/import-buildings.sh buildings.jsonl "$DATABASE_URL"
+
+# 5. Import logements
 ./run-on-clevercloud.sh housings --year lovac-2026 --file housings.jsonl
 
-# 5. Snapshot après logements
+# 6. Snapshot après logements
 ./stats/snapshot.sh housings post "$DATABASE_URL"
 
-# 6. Import droits de propriété
+# 7. Import droits de propriété
 ./run-on-clevercloud.sh housing-owners --year lovac-2026 --file housing-owners.jsonl
 
-# 7. Snapshot après droits de propriété
+# 8. Snapshot après droits de propriété
 ./stats/snapshot.sh housing-owners post "$DATABASE_URL"
 
-# 8. Voir les deltas dans le terminal
+# 9. Voir les deltas dans le terminal
 for suffix in metrics types sources; do
   ./stats/diff.sh snapshot-owners-${suffix}-pre.json snapshot-owners-${suffix}-post.json
 done
@@ -47,7 +50,7 @@ for suffix in metrics rank; do
   ./stats/diff.sh snapshot-housing-owners-${suffix}-pre.json snapshot-housing-owners-${suffix}-post.json
 done
 
-# 9. Publier le rapport sur Notion (dans une session Claude Code)
+# 10. Publier le rapport sur Notion (dans une session Claude Code)
 # /publish-lovac-report lovac-2026
 ```
 
@@ -78,6 +81,7 @@ Il lit les fichiers `snapshot-<entité>-<suffixe>-pre.json` / `snapshot-<entité
 
 Sections générées :
 - Propriétaires (total, par type, avec/sans `idpersonne`, avec/sans adresse DGFIP)
+- Bâtiments (insérés, ignorés, couverture RNB) — lu depuis `import-lovac-buildings.report.json`
 - Logements (total, par occupation, par statut de suivi)
 - Droits de propriété (total, par rang, avec/sans `idprocpte`)
 - Événements générés (par type)

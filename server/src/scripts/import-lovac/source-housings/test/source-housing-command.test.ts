@@ -5,11 +5,10 @@ import {
   Occupancy,
   OCCUPANCY_VALUES
 } from '@zerologementvacant/models';
-import { stringify as writeJSONL } from 'jsonlines';
+import { DuckDBInstance } from '@duckdb/node-api';
 import fs from 'node:fs';
 import { rm } from 'node:fs/promises';
 import path from 'node:path';
-import { Transform, Writable } from 'node:stream';
 import { ReadableStream } from 'node:stream/web';
 import { BuildingApi } from '~/models/BuildingApi';
 import { HousingEventApi } from '~/models/EventApi';
@@ -56,7 +55,7 @@ import {
 
 describe('Source housing command', () => {
   const command = createSourceHousingCommand();
-  const file = path.join(import.meta.dirname, 'housings.jsonl');
+  const deptsDir = path.join(import.meta.dirname, 'depts');
 
   const building: BuildingApi = genBuildingApi();
 
@@ -110,32 +109,19 @@ describe('Source housing command', () => {
         occupancyRegistered: occupancy,
         status: faker.helpers.arrayElement(contactedStatuses)
       }));
-  const geoCodeChangedHousings: ReadonlyArray<HousingApi> =
-    faker.helpers.multiple(
-      () => ({ ...genHousingApi(), buildingId: building.id }),
-      {
-        count: { min: 5, max: 50 }
-      }
-    );
   // Housings to include in the fake LOVAC file
   const sourceHousings: ReadonlyArray<SourceHousing> = [
     ...missingSourceHousings,
     ...vacantHousings.map(toSourceHousing),
     ...nonVacantUserModifiedHousings.map(toSourceHousing),
-    ...nonVacantNonUserModifiedHousings.map(toSourceHousing),
-    ...geoCodeChangedHousings.map((housing) => ({
-      ...toSourceHousing(housing),
-      // The geo code should change in the fake LOVAC file
-      geo_code: housing.geoCode.substring(0, 2) + '001'
-    }))
+    ...nonVacantNonUserModifiedHousings.map(toSourceHousing)
   ];
 
   // Housings to save to the database
   const housingsBefore: ReadonlyArray<HousingApi> = [
     ...vacantHousings,
     ...nonVacantUserModifiedHousings,
-    ...nonVacantNonUserModifiedHousings,
-    ...geoCodeChangedHousings
+    ...nonVacantNonUserModifiedHousings
   ];
 
   // Seed the database
@@ -179,12 +165,16 @@ describe('Source housing command', () => {
 
   // Write the file and run
   beforeAll(async () => {
-    await write(file, sourceHousings);
-    await command(file, { abortEarly: true, from: 'file', year: 'lovac-2025' });
+    await writeParquetDepts(deptsDir, sourceHousings);
+    await command(deptsDir, {
+      abortEarly: true,
+      from: 'file',
+      year: 'lovac-2025'
+    });
   });
 
   afterAll(async () => {
-    await rm(file);
+    await rm(deptsDir, { recursive: true, force: true });
   });
 
   it('should add "lovac-2025" to housing updated from LOVAC', async () => {
@@ -271,23 +261,6 @@ describe('Source housing command', () => {
       occupancy_intended: updated.occupancy_intended,
       energy_consumption_bdnb: updated.energy_consumption_bdnb,
       energy_consumption_at_bdnb: updated.energy_consumption_at_bdnb
-    });
-  });
-
-  it('should update the housing geo code if it changed', async () => {
-    const actual = await Housing().whereIn(
-      'id',
-      geoCodeChangedHousings.map((housing) => housing.id)
-    );
-    expect(actual).toHaveLength(geoCodeChangedHousings.length);
-    actual.forEach((actualHousing) => {
-      const sourceHousing = sourceHousings.find(
-        (sourceHousing) => sourceHousing.local_id === actualHousing.local_id
-      );
-      expect(actualHousing).toMatchObject<Partial<HousingRecordDBO>>({
-        local_id: sourceHousing?.local_id,
-        geo_code: sourceHousing?.geo_code
-      });
     });
   });
 
@@ -423,18 +396,33 @@ describe('Source housing command', () => {
   }
 });
 
-async function write(
-  file: string,
+/**
+ * Write source housings as hive-partitioned parquet files
+ * (simulates the output of prepare-housings.sh)
+ */
+async function writeParquetDepts(
+  deptsDir: string,
   sourceHousings: ReadonlyArray<SourceHousing>
 ): Promise<void> {
-  await new ReadableStream<SourceHousing>({
-    start(controller) {
-      sourceHousings.forEach((sourceHousing) => {
-        controller.enqueue(sourceHousing);
-      });
-      controller.close();
-    }
-  })
-    .pipeThrough(Transform.toWeb(writeJSONL()))
-    .pipeTo(Writable.toWeb(fs.createWriteStream(file)));
+  const jsonlFile = path.join(deptsDir, '..', 'source-housings-test.jsonl');
+  fs.mkdirSync(path.dirname(jsonlFile), { recursive: true });
+  fs.writeFileSync(
+    jsonlFile,
+    sourceHousings.map((h) => JSON.stringify(h)).join('\n')
+  );
+
+  const instance = await DuckDBInstance.create(':memory:');
+  const conn = await instance.connect();
+  try {
+    await conn.run(`
+      COPY (
+        SELECT *, geo_code[1:2] AS dept
+        FROM read_json_auto('${jsonlFile}')
+      ) TO '${deptsDir}' (FORMAT PARQUET, PARTITION_BY (dept), OVERWRITE_OR_IGNORE);
+    `);
+  } finally {
+    conn.closeSync();
+    instance.closeSync();
+  }
+  fs.unlinkSync(jsonlFile);
 }

@@ -14,7 +14,6 @@ import {
 describe('SourceHousing', () => {
   describe('sourceHousingSchema', () => {
     test.prop<SourceHousing>({
-      data_file_year: fc.constant('lovac-2025'),
       invariant: fc.string({ minLength: 1, maxLength: 20 }),
       local_id: fc.string({ minLength: 12, maxLength: 12 }),
       building_id: fc.option(fc.string({ minLength: 15, maxLength: 15 })),
@@ -30,8 +29,8 @@ describe('SourceHousing', () => {
       ban_latitude: fc.option(fc.float({ min: -90, max: 90, noNaN: true })),
       ban_longitude: fc.option(fc.float({ min: -180, max: 180, noNaN: true })),
       dgfip_address: fc.string({ minLength: 1 }),
-      dgfip_latitude: fc.option(fc.float({ min: -90, max: 90, noNaN: true })),
-      dgfip_longitude: fc.option(
+      latitude_dgfip: fc.option(fc.float({ min: -90, max: 90, noNaN: true })),
+      longitude_dgfip: fc.option(
         fc.float({ min: -180, max: 180, noNaN: true })
       ),
       housing_kind: fc.constantFrom(...HOUSING_KIND_VALUES),
@@ -44,7 +43,6 @@ describe('SourceHousing', () => {
       cadastral_classification: fc.option(
         fc.constantFrom(...CADASTRAL_CLASSIFICATION_VALUES)
       ),
-      cadastral_reference: fc.option(fc.stringMatching(/\S+/)),
       taxed: fc.boolean(),
       rental_value: fc.option(fc.integer({ min: 0 })),
       occupancy_source: fc.constantFrom(...OCCUPANCY_VALUES),
@@ -52,9 +50,15 @@ describe('SourceHousing', () => {
         min: 1,
         max: new Date().getUTCFullYear()
       }),
-      mutation_date: fc.option(fc.date({ noInvalidDate: true })),
-      last_mutation_date: fc.option(fc.date({ noInvalidDate: true })),
-      last_transaction_date: fc.option(fc.date({ noInvalidDate: true })),
+      mutation_date: fc.option(
+        fc.date({ min: new Date('1970-01-01'), max: new Date('9999-12-31'), noInvalidDate: true }).map((d) => d.toISOString().substring(0, 'yyyy-mm-dd'.length))
+      ),
+      last_mutation_date: fc.option(
+        fc.date({ min: new Date('1970-01-01'), max: new Date('9999-12-31'), noInvalidDate: true }).map((d) => d.toISOString().substring(0, 'yyyy-mm-dd'.length))
+      ),
+      last_transaction_date: fc.option(
+        fc.date({ min: new Date('1970-01-01'), max: new Date('9999-12-31'), noInvalidDate: true }).map((d) => d.toISOString().substring(0, 'yyyy-mm-dd'.length))
+      ),
       last_transaction_value: fc.option(fc.integer({ min: 0 }))
     })('should validate a source housing', (sourceHousing) => {
       const validate = () => sourceHousingSchema.parse(sourceHousing);

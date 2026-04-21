@@ -27,19 +27,28 @@ Remplacer `lovac-2026` par le millésime courant.
 # 4. Import bâtiments (génère import-lovac-buildings.report.json)
 ./source-buildings/import-buildings.sh buildings.jsonl "$DATABASE_URL"
 
-# 5. Import logements
+# 5. Snapshot avant import logements
+./stats/snapshot.sh housings pre "$DATABASE_URL"
+
+# 6. Import logements
 ./run-on-clevercloud.sh housings --year lovac-2026 --file housings.jsonl
 
-# 6. Snapshot après logements
+# 7. Réinitialise l'occupation/statut des logements absents du fichier LOVAC
+./run-on-clevercloud.sh existing-housings --year lovac-2026
+
+# 8. Snapshot après logements
 ./stats/snapshot.sh housings post "$DATABASE_URL"
 
-# 7. Import droits de propriété
+# 9. Snapshot avant import droits de propriété
+./stats/snapshot.sh housing-owners pre "$DATABASE_URL"
+
+# 10. Import droits de propriété
 ./run-on-clevercloud.sh housing-owners --year lovac-2026 --file housing-owners.jsonl
 
-# 8. Snapshot après droits de propriété
+# 11. Snapshot après droits de propriété
 ./stats/snapshot.sh housing-owners post "$DATABASE_URL"
 
-# 9. Voir les deltas dans le terminal
+# 12. Voir les deltas dans le terminal
 for suffix in metrics types sources; do
   ./stats/diff.sh snapshot-owners-${suffix}-pre.json snapshot-owners-${suffix}-post.json
 done
@@ -50,7 +59,7 @@ for suffix in metrics rank; do
   ./stats/diff.sh snapshot-housing-owners-${suffix}-pre.json snapshot-housing-owners-${suffix}-post.json
 done
 
-# 10. Publier le rapport sur Notion (dans une session Claude Code)
+# 13. Publier le rapport sur Notion (dans une session Claude Code)
 # /publish-lovac-report lovac-2026
 ```
 

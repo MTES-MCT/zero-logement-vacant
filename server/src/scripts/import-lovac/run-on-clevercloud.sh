@@ -45,8 +45,15 @@ while [[ $# -gt 0 ]]; do
   esac
 done
 
-if [ -z "$SUBCOMMAND" ] || [ -z "$YEAR" ] || [ -z "$FILE" ]; then
-  echo "Usage: $0 <subcommand> --year <year> --file <s3-key> [--dry-run] [--abort-early] [--departments <dep...>]" >&2
+FILE_REQUIRED_SUBCOMMANDS="owners housings housing-owners"
+
+if [ -z "$SUBCOMMAND" ] || [ -z "$YEAR" ]; then
+  echo "Usage: $0 <subcommand> --year <year> [--file <s3-key>] [--dry-run] [--abort-early] [--departments <dep...>]" >&2
+  exit 1
+fi
+
+if echo "$FILE_REQUIRED_SUBCOMMANDS" | grep -qw "$SUBCOMMAND" && [ -z "$FILE" ]; then
+  echo "Error: --file is required for subcommand '$SUBCOMMAND'" >&2
   exit 1
 fi
 

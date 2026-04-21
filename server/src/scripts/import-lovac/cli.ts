@@ -1,7 +1,6 @@
 import { program } from '@commander-js/extra-typings';
 
 import { createLogger } from '~/infra/logger';
-import { createHistoryCommand } from '~/scripts/import-lovac/history/history-command';
 import { FromOptionValue } from '~/scripts/import-lovac/infra/options/from';
 import { createSourceHousingOwnerCommand } from '~/scripts/import-lovac/source-housing-owners/source-housing-owner-command';
 import { createSourceHousingCommand } from '~/scripts/import-lovac/source-housings/source-housing-command';
@@ -40,23 +39,6 @@ const year = program
 program.hook('preAction', (_, actionCommand) => {
   logger.info('Options', actionCommand.opts());
 });
-
-program
-  .command('history')
-  .description(
-    'Import housing history from a file. It should run exactly once, after importing housings'
-  )
-  .argument('<file>', 'The .jsonl file to import')
-  .addOption(abortEarly)
-  .addOption(departments)
-  .addOption(dryRun)
-  .addOption(year)
-  .action(async (file, options) => {
-    const command = createHistoryCommand();
-    await command(file, options).then(() => {
-      process.exit();
-    });
-  });
 
 program
   .command('owners')

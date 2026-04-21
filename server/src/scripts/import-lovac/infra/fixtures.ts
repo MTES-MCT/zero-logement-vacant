@@ -16,9 +16,9 @@ import { SourceOwner } from '~/scripts/import-lovac/source-owners/source-owner';
 
 export function genSourceHousing(): SourceHousing {
   const geoCode = genGeoCode();
+  const isoDate = () => faker.date.past().toISOString().substring(0, 'yyyy-mm-dd'.length);
 
   return {
-    data_file_year: 'lovac-2025',
     invariant: faker.string.numeric(10),
     local_id: geoCode + faker.string.numeric(7),
     geo_code: geoCode,
@@ -27,8 +27,8 @@ export function genSourceHousing(): SourceHousing {
     building_year: faker.date.past().getFullYear(),
     plot_id: geoCode + faker.string.alphanumeric(9),
     dgfip_address: faker.location.streetAddress(),
-    dgfip_latitude: faker.location.latitude(),
-    dgfip_longitude: faker.location.longitude(),
+    latitude_dgfip: faker.location.latitude(),
+    longitude_dgfip: faker.location.longitude(),
     ban_id: faker.string.uuid(),
     ban_label: faker.location.streetAddress(),
     ban_score: faker.number.float({ min: 0, max: 1, fractionDigits: 2 }),
@@ -39,13 +39,12 @@ export function genSourceHousing(): SourceHousing {
     rooms_count: faker.number.int({ min: 1, max: 10 }),
     uncomfortable: faker.datatype.boolean(),
     cadastral_classification: faker.helpers.arrayElement(CADASTRAL_CLASSIFICATION_VALUES),
-    cadastral_reference: faker.string.sample(6),
     living_area: faker.number.float({ min: 10, max: 100, fractionDigits: 2 }),
     taxed: faker.datatype.boolean(),
     vacancy_start_year: faker.date.past().getFullYear(),
-    mutation_date: faker.date.past(),
-    last_mutation_date: faker.date.past(),
-    last_transaction_date: faker.date.past(),
+    mutation_date: isoDate(),
+    last_mutation_date: isoDate(),
+    last_transaction_date: isoDate(),
     last_transaction_value: faker.number.int({ min: 100_000, max: 1_000_000 }),
     occupancy_source: Occupancy.VACANT,
     rental_value: faker.number.int({ min: 500, max: 10000 })

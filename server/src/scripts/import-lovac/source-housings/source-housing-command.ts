@@ -1,7 +1,7 @@
 import { createS3, flatten, map } from '@zerologementvacant/utils/node';
 import { GetObjectCommand, PutObjectCommand } from '@aws-sdk/client-s3';
 import async from 'async';
-import fs, { writeFileSync, createWriteStream } from 'node:fs';
+import fs from 'node:fs';
 import os from 'node:os';
 import path from 'node:path';
 import { Readable } from 'node:stream';
@@ -55,7 +55,7 @@ async function downloadIfS3(
   );
   await pipeline(
     response.Body as Readable,
-    createWriteStream(tmpFile)
+    fs.createWriteStream(tmpFile)
   );
   logger.info('Download complete.');
   return tmpFile;
@@ -145,7 +145,12 @@ export function createSourceHousingCommand() {
       // 3. Discover per-dept parquet files
       const deptDirs = fs
         .readdirSync(deptsDir)
-        .filter((d) => d.startsWith('dept='));
+        .filter((d) => d.startsWith('dept='))
+        .filter(
+          (d) =>
+            !options.departments?.length ||
+            options.departments.includes(d.replace('dept=', ''))
+        );
       logger.info(`Importing ${deptDirs.length} departments...`);
 
       const CONCURRENCY = 4;
@@ -242,7 +247,7 @@ async function writeReport(
         );
       })
       .with({ from: 'file' }, async () => {
-        writeFileSync(
+        fs.writeFileSync(
           `./import-lovac-${options.year}-housings.report.json`,
           json,
           'utf8'

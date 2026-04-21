@@ -21,6 +21,7 @@ example: /publish-lovac-report lovac-2026
   - `snapshot-owners-pre.json` and `snapshot-owners-post.json`
   - `snapshot-housings-pre.json` and `snapshot-housings-post.json`
   - `snapshot-housing-owners-pre.json` and `snapshot-housing-owners-post.json`
+  - `import-lovac-buildings.report.json`
   - `import-lovac-<year>-owners.report.json` (or equivalent report files)
 
 ## Steps
@@ -59,7 +60,27 @@ Publish using native Notion blocks in this order:
 - **Table block** `Par type (kind_class)`: category → before/after/delta
 - **Table block** `Par source de données (data_source)`: category → before/after/delta
 
-#### Section 2 — Logements
+#### Section 2 — Bâtiments
+
+Read `import-lovac-buildings.report.json`. This file is a JSON array with one object:
+```json
+[{ "source_total": 1000, "source_with_rnb": 800, "source_without_rnb": 200,
+   "before_count": 500, "after_count": 1400, "inserted": 900, "skipped": 100 }]
+```
+
+- **Heading 2:** `Bâtiments`
+- **Callout block** (ℹ️ icon):
+  `"<after_count> bâtiments après import, +<inserted> inséré(s), <skipped> ignoré(s)"`
+- **Table block** with columns `Métrique | Valeur` for:
+  - Total dans le fichier source → `source_total`
+  - Avec identifiant RNB → `source_with_rnb`
+  - Sans identifiant RNB → `source_without_rnb`
+  - Avant import → `before_count`
+  - Après import → `after_count`
+  - Insérés → `inserted`
+  - Ignorés (déjà présents) → `skipped`
+
+#### Section 3 — Logements
 
 - **Heading 2:** `Logements`
 - **Callout block** (ℹ️ icon): `"<post_total> logements après import, <delta_str> (<pct>)"`
@@ -70,7 +91,7 @@ Publish using native Notion blocks in this order:
 - **Table block** `Par statut`: category → before/after/delta
 - **Table block** `Par année de fichier (data_file_years)`: category → before/after/delta
 
-#### Section 3 — Droits de propriété
+#### Section 4 — Droits de propriété
 
 - **Heading 2:** `Droits de propriété`
 - **Callout block** (ℹ️ icon): `"<post_total> liens après import, <delta_str> (<pct>)"`
@@ -79,12 +100,12 @@ Publish using native Notion blocks in this order:
   - Avec / sans `idprocpte`
 - **Table block** `Par rang (rank)`: category → before/after/delta
 
-#### Section 4 — Événements créés
+#### Section 5 — Événements créés
 
 - **Heading 2:** `Événements créés`
 - **Table block** with columns `Type | Nombre` listing event types and their counts from the post snapshot
 
-#### Section 5 — Rapport d'import
+#### Section 6 — Rapport d'import
 
 - **Heading 2:** `Rapport d'import`
 - For each `*.report.json` found in the current directory, add:

@@ -1,13 +1,9 @@
 import { createS3, flatten, map } from '@zerologementvacant/utils/node';
-import { GetObjectCommand, PutObjectCommand } from '@aws-sdk/client-s3';
+import { PutObjectCommand } from '@aws-sdk/client-s3';
 import async from 'async';
 import fs from 'node:fs';
-import os from 'node:os';
 import path from 'node:path';
-import { Readable } from 'node:stream';
-import { pipeline } from 'node:stream/promises';
 import { match } from 'ts-pattern';
-import { DuckDBInstance } from '@duckdb/node-api';
 
 import UserMissingError from '~/errors/userMissingError';
 import config from '~/infra/config';
@@ -25,7 +21,6 @@ import {
 import { createSourceHousingEnricher } from '~/scripts/import-lovac/source-housings/source-housing-enricher';
 import { createHousingTransform } from '~/scripts/import-lovac/source-housings/source-housing-transform';
 import { createHousingLoader } from '~/scripts/import-lovac/source-housings/source-housing-loader';
-import { prepareHousingImport } from './source-housing-duckdb';
 import { createParquetSourceHousingRepository } from './source-housing-parquet-repository';
 
 const logger = createLogger('sourceHousingCommand');
@@ -38,83 +33,16 @@ export interface ExecOptions {
   year: string;
 }
 
-async function downloadIfS3(
-  file: string,
-  options: ExecOptions
-): Promise<string> {
-  if (options.from === 'file') return file;
-
-  const tmpFile = path.join(
-    os.tmpdir(),
-    `lovac-${path.basename(file)}-${Date.now()}.jsonl`
-  );
-  logger.info(`Downloading source file from S3 to ${tmpFile}...`);
-  const s3 = createS3(config.s3);
-  const response = await s3.send(
-    new GetObjectCommand({ Bucket: config.s3.bucket, Key: file })
-  );
-  await pipeline(
-    response.Body as Readable,
-    fs.createWriteStream(tmpFile)
-  );
-  logger.info('Download complete.');
-  return tmpFile;
-}
-
-async function applyGeoCodeChanges(changesFile: string): Promise<void> {
-  const instance = await DuckDBInstance.create(':memory:');
-  const connection = await instance.connect();
-  let changes: Array<{ id: string; new_geo_code: string }> = [];
-  try {
-    const reader = await connection.runAndReadAll(
-      `SELECT * FROM read_parquet(?)`,
-      [changesFile]
-    );
-    changes = reader.getRowObjects() as Array<{
-      id: string;
-      new_geo_code: string;
-    }>;
-  } finally {
-    connection.closeSync();
-    instance.closeSync();
-  }
-
-  if (changes.length === 0) {
-    logger.info('No geo_code changes to apply.');
-    return;
-  }
-
-  logger.info(`Applying ${changes.length} geo_code changes...`);
-
-  const tmpTable = 'housing_geo_code_changes_tmp';
-  await db.schema.createTable(tmpTable, (t) => {
-    t.uuid('id').notNullable();
-    t.string('new_geo_code', 5).notNullable();
-  });
-
-  try {
-    for (let i = 0; i < changes.length; i += 1_000) {
-      await db(tmpTable).insert(changes.slice(i, i + 1_000));
-    }
-    await db.raw(`
-      UPDATE fast_housing h
-      SET geo_code = tmp.new_geo_code
-      FROM ${tmpTable} tmp
-      WHERE h.id = tmp.id
-    `);
-    logger.info(`Applied ${changes.length} geo_code changes.`);
-  } finally {
-    await db.schema.dropTableIfExists(tmpTable);
-  }
-}
-
 export function createSourceHousingCommand() {
   const sourceHousingReporter = createLoggerReporter<SourceHousing>();
 
-  return async (file: string, options: ExecOptions): Promise<void> => {
+  return async (deptsDir: string, options: ExecOptions): Promise<void> => {
     try {
       console.time('Import housings');
-      logger.debug('Starting source housing command...', { file, options });
+      logger.debug('Starting source housing command...', {
+        deptsDir,
+        options
+      });
 
       const auth = await userRepository.getByEmail(config.app.system);
       if (!auth) {
@@ -129,20 +57,7 @@ export function createSourceHousingCommand() {
         ALTER TABLE fast_housing DISABLE TRIGGER housing_delete_building_trigger;
       `);
 
-      // Ensure we have a local file for DuckDB
-      const localFile = await downloadIfS3(file, options);
-
-      // 1. DuckDB: detect geo_code changes + split by dept (one pass)
-      logger.info('Running DuckDB prepare step...');
-      const { changesFile, deptsDir } = await prepareHousingImport({
-        sourceFile: localFile,
-        pgUrl: config.db.url
-      });
-
-      // 2. Apply geo_code corrections sequentially (cross-dept aware)
-      await applyGeoCodeChanges(changesFile);
-
-      // 3. Discover per-dept parquet files
+      // Discover per-dept parquet files
       const deptDirs = fs
         .readdirSync(deptsDir)
         .filter((d) => d.startsWith('dept='))
@@ -193,7 +108,7 @@ export function createSourceHousingCommand() {
         }
       );
 
-      // 4. Update building counts (unchanged)
+      // Update building counts
       logger.info('Updating building counts...');
       await db.raw(`
         WITH building_counts AS (
@@ -221,14 +136,14 @@ export function createSourceHousingCommand() {
       `);
 
       sourceHousingReporter.report();
-      await writeReport(file, options, sourceHousingReporter);
+      await writeReport(deptsDir, options, sourceHousingReporter);
       console.timeEnd('Import housings');
     }
   };
 }
 
 async function writeReport(
-  file: string,
+  deptsDir: string,
   options: ExecOptions,
   reporter: Reporter<SourceHousing>
 ): Promise<void> {
@@ -240,7 +155,7 @@ async function writeReport(
         await s3.send(
           new PutObjectCommand({
             Bucket: config.s3.bucket,
-            Key: `${file}.report.json`,
+            Key: `${deptsDir}.report.json`,
             Body: json,
             ContentType: 'application/json'
           })

@@ -10,16 +10,16 @@ const validRaw = {
     isReviewApp: 'false',
     host: 'http://localhost:3001',
     port: '3001',
-    system: 'admin@example.com',
+    system: 'admin@example.com'
   },
   auth: {
     secret: 'mysecret',
     expiresIn: '1 hour',
-    admin2faEnabled: 'false',
+    admin2faEnabled: 'false'
   },
   ban: {
     api: { endpoint: 'https://api-adresse.data.gouv.fr' },
-    update: { pageSize: '2000', delay: '1 months' },
+    update: { pageSize: '2000', delay: '1 months' }
   },
   clamav: {
     enabled: 'false',
@@ -27,7 +27,7 @@ const validRaw = {
     host: '127.0.0.1',
     port: '3310',
     binPath: '/usr/bin/clamdscan',
-    configFile: '/etc/clamav/clamd.conf',
+    configFile: '/etc/clamav/clamd.conf'
   },
   cerema: {
     enabled: 'false',
@@ -35,27 +35,27 @@ const validRaw = {
     username: null,
     password: null,
     authVersion: 'v1',
-    apiV2: 'https://datafoncier-dev.osc-fr1.scalingo.io',
+    apiV2: 'https://datafoncier-dev.osc-fr1.scalingo.io'
   },
   datafoncier: {
     api: 'https://apidf-preprod.cerema.fr',
     enabled: 'false',
-    token: null,
+    token: null
   },
   db: {
     env: 'test',
     url: 'postgresql://postgres:postgres@localhost:5432/test',
-    pool: { max: '10' },
+    pool: { max: '10' }
   },
   elastic: {
     env: 'test',
     node: '',
-    auth: { username: '', password: '' },
+    auth: { username: '', password: '' }
   },
   e2e: { email: null, password: null },
   upload: {
     maxSizeMB: '5',
-    geo: { maxSizeMB: '100', maxShapefileFeatures: '10000' },
+    geo: { maxSizeMB: '100', maxShapefileFeatures: '10000' }
   },
   log: { level: 'info' },
   mailer: {
@@ -67,7 +67,7 @@ const validRaw = {
     password: null,
     apiKey: null,
     eventApiKey: null,
-    secure: 'false',
+    secure: 'false'
   },
   metabase: { domain: null, token: null, apiToken: null },
   rateLimit: { max: '10000' },
@@ -77,10 +77,11 @@ const validRaw = {
     region: 'us-east-1',
     bucket: 'zerologementvacant',
     accessKeyId: 'key',
-    secretAccessKey: 'secret',
+    secretAccessKey: 'secret'
   },
-  posthog: { enabled: 'false', apiKey: null, host: 'https://eu.i.posthog.com' },
+  posthog: { enabled: 'false', apiKey: '', host: 'https://eu.i.posthog.com' },
   sentry: { dsn: null, enabled: 'false' },
+  swagger: { enabled: 'true' }
 };
 
 describe('configSchema', () => {
@@ -89,7 +90,9 @@ describe('configSchema', () => {
 
     expect(result.app.batchSize).toBe(500);
     expect(result.app.isReviewApp).toBe(false);
-    expect(result.db.url).toBe('postgresql://postgres:postgres@localhost:5432/test');
+    expect(result.db.url).toBe(
+      'postgresql://postgres:postgres@localhost:5432/test'
+    );
     expect(result.cerema.username).toBeNull();
     expect(result.log.level).toBe('info');
   });
@@ -98,7 +101,7 @@ describe('configSchema', () => {
     const result = configSchema.parse({
       ...validRaw,
       app: { ...validRaw.app, isReviewApp: 'true' },
-      clamav: { ...validRaw.clamav, enabled: 'true' },
+      clamav: { ...validRaw.clamav, enabled: 'true' }
     });
 
     expect(result.app.isReviewApp).toBe(true);
@@ -115,7 +118,7 @@ describe('configSchema', () => {
     expect(() =>
       configSchema.shape.cerema.parse({
         ...validRaw.cerema,
-        authVersion: 'v3',
+        authVersion: 'v3'
       })
     ).toThrow();
   });
@@ -124,7 +127,12 @@ describe('configSchema', () => {
     expect(() =>
       configSchema.parse({
         ...validRaw,
-        cerema: { ...validRaw.cerema, enabled: 'true', username: null, password: null },
+        cerema: {
+          ...validRaw.cerema,
+          enabled: 'true',
+          username: null,
+          password: null
+        }
       })
     ).toThrow(/Required when cerema\.enabled/);
   });
@@ -133,7 +141,12 @@ describe('configSchema', () => {
     expect(() =>
       configSchema.parse({
         ...validRaw,
-        cerema: { ...validRaw.cerema, enabled: 'true', username: 'user', password: 'pass' },
+        cerema: {
+          ...validRaw.cerema,
+          enabled: 'true',
+          username: 'user',
+          password: 'pass'
+        }
       })
     ).not.toThrow();
   });
@@ -142,7 +155,7 @@ describe('configSchema', () => {
     expect(() =>
       configSchema.parse({
         ...validRaw,
-        datafoncier: { ...validRaw.datafoncier, enabled: 'true', token: null },
+        datafoncier: { ...validRaw.datafoncier, enabled: 'true', token: null }
       })
     ).toThrow(/Required when datafoncier\.enabled/);
   });
@@ -151,7 +164,7 @@ describe('configSchema', () => {
     expect(() =>
       configSchema.parse({
         ...validRaw,
-        sentry: { dsn: null, enabled: 'true' },
+        sentry: { dsn: null, enabled: 'true' }
       })
     ).toThrow(/Required when sentry\.enabled/);
   });
@@ -160,7 +173,7 @@ describe('configSchema', () => {
     expect(() =>
       configSchema.parse({
         ...validRaw,
-        mailer: { ...validRaw.mailer, provider: 'brevo', apiKey: null },
+        mailer: { ...validRaw.mailer, provider: 'brevo', apiKey: null }
       })
     ).toThrow();
   });

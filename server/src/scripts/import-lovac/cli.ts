@@ -3,7 +3,6 @@ import { program } from '@commander-js/extra-typings';
 import { createLogger } from '~/infra/logger';
 import { createHistoryCommand } from '~/scripts/import-lovac/history/history-command';
 import { FromOptionValue } from '~/scripts/import-lovac/infra/options/from';
-import { createSourceBuildingCommand } from '~/scripts/import-lovac/source-buildings/source-building-command';
 import { createSourceHousingOwnerCommand } from '~/scripts/import-lovac/source-housing-owners/source-housing-owner-command';
 import { createSourceHousingCommand } from '~/scripts/import-lovac/source-housings/source-housing-command';
 import { createExistingHousingCommand } from '~/scripts/import-lovac/housings/housing-command';
@@ -118,21 +117,6 @@ program
   .action(async (options) => {
     const command = createExistingHousingCommand();
     await command(options).then(() => {
-      process.exit();
-    });
-  });
-
-program
-  .command('buildings')
-  .description('Import buildings from a file to an existing database')
-  .argument('<file>', 'The .jsonl file to import')
-  .addOption(abortEarly)
-  .addOption(departments)
-  .addOption(dryRun)
-  .addOption(year)
-  .action(async (file, options) => {
-    const command = createSourceBuildingCommand();
-    await command(file, options).then(() => {
       process.exit();
     });
   });

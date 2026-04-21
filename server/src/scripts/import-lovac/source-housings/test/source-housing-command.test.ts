@@ -212,11 +212,7 @@ describe('Source housing command', () => {
       ...genUserApi(establishment.id),
       email: `${faker.internet.userName().toLowerCase()}@zerologementvacant.beta.gouv.fr`
     };
-    const auth: UserApi = {
-      ...genUserApi(establishment.id),
-      email: config.app.system
-    };
-    await Users().insert([user, admin, auth].map(toUserDBO));
+    await Users().insert([user, admin].map(toUserDBO));
     await Buildings().insert(formatBuildingApi(building));
     await Housing().insert(housingsBefore.map(formatHousingRecordApi));
 

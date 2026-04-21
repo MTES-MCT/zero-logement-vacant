@@ -20,7 +20,7 @@ const isProduction = envEnum.parse(process.env.NODE_ENV) === 'production';
 export const configSchema = z.object({
   app: z.object({
     batchSize: z.coerce.number().int().default(1_000),
-    env: envEnum.default('development'),
+    env: envEnum,
     isReviewApp: z.stringbool().default(false),
     host: z.string().default('http://localhost:3001'),
     port: z.coerce.number().int().min(1).max(65535).default(3001),
@@ -190,7 +190,7 @@ export const configSchema = z.object({
   posthog: z
     .object({
       enabled: z.stringbool().default(isProduction),
-      apiKey: z.string().default(''),
+      apiKey: z.string().default('unused'),
       host: z.string().default('https://eu.i.posthog.com')
     })
     .superRefine((val, ctx) => {
@@ -269,7 +269,7 @@ const config = configSchema.parse({
     token: env('DATAFONCIER_TOKEN')
   },
   db: {
-    env: env('DATABASE_ENV'),
+    env: env('DATABASE_ENV') ?? env('NODE_ENV'),
     url: env('DATABASE_URL'),
     pool: { max: env('DATABASE_POOL_MAX') }
   },

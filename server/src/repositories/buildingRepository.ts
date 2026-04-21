@@ -20,6 +20,7 @@ export interface BuildingDBO {
    * @see https://doc-datafoncier.cerema.fr/doc/ff/batiment/rnb_id_score
    */
   rnb_id_score: number | null;
+  rnb_footprint: number | null;
   dpe_id: string | null;
   class_dpe: EnergyConsumption | null;
   class_ges: EnergyConsumption | null;
@@ -88,6 +89,7 @@ export function formatBuildingApi(building: BuildingApi): BuildingDBO {
     rent_housing_count: building.rentHousingCount,
     rnb_id: building.rnb?.id ?? null,
     rnb_id_score: building.rnb?.score ?? null,
+    rnb_footprint: null,
     dpe_id: building.dpe?.id ?? null,
     class_dpe: building.dpe?.class ?? null,
     class_ges: building.ges?.class ?? null,

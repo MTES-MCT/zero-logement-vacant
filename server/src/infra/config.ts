@@ -32,7 +32,8 @@ export const configSchema = z.object({
       .min(1)
       .prefault(isProduction ? '' : 'secret'),
     expiresIn: z.string().default('12 hours'),
-    admin2faEnabled: z.stringbool().default(false)
+    admin2faEnabled: z.stringbool().default(false),
+    testPassword: z.string().default('test')
   }),
   ban: z.object({
     api: z.object({
@@ -94,13 +95,7 @@ export const configSchema = z.object({
       }
     }),
   db: z.object({
-    env: envEnum.default(
-      (process.env.NODE_ENV as
-        | 'development'
-        | 'test'
-        | 'production'
-        | undefined) ?? 'development'
-    ),
+    env: envEnum,
     url: z
       .string()
       .min(1)
@@ -112,13 +107,7 @@ export const configSchema = z.object({
     })
   }),
   elastic: z.object({
-    env: envEnum.default(
-      (process.env.NODE_ENV as
-        | 'development'
-        | 'test'
-        | 'production'
-        | undefined) ?? 'development'
-    ),
+    env: envEnum,
     node: z.string().default(''),
     auth: z.object({
       username: z.string().default(''),
@@ -126,8 +115,8 @@ export const configSchema = z.object({
     })
   }),
   e2e: z.object({
-    email: z.email().nullable().default(null),
-    password: z.string().nullable().default(null)
+    email: z.email().nullable().default('e2e@zerologementvacant.beta.gouv.fr'),
+    password: z.string().nullable().default('123QWEasd!')
   }),
   upload: z.object({
     maxSizeMB: z.coerce.number().int().default(5),
@@ -248,7 +237,8 @@ const config = configSchema.parse({
   auth: {
     secret: env('AUTH_SECRET'),
     expiresIn: env('AUTH_EXPIRES_IN'),
-    admin2faEnabled: env('ADMIN_2FA_ENABLED')
+    admin2faEnabled: env('ADMIN_2FA_ENABLED'),
+    testPassword: env('TEST_PASSWORD')
   },
   ban: {
     api: { endpoint: env('BAN_API_ENDPOINT') },

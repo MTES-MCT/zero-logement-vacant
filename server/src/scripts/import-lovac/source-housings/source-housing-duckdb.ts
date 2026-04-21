@@ -21,6 +21,17 @@ export interface PrepareResult {
 export async function prepareHousingImport(
   options: PrepareOptions
 ): Promise<PrepareResult> {
+  for (const [name, value] of [
+    ['pgUrl', options.pgUrl],
+    ['sourceFile', options.sourceFile],
+  ] as const) {
+    if (value.includes("'")) {
+      throw new Error(
+        `prepareHousingImport: ${name} must not contain single quotes`
+      );
+    }
+  }
+
   const workDir =
     options.workDir ??
     fs.mkdtempSync(path.join(os.tmpdir(), 'zlv-lovac-'));

@@ -7,7 +7,6 @@ on:
     paths:
       - apps/**
       - frontend/**
-      - queue/**
       - server/**
       - packages/**
 
@@ -26,16 +25,6 @@ jobs:
           POSTGRES_DB: dev
         ports:
           - 5432:5432
-      redis:
-        image: redis:7.2.4-alpine
-        ports:
-          - 6379:6379
-        # Set health checks to wait until redis has started
-        options: >-
-          --health-cmd "redis-cli ping"
-          --health-interval 10s
-          --health-timeout 5s
-          --health-retries 5
       s3:
         image: adobe/s3mock:4.11.0
         ports:
@@ -59,7 +48,6 @@ jobs:
         run: yarn install --immutable
         env:
           CYPRESS_INSTALL_BINARY: 0
-          PUPPETEER_SKIP_CHROMIUM_DOWNLOAD: true
 
       # Check source and **test** files
       - name: Check types
@@ -120,7 +108,6 @@ jobs:
         run: yarn install --immutable
         env:
           CYPRESS_INSTALL_BINARY: 0
-          PUPPETEER_SKIP_CHROMIUM_DOWNLOAD: true
 
       - name: Knip
         run: yarn knip
@@ -144,11 +131,3 @@ jobs:
       branch: main
     secrets: inherit
 
-  deploy-queue-staging:
-    uses: ./.github/workflows/deploy.yml
-    needs: [build]
-    with:
-      app: Queue staging
-      alias: queue-staging
-      branch: main
-    secrets: inherit

@@ -1,34 +1,32 @@
 import Alert from '@codegouvfr/react-dsfr/Alert';
-import Breadcrumb from '@codegouvfr/react-dsfr/Breadcrumb';
+import { Breadcrumb } from '@codegouvfr/react-dsfr/Breadcrumb';
 import Grid from '@mui/material/Grid';
+import Stack from '@mui/material/Stack';
 import { useEffect } from 'react';
 import { useLocation, useNavigate, useParams } from 'react-router-dom';
-import AppSearchBar from '../../components/_app/AppSearchBar/AppSearchBar';
-import Group from '../../components/Group/Group';
-import { HousingDisplaySwitch } from '../../components/HousingDisplaySwitch/HousingDisplaySwitch';
-import HousingFiltersBadges from '../../components/HousingFiltersBadges/HousingFiltersBadges';
-import HousingListFiltersSidemenu from '../../components/HousingListFilters/HousingListFiltersSidemenu';
-import { useDocumentTitle } from '../../hooks/useDocumentTitle';
-import { useFilters } from '../../hooks/useFilters';
-import { useAppSelector } from '../../hooks/useStore';
-import type { Campaign } from '../../models/Campaign';
-import type { GroupPayload } from '../../models/GroupPayload';
-import authService from '../../services/auth.service';
-import {
-  useCreateCampaignFromGroupMutation,
-  useFindCampaignsQuery
-} from '../../services/campaign.service';
 
+import AppSearchBar from '~/components/_app/AppSearchBar/AppSearchBar';
+import GroupNext, { type GroupProps } from '~/components/Group/GroupNext';
+import { HousingDisplaySwitch } from '~/components/HousingDisplaySwitch/HousingDisplaySwitch';
+import HousingFiltersBadges from '~/components/HousingFiltersBadges/HousingFiltersBadges';
+import HousingListFiltersSidemenu from '~/components/HousingListFilters/HousingListFiltersSidemenu';
+import { useDocumentTitle } from '~/hooks/useDocumentTitle';
+import { useFilters } from '~/hooks/useFilters';
+import { useAppSelector } from '~/hooks/useStore';
+import type { GroupPayload } from '~/models/GroupPayload';
+import authService from '~/services/auth.service';
+import { useCreateCampaignFromGroupNextMutation } from '~/services/campaign.service';
 import {
   useGetGroupQuery,
   useRemoveGroupMutation,
   useUpdateGroupMutation
-} from '../../services/group.service';
-import config from '../../utils/config';
+} from '~/services/group.service';
+import config from '~/utils/config';
 import HousingListMap from '../HousingList/HousingListMap';
 import HousingListTabs from '../HousingList/HousingListTabs';
 import HousingListTabsProvider from '../HousingList/HousingListTabsProvider';
 import NotFoundView from '../NotFoundView';
+import { useNotification } from '~/hooks/useNotification';
 
 interface RouterState {
   alert?: string;
@@ -68,7 +66,7 @@ function GroupView() {
 
   const location: { state?: RouterState } = useLocation();
   const alert = location.state?.alert ?? '';
-  const [removeGroup] = useRemoveGroupMutation();
+  const [removeGroup, removeGroupMutation] = useRemoveGroupMutation();
   async function onGroupRemove(): Promise<void> {
     if (group) {
       try {
@@ -79,19 +77,44 @@ function GroupView() {
       }
     }
   }
+  useNotification({
+    toastId: 'remove-group',
+    isError: removeGroupMutation.isError,
+    isLoading: removeGroupMutation.isLoading,
+    isSuccess: removeGroupMutation.isSuccess,
+    message: {
+      error: 'Erreur lors de la suppression du groupe',
+      loading: 'Suppression du groupe...',
+      success: 'Groupe supprimé !'
+    }
+  });
 
-  const [createCampaignFromGroup] = useCreateCampaignFromGroupMutation();
-  async function onCampaignCreate(
-    campaign: Pick<Campaign, 'title' | 'description'>
-  ): Promise<void> {
+  const [createCampaignFromGroup, createCampaignFromGroupMutation] =
+    useCreateCampaignFromGroupNextMutation();
+  const onCampaignCreate: GroupProps['onCreateCampaign'] = async (campaign) => {
     if (group) {
       const created = await createCampaignFromGroup({
-        campaign,
+        campaign: {
+          title: campaign.title,
+          description: campaign.description,
+          sentAt: campaign.sentAt ?? null
+        },
         group
       }).unwrap();
       navigate(`/campagnes/${created.id}`);
     }
-  }
+  };
+  useNotification({
+    toastId: 'create-campaign-from-group',
+    isError: createCampaignFromGroupMutation.isError,
+    isLoading: createCampaignFromGroupMutation.isLoading,
+    isSuccess: createCampaignFromGroupMutation.isSuccess,
+    message: {
+      error: 'Erreur lors de la création de la campagne',
+      loading: 'Création de la campagne...',
+      success: 'Campagne créée !'
+    }
+  });
 
   async function onGroupExport(): Promise<void> {
     if (group) {
@@ -101,7 +124,7 @@ function GroupView() {
     }
   }
 
-  const [updateGroup] = useUpdateGroupMutation();
+  const [updateGroup, updateGroupMutation] = useUpdateGroupMutation();
   function onGroupUpdate(payload: GroupPayload): void {
     if (group) {
       updateGroup({
@@ -110,10 +133,15 @@ function GroupView() {
       });
     }
   }
-
-  const { data: campaigns } = useFindCampaignsQuery({
-    filters: {
-      groupIds: [id as string]
+  useNotification({
+    toastId: 'update-group',
+    isError: updateGroupMutation.isError,
+    isLoading: updateGroupMutation.isLoading,
+    isSuccess: updateGroupMutation.isSuccess,
+    message: {
+      error: 'Erreur lors de la mise à jour du groupe',
+      loading: 'Mise à jour du groupe...',
+      success: 'Groupe mis à jour !'
     }
   });
 
@@ -127,7 +155,7 @@ function GroupView() {
 
   return (
     <HousingListTabsProvider>
-      <Grid container position="relative">
+      <Stack direction="row">
         <HousingListFiltersSidemenu
           filters={filters}
           expand={expand}
@@ -136,8 +164,19 @@ function GroupView() {
           onClose={() => setExpand(false)}
         />
 
-        <Grid display="flex" flexDirection="column" px={3} py={4} size="grow">
-          <div style={{ marginTop: '-1rem', marginBottom: '2rem' }}>
+        <Grid
+          container
+          component="section"
+          sx={{ padding: '1.5rem', width: '100%' }}
+        >
+          <Grid
+            size="grow"
+            sx={{
+              display: 'flex',
+              flexFlow: 'column nowrap',
+              gap: '1rem'
+            }}
+          >
             <Breadcrumb
               className="fr-mb-0"
               currentPageLabel={group?.title ?? ''}
@@ -150,63 +189,58 @@ function GroupView() {
                 }
               ]}
             />
-          </div>
 
-          <div style={{ marginTop: '-2rem' }}>
-            <Group
-              campaigns={campaigns}
-              className="fr-mb-8w"
+            <GroupNext
               group={group}
-              onCampaignCreate={onCampaignCreate}
+              onCreateCampaign={onCampaignCreate}
               onExport={onGroupExport}
               onUpdate={onGroupUpdate}
               onRemove={onGroupRemove}
             />
-          </div>
 
-          <Alert
-            severity="success"
-            description={alert}
-            closable
-            small
-            isClosed={!alert.length}
-            onClose={() => {}}
-            className="fr-mb-5w"
-          />
+            <Alert
+              severity="success"
+              description={alert}
+              closable={false}
+              small
+              isClosed={!alert.length}
+              onClose={() => {}}
+            />
 
-          {/* RGAA 10.4: flexWrap + minWidth force the segmented control to wrap below the search bar at 200% zoom */}
-          <Grid container mb={1} spacing={2} size={12} sx={{ flexWrap: 'wrap' }}>
-            <Grid size="grow" sx={{ minWidth: '300px' }}>
-              <AppSearchBar
-                initialQuery={filters.query}
-                label="Rechercher (propriétaire, identifiant fiscal, ref. cadastrale...)"
-                placeholder="Rechercher (propriétaire, identifiant fiscal, ref. cadastrale...)"
-                onSearch={(query) => onChangeFilters({ query })}
-              />
-            </Grid>
-            <Grid size="auto">
+            <Stack
+              direction={{ xs: 'column', md: 'row' }}
+              spacing="0.75rem"
+              useFlexGap
+              sx={{ alignItems: 'center' }}
+            >
+              <Stack sx={{ flex: 1 }}>
+                <AppSearchBar
+                  initialQuery={filters.query}
+                  label="Rechercher (propriétaire, identifiant fiscal, ref. cadastrale...)"
+                  placeholder="Rechercher (propriétaire, identifiant fiscal, ref. cadastrale...)"
+                  onSearch={(query) => onChangeFilters({ query })}
+                />
+              </Stack>
               <HousingDisplaySwitch />
-            </Grid>
-          </Grid>
+            </Stack>
 
-          <Grid size={12}>
             <HousingFiltersBadges
               filters={filters}
               onChange={onChangeFilters}
             />
-          </Grid>
 
-          {view === 'map' ? (
-            <HousingListMap filters={filters} />
-          ) : (
-            <HousingListTabs
-              filters={filters}
-              showCount={false}
-              showRemoveGroupHousing
-            />
-          )}
+            {view === 'map' ? (
+              <HousingListMap filters={filters} />
+            ) : (
+              <HousingListTabs
+                filters={filters}
+                showCount={false}
+                showRemoveGroupHousing
+              />
+            )}
+          </Grid>
         </Grid>
-      </Grid>
+      </Stack>
     </HousingListTabsProvider>
   );
 }

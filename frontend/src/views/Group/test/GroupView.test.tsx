@@ -25,8 +25,8 @@ import { createMemoryRouter, RouterProvider } from 'react-router-dom';
 
 import data from '~/mocks/handlers/data';
 import configureTestStore from '~/utils/storeUtils';
-import GroupViewNext from '../GroupViewNext';
-import CampaignViewNext from '~/views/Campaign/CampaignViewNext';
+import GroupView from '../GroupView';
+import CampaignView from '~/views/Campaign/CampaignView';
 import { genAuthUser } from '~/test/fixtures';
 import { fromUserDTO } from '~/models/User';
 import { fromEstablishmentDTO } from '~/models/Establishment';
@@ -103,8 +103,8 @@ describe('Group view', () => {
     const router = createMemoryRouter(
       [
         { path: '/parc-de-logements', element: 'Parc de logements' },
-        { path: '/groupes/:id', element: <GroupViewNext /> },
-        { path: '/campagnes/:id', element: <CampaignViewNext /> }
+        { path: '/groupes/:id', element: <GroupView /> },
+        { path: '/campagnes/:id', element: <CampaignView /> }
       ],
       {
         initialEntries: [`/groupes/${id}`]

@@ -3,7 +3,6 @@ import { constants } from 'node:http2';
 import request from 'supertest';
 
 import { CheckStatus, healthcheck } from '../healthcheck';
-import { redisCheck } from '../checks/redis';
 import { postgresCheck } from '../checks/postgres';
 import { createLogger, LogLevel } from '@zerologementvacant/utils';
 
@@ -18,7 +17,6 @@ describe('Healthcheck API', () => {
       '/',
       healthcheck({
         checks: [
-          redisCheck('redis://localhost:6379'),
           postgresCheck('postgres://postgres:postgres@localhost:5432')
         ],
         logger
@@ -43,7 +41,6 @@ describe('Healthcheck API', () => {
       '/',
       healthcheck({
         checks: [
-          redisCheck('redis://localhost:6000'),
           postgresCheck('postgres://postgres:postgres@localhost:5000')
         ],
         logger
@@ -54,7 +51,6 @@ describe('Healthcheck API', () => {
 
     expect(status).toBe(constants.HTTP_STATUS_SERVICE_UNAVAILABLE);
     expect(body.checks).toIncludeSameMembers<CheckStatus>([
-      { name: 'redis', status: 'down' },
       { name: 'postgres', status: 'down' }
     ]);
   });

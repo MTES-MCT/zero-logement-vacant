@@ -687,10 +687,6 @@ const update: RequestHandler<
     await campaignRepository.save(updated);
     logger.info('Campaign updated', updated);
 
-    if (campaign.status !== body.status && body.status === 'sending') {
-      await campaignRepository.generateMails(updated);
-    }
-
     if (campaign.status !== updated.status) {
       const campaignEvent: CampaignEventApi = {
         id: uuidv4(),

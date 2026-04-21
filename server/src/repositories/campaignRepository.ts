@@ -3,7 +3,6 @@ import { Knex } from 'knex';
 import db from '~/infra/database';
 import { withinTransaction } from '~/infra/database/transaction';
 import { logger } from '~/infra/logger';
-import queue from '~/infra/queue';
 import { CampaignApi, CampaignSortApi } from '~/models/CampaignApi';
 import { CampaignFiltersApi } from '~/models/CampaignFiltersApi';
 import { campaignsHousingTable } from '~/repositories/campaignHousingRepository';
@@ -153,14 +152,6 @@ async function remove(id: string): Promise<void> {
   logger.debug('Campaign removed', { id });
 }
 
-async function generateMails(campaign: CampaignApi): Promise<void> {
-  await queue.add('campaign-generate', {
-    campaignId: campaign.id,
-    establishmentId: campaign.establishmentId
-  });
-  logger.info('Generating campaign mails', campaign);
-}
-
 export interface CampaignDBO {
   id: string;
   title: string;
@@ -269,6 +260,5 @@ export default {
   save,
   update,
   remove,
-  generateMails,
   formatCampaignApi
 };

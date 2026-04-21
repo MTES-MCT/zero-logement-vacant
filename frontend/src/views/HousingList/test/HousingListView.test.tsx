@@ -46,7 +46,7 @@ import { genAuthUser } from '~/test/fixtures';
 import configureTestStore from '~/utils/storeUtils';
 import CampaignView from '~/views/Campaign/CampaignView';
 import HousingListTabsProvider from '~/views/HousingList/HousingListTabsProvider';
-import HousingListViewNext from '~/views/HousingList/HousingListViewNext';
+import HousingListView from '~/views/HousingList/HousingListView';
 
 vi.mock('../../components/Aside/Aside.tsx');
 vi.mock('posthog-js/react', async (importOriginal) => {
@@ -121,7 +121,7 @@ describe('Housing list view', () => {
           path: '/',
           element: (
             <HousingListTabsProvider>
-              <HousingListViewNext />
+              <HousingListView />
             </HousingListTabsProvider>
           )
         }

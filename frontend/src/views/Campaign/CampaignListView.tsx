@@ -1,32 +1,57 @@
-import Button from '@codegouvfr/react-dsfr/Button';
-import { createModal } from '@codegouvfr/react-dsfr/Modal';
+import Container from '@mui/material/Container';
 import Typography from '@mui/material/Typography';
 import { useState } from 'react';
 
-import CampaignTable from '../../components/Campaign/CampaignTable';
-import MainContainer from '../../components/MainContainer/MainContainer';
-import { useDocumentTitle } from '../../hooks/useDocumentTitle';
-import { useNotification } from '../../hooks/useNotification';
-import { type Campaign } from '../../models/Campaign';
+import Stack from '@mui/material/Stack';
+import CampaignTableNext from '~/components/Campaign/CampaignTableNext';
+import { useDocumentTitle } from '~/hooks/useDocumentTitle';
+import { useNotification } from '~/hooks/useNotification';
+import { type Campaign } from '~/models/Campaign';
 import {
   useRemoveCampaignMutation,
   useUpdateCampaignMutation
-} from '../../services/campaign.service';
+} from '~/services/campaign.service';
+import createCampaignDeleteModal from '~/components/Campaign/CampaignDeleteModal';
+import {
+  createCampaignSentAtModal,
+  type CampaignSentAtModalProps
+} from '~/components/Campaign/CampaignSentAtModal';
 
-const archiveCampaignModal = createModal({
-  id: 'archive-campaign-modal',
-  isOpenedByDefault: false
-});
-const removeCampaignModal = createModal({
-  id: 'remove-campaign-modal',
-  isOpenedByDefault: false
-});
+const sentAtCampaignModal = createCampaignSentAtModal();
+const removeCampaignModal = createCampaignDeleteModal();
 
 function CampaignListView() {
   useDocumentTitle('Campagnes');
 
-  const [removeCampaign, campaignRemovalMutation] = useRemoveCampaignMutation();
+  const [selected, setSelected] = useState<Campaign | null>(null);
+
   const [updateCampaign, campaignUpdateMutation] = useUpdateCampaignMutation();
+  useNotification({
+    toastId: 'update-campaign',
+    isLoading: campaignUpdateMutation.isLoading,
+    isError: campaignUpdateMutation.isError,
+    isSuccess: campaignUpdateMutation.isSuccess,
+    message: {
+      error: 'Erreur lors de la modification de la campagne',
+      loading: 'Modification de la campagne...',
+      success: 'Campagne modifée !'
+    }
+  });
+
+  function onSentAt(campaign: Campaign) {
+    setSelected(campaign);
+    sentAtCampaignModal.open();
+  }
+
+  const confirmSentAt: CampaignSentAtModalProps['onConfirm'] = (sentAt) => {
+    if (selected) {
+      updateCampaign({ ...selected, sentAt });
+      sentAtCampaignModal.close();
+      setSelected(null);
+    }
+  };
+
+  const [removeCampaign, campaignRemovalMutation] = useRemoveCampaignMutation();
   useNotification({
     toastId: 'remove-campaign',
     isLoading: campaignRemovalMutation.isLoading,
@@ -38,32 +63,6 @@ function CampaignListView() {
       success: 'Campagne supprimée !'
     }
   });
-  useNotification({
-    toastId: 'archive-campaign',
-    isLoading: campaignUpdateMutation.isLoading,
-    isError: campaignUpdateMutation.isError,
-    isSuccess: campaignUpdateMutation.isSuccess,
-    message: {
-      error: 'Erreur lors de l’archivage de la campagne',
-      loading: 'Archivage de la campagne...',
-      success: 'Campagne archivée !'
-    }
-  });
-
-  const [selected, setSelected] = useState<Campaign | null>(null);
-
-  function onArchive(campaign: Campaign) {
-    setSelected(campaign);
-    archiveCampaignModal.open();
-  }
-
-  async function confirmArchiving() {
-    if (selected) {
-      updateCampaign({ ...selected, status: 'archived' });
-      archiveCampaignModal.close();
-      setSelected(null);
-    }
-  }
 
   function onRemove(campaign: Campaign) {
     setSelected(campaign);
@@ -79,64 +78,18 @@ function CampaignListView() {
   }
 
   return (
-    <MainContainer
-      title="Vos campagnes"
-      titleAction={
-        <Button
-          priority="secondary"
-          linkProps={{
-            to: 'https://zlv.notion.site/R-diger-un-courrier-15e88e19d2bc404eaf371ddcb4ca42c5',
-            target: '_blank'
-          }}
-        >
-          Voir la bibliothèque des courriers
-        </Button>
-      }
-    >
-      <CampaignTable onArchive={onArchive} onRemove={onRemove} />
+    <Container maxWidth={false} sx={{ py: '2rem' }}>
+      <Stack spacing="1rem" useFlexGap>
+        <Typography variant="h1">Vos campagnes</Typography>
+        <CampaignTableNext onSentAt={onSentAt} onRemove={onRemove} />
+      </Stack>
 
-      <archiveCampaignModal.Component
-        title="Archiver la campagne"
-        buttons={[
-          {
-            children: 'Annuler',
-            priority: 'secondary',
-            className: 'fr-mr-2w'
-          },
-          {
-            children: 'Confirmer',
-            onClick: confirmArchiving,
-            doClosesModal: false
-          }
-        ]}
-      >
-        <Typography>
-          Êtes-vous sûr de vouloir archiver cette campagne ?
-        </Typography>
-      </archiveCampaignModal.Component>
-
-      <removeCampaignModal.Component
-        title="Supprimer la campagne"
-        buttons={[
-          {
-            children: 'Annuler',
-            priority: 'secondary',
-            className: 'fr-mr-2w'
-          },
-          {
-            children: 'Confirmer',
-            onClick: confirmRemoval,
-            doClosesModal: false
-          }
-        ]}
-      >
-        <Typography>
-          Êtes-vous sûr de vouloir supprimer cette campagne ? Les statuts des
-          logements “En attente de retour” repasseront en “Non suivi”. Les
-          autres statuts mis à jour ne seront pas modifiés.
-        </Typography>
-      </removeCampaignModal.Component>
-    </MainContainer>
+      <sentAtCampaignModal.Component
+        sentAt={selected?.sentAt ?? null}
+        onConfirm={confirmSentAt}
+      />
+      <removeCampaignModal.Component onSubmit={confirmRemoval} />
+    </Container>
   );
 }
 

@@ -26,9 +26,6 @@
       "path": "../packages/schemas/tsconfig.lib.json"
     },
     {
-      "path": "../queue/tsconfig.app.json"
-    },
-    {
       "path": "../packages/pdf/tsconfig.lib.json"
     },
     {
@@ -36,9 +33,6 @@
     },
     {
       "path": "../packages/healthcheck/tsconfig.lib.json"
-    },
-    {
-      "path": "../packages/draft/tsconfig.lib.json"
     }
   ]
 }

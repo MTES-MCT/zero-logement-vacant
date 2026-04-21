@@ -162,12 +162,6 @@ export const configSchema = z.object({
   rateLimit: z.object({
     max: z.coerce.number().int().default(10_000)
   }),
-  redis: z.object({
-    url: z
-      .string()
-      .min(1)
-      .prefault(isProduction ? '' : 'redis://localhost:6379')
-  }),
   s3: z.object({
     endpoint: z
       .string()
@@ -313,9 +307,6 @@ const config = configSchema.parse({
   },
   rateLimit: {
     max: env('RATE_LIMIT_MAX')
-  },
-  redis: {
-    url: env('REDIS_URL')
   },
   s3: {
     endpoint: env('S3_ENDPOINT'),

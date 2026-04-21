@@ -1,4 +1,4 @@
-import { pdf } from '@zerologementvacant/draft';
+import { generateCampaignPDF } from '@zerologementvacant/pdf/node';
 import {
   DocumentDTO,
   DraftCreationPayload,
@@ -7,9 +7,7 @@ import {
   DraftPreviewPayloadDTO,
   DraftUpdatePayload,
   DraftUpdatePayloadDTO,
-  getAddress,
   HOUSING_KIND_VALUES,
-  replaceVariables,
   SignatoryPayload,
   type EstablishmentDTO
 } from '@zerologementvacant/models';
@@ -20,7 +18,6 @@ import { Request, RequestHandler, Response } from 'express';
 import { AuthenticatedRequest } from 'express-jwt';
 import { body, ValidationChain } from 'express-validator';
 import { constants } from 'http2';
-import { pick } from 'lodash-es';
 import type { ElementOf } from 'ts-essentials';
 import { v4 as uuidv4 } from 'uuid';
 
@@ -34,7 +31,6 @@ import { type DocumentApi } from '~/models/DocumentApi';
 import { DraftApi, toDraftDTO } from '~/models/DraftApi';
 import {
   fromSignatoryDTO,
-  isEmpty,
   SenderApi,
   type SignatoryApi
 } from '~/models/SenderApi';
@@ -189,7 +185,7 @@ async function preview(
   request: Request<DraftParams, Buffer, DraftPreviewPayloadDTO>,
   response: Response<Buffer>
 ): Promise<void> {
-  const { auth, body, params } = request as AuthenticatedRequest<
+  const { auth, body, params, user } = request as AuthenticatedRequest<
     DraftParams,
     Buffer,
     DraftPreviewPayloadDTO
@@ -202,43 +198,46 @@ async function preview(
     throw new DraftMissingError(params.id);
   }
 
-  const transformer = pdf.createTransformer({ logger });
-  const pdfBuffer = await transformer.generatePDF({
-    subject: draft.subject,
-    logo: draft.logo?.map((logo) => pick(logo, 'id', 'content')) ?? null,
-    body: draft.body
-      ? replaceVariables(draft.body, {
-          housing: body.housing,
-          owner: body.owner
-        })
-      : null,
-    sender: {
-      name: draft.sender.name,
-      service: draft.sender.service,
-      firstName: draft.sender.firstName,
-      lastName: draft.sender.lastName,
-      address: draft.sender.address,
-      email: draft.sender.email,
-      phone: draft.sender.phone,
-      signatories:
-        draft.sender.signatories
-          ?.filter((signatory) => signatory !== null)
-          ?.filter(Predicate.not(isEmpty))
-          ?.map((signatory) => ({
-            ...signatory,
-            file: signatory.file
-              ? { id: signatory.file.id, content: signatory.file.content }
-              : null
-          })) ?? null
-    },
-    writtenAt: draft.writtenAt,
-    writtenFrom: draft.writtenFrom,
-    owner: {
-      fullName: body.owner.fullName,
-      address: getAddress(body.owner) ?? []
-    }
+  const draftDTO = await toDraftDTO(draft, {
+    s3,
+    bucket: config.s3.bucket
   });
-  response.status(constants.HTTP_STATUS_OK).type('pdf').send(pdfBuffer);
+
+  const housing = {
+    ...body.housing,
+    owner: body.owner
+  };
+
+  const stream = await generateCampaignPDF({
+    campaign: {
+      id: 'preview',
+      title: draftDTO.subject ?? 'Preview',
+      description: '',
+      status: 'draft',
+      filters: {},
+      createdAt: new Date().toJSON(),
+      createdBy: user,
+      sentAt: null,
+      returnCount: null,
+      housingCount: 1,
+      ownerCount: 1,
+      returnRate: null
+    },
+    draft: draftDTO,
+    housings: [housing]
+  });
+
+  response
+    .status(constants.HTTP_STATUS_OK)
+    .type('pdf');
+  const reader = stream.getReader();
+  // eslint-disable-next-line no-constant-condition
+  while (true) {
+    const { done, value } = await reader.read();
+    if (done) break;
+    response.write(value);
+  }
+  response.end();
 }
 
 const previewValidators: ValidationChain[] = [

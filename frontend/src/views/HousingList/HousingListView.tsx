@@ -5,38 +5,31 @@ import Stack from '@mui/material/Stack';
 import { useState } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 
+import Tooltip from '~/components/ui/Tooltip/Tooltip';
+import createGroupAddHousingModal from '~/components/Group/GroupAddHousingModal';
+import createGroupCreationModal from '~/components/Group/GroupCreationModal';
+import { HousingDisplaySwitch } from '~/components/HousingDisplaySwitch/HousingDisplaySwitch';
 import { HousingEditionProvider } from '~/components/HousingEdition/useHousingEdition';
-import AppSearchBar from '../../components/_app/AppSearchBar/AppSearchBar';
-import createCampaignCreationInfoModal from '../../components/Campaign/CampaignCreationInfoModal';
-import createCampaignCreationModal from '../../components/Campaign/CampaignCreationModal';
-import createGroupAddHousingModal from '../../components/Group/GroupAddHousingModal';
-import createGroupCreationModal from '../../components/Group/GroupCreationModal';
-import createGroupOrCampaignCreationModal from '../../components/Group/GroupOrCampaignCreationModal';
-import { HousingDisplaySwitch } from '../../components/HousingDisplaySwitch/HousingDisplaySwitch';
-import HousingFiltersBadges from '../../components/HousingFiltersBadges/HousingFiltersBadges';
-import HousingListFiltersSidemenu from '../../components/HousingListFilters/HousingListFiltersSidemenu';
-import HousingCreationModal from '../../components/modals/HousingCreationModal/HousingCreationModal';
-import { useDocumentTitle } from '../../hooks/useDocumentTitle';
-import { useFilters } from '../../hooks/useFilters';
-import { useNotification } from '../../hooks/useNotification';
-import { useSelection } from '../../hooks/useSelection';
-import { useAppSelector } from '../../hooks/useStore';
-import { useUser } from '../../hooks/useUser';
-import { useCreateCampaignMutation } from '../../services/campaign.service';
+import HousingFiltersBadges from '~/components/HousingFiltersBadges/HousingFiltersBadges';
+import HousingListFiltersSidemenu from '~/components/HousingListFilters/HousingListFiltersSidemenu';
+import AppSearchBar from '~/components/_app/AppSearchBar/AppSearchBar';
+import HousingCreationModal from '~/components/modals/HousingCreationModal/HousingCreationModal';
+import { useDocumentTitle } from '~/hooks/useDocumentTitle';
+import { useFilters } from '~/hooks/useFilters';
+import { useNotification } from '~/hooks/useNotification';
+import { useSelection } from '~/hooks/useSelection';
+import { useAppSelector } from '~/hooks/useStore';
+import { useUser } from '~/hooks/useUser';
+import type { Housing } from '~/models/Housing';
 import {
   useAddGroupHousingMutation,
   useCreateGroupMutation
-} from '../../services/group.service';
-import { useCountHousingQuery } from '../../services/housing.service';
+} from '~/services/group.service';
+import { useCountHousingQuery } from '~/services/housing.service';
 import HousingListMap from './HousingListMap';
 import HousingListTabs from './HousingListTabs';
 import { useHousingListTabs } from './HousingListTabsProvider';
-import Tooltip from '~/components/ui/Tooltip/Tooltip';
-import type { Housing } from '~/models/Housing';
 
-const campaignCreationInfoModal = createCampaignCreationInfoModal();
-const campaignCreationModal = createCampaignCreationModal();
-const groupOrCampaignCreationModal = createGroupOrCampaignCreationModal();
 const groupAddHousingModal = createGroupAddHousingModal();
 const groupCreationModal = createGroupCreationModal();
 
@@ -72,7 +65,7 @@ const HousingListView = () => {
       'Le logement sélectionné a bien été ajouté à votre parc de logements.'
     );
     setIsAlertVisible(true);
-    navigate(`/logements/${housing.id}`)
+    navigate(`/logements/${housing.id}`);
   }
 
   const { isVisitor } = useUser();
@@ -119,88 +112,93 @@ const HousingListView = () => {
     }
   });
 
-  const [createCampaign, createCampaignMutation] = useCreateCampaignMutation();
-  useNotification({
-    toastId: 'create-campaign',
-    isError: createCampaignMutation.isError,
-    isLoading: createCampaignMutation.isLoading,
-    isSuccess: createCampaignMutation.isSuccess,
-    message: {
-      error: 'Impossible de créer la campagne',
-      loading: 'Création de la campagne...',
-      success: 'Campagne créée !'
-    }
-  });
-
   const [showExportAlert, setShowExportAlert] = useState(false);
 
   return (
     <HousingEditionProvider>
-      <Grid container>
-        <Grid size="auto">
-          <HousingListFiltersSidemenu
-            filters={filters}
-            expand={expand}
-            onChange={onChangeFilters}
-            onReset={onResetFilters}
-            onClose={() => setExpand(false)}
-          />
-        </Grid>
+      <Stack direction="row">
+        <HousingListFiltersSidemenu
+          filters={filters}
+          expand={expand}
+          onChange={onChangeFilters}
+          onReset={onResetFilters}
+          onClose={() => setExpand(false)}
+        />
 
-        <Grid container flexDirection="column" px={3} py={4} size="grow">
-          <Alert
-            severity="success"
-            description={alert}
-            closable
-            small
-            className="fr-mb-2w"
-            isClosed={!isAlertVisible}
-            onClose={() => {
-              setIsAlertVisible(false);
-            }}
-            {...{ role: 'status' }}
-          />
+        <Grid
+          container
+          component="section"
+          sx={{ padding: '1.5rem', width: '100%' }}
+        >
+          <Grid size="grow">
+            <Stack
+              component="header"
+              spacing="0.75rem"
+              useFlexGap
+              sx={{ flexGrow: 1 }}
+            >
+              <Alert
+                severity="success"
+                description={alert}
+                closable
+                small
+                className="fr-mb-2w"
+                isClosed={!isAlertVisible}
+                onClose={() => {
+                  setIsAlertVisible(false);
+                }}
+                {...{ role: 'status' }}
+              />
 
-          {/* RGAA 10.4: flexWrap + minWidth force the segmented control to wrap below the search bar at 200% zoom */}
-          <Grid container mb={1} spacing={2} sx={{ flexWrap: 'wrap' }}>
-            <Grid size="grow" sx={{ minWidth: '300px' }}>
-              <AppSearchBar
-                initialQuery={filters.query}
-                label="Rechercher (propriétaire, identifiant fiscal, ref. cadastrale...)"
-                placeholder="Rechercher (propriétaire, identifiant fiscal, ref. cadastrale...)"
-                onSearch={searchWithQuery}
-              />
-            </Grid>
-            <Grid size="auto" sx={{ display: 'flex', alignItems: 'center' }}>
-              {/* RGAA 10.4: manual placement keeps tooltip within viewport at all zoom levels */}
-              <Tooltip
-                align="end"
-                place="bottom"
-                title="Pour retrouver une liste de logements, copiez-collez dans la barre de recherche la liste de leurs identifiants fiscaux séparés par un espace. Exemple : « 750123456789 750123456790 750123456791 »"
-              />
-            </Grid>
-            <Grid size="auto">
-              <HousingDisplaySwitch />
-            </Grid>
-            <Grid size="auto">
               <Stack
-                component="ul"
                 direction="row"
                 spacing="0.75rem"
                 useFlexGap
-                sx={{ listStyle: 'none', padding: 0, margin: 0 }}
+                sx={{ alignItems: 'center' }}
+              >
+                <Stack sx={{ flex: 1 }}>
+                  <AppSearchBar
+                    initialQuery={filters.query}
+                    label="Rechercher (propriétaire, identifiant fiscal, ref. cadastrale...)"
+                    placeholder="Rechercher (propriétaire, identifiant fiscal, ref. cadastrale...)"
+                    onSearch={searchWithQuery}
+                  />
+                </Stack>
+                <Tooltip
+                  align="start"
+                  place="bottom"
+                  title="Pour retrouver une liste de logements, copiez-collez dans la barre de recherche la liste de leurs identifiants fiscaux séparés par un espace. Exemple : « 750123456789 750123456790 750123456791 »"
+                />
+                <HousingDisplaySwitch />
+              </Stack>
+
+              <HousingFiltersBadges
+                filters={filters}
+                onChange={onChangeFilters}
+              />
+            </Stack>
+
+            <Stack spacing="1rem" useFlexGap>
+              <Stack
+                direction="row"
+                component="ul"
+               
+                sx={{ justifyContent: 'flex-end', listStyle: 'none', padding: 0, margin: 0 }}
               >
                 {!isVisitor && (
                   <li>
                     <HousingCreationModal onFinish={onFinish} />
                   </li>
                 )}
+
                 <li>
                   <Button
+                    className="fr-ml-3v"
                     priority="primary"
+                    iconId="fr-icon-building-line"
                     onClick={() => {
                       if (hasSelected) {
-                        groupOrCampaignCreationModal.open();
+                        groupAddHousingModal.open();
                         if (showExportAlert) {
                           setShowExportAlert(false);
                         }
@@ -209,97 +207,37 @@ const HousingListView = () => {
                       }
                     }}
                   >
-                    Exporter ou contacter
+                    Intégrer dans un groupe
                   </Button>
                 </li>
               </Stack>
-            </Grid>
-          </Grid>
 
-          <Grid sx={{ mb: 3 }} size={12}>
-            <HousingFiltersBadges
-              filters={filters}
-              onChange={onChangeFilters}
-            />
-          </Grid>
+              <Alert
+                className="fr-mb-2w"
+                closable
+                isClosed={!showExportAlert}
+                severity="info"
+                title="Aucun logement sélectionné"
+                description="Sélectionnez d’abord les logements à intégrer dans le groupe, puis cliquez sur le bouton “Intégrer dans un groupe“."
+                onClose={() => setShowExportAlert(false)}
+              />
 
-          <Alert
-            className="fr-mb-2w"
-            closable
-            isClosed={!showExportAlert}
-            severity="error"
-            title="Aucun logement sélectionné"
-            description="Sélectionnez les logements dans le tableau de l'onglet correspondant, puis cliquez sur le bouton “Exporter ou contacter“."
-            onClose={() => setShowExportAlert(false)}
-          />
-
-          <Grid mb={1} size={12}>
-            {view === 'map' ? (
-              <HousingListMap filters={filters} />
-            ) : (
-              <HousingListTabs filters={filters} />
-            )}
+              {view === 'map' ? (
+                <HousingListMap filters={filters} />
+              ) : (
+                <HousingListTabs filters={filters} />
+              )}
+            </Stack>
           </Grid>
         </Grid>
-      </Grid>
+      </Stack>
 
-      <groupOrCampaignCreationModal.Component
-        count={count}
-        isCounting={isCounting}
-        onCampaign={() => {
-          groupOrCampaignCreationModal.close();
-          campaignCreationInfoModal.open();
-        }}
-        onGroup={() => {
-          groupOrCampaignCreationModal.close();
-          groupAddHousingModal.open();
-        }}
-      />
-
-      <campaignCreationInfoModal.Component
-        count={count}
-        onBack={() => {
-          campaignCreationInfoModal.close();
-          groupOrCampaignCreationModal.open();
-        }}
-        onConfirm={() => {
-          campaignCreationInfoModal.close();
-          campaignCreationModal.open();
-        }}
-      />
-
-      <campaignCreationModal.Component
-        count={count}
-        onBack={() => {
-          campaignCreationModal.close();
-          campaignCreationInfoModal.open();
-        }}
-        onConfirm={(payload) => {
-          createCampaign({
-            ...payload,
-            housing: {
-              all: selected.all,
-              ids: selected.ids,
-              filters: {
-                ...filters,
-                status: activeStatus.value
-              }
-            }
-          })
-            .unwrap()
-            .then((campaign) => {
-              campaignCreationModal.close();
-              navigate(`/campagnes/${campaign.id}`);
-            });
-        }}
-      />
 
       <groupAddHousingModal.Component
         count={count}
         isCounting={isCounting}
         onBack={() => {
           groupAddHousingModal.close();
-          groupOrCampaignCreationModal.open();
         }}
         onExistingGroup={(group) => {
           addGroupHousing({

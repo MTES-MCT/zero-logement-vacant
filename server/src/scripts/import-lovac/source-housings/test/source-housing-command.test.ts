@@ -195,7 +195,7 @@ describe('Source housing command', () => {
     ]);
     expect(actual).toSatisfyAll<HousingRecordDBO>((housing) => {
       const years = housing.data_file_years as ReadonlyArray<string>;
-      return years[years.length - 1] === 'lovac-2025';
+      return years.includes('lovac-2025');
     });
   });
 

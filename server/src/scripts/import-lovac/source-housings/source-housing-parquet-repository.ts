@@ -24,10 +24,12 @@ class ParquetSourceHousingRepository
           for (const row of reader.getRowObjects()) {
             controller.enqueue(row as SourceHousing);
           }
+          controller.close();
+        } catch (error) {
+          controller.error(error);
         } finally {
           connection.closeSync();
           instance.closeSync();
-          controller.close();
         }
       }
     });

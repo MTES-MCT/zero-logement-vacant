@@ -72,29 +72,19 @@ export function createSourceHousingCommand() {
         )
         .sort();
 
-      // Pre-create all progress bars (ordered) with row counts
-      const multi = createMultiBar();
-      const bars = new Map<string, { repo: ReturnType<typeof createParquetSourceHousingRepository>; bar: ReturnType<typeof multi.create> }>();
-      for (const deptDir of deptDirs) {
-        const dept = deptDir.replace('dept=', '');
-        const parquetGlob = path.join(deptsDir, deptDir, '*.parquet');
-        const repo = createParquetSourceHousingRepository(parquetGlob);
-        const total = await repo.count();
-        bars.set(dept, {
-          repo,
-          bar: multi.create(total, 0, { dept })
-        });
-      }
-
       logger.info(`Importing ${deptDirs.length} departments...`);
 
+      const multi = createMultiBar();
       const CONCURRENCY = 4;
       await async.mapLimit(
         deptDirs,
         CONCURRENCY,
         async (deptDir: string) => {
           const dept = deptDir.replace('dept=', '');
-          const { repo, bar } = bars.get(dept)!;
+          const parquetGlob = path.join(deptsDir, deptDir, '*.parquet');
+          const repo = createParquetSourceHousingRepository(parquetGlob);
+          const total = await repo.count();
+          const bar = multi.create(total, 0, { dept });
 
           await repo
             .stream()

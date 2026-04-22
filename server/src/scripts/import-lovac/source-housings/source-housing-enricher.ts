@@ -39,7 +39,7 @@ export function createSourceHousingEnricher(): TransformStream<
     if (buffer.length === 0) return;
     const chunk = buffer.splice(0);
 
-    const rows = await db(housingTable)
+    const rows = (await db(housingTable)
       .select(`${housingTable}.*`)
       .select(
         db.raw(`COALESCE(
@@ -55,7 +55,10 @@ export function createSourceHousingEnricher(): TransformStream<
       )
       .leftJoin(HOUSING_EVENTS_TABLE, (join) => {
         join
-          .on(`${HOUSING_EVENTS_TABLE}.housing_geo_code`, `${housingTable}.geo_code`)
+          .on(
+            `${HOUSING_EVENTS_TABLE}.housing_geo_code`,
+            `${housingTable}.geo_code`
+          )
           .on(`${HOUSING_EVENTS_TABLE}.housing_id`, `${housingTable}.id`);
       })
       .leftJoin(EVENTS_TABLE, (join) => {
@@ -68,15 +71,25 @@ export function createSourceHousingEnricher(): TransformStream<
       })
       .leftJoin(HOUSING_NOTES_TABLE, (join) => {
         join
-          .on(`${HOUSING_NOTES_TABLE}.housing_geo_code`, `${housingTable}.geo_code`)
+          .on(
+            `${HOUSING_NOTES_TABLE}.housing_geo_code`,
+            `${housingTable}.geo_code`
+          )
           .on(`${HOUSING_NOTES_TABLE}.housing_id`, `${housingTable}.id`);
       })
-      .leftJoin(NOTES_TABLE, `${NOTES_TABLE}.id`, `${HOUSING_NOTES_TABLE}.note_id`)
-      .whereIn(
-        [`${housingTable}.geo_code`, `${housingTable}.local_id`],
-        chunk.map((s) => [s.geo_code, s.local_id])
+      .leftJoin(
+        NOTES_TABLE,
+        `${NOTES_TABLE}.id`,
+        `${HOUSING_NOTES_TABLE}.note_id`
       )
-      .groupBy(`${housingTable}.geo_code`, `${housingTable}.id`) as Array<
+      .whereIn(
+        ['geo_code', 'local_id'],
+        chunk.map((sourceHousing) => [
+          sourceHousing.geo_code,
+          sourceHousing.local_id
+        ])
+      )
+      .groupBy(`${housingTable}.geo_code`, `${housingTable}.id`)) as Array<
       HousingRecordDBO & {
         events: EventRecordDBO<EventType>[];
         notes: NoteRecordDBO[];

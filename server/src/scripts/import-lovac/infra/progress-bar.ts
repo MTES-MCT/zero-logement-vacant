@@ -47,15 +47,7 @@ export function createMultiBar(): MultiBar {
   });
 }
 
-interface MultiProgressOptions {
-  multiBar: MultiBar;
-  dept: string;
-  total: number;
-}
-
-export function multiProgress(opts: MultiProgressOptions) {
-  const bar = opts.multiBar.create(opts.total, 0, { dept: opts.dept });
-
+export function multiProgress(bar: SingleBar) {
   return new TransformStream({
     transform(chunk, controller) {
       bar.increment(Array.isArray(chunk) ? chunk.length : 1);

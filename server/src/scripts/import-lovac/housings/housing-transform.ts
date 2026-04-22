@@ -5,13 +5,13 @@ import {
   Occupancy,
   OCCUPANCY_LABELS
 } from '@zerologementvacant/models';
-import { v4 as uuidv4 } from 'uuid';
+import { v5 as uuidv5 } from 'uuid';
 
 import { createLogger } from '~/infra/logger';
 import { HousingEventApi } from '~/models/EventApi';
 import { HousingApi } from '~/models/HousingApi';
 import { UserApi } from '~/models/UserApi';
-import { ReporterError, ReporterOptions } from '~/scripts/import-lovac/infra';
+import { LOVAC_NAMESPACE, ReporterError, ReporterOptions } from '~/scripts/import-lovac/infra';
 
 const logger = createLogger('existingHousingTransform');
 
@@ -77,7 +77,10 @@ export function createExistingHousingTransform(
           type: 'event',
           kind: 'create',
           value: {
-            id: uuidv4(),
+            id: uuidv5(
+              housing.id + ':housing:occupancy-updated:' + year,
+              LOVAC_NAMESPACE
+            ),
             type: 'housing:occupancy-updated',
             nextOld: { occupancy: OCCUPANCY_LABELS[housing.occupancy] },
             nextNew: { occupancy: OCCUPANCY_LABELS[Occupancy.UNKNOWN] },
@@ -91,7 +94,10 @@ export function createExistingHousingTransform(
           type: 'event',
           kind: 'create',
           value: {
-            id: uuidv4(),
+            id: uuidv5(
+              housing.id + ':housing:status-updated:' + year,
+              LOVAC_NAMESPACE
+            ),
             type: 'housing:status-updated',
             nextOld: {
               status: HOUSING_STATUS_LABELS[housing.status],

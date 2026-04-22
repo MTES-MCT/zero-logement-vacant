@@ -4,10 +4,29 @@ import { ReadableStream } from 'node:stream/web';
 import { SourceRepository, StreamOptions } from '~/scripts/import-lovac/infra';
 import { SourceHousing } from './source-housing';
 
-class ParquetSourceHousingRepository
-  implements SourceRepository<SourceHousing>
+export interface ParquetSourceHousingRepository
+  extends SourceRepository<SourceHousing> {
+  count(): Promise<number>;
+}
+
+class ParquetSourceHousingRepositoryImpl
+  implements ParquetSourceHousingRepository
 {
   constructor(private readonly filePath: string) {}
+
+  async count(): Promise<number> {
+    const instance = await DuckDBInstance.create(':memory:');
+    const connection = await instance.connect();
+    try {
+      const reader = await connection.runAndReadAll(
+        `SELECT COUNT(*)::BIGINT AS n FROM read_parquet('${this.filePath}')`
+      );
+      return Number((reader.getRowObjects()[0] as { n: bigint }).n);
+    } finally {
+      connection.closeSync();
+      instance.closeSync();
+    }
+  }
 
   stream(_options?: StreamOptions): ReadableStream<SourceHousing> {
     const { filePath } = this;
@@ -73,6 +92,6 @@ class ParquetSourceHousingRepository
 
 export function createParquetSourceHousingRepository(
   filePath: string
-): SourceRepository<SourceHousing> {
-  return new ParquetSourceHousingRepository(filePath);
+): ParquetSourceHousingRepository {
+  return new ParquetSourceHousingRepositoryImpl(filePath);
 }

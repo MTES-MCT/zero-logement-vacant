@@ -64,10 +64,6 @@ export function createExistingHousingCommand() {
       console.log(`Counted ${total} housings.`);
 
       logger.info('Starting verification...', { total });
-      const loader = createExistingHousingLoader({
-        dryRun: options.dryRun,
-        reporter
-      });
       await housingRepository
         .stream({ filters })
         .pipeThrough(
@@ -88,37 +84,10 @@ export function createExistingHousingCommand() {
           )
         )
         .pipeThrough(flatten())
-        .pipeTo(loader.stream);
+        .pipeTo(
+          createExistingHousingLoader({ dryRun: options.dryRun, reporter })
+        );
       logger.info('Verification done.');
-
-      const affectedIds = [...loader.affectedBuildingIds()];
-      if (affectedIds.length > 0) {
-        logger.info(
-          `Updating building counts for ${affectedIds.length} buildings...`
-        );
-        await db.raw(
-          `
-          WITH building_counts AS (
-            SELECT
-              building_id,
-              COUNT(*) FILTER (WHERE occupancy = 'L') as rent_count,
-              COUNT(*) FILTER (WHERE occupancy = 'V') as vacant_count
-            FROM fast_housing
-            WHERE building_id = ANY(?)
-            GROUP BY building_id
-          )
-          UPDATE buildings b
-          SET
-            rent_housing_count = COALESCE(bc.rent_count, 0),
-            vacant_housing_count = COALESCE(bc.vacant_count, 0)
-            FROM building_counts bc
-          WHERE b.id = bc.building_id
-          `,
-          [affectedIds]
-        );
-      } else {
-        logger.info('No buildings to update.');
-      }
     } finally {
       logger.info('Enabling building triggers...');
       await db.raw(`

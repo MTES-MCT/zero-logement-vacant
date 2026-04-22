@@ -20,8 +20,16 @@ models:
     description: "Gold Owners Housing table for LOVAC 2026 - maps to Table Owners Housing_26 specification."
     config:
       materialized: table
+  - name: int_zlovac_ff25_lookup
+    description: "Pre-filtered FF25 owners: only names present in LOVAC CER fields, with normalized addresses."
+    config:
+      materialized: table
+  - name: int_zlovac_owner_cer_matched
+    description: "CER→FF25 matching results: address matching (jw >= 0.85) + cascade (T0 unique name, T1 same CP, T2 same dept)."
+    config:
+      materialized: table
   - name: int_zlovac_owner_matching
-    description: "Matches CER 1767 owners against FF25 by name+address (jaro_winkler >= 0.85) + cascade (T0-T2), then applies rank logic."
+    description: "Final owner-housing table with rank logic applied from CER matching results."
     config:
       materialized: table
   - name: int_zlovac_buildings

@@ -47,7 +47,8 @@ export function genSourceHousing(): SourceHousing {
     last_transaction_date: isoDate(),
     last_transaction_value: faker.number.int({ min: 100_000, max: 1_000_000 }),
     occupancy_source: Occupancy.VACANT,
-    rental_value: faker.number.int({ min: 500, max: 10000 })
+    rental_value: faker.number.int({ min: 500, max: 10000 }),
+    geolocation_source: faker.helpers.arrayElement([null, 'parcelle-ff', 'bati-rnb', 'adresse-ban'])
   };
 }
 

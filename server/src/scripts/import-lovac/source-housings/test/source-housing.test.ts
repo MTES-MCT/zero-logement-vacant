@@ -59,7 +59,10 @@ describe('SourceHousing', () => {
       last_transaction_date: fc.option(
         fc.date({ min: new Date('1970-01-01'), max: new Date('9999-12-31'), noInvalidDate: true }).map((d) => d.toISOString().substring(0, 'yyyy-mm-dd'.length))
       ),
-      last_transaction_value: fc.option(fc.integer({ min: 0 }))
+      last_transaction_value: fc.option(fc.integer({ min: 0 })),
+      geolocation_source: fc.option(
+        fc.constantFrom('parcelle-ff', 'bati-rnb', 'adresse-ban')
+      )
     })('should validate a source housing', (sourceHousing) => {
       const validate = () => sourceHousingSchema.parse(sourceHousing);
 

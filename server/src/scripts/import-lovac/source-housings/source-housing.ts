@@ -77,7 +77,11 @@ export const sourceHousingSchema = z.object({
     .number()
     .min(0)
     .transform((value) => Math.round(value))
+    .nullable(),
+  geolocation_source: z
+    .enum(['parcelle-ff', 'bati-rnb', 'adresse-ban'])
     .nullable()
+    .default(null)
 });
 
 export type SourceHousing = z.infer<typeof sourceHousingSchema>;

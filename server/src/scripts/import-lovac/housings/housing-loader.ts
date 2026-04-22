@@ -30,10 +30,16 @@ export interface ExistingHousingLoaderOptions {
   reporter: Reporter<HousingApi>;
 }
 
+export interface ExistingHousingLoaderResult {
+  stream: WritableStream<ExistingHousingChange>;
+  affectedBuildingIds: () => ReadonlySet<string>;
+}
+
 export function createExistingHousingLoader(
   options: ExistingHousingLoaderOptions
-): WritableStream<ExistingHousingChange> {
+): ExistingHousingLoaderResult {
   const eventBuffer: HousingEventApi[] = [];
+  const buildingIds = new Set<string>();
   // Use a unique suffix to avoid table name conflicts when tests run in parallel.
   const temporaryTable = `existing_housing_updates_tmp_${randomUUID().replace(/-/g, '')}`;
 
@@ -62,10 +68,13 @@ export function createExistingHousingLoader(
     await eventRepository.insertManyHousingEvents(batch);
   }
 
-  return new WritableStream<ExistingHousingChange>({
+  const stream = new WritableStream<ExistingHousingChange>({
     async write(change) {
       await match(change)
         .with({ type: 'housing', kind: 'update' }, async (c) => {
+          if (c.value.buildingId) {
+            buildingIds.add(c.value.buildingId);
+          }
           await updateWriterStream.write(formatHousingRecordApi(c.value));
         })
         .with({ type: 'event', kind: 'create' }, async (c) => {
@@ -78,6 +87,11 @@ export function createExistingHousingLoader(
       await Promise.all([flushEvents(), updateWriterStream.close()]);
     }
   });
+
+  return {
+    stream,
+    affectedBuildingIds: () => buildingIds
+  };
 }
 
 interface UpdateHousingsOptions {

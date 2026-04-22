@@ -101,6 +101,7 @@ async function updateHousings(
         'longitude_dgfip',
         'latitude_dgfip',
         'geolocation',
+        'geolocation_source',
         'cadastral_classification',
         'uncomfortable',
         'vacancy_start_year',

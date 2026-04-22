@@ -10,9 +10,7 @@ import { createNoopReporter } from '~/scripts/import-lovac/infra/reporters/noop-
 import {
   createExistingHousingTransform,
   HousingUpdateChange,
-  HousingEventChange,
-  isCompleted,
-  isInProgress
+  HousingEventChange
 } from '~/scripts/import-lovac/housings/housing-transform';
 import { genEstablishmentApi, genHousingApi, genUserApi } from '~/test/testFixtures';
 
@@ -52,34 +50,22 @@ describe('createExistingHousingTransform', () => {
         housing.subStatus = null;
       });
 
-      describe('if it is currently monitored', () => {
-        beforeEach(() => {
-          housing.status = HousingStatus.IN_PROGRESS;
-        });
+      const skippedStatuses = HOUSING_STATUS_VALUES.filter(
+        (status) =>
+          status !== HousingStatus.NEVER_CONTACTED &&
+          status !== HousingStatus.WAITING
+      );
 
-        it.each(['En accompagnement', 'Intervention publique'])(
-          'should remain untouched (subStatus=%s)',
-          (subStatus) => {
-            expect(transform({ ...housing, subStatus })).toHaveLength(0);
-          }
-        );
-      });
+      it.each(skippedStatuses)(
+        'should skip if status is %s',
+        (status) => {
+          expect(transform({ ...housing, status })).toHaveLength(0);
+        }
+      );
 
-      describe('if it was set as completed', () => {
-        beforeEach(() => {
-          housing.status = HousingStatus.COMPLETED;
-        });
-
-        it('should remain untouched', () => {
-          expect(transform(housing)).toHaveLength(0);
-        });
-      });
-
-      const statuses = HOUSING_STATUS_VALUES.filter(
-        (status) => status !== HousingStatus.COMPLETED
-      ).filter((status) => status !== HousingStatus.IN_PROGRESS);
-
-      it.each(statuses)('should be set as out of vacancy otherwise', (status) => {
+      it.each([HousingStatus.NEVER_CONTACTED, HousingStatus.WAITING])(
+        'should be set as out of vacancy when status is %s',
+        (status) => {
         const actual = transform({ ...housing, status });
         expect(actual).toPartiallyContain<HousingUpdateChange>({
           type: 'housing',
@@ -127,37 +113,6 @@ describe('createExistingHousingTransform', () => {
           })
         });
       });
-    });
-  });
-
-  describe('isInProgress', () => {
-    it('should return true for status=IN_PROGRESS + matching subStatus', () => {
-      const housing = {
-        ...genHousingApi(),
-        status: HousingStatus.IN_PROGRESS,
-        subStatus: 'En accompagnement'
-      };
-      expect(isInProgress(housing)).toBeTrue();
-    });
-
-    it('should return false otherwise', () => {
-      expect(
-        isInProgress({ ...genHousingApi(), status: HousingStatus.WAITING })
-      ).toBeFalse();
-    });
-  });
-
-  describe('isCompleted', () => {
-    it('should return true for status=COMPLETED', () => {
-      expect(
-        isCompleted({ ...genHousingApi(), status: HousingStatus.COMPLETED })
-      ).toBeTrue();
-    });
-
-    it('should return false otherwise', () => {
-      expect(
-        isCompleted({ ...genHousingApi(), status: HousingStatus.WAITING })
-      ).toBeFalse();
     });
   });
 });

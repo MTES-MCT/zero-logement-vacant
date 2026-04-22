@@ -54,7 +54,10 @@ export function createExistingHousingTransform(
         return [];
       }
 
-      if (isInProgress(housing) || isCompleted(housing)) {
+      if (
+        housing.status !== HousingStatus.NEVER_CONTACTED &&
+        housing.status !== HousingStatus.WAITING
+      ) {
         reporter.skipped(housing);
         return [];
       }
@@ -123,16 +126,3 @@ export function createExistingHousingTransform(
   };
 }
 
-export function isInProgress(
-  housing: Pick<HousingApi, 'status' | 'subStatus'>
-): boolean {
-  return (
-    housing.status === HousingStatus.IN_PROGRESS &&
-    !!housing.subStatus &&
-    ['En accompagnement', 'Intervention publique'].includes(housing.subStatus)
-  );
-}
-
-export function isCompleted(housing: Pick<HousingApi, 'status'>): boolean {
-  return housing.status === HousingStatus.COMPLETED;
-}

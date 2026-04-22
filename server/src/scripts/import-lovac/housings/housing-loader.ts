@@ -30,16 +30,10 @@ export interface ExistingHousingLoaderOptions {
   reporter: Reporter<HousingApi>;
 }
 
-export interface ExistingHousingLoaderResult {
-  stream: WritableStream<ExistingHousingChange>;
-  affectedBuildingIds: () => ReadonlySet<string>;
-}
-
 export function createExistingHousingLoader(
   options: ExistingHousingLoaderOptions
-): ExistingHousingLoaderResult {
+): WritableStream<ExistingHousingChange> {
   const eventBuffer: HousingEventApi[] = [];
-  const buildingIds = new Set<string>();
   // Use a unique suffix to avoid table name conflicts when tests run in parallel.
   const temporaryTable = `existing_housing_updates_tmp_${randomUUID().replace(/-/g, '')}`;
 
@@ -56,6 +50,12 @@ export function createExistingHousingLoader(
           await updateHousings(housings as ReadonlyArray<HousingRecordDBO>, {
             temporaryTable
           });
+          const ids = housings
+            .map((h) => h.building_id)
+            .filter((id): id is string => id != null);
+          if (ids.length > 0) {
+            await updateBuildingCounts(ids);
+          }
         }
       });
   const updateWriterStream = updateWriter.getWriter();
@@ -68,13 +68,10 @@ export function createExistingHousingLoader(
     await eventRepository.insertManyHousingEvents(batch);
   }
 
-  const stream = new WritableStream<ExistingHousingChange>({
+  return new WritableStream<ExistingHousingChange>({
     async write(change) {
       await match(change)
         .with({ type: 'housing', kind: 'update' }, async (c) => {
-          if (c.value.buildingId) {
-            buildingIds.add(c.value.buildingId);
-          }
           await updateWriterStream.write(formatHousingRecordApi(c.value));
         })
         .with({ type: 'event', kind: 'create' }, async (c) => {
@@ -87,11 +84,6 @@ export function createExistingHousingLoader(
       await Promise.all([flushEvents(), updateWriterStream.close()]);
     }
   });
-
-  return {
-    stream,
-    affectedBuildingIds: () => buildingIds
-  };
 }
 
 interface UpdateHousingsOptions {
@@ -157,4 +149,29 @@ async function updateHousings(
       [`${temporaryTable}.geo_code`, `${temporaryTable}.id`],
       housings.map((housing) => [housing.geo_code, housing.id])
     );
+}
+
+async function updateBuildingCounts(
+  buildingIds: ReadonlyArray<string>
+): Promise<void> {
+  await db.raw(
+    `
+    WITH building_counts AS (
+      SELECT
+        building_id,
+        COUNT(*) FILTER (WHERE occupancy = 'L') as rent_count,
+        COUNT(*) FILTER (WHERE occupancy = 'V') as vacant_count
+      FROM fast_housing
+      WHERE building_id = ANY(?)
+      GROUP BY building_id
+    )
+    UPDATE buildings b
+    SET
+      rent_housing_count = COALESCE(bc.rent_count, 0),
+      vacant_housing_count = COALESCE(bc.vacant_count, 0)
+      FROM building_counts bc
+    WHERE b.id = bc.building_id
+    `,
+    [buildingIds]
+  );
 }

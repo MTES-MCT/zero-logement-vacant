@@ -55,7 +55,7 @@ describe('createExistingHousingLoader', () => {
     };
 
     await ReadableStream.from<ExistingHousingChange>([change]).pipeTo(
-      createExistingHousingLoader({ dryRun: false, reporter }).stream
+      createExistingHousingLoader({ dryRun: false, reporter })
     );
 
     const actual = await Housing()
@@ -87,7 +87,7 @@ describe('createExistingHousingLoader', () => {
     };
 
     await ReadableStream.from<ExistingHousingChange>([change]).pipeTo(
-      createExistingHousingLoader({ dryRun: false, reporter }).stream
+      createExistingHousingLoader({ dryRun: false, reporter })
     );
 
     const actual = await Events().where({ id: eventId }).first();
@@ -106,7 +106,7 @@ describe('createExistingHousingLoader', () => {
     };
 
     await ReadableStream.from<ExistingHousingChange>([change]).pipeTo(
-      createExistingHousingLoader({ dryRun: true, reporter }).stream
+      createExistingHousingLoader({ dryRun: true, reporter })
     );
 
     const actual = await Housing()

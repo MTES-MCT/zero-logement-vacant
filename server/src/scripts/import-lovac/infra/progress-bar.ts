@@ -47,14 +47,20 @@ export function createMultiBar(): MultiBar {
   });
 }
 
-export function multiProgress(bar: SingleBar) {
+interface MultiProgressOptions {
+  multiBar: MultiBar;
+  bar: SingleBar;
+}
+
+export function multiProgress(opts: MultiProgressOptions) {
   return new TransformStream({
     transform(chunk, controller) {
-      bar.increment(Array.isArray(chunk) ? chunk.length : 1);
+      opts.bar.increment(Array.isArray(chunk) ? chunk.length : 1);
       controller.enqueue(chunk);
     },
     flush() {
-      bar.stop();
+      opts.bar.stop();
+      opts.multiBar.remove(opts.bar);
     }
   });
 }

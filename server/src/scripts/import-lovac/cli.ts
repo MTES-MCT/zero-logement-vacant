@@ -6,6 +6,7 @@ import { createSourceHousingOwnerCommand } from '~/scripts/import-lovac/source-h
 import { createSourceHousingCommand } from '~/scripts/import-lovac/source-housings/source-housing-command';
 import { createExistingHousingCommand } from '~/scripts/import-lovac/housings/housing-command';
 import { createSourceOwnerCommand } from '~/scripts/import-lovac/source-owners/source-owner-command';
+import { DATA_FILE_YEAR_VALUES } from '@zerologementvacant/models';
 
 const logger = createLogger('cli');
 
@@ -34,6 +35,7 @@ const from = program
   .default<FromOptionValue>('s3');
 const year = program
   .createOption('--year <year>', 'LOVAC year identifier (e.g. lovac-2026)')
+  .choices(DATA_FILE_YEAR_VALUES)
   .makeOptionMandatory();
 
 program.hook('preAction', (_, actionCommand) => {

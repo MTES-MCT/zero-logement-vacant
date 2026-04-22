@@ -93,6 +93,7 @@ function toCreate(
     longitude_dgfip: source.longitude_dgfip ?? null,
     latitude_dgfip: source.latitude_dgfip ?? null,
     geolocation: null,
+    geolocation_source: source.geolocation_source,
     cadastral_classification: source.cadastral_classification,
     uncomfortable: source.uncomfortable ?? false,
     vacancy_start_year: source.vacancy_start_year,

@@ -102,6 +102,7 @@ export function createSourceHousingOwnerEnricher(): TransformStream<
         data_source: firstRow.data_source,
         data_file_years: firstRow.data_file_years,
         geolocation: firstRow.geolocation,
+        geolocation_source: firstRow.geolocation_source,
         plot_area: firstRow.plot_area,
         last_mutation_date: firstRow.last_mutation_date,
         last_transaction_date: firstRow.last_transaction_date,

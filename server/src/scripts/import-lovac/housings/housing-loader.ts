@@ -52,7 +52,7 @@ export function createExistingHousingLoader(
           });
           const ids = housings
             .map((h) => h.building_id)
-            .filter((id): id is string => id != null);
+            .filter((id) => id !== null);
           if (ids.length > 0) {
             await updateBuildingCounts(ids);
           }

@@ -61,6 +61,7 @@ export function createHousingLoader(
           await updateHousings(housings as ReadonlyArray<HousingRecordDBO>, {
             temporaryTable: tableName
           });
+          options.reporter.updated(housings.length);
         }
       });
   const updateWriterStream = updateWriter.getWriter();
@@ -71,6 +72,7 @@ export function createHousingLoader(
     if (options.dryRun) return;
     logger.debug(`Inserting ${batch.length} housings...`);
     await insertHousings(batch);
+    options.reporter.created(batch.length);
   }
 
   async function flushEvents(): Promise<void> {

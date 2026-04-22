@@ -12,6 +12,10 @@ import { createLogger } from '~/infra/logger';
 import userRepository from '~/repositories/userRepository';
 import { createLoggerReporter } from '~/scripts/import-lovac/infra';
 import { FromOptionValue } from '~/scripts/import-lovac/infra/options/from';
+import {
+  createMultiBar,
+  multiProgress
+} from '~/scripts/import-lovac/infra/progress-bar';
 import { Reporter } from '~/scripts/import-lovac/infra/reporters/reporter';
 import validator from '~/scripts/import-lovac/infra/validator';
 import {
@@ -68,6 +72,7 @@ export function createSourceHousingCommand() {
         );
       logger.info(`Importing ${deptDirs.length} departments...`);
 
+      const multi = createMultiBar();
       const CONCURRENCY = 4;
       await async.mapLimit(
         deptDirs,
@@ -75,10 +80,12 @@ export function createSourceHousingCommand() {
         async (deptDir: string) => {
           const dept = deptDir.replace('dept=', '');
           const parquetGlob = path.join(deptsDir, deptDir, '*.parquet');
-          logger.info(`[dept ${dept}] Starting import...`);
+          const repo = createParquetSourceHousingRepository(parquetGlob);
+          const total = await repo.count();
 
-          await createParquetSourceHousingRepository(parquetGlob)
+          await repo
             .stream()
+            .pipeThrough(multiProgress({ multiBar: multi, dept, total }))
             .pipeThrough(
               validator(sourceHousingSchema, {
                 abortEarly: options.abortEarly,
@@ -105,9 +112,9 @@ export function createSourceHousingCommand() {
               })
             );
 
-          logger.info(`[dept ${dept}] Import complete.`);
         }
       );
+      multi.stop();
 
       // Update building counts
       logger.info('Updating building counts...');

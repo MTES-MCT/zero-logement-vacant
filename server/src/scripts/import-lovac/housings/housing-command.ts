@@ -1,10 +1,9 @@
-import { DataFileYear } from '@zerologementvacant/models';
 import {
-  count,
-  createS3,
-  flatten,
-  map
-} from '@zerologementvacant/utils/node';
+  DataFileYear,
+  HousingStatus,
+  Occupancy
+} from '@zerologementvacant/models';
+import { count, createS3, flatten, map } from '@zerologementvacant/utils/node';
 import { PutObjectCommand } from '@aws-sdk/client-s3';
 import { writeFileSync } from 'node:fs';
 import { match } from 'ts-pattern';
@@ -22,6 +21,7 @@ import { progress } from '~/scripts/import-lovac/infra/progress-bar';
 import { Reporter } from '~/scripts/import-lovac/infra/reporters/reporter';
 import { createExistingHousingLoader } from './housing-loader';
 import { createExistingHousingTransform } from './housing-transform';
+import type { HousingFiltersApi } from '~/models/HousingFiltersApi';
 
 const logger = createLogger('existingHousingCommand');
 
@@ -30,7 +30,7 @@ export interface ExecOptions {
   departments?: string[];
   dryRun?: boolean;
   from?: FromOptionValue;
-  year: string;
+  year: DataFileYear;
 }
 
 export function createExistingHousingCommand() {
@@ -53,13 +53,21 @@ export function createExistingHousingCommand() {
         ALTER TABLE fast_housing DISABLE TRIGGER housing_delete_building_trigger;
       `);
 
-      const filters = options.departments?.length
-        ? { departments: options.departments }
-        : {};
-
-      const total = await count(housingRepository.stream({ filters }));
+      console.log('Counting...');
+      const filters: HousingFiltersApi = {
+        departments: options.departments,
+        dataFileYearsExcluded: [options.year],
+        occupancies: [Occupancy.VACANT],
+        statusList: [HousingStatus.NEVER_CONTACTED, HousingStatus.WAITING]
+      };
+      const { housing: total } = await housingRepository.count(filters);
+      console.log(`Counted ${total} housings.`);
 
       logger.info('Starting verification...', { total });
+      const loader = createExistingHousingLoader({
+        dryRun: options.dryRun,
+        reporter
+      });
       await housingRepository
         .stream({ filters })
         .pipeThrough(
@@ -80,29 +88,37 @@ export function createExistingHousingCommand() {
           )
         )
         .pipeThrough(flatten())
-        .pipeTo(
-          createExistingHousingLoader({ dryRun: options.dryRun, reporter })
-        );
+        .pipeTo(loader.stream);
       logger.info('Verification done.');
 
-      logger.info('Updating building counts...');
-      await db.raw(`
-        WITH building_counts AS (
-          SELECT
-            building_id,
-            COUNT(*) FILTER (WHERE occupancy = 'L') as rent_count,
-            COUNT(*) FILTER (WHERE occupancy = 'V') as vacant_count
-          FROM fast_housing
-          WHERE building_id IS NOT NULL
-          GROUP BY building_id
-        )
-        UPDATE buildings b
-        SET
-          rent_housing_count = COALESCE(bc.rent_count, 0),
-          vacant_housing_count = COALESCE(bc.vacant_count, 0)
-          FROM building_counts bc
-        WHERE b.id = bc.building_id
-      `);
+      const affectedIds = [...loader.affectedBuildingIds()];
+      if (affectedIds.length > 0) {
+        logger.info(
+          `Updating building counts for ${affectedIds.length} buildings...`
+        );
+        await db.raw(
+          `
+          WITH building_counts AS (
+            SELECT
+              building_id,
+              COUNT(*) FILTER (WHERE occupancy = 'L') as rent_count,
+              COUNT(*) FILTER (WHERE occupancy = 'V') as vacant_count
+            FROM fast_housing
+            WHERE building_id = ANY(?)
+            GROUP BY building_id
+          )
+          UPDATE buildings b
+          SET
+            rent_housing_count = COALESCE(bc.rent_count, 0),
+            vacant_housing_count = COALESCE(bc.vacant_count, 0)
+            FROM building_counts bc
+          WHERE b.id = bc.building_id
+          `,
+          [affectedIds]
+        );
+      } else {
+        logger.info('No buildings to update.');
+      }
     } finally {
       logger.info('Enabling building triggers...');
       await db.raw(`

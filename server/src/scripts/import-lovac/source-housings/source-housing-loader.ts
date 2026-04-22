@@ -106,7 +106,10 @@ export function createHousingLoader(
         })
         .with({ type: 'event', kind: 'create' }, async (c) => {
           eventBuffer.push(c.value);
-          if (eventBuffer.length >= CHUNK_SIZE) await flushEvents();
+          if (eventBuffer.length >= CHUNK_SIZE) {
+            await flushInserts();
+            await flushEvents();
+          }
         })
         .with({ type: 'address', kind: 'create' }, async (c) => {
           addressBuffer.push(c.value);

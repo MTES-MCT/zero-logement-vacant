@@ -61,7 +61,7 @@ export function createSourceHousingCommand() {
         ALTER TABLE fast_housing DISABLE TRIGGER housing_delete_building_trigger;
       `);
 
-      // Discover per-dept parquet files
+      // Discover per-dept parquet files, sorted by dept code
       const deptDirs = fs
         .readdirSync(deptsDir)
         .filter((d) => d.startsWith('dept='))
@@ -69,23 +69,36 @@ export function createSourceHousingCommand() {
           (d) =>
             !options.departments?.length ||
             options.departments.includes(d.replace('dept=', ''))
-        );
+        )
+        .sort();
+
+      // Pre-create all progress bars (ordered) with row counts
+      const multi = createMultiBar();
+      const bars = new Map<string, { repo: ReturnType<typeof createParquetSourceHousingRepository>; bar: ReturnType<typeof multi.create> }>();
+      for (const deptDir of deptDirs) {
+        const dept = deptDir.replace('dept=', '');
+        const parquetGlob = path.join(deptsDir, deptDir, '*.parquet');
+        const repo = createParquetSourceHousingRepository(parquetGlob);
+        const total = await repo.count();
+        bars.set(dept, {
+          repo,
+          bar: multi.create(total, 0, { dept })
+        });
+      }
+
       logger.info(`Importing ${deptDirs.length} departments...`);
 
-      const multi = createMultiBar();
       const CONCURRENCY = 4;
       await async.mapLimit(
         deptDirs,
         CONCURRENCY,
         async (deptDir: string) => {
           const dept = deptDir.replace('dept=', '');
-          const parquetGlob = path.join(deptsDir, deptDir, '*.parquet');
-          const repo = createParquetSourceHousingRepository(parquetGlob);
-          const total = await repo.count();
+          const { repo, bar } = bars.get(dept)!;
 
           await repo
             .stream()
-            .pipeThrough(multiProgress({ multiBar: multi, dept, total }))
+            .pipeThrough(multiProgress(bar))
             .pipeThrough(
               validator(sourceHousingSchema, {
                 abortEarly: options.abortEarly,

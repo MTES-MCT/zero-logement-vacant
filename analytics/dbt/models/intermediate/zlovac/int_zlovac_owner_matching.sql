@@ -2,12 +2,15 @@
 -- Matches CER 1767 owners (proprietaire/gestionnaire) against FF25 owner table
 -- to retrieve idpersonne, then applies rank logic for owner-housing relationships.
 --
--- Matching: exact name + jaro_winkler_similarity on normalized address >= 0.85
--- Address normalization: strip leading zeros, remove building prefixes (BAT/ESC/APPT),
--- normalize SAINT→ST / SAINTE→STE, fix bis/ter spacing, collapse multi-spaces
--- Fallback: cer_proprietaire first, then cer_gestionnaire
+-- Two-phase matching:
+--   Phase 1 (address): exact name + jaro_winkler on normalized address >= 0.85
+--     - Try cer_proprietaire first, fallback to cer_gestionnaire
+--   Phase 2 (cascade, for Phase 1 unmatched): exact name + geographic proximity
+--     - T0: name is unique in FF25 (1 idpersonne) → no disambiguation needed
+--     - T1: same postal code
+--     - T2: same department
 --
--- Three outcome cases:
+-- Three outcome cases for rank logic:
 --   1. Match + found in LOVAC 6: CER=rank 1, remove dup, rest keep order
 --   2. Match + not found in 6:   CER=rank 1 (with idpersonne), FF owners=rank -1
 --   3. No match:                 CER=rank 1 (no idpersonne), FF owners=rank -1
@@ -110,11 +113,86 @@ best_match_gestionnaire AS (
     WHERE rn = 1
 ),
 
--- Step 3: Combine matches
-cer_matched AS (
+-- Step 3: Combine address matches
+address_matched AS (
     SELECT * FROM best_match_proprio
     UNION ALL
     SELECT * FROM best_match_gestionnaire
+),
+
+-- ============================================================
+-- Phase 2: Cascade matching for address-unmatched rows
+-- ============================================================
+
+-- Identify rows not matched by address
+unmatched_address AS (
+    SELECT
+        z.local_id,
+        UPPER(TRIM(COALESCE(
+            NULLIF(TRIM(z.cer_proprietaire), ''),
+            NULLIF(TRIM(z.cer_gestionnaire), '')
+        ))) AS cer_name,
+        REGEXP_EXTRACT(z.owner_adresse4, '(\d{5})') AS lovac_cp,
+        SUBSTRING(REGEXP_EXTRACT(z.owner_adresse4, '(\d{5})'), 1, 2) AS lovac_dept
+    FROM zlovac z
+    LEFT JOIN address_matched am ON z.local_id = am.local_id
+    WHERE am.local_id IS NULL
+      AND COALESCE(NULLIF(TRIM(z.cer_proprietaire), ''), NULLIF(TRIM(z.cer_gestionnaire), '')) IS NOT NULL
+),
+
+-- T0: Name is unique in FF25 → take directly
+cascade_t0 AS (
+    SELECT
+        u.local_id,
+        ns.unique_idpersonne AS matched_idpersonne,
+        'cascade_t0_unique_name' AS match_source,
+        NULL::DOUBLE AS addr_score
+    FROM unmatched_address u
+    JOIN {{ ref('stg_ff_owners_name_stats_2025') }} ns
+        ON u.cer_name = ns.owner_fullname_concat
+        AND ns.nb_idpersonne = 1
+),
+
+-- For T1/T2: only non-unique names, join with FF25 on name + geo
+unmatched_t0 AS (
+    SELECT u.*
+    FROM unmatched_address u
+    LEFT JOIN cascade_t0 t0 ON u.local_id = t0.local_id
+    WHERE t0.local_id IS NULL
+),
+
+cascade_geo AS (
+    SELECT
+        u.local_id,
+        f.idpersonne AS matched_idpersonne,
+        CASE
+            WHEN u.lovac_cp = f.owner_cp THEN 'cascade_t1_same_cp'
+            WHEN u.lovac_dept = f.owner_dept THEN 'cascade_t2_same_dept'
+        END AS match_source,
+        NULL::DOUBLE AS addr_score,
+        ROW_NUMBER() OVER (PARTITION BY u.local_id ORDER BY
+            CASE WHEN u.lovac_cp = f.owner_cp THEN 1 ELSE 2 END
+        ) AS rn
+    FROM unmatched_t0 u
+    JOIN {{ ref('stg_ff_owners_idperson_2025') }} f
+        ON u.cer_name = f.owner_fullname_concat
+        AND (u.lovac_cp = f.owner_cp OR u.lovac_dept = f.owner_dept)
+    WHERE u.lovac_cp IS NOT NULL
+),
+
+best_cascade_geo AS (
+    SELECT local_id, matched_idpersonne, match_source, addr_score
+    FROM cascade_geo
+    WHERE rn = 1
+),
+
+-- Combine all matches: address + cascade
+cer_matched AS (
+    SELECT * FROM address_matched
+    UNION ALL
+    SELECT * FROM cascade_t0
+    UNION ALL
+    SELECT * FROM best_cascade_geo
 ),
 
 -- Step 4: Detect if matched idpersonne is among FF owners 1..6

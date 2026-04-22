@@ -88,7 +88,7 @@ export function createSourceHousingCommand() {
 
           await repo
             .stream()
-            .pipeThrough(multiProgress(bar))
+            .pipeThrough(multiProgress({ multiBar: multi, bar }))
             .pipeThrough(
               validator(sourceHousingSchema, {
                 abortEarly: options.abortEarly,

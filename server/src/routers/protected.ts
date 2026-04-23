@@ -321,12 +321,6 @@ router.put(
   }),
   draftController.updateNext
 );
-router.post(
-  '/drafts/:id/preview',
-  draftController.previewValidators,
-  validator.validate,
-  draftController.preview
-);
 
 router.get(
   '/owners',

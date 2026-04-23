@@ -1,4 +1,4 @@
-import { useLocation } from 'react-router-dom';
+import { useLocation } from 'react-router';
 import { useEffect, useMemo, useState } from 'react';
 import { hideLoading, showLoading } from 'react-redux-loading-bar';
 import { useAppDispatch } from './useStore';

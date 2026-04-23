@@ -1,7 +1,7 @@
 import type { PropsWithChildren } from 'react';
 
 import { useUser } from '../../hooks/useUser';
-import { Navigate } from 'react-router-dom';
+import { Navigate } from 'react-router';
 
 // eslint-disable-next-line @typescript-eslint/no-empty-object-type
 interface RequireGuestProps {}

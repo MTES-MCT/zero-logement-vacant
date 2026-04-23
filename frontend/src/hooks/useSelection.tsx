@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from 'react';
-import { useLocation } from 'react-router-dom';
+import { useLocation } from 'react-router';
 import housingSlice from '../store/reducers/housingReducer';
 import { useAppDispatch, useAppSelector } from './useStore';
 

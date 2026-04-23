@@ -2,7 +2,7 @@ import { startReactDsfr } from '@codegouvfr/react-dsfr/spa';
 import { render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { Provider } from 'react-redux';
-import { createMemoryRouter, Link, RouterProvider } from 'react-router-dom';
+import { createMemoryRouter, Link, RouterProvider } from 'react-router';
 import { vi } from 'vitest';
 import Notification from '../../../../components/Notification/Notification';
 import { signupLinkApi } from '../../../../services/signup-link.service';

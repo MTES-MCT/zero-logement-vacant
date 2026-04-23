@@ -1,6 +1,6 @@
 import { usePostHog } from 'posthog-js/react';
 import { type PropsWithChildren, useEffect } from 'react';
-import { Navigate, useLocation } from 'react-router-dom';
+import { Navigate, useLocation } from 'react-router';
 
 import { useUser } from '../../hooks/useUser';
 import { useFetchInterceptor } from '../../hooks/useFetchInterceptor';

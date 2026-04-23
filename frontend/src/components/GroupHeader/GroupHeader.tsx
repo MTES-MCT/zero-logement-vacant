@@ -7,7 +7,7 @@ import { styled } from '@mui/material/styles';
 import Typography from '@mui/material/Typography';
 import { useFeatureFlagEnabled } from 'posthog-js/react';
 import { useState } from 'react';
-import { useParams } from 'react-router-dom';
+import { useParams } from 'react-router';
 import { match, Pattern } from 'ts-pattern';
 
 import search from '~/assets/images/search.svg';

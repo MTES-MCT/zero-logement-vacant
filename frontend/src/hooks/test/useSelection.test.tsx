@@ -2,7 +2,7 @@ import { faker } from '@faker-js/faker/locale/fr';
 import { act, renderHook } from '@testing-library/react';
 import type { PropsWithChildren } from 'react';
 import { Provider as StoreProvider } from 'react-redux';
-import { MemoryRouter, Route, Routes } from 'react-router-dom';
+import { MemoryRouter, Route, Routes } from 'react-router';
 
 import configureTestStore from '../../utils/storeUtils';
 import { useSelection } from '../useSelection';

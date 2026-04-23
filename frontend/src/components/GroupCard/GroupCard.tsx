@@ -4,7 +4,7 @@ import { styled } from '@mui/material/styles';
 import Typography from '@mui/material/Typography';
 import classNames from 'classnames';
 import { useFeatureFlagEnabled } from 'posthog-js/react';
-import { Link } from 'react-router-dom';
+import { Link } from 'react-router';
 
 import HousingCount from '~/components/HousingCount/HousingCount';
 import type { Group } from '~/models/Group';

@@ -24,10 +24,22 @@ models:
     description: "Pre-filtered FF25 owners: only names present in LOVAC CER fields, with normalized addresses."
     config:
       materialized: table
-  - name: int_zlovac_owner_cer_matched
-    description: "CER→FF25 matching results: address matching (jw >= 0.85) + cascade (T0 unique name, T1 same CP, T2 same dept)."
+  - name: int_zlovac_owner_match_lovac
+    description: "Phase 1: LOVAC internal matching - CER name = cer_nom_usage_1..6."
     config:
       materialized: table
+  - name: int_zlovac_owner_match_ff25
+    description: "Phase 2: FF25 address matching (jaro_winkler >= 0.85) for Phase 1 unmatched."
+    config:
+      materialized: table
+  - name: int_zlovac_owner_match_cascade
+    description: "Phase 3: Cascade matching (T0 unique name, T1 same CP, T2 same dept) for Phase 1+2 unmatched."
+    config:
+      materialized: table
+  - name: int_zlovac_owner_cer_matched
+    description: "Combined view of all 3 matching phases."
+    config:
+      materialized: view
   - name: int_zlovac_owner_matching
     description: "Final owner-housing table with rank logic applied from CER matching results."
     config:

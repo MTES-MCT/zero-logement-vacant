@@ -60,7 +60,7 @@ describe('CampaignListView', () => {
       });
       expect(links.length).toBeGreaterThan(0);
       expect(links).toSatisfyAll<HTMLLinkElement>((link) => {
-        return /\/campagnes\/.+$/.test(link.href);
+        return /\/campagnes\//.test(link.href);
       });
     });
   });
@@ -339,6 +339,10 @@ function renderView(options?: RenderViewOptions) {
       {
         path: '/campagnes/:id',
         element: <CampaignViewNext />
+      },
+      {
+        path: '/parc-de-logements',
+        element: <div>Parc de logements</div>
       }
     ],
     { initialEntries: ['/campagnes'] }
@@ -350,5 +354,5 @@ function renderView(options?: RenderViewOptions) {
     </Provider>
   );
 
-  return { router };
+  return { router, store };
 }

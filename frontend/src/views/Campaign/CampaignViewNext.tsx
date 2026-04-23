@@ -25,6 +25,10 @@ import {
   useUpdateCampaignMutation
 } from '~/services/campaign.service';
 import { useCountHousingQuery } from '~/services/housing.service';
+import { useAppDispatch } from '~/hooks/useStore';
+import housingSlice, {
+  initialHousingFilters
+} from '~/store/reducers/housingReducer';
 
 const campaignDeleteModal = createCampaignDeleteModal();
 const sentAtModal = createCampaignSentAtModal();
@@ -32,6 +36,7 @@ const sentAtModal = createCampaignSentAtModal();
 function CampaignViewNext() {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
+  const dispatch = useAppDispatch();
 
   const { data: campaign, isLoading } = useGetCampaignQuery(id as string);
   const { data: count } = useCountHousingQuery({ campaignIds: [id as string] });
@@ -110,14 +115,31 @@ function CampaignViewNext() {
             <CampaignCreatedFromGroupNext campaign={campaign} />
           </Stack>
 
-          <Button
-            iconId="fr-icon-delete-line"
-            priority="tertiary"
-            style={{ flexShrink: 0 }}
-            onClick={() => campaignDeleteModal.open()}
-          >
-            Supprimer la campagne
-          </Button>
+          <Stack direction="column" spacing="1rem" useFlexGap sx={{ flexShrink: 0 }}>
+            <Button
+              priority="secondary"
+              style={{ width: '100%', justifyContent: 'center' }}
+              onClick={() => {
+                dispatch(
+                  housingSlice.actions.changeFilters({
+                    ...initialHousingFilters,
+                    campaignIds: [id as string]
+                  })
+                );
+                navigate('/parc-de-logements');
+              }}
+            >
+              Voir les logements
+            </Button>
+            <Button
+              iconId="fr-icon-delete-line"
+              priority="tertiary"
+              style={{ width: '100%', justifyContent: 'center' }}
+              onClick={() => campaignDeleteModal.open()}
+            >
+              Supprimer la campagne
+            </Button>
+          </Stack>
         </Stack>
 
         {/* Metrics */}

@@ -1,9 +1,4 @@
-import type {
-  EventDTO,
-  EventHousingStatus,
-  EventType
-} from '@zerologementvacant/models';
-import { match } from 'ts-pattern';
+import type { EventDTO, EventType } from '@zerologementvacant/models';
 
 import { fromUserDTO, type User } from './User';
 
@@ -25,16 +20,4 @@ export function fromEventDTO<Type extends EventType>(
     ...event,
     creator: fromUserDTO(event.creator)
   };
-}
-
-export function formatEventHousingStatus(status: EventHousingStatus): string {
-  return match(status)
-    .returnType<string>()
-    .with('never-contacted', () => 'Non suivi')
-    .with('waiting', () => 'En attente de retour')
-    .with('first-contact', () => 'Premier contact')
-    .with('in-progress', () => 'Suivi en cours')
-    .with('completed', () => 'Suivi terminé')
-    .with('blocked', () => 'Suivi bloqué')
-    .exhaustive();
 }

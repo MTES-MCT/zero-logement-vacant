@@ -22,6 +22,10 @@ WITH all_owners AS (
         administrator,
         'lovac' AS data_source
     FROM {{ ref('int_zlovac_unique_owners') }}
+    ORDER BY COALESCE(owner_idpersonne, owner_fullname),
+        owner_birth_date NULLS LAST,
+        owner_siren NULLS LAST,
+        owner_kind_detail NULLS LAST
 )
 
 SELECT * FROM all_owners

@@ -18,3 +18,4 @@ WITH owner_housing AS (
 )
 
 SELECT * FROM owner_housing
+WHERE NOT (idpersonne IS NULL AND idprodroit IS NULL AND idprocpte IS NULL)

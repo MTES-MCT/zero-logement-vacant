@@ -3,10 +3,11 @@ import {
   CadastralClassification,
   DataFileYear,
   EventType,
+  HOUSING_STATUS_LABELS,
   HousingSource,
   HousingStatus,
   Occupancy,
-  toEventHousingStatus
+  OCCUPANCY_LABELS,
 } from '@zerologementvacant/models';
 import { Array, Option, Order, pipe } from 'effect';
 import { v5 as uuidv5 } from 'uuid';
@@ -133,7 +134,7 @@ function toCreate(
         nextOld: null,
         nextNew: {
           source: year as DataFileYear,
-          occupancy: Occupancy.VACANT
+          occupancy: OCCUPANCY_LABELS[Occupancy.VACANT]
         },
         createdBy: adminUserId,
         createdAt: new Date().toISOString(),
@@ -185,8 +186,8 @@ function toUpdate(
           LOVAC_NAMESPACE
         ),
         type: 'housing:occupancy-updated',
-        nextOld: { occupancy: existing.occupancy },
-        nextNew: { occupancy: patch.occupancy },
+        nextOld: { occupancy: OCCUPANCY_LABELS[existing.occupancy] },
+        nextNew: { occupancy: OCCUPANCY_LABELS[patch.occupancy] },
         createdBy: adminUserId,
         createdAt: new Date().toISOString(),
         housingGeoCode: existing.geo_code,
@@ -206,11 +207,11 @@ function toUpdate(
         ),
         type: 'housing:status-updated',
         nextOld: {
-          status: toEventHousingStatus(existing.status),
+          status: HOUSING_STATUS_LABELS[existing.status],
           subStatus: existing.sub_status
         },
         nextNew: {
-          status: toEventHousingStatus(patch.status ?? existing.status),
+          status: HOUSING_STATUS_LABELS[patch.status ?? existing.status],
           subStatus: patch.sub_status ?? null
         },
         createdBy: adminUserId,

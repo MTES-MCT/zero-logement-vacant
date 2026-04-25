@@ -48,6 +48,7 @@ export interface OwnerRecordDBO {
   data_source: string | null;
   kind_class: string | null;
   entity: OwnerEntity | null;
+  username: string | null;
   created_at: Date | string | null;
   updated_at: Date | string | null;
   is_multi_owner: boolean | null;
@@ -603,6 +604,7 @@ export const parseOwnerApi = (owner: OwnerDBO): OwnerApi => {
     banAddress: owner.ban ? parseAddressApi(owner.ban) : null,
     additionalAddress: owner.additional_address ?? null,
     entity: owner.entity,
+    username: owner.username ?? null,
     createdAt: owner.created_at ? new Date(owner.created_at).toJSON() : null,
     updatedAt: owner.updated_at ? new Date(owner.updated_at).toJSON() : null
   };
@@ -644,6 +646,7 @@ export const formatOwnerApi = (owner: OwnerApi): OwnerRecordDBO => ({
   data_source: owner.dataSource ?? null,
   kind_class: owner.kind ?? null,
   entity: owner.entity,
+  username: owner.username ?? null,
   created_at: owner.createdAt ? new Date(owner.createdAt) : null,
   updated_at: owner.updatedAt ? new Date(owner.updatedAt) : null,
   is_multi_owner: null

@@ -17,6 +17,7 @@ const logger = createLogger('createOwnerLoader');
 const CHUNK_SIZE = 1_000;
 const UPSERT_COLUMNS = [
   'full_name',
+  'username',
   'birth_date',
   'siren',
   'address_dgfip',

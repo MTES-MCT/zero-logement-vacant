@@ -114,6 +114,7 @@ export function toOwnerApi(owner: DatafoncierOwner): OwnerApi {
     phone: null,
     banAddress: null,
     siren: null,
+    username: null,
     additionalAddress: null,
     createdAt: new Date().toJSON(),
     updatedAt: new Date().toJSON()

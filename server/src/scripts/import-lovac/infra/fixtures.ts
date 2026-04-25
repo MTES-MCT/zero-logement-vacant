@@ -56,6 +56,7 @@ export function genSourceOwner(): SourceOwner {
   return {
     idpersonne: faker.string.alphanumeric(11),
     full_name: faker.person.fullName(),
+    username: faker.helpers.maybe(() => faker.person.lastName()) ?? null,
     dgfip_address: faker.location.streetAddress(),
     birth_date: faker.date.past(),
     siren: null,

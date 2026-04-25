@@ -8,6 +8,7 @@ import z from 'zod';
 export interface SourceOwner {
   idpersonne: string;
   full_name: string;
+  username: string | null;
   dgfip_address: string | null;
   ownership_type: string;
   birth_date: Date | null;
@@ -18,6 +19,7 @@ export interface SourceOwner {
 export const sourceOwnerSchema = z.object({
   idpersonne: z.string().trim().min(1, 'idpersonne is required'),
   full_name: z.string().trim().min(1, 'full_name is required'),
+  username: z.string().trim().nullable(),
   dgfip_address: z.string().trim().nullable(),
   ownership_type: z.string().trim().min(1, 'ownership_type is required'),
   birth_date: z.preprocess(
@@ -33,7 +35,7 @@ export const sourceOwnerSchema = z.object({
     if (v === null) return null;
     if (typeof v === 'string' && v.length >= 1) return mapEntity(v[0]);
     return v;
-  }, z.enum(OWNER_ENTITY_VALUES).nullable())
+  }, z.literal(OWNER_ENTITY_VALUES).nullable())
 });
 
 export function mapEntity(entity: string | null): OwnerEntity {

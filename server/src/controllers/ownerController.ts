@@ -198,6 +198,7 @@ const create: RequestHandler<
     // TODO: obtain this from the frontend form
     entity: 'personnes-physiques',
     siren: null,
+    username: null,
     createdAt: new Date().toJSON(),
     updatedAt: new Date().toJSON()
   };
@@ -267,6 +268,7 @@ const update: RequestHandler<
     kind: existingOwner.kind,
     idpersonne: existingOwner.idpersonne,
     siren: existingOwner.siren,
+    username: existingOwner.username,
     dataSource: existingOwner.dataSource,
     entity: existingOwner.entity,
     createdAt: existingOwner.createdAt,

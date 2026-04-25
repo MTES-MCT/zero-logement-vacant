@@ -17,6 +17,7 @@ export interface OwnerDTO {
   additionalAddress: string | null;
   kind: string | null;
   siren: string | null;
+  username: string | null;
   createdAt: string | null;
   updatedAt: string | null;
 }

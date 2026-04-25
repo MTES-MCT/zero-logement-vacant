@@ -1,4 +1,5 @@
 import {
+  ACTIVE_OWNER_RANKS,
   ActiveOwnerRank,
   PROPERTY_RIGHT_VALUES,
   PropertyRight
@@ -23,13 +24,6 @@ export const sourceHousingOwnerSchema = z.object({
   idprocpte: z.string().length(11),
   idprodroit: z.string().length(13),
   locprop_source: z.number().transform(Math.trunc),
-  property_right: z.enum(PROPERTY_RIGHT_VALUES),
-  rank: z.union([
-    z.literal(1),
-    z.literal(2),
-    z.literal(3),
-    z.literal(4),
-    z.literal(5),
-    z.literal(6)
-  ])
+  property_right: z.literal(PROPERTY_RIGHT_VALUES),
+  rank: z.literal(ACTIVE_OWNER_RANKS)
 });

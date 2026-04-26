@@ -2,6 +2,9 @@
 -- Applies rank logic based on CER→FF25 matching results.
 -- Reads from int_zlovac_owner_cer_matched (the matching) and int_zlovac (FF owners 1..6).
 --
+-- Generates a deterministic owner_uid (MD5) for each owner row to allow
+-- joining owners ↔ owner_housing without relying on idpersonne/idprodroit.
+--
 -- Three outcome cases:
 --   1. Match + found in LOVAC 6: CER=rank 1, remove dup, rest keep order
 --   2. Match + not found in 6:   CER=rank 1 (with idpersonne), FF owners=rank -1
@@ -12,6 +15,7 @@
 WITH zlovac AS (
     SELECT
         local_id,
+        owner_fullname,
         ff_owner_1_idpersonne, ff_owner_2_idpersonne, ff_owner_3_idpersonne,
         ff_owner_4_idpersonne, ff_owner_5_idpersonne, ff_owner_6_idpersonne,
         ff_owner_1_fullname, ff_owner_2_fullname, ff_owner_3_fullname,
@@ -29,6 +33,7 @@ WITH zlovac AS (
 match_with_dup_detection AS (
     SELECT
         z.local_id,
+        z.owner_fullname,
         m.matched_idpersonne,
         m.match_source,
         CASE
@@ -53,6 +58,7 @@ unpivoted AS (
         NULL AS ff_owner_idprodroit,
         NULL AS ff_owner_locprop,
         NULL AS ff_owner_property_rights,
+        d.owner_fullname AS ff_owner_fullname,
         1 AS rank,
         d.match_source
     FROM match_with_dup_detection d
@@ -61,6 +67,7 @@ unpivoted AS (
 
     -- FF owner 1
     SELECT z.local_id, z.ff_owner_1_idpersonne, z.ff_owner_1_idprodroit, z.ff_owner_1_locprop, z.ff_owner_1_property_rights,
+        z.ff_owner_1_fullname,
         CASE
             WHEN d.matched_idpersonne IS NOT NULL AND d.matched_slot = 1 THEN NULL
             WHEN d.matched_idpersonne IS NOT NULL AND d.matched_slot IS NOT NULL THEN 2
@@ -75,6 +82,7 @@ unpivoted AS (
 
     -- FF owner 2
     SELECT z.local_id, z.ff_owner_2_idpersonne, z.ff_owner_2_idprodroit, z.ff_owner_2_locprop, z.ff_owner_2_property_rights,
+        z.ff_owner_2_fullname,
         CASE
             WHEN d.matched_idpersonne IS NOT NULL AND d.matched_slot = 2 THEN NULL
             WHEN d.matched_idpersonne IS NOT NULL AND d.matched_slot IS NOT NULL THEN
@@ -90,6 +98,7 @@ unpivoted AS (
 
     -- FF owner 3
     SELECT z.local_id, z.ff_owner_3_idpersonne, z.ff_owner_3_idprodroit, z.ff_owner_3_locprop, z.ff_owner_3_property_rights,
+        z.ff_owner_3_fullname,
         CASE
             WHEN d.matched_idpersonne IS NOT NULL AND d.matched_slot = 3 THEN NULL
             WHEN d.matched_idpersonne IS NOT NULL AND d.matched_slot IS NOT NULL THEN
@@ -105,6 +114,7 @@ unpivoted AS (
 
     -- FF owner 4
     SELECT z.local_id, z.ff_owner_4_idpersonne, z.ff_owner_4_idprodroit, z.ff_owner_4_locprop, z.ff_owner_4_property_rights,
+        z.ff_owner_4_fullname,
         CASE
             WHEN d.matched_idpersonne IS NOT NULL AND d.matched_slot = 4 THEN NULL
             WHEN d.matched_idpersonne IS NOT NULL AND d.matched_slot IS NOT NULL THEN
@@ -120,6 +130,7 @@ unpivoted AS (
 
     -- FF owner 5
     SELECT z.local_id, z.ff_owner_5_idpersonne, z.ff_owner_5_idprodroit, z.ff_owner_5_locprop, z.ff_owner_5_property_rights,
+        z.ff_owner_5_fullname,
         CASE
             WHEN d.matched_idpersonne IS NOT NULL AND d.matched_slot = 5 THEN NULL
             WHEN d.matched_idpersonne IS NOT NULL AND d.matched_slot IS NOT NULL THEN
@@ -135,6 +146,7 @@ unpivoted AS (
 
     -- FF owner 6
     SELECT z.local_id, z.ff_owner_6_idpersonne, z.ff_owner_6_idprodroit, z.ff_owner_6_locprop, z.ff_owner_6_property_rights,
+        z.ff_owner_6_fullname,
         CASE
             WHEN d.matched_idpersonne IS NOT NULL AND d.matched_slot = 6 THEN NULL
             WHEN d.matched_idpersonne IS NOT NULL AND d.matched_slot IS NOT NULL THEN 6
@@ -152,7 +164,9 @@ SELECT
     ff_owner_idprodroit,
     ff_owner_locprop,
     ff_owner_property_rights,
+    ff_owner_fullname,
     rank,
-    match_source
+    match_source,
+    uuid() AS owner_uid
 FROM unpivoted
 WHERE rank IS NOT NULL

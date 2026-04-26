@@ -1,9 +1,11 @@
 -- int_zlovac_owners.sql
 -- Gold Owners table for LOVAC 2026.
 -- Dedup by idpersonne when available, by owner_fullname otherwise.
+-- Keeps owner_uid for joining with owner_housing.
 
 WITH all_owners AS (
     SELECT DISTINCT ON (COALESCE(owner_idpersonne, owner_fullname))
+        owner_uid,
         owner_idpersonne,
         owner_idprodroit,
         owner_fullname,

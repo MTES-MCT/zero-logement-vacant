@@ -4,6 +4,7 @@
 
 WITH owner_housing AS (
     SELECT
+        m.owner_uid,
         m.ff_owner_idprodroit AS idprodroit,
         m.ff_owner_idpersonne AS idpersonne,
         m.local_id,

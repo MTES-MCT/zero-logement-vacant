@@ -54,10 +54,11 @@ export function genSourceHousing(): SourceHousing {
 
 export function genSourceOwner(): SourceOwner {
   return {
+    owner_uid: faker.string.uuid(),
     idpersonne: faker.string.alphanumeric(11),
     full_name: faker.person.fullName(),
     username: faker.helpers.maybe(() => faker.person.lastName()) ?? null,
-    dgfip_address: faker.location.streetAddress(),
+    address_dgfip: faker.location.streetAddress(),
     birth_date: faker.date.past(),
     siren: null,
     ownership_type: 'Particulier',
@@ -70,6 +71,7 @@ export function genSourceHousingOwner(
   sourceOwner: SourceOwner
 ): SourceHousingOwner {
   return {
+    owner_uid: sourceOwner.owner_uid,
     geo_code: sourceHousing.geo_code,
     local_id: sourceHousing.local_id,
     idpersonne: sourceOwner.idpersonne,

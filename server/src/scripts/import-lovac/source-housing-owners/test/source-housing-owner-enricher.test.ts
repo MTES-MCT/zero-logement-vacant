@@ -43,10 +43,11 @@ describe('createSourceHousingOwnerEnricher', () => {
 
   function makeGroup(
     housingOverride: { geo_code: string; local_id: string },
-    idpersonnes: string[]
+    ownerIds: string[]
   ): SourceHousingOwner[] {
-    return idpersonnes.map((idpersonne, i) => ({
-      idpersonne,
+    return ownerIds.map((ownerUid, i) => ({
+      owner_uid: ownerUid,
+      idpersonne: faker.string.alphanumeric(8),
       idprocpte: faker.string.alphanumeric(11),
       idprodroit: faker.string.alphanumeric(13),
       rank: ((i % ACTIVE_OWNER_RANKS.length) + 1) as ActiveOwnerRank,
@@ -60,7 +61,7 @@ describe('createSourceHousingOwnerEnricher', () => {
   it('should set existing.housing to null when housing is not found', async () => {
     const group = makeGroup(
       { geo_code: '99000', local_id: 'UNKNOWN00000' },
-      [owner.idpersonne as string]
+      [owner.id]
     );
     const [result] = (await toArray(
       ReadableStream.from([group]).pipeThrough(
@@ -74,7 +75,7 @@ describe('createSourceHousingOwnerEnricher', () => {
   it('should populate housing and owners when found', async () => {
     const group = makeGroup(
       { geo_code: housing.geoCode, local_id: housing.localId },
-      [owner.idpersonne as string]
+      [owner.id]
     );
     const [result] = (await toArray(
       ReadableStream.from([group]).pipeThrough(
@@ -86,7 +87,7 @@ describe('createSourceHousingOwnerEnricher', () => {
       geo_code: housing.geoCode
     });
     expect(result.existing.owners).toHaveLength(1);
-    expect(result.existing.owners[0].idpersonne).toBe(owner.idpersonne);
+    expect(result.existing.owners[0].id).toBe(owner.id);
     expect(result.existing.existingHousingOwners).toStrictEqual([]);
   });
 
@@ -112,7 +113,7 @@ describe('createSourceHousingOwnerEnricher', () => {
     it('should populate existingHousingOwners', async () => {
       const group = makeGroup(
         { geo_code: housingWithOwners.geoCode, local_id: housingWithOwners.localId },
-        [existingOwner.idpersonne as string, newSourceOwner.idpersonne as string]
+        [existingOwner.id, newSourceOwner.id]
       );
       const [result] = (await toArray(
         ReadableStream.from([group]).pipeThrough(
@@ -128,7 +129,7 @@ describe('createSourceHousingOwnerEnricher', () => {
     it('should fetch owners for both source idpersonnes and existing housing owners', async () => {
       const group = makeGroup(
         { geo_code: housingWithOwners.geoCode, local_id: housingWithOwners.localId },
-        [newSourceOwner.idpersonne as string] // only the NEW owner in source
+        [newSourceOwner.id] // only the NEW owner in source
       );
       const [result] = (await toArray(
         ReadableStream.from([group]).pipeThrough(

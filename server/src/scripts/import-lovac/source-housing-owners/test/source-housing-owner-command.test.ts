@@ -377,6 +377,7 @@ describe('Source housing owner command', () => {
     }
 
     return {
+      owner_uid: housingOwner.ownerId,
       idpersonne: housingOwner.idpersonne as string,
       idprocpte: housingOwner.idprocpte as string,
       idprodroit: housingOwner.idprodroit as string,

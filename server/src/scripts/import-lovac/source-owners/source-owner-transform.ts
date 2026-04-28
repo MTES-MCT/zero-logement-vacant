@@ -1,10 +1,5 @@
-import { v5 as uuidv5 } from 'uuid';
 import { OwnerDBO, OwnerRecordDBO } from '~/repositories/ownerRepository';
-import {
-  LOVAC_NAMESPACE,
-  ReporterError,
-  ReporterOptions
-} from '~/scripts/import-lovac/infra';
+import { ReporterError, ReporterOptions } from '~/scripts/import-lovac/infra';
 import { EnrichedOwner } from '~/scripts/import-lovac/source-owners/source-owner-enricher';
 import { SourceOwner } from '~/scripts/import-lovac/source-owners/source-owner';
 
@@ -49,14 +44,14 @@ function toCreate(source: SourceOwner, year?: string): OwnerChange {
     type: 'owner',
     kind: 'create',
     value: {
-      id: uuidv5(source.idpersonne, LOVAC_NAMESPACE),
+      id: source.owner_uid,
       idpersonne: source.idpersonne,
       full_name: source.full_name,
       username: source.username ?? null,
       birth_date: source.birth_date ?? null,
       administrator: null,
       siren: source.siren ?? null,
-      address_dgfip: source.dgfip_address ? [source.dgfip_address] : null,
+      address_dgfip: source.address_dgfip ? [source.address_dgfip] : null,
       additional_address: null,
       email: null,
       phone: null,
@@ -74,14 +69,14 @@ function toUpdate(source: SourceOwner, existing: OwnerDBO): OwnerChange {
     type: 'owner',
     kind: 'update',
     value: {
-      id: existing.id,
+      id: source.owner_uid,
       idpersonne: source.idpersonne,
       full_name: source.full_name,
       username: source.username ?? existing.username ?? null,
       birth_date: source.birth_date ?? existing.birth_date ?? null,
       administrator: existing.administrator ?? null,
       siren: source.siren ?? existing.siren ?? null,
-      address_dgfip: source.dgfip_address ? [source.dgfip_address] : null,
+      address_dgfip: source.address_dgfip ? [source.address_dgfip] : null,
       additional_address: existing.additional_address ?? null,
       email: existing.email ?? null,
       phone: existing.phone ?? null,

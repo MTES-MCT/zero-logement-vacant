@@ -26,7 +26,7 @@ export function createSourceHousingOwnerEnricher(): TransformStream<
   >({
     async transform(group, controller) {
       const { geo_code: geoCode, local_id: localId } = group[0];
-      const sourceIdpersonnes = group.map((sourceOwner) => sourceOwner.idpersonne);
+      const sourceOwnerIds = group.map((sourceOwner) => sourceOwner.owner_uid);
 
       // Query 1: housing + existing housing owners (single JOIN)
       const rows: Array<HousingRecordDBO & Partial<HousingOwnerDBO>> =
@@ -129,15 +129,11 @@ export function createSourceHousingOwnerEnricher(): TransformStream<
           property_right: r.ho_property_right ?? null
         }));
 
-      // Query 2: owners by idpersonne (source) + by id (existing housing owners)
+      // Query 2: owners by id (source owner_uid) + by id (existing housing owners)
       const existingOwnerIds = existingHousingOwners.map((ho) => ho.owner_id);
+      const allOwnerIds = [...new Set([...sourceOwnerIds, ...existingOwnerIds])];
       const owners: OwnerDBO[] = await Owners()
-        .whereIn('idpersonne', sourceIdpersonnes)
-        .modify((qb) => {
-          if (existingOwnerIds.length > 0) {
-            qb.orWhereIn('id', existingOwnerIds);
-          }
-        });
+        .whereIn('id', allOwnerIds);
 
       controller.enqueue({
         source: group,

@@ -7,6 +7,7 @@ import {
 import z from 'zod';
 
 export interface SourceHousingOwner {
+  owner_uid: string;
   geo_code: string;
   local_id: string;
   idpersonne: string;
@@ -18,6 +19,7 @@ export interface SourceHousingOwner {
 }
 
 export const sourceHousingOwnerSchema = z.object({
+  owner_uid: z.string().uuid('owner_uid must be a valid UUID'),
   geo_code: z.string().length(5),
   local_id: z.string().length(12),
   idpersonne: z.string().length(8),

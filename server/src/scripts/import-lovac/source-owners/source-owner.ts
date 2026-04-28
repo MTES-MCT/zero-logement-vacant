@@ -1,4 +1,10 @@
-import { OWNER_ENTITY_VALUES, OwnerEntity } from '@zerologementvacant/models';
+import {
+  OWNER_ENTITY_VALUES,
+  OWNER_KIND_LABEL_VALUES,
+  OWNER_KIND_LABELS,
+  OwnerEntity,
+  type OwnerKindLabel
+} from '@zerologementvacant/models';
 import { match } from 'ts-pattern';
 import z from 'zod';
 
@@ -6,30 +12,34 @@ import z from 'zod';
 // because ts-json-schema-generator does not support union types yet
 // See https://github.com/vega/ts-json-schema-generator/issues/1946
 export interface SourceOwner {
-  idpersonne: string;
+  owner_uid: string;
+  idpersonne: string | null;
   full_name: string;
   username: string | null;
-  dgfip_address: string | null;
-  ownership_type: string;
+  address_dgfip: string | null;
+  ownership_type: OwnerKindLabel | null;
   birth_date: Date | null;
   siren: string | null;
   entity: OwnerEntity;
 }
 
 export const sourceOwnerSchema = z.object({
-  idpersonne: z.string().trim().min(1, 'idpersonne is required'),
+  owner_uid: z.string().uuid('owner_uid must be a valid UUID'),
+  idpersonne: z
+    .string()
+    .trim()
+    .min(1, 'idpersonne is required')
+    .nullable()
+    .default(null),
   full_name: z.string().trim().min(1, 'full_name is required'),
   username: z.string().trim().nullable(),
-  dgfip_address: z.string().trim().nullable(),
-  ownership_type: z.string().trim().min(1, 'ownership_type is required'),
-  birth_date: z.preprocess(
-    (v) => {
-      if (typeof v === 'number') return new Date(v * 1000);
-      if (typeof v === 'string') return new Date(v);
-      return v;
-    },
-    z.date().nullable()
-  ),
+  address_dgfip: z.string().trim().nullable(),
+  ownership_type: z.literal(OWNER_KIND_LABEL_VALUES).nullable().default(null),
+  birth_date: z.preprocess((v) => {
+    if (typeof v === 'number') return new Date(v * 1000);
+    if (typeof v === 'string') return new Date(v);
+    return v;
+  }, z.date().nullable()),
   siren: z.string().trim().nullable(),
   entity: z.preprocess((v) => {
     if (v === null) return null;

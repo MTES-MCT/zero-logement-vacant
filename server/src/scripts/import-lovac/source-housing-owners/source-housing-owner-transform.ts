@@ -53,11 +53,11 @@ export function createHousingOwnerTransform(options: TransformOptions) {
 
       const missingOwners = source.filter(
         (sourceOwner) =>
-          !existing.owners.some((owner) => owner.idpersonne === sourceOwner.idpersonne)
+          !existing.owners.some((owner) => owner.id === sourceOwner.owner_uid)
       );
       if (missingOwners.length > 0) {
         throw new OwnerMissingError(
-          ...missingOwners.map((sourceOwner) => sourceOwner.idpersonne)
+          ...missingOwners.map((sourceOwner) => sourceOwner.owner_uid)
         );
       }
 
@@ -73,7 +73,7 @@ export function createHousingOwnerTransform(options: TransformOptions) {
       const activeOwners: HousingOwnerDBO[] = source.map(
         (sourceOwner): HousingOwnerDBO => {
           const owner = existing.owners.find(
-            (owner) => owner.idpersonne === sourceOwner.idpersonne
+            (owner) => owner.id === sourceOwner.owner_uid
           ) as OwnerDBO;
           return {
             owner_id: owner.id,

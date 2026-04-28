@@ -16,6 +16,7 @@ const logger = createLogger('createOwnerLoader');
 
 const CHUNK_SIZE = 1_000;
 const UPSERT_COLUMNS = [
+  'id',
   'full_name',
   'username',
   'birth_date',
@@ -42,7 +43,7 @@ export function createOwnerLoader(
     const batch = insertBuffer.splice(0);
     if (options.dryRun) return;
     logger.debug(`Inserting ${batch.length} owners...`);
-    await Owners().insert(batch);
+    await Owners().insert(batch).onConflict('id').ignore();
     options.reporter.created(batch.length);
   }
 

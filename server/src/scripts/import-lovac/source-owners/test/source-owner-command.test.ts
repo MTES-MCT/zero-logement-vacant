@@ -20,9 +20,11 @@ import { genOwnerApi } from '~/test/testFixtures';
  * entity is a single digit character (e.g. '0'-'9') or null, not the final enum value.
  */
 interface RawSourceOwner {
+  owner_uid: string;
   idpersonne: string;
   full_name: string;
-  dgfip_address: string | null;
+  username: string | null;
+  address_dgfip: string | null;
   ownership_type: string;
   birth_date: Date | null;
   siren: string | null;
@@ -44,9 +46,11 @@ function genRawSourceOwner(idpersonne?: string): RawSourceOwner {
     null
   ]);
   return {
+    owner_uid: faker.string.uuid(),
     idpersonne: idpersonne ?? faker.string.alphanumeric(11),
     full_name: faker.person.fullName(),
-    dgfip_address: faker.location.streetAddress(),
+    username: faker.helpers.maybe(() => faker.person.lastName()) ?? null,
+    address_dgfip: faker.location.streetAddress(),
     ownership_type: 'Particulier',
     birth_date: faker.date.past(),
     siren: null,
@@ -93,7 +97,7 @@ describe('Source owner command', () => {
       expect(actual).toMatchObject<Partial<OwnerRecordDBO>>({
         idpersonne: newRaw.idpersonne,
         full_name: newRaw.full_name,
-        address_dgfip: newRaw.dgfip_address ? [newRaw.dgfip_address] : null,
+        address_dgfip: newRaw.address_dgfip ? [newRaw.address_dgfip] : null,
         kind_class: newRaw.ownership_type,
         data_source: 'lovac-2025',
         entity: newRaw.entity ? mapEntity(newRaw.entity[0]) : null
@@ -108,10 +112,10 @@ describe('Source owner command', () => {
         .first();
       expect(actual).toBeDefined();
       expect(actual).toMatchObject<Partial<OwnerRecordDBO>>({
-        id: existingOwnerApi.id,
+        id: existingRaw.owner_uid,
         full_name: existingRaw.full_name,
-        address_dgfip: existingRaw.dgfip_address
-          ? [existingRaw.dgfip_address]
+        address_dgfip: existingRaw.address_dgfip
+          ? [existingRaw.address_dgfip]
           : null,
         kind_class: existingRaw.ownership_type
       });

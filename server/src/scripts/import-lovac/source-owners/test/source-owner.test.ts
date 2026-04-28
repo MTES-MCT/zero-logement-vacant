@@ -1,4 +1,5 @@
 import { fc, test } from '@fast-check/vitest';
+import { OWNER_KIND_LABEL_VALUES } from '@zerologementvacant/models';
 
 import {
   mapEntity,
@@ -8,10 +9,12 @@ import {
 describe('SourceOwner', () => {
   describe('sourceOwnerSchema', () => {
     test.prop({
-      idpersonne: fc.stringMatching(/\S+/),
+      owner_uid: fc.uuid(),
+      idpersonne: fc.option(fc.stringMatching(/\S+/)),
       full_name: fc.stringMatching(/\S+/),
-      dgfip_address: fc.option(fc.stringMatching(/\S+/)),
-      ownership_type: fc.stringMatching(/\S+/),
+      username: fc.option(fc.stringMatching(/\S+/)),
+      address_dgfip: fc.option(fc.stringMatching(/\S+/)),
+      ownership_type: fc.option(fc.constantFrom(...OWNER_KIND_LABEL_VALUES)),
       birth_date: fc.option(fc.date({ noInvalidDate: true })),
       siren: fc.option(fc.stringMatching(/\S+/)),
       entity: fc.option(fc.stringMatching(/^[0-9]/))
@@ -28,11 +31,13 @@ describe('SourceOwner', () => {
 
   it('should parse birth date from number to date', () => {
     const actual = sourceOwnerSchema.parse({
+      owner_uid: '550e8400-e29b-41d4-a716-446655440000',
       birth_date: -698716800,
       idpersonne: 'idpersonne',
       full_name: 'full_name',
-      dgfip_address: null,
-      ownership_type: 'ownership_type',
+      username: null,
+      address_dgfip: null,
+      ownership_type: 'Particulier',
       siren: null,
       entity: null
     });
@@ -42,11 +47,13 @@ describe('SourceOwner', () => {
 
   it.skip('should parse birth date from string to date', () => {
     const actual = sourceOwnerSchema.parse({
+      owner_uid: '550e8400-e29b-41d4-a716-446655440000',
       birth_date: '1947-11-11',
       idpersonne: 'idpersonne',
       full_name: 'full_name',
-      dgfip_address: null,
-      ownership_type: 'ownership_type',
+      username: null,
+      address_dgfip: null,
+      ownership_type: 'Particulier',
       siren: null,
       entity: null
     });

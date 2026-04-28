@@ -1,7 +1,5 @@
-import { v5 as uuidv5 } from 'uuid';
 import { describe, expect, it } from 'vitest';
 import { formatOwnerApi } from '~/repositories/ownerRepository';
-import { LOVAC_NAMESPACE } from '~/scripts/import-lovac/infra';
 import { genSourceOwner } from '~/scripts/import-lovac/infra/fixtures';
 import { createNoopReporter } from '~/scripts/import-lovac/infra/reporters/noop-reporter';
 import {
@@ -23,12 +21,12 @@ describe('createOwnerTransform', () => {
       type: 'owner',
       kind: 'create',
       value: expect.objectContaining({
+        id: source.owner_uid,
         idpersonne: source.idpersonne,
         full_name: source.full_name,
         data_source: 'lovac'
       })
     });
-    expect(change.value.id).toBeDefined();
   });
 
   it('should produce an update change when the owner exists', () => {
@@ -42,7 +40,7 @@ describe('createOwnerTransform', () => {
       type: 'owner',
       kind: 'update',
       value: expect.objectContaining({
-        id: existing.id,
+        id: source.owner_uid,
         idpersonne: source.idpersonne,
         full_name: source.full_name
       })
@@ -84,14 +82,12 @@ describe('createOwnerTransform', () => {
     expect(change.value.data_source).toBe('lovac-2026');
   });
 
-  it('should produce a deterministic ID on create (same idpersonne → same id)', () => {
+  it('should use owner_uid as the id on create', () => {
     const source = genSourceOwner();
     const transform = createOwnerTransform({ reporter, abortEarly: false });
 
-    const change1 = transform({ source, existing: null });
-    const change2 = transform({ source, existing: null });
+    const change = transform({ source, existing: null });
 
-    expect(change1.value.id).toBe(change2.value.id);
-    expect(change1.value.id).toBe(uuidv5(source.idpersonne, LOVAC_NAMESPACE));
+    expect(change.value.id).toBe(source.owner_uid);
   });
 });

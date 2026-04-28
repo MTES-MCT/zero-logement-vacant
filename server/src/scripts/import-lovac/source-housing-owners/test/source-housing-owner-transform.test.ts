@@ -26,21 +26,15 @@ import { SourceHousingOwner } from '../source-housing-owner';
 
 const ADMIN_USER_ID = faker.string.uuid();
 
-function genValidIdpersonne(): string {
-  return (
-    faker.string.numeric(2) +
-    faker.string.alphanumeric({ length: 6, casing: 'upper' })
-  );
-}
-
 function makeSourceOwner(
   housingGeoCode: string,
   housingLocalId: string,
-  idpersonne: string,
+  ownerUid: string,
   rank: ActiveOwnerRank
 ): SourceHousingOwner {
   return {
-    idpersonne,
+    owner_uid: ownerUid,
+    idpersonne: faker.string.alphanumeric(8),
     idprocpte: faker.string.alphanumeric(8),
     idprodroit: faker.string.alphanumeric(8),
     rank,
@@ -63,7 +57,7 @@ describe('createHousingOwnerTransform', () => {
     it('should call reporter.failed and return []', () => {
       const spy = vi.spyOn(reporter, 'failed');
       const source: SourceHousingOwner[] = [
-        makeSourceOwner('75001', 'LOCAL001', genValidIdpersonne(), 1)
+        makeSourceOwner('75001', 'LOCAL001', faker.string.uuid(), 1)
       ];
       const enriched: EnrichedSourceHousingOwners = {
         source,
@@ -80,7 +74,7 @@ describe('createHousingOwnerTransform', () => {
       const housing = formatHousingRecordApi(genHousingApi());
       const spy = vi.spyOn(reporter, 'failed');
       const source: SourceHousingOwner[] = [
-        makeSourceOwner(housing.geo_code, housing.local_id, genValidIdpersonne(), 1)
+        makeSourceOwner(housing.geo_code, housing.local_id, faker.string.uuid(), 1)
       ];
       const enriched: EnrichedSourceHousingOwners = {
         source,
@@ -94,9 +88,9 @@ describe('createHousingOwnerTransform', () => {
 
   describe('new housing owners (no existing)', () => {
     const housing = formatHousingRecordApi(genHousingApi());
-    const owner = formatOwnerApi({ ...genOwnerApi(), idpersonne: genValidIdpersonne() });
+    const owner = formatOwnerApi(genOwnerApi());
     const source = [
-      makeSourceOwner(housing.geo_code, housing.local_id, owner.idpersonne!, 1)
+      makeSourceOwner(housing.geo_code, housing.local_id, owner.id, 1)
     ];
     const enriched: EnrichedSourceHousingOwners = {
       source,
@@ -125,8 +119,8 @@ describe('createHousingOwnerTransform', () => {
 
   describe('replacing existing housing owners', () => {
     const housing = formatHousingRecordApi(genHousingApi());
-    const existingOwner = formatOwnerApi({ ...genOwnerApi(), idpersonne: genValidIdpersonne() });
-    const newOwner = formatOwnerApi({ ...genOwnerApi(), idpersonne: genValidIdpersonne() });
+    const existingOwner = formatOwnerApi(genOwnerApi());
+    const newOwner = formatOwnerApi(genOwnerApi());
     const existingHousingOwner: HousingOwnerDBO = formatHousingOwnerApi({
       ...genHousingOwnerApi(genHousingApi(), genOwnerApi()),
       ownerId: existingOwner.id,
@@ -135,7 +129,7 @@ describe('createHousingOwnerTransform', () => {
       rank: 1
     });
     const source = [
-      makeSourceOwner(housing.geo_code, housing.local_id, newOwner.idpersonne!, 1)
+      makeSourceOwner(housing.geo_code, housing.local_id, newOwner.id, 1)
     ];
     const enriched: EnrichedSourceHousingOwners = {
       source,

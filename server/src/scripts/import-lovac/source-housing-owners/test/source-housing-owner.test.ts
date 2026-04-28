@@ -12,6 +12,7 @@ import {
 describe('SourceHousingOwner', () => {
   describe('sourceHousingOwnerSchema', () => {
     test.prop<SourceHousingOwner>({
+      owner_uid: fc.uuid(),
       geo_code: fc.string({ minLength: 5, maxLength: 5 }),
       local_id: fc.string({ minLength: 12, maxLength: 12 }),
       idpersonne: fc.string({ minLength: 8, maxLength: 8 }),

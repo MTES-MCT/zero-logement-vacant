@@ -3,7 +3,7 @@ from datetime import datetime, timezone
 
 import polars as pl
 
-LOVAC_NAMESPACE = uuid.UUID("6ba7b810-9dad-11d1-80b4-00c04fd430c8")
+from src.constants import LOVAC_NAMESPACE
 
 
 def _housing_schema() -> dict:

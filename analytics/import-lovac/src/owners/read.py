@@ -48,6 +48,6 @@ def validate_source_owners(lazy_frame: pl.LazyFrame) -> pl.LazyFrame:
 def read_existing_owners(connection_string: str) -> pl.DataFrame:
     """Read existing owners from PostgreSQL (only columns needed for join)."""
     return pl.read_database_uri(
-        "SELECT id, idpersonne, data_source FROM owners",
+        "SELECT id, idpersonne, data_source, email, phone, administrator, additional_address FROM owners",
         connection_string,
     )

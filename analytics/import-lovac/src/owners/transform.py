@@ -26,7 +26,7 @@ def map_entity(lazy_frame: pl.LazyFrame) -> pl.LazyFrame:
         pl.when(pl.col("entity").is_null())
         .then(pl.lit("personnes-physiques"))
         .otherwise(
-            pl.col("entity").str.slice(0, 1).replace_strict(
+            pl.col("entity").cast(pl.Utf8).str.slice(0, 1).replace_strict(
                 ENTITY_MAPPING, default="personnes-physiques"
             )
         )

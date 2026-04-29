@@ -208,9 +208,14 @@ def source_housing_owners(
     )
     context.log.info(f"[{department}] Loaded {existing_housing_owner_links.height} existing links")
 
+    admin_user_id = read_admin_user_id(
+        config.connection_string, config.system_account_email
+    )
+
     context.log.info(f"[{department}] Transforming housing-owners...")
-    housing_owner_rows, events = transform_housing_owners(
-        source, existing_housings, existing_owners, existing_housing_owner_links
+    housing_owner_rows, events, housing_owner_events = transform_housing_owners(
+        source, existing_housings, existing_owners, existing_housing_owner_links,
+        year=config.year, admin_user_id=admin_user_id,
     )
     context.log.info(
         f"[{department}] Links: {housing_owner_rows.height}, events: {events.height}"
@@ -218,7 +223,8 @@ def source_housing_owners(
 
     context.log.info(f"[{department}] Writing housing-owners to PostgreSQL...")
     links_written, events_count = write_housing_owners(
-        housing_owner_rows, events, config.connection_string, config.dry_run
+        housing_owner_rows, events, housing_owner_events,
+        config.connection_string, config.dry_run,
     )
     context.log.info(f"[{department}] Done: {links_written} links written, {events_count} events")
 

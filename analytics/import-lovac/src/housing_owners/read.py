@@ -78,7 +78,7 @@ def read_existing_owners_for_join(connection_string: str) -> pl.DataFrame:
     column needed for the join.
     """
     return pl.read_database_uri(
-        "SELECT id FROM owners",
+        "SELECT id, full_name FROM owners",
         connection_string,
     )
 

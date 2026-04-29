@@ -154,6 +154,10 @@ class TestCreateHousings:
         assert events["id"][0] == expected_event_id
         assert events["type"][0] == "housing:created"
         assert events["created_by"][0] == ADMIN_USER_ID
+        assert events["next_old"][0] is None
+        import json
+        next_new = json.loads(events["next_new"][0])
+        assert next_new == {"source": YEAR, "occupancy": "Vacant"}
 
         assert housing_events.height == 1
         assert housing_events["event_id"][0] == expected_event_id
@@ -277,6 +281,27 @@ class TestUpdateHousings:
             year=YEAR, admin_user_id=ADMIN_USER_ID,
         )
         assert to_create.height == 0
+
+    def test_occupancy_event_has_structured_next_old_next_new(self):
+        existing = _existing_housing(occupancy="RS", status=3, sub_status="En accompagnement")
+        _, to_update, events, _ = transform_housings(
+            _source_frame(), existing, _empty_events(),
+            year=YEAR, admin_user_id=ADMIN_USER_ID,
+        )
+        import json
+        occ_events = events.filter(pl.col("type") == "housing:occupancy-updated")
+        assert occ_events.height == 1
+        next_old = json.loads(occ_events["next_old"][0])
+        next_new = json.loads(occ_events["next_new"][0])
+        assert next_old == {"occupancy": "Résidence secondaire non louée"}
+        assert next_new == {"occupancy": "Vacant"}
+
+        status_events = events.filter(pl.col("type") == "housing:status-updated")
+        assert status_events.height == 1
+        next_old = json.loads(status_events["next_old"][0])
+        next_new = json.loads(status_events["next_new"][0])
+        assert next_old == {"status": "Suivi en cours", "subStatus": "En accompagnement"}
+        assert next_new == {"status": "Non suivi", "subStatus": None}
 
     def test_admin_event_after_user_event_resets(self):
         """When last event is by admin (even if earlier ones are by user), reset."""

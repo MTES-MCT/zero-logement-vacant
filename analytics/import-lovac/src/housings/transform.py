@@ -1,9 +1,10 @@
+import json
 import uuid
 from datetime import datetime, timezone
 
 import polars as pl
 
-from src.constants import LOVAC_NAMESPACE
+from src.constants import LOVAC_NAMESPACE, OCCUPANCY_LABELS, HOUSING_STATUS_LABELS
 
 
 def _housing_schema() -> dict:
@@ -59,8 +60,8 @@ def _events_schema() -> dict:
     return {
         "id": pl.Utf8,
         "type": pl.Utf8,
-        "old": pl.Utf8,
-        "new": pl.Utf8,
+        "next_old": pl.Utf8,
+        "next_new": pl.Utf8,
         "created_by": pl.Utf8,
         "created_at": pl.Datetime,
     }
@@ -188,8 +189,8 @@ def _build_creates(
             {
                 "id": event_id,
                 "type": "housing:created",
-                "old": None,
-                "new": None,
+                "next_old": None,
+                "next_new": json.dumps({"source": year, "occupancy": "Vacant"}),
                 "created_by": admin_user_id,
                 "created_at": now,
             }
@@ -317,8 +318,8 @@ def _build_updates(
                 {
                     "id": event_id,
                     "type": "housing:occupancy-updated",
-                    "old": str(existing_occupancy),
-                    "new": str(occupancy),
+                    "next_old": json.dumps({"occupancy": OCCUPANCY_LABELS.get(str(existing_occupancy), str(existing_occupancy))}),
+                    "next_new": json.dumps({"occupancy": OCCUPANCY_LABELS.get(str(occupancy), str(occupancy))}),
                     "created_by": admin_user_id,
                     "created_at": now,
                 }
@@ -342,8 +343,8 @@ def _build_updates(
                 {
                     "id": event_id,
                     "type": "housing:status-updated",
-                    "old": str(existing_status),
-                    "new": str(status),
+                    "next_old": json.dumps({"status": HOUSING_STATUS_LABELS.get(existing_status, str(existing_status)), "subStatus": existing_sub_status}),
+                    "next_new": json.dumps({"status": HOUSING_STATUS_LABELS.get(status, str(status)), "subStatus": sub_status}),
                     "created_by": admin_user_id,
                     "created_at": now,
                 }

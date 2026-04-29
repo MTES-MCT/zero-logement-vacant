@@ -250,13 +250,19 @@ def existing_housings(
     )
     context.log.info(f"[{department}] Found {housings_missing.height} housings to reset")
 
+    admin_user_id = read_admin_user_id(
+        config.connection_string, config.system_account_email
+    )
+
     context.log.info(f"[{department}] Transforming existing housings...")
-    to_update, events = transform_existing_housings(housings_missing)
+    to_update, events, housing_events = transform_existing_housings(
+        housings_missing, year=config.year, admin_user_id=admin_user_id
+    )
     context.log.info(f"[{department}] To update: {to_update.height}, events: {events.height}")
 
     context.log.info(f"[{department}] Writing updates to PostgreSQL...")
     updated, events_count = write_existing_housing_updates(
-        to_update, events, config.connection_string, config.dry_run
+        to_update, events, housing_events, config.connection_string, config.dry_run
     )
     context.log.info(f"[{department}] Done: {updated} updated, {events_count} events")
 

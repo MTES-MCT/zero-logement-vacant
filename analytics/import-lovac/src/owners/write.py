@@ -67,8 +67,8 @@ def write_owners(
                 cursor.execute("CREATE TEMP TABLE stg_owners_create (LIKE owners INCLUDING DEFAULTS)")
                 _copy_to_staging(renamed, "stg_owners_create", STAGING_COLUMNS, cursor)
                 cursor.execute("""
-                    INSERT INTO owners (id, idpersonne, full_name, username, address_dgfip, birth_date, siren, kind_class, data_source)
-                    SELECT id, idpersonne, full_name, username, address_dgfip, birth_date, siren, kind_class, data_source
+                    INSERT INTO owners (id, idpersonne, full_name, username, address_dgfip, birth_date, siren, kind_class, data_source, created_at, updated_at)
+                    SELECT id, idpersonne, full_name, username, address_dgfip, birth_date, siren, kind_class, data_source, now(), now()
                     FROM stg_owners_create
                     ON CONFLICT (id) DO NOTHING
                 """)
@@ -90,12 +90,12 @@ def write_owners(
                         UPDATE owners SET
                             id = s.id,
                             full_name = s.full_name,
-                            username = s.username,
-                            birth_date = s.birth_date,
-                            siren = s.siren,
+                            username = COALESCE(s.username, owners.username),
+                            birth_date = COALESCE(s.birth_date, owners.birth_date),
+                            siren = COALESCE(s.siren, owners.siren),
                             address_dgfip = s.address_dgfip,
                             kind_class = s.kind_class,
-                            data_source = s.data_source,
+                            data_source = COALESCE(s.data_source, owners.data_source),
                             updated_at = now()
                         FROM stg_owners_update s
                         WHERE owners.idpersonne = s.idpersonne

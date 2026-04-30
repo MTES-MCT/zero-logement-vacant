@@ -410,6 +410,10 @@ export const GROUP_OWNER_WORKSHEET_COLUMNS = [
     header: 'Date de naissance du propriétaire',
     key: 'ownerBirthDate' as const
   },
+  {
+    header: 'Commune de résidence',
+    key: 'ownerBanCity' as const
+  },
   OWNER_LOCATION_COLUMN
 ];
 
@@ -423,6 +427,7 @@ export async function createGroupHousingWorksheet(
     toOwnerRow: (housing) => ({
       ownerName: housing.owner?.fullName,
       ownerBirthDate: housing.owner?.birthDate,
+      ownerBanCity: housing.owner?.banAddress?.city,
       ownerRelativeLocation: housing.ownerRelativeLocation
         ? RELATIVE_LOCATION_LABELS[housing.ownerRelativeLocation]
         : null

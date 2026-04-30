@@ -34,6 +34,11 @@
             "glob": "*.otf",
             "input": "packages/draft/src/fonts",
             "output": "./fonts"
+          },
+          {
+            "glob": "openapi.yaml",
+            "input": "{projectRoot}/src/infra",
+            "output": "./"
           }
         ],
         "esbuildOptions": {

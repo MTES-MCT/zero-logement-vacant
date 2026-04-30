@@ -1,0 +1,3292 @@
+openapi: '3.2.0'
+
+info:
+  title: Zéro Logement Vacant API
+  version: '1.0.0'
+  description: |
+    REST API for the Zéro Logement Vacant application (French vacant housing tracking platform).
+
+    ## Authentication
+
+    The API uses JWT (JSON Web Token) authentication. To access protected endpoints:
+
+    1. Authenticate via `POST /api/authenticate`
+    2. Retrieve the JWT token from the response
+    3. Include the token in the `Authorization: Bearer <token>` header
+
+    ## Environments
+
+    - **Production**: https://api.zerologementvacant.beta.gouv.fr
+    - **Staging**: https://api.zerologementvacant-staging.incubateur.net
+  contact:
+    name: ZLV Team
+    email: contact@zerologementvacant.beta.gouv.fr
+  license:
+    name: AGPL-3.0
+    url: https://github.com/MTES-MCT/zero-logement-vacant/blob/main/LICENSE
+
+servers:
+  - url: /api
+    description: API endpoints
+  - url: /
+    description: Root (health check)
+
+security:
+  - bearerAuth: []
+
+tags:
+  - name: Authentication
+    description: Authentication and session management
+  - name: Users
+    description: User management
+  - name: Housing
+    description: Vacant housing management
+  - name: Owners
+    description: Property owner management
+  - name: Campaigns
+    description: Contact campaign management
+  - name: Events
+    description: Event history
+  - name: Groups
+    description: Housing groups
+  - name: Establishments
+    description: Establishments (local authorities)
+  - name: Geo
+    description: Geographic data (perimeters, localities)
+  - name: Settings
+    description: User settings
+  - name: Files
+    description: File management
+  - name: Statistics
+    description: Statistics and dashboards
+  - name: Health
+    description: Service health check
+
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+      description: JWT token obtained via /api/authenticate
+
+  parameters:
+    IdParam:
+      in: path
+      name: id
+      required: true
+      schema:
+        type: string
+        format: uuid
+
+  schemas:
+    # ── Core entities ─────────────────────────────────────────────────────────
+
+    Housing:
+      type: object
+      description: Logement vacant suivi par ZLV
+      required:
+        [
+          id,
+          invariant,
+          localId,
+          rawAddress,
+          geoCode,
+          uncomfortable,
+          housingKind,
+          status,
+          occupancy
+        ]
+      properties:
+        id:
+          type: string
+          format: uuid
+          example: 123e4567-e89b-12d3-a456-426614174000
+        invariant:
+          type: string
+          description: Identifiant invariant fiscal
+          example: '1234567890'
+        localId:
+          type: string
+          description: Identifiant local fiscal (12 caractères)
+          example: '123456789012'
+        rawAddress:
+          type: array
+          items:
+            type: string
+          description: Adresse brute
+          example: ['12 RUE DE LA PAIX', '75002 PARIS']
+        geoCode:
+          type: string
+          description: Code INSEE de la commune
+          example: '75102'
+        campaignIds:
+          type: array
+          items:
+            type: string
+            format: uuid
+          nullable: true
+          description: IDs des campagnes associées
+        longitude:
+          type: number
+          nullable: true
+          example: 2.3522
+        latitude:
+          type: number
+          nullable: true
+          example: 48.8566
+        cadastralClassification:
+          type: integer
+          enum: [1, 2, 3, 4, 5, 6, 7, 8]
+          nullable: true
+          description: Classification cadastrale
+          example: 4
+        cadastralReference:
+          type: string
+          nullable: true
+          description: Référence cadastrale
+          example: 000AB0123
+        uncomfortable:
+          type: boolean
+          description: Logement inconfortable
+          example: false
+        vacancyStartYear:
+          type: integer
+          nullable: true
+          description: Année de début de vacance
+          example: 2020
+        housingKind:
+          type: string
+          enum: [APPART, MAISON]
+          description: Type de logement
+          example: APPART
+        roomsCount:
+          type: integer
+          nullable: true
+          description: Nombre de pièces
+          example: 3
+        livingArea:
+          type: number
+          nullable: true
+          description: Surface habitable en m²
+          example: 65.5
+        buildingId:
+          type: string
+          nullable: true
+          description: ID du bâtiment
+        buildingYear:
+          type: integer
+          nullable: true
+          description: Année de construction
+          example: 1920
+        taxed:
+          type: boolean
+          nullable: true
+          description: Soumis à la taxe sur les logements vacants
+          example: true
+        dataYears:
+          type: array
+          items:
+            type: integer
+          deprecated: true
+          description: Années des données (deprecated, voir dataFileYears)
+        dataFileYears:
+          type: array
+          items:
+            type: string
+          description: Fichiers sources par année
+        beneficiaryCount:
+          type: integer
+          nullable: true
+          description: Nombre de bénéficiaires
+        buildingLocation:
+          type: string
+          nullable: true
+          description: Emplacement dans le bâtiment
+        rentalValue:
+          type: number
+          nullable: true
+          description: Valeur locative
+        ownershipKind:
+          type: string
+          nullable: true
+          description: Type de propriété
+        status:
+          type: integer
+          enum: [0, 1, 2, 3, 4, 5]
+          description: '0=Non suivi, 1=En attente de retour, 2=Premier contact, 3=Suivi en cours, 4=Suivi terminé, 5=Suivi bloqué'
+          example: 0
+        subStatus:
+          type: string
+          nullable: true
+          description: Sous-statut détaillé
+          example: En attente de réponse
+        actualEnergyConsumption:
+          type: string
+          enum: [A, B, C, D, E, F, G]
+          nullable: true
+          description: "Classe énergétique DPE (modifiable par l'utilisateur)"
+          example: D
+        energyConsumption:
+          type: string
+          enum: [A, B, C, D, E, F, G]
+          nullable: true
+          deprecated: true
+          description: Utiliser BuildingDTO.dpe.class
+        energyConsumptionAt:
+          type: string
+          format: date-time
+          nullable: true
+          deprecated: true
+          description: Utiliser BuildingDTO.dpe.doneAt
+        occupancy:
+          type: string
+          enum: [V, L, B, RS, P, N, T, D, G, F, R, U, X, A, inconnu]
+          description: 'V=Vacant, L=Loué, B=Bail, RS=Résidence secondaire, P=Propriétaire, N=Non vacant, etc.'
+          example: V
+        occupancyIntended:
+          type: string
+          enum: [V, L, B, RS, P, N, T, D, G, F, R, U, X, A, inconnu]
+          nullable: true
+          description: Occupation visée
+        source:
+          type: string
+          enum: [lovac, datafoncier-manual, datafoncier-import]
+          nullable: true
+          description: Source des données
+        owner:
+          $ref: '#/components/schemas/Owner'
+        lastMutationType:
+          type: string
+          nullable: true
+          description: Type de dernière mutation
+        lastMutationDate:
+          type: string
+          format: date
+          nullable: true
+          description: Date de dernière mutation
+        lastTransactionDate:
+          type: string
+          format: date
+          nullable: true
+          description: Date de dernière transaction
+        lastTransactionValue:
+          type: number
+          nullable: true
+          description: Valeur de dernière transaction en euros
+        plotId:
+          type: string
+          nullable: true
+          description: ID de la parcelle
+        plotArea:
+          type: number
+          nullable: true
+          description: Surface de la parcelle en m²
+
+    HousingUpdatePayload:
+      type: object
+      description: Données pour mettre à jour un logement
+      required: [status, occupancy, actualEnergyConsumption]
+      properties:
+        status:
+          type: integer
+          enum: [0, 1, 2, 3, 4, 5]
+          description: Nouveau statut de suivi
+        subStatus:
+          type: string
+          nullable: true
+          description: Sous-statut détaillé
+        occupancy:
+          type: string
+          enum: [V, L, B, RS, P, N, T, D, G, F, R, U, X, A, inconnu]
+          description: Occupation actuelle
+        occupancyIntended:
+          type: string
+          enum: [V, L, B, RS, P, N, T, D, G, F, R, U, X, A, inconnu]
+          nullable: true
+          description: Occupation visée
+        actualEnergyConsumption:
+          type: string
+          enum: [A, B, C, D, E, F, G]
+          nullable: true
+          description: Classe énergétique DPE
+
+    HousingBatchUpdatePayload:
+      type: object
+      description: Données pour mettre à jour plusieurs logements
+      required: [filters]
+      properties:
+        filters:
+          $ref: '#/components/schemas/HousingFilters'
+        occupancy:
+          type: string
+          enum: [V, L, B, RS, P, N, T, D, G, F, R, U, X, A, inconnu]
+        occupancyIntended:
+          type: string
+          enum: [V, L, B, RS, P, N, T, D, G, F, R, U, X, A, inconnu]
+        status:
+          type: integer
+          enum: [0, 1, 2, 3, 4, 5]
+        subStatus:
+          type: string
+        note:
+          type: string
+          description: Note à ajouter aux logements
+        precisions:
+          type: array
+          items:
+            type: string
+            format: uuid
+          description: IDs des précisions à associer
+        documents:
+          type: array
+          items:
+            type: string
+            format: uuid
+          description: IDs des documents à associer
+
+    HousingFilters:
+      type: object
+      description: Filtres de recherche de logements
+      properties:
+        establishmentIds:
+          type: array
+          items:
+            type: string
+            format: uuid
+        groupIds:
+          type: array
+          items:
+            type: string
+            format: uuid
+        campaignIds:
+          type: array
+          items:
+            type: string
+            format: uuid
+        status:
+          type: array
+          items:
+            type: integer
+            enum: [0, 1, 2, 3, 4, 5]
+        occupancies:
+          type: array
+          items:
+            type: string
+        energyConsumption:
+          type: array
+          items:
+            type: string
+            enum: [A, B, C, D, E, F, G]
+        housingKinds:
+          type: array
+          items:
+            type: string
+            enum: [APPART, MAISON]
+        query:
+          type: string
+          description: Recherche textuelle (adresse, propriétaire...)
+
+    HousingCount:
+      type: object
+      description: Comptage de logements et propriétaires
+      required: [housing, owners]
+      properties:
+        housing:
+          type: integer
+          description: Nombre de logements
+          example: 1234
+        owners:
+          type: integer
+          description: Nombre de propriétaires uniques
+          example: 987
+
+    Owner:
+      type: object
+      required: [id, fullName]
+      properties:
+        id:
+          type: string
+          format: uuid
+          example: 123e4567-e89b-12d3-a456-426614174001
+        fullName:
+          type: string
+          example: DUPONT Jean
+        rawAddress:
+          type: array
+          items:
+            type: string
+          nullable: true
+          example: ['15 AVENUE VICTOR HUGO', '75016 PARIS']
+        email:
+          type: string
+          format: email
+          nullable: true
+          example: jean.dupont@email.com
+        phone:
+          type: string
+          nullable: true
+          example: '+33612345678'
+        birthDate:
+          type: string
+          format: date
+          nullable: true
+          example: '1965-03-15'
+        kind:
+          type: string
+          enum:
+            [
+              particulier,
+              sci-copro,
+              promoteur,
+              etat-collectivite,
+              bailleur-social,
+              autres
+            ]
+          nullable: true
+          example: particulier
+        banAddress:
+          $ref: '#/components/schemas/Address'
+        createdAt:
+          type: string
+          format: date-time
+        updatedAt:
+          type: string
+          format: date-time
+          nullable: true
+
+    OwnerComplete:
+      type: object
+      description: Propriétaire complet avec tous les champs
+      required: [id, fullName]
+      properties:
+        id:
+          type: string
+          format: uuid
+        idpersonne:
+          type: string
+          nullable: true
+          description: Identifiant personne (source fiscale)
+        rawAddress:
+          type: array
+          items:
+            type: string
+          nullable: true
+        fullName:
+          type: string
+          example: DUPONT Jean
+        administrator:
+          type: string
+          nullable: true
+          description: Administrateur de bien
+        birthDate:
+          type: string
+          format: date
+          nullable: true
+        email:
+          type: string
+          format: email
+          nullable: true
+        phone:
+          type: string
+          nullable: true
+        banAddress:
+          $ref: '#/components/schemas/Address'
+        additionalAddress:
+          type: string
+          nullable: true
+        kind:
+          type: string
+          enum:
+            [
+              particulier,
+              sci-copro,
+              promoteur,
+              etat-collectivite,
+              bailleur-social,
+              autres
+            ]
+          nullable: true
+          description: Type de propriétaire
+        siren:
+          type: string
+          nullable: true
+          description: SIREN pour les personnes morales
+        createdAt:
+          type: string
+          format: date-time
+          nullable: true
+        updatedAt:
+          type: string
+          format: date-time
+          nullable: true
+
+    OwnerCreationPayload:
+      type: object
+      description: Données pour créer un propriétaire
+      required: [fullName]
+      properties:
+        fullName:
+          type: string
+          example: DUPONT Jean
+        birthDate:
+          type: string
+          format: date
+          nullable: true
+        email:
+          type: string
+          format: email
+          nullable: true
+        phone:
+          type: string
+          nullable: true
+        rawAddress:
+          type: array
+          items:
+            type: string
+
+    OwnerUpdatePayload:
+      type: object
+      description: Données pour mettre à jour un propriétaire
+      required: [fullName]
+      properties:
+        fullName:
+          type: string
+        birthDate:
+          type: string
+          format: date
+          nullable: true
+        email:
+          type: string
+          format: email
+          nullable: true
+        phone:
+          type: string
+          nullable: true
+        additionalAddress:
+          type: string
+          nullable: true
+        banAddress:
+          $ref: '#/components/schemas/AddressPayload'
+
+    OwnerFilters:
+      type: object
+      description: Filtres de recherche de propriétaires
+      properties:
+        search:
+          type: string
+          description: Recherche textuelle (nom, adresse)
+        idpersonne:
+          oneOf:
+            - type: boolean
+            - type: array
+              items:
+                type: string
+          description: Filtrer par identifiant personne
+
+    User:
+      type: object
+      description: Utilisateur de la plateforme ZLV
+      required: [id, email, role, activatedAt, updatedAt]
+      properties:
+        id:
+          type: string
+          format: uuid
+          example: 123e4567-e89b-12d3-a456-426614174002
+        email:
+          type: string
+          format: email
+          example: user@collectivite.fr
+        firstName:
+          type: string
+          nullable: true
+          example: Marie
+        lastName:
+          type: string
+          nullable: true
+          example: MARTIN
+        phone:
+          type: string
+          nullable: true
+          example: '+33123456789'
+        position:
+          type: string
+          nullable: true
+          example: Chargé de mission habitat
+        timePerWeek:
+          type: string
+          nullable: true
+          enum:
+            [
+              'Moins de 0,5 jour',
+              '0,5 jour',
+              '1 jour',
+              '2 jours',
+              'Plus de 2 jours'
+            ]
+          description: Temps consacré à ZLV par semaine
+          example: 1 jour
+        establishmentId:
+          type: string
+          format: uuid
+          nullable: true
+        role:
+          type: integer
+          enum: [0, 1, 2]
+          description: '0=USUAL (utilisateur standard), 1=ADMIN (administrateur), 2=VISITOR (visiteur)'
+          example: 0
+        activatedAt:
+          type: string
+          format: date-time
+          description: "Date d'activation du compte"
+        lastAuthenticatedAt:
+          type: string
+          format: date-time
+          nullable: true
+          description: Dernière connexion
+        suspendedAt:
+          type: string
+          format: date-time
+          nullable: true
+          description: Date de suspension (null si actif)
+        suspendedCause:
+          type: string
+          nullable: true
+          description: Cause(s) de suspension
+          example: droits utilisateur expires
+        updatedAt:
+          type: string
+          format: date-time
+          description: Dernière mise à jour
+        kind:
+          type: string
+          nullable: true
+          description: "Type d'utilisateur"
+
+    UserCreationPayload:
+      type: object
+      description: Données pour créer un utilisateur
+      required: [email]
+      properties:
+        email:
+          type: string
+          format: email
+          example: nouveau@collectivite.fr
+        firstName:
+          type: string
+          nullable: true
+          example: Jean
+        lastName:
+          type: string
+          nullable: true
+          example: DUPONT
+        phone:
+          type: string
+          nullable: true
+          example: '+33612345678'
+        position:
+          type: string
+          nullable: true
+          example: Chargé de mission habitat
+        timePerWeek:
+          type: string
+          nullable: true
+          enum:
+            [
+              'Moins de 0,5 jour',
+              '0,5 jour',
+              '1 jour',
+              '2 jours',
+              'Plus de 2 jours'
+            ]
+
+    UserUpdatePayload:
+      type: object
+      description: Données pour mettre à jour un utilisateur
+      properties:
+        firstName:
+          type: string
+          nullable: true
+          example: Jean
+        lastName:
+          type: string
+          nullable: true
+          example: DUPONT
+        phone:
+          type: string
+          nullable: true
+          example: '+33612345678'
+        position:
+          type: string
+          nullable: true
+          example: Chargé de mission habitat
+        timePerWeek:
+          type: string
+          nullable: true
+          enum:
+            [
+              'Moins de 0,5 jour',
+              '0,5 jour',
+              '1 jour',
+              '2 jours',
+              'Plus de 2 jours'
+            ]
+        password:
+          type: object
+          description: Changement de mot de passe
+          required: [before, after]
+          properties:
+            before:
+              type: string
+              description: Ancien mot de passe
+            after:
+              type: string
+              description: Nouveau mot de passe
+
+    UserFilters:
+      type: object
+      description: "Filtres de recherche d'utilisateurs"
+      properties:
+        establishments:
+          type: array
+          items:
+            type: string
+            format: uuid
+          description: IDs des établissements
+
+    Establishment:
+      type: object
+      required: [id, name, siren, kind]
+      properties:
+        id:
+          type: string
+          format: uuid
+          example: 123e4567-e89b-12d3-a456-426614174003
+        name:
+          type: string
+          example: Communauté de communes du Val de Loire
+        shortName:
+          type: string
+          example: CC Val de Loire
+        siren:
+          type: string
+          pattern: '^[0-9]{9}$'
+          example: '200012345'
+        kind:
+          type: string
+          enum: [Commune, CA, CC, CU, ME, DEP, REG, ASSO, PETR, SIVOM]
+          example: CC
+        available:
+          type: boolean
+          description: Available for registration
+          example: true
+        geoCodes:
+          type: array
+          items:
+            type: string
+          example: ['37001', '37002', '37003']
+
+    EstablishmentComplete:
+      type: object
+      description: Établissement (collectivité) complet
+      required: [id, name, shortName, siren, available, geoCodes, kind, source]
+      properties:
+        id:
+          type: string
+          format: uuid
+        name:
+          type: string
+          example: Communauté de communes du Val de Loire
+        shortName:
+          type: string
+          example: CC Val de Loire
+        siren:
+          type: string
+          pattern: '^[0-9]{9}$'
+          example: '200012345'
+        available:
+          type: boolean
+          description: Disponible pour inscription
+        geoCodes:
+          type: array
+          items:
+            type: string
+          description: Codes INSEE des communes
+          example: ['37001', '37002']
+        kind:
+          type: string
+          enum:
+            - ASSO
+            - CA
+            - CC
+            - Commune
+            - CTU
+            - CU
+            - DEP
+            - ME
+            - PETR
+            - REG
+            - SDED
+            - SDER
+            - "Service déconcentré de l'État à compétence (inter) départementale"
+            - SIVOM
+          description: "Type d'établissement"
+        source:
+          type: string
+          enum: [api-geo, ods, manual]
+          description: Source des données
+        users:
+          type: array
+          items:
+            $ref: '#/components/schemas/User'
+          description: Utilisateurs (si autorisé)
+
+    EstablishmentFilters:
+      type: object
+      description: "Filtres de recherche d'établissements"
+      properties:
+        query:
+          type: string
+          description: Recherche par nom ou SIREN
+        available:
+          type: boolean
+          description: Filtrer les établissements disponibles
+
+    Campaign:
+      type: object
+      required: [id, title, status, createdAt]
+      properties:
+        id:
+          type: string
+          format: uuid
+          example: 123e4567-e89b-12d3-a456-426614174004
+        title:
+          type: string
+          example: Campagne courrier janvier 2024
+        description:
+          type: string
+          example: Première relance des propriétaires de logements vacants
+        status:
+          type: string
+          enum: [draft, sending, in-progress, archived]
+          example: draft
+        createdAt:
+          type: string
+          format: date-time
+        validatedAt:
+          type: string
+          format: date-time
+          nullable: true
+        sentAt:
+          type: string
+          format: date-time
+          nullable: true
+        archivedAt:
+          type: string
+          format: date-time
+          nullable: true
+        groupId:
+          type: string
+          format: uuid
+          nullable: true
+
+    CampaignComplete:
+      type: object
+      description: Campagne de contact complète
+      required: [id, title, description, status, filters, createdAt]
+      properties:
+        id:
+          type: string
+          format: uuid
+        title:
+          type: string
+          example: Campagne courrier janvier 2024
+        description:
+          type: string
+        status:
+          type: string
+          enum: [draft, sending, in-progress, archived]
+          description: "draft=Envoi en attente, sending=En cours d'envoi, in-progress=Envoyée, archived=Archivée"
+        filters:
+          $ref: '#/components/schemas/HousingFilters'
+        file:
+          type: string
+          nullable: true
+          description: Fichier de campagne
+        createdAt:
+          type: string
+          format: date-time
+        validatedAt:
+          type: string
+          format: date-time
+          nullable: true
+        exportedAt:
+          type: string
+          format: date-time
+          nullable: true
+        sentAt:
+          type: string
+          format: date-time
+          nullable: true
+        archivedAt:
+          type: string
+          format: date-time
+          nullable: true
+        confirmedAt:
+          type: string
+          format: date-time
+          nullable: true
+        groupId:
+          type: string
+          format: uuid
+          nullable: true
+
+    CampaignCreationPayload:
+      type: object
+      description: Données pour créer une campagne
+      required: [title, description, housing]
+      properties:
+        title:
+          type: string
+          example: Nouvelle campagne
+        description:
+          type: string
+        housing:
+          type: object
+          required: [all, ids, filters]
+          properties:
+            all:
+              type: boolean
+              description: Inclure tous les logements correspondant aux filtres
+            ids:
+              type: array
+              items:
+                type: string
+                format: uuid
+              description: IDs de logements spécifiques
+            filters:
+              $ref: '#/components/schemas/HousingFilters'
+
+    CampaignUpdatePayload:
+      type: object
+      description: Données pour mettre à jour une campagne
+      properties:
+        title:
+          type: string
+        description:
+          type: string
+        status:
+          type: string
+          enum: [draft, sending, in-progress, archived]
+        file:
+          type: string
+        sentAt:
+          type: string
+          format: date-time
+
+    Group:
+      type: object
+      required: [id, title, housingCount, ownerCount, createdAt]
+      properties:
+        id:
+          type: string
+          format: uuid
+        title:
+          type: string
+          example: Logements prioritaires centre-ville
+        description:
+          type: string
+          example: Logements vacants depuis plus de 5 ans en centre-ville
+        housingCount:
+          type: integer
+          example: 42
+        ownerCount:
+          type: integer
+          example: 38
+        createdAt:
+          type: string
+          format: date-time
+        archivedAt:
+          type: string
+          format: date-time
+          nullable: true
+
+    GroupComplete:
+      type: object
+      description: Groupe de logements complet
+      required: [id, title, description, housingCount, ownerCount, createdAt]
+      properties:
+        id:
+          type: string
+          format: uuid
+        title:
+          type: string
+          example: Logements prioritaires centre-ville
+        description:
+          type: string
+        housingCount:
+          type: integer
+          example: 42
+        ownerCount:
+          type: integer
+          example: 38
+        createdAt:
+          type: string
+          format: date-time
+        createdBy:
+          $ref: '#/components/schemas/User'
+        archivedAt:
+          type: string
+          format: date-time
+          nullable: true
+
+    GroupPayload:
+      type: object
+      description: Données pour créer ou modifier un groupe
+      required: [title, description, housing]
+      properties:
+        title:
+          type: string
+          example: Mon groupe de logements
+        description:
+          type: string
+        housing:
+          type: object
+          required: [all, ids, filters]
+          properties:
+            all:
+              type: boolean
+            ids:
+              type: array
+              items:
+                type: string
+                format: uuid
+            filters:
+              $ref: '#/components/schemas/HousingFilters'
+
+    Address:
+      type: object
+      required: [label, postalCode, city]
+      properties:
+        banId:
+          type: string
+          description: BAN (Base Adresse Nationale) identifier
+          example: 75102_1234_00012
+        label:
+          type: string
+          example: '12 Rue de la Paix, 75002 Paris'
+        houseNumber:
+          type: string
+          example: '12'
+        street:
+          type: string
+          example: Rue de la Paix
+        postalCode:
+          type: string
+          example: '75002'
+        city:
+          type: string
+          example: Paris
+        cityCode:
+          type: string
+          description: INSEE code
+          example: '75102'
+        latitude:
+          type: number
+          example: 48.8688
+        longitude:
+          type: number
+          example: 2.3306
+        score:
+          type: number
+          description: Geocoding confidence score (0-1)
+          example: 0.95
+
+    AddressPayload:
+      type: object
+      required: [label, postalCode, city]
+      properties:
+        banId:
+          type: string
+        label:
+          type: string
+        houseNumber:
+          type: string
+        street:
+          type: string
+        postalCode:
+          type: string
+        city:
+          type: string
+        cityCode:
+          type: string
+        latitude:
+          type: number
+        longitude:
+          type: number
+
+    Locality:
+      type: object
+      required: [geoCode, name, taxKind]
+      properties:
+        geoCode:
+          type: string
+          description: INSEE code
+          example: '75102'
+        name:
+          type: string
+          example: Paris 2e Arrondissement
+        kind:
+          type: string
+          enum: [ACV, PVD]
+          nullable: true
+          description: ACV=Action Cœur de Ville, PVD=Petites Villes de Demain
+        taxKind:
+          type: string
+          enum: [TLV, THLV, None]
+          description: Tax type applicable
+
+    LocalityComplete:
+      type: object
+      description: Commune avec informations fiscales
+      required: [geoCode, name, taxKind]
+      properties:
+        geoCode:
+          type: string
+          description: Code INSEE
+          example: '75102'
+        name:
+          type: string
+          example: Paris 2e Arrondissement
+        kind:
+          type: string
+          enum: [ACV, PVD]
+          nullable: true
+          description: ACV=Action Cœur de Ville, PVD=Petites Villes de Demain
+        taxKind:
+          type: string
+          enum: [TLV, THLV, None]
+          description: Type de taxe sur les logements vacants
+        taxRate:
+          type: number
+          description: Taux de taxe applicable (%)
+          example: 17
+
+    GeoPerimeter:
+      type: object
+      description: Périmètre géographique personnalisé
+      required: [id, name, kind, geometry]
+      properties:
+        id:
+          type: string
+          format: uuid
+        name:
+          type: string
+          example: Centre-ville historique
+        kind:
+          type: string
+          example: Quartier prioritaire
+        geometry:
+          type: object
+          description: Géométrie GeoJSON MultiPolygon
+          properties:
+            type:
+              type: string
+              enum: [MultiPolygon]
+            coordinates:
+              type: array
+              items:
+                type: array
+                items:
+                  type: array
+                  items:
+                    type: array
+                    items:
+                      type: number
+
+    Document:
+      type: object
+      required: [id, filename, url, contentType, sizeBytes, createdAt]
+      properties:
+        id:
+          type: string
+          format: uuid
+        filename:
+          type: string
+          example: courrier_relance.pdf
+        url:
+          type: string
+          format: uri
+          description: Pre-signed download URL
+        contentType:
+          type: string
+          example: application/pdf
+        sizeBytes:
+          type: integer
+          example: 102400
+        createdAt:
+          type: string
+          format: date-time
+        creator:
+          $ref: '#/components/schemas/User'
+
+    DocumentComplete:
+      type: object
+      description: Document attaché à un logement
+      required:
+        [
+          id,
+          filename,
+          url,
+          contentType,
+          sizeBytes,
+          createdAt,
+          establishmentId,
+          creator
+        ]
+      properties:
+        id:
+          type: string
+          format: uuid
+        filename:
+          type: string
+          example: courrier_relance.pdf
+        url:
+          type: string
+          format: uri
+          description: URL de téléchargement pré-signée
+        contentType:
+          type: string
+          example: application/pdf
+        sizeBytes:
+          type: integer
+          example: 102400
+          description: Taille en octets
+        createdAt:
+          type: string
+          format: date-time
+        updatedAt:
+          type: string
+          format: date-time
+          nullable: true
+        establishmentId:
+          type: string
+          format: uuid
+        creator:
+          $ref: '#/components/schemas/User'
+
+    DocumentPayload:
+      type: object
+      description: Données pour modifier un document
+      required: [filename]
+      properties:
+        filename:
+          type: string
+          example: nouveau_nom.pdf
+
+    FileUpload:
+      type: object
+      description: Fichier uploadé
+      required: [id, type, url, content]
+      properties:
+        id:
+          type: string
+          format: uuid
+        type:
+          type: string
+          description: Type MIME
+          example: image/png
+        url:
+          type: string
+          format: uri
+        content:
+          type: string
+          description: Contenu encodé
+
+    Note:
+      type: object
+      required: [id, content, createdAt]
+      properties:
+        id:
+          type: string
+          format: uuid
+        content:
+          type: string
+          example: Propriétaire contacté par téléphone, RDV prévu le 15/03
+        noteKind:
+          type: string
+          example: Suivi
+        createdAt:
+          type: string
+          format: date-time
+        updatedAt:
+          type: string
+          format: date-time
+          nullable: true
+        creator:
+          $ref: '#/components/schemas/User'
+
+    NoteComplete:
+      type: object
+      description: Note sur un logement
+      required: [id, content, noteKind, createdBy, createdAt, creator]
+      properties:
+        id:
+          type: string
+          format: uuid
+        content:
+          type: string
+          example: Propriétaire contacté par téléphone, RDV prévu le 15/03
+        noteKind:
+          type: string
+          example: Suivi
+        createdBy:
+          type: string
+          format: uuid
+        createdAt:
+          type: string
+          format: date-time
+        updatedAt:
+          type: string
+          format: date-time
+          nullable: true
+        creator:
+          $ref: '#/components/schemas/User'
+
+    NotePayload:
+      type: object
+      description: Données pour créer ou modifier une note
+      required: [content]
+      properties:
+        content:
+          type: string
+          minLength: 1
+
+    Precision:
+      type: object
+      description: Précision sur un logement
+      required: [id, label]
+      properties:
+        id:
+          type: string
+          format: uuid
+        label:
+          type: string
+          example: Logement insalubre
+        category:
+          type: string
+          example: État du logement
+
+    Settings:
+      type: object
+      properties:
+        inbox:
+          type: object
+          properties:
+            enabled:
+              type: boolean
+              description: Enable inbox feature
+              example: true
+
+    SettingsComplete:
+      type: object
+      description: "Paramètres d'un établissement"
+      required: [inbox]
+      properties:
+        inbox:
+          type: object
+          required: [enabled]
+          properties:
+            enabled:
+              type: boolean
+              description: Activer la boîte de réception
+              example: true
+
+    Prospect:
+      type: object
+      description: Prospect (utilisateur potentiel avant création de compte)
+      required: [email, hasAccount, hasCommitment]
+      properties:
+        email:
+          type: string
+          format: email
+          example: prospect@collectivite.fr
+        establishment:
+          type: object
+          nullable: true
+          properties:
+            id:
+              type: string
+              format: uuid
+            siren:
+              type: string
+              example: '200012345'
+        hasAccount:
+          type: boolean
+          description: Indique si le prospect a déjà un compte
+          example: false
+        hasCommitment:
+          type: boolean
+          description: "Indique si l'établissement a signé une convention"
+          example: true
+
+    ResetLink:
+      type: object
+      description: Lien de réinitialisation de mot de passe
+      required: [id, createdAt, expiresAt]
+      properties:
+        id:
+          type: string
+          format: uuid
+        createdAt:
+          type: string
+          format: date-time
+        expiresAt:
+          type: string
+          format: date-time
+        usedAt:
+          type: string
+          format: date-time
+          nullable: true
+
+    SignupLink:
+      type: object
+      description: "Lien d'inscription"
+      required: [id, prospectEmail, expiresAt]
+      properties:
+        id:
+          type: string
+          format: uuid
+        prospectEmail:
+          type: string
+          format: email
+        expiresAt:
+          type: string
+          format: date-time
+
+    SignupLinkPayload:
+      type: object
+      required: [email]
+      properties:
+        email:
+          type: string
+          format: email
+
+    SignupLinkResponse:
+      type: object
+      description: "Informations d'un lien d'inscription"
+      required: [id, prospectEmail, expiresAt]
+      properties:
+        id:
+          type: string
+          format: uuid
+        prospectEmail:
+          type: string
+          format: email
+        expiresAt:
+          type: string
+          format: date-time
+        establishment:
+          $ref: '#/components/schemas/EstablishmentComplete'
+
+    AuthResponse:
+      type: object
+      required: [accessToken, user]
+      properties:
+        accessToken:
+          type: string
+          description: JWT token
+          example: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...
+        user:
+          $ref: '#/components/schemas/User'
+
+    TwoFactorRequired:
+      type: object
+      required: [userId, require2FA]
+      properties:
+        userId:
+          type: string
+          format: uuid
+        require2FA:
+          type: boolean
+          example: true
+
+    Event:
+      type: object
+      description: "Événement de l'historique d'un logement ou propriétaire"
+      required: [id, name, type, createdAt, createdBy]
+      properties:
+        id:
+          type: string
+          format: uuid
+        name:
+          type: string
+          description: "Nom lisible de l'événement"
+          example: Changement de statut de suivi
+        type:
+          type: string
+          enum:
+            - housing:created
+            - housing:updated
+            - housing:occupancy-updated
+            - housing:status-updated
+            - housing:precision-attached
+            - housing:precision-detached
+            - housing:owner-attached
+            - housing:owner-updated
+            - housing:owner-detached
+            - housing:perimeter-attached
+            - housing:perimeter-detached
+            - housing:group-attached
+            - housing:group-detached
+            - housing:group-removed
+            - housing:campaign-attached
+            - housing:campaign-detached
+            - housing:campaign-removed
+            - housing:document-attached
+            - housing:document-detached
+            - housing:document-removed
+            - document:created
+            - document:updated
+            - document:removed
+            - owner:updated
+            - campaign:updated
+          description: "Type technique de l'événement"
+        conflict:
+          type: boolean
+          description: "Indique un conflit d'informations"
+        nextOld:
+          type: object
+          description: Valeur avant modification
+          additionalProperties: true
+        nextNew:
+          type: object
+          description: Valeur après modification
+          additionalProperties: true
+        createdAt:
+          type: string
+          format: date-time
+        createdBy:
+          type: string
+          format: uuid
+        creator:
+          $ref: '#/components/schemas/User'
+
+    # ── Pagination ────────────────────────────────────────────────────────────
+
+    PaginatedHousing:
+      type: object
+      required: [entities, page, perPage, totalCount]
+      properties:
+        entities:
+          type: array
+          items:
+            $ref: '#/components/schemas/Housing'
+        page:
+          type: integer
+          example: 1
+        perPage:
+          type: integer
+          example: 50
+        totalCount:
+          type: integer
+          example: 1234
+
+    PaginatedOwners:
+      type: object
+      required: [entities, page, perPage, totalCount]
+      properties:
+        entities:
+          type: array
+          items:
+            $ref: '#/components/schemas/Owner'
+        page:
+          type: integer
+          example: 1
+        perPage:
+          type: integer
+          example: 50
+        totalCount:
+          type: integer
+          example: 567
+
+    # ── Errors & Health ───────────────────────────────────────────────────────
+
+    Error:
+      type: object
+      required: [name, message]
+      properties:
+        name:
+          type: string
+          example: ValidationError
+        message:
+          type: string
+          example: Invalid input data
+        errors:
+          type: array
+          items:
+            type: object
+            properties:
+              field:
+                type: string
+              message:
+                type: string
+
+    HealthResponse:
+      type: object
+      description: Réponse du healthcheck
+      properties:
+        uptime:
+          type: number
+          description: Uptime du serveur en secondes
+          example: 3600.5
+        checks:
+          type: array
+          items:
+            type: object
+            properties:
+              name:
+                type: string
+                enum: [postgres, redis, brevo, s3]
+              status:
+                type: string
+                enum: [up, down]
+
+paths:
+  # ── Health ──────────────────────────────────────────────────────────────────
+  /:
+    get:
+      summary: Health check
+      tags: [Health]
+      security: []
+      description: |
+        Returns the health status of all service dependencies.
+
+        **Note:** This endpoint is at the root URL `/`, not under `/api`.
+
+        Checked services: **postgres**, **redis**, **brevo**, **s3**
+      servers:
+        - url: /
+          description: Root
+      responses:
+        '200':
+          description: All services are healthy
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HealthResponse'
+        '503':
+          description: One or more services are unhealthy
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HealthResponse'
+
+  # ── SSE ─────────────────────────────────────────────────────────────────────
+  /sse:
+    get:
+      summary: Server-Sent Events endpoint
+      tags: [Events]
+      security: []
+      description: Établit une connexion SSE pour recevoir des événements en temps réel
+      responses:
+        '200':
+          description: Connexion SSE établie
+
+  # ── Authentication ───────────────────────────────────────────────────────────
+  /authenticate:
+    post:
+      summary: Authentifier un utilisateur
+      tags: [Authentication]
+      security: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [email, password]
+              properties:
+                email:
+                  type: string
+                  format: email
+                  example: user@example.com
+                password:
+                  type: string
+                  example: password123
+      responses:
+        '200':
+          description: Authentification réussie
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AuthResponse'
+        '401':
+          description: Email ou mot de passe incorrect
+        '403':
+          description: Compte désactivé
+
+  /authenticate/verify-2fa:
+    post:
+      summary: Verify 2FA code
+      tags: [Authentication]
+      security: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [email, code]
+              properties:
+                email:
+                  type: string
+                  format: email
+                code:
+                  type: string
+                  pattern: '^\d{6}$'
+                  minLength: 6
+                  maxLength: 6
+                establishmentId:
+                  type: string
+                  format: uuid
+      responses:
+        '200':
+          description: 2FA code validated, JWT token returned
+        '401':
+          description: Invalid or expired code
+
+  /account/reset-password:
+    post:
+      summary: Réinitialiser le mot de passe
+      tags: [Authentication]
+      security: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [key, password]
+              properties:
+                key:
+                  type: string
+                  pattern: '^[a-zA-Z0-9]+$'
+                password:
+                  type: string
+                  minLength: 12
+                  description: Min 12 chars, must include uppercase, lowercase, digit, and special character
+      responses:
+        '200':
+          description: Mot de passe réinitialisé avec succès
+        '400':
+          description: Lien invalide ou expiré
+
+  /reset-links:
+    post:
+      summary: Créer un lien de réinitialisation de mot de passe
+      tags: [Authentication]
+      security: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [email]
+              properties:
+                email:
+                  type: string
+                  format: email
+      responses:
+        '201':
+          description: Lien de réinitialisation créé (email envoyé)
+        '404':
+          description: Email non trouvé
+
+  /reset-links/{id}:
+    get:
+      summary: "Vérifier la validité d'un lien de réinitialisation"
+      tags: [Authentication]
+      security: []
+      parameters:
+        - $ref: '#/components/parameters/IdParam'
+      responses:
+        '200':
+          description: Lien valide
+        '404':
+          description: Lien invalide ou expiré
+
+  # ── Users (public) ───────────────────────────────────────────────────────────
+  /users/creation:
+    post:
+      summary: Créer un compte utilisateur
+      description: "Crée un nouveau compte utilisateur via un lien d'invitation."
+      tags: [Users]
+      security: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [email, password, firstName, lastName, establishmentId]
+              properties:
+                email:
+                  type: string
+                  format: email
+                  example: nouveau@collectivite.fr
+                password:
+                  type: string
+                  minLength: 8
+                  description: Mot de passe (min 8 caractères)
+                firstName:
+                  type: string
+                  example: Jean
+                lastName:
+                  type: string
+                  example: DUPONT
+                establishmentId:
+                  type: string
+                  format: uuid
+                  description: "ID de l'établissement de rattachement"
+      responses:
+        '201':
+          description: Utilisateur créé avec succès
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/User'
+        '400':
+          description: Données invalides
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '409':
+          description: Email déjà utilisé
+
+  # ── Signup links ─────────────────────────────────────────────────────────────
+  /signup-links:
+    post:
+      summary: "Créer un lien d'inscription"
+      tags: [Users]
+      security: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/SignupLinkPayload'
+      responses:
+        '201':
+          description: "Lien d'inscription créé"
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SignupLink'
+
+  /signup-links/{id}:
+    get:
+      summary: "Récupérer les informations d'un lien d'inscription"
+      tags: [Users]
+      security: []
+      parameters:
+        - $ref: '#/components/parameters/IdParam'
+      responses:
+        '200':
+          description: Informations du lien
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SignupLinkResponse'
+        '404':
+          description: Lien non trouvé ou expiré
+
+  /signup-links/{id}/prospect:
+    put:
+      summary: "Mettre à jour les informations d'un prospect"
+      tags: [Users]
+      security: []
+      parameters:
+        - $ref: '#/components/parameters/IdParam'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                firstName:
+                  type: string
+                lastName:
+                  type: string
+                phone:
+                  type: string
+      responses:
+        '200':
+          description: Prospect mis à jour
+
+  # ── Prospects ────────────────────────────────────────────────────────────────
+  /prospects/{email}:
+    get:
+      summary: Récupérer un prospect par email
+      tags: [Users]
+      security: []
+      parameters:
+        - in: path
+          name: email
+          required: true
+          schema:
+            type: string
+            format: email
+          description: Email du prospect à rechercher
+          example: prospect@collectivite.fr
+      responses:
+        '200':
+          description: Prospect trouvé
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Prospect'
+        '404':
+          description: Prospect non trouvé
+
+  # ── Establishments ───────────────────────────────────────────────────────────
+  /establishments:
+    get:
+      summary: Lister les établissements (collectivités)
+      tags: [Establishments]
+      security: []
+      parameters:
+        - in: query
+          name: query
+          schema:
+            type: string
+          description: Recherche par nom ou SIREN
+          example: Communauté de communes
+        - in: query
+          name: available
+          schema:
+            type: boolean
+          description: Filtrer les établissements disponibles pour inscription
+      responses:
+        '200':
+          description: Liste des établissements
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/EstablishmentComplete'
+
+  /establishments/{id}:
+    get:
+      summary: Récupérer un établissement
+      tags: [Establishments]
+      security: []
+      parameters:
+        - $ref: '#/components/parameters/IdParam'
+      responses:
+        '200':
+          description: Établissement trouvé
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/EstablishmentComplete'
+        '404':
+          description: Établissement non trouvé
+
+  /establishments/{id}/settings:
+    get:
+      summary: "Récupérer les paramètres d'un établissement"
+      tags: [Establishments, Settings]
+      security: []
+      parameters:
+        - $ref: '#/components/parameters/IdParam'
+      responses:
+        '200':
+          description: "Paramètres de l'établissement"
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SettingsComplete'
+        '404':
+          description: Établissement non trouvé
+    put:
+      summary: "Mettre à jour les paramètres d'un établissement"
+      tags: [Establishments, Settings]
+      parameters:
+        - $ref: '#/components/parameters/IdParam'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/SettingsComplete'
+      responses:
+        '200':
+          description: Paramètres mis à jour
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SettingsComplete'
+        '401':
+          description: Non authentifié
+        '403':
+          description: Droits insuffisants
+
+  # ── Localities ───────────────────────────────────────────────────────────────
+  /localities:
+    get:
+      summary: Lister les localités (communes)
+      description: Retourne la liste des communes avec leurs informations fiscales (TLV, THLV)
+      tags: [Geo]
+      security: []
+      parameters:
+        - in: query
+          name: query
+          schema:
+            type: string
+          description: Recherche par nom ou code postal
+          example: Paris
+        - in: query
+          name: establishmentId
+          schema:
+            type: string
+            format: uuid
+          description: Filtrer par établissement
+      responses:
+        '200':
+          description: Liste des localités
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/LocalityComplete'
+
+  /localities/{geoCode}:
+    get:
+      summary: Récupérer une localité par son code géographique
+      tags: [Geo]
+      security: []
+      parameters:
+        - in: path
+          name: geoCode
+          required: true
+          schema:
+            type: string
+          description: Code INSEE de la commune
+      responses:
+        '200':
+          description: Détails de la localité
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/LocalityComplete'
+        '404':
+          description: Localité non trouvée
+    put:
+      summary: Mettre à jour la taxe sur une localité
+      tags: [Geo]
+      parameters:
+        - in: path
+          name: geoCode
+          required: true
+          schema:
+            type: string
+          description: Code INSEE de la commune
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                taxKind:
+                  type: string
+                  enum: [TLV, THLV, None]
+                taxRate:
+                  type: number
+      responses:
+        '200':
+          description: Taxe mise à jour
+        '401':
+          description: Non authentifié
+
+  # ── Files ────────────────────────────────────────────────────────────────────
+  /files:
+    post:
+      summary: Uploader un fichier
+      tags: [Files]
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              properties:
+                file:
+                  type: string
+                  format: binary
+      responses:
+        '201':
+          description: Fichier uploadé
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/FileUpload'
+        '401':
+          description: Non authentifié
+
+  # ── Documents ────────────────────────────────────────────────────────────────
+  /documents:
+    post:
+      summary: Créer un document
+      tags: [Files]
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              properties:
+                file:
+                  type: string
+                  format: binary
+      responses:
+        '201':
+          description: Document créé
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DocumentComplete'
+        '401':
+          description: Non authentifié
+
+  /documents/{id}:
+    get:
+      summary: Récupérer un document
+      tags: [Files]
+      parameters:
+        - $ref: '#/components/parameters/IdParam'
+      responses:
+        '200':
+          description: Document trouvé
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DocumentComplete'
+        '401':
+          description: Non authentifié
+        '404':
+          description: Document non trouvé
+    put:
+      summary: Modifier un document
+      tags: [Files]
+      parameters:
+        - $ref: '#/components/parameters/IdParam'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/DocumentPayload'
+      responses:
+        '200':
+          description: Document mis à jour
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DocumentComplete'
+        '401':
+          description: Non authentifié
+    delete:
+      summary: Supprimer un document
+      tags: [Files]
+      parameters:
+        - $ref: '#/components/parameters/IdParam'
+      responses:
+        '204':
+          description: Document supprimé
+        '401':
+          description: Non authentifié
+
+  # ── Housing ──────────────────────────────────────────────────────────────────
+  /housing:
+    get:
+      summary: Lister les logements
+      tags: [Housing]
+      parameters:
+        - in: query
+          name: page
+          schema:
+            type: integer
+            default: 1
+        - in: query
+          name: perPage
+          schema:
+            type: integer
+            default: 50
+        - in: query
+          name: sort
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Liste paginée
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PaginatedHousing'
+        '401':
+          description: Non authentifié
+    post:
+      summary: Créer un logement
+      tags: [Housing]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [localId]
+              properties:
+                localId:
+                  type: string
+                  minLength: 12
+                  maxLength: 12
+                  description: Identifiant local fiscal (12 caractères)
+      responses:
+        '201':
+          description: Logement créé
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Housing'
+        '401':
+          description: Non authentifié
+    put:
+      summary: Mettre à jour plusieurs logements
+      tags: [Housing]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/HousingBatchUpdatePayload'
+      responses:
+        '200':
+          description: Logements mis à jour
+        '401':
+          description: Non authentifié
+
+  /housing/count:
+    get:
+      summary: Compter les logements
+      tags: [Housing]
+      responses:
+        '200':
+          description: Comptage
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HousingCount'
+        '401':
+          description: Non authentifié
+
+  /housing/{id}:
+    get:
+      summary: Récupérer un logement
+      tags: [Housing]
+      parameters:
+        - $ref: '#/components/parameters/IdParam'
+      responses:
+        '200':
+          description: Logement trouvé
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Housing'
+        '401':
+          description: Non authentifié
+        '404':
+          description: Logement non trouvé
+    put:
+      summary: Mettre à jour un logement
+      tags: [Housing]
+      parameters:
+        - $ref: '#/components/parameters/IdParam'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/HousingUpdatePayload'
+      responses:
+        '200':
+          description: Logement mis à jour
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Housing'
+        '401':
+          description: Non authentifié
+
+  /housing/{id}/documents:
+    get:
+      summary: "Lister les documents d'un logement"
+      tags: [Housing, Files]
+      parameters:
+        - $ref: '#/components/parameters/IdParam'
+      responses:
+        '200':
+          description: Documents du logement
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/DocumentComplete'
+        '401':
+          description: Non authentifié
+    post:
+      summary: Associer un document à un logement
+      tags: [Housing, Files]
+      parameters:
+        - $ref: '#/components/parameters/IdParam'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                documentId:
+                  type: string
+                  format: uuid
+      responses:
+        '201':
+          description: Document associé
+        '401':
+          description: Non authentifié
+
+  /housing/{housingId}/documents/{documentId}:
+    delete:
+      summary: "Retirer un document d'un logement"
+      tags: [Housing, Files]
+      parameters:
+        - in: path
+          name: housingId
+          required: true
+          schema:
+            type: string
+            format: uuid
+        - in: path
+          name: documentId
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '204':
+          description: Document retiré
+        '401':
+          description: Non authentifié
+
+  /housing/{id}/precisions:
+    get:
+      summary: "Récupérer les précisions d'un logement"
+      tags: [Housing]
+      parameters:
+        - $ref: '#/components/parameters/IdParam'
+      responses:
+        '200':
+          description: Précisions du logement
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Precision'
+        '401':
+          description: Non authentifié
+    put:
+      summary: "Mettre à jour les précisions d'un logement"
+      tags: [Housing]
+      parameters:
+        - $ref: '#/components/parameters/IdParam'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: array
+              items:
+                type: string
+                format: uuid
+      responses:
+        '200':
+          description: Précisions mises à jour
+        '401':
+          description: Non authentifié
+
+  /housing/{id}/events:
+    get:
+      summary: "Lister les événements d'un logement"
+      tags: [Housing, Events]
+      parameters:
+        - $ref: '#/components/parameters/IdParam'
+      responses:
+        '200':
+          description: Événements du logement
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Event'
+        '401':
+          description: Non authentifié
+
+  /housing/{id}/notes:
+    get:
+      summary: "Lister les notes d'un logement"
+      tags: [Housing]
+      parameters:
+        - $ref: '#/components/parameters/IdParam'
+      responses:
+        '200':
+          description: Notes du logement
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/NoteComplete'
+        '401':
+          description: Non authentifié
+    post:
+      summary: Créer une note sur un logement
+      tags: [Housing]
+      parameters:
+        - $ref: '#/components/parameters/IdParam'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/NotePayload'
+      responses:
+        '201':
+          description: Note créée
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/NoteComplete'
+        '401':
+          description: Non authentifié
+
+  /housing/{housingId}/owners:
+    put:
+      summary: "Mettre à jour les propriétaires d'un logement"
+      tags: [Housing, Owners]
+      parameters:
+        - in: path
+          name: housingId
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: Propriétaires mis à jour
+        '401':
+          description: Non authentifié
+
+  # ── Notes ────────────────────────────────────────────────────────────────────
+  /notes/{id}:
+    put:
+      summary: Modifier une note
+      tags: [Housing]
+      parameters:
+        - $ref: '#/components/parameters/IdParam'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/NotePayload'
+      responses:
+        '200':
+          description: Note mise à jour
+        '401':
+          description: Non authentifié
+    delete:
+      summary: Supprimer une note
+      tags: [Housing]
+      parameters:
+        - $ref: '#/components/parameters/IdParam'
+      responses:
+        '204':
+          description: Note supprimée
+        '401':
+          description: Non authentifié
+
+  # ── Buildings ────────────────────────────────────────────────────────────────
+  /buildings:
+    get:
+      summary: Lister les bâtiments
+      tags: [Housing]
+      responses:
+        '200':
+          description: Liste des bâtiments
+        '401':
+          description: Non authentifié
+
+  /buildings/{id}:
+    get:
+      summary: Récupérer un bâtiment
+      tags: [Housing]
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Bâtiment trouvé
+        '401':
+          description: Non authentifié
+        '404':
+          description: Bâtiment non trouvé
+
+  # ── Precisions ───────────────────────────────────────────────────────────────
+  /precisions:
+    get:
+      summary: Lister les précisions disponibles
+      tags: [Housing]
+      responses:
+        '200':
+          description: Liste des précisions
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Precision'
+        '401':
+          description: Non authentifié
+
+  # ── Groups ───────────────────────────────────────────────────────────────────
+  /groups:
+    get:
+      summary: Lister les groupes de logements
+      tags: [Groups]
+      responses:
+        '200':
+          description: Liste des groupes
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/GroupComplete'
+        '401':
+          description: Non authentifié
+    post:
+      summary: Créer un groupe
+      tags: [Groups]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/GroupPayload'
+      responses:
+        '201':
+          description: Groupe créé
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/GroupComplete'
+        '401':
+          description: Non authentifié
+
+  /groups/{id}:
+    get:
+      summary: Récupérer un groupe
+      tags: [Groups]
+      parameters:
+        - $ref: '#/components/parameters/IdParam'
+      responses:
+        '200':
+          description: Groupe trouvé
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/GroupComplete'
+        '401':
+          description: Non authentifié
+        '404':
+          description: Groupe non trouvé
+    put:
+      summary: Modifier un groupe
+      tags: [Groups]
+      parameters:
+        - $ref: '#/components/parameters/IdParam'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/GroupPayload'
+      responses:
+        '200':
+          description: Groupe mis à jour
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/GroupComplete'
+        '401':
+          description: Non authentifié
+    delete:
+      summary: Supprimer un groupe
+      tags: [Groups]
+      parameters:
+        - $ref: '#/components/parameters/IdParam'
+      responses:
+        '204':
+          description: Groupe supprimé
+        '401':
+          description: Non authentifié
+
+  /groups/{id}/export:
+    get:
+      summary: Exporter les logements du groupe
+      tags: [Groups]
+      parameters:
+        - $ref: '#/components/parameters/IdParam'
+      responses:
+        '200':
+          description: Export en cours
+        '401':
+          description: Non authentifié
+
+  /groups/{id}/housing:
+    post:
+      summary: Ajouter des logements à un groupe
+      tags: [Groups]
+      parameters:
+        - $ref: '#/components/parameters/IdParam'
+      responses:
+        '200':
+          description: Logements ajoutés
+        '401':
+          description: Non authentifié
+    delete:
+      summary: Retirer des logements du groupe
+      tags: [Groups]
+      parameters:
+        - $ref: '#/components/parameters/IdParam'
+      responses:
+        '204':
+          description: Logements retirés
+        '401':
+          description: Non authentifié
+
+  /groups/{id}/campaigns:
+    post:
+      summary: Créer une campagne depuis un groupe
+      tags: [Groups, Campaigns]
+      parameters:
+        - $ref: '#/components/parameters/IdParam'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CampaignCreationPayload'
+      responses:
+        '201':
+          description: Campagne créée
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CampaignComplete'
+        '401':
+          description: Non authentifié
+
+  # ── Campaigns ────────────────────────────────────────────────────────────────
+  /campaigns:
+    get:
+      summary: Lister les campagnes
+      tags: [Campaigns]
+      responses:
+        '200':
+          description: Liste des campagnes
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/CampaignComplete'
+        '401':
+          description: Non authentifié
+    post:
+      summary: Créer une campagne
+      tags: [Campaigns]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CampaignCreationPayload'
+      responses:
+        '201':
+          description: Campagne créée
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CampaignComplete'
+        '401':
+          description: Non authentifié
+
+  /campaigns/{id}:
+    get:
+      summary: Récupérer une campagne
+      tags: [Campaigns]
+      parameters:
+        - $ref: '#/components/parameters/IdParam'
+      responses:
+        '200':
+          description: Campagne trouvée
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CampaignComplete'
+        '401':
+          description: Non authentifié
+        '404':
+          description: Campagne non trouvée
+    put:
+      summary: Modifier une campagne
+      tags: [Campaigns]
+      parameters:
+        - $ref: '#/components/parameters/IdParam'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CampaignUpdatePayload'
+      responses:
+        '200':
+          description: Campagne mise à jour
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CampaignComplete'
+        '401':
+          description: Non authentifié
+    delete:
+      summary: Supprimer une campagne
+      tags: [Campaigns]
+      parameters:
+        - $ref: '#/components/parameters/IdParam'
+      responses:
+        '204':
+          description: Campagne supprimée
+        '401':
+          description: Non authentifié
+
+  /campaigns/{id}/exports:
+    post:
+      summary: Exporter une campagne
+      tags: [Campaigns]
+      parameters:
+        - $ref: '#/components/parameters/IdParam'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [type]
+              properties:
+                type:
+                  type: string
+                  enum: [drafts, recipients]
+      responses:
+        '200':
+          description: Export généré
+        '401':
+          description: Non authentifié
+
+  /campaigns/{id}/export:
+    get:
+      summary: Exporter les logements de la campagne (legacy)
+      tags: [Campaigns]
+      parameters:
+        - $ref: '#/components/parameters/IdParam'
+      responses:
+        '200':
+          description: Export des logements
+        '401':
+          description: Non authentifié
+
+  /campaigns/{id}/download:
+    get:
+      summary: Télécharger le fichier de campagne
+      tags: [Campaigns]
+      parameters:
+        - $ref: '#/components/parameters/IdParam'
+      responses:
+        '200':
+          description: Fichier de campagne
+        '401':
+          description: Non authentifié
+
+  /campaigns/{id}/housing:
+    delete:
+      summary: Retirer des logements de la campagne
+      tags: [Campaigns]
+      parameters:
+        - $ref: '#/components/parameters/IdParam'
+      responses:
+        '204':
+          description: Logements retirés
+        '401':
+          description: Non authentifié
+
+  /campaigns/{id}/groups:
+    post:
+      summary: Créer une campagne depuis un groupe (deprecated)
+      deprecated: true
+      description: 'Deprecated: use POST /groups/{id}/campaigns instead.'
+      tags: [Campaigns]
+      parameters:
+        - $ref: '#/components/parameters/IdParam'
+      responses:
+        '201':
+          description: Campagne créée
+        '401':
+          description: Non authentifié
+
+  # ── Drafts ───────────────────────────────────────────────────────────────────
+  /drafts:
+    get:
+      summary: Lister les modèles de courrier
+      tags: [Campaigns]
+      responses:
+        '200':
+          description: Liste des modèles
+        '401':
+          description: Non authentifié
+    post:
+      summary: Créer un modèle de courrier
+      tags: [Campaigns]
+      responses:
+        '201':
+          description: Modèle créé
+        '401':
+          description: Non authentifié
+
+  /drafts/{id}:
+    put:
+      summary: Modifier un modèle de courrier
+      tags: [Campaigns]
+      parameters:
+        - $ref: '#/components/parameters/IdParam'
+      responses:
+        '200':
+          description: Modèle mis à jour
+        '401':
+          description: Non authentifié
+
+  /drafts/{id}/preview:
+    post:
+      summary: Prévisualiser un modèle de courrier
+      tags: [Campaigns]
+      parameters:
+        - $ref: '#/components/parameters/IdParam'
+      responses:
+        '200':
+          description: Prévisualisation générée
+        '401':
+          description: Non authentifié
+
+  # ── Owners ───────────────────────────────────────────────────────────────────
+  /owners:
+    get:
+      summary: Lister les propriétaires
+      tags: [Owners]
+      parameters:
+        - in: query
+          name: page
+          schema:
+            type: integer
+            default: 1
+        - in: query
+          name: perPage
+          schema:
+            type: integer
+            default: 50
+      responses:
+        '200':
+          description: Liste paginée
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PaginatedOwners'
+        '401':
+          description: Non authentifié
+    post:
+      summary: Rechercher des propriétaires
+      tags: [Owners]
+      responses:
+        '200':
+          description: Résultats de la recherche
+        '401':
+          description: Non authentifié
+
+  /owners/creation:
+    post:
+      summary: Créer un propriétaire
+      tags: [Owners]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/OwnerCreationPayload'
+      responses:
+        '201':
+          description: Propriétaire créé
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/OwnerComplete'
+        '401':
+          description: Non authentifié
+
+  /owners/{id}:
+    get:
+      summary: Récupérer un propriétaire
+      tags: [Owners]
+      parameters:
+        - $ref: '#/components/parameters/IdParam'
+      responses:
+        '200':
+          description: Propriétaire trouvé
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/OwnerComplete'
+        '401':
+          description: Non authentifié
+        '404':
+          description: Propriétaire non trouvé
+    put:
+      summary: Modifier un propriétaire
+      tags: [Owners]
+      parameters:
+        - $ref: '#/components/parameters/IdParam'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/OwnerUpdatePayload'
+      responses:
+        '200':
+          description: Propriétaire mis à jour
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/OwnerComplete'
+        '401':
+          description: Non authentifié
+
+  /owners/{id}/housings:
+    get:
+      summary: "Lister les logements d'un propriétaire"
+      tags: [Owners]
+      parameters:
+        - $ref: '#/components/parameters/IdParam'
+      responses:
+        '200':
+          description: Logements du propriétaire
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Housing'
+        '401':
+          description: Non authentifié
+
+  /owners/{id}/events:
+    get:
+      summary: "Lister les événements d'un propriétaire"
+      tags: [Owners, Events]
+      parameters:
+        - $ref: '#/components/parameters/IdParam'
+      responses:
+        '200':
+          description: Événements du propriétaire
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Event'
+        '401':
+          description: Non authentifié
+
+  /housings/{id}/owners:
+    get:
+      summary: "Lister les propriétaires d'un logement"
+      tags: [Housing, Owners]
+      parameters:
+        - $ref: '#/components/parameters/IdParam'
+      responses:
+        '200':
+          description: Propriétaires du logement
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/OwnerComplete'
+        '401':
+          description: Non authentifié
+
+  # ── Account ──────────────────────────────────────────────────────────────────
+  /account:
+    get:
+      summary: Récupérer les informations du compte courant
+      tags: [Users]
+      responses:
+        '200':
+          description: Compte courant
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/User'
+        '401':
+          description: Non authentifié
+    put:
+      summary: Mettre à jour le compte courant
+      tags: [Users]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UserUpdatePayload'
+      responses:
+        '200':
+          description: Compte mis à jour
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/User'
+        '401':
+          description: Non authentifié
+
+  /account/establishments/{establishmentId}:
+    get:
+      summary: "Changer d'établissement courant"
+      tags: [Users]
+      parameters:
+        - in: path
+          name: establishmentId
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: Établissement changé
+        '401':
+          description: Non authentifié
+
+  # ── Users (protected) ────────────────────────────────────────────────────────
+  /users:
+    get:
+      summary: Lister les utilisateurs
+      tags: [Users]
+      parameters:
+        - in: query
+          name: establishments
+          schema:
+            type: array
+            items:
+              type: string
+              format: uuid
+      responses:
+        '200':
+          description: Liste des utilisateurs
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/User'
+        '401':
+          description: Non authentifié
+
+  /users/{id}:
+    get:
+      summary: Récupérer un utilisateur
+      tags: [Users]
+      parameters:
+        - $ref: '#/components/parameters/IdParam'
+      responses:
+        '200':
+          description: Utilisateur trouvé
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/User'
+        '401':
+          description: Non authentifié
+        '404':
+          description: Utilisateur non trouvé
+    put:
+      summary: Modifier un utilisateur
+      tags: [Users]
+      parameters:
+        - $ref: '#/components/parameters/IdParam'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UserUpdatePayload'
+      responses:
+        '200':
+          description: Utilisateur mis à jour
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/User'
+        '401':
+          description: Non authentifié
+    delete:
+      summary: Supprimer un utilisateur
+      tags: [Users]
+      parameters:
+        - $ref: '#/components/parameters/IdParam'
+      responses:
+        '204':
+          description: Utilisateur supprimé
+        '401':
+          description: Non authentifié
+        '403':
+          description: Droits insuffisants (admin requis)
+
+  # ── Geo perimeters ───────────────────────────────────────────────────────────
+  /geo/perimeters:
+    get:
+      summary: Lister les périmètres géographiques
+      tags: [Geo]
+      responses:
+        '200':
+          description: Liste des périmètres
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/GeoPerimeter'
+        '401':
+          description: Non authentifié
+    post:
+      summary: Créer un périmètre géographique (upload shapefile)
+      tags: [Geo]
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              properties:
+                file:
+                  type: string
+                  format: binary
+                  description: Archive ZIP contenant un shapefile
+      responses:
+        '201':
+          description: Périmètre créé
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/GeoPerimeter'
+        '401':
+          description: Non authentifié
+    delete:
+      summary: Supprimer des périmètres géographiques
+      tags: [Geo]
+      responses:
+        '204':
+          description: Périmètres supprimés
+        '401':
+          description: Non authentifié
+
+  /geo/perimeters/{geoPerimeterId}:
+    put:
+      summary: Modifier un périmètre géographique
+      tags: [Geo]
+      parameters:
+        - in: path
+          name: geoPerimeterId
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: Périmètre mis à jour
+        '401':
+          description: Non authentifié
+
+  # ── Dashboards ───────────────────────────────────────────────────────────────
+  /dashboards/{id}:
+    get:
+      summary: Récupérer un tableau de bord
+      tags: [Statistics]
+      parameters:
+        - $ref: '#/components/parameters/IdParam'
+      responses:
+        '200':
+          description: Tableau de bord
+        '401':
+          description: Non authentifié
+        '404':
+          description: Tableau de bord non trouvé
+
+  # ── Datafoncier ──────────────────────────────────────────────────────────────
+  /datafoncier/housing/{localId}:
+    get:
+      summary: Récupérer un logement Datafoncier
+      tags: [Housing]
+      parameters:
+        - in: path
+          name: localId
+          required: true
+          schema:
+            type: string
+            minLength: 12
+            maxLength: 12
+          description: Identifiant local fiscal (12 caractères)
+      responses:
+        '200':
+          description: Logement Datafoncier
+        '401':
+          description: Non authentifié
+        '404':
+          description: Logement non trouvé

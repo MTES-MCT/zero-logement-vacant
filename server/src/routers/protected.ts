@@ -347,7 +347,10 @@ router.post(
   '/drafts',
   async (req, res, next) => {
     const { auth } = req as AuthenticatedRequest;
-    const enabled = await isFeatureEnabled('new-campaigns', auth.establishmentId);
+    const enabled = await isFeatureEnabled(
+      'new-campaigns',
+      auth.establishmentId
+    );
     if (!enabled) return next('route');
     next();
   },
@@ -365,7 +368,10 @@ router.put(
   '/drafts/:id',
   async (req, res, next) => {
     const { auth } = req as AuthenticatedRequest;
-    const enabled = await isFeatureEnabled('new-campaigns', auth.establishmentId);
+    const enabled = await isFeatureEnabled(
+      'new-campaigns',
+      auth.establishmentId
+    );
     if (!enabled) return next('route');
     next();
   },

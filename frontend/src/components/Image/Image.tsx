@@ -1,5 +1,5 @@
 import { fr } from '@codegouvfr/react-dsfr';
-import styled from '@emotion/styled';
+import { styled } from '@mui/material/styles';
 import classNames from 'classnames';
 
 type Responsive = '1x1' | '2x3' | '3x2' | '3x4' | '4x3' | '16x9' | '32x9';

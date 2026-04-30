@@ -356,6 +356,10 @@ describe('Campaign API', () => {
   describe('POST /campaigns', () => {
     const testRoute = '/api/campaigns';
 
+    beforeEach(() => {
+      vi.spyOn(posthogService, 'isFeatureEnabled').mockResolvedValue(false);
+    });
+
     it('should be forbidden for a non-authenticated user', async () => {
       const { status } = await request(url).post(testRoute);
 

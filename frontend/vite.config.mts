@@ -1,6 +1,6 @@
 /// <reference types='vitest' />
 import { nxViteTsPaths } from '@nx/vite/plugins/nx-tsconfig-paths.plugin';
-import react from '@vitejs/plugin-react-swc';
+import react from '@vitejs/plugin-react';
 import os from 'node:os';
 import path from 'node:path';
 import { defineConfig, loadEnv } from 'vite';
@@ -32,13 +32,23 @@ export default defineConfig(({ mode }) => {
       outDir: './dist',
       emptyOutDir: true,
       reportCompressedSize: true,
+      // Vite 8 switched to lightningcss for CSS minification by default,
+      // but it rejects unquoted SVG data URIs present in @codegouvfr/react-dsfr.
+      // Switch back to esbuild until DSFR ships quoted URIs.
+      cssMinify: 'esbuild',
       commonjsOptions: {
         transformMixedEsModules: true
       },
       rollupOptions: {
         external: [
           /node_modules\/(?!@codegouvfr)\/react-dsfr\/.+\\.js$/,
-          /node_modules\/\.store\/(?!@codegouvfr-react-dsfr-npm-[^/]+)\/package\/.*\.js$/
+          /node_modules\/\.store\/(?!@codegouvfr-react-dsfr-npm-[^/]+)\/package\/.*\.js$/,
+          // fetch-intercept/lib/browser.js has a dead-code path that requires
+          // whatwg-fetch as a polyfill fallback; the package is not installed
+          // because modern browsers have native fetch. Rolldown (Vite 8) is
+          // stricter than Rollup and treats the unresolved import as an error,
+          // so we mark it as external to keep the same runtime behaviour.
+          'whatwg-fetch'
         ]
       }
     },

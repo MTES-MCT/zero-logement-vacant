@@ -1,8 +1,8 @@
 import Breadcrumb from '@codegouvfr/react-dsfr/Breadcrumb';
-import Button from '@codegouvfr/react-dsfr/Button';
+import ButtonsGroup from '@codegouvfr/react-dsfr/ButtonsGroup';
 import Tabs from '@codegouvfr/react-dsfr/Tabs';
+import Box from '@mui/material/Box';
 import Container from '@mui/material/Container';
-
 import Stack from '@mui/material/Stack';
 import Typography from '@mui/material/Typography';
 import { useNavigate, useParams } from 'react-router-dom';
@@ -115,31 +115,32 @@ function CampaignViewNext() {
             <CampaignCreatedFromGroupNext campaign={campaign} />
           </Stack>
 
-          <Stack direction="column" spacing="1rem" useFlexGap sx={{ flexShrink: 0 }}>
-            <Button
-              priority="secondary"
-              style={{ width: '100%', justifyContent: 'center' }}
-              onClick={() => {
-                dispatch(
-                  housingSlice.actions.changeFilters({
-                    ...initialHousingFilters,
-                    campaignIds: [id as string]
-                  })
-                );
-                navigate('/parc-de-logements');
-              }}
-            >
-              Voir les logements
-            </Button>
-            <Button
-              iconId="fr-icon-delete-line"
-              priority="tertiary"
-              style={{ width: '100%', justifyContent: 'center' }}
-              onClick={() => campaignDeleteModal.open()}
-            >
-              Supprimer la campagne
-            </Button>
-          </Stack>
+          <Box sx={{ flexShrink: 0 }}>
+            <ButtonsGroup
+              buttonsEquisized
+              buttons={[
+                {
+                  priority: 'secondary',
+                  children: 'Voir les logements',
+                  onClick: () => {
+                    dispatch(
+                      housingSlice.actions.changeFilters({
+                        ...initialHousingFilters,
+                        campaignIds: [id as string]
+                      })
+                    );
+                    navigate('/parc-de-logements');
+                  }
+                },
+                {
+                  priority: 'tertiary',
+                  iconId: 'fr-icon-delete-line',
+                  children: 'Supprimer la campagne',
+                  onClick: () => campaignDeleteModal.open()
+                }
+              ]}
+            />
+          </Box>
         </Stack>
 
         {/* Metrics */}

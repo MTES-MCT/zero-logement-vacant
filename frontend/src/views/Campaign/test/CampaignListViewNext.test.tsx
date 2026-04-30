@@ -354,5 +354,5 @@ function renderView(options?: RenderViewOptions) {
     </Provider>
   );
 
-  return { router, store };
+  return { router };
 }

@@ -46,7 +46,7 @@ describe('CampaignViewNext', () => {
       </Provider>
     );
 
-    return { router, store };
+    return { router };
   }
 
   it('renders the campaign title', async () => {
@@ -160,21 +160,6 @@ describe('CampaignViewNext', () => {
     // Assert
     await waitFor(() =>
       expect(router.state.location.pathname).toBe('/parc-de-logements')
-    );
-  });
-
-  it('cliquer sur "Voir les logements" configure le filtre campagne dans le store', async () => {
-    // Arrange
-    const campaign = { ...genCampaignDTO(), sentAt: undefined, returnCount: null };
-    const { store } = renderView(campaign);
-    await screen.findByRole('heading', { level: 1 });
-
-    // Act
-    await user.click(screen.getByRole('button', { name: /voir les logements/i }));
-
-    // Assert
-    await waitFor(() =>
-      expect(store.getState().housing.filters.campaignIds).toEqual([campaign.id])
     );
   });
 

@@ -241,10 +241,47 @@ export interface CreateHousingWorksheetOptions {
   campaigns: ReadonlyArray<CampaignApi>;
 }
 
-export async function createHousingWorksheet(
-  options: CreateHousingWorksheetOptions
+interface HousingWorksheetConfig {
+  addressScoreHeader: string;
+  formatAddressScore: (score: number) => string | number;
+  ownerColumns: ReadonlyArray<Partial<Column> & { key: string }>;
+  toOwnerRow: (housing: HousingApi) => Record<string, unknown>;
+}
+
+const HOUSING_COLUMNS = [
+  { header: 'Identifiant fiscal national', key: 'localId' },
+  { header: 'Identifiant fiscal départemental', key: 'invariant' },
+  { header: 'Référence cadastrale', key: 'plotId' },
+  { header: 'Code INSEE commune du logement', key: 'geoCode' },
+  { header: 'Adresse LOVAC du logement', key: 'housingRawAddress' },
+  { header: 'Précisions adresse du logement', key: 'buildingLocation' },
+  { header: 'Adresse BAN du logement', key: 'housingAddress' },
+  { header: 'Latitude', key: 'latitude' },
+  { header: 'Longitude', key: 'longitude' },
+  { header: 'Type de logement', key: 'housingKind' },
+  { header: 'DPE représentatif', key: 'energyConsumption' },
+  { header: 'Date DPE', key: 'energyConsumptionAt' },
+  { header: 'Surface (m²)', key: 'livingArea' },
+  { header: 'Nombre de pièces', key: 'roomsCount' },
+  { header: 'Année de construction', key: 'buildingYear' },
+  { header: 'Occupation', key: 'occupancy' },
+  { header: 'Année de début de vacance', key: 'vacancyStartYear' },
+  { header: 'Statut', key: 'status' },
+  { header: 'Sous-statut', key: 'subStatus' },
+  { header: 'Points de blocage', key: 'blockingPoints' },
+  { header: 'Évolutions du logement', key: 'evolutions' },
+  { header: 'Dispositifs', key: 'mechanisms' },
+  { header: 'Campagnes', key: 'campaigns' }
+] as const;
+
+async function createHousingWorksheetBase(
+  options: CreateHousingWorksheetOptions,
+  config: HousingWorksheetConfig
 ): Promise<void> {
   const { workbook, stream, campaigns } = options;
+  const { addressScoreHeader, formatAddressScore, ownerColumns, toOwnerRow } =
+    config;
+
   return stream
     .pipeThrough(
       new TransformStream<
@@ -256,10 +293,7 @@ export async function createHousingWorksheet(
             housing.id,
             AddressKinds.Housing
           );
-          controller.enqueue({
-            housing,
-            banAddress
-          });
+          controller.enqueue({ housing, banAddress });
         }
       })
     )
@@ -280,7 +314,7 @@ export async function createHousingWorksheet(
             : null,
           housingAddressScore:
             banAddress?.score !== null && banAddress?.score !== undefined
-              ? `${banAddress.score * 100} %`
+              ? formatAddressScore(banAddress.score)
               : null,
           latitude: housing.latitude ?? banAddress?.latitude,
           longitude: housing.longitude ?? banAddress?.longitude,
@@ -326,11 +360,7 @@ export async function createHousingWorksheet(
             ?.map((id) => campaigns.find((campaign) => campaign.id === id))
             ?.map((campaign) => campaign?.title)
             ?.join('\n'),
-          // Owner properties
-          ...(housing.owner ? toOwnerExcelRow(housing.owner) : {}),
-          ownerRelativeLocation: housing.ownerRelativeLocation
-            ? RELATIVE_LOCATION_LABELS[housing.ownerRelativeLocation]
-            : null
+          ...toOwnerRow(housing)
         };
       })
     )
@@ -339,45 +369,36 @@ export async function createHousingWorksheet(
         name: 'Logements',
         alternateColumnColors: true,
         columns: [
-          { header: 'Identifiant fiscal national', key: 'localId' },
-          { header: 'Identifiant fiscal départemental', key: 'invariant' },
-          { header: 'Référence cadastrale', key: 'plotId' },
-          { header: 'Code INSEE commune du logement', key: 'geoCode' },
-          { header: 'Adresse LOVAC du logement', key: 'housingRawAddress' },
-          { header: 'Précisions adresse du logement', key: 'buildingLocation' },
-          { header: 'Adresse BAN du logement', key: 'housingAddress' },
-          {
-            header: 'Fiabilité Adresse BAN du logement (%)',
-            key: 'housingAddressScore'
-          },
-          { header: 'Latitude', key: 'latitude' },
-          { header: 'Longitude', key: 'longitude' },
-          { header: 'Type de logement', key: 'housingKind' },
-          { header: 'DPE représentatif', key: 'energyConsumption' },
-          { header: 'Date DPE', key: 'energyConsumptionAt' },
-          { header: 'Surface (m²)', key: 'livingArea' },
-          { header: 'Nombre de pièces', key: 'roomsCount' },
-          { header: 'Année de construction', key: 'buildingYear' },
-          { header: 'Occupation', key: 'occupancy' },
-          { header: 'Année de début de vacance', key: 'vacancyStartYear' },
-          { header: 'Statut', key: 'status' },
-          { header: 'Sous-statut', key: 'subStatus' },
-          { header: 'Points de blocage', key: 'blockingPoints' },
-          { header: 'Évolutions du logement', key: 'evolutions' },
-          { header: 'Dispositifs', key: 'mechanisms' },
-          { header: 'Campagnes', key: 'campaigns' },
-          ...OWNER_WORKSHEET_COLUMNS,
-          OWNER_LOCATION_COLUMN
+          ...HOUSING_COLUMNS.slice(0, 7),
+          { header: addressScoreHeader, key: 'housingAddressScore' },
+          ...HOUSING_COLUMNS.slice(7),
+          ...ownerColumns
         ]
       })
     );
+}
+
+export async function createHousingWorksheet(
+  options: CreateHousingWorksheetOptions
+): Promise<void> {
+  return createHousingWorksheetBase(options, {
+    addressScoreHeader: 'Fiabilité Adresse BAN du logement (%)',
+    formatAddressScore: (score) => `${score * 100} %`,
+    ownerColumns: [...OWNER_WORKSHEET_COLUMNS, OWNER_LOCATION_COLUMN],
+    toOwnerRow: (housing) => ({
+      ...(housing.owner ? toOwnerExcelRow(housing.owner) : {}),
+      ownerRelativeLocation: housing.ownerRelativeLocation
+        ? RELATIVE_LOCATION_LABELS[housing.ownerRelativeLocation]
+        : null
+    })
+  });
 }
 
 /**
  * Columns for the owner section in group exports.
  * Compared to campaign exports:
  * - Address columns removed (LOVAC, BAN, Fiabilité, Numéro, Voie, Code postal, Commune, Complément)
- * - Only keeps owner name + relative location
+ * - Only keeps owner name, birth date + relative location
  */
 export const GROUP_OWNER_WORKSHEET_COLUMNS = [
   {
@@ -391,142 +412,21 @@ export const GROUP_OWNER_WORKSHEET_COLUMNS = [
   OWNER_LOCATION_COLUMN
 ];
 
-/**
- * Housing worksheet for group exports with differentiated columns:
- * - "Identifiant fiscal national" before "Identifiant fiscal départemental" (swapped)
- * - "Point(s) de blocage", "Évolution(s)", "Dispositif(s)" (reordered)
- * - Owner address columns removed
- * - "Propriétaire" renamed
- * - Alternating column colors (white/grey)
- * - New: "Localisation du propriétaire destinataire principal"
- */
 export async function createGroupHousingWorksheet(
   options: CreateHousingWorksheetOptions
 ): Promise<void> {
-  const { workbook, stream, campaigns } = options;
-  return stream
-    .pipeThrough(
-      new TransformStream<
-        HousingApi,
-        { housing: HousingApi; banAddress: AddressApi | null }
-      >({
-        async transform(housing, controller) {
-          const banAddress = await banAddressesRepository.getByRefId(
-            housing.id,
-            AddressKinds.Housing
-          );
-          controller.enqueue({
-            housing,
-            banAddress
-          });
-        }
-      })
-    )
-    .pipeThrough(
-      // @ts-expect-error - Type inference issue in @types/node (https://github.com/microsoft/TypeScript-DOM-lib-generator/pull/1676)
-      map(({ housing, banAddress }) => {
-        const building = getBuildingLocation(housing);
-        return {
-          localId: housing.localId,
-          invariant: housing.invariant,
-          plotId: housing.plotId,
-          geoCode: housing.geoCode,
-          housingRawAddress: housing.rawAddress
-            .filter(Predicate.isNotNullable)
-            .join('\n'),
-          housingAddress: banAddress
-            ? formatAddress(banAddress).join('\n')
-            : null,
-          housingAddressScore: banAddress?.score,
-          latitude: housing.latitude ?? banAddress?.latitude,
-          longitude: housing.longitude ?? banAddress?.longitude,
-          buildingLocation: building
-            ? [
-                building.building,
-                building.entrance,
-                building.level,
-                building.local
-              ].join('\n')
-            : null,
-          housingKind:
-            housing.housingKind === 'APPART' ? 'Appartement' : 'Maison',
-          energyConsumption: housing.energyConsumption,
-          energyConsumptionAt: housing.energyConsumptionAt,
-          livingArea: housing.livingArea,
-          roomsCount: housing.roomsCount,
-          buildingYear: housing.buildingYear,
-          occupancy: OCCUPANCY_LABELS[housing.occupancy],
-          vacancyStartYear: housing.vacancyStartYear,
-          status: HOUSING_STATUS_LABELS[housing.status],
-          subStatus: housing.subStatus,
-          blockingPoints: housing.precisions
-            ?.filter((precision) =>
-              isPrecisionBlockingPointCategory(precision.category)
-            )
-            ?.map((precision) => precision.label)
-            ?.join('\n'),
-          evolutions: housing.precisions
-            ?.filter((precision) =>
-              isPrecisionEvolutionCategory(precision.category)
-            )
-            ?.map((precision) => precision.label)
-            ?.join('\n'),
-          mechanisms: housing.precisions
-            ?.filter((precision) =>
-              isPrecisionMechanismCategory(precision.category)
-            )
-            ?.map((precision) => precision.label)
-            ?.join('\n'),
-          campaigns: housing.campaignIds
-            ?.filter(Predicate.isNotNullable)
-            ?.map((id) => campaigns.find((campaign) => campaign.id === id))
-            ?.map((campaign) => campaign?.title)
-            ?.join('\n'),
-          // Owner properties (only name, no address columns)
-          ownerName: housing.owner?.fullName,
-          ownerBirthDate: housing.owner?.birthDate,
-          ownerRelativeLocation: housing.ownerRelativeLocation
-            ? RELATIVE_LOCATION_LABELS[housing.ownerRelativeLocation]
-            : null
-        };
-      })
-    )
-    .pipeTo(
-      excelUtils.createWorksheet(workbook, {
-        name: 'Logements',
-        alternateColumnColors: true,
-        columns: [
-          { header: 'Identifiant fiscal national', key: 'localId' },
-          { header: 'Identifiant fiscal départemental', key: 'invariant' },
-          { header: 'Référence cadastrale', key: 'plotId' },
-          { header: 'Code INSEE commune du logement', key: 'geoCode' },
-          { header: 'Adresse LOVAC du logement', key: 'housingRawAddress' },
-          { header: 'Précisions adresse du logement', key: 'buildingLocation' },
-          { header: 'Adresse BAN du logement', key: 'housingAddress' },
-          {
-            header: 'Adresse BAN du logement - Fiabilité',
-            key: 'housingAddressScore'
-          },
-          { header: 'Latitude', key: 'latitude' },
-          { header: 'Longitude', key: 'longitude' },
-          { header: 'Type de logement', key: 'housingKind' },
-          { header: 'DPE représentatif', key: 'energyConsumption' },
-          { header: 'Date DPE', key: 'energyConsumptionAt' },
-          { header: 'Surface (m²)', key: 'livingArea' },
-          { header: 'Nombre de pièces', key: 'roomsCount' },
-          { header: 'Année de construction', key: 'buildingYear' },
-          { header: 'Occupation', key: 'occupancy' },
-          { header: 'Année de début de vacance', key: 'vacancyStartYear' },
-          { header: 'Statut', key: 'status' },
-          { header: 'Sous-statut', key: 'subStatus' },
-          { header: 'Points de blocage', key: 'blockingPoints' },
-          { header: 'Évolutions du logement', key: 'evolutions' },
-          { header: 'Dispositifs', key: 'mechanisms' },
-          { header: 'Campagnes', key: 'campaigns' },
-          ...GROUP_OWNER_WORKSHEET_COLUMNS
-        ]
-      })
-    );
+  return createHousingWorksheetBase(options, {
+    addressScoreHeader: 'Adresse BAN du logement - Fiabilité',
+    formatAddressScore: (score) => score,
+    ownerColumns: GROUP_OWNER_WORKSHEET_COLUMNS,
+    toOwnerRow: (housing) => ({
+      ownerName: housing.owner?.fullName,
+      ownerBirthDate: housing.owner?.birthDate,
+      ownerRelativeLocation: housing.ownerRelativeLocation
+        ? RELATIVE_LOCATION_LABELS[housing.ownerRelativeLocation]
+        : null
+    })
+  });
 }
 
 const housingExportController = {

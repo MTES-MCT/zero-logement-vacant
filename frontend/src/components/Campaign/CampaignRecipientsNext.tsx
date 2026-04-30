@@ -5,8 +5,11 @@ import { createModal } from '@codegouvfr/react-dsfr/Modal';
 import Skeleton from '@mui/material/Skeleton';
 import Stack from '@mui/material/Stack';
 import Typography from '@mui/material/Typography';
-import type { PaginationState } from '@tanstack/react-table';
-import { createColumnHelper } from '@tanstack/react-table';
+import {
+  createColumnHelper,
+  type PaginationState,
+  type SortingState
+} from '@tanstack/react-table';
 import {
   formatAddress as formatAddressDTO,
   type Pagination
@@ -20,7 +23,7 @@ import OwnerEditionSideMenu from '~/components/OwnerEditionSideMenu/OwnerEdition
 import { useNotification } from '~/hooks/useNotification';
 import { type Address, isBanEligible } from '~/models/Address';
 import type { Campaign } from '~/models/Campaign';
-import type { Housing } from '~/models/Housing';
+import type { Housing, HousingSort } from '~/models/Housing';
 import { useRemoveCampaignHousingMutation } from '~/services/campaign.service';
 import {
   useCountHousingQuery,
@@ -45,6 +48,9 @@ function CampaignRecipients(props: Readonly<CampaignRecipientsProps>) {
     pageIndex: 0,
     pageSize: 50
   });
+  const [sorting, setSorting] = useState<SortingState>([
+    { id: 'owner_fullName', desc: false }
+  ]);
   const filters = {
     campaignIds: [props.campaign.id]
   };
@@ -52,9 +58,15 @@ function CampaignRecipients(props: Readonly<CampaignRecipientsProps>) {
     page: pagination.pageIndex + 1,
     perPage: pagination.pageSize
   };
+  const sort = useMemo<HousingSort | undefined>(() => {
+    const ownerSort = sorting.find((s) => s.id === 'owner_fullName');
+    if (!ownerSort) return undefined;
+    return { owner: ownerSort.desc ? 'desc' : 'asc' };
+  }, [sorting]);
   const { data: housings, isLoading } = useFindHousingQuery({
     filters,
-    pagination: apiPagination
+    pagination: apiPagination,
+    sort
   });
   const countHousingQuery = useCountHousingQuery(filters);
   const { data: count } = countHousingQuery;
@@ -103,29 +115,12 @@ function CampaignRecipients(props: Readonly<CampaignRecipientsProps>) {
 
   const columns = useMemo(
     () => [
-      columnHelper.accessor('rawAddress', {
-        header: () => <AdvancedTableHeader title="Adresse logement" />,
-        meta: {
-          styles: {
-            multiline: true
-          }
-        },
-        cell: ({ cell, row }) => {
-          return (
-            <AppLink isSimple size="sm" to={`/logements/${row.original.id}`}>
-              {cell.getValue().map((line, i) => (
-                <Fragment key={i}>
-                  {line}
-                  <br />
-                </Fragment>
-              ))}
-            </AppLink>
-          );
-        }
-      }),
       columnHelper.accessor('owner.fullName', {
         header: () => <AdvancedTableHeader title="Destinataire principal" />,
         meta: {
+          sort: {
+            title: 'Trier par destinataire principal'
+          },
           styles: {
             multiline: true
           }
@@ -144,7 +139,7 @@ function CampaignRecipients(props: Readonly<CampaignRecipientsProps>) {
       columnHelper.accessor((row) => row.owner?.banAddress ?? null, {
         id: 'address',
         header: () => (
-          <AdvancedTableHeader title="Adresse BAN du destinataire" />
+          <AdvancedTableHeader title="Adresse BAN du propriétaire" />
         ),
         cell: ({ cell }) => {
           const address = cell.getValue();
@@ -161,7 +156,7 @@ function CampaignRecipients(props: Readonly<CampaignRecipientsProps>) {
         }
       }),
       columnHelper.accessor('owner.additionalAddress', {
-        header: () => <AdvancedTableHeader title="Complément d’adresse" />,
+        header: () => <AdvancedTableHeader title="Complément d'adresse" />,
         meta: {
           styles: {
             multiline: true
@@ -170,6 +165,26 @@ function CampaignRecipients(props: Readonly<CampaignRecipientsProps>) {
         cell: ({ cell }) => (
           <Typography variant="body2">{cell.getValue()}</Typography>
         )
+      }),
+      columnHelper.accessor('rawAddress', {
+        header: () => <AdvancedTableHeader title="Adresse du logement" />,
+        meta: {
+          styles: {
+            multiline: true
+          }
+        },
+        cell: ({ cell, row }) => {
+          return (
+            <AppLink isSimple size="sm" to={`/logements/${row.original.id}`}>
+              {cell.getValue().map((line, i) => (
+                <Fragment key={i}>
+                  {line}
+                  <br />
+                </Fragment>
+              ))}
+            </AppLink>
+          );
+        }
       }),
       columnHelper.display({
         id: 'actions',
@@ -258,11 +273,15 @@ function CampaignRecipients(props: Readonly<CampaignRecipientsProps>) {
         columns={columns}
         data={housings?.entities}
         isLoading={isLoading}
+        enableSorting
+        enableSortingRemoval
         manualPagination
-        state={{ pagination }}
+        manualSorting
+        state={{ pagination, sorting }}
         pageCount={Math.ceil(filteredCount / pagination.pageSize)}
         tableProps={{ noCaption: true, size: 'lg' }}
         onPaginationChange={setPagination}
+        onSortingChange={setSorting}
       />
 
       <OwnerEditionSideMenu
@@ -275,7 +294,7 @@ function CampaignRecipients(props: Readonly<CampaignRecipientsProps>) {
       />
 
       <removeCampaignHousingModal.Component
-        title="Suppression d’un destinataire"
+        title="Suppression d'un destinataire"
         buttons={[
           {
             children: 'Annuler',

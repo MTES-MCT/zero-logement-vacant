@@ -1,55 +1,64 @@
+import type { Insertable, Selectable } from 'kysely';
+
 import db from '~/infra/database';
+import type { DB } from '~/infra/database/db';
+import { kysely } from '~/infra/database/kysely';
 import { logger } from '~/infra/logger';
 import { SignupLinkApi } from '~/models/SignupLinkApi';
 
+// Legacy exports kept for backward compatibility with existing callers
 export const signupLinkTable = 'signup_links';
 export const SignupLinks = (transaction = db) =>
-  transaction<SignupLinkDBO>(signupLinkTable);
+  transaction<{ id: string; prospect_email: string; expires_at: Date }>(signupLinkTable);
+
+// Re-export DBO type — callers that import SignupLinkDBO continue to work.
+export type SignupLinkDBO = Selectable<DB['signupLinks']>;
 
 async function insert(link: SignupLinkApi): Promise<void> {
   logger.info('Insert signupLinkApi');
-  await SignupLinks().insert(formatSignupLinkApi(link));
+  await kysely.insertInto('signupLinks').values(formatSignupLinkApi(link)).execute();
 }
 
 async function get(id: string): Promise<SignupLinkApi | null> {
-  logger.info('Get resetLinkApi with id', id);
-  const link = await SignupLinks().select().where('id', id).first();
-  return link ? parseSignupLinkApi(link) : null;
+  logger.info('Get signupLinkApi with id', id);
+  const row = await kysely
+    .selectFrom('signupLinks')
+    .where('id', '=', id)
+    .selectAll()
+    .executeTakeFirst();
+  return row ? parseSignupLinkApi(row) : null;
 }
 
 async function used(id: string): Promise<void> {
   logger.info(`Remove used signup link ${id}`);
-  await SignupLinks().where('id', id).delete();
+  await kysely.deleteFrom('signupLinks').where('id', '=', id).execute();
 }
 
 async function getByEmail(email: string): Promise<SignupLinkApi | null> {
   logger.debug('Get signupLinkApi by prospect_email', email);
-
-  const link = await SignupLinks().select().where('prospect_email', email).first();
-  return link ? parseSignupLinkApi(link) : null;
+  const row = await kysely
+    .selectFrom('signupLinks')
+    .where('prospectEmail', '=', email)
+    .selectAll()
+    .executeTakeFirst();
+  return row ? parseSignupLinkApi(row) : null;
 }
 
-interface SignupLinkDBO {
-  id: string;
-  prospect_email: string;
-  expires_at: Date;
-}
-
-export const parseSignupLinkApi = (link: SignupLinkDBO): SignupLinkApi => ({
-  id: link.id,
-  prospectEmail: link.prospect_email,
-  expiresAt: link.expires_at,
+export const parseSignupLinkApi = (row: SignupLinkDBO): SignupLinkApi => ({
+  id: row.id,
+  prospectEmail: row.prospectEmail,
+  expiresAt: row.expiresAt
 });
 
-export const formatSignupLinkApi = (link: SignupLinkApi): SignupLinkDBO => ({
+export const formatSignupLinkApi = (link: SignupLinkApi): Insertable<DB['signupLinks']> => ({
   id: link.id,
-  prospect_email: link.prospectEmail,
-  expires_at: link.expiresAt,
+  prospectEmail: link.prospectEmail,
+  expiresAt: link.expiresAt
 });
 
 export default {
   insert,
   get,
   used,
-  getByEmail,
+  getByEmail
 };

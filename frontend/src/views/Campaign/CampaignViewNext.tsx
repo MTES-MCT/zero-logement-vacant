@@ -1,8 +1,8 @@
 import Breadcrumb from '@codegouvfr/react-dsfr/Breadcrumb';
-import Button from '@codegouvfr/react-dsfr/Button';
+import ButtonsGroup from '@codegouvfr/react-dsfr/ButtonsGroup';
 import Tabs from '@codegouvfr/react-dsfr/Tabs';
+import Box from '@mui/material/Box';
 import Container from '@mui/material/Container';
-
 import Stack from '@mui/material/Stack';
 import Typography from '@mui/material/Typography';
 import { useNavigate, useParams } from 'react-router-dom';
@@ -25,6 +25,10 @@ import {
   useUpdateCampaignMutation
 } from '~/services/campaign.service';
 import { useCountHousingQuery } from '~/services/housing.service';
+import { useAppDispatch } from '~/hooks/useStore';
+import housingSlice, {
+  initialHousingFilters
+} from '~/store/reducers/housingReducer';
 
 const campaignDeleteModal = createCampaignDeleteModal();
 const sentAtModal = createCampaignSentAtModal();
@@ -32,6 +36,7 @@ const sentAtModal = createCampaignSentAtModal();
 function CampaignViewNext() {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
+  const dispatch = useAppDispatch();
 
   const { data: campaign, isLoading } = useGetCampaignQuery(id as string);
   const { data: count } = useCountHousingQuery({ campaignIds: [id as string] });
@@ -110,14 +115,32 @@ function CampaignViewNext() {
             <CampaignCreatedFromGroupNext campaign={campaign} />
           </Stack>
 
-          <Button
-            iconId="fr-icon-delete-line"
-            priority="tertiary"
-            style={{ flexShrink: 0 }}
-            onClick={() => campaignDeleteModal.open()}
-          >
-            Supprimer la campagne
-          </Button>
+          <Box sx={{ flexShrink: 0 }}>
+            <ButtonsGroup
+              buttonsEquisized
+              buttons={[
+                {
+                  priority: 'secondary',
+                  children: 'Voir les logements',
+                  onClick: () => {
+                    dispatch(
+                      housingSlice.actions.changeFilters({
+                        ...initialHousingFilters,
+                        campaignIds: [id as string]
+                      })
+                    );
+                    navigate('/parc-de-logements');
+                  }
+                },
+                {
+                  priority: 'tertiary',
+                  iconId: 'fr-icon-delete-line',
+                  children: 'Supprimer la campagne',
+                  onClick: () => campaignDeleteModal.open()
+                }
+              ]}
+            />
+          </Box>
         </Stack>
 
         {/* Metrics */}

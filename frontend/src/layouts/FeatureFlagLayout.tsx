@@ -1,5 +1,7 @@
 import { useFeatureFlagEnabled } from 'posthog-js/react';
 
+import config from '~/utils/config';
+
 type AvailableFeatureFlag =
   | 'actual-dpe'
   | 'relative-location'
@@ -12,7 +14,8 @@ export interface FeatureFlagLayoutProps {
 }
 
 function FeatureFlagLayout(props: FeatureFlagLayoutProps) {
-  const isEnabled = useFeatureFlagEnabled(props.flag);
+  const isEnabledByPosthog = useFeatureFlagEnabled(props.flag);
+  const isEnabled = isEnabledByPosthog ?? config.featureFlags.includes(props.flag);
   return isEnabled ? props.then : props.else;
 }
 

@@ -24,21 +24,12 @@ import { Provider } from 'react-redux';
 import { createMemoryRouter, RouterProvider } from 'react-router-dom';
 
 import data from '~/mocks/handlers/data';
-import configureTestStore from '~/utils/storeUtils';
-import GroupView from '../GroupView';
-import CampaignView from '~/views/Campaign/CampaignView';
-import { genAuthUser } from '~/test/fixtures';
-import { fromUserDTO } from '~/models/User';
 import { fromEstablishmentDTO } from '~/models/Establishment';
-
-vi.mock('posthog-js/react', async (importOriginal) => {
-  const mod = await importOriginal<typeof import('posthog-js/react')>();
-  return {
-    ...mod,
-    useFeatureFlagEnabled: vi.fn(),
-    usePostHog: () => ({ capture: vi.fn() })
-  };
-});
+import { fromUserDTO } from '~/models/User';
+import { genAuthUser } from '~/test/fixtures';
+import configureTestStore from '~/utils/storeUtils';
+import CampaignView from '~/views/Campaign/CampaignView';
+import GroupView from '../GroupView';
 
 interface RenderViewOptions {
   auth: UserDTO;
@@ -51,13 +42,6 @@ describe('Group view', () => {
   const establishment = genEstablishmentDTO();
   const auth = genUserDTO(UserRole.USUAL, establishment);
   const user = userEvent.setup();
-
-  beforeEach(async () => {
-    const { useFeatureFlagEnabled } = await import('posthog-js/react');
-    vi.mocked(useFeatureFlagEnabled).mockImplementation(
-      (flag: string) => flag === 'new-campaigns'
-    );
-  });
 
   beforeAll(async () => {
     data.users.push(auth);

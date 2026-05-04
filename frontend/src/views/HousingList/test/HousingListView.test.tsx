@@ -49,14 +49,6 @@ import HousingListTabsProvider from '~/views/HousingList/HousingListTabsProvider
 import HousingListView from '~/views/HousingList/HousingListView';
 
 vi.mock('../../components/Aside/Aside.tsx');
-vi.mock('posthog-js/react', async (importOriginal) => {
-  const mod = await importOriginal<typeof import('posthog-js/react')>();
-  return {
-    ...mod,
-    useFeatureFlagEnabled: vi.fn().mockReturnValue(false),
-    usePostHog: () => ({ capture: vi.fn() })
-  };
-});
 
 interface RenderViewOptions {
   auth: UserDTO;
@@ -608,13 +600,6 @@ describe('Housing list view', () => {
   });
 
   describe('Group creation', () => {
-    beforeEach(async () => {
-      const { useFeatureFlagEnabled } = await import('posthog-js/react');
-      vi.mocked(useFeatureFlagEnabled).mockImplementation(
-        (flag) => flag === 'new-campaigns'
-      );
-    });
-
     it('should add housings to an existing group', async () => {
       const establishment = genEstablishmentDTO();
       const auth = genUserDTO(UserRole.USUAL, establishment);
@@ -2029,11 +2014,6 @@ describe('Housing list view', () => {
       ])(
         'should filter housings by "$filterValue"',
         async ({ optionLabel, matchingLocations }) => {
-          const { useFeatureFlagEnabled } = await import('posthog-js/react');
-          vi.mocked(useFeatureFlagEnabled).mockImplementation(
-            (flag) => flag === 'relative-location'
-          );
-
           const establishment = genEstablishmentDTO();
           const auth = genUserDTO(UserRole.USUAL, establishment);
 
@@ -2092,11 +2072,6 @@ describe('Housing list view', () => {
       );
 
       it('should display the relative location select with its label', async () => {
-        const { useFeatureFlagEnabled } = await import('posthog-js/react');
-        vi.mocked(useFeatureFlagEnabled).mockImplementation(
-          (flag) => flag === 'relative-location'
-        );
-
         const establishment = genEstablishmentDTO();
         const auth = genUserDTO(UserRole.USUAL, establishment);
 
@@ -2154,11 +2129,6 @@ describe('Housing list view', () => {
       ])(
         'should display a badge "$badgeLabel"',
         async ({ optionLabel, badgeLabel }) => {
-          const { useFeatureFlagEnabled } = await import('posthog-js/react');
-          vi.mocked(useFeatureFlagEnabled).mockImplementation(
-            (flag) => flag === 'relative-location'
-          );
-
           const establishment = genEstablishmentDTO();
           const auth = genUserDTO(UserRole.USUAL, establishment);
 

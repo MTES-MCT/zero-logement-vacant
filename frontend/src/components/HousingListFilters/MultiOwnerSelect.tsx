@@ -1,10 +1,10 @@
 import { match } from 'ts-pattern';
 
-import AppSelectNext from '../_app/AppSelect/AppSelectNext';
-import type { AppSelectNextProps } from '../_app/AppSelect/AppSelectNext';
+import Select from '~/components/ui/Select/Select';
+import type { SelectProps } from '~/components/ui/Select/Select';
 
 export type MultiOwnerSelectProps<Multiple extends boolean> = Pick<
-  AppSelectNextProps<boolean, Multiple>,
+  SelectProps<boolean, Multiple>,
   'className' | 'disabled' | 'error' | 'multiple' | 'value' | 'onChange'
 >;
 
@@ -19,7 +19,7 @@ function MultiOwnerSelect<Multiple extends boolean = false>(
   }
 
   return (
-    <AppSelectNext
+    <Select
       {...props}
       options={[true, false]}
       label="Multi-propriétaire"

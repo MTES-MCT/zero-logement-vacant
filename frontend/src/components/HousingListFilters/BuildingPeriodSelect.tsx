@@ -1,11 +1,11 @@
 import { BUILDING_PERIOD_VALUES } from '@zerologementvacant/models';
 import { BUILDING_PERIOD_OPTIONS } from '../../models/HousingFilters';
-import AppSelectNext from '../_app/AppSelect/AppSelectNext';
+import Select from '~/components/ui/Select/Select';
 import type { BuildingPeriod } from '@zerologementvacant/models';
-import type { AppSelectNextProps } from '../_app/AppSelect/AppSelectNext';
+import type { SelectProps } from '~/components/ui/Select/Select';
 
 export type BuildingPeriodSelectProps<Multiple extends boolean> = Pick<
-  AppSelectNextProps<BuildingPeriod, Multiple>,
+  SelectProps<BuildingPeriod, Multiple>,
   'className' | 'disabled' | 'error' | 'multiple' | 'value' | 'onChange'
 >;
 
@@ -13,7 +13,7 @@ function BuildingPeriodSelect<Multiple extends boolean = false>(
   props: BuildingPeriodSelectProps<Multiple>
 ) {
   return (
-    <AppSelectNext
+    <Select
       {...props}
       options={BUILDING_PERIOD_VALUES}
       label="Date de construction"

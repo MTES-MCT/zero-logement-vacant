@@ -2,14 +2,14 @@ import {
   DATA_FILE_YEAR_EXCLUDED_OPTIONS,
   DATA_FILE_YEAR_INCLUDED_OPTIONS
 } from '../../models/HousingFilters';
-import AppSelectNext from '../_app/AppSelect/AppSelectNext';
+import Select from '~/components/ui/Select/Select';
 import type { DataFileYear } from '@zerologementvacant/models';
-import type { AppSelectNextProps } from '../_app/AppSelect/AppSelectNext';
+import type { SelectProps } from '~/components/ui/Select/Select';
 
 type DataFileYearFilterValue = DataFileYear | 'datafoncier-manual' | null;
 
 export type DataFileYearSelectProps<Multiple extends boolean> = Pick<
-  AppSelectNextProps<DataFileYearFilterValue, Multiple>,
+  SelectProps<DataFileYearFilterValue, Multiple>,
   'className' | 'disabled' | 'error' | 'multiple' | 'value' | 'onChange'
 > & {
   type: 'included' | 'excluded';
@@ -57,7 +57,7 @@ function DataFileYearSelect<Multiple extends boolean = false>(
       : DATA_FILE_YEAR_EXCLUDED_OPTIONS;
 
   return (
-    <AppSelectNext
+    <Select
       {...props}
       options={options}
       label={label}

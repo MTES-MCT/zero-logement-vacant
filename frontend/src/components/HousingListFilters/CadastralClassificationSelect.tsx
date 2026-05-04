@@ -3,12 +3,12 @@ import {
   CADASTRAL_CLASSIFICATION_EMPTY_OPTION,
   CADASTRAL_CLASSIFICATION_OPTIONS
 } from '../../models/HousingFilters';
-import AppSelectNext from '../_app/AppSelect/AppSelectNext';
+import Select from '~/components/ui/Select/Select';
 import type { CadastralClassification } from '@zerologementvacant/models';
-import type { AppSelectNextProps } from '../_app/AppSelect/AppSelectNext';
+import type { SelectProps } from '~/components/ui/Select/Select';
 
 export type CadastralClassificationSelectProps<Multiple extends boolean> = Pick<
-  AppSelectNextProps<CadastralClassification | null, Multiple>,
+  SelectProps<CadastralClassification | null, Multiple>,
   'className' | 'disabled' | 'error' | 'multiple' | 'value' | 'onChange'
 >;
 
@@ -16,7 +16,7 @@ function CadastralClassificationSelect<Multiple extends boolean = false>(
   props: CadastralClassificationSelectProps<Multiple>
 ) {
   return (
-    <AppSelectNext
+    <Select
       {...props}
       options={[
         CADASTRAL_CLASSIFICATION_EMPTY_OPTION.value,

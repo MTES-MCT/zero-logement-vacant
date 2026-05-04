@@ -103,7 +103,7 @@ def check_orphan_usage(db_url: str, orphan_ids: list) -> dict:
     cursor = conn.cursor(cursor_factory=RealDictCursor)
 
     # Initialize usage dict
-    usage = {oid: {"users": 0, "campaigns": 0, "groups": 0, "geo_perimeters": 0, "drafts": 0, "contact_points": 0, "senders": 0, "settings": 0} for oid in orphan_ids}
+    usage = {oid: {"users": 0, "campaigns": 0, "groups": 0, "geo_perimeters": 0, "drafts": 0, "contact_points": 0, "senders": 0} for oid in orphan_ids}
 
     # Check users
     cursor.execute("""
@@ -178,16 +178,6 @@ def check_orphan_usage(db_url: str, orphan_ids: list) -> dict:
     for row in cursor.fetchall():
         usage[row["establishment_id"]]["senders"] = row["cnt"]
 
-    # Check settings
-    cursor.execute("""
-        SELECT establishment_id, COUNT(*) as cnt
-        FROM settings
-        WHERE establishment_id = ANY(%s::uuid[])
-        GROUP BY establishment_id
-    """, (orphan_ids,))
-    for row in cursor.fetchall():
-        usage[row["establishment_id"]]["settings"] = row["cnt"]
-
     cursor.close()
     conn.close()
 
@@ -221,7 +211,6 @@ def export_to_csv(orphans: list, usage: dict, output_path: str):
             "drafts",
             "contact_points",
             "senders",
-            "settings",
             "updated_at",
             "can_delete"
         ])
@@ -244,7 +233,6 @@ def export_to_csv(orphans: list, usage: dict, output_path: str):
                 est_usage.get("drafts", 0),
                 est_usage.get("contact_points", 0),
                 est_usage.get("senders", 0),
-                est_usage.get("settings", 0),
                 orphan["updated_at"],
                 "Yes" if is_safe_to_delete(est_usage) else "No"
             ])
@@ -324,13 +312,6 @@ def migrate_establishment_data(db_url: str, source_id: str, target_id: str) -> d
     """, (target_id, source_id))
     migrated["senders"] = cursor.rowcount
 
-    # Migrate settings (may conflict, so we delete instead)
-    cursor.execute("""
-        DELETE FROM settings
-        WHERE establishment_id = %s
-    """, (source_id,))
-    migrated["settings_deleted"] = cursor.rowcount
-
     conn.commit()
     cursor.close()
     conn.close()
@@ -375,7 +356,6 @@ def delete_orphans(db_url: str, orphans: list) -> dict:
         ("drafts", "establishment_id"),
         ("contact_points", "establishment_id"),
         ("senders", "establishment_id"),
-        ("settings", "establishment_id"),
     ]
 
     for table, column in tables_to_clean:
@@ -428,7 +408,6 @@ def print_statistics(orphans: list, usage: dict, db_establishments: list, csv_si
     total_drafts = sum(usage.get(o["id"], {}).get("drafts", 0) for o in orphans)
     total_contact_points = sum(usage.get(o["id"], {}).get("contact_points", 0) for o in orphans)
     total_senders = sum(usage.get(o["id"], {}).get("senders", 0) for o in orphans)
-    total_settings = sum(usage.get(o["id"], {}).get("settings", 0) for o in orphans)
 
     # Count orphans with each type of data
     with_users = sum(1 for o in orphans if usage.get(o["id"], {}).get("users", 0) > 0)
@@ -438,7 +417,6 @@ def print_statistics(orphans: list, usage: dict, db_establishments: list, csv_si
     with_drafts = sum(1 for o in orphans if usage.get(o["id"], {}).get("drafts", 0) > 0)
     with_contact_points = sum(1 for o in orphans if usage.get(o["id"], {}).get("contact_points", 0) > 0)
     with_senders = sum(1 for o in orphans if usage.get(o["id"], {}).get("senders", 0) > 0)
-    with_settings = sum(1 for o in orphans if usage.get(o["id"], {}).get("settings", 0) > 0)
 
     print("\n" + "=" * 80)
     print("STATISTICS REPORT")
@@ -463,7 +441,6 @@ def print_statistics(orphans: list, usage: dict, db_establishments: list, csv_si
     print(f"  {'Drafts':<20} {with_drafts:>12,} {total_drafts:>12,}")
     print(f"  {'Contact Points':<20} {with_contact_points:>12,} {total_contact_points:>12,}")
     print(f"  {'Senders':<20} {with_senders:>12,} {total_senders:>12,}")
-    print(f"  {'Settings':<20} {with_settings:>12,} {total_settings:>12,}")
 
     print("\n⚠️  CRITICAL DATA (blocks deletion)")
     print(f"  Users, Campaigns, Groups are considered critical.")
@@ -656,7 +633,6 @@ def main():
             print(f"  Drafts migrated:          {migrated.get('drafts', 0):>6,}")
             print(f"  Contact points migrated:  {migrated.get('contact_points', 0):>6,}")
             print(f"  Senders migrated:         {migrated.get('senders', 0):>6,}")
-            print(f"  Settings deleted:         {migrated.get('settings_deleted', 0):>6,}")
 
             print(f"\n💡 Source establishment (SIREN {args.migrate_from}) can now be safely deleted.")
             print(f"   Run with --delete to remove all safe orphans.")
@@ -695,7 +671,6 @@ def main():
                 print(f"  Drafts deleted:                 {deleted.get('drafts', 0):>6,}")
                 print(f"  Contact points deleted:         {deleted.get('contact_points', 0):>6,}")
                 print(f"  Senders deleted:                {deleted.get('senders', 0):>6,}")
-                print(f"  Settings deleted:               {deleted.get('settings', 0):>6,}")
             else:
                 print("❌ Deletion cancelled.")
     else:

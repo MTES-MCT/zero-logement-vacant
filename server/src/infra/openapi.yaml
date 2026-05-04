@@ -53,8 +53,6 @@ tags:
     description: Establishments (local authorities)
   - name: Geo
     description: Geographic data (perimeters, localities)
-  - name: Settings
-    description: User settings
   - name: Files
     description: File management
   - name: Statistics
@@ -1377,31 +1375,6 @@ components:
           type: string
           example: État du logement
 
-    Settings:
-      type: object
-      properties:
-        inbox:
-          type: object
-          properties:
-            enabled:
-              type: boolean
-              description: Enable inbox feature
-              example: true
-
-    SettingsComplete:
-      type: object
-      description: "Paramètres d'un établissement"
-      required: [inbox]
-      properties:
-        inbox:
-          type: object
-          required: [enabled]
-          properties:
-            enabled:
-              type: boolean
-              description: Activer la boîte de réception
-              example: true
-
     Prospect:
       type: object
       description: Prospect (utilisateur potentiel avant création de compte)
@@ -1996,45 +1969,6 @@ paths:
                 $ref: '#/components/schemas/EstablishmentComplete'
         '404':
           description: Établissement non trouvé
-
-  /establishments/{id}/settings:
-    get:
-      summary: "Récupérer les paramètres d'un établissement"
-      tags: [Establishments, Settings]
-      security: []
-      parameters:
-        - $ref: '#/components/parameters/IdParam'
-      responses:
-        '200':
-          description: "Paramètres de l'établissement"
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/SettingsComplete'
-        '404':
-          description: Établissement non trouvé
-    put:
-      summary: "Mettre à jour les paramètres d'un établissement"
-      tags: [Establishments, Settings]
-      parameters:
-        - $ref: '#/components/parameters/IdParam'
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/SettingsComplete'
-      responses:
-        '200':
-          description: Paramètres mis à jour
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/SettingsComplete'
-        '401':
-          description: Non authentifié
-        '403':
-          description: Droits insuffisants
 
   # ── Localities ───────────────────────────────────────────────────────────────
   /localities:

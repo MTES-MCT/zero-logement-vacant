@@ -67,16 +67,18 @@ function GroupView() {
   const location: { state?: RouterState } = useLocation();
   const alert = location.state?.alert ?? '';
   const [removeGroup, removeGroupMutation] = useRemoveGroupMutation();
-  async function onGroupRemove(): Promise<void> {
+  const onGroupRemove: GroupProps['onRemove'] = () => {
     if (group) {
-      try {
-        await removeGroup(group).unwrap();
-        navigate('/parc-de-logements');
-      } catch (error) {
-        console.error(error);
-      }
+      removeGroup(group)
+        .unwrap()
+        .then(() => {
+          navigate('/parc-de-logements');
+        })
+        .catch((error) => {
+          console.error(error);
+        });
     }
-  }
+  };
   useNotification({
     toastId: 'remove-group',
     isError: removeGroupMutation.isError,
@@ -91,17 +93,20 @@ function GroupView() {
 
   const [createCampaignFromGroup, createCampaignFromGroupMutation] =
     useCreateCampaignFromGroupNextMutation();
-  const onCampaignCreate: GroupProps['onCreateCampaign'] = async (campaign) => {
+  const onCampaignCreate: GroupProps['onCreateCampaign'] = (campaign) => {
     if (group) {
-      const created = await createCampaignFromGroup({
+      createCampaignFromGroup({
         campaign: {
           title: campaign.title,
           description: campaign.description,
           sentAt: campaign.sentAt ?? null
         },
         group
-      }).unwrap();
-      navigate(`/campagnes/${created.id}`);
+      })
+        .unwrap()
+        .then((created) => {
+          navigate(`/campagnes/${created.id}`);
+        });
     }
   };
   useNotification({
@@ -116,23 +121,23 @@ function GroupView() {
     }
   });
 
-  async function onGroupExport(): Promise<void> {
+  const onGroupExport: GroupProps['onExport'] = () => {
     if (group) {
       const token = authService.authHeader()?.['x-access-token'];
       const url = `${config.apiEndpoint}/api/groups/${group.id}/export?x-access-token=${token}`;
       window.open(url, '_self');
     }
-  }
+  };
 
   const [updateGroup, updateGroupMutation] = useUpdateGroupMutation();
-  function onGroupUpdate(payload: GroupPayload): void {
+  const onGroupUpdate: GroupProps['onUpdate'] = (payload) => {
     if (group) {
       updateGroup({
         ...payload,
         id: group.id
       });
     }
-  }
+  };
   useNotification({
     toastId: 'update-group',
     isError: updateGroupMutation.isError,

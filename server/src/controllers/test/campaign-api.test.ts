@@ -52,10 +52,8 @@ import {
   formatEstablishmentApi
 } from '~/repositories/establishmentRepository';
 import {
-  CAMPAIGN_EVENTS_TABLE,
   CAMPAIGN_HOUSING_EVENTS_TABLE,
   CampaignEvents,
-  EventDBO,
   Events,
   formatCampaignEventApi,
   formatEventApi,

@@ -37,7 +37,6 @@ import async from 'async';
 import { Array, pipe, Predicate } from 'effect';
 import { Provider } from 'react-redux';
 import { createMemoryRouter, RouterProvider } from 'react-router-dom';
-import { vi } from 'vitest';
 
 import data from '~/mocks/handlers/data';
 import { fromEstablishmentDTO } from '~/models/Establishment';
@@ -47,8 +46,6 @@ import configureTestStore from '~/utils/storeUtils';
 import CampaignView from '~/views/Campaign/CampaignView';
 import HousingListTabsProvider from '~/views/HousingList/HousingListTabsProvider';
 import HousingListView from '~/views/HousingList/HousingListView';
-
-vi.mock('../../components/Aside/Aside.tsx');
 
 interface RenderViewOptions {
   auth: UserDTO;

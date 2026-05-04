@@ -27,7 +27,6 @@
     "@aws-sdk/client-s3": "3.864.0",
     "@zerologementvacant/utils": "workspace:*",
     "async": "3.2.6",
-    "pg": "8.16.3",
-    "redis": "4.7.1"
+    "pg": "8.16.3"
   }
 }

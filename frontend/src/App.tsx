@@ -9,7 +9,6 @@ import {
 
 import { useAppDispatch, useAppSelector } from '~/hooks/useStore';
 import AuthenticatedLayout from '~/layouts/AuthenticatedLayout';
-import FeatureFlagLayout from '~/layouts/FeatureFlagLayout';
 import GuestLayout from '~/layouts/GuestLayout';
 import sentry from '~/utils/sentry';
 import AccountCreationView from '~/views/Account/AccountCreationView';
@@ -21,16 +20,12 @@ import UsersView from '~/views/Account/Profile/UsersView';
 import ResetPasswordView from '~/views/Account/ResetPasswordView';
 import AnalysisView from '~/views/Analysis/AnalysisView';
 import CampaignListView from '~/views/Campaign/CampaignListView';
-import CampaignListViewNext from '~/views/Campaign/CampaignListViewNext';
 import CampaignView from '~/views/Campaign/CampaignView';
-import CampaignViewNext from '~/views/Campaign/CampaignViewNext';
 import GroupView from '~/views/Group/GroupView';
-import GroupViewNext from '~/views/Group/GroupViewNext';
 import HousingOwnersView from '~/views/Housing/HousingOwnersView';
 import HousingView from '~/views/Housing/HousingView';
 import HousingListTabsProvider from '~/views/HousingList/HousingListTabsProvider';
 import HousingListView from '~/views/HousingList/HousingListView';
-import HousingListViewNext from '~/views/HousingList/HousingListViewNext';
 import LoginView from '~/views/Login/LoginView';
 import TwoFactorView from '~/views/Login/TwoFactorView';
 import NotFoundView from '~/views/NotFoundView';
@@ -50,17 +45,9 @@ const router = sentry.createBrowserRouter(
           path="/parc-de-logements"
           element={
             <HousingListTabsProvider>
-              <FeatureFlagLayout
-                flag="new-campaigns"
-                then={<HousingListViewNext />}
-                else={<HousingListView />}
-              />
+              <HousingListView />
             </HousingListTabsProvider>
           }
-        />
-        <Route
-          path="/parc-de-logements/campagnes/:id"
-          element={<CampaignView />}
         />
         <Route
           path="/analyses/parc-vacant"
@@ -70,36 +57,9 @@ const router = sentry.createBrowserRouter(
           path="/analyses/lutte"
           element={<AnalysisView id="15-analyses-activites" />}
         />
-        <Route
-          path="/groupes/:id"
-          element={
-            <FeatureFlagLayout
-              flag="new-campaigns"
-              then={<GroupViewNext />}
-              else={<GroupView />}
-            />
-          }
-        />
-        <Route
-          path="/campagnes"
-          element={
-            <FeatureFlagLayout
-              flag="new-campaigns"
-              then={<CampaignListViewNext />}
-              else={<CampaignListView />}
-            />
-          }
-        />
-        <Route
-          path="/campagnes/:id"
-          element={
-            <FeatureFlagLayout
-              flag="new-campaigns"
-              then={<CampaignViewNext />}
-              else={<CampaignView />}
-            />
-          }
-        />
+        <Route path="/groupes/:id" element={<GroupView />} />
+        <Route path="/campagnes" element={<CampaignListView />} />
+        <Route path="/campagnes/:id" element={<CampaignView />} />
         <Route path="/proprietaires/:id" element={<OwnerView />} />
         <Route path="/logements/:housingId" element={<HousingView />} />
         <Route

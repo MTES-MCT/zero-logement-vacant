@@ -33,7 +33,7 @@ export interface GroupProps {
   ): void;
   onExport?(): void;
   onUpdate?(group: GroupPayload): void;
-  onRemove?(): Promise<void>;
+  onRemove?(): void;
 }
 
 function Group(props: Readonly<GroupProps>) {

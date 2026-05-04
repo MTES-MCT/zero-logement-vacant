@@ -4,7 +4,6 @@ import {
   UserRole
 } from '@zerologementvacant/models';
 import schemas from '@zerologementvacant/schemas';
-import { AuthenticatedRequest } from 'express-jwt';
 import Router from 'express-promise-router';
 import { param } from 'express-validator';
 import { object, string } from 'yup';
@@ -41,7 +40,6 @@ import validatorNext from '~/middlewares/validator-next';
 import zipValidationMiddleware from '~/middlewares/zipValidation';
 import { paginationSchema } from '~/models/PaginationApi';
 import sortApi from '~/models/SortApi';
-import { isFeatureEnabled } from '~/services/posthogService';
 import { isUUIDParam } from '~/utils/validators';
 
 const router = Router();
@@ -250,13 +248,6 @@ router.get(
   validator.validate,
   campaignController.list
 );
-router.post(
-  '/campaigns',
-  validatorNext.validate({
-    body: schemas.campaignCreationPayload
-  }),
-  campaignController.create
-);
 router.get(
   '/campaigns/:id',
   campaignController.getCampaignValidators,
@@ -265,43 +256,17 @@ router.get(
 );
 router.put(
   '/campaigns/:id',
-  async (req, res, next) => {
-    const { auth } = req as AuthenticatedRequest;
-    const enabled = await isFeatureEnabled(
-      'new-campaigns',
-      auth.establishmentId
-    );
-    if (!enabled) return next('route');
-    next();
-  },
   validatorNext.validate({
     params: object({ id: schemas.id }),
     body: schemas.campaignUpdateNextPayload
   }),
   campaignController.updateNext
 );
-router.put(
-  '/campaigns/:id',
-  campaignController.updateValidators,
-  validator.validate,
-  campaignController.update
-);
 router.delete(
   '/campaigns/:id',
   [isUUIDParam('id')],
   validator.validate,
   campaignController.removeCampaign
-);
-// TODO: replace by /groups/:id/campaigns
-/**
- * @deprecated Replace by POST /groups/:id/campaigns
- * whenever the feature flag "new-campaigns" gets removed
- */
-router.post(
-  '/campaigns/:id/groups',
-  campaignController.createCampaignFromGroupValidators,
-  validator.validate,
-  campaignController.createCampaignFromGroup
 );
 router.post(
   '/groups/:id/campaigns',
@@ -345,53 +310,16 @@ router.delete(
 router.get('/drafts', draftController.list);
 router.post(
   '/drafts',
-  async (req, res, next) => {
-    const { auth } = req as AuthenticatedRequest;
-    const enabled = await isFeatureEnabled(
-      'new-campaigns',
-      auth.establishmentId
-    );
-    if (!enabled) return next('route');
-    next();
-  },
   validatorNext.validate({ body: schemas.draftCreationPayload }),
   draftController.createNext
 );
-router.post(
-  '/drafts',
-  validatorNext.validate({
-    body: schemas.draft
-  }),
-  draftController.create
-);
 router.put(
   '/drafts/:id',
-  async (req, res, next) => {
-    const { auth } = req as AuthenticatedRequest;
-    const enabled = await isFeatureEnabled(
-      'new-campaigns',
-      auth.establishmentId
-    );
-    if (!enabled) return next('route');
-    next();
-  },
   validatorNext.validate({
     params: object({ id: schemas.id }),
     body: schemas.draftUpdatePayload
   }),
   draftController.updateNext
-);
-router.put(
-  '/drafts/:id',
-  draftController.updateValidators,
-  validator.validate,
-  draftController.update
-);
-router.post(
-  '/drafts/:id/preview',
-  draftController.previewValidators,
-  validator.validate,
-  draftController.preview
 );
 
 router.get(

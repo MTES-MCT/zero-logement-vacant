@@ -13,7 +13,6 @@ import userController from '~/controllers/userController';
 import config from '~/infra/config';
 import { noop } from '~/middlewares/noop';
 import validator from '~/middlewares/validator';
-import serverSentEventController from '~/controllers/serverSentEventController';
 import validatorNext from '~/middlewares/validator-next';
 import schemas from '@zerologementvacant/schemas';
 import { jwtCheck, userCheck } from '~/middlewares/auth';
@@ -32,8 +31,6 @@ function rateLimiter() {
       })
     : noop();
 }
-
-router.get('/sse', serverSentEventController.handle);
 
 router.get(
   '/prospects/:email',

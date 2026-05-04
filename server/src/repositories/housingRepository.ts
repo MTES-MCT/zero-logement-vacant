@@ -191,20 +191,35 @@ async function count(filters: HousingFiltersApi): Promise<HousingCountApi> {
     return { housing: 0, owners: 0 };
   }
 
-  const result = await db
-    .with(
-      'list',
-      fastListQuery({
+  const filterByOwner = [
+    filters.ownerIds,
+    filters.ownerKinds,
+    filters.ownerAges,
+    filters.multiOwners,
+    filters.query
+  ].some((filter) => filter?.length);
+
+  const result = await db(housingTable)
+    .leftJoin(housingOwnersTable, ownerHousingJoinClause)
+    .modify((query) => {
+      if (filterByOwner) {
+        query.leftJoin(
+          ownerTable,
+          `${housingOwnersTable}.owner_id`,
+          `${ownerTable}.id`
+        );
+      }
+    })
+    .modify(
+      filteredQuery({
         filters: {
-          ...filters,
+          ...Struct.omit(filters, 'establishmentIds'),
           localities: geoCodes.toArray()
-        },
-        includes: ['owner']
+        }
       })
     )
-    .countDistinct('id as housing')
-    .countDistinct('owner_id as owners')
-    .from('list')
+    .countDistinct(`${housingTable}.id as housing`)
+    .countDistinct(`${housingOwnersTable}.owner_id as owners`)
     .first();
 
   return {

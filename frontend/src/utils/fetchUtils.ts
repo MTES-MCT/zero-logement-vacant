@@ -81,8 +81,3 @@ function abortSafely(id: string): void {
 export interface AbortOptions {
   abortable?: boolean;
 }
-
-export const normalizeUrlSegment = (segment: string) =>
-  kebabCase(segment.replaceAll(/\(.*\)/g, ''))
-    .normalize('NFD')
-    .replace(/[\u0300-\u036f]/g, '');

@@ -3,12 +3,10 @@ import {
   type TimePerWeek
 } from '@zerologementvacant/models';
 
-import AppSelectNext, {
-  type AppSelectNextProps
-} from '~/components/_app/AppSelect/AppSelectNext';
+import Select, { type SelectProps } from '~/components/ui/Select/Select';
 
 export type TimePerWeekSelectProps<Multiple extends boolean> = Pick<
-  AppSelectNextProps<TimePerWeek | null, Multiple>,
+  SelectProps<TimePerWeek | null, Multiple>,
   'className' | 'disabled' | 'error' | 'multiple' | 'value' | 'onChange'
 >;
 
@@ -20,7 +18,7 @@ function TimePerWeekSelect<Multiple extends boolean = false>(
   const options = [EMPTY_OPTION_VALUE, ...TIME_PER_WEEK_VALUES];
 
   return (
-    <AppSelectNext
+    <Select
       {...props}
       options={options}
       label="Temps par semaine dédié à la vacance"

@@ -3,7 +3,7 @@ import Typography from '@mui/material/Typography';
 import { useState } from 'react';
 
 import Stack from '@mui/material/Stack';
-import CampaignTableNext from '~/components/Campaign/CampaignTableNext';
+import CampaignTable from '~/components/Campaign/CampaignTable';
 import { useDocumentTitle } from '~/hooks/useDocumentTitle';
 import { useNotification } from '~/hooks/useNotification';
 import { type Campaign } from '~/models/Campaign';
@@ -81,7 +81,7 @@ function CampaignListView() {
     <Container maxWidth={false} sx={{ py: '2rem' }}>
       <Stack spacing="1rem" useFlexGap>
         <Typography variant="h1">Vos campagnes</Typography>
-        <CampaignTableNext onSentAt={onSentAt} onRemove={onRemove} />
+        <CampaignTable onSentAt={onSentAt} onRemove={onRemove} />
       </Stack>
 
       <sentAtCampaignModal.Component

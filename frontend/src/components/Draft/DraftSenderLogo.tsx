@@ -1,76 +1,58 @@
 import Stack from '@mui/material/Stack';
 import Typography from '@mui/material/Typography';
-import type { FileUploadDTO } from '@zerologementvacant/models';
-import classNames from 'classnames';
+import type { DocumentDTO } from '@zerologementvacant/models';
+import { useFormContext } from 'react-hook-form';
 
-import FileUpload from '~/components/FileUpload/FileUpload';
+import DraftDocumentUpload from '~/components/Draft/DraftDocumentUpload';
+import type { DraftFormSchema } from '~/components/Draft/DraftForm';
+import DocumentPreview from '~/components/FileUpload/DocumentPreview';
 import styles from './draft.module.scss';
-import LogoViewer from './LogoViewer';
 
-interface Props {
-  className?: string;
-  value: FileUploadDTO[];
-  onChange(value: FileUploadDTO[]): void;
-}
+function DraftSenderLogo() {
+  const { watch, setValue } = useFormContext<DraftFormSchema>();
 
-function DraftSenderLogo(props: Readonly<Props>) {
-  const { value: files } = props;
-
-  function onUpload(index: number) {
-    return (file: FileUploadDTO): void => {
-      const newFiles = [...files];
-      newFiles[index] = file;
-      props.onChange(newFiles);
+  function onUpload(
+    index: 0 | 1
+  ): (documents: ReadonlyArray<DocumentDTO>) => void {
+    return (documents) => {
+      const document = documents.at(0) ?? null;
+      setValue(`logo.${index}`, document, { shouldDirty: true });
     };
   }
 
-  function deleteLogo(id: string, index: number) {
-    return (): void => {
-      const newFiles = [...files].filter((file) => file?.id !== id);
-      props.onChange(newFiles);
-      const elem = document.getElementById(
-        `fileUploadLogo${index}-input`
-      ) as HTMLInputElement;
-      if (elem !== null) {
-        elem.value = '';
-      }
-    };
-  }
+  const [firstLogo, secondLogo] = watch(['logo.0', 'logo.1']);
 
   return (
     <Stack
       component="section"
       role="group"
       aria-labelledby="draft-sender-logo-label"
-      className={classNames(styles.article, props.className)}
+      className={styles.article}
     >
-      <Stack>
-        <Typography
-          id="draft-sender-logo-label"
-          component="h4"
-          variant="h6"
-          sx={{ mb: '0.25rem' }}
-        >
-          Logos de l’expéditeur
-        </Typography>
-        <FileUpload id="fileUploadLogo0" label={null} onUpload={onUpload(0)} />
-        <LogoViewer
-          index={0}
-          logo={props.value[0]}
-          onDelete={deleteLogo(props.value[0]?.id, 0)}
+      <Typography
+        id="draft-sender-logo-label"
+        component="h4"
+        variant="h6"
+        sx={{ mb: '0.25rem' }}
+      >
+        Logos de l’expéditeur
+      </Typography>
+
+      <Stack spacing="1rem">
+        <DraftDocumentUpload label={null} onUpload={onUpload(0)} />
+        <DocumentPreview
+          document={firstLogo ?? undefined}
+          responsive="max-width"
+          fit="contain"
         />
       </Stack>
-      <Stack sx={{ mb: 2, mt: 6 }}>
-        <FileUpload
-          id="fileUploadLogo1"
-          hint=""
-          label={null}
-          onUpload={onUpload(1)}
-        />
-        <LogoViewer
-          index={1}
-          logo={props.value[1]}
-          onDelete={deleteLogo(props.value[1]?.id, 1)}
+
+      <Stack spacing="1rem" sx={{ mt: '1.5rem' }}>
+        <DraftDocumentUpload hint={null} label={null} onUpload={onUpload(1)} />
+        <DocumentPreview
+          document={secondLogo ?? undefined}
+          responsive="max-width"
+          fit="contain"
         />
       </Stack>
     </Stack>

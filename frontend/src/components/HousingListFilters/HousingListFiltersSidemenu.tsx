@@ -53,14 +53,13 @@ import MultiOwnerSelect from './MultiOwnerSelect';
 import OccupancySelect from './OccupancySelect';
 import OwnerAgeSelect from './OwnerAgeSelect';
 import OwnerKindSelect from './OwnerKindSelect';
-import RelativeLocationSelect from './RelativeLocationSelect';
 import OwnershipKindSelect from './OwnershipKindSelect';
 import PerimeterSearchableSelect from './PerimeterSearchableSelect';
+import RelativeLocationSelect from './RelativeLocationSelect';
 import RoomCountSelect from './RoomCountSelect';
 import SurfaceSelect from './SurfaceSelect';
 import VacancyRateSelect from './VacancyRateSelect';
 import VacancyYearSelect from './VacancyYearSelect';
-import FeatureFlagLayout from '~/layouts/FeatureFlagLayout';
 
 interface TitleWithIconProps {
   icon: FrIconClassName | RiIconClassName;

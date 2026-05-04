@@ -1,5 +1,4 @@
 import { Record } from 'effect';
-import { kebabCase } from 'lodash-es';
 
 import authService from '../services/auth.service';
 

@@ -12,8 +12,8 @@ import HousingFiltersBadges from '~/components/HousingFiltersBadges/HousingFilte
 import HousingListFiltersSidemenu from '~/components/HousingListFilters/HousingListFiltersSidemenu';
 import { useDocumentTitle } from '~/hooks/useDocumentTitle';
 import { useFilters } from '~/hooks/useFilters';
+import { useNotification } from '~/hooks/useNotification';
 import { useAppSelector } from '~/hooks/useStore';
-import type { GroupPayload } from '~/models/GroupPayload';
 import authService from '~/services/auth.service';
 import { useCreateCampaignFromGroupNextMutation } from '~/services/campaign.service';
 import {
@@ -26,7 +26,6 @@ import HousingListMap from '../HousingList/HousingListMap';
 import HousingListTabs from '../HousingList/HousingListTabs';
 import HousingListTabsProvider from '../HousingList/HousingListTabsProvider';
 import NotFoundView from '../NotFoundView';
-import { useNotification } from '~/hooks/useNotification';
 
 interface RouterState {
   alert?: string;

@@ -16,7 +16,7 @@ import { array, type InferType, number, object, string } from 'yup';
 import type { Selection } from '~/hooks/useSelection';
 import { HousingStates } from '../../models/HousingState';
 import { displayCount } from '../../utils/stringUtils';
-import AsideNext from '../Aside/AsideNext';
+import Aside from '../Aside/Aside';
 import OccupancySelect from '../HousingListFilters/OccupancySelect';
 import LabelNext from '../Label/LabelNext';
 import AppTextInputNext from '../_app/AppTextInput/AppTextInputNext';
@@ -197,7 +197,7 @@ function HousingListEditionSideMenu(props: Props) {
     .exhaustive();
 
   return (
-    <AsideNext
+    <Aside
       drawerProps={{
         sx: (theme) => ({
           zIndex: theme.zIndex.appBar + 1,

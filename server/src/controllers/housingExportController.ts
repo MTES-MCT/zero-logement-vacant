@@ -139,24 +139,12 @@ async function exportGroup(request: Request, response: Response) {
     },
     includes: ['owner', 'campaigns', 'precisions']
   });
-  const ownerStream = ownerRepository.stream({
-    filters: {
-      groupId: group.id
-    },
-    includes: ['banAddress', 'housings']
-  });
 
-  await Promise.all([
-    createGroupHousingWorksheet({
-      workbook,
-      stream: housingStream,
-      campaigns
-    }),
-    createOwnerWorksheet({
-      workbook,
-      stream: ownerStream
-    })
-  ]);
+  await createGroupHousingWorksheet({
+    workbook,
+    stream: housingStream,
+    campaigns
+  });
 
   await workbook.commit();
   await groupRepository.save({

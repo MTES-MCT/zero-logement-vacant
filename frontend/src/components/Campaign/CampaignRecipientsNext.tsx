@@ -14,6 +14,7 @@ import {
   formatAddress as formatAddressDTO,
   type Pagination
 } from '@zerologementvacant/models';
+import { Record } from 'effect';
 import { Fragment, type ReactNode, useMemo, useState } from 'react';
 import { match } from 'ts-pattern';
 
@@ -23,7 +24,7 @@ import OwnerEditionSideMenu from '~/components/OwnerEditionSideMenu/OwnerEdition
 import { useNotification } from '~/hooks/useNotification';
 import { type Address, isBanEligible } from '~/models/Address';
 import type { Campaign } from '~/models/Campaign';
-import type { Housing, HousingSort } from '~/models/Housing';
+import type { Housing } from '~/models/Housing';
 import { useRemoveCampaignHousingMutation } from '~/services/campaign.service';
 import {
   useCountHousingQuery,
@@ -49,7 +50,7 @@ function CampaignRecipients(props: Readonly<CampaignRecipientsProps>) {
     pageSize: 50
   });
   const [sorting, setSorting] = useState<SortingState>([
-    { id: 'owner_fullName', desc: false }
+    { id: 'owner', desc: false }
   ]);
   const filters = {
     campaignIds: [props.campaign.id]
@@ -58,15 +59,12 @@ function CampaignRecipients(props: Readonly<CampaignRecipientsProps>) {
     page: pagination.pageIndex + 1,
     perPage: pagination.pageSize
   };
-  const sort = useMemo<HousingSort | undefined>(() => {
-    const ownerSort = sorting.find((s) => s.id === 'owner_fullName');
-    if (!ownerSort) return undefined;
-    return { owner: ownerSort.desc ? 'desc' : 'asc' };
-  }, [sorting]);
   const { data: housings, isLoading } = useFindHousingQuery({
     filters,
     pagination: apiPagination,
-    sort
+    sort: Record.fromEntries(
+      sorting.map((s) => [s.id, s.desc ? 'desc' : 'asc'])
+    )
   });
   const countHousingQuery = useCountHousingQuery(filters);
   const { data: count } = countHousingQuery;
@@ -116,6 +114,7 @@ function CampaignRecipients(props: Readonly<CampaignRecipientsProps>) {
   const columns = useMemo(
     () => [
       columnHelper.accessor('owner.fullName', {
+        id: 'owner',
         header: () => <AdvancedTableHeader title="Destinataire principal" />,
         meta: {
           sort: {
@@ -156,7 +155,7 @@ function CampaignRecipients(props: Readonly<CampaignRecipientsProps>) {
         }
       }),
       columnHelper.accessor('owner.additionalAddress', {
-        header: () => <AdvancedTableHeader title="Complément d'adresse" />,
+        header: () => <AdvancedTableHeader title="Complément d’adresse" />,
         meta: {
           styles: {
             multiline: true
@@ -294,7 +293,7 @@ function CampaignRecipients(props: Readonly<CampaignRecipientsProps>) {
       />
 
       <removeCampaignHousingModal.Component
-        title="Suppression d'un destinataire"
+        title="Suppression d’un destinataire"
         buttons={[
           {
             children: 'Annuler',

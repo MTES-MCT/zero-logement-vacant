@@ -291,7 +291,9 @@ const createFromGroup: RequestHandler<
     await Promise.all([
       campaignHousingRepository.insertHousingList(campaign.id, housings),
       housingRepository.updateMany(
-        housings.map((housing) => Struct.pick(housing, 'geoCode', 'id')),
+        neverContactedHousings.map((housing) =>
+          Struct.pick(housing, 'geoCode', 'id')
+        ),
         {
           status: HousingStatus.WAITING,
           subStatus: null

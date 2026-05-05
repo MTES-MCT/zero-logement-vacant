@@ -345,11 +345,11 @@ describe('Campaign API', () => {
 
     const geoCode = faker.helpers.arrayElement(establishment.geoCodes);
     const group = genGroupApi(user, establishment);
-    const groupHousings = faker.helpers.multiple(() => genHousingApi(geoCode), {
-      count: {
-        min: 10,
-        max: 100
-      }
+    const groupHousings = HOUSING_STATUS_VALUES.flatMap((status) => {
+      return faker.helpers.multiple(
+        () => ({ ...genHousingApi(geoCode), status }),
+        { count: 3 }
+      );
     });
     const owners = groupHousings
       .map((housing) => housing.owner)
@@ -601,6 +601,39 @@ describe('Campaign API', () => {
       );
       expect(actual).toSatisfyAll<HousingRecordDBO>(
         (housing) => housing.status === HousingStatus.WAITING
+      );
+    });
+
+    it('should not change housings that are not "never contacted"', async () => {
+      const payload: CampaignCreationPayload = {
+        title: 'Logements prioritaires',
+        description: 'Campagne pour les logements prioritaires',
+        sentAt: null
+      };
+
+      const { status } = await request(url)
+        .post(testRoute(group.id))
+        .send(payload)
+        .type('json')
+        .use(tokenProvider(user));
+
+      expect(status).toBe(constants.HTTP_STATUS_CREATED);
+      const notNeverContactedHousings = groupHousings.filter(
+        (groupHousing) =>
+          ![HousingStatus.NEVER_CONTACTED, HousingStatus.WAITING].includes(
+            groupHousing.status
+          )
+      );
+      const actual = await Housing().whereIn(
+        ['geo_code', 'id'],
+        notNeverContactedHousings.map((housing) => [
+          housing.geoCode,
+          housing.id
+        ])
+      );
+      expect(actual.length).toBeGreaterThan(0);
+      expect(actual).toSatisfyAll<HousingRecordDBO>(
+        (housing) => housing.status !== HousingStatus.WAITING
       );
     });
 

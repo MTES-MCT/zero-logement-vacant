@@ -14,7 +14,6 @@ import {
   formatAddress as formatAddressDTO,
   type Pagination
 } from '@zerologementvacant/models';
-import { Record } from 'effect';
 import { type ReactNode, useMemo, useState } from 'react';
 import { match } from 'ts-pattern';
 
@@ -31,6 +30,7 @@ import {
   useCountHousingQuery,
   useFindHousingQuery
 } from '~/services/housing.service';
+import { toSortRecord } from '~/utils/tableSortUtils';
 import AppLink from '../_app/AppLink/AppLink';
 
 import { useExportCampaignMutation } from '~/services/export.service';
@@ -64,9 +64,7 @@ function CampaignRecipients(props: Readonly<CampaignRecipientsProps>) {
   const { data: housings, isLoading } = useFindHousingQuery({
     filters,
     pagination: apiPagination,
-    sort: Record.fromEntries(
-      sorting.map((s) => [s.id, s.desc ? 'desc' : 'asc'])
-    )
+    sort: toSortRecord(sorting)
   });
   const countHousingQuery = useCountHousingQuery(filters);
   const { data: count } = countHousingQuery;

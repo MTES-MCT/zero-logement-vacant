@@ -1,6 +1,6 @@
 import { fr } from '@codegouvfr/react-dsfr';
 import Button from '@codegouvfr/react-dsfr/Button';
-import styled from '@emotion/styled';
+import { styled } from '@mui/material/styles';
 import { Divider } from '@mui/material';
 import Box from '@mui/material/Box';
 import Stack from '@mui/material/Stack';

@@ -30,6 +30,8 @@ SELECT
     n.idpersonne,
     n.owner_fullname_concat,
     a.owner_full_address,
-    a.ccogrm
+    a.ccogrm,
+    REGEXP_EXTRACT(a.owner_full_address, '(\d{5})') AS owner_cp,
+    SUBSTRING(REGEXP_EXTRACT(a.owner_full_address, '(\d{5})'), 1, 2) AS owner_dept
 FROM names n
 JOIN addresses a ON n.idpersonne = a.idpersonne

@@ -2531,6 +2531,96 @@ describe('Housing repository', () => {
 
       expect(result).toEqual({ housing: 0, owners: 0 });
     });
+
+    describe('Filters', () => {
+      describe('by owner ids', () => {
+        const geoCode = oneOf(establishment.geoCodes);
+        let targetOwner: OwnerApi;
+
+        beforeEach(async () => {
+          const housing1 = genHousingApi(geoCode);
+          const housing2 = genHousingApi(geoCode);
+          targetOwner = genOwnerApi();
+          const otherOwner = genOwnerApi();
+          await Housing().insert([housing1, housing2].map(formatHousingRecordApi));
+          await Owners().insert([targetOwner, otherOwner].map(formatOwnerApi));
+          await HousingOwners().insert([
+            ...formatHousingOwnersApi(housing1, [targetOwner]),
+            ...formatHousingOwnersApi(housing2, [otherOwner])
+          ]);
+        });
+
+        it('should count only housings belonging to the given owner', async () => {
+          const result = await housingRepository.count({
+            establishmentIds: [establishment.id],
+            ownerIds: [targetOwner.id]
+          });
+
+          expect(result.housing).toBe(1);
+          expect(result.owners).toBe(1);
+        });
+      });
+
+      describe('by multi owners', () => {
+        const geoCode = oneOf(establishment.geoCodes);
+
+        beforeEach(async () => {
+          const multiHousing1 = genHousingApi(geoCode);
+          const multiHousing2 = genHousingApi(geoCode);
+          const singleHousing = genHousingApi(geoCode);
+          const multiOwner = genOwnerApi();
+          const singleOwner = genOwnerApi();
+          await Housing().insert(
+            [multiHousing1, multiHousing2, singleHousing].map(formatHousingRecordApi)
+          );
+          await Owners().insert([multiOwner, singleOwner].map(formatOwnerApi));
+          await HousingOwners().insert([
+            ...formatHousingOwnersApi(multiHousing1, [multiOwner]),
+            ...formatHousingOwnersApi(multiHousing2, [multiOwner]),
+            ...formatHousingOwnersApi(singleHousing, [singleOwner])
+          ]);
+        });
+
+        it('should count only housings belonging to owners who have multiple properties', async () => {
+          const result = await housingRepository.count({
+            establishmentIds: [establishment.id],
+            multiOwners: [true],
+            localities: [geoCode]
+          });
+
+          expect(result.housing).toBe(2);
+          expect(result.owners).toBe(1);
+        });
+      });
+
+      describe('by beneficiary count', () => {
+        const geoCode = oneOf(establishment.geoCodes);
+
+        beforeEach(async () => {
+          const housingWith2 = genHousingApi(geoCode);
+          const housingWith1 = genHousingApi(geoCode);
+          const owners = faker.helpers.multiple(() => genOwnerApi(), { count: 3 });
+          await Housing().insert(
+            [housingWith2, housingWith1].map(formatHousingRecordApi)
+          );
+          await Owners().insert(owners.map(formatOwnerApi));
+          await HousingOwners().insert([
+            ...formatHousingOwnersApi(housingWith2, owners.slice(0, 2)),
+            ...formatHousingOwnersApi(housingWith1, owners.slice(2, 3))
+          ]);
+        });
+
+        it('should count only housings with the given number of beneficiaries', async () => {
+          const result = await housingRepository.count({
+            establishmentIds: [establishment.id],
+            beneficiaryCounts: ['2'],
+            localities: [geoCode]
+          });
+
+          expect(result.housing).toBe(1);
+        });
+      });
+    });
   });
 
   describe('findOne', () => {

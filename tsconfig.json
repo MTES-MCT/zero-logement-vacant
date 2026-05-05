@@ -6,25 +6,16 @@
       "path": "./packages/healthcheck"
     },
     {
-      "path": "./packages/api-sdk"
-    },
-    {
       "path": "./packages/schemas"
     },
     {
       "path": "./packages/models"
     },
     {
-      "path": "./packages/draft"
-    },
-    {
       "path": "./packages/utils"
     },
     {
       "path": "./server"
-    },
-    {
-      "path": "./queue"
     },
     {
       "path": "./frontend"

@@ -5,7 +5,7 @@ import Typography from '@mui/material/Typography';
 import type { Precision, PrecisionCategory } from '@zerologementvacant/models';
 import type { ReactNode } from 'react';
 import { PRECISION_CATEGORY_LABELS } from '../../models/Precision';
-import AppSelectNext from '../_app/AppSelect/AppSelectNext';
+import Select from '~/components/ui/Select/Select';
 
 interface PrecisionFilterProps {
   label: ReactNode;
@@ -16,7 +16,7 @@ interface PrecisionFilterProps {
 
 function PrecisionSelect(props: PrecisionFilterProps) {
   return (
-    <AppSelectNext
+    <Select
       label={props.label}
       multiple
       options={props.options}

@@ -1,7 +1,5 @@
 import type { EstablishmentDTO } from '@zerologementvacant/models';
 
-import { normalizeUrlSegment } from '../utils/fetchUtils';
-
 export interface Establishment extends Omit<EstablishmentDTO, 'siren'> {
   siren: number;
 }
@@ -14,19 +12,3 @@ export function fromEstablishmentDTO(
     siren: Number(establishment.siren)
   };
 }
-
-export function toEstablishmentDTO(
-  establishment: Establishment
-): EstablishmentDTO {
-  return {
-    ...establishment,
-    siren: String(establishment.siren)
-  };
-}
-
-export const getEstablishmentUrl = (establishment: Establishment) =>
-  ['COM', 'COM-TOM'].includes(establishment.kind)
-    ? `/communes/${normalizeUrlSegment(establishment.shortName)}-${
-        establishment.geoCodes[0]
-      }`
-    : `/collectivites/${normalizeUrlSegment(establishment.shortName)}`;

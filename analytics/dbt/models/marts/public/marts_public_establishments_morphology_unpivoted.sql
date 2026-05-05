@@ -151,10 +151,10 @@ WITH base_data AS (
                 THEN 'Logements du Parc Privé Loués'
             WHEN
                 count_type = 'count_housing_last_lovac_production'
-                THEN 'LOVAC 2024 (>2 ans) - ZLV'
+                THEN 'LOVAC 2026 (>2 ans) - ZLV'
             WHEN
                 count_type = 'count_housing_last_ff_production'
-                THEN 'FF 2023 (parc privé locatif) - ZLV'
+                THEN 'FF 2024 (parc privé locatif) - ZLV'
             WHEN
                 count_type = 'count_housing_rented_production'
                 THEN 'Loué - ZLV'
@@ -171,7 +171,8 @@ WITH base_data AS (
         MAX(CASE WHEN year = 2022 THEN count_value END) AS "2022",
         MAX(CASE WHEN year = 2023 THEN count_value END) AS "2023",
         MAX(CASE WHEN year = 2024 THEN count_value END) AS "2024",
-        MAX(CASE WHEN year = 2025 THEN count_value END) AS "2025"
+        MAX(CASE WHEN year = 2025 THEN count_value END) AS "2025",
+        MAX(CASE WHEN year = 2026 THEN count_value END) AS "2026"
     FROM unpivoted_data
     GROUP BY establishment_id, count_type
 )
@@ -186,6 +187,14 @@ SELECT
     "2023",
     "2024",
     "2025",
+    "2026",
+    ("2026" - "2025") AS var_2026_2025,
+    CASE
+        WHEN
+            "2025" != 0
+            THEN ROUND((("2026" - "2025") / "2025") * 100, 2)
+        ELSE NULL
+    END AS var_pct_2026_2025,
     ("2025" - "2024") AS var_2025_2024,
     CASE
         WHEN

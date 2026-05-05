@@ -76,10 +76,6 @@ export default defineConfig(({ mode }) => ({
     setupFiles: ['./vitest.setup.ts'],
     globals: true,
     environment: 'happy-dom',
-    include: ['src/**/*.{test,spec}.{js,mjs,cjs,ts,mts,cts,jsx,tsx}'],
-    coverage: {
-      reportsDirectory: './test-output/vitest/coverage',
-      provider: 'v8' as const
-    }
+    include: ['src/**/*.{test,spec}.{js,mjs,cjs,ts,mts,cts,jsx,tsx}']
   }
 }));

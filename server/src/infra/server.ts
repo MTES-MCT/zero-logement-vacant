@@ -9,7 +9,6 @@ import {
   healthcheck,
   brevoCheck,
   postgresCheck,
-  redisCheck,
   s3Check
 } from '@zerologementvacant/healthcheck';
 import RouteNotFoundError from '~/errors/routeNotFoundError';
@@ -17,6 +16,7 @@ import config from '~/infra/config';
 import gracefulShutdown from '~/infra/graceful-shutdown';
 import { logger } from '~/infra/logger';
 import sentry from '~/infra/sentry';
+import { setupApiDocs } from '~/infra/openapi';
 import unprotectedRouter from '~/routers/unprotected';
 import protectedRouter from '~/routers/protected';
 import errorHandler from '~/middlewares/error-handler';
@@ -61,6 +61,7 @@ export function createServer(): Server {
             'https://client.crisp.chat',
             'https://www.googletagmanager.com',
             'https://googleads.g.doubleclick.net',
+            'https://cdn.jsdelivr.net/npm/@scalar/api-reference'
           ],
           frameSrc: [
             'https://zerologementvacant-metabase-prod.osc-secnum-fr1.scalingo.io',
@@ -88,6 +89,7 @@ export function createServer(): Server {
             'https://cdn.jsdelivr.net/npm/remixicon@2.5.0/fonts/remixicon.woff2',
             'https://cdn.jsdelivr.net/npm/remixicon@2.5.0/fonts/remixicon.ttf',
             'https://client.crisp.chat',
+            'https://fonts.scalar.com',
             'data:'
           ],
           objectSrc: ["'self'"],
@@ -101,6 +103,8 @@ export function createServer(): Server {
             'https://openmaptiles.geo.data.gouv.fr',
             'https://openmaptiles.github.io',
             'https://unpkg.com',
+            'https://cdn.jsdelivr.net',
+            'https://api.scalar.com'
           ],
           workerSrc: ["'self'", 'blob:']
         }
@@ -135,13 +139,15 @@ export function createServer(): Server {
             config.app.env === 'production' &&
             config.mailer.provider === 'brevo'
         }),
-        redisCheck(config.redis.url),
         postgresCheck(config.db.url),
         s3Check(config.s3)
       ],
       logger
     })
   );
+
+  // API documentation (disabled by default, enable with SWAGGER_ENABLED=true)
+  setupApiDocs(app);
 
   app.use('/api', unprotectedRouter);
   app.use('/api', protectedRouter);

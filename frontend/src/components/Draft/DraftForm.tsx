@@ -10,12 +10,12 @@ import { FormProvider, useForm, type SubmitHandler } from 'react-hook-form';
 import { mixed, tuple, type InferType } from 'yup';
 
 import { Tuple } from 'effect';
-import DraftBodyNext from '~/components/Draft/DraftBodyNext';
+import DraftBody from '~/components/Draft/DraftBody';
 import DraftRedaction from '~/components/Draft/DraftRedaction';
-import DraftSenderLogoNext from '~/components/Draft/DraftSenderLogoNext';
-import DraftSenderNext from '~/components/Draft/DraftSenderNext';
-import DraftSignatureNext from '~/components/Draft/DraftSignatureNext';
-import PreviewButtonNext from '~/components/Draft/PreviewButtonNext';
+import DraftSenderLogo from '~/components/Draft/DraftSenderLogo';
+import DraftSender from '~/components/Draft/DraftSender';
+import DraftSignature from '~/components/Draft/DraftSignature';
+import PreviewButton from '~/components/Draft/PreviewButton';
 import SaveButton from '~/components/SaveButton/SaveButton';
 import type { Campaign } from '~/models/Campaign';
 import type { Draft } from '~/models/Draft';
@@ -139,7 +139,7 @@ function DraftForm(props: Readonly<DraftFormProps>) {
                 type="submit"
               />
 
-              <PreviewButtonNext
+              <PreviewButton
                 campaign={props.campaign}
                 draft={props.draft}
                 type="button"
@@ -151,21 +151,21 @@ function DraftForm(props: Readonly<DraftFormProps>) {
 
           <Grid size={{ xs: 12, md: 5 }}>
             <Stack spacing="1rem" useFlexGap>
-              <DraftSenderLogoNext />
+              <DraftSenderLogo />
               <DraftRedaction />
             </Stack>
           </Grid>
 
           <Grid size={{ xs: 12, md: 7 }}>
-            <DraftSenderNext />
+            <DraftSender />
           </Grid>
 
           <Grid size={12}>
-            <DraftBodyNext />
+            <DraftBody />
           </Grid>
 
           <Grid size={12}>
-            <DraftSignatureNext />
+            <DraftSignature />
           </Grid>
         </Grid>
       </form>

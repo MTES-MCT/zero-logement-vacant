@@ -117,11 +117,11 @@ WITH all_lovac AS (
 all_ff AS (
     SELECT
         2026 AS year, ff_idlocal, geo_code, ff_ccogrm, ff_ccthp, ff_dteloc
-    FROM {{ ref ("stg_lovac_ff_ext_2024") }}
+    FROM {{ ref ("stg_lovac_ff_ext_2025") }}
     UNION ALL
     SELECT
         2025 AS year, ff_idlocal, geo_code, ff_ccogrm, ff_ccthp, ff_dteloc
-    FROM {{ ref ("stg_lovac_ff_ext_2024") }}
+    FROM {{ ref ("stg_lovac_ff_ext_2025") }}
     UNION ALL
     SELECT
         2024 AS year, ff_idlocal, geo_code, ff_ccogrm, ff_ccthp, ff_dteloc
@@ -257,14 +257,14 @@ ff_geo_code_year AS (
 production AS (
     SELECT
         geo_code,
-        SUM(CASE WHEN list_contains(data_file_years, 'lovac-2025') THEN 1 ELSE 0 END) AS housing_last_lovac_count,
-        SUM(CASE WHEN list_contains(data_file_years, 'ff-2023-locatif') THEN 1 ELSE 0 END) AS housing_last_ff_count,
+        SUM(CASE WHEN list_contains(data_file_years, 'lovac-2026') THEN 1 ELSE 0 END) AS housing_last_lovac_count,
+        SUM(CASE WHEN list_contains(data_file_years, 'ff-2024-locatif') THEN 1 ELSE 0 END) AS housing_last_ff_count,
         SUM(CASE WHEN occupancy = 'L' THEN 1 ELSE 0 END) AS housing_rented_count,
         SUM(CASE WHEN occupancy = 'V' THEN 1 ELSE 0 END) AS housing_vacant_count,
         SUM(CASE WHEN energy_consumption_bdnb IN ('G', 'F') THEN 1 ELSE 0 END) AS housing_energy_sieve_count,
-        2025 AS year
+        2026 AS year
     FROM {{ ref ("int_production_housing") }} as h
-    WHERE list_contains(data_file_years, 'lovac-2025')
+    WHERE list_contains(data_file_years, 'lovac-2026')
     GROUP BY geo_code
 )
 SELECT

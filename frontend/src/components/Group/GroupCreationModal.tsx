@@ -87,6 +87,7 @@ function createGroupCreationModal() {
                   housingCount={props.count.housing}
                   ownerCount={props.count.owners}
                   suffix
+                  isActive={false}
                 />
               )}
             </Grid>

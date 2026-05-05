@@ -7,6 +7,22 @@ import { Address, AddressQuery, BAN, Point } from '~/services/ban/ban';
 
 const logger = createLogger('ban-api');
 
+/**
+ * Validates that the response is CSV and not HTML (error page).
+ * The BAN API may return HTML when under maintenance or rate-limited.
+ */
+function validateCSVResponse(data: string, endpoint: string): void {
+  const trimmed = data.trim();
+  if (trimmed.startsWith('<!DOCTYPE') || trimmed.startsWith('<html')) {
+    logger.error(`BAN API returned HTML instead of CSV for ${endpoint}`, {
+      preview: trimmed.substring(0, 200)
+    });
+    throw new Error(
+      `BAN API returned HTML instead of CSV (possible maintenance or rate limit)`
+    );
+  }
+}
+
 class BanAPI implements BAN {
   readonly http = axios.create({
     baseURL: 'https://api-adresse.data.gouv.fr'
@@ -48,6 +64,7 @@ class BanAPI implements BAN {
     form.append('result_columns', 'result_score');
 
     const { data } = await this.http.post<string>('/search/csv', form);
+    validateCSVResponse(data, '/search/csv');
     const records: ReadonlyArray<BanAddress & Q> = fromCSV(data, {
       columns: true
     });
@@ -98,6 +115,7 @@ class BanAPI implements BAN {
         });
         throw error;
       });
+    validateCSVResponse(data, '/reverse/csv');
     const records: ReadonlyArray<BanAddress & P> = fromCSV(data, {
       columns: true
     });

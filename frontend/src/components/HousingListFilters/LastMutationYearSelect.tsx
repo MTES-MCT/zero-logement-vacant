@@ -5,11 +5,11 @@ import {
   LAST_MUTATION_YEAR_EMPTY_OPTION,
   LAST_MUTATION_YEAR_LABELS
 } from '../../models/HousingFilters';
-import AppSelectNext from '../_app/AppSelect/AppSelectNext';
-import type { AppSelectNextProps } from '../_app/AppSelect/AppSelectNext';
+import Select from '~/components/ui/Select/Select';
+import type { SelectProps } from '~/components/ui/Select/Select';
 
 export type LastMutationYearSelectProps<Multiple extends boolean> = Pick<
-  AppSelectNextProps<LastMutationYearFilter | null, Multiple>,
+  SelectProps<LastMutationYearFilter | null, Multiple>,
   'className' | 'disabled' | 'multiple' | 'value' | 'onChange'
 > & {
   label?: string;
@@ -25,7 +25,7 @@ function LastMutationYearSelect<Multiple extends boolean = false>(
   ];
 
   return (
-    <AppSelectNext
+    <Select
       {...rest}
       getOptionLabel={(option) =>
         option === LAST_MUTATION_YEAR_EMPTY_OPTION.value

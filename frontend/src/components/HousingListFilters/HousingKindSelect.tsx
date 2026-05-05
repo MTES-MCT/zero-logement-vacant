@@ -1,10 +1,10 @@
 import type { HousingKind } from '@zerologementvacant/models';
 import { housingKindOptions } from '../../models/HousingFilters';
-import AppSelectNext from '../_app/AppSelect/AppSelectNext';
-import type { AppSelectNextProps } from '../_app/AppSelect/AppSelectNext';
+import Select from '~/components/ui/Select/Select';
+import type { SelectProps } from '~/components/ui/Select/Select';
 
 export type HousingKindSelectProps<Multiple extends boolean> = Pick<
-  AppSelectNextProps<HousingKind, Multiple>,
+  SelectProps<HousingKind, Multiple>,
   | 'className'
   | 'disabled'
   | 'error'
@@ -19,7 +19,7 @@ function HousingKindSelect<Multiple extends boolean = false>(
   props: HousingKindSelectProps<Multiple>
 ) {
   return (
-    <AppSelectNext
+    <Select
       {...props}
       getOptionLabel={(kind) =>
         housingKindOptions.find((option) => option.value === kind)!.label

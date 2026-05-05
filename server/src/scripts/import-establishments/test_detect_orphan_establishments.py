@@ -204,7 +204,6 @@ class TestIsSafeToDelete:
             "groups": 0,
             "geo_perimeters": 5,
             "drafts": 3,
-            "settings": 1,
         }
         assert is_safe_to_delete(usage) is True
 

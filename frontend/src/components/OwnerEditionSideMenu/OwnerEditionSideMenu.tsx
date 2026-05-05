@@ -9,7 +9,7 @@ import { useNotification } from '../../hooks/useNotification';
 import type { Owner } from '../../models/Owner';
 import { useUpdateOwnerMutation } from '../../services/owner.service';
 import AppTextInputNext from '../_app/AppTextInput/AppTextInputNext';
-import AsideNext from '../Aside/AsideNext';
+import Aside from '../Aside/Aside';
 import OwnerAddressEdition from '../OwnerAddressEdition/OwnerAddressEdition';
 
 interface OwnerEditionSideMenuProps {
@@ -122,7 +122,7 @@ function OwnerEditionSideMenu(props: OwnerEditionSideMenuProps) {
   });
 
   return (
-    <AsideNext
+    <Aside
       drawerProps={{
         sx: (theme) => ({
           zIndex: theme.zIndex.appBar + 1,

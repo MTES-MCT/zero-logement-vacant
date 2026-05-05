@@ -8,10 +8,13 @@ export default defineConfig({
   test: {
     watch: false,
     globals: true,
-    env: loadEnv('test', __dirname),
+    env: {
+      ...loadEnv('test', __dirname),
+      TZ: 'UTC'
+    },
     environment: 'node',
     testTimeout: 30_000,
-    setupFiles: ['./vitest.setup.ts', './src/test/setup-env.ts'],
+    setupFiles: ['./vitest.setup.ts'],
     globalSetup: './src/test/global-setup.ts',
     coverage: {
       include: ['src/**/*.ts'],

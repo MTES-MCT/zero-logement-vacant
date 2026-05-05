@@ -2,7 +2,6 @@ import { SenderDTO, type SignatoryDTO } from '@zerologementvacant/models';
 import { pipe, Predicate, Record } from 'effect';
 
 import {
-  fromDocumentDTO,
   toDocumentDTO,
   type DocumentApi,
   type FetchDocumentURLOptions
@@ -65,16 +64,3 @@ export async function toSignatoryDTO(
   };
 }
 
-/**
- * @deprecated Exists only to facilitate migration from `draftController.create` to `draftController.createNext`
- * and `draftController.update` to `draftController.updateNext`. Should be removed once the migration is complete.
- */
-export function fromSignatoryDTO(signatory: SignatoryDTO): SignatoryApi {
-  return {
-    firstName: signatory.firstName,
-    lastName: signatory.lastName,
-    role: signatory.role,
-    file: signatory.file,
-    document: signatory.document ? fromDocumentDTO(signatory.document) : null
-  };
-}

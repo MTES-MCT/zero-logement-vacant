@@ -4,7 +4,7 @@ models:
   - name: int_zlovac_housing
     description: "Gold Housing table for LOVAC 2026 - maps to Table Housing_26 specification."
     config:
-      materialized: view
+      materialized: table
   - name: int_zlovac
     description: "Base structured model from LOVAC 2026 with all fields standardized."
     config:
@@ -15,19 +15,59 @@ models:
   - name: int_zlovac_owners
     description: "Gold Owners table for LOVAC 2026 - maps to Table Owners_26 specification."
     config:
-      materialized: view
+      materialized: table
+    columns:
+      - name: owner_uid
+        description: "Stable UUID generated once per dedup_key after deduplication."
+        data_tests:
+          - not_null
+          - unique
+      - name: dedup_key
+        description: "COALESCE(owner_idpersonne, owner_fullname). Used by int_zlovac_owner_housing to retrieve owner_uid."
+        data_tests:
+          - not_null
+          - unique
   - name: int_zlovac_owner_housing
     description: "Gold Owners Housing table for LOVAC 2026 - maps to Table Owners Housing_26 specification."
     config:
-      materialized: view
-  - name: int_zlovac_owner_matching
-    description: "Matches CER 1767 owners against FF25 by name+address (jaro_winkler >= 0.9) to retrieve idpersonne, then applies rank logic."
+      materialized: table
+    columns:
+      - name: owner_uid
+        description: "FK to int_zlovac_owners.owner_uid. Must exist in int_zlovac_owners for every row."
+        data_tests:
+          - not_null
+          - relationships:
+              arguments:
+                to: ref('int_zlovac_owners')
+                field: owner_uid
+  - name: int_zlovac_ff25_lookup
+    description: "Pre-filtered FF25 owners: only names present in LOVAC CER fields, with normalized addresses."
+    config:
+      materialized: table
+  - name: int_zlovac_owner_match_lovac
+    description: "Phase 1: LOVAC internal matching - CER name = cer_nom_usage_1..6."
+    config:
+      materialized: table
+  - name: int_zlovac_owner_match_ff25
+    description: "Phase 2: FF25 address matching (jaro_winkler >= 0.85) for Phase 1 unmatched."
+    config:
+      materialized: table
+  - name: int_zlovac_owner_match_cascade
+    description: "Phase 3: Cascade matching (T0 unique name, T1 same CP, T2 same dept) for Phase 1+2 unmatched."
+    config:
+      materialized: table
+  - name: int_zlovac_owner_cer_matched
+    description: "Combined view of all 3 matching phases."
     config:
       materialized: view
+  - name: int_zlovac_owner_matching
+    description: "Final owner-housing table with rank logic applied from CER matching results."
+    config:
+      materialized: table
   - name: int_zlovac_buildings
     description: "Gold Buildings table for LOVAC 2026 - maps to Table Buildings_26 specification."
     config:
-      materialized: view
+      materialized: table
   - name: int_zlovac_evol_housing_owners
     description: "Identifies housing where ownership changed between LOVAC 2025 and 2026 (account or ownership order changes)."
     config:

@@ -7,13 +7,11 @@ import establishmentController from '~/controllers/establishmentController';
 import localityController from '~/controllers/localityController';
 import prospectController from '~/controllers/prospectController';
 import resetLinkController from '~/controllers/resetLinkController';
-import settingsController from '~/controllers/settingsController';
 import signupLinkController from '~/controllers/signupLinkController';
 import userController from '~/controllers/userController';
 import config from '~/infra/config';
 import { noop } from '~/middlewares/noop';
 import validator from '~/middlewares/validator';
-import serverSentEventController from '~/controllers/serverSentEventController';
 import validatorNext from '~/middlewares/validator-next';
 import schemas from '@zerologementvacant/schemas';
 import { jwtCheck, userCheck } from '~/middlewares/auth';
@@ -33,8 +31,6 @@ function rateLimiter() {
     : noop();
 }
 
-router.get('/sse', serverSentEventController.handle);
-
 router.get(
   '/prospects/:email',
   prospectController.showProspectValidator,
@@ -49,6 +45,7 @@ router.post(
   validator.validate,
   userController.create
 );
+
 router.post(
   '/authenticate',
   rateLimiter(),
@@ -57,12 +54,14 @@ router.post(
   }),
   authController.signIn
 );
+
 router.post(
   '/authenticate/verify-2fa',
   rateLimiter(),
   validatorNext.validate(authController.verifyTwoFactorValidators),
   authController.verifyTwoFactor
 );
+
 router.post(
   '/account/reset-password',
   rateLimiter(),
@@ -77,6 +76,7 @@ router.post(
   validator.validate,
   resetLinkController.create
 );
+
 router.get(
   '/reset-links/:id',
   rateLimiter(),
@@ -92,6 +92,7 @@ router.post(
   validator.validate,
   signupLinkController.create
 );
+
 router.get(
   '/signup-links/:id',
   rateLimiter(),
@@ -99,6 +100,7 @@ router.get(
   validator.validate,
   signupLinkController.show
 );
+
 router.put(
   '/signup-links/:id/prospect',
   rateLimiter(),
@@ -116,16 +118,11 @@ router.get(
   }),
   establishmentController.list
 );
+
 router.get(
   '/establishments/:id',
   validatorNext.validate({ params: object({ id: schemas.id }) }),
   establishmentController.get
-);
-router.get(
-  '/establishments/:id/settings',
-  settingsController.getSettingsValidators,
-  validator.validate,
-  settingsController.getSettings
 );
 
 router.get(
@@ -134,6 +131,7 @@ router.get(
   validator.validate,
   localityController.listLocalities
 );
+
 router.get(
   '/localities/:geoCode',
   localityController.getLocalityValidators,

@@ -1,11 +1,11 @@
-import AppSelectNext from '../_app/AppSelect/AppSelectNext';
+import Select from '~/components/ui/Select/Select';
 import CampaignStatusBadge from '../Campaign/CampaignStatusBadge';
 import type { CampaignStatus } from '@zerologementvacant/models';
 import type { Campaign } from '../../models/Campaign';
-import type { AppSelectNextProps } from '../_app/AppSelect/AppSelectNext';
+import type { SelectProps } from '~/components/ui/Select/Select';
 
 type CampaignSelectProps<Multiple extends boolean> = Pick<
-  AppSelectNextProps<Campaign | null, Multiple>,
+  SelectProps<Campaign | null, Multiple>,
   | 'className'
   | 'disabled'
   | 'error'
@@ -27,7 +27,7 @@ function CampaignSelect<Multiple extends boolean = false>(
   const options = [CAMPAIGN_LESS_OPTION, ...props.options];
 
   return (
-    <AppSelectNext
+    <Select
       {...props}
       options={options}
       label="Campagne"

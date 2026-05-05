@@ -111,6 +111,20 @@ CEREMA_SOURCES = [
     ),
     
     # -------------------------------------------------------------------------
+    # LOVAC FF Ext (extff) Sources
+    # -------------------------------------------------------------------------
+
+    ExternalSourceConfig(
+        name="lovac_ff_ext_2025",
+        url=f"s3://{Config.CELLAR_DATA_LAKE_BUCKET_NAME}/lake/cerema/2025/extff.csv",
+        producer=Producer.CEREMA,
+        file_type=FileType.CSV,
+        description="Extrait Fichiers Fonciers accompagnant LOVAC 2026",
+        type_overrides={"ff_ccogrm": "VARCHAR"},
+        read_options={"auto_detect": True, "ignore_errors": False},
+    ),
+
+    # -------------------------------------------------------------------------
     # Fichiers Fonciers Sources
     # -------------------------------------------------------------------------
     
@@ -210,7 +224,7 @@ CEREMA_SOURCES = [
         file_type=FileType.CSV,
         description="Cerema - Fichiers Fonciers - Owners 2025 ",
         type_overrides={"ccogrm": "VARCHAR"},
-        read_options={"auto_detect": True, "ignore_errors": False},
+        read_options={"auto_detect": True, "ignore_errors": False} ,
     ),
     
 

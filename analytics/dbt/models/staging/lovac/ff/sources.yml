@@ -4,6 +4,7 @@ sources:
   - name: duckdb_raw
     schema: external
     tables:
+      - name: cerema_lovac_ff_ext_2025_raw
       - name: cerema_lovac_ff_ext_2024_raw
       - name: cerema_lovac_ff_ext_2023_raw
       - name: cerema_lovac_ff_ext_2022_raw

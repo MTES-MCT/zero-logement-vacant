@@ -1,10 +1,10 @@
 import { findStatus } from '../../models/HousingState';
-import AppSelectNext from '../_app/AppSelect/AppSelectNext';
-import type { AppSelectNextProps } from '../_app/AppSelect/AppSelectNext';
+import Select from '~/components/ui/Select/Select';
+import type { SelectProps } from '~/components/ui/Select/Select';
 import HousingStatusBadge from '../HousingStatusBadge/HousingStatusBadge';
 
 export type HousingSubStatusSelectProps<Multiple extends boolean> = Pick<
-  AppSelectNextProps<string, Multiple>,
+  SelectProps<string, Multiple>,
   | 'className'
   | 'disabled'
   | 'error'
@@ -21,12 +21,14 @@ function HousingSubStatusSelect<Multiple extends boolean = false>(
   props: HousingSubStatusSelectProps<Multiple>
 ) {
   return (
-    <AppSelectNext
+    <Select
       {...props}
       {...(props.grouped
         ? {
             groupBy: (subStatus) => findStatus(subStatus as string).toString(),
-            renderGroup: (group) => <HousingStatusBadge status={Number(group)} />,
+            renderGroup: (group) => (
+              <HousingStatusBadge status={Number(group)} />
+            )
           }
         : {})}
       label="Sous-statut de suivi"

@@ -3,8 +3,7 @@ import type {
   HousingOwnerDTO,
   OwnerDTO
 } from '@zerologementvacant/models';
-import { contramap, DEFAULT_ORDER, type Ord } from '@zerologementvacant/utils';
-import { isEqual, pick, pickBy } from 'lodash-es';
+
 import { type Address } from './Address';
 
 export interface Owner extends Omit<OwnerDTO, 'banAddress'> {
@@ -70,36 +69,3 @@ export function fromHousingOwnerDTO(
     propertyRight: housingOwner.propertyRight
   };
 }
-
-function compare(before: Owner, after: Owner): Partial<Owner> {
-  const keys: ReadonlyArray<keyof Owner> = [
-    'fullName',
-    'birthDate',
-    'email',
-    'phone',
-    'banAddress',
-    'additionalAddress'
-  ];
-  return pickBy(
-    pick(before, keys),
-    (value, key) => !isEqual(value, after[key as keyof typeof value])
-  );
-}
-
-export function hasOwnerChanges(before: Owner, after: Owner): boolean {
-  return Object.keys(compare(before, after)).length > 0;
-}
-
-export function hasRankChanges(
-  before: ReadonlyArray<HousingOwner>,
-  after: ReadonlyArray<HousingOwner>
-): boolean {
-  return before.some((ownerBefore) => {
-    const ownerAfter = after.find((owner) => owner.id === ownerBefore.id);
-    return ownerAfter && ownerBefore.rank !== ownerAfter.rank;
-  });
-}
-
-export const byRank: Ord<HousingOwner> = contramap(
-  (housingOwner: HousingOwner) => housingOwner.rank
-)(DEFAULT_ORDER);

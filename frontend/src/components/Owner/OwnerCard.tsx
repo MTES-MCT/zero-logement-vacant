@@ -14,7 +14,6 @@ import {
   type PropertyRight,
   type RelativeLocation
 } from '@zerologementvacant/models';
-import { useFeatureFlagEnabled } from 'posthog-js/react';
 
 import { useId, type ReactNode } from 'react';
 import { match, Pattern } from 'ts-pattern';
@@ -51,9 +50,7 @@ interface OwnerCardProps {
   onAdd?(): void;
 }
 
-function OwnerCardNext(props: OwnerCardProps) {
-  const isRelativeLocationEnabled = useFeatureFlagEnabled('relative-location');
-
+function OwnerCard(props: OwnerCardProps) {
   if (props.isLoading) {
     return (
       <Skeleton
@@ -164,7 +161,9 @@ function OwnerCardNext(props: OwnerCardProps) {
           label="Adresse fiscale (source : DGFIP)"
           value={
             !props.dgfipAddress ? null : (
-              <Typography component="span">{props.dgfipAddress.join(', ')}</Typography>
+              <Typography component="span">
+                {props.dgfipAddress.join(', ')}
+              </Typography>
             )
           }
         />
@@ -178,7 +177,7 @@ function OwnerCardNext(props: OwnerCardProps) {
               : formatAddress(props.banAddress).join(', ')
           }
           footer={
-            props.relativeLocation && isRelativeLocationEnabled ? (
+            props.relativeLocation ? (
               <RelativeLocationTag
                 value={props.relativeLocation}
                 tagProps={{ small: true }}
@@ -212,7 +211,9 @@ function OwnerCardNext(props: OwnerCardProps) {
           label="Complément d’adresse"
           value={
             !props.additionalAddress ? null : (
-              <Typography component="span">{props.additionalAddress}</Typography>
+              <Typography component="span">
+                {props.additionalAddress}
+              </Typography>
             )
           }
         />
@@ -234,7 +235,11 @@ function OwnerCardNext(props: OwnerCardProps) {
         <OwnerAttribute
           icon="fr-icon-phone-line"
           label="Téléphone"
-          value={!props.phone ? null : <Typography component="span">{props.phone}</Typography>}
+          value={
+            !props.phone ? null : (
+              <Typography component="span">{props.phone}</Typography>
+            )
+          }
         />
 
         {match(props.housingCount)
@@ -303,4 +308,4 @@ function OwnerAttribute(props: OwnerPropertyProps) {
   );
 }
 
-export default OwnerCardNext;
+export default OwnerCard;

@@ -4,11 +4,11 @@ import {
   LOCALITY_KIND_EMPTY_OPTION,
   LOCALITY_KIND_OPTIONS
 } from '../../models/HousingFilters';
-import AppSelectNext from '../_app/AppSelect/AppSelectNext';
-import type { AppSelectNextProps } from '../_app/AppSelect/AppSelectNext';
+import Select from '~/components/ui/Select/Select';
+import type { SelectProps } from '~/components/ui/Select/Select';
 
 export type LocalityKindSelectProps<Multiple extends boolean> = Pick<
-  AppSelectNextProps<LocalityKind | null, Multiple>,
+  SelectProps<LocalityKind | null, Multiple>,
   'className' | 'disabled' | 'error' | 'multiple' | 'value' | 'onChange'
 >;
 
@@ -16,7 +16,7 @@ function LocalityKindSelect<Multiple extends boolean = false>(
   props: LocalityKindSelectProps<Multiple>
 ) {
   return (
-    <AppSelectNext
+    <Select
       {...props}
       label="Type de commune"
       options={[LOCALITY_KIND_EMPTY_OPTION.value, ...LOCALITY_KIND_VALUES]}

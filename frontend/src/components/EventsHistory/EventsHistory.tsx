@@ -16,7 +16,7 @@ import type { Note } from '../../models/Note';
 import { formatAuthor, USER_EQUIVALENCE } from '../../models/User';
 import type { User } from '../../models/User';
 import { useFindEstablishmentsQuery } from '../../services/establishment.service';
-import AppSelectNext from '../_app/AppSelect/AppSelectNext';
+import Select from '~/components/ui/Select/Select';
 import { useHousingEdition } from '../HousingEdition/useHousingEdition';
 import Image from '../Image/Image';
 import AggregatedEventCard from './AggregatedEventCard';
@@ -145,7 +145,7 @@ function EventsHistory({ events, notes }: Props) {
     <Stack spacing="1.5rem">
       <Grid component="header" container columnSpacing="1rem">
         <Grid component="section" sx={{ pl: 0 }} size={4}>
-          <AppSelectNext
+          <Select
             label="Type d’événement"
             disabled={events.length === 0 && notes.length === 0}
             multiple
@@ -163,7 +163,7 @@ function EventsHistory({ events, notes }: Props) {
           />
         </Grid>
         <Grid component="section" size={4}>
-          <AppSelectNext
+          <Select
             label="Auteur"
             disabled={events.length === 0 && notes.length === 0}
             multiple

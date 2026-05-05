@@ -9,7 +9,6 @@ import {
   healthcheck,
   brevoCheck,
   postgresCheck,
-  redisCheck,
   s3Check
 } from '@zerologementvacant/healthcheck';
 import RouteNotFoundError from '~/errors/routeNotFoundError';
@@ -140,7 +139,6 @@ export function createServer(): Server {
             config.app.env === 'production' &&
             config.mailer.provider === 'brevo'
         }),
-        redisCheck(config.redis.url),
         postgresCheck(config.db.url),
         s3Check(config.s3)
       ],

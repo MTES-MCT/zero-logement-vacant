@@ -1,11 +1,11 @@
 import { OWNERSHIP_KIND_VALUES } from '@zerologementvacant/models';
 import type { OwnershipKind } from '@zerologementvacant/models';
 import { OWNERSHIP_KIND_OPTIONS } from '../../models/HousingFilters';
-import AppSelectNext from '../_app/AppSelect/AppSelectNext';
-import type { AppSelectNextProps } from '../_app/AppSelect/AppSelectNext';
+import Select from '~/components/ui/Select/Select';
+import type { SelectProps } from '~/components/ui/Select/Select';
 
 export type OwnershipKindSelectProps<Multiple extends boolean> = Pick<
-  AppSelectNextProps<OwnershipKind, Multiple>,
+  SelectProps<OwnershipKind, Multiple>,
   'className' | 'disabled' | 'error' | 'multiple' | 'value' | 'onChange'
 >;
 
@@ -13,7 +13,7 @@ function OwnershipKindSelect<Multiple extends boolean = false>(
   props: OwnershipKindSelectProps<Multiple>
 ) {
   return (
-    <AppSelectNext
+    <Select
       {...props}
       options={OWNERSHIP_KIND_VALUES}
       label="Type de propriété"

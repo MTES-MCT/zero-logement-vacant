@@ -2,8 +2,6 @@ import { fr } from '@codegouvfr/react-dsfr';
 import Stack, { type StackProps } from '@mui/material/Stack';
 import { styled } from '@mui/material/styles';
 import Typography from '@mui/material/Typography';
-import classNames from 'classnames';
-import { useFeatureFlagEnabled } from 'posthog-js/react';
 import { Link } from 'react-router-dom';
 
 import HousingCount from '~/components/HousingCount/HousingCount';
@@ -48,38 +46,6 @@ const CardContainer = styled(Stack)<
 function GroupCard(props: Readonly<GroupCardProps>) {
   const title = `Groupe de logements - ${props.group.title} - nombre de logements : ${props.group.housingCount}, nombre de propriétaires : ${props.group.ownerCount}`;
 
-  // Default to false when PostHog is not initialized or still loading,
-  // so that the legacy group card is displayed as a fallback
-  const isNewCampaigns = useFeatureFlagEnabled('new-campaigns') ?? false;
-
-  if (isNewCampaigns) {
-    return (
-      <Link
-        className={props.className}
-        to={`/groupes/${props.group.id}`}
-        title={title}
-        aria-label={title}
-      >
-        <CardContainer
-          component="article"
-          direction="row"
-          spacing="0.5rem"
-          useFlexGap
-          ownerState={{ isActive: props.isActive }}
-        >
-          <Typography className={styles.title} component="h3" variant="body2">
-            {props.group.title}
-          </Typography>
-          <HousingCount
-            housingCount={props.group.housingCount}
-            ownerCount={props.group.ownerCount}
-            isActive={props.isActive}
-          />
-        </CardContainer>
-      </Link>
-    );
-  }
-
   return (
     <Link
       className={props.className}
@@ -87,26 +53,22 @@ function GroupCard(props: Readonly<GroupCardProps>) {
       title={title}
       aria-label={title}
     >
-      <Stack
+      <CardContainer
         component="article"
         direction="row"
-        className={classNames(styles.container, {
-          [styles.active]: props.isActive
-        })}
+        spacing="0.5rem"
+        useFlexGap
+        ownerState={{ isActive: props.isActive }}
       >
-        <Typography
-          className={styles.title}
-          component="h3"
-          mr={1}
-          variant="body2"
-        >
+        <Typography className={styles.title} component="h3" variant="body2">
           {props.group.title}
         </Typography>
         <HousingCount
           housingCount={props.group.housingCount}
           ownerCount={props.group.ownerCount}
+          isActive={props.isActive}
         />
-      </Stack>
+      </CardContainer>
     </Link>
   );
 }

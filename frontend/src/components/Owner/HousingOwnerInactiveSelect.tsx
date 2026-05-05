@@ -5,9 +5,7 @@ import {
 } from '@zerologementvacant/models';
 import { match } from 'ts-pattern';
 
-import AppSelectNext, {
-  type AppSelectNextProps
-} from '~/components/_app/AppSelect/AppSelectNext';
+import Select, { type SelectProps } from '~/components/ui/Select/Select';
 
 const INACTIVE_RANKS = [
   DECEASED_OWNER_RANK,
@@ -18,7 +16,7 @@ const INACTIVE_RANKS = [
 type InactiveOwnerRank = (typeof INACTIVE_RANKS)[number];
 
 export type HousingOwnerInactiveSelectProps<Multiple extends boolean> = Pick<
-  AppSelectNextProps<InactiveOwnerRank, Multiple>,
+  SelectProps<InactiveOwnerRank, Multiple>,
   'className' | 'disabled' | 'error' | 'multiple' | 'value' | 'onChange'
 >;
 
@@ -34,7 +32,7 @@ function HousingOwnerInactiveSelect<Multiple extends boolean = false>(
   }
 
   return (
-    <AppSelectNext
+    <Select
       {...props}
       options={INACTIVE_RANKS}
       label="État du propriétaire"

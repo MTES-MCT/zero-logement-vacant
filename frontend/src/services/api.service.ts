@@ -27,7 +27,6 @@ const TAG_TYPE_VALUES = [
   'OwnerHousing',
   'Precision',
   'Prospect',
-  'Settings',
   'Stats',
   'SignupLink',
   'User'

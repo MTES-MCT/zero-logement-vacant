@@ -14,7 +14,6 @@ global.URL.createObjectURL = vi.fn();
 // @ts-expect-error: global.EventSource is hard to mock
 global.EventSource = EventSourceMock as unknown as EventSource;
 
-vi.mock('./src/components/Aside/Aside.tsx');
 vi.mock('./src/components/RichEditor/RichEditor.tsx');
 vi.mock('./src/components/Map/Map.tsx');
 

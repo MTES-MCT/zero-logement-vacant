@@ -5,7 +5,7 @@ import {
 } from '@zerologementvacant/utils/node';
 import { Equivalence } from 'effect';
 
-import { UserApi, fromUserDTO, toUserDTO } from './UserApi';
+import { UserApi, toUserDTO } from './UserApi';
 
 /**
  * Backend representation of a document (unlinked to any entity)
@@ -53,24 +53,4 @@ export async function toDocumentDTO(
     establishmentId: document.establishmentId,
     creator: toUserDTO(document.creator)
   };
-}
-
-/**
- * @deprecated Exists only to facilitate migration from `draftController.create` to `draftController.createNext`
- * and `draftController.update` to `draftController.updateNext`. Should be removed once the migration is complete.
- */
-export function fromDocumentDTO(document: DocumentDTO): DocumentApi {
-  return {
-    id: document.id,
-    filename: document.filename,
-    contentType: document.contentType,
-    sizeBytes: document.sizeBytes,
-    createdAt: document.createdAt,
-    updatedAt: document.updatedAt,
-    establishmentId: document.establishmentId,
-    s3Key: '', // s3Key is not stored in DocumentDTO, must be set separately
-    createdBy: document.creator.id,
-    deletedAt: null, // deletedAt is not stored in DocumentDTO, must be managed separately
-    creator: fromUserDTO(document.creator)
-  }
 }

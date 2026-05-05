@@ -14,7 +14,7 @@ import * as yup from 'yup';
 import ToggleSwitch from '@codegouvfr/react-dsfr/ToggleSwitch';
 import Box from '@mui/material/Box';
 import { match, Pattern } from 'ts-pattern';
-import Aside, { type AsideProps } from '~/components/Aside/AsideNext';
+import Aside, { type AsideProps } from '~/components/Aside/Aside';
 import type { HousingOwner } from '~/models/Owner';
 import HousingOwnerInactiveSelect from './HousingOwnerInactiveSelect';
 import OwnerFormFields, { OWNER_FORM_FIELD_SCHEMA } from './OwnerFormFields';

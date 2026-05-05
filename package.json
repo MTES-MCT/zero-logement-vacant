@@ -8,7 +8,6 @@
   "packageManager": "yarn@4.14.1",
   "workspaces": [
     "frontend",
-    "queue",
     "server",
     "packages/*",
     "apps/*"
@@ -71,7 +70,7 @@
     "prettier": "3.6.2",
     "sass": "1.90.0",
     "typescript": "5.9.2",
-    "vite": "8.0.9",
+    "vite": "8.0.10",
     "vitest": "4.0.9"
   },
   "resolutions": {
@@ -116,9 +115,6 @@
       "built": true
     },
     "nx": {
-      "built": true
-    },
-    "puppeteer": {
       "built": true
     },
     "sharp": {

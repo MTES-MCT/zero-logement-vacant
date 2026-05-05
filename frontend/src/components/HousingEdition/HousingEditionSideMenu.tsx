@@ -39,7 +39,7 @@ import {
 } from '~/services/precision.service';
 import type { Housing, HousingUpdate } from '../../models/Housing';
 import AppLink from '../_app/AppLink/AppLink';
-import AsideNext from '../Aside/AsideNext';
+import Aside from '../Aside/Aside';
 import DocumentsTab, {
   type DocumentsTabProps
 } from '../HousingDetails/DocumentsTab';
@@ -297,7 +297,7 @@ function HousingEditionSideMenu(props: HousingEditionSideMenuProps) {
     .exhaustive();
 
   return (
-    <AsideNext
+    <Aside
       drawerProps={{
         sx: (theme) => ({
           zIndex: theme.zIndex.appBar + 1,

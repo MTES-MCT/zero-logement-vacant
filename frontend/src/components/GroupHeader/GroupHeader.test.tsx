@@ -7,19 +7,10 @@ import { MemoryRouter as Router } from 'react-router-dom';
 
 import type { GroupDTO } from '@zerologementvacant/models';
 import { genGroupDTO, genUserDTO } from '@zerologementvacant/models/fixtures';
-import GroupHeader, { DISPLAY_GROUPS } from './GroupHeader';
-import configureTestStore from '../../utils/storeUtils';
 import { mockAPI } from '../../mocks/mock-api';
 import config from '../../utils/config';
-
-vi.mock('posthog-js/react', async (importOriginal) => {
-  const mod = await importOriginal<typeof import('posthog-js/react')>();
-  return {
-    ...mod,
-    useFeatureFlagEnabled: vi.fn().mockReturnValue(false),
-    usePostHog: () => ({ capture: vi.fn() })
-  };
-});
+import configureTestStore from '../../utils/storeUtils';
+import GroupHeader, { DISPLAY_GROUPS } from './GroupHeader';
 
 describe('GroupHeader', () => {
   const user = userEvent.setup();
@@ -49,7 +40,7 @@ describe('GroupHeader', () => {
       </Provider>
     );
 
-    const displayMore = await screen.findByText(/^Afficher plus/);
+    const displayMore = await screen.findByText(/^Voir plus/);
     expect(displayMore).toBeVisible();
   });
 
@@ -103,7 +94,7 @@ describe('GroupHeader', () => {
       </Provider>
     );
 
-    await expect(screen.findByText(/^Afficher plus/)).toReject();
+    await expect(screen.findByText(/^Voir plus/)).toReject();
   });
 
   it('should display all groups when the "Display more" button is clicked', async () => {
@@ -125,7 +116,7 @@ describe('GroupHeader', () => {
       </Provider>
     );
 
-    const displayMore = await screen.findByText(/^Afficher plus/);
+    const displayMore = await screen.findByText(/^Voir plus/);
     await user.click(displayMore);
     const titles = await Promise.all(
       groups.map((group) => screen.findByText(group.title))

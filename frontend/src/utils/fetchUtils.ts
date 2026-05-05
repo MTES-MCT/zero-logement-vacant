@@ -1,5 +1,4 @@
 import { Record } from 'effect';
-import { kebabCase } from 'lodash-es';
 
 import authService from '../services/auth.service';
 
@@ -81,8 +80,3 @@ function abortSafely(id: string): void {
 export interface AbortOptions {
   abortable?: boolean;
 }
-
-export const normalizeUrlSegment = (segment: string) =>
-  kebabCase(segment.replaceAll(/\(.*\)/g, ''))
-    .normalize('NFD')
-    .replace(/[\u0300-\u036f]/g, '');

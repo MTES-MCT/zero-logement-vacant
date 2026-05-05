@@ -100,6 +100,7 @@ function createGroupAddHousingModal() {
                   housingCount={props.count.housing}
                   ownerCount={props.count.owners}
                   suffix
+                  isActive={false}
                 />
               )}
             </Box>

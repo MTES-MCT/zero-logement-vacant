@@ -64,10 +64,6 @@ export default defineConfig(({ mode }) => {
         TZ: 'UTC'
       },
       include: ['{src,tests}/**/*.{test,spec}.{js,mjs,cjs,ts,mts,cts,jsx,tsx}'],
-      coverage: {
-        reportsDirectory: '../coverage/frontend',
-        provider: 'v8' as const
-      },
       testTimeout: 30_000,
       setupFiles: ['./vitest.setup.ts', './vitest.polyfills.js']
     }

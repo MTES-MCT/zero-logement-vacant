@@ -5,7 +5,7 @@ import Stack from '@mui/material/Stack';
 import Typography from '@mui/material/Typography';
 import { useCounter } from 'react-use';
 
-import Aside, { type AsideProps } from '~/components/Aside/AsideNext';
+import Aside, { type AsideProps } from '~/components/Aside/Aside';
 import OccupancyBadge from '~/components/Housing/OccupancyBadge';
 import HousingStatusBadge from '~/components/HousingStatusBadge/HousingStatusBadge';
 import Label from '~/components/Label/LabelNext';

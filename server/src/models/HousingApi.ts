@@ -33,6 +33,10 @@ export interface HousingApi extends HousingRecordApi {
   localityKind?: string | null;
   geoPerimeters?: string[] | null;
   owner?: OwnerApi | null;
+  /**
+   * Added by joining with the `housing_owners` table (rank 1 owner).
+   */
+  ownerRelativeLocation?: RelativeLocation | null;
   buildingHousingCount?: number | null;
   buildingVacancyRate?: number | null;
   campaignIds?: string[] | null;
@@ -41,10 +45,6 @@ export interface HousingApi extends HousingRecordApi {
    * Added by joining with the `housing_precisions` and `precisions` tables
    */
   precisions?: Precision[];
-  /**
-   * Added by joining with the `housing_owners` table (rank 1 owner).
-   */
-  ownerRelativeLocation?: RelativeLocation | null;
 }
 
 export function toHousingDTO(housing: HousingApi): HousingDTO {

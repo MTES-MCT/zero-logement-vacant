@@ -83,28 +83,16 @@ export interface WorksheetOptions<A extends Record<string, unknown>> {
 }
 
 /**
- * Apply alternating grey fill on even-indexed columns (1-based: 2, 4, 6...).
+ * Enhance column definitions with default widths and optional alternating grey fill.
  */
-function applyAlternateColumnFill(
-  row: excel.Row,
-  columnCount: number
-): void {
-  for (let i = 1; i <= columnCount; i++) {
-    if (i % 2 === 0) {
-      row.getCell(i).fill = GREY_FILL;
-    }
-  }
-}
-
-/**
- * Enhance column definitions with default widths.
- */
-function withDefaultWidths<A extends Record<string, unknown>>(
-  columns: WorksheetOptions<A>['columns']
+function withColumnOptions<A extends Record<string, unknown>>(
+  columns: WorksheetOptions<A>['columns'],
+  alternateColumnColors: boolean
 ): WorksheetOptions<A>['columns'] {
-  return columns.map((col) => ({
+  return columns.map((col, i) => ({
     ...col,
-    width: col.width ?? DEFAULT_COLUMN_WIDTH
+    width: col.width ?? DEFAULT_COLUMN_WIDTH,
+    style: alternateColumnColors && i % 2 !== 0 ? { fill: GREY_FILL } : undefined
   }));
 }
 
@@ -123,26 +111,17 @@ function createWorksheet<A extends Record<string, unknown>>(
   options: WorksheetOptions<A>
 ) {
   const { name, alternateColumnColors } = options;
-  const columns = alternateColumnColors
-    ? withDefaultWidths(options.columns)
-    : options.columns;
-  const columnCount = columns.length;
+  const columns = withColumnOptions(options.columns, alternateColumnColors ?? false);
 
   return new WritableStream<A>({
     start() {
       const worksheet = workbook.addWorksheet(name);
       worksheet.columns = columns;
-      if (alternateColumnColors) {
-        applyAlternateColumnFill(worksheet.getRow(1), columnCount);
-      }
     },
     write(chunk) {
       logger.debug('Processing chunk...', chunk);
       const row = workbook.getWorksheet(name)?.addRow(chunk);
       if (row) {
-        if (alternateColumnColors) {
-          applyAlternateColumnFill(row, columnCount);
-        }
         row.commit();
       }
       logger.debug('Wrote row', chunk);

@@ -1,7 +1,6 @@
-import { RELATIVE_LOCATION_LABELS } from '@zerologementvacant/models';
 import { match } from 'ts-pattern';
 
-export { RELATIVE_LOCATION_LABELS };
+export { RELATIVE_LOCATION_LABELS } from '@zerologementvacant/models';
 
 export function getHousingOwnerRankLabel(rank: number): string {
   return match(rank)

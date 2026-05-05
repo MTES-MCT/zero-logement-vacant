@@ -248,14 +248,19 @@ interface HousingWorksheetConfig {
   toOwnerRow: (housing: HousingApi) => Record<string, unknown>;
 }
 
-const HOUSING_COLUMNS = [
+// Columns before the address score column (inserted per-variant via config)
+const HOUSING_COLUMNS_BEFORE_SCORE = [
   { header: 'Identifiant fiscal national', key: 'localId' },
   { header: 'Identifiant fiscal départemental', key: 'invariant' },
   { header: 'Référence cadastrale', key: 'plotId' },
   { header: 'Code INSEE commune du logement', key: 'geoCode' },
   { header: 'Adresse LOVAC du logement', key: 'housingRawAddress' },
   { header: 'Précisions adresse du logement', key: 'buildingLocation' },
-  { header: 'Adresse BAN du logement', key: 'housingAddress' },
+  { header: 'Adresse BAN du logement', key: 'housingAddress' }
+] as const;
+
+// Columns after the address score column
+const HOUSING_COLUMNS_AFTER_SCORE = [
   { header: 'Latitude', key: 'latitude' },
   { header: 'Longitude', key: 'longitude' },
   { header: 'Type de logement', key: 'housingKind' },
@@ -370,9 +375,9 @@ async function createHousingWorksheetBase(
         alternateColumnColors: true,
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
         columns: [
-          ...HOUSING_COLUMNS.slice(0, 7),
+          ...HOUSING_COLUMNS_BEFORE_SCORE,
           { header: addressScoreHeader, key: 'housingAddressScore' },
-          ...HOUSING_COLUMNS.slice(7),
+          ...HOUSING_COLUMNS_AFTER_SCORE,
           ...ownerColumns
         ] as any[]
       })

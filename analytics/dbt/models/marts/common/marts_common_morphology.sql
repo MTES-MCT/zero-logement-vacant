@@ -117,11 +117,11 @@ WITH all_lovac AS (
 all_ff AS (
     SELECT
         2026 AS year, ff_idlocal, geo_code, ff_ccogrm, ff_ccthp, ff_dteloc
-    FROM {{ ref ("stg_lovac_ff_ext_2024") }}
+    FROM {{ ref ("stg_lovac_ff_ext_2025") }}
     UNION ALL
     SELECT
         2025 AS year, ff_idlocal, geo_code, ff_ccogrm, ff_ccthp, ff_dteloc
-    FROM {{ ref ("stg_lovac_ff_ext_2024") }}
+    FROM {{ ref ("stg_lovac_ff_ext_2025") }}
     UNION ALL
     SELECT
         2024 AS year, ff_idlocal, geo_code, ff_ccogrm, ff_ccthp, ff_dteloc

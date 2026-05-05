@@ -1,13 +1,14 @@
 -- int_zlovac_unique_owners.sql
 -- Builds unique owners list from int_zlovac_owner_matching.
--- Each owner row carries its owner_uid for joining with owner_housing.
+-- Each owner row carries its `dedup_key` (COALESCE(idpersonne, fullname)) so that
+-- int_zlovac_owners can deduplicate and assign exactly one owner_uid per person.
 -- Owner details come from:
 --   - CER 1767 owners (rank 1): fullname, address from int_zlovac
 --   - FF owners (rank != 1): fullname, birth_date, etc. from int_zlovac ff_owner fields
 
 WITH matching_with_details AS (
     SELECT
-        m.owner_uid,
+        m.dedup_key,
         m.ff_owner_idpersonne AS owner_idpersonne,
         m.ff_owner_idprodroit AS owner_idprodroit,
         m.ff_owner_locprop AS owner_locprop,
@@ -49,7 +50,7 @@ ff_details AS (
 )
 
 SELECT DISTINCT
-    md.owner_uid,
+    md.dedup_key,
     md.owner_idpersonne,
     md.owner_idprodroit,
     COALESCE(md.owner_fullname, fd.owner_fullname) AS owner_fullname,

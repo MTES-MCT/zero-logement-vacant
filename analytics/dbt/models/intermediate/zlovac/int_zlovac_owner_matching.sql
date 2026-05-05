@@ -2,8 +2,11 @@
 -- Applies rank logic based on CER→FF25 matching results.
 -- Reads from int_zlovac_owner_cer_matched (the matching) and int_zlovac (FF owners 1..6).
 --
--- Generates a deterministic owner_uid (MD5) for each owner row to allow
--- joining owners ↔ owner_housing without relying on idpersonne/idprodroit.
+-- Exposes a `dedup_key` (COALESCE(idpersonne, fullname)) used downstream:
+--   - int_zlovac_owners deduplicates by dedup_key and assigns a unique owner_uid
+--   - int_zlovac_owner_housing joins back via dedup_key to retrieve owner_uid
+-- The owner_uid is intentionally NOT generated here: we used to call uuid() per row,
+-- which produced N distinct UUIDs for the same person and broke FK integrity (~588k orphans).
 --
 -- Three outcome cases:
 --   1. Match + found in LOVAC 6: CER=rank 1, remove dup, rest keep order
@@ -167,6 +170,6 @@ SELECT
     ff_owner_fullname,
     rank,
     match_source,
-    uuid() AS owner_uid
+    COALESCE(ff_owner_idpersonne, ff_owner_fullname) AS dedup_key
 FROM unpivoted
 WHERE rank IS NOT NULL

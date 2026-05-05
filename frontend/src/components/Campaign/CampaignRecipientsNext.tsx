@@ -15,11 +15,12 @@ import {
   type Pagination
 } from '@zerologementvacant/models';
 import { Record } from 'effect';
-import { Fragment, type ReactNode, useMemo, useState } from 'react';
+import { type ReactNode, useMemo, useState } from 'react';
 import { match } from 'ts-pattern';
 
 import AdvancedTable from '~/components/AdvancedTable/AdvancedTable';
 import AdvancedTableHeader from '~/components/AdvancedTable/AdvancedTableHeader';
+import HousingAddressCell from '~/components/Housing/HousingAddressCell';
 import OwnerEditionSideMenu from '~/components/OwnerEditionSideMenu/OwnerEditionSideMenu';
 import { useNotification } from '~/hooks/useNotification';
 import { type Address, isBanEligible } from '~/models/Address';
@@ -172,18 +173,12 @@ function CampaignRecipients(props: Readonly<CampaignRecipientsProps>) {
             multiline: true
           }
         },
-        cell: ({ cell, row }) => {
-          return (
-            <AppLink isSimple size="sm" to={`/logements/${row.original.id}`}>
-              {cell.getValue().map((line, i) => (
-                <Fragment key={i}>
-                  {line}
-                  <br />
-                </Fragment>
-              ))}
-            </AppLink>
-          );
-        }
+        cell: ({ cell, row }) => (
+          <HousingAddressCell
+            id={row.original.id}
+            rawAddress={cell.getValue()}
+          />
+        )
       }),
       columnHelper.display({
         id: 'actions',

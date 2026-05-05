@@ -44,6 +44,7 @@ const removeCampaignHousingModal = createModal({
   isOpenedByDefault: false
 });
 const columnHelper = createColumnHelper<Housing>();
+const multilineStyles = { multiline: true } as const;
 
 function CampaignRecipients(props: Readonly<CampaignRecipientsProps>) {
   const [pagination, setPagination] = useState<PaginationState>({
@@ -121,9 +122,7 @@ function CampaignRecipients(props: Readonly<CampaignRecipientsProps>) {
           sort: {
             title: 'Trier par destinataire principal'
           },
-          styles: {
-            multiline: true
-          }
+          styles: multilineStyles
         },
         cell: ({ cell, row }) =>
           !row.original.owner ? null : (
@@ -158,9 +157,7 @@ function CampaignRecipients(props: Readonly<CampaignRecipientsProps>) {
       columnHelper.accessor('owner.additionalAddress', {
         header: () => <AdvancedTableHeader title="Complément d’adresse" />,
         meta: {
-          styles: {
-            multiline: true
-          }
+          styles: multilineStyles
         },
         cell: ({ cell }) => (
           <Typography variant="body2">{cell.getValue()}</Typography>
@@ -169,9 +166,7 @@ function CampaignRecipients(props: Readonly<CampaignRecipientsProps>) {
       columnHelper.accessor('rawAddress', {
         header: () => <AdvancedTableHeader title="Adresse du logement" />,
         meta: {
-          styles: {
-            multiline: true
-          }
+          styles: multilineStyles
         },
         cell: ({ cell, row }) => (
           <HousingAddressCell

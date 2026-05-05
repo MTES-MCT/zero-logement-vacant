@@ -1,5 +1,5 @@
-import Alert from '@codegouvfr/react-dsfr/Alert';
 import { yupResolver } from '@hookform/resolvers/yup';
+import Box from '@mui/material/Box';
 import Stack from '@mui/material/Stack';
 import Typography from '@mui/material/Typography';
 import { useForm, type SubmitHandler } from 'react-hook-form';
@@ -31,7 +31,7 @@ export type CreateCampaignFromGroupModalProps = Omit<
 
 const schema = object({
   title: string().trim().required('Veuillez renseigner un nom'),
-  description: string().trim().required('Veuillez renseigner une description'),
+  description: string().trim().optional().default(''),
   sentAt: schemas.dateString.optional().nullable().default(null)
 });
 
@@ -79,7 +79,7 @@ export function createCampaignFromGroupModal(
             onClose={form.reset}
             title="Créer une campagne"
           >
-            <Stack direction="row" spacing="1rem" useFlexGap sx={{ mb: 2 }}>
+            <Stack direction="row" spacing="1rem" useFlexGap sx={{ mt: '-1rem', mb: '0.5rem' }}>
               <Stack
                 direction="row"
                 spacing="0.25rem"
@@ -104,34 +104,36 @@ export function createCampaignFromGroupModal(
               </Stack>
             </Stack>
 
-            <AppTextInputNext<FormSchema>
-              label="Nom (obligatoire)"
-              name="title"
-              control={form.control}
-            />
+            <Typography variant="body2" sx={{ mb: '0.25rem' }}>
+              Une fois la campagne créée, les logements « Non suivi » passeront « En attente de retour ».
+            </Typography>
 
-            <AppTextInputNext<FormSchema>
-              label="Description (obligatoire)"
-              hintText="Vous pouvez par exemple définir les critères de votre campagne, comment vous l’avez construite, le planning de celle-ci, etc."
-              name="description"
-              control={form.control}
-              textArea
-            />
+            <Box sx={{ '& .fr-input-group': { marginBottom: '0.75rem' } }}>
+              <AppTextInputNext<FormSchema>
+                label="Nom (obligatoire)"
+                name="title"
+                control={form.control}
+              />
 
-            <AppTextInputNext<FormSchema>
-              label="Date d’envoi"
-              name="sentAt"
-              control={form.control}
-              nativeInputProps={{ type: 'date' }}
-              mapValue={(value) => value ?? ''}
-              contramapValue={(value) => value || null}
-            />
+              <AppTextInputNext<FormSchema>
+                label="Description"
+                hintText="Vous pouvez par exemple définir les critères de votre campagne, comment vous l'avez construite, le planning de celle-ci, etc."
+                name="description"
+                control={form.control}
+                textArea
+                nativeTextAreaProps={{ rows: 2 }}
+              />
 
-            <Alert
-              severity="info"
-              small
-              description="Une fois la campagne créée : les logements seront enregistrés comme ayant fait l’objet d’un courrier ; le statut des logements “Non suivi” passera au statut “En attente de retour” ; vous pourrez télécharger les fichiers vous permettant d’effectuer votre publipostage."
-            />
+              <AppTextInputNext<FormSchema>
+                label="Date d'envoi"
+                name="sentAt"
+                control={form.control}
+                nativeInputProps={{ type: 'date' }}
+                mapValue={(value) => value ?? ''}
+                contramapValue={(value) => value || null}
+              />
+            </Box>
+
           </modal.Component>
         </form>
       );

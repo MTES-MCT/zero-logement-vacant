@@ -191,20 +191,33 @@ async function count(filters: HousingFiltersApi): Promise<HousingCountApi> {
     return { housing: 0, owners: 0 };
   }
 
-  const result = await db
-    .with(
-      'list',
-      fastListQuery({
+  const filterByOwner = [
+    filters.ownerKinds,
+    filters.ownerAges,
+    filters.query
+  ].some((filter) => filter?.length);
+
+  const result = await db(housingTable)
+    .leftJoin(housingOwnersTable, ownerHousingJoinClause)
+    .modify((query) => {
+      if (filterByOwner) {
+        query.leftJoin(
+          ownerTable,
+          `${housingOwnersTable}.owner_id`,
+          `${ownerTable}.id`
+        );
+      }
+    })
+    .modify(
+      filteredQuery({
         filters: {
-          ...filters,
+          ...Struct.omit(filters, 'establishmentIds'),
           localities: geoCodes.toArray()
-        },
-        includes: ['owner']
+        }
       })
     )
-    .countDistinct('id as housing')
-    .countDistinct('owner_id as owners')
-    .from('list')
+    .countDistinct(`${housingTable}.id as housing`)
+    .countDistinct(`${housingOwnersTable}.owner_id as owners`)
     .first();
 
   return {
@@ -589,7 +602,7 @@ function filteredQuery(opts: FilteredQueryOptions) {
       ]);
     }
     if (filters.ownerIds?.length) {
-      queryBuilder.whereIn(`${ownerTable}.id`, filters.ownerIds);
+      queryBuilder.whereIn(`${housingOwnersTable}.owner_id`, filters.ownerIds);
     }
     if (filters.ownerKinds?.length) {
       queryBuilder.where((where) => {
@@ -650,15 +663,31 @@ function filteredQuery(opts: FilteredQueryOptions) {
       });
     }
     if (filters.multiOwners?.length) {
+      const multiOwnersSubquery = () =>
+        db(housingOwnersTable)
+          .select(`${housingOwnersTable}.owner_id`)
+          .where(`${housingOwnersTable}.rank`, 1)
+          .modify((query) => {
+            if (filters.localities?.length) {
+              query.whereIn(
+                `${housingOwnersTable}.housing_geo_code`,
+                filters.localities
+              );
+            }
+          })
+          .groupBy(`${housingOwnersTable}.owner_id`);
+
       queryBuilder.where((where) => {
         if (filters.multiOwners?.includes(true)) {
-          where.orWhereRaw(
-            `(select count(*) from ${housingOwnersTable} oht where rank=1 and ${ownerTable}.id = oht.owner_id) > 1`
+          where.orWhereIn(
+            `${housingOwnersTable}.owner_id`,
+            multiOwnersSubquery().havingRaw('COUNT(*) > 1')
           );
         }
         if (filters.multiOwners?.includes(false)) {
-          where.orWhereRaw(
-            `(select count(*) from ${housingOwnersTable} oht where rank=1 and ${ownerTable}.id = oht.owner_id) = 1`
+          where.orWhereIn(
+            `${housingOwnersTable}.owner_id`,
+            multiOwnersSubquery().havingRaw('COUNT(*) = 1')
           );
         }
       });
@@ -698,6 +727,14 @@ function filteredQuery(opts: FilteredQueryOptions) {
                 // Include the main owner otherwise housings that have
                 // no secondary owner will not appear in the GROUP BY clause
                 .where(`${housingOwnersTable}.rank`, '>=', 1)
+                .modify((query) => {
+                  if (filters.localities?.length) {
+                    query.whereIn(
+                      `${housingOwnersTable}.housing_geo_code`,
+                      filters.localities
+                    );
+                  }
+                })
                 .groupBy(
                   `${housingOwnersTable}.housing_geo_code`,
                   `${housingOwnersTable}.housing_id`

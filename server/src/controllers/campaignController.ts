@@ -401,11 +401,11 @@ const removeCampaign: RequestHandler<
       id: uuidv4(),
       type: 'housing:status-updated',
       nextOld: {
-        status: 'waiting',
+        status: HOUSING_STATUS_LABELS[HousingStatus.WAITING],
         subStatus: housing.subStatus
       },
       nextNew: {
-        status: 'never-contacted',
+        status: HOUSING_STATUS_LABELS[HousingStatus.NEVER_CONTACTED],
         subStatus: null
       },
       createdAt: new Date().toJSON(),

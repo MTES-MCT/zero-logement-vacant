@@ -7,7 +7,6 @@ import establishmentController from '~/controllers/establishmentController';
 import localityController from '~/controllers/localityController';
 import prospectController from '~/controllers/prospectController';
 import resetLinkController from '~/controllers/resetLinkController';
-import settingsController from '~/controllers/settingsController';
 import signupLinkController from '~/controllers/signupLinkController';
 import userController from '~/controllers/userController';
 import config from '~/infra/config';
@@ -124,12 +123,6 @@ router.get(
   '/establishments/:id',
   validatorNext.validate({ params: object({ id: schemas.id }) }),
   establishmentController.get
-);
-router.get(
-  '/establishments/:id/settings',
-  settingsController.getSettingsValidators,
-  validator.validate,
-  settingsController.getSettings
 );
 
 router.get(

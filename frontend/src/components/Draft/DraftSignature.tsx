@@ -1,162 +1,150 @@
 import Grid from '@mui/material/Grid';
 import Typography from '@mui/material/Typography';
-import { useId } from 'react';
-import { match } from 'ts-pattern';
-import type { ChangeEvent, ChangeEventHandler } from 'react';
+import type { DocumentDTO } from '@zerologementvacant/models';
+import { useFormContext } from 'react-hook-form';
 
-import { useForm } from '../../hooks/useForm';
+import Stack from '@mui/material/Stack';
+import DraftDocumentUpload from '~/components/Draft/DraftDocumentUpload';
+import type { DraftFormSchema } from '~/components/Draft/DraftForm';
+import DocumentPreview from '~/components/FileUpload/DocumentPreview';
+import AppTextInputNext from '../_app/AppTextInput/AppTextInputNext';
 import styles from './draft.module.scss';
-import AppTextInput from '../_app/AppTextInput/AppTextInput';
-import FileUpload from '../FileUpload/FileUpload';
-import LogoViewer from './LogoViewer';
-import type { FileUploadDTO } from '@zerologementvacant/models';
-import type { SignatoriesPayload, SignatoryPayload } from '../../models/Sender';
 
-interface Props {
-  form: ReturnType<typeof useForm>;
-  value: SignatoriesPayload | null;
-  onChange(value: SignatoriesPayload): void;
-}
+function DraftSignature() {
+  const { watch, setValue } = useFormContext<DraftFormSchema>();
 
-function DraftSignature(props: Readonly<Props>) {
-  function onChange(
-    index: number,
-    key: keyof SignatoryPayload
-  ): ChangeEventHandler {
-    return (e: ChangeEvent<HTMLInputElement>) => {
-      const value = e.target.value === '' ? null : e.target.value;
-      const signatory = props.value?.[index];
-      const signatories = props.value?.map((s, i) =>
-        i === index
-          ? {
-              firstName: signatory?.firstName ?? null,
-              lastName: signatory?.lastName ?? null,
-              role: signatory?.role ?? null,
-              file: signatory?.file ?? null,
-              [key]: value
-            }
-          : s
-        // Typescript does not understand that there are always 2 elements
-      ) as SignatoriesPayload;
-      props.onChange(signatories);
+  function onUpload(index: 0 | 1) {
+    return (documents: ReadonlyArray<DocumentDTO>): void => {
+      const document = documents.at(0) ?? null;
+      setValue(`sender.signatories.${index}.document`, document, {
+        shouldDirty: true
+      });
     };
   }
 
-  function onFileUpload(index: number, file: FileUploadDTO) {
-    const signatory: SignatoryPayload = props.value?.[index] ?? {
-      firstName: null,
-      lastName: null,
-      role: null,
-      file: null,
-      document: null
-    };
-    const signatories =
-      props.value?.map((s, i) =>
-        i === index ? { ...signatory, file } : s
-      ) ?? null;
-    props.onChange(signatories as SignatoriesPayload);
-  }
-
-  const uploadIds = [useId(), useId()];
-  const titleIds = [useId(), useId()];
-
-  function onFileRemoval(index: number) {
-    const signatory: SignatoryPayload = props.value?.[index] ?? {
-      firstName: null,
-      lastName: null,
-      role: null,
-      file: null,
-      document: null
-    };
-    const signatories = props?.value?.map((s, i) =>
-      i === index ? { ...signatory, file: null } : s
-    );
-    props.onChange(signatories as SignatoriesPayload);
-    const input = document.getElementById(
-      uploadIds[index]
-    ) as HTMLInputElement | null;
-    if (input !== null) {
-      input.value = '';
-    }
-  }
-
-  function title(index: number): string {
-    return match(index)
-      .with(0, () => 'Signature du premier expéditeur')
-      .with(1, () => 'Signature du second expéditeur')
-      .otherwise(() => 'Signature de l’expéditeur');
-  }
+  const [firstSignatoryDocument, secondSignatoryDocument] = watch([
+    'sender.signatories.0.document',
+    'sender.signatories.1.document'
+  ]);
 
   return (
     <Grid
       container
       component="article"
       role="group"
-      alignItems="flex-start"
-      justifyContent="flex-end"
-      size={10}
-      offset={2}
+      sx={{
+        alignItems: 'flex-start',
+        justifyContent: 'flex-end'
+      }}
+      size={{ xs: 12, md: 10 }}
+      offset={{ xs: 0, md: 2 }}
+      spacing="1rem"
     >
-      {props.value?.map((signatory, index) => (
-        <Grid
-          container
-          key={index}
-          role="group"
-          aria-labelledby={titleIds[index]}
-          className={styles.article}
-          sx={{ ml: 2, p: 2 }}
-          size="grow"
-        >
-          <Grid container spacing={2}>
-            <Grid size={12}>
-              <Typography id={titleIds[index]} component="h4" variant="h6" mb={2}>
-                {title(index)}
-              </Typography>
-            </Grid>
-            <Grid size={6}>
-              <AppTextInput
-                inputForm={props.form}
-                inputKey={`signatories.${index}.firstName`}
-                label="Prénom du signataire"
-                value={signatory?.firstName ?? ''}
-                onChange={onChange(index, 'firstName')}
-              />
-            </Grid>
-            <Grid size={6}>
-              <AppTextInput
-                inputForm={props.form}
-                inputKey="sender.signatoryLastName"
-                label="Nom du signataire"
-                value={signatory?.lastName ?? ''}
-                onChange={onChange(index, 'lastName')}
-              />
-            </Grid>
-
-            <Grid size={12}>
-              <AppTextInput
-                inputForm={props.form}
-                inputKey="sender.signatoryRole"
-                label="Rôle du signataire"
-                value={signatory?.role ?? ''}
-                onChange={onChange(index, 'role')}
-              />
-            </Grid>
-
-            <Grid size={12}>
-              <FileUpload
-                id={uploadIds[index]}
-                onUpload={(file) => onFileUpload(index, file)}
-              />
-
-              <LogoViewer
-                index={0}
-                logo={signatory?.file ?? null}
-                onDelete={() => onFileRemoval(index)}
-              />
-            </Grid>
-          </Grid>
+      <Grid
+        className={styles.article}
+        container
+        size={{ xs: 12, md: 6 }}
+        spacing="1rem"
+        role="group"
+        aria-label="Signature du premier expéditeur"
+      >
+        <Grid size={12}>
+          <Typography component="h4" variant="h6">
+            Signature du premier expéditeur
+          </Typography>
         </Grid>
-      ))}
+
+        <Grid size={{ xs: 12, md: 6 }}>
+          <AppTextInputNext<DraftFormSchema, 'sender.signatories.0.firstName'>
+            name="sender.signatories.0.firstName"
+            label="Prénom du signataire"
+            mapValue={(value) => value ?? ''}
+            contramapValue={(value) => (value === '' ? null : value)}
+          />
+        </Grid>
+
+        <Grid size={{ xs: 12, md: 6 }}>
+          <AppTextInputNext<DraftFormSchema, 'sender.signatories.0.lastName'>
+            name="sender.signatories.0.lastName"
+            label="Nom du signataire"
+            mapValue={(value) => value ?? ''}
+            contramapValue={(value) => (value === '' ? null : value)}
+          />
+        </Grid>
+
+        <Grid size={12}>
+          <AppTextInputNext<DraftFormSchema, 'sender.signatories.0.role'>
+            name="sender.signatories.0.role"
+            label="Rôle du signataire"
+            mapValue={(value) => value ?? ''}
+            contramapValue={(value) => (value === '' ? null : value)}
+          />
+        </Grid>
+
+        <Grid size={12}>
+          <Stack direction="column" spacing="1rem">
+            <DraftDocumentUpload onUpload={onUpload(0)} />
+            <DocumentPreview
+              document={firstSignatoryDocument ?? undefined}
+              responsive="max-width"
+              fit="contain"
+            />
+          </Stack>
+        </Grid>
+      </Grid>
+
+      <Grid
+        className={styles.article}
+        container
+        size={{ xs: 12, md: 6 }}
+        spacing="1rem"
+        role="group"
+        aria-label="Signature du second expéditeur"
+      >
+        <Grid size={12}>
+          <Typography component="h4" variant="h6">
+            Signature du second expéditeur
+          </Typography>
+        </Grid>
+
+        <Grid size={{ xs: 12, md: 6 }}>
+          <AppTextInputNext<DraftFormSchema, 'sender.signatories.1.firstName'>
+            name="sender.signatories.1.firstName"
+            label="Prénom du signataire"
+            mapValue={(value) => value ?? ''}
+            contramapValue={(value) => (value === '' ? null : value)}
+          />
+        </Grid>
+
+        <Grid size={{ xs: 12, md: 6 }}>
+          <AppTextInputNext<DraftFormSchema, 'sender.signatories.1.lastName'>
+            name="sender.signatories.1.lastName"
+            label="Nom du signataire"
+            mapValue={(value) => value ?? ''}
+            contramapValue={(value) => (value === '' ? null : value)}
+          />
+        </Grid>
+
+        <Grid size={12}>
+          <AppTextInputNext<DraftFormSchema, 'sender.signatories.1.role'>
+            name="sender.signatories.1.role"
+            label="Rôle du signataire"
+            mapValue={(value) => value ?? ''}
+            contramapValue={(value) => (value === '' ? null : value)}
+          />
+        </Grid>
+
+        <Grid size={12}>
+          <Stack direction="column" spacing="1rem">
+            <DraftDocumentUpload onUpload={onUpload(1)} />
+            <DocumentPreview
+              document={secondSignatoryDocument ?? undefined}
+              responsive="max-width"
+              fit="contain"
+            />
+          </Stack>
+        </Grid>
+      </Grid>
     </Grid>
   );
 }

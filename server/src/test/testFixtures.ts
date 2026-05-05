@@ -61,7 +61,6 @@ import {
   ResetLinkApi
 } from '~/models/ResetLinkApi';
 import { SenderApi } from '~/models/SenderApi';
-import { SettingsApi } from '~/models/SettingsApi';
 import {
   SIGNUP_LINK_EXPIRATION,
   SIGNUP_LINK_LENGTH,
@@ -377,16 +376,6 @@ export const genSignupLinkApi = (prospectEmail: string): SignupLinkApi => ({
   prospectEmail,
   expiresAt: addHours(new Date(), SIGNUP_LINK_EXPIRATION)
 });
-
-export const genSettingsApi = (establishmentId: string): SettingsApi => {
-  return {
-    id: uuidv4(),
-    establishmentId,
-    inbox: {
-      enabled: true
-    }
-  };
-};
 
 type EventOptions<Type extends EventType> = MarkRequired<
   Pick<EventApi<Type>, 'type' | 'creator' | 'nextOld' | 'nextNew'>,

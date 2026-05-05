@@ -4,12 +4,12 @@ import Typography from '@mui/material/Typography';
 import type { HousingStatus } from '@zerologementvacant/models';
 
 import { getHousingState } from '../../models/HousingState';
-import AppSelectNext from '../_app/AppSelect/AppSelectNext';
-import type { AppSelectNextProps } from '../_app/AppSelect/AppSelectNext';
+import Select from '~/components/ui/Select/Select';
+import type { SelectProps } from '~/components/ui/Select/Select';
 import HousingStatusBadge from '../HousingStatusBadge/HousingStatusBadge';
 
 export type HousingStatusSelectProps<Multiple extends boolean> = Pick<
-  AppSelectNextProps<HousingStatus, Multiple>,
+  SelectProps<HousingStatus, Multiple>,
   | 'className'
   | 'disabled'
   | 'error'
@@ -35,7 +35,7 @@ function HousingStatusSelect<Multiple extends boolean = false>(
       );
 
   return (
-    <AppSelectNext
+    <Select
       {...props}
       getOptionLabel={(status) => (
         <Stack>

@@ -4,11 +4,11 @@ import {
   OWNER_AGE_EMPTY_OPTION,
   OWNER_AGE_OPTIONS
 } from '../../models/HousingFilters';
-import AppSelectNext from '../_app/AppSelect/AppSelectNext';
-import type { AppSelectNextProps } from '../_app/AppSelect/AppSelectNext';
+import Select from '~/components/ui/Select/Select';
+import type { SelectProps } from '~/components/ui/Select/Select';
 
 export type OwnerAgeSelectProps<Multiple extends boolean> = Pick<
-  AppSelectNextProps<OwnerAge | null, Multiple>,
+  SelectProps<OwnerAge | null, Multiple>,
   'className' | 'disabled' | 'error' | 'multiple' | 'value' | 'onChange'
 >;
 
@@ -16,7 +16,7 @@ function OwnerAgeSelect<Multiple extends boolean = false>(
   props: OwnerAgeSelectProps<Multiple>
 ) {
   return (
-    <AppSelectNext
+    <Select
       {...props}
       options={[OWNER_AGE_EMPTY_OPTION.value, ...OWNER_AGE_VALUES]}
       label="Âge"

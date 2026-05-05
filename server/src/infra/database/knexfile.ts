@@ -33,9 +33,6 @@ export class CustomSeedSource implements Knex.SeedSource<string> {
     if (config.db.env === 'production') {
       const allowedSeeds = new Set([
         '20240405010603_establishments.ts',
-        '20240405011035_buildings.ts',
-        '20240405011127_users.ts',
-        '20240405011615_geo-code-changes-2024.ts',
         '20250113145122_precisions.ts'
       ]);
 

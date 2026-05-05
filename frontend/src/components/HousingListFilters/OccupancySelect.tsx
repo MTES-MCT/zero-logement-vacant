@@ -1,10 +1,10 @@
 import { OCCUPANCY_LABELS } from '@zerologementvacant/models';
 import { Occupancy } from '@zerologementvacant/models';
-import AppSelectNext from '../_app/AppSelect/AppSelectNext';
-import type { AppSelectNextProps } from '../_app/AppSelect/AppSelectNext';
+import Select from '~/components/ui/Select/Select';
+import type { SelectProps } from '~/components/ui/Select/Select';
 
 export type OccupancySelectProps<Multiple extends boolean> = Pick<
-  AppSelectNextProps<Occupancy, Multiple>,
+  SelectProps<Occupancy, Multiple>,
   | 'className'
   | 'disabled'
   | 'error'
@@ -33,7 +33,7 @@ function OccupancySelect<Multiple extends boolean = false>(
     Occupancy.UNKNOWN
   ];
   return (
-    <AppSelectNext
+    <Select
       {...rest}
       getOptionLabel={(occupancy) => OCCUPANCY_LABELS[occupancy]}
       label={label}

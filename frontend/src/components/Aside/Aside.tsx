@@ -1,61 +1,97 @@
-import { Container } from '../_dsfr';
-import type { ReactNode } from 'react';
-import { createPortal } from 'react-dom';
-import classNames from 'classnames';
-import styles from './aside.module.scss';
+import { fr } from '@codegouvfr/react-dsfr';
 import Button from '@codegouvfr/react-dsfr/Button';
-import Typography from '@mui/material/Typography';
+import ButtonsGroup from '@codegouvfr/react-dsfr/ButtonsGroup';
+import Drawer, { type DrawerProps } from '@mui/material/Drawer';
+import Grid from '@mui/material/Grid';
+import { type ReactNode } from 'react';
 
-export interface AsideProps {
-  title: ReactNode;
-  content: ReactNode | ReactNode[];
-  footer: ReactNode | ReactNode[];
-  expand?: boolean;
-  onClose?: () => void;
-  attachTo?: Element;
-  className?: string;
+interface CommonProps {
+  drawerProps?: Omit<DrawerProps, 'open' | 'onClose'>;
+  header?: ReactNode;
+  main?: ReactNode;
+  footer?: ReactNode;
+  width?: number | `${number}rem`;
+  open: boolean;
+  onClose(): void;
+  onSave?(): void;
 }
 
-function Aside(props: AsideProps) {
-  const expand = props.expand ?? false;
-  const component = (
-    <aside
-      aria-hidden={!expand}
-      className={classNames(styles.aside, {
-        [styles.collapsed]: !expand
-      })}
-    >
-      <article className={classNames(styles.article, props.className)}>
-        {props.title && typeof props.title === 'string' ? (
-          <Container as="header" className="d-flex" fluid>
-            <Typography variant="h6" className="d-inline-block" mb={0} pt={1}>
-              {props.title}
-            </Typography>
+interface FooterProps {
+  footer: ReactNode;
+  onSave?: never;
+}
 
+interface SaveProps {
+  footer?: never;
+  onSave(): void;
+}
+
+const DEFAULT_WIDTH = '40rem';
+
+export type AsideProps = CommonProps & (FooterProps | SaveProps);
+
+function Aside(props: AsideProps) {
+  return (
+    <Drawer
+      component="aside"
+      anchor="right"
+      open={props.open}
+      onClose={props.onClose}
+      slotProps={{
+        backdrop: {
+          invisible: true
+        },
+        paper: {
+          sx: {
+            width: props.width ?? DEFAULT_WIDTH
+          }
+        }
+      }}
+      {...props.drawerProps}
+    >
+      <Grid container sx={{ flexDirection: 'column' }} size="grow">
+        <Grid container sx={{ justifyContent: 'space-between', mb: 3 }}>
+          {props.header && <Grid size="grow">{props.header}</Grid>}
+
+          <Grid size="auto">
             <Button
+              iconId="fr-icon-close-line"
               priority="tertiary no outline"
-              iconId="ri-close-line"
-              iconPosition="right"
               onClick={props.onClose}
+              size="small"
             >
               Fermer
             </Button>
-          </Container>
-        ) : (
-          props.title
-        )}
-        <div className={styles.main}>{props.content}</div>
-        <footer>{props.footer}</footer>
-      </article>
-    </aside>
-  );
+          </Grid>
+        </Grid>
 
-  const root = props.attachTo ?? document.getElementById('root');
-  if (!root) {
-    // Should never happen
-    throw new Error('root element not found');
-  }
-  return createPortal(component, root);
+        <Grid sx={{ overflowY: 'auto' }} size="grow">
+          {props.main}
+        </Grid>
+
+        <Grid className={fr.cx('fr-mt-3w', 'fr-mb-1w')}>
+          <hr style={{ margin: `0 -${fr.spacing('3w')}` }} />
+          {props.footer ?? (
+            <ButtonsGroup
+              buttons={[
+                {
+                  priority: 'secondary',
+                  children: 'Annuler',
+                  onClick: props.onClose
+                },
+                {
+                  priority: 'primary',
+                  children: 'Enregistrer',
+                  onClick: props.onSave
+                }
+              ]}
+              inlineLayoutWhen="always"
+            />
+          )}
+        </Grid>
+      </Grid>
+    </Drawer>
+  );
 }
 
 export default Aside;

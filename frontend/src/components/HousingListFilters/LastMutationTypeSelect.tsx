@@ -5,11 +5,11 @@ import {
   LAST_MUTATION_TYPE_EMPTY_OPTION,
   LAST_MUTATION_TYPE_LABELS
 } from '../../models/HousingFilters';
-import AppSelectNext from '../_app/AppSelect/AppSelectNext';
-import type { AppSelectNextProps } from '../_app/AppSelect/AppSelectNext';
+import Select from '~/components/ui/Select/Select';
+import type { SelectProps } from '~/components/ui/Select/Select';
 
 export type LastMutationTypeSelectProps<Multiple extends boolean> = Pick<
-  AppSelectNextProps<LastMutationTypeFilter | null, Multiple>,
+  SelectProps<LastMutationTypeFilter | null, Multiple>,
   'className' | 'disabled' | 'multiple' | 'value' | 'onChange'
 > & {
   label?: string;
@@ -24,7 +24,7 @@ function LastMutationTypeSelect<Multiple extends boolean = false>(
     LAST_MUTATION_TYPE_EMPTY_OPTION.value
   ];
   return (
-    <AppSelectNext
+    <Select
       {...rest}
       getOptionLabel={(option) =>
         option === LAST_MUTATION_TYPE_EMPTY_OPTION.value

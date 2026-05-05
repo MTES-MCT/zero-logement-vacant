@@ -2,10 +2,8 @@ import { useFeatureFlagEnabled } from 'posthog-js/react';
 
 import config from '~/utils/config';
 
-type AvailableFeatureFlag =
-  | 'actual-dpe'
-  | 'relative-location'
-  | 'new-campaigns';
+// Add feature flag keys to this union type to use them in the layout
+type AvailableFeatureFlag = never;
 
 export interface FeatureFlagLayoutProps {
   flag: AvailableFeatureFlag;

@@ -11,7 +11,6 @@ import DPE from '~/components/DPE/DPE';
 import type { HousingEditionFormSchema } from '~/components/HousingEdition/HousingEditionSideMenu';
 import EnergyConsumptionSelect from '~/components/HousingListFilters/EnergyConsumptionSelect';
 import OccupancySelect from '~/components/HousingListFilters/OccupancySelect';
-import FeatureFlagLayout from '~/layouts/FeatureFlagLayout';
 import type { Housing } from '~/models/Housing';
 import { useGetBuildingQuery } from '~/services/building.service';
 
@@ -63,39 +62,34 @@ function HousingEditionInformationTab(
         />
       </Stack>
 
-      <FeatureFlagLayout
-        flag="actual-dpe"
-        then={
-          <Stack component="section" spacing="1rem" useFlexGap>
-            <Typography component="h2" variant="h6">
-              Étiquette énergétique
-            </Typography>
+      <Stack component="section" spacing="1rem" useFlexGap>
+        <Typography component="h2" variant="h6">
+          Étiquette énergétique
+        </Typography>
 
-            <Stack component="section" spacing="0.25rem" useFlexGap>
-              <Typography>Étiquette DPE représentatif (ADEME)</Typography>
+        <Stack component="section" spacing="0.25rem" useFlexGap>
+          <Typography>Étiquette DPE représentatif (ADEME)</Typography>
 
-              {building?.dpe?.class ? (
-                <DPE value={building.dpe.class} />
-              ) : (
-                'Pas d’information'
-              )}
-            </Stack>
+          {building?.dpe?.class ? (
+            <DPE value={building.dpe.class} />
+          ) : (
+            'Pas d’information'
+          )}
+        </Stack>
 
-            <Controller<HousingEditionFormSchema, 'actualEnergyConsumption'>
-              name="actualEnergyConsumption"
-              render={({ field, fieldState }) => (
-                <EnergyConsumptionSelect
-                  label="Étiquette DPE renseignée"
-                  disabled={field.disabled}
-                  error={fieldState.error?.message}
-                  value={field.value as EnergyConsumption | null}
-                  onChange={field.onChange}
-                />
-              )}
+        <Controller<HousingEditionFormSchema, 'actualEnergyConsumption'>
+          name="actualEnergyConsumption"
+          render={({ field, fieldState }) => (
+            <EnergyConsumptionSelect
+              label="Étiquette DPE renseignée"
+              disabled={field.disabled}
+              error={fieldState.error?.message}
+              value={field.value as EnergyConsumption | null}
+              onChange={field.onChange}
             />
-          </Stack>
-        }
-      />
+          )}
+        />
+      </Stack>
     </Stack>
   );
 }

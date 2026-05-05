@@ -1,107 +1,69 @@
-import Button from '@codegouvfr/react-dsfr/Button';
-import { useState } from 'react';
-import { toast } from 'react-toastify';
+import { Button, type ButtonProps } from '@codegouvfr/react-dsfr/Button';
+import {
+  CampaignDocument,
+  CampaignPage,
+  usePDF
+} from '@zerologementvacant/pdf';
+import { useEffect } from 'react';
+import type { Campaign } from '~/models/Campaign';
+import type { Draft } from '~/models/Draft';
+import { toHousingDTO } from '~/models/Housing';
+import { toOwnerDTO } from '~/models/Owner';
+import { useFindHousingQuery } from '~/services/housing.service';
 
-import config from '../../utils/config';
-import authService from '../../services/auth.service';
-import { useCampaign } from '../../hooks/useCampaign';
-import { useNotification } from '../../hooks/useNotification';
-import { toOwnerDTO } from '../../models/Owner';
-import { useLazyFindHousingQuery } from '../../services/housing.service';
-import { toHousingDTO } from '../../models/Housing';
-import type { Draft, DraftPreviewPayload } from '../../models/Draft';
+export type PreviewButtonProps = Pick<ButtonProps.AsButton, 'type'> & {
+  campaign: Campaign;
+  draft: Draft;
+};
 
-interface Props {
-  className?: string;
-  disabled?: boolean;
-  draft?: Draft;
-}
-
-function PreviewButton(props: Readonly<Props>) {
-  const [isError, setIsError] = useState(false);
-  const [isLoading, setIsLoading] = useState(false);
-  const [isSuccess, setIsSuccess] = useState(false);
-  const { campaign } = useCampaign();
-
-  const [findHousings] = useLazyFindHousingQuery();
-
-  useNotification({
-    isError,
-    isLoading,
-    isSuccess,
-    message: {
-      error: 'Une erreur est survenue lors de la génération du courrier.',
-      loading:
-        'Votre courrier est en cours de génération, veuillez patienter quelques secondes...',
-      success: 'Courrier généré !'
+function PreviewButton(props: Readonly<PreviewButtonProps>) {
+  const findHousingsQuery = useFindHousingQuery(
+    {
+      filters: {
+        campaignIds: [props.campaign.id]
+      },
+      pagination: {
+        paginate: true
+      }
     },
-    toastId: 'preview-draft'
+    {
+      selectFromResult: ({ data, ...rest }) => ({
+        ...rest,
+        data: data?.entities?.filter((housing) => !!housing.owner)?.at(0)
+      })
+    }
+  );
+
+  const housing = findHousingsQuery.data;
+  const owner = findHousingsQuery.data?.owner;
+
+  const [pdf, updatePDF] = usePDF({
+    document: undefined
   });
 
-  async function preview(): Promise<void> {
-    try {
-      setIsError(false);
-      setIsLoading(true);
-      setIsSuccess(false);
+  useEffect(() => {
+    if (!!housing && !!owner) {
+      updatePDF(
+        <CampaignDocument campaign={props.campaign}>
+          <CampaignPage
+            draft={props.draft}
+            housing={toHousingDTO(housing)}
+            owner={toOwnerDTO(owner)}
+          />
+        </CampaignDocument>
+      );
+    }
+  }, [housing, owner, props.campaign, props.draft, updatePDF]);
 
-      const { data } = await findHousings({
-        filters: {
-          campaignIds: [campaign!.id]
-        },
-        pagination: {
-          paginate: true,
-          page: 1,
-          perPage: 1
-        }
-      });
-      const housings = data?.entities;
-
-      if (!housings?.length) {
-        toast.error('Aucun logement trouvé pour cette campagne');
-        return;
-      }
-
-      if (props.draft) {
-        setIsLoading(true);
-        const [housing] = housings;
-        const { owner } = housing;
-        if (!owner) {
-          toast.error('Aucun propriétaire trouvé pour ce logement');
-          return;
-        }
-        const payload: DraftPreviewPayload = {
-          housing: toHousingDTO(housing),
-          owner: toOwnerDTO(owner)
-        };
-        const response = await fetch(
-          `${config.apiEndpoint}/api/drafts/${props.draft.id}/preview`,
-          {
-            method: 'POST',
-            headers: {
-              ...authService.authHeader(),
-              'Content-Type': 'application/json'
-            },
-            body: JSON.stringify(payload)
-          }
-        );
-        const blob = await response.blob();
-        if (response.ok) {
-          const url = window.URL.createObjectURL(blob);
-          window.open(url, '_blank');
-          setIsSuccess(true);
-        }
-      }
-    } catch {
-      setIsError(true);
-    } finally {
-      setIsLoading(false);
+  async function preview() {
+    if (pdf.url) {
+      window.open(pdf.url, '_blank');
     }
   }
 
   return (
     <Button
-      className={props.className}
-      disabled={props.disabled || isLoading}
+      disabled={findHousingsQuery.isFetching}
       iconId="fr-icon-eye-line"
       priority="secondary"
       onClick={preview}

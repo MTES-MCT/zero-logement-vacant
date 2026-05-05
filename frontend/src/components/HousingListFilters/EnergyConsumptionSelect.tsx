@@ -1,11 +1,11 @@
 import { ENERGY_CONSUMPTION_VALUES } from '@zerologementvacant/models';
-import AppSelectNext from '../_app/AppSelect/AppSelectNext';
+import Select from '~/components/ui/Select/Select';
 import DPE from '../DPE/DPE';
 import type { EnergyConsumption } from '@zerologementvacant/models';
-import type { AppSelectNextProps } from '../_app/AppSelect/AppSelectNext';
+import type { SelectProps } from '~/components/ui/Select/Select';
 
 export type EnergyConsumptionSelectProps<Multiple extends boolean> = Pick<
-  AppSelectNextProps<EnergyConsumption | null, Multiple>,
+  SelectProps<EnergyConsumption | null, Multiple>,
   | 'className'
   | 'disabled'
   | 'error'
@@ -24,7 +24,7 @@ function EnergyConsumptionSelect<Multiple extends boolean = false>(
   props: EnergyConsumptionSelectProps<Multiple>
 ) {
   return (
-    <AppSelectNext
+    <Select
       {...props}
       displayEmpty
       options={[

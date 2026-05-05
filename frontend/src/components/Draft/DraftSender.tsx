@@ -1,123 +1,104 @@
 import Grid from '@mui/material/Grid';
 import Typography from '@mui/material/Typography';
-import schemas from '@zerologementvacant/schemas';
-import type { ChangeEvent, ChangeEventHandler } from 'react';
-import * as yup from 'yup';
 
-import AppTextInput from '~/components/_app/AppTextInput/AppTextInput';
-import { useForm } from '~/hooks/useForm';
-import type { Sender, SenderPayload } from '~/models/Sender';
+import type { DraftFormSchema } from '~/components/Draft/DraftForm';
+import AppTextInputNext from '../_app/AppTextInput/AppTextInputNext';
 import styles from './draft.module.scss';
 
-export const senderSchema = yup.object({
-  name: yup.string().trim().default(undefined),
-  service: yup.string().trim().default(undefined),
-  firstName: yup.string().trim().default(undefined),
-  lastName: yup.string().trim().default(undefined),
-  address: yup.string().trim().default(undefined),
-  email: yup
-    .string()
-    .nullable()
-    .default(undefined)
-    .email(
-      'Veuillez renseigner un courriel valide. Exemple de format valide : exemple@gmail.com'
-    ),
-  phone: schemas.phone.nullable().default(undefined)
-});
-
-interface Props {
-  form: ReturnType<typeof useForm>;
-  value: SenderPayload;
-  onChange(value: SenderPayload): void;
+function nullOrEmptyString(value: string | null): string {
+  return value ?? '';
 }
 
-function DraftSender(props: Readonly<Props>) {
-  const email = props.value.email ?? '';
-  const phone = props.value.phone ?? '';
+function emptyStringToNull(value: string): string | null {
+  return value.trim() === '' ? null : value;
+}
 
-  function onChange(key: keyof Sender): ChangeEventHandler {
-    return (e: ChangeEvent<HTMLInputElement>) => {
-      if (props.value) {
-        props.onChange({
-          ...props.value,
-          [key]: e.target.value
-        });
-      }
-    };
-  }
-
+function DraftSender() {
   return (
-    <Grid component="article" container role="group" aria-labelledby="draft-sender-label" className={styles.article} spacing={2}>
+    <Grid
+      component="article"
+      container
+      role="group"
+      aria-labelledby="draft-sender-label"
+      className={styles.article}
+      spacing="1rem"
+    >
       <Grid size={12}>
-        <Typography id="draft-sender-label" component="h4" variant="h6" mb={2}>
+        <Typography id="draft-sender-label" component="h4" variant="h6">
           Coordonnées de l’expéditeur
         </Typography>
       </Grid>
+
       <Grid size={12}>
-        <AppTextInput
-          inputForm={props.form}
-          inputKey="sender.name"
+        <AppTextInputNext<DraftFormSchema, 'sender.name'>
+          name="sender.name"
           label="Nom de la collectivité ou de l’administration"
-          value={props.value.name}
-          onChange={onChange('name')}
+          mapValue={nullOrEmptyString}
+          contramapValue={emptyStringToNull}
         />
       </Grid>
+
       <Grid size={12}>
-        <AppTextInput
-          inputForm={props.form}
-          inputKey="sender.service"
+        <AppTextInputNext<DraftFormSchema, 'sender.service'>
+          name="sender.service"
           label="Service"
-          value={props.value.service}
-          onChange={onChange('service')}
+          mapValue={nullOrEmptyString}
+          contramapValue={emptyStringToNull}
         />
       </Grid>
-      <Grid size={6}>
-        <AppTextInput
-          inputForm={props.form}
-          inputKey="sender.lastName"
+
+      <Grid size={{ xs: 12, md: 6 }}>
+        <AppTextInputNext<DraftFormSchema, 'sender.lastName'>
+          name="sender.lastName"
           label="Nom"
-          value={props.value.lastName}
-          onChange={onChange('lastName')}
+          mapValue={nullOrEmptyString}
+          contramapValue={emptyStringToNull}
         />
       </Grid>
-      <Grid size={6}>
-        <AppTextInput
-          inputForm={props.form}
-          inputKey="sender.firstName"
+
+      <Grid size={{ xs: 12, md: 6 }}>
+        <AppTextInputNext<DraftFormSchema, 'sender.firstName'>
+          name="sender.firstName"
           label="Prénom"
-          value={props.value.firstName}
-          onChange={onChange('firstName')}
+          mapValue={nullOrEmptyString}
+          contramapValue={emptyStringToNull}
         />
       </Grid>
+
       <Grid size={12}>
-        <AppTextInput
-          inputForm={props.form}
-          inputKey="sender.address"
+        <AppTextInputNext<DraftFormSchema, 'sender.address'>
+          name="sender.address"
           label="Adresse"
-          value={props.value.address}
-          onChange={onChange('address')}
+          mapValue={nullOrEmptyString}
+          contramapValue={emptyStringToNull}
         />
       </Grid>
-      <Grid size={6}>
-        <AppTextInput
-          inputForm={props.form}
-          inputKey="sender.email"
+
+      <Grid size={{ xs: 12, md: 6 }}>
+        <AppTextInputNext<DraftFormSchema, 'sender.email'>
+          name="sender.email"
           label="Adresse e-mail"
           hintText="Format attendu : prenom.nom@domaine.fr"
-          value={email}
-          type="email"
-          onChange={onChange('email')}
+          nativeInputProps={{
+            type: 'email',
+            autoComplete: 'email'
+          }}
+          mapValue={nullOrEmptyString}
+          contramapValue={emptyStringToNull}
         />
       </Grid>
-      <Grid size={6}>
-        <AppTextInput
-          inputForm={props.form}
-          inputKey="sender.phone"
+
+      <Grid size={{ xs: 12, md: 6 }}>
+        <AppTextInputNext<DraftFormSchema, 'sender.phone'>
+          name="sender.phone"
           label="Téléphone"
           hintText="Format attendu : 0123456789 ou +33123456789"
-          value={phone}
-          type="tel"
-          onChange={onChange('phone')}
+          nativeInputProps={{
+            type: 'tel',
+            autoComplete: 'tel'
+          }}
+          mapValue={nullOrEmptyString}
+          contramapValue={emptyStringToNull}
         />
       </Grid>
     </Grid>

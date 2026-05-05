@@ -9,9 +9,9 @@ import { useId, useRef } from 'react';
 import type { Key, ReactNode, SyntheticEvent } from 'react';
 import { match, Pattern } from 'ts-pattern';
 
-import styles from './app-select-next.module.scss';
+import styles from './select.module.scss';
 
-export type AppSelectNextProps<Value, Multiple extends boolean> = Pick<
+export type SelectProps<Value, Multiple extends boolean> = Pick<
   BaseSelectProps<SelectValue<Value, Multiple>>,
   'className' | 'displayEmpty' | 'label' | 'renderValue' | 'onBlur'
 > & {
@@ -38,8 +38,8 @@ type SelectValue<Value, Multiple extends boolean> = Multiple extends true
   ? Array<Value>
   : Value | null;
 
-function AppSelectNext<Value, Multiple extends boolean = false>(
-  props: AppSelectNextProps<Value, Multiple>
+function Select<Value, Multiple extends boolean = false>(
+  props: SelectProps<Value, Multiple>
 ) {
   const ref = useRef<HTMLDivElement>(null);
   const labelId = `fr-label-${useId()}`;
@@ -397,4 +397,4 @@ function AppSelectNext<Value, Multiple extends boolean = false>(
   );
 }
 
-export default AppSelectNext;
+export default Select;

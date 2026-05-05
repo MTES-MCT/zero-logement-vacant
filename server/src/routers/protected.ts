@@ -27,7 +27,6 @@ import localityController from '~/controllers/localityController';
 import noteController from '~/controllers/noteController';
 import ownerController from '~/controllers/ownerController';
 import precisionController from '~/controllers/precisionController';
-import settingsController from '~/controllers/settingsController';
 import userController from '~/controllers/userController';
 import config from '~/infra/config';
 import antivirusMiddleware from '~/middlewares/antivirus';
@@ -486,13 +485,6 @@ router.put(
   localityController.updateLocalityTaxValidators,
   validator.validate,
   localityController.updateLocalityTax
-);
-
-router.put(
-  '/establishments/:id/settings',
-  settingsController.updateSettingsValidators,
-  validator.validate,
-  settingsController.updateSettings
 );
 
 router.get(

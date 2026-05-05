@@ -192,10 +192,8 @@ async function count(filters: HousingFiltersApi): Promise<HousingCountApi> {
   }
 
   const filterByOwner = [
-    filters.ownerIds,
     filters.ownerKinds,
     filters.ownerAges,
-    filters.multiOwners,
     filters.query
   ].some((filter) => filter?.length);
 
@@ -604,7 +602,7 @@ function filteredQuery(opts: FilteredQueryOptions) {
       ]);
     }
     if (filters.ownerIds?.length) {
-      queryBuilder.whereIn(`${ownerTable}.id`, filters.ownerIds);
+      queryBuilder.whereIn(`${housingOwnersTable}.owner_id`, filters.ownerIds);
     }
     if (filters.ownerKinds?.length) {
       queryBuilder.where((where) => {
@@ -665,15 +663,31 @@ function filteredQuery(opts: FilteredQueryOptions) {
       });
     }
     if (filters.multiOwners?.length) {
+      const multiOwnersSubquery = () =>
+        db(housingOwnersTable)
+          .select(`${housingOwnersTable}.owner_id`)
+          .where(`${housingOwnersTable}.rank`, 1)
+          .modify((query) => {
+            if (filters.localities?.length) {
+              query.whereIn(
+                `${housingOwnersTable}.housing_geo_code`,
+                filters.localities
+              );
+            }
+          })
+          .groupBy(`${housingOwnersTable}.owner_id`);
+
       queryBuilder.where((where) => {
         if (filters.multiOwners?.includes(true)) {
-          where.orWhereRaw(
-            `(select count(*) from ${housingOwnersTable} oht where rank=1 and ${ownerTable}.id = oht.owner_id) > 1`
+          where.orWhereIn(
+            `${housingOwnersTable}.owner_id`,
+            multiOwnersSubquery().havingRaw('COUNT(*) > 1')
           );
         }
         if (filters.multiOwners?.includes(false)) {
-          where.orWhereRaw(
-            `(select count(*) from ${housingOwnersTable} oht where rank=1 and ${ownerTable}.id = oht.owner_id) = 1`
+          where.orWhereIn(
+            `${housingOwnersTable}.owner_id`,
+            multiOwnersSubquery().havingRaw('COUNT(*) = 1')
           );
         }
       });
@@ -713,6 +727,14 @@ function filteredQuery(opts: FilteredQueryOptions) {
                 // Include the main owner otherwise housings that have
                 // no secondary owner will not appear in the GROUP BY clause
                 .where(`${housingOwnersTable}.rank`, '>=', 1)
+                .modify((query) => {
+                  if (filters.localities?.length) {
+                    query.whereIn(
+                      `${housingOwnersTable}.housing_geo_code`,
+                      filters.localities
+                    );
+                  }
+                })
                 .groupBy(
                   `${housingOwnersTable}.housing_geo_code`,
                   `${housingOwnersTable}.housing_id`

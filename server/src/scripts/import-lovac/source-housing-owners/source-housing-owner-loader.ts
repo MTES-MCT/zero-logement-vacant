@@ -3,7 +3,7 @@ import { WritableStream } from 'node:stream/web';
 
 import { withinTransaction } from '~/infra/database/transaction';
 import { createLogger } from '~/infra/logger';
-import { HousingEventApi, HousingOwnerEventApi } from '~/models/EventApi';
+import { HousingOwnerEventApi } from '~/models/EventApi';
 import eventRepository from '~/repositories/eventRepository';
 import {
   HousingOwnerDBO,
@@ -34,7 +34,7 @@ export function createHousingOwnerLoader(
     const batch = eventBuffer.splice(0);
     if (options.dryRun) return;
     logger.debug(`Inserting ${batch.length} housing-owner events...`);
-    await eventRepository.insertManyHousingEvents(batch as unknown as HousingEventApi[]);
+    await eventRepository.insertManyHousingOwnerEvents(batch);
   }
 
   async function flushReplaces(): Promise<void> {

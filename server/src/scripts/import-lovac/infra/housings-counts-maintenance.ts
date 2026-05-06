@@ -1,7 +1,7 @@
 import db from '~/infra/database';
 import { createLogger } from '~/infra/logger';
 
-const logger = createLogger('sourceHousingsCountsMaintenance');
+const logger = createLogger('housingsCountsMaintenance');
 
 /**
  * Tables that the housings import writes to and that carry user triggers
@@ -83,7 +83,7 @@ interface PgTriggerRow {
   table: string;
 }
 
-export async function ensureKnownSourceHousingsTriggers(): Promise<void> {
+export async function ensureKnownHousingsTriggers(): Promise<void> {
   const placeholders = MANAGED_TABLES.map(() => '?').join(', ');
   const { rows } = await db.raw<{ rows: PgTriggerRow[] }>(
     `
@@ -104,26 +104,26 @@ export async function ensureKnownSourceHousingsTriggers(): Promise<void> {
     throw new Error(
       `Unknown user triggers on managed tables: ${list}. ` +
         `Register them in KNOWN_TRIGGERS and add a recompute entry to ` +
-        `RECOMPUTES in source-housings-counts-maintenance.ts.`
+        `RECOMPUTES in housings-counts-maintenance.ts.`
     );
   }
 }
 
-export async function disableSourceHousingsTriggers(): Promise<void> {
+export async function disableHousingsTriggers(): Promise<void> {
   for (const table of MANAGED_TABLES) {
     logger.info(`Disabling user triggers on ${table}`);
     await db.raw(`ALTER TABLE ?? DISABLE TRIGGER USER`, [table]);
   }
 }
 
-export async function enableSourceHousingsTriggers(): Promise<void> {
+export async function enableHousingsTriggers(): Promise<void> {
   for (const table of MANAGED_TABLES) {
     logger.info(`Enabling user triggers on ${table}`);
     await db.raw(`ALTER TABLE ?? ENABLE TRIGGER USER`, [table]);
   }
 }
 
-export async function recomputeSourceHousingsCounts(): Promise<void> {
+export async function recomputeHousingsCounts(): Promise<void> {
   for (const [name, sql] of Object.entries(RECOMPUTES)) {
     const start = Date.now();
     logger.info(`Recomputing ${name}`);

@@ -3,19 +3,24 @@ import {
   HousingStatus,
   Occupancy
 } from '@zerologementvacant/models';
-import { count, createS3, flatten, map } from '@zerologementvacant/utils/node';
+import { createS3, flatten, map } from '@zerologementvacant/utils/node';
 import { PutObjectCommand } from '@aws-sdk/client-s3';
 import { writeFileSync } from 'node:fs';
 import { match } from 'ts-pattern';
 
 import UserMissingError from '~/errors/userMissingError';
 import config from '~/infra/config';
-import db from '~/infra/database';
 import { createLogger } from '~/infra/logger';
 import { HousingApi } from '~/models/HousingApi';
 import housingRepository from '~/repositories/housingRepository';
 import userRepository from '~/repositories/userRepository';
 import { createLoggerReporter } from '~/scripts/import-lovac/infra';
+import {
+  disableHousingsTriggers,
+  enableHousingsTriggers,
+  ensureKnownHousingsTriggers,
+  recomputeHousingsCounts
+} from '~/scripts/import-lovac/infra/housings-counts-maintenance';
 import { FromOptionValue } from '~/scripts/import-lovac/infra/options/from';
 import { progress } from '~/scripts/import-lovac/infra/progress-bar';
 import { Reporter } from '~/scripts/import-lovac/infra/reporters/reporter';
@@ -46,12 +51,7 @@ export function createExistingHousingCommand() {
         throw new UserMissingError(config.app.system);
       }
 
-      logger.info('Disabling building triggers...');
-      await db.raw(`
-        ALTER TABLE fast_housing DISABLE TRIGGER housing_insert_building_trigger;
-        ALTER TABLE fast_housing DISABLE TRIGGER housing_update_building_trigger;
-        ALTER TABLE fast_housing DISABLE TRIGGER housing_delete_building_trigger;
-      `);
+      await ensureKnownHousingsTriggers();
 
       console.log('Counting...');
       const filters: HousingFiltersApi = {
@@ -64,38 +64,42 @@ export function createExistingHousingCommand() {
       console.log(`Counted ${total} housings.`);
 
       logger.info('Starting verification...', { total });
-      await housingRepository
-        .stream({ filters })
-        .pipeThrough(
-          progress({
-            initial: 0,
-            total,
-            name: 'Verifying existing housings'
-          })
-        )
-        .pipeThrough(
-          map(
-            createExistingHousingTransform({
-              auth,
-              year: options.year as DataFileYear,
-              reporter,
-              abortEarly: options.abortEarly
+
+      if (!options.dryRun) {
+        await disableHousingsTriggers();
+      }
+      try {
+        await housingRepository
+          .stream({ filters })
+          .pipeThrough(
+            progress({
+              initial: 0,
+              total,
+              name: 'Verifying existing housings'
             })
           )
-        )
-        .pipeThrough(flatten())
-        .pipeTo(
-          createExistingHousingLoader({ dryRun: options.dryRun, reporter })
-        );
-      logger.info('Verification done.');
+          .pipeThrough(
+            map(
+              createExistingHousingTransform({
+                auth,
+                year: options.year as DataFileYear,
+                reporter,
+                abortEarly: options.abortEarly
+              })
+            )
+          )
+          .pipeThrough(flatten())
+          .pipeTo(
+            createExistingHousingLoader({ dryRun: options.dryRun, reporter })
+          );
+        logger.info('Verification done.');
+      } finally {
+        if (!options.dryRun) {
+          await enableHousingsTriggers();
+          await recomputeHousingsCounts();
+        }
+      }
     } finally {
-      logger.info('Enabling building triggers...');
-      await db.raw(`
-        ALTER TABLE fast_housing ENABLE TRIGGER housing_insert_building_trigger;
-        ALTER TABLE fast_housing ENABLE TRIGGER housing_update_building_trigger;
-        ALTER TABLE fast_housing ENABLE TRIGGER housing_delete_building_trigger;
-      `);
-
       reporter.report();
       await writeReport(options, reporter);
       console.timeEnd('Verify existing housings');

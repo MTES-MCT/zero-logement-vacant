@@ -50,6 +50,7 @@ export interface OwnerRecordDBO {
   entity: OwnerEntity | null;
   created_at: Date | string | null;
   updated_at: Date | string | null;
+  is_multi_owner: boolean | null;
 }
 
 export interface OwnerDBO extends OwnerRecordDBO {
@@ -644,8 +645,26 @@ export const formatOwnerApi = (owner: OwnerApi): OwnerRecordDBO => ({
   kind_class: owner.kind ?? null,
   entity: owner.entity,
   created_at: owner.createdAt ? new Date(owner.createdAt) : null,
-  updated_at: owner.updatedAt ? new Date(owner.updatedAt) : null
+  updated_at: owner.updatedAt ? new Date(owner.updatedAt) : null,
+  is_multi_owner: null
 });
+
+async function refreshMultiOwnerFlags(
+  ownerIds: ReadonlyArray<string>
+): Promise<void> {
+  if (!ownerIds.length) return;
+  await withinTransaction(async (transaction) => {
+    await Owners(transaction)
+      .whereIn('id', ownerIds)
+      .update({
+        is_multi_owner: db.raw(
+          `(SELECT COUNT(*) > 1 FROM ${housingOwnersTable} WHERE owner_id = owners.id AND rank = 1)`
+        )
+      });
+  });
+}
+
+export { refreshMultiOwnerFlags };
 
 export default {
   find,
@@ -663,5 +682,6 @@ export default {
   update,
   updateAddressList,
   deleteHousingOwners,
-  insertHousingOwners
+  insertHousingOwners,
+  refreshMultiOwnerFlags
 };

@@ -146,5 +146,39 @@ describe('housingOwnerRepository', () => {
         }
       ]);
     });
+
+    it('should update is_multi_owner for affected owners', async () => {
+      const multiOwner = genOwnerApi();
+      const singleOwner = genOwnerApi();
+      const housing1 = genHousingApi();
+      const housing2 = genHousingApi();
+
+      await Promise.all([
+        Owners().insert([formatOwnerApi(multiOwner), formatOwnerApi(singleOwner)]),
+        Housing().insert([
+          formatHousingRecordApi(housing1),
+          formatHousingRecordApi(housing2)
+        ])
+      ]);
+      // multiOwner already owns housing1 at rank=1
+      await HousingOwners().insert(
+        formatHousingOwnerApi({ ...genHousingOwnerApi(housing1, multiOwner), rank: 1 })
+      );
+
+      // assign both owners to housing2 (multiOwner at rank=1, singleOwner at rank=2)
+      await housingOwnerRepository.saveMany([
+        { ...genHousingOwnerApi(housing2, multiOwner), rank: 1 },
+        { ...genHousingOwnerApi(housing2, singleOwner), rank: 2 }
+      ]);
+
+      const [actualMulti, actualSingle] = await Promise.all([
+        Owners().where({ id: multiOwner.id }).first(),
+        Owners().where({ id: singleOwner.id }).first()
+      ]);
+      // multiOwner has rank=1 in housing1 and housing2 → multi owner
+      expect(actualMulti?.is_multi_owner).toBe(true);
+      // singleOwner only has rank=2 entries → not a multi owner
+      expect(actualSingle?.is_multi_owner).toBe(false);
+    });
   });
 });

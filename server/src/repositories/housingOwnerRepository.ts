@@ -7,6 +7,7 @@ import { match } from 'ts-pattern';
 
 import db from '~/infra/database';
 import { withinTransaction } from '~/infra/database/transaction';
+import { refreshMultiOwnerFlags } from './ownerRepository';
 import { logger } from '~/infra/logger';
 import { HousingRecordApi } from '~/models/HousingApi';
 import { HousingOwnerApi } from '~/models/HousingOwnerApi';
@@ -85,29 +86,35 @@ async function insert(housingOwner: HousingOwnerApi): Promise<void> {
 async function saveMany(
   housingOwners: ReadonlyArray<Omit<HousingOwnerApi, keyof OwnerApi>>
 ): Promise<void> {
-  if (housingOwners.length) {
-    housingOwners.forEach((housingOwner) => {
-      logger.debug('Saving housing owner...', {
-        housingOwner
-      });
-    });
+  if (!housingOwners.length) return;
 
-    // Remove owners before inserting them back
-    await withinTransaction(async (transaction) => {
-      const housingGeoCode = housingOwners[0].housingGeoCode;
-      const housingId = housingOwners[0].housingId;
-      await HousingOwners(transaction)
-        .where({
-          housing_geo_code: housingGeoCode,
-          housing_id: housingId
-        })
-        .delete();
-      await HousingOwners(transaction).insert(
-        housingOwners.map(formatHousingOwnerApi)
-      );
-    });
-    logger.debug(`Saved ${housingOwners.length} housing owners.`);
-  }
+  housingOwners.forEach((housingOwner) => {
+    logger.debug('Saving housing owner...', { housingOwner });
+  });
+
+  const housingGeoCode = housingOwners[0].housingGeoCode;
+  const housingId = housingOwners[0].housingId;
+  const newOwnerIds = housingOwners.map((ho) => ho.ownerId);
+  let affectedOwnerIds: string[] = newOwnerIds;
+
+  // Remove owners before inserting them back
+  await withinTransaction(async (transaction) => {
+    const existing = await HousingOwners(transaction)
+      .where({ housing_geo_code: housingGeoCode, housing_id: housingId })
+      .select('owner_id');
+    affectedOwnerIds = [
+      ...new Set([...existing.map((r) => r.owner_id), ...newOwnerIds])
+    ];
+    await HousingOwners(transaction)
+      .where({ housing_geo_code: housingGeoCode, housing_id: housingId })
+      .delete();
+    await HousingOwners(transaction).insert(
+      housingOwners.map(formatHousingOwnerApi)
+    );
+  });
+
+  await refreshMultiOwnerFlags(affectedOwnerIds);
+  logger.debug(`Saved ${housingOwners.length} housing owners.`);
 }
 
 export interface HousingOwnerDBO {

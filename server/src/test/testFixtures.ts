@@ -239,7 +239,7 @@ export const genHousingOwnerApi = (
   origin: 'lovac',
   idprocpte: faker.string.alphanumeric(11),
   idprodroit: faker.string.alphanumeric(13),
-  locprop: faker.number.int({ min: 1, max: 10 }),
+  locprop: faker.helpers.arrayElement([1, 2, 3, 4, 5, 6, 9]),
   propertyRight: faker.helpers.arrayElement(PROPERTY_RIGHT_VALUES),
   startDate: faker.date.past(),
   endDate: null,

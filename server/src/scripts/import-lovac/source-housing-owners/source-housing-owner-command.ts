@@ -30,6 +30,12 @@ import { progress } from '~/scripts/import-lovac/infra/progress-bar';
 import { Reporter } from '~/scripts/import-lovac/infra/reporters/reporter';
 import validator from '~/scripts/import-lovac/infra/validator';
 import {
+  disableOwnersHousingTriggers,
+  enableOwnersHousingTriggers,
+  ensureKnownOwnersHousingTriggers,
+  recomputeOwnersHousingCounts
+} from '~/scripts/import-lovac/source-housing-owners/owners-housing-counts-maintenance';
+import {
   SourceHousingOwner,
   sourceHousingOwnerSchema
 } from '~/scripts/import-lovac/source-housing-owners/source-housing-owner';
@@ -68,6 +74,8 @@ export function createSourceHousingOwnerCommand() {
         throw new UserMissingError(config.app.system);
       }
 
+      await ensureKnownOwnersHousingTriggers();
+
       logger.info('Computing total...');
       const total = await count(
         createSourceHousingOwnerRepository({
@@ -80,41 +88,54 @@ export function createSourceHousingOwnerCommand() {
       );
 
       logger.info('Starting import...', { file });
-      await createSourceHousingOwnerRepository({
-        ...config.s3,
-        file,
-        from: options.from
-      })
-        .stream({
-          departments: options.departments
+
+      if (!options.dryRun) {
+        await disableOwnersHousingTriggers();
+      }
+      try {
+        await createSourceHousingOwnerRepository({
+          ...config.s3,
+          file,
+          from: options.from
         })
-        .pipeThrough(
-          progress({
-            initial: 0,
-            total,
-            name: '(1/1) Updating housing owners'
+          .stream({
+            departments: options.departments
           })
-        )
-        .pipeThrough(
-          validator(sourceHousingOwnerSchema, {
-            abortEarly: options.abortEarly,
-            reporter
-          })
-        )
-        .pipeThrough(groupBy((current, next) => current.local_id === next.local_id))
-        .pipeThrough(createSourceHousingOwnerEnricher())
-        .pipeThrough(
-          map(
-            createHousingOwnerTransform({
-              abortEarly: options.abortEarly,
-              adminUserId: auth.id,
-              reporter,
-              year: options.year
+          .pipeThrough(
+            progress({
+              initial: 0,
+              total,
+              name: '(1/1) Updating housing owners'
             })
           )
-        )
-        .pipeThrough(flatten<HousingOwnerChange>())
-        .pipeTo(createHousingOwnerLoader({ dryRun: options.dryRun, reporter }));
+          .pipeThrough(
+            validator(sourceHousingOwnerSchema, {
+              abortEarly: options.abortEarly,
+              reporter
+            })
+          )
+          .pipeThrough(
+            groupBy((current, next) => current.local_id === next.local_id)
+          )
+          .pipeThrough(createSourceHousingOwnerEnricher())
+          .pipeThrough(
+            map(
+              createHousingOwnerTransform({
+                abortEarly: options.abortEarly,
+                adminUserId: auth.id,
+                reporter,
+                year: options.year
+              })
+            )
+          )
+          .pipeThrough(flatten<HousingOwnerChange>())
+          .pipeTo(createHousingOwnerLoader({ dryRun: options.dryRun, reporter }));
+      } finally {
+        if (!options.dryRun) {
+          await enableOwnersHousingTriggers();
+          await recomputeOwnersHousingCounts();
+        }
+      }
 
       if (!options.dryRun && allAffectedOwnerIds.size > 0) {
         logger.info('Refreshing multi-owner flags...', {

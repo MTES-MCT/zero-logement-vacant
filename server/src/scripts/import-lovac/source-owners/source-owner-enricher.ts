@@ -8,9 +8,12 @@ export type EnrichedOwner = Enriched<SourceOwner, OwnerDBO>;
 export function createOwnerEnricher(): TransformStream<SourceOwner, EnrichedOwner> {
   return enrichWith<SourceOwner, OwnerDBO>({
     async fetch(sources) {
-      const idpersonnes = sources.map((s) => s.idpersonne);
+      const idpersonnes = sources
+        .filter((source) => source.idpersonne !== null)
+        .map((source) => source.idpersonne);
       return Owners().whereIn('idpersonne', idpersonnes);
     },
-    match: (source, owner) => owner.idpersonne === source.idpersonne
+    match: (source, owner) =>
+      source.idpersonne !== null && owner.idpersonne === source.idpersonne
   });
 }

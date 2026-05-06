@@ -91,6 +91,49 @@ describe('createSourceHousingOwnerEnricher', () => {
     expect(result.existing.existingHousingOwners).toStrictEqual([]);
   });
 
+  describe('batching across multiple groups', () => {
+    const housingA = genHousingApi();
+    const housingB = genHousingApi();
+    const ownerA = { ...genOwnerApi(), idpersonne: genValidIdpersonne() };
+    const ownerB = { ...genOwnerApi(), idpersonne: genValidIdpersonne() };
+
+    beforeAll(async () => {
+      await Housing().insert(
+        [housingA, housingB].map(formatHousingRecordApi)
+      );
+      await Owners().insert([ownerA, ownerB].map(formatOwnerApi));
+    });
+
+    it('should enrich multiple groups in one pass and preserve input order', async () => {
+      const groupA = makeGroup(
+        { geo_code: housingA.geoCode, local_id: housingA.localId },
+        [ownerA.id]
+      );
+      const groupB = makeGroup(
+        { geo_code: housingB.geoCode, local_id: housingB.localId },
+        [ownerB.id]
+      );
+      const missingGroup = makeGroup(
+        { geo_code: '99000', local_id: 'MISSING00000' },
+        [ownerA.id]
+      );
+
+      const results = (await toArray(
+        ReadableStream.from([groupA, missingGroup, groupB]).pipeThrough(
+          createSourceHousingOwnerEnricher()
+        )
+      )) as EnrichedSourceHousingOwners[];
+
+      expect(results).toHaveLength(3);
+      expect(results[0].existing.housing?.id).toBe(housingA.id);
+      expect(results[0].existing.owners.map((o) => o.id)).toEqual([ownerA.id]);
+      expect(results[1].existing.housing).toBeNull();
+      expect(results[1].existing.owners).toStrictEqual([]);
+      expect(results[2].existing.housing?.id).toBe(housingB.id);
+      expect(results[2].existing.owners.map((o) => o.id)).toEqual([ownerB.id]);
+    });
+  });
+
   describe('with existing housing owners', () => {
     const housingWithOwners = genHousingApi();
     const existingOwner = { ...genOwnerApi(), idpersonne: genValidIdpersonne() };

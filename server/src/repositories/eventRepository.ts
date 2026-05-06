@@ -79,7 +79,7 @@ async function insertManyHousingEvents(
       .ignore();
     await transaction(HOUSING_EVENTS_TABLE)
       .insert(events.map(formatHousingEventApi))
-      .onConflict(['event_id', 'housing_id', 'housing_geo_code'])
+      .onConflict('event_id')
       .ignore();
   });
 }
@@ -101,7 +101,7 @@ async function insertManyHousingOwnerEvents(
       .ignore();
     await transaction(HOUSING_OWNER_EVENTS_TABLE)
       .insert(events.map(formatHousingOwnerEventApi))
-      .onConflict(['event_id', 'housing_id', 'housing_geo_code'])
+      .onConflict('event_id')
       .ignore();
   });
 }

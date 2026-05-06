@@ -67,7 +67,6 @@ import {
   SignupLinkApi
 } from '~/models/SignupLinkApi';
 import { fromUserDTO, toUserDTO, UserApi } from '~/models/UserApi';
-import { OwnerMatchDBO } from '~/repositories/ownerMatchRepository';
 import { DatafoncierOwner } from '~/scripts/shared';
 
 logger.debug(`Seed: ${faker.seed()}`);
@@ -504,14 +503,6 @@ export const genDatafoncierHousing = (
 ): DatafoncierHousing => {
   return genDatafoncierHousingDTO(idprocpte, idbat);
 };
-
-export const genOwnerMatch = (
-  datafoncierOwner: DatafoncierOwner,
-  owner: OwnerApi
-): OwnerMatchDBO => ({
-  owner_id: owner.id,
-  idpersonne: datafoncierOwner.idpersonne
-});
 
 export const genNoteApi = (creator: UserApi): NoteApi =>
   fromNoteDTO(genNoteDTO(toUserDTO(creator)));

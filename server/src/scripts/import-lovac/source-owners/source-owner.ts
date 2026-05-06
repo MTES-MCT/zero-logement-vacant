@@ -31,7 +31,12 @@ export const sourceOwnerSchema = z.object({
     .min(1, 'idpersonne is required')
     .nullable()
     .default(null),
-  full_name: z.string().trim().min(1, 'full_name is required'),
+  full_name: z
+    .string()
+    .trim()
+    .min(1, 'full_name is required')
+    .nullable()
+    .default(null),
   username: z.string().trim().nullable(),
   address_dgfip: z.string().trim().nullable(),
   ownership_type: z.literal(OWNER_KIND_LABEL_VALUES).nullable().default(null),

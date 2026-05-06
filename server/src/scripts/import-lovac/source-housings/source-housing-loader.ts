@@ -130,7 +130,10 @@ export function createHousingLoader(
 async function insertHousings(
   housings: ReadonlyArray<HousingRecordInsert>
 ): Promise<void> {
-  await Housing().insert(housings as ReadonlyArray<HousingRecordDBO>);
+  await Housing()
+    .insert(housings as ReadonlyArray<HousingRecordDBO>)
+    .onConflict(['geo_code', 'id'])
+    .ignore();
 }
 
 interface UpdateHousingsOptions {

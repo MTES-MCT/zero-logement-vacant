@@ -73,11 +73,14 @@ async function insertManyHousingEvents(
 
   logger.debug('Inserting housing events...', { events: events.length });
   await withinTransaction(async (transaction) => {
-    await transaction.batchInsert(EVENTS_TABLE, events.map(formatEventApi));
-    await transaction.batchInsert(
-      HOUSING_EVENTS_TABLE,
-      events.map(formatHousingEventApi)
-    );
+    await transaction(EVENTS_TABLE)
+      .insert(events.map(formatEventApi))
+      .onConflict('id')
+      .ignore();
+    await transaction(HOUSING_EVENTS_TABLE)
+      .insert(events.map(formatHousingEventApi))
+      .onConflict(['event_id', 'housing_id', 'housing_geo_code'])
+      .ignore();
   });
 }
 

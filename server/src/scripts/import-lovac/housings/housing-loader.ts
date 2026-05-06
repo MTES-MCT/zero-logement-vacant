@@ -1,4 +1,3 @@
-import { Array, pipe, Record } from 'effect';
 import { Knex } from 'knex';
 import { randomUUID } from 'node:crypto';
 import path from 'node:path';
@@ -51,20 +50,6 @@ export function createExistingHousingLoader(
           await updateHousings(housings as ReadonlyArray<HousingRecordDBO>, {
             temporaryTable
           });
-          // All updates change occupancy VACANT → UNKNOWN, so each housing
-          // decrements its building's vacant count by exactly 1.
-          const vacantDeltas = pipe(
-            housings,
-            Array.filter(
-              (h): h is HousingRecordDBO & { building_id: string } =>
-                h.building_id !== null
-            ),
-            Array.groupBy((h) => h.building_id),
-            Record.map((group) => group.length)
-          );
-          if (!Record.isEmptyRecord(vacantDeltas)) {
-            await decrementBuildingVacantCounts(vacantDeltas);
-          }
         }
       });
   const updateWriterStream = updateWriter.getWriter();
@@ -160,17 +145,3 @@ async function updateHousings(
     );
 }
 
-async function decrementBuildingVacantCounts(
-  deltas: Record<string, number>
-): Promise<void> {
-  const entries = Record.toEntries(deltas);
-  const placeholders = entries.map(() => '(?, ?::int)').join(', ');
-  const params = entries.flatMap(([id, delta]) => [id, delta]);
-  await db.raw(
-    `UPDATE buildings
-     SET vacant_housing_count = GREATEST(0, vacant_housing_count - d.delta)
-     FROM (VALUES ${placeholders}) AS d(building_id, delta)
-     WHERE buildings.id = d.building_id`,
-    params
-  );
-}

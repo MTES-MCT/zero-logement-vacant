@@ -25,11 +25,11 @@ import { createSourceHousingEnricher } from '~/scripts/import-lovac/source-housi
 import { createHousingTransform } from '~/scripts/import-lovac/source-housings/source-housing-transform';
 import { createHousingLoader } from '~/scripts/import-lovac/source-housings/source-housing-loader';
 import {
-  disableSourceHousingsTriggers,
-  enableSourceHousingsTriggers,
-  ensureKnownSourceHousingsTriggers,
-  recomputeSourceHousingsCounts
-} from '~/scripts/import-lovac/source-housings/source-housings-counts-maintenance';
+  disableHousingsTriggers,
+  enableHousingsTriggers,
+  ensureKnownHousingsTriggers,
+  recomputeHousingsCounts
+} from '~/scripts/import-lovac/infra/housings-counts-maintenance';
 import { createParquetSourceHousingRepository } from './source-housing-parquet-repository';
 
 const logger = createLogger('sourceHousingCommand');
@@ -58,7 +58,7 @@ export function createSourceHousingCommand() {
         throw new UserMissingError(config.app.system);
       }
 
-      await ensureKnownSourceHousingsTriggers();
+      await ensureKnownHousingsTriggers();
 
       // Discover per-dept parquet files, sorted by dept code
       const deptDirs = fs
@@ -77,7 +77,7 @@ export function createSourceHousingCommand() {
       const CONCURRENCY = 4;
 
       if (!options.dryRun) {
-        await disableSourceHousingsTriggers();
+        await disableHousingsTriggers();
       }
       try {
         await async.mapLimit(
@@ -121,10 +121,13 @@ export function createSourceHousingCommand() {
           }
         );
         multi.stop();
+      } catch (error) {
+        console.error('Error during import', error);
+        throw error;
       } finally {
         if (!options.dryRun) {
-          await enableSourceHousingsTriggers();
-          await recomputeSourceHousingsCounts();
+          await enableHousingsTriggers();
+          await recomputeHousingsCounts();
         }
       }
     } finally {

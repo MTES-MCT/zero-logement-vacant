@@ -18,7 +18,7 @@ import type { Knex } from 'knex';
  */
 export async function up(knex: Knex): Promise<void> {
   await knex.schema.alterTable('housing_owner_events', (table) => {
-    table.dropIndex('event_id');
+    table.dropPrimary();
     table.primary(['event_id', 'housing_id', 'housing_geo_code']);
   });
 }
@@ -26,6 +26,6 @@ export async function up(knex: Knex): Promise<void> {
 export async function down(knex: Knex): Promise<void> {
   await knex.schema.alterTable('housing_owner_events', (table) => {
     table.dropPrimary();
-    table.index('event_id');
+    table.primary(['event_id']);
   });
 }

@@ -16,6 +16,7 @@ import { HousingOwnerChange } from './source-housing-owner-transform';
 const logger = createLogger('createHousingOwnerLoader');
 
 const EVENT_CHUNK_SIZE = 1_000;
+const REPLACE_CHUNK_SIZE = 500;
 
 export interface HousingOwnerLoaderOptions {
   dryRun?: boolean;
@@ -26,6 +27,7 @@ export function createHousingOwnerLoader(
   options: HousingOwnerLoaderOptions
 ): WritableStream<HousingOwnerChange> {
   const eventBuffer: HousingOwnerEventApi[] = [];
+  const replaceBuffer: ReadonlyArray<HousingOwnerDBO>[] = [];
 
   async function flushEvents(): Promise<void> {
     if (eventBuffer.length === 0) return;
@@ -35,20 +37,27 @@ export function createHousingOwnerLoader(
     await eventRepository.insertManyHousingEvents(batch as unknown as HousingEventApi[]);
   }
 
-  async function replaceHousingOwners(
-    housingOwners: ReadonlyArray<HousingOwnerDBO>
-  ): Promise<void> {
-    if (housingOwners.length === 0 || options.dryRun) return;
-    const housingGeoCode = housingOwners[0].housing_geo_code;
-    const housingId = housingOwners[0].housing_id;
+  async function flushReplaces(): Promise<void> {
+    if (replaceBuffer.length === 0) return;
+    const batch = replaceBuffer.splice(0);
+    if (options.dryRun) return;
+
+    const housingKeys = batch.map((rows) => [
+      rows[0].housing_geo_code,
+      rows[0].housing_id
+    ]);
+    const allRows = batch.flatMap((rows) => [...rows]);
+
+    logger.debug(
+      `Replacing housing owners across ${housingKeys.length} housings (${allRows.length} new rows)...`
+    );
     await withinTransaction(async (transaction) => {
       await HousingOwners(transaction)
-        .where({
-          housing_geo_code: housingGeoCode,
-          housing_id: housingId
-        })
+        .whereIn(['housing_geo_code', 'housing_id'], housingKeys)
         .delete();
-      await HousingOwners(transaction).insert(housingOwners as HousingOwnerDBO[]);
+      if (allRows.length > 0) {
+        await HousingOwners(transaction).insert(allRows);
+      }
     });
   }
 
@@ -56,7 +65,11 @@ export function createHousingOwnerLoader(
     async write(change) {
       await match(change)
         .with({ type: 'housingOwners', kind: 'replace' }, async (c) => {
-          await replaceHousingOwners(c.value);
+          if (c.value.length === 0) return;
+          replaceBuffer.push(c.value);
+          if (replaceBuffer.length >= REPLACE_CHUNK_SIZE) {
+            await flushReplaces();
+          }
         })
         .with({ type: 'event', kind: 'create' }, async (c) => {
           eventBuffer.push(c.value);
@@ -67,6 +80,7 @@ export function createHousingOwnerLoader(
         .exhaustive();
     },
     async close() {
+      await flushReplaces();
       await flushEvents();
     }
   });

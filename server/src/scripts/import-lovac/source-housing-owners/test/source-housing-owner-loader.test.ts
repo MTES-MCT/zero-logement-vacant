@@ -102,6 +102,75 @@ describe('createHousingOwnerLoader', () => {
     expect(actual).toBeDefined();
   });
 
+  it('batches replaces across multiple housings and deletes pre-existing rows', async () => {
+    const reporter = createNoopReporter();
+    const housingA = genHousingApi();
+    const housingB = genHousingApi();
+    const ownerA1 = genOwnerApi();
+    const ownerA2 = genOwnerApi();
+    const ownerB1 = genOwnerApi();
+    const stalePriorOwner = genOwnerApi();
+
+    await Housing().insert(
+      [housingA, housingB].map(formatHousingRecordApi)
+    );
+    await Owners().insert(
+      [ownerA1, ownerA2, ownerB1, stalePriorOwner].map(formatOwnerApi)
+    );
+    // Pre-existing row that must be removed by the batched delete
+    await HousingOwners().insert(
+      formatHousingOwnerApi({
+        ...genHousingOwnerApi(housingA, stalePriorOwner),
+        rank: 1 as ActiveOwnerRank
+      })
+    );
+
+    const replaceA: HousingOwnersChange = {
+      type: 'housingOwners',
+      kind: 'replace',
+      value: [
+        formatHousingOwnerApi({
+          ...genHousingOwnerApi(housingA, ownerA1),
+          rank: 1 as ActiveOwnerRank
+        }),
+        formatHousingOwnerApi({
+          ...genHousingOwnerApi(housingA, ownerA2),
+          rank: 2 as ActiveOwnerRank
+        })
+      ]
+    };
+    const replaceB: HousingOwnersChange = {
+      type: 'housingOwners',
+      kind: 'replace',
+      value: [
+        formatHousingOwnerApi({
+          ...genHousingOwnerApi(housingB, ownerB1),
+          rank: 1 as ActiveOwnerRank
+        })
+      ]
+    };
+
+    await ReadableStream.from([replaceA, replaceB]).pipeTo(
+      createHousingOwnerLoader({ dryRun: false, reporter })
+    );
+
+    const aRows = await HousingOwners().where({
+      housing_geo_code: housingA.geoCode,
+      housing_id: housingA.id
+    });
+    const bRows = await HousingOwners().where({
+      housing_geo_code: housingB.geoCode,
+      housing_id: housingB.id
+    });
+    expect(aRows).toHaveLength(2);
+    expect(aRows.map((r) => r.owner_id).sort()).toEqual(
+      [ownerA1.id, ownerA2.id].sort()
+    );
+    expect(aRows.map((r) => r.owner_id)).not.toContain(stalePriorOwner.id);
+    expect(bRows).toHaveLength(1);
+    expect(bRows[0].owner_id).toBe(ownerB1.id);
+  });
+
   it('skips writes when dryRun is true', async () => {
     const reporter = createNoopReporter();
     const housing = genHousingApi();

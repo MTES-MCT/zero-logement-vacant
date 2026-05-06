@@ -54,6 +54,8 @@ export abstract class SourceFileRepository<A> implements SourceRepository<A> {
     const parser = parsers[extension];
 
     logger.debug(`Loading ${this.file}...`);
-    return Readable.toWeb(fs.createReadStream(this.file).pipe(parser()));
+    return Readable.toWeb(
+      fs.createReadStream(this.file, 'utf-8').pipe(parser())
+    );
   }
 }

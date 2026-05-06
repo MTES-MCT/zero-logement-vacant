@@ -3,15 +3,15 @@ import type { Knex } from 'knex';
 // CONCURRENTLY operations cannot run inside a transaction
 export const config = { transaction: false };
 
-const NEW_INDEX = 'owners_housing_geo_code_rank_owner_idx';
+const NEW_INDEX = 'owners_housing_owner_rank_idx';
 
 export async function up(knex: Knex): Promise<void> {
-  // New index: allows WHERE housing_geo_code IN (...) AND rank = 1 to use an
-  // index scan instead of a full sequential scan. Needed by the multiOwners and
-  // beneficiaryCounts filters in housingRepository.count().
+  // New index: allows WHERE owner_id = ? AND rank = 1 to skip non-rank-1
+  // rows without a heap filter. Used by refreshMultiOwnerFlags in
+  // ownerRepository to efficiently count rank=1 entries per owner.
   await knex.raw(`
     CREATE INDEX CONCURRENTLY IF NOT EXISTS ${NEW_INDEX}
-    ON owners_housing (housing_geo_code, rank, owner_id)
+    ON owners_housing (owner_id, rank)
   `);
 
   // idx_owners_housing_update and idx_owners_housing_owner_housing are both
@@ -30,9 +30,7 @@ export async function up(knex: Knex): Promise<void> {
 }
 
 export async function down(knex: Knex): Promise<void> {
-  await knex.raw(
-    `DROP INDEX CONCURRENTLY IF EXISTS ${NEW_INDEX}`
-  );
+  await knex.raw(`DROP INDEX CONCURRENTLY IF EXISTS ${NEW_INDEX}`);
   await knex.raw(
     'CREATE INDEX CONCURRENTLY IF NOT EXISTS idx_owners_housing_update ON owners_housing (owner_id, housing_id)'
   );

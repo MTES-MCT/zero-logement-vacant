@@ -18,20 +18,21 @@ const MANAGED_TABLES = ['fast_housing', 'housing_events'] as const;
  */
 const RECOMPUTES = {
   buildings_counts: `
+    WITH building_counts AS (
+      SELECT
+        building_id,
+        COUNT(*) FILTER (WHERE occupancy = 'L') AS rent_count,
+        COUNT(*) FILTER (WHERE occupancy = 'V') AS vacant_count
+      FROM fast_housing
+      WHERE building_id IS NOT NULL
+      GROUP BY building_id
+    )
     UPDATE buildings b
     SET
-      rent_housing_count = COALESCE((
-        SELECT COUNT(*)
-        FROM fast_housing
-        WHERE building_id = b.id
-          AND occupancy = 'L'
-      ), 0),
-      vacant_housing_count = COALESCE((
-        SELECT COUNT(*)
-        FROM fast_housing
-        WHERE building_id = b.id
-          AND occupancy = 'V'
-      ), 0)
+      rent_housing_count = COALESCE(bc.rent_count, 0),
+      vacant_housing_count = COALESCE(bc.vacant_count, 0)
+    FROM building_counts bc
+    WHERE b.id = bc.building_id
   `,
   campaigns_return_count: `
     UPDATE campaigns c

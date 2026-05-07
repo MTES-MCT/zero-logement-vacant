@@ -78,16 +78,18 @@ program
 
 program
   .command('housing-owners')
-  .description('Import housing owners from a file to an existing database')
-  .argument('<file>', 'The .jsonl file to import')
+  .description(
+    'Import housing owners from pre-split JSONL files (output of prepare-housing-owners.sh)'
+  )
+  .argument('<deptsDir>', 'Path to the hive-partitioned depts/ directory')
   .addOption(abortEarly)
   .addOption(departments)
   .addOption(dryRun)
   .addOption(from)
   .addOption(year)
-  .action(async (file, options) => {
+  .action(async (deptsDir, options) => {
     const command = createSourceHousingOwnerCommand();
-    await command(file, options).then(() => {
+    await command(deptsDir, options).then(() => {
       process.exit();
     });
   });

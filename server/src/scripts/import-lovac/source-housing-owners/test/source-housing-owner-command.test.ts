@@ -7,11 +7,9 @@ import {
   OwnerRank,
   PREVIOUS_OWNER_RANK
 } from '@zerologementvacant/models';
-import { stringify as writeJSONL } from 'jsonlines';
 import fs from 'node:fs';
+import os from 'node:os';
 import path from 'node:path';
-import { Transform, Writable } from 'node:stream';
-import { ReadableStream } from 'node:stream/web';
 
 import { HousingApi } from '~/models/HousingApi';
 import { HousingOwnerApi } from '~/models/HousingOwnerApi';
@@ -23,9 +21,9 @@ import {
 import {
   EventDBO,
   EVENTS_TABLE,
-  HOUSING_EVENTS_TABLE,
-  HousingEventDBO,
-  HousingEvents
+  HOUSING_OWNER_EVENTS_TABLE,
+  HousingOwnerEventDBO,
+  HousingOwnerEvents
 } from '~/repositories/eventRepository';
 import {
   formatHousingOwnerApi,
@@ -61,7 +59,9 @@ describe('Source housing owner command', () => {
   }
 
   const command = createSourceHousingOwnerCommand();
-  const file = path.join(import.meta.dirname, 'housing-owners.jsonl');
+  const deptsDir = fs.mkdtempSync(
+    path.join(os.tmpdir(), 'zlv-housing-owners-test-')
+  );
 
   const missingOwnersHousing = genHousingApi();
   const missingOwnersHousingOwners: ReadonlyArray<HousingOwnerApi> =
@@ -182,22 +182,29 @@ describe('Source housing owner command', () => {
   });
 
   afterAll(async () => {
-    fs.unlinkSync(file);
+    fs.rmSync(deptsDir, { recursive: true, force: true });
   });
 
-  // Write the file and run
+  // Write per-department NDJSON files and run the command against the
+  // depts directory (mirrors the parallel-by-department layout produced
+  // by prepare-housing-owners.sh).
   beforeAll(async () => {
-    await new ReadableStream<SourceHousingOwner>({
-      start(controller) {
-        sourceHousingOwners.forEach((sourceHousingOwner) => {
-          controller.enqueue(sourceHousingOwner);
-        });
-        controller.close();
-      }
-    })
-      .pipeThrough(Transform.toWeb(writeJSONL()))
-      .pipeTo(Writable.toWeb(fs.createWriteStream(file)));
-    await command(file, {
+    const byDept = sourceHousingOwners.reduce<
+      Record<string, SourceHousingOwner[]>
+    >((acc, sho) => {
+      const dept = sho.local_id.substring(0, 2);
+      (acc[dept] ??= []).push(sho);
+      return acc;
+    }, {});
+    for (const [dept, rows] of Object.entries(byDept)) {
+      const deptDir = path.join(deptsDir, `dept=${dept}`);
+      fs.mkdirSync(deptDir, { recursive: true });
+      fs.writeFileSync(
+        path.join(deptDir, 'data_0.jsonl'),
+        rows.map((row) => JSON.stringify(row)).join('\n') + '\n'
+      );
+    }
+    await command(deptsDir, {
       abortEarly: false,
       dryRun: false,
       from: 'file',
@@ -295,7 +302,7 @@ describe('Source housing owner command', () => {
     });
 
     it('should create owner-attached and owner-detached events', async () => {
-      const actual = await HousingEvents()
+      const actual = await HousingOwnerEvents()
         .where({
           housing_geo_code: existingHousing.geoCode,
           housing_id: existingHousing.id
@@ -303,17 +310,17 @@ describe('Source housing owner command', () => {
         .join(
           EVENTS_TABLE,
           `${EVENTS_TABLE}.id`,
-          `${HOUSING_EVENTS_TABLE}.event_id`
+          `${HOUSING_OWNER_EVENTS_TABLE}.event_id`
         );
       expect(actual).toPartiallyContain<
-        Partial<EventDBO<any> & HousingEventDBO>
+        Partial<EventDBO<any> & HousingOwnerEventDBO>
       >({
         housing_geo_code: existingHousing.geoCode,
         housing_id: existingHousing.id,
         type: 'housing:owner-attached'
       });
       expect(actual).toPartiallyContain<
-        Partial<EventDBO<any> & HousingEventDBO>
+        Partial<EventDBO<any> & HousingOwnerEventDBO>
       >({
         housing_geo_code: existingHousing.geoCode,
         housing_id: existingHousing.id,
@@ -334,7 +341,7 @@ describe('Source housing owner command', () => {
     });
 
     it('should create an owner-updated event', async () => {
-      const actual = await HousingEvents()
+      const actual = await HousingOwnerEvents()
         .where({
           housing_geo_code: rankChangeHousing.geoCode,
           housing_id: rankChangeHousing.id
@@ -342,10 +349,10 @@ describe('Source housing owner command', () => {
         .join(
           EVENTS_TABLE,
           `${EVENTS_TABLE}.id`,
-          `${HOUSING_EVENTS_TABLE}.event_id`
+          `${HOUSING_OWNER_EVENTS_TABLE}.event_id`
         );
       expect(actual).toPartiallyContain<
-        Partial<EventDBO<any> & HousingEventDBO>
+        Partial<EventDBO<any> & HousingOwnerEventDBO>
       >({
         housing_geo_code: rankChangeHousing.geoCode,
         housing_id: rankChangeHousing.id,

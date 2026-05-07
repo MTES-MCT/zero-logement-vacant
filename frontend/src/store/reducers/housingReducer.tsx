@@ -35,7 +35,7 @@ export interface HousingState {
 }
 
 export const initialHousingFilters: HousingFiltersDTO = {
-  dataFileYearsIncluded: ['lovac-2025']
+  dataFileYearsIncluded: ['lovac-2026']
 };
 
 const initialState: HousingState = {

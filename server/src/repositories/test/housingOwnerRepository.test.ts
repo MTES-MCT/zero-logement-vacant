@@ -146,5 +146,25 @@ describe('housingOwnerRepository', () => {
         }
       ]);
     });
+
+    it('should return affected owner IDs (existing and incoming)', async () => {
+      const existingOwner = genOwnerApi();
+      const newOwner = genOwnerApi();
+      const housing = genHousingApi();
+
+      await Promise.all([
+        Owners().insert([formatOwnerApi(existingOwner), formatOwnerApi(newOwner)]),
+        Housing().insert(formatHousingRecordApi(housing))
+      ]);
+      await HousingOwners().insert(
+        formatHousingOwnerApi({ ...genHousingOwnerApi(housing, existingOwner), rank: 1 })
+      );
+
+      const affectedOwnerIds = await housingOwnerRepository.saveMany([
+        { ...genHousingOwnerApi(housing, newOwner), rank: 1 }
+      ]);
+
+      expect(affectedOwnerIds).toIncludeAllMembers([existingOwner.id, newOwner.id]);
+    });
   });
 });

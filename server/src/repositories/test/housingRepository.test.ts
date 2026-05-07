@@ -106,7 +106,7 @@ import housingRepository, {
   ReferenceDataYear
 } from '../housingRepository';
 import { formatLocalityApi, Localities } from '../localityRepository';
-import { formatOwnerApi, Owners } from '../ownerRepository';
+import { formatOwnerApi, Owners, refreshMultiOwnerFlags } from '../ownerRepository';
 import { toUserDBO, Users } from '../userRepository';
 
 describe('Housing repository', () => {
@@ -884,6 +884,7 @@ describe('Housing repository', () => {
                 )
             );
           await HousingOwners().insert(housingOwners);
+          await refreshMultiOwnerFlags([owner.id, anotherOwner.id]);
         });
 
         function countOwners(
@@ -2579,6 +2580,7 @@ describe('Housing repository', () => {
             ...formatHousingOwnersApi(multiHousing2, [multiOwner]),
             ...formatHousingOwnersApi(singleHousing, [singleOwner])
           ]);
+          await refreshMultiOwnerFlags([multiOwner.id, singleOwner.id]);
         });
 
         it('should count only housings belonging to owners who have multiple properties', async () => {

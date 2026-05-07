@@ -1,11 +1,16 @@
 import db from '~/infra/database';
 import { OwnerApi } from '~/models/OwnerApi';
-import { genOwnerApi } from '~/test/testFixtures';
+import { genHousingApi, genHousingOwnerApi, genOwnerApi } from '~/test/testFixtures';
 import ownerRepository, {
   formatOwnerApi,
   Owners,
   ownerTable
 } from '../ownerRepository';
+import {
+  formatHousingOwnerApi,
+  HousingOwners
+} from '../housingOwnerRepository';
+import { formatHousingRecordApi, Housing } from '../housingRepository';
 import { collect } from '@zerologementvacant/utils/node';
 import { faker } from '@faker-js/faker';
 
@@ -246,6 +251,50 @@ describe('Owner repository', () => {
           .map((owner: OwnerApi) => owner.fullName)
           .includes(owner.fullName);
       });
+    });
+  });
+
+  describe('refreshMultiOwnerFlags', () => {
+    it('should set is_multi_owner to true for owners with rank=1 in more than one housing', async () => {
+      const owner = genOwnerApi();
+      await Owners().insert(formatOwnerApi(owner));
+      const housings = [genHousingApi(), genHousingApi()];
+      await Housing().insert(housings.map(formatHousingRecordApi));
+      await HousingOwners().insert(
+        housings.map((housing) =>
+          formatHousingOwnerApi({ ...genHousingOwnerApi(housing, owner), rank: 1 })
+        )
+      );
+
+      await ownerRepository.refreshMultiOwnerFlags([owner.id]);
+
+      const actual = await Owners().where({ id: owner.id }).first();
+      expect(actual?.is_multi_owner).toBe(true);
+    });
+
+    it('should set is_multi_owner to false for owners with rank=1 in only one housing', async () => {
+      const owner = genOwnerApi();
+      await Owners().insert({ ...formatOwnerApi(owner), is_multi_owner: true });
+      const housing = genHousingApi();
+      await Housing().insert(formatHousingRecordApi(housing));
+      await HousingOwners().insert(
+        formatHousingOwnerApi({ ...genHousingOwnerApi(housing, owner), rank: 1 })
+      );
+
+      await ownerRepository.refreshMultiOwnerFlags([owner.id]);
+
+      const actual = await Owners().where({ id: owner.id }).first();
+      expect(actual?.is_multi_owner).toBe(false);
+    });
+
+    it('should not update owners not in the list', async () => {
+      const ownerToSkip = genOwnerApi();
+      await Owners().insert({ ...formatOwnerApi(ownerToSkip), is_multi_owner: true });
+
+      await ownerRepository.refreshMultiOwnerFlags([]);
+
+      const actual = await Owners().where({ id: ownerToSkip.id }).first();
+      expect(actual?.is_multi_owner).toBe(true);
     });
   });
 });

@@ -17,7 +17,7 @@ import { OwnerApi } from '~/models/OwnerApi';
 import eventRepository from '~/repositories/eventRepository';
 import housingOwnerRepository from '~/repositories/housingOwnerRepository';
 import housingRepository from '~/repositories/housingRepository';
-import ownerRepository from '~/repositories/ownerRepository';
+import ownerRepository, { refreshMultiOwnerFlags } from '~/repositories/ownerRepository';
 import userRepository from '~/repositories/userRepository';
 import { createLoggerReporter } from '~/scripts/import-lovac/infra';
 import { FromOptionValue } from '~/scripts/import-lovac/infra/options/from';
@@ -125,6 +125,8 @@ export function createSourceHousingOwnerCommand() {
           .pipeThrough(flatten())
           .tee();
 
+      const allAffectedOwnerIds = new Set<string>();
+
       await Promise.all([
         // Update housing owners
         housingOwnerStream
@@ -139,7 +141,8 @@ export function createSourceHousingOwnerCommand() {
             new WritableStream<HousingOwnerApi[]>({
               async write(housingOwners) {
                 if (!options.dryRun) {
-                  await housingOwnerRepository.saveMany(housingOwners);
+                  const ids = await housingOwnerRepository.saveMany(housingOwners);
+                  ids.forEach((id) => allAffectedOwnerIds.add(id));
                 }
               }
             })
@@ -164,6 +167,11 @@ export function createSourceHousingOwnerCommand() {
             })
           )
       ]);
+
+      if (!options.dryRun && allAffectedOwnerIds.size > 0) {
+        logger.info('Refreshing multi-owner flags...', { count: allAffectedOwnerIds.size });
+        await refreshMultiOwnerFlags([...allAffectedOwnerIds]);
+      }
 
       logger.info(`File ${file} imported.`);
     } catch (error) {

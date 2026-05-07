@@ -1,4 +1,5 @@
 import { faker } from '@faker-js/faker/locale/fr';
+import { HousingOwnerPayloadDTO } from '@zerologementvacant/models';
 import { constants } from 'node:http2';
 import request from 'supertest';
 
@@ -38,6 +39,45 @@ describe('Housing owner API', () => {
 
     await Establishments().insert(formatEstablishmentApi(establishment));
     await Users().insert(toUserDBO(user));
+  });
+
+  describe('PUT /housing/:housingId/owners', () => {
+    const testRoute = (housingId: string) =>
+      `/api/housing/${housingId}/owners`;
+
+    it('should refresh is_multi_owner for affected owners', async () => {
+      const housing1 = genHousingApi(establishment.geoCodes[0]);
+      const housing2 = genHousingApi(establishment.geoCodes[0]);
+      const owner = genOwnerApi();
+      await Housing().insert([housing1, housing2].map(formatHousingRecordApi));
+      await Owners().insert(formatOwnerApi(owner));
+      // owner is already rank=1 in housing1 → will become multi-owner after this call
+      await HousingOwners().insert(
+        formatHousingOwnerApi({
+          ...genHousingOwnerApi(housing1, owner),
+          rank: 1
+        })
+      );
+
+      const payload: HousingOwnerPayloadDTO[] = [
+        {
+          id: owner.id,
+          rank: 1,
+          idprocpte: null,
+          idprodroit: null,
+          locprop: null,
+          propertyRight: null
+        }
+      ];
+
+      await request(url)
+        .put(testRoute(housing2.id))
+        .send(payload)
+        .use(tokenProvider(user));
+
+      const actual = await Owners().where({ id: owner.id }).first();
+      expect(actual?.is_multi_owner).toBe(true);
+    });
   });
 
   describe('GET /owners/:id/housings', () => {

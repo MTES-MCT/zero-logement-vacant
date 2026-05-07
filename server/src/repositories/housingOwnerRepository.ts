@@ -7,7 +7,6 @@ import { match } from 'ts-pattern';
 
 import db from '~/infra/database';
 import { withinTransaction } from '~/infra/database/transaction';
-import { refreshMultiOwnerFlags } from './ownerRepository';
 import { logger } from '~/infra/logger';
 import { HousingRecordApi } from '~/models/HousingApi';
 import { HousingOwnerApi } from '~/models/HousingOwnerApi';
@@ -85,8 +84,8 @@ async function insert(housingOwner: HousingOwnerApi): Promise<void> {
 
 async function saveMany(
   housingOwners: ReadonlyArray<Omit<HousingOwnerApi, keyof OwnerApi>>
-): Promise<void> {
-  if (!housingOwners.length) return;
+): Promise<ReadonlyArray<string>> {
+  if (!housingOwners.length) return [];
 
   housingOwners.forEach((housingOwner) => {
     logger.debug('Saving housing owner...', { housingOwner });
@@ -113,8 +112,8 @@ async function saveMany(
     );
   });
 
-  await refreshMultiOwnerFlags(affectedOwnerIds);
   logger.debug(`Saved ${housingOwners.length} housing owners.`);
+  return affectedOwnerIds;
 }
 
 export interface HousingOwnerDBO {

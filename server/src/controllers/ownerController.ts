@@ -35,7 +35,7 @@ import banAddressesRepository from '~/repositories/banAddressesRepository';
 import eventRepository from '~/repositories/eventRepository';
 import housingOwnerRepository from '~/repositories/housingOwnerRepository';
 import housingRepository from '~/repositories/housingRepository';
-import ownerRepository from '~/repositories/ownerRepository';
+import ownerRepository, { refreshMultiOwnerFlags } from '~/repositories/ownerRepository';
 import ownerDistanceService from '~/services/ownerDistanceService';
 import { isArrayOf, isString } from '~/utils/validators';
 
@@ -480,8 +480,11 @@ const updateHousingOwners: RequestHandler<
   ];
 
   await startTransaction(async () => {
-    await housingOwnerRepository.saveMany(housingOwners);
-    await eventRepository.insertManyHousingOwnerEvents(events);
+    const affectedOwnerIds = await housingOwnerRepository.saveMany(housingOwners);
+    await Promise.all([
+      refreshMultiOwnerFlags(affectedOwnerIds),
+      eventRepository.insertManyHousingOwnerEvents(events)
+    ]);
   });
   response
     .status(constants.HTTP_STATUS_OK)

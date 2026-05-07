@@ -80,7 +80,7 @@ import housingOwnerRepository from '~/repositories/housingOwnerRepository';
 
 import housingRepository from '~/repositories/housingRepository';
 import noteRepository from '~/repositories/noteRepository';
-import ownerRepository from '~/repositories/ownerRepository';
+import ownerRepository, { refreshMultiOwnerFlags } from '~/repositories/ownerRepository';
 import precisionRepository from '~/repositories/precisionRepository';
 import { createBanAPI } from '~/services/ban/ban-api';
 
@@ -442,8 +442,9 @@ const create: RequestHandler<
         merge: false
       })
     ]);
-    await housingOwnerRepository.saveMany(housingOwners);
+    const affectedOwnerIds = await housingOwnerRepository.saveMany(housingOwners);
     await Promise.all([
+      refreshMultiOwnerFlags(affectedOwnerIds),
       banAddress ? banAddressesRepository.save(banAddress) : Promise.resolve(),
       eventRepository.insertManyHousingEvents(housingEvents),
       eventRepository.insertManyOwnerEvents(ownerEvents),

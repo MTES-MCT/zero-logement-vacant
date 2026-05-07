@@ -97,6 +97,11 @@ export function createSourceHousingOwnerCommand() {
       );
 
       const multi = createMultiBar();
+      // Owner ids touched by any replace, collected across all parallel
+      // workers via a shared Set passed into each loader instance. After
+      // the stream drains, we refresh `owners.is_multi_owner` once for
+      // the union — much cheaper than per-row recompute.
+      const affectedOwnerIds = new Set<string>();
 
       if (!options.dryRun) {
         await disableOwnersHousingTriggers();
@@ -139,7 +144,8 @@ export function createSourceHousingOwnerCommand() {
             .pipeTo(
               createHousingOwnerLoader({
                 dryRun: options.dryRun,
-                reporter
+                reporter,
+                affectedOwnerIds
               })
             );
         });
@@ -151,11 +157,11 @@ export function createSourceHousingOwnerCommand() {
         }
       }
 
-      if (!options.dryRun && allAffectedOwnerIds.size > 0) {
+      if (!options.dryRun && affectedOwnerIds.size > 0) {
         logger.info('Refreshing multi-owner flags...', {
-          count: allAffectedOwnerIds.size
+          count: affectedOwnerIds.size
         });
-        await refreshMultiOwnerFlags([...allAffectedOwnerIds]);
+        await refreshMultiOwnerFlags([...affectedOwnerIds]);
       }
 
       logger.info(`Directory ${deptsDir} imported.`);

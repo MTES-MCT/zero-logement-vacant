@@ -279,6 +279,7 @@ export const housingHandlers: RequestHandler[] = [
               'additionalAddress',
               'kind',
               'siren',
+              'username',
               'createdAt',
               'updatedAt'
             )

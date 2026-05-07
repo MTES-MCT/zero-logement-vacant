@@ -16,7 +16,12 @@ interface FileOptions {
 
 function toFile<A>(options: FileOptions): WritableStream<A> {
   const transformer: TransformStream<A, string> = Transform.toWeb(writeJSONL());
-  const updater = Writable.toWeb(fs.createWriteStream(options.file, 'utf8'));
+  const updater = Writable.toWeb(
+    fs.createWriteStream(options.file, {
+      encoding: 'utf-8',
+      flags: 'a'
+    })
+  );
   return compose(updater, transformer);
 }
 

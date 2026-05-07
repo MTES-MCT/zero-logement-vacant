@@ -1,7 +1,18 @@
+export interface ImportSummary {
+  created: number;
+  updated: number;
+  skipped: number;
+  failed: number;
+  durationMs: number;
+}
+
 export interface Reporter<T> {
   passed(data: T): void;
   skipped(data: T): void;
   failed(data: T, error: ReporterError): void;
+  created(n: number): void;
+  updated(n: number): void;
+  getSummary(): ImportSummary;
   report(): void | Promise<void>;
 }
 

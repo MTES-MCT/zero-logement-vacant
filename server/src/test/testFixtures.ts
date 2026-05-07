@@ -67,7 +67,6 @@ import {
   SignupLinkApi
 } from '~/models/SignupLinkApi';
 import { fromUserDTO, toUserDTO, UserApi } from '~/models/UserApi';
-import { OwnerMatchDBO } from '~/repositories/ownerMatchRepository';
 import { DatafoncierOwner } from '~/scripts/shared';
 
 logger.debug(`Seed: ${faker.seed()}`);
@@ -239,7 +238,7 @@ export const genHousingOwnerApi = (
   origin: 'lovac',
   idprocpte: faker.string.alphanumeric(11),
   idprodroit: faker.string.alphanumeric(13),
-  locprop: faker.number.int({ min: 1, max: 10 }),
+  locprop: faker.helpers.arrayElement([1, 2, 3, 4, 5, 6, 9]),
   propertyRight: faker.helpers.arrayElement(PROPERTY_RIGHT_VALUES),
   startDate: faker.date.past(),
   endDate: null,
@@ -505,15 +504,7 @@ export const genDatafoncierHousing = (
   return genDatafoncierHousingDTO(idprocpte, idbat);
 };
 
-export const genOwnerMatch = (
-  datafoncierOwner: DatafoncierOwner,
-  owner: OwnerApi
-): OwnerMatchDBO => ({
-  owner_id: owner.id,
-  idpersonne: datafoncierOwner.idpersonne
-});
-
-const genNoteApi = (creator: UserApi): NoteApi =>
+export const genNoteApi = (creator: UserApi): NoteApi =>
   fromNoteDTO(genNoteDTO(toUserDTO(creator)));
 
 export const genHousingNoteApi = (

@@ -1,0 +1,29 @@
+[project]
+name = "zlv-import-lovac"
+version = "0.1.0"
+description = "LOVAC import pipeline — writes to PostgreSQL production via Dagster"
+readme = "README.md"
+requires-python = ">=3.11"
+dependencies = [
+    "dagster>=1.11.12",
+    "dagster-webserver>=1.11.12",
+    "polars>=1.30.0",
+    "psycopg[binary]>=3.2.0",
+    "adbc-driver-postgresql>=1.4.0",
+    "pyarrow>=21.0.0",
+    "connectorx>=0.3.0",
+]
+
+[project.optional-dependencies]
+dev = [
+    "pytest>=8.0.0",
+    "hypothesis>=6.0.0",
+]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+python_files = ["test_*.py"]
+python_functions = ["test_*"]
+
+[tool.dagster]
+module_name = "src"

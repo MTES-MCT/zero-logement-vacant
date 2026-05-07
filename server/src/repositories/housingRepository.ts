@@ -932,6 +932,16 @@ function filteredQuery(opts: FilteredQueryOptions) {
         }
       });
     }
+    if (filters.departments?.length) {
+      queryBuilder.where((where) => {
+        filters.departments!.forEach((dept) => {
+          where.orWhereRaw(`LEFT(${housingTable}.geo_code, ?) = ?`, [
+            dept.length,
+            dept
+          ]);
+        });
+      });
+    }
     if (filters.localities?.length) {
       queryBuilder.whereIn(`${housingTable}.geo_code`, filters.localities);
     }
@@ -1291,6 +1301,7 @@ export interface HousingRecordDBO {
    */
   data_file_years: DataFileYear[] | null;
   geolocation: Point | null;
+  geolocation_source: string | null;
   plot_area: number | null;
   last_mutation_date: Date | string | null;
   last_transaction_date: Date | string | null;
@@ -1483,7 +1494,8 @@ export const formatHousingRecordApi = (
   last_transaction_date: housing.lastTransactionDate
     ? new Date(housing.lastTransactionDate)
     : null,
-  last_transaction_value: housing.lastTransactionValue
+  last_transaction_value: housing.lastTransactionValue,
+  geolocation_source: null
 });
 
 export default {

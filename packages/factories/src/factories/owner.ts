@@ -51,6 +51,7 @@ export function createOwnerFactory(adapter: Adapter) {
       phone: faker.phone.number().replace(/\s+/g, ''),
       kind,
       siren: kind === 'Particulier' ? null : faker.string.numeric(9),
+      username: faker.helpers.maybe(() => faker.person.lastName()) ?? null,
       createdAt: faker.date.past().toJSON(),
       updatedAt: faker.date.recent().toJSON()
     };

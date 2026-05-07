@@ -1,4 +1,5 @@
 export const VACANCY_YEAR_VALUES = [
+  '2023',
   '2022',
   '2021',
   '2020',

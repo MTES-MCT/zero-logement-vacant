@@ -21,6 +21,14 @@ const REPLACE_CHUNK_SIZE = 500;
 export interface HousingOwnerLoaderOptions {
   dryRun?: boolean;
   reporter: Reporter<SourceHousingOwner>;
+  /**
+   * If provided, every owner_id touched by a replace is added to this set
+   * so the caller can refresh derived owner-level flags (e.g.
+   * `is_multi_owner`) once the stream drains. The set is shared across
+   * parallel loader instances safely — Set.add is atomic on Node's
+   * single-threaded event loop.
+   */
+  affectedOwnerIds?: Set<string>;
 }
 
 export function createHousingOwnerLoader(
@@ -67,6 +75,11 @@ export function createHousingOwnerLoader(
       await match(change)
         .with({ type: 'housingOwners', kind: 'replace' }, async (c) => {
           if (c.value.length === 0) return;
+          if (options.affectedOwnerIds) {
+            for (const row of c.value) {
+              options.affectedOwnerIds.add(row.owner_id);
+            }
+          }
           replaceBuffer.push(c.value);
           if (replaceBuffer.length >= REPLACE_CHUNK_SIZE) {
             await flushReplaces();

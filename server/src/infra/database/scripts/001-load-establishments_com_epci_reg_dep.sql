@@ -1,3 +1,4 @@
+DROP TABLE _localities_;
 CREATE TABLE _localities_
 (
     com_code    text,
@@ -93,10 +94,6 @@ INSERT INTO establishments_localities (
 DELETE FROM localities
 WHERE NOT EXISTS (
     SELECT  * FROM _localities_ WHERE geo_code=lpad(com_code, 5, '0')
-);
-DELETE FROM settings s
-WHERE NOT EXISTS (
-    SELECT * FROM establishments_localities el WHERE s.establishment_id = el.establishment_id
 );
 DELETE FROM establishments e
 WHERE NOT EXISTS (

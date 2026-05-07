@@ -59,6 +59,7 @@ export function createHousingOwnerLoader(
         await HousingOwners(transaction).insert(allRows);
       }
     });
+    options.reporter.created(allRows.length);
   }
 
   return new WritableStream<HousingOwnerChange>({

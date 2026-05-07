@@ -6,27 +6,23 @@ import {
   groupBy,
   map
 } from '@zerologementvacant/utils/node';
+import async from 'async';
+import fs from 'node:fs';
+import path from 'node:path';
 import { writeFileSync } from 'node:fs';
-import { WritableStream } from 'node:stream/web';
 import { match } from 'ts-pattern';
 
 import UserMissingError from '~/errors/userMissingError';
 import config from '~/infra/config';
-import { withinTransaction } from '~/infra/database/transaction';
 import { createLogger } from '~/infra/logger';
-import { HousingEventApi } from '~/models/EventApi';
-import eventRepository from '~/repositories/eventRepository';
-import {
-  HousingOwnerDBO,
-  HousingOwners
-} from '~/repositories/housingOwnerRepository';
-import {
-  refreshMultiOwnerFlags
-} from '~/repositories/ownerRepository';
+import { refreshMultiOwnerFlags } from '~/repositories/ownerRepository';
 import userRepository from '~/repositories/userRepository';
 import { createLoggerReporter } from '~/scripts/import-lovac/infra';
 import { FromOptionValue } from '~/scripts/import-lovac/infra/options/from';
-import { progress } from '~/scripts/import-lovac/infra/progress-bar';
+import {
+  createMultiBar,
+  multiProgress
+} from '~/scripts/import-lovac/infra/progress-bar';
 import { Reporter } from '~/scripts/import-lovac/infra/reporters/reporter';
 import validator from '~/scripts/import-lovac/infra/validator';
 import {
@@ -35,20 +31,28 @@ import {
   ensureKnownOwnersHousingTriggers,
   recomputeOwnersHousingCounts
 } from '~/scripts/import-lovac/source-housing-owners/owners-housing-counts-maintenance';
+import createSourceHousingOwnerFileRepository from '~/scripts/import-lovac/source-housing-owners/source-housing-owner-file-repository';
 import {
   SourceHousingOwner,
   sourceHousingOwnerSchema
 } from '~/scripts/import-lovac/source-housing-owners/source-housing-owner';
 import { createSourceHousingOwnerEnricher } from '~/scripts/import-lovac/source-housing-owners/source-housing-owner-enricher';
-import { createSourceHousingOwnerRepository } from '~/scripts/import-lovac/source-housing-owners/source-housing-owner-repository';
 import { createHousingOwnerLoader } from '~/scripts/import-lovac/source-housing-owners/source-housing-owner-loader';
 import {
   createHousingOwnerTransform,
   HousingOwnerChange
 } from '~/scripts/import-lovac/source-housing-owners/source-housing-owner-transform';
-import { createSourceHousingOwnerRepository } from '~/scripts/import-lovac/source-housing-owners/source-housing-owner-repository';
 
 const logger = createLogger('sourceHousingOwnerCommand');
+
+// Concurrent department workers. Each holds its own pg connection, so a
+// single LB-dropped socket only kills one worker, and per-connection
+// lifetime is roughly 1/CONCURRENCY of the sequential runtime — well
+// below typical cloud idle-timeout windows.
+const CONCURRENCY = 4;
+// DuckDB writes the per-dept output as a single file in
+// `dept=NN/data_0.jsonl` (see prepare-housing-owners.sh).
+const DEPT_FILE_NAME = 'data_0.jsonl';
 
 export interface ExecOptions {
   abortEarly?: boolean;
@@ -61,11 +65,11 @@ export interface ExecOptions {
 export function createSourceHousingOwnerCommand() {
   const reporter = createLoggerReporter<SourceHousingOwner>();
 
-  return async (file: string, options: ExecOptions): Promise<void> => {
+  return async (deptsDir: string, options: ExecOptions): Promise<void> => {
     try {
       console.time('Import housing owners');
       logger.debug('Starting source housing owner command...', {
-        file,
+        deptsDir,
         options
       });
 
@@ -76,60 +80,70 @@ export function createSourceHousingOwnerCommand() {
 
       await ensureKnownOwnersHousingTriggers();
 
-      logger.info('Computing total...');
-      const total = await count(
-        createSourceHousingOwnerRepository({
-          ...config.s3,
-          file,
-          from: options.from
-        }).stream({
-          departments: options.departments
-        })
+      // Discover per-dept directories produced by prepare-housing-owners.sh,
+      // optionally filtered by --departments.
+      const deptDirs = fs
+        .readdirSync(deptsDir)
+        .filter((d) => d.startsWith('dept='))
+        .filter(
+          (d) =>
+            !options.departments?.length ||
+            options.departments.includes(d.replace('dept=', ''))
+        )
+        .sort();
+
+      logger.info(
+        `Importing ${deptDirs.length} departments with concurrency ${CONCURRENCY}...`
       );
 
-      logger.info('Starting import...', { file });
+      const multi = createMultiBar();
 
       if (!options.dryRun) {
         await disableOwnersHousingTriggers();
       }
       try {
-        await createSourceHousingOwnerRepository({
-          ...config.s3,
-          file,
-          from: options.from
-        })
-          .stream({
-            departments: options.departments
-          })
-          .pipeThrough(
-            progress({
-              initial: 0,
-              total,
-              name: '(1/1) Updating housing owners'
-            })
-          )
-          .pipeThrough(
-            validator(sourceHousingOwnerSchema, {
-              abortEarly: options.abortEarly,
-              reporter
-            })
-          )
-          .pipeThrough(
-            groupBy((current, next) => current.local_id === next.local_id)
-          )
-          .pipeThrough(createSourceHousingOwnerEnricher())
-          .pipeThrough(
-            map(
-              createHousingOwnerTransform({
+        await async.mapLimit(deptDirs, CONCURRENCY, async (deptDir: string) => {
+          const dept = deptDir.replace('dept=', '');
+          const file = path.join(deptsDir, deptDir, DEPT_FILE_NAME);
+
+          const repo = createSourceHousingOwnerFileRepository(file);
+          const total = await count(
+            repo.stream({ departments: options.departments })
+          );
+          const bar = multi.create(total, 0, { dept });
+
+          await repo
+            .stream({ departments: options.departments })
+            .pipeThrough(multiProgress({ multiBar: multi, bar }))
+            .pipeThrough(
+              validator(sourceHousingOwnerSchema, {
                 abortEarly: options.abortEarly,
-                adminUserId: auth.id,
-                reporter,
-                year: options.year
+                reporter
               })
             )
-          )
-          .pipeThrough(flatten<HousingOwnerChange>())
-          .pipeTo(createHousingOwnerLoader({ dryRun: options.dryRun, reporter }));
+            .pipeThrough(
+              groupBy((current, next) => current.local_id === next.local_id)
+            )
+            .pipeThrough(createSourceHousingOwnerEnricher())
+            .pipeThrough(
+              map(
+                createHousingOwnerTransform({
+                  abortEarly: options.abortEarly,
+                  adminUserId: auth.id,
+                  reporter,
+                  year: options.year
+                })
+              )
+            )
+            .pipeThrough(flatten<HousingOwnerChange>())
+            .pipeTo(
+              createHousingOwnerLoader({
+                dryRun: options.dryRun,
+                reporter
+              })
+            );
+        });
+        multi.stop();
       } finally {
         if (!options.dryRun) {
           await enableOwnersHousingTriggers();
@@ -144,17 +158,17 @@ export function createSourceHousingOwnerCommand() {
         await refreshMultiOwnerFlags([...allAffectedOwnerIds]);
       }
 
-      logger.info(`File ${file} imported.`);
+      logger.info(`Directory ${deptsDir} imported.`);
     } finally {
       reporter.report();
-      await writeReport(file, options, reporter);
+      await writeReport(deptsDir, options, reporter);
       console.timeEnd('Import housing owners');
     }
   };
 }
 
 async function writeReport(
-  file: string,
+  deptsDir: string,
   options: ExecOptions,
   reporter: Reporter<SourceHousingOwner>
 ): Promise<void> {
@@ -166,7 +180,7 @@ async function writeReport(
         await s3.send(
           new PutObjectCommand({
             Bucket: config.s3.bucket,
-            Key: `${file}.report.json`,
+            Key: `${deptsDir}.report.json`,
             Body: json,
             ContentType: 'application/json'
           })

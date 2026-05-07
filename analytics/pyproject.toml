@@ -37,4 +37,4 @@ dependencies = [
 ]
 
 [tool.uv.workspace]
-members = ["dagster"]
+members = ["dagster", "import-lovac"]

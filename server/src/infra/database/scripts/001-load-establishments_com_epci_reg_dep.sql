@@ -1,4 +1,4 @@
-DROP TABLE _localities_;
+DROP TABLE IF EXISTS _localities_;
 CREATE TABLE _localities_
 (
     com_code    text,

@@ -10,7 +10,8 @@
       "cache": true,
       "options": {
         "configFile": "packages/pdf/vite.config.mts",
-        "outputPath": "packages/pdf/dist/lib"
+        "outputPath": "packages/pdf/dist/lib",
+        "generatePackageJson": false
       },
       "inputs": [
         "{projectRoot}/package.json",

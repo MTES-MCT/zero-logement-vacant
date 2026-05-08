@@ -194,6 +194,7 @@ async function count(filters: HousingFiltersApi): Promise<HousingCountApi> {
   const filterByOwner = [
     filters.ownerKinds,
     filters.ownerAges,
+    filters.multiOwners,
     filters.query
   ].some((filter) => filter?.length);
 
@@ -663,32 +664,12 @@ function filteredQuery(opts: FilteredQueryOptions) {
       });
     }
     if (filters.multiOwners?.length) {
-      const multiOwnersSubquery = () =>
-        db(housingOwnersTable)
-          .select(`${housingOwnersTable}.owner_id`)
-          .where(`${housingOwnersTable}.rank`, 1)
-          .modify((query) => {
-            if (filters.localities?.length) {
-              query.whereIn(
-                `${housingOwnersTable}.housing_geo_code`,
-                filters.localities
-              );
-            }
-          })
-          .groupBy(`${housingOwnersTable}.owner_id`);
-
       queryBuilder.where((where) => {
         if (filters.multiOwners?.includes(true)) {
-          where.orWhereIn(
-            `${housingOwnersTable}.owner_id`,
-            multiOwnersSubquery().havingRaw('COUNT(*) > 1')
-          );
+          where.orWhere(`${ownerTable}.is_multi_owner`, true);
         }
         if (filters.multiOwners?.includes(false)) {
-          where.orWhereIn(
-            `${housingOwnersTable}.owner_id`,
-            multiOwnersSubquery().havingRaw('COUNT(*) = 1')
-          );
+          where.orWhere(`${ownerTable}.is_multi_owner`, false);
         }
       });
     }

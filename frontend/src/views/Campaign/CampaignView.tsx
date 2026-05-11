@@ -118,6 +118,7 @@ function CampaignView() {
 
           <Box sx={{ flexShrink: 0 }}>
             <ButtonsGroup
+              alignment="right"
               buttonsEquisized
               buttons={[
                 {

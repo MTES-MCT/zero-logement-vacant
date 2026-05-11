@@ -15,7 +15,7 @@
     "@faker-js/faker": "8.4.1",
     "@zerologementvacant/models": "workspace:*",
     "fishery": "2.4.0",
-    "ts-pattern": "5.8.0"
+    "ts-pattern": "5.9.0"
   },
   "devDependencies": {
     "@tsconfig/node24": "24.0.4",

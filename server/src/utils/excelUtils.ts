@@ -64,9 +64,36 @@ function setResponseHeaders(
   response.setHeader('Content-Disposition', 'attachment; filename=' + file);
 }
 
+const GREY_FILL: excel.Fill = {
+  type: 'pattern',
+  pattern: 'solid',
+  fgColor: { argb: 'FFF2F2F2' }
+};
+
+const DEFAULT_COLUMN_WIDTH = 22;
+
 export interface WorksheetOptions<A extends Record<string, unknown>> {
   name: string;
   columns: Array<Partial<excel.Column> & { key: keyof A }>;
+  /**
+   * When true, applies alternating white/grey fill on columns for readability.
+   * Also sets a default column width for better readability.
+   */
+  alternateColumnColors?: boolean;
+}
+
+/**
+ * Enhance column definitions with default widths and optional alternating grey fill.
+ */
+function withColumnOptions<A extends Record<string, unknown>>(
+  columns: WorksheetOptions<A>['columns'],
+  alternateColumnColors: boolean
+): WorksheetOptions<A>['columns'] {
+  return columns.map((col, i) => ({
+    ...col,
+    width: col.width ?? DEFAULT_COLUMN_WIDTH,
+    style: alternateColumnColors && i % 2 !== 0 ? { fill: GREY_FILL } : undefined
+  }));
 }
 
 /**
@@ -83,7 +110,8 @@ function createWorksheet<A extends Record<string, unknown>>(
   workbook: Workbook,
   options: WorksheetOptions<A>
 ) {
-  const { columns, name } = options;
+  const { name, alternateColumnColors } = options;
+  const columns = withColumnOptions(options.columns, alternateColumnColors ?? false);
 
   return new WritableStream<A>({
     start() {
@@ -92,7 +120,10 @@ function createWorksheet<A extends Record<string, unknown>>(
     },
     write(chunk) {
       logger.debug('Processing chunk...', chunk);
-      workbook.getWorksheet(name)?.addRow(chunk)?.commit();
+      const row = workbook.getWorksheet(name)?.addRow(chunk);
+      if (row) {
+        row.commit();
+      }
       logger.debug('Wrote row', chunk);
     },
     close() {

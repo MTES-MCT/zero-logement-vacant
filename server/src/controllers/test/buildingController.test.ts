@@ -34,7 +34,7 @@ describe('Building API', () => {
   });
 
   describe('GET /buildings', () => {
-    const testRoute = '/api/buildings';
+    const testRoute = '/buildings';
 
     const buildings = faker.helpers.multiple(genBuildingApi, {
       count: { min: 3, max: 10 }
@@ -75,7 +75,7 @@ describe('Building API', () => {
   });
 
   describe('GET /buildings/:id', () => {
-    const testRoute = (id: string) => `/api/buildings/${id}`;
+    const testRoute = (id: string) => `/buildings/${id}`;
 
     const building = genBuildingApi();
 

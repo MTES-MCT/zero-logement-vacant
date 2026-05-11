@@ -87,7 +87,7 @@ describe('Campaign API', () => {
   });
 
   describe('GET /campaigns', () => {
-    const testRoute = '/api/campaigns';
+    const testRoute = '/campaigns';
 
     const campaigns: CampaignApi[] = Array.from({ length: 3 }).map(() =>
       genCampaignApi(establishment.id, user)
@@ -259,7 +259,7 @@ describe('Campaign API', () => {
       establishment
     });
 
-    const testRoute = (id: string) => `/api/campaigns/${id}`;
+    const testRoute = (id: string) => `/campaigns/${id}`;
 
     beforeAll(async () => {
       await Groups().insert(formatGroupApi(group));
@@ -321,7 +321,7 @@ describe('Campaign API', () => {
   });
 
   describe('POST /groups/{id}/campaigns', () => {
-    const testRoute = (id: string) => `/api/groups/${id}/campaigns`;
+    const testRoute = (id: string) => `/groups/${id}/campaigns`;
 
     const geoCode = faker.helpers.arrayElement(establishment.geoCodes);
     const group = genGroupApi(user, establishment);
@@ -586,7 +586,7 @@ describe('Campaign API', () => {
   });
 
   describe('PUT /campaigns/{id}', () => {
-    const testRoute = (id: string) => `/api/campaigns/${id}`;
+    const testRoute = (id: string) => `/campaigns/${id}`;
 
     let campaign: CampaignApi;
 
@@ -720,7 +720,7 @@ describe('Campaign API', () => {
   });
 
   describe('DELETE /campaigns/{id}', () => {
-    const testRoute = (id: string) => `/api/campaigns/${id}`;
+    const testRoute = (id: string) => `/campaigns/${id}`;
 
     let campaign: CampaignApi;
 
@@ -908,7 +908,7 @@ describe('Campaign API', () => {
   });
 
   describe('DELETE /campaigns/{id}/housing', () => {
-    const testRoute = (id: string) => `/api/campaigns/${id}/housing`;
+    const testRoute = (id: string) => `/campaigns/${id}/housing`;
 
     let campaign: CampaignApi;
     let housings: HousingApi[];

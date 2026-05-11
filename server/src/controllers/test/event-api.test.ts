@@ -75,7 +75,7 @@ describe('Event API', () => {
   });
 
   describe('GET /owners/{id}/events', () => {
-    const testRoute = (id: string) => `/api/owners/${id}/events`;
+    const testRoute = (id: string) => `/owners/${id}/events`;
 
     const owner = genOwnerApi();
     const events = faker.helpers
@@ -133,7 +133,7 @@ describe('Event API', () => {
   });
 
   describe('GET /housing/{id}/events', () => {
-    const testRoute = (id: string) => `/api/housing/${id}/events`;
+    const testRoute = (id: string) => `/housing/${id}/events`;
 
     async function setUp() {
       const housing = genHousingApi(

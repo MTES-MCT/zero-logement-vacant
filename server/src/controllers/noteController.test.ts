@@ -58,7 +58,7 @@ describe('Note API', () => {
   });
 
   describe('GET /housing/:id/notes', () => {
-    const testRoute = (housingId: string) => `/api/housing/${housingId}/notes`;
+    const testRoute = (housingId: string) => `/housing/${housingId}/notes`;
 
     it('should be forbidden for a non-authenticated user', async () => {
       const { status } = await request(url).get(testRoute(housing.id));
@@ -93,7 +93,7 @@ describe('Note API', () => {
   });
 
   describe('POST /housing/:id/notes', () => {
-    const testRoute = (id: string) => `/api/housing/${id}/notes`;
+    const testRoute = (id: string) => `/housing/${id}/notes`;
 
     it('should be forbidden for a non-authenticated user', async () => {
       const { status } = await request(url).post(testRoute(housing.id));
@@ -169,7 +169,7 @@ describe('Note API', () => {
   });
 
   describe('PUT /notes/:id', () => {
-    const testRoute = (noteId: string) => `/api/notes/${noteId}`;
+    const testRoute = (noteId: string) => `/notes/${noteId}`;
 
     const note = genHousingNoteApi(user, housing);
 
@@ -263,7 +263,7 @@ describe('Note API', () => {
   });
 
   describe('DELETE /notes/:id', () => {
-    const testRoute = (id: string) => `/api/notes/${id}`;
+    const testRoute = (id: string) => `/notes/${id}`;
 
     let note: HousingNoteApi;
 

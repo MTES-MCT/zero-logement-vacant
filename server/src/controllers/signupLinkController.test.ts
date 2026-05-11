@@ -41,7 +41,7 @@ describe('Signup link API', () => {
   });
 
   describe('POST /signup-links', () => {
-    const testRoute = '/api/signup-links';
+    const testRoute = '/signup-links';
 
     it('should validate the email', async () => {
       // Without email
@@ -92,7 +92,7 @@ describe('Signup link API', () => {
   });
 
   describe('GET /signup-links/{id}', () => {
-    const testRoute = (id: string) => `/api/signup-links/${id}`;
+    const testRoute = (id: string) => `/signup-links/${id}`;
 
     it('should get a signup link', async () => {
       const prospect = genProspectApi(establishment);

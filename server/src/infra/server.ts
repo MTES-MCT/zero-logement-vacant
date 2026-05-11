@@ -149,8 +149,8 @@ export function createServer(): Server {
   // API documentation (disabled by default, enable with SWAGGER_ENABLED=true)
   setupApiDocs(app);
 
-  app.use('/api', unprotectedRouter);
-  app.use('/api', protectedRouter);
+  app.use('/', unprotectedRouter);
+  app.use('/', protectedRouter);
 
   app.all('*', (request) => {
     throw new RouteNotFoundError(request);

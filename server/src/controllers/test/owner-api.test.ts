@@ -66,7 +66,7 @@ describe('Owner API', () => {
   });
 
   describe('GET /owners', () => {
-    const testRoute = '/api/owners';
+    const testRoute = '/owners';
 
     it('should be forbidden for unauthenticated users', async () => {
       const { status } = await request(url).get(testRoute);
@@ -203,7 +203,7 @@ describe('Owner API', () => {
   });
 
   describe('GET /housings/{id}/owners', () => {
-    const testRoute = (id: string) => `/api/housings/${id}/owners`;
+    const testRoute = (id: string) => `/housings/${id}/owners`;
 
     const housing = genHousingApi(oneOf(establishment.geoCodes));
     const owners: OwnerApi[] = Array.from({ length: 3 }, () => genOwnerApi());
@@ -233,7 +233,7 @@ describe('Owner API', () => {
   });
 
   describe('PUT /owners/{id}', () => {
-    const testRoute = (id: string) => `/api/owners/${id}`;
+    const testRoute = (id: string) => `/owners/${id}`;
 
     let owner: OwnerApi;
 
@@ -361,7 +361,7 @@ describe('Owner API', () => {
   });
 
   describe('PUT /owners/housing/{id}', () => {
-    const testRoute = (id: string) => `/api/housing/${id}/owners`;
+    const testRoute = (id: string) => `/housing/${id}/owners`;
 
     let housing: HousingApi;
     let owners: ReadonlyArray<OwnerApi>;

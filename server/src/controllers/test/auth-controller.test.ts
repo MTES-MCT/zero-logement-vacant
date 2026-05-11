@@ -97,7 +97,7 @@ describe('Account controller', () => {
   });
 
   describe('Sign in', () => {
-    const testRoute = '/api/authenticate';
+    const testRoute = '/authenticate';
 
     it('should receive valid email and password', async () => {
       await request(url)
@@ -213,12 +213,12 @@ describe('Account controller', () => {
   });
 
   describe('Verify 2FA', () => {
-    const testRoute = '/api/authenticate/verify-2fa';
+    const testRoute = '/authenticate/verify-2fa';
 
     beforeEach(async () => {
       // Trigger 2FA code generation
       // In test environment, the code will be TEST_2FA_CODE ('123456')
-      await request(url).post('/api/authenticate').send({
+      await request(url).post('/authenticate').send({
         email: admin.email,
         password: admin.password
       });
@@ -312,7 +312,7 @@ describe('Account controller', () => {
   });
 
   describe('Get account', () => {
-    const testRoute = '/api/account';
+    const testRoute = '/account';
 
     it('should be forbidden for a not authenticated user', async () => {
       await request(url)
@@ -331,7 +331,7 @@ describe('Account controller', () => {
   });
 
   describe('Update account', () => {
-    const testRoute = '/api/account';
+    const testRoute = '/account';
 
     it('should be forbidden for a not authenticated user', async () => {
       const { status } = await request(url)
@@ -380,7 +380,7 @@ describe('Account controller', () => {
   });
 
   describe('Reset password', () => {
-    const testRoute = '/api/account/reset-password';
+    const testRoute = '/account/reset-password';
 
     it('should receive valid key and password', async () => {
       await request(url)

@@ -46,7 +46,7 @@ describe('Geo perimeters API', () => {
   });
 
   describe('GET /geo/perimeters', () => {
-    const testRoute = '/api/geo/perimeters';
+    const testRoute = '/geo/perimeters';
 
     const geoPerimeters: GeoPerimeterApi[] = Array.from({ length: 3 }, () =>
       genGeoPerimeterApi(establishment.id, user)
@@ -88,7 +88,7 @@ describe('Geo perimeters API', () => {
   });
 
   describe('DELETE /geo/perimeters', () => {
-    const testRoute = '/api/geo/perimeters';
+    const testRoute = '/geo/perimeters';
 
     const geoPerimeter = genGeoPerimeterApi(establishment.id, user);
 
@@ -162,7 +162,7 @@ describe('Geo perimeters API', () => {
   });
 
   describe('PUT /geo/perimeters/{id}', () => {
-    const testRoute = (id: string) => `/api/geo/perimeters/${id}`;
+    const testRoute = (id: string) => `/geo/perimeters/${id}`;
 
     const geoPerimeter = genGeoPerimeterApi(establishment.id, user);
     const anotherGeoPerimeter = genGeoPerimeterApi(
@@ -240,7 +240,7 @@ describe('Geo perimeters API', () => {
   });
 
   describe('POST /geo/perimeters', () => {
-    const testRoute = '/api/geo/perimeters';
+    const testRoute = '/geo/perimeters';
 
     it('should be forbidden for a non-authenticated user', async () => {
       const { status } = await request(url).post(testRoute);

@@ -123,7 +123,7 @@ function GroupView() {
   const onGroupExport: GroupProps['onExport'] = () => {
     if (group) {
       const token = authService.authHeader()?.['x-access-token'];
-      const url = `${config.apiEndpoint}/api/groups/${group.id}/export?x-access-token=${token}`;
+      const url = `${config.apiEndpoint}/groups/${group.id}/export?x-access-token=${token}`;
       window.open(url, '_self');
     }
   };

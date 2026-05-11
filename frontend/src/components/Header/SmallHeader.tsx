@@ -11,9 +11,10 @@ import Stack from '@mui/material/Stack';
 import { styled } from '@mui/material/styles';
 import Typography from '@mui/material/Typography';
 import { useEffect, useState } from 'react';
-import LoadingBar from 'react-redux-loading-bar';
+import { LoadingBar } from 'react-redux-loading-bar';
 import { Link, useLocation } from 'react-router-dom';
 
+import AccountDropdown from '~/components/Account/AccountDropdown';
 import EstablishmentSearchableSelect from '~/components/establishment/EstablishmentSearchableSelect';
 import logo from '../../assets/images/zlv.svg';
 import { useFilters } from '../../hooks/useFilters';
@@ -23,7 +24,6 @@ import { type Establishment } from '../../models/Establishment';
 import { getUserNavItem, UserNavItems } from '../../models/UserNavItem';
 import { zlvApi } from '../../services/api.service';
 import { changeEstablishment } from '../../store/actions/authenticationAction';
-import AccountDropdown from '~/components/Account/AccountDropdown';
 import styles from './small-header.module.scss';
 
 const MenuOverlay = styled(Box)(({ theme }) => ({
@@ -47,7 +47,7 @@ function SmallHeader() {
   // Close menu on navigation
   useEffect(() => {
     setMenuOpen(false);
-  }, [location]);
+  }, [location, setMenuOpen]);
 
   function getMainNavigationItem(
     navItem: UserNavItems,

@@ -26,10 +26,6 @@ import dagster
 from .project import dbt_project
 from .assets import production_dbt
 
-from .assets.populate_owners_ban_addresses import process_and_insert_owners
-from .assets.populate_edited_owners_ban_addresses import process_and_update_edited_owners
-from .assets.populate_housings_ban_addresses import housings_without_address_csv, process_housings_with_api
-from .assets.populate_missing_ban_addresses_for_owners import populate_missing_ban_addresses_for_owners
 from .assets.ban.sync_owners import sync_owners_ban_addresses
 from .assets.ban.sync_housings import sync_housings_ban_addresses
 from .resources.ban_config import ban_config_resource
@@ -99,35 +95,6 @@ yearly_external_sources_refresh_schedule = ScheduleDefinition(
     description="Annual refresh of all external data sources"
 )
 
-owners_asset_job = define_asset_job(
-    name="populate_owners_addresses",
-    selection=AssetSelection.assets(
-        "process_and_insert_owners",
-    ),
-)
-
-edited_owners_asset_job = define_asset_job(
-    name="populate_edited_owners_addresses",
-    selection=AssetSelection.assets(
-        "process_and_update_edited_owners",
-    ),
-)
-
-missing_ban_addresses_asset_job_for_owners = define_asset_job(
-    name="missing_ban_addresses_asset_job_for_owners",
-    selection=AssetSelection.assets(
-        "populate_missing_ban_addresses_for_owners",
-    ),
-)
-
-housings_asset_job = define_asset_job(
-    name="populate_housings_addresses",
-    selection=AssetSelection.assets(
-        "housings_without_address_csv",
-        "process_housings_with_api",
-    ),
-)
-
 # Unified daily BAN sync — TTL-based diff, replaces the 4 legacy populate_* jobs.
 ban_daily_sync_job = define_asset_job(
     name="ban_daily_sync",
@@ -148,15 +115,8 @@ ban_daily_sync_schedule = ScheduleDefinition(
 # Load definitions with assets, resources, and schedule
 defs = Definitions(
     assets=[
-        # dagster_production_assets,
-        # dagster_notion_assets,
-        # dagster_notion_assets,
         sync_owners_ban_addresses,
         sync_housings_ban_addresses,
-        process_and_insert_owners,
-        populate_missing_ban_addresses_for_owners,
-        process_and_update_edited_owners,
-        housings_without_address_csv, process_housings_with_api,
         *dwh_assets,  # This already includes setup_external_schema and import_all_external_sources
         *dbt_analytics_assets,
         *clever_assets_assets,
@@ -182,10 +142,6 @@ defs = Definitions(
         ban_daily_sync_schedule,
     ],
     jobs=[
-        owners_asset_job,
-        edited_owners_asset_job,
-        housings_asset_job,
-        missing_ban_addresses_asset_job_for_owners,
         yearly_update_all_external_sources_job,
         ban_daily_sync_job,
     ],

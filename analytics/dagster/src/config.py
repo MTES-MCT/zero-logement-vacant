@@ -49,6 +49,21 @@ class Config:
 
     DISABLE_MAX_FILES = os.environ.get("DISABLE_MAX_FILES", "True") == "True"
 
+    try:
+        BAN_TTL_NOT_FOUND_DAYS = int(os.environ.get("BAN_TTL_NOT_FOUND_DAYS", "90"))
+    except ValueError:
+        raise ValueError("BAN_TTL_NOT_FOUND_DAYS must be an integer.")
+
+    try:
+        BAN_TTL_LOW_SCORE_DAYS = int(os.environ.get("BAN_TTL_LOW_SCORE_DAYS", "90"))
+    except ValueError:
+        raise ValueError("BAN_TTL_LOW_SCORE_DAYS must be an integer.")
+
+    try:
+        BAN_DAILY_MAX_RECORDS = int(os.environ.get("BAN_DAILY_MAX_RECORDS", "200000"))
+    except ValueError:
+        raise ValueError("BAN_DAILY_MAX_RECORDS must be an integer.")
+
 public_tables = [
     "marts_public_establishments_morphology",
     "marts_public_establishments_morphology_unpivoted",

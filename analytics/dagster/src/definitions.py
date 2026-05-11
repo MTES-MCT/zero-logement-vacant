@@ -1,6 +1,7 @@
 
 from dagster import (
     AssetSelection,
+    DefaultScheduleStatus,
     Definitions,
     RetryPolicy,
     ScheduleDefinition,
@@ -29,6 +30,8 @@ from .assets.populate_owners_ban_addresses import process_and_insert_owners
 from .assets.populate_edited_owners_ban_addresses import process_and_update_edited_owners
 from .assets.populate_housings_ban_addresses import housings_without_address_csv, process_housings_with_api
 from .assets.populate_missing_ban_addresses_for_owners import populate_missing_ban_addresses_for_owners
+from .assets.ban.sync_owners import sync_owners_ban_addresses
+from .assets.ban.sync_housings import sync_housings_ban_addresses
 from .resources.ban_config import ban_config_resource
 from .resources.database_resources import psycopg2_connection_resource
 
@@ -125,12 +128,31 @@ housings_asset_job = define_asset_job(
     ),
 )
 
+# Unified daily BAN sync — TTL-based diff, replaces the 4 legacy populate_* jobs.
+ban_daily_sync_job = define_asset_job(
+    name="ban_daily_sync",
+    selection=AssetSelection.assets(
+        sync_owners_ban_addresses,
+        sync_housings_ban_addresses,
+    ),
+    description="Daily TTL-based BAN address sync (owners + housings).",
+)
+
+ban_daily_sync_schedule = ScheduleDefinition(
+    job=ban_daily_sync_job,
+    cron_schedule="0 3 * * *",
+    default_status=DefaultScheduleStatus.STOPPED,
+    description="Daily BAN sync at 03:00 UTC. Starts STOPPED — enable via Dagster UI after backfill validation.",
+)
+
 # Load definitions with assets, resources, and schedule
 defs = Definitions(
     assets=[
         # dagster_production_assets,
         # dagster_notion_assets,
         # dagster_notion_assets,
+        sync_owners_ban_addresses,
+        sync_housings_ban_addresses,
         process_and_insert_owners,
         populate_missing_ban_addresses_for_owners,
         process_and_update_edited_owners,
@@ -155,14 +177,16 @@ defs = Definitions(
         "psycopg2_connection": psycopg2_connection_resource,
     },
     schedules=[
-        daily_refresh_schedule, 
-        yearly_external_sources_refresh_schedule
+        daily_refresh_schedule,
+        yearly_external_sources_refresh_schedule,
+        ban_daily_sync_schedule,
     ],
     jobs=[
-        owners_asset_job, 
-        edited_owners_asset_job, 
-        housings_asset_job, 
+        owners_asset_job,
+        edited_owners_asset_job,
+        housings_asset_job,
         missing_ban_addresses_asset_job_for_owners,
         yearly_update_all_external_sources_job,
+        ban_daily_sync_job,
     ],
 )

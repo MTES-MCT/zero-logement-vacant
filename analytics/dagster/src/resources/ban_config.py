@@ -12,6 +12,10 @@ class BANConfig(BaseSettings):
     max_files: int = Field(Config.MAX_FILES)
     disable_max_files: bool = Field(Config.DISABLE_MAX_FILES)
 
+    ttl_not_found_days: int = Field(Config.BAN_TTL_NOT_FOUND_DAYS)
+    ttl_low_score_days: int = Field(Config.BAN_TTL_LOW_SCORE_DAYS)
+    daily_max_records: int = Field(Config.BAN_DAILY_MAX_RECORDS)
+
     @field_validator("chunk_size")
     def chunk_size_positive(cls, v):
         if v <= 0:
@@ -29,6 +33,9 @@ class BANConfig(BaseSettings):
         "chunk_size": dagster.Field(Int, default_value=Config.CHUNK_SIZE),
         "max_files": dagster.Field(Int, default_value=Config.MAX_FILES),
         "disable_max_files": dagster.Field(Bool, default_value=Config.DISABLE_MAX_FILES),
+        "ttl_not_found_days": dagster.Field(Int, default_value=Config.BAN_TTL_NOT_FOUND_DAYS),
+        "ttl_low_score_days": dagster.Field(Int, default_value=Config.BAN_TTL_LOW_SCORE_DAYS),
+        "daily_max_records": dagster.Field(Int, default_value=Config.BAN_DAILY_MAX_RECORDS),
     }
 )
 def ban_config_resource(init_context):

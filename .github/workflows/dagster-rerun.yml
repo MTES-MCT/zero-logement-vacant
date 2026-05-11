@@ -1,0 +1,117 @@
+name: Dagster - Rerun Job or Asset
+
+# Trigger a Dagster job or asset selection from GitHub Actions.
+# Useful when a scheduled pipeline failed and someone (PM, support, dev)
+# wants to retry it without local setup.
+#
+# Two modes:
+#   - job:    runs `dagster job execute -m src.definitions -j <name>`
+#   - assets: runs `dagster asset materialize -m src.definitions --select <selection>`
+#
+# Long-running jobs (>6h) will hit GitHub runner limits. For those, use the
+# Dagster UI on Clever Cloud instead.
+#
+# Security: workflow_dispatch inputs are user-controlled. They are passed to
+# Dagster CLI exclusively via env: vars and quoted "$VAR" expansions to avoid
+# shell-injection (no direct ${{ inputs.* }} inside run:).
+
+on:
+  workflow_dispatch:
+    inputs:
+      mode:
+        description: "What to run"
+        type: choice
+        required: true
+        default: "asset"
+        options:
+          - asset
+          - job
+      target:
+        description: |
+          For mode=job: job name (e.g. datawarehouse_synchronize_and_build,
+          datawarehouse_load_all_external_sources, populate_owners_addresses).
+          For mode=asset: asset selection (e.g. "raw_my_source",
+          "+marts_production_housing", "key1,key2").
+        type: string
+        required: true
+      use_motherduck:
+        description: "Write to MotherDuck (prod warehouse)?"
+        type: boolean
+        required: false
+        default: true
+
+jobs:
+  run-dagster:
+    name: Run Dagster
+    runs-on: ubuntu-latest
+    timeout-minutes: 350
+    env:
+      ZLV_MD_TOKEN: ${{ secrets.MD_TOKEN }}
+      MD_TOKEN: ${{ secrets.MD_TOKEN }}
+      USE_MOTHER_DUCK: ${{ inputs.use_motherduck }}
+      CELLAR_KEY_ID: ${{ secrets.CELLAR_KEY_ID }}
+      CELLAR_KEY_SECRET: ${{ secrets.CELLAR_KEY_SECRET }}
+      CELLAR_HOST: ${{ vars.CELLAR_HOST_URL || 'cellar-c2.services.clever-cloud.com' }}
+      CELLAR_REGION: ${{ vars.CELLAR_REGION || 'us-east-1' }}
+      BAN_API_URL: ${{ vars.BAN_API_URL || 'https://api-adresse.data.gouv.fr' }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Install uv
+        uses: astral-sh/setup-uv@v5
+
+      - name: Set up Python
+        run: uv python install 3.11
+
+      - name: Install Dagster project deps
+        working-directory: analytics/dagster
+        run: uv sync --all-extras
+
+      - name: Install dbt
+        run: uv tool install dbt-core --with dbt-duckdb
+
+      - name: Install dbt packages
+        working-directory: analytics/dbt
+        run: dbt deps
+
+      - name: Validate Dagster definitions
+        working-directory: analytics/dagster
+        run: uv run python -c "from src import definitions; print('OK')"
+
+      - name: Run Dagster
+        working-directory: analytics/dagster
+        env:
+          MODE: ${{ inputs.mode }}
+          TARGET: ${{ inputs.target }}
+        run: |
+          set -euo pipefail
+          case "$MODE" in
+            job)
+              echo "Executing Dagster job: $TARGET"
+              uv run dagster job execute -m src.definitions -j "$TARGET"
+              ;;
+            asset)
+              echo "Materializing Dagster asset selection: $TARGET"
+              uv run dagster asset materialize -m src.definitions --select "$TARGET"
+              ;;
+            *)
+              echo "::error::Unknown mode: $MODE"
+              exit 1
+              ;;
+          esac
+
+      - name: Summary
+        if: always()
+        env:
+          MODE: ${{ inputs.mode }}
+          TARGET: ${{ inputs.target }}
+          STATUS: ${{ job.status }}
+        run: |
+          {
+            echo "## Dagster run"
+            echo ""
+            echo "- Mode: \`$MODE\`"
+            echo "- Target: \`$TARGET\`"
+            echo "- Status: $STATUS"
+          } >> "$GITHUB_STEP_SUMMARY"

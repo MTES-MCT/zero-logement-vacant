@@ -1,0 +1,76 @@
+name: dbt Test Coverage
+
+on:
+  pull_request:
+    paths:
+      - analytics/dbt/models/**
+      - analytics/dbt/tests/**
+      - analytics/dbt/dbt_project.yml
+      - .github/workflows/dbt-test-coverage.yml
+
+jobs:
+  check-test-coverage:
+    name: Every dbt model must have at least one test
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Install dbt
+        run: |
+          python -m pip install --upgrade pip
+          pip install dbt-core dbt-duckdb
+
+      - name: Install dbt packages
+        working-directory: analytics/dbt
+        run: dbt deps
+
+      - name: Parse dbt project
+        working-directory: analytics/dbt
+        run: dbt parse
+
+      - name: Enforce test coverage on every model
+        working-directory: analytics/dbt
+        run: |
+          python3 <<'PY'
+          import json, sys, pathlib
+
+          manifest_path = pathlib.Path("target/manifest.json")
+          if not manifest_path.exists():
+              print("::error::target/manifest.json missing - dbt parse likely failed")
+              sys.exit(1)
+
+          m = json.loads(manifest_path.read_text())
+          nodes = m["nodes"]
+
+          tests_per_model = {
+              uid: set()
+              for uid, n in nodes.items()
+              if n["resource_type"] == "model"
+          }
+          for uid, n in nodes.items():
+              if n["resource_type"] != "test":
+                  continue
+              for dep in n.get("depends_on", {}).get("nodes", []):
+                  if dep in tests_per_model:
+                      tests_per_model[dep].add(uid)
+
+          missing = []
+          for uid, tests in tests_per_model.items():
+              if not tests:
+                  node = nodes[uid]
+                  missing.append(f"  - {node['name']} ({node['path']})")
+
+          if missing:
+              print("::error::The following dbt models have NO tests. Add at least one test in schema.yml (unique/not_null/dbt_utils.unique_combination_of_columns/relationships):")
+              for line in missing:
+                  print(line)
+              sys.exit(1)
+
+          print(f"OK - {len(tests_per_model)} models, all have at least one test.")
+          PY

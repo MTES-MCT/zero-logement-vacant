@@ -12,7 +12,7 @@ const listByHousing = http.get<
   PathParams,
   never,
   ReadonlyArray<FileUploadDTO> | Error
->(`${config.apiEndpoint}/api/housing/:id/files`, ({ params }) => {
+>(`${config.apiEndpoint}/housing/:id/files`, ({ params }) => {
   const housing = data.housings.find((housing) => housing.id === params.id);
   if (!housing) {
     return HttpResponse.json(

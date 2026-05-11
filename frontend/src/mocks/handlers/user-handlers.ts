@@ -12,7 +12,7 @@ interface UserPayload {
 }
 
 const list = http.get<never, never, ReadonlyArray<UserDTO>>(
-  `${config.apiEndpoint}/api/users`,
+  `${config.apiEndpoint}/users`,
   () => {
     const users = data.users;
 
@@ -23,7 +23,7 @@ const list = http.get<never, never, ReadonlyArray<UserDTO>>(
 );
 
 const create = http.post<Record<string, never>, UserPayload, never>(
-  `${config.apiEndpoint}/api/users/creation`,
+  `${config.apiEndpoint}/users/creation`,
   async ({ request }) => {
     const payload = await request.json();
 
@@ -55,7 +55,7 @@ interface PathParams extends Record<string, string> {
 }
 
 const remove = http.delete<PathParams, never, null | Error>(
-  `${config.apiEndpoint}/api/users/:id`,
+  `${config.apiEndpoint}/users/:id`,
   ({ params }) => {
     const user = data.users.find((user) => user.id === params.id);
     if (!user) {

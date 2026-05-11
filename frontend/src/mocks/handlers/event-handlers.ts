@@ -6,7 +6,7 @@ import data from './data';
 
 export const eventHandlers: RequestHandler[] = [
   http.get<{ id: string }, never, EventDTO<EventType>[]>(
-    `${config.apiEndpoint}/api/housing/:id/events`,
+    `${config.apiEndpoint}/housing/:id/events`,
     ({ params }) => {
       const housing = data.housings.find((housing) => housing.id === params.id);
       if (!housing) {

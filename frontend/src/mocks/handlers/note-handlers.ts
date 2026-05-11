@@ -12,7 +12,7 @@ interface PathParams {
 
 export const noteHandlers: RequestHandler[] = [
   http.get<PathParams, never, NoteDTO[]>(
-    `${config.apiEndpoint}/api/housing/:id/notes`,
+    `${config.apiEndpoint}/housing/:id/notes`,
     async ({ params }) => {
       const housing = data.housings.find((housing) => housing.id === params.id);
       if (!housing) {
@@ -33,7 +33,7 @@ export const noteHandlers: RequestHandler[] = [
 
   // Create a note for a housing
   http.post<PathParams, NotePayloadDTO, NoteDTO | null>(
-    `${config.apiEndpoint}/api/housing/:id/notes`,
+    `${config.apiEndpoint}/housing/:id/notes`,
     async ({ params, request }) => {
       const housing = data.housings.find((housing) => housing.id === params.id);
       if (!housing) {
@@ -61,7 +61,7 @@ export const noteHandlers: RequestHandler[] = [
 
   // Update a note
   http.put<PathParams, NotePayloadDTO, NoteDTO | null>(
-    `${config.apiEndpoint}/api/notes/:id`,
+    `${config.apiEndpoint}/notes/:id`,
     async ({ params, request }) => {
       const note = data.notes.find((note) => note.id === params.id);
       if (!note) {
@@ -81,7 +81,7 @@ export const noteHandlers: RequestHandler[] = [
 
   // Remove a note
   http.delete<PathParams, never, null>(
-    `${config.apiEndpoint}/api/notes/:id`,
+    `${config.apiEndpoint}/notes/:id`,
     async ({ params }) => {
       const note = data.notes.find((note) => note.id === params.id);
       if (!note) {

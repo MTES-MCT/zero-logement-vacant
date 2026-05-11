@@ -30,7 +30,7 @@ import { decodeAuth } from './auth-helpers';
 import data from './data';
 
 const find = http.get<Record<string, never>, never, CampaignDTO[]>(
-  `${config.apiEndpoint}/api/campaigns`,
+  `${config.apiEndpoint}/campaigns`,
   ({ request }) => {
     const url = new URL(request.url);
     const groups = url.searchParams.get('groups')?.split(',');
@@ -50,7 +50,7 @@ const createFromGroup = http.post<
   CampaignCreationPayload,
   CampaignDTO
 >(
-  `${config.apiEndpoint}/api/groups/:id/campaigns`,
+  `${config.apiEndpoint}/groups/:id/campaigns`,
   async ({ params, request }) => {
     const group = data.groups.find((group) => group.id === params.id);
     if (!group) {
@@ -105,7 +105,7 @@ const createFromGroup = http.post<
 );
 
 const get = http.get<CampaignParams, never, CampaignDTO | null>(
-  `${config.apiEndpoint}/api/campaigns/:id`,
+  `${config.apiEndpoint}/campaigns/:id`,
   ({ params }) => {
     const campaign = data.campaigns.find(
       (campaign) => campaign.id === params.id
@@ -121,7 +121,7 @@ const get = http.get<CampaignParams, never, CampaignDTO | null>(
 );
 
 const update = http.put<CampaignParams, CampaignUpdatePayload, CampaignDTO>(
-  `${config.apiEndpoint}/api/campaigns/:id`,
+  `${config.apiEndpoint}/campaigns/:id`,
   async ({ params, request }) => {
     const campaign = data.campaigns.find(
       (campaign) => campaign.id === params.id
@@ -145,7 +145,7 @@ const update = http.put<CampaignParams, CampaignUpdatePayload, CampaignDTO>(
 );
 
 const remove = http.delete<CampaignParams, never, null>(
-  `${config.apiEndpoint}/api/campaigns/:id`,
+  `${config.apiEndpoint}/campaigns/:id`,
   ({ params }) => {
     const campaign = data.campaigns.find(
       (campaign) => campaign.id === params.id
@@ -183,7 +183,7 @@ const removeHousing = http.delete<
   GroupRemoveHousingPayload,
   null
 >(
-  `${config.apiEndpoint}/api/campaigns/:id/housing`,
+  `${config.apiEndpoint}/campaigns/:id/housing`,
   async ({ params, request }) => {
     const campaign = data.campaigns.find(
       (campaign) => campaign.id === params.id

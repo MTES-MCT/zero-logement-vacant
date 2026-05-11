@@ -11,7 +11,7 @@ import data from './data';
 
 export const signupLinksHandlers: RequestHandler[] = [
   http.post<never, SignupLinkPayloadDTO, SignupLinkDTO>(
-    `${config.apiEndpoint}/api/signup-links`,
+    `${config.apiEndpoint}/signup-links`,
     async ({ request }) => {
       const payload = await request.json();
       const signupLink: SignupLinkDTO = {

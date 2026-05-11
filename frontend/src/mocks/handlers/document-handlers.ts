@@ -14,7 +14,7 @@ import { decodeAuth } from './auth-helpers';
 import data from './data';
 
 const findByHousing = http.get<{ id: string }, never, DocumentDTO[]>(
-  `${config.apiEndpoint}/api/housing/:id/documents`,
+  `${config.apiEndpoint}/housing/:id/documents`,
   async ({ params }) => {
     const documents = (data.housingDocuments.get(params.id) ?? [])
       .map((ref) => data.documents.get(ref.id))
@@ -27,7 +27,7 @@ const findByHousing = http.get<{ id: string }, never, DocumentDTO[]>(
 );
 
 const upload = http.post<never, FormData, DocumentDTO[] | Error>(
-  `${config.apiEndpoint}/api/documents`,
+  `${config.apiEndpoint}/documents`,
   async ({ request }) => {
     // Simulate auth by decoding token (without verifying signature)
     const auth = decodeAuth(request);
@@ -80,7 +80,7 @@ const linkToHousing = http.post<
   { documentIds: DocumentDTO['id'][] },
   DocumentDTO[] | Error
 >(
-  `${config.apiEndpoint}/api/housing/:id/documents`,
+  `${config.apiEndpoint}/housing/:id/documents`,
   async ({ params, request }) => {
     const { documentIds } = await request.json();
 
@@ -122,7 +122,7 @@ const update = http.put<
   { id: DocumentDTO['id'] },
   DocumentPayload,
   DocumentDTO | Error
->(`${config.apiEndpoint}/api/documents/:id`, async ({ params, request }) => {
+>(`${config.apiEndpoint}/documents/:id`, async ({ params, request }) => {
   const document = data.documents.get(params.id);
   if (!document) {
     return HttpResponse.json(
@@ -148,7 +148,7 @@ const update = http.put<
 });
 
 const remove = http.delete<{ id: DocumentDTO['id'] }, never, null | Error>(
-  `${config.apiEndpoint}/api/documents/:id`,
+  `${config.apiEndpoint}/documents/:id`,
   async ({ params }) => {
     const document = data.documents.get(params.id);
     if (!document) {
@@ -180,7 +180,7 @@ const unlinkFromHousing = http.delete<
   never,
   null | Error
 >(
-  `${config.apiEndpoint}/api/housing/:housingId/documents/:documentId`,
+  `${config.apiEndpoint}/housing/:housingId/documents/:documentId`,
   async ({ params }) => {
     const exists = data.housingDocuments
       .get(params.housingId)

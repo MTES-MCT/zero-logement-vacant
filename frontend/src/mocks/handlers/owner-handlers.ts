@@ -28,7 +28,7 @@ interface SearchPayloadDTO {
 }
 
 const list = http.get<never, never, ReadonlyArray<OwnerDTO>>(
-  `${config.apiEndpoint}/api/owners`,
+  `${config.apiEndpoint}/owners`,
   ({ request }) => {
     const search = new URL(request.url).search.substring(1);
     const query = schemas.ownerFilters.validateSync(qs.parse(search));
@@ -61,7 +61,7 @@ export const ownerHandlers: RequestHandler[] = [
   list,
 
   http.post<never, SearchPayloadDTO, Paginated<OwnerDTO>>(
-    `${config.apiEndpoint}/api/owners`,
+    `${config.apiEndpoint}/owners`,
     async ({ request }) => {
       const payload = await request.json();
       const owners = search(payload.q, data.owners, {
@@ -84,7 +84,7 @@ export const ownerHandlers: RequestHandler[] = [
   ),
 
   http.post<never, OwnerCreationPayload, OwnerDTO>(
-    `${config.apiEndpoint}/api/owners/creation`,
+    `${config.apiEndpoint}/owners/creation`,
     async ({ request }) => {
       const payload = await request.json();
 
@@ -112,7 +112,7 @@ export const ownerHandlers: RequestHandler[] = [
   ),
 
   http.put<PathParams, OwnerUpdatePayload, OwnerDTO>(
-    `${config.apiEndpoint}/api/owners/:id`,
+    `${config.apiEndpoint}/owners/:id`,
     async ({ params, request }) => {
       const payload = await request.json();
 
@@ -136,7 +136,7 @@ export const ownerHandlers: RequestHandler[] = [
   ),
 
   http.get<PathParams, never, ReadonlyArray<HousingOwnerDTO>>(
-    `${config.apiEndpoint}/api/housings/:id/owners`,
+    `${config.apiEndpoint}/housings/:id/owners`,
     ({ params }) => {
       const housing = data.housings.find((housing) => housing.id === params.id);
       if (!housing) {
@@ -165,7 +165,7 @@ export const ownerHandlers: RequestHandler[] = [
   ),
 
   http.put<PathParams, HousingOwnerPayloadDTO[], HousingOwnerDTO[]>(
-    `${config.apiEndpoint}/api/housing/:id/owners`,
+    `${config.apiEndpoint}/housing/:id/owners`,
     async ({ params, request }) => {
       const housing = data.housings.find((housing) => housing.id === params.id);
       if (!housing) {

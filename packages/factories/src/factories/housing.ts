@@ -4,6 +4,7 @@ import {
   CADASTRAL_CLASSIFICATION_VALUES,
   DATA_FILE_YEAR_VALUES,
   ENERGY_CONSUMPTION_VALUES,
+  getSubStatuses,
   HOUSING_KIND_VALUES,
   HOUSING_SOURCE_VALUES,
   HOUSING_STATUS_VALUES,
@@ -57,6 +58,20 @@ export function createHousingFactory(adapter: Adapter) {
           .exhaustive()
       )
       .map(Number);
+    const status = faker.helpers.weightedArrayElement([
+      {
+        value: HousingStatus.NEVER_CONTACTED,
+        weight: HOUSING_STATUS_VALUES.length - 1
+      },
+      ...HOUSING_STATUS_VALUES.filter(
+        (s) => s !== HousingStatus.NEVER_CONTACTED
+      ).map((s) => ({ value: s, weight: 1 }))
+    ]);
+    const subStatuses = [...getSubStatuses(status)];
+    const subStatus =
+      subStatuses.length === 0
+        ? null
+        : faker.helpers.arrayElement(subStatuses);
 
     return {
       id: faker.string.uuid(),
@@ -93,16 +108,8 @@ export function createHousingFactory(adapter: Adapter) {
             ...INTERNAL_CO_CONDOMINIUM_VALUES
           ])
         ) ?? null,
-      status: faker.helpers.weightedArrayElement([
-        {
-          value: HousingStatus.NEVER_CONTACTED,
-          weight: HOUSING_STATUS_VALUES.length - 1
-        },
-        ...HOUSING_STATUS_VALUES.filter(
-          (s) => s !== HousingStatus.NEVER_CONTACTED
-        ).map((s) => ({ value: s, weight: 1 }))
-      ]),
-      subStatus: null,
+      status,
+      subStatus,
       actualEnergyConsumption: faker.helpers.arrayElement([
         null,
         ...ENERGY_CONSUMPTION_VALUES

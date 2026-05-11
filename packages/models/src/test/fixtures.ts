@@ -33,7 +33,11 @@ import {
   HousingOwnerDTO,
   type ActiveOwnerRank
 } from '../HousingOwnerDTO';
-import { HOUSING_STATUS_VALUES, HousingStatus } from '../HousingStatus';
+import {
+  getSubStatuses,
+  HOUSING_STATUS_VALUES,
+  HousingStatus
+} from '../HousingStatus';
 import { MUTATION_TYPE_VALUES } from '../Mutation';
 import { NoteDTO } from '../NoteDTO';
 import {
@@ -650,6 +654,13 @@ export function genGroupDTO(
 
 export const FRANCE_BBOX: BBox = [-1.69, 43.19, 6.8, 49.49];
 
+export function genSubStatus(status: HousingStatus): string | null {
+  const subStatuses = [...getSubStatuses(status)];
+  return subStatuses.length === 0
+    ? null
+    : faker.helpers.arrayElement(subStatuses);
+}
+
 export function genHousingDTO(
   geoCode = genGeoCode(),
   building: BuildingDTO | null = null
@@ -673,6 +684,18 @@ export function genHousingDTO(
         .exhaustive()
     )
     .map((year) => Number(year));
+  const status = faker.helpers.weightedArrayElement([
+    {
+      value: HousingStatus.NEVER_CONTACTED,
+      weight: HOUSING_STATUS_VALUES.length - 1
+    },
+    ...HOUSING_STATUS_VALUES.filter(
+      (status) => status !== HousingStatus.NEVER_CONTACTED
+    ).map((status) => ({
+      value: status,
+      weight: 1
+    }))
+  ]);
 
   return {
     id: faker.string.uuid(),
@@ -715,19 +738,8 @@ export function genHousingDTO(
           ...INTERNAL_CO_CONDOMINIUM_VALUES
         ])
       ) ?? null,
-    status: faker.helpers.weightedArrayElement([
-      {
-        value: HousingStatus.NEVER_CONTACTED,
-        weight: HOUSING_STATUS_VALUES.length - 1
-      },
-      ...HOUSING_STATUS_VALUES.filter(
-        (status) => status !== HousingStatus.NEVER_CONTACTED
-      ).map((status) => ({
-        value: status,
-        weight: 1
-      }))
-    ]),
-    subStatus: null,
+    status,
+    subStatus: genSubStatus(status),
     actualEnergyConsumption: faker.helpers.arrayElement([
       null,
       ...ENERGY_CONSUMPTION_VALUES

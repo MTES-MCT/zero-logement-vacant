@@ -20,10 +20,10 @@ describe('DatafoncierHousingRepository', () => {
       await DatafoncierHouses().insert({
         ...datafoncierHousing,
         ban_geom: db.raw('ST_GeomFromGeoJson(?)', [
-          datafoncierHousing.ban_geom
+          JSON.stringify(datafoncierHousing.ban_geom)
         ]),
-        geomloc: db.raw('ST_GeomFromGeoJson(?)', [datafoncierHousing.geomloc]),
-        geomrnb: db.raw('ST_GeomFromGeoJson(?)', [datafoncierHousing.geomrnb])
+        geomloc: db.raw('ST_GeomFromGeoJson(?)', [JSON.stringify(datafoncierHousing.geomloc)]),
+        geomrnb: db.raw('ST_GeomFromGeoJson(?)', [JSON.stringify(datafoncierHousing.geomrnb)])
       });
 
       const actual = await repository.findOne({

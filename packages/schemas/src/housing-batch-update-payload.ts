@@ -38,7 +38,8 @@ export const housingBatchUpdatePayload: ObjectSchema<HousingBatchUpdatePayload> 
               });
             }
           })
-      }),
+      })
+      .default(null),
     occupancy: string().oneOf(OCCUPANCY_VALUES).optional(),
     occupancyIntended: string().oneOf(OCCUPANCY_VALUES).optional(),
     note: string().trim().min(1).optional(),

@@ -18,7 +18,7 @@ import {
   READ_WRITE_OCCUPANCY_VALUES,
   type CadastralClassification
 } from '@zerologementvacant/models';
-import { compactNullable, isNotNull } from '@zerologementvacant/utils';
+import { compactUndefined, isNotNull } from '@zerologementvacant/utils';
 import { Array, identity, Predicate, Struct } from 'effect';
 import type { Point } from 'geojson';
 import { Set } from 'immutable';
@@ -437,7 +437,7 @@ async function updateMany(
     return;
   }
 
-  const fields = compactNullable({
+  const fields = compactUndefined({
     status: payload.status,
     sub_status: payload.subStatus,
     occupancy: payload.occupancy,

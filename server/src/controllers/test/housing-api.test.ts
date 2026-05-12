@@ -1125,6 +1125,46 @@ describe('Housing API', () => {
       });
     });
 
+    it('should remove the substatus correctly', async () => {
+      const housing: HousingApi = {
+        ...genHousingApi(faker.helpers.arrayElement(establishment.geoCodes)),
+        status: HousingStatus.IN_PROGRESS,
+        subStatus: 'En accompagnement'
+      };
+      await Housing().insert(formatHousingRecordApi(housing));
+
+      const payload: HousingBatchUpdatePayload = {
+        filters: {
+          all: false,
+          housingIds: [housing.id]
+        },
+        status: HousingStatus.WAITING
+        // subStatus should become null
+        // because it is not valid for the new status
+      };
+
+      const { body, status } = await request(url)
+        .put(testRoute)
+        .send(payload)
+        .use(tokenProvider(user));
+
+      expect(status).toBe(constants.HTTP_STATUS_OK);
+      const actual = await Housing()
+        .where({
+          geo_code: housing.geoCode,
+          id: housing.id
+        })
+        .first();
+      expect(actual).toMatchObject<Partial<HousingRecordDBO>>({
+        sub_status: null
+      });
+      expect(body).toPartiallyContain<Partial<HousingDTO>>({
+        id: housing.id,
+        status: payload.status,
+        subStatus: null
+      });
+    });
+
     it('should create events related to the status change', async () => {
       const { housings } = await createHousings({
         status: HousingStatus.NEVER_CONTACTED,

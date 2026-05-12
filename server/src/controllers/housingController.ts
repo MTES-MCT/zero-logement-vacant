@@ -18,7 +18,7 @@ import {
   type ActiveOwnerRank,
   type HousingBatchUpdatePayload
 } from '@zerologementvacant/models';
-import { compactNullable } from '@zerologementvacant/utils';
+import { compactUndefined } from '@zerologementvacant/utils';
 import {
   Array,
   Either,
@@ -32,6 +32,7 @@ import { RequestHandler } from 'express';
 import { AuthenticatedRequest } from 'express-jwt';
 import { oneOf, param } from 'express-validator';
 import { constants } from 'http2';
+import { match, Pattern } from 'ts-pattern';
 import { v4 as uuidv4 } from 'uuid';
 import DocumentMissingError from '~/errors/documentMissingError';
 import HousingExistsError from '~/errors/housingExistsError';
@@ -657,33 +658,49 @@ const updateMany: RequestHandler<
     housings.flatMap<HousingEventApi>((housing) => {
       const occupancyDiff = diffHousingOccupancyUpdated(
         {
-          occupancy: body.occupancy
-            ? OCCUPANCY_LABELS[housing.occupancy]
-            : undefined,
+          occupancy:
+            body.occupancy !== undefined && housing.occupancy !== undefined
+              ? OCCUPANCY_LABELS[housing.occupancy]
+              : undefined,
           occupancyIntended:
-            body.occupancyIntended && housing.occupancyIntended
-              ? OCCUPANCY_LABELS[housing.occupancyIntended]
+            body.occupancyIntended !== undefined
+              ? match(housing.occupancyIntended)
+                  .with(null, () => null)
+                  .with(
+                    Pattern.nonNullable,
+                    (occupancy) => OCCUPANCY_LABELS[occupancy]
+                  )
+                  .otherwise(() => undefined)
               : undefined
         },
         {
-          occupancy: body.occupancy
-            ? OCCUPANCY_LABELS[body.occupancy]
-            : undefined,
-          occupancyIntended: body.occupancyIntended
-            ? OCCUPANCY_LABELS[body.occupancyIntended]
-            : undefined
+          occupancy:
+            body.occupancy !== undefined
+              ? OCCUPANCY_LABELS[body.occupancy]
+              : undefined,
+          occupancyIntended:
+            body.occupancyIntended !== undefined
+              ? OCCUPANCY_LABELS[body.occupancyIntended]
+              : undefined
         }
       );
       const statusDiff = diffHousingStatusUpdated(
         {
-          status: body.status
-            ? HOUSING_STATUS_LABELS[housing.status]
-            : undefined,
-          subStatus: body.subStatus ? housing.subStatus : undefined
+          status:
+            body.status !== undefined && housing.status !== undefined
+              ? HOUSING_STATUS_LABELS[housing.status]
+              : undefined,
+          subStatus:
+            body.subStatus !== undefined && housing.subStatus !== undefined
+              ? housing.subStatus
+              : undefined
         },
         {
-          status: body.status ? HOUSING_STATUS_LABELS[body.status] : undefined,
-          subStatus: body.subStatus ? body.subStatus : undefined
+          status:
+            body.status !== undefined
+              ? HOUSING_STATUS_LABELS[body.status]
+              : undefined,
+          subStatus: body.subStatus !== undefined ? body.subStatus : undefined
         }
       );
 
@@ -868,7 +885,7 @@ const updateMany: RequestHandler<
     ]);
   });
 
-  const updated = compactNullable({
+  const updated = compactUndefined({
     status: body.status,
     subStatus: body.subStatus,
     occupancy: body.occupancy,

@@ -9,6 +9,7 @@ import {
   fromHousing,
   HOUSING_KIND_VALUES,
   HOUSING_STATUS_VALUES,
+  HousingStatus,
   INTERNAL_CO_CONDOMINIUM_VALUES,
   INTERNAL_MONO_CONDOMINIUM_VALUES,
   isActiveOwnerRank,
@@ -106,7 +107,11 @@ import housingRepository, {
   ReferenceDataYear
 } from '../housingRepository';
 import { formatLocalityApi, Localities } from '../localityRepository';
-import { formatOwnerApi, Owners, refreshMultiOwnerFlags } from '../ownerRepository';
+import {
+  formatOwnerApi,
+  Owners,
+  refreshMultiOwnerFlags
+} from '../ownerRepository';
 import { toUserDBO, Users } from '../userRepository';
 
 describe('Housing repository', () => {
@@ -2543,7 +2548,9 @@ describe('Housing repository', () => {
           const housing2 = genHousingApi(geoCode);
           targetOwner = genOwnerApi();
           const otherOwner = genOwnerApi();
-          await Housing().insert([housing1, housing2].map(formatHousingRecordApi));
+          await Housing().insert(
+            [housing1, housing2].map(formatHousingRecordApi)
+          );
           await Owners().insert([targetOwner, otherOwner].map(formatOwnerApi));
           await HousingOwners().insert([
             ...formatHousingOwnersApi(housing1, [targetOwner]),
@@ -2572,7 +2579,9 @@ describe('Housing repository', () => {
           const multiOwner = genOwnerApi();
           const singleOwner = genOwnerApi();
           await Housing().insert(
-            [multiHousing1, multiHousing2, singleHousing].map(formatHousingRecordApi)
+            [multiHousing1, multiHousing2, singleHousing].map(
+              formatHousingRecordApi
+            )
           );
           await Owners().insert([multiOwner, singleOwner].map(formatOwnerApi));
           await HousingOwners().insert([
@@ -2601,7 +2610,9 @@ describe('Housing repository', () => {
         beforeEach(async () => {
           const housingWith2 = genHousingApi(geoCode);
           const housingWith1 = genHousingApi(geoCode);
-          const owners = faker.helpers.multiple(() => genOwnerApi(), { count: 3 });
+          const owners = faker.helpers.multiple(() => genOwnerApi(), {
+            count: 3
+          });
           await Housing().insert(
             [housingWith2, housingWith1].map(formatHousingRecordApi)
           );
@@ -2781,6 +2792,33 @@ describe('Housing repository', () => {
       expect(actual).toMatchObject({
         occupancy: update.occupancy,
         occupancy_intended: original.occupancyIntended
+      });
+    });
+  });
+
+  describe('updateMany', () => {
+    it('should remove the substatus correctly', async () => {
+      const housing: HousingApi = {
+        ...genHousingApi(),
+        status: HousingStatus.FIRST_CONTACT,
+        subStatus: 'N’habite pas à l’adresse indiquée'
+      };
+      await Housing().insert(formatHousingRecordApi(housing));
+
+      await housingRepository.updateMany(
+        [{ geoCode: housing.geoCode, id: housing.id }],
+        {
+          status: HousingStatus.NEVER_CONTACTED,
+          subStatus: null
+        }
+      );
+
+      const actual = await Housing()
+        .where({ geo_code: housing.geoCode, id: housing.id })
+        .first();
+      expect(actual).toMatchObject({
+        status: HousingStatus.NEVER_CONTACTED,
+        sub_status: null
       });
     });
   });

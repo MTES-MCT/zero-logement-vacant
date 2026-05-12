@@ -8,7 +8,8 @@ import {
   toOccupancy,
   type DatafoncierHousing,
   type HousingSource,
-  type OwnershipKindInternal
+  type OwnershipKindInternal,
+  type RelativeLocation
 } from '@zerologementvacant/models';
 import { Array, Equivalence, Order, pipe } from 'effect';
 import type { Point } from 'geojson';
@@ -32,6 +33,10 @@ export interface HousingApi extends HousingRecordApi {
   localityKind?: string | null;
   geoPerimeters?: string[] | null;
   owner?: OwnerApi | null;
+  /**
+   * Added by joining with the `housing_owners` table (rank 1 owner).
+   */
+  ownerRelativeLocation?: RelativeLocation | null;
   buildingHousingCount?: number | null;
   buildingVacancyRate?: number | null;
   campaignIds?: string[] | null;

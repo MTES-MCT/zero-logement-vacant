@@ -166,7 +166,7 @@ export function genCampaignDTO(
     sentAt: null,
     housingCount: 0,
     ownerCount: 0,
-    returnCount: 0,
+    returnCount: null,
     returnRate: null
   };
 }
@@ -200,8 +200,9 @@ export function genCampaignDTONext(
       Array.dedupeWith((a, b) => a.id === b.id),
       Array.length
     ),
-    returnCount: 0,
-    returnRate: 0
+    sentAt: null,
+    returnCount: null,
+    returnRate: null
   };
 }
 

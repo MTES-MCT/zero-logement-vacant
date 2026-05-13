@@ -26,10 +26,7 @@ export interface CampaignDTO {
    */
   validatedAt?: string;
   exportedAt?: string;
-  /**
-   * `sentAt` should become `string | null`.
-   */
-  sentAt?: string | null;
+  sentAt: string | null;
   /**
    * @deprecated
    */
@@ -117,20 +114,6 @@ export const byReturnRate: Order.Order<CampaignDTO> = Order.mapInput(
   (campaign) => campaign.returnRate ?? 0
 );
 
-export interface CampaignCreationPayloadDTO
-  extends Pick<CampaignDTO, 'title' | 'description' | 'sentAt'> {
-  housing: {
-    all: boolean;
-    ids: string[];
-    filters: HousingFiltersDTO;
-  };
-}
-
-export interface CampaignUpdatePayloadDTO
-  extends Pick<CampaignDTO, 'title' | 'description' | 'status' | 'file'> {
-  sentAt?: string;
-}
-
 export type CampaignPayload = {
   title: string;
   description: string;
@@ -141,8 +124,4 @@ export type CampaignCreationPayload = CampaignPayload;
 
 export type CampaignUpdatePayload = CampaignPayload;
 
-export interface CampaignRemovalPayloadDTO {
-  all: boolean;
-  ids: string[];
-  filters: HousingFiltersDTO;
-}
+export type CampaignRemovalPayload = HousingFiltersDTO;

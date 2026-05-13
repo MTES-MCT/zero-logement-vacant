@@ -1,46 +1,27 @@
 import type {
   CampaignCreationPayload,
-  CampaignCreationPayloadDTO,
   CampaignDTO,
-  CampaignUpdatePayloadDTO
+  CampaignUpdatePayload
 } from '@zerologementvacant/models';
-import { parseISO } from 'date-fns';
-import type { CampaignFilters } from '~/models/CampaignFilters';
-import type { Group } from '~/models/Group';
-import type { HousingFilters } from '~/models/HousingFilters';
-import { toQuery, type SortOptions } from '~/models/Sort';
 import {
   fromCampaignDTO,
   type Campaign,
   type CampaignSort
 } from '~/models/Campaign';
+import type { CampaignFilters } from '~/models/CampaignFilters';
+import type { Group } from '~/models/Group';
+import type { HousingFilters } from '~/models/HousingFilters';
+import { toQuery, type SortOptions } from '~/models/Sort';
 
-import config from '~/utils/config';
 import { zlvApi } from './api.service';
-import authService from './auth.service';
 import { housingApi } from './housing.service';
 
 export interface FindOptions extends SortOptions<CampaignSort> {
   filters?: CampaignFilters;
 }
 
-const parseCampaign = (c: any): Campaign =>
-  (({
-    ...c,
-    createdAt: c.createdAt ? parseISO(c.createdAt) : undefined,
-    validatedAt: c.validatedAt ? parseISO(c.validatedAt) : undefined,
-    sentAt: c.sentAt ? parseISO(c.sentAt) : undefined,
-    archivedAt: c.archivedAt ? parseISO(c.archivedAt) : undefined,
-    exportURL: getExportURL(c.id)
-  }) as Campaign);
-
 export const campaignApi = zlvApi.injectEndpoints({
   endpoints: (builder) => ({
-    getCampaign: builder.query<Campaign, string>({
-      query: (campaignId) => `campaigns/${campaignId}`,
-      transformResponse: (campaign: CampaignDTO) => fromCampaignDTO(campaign),
-      providesTags: (_result, _error, id) => [{ type: 'Campaign', id }]
-    }),
     findCampaigns: builder.query<Campaign[], FindOptions | void>({
       query: (opts) => ({
         url: 'campaigns',
@@ -59,43 +40,20 @@ export const campaignApi = zlvApi.injectEndpoints({
               { type: 'Campaign', id: 'LIST' }
             ]
           : [{ type: 'Campaign', id: 'LIST' }],
-      transformResponse: (response: any[]) => response.map(parseCampaign)
+      transformResponse: (campaigns: ReadonlyArray<CampaignDTO>) =>
+        campaigns.map(fromCampaignDTO)
     }),
-    createCampaign: builder.mutation<Campaign, CampaignCreationPayloadDTO>({
-      query: (payload) => ({
-        url: 'campaigns',
-        method: 'POST',
-        body: payload
-      }),
-      invalidatesTags: [{ type: 'Campaign', id: 'LIST' }],
+
+    getCampaign: builder.query<Campaign, string>({
+      query: (campaignId) => `campaigns/${campaignId}`,
+      providesTags: (_result, _error, id) => [{ type: 'Campaign', id }],
       transformResponse: (campaign: CampaignDTO) => fromCampaignDTO(campaign)
     }),
 
     createCampaignFromGroup: builder.mutation<
       Campaign,
       {
-        campaign: Pick<CampaignCreationPayloadDTO, 'title' | 'description'>;
-        group: Group;
-      }
-    >({
-      query: (payload) => {
-        return {
-          url: `campaigns/${payload.group.id}/groups`,
-          method: 'POST',
-          body: payload.campaign
-        };
-      },
-      invalidatesTags: [{ type: 'Campaign', id: 'LIST' }],
-      transformResponse: (campaign: CampaignDTO) => fromCampaignDTO(campaign)
-    }),
-
-    createCampaignFromGroupNext: builder.mutation<
-      Campaign,
-      {
-        campaign: Pick<
-          CampaignCreationPayload,
-          'title' | 'description' | 'sentAt'
-        >;
+        campaign: CampaignCreationPayload;
         group: Group;
       }
     >({
@@ -115,11 +73,14 @@ export const campaignApi = zlvApi.injectEndpoints({
       transformResponse: (campaign: CampaignDTO) => fromCampaignDTO(campaign)
     }),
 
-    updateCampaign: builder.mutation<void, Campaign>({
+    updateCampaign: builder.mutation<
+      void,
+      Pick<Campaign, 'id'> & CampaignUpdatePayload
+    >({
       query: (payload) => ({
         url: `campaigns/${payload.id}`,
         method: 'PUT',
-        body: toCampaignPayloadDTO(payload)
+        body: payload
       }),
       invalidatesTags: (_result, _error, args) => [
         { type: 'Campaign', id: args.id }
@@ -164,23 +125,6 @@ export const campaignApi = zlvApi.injectEndpoints({
   })
 });
 
-function toCampaignPayloadDTO(campaign: Campaign): CampaignUpdatePayloadDTO {
-  return {
-    title: campaign.title,
-    description: campaign.description,
-    status: campaign.status,
-    sentAt: campaign.sentAt ?? undefined
-  };
-}
-
-const getExportURL = (campaignId: string) => {
-  return `${
-    config.apiEndpoint
-  }/api/campaigns/${campaignId}/export?x-access-token=${
-    authService.authHeader()?.['x-access-token']
-  }`;
-};
-
 export const {
   useFindCampaignsQuery,
   useGetCampaignQuery,
@@ -188,7 +132,5 @@ export const {
   useUpdateCampaignMutation,
   useRemoveCampaignHousingMutation,
   useRemoveCampaignMutation,
-  useCreateCampaignMutation,
-  useCreateCampaignFromGroupMutation,
-  useCreateCampaignFromGroupNextMutation
+  useCreateCampaignFromGroupMutation
 } = campaignApi;

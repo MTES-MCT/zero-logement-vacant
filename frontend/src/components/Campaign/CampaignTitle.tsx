@@ -74,9 +74,10 @@ function CampaignTitle({ campaign, className, as, look }: Readonly<Props>) {
   function submit(): void {
     const values = form.getValues();
     updateCampaign({
-      ...campaign,
+      id: campaign.id,
       title: values.title,
-      description: values.description || ''
+      description: values.description,
+      sentAt: campaign.sentAt
     })
       .unwrap()
       .finally(() => {

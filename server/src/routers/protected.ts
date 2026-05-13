@@ -249,8 +249,9 @@ router.get(
 );
 router.get(
   '/campaigns/:id',
-  campaignController.getCampaignValidators,
-  validator.validate,
+  validatorNext.validate({
+    params: object({ id: schemas.id })
+  }),
   campaignController.get
 );
 router.put(
@@ -259,12 +260,13 @@ router.put(
     params: object({ id: schemas.id }),
     body: schemas.campaignUpdateNextPayload
   }),
-  campaignController.updateNext
+  campaignController.update
 );
 router.delete(
   '/campaigns/:id',
-  [isUUIDParam('id')],
-  validator.validate,
+  validatorNext.validate({
+    params: object({ id: schemas.id })
+  }),
   campaignController.removeCampaign
 );
 router.post(
@@ -289,20 +291,17 @@ router.post(
 );
 router.get(
   '/campaigns/:id/export',
-  housingExportController.exportCampaignValidators,
-  validator.validate,
+  validatorNext.validate({
+    params: object({ id: schemas.id })
+  }),
   housingExportController.exportCampaign
-);
-router.get(
-  '/campaigns/:id/download',
-  campaignController.getCampaignValidators,
-  validator.validate,
-  campaignController.downloadCampaign
 );
 router.delete(
   '/campaigns/:id/housing',
-  campaignController.removeHousingValidators,
-  validator.validate,
+  validatorNext.validate({
+    params: object({ id: schemas.id }),
+    body: schemas.housingFilters
+  }),
   campaignController.removeHousing
 );
 

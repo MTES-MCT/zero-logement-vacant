@@ -1,26 +1,21 @@
-import { GetObjectCommand } from '@aws-sdk/client-s3';
-import { getSignedUrl } from '@aws-sdk/s3-request-presigner';
 import {
   CampaignDTO,
-  CampaignRemovalPayloadDTO,
+  CampaignRemovalPayload,
   HOUSING_STATUS_LABELS,
   HousingStatus,
   type CampaignCreationPayload,
   type CampaignUpdatePayload,
   type GroupDTO
 } from '@zerologementvacant/models';
-import { createS3 } from '@zerologementvacant/utils/node';
 import { Struct } from 'effect';
 import { RequestHandler } from 'express';
 import { AuthenticatedRequest } from 'express-jwt';
-import { body, param, ValidationChain } from 'express-validator';
+import { ValidationChain } from 'express-validator';
 import { constants } from 'http2';
 import { v4 as uuidv4 } from 'uuid';
 import BadRequestError from '~/errors/badRequestError';
-import CampaignFileMissingError from '~/errors/CampaignFileMissingError';
 import CampaignMissingError from '~/errors/campaignMissingError';
 import GroupMissingError from '~/errors/groupMissingError';
-import config from '~/infra/config';
 import { startTransaction } from '~/infra/database/transaction';
 import { logger } from '~/infra/logger';
 import {
@@ -33,12 +28,8 @@ import {
   CampaignQuery
 } from '~/models/CampaignFiltersApi';
 import type { DraftApi } from '~/models/DraftApi';
-import {
-  CampaignHousingEventApi,
-  HousingEventApi
-} from '~/models/EventApi';
+import { CampaignHousingEventApi, HousingEventApi } from '~/models/EventApi';
 import { HousingApi, shouldReset } from '~/models/HousingApi';
-import housingFiltersApi from '~/models/HousingFiltersApi';
 import type { SenderApi } from '~/models/SenderApi';
 import sortApi from '~/models/SortApi';
 import campaignDraftRepository from '~/repositories/campaignDraftRepository';
@@ -49,89 +40,6 @@ import eventRepository from '~/repositories/eventRepository';
 import groupRepository from '~/repositories/groupRepository';
 import housingRepository from '~/repositories/housingRepository';
 import senderRepository from '~/repositories/senderRepository';
-import { isArrayOf, isString, isUUIDParam } from '~/utils/validators';
-
-const getCampaignValidators = [param('id').notEmpty().isUUID()];
-
-const get: RequestHandler<
-  { id: CampaignDTO['id'] },
-  CampaignDTO,
-  never,
-  never
-> = async (request, response): Promise<void> => {
-  const { auth, effectiveGeoCodes, params } = request as AuthenticatedRequest<
-    { id: CampaignDTO['id'] },
-    CampaignDTO
-  >;
-  logger.info('Get campaign', {
-    campaign: params.id
-  });
-
-  const campaign = await campaignRepository.findOne({
-    id: params.id,
-    establishmentId: auth.establishmentId,
-    geoCodes: effectiveGeoCodes
-  });
-  if (!campaign) {
-    throw new CampaignMissingError(params.id);
-  }
-
-  response.status(constants.HTTP_STATUS_OK).json(toCampaignDTO(campaign));
-};
-
-const downloadCampaign: RequestHandler<
-  { id: CampaignDTO['id'] },
-  string,
-  never,
-  never
-> = async (request, response) => {
-  const campaignId = request.params.id;
-  const { auth, effectiveGeoCodes } = request as AuthenticatedRequest;
-  const { establishmentId } = auth;
-
-  logger.info('Download campaign', { campaignId });
-
-  const campaign = await campaignRepository.findOne({
-    id: campaignId,
-    establishmentId,
-    geoCodes: effectiveGeoCodes
-  });
-  if (!campaign) {
-    throw new CampaignMissingError(campaignId);
-  }
-
-  if (!campaign.file) {
-    throw new CampaignFileMissingError(campaignId);
-  }
-
-  campaign.exportedAt = new Date().toISOString();
-  await campaignRepository.update(campaign);
-
-  const command = new GetObjectCommand({
-    Bucket: config.s3.bucket,
-    Key: campaign.file
-  });
-
-  const s3 = createS3({
-    endpoint: config.s3.endpoint,
-    region: config.s3.region,
-    accessKeyId: config.s3.accessKeyId,
-    secretAccessKey: config.s3.secretAccessKey
-  });
-
-  const signedUrl = await getSignedUrl(s3, command, {
-    expiresIn: 60 * 60 // TTL: 1 hour
-  });
-
-  logger.debug(`Generated signed URL: ${signedUrl}`);
-
-  response.redirect(signedUrl);
-};
-
-const listValidators: ValidationChain[] = [
-  ...campaignFiltersValidators,
-  ...sortApi.queryValidators
-];
 
 const list: RequestHandler<
   never,
@@ -159,8 +67,39 @@ const list: RequestHandler<
     },
     sort
   });
-  response.status(constants.HTTP_STATUS_OK).json(campaigns);
+  response.status(constants.HTTP_STATUS_OK).json(campaigns.map(toCampaignDTO));
 };
+
+const get: RequestHandler<
+  { id: CampaignDTO['id'] },
+  CampaignDTO,
+  never,
+  never
+> = async (request, response): Promise<void> => {
+  const { auth, effectiveGeoCodes, params } = request as AuthenticatedRequest<
+    { id: CampaignDTO['id'] },
+    CampaignDTO
+  >;
+  logger.info('Get campaign', {
+    campaign: params.id
+  });
+
+  const campaign = await campaignRepository.findOne({
+    id: params.id,
+    establishmentId: auth.establishmentId,
+    geoCodes: effectiveGeoCodes
+  });
+  if (!campaign) {
+    throw new CampaignMissingError(params.id);
+  }
+
+  response.status(constants.HTTP_STATUS_OK).json(toCampaignDTO(campaign));
+};
+
+const listValidators: ValidationChain[] = [
+  ...campaignFiltersValidators,
+  ...sortApi.queryValidators
+];
 
 const createFromGroup: RequestHandler<
   { id: GroupDTO['id'] },
@@ -220,9 +159,9 @@ const createFromGroup: RequestHandler<
     signatories: [null, null],
     establishmentId: auth.establishmentId,
     createdAt: new Date().toJSON(),
-    updatedAt: new Date().toJSON(),
-  }
-  const draft: DraftApi= {
+    updatedAt: new Date().toJSON()
+  };
+  const draft: DraftApi = {
     id: uuidv4(),
     body: null,
     subject: null,
@@ -235,7 +174,7 @@ const createFromGroup: RequestHandler<
     establishmentId: auth.establishmentId,
     createdAt: new Date().toJSON(),
     updatedAt: new Date().toJSON()
-  }
+  };
 
   const housings = await housingRepository.find({
     filters: {
@@ -307,18 +246,19 @@ const createFromGroup: RequestHandler<
   response.status(constants.HTTP_STATUS_CREATED).json(toCampaignDTO(campaign));
 };
 
-const updateNext: RequestHandler<
+const update: RequestHandler<
   { id: CampaignApi['id'] },
   CampaignDTO,
   CampaignUpdatePayload,
   never
 > = async (request, response): Promise<void> => {
-  const { auth, body, effectiveGeoCodes, params } = request as AuthenticatedRequest<
-    { id: CampaignApi['id'] },
-    never,
-    CampaignUpdatePayload,
-    never
-  >;
+  const { auth, body, effectiveGeoCodes, params } =
+    request as AuthenticatedRequest<
+      { id: CampaignApi['id'] },
+      never,
+      CampaignUpdatePayload,
+      never
+    >;
   logger.info('Update campaign', { id: params.id, body });
 
   const campaign = await campaignRepository.findOne({
@@ -330,7 +270,11 @@ const updateNext: RequestHandler<
     throw new CampaignMissingError(params.id);
   }
 
-  if (campaign.sentAt !== null && campaign.sentAt !== undefined && body.sentAt === null) {
+  if (
+    campaign.sentAt !== null &&
+    campaign.sentAt !== undefined &&
+    body.sentAt === null
+  ) {
     throw new BadRequestError('sentAt cannot be unset once it has been set');
   }
 
@@ -431,26 +375,21 @@ const removeCampaign: RequestHandler<
   response.status(constants.HTTP_STATUS_NO_CONTENT).send();
 };
 
-const removeHousingValidators: ValidationChain[] = [
-  isUUIDParam('id'),
-  body('all').isBoolean().notEmpty(),
-  body('ids').custom(isArrayOf(isString)),
-  ...housingFiltersApi.validators('filters')
-];
 const removeHousing: RequestHandler<
   { id: CampaignDTO['id'] },
   never,
-  CampaignRemovalPayloadDTO,
+  CampaignRemovalPayload,
   never
 > = async (request, response): Promise<void> => {
   logger.info('Remove campaign housing list');
 
-  const { auth, body, effectiveGeoCodes, params } = request as AuthenticatedRequest<
-    { id: CampaignDTO['id'] },
-    never,
-    CampaignRemovalPayloadDTO,
-    never
-  >;
+  const { auth, body, effectiveGeoCodes, params } =
+    request as AuthenticatedRequest<
+      { id: CampaignDTO['id'] },
+      never,
+      CampaignRemovalPayload,
+      never
+    >;
 
   const campaign = await campaignRepository.findOne({
     id: params.id,
@@ -461,21 +400,14 @@ const removeHousing: RequestHandler<
     throw new CampaignMissingError(params.id);
   }
 
-  const housings = await housingRepository
-    .find({
-      filters: {
-        ...body.filters,
-        establishmentIds: [auth.establishmentId],
-        campaignIds: [params.id]
-      },
-      pagination: { paginate: false }
-    })
-    .then((housings) => {
-      const ids = new Set(body.ids);
-      return housings.filter((housing) =>
-        body.all ? !ids.has(housing.id) : ids.has(housing.id)
-      );
-    });
+  const housings = await housingRepository.find({
+    filters: {
+      ...body,
+      establishmentIds: [auth.establishmentId],
+      campaignIds: [params.id]
+    },
+    pagination: { paginate: false }
+  });
   const events = housings.map<CampaignHousingEventApi>((housing) => ({
     id: uuidv4(),
     type: 'housing:campaign-detached',
@@ -494,20 +426,16 @@ const removeHousing: RequestHandler<
       eventRepository.insertManyCampaignHousingEvents(events)
     ]);
   });
-  // TODO: return the remaining housings ?
-  response.status(constants.HTTP_STATUS_OK).send();
+  response.status(constants.HTTP_STATUS_NO_CONTENT).send();
 };
 
 const campaignController = {
-  getCampaignValidators,
   get,
-  downloadCampaign,
   listValidators,
   list,
   createFromGroup,
-  updateNext,
+  update,
   removeCampaign,
-  removeHousingValidators,
   removeHousing
 };
 

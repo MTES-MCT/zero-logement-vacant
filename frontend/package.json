@@ -18,7 +18,7 @@
     ]
   },
   "dependencies": {
-    "@codegouvfr/react-dsfr": "1.32.1",
+    "@codegouvfr/react-dsfr": "1.28.0",
     "@emotion/react": "11.14.0",
     "@emotion/styled": "11.14.1",
     "@hookform/resolvers": "5.2.2",
@@ -28,7 +28,7 @@
     "@lexical/text": "0.44.0",
     "@lexical/utils": "0.44.0",
     "@maplibre/maplibre-gl-style-spec": "24.8.5",
-    "@mui/material": "7.3.11",
+    "@mui/material": "7.3.7",
     "@reduxjs/toolkit": "1.9.7",
     "@sentry/react": "9.47.1",
     "@tanstack/react-table": "8.21.3",

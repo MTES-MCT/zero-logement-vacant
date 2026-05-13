@@ -28,7 +28,6 @@ import { format, subYears } from 'date-fns';
 import { pipe, Record } from 'effect';
 import { Provider } from 'react-redux';
 import { createMemoryRouter, RouterProvider } from 'react-router-dom';
-import { vi } from 'vitest';
 
 import data from '~/mocks/handlers/data';
 import { fromEstablishmentDTO } from '~/models/Establishment';
@@ -37,10 +36,6 @@ import { fromUserDTO } from '~/models/User';
 import { genAuthUser } from '~/test/fixtures';
 import configureTestStore from '~/utils/storeUtils';
 import HousingView from '~/views/Housing/HousingView';
-
-vi.mock('posthog-js/react', () => ({
-  useFeatureFlagEnabled: vi.fn().mockReturnValue(false)
-}));
 
 describe('Housing view', () => {
   const user = userEvent.setup();
@@ -121,11 +116,6 @@ describe('Housing view', () => {
   });
 
   describe('Relative location tag', () => {
-    beforeEach(async () => {
-      const { useFeatureFlagEnabled } = await import('posthog-js/react');
-      vi.mocked(useFeatureFlagEnabled).mockReturnValue(true);
-    });
-    
     it('should display the relative location tag for the primary owner', async () => {
       const establishment = genEstablishmentDTO();
       const auth = genUserDTO(UserRole.USUAL, establishment);
@@ -349,9 +339,6 @@ describe('Housing view', () => {
     });
 
     it('should update the actual energy consumption', async () => {
-      const { useFeatureFlagEnabled } = await import('posthog-js/react');
-      vi.mocked(useFeatureFlagEnabled).mockReturnValue(true);
-
       const housing = genHousingDTO();
       housing.status = HousingStatus.NEVER_CONTACTED;
       housing.subStatus = null;

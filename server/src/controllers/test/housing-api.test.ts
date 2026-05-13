@@ -666,12 +666,12 @@ describe('Housing API', () => {
         DatafoncierHouses().insert({
           ...datafoncierHousing,
           geomloc: db.raw('ST_GeomFromGeoJson(?)', [
-            datafoncierHousing.geomloc
+            JSON.stringify(datafoncierHousing.geomloc)
           ]),
           ban_geom: db.raw('ST_GeomFromGeoJson(?)', [
-            datafoncierHousing.ban_geom
+            JSON.stringify(datafoncierHousing.ban_geom)
           ]),
-          geomrnb: db.raw('ST_GeomFromGeoJson(?)', [datafoncierHousing.geomrnb])
+          geomrnb: db.raw('ST_GeomFromGeoJson(?)', [JSON.stringify(datafoncierHousing.geomrnb)])
         }),
         DatafoncierOwners().insert(datafoncierOwners)
       ]);
@@ -712,12 +712,12 @@ describe('Housing API', () => {
         DatafoncierHouses().insert({
           ...datafoncierHousing,
           geomloc: db.raw('ST_GeomFromGeoJson(?)', [
-            datafoncierHousing.geomloc
+            JSON.stringify(datafoncierHousing.geomloc)
           ]),
           ban_geom: db.raw('ST_GeomFromGeoJson(?)', [
-            datafoncierHousing.ban_geom
+            JSON.stringify(datafoncierHousing.ban_geom)
           ]),
-          geomrnb: db.raw('ST_GeomFromGeoJson(?)', [datafoncierHousing.geomrnb])
+          geomrnb: db.raw('ST_GeomFromGeoJson(?)', [JSON.stringify(datafoncierHousing.geomrnb)])
         }),
         DatafoncierOwners().insert(datafoncierOwners),
         Owners().insert(existingOwners.map(formatOwnerApi))
@@ -770,12 +770,12 @@ describe('Housing API', () => {
         DatafoncierHouses().insert({
           ...datafoncierHousing,
           geomloc: db.raw('ST_GeomFromGeoJson(?)', [
-            datafoncierHousing.geomloc
+            JSON.stringify(datafoncierHousing.geomloc)
           ]),
           ban_geom: db.raw('ST_GeomFromGeoJson(?)', [
-            datafoncierHousing.ban_geom
+            JSON.stringify(datafoncierHousing.ban_geom)
           ]),
-          geomrnb: db.raw('ST_GeomFromGeoJson(?)', [datafoncierHousing.geomrnb])
+          geomrnb: db.raw('ST_GeomFromGeoJson(?)', [JSON.stringify(datafoncierHousing.geomrnb)])
         }),
         DatafoncierOwners().insert(datafoncierOwners)
       ]);
@@ -808,12 +808,12 @@ describe('Housing API', () => {
         DatafoncierHouses().insert({
           ...datafoncierHousing,
           geomloc: db.raw('ST_GeomFromGeoJson(?)', [
-            datafoncierHousing.geomloc
+            JSON.stringify(datafoncierHousing.geomloc)
           ]),
           ban_geom: db.raw('ST_GeomFromGeoJson(?)', [
-            datafoncierHousing.ban_geom
+            JSON.stringify(datafoncierHousing.ban_geom)
           ]),
-          geomrnb: db.raw('ST_GeomFromGeoJson(?)', [datafoncierHousing.geomrnb])
+          geomrnb: db.raw('ST_GeomFromGeoJson(?)', [JSON.stringify(datafoncierHousing.geomrnb)])
         }),
         DatafoncierOwners().insert(datafoncierOwners)
       ]);
@@ -859,12 +859,12 @@ describe('Housing API', () => {
         DatafoncierHouses().insert({
           ...datafoncierHousing,
           geomloc: db.raw('ST_GeomFromGeoJson(?)', [
-            datafoncierHousing.geomloc
+            JSON.stringify(datafoncierHousing.geomloc)
           ]),
           ban_geom: db.raw('ST_GeomFromGeoJson(?)', [
-            datafoncierHousing.ban_geom
+            JSON.stringify(datafoncierHousing.ban_geom)
           ]),
-          geomrnb: db.raw('ST_GeomFromGeoJson(?)', [datafoncierHousing.geomrnb])
+          geomrnb: db.raw('ST_GeomFromGeoJson(?)', [JSON.stringify(datafoncierHousing.geomrnb)])
         }),
         DatafoncierOwners().insert(datafoncierOwners)
       ]);
@@ -906,12 +906,12 @@ describe('Housing API', () => {
         DatafoncierHouses().insert({
           ...datafoncierHousing,
           geomloc: db.raw('ST_GeomFromGeoJson(?)', [
-            datafoncierHousing.geomloc
+            JSON.stringify(datafoncierHousing.geomloc)
           ]),
           ban_geom: db.raw('ST_GeomFromGeoJson(?)', [
-            datafoncierHousing.ban_geom
+            JSON.stringify(datafoncierHousing.ban_geom)
           ]),
-          geomrnb: db.raw('ST_GeomFromGeoJson(?)', [datafoncierHousing.geomrnb])
+          geomrnb: db.raw('ST_GeomFromGeoJson(?)', [JSON.stringify(datafoncierHousing.geomrnb)])
         }),
         DatafoncierOwners().insert(datafoncierOwners)
       ]);

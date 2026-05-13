@@ -58,9 +58,9 @@ Use the branch name prefix as the primary signal:
 
 When the prefix is ambiguous, use the PR title and description to decide. Add new sections if needed (e.g. **Documentation**, **Infrastructure**).
 
-### 4 — Write the summary
+### 4 — Write the GitHub summary
 
-Format per entry (inside its section):
+One `###` entry per PR. Format:
 
 ```markdown
 ### <PR title (translated to French if needed)>
@@ -97,6 +97,51 @@ Full structure:
 
 Omit any section that has no entries.
 
+### 4b — Write the Notion summary
+
+A compact, non-technical version of the same content. Produce this **after** the GitHub summary.
+
+**Opening line:** one sentence counting the entries per section, e.g.:
+> *Cette mise en production apporte 3 nouvelles fonctionnalités, 1 refactoring technique et 2 corrections.*
+
+**Per section:** a flat bullet list — no `###` headings per item. Each bullet:
+- If a Notion link exists: `- [<French title>](<notion url>) : <one-sentence description in plain French.>`
+- If no Notion link: `- **<French title>** : <one-sentence description in plain French.>`
+
+Sections and their Notion-friendly labels:
+
+| GitHub section | Notion label |
+|---|---|
+| Fonctionnalités | Fonctionnalités |
+| Corrections de bugs | Corrections |
+| Performance | Améliorations |
+| Refactoring technique | Refactoring technique |
+| Sécurité / Maintenance | Maintenance |
+| Tests | Tests |
+
+Keep all sections that have entries. Omit GitHub links entirely. Descriptions must be readable by a non-technical audience (no code references, no PR numbers, no branch names).
+
+Example:
+
+```markdown
+Cette mise en production apporte 3 nouvelles fonctionnalités, 1 refactoring technique et 2 corrections de tests.
+
+## Fonctionnalités
+
+- [Navigation vers les logements depuis une campagne](https://notion.so/...) : Nouveau bouton « Voir les logements » sur la page de détail d'une campagne.
+- [Export groupe différencié de l'export campagne](https://notion.so/...) : Colonnes réorganisées et renommées ; fiabilité d'adresse affichée en pourcentage.
+- **Réorganisation du tableau des destinataires** : Colonnes réordonnées, tri automatique par destinataire principal.
+
+## Refactoring technique
+
+- [Synchronisation BAN unifiée](https://notion.so/...) : Remplace 4 processus redondants par un job quotidien idempotent ; corrige un bug de boucle.
+
+## Tests
+
+- **Fixtures cohérentes** : Sous-statuts désormais cohérents avec le statut des logements.
+- **Correction des tests E2E d'inscription.**
+```
+
 ### 5 — Update the GitHub deploy PR
 
 ```bash
@@ -108,7 +153,7 @@ EOF
 
 Verify with `gh pr view <deploy-pr-number>`.
 
-### 6 — Create the Notion release page
+### 6 — Create the Notion release page (use the Notion summary from step 4b)
 
 **Database ID:** `ef70347c-cb99-4fad-8c14-0f6f002a901c`  
 **Template page ID:** `12f9ec2a056c80bf84d6d8e6e7d5fded`

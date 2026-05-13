@@ -97,7 +97,7 @@ describe('Document API', () => {
 
     it('should upload a single document successfully', async () => {
       const { body, status } = await request(url)
-        .post('/api/documents')
+        .post('/documents')
         .use(tokenProvider(user))
         .attach('files', samplePdfPath);
 
@@ -113,7 +113,7 @@ describe('Document API', () => {
 
     it('should create an event "document:created" for each document', async () => {
       const { body, status } = await request(url)
-        .post('/api/documents')
+        .post('/documents')
         .use(tokenProvider(user))
         .attach('files', samplePdfPath)
         .attach('files', samplePdfPath);
@@ -136,7 +136,7 @@ describe('Document API', () => {
 
     it('should upload multiple documents successfully', async () => {
       const { body, status } = await request(url)
-        .post('/api/documents')
+        .post('/documents')
         .use(tokenProvider(user))
         .attach('files', samplePdfPath)
         .attach('files', samplePdfPath);
@@ -147,7 +147,7 @@ describe('Document API', () => {
 
     it('should return 207 for partial success', async () => {
       const { body, status } = await request(url)
-        .post('/api/documents')
+        .post('/documents')
         .use(tokenProvider(user))
         .attach('files', samplePdfPath)
         .attach('files', Buffer.from('invalid'), 'invalid.exe');
@@ -168,7 +168,7 @@ describe('Document API', () => {
 
     it('should return 400 if all files fail validation', async () => {
       const { status } = await request(url)
-        .post('/api/documents')
+        .post('/documents')
         .use(tokenProvider(user))
         .attach('files', Buffer.from('bad'), 'bad.exe');
 
@@ -177,7 +177,7 @@ describe('Document API', () => {
 
     it('should return 400 if no files provided', async () => {
       const { status } = await request(url)
-        .post('/api/documents')
+        .post('/documents')
         .use(tokenProvider(user));
 
       expect(status).toBe(constants.HTTP_STATUS_BAD_REQUEST);
@@ -185,7 +185,7 @@ describe('Document API', () => {
   });
 
   describe('GET /documents/:id', () => {
-    const testRoute = (id: DocumentDTO['id']) => `/api/documents/${id}`;
+    const testRoute = (id: DocumentDTO['id']) => `/documents/${id}`;
 
     it('should return 404 if document not found', async () => {
       const { status } = await request(url)
@@ -240,7 +240,7 @@ describe('Document API', () => {
   });
 
   describe('PUT /documents/:id', () => {
-    const testRoute = (id: string) => `/api/documents/${id}`;
+    const testRoute = (id: string) => `/documents/${id}`;
 
     it('should update document filename', async () => {
       const document = genDocumentApi({
@@ -333,7 +333,7 @@ describe('Document API', () => {
   });
 
   describe('DELETE /documents/:id', () => {
-    const testRoute = (id: string) => `/api/documents/${id}`;
+    const testRoute = (id: string) => `/documents/${id}`;
 
     it('should soft-delete document', async () => {
       const document = genDocumentApi({
@@ -481,7 +481,7 @@ describe('Document API', () => {
 
   describe('GET /housing/:id/documents', () => {
     const testRoute = (housingId: string) =>
-      `/api/housing/${housingId}/documents`;
+      `/housing/${housingId}/documents`;
 
     const housing = genHousingApi(
       faker.helpers.arrayElement(establishment.geoCodes)
@@ -584,7 +584,7 @@ describe('Document API', () => {
 
   describe('DELETE /housing/:housingId/documents/:documentId', () => {
     const testRoute = (housingId: string, documentId: string) =>
-      `/api/housing/${housingId}/documents/${documentId}`;
+      `/housing/${housingId}/documents/${documentId}`;
 
     it('should remove association only (keep document)', async () => {
       const housing = genHousingApi(

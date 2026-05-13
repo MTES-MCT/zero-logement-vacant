@@ -42,7 +42,7 @@ describe('Datafoncier housing controller', () => {
 
   describe('findOne', () => {
     const testRoute = (localId: string) =>
-      `/api/datafoncier/housing/${localId}`;
+      `/datafoncier/housing/${localId}`;
 
     it('should return the housing if it exists', async () => {
       const idprocpte = genIdprocpte(

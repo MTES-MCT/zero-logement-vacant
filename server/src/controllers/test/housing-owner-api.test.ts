@@ -43,7 +43,7 @@ describe('Housing owner API', () => {
 
   describe('PUT /housing/:housingId/owners', () => {
     const testRoute = (housingId: string) =>
-      `/api/housing/${housingId}/owners`;
+      `/housing/${housingId}/owners`;
 
     it('should refresh is_multi_owner for affected owners', async () => {
       const housing1 = genHousingApi(establishment.geoCodes[0]);
@@ -81,7 +81,7 @@ describe('Housing owner API', () => {
   });
 
   describe('GET /owners/:id/housings', () => {
-    const testRoute = (id: string) => `/api/owners/${id}/housings`;
+    const testRoute = (id: string) => `/owners/${id}/housings`;
 
     const housings = faker.helpers.multiple(
       () => genHousingApi(faker.helpers.arrayElement(establishment.geoCodes)),

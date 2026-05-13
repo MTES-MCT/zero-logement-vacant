@@ -11,7 +11,7 @@ interface DatafoncierHousingParams {
 
 export const datafoncierHandlers: RequestHandler[] = [
   http.get<DatafoncierHousingParams, never, DatafoncierHousing | Error>(
-    `${config.apiEndpoint}/api/datafoncier/housing/:localId`,
+    `${config.apiEndpoint}/datafoncier/housing/:localId`,
     async ({ params }) => {
       const housing = data.datafoncierHousings.find(
         (housing) => housing.idlocal === params.localId

@@ -34,7 +34,7 @@ const login = async (
   password: string,
   establishmentId?: string
 ): Promise<LoginResponse> => {
-  return fetch(`${config.apiEndpoint}/api/authenticate`, {
+  return fetch(`${config.apiEndpoint}/authenticate`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({ email, password, establishmentId })
@@ -58,7 +58,7 @@ const verifyTwoFactor = async (
   code: string,
   establishmentId?: string
 ): Promise<AuthUser> => {
-  return fetch(`${config.apiEndpoint}/api/authenticate/verify-2fa`, {
+  return fetch(`${config.apiEndpoint}/authenticate/verify-2fa`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({ email, code, establishmentId })
@@ -77,7 +77,7 @@ const logout = (): void => {
 
 const resetPassword = async (key: string, password: string) => {
   const response = await fetch(
-    `${config.apiEndpoint}/api/account/reset-password`,
+    `${config.apiEndpoint}/account/reset-password`,
     {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
@@ -91,7 +91,7 @@ const resetPassword = async (key: string, password: string) => {
 
 const changeEstablishment = async (establishmentId: string): Promise<AuthUser> => {
   return fetch(
-    `${config.apiEndpoint}/api/account/establishments/${establishmentId}`,
+    `${config.apiEndpoint}/account/establishments/${establishmentId}`,
     {
       method: 'GET',
       headers: {

@@ -6,7 +6,7 @@ import config from '~/utils/config';
 import data from './data';
 
 const find = http.get(
-  `${config.apiEndpoint}/api/localities`,
+  `${config.apiEndpoint}/localities`,
   async ({ request }) => {
     const searchParams = new URL(request.url).searchParams;
     const query = qs.parse(searchParams.toString());

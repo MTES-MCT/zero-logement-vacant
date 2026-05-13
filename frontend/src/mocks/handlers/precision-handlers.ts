@@ -10,7 +10,7 @@ const replace = http.put<
   ReadonlyArray<Precision['id']>,
   Precision[]
 >(
-  `${config.apiEndpoint}/api/housing/:id/precisions`,
+  `${config.apiEndpoint}/housing/:id/precisions`,
   async ({ params, request }) => {
     const housing = data.housings.find((housing) => housing.id === params.id);
     if (!housing) {
@@ -48,7 +48,7 @@ const replace = http.put<
 export const precisionHandlers: RequestHandler[] = [
   // Fetch the referential of precisions
   http.get<never, never, Precision[]>(
-    `${config.apiEndpoint}/api/precisions`,
+    `${config.apiEndpoint}/precisions`,
     async () => {
       return HttpResponse.json(data.precisions);
     }
@@ -56,7 +56,7 @@ export const precisionHandlers: RequestHandler[] = [
 
   // Fetch housing precisions
   http.get<{ id: string }, never, Precision[]>(
-    `${config.apiEndpoint}/api/housing/:id/precisions`,
+    `${config.apiEndpoint}/housing/:id/precisions`,
     async ({ params }) => {
       const housingPrecisions = data.housingPrecisions.get(params.id) ?? [];
       const precisions = housingPrecisions

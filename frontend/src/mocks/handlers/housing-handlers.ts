@@ -58,7 +58,7 @@ const find = http.get<
   Record<string, never>,
   HousingPayload,
   Paginated<HousingDTO>
->(`${config.apiEndpoint}/api/housing`, async ({ request }) => {
+>(`${config.apiEndpoint}/housing`, async ({ request }) => {
   const url = new URL(request.url);
   const { campaignIds, housingKinds, relativeLocations, statuses } =
     parseQueryParams(url);
@@ -90,7 +90,7 @@ const find = http.get<
 });
 
 const count = http.get<Record<string, never>, HousingPayload, HousingCountDTO>(
-  `${config.apiEndpoint}/api/housing/count`,
+  `${config.apiEndpoint}/housing/count`,
   async ({ request }) => {
     const url = new URL(request.url);
     const query = parseQueryParams(url);
@@ -125,7 +125,7 @@ export const housingHandlers: RequestHandler[] = [
 
   // Add a housing
   http.post<never, HousingPayloadDTO, HousingDTO | Error>(
-    `${config.apiEndpoint}/api/housing`,
+    `${config.apiEndpoint}/housing`,
     async ({ request }) => {
       const payload = await request.json();
       const datafoncierHousing = data.datafoncierHousings.find(
@@ -169,7 +169,7 @@ export const housingHandlers: RequestHandler[] = [
   ),
   // Bulk update housings
   http.put<never, HousingBatchUpdatePayload, ReadonlyArray<HousingDTO>>(
-    `${config.apiEndpoint}/api/housing`,
+    `${config.apiEndpoint}/housing`,
     async ({ request }) => {
       const payload = await request.json();
 
@@ -240,7 +240,7 @@ export const housingHandlers: RequestHandler[] = [
   ),
   // Get a housing by id
   http.get<HousingParams, never, HousingDTO | null | Error>(
-    `${config.apiEndpoint}/api/housing/:id`,
+    `${config.apiEndpoint}/housing/:id`,
     ({ params }) => {
       const housing = data.housings.find((housing) =>
         [housing.id, housing.localId].includes(params.id)
@@ -288,7 +288,7 @@ export const housingHandlers: RequestHandler[] = [
 
   // Update a housing
   http.put<HousingParams, HousingUpdatePayloadDTO, HousingDTO | Error>(
-    `${config.apiEndpoint}/api/housing/:id`,
+    `${config.apiEndpoint}/housing/:id`,
     async ({ params, request }) => {
       const payload = await request.json();
       const housing = data.housings.find((housing) => housing.id === params.id);

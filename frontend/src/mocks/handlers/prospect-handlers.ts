@@ -15,7 +15,7 @@ interface ProspectParams {
 
 export const prospectHandlers: RequestHandler[] = [
   http.put<SignupLinkParams, never, ProspectDTO>(
-    `${config.apiEndpoint}/api/signup-links/:id/prospect`,
+    `${config.apiEndpoint}/signup-links/:id/prospect`,
     async ({ params }) => {
       const link = data.signupLinks.find((link) => link.id === params.id);
       if (!link) {
@@ -47,7 +47,7 @@ export const prospectHandlers: RequestHandler[] = [
     }
   ),
   http.get<ProspectParams, never, ProspectDTO>(
-    `${config.apiEndpoint}/api/prospects/:email`,
+    `${config.apiEndpoint}/prospects/:email`,
     async ({ params }) => {
       const prospect = data.prospects.find(
         (prospect) => prospect.email === params.email

@@ -102,7 +102,7 @@ describe('Group API', () => {
   });
 
   describe('GET /groups', () => {
-    const testRoute = '/api/groups';
+    const testRoute = '/groups';
 
     const groups = [
       genGroupApi(user, establishment),
@@ -135,7 +135,7 @@ describe('Group API', () => {
   });
 
   describe('GET /groups/{id}', () => {
-    const testRoute = (id: string): string => `/api/groups/${id}`;
+    const testRoute = (id: string): string => `/groups/${id}`;
     const group = genGroupApi(user, establishment);
     const anotherGroup = genGroupApi(otherUser, otherEstablishment);
 
@@ -169,7 +169,7 @@ describe('Group API', () => {
   });
 
   describe('POST /groups', () => {
-    const testRoute = '/api/groups';
+    const testRoute = '/groups';
     const owners = faker.helpers.multiple(() => genOwnerApi());
     const housings = faker.helpers.multiple(
       () => {
@@ -458,7 +458,7 @@ describe('Group API', () => {
   });
 
   describe('PUT /groups/{id}', () => {
-    const testRoute = (id: string) => `/api/groups/${id}`;
+    const testRoute = (id: string) => `/groups/${id}`;
     const group = genGroupApi(user, establishment);
     const anotherGroup = genGroupApi(otherUser, otherEstablishment);
     const housingList = [
@@ -547,7 +547,7 @@ describe('Group API', () => {
   });
 
   describe('POST /groups/{id}/housing', () => {
-    const testRoute = (id: string) => `/api/groups/${id}/housing`;
+    const testRoute = (id: string) => `/groups/${id}/housing`;
     const owner = genOwnerApi();
     const housingList = [
       genHousingApi(establishment.geoCodes[0]),
@@ -710,7 +710,7 @@ describe('Group API', () => {
   });
 
   describe('DELETE /groups/{id}/housing', () => {
-    const testRoute = (id: string) => `/api/groups/${id}/housing`;
+    const testRoute = (id: string) => `/groups/${id}/housing`;
     const owner = genOwnerApi();
     const housingList = [
       genHousingApi(establishment.geoCodes[0]),
@@ -854,7 +854,7 @@ describe('Group API', () => {
   });
 
   describe('DELETE /groups/{id}', () => {
-    const testRoute = (id: string): string => `/api/groups/${id}`;
+    const testRoute = (id: string): string => `/groups/${id}`;
 
     let group: GroupApi;
     let anotherGroup: GroupApi;

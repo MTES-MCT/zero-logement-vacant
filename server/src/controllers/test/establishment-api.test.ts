@@ -29,7 +29,7 @@ describe('Establishment API', () => {
   });
 
   describe('GET /establishments', () => {
-    const testRoute = '/api/establishments';
+    const testRoute = '/establishments';
 
     const establishments: EstablishmentApi[] = Array.from({ length: 10 }).map(
       () => genEstablishmentApi()
@@ -202,7 +202,7 @@ describe('Establishment API', () => {
   });
 
   describe('GET /establishments/:id', () => {
-    const testRoute = (id: string) => `/api/establishments/${id}`;
+    const testRoute = (id: string) => `/establishments/${id}`;
 
     it('should return 404 if the establishment does not exist', async () => {
       const { status } = await request(url).get(testRoute(faker.string.uuid()));

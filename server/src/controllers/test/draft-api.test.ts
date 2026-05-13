@@ -65,7 +65,7 @@ describe('Draft API', () => {
   });
 
   describe('GET /drafts', () => {
-    const testRoute = '/api/drafts';
+    const testRoute = '/drafts';
 
     const sender = genSenderApi(establishment);
     const drafts: DraftApi[] = [
@@ -149,7 +149,7 @@ describe('Draft API', () => {
     });
   });
 
-  describe('POST /api/drafts', () => {
+  describe('POST /drafts', () => {
     const establishment = genEstablishmentApi();
     const user = genUserApi(establishment.id);
 
@@ -158,7 +158,7 @@ describe('Draft API', () => {
       await Users().insert(toUserDBO(user));
     });
 
-    const testRoute = '/api/drafts';
+    const testRoute = '/drafts';
     let campaign: CampaignApi;
 
     beforeEach(async () => {
@@ -285,7 +285,7 @@ describe('Draft API', () => {
     });
   });
 
-  describe('PUT /api/drafts/:id', () => {
+  describe('PUT /drafts/:id', () => {
     const establishment = genEstablishmentApi();
     const user = genUserApi(establishment.id);
 
@@ -294,7 +294,7 @@ describe('Draft API', () => {
       await Users().insert(toUserDBO(user));
     });
 
-    const testRoute = (id: string) => `/api/drafts/${id}`;
+    const testRoute = (id: string) => `/drafts/${id}`;
     let draft: DraftApi;
     let sender: SenderApi;
 

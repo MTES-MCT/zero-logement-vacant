@@ -46,7 +46,7 @@ describe('Prospect API', () => {
   });
 
   describe('PUT /signup-links/{link}/prospect', () => {
-    const testRoute = (link: string) => `/api/signup-links/${link}/prospect`;
+    const testRoute = (link: string) => `/signup-links/${link}/prospect`;
 
     it('should receive a valid link', async () => {
       // No link
@@ -227,7 +227,7 @@ describe('Prospect API', () => {
   });
 
   describe('GET /prospects/{email}', () => {
-    const testRoute = (email: string) => `/api/prospects/${email}`;
+    const testRoute = (email: string) => `/prospects/${email}`;
 
     it('should receive a valid email', async () => {
       await request(url)

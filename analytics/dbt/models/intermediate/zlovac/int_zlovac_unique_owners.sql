@@ -54,7 +54,9 @@ SELECT DISTINCT
     md.owner_idpersonne,
     md.owner_idprodroit,
     COALESCE(md.owner_fullname, fd.owner_fullname) AS owner_fullname,
-    COALESCE(md.owner_address, fd.owner_address) AS owner_address,
+    -- Prefer FF address (canonical, normalized in FF) over CER raw address
+    -- so all rows sharing an idpersonne resolve to the same owner_uid.
+    COALESCE(fd.owner_address, md.owner_address) AS owner_address,
     fd.owner_birth_date,
     fd.owner_birth_place,
     md.owner_property_rights,
@@ -63,8 +65,8 @@ SELECT DISTINCT
     fd.owner_category_text,
     fd.owner_siren,
     md.owner_locprop,
-    COALESCE(md.owner_postal_code, fd.owner_postal_code) AS owner_postal_code,
-    COALESCE(md.owner_city, fd.owner_city) AS owner_city,
+    COALESCE(fd.owner_postal_code, md.owner_postal_code) AS owner_postal_code,
+    COALESCE(fd.owner_city, md.owner_city) AS owner_city,
     fd.owner_entity,
     fd.owner_username,
     md.administrator

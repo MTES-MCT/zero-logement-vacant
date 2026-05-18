@@ -32,19 +32,9 @@ SELECT
         intercommunalite,
         TRY_CAST(ban_latitude as DOUBLE) as ban_latitude,
         TRY_CAST(ban_longitude as DOUBLE) as ban_longitude,
-        REGEXP_REPLACE(
-            TRIM(REGEXP_REPLACE(
-                CONCAT_WS(' ',
-                    NULLIF(TRIM(CAST(loc_num AS VARCHAR)), ''),
-                    NULLIF(TRIM(loc_voie), ''),
-                    NULLIF(TRIM(libvoie), ''),
-                    NULLIF(TRIM(libcom), '')
-                ),
-                '^\s*0+', ''
-            )),
-            ' {2,}',
-            ' '
-        ) as dgfip_address,
+        {{ clean_display_address(
+            "CONCAT_WS(' ', NULLIF(TRIM(libvoie), ''), NULLIF(TRIM(libcom), ''))"
+        ) }} as dgfip_address,
         CONCAT_WS(' ', LTRIM(TRIM(libvoie), '0'), TRIM(libcom)) as raw_address,
         idcom as geo_code,
         TRY_CAST(ff_y_4326 as DOUBLE) as latitude,
@@ -144,12 +134,13 @@ SELECT
         end as owner_fullname,
         case when TRIM(proprietaire) <> '' then TRIM(gestre_ppre) end
             as administrator,
-        CONCAT_WS(
-            NULLIF(TRIM(adresse1), ''),
-            NULLIF(TRIM(adresse2), ''),
-            NULLIF(TRIM(adresse3), ''),
-            NULLIF(TRIM(adresse4), '')
-        ) as owner_raw_address,
+        {{ clean_display_address(
+            "CONCAT_WS(' ',
+                NULLIF(TRIM(adresse1), ''),
+                NULLIF(TRIM(adresse2), ''),
+                NULLIF(TRIM(adresse3), ''),
+                NULLIF(TRIM(adresse4), ''))"
+        ) }} as owner_raw_address,
         ff_idprocpte,
         adresse1 as owner_adresse1,
         adresse2 as owner_adresse2,
@@ -164,12 +155,12 @@ SELECT
         END AS owner_kind,
 
         -- FF owners (1 to 6)
-        cer_ff_adresse_1 as ff_owner_1_raw_address,
-        cer_ff_adresse_2 as ff_owner_2_raw_address,
-        cer_ff_adresse_3 as ff_owner_3_raw_address,
-        cer_ff_adresse_4 as ff_owner_4_raw_address,
-        cer_ff_adresse_5 as ff_owner_5_raw_address,
-        cer_ff_adresse_6 as ff_owner_6_raw_address,
+        {{ clean_display_address('cer_ff_adresse_1') }} as ff_owner_1_raw_address,
+        {{ clean_display_address('cer_ff_adresse_2') }} as ff_owner_2_raw_address,
+        {{ clean_display_address('cer_ff_adresse_3') }} as ff_owner_3_raw_address,
+        {{ clean_display_address('cer_ff_adresse_4') }} as ff_owner_4_raw_address,
+        {{ clean_display_address('cer_ff_adresse_5') }} as ff_owner_5_raw_address,
+        {{ clean_display_address('cer_ff_adresse_6') }} as ff_owner_6_raw_address,
         REGEXP_EXTRACT(cer_ff_adresse_1, '\d{5}') as ff_owner_1_postal_code,
         REGEXP_EXTRACT(cer_ff_adresse_2, '\d{5}') as ff_owner_2_postal_code,
         REGEXP_EXTRACT(cer_ff_adresse_3, '\d{5}') as ff_owner_3_postal_code,

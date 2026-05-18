@@ -43,7 +43,7 @@ SELECT
         -- Geolocation (RNB > FF > BAN)
         rnb_id,
         rnb_id_score,
-        ff_rnb_emp as rnb_emp,
+        geomrnb as rnb_footprint,
         geomrnb,
         ff_geomloc,
         ban_geom,

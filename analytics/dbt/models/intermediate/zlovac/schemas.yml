@@ -34,6 +34,8 @@ models:
                 values: ['bati-rnb', 'parcelle-ff', 'adresse-ban']
               config:
                 where: "geolocation_source IS NOT NULL"
+      - name: geolocation
+        description: "Point or polygon geometry for the housing. Source priority: geomrnb (1, building) > ff_geomloc (2, parcel) > ban_geom (3, BAN address). NULL only when no source is available."
       - name: dgfip_address
         description: "Cleaned address built from libvoie + libcom (leading zeros stripped, whitespace collapsed)."
       - name: data_file_years
@@ -124,6 +126,12 @@ models:
         data_tests:
           - not_null
           - unique
+      - name: rnb_id
+        description: "Référentiel National des Bâtiments identifier matched by CEREMA."
+      - name: rnb_id_score
+        description: "Confidence score returned by the CEREMA RNB matching (0..1)."
+      - name: rnb_footprint
+        description: "Hex-WKB POINT centroid from CEREMA RNB enrichment (geomrnb, EPSG:4326). NULL when CEREMA could not match the local to an RNB emprise. May upgrade to POLYGON in future LOVAC releases."
   - name: int_zlovac_evol_housing_owners
     description: "Identifies housing where ownership changed between LOVAC 2025 and 2026 (account or ownership order changes)."
     config:

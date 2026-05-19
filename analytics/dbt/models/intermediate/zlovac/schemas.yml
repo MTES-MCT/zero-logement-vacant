@@ -5,6 +5,43 @@ models:
     description: "Gold Housing table for LOVAC 2026 - maps to Table Housing_26 specification."
     config:
       materialized: table
+    columns:
+      - name: local_id
+        description: "DGFIP local identifier (ff_idlocal). Unique housing identifier."
+        data_tests:
+          - not_null
+          - unique
+      - name: invariant
+        description: "DGFIP invariant tax identifier."
+        data_tests:
+          - not_null
+      - name: geo_code
+        description: "INSEE commune code (5 chars: 2 dept + 3 commune)."
+        data_tests:
+          - not_null
+      - name: housing_kind
+        description: "Housing type: APPART (apartment) or MAISON (house)."
+        data_tests:
+          - not_null
+          - accepted_values:
+              arguments:
+                values: ['APPART', 'MAISON']
+      - name: geolocation_source
+        description: "Source of the geolocation column: 'bati-rnb', 'parcelle-ff', or 'adresse-ban'. NULL only when no geometry available."
+        data_tests:
+          - accepted_values:
+              arguments:
+                values: ['bati-rnb', 'parcelle-ff', 'adresse-ban']
+              config:
+                where: "geolocation_source IS NOT NULL"
+      - name: geolocation
+        description: "Point or polygon geometry for the housing. Source priority: geomrnb (1, building) > ff_geomloc (2, parcel) > ban_geom (3, BAN address). NULL only when no source is available."
+      - name: dgfip_address
+        description: "Cleaned address built from libvoie + libcom (leading zeros stripped, whitespace collapsed)."
+      - name: data_file_years
+        description: "LOVAC data file year tag, e.g. 'lovac-2026'."
+        data_tests:
+          - not_null
   - name: int_zlovac
     description: "Base structured model from LOVAC 2026 with all fields standardized."
     config:
@@ -18,12 +55,12 @@ models:
       materialized: table
     columns:
       - name: owner_uid
-        description: "Stable UUID generated once per dedup_key after deduplication."
+        description: "Deterministic UUID v5 (SHA1, RFC 4122 DNS namespace) keyed on (UPPER(TRIM(fullname)) || '|' || normalize_address(address)). Stable across runs. Two FF idpersonnes for the same legal entity (same fullname + address) collapse to one owner_uid."
         data_tests:
           - not_null
           - unique
       - name: dedup_key
-        description: "COALESCE(owner_idpersonne, owner_fullname). Used by int_zlovac_owner_housing to retrieve owner_uid."
+        description: "COALESCE(owner_idpersonne, owner_fullname). One dedup_key retained per owner_uid after the (owner_uid) collapse step."
         data_tests:
           - not_null
           - unique
@@ -40,16 +77,31 @@ models:
               arguments:
                 to: ref('int_zlovac_owners')
                 field: owner_uid
+      - name: local_id
+        description: "FK to int_zlovac_housing.local_id."
+        data_tests:
+          - not_null
+          - relationships:
+              arguments:
+                to: ref('int_zlovac_housing')
+                field: local_id
+      - name: rank
+        description: "Owner rank within housing. -1 = housing without FF owner sentinel; 1-6 = ordered FF owners."
+        data_tests:
+          - not_null
+          - accepted_values:
+              arguments:
+                values: [-1, 1, 2, 3, 4, 5, 6]
   - name: int_zlovac_ff25_lookup
     description: "Pre-filtered FF25 owners: only names present in LOVAC CER fields, with normalized addresses."
     config:
       materialized: table
   - name: int_zlovac_owner_match_lovac
-    description: "Phase 1: LOVAC internal matching - CER name = cer_nom_usage_1..6."
+    description: "Phase 1: LOVAC internal matching - CER name vs ff_ddenom_1..6 (primary), cer_nom_usage_1..6 (legacy fallback). Both proprietaire and gestionnaire compared."
     config:
       materialized: table
   - name: int_zlovac_owner_match_ff25
-    description: "Phase 2: FF25 address matching (jaro_winkler >= 0.85) for Phase 1 unmatched."
+    description: "Phase 2: FF25 address matching for Phase 1 unmatched. Match if jaro_winkler >= 0.85, OR one address contains the other (len >= 6), OR same 5-digit postal code."
     config:
       materialized: table
   - name: int_zlovac_owner_match_cascade
@@ -68,6 +120,18 @@ models:
     description: "Gold Buildings table for LOVAC 2026 - maps to Table Buildings_26 specification."
     config:
       materialized: table
+    columns:
+      - name: building_id
+        description: "Building identifier (ff_idbat). Unique per building."
+        data_tests:
+          - not_null
+          - unique
+      - name: rnb_id
+        description: "Référentiel National des Bâtiments identifier matched by CEREMA."
+      - name: rnb_id_score
+        description: "Confidence score returned by the CEREMA RNB matching (0..1)."
+      - name: rnb_footprint
+        description: "Hex-WKB POINT centroid from CEREMA RNB enrichment (geomrnb, EPSG:4326). NULL when CEREMA could not match the local to an RNB emprise. May upgrade to POLYGON in future LOVAC releases."
   - name: int_zlovac_evol_housing_owners
     description: "Identifies housing where ownership changed between LOVAC 2025 and 2026 (account or ownership order changes)."
     config:

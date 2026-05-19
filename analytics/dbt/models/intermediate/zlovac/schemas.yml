@@ -24,14 +24,12 @@ models:
         data_tests:
           - not_null
           - accepted_values:
-              arguments:
-                values: ['APPART', 'MAISON']
+              values: ['APPART', 'MAISON']
       - name: geolocation_source
         description: "Source of the geolocation column: 'bati-rnb', 'parcelle-ff', or 'adresse-ban'. NULL only when no geometry available."
         data_tests:
           - accepted_values:
-              arguments:
-                values: ['bati-rnb', 'parcelle-ff', 'adresse-ban']
+              values: ['bati-rnb', 'parcelle-ff', 'adresse-ban']
               config:
                 where: "geolocation_source IS NOT NULL"
       - name: geolocation
@@ -74,24 +72,21 @@ models:
         data_tests:
           - not_null
           - relationships:
-              arguments:
-                to: ref('int_zlovac_owners')
-                field: owner_uid
+              to: ref('int_zlovac_owners')
+              field: owner_uid
       - name: local_id
         description: "FK to int_zlovac_housing.local_id."
         data_tests:
           - not_null
           - relationships:
-              arguments:
-                to: ref('int_zlovac_housing')
-                field: local_id
+              to: ref('int_zlovac_housing')
+              field: local_id
       - name: rank
         description: "Owner rank within housing. -1 = housing without FF owner sentinel; 1-6 = ordered FF owners."
         data_tests:
           - not_null
           - accepted_values:
-              arguments:
-                values: [-1, 1, 2, 3, 4, 5, 6]
+              values: [-1, 1, 2, 3, 4, 5, 6]
   - name: int_zlovac_ff25_lookup
     description: "Pre-filtered FF25 owners: only names present in LOVAC CER fields, with normalized addresses."
     config:

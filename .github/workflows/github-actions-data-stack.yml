@@ -25,6 +25,14 @@ jobs:
         working-directory: analytics/dagster
         run: uv sync --all-extras
 
+      - name: Install dbt dependencies
+        working-directory: analytics/dbt
+        run: uv --project ../dagster run dbt deps
+
+      - name: Parse dbt project (generate manifest.json)
+        working-directory: analytics/dbt
+        run: uv --project ../dagster run dbt parse --target dev
+
       - name: Run compilation tests
         working-directory: analytics/dagster
         run: uv run pytest tests/ -v --tb=short

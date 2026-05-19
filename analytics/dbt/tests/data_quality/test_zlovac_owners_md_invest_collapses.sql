@@ -4,7 +4,7 @@
 -- cer_proprietaire to ff_ddenom_* on the same row, all MD INVEST rows must
 -- collapse to exactly one owner_uid.
 
-{{ config(severity='warn') }}
+{{ config(severity='error') }}
 
 SELECT
     owner_fullname,

@@ -2740,6 +2740,30 @@ describe('Housing repository', () => {
         establishment.geoCodes.includes(housing.geoCode)
       );
     });
+
+    it('should use building class_dpe for energyConsumption, not housing energy_consumption_bdnb', async () => {
+      const geoCode = oneOf(establishment.geoCodes);
+      const building = genBuildingApi({ hasEnergyConsumption: true });
+      building.dpe!.class = 'F';
+      const housing: HousingApi = {
+        ...genHousingApi(geoCode, building),
+        energyConsumption: 'A'
+      };
+
+      await Buildings().insert(formatBuildingApi(building));
+      await Housing().insert(formatHousingRecordApi(housing));
+
+      const stream = housingRepository.stream({
+        filters: { localities: [geoCode] }
+      });
+      const actual: HousingApi[] = [];
+      for await (const h of stream) {
+        if (h.id === housing.id) actual.push(h);
+      }
+
+      expect(actual).toHaveLength(1);
+      expect(actual[0].energyConsumption).toBe('F');
+    });
   });
 
   describe('save', () => {

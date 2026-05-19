@@ -484,7 +484,14 @@ export function ownerHousingJoinClause(query: any) {
 function fastListQuery(opts: ListQueryOptions) {
   return db
     .select(`${housingTable}.*`)
+    .select(`${buildingTable}.class_dpe as building_class_dpe`)
+    .select(`${buildingTable}.dpe_date_at as building_dpe_date_at`)
     .from(housingTable)
+    .leftJoin(
+      buildingTable,
+      `${housingTable}.building_id`,
+      `${buildingTable}.id`
+    )
     .modify(include(opts.includes ?? [], opts.filters))
     .modify(
       filteredQuery({
@@ -888,13 +895,7 @@ function filteredQuery(opts: FilteredQueryOptions) {
       });
     }
 
-    if (filters.housingCounts?.length || filters.vacancyRates?.length) {
-      queryBuilder.join(
-        buildingTable,
-        `${housingTable}.building_id`,
-        `${buildingTable}.id`
-      );
-    }
+    // buildings is always LEFT JOINed in fastListQuery — no additional join needed
 
     if (filters.housingCounts?.length) {
       queryBuilder.where((where) => {
@@ -1325,6 +1326,8 @@ export interface HousingDBO extends HousingRecordDBO {
   contact_count?: number;
   precisions?: Precision[];
   locprop_relative_ban?: number | null;
+  building_class_dpe?: EnergyConsumption | null;
+  building_dpe_date_at?: Date | string | null;
   // TODO: fix and fill this type
 }
 
@@ -1418,9 +1421,9 @@ export const parseHousingApi = (housing: HousingDBO): HousingApi => ({
   subStatus: housing.sub_status,
   precisions: housing.precisions,
   actualEnergyConsumption: housing.actual_dpe,
-  energyConsumption: housing.energy_consumption_bdnb,
-  energyConsumptionAt: housing.energy_consumption_at_bdnb
-    ? new Date(housing.energy_consumption_at_bdnb)
+  energyConsumption: housing.building_class_dpe ?? null,
+  energyConsumptionAt: housing.building_dpe_date_at
+    ? new Date(housing.building_dpe_date_at)
     : null,
   occupancy: housing.occupancy,
   occupancyRegistered: housing.occupancy_source,

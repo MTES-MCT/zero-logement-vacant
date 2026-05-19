@@ -1,4 +1,4 @@
-import { fr } from '@codegouvfr/react-dsfr';
+import { fr } from '@codegouvfr/react-dsfr/fr';
 import { HousingStatus } from '@zerologementvacant/models';
 import { Array } from 'effect';
 import type { NonEmptyArray } from 'ts-essentials';

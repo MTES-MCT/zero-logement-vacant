@@ -35,6 +35,16 @@ jobs:
 
       - name: Run compilation tests
         working-directory: analytics/dagster
+        env:
+          POSTGRES_PRODUCTION_DB: localhost
+          POSTGRES_PRODUCTION_PORT: "5432"
+          POSTGRES_PRODUCTION_DB_NAME: ci
+          POSTGRES_PRODUCTION_WRITE_ACCESS_USER: ci
+          POSTGRES_PRODUCTION_WRITE_ACCESS_PASSWORD: ci
+          POSTGRES_PRODUCTION_READONLY_USER: ci
+          POSTGRES_PRODUCTION_READONLY_PASSWORD: ci
+          BAN_API_URL: https://example.invalid/ban
+          CSV_FILE_PATH: /tmp/ci.csv
         run: uv run pytest tests/ -v --tb=short
 
   deploy-dagster:

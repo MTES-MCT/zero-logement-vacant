@@ -20,6 +20,7 @@ import { match } from 'ts-pattern';
 import AdvancedTable from '~/components/AdvancedTable/AdvancedTable';
 import AdvancedTableHeader from '~/components/AdvancedTable/AdvancedTableHeader';
 import HousingAddressCell from '~/components/Housing/HousingAddressCell';
+import HousingStatusBadge from '~/components/HousingStatusBadge/HousingStatusBadge';
 import OwnerEditionSideMenu from '~/components/OwnerEditionSideMenu/OwnerEditionSideMenu';
 import { useNotification } from '~/hooks/useNotification';
 import { type Address, isBanEligible } from '~/models/Address';
@@ -153,7 +154,7 @@ function CampaignRecipients(props: Readonly<CampaignRecipientsProps>) {
         }
       }),
       columnHelper.accessor('owner.additionalAddress', {
-        header: () => <AdvancedTableHeader title="Complément d’adresse" />,
+        header: () => <AdvancedTableHeader title="Complément d'adresse" />,
         meta: {
           styles: multilineStyles
         },
@@ -173,6 +174,35 @@ function CampaignRecipients(props: Readonly<CampaignRecipientsProps>) {
           />
         )
       }),
+      columnHelper.accessor(
+        (row) => ({ status: row.status, subStatus: row.subStatus }),
+        {
+          id: 'status',
+          header: () => <AdvancedTableHeader title="Statut de suivi" />,
+          meta: {
+            sort: {
+              title: 'Trier par statut de suivi'
+            },
+            styles: multilineStyles
+          },
+          cell: ({ cell }) => {
+            const { status, subStatus } = cell.getValue();
+            return (
+              <Stack sx={{ alignItems: 'center', textAlign: 'center' }}>
+                <HousingStatusBadge
+                  badgeProps={{ small: true }}
+                  status={status}
+                />
+                {subStatus && (
+                  <Typography align="center" variant="caption">
+                    {subStatus}
+                  </Typography>
+                )}
+              </Stack>
+            );
+          }
+        }
+      ),
       columnHelper.display({
         id: 'actions',
         header: () => (
@@ -281,7 +311,7 @@ function CampaignRecipients(props: Readonly<CampaignRecipientsProps>) {
       />
 
       <removeCampaignHousingModal.Component
-        title="Suppression d’un destinataire"
+        title="Suppression d'un destinataire"
         buttons={[
           {
             children: 'Annuler',

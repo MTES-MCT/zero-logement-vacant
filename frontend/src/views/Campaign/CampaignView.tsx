@@ -127,7 +127,6 @@ function CampaignView() {
                   onClick: () => {
                     dispatch(
                       housingSlice.actions.changeFilters({
-                        ...initialHousingFilters,
                         campaignIds: [campaign.id]
                       })
                     );

@@ -154,7 +154,7 @@ function CampaignRecipients(props: Readonly<CampaignRecipientsProps>) {
         }
       }),
       columnHelper.accessor('owner.additionalAddress', {
-        header: () => <AdvancedTableHeader title="Complément d'adresse" />,
+        header: () => <AdvancedTableHeader title="Complément d’adresse" />,
         meta: {
           styles: multilineStyles
         },
@@ -311,7 +311,7 @@ function CampaignRecipients(props: Readonly<CampaignRecipientsProps>) {
       />
 
       <removeCampaignHousingModal.Component
-        title="Suppression d'un destinataire"
+        title="Suppression d’un destinataire"
         buttons={[
           {
             children: 'Annuler',

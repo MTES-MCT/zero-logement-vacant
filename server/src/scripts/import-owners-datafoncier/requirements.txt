@@ -1,2 +1,0 @@
-psycopg2-binary>=2.9.0
-tqdm>=4.64.0

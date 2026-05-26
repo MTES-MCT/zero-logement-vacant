@@ -27,9 +27,7 @@ import {
   useUpdateCampaignMutation
 } from '~/services/campaign.service';
 import { useCountHousingQuery } from '~/services/housing.service';
-import housingSlice, {
-  initialHousingFilters
-} from '~/store/reducers/housingReducer';
+import housingSlice from '~/store/reducers/housingReducer';
 
 const campaignDeleteModal = createCampaignDeleteModal();
 const sentAtModal = createCampaignSentAtModal();

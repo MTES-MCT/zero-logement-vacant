@@ -111,6 +111,8 @@
     "@types/unzip-stream": "0.3.4",
     "@types/uuid": "9.0.8",
     "@types/validator": "13.15.10",
+    "@zerologementvacant/factories": "workspace:*",
+    "fishery": "2.4.0",
     "jest-extended": "4.0.2",
     "jest-sorted": "1.0.15",
     "nock": "14.0.15",

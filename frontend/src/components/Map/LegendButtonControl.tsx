@@ -14,7 +14,7 @@ class LegendControl implements IControl {
 
   onAdd(): HTMLElement {
     this.container = document.createElement('div');
-    this.container.className = 'maplibregl-ctrl maplibregl-ctrl-group';
+    this.container.className = 'maplibregl-ctrl';
     this.root = createRoot(this.container);
     this.root.render(
       <Button priority="secondary" size="small" onClick={this.onOpen}>

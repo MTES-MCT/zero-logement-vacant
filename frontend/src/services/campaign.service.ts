@@ -1,6 +1,7 @@
 import type {
   CampaignCreationPayload,
   CampaignDTO,
+  CampaignRemovalPayload,
   CampaignUpdatePayload
 } from '@zerologementvacant/models';
 import {
@@ -10,7 +11,6 @@ import {
 } from '~/models/Campaign';
 import type { CampaignFilters } from '~/models/CampaignFilters';
 import type { Group } from '~/models/Group';
-import type { HousingFilters } from '~/models/HousingFilters';
 import { toQuery, type SortOptions } from '~/models/Sort';
 
 import { zlvApi } from './api.service';
@@ -87,23 +87,16 @@ export const campaignApi = zlvApi.injectEndpoints({
       ]
     }),
 
-    removeCampaignHousing: builder.mutation<
+    removeCampaignHousings: builder.mutation<
       void,
-      {
-        campaignId: string;
-        all: boolean;
-        ids: string[];
-        filters: HousingFilters;
-      }
+      Pick<CampaignDTO, 'id'> & { filters: CampaignRemovalPayload }
     >({
-      query: ({ campaignId, ...payload }) => ({
-        url: `campaigns/${campaignId}/housing`,
+      query: ({ id, filters }) => ({
+        url: `campaigns/${id}/housings`,
         method: 'DELETE',
-        body: payload
+        body: filters
       }),
-      invalidatesTags: (_result, _error, { campaignId }) => [
-        { type: 'Campaign', id: campaignId }
-      ],
+      invalidatesTags: (_result, _error, { id }) => [{ type: 'Campaign', id }],
       onQueryStarted: async (_args, { dispatch, queryFulfilled }) => {
         await queryFulfilled;
         dispatch(
@@ -130,7 +123,7 @@ export const {
   useGetCampaignQuery,
   useLazyGetCampaignQuery,
   useUpdateCampaignMutation,
-  useRemoveCampaignHousingMutation,
+  useRemoveCampaignHousingsMutation,
   useRemoveCampaignMutation,
   useCreateCampaignFromGroupMutation
 } = campaignApi;

@@ -994,9 +994,9 @@ describe('Campaign API', () => {
     });
 
     it('should create an event "housing:campaign-detached"', async () => {
-      const payload = {
+      const payload: CampaignRemovalPayload = {
         all: false,
-        ids: housings.map((housing) => housing.id)
+        housingIds: housings.map((housing) => housing.id)
       };
 
       const { status } = await request(url)

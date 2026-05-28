@@ -5,7 +5,7 @@ import config from '../../utils/config';
 import data from './data';
 
 const get = http.get<{ id: string }, never, EstablishmentDTO>(
-  `${config.apiEndpoint}/api/establishments/:id`,
+  `${config.apiEndpoint}/establishments/:id`,
   async ({ params }) => {
     const establishment = data.establishments.find(
       (establishment) => establishment.id === params.id
@@ -20,7 +20,7 @@ const get = http.get<{ id: string }, never, EstablishmentDTO>(
 
 export const establishmentHandlers: RequestHandler[] = [
   http.get<never, never, ReadonlyArray<EstablishmentDTO>>(
-    `${config.apiEndpoint}/api/establishments`,
+    `${config.apiEndpoint}/establishments`,
     async () => {
       const establishments = data.establishments;
       return HttpResponse.json(establishments);

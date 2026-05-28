@@ -53,7 +53,7 @@ describe('Precision API', () => {
   });
 
   describe('GET /precisions', () => {
-    const testRoute = '/api/precisions';
+    const testRoute = '/precisions';
 
     it('should be forbidden for non-authenticated users', async () => {
       const { status } = await request(url).get(testRoute);
@@ -75,7 +75,7 @@ describe('Precision API', () => {
   });
 
   describe('GET /housing/:id/precisions', () => {
-    const testRoute = (id: string) => `/api/housing/${id}/precisions`;
+    const testRoute = (id: string) => `/housing/${id}/precisions`;
 
     const housing = genHousingApi(
       faker.helpers.arrayElement(establishment.geoCodes)
@@ -129,7 +129,7 @@ describe('Precision API', () => {
   });
 
   describe('PUT /housing/:id/precisions', () => {
-    const testRoute = (id: string) => `/api/housing/${id}/precisions`;
+    const testRoute = (id: string) => `/housing/${id}/precisions`;
 
     let housing: HousingApi;
     let payload: ReadonlyArray<Precision['id']>;

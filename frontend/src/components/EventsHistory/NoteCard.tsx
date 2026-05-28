@@ -6,7 +6,7 @@ import Stack from '@mui/material/Stack';
 import Typography from '@mui/material/Typography';
 import type { NotePayloadDTO } from '@zerologementvacant/models';
 import { format } from 'date-fns';
-import localeFR from 'date-fns/locale/fr';
+import { fr as localeFR } from 'date-fns/locale/fr';
 import { useMemo, useState } from 'react';
 import { FormProvider, type SubmitHandler, useForm } from 'react-hook-form';
 import { match } from 'ts-pattern';

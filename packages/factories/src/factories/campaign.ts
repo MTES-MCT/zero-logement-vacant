@@ -1,9 +1,7 @@
-import { Factory } from 'fishery';
 import { faker } from '@faker-js/faker/locale/fr';
-import {
-  CAMPAIGN_STATUS_VALUES,
-  type CampaignDTO
-} from '@zerologementvacant/models';
+import { type CampaignDTO } from '@zerologementvacant/models';
+import { Factory } from 'fishery';
+
 import type { Adapter } from '../adapter';
 
 export function createCampaignFactory(adapter: Adapter) {
@@ -18,7 +16,7 @@ export function createCampaignFactory(adapter: Adapter) {
       id: faker.string.uuid(),
       title: faker.commerce.productName(),
       description: faker.commerce.productDescription(),
-      status: faker.helpers.arrayElement(CAMPAIGN_STATUS_VALUES),
+      status: 'draft',
       filters: {},
       createdAt: faker.date.past().toJSON(),
       createdBy: associations.createdBy,

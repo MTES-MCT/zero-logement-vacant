@@ -53,7 +53,7 @@ describe('Locality API', () => {
   });
 
   describe('GET /localities/{geoCode}', () => {
-    const testRoute = (geoCode: string) => `/api/localities/${geoCode}`;
+    const testRoute = (geoCode: string) => `/localities/${geoCode}`;
 
     it('should received valid parameters', async () => {
       const { status } = await request(url).get(testRoute('id'));
@@ -82,7 +82,7 @@ describe('Locality API', () => {
 
   describe('GET /localities', () => {
     const testRoute = (establishmentId?: string) =>
-      `/api/localities${
+      `/localities${
         establishmentId ? '?establishmentId=' + establishmentId : ''
       }`;
 
@@ -111,7 +111,7 @@ describe('Locality API', () => {
 
   describe('PUT /localities/{id}/tax', () => {
     const testRoute = (geoCode?: string) =>
-      `/api/localities${geoCode ? '/' + geoCode : ''}/tax`;
+      `/localities${geoCode ? '/' + geoCode : ''}/tax`;
 
     it('should be forbidden for a non-authenticated user', async () => {
       const { status } = await request(url).put(testRoute(locality.geoCode));

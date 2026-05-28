@@ -42,7 +42,7 @@ describe('Datafoncier housing controller', () => {
 
   describe('findOne', () => {
     const testRoute = (localId: string) =>
-      `/api/datafoncier/housing/${localId}`;
+      `/datafoncier/housing/${localId}`;
 
     it('should return the housing if it exists', async () => {
       const idprocpte = genIdprocpte(
@@ -53,9 +53,9 @@ describe('Datafoncier housing controller', () => {
       await Buildings().insert(formatBuildingApi(building));
       await DatafoncierHouses().insert({
         ...housing,
-        ban_geom: db.raw('ST_GeomFromGeoJSON(?)', [housing.ban_geom]),
-        geomloc: db.raw('ST_GeomFromGeoJSON(?)', [housing.geomloc]),
-        geomrnb: db.raw('ST_GeomFromGeoJSON(?)', [housing.geomrnb])
+        ban_geom: db.raw('ST_GeomFromGeoJSON(?)', [JSON.stringify(housing.ban_geom)]),
+        geomloc: db.raw('ST_GeomFromGeoJSON(?)', [JSON.stringify(housing.geomloc)]),
+        geomrnb: db.raw('ST_GeomFromGeoJSON(?)', [JSON.stringify(housing.geomrnb)])
       });
 
       const { body, status } = await request(url)
@@ -73,9 +73,9 @@ describe('Datafoncier housing controller', () => {
       await Buildings().insert(formatBuildingApi(building));
       await DatafoncierHouses().insert({
         ...housing,
-        ban_geom: db.raw('ST_GeomFromGeoJSON(?)', [housing.ban_geom]),
-        geomloc: db.raw('ST_GeomFromGeoJSON(?)', [housing.geomloc]),
-        geomrnb: db.raw('ST_GeomFromGeoJSON(?)', [housing.geomrnb])
+        ban_geom: db.raw('ST_GeomFromGeoJSON(?)', [JSON.stringify(housing.ban_geom)]),
+        geomloc: db.raw('ST_GeomFromGeoJSON(?)', [JSON.stringify(housing.geomloc)]),
+        geomrnb: db.raw('ST_GeomFromGeoJSON(?)', [JSON.stringify(housing.geomrnb)])
       });
 
       const { status } = await request(url)

@@ -32,7 +32,7 @@ describe('File API', () => {
   });
 
   describe('POST /files', () => {
-    const testRoute = '/api/files';
+    const testRoute = '/files';
 
     it('should upload a valid PNG file', async () => {
       // Create a valid 1x1 PNG file

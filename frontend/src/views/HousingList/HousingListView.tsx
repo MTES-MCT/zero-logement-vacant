@@ -18,7 +18,7 @@ import { useDocumentTitle } from '~/hooks/useDocumentTitle';
 import { useFilters } from '~/hooks/useFilters';
 import { useNotification } from '~/hooks/useNotification';
 import { useSelection } from '~/hooks/useSelection';
-import { useAppSelector } from '~/hooks/useStore';
+import { useAppDispatch, useAppSelector } from '~/hooks/useStore';
 import { useUser } from '~/hooks/useUser';
 import type { Housing } from '~/models/Housing';
 import {
@@ -26,6 +26,7 @@ import {
   useCreateGroupMutation
 } from '~/services/group.service';
 import { useCountHousingQuery } from '~/services/housing.service';
+import housingSlice from '~/store/reducers/housingReducer';
 import HousingListMap from './HousingListMap';
 import HousingListTabs from './HousingListTabs';
 import { useHousingListTabs } from './HousingListTabsProvider';
@@ -47,6 +48,8 @@ const HousingListView = () => {
     storage: 'store'
   });
 
+  const dispatch = useAppDispatch();
+  const { changeView } = housingSlice.actions;
   const { view } = useAppSelector((state) => state.housing);
 
   const searchWithQuery = (query: string) => {
@@ -203,6 +206,9 @@ const HousingListView = () => {
                           setShowExportAlert(false);
                         }
                       } else {
+                        if (view === 'map') {
+                          dispatch(changeView('list'));
+                        }
                         setShowExportAlert(true);
                       }
                     }}

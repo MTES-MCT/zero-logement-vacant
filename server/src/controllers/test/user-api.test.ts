@@ -89,7 +89,7 @@ describe('User API', () => {
   });
 
   describe('GET /users', () => {
-    const route = '/api/users';
+    const route = '/users';
 
     describe('As an unauthenticated user', () => {
       it('should be missing', async () => {
@@ -163,7 +163,7 @@ describe('User API', () => {
   });
 
   describe('POST /users/creations', () => {
-    const testRoute = '/api/users/creation';
+    const testRoute = '/users/creation';
     const validPassword = '1234QWERasdf';
 
     let prospect: ProspectApi;
@@ -313,7 +313,7 @@ describe('User API', () => {
   describe('GET /users/{id}', () => {
     const user = genUserApi(establishment.id);
 
-    const testRoute = (id: string) => `/api/users/${id}`;
+    const testRoute = (id: string) => `/users/${id}`;
 
     beforeAll(async () => {
       await Users().insert(toUserDBO(user));
@@ -367,7 +367,7 @@ describe('User API', () => {
       ...genUserApi(establishment.id),
       role: UserRole.ADMIN
     };
-    const testRoute = (id: string) => `/api/users/${id}`;
+    const testRoute = (id: string) => `/users/${id}`;
 
     beforeAll(async () => {
       await Users().insert([visitor, user, admin].map(toUserDBO));
@@ -552,7 +552,7 @@ describe('User API', () => {
   });
 
   describe('DELETE /users/{id}', () => {
-    const testRoute = (id: string) => `/api/users/${id}`;
+    const testRoute = (id: string) => `/users/${id}`;
 
     describe('As an unauthenticated guest', () => {
       it('should be unauthorized', async () => {

@@ -37,7 +37,7 @@ describe('Reset link API', () => {
   });
 
   describe('POST /reset-links', () => {
-    const testRoute = '/api/reset-links';
+    const testRoute = '/reset-links';
 
     let createLink: MockedFunction<typeof resetLinkRepository.insert>;
     let sendEmail: MockedFunction<typeof mailService.sendPasswordReset>;
@@ -101,7 +101,7 @@ describe('Reset link API', () => {
   });
 
   describe('GET /reset-links/{id}', () => {
-    const testRoute = (id: string) => `/api/reset-links/${id}`;
+    const testRoute = (id: string) => `/reset-links/${id}`;
 
     it('should validate the id', async () => {
       const { status } = await request(url).get(testRoute('@$'));

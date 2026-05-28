@@ -13,7 +13,7 @@ interface Props {
   campaign: Campaign;
 }
 
-function CampaignCreatedFromGroupNext(props: Readonly<Props>) {
+function CampaignCreatedFromGroup(props: Readonly<Props>) {
   const getGroupQuery = useGetGroupQuery(props.campaign.groupId ?? skipToken);
   const getEstablishmentQuery = useGetEstablishmentQuery(
     props.campaign.createdBy.establishmentId ?? skipToken
@@ -63,4 +63,4 @@ function CampaignCreatedFromGroupNext(props: Readonly<Props>) {
     .otherwise(() => null);
 }
 
-export default CampaignCreatedFromGroupNext;
+export default CampaignCreatedFromGroup;

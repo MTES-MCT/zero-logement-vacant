@@ -1,6 +1,9 @@
 -- int_zlovac_owner_match_ff25.sql
 -- Phase 2: FF25 address matching for rows NOT matched in Phase 1 (LOVAC internal).
--- Exact name + jaro_winkler on normalized address >= 0.85.
+-- Match criteria (any one):
+--   1. jaro_winkler on normalized address >= 0.85
+--   2. one address contains the other (handles short CER vs full FF; min len 6)
+--   3. same 5-digit postal code present in both addresses
 -- Try cer_proprietaire first, fallback to cer_gestionnaire.
 
 {{ config(materialized='table') }}
@@ -10,7 +13,8 @@ WITH unmatched_phase1 AS (
         z.local_id,
         z.cer_proprietaire,
         z.cer_gestionnaire,
-        {{ normalize_address("CONCAT_WS(' ', NULLIF(TRIM(z.owner_adresse1), ''), NULLIF(TRIM(z.owner_adresse2), ''), NULLIF(TRIM(z.owner_adresse3), ''), NULLIF(TRIM(z.owner_adresse4), ''))") }} AS cer_address_norm
+        {{ normalize_address("CONCAT_WS(' ', NULLIF(TRIM(z.owner_adresse1), ''), NULLIF(TRIM(z.owner_adresse2), ''), NULLIF(TRIM(z.owner_adresse3), ''), NULLIF(TRIM(z.owner_adresse4), ''))") }} AS cer_address_norm,
+        REGEXP_EXTRACT(z.owner_adresse4, '\d{5}') AS cer_postal_code
     FROM {{ ref('int_zlovac') }} z
     LEFT JOIN {{ ref('int_zlovac_owner_match_lovac') }} p1 ON z.local_id = p1.local_id
     WHERE p1.local_id IS NULL
@@ -31,7 +35,16 @@ match_proprio AS (
         ON UPPER(TRIM(z.cer_proprietaire)) = f.owner_fullname_concat
     WHERE z.cer_proprietaire IS NOT NULL
         AND TRIM(z.cer_proprietaire) != ''
-        AND jaro_winkler_similarity(z.cer_address_norm, f.ff25_address_norm) >= 0.85
+        AND (
+            jaro_winkler_similarity(z.cer_address_norm, f.ff25_address_norm) >= 0.85
+            OR (LENGTH(z.cer_address_norm) >= 6 AND CONTAINS(f.ff25_address_norm, z.cer_address_norm))
+            OR (LENGTH(f.ff25_address_norm) >= 6 AND CONTAINS(z.cer_address_norm, f.ff25_address_norm))
+            OR (
+                z.cer_postal_code IS NOT NULL
+                AND z.cer_postal_code != ''
+                AND z.cer_postal_code = f.owner_cp
+            )
+        )
 ),
 
 best_match_proprio AS (
@@ -61,7 +74,16 @@ match_gestionnaire AS (
         ON UPPER(TRIM(z.cer_gestionnaire)) = f.owner_fullname_concat
     WHERE z.cer_gestionnaire IS NOT NULL
         AND TRIM(z.cer_gestionnaire) != ''
-        AND jaro_winkler_similarity(z.cer_address_norm, f.ff25_address_norm) >= 0.85
+        AND (
+            jaro_winkler_similarity(z.cer_address_norm, f.ff25_address_norm) >= 0.85
+            OR (LENGTH(z.cer_address_norm) >= 6 AND CONTAINS(f.ff25_address_norm, z.cer_address_norm))
+            OR (LENGTH(f.ff25_address_norm) >= 6 AND CONTAINS(z.cer_address_norm, f.ff25_address_norm))
+            OR (
+                z.cer_postal_code IS NOT NULL
+                AND z.cer_postal_code != ''
+                AND z.cer_postal_code = f.owner_cp
+            )
+        )
 ),
 
 best_match_gestionnaire AS (

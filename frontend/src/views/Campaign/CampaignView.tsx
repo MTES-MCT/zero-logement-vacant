@@ -8,9 +8,9 @@ import Stack from '@mui/material/Stack';
 import Typography from '@mui/material/Typography';
 import { useNavigate, useParams } from 'react-router-dom';
 
-import CampaignCreatedFromGroupNext from '~/components/Campaign/CampaignCreatedFromGroupNext';
+import CampaignCreatedFromGroup from '~/components/Campaign/CampaignCreatedFromGroup';
 import { createCampaignDeleteModal } from '~/components/Campaign/CampaignDeleteModal';
-import CampaignRecipientsNext from '~/components/Campaign/CampaignRecipientsNext';
+import CampaignRecipientsNext from '~/components/Campaign/CampaignRecipients';
 import CampaignReturnCountStatCard from '~/components/Campaign/CampaignReturnCountStatCard';
 import CampaignReturnRateStatCard from '~/components/Campaign/CampaignReturnRateStatCard';
 import { createCampaignSentAtModal } from '~/components/Campaign/CampaignSentAtModal';
@@ -27,9 +27,7 @@ import {
   useUpdateCampaignMutation
 } from '~/services/campaign.service';
 import { useCountHousingQuery } from '~/services/housing.service';
-import housingSlice, {
-  initialHousingFilters
-} from '~/store/reducers/housingReducer';
+import housingSlice from '~/store/reducers/housingReducer';
 
 const campaignDeleteModal = createCampaignDeleteModal();
 const sentAtModal = createCampaignSentAtModal();
@@ -113,7 +111,7 @@ function CampaignView() {
               </Stack>
             )}
 
-            <CampaignCreatedFromGroupNext campaign={campaign} />
+            <CampaignCreatedFromGroup campaign={campaign} />
           </Stack>
 
           <Box sx={{ flexShrink: 0 }}>
@@ -127,7 +125,6 @@ function CampaignView() {
                   onClick: () => {
                     dispatch(
                       housingSlice.actions.changeFilters({
-                        ...initialHousingFilters,
                         campaignIds: [campaign.id]
                       })
                     );

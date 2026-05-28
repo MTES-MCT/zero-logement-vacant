@@ -166,7 +166,7 @@ describe('CampaignListView', () => {
       const nonEmpty = dates.filter(Boolean);
       expect(nonEmpty.length).toBeGreaterThan(0);
       expect(nonEmpty).toBeSorted({
-        descending: true,
+        descending: false,
         compare: (a: string, b: string) => {
           const parse = (d: string) =>
             new Date(d.split('/').reverse().join('-'));

@@ -1,29 +1,11 @@
 import { faker } from '@faker-js/faker/locale/fr';
 import { fc, test } from '@fast-check/vitest';
 import {
-  BENEFIARY_COUNT_VALUES,
-  BUILDING_PERIOD_VALUES,
-  CADASTRAL_CLASSIFICATION_VALUES,
-  CAMPAIGN_COUNT_VALUES,
-  CampaignCreationPayloadDTO,
   CampaignDTO,
-  CampaignRemovalPayloadDTO,
+  CampaignRemovalPayload,
   CampaignUpdatePayload,
-  DATA_FILE_YEAR_VALUES,
-  ENERGY_CONSUMPTION_VALUES,
-  HOUSING_BY_BUILDING_VALUES,
-  HOUSING_KIND_VALUES,
   HOUSING_STATUS_VALUES,
   HousingStatus,
-  LIVING_AREA_VALUES,
-  LOCALITY_KIND_VALUES,
-  OCCUPANCY_VALUES,
-  OWNER_AGE_VALUES,
-  OWNER_KIND_VALUES,
-  OWNERSHIP_KIND_VALUES,
-  ROOM_COUNT_VALUES,
-  VACANCY_RATE_VALUES,
-  VACANCY_YEAR_VALUES,
   type CampaignCreationPayload,
   type UserDTO
 } from '@zerologementvacant/models';
@@ -33,6 +15,7 @@ import randomstring from 'randomstring';
 import request from 'supertest';
 import { v4 as uuidv4 } from 'uuid';
 
+import createServerFactories from '~/test/factories';
 import { createServer } from '~/infra/server';
 import { CampaignApi } from '~/models/CampaignApi';
 import { CampaignEventApi } from '~/models/EventApi';
@@ -76,6 +59,7 @@ import {
 } from '~/repositories/housingRepository';
 import { formatOwnerApi, Owners } from '~/repositories/ownerRepository';
 import { toUserDBO, Users } from '~/repositories/userRepository';
+import { knexAdapter } from '~/test/knex-adapter';
 import {
   genCampaignApi,
   genCampaignApiNext,
@@ -90,6 +74,8 @@ import {
 import { tokenProvider } from '~/test/testUtils';
 
 describe('Campaign API', () => {
+  const factories = createServerFactories(knexAdapter);
+
   let url: string;
 
   beforeAll(async () => {
@@ -104,82 +90,8 @@ describe('Campaign API', () => {
     await Users().insert(toUserDBO(user));
   });
 
-  describe('GET /campaigns/{id}', () => {
-    const group = genGroupApi(user, establishment);
-    const campaign = genCampaignApiNext({
-      group,
-      creator: user,
-      establishment
-    });
-    campaign.sentAt = faker.date
-      .past()
-      .toISOString()
-      .slice(0, 'yyyy-mm-dd'.length);
-    campaign.returnCount = 0;
-
-    const testRoute = (id: string) => `/api/campaigns/${id}`;
-
-    beforeAll(async () => {
-      await Groups().insert(formatGroupApi(group));
-      await Campaigns().insert(formatCampaignApi(campaign));
-    });
-
-    it('should be forbidden for a not authenticated user', async () => {
-      const { status } = await request(url).get(testRoute(campaign.id));
-
-      expect(status).toBe(constants.HTTP_STATUS_UNAUTHORIZED);
-    });
-
-    it('should received a valid campaign id', async () => {
-      const { status } = await request(url)
-        .get(testRoute('id'))
-        .use(tokenProvider(user));
-
-      expect(status).toBe(constants.HTTP_STATUS_BAD_REQUEST);
-    });
-
-    it('should return an error when there is no campaign with the required id', async () => {
-      const { status } = await request(url)
-        .get(testRoute(uuidv4()))
-        .use(tokenProvider(user));
-
-      expect(status).toBe(constants.HTTP_STATUS_NOT_FOUND);
-    });
-
-    it('should return the campaign', async () => {
-      const { body, status } = await request(url)
-        .get(testRoute(campaign.id))
-        .use(tokenProvider(user));
-
-      expect(status).toBe(constants.HTTP_STATUS_OK);
-      expect(body).toMatchObject({
-        id: campaign.id,
-        filters: expect.objectContaining(campaign.filters)
-      });
-    });
-
-    it('should return campaign fields', async () => {
-      const { body, status } = await request(url)
-        .get(testRoute(campaign.id))
-        .use(tokenProvider(user));
-
-      expect(status).toBe(constants.HTTP_STATUS_OK);
-      expect(body).toMatchObject<Partial<CampaignDTO>>({
-        id: campaign.id,
-        title: campaign.title,
-        description: campaign.description,
-        createdBy: expect.objectContaining<Partial<UserDTO>>({
-          id: user.id
-        }),
-        sentAt: campaign.sentAt,
-        returnCount: campaign.returnCount,
-        groupId: campaign.groupId
-      });
-    });
-  });
-
   describe('GET /campaigns', () => {
-    const testRoute = '/api/campaigns';
+    const testRoute = '/campaigns';
 
     const campaigns: CampaignApi[] = Array.from({ length: 3 }).map(() =>
       genCampaignApi(establishment.id, user)
@@ -261,7 +173,10 @@ describe('Campaign API', () => {
       afterEach(async () => {
         if (sortCampaigns?.length) {
           await Campaigns()
-            .whereIn('id', sortCampaigns.map((c) => c.id))
+            .whereIn(
+              'id',
+              sortCampaigns.map((c) => c.id)
+            )
             .delete();
         }
       });
@@ -279,7 +194,7 @@ describe('Campaign API', () => {
         ).toEqual([
           sortCampaigns[2].id, // housing_count: 5
           sortCampaigns[0].id, // housing_count: 10
-          sortCampaigns[1].id  // housing_count: 20
+          sortCampaigns[1].id // housing_count: 20
         ]);
       });
 
@@ -296,7 +211,7 @@ describe('Campaign API', () => {
         ).toEqual([
           sortCampaigns[2].id, // owner_count: 8
           sortCampaigns[0].id, // owner_count: 5
-          sortCampaigns[1].id  // owner_count: 3
+          sortCampaigns[1].id // owner_count: 3
         ]);
       });
 
@@ -313,7 +228,7 @@ describe('Campaign API', () => {
         ).toEqual([
           sortCampaigns[0].id, // return_count: 1
           sortCampaigns[2].id, // return_count: 2
-          sortCampaigns[1].id  // return_count: 4
+          sortCampaigns[1].id // return_count: 4
         ]);
       });
 
@@ -334,14 +249,83 @@ describe('Campaign API', () => {
         ).toEqual([
           sortCampaigns[0].id, // 0.1
           sortCampaigns[1].id, // 0.2
-          sortCampaigns[2].id  // 0.4
+          sortCampaigns[2].id // 0.4
         ]);
       });
     });
   });
 
+  describe('GET /campaigns/{id}', () => {
+    const group = genGroupApi(user, establishment);
+    const campaign = genCampaignApiNext({
+      group,
+      creator: user,
+      establishment
+    });
+
+    const testRoute = (id: string) => `/campaigns/${id}`;
+
+    beforeAll(async () => {
+      await Groups().insert(formatGroupApi(group));
+      await Campaigns().insert(formatCampaignApi(campaign));
+    });
+
+    it('should be forbidden for a not authenticated user', async () => {
+      const { status } = await request(url).get(testRoute(campaign.id));
+
+      expect(status).toBe(constants.HTTP_STATUS_UNAUTHORIZED);
+    });
+
+    it('should received a valid campaign id', async () => {
+      const { status } = await request(url)
+        .get(testRoute('id'))
+        .use(tokenProvider(user));
+
+      expect(status).toBe(constants.HTTP_STATUS_BAD_REQUEST);
+    });
+
+    it('should return an error when there is no campaign with the required id', async () => {
+      const { status } = await request(url)
+        .get(testRoute(uuidv4()))
+        .use(tokenProvider(user));
+
+      expect(status).toBe(constants.HTTP_STATUS_NOT_FOUND);
+    });
+
+    it('should return the campaign', async () => {
+      const { body, status } = await request(url)
+        .get(testRoute(campaign.id))
+        .use(tokenProvider(user));
+
+      expect(status).toBe(constants.HTTP_STATUS_OK);
+      expect(body).toMatchObject({
+        id: campaign.id,
+        filters: expect.objectContaining(campaign.filters)
+      });
+    });
+
+    it('should return campaign fields', async () => {
+      const { body, status } = await request(url)
+        .get(testRoute(campaign.id))
+        .use(tokenProvider(user));
+
+      expect(status).toBe(constants.HTTP_STATUS_OK);
+      expect(body).toMatchObject<Partial<CampaignDTO>>({
+        id: campaign.id,
+        title: campaign.title,
+        description: campaign.description,
+        createdBy: expect.objectContaining<Partial<UserDTO>>({
+          id: user.id
+        }),
+        sentAt: campaign.sentAt,
+        returnCount: campaign.returnCount,
+        groupId: campaign.groupId
+      });
+    });
+  });
+
   describe('POST /groups/{id}/campaigns', () => {
-    const testRoute = (id: string) => `/api/groups/${id}/campaigns`;
+    const testRoute = (id: string) => `/groups/${id}/campaigns`;
 
     const geoCode = faker.helpers.arrayElement(establishment.geoCodes);
     const group = genGroupApi(user, establishment);
@@ -366,7 +350,7 @@ describe('Campaign API', () => {
       await GroupsHousing().insert(formatGroupHousingApi(group, groupHousings));
     });
 
-    test.prop<CampaignCreationPayloadDTO>(
+    test.prop<CampaignCreationPayload>(
       {
         title: fc.stringMatching(/\S/),
         description: fc.stringMatching(/\S/),
@@ -377,68 +361,8 @@ describe('Campaign API', () => {
               max: new Date('9999-12-31'),
               noInvalidDate: true
             })
-            .map((date) =>
-              date.toISOString().substring(0, 'yyyy-mm-dd'.length)
-            ),
-          { nil: undefined }
-        ),
-        housing: fc.record({
-          all: fc.boolean(),
-          ids: fc.array(fc.uuid({ version: 4 })),
-          filters: fc.record({
-            housingIds: fc.array(fc.uuid({ version: 4 })),
-            occupancies: fc.array(fc.constantFrom(...OCCUPANCY_VALUES)),
-            energyConsumption: fc.array(
-              fc.constantFrom(...ENERGY_CONSUMPTION_VALUES)
-            ),
-            establishmentIds: fc.array(fc.uuid({ version: 4 })),
-            groupIds: fc.array(fc.uuid({ version: 4 })),
-            campaignsCounts: fc.array(
-              fc.constantFrom(...CAMPAIGN_COUNT_VALUES)
-            ),
-            campaignIds: fc.array(
-              fc.oneof(fc.constant(null), fc.uuid({ version: 4 }))
-            ),
-            ownerIds: fc.array(fc.uuid({ version: 4 })),
-            ownerKinds: fc.array(fc.constantFrom(...OWNER_KIND_VALUES)),
-            ownerAges: fc.array(fc.constantFrom(...OWNER_AGE_VALUES)),
-            multiOwners: fc.array(fc.boolean()),
-            beneficiaryCounts: fc.array(
-              fc.constantFrom(...BENEFIARY_COUNT_VALUES)
-            ),
-            housingKinds: fc.array(fc.constantFrom(...HOUSING_KIND_VALUES)),
-            housingAreas: fc.array(fc.constantFrom(...LIVING_AREA_VALUES)),
-            roomsCounts: fc.array(fc.constantFrom(...ROOM_COUNT_VALUES)),
-            cadastralClassifications: fc.array(
-              fc.constantFrom(...CADASTRAL_CLASSIFICATION_VALUES)
-            ),
-            buildingPeriods: fc.array(
-              fc.constantFrom(...BUILDING_PERIOD_VALUES)
-            ),
-            vacancyYears: fc.array(fc.constantFrom(...VACANCY_YEAR_VALUES)),
-            isTaxedValues: fc.array(fc.boolean()),
-            ownershipKinds: fc.array(fc.constantFrom(...OWNERSHIP_KIND_VALUES)),
-            housingCounts: fc.array(
-              fc.constantFrom(...HOUSING_BY_BUILDING_VALUES)
-            ),
-            vacancyRates: fc.array(fc.constantFrom(...VACANCY_RATE_VALUES)),
-            intercommunalities: fc.array(fc.uuid({ version: 4 })),
-            localities: fc.array(fc.string({ minLength: 5, maxLength: 5 })),
-            localityKinds: fc.array(fc.constantFrom(...LOCALITY_KIND_VALUES)),
-            geoPerimetersIncluded: fc.array(fc.string({ minLength: 1 })),
-            geoPerimetersExcluded: fc.array(fc.string({ minLength: 1 })),
-            dataFileYearsIncluded: fc.array(
-              fc.constantFrom(...DATA_FILE_YEAR_VALUES)
-            ),
-            dataFileYearsExcluded: fc.array(
-              fc.constantFrom(...DATA_FILE_YEAR_VALUES)
-            ),
-            status: fc.constantFrom(...HOUSING_STATUS_VALUES),
-            statusList: fc.array(fc.constantFrom(...HOUSING_STATUS_VALUES)),
-            subStatus: fc.array(fc.string({ minLength: 1 })),
-            query: fc.stringMatching(/[a-zA-Z0-9-]/)
-          })
-        })
+            .map((date) => date.toISOString().substring(0, 'yyyy-mm-dd'.length))
+        )
       },
       { numRuns: 20 }
     )('should validate inputs', async (payload) => {
@@ -522,14 +446,10 @@ describe('Campaign API', () => {
     });
 
     it("should add the group's housing to this campaign", async () => {
-      const payload: CampaignCreationPayloadDTO = {
+      const payload: CampaignCreationPayload = {
         title: 'Logements prioritaires',
         description: 'Campagne pour les logements prioritaires',
-        housing: {
-          all: true,
-          ids: [],
-          filters: {}
-        }
+        sentAt: null
       };
 
       const { body, status } = await request(url)
@@ -670,7 +590,7 @@ describe('Campaign API', () => {
   });
 
   describe('PUT /campaigns/{id}', () => {
-    const testRoute = (id: string) => `/api/campaigns/${id}`;
+    const testRoute = (id: string) => `/campaigns/${id}`;
 
     let campaign: CampaignApi;
 
@@ -804,7 +724,7 @@ describe('Campaign API', () => {
   });
 
   describe('DELETE /campaigns/{id}', () => {
-    const testRoute = (id: string) => `/api/campaigns/${id}`;
+    const testRoute = (id: string) => `/campaigns/${id}`;
 
     let campaign: CampaignApi;
 
@@ -831,6 +751,19 @@ describe('Campaign API', () => {
       const { status } = await request(url)
         .delete(testRoute(uuidv4()))
         .use(tokenProvider(user));
+
+      expect(status).toBe(constants.HTTP_STATUS_NOT_FOUND);
+    });
+
+    it('should fail if the campaign does not belong to the user’s establishment', async () => {
+      const otherEstablishment = genEstablishmentApi();
+      await Establishments().insert(formatEstablishmentApi(otherEstablishment));
+      const otherUser = genUserApi(otherEstablishment.id);
+      await Users().insert(toUserDBO(otherUser));
+
+      const { status } = await request(url)
+        .delete(testRoute(campaign.id))
+        .use(tokenProvider(otherUser));
 
       expect(status).toBe(constants.HTTP_STATUS_NOT_FOUND);
     });
@@ -978,8 +911,8 @@ describe('Campaign API', () => {
     });
   });
 
-  describe('DELETE /campaigns/{id}/housing', () => {
-    const testRoute = (id: string) => `/api/campaigns/${id}/housing`;
+  describe('DELETE /campaigns/{id}/housings', () => {
+    const testRoute = (id: string) => `/campaigns/${id}/housings`;
 
     let campaign: CampaignApi;
     let housings: HousingApi[];
@@ -1004,10 +937,9 @@ describe('Campaign API', () => {
     });
 
     it('should fail if the campaign is missing', async () => {
-      const payload: CampaignRemovalPayloadDTO = {
+      const payload: CampaignRemovalPayload = {
         all: true,
-        ids: [],
-        filters: {}
+        housingIds: []
       };
 
       const { status } = await request(url)
@@ -1018,12 +950,31 @@ describe('Campaign API', () => {
       expect(status).toBe(constants.HTTP_STATUS_NOT_FOUND);
     });
 
-    it.todo('should fail if the campaign does not belong to the user');
+    it('should fail if the campaign does not belong to the user’s establishment', async () => {
+      const otherEstablishment = genEstablishmentApi();
+      await Establishments().insert(formatEstablishmentApi(otherEstablishment));
+      const otherUser = genUserApi(otherEstablishment.id);
+      await Users().insert(toUserDBO(otherUser));
 
-    it('should unlink the associated housings', async () => {
-      const payload = {
+      const { status } = await request(url)
+        .delete(testRoute(campaign.id))
+        .send({
+          all: true,
+          housingIds: []
+        })
+        .use(tokenProvider(otherUser));
+
+      expect(status).toBe(constants.HTTP_STATUS_NOT_FOUND);
+    });
+
+    it('should unlink the given housings', async () => {
+      const shouldRemove = faker.helpers.arrayElement(housings);
+      const shouldKeep = housings.filter(
+        (housing) => housing.id !== shouldRemove.id
+      );
+      const payload: CampaignRemovalPayload = {
         all: false,
-        ids: housings.map((housing) => housing.id)
+        housingIds: [shouldRemove.id]
       };
 
       const { status } = await request(url)
@@ -1031,18 +982,21 @@ describe('Campaign API', () => {
         .send(payload)
         .use(tokenProvider(user));
 
-      expect(status).toBe(constants.HTTP_STATUS_OK);
+      expect(status).toBe(constants.HTTP_STATUS_NO_CONTENT);
 
       const actualCampaignHousings = await CampaignsHousing().where({
         campaign_id: campaign.id
       });
-      expect(actualCampaignHousings).toBeArrayOfSize(0);
+      expect(actualCampaignHousings).toBeArrayOfSize(shouldKeep.length);
+      expect(actualCampaignHousings).toIncludeAllPartialMembers(
+        shouldKeep.map((housing) => ({ housing_id: housing.id }))
+      );
     });
 
-    it('should create an event "housing:campaign-detached" for each housing', async () => {
-      const payload = {
+    it('should create an event "housing:campaign-detached"', async () => {
+      const payload: CampaignRemovalPayload = {
         all: false,
-        ids: housings.map((housing) => housing.id)
+        housingIds: housings.map((housing) => housing.id)
       };
 
       const { status } = await request(url)
@@ -1050,7 +1004,7 @@ describe('Campaign API', () => {
         .send(payload)
         .use(tokenProvider(user));
 
-      expect(status).toBe(constants.HTTP_STATUS_OK);
+      expect(status).toBe(constants.HTTP_STATUS_NO_CONTENT);
 
       const events = await Events()
         .join(CAMPAIGN_HOUSING_EVENTS_TABLE, 'event_id', 'id')
@@ -1063,6 +1017,150 @@ describe('Campaign API', () => {
       expect(events).toIncludeAllPartialMembers(
         housings.map((housing) => ({ housing_id: housing.id }))
       );
+    });
+
+    it(`should reset the status of housings that are ${HousingStatus.WAITING} and are in no campaign anymore`, async () => {
+      const geoCode = faker.helpers.arrayElement(establishment.geoCodes);
+      const mustReset = await factories.housing.create({
+        status: HousingStatus.WAITING,
+        geoCode
+      });
+      const mustNotReset = await Promise.all([
+        factories.housing.create({ status: HousingStatus.WAITING, geoCode }),
+        factories.housing.create({ status: HousingStatus.BLOCKED, geoCode })
+      ]);
+      const campaign = await factories.campaign
+        .forEstablishment(establishment)
+        .create({}, { associations: { createdBy: user } });
+      const otherCampaign = await factories.campaign
+        .forEstablishment(establishment)
+        .create({}, { associations: { createdBy: user } });
+      await CampaignsHousing().insert([
+        {
+          // Should be reset because in status "waiting"
+          // and will not be in any campaign after the deletion
+          campaign_id: campaign.id,
+          housing_geo_code: mustReset.geoCode,
+          housing_id: mustReset.id
+        },
+        {
+          campaign_id: campaign.id,
+          housing_geo_code: mustNotReset[0].geoCode,
+          housing_id: mustNotReset[0].id
+        },
+        {
+          // Should not be reset because still in another campaign
+          campaign_id: otherCampaign.id,
+          housing_geo_code: mustNotReset[0].geoCode,
+          housing_id: mustNotReset[0].id
+        },
+        {
+          // Should not be reset because not in status "waiting"
+          campaign_id: campaign.id,
+          housing_geo_code: mustNotReset[1].geoCode,
+          housing_id: mustNotReset[1].id
+        }
+      ]);
+
+      const { status } = await request(url)
+        .delete(testRoute(campaign.id))
+        .send({
+          all: false,
+          housingIds: [mustReset, ...mustNotReset].map((housing) => housing.id)
+        })
+        .use(tokenProvider(user));
+
+      expect(status).toBe(constants.HTTP_STATUS_NO_CONTENT);
+      const actual = await Housing().whereIn(
+        ['geo_code', 'id'],
+        [mustReset, ...mustNotReset].map((housing) => [
+          housing.geoCode,
+          housing.id
+        ])
+      );
+      expect(actual).toIncludeAllPartialMembers([
+        {
+          id: mustReset.id,
+          status: HousingStatus.NEVER_CONTACTED
+        },
+        {
+          id: mustNotReset[0].id,
+          status: HousingStatus.WAITING
+        },
+        {
+          id: mustNotReset[1].id,
+          status: HousingStatus.BLOCKED
+        }
+      ]);
+    });
+
+    it('should create an event "housing:status-updated" if the housing should be reset', async () => {
+      const geoCode = faker.helpers.arrayElement(establishment.geoCodes);
+      const mustReset = await factories.housing.create({
+        status: HousingStatus.WAITING,
+        geoCode
+      });
+      const mustNotReset = await Promise.all([
+        factories.housing.create({ status: HousingStatus.WAITING, geoCode }),
+        factories.housing.create({ status: HousingStatus.BLOCKED, geoCode })
+      ]);
+      const campaign = await factories.campaign
+        .forEstablishment(establishment)
+        .create({}, { associations: { createdBy: user } });
+      const otherCampaign = await factories.campaign
+        .forEstablishment(establishment)
+        .create({}, { associations: { createdBy: user } });
+      await CampaignsHousing().insert([
+        {
+          // Should be reset because in status "waiting"
+          // and will not be in any campaign after the deletion
+          campaign_id: campaign.id,
+          housing_geo_code: mustReset.geoCode,
+          housing_id: mustReset.id
+        },
+        {
+          campaign_id: campaign.id,
+          housing_geo_code: mustNotReset[0].geoCode,
+          housing_id: mustNotReset[0].id
+        },
+        {
+          // Should not be reset because still in another campaign
+          campaign_id: otherCampaign.id,
+          housing_geo_code: mustNotReset[0].geoCode,
+          housing_id: mustNotReset[0].id
+        },
+        {
+          // Should not be reset because not in status "waiting"
+          campaign_id: campaign.id,
+          housing_geo_code: mustNotReset[1].geoCode,
+          housing_id: mustNotReset[1].id
+        }
+      ]);
+      const payload: CampaignRemovalPayload = {
+        all: false,
+        housingIds: [mustReset, ...mustNotReset].map((housing) => housing.id)
+      };
+
+      const { status } = await request(url)
+        .delete(testRoute(campaign.id))
+        .send(payload)
+        .use(tokenProvider(user));
+
+      expect(status).toBe(constants.HTTP_STATUS_NO_CONTENT);
+      const event = await Events()
+        .join(HOUSING_EVENTS_TABLE, 'event_id', 'id')
+        .where({
+          type: 'housing:status-updated'
+        })
+        .whereIn(
+          ['housing_geo_code', 'housing_id'],
+          [mustReset, ...mustNotReset].map((housing) => [
+            housing.geoCode,
+            housing.id
+          ])
+        )
+        .first();
+      expect(event).not.toBeNull();
     });
   });
 });

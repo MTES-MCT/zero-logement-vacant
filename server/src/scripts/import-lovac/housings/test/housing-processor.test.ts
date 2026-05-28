@@ -185,7 +185,8 @@ describe('Housing processor', () => {
     it('should return false if the substatus is not set', () => {
       const housing = {
         ...genHousingApi(),
-        status: HousingStatus.IN_PROGRESS
+        status: HousingStatus.IN_PROGRESS,
+        subStatus: null
       };
 
       const actual = isInProgress(housing);

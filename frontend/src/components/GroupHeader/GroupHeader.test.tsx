@@ -23,7 +23,7 @@ describe('GroupHeader', () => {
 
   it('should render', async () => {
     mockAPI.use(
-      http.get(`${config.apiEndpoint}/api/groups`, () => {
+      http.get(`${config.apiEndpoint}/groups`, () => {
         const groups = Array.from({ length: DISPLAY_GROUPS + 1 }, () => {
           const creator = genUserDTO();
           return genGroupDTO(creator);
@@ -54,7 +54,7 @@ describe('GroupHeader', () => {
       genGroupDTO(creator)
     ).concat(archived);
     mockAPI.use(
-      http.get(`${config.apiEndpoint}/api/groups`, () => {
+      http.get(`${config.apiEndpoint}/groups`, () => {
         return HttpResponse.json(groups);
       })
     );
@@ -77,7 +77,7 @@ describe('GroupHeader', () => {
 
   it('should hide the "Display more" button if there is no more group', async () => {
     mockAPI.use(
-      http.get(`${config.apiEndpoint}/api/groups`, () => {
+      http.get(`${config.apiEndpoint}/groups`, () => {
         const groups = Array.from({ length: DISPLAY_GROUPS }, () => {
           const creator = genUserDTO();
           return genGroupDTO(creator);
@@ -103,7 +103,7 @@ describe('GroupHeader', () => {
       genGroupDTO(creator)
     );
     mockAPI.use(
-      http.get(`${config.apiEndpoint}/api/groups`, () => {
+      http.get(`${config.apiEndpoint}/groups`, () => {
         return HttpResponse.json(groups);
       })
     );

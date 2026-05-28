@@ -13,10 +13,10 @@
   },
   "dependencies": {
     "@zerologementvacant/models": "workspace:*",
-    "yup": "1.7.0"
+    "yup": "1.7.1"
   },
   "devDependencies": {
-    "@fast-check/vitest": "0.2.2",
+    "@fast-check/vitest": "0.4.1",
     "@tsconfig/node24": "24.0.4",
     "@types/node": "24",
     "jest-extended": "4.0.2"

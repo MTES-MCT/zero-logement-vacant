@@ -35,7 +35,7 @@ export type TagType = (typeof TAG_TYPE_VALUES)[number];
 
 export const zlvApi = createApi({
   baseQuery: fetchBaseQuery({
-    baseUrl: `${config.apiEndpoint}/api`,
+    baseUrl: config.apiEndpoint,
     prepareHeaders: (headers: Headers) => authService.withAuthHeader(headers),
     paramsSerializer: (query) =>
       qs.stringify(

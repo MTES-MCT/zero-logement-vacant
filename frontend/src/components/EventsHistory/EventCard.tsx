@@ -4,7 +4,7 @@ import Box from '@mui/material/Box';
 import Stack from '@mui/material/Stack';
 import Typography from '@mui/material/Typography';
 import { format } from 'date-fns';
-import localeFR from 'date-fns/locale/fr';
+import { fr as localeFR } from 'date-fns/locale/fr';
 import type { ReactNode } from 'react';
 import { useToggle } from 'react-use';
 import { match } from 'ts-pattern';

@@ -17,7 +17,7 @@ interface DraftParams {
 
 export const draftHandlers: RequestHandler[] = [
   http.get<Record<string, never>, never, DraftDTO[]>(
-    `${config.apiEndpoint}/api/drafts`,
+    `${config.apiEndpoint}/drafts`,
     ({ request }) => {
       const url = new URL(request.url);
       const campaignId = url.searchParams.get('campaign');
@@ -36,7 +36,7 @@ export const draftHandlers: RequestHandler[] = [
     }
   ),
   http.post<Record<string, never>, DraftCreationPayloadDTO, DraftDTO>(
-    `${config.apiEndpoint}/api/drafts`,
+    `${config.apiEndpoint}/drafts`,
     async ({ request }) => {
       const payload = await request.json();
 
@@ -72,7 +72,7 @@ export const draftHandlers: RequestHandler[] = [
     }
   ),
   http.put<DraftParams, DraftUpdatePayloadDTO, DraftDTO>(
-    `${config.apiEndpoint}/api/drafts/:id`,
+    `${config.apiEndpoint}/drafts/:id`,
     async ({ params, request }) => {
       const draft = data.drafts.find((draft) => draft.id === params.id);
       if (!draft) {

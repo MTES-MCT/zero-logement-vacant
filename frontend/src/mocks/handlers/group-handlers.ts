@@ -15,7 +15,7 @@ type GroupParams = {
 export const groupHandlers: RequestHandler[] = [
   // List groups
   http.get<Record<string, never>, never, GroupDTO[]>(
-    `${config.apiEndpoint}/api/groups`,
+    `${config.apiEndpoint}/groups`,
     () => {
       return HttpResponse.json(data.groups);
     }
@@ -23,7 +23,7 @@ export const groupHandlers: RequestHandler[] = [
 
   // Create a group
   http.post<Record<string, never>, GroupPayloadDTO, GroupDTO>(
-    `${config.apiEndpoint}/api/groups`,
+    `${config.apiEndpoint}/groups`,
     () => {
       const creator = faker.helpers.arrayElement(data.users);
       // TODO: use request payload
@@ -40,7 +40,7 @@ export const groupHandlers: RequestHandler[] = [
 
   // Get a group
   http.get<GroupParams, never, GroupDTO | null>(
-    `${config.apiEndpoint}/api/groups/:id`,
+    `${config.apiEndpoint}/groups/:id`,
     ({ params }) => {
       const group = data.groups.find((group) => group.id === params.id);
       if (!group) {
@@ -55,7 +55,7 @@ export const groupHandlers: RequestHandler[] = [
 
   // Update a group
   http.put<GroupParams, GroupPayloadDTO, GroupDTO>(
-    `${config.apiEndpoint}/api/groups/:id`,
+    `${config.apiEndpoint}/groups/:id`,
     async ({ params, request }) => {
       const group = data.groups.find((group) => group.id === params.id);
       if (!group) {
@@ -78,7 +78,7 @@ export const groupHandlers: RequestHandler[] = [
 
   // Add housings to an existing group
   http.post<GroupParams, GroupPayloadDTO['housing']>(
-    `${config.apiEndpoint}/api/groups/:id/housing`,
+    `${config.apiEndpoint}/groups/:id/housing`,
     async ({ params }) => {
       const group = data.groups.find((group) => group.id === params.id);
       if (!group) {
@@ -106,7 +106,7 @@ export const groupHandlers: RequestHandler[] = [
 
   // Delete a group
   http.delete<GroupParams, never, never>(
-    `${config.apiEndpoint}/api/groups/:id`,
+    `${config.apiEndpoint}/groups/:id`,
     ({ params }) => {
       const group = data.groups.find((group) => group.id === params.id);
       if (!group) {

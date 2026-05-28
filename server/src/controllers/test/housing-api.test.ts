@@ -138,7 +138,7 @@ describe('Housing API', () => {
   });
 
   describe('GET /housing/{id}', () => {
-    const testRoute = (id: string) => `/api/housing/${id}`;
+    const testRoute = (id: string) => `/housing/${id}`;
 
     const housing = genHousingApi(
       faker.helpers.arrayElement(establishment.geoCodes)
@@ -185,7 +185,7 @@ describe('Housing API', () => {
   });
 
   describe('GET /housing', () => {
-    const testRoute = '/api/housing';
+    const testRoute = '/housing';
 
     beforeAll(async () => {
       const housings = [
@@ -615,7 +615,7 @@ describe('Housing API', () => {
   });
 
   describe('POST /housing', () => {
-    const testRoute = '/api/housing';
+    const testRoute = '/housing';
 
     it('should be forbidden a non-authenticated user', async () => {
       const { status } = await request(url).post(testRoute);
@@ -666,12 +666,12 @@ describe('Housing API', () => {
         DatafoncierHouses().insert({
           ...datafoncierHousing,
           geomloc: db.raw('ST_GeomFromGeoJson(?)', [
-            datafoncierHousing.geomloc
+            JSON.stringify(datafoncierHousing.geomloc)
           ]),
           ban_geom: db.raw('ST_GeomFromGeoJson(?)', [
-            datafoncierHousing.ban_geom
+            JSON.stringify(datafoncierHousing.ban_geom)
           ]),
-          geomrnb: db.raw('ST_GeomFromGeoJson(?)', [datafoncierHousing.geomrnb])
+          geomrnb: db.raw('ST_GeomFromGeoJson(?)', [JSON.stringify(datafoncierHousing.geomrnb)])
         }),
         DatafoncierOwners().insert(datafoncierOwners)
       ]);
@@ -712,12 +712,12 @@ describe('Housing API', () => {
         DatafoncierHouses().insert({
           ...datafoncierHousing,
           geomloc: db.raw('ST_GeomFromGeoJson(?)', [
-            datafoncierHousing.geomloc
+            JSON.stringify(datafoncierHousing.geomloc)
           ]),
           ban_geom: db.raw('ST_GeomFromGeoJson(?)', [
-            datafoncierHousing.ban_geom
+            JSON.stringify(datafoncierHousing.ban_geom)
           ]),
-          geomrnb: db.raw('ST_GeomFromGeoJson(?)', [datafoncierHousing.geomrnb])
+          geomrnb: db.raw('ST_GeomFromGeoJson(?)', [JSON.stringify(datafoncierHousing.geomrnb)])
         }),
         DatafoncierOwners().insert(datafoncierOwners),
         Owners().insert(existingOwners.map(formatOwnerApi))
@@ -770,12 +770,12 @@ describe('Housing API', () => {
         DatafoncierHouses().insert({
           ...datafoncierHousing,
           geomloc: db.raw('ST_GeomFromGeoJson(?)', [
-            datafoncierHousing.geomloc
+            JSON.stringify(datafoncierHousing.geomloc)
           ]),
           ban_geom: db.raw('ST_GeomFromGeoJson(?)', [
-            datafoncierHousing.ban_geom
+            JSON.stringify(datafoncierHousing.ban_geom)
           ]),
-          geomrnb: db.raw('ST_GeomFromGeoJson(?)', [datafoncierHousing.geomrnb])
+          geomrnb: db.raw('ST_GeomFromGeoJson(?)', [JSON.stringify(datafoncierHousing.geomrnb)])
         }),
         DatafoncierOwners().insert(datafoncierOwners)
       ]);
@@ -808,12 +808,12 @@ describe('Housing API', () => {
         DatafoncierHouses().insert({
           ...datafoncierHousing,
           geomloc: db.raw('ST_GeomFromGeoJson(?)', [
-            datafoncierHousing.geomloc
+            JSON.stringify(datafoncierHousing.geomloc)
           ]),
           ban_geom: db.raw('ST_GeomFromGeoJson(?)', [
-            datafoncierHousing.ban_geom
+            JSON.stringify(datafoncierHousing.ban_geom)
           ]),
-          geomrnb: db.raw('ST_GeomFromGeoJson(?)', [datafoncierHousing.geomrnb])
+          geomrnb: db.raw('ST_GeomFromGeoJson(?)', [JSON.stringify(datafoncierHousing.geomrnb)])
         }),
         DatafoncierOwners().insert(datafoncierOwners)
       ]);
@@ -859,12 +859,12 @@ describe('Housing API', () => {
         DatafoncierHouses().insert({
           ...datafoncierHousing,
           geomloc: db.raw('ST_GeomFromGeoJson(?)', [
-            datafoncierHousing.geomloc
+            JSON.stringify(datafoncierHousing.geomloc)
           ]),
           ban_geom: db.raw('ST_GeomFromGeoJson(?)', [
-            datafoncierHousing.ban_geom
+            JSON.stringify(datafoncierHousing.ban_geom)
           ]),
-          geomrnb: db.raw('ST_GeomFromGeoJson(?)', [datafoncierHousing.geomrnb])
+          geomrnb: db.raw('ST_GeomFromGeoJson(?)', [JSON.stringify(datafoncierHousing.geomrnb)])
         }),
         DatafoncierOwners().insert(datafoncierOwners)
       ]);
@@ -906,12 +906,12 @@ describe('Housing API', () => {
         DatafoncierHouses().insert({
           ...datafoncierHousing,
           geomloc: db.raw('ST_GeomFromGeoJson(?)', [
-            datafoncierHousing.geomloc
+            JSON.stringify(datafoncierHousing.geomloc)
           ]),
           ban_geom: db.raw('ST_GeomFromGeoJson(?)', [
-            datafoncierHousing.ban_geom
+            JSON.stringify(datafoncierHousing.ban_geom)
           ]),
-          geomrnb: db.raw('ST_GeomFromGeoJson(?)', [datafoncierHousing.geomrnb])
+          geomrnb: db.raw('ST_GeomFromGeoJson(?)', [JSON.stringify(datafoncierHousing.geomrnb)])
         }),
         DatafoncierOwners().insert(datafoncierOwners)
       ]);
@@ -938,7 +938,7 @@ describe('Housing API', () => {
   });
 
   describe('PUT /housing', () => {
-    const testRoute = '/api/housing';
+    const testRoute = '/housing';
 
     interface CreateHousingsOptions {
       count?: number;
@@ -1293,7 +1293,7 @@ describe('Housing API', () => {
       const precisions = faker.helpers.arrayElements(allPrecisions, 2);
 
       const { body, status } = await request(url)
-        .put('/api/housing')
+        .put('/housing')
         .send({
           filters: {
             housingIds: housings.map((housing) => housing.id)
@@ -1323,7 +1323,7 @@ describe('Housing API', () => {
       const precisions = faker.helpers.arrayElements(allPrecisions, 2);
 
       const { status } = await request(url)
-        .put('/api/housing')
+        .put('/housing')
         .send({
           filters: {
             housingIds: housings.map((housing) => housing.id)
@@ -1385,7 +1385,7 @@ describe('Housing API', () => {
 
       // Add the same precisions again via API
       const { status } = await request(url)
-        .put('/api/housing')
+        .put('/housing')
         .send({
           filters: {
             housingIds: [housing.id]
@@ -1444,7 +1444,7 @@ describe('Housing API', () => {
       );
 
       const { status } = await request(url)
-        .put('/api/housing')
+        .put('/housing')
         .send({
           filters: {
             housingIds: [housing.id]
@@ -1496,7 +1496,7 @@ describe('Housing API', () => {
       await HousingPrecisions().insert(initialPrecisions);
 
       const { status } = await request(url)
-        .put('/api/housing')
+        .put('/housing')
         .send({
           filters: {
             housingIds: housings.map(housing => housing.id)
@@ -1623,7 +1623,7 @@ describe('Housing API', () => {
   });
 
   describe('PUT /housing/{id}', () => {
-    const testRoute = (id: string) => `/api/housing/${id}`;
+    const testRoute = (id: string) => `/housing/${id}`;
     const defaultPayload: HousingUpdatePayloadDTO = {
       status: HousingStatus.NEVER_CONTACTED,
       subStatus: null,

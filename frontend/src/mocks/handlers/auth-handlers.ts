@@ -19,7 +19,7 @@ interface Auth {
 
 export const authHandlers: RequestHandler[] = [
   http.post<Record<string, never>, AuthPayload, Auth>(
-    `${config.apiEndpoint}/api/authenticate`,
+    `${config.apiEndpoint}/authenticate`,
     async ({ request }) => {
       const payload = await request.json();
       const user = data.users.find((user) => user.email === payload.email);

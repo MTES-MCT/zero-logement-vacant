@@ -1,8 +1,6 @@
 {
   "permissions": {
-    "allow": [
-      "mcp__figma__get_design_context"
-    ]
+    "allow": ["mcp__figma__get_design_context"]
   },
   "hooks": {
     "PostToolUse": [
@@ -17,5 +15,16 @@
         ]
       }
     ]
+  },
+  "extraKnownMarketplaces": {
+    "nx-claude-plugins": {
+      "source": {
+        "source": "github",
+        "repo": "nrwl/nx-ai-agents-config"
+      }
+    }
+  },
+  "enabledPlugins": {
+    "nx@nx-claude-plugins": true
   }
 }

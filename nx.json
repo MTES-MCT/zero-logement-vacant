@@ -111,5 +111,6 @@
         "testTargetName": "test"
       }
     }
-  ]
+  ],
+  "analytics": false
 }

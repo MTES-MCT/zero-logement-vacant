@@ -3,7 +3,7 @@ import authService from './auth.service';
 import { type ResetLink } from '../models/ResetLink';
 
 const sendResetEmail = async (email: string): Promise<void> => {
-  const { status } = await fetch(`${config.apiEndpoint}/api/reset-links`, {
+  const { status } = await fetch(`${config.apiEndpoint}/reset-links`, {
     method: 'POST',
     headers: {
       ...authService.authHeader(),
@@ -17,7 +17,7 @@ const sendResetEmail = async (email: string): Promise<void> => {
 };
 
 const get = async (id: string): Promise<ResetLink> => {
-  const response = await fetch(`${config.apiEndpoint}/api/reset-links/${id}`, {
+  const response = await fetch(`${config.apiEndpoint}/reset-links/${id}`, {
     method: 'GET',
     headers: {
       ...authService.authHeader(),

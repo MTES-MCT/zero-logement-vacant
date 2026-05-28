@@ -15,7 +15,7 @@ import { useFilters } from '~/hooks/useFilters';
 import { useNotification } from '~/hooks/useNotification';
 import { useAppSelector } from '~/hooks/useStore';
 import authService from '~/services/auth.service';
-import { useCreateCampaignFromGroupNextMutation } from '~/services/campaign.service';
+import { useCreateCampaignFromGroupMutation } from '~/services/campaign.service';
 import {
   useGetGroupQuery,
   useRemoveGroupMutation,
@@ -91,7 +91,7 @@ function GroupView() {
   });
 
   const [createCampaignFromGroup, createCampaignFromGroupMutation] =
-    useCreateCampaignFromGroupNextMutation();
+    useCreateCampaignFromGroupMutation();
   const onCampaignCreate: GroupProps['onCreateCampaign'] = (campaign) => {
     if (group) {
       createCampaignFromGroup({
@@ -123,7 +123,7 @@ function GroupView() {
   const onGroupExport: GroupProps['onExport'] = () => {
     if (group) {
       const token = authService.authHeader()?.['x-access-token'];
-      const url = `${config.apiEndpoint}/api/groups/${group.id}/export?x-access-token=${token}`;
+      const url = `${config.apiEndpoint}/groups/${group.id}/export?x-access-token=${token}`;
       window.open(url, '_self');
     }
   };

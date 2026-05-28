@@ -23,12 +23,12 @@ END as potentiel_tlv_thlv,
 TRY_CAST(ff_stoth AS NUMERIC) as living_area,
 {% if new_version %}
     TRY_CAST(ff_dcntpa AS NUMERIC) as plot_area,
-    TRY_CAST(ff_jdatnss_1 AS DATE) AS ff_jdatnss_1,
-    TRY_CAST(ff_jdatnss_2 AS DATE) AS ff_jdatnss_2,
-    TRY_CAST(ff_jdatnss_3 AS DATE) AS ff_jdatnss_3,
-    TRY_CAST(ff_jdatnss_4 AS DATE) AS ff_jdatnss_4,
-    TRY_CAST(ff_jdatnss_5 AS DATE) AS ff_jdatnss_5,
-    TRY_CAST(ff_jdatnss_6 AS DATE) AS ff_jdatnss_6,
+    TRY_STRPTIME(ff_jdatnss_1, '%d/%m/%Y')::DATE AS ff_jdatnss_1,
+    TRY_STRPTIME(ff_jdatnss_2, '%d/%m/%Y')::DATE AS ff_jdatnss_2,
+    TRY_STRPTIME(ff_jdatnss_3, '%d/%m/%Y')::DATE AS ff_jdatnss_3,
+    TRY_STRPTIME(ff_jdatnss_4, '%d/%m/%Y')::DATE AS ff_jdatnss_4,
+    TRY_STRPTIME(ff_jdatnss_5, '%d/%m/%Y')::DATE AS ff_jdatnss_5,
+    TRY_STRPTIME(ff_jdatnss_6, '%d/%m/%Y')::DATE AS ff_jdatnss_6,
 
 {% else %}
     NULL as plot_area,

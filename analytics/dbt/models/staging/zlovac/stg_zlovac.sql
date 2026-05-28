@@ -137,17 +137,17 @@ cleaned_data as (
         UPPER(ff_ddenom_4) as ff_owner_4_fullname,
         UPPER(ff_ddenom_5) as ff_owner_5_fullname,
         UPPER(ff_ddenom_6) as ff_owner_6_fullname,
-        TRY_STRPTIME(CAST(ff_jdatnss_1 as VARCHAR), '{{ var("dateFormat") }}')
+        TRY_STRPTIME(CAST(ff_jdatnss_1 as VARCHAR), '%d%m%Y')
             as ff_owner_1_birth_date,
-        TRY_STRPTIME(CAST(ff_jdatnss_2 as VARCHAR), '{{ var("dateFormat") }}')
+        TRY_STRPTIME(CAST(ff_jdatnss_2 as VARCHAR), '%d%m%Y')
             as ff_owner_2_birth_date,
-        TRY_STRPTIME(CAST(ff_jdatnss_3 as VARCHAR), '{{ var("dateFormat") }}')
+        TRY_STRPTIME(CAST(ff_jdatnss_3 as VARCHAR), '%d%m%Y')
             as ff_owner_3_birth_date,
-        TRY_STRPTIME(CAST(ff_jdatnss_4 as VARCHAR), '{{ var("dateFormat") }}')
+        TRY_STRPTIME(CAST(ff_jdatnss_4 as VARCHAR), '%d%m%Y')
             as ff_owner_4_birth_date,
-        TRY_STRPTIME(CAST(ff_jdatnss_5 as VARCHAR), '{{ var("dateFormat") }}')
+        TRY_STRPTIME(CAST(ff_jdatnss_5 as VARCHAR), '%d%m%Y')
             as ff_owner_5_birth_date,
-        TRY_STRPTIME(CAST(ff_jdatnss_6 as VARCHAR), '{{ var("dateFormat") }}')
+        TRY_STRPTIME(CAST(ff_jdatnss_6 as VARCHAR), '%d%m%Y')
             as ff_owner_6_birth_date,
         ff_catpro2txt_1 as ff_owner_1_kind,
         ff_catpro2txt_2 as ff_owner_2_kind,

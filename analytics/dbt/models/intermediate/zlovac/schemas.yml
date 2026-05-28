@@ -45,8 +45,30 @@ models:
     config:
       materialized: view
   - name: int_zlovac_unique_owners
+    description: "Canonical owners table: exactly one row per dedup_key with deterministic (owner_fullname, owner_address). Single source of truth feeding both int_zlovac_dedup_key_uid and int_zlovac_owners."
     config:
-      materialized: view
+      materialized: table
+    columns:
+      - name: dedup_key
+        description: "COALESCE(owner_idpersonne, owner_fullname). Unique per row after DISTINCT ON collapse."
+        data_tests:
+          - not_null
+          - unique
+      - name: owner_fullname
+        data_tests:
+          - not_null
+  - name: int_zlovac_dedup_key_uid
+    description: "Canonical mapping dedup_key -> owner_uid. SHARED source of truth for owner_uid resolution consumed by int_zlovac_owners and int_zlovac_owner_housing. The zlovac_owner_uid macro is called only here; downstream models JOIN to retrieve owner_uid."
+    config:
+      materialized: table
+    columns:
+      - name: dedup_key
+        data_tests:
+          - not_null
+          - unique
+      - name: owner_uid
+        data_tests:
+          - not_null
   - name: int_zlovac_owners
     description: "Gold Owners table for LOVAC 2026 - maps to Table Owners_26 specification."
     config:
@@ -126,7 +148,7 @@ models:
       - name: rnb_id_score
         description: "Confidence score returned by the CEREMA RNB matching (0..1)."
       - name: rnb_footprint
-        description: "Hex-WKB POINT centroid from CEREMA RNB enrichment (geomrnb, EPSG:4326). NULL when CEREMA could not match the local to an RNB emprise. May upgrade to POLYGON in future LOVAC releases."
+        description: "RNB emprise count (BIGINT) from ff_rnb_emp. Consumed as numeric by the import side; do not rebind to a geometry without coordinating with the import."
   - name: int_zlovac_evol_housing_owners
     description: "Identifies housing where ownership changed between LOVAC 2025 and 2026 (account or ownership order changes)."
     config:

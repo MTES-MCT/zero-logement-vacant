@@ -55,16 +55,41 @@ match_with_dup_detection AS (
 -- Unpivot: CER 1767 owner (rank 1) + FF owners 1..6
 unpivoted AS (
     -- CER 1767 owner (always rank 1)
+    -- When matched to a FF slot, inherit idprodroit/locprop/property_rights
+    -- from that slot — otherwise the FF slot row is dropped (rank=NULL) and
+    -- ccodro/idprodroit would be lost.
     SELECT
         d.local_id,
         d.matched_idpersonne AS ff_owner_idpersonne,
-        NULL AS ff_owner_idprodroit,
-        NULL AS ff_owner_locprop,
-        NULL AS ff_owner_property_rights,
+        CASE d.matched_slot
+            WHEN 1 THEN z.ff_owner_1_idprodroit
+            WHEN 2 THEN z.ff_owner_2_idprodroit
+            WHEN 3 THEN z.ff_owner_3_idprodroit
+            WHEN 4 THEN z.ff_owner_4_idprodroit
+            WHEN 5 THEN z.ff_owner_5_idprodroit
+            WHEN 6 THEN z.ff_owner_6_idprodroit
+        END AS ff_owner_idprodroit,
+        CASE d.matched_slot
+            WHEN 1 THEN z.ff_owner_1_locprop
+            WHEN 2 THEN z.ff_owner_2_locprop
+            WHEN 3 THEN z.ff_owner_3_locprop
+            WHEN 4 THEN z.ff_owner_4_locprop
+            WHEN 5 THEN z.ff_owner_5_locprop
+            WHEN 6 THEN z.ff_owner_6_locprop
+        END AS ff_owner_locprop,
+        CASE d.matched_slot
+            WHEN 1 THEN z.ff_owner_1_property_rights
+            WHEN 2 THEN z.ff_owner_2_property_rights
+            WHEN 3 THEN z.ff_owner_3_property_rights
+            WHEN 4 THEN z.ff_owner_4_property_rights
+            WHEN 5 THEN z.ff_owner_5_property_rights
+            WHEN 6 THEN z.ff_owner_6_property_rights
+        END AS ff_owner_property_rights,
         d.owner_fullname AS ff_owner_fullname,
         1 AS rank,
         d.match_source
     FROM match_with_dup_detection d
+    LEFT JOIN zlovac z ON z.local_id = d.local_id
 
     UNION ALL
 

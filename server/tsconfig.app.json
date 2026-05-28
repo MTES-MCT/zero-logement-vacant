@@ -33,6 +33,9 @@
     },
     {
       "path": "../packages/healthcheck/tsconfig.lib.json"
+    },
+    {
+      "path": "../packages/factories/tsconfig.lib.json"
     }
   ]
 }

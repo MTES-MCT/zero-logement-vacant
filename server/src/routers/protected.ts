@@ -297,12 +297,12 @@ router.get(
   housingExportController.exportCampaign
 );
 router.delete(
-  '/campaigns/:id/housing',
+  '/campaigns/:id/housings',
   validatorNext.validate({
     params: object({ id: schemas.id }),
     body: schemas.housingFilters
   }),
-  campaignController.removeHousing
+  campaignController.removeHousings
 );
 
 router.get('/drafts', draftController.list);

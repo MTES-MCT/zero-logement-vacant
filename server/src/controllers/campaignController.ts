@@ -302,7 +302,9 @@ const removeCampaign: RequestHandler<
     never
   >;
 
-  logger.info('Remove campaign', params.id);
+  logger.info('Remove campaign', {
+    campaign: params.id
+  });
 
   const campaign = await campaignRepository.findOne({
     id: params.id,
@@ -375,7 +377,7 @@ const removeCampaign: RequestHandler<
   response.status(constants.HTTP_STATUS_NO_CONTENT).send();
 };
 
-const removeHousing: RequestHandler<
+const removeHousings: RequestHandler<
   { id: CampaignDTO['id'] },
   never,
   CampaignRemovalPayload,
@@ -408,22 +410,43 @@ const removeHousing: RequestHandler<
     },
     pagination: { paginate: false }
   });
-  const events = housings.map<CampaignHousingEventApi>((housing) => ({
+  const now = new Date().toJSON()
+  const campaignHousingEvents = housings.map<CampaignHousingEventApi>((housing) => ({
     id: uuidv4(),
     type: 'housing:campaign-detached',
     nextOld: { name: campaign.title },
     nextNew: null,
-    createdAt: new Date().toJSON(),
+    createdAt: now,
     createdBy: auth.userId,
     campaignId: campaign.id,
     housingGeoCode: housing.geoCode,
     housingId: housing.id
   }));
+  const resettable = housings.filter(shouldReset);
+  const housingEvents = resettable.map<HousingEventApi>(housing => ({
+    id: uuidv4(),
+    type: 'housing:status-updated',
+    nextOld: {
+      status: HOUSING_STATUS_LABELS[HousingStatus.WAITING],
+    },
+    nextNew: {
+      status: HOUSING_STATUS_LABELS[HousingStatus.NEVER_CONTACTED],
+    },
+    createdAt: now,
+    createdBy: auth.userId,
+    housingGeoCode: housing.geoCode,
+    housingId: housing.id
+  }))
 
   await startTransaction(async () => {
     await Promise.all([
+      housingRepository.updateMany(resettable.map(Struct.pick('geoCode', 'id')), {
+        status: HousingStatus.NEVER_CONTACTED,
+        subStatus: null
+      }),
       campaignHousingRepository.removeMany(campaign, housings),
-      eventRepository.insertManyCampaignHousingEvents(events)
+      eventRepository.insertManyCampaignHousingEvents(campaignHousingEvents),
+      eventRepository.insertManyHousingEvents(housingEvents)
     ]);
   });
   response.status(constants.HTTP_STATUS_NO_CONTENT).send();
@@ -436,7 +459,7 @@ const campaignController = {
   createFromGroup,
   update,
   removeCampaign,
-  removeHousing
+  removeHousings
 };
 
 export default campaignController;

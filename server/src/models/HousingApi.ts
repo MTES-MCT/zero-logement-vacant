@@ -255,7 +255,9 @@ export function normalizeDataFileYears(
   return pipe(dataFileYears, Array.sort(Order.string), Array.dedupeAdjacent);
 }
 
-export function shouldReset(housing: HousingApi): boolean {
+export function shouldReset(
+  housing: Pick<HousingApi, 'status' | 'campaignIds'>
+): boolean {
   return (
     housing.status === HousingStatus.WAITING &&
     housing.campaignIds?.length === 1

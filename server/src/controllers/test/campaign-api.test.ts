@@ -15,6 +15,7 @@ import randomstring from 'randomstring';
 import request from 'supertest';
 import { v4 as uuidv4 } from 'uuid';
 
+import createServerFactories from '~/test/factories';
 import { createServer } from '~/infra/server';
 import { CampaignApi } from '~/models/CampaignApi';
 import { CampaignEventApi } from '~/models/EventApi';
@@ -58,6 +59,7 @@ import {
 } from '~/repositories/housingRepository';
 import { formatOwnerApi, Owners } from '~/repositories/ownerRepository';
 import { toUserDBO, Users } from '~/repositories/userRepository';
+import { knexAdapter } from '~/test/knex-adapter';
 import {
   genCampaignApi,
   genCampaignApiNext,
@@ -72,6 +74,8 @@ import {
 import { tokenProvider } from '~/test/testUtils';
 
 describe('Campaign API', () => {
+  const factories = createServerFactories(knexAdapter);
+
   let url: string;
 
   beforeAll(async () => {
@@ -907,8 +911,8 @@ describe('Campaign API', () => {
     });
   });
 
-  describe('DELETE /campaigns/{id}/housing', () => {
-    const testRoute = (id: string) => `/campaigns/${id}/housing`;
+  describe('DELETE /campaigns/{id}/housings', () => {
+    const testRoute = (id: string) => `/campaigns/${id}/housings`;
 
     let campaign: CampaignApi;
     let housings: HousingApi[];
@@ -963,10 +967,14 @@ describe('Campaign API', () => {
       expect(status).toBe(constants.HTTP_STATUS_NOT_FOUND);
     });
 
-    it('should unlink the associated housings', async () => {
+    it('should unlink the given housings', async () => {
+      const shouldRemove = faker.helpers.arrayElement(housings);
+      const shouldKeep = housings.filter(
+        (housing) => housing.id !== shouldRemove.id
+      );
       const payload: CampaignRemovalPayload = {
         all: false,
-        housingIds: housings.map((housing) => housing.id)
+        housingIds: [shouldRemove.id]
       };
 
       const { status } = await request(url)
@@ -979,13 +987,16 @@ describe('Campaign API', () => {
       const actualCampaignHousings = await CampaignsHousing().where({
         campaign_id: campaign.id
       });
-      expect(actualCampaignHousings).toBeArrayOfSize(0);
+      expect(actualCampaignHousings).toBeArrayOfSize(shouldKeep.length);
+      expect(actualCampaignHousings).toIncludeAllPartialMembers(
+        shouldKeep.map((housing) => ({ housing_id: housing.id }))
+      );
     });
 
-    it('should create an event "housing:campaign-detached" for each housing', async () => {
-      const payload = {
+    it('should create an event "housing:campaign-detached"', async () => {
+      const payload: CampaignRemovalPayload = {
         all: false,
-        ids: housings.map((housing) => housing.id)
+        housingIds: housings.map((housing) => housing.id)
       };
 
       const { status } = await request(url)
@@ -1006,6 +1017,150 @@ describe('Campaign API', () => {
       expect(events).toIncludeAllPartialMembers(
         housings.map((housing) => ({ housing_id: housing.id }))
       );
+    });
+
+    it(`should reset the status of housings that are ${HousingStatus.WAITING} and are in no campaign anymore`, async () => {
+      const geoCode = faker.helpers.arrayElement(establishment.geoCodes);
+      const mustReset = await factories.housing.create({
+        status: HousingStatus.WAITING,
+        geoCode
+      });
+      const mustNotReset = await Promise.all([
+        factories.housing.create({ status: HousingStatus.WAITING, geoCode }),
+        factories.housing.create({ status: HousingStatus.BLOCKED, geoCode })
+      ]);
+      const campaign = await factories.campaign
+        .forEstablishment(establishment)
+        .create({}, { associations: { createdBy: user } });
+      const otherCampaign = await factories.campaign
+        .forEstablishment(establishment)
+        .create({}, { associations: { createdBy: user } });
+      await CampaignsHousing().insert([
+        {
+          // Should be reset because in status "waiting"
+          // and will not be in any campaign after the deletion
+          campaign_id: campaign.id,
+          housing_geo_code: mustReset.geoCode,
+          housing_id: mustReset.id
+        },
+        {
+          campaign_id: campaign.id,
+          housing_geo_code: mustNotReset[0].geoCode,
+          housing_id: mustNotReset[0].id
+        },
+        {
+          // Should not be reset because still in another campaign
+          campaign_id: otherCampaign.id,
+          housing_geo_code: mustNotReset[0].geoCode,
+          housing_id: mustNotReset[0].id
+        },
+        {
+          // Should not be reset because not in status "waiting"
+          campaign_id: campaign.id,
+          housing_geo_code: mustNotReset[1].geoCode,
+          housing_id: mustNotReset[1].id
+        }
+      ]);
+
+      const { status } = await request(url)
+        .delete(testRoute(campaign.id))
+        .send({
+          all: false,
+          housingIds: [mustReset, ...mustNotReset].map((housing) => housing.id)
+        })
+        .use(tokenProvider(user));
+
+      expect(status).toBe(constants.HTTP_STATUS_NO_CONTENT);
+      const actual = await Housing().whereIn(
+        ['geo_code', 'id'],
+        [mustReset, ...mustNotReset].map((housing) => [
+          housing.geoCode,
+          housing.id
+        ])
+      );
+      expect(actual).toIncludeAllPartialMembers([
+        {
+          id: mustReset.id,
+          status: HousingStatus.NEVER_CONTACTED
+        },
+        {
+          id: mustNotReset[0].id,
+          status: HousingStatus.WAITING
+        },
+        {
+          id: mustNotReset[1].id,
+          status: HousingStatus.BLOCKED
+        }
+      ]);
+    });
+
+    it('should create an event "housing:status-updated" if the housing should be reset', async () => {
+      const geoCode = faker.helpers.arrayElement(establishment.geoCodes);
+      const mustReset = await factories.housing.create({
+        status: HousingStatus.WAITING,
+        geoCode
+      });
+      const mustNotReset = await Promise.all([
+        factories.housing.create({ status: HousingStatus.WAITING, geoCode }),
+        factories.housing.create({ status: HousingStatus.BLOCKED, geoCode })
+      ]);
+      const campaign = await factories.campaign
+        .forEstablishment(establishment)
+        .create({}, { associations: { createdBy: user } });
+      const otherCampaign = await factories.campaign
+        .forEstablishment(establishment)
+        .create({}, { associations: { createdBy: user } });
+      await CampaignsHousing().insert([
+        {
+          // Should be reset because in status "waiting"
+          // and will not be in any campaign after the deletion
+          campaign_id: campaign.id,
+          housing_geo_code: mustReset.geoCode,
+          housing_id: mustReset.id
+        },
+        {
+          campaign_id: campaign.id,
+          housing_geo_code: mustNotReset[0].geoCode,
+          housing_id: mustNotReset[0].id
+        },
+        {
+          // Should not be reset because still in another campaign
+          campaign_id: otherCampaign.id,
+          housing_geo_code: mustNotReset[0].geoCode,
+          housing_id: mustNotReset[0].id
+        },
+        {
+          // Should not be reset because not in status "waiting"
+          campaign_id: campaign.id,
+          housing_geo_code: mustNotReset[1].geoCode,
+          housing_id: mustNotReset[1].id
+        }
+      ]);
+      const payload: CampaignRemovalPayload = {
+        all: false,
+        housingIds: [mustReset, ...mustNotReset].map((housing) => housing.id)
+      };
+
+      const { status } = await request(url)
+        .delete(testRoute(campaign.id))
+        .send(payload)
+        .use(tokenProvider(user));
+
+      expect(status).toBe(constants.HTTP_STATUS_NO_CONTENT);
+      const event = await Events()
+        .join(HOUSING_EVENTS_TABLE, 'event_id', 'id')
+        .where({
+          type: 'housing:status-updated'
+        })
+        .whereIn(
+          ['housing_geo_code', 'housing_id'],
+          [mustReset, ...mustNotReset].map((housing) => [
+            housing.geoCode,
+            housing.id
+          ])
+        )
+        .first();
+      expect(event).not.toBeNull();
     });
   });
 });

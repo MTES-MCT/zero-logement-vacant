@@ -26,7 +26,7 @@ import { useNotification } from '~/hooks/useNotification';
 import { type Address, isBanEligible } from '~/models/Address';
 import type { Campaign } from '~/models/Campaign';
 import type { Housing } from '~/models/Housing';
-import { useRemoveCampaignHousingMutation } from '~/services/campaign.service';
+import { useRemoveCampaignHousingsMutation } from '~/services/campaign.service';
 import {
   useCountHousingQuery,
   useFindHousingQuery
@@ -86,7 +86,7 @@ function CampaignRecipients(props: Readonly<CampaignRecipientsProps>) {
     removeCampaignHousingModal.open();
   }
 
-  const [removeCampaignHousing, removal] = useRemoveCampaignHousingMutation();
+  const [removeCampaignHousings, removal] = useRemoveCampaignHousingsMutation();
   useNotification({
     toastId: 'remove-campaign-housing-toast',
     isError: removal.isError,
@@ -101,11 +101,12 @@ function CampaignRecipients(props: Readonly<CampaignRecipientsProps>) {
 
   async function confirmRemoval() {
     if (selected) {
-      removeCampaignHousing({
-        campaignId: props.campaign.id,
-        all: false,
-        ids: [selected.id],
-        filters: {}
+      removeCampaignHousings({
+        id: props.campaign.id,
+        filters: {
+          all: false,
+          housingIds: [selected.id]
+        }
       });
       removeCampaignHousingModal.close();
       setSelected(null);

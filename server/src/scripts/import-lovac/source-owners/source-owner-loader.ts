@@ -161,6 +161,27 @@ export function createOwnerLoader(
                 i + HOUSING_OWNERS_UPDATE_CHUNK_SIZE
               );
               const start = Date.now();
+              // When both the old and new owner IDs are already linked to the
+              // same housing (e.g. two source owners share the same owner_uid,
+              // or a previous housing-owners run already wrote the canonical
+              // link), a plain UPDATE would hit the PK. Delete the stale row
+              // first — the canonical (new_id) link already represents the
+              // correct state.
+              await trx.raw(
+                `DELETE FROM ?? oh
+                 USING owner_id_map m
+                 JOIN ?? o ON o.idpersonne = m.idpersonne
+                 WHERE oh.owner_id = o.id
+                   AND o.id != m.new_id
+                   AND m.idpersonne = ANY(?)
+                   AND EXISTS (
+                     SELECT 1 FROM ?? oh2
+                     WHERE oh2.owner_id = m.new_id
+                       AND oh2.housing_id = oh.housing_id
+                       AND oh2.housing_geo_code = oh.housing_geo_code
+                   )`,
+                [table, ownerTable, chunk, table]
+              );
               await trx.raw(
                 `UPDATE ?? SET owner_id = m.new_id
                  FROM owner_id_map m
@@ -187,6 +208,18 @@ export function createOwnerLoader(
         }
 
         logger.info('Updating owners.id...');
+        // If two source owners share the same owner_uid, both map to new_id
+        // but only one owner row can hold that PK. All FK references for the
+        // duplicate have already been re-pointed to new_id in the steps above,
+        // so the duplicate owner row is now orphaned and safe to delete.
+        await trx.raw(
+          `DELETE FROM ?? o
+           USING owner_id_map m
+           WHERE o.idpersonne = m.idpersonne
+             AND o.id != m.new_id
+             AND EXISTS (SELECT 1 FROM ?? o2 WHERE o2.id = m.new_id)`,
+          [ownerTable, ownerTable]
+        );
         await trx.raw(
           `UPDATE ?? SET id = m.new_id
            FROM owner_id_map m

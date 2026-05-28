@@ -296,5 +296,14 @@ describe('Owner repository', () => {
       const actual = await Owners().where({ id: ownerToSkip.id }).first();
       expect(actual?.is_multi_owner).toBe(true);
     });
+
+    it('should handle batches larger than the pg uint16 parameter limit without protocol overflow', async () => {
+      // pg encodes parameter count as uint16 (max 65 535). Without internal
+      // chunking, a whereIn with >65 535 IDs overflows and PostgreSQL rejects
+      // the bind message with 08P01. None of these IDs exist in the DB so the
+      // UPDATE matches 0 rows — we only need the query to not throw.
+      const ids = Array.from({ length: 70_000 }, () => genOwnerApi().id);
+      await expect(ownerRepository.refreshMultiOwnerFlags(ids)).resolves.toBeUndefined();
+    });
   });
 });

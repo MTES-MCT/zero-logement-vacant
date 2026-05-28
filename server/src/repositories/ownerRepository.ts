@@ -652,19 +652,26 @@ export const formatOwnerApi = (owner: OwnerApi): OwnerRecordDBO => ({
   is_multi_owner: null
 });
 
+// pg encodes parameter count as uint16 (max 65 535). A whereIn with more IDs
+// than this overflows the wire-protocol bind message. Chunk well below that.
+const MULTI_OWNER_BATCH_SIZE = 10_000;
+
 async function refreshMultiOwnerFlags(
   ownerIds: ReadonlyArray<string>
 ): Promise<void> {
   if (!ownerIds.length) return;
-  await withinTransaction(async (transaction) => {
-    await Owners(transaction)
-      .whereIn('id', ownerIds)
-      .update({
-        is_multi_owner: db.raw(
-          `(SELECT COUNT(*) > 1 FROM ${housingOwnersTable} WHERE owner_id = owners.id AND rank = 1)`
-        )
-      });
-  });
+  for (let i = 0; i < ownerIds.length; i += MULTI_OWNER_BATCH_SIZE) {
+    const chunk = ownerIds.slice(i, i + MULTI_OWNER_BATCH_SIZE);
+    await withinTransaction(async (transaction) => {
+      await Owners(transaction)
+        .whereIn('id', chunk)
+        .update({
+          is_multi_owner: db.raw(
+            `(SELECT COUNT(*) > 1 FROM ${housingOwnersTable} WHERE owner_id = owners.id AND rank = 1)`
+          )
+        });
+    });
+  }
 }
 
 export { refreshMultiOwnerFlags };

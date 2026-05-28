@@ -1,3 +1,4 @@
+import { isActiveOwnerRank } from '@zerologementvacant/models';
 import { match } from 'ts-pattern';
 import { WritableStream } from 'node:stream/web';
 
@@ -67,7 +68,9 @@ export function createHousingOwnerLoader(
         await HousingOwners(transaction).insert(allRows);
       }
     });
-    options.reporter.created(allRows.length);
+    const activeCount = allRows.filter((row) => isActiveOwnerRank(row.rank)).length;
+    options.reporter.created(activeCount);
+    options.reporter.updated(allRows.length - activeCount);
   }
 
   return new WritableStream<HousingOwnerChange>({

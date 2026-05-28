@@ -24,7 +24,7 @@ import {
 import { EnrichedSourceHousing } from './source-housing-enricher';
 import { SourceHousing } from './source-housing';
 
-type READ_ONLY_FIELDS = 'last_mutation_type' | 'plot_area' | 'occupancy_history';
+type READ_ONLY_FIELDS = 'last_mutation_type' | 'occupancy_history';
 export type HousingRecordInsert = Omit<HousingRecordDBO, READ_ONLY_FIELDS>;
 
 interface Change<Value, Type extends string> {
@@ -88,6 +88,7 @@ function toCreate(
     building_group_id: null,
     building_location: source.building_location,
     building_year: source.building_year ?? null,
+    plot_area: source.plot_area,
     plot_id: source.plot_id,
     geo_code: source.geo_code,
     address_dgfip: [source.dgfip_address],

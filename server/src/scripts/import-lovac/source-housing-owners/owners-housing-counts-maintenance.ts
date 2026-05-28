@@ -86,13 +86,29 @@ export async function enableOwnersHousingTriggers(): Promise<void> {
   await db.raw('ALTER TABLE owners_housing ENABLE TRIGGER USER');
 }
 
+const DEADLOCK_MAX_RETRIES = 5;
+
 export async function recomputeOwnersHousingCounts(): Promise<void> {
   for (const [table, sql] of Object.entries(RECOMPUTE_BY_TABLE)) {
-    const start = Date.now();
-    logger.info(`Recomputing owner_count for ${table}`);
-    await db.raw(sql);
-    logger.info(
-      `Recomputed owner_count for ${table} in ${Date.now() - start}ms`
-    );
+    let attempt = 0;
+    while (true) {
+      const start = Date.now();
+      logger.info(`Recomputing owner_count for ${table}${attempt > 0 ? ` (attempt ${attempt + 1})` : ''}`);
+      try {
+        await db.raw(sql);
+        logger.info(`Recomputed owner_count for ${table} in ${Date.now() - start}ms`);
+        break;
+      } catch (error: any) {
+        // 40P01 = deadlock_detected — a concurrent trigger fired by live
+        // traffic raced with this full-table UPDATE and lost. Retry; the
+        // other transaction already committed so the next attempt will win.
+        if (error?.code === '40P01' && attempt < DEADLOCK_MAX_RETRIES) {
+          logger.warn(`Deadlock on ${table} recompute, retrying (attempt ${attempt + 1})...`);
+          attempt++;
+          continue;
+        }
+        throw error;
+      }
+    }
   }
 }

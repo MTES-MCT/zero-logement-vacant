@@ -26,6 +26,7 @@ export const sourceHousingSchema = z.object({
       .nullable()
   ),
   plot_id: z.string().nullable().default(null),
+  plot_area: z.int().nullable().default(null),
   geo_code: z.string().length(5, 'geo_code is required'),
   ban_id: z.string().nullable().default(null),
   ban_label: z.string().nullable().default(null),
@@ -78,6 +79,8 @@ export const sourceHousingSchema = z.object({
     .min(0)
     .transform((value) => Math.round(value))
     .nullable(),
+  // TODO: parse as point
+  geolocation: z.string().nullable(),
   geolocation_source: z
     .enum(['parcelle-ff', 'bati-rnb', 'adresse-ban'])
     .nullable()

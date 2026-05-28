@@ -96,6 +96,7 @@ async function updateHousings(
         'invariant',
         'building_id',
         'building_group_id',
+        'plot_area',
         'plot_id',
         'address_dgfip',
         'longitude_dgfip',

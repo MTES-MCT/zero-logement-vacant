@@ -79,3 +79,6 @@ test-output
 
 .nx/polygraph
 .claude/worktrees
+
+# refactor-tracker local state
+.refactor-tracker-cache.json

@@ -1,0 +1,14 @@
+# refactor-tracker config
+# Tracks the migration from the custom frontend useForm hook to react-hook-form.
+refactors:
+  - id: useform-to-react-hook-form
+    name: Replace custom useForm with react-hook-form
+    detect:
+      # Fully migrated: files importing react-hook-form that no longer import the custom hook.
+      done:
+        command: |-
+          grep -rlE "from ['\"]react-hook-form" frontend/src --include='*.ts' --include='*.tsx' | xargs grep -LE "from ['\"].*hooks/useForm" | wc -l | tr -d ' '
+      # Backlog: files still importing the custom useForm hook (includes mid-migration files).
+      remaining:
+        command: |-
+          grep -rlE "from ['\"].*hooks/useForm" frontend/src --include='*.ts' --include='*.tsx' | wc -l | tr -d ' '

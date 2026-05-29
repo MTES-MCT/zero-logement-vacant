@@ -3,8 +3,10 @@ import { Alert } from '@codegouvfr/react-dsfr/Alert';
 import Button from '@codegouvfr/react-dsfr/Button';
 import { yupResolver } from '@hookform/resolvers/yup';
 import Box from '@mui/material/Box';
+import CircularProgress from '@mui/material/CircularProgress';
 import Container from '@mui/material/Container';
 import Grid from '@mui/material/Grid';
+import Stack from '@mui/material/Stack';
 import Typography from '@mui/material/Typography';
 import { useState } from 'react';
 import { FormProvider, useForm } from 'react-hook-form';
@@ -156,26 +158,36 @@ const LoginView = () => {
                   Mot de passe perdu ?
                 </AppLink>
               </Box>
-              <Grid container alignItems="center" spacing={2}>
-                <Grid size={{ xs: 12, md: 9 }}>
-                  <Typography component="p" variant="body1">
-                    Première visite ?&nbsp;
-                    <AppLink
-                      to="/inscription"
-                      isSimple
-                      iconId="fr-icon-arrow-right-line"
-                      iconPosition="right"
-                    >
-                      Créer votre compte
-                    </AppLink>
+              {auth.logIn.isLoading ? (
+                <Stack direction="row" alignItems="center" gap="1rem" sx={{ mt: '0.5rem' }}>
+                  <CircularProgress
+                    size="1.5rem"
+                    sx={{ color: fr.colors.decisions.text.actionHigh.blueFrance.default, flexShrink: 0 }}
+                  />
+                  <Typography variant="body1" sx={{ fontWeight: 500 }}>
+                    Connexion en cours, veuillez patienter quelques instants…
                   </Typography>
+                </Stack>
+              ) : (
+                <Grid container alignItems="center" spacing={2}>
+                  <Grid size={{ xs: 12, md: 9 }}>
+                    <Typography component="p" variant="body1">
+                      Première visite ?&nbsp;
+                      <AppLink
+                        to="/inscription"
+                        isSimple
+                        iconId="fr-icon-arrow-right-line"
+                        iconPosition="right"
+                      >
+                        Créer votre compte
+                      </AppLink>
+                    </Typography>
+                  </Grid>
+                  <Grid size={{ xs: 12, md: 3 }} sx={{ textAlign: 'right' }}>
+                    <Button type="submit">Se connecter</Button>
+                  </Grid>
                 </Grid>
-                <Grid size={{ xs: 12, md: 3 }} sx={{ textAlign: 'right' }}>
-                  <Button type="submit">
-                    Se connecter
-                  </Button>
-                </Grid>
-              </Grid>
+              )}
             </form>
           </Grid>
           <Grid

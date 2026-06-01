@@ -7,6 +7,12 @@
 
 ## Getting started en 5 minutes
 
+### Prérequis
+
+- **Node.js v24+**
+- **Yarn v4** (activé via Corepack : `corepack enable`)
+- **Docker** (pour PostgreSQL, Redis, etc.)
+
 ### Installation de l'application
 
 ```bash
@@ -62,10 +68,20 @@ Lancer **un service spécifique** :
 docker compose -f .docker/docker-compose.yml up -d <service>
 ```
 
-### Variables d'environnement
+### Variables d’environnement
 
-Chaque application peut définir ses propres variables d’environnement.
-Des exemples sont disponibles comme ici pour l’API : [server/.env.example](server/.env.example).
+Chaque application définit ses propres variables d’environnement. Copiez les fichiers d’exemple et adaptez-les :
+
+```bash
+cp server/.env.example server/.env
+cp frontend/.env.example frontend/.env
+```
+
+**Important :** la valeur de `DATABASE_URL` dans `server/.env` doit correspondre à la base de données créée à l’étape précédente. Si vous avez utilisé les valeurs par défaut du script `setup.sh`, mettez à jour la valeur :
+
+```
+DATABASE_URL=postgres://postgres:postgres@localhost/dev
+```
 
 ### Chargement des données
 
@@ -75,8 +91,8 @@ Si vous avez choisi de ne pas charger les données via `docker compose`, vous
 pouvez les charger manuellement :
 
 ```bash
-yarn workspace @zerologementvacant/server migrate
-yarn workspace @zerologementvacant/server seed
+yarn nx run server:migrate
+yarn nx run server:seed
 ```
 
 **Note :** vous pouvez définir la variable d’environnement `DATABASE_URL`
@@ -89,7 +105,7 @@ Permet le chargement de données minimales pour faire fonctionner l'application 
 - Eurométropole de Strasbourg
 - CA Saint-Lô Agglo
 
-et trois utilisateurs dont les mots de passes sont partagés sur https://vaultwarden.incubateur.net/:
+et quatre utilisateurs dont les mots de passe sont partagés sur https://vaultwarden.incubateur.net/ :
 
 - test.strasbourg@zlv.fr => utilisateur avec des droits pour Eurométropole de Strasbourg
 - test.saintlo@zlv.fr => utilisateur avec des droits pour Saint-Lô
@@ -101,11 +117,12 @@ et trois utilisateurs dont les mots de passes sont partagés sur https://vaultwa
 Chaque application peut être lancée indépendamment.
 
 ```shell
-yarn workspace @zerologementvacant/front dev # localhost:3000
-yarn workspace @zerologementvacant/server dev # localhost:3001/api
+yarn nx run-many -t dev -p front,server
+# Front est sur localhost:3000
+# API est sur localhost:3001
 ```
 
-L'application est accessible à l'adresse sur <http://localhost:3000> et il est possible de se connecter avec l'un des trois comptes utilisateurs cités plus haut.
+L'application est accessible à l'adresse sur <http://localhost:3000> et il est possible de se connecter avec l'un des quatre comptes utilisateurs cités plus haut.
 
 ### Lancement des tests
 
@@ -118,16 +135,8 @@ yarn test
 Lancer les tests d’un workspace en particulier :
 
 ```shell
-# Avec yarn
-yarn workspace <workspace> test
-# Avec lerna
-yarn lerna run test --scope <workspace> [--include-dependents]
-
-# Exemple
-yarn workspace @zerologementvacant/server test
-yarn lerna run test --scope @zerologementvacant/server --include-dependents
-yarn test --scope @zerologementvacant/server --include-dependents
-# yarn test == yarn lerna run test
+yarn nx test server
+yarn nx test front
 ```
 
 La commande échoue si le package ne comporte pas de commande `test`, ou si un
@@ -137,11 +146,3 @@ test échoue.
 
 - [Génération de PDF](docs/guides/pdf.md) — courriers de campagne (agents produit)
 - [packages/pdf](packages/pdf/README.md) — documentation technique du package PDF
-
-## Démo
-
-La version de démo de l'application est accessible à l'adresse <https://zerologementvacant-staging.incubateur.net>
-
-## Production
-
-La version de production de l'application est accessible à l'adresse <https://zerologementvacant.beta.gouv.fr>

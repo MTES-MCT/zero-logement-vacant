@@ -26,8 +26,6 @@ import { genOwnerApi } from '~/test/testFixtures';
 
 export async function seed(knex: Knex): Promise<void> {
   console.time('20240404235456_owners');
-  await knex.raw(`TRUNCATE TABLE ${ownerTable} CASCADE`);
-  await Addresses(knex).where({ address_kind: AddressKinds.Owner }).delete();
 
   const ban = createBanAPI();
   const establishments = await Establishments(knex).where({ available: true });
@@ -88,6 +86,9 @@ export async function seed(knex: Knex): Promise<void> {
       console.warn('Error during BAN reverse geocoding:', error);
       return [];
     });
+
+  await knex.raw(`TRUNCATE TABLE ${ownerTable} CASCADE`);
+  await Addresses(knex).where({ address_kind: AddressKinds.Owner }).delete();
 
   console.log(`Inserting ${owners.length} owners...`);
   await knex.batchInsert(ownerTable, owners.map(formatOwnerApi));

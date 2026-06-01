@@ -43,7 +43,7 @@ SELECT
         -- Geolocation (RNB > FF > BAN)
         rnb_id,
         rnb_id_score,
-        geomrnb as rnb_footprint,
+        ff_rnb_emp as rnb_footprint,
         geomrnb,
         ff_geomloc,
         ban_geom,
@@ -102,8 +102,11 @@ SELECT
 
         -- Local mutation
         TRY_STRPTIME(anmutation, '{{ var("dateFormat") }}') as mutation_date,
-        ff_jdatat,
-        ffh_jdatat,
+        TRY_STRPTIME(ff_jdatat, '%d%m%Y')::DATE as ff_jdatat,
+        (
+            SELECT MAX(TRY_STRPTIME(TRIM(d), '%Y-%m-%d')::DATE)
+            FROM UNNEST(STRING_SPLIT(ffh_jdatat, ',')) AS t(d)
+        ) as ffh_jdatat,
 
         -- DVF
         dvf_datemut,
@@ -197,18 +200,12 @@ SELECT
         UPPER(ff_ddenom_4) as ff_owner_4_fullname,
         UPPER(ff_ddenom_5) as ff_owner_5_fullname,
         UPPER(ff_ddenom_6) as ff_owner_6_fullname,
-        TRY_STRPTIME(CAST(ff_jdatnss_1 as VARCHAR), '{{ var("dateFormat") }}')
-            as ff_owner_1_birth_date,
-        TRY_STRPTIME(CAST(ff_jdatnss_2 as VARCHAR), '{{ var("dateFormat") }}')
-            as ff_owner_2_birth_date,
-        TRY_STRPTIME(CAST(ff_jdatnss_3 as VARCHAR), '{{ var("dateFormat") }}')
-            as ff_owner_3_birth_date,
-        TRY_STRPTIME(CAST(ff_jdatnss_4 as VARCHAR), '{{ var("dateFormat") }}')
-            as ff_owner_4_birth_date,
-        TRY_STRPTIME(CAST(ff_jdatnss_5 as VARCHAR), '{{ var("dateFormat") }}')
-            as ff_owner_5_birth_date,
-        TRY_STRPTIME(CAST(ff_jdatnss_6 as VARCHAR), '{{ var("dateFormat") }}')
-            as ff_owner_6_birth_date,
+        ff_jdatnss_1 as ff_owner_1_birth_date,
+        ff_jdatnss_2 as ff_owner_2_birth_date,
+        ff_jdatnss_3 as ff_owner_3_birth_date,
+        ff_jdatnss_4 as ff_owner_4_birth_date,
+        ff_jdatnss_5 as ff_owner_5_birth_date,
+        ff_jdatnss_6 as ff_owner_6_birth_date,
         ff_dldnss_1 as ff_owner_1_birth_place,
         ff_dldnss_2 as ff_owner_2_birth_place,
         ff_dldnss_3 as ff_owner_3_birth_place,

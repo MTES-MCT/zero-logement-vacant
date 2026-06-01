@@ -91,8 +91,8 @@ Si vous avez choisi de ne pas charger les données via `docker compose`, vous
 pouvez les charger manuellement :
 
 ```bash
-yarn workspace @zerologementvacant/server migrate
-yarn workspace @zerologementvacant/server seed
+yarn nx run server:migrate
+yarn nx run server:seed
 ```
 
 **Note :** vous pouvez définir la variable d’environnement `DATABASE_URL`
@@ -117,8 +117,9 @@ et quatre utilisateurs dont les mots de passe sont partagés sur https://vaultwa
 Chaque application peut être lancée indépendamment.
 
 ```shell
-yarn workspace @zerologementvacant/front dev # localhost:3000
-yarn workspace @zerologementvacant/server dev # localhost:3001/api
+yarn nx run-many -t dev -p front,server
+# Front est sur localhost:3000
+# API est sur localhost:3001
 ```
 
 L'application est accessible à l'adresse sur <http://localhost:3000> et il est possible de se connecter avec l'un des quatre comptes utilisateurs cités plus haut.
@@ -145,11 +146,3 @@ test échoue.
 
 - [Génération de PDF](docs/guides/pdf.md) — courriers de campagne (agents produit)
 - [packages/pdf](packages/pdf/README.md) — documentation technique du package PDF
-
-## Démo
-
-La version de démo de l'application est accessible à l'adresse <https://zerologementvacant-staging.incubateur.net>
-
-## Production
-
-La version de production de l'application est accessible à l'adresse <https://zerologementvacant.beta.gouv.fr>

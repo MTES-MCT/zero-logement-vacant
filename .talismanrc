@@ -89,9 +89,11 @@ fileignoreconfig:
   checksum: 67d6c9c214ecbd872172a5eedfc1b137c94089fa2b62015ab0668ba1c8684fdb
 - filename: server/src/infra/database/migrations/20251215164103_dpe-import-optimization-indexes.ts
   checksum: ef2763a2a7a64427aef3017f3ceeff80162ead0fbac9a5a329006d85d87a30d6
+- filename: server/src/infra/database/seeds/development/20240404234042_load-common-data.ts
+  checksum: 3549ff6565d84e5b2225f7a90dccdaa8ea5019e4ceaa835b7f815717b3d82485
 - filename: server/src/infra/database/scripts/010-load-sder-sded.sql
   checksum: 780da83bced54995ae72c9f963c8bdeea7217b22793fd33c966bd8b28073acad
-- filename: server/src/infra/database/seeds/development/20240404235457_users.ts
+- filename: server/src/infra/database/seeds/development/20240404235443_users.ts
   checksum: 459ad7c52a09b1a5d885f0e13acd68a894b862470125529ecc28a4116c737df7
 - filename: server/src/models/test/DocumentApi.test.ts
   checksum: 1d816ff7b060a0100cbd90a60182bb7c3e230ab5761909b18871af6ced2a6efb

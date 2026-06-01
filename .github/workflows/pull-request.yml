@@ -10,6 +10,14 @@ on:
       - packages/**
 
 jobs:
+  check-env-example:
+    runs-on: ubuntu-22.04
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v6
+      - name: Check .env.example completeness
+        run: bash tools/check-env-example.sh
+
   build:
     runs-on: ubuntu-22.04
     strategy:
@@ -35,7 +43,7 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v6
         with:
-          # Allows lerna to compute which packages changed
+          # Allows nx affected to compute which packages changed
           fetch-depth: 0
 
       - name: Enable Corepack

@@ -12,29 +12,28 @@ Yarn v4 monorepo with Nx for build orchestration and task running. French govern
 
 ```
 ├── frontend/          # React app (@zerologementvacant/front)
-│                      # See frontend/AGENTS.md for frontend-specific patterns
 ├── server/            # Express API (@zerologementvacant/server)
-│                      # See server/AGENTS.md for backend-specific patterns
-├── e2e/               # End-to-end Cypress tests
-├── queue/             # Background job processor
+├── apps/
+│   └── front-e2e/    # End-to-end Cypress tests
 └── packages/
     ├── api-sdk/       # API client
+    ├── factories/     # Test factory functions (fishery)
     ├── models/        # Shared data models (DTOs)
+    ├── pdf/           # PDF generation
     ├── schemas/       # Validation schemas
     ├── utils/         # Shared utilities
-    ├── healthcheck/   # Health check utilities
-    └── draft/         # Draft models/utilities
+    └── healthcheck/   # Health check utilities
 ```
 
 ## Navigation Guide for AI Agents
 
 **When to work in each workspace:**
 
-- **Frontend work** (React components, UI, state management) → Work in `frontend/`, read [frontend/AGENTS.md](frontend/AGENTS.md)
-- **Backend work** (API endpoints, database, validation) → Work in `server/`, read [server/AGENTS.md](server/AGENTS.md)
+- **Frontend work** (React components, UI, state management) → Work in `frontend/`; conventions in [.claude/rules/frontend-conventions.md](.claude/rules/frontend-conventions.md)
+- **Backend work** (API endpoints, database, validation) → Work in `server/`; conventions in [.claude/rules/backend-conventions.md](.claude/rules/backend-conventions.md)
 - **Shared types/models** → Work in `packages/models/` (DTOs used by both frontend and server)
 - **Validation schemas** → Work in `packages/schemas/` (shared Yup schemas)
-- **E2E tests** → Work in `e2e/`
+- **E2E tests** → Work in `apps/front-e2e/`
 
 **AI agents automatically read the nearest AGENTS.md file in the directory tree.** Work in the appropriate workspace and follow its specific conventions.
 
@@ -235,8 +234,9 @@ Husky configured for pre-commit linting. Configured via `.husky/`.
 
 ## Workspace-Specific Documentation
 
-- **Frontend development** → [frontend/AGENTS.md](frontend/AGENTS.md)
-- **Backend/API development** → [server/AGENTS.md](server/AGENTS.md)
+- **Frontend conventions** → [.claude/rules/frontend-conventions.md](.claude/rules/frontend-conventions.md)
+- **Backend conventions** → [.claude/rules/backend-conventions.md](.claude/rules/backend-conventions.md)
+- **Packages conventions** → [.claude/rules/packages-conventions.md](.claude/rules/packages-conventions.md)
 
 <!-- nx configuration start-->
 <!-- Leave the start & end comments to automatically receive updates. -->

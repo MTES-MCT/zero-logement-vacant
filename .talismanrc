@@ -34,7 +34,7 @@ fileignoreconfig:
 - filename: docs/plans/2026-03-04-campaign-view-rework.md
   checksum: 3d029146348a92af21c5d517a98df77d95510bd7c8ef363dd73cc7b79b1f9c3b
 - filename: frontend/.env.example
-  checksum: 7e2a5ff197c49ff9f715b3d189da7282bdb40de53ea49735e9f183ece19168fc
+  checksum: b2a9a90b4638f73c5c3af34fe5e7e6bf5244b18f32f7c96fb35c48429836004d
 - filename: frontend/AGENTS.md
   checksum: e61269bb50cfcf72e05f504edc4e72dddca39e35f6994c958f62ca453467368d
 - filename: frontend/src/components/Draft/DraftSender.tsx
@@ -68,7 +68,11 @@ fileignoreconfig:
 - filename: packages/utils/src/object.ts
   checksum: 9893602dd7197e44a7c361e44c31b5fb86a025227af95c02998a6857bd1a694b
 - filename: server/.env.example
-  checksum: 4955533b2ba29ebc4a052e65ce2aab5b911ebf8e4b4eeecff50b5e83d1857c35
+  checksum: 62a27c6b5ffc4f6f5f92d6e20a38bb897c14858cd2d1c61b30f64b002b76fe89
+- filename: tools/check-env-example.sh
+  checksum: 6c6fe178ec5266d32e19a469547e2cf8e02158ef2e930b5600b0951b5e655a7a
+- filename: README.md
+  checksum: e9453f34a422b94f243daf56302141d9fc22cddf802423f64da72cee91c407d2
 - filename: server/AGENTS.md
   checksum: 7dcff7f92233af9d77b5756e39af3d2aa71cd7dab25d91c2a96bfb7cdd609bca
 - filename: server/src/controllers/campaignController.ts

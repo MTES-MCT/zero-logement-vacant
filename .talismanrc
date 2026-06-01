@@ -89,8 +89,10 @@ fileignoreconfig:
   checksum: 67d6c9c214ecbd872172a5eedfc1b137c94089fa2b62015ab0668ba1c8684fdb
 - filename: server/src/infra/database/migrations/20251215164103_dpe-import-optimization-indexes.ts
   checksum: ef2763a2a7a64427aef3017f3ceeff80162ead0fbac9a5a329006d85d87a30d6
+- filename: server/src/infra/database/data/common/establishments.csv
+  checksum: d38544357e73b07b5ef496c277842a0ea9942cad6ba8cfaea089e9efc3e8f87c
 - filename: server/src/infra/database/seeds/development/20240404234042_load-common-data.ts
-  checksum: 3549ff6565d84e5b2225f7a90dccdaa8ea5019e4ceaa835b7f815717b3d82485
+  checksum: b6d7770f379732225fceeb9c4c9251b47199691043a46d2a719983b6655f2a18
 - filename: server/src/infra/database/scripts/010-load-sder-sded.sql
   checksum: 780da83bced54995ae72c9f963c8bdeea7217b22793fd33c966bd8b28073acad
 - filename: server/src/infra/database/seeds/development/20240404235443_users.ts

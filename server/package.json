@@ -65,6 +65,7 @@
     "multer": "2.1.1",
     "nodemailer": "8.0.7",
     "otpauth": "9.5.1",
+    "p-map": "^7.0.4",
     "p-memoize": "8.0.0",
     "p-retry": "8.0.0",
     "pg": "8.20.0",

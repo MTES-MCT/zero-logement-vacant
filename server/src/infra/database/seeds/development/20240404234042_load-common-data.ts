@@ -1,86 +1,52 @@
-import async from 'async';
+import { from as copyFrom } from 'pg-copy-streams';
 import { Knex } from 'knex';
-import { exec } from 'node:child_process';
+import { createReadStream } from 'node:fs';
 import path from 'node:path';
+import { pipeline } from 'node:stream/promises';
 
-import config from '~/infra/config';
+import { establishmentsLocalitiesTable } from '~/repositories/establishmentLocalityRepository';
 import { establishmentsTable } from '~/repositories/establishmentRepository';
 import { localitiesTable } from '~/repositories/localityRepository';
 import { NOTES_TABLE } from '~/repositories/noteRepository';
 import { resetLinkTable } from '~/repositories/resetLinkRepository';
 import { signupLinkTable } from '~/repositories/signupLinkRepository';
 
+const DATA_DIR = path.join(import.meta.dirname, '..', '..', 'data', 'common');
+
 export async function seed(knex: Knex): Promise<void> {
   console.time('20240404234042_load-common-data');
-  // Clean up
-  const tables = [
-    establishmentsTable,
-    localitiesTable,
-    NOTES_TABLE,
-    signupLinkTable,
-    resetLinkTable
-  ];
-  await async.forEachSeries(tables, async (table) => {
+
+  for (const table of [NOTES_TABLE, signupLinkTable, resetLinkTable]) {
     await knex.raw(`TRUNCATE TABLE ${table} CASCADE`);
     console.log(`Truncated table ${table}.`);
-  });
+  }
 
-  const files = [
-    {
-      script: path.join(
-        'scripts',
-        '001-load-establishments_com_epci_reg_dep.sql'
-      ),
-      data: path.join('data', 'common', 'com_epci_dep_reg.csv')
-    },
-    {
-      script: path.join(
-        'scripts',
-        '002-load-establishments_direction_territoriale.sql'
-      ),
-      data: path.join('data', 'common', 'direction_territoriale.csv')
-    },
-    {
-      script: path.join('scripts', '003-load-establishment_kinds.sql'),
-      data: path.join('data', 'common', 'nature_juridique.csv')
-    },
-    {
-      script: path.join('scripts', '006-load-locality-taxes.sql'),
-      data: path.join('data', 'common', 'taxe.csv')
-    }
-  ];
-  await async.forEachSeries(files, async (file) => {
-    await load(file.script, file.data);
-  });
+  await knex.raw(`TRUNCATE TABLE ${localitiesTable} CASCADE`);
+  await copyFromCsv(knex, localitiesTable, path.join(DATA_DIR, 'localities.csv'));
+
+  await knex.raw(`TRUNCATE TABLE ${establishmentsTable} CASCADE`);
+  await copyFromCsv(knex, establishmentsTable, path.join(DATA_DIR, 'establishments.csv'));
+  await copyFromCsv(knex, establishmentsLocalitiesTable, path.join(DATA_DIR, 'establishments_localities.csv'));
+
   console.log('Loaded common data.');
   console.timeEnd('20240404234042_load-common-data');
-  console.log('\n')
+  console.log('\n');
 }
 
-/**
- * Load a csv data file using the given script file.
- * @param script
- * @param data
- */
-async function load(script: string, data: string): Promise<void> {
-  const command = `psql ${config.db.url} -f ${script} -v filePath=${data} -v dateFormat="'MM/DD/YY/'" -v ON_ERROR_STOP=1`;
-  console.info(`Executing ${command}`);
-  await new Promise<void>((resolve, reject) => {
-    exec(
-      command,
-      { cwd: path.join(import.meta.dirname, '..', '..') },
-      (error, stdout, stderr) => {
-        if (error) {
-          return reject(error ?? stderr);
-        }
-
-        if (stderr) {
-          console.warn(stderr);
-        }
-
-        console.log(stdout);
-        return resolve();
-      }
+async function copyFromCsv(
+  knex: Knex,
+  table: string,
+  csvPath: string
+): Promise<void> {
+  const client = await knex.client.acquireConnection();
+  try {
+    const copyStream = client.query(
+      copyFrom(`COPY ${table} FROM STDIN WITH (FORMAT CSV, HEADER)`)
     );
-  });
+    await pipeline(createReadStream(csvPath), copyStream);
+    const { rows } = await client.query(`SELECT COUNT(*) FROM ${table}`);
+    console.log(`Loaded ${rows[0].count} rows into ${table}.`);
+  } finally {
+    await knex.client.releaseConnection(client);
+  }
 }

@@ -38,9 +38,6 @@ export async function seed(knex: Knex): Promise<void> {
   console.time('20240404235459_housings');
   const ban = createBanAPI();
 
-  await knex.raw(`TRUNCATE TABLE ${housingOwnersTable} CASCADE`);
-  await knex.raw(`TRUNCATE TABLE ${housingTable} CASCADE`);
-
   const [establishments, buildings, owners] = await Promise.all([
     Establishments(knex).where({ available: true }),
     Buildings(knex).limit(1000),
@@ -48,6 +45,10 @@ export async function seed(knex: Knex): Promise<void> {
       .select()
       .then((owners) => owners.map(parseOwnerApi))
   ]);
+
+  const allHousings: HousingApi[] = [];
+  const allHousingAddresses: AddressApi[] = [];
+  const allHousingOwners: HousingOwnerApi[] = [];
 
   await async.forEachSeries(establishments, async (establishment) => {
     const geoCodes = faker.helpers.arrayElements(
@@ -82,7 +83,6 @@ export async function seed(knex: Knex): Promise<void> {
       }
     );
 
-    // Infer housing addresses using the generated coordinates
     const points = geolocatedHousings.map((housing) => ({
       refId: housing.id,
       geoCode: housing.geoCode,
@@ -119,32 +119,12 @@ export async function seed(knex: Knex): Promise<void> {
         };
       });
 
-    // Insert housings
-    console.log(`Inserting ${housings.length} housings...`, {
-      establishment: establishment.name
-    });
-    await knex.batchInsert(
-      housingTable,
-      housings.map(formatHousingRecordApi),
-      100
+    console.log(`Generated ${housings.length} housings for ${establishment.name}`);
+
+    const housingAddresses: ReadonlyArray<AddressApi> = addresses.map(
+      (address) => ({ ...address, addressKind: AddressKinds.Housing })
     );
 
-    // Insert BAN housing addresses
-    if (addresses.length > 0) {
-      const housingAddresses: ReadonlyArray<AddressApi> = addresses.map(
-        (address) => ({ ...address, addressKind: AddressKinds.Housing })
-      );
-      console.log(
-        `Inserting ${housingAddresses.length} BAN housing addresses...`,
-        { establishment: establishment.name }
-      );
-      await knex.batchInsert(
-        banAddressesTable,
-        housingAddresses.map(formatAddressApi)
-      );
-    }
-
-    // Link owners to housings
     const housingOwners: ReadonlyArray<HousingOwnerApi> = housings.flatMap(
       (housing) => {
         const ranks = faker.helpers.arrayElements(OWNER_RANKS, {
@@ -165,18 +145,30 @@ export async function seed(knex: Knex): Promise<void> {
             };
           })
         );
-
         return housingOwners;
       }
     );
-    console.log(`Inserting ${housingOwners.length} housing owners...`, {
-      establishment: establishment.name
-    });
-    await knex.batchInsert(
-      housingOwnersTable,
-      housingOwners.map(formatHousingOwnerApi)
-    );
+
+    allHousings.push(...housings);
+    allHousingAddresses.push(...housingAddresses);
+    allHousingOwners.push(...housingOwners);
   });
+
+  // All data generated — wipe and bulk-insert atomically
+  await knex.raw(`TRUNCATE TABLE ${housingOwnersTable} CASCADE`);
+  await knex.raw(`TRUNCATE TABLE ${housingTable} CASCADE`);
+
+  console.log(`Inserting ${allHousings.length} housings...`);
+  await knex.batchInsert(housingTable, allHousings.map(formatHousingRecordApi), 100);
+
+  if (allHousingAddresses.length > 0) {
+    console.log(`Inserting ${allHousingAddresses.length} BAN housing addresses...`);
+    await knex.batchInsert(banAddressesTable, allHousingAddresses.map(formatAddressApi));
+  }
+
+  console.log(`Inserting ${allHousingOwners.length} housing owners...`);
+  await knex.batchInsert(housingOwnersTable, allHousingOwners.map(formatHousingOwnerApi));
+
   console.timeEnd('20240404235459_housings');
   console.log('\n')
 }

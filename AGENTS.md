@@ -232,6 +232,13 @@ Husky configured for pre-commit linting. Configured via `.husky/`.
 - **PR titles and descriptions**: Always in English
 - **Branch naming**: Use prefixes like `feat/`, `fix/`, `chore/`, `refactor/`
 
+## Pull Request Workflow
+
+After opening any PR with `gh pr create`, always:
+
+1. Add relevant labels from the existing label set (check with `gh label list` if unsure)
+2. Assign the PR to the user: `gh pr edit <number> --add-label "<labels>" --add-assignee "@me"`
+
 ## Workspace-Specific Documentation
 
 - **Frontend conventions** → [.claude/rules/frontend-conventions.md](.claude/rules/frontend-conventions.md)

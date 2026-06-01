@@ -1,4 +1,5 @@
 import SkipLinks from '@codegouvfr/react-dsfr/SkipLinks';
+import { Suspense } from 'react';
 import { Outlet } from 'react-router';
 
 import RequireGuest from '~/components/Auth/RequireGuest';
@@ -16,7 +17,9 @@ function GuestLayout() {
       />
       <Header />
       <main id="fr-content">
-        <Outlet />
+        <Suspense>
+          <Outlet />
+        </Suspense>
       </main>
       <Footer />
     </RequireGuest>

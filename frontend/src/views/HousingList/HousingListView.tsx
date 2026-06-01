@@ -3,7 +3,7 @@ import Button from '@codegouvfr/react-dsfr/Button';
 import Grid from '@mui/material/Grid';
 import Stack from '@mui/material/Stack';
 import { useState } from 'react';
-import { useLocation, useNavigate } from 'react-router-dom';
+import { useLocation, useNavigate } from 'react-router';
 
 import Tooltip from '~/components/ui/Tooltip/Tooltip';
 import createGroupAddHousingModal from '~/components/Group/GroupAddHousingModal';

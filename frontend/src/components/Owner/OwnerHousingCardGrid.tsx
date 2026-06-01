@@ -3,7 +3,7 @@ import Skeleton from '@mui/material/Skeleton';
 import Stack from '@mui/material/Stack';
 import Typography from '@mui/material/Typography';
 import { skipToken } from '@reduxjs/toolkit/query';
-import { useParams } from 'react-router-dom';
+import { useParams } from 'react-router';
 import { match } from 'ts-pattern';
 
 import OwnerHousingCard from '~/components/Owner/OwnerHousingCard';

@@ -2,7 +2,7 @@ import { fr } from '@codegouvfr/react-dsfr';
 import Stack, { type StackProps } from '@mui/material/Stack';
 import { styled } from '@mui/material/styles';
 import Typography from '@mui/material/Typography';
-import { Link } from 'react-router-dom';
+import { Link } from 'react-router';
 
 import HousingCount from '~/components/HousingCount/HousingCount';
 import type { Group } from '~/models/Group';

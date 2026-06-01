@@ -2,7 +2,7 @@ import { createModal } from '@codegouvfr/react-dsfr/Modal';
 import Typography from '@mui/material/Typography';
 import Grid from '@mui/material/Grid';
 import { useEffect } from 'react';
-import { useLocation } from 'react-router-dom';
+import { useLocation } from 'react-router';
 import image from '../../../assets/images/community.svg';
 
 import { useIsDsfrReady } from '../../../hooks/useIsDsfrReady';

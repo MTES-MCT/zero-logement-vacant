@@ -1,5 +1,5 @@
 import { Container, Grid } from '@mui/material';
-import { Outlet } from 'react-router-dom';
+import { Outlet } from 'react-router';
 
 import AccountSideMenu from '~/views/Account/AccountSideMenu';
 

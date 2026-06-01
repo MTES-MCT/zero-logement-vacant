@@ -3,7 +3,7 @@ import { Breadcrumb } from '@codegouvfr/react-dsfr/Breadcrumb';
 import Grid from '@mui/material/Grid';
 import Stack from '@mui/material/Stack';
 import { useEffect } from 'react';
-import { useLocation, useNavigate, useParams } from 'react-router-dom';
+import { useLocation, useNavigate, useParams } from 'react-router';
 
 import AppSearchBar from '~/components/_app/AppSearchBar/AppSearchBar';
 import GroupNext, { type GroupProps } from '~/components/Group/GroupNext';

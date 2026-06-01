@@ -1,5 +1,5 @@
 import SkipLinks from '@codegouvfr/react-dsfr/SkipLinks';
-import { Outlet } from 'react-router-dom';
+import { Outlet } from 'react-router';
 
 import RequireGuest from '~/components/Auth/RequireGuest';
 import Header from '~/components/Header/Header';

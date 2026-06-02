@@ -486,11 +486,11 @@ router.put(
   localityController.updateLocalityTax
 );
 
+router.get('/dashboards/:id', dashboardController.findOne);
+
 router.get(
-  '/dashboards/:id',
-  dashboardController.findOneValidators,
-  validator.validate,
-  dashboardController.findOne
+  '/dashboards/:did/cards/:cid',
+  dashboardController.findOneCard
 );
 
 router.get('/datafoncier/housing/:localId', datafoncierController.findOne);

@@ -3,6 +3,7 @@ import type {
   Resource,
   Tab
 } from '@zerologementvacant/models';
+import UnprocessableEntityError from '~/errors/unprocessableEntityError';
 
 // ─── Metabase internal types (minimal subset) ────────────────────────────────
 
@@ -52,7 +53,7 @@ interface MetabaseQueryResult {
 
 // ─── Slug → numeric ID ───────────────────────────────────────────────────────
 
-export function getResource(id: Resource): number {
+export function getResource(id: string): number {
   switch (id) {
     case '6-utilisateurs-de-zlv-sur-votre-structure':
       return 6;
@@ -62,6 +63,8 @@ export function getResource(id: Resource): number {
       return 13;
     case '15-analyses-activites':
       return 15;
+    default:
+      throw new UnprocessableEntityError();
   }
 }
 

@@ -34,6 +34,12 @@ export type OwnerUpdatePayload = Pick<
   banAddress: AddressPayloadDTO | null;
 };
 
+export function getOwnerDisplayName(
+  owner: Pick<OwnerDTO, 'fullName' | 'username'>
+): string {
+  return owner.username ?? owner.fullName;
+}
+
 export function getAddress(
   owner: Pick<OwnerDTO, 'banAddress' | 'additionalAddress' | 'rawAddress'>
 ): string[] {

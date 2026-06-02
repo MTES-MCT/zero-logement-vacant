@@ -842,10 +842,10 @@ function filteredQuery(opts: FilteredQueryOptions) {
           where.orWhere('vacancy_start_year', '<', 2010);
         }
         if (filters.vacancyYears?.includes('missingData')) {
-          where.orWhere('vacancy_start_year', 0);
+          where.orWhereNull('vacancy_stary_year');
         }
-        if (filters.vacancyYears?.includes('inconsistency2022')) {
-          where.orWhere('vacancy_start_year', 2022);
+        if (filters.vacancyYears?.includes('inconsistency2023')) {
+          where.orWhere('vacancy_start_year', 2023);
         }
       });
     }

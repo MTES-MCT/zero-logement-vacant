@@ -613,6 +613,11 @@ export const multiOwnerOptions: SelectOption[] = [
  */
 export const vacancyYearOptions: SelectOption<VacancyYear>[] = [
   {
+    value: '2022',
+    label: '2022',
+    badgeLabel: 'Début de vacance : depuis 2022'
+  },
+  {
     value: '2021',
     label: '2021',
     badgeLabel: 'Début de vacance : depuis 2021'
@@ -648,9 +653,9 @@ export const vacancyYearOptions: SelectOption<VacancyYear>[] = [
     badgeLabel: 'Début de vacance : pas d’information'
   },
   {
-    value: 'inconsistency2022',
-    label: '2022 (incohérence donnée source)',
-    badgeLabel: 'Début de vacance : 2022 (incohérence donnée source)'
+    value: 'inconsistency2023',
+    label: '2023 (incohérence donnée source)',
+    badgeLabel: 'Début de vacance : 2023 (incohérence données sources)'
   }
 ];
 export const VACANCY_YEAR_OPTIONS: Record<
@@ -660,10 +665,6 @@ export const VACANCY_YEAR_OPTIONS: Record<
     badgeLabel: string;
   }
 > = {
-  '2023': {
-    label: '2023',
-    badgeLabel: 'Début de vacance : depuis 2023'
-  },
   '2022': {
     label: '2022',
     badgeLabel: 'Début de vacance : depuis 2022'
@@ -696,9 +697,9 @@ export const VACANCY_YEAR_OPTIONS: Record<
     label: 'Pas d’information',
     badgeLabel: 'Début de vacance : pas d’information'
   },
-  inconsistency2022: {
-    label: '2022 (incohérence donnée source)',
-    badgeLabel: 'Début de vacance : 2022 (incohérence donnée source)'
+  inconsistency2023: {
+    label: '2023 (incohérence données sources)',
+    badgeLabel: 'Début de vacance : 2023 (incohérence données sources)'
   }
 };
 

@@ -9,6 +9,7 @@ import {
 
 import { useAppDispatch, useAppSelector } from '~/hooks/useStore';
 import AuthenticatedLayout from '~/layouts/AuthenticatedLayout';
+import FeatureFlagLayout from '~/layouts/FeatureFlagLayout';
 import GuestLayout from '~/layouts/GuestLayout';
 import sentry from '~/utils/sentry';
 import NotFoundView from '~/views/NotFoundView';
@@ -21,6 +22,7 @@ const TerritoryEstablishmentsView = lazy(() => import('~/views/Account/Profile/T
 const UsersView = lazy(() => import('~/views/Account/Profile/UsersView'));
 const ResetPasswordView = lazy(() => import('~/views/Account/ResetPasswordView'));
 const AnalysisView = lazy(() => import('~/views/Analysis/AnalysisView'));
+const AnalysisViewNext = lazy(() => import('~/views/Analysis/AnalysisViewNext'));
 const CampaignListView = lazy(() => import('~/views/Campaign/CampaignListView'));
 const CampaignView = lazy(() => import('~/views/Campaign/CampaignView'));
 const GroupView = lazy(() => import('~/views/Group/GroupView'));
@@ -52,11 +54,23 @@ const router = sentry.createBrowserRouter(
         />
         <Route
           path="/analyses/parc-vacant"
-          element={<AnalysisView id="13-analyses" />}
+          element={
+            <FeatureFlagLayout
+              flag="new-analysis-page"
+              then={<AnalysisViewNext id="13-analyses" />}
+              else={<AnalysisView id="13-analyses" />}
+            />
+          }
         />
         <Route
           path="/analyses/lutte"
-          element={<AnalysisView id="15-analyses-activites" />}
+          element={
+            <FeatureFlagLayout
+              flag="new-analysis-page"
+              then={<AnalysisViewNext id="15-analyses-activites" />}
+              else={<AnalysisView id="15-analyses-activites" />}
+            />
+          }
         />
         <Route path="/groupes/:id" element={<GroupView />} />
         <Route path="/campagnes" element={<CampaignListView />} />

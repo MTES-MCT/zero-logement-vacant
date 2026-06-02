@@ -228,7 +228,8 @@ describe('CampaignView', () => {
     renderView(campaign);
 
     await screen.findByRole('heading', { level: 1 });
-    await user.click(screen.getByRole('tab', { name: /courrier/i }));
+    const courrierTab = await screen.findByRole('tab', { name: /courrier/i });
+    await user.click(courrierTab);
     expect(
       await screen.findByRole('heading', { name: 'Signature du premier expéditeur', level: 4 })
     ).toBeInTheDocument();

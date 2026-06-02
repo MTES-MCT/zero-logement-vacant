@@ -1,6 +1,5 @@
 import type {
   DashboardCard,
-  Resource,
   Tab
 } from '@zerologementvacant/models';
 import UnprocessableEntityError from '~/errors/unprocessableEntityError';

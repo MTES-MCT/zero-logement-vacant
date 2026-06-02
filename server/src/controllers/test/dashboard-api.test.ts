@@ -1,4 +1,4 @@
-import { constants } from 'http2';
+import { constants } from 'node:http2';
 import request from 'supertest';
 import { afterEach, beforeAll, describe, expect, it, vi } from 'vitest';
 
@@ -124,9 +124,17 @@ describe('Dashboard API', () => {
       expect(response.status).toBe(constants.HTTP_STATUS_NOT_FOUND);
     });
 
-    it('returns 422 for non-integer cid', async () => {
+    it('returns 400 for non-integer cid', async () => {
       const response = await request(url)
         .get('/dashboards/13-analyses/cards/not-a-number')
+        .use(tokenProvider(user));
+
+      expect(response.status).toBe(constants.HTTP_STATUS_BAD_REQUEST);
+    });
+
+    it('returns 422 for an invalid did', async () => {
+      const response = await request(url)
+        .get('/dashboards/garbage-slug/cards/929')
         .use(tokenProvider(user));
 
       expect(response.status).toBe(constants.HTTP_STATUS_UNPROCESSABLE_ENTITY);

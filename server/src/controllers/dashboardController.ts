@@ -1,11 +1,10 @@
 import { Request, Response } from 'express';
 import { AuthenticatedRequest } from 'express-jwt';
-import { constants } from 'http2';
+import { constants } from 'node:http2';
 import jwt from 'jsonwebtoken';
 
-import type { CardDataDTO, DashboardDTO } from '@zerologementvacant/models';
+import type { CardDataDTO, DashboardDTO, Resource } from '@zerologementvacant/models';
 import { RESOURCE_VALUES } from '@zerologementvacant/models';
-import type { Resource } from '@zerologementvacant/models';
 import DashcardMissingError from '~/errors/dashcardMissingError';
 import UnprocessableEntityError from '~/errors/unprocessableEntityError';
 import config from '~/infra/config';
@@ -58,6 +57,9 @@ async function findOneCard(
   const numericDid = RESOURCE_VALUES.includes(params.did as Resource)
     ? getResource(params.did as Resource)
     : parseInt(params.did, 10);
+  if (isNaN(numericDid)) {
+    throw new UnprocessableEntityError();
+  }
 
   const numericCid = parseInt(params.cid, 10);
   if (isNaN(numericCid)) {
@@ -84,7 +86,7 @@ async function findOneCard(
   response.status(constants.HTTP_STATUS_OK).json({ id: numericCid, data });
 }
 
-function sign(payload: any): Promise<string> {
+function sign(payload: object): Promise<string> {
   return new Promise((resolve, reject) => {
     jwt.sign(
       payload,
@@ -97,7 +99,8 @@ function sign(payload: any): Promise<string> {
         if (err) {
           return reject(err);
         }
-        return resolve(token ?? '');
+        if (!token) return reject(new Error('jwt.sign produced no token'));
+        return resolve(token);
       }
     );
   });

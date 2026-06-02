@@ -486,10 +486,26 @@ router.put(
   localityController.updateLocalityTax
 );
 
-router.get('/dashboards/:id', dashboardController.findOne);
+router.get(
+  '/dashboards/:id',
+  validatorNext.validate({
+    params: object({
+      id: string().required()
+    })
+  }),
+  dashboardController.findOne
+);
 
 router.get(
   '/dashboards/:did/cards/:cid',
+  validatorNext.validate({
+    params: object({
+      did: string().required(),
+      cid: string()
+        .required()
+        .matches(/^\d+$/, 'cid must be a positive integer')
+    })
+  }),
   dashboardController.findOneCard
 );
 

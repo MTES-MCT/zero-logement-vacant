@@ -1,5 +1,6 @@
 import Button from '@codegouvfr/react-dsfr/Button';
 import Skeleton from '@mui/material/Skeleton';
+import { getOwnerDisplayName } from '@zerologementvacant/models';
 import Stack from '@mui/material/Stack';
 import Typography from '@mui/material/Typography';
 import { createColumnHelper } from '@tanstack/react-table';
@@ -72,9 +73,9 @@ function HousingOwnerTable(props: HousingOwnerTableProps) {
           }
         },
         header: 'Nom et prénom du propriétaire',
-        cell: ({ cell, row }) => (
+        cell: ({ row }) => (
           <AppLink isSimple size="sm" to={`/proprietaires/${row.original.id}`}>
-            {cell.getValue()}
+            {getOwnerDisplayName(row.original)}
           </AppLink>
         )
       }),
@@ -126,9 +127,9 @@ function HousingOwnerTable(props: HousingOwnerTableProps) {
             <Button
               priority="secondary"
               size="small"
-              title={`Éditer ${row.original.fullName}`}
+              title={`Éditer ${getOwnerDisplayName(row.original)}`}
               nativeButtonProps={{
-                'aria-label': `Éditer ${row.original.fullName}`
+                'aria-label': `Éditer ${getOwnerDisplayName(row.original)}`
               }}
               onClick={() => {
                 onEdit?.(row.original);

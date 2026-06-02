@@ -4,6 +4,7 @@ import userEvent from '@testing-library/user-event';
 import {
   type DocumentDTO,
   type EstablishmentDTO,
+  getOwnerDisplayName,
   type HousingDTO,
   type HousingOwnerDTO,
   HousingStatus,
@@ -188,7 +189,7 @@ describe('Housing view', () => {
     });
 
     const name = await screen.findByLabelText('Nom et prénom');
-    expect(name).toHaveTextContent(new RegExp(owner.fullName, 'i'));
+    expect(name).toHaveTextContent(new RegExp(getOwnerDisplayName(owner), 'i'));
   });
 
   it('should allow users to modify owners', async () => {
@@ -229,7 +230,7 @@ describe('Housing view', () => {
       establishment: establishment
     });
 
-    const name = await screen.findByText(new RegExp(owner.fullName, 'i'));
+    const name = await screen.findByText(new RegExp(getOwnerDisplayName(owner), 'i'));
     expect(name).toBeVisible();
     const title = screen.queryByTitle('Modifier les propriétaires');
     expect(title).not.toBeInTheDocument();

@@ -2,7 +2,7 @@ import { fr } from '@codegouvfr/react-dsfr';
 import { Tag } from '@codegouvfr/react-dsfr/Tag';
 import Stack from '@mui/material/Stack';
 import Typography from '@mui/material/Typography';
-import { getAddress } from '@zerologementvacant/models';
+import { getAddress, getOwnerDisplayName } from '@zerologementvacant/models';
 
 import LabelNext from '~/components/Label/LabelNext';
 import { type ConfirmationModalProps } from '~/components/modals/ConfirmationModal/ConfirmationModalNext';
@@ -85,7 +85,7 @@ function createOwnerAttachmentModal() {
                 <LabelNext>Nom</LabelNext>
               </Stack>
               <Typography sx={{ fontWeight: 700 }}>
-                {props.owner?.fullName}
+                {props.owner ? getOwnerDisplayName(props.owner) : undefined}
               </Typography>
             </Stack>
 

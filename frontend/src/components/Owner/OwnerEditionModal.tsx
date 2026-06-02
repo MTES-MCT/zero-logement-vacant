@@ -3,6 +3,7 @@ import { yupResolver } from '@hookform/resolvers/yup';
 import Grid from '@mui/material/Grid';
 import Stack from '@mui/material/Stack';
 import Typography from '@mui/material/Typography';
+import { getOwnerDisplayName } from '@zerologementvacant/models';
 import schemas from '@zerologementvacant/schemas';
 import { Controller, FormProvider, useForm } from 'react-hook-form';
 import { number, object, string, type InferType } from 'yup';
@@ -203,7 +204,7 @@ function createOwnerEditionModalNext() {
                       fontWeight: 500
                     }}
                   >
-                    {props.owner.fullName}
+                    {getOwnerDisplayName(props.owner)}
                   </Typography>
                 </Stack>
 

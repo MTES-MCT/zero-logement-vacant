@@ -1,12 +1,20 @@
-#!/usr/bin/env python3
+#!/usr/bin/env -S uv run
+# /// script
+# requires-python = ">=3.11"
+# dependencies = [
+#   "psycopg2-binary>=2.9.0",
+#   "tqdm>=4.64.0",
+#   "pyarrow>=14.0.0",
+# ]
+# ///
 """
-Import owners from df_owners_nat_2024 to owners table.
+Export owners from df_owners_nat_2024 to a Parquet file for review.
 
-This script imports owners that exist in the Datafoncier source table (df_owners_nat_2024)
-but are not yet present in the ZLV owners table. Matching is done via the idpersonne field.
+This script extracts owners from the Datafoncier source table (df_owners_nat_2024)
+that are not yet present in the ZLV owners table, transforms them, and writes
+to a Parquet file for inspection before database import.
 
 Field Mapping:
-- id              -> uuid_generate_v4()
 - full_name       -> ddenom (with '/' replaced by space for physical persons)
 - birth_date      -> jdatnss (converted from DD/MM/YYYY to ISO format)
 - address_dgfip   -> [dlign3, dlign4, dlign5, dlign6] (non-null values as array, dlign4 formatted)
@@ -14,32 +22,27 @@ Field Mapping:
 - idpersonne      -> idpersonne
 - siren           -> dsiren
 - data_source     -> 'ff-2024'
-- entity          -> mapped from ccogrm first character
-- created_at      -> NOW()
-- updated_at      -> NOW()
+- entity          -> mapped from ccogrm first character (null -> 'personnes-physiques')
 
 Usage:
-    python import_owners.py --db-url "postgresql://user:pass@host:port/dbname"
-    python import_owners.py --db-url "$DATABASE_URL" --dry-run --limit 1000
-    python import_owners.py --db-url "$DATABASE_URL" --batch-size 10000 --num-workers 6
-    python import_owners.py --db-url "$DATABASE_URL" --source-table df_owners_nat  # for older table
-
-    # Process by department (recommended for large datasets to avoid OOM)
-    python import_owners.py --db-url "$DATABASE_URL" --department 75  # Paris only
-    python import_owners.py --db-url "$DATABASE_URL" --sequential     # All departments one by one
-    python import_owners.py --db-url "$DATABASE_URL" --sequential --start-department 50  # Resume from dept 50
+    python import_owners.py --db-url "postgresql://user:pass@host:port/dbname" --output owners.parquet
+    python import_owners.py --db-url "$DATABASE_URL" --output owners.parquet --limit 1000
+    python import_owners.py --db-url "$DATABASE_URL" --output owners.parquet --source-table df_owners_nat
+    python import_owners.py --db-url "$DATABASE_URL" --output owners.parquet --department 75
+    python import_owners.py --db-url "$DATABASE_URL" --output owners.parquet --sequential
+    python import_owners.py --db-url "$DATABASE_URL" --output owners.parquet --sequential --start-department 50
 """
 
 import argparse
 import logging
-import threading
 from datetime import datetime
-from typing import List, Dict, Optional, Tuple
-from concurrent.futures import ThreadPoolExecutor, as_completed
+from typing import List, Dict, Optional
 
 import psycopg2
-from psycopg2.extras import RealDictCursor, execute_values
+from psycopg2.extras import RealDictCursor
 from tqdm import tqdm
+import pyarrow as pa
+import pyarrow.parquet as pq
 
 
 # Kind mapping from catpro3txt (CATPRO 3 LOVAC ET FF) to ZLV kind_class
@@ -231,22 +234,28 @@ ENTITY_MAPPING = {
     '9': 'etablissements-publics-ou-organismes-assimiles',
 }
 
+PARQUET_SCHEMA = pa.schema([
+    pa.field('idpersonne', pa.string()),
+    pa.field('full_name', pa.string()),
+    pa.field('birth_date', pa.string()),
+    pa.field('address_dgfip', pa.list_(pa.string())),
+    pa.field('kind_class', pa.string()),
+    pa.field('siren', pa.string()),
+    pa.field('data_source', pa.string()),
+    pa.field('entity', pa.string()),
+])
 
-def map_entity(ccogrm: Optional[str]) -> Optional[str]:
+
+def map_entity(ccogrm: Optional[str]) -> str:
     """
     Map entity from ccogrm first character.
-
-    Args:
-        ccogrm: Group code from Datafoncier
-
-    Returns:
-        Entity value for ZLV owners table, or None if unknown
+    Returns 'personnes-physiques' when ccogrm is null or empty.
     """
     if not ccogrm or not ccogrm.strip():
-        return None
+        return 'personnes-physiques'
 
     first_char = ccogrm.strip()[0]
-    return ENTITY_MAPPING.get(first_char)
+    return ENTITY_MAPPING.get(first_char, 'personnes-physiques')
 
 
 def format_dlign4(dlign4: Optional[str]) -> Optional[str]:
@@ -266,109 +275,70 @@ def format_dlign4(dlign4: Optional[str]) -> Optional[str]:
         "0000 RTE DE LA DOUANE" -> "RTE DE LA DOUANE"
         "0060 BD GALLIENI" -> "60 BD GALLIENI"
         "0088CAV DE PARIS" -> "88C AV DE PARIS"
-
-    Args:
-        dlign4: Address line 4 from Datafoncier
-
-    Returns:
-        Formatted address line or None if empty
     """
     if not dlign4 or not dlign4.strip():
         return None
 
     line = dlign4.strip()
 
-    # Need at least 4 characters for the house number
     if len(line) < 4:
         return line
 
-    # Extract house number (positions 1-4) and remove leading zeros
     house_number = line[:4].lstrip('0')
 
-    # If house number is empty (was "0000"), just return the rest
     if not house_number:
         rest = line[4:].strip()
-        # Clean up extra spaces
         return ' '.join(rest.split()) if rest else None
 
-    # Check if position 5 is a repetition index (a letter, not a space or digit)
     if len(line) > 4:
         char5 = line[4]
         rest = line[5:] if len(line) > 5 else ''
 
         if char5.isalpha():
-            # Position 5 is a repetition index - add space between index and street name
             street = rest.strip()
             result = f"{house_number}{char5} {street}" if street else f"{house_number}{char5}"
         else:
-            # Position 5 is a space or other - just concatenate
             street = (char5 + rest).strip()
             result = f"{house_number} {street}" if street else house_number
     else:
         result = house_number
 
-    # Clean up extra spaces
     return ' '.join(result.split())
 
 
-class OwnerImporter:
-    """Import owners from df_owners_nat_2024 to owners table."""
+class OwnerExporter:
+    """Extract and transform owners from df_owners_nat_2024, write to Parquet."""
 
-    def __init__(self, db_url: str, dry_run: bool = False,
-                 batch_size: int = 5000, num_workers: int = 4,
+    def __init__(self, db_url: str, output: str,
                  source_table: str = 'df_owners_nat_2024',
                  department: Optional[str] = None):
-        """
-        Initialize the importer.
-
-        Args:
-            db_url: PostgreSQL connection string
-            dry_run: If True, do not modify the database
-            batch_size: Number of records per batch for insert operations
-            num_workers: Number of parallel workers for database operations
-            source_table: Name of the source table (default: df_owners_nat_2024)
-            department: Filter by department code (e.g., '75', '01', '2A')
-        """
         self.db_url = db_url
-        self.dry_run = dry_run
-        self.batch_size = batch_size
-        self.num_workers = num_workers
+        self.output = output
         self.source_table = source_table
         self.department = department
         self.conn = None
         self.cursor = None
 
-        # Thread-safe statistics
         self.stats = {
             'total_source': 0,
-            'already_exists': 0,
-            'to_import': 0,
-            'imported': 0,
+            'to_export': 0,
+            'exported': 0,
             'skipped_no_name': 0,
             'skipped_no_address': 0,
-            'failed': 0,
         }
-        self.stats_lock = threading.Lock()
 
     def connect(self):
-        """Establish database connection."""
-        try:
-            self.conn = psycopg2.connect(self.db_url)
-            self.cursor = self.conn.cursor(cursor_factory=RealDictCursor)
-            print("Database connected successfully")
-        except Exception as e:
-            print(f"Database connection failed: {e}")
-            raise
+        self.conn = psycopg2.connect(self.db_url)
+        self.cursor = self.conn.cursor(cursor_factory=RealDictCursor)
+        print("Database connected successfully")
 
     def disconnect(self):
-        """Close database connection."""
         if self.cursor:
             self.cursor.close()
         if self.conn:
             self.conn.close()
 
     def get_departments(self) -> List[str]:
-        """Get list of distinct departments in source table."""
         self.cursor.execute(f"""
             SELECT DISTINCT ccodep
             FROM {self.source_table}
@@ -378,7 +348,6 @@ class OwnerImporter:
         return [row['ccodep'] for row in self.cursor.fetchall()]
 
     def get_source_count(self, department: Optional[str] = None) -> int:
-        """Get total count of owners in source table with valid idpersonne."""
         dept_filter = f"AND ccodep = '{department}'" if department else ""
         self.cursor.execute(f"""
             SELECT COUNT(DISTINCT idpersonne)
@@ -389,27 +358,8 @@ class OwnerImporter:
         result = self.cursor.fetchone()
         return result['count'] if result else 0
 
-    def get_existing_idpersonnes(self) -> set:
-        """Get set of idpersonne values already in owners table."""
-        self.cursor.execute("""
-            SELECT idpersonne
-            FROM owners
-            WHERE idpersonne IS NOT NULL
-        """)
-        return {row['idpersonne'] for row in self.cursor.fetchall()}
-
-    def get_owners_to_import(self, limit: Optional[int] = None,
+    def get_owners_to_export(self, limit: Optional[int] = None,
                              department: Optional[str] = None) -> List[Dict]:
-        """
-        Get owners from source table that don't exist in owners table.
-
-        Args:
-            limit: Maximum number of records to retrieve
-            department: Filter by department code (e.g., '75', '01', '2A')
-
-        Returns:
-            List of owner records to import
-        """
         dept_filter = f"AND d.ccodep = '{department}'" if department else ""
 
         query = f"""
@@ -440,24 +390,13 @@ class OwnerImporter:
         return self.cursor.fetchall()
 
     def parse_birthdate(self, jdatnss: Optional[str]) -> Optional[str]:
-        """
-        Parse birthdate from DD/MM/YYYY format to ISO format.
-
-        Args:
-            jdatnss: Date string in DD/MM/YYYY format
-
-        Returns:
-            ISO formatted date string or None
-        """
         if not jdatnss or not jdatnss.strip():
             return None
 
         try:
-            # Parse DD/MM/YYYY format
             parts = jdatnss.strip().split('/')
             if len(parts) != 3:
                 return None
-
             day, month, year = parts
             date = datetime(int(year), int(month), int(day))
             return date.isoformat()
@@ -465,28 +404,16 @@ class OwnerImporter:
             return None
 
     def build_address_array(self, owner: Dict) -> List[str]:
-        """
-        Build address array from dlign3, dlign4, dlign5, dlign6 fields.
-
-        Args:
-            owner: Owner record from source table
-
-        Returns:
-            List of non-null address lines
-        """
         address_lines = []
 
-        # dlign3: add as-is if present
         dlign3 = owner.get('dlign3')
         if dlign3 and dlign3.strip():
             address_lines.append(dlign3.strip())
 
-        # dlign4: format to remove leading zeros and add space after repetition index
         dlign4 = format_dlign4(owner.get('dlign4'))
         if dlign4:
             address_lines.append(dlign4)
 
-        # dlign5, dlign6: add as-is if present
         for field in ['dlign5', 'dlign6']:
             value = owner.get(field)
             if value and value.strip():
@@ -495,39 +422,22 @@ class OwnerImporter:
         return address_lines
 
     def transform_owner(self, source: Dict) -> Optional[Dict]:
-        """
-        Transform a source owner record to ZLV owner format.
-
-        Args:
-            source: Owner record from df_owners_nat_2024
-
-        Returns:
-            Transformed owner record or None if invalid
-        """
-        # Validate required fields
         ddenom = source.get('ddenom')
         if not ddenom or not ddenom.strip():
-            with self.stats_lock:
-                self.stats['skipped_no_name'] += 1
+            self.stats['skipped_no_name'] += 1
             return None
 
-        # Build address array
         address = self.build_address_array(source)
         if not address:
-            with self.stats_lock:
-                self.stats['skipped_no_address'] += 1
+            self.stats['skipped_no_address'] += 1
             return None
 
-        # Process full name - replace / with space for physical persons
         catpro3txt = source.get('catpro3txt', '')
         full_name = ddenom.strip()
         if catpro3txt == 'PERSONNE PHYSIQUE':
             full_name = full_name.replace('/', ' ')
 
-        # Map kind from catpro3txt
         kind_class = KIND_MAPPING.get(catpro3txt, 'Autres')
-
-        # Map entity from ccogrm first character
         entity = map_entity(source.get('ccogrm'))
 
         return {
@@ -541,226 +451,86 @@ class OwnerImporter:
             'entity': entity,
         }
 
-    def _insert_batch_worker(self, batch_data: Tuple) -> Tuple[int, int, Optional[str]]:
-        """
-        Worker function to insert a batch of owners.
-
-        Args:
-            batch_data: Tuple of (batch_id, batch, db_url)
-
-        Returns:
-            Tuple of (batch_id, count_inserted, error_message)
-        """
-        batch_id, batch, db_url = batch_data
-
-        conn = None
-        try:
-            # Each worker creates its own connection
-            conn = psycopg2.connect(db_url)
-            cursor = conn.cursor(cursor_factory=RealDictCursor)
-
-            # Faster asynchronous commits
-            cursor.execute("SET synchronous_commit = off")
-
-            # Prepare insert data
-            insert_data = [
-                (
-                    owner['idpersonne'],
-                    owner['full_name'],
-                    owner['birth_date'],
-                    owner['address_dgfip'],
-                    owner['kind_class'],
-                    owner['siren'],
-                    owner['data_source'],
-                    owner['entity'],
-                )
-                for owner in batch
-            ]
-
-            # Execute batch insert
-            execute_values(
-                cursor,
-                """
-                INSERT INTO owners (
-                    idpersonne,
-                    full_name,
-                    birth_date,
-                    address_dgfip,
-                    kind_class,
-                    siren,
-                    data_source,
-                    entity,
-                    created_at,
-                    updated_at
-                )
-                VALUES %s
-                ON CONFLICT (idpersonne) DO NOTHING
-                """,
-                insert_data,
-                template="(%s, %s, %s, %s, %s, %s, %s, %s, NOW(), NOW())",
-                page_size=1000
-            )
-
-            # Independent commit per batch
-            conn.commit()
-            cursor.close()
-            conn.close()
-
-            return (batch_id, len(batch), None)
-
-        except Exception as e:
-            if conn:
-                try:
-                    conn.rollback()
-                    conn.close()
-                except:
-                    pass
-            return (batch_id, 0, str(e))
-
-    def insert_owners(self, owners: List[Dict]):
-        """
-        Insert owners into the database using parallel workers.
-
-        Args:
-            owners: List of transformed owner records
-        """
+    def write_parquet(self, owners: List[Dict], append: bool = False):
+        """Write transformed owners to the Parquet output file."""
         if not owners:
-            print("No owners to insert")
             return
 
-        if self.dry_run:
-            print(f"Dry run: {len(owners)} owners would be inserted")
-            return
+        table = pa.table(
+            {
+                'idpersonne': pa.array([o['idpersonne'] for o in owners], type=pa.string()),
+                'full_name': pa.array([o['full_name'] for o in owners], type=pa.string()),
+                'birth_date': pa.array([o['birth_date'] for o in owners], type=pa.string()),
+                'address_dgfip': pa.array([o['address_dgfip'] for o in owners], type=pa.list_(pa.string())),
+                'kind_class': pa.array([o['kind_class'] for o in owners], type=pa.string()),
+                'siren': pa.array([o['siren'] for o in owners], type=pa.string()),
+                'data_source': pa.array([o['data_source'] for o in owners], type=pa.string()),
+                'entity': pa.array([o['entity'] for o in owners], type=pa.string()),
+            },
+            schema=PARQUET_SCHEMA,
+        )
 
-        print(f"\nInserting {len(owners):,} owners...")
+        if append:
+            existing = pq.read_table(self.output)
+            table = pa.concat_tables([existing, table])
 
-        # Split into batches
-        batches = []
-        for i in range(0, len(owners), self.batch_size):
-            batch = owners[i:i + self.batch_size]
-            batches.append((i // self.batch_size, batch, self.db_url))
+        pq.write_table(table, self.output)
+        self.stats['exported'] += len(owners)
 
-        # Process in parallel
-        total_inserted = 0
-        total_failed = 0
-
-        with tqdm(total=len(owners), desc="Inserting", unit="owner") as pbar:
-            with ThreadPoolExecutor(max_workers=self.num_workers) as executor:
-                futures = {
-                    executor.submit(self._insert_batch_worker, batch_data): batch_data
-                    for batch_data in batches
-                }
-
-                for future in as_completed(futures):
-                    batch_id, count, error = future.result()
-                    if error:
-                        logging.error(f"Batch {batch_id} error: {error}")
-                        total_failed += len(batches[batch_id][1])
-                    else:
-                        total_inserted += count
-                    pbar.update(count if count > 0 else len(batches[batch_id][1]))
-
-        self.stats['imported'] = total_inserted
-        self.stats['failed'] = total_failed
-
-    def reset_stats(self):
-        """Reset statistics for a new department."""
-        self.stats = {
-            'total_source': 0,
-            'already_exists': 0,
-            'to_import': 0,
-            'imported': 0,
-            'skipped_no_name': 0,
-            'skipped_no_address': 0,
-            'failed': 0,
-        }
-
-    def process_department(self, department: str, limit: Optional[int] = None) -> bool:
-        """
-        Process owners for a single department.
-
-        Args:
-            department: Department code (e.g., '75', '01', '2A')
-            limit: Maximum number of records to retrieve
-
-        Returns:
-            True if successful, False otherwise
-        """
-        self.reset_stats()
-
+    def process_department(self, department: str, limit: Optional[int] = None,
+                           append: bool = False) -> bool:
         print(f"\n--- Department {department} ---")
 
-        # Get statistics for this department
-        self.stats['total_source'] = self.get_source_count(department)
-        print(f"  Owners in source: {self.stats['total_source']:,}")
+        count = self.get_source_count(department)
+        print(f"  Owners in source: {count:,}")
 
-        if self.stats['total_source'] == 0:
+        if count == 0:
             print(f"  No owners in department {department}, skipping")
             return True
 
-        # Get owners to import
-        source_owners = self.get_owners_to_import(limit, department)
-        print(f"  To import: {len(source_owners):,}")
+        source_owners = self.get_owners_to_export(limit, department)
+        print(f"  To export: {len(source_owners):,}")
 
         if not source_owners:
-            print(f"  No new owners to import for department {department}")
+            print(f"  No new owners to export for department {department}")
             return True
 
-        # Transform owners
-        transformed_owners = []
+        transformed = []
         for owner in tqdm(source_owners, desc=f"Dept {department}", unit="owner", leave=False):
-            transformed = self.transform_owner(owner)
-            if transformed:
-                transformed_owners.append(transformed)
+            result = self.transform_owner(owner)
+            if result:
+                transformed.append(result)
 
-        self.stats['to_import'] = len(transformed_owners)
-
-        # Insert owners
-        self.insert_owners(transformed_owners)
-
-        print(f"  Imported: {self.stats['imported']:,}, Failed: {self.stats['failed']:,}")
-        return self.stats['failed'] == 0
+        self.write_parquet(transformed, append=append)
+        print(f"  Exported: {len(transformed):,}")
+        return True
 
     def run(self, limit: Optional[int] = None, sequential: bool = False,
             start_department: Optional[str] = None):
-        """
-        Main execution method.
-
-        Args:
-            limit: Maximum number of owners to import (per department if sequential)
-            sequential: If True, process all departments one by one
-            start_department: Skip departments before this one (for resuming)
-        """
         print("=" * 80)
-        print("DATAFONCIER OWNER IMPORTER")
+        print("DATAFONCIER OWNER EXPORTER")
         print("=" * 80)
-        print(f"Source table: {self.source_table}")
-        print(f"Mode: {'DRY RUN' if self.dry_run else 'LIVE'}")
-        print(f"Batch size: {self.batch_size:,}")
-        print(f"Workers: {self.num_workers}")
+        print(f"Source table : {self.source_table}")
+        print(f"Output file  : {self.output}")
         if self.department:
-            print(f"Department: {self.department}")
+            print(f"Department   : {self.department}")
         if sequential:
-            print(f"Sequential mode: processing all departments one by one")
+            print("Sequential mode: processing all departments one by one")
         if start_department:
             print(f"Starting from department: {start_department}")
         if limit:
-            print(f"Limit: {limit:,}")
+            print(f"Limit        : {limit:,}")
         print()
 
         self.connect()
 
         try:
-            # Determine which departments to process
             if self.department:
-                # Single department mode
                 departments = [self.department]
             elif sequential:
-                # Sequential mode: get all departments
                 departments = self.get_departments()
                 print(f"Found {len(departments)} departments to process")
 
-                # Skip departments before start_department
                 if start_department:
                     try:
                         start_idx = departments.index(start_department)
@@ -770,64 +540,42 @@ class OwnerImporter:
                     except ValueError:
                         print(f"Warning: start_department {start_department} not found, processing all")
             else:
-                # All at once (original behavior - may cause OOM with large datasets)
                 departments = [None]
 
-            # Process departments
-            total_imported = 0
-            total_failed = 0
-            completed_depts = 0
-            failed_depts = []
+            total_exported = 0
+            first_write = True
 
             for dept in departments:
                 if dept is None:
-                    # Original behavior: process all at once
-                    print("Analyzing source data...")
-                    self.stats['total_source'] = self.get_source_count()
-                    print(f"  Total distinct owners: {self.stats['total_source']:,}")
-
-                    print("\nFetching owners to import...")
-                    source_owners = self.get_owners_to_import(limit)
-                    print(f"  Found {len(source_owners):,} owners to import")
+                    print("Fetching owners to export...")
+                    source_owners = self.get_owners_to_export(limit)
+                    print(f"  Found {len(source_owners):,} owners to export")
 
                     if not source_owners:
-                        print("\nNo new owners to import")
+                        print("\nNo new owners to export")
                         return
 
-                    print("\nTransforming owner records...")
-                    transformed_owners = []
+                    transformed = []
                     for owner in tqdm(source_owners, desc="Transforming", unit="owner"):
-                        transformed = self.transform_owner(owner)
-                        if transformed:
-                            transformed_owners.append(transformed)
+                        result = self.transform_owner(owner)
+                        if result:
+                            transformed.append(result)
 
-                    self.stats['to_import'] = len(transformed_owners)
-                    print(f"\n  Valid owners to import: {self.stats['to_import']:,}")
-
-                    self.insert_owners(transformed_owners)
-                    total_imported = self.stats['imported']
-                    total_failed = self.stats['failed']
+                    print(f"\n  Valid owners: {len(transformed):,}")
+                    self.write_parquet(transformed)
+                    total_exported = self.stats['exported']
                 else:
-                    # Department-by-department processing
-                    success = self.process_department(dept, limit)
-                    total_imported += self.stats['imported']
-                    total_failed += self.stats['failed']
+                    self.process_department(dept, limit, append=not first_write)
+                    total_exported = self.stats['exported']
+                    first_write = False
 
-                    if success:
-                        completed_depts += 1
-                    else:
-                        failed_depts.append(dept)
-
-            # Final summary
             print("\n" + "=" * 80)
-            print("FINAL SUMMARY")
+            print("SUMMARY")
             print("=" * 80)
-            if departments[0] is not None:
-                print(f"Departments processed: {completed_depts}/{len(departments)}")
-                if failed_depts:
-                    print(f"Failed departments: {', '.join(failed_depts)}")
-            print(f"Total imported: {total_imported:,}")
-            print(f"Total failed: {total_failed:,}")
+            print(f"Total exported    : {total_exported:,}")
+            print(f"Skipped (no name) : {self.stats['skipped_no_name']:,}")
+            print(f"Skipped (no addr) : {self.stats['skipped_no_address']:,}")
+            print(f"Output file       : {self.output}")
             print("=" * 80)
 
         finally:
@@ -836,51 +584,30 @@ class OwnerImporter:
 
 def main():
     parser = argparse.ArgumentParser(
-        description='Import owners from df_owners_nat_2024 to owners table'
+        description='Export owners from df_owners_nat_2024 to a Parquet file'
     )
 
-    # Database connection
     parser.add_argument(
         '--db-url',
         required=True,
         help='PostgreSQL connection URI (postgresql://user:pass@host:port/dbname)'
     )
-
-    # Operation mode
     parser.add_argument(
-        '--dry-run',
-        action='store_true',
-        help='Simulation mode - do not modify database'
+        '--output',
+        required=True,
+        help='Output Parquet file path (e.g. owners.parquet)'
     )
-
-    # Source table
     parser.add_argument(
         '--source-table',
         type=str,
         default='df_owners_nat_2024',
         help='Name of the source table (default: df_owners_nat_2024)'
     )
-
-    # Limits and optimization
     parser.add_argument(
         '--limit',
         type=int,
-        help='Maximum number of owners to import'
+        help='Maximum number of owners to export'
     )
-    parser.add_argument(
-        '--batch-size',
-        type=int,
-        default=5000,
-        help='Batch size for insert operations (default: 5000)'
-    )
-    parser.add_argument(
-        '--num-workers',
-        type=int,
-        default=4,
-        help='Number of parallel workers (default: 4)'
-    )
-
-    # Department partitioning (to avoid OOM with large datasets)
     parser.add_argument(
         '--department', '--dept',
         type=str,
@@ -898,8 +625,6 @@ def main():
         dest='start_department',
         help='Starting department when using --sequential (resume from)'
     )
-
-    # Debug
     parser.add_argument(
         '--debug',
         action='store_true',
@@ -908,27 +633,23 @@ def main():
 
     args = parser.parse_args()
 
-    # Setup logging
     logging.basicConfig(
         level=logging.DEBUG if args.debug else logging.WARNING,
         format='%(levelname)s - %(message)s'
     )
 
-    # Run importer
-    importer = OwnerImporter(
+    exporter = OwnerExporter(
         db_url=args.db_url,
-        dry_run=args.dry_run,
-        batch_size=args.batch_size,
-        num_workers=args.num_workers,
+        output=args.output,
         source_table=args.source_table,
-        department=args.department
+        department=args.department,
     )
 
     try:
-        importer.run(
+        exporter.run(
             limit=args.limit,
             sequential=args.sequential,
-            start_department=args.start_department
+            start_department=args.start_department,
         )
         print("\nCompleted successfully")
     except KeyboardInterrupt:

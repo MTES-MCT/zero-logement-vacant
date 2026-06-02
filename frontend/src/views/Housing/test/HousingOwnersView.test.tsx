@@ -465,7 +465,7 @@ describe('HousingOwnersView', () => {
       it('should add the owner as secondary to the housing ', async () => {
         const housing = genHousingDTO();
         const owners: ReadonlyArray<OwnerDTO> = faker.helpers.multiple(
-          () => genOwnerDTO(),
+          () => ({ ...genOwnerDTO(), username: null }),
           { count: 6 }
         );
         const housingOwners: ReadonlyArray<HousingOwnerDTO> = owners
@@ -515,7 +515,7 @@ describe('HousingOwnersView', () => {
       it('should add the owner as primary to the housing', async () => {
         const housing = genHousingDTO();
         const owners: ReadonlyArray<OwnerDTO> = faker.helpers.multiple(
-          () => genOwnerDTO(),
+          () => ({ ...genOwnerDTO(), username: null }),
           { count: 6 }
         );
         const housingOwners: ReadonlyArray<HousingOwnerDTO> = [];

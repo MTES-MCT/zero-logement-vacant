@@ -1,5 +1,6 @@
 import { faker } from '@faker-js/faker/locale/fr';
 import {
+  getOwnerDisplayName,
   type HousingOwnerDTO,
   type HousingOwnerPayloadDTO,
   type OwnerCreationPayload,
@@ -231,7 +232,7 @@ export const ownerHandlers: RequestHandler[] = [
 
 function byName(name: string) {
   return (owner: OwnerDTO): boolean =>
-    owner.fullName.toLowerCase().includes(name.toLowerCase());
+    getOwnerDisplayName(owner).toLowerCase().includes(name.toLowerCase());
 }
 
 function paginate(pagination: Pagination) {

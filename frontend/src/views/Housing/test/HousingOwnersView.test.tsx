@@ -3,6 +3,7 @@ import { render, screen, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import {
   ACTIVE_OWNER_RANKS,
+  getOwnerDisplayName,
   INACTIVE_OWNER_RANKS,
   OWNER_KIND_LABELS,
   UserRole,
@@ -121,7 +122,7 @@ describe('HousingOwnersView', () => {
     });
 
     const button = await screen.findByRole('button', {
-      name: `Éditer ${owners[1].fullName}`
+      name: `Éditer ${getOwnerDisplayName(owners[1])}`
     });
     await user.click(button);
     const rank = await screen.findByRole('radio', {
@@ -133,14 +134,14 @@ describe('HousingOwnersView', () => {
     });
     await user.click(save);
     const primaryOwnerRow = await screen.findByRole('row', {
-      name: new RegExp(`^${owners[1].fullName}`)
+      name: new RegExp(`^${getOwnerDisplayName(owners[1])}`)
     });
     const primaryOwnerCell = await within(primaryOwnerRow).findByRole('cell', {
       name: 'Destinataire principal'
     });
     expect(primaryOwnerCell).toBeVisible();
     const secondaryOwnerRow = await screen.findByRole('row', {
-      name: new RegExp(`^${owners[0].fullName}`)
+      name: new RegExp(`^${getOwnerDisplayName(owners[0])}`)
     });
     const secondaryOwnerCell = await within(secondaryOwnerRow).findByRole(
       'cell',
@@ -166,7 +167,7 @@ describe('HousingOwnersView', () => {
     });
 
     const button = await screen.findByRole('button', {
-      name: `Éditer ${owners[0].fullName}`
+      name: `Éditer ${getOwnerDisplayName(owners[0])}`
     });
     await user.click(button);
     const rank = await screen.findByRole('radio', {
@@ -178,7 +179,7 @@ describe('HousingOwnersView', () => {
     });
     await user.click(save);
     const row = await screen.findByRole('row', {
-      name: new RegExp(`^${owners[0].fullName}`)
+      name: new RegExp(`^${getOwnerDisplayName(owners[0])}`)
     });
     const cell = await within(row).findByRole('cell', {
       name: 'Destinataire secondaire'
@@ -204,7 +205,7 @@ describe('HousingOwnersView', () => {
     });
 
     const button = await screen.findByRole('button', {
-      name: `Éditer ${owners[1].fullName}`
+      name: `Éditer ${getOwnerDisplayName(owners[1])}`
     });
     await user.click(button);
     const isActive = await screen.findByRole('checkbox', {
@@ -220,7 +221,7 @@ describe('HousingOwnersView', () => {
     });
     await user.click(save);
     const row = await screen.findByRole('row', {
-      name: new RegExp(`^${owners[1].fullName}`)
+      name: new RegExp(`^${getOwnerDisplayName(owners[1])}`)
     });
     const cell = await within(row).findByRole('cell', {
       name: 'Destinataire principal'
@@ -251,7 +252,7 @@ describe('HousingOwnersView', () => {
     });
 
     const button = await screen.findByRole('button', {
-      name: `Éditer ${owners[2].fullName}`
+      name: `Éditer ${getOwnerDisplayName(owners[2])}`
     });
     await user.click(button);
     const isActive = await screen.findByRole('checkbox', {
@@ -267,7 +268,7 @@ describe('HousingOwnersView', () => {
     });
     await user.click(save);
     const row = await screen.findByRole('row', {
-      name: new RegExp(`^${owners[2].fullName}`)
+      name: new RegExp(`^${getOwnerDisplayName(owners[2])}`)
     });
     const cell = await within(row).findByRole('cell', {
       name: 'Destinataire secondaire'
@@ -290,7 +291,7 @@ describe('HousingOwnersView', () => {
     });
 
     const button = await screen.findByRole('button', {
-      name: `Éditer ${owners[0].fullName}`
+      name: `Éditer ${getOwnerDisplayName(owners[0])}`
     });
     await user.click(button);
     const isActive = await screen.findByRole('checkbox', {
@@ -310,7 +311,7 @@ describe('HousingOwnersView', () => {
     });
     await user.click(save);
     const row = await screen.findByRole('row', {
-      name: new RegExp(`^${owners[0].fullName}`)
+      name: new RegExp(`^${getOwnerDisplayName(owners[0])}`)
     });
     const cell = await within(row).findByRole('cell', {
       name: 'Propriétaire décédé'
@@ -333,7 +334,7 @@ describe('HousingOwnersView', () => {
     });
 
     const button = await screen.findByRole('button', {
-      name: `Éditer ${owners[1].fullName}`
+      name: `Éditer ${getOwnerDisplayName(owners[1])}`
     });
     await user.click(button);
     const isActive = await screen.findByRole('checkbox', {
@@ -353,7 +354,7 @@ describe('HousingOwnersView', () => {
     });
     await user.click(save);
     const row = await screen.findByRole('row', {
-      name: new RegExp(`^${owners[1].fullName}`)
+      name: new RegExp(`^${getOwnerDisplayName(owners[1])}`)
     });
     const cell = await within(row).findByRole('cell', {
       name: 'Propriétaire décédé'
@@ -386,10 +387,10 @@ describe('HousingOwnersView', () => {
     it('should hide owners that are already linked to this housing', async () => {
       const housing = genHousingDTO();
       const owners: ReadonlyArray<OwnerDTO> = [
-        { ...genOwnerDTO(), fullName: 'Jean Rousseau' },
-        { ...genOwnerDTO(), fullName: 'Marie Curie' },
-        { ...genOwnerDTO(), fullName: 'Victor Hugo' },
-        { ...genOwnerDTO(), fullName: 'Pauline Rousseau' }
+        { ...genOwnerDTO(), fullName: 'Jean Rousseau', username: null },
+        { ...genOwnerDTO(), fullName: 'Marie Curie', username: null },
+        { ...genOwnerDTO(), fullName: 'Victor Hugo', username: null },
+        { ...genOwnerDTO(), fullName: 'Pauline Rousseau', username: null }
       ];
       const housingOwners: ReadonlyArray<HousingOwnerDTO> = owners
         .slice(0, 1)
@@ -425,7 +426,8 @@ describe('HousingOwnersView', () => {
         {
           ...genOwnerDTO(),
           fullName: 'SCI Test',
-          kind: OWNER_KIND_LABELS['sci-copro']
+          kind: OWNER_KIND_LABELS['sci-copro'],
+          username: null
         }
       ];
       const housingOwners: ReadonlyArray<HousingOwnerDTO> = [];
@@ -487,9 +489,9 @@ describe('HousingOwnersView', () => {
           name: /Ajouter un propriétaire/
         });
         const search = await within(searchDialog).findByRole('searchbox');
-        await user.type(search, `${owners[2].fullName}{Enter}`);
+        await user.type(search, `${getOwnerDisplayName(owners[2])}{Enter}`);
         const select = await within(searchDialog).findByRole('button', {
-          name: `Sélectionner ${owners[2].fullName}`
+          name: `Sélectionner ${getOwnerDisplayName(owners[2])}`
         });
         await user.click(select);
         const attachDialog = await screen.findByRole('dialog', {
@@ -500,7 +502,7 @@ describe('HousingOwnersView', () => {
         });
         await user.click(confirm);
         const row = await screen.findByRole('row', {
-          name: new RegExp(`${owners[2].fullName}`)
+          name: new RegExp(`${getOwnerDisplayName(owners[2])}`)
         });
         const cell = await within(row).findByRole('cell', {
           name: /Destinataire secondaire/i
@@ -532,9 +534,9 @@ describe('HousingOwnersView', () => {
           name: /Ajouter un propriétaire/
         });
         const search = await within(searchDialog).findByRole('searchbox');
-        await user.type(search, `${owners[0].fullName}{Enter}`);
+        await user.type(search, `${getOwnerDisplayName(owners[0])}{Enter}`);
         const select = await within(searchDialog).findByRole('button', {
-          name: `Sélectionner ${owners[0].fullName}`
+          name: `Sélectionner ${getOwnerDisplayName(owners[0])}`
         });
         await user.click(select);
         const attachDialog = await screen.findByRole('dialog', {
@@ -545,7 +547,7 @@ describe('HousingOwnersView', () => {
         });
         await user.click(confirm);
         const row = await screen.findByRole('row', {
-          name: new RegExp(`${owners[0].fullName}`)
+          name: new RegExp(`${getOwnerDisplayName(owners[0])}`)
         });
         const cell = await within(row).findByRole('cell', {
           name: /Destinataire principal/i
@@ -581,7 +583,7 @@ describe('HousingOwnersView', () => {
       });
       expect(badge).toBeVisible();
       const edit = await screen.findByRole('button', {
-        name: `Éditer ${owner.fullName}`
+        name: `Éditer ${getOwnerDisplayName(owner)}`
       });
       await user.click(edit);
       const ignore = await screen.findByRole('button', {

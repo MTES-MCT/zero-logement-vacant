@@ -125,7 +125,9 @@ function CampaignRecipients(props: Readonly<CampaignRecipientsProps>) {
           styles: multilineStyles
         },
         cell: ({ cell, row }) =>
-          !row.original.owner ? null : (
+          !row.original.owner ? (
+            'Pas de destinataire principal'
+          ) : (
             <AppLink
               isSimple
               size="sm"

@@ -2,10 +2,12 @@ import { constants } from 'http2';
 
 import {
   AddressKinds,
+  DO_NOT_CONTACT_OWNER_RANK,
   HousingOwnerDTO,
   HousingOwnerPayloadDTO,
   OwnerCreationPayload,
   OwnerDTO,
+  type OwnerRank,
   OwnerUpdatePayload
 } from '@zerologementvacant/models';
 import async from 'async';
@@ -22,11 +24,14 @@ import { startTransaction } from '~/infra/database/transaction';
 import { logger } from '~/infra/logger';
 import { AddressApi } from '~/models/AddressApi';
 import { HousingOwnerEventApi, OwnerEventApi } from '~/models/EventApi';
+import type { HousingApi } from '~/models/HousingApi';
 import {
   HOUSING_OWNER_EQUIVALENCE,
   HOUSING_OWNER_RANK_EQUIVALENCE,
   HousingOwnerApi,
-  toHousingOwnerDTO
+  markOwnerDoNotContact,
+  toHousingOwnerDTO,
+  unmarkOwnerDoNotContact
 } from '~/models/HousingOwnerApi';
 import { diffUpdatedOwner, OwnerApi, toOwnerDTO } from '~/models/OwnerApi';
 import type { PaginatedResultApi } from '~/models/PaginatedResultApi';
@@ -251,11 +256,11 @@ const update: RequestHandler<
 
   const banAddress: AddressApi | null = body.banAddress
     ? {
-        ...body.banAddress,
-        refId: existingOwner.id,
-        addressKind: AddressKinds.Owner,
-        lastUpdatedAt: new Date().toJSON()
-      }
+      ...body.banAddress,
+      refId: existingOwner.id,
+      addressKind: AddressKinds.Owner,
+      lastUpdatedAt: new Date().toJSON()
+    }
     : null;
   const owner: OwnerApi = {
     id: existingOwner.id,
@@ -483,11 +488,96 @@ const updateHousingOwners: RequestHandler<
     })
   ];
 
+  // "Do not contact" applies to all of an owner's housings within the user's
+  // establishment perimeter. When an owner is (un)marked on this housing,
+  // propagate the change to their other housings inside the perimeter.
+  const currentHousingId = housing.id;
+  const currentHousingGeoCode = housing.geoCode;
+  const wasDoNotContact = (ownerId: string): boolean =>
+    existingHousingOwners.some(
+      (housingOwner) =>
+        housingOwner.ownerId === ownerId &&
+        housingOwner.rank === DO_NOT_CONTACT_OWNER_RANK
+    );
+  const becameDoNotContact = housingOwners
+    .filter(
+      (housingOwner) =>
+        housingOwner.rank === DO_NOT_CONTACT_OWNER_RANK &&
+        !wasDoNotContact(housingOwner.ownerId)
+    )
+    .map((housingOwner) => housingOwner.ownerId);
+  const stoppedDoNotContact = housingOwners
+    .filter(
+      (housingOwner) =>
+        housingOwner.rank !== DO_NOT_CONTACT_OWNER_RANK &&
+        wasDoNotContact(housingOwner.ownerId)
+    )
+    .map((housingOwner) => housingOwner.ownerId);
+
+  async function propagateDoNotContact(
+    ownerId: string,
+    apply: (owners: HousingOwnerApi[], ownerId: string) => HousingOwnerApi[],
+    shouldUpdate: (rank: OwnerRank) => boolean
+  ): Promise<HousingOwnerApi[][]> {
+    const owner = await ownerRepository.get(ownerId);
+    if (!owner) {
+      return [];
+    }
+    const ownerHousings = await housingOwnerRepository.findByOwner(owner, {
+      geoCodes: establishment.geoCodes
+    });
+    const targets = ownerHousings.filter(
+      (ownerHousing) =>
+        // Skip the housing already handled by the request payload
+        !(
+          ownerHousing.housingId === currentHousingId &&
+          ownerHousing.housingGeoCode === currentHousingGeoCode
+        ) && shouldUpdate(ownerHousing.rank)
+    );
+    return Promise.all(
+      targets.map(async (target) => {
+        const owners = await ownerRepository.findByHousing(target as HousingApi);
+        return apply(owners, ownerId);
+      })
+    );
+  }
+
+  const propagatedHousingOwners: HousingOwnerApi[][] = [
+    ...(
+      await Promise.all(
+        becameDoNotContact.map((ownerId) =>
+          propagateDoNotContact(
+            ownerId,
+            markOwnerDoNotContact,
+            (rank) => rank !== DO_NOT_CONTACT_OWNER_RANK
+          )
+        )
+      )
+    ).flat(),
+    ...(
+      await Promise.all(
+        stoppedDoNotContact.map((ownerId) =>
+          propagateDoNotContact(
+            ownerId,
+            unmarkOwnerDoNotContact,
+            (rank) => rank === DO_NOT_CONTACT_OWNER_RANK
+          )
+        )
+      )
+    ).flat()
+  ];
+
   await startTransaction(async () => {
-    const affectedOwnerIds =
-      await housingOwnerRepository.saveMany(housingOwners);
+    const affectedOwnerIds = await housingOwnerRepository.saveMany(housingOwners);
+    const propagatedOwnerIds: string[] = [];
+    for (const owners of propagatedHousingOwners) {
+      const ids = await housingOwnerRepository.saveMany(owners);
+      propagatedOwnerIds.push(...ids);
+    }
     await Promise.all([
-      refreshMultiOwnerFlags(affectedOwnerIds),
+      refreshMultiOwnerFlags([
+        ...new Set([...affectedOwnerIds, ...propagatedOwnerIds])
+      ]),
       eventRepository.insertManyHousingOwnerEvents(events)
     ]);
   });

@@ -1,5 +1,7 @@
 import {
+  DO_NOT_CONTACT_OWNER_RANK,
   HousingOwnerDTO,
+  isActiveOwnerRank,
   OwnerRank,
   type BaseHousingOwnerDTO
 } from '@zerologementvacant/models';
@@ -87,6 +89,64 @@ export function toHousingOwnersApi(
     absoluteDistance: null,
     propertyRight: null
   }));
+}
+
+/**
+ * Mark an owner as "do not contact" within a single housing's owner list.
+ * The owner is given the do-not-contact rank and the remaining active owners
+ * are re-ranked contiguously from 1, which promotes the next owner to primary
+ * when the marked owner was the primary recipient. Inactive owners and other
+ * do-not-contact owners keep their rank.
+ */
+export function markOwnerDoNotContact(
+  owners: ReadonlyArray<HousingOwnerApi>,
+  ownerId: string
+): HousingOwnerApi[] {
+  const target = owners.find((owner) => owner.ownerId === ownerId);
+  if (!target) {
+    return [...owners];
+  }
+
+  const others = owners.filter((owner) => owner.ownerId !== ownerId);
+  const activeOthers = others
+    .filter((owner) => isActiveOwnerRank(owner.rank))
+    .sort((a, b) => a.rank - b.rank)
+    .map((owner, index) => ({ ...owner, rank: (index + 1) as OwnerRank }));
+  const rest = others.filter((owner) => !isActiveOwnerRank(owner.rank));
+
+  return [
+    ...activeOthers,
+    { ...target, rank: DO_NOT_CONTACT_OWNER_RANK },
+    ...rest
+  ];
+}
+
+/**
+ * Remove the "do not contact" status of an owner within a single housing's
+ * owner list. The owner rejoins as the next secondary recipient (or becomes
+ * primary when there is no other active owner).
+ */
+export function unmarkOwnerDoNotContact(
+  owners: ReadonlyArray<HousingOwnerApi>,
+  ownerId: string
+): HousingOwnerApi[] {
+  const target = owners.find((owner) => owner.ownerId === ownerId);
+  if (!target) {
+    return [...owners];
+  }
+
+  const others = owners.filter((owner) => owner.ownerId !== ownerId);
+  const activeOthers = others
+    .filter((owner) => isActiveOwnerRank(owner.rank))
+    .sort((a, b) => a.rank - b.rank)
+    .map((owner, index) => ({ ...owner, rank: (index + 1) as OwnerRank }));
+  const rest = others.filter((owner) => !isActiveOwnerRank(owner.rank));
+
+  return [
+    ...activeOthers,
+    { ...target, rank: (activeOthers.length + 1) as OwnerRank },
+    ...rest
+  ];
 }
 
 export function toHousingOwnerDTO(

@@ -7,7 +7,9 @@ import Stack from '@mui/material/Stack';
 import Typography from '@mui/material/Typography';
 import {
   DECEASED_OWNER_RANK,
+  DO_NOT_CONTACT_OWNER_RANK,
   INCORRECT_OWNER_RANK,
+  isInactiveOwnerRank,
   PREVIOUS_OWNER_RANK
 } from '@zerologementvacant/models';
 import { Predicate } from 'effect';
@@ -26,7 +28,7 @@ const schema = yup
     isActive: yup.boolean().required(),
     rank: yup
       .string()
-      .oneOf(['primary', 'secondary'])
+      .oneOf(['primary', 'secondary', 'doNotContact'])
       .nullable()
       .optional()
       .default(undefined)
@@ -66,11 +68,14 @@ function HousingOwnerEditionAside(props: HousingOwnerEditionAsideProps) {
   const form = useForm<HousingOwnerEditionSchema>({
     values: {
       rank: match(housingOwner?.rank)
-        .returnType<'primary' | 'secondary' | null>()
+        .returnType<'primary' | 'secondary' | 'doNotContact' | null>()
         .with(1, () => 'primary')
+        .with(DO_NOT_CONTACT_OWNER_RANK, () => 'doNotContact')
         .with(Pattern.number.int().gte(2), () => 'secondary')
         .otherwise(() => null),
-      isActive: housingOwner?.rank !== undefined && housingOwner.rank >= 1,
+      isActive:
+        housingOwner?.rank !== undefined &&
+        !isInactiveOwnerRank(housingOwner.rank),
       inactiveRank: match(housingOwner?.rank)
         .with(
           DECEASED_OWNER_RANK,
@@ -242,6 +247,13 @@ function HousingOwnerEditionAside(props: HousingOwnerEditionAsideProps) {
                                 nativeInputProps: {
                                   checked: field.value === 'secondary',
                                   onChange: () => field.onChange('secondary')
+                                }
+                              },
+                              {
+                                label: 'À ne pas contacter',
+                                nativeInputProps: {
+                                  checked: field.value === 'doNotContact',
+                                  onChange: () => field.onChange('doNotContact')
                                 }
                               }
                             ]}

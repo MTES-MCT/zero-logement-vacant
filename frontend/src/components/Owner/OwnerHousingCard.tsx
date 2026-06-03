@@ -5,6 +5,7 @@ import Typography from '@mui/material/Typography';
 import {
   HousingKind,
   type HousingStatus,
+  isDoNotContactOwnerRank,
   type Occupancy,
   type OwnerRank,
   type PropertyRight
@@ -40,8 +41,12 @@ const PropertyRight = (props: Pick<OwnerHousingCardProps, 'propertyRight'>) =>
     <PropertyRightTag value={props.propertyRight} />
   );
 
+// Do-not-contact is shown in the owner profile header, not on each housing
+// card, so the badge is omitted here for that rank.
 const Rank = (props: Pick<OwnerHousingCardProps, 'rank'>) =>
-  props.rank !== null ? <RankBadge value={props.rank} /> : null;
+  props.rank !== null && !isDoNotContactOwnerRank(props.rank) ? (
+    <RankBadge value={props.rank} />
+  ) : null;
 
 function OwnerHousingCard(props: OwnerHousingCardProps) {
   const kind = match(props.kind)

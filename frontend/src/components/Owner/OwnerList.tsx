@@ -36,6 +36,7 @@ function OwnerList(props: OwnerListProps) {
             id={owner.id}
             name={getOwnerDisplayName(owner)}
             propertyRight={owner.propertyRight}
+            rank={owner.rank}
           />
         </li>
       ))}

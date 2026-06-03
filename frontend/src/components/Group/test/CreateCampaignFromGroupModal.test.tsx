@@ -82,4 +82,15 @@ describe('CreateCampaignFromGroupModal', () => {
     expect(within(dialog).getByText('Étape 2 sur 2')).toBeInTheDocument();
     expect(within(dialog).queryByText(/propriétaire/)).not.toBeInTheDocument();
   });
+
+  it('should warn that do-not-contact owners are excluded from the campaign', async () => {
+    renderModal();
+
+    const dialog = await screen.findByRole('dialog');
+    expect(
+      within(dialog).getByText(
+        /ne seront pas inclus comme destinataires de cette campagne/i
+      )
+    ).toBeInTheDocument();
+  });
 });

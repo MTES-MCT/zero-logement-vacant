@@ -1,6 +1,9 @@
 import Stack from '@mui/material/Stack';
 import Typography from '@mui/material/Typography';
-import { isSecondaryOwner } from '@zerologementvacant/models';
+import {
+  isDoNotContactOwnerRank,
+  isSecondaryOwner
+} from '@zerologementvacant/models';
 
 import OwnerList from '~/components/Owner/OwnerList';
 import { useFindOwnersByHousingQuery } from '~/services/owner.service';
@@ -16,7 +19,12 @@ function SecondaryOwnerList(props: SecondaryOwnerListProps) {
     isSuccess
   } = useFindOwnersByHousingQuery(props.housingId);
 
-  const secondaryOwners = housingOwners?.filter(isSecondaryOwner) ?? [];
+  const secondaryOwners =
+    housingOwners?.filter(
+      (housingOwner) =>
+        isSecondaryOwner(housingOwner) ||
+        isDoNotContactOwnerRank(housingOwner.rank)
+    ) ?? [];
 
   if (isSuccess && secondaryOwners.length === 0) {
     return null;

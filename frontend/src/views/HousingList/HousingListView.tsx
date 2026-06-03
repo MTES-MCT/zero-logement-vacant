@@ -15,7 +15,7 @@ import HousingListFiltersSidemenu from '~/components/HousingListFilters/HousingL
 import AppSearchBar from '~/components/_app/AppSearchBar/AppSearchBar';
 import HousingCreationModal from '~/components/modals/HousingCreationModal/HousingCreationModal';
 import { useDocumentTitle } from '~/hooks/useDocumentTitle';
-import { useFilters } from '~/hooks/useFilters';
+import { useHousingFilters } from '~/hooks/HousingFiltersContext';
 import { useNotification } from '~/hooks/useNotification';
 import { useSelection } from '~/hooks/useSelection';
 import { useAppDispatch, useAppSelector } from '~/hooks/useStore';
@@ -41,22 +41,16 @@ const HousingListView = () => {
     expand,
     filters,
     setExpand,
-    setFilters,
-    onChangeFilters,
-    onResetFilters
-  } = useFilters({
-    storage: 'store'
-  });
+    onChange: onChangeFilters,
+    onReset: onResetFilters
+  } = useHousingFilters();
 
   const dispatch = useAppDispatch();
   const { changeView } = housingSlice.actions;
   const { view } = useAppSelector((state) => state.housing);
 
   const searchWithQuery = (query: string) => {
-    setFilters({
-      ...filters,
-      query
-    });
+    onChangeFilters({ query });
   };
 
   const location: { state?: RouterState } = useLocation();

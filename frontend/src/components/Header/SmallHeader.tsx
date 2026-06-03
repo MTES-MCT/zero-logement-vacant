@@ -17,7 +17,7 @@ import { Link, useLocation } from 'react-router';
 import AccountDropdown from '~/components/Account/AccountDropdown';
 import EstablishmentSearchableSelect from '~/components/establishment/EstablishmentSearchableSelect';
 import logo from '../../assets/images/zlv.svg';
-import { useFilters } from '../../hooks/useFilters';
+import { useHousingFilters } from '../../hooks/HousingFiltersContext';
 import { useAppDispatch } from '../../hooks/useStore';
 import { useUser } from '../../hooks/useUser';
 import { type Establishment } from '../../models/Establishment';
@@ -93,7 +93,7 @@ function SmallHeader() {
     };
   }
 
-  const { onResetFilters } = useFilters({ storage: 'store' });
+  const { onReset } = useHousingFilters();
 
   async function onChangeEstablishment(
     establishment: Establishment
@@ -101,7 +101,7 @@ function SmallHeader() {
     await dispatch(changeEstablishment(establishment.id)).unwrap();
     // Reset all state instead of reloading the page
     dispatch(zlvApi.util.resetApiState());
-    onResetFilters();
+    onReset();
   }
 
   const navItems: MainNavigationProps.Item[] = isAuthenticated

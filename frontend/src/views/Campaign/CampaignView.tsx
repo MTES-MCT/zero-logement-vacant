@@ -21,15 +21,14 @@ import CampaignTitle from '~/components/Campaign/CampaignTitle';
 const CampaignRecipientsNext = lazy(() => import('~/components/Campaign/CampaignRecipients'));
 const DraftForm = lazy(() => import('~/components/Draft/DraftForm'));
 import { useGetCampaignDraftQuery } from '~/hooks/useGetCampaignDraftQuery';
+import { useHousingFilters } from '~/hooks/HousingFiltersContext';
 import { useNotification } from '~/hooks/useNotification';
-import { useAppDispatch } from '~/hooks/useStore';
 import {
   useGetCampaignQuery,
   useRemoveCampaignMutation,
   useUpdateCampaignMutation
 } from '~/services/campaign.service';
 import { useCountHousingQuery } from '~/services/housing.service';
-import housingSlice from '~/store/reducers/housingReducer';
 
 const campaignDeleteModal = createCampaignDeleteModal();
 const sentAtModal = createCampaignSentAtModal();
@@ -37,7 +36,7 @@ const sentAtModal = createCampaignSentAtModal();
 function CampaignView() {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
-  const dispatch = useAppDispatch();
+  const { setFilters } = useHousingFilters();
 
   const { data: campaign, isLoading } = useGetCampaignQuery(id as string);
   const { data: count } = useCountHousingQuery({ campaignIds: [id as string] });
@@ -125,11 +124,7 @@ function CampaignView() {
                   priority: 'secondary',
                   children: 'Voir les logements',
                   onClick: () => {
-                    dispatch(
-                      housingSlice.actions.changeFilters({
-                        campaignIds: [campaign.id]
-                      })
-                    );
+                    setFilters({ campaignIds: [campaign.id] });
                     navigate('/parc-de-logements');
                   }
                 },

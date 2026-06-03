@@ -1,11 +1,6 @@
 import { createSlice, type PayloadAction } from '@reduxjs/toolkit';
-import type {
-  DatafoncierHousing,
-  HousingFiltersDTO,
-  Pagination
-} from '@zerologementvacant/models';
+import type { DatafoncierHousing, Pagination } from '@zerologementvacant/models';
 import type { Selection } from '../../hooks/useSelection';
-import type { HousingFilters } from '../../models/HousingFilters';
 import config from '../../utils/config';
 
 export type ViewMode = 'list' | 'map';
@@ -20,8 +15,6 @@ export interface HousingState {
   selected: Selection;
   totalCount: number;
   totalOwnerCount: number;
-  filters: HousingFilters;
-  filtersExpanded: boolean;
   additionalOwnersQuery?: {
     page: number;
     perPage: number;
@@ -34,10 +27,6 @@ export interface HousingState {
   };
 }
 
-export const initialHousingFilters: HousingFiltersDTO = {
-  dataFileYearsIncluded: ['lovac-2026']
-};
-
 const initialState: HousingState = {
   selected: {
     all: false,
@@ -45,8 +34,6 @@ const initialState: HousingState = {
   },
   totalCount: 0,
   totalOwnerCount: 0,
-  filters: initialHousingFilters,
-  filtersExpanded: true,
   view: 'list',
   creator: {}
 };
@@ -59,15 +46,6 @@ const housingSlice = createSlice({
       state.selected = action.payload;
     },
 
-    expandFilters: (state: HousingState, action: PayloadAction<boolean>) => {
-      state.filtersExpanded = action.payload;
-    },
-    changeFilters: (
-      state: HousingState,
-      action: PayloadAction<HousingFilters>
-    ) => {
-      state.filters = action.payload;
-    },
     changeView: (state: HousingState, action: PayloadAction<ViewMode>) => {
       state.view = action.payload;
     },

@@ -23,6 +23,7 @@ import {
 import { Provider } from 'react-redux';
 import { createMemoryRouter, RouterProvider } from 'react-router';
 
+import { HousingFiltersProvider } from '~/hooks/HousingFiltersContext';
 import data from '~/mocks/handlers/data';
 import { fromEstablishmentDTO } from '~/models/Establishment';
 import { fromUserDTO } from '~/models/User';
@@ -97,7 +98,9 @@ describe('Group view', () => {
 
     render(
       <Provider store={store}>
-        <RouterProvider router={router} />
+        <HousingFiltersProvider>
+          <RouterProvider router={router} />
+        </HousingFiltersProvider>
       </Provider>
     );
 

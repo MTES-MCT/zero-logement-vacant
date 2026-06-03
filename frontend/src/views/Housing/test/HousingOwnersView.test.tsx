@@ -275,6 +275,86 @@ describe('HousingOwnersView', () => {
     expect(cell).toBeVisible();
   });
 
+  it('should mark a secondary owner as "do not contact"', async () => {
+    const housing = genHousingDTO();
+    const owners: ReadonlyArray<OwnerDTO> = [genOwnerDTO(), genOwnerDTO()];
+    const housingOwners: ReadonlyArray<HousingOwnerDTO> = [
+      { ...genHousingOwnerDTO(owners[0]), rank: 1 },
+      { ...genHousingOwnerDTO(owners[1]), rank: 2 }
+    ];
+
+    renderView({
+      housing,
+      owners,
+      housingOwners
+    });
+
+    const button = await screen.findByRole('button', {
+      name: `Éditer ${owners[1].fullName}`
+    });
+    await user.click(button);
+    const rank = await screen.findByRole('radio', {
+      name: 'À ne pas contacter'
+    });
+    await user.click(rank);
+    const save = await screen.findByRole('button', {
+      name: 'Enregistrer'
+    });
+    await user.click(save);
+
+    const row = await screen.findByRole('row', {
+      name: new RegExp(`^${owners[1].fullName}`)
+    });
+    const cell = await within(row).findByRole('cell', {
+      name: 'Ne pas contacter'
+    });
+    expect(cell).toBeVisible();
+  });
+
+  it('should promote the next owner to primary when the primary becomes "do not contact"', async () => {
+    const housing = genHousingDTO();
+    const owners: ReadonlyArray<OwnerDTO> = [genOwnerDTO(), genOwnerDTO()];
+    const housingOwners: ReadonlyArray<HousingOwnerDTO> = [
+      { ...genHousingOwnerDTO(owners[0]), rank: 1 },
+      { ...genHousingOwnerDTO(owners[1]), rank: 2 }
+    ];
+
+    renderView({
+      housing,
+      owners,
+      housingOwners
+    });
+
+    const button = await screen.findByRole('button', {
+      name: `Éditer ${owners[0].fullName}`
+    });
+    await user.click(button);
+    const rank = await screen.findByRole('radio', {
+      name: 'À ne pas contacter'
+    });
+    await user.click(rank);
+    const save = await screen.findByRole('button', {
+      name: 'Enregistrer'
+    });
+    await user.click(save);
+
+    const promotedRow = await screen.findByRole('row', {
+      name: new RegExp(`^${owners[1].fullName}`)
+    });
+    const promotedCell = await within(promotedRow).findByRole('cell', {
+      name: 'Destinataire principal'
+    });
+    expect(promotedCell).toBeVisible();
+
+    const doNotContactRow = await screen.findByRole('row', {
+      name: new RegExp(`^${owners[0].fullName}`)
+    });
+    const doNotContactCell = await within(doNotContactRow).findByRole('cell', {
+      name: 'Ne pas contacter'
+    });
+    expect(doNotContactCell).toBeVisible();
+  });
+
   it('should set the primary owner as deceased', async () => {
     const housing = genHousingDTO();
     const owners: ReadonlyArray<OwnerDTO> = [genOwnerDTO(), genOwnerDTO()];

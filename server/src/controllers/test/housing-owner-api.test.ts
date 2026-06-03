@@ -78,6 +78,95 @@ describe('Housing owner API', () => {
       const actual = await Owners().where({ id: owner.id }).first();
       expect(actual?.is_multi_owner).toBe(true);
     });
+
+    it('should propagate "do not contact" to the owner’s other housings in the perimeter', async () => {
+      const geoCode = establishment.geoCodes[0];
+      const housingA = genHousingApi(geoCode);
+      const housingB = genHousingApi(geoCode);
+      const owner = genOwnerApi();
+      const coOwner = genOwnerApi();
+      await Housing().insert([housingA, housingB].map(formatHousingRecordApi));
+      await Owners().insert([owner, coOwner].map(formatOwnerApi));
+      await HousingOwners().insert(
+        [
+          { ...genHousingOwnerApi(housingA, owner), rank: 1 },
+          { ...genHousingOwnerApi(housingB, owner), rank: 1 },
+          { ...genHousingOwnerApi(housingB, coOwner), rank: 2 }
+        ].map(formatHousingOwnerApi)
+      );
+
+      const payload: HousingOwnerPayloadDTO[] = [
+        {
+          id: owner.id,
+          rank: -4,
+          idprocpte: null,
+          idprodroit: null,
+          locprop: null,
+          propertyRight: null
+        }
+      ];
+
+      await request(url)
+        .put(testRoute(housingA.id))
+        .send(payload)
+        .use(tokenProvider(user));
+
+      const onA = await HousingOwners()
+        .where({ housing_id: housingA.id, owner_id: owner.id })
+        .first();
+      const onB = await HousingOwners()
+        .where({ housing_id: housingB.id, owner_id: owner.id })
+        .first();
+      const coOwnerOnB = await HousingOwners()
+        .where({ housing_id: housingB.id, owner_id: coOwner.id })
+        .first();
+
+      expect(onA?.rank).toBe(-4);
+      expect(onB?.rank).toBe(-4);
+      // The next owner is promoted to primary on the propagated housing
+      expect(coOwnerOnB?.rank).toBe(1);
+    });
+
+    it('should clear "do not contact" across the perimeter when the owner is reactivated', async () => {
+      const geoCode = establishment.geoCodes[0];
+      const housingA = genHousingApi(geoCode);
+      const housingB = genHousingApi(geoCode);
+      const owner = genOwnerApi();
+      const coOwner = genOwnerApi();
+      await Housing().insert([housingA, housingB].map(formatHousingRecordApi));
+      await Owners().insert([owner, coOwner].map(formatOwnerApi));
+      await HousingOwners().insert(
+        [
+          { ...genHousingOwnerApi(housingA, owner), rank: -4 },
+          { ...genHousingOwnerApi(housingB, owner), rank: -4 },
+          { ...genHousingOwnerApi(housingB, coOwner), rank: 1 }
+        ].map(formatHousingOwnerApi)
+      );
+
+      const payload: HousingOwnerPayloadDTO[] = [
+        {
+          id: owner.id,
+          rank: 1,
+          idprocpte: null,
+          idprodroit: null,
+          locprop: null,
+          propertyRight: null
+        }
+      ];
+
+      await request(url)
+        .put(testRoute(housingA.id))
+        .send(payload)
+        .use(tokenProvider(user));
+
+      const onB = await HousingOwners()
+        .where({ housing_id: housingB.id, owner_id: owner.id })
+        .first();
+
+      // No longer do-not-contact on the other perimeter housing
+      expect(onB?.rank).not.toBe(-4);
+      expect(onB?.rank).toBeGreaterThanOrEqual(1);
+    });
   });
 
   describe('GET /owners/:id/housings', () => {

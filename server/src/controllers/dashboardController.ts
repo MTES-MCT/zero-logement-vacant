@@ -8,14 +8,8 @@ import { RESOURCE_VALUES } from '@zerologementvacant/models';
 import DashcardMissingError from '~/errors/dashcardMissingError';
 import UnprocessableEntityError from '~/errors/unprocessableEntityError';
 import config from '~/infra/config';
-import {
-  createURL,
-  fetchCardQueryData,
-  fetchMetabaseDashboard,
-  findDashcard,
-  getResource,
-  normalizeDashboard
-} from '~/models/DashboardApi';
+import { createURL, getResource } from '~/models/DashboardApi';
+import { metabaseAPI } from '~/services/metabase/metabase-api';
 
 async function findOne(
   request: Request<{ id: Resource }>,
@@ -25,20 +19,15 @@ async function findOne(
 
   const numericId = getResource(params.id);
 
-  const [token, raw] = await Promise.all([
+  const [token, normalized] = await Promise.all([
     sign({
       resource: { dashboard: numericId },
       params: { id: auth.establishmentId }
     }),
-    fetchMetabaseDashboard(
-      numericId,
-      config.metabase.domain,
-      config.metabase.apiToken
-    )
+    metabaseAPI.getDashboard(numericId)
   ]);
 
   const url = createURL({ domain: config.metabase.domain, token });
-  const normalized = normalizeDashboard(raw);
 
   response
     .status(constants.HTTP_STATUS_OK)
@@ -66,22 +55,14 @@ async function findOneCard(
     throw new UnprocessableEntityError();
   }
 
-  const raw = await fetchMetabaseDashboard(
-    numericDid,
-    config.metabase.domain,
-    config.metabase.apiToken
-  );
-
-  const dashcard = findDashcard(raw, numericCid);
+  const dashcard = await metabaseAPI.findDashcard(numericDid, numericCid);
   if (!dashcard) throw new DashcardMissingError(numericCid);
 
-  const data = await fetchCardQueryData({
-    dashboardId: numericDid,
-    dashcardId: dashcard.dashcardId,
-    cardId: dashcard.cardId,
-    domain: config.metabase.domain,
-    apiToken: config.metabase.apiToken
-  });
+  const data = await metabaseAPI.getCardValue(
+    numericDid,
+    dashcard.dashcardId,
+    dashcard.cardId
+  );
 
   response.status(constants.HTTP_STATUS_OK).json({ id: numericCid, data });
 }

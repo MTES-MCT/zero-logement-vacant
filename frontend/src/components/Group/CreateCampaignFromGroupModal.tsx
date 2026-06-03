@@ -125,7 +125,7 @@ export function createCampaignFromGroupModal(
               />
 
               <AppTextInputNext<FormSchema>
-                label="Date d'envoi"
+                label="Date d’envoi"
                 name="sentAt"
                 control={form.control}
                 nativeInputProps={{ type: 'date' }}

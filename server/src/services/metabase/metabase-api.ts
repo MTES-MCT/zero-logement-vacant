@@ -1,12 +1,14 @@
 import axios from 'axios';
 
-import type { DashboardCard, Tab } from '@zerologementvacant/models';
+import type { CardType, DashboardCard, Tab } from '@zerologementvacant/models';
 import config from '~/infra/config';
 import type {
+  CardValue,
   DashboardData,
   DashboardParameter,
   DashcardRef,
-  MetabaseService
+  MetabaseService,
+  PieChartValue
 } from './metabase-service';
 
 // ─── Metabase internal types (minimal subset) ─────────────────────────────────
@@ -129,8 +131,23 @@ function detectDecimals(settings: MetabaseVisualizationSettings): number {
 }
 
 function normalizeDashcard(dashcard: MetabaseDashcard): DashboardCard | null {
-  if (dashcard.card === null || dashcard.card.display !== 'scalar') return null;
+  if (dashcard.card === null) return null;
   const { card } = dashcard;
+
+  if (card.display === 'pie') {
+    return {
+      id: dashcard.id,
+      type: 'pie-chart',
+      title: dashcard.visualization_settings['card.title'] ?? card.name,
+      description: card.description,
+      decimals: 0,
+      position: { col: dashcard.col, row: dashcard.row },
+      size: { width: dashcard.size_x, height: dashcard.size_y }
+    };
+  }
+
+  if (card.display !== 'scalar') return null;
+
   const settings = mergeVisualizationSettings(
     card.visualization_settings,
     dashcard.visualization_settings
@@ -174,6 +191,19 @@ function findDashcardRef(
   if (!found || found.card_id === null) return null;
   const normalized = normalizeDashcard(found);
   if (!normalized) return null;
+
+  if (normalized.type === 'pie-chart') {
+    return {
+      dashcardId: found.id,
+      cardId: found.card_id,
+      type: 'pie-chart',
+      valueColumn: null,
+      dashboardParameters: (raw.parameters ?? []).map(
+        (p): DashboardParameter => ({ id: p.id, slug: p.slug, type: p.type })
+      )
+    };
+  }
+
   const settings = mergeVisualizationSettings(
     found.card!.visualization_settings,
     found.visualization_settings
@@ -222,12 +252,22 @@ class MetabaseAPI implements MetabaseService {
     dashcardId: number,
     cardId: number,
     parameters: ReadonlyArray<DashboardParameter & { value: string }>,
-    valueColumn: string | null
-  ): Promise<number> {
+    valueColumn: string | null,
+    cardType: CardType
+  ): Promise<CardValue> {
     const { data } = await this.http.post<MetabaseQueryResult>(
       `/api/dashboard/${dashboardId}/dashcard/${dashcardId}/card/${cardId}/query`,
       { parameters }
     );
+
+    if (cardType === 'pie-chart') {
+      const result: PieChartValue = {
+        labels: data.data.rows.map((row) => String(row[0])),
+        data: data.data.rows.map((row) => Number(row[1]))
+      };
+      return result;
+    }
+
     const colIndex = valueColumn
       ? data.data.cols.findIndex((c) => c.name === valueColumn)
       : -1;

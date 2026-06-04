@@ -104,6 +104,29 @@ const mockMetabaseDashboardWithPercentScalarCard = {
   ]
 };
 
+const mockMetabaseDashboardWithPieCard = {
+  id: 13,
+  dashcards: [
+    {
+      id: 950,
+      card_id: 801,
+      dashboard_tab_id: null,
+      row: 0,
+      col: 0,
+      size_x: 6,
+      size_y: 4,
+      visualization_settings: { 'card.title': 'Répartition par type' },
+      card: {
+        id: 801,
+        name: 'Répartition par type',
+        display: 'pie',
+        description: null,
+        visualization_settings: {}
+      }
+    }
+  ]
+};
+
 const mockCardQueryResult = {
   data: { rows: [[51884]], cols: [{ name: 'count' }] },
   status: 'completed'
@@ -232,6 +255,28 @@ describe('Dashboard API', () => {
       const body = response.body as DashboardDTO;
       if ('cards' in body) {
         expect(body.cards[0].type).toBe('percentage');
+      }
+    });
+
+    it('returns a pie-chart card from the dashboard', async () => {
+      nock(METABASE_URL)
+        .get('/api/dashboard/13')
+        .reply(200, mockMetabaseDashboardWithPieCard);
+
+      const response = await request(url)
+        .get('/dashboards/13-analyses')
+        .use(tokenProvider(user));
+
+      expect(response.status).toBe(constants.HTTP_STATUS_OK);
+      const body = response.body as DashboardDTO;
+      expect('cards' in body).toBe(true);
+      if ('cards' in body) {
+        expect(body.cards).toHaveLength(1);
+        expect(body.cards[0]).toMatchObject({
+          id: 950,
+          type: 'pie-chart',
+          title: 'Répartition par type'
+        });
       }
     });
 

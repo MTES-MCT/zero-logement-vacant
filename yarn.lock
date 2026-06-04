@@ -3032,6 +3032,13 @@ __metadata:
   languageName: node
   linkType: hard
 
+"@gouvfr/dsfr-chart@npm:^2.1.1":
+  version: 2.1.1
+  resolution: "@gouvfr/dsfr-chart@npm:2.1.1"
+  checksum: 10c0/d6d46a25a3d11a96bb0f1c774fda4c68cc54112145bab26dfaace51f0b707ce4afa7c596e203c3f75a63b8eb7f486f61b9a113652414962c4701aa235cae1d9d
+  languageName: node
+  linkType: hard
+
 "@hapi/hoek@npm:^9.0.0, @hapi/hoek@npm:^9.3.0":
   version: 9.3.0
   resolution: "@hapi/hoek@npm:9.3.0"
@@ -11354,6 +11361,7 @@ __metadata:
     "@emotion/react": "npm:11.14.0"
     "@emotion/styled": "npm:11.14.1"
     "@faker-js/faker": "npm:8.4.1"
+    "@gouvfr/dsfr-chart": "npm:^2.1.1"
     "@hookform/resolvers": "npm:5.2.2"
     "@lexical/html": "npm:0.44.0"
     "@lexical/list": "npm:0.44.0"

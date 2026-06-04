@@ -1,16 +1,15 @@
 import { Request, Response } from 'express';
 import { AuthenticatedRequest } from 'express-jwt';
-import { param, ValidationChain } from 'express-validator';
-import { constants } from 'http2';
+import { constants } from 'node:http2';
 import jwt from 'jsonwebtoken';
 
-import {
-  DashboardDTO,
-  Resource,
-  RESOURCE_VALUES
-} from '@zerologementvacant/models';
+import type { CardDataDTO, DashboardDTO, Resource } from '@zerologementvacant/models';
+import { RESOURCE_VALUES } from '@zerologementvacant/models';
+import DashcardMissingError from '~/errors/dashcardMissingError';
+import UnprocessableEntityError from '~/errors/unprocessableEntityError';
 import config from '~/infra/config';
 import { createURL, getResource } from '~/models/DashboardApi';
+import { metabaseAPI } from '~/services/metabase/metabase-api';
 
 async function findOne(
   request: Request<{ id: Resource }>,
@@ -18,28 +17,64 @@ async function findOne(
 ): Promise<void> {
   const { auth, params } = request as AuthenticatedRequest<{ id: Resource }>;
 
-  const payload = {
-    resource: {
-      dashboard: getResource(params.id)
-    },
-    params: {
-      id: auth.establishmentId
-    }
-  };
-  const token = await sign(payload);
-  const dashboard = {
-    url: createURL({
-      domain: config.metabase.domain,
-      token
-    })
-  };
-  response.status(constants.HTTP_STATUS_OK).json(dashboard);
-}
-const findOneValidators: ValidationChain[] = [
-  param('id').isIn(RESOURCE_VALUES)
-];
+  const numericId = getResource(params.id);
 
-function sign(payload: any): Promise<string> {
+  const [token, normalized] = await Promise.all([
+    sign({
+      resource: { dashboard: numericId },
+      params: { id: auth.establishmentId }
+    }),
+    metabaseAPI.getDashboard(numericId)
+  ]);
+
+  const url = createURL({ domain: config.metabase.domain, token });
+
+  response
+    .status(constants.HTTP_STATUS_OK)
+    .json({ id: numericId, url, ...normalized });
+}
+
+async function findOneCard(
+  request: Request<{ did: string; cid: string }>,
+  response: Response<CardDataDTO>
+): Promise<void> {
+  const { auth, params } = request as AuthenticatedRequest<{
+    did: string;
+    cid: string;
+  }>;
+
+  const numericDid = RESOURCE_VALUES.includes(params.did as Resource)
+    ? getResource(params.did as Resource)
+    : parseInt(params.did, 10);
+  if (isNaN(numericDid)) {
+    throw new UnprocessableEntityError();
+  }
+
+  const numericCid = parseInt(params.cid, 10);
+  if (isNaN(numericCid)) {
+    throw new UnprocessableEntityError();
+  }
+
+  const dashcard = await metabaseAPI.findDashcard(numericDid, numericCid);
+  if (!dashcard) throw new DashcardMissingError(numericCid);
+
+  const queryParameters = dashcard.dashboardParameters
+    .filter((p) => p.slug === 'id')
+    .map((p) => ({ ...p, value: auth.establishmentId }));
+
+  const raw = await metabaseAPI.getCardValue(
+    numericDid,
+    dashcard.dashcardId,
+    dashcard.cardId,
+    queryParameters,
+    dashcard.valueColumn
+  );
+  const data = dashcard.type === 'percentage' ? raw / 100 : raw;
+
+  response.status(constants.HTTP_STATUS_OK).json({ id: numericCid, data });
+}
+
+function sign(payload: object): Promise<string> {
   return new Promise((resolve, reject) => {
     jwt.sign(
       payload,
@@ -52,7 +87,8 @@ function sign(payload: any): Promise<string> {
         if (err) {
           return reject(err);
         }
-        return resolve(token ?? '');
+        if (!token) return reject(new Error('jwt.sign produced no token'));
+        return resolve(token);
       }
     );
   });
@@ -60,5 +96,5 @@ function sign(payload: any): Promise<string> {
 
 export default {
   findOne,
-  findOneValidators
+  findOneCard
 };

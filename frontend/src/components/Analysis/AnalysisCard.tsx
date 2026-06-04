@@ -1,10 +1,12 @@
+import { fr } from '@codegouvfr/react-dsfr';
 import Alert from '@codegouvfr/react-dsfr/Alert';
 import Box from '@mui/material/Box';
 import Skeleton from '@mui/material/Skeleton';
+import Stack from '@mui/material/Stack';
 import Typography from '@mui/material/Typography';
 import { styled } from '@mui/material/styles';
-
 import type { DashboardCard, Resource } from '@zerologementvacant/models';
+
 import { useFindOneCardQuery } from '~/services/dashboard.service';
 
 interface Props {
@@ -17,6 +19,13 @@ const CardBox = styled(Box)({
   flexDirection: 'column',
   gap: '0.5rem',
   padding: '1rem'
+});
+
+const ShowcaseValue = styled(Typography)({
+  fontSize: '3rem',
+  fontWeight: 700,
+  lineHeight: '3.5rem',
+  color: fr.colors.decisions.text.title.grey.default
 });
 
 function formatValue(data: number, card: DashboardCard): string {
@@ -64,11 +73,16 @@ function AnalysisCard({ card, dashboardId }: Readonly<Props>) {
 
   return (
     <CardBox>
-      <Typography variant="h6">{card.title}</Typography>
-      <Typography variant="h3">{formatValue(data.data, card)}</Typography>
-      {card.description !== null && (
-        <Typography variant="body2">{card.description}</Typography>
-      )}
+      <Stack component="header">
+        <Typography variant="h5" component="h3">
+          {card.title}
+        </Typography>
+        {card.description !== null && (
+          <Typography>{card.description}</Typography>
+        )}
+      </Stack>
+
+      <ShowcaseValue>{formatValue(data.data, card)}</ShowcaseValue>
     </CardBox>
   );
 }

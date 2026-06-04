@@ -1,12 +1,13 @@
 import Alert from '@codegouvfr/react-dsfr/Alert';
 import Tabs from '@codegouvfr/react-dsfr/Tabs';
 import Box from '@mui/material/Box';
+import Container from '@mui/material/Container';
 import Skeleton from '@mui/material/Skeleton';
 import { styled } from '@mui/material/styles';
+import Typography from '@mui/material/Typography';
 
 import type { DashboardCard, Resource } from '@zerologementvacant/models';
 import AnalysisCard from '~/components/Analysis/AnalysisCard';
-import MainContainer from '~/components/MainContainer/MainContainer';
 import { useDocumentTitle } from '~/hooks/useDocumentTitle';
 import { useFindOneDashboardNextQuery } from '~/services/dashboard.service';
 
@@ -62,7 +63,7 @@ function CardGridContent({
 }
 
 function AnalysisViewNext({ id }: Readonly<Props>) {
-  useDocumentTitle('Analyse');
+  useDocumentTitle('Analyse du parc vacant');
   const {
     data: dashboard,
     isLoading,
@@ -70,7 +71,11 @@ function AnalysisViewNext({ id }: Readonly<Props>) {
   } = useFindOneDashboardNextQuery({ id });
 
   return (
-    <MainContainer>
+    <Container maxWidth={false} sx={{ py: '2rem' }}>
+      <Typography component="h1" variant="h2" sx={{ mb: '1.5rem' }}>
+        Analyse du parc vacant
+      </Typography>
+
       {isLoading && (
         <Skeleton
           data-testid="dashboard-skeleton"
@@ -92,20 +97,14 @@ function AnalysisViewNext({ id }: Readonly<Props>) {
             tabs={dashboard.tabs.map((tab) => ({
               label: tab.title,
               content: (
-                <CardGridContent
-                  cards={tab.cards}
-                  dashboardId={dashboard.id}
-                />
+                <CardGridContent cards={tab.cards} dashboardId={dashboard.id} />
               )
             }))}
           />
         ) : (
-          <CardGridContent
-            cards={dashboard.cards}
-            dashboardId={dashboard.id}
-          />
+          <CardGridContent cards={dashboard.cards} dashboardId={dashboard.id} />
         ))}
-    </MainContainer>
+    </Container>
   );
 }
 

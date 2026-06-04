@@ -156,8 +156,8 @@ export const configSchema = z.object({
   ]),
   metabase: z.object({
     domain: z.url().nullable().default('http://localhost:4000'),
-    token: z.string().nullable().default(null),
-    apiToken: z.string().nullable().default(null)
+    token: z.string().default('example-token'),
+    apiToken: z.string().default('example-api-token')
   }),
   rateLimit: z.object({
     max: z.coerce.number().int().default(10_000)

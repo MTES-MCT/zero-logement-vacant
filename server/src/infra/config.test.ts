@@ -69,7 +69,11 @@ const validRaw = {
     eventApiKey: null,
     secure: 'false'
   },
-  metabase: { domain: null, token: null, apiToken: null },
+  metabase: {
+    domain: 'http://localhost:4000',
+    token: 'example-token',
+    apiToken: 'example-api-token'
+  },
   rateLimit: { max: '10000' },
   redis: { url: 'redis://localhost:6379' },
   s3: {

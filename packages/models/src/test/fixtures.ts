@@ -5,7 +5,16 @@ import { MarkRequired } from 'ts-essentials';
 
 import type { BBox } from 'geojson';
 import { match, Pattern } from 'ts-pattern';
-import type { CardDataDTO, DashboardCard, DashboardDTO, FlatNumberCard, PercentageCard, Tab } from '../DashboardDTO';
+import type {
+  DashboardCard,
+  DashboardDTO,
+  FlatNumberCard,
+  PercentageCard,
+  PieChartCard,
+  PieChartDataDTO,
+  ScalarCardDataDTO,
+  Tab
+} from '../DashboardDTO';
 import { AddressDTO } from '../AddressDTO';
 import type { BuildingDTO } from '../BuildingDTO';
 import { CADASTRAL_CLASSIFICATION_VALUES } from '../CadastralClassification';
@@ -986,6 +995,21 @@ export function genPercentageCard(
   };
 }
 
+export function genPieChartCard(
+  override?: Partial<PieChartCard>
+): PieChartCard {
+  return {
+    id: faker.number.int({ min: 1, max: 9999 }),
+    type: 'pie-chart',
+    title: faker.lorem.words(3),
+    description: null,
+    decimals: 0,
+    position: { col: 0, row: 0 },
+    size: { width: 6, height: 4 },
+    ...override
+  };
+}
+
 export function genDashboardDTO(override?: {
   id?: number;
   url?: string;
@@ -1008,11 +1032,39 @@ export function genDashboardDTO(override?: {
   };
 }
 
-export function genCardDataDTO(override?: Partial<CardDataDTO>): CardDataDTO {
+export function genScalarCardDataDTO(
+  override?: Partial<ScalarCardDataDTO>
+): ScalarCardDataDTO {
   return {
     id: faker.number.int({ min: 1, max: 9999 }),
     type: 'flat-number',
     data: faker.number.int({ min: 0, max: 100000 }),
     ...override
-  } as CardDataDTO;
+  };
+}
+
+export function genPieChartDataDTO(
+  override?: Partial<PieChartDataDTO>
+): PieChartDataDTO {
+  const series = faker.number.int({ min: 2, max: 5 });
+  const labels = [];
+  const data = [];
+  for (let i = 0; i < series; i++) {
+    labels.push(faker.word.noun());
+    data.push(faker.number.int({ min: 1, max: 10000 }));
+  }
+  return {
+    id: faker.number.int({ min: 1, max: 9999 }),
+    type: 'pie-chart',
+    labels,
+    data,
+    ...override
+  };
+}
+
+/** @deprecated Use genScalarCardDataDTO or genPieChartDataDTO */
+export function genCardDataDTO(
+  override?: Partial<ScalarCardDataDTO>
+): ScalarCardDataDTO {
+  return genScalarCardDataDTO(override);
 }

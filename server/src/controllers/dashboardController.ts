@@ -38,7 +38,7 @@ async function findOneCard(
   request: Request<{ did: string; cid: string }>,
   response: Response<CardDataDTO>
 ): Promise<void> {
-  const { params } = request as AuthenticatedRequest<{
+  const { auth, params } = request as AuthenticatedRequest<{
     did: string;
     cid: string;
   }>;
@@ -58,11 +58,17 @@ async function findOneCard(
   const dashcard = await metabaseAPI.findDashcard(numericDid, numericCid);
   if (!dashcard) throw new DashcardMissingError(numericCid);
 
-  const data = await metabaseAPI.getCardValue(
+  const queryParameters = dashcard.dashboardParameters
+    .filter((p) => p.slug === 'id')
+    .map((p) => ({ ...p, value: auth.establishmentId }));
+
+  const raw = await metabaseAPI.getCardValue(
     numericDid,
     dashcard.dashcardId,
-    dashcard.cardId
+    dashcard.cardId,
+    queryParameters
   );
+  const data = dashcard.type === 'percentage' ? raw / 100 : raw;
 
   response.status(constants.HTTP_STATUS_OK).json({ id: numericCid, data });
 }

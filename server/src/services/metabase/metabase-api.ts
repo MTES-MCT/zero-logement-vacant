@@ -2,14 +2,26 @@ import axios from 'axios';
 
 import type { DashboardCard, Tab } from '@zerologementvacant/models';
 import config from '~/infra/config';
-import type { DashboardData, DashcardRef, MetabaseService } from './metabase-service';
+import type {
+  DashboardData,
+  DashboardParameter,
+  DashcardRef,
+  MetabaseService
+} from './metabase-service';
 
 // ─── Metabase internal types (minimal subset) ─────────────────────────────────
+
+interface MetabaseColumnSettings {
+  number_style?: string;
+  decimals?: number;
+  suffix?: string;
+}
 
 interface MetabaseVisualizationSettings {
   'number.style'?: string;
   'scalar.decimals'?: number;
-  column_settings?: Record<string, { number_style?: string; decimals?: number }>;
+  'table.columns'?: Array<{ name: string; enabled: boolean }>;
+  column_settings?: Record<string, MetabaseColumnSettings>;
 }
 
 interface MetabaseCard {
@@ -22,6 +34,9 @@ interface MetabaseCard {
 
 interface MetabaseDashcardVisualizationSettings {
   'card.title'?: string | null;
+  'number.style'?: string;
+  'table.columns'?: Array<{ name: string; enabled: boolean }>;
+  column_settings?: Record<string, MetabaseColumnSettings>;
 }
 
 interface MetabaseDashcard {
@@ -46,6 +61,7 @@ interface MetabaseDashboardRaw {
   id: number;
   tabs?: MetabaseTab[];
   dashcards: MetabaseDashcard[];
+  parameters?: Array<{ id: string; slug: string; type: string }>;
 }
 
 interface MetabaseQueryResult {
@@ -54,33 +70,61 @@ interface MetabaseQueryResult {
 
 // ─── Normalization helpers ─────────────────────────────────────────────────────
 
+function mergeVisualizationSettings(
+  card: MetabaseVisualizationSettings,
+  dashcard: MetabaseDashcardVisualizationSettings
+): MetabaseVisualizationSettings {
+  return {
+    ...card,
+    ...(dashcard['number.style'] !== undefined && { 'number.style': dashcard['number.style'] }),
+    column_settings: { ...(card.column_settings ?? {}), ...(dashcard.column_settings ?? {}) }
+  };
+}
+
+function activeColumnSettings(
+  settings: MetabaseVisualizationSettings
+): MetabaseColumnSettings | undefined {
+  const activeCol = (settings['table.columns'] ?? []).find((c) => c.enabled);
+  if (!activeCol) return undefined;
+  return settings.column_settings?.[JSON.stringify(['name', activeCol.name])];
+}
+
 function detectCardType(
   settings: MetabaseVisualizationSettings
 ): 'flat-number' | 'percentage' {
   if (settings['number.style'] === 'percent') return 'percentage';
-  const hasPercentColumn = Object.values(settings.column_settings ?? {}).some(
-    (col) => col.number_style === 'percent'
+  const col = activeColumnSettings(settings);
+  if (col) {
+    return col.suffix?.includes('%') || col.number_style === 'percent'
+      ? 'percentage'
+      : 'flat-number';
+  }
+  // Fallback when table.columns is absent
+  const hasPercent = Object.values(settings.column_settings ?? {}).some(
+    (c) => c.number_style === 'percent' || c.suffix?.includes('%')
   );
-  return hasPercentColumn ? 'percentage' : 'flat-number';
+  return hasPercent ? 'percentage' : 'flat-number';
 }
 
 function detectDecimals(settings: MetabaseVisualizationSettings): number {
   if (settings['scalar.decimals'] !== undefined) return settings['scalar.decimals'];
-  return (
-    Object.values(settings.column_settings ?? {}).find((col) => col.decimals !== undefined)
-      ?.decimals ?? 0
-  );
+  const col = activeColumnSettings(settings);
+  return col?.decimals ?? 0;
 }
 
 function normalizeDashcard(dashcard: MetabaseDashcard): DashboardCard | null {
   if (dashcard.card === null || dashcard.card.display !== 'scalar') return null;
   const { card } = dashcard;
+const settings = mergeVisualizationSettings(
+    card.visualization_settings,
+    dashcard.visualization_settings
+  );
   return {
     id: dashcard.id,
-    type: detectCardType(card.visualization_settings),
+    type: detectCardType(settings),
     title: dashcard.visualization_settings['card.title'] ?? card.name,
     description: card.description,
-    decimals: detectDecimals(card.visualization_settings),
+    decimals: detectDecimals(settings),
     position: { col: dashcard.col, row: dashcard.row },
     size: { width: dashcard.size_x, height: dashcard.size_y }
   };
@@ -111,8 +155,17 @@ function findDashcardRef(
   dashcardId: number
 ): DashcardRef | null {
   const found = raw.dashcards.find((dc) => dc.id === dashcardId);
-  if (!found || found.card_id === null || normalizeDashcard(found) === null) return null;
-  return { dashcardId: found.id, cardId: found.card_id };
+  if (!found || found.card_id === null) return null;
+  const normalized = normalizeDashcard(found);
+  if (!normalized) return null;
+  return {
+    dashcardId: found.id,
+    cardId: found.card_id,
+    type: normalized.type,
+    dashboardParameters: (raw.parameters ?? []).map(
+      (p): DashboardParameter => ({ id: p.id, slug: p.slug, type: p.type })
+    )
+  };
 }
 
 // ─── Implementation ────────────────────────────────────────────────────────────
@@ -146,11 +199,12 @@ class MetabaseAPI implements MetabaseService {
   async getCardValue(
     dashboardId: number,
     dashcardId: number,
-    cardId: number
+    cardId: number,
+    parameters: ReadonlyArray<DashboardParameter & { value: string }>
   ): Promise<number> {
     const { data } = await this.http.post<MetabaseQueryResult>(
       `/api/dashboard/${dashboardId}/dashcard/${dashcardId}/card/${cardId}/query`,
-      { parameters: [] }
+      { parameters }
     );
     return data.data.rows[0][0] as number;
   }

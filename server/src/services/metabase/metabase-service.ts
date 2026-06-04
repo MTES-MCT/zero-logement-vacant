@@ -4,9 +4,17 @@ export type DashboardData =
   | { tabs: ReadonlyArray<Tab> }
   | { cards: ReadonlyArray<DashboardCard> };
 
+export interface DashboardParameter {
+  id: string;
+  slug: string;
+  type: string;
+}
+
 export interface DashcardRef {
   dashcardId: number;
   cardId: number;
+  type: 'flat-number' | 'percentage';
+  dashboardParameters: ReadonlyArray<DashboardParameter>;
 }
 
 export interface MetabaseService {
@@ -15,6 +23,7 @@ export interface MetabaseService {
   getCardValue(
     dashboardId: number,
     dashcardId: number,
-    cardId: number
+    cardId: number,
+    parameters: ReadonlyArray<DashboardParameter & { value: string }>
   ): Promise<number>;
 }

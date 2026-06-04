@@ -5,7 +5,9 @@ import { Provider } from 'react-redux';
 import {
   genCardDataDTO,
   genFlatNumberCard,
-  genPercentageCard
+  genPercentageCard,
+  genPieChartCard,
+  genPieChartDataDTO
 } from '@zerologementvacant/models/fixtures';
 import { mockAPI } from '~/mocks/mock-api';
 import config from '~/utils/config';
@@ -78,5 +80,25 @@ describe('AnalysisCard', () => {
 
     // Intl.NumberFormat 'percent' multiplies by 100: 0.4823 → 48.2 %
     expect(await screen.findByText(/48[,.]2/)).toBeInTheDocument();
+  });
+
+  it('renders a pie chart card without error when card type is pie-chart', async () => {
+    const card = genPieChartCard({ id: 77, title: 'Répartition par type' });
+    const cardData = genPieChartDataDTO({
+      id: 77,
+      labels: ['APPART', 'MAISON'],
+      data: [4876, 652]
+    });
+    mockAPI.use(
+      http.get(
+        `${config.apiEndpoint}/dashboards/:did/cards/:cid`,
+        () => HttpResponse.json(cardData)
+      )
+    );
+
+    setup({ card, dashboardId });
+
+    await screen.findByText('Répartition par type');
+    expect(screen.queryByRole('alert')).not.toBeInTheDocument();
   });
 });

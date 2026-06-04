@@ -3,11 +3,11 @@ import { http, HttpResponse } from 'msw';
 import { Provider } from 'react-redux';
 
 import {
-  genCardDataDTO,
   genFlatNumberCard,
   genPercentageCard,
   genPieChartCard,
-  genPieChartDataDTO
+  genPieChartDataDTO,
+  genScalarCardDataDTO
 } from '@zerologementvacant/models/fixtures';
 import { mockAPI } from '~/mocks/mock-api';
 import config from '~/utils/config';
@@ -56,7 +56,7 @@ describe('AnalysisCard', () => {
     mockAPI.use(
       http.get(
         `${config.apiEndpoint}/dashboards/:did/cards/:cid`,
-        () => HttpResponse.json(genCardDataDTO({ id: 929, data: 51884 }))
+        () => HttpResponse.json(genScalarCardDataDTO({ id: 929, data: 51884 }))
       )
     );
 
@@ -72,7 +72,7 @@ describe('AnalysisCard', () => {
     mockAPI.use(
       http.get(
         `${config.apiEndpoint}/dashboards/:did/cards/:cid`,
-        () => HttpResponse.json(genCardDataDTO({ id: 929, data: 0.4823 }))
+        () => HttpResponse.json(genScalarCardDataDTO({ id: 929, data: 0.4823 }))
       )
     );
 

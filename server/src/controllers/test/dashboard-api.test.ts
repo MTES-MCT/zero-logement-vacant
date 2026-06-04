@@ -1,8 +1,10 @@
 import { constants } from 'node:http2';
+import nock from 'nock';
 import request from 'supertest';
-import { afterEach, beforeAll, describe, expect, it, vi } from 'vitest';
+import { afterEach, beforeAll, describe, expect, it } from 'vitest';
 
 import type { CardDataDTO, DashboardDTO } from '@zerologementvacant/models';
+import config from '~/infra/config';
 import { createServer } from '~/infra/server';
 import {
   Establishments,
@@ -15,17 +17,20 @@ import { tokenProvider } from '../../test/testUtils';
 const establishment = genEstablishmentApi();
 const user = genUserApi(establishment.id);
 
+const METABASE_URL = config.metabase.domain;
+
 const mockMetabaseDashboard = {
   id: 13,
-  ordered_tabs: [],
   dashcards: [
     {
       id: 929,
       card_id: 771,
+      dashboard_tab_id: null,
       row: 0,
       col: 0,
       size_x: 6,
       size_y: 4,
+      visualization_settings: {},
       card: {
         id: 771,
         name: 'Total logements vacants',
@@ -52,15 +57,12 @@ describe('Dashboard API', () => {
   });
 
   afterEach(() => {
-    vi.restoreAllMocks();
+    nock.cleanAll();
   });
 
   describe('GET /dashboards/:id', () => {
     it('returns DashboardDTO with url and cards', async () => {
-      vi.spyOn(global, 'fetch').mockResolvedValue({
-        ok: true,
-        json: async () => mockMetabaseDashboard
-      } as Response);
+      nock(METABASE_URL).get('/api/dashboard/13').reply(200, mockMetabaseDashboard);
 
       const response = await request(url)
         .get('/dashboards/13-analyses')
@@ -90,16 +92,10 @@ describe('Dashboard API', () => {
 
   describe('GET /dashboards/:did/cards/:cid', () => {
     it('returns CardDataDTO for a scalar dashcard', async () => {
-      vi.spyOn(global, 'fetch').mockImplementation(async (input) => {
-        const reqUrl = String(input);
-        if (reqUrl.includes('/query')) {
-          return { ok: true, json: async () => mockCardQueryResult } as Response;
-        }
-        return {
-          ok: true,
-          json: async () => mockMetabaseDashboard
-        } as Response;
-      });
+      nock(METABASE_URL).get('/api/dashboard/13').reply(200, mockMetabaseDashboard);
+      nock(METABASE_URL)
+        .post('/api/dashboard/13/dashcard/929/card/771/query')
+        .reply(200, mockCardQueryResult);
 
       const response = await request(url)
         .get('/dashboards/13-analyses/cards/929')
@@ -112,10 +108,7 @@ describe('Dashboard API', () => {
     });
 
     it('returns 404 when dashcard not found', async () => {
-      vi.spyOn(global, 'fetch').mockResolvedValue({
-        ok: true,
-        json: async () => mockMetabaseDashboard
-      } as Response);
+      nock(METABASE_URL).get('/api/dashboard/13').reply(200, mockMetabaseDashboard);
 
       const response = await request(url)
         .get('/dashboards/13-analyses/cards/9999')

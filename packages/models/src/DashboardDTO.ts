@@ -1,6 +1,6 @@
 // packages/models/src/DashboardDTO.ts
 
-export type CardType = 'flat-number' | 'percentage';
+export type CardType = 'flat-number' | 'percentage' | 'pie-chart';
 
 export interface CardCommon {
   id: number;
@@ -20,7 +20,11 @@ export interface PercentageCard extends CardCommon {
   type: 'percentage';
 }
 
-export type DashboardCard = FlatNumberCard | PercentageCard;
+export interface PieChartCard extends CardCommon {
+  type: 'pie-chart';
+}
+
+export type DashboardCard = FlatNumberCard | PercentageCard | PieChartCard;
 
 export interface Tab {
   id: number;
@@ -38,10 +42,20 @@ interface WithoutTabs {
 
 export type DashboardDTO = { id: number; url: string } & (WithTabs | WithoutTabs);
 
-export interface CardDataDTO {
+export interface ScalarCardDataDTO {
   id: number;
+  type: 'flat-number' | 'percentage';
   data: number;
 }
+
+export interface PieChartDataDTO {
+  id: number;
+  type: 'pie-chart';
+  data: number[];
+  labels: string[];
+}
+
+export type CardDataDTO = ScalarCardDataDTO | PieChartDataDTO;
 
 export const RESOURCE_VALUES = [
   '6-utilisateurs-de-zlv-sur-votre-structure',

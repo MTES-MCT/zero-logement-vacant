@@ -1011,7 +1011,8 @@ export function genDashboardDTO(override?: {
 export function genCardDataDTO(override?: Partial<CardDataDTO>): CardDataDTO {
   return {
     id: faker.number.int({ min: 1, max: 9999 }),
+    type: 'flat-number',
     data: faker.number.int({ min: 0, max: 100000 }),
     ...override
-  };
+  } as CardDataDTO;
 }

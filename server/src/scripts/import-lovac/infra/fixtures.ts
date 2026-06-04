@@ -26,6 +26,7 @@ export function genSourceHousing(): SourceHousing {
     building_location: faker.location.ordinalDirection(),
     building_year: faker.date.past().getFullYear(),
     plot_id: geoCode + faker.string.alphanumeric(9),
+    plot_area: faker.number.int({ min: 1, max: 10_000 }),
     dgfip_address: faker.location.streetAddress(),
     latitude_dgfip: faker.location.latitude(),
     longitude_dgfip: faker.location.longitude(),
@@ -48,6 +49,7 @@ export function genSourceHousing(): SourceHousing {
     last_transaction_value: faker.number.int({ min: 100_000, max: 1_000_000 }),
     occupancy_source: Occupancy.VACANT,
     rental_value: faker.number.int({ min: 500, max: 10000 }),
+    geolocation: null,
     geolocation_source: faker.helpers.arrayElement([null, 'parcelle-ff', 'bati-rnb', 'adresse-ban'])
   };
 }

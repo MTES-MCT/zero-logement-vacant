@@ -22,6 +22,7 @@ describe('SourceHousing', () => {
         fc.integer({ min: 1, max: new Date().getUTCFullYear() })
       ),
       plot_id: fc.option(fc.stringMatching(/\S+/)),
+      plot_area: fc.option(fc.integer({ min: 1, max: 100_000 })),
       geo_code: fc.string({ minLength: 5, maxLength: 5 }),
       ban_id: fc.option(fc.string({ minLength: 1 })),
       ban_label: fc.option(fc.string({ minLength: 1 })),
@@ -60,6 +61,7 @@ describe('SourceHousing', () => {
         fc.date({ min: new Date('1970-01-01'), max: new Date('9999-12-31'), noInvalidDate: true }).map((d) => d.toISOString().substring(0, 'yyyy-mm-dd'.length))
       ),
       last_transaction_value: fc.option(fc.integer({ min: 0 })),
+      geolocation: fc.option(fc.string({ minLength: 1 })),
       geolocation_source: fc.option(
         fc.constantFrom('parcelle-ff', 'bati-rnb', 'adresse-ban')
       )

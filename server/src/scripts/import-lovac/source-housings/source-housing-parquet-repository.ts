@@ -46,7 +46,7 @@ class ParquetSourceHousingRepositoryImpl
           );
           const colNames = colsResult
             .getRowObjects()
-            .map((r) => (r as { column_name: string }).column_name);
+            .map((r) => String(r.column_name));
           const excludeDept = colNames.includes('dept')
             ? 'EXCLUDE (dept)'
             : '';

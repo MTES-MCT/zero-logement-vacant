@@ -45,7 +45,10 @@ describe('createHousingLoader', () => {
 
   it('inserts new housings on create changes', async () => {
     const reporter = createNoopReporter();
-    const housing = formatHousingRecordApi(genHousingApi());
+    const housing: HousingRecordInsert = {
+      ...formatHousingRecordApi(genHousingApi()),
+      plot_area: null
+    };
     const change: HousingChange = {
       type: 'housing',
       kind: 'create',
@@ -68,6 +71,7 @@ describe('createHousingLoader', () => {
     await Housing().insert(housing);
     const updated: HousingRecordInsert = {
       ...housing,
+      plot_area: null,
       occupancy: Occupancy.VACANT,
       status: HousingStatus.NEVER_CONTACTED,
       sub_status: null
@@ -146,7 +150,10 @@ describe('createHousingLoader', () => {
 
   it('skips writes when dryRun is true', async () => {
     const reporter = createNoopReporter();
-    const housing = formatHousingRecordApi(genHousingApi());
+    const housing: HousingRecordInsert = {
+      ...formatHousingRecordApi(genHousingApi()),
+      plot_area: null
+    };
     const change: HousingChange = {
       type: 'housing',
       kind: 'create',

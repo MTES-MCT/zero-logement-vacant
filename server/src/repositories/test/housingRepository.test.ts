@@ -26,7 +26,8 @@ import {
   READ_WRITE_OCCUPANCY_VALUES,
   RELATIVE_LOCATION_VALUES,
   ROOM_COUNT_VALUES,
-  type RelativeLocationFilter
+  type RelativeLocationFilter,
+  type VacancyYear
 } from '@zerologementvacant/models';
 import { genGeoCode } from '@zerologementvacant/models/fixtures';
 import { isDefined } from '@zerologementvacant/utils';
@@ -1261,7 +1262,11 @@ describe('Housing repository', () => {
           await Housing().insert(housingList.map(formatHousingRecordApi));
         });
 
-        const tests = [
+        const tests: ReadonlyArray<{
+          name: string;
+          filter: VacancyYear[];
+          predicate: (housing: HousingApi) => boolean;
+        }> = [
           {
             name: '2021',
             filter: ['2021'],
@@ -1309,10 +1314,10 @@ describe('Housing repository', () => {
               (housing.vacancyStartYear as number) === 0
           },
           {
-            name: '2022 (incohérence donnée source)',
-            filter: ['inconsistency2022'],
+            name: '2023 (incohérence donnée source)',
+            filter: ['inconsistency2023'],
             predicate: (housing: HousingApi) =>
-              (housing.vacancyStartYear as number) === 2022
+              (housing.vacancyStartYear as number) === 2023
           }
         ];
 

@@ -59,7 +59,8 @@ function toCreate(source: SourceOwner, year?: string): OwnerChange {
       kind_class: source.ownership_type,
       entity: source.entity,
       created_at: now,
-      updated_at: now
+      updated_at: now,
+      is_multi_owner: null
     }
   };
 }
@@ -84,7 +85,8 @@ function toUpdate(source: SourceOwner, existing: OwnerDBO): OwnerChange {
       kind_class: source.ownership_type,
       entity: source.entity,
       created_at: existing.created_at ?? null,
-      updated_at: new Date()
+      updated_at: new Date(),
+      is_multi_owner: existing.is_multi_owner ?? null
     }
   };
 }

@@ -28,7 +28,7 @@ class ParquetSourceHousingRepositoryImpl
     }
   }
 
-  stream(_options?: StreamOptions): ReadableStream<SourceHousing> {
+  stream(): ReadableStream<SourceHousing> {
     const { filePath } = this;
 
     return new ReadableStream<SourceHousing>({
@@ -47,9 +47,7 @@ class ParquetSourceHousingRepositoryImpl
           const colNames = colsResult
             .getRowObjects()
             .map((r) => String(r.column_name));
-          const excludeDept = colNames.includes('dept')
-            ? 'EXCLUDE (dept)'
-            : '';
+          const excludeDept = colNames.includes('dept') ? 'EXCLUDE (dept)' : '';
 
           // Build REPLACE list for columns that exist
           const casts: Record<string, string> = {

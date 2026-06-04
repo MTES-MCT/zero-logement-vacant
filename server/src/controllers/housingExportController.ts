@@ -362,7 +362,6 @@ async function createHousingWorksheetBase(
       excelUtils.createWorksheet(workbook, {
         name: 'Logements',
         alternateColumnColors: true,
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
         columns: [
           ...HOUSING_COLUMNS_BEFORE_SCORE,
           { header: addressScoreHeader, key: 'housingAddressScore' },

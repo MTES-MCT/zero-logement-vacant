@@ -1,7 +1,6 @@
 import {
   OWNER_ENTITY_VALUES,
   OWNER_KIND_LABEL_VALUES,
-  OWNER_KIND_LABELS,
   OwnerEntity,
   type OwnerKindLabel
 } from '@zerologementvacant/models';

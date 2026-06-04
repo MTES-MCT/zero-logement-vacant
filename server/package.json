@@ -30,7 +30,7 @@
     "@zerologementvacant/utils": "workspace:*",
     "adm-zip": "0.5.17",
     "async": "3.2.6",
-    "axios": "1.16.1",
+    "axios": "1.17.0",
     "bcryptjs": "2.4.3",
     "clamscan": "2.4.0",
     "cli-progress": "3.12.0",

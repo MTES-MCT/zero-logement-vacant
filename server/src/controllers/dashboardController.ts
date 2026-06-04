@@ -67,11 +67,28 @@ async function findOneCard(
     dashcard.dashcardId,
     dashcard.cardId,
     queryParameters,
-    dashcard.valueColumn
+    dashcard.valueColumn,
+    dashcard.type
   );
-  const data = dashcard.type === 'percentage' ? raw / 100 : raw;
 
-  response.status(constants.HTTP_STATUS_OK).json({ id: numericCid, data });
+  if (dashcard.type === 'pie-chart') {
+    const pie = raw as { labels: string[]; data: number[] };
+    response.status(constants.HTTP_STATUS_OK).json({
+      id: numericCid,
+      type: 'pie-chart',
+      labels: pie.labels,
+      data: pie.data
+    });
+    return;
+  }
+
+  const scalar = raw as number;
+  const data = dashcard.type === 'percentage' ? scalar / 100 : scalar;
+  response.status(constants.HTTP_STATUS_OK).json({
+    id: numericCid,
+    type: dashcard.type,
+    data
+  });
 }
 
 function sign(payload: object): Promise<string> {

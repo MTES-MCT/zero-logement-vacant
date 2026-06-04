@@ -3,7 +3,7 @@ import nock from 'nock';
 import request from 'supertest';
 import { afterEach, beforeAll, describe, expect, it } from 'vitest';
 
-import type { CardDataDTO, DashboardDTO } from '@zerologementvacant/models';
+import type { DashboardDTO } from '@zerologementvacant/models';
 import config from '~/infra/config';
 import { createServer } from '~/infra/server';
 import {
@@ -174,6 +174,17 @@ const mockMultiColQueryResult = {
   status: 'completed'
 };
 
+const mockPieCardQueryResult = {
+  data: {
+    rows: [
+      ['APPART', 4876],
+      ['MAISON', 652]
+    ],
+    cols: [{ name: 'housing_kind' }, { name: 'count' }]
+  },
+  status: 'completed'
+};
+
 describe('Dashboard API', () => {
   let url: string;
 
@@ -301,9 +312,11 @@ describe('Dashboard API', () => {
         .use(tokenProvider(user));
 
       expect(response.status).toBe(constants.HTTP_STATUS_OK);
-      const body = response.body as CardDataDTO;
-      expect(body.id).toBe(929);
-      expect(body.data).toBe(51884);
+      expect(response.body).toMatchObject({
+        id: 929,
+        type: 'flat-number',
+        data: 51884
+      });
     });
 
     it('returns value from scalar.field column for multi-column query result', async () => {
@@ -319,10 +332,32 @@ describe('Dashboard API', () => {
         .use(tokenProvider(user));
 
       expect(response.status).toBe(constants.HTTP_STATUS_OK);
-      const body = response.body as CardDataDTO;
-      expect(body.id).toBe(932);
-      // percentage type: raw value 0 (from col index 1) divided by 100 → 0
-      expect(body.data).toBe(0);
+      expect(response.body).toMatchObject({
+        id: 932,
+        type: 'percentage',
+        data: 0
+      });
+    });
+
+    it('returns PieChartDataDTO for a pie-chart dashcard', async () => {
+      nock(METABASE_URL)
+        .get('/api/dashboard/13')
+        .reply(200, mockMetabaseDashboardWithPieCard);
+      nock(METABASE_URL)
+        .post('/api/dashboard/13/dashcard/950/card/801/query')
+        .reply(200, mockPieCardQueryResult);
+
+      const response = await request(url)
+        .get('/dashboards/13-analyses/cards/950')
+        .use(tokenProvider(user));
+
+      expect(response.status).toBe(constants.HTTP_STATUS_OK);
+      expect(response.body).toMatchObject({
+        id: 950,
+        type: 'pie-chart',
+        labels: ['APPART', 'MAISON'],
+        data: [4876, 652]
+      });
     });
 
     it('returns 404 when dashcard not found', async () => {

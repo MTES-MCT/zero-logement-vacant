@@ -71,22 +71,20 @@ async function findOneCard(
     dashcard.type
   );
 
-  if (dashcard.type === 'pie-chart') {
-    const pie = raw as { labels: string[]; data: number[] };
+  if (typeof raw === 'object' && raw !== null) {
     response.status(constants.HTTP_STATUS_OK).json({
       id: numericCid,
       type: 'pie-chart',
-      labels: pie.labels,
-      data: pie.data
+      labels: raw.labels,
+      data: raw.data
     });
     return;
   }
 
-  const scalar = raw as number;
-  const data = dashcard.type === 'percentage' ? scalar / 100 : scalar;
+  const data = dashcard.type === 'percentage' ? raw / 100 : raw;
   response.status(constants.HTTP_STATUS_OK).json({
     id: numericCid,
-    type: dashcard.type,
+    type: dashcard.type as 'flat-number' | 'percentage',
     data
   });
 }

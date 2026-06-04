@@ -1,7 +1,7 @@
 import { DuckDBInstance } from '@duckdb/node-api';
 import { ReadableStream } from 'node:stream/web';
 
-import { SourceRepository, StreamOptions } from '~/scripts/import-lovac/infra';
+import { SourceRepository } from '~/scripts/import-lovac/infra';
 import { SourceHousing } from './source-housing';
 
 export interface ParquetSourceHousingRepository

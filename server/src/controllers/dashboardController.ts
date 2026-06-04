@@ -66,7 +66,8 @@ async function findOneCard(
     numericDid,
     dashcard.dashcardId,
     dashcard.cardId,
-    queryParameters
+    queryParameters,
+    dashcard.valueColumn
   );
   const data = dashcard.type === 'percentage' ? raw / 100 : raw;
 

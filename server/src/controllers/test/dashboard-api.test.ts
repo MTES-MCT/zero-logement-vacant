@@ -42,8 +42,112 @@ const mockMetabaseDashboard = {
   ]
 };
 
+// Scalar card with table.columns configured and column_settings containing % —
+// the % is a per-column table override, not a scalar format signal, so it
+// must NOT be classified as percentage (regression guard for false-positive detection).
+const mockMetabaseDashboardWithPercentColumnSettings = {
+  id: 13,
+  dashcards: [
+    {
+      id: 930,
+      card_id: 772,
+      dashboard_tab_id: null,
+      row: 0,
+      col: 0,
+      size_x: 6,
+      size_y: 4,
+      visualization_settings: {},
+      card: {
+        id: 772,
+        name: 'Total logements vacants >2 ans',
+        display: 'scalar',
+        description: null,
+        visualization_settings: {
+          'scalar.decimals': 0,
+          'table.columns': [{ name: 'count', enabled: false }],
+          column_settings: {
+            '["name","count"]': { suffix: '%', number_style: 'percent' }
+          }
+        }
+      }
+    }
+  ]
+};
+
+// Scalar card with no table.columns but column_settings containing % —
+// column_settings IS the scalar format signal here, so it MUST be classified as percentage.
+const mockMetabaseDashboardWithPercentScalarCard = {
+  id: 13,
+  dashcards: [
+    {
+      id: 931,
+      card_id: 773,
+      dashboard_tab_id: null,
+      row: 0,
+      col: 0,
+      size_x: 6,
+      size_y: 4,
+      visualization_settings: {},
+      card: {
+        id: 773,
+        name: 'Taux de retour a <6mois',
+        display: 'scalar',
+        description: null,
+        visualization_settings: {
+          'scalar.decimals': 1,
+          column_settings: {
+            '["name","rate"]': { number_style: 'percent' }
+          }
+        }
+      }
+    }
+  ]
+};
+
 const mockCardQueryResult = {
-  data: { rows: [[51884]], cols: [] },
+  data: { rows: [[51884]], cols: [{ name: 'count' }] },
+  status: 'completed'
+};
+
+// Multi-column scalar dashcard using scalar.field to pick the percentage column
+const mockMetabaseDashboardScalarField = {
+  id: 13,
+  dashcards: [
+    {
+      id: 932,
+      card_id: 774,
+      dashboard_tab_id: null,
+      row: 0,
+      col: 0,
+      size_x: 6,
+      size_y: 4,
+      visualization_settings: {
+        'scalar.field': 'TAUX de retour <6 mois',
+        'card.title': 'Taux de retour à <6 mois',
+        'table.columns': [
+          { name: 'sum', enabled: true },
+          { name: 'TAUX de retour <6 mois', enabled: true }
+        ],
+        column_settings: {
+          '["name","TAUX de retour <6 mois"]': { decimals: 1, suffix: ' %' }
+        }
+      },
+      card: {
+        id: 774,
+        name: 'Taux campagnes',
+        display: 'scalar',
+        description: null,
+        visualization_settings: {}
+      }
+    }
+  ]
+};
+
+const mockMultiColQueryResult = {
+  data: {
+    rows: [[14939, 0]],
+    cols: [{ name: 'sum' }, { name: 'TAUX de retour <6 mois' }]
+  },
   status: 'completed'
 };
 
@@ -81,6 +185,56 @@ describe('Dashboard API', () => {
       }
     });
 
+    it('classifies scalar card as flat-number when table.columns is set and column_settings has %', async () => {
+      nock(METABASE_URL)
+        .get('/api/dashboard/13')
+        .reply(200, mockMetabaseDashboardWithPercentColumnSettings);
+
+      const response = await request(url)
+        .get('/dashboards/13-analyses')
+        .use(tokenProvider(user));
+
+      expect(response.status).toBe(constants.HTTP_STATUS_OK);
+      const body = response.body as DashboardDTO;
+      if ('cards' in body) {
+        expect(body.cards[0].type).toBe('flat-number');
+      }
+    });
+
+    it('classifies multi-column scalar as percentage using scalar.field column settings', async () => {
+      nock(METABASE_URL)
+        .get('/api/dashboard/13')
+        .reply(200, mockMetabaseDashboardScalarField);
+
+      const response = await request(url)
+        .get('/dashboards/13-analyses')
+        .use(tokenProvider(user));
+
+      expect(response.status).toBe(constants.HTTP_STATUS_OK);
+      const body = response.body as DashboardDTO;
+      if ('cards' in body) {
+        expect(body.cards[0].type).toBe('percentage');
+        expect(body.cards[0].decimals).toBe(1);
+        expect(body.cards[0].title).toBe('Taux de retour à <6 mois');
+      }
+    });
+
+    it('classifies scalar card as percentage when no table.columns and column_settings has %', async () => {
+      nock(METABASE_URL)
+        .get('/api/dashboard/13')
+        .reply(200, mockMetabaseDashboardWithPercentScalarCard);
+
+      const response = await request(url)
+        .get('/dashboards/13-analyses')
+        .use(tokenProvider(user));
+
+      expect(response.status).toBe(constants.HTTP_STATUS_OK);
+      const body = response.body as DashboardDTO;
+      if ('cards' in body) {
+        expect(body.cards[0].type).toBe('percentage');
+      }
+    });
+
     it('returns 422 for unknown slug', async () => {
       const response = await request(url)
         .get('/dashboards/unknown-slug')
@@ -105,6 +259,25 @@ describe('Dashboard API', () => {
       const body = response.body as CardDataDTO;
       expect(body.id).toBe(929);
       expect(body.data).toBe(51884);
+    });
+
+    it('returns value from scalar.field column for multi-column query result', async () => {
+      nock(METABASE_URL)
+        .get('/api/dashboard/13')
+        .reply(200, mockMetabaseDashboardScalarField);
+      nock(METABASE_URL)
+        .post('/api/dashboard/13/dashcard/932/card/774/query')
+        .reply(200, mockMultiColQueryResult);
+
+      const response = await request(url)
+        .get('/dashboards/13-analyses/cards/932')
+        .use(tokenProvider(user));
+
+      expect(response.status).toBe(constants.HTTP_STATUS_OK);
+      const body = response.body as CardDataDTO;
+      expect(body.id).toBe(932);
+      // percentage type: raw value 0 (from col index 1) divided by 100 → 0
+      expect(body.data).toBe(0);
     });
 
     it('returns 404 when dashcard not found', async () => {

@@ -14,6 +14,7 @@ export interface DashcardRef {
   dashcardId: number;
   cardId: number;
   type: 'flat-number' | 'percentage';
+  valueColumn: string | null;
   dashboardParameters: ReadonlyArray<DashboardParameter>;
 }
 
@@ -24,6 +25,7 @@ export interface MetabaseService {
     dashboardId: number,
     dashcardId: number,
     cardId: number,
-    parameters: ReadonlyArray<DashboardParameter & { value: string }>
+    parameters: ReadonlyArray<DashboardParameter & { value: string }>,
+    valueColumn: string | null
   ): Promise<number>;
 }

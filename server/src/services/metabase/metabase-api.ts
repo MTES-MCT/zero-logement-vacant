@@ -20,6 +20,7 @@ interface MetabaseColumnSettings {
 interface MetabaseVisualizationSettings {
   'number.style'?: string;
   'scalar.decimals'?: number;
+  'scalar.field'?: string;
   'table.columns'?: Array<{ name: string; enabled: boolean }>;
   column_settings?: Record<string, MetabaseColumnSettings>;
 }
@@ -35,6 +36,7 @@ interface MetabaseCard {
 interface MetabaseDashcardVisualizationSettings {
   'card.title'?: string | null;
   'number.style'?: string;
+  'scalar.field'?: string;
   'table.columns'?: Array<{ name: string; enabled: boolean }>;
   column_settings?: Record<string, MetabaseColumnSettings>;
 }
@@ -64,8 +66,12 @@ interface MetabaseDashboardRaw {
   parameters?: Array<{ id: string; slug: string; type: string }>;
 }
 
+interface MetabaseCol {
+  name: string;
+}
+
 interface MetabaseQueryResult {
-  data: { rows: unknown[][] };
+  data: { rows: unknown[][]; cols: MetabaseCol[] };
 }
 
 // ─── Normalization helpers ─────────────────────────────────────────────────────
@@ -77,13 +83,21 @@ function mergeVisualizationSettings(
   return {
     ...card,
     ...(dashcard['number.style'] !== undefined && { 'number.style': dashcard['number.style'] }),
+    ...(dashcard['scalar.field'] !== undefined && { 'scalar.field': dashcard['scalar.field'] }),
     column_settings: { ...(card.column_settings ?? {}), ...(dashcard.column_settings ?? {}) }
   };
 }
 
+// Returns column settings for the active display column.
+// For multi-column scalar cards, scalar.field identifies which column is shown.
+// Falls back to the first enabled table column when scalar.field is absent.
 function activeColumnSettings(
   settings: MetabaseVisualizationSettings
 ): MetabaseColumnSettings | undefined {
+  const scalarField = settings['scalar.field'];
+  if (scalarField !== undefined) {
+    return settings.column_settings?.[JSON.stringify(['name', scalarField])];
+  }
   const activeCol = (settings['table.columns'] ?? []).find((c) => c.enabled);
   if (!activeCol) return undefined;
   return settings.column_settings?.[JSON.stringify(['name', activeCol.name])];
@@ -99,7 +113,9 @@ function detectCardType(
       ? 'percentage'
       : 'flat-number';
   }
-  // Fallback when table.columns is absent
+  // When table.columns is explicitly configured but no specific field is active,
+  // the column_settings are table-layout overrides — not scalar format signals.
+  if (settings['table.columns'] !== undefined) return 'flat-number';
   const hasPercent = Object.values(settings.column_settings ?? {}).some(
     (c) => c.number_style === 'percent' || c.suffix?.includes('%')
   );
@@ -115,7 +131,7 @@ function detectDecimals(settings: MetabaseVisualizationSettings): number {
 function normalizeDashcard(dashcard: MetabaseDashcard): DashboardCard | null {
   if (dashcard.card === null || dashcard.card.display !== 'scalar') return null;
   const { card } = dashcard;
-const settings = mergeVisualizationSettings(
+  const settings = mergeVisualizationSettings(
     card.visualization_settings,
     dashcard.visualization_settings
   );
@@ -158,10 +174,15 @@ function findDashcardRef(
   if (!found || found.card_id === null) return null;
   const normalized = normalizeDashcard(found);
   if (!normalized) return null;
+  const settings = mergeVisualizationSettings(
+    found.card!.visualization_settings,
+    found.visualization_settings
+  );
   return {
     dashcardId: found.id,
     cardId: found.card_id,
     type: normalized.type,
+    valueColumn: settings['scalar.field'] ?? null,
     dashboardParameters: (raw.parameters ?? []).map(
       (p): DashboardParameter => ({ id: p.id, slug: p.slug, type: p.type })
     )
@@ -200,13 +221,17 @@ class MetabaseAPI implements MetabaseService {
     dashboardId: number,
     dashcardId: number,
     cardId: number,
-    parameters: ReadonlyArray<DashboardParameter & { value: string }>
+    parameters: ReadonlyArray<DashboardParameter & { value: string }>,
+    valueColumn: string | null
   ): Promise<number> {
     const { data } = await this.http.post<MetabaseQueryResult>(
       `/api/dashboard/${dashboardId}/dashcard/${dashcardId}/card/${cardId}/query`,
       { parameters }
     );
-    return data.data.rows[0][0] as number;
+    const colIndex = valueColumn
+      ? data.data.cols.findIndex((c) => c.name === valueColumn)
+      : -1;
+    return data.data.rows[0][colIndex !== -1 ? colIndex : 0] as number;
   }
 }
 

@@ -26,11 +26,10 @@ export const sourceHousingSchema = z.object({
       .nullable()
   ),
   plot_id: z.string().nullable().default(null),
-  plot_area: z
-    .bigint()
-    .transform((value) => Number(value))
-    .nullable()
-    .default(null),
+  plot_area: z.preprocess(
+    (value) => (typeof value === 'bigint' ? Number(value) : value),
+    z.number().int().min(0).nullable().default(null)
+  ),
   geo_code: z.string().length(5, 'geo_code is required'),
   ban_id: z.string().nullable().default(null),
   ban_label: z.string().nullable().default(null),

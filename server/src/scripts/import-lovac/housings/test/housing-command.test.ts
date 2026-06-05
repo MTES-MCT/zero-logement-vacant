@@ -42,9 +42,7 @@ describe('Existing housing command', () => {
         occupancy: Occupancy.VACANT,
         status: faker.helpers.arrayElement([
           HousingStatus.NEVER_CONTACTED,
-          HousingStatus.WAITING,
-          HousingStatus.FIRST_CONTACT,
-          HousingStatus.BLOCKED
+          HousingStatus.WAITING
         ]),
         subStatus: null
       }),

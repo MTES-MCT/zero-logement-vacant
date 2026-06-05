@@ -1247,18 +1247,15 @@ describe('Housing repository', () => {
 
       describe('by vacancy duration', () => {
         beforeEach(async () => {
-          const housingList: HousingApi[] = faker.helpers
-            .multiple(() => genHousingApi(), { count: 16 })
-            .map((housing, i) => ({
-              ...housing,
-              vacancyStartYear: ReferenceDataYear - i
-            }))
-            .concat([
-              {
-                ...genHousingApi(),
-                vacancyStartYear: 0
-              }
-            ]);
+          const housingList: HousingApi[] = [
+            ...faker.helpers
+              .multiple(() => genHousingApi(), { count: 16 })
+              .map((housing, i) => ({
+                ...housing,
+                vacancyStartYear: ReferenceDataYear - i
+              })),
+            { ...genHousingApi(), vacancyStartYear: null as number | null }
+          ];
           await Housing().insert(housingList.map(formatHousingRecordApi));
         });
 
@@ -1311,7 +1308,7 @@ describe('Housing repository', () => {
             name: 'Pas d’information',
             filter: ['missingData'],
             predicate: (housing: HousingApi) =>
-              (housing.vacancyStartYear as number) === 0
+              housing.vacancyStartYear === null
           },
           {
             name: '2023 (incohérence donnée source)',

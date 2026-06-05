@@ -32,6 +32,7 @@ export function toOwnerDTO(owner: OwnerApi): OwnerDTO {
       'additionalAddress',
       'kind',
       'siren',
+      'username',
       'createdAt',
       'updatedAt'
     ),
@@ -166,6 +167,7 @@ export function fromDatafoncierOwner(
     email: null,
     phone: null,
     siren: owner.dsiren,
+    username: null,
     banAddress: null,
     additionalAddress: null,
     createdAt: new Date().toISOString(),

@@ -3,6 +3,7 @@ import Button from '@codegouvfr/react-dsfr/Button';
 import ButtonsGroup from '@codegouvfr/react-dsfr/ButtonsGroup';
 import Stack from '@mui/material/Stack';
 import Typography from '@mui/material/Typography';
+import { getOwnerDisplayName } from '@zerologementvacant/models';
 import { useCounter } from 'react-use';
 
 import Aside, { type AsideProps } from '~/components/Aside/Aside';
@@ -123,7 +124,7 @@ function BuildingAside(props: BuildingAsideProps) {
                 </Label>
                 {housing.owner ? (
                   <AppLink isSimple to={`/proprietaires/${housing.owner.id}`}>
-                    {housing.owner.fullName}
+                    {getOwnerDisplayName(housing.owner)}
                   </AppLink>
                 ) : (
                   <Typography variant="body2">Pas d’information</Typography>

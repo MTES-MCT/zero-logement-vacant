@@ -1,34 +1,31 @@
 import {
-  ACTIVE_OWNER_RANKS,
-  ActiveOwnerRank,
+  OWNER_RANKS,
   PROPERTY_RIGHT_VALUES,
-  PropertyRight
+  PropertyRight,
+  type OwnerRank
 } from '@zerologementvacant/models';
-import { number, object, ObjectSchema, string } from 'yup';
+import z from 'zod';
 
 export interface SourceHousingOwner {
+  owner_uid: string;
   geo_code: string;
   local_id: string;
-  idpersonne: string;
-  idprocpte: string;
-  idprodroit: string;
-  locprop_source: number;
-  property_right: PropertyRight;
-  rank: ActiveOwnerRank;
+  idpersonne: string | null;
+  idprocpte: string | null;
+  idprodroit: string | null;
+  locprop_source: number | null;
+  property_right: PropertyRight | null;
+  rank: OwnerRank;
 }
 
-export const sourceHousingOwnerSchema: ObjectSchema<SourceHousingOwner> =
-  object({
-    geo_code: string().required('geo_code is required').length(5),
-    local_id: string().required('local_id is required').length(12),
-    idpersonne: string().required('idpersonne is required').length(8),
-    idprocpte: string().required('idprocpte is required').length(11),
-    idprodroit: string().required('idprodroit is required').length(13),
-    locprop_source: number().required('locprop_source is required').truncate(),
-    property_right: string()
-      .required('property_right is required')
-      .oneOf(PROPERTY_RIGHT_VALUES),
-    rank: number<ActiveOwnerRank>()
-      .required('rank is required')
-      .oneOf(ACTIVE_OWNER_RANKS)
-  });
+export const sourceHousingOwnerSchema = z.object({
+  owner_uid: z.uuid('owner_uid must be a valid UUID'),
+  geo_code: z.string().length(5),
+  local_id: z.string().length(12),
+  idpersonne: z.string().length(8).nullable(),
+  idprocpte: z.string().length(11).nullable(),
+  idprodroit: z.string().length(13).nullable(),
+  locprop_source: z.literal([1, 2, 3, 4, 5, 6, 9]).nullable(),
+  property_right: z.literal(PROPERTY_RIGHT_VALUES).nullable(),
+  rank: z.literal(OWNER_RANKS)
+}) satisfies z.ZodSchema<SourceHousingOwner>;

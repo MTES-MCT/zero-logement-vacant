@@ -28,6 +28,7 @@ export interface HousingFiltersApi
     | 'cadastralClassifications'
     | 'lastMutationYears'
     | 'lastMutationTypes'
+    | 'vacancyYears'
   > {
   housingIds?: string[];
   establishmentIds?: string[];
@@ -42,7 +43,6 @@ export interface HousingFiltersApi
   housingAreas?: string[];
   roomsCounts?: string[];
   buildingPeriods?: string[];
-  vacancyYears?: string[];
   isTaxedValues?: boolean[];
   ownershipKinds?: OwnershipKind[];
   housingCounts?: string[];
@@ -51,6 +51,7 @@ export interface HousingFiltersApi
   campaignCount?: number;
   campaignIds?: Array<string | null>;
   ownerIds?: string[];
+  departments?: string[];
   localities?: string[];
   geoPerimetersIncluded?: string[];
   geoPerimetersExcluded?: string[];

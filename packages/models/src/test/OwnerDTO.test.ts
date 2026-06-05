@@ -1,6 +1,7 @@
+import { fc } from '@fast-check/vitest';
 import { faker } from '@faker-js/faker/locale/fr';
 
-import { getAddress, OwnerDTO } from '../OwnerDTO';
+import { getAddress, getOwnerDisplayName, OwnerDTO } from '../OwnerDTO';
 import { genAddressDTO, genOwnerDTO } from './fixtures';
 
 describe('OwnerDTO', () => {
@@ -48,6 +49,43 @@ describe('OwnerDTO', () => {
         '123 rue Bidon',
         '01234 Ville'
       ]);
+    });
+  });
+
+  describe('getOwnerDisplayName', () => {
+    it('returns username when set', () => {
+      const owner: OwnerDTO = {
+        ...genOwnerDTO(),
+        fullName: 'DUPONT JEAN',
+        username: 'Jean Dupont'
+      };
+
+      expect(getOwnerDisplayName(owner)).toBe('Jean Dupont');
+    });
+
+    it('falls back to fullName when username is null', () => {
+      const owner: OwnerDTO = {
+        ...genOwnerDTO(),
+        fullName: 'DUPONT JEAN',
+        username: null
+      };
+
+      expect(getOwnerDisplayName(owner)).toBe('DUPONT JEAN');
+    });
+
+    it('property: always returns a non-empty string', () => {
+      fc.assert(
+        fc.property(
+          fc.record({
+            fullName: fc.string({ minLength: 1 }),
+            username: fc.option(fc.string({ minLength: 1 }), { nil: null })
+          }),
+          (partial) => {
+            const result = getOwnerDisplayName(partial);
+            return result.length > 0;
+          }
+        )
+      );
     });
   });
 });

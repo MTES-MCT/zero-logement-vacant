@@ -1,15 +1,17 @@
 import { ReadableStream, WritableStream } from 'node:stream/web';
-import { InferType, object, string, ValidationError } from 'yup';
+import { z } from 'zod';
 
 import validator from '~/scripts/import-lovac/infra/validator';
 import { createNoopReporter } from '~/scripts/import-lovac/infra/reporters/noop-reporter';
 
 describe('Validator', () => {
-  const schema = object({
-    name: string().required()
+  const schema = z.object({
+    name: z.string().min(1)
   });
+  type Schema = z.infer<typeof schema>;
+
   const createStream = () =>
-    new ReadableStream<InferType<typeof schema>>({
+    new ReadableStream<Schema>({
       pull(controller) {
         controller.enqueue({ name: 'Bob' });
         controller.enqueue({ name: '' });
@@ -18,7 +20,7 @@ describe('Validator', () => {
       }
     });
   const createCountStream = (store: { owners: number }) =>
-    new WritableStream<InferType<typeof schema>>({
+    new WritableStream<Schema>({
       write() {
         store.owners++;
       }
@@ -37,7 +39,7 @@ describe('Validator', () => {
         )
         .pipeTo(createCountStream(store));
 
-    await expect(actual()).rejects.toThrow(ValidationError);
+    await expect(actual()).rejects.toThrow();
     expect(store.owners).toBe(1);
   });
 

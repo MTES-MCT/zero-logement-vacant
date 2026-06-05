@@ -4,6 +4,7 @@ import Container from '@mui/material/Container';
 import Grid from '@mui/material/Grid';
 import Stack from '@mui/material/Stack';
 import Typography from '@mui/material/Typography';
+import { getOwnerDisplayName } from '@zerologementvacant/models';
 import { skipToken } from '@reduxjs/toolkit/query';
 import { useNavigate, useParams } from 'react-router';
 import { assert } from 'ts-essentials';
@@ -118,7 +119,7 @@ function HousingView() {
               <OwnerCard
                 title="Destinataire principal"
                 id={owner?.id ?? null}
-                name={owner?.fullName ?? null}
+                name={owner ? getOwnerDisplayName(owner) : null}
                 birthdate={owner?.birthDate ?? null}
                 kind={owner?.kind ?? null}
                 propertyRight={owner?.propertyRight ?? null}

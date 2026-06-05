@@ -1,5 +1,6 @@
 import { constants } from 'http2';
 import request from 'supertest';
+import { vi } from 'vitest';
 
 import { createServer } from '~/infra/server';
 import {
@@ -24,6 +25,7 @@ import {
   formatProspectApi,
   Prospects
 } from '~/repositories/prospectRepository';
+import ceremaService from '~/services/ceremaService';
 
 describe('Signup link API', () => {
   let url: string;
@@ -42,6 +44,16 @@ describe('Signup link API', () => {
 
   describe('POST /signup-links', () => {
     const testRoute = '/signup-links';
+
+    beforeEach(() => {
+      vi.spyOn(ceremaService, 'consultUsers').mockResolvedValue([
+        { email: '', establishmentSiren: '*', hasAccount: true, hasCommitment: true }
+      ]);
+    });
+
+    afterEach(() => {
+      vi.restoreAllMocks();
+    });
 
     it('should validate the email', async () => {
       // Without email

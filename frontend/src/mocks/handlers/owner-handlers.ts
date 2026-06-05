@@ -101,6 +101,7 @@ export const ownerHandlers: RequestHandler[] = [
         email: payload.email,
         phone: payload.phone,
         siren: null,
+        username: null,
         createdAt: new Date().toJSON(),
         updatedAt: new Date().toJSON()
       };

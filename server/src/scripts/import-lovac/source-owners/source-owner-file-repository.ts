@@ -32,8 +32,10 @@ function filterSourceOwner(
     return new TransformStream();
   }
 
-  return filter((sourceOwner) =>
-    departments.includes(sourceOwner.idpersonne.substring(0, 2))
+  return filter(
+    (sourceOwner) =>
+      sourceOwner.idpersonne !== null &&
+      departments.includes(sourceOwner.idpersonne.substring(0, 2))
   );
 }
 

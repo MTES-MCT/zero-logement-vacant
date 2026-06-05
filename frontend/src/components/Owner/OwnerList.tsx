@@ -1,5 +1,6 @@
 import Skeleton from '@mui/material/Skeleton';
 import Stack from '@mui/material/Stack';
+import { getOwnerDisplayName } from '@zerologementvacant/models';
 
 import OtherOwnerCard from '~/components/Owner/OtherOwnerCard';
 import { type HousingOwner } from '~/models/Owner';
@@ -34,7 +35,7 @@ function OwnerList(props: OwnerListProps) {
         <li key={owner.id}>
           <OtherOwnerCard
             id={owner.id}
-            name={owner.fullName}
+            name={getOwnerDisplayName(owner)}
             propertyRight={owner.propertyRight}
           />
         </li>

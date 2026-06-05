@@ -48,6 +48,7 @@ export interface OwnerRecordDBO {
   data_source: string | null;
   kind_class: string | null;
   entity: OwnerEntity | null;
+  username: string | null;
   created_at: Date | string | null;
   updated_at: Date | string | null;
   is_multi_owner: boolean | null;
@@ -603,6 +604,7 @@ export const parseOwnerApi = (owner: OwnerDBO): OwnerApi => {
     banAddress: owner.ban ? parseAddressApi(owner.ban) : null,
     additionalAddress: owner.additional_address ?? null,
     entity: owner.entity,
+    username: owner.username ?? null,
     createdAt: owner.created_at ? new Date(owner.created_at).toJSON() : null,
     updatedAt: owner.updated_at ? new Date(owner.updated_at).toJSON() : null
   };
@@ -644,24 +646,32 @@ export const formatOwnerApi = (owner: OwnerApi): OwnerRecordDBO => ({
   data_source: owner.dataSource ?? null,
   kind_class: owner.kind ?? null,
   entity: owner.entity,
+  username: owner.username ?? null,
   created_at: owner.createdAt ? new Date(owner.createdAt) : null,
   updated_at: owner.updatedAt ? new Date(owner.updatedAt) : null,
   is_multi_owner: null
 });
 
+// pg encodes parameter count as uint16 (max 65 535). A whereIn with more IDs
+// than this overflows the wire-protocol bind message. Chunk well below that.
+const MULTI_OWNER_BATCH_SIZE = 10_000;
+
 async function refreshMultiOwnerFlags(
   ownerIds: ReadonlyArray<string>
 ): Promise<void> {
   if (!ownerIds.length) return;
-  await withinTransaction(async (transaction) => {
-    await Owners(transaction)
-      .whereIn('id', ownerIds)
-      .update({
-        is_multi_owner: db.raw(
-          `(SELECT COUNT(*) > 1 FROM ${housingOwnersTable} WHERE owner_id = owners.id AND rank = 1)`
-        )
-      });
-  });
+  for (let i = 0; i < ownerIds.length; i += MULTI_OWNER_BATCH_SIZE) {
+    const chunk = ownerIds.slice(i, i + MULTI_OWNER_BATCH_SIZE);
+    await withinTransaction(async (transaction) => {
+      await Owners(transaction)
+        .whereIn('id', chunk)
+        .update({
+          is_multi_owner: db.raw(
+            `(SELECT COUNT(*) > 1 FROM ${housingOwnersTable} WHERE owner_id = owners.id AND rank = 1)`
+          )
+        });
+    });
+  }
 }
 
 export { refreshMultiOwnerFlags };

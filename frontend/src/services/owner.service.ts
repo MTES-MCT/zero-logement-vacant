@@ -168,7 +168,7 @@ export function parseOwner(owner: OwnerDTO): Owner {
           .filter((_: string) => _)
           .map((_: string) => toTitleCase(_))
       : [],
-    fullName: toTitleCase(owner.fullName.replace(/^(MME |M )/i, '')),
+    fullName: owner.username ?? toTitleCase(owner.fullName.replace(/^(MME |M )/i, '')),
     administrator: owner.administrator ? toTitleCase(owner.administrator) : null
   };
 }

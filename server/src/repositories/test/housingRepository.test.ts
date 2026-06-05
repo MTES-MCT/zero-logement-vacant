@@ -26,7 +26,8 @@ import {
   READ_WRITE_OCCUPANCY_VALUES,
   RELATIVE_LOCATION_VALUES,
   ROOM_COUNT_VALUES,
-  type RelativeLocationFilter
+  type RelativeLocationFilter,
+  type VacancyYear
 } from '@zerologementvacant/models';
 import { genGeoCode } from '@zerologementvacant/models/fixtures';
 import { isDefined } from '@zerologementvacant/utils';
@@ -1246,22 +1247,23 @@ describe('Housing repository', () => {
 
       describe('by vacancy duration', () => {
         beforeEach(async () => {
-          const housingList: HousingApi[] = faker.helpers
-            .multiple(() => genHousingApi(), { count: 16 })
-            .map((housing, i) => ({
-              ...housing,
-              vacancyStartYear: ReferenceDataYear - i
-            }))
-            .concat([
-              {
-                ...genHousingApi(),
-                vacancyStartYear: 0
-              }
-            ]);
+          const housingList: HousingApi[] = [
+            ...faker.helpers
+              .multiple(() => genHousingApi(), { count: 16 })
+              .map((housing, i) => ({
+                ...housing,
+                vacancyStartYear: ReferenceDataYear - i
+              })),
+            { ...genHousingApi(), vacancyStartYear: null as number | null }
+          ];
           await Housing().insert(housingList.map(formatHousingRecordApi));
         });
 
-        const tests = [
+        const tests: ReadonlyArray<{
+          name: string;
+          filter: VacancyYear[];
+          predicate: (housing: HousingApi) => boolean;
+        }> = [
           {
             name: '2021',
             filter: ['2021'],
@@ -1306,13 +1308,13 @@ describe('Housing repository', () => {
             name: 'Pas d’information',
             filter: ['missingData'],
             predicate: (housing: HousingApi) =>
-              (housing.vacancyStartYear as number) === 0
+              housing.vacancyStartYear === null
           },
           {
-            name: '2022 (incohérence donnée source)',
-            filter: ['inconsistency2022'],
+            name: '2023 (incohérence donnée source)',
+            filter: ['inconsistency2023'],
             predicate: (housing: HousingApi) =>
-              (housing.vacancyStartYear as number) === 2022
+              (housing.vacancyStartYear as number) === 2023
           }
         ];
 

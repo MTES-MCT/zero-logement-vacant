@@ -1,14 +1,19 @@
-import { Reporter, ReporterError } from '~/scripts/import-lovac/infra';
+import { ImportSummary, Reporter } from '~/scripts/import-lovac/infra/reporters/reporter';
 
 class NoopReporter<T> implements Reporter<T> {
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  passed(data: T): void {}
+  passed(): void {}
 
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  skipped(data: T) {}
+  skipped() {}
 
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  failed(data: T, error: ReporterError): void {}
+  failed(): void {}
+
+  created(): void {}
+
+  updated(): void {}
+
+  getSummary(): ImportSummary {
+    return { created: 0, updated: 0, skipped: 0, failed: 0, durationMs: 0 };
+  }
 
   report(): void | Promise<void> {
     return undefined;

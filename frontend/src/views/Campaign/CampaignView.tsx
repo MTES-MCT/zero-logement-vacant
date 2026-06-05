@@ -6,18 +6,20 @@ import Container from '@mui/material/Container';
 
 import Stack from '@mui/material/Stack';
 import Typography from '@mui/material/Typography';
-import { useNavigate, useParams } from 'react-router-dom';
+import { useNavigate, useParams } from 'react-router';
 
+import { lazy, Suspense } from 'react';
 import CampaignCreatedFromGroup from '~/components/Campaign/CampaignCreatedFromGroup';
 import { createCampaignDeleteModal } from '~/components/Campaign/CampaignDeleteModal';
-import CampaignRecipientsNext from '~/components/Campaign/CampaignRecipients';
 import CampaignReturnCountStatCard from '~/components/Campaign/CampaignReturnCountStatCard';
 import CampaignReturnRateStatCard from '~/components/Campaign/CampaignReturnRateStatCard';
 import { createCampaignSentAtModal } from '~/components/Campaign/CampaignSentAtModal';
 import CampaignSentAtStatCard from '~/components/Campaign/CampaignSentAtStatCard';
 import CampaignStatCard from '~/components/Campaign/CampaignStatCard';
 import CampaignTitle from '~/components/Campaign/CampaignTitle';
-import DraftForm from '~/components/Draft/DraftForm';
+
+const CampaignRecipientsNext = lazy(() => import('~/components/Campaign/CampaignRecipients'));
+const DraftForm = lazy(() => import('~/components/Draft/DraftForm'));
 import { useGetCampaignDraftQuery } from '~/hooks/useGetCampaignDraftQuery';
 import { useNotification } from '~/hooks/useNotification';
 import { useAppDispatch } from '~/hooks/useStore';
@@ -175,25 +177,27 @@ function CampaignView() {
           <CampaignReturnRateStatCard campaign={campaign} />
         </Stack>
 
-        <Tabs
-          tabs={[
-            {
-              label: 'Destinataires',
-              content: <CampaignRecipientsNext campaign={campaign} />
-            },
-            {
-              label: 'Courrier',
-              content:
-                getCampaignDraftQuery.isSuccess &&
-                getCampaignDraftQuery.data ? (
-                  <DraftForm
-                    campaign={campaign}
-                    draft={getCampaignDraftQuery.data}
-                  />
-                ) : null
-            }
-          ]}
-        />
+        <Suspense>
+          <Tabs
+            tabs={[
+              {
+                label: 'Destinataires',
+                content: <CampaignRecipientsNext campaign={campaign} />
+              },
+              {
+                label: 'Courrier',
+                content:
+                  getCampaignDraftQuery.isSuccess &&
+                  getCampaignDraftQuery.data ? (
+                    <DraftForm
+                      campaign={campaign}
+                      draft={getCampaignDraftQuery.data}
+                    />
+                  ) : null
+              }
+            ]}
+          />
+        </Suspense>
 
         <sentAtModal.Component
           sentAt={campaign.sentAt ?? null}

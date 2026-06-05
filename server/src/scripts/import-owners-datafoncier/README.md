@@ -4,39 +4,40 @@ This script imports owners from `df_owners_nat_2024` to the `owners` table. It o
 
 ## Prerequisites
 
-```bash
-# Create virtual environment
-python3 -m venv venv
-source venv/bin/activate
-
-# Install dependencies
-pip install -r requirements.txt
-```
+[`uv`](https://docs.astral.sh/uv/) — no manual venv or `pip install` needed. The script carries its own dependency metadata (PEP 723).
 
 ## Usage
 
-### Basic usage
+The script is self-contained: dependencies are resolved automatically by `uv run`.
+
+### Export to Parquet (for review before import)
 
 ```bash
-python import_owners.py --db-url "postgresql://user:pass@host:port/dbname"
-```
-
-### Dry run (simulation mode)
-
-```bash
-python import_owners.py --db-url "$DATABASE_URL" --dry-run
+uv run import_owners.py --db-url "$DATABASE_URL" --output owners.parquet
 ```
 
 ### With limit (for testing)
 
 ```bash
-python import_owners.py --db-url "$DATABASE_URL" --dry-run --limit 1000
+uv run import_owners.py --db-url "$DATABASE_URL" --output owners.parquet --limit 1000
 ```
 
-### Production run with optimization
+### Single department
 
 ```bash
-python import_owners.py --db-url "$DATABASE_URL" --batch-size 10000 --num-workers 6
+uv run import_owners.py --db-url "$DATABASE_URL" --output owners_75.parquet --department 75
+```
+
+### All departments sequentially (avoids OOM on large datasets)
+
+```bash
+uv run import_owners.py --db-url "$DATABASE_URL" --output owners.parquet --sequential
+```
+
+### Resume from a specific department
+
+```bash
+uv run import_owners.py --db-url "$DATABASE_URL" --output owners.parquet --sequential --start-department 50
 ```
 
 ## Options
@@ -44,11 +45,12 @@ python import_owners.py --db-url "$DATABASE_URL" --batch-size 10000 --num-worker
 | Option | Description | Default |
 |--------|-------------|---------|
 | `--db-url` | PostgreSQL connection URI (required) | - |
-| `--dry-run` | Simulation mode - no database modifications | False |
-| `--source-table` | Name of the source table | df_owners_nat_2024 |
-| `--limit` | Maximum number of owners to import | None (all) |
-| `--batch-size` | Batch size for insert operations | 5000 |
-| `--num-workers` | Number of parallel workers | 4 |
+| `--output` | Output Parquet file path (required) | - |
+| `--source-table` | Name of the source table | `df_owners_nat_2024` |
+| `--limit` | Maximum number of owners to export | None (all) |
+| `--department` | Process a single department (e.g. `75`, `2A`) | None |
+| `--sequential` | Process all departments one by one | False |
+| `--start-department` | Resume `--sequential` from this department | None |
 | `--debug` | Enable debug logging | False |
 
 ## Field Mapping

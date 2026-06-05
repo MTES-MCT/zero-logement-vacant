@@ -1,6 +1,7 @@
 import {
   AddressKinds,
   formatAddress,
+  getOwnerDisplayName,
   HOUSING_STATUS_LABELS,
   isPrecisionBlockingPointCategory,
   isPrecisionEvolutionCategory,
@@ -167,7 +168,7 @@ export function toOwnerExcelRow(
   owner: OwnerApi & { housings?: ReadonlyArray<HousingApi> }
 ) {
   return {
-    ownerName: owner.fullName,
+    ownerName: getOwnerDisplayName(owner),
     ownerBirthDate: owner.birthDate,
     ownerRawAddress: owner.rawAddress?.join('\n'),
     ownerBanAddress: owner.banAddress?.label,
@@ -361,7 +362,6 @@ async function createHousingWorksheetBase(
       excelUtils.createWorksheet(workbook, {
         name: 'Logements',
         alternateColumnColors: true,
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
         columns: [
           ...HOUSING_COLUMNS_BEFORE_SCORE,
           { header: addressScoreHeader, key: 'housingAddressScore' },

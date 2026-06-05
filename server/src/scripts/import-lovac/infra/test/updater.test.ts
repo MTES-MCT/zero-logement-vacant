@@ -24,6 +24,7 @@ import { compose, createUpdater } from '../updater';
 describe('Updater', () => {
   it('should write to a file', async () => {
     const file = path.join(import.meta.dirname, 'housing-updates.jsonl');
+    if (fs.existsSync(file)) fs.unlinkSync(file);
     const items = Array.from({ length: 3 }, () => ({
       id: faker.string.uuid()
     }));

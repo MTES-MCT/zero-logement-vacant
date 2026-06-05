@@ -1,6 +1,6 @@
 import { isDate } from 'date-fns';
 import { TransformStream } from 'node:stream/web';
-import { Schema, ValidationError } from 'yup';
+import z, { ZodType } from 'zod';
 
 import { createLogger } from '~/infra/logger';
 import {
@@ -12,19 +12,19 @@ const logger = createLogger('validator');
 
 type ValidatorOptions<A> = ReporterOptions<A>;
 
-function validator<A>(schema: Schema<A>, options: ValidatorOptions<A>) {
-  return new TransformStream<A, A>({
+function validator<A>(schema: ZodType<A>, options: ValidatorOptions<A>) {
+  return new TransformStream<unknown, A>({
     transform(chunk, controller) {
-      try {
-        logger.debug('Validating chunk...', { chunk });
-        const validated = schema.validateSync(chunk);
-        controller.enqueue(validated);
-      } catch (error) {
+      logger.debug('Validating chunk...', { chunk });
+      const validated = schema.safeParse(chunk);
+      if (validated.success) {
+        controller.enqueue(validated.data);
+      } else {
+        const error = z.prettifyError(validated.error);
         options?.reporter?.failed(
-          chunk,
-          new ReporterError((error as ValidationError).message, chunk)
+          chunk as A,
+          new ReporterError(error, chunk as A)
         );
-
         if (options.abortEarly) {
           controller.error(error);
         }

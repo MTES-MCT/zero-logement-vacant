@@ -113,6 +113,10 @@ fileignoreconfig:
   checksum: d72231d6b3e4620d79c61ac6470bce501b70780ca88a64b7e91d5510eab66fc5
 - filename: server/src/test/testFixtures.ts
   checksum: 85991d7ad1b2c8cb325947dfacc773689ff6bdf1b479d819725d7b2a878902be
+- filename: frontend/src/App.tsx
+  checksum: 0fb9d4f85c2920d387b1fa71f068d81edbbb82962f7f64a05c583eec579e2652
+- filename: scripts/bundle-metrics.mjs
+  checksum: 591ac9d206504aca86efc0731cc283b2e2adb68b2d338cdc47d5c9263713f35f
 scopeconfig:
 - scope: node
 allowed_patterns:

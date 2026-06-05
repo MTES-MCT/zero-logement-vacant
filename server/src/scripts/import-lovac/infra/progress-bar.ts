@@ -1,4 +1,4 @@
-import { SingleBar } from 'cli-progress';
+import { MultiBar, SingleBar } from 'cli-progress';
 import { TransformStream } from 'node:stream/web';
 
 interface ProgressOptions {
@@ -28,6 +28,39 @@ export function progress(opts: ProgressOptions) {
     },
     flush() {
       bar.stop();
+    }
+  });
+}
+
+const MULTI_BAR_FORMAT =
+  'dept {dept} [{bar}] {percentage}% | ETA: {eta_formatted} | {value}/{total}';
+
+export function createMultiBar(): MultiBar {
+  return new MultiBar({
+    format: MULTI_BAR_FORMAT,
+    etaBuffer: 10_000,
+    fps: 5,
+    etaAsynchronousUpdate: true,
+    stopOnComplete: true,
+    clearOnComplete: false,
+    hideCursor: true
+  });
+}
+
+interface MultiProgressOptions {
+  multiBar: MultiBar;
+  bar: SingleBar;
+}
+
+export function multiProgress(opts: MultiProgressOptions) {
+  return new TransformStream({
+    transform(chunk, controller) {
+      opts.bar.increment(Array.isArray(chunk) ? chunk.length : 1);
+      controller.enqueue(chunk);
+    },
+    flush() {
+      opts.bar.stop();
+      opts.multiBar.remove(opts.bar);
     }
   });
 }

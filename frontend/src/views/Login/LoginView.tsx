@@ -10,7 +10,7 @@ import Stack from '@mui/material/Stack';
 import Typography from '@mui/material/Typography';
 import { useState } from 'react';
 import { FormProvider, useForm } from 'react-hook-form';
-import { useLocation, useNavigate } from 'react-router-dom';
+import { useLocation, useNavigate } from 'react-router';
 import * as yup from 'yup';
 
 import EstablishmentSearchableSelect from '~/components/establishment/EstablishmentSearchableSelect';

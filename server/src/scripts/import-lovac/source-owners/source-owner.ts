@@ -1,46 +1,55 @@
-import { OWNER_ENTITY_VALUES, OwnerEntity } from '@zerologementvacant/models';
+import {
+  OWNER_ENTITY_VALUES,
+  OWNER_KIND_LABEL_VALUES,
+  OwnerEntity,
+  type OwnerKindLabel
+} from '@zerologementvacant/models';
 import { match } from 'ts-pattern';
-import { date, object, string } from 'yup';
-
-import { toDate } from '~/scripts/import-lovac/infra/validator';
+import z from 'zod';
 
 // Cannot extend from OwnerRecordDBO, forced to write this by hand
 // because ts-json-schema-generator does not support union types yet
 // See https://github.com/vega/ts-json-schema-generator/issues/1946
 export interface SourceOwner {
-  idpersonne: string;
+  owner_uid: string;
+  idpersonne: string | null;
   full_name: string;
-  dgfip_address: string | null;
-  ownership_type: string;
+  username: string | null;
+  address_dgfip: string | null;
+  ownership_type: OwnerKindLabel | null;
   birth_date: Date | null;
   siren: string | null;
   entity: OwnerEntity;
 }
 
-export const sourceOwnerSchema = object({
-  idpersonne: string().trim().required('idpersonne is required'),
-  full_name: string().trim().required('full_name is required'),
-  dgfip_address: string()
+export const sourceOwnerSchema = z.object({
+  owner_uid: z.string().uuid('owner_uid must be a valid UUID'),
+  idpersonne: z
+    .string()
     .trim()
-    .defined('dgfip_address must be defined')
-    .nullable(),
-  ownership_type: string().trim().required('ownership_type is required'),
-  birth_date: date()
-    .defined('birth_date must be defined')
-    .transform(toDate)
-    .nullable(),
-  siren: string().trim().defined('siren must be defined').nullable(),
-  entity: string()
-    .transform((value) => {
-      if (value === null) return null;
-      if (typeof value === 'string' && value.length >= 1) {
-        return mapEntity(value[0]);
-      }
-      return value;
-    })
-    .defined('entity must be defined')
+    .min(1, 'idpersonne is required')
     .nullable()
-    .oneOf(OWNER_ENTITY_VALUES)
+    .default(null),
+  full_name: z
+    .string()
+    .trim()
+    .min(1, 'full_name is required')
+    .nullable()
+    .default(null),
+  username: z.string().trim().nullable(),
+  address_dgfip: z.string().trim().nullable(),
+  ownership_type: z.literal(OWNER_KIND_LABEL_VALUES).nullable().default(null),
+  birth_date: z.preprocess((v) => {
+    if (typeof v === 'number') return new Date(v * 1000);
+    if (typeof v === 'string') return new Date(v);
+    return v;
+  }, z.date().nullable()),
+  siren: z.string().trim().nullable(),
+  entity: z.preprocess((v) => {
+    if (v === null) return null;
+    if (typeof v === 'string' && v.length >= 1) return mapEntity(v[0]);
+    return v;
+  }, z.literal(OWNER_ENTITY_VALUES).nullable())
 });
 
 export function mapEntity(entity: string | null): OwnerEntity {

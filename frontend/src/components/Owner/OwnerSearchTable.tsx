@@ -6,6 +6,7 @@ import {
   type PaginationState
 } from '@tanstack/react-table';
 import { useMemo } from 'react';
+import { getOwnerDisplayName } from '@zerologementvacant/models';
 
 import AdvancedTable, {
   type AdvancedTableProps
@@ -39,7 +40,7 @@ function OwnerSearchTable(props: OwnerSearchTableProps) {
         cell: ({ row }) => (
           <Stack spacing="0.5rem" useFlexGap>
             <Typography variant="body2" sx={{ fontWeight: 700 }}>
-              {row.original.fullName}
+              {getOwnerDisplayName(row.original)}
             </Typography>
 
             {row.original.birthDate ? (
@@ -66,9 +67,9 @@ function OwnerSearchTable(props: OwnerSearchTableProps) {
             <Button
               priority="secondary"
               size="small"
-              title={`Sélectionner ${row.original.fullName}`}
+              title={`Sélectionner ${getOwnerDisplayName(row.original)}`}
               nativeButtonProps={{
-                'aria-label': `Sélectionner ${row.original.fullName}`
+                'aria-label': `Sélectionner ${getOwnerDisplayName(row.original)}`
               }}
               onClick={() => {
                 onSelect?.(row.original);

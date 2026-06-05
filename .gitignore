@@ -83,3 +83,5 @@ test-output
 # refactor-tracker local state
 .refactor-tracker-cache.json
 .tech-refactors.yml
+# bundle metrics snapshots
+bundle-metrics.*.json

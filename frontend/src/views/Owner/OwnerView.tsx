@@ -4,8 +4,9 @@ import { Typography } from '@mui/material';
 import Container from '@mui/material/Container';
 import Grid from '@mui/material/Grid';
 import Stack from '@mui/material/Stack';
+import { getOwnerDisplayName } from '@zerologementvacant/models';
 import { skipToken } from '@reduxjs/toolkit/query';
-import { useParams } from 'react-router-dom';
+import { useParams } from 'react-router';
 
 import OwnerCard from '~/components/Owner/OwnerCard';
 import createOwnerEditionModal from '~/components/Owner/OwnerEditionModal';
@@ -33,7 +34,7 @@ function OwnerView() {
       <Stack component="header" sx={{ mt: '-1rem', mb: '2rem' }}>
         <Breadcrumb
           className="fr-mb-0"
-          currentPageLabel={owner?.fullName ?? ''}
+          currentPageLabel={owner ? getOwnerDisplayName(owner) : ''}
           segments={[
             {
               label: 'Parc de logements',
@@ -45,7 +46,7 @@ function OwnerView() {
         />
         <Stack spacing="0.25rem" useFlexGap>
           <Typography component="h1" variant="h3">
-            {owner?.fullName}
+            {owner ? getOwnerDisplayName(owner) : null}
           </Typography>
           {owner?.kind ? <OwnerKindIcon kind={owner.kind} /> : null}
         </Stack>

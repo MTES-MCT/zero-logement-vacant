@@ -2,6 +2,7 @@ import { fr } from '@codegouvfr/react-dsfr';
 import Grid from '@mui/material/Grid';
 import Stack from '@mui/material/Stack';
 import Typography from '@mui/material/Typography';
+import { getOwnerDisplayName } from '@zerologementvacant/models';
 import schemas from '@zerologementvacant/schemas';
 import { Controller, useFormContext } from 'react-hook-form';
 import { number, object, string, type InferType } from 'yup';
@@ -62,7 +63,7 @@ function OwnerFormFields(props: OwnerFormFieldsProps) {
             fontWeight: 500
           }}
         >
-          {props.owner.fullName}
+          {getOwnerDisplayName(props.owner)}
         </Typography>
       </Stack>
 

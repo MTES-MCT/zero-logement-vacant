@@ -5,6 +5,7 @@ import { MarkRequired } from 'ts-essentials';
 
 import type { BBox } from 'geojson';
 import { match, Pattern } from 'ts-pattern';
+import type { CardDataDTO, DashboardCard, DashboardDTO, FlatNumberCard, PercentageCard, Tab } from '../DashboardDTO';
 import { AddressDTO } from '../AddressDTO';
 import type { BuildingDTO } from '../BuildingDTO';
 import { CADASTRAL_CLASSIFICATION_VALUES } from '../CadastralClassification';
@@ -855,6 +856,7 @@ export function genOwnerDTO(): OwnerDTO {
     phone: faker.phone.number().replace(/\s+/g, ''),
     kind,
     siren: kind === 'Particulier' ? null : faker.string.numeric(9),
+    username: faker.helpers.maybe(() => faker.person.lastName()) ?? null,
     createdAt: faker.date.past().toJSON(),
     updatedAt: faker.date.recent().toJSON()
   };
@@ -951,5 +953,65 @@ export function genDocumentDTO(
     updatedAt: null,
     establishmentId: establishment.id,
     creator
+  };
+}
+
+export function genFlatNumberCard(
+  override?: Partial<FlatNumberCard>
+): FlatNumberCard {
+  return {
+    id: faker.number.int({ min: 1, max: 9999 }),
+    type: 'flat-number',
+    title: faker.lorem.words(3),
+    description: null,
+    decimals: 0,
+    position: { col: 0, row: 0 },
+    size: { width: 6, height: 4 },
+    ...override
+  };
+}
+
+export function genPercentageCard(
+  override?: Partial<PercentageCard>
+): PercentageCard {
+  return {
+    id: faker.number.int({ min: 1, max: 9999 }),
+    type: 'percentage',
+    title: faker.lorem.words(3),
+    description: null,
+    decimals: 1,
+    position: { col: 0, row: 0 },
+    size: { width: 6, height: 4 },
+    ...override
+  };
+}
+
+export function genDashboardDTO(override?: {
+  id?: number;
+  url?: string;
+  cards?: DashboardCard[];
+  tabs?: Tab[];
+}): DashboardDTO {
+  const id = override?.id ?? faker.number.int({ min: 1, max: 999 });
+  const url = override?.url ?? 'https://stats.zlv.beta.gouv.fr/embed/dashboard/fake-token';
+  if (override?.tabs) {
+    return {
+      id,
+      url,
+      tabs: override.tabs
+    };
+  }
+  return {
+    id,
+    url,
+    cards: override?.cards ?? [genFlatNumberCard()]
+  };
+}
+
+export function genCardDataDTO(override?: Partial<CardDataDTO>): CardDataDTO {
+  return {
+    id: faker.number.int({ min: 1, max: 9999 }),
+    data: faker.number.int({ min: 0, max: 100000 }),
+    ...override
   };
 }

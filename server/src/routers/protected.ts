@@ -488,9 +488,25 @@ router.put(
 
 router.get(
   '/dashboards/:id',
-  dashboardController.findOneValidators,
-  validator.validate,
+  validatorNext.validate({
+    params: object({
+      id: string().required()
+    })
+  }),
   dashboardController.findOne
+);
+
+router.get(
+  '/dashboards/:did/cards/:cid',
+  validatorNext.validate({
+    params: object({
+      did: string().required(),
+      cid: string()
+        .required()
+        .matches(/^\d+$/, 'cid must be a positive integer')
+    })
+  }),
+  dashboardController.findOneCard
 );
 
 router.get('/datafoncier/housing/:localId', datafoncierController.findOne);

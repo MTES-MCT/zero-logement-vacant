@@ -1,5 +1,6 @@
 import SkipLinks from '@codegouvfr/react-dsfr/SkipLinks';
-import { Outlet } from 'react-router-dom';
+import { Suspense } from 'react';
+import { Outlet } from 'react-router';
 
 import RequireAuth from '~/components/Auth/RequireAuth';
 import Footer from '~/components/Footer/Footer';
@@ -24,7 +25,9 @@ function AuthenticatedLayout() {
       <OnboardingModal />
       <SmallHeader />
       <main id="fr-content">
-        <Outlet />
+        <Suspense>
+          <Outlet />
+        </Suspense>
       </main>
       <Footer />
     </RequireAuth>

@@ -9,6 +9,7 @@ import { match, Pattern } from 'ts-pattern';
 import { useHousing } from '~/hooks/useHousing';
 import { useFindCampaignsQuery } from '~/services/campaign.service';
 import { useFindPrecisionsByHousingQuery } from '~/services/precision.service';
+import AppLink from '../_app/AppLink/AppLink';
 import HousingStatusBadge from '../HousingStatusBadge/HousingStatusBadge';
 import PrecisionLists from '../Precision/PrecisionLists';
 import HousingAttribute from './HousingAttribute';
@@ -66,11 +67,17 @@ function MobilizationTab() {
                     housingCampaigns.length === 0 ? (
                       <Typography>Aucune campagne</Typography>
                     ) : (
-                      housingCampaigns.map((campaign) => (
-                        <Typography key={campaign.id}>
-                          {campaign.title}
-                        </Typography>
-                      ))
+                      <Stack spacing="0.25rem">
+                        {housingCampaigns.map((campaign) => (
+                          <AppLink
+                            key={campaign.id}
+                            isSimple
+                            to={`/campagnes/${campaign.id}`}
+                          >
+                            {campaign.title}
+                          </AppLink>
+                        ))}
+                      </Stack>
                     )
                   }
                 />

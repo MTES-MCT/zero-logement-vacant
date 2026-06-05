@@ -18,9 +18,10 @@ export type DataFileYearSelectProps<Multiple extends boolean> = Pick<
 const UNKNOWN_SOURCE_LABEL = 'Source inconnue';
 
 const DATA_FILE_YEAR_GROUPS: Record<string, DataFileYearFilterValue[]> = {
-  'Sources les plus récentes': ['lovac-2025', 'ff-2024-locatif'],
+  'Sources les plus récentes': ['lovac-2026', 'ff-2024-locatif'],
   'Autres sources': ['datafoncier-manual', null],
   'Sources antérieures': [
+    'lovac-2025',
     'lovac-2024',
     'lovac-2023',
     'ff-2023-locatif',

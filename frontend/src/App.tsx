@@ -1,38 +1,41 @@
-import { useEffect } from 'react';
+import { lazy, useEffect } from 'react';
 import { hideLoading, showLoading } from 'react-redux-loading-bar';
 import {
   createRoutesFromElements,
   Navigate,
   Route,
   RouterProvider
-} from 'react-router-dom';
+} from 'react-router';
 
 import { useAppDispatch, useAppSelector } from '~/hooks/useStore';
 import AuthenticatedLayout from '~/layouts/AuthenticatedLayout';
+import FeatureFlagLayout from '~/layouts/FeatureFlagLayout';
 import GuestLayout from '~/layouts/GuestLayout';
 import sentry from '~/utils/sentry';
-import AccountCreationView from '~/views/Account/AccountCreationView';
-import AccountView from '~/views/Account/AccountView';
-import ForgottenPasswordView from '~/views/Account/ForgottenPasswordView';
-import ProfileLayout from '~/views/Account/Profile/ProfileLayout';
-import TerritoryEstablishmentsView from '~/views/Account/Profile/TerritoryEstablishmentsView';
-import UsersView from '~/views/Account/Profile/UsersView';
-import ResetPasswordView from '~/views/Account/ResetPasswordView';
-import AnalysisView from '~/views/Analysis/AnalysisView';
-import CampaignListView from '~/views/Campaign/CampaignListView';
-import CampaignView from '~/views/Campaign/CampaignView';
-import GroupView from '~/views/Group/GroupView';
-import HousingOwnersView from '~/views/Housing/HousingOwnersView';
-import HousingView from '~/views/Housing/HousingView';
-import HousingListTabsProvider from '~/views/HousingList/HousingListTabsProvider';
-import HousingListView from '~/views/HousingList/HousingListView';
-import LoginView from '~/views/Login/LoginView';
-import TwoFactorView from '~/views/Login/TwoFactorView';
 import NotFoundView from '~/views/NotFoundView';
-import OwnerView from '~/views/Owner/OwnerView';
-import ResourcesView from '~/views/Resources/ResourcesView';
-import StatusView from '~/views/Resources/StatusView';
-import SiteMapView from '~/views/SiteMapView';
+
+const AccountCreationView = lazy(() => import('~/views/Account/AccountCreationView'));
+const AccountView = lazy(() => import('~/views/Account/AccountView'));
+const ForgottenPasswordView = lazy(() => import('~/views/Account/ForgottenPasswordView'));
+const ProfileLayout = lazy(() => import('~/views/Account/Profile/ProfileLayout'));
+const TerritoryEstablishmentsView = lazy(() => import('~/views/Account/Profile/TerritoryEstablishmentsView'));
+const UsersView = lazy(() => import('~/views/Account/Profile/UsersView'));
+const ResetPasswordView = lazy(() => import('~/views/Account/ResetPasswordView'));
+const AnalysisView = lazy(() => import('~/views/Analysis/AnalysisView'));
+const AnalysisViewNext = lazy(() => import('~/views/Analysis/AnalysisViewNext'));
+const CampaignListView = lazy(() => import('~/views/Campaign/CampaignListView'));
+const CampaignView = lazy(() => import('~/views/Campaign/CampaignView'));
+const GroupView = lazy(() => import('~/views/Group/GroupView'));
+const HousingOwnersView = lazy(() => import('~/views/Housing/HousingOwnersView'));
+const HousingView = lazy(() => import('~/views/Housing/HousingView'));
+const HousingListTabsProvider = lazy(() => import('~/views/HousingList/HousingListTabsProvider'));
+const HousingListView = lazy(() => import('~/views/HousingList/HousingListView'));
+const LoginView = lazy(() => import('~/views/Login/LoginView'));
+const TwoFactorView = lazy(() => import('~/views/Login/TwoFactorView'));
+const OwnerView = lazy(() => import('~/views/Owner/OwnerView'));
+const ResourcesView = lazy(() => import('~/views/Resources/ResourcesView'));
+const StatusView = lazy(() => import('~/views/Resources/StatusView'));
+const SiteMapView = lazy(() => import('~/views/SiteMapView'));
 import './App.scss';
 
 const router = sentry.createBrowserRouter(
@@ -51,11 +54,23 @@ const router = sentry.createBrowserRouter(
         />
         <Route
           path="/analyses/parc-vacant"
-          element={<AnalysisView id="13-analyses" />}
+          element={
+            <FeatureFlagLayout
+              flag="new-analysis-page"
+              then={<AnalysisViewNext id="13-analyses" />}
+              else={<AnalysisView id="13-analyses" />}
+            />
+          }
         />
         <Route
           path="/analyses/lutte"
-          element={<AnalysisView id="15-analyses-activites" />}
+          element={
+            <FeatureFlagLayout
+              flag="new-analysis-page"
+              then={<AnalysisViewNext id="15-analyses-activites" />}
+              else={<AnalysisView id="15-analyses-activites" />}
+            />
+          }
         />
         <Route path="/groupes/:id" element={<GroupView />} />
         <Route path="/campagnes" element={<CampaignListView />} />
@@ -114,9 +129,7 @@ function App() {
     }
   }, [dispatch, isSomeQueryPending]);
 
-  return (
-    <RouterProvider router={router} future={{ v7_startTransition: true }} />
-  );
+  return <RouterProvider router={router} />;
 }
 
 export default App;

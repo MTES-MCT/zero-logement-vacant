@@ -4,13 +4,12 @@ import {
   ActiveOwnerRank,
   isActiveOwnerRank,
   isPreviousOwnerRank,
-  OwnerRank
+  OwnerRank,
+  PREVIOUS_OWNER_RANK
 } from '@zerologementvacant/models';
-import { stringify as writeJSONL } from 'jsonlines';
 import fs from 'node:fs';
+import os from 'node:os';
 import path from 'node:path';
-import { Transform, Writable } from 'node:stream';
-import { ReadableStream } from 'node:stream/web';
 
 import { HousingApi } from '~/models/HousingApi';
 import { HousingOwnerApi } from '~/models/HousingOwnerApi';
@@ -22,9 +21,9 @@ import {
 import {
   EventDBO,
   EVENTS_TABLE,
-  HOUSING_EVENTS_TABLE,
-  HousingEventDBO,
-  HousingEvents
+  HOUSING_OWNER_EVENTS_TABLE,
+  HousingOwnerEventDBO,
+  HousingOwnerEvents
 } from '~/repositories/eventRepository';
 import {
   formatHousingOwnerApi,
@@ -60,13 +59,15 @@ describe('Source housing owner command', () => {
   }
 
   const command = createSourceHousingOwnerCommand();
-  const file = path.join(import.meta.dirname, 'housing-owners.jsonl');
+  const deptsDir = fs.mkdtempSync(
+    path.join(os.tmpdir(), 'zlv-housing-owners-test-')
+  );
 
   const missingOwnersHousing = genHousingApi();
   const missingOwnersHousingOwners: ReadonlyArray<HousingOwnerApi> =
     ACTIVE_OWNER_RANKS.slice(
       0,
-      faker.number.int({ min: 0, max: ACTIVE_OWNER_RANKS.length - 1 })
+      faker.number.int({ min: 1, max: ACTIVE_OWNER_RANKS.length - 1 })
     ).map((rank) => ({
       ...genHousingOwnerApi(missingOwnersHousing, genValidOwnerApi()),
       rank
@@ -107,6 +108,27 @@ describe('Source housing owner command', () => {
     rank: (i + 1) as ActiveOwnerRank
   }));
 
+  // Rank change scenario: same owner reappears at a different rank
+  const rankChangeHousing = genHousingApi();
+  const rankChangedOwner = genValidOwnerApi();
+  const rankChangedHousingOwner: HousingOwnerApi = {
+    ...genHousingOwnerApi(rankChangeHousing, rankChangedOwner),
+    rank: 1 as ActiveOwnerRank
+  };
+
+  // Inactive owner preserved scenario: inactive owner stays untouched
+  const inactivePreservedHousing = genHousingApi();
+  const preservedInactiveOwner = genValidOwnerApi();
+  const preservedInactiveHousingOwner: HousingOwnerApi = {
+    ...genHousingOwnerApi(inactivePreservedHousing, preservedInactiveOwner),
+    rank: PREVIOUS_OWNER_RANK
+  };
+  const newOwnerForInactiveTest = genValidOwnerApi();
+  const newHousingOwnerForInactiveTest: HousingOwnerApi = {
+    ...genHousingOwnerApi(inactivePreservedHousing, newOwnerForInactiveTest),
+    rank: 1 as ActiveOwnerRank
+  };
+
   const sourceHousingOwners: ReadonlyArray<SourceHousingOwner> = [
     ...missingOwnersHousingOwners.map((housingOwner) =>
       toSourceHousingOwner(housingOwner, missingOwnersHousing)
@@ -119,7 +141,11 @@ describe('Source housing owner command', () => {
     ),
     ...replacingHousingOwners.map((housingOwner) =>
       toSourceHousingOwner(housingOwner, existingHousing)
-    )
+    ),
+    // Rank change: same owner at a new rank
+    { ...toSourceHousingOwner(rankChangedHousingOwner, rankChangeHousing), rank: 2 as ActiveOwnerRank },
+    // Inactive preserved: only the new active owner appears in source
+    toSourceHousingOwner(newHousingOwnerForInactiveTest, inactivePreservedHousing)
   ];
 
   // Seed the database
@@ -128,17 +154,26 @@ describe('Source housing owner command', () => {
       ...missingHousingOwners,
       newOwner,
       ...existingOwners,
-      ...replacingOwners
+      ...replacingOwners,
+      rankChangedOwner,
+      preservedInactiveOwner,
+      newOwnerForInactiveTest
     ].map(formatOwnerApi);
     await Owners().insert(owners);
 
-    const housings = [missingOwnersHousing, newHousing, existingHousing].map(
-      formatHousingRecordApi
-    );
+    const housings = [
+      missingOwnersHousing,
+      newHousing,
+      existingHousing,
+      rankChangeHousing,
+      inactivePreservedHousing
+    ].map(formatHousingRecordApi);
     await Housing().insert(housings);
 
     const housingOwners: ReadonlyArray<HousingOwnerDBO> = [
-      ...existingHousingOwners
+      ...existingHousingOwners,
+      rankChangedHousingOwner,
+      preservedInactiveHousingOwner
     ].map(formatHousingOwnerApi);
     await HousingOwners().insert(housingOwners);
 
@@ -146,22 +181,34 @@ describe('Source housing owner command', () => {
     await Establishments().insert(formatEstablishmentApi(establishment));
   });
 
-  // Write the file and run
+  afterAll(async () => {
+    fs.rmSync(deptsDir, { recursive: true, force: true });
+  });
+
+  // Write per-department NDJSON files and run the command against the
+  // depts directory (mirrors the parallel-by-department layout produced
+  // by prepare-housing-owners.sh).
   beforeAll(async () => {
-    await new ReadableStream<SourceHousingOwner>({
-      start(controller) {
-        sourceHousingOwners.forEach((sourceHousingOwner) => {
-          controller.enqueue(sourceHousingOwner);
-        });
-        controller.close();
-      }
-    })
-      .pipeThrough(Transform.toWeb(writeJSONL()))
-      .pipeTo(Writable.toWeb(fs.createWriteStream(file)));
-    await command(file, {
+    const byDept = sourceHousingOwners.reduce<
+      Record<string, SourceHousingOwner[]>
+    >((acc, sho) => {
+      const dept = sho.local_id.substring(0, 2);
+      (acc[dept] ??= []).push(sho);
+      return acc;
+    }, {});
+    for (const [dept, rows] of Object.entries(byDept)) {
+      const deptDir = path.join(deptsDir, `dept=${dept}`);
+      fs.mkdirSync(deptDir, { recursive: true });
+      fs.writeFileSync(
+        path.join(deptDir, 'data_0.jsonl'),
+        rows.map((row) => JSON.stringify(row)).join('\n') + '\n'
+      );
+    }
+    await command(deptsDir, {
       abortEarly: false,
       dryRun: false,
-      from: 'file'
+      from: 'file',
+      year: 'lovac-2025'
     });
   });
 
@@ -254,8 +301,8 @@ describe('Source housing owner command', () => {
       });
     });
 
-    it('should create an event "Changement de propriétaires"', async () => {
-      const actual = await HousingEvents()
+    it('should create owner-attached and owner-detached events', async () => {
+      const actual = await HousingOwnerEvents()
         .where({
           housing_geo_code: existingHousing.geoCode,
           housing_id: existingHousing.id
@@ -263,15 +310,66 @@ describe('Source housing owner command', () => {
         .join(
           EVENTS_TABLE,
           `${EVENTS_TABLE}.id`,
-          `${HOUSING_EVENTS_TABLE}.event_id`
+          `${HOUSING_OWNER_EVENTS_TABLE}.event_id`
         );
       expect(actual).toPartiallyContain<
-        Partial<EventDBO<any> & HousingEventDBO>
+        Partial<EventDBO<any> & HousingOwnerEventDBO>
       >({
         housing_geo_code: existingHousing.geoCode,
         housing_id: existingHousing.id,
         type: 'housing:owner-attached'
       });
+      expect(actual).toPartiallyContain<
+        Partial<EventDBO<any> & HousingOwnerEventDBO>
+      >({
+        housing_geo_code: existingHousing.geoCode,
+        housing_id: existingHousing.id,
+        type: 'housing:owner-detached'
+      });
+    });
+  });
+
+  describe('Present in LOVAC 2025, rank change', () => {
+    it('should update the owner rank', async () => {
+      const actual = await HousingOwners().where({
+        housing_geo_code: rankChangeHousing.geoCode,
+        housing_id: rankChangeHousing.id,
+        owner_id: rankChangedOwner.id
+      });
+      expect(actual).toHaveLength(1);
+      expect(actual[0].rank).toBe(2);
+    });
+
+    it('should create an owner-updated event', async () => {
+      const actual = await HousingOwnerEvents()
+        .where({
+          housing_geo_code: rankChangeHousing.geoCode,
+          housing_id: rankChangeHousing.id
+        })
+        .join(
+          EVENTS_TABLE,
+          `${EVENTS_TABLE}.id`,
+          `${HOUSING_OWNER_EVENTS_TABLE}.event_id`
+        );
+      expect(actual).toPartiallyContain<
+        Partial<EventDBO<any> & HousingOwnerEventDBO>
+      >({
+        housing_geo_code: rankChangeHousing.geoCode,
+        housing_id: rankChangeHousing.id,
+        type: 'housing:owner-updated'
+      });
+    });
+  });
+
+  describe('Present in LOVAC 2025, inactive owner', () => {
+    it('should preserve the inactive housing owner', async () => {
+      const actual = await HousingOwners().where({
+        housing_geo_code: inactivePreservedHousing.geoCode,
+        housing_id: inactivePreservedHousing.id,
+        owner_id: preservedInactiveOwner.id
+      });
+      expect(actual).toHaveLength(1);
+      expect(actual[0].rank).toBe(PREVIOUS_OWNER_RANK);
     });
   });
 
@@ -286,6 +384,7 @@ describe('Source housing owner command', () => {
     }
 
     return {
+      owner_uid: housingOwner.ownerId,
       idpersonne: housingOwner.idpersonne as string,
       idprocpte: housingOwner.idprocpte as string,
       idprodroit: housingOwner.idprodroit as string,

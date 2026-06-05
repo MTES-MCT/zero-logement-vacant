@@ -1,4 +1,5 @@
 import { fc, test } from '@fast-check/vitest';
+import { vi } from 'vitest';
 import { faker } from '@faker-js/faker/locale/fr';
 import {
   TIME_PER_WEEK_VALUES,
@@ -55,6 +56,7 @@ import {
   USERS_TABLE
 } from '~/repositories/userRepository';
 import { TEST_ACCOUNTS } from '~/services/ceremaService/consultUserService';
+import ceremaService from '~/services/ceremaService';
 import {
   genEstablishmentApi,
   genProspectApi,
@@ -171,6 +173,13 @@ describe('User API', () => {
     beforeEach(async () => {
       prospect = genProspectApi(establishment);
       await Prospects().insert(formatProspectApi(prospect));
+      vi.spyOn(ceremaService, 'consultUsers').mockResolvedValue([
+        { email: prospect.email, establishmentSiren: '*', hasAccount: true, hasCommitment: true }
+      ]);
+    });
+
+    afterEach(() => {
+      vi.restoreAllMocks();
     });
 
     it('should received a valid draft user', async () => {

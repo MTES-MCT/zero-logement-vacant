@@ -613,6 +613,11 @@ export const multiOwnerOptions: SelectOption[] = [
  */
 export const vacancyYearOptions: SelectOption<VacancyYear>[] = [
   {
+    value: '2022',
+    label: '2022',
+    badgeLabel: 'Début de vacance : depuis 2022'
+  },
+  {
     value: '2021',
     label: '2021',
     badgeLabel: 'Début de vacance : depuis 2021'
@@ -648,9 +653,9 @@ export const vacancyYearOptions: SelectOption<VacancyYear>[] = [
     badgeLabel: 'Début de vacance : pas d’information'
   },
   {
-    value: 'inconsistency2022',
-    label: '2022 (incohérence donnée source)',
-    badgeLabel: 'Début de vacance : 2022 (incohérence donnée source)'
+    value: 'inconsistency2023',
+    label: '2023 (incohérence donnée source)',
+    badgeLabel: 'Début de vacance : 2023 (incohérence données sources)'
   }
 ];
 export const VACANCY_YEAR_OPTIONS: Record<
@@ -692,9 +697,9 @@ export const VACANCY_YEAR_OPTIONS: Record<
     label: 'Pas d’information',
     badgeLabel: 'Début de vacance : pas d’information'
   },
-  inconsistency2022: {
-    label: '2022 (incohérence donnée source)',
-    badgeLabel: 'Début de vacance : 2022 (incohérence donnée source)'
+  inconsistency2023: {
+    label: '2023 (incohérence données sources)',
+    badgeLabel: 'Début de vacance : 2023 (incohérence données sources)'
   }
 };
 
@@ -783,7 +788,9 @@ export const LOCALITY_KIND_OPTIONS: Record<
 /**
  * @deprecated Use {@link DATA_FILE_YEAR_INCLUDED_OPTIONS} instead.
  */
-export const dataFileYearsIncludedOptions: SelectOption<DataFileYear | 'datafoncier-manual'>[] = [
+export const dataFileYearsIncludedOptions: SelectOption<
+  DataFileYear | 'datafoncier-manual'
+>[] = [
   {
     value: 'ff-2023-locatif' as const,
     label: 'Fichiers fonciers 2023 (en location)',
@@ -835,6 +842,11 @@ export const dataFileYearsIncludedOptions: SelectOption<DataFileYear | 'datafonc
     value: 'lovac-2025' as const,
     label: 'LOVAC 2025 (vacant > 2 ans)',
     badgeLabel: 'Source et millésime inclus : LOVAC 2025 (vacant > 2 ans)'
+  },
+  {
+    value: 'lovac-2026' as const,
+    label: 'LOVAC 2026 (vacant > 2 ans)',
+    badgeLabel: 'Source et millésime inclus : LOVAC 2026 (vacant > 2 ans)'
   }
 ].sort((optionA, optionB) => optionB.value.localeCompare(optionA.value));
 
@@ -912,7 +924,9 @@ export const DATA_FILE_YEAR_EXCLUDED_OPTIONS = DATA_FILE_YEAR_VALUES.reduce(
 /**
  * @deprecated Use {@link DATA_FILE_YEAR_EXCLUDED_OPTIONS} instead.
  */
-export const dataFileYearsExcludedOptions: SelectOption<DataFileYear | 'datafoncier-manual'>[] = [
+export const dataFileYearsExcludedOptions: SelectOption<
+  DataFileYear | 'datafoncier-manual'
+>[] = [
   {
     value: 'ff-2023-locatif' as const,
     label: 'Fichiers fonciers 2023 (en location)',
@@ -964,6 +978,11 @@ export const dataFileYearsExcludedOptions: SelectOption<DataFileYear | 'datafonc
     value: 'lovac-2025' as const,
     label: 'LOVAC 2025 (vacant > 2 ans)',
     badgeLabel: 'Source et millésime exclus : LOVAC 2025 (vacant > 2 ans)'
+  },
+  {
+    value: 'lovac-2026' as const,
+    label: 'LOVAC 2026 (vacant > 2 ans)',
+    badgeLabel: 'Source et millésime exclus : LOVAC 2026 (vacant > 2 ans)'
   }
 ].sort((optionA, optionB) => optionB.value.localeCompare(optionA.value));
 

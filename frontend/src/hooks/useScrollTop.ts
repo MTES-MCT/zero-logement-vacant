@@ -1,5 +1,5 @@
 import { useLayoutEffect } from 'react';
-import { useLocation, useNavigationType } from 'react-router-dom';
+import { useLocation, useNavigationType } from 'react-router';
 
 /**
  * Scroll to the top of the page on route change.

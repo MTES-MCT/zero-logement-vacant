@@ -8,9 +8,9 @@ import ReactiveMap, {
   type ViewState,
   type ViewStateChangeEvent
 } from 'react-map-gl/maplibre';
-import { useNavigate } from 'react-router-dom';
 import Box from '@mui/material/Box';
 import { styled } from '@mui/material/styles';
+import { useNavigate } from 'react-router';
 
 import { useMapImage } from '../../hooks/useMapImage';
 import {

@@ -113,9 +113,9 @@ function AnalysisCard({ card, dashboardId }: Readonly<Props>) {
 
       {data.type === 'pie-chart' ? (
         <PieChartDisplay cardData={data} />
-      ) : (
+      ) : data.type === 'flat-number' || data.type === 'percentage' ? (
         <ShowcaseValue>{formatValue(data.data, card)}</ShowcaseValue>
-      )}
+      ) : null}
     </CardBox>
   );
 }

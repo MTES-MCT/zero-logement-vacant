@@ -9,7 +9,6 @@ import { styled } from '@mui/material/styles';
 import type {
   DashboardCard,
   PieChartDataDTO,
-  BarChartDataDTO,
   Resource
 } from '@zerologementvacant/models';
 
@@ -70,18 +69,6 @@ function PieChartDisplay({ cardData }: Readonly<PieChartDisplayProps>) {
   );
 }
 
-interface BarChartDisplayProps {
-  cardData: BarChartDataDTO;
-}
-
-function BarChartDisplay({ cardData }: Readonly<BarChartDisplayProps>) {
-  // Placeholder for bar chart rendering
-  // TODO: implement actual bar chart display
-  return (
-    <Typography>Bar chart ({cardData.direction}) coming soon</Typography>
-  );
-}
-
 function AnalysisCard({ card, dashboardId }: Readonly<Props>) {
   const { data, isLoading, isError } = useFindOneCardQuery({
     did: dashboardId,
@@ -126,8 +113,6 @@ function AnalysisCard({ card, dashboardId }: Readonly<Props>) {
 
       {data.type === 'pie-chart' ? (
         <PieChartDisplay cardData={data} />
-      ) : data.type === 'bar-chart' ? (
-        <BarChartDisplay cardData={data} />
       ) : (
         <ShowcaseValue>{formatValue(data.data, card)}</ShowcaseValue>
       )}

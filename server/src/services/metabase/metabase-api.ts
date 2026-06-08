@@ -298,8 +298,11 @@ class MetabaseAPI implements MetabaseService {
     }
 
     if (cardType === 'bar-chart') {
+      if (direction === null) {
+        throw new Error('direction is required for bar-chart card type');
+      }
       const result: BarChartValue = {
-        direction: direction!,
+        direction,
         labels: data.data.rows.map((row) => String(row[0])),
         data: data.data.rows.map((row) => Number(row[1]))
       };

@@ -57,10 +57,13 @@ function PieChartDisplay({ cardData }: Readonly<PieChartDisplayProps>) {
       name={cardData.labels}
       color={[
         'blue-france',
+        'blue-cumulus',
         'blue-ecume',
-        'purple-glycine',
-        'pink-macaron',
-        'yellow-tournesol'
+        'green-archipel',
+        'green-bourgeon',
+        'green-emeraude',
+        'green-menthe',
+        'green-tilleul-verveine'
       ]}
     />
   );

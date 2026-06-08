@@ -67,11 +67,26 @@ async function findOneCard(
     dashcard.dashcardId,
     dashcard.cardId,
     queryParameters,
-    dashcard.valueColumn
+    dashcard.valueColumn,
+    dashcard.type
   );
-  const data = dashcard.type === 'percentage' ? raw / 100 : raw;
 
-  response.status(constants.HTTP_STATUS_OK).json({ id: numericCid, data });
+  if (typeof raw === 'object' && raw !== null) {
+    response.status(constants.HTTP_STATUS_OK).json({
+      id: numericCid,
+      type: 'pie-chart',
+      labels: raw.labels,
+      data: raw.data
+    });
+    return;
+  }
+
+  const data = dashcard.type === 'percentage' ? raw / 100 : raw;
+  response.status(constants.HTTP_STATUS_OK).json({
+    id: numericCid,
+    type: dashcard.type as 'flat-number' | 'percentage',
+    data
+  });
 }
 
 function sign(payload: object): Promise<string> {

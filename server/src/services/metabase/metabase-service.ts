@@ -1,4 +1,4 @@
-import type { DashboardCard, Tab } from '@zerologementvacant/models';
+import type { CardType, DashboardCard, Tab } from '@zerologementvacant/models';
 
 export type DashboardData =
   | { tabs: ReadonlyArray<Tab> }
@@ -13,10 +13,13 @@ export interface DashboardParameter {
 export interface DashcardRef {
   dashcardId: number;
   cardId: number;
-  type: 'flat-number' | 'percentage';
+  type: CardType;
   valueColumn: string | null;
   dashboardParameters: ReadonlyArray<DashboardParameter>;
 }
+
+export type PieChartValue = { labels: string[]; data: number[] };
+export type CardValue = number | PieChartValue;
 
 export interface MetabaseService {
   getDashboard(id: number): Promise<DashboardData>;
@@ -26,6 +29,7 @@ export interface MetabaseService {
     dashcardId: number,
     cardId: number,
     parameters: ReadonlyArray<DashboardParameter & { value: string }>,
-    valueColumn: string | null
-  ): Promise<number>;
+    valueColumn: string | null,
+    cardType: CardType
+  ): Promise<CardValue>;
 }

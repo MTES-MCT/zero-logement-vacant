@@ -3,6 +3,8 @@ import { http, HttpResponse } from 'msw';
 import { Provider } from 'react-redux';
 
 import {
+  genBarChartCard,
+  genBarChartDataDTO,
   genFlatNumberCard,
   genPercentageCard,
   genPieChartCard,
@@ -100,5 +102,112 @@ describe('AnalysisCard', () => {
 
     await screen.findByText('Répartition par type');
     expect(screen.queryByRole('alert')).not.toBeInTheDocument();
+  });
+
+  it('renders a bar chart card without error when card type is bar-chart', async () => {
+    const barCard = genBarChartCard({ id: 80, title: 'Répartition par date de construction' });
+    const cardData = genBarChartDataDTO({
+      id: 80,
+      direction: 'vertical',
+      labels: ['1991 et apres', '1946 - 1990'],
+      data: [3200, 1800]
+    });
+    mockAPI.use(
+      http.get(
+        `${config.apiEndpoint}/dashboards/:did/cards/:cid`,
+        () => HttpResponse.json(cardData)
+      )
+    );
+
+    setup({ card: barCard, dashboardId });
+
+    await screen.findByText('Répartition par date de construction');
+    expect(screen.queryByRole('alert')).not.toBeInTheDocument();
+  });
+
+  it('shows a transcription accordion for a pie chart', async () => {
+    const pieCard = genPieChartCard({ id: 77, title: 'Répartition par type' });
+    const cardData = genPieChartDataDTO({
+      id: 77,
+      labels: ['APPART', 'MAISON'],
+      data: [4876, 652]
+    });
+    mockAPI.use(
+      http.get(
+        `${config.apiEndpoint}/dashboards/:did/cards/:cid`,
+        () => HttpResponse.json(cardData)
+      )
+    );
+
+    setup({ card: pieCard, dashboardId });
+
+    await screen.findByText('Répartition par type');
+    expect(screen.getByRole('button', { name: /Transcription/i })).toBeInTheDocument();
+  });
+
+  it('shows percentage transcription items for a pie chart', async () => {
+    const pieCard = genPieChartCard({ id: 77, title: 'Répartition par type' });
+    // 4876 / (4876 + 652) * 100 = 88.2 → 88%
+    // 652  / (4876 + 652) * 100 = 11.8 → 12%
+    const cardData = genPieChartDataDTO({
+      id: 77,
+      labels: ['APPART', 'MAISON'],
+      data: [4876, 652]
+    });
+    mockAPI.use(
+      http.get(
+        `${config.apiEndpoint}/dashboards/:did/cards/:cid`,
+        () => HttpResponse.json(cardData)
+      )
+    );
+
+    setup({ card: pieCard, dashboardId });
+
+    await screen.findByText('Répartition par type');
+    expect(screen.getByText('APPART : 88 %')).toBeInTheDocument();
+    expect(screen.getByText('MAISON : 12 %')).toBeInTheDocument();
+  });
+
+  it('shows a transcription accordion for a bar chart', async () => {
+    const barCard = genBarChartCard({ id: 80, title: 'Répartition par date de construction' });
+    const cardData = genBarChartDataDTO({
+      id: 80,
+      direction: 'vertical',
+      labels: ['1991 et apres', '1946 - 1990'],
+      data: [3200, 1800]
+    });
+    mockAPI.use(
+      http.get(
+        `${config.apiEndpoint}/dashboards/:did/cards/:cid`,
+        () => HttpResponse.json(cardData)
+      )
+    );
+
+    setup({ card: barCard, dashboardId });
+
+    await screen.findByText('Répartition par date de construction');
+    expect(screen.getByRole('button', { name: /Transcription/i })).toBeInTheDocument();
+  });
+
+  it('shows raw value transcription items for a bar chart', async () => {
+    const barCard = genBarChartCard({ id: 80, title: 'Répartition par date de construction' });
+    const cardData = genBarChartDataDTO({
+      id: 80,
+      direction: 'vertical',
+      labels: ['1991 et apres', '1946 - 1990'],
+      data: [3200, 1800]
+    });
+    mockAPI.use(
+      http.get(
+        `${config.apiEndpoint}/dashboards/:did/cards/:cid`,
+        () => HttpResponse.json(cardData)
+      )
+    );
+
+    setup({ card: barCard, dashboardId });
+
+    await screen.findByText('Répartition par date de construction');
+    expect(screen.getByText('1991 et apres : 3200')).toBeInTheDocument();
+    expect(screen.getByText('1946 - 1990 : 1800')).toBeInTheDocument();
   });
 });

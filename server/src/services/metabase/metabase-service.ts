@@ -15,11 +15,17 @@ export interface DashcardRef {
   cardId: number;
   type: CardType;
   valueColumn: string | null;
+  direction: 'horizontal' | 'vertical' | null;
   dashboardParameters: ReadonlyArray<DashboardParameter>;
 }
 
 export type PieChartValue = { labels: string[]; data: number[] };
-export type CardValue = number | PieChartValue;
+export type BarChartValue = {
+  direction: 'horizontal' | 'vertical';
+  labels: string[];
+  data: number[];
+};
+export type CardValue = number | PieChartValue | BarChartValue;
 
 export interface MetabaseService {
   getDashboard(id: number): Promise<DashboardData>;
@@ -30,6 +36,7 @@ export interface MetabaseService {
     cardId: number,
     parameters: ReadonlyArray<DashboardParameter & { value: string }>,
     valueColumn: string | null,
-    cardType: CardType
+    cardType: CardType,
+    direction: 'horizontal' | 'vertical' | null
   ): Promise<CardValue>;
 }

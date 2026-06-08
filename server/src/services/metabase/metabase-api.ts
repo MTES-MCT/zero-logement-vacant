@@ -3,6 +3,7 @@ import axios from 'axios';
 import type { CardType, DashboardCard, Tab } from '@zerologementvacant/models';
 import config from '~/infra/config';
 import type {
+  BarChartValue,
   CardValue,
   DashboardData,
   DashboardParameter,
@@ -146,6 +147,18 @@ function normalizeDashcard(dashcard: MetabaseDashcard): DashboardCard | null {
     };
   }
 
+  if (card.display === 'bar' || card.display === 'row') {
+    return {
+      id: dashcard.id,
+      type: 'bar-chart',
+      title: dashcard.visualization_settings['card.title'] ?? card.name,
+      description: card.description,
+      decimals: 0,
+      position: { col: dashcard.col, row: dashcard.row },
+      size: { width: dashcard.size_x, height: dashcard.size_y }
+    };
+  }
+
   if (card.display !== 'scalar') return null;
 
   const settings = mergeVisualizationSettings(
@@ -198,6 +211,20 @@ function findDashcardRef(
       cardId: found.card_id,
       type: 'pie-chart',
       valueColumn: null,
+      direction: null,
+      dashboardParameters: (raw.parameters ?? []).map(
+        (p): DashboardParameter => ({ id: p.id, slug: p.slug, type: p.type })
+      )
+    };
+  }
+
+  if (normalized.type === 'bar-chart') {
+    return {
+      dashcardId: found.id,
+      cardId: found.card_id,
+      type: 'bar-chart',
+      valueColumn: null,
+      direction: found.card!.display === 'bar' ? 'vertical' : 'horizontal',
       dashboardParameters: (raw.parameters ?? []).map(
         (p): DashboardParameter => ({ id: p.id, slug: p.slug, type: p.type })
       )
@@ -213,6 +240,7 @@ function findDashcardRef(
     cardId: found.card_id,
     type: normalized.type,
     valueColumn: settings['scalar.field'] ?? null,
+    direction: null,
     dashboardParameters: (raw.parameters ?? []).map(
       (p): DashboardParameter => ({ id: p.id, slug: p.slug, type: p.type })
     )
@@ -253,7 +281,8 @@ class MetabaseAPI implements MetabaseService {
     cardId: number,
     parameters: ReadonlyArray<DashboardParameter & { value: string }>,
     valueColumn: string | null,
-    cardType: CardType
+    cardType: CardType,
+    direction: 'horizontal' | 'vertical' | null
   ): Promise<CardValue> {
     const { data } = await this.http.post<MetabaseQueryResult>(
       `/api/dashboard/${dashboardId}/dashcard/${dashcardId}/card/${cardId}/query`,
@@ -262,6 +291,15 @@ class MetabaseAPI implements MetabaseService {
 
     if (cardType === 'pie-chart') {
       const result: PieChartValue = {
+        labels: data.data.rows.map((row) => String(row[0])),
+        data: data.data.rows.map((row) => Number(row[1]))
+      };
+      return result;
+    }
+
+    if (cardType === 'bar-chart') {
+      const result: BarChartValue = {
+        direction: direction!,
         labels: data.data.rows.map((row) => String(row[0])),
         data: data.data.rows.map((row) => Number(row[1]))
       };

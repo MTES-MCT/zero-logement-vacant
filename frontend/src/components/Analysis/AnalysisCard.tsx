@@ -4,6 +4,8 @@ import Alert from '@codegouvfr/react-dsfr/Alert';
 import { BarChart } from '@codegouvfr/react-dsfr/Chart/BarChart';
 import { PieChart } from '@codegouvfr/react-dsfr/Chart/PieChart';
 import Box from '@mui/material/Box';
+import List from '@mui/material/List';
+import ListItem from '@mui/material/ListItem';
 import Skeleton from '@mui/material/Skeleton';
 import Stack from '@mui/material/Stack';
 import Typography from '@mui/material/Typography';
@@ -83,11 +85,11 @@ function ChartTranscription({
 
   return (
     <Accordion label="Transcription">
-      <ul>
+      <List>
         {items.map((item, index) => (
-          <li key={index}>{item}</li>
+          <ListItem key={index}>{item}</ListItem>
         ))}
-      </ul>
+      </List>
     </Accordion>
   );
 }

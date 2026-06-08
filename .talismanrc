@@ -119,6 +119,8 @@ fileignoreconfig:
   checksum: 591ac9d206504aca86efc0731cc283b2e2adb68b2d338cdc47d5c9263713f35f
 - filename: docs/superpowers/specs/2026-06-08-metabase-bar-charts-design.md
   checksum: 3b404f31883e5fc4f4171bcc3418127e4d60fc4636f8e8dae290423cff9e4284
+- filename: docs/superpowers/plans/2026-06-08-metabase-bar-charts.md
+  checksum: f543602319c43d5d38886e7ac48977ea0ac371164fe9390e16243847784ed596
 scopeconfig:
 - scope: node
 allowed_patterns:

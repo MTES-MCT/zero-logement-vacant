@@ -67,6 +67,7 @@ function ChartTranscription({
         data,
         Array.reduce(0, (acc, v) => acc + v)
       );
+      if (total === 0) return [];
       return pipe(
         Array.zip(labels, data),
         Array.map(([label, value]) => `${label} : ${Math.round((value / total) * 100)} %`)
@@ -83,8 +84,8 @@ function ChartTranscription({
   return (
     <Accordion label="Transcription">
       <ul>
-        {items.map((item) => (
-          <li key={item}>{item}</li>
+        {items.map((item, index) => (
+          <li key={index}>{item}</li>
         ))}
       </ul>
     </Accordion>

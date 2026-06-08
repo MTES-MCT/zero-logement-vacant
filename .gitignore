@@ -15,6 +15,9 @@ node_modules
 .env.*
 !.env.example
 
+# Recruteur — matériaux privés (grille d'éval), ne pas partager au candidat
+recrutement/_recruteur/
+
 # Build
 build
 coverage

@@ -1,4 +1,6 @@
-import { BarChart } from '@codegouvfr/react-dsfr/Chart/BarChart';
+import '@gouvfr/dsfr-chart/BarChart';
+import '@gouvfr/dsfr-chart/BarChart.css';
+
 import { styled } from '@mui/material/styles';
 import type { BarChartDataDTO } from '@zerologementvacant/models';
 
@@ -6,8 +8,8 @@ import ChartTranscription from './ChartTranscription';
 
 const NoLegend = styled('div')({
   '& .flex:has(.legende_dot)': {
-    display: 'none',
-  },
+    display: 'none'
+  }
 });
 
 interface BarChartDisplayProps {
@@ -16,21 +18,28 @@ interface BarChartDisplayProps {
 
 function BarChartDisplay(props: Readonly<BarChartDisplayProps>) {
   const { chart } = props;
+  const horizontal = chart.direction === 'horizontal';
+  // Percent values cross the wire as 0–1 fractions (matching the scalar
+  // percentage convention). The chart axis needs them scaled back up to be
+  // meaningful, since DSFR BarChart plots raw numbers.
+  const yValues =
+    chart.format === 'percent' ? chart.data.map((v) => v * 100) : chart.data;
 
   return (
     <>
       <NoLegend>
-        <BarChart
-          x={[chart.labels]}
-          y={[chart.data]}
-          horizontal={chart.direction === 'horizontal'}
-          color={['blue-france']}
+        <bar-chart
+          x={JSON.stringify([chart.labels])}
+          y={JSON.stringify([yValues])}
+          horizontal={horizontal ? 'true' : undefined}
         />
       </NoLegend>
       <ChartTranscription
         labels={chart.labels}
         data={chart.data}
         type="bar-chart"
+        format={chart.format}
+        decimals={chart.decimals}
       />
     </>
   );

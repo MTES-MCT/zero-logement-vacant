@@ -242,7 +242,7 @@ const mockBarCardQueryResult = {
   status: 'completed'
 };
 
-const mockMetabaseDashboardWithTableCard = {
+const mockMetabaseDashboardWithLineCard = {
   id: 13,
   dashcards: [
     {
@@ -251,11 +251,98 @@ const mockMetabaseDashboardWithTableCard = {
       dashboard_tab_id: null,
       row: 0,
       col: 0,
+      size_x: 6,
+      size_y: 4,
+      visualization_settings: { 'card.title': 'Évolution du taux de logements vacants >2 ans' },
+      card: {
+        id: 820,
+        name: 'Évolution du taux de logements vacants >2 ans',
+        display: 'line',
+        description: null,
+        visualization_settings: {
+          'graph.dimensions': ['year'],
+          'graph.metrics': ['taux_logements-vacants'],
+          column_settings: {
+            '["name","taux_logements-vacants"]': {
+              decimals: 1,
+              number_style: 'decimal',
+              suffix: ' %'
+            }
+          }
+        }
+      }
+    }
+  ]
+};
+
+const mockLineCardQueryResult = {
+  data: {
+    rows: [
+      [2019, 24585, 210072, 1.7889104687916526],
+      [2020, 24641, 211703, 1.7543445298366107],
+      [2021, 22084, 215607, 1.7916857986985582]
+    ],
+    cols: [
+      { name: 'year' },
+      { name: 'count_vacant_housing_private' },
+      { name: 'count_housing_private' },
+      { name: 'taux_logements-vacants' }
+    ]
+  },
+  status: 'completed'
+};
+
+const mockMetabaseDashboardWithLineCardNumber = {
+  id: 13,
+  dashcards: [
+    {
+      id: 971,
+      card_id: 821,
+      dashboard_tab_id: null,
+      row: 0,
+      col: 0,
+      size_x: 6,
+      size_y: 4,
+      visualization_settings: { 'card.title': 'Évolution simple' },
+      card: {
+        id: 821,
+        name: 'Évolution simple',
+        display: 'line',
+        description: null,
+        visualization_settings: {
+          'graph.dimensions': ['year'],
+          'graph.metrics': ['count']
+        }
+      }
+    }
+  ]
+};
+
+const mockLineCardQueryResultNumber = {
+  data: {
+    rows: [
+      [2024, 120],
+      [2025, 145]
+    ],
+    cols: [{ name: 'year' }, { name: 'count' }]
+  },
+  status: 'completed'
+};
+
+const mockMetabaseDashboardWithTableCard = {
+  id: 13,
+  dashcards: [
+    {
+      id: 980,
+      card_id: 830,
+      dashboard_tab_id: null,
+      row: 0,
+      col: 0,
       size_x: 12,
       size_y: 6,
       visualization_settings: { 'card.title': 'Statistiques par EPCI' },
       card: {
-        id: 820,
+        id: 830,
         name: 'Statistiques par EPCI',
         display: 'table',
         description: null,
@@ -271,8 +358,8 @@ const mockMetabaseDashboardWithCuratedTable = {
   id: 13,
   dashcards: [
     {
-      id: 971,
-      card_id: 821,
+      id: 981,
+      card_id: 831,
       dashboard_tab_id: null,
       row: 0,
       col: 0,
@@ -295,7 +382,7 @@ const mockMetabaseDashboardWithCuratedTable = {
         }
       },
       card: {
-        id: 821,
+        id: 831,
         name: 'Taux par EPCI',
         display: 'table',
         description: null,
@@ -325,8 +412,8 @@ const mockMetabaseDashboardWithRawTable = {
   id: 13,
   dashcards: [
     {
-      id: 972,
-      card_id: 822,
+      id: 982,
+      card_id: 832,
       dashboard_tab_id: null,
       row: 0,
       col: 0,
@@ -334,7 +421,7 @@ const mockMetabaseDashboardWithRawTable = {
       size_y: 6,
       visualization_settings: { 'card.title': 'Logements bruts' },
       card: {
-        id: 822,
+        id: 832,
         name: 'Logements bruts',
         display: 'table',
         description: null,
@@ -508,6 +595,28 @@ describe('Dashboard API', () => {
       }
     });
 
+    it('returns a line-chart card when display is "line"', async () => {
+      nock(METABASE_URL)
+        .get('/api/dashboard/13')
+        .reply(200, mockMetabaseDashboardWithLineCard);
+
+      const response = await request(url)
+        .get('/dashboards/13-analyses')
+        .use(tokenProvider(user));
+
+      expect(response.status).toBe(constants.HTTP_STATUS_OK);
+      const body = response.body as DashboardDTO;
+      expect('cards' in body).toBe(true);
+      if ('cards' in body) {
+        expect(body.cards).toHaveLength(1);
+        expect(body.cards[0]).toMatchObject({
+          id: 970,
+          type: 'line-chart',
+          title: 'Évolution du taux de logements vacants >2 ans'
+        });
+      }
+    });
+
     it('returns a table card when display is "table"', async () => {
       nock(METABASE_URL)
         .get('/api/dashboard/13')
@@ -523,7 +632,7 @@ describe('Dashboard API', () => {
       if ('cards' in body) {
         expect(body.cards).toHaveLength(1);
         expect(body.cards[0]).toMatchObject({
-          id: 970,
+          id: 980,
           type: 'table',
           title: 'Statistiques par EPCI'
         });
@@ -616,6 +725,8 @@ describe('Dashboard API', () => {
         id: 960,
         type: 'bar-chart',
         direction: 'vertical',
+        format: 'number',
+        decimals: 0,
         labels: ['1991 et apres', '1946 - 1990'],
         data: [3200, 1800]
       });
@@ -638,18 +749,50 @@ describe('Dashboard API', () => {
         id: 961,
         type: 'bar-chart',
         direction: 'horizontal',
+        format: 'number',
+        decimals: 0,
         labels: ['1991 et apres', '1946 - 1990'],
         data: [3200, 1800]
       });
     });
 
-    it('returns TableDataDTO with curated columns and per-column settings', async () => {
+    it('returns LineChartDataDTO with percent format for a percent-suffixed y column', async () => {
       nock(METABASE_URL)
         .get('/api/dashboard/13')
-        .reply(200, mockMetabaseDashboardWithCuratedTable);
+        .reply(200, mockMetabaseDashboardWithLineCard);
+      nock(METABASE_URL)
+        .post('/api/dashboard/13/dashcard/970/card/820/query')
+        .reply(200, mockLineCardQueryResult);
+
+      const response = await request(url)
+        .get('/dashboards/13-analyses/cards/970')
+        .use(tokenProvider(user));
+
+      expect(response.status).toBe(constants.HTTP_STATUS_OK);
+      expect(response.body).toMatchObject({
+        id: 970,
+        type: 'line-chart',
+        format: 'percent',
+        decimals: 1,
+        labels: ['2019', '2020', '2021'],
+        // Percent values are stored as display values in Metabase (1.79 for 1.79%)
+        // and divided by 100 in the response to match the scalar percentage
+        // convention. expect.closeTo absorbs IEEE-754 drift from the divide.
+        data: [
+          expect.closeTo(0.017889, 5),
+          expect.closeTo(0.017543, 5),
+          expect.closeTo(0.017917, 5)
+        ]
+      });
+    });
+
+    it('returns LineChartDataDTO with number format by default', async () => {
+      nock(METABASE_URL)
+        .get('/api/dashboard/13')
+        .reply(200, mockMetabaseDashboardWithLineCardNumber);
       nock(METABASE_URL)
         .post('/api/dashboard/13/dashcard/971/card/821/query')
-        .reply(200, mockCuratedTableQueryResult);
+        .reply(200, mockLineCardQueryResultNumber);
 
       const response = await request(url)
         .get('/dashboards/13-analyses/cards/971')
@@ -658,6 +801,29 @@ describe('Dashboard API', () => {
       expect(response.status).toBe(constants.HTTP_STATUS_OK);
       expect(response.body).toMatchObject({
         id: 971,
+        type: 'line-chart',
+        format: 'number',
+        decimals: 0,
+        labels: ['2024', '2025'],
+        data: [120, 145]
+      });
+    });
+
+    it('returns TableDataDTO with curated columns and per-column settings', async () => {
+      nock(METABASE_URL)
+        .get('/api/dashboard/13')
+        .reply(200, mockMetabaseDashboardWithCuratedTable);
+      nock(METABASE_URL)
+        .post('/api/dashboard/13/dashcard/981/card/831/query')
+        .reply(200, mockCuratedTableQueryResult);
+
+      const response = await request(url)
+        .get('/dashboards/13-analyses/cards/981')
+        .use(tokenProvider(user));
+
+      expect(response.status).toBe(constants.HTTP_STATUS_OK);
+      expect(response.body).toMatchObject({
+        id: 981,
         type: 'table',
         columns: [
           {
@@ -689,16 +855,16 @@ describe('Dashboard API', () => {
         .get('/api/dashboard/13')
         .reply(200, mockMetabaseDashboardWithRawTable);
       nock(METABASE_URL)
-        .post('/api/dashboard/13/dashcard/972/card/822/query')
+        .post('/api/dashboard/13/dashcard/982/card/832/query')
         .reply(200, mockRawTableQueryResult);
 
       const response = await request(url)
-        .get('/dashboards/13-analyses/cards/972')
+        .get('/dashboards/13-analyses/cards/982')
         .use(tokenProvider(user));
 
       expect(response.status).toBe(constants.HTTP_STATUS_OK);
       expect(response.body).toMatchObject({
-        id: 972,
+        id: 982,
         type: 'table',
         columns: [
           { name: 'housing_kind', displayName: 'Type', baseType: 'string' },

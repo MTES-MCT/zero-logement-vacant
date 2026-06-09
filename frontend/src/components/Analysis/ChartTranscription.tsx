@@ -7,11 +7,25 @@ import { match } from 'ts-pattern';
 interface ChartTranscriptionProps {
   labels: string[];
   data: number[];
-  type: 'pie-chart' | 'bar-chart';
+  type: 'pie-chart' | 'bar-chart' | 'line-chart';
+  format?: 'number' | 'percent';
+  decimals?: number;
+}
+
+function formatValue(
+  value: number,
+  format: 'number' | 'percent',
+  decimals: number
+): string {
+  return new Intl.NumberFormat('fr-FR', {
+    style: format === 'percent' ? 'percent' : 'decimal',
+    minimumFractionDigits: decimals,
+    maximumFractionDigits: decimals
+  }).format(value);
 }
 
 function ChartTranscription(props: Readonly<ChartTranscriptionProps>) {
-  const { labels, data, type } = props;
+  const { labels, data, type, format = 'number', decimals = 0 } = props;
 
   const items = match(type)
     .with('pie-chart', () => {
@@ -20,15 +34,25 @@ function ChartTranscription(props: Readonly<ChartTranscriptionProps>) {
         Array.reduce(0, (acc, v) => acc + v)
       );
       if (total === 0) return [];
+      const formatter = new Intl.NumberFormat('fr-FR', {
+        style: 'percent',
+        maximumFractionDigits: 0
+      });
       return pipe(
         Array.zip(labels, data),
-        Array.map(([label, value]) => `${label} : ${Math.round((value / total) * 100)} %`)
+        Array.map(([label, value]) => `${label} : ${formatter.format(value / total)}`)
       );
     })
     .with('bar-chart', () =>
       pipe(
         Array.zip(labels, data),
-        Array.map(([label, value]) => `${label} : ${value}`)
+        Array.map(([label, value]) => `${label} : ${formatValue(value, format, decimals)}`)
+      )
+    )
+    .with('line-chart', () =>
+      pipe(
+        Array.zip(labels, data),
+        Array.map(([label, value]) => `${label} : ${formatValue(value, format, decimals)}`)
       )
     )
     .exhaustive();

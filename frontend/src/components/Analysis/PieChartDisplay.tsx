@@ -1,4 +1,6 @@
-import { PieChart } from '@codegouvfr/react-dsfr/Chart/PieChart';
+import '@gouvfr/dsfr-chart/PieChart';
+import '@gouvfr/dsfr-chart/PieChart.css';
+
 import type { PieChartDataDTO } from '@zerologementvacant/models';
 
 import ChartTranscription from './ChartTranscription';
@@ -12,20 +14,10 @@ function PieChartDisplay(props: Readonly<PieChartDisplayProps>) {
 
   return (
     <>
-      <PieChart
-        x={chart.labels}
-        y={chart.data}
-        name={chart.labels}
-        color={[
-          'blue-france',
-          'blue-cumulus',
-          'blue-ecume',
-          'green-archipel',
-          'green-bourgeon',
-          'green-emeraude',
-          'green-menthe',
-          'green-tilleul-verveine'
-        ]}
+      <pie-chart
+        x={JSON.stringify([chart.labels])}
+        y={JSON.stringify([chart.data])}
+        name={JSON.stringify(chart.labels)}
       />
       <ChartTranscription
         labels={chart.labels}

@@ -7,6 +7,8 @@ import {
   genBarChartCard,
   genBarChartDataDTO,
   genFlatNumberCard,
+  genLineChartCard,
+  genLineChartDataDTO,
   genPercentageCard,
   genPieChartCard,
   genPieChartDataDTO,
@@ -167,8 +169,10 @@ describe('AnalysisCard', () => {
     setup({ card: pieCard, dashboardId });
 
     await screen.findByText('Répartition par type');
-    expect(screen.getByText('APPART : 88 %')).toBeInTheDocument();
-    expect(screen.getByText('MAISON : 12 %')).toBeInTheDocument();
+    // Intl.NumberFormat('fr-FR', { style: 'percent' }) uses a (narrow) NBSP
+    // between the number and '%' — match any whitespace to stay robust.
+    expect(screen.getByText(/APPART : 88\s%/)).toBeInTheDocument();
+    expect(screen.getByText(/MAISON : 12\s%/)).toBeInTheDocument();
   });
 
   it('shows a transcription accordion for a bar chart', async () => {
@@ -210,8 +214,9 @@ describe('AnalysisCard', () => {
     setup({ card: barCard, dashboardId });
 
     await screen.findByText('Répartition par date de construction');
-    expect(screen.getByText('1991 et apres : 3200')).toBeInTheDocument();
-    expect(screen.getByText('1946 - 1990 : 1800')).toBeInTheDocument();
+    // Intl.NumberFormat('fr-FR') groups with a (narrow) NBSP.
+    expect(screen.getByText(/1991 et apres : 3\s200/)).toBeInTheDocument();
+    expect(screen.getByText(/1946 - 1990 : 1\s800/)).toBeInTheDocument();
   });
 
   it('renders a table card with PM-curated headers', async () => {
@@ -373,5 +378,117 @@ describe('AnalysisCard', () => {
     );
     // After ascending sort by amount: B (10), C (20), A (30)
     expect(labelCells.map((c) => c.textContent?.trim())).toEqual(['B', 'C', 'A']);
+  });
+
+  it('renders a line chart card without error when card type is line-chart', async () => {
+    const lineCard = genLineChartCard({ id: 100, title: 'Évolution mensuelle' });
+    const cardData = genLineChartDataDTO({
+      id: 100,
+      labels: ['2024-01', '2024-02', '2024-03'],
+      data: [120, 145, 180]
+    });
+    mockAPI.use(
+      http.get(
+        `${config.apiEndpoint}/dashboards/:did/cards/:cid`,
+        () => HttpResponse.json(cardData)
+      )
+    );
+
+    setup({ card: lineCard, dashboardId });
+
+    await screen.findByText('Évolution mensuelle');
+    expect(screen.queryByRole('alert')).not.toBeInTheDocument();
+  });
+
+  it('shows a transcription accordion for a line chart', async () => {
+    const lineCard = genLineChartCard({ id: 100, title: 'Évolution mensuelle' });
+    const cardData = genLineChartDataDTO({
+      id: 100,
+      labels: ['2024-01', '2024-02', '2024-03'],
+      data: [120, 145, 180]
+    });
+    mockAPI.use(
+      http.get(
+        `${config.apiEndpoint}/dashboards/:did/cards/:cid`,
+        () => HttpResponse.json(cardData)
+      )
+    );
+
+    setup({ card: lineCard, dashboardId });
+
+    await screen.findByText('Évolution mensuelle');
+    expect(screen.getByRole('button', { name: /Transcription/i })).toBeInTheDocument();
+  });
+
+  it('shows raw value transcription items for a line chart', async () => {
+    const lineCard = genLineChartCard({ id: 100, title: 'Évolution mensuelle' });
+    const cardData = genLineChartDataDTO({
+      id: 100,
+      labels: ['2024-01', '2024-02', '2024-03'],
+      data: [120, 145, 180]
+    });
+    mockAPI.use(
+      http.get(
+        `${config.apiEndpoint}/dashboards/:did/cards/:cid`,
+        () => HttpResponse.json(cardData)
+      )
+    );
+
+    setup({ card: lineCard, dashboardId });
+
+    await screen.findByText('Évolution mensuelle');
+    expect(screen.getByText('2024-01 : 120')).toBeInTheDocument();
+    expect(screen.getByText('2024-02 : 145')).toBeInTheDocument();
+    expect(screen.getByText('2024-03 : 180')).toBeInTheDocument();
+  });
+
+  it('formats line chart transcription items as percent when format is "percent"', async () => {
+    const lineCard = genLineChartCard({ id: 506, title: 'Évolution du taux de logements vacants' });
+    // Percent data crosses the wire as 0–1 fractions; Intl.NumberFormat
+    // multiplies back by 100 to display "1,8 %".
+    const cardData = genLineChartDataDTO({
+      id: 506,
+      format: 'percent',
+      decimals: 1,
+      labels: ['2019', '2020', '2021'],
+      data: [0.017889104687916527, 0.017543445298366108, 0.017916857986985584]
+    });
+    mockAPI.use(
+      http.get(
+        `${config.apiEndpoint}/dashboards/:did/cards/:cid`,
+        () => HttpResponse.json(cardData)
+      )
+    );
+
+    setup({ card: lineCard, dashboardId });
+
+    await screen.findByText('Évolution du taux de logements vacants');
+    expect(screen.getByText(/2019 : 1,8\s%/)).toBeInTheDocument();
+    expect(screen.getByText(/2020 : 1,8\s%/)).toBeInTheDocument();
+    expect(screen.getByText(/2021 : 1,8\s%/)).toBeInTheDocument();
+  });
+
+  it('formats bar chart transcription items as percent when format is "percent"', async () => {
+    const barCard = genBarChartCard({ id: 507, title: 'Répartition en %' });
+    const cardData = genBarChartDataDTO({
+      id: 507,
+      direction: 'vertical',
+      format: 'percent',
+      decimals: 1,
+      labels: ['A', 'B'],
+      data: [0.125, 0.875]
+    });
+    mockAPI.use(
+      http.get(
+        `${config.apiEndpoint}/dashboards/:did/cards/:cid`,
+        () => HttpResponse.json(cardData)
+      )
+    );
+
+    setup({ card: barCard, dashboardId });
+
+    await screen.findByText('Répartition en %');
+    expect(screen.getByText(/A : 12,5\s%/)).toBeInTheDocument();
+    expect(screen.getByText(/B : 87,5\s%/)).toBeInTheDocument();
   });
 });

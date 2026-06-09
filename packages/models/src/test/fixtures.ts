@@ -11,6 +11,8 @@ import type {
   DashboardCard,
   DashboardDTO,
   FlatNumberCard,
+  LineChartCard,
+  LineChartDataDTO,
   PercentageCard,
   PieChartCard,
   PieChartDataDTO,
@@ -1096,6 +1098,44 @@ export function genBarChartDataDTO(
     id: faker.number.int({ min: 1, max: 9999 }),
     type: 'bar-chart',
     direction: faker.helpers.arrayElement(['horizontal', 'vertical'] as const),
+    format: 'number',
+    decimals: 0,
+    labels,
+    data,
+    ...override
+  };
+}
+
+export function genLineChartCard(
+  override?: Partial<LineChartCard>
+): LineChartCard {
+  return {
+    id: faker.number.int({ min: 1, max: 9999 }),
+    type: 'line-chart',
+    title: faker.lorem.words(3),
+    description: null,
+    decimals: 0,
+    position: { col: 0, row: 0 },
+    size: { width: 6, height: 4 },
+    ...override
+  };
+}
+
+export function genLineChartDataDTO(
+  override?: Partial<LineChartDataDTO>
+): LineChartDataDTO {
+  const series = faker.number.int({ min: 2, max: 5 });
+  const labels: string[] = [];
+  const data: number[] = [];
+  for (let i = 0; i < series; i++) {
+    labels.push(faker.word.noun());
+    data.push(faker.number.int({ min: 1, max: 10000 }));
+  }
+  return {
+    id: faker.number.int({ min: 1, max: 9999 }),
+    type: 'line-chart',
+    format: 'number',
+    decimals: 0,
     labels,
     data,
     ...override

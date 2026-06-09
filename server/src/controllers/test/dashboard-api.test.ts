@@ -253,13 +253,23 @@ const mockMetabaseDashboardWithLineCard = {
       col: 0,
       size_x: 6,
       size_y: 4,
-      visualization_settings: { 'card.title': 'Évolution mensuelle' },
+      visualization_settings: { 'card.title': 'Évolution du taux de logements vacants >2 ans' },
       card: {
         id: 820,
-        name: 'Évolution mensuelle',
+        name: 'Évolution du taux de logements vacants >2 ans',
         display: 'line',
         description: null,
-        visualization_settings: {}
+        visualization_settings: {
+          'graph.dimensions': ['year'],
+          'graph.metrics': ['taux_logements-vacants'],
+          column_settings: {
+            '["name","taux_logements-vacants"]': {
+              decimals: 1,
+              number_style: 'decimal',
+              suffix: ' %'
+            }
+          }
+        }
       }
     }
   ]
@@ -268,11 +278,53 @@ const mockMetabaseDashboardWithLineCard = {
 const mockLineCardQueryResult = {
   data: {
     rows: [
-      ['2024-01', 120],
-      ['2024-02', 145],
-      ['2024-03', 180]
+      [2019, 24585, 210072, 1.7889104687916526],
+      [2020, 24641, 211703, 1.7543445298366107],
+      [2021, 22084, 215607, 1.7916857986985582]
     ],
-    cols: [{ name: 'month' }, { name: 'count' }]
+    cols: [
+      { name: 'year' },
+      { name: 'count_vacant_housing_private' },
+      { name: 'count_housing_private' },
+      { name: 'taux_logements-vacants' }
+    ]
+  },
+  status: 'completed'
+};
+
+const mockMetabaseDashboardWithLineCardNumber = {
+  id: 13,
+  dashcards: [
+    {
+      id: 971,
+      card_id: 821,
+      dashboard_tab_id: null,
+      row: 0,
+      col: 0,
+      size_x: 6,
+      size_y: 4,
+      visualization_settings: { 'card.title': 'Évolution simple' },
+      card: {
+        id: 821,
+        name: 'Évolution simple',
+        display: 'line',
+        description: null,
+        visualization_settings: {
+          'graph.dimensions': ['year'],
+          'graph.metrics': ['count']
+        }
+      }
+    }
+  ]
+};
+
+const mockLineCardQueryResultNumber = {
+  data: {
+    rows: [
+      [2024, 120],
+      [2025, 145]
+    ],
+    cols: [{ name: 'year' }, { name: 'count' }]
   },
   status: 'completed'
 };
@@ -560,7 +612,7 @@ describe('Dashboard API', () => {
         expect(body.cards[0]).toMatchObject({
           id: 970,
           type: 'line-chart',
-          title: 'Évolution mensuelle'
+          title: 'Évolution du taux de logements vacants >2 ans'
         });
       }
     });
@@ -673,6 +725,8 @@ describe('Dashboard API', () => {
         id: 960,
         type: 'bar-chart',
         direction: 'vertical',
+        format: 'number',
+        decimals: 0,
         labels: ['1991 et apres', '1946 - 1990'],
         data: [3200, 1800]
       });
@@ -695,12 +749,14 @@ describe('Dashboard API', () => {
         id: 961,
         type: 'bar-chart',
         direction: 'horizontal',
+        format: 'number',
+        decimals: 0,
         labels: ['1991 et apres', '1946 - 1990'],
         data: [3200, 1800]
       });
     });
 
-    it('returns LineChartDataDTO for display "line"', async () => {
+    it('returns LineChartDataDTO with percent format for a percent-suffixed y column', async () => {
       nock(METABASE_URL)
         .get('/api/dashboard/13')
         .reply(200, mockMetabaseDashboardWithLineCard);
@@ -716,8 +772,33 @@ describe('Dashboard API', () => {
       expect(response.body).toMatchObject({
         id: 970,
         type: 'line-chart',
-        labels: ['2024-01', '2024-02', '2024-03'],
-        data: [120, 145, 180]
+        format: 'percent',
+        decimals: 1,
+        labels: ['2019', '2020', '2021'],
+        data: [1.7889104687916526, 1.7543445298366107, 1.7916857986985582]
+      });
+    });
+
+    it('returns LineChartDataDTO with number format by default', async () => {
+      nock(METABASE_URL)
+        .get('/api/dashboard/13')
+        .reply(200, mockMetabaseDashboardWithLineCardNumber);
+      nock(METABASE_URL)
+        .post('/api/dashboard/13/dashcard/971/card/821/query')
+        .reply(200, mockLineCardQueryResultNumber);
+
+      const response = await request(url)
+        .get('/dashboards/13-analyses/cards/971')
+        .use(tokenProvider(user));
+
+      expect(response.status).toBe(constants.HTTP_STATUS_OK);
+      expect(response.body).toMatchObject({
+        id: 971,
+        type: 'line-chart',
+        format: 'number',
+        decimals: 0,
+        labels: ['2024', '2025'],
+        data: [120, 145]
       });
     });
 

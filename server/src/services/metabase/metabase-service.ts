@@ -31,7 +31,10 @@ export interface DashcardRef {
   cardId: number;
   type: CardType;
   valueColumn: string | null;
+  labelColumn: string | null;
   direction: 'horizontal' | 'vertical' | null;
+  format: 'number' | 'percent';
+  decimals: number;
   tableColumns: ReadonlyArray<TableColumnRef> | null;
   dashboardParameters: ReadonlyArray<DashboardParameter>;
 }
@@ -39,10 +42,17 @@ export interface DashcardRef {
 export type PieChartValue = { labels: string[]; data: number[] };
 export type BarChartValue = {
   direction: 'horizontal' | 'vertical';
+  format: 'number' | 'percent';
+  decimals: number;
   labels: string[];
   data: number[];
 };
-export type LineChartValue = { labels: string[]; data: number[] };
+export type LineChartValue = {
+  format: 'number' | 'percent';
+  decimals: number;
+  labels: string[];
+  data: number[];
+};
 export type TableValue = {
   columns: TableColumnMeta[];
   rows: unknown[][];
@@ -63,8 +73,11 @@ export interface MetabaseService {
     cardId: number,
     parameters: ReadonlyArray<DashboardParameter & { value: string }>,
     valueColumn: string | null,
+    labelColumn: string | null,
     cardType: CardType,
     direction: 'horizontal' | 'vertical' | null,
+    format: 'number' | 'percent',
+    decimals: number,
     tableColumns: ReadonlyArray<TableColumnRef> | null
   ): Promise<CardValue>;
 }

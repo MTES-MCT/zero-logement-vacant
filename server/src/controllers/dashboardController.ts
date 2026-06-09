@@ -74,8 +74,11 @@ async function findOneCard(
     dashcard.cardId,
     queryParameters,
     dashcard.valueColumn,
+    dashcard.labelColumn,
     dashcard.type,
     dashcard.direction,
+    dashcard.format,
+    dashcard.decimals,
     dashcard.tableColumns
   );
 
@@ -85,6 +88,8 @@ async function findOneCard(
       id: numericCid,
       type: 'bar-chart',
       direction: barRaw.direction,
+      format: barRaw.format,
+      decimals: barRaw.decimals,
       labels: barRaw.labels,
       data: barRaw.data
     });
@@ -96,6 +101,8 @@ async function findOneCard(
     response.status(constants.HTTP_STATUS_OK).json({
       id: numericCid,
       type: 'line-chart',
+      format: lineRaw.format,
+      decimals: lineRaw.decimals,
       labels: lineRaw.labels,
       data: lineRaw.data
     });

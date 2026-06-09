@@ -34,6 +34,8 @@ interface MetabaseVisualizationSettings {
   'scalar.decimals'?: number;
   'scalar.field'?: string;
   'table.columns'?: Array<{ name: string; enabled: boolean }>;
+  'graph.dimensions'?: string[];
+  'graph.metrics'?: string[];
   column_settings?: Record<string, MetabaseColumnSettings>;
 }
 
@@ -50,6 +52,8 @@ interface MetabaseDashcardVisualizationSettings {
   'number.style'?: string;
   'scalar.field'?: string;
   'table.columns'?: Array<{ name: string; enabled: boolean }>;
+  'graph.dimensions'?: string[];
+  'graph.metrics'?: string[];
   column_settings?: Record<string, MetabaseColumnSettings>;
 }
 
@@ -101,6 +105,12 @@ function mergeVisualizationSettings(
     ...(dashcard['table.columns'] !== undefined && {
       'table.columns': dashcard['table.columns']
     }),
+    ...(dashcard['graph.dimensions'] !== undefined && {
+      'graph.dimensions': dashcard['graph.dimensions']
+    }),
+    ...(dashcard['graph.metrics'] !== undefined && {
+      'graph.metrics': dashcard['graph.metrics']
+    }),
     column_settings: { ...(card.column_settings ?? {}), ...(dashcard.column_settings ?? {}) }
   };
 }
@@ -118,6 +128,29 @@ function activeColumnSettings(
   const activeCol = (settings['table.columns'] ?? []).find((c) => c.enabled);
   if (!activeCol) return undefined;
   return settings.column_settings?.[JSON.stringify(['name', activeCol.name])];
+}
+
+function resolveAxisColumns(
+  settings: MetabaseVisualizationSettings
+): { labelColumn: string | null; valueColumn: string | null } {
+  return {
+    labelColumn: settings['graph.dimensions']?.[0] ?? null,
+    valueColumn: settings['graph.metrics']?.[0] ?? null
+  };
+}
+
+function detectColumnFormat(
+  settings: MetabaseVisualizationSettings,
+  columnName: string | null
+): { format: 'number' | 'percent'; decimals: number } {
+  if (columnName === null) return { format: 'number', decimals: 0 };
+  const col = settings.column_settings?.[JSON.stringify(['name', columnName])];
+  if (!col) return { format: 'number', decimals: 0 };
+  const isPercent = col.suffix?.includes('%') === true || col.number_style === 'percent';
+  return {
+    format: isPercent ? 'percent' : 'number',
+    decimals: col.decimals ?? 0
+  };
 }
 
 function detectCardType(
@@ -290,6 +323,10 @@ function findDashcardRef(
   const normalized = normalizeDashcard(found);
   if (!normalized) return null;
 
+  const settings = mergeVisualizationSettings(
+    found.card!.visualization_settings,
+    found.visualization_settings
+  );
   const dashboardParameters = (raw.parameters ?? []).map(
     (p): DashboardParameter => ({ id: p.id, slug: p.slug, type: p.type })
   );
@@ -300,64 +337,82 @@ function findDashcardRef(
       cardId: found.card_id,
       type: 'pie-chart',
       valueColumn: null,
+      labelColumn: null,
       direction: null,
+      format: 'number',
+      decimals: 0,
       tableColumns: null,
       dashboardParameters
     };
   }
 
-  if (normalized.type === 'bar-chart') {
+  if (normalized.type === 'bar-chart' || normalized.type === 'line-chart') {
+    const { labelColumn, valueColumn } = resolveAxisColumns(settings);
+    const { format, decimals } = detectColumnFormat(settings, valueColumn);
     return {
       dashcardId: found.id,
       cardId: found.card_id,
-      type: 'bar-chart',
-      valueColumn: null,
-      direction: found.card!.display === 'bar' ? 'vertical' : 'horizontal',
+      type: normalized.type,
+      valueColumn,
+      labelColumn,
+      direction:
+        normalized.type === 'bar-chart'
+          ? found.card!.display === 'bar'
+            ? 'vertical'
+            : 'horizontal'
+          : null,
+      format,
+      decimals,
       tableColumns: null,
       dashboardParameters
     };
   }
 
   if (normalized.type === 'table') {
-    const settings = mergeVisualizationSettings(
-      found.card!.visualization_settings,
-      found.visualization_settings
-    );
     return {
       dashcardId: found.id,
       cardId: found.card_id,
       type: 'table',
       valueColumn: null,
+      labelColumn: null,
       direction: null,
+      format: 'number',
+      decimals: 0,
       tableColumns: buildTableColumnRefs(settings),
       dashboardParameters
     };
   }
 
-  if (normalized.type === 'line-chart') {
-    return {
-      dashcardId: found.id,
-      cardId: found.card_id,
-      type: 'line-chart',
-      valueColumn: null,
-      direction: null,
-      tableColumns: null,
-      dashboardParameters
-    };
-  }
-
-  const settings = mergeVisualizationSettings(
-    found.card!.visualization_settings,
-    found.visualization_settings
-  );
   return {
     dashcardId: found.id,
     cardId: found.card_id,
     type: normalized.type,
     valueColumn: settings['scalar.field'] ?? null,
+    labelColumn: null,
     direction: null,
+    format: 'number',
+    decimals: 0,
     tableColumns: null,
     dashboardParameters
+  };
+}
+
+function extractAxisValues(
+  data: MetabaseQueryResult,
+  labelColumn: string | null,
+  valueColumn: string | null
+): { labels: string[]; values: number[] } {
+  const labelIdx = labelColumn
+    ? data.data.cols.findIndex((c) => c.name === labelColumn)
+    : -1;
+  const valueIdx = valueColumn
+    ? data.data.cols.findIndex((c) => c.name === valueColumn)
+    : -1;
+  const xIndex = labelIdx !== -1 ? labelIdx : 0;
+  const yIndex = valueIdx !== -1 ? valueIdx : 1;
+  return {
+    labels: data.data.rows.map((row) => String(row[xIndex])),
+    values: data.data.rows.map((row) => Number(row[yIndex]))
   };
 }
 
@@ -395,8 +450,11 @@ class MetabaseAPI implements MetabaseService {
     cardId: number,
     parameters: ReadonlyArray<DashboardParameter & { value: string }>,
     valueColumn: string | null,
+    labelColumn: string | null,
     cardType: CardType,
     direction: 'horizontal' | 'vertical' | null,
+    format: 'number' | 'percent',
+    decimals: number,
     tableColumns: ReadonlyArray<TableColumnRef> | null
   ): Promise<CardValue> {
     const { data } = await this.http.post<MetabaseQueryResult>(
@@ -416,18 +474,24 @@ class MetabaseAPI implements MetabaseService {
       if (direction === null) {
         throw new Error('direction is required for bar-chart card type');
       }
+      const { labels, values } = extractAxisValues(data, labelColumn, valueColumn);
       const result: BarChartValue = {
         direction,
-        labels: data.data.rows.map((row) => String(row[0])),
-        data: data.data.rows.map((row) => Number(row[1]))
+        format,
+        decimals,
+        labels,
+        data: values
       };
       return result;
     }
 
     if (cardType === 'line-chart') {
+      const { labels, values } = extractAxisValues(data, labelColumn, valueColumn);
       const result: LineChartValue = {
-        labels: data.data.rows.map((row) => String(row[0])),
-        data: data.data.rows.map((row) => Number(row[1]))
+        format,
+        decimals,
+        labels,
+        data: values
       };
       return result;
     }

@@ -99,6 +99,7 @@ function AnalysisCard(props: Readonly<Props>) {
         .with({ type: 'table' }, (chart) => (
           <TableDisplay chart={chart} caption={card.title} />
         ))
+        .with({ type: 'line-chart' }, () => null)
         .otherwise((scalar) => (
           <ShowcaseValue>{formatValue(scalar.data, card)}</ShowcaseValue>
         ))}

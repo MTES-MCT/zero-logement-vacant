@@ -3,8 +3,16 @@ fileignoreconfig:
   checksum: 5b3a281c32a6fab83c8385a64a45faddcac10f226b8daa85bdbf6a29d6b062a8
 - filename: README.md
   checksum: e9453f34a422b94f243daf56302141d9fc22cddf802423f64da72cee91c407d2
+- filename: analytics/dagster/src/assets/dwh/ingest/ingest_cerema_lovac_users_asset.py
+  checksum: 37f1b166a3faf6cb78b7591b6f7031aa110e05e8aeb90b3b222ee22bf71f9713
 - filename: analytics/dagster/src/assets/dwh/ingest/ingest_postgres_asset.py
   checksum: b379fbb88e46511c62682abf4cb422e730c4210f6dadc9d5ca648dfd68ff8f88
+- filename: analytics/dagster/src/config.py
+  checksum: 8f99243a8283bb0b5ea0f6513647557274a5da958684e68a9dc3b86b44974a5b
+- filename: analytics/dbt/models/marts/production/marts_production_cerema_lovac_users_unregistered.sql
+  checksum: 4f5752352d75a7a4f9504cb7f1495c2a2cec6725942a34fa7f572feef03436a0
+- filename: analytics/dbt/models/staging/external/cerema/stg_external_cerema_lovac_users.sql
+  checksum: e6ccfed9e9dd6d2b53f3f00eb89a1cb574e516736d7f2122e53c2f820b2f81f9
 - filename: analytics/dagster/src/assets/populate_edited_owners_ban_addresses.py
   checksum: c3a27f2457d2c1cd5f01ef1940c78bc40f8dedb0aff7a5edbc0d1b1e5000f5d3
 - filename: analytics/dagster/src/assets/populate_housings_ban_addresses.py

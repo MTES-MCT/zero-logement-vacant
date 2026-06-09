@@ -6,4 +6,14 @@ models:
   - name: stg_external_cerema_prix_volumes_appartements
   - name: stg_external_cerema_prix_volumes_bati
   - name: stg_external_cerema_prix_volumes_maisons
-    
+  - name: stg_external_cerema_lovac_users
+    description: "LOVAC users from CEREMA Portail DF — every active user belonging to a structure that has LOVAC access. Refreshed monthly."
+    columns:
+      - name: email
+        description: "User email; the join key against ZLV's production.users."
+        tests:
+          - not_null
+      - name: structure_acces_lovac
+        description: "Date on which the user's structure was granted LOVAC access. Always set in this staging table because the upstream script pre-filters to LOVAC-enabled structures."
+        tests:
+          - not_null

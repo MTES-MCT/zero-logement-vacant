@@ -95,6 +95,7 @@ function AnalysisCard(props: Readonly<Props>) {
         .with({ type: 'bar-chart' }, (d) => (
           <BarChartDisplay chart={d} />
         ))
+        .with({ type: 'table' }, () => null)
         .otherwise((d) => (
           <ShowcaseValue>{formatValue(d.data, card)}</ShowcaseValue>
         ))}

@@ -1,4 +1,6 @@
-import { BarChart } from '@codegouvfr/react-dsfr/Chart/BarChart';
+import '@gouvfr/dsfr-chart/BarChart';
+import '@gouvfr/dsfr-chart/BarChart.css';
+
 import { styled } from '@mui/material/styles';
 import type { BarChartDataDTO } from '@zerologementvacant/models';
 
@@ -6,8 +8,8 @@ import ChartTranscription from './ChartTranscription';
 
 const NoLegend = styled('div')({
   '& .flex:has(.legende_dot)': {
-    display: 'none',
-  },
+    display: 'none'
+  }
 });
 
 interface BarChartDisplayProps {
@@ -16,15 +18,15 @@ interface BarChartDisplayProps {
 
 function BarChartDisplay(props: Readonly<BarChartDisplayProps>) {
   const { chart } = props;
+  const horizontal = chart.direction === 'horizontal';
 
   return (
     <>
       <NoLegend>
-        <BarChart
-          x={[chart.labels]}
-          y={[chart.data]}
-          horizontal={chart.direction === 'horizontal'}
-          color={['blue-france']}
+        <bar-chart
+          x={JSON.stringify([chart.labels])}
+          y={JSON.stringify([chart.data])}
+          horizontal={horizontal ? 'true' : undefined}
         />
       </NoLegend>
       <ChartTranscription

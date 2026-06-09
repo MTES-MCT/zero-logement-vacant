@@ -1,4 +1,6 @@
-import { LineChart } from '@codegouvfr/react-dsfr/Chart/LineChart';
+import '@gouvfr/dsfr-chart/LineChart';
+import '@gouvfr/dsfr-chart/LineChart.css';
+
 import type { LineChartDataDTO } from '@zerologementvacant/models';
 
 import ChartTranscription from './ChartTranscription';
@@ -12,7 +14,10 @@ function LineChartDisplay(props: Readonly<LineChartDisplayProps>) {
 
   return (
     <>
-      <LineChart x={chart.labels} y={chart.data} color="blue-france" />
+      <line-chart
+        x={JSON.stringify([chart.labels])}
+        y={JSON.stringify([chart.data])}
+      />
       <ChartTranscription
         labels={chart.labels}
         data={chart.data}

@@ -13,6 +13,7 @@ import type {
   DashboardData,
   DashboardParameter,
   DashcardRef,
+  LineChartValue,
   MetabaseService,
   PieChartValue,
   TableColumnRef,
@@ -231,6 +232,18 @@ function normalizeDashcard(dashcard: MetabaseDashcard): DashboardCard | null {
     };
   }
 
+  if (card.display === 'line') {
+    return {
+      id: dashcard.id,
+      type: 'line-chart',
+      title: dashcard.visualization_settings['card.title'] ?? card.name,
+      description: card.description,
+      decimals: 0,
+      position: { col: dashcard.col, row: dashcard.row },
+      size: { width: dashcard.size_x, height: dashcard.size_y }
+    };
+  }
+
   if (card.display !== 'scalar') return null;
 
   const settings = mergeVisualizationSettings(
@@ -321,6 +334,18 @@ function findDashcardRef(
     };
   }
 
+  if (normalized.type === 'line-chart') {
+    return {
+      dashcardId: found.id,
+      cardId: found.card_id,
+      type: 'line-chart',
+      valueColumn: null,
+      direction: null,
+      tableColumns: null,
+      dashboardParameters
+    };
+  }
+
   const settings = mergeVisualizationSettings(
     found.card!.visualization_settings,
     found.visualization_settings
@@ -393,6 +418,14 @@ class MetabaseAPI implements MetabaseService {
       }
       const result: BarChartValue = {
         direction,
+        labels: data.data.rows.map((row) => String(row[0])),
+        data: data.data.rows.map((row) => Number(row[1]))
+      };
+      return result;
+    }
+
+    if (cardType === 'line-chart') {
+      const result: LineChartValue = {
         labels: data.data.rows.map((row) => String(row[0])),
         data: data.data.rows.map((row) => Number(row[1]))
       };

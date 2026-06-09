@@ -6,6 +6,7 @@ import jwt from 'jsonwebtoken';
 import type { CardDataDTO, DashboardDTO, Resource } from '@zerologementvacant/models';
 import type {
   BarChartValue,
+  LineChartValue,
   PieChartValue,
   TableValue
 } from '~/services/metabase/metabase-service';
@@ -86,6 +87,17 @@ async function findOneCard(
       direction: barRaw.direction,
       labels: barRaw.labels,
       data: barRaw.data
+    });
+    return;
+  }
+
+  if (dashcard.type === 'line-chart') {
+    const lineRaw = raw as LineChartValue;
+    response.status(constants.HTTP_STATUS_OK).json({
+      id: numericCid,
+      type: 'line-chart',
+      labels: lineRaw.labels,
+      data: lineRaw.data
     });
     return;
   }

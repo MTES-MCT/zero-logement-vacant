@@ -42,11 +42,17 @@ export type BarChartValue = {
   labels: string[];
   data: number[];
 };
+export type LineChartValue = { labels: string[]; data: number[] };
 export type TableValue = {
   columns: TableColumnMeta[];
   rows: unknown[][];
 };
-export type CardValue = number | PieChartValue | BarChartValue | TableValue;
+export type CardValue =
+  | number
+  | PieChartValue
+  | BarChartValue
+  | LineChartValue
+  | TableValue;
 
 export interface MetabaseService {
   getDashboard(id: number): Promise<DashboardData>;

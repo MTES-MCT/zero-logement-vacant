@@ -1,6 +1,11 @@
 import axios from 'axios';
 
-import type { CardType, DashboardCard, Tab } from '@zerologementvacant/models';
+import type {
+  CardType,
+  DashboardCard,
+  Tab,
+  TableColumnMeta
+} from '@zerologementvacant/models';
 import config from '~/infra/config';
 import type {
   BarChartValue,
@@ -9,7 +14,9 @@ import type {
   DashboardParameter,
   DashcardRef,
   MetabaseService,
-  PieChartValue
+  PieChartValue,
+  TableColumnRef,
+  TableValue
 } from './metabase-service';
 
 // ─── Metabase internal types (minimal subset) ─────────────────────────────────
@@ -18,6 +25,7 @@ interface MetabaseColumnSettings {
   number_style?: string;
   decimals?: number;
   suffix?: string;
+  column_title?: string;
 }
 
 interface MetabaseVisualizationSettings {
@@ -71,6 +79,8 @@ interface MetabaseDashboardRaw {
 
 interface MetabaseCol {
   name: string;
+  display_name?: string;
+  base_type?: string;
 }
 
 interface MetabaseQueryResult {
@@ -131,6 +141,53 @@ function detectDecimals(settings: MetabaseVisualizationSettings): number {
   return col?.decimals ?? 0;
 }
 
+function normalizeBaseType(
+  metabaseType: string | undefined
+): TableColumnMeta['baseType'] {
+  if (!metabaseType) return 'unknown';
+  if (/Integer|Decimal|Float|Number/.test(metabaseType)) return 'number';
+  if (/Date|Time/.test(metabaseType)) return 'date';
+  if (metabaseType.endsWith('Boolean')) return 'boolean';
+  if (metabaseType.endsWith('Text') || metabaseType.endsWith('String')) {
+    return 'string';
+  }
+  return 'unknown';
+}
+
+// Returns the PM-curated column names in display order. Returns null when no
+// `table.columns` is configured (callers fall back to query columns).
+function resolveVisibleColumnNames(
+  settings: MetabaseVisualizationSettings
+): string[] | null {
+  const tableColumns = settings['table.columns'];
+  if (!tableColumns || tableColumns.length === 0) return null;
+  return tableColumns.filter((c) => c.enabled).map((c) => c.name);
+}
+
+function buildTableColumnRefs(
+  settings: MetabaseVisualizationSettings
+): TableColumnRef[] {
+  const names = resolveVisibleColumnNames(settings);
+  if (names === null) return []; // sentinel: use all query cols
+  return names.map((name) => {
+    const colSettings =
+      settings.column_settings?.[JSON.stringify(['name', name])];
+    return {
+      name,
+      ...(colSettings?.column_title !== undefined && {
+        columnTitle: colSettings.column_title
+      }),
+      ...(colSettings?.decimals !== undefined && {
+        decimals: colSettings.decimals
+      }),
+      ...(colSettings?.suffix !== undefined && { suffix: colSettings.suffix }),
+      ...(colSettings?.number_style !== undefined && {
+        numberStyle: colSettings.number_style
+      })
+    };
+  });
+}
+
 function normalizeDashcard(dashcard: MetabaseDashcard): DashboardCard | null {
   if (dashcard.card === null) return null;
   const { card } = dashcard;
@@ -151,6 +208,18 @@ function normalizeDashcard(dashcard: MetabaseDashcard): DashboardCard | null {
     return {
       id: dashcard.id,
       type: 'bar-chart',
+      title: dashcard.visualization_settings['card.title'] ?? card.name,
+      description: card.description,
+      decimals: 0,
+      position: { col: dashcard.col, row: dashcard.row },
+      size: { width: dashcard.size_x, height: dashcard.size_y }
+    };
+  }
+
+  if (card.display === 'table') {
+    return {
+      id: dashcard.id,
+      type: 'table',
       title: dashcard.visualization_settings['card.title'] ?? card.name,
       description: card.description,
       decimals: 0,

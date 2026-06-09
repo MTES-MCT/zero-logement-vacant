@@ -242,6 +242,29 @@ const mockBarCardQueryResult = {
   status: 'completed'
 };
 
+const mockMetabaseDashboardWithTableCard = {
+  id: 13,
+  dashcards: [
+    {
+      id: 970,
+      card_id: 820,
+      dashboard_tab_id: null,
+      row: 0,
+      col: 0,
+      size_x: 12,
+      size_y: 6,
+      visualization_settings: { 'card.title': 'Statistiques par EPCI' },
+      card: {
+        id: 820,
+        name: 'Statistiques par EPCI',
+        display: 'table',
+        description: null,
+        visualization_settings: {}
+      }
+    }
+  ]
+};
+
 describe('Dashboard API', () => {
   let url: string;
 
@@ -388,6 +411,28 @@ describe('Dashboard API', () => {
           id: 961,
           type: 'bar-chart',
           title: 'Répartition horizontale'
+        });
+      }
+    });
+
+    it('returns a table card when display is "table"', async () => {
+      nock(METABASE_URL)
+        .get('/api/dashboard/13')
+        .reply(200, mockMetabaseDashboardWithTableCard);
+
+      const response = await request(url)
+        .get('/dashboards/13-analyses')
+        .use(tokenProvider(user));
+
+      expect(response.status).toBe(constants.HTTP_STATUS_OK);
+      const body = response.body as DashboardDTO;
+      expect('cards' in body).toBe(true);
+      if ('cards' in body) {
+        expect(body.cards).toHaveLength(1);
+        expect(body.cards[0]).toMatchObject({
+          id: 970,
+          type: 'table',
+          title: 'Statistiques par EPCI'
         });
       }
     });

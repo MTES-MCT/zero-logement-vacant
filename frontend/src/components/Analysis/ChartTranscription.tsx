@@ -7,7 +7,7 @@ import { match } from 'ts-pattern';
 interface ChartTranscriptionProps {
   labels: string[];
   data: number[];
-  type: 'pie-chart' | 'bar-chart';
+  type: 'pie-chart' | 'bar-chart' | 'line-chart';
 }
 
 function ChartTranscription(props: Readonly<ChartTranscriptionProps>) {
@@ -26,6 +26,12 @@ function ChartTranscription(props: Readonly<ChartTranscriptionProps>) {
       );
     })
     .with('bar-chart', () =>
+      pipe(
+        Array.zip(labels, data),
+        Array.map(([label, value]) => `${label} : ${value}`)
+      )
+    )
+    .with('line-chart', () =>
       pipe(
         Array.zip(labels, data),
         Array.map(([label, value]) => `${label} : ${value}`)

@@ -7,6 +7,8 @@ import {
   genBarChartCard,
   genBarChartDataDTO,
   genFlatNumberCard,
+  genLineChartCard,
+  genLineChartDataDTO,
   genPercentageCard,
   genPieChartCard,
   genPieChartDataDTO,
@@ -373,5 +375,67 @@ describe('AnalysisCard', () => {
     );
     // After ascending sort by amount: B (10), C (20), A (30)
     expect(labelCells.map((c) => c.textContent?.trim())).toEqual(['B', 'C', 'A']);
+  });
+
+  it('renders a line chart card without error when card type is line-chart', async () => {
+    const lineCard = genLineChartCard({ id: 100, title: 'Évolution mensuelle' });
+    const cardData = genLineChartDataDTO({
+      id: 100,
+      labels: ['2024-01', '2024-02', '2024-03'],
+      data: [120, 145, 180]
+    });
+    mockAPI.use(
+      http.get(
+        `${config.apiEndpoint}/dashboards/:did/cards/:cid`,
+        () => HttpResponse.json(cardData)
+      )
+    );
+
+    setup({ card: lineCard, dashboardId });
+
+    await screen.findByText('Évolution mensuelle');
+    expect(screen.queryByRole('alert')).not.toBeInTheDocument();
+  });
+
+  it('shows a transcription accordion for a line chart', async () => {
+    const lineCard = genLineChartCard({ id: 100, title: 'Évolution mensuelle' });
+    const cardData = genLineChartDataDTO({
+      id: 100,
+      labels: ['2024-01', '2024-02', '2024-03'],
+      data: [120, 145, 180]
+    });
+    mockAPI.use(
+      http.get(
+        `${config.apiEndpoint}/dashboards/:did/cards/:cid`,
+        () => HttpResponse.json(cardData)
+      )
+    );
+
+    setup({ card: lineCard, dashboardId });
+
+    await screen.findByText('Évolution mensuelle');
+    expect(screen.getByRole('button', { name: /Transcription/i })).toBeInTheDocument();
+  });
+
+  it('shows raw value transcription items for a line chart', async () => {
+    const lineCard = genLineChartCard({ id: 100, title: 'Évolution mensuelle' });
+    const cardData = genLineChartDataDTO({
+      id: 100,
+      labels: ['2024-01', '2024-02', '2024-03'],
+      data: [120, 145, 180]
+    });
+    mockAPI.use(
+      http.get(
+        `${config.apiEndpoint}/dashboards/:did/cards/:cid`,
+        () => HttpResponse.json(cardData)
+      )
+    );
+
+    setup({ card: lineCard, dashboardId });
+
+    await screen.findByText('Évolution mensuelle');
+    expect(screen.getByText('2024-01 : 120')).toBeInTheDocument();
+    expect(screen.getByText('2024-02 : 145')).toBeInTheDocument();
+    expect(screen.getByText('2024-03 : 180')).toBeInTheDocument();
   });
 });

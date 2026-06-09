@@ -11,6 +11,7 @@ import { match } from 'ts-pattern';
 import { useFindOneCardQuery } from '~/services/dashboard.service';
 
 import BarChartDisplay from './BarChartDisplay';
+import LineChartDisplay from './LineChartDisplay';
 import PieChartDisplay from './PieChartDisplay';
 import TableDisplay from './TableDisplay';
 
@@ -99,7 +100,9 @@ function AnalysisCard(props: Readonly<Props>) {
         .with({ type: 'table' }, (chart) => (
           <TableDisplay chart={chart} caption={card.title} />
         ))
-        .with({ type: 'line-chart' }, () => null)
+        .with({ type: 'line-chart' }, (chart) => (
+          <LineChartDisplay chart={chart} />
+        ))
         .otherwise((scalar) => (
           <ShowcaseValue>{formatValue(scalar.data, card)}</ShowcaseValue>
         ))}

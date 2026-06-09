@@ -15,7 +15,10 @@ import type {
   PieChartCard,
   PieChartDataDTO,
   ScalarCardDataDTO,
-  Tab
+  Tab,
+  TableCard,
+  TableColumnMeta,
+  TableDataDTO
 } from '../DashboardDTO';
 import { AddressDTO } from '../AddressDTO';
 import type { BuildingDTO } from '../BuildingDTO';
@@ -1104,4 +1107,76 @@ export function genCardDataDTO(
   override?: Partial<ScalarCardDataDTO>
 ): ScalarCardDataDTO {
   return genScalarCardDataDTO(override);
+}
+
+const TABLE_BASE_TYPES = ['number', 'string', 'date', 'boolean'] as const;
+
+export function genTableColumnMeta(
+  override?: Partial<TableColumnMeta>
+): TableColumnMeta {
+  const name = override?.name ?? faker.lorem.word();
+  const baseType =
+    override?.baseType ?? faker.helpers.arrayElement(TABLE_BASE_TYPES);
+  return {
+    name,
+    displayName: faker.lorem.words(2),
+    baseType,
+    ...override
+  };
+}
+
+export function genTableCard(
+  override?: Partial<TableCard>
+): TableCard {
+  return {
+    id: faker.number.int({ min: 1, max: 9999 }),
+    type: 'table',
+    title: faker.lorem.words(3),
+    description: null,
+    decimals: 0,
+    position: { col: 0, row: 0 },
+    size: { width: 12, height: 6 },
+    ...override
+  };
+}
+
+function genCellValue(baseType: TableColumnMeta['baseType']): unknown {
+  switch (baseType) {
+    case 'number':
+      return faker.number.int({ min: 0, max: 100000 });
+    case 'string':
+      return faker.word.noun();
+    case 'date':
+      return faker.date.recent().toISOString();
+    case 'boolean':
+      return faker.datatype.boolean();
+    default:
+      return null;
+  }
+}
+
+export function genTableDataDTO(
+  override?: Partial<TableDataDTO>
+): TableDataDTO {
+  const columnCount = faker.number.int({ min: 2, max: 4 });
+  const rowCount = faker.number.int({ min: 3, max: 8 });
+
+  const columns: TableColumnMeta[] =
+    override?.columns ??
+    faker.helpers.multiple(() => genTableColumnMeta(), { count: columnCount });
+
+  const rows: unknown[][] =
+    override?.rows ??
+    faker.helpers.multiple(
+      () => columns.map((c) => genCellValue(c.baseType)),
+      { count: rowCount }
+    );
+
+  return {
+    id: faker.number.int({ min: 1, max: 9999 }),
+    type: 'table',
+    columns,
+    rows,
+    ...override
+  };
 }

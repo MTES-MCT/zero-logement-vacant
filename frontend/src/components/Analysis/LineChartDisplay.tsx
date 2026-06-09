@@ -17,6 +17,8 @@ function LineChartDisplay(props: Readonly<LineChartDisplayProps>) {
         labels={chart.labels}
         data={chart.data}
         type="line-chart"
+        format={chart.format}
+        decimals={chart.decimals}
       />
     </>
   );

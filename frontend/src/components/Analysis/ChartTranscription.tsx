@@ -8,10 +8,24 @@ interface ChartTranscriptionProps {
   labels: string[];
   data: number[];
   type: 'pie-chart' | 'bar-chart' | 'line-chart';
+  format?: 'number' | 'percent';
+  decimals?: number;
+}
+
+function formatValue(
+  value: number,
+  format: 'number' | 'percent',
+  decimals: number
+): string {
+  if (format === 'percent') {
+    const rounded = value.toFixed(decimals);
+    return `${rounded.replace('.', ',')} %`;
+  }
+  return String(value);
 }
 
 function ChartTranscription(props: Readonly<ChartTranscriptionProps>) {
-  const { labels, data, type } = props;
+  const { labels, data, type, format = 'number', decimals = 0 } = props;
 
   const items = match(type)
     .with('pie-chart', () => {
@@ -28,13 +42,13 @@ function ChartTranscription(props: Readonly<ChartTranscriptionProps>) {
     .with('bar-chart', () =>
       pipe(
         Array.zip(labels, data),
-        Array.map(([label, value]) => `${label} : ${value}`)
+        Array.map(([label, value]) => `${label} : ${formatValue(value, format, decimals)}`)
       )
     )
     .with('line-chart', () =>
       pipe(
         Array.zip(labels, data),
-        Array.map(([label, value]) => `${label} : ${value}`)
+        Array.map(([label, value]) => `${label} : ${formatValue(value, format, decimals)}`)
       )
     )
     .exhaustive();

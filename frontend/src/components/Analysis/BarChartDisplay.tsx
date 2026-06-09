@@ -31,6 +31,8 @@ function BarChartDisplay(props: Readonly<BarChartDisplayProps>) {
         labels={chart.labels}
         data={chart.data}
         type="bar-chart"
+        format={chart.format}
+        decimals={chart.decimals}
       />
     </>
   );

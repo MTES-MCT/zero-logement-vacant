@@ -8,8 +8,9 @@ import data from './src/mocks/handlers/data';
 import { mockAPI } from './src/mocks/mock-api';
 import EventSourceMock from './src/test/event-source-mock';
 
-// Heavy views can take longer than Testing Library's default one-second
-// async query timeout to render on loaded CI runners.
+// Heavy view tests (full Redux store + MSW + DSFR) can take longer than
+// Testing Library's default one-second async query timeout to render on
+// loaded CI runners, causing flaky "Unable to find role" failures.
 configure({ asyncUtilTimeout: 10_000 });
 
 expect.extend(extended);

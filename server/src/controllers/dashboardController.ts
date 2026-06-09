@@ -4,6 +4,7 @@ import { constants } from 'node:http2';
 import jwt from 'jsonwebtoken';
 
 import type { CardDataDTO, DashboardDTO, Resource } from '@zerologementvacant/models';
+import type { BarChartValue, PieChartValue } from '~/services/metabase/metabase-service';
 import { RESOURCE_VALUES } from '@zerologementvacant/models';
 import DashcardMissingError from '~/errors/dashcardMissingError';
 import UnprocessableEntityError from '~/errors/unprocessableEntityError';
@@ -68,15 +69,29 @@ async function findOneCard(
     dashcard.cardId,
     queryParameters,
     dashcard.valueColumn,
-    dashcard.type
+    dashcard.type,
+    dashcard.direction
   );
 
+  if (dashcard.type === 'bar-chart' && typeof raw === 'object' && raw !== null) {
+    const barRaw = raw as BarChartValue;
+    response.status(constants.HTTP_STATUS_OK).json({
+      id: numericCid,
+      type: 'bar-chart',
+      direction: barRaw.direction,
+      labels: barRaw.labels,
+      data: barRaw.data
+    });
+    return;
+  }
+
   if (typeof raw === 'object' && raw !== null) {
+    const pieRaw = raw as PieChartValue;
     response.status(constants.HTTP_STATUS_OK).json({
       id: numericCid,
       type: 'pie-chart',
-      labels: raw.labels,
-      data: raw.data
+      labels: pieRaw.labels,
+      data: pieRaw.data
     });
     return;
   }

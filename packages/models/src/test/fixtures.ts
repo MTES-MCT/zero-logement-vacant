@@ -6,6 +6,8 @@ import { MarkRequired } from 'ts-essentials';
 import type { BBox } from 'geojson';
 import { match, Pattern } from 'ts-pattern';
 import type {
+  BarChartCard,
+  BarChartDataDTO,
   DashboardCard,
   DashboardDTO,
   FlatNumberCard,
@@ -1056,6 +1058,41 @@ export function genPieChartDataDTO(
   return {
     id: faker.number.int({ min: 1, max: 9999 }),
     type: 'pie-chart',
+    labels,
+    data,
+    ...override
+  };
+}
+
+export function genBarChartCard(
+  override?: Partial<BarChartCard>
+): BarChartCard {
+  return {
+    id: faker.number.int({ min: 1, max: 9999 }),
+    type: 'bar-chart',
+    title: faker.lorem.words(3),
+    description: null,
+    decimals: 0,
+    position: { col: 0, row: 0 },
+    size: { width: 6, height: 4 },
+    ...override
+  };
+}
+
+export function genBarChartDataDTO(
+  override?: Partial<BarChartDataDTO>
+): BarChartDataDTO {
+  const series = faker.number.int({ min: 2, max: 5 });
+  const labels: string[] = [];
+  const data: number[] = [];
+  for (let i = 0; i < series; i++) {
+    labels.push(faker.word.noun());
+    data.push(faker.number.int({ min: 1, max: 10000 }));
+  }
+  return {
+    id: faker.number.int({ min: 1, max: 9999 }),
+    type: 'bar-chart',
+    direction: faker.helpers.arrayElement(['horizontal', 'vertical'] as const),
     labels,
     data,
     ...override

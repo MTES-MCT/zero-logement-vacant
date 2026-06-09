@@ -185,6 +185,63 @@ const mockPieCardQueryResult = {
   status: 'completed'
 };
 
+const mockMetabaseDashboardWithBarCard = {
+  id: 13,
+  dashcards: [
+    {
+      id: 960,
+      card_id: 810,
+      dashboard_tab_id: null,
+      row: 0,
+      col: 0,
+      size_x: 6,
+      size_y: 4,
+      visualization_settings: { 'card.title': 'Répartition par date de construction' },
+      card: {
+        id: 810,
+        name: 'Répartition par date de construction',
+        display: 'bar',
+        description: null,
+        visualization_settings: {}
+      }
+    }
+  ]
+};
+
+const mockMetabaseDashboardWithRowCard = {
+  id: 13,
+  dashcards: [
+    {
+      id: 961,
+      card_id: 811,
+      dashboard_tab_id: null,
+      row: 0,
+      col: 0,
+      size_x: 6,
+      size_y: 4,
+      visualization_settings: { 'card.title': 'Répartition horizontale' },
+      card: {
+        id: 811,
+        name: 'Répartition horizontale',
+        display: 'row',
+        description: null,
+        visualization_settings: {}
+      }
+    }
+  ]
+};
+
+const mockBarCardQueryResult = {
+  data: {
+    rows: [
+      ['1991 et apres', 3200],
+      ['1946 - 1990', 1800]
+    ],
+    cols: [{ name: 'period' }, { name: 'count' }]
+  },
+  status: 'completed'
+};
+
 describe('Dashboard API', () => {
   let url: string;
 
@@ -291,6 +348,50 @@ describe('Dashboard API', () => {
       }
     });
 
+    it('returns a bar-chart card when display is "bar"', async () => {
+      nock(METABASE_URL)
+        .get('/api/dashboard/13')
+        .reply(200, mockMetabaseDashboardWithBarCard);
+
+      const response = await request(url)
+        .get('/dashboards/13-analyses')
+        .use(tokenProvider(user));
+
+      expect(response.status).toBe(constants.HTTP_STATUS_OK);
+      const body = response.body as DashboardDTO;
+      expect('cards' in body).toBe(true);
+      if ('cards' in body) {
+        expect(body.cards).toHaveLength(1);
+        expect(body.cards[0]).toMatchObject({
+          id: 960,
+          type: 'bar-chart',
+          title: 'Répartition par date de construction'
+        });
+      }
+    });
+
+    it('returns a bar-chart card when display is "row"', async () => {
+      nock(METABASE_URL)
+        .get('/api/dashboard/13')
+        .reply(200, mockMetabaseDashboardWithRowCard);
+
+      const response = await request(url)
+        .get('/dashboards/13-analyses')
+        .use(tokenProvider(user));
+
+      expect(response.status).toBe(constants.HTTP_STATUS_OK);
+      const body = response.body as DashboardDTO;
+      expect('cards' in body).toBe(true);
+      if ('cards' in body) {
+        expect(body.cards).toHaveLength(1);
+        expect(body.cards[0]).toMatchObject({
+          id: 961,
+          type: 'bar-chart',
+          title: 'Répartition horizontale'
+        });
+      }
+    });
+
     it('returns 422 for unknown slug', async () => {
       const response = await request(url)
         .get('/dashboards/unknown-slug')
@@ -357,6 +458,50 @@ describe('Dashboard API', () => {
         type: 'pie-chart',
         labels: ['APPART', 'MAISON'],
         data: [4876, 652]
+      });
+    });
+
+    it('returns BarChartDataDTO with direction "vertical" for display "bar"', async () => {
+      nock(METABASE_URL)
+        .get('/api/dashboard/13')
+        .reply(200, mockMetabaseDashboardWithBarCard);
+      nock(METABASE_URL)
+        .post('/api/dashboard/13/dashcard/960/card/810/query')
+        .reply(200, mockBarCardQueryResult);
+
+      const response = await request(url)
+        .get('/dashboards/13-analyses/cards/960')
+        .use(tokenProvider(user));
+
+      expect(response.status).toBe(constants.HTTP_STATUS_OK);
+      expect(response.body).toMatchObject({
+        id: 960,
+        type: 'bar-chart',
+        direction: 'vertical',
+        labels: ['1991 et apres', '1946 - 1990'],
+        data: [3200, 1800]
+      });
+    });
+
+    it('returns BarChartDataDTO with direction "horizontal" for display "row"', async () => {
+      nock(METABASE_URL)
+        .get('/api/dashboard/13')
+        .reply(200, mockMetabaseDashboardWithRowCard);
+      nock(METABASE_URL)
+        .post('/api/dashboard/13/dashcard/961/card/811/query')
+        .reply(200, mockBarCardQueryResult);
+
+      const response = await request(url)
+        .get('/dashboards/13-analyses/cards/961')
+        .use(tokenProvider(user));
+
+      expect(response.status).toBe(constants.HTTP_STATUS_OK);
+      expect(response.body).toMatchObject({
+        id: 961,
+        type: 'bar-chart',
+        direction: 'horizontal',
+        labels: ['1991 et apres', '1946 - 1990'],
+        data: [3200, 1800]
       });
     });
 

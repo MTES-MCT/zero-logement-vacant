@@ -1,18 +1,17 @@
 import { fr } from '@codegouvfr/react-dsfr';
 import Alert from '@codegouvfr/react-dsfr/Alert';
-import { PieChart } from '@codegouvfr/react-dsfr/Chart/PieChart';
 import Box from '@mui/material/Box';
 import Skeleton from '@mui/material/Skeleton';
 import Stack from '@mui/material/Stack';
 import Typography from '@mui/material/Typography';
 import { styled } from '@mui/material/styles';
-import type {
-  DashboardCard,
-  PieChartDataDTO,
-  Resource
-} from '@zerologementvacant/models';
+import type { DashboardCard, Resource } from '@zerologementvacant/models';
+import { match } from 'ts-pattern';
 
 import { useFindOneCardQuery } from '~/services/dashboard.service';
+
+import BarChartDisplay from './BarChartDisplay';
+import PieChartDisplay from './PieChartDisplay';
 
 interface Props {
   card: DashboardCard;
@@ -45,31 +44,9 @@ function formatValue(data: number, card: DashboardCard): string {
   }).format(data);
 }
 
-interface PieChartDisplayProps {
-  cardData: PieChartDataDTO;
-}
+function AnalysisCard(props: Readonly<Props>) {
+  const { card, dashboardId } = props;
 
-function PieChartDisplay({ cardData }: Readonly<PieChartDisplayProps>) {
-  return (
-    <PieChart
-      x={cardData.labels}
-      y={cardData.data}
-      name={cardData.labels}
-      color={[
-        'blue-france',
-        'blue-cumulus',
-        'blue-ecume',
-        'green-archipel',
-        'green-bourgeon',
-        'green-emeraude',
-        'green-menthe',
-        'green-tilleul-verveine'
-      ]}
-    />
-  );
-}
-
-function AnalysisCard({ card, dashboardId }: Readonly<Props>) {
   const { data, isLoading, isError } = useFindOneCardQuery({
     did: dashboardId,
     cid: card.id
@@ -111,11 +88,16 @@ function AnalysisCard({ card, dashboardId }: Readonly<Props>) {
         )}
       </Stack>
 
-      {data.type === 'pie-chart' ? (
-        <PieChartDisplay cardData={data} />
-      ) : (
-        <ShowcaseValue>{formatValue(data.data, card)}</ShowcaseValue>
-      )}
+      {match(data)
+        .with({ type: 'pie-chart' }, (d) => (
+          <PieChartDisplay chart={d} />
+        ))
+        .with({ type: 'bar-chart' }, (d) => (
+          <BarChartDisplay chart={d} />
+        ))
+        .otherwise((d) => (
+          <ShowcaseValue>{formatValue(d.data, card)}</ShowcaseValue>
+        ))}
     </CardBox>
   );
 }

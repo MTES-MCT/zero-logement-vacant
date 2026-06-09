@@ -12,6 +12,7 @@ import { useFindOneCardQuery } from '~/services/dashboard.service';
 
 import BarChartDisplay from './BarChartDisplay';
 import PieChartDisplay from './PieChartDisplay';
+import TableDisplay from './TableDisplay';
 
 interface Props {
   card: DashboardCard;
@@ -89,14 +90,17 @@ function AnalysisCard(props: Readonly<Props>) {
       </Stack>
 
       {match(data)
-        .with({ type: 'pie-chart' }, (d) => (
-          <PieChartDisplay chart={d} />
+        .with({ type: 'pie-chart' }, (chart) => (
+          <PieChartDisplay chart={chart} />
         ))
-        .with({ type: 'bar-chart' }, (d) => (
-          <BarChartDisplay chart={d} />
+        .with({ type: 'bar-chart' }, (chart) => (
+          <BarChartDisplay chart={chart} />
         ))
-        .otherwise((d) => (
-          <ShowcaseValue>{formatValue(d.data, card)}</ShowcaseValue>
+        .with({ type: 'table' }, (chart) => (
+          <TableDisplay chart={chart} caption={card.title} />
+        ))
+        .otherwise((scalar) => (
+          <ShowcaseValue>{formatValue(scalar.data, card)}</ShowcaseValue>
         ))}
     </CardBox>
   );

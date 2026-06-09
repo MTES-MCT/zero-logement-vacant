@@ -1,4 +1,9 @@
-import type { CardType, DashboardCard, Tab } from '@zerologementvacant/models';
+import type {
+  CardType,
+  DashboardCard,
+  Tab,
+  TableColumnMeta
+} from '@zerologementvacant/models';
 
 export type DashboardData =
   | { tabs: ReadonlyArray<Tab> }
@@ -10,12 +15,24 @@ export interface DashboardParameter {
   type: string;
 }
 
+// PM-curated column metadata, Metabase-agnostic: resolved from `table.columns`
+// + `column_settings` at findDashcardRef time. Empty array means "PM did not
+// curate columns — use every column from the query result, in query order".
+export interface TableColumnRef {
+  name: string;
+  columnTitle?: string;
+  decimals?: number;
+  suffix?: string;
+  numberStyle?: string;
+}
+
 export interface DashcardRef {
   dashcardId: number;
   cardId: number;
   type: CardType;
   valueColumn: string | null;
   direction: 'horizontal' | 'vertical' | null;
+  tableColumns: ReadonlyArray<TableColumnRef> | null;
   dashboardParameters: ReadonlyArray<DashboardParameter>;
 }
 
@@ -25,7 +42,11 @@ export type BarChartValue = {
   labels: string[];
   data: number[];
 };
-export type CardValue = number | PieChartValue | BarChartValue;
+export type TableValue = {
+  columns: TableColumnMeta[];
+  rows: unknown[][];
+};
+export type CardValue = number | PieChartValue | BarChartValue | TableValue;
 
 export interface MetabaseService {
   getDashboard(id: number): Promise<DashboardData>;
@@ -37,6 +58,7 @@ export interface MetabaseService {
     parameters: ReadonlyArray<DashboardParameter & { value: string }>,
     valueColumn: string | null,
     cardType: CardType,
-    direction: 'horizontal' | 'vertical' | null
+    direction: 'horizontal' | 'vertical' | null,
+    tableColumns: ReadonlyArray<TableColumnRef> | null
   ): Promise<CardValue>;
 }

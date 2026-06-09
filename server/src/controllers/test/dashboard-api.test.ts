@@ -242,6 +242,122 @@ const mockBarCardQueryResult = {
   status: 'completed'
 };
 
+const mockMetabaseDashboardWithTableCard = {
+  id: 13,
+  dashcards: [
+    {
+      id: 970,
+      card_id: 820,
+      dashboard_tab_id: null,
+      row: 0,
+      col: 0,
+      size_x: 12,
+      size_y: 6,
+      visualization_settings: { 'card.title': 'Statistiques par EPCI' },
+      card: {
+        id: 820,
+        name: 'Statistiques par EPCI',
+        display: 'table',
+        description: null,
+        visualization_settings: {}
+      }
+    }
+  ]
+};
+
+// Table dashcard with PM-curated columns: count is hidden, code is shown
+// with a French header override, and rate is formatted as a percentage.
+const mockMetabaseDashboardWithCuratedTable = {
+  id: 13,
+  dashcards: [
+    {
+      id: 971,
+      card_id: 821,
+      dashboard_tab_id: null,
+      row: 0,
+      col: 0,
+      size_x: 12,
+      size_y: 6,
+      visualization_settings: {
+        'card.title': 'Taux par EPCI',
+        'table.columns': [
+          { name: 'code', enabled: true },
+          { name: 'count', enabled: false },
+          { name: 'rate', enabled: true }
+        ],
+        column_settings: {
+          '["name","code"]': { column_title: 'Code EPCI' },
+          '["name","rate"]': {
+            number_style: 'percent',
+            decimals: 1,
+            suffix: ' %'
+          }
+        }
+      },
+      card: {
+        id: 821,
+        name: 'Taux par EPCI',
+        display: 'table',
+        description: null,
+        visualization_settings: {}
+      }
+    }
+  ]
+};
+
+const mockCuratedTableQueryResult = {
+  data: {
+    rows: [
+      ['200054807', 42, 0.123],
+      ['243500139', 18, 0.087]
+    ],
+    cols: [
+      { name: 'code', display_name: 'EPCI Code', base_type: 'type/Text' },
+      { name: 'count', display_name: 'Count', base_type: 'type/BigInteger' },
+      { name: 'rate', display_name: 'Rate', base_type: 'type/Float' }
+    ]
+  },
+  status: 'completed'
+};
+
+// Table dashcard with no `table.columns` configured — fallback to all query cols.
+const mockMetabaseDashboardWithRawTable = {
+  id: 13,
+  dashcards: [
+    {
+      id: 972,
+      card_id: 822,
+      dashboard_tab_id: null,
+      row: 0,
+      col: 0,
+      size_x: 12,
+      size_y: 6,
+      visualization_settings: { 'card.title': 'Logements bruts' },
+      card: {
+        id: 822,
+        name: 'Logements bruts',
+        display: 'table',
+        description: null,
+        visualization_settings: {}
+      }
+    }
+  ]
+};
+
+const mockRawTableQueryResult = {
+  data: {
+    rows: [
+      ['APPART', 4876],
+      ['MAISON', 652]
+    ],
+    cols: [
+      { name: 'housing_kind', display_name: 'Type', base_type: 'type/Text' },
+      { name: 'count', display_name: 'Count', base_type: 'type/BigInteger' }
+    ]
+  },
+  status: 'completed'
+};
+
 describe('Dashboard API', () => {
   let url: string;
 
@@ -392,6 +508,28 @@ describe('Dashboard API', () => {
       }
     });
 
+    it('returns a table card when display is "table"', async () => {
+      nock(METABASE_URL)
+        .get('/api/dashboard/13')
+        .reply(200, mockMetabaseDashboardWithTableCard);
+
+      const response = await request(url)
+        .get('/dashboards/13-analyses')
+        .use(tokenProvider(user));
+
+      expect(response.status).toBe(constants.HTTP_STATUS_OK);
+      const body = response.body as DashboardDTO;
+      expect('cards' in body).toBe(true);
+      if ('cards' in body) {
+        expect(body.cards).toHaveLength(1);
+        expect(body.cards[0]).toMatchObject({
+          id: 970,
+          type: 'table',
+          title: 'Statistiques par EPCI'
+        });
+      }
+    });
+
     it('returns 422 for unknown slug', async () => {
       const response = await request(url)
         .get('/dashboards/unknown-slug')
@@ -503,6 +641,77 @@ describe('Dashboard API', () => {
         labels: ['1991 et apres', '1946 - 1990'],
         data: [3200, 1800]
       });
+    });
+
+    it('returns TableDataDTO with curated columns and per-column settings', async () => {
+      nock(METABASE_URL)
+        .get('/api/dashboard/13')
+        .reply(200, mockMetabaseDashboardWithCuratedTable);
+      nock(METABASE_URL)
+        .post('/api/dashboard/13/dashcard/971/card/821/query')
+        .reply(200, mockCuratedTableQueryResult);
+
+      const response = await request(url)
+        .get('/dashboards/13-analyses/cards/971')
+        .use(tokenProvider(user));
+
+      expect(response.status).toBe(constants.HTTP_STATUS_OK);
+      expect(response.body).toMatchObject({
+        id: 971,
+        type: 'table',
+        columns: [
+          {
+            name: 'code',
+            displayName: 'Code EPCI', // column_title override wins
+            baseType: 'string'
+          },
+          {
+            name: 'rate',
+            displayName: 'Rate', // falls back to col.display_name
+            baseType: 'number',
+            decimals: 1,
+            suffix: ' %',
+            numberStyle: 'percent'
+          }
+        ],
+        // 'count' is filtered out because table.columns[].enabled = false.
+        // Rows are aligned to the curated column order: [code, rate].
+        rows: [
+          ['200054807', 0.123],
+          ['243500139', 0.087]
+        ]
+      });
+      expect(response.body.columns).toHaveLength(2);
+    });
+
+    it('returns TableDataDTO with every query column when table.columns is absent', async () => {
+      nock(METABASE_URL)
+        .get('/api/dashboard/13')
+        .reply(200, mockMetabaseDashboardWithRawTable);
+      nock(METABASE_URL)
+        .post('/api/dashboard/13/dashcard/972/card/822/query')
+        .reply(200, mockRawTableQueryResult);
+
+      const response = await request(url)
+        .get('/dashboards/13-analyses/cards/972')
+        .use(tokenProvider(user));
+
+      expect(response.status).toBe(constants.HTTP_STATUS_OK);
+      expect(response.body).toMatchObject({
+        id: 972,
+        type: 'table',
+        columns: [
+          { name: 'housing_kind', displayName: 'Type', baseType: 'string' },
+          { name: 'count', displayName: 'Count', baseType: 'number' }
+        ],
+        rows: [
+          ['APPART', 4876],
+          ['MAISON', 652]
+        ]
+      });
+      // No decimals / suffix / numberStyle leaked when settings are absent.
+      expect(response.body.columns[0]).not.toHaveProperty('decimals');
+      expect(response.body.columns[1]).not.toHaveProperty('suffix');
     });
 
     it('returns 404 when dashcard not found', async () => {

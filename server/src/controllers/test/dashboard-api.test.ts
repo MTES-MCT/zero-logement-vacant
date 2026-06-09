@@ -775,7 +775,14 @@ describe('Dashboard API', () => {
         format: 'percent',
         decimals: 1,
         labels: ['2019', '2020', '2021'],
-        data: [1.7889104687916526, 1.7543445298366107, 1.7916857986985582]
+        // Percent values are stored as display values in Metabase (1.79 for 1.79%)
+        // and divided by 100 in the response to match the scalar percentage
+        // convention. expect.closeTo absorbs IEEE-754 drift from the divide.
+        data: [
+          expect.closeTo(0.017889, 5),
+          expect.closeTo(0.017543, 5),
+          expect.closeTo(0.017917, 5)
+        ]
       });
     });
 

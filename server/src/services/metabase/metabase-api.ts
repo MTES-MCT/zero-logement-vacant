@@ -397,6 +397,17 @@ function findDashcardRef(
   };
 }
 
+// Percent-formatted columns are stored as display values (e.g. 1.79 for 1.79%)
+// in Metabase. We divide by 100 here so the response shape matches the scalar
+// percentage convention — the frontend formats with Intl.NumberFormat({ style:
+// 'percent' }) which multiplies back for display.
+function scaleForFormat(
+  values: number[],
+  format: 'number' | 'percent'
+): number[] {
+  return format === 'percent' ? values.map((v) => v / 100) : values;
+}
+
 function extractAxisValues(
   data: MetabaseQueryResult,
   labelColumn: string | null,
@@ -480,7 +491,7 @@ class MetabaseAPI implements MetabaseService {
         format,
         decimals,
         labels,
-        data: values
+        data: scaleForFormat(values, format)
       };
       return result;
     }
@@ -491,7 +502,7 @@ class MetabaseAPI implements MetabaseService {
         format,
         decimals,
         labels,
-        data: values
+        data: scaleForFormat(values, format)
       };
       return result;
     }

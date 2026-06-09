@@ -17,11 +17,11 @@ function formatValue(
   format: 'number' | 'percent',
   decimals: number
 ): string {
-  if (format === 'percent') {
-    const rounded = value.toFixed(decimals);
-    return `${rounded.replace('.', ',')} %`;
-  }
-  return String(value);
+  return new Intl.NumberFormat('fr-FR', {
+    style: format === 'percent' ? 'percent' : 'decimal',
+    minimumFractionDigits: decimals,
+    maximumFractionDigits: decimals
+  }).format(value);
 }
 
 function ChartTranscription(props: Readonly<ChartTranscriptionProps>) {
@@ -34,9 +34,13 @@ function ChartTranscription(props: Readonly<ChartTranscriptionProps>) {
         Array.reduce(0, (acc, v) => acc + v)
       );
       if (total === 0) return [];
+      const formatter = new Intl.NumberFormat('fr-FR', {
+        style: 'percent',
+        maximumFractionDigits: 0
+      });
       return pipe(
         Array.zip(labels, data),
-        Array.map(([label, value]) => `${label} : ${Math.round((value / total) * 100)} %`)
+        Array.map(([label, value]) => `${label} : ${formatter.format(value / total)}`)
       );
     })
     .with('bar-chart', () =>

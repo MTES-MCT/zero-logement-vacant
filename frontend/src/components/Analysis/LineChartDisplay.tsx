@@ -11,12 +11,17 @@ interface LineChartDisplayProps {
 
 function LineChartDisplay(props: Readonly<LineChartDisplayProps>) {
   const { chart } = props;
+  // Percent values cross the wire as 0–1 fractions (matching the scalar
+  // percentage convention). The chart axis needs them scaled back up to be
+  // meaningful, since DSFR LineChart plots raw numbers.
+  const yValues =
+    chart.format === 'percent' ? chart.data.map((v) => v * 100) : chart.data;
 
   return (
     <>
       <line-chart
         x={JSON.stringify([chart.labels])}
-        y={JSON.stringify([chart.data])}
+        y={JSON.stringify([yValues])}
       />
       <ChartTranscription
         labels={chart.labels}

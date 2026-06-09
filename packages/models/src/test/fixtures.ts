@@ -1098,6 +1098,8 @@ export function genBarChartDataDTO(
     id: faker.number.int({ min: 1, max: 9999 }),
     type: 'bar-chart',
     direction: faker.helpers.arrayElement(['horizontal', 'vertical'] as const),
+    format: 'number',
+    decimals: 0,
     labels,
     data,
     ...override
@@ -1132,6 +1134,8 @@ export function genLineChartDataDTO(
   return {
     id: faker.number.int({ min: 1, max: 9999 }),
     type: 'line-chart',
+    format: 'number',
+    decimals: 0,
     labels,
     data,
     ...override

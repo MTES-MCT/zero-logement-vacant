@@ -86,6 +86,8 @@ export interface BarChartDataDTO {
   id: number;
   type: 'bar-chart';
   direction: 'horizontal' | 'vertical';
+  format: 'number' | 'percent';
+  decimals: number;
   labels: string[];
   data: number[];
 }
@@ -93,6 +95,8 @@ export interface BarChartDataDTO {
 export interface LineChartDataDTO {
   id: number;
   type: 'line-chart';
+  format: 'number' | 'percent';
+  decimals: number;
   labels: string[];
   data: number[];
 }

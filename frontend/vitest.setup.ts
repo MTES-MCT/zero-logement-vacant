@@ -1,4 +1,5 @@
 import '@testing-library/jest-dom';
+import { configure } from '@testing-library/react';
 import * as extended from 'jest-extended';
 import 'jest-sorted';
 import { afterAll, afterEach, beforeAll, expect, vi } from 'vitest';
@@ -6,6 +7,11 @@ import { afterAll, afterEach, beforeAll, expect, vi } from 'vitest';
 import data from './src/mocks/handlers/data';
 import { mockAPI } from './src/mocks/mock-api';
 import EventSourceMock from './src/test/event-source-mock';
+
+// Heavy view tests (full Redux store + MSW + DSFR) can take more than the
+// default 1s `findBy*` timeout to mount on loaded CI runners, causing flaky
+// "Unable to find role" failures. Give async queries more headroom.
+configure({ asyncUtilTimeout: 5000 });
 
 expect.extend(extended);
 // expect.extend(sorted);

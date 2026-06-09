@@ -97,6 +97,9 @@ function mergeVisualizationSettings(
     ...card,
     ...(dashcard['number.style'] !== undefined && { 'number.style': dashcard['number.style'] }),
     ...(dashcard['scalar.field'] !== undefined && { 'scalar.field': dashcard['scalar.field'] }),
+    ...(dashcard['table.columns'] !== undefined && {
+      'table.columns': dashcard['table.columns']
+    }),
     column_settings: { ...(card.column_settings ?? {}), ...(dashcard.column_settings ?? {}) }
   };
 }
@@ -274,6 +277,10 @@ function findDashcardRef(
   const normalized = normalizeDashcard(found);
   if (!normalized) return null;
 
+  const dashboardParameters = (raw.parameters ?? []).map(
+    (p): DashboardParameter => ({ id: p.id, slug: p.slug, type: p.type })
+  );
+
   if (normalized.type === 'pie-chart') {
     return {
       dashcardId: found.id,
@@ -281,9 +288,8 @@ function findDashcardRef(
       type: 'pie-chart',
       valueColumn: null,
       direction: null,
-      dashboardParameters: (raw.parameters ?? []).map(
-        (p): DashboardParameter => ({ id: p.id, slug: p.slug, type: p.type })
-      )
+      tableColumns: null,
+      dashboardParameters
     };
   }
 
@@ -294,9 +300,24 @@ function findDashcardRef(
       type: 'bar-chart',
       valueColumn: null,
       direction: found.card!.display === 'bar' ? 'vertical' : 'horizontal',
-      dashboardParameters: (raw.parameters ?? []).map(
-        (p): DashboardParameter => ({ id: p.id, slug: p.slug, type: p.type })
-      )
+      tableColumns: null,
+      dashboardParameters
+    };
+  }
+
+  if (normalized.type === 'table') {
+    const settings = mergeVisualizationSettings(
+      found.card!.visualization_settings,
+      found.visualization_settings
+    );
+    return {
+      dashcardId: found.id,
+      cardId: found.card_id,
+      type: 'table',
+      valueColumn: null,
+      direction: null,
+      tableColumns: buildTableColumnRefs(settings),
+      dashboardParameters
     };
   }
 
@@ -310,9 +331,8 @@ function findDashcardRef(
     type: normalized.type,
     valueColumn: settings['scalar.field'] ?? null,
     direction: null,
-    dashboardParameters: (raw.parameters ?? []).map(
-      (p): DashboardParameter => ({ id: p.id, slug: p.slug, type: p.type })
-    )
+    tableColumns: null,
+    dashboardParameters
   };
 }
 
@@ -351,7 +371,8 @@ class MetabaseAPI implements MetabaseService {
     parameters: ReadonlyArray<DashboardParameter & { value: string }>,
     valueColumn: string | null,
     cardType: CardType,
-    direction: 'horizontal' | 'vertical' | null
+    direction: 'horizontal' | 'vertical' | null,
+    tableColumns: ReadonlyArray<TableColumnRef> | null
   ): Promise<CardValue> {
     const { data } = await this.http.post<MetabaseQueryResult>(
       `/api/dashboard/${dashboardId}/dashcard/${dashcardId}/card/${cardId}/query`,
@@ -375,6 +396,43 @@ class MetabaseAPI implements MetabaseService {
         labels: data.data.rows.map((row) => String(row[0])),
         data: data.data.rows.map((row) => Number(row[1]))
       };
+      return result;
+    }
+
+    if (cardType === 'table') {
+      if (tableColumns === null) {
+        throw new Error('tableColumns is required for table card type');
+      }
+      // Refs: PM curation, or empty → use every query column in query order.
+      const effectiveRefs: TableColumnRef[] =
+        tableColumns.length > 0
+          ? [...tableColumns]
+          : data.data.cols.map((c) => ({ name: c.name }));
+
+      const columns: TableColumnMeta[] = effectiveRefs.flatMap((ref) => {
+        const index = data.data.cols.findIndex((c) => c.name === ref.name);
+        if (index === -1) return [];
+        const col = data.data.cols[index];
+        return [
+          {
+            name: ref.name,
+            displayName: ref.columnTitle ?? col.display_name ?? ref.name,
+            baseType: normalizeBaseType(col.base_type),
+            ...(ref.decimals !== undefined && { decimals: ref.decimals }),
+            ...(ref.suffix !== undefined && { suffix: ref.suffix }),
+            ...(ref.numberStyle !== undefined && {
+              numberStyle: ref.numberStyle as TableColumnMeta['numberStyle']
+            })
+          }
+        ];
+      });
+
+      const indices = columns.map((c) =>
+        data.data.cols.findIndex((qc) => qc.name === c.name)
+      );
+      const rows = data.data.rows.map((row) => indices.map((i) => row[i]));
+
+      const result: TableValue = { columns, rows };
       return result;
     }
 

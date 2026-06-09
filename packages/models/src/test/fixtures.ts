@@ -1114,13 +1114,10 @@ const TABLE_BASE_TYPES = ['number', 'string', 'date', 'boolean'] as const;
 export function genTableColumnMeta(
   override?: Partial<TableColumnMeta>
 ): TableColumnMeta {
-  const name = override?.name ?? faker.lorem.word();
-  const baseType =
-    override?.baseType ?? faker.helpers.arrayElement(TABLE_BASE_TYPES);
   return {
-    name,
+    name: faker.lorem.word(),
     displayName: faker.lorem.words(2),
-    baseType,
+    baseType: faker.helpers.arrayElement(TABLE_BASE_TYPES),
     ...override
   };
 }

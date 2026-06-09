@@ -4,7 +4,11 @@ import { constants } from 'node:http2';
 import jwt from 'jsonwebtoken';
 
 import type { CardDataDTO, DashboardDTO, Resource } from '@zerologementvacant/models';
-import type { BarChartValue, PieChartValue } from '~/services/metabase/metabase-service';
+import type {
+  BarChartValue,
+  PieChartValue,
+  TableValue
+} from '~/services/metabase/metabase-service';
 import { RESOURCE_VALUES } from '@zerologementvacant/models';
 import DashcardMissingError from '~/errors/dashcardMissingError';
 import UnprocessableEntityError from '~/errors/unprocessableEntityError';
@@ -70,10 +74,11 @@ async function findOneCard(
     queryParameters,
     dashcard.valueColumn,
     dashcard.type,
-    dashcard.direction
+    dashcard.direction,
+    dashcard.tableColumns
   );
 
-  if (dashcard.type === 'bar-chart' && typeof raw === 'object' && raw !== null) {
+  if (dashcard.type === 'bar-chart') {
     const barRaw = raw as BarChartValue;
     response.status(constants.HTTP_STATUS_OK).json({
       id: numericCid,
@@ -85,7 +90,7 @@ async function findOneCard(
     return;
   }
 
-  if (typeof raw === 'object' && raw !== null) {
+  if (dashcard.type === 'pie-chart') {
     const pieRaw = raw as PieChartValue;
     response.status(constants.HTTP_STATUS_OK).json({
       id: numericCid,
@@ -96,7 +101,19 @@ async function findOneCard(
     return;
   }
 
-  const data = dashcard.type === 'percentage' ? raw / 100 : raw;
+  if (dashcard.type === 'table') {
+    const tableRaw = raw as TableValue;
+    response.status(constants.HTTP_STATUS_OK).json({
+      id: numericCid,
+      type: 'table',
+      columns: tableRaw.columns,
+      rows: tableRaw.rows
+    });
+    return;
+  }
+
+  const scalar = raw as number;
+  const data = dashcard.type === 'percentage' ? scalar / 100 : scalar;
   response.status(constants.HTTP_STATUS_OK).json({
     id: numericCid,
     type: dashcard.type as 'flat-number' | 'percentage',

@@ -5,6 +5,7 @@ export type CardType =
   | 'percentage'
   | 'pie-chart'
   | 'bar-chart'
+  | 'line-chart'
   | 'table';
 
 export interface CardCommon {
@@ -33,6 +34,10 @@ export interface BarChartCard extends CardCommon {
   type: 'bar-chart';
 }
 
+export interface LineChartCard extends CardCommon {
+  type: 'line-chart';
+}
+
 export interface TableCard extends CardCommon {
   type: 'table';
 }
@@ -42,7 +47,8 @@ export type DashboardCard =
   | PercentageCard
   | PieChartCard
   | BarChartCard
-  | TableCard;
+  | TableCard
+  | LineChartCard;
 
 export interface Tab {
   id: number;
@@ -58,7 +64,10 @@ interface WithoutTabs {
   cards: ReadonlyArray<DashboardCard>;
 }
 
-export type DashboardDTO = { id: number; url: string } & (WithTabs | WithoutTabs);
+export type DashboardDTO = { id: number; url: string } & (
+  | WithTabs
+  | WithoutTabs
+);
 
 export interface ScalarCardDataDTO {
   id: number;
@@ -77,6 +86,13 @@ export interface BarChartDataDTO {
   id: number;
   type: 'bar-chart';
   direction: 'horizontal' | 'vertical';
+  labels: string[];
+  data: number[];
+}
+
+export interface LineChartDataDTO {
+  id: number;
+  type: 'line-chart';
   labels: string[];
   data: number[];
 }
@@ -101,6 +117,7 @@ export type CardDataDTO =
   | ScalarCardDataDTO
   | PieChartDataDTO
   | BarChartDataDTO
+  | LineChartDataDTO
   | TableDataDTO;
 
 export const RESOURCE_VALUES = [

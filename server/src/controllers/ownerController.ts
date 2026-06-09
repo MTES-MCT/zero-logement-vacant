@@ -488,9 +488,10 @@ const updateHousingOwners: RequestHandler<
     })
   ];
 
-  // "Do not contact" applies to all of an owner's housings within the user's
-  // establishment perimeter. When an owner is (un)marked on this housing,
-  // propagate the change to their other housings inside the perimeter.
+  // "Do not contact" applies at the owner level, globally: it is not scoped to
+  // the user's establishment perimeter. When an owner is (un)marked on this
+  // housing, propagate the change to ALL of their other housings, so every user
+  // (whatever their establishment) sees the same status.
   const currentHousingId = housing.id;
   const currentHousingGeoCode = housing.geoCode;
   const wasDoNotContact = (ownerId: string): boolean =>
@@ -523,9 +524,8 @@ const updateHousingOwners: RequestHandler<
     if (!owner) {
       return [];
     }
-    const ownerHousings = await housingOwnerRepository.findByOwner(owner, {
-      geoCodes: establishment.geoCodes
-    });
+    // No geoCodes filter: the status is global across all the owner's housings.
+    const ownerHousings = await housingOwnerRepository.findByOwner(owner);
     const targets = ownerHousings.filter(
       (ownerHousing) =>
         // Skip the housing already handled by the request payload

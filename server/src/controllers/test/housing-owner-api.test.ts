@@ -1,7 +1,7 @@
 import { constants } from 'node:http2';
 
 import { faker } from '@faker-js/faker/locale/fr';
-import { HousingOwnerPayloadDTO } from '@zerologementvacant/models';
+import { HousingOwnerPayloadDTO, type OwnerRank } from '@zerologementvacant/models';
 import request from 'supertest';
 
 import { createServer } from '~/infra/server';
@@ -43,7 +43,64 @@ describe('Housing owner API', () => {
   });
 
   describe('PUT /housing/:housingId/owners', () => {
-    const testRoute = (housingId: string) => `/housing/${housingId}/owners`;
+    const testRoute = (housingId: string) =>
+      `/housing/${housingId}/owners`;
+
+    // Seeds an owner with two housings — one inside the user's perimeter
+    // (editable) and one OUTSIDE it — plus a co-owner on the second housing.
+    // The "outside" housing proves the do-not-contact status is propagated
+    // globally, not just within the establishment perimeter.
+    async function seedScenario(ranks: {
+      ownerOnA: OwnerRank;
+      ownerOnB: OwnerRank;
+      coOwnerOnB: OwnerRank;
+    }) {
+      const outsideGeoCode = establishment.geoCodes.includes('75056')
+        ? '13055'
+        : '75056';
+      const housingA = genHousingApi(establishment.geoCodes[0]);
+      const housingB = genHousingApi(outsideGeoCode);
+      const owner = genOwnerApi();
+      const coOwner = genOwnerApi();
+      await Housing().insert([housingA, housingB].map(formatHousingRecordApi));
+      await Owners().insert([owner, coOwner].map(formatOwnerApi));
+      await HousingOwners().insert(
+        [
+          { ...genHousingOwnerApi(housingA, owner), rank: ranks.ownerOnA },
+          { ...genHousingOwnerApi(housingB, owner), rank: ranks.ownerOnB },
+          { ...genHousingOwnerApi(housingB, coOwner), rank: ranks.coOwnerOnB }
+        ].map(formatHousingOwnerApi)
+      );
+      return { housingA, housingB, owner, coOwner };
+    }
+
+    async function putOwnerRank(
+      housingId: string,
+      ownerId: string,
+      rank: OwnerRank
+    ) {
+      const payload: HousingOwnerPayloadDTO[] = [
+        {
+          id: ownerId,
+          rank,
+          idprocpte: null,
+          idprodroit: null,
+          locprop: null,
+          propertyRight: null
+        }
+      ];
+      await request(url)
+        .put(testRoute(housingId))
+        .send(payload)
+        .use(tokenProvider(user));
+    }
+
+    const rankOf = async (housingId: string, ownerId: string) =>
+      (
+        await HousingOwners()
+          .where({ housing_id: housingId, owner_id: ownerId })
+          .first()
+      )?.rank;
 
     it('should refresh is_multi_owner for affected owners', async () => {
       const housing1 = genHousingApi(establishment.geoCodes[0]);
@@ -79,21 +136,12 @@ describe('Housing owner API', () => {
       expect(actual?.is_multi_owner).toBe(true);
     });
 
-    it('should propagate "do not contact" to the owner’s other housings in the perimeter', async () => {
-      const geoCode = establishment.geoCodes[0];
-      const housingA = genHousingApi(geoCode);
-      const housingB = genHousingApi(geoCode);
-      const owner = genOwnerApi();
-      const coOwner = genOwnerApi();
-      await Housing().insert([housingA, housingB].map(formatHousingRecordApi));
-      await Owners().insert([owner, coOwner].map(formatOwnerApi));
-      await HousingOwners().insert(
-        [
-          { ...genHousingOwnerApi(housingA, owner), rank: 1 },
-          { ...genHousingOwnerApi(housingB, owner), rank: 1 },
-          { ...genHousingOwnerApi(housingB, coOwner), rank: 2 }
-        ].map(formatHousingOwnerApi)
-      );
+    it('should propagate "do not contact" globally to the owner’s other housings, even outside the perimeter', async () => {
+      const { housingA, housingB, owner, coOwner } = await seedScenario({
+        ownerOnA: 1,
+        ownerOnB: 1,
+        coOwnerOnB: 2
+      });
 
       const payload: HousingOwnerPayloadDTO[] = [
         {
@@ -106,42 +154,19 @@ describe('Housing owner API', () => {
         }
       ];
 
-      await request(url)
-        .put(testRoute(housingA.id))
-        .send(payload)
-        .use(tokenProvider(user));
-
-      const onA = await HousingOwners()
-        .where({ housing_id: housingA.id, owner_id: owner.id })
-        .first();
-      const onB = await HousingOwners()
-        .where({ housing_id: housingB.id, owner_id: owner.id })
-        .first();
-      const coOwnerOnB = await HousingOwners()
-        .where({ housing_id: housingB.id, owner_id: coOwner.id })
-        .first();
-
-      expect(onA?.rank).toBe(-4);
-      expect(onB?.rank).toBe(-4);
+      expect(await rankOf(housingA.id, owner.id)).toBe(-4);
+      // Propagated to the out-of-perimeter housing too
+      expect(await rankOf(housingB.id, owner.id)).toBe(-4);
       // The next owner is promoted to primary on the propagated housing
       expect(coOwnerOnB?.rank).toBe(1);
     });
 
-    it('should clear "do not contact" across the perimeter when the owner is reactivated', async () => {
-      const geoCode = establishment.geoCodes[0];
-      const housingA = genHousingApi(geoCode);
-      const housingB = genHousingApi(geoCode);
-      const owner = genOwnerApi();
-      const coOwner = genOwnerApi();
-      await Housing().insert([housingA, housingB].map(formatHousingRecordApi));
-      await Owners().insert([owner, coOwner].map(formatOwnerApi));
-      await HousingOwners().insert(
-        [
-          { ...genHousingOwnerApi(housingA, owner), rank: -4 },
-          { ...genHousingOwnerApi(housingB, owner), rank: -4 },
-          { ...genHousingOwnerApi(housingB, coOwner), rank: 1 }
-        ].map(formatHousingOwnerApi)
-      );
+    it('should clear "do not contact" globally when the owner is reactivated', async () => {
+      const { housingA, housingB, owner } = await seedScenario({
+        ownerOnA: -4,
+        ownerOnB: -4,
+        coOwnerOnB: 1
+      });
 
       const payload: HousingOwnerPayloadDTO[] = [
         {

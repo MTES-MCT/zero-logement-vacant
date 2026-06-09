@@ -67,7 +67,7 @@ function TableDisplay(props: Readonly<TableDisplayProps>) {
       enableSorting
       paginate={false}
       caption={caption}
-      tableProps={{ noCaption: true, bordered: true }}
+      tableProps={{ noCaption: true }}
     />
   );
 }

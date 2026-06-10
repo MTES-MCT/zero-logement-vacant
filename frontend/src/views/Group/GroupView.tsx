@@ -2,7 +2,6 @@ import Alert from '@codegouvfr/react-dsfr/Alert';
 import { Breadcrumb } from '@codegouvfr/react-dsfr/Breadcrumb';
 import Grid from '@mui/material/Grid';
 import Stack from '@mui/material/Stack';
-import { useEffect } from 'react';
 import { useLocation, useNavigate, useParams } from 'react-router';
 
 import AppSearchBar from '~/components/_app/AppSearchBar/AppSearchBar';
@@ -11,7 +10,10 @@ import { HousingDisplaySwitch } from '~/components/HousingDisplaySwitch/HousingD
 import HousingFiltersBadges from '~/components/HousingFiltersBadges/HousingFiltersBadges';
 import HousingListFiltersSidemenu from '~/components/HousingListFilters/HousingListFiltersSidemenu';
 import { useDocumentTitle } from '~/hooks/useDocumentTitle';
-import { useFilters } from '~/hooks/useFilters';
+import {
+  HousingFiltersProvider,
+  useHousingFilters
+} from '~/hooks/HousingFiltersContext';
 import { useNotification } from '~/hooks/useNotification';
 import { useAppSelector } from '~/hooks/useStore';
 import authService from '~/services/auth.service';
@@ -33,6 +35,19 @@ interface RouterState {
 
 function GroupView() {
   const { id } = useParams<{ id: string }>();
+
+  return (
+    <HousingFiltersProvider
+      key={id}
+      initialFilters={{ groupIds: [id as string] }}
+    >
+      <GroupViewContent />
+    </HousingFiltersProvider>
+  );
+}
+
+function GroupViewContent() {
+  const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
 
   const { data: group, isLoading: isLoadingGroup } = useGetGroupQuery(
@@ -43,23 +58,11 @@ function GroupView() {
 
   const {
     filters,
-    setFilters,
-    onChangeFilters,
-    onResetFilters,
+    onChange: onChangeFilters,
+    onReset: onResetFilters,
     expand,
     setExpand
-  } = useFilters({
-    storage: 'state',
-    initialState: {
-      groupIds: [id as string]
-    }
-  });
-
-  useEffect(() => {
-    setFilters({
-      groupIds: [id as string]
-    });
-  }, [setFilters, id]);
+  } = useHousingFilters();
 
   const { view } = useAppSelector((state) => state.housing);
 

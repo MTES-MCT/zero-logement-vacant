@@ -7,6 +7,7 @@ import Footer from '~/components/Footer/Footer';
 import SmallHeader from '~/components/Header/SmallHeader';
 import OnboardingModal from '~/components/modals/OnboardingModal/OnboardingModal';
 import SuspendedUserModal from '~/components/modals/SuspendedUserModal/SuspendedUserModal';
+import { HousingFiltersProvider } from '~/hooks/HousingFiltersContext';
 import { useScrollTop } from '~/hooks/useScrollTop';
 
 function AuthenticatedLayout() {
@@ -23,12 +24,14 @@ function AuthenticatedLayout() {
       />
       <SuspendedUserModal />
       <OnboardingModal />
-      <SmallHeader />
-      <main id="fr-content">
-        <Suspense>
-          <Outlet />
-        </Suspense>
-      </main>
+      <HousingFiltersProvider>
+        <SmallHeader />
+        <main id="fr-content">
+          <Suspense>
+            <Outlet />
+          </Suspense>
+        </main>
+      </HousingFiltersProvider>
       <Footer />
     </RequireAuth>
   );

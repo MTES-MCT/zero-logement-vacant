@@ -12,6 +12,7 @@ import { createMemoryRouter, RouterProvider } from 'react-router';
 import { describe, expect, it } from 'vitest';
 import { faker } from '@faker-js/faker/locale/fr';
 
+import { HousingFiltersProvider } from '~/hooks/HousingFiltersContext';
 import data from '~/mocks/handlers/data';
 import configureTestStore from '~/utils/storeUtils';
 import CampaignView from '../CampaignView';
@@ -54,7 +55,9 @@ describe('CampaignView', () => {
 
     render(
       <Provider store={configureTestStore()}>
-        <RouterProvider router={router} />
+        <HousingFiltersProvider>
+          <RouterProvider router={router} />
+        </HousingFiltersProvider>
       </Provider>
     );
 

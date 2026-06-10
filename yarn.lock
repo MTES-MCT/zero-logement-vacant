@@ -3648,6 +3648,13 @@ __metadata:
   languageName: node
   linkType: hard
 
+"@isaacs/ttlcache@npm:^2.1.5":
+  version: 2.1.5
+  resolution: "@isaacs/ttlcache@npm:2.1.5"
+  checksum: 10c0/6a5e3e868e916e43bf7f25d2dbd50861c6aec1aea9349b2a87bf348fb12efa2bfa8cb2e94dc83a7b6287071c18efff7123c9cbb7d0da1f311330c7bd0b2351bf
+  languageName: node
+  linkType: hard
+
 "@jest/diff-sequences@npm:30.0.1":
   version: 30.0.1
   resolution: "@jest/diff-sequences@npm:30.0.1"
@@ -11525,6 +11532,7 @@ __metadata:
     "@fast-check/vitest": "npm:0.4.1"
     "@getbrevo/brevo": "npm:1.0.1"
     "@godaddy/terminus": "npm:4.12.1"
+    "@isaacs/ttlcache": "npm:^2.1.5"
     "@scalar/express-api-reference": "npm:0.9.14"
     "@sendinblue/client": "npm:3.3.1"
     "@sentry/integrations": "npm:7.120.4"

@@ -18,6 +18,7 @@
     "@faker-js/faker": "8.4.1",
     "@getbrevo/brevo": "1.0.1",
     "@godaddy/terminus": "4.12.1",
+    "@isaacs/ttlcache": "^2.1.5",
     "@scalar/express-api-reference": "0.9.14",
     "@sendinblue/client": "3.3.1",
     "@sentry/integrations": "7.120.4",

@@ -13,7 +13,7 @@ import type {
   MetabaseService,
   TableColumnRef
 } from './metabase-service';
-import type { CardType, TableColumnMeta } from '@zerologementvacant/models';
+import type { CardType } from '@zerologementvacant/models';
 
 export interface CacheOptions {
   ttlMs: number;
@@ -26,7 +26,7 @@ async function cached<K, V>(
   fetch: () => Promise<V>
 ): Promise<V> {
   const existing = store.get(key);
-  if (existing) return existing;
+  if (existing !== undefined) return existing;
   const promise = fetch().catch((err) => {
     store.delete(key);
     throw err;
@@ -121,6 +121,3 @@ export function createCachedMetabaseService(
 ): MetabaseService & { clear: () => void } {
   return new CachedMetabaseService(inner, opts);
 }
-
-// Re-export so callers can import the type from the module they actually use.
-export type { TableColumnMeta };

@@ -3,7 +3,7 @@ import { TTLCache } from '@isaacs/ttlcache';
 import {
   findDashcardRef,
   normalizeDashboard
-} from './metabase-api';
+} from './metabase-normalize';
 import type {
   CardValue,
   DashboardData,

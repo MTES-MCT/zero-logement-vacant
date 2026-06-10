@@ -11,6 +11,7 @@ import {
   formatEstablishmentApi
 } from '~/repositories/establishmentRepository';
 import { toUserDBO, Users } from '~/repositories/userRepository';
+import { metabaseAPI } from '~/services/metabase/metabase-api';
 import { genEstablishmentApi, genUserApi } from '../../test/testFixtures';
 import { tokenProvider } from '../../test/testUtils';
 
@@ -456,6 +457,12 @@ describe('Dashboard API', () => {
 
   afterEach(() => {
     nock.cleanAll();
+  });
+
+  afterEach(() => {
+    // Cached MetabaseService keeps promises alive across tests. Without this,
+    // a cached response from one test leaks into the next.
+    (metabaseAPI as unknown as { clear: () => void }).clear();
   });
 
   describe('GET /dashboards/:id', () => {

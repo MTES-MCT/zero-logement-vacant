@@ -14,83 +14,17 @@ import type {
   DashboardParameter,
   DashcardRef,
   LineChartValue,
+  MetabaseColumnSettings,
+  MetabaseDashboardRaw,
+  MetabaseDashcard,
+  MetabaseDashcardVisualizationSettings,
+  MetabaseQueryResult,
   MetabaseService,
+  MetabaseVisualizationSettings,
   PieChartValue,
   TableColumnRef,
   TableValue
 } from './metabase-service';
-
-// ─── Metabase internal types (minimal subset) ─────────────────────────────────
-
-interface MetabaseColumnSettings {
-  number_style?: string;
-  decimals?: number;
-  suffix?: string;
-  column_title?: string;
-}
-
-interface MetabaseVisualizationSettings {
-  'number.style'?: string;
-  'scalar.decimals'?: number;
-  'scalar.field'?: string;
-  'table.columns'?: Array<{ name: string; enabled: boolean }>;
-  'graph.dimensions'?: string[];
-  'graph.metrics'?: string[];
-  column_settings?: Record<string, MetabaseColumnSettings>;
-}
-
-interface MetabaseCard {
-  id: number;
-  name: string;
-  display: string;
-  description: string | null;
-  visualization_settings: MetabaseVisualizationSettings;
-}
-
-interface MetabaseDashcardVisualizationSettings {
-  'card.title'?: string | null;
-  'number.style'?: string;
-  'scalar.field'?: string;
-  'table.columns'?: Array<{ name: string; enabled: boolean }>;
-  'graph.dimensions'?: string[];
-  'graph.metrics'?: string[];
-  column_settings?: Record<string, MetabaseColumnSettings>;
-}
-
-interface MetabaseDashcard {
-  id: number;
-  card_id: number | null;
-  dashboard_tab_id: number | null;
-  row: number;
-  col: number;
-  size_x: number;
-  size_y: number;
-  visualization_settings: MetabaseDashcardVisualizationSettings;
-  card: MetabaseCard | null;
-}
-
-interface MetabaseTab {
-  id: number;
-  name: string;
-  position: number;
-}
-
-interface MetabaseDashboardRaw {
-  id: number;
-  tabs?: MetabaseTab[];
-  dashcards: MetabaseDashcard[];
-  parameters?: Array<{ id: string; slug: string; type: string }>;
-}
-
-interface MetabaseCol {
-  name: string;
-  display_name?: string;
-  base_type?: string;
-}
-
-interface MetabaseQueryResult {
-  data: { rows: unknown[][]; cols: MetabaseCol[] };
-}
 
 // ─── Normalization helpers ─────────────────────────────────────────────────────
 
@@ -294,7 +228,7 @@ function normalizeDashcard(dashcard: MetabaseDashcard): DashboardCard | null {
   };
 }
 
-function normalizeDashboard(raw: MetabaseDashboardRaw): DashboardData {
+export function normalizeDashboard(raw: MetabaseDashboardRaw): DashboardData {
   if (raw.tabs && raw.tabs.length > 0) {
     const sortedTabs = [...raw.tabs].sort((a, b) => a.position - b.position);
     const tabs: Tab[] = sortedTabs.map((tab) => ({
@@ -314,7 +248,7 @@ function normalizeDashboard(raw: MetabaseDashboardRaw): DashboardData {
   };
 }
 
-function findDashcardRef(
+export function findDashcardRef(
   raw: MetabaseDashboardRaw,
   dashcardId: number
 ): DashcardRef | null {
@@ -445,14 +379,22 @@ class MetabaseAPI implements MetabaseService {
     });
   }
 
-  async getDashboard(id: number): Promise<DashboardData> {
-    const { data } = await this.http.get<MetabaseDashboardRaw>(`/api/dashboard/${id}`);
-    return normalizeDashboard(data);
+  async fetchDashboardRaw(id: number): Promise<MetabaseDashboardRaw> {
+    const { data } = await this.http.get<MetabaseDashboardRaw>(
+      `/api/dashboard/${id}`
+    );
+    return data;
   }
 
-  async findDashcard(dashboardId: number, dashcardId: number): Promise<DashcardRef | null> {
-    const { data } = await this.http.get<MetabaseDashboardRaw>(`/api/dashboard/${dashboardId}`);
-    return findDashcardRef(data, dashcardId);
+  async getDashboard(id: number): Promise<DashboardData> {
+    return normalizeDashboard(await this.fetchDashboardRaw(id));
+  }
+
+  async findDashcard(
+    dashboardId: number,
+    dashcardId: number
+  ): Promise<DashcardRef | null> {
+    return findDashcardRef(await this.fetchDashboardRaw(dashboardId), dashcardId);
   }
 
   async getCardValue(

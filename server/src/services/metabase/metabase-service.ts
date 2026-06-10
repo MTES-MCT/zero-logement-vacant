@@ -5,6 +5,79 @@ import type {
   TableColumnMeta
 } from '@zerologementvacant/models';
 
+// Raw payload returned by `GET /api/dashboard/:id`. Exposed on the service
+// contract so wrappers (cache, instrumentation) can hold the raw payload before
+// normalization.
+export interface MetabaseColumnSettings {
+  number_style?: string;
+  decimals?: number;
+  suffix?: string;
+  column_title?: string;
+}
+
+export interface MetabaseVisualizationSettings {
+  'number.style'?: string;
+  'scalar.decimals'?: number;
+  'scalar.field'?: string;
+  'table.columns'?: Array<{ name: string; enabled: boolean }>;
+  'graph.dimensions'?: string[];
+  'graph.metrics'?: string[];
+  column_settings?: Record<string, MetabaseColumnSettings>;
+}
+
+export interface MetabaseCard {
+  id: number;
+  name: string;
+  display: string;
+  description: string | null;
+  visualization_settings: MetabaseVisualizationSettings;
+}
+
+export interface MetabaseDashcardVisualizationSettings {
+  'card.title'?: string | null;
+  'number.style'?: string;
+  'scalar.field'?: string;
+  'table.columns'?: Array<{ name: string; enabled: boolean }>;
+  'graph.dimensions'?: string[];
+  'graph.metrics'?: string[];
+  column_settings?: Record<string, MetabaseColumnSettings>;
+}
+
+export interface MetabaseDashcard {
+  id: number;
+  card_id: number | null;
+  dashboard_tab_id: number | null;
+  row: number;
+  col: number;
+  size_x: number;
+  size_y: number;
+  visualization_settings: MetabaseDashcardVisualizationSettings;
+  card: MetabaseCard | null;
+}
+
+export interface MetabaseTab {
+  id: number;
+  name: string;
+  position: number;
+}
+
+export interface MetabaseDashboardRaw {
+  id: number;
+  tabs?: MetabaseTab[];
+  dashcards: MetabaseDashcard[];
+  parameters?: Array<{ id: string; slug: string; type: string }>;
+}
+
+export interface MetabaseCol {
+  name: string;
+  display_name?: string;
+  base_type?: string;
+}
+
+export interface MetabaseQueryResult {
+  data: { rows: unknown[][]; cols: MetabaseCol[] };
+}
+
 export type DashboardData =
   | { tabs: ReadonlyArray<Tab> }
   | { cards: ReadonlyArray<DashboardCard> };
@@ -65,6 +138,7 @@ export type CardValue =
   | TableValue;
 
 export interface MetabaseService {
+  fetchDashboardRaw(id: number): Promise<MetabaseDashboardRaw>;
   getDashboard(id: number): Promise<DashboardData>;
   findDashcard(dashboardId: number, dashcardId: number): Promise<DashcardRef | null>;
   getCardValue(

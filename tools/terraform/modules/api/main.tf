@@ -2,7 +2,7 @@ terraform {
   required_providers {
     clevercloud = {
       source  = "clevercloud/clevercloud"
-      version = "1.0.1"
+      version = "2.0.1"
     }
   }
 }
@@ -17,10 +17,9 @@ resource "clevercloud_nodejs" "api" {
   build_flavor       = "M"
   min_instance_count = 1
   max_instance_count = 1
-  smallest_flavor    = "M"
-  biggest_flavor     = "M"
-  package_manager    = "custom"
-  vhosts  = [local.host]
+  smallest_flavor    = "S"
+  biggest_flavor     = "S"
+  vhosts             = [{ fqdn = local.host }]
 
   deployment {
     repository = "https://github.com/MTES-MCT/zero-logement-vacant"
@@ -28,56 +27,40 @@ resource "clevercloud_nodejs" "api" {
   }
 
   environment = {
-    CC_CUSTOM_BUILD_TOOL   = "corepack yarn --immutable && corepack yarn nx run $WORKSPACE:build"
-    CC_RUN_COMMAND = "corepack yarn nx run $WORKSPACE:start"
-    CC_HEALTH_CHECK_PATH   = "/"
-    CC_NODE_BUILD_TOOL     = "custom"
-    CC_OVERRIDE_BUILDCACHE = ".:../.cache/puppeteer"
+    AUTH_SECRET = var.auth_secret
 
-    AUTH_SECRET          = var.auth_secret
-    CEREMA_API           = "https://portaildf.cerema.fr"
-    CEREMA_API_V2        = "https://datafoncier.cerema.fr"
-    CEREMA_AUTH_VERSION  = "v1"
-    CEREMA_ENABLED       = "false"
-    CEREMA_PASSWORD      = "unused"
-    CEREMA_USERNAME      = "unused"
-    DATABASE_ENV         = "development"
-    DATABASE_URL         = var.database_connection_string
-    E2E_EMAIL            = var.e2e_email
-    E2E_PASSWORD         = var.e2e_password
-    HOST                 = local.host
-    LOG_LEVEL            = "debug"
-    MAILER_API_KEY       = var.mailer.api_key
-    MAILER_EVENT_API_KEY = var.mailer.event_api_key
-    MAILER_HOST          = var.mailer.host
-    MAILER_PASSWORD      = var.mailer.password
-    MAILER_PORT          = var.mailer.port
-    MAILER_PROVIDER      = var.mailer.provider
-    MAILER_USER          = var.mailer.user
-    METABASE_API_TOKEN   = "unused"
-    METABASE_TOKEN       = "unused"
-    NODE_ENV             = "production"
-    PORT                 = "8080"
-    REDIS_URL            = var.redis.url
+    CC_HEALTH_CHECK_PATH = "/"
+    CC_POST_BUILD_HOOK   = "yarn nx build server && yarn nx run server:migrate && yarn nx run server:seed && yarn workspaces focus @zerologementvacant/server --production"
+    CC_RUN_COMMAND       = "node server/dist/app/"
+
+    CEREMA_ENABLED = "false"
+
+    DATABASE_ENV = "development"
+    DATABASE_URL = var.database_connection_string
+
+    E2E_EMAIL    = var.e2e.email
+    E2E_PASSWORD = var.e2e.password
+
+    HOST = local.host
+
+    MAILER_USER     = var.mailer.username
+    MAILER_PASSWORD = var.mailer.password
+
+    METABASE_ENABLED   = "true"
+    METABASE_API_TOKEN = var.metabase.api_token
+    METABASE_DOMAIN    = "https://stats.zlv.beta.gouv.fr"
+    METABASE_TOKEN     = var.metabase.token
+
     S3_ACCESS_KEY_ID     = var.s3.access_key_id
     S3_BUCKET            = var.s3.bucket
     S3_ENDPOINT          = var.s3.endpoint
     S3_REGION            = var.s3.region
     S3_SECRET_ACCESS_KEY = var.s3.secret_access_key
-    SENTRY_ENABLED       = "false"
-    TEST_PASSWORD        = "test"
-    TZ                   = "Etc/UTC"
-    WORKSPACE            = "@zerologementvacant/server"
 
-    YARN_ENABLE_GLOBAL_CACHE       = "true"
+    SENTRY_ENABLED = "false"
+    TEST_PASSWORD  = var.test_password
+
+    TZ                             = "Etc/UTC"
     YARN_ENABLE_IMMUTABLE_INSTALLS = "true"
-    YARN_GLOBAL_FOLDER             = ".yarn"
   }
-
-  hooks {
-    pre_build = "corepack enable"
-    pre_run   = "corepack yarn workspace $WORKSPACE migrate && corepack yarn workspace $WORKSPACE seed"
-  }
-
-  start_script = "corepack yarn workspace $WORKSPACE start"
 }

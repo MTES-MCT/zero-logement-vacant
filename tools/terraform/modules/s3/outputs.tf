@@ -1,5 +1,5 @@
 output "bucket" {
-  value = clevercloud_cellar_bucket.common-s3-bucket.id
+  value = clevercloud_cellar_bucket.bucket.id
 }
 
 output "endpoint" {

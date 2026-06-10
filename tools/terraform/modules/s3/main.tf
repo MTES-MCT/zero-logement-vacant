@@ -2,17 +2,17 @@ terraform {
   required_providers {
     clevercloud = {
       source  = "clevercloud/clevercloud"
-      version = "1.0.1"
+      version = "2.0.1"
     }
   }
 }
 
 resource "clevercloud_cellar" "s3" {
-  name   = "terraform-s3"
+  name   = var.project_name
   region = var.region
 }
 
-resource "clevercloud_cellar_bucket" "common-s3-bucket" {
+resource "clevercloud_cellar_bucket" "bucket" {
   depends_on = [clevercloud_cellar.s3]
 
   cellar_id = clevercloud_cellar.s3.id

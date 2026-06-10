@@ -15,48 +15,50 @@ variable "database_connection_string" {
   sensitive   = true
 }
 
-variable "e2e_email" {
-  description = "End-to-end user email"
-  type        = string
-  sensitive   = true
-}
-
-variable "e2e_password" {
-  description = "End-to-end user password"
-  type        = string
-  sensitive   = true
+variable "e2e" {
+  description = "E2E testing credentials"
+  type = object({
+    email    = string
+    password = string
+  })
+  sensitive = true
 }
 
 variable "mailer" {
   description = "Mailer configuration"
   type = object({
-    api_key       = string
-    event_api_key = string
-    host          = string
-    password      = string
-    port          = string
-    provider      = string
-    user          = string
+    username = string
+    password = string
+  })
+  sensitive = true
+}
+
+variable "metabase" {
+  description = "Metabase configuration"
+  type = object({
+    api_token = string
+    token     = string
+  })
+  sensitive = true
+}
+
+variable "posthog" {
+  description = "PostHog configuration"
+  type = object({
+    api_key = string
+    enabled = bool
   })
   sensitive = true
 }
 
 variable "project_name" {
-  description = "Nom du projet"
+  description = "Project name"
   type        = string
 }
 
 variable "region" {
   description = "Clever Cloud region"
   type        = string
-}
-
-variable "redis" {
-  description = "Redis configuration"
-  type = object({
-    id  = string
-    url = string
-  })
 }
 
 variable "s3" {
@@ -70,4 +72,10 @@ variable "s3" {
     secret_access_key = string
   })
   sensitive = true
+}
+
+variable "test_password" {
+  description = "Password for the test accounts"
+  type        = string
+  sensitive   = true
 }

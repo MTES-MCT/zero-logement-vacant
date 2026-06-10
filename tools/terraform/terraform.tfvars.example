@@ -1,3 +1,20 @@
-clevercloud_org        = ""
-clevercloud_api_token  = ""
-clevercloud_api_secret = ""
+clevercloud = {
+  org        = ""
+  api_secret = ""
+  api_token  = ""
+}
+
+mailer = {
+  username = ""
+  password = ""
+}
+
+metabase = {
+  api_token = ""
+  token     = ""
+}
+
+posthog = {
+  api_key = ""
+  enabled = true
+}

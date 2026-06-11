@@ -2,8 +2,8 @@ import { faker } from '@faker-js/faker/locale/fr';
 
 import { DraftApi } from '~/models/DraftApi';
 import { SenderApi } from '~/models/SenderApi';
+import { factories } from '~/test/factories';
 import {
-  genCampaignApi,
   genDraftApi,
   genEstablishmentApi,
   genSenderApi,
@@ -11,7 +11,6 @@ import {
 } from '~/test/testFixtures';
 
 import { CampaignsDrafts } from '../campaignDraftRepository';
-import { Campaigns, formatCampaignApi } from '../campaignRepository';
 import draftRepository, { Drafts, formatDraftApi } from '../draftRepository';
 import {
   Establishments,
@@ -51,8 +50,9 @@ describe('Draft repository', () => {
 
     it('should find drafts by campaign', async () => {
       const [firstDraft] = drafts;
-      const campaign = genCampaignApi(establishment.id, user);
-      await Campaigns().insert(formatCampaignApi(campaign));
+      const campaign = await factories
+        .campaign(establishment)
+        .create({}, { associations: { createdBy: user } });
       await CampaignsDrafts().insert({
         campaign_id: campaign.id,
         draft_id: firstDraft.id

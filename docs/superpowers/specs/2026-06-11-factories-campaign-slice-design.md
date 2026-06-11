@@ -102,8 +102,8 @@ export default function createFactories(adapter: Adapter): Factories {
     user:          createUserFactory(adapter),
     owner:         createOwnerFactory(adapter),
     housing:       createHousingFactory(adapter),
-    campaign: (est) => createCampaignFactory(adapter, est),
-    group:    (est) => createGroupFactory(adapter, est),
+    campaign: (establishment) => createCampaignFactory(adapter, establishment),
+    group:    (establishment) => createGroupFactory(adapter, establishment),
   };
 }
 ```
@@ -360,4 +360,4 @@ After Wave 2 the following are deleted:
 - Migrating other entities (`note`, `event`, `housing`, `owner`, `draft`, `sender`, `prospect`, `building`, `signupLink`, dashboard cards, datafoncier types, document, address, locality, geo perimeter, precision, signatory, housingOwner, housingDocument, reset link).
 - Migrating the seed files in `server/src/infra/database/seeds/development/`.
 - Retiring `gen*DTO()` definitions in `@zerologementvacant/models/fixtures` (still has consumers).
-- Adding `Factory.params(...)` ergonomics or higher-level helpers like `factories.scopedTo(est)`. The factory-of-factories shape is the only ergonomic surface in this slice.
+- Adding `Factory.params(...)` ergonomics or higher-level helpers like `factories.scopedTo(establishment)`. The factory-of-factories shape is the only ergonomic surface in this slice.

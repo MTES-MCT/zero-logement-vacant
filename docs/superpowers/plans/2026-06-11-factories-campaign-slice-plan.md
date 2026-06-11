@@ -539,24 +539,36 @@ Notes:
 - [ ] **Step 2: Run typecheck for the server**
 
 Run: `yarn nx typecheck server`
-Expected: FAIL at `server/src/test/factories.ts` (consumes the now-changed `createFactories`) and at `campaign-api.test.ts`. Both are fixed in Tasks 8–9.
+Expected: FAIL at `server/src/test/factories.ts` (consumes the now-changed `createFactories`) and at `campaign-api.test.ts`. Both are fixed in Task 8.
 
 ---
 
-### Task 8: Migrate `campaign-api.test.ts` and delete `server/src/test/factories.ts`
+### Task 8: Rewrite `server/src/test/factories.ts` to a one-liner and migrate `campaign-api.test.ts`
 
 **Files:**
+- Modify: `server/src/test/factories.ts`
 - Modify: `server/src/controllers/test/campaign-api.test.ts`
-- Delete: `server/src/test/factories.ts`
 
-- [ ] **Step 1: Verify `server/src/test/factories.ts` has no other consumers**
+The wrapper classes (`ServerCampaignFactory`, `ServerGroupFactory`) and the default `createServerFactories` export become dead after the package refactor. The file is **kept** as a thin re-export of a `factories` instance bound to `knexAdapter` — mirroring `frontend/src/test/factories.ts`. Server tests import `{ factories } from '~/test/factories'`.
 
-Run: `grep -rln "from '~/test/factories'\|createServerFactories" server/src --include="*.ts"`
-Expected: only `server/src/controllers/test/campaign-api.test.ts` matches.
+- [ ] **Step 1: Replace `server/src/test/factories.ts`**
 
-If anything else matches, stop and update it before deleting.
+```ts
+import createFactories from '@zerologementvacant/factories';
 
-- [ ] **Step 2: Update the imports in `campaign-api.test.ts`**
+import { knexAdapter } from './knex-adapter';
+
+export const factories = createFactories(knexAdapter);
+```
+
+- [ ] **Step 2: Verify the old `createServerFactories` default export has no remaining consumers besides `campaign-api.test.ts`**
+
+Run: `grep -rln "createServerFactories\|from '~/test/factories'" server/src --include="*.ts"`
+Expected: only `server/src/controllers/test/campaign-api.test.ts` matches (and the file may show twice if it imports both the default and the named `factories` — that's fine).
+
+If anything else matches, migrate it as part of this task.
+
+- [ ] **Step 3: Update the imports in `campaign-api.test.ts`**
 
 Locate the import line:
 
@@ -567,13 +579,10 @@ import createServerFactories from '~/test/factories';
 Replace with:
 
 ```ts
-import createFactories from '@zerologementvacant/factories';
-import { knexAdapter } from '~/test/knex-adapter';
+import { factories } from '~/test/factories';
 ```
 
-(`knexAdapter` is already imported separately in the existing file — confirm with `grep -n knexAdapter server/src/controllers/test/campaign-api.test.ts`. If it isn't, add the import.)
-
-- [ ] **Step 3: Update the factories instantiation in `campaign-api.test.ts`**
+- [ ] **Step 4: Update the factories instantiation in `campaign-api.test.ts`**
 
 Locate:
 
@@ -581,13 +590,9 @@ Locate:
 const factories = createServerFactories(knexAdapter);
 ```
 
-Replace with:
+Delete the line entirely — `factories` is now imported directly.
 
-```ts
-const factories = createFactories(knexAdapter);
-```
-
-- [ ] **Step 4: Rewrite any `factories.campaign.forEstablishment(...)` / `factories.group.forEstablishment(...)` call sites in this file**
+- [ ] **Step 5: Rewrite any `factories.campaign.forEstablishment(...)` / `factories.group.forEstablishment(...)` call sites in this file**
 
 Find them with: `grep -n "forEstablishment" server/src/controllers/test/campaign-api.test.ts`
 
@@ -612,21 +617,17 @@ factories.campaign(establishment).buildList(n, {...}, opts);
 
 Apply the same shape for `factories.group.forEstablishment(...)`.
 
-- [ ] **Step 5: Migrate every remaining `genCampaignApi(...)` / `genCampaignApiNext(...)` call in this file**
+- [ ] **Step 6: Migrate every remaining `genCampaignApi(...)` / `genCampaignApiNext(...)` call in this file**
 
 Find them with: `grep -n "genCampaignApi\|genCampaignApiNext" server/src/controllers/test/campaign-api.test.ts`
 
 Apply the Wave 2 server migration recipe (Patterns A–D under the "Wave 2 — Migrate server consumers" heading further down). The file is "partially migrated" — only `createServerFactories` was wired up; the actual campaign generation still uses `genCampaignApi`.
 
-- [ ] **Step 6: Remove `genCampaignApi` and `genCampaignApiNext` from the file's import list**
+- [ ] **Step 7: Remove `genCampaignApi` and `genCampaignApiNext` from the file's import list**
 
 Locate the `~/test/testFixtures` import (currently has `genCampaignApi`, `genCampaignApiNext`, `genEstablishmentApi`, `genEventApi`, `genGroupApi`, `genHousingApi`, `genHousingOwnerApi`, `genUserApi`, `oneOf`). Remove `genCampaignApi` and `genCampaignApiNext`. Leave the others.
 
 If `CampaignApi` is no longer referenced anywhere in the file, also drop it from the `~/models/CampaignApi` import.
-
-- [ ] **Step 7: Delete `server/src/test/factories.ts`**
-
-Run: `git rm server/src/test/factories.ts`
 
 - [ ] **Step 8: Run the campaign API test**
 
@@ -641,15 +642,18 @@ Expected: PASS.
 - [ ] **Step 10: Commit**
 
 ```bash
-git add server/src/test/knex-adapter.ts server/src/controllers/test/campaign-api.test.ts
+git add server/src/test/knex-adapter.ts \
+        server/src/test/factories.ts \
+        server/src/controllers/test/campaign-api.test.ts
 git commit -m "$(cat <<'EOF'
 refactor(server): route campaign/group establishmentId through adapter context
 
 KnexAdapter.create now reads context.establishmentId for campaigns and
 groups instead of stamping createdBy.establishmentId from a transient.
-ServerCampaignFactory/ServerGroupFactory and the createServerFactories
-wrapper are no longer needed; campaign-api.test.ts uses the package
-createFactories directly.
+server/src/test/factories.ts collapses to a one-line re-export of
+createFactories(knexAdapter); ServerCampaignFactory, ServerGroupFactory,
+and createServerFactories are removed. campaign-api.test.ts imports the
+shared { factories } from ~/test/factories.
 EOF
 )"
 ```
@@ -826,19 +830,12 @@ Each of Tasks 11–19 follows the same migration recipe. Apply the recipe per fi
 1. **Add the factories import** at the top of the file (next to the existing `~/test/testFixtures` import):
 
    ```ts
-   import createFactories from '@zerologementvacant/factories';
-   import { knexAdapter } from '~/test/knex-adapter';
+   import { factories } from '~/test/factories';
    ```
 
-2. **Add a `factories` constant** near the top of the test suite — typically just below the existing fixture declarations:
+2. **Locate every `genCampaignApi(...)` and `genCampaignApiNext(...)` call** with `grep -n "genCampaignApi\|genCampaignApiNext" <file>`.
 
-   ```ts
-   const factories = createFactories(knexAdapter);
-   ```
-
-3. **Locate every `genCampaignApi(...)` and `genCampaignApiNext(...)` call** with `grep -n "genCampaignApi\|genCampaignApiNext" <file>`.
-
-4. **For each call**, replace per the patterns below. Apply whichever maps to the call's signature.
+3. **For each call**, replace per the patterns below. Apply whichever maps to the call's signature.
 
    **Pattern A** — `genCampaignApi(establishmentId, user)`:
    ```ts
@@ -888,9 +885,9 @@ Each of Tasks 11–19 follows the same migration recipe. Apply the recipe per fi
 
    When the test only needs the DTO (no DB insert), use `.build(...)` / `.buildList(...)` instead.
 
-5. **Remove `genCampaignApi` and `genCampaignApiNext` from the file's import list** (and the unused `CampaignApi` type if no longer referenced). Run the test to confirm the file still compiles.
+4. **Remove `genCampaignApi` and `genCampaignApiNext` from the file's import list** (and the unused `CampaignApi` type if no longer referenced). Run the test to confirm the file still compiles.
 
-6. **Run that file's tests** and commit:
+5. **Run that file's tests** and commit:
    ```bash
    yarn nx test server -- <file>
    git add <file>

@@ -18,7 +18,7 @@ This slice fixes the API for that case, ships a frontend MSW adapter, migrates c
 - Keep `CampaignDTO` clean — no establishment leaks into the produced DTO.
 - Ship `MswAdapter` so frontend tests can persist DTOs into `frontend/src/mocks/handlers/data`.
 - Migrate every `genCampaignApi` / `genCampaignApiNext` / `genCampaign()` consumer in scope to the package factories.
-- Retire the `forEstablishment()` wrapper class in `server/src/test/factories.ts` (the file disappears).
+- Retire the `forEstablishment()` wrapper classes in `server/src/test/factories.ts` (the file collapses to a one-line re-export of `createFactories(knexAdapter)`).
 - Validate the pattern is small enough to repeat for the remaining entities in follow-up slices.
 
 ## Non-goals
@@ -55,7 +55,7 @@ This slice fixes the API for that case, ships a frontend MSW adapter, migrates c
 
 - `genCampaignApi`, `genCampaignApiNext` in `server/src/test/testFixtures.ts`
 - `genCampaign()` in `frontend/src/test/fixtures.ts`
-- `ServerCampaignFactory`, `ServerGroupFactory`, and `createServerFactories` in `server/src/test/factories.ts` (the whole file is deleted)
+- `ServerCampaignFactory`, `ServerGroupFactory`, and `createServerFactories` in `server/src/test/factories.ts` (the file is rewritten to a one-line re-export of `createFactories(knexAdapter)`)
 - `genCampaignDTO` in `@zerologementvacant/models/fixtures` **stays** — out-of-scope tests still consume it. It is retired in a later slice when its last consumer is gone.
 
 ## API revisions to `@zerologementvacant/factories`
@@ -223,16 +223,19 @@ async create<K extends keyof EntityMap>(
 
 The old "createdBy.establishmentId required — use ServerCampaignFactory" error messages disappear.
 
-### `server/src/test/factories.ts` deleted
+### `server/src/test/factories.ts` collapsed to a one-line re-export
 
-Consumers import directly:
+The wrapper classes (`ServerCampaignFactory`, `ServerGroupFactory`) and the `createServerFactories` function are deleted. The file is kept as a thin re-export so consumers get a stable, short import:
 
 ```ts
+// server/src/test/factories.ts
 import createFactories from '@zerologementvacant/factories';
-import { knexAdapter } from '~/test/knex-adapter';
+import { knexAdapter } from './knex-adapter';
 
-const factories = createFactories(knexAdapter);
+export const factories = createFactories(knexAdapter);
 ```
+
+Symmetric with `frontend/src/test/factories.ts`. Consumers import `{ factories }` from `~/test/factories`.
 
 ## Frontend additions
 
@@ -284,7 +287,7 @@ Frontend tests import `factories` from `~/test/factories` and use it directly. N
 - Apply the API revisions to `@zerologementvacant/factories` (Adapter, AdapterContext, MemoryAdapter, campaign/group factories, createFactories).
 - Update package tests.
 - Update `KnexAdapter` to read context for `campaigns` / `groups`.
-- Delete `server/src/test/factories.ts`.
+- Rewrite `server/src/test/factories.ts` to a one-line re-export of `createFactories(knexAdapter)`.
 - Add `frontend/src/test/msw-adapter.ts` and `frontend/src/test/factories.ts`.
 - Update `server/src/controllers/test/campaign-api.test.ts` (the only existing consumer of the old `createServerFactories`) to the new API.
 

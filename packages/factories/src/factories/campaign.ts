@@ -29,7 +29,7 @@ export function createCampaignFactory(
       sentAt: null,
       housingCount: 0,
       ownerCount: 0,
-      returnCount: 0,
+      returnCount: null,
       returnRate: null
     };
   }).onCreate((entity) =>

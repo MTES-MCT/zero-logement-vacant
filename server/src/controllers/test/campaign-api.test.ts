@@ -285,10 +285,7 @@ describe('Campaign API', () => {
       campaign = await factories
         .campaign(establishment)
         .create(
-          // `parseCampaignApi` coerces `returnCount` to `null` when `sentAt`
-          // is null. Mirror that here so the test's assertions on the
-          // factory-built DTO match what the API returns.
-          { groupId: group.id, returnCount: null },
+          { groupId: group.id },
           { associations: { createdBy: user } }
         );
     });

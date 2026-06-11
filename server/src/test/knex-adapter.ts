@@ -69,8 +69,9 @@ export class KnexAdapter implements Adapter {
         const [{ establishmentId }] = args as ContextArgs<'groups'>;
         if (!group.createdBy) {
           throw new Error(
-            'KnexAdapter: group.createdBy is required. ' +
-              'Pass it via `associations: { createdBy: user }` when building the group.'
+            'KnexAdapter: group.createdBy is required for persistence. ' +
+              'factories.group(establishment).create() enforces this at build time; ' +
+              'if you are calling adapter.create("groups", …) directly, supply createdBy on the DTO.'
           );
         }
         const createdBy = fromUserDTO(group.createdBy);

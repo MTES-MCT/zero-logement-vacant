@@ -40,8 +40,11 @@ describe('createFactories', () => {
   it('scoped group factory builds a GroupDTO with no establishmentId', () => {
     const factories = createFactories(new MemoryAdapter());
     const establishment = factories.establishment.build();
+    const user = factories.user.build();
 
-    const group = factories.group(establishment).build();
+    const group = factories
+      .group(establishment)
+      .build({}, { associations: { createdBy: user } });
 
     expect(group.id).toBeDefined();
     expect(group.title).toBeDefined();
@@ -79,8 +82,11 @@ describe('createFactories', () => {
     };
     const factories = createFactories(adapter as never);
     const establishment = factories.establishment.build();
+    const user = factories.user.build();
 
-    await factories.group(establishment).create();
+    await factories
+      .group(establishment)
+      .create({}, { associations: { createdBy: user } });
 
     expect(calls).toEqual([
       { table: 'groups', context: { establishmentId: establishment.id } }

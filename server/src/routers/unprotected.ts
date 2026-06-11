@@ -1,7 +1,7 @@
 import schemas from '@zerologementvacant/schemas';
 import Router from 'express-promise-router';
 import rateLimit from 'express-rate-limit';
-import { object } from 'yup';
+import { object, string } from 'yup';
 
 import authController from '~/controllers/auth-controller';
 import establishmentController from '~/controllers/establishmentController';
@@ -90,16 +90,18 @@ router.get(
 router.post(
   '/signup-links',
   rateLimiter(),
-  signupLinkController.createValidators,
-  validator.validate,
+  validatorNext.validate({
+    body: object({ email: schemas.email.required() })
+  }),
   signupLinkController.create
 );
 
 router.get(
   '/signup-links/:id',
   rateLimiter(),
-  signupLinkController.showValidators,
-  validator.validate,
+  validatorNext.validate({
+    params: object({ id: string().required() })
+  }),
   signupLinkController.show
 );
 

@@ -68,7 +68,7 @@ describe('Signup link API', () => {
         .set('Content-Type', 'application/json');
 
       expect(status).toBe(constants.HTTP_STATUS_BAD_REQUEST);
-      expect(body).toMatchObject({ errors: expect.any(Array) });
+      expect(body).toMatchObject({ name: 'ValidationError' });
     });
 
     it('should return 400 when body.email is empty', async () => {
@@ -78,7 +78,7 @@ describe('Signup link API', () => {
         .set('Content-Type', 'application/json');
 
       expect(status).toBe(constants.HTTP_STATUS_BAD_REQUEST);
-      expect(body).toMatchObject({ errors: expect.any(Array) });
+      expect(body).toMatchObject({ name: 'ValidationError' });
     });
 
     it('should return 400 when body.email is not a valid email', async () => {
@@ -88,7 +88,7 @@ describe('Signup link API', () => {
         .set('Content-Type', 'application/json');
 
       expect(status).toBe(constants.HTTP_STATUS_BAD_REQUEST);
-      expect(body).toMatchObject({ errors: expect.any(Array) });
+      expect(body).toMatchObject({ name: 'ValidationError' });
     });
 
     it('should send no email if the account already exists', async () => {

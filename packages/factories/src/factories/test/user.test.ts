@@ -28,7 +28,7 @@ describe('createUserFactory', () => {
 
     const user = await factory.create();
 
-    expect(spy).toHaveBeenCalledWith('users', expect.objectContaining({ id: user.id }), undefined);
+    expect(spy).toHaveBeenCalledWith('users', expect.objectContaining({ id: user.id }));
   });
 
   it('builds a list of users', () => {

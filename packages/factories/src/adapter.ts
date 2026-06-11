@@ -5,13 +5,13 @@ export type AdapterContext = {
   groups: { establishmentId: string };
 };
 
-export type ContextOf<K extends keyof EntityMap> =
-  K extends keyof AdapterContext ? AdapterContext[K] : void;
+export type ContextArgs<K extends keyof EntityMap> =
+  K extends keyof AdapterContext ? [context: AdapterContext[K]] : [];
 
 export interface Adapter {
   create<K extends keyof EntityMap>(
     table: K,
     entity: EntityMap[K],
-    context: ContextOf<K>
+    ...args: ContextArgs<K>
   ): Promise<EntityMap[K]>;
 }

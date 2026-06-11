@@ -40,11 +40,8 @@ describe('createFactories', () => {
   it('scoped group factory builds a GroupDTO with no establishmentId', () => {
     const factories = createFactories(new MemoryAdapter());
     const establishment = factories.establishment.build();
-    const user = factories.user.build();
 
-    const group = factories
-      .group(establishment)
-      .build({}, { associations: { createdBy: user } });
+    const group = factories.group(establishment).build();
 
     expect(group.id).toBeDefined();
     expect(group.title).toBeDefined();
@@ -54,8 +51,8 @@ describe('createFactories', () => {
   it('campaign.create forwards establishmentId as adapter context', async () => {
     const calls: Array<{ table: string; context: unknown }> = [];
     const adapter = {
-      async create(table: string, entity: unknown, context: unknown) {
-        calls.push({ table, context });
+      async create(table: string, entity: unknown, ...args: unknown[]) {
+        calls.push({ table, context: args[0] });
         return entity as never;
       }
     };
@@ -75,18 +72,15 @@ describe('createFactories', () => {
   it('group.create forwards establishmentId as adapter context', async () => {
     const calls: Array<{ table: string; context: unknown }> = [];
     const adapter = {
-      async create(table: string, entity: unknown, context: unknown) {
-        calls.push({ table, context });
+      async create(table: string, entity: unknown, ...args: unknown[]) {
+        calls.push({ table, context: args[0] });
         return entity as never;
       }
     };
     const factories = createFactories(adapter as never);
     const establishment = factories.establishment.build();
-    const user = factories.user.build();
 
-    await factories
-      .group(establishment)
-      .create({}, { associations: { createdBy: user } });
+    await factories.group(establishment).create();
 
     expect(calls).toEqual([
       { table: 'groups', context: { establishmentId: establishment.id } }

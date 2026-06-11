@@ -26,7 +26,7 @@ describe('createOwnerFactory', () => {
 
     const owner = await factory.create();
 
-    expect(spy).toHaveBeenCalledWith('owners', expect.objectContaining({ id: owner.id }), undefined);
+    expect(spy).toHaveBeenCalledWith('owners', expect.objectContaining({ id: owner.id }));
   });
 
   it('builds a list of owners', () => {

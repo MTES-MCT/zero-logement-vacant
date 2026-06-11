@@ -25,5 +25,5 @@ export function createUserFactory(adapter: Adapter) {
     establishmentId: null,
     role: UserRole.USUAL,
     kind: null
-  })).onCreate((entity) => adapter.create('users', entity, undefined));
+  })).onCreate((entity) => adapter.create('users', entity));
 }

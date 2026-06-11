@@ -4,10 +4,6 @@ import campaignHousingRepository, {
   CampaignsHousing
 } from '~/repositories/campaignHousingRepository';
 import {
-  Campaigns,
-  formatCampaignApi
-} from '~/repositories/campaignRepository';
-import {
   Establishments,
   formatEstablishmentApi
 } from '~/repositories/establishmentRepository';
@@ -16,8 +12,8 @@ import {
   Housing
 } from '~/repositories/housingRepository';
 import { toUserDBO, Users } from '~/repositories/userRepository';
+import { factories } from '~/test/factories';
 import {
-  genCampaignApi,
   genEstablishmentApi,
   genHousingApi,
   genUserApi
@@ -34,8 +30,9 @@ describe('Campaign housing repository', () => {
     });
 
     it('should remove housings from a campaign', async () => {
-      const campaign = genCampaignApi(establishment.id, user);
-      await Campaigns().insert(formatCampaignApi(campaign));
+      const campaign = await factories
+        .campaign(establishment)
+        .create({}, { associations: { createdBy: user } });
       const housings = faker.helpers.multiple(() =>
         genHousingApi(faker.helpers.arrayElement(establishment.geoCodes))
       );

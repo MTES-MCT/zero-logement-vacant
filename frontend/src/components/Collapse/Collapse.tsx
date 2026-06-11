@@ -4,7 +4,7 @@ import type { ReactNode } from 'react';
 import { useRef, useState } from 'react';
 
 import Icon from '~/components/ui/Icon';
-import { Text } from '../_dsfr';
+import Typography from '@mui/material/Typography';
 
 import { useOutsideClick } from '../../hooks/useOutsideClick';
 import styles from './collapse.module.scss';
@@ -56,9 +56,9 @@ function Collapse(props: Props) {
           <>
             <span className={styles.headerLeft}>
               {props.icon && <Icon name={props.icon} size="md" />}
-              <Text as="span" className="fr-mb-0" size="sm">
+              <Typography component="span" variant="body2" className="fr-mb-0">
                 {props.title}
-              </Text>
+              </Typography>
             </span>
             {props.content && (
               <Icon className="align-right" name={collapseIcon} size="md" />

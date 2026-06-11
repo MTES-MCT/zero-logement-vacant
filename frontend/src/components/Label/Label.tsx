@@ -1,25 +1,25 @@
 import type { PropsWithChildren } from 'react';
 
-import { Text } from '../_dsfr';
-import type { TextAs } from '../_dsfr/components/foundation/typography/Text/Text';
+import Typography from '@mui/material/Typography';
+import classNames from 'classnames';
 
 import styles from './label.module.scss';
 
+
 interface Props {
   spacing?: string;
-  as?: TextAs;
+  as?: 'p' | 'span';
 }
 
 function Label(props: PropsWithChildren<Props>) {
   return (
-    <Text
-      size="sm"
-      className={styles.label}
-      spacing={props.spacing}
-      as={props.as}
+    <Typography
+      component={props.as ?? 'p'}
+      variant="body2"
+      className={classNames(styles.label, props.spacing && `fr-${props.spacing}`)}
     >
       {props.children}
-    </Text>
+    </Typography>
   );
 }
 

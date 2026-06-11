@@ -10,7 +10,7 @@ import { type InferType, object } from 'yup';
 import image from '../../../assets/images/thousand-structures.svg';
 import AppLink from '../../../components/_app/AppLink/AppLink';
 import AppTextInputNext from '../../../components/_app/AppTextInput/AppTextInputNext';
-import { Row, Text } from '../../../components/_dsfr';
+import { Row } from '../../../components/_dsfr';
 import Image from '../../../components/Image/Image';
 import {
   passwordConfirmationValidator,
@@ -168,7 +168,9 @@ function LinkMissing() {
       <Typography component="h1" variant="h4" mb={3}>
         Ce lien n’existe pas ou est expiré !
       </Typography>
-      <Text>Recommencez la procédure ou contactez le support.</Text>
+      <Typography component="p" variant="body1">
+        Recommencez la procédure ou contactez le support.
+      </Typography>
       <Row>
         <AppLink
           iconId="fr-icon-home-4-fill"

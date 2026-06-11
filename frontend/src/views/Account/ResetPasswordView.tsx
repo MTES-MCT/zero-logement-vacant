@@ -3,10 +3,10 @@ import Button from '@codegouvfr/react-dsfr/Button';
 import Typography from '@mui/material/Typography';
 import { type FormEvent, useState } from 'react';
 import { object, string } from 'yup';
+import { Col, Container, Row } from '../../components/_dsfr';
 
 import building from '../../assets/images/building.svg';
 import AppTextInput from '../../components/_app/AppTextInput/AppTextInput';
-import { Col, Container, Row, Text } from '../../components/_dsfr';
 import { useDocumentTitle } from '../../hooks/useDocumentTitle';
 import { useEmailLink } from '../../hooks/useEmailLink';
 import {
@@ -60,7 +60,9 @@ function ResetPasswordView() {
             <Typography component="h1" variant="h4" mb={3}>
               Ce lien n’existe pas ou est expiré !
             </Typography>
-            <Text>Recommencez la procédure ou contactez le support.</Text>
+            <Typography component="p" variant="body1">
+              Recommencez la procédure ou contactez le support.
+            </Typography>
             <Row justifyContent="right">
               <Button linkProps={{ to: '/', replace: true }}>
                 Revenir à l’accueil
@@ -87,9 +89,9 @@ function ResetPasswordView() {
             <Typography component="h1" variant="h4" mb={3}>
               Votre mot de passe a été réinitialisé !
             </Typography>
-            <Text>
+            <Typography component="p" variant="body1">
               Essayez de vous connecter en utilisant votre nouveau mot de passe.
-            </Text>
+            </Typography>
             <Row justifyContent="right">
               <Button linkProps={{ to: '/connexion' }}>Se connecter</Button>
             </Row>

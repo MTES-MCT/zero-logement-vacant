@@ -5,7 +5,7 @@ import Typography from '@mui/material/Typography';
 import classNames from 'classnames';
 import { useState } from 'react';
 import { useForm, type SubmitHandler } from 'react-hook-form';
-import { type InferType, object } from 'yup';
+import { object, type InferType } from 'yup';
 
 import building from '~/assets/images/building.svg';
 import AppLinkAsButton from '~/components/_app/AppLinkAsButton/AppLinkAsButton';
@@ -14,8 +14,8 @@ import { useDocumentTitle } from '~/hooks/useDocumentTitle';
 import { emailValidator } from '~/hooks/useForm';
 import { useHide } from '~/hooks/useHide';
 import resetLinkService from '~/services/reset-link.service';
+import { Col, Container, Row } from '../../components/_dsfr';
 
-import { Col, Container, Row, Text } from '../../components/_dsfr';
 
 import styles from './forgotten-password-view.module.scss';
 
@@ -31,8 +31,10 @@ function EmailSent(props: EmailSentProps) {
 
   return (
     <>
-      <Text>Un email vous a été envoyé avec les instructions à suivre.</Text>
-      <Text className="subtitle">
+      <Typography component="p" variant="body1">
+        Un email vous a été envoyé avec les instructions à suivre.
+      </Typography>
+      <Typography component="p" variant="body1" className="subtitle">
         Vous ne trouvez pas le mail ? Vérifiez qu’il ne s’est pas glissé dans
         vos spams ou 
         <AppLinkAsButton
@@ -44,10 +46,10 @@ function EmailSent(props: EmailSentProps) {
           renvoyer le mail
         </AppLinkAsButton>
         .
-      </Text>
-      <Text size="sm" className={confirmationClasses}>
+      </Typography>
+      <Typography component="p" variant="body2" className={confirmationClasses}>
         Email envoyé.
-      </Text>
+      </Typography>
     </>
   );
 }
@@ -103,10 +105,10 @@ function ForgottenPasswordView() {
             <EmailSent hidden={hidden} submit={form.handleSubmit(onSubmit)} />
           ) : (
             <>
-              <Text>
+              <Typography component="p" variant="body1">
                 Vous allez <b>recevoir un email</b> qui vous permettra de créer
                 un nouveau mot de passe.
-              </Text>
+              </Typography>
               <form onSubmit={form.handleSubmit(onSubmit)}>
                 <AppTextInputNext<FormValues>
                   name="email"

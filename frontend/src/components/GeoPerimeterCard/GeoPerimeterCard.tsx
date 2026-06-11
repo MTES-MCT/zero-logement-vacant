@@ -29,11 +29,7 @@ function GeoPerimeterCard({ geoPerimeter, onEdit, onRemove }: Props) {
           >
             <Grid size={4}>
               <span className="card-title-icon">
-                <Icon
-                  name="fr-icon-france-fill"
-                  iconPosition="center"
-                  size="1x"
-                />
+                <Icon name="fr-icon-france-fill" size="md" />
               </span>
             </Grid>
             <Grid>

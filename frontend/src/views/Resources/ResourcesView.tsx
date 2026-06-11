@@ -5,7 +5,9 @@ import Stack from '@mui/material/Stack';
 import Typography from '@mui/material/Typography';
 import classNames from 'classnames';
 
-import { Icon } from '../../components/_dsfr';
+import type { FrIconClassName, RiIconClassName } from '@codegouvfr/react-dsfr';
+
+import Icon from '~/components/ui/Icon';
 import { useDocumentTitle } from '../../hooks/useDocumentTitle';
 
 import styles from './resources.module.scss';
@@ -16,7 +18,7 @@ interface Props {
   linkHref: string;
   linkHrefTarget?: string;
   children: string;
-  icon: string;
+  icon: FrIconClassName | RiIconClassName;
   iconStyle?: string;
 }
 
@@ -38,7 +40,7 @@ function ResourceTile({
         <Stack component="section">
           <div>
             <span className={classNames(iconStyle, 'card-title-icon')}>
-              <Icon name={icon} iconPosition="center" size="xl" />
+              <Icon name={icon} size="lg" />
             </span>
           </div>
           {title}

@@ -1,11 +1,14 @@
+import type { FrIconClassName, RiIconClassName } from '@codegouvfr/react-dsfr';
 import classNames from 'classnames';
-import { useRef, useState } from 'react';
 import type { ReactNode } from 'react';
+import { useRef, useState } from 'react';
+
+import Icon from '~/components/ui/Icon';
+import { Text } from '../_dsfr';
 
 import { useOutsideClick } from '../../hooks/useOutsideClick';
-import { Icon, Text } from '../_dsfr';
-
 import styles from './collapse.module.scss';
+
 
 interface Props {
   className?: string;
@@ -13,7 +16,7 @@ interface Props {
   /**
    * Can be provided if title is a string.
    */
-  icon?: string;
+  icon?: FrIconClassName | RiIconClassName;
   title: ReactNode;
   content?: ReactNode;
   defaultCollapse?: boolean;
@@ -52,32 +55,20 @@ function Collapse(props: Props) {
         {typeof props.title === 'string' ? (
           <>
             <span className={styles.headerLeft}>
-              {props.icon && (
-                <Icon name={props.icon} iconPosition="left" size="1x" />
-              )}
+              {props.icon && <Icon name={props.icon} size="md" />}
               <Text as="span" className="fr-mb-0" size="sm">
                 {props.title}
               </Text>
             </span>
             {props.content && (
-              <Icon
-                className="align-right"
-                iconPosition="right"
-                name={collapseIcon}
-                size="1x"
-              />
+              <Icon className="align-right" name={collapseIcon} size="md" />
             )}
           </>
         ) : (
           <>
             <span className={styles.headerLeft}>{props.title}</span>
             {props.content && (
-              <Icon
-                className="align-right"
-                iconPosition="right"
-                name={collapseIcon}
-                size="1x"
-              />
+              <Icon className="align-right" name={collapseIcon} size="md" />
             )}
           </>
         )}

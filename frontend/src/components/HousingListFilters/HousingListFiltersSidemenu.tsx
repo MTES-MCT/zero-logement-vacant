@@ -29,7 +29,7 @@ import { getPrecision } from '../../models/Precision';
 import { useFindCampaignsQuery } from '../../services/campaign.service';
 import { useListGeoPerimetersQuery } from '../../services/geo.service';
 import { useFindPrecisionsQuery } from '../../services/precision.service';
-import { Icon } from '../_dsfr';
+import Icon from '~/components/ui/Icon';
 import GroupHeader from '../GroupHeader/GroupHeader';
 import createPerimetersModal from '../modals/GeoPerimetersModal/PerimetersModal';
 import PerimetersModalOpener from '../modals/GeoPerimetersModal/PerimetersModalOpener';
@@ -71,7 +71,7 @@ interface TitleWithIconProps {
 function TitleWithIcon(props: TitleWithIconProps) {
   return (
     <>
-      <Icon name={props.icon} className={styles.icon} verticalAlign="middle" />
+      <Icon name={props.icon} className={styles.icon} />
       <span>{props.title}</span>
     </>
   );

@@ -20,11 +20,14 @@ type RequestSchema = Partial<{
 function validate(schema: RequestSchema) {
   return (request: Request, response: Response, next: NextFunction) => {
     try {
-      const data = object(schema).validateSync({
-        body: request.body,
-        params: request.params,
-        query: request.query
-      });
+      const data = object(schema).validateSync(
+        {
+          body: request.body,
+          params: request.params,
+          query: request.query
+        },
+        { stripUnknown: true }
+      );
       request.body = data.body;
       request.params = data.params as Record<string, string>;
       request.query = data.query as Record<string, string>;

@@ -8,6 +8,8 @@ import { useForm, type SubmitHandler } from 'react-hook-form';
 import { object, type InferType } from 'yup';
 
 import Container from '@mui/material/Container';
+import Grid from '@mui/material/Grid';
+import Stack from '@mui/material/Stack';
 import building from '~/assets/images/building.svg';
 import AppLinkAsButton from '~/components/_app/AppLinkAsButton/AppLinkAsButton';
 import AppTextInputNext from '~/components/_app/AppTextInput/AppTextInputNext';
@@ -15,7 +17,6 @@ import { useDocumentTitle } from '~/hooks/useDocumentTitle';
 import { emailValidator } from '~/hooks/useForm';
 import { useHide } from '~/hooks/useHide';
 import resetLinkService from '~/services/reset-link.service';
-import { Col, Row } from '../../components/_dsfr';
 
 
 import styles from './forgotten-password-view.module.scss';
@@ -88,8 +89,8 @@ function ForgottenPasswordView() {
 
   return (
     <Container component="main" maxWidth="xl" className="grow-container" sx={{ py: '2rem' }}>
-      <Row gutters alignItems="middle">
-        <Col>
+      <Grid container spacing={2} alignItems="center">
+        <Grid size="grow">
           {error && (
             <Alert
               title="Erreur"
@@ -123,23 +124,23 @@ function ForgottenPasswordView() {
                     autoComplete: 'email'
                   }}
                 />
-                <Row justifyContent="right">
+                <Stack direction="row" sx={{ justifyContent: 'flex-end' }}>
                   <Button type="submit">
                     Envoyer un email de réinitialisation
                   </Button>
-                </Row>
+                </Stack>
               </form>
             </>
           )}
-        </Col>
-        <Col n="5" offset="1" className="align-right">
+        </Grid>
+        <Grid size={5} offset={1} className="align-right">
           <img
             src={building}
             style={{ width: '100%', height: '100%' }}
             alt=""
           />
-        </Col>
-      </Row>
+        </Grid>
+      </Grid>
     </Container>
   );
 }

@@ -1,10 +1,11 @@
 import { Alert } from '@codegouvfr/react-dsfr/Alert';
 import Button from '@codegouvfr/react-dsfr/Button';
 import Container from '@mui/material/Container';
+import Grid from '@mui/material/Grid';
+import Stack from '@mui/material/Stack';
 import Typography from '@mui/material/Typography';
 import { type FormEvent, useState } from 'react';
 import { object, string } from 'yup';
-import { Col, Row } from '../../components/_dsfr';
 
 import building from '../../assets/images/building.svg';
 import AppTextInput from '../../components/_app/AppTextInput/AppTextInput';
@@ -56,28 +57,28 @@ function ResetPasswordView() {
   if (!resetLink.exists) {
     return (
       <Container component="main" className="grow-container" maxWidth="xl" sx={{ py: '2rem' }}>
-        <Row gutters alignItems="middle">
-          <Col>
+        <Grid container spacing={2} alignItems="center">
+          <Grid size="grow">
             <Typography component="h1" variant="h4" mb={3}>
               Ce lien n’existe pas ou est expiré !
             </Typography>
             <Typography component="p" variant="body1">
               Recommencez la procédure ou contactez le support.
             </Typography>
-            <Row justifyContent="right">
+            <Stack direction="row" sx={{ justifyContent: 'flex-end' }}>
               <Button linkProps={{ to: '/', replace: true }}>
                 Revenir à l’accueil
               </Button>
-            </Row>
-          </Col>
-          <Col n="5" offset="1" className="align-right">
+            </Stack>
+          </Grid>
+          <Grid size={5} offset={1} className="align-right">
             <img
               src={building}
               style={{ width: '100%', height: '100%' }}
               alt=""
             />
-          </Col>
-        </Row>
+          </Grid>
+        </Grid>
       </Container>
     );
   }
@@ -85,34 +86,34 @@ function ResetPasswordView() {
   if (passwordReset) {
     return (
       <Container component="main" className="grow-container" maxWidth="xl" sx={{ py: '2rem' }}>
-        <Row gutters alignItems="middle">
-          <Col>
+        <Grid container spacing={2} alignItems="center">
+          <Grid size="grow">
             <Typography component="h1" variant="h4" mb={3}>
               Votre mot de passe a été réinitialisé !
             </Typography>
             <Typography component="p" variant="body1">
               Essayez de vous connecter en utilisant votre nouveau mot de passe.
             </Typography>
-            <Row justifyContent="right">
+            <Stack direction="row" sx={{ justifyContent: 'flex-end' }}>
               <Button linkProps={{ to: '/connexion' }}>Se connecter</Button>
-            </Row>
-          </Col>
-          <Col n="5" offset="1" className="align-right">
+            </Stack>
+          </Grid>
+          <Grid size={5} offset={1} className="align-right">
             <img
               src={building}
               style={{ width: '100%', height: '100%' }}
               alt=""
             />
-          </Col>
-        </Row>
+          </Grid>
+        </Grid>
       </Container>
     );
   }
 
   return (
     <Container component="main" className="grow-container" maxWidth="xl" sx={{ py: '2rem' }}>
-      <Row gutters alignItems="middle">
-        <Col>
+      <Grid container spacing={2} alignItems="center">
+        <Grid size="grow">
           {error && (
             <Alert
               title="Erreur"
@@ -152,19 +153,19 @@ function ResetPasswordView() {
               label="Confirmer votre mot de passe (obligatoire)"
               required
             />
-            <Row justifyContent="right">
+            <Stack direction="row" sx={{ justifyContent: 'flex-end' }}>
               <Button type="submit">Enregistrer le nouveau mot de passe</Button>
-            </Row>
+            </Stack>
           </form>
-        </Col>
-        <Col n="5" offset="1" className="align-right">
+        </Grid>
+        <Grid size={5} offset={1} className="align-right">
           <img
             src={building}
             style={{ width: '100%', height: '100%' }}
             alt=""
           />
-        </Col>
-      </Row>
+        </Grid>
+      </Grid>
     </Container>
   );
 }

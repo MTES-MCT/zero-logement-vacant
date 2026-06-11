@@ -1,7 +1,7 @@
 import { Alert } from '@codegouvfr/react-dsfr/Alert';
+import Grid from '@mui/material/Grid';
 import classNames from 'classnames';
 
-import { Col, Row } from '../../components/_dsfr';
 import MainContainer from '../../components/MainContainer/MainContainer';
 import { useDocumentTitle } from '../../hooks/useDocumentTitle';
 import { HousingStates } from '../../models/HousingState';
@@ -17,38 +17,40 @@ const StatusView = () => {
         small
         className="fr-mb-3w"
       />
-      <Row className="fr-py-1w bordered-b bg-100">
-        <Col n="4">
+      <Grid container className="fr-py-1w bordered-b bg-100">
+        <Grid size={4}>
           <b>Statuts</b>
-        </Col>
-        <Col n="4">
+        </Grid>
+        <Grid size={4}>
           <b>Sous statuts</b>
-        </Col>
-      </Row>
+        </Grid>
+      </Grid>
       {HousingStates.map((state, stateIndex) => (
-        <Row
+        <Grid
+          container
           className={classNames('fr-py-1w', {
             'bordered-b': stateIndex !== HousingStates.length - 1
           })}
           key={state + '_' + stateIndex}
         >
-          <Col n="4">
+          <Grid size={4}>
             <b>{state.title}</b>
-          </Col>
-          <Col>
+          </Grid>
+          <Grid size="grow">
             {state.subStatusList?.map((subStatus, subStatusIndex) => (
-              <Row
+              <Grid
+                container
                 className={classNames('fr-py-1w', {
                   'bordered-b':
                     subStatusIndex + 1 !== state.subStatusList?.length
                 })}
                 key={state + '_' + subStatus + '_' + subStatusIndex}
               >
-                <Col>{subStatus.title}</Col>
-              </Row>
+                <Grid size="grow">{subStatus.title}</Grid>
+              </Grid>
             ))}
-          </Col>
-        </Row>
+          </Grid>
+        </Grid>
       ))}
     </MainContainer>
   );

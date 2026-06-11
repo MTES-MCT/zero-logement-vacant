@@ -1,5 +1,5 @@
 import { faker } from '@faker-js/faker/locale/fr';
-import { HousingStatus } from '@zerologementvacant/models';
+import { CampaignDTO, HousingStatus } from '@zerologementvacant/models';
 
 import {
   CampaignEventApi,
@@ -9,8 +9,7 @@ import {
 import { CampaignsDrafts } from '~/repositories/campaignDraftRepository';
 import { CampaignsHousing } from '~/repositories/campaignHousingRepository';
 import campaignRepository, {
-  Campaigns,
-  formatCampaignApi
+  Campaigns
 } from '~/repositories/campaignRepository';
 import {
   Establishments,
@@ -37,8 +36,8 @@ import {
 } from '~/repositories/housingRepository';
 import { formatOwnerApi, Owners } from '~/repositories/ownerRepository';
 import { toUserDBO, Users } from '~/repositories/userRepository';
+import { factories } from '~/test/factories';
 import {
-  genCampaignApi,
   genEstablishmentApi,
   genEventApi,
   genHousingApi,
@@ -65,9 +64,10 @@ describe('Campaign repository', () => {
 
     describe('geoCodes filter', () => {
       it('should return all campaigns when geoCodes is undefined', async () => {
-        const campaign = genCampaignApi(establishment.id, user);
+        const campaign = await factories
+          .campaign(establishment)
+          .create({}, { associations: { createdBy: user } });
         const housing = genHousingApi(establishment.geoCodes[0]);
-        await Campaigns().insert(formatCampaignApi(campaign));
         await Housing().insert(formatHousingRecordApi(housing));
         await CampaignsHousing().insert({
           campaign_id: campaign.id,
@@ -83,9 +83,10 @@ describe('Campaign repository', () => {
       });
 
       it('should return no campaigns when geoCodes is empty', async () => {
-        const campaign = genCampaignApi(establishment.id, user);
+        const campaign = await factories
+          .campaign(establishment)
+          .create({}, { associations: { createdBy: user } });
         const housing = genHousingApi(establishment.geoCodes[0]);
-        await Campaigns().insert(formatCampaignApi(campaign));
         await Housing().insert(formatHousingRecordApi(housing));
         await CampaignsHousing().insert({
           campaign_id: campaign.id,
@@ -104,15 +105,15 @@ describe('Campaign repository', () => {
         const inGeoCode = establishment.geoCodes[0];
         const outGeoCode = establishment2.geoCodes[0];
 
-        const campaignIn = genCampaignApi(establishment.id, user);
-        const campaignOut = genCampaignApi(establishment.id, user);
+        const campaignIn = await factories
+          .campaign(establishment)
+          .create({}, { associations: { createdBy: user } });
+        const campaignOut = await factories
+          .campaign(establishment)
+          .create({}, { associations: { createdBy: user } });
         const housingIn = genHousingApi(inGeoCode);
         const housingOut = genHousingApi(outGeoCode);
 
-        await Campaigns().insert([
-          formatCampaignApi(campaignIn),
-          formatCampaignApi(campaignOut)
-        ]);
         await Housing().insert([
           formatHousingRecordApi(housingIn),
           formatHousingRecordApi(housingOut)
@@ -143,11 +144,12 @@ describe('Campaign repository', () => {
         const inGeoCode = establishment.geoCodes[0];
         const outGeoCode = establishment2.geoCodes[0];
 
-        const campaign = genCampaignApi(establishment.id, user);
+        const campaign = await factories
+          .campaign(establishment)
+          .create({}, { associations: { createdBy: user } });
         const housingIn = genHousingApi(inGeoCode);
         const housingOut = genHousingApi(outGeoCode);
 
-        await Campaigns().insert(formatCampaignApi(campaign));
         await Housing().insert([
           formatHousingRecordApi(housingIn),
           formatHousingRecordApi(housingOut)
@@ -178,12 +180,13 @@ describe('Campaign repository', () => {
 
   describe('findOne', () => {
     it('should include the campaign creator', async () => {
-      const campaign = genCampaignApi(establishment.id, user);
-      await Campaigns().insert(formatCampaignApi(campaign));
+      const campaign = await factories
+        .campaign(establishment)
+        .create({}, { associations: { createdBy: user } });
 
       const actual = await campaignRepository.findOne({
         id: campaign.id,
-        establishmentId: campaign.establishmentId
+        establishmentId: establishment.id
       });
 
       expect(actual?.createdBy).toMatchObject({
@@ -193,94 +196,106 @@ describe('Campaign repository', () => {
     });
 
     it('should expose returnCount from the database', async () => {
-      const campaign = genCampaignApi(establishment.id, user);
-      await Campaigns().insert({
-        ...formatCampaignApi(campaign),
-        return_count: 5,
-        sent_at: new Date()
-      });
+      const campaign = await factories
+        .campaign(establishment)
+        .create({}, { associations: { createdBy: user } });
+      // The sent_at update must happen first: an UPDATE-trigger
+      // (trg_recompute_return_count_on_sent_at_change) recomputes return_count
+      // whenever sent_at changes, so updating both in one statement would
+      // overwrite the seeded return_count.
+      await Campaigns().where({ id: campaign.id }).update({ sent_at: new Date() });
+      await Campaigns().where({ id: campaign.id }).update({ return_count: 5 });
 
       const result = await campaignRepository.findOne({
         id: campaign.id,
-        establishmentId: campaign.establishmentId
+        establishmentId: establishment.id
       });
 
       expect(result?.returnCount).toBe(5);
     });
 
     it('should expose returnCount as null when sentAt is null', async () => {
-      const campaign = genCampaignApi(establishment.id, user);
-      await Campaigns().insert({
-        ...formatCampaignApi(campaign),
-        return_count: 0
-      });
+      const campaign = await factories
+        .campaign(establishment)
+        .create({}, { associations: { createdBy: user } });
+      await Campaigns()
+        .where({ id: campaign.id })
+        .update({ return_count: 0 });
 
       const result = await campaignRepository.findOne({
         id: campaign.id,
-        establishmentId: campaign.establishmentId
+        establishmentId: establishment.id
       });
 
       expect(result?.returnCount).toBeNull();
     });
 
     it('should expose housingCount from the database', async () => {
-      const campaign = genCampaignApi(establishment.id, user);
-      await Campaigns().insert({
-        ...formatCampaignApi(campaign),
-        housing_count: 3
-      });
+      const campaign = await factories
+        .campaign(establishment)
+        .create({}, { associations: { createdBy: user } });
+      await Campaigns()
+        .where({ id: campaign.id })
+        .update({ housing_count: 3 });
 
       const result = await campaignRepository.findOne({
         id: campaign.id,
-        establishmentId: campaign.establishmentId
+        establishmentId: establishment.id
       });
 
       expect(result?.housingCount).toBe(3);
     });
 
     it('should expose ownerCount from the database', async () => {
-      const campaign = genCampaignApi(establishment.id, user);
-      await Campaigns().insert({
-        ...formatCampaignApi(campaign),
-        owner_count: 2
-      });
+      const campaign = await factories
+        .campaign(establishment)
+        .create({}, { associations: { createdBy: user } });
+      await Campaigns()
+        .where({ id: campaign.id })
+        .update({ owner_count: 2 });
 
       const result = await campaignRepository.findOne({
         id: campaign.id,
-        establishmentId: campaign.establishmentId
+        establishmentId: establishment.id
       });
 
       expect(result?.ownerCount).toBe(2);
     });
 
     it('should expose returnRate from the database when sentAt is set', async () => {
-      const campaign = genCampaignApi(establishment.id, user);
-      await Campaigns().insert({
-        ...formatCampaignApi(campaign),
+      const campaign = await factories
+        .campaign(establishment)
+        .create({}, { associations: { createdBy: user } });
+      // The sent_at update must happen first: an UPDATE-trigger
+      // (trg_recompute_return_count_on_sent_at_change) recomputes return_count
+      // whenever sent_at changes, so updating both in one statement would
+      // overwrite the seeded return_count.
+      await Campaigns().where({ id: campaign.id }).update({ sent_at: new Date() });
+      await Campaigns().where({ id: campaign.id }).update({
         housing_count: 10,
-        return_count: 4,
-        sent_at: new Date()
+        return_count: 4
       });
 
       const result = await campaignRepository.findOne({
         id: campaign.id,
-        establishmentId: campaign.establishmentId
+        establishmentId: establishment.id
       });
 
       expect(result?.returnRate).toBeCloseTo(0.4);
     });
 
     it('should expose returnRate as null when sentAt is null', async () => {
-      const campaign = genCampaignApi(establishment.id, user);
-      await Campaigns().insert({
-        ...formatCampaignApi(campaign),
+      const campaign = await factories
+        .campaign(establishment)
+        .create({}, { associations: { createdBy: user } });
+      await Campaigns().where({ id: campaign.id }).update({
         housing_count: 10,
         return_count: 0
       });
 
       const result = await campaignRepository.findOne({
         id: campaign.id,
-        establishmentId: campaign.establishmentId
+        establishmentId: establishment.id
       });
 
       expect(result?.returnRate).toBeNull();
@@ -288,9 +303,10 @@ describe('Campaign repository', () => {
 
     describe('geoCodes filter', () => {
       it('should return null when geoCodes is empty', async () => {
-        const campaign = genCampaignApi(establishment.id, user);
+        const campaign = await factories
+          .campaign(establishment)
+          .create({}, { associations: { createdBy: user } });
         const housing = genHousingApi(establishment.geoCodes[0]);
-        await Campaigns().insert(formatCampaignApi(campaign));
         await Housing().insert(formatHousingRecordApi(housing));
         await CampaignsHousing().insert({
           campaign_id: campaign.id,
@@ -309,9 +325,10 @@ describe('Campaign repository', () => {
 
       it('should return null when campaign has housing outside geoCodes', async () => {
         const establishment2 = genEstablishmentApi();
-        const campaign = genCampaignApi(establishment.id, user);
+        const campaign = await factories
+          .campaign(establishment)
+          .create({}, { associations: { createdBy: user } });
         const outsideHousing = genHousingApi(establishment2.geoCodes[0]);
-        await Campaigns().insert(formatCampaignApi(campaign));
         await Housing().insert(formatHousingRecordApi(outsideHousing));
         await CampaignsHousing().insert({
           campaign_id: campaign.id,
@@ -330,9 +347,10 @@ describe('Campaign repository', () => {
 
       it('should return campaign when all housing is within geoCodes', async () => {
         const inGeoCode = establishment.geoCodes[0];
-        const campaign = genCampaignApi(establishment.id, user);
+        const campaign = await factories
+          .campaign(establishment)
+          .create({}, { associations: { createdBy: user } });
         const housing = genHousingApi(inGeoCode);
-        await Campaigns().insert(formatCampaignApi(campaign));
         await Housing().insert(formatHousingRecordApi(housing));
         await CampaignsHousing().insert({
           campaign_id: campaign.id,
@@ -353,21 +371,27 @@ describe('Campaign repository', () => {
   });
 
   describe('remove', () => {
-    const campaign = genCampaignApi(establishment.id, user);
     const housings = faker.helpers.multiple(() => genHousingApi());
-    const campaignEvents: ReadonlyArray<CampaignEventApi> = [
-      {
-        ...genEventApi({
-          creator: user,
-          type: 'campaign:updated',
-          nextOld: { title: 'Before' },
-          nextNew: { title: 'After' }
-        }),
-        campaignId: campaign.id
-      }
-    ];
-    const campaignHousingEvents: ReadonlyArray<CampaignHousingEventApi> =
-      housings.map((housing) => ({
+    let campaign: CampaignDTO;
+    let campaignEvents: ReadonlyArray<CampaignEventApi>;
+    let campaignHousingEvents: ReadonlyArray<CampaignHousingEventApi>;
+
+    beforeAll(async () => {
+      campaign = await factories
+        .campaign(establishment)
+        .create({}, { associations: { createdBy: user } });
+      campaignEvents = [
+        {
+          ...genEventApi({
+            creator: user,
+            type: 'campaign:updated',
+            nextOld: { title: 'Before' },
+            nextNew: { title: 'After' }
+          }),
+          campaignId: campaign.id
+        }
+      ];
+      campaignHousingEvents = housings.map((housing) => ({
         ...genEventApi({
           creator: user,
           type: 'housing:campaign-detached',
@@ -379,8 +403,6 @@ describe('Campaign repository', () => {
         housingId: housing.id
       }));
 
-    beforeAll(async () => {
-      await Campaigns().insert(formatCampaignApi(campaign));
       await Housing().insert(housings.map(formatHousingRecordApi));
       await Events().insert(
         [...campaignEvents, ...campaignHousingEvents].map(formatEventApi)
@@ -447,8 +469,9 @@ describe('Campaign repository', () => {
     });
 
     it('should increment housing_count when housing is added to campaign', async () => {
-      const campaign = genCampaignApi(establishment.id, user);
-      await Campaigns().insert(formatCampaignApi(campaign));
+      const campaign = await factories
+        .campaign(establishment)
+        .create({}, { associations: { createdBy: user } });
 
       const housing = genHousingApi();
       await Housing().insert(formatHousingRecordApi(housing));
@@ -461,15 +484,16 @@ describe('Campaign repository', () => {
 
       const result = await campaignRepository.findOne({
         id: campaign.id,
-        establishmentId: campaign.establishmentId
+        establishmentId: establishment.id
       });
 
       expect(result?.housingCount).toBe(1);
     });
 
     it('should decrement housing_count when housing is removed from campaign', async () => {
-      const campaign = genCampaignApi(establishment.id, user);
-      await Campaigns().insert(formatCampaignApi(campaign));
+      const campaign = await factories
+        .campaign(establishment)
+        .create({}, { associations: { createdBy: user } });
 
       const housing = genHousingApi();
       await Housing().insert(formatHousingRecordApi(housing));
@@ -486,15 +510,16 @@ describe('Campaign repository', () => {
 
       const result = await campaignRepository.findOne({
         id: campaign.id,
-        establishmentId: campaign.establishmentId
+        establishmentId: establishment.id
       });
 
       expect(result?.housingCount).toBe(0);
     });
 
     it('should increment owner_count when a primary owner is added to housing in campaign', async () => {
-      const campaign = genCampaignApi(establishment.id, user);
-      await Campaigns().insert(formatCampaignApi(campaign));
+      const campaign = await factories
+        .campaign(establishment)
+        .create({}, { associations: { createdBy: user } });
 
       const housing = genHousingApi();
       await Housing().insert(formatHousingRecordApi(housing));
@@ -515,15 +540,16 @@ describe('Campaign repository', () => {
 
       const result = await campaignRepository.findOne({
         id: campaign.id,
-        establishmentId: campaign.establishmentId
+        establishmentId: establishment.id
       });
 
       expect(result?.ownerCount).toBe(1);
     });
 
     it('should decrement owner_count when a primary owner is removed from housing in campaign', async () => {
-      const campaign = genCampaignApi(establishment.id, user);
-      await Campaigns().insert(formatCampaignApi(campaign));
+      const campaign = await factories
+        .campaign(establishment)
+        .create({}, { associations: { createdBy: user } });
 
       const housing = genHousingApi();
       await Housing().insert(formatHousingRecordApi(housing));
@@ -548,15 +574,16 @@ describe('Campaign repository', () => {
 
       const result = await campaignRepository.findOne({
         id: campaign.id,
-        establishmentId: campaign.establishmentId
+        establishmentId: establishment.id
       });
 
       expect(result?.ownerCount).toBe(0);
     });
 
     it('should decrement owner_count when owner rank changes from 1 to 2', async () => {
-      const campaign = genCampaignApi(establishment.id, user);
-      await Campaigns().insert(formatCampaignApi(campaign));
+      const campaign = await factories
+        .campaign(establishment)
+        .create({}, { associations: { createdBy: user } });
 
       const housing = genHousingApi();
       await Housing().insert(formatHousingRecordApi(housing));
@@ -581,15 +608,16 @@ describe('Campaign repository', () => {
 
       const result = await campaignRepository.findOne({
         id: campaign.id,
-        establishmentId: campaign.establishmentId
+        establishmentId: establishment.id
       });
 
       expect(result?.ownerCount).toBe(0);
     });
 
     it('should not change owner_count when rank changes between non-primary values', async () => {
-      const campaign = genCampaignApi(establishment.id, user);
-      await Campaigns().insert(formatCampaignApi(campaign));
+      const campaign = await factories
+        .campaign(establishment)
+        .create({}, { associations: { createdBy: user } });
 
       const housing = genHousingApi();
       await Housing().insert(formatHousingRecordApi(housing));
@@ -620,7 +648,7 @@ describe('Campaign repository', () => {
 
       const result = await campaignRepository.findOne({
         id: campaign.id,
-        establishmentId: campaign.establishmentId
+        establishmentId: establishment.id
       });
 
       expect(result?.ownerCount).toBe(1);
@@ -628,11 +656,10 @@ describe('Campaign repository', () => {
 
     it('should decrement return_count when a housing with return events is detached', async () => {
       const sentAt = faker.date.past();
-      const campaign = genCampaignApi(establishment.id, user);
-      await Campaigns().insert({
-        ...formatCampaignApi(campaign),
-        sent_at: sentAt
-      });
+      const campaign = await factories
+        .campaign(establishment)
+        .create({}, { associations: { createdBy: user } });
+      await Campaigns().where({ id: campaign.id }).update({ sent_at: sentAt });
 
       const housing = {
         ...genHousingApi(),
@@ -668,7 +695,7 @@ describe('Campaign repository', () => {
 
       const result = await campaignRepository.findOne({
         id: campaign.id,
-        establishmentId: campaign.establishmentId
+        establishmentId: establishment.id
       });
 
       expect(result?.returnCount).toBe(0);
@@ -676,11 +703,10 @@ describe('Campaign repository', () => {
 
     it('should compute return_rate as return_count / housing_count', async () => {
       const sentAt = faker.date.past();
-      const campaign = genCampaignApi(establishment.id, user);
-      await Campaigns().insert({
-        ...formatCampaignApi(campaign),
-        sent_at: sentAt
-      });
+      const campaign = await factories
+        .campaign(establishment)
+        .create({}, { associations: { createdBy: user } });
+      await Campaigns().where({ id: campaign.id }).update({ sent_at: sentAt });
       const housings = faker.helpers.multiple(
         () => ({ ...genHousingApi(), status: HousingStatus.FIRST_CONTACT }),
         { count: 10 }
@@ -720,7 +746,7 @@ describe('Campaign repository', () => {
 
       const result = await campaignRepository.findOne({
         id: campaign.id,
-        establishmentId: campaign.establishmentId
+        establishmentId: establishment.id
       });
 
       expect(result?.returnRate).toBeCloseTo(0.4);
@@ -729,11 +755,10 @@ describe('Campaign repository', () => {
     describe('return_count status filter', () => {
       async function setupCampaignWithHousing(status: HousingStatus) {
         const sentAt = faker.date.past();
-        const campaign = genCampaignApi(establishment.id, user);
-        await Campaigns().insert({
-          ...formatCampaignApi(campaign),
-          sent_at: sentAt
-        });
+        const campaign = await factories
+          .campaign(establishment)
+          .create({}, { associations: { createdBy: user } });
+        await Campaigns().where({ id: campaign.id }).update({ sent_at: sentAt });
 
         const housing = { ...genHousingApi(), status };
         await Housing().insert(formatHousingRecordApi(housing));
@@ -776,7 +801,7 @@ describe('Campaign repository', () => {
 
           const result = await campaignRepository.findOne({
             id: campaign.id,
-            establishmentId: campaign.establishmentId
+            establishmentId: establishment.id
           });
 
           expect(result?.returnCount).toBe(expected);
@@ -787,11 +812,10 @@ describe('Campaign repository', () => {
     describe('return_count on housing status change', () => {
       it('should decrement return_count when housing status moves from qualifying to non-qualifying', async () => {
         const sentAt = faker.date.past();
-        const campaign = genCampaignApi(establishment.id, user);
-        await Campaigns().insert({
-          ...formatCampaignApi(campaign),
-          sent_at: sentAt
-        });
+        const campaign = await factories
+          .campaign(establishment)
+          .create({}, { associations: { createdBy: user } });
+        await Campaigns().where({ id: campaign.id }).update({ sent_at: sentAt });
 
         const housing = {
           ...genHousingApi(),
@@ -823,7 +847,7 @@ describe('Campaign repository', () => {
         // Verify housing is counted before status change
         const before = await campaignRepository.findOne({
           id: campaign.id,
-          establishmentId: campaign.establishmentId
+          establishmentId: establishment.id
         });
         expect(before?.returnCount).toBe(1);
 
@@ -834,18 +858,17 @@ describe('Campaign repository', () => {
 
         const after = await campaignRepository.findOne({
           id: campaign.id,
-          establishmentId: campaign.establishmentId
+          establishmentId: establishment.id
         });
         expect(after?.returnCount).toBe(0);
       });
 
       it('should increment return_count when housing status moves from non-qualifying to qualifying', async () => {
         const sentAt = faker.date.past();
-        const campaign = genCampaignApi(establishment.id, user);
-        await Campaigns().insert({
-          ...formatCampaignApi(campaign),
-          sent_at: sentAt
-        });
+        const campaign = await factories
+          .campaign(establishment)
+          .create({}, { associations: { createdBy: user } });
+        await Campaigns().where({ id: campaign.id }).update({ sent_at: sentAt });
 
         const housing = { ...genHousingApi(), status: HousingStatus.WAITING };
         await Housing().insert(formatHousingRecordApi(housing));
@@ -874,7 +897,7 @@ describe('Campaign repository', () => {
         // Verify housing is not counted before status change
         const before = await campaignRepository.findOne({
           id: campaign.id,
-          establishmentId: campaign.establishmentId
+          establishmentId: establishment.id
         });
         expect(before?.returnCount).toBe(0);
 
@@ -885,7 +908,7 @@ describe('Campaign repository', () => {
 
         const after = await campaignRepository.findOne({
           id: campaign.id,
-          establishmentId: campaign.establishmentId
+          establishmentId: establishment.id
         });
         expect(after?.returnCount).toBe(1);
       });

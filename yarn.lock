@@ -11207,6 +11207,7 @@ __metadata:
     "@types/react-dom": "npm:18.3.7"
     "@web-std/blob": "npm:3.0.5"
     "@web-std/file": "npm:3.0.3"
+    "@zerologementvacant/factories": "workspace:*"
     "@zerologementvacant/models": "workspace:*"
     "@zerologementvacant/pdf": "workspace:*"
     "@zerologementvacant/schemas": "workspace:*"

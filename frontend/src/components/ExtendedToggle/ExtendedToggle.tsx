@@ -50,7 +50,7 @@ function ExtendedToggle(props: Props) {
         'data-fr-unchecked-label': 'Désactivé'
       };
 
-  const icon = props.iconId ?? 'fr-icon-check-line';
+  const icon = props.iconId ?? 'ri-check-fill';
 
   return (
     <div className={classes}>

@@ -7,6 +7,7 @@ import { useState } from 'react';
 import { useForm, type SubmitHandler } from 'react-hook-form';
 import { object, type InferType } from 'yup';
 
+import Container from '@mui/material/Container';
 import building from '~/assets/images/building.svg';
 import AppLinkAsButton from '~/components/_app/AppLinkAsButton/AppLinkAsButton';
 import AppTextInputNext from '~/components/_app/AppTextInput/AppTextInputNext';
@@ -14,7 +15,7 @@ import { useDocumentTitle } from '~/hooks/useDocumentTitle';
 import { emailValidator } from '~/hooks/useForm';
 import { useHide } from '~/hooks/useHide';
 import resetLinkService from '~/services/reset-link.service';
-import { Col, Container, Row } from '../../components/_dsfr';
+import { Col, Row } from '../../components/_dsfr';
 
 
 import styles from './forgotten-password-view.module.scss';
@@ -86,7 +87,7 @@ function ForgottenPasswordView() {
   };
 
   return (
-    <Container as="main" spacing="py-4w" className="grow-container">
+    <Container component="main" maxWidth="xl" className="grow-container" sx={{ py: '2rem' }}>
       <Row gutters alignItems="middle">
         <Col>
           {error && (

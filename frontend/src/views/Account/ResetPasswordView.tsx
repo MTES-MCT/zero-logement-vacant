@@ -1,9 +1,10 @@
 import { Alert } from '@codegouvfr/react-dsfr/Alert';
 import Button from '@codegouvfr/react-dsfr/Button';
+import Container from '@mui/material/Container';
 import Typography from '@mui/material/Typography';
 import { type FormEvent, useState } from 'react';
 import { object, string } from 'yup';
-import { Col, Container, Row } from '../../components/_dsfr';
+import { Col, Row } from '../../components/_dsfr';
 
 import building from '../../assets/images/building.svg';
 import AppTextInput from '../../components/_app/AppTextInput/AppTextInput';
@@ -54,7 +55,7 @@ function ResetPasswordView() {
 
   if (!resetLink.exists) {
     return (
-      <Container as="main" className="grow-container" spacing="py-4w">
+      <Container component="main" className="grow-container" maxWidth="xl" sx={{ py: '2rem' }}>
         <Row gutters alignItems="middle">
           <Col>
             <Typography component="h1" variant="h4" mb={3}>
@@ -83,7 +84,7 @@ function ResetPasswordView() {
 
   if (passwordReset) {
     return (
-      <Container as="main" className="grow-container" spacing="py-4w">
+      <Container component="main" className="grow-container" maxWidth="xl" sx={{ py: '2rem' }}>
         <Row gutters alignItems="middle">
           <Col>
             <Typography component="h1" variant="h4" mb={3}>
@@ -109,7 +110,7 @@ function ResetPasswordView() {
   }
 
   return (
-    <Container as="main" className="grow-container" spacing="py-4w">
+    <Container component="main" className="grow-container" maxWidth="xl" sx={{ py: '2rem' }}>
       <Row gutters alignItems="middle">
         <Col>
           {error && (

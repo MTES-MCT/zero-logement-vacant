@@ -128,7 +128,7 @@ If a consumer relied on `iconPosition="right"` to reorder icon+text, restructure
 
 **Files:**
 - Delete: `frontend/src/components/_dsfr/components/interface/` (Modal, Pagination, Select, Table — if grep is clean)
-- Delete: `frontend/src/components/_dsfr/utils/`, `frontend/src/components/_dsfr/hooks/` (if grep is clean)
+- Keep (until Task 6): `frontend/src/components/_dsfr/utils/`, `frontend/src/components/_dsfr/hooks/` — still consumed by `_dsfr/components/foundation/*` (Icon, Container, Row, Col, Text). They are removed wholesale when Task 6 deletes the entire `_dsfr/` folder.
 - Delete: `frontend/src/components/modals/GroupCampaignCreationModal/` (entire directory)
 - Modify: `frontend/src/components/_dsfr/index.js`, `frontend/src/components/_dsfr/index.d.ts`, `frontend/src/components/_dsfr/components/interface/index.js`, `frontend/src/components/_dsfr/components/interface/index.d.ts` (remove dead re-exports)
 
@@ -171,10 +171,10 @@ Expected: only files **inside** `frontend/src/components/modals/GroupCampaignCre
 
 ```bash
 rm -rf frontend/src/components/_dsfr/components/interface
-rm -rf frontend/src/components/_dsfr/utils
-rm -rf frontend/src/components/_dsfr/hooks
 rm -rf frontend/src/components/modals/GroupCampaignCreationModal
 ```
+
+Do **not** delete `_dsfr/utils/` or `_dsfr/hooks/` here — they are still required by `_dsfr/components/foundation/*` (Icon, Container, Row, Col, Text). Task 6 removes the whole `_dsfr/` folder.
 
 - [ ] **Step 4: Remove the dead re-exports from `_dsfr/index.*`**
 
@@ -207,9 +207,10 @@ Expected: both pass. Any failure means a hidden consumer existed — investigate
 git add frontend/src/components/_dsfr frontend/src/components/modals/GroupCampaignCreationModal
 git commit -m "chore(front): verify _dsfr dead exports
 
-Modal*, Pagination*, Select*, Table*, _dsfr/utils, _dsfr/hooks have
-zero external consumers. Same for GroupCampaignCreationModal. Drop
-them ahead of the live-consumer migration."
+Modal*, Pagination*, Select*, Table* have zero external consumers.
+Same for GroupCampaignCreationModal. Drop them ahead of the
+live-consumer migration. _dsfr/utils and _dsfr/hooks stay until
+Task 6 because foundation/* still depends on them."
 ```
 
 ---

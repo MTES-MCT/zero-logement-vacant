@@ -1,3 +1,13 @@
+import type {
+  CampaignDTO,
+  EstablishmentDTO,
+  GroupDTO,
+  HousingDTO,
+  OwnerDTO,
+  UserDTO
+} from '@zerologementvacant/models';
+import type { Factory } from 'fishery';
+
 import type { Adapter } from './adapter';
 import { createCampaignFactory } from './factories/campaign';
 import { createEstablishmentFactory } from './factories/establishment';
@@ -6,20 +16,20 @@ import { createHousingFactory } from './factories/housing';
 import { createOwnerFactory } from './factories/owner';
 import { createUserFactory } from './factories/user';
 
-export type Factories = {
-  campaign: ReturnType<typeof createCampaignFactory>;
-  establishment: ReturnType<typeof createEstablishmentFactory>;
-  group: ReturnType<typeof createGroupFactory>;
-  housing: ReturnType<typeof createHousingFactory>;
-  owner: ReturnType<typeof createOwnerFactory>;
-  user: ReturnType<typeof createUserFactory>;
-};
+export interface Factories {
+  campaign: (establishment: EstablishmentDTO) => Factory<CampaignDTO>;
+  establishment: Factory<EstablishmentDTO>;
+  group: (establishment: EstablishmentDTO) => Factory<GroupDTO>;
+  housing: Factory<HousingDTO>;
+  owner: Factory<OwnerDTO>;
+  user: Factory<UserDTO>;
+}
 
 export default function createFactories(adapter: Adapter): Factories {
   return {
-    campaign: createCampaignFactory(adapter),
+    campaign: (establishment) => createCampaignFactory(adapter, establishment),
     establishment: createEstablishmentFactory(adapter),
-    group: createGroupFactory(adapter),
+    group: (establishment) => createGroupFactory(adapter, establishment),
     housing: createHousingFactory(adapter),
     owner: createOwnerFactory(adapter),
     user: createUserFactory(adapter)

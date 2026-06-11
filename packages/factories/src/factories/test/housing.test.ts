@@ -30,10 +30,7 @@ describe('createHousingFactory', () => {
 
     const housing = await factory.create();
 
-    expect(spy).toHaveBeenCalledWith(
-      'housings',
-      expect.objectContaining({ id: housing.id })
-    );
+    expect(spy).toHaveBeenCalledWith('housings', expect.objectContaining({ id: housing.id }), undefined);
   });
 
   it('builds a list of housings', () => {

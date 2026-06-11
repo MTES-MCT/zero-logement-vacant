@@ -27,10 +27,7 @@ describe('createEstablishmentFactory', () => {
 
     const establishment = await factory.create();
 
-    expect(spy).toHaveBeenCalledWith(
-      'establishments',
-      expect.objectContaining({ id: establishment.id })
-    );
+    expect(spy).toHaveBeenCalledWith('establishments', expect.objectContaining({ id: establishment.id }), undefined);
   });
 
   it('builds a list of establishments', () => {

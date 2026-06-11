@@ -56,5 +56,5 @@ export function createOwnerFactory(adapter: Adapter) {
       createdAt: faker.date.past().toJSON(),
       updatedAt: faker.date.recent().toJSON()
     };
-  }).onCreate((entity) => adapter.create('owners', entity));
+  }).onCreate((entity) => adapter.create('owners', entity, undefined));
 }

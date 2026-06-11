@@ -11,8 +11,20 @@ describe('MemoryAdapter', () => {
       email: 'test@example.com'
     } as UserDTO;
 
-    const result = await adapter.create('users', user);
+    const result = await adapter.create('users', user, undefined);
 
     expect(result).toBe(user);
+  });
+
+  it('forwards establishment context for campaigns without mutating the entity', async () => {
+    const adapter = new MemoryAdapter();
+    const campaign = { id: 'campaign-1' } as unknown as import('@zerologementvacant/models').CampaignDTO;
+
+    const result = await adapter.create('campaigns', campaign, {
+      establishmentId: 'establishment-1'
+    });
+
+    expect(result).toBe(campaign);
+    expect(result).not.toHaveProperty('establishmentId');
   });
 });

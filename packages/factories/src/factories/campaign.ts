@@ -1,10 +1,16 @@
 import { faker } from '@faker-js/faker/locale/fr';
-import { type CampaignDTO } from '@zerologementvacant/models';
+import {
+  type CampaignDTO,
+  type EstablishmentDTO
+} from '@zerologementvacant/models';
 import { Factory } from 'fishery';
 
 import type { Adapter } from '../adapter';
 
-export function createCampaignFactory(adapter: Adapter) {
+export function createCampaignFactory(
+  adapter: Adapter,
+  establishment: EstablishmentDTO
+) {
   return Factory.define<CampaignDTO>(({ associations }) => {
     if (!associations.createdBy) {
       throw new Error(
@@ -26,5 +32,7 @@ export function createCampaignFactory(adapter: Adapter) {
       returnCount: 0,
       returnRate: null
     };
-  }).onCreate((entity) => adapter.create('campaigns', entity));
+  }).onCreate((entity) =>
+    adapter.create('campaigns', entity, { establishmentId: establishment.id })
+  );
 }

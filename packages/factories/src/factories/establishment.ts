@@ -23,5 +23,5 @@ export function createEstablishmentFactory(adapter: Adapter) {
       kind: faker.helpers.arrayElement(ESTABLISHMENT_KIND_VALUES),
       source: faker.helpers.arrayElement(ESTABLISHMENT_SOURCE_VALUES)
     };
-  }).onCreate((entity) => adapter.create('establishments', entity));
+  }).onCreate((entity) => adapter.create('establishments', entity, undefined));
 }

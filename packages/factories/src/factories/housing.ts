@@ -143,5 +143,5 @@ export function createHousingFactory(adapter: Adapter) {
         faker.helpers.maybe(() => Number(faker.finance.amount({ dec: 0 }))) ??
         null
     };
-  }).onCreate((entity) => adapter.create('housings', entity));
+  }).onCreate((entity) => adapter.create('housings', entity, undefined));
 }

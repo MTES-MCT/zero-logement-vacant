@@ -53,7 +53,7 @@ export interface CampaignHousingDBO {
 }
 
 export const formatCampaignHousingApi = (
-  campaign: CampaignApi,
+  campaign: Pick<CampaignApi, 'id'>,
   housingList: HousingApi[]
 ): CampaignHousingDBO[] => {
   return housingList.map((housing) => ({

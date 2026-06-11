@@ -70,19 +70,19 @@ export type AdapterContext = {
   // every other table omitted -> no context required
 };
 
-export type ContextOf<K extends keyof EntityMap> =
-  K extends keyof AdapterContext ? AdapterContext[K] : void;
+export type ContextArgs<K extends keyof EntityMap> =
+  K extends keyof AdapterContext ? [context: AdapterContext[K]] : [];
 
 export interface Adapter {
   create<K extends keyof EntityMap>(
     table: K,
     entity: EntityMap[K],
-    context: ContextOf<K>
+    ...args: ContextArgs<K>
   ): Promise<EntityMap[K]>;
 }
 ```
 
-`campaigns` and `groups` carry a typed persistence context. Tables without an entry in `AdapterContext` take `void` — call sites pass nothing extra. `AdapterContext` and `ContextOf` are re-exported from the package `index.ts` for use by adapter implementations (`KnexAdapter`, `MswAdapter`).
+`ContextArgs<K>` is a **rest-tuple discriminator**: empty for unscoped tables, `[context: { establishmentId }]` for `campaigns`/`groups`. Call sites for unscoped tables pass nothing extra; scoped tables require the context arg at compile time. `AdapterContext` and `ContextArgs` are re-exported from the package `index.ts` for use by adapter implementations (`KnexAdapter`, `MswAdapter`).
 
 ### `Factories` shape
 
@@ -154,7 +154,8 @@ export class MemoryAdapter implements Adapter {
   async create<K extends keyof EntityMap>(
     table: K,
     entity: EntityMap[K],
-    _context: ContextOf<K>
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    ..._args: ContextArgs<K>
   ): Promise<EntityMap[K]> {
     const rows = (this.store.get(table) ?? []) as EntityMap[K][];
     this.store.set(table, [...rows, entity]);
@@ -163,7 +164,7 @@ export class MemoryAdapter implements Adapter {
 }
 ```
 
-The in-memory store doesn't need establishment scoping; context is part of the contract but unused.
+The in-memory store doesn't need establishment scoping; the rest-tuple slot is part of the contract but unused.
 
 ### Package tests
 
@@ -181,24 +182,26 @@ The in-memory store doesn't need establishment scoping; context is part of the c
 async create<K extends keyof EntityMap>(
   table: K,
   entity: EntityMap[K],
-  context: ContextOf<K>
+  ...args: ContextArgs<K>
 ): Promise<EntityMap[K]> {
   await match(table)
     .with('campaigns', async () => {
       const campaign = entity as EntityMap['campaigns'];
+      const [{ establishmentId }] = args as ContextArgs<'campaigns'>;
       await Campaigns().insert(formatCampaignApi({
         ...campaign,
         userId: campaign.createdBy.id,
-        establishmentId: context.establishmentId,  // from context, not createdBy
+        establishmentId,  // from args, not createdBy
       }));
     })
     .with('groups', async () => {
       const group = entity as EntityMap['groups'];
+      const [{ establishmentId }] = args as ContextArgs<'groups'>;
       await Groups().insert(formatGroupApi({
         ...group,
         createdBy: group.createdBy ? fromUserDTO(group.createdBy) : undefined,
         userId: group.createdBy?.id,
-        establishmentId: context.establishmentId,
+        establishmentId,
         createdAt: new Date(group.createdAt),
         exportedAt: null,
         archivedAt: group.archivedAt ? new Date(group.archivedAt) : null,
@@ -242,7 +245,7 @@ Symmetric with `frontend/src/test/factories.ts`. Consumers import `{ factories }
 ### `frontend/src/test/msw-adapter.ts` (new)
 
 ```ts
-import type { Adapter, ContextOf, EntityMap } from '@zerologementvacant/factories';
+import type { Adapter, ContextArgs, EntityMap } from '@zerologementvacant/factories';
 import { match } from 'ts-pattern';
 import data from '~/mocks/handlers/data';
 
@@ -250,7 +253,8 @@ export class MswAdapter implements Adapter {
   async create<K extends keyof EntityMap>(
     table: K,
     entity: EntityMap[K],
-    _context: ContextOf<K>
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    ..._args: ContextArgs<K>
   ): Promise<EntityMap[K]> {
     match(table as keyof EntityMap)
       .with('establishments', () => { data.establishments.push(entity as EntityMap['establishments']); })

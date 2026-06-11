@@ -23,7 +23,7 @@
 
 ## Wave 1 — Package API revision
 
-### Task 1: Add `AdapterContext` and `ContextOf` types
+### Task 1: Add `AdapterContext` and `ContextArgs` types
 
 **Files:**
 - Modify: `packages/factories/src/adapter.ts`
@@ -38,24 +38,26 @@ export type AdapterContext = {
   groups: { establishmentId: string };
 };
 
-export type ContextOf<K extends keyof EntityMap> =
-  K extends keyof AdapterContext ? AdapterContext[K] : void;
+export type ContextArgs<K extends keyof EntityMap> =
+  K extends keyof AdapterContext ? [context: AdapterContext[K]] : [];
 
 export interface Adapter {
   create<K extends keyof EntityMap>(
     table: K,
     entity: EntityMap[K],
-    context: ContextOf<K>
+    ...args: ContextArgs<K>
   ): Promise<EntityMap[K]>;
 }
 ```
+
+`ContextArgs<K>` is a **rest-tuple discriminator**: empty for unscoped tables, `[context: { establishmentId }]` for `campaigns`/`groups`. Call sites for unscoped tables pass nothing extra; scoped tables require the context arg at compile time.
 
 - [ ] **Step 2: Re-export the new types from the package**
 
 Modify `packages/factories/src/index.ts`:
 
 ```ts
-export type { Adapter, AdapterContext, ContextOf } from './adapter';
+export type { Adapter, AdapterContext, ContextArgs } from './adapter';
 export type { EntityMap } from './entity-map';
 export { MemoryAdapter } from './memory-adapter';
 export type { Factories } from './create-factories';
@@ -81,7 +83,7 @@ This proves the new contract is in effect. The next tasks fix the consumers.
 - [ ] **Step 1: Replace `packages/factories/src/memory-adapter.ts`**
 
 ```ts
-import type { Adapter, ContextOf } from './adapter';
+import type { Adapter, ContextArgs } from './adapter';
 import type { EntityMap } from './entity-map';
 
 export class MemoryAdapter implements Adapter {
@@ -90,7 +92,8 @@ export class MemoryAdapter implements Adapter {
   async create<K extends keyof EntityMap>(
     table: K,
     entity: EntityMap[K],
-    _context: ContextOf<K>
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    ..._args: ContextArgs<K>
   ): Promise<EntityMap[K]> {
     const rows = (this.store.get(table) ?? []) as EntityMap[K][];
     this.store.set(table, [...rows, entity]);
@@ -114,14 +117,14 @@ describe('MemoryAdapter', () => {
       email: 'test@example.com'
     } as UserDTO;
 
-    const result = await adapter.create('users', user, undefined);
+    const result = await adapter.create('users', user);
 
     expect(result).toBe(user);
   });
 
   it('forwards establishment context for campaigns without mutating the entity', async () => {
     const adapter = new MemoryAdapter();
-    const campaign = { id: 'campaign-1' } as unknown as import('@zerologementvacant/models').CampaignDTO;
+    const campaign = { id: 'campaign-1' } as unknown as CampaignDTO;
 
     const result = await adapter.create('campaigns', campaign, {
       establishmentId: 'establishment-1'
@@ -443,7 +446,7 @@ EOF
 ```ts
 import type {
   Adapter,
-  ContextOf,
+  ContextArgs,
   EntityMap
 } from '@zerologementvacant/factories';
 import { Struct } from 'effect';
@@ -469,7 +472,7 @@ export class KnexAdapter implements Adapter {
   async create<K extends keyof EntityMap>(
     table: K,
     entity: EntityMap[K],
-    context: ContextOf<K>
+    ...args: ContextArgs<K>
   ): Promise<EntityMap[K]> {
     await match(table as keyof EntityMap)
       .with('users', async () => {
@@ -497,7 +500,7 @@ export class KnexAdapter implements Adapter {
       })
       .with('campaigns', async () => {
         const campaign = entity as EntityMap['campaigns'];
-        const { establishmentId } = context as ContextOf<'campaigns'>;
+        const [{ establishmentId }] = args as ContextArgs<'campaigns'>;
         await Campaigns().insert(
           formatCampaignApi({
             ...campaign,
@@ -508,7 +511,7 @@ export class KnexAdapter implements Adapter {
       })
       .with('groups', async () => {
         const group = entity as EntityMap['groups'];
-        const { establishmentId } = context as ContextOf<'groups'>;
+        const [{ establishmentId }] = args as ContextArgs<'groups'>;
         const createdBy = group.createdBy ? fromUserDTO(group.createdBy) : undefined;
         await Groups().insert(
           formatGroupApi({
@@ -532,9 +535,9 @@ export const knexAdapter = new KnexAdapter();
 ```
 
 Notes:
-- `context.establishmentId` is now the source of truth for campaign/group establishment scoping; no more reading from `createdBy.establishmentId`.
-- The `match(table)` arms for users/establishments/owners/housings are unchanged.
-- The error-throw guards (`if (!establishmentId) throw ...`) are gone — TypeScript's `ContextOf<'campaigns'>` makes the field non-nullable.
+- The `args` rest tuple is empty for unscoped tables and a 1-tuple `[{ establishmentId }]` for `campaigns`/`groups`. Destructure inside each scoped arm.
+- The `match(table)` arms for users/establishments/owners/housings are unchanged — they don't reference `args`.
+- The error-throw guards (`if (!establishmentId) throw ...`) are gone — TypeScript's `ContextArgs<'campaigns'>` makes the field non-nullable.
 
 - [ ] **Step 2: Run typecheck for the server**
 
@@ -692,7 +695,7 @@ describe('MswAdapter', () => {
     const adapter = new MswAdapter();
     const establishment = { id: 'establishment-1' } as EstablishmentDTO;
 
-    const result = await adapter.create('establishments', establishment, undefined);
+    const result = await adapter.create('establishments', establishment);
 
     expect(result).toBe(establishment);
     expect(data.establishments).toContain(establishment);
@@ -702,7 +705,7 @@ describe('MswAdapter', () => {
     const adapter = new MswAdapter();
     const user = { id: 'user-1' } as UserDTO;
 
-    await adapter.create('users', user, undefined);
+    await adapter.create('users', user);
 
     expect(data.users).toContain(user);
   });
@@ -731,7 +734,7 @@ Create `frontend/src/test/msw-adapter.ts`:
 ```ts
 import type {
   Adapter,
-  ContextOf,
+  ContextArgs,
   EntityMap
 } from '@zerologementvacant/factories';
 import { match } from 'ts-pattern';
@@ -742,7 +745,8 @@ export class MswAdapter implements Adapter {
   async create<K extends keyof EntityMap>(
     table: K,
     entity: EntityMap[K],
-    _context: ContextOf<K>
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    ..._args: ContextArgs<K>
   ): Promise<EntityMap[K]> {
     match(table as keyof EntityMap)
       .with('establishments', () => {

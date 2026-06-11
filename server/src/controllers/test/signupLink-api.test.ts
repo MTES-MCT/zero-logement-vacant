@@ -61,25 +61,34 @@ describe('Signup link API', () => {
       vi.restoreAllMocks();
     });
 
-    it('should validate the email', async () => {
-      // Without email
-      await request(url)
+    it('should return 400 when body.email is missing', async () => {
+      const { status, body } = await request(url)
         .post(testRoute)
-        .expect(constants.HTTP_STATUS_BAD_REQUEST);
+        .send({})
+        .set('Content-Type', 'application/json');
 
-      // With empty value
-      await request(url)
-        .post(testRoute)
-        .send({
-          email: ''
-        })
-        .expect(constants.HTTP_STATUS_BAD_REQUEST);
+      expect(status).toBe(constants.HTTP_STATUS_BAD_REQUEST);
+      expect(body).toMatchObject({ errors: expect.any(Array) });
+    });
 
-      // With wrong format
-      await request(url)
+    it('should return 400 when body.email is empty', async () => {
+      const { status, body } = await request(url)
         .post(testRoute)
-        .send({ email: 'wrong-format' })
-        .expect(constants.HTTP_STATUS_BAD_REQUEST);
+        .send({ email: '' })
+        .set('Content-Type', 'application/json');
+
+      expect(status).toBe(constants.HTTP_STATUS_BAD_REQUEST);
+      expect(body).toMatchObject({ errors: expect.any(Array) });
+    });
+
+    it('should return 400 when body.email is not a valid email', async () => {
+      const { status, body } = await request(url)
+        .post(testRoute)
+        .send({ email: 'not-an-email' })
+        .set('Content-Type', 'application/json');
+
+      expect(status).toBe(constants.HTTP_STATUS_BAD_REQUEST);
+      expect(body).toMatchObject({ errors: expect.any(Array) });
     });
 
     it('should send no email if the account already exists', async () => {

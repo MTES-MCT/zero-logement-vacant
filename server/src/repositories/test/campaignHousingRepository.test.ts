@@ -1,5 +1,6 @@
 import { faker } from '@faker-js/faker/locale/fr';
 
+import { fromCampaignDTO } from '~/models/CampaignApi';
 import campaignHousingRepository, {
   CampaignsHousing
 } from '~/repositories/campaignHousingRepository';
@@ -39,7 +40,10 @@ describe('Campaign housing repository', () => {
       await Housing().insert(housings.map(formatHousingRecordApi));
       const slice = housings.slice(0, 1);
 
-      await campaignHousingRepository.removeMany(campaign, slice);
+      await campaignHousingRepository.removeMany(
+        fromCampaignDTO(campaign, establishment),
+        slice
+      );
 
       const campaignHousings = await CampaignsHousing()
         .where({ campaign_id: campaign.id })

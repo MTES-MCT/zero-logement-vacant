@@ -244,7 +244,8 @@ describe('Owner API', () => {
         .use(tokenProvider(user));
 
       expect(status).toBe(constants.HTTP_STATUS_BAD_REQUEST);
-      expect(body).toMatchObject({ errors: expect.any(Array) });
+      expect(body).toMatchObject({ name: 'ValidationError' });
+      expect(body.message).toMatch(/fullName/i);
     });
 
     it('should return 400 when body.email is malformed', async () => {
@@ -255,7 +256,7 @@ describe('Owner API', () => {
         .use(tokenProvider(user));
 
       expect(status).toBe(constants.HTTP_STATUS_BAD_REQUEST);
-      expect(body).toMatchObject({ errors: expect.any(Array) });
+      expect(body).toMatchObject({ name: 'ValidationError' });
     });
 
     it('should return 400 when body.banAddress is present but missing banId', async () => {
@@ -273,7 +274,8 @@ describe('Owner API', () => {
         .use(tokenProvider(user));
 
       expect(status).toBe(constants.HTTP_STATUS_BAD_REQUEST);
-      expect(body).toMatchObject({ errors: expect.any(Array) });
+      expect(body).toMatchObject({ name: 'ValidationError' });
+      expect(body.message).toMatch(/identifiant BAN/i);
     });
 
     it('should accept an empty-string email (treated as absent)', async () => {
@@ -375,7 +377,8 @@ describe('Owner API', () => {
           .use(tokenProvider(user));
 
         expect(status).toBe(constants.HTTP_STATUS_BAD_REQUEST);
-        expect(body).toMatchObject({ errors: expect.any(Array) });
+        expect(body).toMatchObject({ name: 'ValidationError' });
+        expect(body.message).toMatch(/id/i);
       });
 
       it('should return 400 when body.fullName is missing', async () => {
@@ -386,7 +389,7 @@ describe('Owner API', () => {
           .use(tokenProvider(user));
 
         expect(status).toBe(constants.HTTP_STATUS_BAD_REQUEST);
-        expect(body).toMatchObject({ errors: expect.any(Array) });
+        expect(body).toMatchObject({ name: 'ValidationError' });
       });
 
       it('should return 400 when body.banAddress is incomplete (missing label)', async () => {
@@ -404,7 +407,8 @@ describe('Owner API', () => {
           .use(tokenProvider(user));
 
         expect(status).toBe(constants.HTTP_STATUS_BAD_REQUEST);
-        expect(body).toMatchObject({ errors: expect.any(Array) });
+        expect(body).toMatchObject({ name: 'ValidationError' });
+        expect(body.message).toMatch(/libellé/i);
       });
     });
 

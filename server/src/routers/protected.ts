@@ -330,14 +330,15 @@ router.post('/owners', ownerController.search);
 router.get('/owners/:id', ownerController.get);
 router.post(
   '/owners/creation',
-  ownerController.ownerValidators,
-  validator.validate,
+  validatorNext.validate({ body: schemas.ownerPayload }),
   ownerController.create
 );
 router.put(
   '/owners/:id',
-  [param('id').isUUID().notEmpty(), ...ownerController.ownerValidators],
-  validator.validate,
+  validatorNext.validate({
+    params: object({ id: schemas.id }),
+    body: schemas.ownerPayload
+  }),
   ownerController.update
 );
 router.get(

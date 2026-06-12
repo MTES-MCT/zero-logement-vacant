@@ -12,7 +12,6 @@ import async from 'async';
 import { Array, pipe, Record } from 'effect';
 import { RequestHandler } from 'express';
 import { AuthenticatedRequest } from 'express-jwt';
-import { body, ValidationChain } from 'express-validator';
 import type { ParsedQs } from 'qs';
 import { match } from 'ts-pattern';
 import { v4 as uuidv4 } from 'uuid';
@@ -40,7 +39,6 @@ import ownerRepository, {
   refreshMultiOwnerFlags
 } from '~/repositories/ownerRepository';
 import ownerDistanceService from '~/services/ownerDistanceService';
-import { isArrayOf, isString } from '~/utils/validators';
 
 type ListOwnersQuery = ParsedQs &
   PaginationApi & {
@@ -498,6 +496,7 @@ const updateHousingOwners: RequestHandler<
     .json(housingOwners.map(toHousingOwnerDTO));
 };
 
+<<<<<<< HEAD
 const ownerValidators: ValidationChain[] = [
   body('fullName').isString(),
   body('birthDate').isString().isISO8601().optional({ nullable: true }),
@@ -551,13 +550,14 @@ const ownerValidators: ValidationChain[] = [
   body('additionalAddress').isString().optional({ nullable: true })
 ];
 
+=======
+>>>>>>> ddf34a39d (refactor(server): migrate owner to validatorNext)
 const ownerController = {
   list,
   get,
   search,
   create,
   update,
-  ownerValidators,
   listByHousing,
   updateHousingOwners
 };

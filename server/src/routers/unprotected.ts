@@ -15,7 +15,6 @@ import config from '~/infra/config';
 import { jwtCheck, userCheck } from '~/middlewares/auth';
 import { noop } from '~/middlewares/noop';
 import { responseCache } from '~/middlewares/responseCache';
-import validator from '~/middlewares/validator';
 import validatorNext from '~/middlewares/validator-next';
 import { SIGNUP_LINK_LENGTH } from '~/models/SignupLinkApi';
 
@@ -45,8 +44,15 @@ router.get(
 router.post(
   '/users/creation',
   rateLimiter(),
-  userController.createUserValidators,
-  validator.validate,
+  validatorNext.validate({
+    body: object({
+      email: schemas.email,
+      password: schemas.password.required(),
+      establishmentId: string().uuid().required(),
+      firstName: string().optional(),
+      lastName: string().optional()
+    })
+  }),
   userController.create
 );
 

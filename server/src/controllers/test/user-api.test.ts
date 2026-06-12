@@ -334,7 +334,7 @@ describe('User API', () => {
         .set('Content-Type', 'application/json');
 
       expect(status).toBe(constants.HTTP_STATUS_BAD_REQUEST);
-      expect(body).toMatchObject({ errors: expect.any(Array) });
+      expect(body).toMatchObject({ name: 'ValidationError' });
     });
 
     it('should return 400 when body.email is malformed', async () => {
@@ -348,7 +348,8 @@ describe('User API', () => {
         .set('Content-Type', 'application/json');
 
       expect(status).toBe(constants.HTTP_STATUS_BAD_REQUEST);
-      expect(body).toMatchObject({ errors: expect.any(Array) });
+      expect(body).toMatchObject({ name: 'ValidationError' });
+      expect(body.message).toMatch(/email/i);
     });
 
     it('should return 400 when body.password is weak (too short)', async () => {
@@ -362,7 +363,8 @@ describe('User API', () => {
         .set('Content-Type', 'application/json');
 
       expect(status).toBe(constants.HTTP_STATUS_BAD_REQUEST);
-      expect(body).toMatchObject({ errors: expect.any(Array) });
+      expect(body).toMatchObject({ name: 'ValidationError' });
+      expect(body.message).toMatch(/password|caractères/i);
     });
 
     it('should return 400 when body.establishmentId is not a UUID', async () => {
@@ -376,7 +378,8 @@ describe('User API', () => {
         .set('Content-Type', 'application/json');
 
       expect(status).toBe(constants.HTTP_STATUS_BAD_REQUEST);
-      expect(body).toMatchObject({ errors: expect.any(Array) });
+      expect(body).toMatchObject({ name: 'ValidationError' });
+      expect(body.message).toMatch(/establishmentId/i);
     });
   });
 

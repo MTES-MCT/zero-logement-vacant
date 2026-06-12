@@ -5,7 +5,6 @@ import {
 } from '@zerologementvacant/models';
 import schemas from '@zerologementvacant/schemas';
 import Router from 'express-promise-router';
-import { param } from 'express-validator';
 import { array, number, object, string } from 'yup';
 
 import authController from '~/controllers/auth-controller';
@@ -390,21 +389,24 @@ router.get(
 
 router.get(
   '/owners/:id/events',
-  [isUUIDParam('id')],
-  validator.validate,
+  validatorNext.validate({
+    params: object({ id: schemas.id })
+  }),
   eventController.listByOwnerId
 );
 router.get(
   '/housing/:id/events',
-  [isUUIDParam('id')],
-  validator.validate,
+  validatorNext.validate({
+    params: object({ id: schemas.id })
+  }),
   eventController.listByHousingId
 );
 
 router.get(
   '/housing/:id/notes',
-  [isUUIDParam('id')],
-  validator.validate,
+  validatorNext.validate({
+    params: object({ id: schemas.id })
+  }),
   noteController.findByHousing
 );
 router.post(
@@ -432,7 +434,7 @@ router.delete(
 );
 
 // TODO: rework and merge this API with the User API
-router.get('/account', [], validator.validate, authController.get);
+router.get('/account', authController.get);
 router.put(
   '/account',
   validatorNext.validate(authController.updateAccountValidators),
@@ -440,8 +442,9 @@ router.put(
 );
 router.get(
   '/account/establishments/:establishmentId',
-  [isUUIDParam('establishmentId')],
-  validator.validate,
+  validatorNext.validate({
+    params: object({ establishmentId: schemas.id })
+  }),
   authController.changeEstablishment
 );
 

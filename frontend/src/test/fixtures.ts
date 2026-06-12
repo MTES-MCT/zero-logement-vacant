@@ -6,7 +6,6 @@ import {
 } from '@zerologementvacant/models';
 import {
   genAddressDTO,
-  genCampaignDTO,
   genDraftDTO,
   genEstablishmentDTO,
   genEventDTO,
@@ -26,10 +25,9 @@ import randomstring from 'randomstring';
 import type { Establishment } from '~/models/Establishment';
 
 import type { Address } from '../models/Address';
-import { type Campaign, fromCampaignDTO } from '../models/Campaign';
 import type { Draft } from '../models/Draft';
 import { type Event, fromEventDTO } from '../models/Event';
-import { type Group, fromGroupDTO } from '../models/Group';
+import { fromGroupDTO, type Group } from '../models/Group';
 import type { Housing } from '../models/Housing';
 import { fromNoteDTO, type Note } from '../models/Note';
 import {
@@ -163,10 +161,6 @@ export function genEvent<Type extends EventType>(
 
 export function genNote(creator: User): Note {
   return fromNoteDTO(genNoteDTO(toUserDTO(creator)));
-}
-
-export function genCampaign(): Campaign {
-  return fromCampaignDTO(genCampaignDTO());
 }
 
 export function genDraft(): Draft {

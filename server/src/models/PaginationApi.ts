@@ -1,7 +1,6 @@
 import { Pagination } from '@zerologementvacant/models';
-import { Knex } from 'knex';
-
 import schemas, { MAX_PER_PAGE } from '@zerologementvacant/schemas';
+import { Knex } from 'knex';
 
 export { MAX_PER_PAGE };
 

@@ -93,7 +93,11 @@ router.get(
   '/reset-links/:id',
   rateLimiter(),
   validatorNext.validate({
-    params: object({ id: string().matches(/^[a-zA-Z0-9]+$/).required() })
+    params: object({
+      id: string()
+        .matches(/^[a-zA-Z0-9]+$/)
+        .required()
+    })
   }),
   resetLinkController.show
 );
@@ -123,7 +127,10 @@ router.put(
   rateLimiter(),
   validatorNext.validate({
     params: object({
-      id: string().matches(/^[a-zA-Z0-9]+$/).length(SIGNUP_LINK_LENGTH).required()
+      id: string()
+        .matches(/^[a-zA-Z0-9]+$/)
+        .length(SIGNUP_LINK_LENGTH)
+        .required()
     })
   }),
   prospectController.upsert

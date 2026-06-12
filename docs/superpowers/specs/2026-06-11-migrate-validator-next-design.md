@@ -47,30 +47,30 @@ git switch -c refactor/migrate-validator-next
 
 4 shared model files import `express-validator`:
 
-| File | Yup schema today | Action |
-|---|---|---|
-| `server/src/models/PaginationApi.ts` | ✓ `paginationSchema` | move schema to `packages/schemas/` |
-| `server/src/models/SortApi.ts` | ✓ `sortSchema` | move schema to `packages/schemas/` |
-| `server/src/models/HousingFiltersApi.ts` | ✗ | author new `housingFiltersSchema` in `packages/schemas/` |
-| `server/src/models/CampaignFiltersApi.ts` | ✗ | author new `campaignFiltersSchema` in `packages/schemas/` |
+| File                                      | Yup schema today     | Action                                                    |
+| ----------------------------------------- | -------------------- | --------------------------------------------------------- |
+| `server/src/models/PaginationApi.ts`      | ✓ `paginationSchema` | move schema to `packages/schemas/`                        |
+| `server/src/models/SortApi.ts`            | ✓ `sortSchema`       | move schema to `packages/schemas/`                        |
+| `server/src/models/HousingFiltersApi.ts`  | ✗                    | author new `housingFiltersSchema` in `packages/schemas/`  |
+| `server/src/models/CampaignFiltersApi.ts` | ✗                    | author new `campaignFiltersSchema` in `packages/schemas/` |
 
 Routers: `server/src/routers/protected.ts` (53 `validator.validate` usages) and `server/src/routers/unprotected.ts` (14).
 
 Test coverage today:
 
-| Controller | Test file location | Status |
-|---|---|---|
-| `campaign` | `controllers/test/campaign-api.test.ts` | canonical |
-| `group` | `controllers/groupController.test.ts` | legacy location |
-| `housing` | `controllers/test/housing-api.test.ts` | canonical |
-| `housingExport` | — | **no test** |
-| `locality` | `controllers/localityController.test.ts` | legacy location |
-| `owner` | `controllers/test/owner-api.test.ts` | canonical |
-| `prospect` | `controllers/prospectController.test.ts` | legacy location |
-| `resetLink` | `controllers/resetLinkController.test.ts` | legacy location |
-| `signupLink` | `controllers/signupLinkController.test.ts` | legacy location |
-| `user` | `controllers/test/user-api.test.ts` | canonical |
-| `geo` | `controllers/geoController.test.ts` | legacy location |
+| Controller      | Test file location                         | Status          |
+| --------------- | ------------------------------------------ | --------------- |
+| `campaign`      | `controllers/test/campaign-api.test.ts`    | canonical       |
+| `group`         | `controllers/groupController.test.ts`      | legacy location |
+| `housing`       | `controllers/test/housing-api.test.ts`     | canonical       |
+| `housingExport` | —                                          | **no test**     |
+| `locality`      | `controllers/localityController.test.ts`   | legacy location |
+| `owner`         | `controllers/test/owner-api.test.ts`       | canonical       |
+| `prospect`      | `controllers/prospectController.test.ts`   | legacy location |
+| `resetLink`     | `controllers/resetLinkController.test.ts`  | legacy location |
+| `signupLink`    | `controllers/signupLinkController.test.ts` | legacy location |
+| `user`          | `controllers/test/user-api.test.ts`        | canonical       |
+| `geo`           | `controllers/geoController.test.ts`        | legacy location |
 
 ## Per-controller commit pattern
 

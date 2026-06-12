@@ -1,3 +1,5 @@
+import { constants } from 'http2';
+
 import {
   GroupDTO,
   GroupPayloadDTO,
@@ -7,7 +9,6 @@ import {
 import { Array, pipe, Predicate } from 'effect';
 import { RequestHandler } from 'express';
 import { AuthenticatedRequest } from 'express-jwt';
-import { constants } from 'http2';
 import { differenceBy, uniqBy } from 'lodash-es';
 import { v4 as uuidv4 } from 'uuid';
 

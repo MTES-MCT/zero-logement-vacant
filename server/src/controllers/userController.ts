@@ -1,3 +1,5 @@
+import { constants } from 'http2';
+
 import {
   isAdmin,
   UserRole,
@@ -8,7 +10,6 @@ import {
 import bcrypt from 'bcryptjs';
 import { type RequestHandler } from 'express';
 import { type AuthenticatedRequest } from 'express-jwt';
-import { constants } from 'http2';
 import { v4 as uuidv4 } from 'uuid';
 
 import EstablishmentMissingError from '~/errors/establishmentMissingError';

@@ -11402,7 +11402,6 @@ __metadata:
     express-jwt: "npm:8.5.1"
     express-promise-router: "npm:4.1.1"
     express-rate-limit: "npm:6.11.2"
-    express-validator: "npm:6.15.0"
     file-type: "npm:22.0.1"
     fishery: "npm:2.4.0"
     geojson: "npm:0.5.0"
@@ -14878,16 +14877,6 @@ __metadata:
   version: 2.1.3
   resolution: "express-unless@npm:2.1.3"
   checksum: 10c0/c2b6776cff1c6a7d77c719cb841930c1acdfd11839fcc5e7aa9ed7d638e524a22eba2473ef3b5d7403d77097e8fcd920a2be572265ab578569503547d98ad9ce
-  languageName: node
-  linkType: hard
-
-"express-validator@npm:6.15.0":
-  version: 6.15.0
-  resolution: "express-validator@npm:6.15.0"
-  dependencies:
-    lodash: "npm:^4.17.21"
-    validator: "npm:^13.9.0"
-  checksum: 10c0/57b22c89a4dc5069793b8b9482308a157c78a9139066428523d9b62b664c97b73aaed8c0a8a830686df5c0458bd235b94804840109d73436f041121f9cf48e53
   languageName: node
   linkType: hard
 
@@ -24044,13 +24033,6 @@ __metadata:
   version: 13.15.35
   resolution: "validator@npm:13.15.35"
   checksum: 10c0/1958ebcad578128d154853a2b9bf5b95e7738dcc7d1d065e50a969812272312ec379dcaf375b9d7545e04a71de6755f60f5a4b49c1405737a9c80e11da297eef
-  languageName: node
-  linkType: hard
-
-"validator@npm:^13.9.0":
-  version: 13.15.26
-  resolution: "validator@npm:13.15.26"
-  checksum: 10c0/d66041685c531423f6b514d0481228503b96682fe30ed7925ad77ff3cd08c3983dc94f45e18457e44f62f89027b94a3342009d65421800ce65f6e0d2c6eaf7fc
   languageName: node
   linkType: hard
 

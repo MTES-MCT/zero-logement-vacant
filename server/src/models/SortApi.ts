@@ -1,6 +1,6 @@
+import schemas from '@zerologementvacant/schemas';
 import { Knex } from 'knex';
 
-import schemas from '@zerologementvacant/schemas';
 import { keys } from '~/utils/object';
 
 type Direction = 'asc' | 'desc';

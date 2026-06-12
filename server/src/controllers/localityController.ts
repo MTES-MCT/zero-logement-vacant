@@ -1,6 +1,7 @@
+import { constants } from 'http2';
+
 import { Request, Response } from 'express';
 import { AuthenticatedRequest } from 'express-jwt';
-import { constants } from 'http2';
 
 import LocalityMissingError from '~/errors/localityMissingError';
 import { logger } from '~/infra/logger';

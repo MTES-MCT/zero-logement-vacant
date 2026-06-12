@@ -29,6 +29,7 @@
 ### Task 0.1: Branch dance + commit spec
 
 **Files:**
+
 - Discard: `frontend/index.html`
 - Commit: `docs/superpowers/specs/2026-06-11-migrate-validator-next-design.md`, `docs/superpowers/plans/2026-06-11-migrate-validator-next.md`
 
@@ -65,6 +66,7 @@ git commit -m "docs(server): plan express-validator → validatorNext migration"
 ### Task 0.2: Add `stripUnknown` to validatorNext
 
 **Files:**
+
 - Modify: `server/src/middlewares/validator-next.ts`
 - Modify: `server/src/middlewares/test/validator-next.test.ts`
 
@@ -73,16 +75,16 @@ git commit -m "docs(server): plan express-validator → validatorNext migration"
 Append to `server/src/middlewares/test/validator-next.test.ts` inside the existing `describe('ValidatorNext middleware', () => { describe('Integration test', () => {` block (after the existing `it('should validate wrong input', ...)`):
 
 ```ts
-    it('should strip unknown body keys', async () => {
-      const { body, status } = await request(app)
-        .post(testRoute)
-        .send({ geoCode: '12345', extra: 'should-be-stripped' })
-        .set('Content-Type', 'application/json');
+it('should strip unknown body keys', async () => {
+  const { body, status } = await request(app)
+    .post(testRoute)
+    .send({ geoCode: '12345', extra: 'should-be-stripped' })
+    .set('Content-Type', 'application/json');
 
-      expect(status).toBe(constants.HTTP_STATUS_OK);
-      expect(body).toStrictEqual({ geoCode: '12345' });
-      expect(body).not.toHaveProperty('extra');
-    });
+  expect(status).toBe(constants.HTTP_STATUS_OK);
+  expect(body).toStrictEqual({ geoCode: '12345' });
+  expect(body).not.toHaveProperty('extra');
+});
 ```
 
 - [ ] **Step 2: Run test, confirm it fails.**
@@ -134,14 +136,15 @@ Each small controller follows the same triple-commit pattern. **Task 1.1 (signup
 
 **Routes touched (in `server/src/routers/unprotected.ts`):**
 
-| Method+path | Validators today | Replacement |
-|---|---|---|
-| `POST /signup-links` | `signupLinkController.createValidators` (`body('email').isEmail()`) | `validatorNext.validate({ body: object({ email: schemas.email.required() }) })` |
-| `GET /signup-links/:id` | `signupLinkController.showValidators` (`param('id').isString().notEmpty()`) | `validatorNext.validate({ params: object({ id: string().required() }) })` |
+| Method+path             | Validators today                                                            | Replacement                                                                     |
+| ----------------------- | --------------------------------------------------------------------------- | ------------------------------------------------------------------------------- |
+| `POST /signup-links`    | `signupLinkController.createValidators` (`body('email').isEmail()`)         | `validatorNext.validate({ body: object({ email: schemas.email.required() }) })` |
+| `GET /signup-links/:id` | `signupLinkController.showValidators` (`param('id').isString().notEmpty()`) | `validatorNext.validate({ params: object({ id: string().required() }) })`       |
 
 **Test file relocation:** `server/src/controllers/signupLinkController.test.ts` → `server/src/controllers/test/signupLink-api.test.ts`.
 
 **Files:**
+
 - Move: `server/src/controllers/signupLinkController.test.ts` → `server/src/controllers/test/signupLink-api.test.ts`
 - Modify: `server/src/controllers/test/signupLink-api.test.ts` (add HTTP-layer cases)
 - Modify: `server/src/controllers/signupLinkController.ts` (remove `*Validators` exports)
@@ -225,7 +228,7 @@ describe('POST /signup-links — validation', () => {
 describe('GET /signup-links/:id — validation', () => {
   it('returns 400 when id is empty', async () => {
     const { status, body } = await request(app)
-      .get('/signup-links/')   // trailing slash → no :id captured; route may 404, not 400
+      .get('/signup-links/') // trailing slash → no :id captured; route may 404, not 400
       .set('Content-Type', 'application/json');
 
     // If the route 404s instead of 400 at this layer (because the path doesn't
@@ -353,20 +356,22 @@ git commit -m "refactor(server): migrate signupLink to validatorNext"
 
 **Routes (in `server/src/routers/unprotected.ts`):**
 
-| Method+path | Validators today | Replacement |
-|---|---|---|
-| `POST /reset-links` | `resetLinkController.createValidators` (`body('email').isEmail()`) | `validatorNext.validate({ body: object({ email: schemas.email.required() }) })` |
+| Method+path            | Validators today                                                                            | Replacement                                                                                         |
+| ---------------------- | ------------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------- |
+| `POST /reset-links`    | `resetLinkController.createValidators` (`body('email').isEmail()`)                          | `validatorNext.validate({ body: object({ email: schemas.email.required() }) })`                     |
 | `GET /reset-links/:id` | `resetLinkController.showValidators` (`param('id').isString().notEmpty().isAlphanumeric()`) | `validatorNext.validate({ params: object({ id: string().matches(/^[a-zA-Z0-9]+$/).required() }) })` |
 
 **Test file move:** `server/src/controllers/resetLinkController.test.ts` → `server/src/controllers/test/resetLink-api.test.ts`.
 
 **Tests to fill (commit B):**
+
 - `POST /reset-links` returns 400 on missing email
 - `POST /reset-links` returns 400 on malformed email
 - `GET /reset-links/:id` returns 400 on non-alphanumeric `id` (e.g. `/reset-links/abc!def`)
 - Happy-path cases existing in the legacy test stay.
 
 **Commit messages:**
+
 ```
 chore(server): relocate resetLink test to controllers/test/resetLink-api.test.ts
 test(server): cover resetLink validation surface against legacy
@@ -381,22 +386,24 @@ refactor(server): migrate resetLink to validatorNext
 
 **Routes (in `server/src/routers/unprotected.ts`):**
 
-| Method+path | Validators today | Replacement |
-|---|---|---|
-| `PUT /prospects/:id` | `prospectController.createProspectValidator` (`param('id').isString().notEmpty().isAlphanumeric().isLength({ min: SIGNUP_LINK_LENGTH, max: SIGNUP_LINK_LENGTH })`) | `validatorNext.validate({ params: object({ id: string().matches(/^[a-zA-Z0-9]+$/).length(SIGNUP_LINK_LENGTH).required() }) })` |
-| `GET /prospects/:email` | `prospectController.showProspectValidator` (`param('email').notEmpty().isEmail()`) | `validatorNext.validate({ params: object({ email: schemas.email.required() }) })` |
+| Method+path             | Validators today                                                                                                                                                   | Replacement                                                                                                                    |
+| ----------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------ | ------------------------------------------------------------------------------------------------------------------------------ |
+| `PUT /prospects/:id`    | `prospectController.createProspectValidator` (`param('id').isString().notEmpty().isAlphanumeric().isLength({ min: SIGNUP_LINK_LENGTH, max: SIGNUP_LINK_LENGTH })`) | `validatorNext.validate({ params: object({ id: string().matches(/^[a-zA-Z0-9]+$/).length(SIGNUP_LINK_LENGTH).required() }) })` |
+| `GET /prospects/:email` | `prospectController.showProspectValidator` (`param('email').notEmpty().isEmail()`)                                                                                 | `validatorNext.validate({ params: object({ email: schemas.email.required() }) })`                                              |
 
 `SIGNUP_LINK_LENGTH` comes from `~/models/SignupLinkApi` — import it in `unprotected.ts`.
 
 **Test file move:** `server/src/controllers/prospectController.test.ts` → `server/src/controllers/test/prospect-api.test.ts`.
 
 **Tests to fill (commit B):**
+
 - `PUT /prospects/:id` returns 400 on `id` shorter than `SIGNUP_LINK_LENGTH`
 - `PUT /prospects/:id` returns 400 on `id` with non-alphanumeric chars
 - `GET /prospects/:email` returns 400 on malformed email
 - Happy paths existing in the legacy test stay.
 
 **Commit messages:**
+
 ```
 chore(server): relocate prospect test to controllers/test/prospect-api.test.ts
 test(server): cover prospect validation surface against legacy
@@ -411,17 +418,18 @@ refactor(server): migrate prospect to validatorNext
 
 **Routes (in `server/src/routers/protected.ts`):**
 
-| Method+path | Validators today | Replacement |
-|---|---|---|
-| `GET /localities/:geoCode` | `localityController.getLocalityValidators` (`param('geoCode').notEmpty().isAlphanumeric().isLength({ min: 5, max: 5 })`) | `validatorNext.validate({ params: object({ geoCode: schemas.geoCode.required() }) })` |
-| `GET /localities` | `localityController.listLocalitiesValidators` (`query('establishmentId').notEmpty().isUUID()`) | `validatorNext.validate({ query: object({ establishmentId: string().uuid().required() }) })` |
-| `PUT /localities/:geoCode/tax` | `localityController.updateLocalityTaxValidators` (4 chain entries) | `validatorNext.validate({ params: object({ geoCode: schemas.geoCode.required() }), body: object({ taxKind: string().oneOf(['THLV','None']).required(), taxRate: number().when('taxKind', { is: 'THLV', then: (s) => s.required(), otherwise: (s) => s.strip() }) }) })` |
+| Method+path                    | Validators today                                                                                                         | Replacement                                                                                                                                                                                                                                                             |
+| ------------------------------ | ------------------------------------------------------------------------------------------------------------------------ | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `GET /localities/:geoCode`     | `localityController.getLocalityValidators` (`param('geoCode').notEmpty().isAlphanumeric().isLength({ min: 5, max: 5 })`) | `validatorNext.validate({ params: object({ geoCode: schemas.geoCode.required() }) })`                                                                                                                                                                                   |
+| `GET /localities`              | `localityController.listLocalitiesValidators` (`query('establishmentId').notEmpty().isUUID()`)                           | `validatorNext.validate({ query: object({ establishmentId: string().uuid().required() }) })`                                                                                                                                                                            |
+| `PUT /localities/:geoCode/tax` | `localityController.updateLocalityTaxValidators` (4 chain entries)                                                       | `validatorNext.validate({ params: object({ geoCode: schemas.geoCode.required() }), body: object({ taxKind: string().oneOf(['THLV','None']).required(), taxRate: number().when('taxKind', { is: 'THLV', then: (s) => s.required(), otherwise: (s) => s.strip() }) }) })` |
 
 `schemas.geoCode` already exists (`packages/schemas/src/geo-code.ts`).
 
 **Test file move:** `server/src/controllers/localityController.test.ts` → `server/src/controllers/test/locality-api.test.ts`.
 
 **Tests to fill (commit B):**
+
 - `GET /localities/:geoCode` 400 on `geoCode` length ≠ 5
 - `GET /localities/:geoCode` 400 on non-alphanumeric `geoCode`
 - `GET /localities` 400 on missing `establishmentId`
@@ -433,6 +441,7 @@ refactor(server): migrate prospect to validatorNext
 **Caveat:** the existing legacy test may be unit-style (`controllers/localityController.test.ts` calling functions directly). If so, the commit B work includes rewriting it to HTTP-layer supertest. Check first; if it's already supertest-based, just augment.
 
 **Commit messages:**
+
 ```
 chore(server): relocate locality test to controllers/test/locality-api.test.ts
 test(server): cover locality validation surface against legacy
@@ -446,6 +455,7 @@ refactor(server): migrate locality to validatorNext
 **Procedural pattern:** identical to Task 1.1.
 
 **Routes:** open `server/src/controllers/geoController.ts`, list the exported `*Validators` arrays and their routes in `server/src/routers/protected.ts` (search `geoController.`). For each:
+
 - delete the `*Validators` export
 - replace `validator.validate` wiring with `validatorNext.validate({...})` driven by `schemas.geoCode`, `schemas.id`, or inline Yup as appropriate.
 
@@ -454,6 +464,7 @@ refactor(server): migrate locality to validatorNext
 **Tests to fill (commit B):** one 400-on-bad-input case per route's validation surface, plus a happy-path case per route.
 
 **Commit messages:**
+
 ```
 chore(server): relocate geo test to controllers/test/geo-api.test.ts
 test(server): cover geo validation surface against legacy
@@ -482,6 +493,7 @@ Last grep must return no matches.
 ### Task 2.1 — Move `paginationSchema` to `packages/schemas/`
 
 **Files:**
+
 - Create: `packages/schemas/src/pagination.ts`
 - Create: `packages/schemas/src/test/pagination.test.ts`
 - Modify: `packages/schemas/src/index.ts` (export)
@@ -604,11 +616,13 @@ Remove the inline `paginationSchema` and import it from the package instead. Kee
 ```
 
 > If `@zerologementvacant/schemas/pagination` deep-import doesn't resolve cleanly because the package only exports its default barrel, change the import to:
+>
 > ```ts
 > import schemas, { MAX_PER_PAGE } from '@zerologementvacant/schemas';
 > export const paginationSchema = schemas.pagination;
 > export { MAX_PER_PAGE };
 > ```
+>
 > and remove the deep import.
 
 - [ ] **Step 2: Run server tests + typecheck.**
@@ -634,6 +648,7 @@ git commit -m "refactor(server): consume pagination schema from @zerologementvac
 **Pattern:** identical to Task 2.1.
 
 **Files:**
+
 - Create: `packages/schemas/src/sort.ts`
 - Create: `packages/schemas/src/test/sort.test.ts`
 - Modify: `packages/schemas/src/index.ts` (export `sort`)
@@ -676,7 +691,8 @@ import { sort } from '../sort';
 describe('sort schema', () => {
   test.prop({
     sort: fc.array(
-      fc.string({ minLength: 1, maxLength: 12 })
+      fc
+        .string({ minLength: 1, maxLength: 12 })
         .filter((s) => /^-?[a-zA-Z]+$/.test(s))
     )
   })('accepts arrays of valid keys', ({ sort: input }) => {
@@ -684,8 +700,9 @@ describe('sort schema', () => {
   });
 
   it('transforms a comma-separated string to an array', () => {
-    expect(sort.validateSync({ sort: 'owner,-rawAddress' as unknown as string[] }))
-      .toEqual({ sort: ['owner', '-rawAddress'] });
+    expect(
+      sort.validateSync({ sort: 'owner,-rawAddress' as unknown as string[] })
+    ).toEqual({ sort: ['owner', '-rawAddress'] });
   });
 
   test.prop({
@@ -740,15 +757,18 @@ git commit -m "refactor(server): consume sort schema from @zerologementvacant/sc
 **Routes:** read `server/src/controllers/ownerController.ts` for the `*Validators` exports, find each one's wiring in `server/src/routers/protected.ts`. The list typically includes a `list` route using `paginationSchema` for query coercion.
 
 **Strategy per route:**
+
 - Routes consuming pagination → `validatorNext.validate({ query: paginationSchema.concat(object({ ... })) })` (or import `paginationSchema` and use it directly when it's the entire query schema).
 - `:id`-style routes → `validatorNext.validate({ params: object({ id: schemas.id }) })`.
 - Body-bearing routes → use an existing schema from `packages/schemas/` or write a new one and follow the Task 4.1 / Task 4.2 pattern below for adding it to the package.
 
 **Tests to fill (commit B):**
+
 - One 400 case per existing route's validation rule.
 - Happy paths already covered.
 
 **No "relocate" commit needed.** Sequence is two commits:
+
 ```
 test(server): cover owner validation surface against legacy
 refactor(server): migrate owner to validatorNext
@@ -765,6 +785,7 @@ refactor(server): migrate owner to validatorNext
 **Tests to fill (commit B):** one 400 case per route's validation rule. Happy paths already covered.
 
 **Commit messages:**
+
 ```
 test(server): cover user validation surface against legacy
 refactor(server): migrate user to validatorNext
@@ -791,11 +812,12 @@ Last grep must return no matches.
 #### Commit A — author `housingFiltersSchema`
 
 **Files:**
-- Create: `packages/schemas/src/housing-filters-payload.ts` (the *request payload* — distinct from the existing `housing-filters.ts` which models the DTO)
+
+- Create: `packages/schemas/src/housing-filters-payload.ts` (the _request payload_ — distinct from the existing `housing-filters.ts` which models the DTO)
 - Create: `packages/schemas/src/test/housing-filters-payload.test.ts`
 - Modify: `packages/schemas/src/index.ts`
 
-Reason for the separate file: the existing `housing-filters.ts` in `packages/schemas/` models the frontend `HousingFiltersDTO` shape used by `housingFilters` validation. This task needs a *server request validation* schema mirroring the field list in `server/src/models/HousingFiltersApi.ts` (`HousingFiltersApi` interface). If after inspecting both you find they are functionally identical, skip creating a new schema and reuse `housingFilters` instead — leave a comment in the migration commit explaining the consolidation.
+Reason for the separate file: the existing `housing-filters.ts` in `packages/schemas/` models the frontend `HousingFiltersDTO` shape used by `housingFilters` validation. This task needs a _server request validation_ schema mirroring the field list in `server/src/models/HousingFiltersApi.ts` (`HousingFiltersApi` interface). If after inspecting both you find they are functionally identical, skip creating a new schema and reuse `housingFilters` instead — leave a comment in the migration commit explaining the consolidation.
 
 - [ ] **Step 1: Inspect existing `packages/schemas/src/housing-filters.ts` and the server's `HousingFiltersApi` shape.** Decide: reuse `schemas.housingFilters`, or author a new one.
 
@@ -855,6 +877,7 @@ refactor(server): migrate group to validatorNext
 #### Commit A — author `campaignFiltersSchema`
 
 **Files:**
+
 - Create: `packages/schemas/src/campaign-filters.ts`
 - Create: `packages/schemas/src/test/campaign-filters.test.ts`
 - Modify: `packages/schemas/src/index.ts`
@@ -891,16 +914,16 @@ describe('campaign filters schema', () => {
   it('transforms a comma-separated string to an array', () => {
     const uuid1 = '00000000-0000-4000-8000-000000000001';
     const uuid2 = '00000000-0000-4000-8000-000000000002';
-    expect(campaignFilters.validateSync({ groups: `${uuid1},${uuid2}` as any }))
-      .toEqual({ groups: [uuid1, uuid2] });
+    expect(
+      campaignFilters.validateSync({ groups: `${uuid1},${uuid2}` as any })
+    ).toEqual({ groups: [uuid1, uuid2] });
   });
 
-  test.prop({ bad: fc.string().filter((s) => s.length > 0 && !/^[0-9a-f-]+$/i.test(s)) })(
-    'rejects non-UUID entries',
-    ({ bad }) => {
-      expect(() => campaignFilters.validateSync({ groups: [bad] })).toThrow();
-    }
-  );
+  test.prop({
+    bad: fc.string().filter((s) => s.length > 0 && !/^[0-9a-f-]+$/i.test(s))
+  })('rejects non-UUID entries', ({ bad }) => {
+    expect(() => campaignFilters.validateSync({ groups: [bad] })).toThrow();
+  });
 });
 ```
 
@@ -932,6 +955,7 @@ test(server): cover campaign validation surface against legacy
 #### Commit C — migrate campaign
 
 Remove every `*Validators` from `campaignController.ts`. Swap router wiring (for each route in `protected.ts`'s campaign section):
+
 - list → `validatorNext.validate({ query: schemas.campaignFilters.concat(schemas.sort) })` (or merged inline)
 - get/delete by id → `validatorNext.validate({ params: object({ id: schemas.id }) })`
 - update → `validatorNext.validate({ params: object({ id: schemas.id }), body: schemas.campaignUpdateNextPayload })` (already in use for some routes)
@@ -968,6 +992,7 @@ This is the biggest task because housing has the largest test file (2113 lines) 
 #### Commit A — fill housing validation tests against legacy
 
 `controllers/test/housing-api.test.ts` exists — no relocation. Audit it route-by-route:
+
 1. List every route in `protected.ts`'s housing section that uses `housingController.*Validators` or `housingExportController.*Validators` (`grep -n 'housingController\|housingExportController' server/src/routers/protected.ts`).
 2. For each, identify the validation rules in `housingController.ts` and `housingExportController.ts`.
 3. For each rule not already tested, add a supertest case asserting HTTP 400 + legacy body shape.
@@ -983,6 +1008,7 @@ test(server): cover housing validation surface against legacy
 Create `server/src/controllers/test/housingExport-api.test.ts`. Use `controllers/test/owner-api.test.ts` as the scaffolding template (Express app boot, auth, fixtures).
 
 Cover:
+
 - Each export route in `protected.ts`'s housingExport section (`grep -n 'housingExportController' server/src/routers/protected.ts`).
 - Happy path: 200 + correct content-disposition or content-type per route.
 - Validation paths: one 400 per validator rule, legacy body shape.
@@ -994,6 +1020,7 @@ test(server): add housingExport API tests
 #### Commit C — migrate housing + housingExport
 
 Remove `*Validators` from both controllers (`housingController.ts`, `housingExportController.ts`). Rewire each housing/housingExport route in `protected.ts`:
+
 - list housings → `validatorNext.validate({ query: <housingFilters or housing-filters-payload>.concat(paginationSchema).concat(sortSchema) })`
 - get housing → `validatorNext.validate({ params: object({ id: schemas.id }) })`
 - update housing → `validatorNext.validate({ params: object({ id: schemas.id }), body: schemas.housingUpdatePayload })`
@@ -1027,6 +1054,7 @@ Last grep must return no matches.
 ### Task 6.1 — Prune `express-validator` chains from model files
 
 **Files to modify:**
+
 - `server/src/models/PaginationApi.ts`
 - `server/src/models/SortApi.ts`
 - `server/src/models/HousingFiltersApi.ts`
@@ -1077,6 +1105,7 @@ git commit -m "chore(server): remove express-validator chains from shared model 
 ### Task 6.2 — Delete legacy middleware and helpers
 
 **Files to delete:**
+
 - `server/src/middlewares/validator.ts`
 - `server/src/middlewares/test/validator.test.ts`
 - `server/src/utils/validators.ts`
@@ -1127,6 +1156,7 @@ git commit -m "chore(server): remove legacy validator middleware and helpers"
 ### Task 6.3 — Remove the dependency
 
 **Files:**
+
 - Modify: `server/package.json`
 - Regenerate: `yarn.lock`
 

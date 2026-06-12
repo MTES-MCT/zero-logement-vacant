@@ -1,3 +1,5 @@
+import { constants } from 'http2';
+
 import {
   AddressKinds,
   DATAFONCIER_OWNER_EQUIVALENCE,
@@ -30,7 +32,6 @@ import {
 } from 'effect';
 import { RequestHandler } from 'express';
 import { AuthenticatedRequest } from 'express-jwt';
-import { constants } from 'http2';
 import { match, Pattern } from 'ts-pattern';
 import { v4 as uuidv4 } from 'uuid';
 

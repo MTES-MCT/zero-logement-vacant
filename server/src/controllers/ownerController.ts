@@ -496,62 +496,6 @@ const updateHousingOwners: RequestHandler<
     .json(housingOwners.map(toHousingOwnerDTO));
 };
 
-<<<<<<< HEAD
-const ownerValidators: ValidationChain[] = [
-  body('fullName').isString(),
-  body('birthDate').isString().isISO8601().optional({ nullable: true }),
-  body('rawAddress').custom(isArrayOf(isString)).optional({ nullable: true }),
-  body('email').optional({ checkFalsy: true }).isEmail(),
-  body('phone').isString().optional({ nullable: true }),
-  body('banAddress')
-    .optional({ nullable: true })
-    .custom((value) => {
-      if (value === null || value === undefined) {
-        return true;
-      }
-      if (
-        !value.banId ||
-        typeof value.banId !== 'string' ||
-        value.banId.trim() === ''
-      ) {
-        throw new Error(
-          "L'adresse BAN doit avoir un identifiant BAN. Veuillez sélectionner une adresse depuis la liste de suggestions."
-        );
-      }
-      if (
-        !value.label ||
-        typeof value.label !== 'string' ||
-        value.label.trim() === ''
-      ) {
-        throw new Error(
-          "L'adresse BAN doit avoir un libellé. Veuillez sélectionner une adresse depuis la liste de suggestions."
-        );
-      }
-      if (
-        !value.postalCode ||
-        typeof value.postalCode !== 'string' ||
-        value.postalCode.trim() === ''
-      ) {
-        throw new Error(
-          "L'adresse BAN doit avoir un code postal. Veuillez sélectionner une adresse depuis la liste de suggestions."
-        );
-      }
-      if (
-        !value.city ||
-        typeof value.city !== 'string' ||
-        value.city.trim() === ''
-      ) {
-        throw new Error(
-          "L'adresse BAN doit avoir une ville. Veuillez sélectionner une adresse depuis la liste de suggestions."
-        );
-      }
-      return true;
-    }),
-  body('additionalAddress').isString().optional({ nullable: true })
-];
-
-=======
->>>>>>> ddf34a39d (refactor(server): migrate owner to validatorNext)
 const ownerController = {
   list,
   get,

@@ -15,13 +15,12 @@ import resetLinkRepository, {
   ResetLinks
 } from '~/repositories/resetLinkRepository';
 import { toUserDBO, Users } from '~/repositories/userRepository';
+import mailService from '~/services/mailService';
 import {
   genEstablishmentApi,
   genResetLinkApi,
   genUserApi
 } from '~/test/testFixtures';
-
-import mailService from '~/services/mailService';
 
 describe('Reset link API', () => {
   let url: string;

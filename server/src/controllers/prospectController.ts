@@ -1,6 +1,6 @@
-import { Request, Response } from 'express';
 import { constants } from 'http2';
 
+import { Request, Response } from 'express';
 
 import ProspectMissingError from '~/errors/prospectMissingError';
 import SignupLinkExpiredError from '~/errors/signupLinkExpiredError';

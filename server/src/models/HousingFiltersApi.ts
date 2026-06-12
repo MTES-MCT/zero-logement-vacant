@@ -52,4 +52,3 @@ export interface HousingFiltersApi extends Pick<
   query?: string;
   occupancies?: Occupancy[];
 }
-

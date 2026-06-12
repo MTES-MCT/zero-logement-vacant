@@ -1,3 +1,5 @@
+import { constants } from 'http2';
+
 import {
   CampaignDTO,
   CampaignRemovalPayload,
@@ -10,7 +12,6 @@ import {
 import { Struct } from 'effect';
 import { RequestHandler } from 'express';
 import { AuthenticatedRequest } from 'express-jwt';
-import { constants } from 'http2';
 import { v4 as uuidv4 } from 'uuid';
 
 import BadRequestError from '~/errors/badRequestError';

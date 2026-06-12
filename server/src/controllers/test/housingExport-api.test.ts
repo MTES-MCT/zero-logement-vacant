@@ -1,4 +1,5 @@
 import { constants } from 'http2';
+
 import request from 'supertest';
 
 import { createServer } from '~/infra/server';
@@ -10,10 +11,7 @@ import {
   Establishments,
   formatEstablishmentApi
 } from '~/repositories/establishmentRepository';
-import {
-  formatGroupApi,
-  Groups
-} from '~/repositories/groupRepository';
+import { formatGroupApi, Groups } from '~/repositories/groupRepository';
 import { toUserDBO, Users } from '~/repositories/userRepository';
 import {
   genCampaignApiNext,

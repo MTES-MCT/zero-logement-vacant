@@ -59,9 +59,7 @@ describe('Prospect API', () => {
 
     it('should return 400 when :id contains non-alphanumeric characters', async () => {
       const id = '!'.repeat(SIGNUP_LINK_LENGTH);
-      const { status, body } = await request(url)
-        .put(testRoute(id))
-        .send({});
+      const { status, body } = await request(url).put(testRoute(id)).send({});
 
       expect(status).toBe(constants.HTTP_STATUS_BAD_REQUEST);
       expect(body).toMatchObject({ name: 'ValidationError' });
@@ -70,9 +68,7 @@ describe('Prospect API', () => {
 
     it('should return 400 when :id length is not SIGNUP_LINK_LENGTH', async () => {
       const id = 'a'; // too short
-      const { status, body } = await request(url)
-        .put(testRoute(id))
-        .send({});
+      const { status, body } = await request(url).put(testRoute(id)).send({});
 
       expect(status).toBe(constants.HTTP_STATUS_BAD_REQUEST);
       expect(body).toMatchObject({ name: 'ValidationError' });

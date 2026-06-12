@@ -43,10 +43,7 @@ export const ownerPayload = object({
           message: string
         ): true | ReturnType<typeof this.createError> => {
           const fieldValue = address[key];
-          if (
-            typeof fieldValue !== 'string' ||
-            fieldValue.trim() === ''
-          ) {
+          if (typeof fieldValue !== 'string' || fieldValue.trim() === '') {
             return this.createError({ message });
           }
           return true;

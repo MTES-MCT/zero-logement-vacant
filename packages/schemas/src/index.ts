@@ -1,5 +1,6 @@
 import { buildingFilters } from './building-filters';
 import { campaignCreationPayload } from './campaign-creation-payload';
+import { campaignFilters } from './campaign-filters';
 import { campaignUpdateNextPayload } from './campaign-update-next-payload';
 import { dateString } from './date-string';
 import { documentPayload } from './document-payload';
@@ -35,6 +36,7 @@ import { userUpdatePayload } from './user-update-payload';
 const schemas = {
   buildingFilters,
   campaignCreationPayload,
+  campaignFilters,
   campaignUpdateNextPayload,
   dateString,
   documentPayload,

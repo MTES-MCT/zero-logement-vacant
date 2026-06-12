@@ -250,8 +250,9 @@ router.delete(
 
 router.get(
   '/campaigns',
-  campaignController.listValidators,
-  validator.validate,
+  validatorNext.validate({
+    query: schemas.campaignFilters.concat(schemas.sort)
+  }),
   campaignController.list
 );
 router.get(

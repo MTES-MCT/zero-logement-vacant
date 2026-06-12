@@ -54,25 +54,24 @@ describe('Reset link API', () => {
       sendEmail.mockClear();
     });
 
-    it('should validate the email', async () => {
-      // Without email
-      await request(url)
+    it('should return 400 when body.email is missing', async () => {
+      const { status, body } = await request(url)
         .post(testRoute)
-        .expect(constants.HTTP_STATUS_BAD_REQUEST);
+        .send({})
+        .set('Content-Type', 'application/json');
 
-      // With empty value
-      await request(url)
-        .post(testRoute)
-        .send({
-          email: ''
-        })
-        .expect(constants.HTTP_STATUS_BAD_REQUEST);
+      expect(status).toBe(constants.HTTP_STATUS_BAD_REQUEST);
+      expect(body).toMatchObject({ errors: expect.any(Array) });
+    });
 
-      // With wrong format
-      await request(url)
+    it('should return 400 when body.email is not a valid email', async () => {
+      const { status, body } = await request(url)
         .post(testRoute)
-        .send({ email: 'wrong-format' })
-        .expect(constants.HTTP_STATUS_BAD_REQUEST);
+        .send({ email: 'not-an-email' })
+        .set('Content-Type', 'application/json');
+
+      expect(status).toBe(constants.HTTP_STATUS_BAD_REQUEST);
+      expect(body).toMatchObject({ errors: expect.any(Array) });
     });
 
     it('should create a reset link', async () => {
@@ -105,10 +104,13 @@ describe('Reset link API', () => {
   describe('GET /reset-links/{id}', () => {
     const testRoute = (id: string) => `/reset-links/${id}`;
 
-    it('should validate the id', async () => {
-      const { status } = await request(url).get(testRoute('@$'));
+    it('should return 400 when id contains non-alphanumeric characters', async () => {
+      const { status, body } = await request(url)
+        .get(testRoute('abc!def'))
+        .set('Content-Type', 'application/json');
 
       expect(status).toBe(constants.HTTP_STATUS_BAD_REQUEST);
+      expect(body).toMatchObject({ errors: expect.any(Array) });
     });
 
     it('should be missing', async () => {

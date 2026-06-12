@@ -183,6 +183,29 @@ describe('Housing API', () => {
         'lastTransactionValue'
       ]);
     });
+
+    it('should resolve housing by its 12-char localId', async () => {
+      const { body, status } = await request(url)
+        .get(testRoute(housing.localId))
+        .use(tokenProvider(user));
+
+      expect(status).toBe(constants.HTTP_STATUS_OK);
+      expect(body).toMatchObject<Partial<HousingDTO>>({
+        id: housing.id,
+        localId: housing.localId
+      });
+    });
+
+    describe('validation', () => {
+      it('should return 400 when :id is neither a 12-char localId nor a UUID', async () => {
+        const { status, body } = await request(url)
+          .get(testRoute('short'))
+          .use(tokenProvider(user));
+
+        expect(status).toBe(constants.HTTP_STATUS_BAD_REQUEST);
+        expect(body).toMatchObject({ errors: expect.any(Array) });
+      });
+    });
   });
 
   describe('GET /housing', () => {

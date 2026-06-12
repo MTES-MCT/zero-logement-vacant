@@ -167,6 +167,18 @@ describe('Group API', () => {
         id: group.id
       });
     });
+
+    describe('validation', () => {
+      it('should return 400 when :id is not a UUID', async () => {
+        const { status, body } = await request(url)
+          .get(testRoute('not-a-uuid'))
+          .use(tokenProvider(user));
+
+        expect(status).toBe(constants.HTTP_STATUS_BAD_REQUEST);
+        expect(body).toMatchObject({ name: 'ValidationError' });
+        expect(body.message).toMatch(/id/i);
+      });
+    });
   });
 
   describe('POST /groups', () => {
@@ -558,7 +570,8 @@ describe('Group API', () => {
           .use(tokenProvider(user));
 
         expect(status).toBe(constants.HTTP_STATUS_BAD_REQUEST);
-        expect(responseBody).toMatchObject({ errors: expect.any(Array) });
+        expect(responseBody).toMatchObject({ name: 'ValidationError' });
+        expect(responseBody.message).toMatch(/titre|title/i);
       });
 
       it('should return 400 when body.description is missing', async () => {
@@ -572,7 +585,7 @@ describe('Group API', () => {
           .use(tokenProvider(user));
 
         expect(status).toBe(constants.HTTP_STATUS_BAD_REQUEST);
-        expect(responseBody).toMatchObject({ errors: expect.any(Array) });
+        expect(responseBody).toMatchObject({ name: 'ValidationError' });
       });
 
       it('should return 400 when :id is not a UUID', async () => {
@@ -583,7 +596,8 @@ describe('Group API', () => {
           .use(tokenProvider(user));
 
         expect(status).toBe(constants.HTTP_STATUS_BAD_REQUEST);
-        expect(responseBody).toMatchObject({ errors: expect.any(Array) });
+        expect(responseBody).toMatchObject({ name: 'ValidationError' });
+        expect(responseBody.message).toMatch(/id/i);
       });
     });
   });
@@ -759,7 +773,8 @@ describe('Group API', () => {
           .use(tokenProvider(user));
 
         expect(status).toBe(constants.HTTP_STATUS_BAD_REQUEST);
-        expect(responseBody).toMatchObject({ errors: expect.any(Array) });
+        expect(responseBody).toMatchObject({ name: 'ValidationError' });
+        expect(responseBody.message).toMatch(/all/i);
       });
 
       it('should return 400 when :id is not a UUID', async () => {
@@ -770,7 +785,8 @@ describe('Group API', () => {
           .use(tokenProvider(user));
 
         expect(status).toBe(constants.HTTP_STATUS_BAD_REQUEST);
-        expect(responseBody).toMatchObject({ errors: expect.any(Array) });
+        expect(responseBody).toMatchObject({ name: 'ValidationError' });
+        expect(responseBody.message).toMatch(/id/i);
       });
     });
   });
@@ -927,7 +943,8 @@ describe('Group API', () => {
           .use(tokenProvider(user));
 
         expect(status).toBe(constants.HTTP_STATUS_BAD_REQUEST);
-        expect(responseBody).toMatchObject({ errors: expect.any(Array) });
+        expect(responseBody).toMatchObject({ name: 'ValidationError' });
+        expect(responseBody.message).toMatch(/all/i);
       });
 
       it('should return 400 when :id is not a UUID', async () => {
@@ -938,7 +955,7 @@ describe('Group API', () => {
           .use(tokenProvider(user));
 
         expect(status).toBe(constants.HTTP_STATUS_BAD_REQUEST);
-        expect(responseBody).toMatchObject({ errors: expect.any(Array) });
+        expect(responseBody).toMatchObject({ name: 'ValidationError' });
       });
     });
   });
@@ -1025,6 +1042,18 @@ describe('Group API', () => {
         type: 'housing:group-removed',
         created_by: user.id,
         group_id: null
+      });
+    });
+
+    describe('validation', () => {
+      it('should return 400 when :id is not a UUID', async () => {
+        const { status, body } = await request(url)
+          .delete(testRoute('not-a-uuid'))
+          .use(tokenProvider(user));
+
+        expect(status).toBe(constants.HTTP_STATUS_BAD_REQUEST);
+        expect(body).toMatchObject({ name: 'ValidationError' });
+        expect(body.message).toMatch(/id/i);
       });
     });
 

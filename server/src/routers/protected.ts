@@ -205,20 +205,24 @@ router.post(
 );
 router.get(
   '/groups/:id',
-  groupController.showValidators,
-  validator.validate,
+  validatorNext.validate({
+    params: object({ id: schemas.id })
+  }),
   groupController.show
 );
 router.put(
   '/groups/:id',
-  groupController.updateValidators,
-  validator.validate,
+  validatorNext.validate({
+    params: object({ id: schemas.id }),
+    body: schemas.groupCreationPayload
+  }),
   groupController.update
 );
 router.delete(
   '/groups/:id',
-  groupController.removeValidators,
-  validator.validate,
+  validatorNext.validate({
+    params: object({ id: schemas.id })
+  }),
   groupController.remove
 );
 router.get(
@@ -229,14 +233,18 @@ router.get(
 );
 router.post(
   '/groups/:id/housing',
-  groupController.addHousingValidators,
-  validator.validate,
+  validatorNext.validate({
+    params: object({ id: schemas.id }),
+    body: schemas.groupHousingPayload
+  }),
   groupController.addHousing
 );
 router.delete(
   '/groups/:id/housing',
-  groupController.removeHousingValidators,
-  validator.validate,
+  validatorNext.validate({
+    params: object({ id: schemas.id }),
+    body: schemas.groupHousingPayload
+  }),
   groupController.removeHousing
 );
 

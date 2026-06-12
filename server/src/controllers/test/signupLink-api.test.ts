@@ -89,6 +89,7 @@ describe('Signup link API', () => {
 
       expect(status).toBe(constants.HTTP_STATUS_BAD_REQUEST);
       expect(body).toMatchObject({ name: 'ValidationError' });
+      expect(body.message).toMatch(/email/i);
     });
 
     it('should send no email if the account already exists', async () => {

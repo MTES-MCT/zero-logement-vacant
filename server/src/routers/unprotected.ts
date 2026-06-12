@@ -91,11 +91,12 @@ router.post(
   '/signup-links',
   rateLimiter(),
   validatorNext.validate({
-    body: object({ email: schemas.email.required() })
+    body: object({ email: schemas.email })
   }),
   signupLinkController.create
 );
 
+// signup link ids are randomstring (not UUIDs) — don't use schemas.id
 router.get(
   '/signup-links/:id',
   rateLimiter(),

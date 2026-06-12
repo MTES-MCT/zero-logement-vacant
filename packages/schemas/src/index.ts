@@ -26,6 +26,7 @@ import { password, passwordConfirmation } from './password';
 import { phone } from './phone';
 import { signIn } from './sign-in';
 import { siren } from './siren';
+import { sort } from './sort';
 import { userFilters } from './user-filters';
 import { userUpdatePayload } from './user-update-payload';
 
@@ -57,6 +58,7 @@ const schemas = {
   signatory,
   signIn,
   siren,
+  sort,
   userFilters,
   userUpdatePayload
 };

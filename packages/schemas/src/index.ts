@@ -21,6 +21,7 @@ import { housingUpdatePayload } from './housing-update-payload';
 import { id } from './id';
 import { notePayload } from './note-payload';
 import { ownerFilters } from './owner-filters';
+import { pagination } from './pagination';
 import { password, passwordConfirmation } from './password';
 import { phone } from './phone';
 import { signIn } from './sign-in';
@@ -48,6 +49,7 @@ const schemas = {
   id,
   notePayload,
   ownerFilters,
+  pagination,
   password,
   passwordConfirmation,
   phone,
@@ -61,6 +63,7 @@ const schemas = {
 
 export { GEO_CODE_REGEXP } from './geo-code';
 export { type HousingDocumentPayload } from './housing-document-payload';
+export { MAX_PER_PAGE } from './pagination';
 export { PHONE_REGEXP } from './phone';
 export { SIREN_REGEXP } from './siren';
 

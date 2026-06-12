@@ -21,7 +21,7 @@ import {
   genUserApi
 } from '~/test/testFixtures';
 
-import mailService from '../services/mailService';
+import mailService from '~/services/mailService';
 
 describe('Reset link API', () => {
   let url: string;

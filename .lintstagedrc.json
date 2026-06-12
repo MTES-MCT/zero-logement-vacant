@@ -1,3 +1,4 @@
 {
-  "*.{ts,tsx}": "eslint --fix"
+  "*.{ts,tsx,js,jsx,mjs,cjs}": ["oxlint --fix", "oxfmt"],
+  "*.{json,yaml,yml,md,css,scss}": "oxfmt"
 }

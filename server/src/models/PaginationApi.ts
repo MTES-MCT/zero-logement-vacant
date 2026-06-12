@@ -1,5 +1,4 @@
 import { Pagination } from '@zerologementvacant/models';
-import { query, ValidationChain } from 'express-validator';
 import { Knex } from 'knex';
 
 import schemas, { MAX_PER_PAGE } from '@zerologementvacant/schemas';
@@ -21,12 +20,6 @@ export interface PaginationDisabled {
 export const isPaginationEnabled = (
   pagination?: PaginationApi
 ): pagination is PaginationEnabled => pagination?.paginate !== false;
-
-export const queryValidators: ValidationChain[] = [
-  query('paginate').default(true).isBoolean(),
-  query('page').default(1).isInt({ min: 1 }).toInt(10),
-  query('perPage').default(50).isInt({ min: 1, max: MAX_PER_PAGE }).toInt(10)
-];
 
 export const paginationSchema = schemas.pagination;
 
@@ -62,6 +55,5 @@ export { paginationQuery as paginate };
 export default {
   create: createPagination,
   query: paginationQuery,
-  queryValidators,
   schema: paginationSchema
 };

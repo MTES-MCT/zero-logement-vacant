@@ -1,11 +1,7 @@
-import { query, ValidationChain } from 'express-validator';
 import { Knex } from 'knex';
-import validator from 'validator';
-import { array, object, string } from 'yup';
 
 import schemas from '@zerologementvacant/schemas';
 import { keys } from '~/utils/object';
-import { isArrayOf, isString } from '~/utils/validators';
 
 type Direction = 'asc' | 'desc';
 export type Sort<Sortable extends object = object> = Partial<
@@ -64,20 +60,10 @@ export function sortQuery<Sortable extends object>(
   };
 }
 
-export const queryValidators: ValidationChain[] = [
-  query('sort')
-    .optional()
-    .custom((value) => isSortValue(value) || isArrayOf(isSortValue)(value))
-];
-
 export const sortSchema = schemas.sort;
-
-const isSortValue = (value: unknown): value is string =>
-  isString(value) && validator.matches(value, /^-?[a-zA-Z]+$/i);
 
 export default {
   parse,
   query: sortQuery,
-  queryValidators,
   sortSchema
 };

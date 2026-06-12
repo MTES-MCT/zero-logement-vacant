@@ -21,6 +21,7 @@ import { housingUpdatePayload } from './housing-update-payload';
 import { id } from './id';
 import { notePayload } from './note-payload';
 import { ownerFilters } from './owner-filters';
+import { ownerPayload } from './owner-payload';
 import { pagination } from './pagination';
 import { password, passwordConfirmation } from './password';
 import { phone } from './phone';
@@ -50,6 +51,7 @@ const schemas = {
   id,
   notePayload,
   ownerFilters,
+  ownerPayload,
   pagination,
   password,
   passwordConfirmation,

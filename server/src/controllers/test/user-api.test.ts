@@ -321,6 +321,65 @@ describe('User API', () => {
     });
   });
 
+  describe('POST /users/creation — validation', () => {
+    const testRoute = '/users/creation';
+
+    it('should return 400 when body.email is missing', async () => {
+      const { status, body } = await request(url)
+        .post(testRoute)
+        .send({
+          password: 'Password123abc!',
+          establishmentId: uuidv4()
+        })
+        .set('Content-Type', 'application/json');
+
+      expect(status).toBe(constants.HTTP_STATUS_BAD_REQUEST);
+      expect(body).toMatchObject({ errors: expect.any(Array) });
+    });
+
+    it('should return 400 when body.email is malformed', async () => {
+      const { status, body } = await request(url)
+        .post(testRoute)
+        .send({
+          email: 'not-an-email',
+          password: 'Password123abc!',
+          establishmentId: uuidv4()
+        })
+        .set('Content-Type', 'application/json');
+
+      expect(status).toBe(constants.HTTP_STATUS_BAD_REQUEST);
+      expect(body).toMatchObject({ errors: expect.any(Array) });
+    });
+
+    it('should return 400 when body.password is weak (too short)', async () => {
+      const { status, body } = await request(url)
+        .post(testRoute)
+        .send({
+          email: 'test@example.com',
+          password: 'short',
+          establishmentId: uuidv4()
+        })
+        .set('Content-Type', 'application/json');
+
+      expect(status).toBe(constants.HTTP_STATUS_BAD_REQUEST);
+      expect(body).toMatchObject({ errors: expect.any(Array) });
+    });
+
+    it('should return 400 when body.establishmentId is not a UUID', async () => {
+      const { status, body } = await request(url)
+        .post(testRoute)
+        .send({
+          email: 'test@example.com',
+          password: 'Password123abc!',
+          establishmentId: 'not-a-uuid'
+        })
+        .set('Content-Type', 'application/json');
+
+      expect(status).toBe(constants.HTTP_STATUS_BAD_REQUEST);
+      expect(body).toMatchObject({ errors: expect.any(Array) });
+    });
+  });
+
   describe('GET /users/{id}', () => {
     const user = genUserApi(establishment.id);
 

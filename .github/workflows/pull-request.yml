@@ -68,7 +68,7 @@ jobs:
           METABASE_TOKEN: token
 
       - name: Lint
-        run: yarn nx affected -t lint --base ${{ github.event.pull_request.base.sha }}
+        run: yarn lint && yarn format
 
       - name: Test
         run: yarn nx affected -t test --base ${{ github.event.pull_request.base.sha }} --test-timeout=60000

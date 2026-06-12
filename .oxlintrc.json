@@ -1,8 +1,6 @@
 {
   "$schema": "./node_modules/oxlint/configuration_schema.json",
-  "plugins": [
-    "unicorn"
-  ],
+  "plugins": ["unicorn"],
   "categories": {
     "correctness": "off"
   },
@@ -25,19 +23,13 @@
   "rules": {},
   "overrides": [
     {
-      "files": [
-        "**/src/**/*.{ts,tsx}",
-        "**/cypress/**/*.ts"
-      ],
+      "files": ["**/src/**/*.{ts,tsx}", "**/cypress/**/*.ts"],
       "rules": {
         "no-array-constructor": "error",
         "no-unused-expressions": "error",
         "no-unused-vars": "error",
         "import/no-commonjs": "error",
-        "eqeqeq": [
-          "error",
-          "always"
-        ],
+        "eqeqeq": ["error", "always"],
         "typescript/ban-ts-comment": "error",
         "typescript/no-duplicate-enum-values": "error",
         "typescript/no-empty-object-type": "error",
@@ -60,15 +52,10 @@
       "env": {
         "es2023": true
       },
-      "plugins": [
-        "typescript",
-        "import"
-      ]
+      "plugins": ["typescript", "import"]
     },
     {
-      "files": [
-        "**/*.cy.ts"
-      ],
+      "files": ["**/*.cy.ts"],
       "globals": {
         "cy": "readonly",
         "Cypress": "readonly",
@@ -93,14 +80,10 @@
         "cypress/no-async-tests": "error",
         "cypress/unsafe-to-chain-command": "error"
       },
-      "jsPlugins": [
-        "eslint-plugin-cypress"
-      ]
+      "jsPlugins": ["eslint-plugin-cypress"]
     },
     {
-      "files": [
-        "frontend/src/**/*.{ts,tsx}"
-      ],
+      "files": ["frontend/src/**/*.{ts,tsx}"],
       "rules": {
         "react/display-name": "error",
         "react/jsx-key": "error",
@@ -154,10 +137,7 @@
               "tree",
               "treegrid"
             ],
-            "includeRoles": [
-              "alert",
-              "dialog"
-            ]
+            "includeRoles": ["alert", "dialog"]
           }
         ],
         "jsx-a11y/heading-has-content": "error",
@@ -187,13 +167,8 @@
         "jsx-a11y/no-interactive-element-to-noninteractive-role": [
           "error",
           {
-            "tr": [
-              "none",
-              "presentation"
-            ],
-            "canvas": [
-              "img"
-            ]
+            "tr": ["none", "presentation"],
+            "canvas": ["img"]
           }
         ],
         "jsx-a11y/no-noninteractive-element-interactions": [
@@ -209,28 +184,11 @@
               "onKeyDown",
               "onKeyUp"
             ],
-            "alert": [
-              "onKeyUp",
-              "onKeyDown",
-              "onKeyPress"
-            ],
-            "body": [
-              "onError",
-              "onLoad"
-            ],
-            "dialog": [
-              "onKeyUp",
-              "onKeyDown",
-              "onKeyPress"
-            ],
-            "iframe": [
-              "onError",
-              "onLoad"
-            ],
-            "img": [
-              "onError",
-              "onLoad"
-            ]
+            "alert": ["onKeyUp", "onKeyDown", "onKeyPress"],
+            "body": ["onError", "onLoad"],
+            "dialog": ["onKeyUp", "onKeyDown", "onKeyPress"],
+            "iframe": ["onError", "onLoad"],
+            "img": ["onError", "onLoad"]
           }
         ],
         "jsx-a11y/no-noninteractive-element-to-interactive-role": [
@@ -263,25 +221,16 @@
               "tab",
               "treeitem"
             ],
-            "table": [
-              "grid"
-            ],
-            "td": [
-              "gridcell"
-            ],
-            "fieldset": [
-              "radiogroup",
-              "presentation"
-            ]
+            "table": ["grid"],
+            "td": ["gridcell"],
+            "fieldset": ["radiogroup", "presentation"]
           }
         ],
         "jsx-a11y/no-noninteractive-tabindex": [
           "error",
           {
             "tags": [],
-            "roles": [
-              "tabpanel"
-            ],
+            "roles": ["tabpanel"],
             "allowExpressionValues": true
           }
         ],
@@ -294,10 +243,7 @@
         "react/rules-of-hooks": "error",
         "react/exhaustive-deps": "warn"
       },
-      "plugins": [
-        "react",
-        "jsx-a11y"
-      ]
+      "plugins": ["react", "jsx-a11y"]
     }
   ]
 }

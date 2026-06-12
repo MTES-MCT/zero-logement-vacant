@@ -3,6 +3,7 @@ import { Knex } from 'knex';
 import validator from 'validator';
 import { array, object, string } from 'yup';
 
+import schemas from '@zerologementvacant/schemas';
 import { keys } from '~/utils/object';
 import { isArrayOf, isString } from '~/utils/validators';
 
@@ -69,20 +70,7 @@ export const queryValidators: ValidationChain[] = [
     .custom((value) => isSortValue(value) || isArrayOf(isSortValue)(value))
 ];
 
-export const sortSchema = object({
-  sort: array()
-    .transform((value) =>
-      typeof value === 'string' ? value.split(',') : value
-    )
-    .of(
-      string().test({
-        name: 'comma-separated values',
-        test(value) {
-          return value ? /^-?[a-zA-Z]+$/i.test(value) : true;
-        }
-      })
-    )
-});
+export const sortSchema = schemas.sort;
 
 const isSortValue = (value: unknown): value is string =>
   isString(value) && validator.matches(value, /^-?[a-zA-Z]+$/i);

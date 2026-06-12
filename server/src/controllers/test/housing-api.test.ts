@@ -203,7 +203,8 @@ describe('Housing API', () => {
           .use(tokenProvider(user));
 
         expect(status).toBe(constants.HTTP_STATUS_BAD_REQUEST);
-        expect(body).toMatchObject({ errors: expect.any(Array) });
+        expect(body).toMatchObject({ name: 'ValidationError' });
+        expect(body.message).toMatch(/id/i);
       });
     });
   });

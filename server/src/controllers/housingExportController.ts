@@ -1,5 +1,3 @@
-import { ReadableStream, TransformStream } from 'node:stream/web';
-
 import {
   AddressKinds,
   formatAddress,
@@ -16,7 +14,7 @@ import { Predicate } from 'effect';
 import { type Column, type Workbook } from 'exceljs';
 import { Request, Response } from 'express';
 import { AuthenticatedRequest } from 'express-jwt';
-import { param, ValidationChain } from 'express-validator';
+import { ReadableStream, TransformStream } from 'node:stream/web';
 import { map } from 'web-streams-utils';
 
 import CampaignMissingError from '~/errors/campaignMissingError';
@@ -38,10 +36,6 @@ const logger = createLogger('housingExportController');
 const MAX_TITLE_LENGTH = 100;
 
 export type OwnerExportStreamApi = OwnerApi & { housingList: HousingApi[] };
-
-const exportCampaignValidators: ValidationChain[] = [
-  param('id').isUUID().withMessage('Must be an UUID')
-];
 
 async function exportCampaign(request: Request, response: Response) {
   const { auth, effectiveGeoCodes, params } = request as AuthenticatedRequest;
@@ -155,10 +149,6 @@ async function exportGroup(request: Request, response: Response) {
   });
   logger.info('Group exported', group);
 }
-
-const exportGroupValidators: ValidationChain[] = [
-  param('id').isUUID().withMessage('Must be an UUID')
-];
 
 interface CreateOwnerWorksheetOptions {
   workbook: Workbook;
@@ -431,9 +421,7 @@ export async function createGroupHousingWorksheet(
 
 const housingExportController = {
   exportCampaign,
-  exportCampaignValidators,
-  exportGroup,
-  exportGroupValidators
+  exportGroup
 };
 
 export default housingExportController;

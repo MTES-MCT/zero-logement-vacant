@@ -1,5 +1,3 @@
-import { constants } from 'http2';
-
 import {
   AddressKinds,
   DATAFONCIER_OWNER_EQUIVALENCE,
@@ -32,7 +30,7 @@ import {
 } from 'effect';
 import { RequestHandler } from 'express';
 import { AuthenticatedRequest } from 'express-jwt';
-import { oneOf, param } from 'express-validator';
+import { constants } from 'http2';
 import { match, Pattern } from 'ts-pattern';
 import { v4 as uuidv4 } from 'uuid';
 
@@ -95,10 +93,6 @@ interface HousingPathParams extends Record<string, string> {
   id: string;
 }
 
-const getValidators = oneOf([
-  param('id').isString().isLength({ min: 12, max: 12 }), // localId
-  param('id').isUUID() // id
-]);
 const get: RequestHandler<
   { id: HousingDTO['id'] },
   HousingApi,
@@ -912,7 +906,6 @@ const updateMany: RequestHandler<
 };
 
 const housingController = {
-  getValidators,
   get,
   list,
   count,

@@ -149,10 +149,27 @@ router.get(
   }),
   housingController.count
 );
+// `:id` accepts EITHER a 12-char localId OR a UUID, so we cannot reuse the
+// UUID-only `schemas.id` here.
 router.get(
   '/housing/:id',
-  housingController.getValidators,
-  validator.validate,
+  validatorNext.validate({
+    params: object({
+      id: string()
+        .required()
+        .test(
+          'localId-or-uuid',
+          ':id must be a 12-char localId or a UUID',
+          (value) => {
+            if (!value) return false;
+            if (value.length === 12) return true;
+            return /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(
+              value
+            );
+          }
+        )
+    })
+  }),
   housingController.get
 );
 router.put(
@@ -227,8 +244,9 @@ router.delete(
 );
 router.get(
   '/groups/:id/export',
-  housingExportController.exportGroupValidators,
-  validator.validate,
+  validatorNext.validate({
+    params: object({ id: schemas.id })
+  }),
   housingExportController.exportGroup
 );
 router.post(

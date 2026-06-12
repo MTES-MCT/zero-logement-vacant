@@ -7,7 +7,7 @@ import { vi } from 'vitest';
 
 import { createServer } from '~/infra/server';
 import { ProspectApi } from '~/models/ProspectApi';
-import { SignupLinkApi } from '~/models/SignupLinkApi';
+import { SIGNUP_LINK_LENGTH, SignupLinkApi } from '~/models/SignupLinkApi';
 import {
   Establishments,
   formatEstablishmentApi
@@ -55,6 +55,26 @@ describe('Prospect API', () => {
       await request(url)
         .put(testRoute('1'))
         .expect(constants.HTTP_STATUS_BAD_REQUEST);
+    });
+
+    it('should return 400 when :id contains non-alphanumeric characters', async () => {
+      const id = '!'.repeat(SIGNUP_LINK_LENGTH);
+      const { status, body } = await request(url)
+        .put(testRoute(id))
+        .send({});
+
+      expect(status).toBe(constants.HTTP_STATUS_BAD_REQUEST);
+      expect(body).toMatchObject({ errors: expect.any(Array) });
+    });
+
+    it('should return 400 when :id length is not SIGNUP_LINK_LENGTH', async () => {
+      const id = 'a'; // too short
+      const { status, body } = await request(url)
+        .put(testRoute(id))
+        .send({});
+
+      expect(status).toBe(constants.HTTP_STATUS_BAD_REQUEST);
+      expect(body).toMatchObject({ errors: expect.any(Array) });
     });
 
     it('should return forbidden when a user already exist', async () => {
@@ -241,6 +261,15 @@ describe('Prospect API', () => {
       await request(url)
         .get(testRoute(randomstring.generate()))
         .expect(constants.HTTP_STATUS_BAD_REQUEST);
+    });
+
+    it('should return 400 when :email is malformed', async () => {
+      const { status, body } = await request(url).get(
+        testRoute('not-an-email')
+      );
+
+      expect(status).toBe(constants.HTTP_STATUS_BAD_REQUEST);
+      expect(body).toMatchObject({ errors: expect.any(Array) });
     });
 
     it('should return not found if the prospect is missing', async () => {

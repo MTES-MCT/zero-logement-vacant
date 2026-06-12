@@ -891,10 +891,16 @@ Each of Tasks 11–19 follows the same migration recipe. Apply the recipe per fi
 
 4. **Remove `genCampaignApi` and `genCampaignApiNext` from the file's import list** (and the unused `CampaignApi` type if no longer referenced). Run the test to confirm the file still compiles.
 
-5. **Run that file's tests** and commit:
+5. **Run that file's tests AND server typecheck** before committing — typecheck catches `CampaignApi` vs `CampaignDTO` mismatches at call sites the test body doesn't exercise (e.g., repository function signatures that still expect `CampaignApi`):
    ```bash
    yarn nx test server -- <file>
-   git add <file>
+   yarn nx typecheck server
+   ```
+   If typecheck fails on a repository signature requiring `CampaignApi`, widen the signature to `Pick<CampaignApi, 'id'>` (or whatever subset is actually read). Precedent: `server/src/repositories/campaignHousingRepository.ts:55` `formatCampaignHousingApi` was widened this way in Wave 1.5. Include the production-file widening in the same commit as the test migration.
+
+6. **Commit:**
+   ```bash
+   git add <file> [optional widened production file]
    git commit -m "refactor(server): migrate <file> off genCampaignApi"
    ```
 

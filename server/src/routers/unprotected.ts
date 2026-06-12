@@ -144,7 +144,9 @@ router.get(
 router.get(
   '/localities',
   localityController.listLocalitiesValidators,
-  validator.validate,
+  validatorNext.validate({
+    query: object({ establishmentId: string().uuid().required() })
+  }),
   responseCache(config.cache.default),
   localityController.listLocalities
 );
@@ -152,7 +154,9 @@ router.get(
 router.get(
   '/localities/:geoCode',
   localityController.getLocalityValidators,
-  validator.validate,
+  validatorNext.validate({
+    params: object({ geoCode: schemas.geoCode.required() })
+  }),
   responseCache(config.cache.default),
   localityController.getLocality
 );

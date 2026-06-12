@@ -241,7 +241,7 @@ describe('Locality API', () => {
         .use(tokenProvider(user));
 
       expect(status).toBe(constants.HTTP_STATUS_BAD_REQUEST);
-      expect(body).toMatchObject({ errors: expect.any(Array) });
+      expect(body).toMatchObject({ name: 'ValidationError' });
     });
 
     it('should return 400 when query.establishmentId is not a UUID', async () => {
@@ -250,7 +250,8 @@ describe('Locality API', () => {
         .use(tokenProvider(user));
 
       expect(status).toBe(constants.HTTP_STATUS_BAD_REQUEST);
-      expect(body).toMatchObject({ errors: expect.any(Array) });
+      expect(body).toMatchObject({ name: 'ValidationError' });
+      expect(body.message).toMatch(/establishmentId/i);
     });
   });
 
@@ -261,7 +262,8 @@ describe('Locality API', () => {
         .use(tokenProvider(user));
 
       expect(status).toBe(constants.HTTP_STATUS_BAD_REQUEST);
-      expect(body).toMatchObject({ errors: expect.any(Array) });
+      expect(body).toMatchObject({ name: 'ValidationError' });
+      expect(body.message).toMatch(/geoCode/i);
     });
   });
 
@@ -273,7 +275,8 @@ describe('Locality API', () => {
         .use(tokenProvider(user));
 
       expect(status).toBe(constants.HTTP_STATUS_BAD_REQUEST);
-      expect(body).toMatchObject({ errors: expect.any(Array) });
+      expect(body).toMatchObject({ name: 'ValidationError' });
+      expect(body.message).toMatch(/taxKind/i);
     });
 
     it('should return 400 when taxKind is THLV and taxRate is missing', async () => {
@@ -283,7 +286,7 @@ describe('Locality API', () => {
         .use(tokenProvider(user));
 
       expect(status).toBe(constants.HTTP_STATUS_BAD_REQUEST);
-      expect(body).toMatchObject({ errors: expect.any(Array) });
+      expect(body).toMatchObject({ name: 'ValidationError' });
     });
 
     it('should return 400 when taxKind is None and taxRate is provided', async () => {
@@ -293,7 +296,7 @@ describe('Locality API', () => {
         .use(tokenProvider(user));
 
       expect(status).toBe(constants.HTTP_STATUS_BAD_REQUEST);
-      expect(body).toMatchObject({ errors: expect.any(Array) });
+      expect(body).toMatchObject({ name: 'ValidationError' });
     });
   });
 });

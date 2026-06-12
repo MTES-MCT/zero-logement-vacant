@@ -6,7 +6,7 @@ import {
 import schemas from '@zerologementvacant/schemas';
 import Router from 'express-promise-router';
 import { param } from 'express-validator';
-import { object, string } from 'yup';
+import { number, object, string } from 'yup';
 
 import authController from '~/controllers/auth-controller';
 import buildingController from '~/controllers/buildingController';
@@ -480,8 +480,22 @@ router.delete(
 
 router.put(
   '/localities/:geoCode/tax',
-  localityController.updateLocalityTaxValidators,
-  validator.validate,
+  validatorNext.validate({
+    params: object({ geoCode: schemas.geoCode.required() }),
+    body: object({
+      taxKind: string().oneOf(['THLV', 'None']).required(),
+      taxRate: number().when('taxKind', {
+        is: 'THLV',
+        then: (s) => s.required(),
+        otherwise: (s) =>
+          s.test(
+            'must-not-exist-when-tax-kind-is-none',
+            'taxRate must not be provided when taxKind is None',
+            (v) => v === undefined
+          )
+      })
+    })
+  }),
   localityController.updateLocalityTax
 );
 

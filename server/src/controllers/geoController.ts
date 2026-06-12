@@ -5,7 +5,6 @@ import AdmZip from 'adm-zip';
 import async from 'async';
 import { Request, Response } from 'express';
 import { AuthenticatedRequest } from 'express-jwt';
-import { body, param } from 'express-validator';
 import {
   Feature,
   FeatureCollection,
@@ -21,7 +20,6 @@ import { v4 as uuidv4 } from 'uuid';
 import { logger } from '~/infra/logger';
 import { GeoPerimeterApi, toGeoPerimeterDTO } from '~/models/GeoPerimeterApi';
 import geoRepository from '~/repositories/geoRepository';
-import { isArrayOf, isUUID } from '~/utils/validators';
 
 // Common projections for French territories
 const KNOWN_PROJECTIONS: Record<string, string> = {
@@ -434,12 +432,6 @@ export function to2D(multiPolygon: MultiPolygon): MultiPolygon {
   return turf.multiPolygon(polygons).geometry;
 }
 
-const deleteGeoPerimeterListValidators = [
-  body('geoPerimeterIds')
-    .custom(isArrayOf(isUUID))
-    .withMessage('Must be an array of UUIDs')
-];
-
 async function deleteGeoPerimeterList(request: Request, response: Response) {
   const { auth, body } = request as AuthenticatedRequest;
 
@@ -449,12 +441,6 @@ async function deleteGeoPerimeterList(request: Request, response: Response) {
 
   response.status(constants.HTTP_STATUS_NO_CONTENT).send();
 }
-
-const updateGeoPerimeterValidators = [
-  param('geoPerimeterId').notEmpty().isUUID(),
-  body('kind').notEmpty().isString(),
-  body('name').optional({ nullable: true }).isString()
-];
 
 async function updateGeoPerimeter(request: Request, response: Response) {
   const geoPerimeterId = request.params.geoPerimeterId;
@@ -483,9 +469,7 @@ async function updateGeoPerimeter(request: Request, response: Response) {
 const geoController = {
   createGeoPerimeter,
   listGeoPerimeters,
-  deleteGeoPerimeterListValidators,
   deleteGeoPerimeterList,
-  updateGeoPerimeterValidators,
   updateGeoPerimeter
 };
 

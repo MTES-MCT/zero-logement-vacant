@@ -6,7 +6,7 @@ import {
 import schemas from '@zerologementvacant/schemas';
 import Router from 'express-promise-router';
 import { param } from 'express-validator';
-import { number, object, string } from 'yup';
+import { array, number, object, string } from 'yup';
 
 import authController from '~/controllers/auth-controller';
 import buildingController from '~/controllers/buildingController';
@@ -467,14 +467,22 @@ router.post(
 );
 router.put(
   '/geo/perimeters/:geoPerimeterId',
-  geoController.updateGeoPerimeterValidators,
-  validator.validate,
+  validatorNext.validate({
+    params: object({ geoPerimeterId: string().uuid().required() }),
+    body: object({
+      kind: string().min(1).required(),
+      name: string().nullable().notRequired()
+    })
+  }),
   geoController.updateGeoPerimeter
 );
 router.delete(
   '/geo/perimeters',
-  geoController.deleteGeoPerimeterListValidators,
-  validator.validate,
+  validatorNext.validate({
+    body: object({
+      geoPerimeterIds: array().of(string().uuid().required()).required()
+    })
+  }),
   geoController.deleteGeoPerimeterList
 );
 

@@ -394,7 +394,8 @@ describe('Geo perimeters API', () => {
         .use(tokenProvider(user));
 
       expect(status).toBe(constants.HTTP_STATUS_BAD_REQUEST);
-      expect(body).toMatchObject({ errors: expect.any(Array) });
+      expect(body).toMatchObject({ name: 'ValidationError' });
+      expect(body.message).toMatch(/geoPerimeterId/i);
     });
 
     it('should return 400 when body.kind is missing', async () => {
@@ -404,7 +405,7 @@ describe('Geo perimeters API', () => {
         .use(tokenProvider(user));
 
       expect(status).toBe(constants.HTTP_STATUS_BAD_REQUEST);
-      expect(body).toMatchObject({ errors: expect.any(Array) });
+      expect(body).toMatchObject({ name: 'ValidationError' });
     });
 
     it('should return 400 when body.kind is empty', async () => {
@@ -414,7 +415,8 @@ describe('Geo perimeters API', () => {
         .use(tokenProvider(user));
 
       expect(status).toBe(constants.HTTP_STATUS_BAD_REQUEST);
-      expect(body).toMatchObject({ errors: expect.any(Array) });
+      expect(body).toMatchObject({ name: 'ValidationError' });
+      expect(body.message).toMatch(/kind/i);
     });
   });
 
@@ -426,7 +428,7 @@ describe('Geo perimeters API', () => {
         .use(tokenProvider(user));
 
       expect(status).toBe(constants.HTTP_STATUS_BAD_REQUEST);
-      expect(body).toMatchObject({ errors: expect.any(Array) });
+      expect(body).toMatchObject({ name: 'ValidationError' });
     });
 
     it('should return 400 when body.geoPerimeterIds contains a non-UUID', async () => {
@@ -436,7 +438,8 @@ describe('Geo perimeters API', () => {
         .use(tokenProvider(user));
 
       expect(status).toBe(constants.HTTP_STATUS_BAD_REQUEST);
-      expect(body).toMatchObject({ errors: expect.any(Array) });
+      expect(body).toMatchObject({ name: 'ValidationError' });
+      expect(body.message).toMatch(/geoPerimeterIds/i);
     });
   });
 });

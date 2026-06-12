@@ -254,6 +254,26 @@ describe('Campaign API', () => {
         ]);
       });
     });
+
+    describe('validation', () => {
+      it('should return 400 when query.groups contains a non-UUID', async () => {
+        const { status, body } = await request(url)
+          .get(`${testRoute}?groups=not-a-uuid`)
+          .use(tokenProvider(user));
+
+        expect(status).toBe(constants.HTTP_STATUS_BAD_REQUEST);
+        expect(body).toMatchObject({ errors: expect.any(Array) });
+      });
+
+      it('should return 400 when query.sort contains invalid characters', async () => {
+        const { status, body } = await request(url)
+          .get(`${testRoute}?sort=1!nope`)
+          .use(tokenProvider(user));
+
+        expect(status).toBe(constants.HTTP_STATUS_BAD_REQUEST);
+        expect(body).toMatchObject({ errors: expect.any(Array) });
+      });
+    });
   });
 
   describe('GET /campaigns/{id}', () => {

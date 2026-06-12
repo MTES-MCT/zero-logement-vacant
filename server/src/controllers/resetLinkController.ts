@@ -2,7 +2,6 @@ import { constants } from 'http2';
 
 import { addHours } from 'date-fns';
 import { Request, Response } from 'express';
-import { body, param, ValidationChain } from 'express-validator';
 import randomstring from 'randomstring';
 
 import ResetLinkExpiredError from '~/errors/resetLinkExpiredError';
@@ -42,7 +41,6 @@ async function create(request: Request, response: Response) {
   // the security of the password reset flow.
   response.status(constants.HTTP_STATUS_OK).send();
 }
-const createValidators: ValidationChain[] = [body('email').isEmail()];
 
 async function show(request: Request, response: Response) {
   const { id } = request.params;
@@ -57,13 +55,8 @@ async function show(request: Request, response: Response) {
 
   response.status(constants.HTTP_STATUS_OK).json(link);
 }
-const showValidators: ValidationChain[] = [
-  param('id').isString().notEmpty().isAlphanumeric()
-];
 
 export default {
   create,
-  createValidators,
-  show,
-  showValidators
+  show
 };

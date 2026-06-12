@@ -74,16 +74,19 @@ router.post(
 router.post(
   '/reset-links',
   rateLimiter(),
-  resetLinkController.createValidators,
-  validator.validate,
+  validatorNext.validate({
+    body: object({ email: schemas.email })
+  }),
   resetLinkController.create
 );
 
+// reset link ids are randomstring (not UUIDs) — don't use schemas.id
 router.get(
   '/reset-links/:id',
   rateLimiter(),
-  resetLinkController.showValidators,
-  validator.validate,
+  validatorNext.validate({
+    params: object({ id: string().matches(/^[a-zA-Z0-9]+$/).required() })
+  }),
   resetLinkController.show
 );
 

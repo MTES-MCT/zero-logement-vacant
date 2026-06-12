@@ -61,7 +61,7 @@ describe('Reset link API', () => {
         .set('Content-Type', 'application/json');
 
       expect(status).toBe(constants.HTTP_STATUS_BAD_REQUEST);
-      expect(body).toMatchObject({ errors: expect.any(Array) });
+      expect(body).toMatchObject({ name: 'ValidationError' });
     });
 
     it('should return 400 when body.email is not a valid email', async () => {
@@ -71,7 +71,8 @@ describe('Reset link API', () => {
         .set('Content-Type', 'application/json');
 
       expect(status).toBe(constants.HTTP_STATUS_BAD_REQUEST);
-      expect(body).toMatchObject({ errors: expect.any(Array) });
+      expect(body).toMatchObject({ name: 'ValidationError' });
+      expect(body.message).toMatch(/email/i);
     });
 
     it('should create a reset link', async () => {
@@ -110,7 +111,8 @@ describe('Reset link API', () => {
         .set('Content-Type', 'application/json');
 
       expect(status).toBe(constants.HTTP_STATUS_BAD_REQUEST);
-      expect(body).toMatchObject({ errors: expect.any(Array) });
+      expect(body).toMatchObject({ name: 'ValidationError' });
+      expect(body.message).toMatch(/id/i);
     });
 
     it('should be missing', async () => {

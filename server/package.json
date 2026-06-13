@@ -34,6 +34,7 @@
     "async": "3.2.6",
     "axios": "1.16.1",
     "bcryptjs": "2.4.3",
+    "better-auth": "1.6.18",
     "clamscan": "2.4.0",
     "cli-progress": "3.12.0",
     "commander": "14.0.3",

@@ -12,6 +12,7 @@ import signupLinkController from '~/controllers/signupLinkController';
 import userController from '~/controllers/userController';
 import config from '~/infra/config';
 import { noop } from '~/middlewares/noop';
+import { responseCache } from '~/middlewares/responseCache';
 import validator from '~/middlewares/validator';
 import validatorNext from '~/middlewares/validator-next';
 import schemas from '@zerologementvacant/schemas';
@@ -110,6 +111,9 @@ router.put(
   prospectController.upsert
 );
 
+const REFERENCE_TTL = config.referenceCache.ttlMs;
+const ESTABLISHMENT_TTL = config.establishmentCache.ttlMs;
+
 router.get(
   '/establishments',
   jwtCheck({ required: false }),
@@ -117,12 +121,14 @@ router.get(
   validatorNext.validate({
     query: schemas.establishmentFilters
   }),
+  responseCache(ESTABLISHMENT_TTL),
   establishmentController.list
 );
 
 router.get(
   '/establishments/:id',
   validatorNext.validate({ params: object({ id: schemas.id }) }),
+  responseCache(ESTABLISHMENT_TTL),
   establishmentController.get
 );
 
@@ -130,6 +136,7 @@ router.get(
   '/localities',
   localityController.listLocalitiesValidators,
   validator.validate,
+  responseCache(REFERENCE_TTL),
   localityController.listLocalities
 );
 
@@ -137,9 +144,10 @@ router.get(
   '/localities/:geoCode',
   localityController.getLocalityValidators,
   validator.validate,
+  responseCache(REFERENCE_TTL),
   localityController.getLocality
 );
 
-router.get('/precisions', precisionController.find);
+router.get('/precisions', responseCache(REFERENCE_TTL), precisionController.find);
 
 export default router;

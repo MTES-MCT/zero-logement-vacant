@@ -40,9 +40,9 @@ Replaces localStorage + `x-access-token` header entirely. Cookie flags: `HttpOnl
 
 Replaces the custom sign-in, password reset, bcrypt, and session middleware. ZLV-specific business logic hooks into better-auth lifecycle callbacks rather than living in a monolithic controller.
 
-### 2FA: TOTP (upgrade from email OTP)
+### 2FA: disabled
 
-Email OTP is phishable — compromising the user's inbox breaks the second factor. TOTP (authenticator app, RFC 6238) removes the email attack vector. Migration cost: admins set up an authenticator app once. Applies to ADMIN users only, as today.
+better-auth's two-factor plugin is not enabled. The existing custom email OTP flow for admin users (`verifyTwoFactor` endpoint) is removed as part of the migration. 2FA may be revisited as a separate initiative after the session layer is stable.
 
 ### External clients: API key plugin, deferred
 
@@ -142,14 +142,28 @@ export const auth = betterAuth({
     }
   },
   user: {
-    modelName: 'users',
-    fields: {
-      // remap better-auth field names to existing column names
-      // (full audit required before implementation)
-    },
+    // Expand-and-contract: better-auth writes to a new 'auth_users' table.
+    // The existing 'users' table is untouched during the migration window.
+    // Once all ZLV queries are migrated to read from 'auth_users',
+    // 'users' is deprecated and removed in a later sprint.
+    modelName: 'auth_users',
     additionalFields: {
-      // All ZLV-specific columns: activatedAt, lastAuthenticatedAt,
-      // suspendedAt, suspendedCause, twoFactorSecret, etc.
+      // ZLV-specific columns that have no better-auth equivalent.
+      // better-auth owns: id, email, emailVerified, name, createdAt, updatedAt, image.
+      // Everything else lives here:
+      firstName:           { type: 'string', required: false },
+      lastName:            { type: 'string', required: false },
+      role:                { type: 'string', required: true },
+      // establishmentId intentionally absent — see "establishmentId removal" below
+      phone:               { type: 'string', required: false },
+      position:            { type: 'string', required: false },
+      timePerWeek:         { type: 'string', required: false },
+      kind:                { type: 'string', required: false },
+      activatedAt:         { type: 'date',   required: false },
+      lastAuthenticatedAt: { type: 'date',   required: false },
+      suspendedAt:         { type: 'date',   required: false },
+      suspendedCause:      { type: 'string', required: false },
+      deletedAt:           { type: 'date',   required: false }
     }
   },
   emailAndPassword: {
@@ -158,14 +172,15 @@ export const auth = betterAuth({
     // to prevent account enumeration
   },
   emailVerification: {
-    enabled: false          // Invite-only signup — no self-registration
+    // ZLV does have email verification: the invite/signup-link flow sets activatedAt,
+    // which maps to better-auth's emailVerified field.
+    // Keep enabled; the sendVerificationEmail callback routes through ZLV's mailService.
+    enabled: true,
+    sendVerificationEmail: async ({ user, url }) => {
+      // delegate to mailService — preserves existing email infrastructure
+    }
   },
-  plugins: [
-    twoFactor({
-      // TOTP only — no SMS, no email OTP
-      issuer: 'Zéro Logement Vacant'
-    })
-  ],
+  // No plugins: twoFactor disabled (see Decisions)
   hooks: {
     after: [
       {
@@ -181,7 +196,7 @@ export const auth = betterAuth({
   trustedOrigins: [config.app.frontendUrl],
   advanced: {
     // Override email sender — use ZLV mailService
-    // for password reset and TOTP setup emails
+    // for password reset emails
   }
 });
 ```
@@ -247,52 +262,127 @@ app.use(cors({
 
 ## Frontend changes
 
-**Removed:**
+### Removed
 - `auth.service.ts` → `login()`, `verifyTwoFactor()`, `logout()`, `authHeader()`, `withAuthHeader()`
-- `authenticationReducer.tsx`, `auth-thunks.ts`
-- `localStorage.getItem('authUser')` usages
+- `authenticationReducer.tsx`, `auth-thunks.ts`, `authenticationSlice`
+- `localStorage.getItem('authUser')` — all usages
 - `prepareHeaders` token injection in RTK Query base query
 - `useFetchInterceptor.ts`
+- `useUser()` hook
 
-**Added / changed:**
-- `authClient` from `better-auth/react` — wraps sign-in, sign-out, session
-- `useUser()` becomes a thin wrapper around `authClient.useSession()`
-- RTK Query base query: add `credentials: 'include'`, remove `prepareHeaders`
-- 401 handling: RTK Query `baseQuery` retries once after a 401 (session expired → redirect to login)
-- Login view: calls `authClient.signIn.email()` directly
-- TOTP setup view: new screen for admin users on first login after migration
+### Added: AuthContext + AuthProvider
 
-**Auth state shape:** `AuthUser` no longer contains `accessToken`. The token is opaque and lives in the cookie — the frontend never reads it.
+Auth state moves from Redux into a React Context. Auth is not server state — it is not a cacheable resource — so RTK Query is the wrong tool for it. A Context + Provider is the idiomatic pattern.
+
+```typescript
+// frontend/src/contexts/AuthContext.tsx
+interface AuthContextValue {
+  // Server-side state — not derivable on the client
+  user:                     User | null;
+  establishment:            Establishment | null;
+  authorizedEstablishments: Establishment[];
+  effectiveGeoCodes:        string[] | undefined;
+  isLoading:                boolean;
+
+  // Actions
+  signIn:              (email: string, password: string) => Promise<void>;
+  signOut:             () => Promise<void>;
+  changeEstablishment: (establishmentId: string)         => Promise<void>;
+}
+```
+
+**Removed from the old `useUser()` shape — and why:**
+
+| Removed | Replacement |
+|---|---|
+| `isAuthenticated` | `user !== null` — trivial derivation, not context's job |
+| `isAdmin / isUsual / isVisitor` | `user?.role === UserRole.ADMIN` — one expression, scales with role changes, no parallel state to keep in sync |
+| `canChangeEstablishment` | UI rule — belongs in the component or a local selector, not in the global context |
+| `displayName()` | Pure function of `user` — utility function, not state |
+| `isError / isLoading / isUninitialized / isSuccess` | RTK Query lifecycle flags; not applicable to a Context — `isLoading` covers the session hydration case |
+
+`effectiveGeoCodes` stays because it is server-computed from the user's Portail DF perimeter and the establishment's geo codes — it cannot be re-derived on the client.
+
+```typescript
+// frontend/src/contexts/AuthProvider.tsx
+// - calls authClient.signIn.email() / signOut()
+// - on signOut: also dispatches zlvApi.util.resetApiState() to clear RTK Query cache
+// - hydrates from authClient.useSession() on mount
+// - wraps the app at the router root
+```
+
+### Added: useAuth hook
+
+```typescript
+// frontend/src/hooks/useAuth.ts
+export function useAuth(): AuthContextValue {
+  const ctx = useContext(AuthContext);
+  if (!ctx) throw new Error('useAuth must be used within AuthProvider');
+  return ctx;
+}
+```
+
+All `useUser()` call sites migrate to `useAuth()`. Derived booleans (`isAdmin`, etc.) move inline at each call site.
+
+### RTK Query
+
+- Add `credentials: 'include'` to the base query — no other change.
+- Remove `prepareHeaders`.
+- 401 from the API → `baseQuery` catches it, calls `signOut()` from context, redirects to `/login`.
+
+### Auth state shape
+
+`AuthUser` type is removed. The frontend never sees or stores the session token. User and establishment data come from `AuthContext`, populated by `authClient.useSession()` on the server response.
 
 ---
 
-## 2FA migration (email OTP → TOTP)
+## 2FA
 
-Admin users currently use a 6-digit email OTP. The migration to TOTP is a one-time setup:
+The existing `POST /api/authenticate/verify-2fa` endpoint (email OTP, admin-only) is removed as part of this migration. better-auth's two-factor plugin is not enabled.
 
-1. On first login after the `auth-v2` PostHog flag flips, admins are redirected to a TOTP setup screen
-2. They scan a QR code with an authenticator app (Google Authenticator, Authy, etc.)
-3. TOTP secret is stored server-side (better-auth manages this)
-4. Subsequent logins require the 6-digit TOTP code — no email involved
+2FA is explicitly out of scope — it will be revisited as a separate initiative after the session layer is stable. The security audit finding for "email OTP is phishable" is acknowledged but deferred.
 
-The `verifyTwoFactor` endpoint and email-OTP flow are removed once all admins have completed setup. A migration flag on the user record (`twoFactorEnabled`) tracks completion.
+---
+
+## establishmentId removal
+
+`users.establishment_id` has always been semantically wrong: it stores which establishment a user is *currently active in*, but that is per-session state, not per-user state. Two concurrent sessions from the same user on different devices could legitimately target different establishments, but the column can only hold one value.
+
+`users_establishments` is the authoritative source for which establishments a user is *authorised* to access. The active one per session lives in `session.additionalFields.activeEstablishmentId`.
+
+### Sign-in behaviour
+
+At sign-in the `onSignIn` hook resolves `activeEstablishmentId` automatically — the user is never prompted to choose:
+
+1. Take the first entry in `users_establishments` where `hasCommitment = true` (ordered by `created_at asc`).
+2. Fallback during the migration window: `users.establishment_id`, for users whose `users_establishments` row has not yet been populated.
+
+The user can switch to a different authorised establishment at any time via `POST /api/account/establishments/:id`. This endpoint updates only `session.activeEstablishmentId` — no write to the user record.
+
+### Data model impact
+
+- `auth_users` has no `establishmentId` column — not even as an `additionalField`.
+- `users.establishment_id` is dropped when `users` is deprecated (Sprint N+2).
+- `UserDTO.establishmentId` in `packages/models/` is deprecated in the same sprint — consumers read the active establishment from `AuthContext`.
 
 ---
 
 ## Database migration
 
-better-auth requires three new tables. They are additive — no existing table is modified in the migration.
+better-auth requires four new tables. They are additive — no existing table is modified during the migration window.
 
 ```sql
--- better-auth managed: session, account, verification
--- (exact schema generated by better-auth CLI)
+-- better-auth managed (exact schema generated by better-auth CLI / migrate command):
+--   auth_users     — replaces users (expand-and-contract)
+--   session        — active sessions
+--   account        — links users to auth providers (email+password)
+--   verification   — password reset tokens, email verification
 
--- users table: audit required to remap existing columns
--- Likely changes: add 'name' column (split from firstName + lastName),
--- ensure 'email' is unique-indexed, confirm 'createdAt'/'updatedAt' names
+-- users table: untouched during migration window.
+-- Dropped in a later sprint once auth_users is the sole source of truth.
 ```
 
-A dedicated spike is required before implementation to audit the `users` table column mapping — this is the highest-risk step (identified in the April exploration).
+A dedicated spike is required before implementation to verify the `auth_users` additional fields match all ZLV column types exactly — this is the highest-risk step of the migration.
 
 ---
 
@@ -331,7 +421,7 @@ Flag name: `auth-v2` — managed in PostHog dashboard. Fallback: `FEATURE_FLAGS=
 - [x] Idle timeout: 8 hours
 - [x] Absolute session max: 30 days
 - [x] Account enumeration: identical errors for unknown email / wrong password
-- [x] TOTP 2FA for admin users (phishing-resistant)
+- [ ] TOTP 2FA for admin users — deferred, separate initiative
 - [x] `changeEstablishment` is POST (state mutation)
 - [x] CORS `credentials: true` with explicit origin whitelist
 - [x] Rate limiting on auth endpoints (calibrated to ≥ current limits)

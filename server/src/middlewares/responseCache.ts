@@ -41,7 +41,11 @@ export function responseCache(ttl: number): RequestHandler {
           promiseReject(new Error(`HTTP ${res.statusCode}`));
         }
       } else {
-        promiseResolve(Buffer.alloc(0));
+        if (res.statusCode >= 200 && res.statusCode < 300) {
+          promiseResolve(Buffer.alloc(0));
+        } else {
+          promiseReject(new Error(`HTTP ${res.statusCode}`));
+        }
       }
       return originalEnd(chunk, ...args);
     };

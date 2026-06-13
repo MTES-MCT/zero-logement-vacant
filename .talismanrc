@@ -127,6 +127,8 @@ fileignoreconfig:
   checksum: 2304f4d7aae5a50399f1e841943d3644fa74b20d3eb23fac8bb13e0e6de95418
 - filename: tools/terraform/modules/front/main.tf
   checksum: d45082efb9f7475758beab81bb2d87f57bcb199d131648787d7541ecdfda3467
+- filename: docs/superpowers/specs/2026-06-13-reference-data-cache-design.md
+  checksum: f08020ffee6beeda135a04955eeeb4a9be0a8e11cf98e8cd18327b67848ca7e2
 scopeconfig:
 - scope: node
 allowed_patterns:

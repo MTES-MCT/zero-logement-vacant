@@ -4,6 +4,7 @@ import { object } from 'yup';
 
 import authController from '~/controllers/auth-controller';
 import establishmentController from '~/controllers/establishmentController';
+import precisionController from '~/controllers/precisionController';
 import localityController from '~/controllers/localityController';
 import prospectController from '~/controllers/prospectController';
 import resetLinkController from '~/controllers/resetLinkController';
@@ -138,5 +139,7 @@ router.get(
   validator.validate,
   localityController.getLocality
 );
+
+router.get('/precisions', precisionController.find);
 
 export default router;

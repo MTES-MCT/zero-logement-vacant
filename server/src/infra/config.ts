@@ -161,6 +161,12 @@ export const configSchema = z.object({
     cacheTtlMs: z.coerce.number().int().min(0).default(60 * 60 * 1000),
     cacheMaxEntries: z.coerce.number().int().min(1).default(10_000)
   }),
+  referenceCache: z.object({
+    ttlMs: z.coerce.number().int().min(0).default(600_000)
+  }),
+  establishmentCache: z.object({
+    ttlMs: z.coerce.number().int().min(0).default(300_000)
+  }),
   rateLimit: z.object({
     max: z.coerce.number().int().default(10_000)
   }),
@@ -308,6 +314,12 @@ const config = configSchema.parse({
     apiToken: env('METABASE_API_TOKEN'),
     cacheTtlMs: env('METABASE_CACHE_TTL_MS'),
     cacheMaxEntries: env('METABASE_CACHE_MAX_ENTRIES')
+  },
+  referenceCache: {
+    ttlMs: env('REFERENCE_CACHE_TTL_MS')
+  },
+  establishmentCache: {
+    ttlMs: env('ESTABLISHMENT_CACHE_TTL_MS')
   },
   rateLimit: {
     max: env('RATE_LIMIT_MAX')

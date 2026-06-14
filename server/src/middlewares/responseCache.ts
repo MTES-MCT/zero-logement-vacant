@@ -11,7 +11,7 @@ export function responseCache(ttl: number): RequestHandler {
     if (hit !== undefined) {
       hit
         .then((body) => {
-          res.set('Content-Type', 'application/json').end(body);
+          res.set('Content-Type', 'application/json; charset=utf-8').end(body);
         })
         .catch(next);
       return;
@@ -30,11 +30,11 @@ export function responseCache(ttl: number): RequestHandler {
     promise.catch(() => store.delete(key));
 
     const originalEnd = res.end.bind(res);
-    (res as any).end = function (chunk?: unknown, ...args: any[]) {
+    (res as any).end = function (chunk?: unknown, encoding?: BufferEncoding, ...args: any[]) {
       if (chunk != null) {
         const buf = Buffer.isBuffer(chunk)
           ? chunk
-          : Buffer.from(chunk as string);
+          : Buffer.from(chunk as string, encoding ?? 'utf8');
         if (res.statusCode >= 200 && res.statusCode < 300) {
           promiseResolve(buf);
         } else {
@@ -47,7 +47,7 @@ export function responseCache(ttl: number): RequestHandler {
           promiseReject(new Error(`HTTP ${res.statusCode}`));
         }
       }
-      return originalEnd(chunk, ...args);
+      return (originalEnd as any)(chunk, encoding, ...args);
     };
 
     next();

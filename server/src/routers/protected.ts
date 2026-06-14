@@ -4,6 +4,7 @@ import {
   UserRole
 } from '@zerologementvacant/models';
 import schemas from '@zerologementvacant/schemas';
+import { NextFunction, Request, Response } from 'express';
 import Router from 'express-promise-router';
 import { array, number, object, string } from 'yup';
 
@@ -30,6 +31,7 @@ import userController from '~/controllers/userController';
 import config from '~/infra/config';
 import antivirusMiddleware from '~/middlewares/antivirus';
 import { hasRole, jwtCheck, userCheck } from '~/middlewares/auth';
+import { sessionCheck } from '~/middlewares/session';
 import fileTypeMiddleware from '~/middlewares/fileTypeMiddleware';
 import shapefileValidationMiddleware from '~/middlewares/shapefileValidation';
 import { upload } from '~/middlewares/upload';
@@ -40,8 +42,21 @@ import sortApi from '~/models/SortApi';
 
 const router = Router();
 
-router.use(jwtCheck());
-router.use(userCheck());
+// Transition-window auth: prefer better-auth cookie session; fall back to legacy JWT.
+const sessionMiddleware = sessionCheck();
+const jwtMiddleware = jwtCheck();
+const userMiddleware = userCheck();
+
+router.use((request: Request, response: Response, next: NextFunction) => {
+  const cookieHeader = request.headers.cookie ?? '';
+  if (cookieHeader.includes('zlv.session_token')) {
+    return sessionMiddleware(request, response, next);
+  }
+  return jwtMiddleware(request, response, (err: unknown) => {
+    if (err) return next(err);
+    userMiddleware(request, response, next);
+  });
+});
 
 router.post(
   '/files',

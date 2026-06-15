@@ -38,6 +38,7 @@ import userRepository from '~/repositories/userRepository';
 import { fetchUserKind } from '~/services/ceremaService/userKindService';
 import { refreshAuthorizedEstablishments } from '~/services/establishmentAuthService';
 import mailService from '~/services/mailService';
+import { isFeatureEnabled } from '~/services/posthogService';
 import {
   generateSimpleCode,
   isCodeExpired,
@@ -55,6 +56,14 @@ const signIn: RequestHandler<never, unknown, SignInPayload, never> = async (
   request,
   response
 ): Promise<void> => {
+  const v2Enabled = await isFeatureEnabled('auth-v2', config.app.system);
+  if (v2Enabled) {
+    response
+      .status(constants.HTTP_STATUS_GONE)
+      .json({ message: 'Use /api/auth/sign-in/email' });
+    return;
+  }
+
   const payload = request.body;
 
   // Use getByEmailIncludingDeleted to be able to detect deleted users

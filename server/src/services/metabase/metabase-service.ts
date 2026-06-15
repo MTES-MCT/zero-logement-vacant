@@ -140,7 +140,10 @@ export type CardValue =
 export interface MetabaseService {
   fetchDashboardRaw(id: number): Promise<MetabaseDashboardRaw>;
   getDashboard(id: number): Promise<DashboardData>;
-  findDashcard(dashboardId: number, dashcardId: number): Promise<DashcardRef | null>;
+  findDashcard(
+    dashboardId: number,
+    dashcardId: number
+  ): Promise<DashcardRef | null>;
   getCardValue(
     dashboardId: number,
     dashcardId: number,

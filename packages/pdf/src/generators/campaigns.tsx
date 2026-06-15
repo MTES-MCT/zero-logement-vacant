@@ -1,10 +1,11 @@
+import { Readable } from 'node:stream';
+
 import { renderToStream } from '@react-pdf/renderer';
 import type {
   CampaignDTO,
   DraftDTO,
   HousingDTO
 } from '@zerologementvacant/models';
-import { Readable } from 'node:stream';
 
 import { CampaignDocument, CampaignPage } from '../templates/Campaign.js';
 

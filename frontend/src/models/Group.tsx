@@ -1,6 +1,7 @@
+import type { GroupDTO } from '@zerologementvacant/models';
+
 import { fromUserDTO } from './User';
 import type { User } from './User';
-import type { GroupDTO } from '@zerologementvacant/models';
 
 export interface Group {
   id: string;

@@ -4,8 +4,8 @@ import type {
   HousingDocumentDTO,
   HousingDTO
 } from '@zerologementvacant/models';
-import type { FileValidationError } from '~/models/FileValidationError';
 
+import type { FileValidationError } from '~/models/FileValidationError';
 import { zlvApi } from '~/services/api.service';
 
 export const documentApi = zlvApi.injectEndpoints({

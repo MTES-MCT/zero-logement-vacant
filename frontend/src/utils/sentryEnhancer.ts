@@ -13,20 +13,24 @@ export const trackNavigation = (fromPath: string, toPath: string) => {
     data: {
       from: fromPath,
       to: toPath,
-      timestamp: Date.now(),
-    },
+      timestamp: Date.now()
+    }
   });
 
   // Set current page context
   sentry.setContext('page', {
     path: toPath,
     referrer: fromPath,
-    timestamp: new Date().toISOString(),
+    timestamp: new Date().toISOString()
   });
 };
 
 // Track user actions for better UX insights
-export const trackUserAction = (action: string, element?: string, data?: Record<string, any>) => {
+export const trackUserAction = (
+  action: string,
+  element?: string,
+  data?: Record<string, any>
+) => {
   sentry.addBreadcrumb({
     message: `User action: ${action}${element ? ` on ${element}` : ''}`,
     category: 'user-action',
@@ -35,15 +39,20 @@ export const trackUserAction = (action: string, element?: string, data?: Record<
       action,
       element,
       ...data,
-      timestamp: Date.now(),
-    },
+      timestamp: Date.now()
+    }
   });
 };
 
 // Track API calls for performance insights
-export const trackApiCall = (method: string, url: string, status?: number, duration?: number) => {
+export const trackApiCall = (
+  method: string,
+  url: string,
+  status?: number,
+  duration?: number
+) => {
   const level = status && status >= 400 ? 'error' : 'info';
-  
+
   sentry.addBreadcrumb({
     message: `API ${method.toUpperCase()} ${url} ${status ? `(${status})` : ''}`,
     category: 'http',
@@ -53,8 +62,8 @@ export const trackApiCall = (method: string, url: string, status?: number, durat
       url,
       status,
       duration,
-      timestamp: Date.now(),
-    },
+      timestamp: Date.now()
+    }
   });
 
   // If it's an error, also set context
@@ -64,13 +73,17 @@ export const trackApiCall = (method: string, url: string, status?: number, durat
       url,
       status,
       duration,
-      timestamp: new Date().toISOString(),
+      timestamp: new Date().toISOString()
     });
   }
 };
 
 // Track performance issues
-export const trackPerformanceIssue = (type: string, value: number, threshold: number) => {
+export const trackPerformanceIssue = (
+  type: string,
+  value: number,
+  threshold: number
+) => {
   if (value > threshold) {
     sentry.addBreadcrumb({
       message: `Performance issue: ${type} (${value}ms > ${threshold}ms)`,
@@ -80,8 +93,8 @@ export const trackPerformanceIssue = (type: string, value: number, threshold: nu
         type,
         value,
         threshold,
-        timestamp: Date.now(),
-      },
+        timestamp: Date.now()
+      }
     });
   }
 };
@@ -95,12 +108,16 @@ export const setBusinessContext = (context: {
 }) => {
   sentry.setContext('business', {
     ...context,
-    timestamp: new Date().toISOString(),
+    timestamp: new Date().toISOString()
   });
 };
 
 // Track feature usage
-export const trackFeatureUsage = (feature: string, action: string, metadata?: Record<string, any>) => {
+export const trackFeatureUsage = (
+  feature: string,
+  action: string,
+  metadata?: Record<string, any>
+) => {
   sentry.addBreadcrumb({
     message: `Feature usage: ${feature} - ${action}`,
     category: 'feature',
@@ -109,8 +126,8 @@ export const trackFeatureUsage = (feature: string, action: string, metadata?: Re
       feature,
       action,
       ...metadata,
-      timestamp: Date.now(),
-    },
+      timestamp: Date.now()
+    }
   });
 
   // Set current feature context
@@ -119,22 +136,25 @@ export const trackFeatureUsage = (feature: string, action: string, metadata?: Re
     feature,
     action,
     ...metadata,
-    timestamp: new Date().toISOString(),
+    timestamp: new Date().toISOString()
   });
 };
 
 // Enhanced error tracking with context
-export const trackError = (error: Error, context: {
-  component?: string;
-  action?: string;
-  userId?: string;
-  feature?: string;
-  [key: string]: any;
-}) => {
+export const trackError = (
+  error: Error,
+  context: {
+    component?: string;
+    action?: string;
+    userId?: string;
+    feature?: string;
+    [key: string]: any;
+  }
+) => {
   // Set additional context
   sentry.setContext('error-context', {
     ...context,
-    timestamp: new Date().toISOString(),
+    timestamp: new Date().toISOString()
   });
 
   // Add tags for better filtering
@@ -152,5 +172,5 @@ export default {
   trackPerformanceIssue,
   setBusinessContext,
   trackFeatureUsage,
-  trackError,
+  trackError
 };

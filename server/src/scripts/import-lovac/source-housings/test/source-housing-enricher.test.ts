@@ -1,5 +1,11 @@
-import { toArray } from '@zerologementvacant/utils/node';
 import { ReadableStream } from 'node:stream/web';
+
+import { toArray } from '@zerologementvacant/utils/node';
+
+import {
+  Establishments,
+  formatEstablishmentApi
+} from '~/repositories/establishmentRepository';
 import {
   Events,
   formatEventApi,
@@ -16,16 +22,8 @@ import {
   HousingNotes,
   Notes
 } from '~/repositories/noteRepository';
-import { genSourceHousing } from '~/scripts/import-lovac/infra/fixtures';
-import {
-  createSourceHousingEnricher,
-  EnrichedSourceHousing
-} from '../source-housing-enricher';
-import {
-  Establishments,
-  formatEstablishmentApi
-} from '~/repositories/establishmentRepository';
 import { Users, toUserDBO } from '~/repositories/userRepository';
+import { genSourceHousing } from '~/scripts/import-lovac/infra/fixtures';
 import {
   genEstablishmentApi,
   genEventApi,
@@ -33,6 +31,11 @@ import {
   genNoteApi,
   genUserApi
 } from '~/test/testFixtures';
+
+import {
+  createSourceHousingEnricher,
+  EnrichedSourceHousing
+} from '../source-housing-enricher';
 
 describe('createSourceHousingEnricher', () => {
   const establishment = genEstablishmentApi();
@@ -47,9 +50,9 @@ describe('createSourceHousingEnricher', () => {
 
   it('should set existing.housing to null when housing is not found', async () => {
     const source = genSourceHousing(); // random geo_code/local_id — not in DB
-    const [result] = await toArray(
+    const [result] = (await toArray(
       ReadableStream.from([source]).pipeThrough(createSourceHousingEnricher())
-    ) as EnrichedSourceHousing[];
+    )) as EnrichedSourceHousing[];
     expect(result.existing.housing).toBeNull();
     expect(result.existing.events).toStrictEqual([]);
     expect(result.existing.notes).toStrictEqual([]);
@@ -61,9 +64,9 @@ describe('createSourceHousingEnricher', () => {
       geo_code: housing.geoCode,
       local_id: housing.localId
     };
-    const [result] = await toArray(
+    const [result] = (await toArray(
       ReadableStream.from([source]).pipeThrough(createSourceHousingEnricher())
-    ) as EnrichedSourceHousing[];
+    )) as EnrichedSourceHousing[];
     expect(result.existing.housing).toMatchObject({
       id: housing.id,
       geo_code: housing.geoCode,
@@ -110,11 +113,13 @@ describe('createSourceHousingEnricher', () => {
         geo_code: housingWithEvents.geoCode,
         local_id: housingWithEvents.localId
       };
-      const [result] = await toArray(
+      const [result] = (await toArray(
         ReadableStream.from([source]).pipeThrough(createSourceHousingEnricher())
-      ) as EnrichedSourceHousing[];
+      )) as EnrichedSourceHousing[];
       expect(result.existing.events).toHaveLength(1);
-      expect(result.existing.events[0]).toMatchObject({ id: occupancyEvent.id });
+      expect(result.existing.events[0]).toMatchObject({
+        id: occupancyEvent.id
+      });
     });
 
     it('should exclude events of other types', async () => {
@@ -123,9 +128,9 @@ describe('createSourceHousingEnricher', () => {
         geo_code: housingWithEvents.geoCode,
         local_id: housingWithEvents.localId
       };
-      const [result] = await toArray(
+      const [result] = (await toArray(
         ReadableStream.from([source]).pipeThrough(createSourceHousingEnricher())
-      ) as EnrichedSourceHousing[];
+      )) as EnrichedSourceHousing[];
       const hasOtherEvent = result.existing.events.some(
         (e) => e.id === otherEvent.id
       );
@@ -154,9 +159,9 @@ describe('createSourceHousingEnricher', () => {
         geo_code: housingWithNotes.geoCode,
         local_id: housingWithNotes.localId
       };
-      const [result] = await toArray(
+      const [result] = (await toArray(
         ReadableStream.from([source]).pipeThrough(createSourceHousingEnricher())
-      ) as EnrichedSourceHousing[];
+      )) as EnrichedSourceHousing[];
       expect(result.existing.notes).toHaveLength(1);
       expect(result.existing.notes[0]).toMatchObject({ id: note.id });
     });
@@ -168,9 +173,9 @@ describe('createSourceHousingEnricher', () => {
       geo_code: h.geoCode,
       local_id: h.localId
     }));
-    const results = await toArray(
+    const results = (await toArray(
       ReadableStream.from(sources).pipeThrough(createSourceHousingEnricher())
-    ) as EnrichedSourceHousing[];
+    )) as EnrichedSourceHousing[];
     expect(results).toHaveLength(2);
   });
 });

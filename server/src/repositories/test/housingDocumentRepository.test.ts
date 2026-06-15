@@ -1,6 +1,7 @@
 import { faker } from '@faker-js/faker/locale/fr';
 
 import { HousingDocumentApi } from '~/models/HousingDocumentApi';
+import { Documents, toDocumentDBO } from '~/repositories/documentRepository';
 import {
   Establishments,
   formatEstablishmentApi
@@ -21,7 +22,6 @@ import {
   genHousingDocumentApi,
   genUserApi
 } from '~/test/testFixtures';
-import { Documents, toDocumentDBO } from '~/repositories/documentRepository';
 
 describe('Housing document repository', () => {
   const establishment = genEstablishmentApi();

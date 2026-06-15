@@ -33,35 +33,50 @@ export interface FileUploadErrorResponse {
  * User-friendly error messages for file upload failures
  * These messages are displayed to the user in French
  */
-export const FILE_UPLOAD_ERROR_MESSAGES: Record<FileUploadErrorReason, string> = {
-  virus_detected: 'Fichier rejeté pour raison de sécurité. Le fichier contient un contenu malveillant.',
-  file_too_large: 'Fichier trop volumineux (maximum 5 Mo)',
-  invalid_file_type: 'Type de fichier non autorisé. Formats acceptés : PNG, JPEG, PDF',
-  mime_mismatch: 'Le contenu du fichier ne correspond pas à son extension. Vérifiez que le fichier n\'a pas été renommé.',
-  service_unavailable: 'Service temporairement indisponible. Veuillez réessayer ultérieurement.',
-  scan_error: 'Erreur lors de l\'analyse du fichier. Veuillez réessayer.',
-  unexpected_field: 'Champ de fichier inattendu. Veuillez vérifier le formulaire.',
-  too_many_files: 'Trop de fichiers. Un seul fichier est autorisé.',
-  upload_error: 'Erreur lors de l\'envoi du fichier. Veuillez réessayer.',
-  unknown: 'Une erreur est survenue lors de l\'envoi du fichier'
-};
+export const FILE_UPLOAD_ERROR_MESSAGES: Record<FileUploadErrorReason, string> =
+  {
+    virus_detected:
+      'Fichier rejeté pour raison de sécurité. Le fichier contient un contenu malveillant.',
+    file_too_large: 'Fichier trop volumineux (maximum 5 Mo)',
+    invalid_file_type:
+      'Type de fichier non autorisé. Formats acceptés : PNG, JPEG, PDF',
+    mime_mismatch:
+      "Le contenu du fichier ne correspond pas à son extension. Vérifiez que le fichier n'a pas été renommé.",
+    service_unavailable:
+      'Service temporairement indisponible. Veuillez réessayer ultérieurement.',
+    scan_error: "Erreur lors de l'analyse du fichier. Veuillez réessayer.",
+    unexpected_field:
+      'Champ de fichier inattendu. Veuillez vérifier le formulaire.',
+    too_many_files: 'Trop de fichiers. Un seul fichier est autorisé.',
+    upload_error: "Erreur lors de l'envoi du fichier. Veuillez réessayer.",
+    unknown: "Une erreur est survenue lors de l'envoi du fichier"
+  };
 
 /**
  * Geo perimeter upload error messages (for shapefile uploads)
  */
-export const GEO_UPLOAD_ERROR_MESSAGES: Record<FileUploadErrorReason | 'missing_components' | 'too_many_features', string> = {
-  virus_detected: 'Fichier rejeté pour raison de sécurité. L\'archive contient un contenu malveillant.',
+export const GEO_UPLOAD_ERROR_MESSAGES: Record<
+  FileUploadErrorReason | 'missing_components' | 'too_many_features',
+  string
+> = {
+  virus_detected:
+    "Fichier rejeté pour raison de sécurité. L'archive contient un contenu malveillant.",
   file_too_large: 'Fichier trop volumineux (maximum 100 Mo)',
-  invalid_file_type: 'Type de fichier non autorisé. Veuillez uploader une archive ZIP contenant un shapefile.',
-  mime_mismatch: 'Le fichier n\'est pas une archive ZIP valide.',
-  missing_components: 'Le fichier importé est invalide. Le fichier .zip à importer doit contenir au minimum un fichier .shp et un fichier .dbf.',
-  too_many_features: 'Le shapefile contient trop d\'éléments (maximum 10 000 features).',
-  service_unavailable: 'Service temporairement indisponible. Veuillez réessayer ultérieurement.',
-  scan_error: 'Erreur lors de l\'analyse du fichier. Veuillez réessayer.',
-  unexpected_field: 'Champ de fichier inattendu. Veuillez vérifier que vous uploadez bien un fichier ZIP.',
+  invalid_file_type:
+    'Type de fichier non autorisé. Veuillez uploader une archive ZIP contenant un shapefile.',
+  mime_mismatch: "Le fichier n'est pas une archive ZIP valide.",
+  missing_components:
+    'Le fichier importé est invalide. Le fichier .zip à importer doit contenir au minimum un fichier .shp et un fichier .dbf.',
+  too_many_features:
+    "Le shapefile contient trop d'éléments (maximum 10 000 features).",
+  service_unavailable:
+    'Service temporairement indisponible. Veuillez réessayer ultérieurement.',
+  scan_error: "Erreur lors de l'analyse du fichier. Veuillez réessayer.",
+  unexpected_field:
+    'Champ de fichier inattendu. Veuillez vérifier que vous uploadez bien un fichier ZIP.',
   too_many_files: 'Trop de fichiers. Un seul fichier ZIP est autorisé.',
-  upload_error: 'Erreur lors de l\'envoi du fichier. Veuillez réessayer.',
-  unknown: 'Une erreur est survenue lors de l\'envoi du fichier'
+  upload_error: "Erreur lors de l'envoi du fichier. Veuillez réessayer.",
+  unknown: "Une erreur est survenue lors de l'envoi du fichier"
 };
 
 /**
@@ -82,8 +97,13 @@ function getMaxFileSize(isGeoUpload: boolean): number {
  * @param isGeoUpload - Whether this is a geo perimeter upload (uses different messages)
  * @returns User-friendly error message in French
  */
-export function getFileUploadErrorMessage(error: unknown, isGeoUpload = false): string {
-  const messages = isGeoUpload ? GEO_UPLOAD_ERROR_MESSAGES : FILE_UPLOAD_ERROR_MESSAGES;
+export function getFileUploadErrorMessage(
+  error: unknown,
+  isGeoUpload = false
+): string {
+  const messages = isGeoUpload
+    ? GEO_UPLOAD_ERROR_MESSAGES
+    : FILE_UPLOAD_ERROR_MESSAGES;
 
   // Handle RTK Query error structure
   if (error && typeof error === 'object' && 'data' in error) {
@@ -140,7 +160,9 @@ export function getFileUploadErrorMessage(error: unknown, isGeoUpload = false): 
  * @param error - Error to check
  * @returns True if error has FileUploadErrorResponse structure
  */
-export function isFileUploadError(error: unknown): error is { data: FileUploadErrorResponse } {
+export function isFileUploadError(
+  error: unknown
+): error is { data: FileUploadErrorResponse } {
   return (
     error !== null &&
     typeof error === 'object' &&

@@ -1,6 +1,7 @@
-import { fc, test } from '@fast-check/vitest';
-import { vi } from 'vitest';
+import { constants } from 'http2';
+
 import { faker } from '@faker-js/faker/locale/fr';
+import { fc, test } from '@fast-check/vitest';
 import {
   TIME_PER_WEEK_VALUES,
   UserRole,
@@ -8,10 +9,10 @@ import {
   type UserUpdatePayload
 } from '@zerologementvacant/models';
 import bcrypt from 'bcryptjs';
-import { constants } from 'http2';
 import randomstring from 'randomstring';
 import request from 'supertest';
 import { v4 as uuidv4 } from 'uuid';
+import { vi } from 'vitest';
 
 import db from '~/infra/database';
 
@@ -50,13 +51,9 @@ import {
   formatProspectApi,
   Prospects
 } from '~/repositories/prospectRepository';
-import {
-  toUserDBO,
-  Users,
-  USERS_TABLE
-} from '~/repositories/userRepository';
-import { TEST_ACCOUNTS } from '~/services/ceremaService/consultUserService';
+import { toUserDBO, Users, USERS_TABLE } from '~/repositories/userRepository';
 import ceremaService from '~/services/ceremaService';
+import { TEST_ACCOUNTS } from '~/services/ceremaService/consultUserService';
 import {
   genEstablishmentApi,
   genProspectApi,
@@ -174,7 +171,12 @@ describe('User API', () => {
       prospect = genProspectApi(establishment);
       await Prospects().insert(formatProspectApi(prospect));
       vi.spyOn(ceremaService, 'consultUsers').mockResolvedValue([
-        { email: prospect.email, establishmentSiren: '*', hasAccount: true, hasCommitment: true }
+        {
+          email: prospect.email,
+          establishmentSiren: '*',
+          hasAccount: true,
+          hasCommitment: true
+        }
       ]);
     });
 

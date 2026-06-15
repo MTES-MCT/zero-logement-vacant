@@ -1,4 +1,5 @@
 import { describe, expect, it, vi } from 'vitest';
+
 import { MemoryAdapter } from '../../memory-adapter';
 import { createGroupFactory } from '../group';
 
@@ -29,7 +30,10 @@ describe('createGroupFactory', () => {
 
     const group = await factory.create();
 
-    expect(spy).toHaveBeenCalledWith('groups', expect.objectContaining({ id: group.id }));
+    expect(spy).toHaveBeenCalledWith(
+      'groups',
+      expect.objectContaining({ id: group.id })
+    );
   });
 
   it('builds a list of groups', () => {

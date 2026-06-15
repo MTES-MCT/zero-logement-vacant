@@ -1,6 +1,5 @@
 import '@gouvfr/dsfr-chart/BarChart';
 import '@gouvfr/dsfr-chart/BarChart.css';
-
 import { styled } from '@mui/material/styles';
 import type { BarChartDataDTO } from '@zerologementvacant/models';
 

@@ -1,9 +1,10 @@
 import { ReadableStream, TransformStream } from 'node:stream/web';
 
 import { filter } from '@zerologementvacant/utils/node';
+
 import { SourceRepository, StreamOptions } from '~/scripts/import-lovac/infra';
-import { SourceHousing } from '~/scripts/import-lovac/source-housings/source-housing';
 import { SourceFileRepository } from '~/scripts/import-lovac/infra/source-file-repository';
+import { SourceHousing } from '~/scripts/import-lovac/source-housings/source-housing';
 
 class SourceHousingFileRepository
   extends SourceFileRepository<SourceHousing>

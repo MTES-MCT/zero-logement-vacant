@@ -1,7 +1,7 @@
 import { useIsModalOpen } from '@codegouvfr/react-dsfr/Modal/useIsModalOpen';
-
 import type { Precision } from '@zerologementvacant/models';
 import { useState } from 'react';
+
 import {
   type ConfirmationModalProps,
   createConfirmationModal

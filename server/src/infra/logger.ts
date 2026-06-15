@@ -2,6 +2,7 @@ import {
   createLogger as createBaseLogger,
   Logger
 } from '@zerologementvacant/utils';
+
 import config from './config';
 
 export const logger = createBaseLogger('server', {

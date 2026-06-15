@@ -1,4 +1,5 @@
 import { describe, expect, it } from 'vitest';
+
 import createFactories, { MemoryAdapter } from '../index';
 
 describe('createFactories', () => {

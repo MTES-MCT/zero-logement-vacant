@@ -1,3 +1,6 @@
+import { Blob } from '@web-std/blob';
+import { File } from '@web-std/file';
+import { fetch, Headers, FormData, Request, Response } from 'undici';
 /**
  * @note The block below contains polyfills for Node.js globals
  * required for vitest to function when running JSDOM tests.
@@ -8,10 +11,6 @@
  * you don't want to deal with this.
  */
 import { vi } from 'vitest';
-
-import { fetch, Headers, FormData, Request, Response } from 'undici';
-import { Blob } from '@web-std/blob';
-import { File } from '@web-std/file';
 
 Object.defineProperties(globalThis, {
   fetch: { value: fetch, writable: true },

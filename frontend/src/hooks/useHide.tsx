@@ -13,7 +13,7 @@ const DEFAULT_TIMEOUT = 3000;
 export function useHide(options?: HideOptions) {
   const opts: Required<HideOptions> = {
     init: options?.init ?? false,
-    timeout: options?.timeout ?? DEFAULT_TIMEOUT,
+    timeout: options?.timeout ?? DEFAULT_TIMEOUT
   };
 
   const [hidden, setHidden] = useState(opts.init);
@@ -30,6 +30,6 @@ export function useHide(options?: HideOptions) {
 
   return {
     hidden,
-    setHidden,
+    setHidden
   };
 }

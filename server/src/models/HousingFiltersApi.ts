@@ -4,6 +4,7 @@ import {
   OwnershipKind
 } from '@zerologementvacant/models';
 import { body, ValidationChain } from 'express-validator';
+
 import {
   isArrayOf,
   isBoolean,
@@ -12,24 +13,23 @@ import {
   isUUID
 } from '~/utils/validators';
 
-export interface HousingFiltersApi
-  extends Pick<
-    HousingFiltersDTO,
-    | 'all'
-    | 'intercommunalities'
-    | 'precisions'
-    | 'dataFileYearsIncluded'
-    | 'dataFileYearsExcluded'
-    | 'energyConsumption'
-    | 'ownerKinds'
-    | 'ownerAges'
-    | 'relativeLocations'
-    | 'localityKinds'
-    | 'cadastralClassifications'
-    | 'lastMutationYears'
-    | 'lastMutationTypes'
-    | 'vacancyYears'
-  > {
+export interface HousingFiltersApi extends Pick<
+  HousingFiltersDTO,
+  | 'all'
+  | 'intercommunalities'
+  | 'precisions'
+  | 'dataFileYearsIncluded'
+  | 'dataFileYearsExcluded'
+  | 'energyConsumption'
+  | 'ownerKinds'
+  | 'ownerAges'
+  | 'relativeLocations'
+  | 'localityKinds'
+  | 'cadastralClassifications'
+  | 'lastMutationYears'
+  | 'lastMutationTypes'
+  | 'vacancyYears'
+> {
   housingIds?: string[];
   establishmentIds?: string[];
   groupIds?: string[];

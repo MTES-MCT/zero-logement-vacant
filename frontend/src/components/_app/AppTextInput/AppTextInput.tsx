@@ -1,10 +1,11 @@
+import Input from '@codegouvfr/react-dsfr/Input';
 import type {
   ComponentPropsWithoutRef,
   InputHTMLAttributes,
   TextareaHTMLAttributes
 } from 'react';
+
 import { type ObjectShape, useForm } from '../../../hooks/useForm';
-import Input from '@codegouvfr/react-dsfr/Input';
 
 type AppTextInputProps<T extends ObjectShape> = Partial<
   Pick<

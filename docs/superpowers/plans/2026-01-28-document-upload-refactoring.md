@@ -12,23 +12,24 @@
 
 ## Implementation Status
 
-| Task | Status | Commit | Notes |
-|------|--------|--------|-------|
-| 1. Add establishment_id to documents | ✅ Done | `b97457206` | Expand phase complete |
-| 2. Create DocumentApi model | ✅ Done | `eafa8fbb8` | Backend model ready |
-| 3. Create documentRepository | ✅ Done | `a0e982ae1` | CRUD operations complete |
-| 4. Create documentHousingRepository | ✅ Done | `a1ff96e8e` | Junction table ready |
-| 5. Create document-upload service | ✅ Done | `833977db8` | **Modified implementation** (better design) |
-| 6. POST /documents endpoint | ✅ Done | `f9da33cef` | ⚠️ API tests needed |
-| 7. PUT /documents/:id endpoint | ✅ Done | `f0ffdda8a` | Rename document filename |
-| 8. DELETE /documents/:id endpoint | ✅ Done | `f0ffdda8a` | Soft delete document |
-| 9. POST /housing/:id/documents | ✅ Done | See commits | Link documents to housing (breaking change) |
-| 10. DELETE /housing/:id/documents/:id | ✅ Done | `7694025e4` | Unlink only (keep document) |
-| 11. PUT /housing (documents) | ✅ Done | - | Batch link support (field renamed from documentIds) |
-| 12. Make establishment_id NOT NULL | ✅ Done | `b97457206` | Already done in Task 1 migration |
-| 13. Remove deprecated PUT /housing/:id/documents/:id | ✅ Done | - | Legacy update route removed |
+| Task                                                 | Status  | Commit      | Notes                                               |
+| ---------------------------------------------------- | ------- | ----------- | --------------------------------------------------- |
+| 1. Add establishment_id to documents                 | ✅ Done | `b97457206` | Expand phase complete                               |
+| 2. Create DocumentApi model                          | ✅ Done | `eafa8fbb8` | Backend model ready                                 |
+| 3. Create documentRepository                         | ✅ Done | `a0e982ae1` | CRUD operations complete                            |
+| 4. Create documentHousingRepository                  | ✅ Done | `a1ff96e8e` | Junction table ready                                |
+| 5. Create document-upload service                    | ✅ Done | `833977db8` | **Modified implementation** (better design)         |
+| 6. POST /documents endpoint                          | ✅ Done | `f9da33cef` | ⚠️ API tests needed                                 |
+| 7. PUT /documents/:id endpoint                       | ✅ Done | `f0ffdda8a` | Rename document filename                            |
+| 8. DELETE /documents/:id endpoint                    | ✅ Done | `f0ffdda8a` | Soft delete document                                |
+| 9. POST /housing/:id/documents                       | ✅ Done | See commits | Link documents to housing (breaking change)         |
+| 10. DELETE /housing/:id/documents/:id                | ✅ Done | `7694025e4` | Unlink only (keep document)                         |
+| 11. PUT /housing (documents)                         | ✅ Done | -           | Batch link support (field renamed from documentIds) |
+| 12. Make establishment_id NOT NULL                   | ✅ Done | `b97457206` | Already done in Task 1 migration                    |
+| 13. Remove deprecated PUT /housing/:id/documents/:id | ✅ Done | -           | Legacy update route removed                         |
 
 **Recent Commits:**
+
 - `f0ffdda8a` feat(server): add PUT/DELETE /documents/:id routes and clean up deprecated tests
 - `7694025e4` refactor(server): DELETE /housing/:id/documents/:id removes association only
 
@@ -44,6 +45,7 @@ None - all tasks complete!
 **Status:** ✅ **COMPLETED**
 
 **Commits:**
+
 - ✅ `b97457206` feat(server): add establishment_id to documents table
 
 **Files:**
@@ -149,6 +151,7 @@ Co-Authored-By: Claude Sonnet 4.5 <noreply@anthropic.com>"
 **Status:** ✅ **COMPLETED**
 
 **Commits:**
+
 - ✅ `eafa8fbb8` feat(server): add DocumentApi model for unlinked documents
 
 **Files:**
@@ -350,6 +353,7 @@ Co-Authored-By: Claude Sonnet 4.5 <noreply@anthropic.com>"
 **Status:** ✅ **COMPLETED**
 
 **Commits:**
+
 - ✅ `a0e982ae1` feat(server): add documentRepository for documents table
 
 **Files:**
@@ -757,6 +761,7 @@ Co-Authored-By: Claude Sonnet 4.5 <noreply@anthropic.com>"
 **Status:** ✅ **COMPLETED**
 
 **Commits:**
+
 - ✅ `a1ff96e8e` feat(server): add documentHousingRepository for junction table
 
 **Files:**
@@ -1192,6 +1197,7 @@ The `create` handler was implemented with the following approach:
    - More control over the workflow
 
 2. **Implementation pattern** (lines 59-142):
+
    ```typescript
    const create: RequestHandler = async (request, response) => {
      // 1. Extract files from request
@@ -1235,7 +1241,10 @@ import fs from 'node:fs';
 import path from 'node:path';
 
 import { createServer } from '~/infra/server';
-import { Establishments, formatEstablishmentApi } from '~/repositories/establishmentRepository';
+import {
+  Establishments,
+  formatEstablishmentApi
+} from '~/repositories/establishmentRepository';
 import { Users, formatUserApi } from '~/repositories/userRepository';
 import { genEstablishmentApi, genUserApi } from '~/test/testFixtures';
 import { tokenProvider } from '~/test/testUtils';
@@ -1500,6 +1509,7 @@ Co-Authored-By: Claude Sonnet 4.5 <noreply@anthropic.com>"
 **Status:** ✅ **COMPLETED**
 
 **Commits:**
+
 - ✅ `f0ffdda8a` feat(server): add PUT/DELETE /documents/:id routes and clean up deprecated tests
 
 **Files:**
@@ -1732,6 +1742,7 @@ Co-Authored-By: Claude Sonnet 4.5 <noreply@anthropic.com>"
 **Status:** ✅ **COMPLETED**
 
 **Commits:**
+
 - ✅ `f0ffdda8a` feat(server): add PUT/DELETE /documents/:id routes and clean up deprecated tests
 
 **Files:**
@@ -1884,6 +1895,7 @@ Co-Authored-By: Claude Sonnet 4.5 <noreply@anthropic.com>"
 **Status:** ✅ **COMPLETED**
 
 **Commits:**
+
 - ✅ Multiple commits during Task 9 execution (see earlier in session)
 - ⚠️ **BREAKING CHANGE:** Replaced file upload endpoint with document linking endpoint
 
@@ -2229,9 +2241,11 @@ Co-Authored-By: Claude Sonnet 4.5 <noreply@anthropic.com>"
 **Status:** ✅ **COMPLETED**
 
 **Commits:**
+
 - ✅ `7694025e4` refactor(server): DELETE /housing/:id/documents/:id removes association only
 
 **Changes:**
+
 - Removed S3 file deletion
 - Removed document soft-delete
 - Now only unlinks document from housing
@@ -2782,10 +2796,12 @@ This plan refactors the document upload workflow to support:
 **Planned:** Single `uploadDocuments()` function handling validation + upload
 
 **Implemented:** Two separate functions:
+
 - `validate(file, options)` - Validates a single file
 - `upload(file, options)` - Uploads a single file to S3
 
 **Why this is better:**
+
 1. **Better separation of concerns** - Each function has a single responsibility
 2. **More flexible** - Functions can be used independently
 3. **Simpler** - No complex callback parameters (`generateS3Key`, `user` object)
@@ -2793,6 +2809,7 @@ This plan refactors the document upload workflow to support:
 5. **No tests needed** - Functions are simple wrappers
 
 **Impact on other tasks:**
+
 - Task 6 (POST /documents) uses these functions directly
 - Controllers orchestrate validation + upload workflow
 - No changes needed to remaining tasks
@@ -2802,11 +2819,11 @@ This plan refactors the document upload workflow to support:
 **Implementation complete** but API integration tests are still needed.
 
 **Current status:**
+
 - ✅ Controller implementation done
 - ✅ Uses `validate()` + `upload()` pattern
 - ✅ Partial success handling (HTTP 207)
 - ⚠️ API tests missing (should be added)
-
 
 ---
 
@@ -2821,6 +2838,7 @@ This plan refactors the document upload workflow to support:
 **Rationale:**
 
 The PUT /housing/:housingId/documents/:documentId endpoint is no longer needed since:
+
 1. Documents are now updated via PUT /documents/:id (Task 7)
 2. The endpoint was used to update document filenames for housing-specific documents
 3. With the new architecture, documents are independent entities updated directly
@@ -2830,6 +2848,7 @@ The PUT /housing/:housingId/documents/:documentId endpoint is no longer needed s
 Modify: `server/src/routers/protected.ts`
 
 Remove:
+
 ```typescript
 router.put(
   '/housing/:housingId/documents/:documentId',
@@ -2867,4 +2886,3 @@ Use PUT /documents/:id instead to update document filenames.
 
 Co-Authored-By: Claude Sonnet 4.5 <noreply@anthropic.com>"
 ```
-

@@ -1,13 +1,14 @@
 import axios from 'axios';
+
+import { logger } from '~/infra/logger';
+
+import { createAuthProvider, AuthResult } from './ceremaAuthProvider';
 import {
   CeremaGroup,
   CeremaPerimeter,
   CeremaUser,
   ConsultUserService
 } from './consultUserService';
-import { createAuthProvider, AuthResult } from './ceremaAuthProvider';
-
-import { logger } from '~/infra/logger';
 
 /**
  * Check if a LOVAC access date is valid (in the future).

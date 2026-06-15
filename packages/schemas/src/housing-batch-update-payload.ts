@@ -1,5 +1,3 @@
-import { array, number, object, ObjectSchema, string } from 'yup';
-
 import {
   getSubStatuses,
   HOUSING_STATUS_VALUES,
@@ -7,6 +5,8 @@ import {
   OCCUPANCY_VALUES,
   type HousingBatchUpdatePayload
 } from '@zerologementvacant/models';
+import { array, number, object, ObjectSchema, string } from 'yup';
+
 import { housingFilters } from './housing-filters';
 
 export const housingBatchUpdatePayload: ObjectSchema<HousingBatchUpdatePayload> =

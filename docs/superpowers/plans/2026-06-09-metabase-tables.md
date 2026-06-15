@@ -12,23 +12,24 @@
 
 ## File Map
 
-| File | Change |
-|------|--------|
-| `packages/models/src/DashboardDTO.ts` | Add `TableCard`, `TableColumnMeta`, `TableDataDTO`; extend `CardType`, `DashboardCard`, `CardDataDTO` unions. |
-| `packages/models/src/test/fixtures.ts` | Add `genTableCard()`, `genTableColumnMeta()`, `genTableDataDTO()`. |
-| `server/src/services/metabase/metabase-service.ts` | Add `TableColumnRef`, `TableValue`; extend `DashcardRef` with `tableColumns`; extend `CardValue`; extend `getCardValue` signature with `tableColumns` param. |
-| `server/src/services/metabase/metabase-api.ts` | Extend `MetabaseColumnSettings` (`column_title`) and `MetabaseCol` (`display_name`, `base_type`). Add `normalizeBaseType` and `resolveVisibleColumns` helpers. Detect `display: 'table'` in `normalizeDashcard`. Resolve `tableColumns` in `findDashcardRef`. Handle the table branch in `getCardValue`. |
-| `server/src/controllers/dashboardController.ts` | Pass `dashcard.tableColumns` to `getCardValue`. Refactor the final response dispatch into explicit branches keyed off `dashcard.type` (replaces the current fragile `typeof raw === 'object'` fallthrough) and add the `'table'` case. |
-| `server/src/controllers/test/dashboard-api.test.ts` | Add API tests for table dashcards (dashboard listing + card data). |
-| `frontend/src/components/Analysis/TableDisplay.tsx` | New component. Renders `AdvancedTable` with column-aware cell formatting. |
-| `frontend/src/components/Analysis/AnalysisCard.tsx` | Add the `'table'` branch to the dispatch; rename `(d)` → `(chart)` for chart branches and `(d)` → `(scalar)` for the scalar branch. |
-| `frontend/src/components/Analysis/test/AnalysisCard.test.tsx` | Add table rendering + formatting + sort tests. |
+| File                                                          | Change                                                                                                                                                                                                                                                                                                   |
+| ------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `packages/models/src/DashboardDTO.ts`                         | Add `TableCard`, `TableColumnMeta`, `TableDataDTO`; extend `CardType`, `DashboardCard`, `CardDataDTO` unions.                                                                                                                                                                                            |
+| `packages/models/src/test/fixtures.ts`                        | Add `genTableCard()`, `genTableColumnMeta()`, `genTableDataDTO()`.                                                                                                                                                                                                                                       |
+| `server/src/services/metabase/metabase-service.ts`            | Add `TableColumnRef`, `TableValue`; extend `DashcardRef` with `tableColumns`; extend `CardValue`; extend `getCardValue` signature with `tableColumns` param.                                                                                                                                             |
+| `server/src/services/metabase/metabase-api.ts`                | Extend `MetabaseColumnSettings` (`column_title`) and `MetabaseCol` (`display_name`, `base_type`). Add `normalizeBaseType` and `resolveVisibleColumns` helpers. Detect `display: 'table'` in `normalizeDashcard`. Resolve `tableColumns` in `findDashcardRef`. Handle the table branch in `getCardValue`. |
+| `server/src/controllers/dashboardController.ts`               | Pass `dashcard.tableColumns` to `getCardValue`. Refactor the final response dispatch into explicit branches keyed off `dashcard.type` (replaces the current fragile `typeof raw === 'object'` fallthrough) and add the `'table'` case.                                                                   |
+| `server/src/controllers/test/dashboard-api.test.ts`           | Add API tests for table dashcards (dashboard listing + card data).                                                                                                                                                                                                                                       |
+| `frontend/src/components/Analysis/TableDisplay.tsx`           | New component. Renders `AdvancedTable` with column-aware cell formatting.                                                                                                                                                                                                                                |
+| `frontend/src/components/Analysis/AnalysisCard.tsx`           | Add the `'table'` branch to the dispatch; rename `(d)` → `(chart)` for chart branches and `(d)` → `(scalar)` for the scalar branch.                                                                                                                                                                      |
+| `frontend/src/components/Analysis/test/AnalysisCard.test.tsx` | Add table rendering + formatting + sort tests.                                                                                                                                                                                                                                                           |
 
 ---
 
 ## Task 1: Add data model types
 
 **Files:**
+
 - Modify: `packages/models/src/DashboardDTO.ts`
 
 - [ ] **Step 1: Replace the file contents**
@@ -96,7 +97,10 @@ interface WithoutTabs {
   cards: ReadonlyArray<DashboardCard>;
 }
 
-export type DashboardDTO = { id: number; url: string } & (WithTabs | WithoutTabs);
+export type DashboardDTO = { id: number; url: string } & (
+  | WithTabs
+  | WithoutTabs
+);
 
 export interface ScalarCardDataDTO {
   id: number;
@@ -168,6 +172,7 @@ git commit -m "feat(models): add TableCard and TableDataDTO types"
 ## Task 2: Add table fixtures
 
 **Files:**
+
 - Modify: `packages/models/src/test/fixtures.ts`
 
 - [ ] **Step 1: Update the type import block**
@@ -230,9 +235,7 @@ export function genTableColumnMeta(
   };
 }
 
-export function genTableCard(
-  override?: Partial<TableCard>
-): TableCard {
+export function genTableCard(override?: Partial<TableCard>): TableCard {
   return {
     id: faker.number.int({ min: 1, max: 9999 }),
     type: 'table',
@@ -308,6 +311,7 @@ git commit -m "feat(models): add genTableCard, genTableColumnMeta and genTableDa
 ## Task 3: Extend the Metabase service types
 
 **Files:**
+
 - Modify: `server/src/services/metabase/metabase-service.ts`
 
 - [ ] **Step 1: Replace the file contents**
@@ -367,7 +371,10 @@ export type CardValue = number | PieChartValue | BarChartValue | TableValue;
 
 export interface MetabaseService {
   getDashboard(id: number): Promise<DashboardData>;
-  findDashcard(dashboardId: number, dashcardId: number): Promise<DashcardRef | null>;
+  findDashcard(
+    dashboardId: number,
+    dashcardId: number
+  ): Promise<DashcardRef | null>;
   getCardValue(
     dashboardId: number,
     dashcardId: number,
@@ -393,6 +400,7 @@ No commit yet — the workspace is in a transient state.
 ## Task 4: Extend Metabase API low-level types + add helpers
 
 **Files:**
+
 - Modify: `server/src/services/metabase/metabase-api.ts`
 
 - [ ] **Step 1: Extend `MetabaseColumnSettings`, `MetabaseCol`, and the service-type imports**
@@ -526,6 +534,7 @@ No commit yet.
 ## Task 5: Detect `display === 'table'` in `normalizeDashcard`
 
 **Files:**
+
 - Modify: `server/src/services/metabase/metabase-api.ts`
 - Test: `server/src/controllers/test/dashboard-api.test.ts`
 
@@ -622,6 +631,7 @@ git commit -m "feat(server): detect and map Metabase tables"
 ## Task 6: Resolve `tableColumns` in `findDashcardRef`; populate `tableColumns: null` in other branches
 
 **Files:**
+
 - Modify: `server/src/services/metabase/metabase-api.ts`
 
 - [ ] **Step 1: Update `findDashcardRef` — pie/bar branches set `tableColumns: null`; add a table branch; the scalar fallback also sets `tableColumns: null`**
@@ -710,6 +720,7 @@ No commit yet — workspace remains in transient state until Task 8 closes it.
 ## Task 7: Implement the `'table'` branch in `getCardValue`
 
 **Files:**
+
 - Modify: `server/src/services/metabase/metabase-api.ts`
 
 - [ ] **Step 1: Extend the `getCardValue` signature and add the table branch**
@@ -808,6 +819,7 @@ No commit yet.
 ## Task 8: Plumb `tableColumns` from controller + replace fragile dispatch with explicit branches
 
 **Files:**
+
 - Modify: `server/src/controllers/dashboardController.ts`
 
 - [ ] **Step 1: Replace the file contents**
@@ -820,7 +832,11 @@ import { AuthenticatedRequest } from 'express-jwt';
 import { constants } from 'node:http2';
 import jwt from 'jsonwebtoken';
 
-import type { CardDataDTO, DashboardDTO, Resource } from '@zerologementvacant/models';
+import type {
+  CardDataDTO,
+  DashboardDTO,
+  Resource
+} from '@zerologementvacant/models';
 import type {
   BarChartValue,
   PieChartValue,
@@ -986,6 +1002,7 @@ git commit -m "feat(server): expose TableDataDTO from Metabase service and contr
 ## Task 9: Add backend API tests for table card data
 
 **Files:**
+
 - Modify: `server/src/controllers/test/dashboard-api.test.ts`
 
 - [ ] **Step 1: Add the dashboard fixtures with `table.columns` + `column_settings`**
@@ -1181,6 +1198,7 @@ git commit -m "test(server): cover table dashcards in dashboard API tests"
 ## Task 10: Add the `TableDisplay` frontend component (failing test first)
 
 **Files:**
+
 - Test: `frontend/src/components/Analysis/test/AnalysisCard.test.tsx`
 - Create: `frontend/src/components/Analysis/TableDisplay.tsx`
 
@@ -1218,7 +1236,13 @@ it('renders a table card with PM-curated headers', async () => {
     id: 90,
     columns: [
       { name: 'code', displayName: 'Code EPCI', baseType: 'string' },
-      { name: 'rate', displayName: 'Taux', baseType: 'number', decimals: 1, numberStyle: 'percent' }
+      {
+        name: 'rate',
+        displayName: 'Taux',
+        baseType: 'number',
+        decimals: 1,
+        numberStyle: 'percent'
+      }
     ],
     rows: [
       ['200054807', 0.123],
@@ -1226,9 +1250,8 @@ it('renders a table card with PM-curated headers', async () => {
     ]
   });
   mockAPI.use(
-    http.get(
-      `${config.apiEndpoint}/dashboards/:did/cards/:cid`,
-      () => HttpResponse.json(cardData)
+    http.get(`${config.apiEndpoint}/dashboards/:did/cards/:cid`, () =>
+      HttpResponse.json(cardData)
     )
   );
 
@@ -1236,8 +1259,12 @@ it('renders a table card with PM-curated headers', async () => {
 
   await screen.findByText('Statistiques par EPCI');
   // Headers
-  expect(screen.getByRole('columnheader', { name: /Code EPCI/i })).toBeInTheDocument();
-  expect(screen.getByRole('columnheader', { name: /Taux/i })).toBeInTheDocument();
+  expect(
+    screen.getByRole('columnheader', { name: /Code EPCI/i })
+  ).toBeInTheDocument();
+  expect(
+    screen.getByRole('columnheader', { name: /Taux/i })
+  ).toBeInTheDocument();
   // String cell as-is
   expect(screen.getByRole('cell', { name: '200054807' })).toBeInTheDocument();
   // Percentage cell: fr-FR locale formats 0.123 as "12,3 %" (narrow no-break space)
@@ -1250,14 +1277,18 @@ it('formats numeric cells with fr-FR locale and applies suffix', async () => {
     id: 91,
     columns: [
       { name: 'label', displayName: 'Libellé', baseType: 'string' },
-      { name: 'amount', displayName: 'Montant', baseType: 'number', suffix: ' €' }
+      {
+        name: 'amount',
+        displayName: 'Montant',
+        baseType: 'number',
+        suffix: ' €'
+      }
     ],
     rows: [['Total', 1234567]]
   });
   mockAPI.use(
-    http.get(
-      `${config.apiEndpoint}/dashboards/:did/cards/:cid`,
-      () => HttpResponse.json(cardData)
+    http.get(`${config.apiEndpoint}/dashboards/:did/cards/:cid`, () =>
+      HttpResponse.json(cardData)
     )
   );
 
@@ -1278,9 +1309,8 @@ it('renders null cell values as an empty string', async () => {
     rows: [['Sans donnée', null]]
   });
   mockAPI.use(
-    http.get(
-      `${config.apiEndpoint}/dashboards/:did/cards/:cid`,
-      () => HttpResponse.json(cardData)
+    http.get(`${config.apiEndpoint}/dashboards/:did/cards/:cid`, () =>
+      HttpResponse.json(cardData)
     )
   );
 
@@ -1299,15 +1329,12 @@ it('formats date cells with fr-FR locale', async () => {
   const tableCard = genTableCard({ id: 94, title: 'Dates' });
   const cardData = genTableDataDTO({
     id: 94,
-    columns: [
-      { name: 'event_at', displayName: 'Date', baseType: 'date' }
-    ],
+    columns: [{ name: 'event_at', displayName: 'Date', baseType: 'date' }],
     rows: [['2024-03-15T10:30:00.000Z']]
   });
   mockAPI.use(
-    http.get(
-      `${config.apiEndpoint}/dashboards/:did/cards/:cid`,
-      () => HttpResponse.json(cardData)
+    http.get(`${config.apiEndpoint}/dashboards/:did/cards/:cid`, () =>
+      HttpResponse.json(cardData)
     )
   );
 
@@ -1325,9 +1352,8 @@ it('exposes the card title as the table caption (aria-label)', async () => {
     rows: [['valeur']]
   });
   mockAPI.use(
-    http.get(
-      `${config.apiEndpoint}/dashboards/:did/cards/:cid`,
-      () => HttpResponse.json(cardData)
+    http.get(`${config.apiEndpoint}/dashboards/:did/cards/:cid`, () =>
+      HttpResponse.json(cardData)
     )
   );
 
@@ -1354,9 +1380,8 @@ it('sorts numeric rows when a sortable column header is clicked', async () => {
     ]
   });
   mockAPI.use(
-    http.get(
-      `${config.apiEndpoint}/dashboards/:did/cards/:cid`,
-      () => HttpResponse.json(cardData)
+    http.get(`${config.apiEndpoint}/dashboards/:did/cards/:cid`, () =>
+      HttpResponse.json(cardData)
     )
   );
 
@@ -1366,12 +1391,14 @@ it('sorts numeric rows when a sortable column header is clicked', async () => {
   // Click the Montant sort toggle. AdvancedTable renders a SortButton next to
   // sortable headers; its accessible name comes from columnDef.meta.sort.title
   // and falls back to `Trier par <header.id>`. We use the column id here, "amount".
-  const sortButton = await screen.findByRole('button', { name: /Trier par amount/i });
+  const sortButton = await screen.findByRole('button', {
+    name: /Trier par amount/i
+  });
   await user.click(sortButton);
 
-  const labelCells = screen.getAllByRole('cell').filter(
-    (c) => c.textContent && /^[ABC]$/.test(c.textContent.trim())
-  );
+  const labelCells = screen
+    .getAllByRole('cell')
+    .filter((c) => c.textContent && /^[ABC]$/.test(c.textContent.trim()));
   // After ascending sort by amount: B (10), C (20), A (30)
   expect(labelCells.map((c) => c.textContent?.trim())).toEqual(['B', 'C', 'A']);
 });
@@ -1491,7 +1518,7 @@ Replace the `match(data)` block (currently lines 91–100) with:
 Run: `yarn nx test frontend -- AnalysisCard`
 Expected: PASS for the four new table tests plus all pre-existing tests.
 
-If the sort test fails because the `Trier par amount` button is not found, inspect `AdvancedTable.tsx:236-241` — the sort button title is `header.column.columnDef.meta?.sort?.title ?? \`Trier par ${header.id}\`` and the test relies on `header.id === 'amount'` (which matches the `id: meta.name` we set in `TableDisplay`).
+If the sort test fails because the `Trier par amount` button is not found, inspect `AdvancedTable.tsx:236-241` — the sort button title is `header.column.columnDef.meta?.sort?.title ?? \`Trier par ${header.id}\``and the test relies on`header.id === 'amount'`(which matches the`id: meta.name`we set in`TableDisplay`).
 
 - [ ] **Step 6: Commit**
 

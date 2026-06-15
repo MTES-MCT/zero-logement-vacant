@@ -36,6 +36,7 @@
 ## Task 1: Pre-flight checks
 
 **Files:**
+
 - Create: `server/src/scripts/owners-birth-date-migration/preflight.sql`
 
 - [ ] **Step 1: Write the preflight SQL**
@@ -102,6 +103,7 @@ Expected: column type `timestamptz`, zero indexes/FKs on `birth_date`, ~81M rows
 - [ ] **Step 3: Decide node-postgres date-parser strategy**
 
 Confirm one of:
+
 - API container `TZ=UTC` (check Scalingo/Clever env), OR
 - Add `pg.types.setTypeParser(1082, (v) => v)` to `server/src/infra/database/index.ts` (or wherever `pg`/`knex` is initialised).
 
@@ -119,6 +121,7 @@ git commit -m "chore(server): add owners.birth_date migration preflight script"
 ## Task 2: Add the new column
 
 **Files:**
+
 - Create: `server/src/scripts/owners-birth-date-migration/01-add-column-and-trigger.sql` (column part only in this task; trigger added in Task 3)
 
 - [ ] **Step 1: Write the ADD COLUMN statement**
@@ -151,6 +154,7 @@ Expected: `0`.
 ## Task 3: Add sync trigger
 
 **Files:**
+
 - Modify: `server/src/scripts/owners-birth-date-migration/01-add-column-and-trigger.sql` (append trigger)
 
 - [ ] **Step 1: Write the trigger function and trigger**
@@ -208,6 +212,7 @@ git commit -m "chore(server): add owners.birth_date_new sync trigger"
 ## Task 4: Backfill in batches
 
 **Files:**
+
 - Create: `server/src/scripts/owners-birth-date-migration/02-backfill.sh`
 
 - [ ] **Step 1: Create a partial index to make the IS NULL scan cheap**
@@ -301,6 +306,7 @@ git commit -m "chore(server): add owners.birth_date_new backfill script"
 ## Task 5: Verify backfill
 
 **Files:**
+
 - Create: `server/src/scripts/owners-birth-date-migration/03-verify.sql`
 
 - [ ] **Step 1: Write verification queries**
@@ -355,6 +361,7 @@ git commit -m "chore(server): add owners.birth_date_new verification queries"
 ## Task 6: Atomic swap
 
 **Files:**
+
 - Create: `server/src/scripts/owners-birth-date-migration/04-swap.sql`
 
 - [ ] **Step 1: Write the swap transaction**
@@ -414,6 +421,7 @@ git commit -m "chore(server): add owners.birth_date column swap script"
 The data work above is operational and bypasses Knex. We still need a Knex migration so fresh environments (dev, staging, CI) end up at the same schema, and so `knex_migrations` reflects the live shape on prod.
 
 **Files:**
+
 - Create: `server/src/infra/database/migrations/<UTC-timestamp>_owners-birth-date-to-date.ts`
 
 - [ ] **Step 1: Generate the migration file**
@@ -479,6 +487,7 @@ git commit -m "feat(server): change owners.birth_date type from timestamptz to d
 ## Task 8: Runbook
 
 **Files:**
+
 - Create: `server/src/scripts/owners-birth-date-migration/README.md`
 
 - [ ] **Step 1: Write the runbook**
@@ -490,19 +499,21 @@ Why: 45M rows imported via DuckDB landed as Paris-midnight timestamps stored
 as UTC (e.g. `1943-07-23 22:00:00+00`). We want a real `date` column.
 
 Order:
-1. `preflight.sql`            — read-only checks; record output.
+
+1. `preflight.sql` — read-only checks; record output.
 2. Confirm `pg.types.setTypeParser(1082, …)` or `TZ=UTC` on the API.
-3. `01-add-column-and-trigger.sql`  — ADD COLUMN + trigger (instant).
+3. `01-add-column-and-trigger.sql` — ADD COLUMN + trigger (instant).
 4. `CREATE INDEX CONCURRENTLY` (see 02-backfill.sh comment).
-5. `02-backfill.sh`           — run in tmux; ~hours.
-6. `03-verify.sql`            — must all pass.
-7. `04-swap.sql`              — atomic, sub-second lock.
+5. `02-backfill.sh` — run in tmux; ~hours.
+6. `03-verify.sql` — must all pass.
+7. `04-swap.sql` — atomic, sub-second lock.
 8. Knex migration marker insert (see plan Task 7 Step 4).
 
 Rollback per stage:
+
 - After step 3: `DROP TRIGGER trg_sync_owners_birth_date_new ON owners;
-                 DROP FUNCTION sync_owners_birth_date_new();
-                 ALTER TABLE owners DROP COLUMN birth_date_new;`
+ DROP FUNCTION sync_owners_birth_date_new();
+ ALTER TABLE owners DROP COLUMN birth_date_new;`
 - After step 5 but before step 7: same as above (extra column is harmless).
 - After step 7: irreversible without the timestamptz source. Only `down()`
   in the Knex migration approximates a revert (loses the time component).

@@ -2,11 +2,11 @@ import Typography from '@mui/material/Typography';
 import { isDefined } from '@zerologementvacant/utils';
 import { useMemo } from 'react';
 
+import SearchableSelectNext from '~/components/SearchableSelectNext/SearchableSelectNext';
 import { useIntercommunalities } from '~/hooks/useIntercommunalities';
 import { useLocalityList } from '~/hooks/useLocalityList';
 import { useAppSelector } from '~/hooks/useStore';
 import { getCity, getDistricts } from '~/models/Locality';
-import SearchableSelectNext from '~/components/SearchableSelectNext/SearchableSelectNext';
 
 interface Props {
   intercommunalities?: string[];
@@ -15,9 +15,7 @@ interface Props {
 }
 
 function LocalitySearchableSelect(props: Props) {
-  const authData = useAppSelector(
-    (state) => state.authentication.logIn.data
-  );
+  const authData = useAppSelector((state) => state.authentication.logIn.data);
   const establishment = authData?.establishment;
   // effectiveGeoCodes is undefined when no perimeter restriction applies
   const effectiveGeoCodes = authData?.effectiveGeoCodes;
@@ -59,7 +57,10 @@ function LocalitySearchableSelect(props: Props) {
         return false;
       }
       // Then apply intercommunalities filter (if any)
-      if (allowedByIntercommunalities && !allowedByIntercommunalities.has(locality.geoCode)) {
+      if (
+        allowedByIntercommunalities &&
+        !allowedByIntercommunalities.has(locality.geoCode)
+      ) {
         return false;
       }
       return true;
@@ -98,23 +99,16 @@ function LocalitySearchableSelect(props: Props) {
       label="Commune"
       placeholder="Rechercher une commune"
       options={sortedOptions}
-      isOptionEqualToValue={(option, value) =>
-        option.geoCode === value.geoCode
-      }
+      isOptionEqualToValue={(option, value) => option.geoCode === value.geoCode}
       getOptionLabel={(option) => option.name}
       groupBy={(option) => {
         const city = getCity(option.geoCode);
         return city ?? '';
       }}
       renderGroup={(group) => {
-        const city = localities?.find(
-          (locality) => locality.geoCode === group
-        );
+        const city = localities?.find((locality) => locality.geoCode === group);
         return (
-          <Typography
-            sx={{ mt: '0.125rem', fontWeight: 700 }}
-            variant="body2"
-          >
+          <Typography sx={{ mt: '0.125rem', fontWeight: 700 }} variant="body2">
             {city?.name ?? group}
           </Typography>
         );

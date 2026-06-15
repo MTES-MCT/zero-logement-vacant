@@ -9,6 +9,7 @@ import { match, Pattern } from 'ts-pattern';
 import { useHousing } from '~/hooks/useHousing';
 import { useFindCampaignsQuery } from '~/services/campaign.service';
 import { useFindPrecisionsByHousingQuery } from '~/services/precision.service';
+
 import AppLink from '../_app/AppLink/AppLink';
 import HousingStatusBadge from '../HousingStatusBadge/HousingStatusBadge';
 import PrecisionLists from '../Precision/PrecisionLists';

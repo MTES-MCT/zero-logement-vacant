@@ -1,25 +1,27 @@
-import { vi, type MockedFunction } from 'vitest';
-import { subDays } from 'date-fns';
 import { constants } from 'http2';
+
+import { subDays } from 'date-fns';
 import request from 'supertest';
+import { vi, type MockedFunction } from 'vitest';
 
 import { createServer } from '~/infra/server';
+import { ResetLinkApi } from '~/models/ResetLinkApi';
+import {
+  Establishments,
+  formatEstablishmentApi
+} from '~/repositories/establishmentRepository';
 import resetLinkRepository, {
   formatResetLinkApi,
   ResetLinks
 } from '~/repositories/resetLinkRepository';
+import { toUserDBO, Users } from '~/repositories/userRepository';
 import {
   genEstablishmentApi,
   genResetLinkApi,
   genUserApi
 } from '~/test/testFixtures';
-import { ResetLinkApi } from '~/models/ResetLinkApi';
+
 import mailService from '../services/mailService';
-import {
-  Establishments,
-  formatEstablishmentApi
-} from '~/repositories/establishmentRepository';
-import { toUserDBO, Users } from '~/repositories/userRepository';
 
 describe('Reset link API', () => {
   let url: string;

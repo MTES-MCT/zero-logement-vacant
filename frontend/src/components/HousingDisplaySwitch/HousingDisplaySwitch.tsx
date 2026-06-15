@@ -1,4 +1,5 @@
 import { SegmentedControl } from '@codegouvfr/react-dsfr/SegmentedControl';
+
 import { useAppDispatch, useAppSelector } from '~/hooks/useStore';
 import housingSlice from '~/store/reducers/housingReducer';
 

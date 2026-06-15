@@ -1,8 +1,9 @@
-import { DataFileYear } from '@zerologementvacant/models';
 import { WritableStream } from 'node:stream/web';
+
+import { DataFileYear } from '@zerologementvacant/models';
+
 import { HousingApi, normalizeDataFileYears } from '~/models/HousingApi';
 import { History } from '~/scripts/import-lovac/history/history';
-
 import { ReporterError, ReporterOptions } from '~/scripts/import-lovac/infra';
 
 interface ProcessorOptions extends ReporterOptions<History> {

@@ -11,6 +11,7 @@
 **Symptoms:** White screen, no content
 
 **Diagnosis:**
+
 ```bash
 # Check browser console for errors (F12)
 # Common errors:
@@ -21,12 +22,12 @@
 
 **Solutions:**
 
-| Cause | Solution |
-|-------|----------|
-| Browser cache | Clear cache, hard refresh (Ctrl+Shift+R) |
-| Build issue | Redeploy: `clever restart --without-cache` |
-| JS error | Check Sentry for stack trace |
-| API down | Check backend health |
+| Cause         | Solution                                   |
+| ------------- | ------------------------------------------ |
+| Browser cache | Clear cache, hard refresh (Ctrl+Shift+R)   |
+| Build issue   | Redeploy: `clever restart --without-cache` |
+| JS error      | Check Sentry for stack trace               |
+| API down      | Check backend health                       |
 
 ---
 
@@ -35,6 +36,7 @@
 **Symptoms:** Login button does nothing, 401 errors
 
 **Diagnosis:**
+
 ```bash
 # Check API health
 curl -s https://zerologementvacant.beta.gouv.fr/api
@@ -47,12 +49,12 @@ curl -X POST https://zerologementvacant.beta.gouv.fr/api/authenticate \
 
 **Solutions:**
 
-| Cause | Solution |
-|-------|----------|
-| CORS issue | Check `APP_URL` env var matches frontend |
-| JWT secret missing | Set `AUTH_SECRET` env var |
-| User not activated | Check `activated_at` in users table |
-| 2FA issue | Check `two_factor_enabled` flag |
+| Cause              | Solution                                 |
+| ------------------ | ---------------------------------------- |
+| CORS issue         | Check `APP_URL` env var matches frontend |
+| JWT secret missing | Set `AUTH_SECRET` env var                |
+| User not activated | Check `activated_at` in users table      |
+| 2FA issue          | Check `two_factor_enabled` flag          |
 
 ---
 
@@ -61,6 +63,7 @@ curl -X POST https://zerologementvacant.beta.gouv.fr/api/authenticate \
 **Symptoms:** Empty map area, tiles not loading
 
 **Diagnosis:**
+
 ```javascript
 // Browser console
 // Look for: "Failed to load resource" for tile URLs
@@ -68,11 +71,11 @@ curl -X POST https://zerologementvacant.beta.gouv.fr/api/authenticate \
 
 **Solutions:**
 
-| Cause | Solution |
-|-------|----------|
-| MapLibre error | Check MapLibre GL version compatibility |
-| Tile server down | Check IGN/OSM tile server status |
-| CSP blocking | Update Content-Security-Policy headers |
+| Cause            | Solution                                |
+| ---------------- | --------------------------------------- |
+| MapLibre error   | Check MapLibre GL version compatibility |
+| Tile server down | Check IGN/OSM tile server status        |
+| CSP blocking     | Update Content-Security-Policy headers  |
 
 ---
 
@@ -83,6 +86,7 @@ curl -X POST https://zerologementvacant.beta.gouv.fr/api/authenticate \
 **Symptoms:** Internal Server Error responses
 
 **Diagnosis:**
+
 ```bash
 # Check logs for stack trace
 clever logs | grep -A 10 "Error"
@@ -113,6 +117,7 @@ clever logs | grep -A 10 "Error"
 **Symptoms:** Requests take > 2 seconds
 
 **Diagnosis:**
+
 ```sql
 -- Check slow queries
 SELECT pid, now() - query_start AS duration, query
@@ -126,12 +131,12 @@ EXPLAIN ANALYZE <slow-query>;
 
 **Solutions:**
 
-| Cause | Solution |
-|-------|----------|
-| Missing index | Add index on filtered/joined columns |
-| N+1 queries | Use eager loading / joins |
-| Large result set | Add pagination |
-| Unoptimized query | Rewrite with CTEs or subqueries |
+| Cause             | Solution                             |
+| ----------------- | ------------------------------------ |
+| Missing index     | Add index on filtered/joined columns |
+| N+1 queries       | Use eager loading / joins            |
+| Large result set  | Add pagination                       |
+| Unoptimized query | Rewrite with CTEs or subqueries      |
 
 ---
 
@@ -140,6 +145,7 @@ EXPLAIN ANALYZE <slow-query>;
 **Symptoms:** Upload error, timeout
 
 **Diagnosis:**
+
 ```bash
 # Check file size limits
 clever env | grep -i "size\|limit"
@@ -150,13 +156,13 @@ clever logs | grep -i "clam\|virus"
 
 **Solutions:**
 
-| Cause | Solution |
-|-------|----------|
-| File too large | Increase `MAX_FILE_SIZE` |
-| Wrong MIME type | Update allowed types list |
-| Virus detected | File is infected, reject upload |
-| S3 connection | Check S3 credentials |
-| Timeout | Increase request timeout |
+| Cause           | Solution                        |
+| --------------- | ------------------------------- |
+| File too large  | Increase `MAX_FILE_SIZE`        |
+| Wrong MIME type | Update allowed types list       |
+| Virus detected  | File is infected, reject upload |
+| S3 connection   | Check S3 credentials            |
+| Timeout         | Increase request timeout        |
 
 ---
 
@@ -165,6 +171,7 @@ clever logs | grep -i "clam\|virus"
 **Symptoms:** Password reset emails not received
 
 **Diagnosis:**
+
 ```bash
 # Check Brevo API
 clever logs | grep -i "brevo\|mail"
@@ -174,12 +181,12 @@ clever logs | grep -i "brevo\|mail"
 
 **Solutions:**
 
-| Cause | Solution |
-|-------|----------|
-| Invalid API key | Update `BREVO_API_KEY` |
-| Recipient blocked | Check Brevo blocklist |
-| Template missing | Verify template ID exists |
-| DNS issues | Check SPF/DKIM records |
+| Cause             | Solution                  |
+| ----------------- | ------------------------- |
+| Invalid API key   | Update `BREVO_API_KEY`    |
+| Recipient blocked | Check Brevo blocklist     |
+| Template missing  | Verify template ID exists |
+| DNS issues        | Check SPF/DKIM records    |
 
 ---
 
@@ -188,12 +195,14 @@ clever logs | grep -i "brevo\|mail"
 ### 3.1 "Too Many Connections"
 
 **Diagnosis:**
+
 ```sql
 SELECT count(*) FROM pg_stat_activity;
 SELECT state, count(*) FROM pg_stat_activity GROUP BY state;
 ```
 
 **Solutions:**
+
 ```sql
 -- Kill idle connections
 SELECT pg_terminate_backend(pid)
@@ -212,6 +221,7 @@ clever restart
 ### 3.2 "Relation Does Not Exist"
 
 **Diagnosis:**
+
 ```sql
 -- Check if table exists
 \dt *housing*
@@ -221,6 +231,7 @@ SELECT * FROM knex_migrations ORDER BY id DESC;
 ```
 
 **Solutions:**
+
 ```bash
 # Run pending migrations
 yarn workspace @zerologementvacant/server migrate
@@ -231,6 +242,7 @@ yarn workspace @zerologementvacant/server migrate
 ### 3.3 Deadlocks
 
 **Diagnosis:**
+
 ```sql
 -- Check for locks
 SELECT blocked_locks.pid AS blocked_pid,
@@ -243,6 +255,7 @@ WHERE NOT blocked_locks.granted;
 ```
 
 **Solutions:**
+
 ```sql
 -- Terminate blocking query
 SELECT pg_terminate_backend(<blocking_pid>);
@@ -255,6 +268,7 @@ SELECT pg_terminate_backend(<blocking_pid>);
 ### 4.1 Jobs Stuck in Queue
 
 **Diagnosis:**
+
 ```bash
 # Check Bull Board dashboard
 # URL: /queues (with basic auth)
@@ -265,6 +279,7 @@ redis-cli -u $REDIS_URL
 ```
 
 **Solutions:**
+
 ```bash
 # Restart queue worker
 clever restart  # (queue app)
@@ -280,6 +295,7 @@ redis-cli -u $REDIS_URL
 ### 4.2 Job Fails Repeatedly
 
 **Diagnosis:**
+
 ```bash
 # Check job error in Bull Board
 # Or in logs
@@ -288,12 +304,12 @@ clever logs | grep -i "failed\|error"
 
 **Common Causes:**
 
-| Error | Solution |
-|-------|----------|
+| Error              | Solution              |
+| ------------------ | --------------------- |
 | Campaign not found | Check campaign exists |
-| S3 upload failed | Check S3 credentials |
-| Memory exceeded | Reduce batch size |
-| Timeout | Increase job timeout |
+| S3 upload failed   | Check S3 credentials  |
+| Memory exceeded    | Reduce batch size     |
+| Timeout            | Increase job timeout  |
 
 ---
 
@@ -302,6 +318,7 @@ clever logs | grep -i "failed\|error"
 ### 5.1 Cerema Sync Not Running
 
 **Diagnosis:**
+
 ```bash
 # Check cron configuration
 cat clevercloud/cron.json
@@ -315,11 +332,11 @@ ls -la server/src/scripts/perimeters-portaildf/01-cerema-scraper/api_*_state.jso
 
 **Solutions:**
 
-| Cause | Solution |
-|-------|----------|
-| Cron not registered | Redeploy to register crons |
-| Auth failure | Check Cerema credentials |
-| Script error | Run manually to debug |
+| Cause                | Solution                    |
+| -------------------- | --------------------------- |
+| Cron not registered  | Redeploy to register crons  |
+| Auth failure         | Check Cerema credentials    |
+| Script error         | Run manually to debug       |
 | State file corrupted | Delete state files, restart |
 
 ---
@@ -341,6 +358,7 @@ export CEREMA_PASSWORD="..."
 ### 6.1 High Memory Usage
 
 **Diagnosis:**
+
 ```bash
 clever status
 clever logs | grep -i "memory\|heap"
@@ -348,18 +366,19 @@ clever logs | grep -i "memory\|heap"
 
 **Solutions:**
 
-| Cause | Solution |
-|-------|----------|
-| Memory leak | Profile with `--inspect`, fix leak |
-| Large payloads | Implement streaming |
-| Too many connections | Reduce pool size |
-| Instance too small | Scale up: `clever scale --flavor M` |
+| Cause                | Solution                            |
+| -------------------- | ----------------------------------- |
+| Memory leak          | Profile with `--inspect`, fix leak  |
+| Large payloads       | Implement streaming                 |
+| Too many connections | Reduce pool size                    |
+| Instance too small   | Scale up: `clever scale --flavor M` |
 
 ---
 
 ### 6.2 High CPU Usage
 
 **Diagnosis:**
+
 ```bash
 clever status
 
@@ -369,11 +388,11 @@ clever logs | grep -i "cpu\|timeout"
 
 **Solutions:**
 
-| Cause | Solution |
-|-------|----------|
-| Heavy computation | Move to background job |
-| Infinite loop | Fix code bug |
-| Too much traffic | Scale out: `clever scale --instances 2` |
+| Cause             | Solution                                |
+| ----------------- | --------------------------------------- |
+| Heavy computation | Move to background job                  |
+| Infinite loop     | Fix code bug                            |
+| Too much traffic  | Scale out: `clever scale --instances 2` |
 
 ---
 
@@ -384,6 +403,7 @@ clever logs | grep -i "cpu\|timeout"
 **Symptoms:** Address geocoding fails
 
 **Diagnosis:**
+
 ```bash
 # Test BAN API directly
 curl "https://api-adresse.data.gouv.fr/search/?q=1+rue+de+la+paix+paris"
@@ -391,17 +411,18 @@ curl "https://api-adresse.data.gouv.fr/search/?q=1+rue+de+la+paix+paris"
 
 **Solutions:**
 
-| Cause | Solution |
-|-------|----------|
-| API down | Wait or use cached results |
-| Rate limited | Implement backoff |
-| Invalid query | Sanitize input |
+| Cause         | Solution                   |
+| ------------- | -------------------------- |
+| API down      | Wait or use cached results |
+| Rate limited  | Implement backoff          |
+| Invalid query | Sanitize input             |
 
 ---
 
 ### 7.2 S3/Cellar Connection Issues
 
 **Diagnosis:**
+
 ```bash
 # Check credentials
 clever env | grep S3
@@ -412,11 +433,11 @@ aws s3 ls s3://$S3_BUCKET --endpoint-url=$S3_ENDPOINT
 
 **Solutions:**
 
-| Cause | Solution |
-|-------|----------|
-| Wrong credentials | Update S3_* env vars |
-| Bucket doesn't exist | Create bucket |
-| Permission denied | Check bucket policy |
+| Cause                | Solution               |
+| -------------------- | ---------------------- |
+| Wrong credentials    | Update S3\_\* env vars |
+| Bucket doesn't exist | Create bucket          |
+| Permission denied    | Check bucket policy    |
 
 ---
 
@@ -448,10 +469,10 @@ clever env | sort
 
 ## 9. When to Escalate
 
-| Situation | Action |
-|-----------|--------|
-| Can't diagnose in 15 min | Escalate to senior dev |
+| Situation                 | Action                            |
+| ------------------------- | --------------------------------- |
+| Can't diagnose in 15 min  | Escalate to senior dev            |
 | Data corruption suspected | Stop writes, escalate immediately |
-| Security incident | Follow security incident process |
-| Third-party service down | Contact provider support |
-| P1 lasting > 30 min | Escalate to tech lead |
+| Security incident         | Follow security incident process  |
+| Third-party service down  | Contact provider support          |
+| P1 lasting > 30 min       | Escalate to tech lead             |

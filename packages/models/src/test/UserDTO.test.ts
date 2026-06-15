@@ -21,7 +21,9 @@ describe('UserDTO', () => {
     });
 
     it('should parse multiple valid causes separated by comma', () => {
-      const result = parseSuspendedCauses('droits utilisateur expires, cgu vides');
+      const result = parseSuspendedCauses(
+        'droits utilisateur expires, cgu vides'
+      );
       expect(result).toEqual(['droits utilisateur expires', 'cgu vides']);
     });
 
@@ -32,12 +34,16 @@ describe('UserDTO', () => {
     });
 
     it('should filter out invalid causes', () => {
-      const result = parseSuspendedCauses('droits utilisateur expires, invalid cause, cgu vides');
+      const result = parseSuspendedCauses(
+        'droits utilisateur expires, invalid cause, cgu vides'
+      );
       expect(result).toEqual(['droits utilisateur expires', 'cgu vides']);
     });
 
     it('should handle whitespace around causes', () => {
-      const result = parseSuspendedCauses('  droits utilisateur expires  ,  cgu vides  ');
+      const result = parseSuspendedCauses(
+        '  droits utilisateur expires  ,  cgu vides  '
+      );
       expect(result).toEqual(['droits utilisateur expires', 'cgu vides']);
     });
 

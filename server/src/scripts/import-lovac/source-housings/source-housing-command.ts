@@ -1,8 +1,9 @@
-import { createS3, flatten, map } from '@zerologementvacant/utils/node';
-import { PutObjectCommand } from '@aws-sdk/client-s3';
-import async from 'async';
 import fs from 'node:fs';
 import path from 'node:path';
+
+import { PutObjectCommand } from '@aws-sdk/client-s3';
+import { createS3, flatten, map } from '@zerologementvacant/utils/node';
+import async from 'async';
 import { match } from 'ts-pattern';
 
 import UserMissingError from '~/errors/userMissingError';
@@ -10,6 +11,12 @@ import config from '~/infra/config';
 import { createLogger } from '~/infra/logger';
 import userRepository from '~/repositories/userRepository';
 import { createLoggerReporter } from '~/scripts/import-lovac/infra';
+import {
+  disableHousingsTriggers,
+  enableHousingsTriggers,
+  ensureKnownHousingsTriggers,
+  recomputeHousingsCounts
+} from '~/scripts/import-lovac/infra/housings-counts-maintenance';
 import { FromOptionValue } from '~/scripts/import-lovac/infra/options/from';
 import {
   createMultiBar,
@@ -22,14 +29,9 @@ import {
   sourceHousingSchema
 } from '~/scripts/import-lovac/source-housings/source-housing';
 import { createSourceHousingEnricher } from '~/scripts/import-lovac/source-housings/source-housing-enricher';
-import { createHousingTransform } from '~/scripts/import-lovac/source-housings/source-housing-transform';
 import { createHousingLoader } from '~/scripts/import-lovac/source-housings/source-housing-loader';
-import {
-  disableHousingsTriggers,
-  enableHousingsTriggers,
-  ensureKnownHousingsTriggers,
-  recomputeHousingsCounts
-} from '~/scripts/import-lovac/infra/housings-counts-maintenance';
+import { createHousingTransform } from '~/scripts/import-lovac/source-housings/source-housing-transform';
+
 import { createParquetSourceHousingRepository } from './source-housing-parquet-repository';
 
 const logger = createLogger('sourceHousingCommand');
@@ -80,46 +82,42 @@ export function createSourceHousingCommand() {
         await disableHousingsTriggers();
       }
       try {
-        await async.mapLimit(
-          deptDirs,
-          CONCURRENCY,
-          async (deptDir: string) => {
-            const dept = deptDir.replace('dept=', '');
-            const parquetGlob = path.join(deptsDir, deptDir, '*.parquet');
-            const repo = createParquetSourceHousingRepository(parquetGlob);
-            const total = await repo.count();
-            const bar = multi.create(total, 0, { dept });
+        await async.mapLimit(deptDirs, CONCURRENCY, async (deptDir: string) => {
+          const dept = deptDir.replace('dept=', '');
+          const parquetGlob = path.join(deptsDir, deptDir, '*.parquet');
+          const repo = createParquetSourceHousingRepository(parquetGlob);
+          const total = await repo.count();
+          const bar = multi.create(total, 0, { dept });
 
-            await repo
-              .stream()
-              .pipeThrough(multiProgress({ multiBar: multi, bar }))
-              .pipeThrough(
-                validator(sourceHousingSchema, {
+          await repo
+            .stream()
+            .pipeThrough(multiProgress({ multiBar: multi, bar }))
+            .pipeThrough(
+              validator(sourceHousingSchema, {
+                abortEarly: options.abortEarly,
+                reporter: sourceHousingReporter
+              })
+            )
+            .pipeThrough(createSourceHousingEnricher())
+            .pipeThrough(
+              map(
+                createHousingTransform({
                   abortEarly: options.abortEarly,
-                  reporter: sourceHousingReporter
+                  adminUserId: auth.id,
+                  reporter: sourceHousingReporter,
+                  year: options.year
                 })
               )
-              .pipeThrough(createSourceHousingEnricher())
-              .pipeThrough(
-                map(
-                  createHousingTransform({
-                    abortEarly: options.abortEarly,
-                    adminUserId: auth.id,
-                    reporter: sourceHousingReporter,
-                    year: options.year
-                  })
-                )
-              )
-              .pipeThrough(flatten())
-              .pipeTo(
-                createHousingLoader({
-                  dept,
-                  dryRun: options.dryRun,
-                  reporter: sourceHousingReporter
-                })
-              );
-          }
-        );
+            )
+            .pipeThrough(flatten())
+            .pipeTo(
+              createHousingLoader({
+                dept,
+                dryRun: options.dryRun,
+                reporter: sourceHousingReporter
+              })
+            );
+        });
         multi.stop();
       } catch (error) {
         console.error('Error during import', error);

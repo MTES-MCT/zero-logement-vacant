@@ -140,11 +140,10 @@ export function genUserApi(establishmentId: string): UserApi {
   };
 }
 
-export function genDocumentApi(
-  overrides?: Partial<DocumentApi>
-): DocumentApi {
+export function genDocumentApi(overrides?: Partial<DocumentApi>): DocumentApi {
   // If creator is provided, use their establishmentId unless explicitly overridden
-  const establishmentId = overrides?.establishmentId ??
+  const establishmentId =
+    overrides?.establishmentId ??
     overrides?.creator?.establishmentId ??
     uuidv4();
   const creator = overrides?.creator ?? genUserApi(establishmentId);

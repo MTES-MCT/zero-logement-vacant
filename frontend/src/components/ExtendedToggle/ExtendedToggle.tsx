@@ -1,13 +1,14 @@
-import classNames from 'classnames';
-import { useEffect, useMemo } from 'react';
-import { v4 as uuidv4 } from 'uuid';
-import { Icon } from '../_dsfr';
-
-import type { ToggleSwitchProps } from '@codegouvfr/react-dsfr/ToggleSwitch';
 import type {
   FrIconClassName,
   RiIconClassName
 } from '@codegouvfr/react-dsfr/src/fr/generatedFromCss/classNames';
+import type { ToggleSwitchProps } from '@codegouvfr/react-dsfr/ToggleSwitch';
+import classNames from 'classnames';
+import { useEffect, useMemo } from 'react';
+import { v4 as uuidv4 } from 'uuid';
+
+import { Icon } from '../_dsfr';
+
 import styles from './extended-toggle.module.scss';
 
 type Props = ToggleSwitchProps & {

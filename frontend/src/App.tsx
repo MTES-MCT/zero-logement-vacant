@@ -14,22 +14,42 @@ import GuestLayout from '~/layouts/GuestLayout';
 import sentry from '~/utils/sentry';
 import NotFoundView from '~/views/NotFoundView';
 
-const AccountCreationView = lazy(() => import('~/views/Account/AccountCreationView'));
+const AccountCreationView = lazy(
+  () => import('~/views/Account/AccountCreationView')
+);
 const AccountView = lazy(() => import('~/views/Account/AccountView'));
-const ForgottenPasswordView = lazy(() => import('~/views/Account/ForgottenPasswordView'));
-const ProfileLayout = lazy(() => import('~/views/Account/Profile/ProfileLayout'));
-const TerritoryEstablishmentsView = lazy(() => import('~/views/Account/Profile/TerritoryEstablishmentsView'));
+const ForgottenPasswordView = lazy(
+  () => import('~/views/Account/ForgottenPasswordView')
+);
+const ProfileLayout = lazy(
+  () => import('~/views/Account/Profile/ProfileLayout')
+);
+const TerritoryEstablishmentsView = lazy(
+  () => import('~/views/Account/Profile/TerritoryEstablishmentsView')
+);
 const UsersView = lazy(() => import('~/views/Account/Profile/UsersView'));
-const ResetPasswordView = lazy(() => import('~/views/Account/ResetPasswordView'));
+const ResetPasswordView = lazy(
+  () => import('~/views/Account/ResetPasswordView')
+);
 const AnalysisView = lazy(() => import('~/views/Analysis/AnalysisView'));
-const AnalysisViewNext = lazy(() => import('~/views/Analysis/AnalysisViewNext'));
-const CampaignListView = lazy(() => import('~/views/Campaign/CampaignListView'));
+const AnalysisViewNext = lazy(
+  () => import('~/views/Analysis/AnalysisViewNext')
+);
+const CampaignListView = lazy(
+  () => import('~/views/Campaign/CampaignListView')
+);
 const CampaignView = lazy(() => import('~/views/Campaign/CampaignView'));
 const GroupView = lazy(() => import('~/views/Group/GroupView'));
-const HousingOwnersView = lazy(() => import('~/views/Housing/HousingOwnersView'));
+const HousingOwnersView = lazy(
+  () => import('~/views/Housing/HousingOwnersView')
+);
 const HousingView = lazy(() => import('~/views/Housing/HousingView'));
-const HousingListTabsProvider = lazy(() => import('~/views/HousingList/HousingListTabsProvider'));
-const HousingListView = lazy(() => import('~/views/HousingList/HousingListView'));
+const HousingListTabsProvider = lazy(
+  () => import('~/views/HousingList/HousingListTabsProvider')
+);
+const HousingListView = lazy(
+  () => import('~/views/HousingList/HousingListView')
+);
 const LoginView = lazy(() => import('~/views/Login/LoginView'));
 const TwoFactorView = lazy(() => import('~/views/Login/TwoFactorView'));
 const OwnerView = lazy(() => import('~/views/Owner/OwnerView'));

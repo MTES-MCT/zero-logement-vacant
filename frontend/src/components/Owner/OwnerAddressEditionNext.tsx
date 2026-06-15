@@ -3,6 +3,7 @@ import AddressSearchableSelectNext, {
 } from '~/components/Address/AddressSearchableSelectNext';
 import { isBanEligible, type Address } from '~/models/Address';
 import type { AddressSearchResult } from '~/services/address.service';
+
 import { useIgnoredAddresses } from './useIgnoredAddresses';
 
 export type OwnerAddressEditionNextProps = Pick<

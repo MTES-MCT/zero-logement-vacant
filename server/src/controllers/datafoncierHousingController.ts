@@ -1,7 +1,8 @@
+import { constants } from 'http2';
+
 import type { DatafoncierHousing } from '@zerologementvacant/models';
 import { type RequestHandler } from 'express';
 import { AuthenticatedRequest } from 'express-jwt';
-import { constants } from 'http2';
 
 import HousingMissingError from '~/errors/housingMissingError';
 import createDatafoncierHousingRepository from '~/repositories/datafoncierHousingRepository';

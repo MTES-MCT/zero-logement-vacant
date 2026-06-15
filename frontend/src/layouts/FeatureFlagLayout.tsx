@@ -13,7 +13,8 @@ export interface FeatureFlagLayoutProps {
 
 function FeatureFlagLayout(props: FeatureFlagLayoutProps) {
   const isEnabledByPosthog = useFeatureFlagEnabled(props.flag);
-  const isEnabled = isEnabledByPosthog ?? config.featureFlags.includes(props.flag);
+  const isEnabled =
+    isEnabledByPosthog ?? config.featureFlags.includes(props.flag);
   return isEnabled ? props.then : props.else;
 }
 

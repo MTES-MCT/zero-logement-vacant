@@ -54,6 +54,7 @@ clever drain remove <DRAIN_ID>
 ### Open Kibana
 
 Access Kibana through the Clever Cloud console:
+
 1. Go to **Add-ons** → Select your Elasticsearch add-on
 2. Click **Open Kibana**
 
@@ -158,15 +159,15 @@ The export runs automatically on the 1st of each month at 3am via Clever Cloud c
 
 Before deploying, configure the following environment variables in the Clever Cloud console:
 
-| Variable | Description | Source |
-|----------|-------------|--------|
-| `ELASTIC_NODE` | Elasticsearch host URL | Elasticsearch add-on |
-| `ELASTIC_USERNAME` | Elasticsearch username | Elasticsearch add-on |
-| `ELASTIC_PASSWORD` | Elasticsearch password | Elasticsearch add-on |
-| `BACKUP_S3_ACCESS_KEY_ID` | S3 access key | Cellar add-on |
-| `BACKUP_S3_SECRET_ACCESS_KEY` | S3 secret key | Cellar add-on |
-| `BACKUP_S3_ENDPOINT` | S3 endpoint | Cellar add-on (optional, default: `cellar-c2.services.clever-cloud.com`) |
-| `BACKUP_S3_BUCKET` | S3 bucket name | Cellar add-on (optional, default: `zlv-logs-archive`) |
+| Variable                      | Description            | Source                                                                   |
+| ----------------------------- | ---------------------- | ------------------------------------------------------------------------ |
+| `ELASTIC_NODE`                | Elasticsearch host URL | Elasticsearch add-on                                                     |
+| `ELASTIC_USERNAME`            | Elasticsearch username | Elasticsearch add-on                                                     |
+| `ELASTIC_PASSWORD`            | Elasticsearch password | Elasticsearch add-on                                                     |
+| `BACKUP_S3_ACCESS_KEY_ID`     | S3 access key          | Cellar add-on                                                            |
+| `BACKUP_S3_SECRET_ACCESS_KEY` | S3 secret key          | Cellar add-on                                                            |
+| `BACKUP_S3_ENDPOINT`          | S3 endpoint            | Cellar add-on (optional, default: `cellar-c2.services.clever-cloud.com`) |
+| `BACKUP_S3_BUCKET`            | S3 bucket name         | Cellar add-on (optional, default: `zlv-logs-archive`)                    |
 
 ### Prerequisites (local execution)
 

@@ -6,7 +6,7 @@
   flex-wrap: wrap;
   position: relative;
 
-  input[type=checkbox] {
+  input[type='checkbox'] {
     appearance: none;
     border-radius: 0.75rem;
     box-shadow: inset 0 0 0 1px var(--toggle-color);
@@ -48,7 +48,7 @@
   border-radius: 50%;
   box-shadow: inset 0 0 0 1px var(--toggle-color);
   color: var(--toggle-color);
-  content: "";
+  content: '';
   width: 1.5rem;
   height: 1.5rem;
   display: flex;
@@ -62,7 +62,7 @@
   }
 
   :not(:checked) + &:before {
-    content: "";
+    content: '';
   }
 }
 

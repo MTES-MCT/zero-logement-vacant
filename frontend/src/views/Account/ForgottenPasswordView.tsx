@@ -10,11 +10,13 @@ import { type InferType, object } from 'yup';
 import building from '~/assets/images/building.svg';
 import AppLinkAsButton from '~/components/_app/AppLinkAsButton/AppLinkAsButton';
 import AppTextInputNext from '~/components/_app/AppTextInput/AppTextInputNext';
-import { Col, Container, Row, Text } from '../../components/_dsfr';
 import { useDocumentTitle } from '~/hooks/useDocumentTitle';
 import { emailValidator } from '~/hooks/useForm';
 import { useHide } from '~/hooks/useHide';
 import resetLinkService from '~/services/reset-link.service';
+
+import { Col, Container, Row, Text } from '../../components/_dsfr';
+
 import styles from './forgotten-password-view.module.scss';
 
 interface EmailSentProps {

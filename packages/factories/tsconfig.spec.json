@@ -7,7 +7,5 @@
     "types": ["jest-extended", "node", "vitest/globals"]
   },
   "include": ["src/**/*.test.ts"],
-  "references": [
-    { "path": "./tsconfig.lib.json" }
-  ]
+  "references": [{ "path": "./tsconfig.lib.json" }]
 }

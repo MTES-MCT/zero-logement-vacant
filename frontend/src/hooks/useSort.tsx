@@ -1,9 +1,9 @@
+import type { FrIconClassName, RiIconClassName } from '@codegouvfr/react-dsfr';
+import Button from '@codegouvfr/react-dsfr/Button';
 import React, { useState } from 'react';
+import { match } from 'ts-pattern';
 
 import type { Direction, Sort } from '../models/Sort';
-import Button from '@codegouvfr/react-dsfr/Button';
-import { match } from 'ts-pattern';
-import type { FrIconClassName, RiIconClassName } from '@codegouvfr/react-dsfr';
 
 interface UseSortOptions<Sortable extends object> {
   onSort?(sort: Sort<Sortable>): void | Promise<void>;

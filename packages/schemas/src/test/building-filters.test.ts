@@ -1,5 +1,6 @@
 import { fc, test } from '@fast-check/vitest';
 import { BuildingFiltersDTO } from '@zerologementvacant/models';
+
 import { buildingFilters } from '../building-filters';
 
 describe('Building filters', () => {

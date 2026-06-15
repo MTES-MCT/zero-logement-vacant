@@ -1,4 +1,5 @@
 import { describe, expect, it, vi } from 'vitest';
+
 import { MemoryAdapter } from '../../memory-adapter';
 import { createHousingFactory } from '../housing';
 
@@ -29,7 +30,10 @@ describe('createHousingFactory', () => {
 
     const housing = await factory.create();
 
-    expect(spy).toHaveBeenCalledWith('housings', expect.objectContaining({ id: housing.id }));
+    expect(spy).toHaveBeenCalledWith(
+      'housings',
+      expect.objectContaining({ id: housing.id })
+    );
   });
 
   it('builds a list of housings', () => {

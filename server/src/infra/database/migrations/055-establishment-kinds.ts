@@ -23,8 +23,8 @@ export async function up(knex: Knex): Promise<void> {
           .update({ kind: knex.raw("split_part(name, ' ', 1)") })
           .whereNull('kind')
           .andWhereRaw('array_length(localities_geo_code, 1) > 1')
-          .andWhereRaw("name like 'DDT%'"),
-      ]),
+          .andWhereRaw("name like 'DDT%'")
+      ])
     );
 }
 

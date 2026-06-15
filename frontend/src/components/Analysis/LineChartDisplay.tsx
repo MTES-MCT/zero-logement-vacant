@@ -1,6 +1,5 @@
 import '@gouvfr/dsfr-chart/LineChart';
 import '@gouvfr/dsfr-chart/LineChart.css';
-
 import type { LineChartDataDTO } from '@zerologementvacant/models';
 
 import ChartTranscription from './ChartTranscription';

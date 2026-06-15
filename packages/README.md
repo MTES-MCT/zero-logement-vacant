@@ -4,7 +4,7 @@
 
 ### clean
 
-Cleans up the package artifacts (the `dist` folder and *.tsbuildinfo)
+Cleans up the package artifacts (the `dist` folder and \*.tsbuildinfo)
 
 ### build
 

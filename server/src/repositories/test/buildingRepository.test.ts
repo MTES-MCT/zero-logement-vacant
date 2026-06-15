@@ -1,4 +1,5 @@
 import { faker } from '@faker-js/faker/locale/fr';
+
 import buildingRepository, {
   Buildings,
   formatBuildingApi

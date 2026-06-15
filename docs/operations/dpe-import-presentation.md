@@ -39,12 +39,12 @@ Le **DPE** (Diagnostic de Performance Énergétique) est un document obligatoire
 
 ### Chiffres clés
 
-| Indicateur | Valeur |
-|------------|--------|
-| Champs DPE disponibles | **224** |
-| Champs importés dans ZLV | **7** |
-| Volume de données | ~10M DPE en France |
-| Temps d'import complet | 2-4 heures |
+| Indicateur               | Valeur             |
+| ------------------------ | ------------------ |
+| Champs DPE disponibles   | **224**            |
+| Champs importés dans ZLV | **7**              |
+| Volume de données        | ~10M DPE en France |
+| Temps d'import complet   | 2-4 heures         |
 
 ---
 
@@ -124,12 +124,12 @@ Le **DPE** (Diagnostic de Performance Énergétique) est un document obligatoire
 
 #### Conséquences pour ZLV
 
-| Limitation | Impact | Contournement actuel |
-|------------|--------|----------------------|
-| Téléchargement lent | Import complet = 2-4h | Parallélisation + reprise auto |
-| Pas de flux temps réel | Données potentiellement décalées | Import périodique (mensuel ?) |
-| Pas de filtre API par date | Re-téléchargement complet obligatoire | Filtrage local par année (`--start-year`) + déduplication |
-| DPE au niveau bâtiment | Tous les apparts d'un immeuble ont le même DPE | Priorité au DPE immeuble collectif |
+| Limitation                 | Impact                                         | Contournement actuel                                      |
+| -------------------------- | ---------------------------------------------- | --------------------------------------------------------- |
+| Téléchargement lent        | Import complet = 2-4h                          | Parallélisation + reprise auto                            |
+| Pas de flux temps réel     | Données potentiellement décalées               | Import périodique (mensuel ?)                             |
+| Pas de filtre API par date | Re-téléchargement complet obligatoire          | Filtrage local par année (`--start-year`) + déduplication |
+| DPE au niveau bâtiment     | Tous les apparts d'un immeuble ont le même DPE | Priorité au DPE immeuble collectif                        |
 
 #### Illustration : Granularité bâtiment vs appartement
 
@@ -224,11 +224,11 @@ export ADEME_API_KEY="votre_clé"
 python import-ademe.py --output-file dpe_data_complete.jsonl
 ```
 
-| Fonctionnalité | Description |
-|----------------|-------------|
-| Reprise automatique | Continue après interruption |
-| Streaming | JSON Lines pour économiser la mémoire |
-| Retry automatique | Gère les erreurs réseau |
+| Fonctionnalité      | Description                           |
+| ------------------- | ------------------------------------- |
+| Reprise automatique | Continue après interruption           |
+| Streaming           | JSON Lines pour économiser la mémoire |
+| Retry automatique   | Gère les erreurs réseau               |
 
 ---
 
@@ -240,12 +240,12 @@ python import-ademe.py --output-file dpe_data_complete.jsonl
 python3 import_dpe_raw.py dpe_data_complete.jsonl --db-url "$DATABASE_URL"
 ```
 
-| Fonctionnalité | Description |
-|----------------|-------------|
-| Import parallèle | Multi-workers (défaut: 6) |
-| Par département | Possibilité d'importer un seul département |
-| Gestion doublons | Upsert automatique |
-| Dry-run | Mode simulation |
+| Fonctionnalité   | Description                                |
+| ---------------- | ------------------------------------------ |
+| Import parallèle | Multi-workers (défaut: 6)                  |
+| Par département  | Possibilité d'importer un seul département |
+| Gestion doublons | Upsert automatique                         |
+| Dry-run          | Mode simulation                            |
 
 ---
 
@@ -257,12 +257,12 @@ python3 import_dpe_raw.py dpe_data_complete.jsonl --db-url "$DATABASE_URL"
 python import-dpe.py dpe_data_complete.jsonl --db-url "$DATABASE_URL"
 ```
 
-| Fonctionnalité | Description |
-|----------------|-------------|
-| Matching intelligent | 4 stratégies de correspondance |
-| Batch processing | Par lots de 1000 |
-| Parallélisation | 4-8x plus rapide |
-| Statistiques | Rapport détaillé en fin d'import |
+| Fonctionnalité       | Description                      |
+| -------------------- | -------------------------------- |
+| Matching intelligent | 4 stratégies de correspondance   |
+| Batch processing     | Par lots de 1000                 |
+| Parallélisation      | 4-8x plus rapide                 |
+| Statistiques         | Rapport détaillé en fin d'import |
 
 ---
 
@@ -530,10 +530,10 @@ interface BuildingDTO {
 
   // DPE (Diagnostic de Performance Énergétique)
   dpe: {
-    id: string;                    // Ex: "2301E0001234567A"
-    class: EnergyConsumption;      // 'A' | 'B' | 'C' | 'D' | 'E' | 'F' | 'G'
-    doneAt: string;                // ISO 8601: "2024-01-15"
-    type: EnergyConsumptionType;   // Type de DPE
+    id: string; // Ex: "2301E0001234567A"
+    class: EnergyConsumption; // 'A' | 'B' | 'C' | 'D' | 'E' | 'F' | 'G'
+    doneAt: string; // ISO 8601: "2024-01-15"
+    type: EnergyConsumptionType; // Type de DPE
     match: EnergyConsumptionMatch; // Méthode de matching
   } | null;
 }
@@ -553,8 +553,8 @@ type EnergyConsumptionType =
 
 // Méthode de matching utilisée
 type EnergyConsumptionMatch =
-  | 'rnb_id'   // Match direct via RNB (prioritaire)
-  | 'ban_id';  // Match via adresse BAN (fallback) ← Nouvelle approche
+  | 'rnb_id' // Match direct via RNB (prioritaire)
+  | 'ban_id'; // Match via adresse BAN (fallback) ← Nouvelle approche
 
 // ⚠️ Note: packages/models/src/EnergyConsumption.ts contient encore 'plot_id'
 // au lieu de 'ban_id'. À mettre à jour pour refléter la nouvelle approche.
@@ -721,11 +721,11 @@ GROUP BY dpe_import_match;"
 
 ### Migrations Knex associées
 
-| Migration | Description |
-|-----------|-------------|
-| `20250618141907_add_dpe_fields_to_buildings.ts` | Ajoute les champs DPE à `buildings` |
-| `20251215164103_dpe-import-optimization-indexes.ts` | Crée les index de performance |
-| `20260122165040_fast-housing-add-actual-dpe.ts` | Ajoute `actual_dpe` à `fast_housing` |
+| Migration                                           | Description                          |
+| --------------------------------------------------- | ------------------------------------ |
+| `20250618141907_add_dpe_fields_to_buildings.ts`     | Ajoute les champs DPE à `buildings`  |
+| `20251215164103_dpe-import-optimization-indexes.ts` | Crée les index de performance        |
+| `20260122165040_fast-housing-add-actual-dpe.ts`     | Ajoute `actual_dpe` à `fast_housing` |
 
 ### Fichiers de configuration
 
@@ -754,4 +754,4 @@ server/src/scripts/link-dpe/            ◀── ANCIENNE APPROCHE (TypeScript)
 
 ---
 
-*Document généré automatiquement - Zéro Logement Vacant*
+_Document généré automatiquement - Zéro Logement Vacant_

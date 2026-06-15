@@ -10,11 +10,11 @@ The old campaign flow used a BullMQ queue worker to asynchronously generate PDF 
 
 ## Packages to Delete Entirely
 
-| Package | Why |
-|---|---|
-| `queue/` | BullMQ worker with single job `campaign-generate` — fully superseded |
-| `packages/api-sdk/` | HTTP+DB client used exclusively by the queue worker |
-| `packages/draft/` | Puppeteer-based PDF generation — superseded by `packages/pdf` |
+| Package             | Why                                                                  |
+| ------------------- | -------------------------------------------------------------------- |
+| `queue/`            | BullMQ worker with single job `campaign-generate` — fully superseded |
+| `packages/api-sdk/` | HTTP+DB client used exclusively by the queue worker                  |
+| `packages/draft/`   | Puppeteer-based PDF generation — superseded by `packages/pdf`        |
 
 ## Server Changes (`server/`)
 
@@ -39,12 +39,12 @@ The old campaign flow used a BullMQ queue worker to asynchronously generate PDF 
 
 ### `*Next` files to rename (drop the `Next` suffix)
 
-| From | To |
-|---|---|
-| `CampaignViewNext` | `CampaignView` |
+| From                   | To                 |
+| ---------------------- | ------------------ |
+| `CampaignViewNext`     | `CampaignView`     |
 | `CampaignListViewNext` | `CampaignListView` |
-| `GroupViewNext` | `GroupView` |
-| `HousingListViewNext` | `HousingListView` |
+| `GroupViewNext`        | `GroupView`        |
+| `HousingListViewNext`  | `HousingListView`  |
 
 Update all internal imports after rename.
 
@@ -62,17 +62,20 @@ Update all internal imports after rename.
 ## CI Changes
 
 ### `.github/workflows/main.yml`
+
 - Remove `queue/**` from `paths` trigger
 - Remove `redis` service (only used by queue)
 - Remove `PUPPETEER_SKIP_CHROMIUM_DOWNLOAD: true` from Install step
 - Remove `deploy-queue-staging` job
 
 ### `.github/workflows/pull-request.yml`
+
 - Remove `queue/**` from `paths` trigger
 - Remove `redis` service
 - Remove `PUPPETEER_SKIP_CHROMIUM_DOWNLOAD: true` from Install step
 
 ### `.github/workflows/review-app.yml`
+
 - Remove `deploy-queue` job (create action)
 - Remove `update-queue` job (update action)
 - Remove `delete-queue` job (delete/close action)

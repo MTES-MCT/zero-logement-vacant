@@ -1,5 +1,9 @@
 import { createSlice, type PayloadAction } from '@reduxjs/toolkit';
-import type { DatafoncierHousing, Pagination } from '@zerologementvacant/models';
+import type {
+  DatafoncierHousing,
+  Pagination
+} from '@zerologementvacant/models';
+
 import type { Selection } from '../../hooks/useSelection';
 import config from '../../utils/config';
 
@@ -62,7 +66,7 @@ const housingSlice = createSlice({
         perPage: action.payload.perPage,
         q: action.payload.q
       };
-    },
+    }
   }
 });
 

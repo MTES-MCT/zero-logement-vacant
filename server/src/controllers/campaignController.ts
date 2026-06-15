@@ -1,3 +1,5 @@
+import { constants } from 'http2';
+
 import {
   CampaignDTO,
   CampaignRemovalPayload,
@@ -11,8 +13,8 @@ import { Struct } from 'effect';
 import { RequestHandler } from 'express';
 import { AuthenticatedRequest } from 'express-jwt';
 import { ValidationChain } from 'express-validator';
-import { constants } from 'http2';
 import { v4 as uuidv4 } from 'uuid';
+
 import BadRequestError from '~/errors/badRequestError';
 import CampaignMissingError from '~/errors/campaignMissingError';
 import GroupMissingError from '~/errors/groupMissingError';
@@ -410,40 +412,45 @@ const removeHousings: RequestHandler<
     },
     pagination: { paginate: false }
   });
-  const now = new Date().toJSON()
-  const campaignHousingEvents = housings.map<CampaignHousingEventApi>((housing) => ({
-    id: uuidv4(),
-    type: 'housing:campaign-detached',
-    nextOld: { name: campaign.title },
-    nextNew: null,
-    createdAt: now,
-    createdBy: auth.userId,
-    campaignId: campaign.id,
-    housingGeoCode: housing.geoCode,
-    housingId: housing.id
-  }));
+  const now = new Date().toJSON();
+  const campaignHousingEvents = housings.map<CampaignHousingEventApi>(
+    (housing) => ({
+      id: uuidv4(),
+      type: 'housing:campaign-detached',
+      nextOld: { name: campaign.title },
+      nextNew: null,
+      createdAt: now,
+      createdBy: auth.userId,
+      campaignId: campaign.id,
+      housingGeoCode: housing.geoCode,
+      housingId: housing.id
+    })
+  );
   const resettable = housings.filter(shouldReset);
-  const housingEvents = resettable.map<HousingEventApi>(housing => ({
+  const housingEvents = resettable.map<HousingEventApi>((housing) => ({
     id: uuidv4(),
     type: 'housing:status-updated',
     nextOld: {
-      status: HOUSING_STATUS_LABELS[HousingStatus.WAITING],
+      status: HOUSING_STATUS_LABELS[HousingStatus.WAITING]
     },
     nextNew: {
-      status: HOUSING_STATUS_LABELS[HousingStatus.NEVER_CONTACTED],
+      status: HOUSING_STATUS_LABELS[HousingStatus.NEVER_CONTACTED]
     },
     createdAt: now,
     createdBy: auth.userId,
     housingGeoCode: housing.geoCode,
     housingId: housing.id
-  }))
+  }));
 
   await startTransaction(async () => {
     await Promise.all([
-      housingRepository.updateMany(resettable.map(Struct.pick('geoCode', 'id')), {
-        status: HousingStatus.NEVER_CONTACTED,
-        subStatus: null
-      }),
+      housingRepository.updateMany(
+        resettable.map(Struct.pick('geoCode', 'id')),
+        {
+          status: HousingStatus.NEVER_CONTACTED,
+          subStatus: null
+        }
+      ),
       campaignHousingRepository.removeMany(campaign, housings),
       eventRepository.insertManyCampaignHousingEvents(campaignHousingEvents),
       eventRepository.insertManyHousingEvents(housingEvents)

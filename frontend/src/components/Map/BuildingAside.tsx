@@ -6,11 +6,11 @@ import Typography from '@mui/material/Typography';
 import { getOwnerDisplayName } from '@zerologementvacant/models';
 import { useCounter } from 'react-use';
 
+import AppLink from '~/components/_app/AppLink/AppLink';
 import Aside, { type AsideProps } from '~/components/Aside/Aside';
 import OccupancyBadge from '~/components/Housing/OccupancyBadge';
 import HousingStatusBadge from '~/components/HousingStatusBadge/HousingStatusBadge';
 import Label from '~/components/Label/LabelNext';
-import AppLink from '~/components/_app/AppLink/AppLink';
 import type { Building } from '~/models/Building';
 import type { Housing } from '~/models/Housing';
 import { useFindCampaignsQuery } from '~/services/campaign.service';

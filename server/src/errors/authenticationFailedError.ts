@@ -10,7 +10,7 @@ export default class AuthenticationFailedError
     super({
       name: 'AuthenticationFailedError',
       message: `Authentication failed.`,
-      status: constants.HTTP_STATUS_UNAUTHORIZED,
+      status: constants.HTTP_STATUS_UNAUTHORIZED
     });
   }
 }

@@ -1,10 +1,10 @@
 import async from 'async';
 import { formatDuration, intervalToDuration, isValid } from 'date-fns';
-import { Knex } from 'knex';
 import { flow, Predicate } from 'effect';
+import { chunksOf } from 'effect/Array';
+import { Knex } from 'knex';
 import { isEqual, omit, pick } from 'lodash-es';
 import { v4 as uuidv4 } from 'uuid';
-import { chunksOf } from 'effect/Array';
 
 const logger = console;
 const BATCH_SIZE = 100_000;

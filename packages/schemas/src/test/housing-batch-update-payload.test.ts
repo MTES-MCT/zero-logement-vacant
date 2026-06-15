@@ -1,5 +1,4 @@
 import { fc, test } from '@fast-check/vitest';
-import { ValidationError } from 'yup';
 import {
   BENEFIARY_COUNT_VALUES,
   BUILDING_PERIOD_VALUES,
@@ -25,6 +24,8 @@ import {
   VACANCY_RATE_VALUES,
   VACANCY_YEAR_VALUES
 } from '@zerologementvacant/models';
+import { ValidationError } from 'yup';
+
 import { housingBatchUpdatePayload } from '../housing-batch-update-payload';
 
 const filtersArb = fc.record({
@@ -37,9 +38,7 @@ const filtersArb = fc.record({
   establishmentIds: fc.array(fc.uuid({ version: 4 })),
   groupIds: fc.array(fc.uuid({ version: 4 })),
   campaignsCounts: fc.array(fc.constantFrom(...CAMPAIGN_COUNT_VALUES)),
-  campaignIds: fc.array(
-    fc.oneof(fc.constant(null), fc.uuid({ version: 4 }))
-  ),
+  campaignIds: fc.array(fc.oneof(fc.constant(null), fc.uuid({ version: 4 }))),
   ownerIds: fc.array(fc.uuid({ version: 4 })),
   ownerKinds: fc.array(fc.constantFrom(null, ...OWNER_KIND_VALUES)),
   ownerAges: fc.array(fc.constantFrom(null, ...OWNER_AGE_VALUES)),
@@ -87,11 +86,14 @@ const filtersArb = fc.record({
  */
 const validStatusSubStatusArb = fc.oneof(
   // No status update — subStatus unconstrained so leave it out
-  fc.constant({ status: undefined as HousingStatus | undefined, subStatus: undefined as string | undefined }),
+  fc.constant({
+    status: undefined as HousingStatus | undefined,
+    subStatus: undefined as string | undefined
+  }),
   // Status with no sub-statuses — subStatus will be coerced away
-  fc.constantFrom(HousingStatus.NEVER_CONTACTED, HousingStatus.WAITING).map(
-    (status) => ({ status, subStatus: undefined as string | undefined })
-  ),
+  fc
+    .constantFrom(HousingStatus.NEVER_CONTACTED, HousingStatus.WAITING)
+    .map((status) => ({ status, subStatus: undefined as string | undefined })),
   // Status with sub-statuses — valid subStatus or absent
   fc
     .constantFrom(
@@ -137,7 +139,9 @@ describe('Housing batch update payload', () => {
       )
   ])('should validate valid inputs', (payload) => {
     const validate = () =>
-      housingBatchUpdatePayload.validateSync(payload as HousingBatchUpdatePayload);
+      housingBatchUpdatePayload.validateSync(
+        payload as HousingBatchUpdatePayload
+      );
 
     expect(validate).not.toThrow();
   });

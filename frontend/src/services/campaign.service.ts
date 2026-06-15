@@ -4,6 +4,7 @@ import type {
   CampaignRemovalPayload,
   CampaignUpdatePayload
 } from '@zerologementvacant/models';
+
 import {
   fromCampaignDTO,
   type Campaign,

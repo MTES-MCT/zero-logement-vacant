@@ -1,9 +1,10 @@
-import { Col, Row } from '../../components/_dsfr';
 import { Alert } from '@codegouvfr/react-dsfr/Alert';
-import { HousingStates } from '../../models/HousingState';
 import classNames from 'classnames';
-import { useDocumentTitle } from '../../hooks/useDocumentTitle';
+
+import { Col, Row } from '../../components/_dsfr';
 import MainContainer from '../../components/MainContainer/MainContainer';
+import { useDocumentTitle } from '../../hooks/useDocumentTitle';
+import { HousingStates } from '../../models/HousingState';
 
 const StatusView = () => {
   useDocumentTitle('Liste des statuts de suivi');
@@ -27,7 +28,7 @@ const StatusView = () => {
       {HousingStates.map((state, stateIndex) => (
         <Row
           className={classNames('fr-py-1w', {
-            'bordered-b': stateIndex !== HousingStates.length - 1,
+            'bordered-b': stateIndex !== HousingStates.length - 1
           })}
           key={state + '_' + stateIndex}
         >
@@ -39,7 +40,7 @@ const StatusView = () => {
               <Row
                 className={classNames('fr-py-1w', {
                   'bordered-b':
-                    subStatusIndex + 1 !== state.subStatusList?.length,
+                    subStatusIndex + 1 !== state.subStatusList?.length
                 })}
                 key={state + '_' + subStatus + '_' + subStatusIndex}
               >

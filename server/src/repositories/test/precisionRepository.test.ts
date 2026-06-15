@@ -1,10 +1,10 @@
 import { faker } from '@faker-js/faker/locale/fr';
+
 import { HousingApi } from '~/models/HousingApi';
 import {
   formatHousingRecordApi,
   Housing
 } from '~/repositories/housingRepository';
-
 import precisionRepository, {
   HousingPrecisionDBO,
   HousingPrecisions,

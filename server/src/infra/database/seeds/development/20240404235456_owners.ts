@@ -109,7 +109,7 @@ export async function seed(knex: Knex): Promise<void> {
   }
 
   console.timeEnd('20240404235456_owners');
-  console.log('\n')
+  console.log('\n');
 }
 
 async function doFetchCommunes(

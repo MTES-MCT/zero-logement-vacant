@@ -1,9 +1,11 @@
-import { afterEach, beforeEach, describe, expect, it } from 'vitest';
-import { DuckDBInstance } from '@duckdb/node-api';
 import fs from 'node:fs';
 import os from 'node:os';
 import path from 'node:path';
 import { WritableStream } from 'node:stream/web';
+
+import { DuckDBInstance } from '@duckdb/node-api';
+import { afterEach, beforeEach, describe, expect, it } from 'vitest';
+
 import { createParquetSourceHousingRepository } from './source-housing-parquet-repository';
 
 describe('createParquetSourceHousingRepository', () => {

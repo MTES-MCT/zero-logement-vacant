@@ -9,6 +9,6 @@ export function postgresCheck(url: string): Check {
       const client = new Client(url);
       await client.connect();
       await client.end();
-    },
+    }
   };
 }

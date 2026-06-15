@@ -48,17 +48,19 @@ function OwnerEditionSideMenu(props: OwnerEditionSideMenuProps) {
 
   const form = useForm({
     values: {
-      address: props.owner?.banAddress ? {
-        banId: props.owner.banAddress.banId,
-        label: props.owner.banAddress.label,
-        city: props.owner.banAddress.city,
-        houseNumber: props.owner.banAddress.houseNumber,
-        postalCode: props.owner.banAddress.postalCode,
-        street: props.owner.banAddress.street,
-        latitude: props.owner.banAddress.latitude,
-        longitude: props.owner.banAddress.longitude,
-        score: props.owner.banAddress.score,
-      } : null,
+      address: props.owner?.banAddress
+        ? {
+            banId: props.owner.banAddress.banId,
+            label: props.owner.banAddress.label,
+            city: props.owner.banAddress.city,
+            houseNumber: props.owner.banAddress.houseNumber,
+            postalCode: props.owner.banAddress.postalCode,
+            street: props.owner.banAddress.street,
+            latitude: props.owner.banAddress.latitude,
+            longitude: props.owner.banAddress.longitude,
+            score: props.owner.banAddress.score
+          }
+        : null,
       additionalAddress: props.owner?.additionalAddress ?? ''
     },
     mode: 'onSubmit',
@@ -74,7 +76,8 @@ function OwnerEditionSideMenu(props: OwnerEditionSideMenuProps) {
       if (props.owner.banAddress && !values.address) {
         form.setError('address', {
           type: 'manual',
-          message: "Veuillez sélectionner une adresse depuis la liste de suggestions."
+          message:
+            'Veuillez sélectionner une adresse depuis la liste de suggestions.'
         });
         return;
       }
@@ -85,17 +88,19 @@ function OwnerEditionSideMenu(props: OwnerEditionSideMenuProps) {
       );
       await updateOwner({
         ...props.owner,
-        banAddress: values.address ? {
-          label: values.address.label,
-          score: values.address.score ?? undefined,
-          banId: values.address.banId ?? undefined,
-          houseNumber: values.address.houseNumber ?? undefined,
-          street: values.address.street ?? undefined,
-          postalCode: values.address.postalCode ?? '',
-          city: values.address.city ?? '',
-          latitude: values.address.latitude ?? undefined,
-          longitude: values.address.longitude ?? undefined
-        } : null,
+        banAddress: values.address
+          ? {
+              label: values.address.label,
+              score: values.address.score ?? undefined,
+              banId: values.address.banId ?? undefined,
+              houseNumber: values.address.houseNumber ?? undefined,
+              street: values.address.street ?? undefined,
+              postalCode: values.address.postalCode ?? '',
+              city: values.address.city ?? '',
+              latitude: values.address.latitude ?? undefined,
+              longitude: values.address.longitude ?? undefined
+            }
+          : null,
         additionalAddress: values.additionalAddress
       })
         .unwrap()
@@ -198,17 +203,21 @@ function OwnerEditionSideMenu(props: OwnerEditionSideMenuProps) {
                   name="address"
                   render={({ field, fieldState }) => (
                     <OwnerAddressEdition
-                      banAddress={field.value ? {
-                        label: field.value.label,
-                        score: field.value.score ?? undefined,
-                        banId: field.value.banId ?? undefined,
-                        houseNumber: field.value.houseNumber ?? undefined,
-                        street: field.value.street ?? undefined,
-                        postalCode: field.value.postalCode ?? '',
-                        city: field.value.city ?? '',
-                        latitude: field.value.latitude ?? undefined,
-                        longitude: field.value.longitude ?? undefined
-                      } : undefined}
+                      banAddress={
+                        field.value
+                          ? {
+                              label: field.value.label,
+                              score: field.value.score ?? undefined,
+                              banId: field.value.banId ?? undefined,
+                              houseNumber: field.value.houseNumber ?? undefined,
+                              street: field.value.street ?? undefined,
+                              postalCode: field.value.postalCode ?? '',
+                              city: field.value.city ?? '',
+                              latitude: field.value.latitude ?? undefined,
+                              longitude: field.value.longitude ?? undefined
+                            }
+                          : undefined
+                      }
                       disabled={field.disabled}
                       errorMessage={fieldState.error?.message}
                       help={false}

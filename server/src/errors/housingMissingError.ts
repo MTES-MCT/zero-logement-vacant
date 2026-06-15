@@ -10,7 +10,7 @@ export default class HousingMissingError
     super({
       name: 'HousingMissingError',
       message: `Housing ${housingId.join(', ')} missing`,
-      status: constants.HTTP_STATUS_NOT_FOUND,
+      status: constants.HTTP_STATUS_NOT_FOUND
     });
   }
 }

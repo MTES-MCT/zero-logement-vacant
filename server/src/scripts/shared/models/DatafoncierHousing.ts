@@ -6,6 +6,7 @@ import {
   toOccupancy
 } from '@zerologementvacant/models';
 import { v4 as uuidv4 } from 'uuid';
+
 import { HousingRecordApi, OwnershipKindsApi } from '~/models/HousingApi';
 
 export const toHousingRecordApi = (

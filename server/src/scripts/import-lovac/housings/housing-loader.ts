@@ -1,13 +1,14 @@
-import { Knex } from 'knex';
 import { randomUUID } from 'node:crypto';
 import path from 'node:path';
-import { match } from 'ts-pattern';
 import { WritableStream } from 'node:stream/web';
+
+import { Knex } from 'knex';
+import { match } from 'ts-pattern';
 
 import db from '~/infra/database';
 import { createLogger } from '~/infra/logger';
-import { HousingApi } from '~/models/HousingApi';
 import { HousingEventApi } from '~/models/EventApi';
+import { HousingApi } from '~/models/HousingApi';
 import eventRepository from '~/repositories/eventRepository';
 import {
   formatHousingRecordApi,
@@ -19,6 +20,7 @@ import {
 type HousingRecordInsert = ReturnType<typeof formatHousingRecordApi>;
 import { Reporter } from '~/scripts/import-lovac/infra/reporters/reporter';
 import { createUpdater } from '~/scripts/import-lovac/infra/updater';
+
 import { ExistingHousingChange } from './housing-transform';
 
 const logger = createLogger('createExistingHousingLoader');
@@ -145,4 +147,3 @@ async function updateHousings(
       housings.map((housing) => [housing.geo_code, housing.id])
     );
 }
-

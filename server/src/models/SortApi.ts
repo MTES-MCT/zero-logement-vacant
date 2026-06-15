@@ -1,10 +1,10 @@
 import { query, ValidationChain } from 'express-validator';
 import { Knex } from 'knex';
+import validator from 'validator';
+import { array, object, string } from 'yup';
 
 import { keys } from '~/utils/object';
-import validator from 'validator';
 import { isArrayOf, isString } from '~/utils/validators';
-import { array, object, string } from 'yup';
 
 type Direction = 'asc' | 'desc';
 export type Sort<Sortable extends object = object> = Partial<

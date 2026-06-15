@@ -1,4 +1,5 @@
 import { Array, pipe } from 'effect';
+
 import { contramap, DEFAULT_ORDER, max, min, Ord } from './compare';
 
 type Merger<A> = (first: A, second: A) => A;

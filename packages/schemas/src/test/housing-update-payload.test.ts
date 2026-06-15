@@ -1,6 +1,4 @@
 import { fc, test } from '@fast-check/vitest';
-import { ValidationError } from 'yup';
-
 import {
   ENERGY_CONSUMPTION_VALUES,
   getSubStatuses,
@@ -9,41 +7,39 @@ import {
   Occupancy,
   OCCUPANCY_VALUES
 } from '@zerologementvacant/models';
+import { ValidationError } from 'yup';
+
 import { housingUpdatePayload } from '../housing-update-payload';
 
 describe('Housing update payload', () => {
-  test.prop(
-    [
-      fc
-        .constantFrom(...HOUSING_STATUS_VALUES)
-        .chain((status) => {
-          const validSubs = [...getSubStatuses(status)];
-          const subStatusArb =
-            validSubs.length > 0
-              ? fc.oneof(
-                  fc.constantFrom(...validSubs),
-                  fc.constant(null),
-                  fc.constant(undefined)
-                )
-              : fc.oneof(fc.constant(null), fc.constant(undefined));
-          return fc.record({
-            status: fc.constant(status),
-            subStatus: subStatusArb,
-            occupancy: fc.constantFrom(...OCCUPANCY_VALUES),
-            occupancyIntended: fc.oneof(
-              fc.constantFrom(...OCCUPANCY_VALUES),
-              fc.constant(null),
-              fc.constant(undefined)
-            ),
-            actualEnergyConsumption: fc.oneof(
-              fc.constantFrom(...ENERGY_CONSUMPTION_VALUES),
+  test.prop([
+    fc.constantFrom(...HOUSING_STATUS_VALUES).chain((status) => {
+      const validSubs = [...getSubStatuses(status)];
+      const subStatusArb =
+        validSubs.length > 0
+          ? fc.oneof(
+              fc.constantFrom(...validSubs),
               fc.constant(null),
               fc.constant(undefined)
             )
-          });
-        })
-    ]
-  )('should validate valid inputs', (payload) => {
+          : fc.oneof(fc.constant(null), fc.constant(undefined));
+      return fc.record({
+        status: fc.constant(status),
+        subStatus: subStatusArb,
+        occupancy: fc.constantFrom(...OCCUPANCY_VALUES),
+        occupancyIntended: fc.oneof(
+          fc.constantFrom(...OCCUPANCY_VALUES),
+          fc.constant(null),
+          fc.constant(undefined)
+        ),
+        actualEnergyConsumption: fc.oneof(
+          fc.constantFrom(...ENERGY_CONSUMPTION_VALUES),
+          fc.constant(null),
+          fc.constant(undefined)
+        )
+      });
+    })
+  ])('should validate valid inputs', (payload) => {
     expect(() => housingUpdatePayload.validateSync(payload)).not.toThrow();
   });
 

@@ -1,7 +1,8 @@
 import { Request, Response, NextFunction, RequestHandler } from 'express';
 import { fileTypeFromBuffer } from 'file-type';
-import { logger } from '~/infra/logger';
+
 import BadRequestError from '~/errors/badRequestError';
+import { logger } from '~/infra/logger';
 
 /**
  * ZIP file magic bytes signatures
@@ -13,7 +14,7 @@ import BadRequestError from '~/errors/badRequestError';
 const ZIP_SIGNATURES = [
   [0x50, 0x4b, 0x03, 0x04], // Standard ZIP
   [0x50, 0x4b, 0x05, 0x06], // Empty archive
-  [0x50, 0x4b, 0x07, 0x08]  // Spanned archive
+  [0x50, 0x4b, 0x07, 0x08] // Spanned archive
 ];
 
 /**
@@ -59,17 +60,22 @@ export const zipValidationMiddleware: RequestHandler = async (
     });
 
     // Check magic bytes manually for ZIP
-    const hasZipSignature = ZIP_SIGNATURES.some(signature =>
+    const hasZipSignature = ZIP_SIGNATURES.some((signature) =>
       signature.every((byte, index) => fileBuffer[index] === byte)
     );
     const duration = Date.now() - startTime;
 
     if (!hasZipSignature) {
-      logger.warn('File is not a valid ZIP archive (magic bytes check failed)', {
-        fileName,
-        declaredMimeType,
-        firstBytes: Array.from(fileBuffer.slice(0, 4)).map((b) => (b as number).toString(16).padStart(2, '0')).join(' ')
-      });
+      logger.warn(
+        'File is not a valid ZIP archive (magic bytes check failed)',
+        {
+          fileName,
+          declaredMimeType,
+          firstBytes: Array.from(fileBuffer.slice(0, 4))
+            .map((b) => (b as number).toString(16).padStart(2, '0'))
+            .join(' ')
+        }
+      );
       throw new BadRequestError();
     }
 

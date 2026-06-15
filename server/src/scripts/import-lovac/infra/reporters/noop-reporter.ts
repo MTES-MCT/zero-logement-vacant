@@ -1,4 +1,7 @@
-import { ImportSummary, Reporter } from '~/scripts/import-lovac/infra/reporters/reporter';
+import {
+  ImportSummary,
+  Reporter
+} from '~/scripts/import-lovac/infra/reporters/reporter';
 
 class NoopReporter<T> implements Reporter<T> {
   passed(): void {}

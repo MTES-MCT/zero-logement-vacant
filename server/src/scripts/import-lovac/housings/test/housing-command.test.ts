@@ -1,8 +1,5 @@
 import { faker } from '@faker-js/faker/locale/fr';
-import {
-  HousingStatus,
-  Occupancy
-} from '@zerologementvacant/models';
+import { HousingStatus, Occupancy } from '@zerologementvacant/models';
 
 import { HousingApi } from '~/models/HousingApi';
 import {
@@ -20,15 +17,11 @@ import {
   HousingRecordDBO
 } from '~/repositories/housingRepository';
 import { createExistingHousingCommand } from '~/scripts/import-lovac/housings/housing-command';
-import {
-  genEstablishmentApi,
-  genHousingApi
-} from '~/test/testFixtures';
+import { genEstablishmentApi, genHousingApi } from '~/test/testFixtures';
 
 // Use a unique department prefix to avoid processing housings from other parallel tests.
 const TEST_DEPARTMENT = '01';
-const testGeoCode = () =>
-  TEST_DEPARTMENT + faker.string.numeric({ length: 3 });
+const testGeoCode = () => TEST_DEPARTMENT + faker.string.numeric({ length: 3 });
 
 describe('Existing housing command', () => {
   const command = createExistingHousingCommand();

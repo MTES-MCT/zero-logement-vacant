@@ -21,7 +21,7 @@ export async function up(knex: Knex): Promise<void> {
     }),
     knex.schema.table('housing_scopes_geom', function (table) {
       table.index(['geom'], 'housing_scopes_geom_idx', 'gist');
-    }),
+    })
   ]);
 }
 

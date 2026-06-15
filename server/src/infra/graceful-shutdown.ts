@@ -1,5 +1,6 @@
-import { createTerminus } from '@godaddy/terminus';
 import http from 'node:http';
+
+import { createTerminus } from '@godaddy/terminus';
 
 import { createLogger } from '~/infra/logger';
 

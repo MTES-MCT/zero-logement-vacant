@@ -1,9 +1,9 @@
 import { fr } from '@codegouvfr/react-dsfr';
 import Button from '@codegouvfr/react-dsfr/Button';
-import { styled } from '@mui/material/styles';
 import { Divider } from '@mui/material';
 import Box from '@mui/material/Box';
 import Stack from '@mui/material/Stack';
+import { styled } from '@mui/material/styles';
 import Typography from '@mui/material/Typography';
 import { useState } from 'react';
 import { useLocation } from 'react-router';

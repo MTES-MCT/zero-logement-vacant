@@ -1,9 +1,10 @@
 import { constants } from 'node:http2';
+
+import type { DashboardDTO } from '@zerologementvacant/models';
 import nock from 'nock';
 import request from 'supertest';
 import { afterEach, beforeAll, describe, expect, it } from 'vitest';
 
-import type { DashboardDTO } from '@zerologementvacant/models';
 import config from '~/infra/config';
 import { createServer } from '~/infra/server';
 import {
@@ -12,6 +13,7 @@ import {
 } from '~/repositories/establishmentRepository';
 import { toUserDBO, Users } from '~/repositories/userRepository';
 import { metabaseAPI } from '~/services/metabase/metabase-api';
+
 import { genEstablishmentApi, genUserApi } from '../../test/testFixtures';
 import { tokenProvider } from '../../test/testUtils';
 
@@ -197,7 +199,9 @@ const mockMetabaseDashboardWithBarCard = {
       col: 0,
       size_x: 6,
       size_y: 4,
-      visualization_settings: { 'card.title': 'Répartition par date de construction' },
+      visualization_settings: {
+        'card.title': 'Répartition par date de construction'
+      },
       card: {
         id: 810,
         name: 'Répartition par date de construction',
@@ -254,7 +258,9 @@ const mockMetabaseDashboardWithLineCard = {
       col: 0,
       size_x: 6,
       size_y: 4,
-      visualization_settings: { 'card.title': 'Évolution du taux de logements vacants >2 ans' },
+      visualization_settings: {
+        'card.title': 'Évolution du taux de logements vacants >2 ans'
+      },
       card: {
         id: 820,
         name: 'Évolution du taux de logements vacants >2 ans',
@@ -467,7 +473,9 @@ describe('Dashboard API', () => {
 
   describe('GET /dashboards/:id', () => {
     it('returns DashboardDTO with url and cards', async () => {
-      nock(METABASE_URL).get('/api/dashboard/13').reply(200, mockMetabaseDashboard);
+      nock(METABASE_URL)
+        .get('/api/dashboard/13')
+        .reply(200, mockMetabaseDashboard);
 
       const response = await request(url)
         .get('/dashboards/13-analyses')
@@ -657,7 +665,9 @@ describe('Dashboard API', () => {
 
   describe('GET /dashboards/:did/cards/:cid', () => {
     it('returns CardDataDTO for a scalar dashcard', async () => {
-      nock(METABASE_URL).get('/api/dashboard/13').reply(200, mockMetabaseDashboard);
+      nock(METABASE_URL)
+        .get('/api/dashboard/13')
+        .reply(200, mockMetabaseDashboard);
       nock(METABASE_URL)
         .post('/api/dashboard/13/dashcard/929/card/771/query')
         .reply(200, mockCardQueryResult);
@@ -888,7 +898,9 @@ describe('Dashboard API', () => {
     });
 
     it('returns 404 when dashcard not found', async () => {
-      nock(METABASE_URL).get('/api/dashboard/13').reply(200, mockMetabaseDashboard);
+      nock(METABASE_URL)
+        .get('/api/dashboard/13')
+        .reply(200, mockMetabaseDashboard);
 
       const response = await request(url)
         .get('/dashboards/13-analyses/cards/9999')

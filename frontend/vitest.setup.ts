@@ -2,10 +2,10 @@ import '@testing-library/jest-dom';
 import * as extended from 'jest-extended';
 import 'jest-sorted';
 import { afterAll, afterEach, beforeAll, expect, vi } from 'vitest';
-import { mockAPI } from './src/mocks/mock-api';
 
-import EventSourceMock from './src/test/event-source-mock';
 import data from './src/mocks/handlers/data';
+import { mockAPI } from './src/mocks/mock-api';
+import EventSourceMock from './src/test/event-source-mock';
 
 expect.extend(extended);
 // expect.extend(sorted);

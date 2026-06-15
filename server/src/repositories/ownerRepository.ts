@@ -1,15 +1,18 @@
+import { Readable } from 'node:stream';
+import { ReadableStream } from 'node:stream/web';
+
 import { AddressKinds, OwnerEntity } from '@zerologementvacant/models';
 import { Knex } from 'knex';
 import _ from 'lodash';
-import { Readable } from 'node:stream';
-import { ReadableStream } from 'node:stream/web';
 import { match, Pattern } from 'ts-pattern';
+
 import db, {
   ConflictOptions,
   groupBy,
   onConflict,
   where
 } from '~/infra/database';
+import { withinTransaction } from '~/infra/database/transaction';
 import { createLogger } from '~/infra/logger';
 import { AddressApi } from '~/models/AddressApi';
 import { HousingApi } from '~/models/HousingApi';
@@ -18,6 +21,7 @@ import { OwnerApi } from '~/models/OwnerApi';
 import { PaginatedResultApi } from '~/models/PaginatedResultApi';
 import { paginate, type PaginationApi } from '~/models/PaginationApi';
 import { compact } from '~/utils/object';
+
 import {
   AddressDBO,
   banAddressesTable,
@@ -25,9 +29,12 @@ import {
 } from './banAddressesRepository';
 import { campaignsHousingTable } from './campaignHousingRepository';
 import { GROUPS_HOUSING_TABLE } from './groupRepository';
-import { fromRelativeLocationDBO, HousingOwnerDBO, housingOwnersTable } from './housingOwnerRepository';
+import {
+  fromRelativeLocationDBO,
+  HousingOwnerDBO,
+  housingOwnersTable
+} from './housingOwnerRepository';
 import { housingTable, ownerHousingJoinClause } from './housingRepository';
-import { withinTransaction } from '~/infra/database/transaction';
 
 const logger = createLogger('ownerRepository');
 
@@ -156,10 +163,9 @@ function stream(
   return Readable.toWeb(stream);
 }
 
-interface FindOneOptions
-  extends Partial<
-    Pick<OwnerApi, 'id' | 'idpersonne' | 'fullName' | 'rawAddress'>
-  > {
+interface FindOneOptions extends Partial<
+  Pick<OwnerApi, 'id' | 'idpersonne' | 'fullName' | 'rawAddress'>
+> {
   birthDate?: Date;
 }
 

@@ -2,10 +2,10 @@ import { yupResolver } from '@hookform/resolvers/yup';
 import Box from '@mui/material/Box';
 import Stack from '@mui/material/Stack';
 import Typography from '@mui/material/Typography';
-import { useForm, type SubmitHandler } from 'react-hook-form';
 import schemas from '@zerologementvacant/schemas';
-import { object, string, type InferType } from 'yup';
 import { createPortal } from 'react-dom';
+import { useForm, type SubmitHandler } from 'react-hook-form';
+import { object, string, type InferType } from 'yup';
 
 import AppTextInputNext from '~/components/_app/AppTextInput/AppTextInputNext';
 import {
@@ -79,7 +79,12 @@ export function createCampaignFromGroupModal(
             onClose={form.reset}
             title="Créer une campagne"
           >
-            <Stack direction="row" spacing="1rem" useFlexGap sx={{ mt: '-1rem', mb: '0.5rem' }}>
+            <Stack
+              direction="row"
+              spacing="1rem"
+              useFlexGap
+              sx={{ mt: '-1rem', mb: '0.5rem' }}
+            >
               <Stack
                 direction="row"
                 spacing="0.25rem"
@@ -105,7 +110,8 @@ export function createCampaignFromGroupModal(
             </Stack>
 
             <Typography variant="body2" sx={{ mb: '0.25rem' }}>
-              Une fois la campagne créée, les logements « Non suivi » passeront « En attente de retour ».
+              Une fois la campagne créée, les logements « Non suivi » passeront
+              « En attente de retour ».
             </Typography>
 
             <Box sx={{ '& .fr-input-group': { marginBottom: '0.75rem' } }}>
@@ -133,7 +139,6 @@ export function createCampaignFromGroupModal(
                 contramapValue={(value) => value || null}
               />
             </Box>
-
           </modal.Component>
         </form>
       );

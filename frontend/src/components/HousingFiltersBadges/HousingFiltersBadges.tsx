@@ -55,7 +55,6 @@ import {
   getSubStatusList,
   getSubStatusOptions
 } from '../../models/HousingState';
-
 import { CITIES_WITH_DISTRICTS } from '../../models/Locality';
 import { getPrecision } from '../../models/Precision';
 import { useListGeoPerimetersQuery } from '../../services/geo.service';

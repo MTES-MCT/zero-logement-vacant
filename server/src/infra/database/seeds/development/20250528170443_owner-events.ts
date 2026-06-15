@@ -51,5 +51,5 @@ export async function seed(knex: Knex): Promise<void> {
     ownerEvents.map(formatOwnerEventApi)
   );
   console.timeEnd('20250528170443_owner-events');
-  console.log('\n')
+  console.log('\n');
 }

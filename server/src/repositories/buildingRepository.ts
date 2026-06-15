@@ -123,7 +123,7 @@ export function parseBuildingApi(building: BuildingDBO): BuildingApi {
           .with(Pattern.instanceOf(Date), (date) =>
             date.toISOString().substring(0, 'yyyy-mm-dd'.length)
           )
-          .otherwise(date => date as string),
+          .otherwise((date) => date as string),
         type: building.dpe_type as
           | 'dpe appartement individuel'
           | 'dpe maison individuelle',

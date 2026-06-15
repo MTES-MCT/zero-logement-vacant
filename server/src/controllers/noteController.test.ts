@@ -1,9 +1,10 @@
+import { constants } from 'http2';
+
 import { faker } from '@faker-js/faker/locale/fr';
 import { fc, test } from '@fast-check/vitest';
-
 import { NoteDTO, NotePayloadDTO, UserRole } from '@zerologementvacant/models';
-import { constants } from 'http2';
 import request from 'supertest';
+
 import { createServer } from '~/infra/server';
 import { HousingNoteApi, NoteApi } from '~/models/NoteApi';
 import { UserApi } from '~/models/UserApi';

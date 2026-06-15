@@ -6,13 +6,13 @@ function validate<T>(schema: joi.Schema<T>) {
       abortEarly: true,
       convert: true,
       presence: 'required',
-      stripUnknown: true,
+      stripUnknown: true
     });
   };
 }
 
 const validator = {
-  validate,
+  validate
 };
 
 export default validator;

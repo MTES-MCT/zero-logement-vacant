@@ -7,8 +7,7 @@ export const SirenStrasbourg = '246700488';
 export const SirenSaintLo = '200066389';
 export const SirenBasRhin = '130010218';
 
-export const ZeroLogementVacantEstablishment =
-  'ZLV Démo';
+export const ZeroLogementVacantEstablishment = 'ZLV Démo';
 
 export async function seed(knex: Knex): Promise<void> {
   console.time('20240404235442_establishments');
@@ -31,5 +30,5 @@ export async function seed(knex: Knex): Promise<void> {
     updated_at: new Date()
   });
   console.timeEnd('20240404235442_establishments');
-  console.log('\n')
+  console.log('\n');
 }

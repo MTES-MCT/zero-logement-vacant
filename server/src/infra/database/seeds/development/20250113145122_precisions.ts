@@ -62,5 +62,5 @@ export async function seed(knex: Knex): Promise<void> {
   );
   await knex.batchInsert(HOUSING_PRECISION_TABLE, housingPrecisions);
   console.timeEnd('20250113145122_precisions');
-  console.log('\n')
+  console.log('\n');
 }

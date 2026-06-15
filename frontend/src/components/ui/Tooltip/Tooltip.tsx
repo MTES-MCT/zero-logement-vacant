@@ -3,6 +3,7 @@ import DSFRTooltip, {
   type TooltipProps as DSFRTooltipProps
 } from '@codegouvfr/react-dsfr/Tooltip';
 import { memo, useEffect, useId, useRef } from 'react';
+
 import Icon from '~/components/ui/Icon';
 
 /**

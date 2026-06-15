@@ -1,13 +1,13 @@
+import { Button } from '@codegouvfr/react-dsfr/Button';
 import Container from '@mui/material/Container';
 import Modal, { type ModalProps } from '@mui/material/Modal';
+import Paper from '@mui/material/Paper';
 import Stack from '@mui/material/Stack';
+import { styled } from '@mui/material/styles';
 import type { DocumentDTO } from '@zerologementvacant/models';
 
 import DocumentCyclingBar from './DocumentCyclingBar';
 import DocumentPreview from './DocumentPreview';
-import { styled } from '@mui/material/styles';
-import { Button } from '@codegouvfr/react-dsfr/Button';
-import Paper from '@mui/material/Paper';
 
 const CenteredDocumentPreview = styled(DocumentPreview)({
   flex: 1,

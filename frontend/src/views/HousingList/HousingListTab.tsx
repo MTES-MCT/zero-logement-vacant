@@ -7,6 +7,7 @@ import { useState } from 'react';
 import { useParams } from 'react-router';
 
 import { useNotification } from '~/hooks/useNotification';
+
 import GroupRemoveHousingModal from '../../components/GroupRemoveHousingModal/GroupRemoveHousingModal';
 import HousingListEditionSideMenu, {
   type BatchEditionFormSchema
@@ -16,7 +17,10 @@ import SelectableListHeader from '../../components/SelectableListHeader/Selectab
 import SelectableListHeaderActions from '../../components/SelectableListHeader/SelectableListHeaderActions';
 import { useSelection } from '../../hooks/useSelection';
 import type { SelectedHousing } from '../../models/Housing';
-import { displayHousingCount, type HousingCount } from '../../models/HousingCount';
+import {
+  displayHousingCount,
+  type HousingCount
+} from '../../models/HousingCount';
 import type { HousingFilters } from '../../models/HousingFilters';
 import {
   useGetGroupQuery,
@@ -76,7 +80,7 @@ function HousingListTab(props: HousingListTabProps) {
       note: payload.note ?? undefined,
       precisions:
         payload.precisions?.map((precision) => precision.id) ?? undefined,
-      documents: payload.documents?.map(document => document.id) ?? undefined,
+      documents: payload.documents?.map((document) => document.id) ?? undefined,
       filters: {
         ...props.filters,
         all: selected.all,
@@ -107,7 +111,7 @@ function HousingListTab(props: HousingListTabProps) {
       loading: 'Modification des logements sélectionnés...',
       success: 'Logements modifiés !'
     }
-  })
+  });
 
   const params = useParams<{ id?: string }>();
   const { data: group } = useGetGroupQuery(params?.id ?? '', {

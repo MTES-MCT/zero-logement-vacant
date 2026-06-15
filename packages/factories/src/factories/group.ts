@@ -1,6 +1,7 @@
-import { Factory } from 'fishery';
 import { faker } from '@faker-js/faker/locale/fr';
 import { type GroupDTO } from '@zerologementvacant/models';
+import { Factory } from 'fishery';
+
 import type { Adapter } from '../adapter';
 
 export function createGroupFactory(adapter: Adapter) {

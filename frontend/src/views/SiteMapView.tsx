@@ -1,6 +1,7 @@
 import Container from '@mui/material/Container';
 import Typography from '@mui/material/Typography';
 import { Link } from 'react-router';
+
 import { useDocumentTitle } from '~/hooks/useDocumentTitle';
 
 interface Route {

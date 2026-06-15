@@ -2,8 +2,8 @@ import { usePostHog } from 'posthog-js/react';
 import { type PropsWithChildren, useEffect } from 'react';
 import { Navigate, useLocation } from 'react-router';
 
-import { useUser } from '../../hooks/useUser';
 import { useFetchInterceptor } from '../../hooks/useFetchInterceptor';
+import { useUser } from '../../hooks/useUser';
 
 // eslint-disable-next-line @typescript-eslint/no-empty-object-type
 interface RequireAuthProps {}

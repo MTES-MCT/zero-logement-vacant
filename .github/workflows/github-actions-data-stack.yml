@@ -37,7 +37,7 @@ jobs:
         working-directory: analytics/dagster
         env:
           POSTGRES_PRODUCTION_DB: localhost
-          POSTGRES_PRODUCTION_PORT: "5432"
+          POSTGRES_PRODUCTION_PORT: '5432'
           POSTGRES_PRODUCTION_DB_NAME: ci
           POSTGRES_PRODUCTION_WRITE_ACCESS_USER: ci
           POSTGRES_PRODUCTION_WRITE_ACCESS_PASSWORD: ci
@@ -105,7 +105,7 @@ jobs:
       - name: Upload DBT Docs to Cellar
         if: false
         env:
-          DBT_DOC_BUCKET_NAME:  ${{ vars.DBT_DOC_BUCKET_NAME }}
+          DBT_DOC_BUCKET_NAME: ${{ vars.DBT_DOC_BUCKET_NAME }}
         run: |
           aws s3 cp analytics/dbt_docs/index.html s3://$DBT_DOC_BUCKET_NAME/index.html --acl public-read --endpoint-url https://cellar-c2.services.clever-cloud.com --no-verify-ssl
           aws s3 cp analytics/dbt_docs/manifest.json s3://$DBT_DOC_BUCKET_NAME/manifest.json --acl public-read --endpoint-url https://cellar-c2.services.clever-cloud.com --no-verify-ssl

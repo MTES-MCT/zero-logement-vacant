@@ -26,7 +26,7 @@ export interface DocumentsTabProps {
   onUpload: HousingDocumentUploadProps['onUpload'];
   onRename(document: DocumentDTO): void;
   onDelete: DocumentCardProps['onDelete'];
-};
+}
 
 function DocumentsTab(props: Readonly<DocumentsTabProps>) {
   const documentRenameModalId = useId();

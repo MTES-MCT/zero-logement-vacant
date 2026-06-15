@@ -1,3 +1,6 @@
+import { Readable } from 'node:stream';
+import { ReadableStream } from 'node:stream/web';
+
 import {
   AddressKinds,
   DataFileYear,
@@ -24,8 +27,6 @@ import type { Point } from 'geojson';
 import { Set } from 'immutable';
 import { Knex } from 'knex';
 import { uniq } from 'lodash-es';
-import { Readable } from 'node:stream';
-import { ReadableStream } from 'node:stream/web';
 import { match, Pattern } from 'ts-pattern';
 
 import db, { toRawArray, where } from '~/infra/database';
@@ -50,6 +51,7 @@ import {
   PRECISION_TABLE
 } from '~/repositories/precisionRepository';
 import { createArrayAddressSearchCondition } from '~/utils/addressNormalization';
+
 import { AddressDBO, banAddressesTable } from './banAddressesRepository';
 import { campaignsHousingTable } from './campaignHousingRepository';
 import { campaignsTable } from './campaignRepository';
@@ -649,7 +651,9 @@ function filteredQuery(opts: FilteredQueryOptions) {
       });
     }
     if (filters.relativeLocations?.length) {
-      const numericValues = filters.relativeLocations.flatMap(relativeLocationFilterToDBO);
+      const numericValues = filters.relativeLocations.flatMap(
+        relativeLocationFilterToDBO
+      );
       queryBuilder.whereExists((subquery) => {
         subquery
           .from(housingOwnersTable)

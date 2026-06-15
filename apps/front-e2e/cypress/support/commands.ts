@@ -130,15 +130,18 @@ Cypress.Commands.add('createGroup', (payload: GroupPayload) => {
   );
 });
 
-Cypress.Commands.add('createCampaignFromGroup', (groupId: GroupDTO['id'], payload: CampaignCreationPayload) => {
-  return cy.getToken().then((token) =>
-    cy.request({
-      method: 'POST',
-      url: Cypress.env('API') + `/groups/${groupId}/campaigns`,
-      body: payload,
-      headers: {
-        'X-Access-Token': token
-      }
-    })
-  );
-});
+Cypress.Commands.add(
+  'createCampaignFromGroup',
+  (groupId: GroupDTO['id'], payload: CampaignCreationPayload) => {
+    return cy.getToken().then((token) =>
+      cy.request({
+        method: 'POST',
+        url: Cypress.env('API') + `/groups/${groupId}/campaigns`,
+        body: payload,
+        headers: {
+          'X-Access-Token': token
+        }
+      })
+    );
+  }
+);

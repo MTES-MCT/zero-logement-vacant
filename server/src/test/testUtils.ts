@@ -11,8 +11,8 @@ export function tokenProvider(user: UserApi): Plugin {
     request.set({
       'x-access-token': createTestToken({
         userId: user.id,
-        establishmentId: user.establishmentId as string,
-      }),
+        establishmentId: user.establishmentId as string
+      })
     });
   };
 }

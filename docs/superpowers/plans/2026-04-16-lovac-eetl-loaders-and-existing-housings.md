@@ -49,6 +49,7 @@ cli.ts                                   MODIFY register `existing-housings` sub
 ## Task 1: Extract `createOwnerLoader`
 
 **Files:**
+
 - Create: `server/src/scripts/import-lovac/source-owners/source-owner-loader.ts`
 - Create: `server/src/scripts/import-lovac/source-owners/test/source-owner-loader.test.ts`
 - Modify: `server/src/scripts/import-lovac/source-owners/source-owner-command.ts`
@@ -96,7 +97,11 @@ describe('createOwnerLoader', () => {
       full_name: 'CHANGED NAME',
       updated_at: new Date()
     };
-    const change: OwnerChange = { type: 'owner', kind: 'update', value: updated };
+    const change: OwnerChange = {
+      type: 'owner',
+      kind: 'update',
+      value: updated
+    };
 
     await ReadableStream.from([change]).pipeTo(
       createOwnerLoader({ dryRun: false, reporter })
@@ -127,7 +132,11 @@ describe('createOwnerLoader', () => {
     const newOwner = formatOwnerApi(genOwnerApi());
     const existing = formatOwnerApi(genOwnerApi());
     await Owners().insert(existing);
-    const updated: OwnerRecordDBO = { ...existing, full_name: 'X', updated_at: new Date() };
+    const updated: OwnerRecordDBO = {
+      ...existing,
+      full_name: 'X',
+      updated_at: new Date()
+    };
 
     const changes: OwnerChange[] = [
       { type: 'owner', kind: 'create', value: newOwner },
@@ -394,6 +403,7 @@ git commit -m "feat(server): extract source-owner load sink into createOwnerLoad
 ## Task 2: Extract `createHousingOwnerLoader`
 
 **Files:**
+
 - Create: `server/src/scripts/import-lovac/source-housing-owners/source-housing-owner-loader.ts`
 - Create: `server/src/scripts/import-lovac/source-housing-owners/test/source-housing-owner-loader.test.ts`
 - Modify: `server/src/scripts/import-lovac/source-housing-owners/source-housing-owner-command.ts`
@@ -405,7 +415,10 @@ The two sinks in `source-housing-owner-command.ts:118-170` collapse into one dem
 ```typescript
 // server/src/scripts/import-lovac/source-housing-owners/test/source-housing-owner-loader.test.ts
 import { faker } from '@faker-js/faker/locale/fr';
-import { ACTIVE_OWNER_RANKS, ActiveOwnerRank } from '@zerologementvacant/models';
+import {
+  ACTIVE_OWNER_RANKS,
+  ActiveOwnerRank
+} from '@zerologementvacant/models';
 import { ReadableStream } from 'node:stream/web';
 
 import {
@@ -421,10 +434,7 @@ import {
   formatHousingRecordApi,
   Housing
 } from '~/repositories/housingRepository';
-import {
-  formatOwnerApi,
-  Owners
-} from '~/repositories/ownerRepository';
+import { formatOwnerApi, Owners } from '~/repositories/ownerRepository';
 import { createNoopReporter } from '~/scripts/import-lovac/infra/reporters/noop-reporter';
 import { createHousingOwnerLoader } from '../source-housing-owner-loader';
 import {
@@ -476,11 +486,10 @@ describe('createHousingOwnerLoader', () => {
       createHousingOwnerLoader({ dryRun: false, reporter })
     );
 
-    const actual = await HousingOwners()
-      .where({
-        housing_geo_code: housing.geoCode,
-        housing_id: housing.id
-      });
+    const actual = await HousingOwners().where({
+      housing_geo_code: housing.geoCode,
+      housing_id: housing.id
+    });
     expect(actual).toHaveLength(1);
     expect(actual[0].owner_id).toBe(owner.id);
   });
@@ -533,8 +542,10 @@ describe('createHousingOwnerLoader', () => {
       createHousingOwnerLoader({ dryRun: true, reporter })
     );
 
-    const actual = await HousingOwners()
-      .where({ housing_geo_code: housing.geoCode, housing_id: housing.id });
+    const actual = await HousingOwners().where({
+      housing_geo_code: housing.geoCode,
+      housing_id: housing.id
+    });
     expect(actual).toHaveLength(0);
   });
 });
@@ -604,7 +615,9 @@ export function createHousingOwnerLoader(
           housing_id: housingId
         })
         .delete();
-      await HousingOwners(transaction).insert(housingOwners as HousingOwnerDBO[]);
+      await HousingOwners(transaction).insert(
+        housingOwners as HousingOwnerDBO[]
+      );
     });
   }
 
@@ -812,6 +825,7 @@ git commit -m "feat(server): extract source-housing-owner load sinks into create
 ## Task 3: Extract `createHousingLoader` (Phase 2 only)
 
 **Files:**
+
 - Create: `server/src/scripts/import-lovac/source-housings/source-housing-loader.ts`
 - Create: `server/src/scripts/import-lovac/source-housings/test/source-housing-loader.test.ts`
 - Modify: `server/src/scripts/import-lovac/source-housings/source-housing-command.ts`
@@ -1190,7 +1204,9 @@ export async function updateHousings(
     );
 }
 
-function stripReadOnlyFields(housing: HousingRecordInsert): HousingRecordInsert {
+function stripReadOnlyFields(
+  housing: HousingRecordInsert
+): HousingRecordInsert {
   const {
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
     last_mutation_type,
@@ -1232,6 +1248,7 @@ import { createHousingLoader } from '~/scripts/import-lovac/source-housings/sour
 ```
 
 (c) Drop these now-unused imports (they were only used by Phase 2's tee'd sinks):
+
 - `chunkify`, `filter` from `@zerologementvacant/utils/node` (Phase 1 still uses `filter` for the Phase 1 update path — re-check after typecheck and only drop what's truly unused)
 - `Addresses`, `formatAddressApi` from `~/repositories/banAddressesRepository`
 - `WritableStream` from `node:stream/web` (Phase 3 still uses it inline — keep until Task 8)
@@ -1241,45 +1258,45 @@ The typecheck step (3.6) will surface any leftover orphan imports.
 (d) Replace the Phase 2 main import block (lines 189-311 in the current file):
 
 ```typescript
-      logger.info('Starting import...', { file });
-      await createSourceHousingRepository({
-        ...config.s3,
-        file: file,
-        from: options.from
+logger.info('Starting import...', { file });
+await createSourceHousingRepository({
+  ...config.s3,
+  file: file,
+  from: options.from
+})
+  .stream({ departments })
+  .pipeThrough(
+    progress({
+      initial: 0,
+      total: total,
+      name: '(2/3) Importing from LOVAC'
+    })
+  )
+  .pipeThrough(
+    validator(sourceHousingSchema, {
+      abortEarly: options.abortEarly,
+      reporter: sourceHousingReporter
+    })
+  )
+  .pipeThrough(createSourceHousingEnricher())
+  .pipeThrough(
+    map(
+      createHousingTransform({
+        abortEarly: options.abortEarly,
+        adminUserId: auth.id,
+        reporter: sourceHousingReporter,
+        year: options.year
       })
-        .stream({ departments })
-        .pipeThrough(
-          progress({
-            initial: 0,
-            total: total,
-            name: '(2/3) Importing from LOVAC'
-          })
-        )
-        .pipeThrough(
-          validator(sourceHousingSchema, {
-            abortEarly: options.abortEarly,
-            reporter: sourceHousingReporter
-          })
-        )
-        .pipeThrough(createSourceHousingEnricher())
-        .pipeThrough(
-          map(
-            createHousingTransform({
-              abortEarly: options.abortEarly,
-              adminUserId: auth.id,
-              reporter: sourceHousingReporter,
-              year: options.year
-            })
-          )
-        )
-        .pipeThrough(flatten())
-        .pipeTo(
-          createHousingLoader({
-            dryRun: options.dryRun,
-            reporter: sourceHousingReporter
-          })
-        );
-      logger.info(`File ${file} imported.`);
+    )
+  )
+  .pipeThrough(flatten())
+  .pipeTo(
+    createHousingLoader({
+      dryRun: options.dryRun,
+      reporter: sourceHousingReporter
+    })
+  );
+logger.info(`File ${file} imported.`);
 ```
 
 (e) Remove the now-unused exported helpers `insertHousings`, `updateHousings`, and `stripReadOnlyFields` from `source-housing-command.ts` — they live in `source-housing-loader.ts` now. The `findOneHousing` helper stays (Phase 1 uses it).
@@ -1321,6 +1338,7 @@ git commit -m "feat(server): extract source-housing load sinks into createHousin
 ## Task 4: Build `housings/housing-transform.ts`
 
 **Files:**
+
 - Create: `server/src/scripts/import-lovac/housings/housing-transform.ts`
 - Create: `server/src/scripts/import-lovac/housings/test/housing-transform.test.ts`
 
@@ -1347,7 +1365,11 @@ import {
   isCompleted,
   isInProgress
 } from '~/scripts/import-lovac/housings/housing-transform';
-import { genEstablishmentApi, genHousingApi, genUserApi } from '~/test/testFixtures';
+import {
+  genEstablishmentApi,
+  genHousingApi,
+  genUserApi
+} from '~/test/testFixtures';
 
 describe('createExistingHousingTransform', () => {
   const establishment = genEstablishmentApi();
@@ -1412,18 +1434,23 @@ describe('createExistingHousingTransform', () => {
         (status) => status !== HousingStatus.COMPLETED
       ).filter((status) => status !== HousingStatus.IN_PROGRESS);
 
-      it.each(statuses)('should be set as out of vacancy otherwise', (status) => {
-        const actual = transform({ ...housing, status });
-        expect(actual).toPartiallyContain<HousingUpdateChange>({
-          type: 'housing',
-          kind: 'update',
-          value: expect.objectContaining<Partial<HousingUpdateChange['value']>>({
-            occupancy: Occupancy.UNKNOWN,
-            status: HousingStatus.COMPLETED,
-            subStatus: 'Sortie de la vacance'
-          })
-        });
-      });
+      it.each(statuses)(
+        'should be set as out of vacancy otherwise',
+        (status) => {
+          const actual = transform({ ...housing, status });
+          expect(actual).toPartiallyContain<HousingUpdateChange>({
+            type: 'housing',
+            kind: 'update',
+            value: expect.objectContaining<
+              Partial<HousingUpdateChange['value']>
+            >({
+              occupancy: Occupancy.UNKNOWN,
+              status: HousingStatus.COMPLETED,
+              subStatus: 'Sortie de la vacance'
+            })
+          });
+        }
+      );
 
       it('should create a "Changement de statut d’occupation" event', () => {
         const actual = transform(housing);
@@ -1538,8 +1565,7 @@ export type HousingEventChange = Change<HousingEventApi, 'event'> & {
 };
 export type ExistingHousingChange = HousingUpdateChange | HousingEventChange;
 
-export interface ExistingHousingTransformOptions
-  extends ReporterOptions<HousingApi> {
+export interface ExistingHousingTransformOptions extends ReporterOptions<HousingApi> {
   auth: UserApi;
   year: string;
 }
@@ -1661,6 +1687,7 @@ git commit -m "feat(server): add existing-housing transform (port of housing-pro
 ## Task 5: Build `housings/housing-loader.ts`
 
 **Files:**
+
 - Create: `server/src/scripts/import-lovac/housings/housing-loader.ts`
 - Create: `server/src/scripts/import-lovac/housings/test/housing-loader.test.ts`
 
@@ -1670,10 +1697,7 @@ Demultiplexer for `ExistingHousingChange`. Updates pass through `formatHousingRe
 
 ```typescript
 // server/src/scripts/import-lovac/housings/test/housing-loader.test.ts
-import {
-  HousingStatus,
-  Occupancy
-} from '@zerologementvacant/models';
+import { HousingStatus, Occupancy } from '@zerologementvacant/models';
 import { v4 as uuidv4 } from 'uuid';
 import { ReadableStream } from 'node:stream/web';
 
@@ -1964,6 +1988,7 @@ git commit -m "feat(server): add existing-housing loader"
 ## Task 6: Build `housings/housing-command.ts`
 
 **Files:**
+
 - Create: `server/src/scripts/import-lovac/housings/housing-command.ts`
 - Create: `server/src/scripts/import-lovac/housings/test/housing-command.test.ts`
 
@@ -1974,10 +1999,7 @@ Wires `housingRepository.stream → progress → transform → loader` and handl
 ```typescript
 // server/src/scripts/import-lovac/housings/test/housing-command.test.ts
 import { faker } from '@faker-js/faker/locale/fr';
-import {
-  HousingStatus,
-  Occupancy
-} from '@zerologementvacant/models';
+import { HousingStatus, Occupancy } from '@zerologementvacant/models';
 
 import config from '~/infra/config';
 import { HousingApi } from '~/models/HousingApi';
@@ -2215,9 +2237,7 @@ export function createExistingHousingCommand() {
         ALTER TABLE fast_housing DISABLE TRIGGER housing_delete_building_trigger;
       `);
 
-      const total = await count(
-        housingRepository.stream({ filters: {} })
-      );
+      const total = await count(housingRepository.stream({ filters: {} }));
 
       logger.info('Starting verification...', { total });
       await housingRepository
@@ -2331,6 +2351,7 @@ git commit -m "feat(server): add existing-housings standalone command"
 ## Task 7: Register `existing-housings` CLI subcommand
 
 **Files:**
+
 - Modify: `server/src/scripts/import-lovac/cli.ts`
 
 - [ ] **Step 7.1: Add the import and the subcommand registration**
@@ -2385,6 +2406,7 @@ git commit -m "feat(server): register existing-housings CLI subcommand"
 ## Task 8: Remove Phase 3 from `source-housing-command.ts`; delete `housing-processor.ts`
 
 **Files:**
+
 - Modify: `server/src/scripts/import-lovac/source-housings/source-housing-command.ts`
 - Modify: `server/src/scripts/import-lovac/source-housings/test/source-housing-command.test.ts`
 - Delete: `server/src/scripts/import-lovac/housings/housing-processor.ts`
@@ -2393,6 +2415,7 @@ git commit -m "feat(server): register existing-housings CLI subcommand"
 - [ ] **Step 8.1: Remove Phase 3 block from `source-housing-command.ts`**
 
 In `server/src/scripts/import-lovac/source-housings/source-housing-command.ts`, delete the entire Phase 3 block:
+
 - From `logger.info('Checking for missing housings from the file...')` (around current line 314)
 - Through the end of the second `await Promise.all([...])` block + the `logger.info('Check done.')` line (around current line 390)
 
@@ -2401,10 +2424,12 @@ In `server/src/scripts/import-lovac/source-housings/source-housing-command.ts`, 
 **Keep the trigger disable/enable** in `try`/`finally`. They protect Phase 2's bulk inserts.
 
 Other deletions:
+
 - The `housingReporter` variable declaration (`const housingReporter = createLoggerReporter<HousingApi>();`)
 - The `housingReporter.report()` call in `finally`
 
 Imports to remove (will be confirmed by typecheck):
+
 - `chunkify` from `@zerologementvacant/utils/node` (Phase-3-only; Phase 2 used the loader's internal chunking)
 - `WritableStream` from `node:stream/web` (Phase 3's inline writables are gone; Phase 2 uses the loader)
 - `createHousingProcessor` and `HousingEventChange` from `~/scripts/import-lovac/housings/housing-processor`
@@ -2412,6 +2437,7 @@ Imports to remove (will be confirmed by typecheck):
 - `HousingApi` (was used to type `housingReporter`; no longer needed)
 
 Imports to keep:
+
 - `parseHousingApi`, `HousingDBO` (Phase 1's `findOneHousing`)
 - `Housing`, `housingTable`, `HousingRecordDBO` (Phase 1's `createUpdater` config + helpers)
 - `formatHousingRecordApi` only if still referenced — drop if not

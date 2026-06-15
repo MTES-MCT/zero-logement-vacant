@@ -1,11 +1,12 @@
-import express, { Request, Response } from 'express';
 import { constants } from 'http2';
+
+import express, { Request, Response } from 'express';
 import request from 'supertest';
 import { v4 as uuidv4 } from 'uuid';
 import { object, string } from 'yup';
 
-import validatorNext from '~/middlewares/validator-next';
 import errorHandler from '~/middlewares/error-handler';
+import validatorNext from '~/middlewares/validator-next';
 
 describe('ValidatorNext middleware', () => {
   describe('Integration test', () => {

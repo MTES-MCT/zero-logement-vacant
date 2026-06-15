@@ -9,24 +9,24 @@
 
 ## Before (Vite 7.2.2 + plugin-react-swc 3.11.0)
 
-| Metric | Time |
-|---|---|
-| Production build | 11.756s |
-| Test suite | 1m 32.271s |
+| Metric                | Time            |
+| --------------------- | --------------- |
+| Production build      | 11.756s         |
+| Test suite            | 1m 32.271s      |
 | Dev server cold start | ready in 229 ms |
 
 ## After (Vite 8 + plugin-react 6)
 
-| Metric | Time |
-|---|---|
-| Production build | 3.229s |
-| Test suite | 1m 23.017s |
+| Metric                | Time            |
+| --------------------- | --------------- |
+| Production build      | 3.229s          |
+| Test suite            | 1m 23.017s      |
 | Dev server cold start | ready in 137 ms |
 
 ## Delta
 
-| Metric | Before | After | Δ |
-|---|---|---|---|
-| Production build | 11.756s | 3.229s | -8.527s |
-| Test suite | 1m 32.271s | 1m 23.017s | -9.254s |
-| Dev server cold start | 229 ms | 137 ms | -92 ms |
+| Metric                | Before     | After      | Δ       |
+| --------------------- | ---------- | ---------- | ------- |
+| Production build      | 11.756s    | 3.229s     | -8.527s |
+| Test suite            | 1m 32.271s | 1m 23.017s | -9.254s |
+| Dev server cold start | 229 ms     | 137 ms     | -92 ms  |

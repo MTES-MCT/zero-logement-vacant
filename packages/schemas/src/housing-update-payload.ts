@@ -1,5 +1,3 @@
-import { number, object, ObjectSchema, string } from 'yup';
-
 import {
   ENERGY_CONSUMPTION_VALUES,
   getSubStatuses,
@@ -8,6 +6,7 @@ import {
   isHousingStatus,
   OCCUPANCY_VALUES
 } from '@zerologementvacant/models';
+import { number, object, ObjectSchema, string } from 'yup';
 
 export const housingUpdatePayload: ObjectSchema<HousingUpdatePayloadDTO> =
   object({

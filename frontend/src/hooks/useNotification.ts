@@ -51,6 +51,6 @@ export function useNotification(props: NotificationProps) {
     props.message?.error,
     props.message?.loading,
     props.message?.success,
-    toastId,
+    toastId
   ]);
 }

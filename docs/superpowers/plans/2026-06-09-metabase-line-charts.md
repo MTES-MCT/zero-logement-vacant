@@ -12,24 +12,25 @@
 
 ## File Map
 
-| File | Change |
-|------|--------|
-| `packages/models/src/DashboardDTO.ts` | Add `LineChartCard`, `LineChartDataDTO`, extend unions |
-| `packages/models/src/test/fixtures.ts` | Add `genLineChartCard()`, `genLineChartDataDTO()` |
-| `server/src/services/metabase/metabase-service.ts` | Add `LineChartValue`, extend `CardValue` |
-| `server/src/services/metabase/metabase-api.ts` | Detect `line`, handle line chart in `getCardValue` and `findDashcardRef` |
-| `server/src/controllers/dashboardController.ts` | Handle `LineChartDataDTO` response |
-| `server/src/controllers/test/dashboard-api.test.ts` | Add line chart API tests |
-| `frontend/src/components/Analysis/LineChartDisplay.tsx` | New component using DSFR `LineChart` + transcription |
-| `frontend/src/components/Analysis/ChartTranscription.tsx` | Add `'line-chart'` arm |
-| `frontend/src/components/Analysis/AnalysisCard.tsx` | Add line-chart dispatch arm |
-| `frontend/src/components/Analysis/test/AnalysisCard.test.tsx` | Add line chart + transcription tests |
+| File                                                          | Change                                                                   |
+| ------------------------------------------------------------- | ------------------------------------------------------------------------ |
+| `packages/models/src/DashboardDTO.ts`                         | Add `LineChartCard`, `LineChartDataDTO`, extend unions                   |
+| `packages/models/src/test/fixtures.ts`                        | Add `genLineChartCard()`, `genLineChartDataDTO()`                        |
+| `server/src/services/metabase/metabase-service.ts`            | Add `LineChartValue`, extend `CardValue`                                 |
+| `server/src/services/metabase/metabase-api.ts`                | Detect `line`, handle line chart in `getCardValue` and `findDashcardRef` |
+| `server/src/controllers/dashboardController.ts`               | Handle `LineChartDataDTO` response                                       |
+| `server/src/controllers/test/dashboard-api.test.ts`           | Add line chart API tests                                                 |
+| `frontend/src/components/Analysis/LineChartDisplay.tsx`       | New component using DSFR `LineChart` + transcription                     |
+| `frontend/src/components/Analysis/ChartTranscription.tsx`     | Add `'line-chart'` arm                                                   |
+| `frontend/src/components/Analysis/AnalysisCard.tsx`           | Add line-chart dispatch arm                                              |
+| `frontend/src/components/Analysis/test/AnalysisCard.test.tsx` | Add line chart + transcription tests                                     |
 
 ---
 
 ## Task 1: Extend data model types
 
 **Files:**
+
 - Modify: `packages/models/src/DashboardDTO.ts`
 
 - [ ] **Step 1: Add `LineChartCard`, `LineChartDataDTO`, extend the unions**
@@ -97,7 +98,10 @@ interface WithoutTabs {
   cards: ReadonlyArray<DashboardCard>;
 }
 
-export type DashboardDTO = { id: number; url: string } & (WithTabs | WithoutTabs);
+export type DashboardDTO = { id: number; url: string } & (
+  | WithTabs
+  | WithoutTabs
+);
 
 export interface ScalarCardDataDTO {
   id: number;
@@ -163,6 +167,7 @@ git commit -m "feat(models): add LineChartCard and LineChartDataDTO types"
 ## Task 2: Add fixtures
 
 **Files:**
+
 - Modify: `packages/models/src/test/fixtures.ts`
 
 - [ ] **Step 1: Add `genLineChartCard` and `genLineChartDataDTO` after `genBarChartDataDTO`**
@@ -227,6 +232,7 @@ git commit -m "feat(models): add genLineChartCard and genLineChartDataDTO fixtur
 ## Task 3: Backend failing tests
 
 **Files:**
+
 - Modify: `server/src/controllers/test/dashboard-api.test.ts`
 
 - [ ] **Step 1: Add mock Metabase dashboard and query-result data**
@@ -338,6 +344,7 @@ Expected: 2 new tests fail — the dashboard test will not find a card with `typ
 ## Task 4: Extend MetabaseService types
 
 **Files:**
+
 - Modify: `server/src/services/metabase/metabase-service.ts`
 
 - [ ] **Step 1: Add `LineChartValue` and extend `CardValue`**
@@ -377,7 +384,10 @@ export type CardValue = number | PieChartValue | BarChartValue | LineChartValue;
 
 export interface MetabaseService {
   getDashboard(id: number): Promise<DashboardData>;
-  findDashcard(dashboardId: number, dashcardId: number): Promise<DashcardRef | null>;
+  findDashcard(
+    dashboardId: number,
+    dashcardId: number
+  ): Promise<DashcardRef | null>;
   getCardValue(
     dashboardId: number,
     dashcardId: number,
@@ -403,6 +413,7 @@ Expected: no new errors (the import will be wired in the next task).
 ## Task 5: Implement line chart detection in `metabase-api.ts`
 
 **Files:**
+
 - Modify: `server/src/services/metabase/metabase-api.ts`
 
 - [ ] **Step 1: Add `LineChartValue` to the imports from `./metabase-service`**
@@ -486,6 +497,7 @@ Expected: only the controller has remaining errors (not yet updated).
 ## Task 6: Update the dashboard controller
 
 **Files:**
+
 - Modify: `server/src/controllers/dashboardController.ts`
 
 - [ ] **Step 1: Import `LineChartValue`**
@@ -549,6 +561,7 @@ git commit -m "feat(server): detect and map Metabase line charts"
 ## Task 7: Frontend failing tests
 
 **Files:**
+
 - Modify: `frontend/src/components/Analysis/test/AnalysisCard.test.tsx`
 
 - [ ] **Step 1: Add imports for line chart fixtures**
@@ -582,9 +595,8 @@ it('renders a line chart card without error when card type is line-chart', async
     data: [120, 145, 180]
   });
   mockAPI.use(
-    http.get(
-      `${config.apiEndpoint}/dashboards/:did/cards/:cid`,
-      () => HttpResponse.json(cardData)
+    http.get(`${config.apiEndpoint}/dashboards/:did/cards/:cid`, () =>
+      HttpResponse.json(cardData)
     )
   );
 
@@ -608,16 +620,17 @@ it('shows a transcription accordion for a line chart', async () => {
     data: [120, 145, 180]
   });
   mockAPI.use(
-    http.get(
-      `${config.apiEndpoint}/dashboards/:did/cards/:cid`,
-      () => HttpResponse.json(cardData)
+    http.get(`${config.apiEndpoint}/dashboards/:did/cards/:cid`, () =>
+      HttpResponse.json(cardData)
     )
   );
 
   setup({ card: lineCard, dashboardId });
 
   await screen.findByText('Évolution mensuelle');
-  expect(screen.getByRole('button', { name: /Transcription/i })).toBeInTheDocument();
+  expect(
+    screen.getByRole('button', { name: /Transcription/i })
+  ).toBeInTheDocument();
 });
 
 it('shows raw value transcription items for a line chart', async () => {
@@ -628,9 +641,8 @@ it('shows raw value transcription items for a line chart', async () => {
     data: [120, 145, 180]
   });
   mockAPI.use(
-    http.get(
-      `${config.apiEndpoint}/dashboards/:did/cards/:cid`,
-      () => HttpResponse.json(cardData)
+    http.get(`${config.apiEndpoint}/dashboards/:did/cards/:cid`, () =>
+      HttpResponse.json(cardData)
     )
   );
 
@@ -656,6 +668,7 @@ Expected: 3 new tests fail because `LineChartDisplay` does not exist yet and `An
 ## Task 8: Extend `ChartTranscription`, add `LineChartDisplay`, update dispatch
 
 **Files:**
+
 - Modify: `frontend/src/components/Analysis/ChartTranscription.tsx`
 - Create: `frontend/src/components/Analysis/LineChartDisplay.tsx`
 - Modify: `frontend/src/components/Analysis/AnalysisCard.tsx`
@@ -752,7 +765,7 @@ function LineChartDisplay(props: Readonly<LineChartDisplayProps>) {
 export default LineChartDisplay;
 ```
 
-Note: DSFR `LineChart` takes flat arrays (`x: any[]`, `y: number[]`) and a single `color: ChartColor` — *not* the nested arrays that `BarChart` uses.
+Note: DSFR `LineChart` takes flat arrays (`x: any[]`, `y: number[]`) and a single `color: ChartColor` — _not_ the nested arrays that `BarChart` uses.
 
 - [ ] **Step 3: Add the line-chart dispatch arm in `AnalysisCard`**
 

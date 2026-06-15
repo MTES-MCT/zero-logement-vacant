@@ -1,9 +1,10 @@
 import { render, screen } from '@testing-library/react';
-import { createMemoryRouter, Outlet, RouterProvider } from 'react-router';
-import AccountEmailCreationView from '../AccountEmailCreationView';
 import userEvent from '@testing-library/user-event';
-import { store } from '../../../../store/store';
 import { Provider } from 'react-redux';
+import { createMemoryRouter, Outlet, RouterProvider } from 'react-router';
+
+import { store } from '../../../../store/store';
+import AccountEmailCreationView from '../AccountEmailCreationView';
 
 describe('AccountEmailCreationView', () => {
   const user = userEvent.setup();
@@ -41,7 +42,9 @@ describe('AccountEmailCreationView', () => {
 
     const input = screen.getByLabelText(/^Adresse e-mail/i);
     await user.clear(input);
-    const button = screen.getByRole('button', { name: /Vérifier mon adresse mail/i });
+    const button = screen.getByRole('button', {
+      name: /Vérifier mon adresse mail/i
+    });
     await user.click(button);
 
     const error = await screen.findByText(

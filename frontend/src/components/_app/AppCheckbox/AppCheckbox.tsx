@@ -1,5 +1,5 @@
-import type { ChangeEventHandler, ReactNode } from 'react';
 import Checkbox, { type CheckboxProps } from '@codegouvfr/react-dsfr/Checkbox';
+import type { ChangeEventHandler, ReactNode } from 'react';
 
 interface Props<Value extends string> extends Omit<CheckboxProps, 'options'> {
   checked?: boolean;

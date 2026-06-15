@@ -48,8 +48,8 @@ import createFactories, {
 
 // In-memory (unit tests, frontend tests)
 const factories = createFactories(new MemoryAdapter());
-const housing  = await factories.housing.create();
-const owner    = await factories.owner.build();
+const housing = await factories.housing.create();
+const owner = await factories.owner.build();
 const housings = await factories.housing.createList(5);
 
 // Custom adapter (e.g. Knex in server seeds/tests)
@@ -67,12 +67,12 @@ const factories = createFactories(new KnexAdapter());
 ```ts
 // entity-map.ts
 export type EntityMap = {
-  campaigns:      CampaignDTO;
+  campaigns: CampaignDTO;
   establishments: EstablishmentDTO;
-  groups:         GroupDTO;
-  housings:       HousingDTO;
-  owners:         OwnerDTO;
-  users:          UserDTO;
+  groups: GroupDTO;
+  housings: HousingDTO;
+  owners: OwnerDTO;
+  users: UserDTO;
   // extended as new factories are added
 };
 
@@ -114,7 +114,7 @@ Each factory file exports a function that returns a fishery factory with faker-b
 // factories/housing.ts
 export function createHousingFactory(adapter: Adapter) {
   return Factory.define<HousingDTO>(() => ({
-    id: faker.string.uuid(),
+    id: faker.string.uuid()
     // ... all HousingDTO fields
   })).onCreate((entity) => adapter.create('housings', entity));
 }
@@ -125,22 +125,22 @@ export function createHousingFactory(adapter: Adapter) {
 ```ts
 // create-factories.ts
 export type Factories = {
-  campaign:      ReturnType<typeof createCampaignFactory>;
+  campaign: ReturnType<typeof createCampaignFactory>;
   establishment: ReturnType<typeof createEstablishmentFactory>;
-  group:         ReturnType<typeof createGroupFactory>;
-  housing:       ReturnType<typeof createHousingFactory>;
-  owner:         ReturnType<typeof createOwnerFactory>;
-  user:          ReturnType<typeof createUserFactory>;
+  group: ReturnType<typeof createGroupFactory>;
+  housing: ReturnType<typeof createHousingFactory>;
+  owner: ReturnType<typeof createOwnerFactory>;
+  user: ReturnType<typeof createUserFactory>;
 };
 
 export default function createFactories(adapter: Adapter): Factories {
   return {
-    campaign:      createCampaignFactory(adapter),
+    campaign: createCampaignFactory(adapter),
     establishment: createEstablishmentFactory(adapter),
-    group:         createGroupFactory(adapter),
-    housing:       createHousingFactory(adapter),
-    owner:         createOwnerFactory(adapter),
-    user:          createUserFactory(adapter),
+    group: createGroupFactory(adapter),
+    housing: createHousingFactory(adapter),
+    owner: createOwnerFactory(adapter),
+    user: createUserFactory(adapter)
   };
 }
 ```
@@ -148,6 +148,7 @@ export default function createFactories(adapter: Adapter): Factories {
 ## Build config
 
 Modelled after `packages/schemas`:
+
 - `type: "module"`, single `"."` export
 - `fishery` and `@faker-js/faker` are `dependencies` (used in package source)
 - Consumers declare `@zerologementvacant/factories` as a `devDependency`

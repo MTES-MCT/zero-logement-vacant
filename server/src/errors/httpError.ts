@@ -27,7 +27,7 @@ export abstract class HttpError extends Error implements HttpError {
       name: this.name,
       message: this.message,
       status: this.status,
-      data: this.data,
+      data: this.data
     };
   }
 }
@@ -35,4 +35,3 @@ export abstract class HttpError extends Error implements HttpError {
 export function isHttpError(error: Error): error is HttpError {
   return 'status' in error;
 }
-

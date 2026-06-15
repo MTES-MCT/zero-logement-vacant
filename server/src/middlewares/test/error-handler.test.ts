@@ -1,9 +1,12 @@
+import { constants } from 'http2';
+
 import express, { NextFunction, Request, Response } from 'express';
 import request from 'supertest';
-import { constants } from 'http2';
-import errorHandler from '../error-handler';
+
 import TestAccountError from '~/errors/testAccountError';
 import { genEmail } from '~/test/testFixtures';
+
+import errorHandler from '../error-handler';
 
 describe('Error handler', () => {
   describe('Integration test', () => {
@@ -17,14 +20,14 @@ describe('Error handler', () => {
       async (request: Request, response: Response, next: NextFunction) => {
         const error = new TestAccountError(email);
         next(error);
-      },
+      }
     );
     app.get(
       unexpectedErrorRoute,
       async (request: Request, response: Response, next: NextFunction) => {
         const error = new Error('Unexpected error');
         next(error);
-      },
+      }
     );
     app.use(errorHandler());
 

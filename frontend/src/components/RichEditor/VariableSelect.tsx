@@ -57,15 +57,15 @@ function VariableSelect(props: Readonly<Props>) {
         anchorEl={anchor}
         anchorOrigin={{
           vertical: 'bottom',
-          horizontal: 'right',
+          horizontal: 'right'
         }}
         MenuListProps={{
-          'aria-labelledby': 'menu-button',
+          'aria-labelledby': 'menu-button'
         }}
         open={isOpen}
         transformOrigin={{
           vertical: 'top',
-          horizontal: 'right',
+          horizontal: 'right'
         }}
         onClose={close}
       >

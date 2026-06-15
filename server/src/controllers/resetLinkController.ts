@@ -1,20 +1,22 @@
+import { constants } from 'http2';
+
 import { addHours } from 'date-fns';
 import { Request, Response } from 'express';
 import { body, param, ValidationChain } from 'express-validator';
-import { constants } from 'http2';
 import randomstring from 'randomstring';
 
-import mailService from '../services/mailService';
-import resetLinkRepository from '~/repositories/resetLinkRepository';
+import ResetLinkExpiredError from '~/errors/resetLinkExpiredError';
+import ResetLinkMissingError from '~/errors/resetLinkMissingError';
 import {
   hasExpired,
   RESET_LINK_EXPIRATION,
   RESET_LINK_LENGTH,
-  ResetLinkApi,
+  ResetLinkApi
 } from '~/models/ResetLinkApi';
+import resetLinkRepository from '~/repositories/resetLinkRepository';
 import userRepository from '~/repositories/userRepository';
-import ResetLinkMissingError from '~/errors/resetLinkMissingError';
-import ResetLinkExpiredError from '~/errors/resetLinkExpiredError';
+
+import mailService from '../services/mailService';
 
 async function create(request: Request, response: Response) {
   const { email } = request.body;
@@ -24,16 +26,16 @@ async function create(request: Request, response: Response) {
     const resetLink: ResetLinkApi = {
       id: randomstring.generate({
         charset: 'alphanumeric',
-        length: RESET_LINK_LENGTH,
+        length: RESET_LINK_LENGTH
       }),
       userId: user.id,
       createdAt: new Date(),
       expiresAt: addHours(new Date(), RESET_LINK_EXPIRATION),
-      usedAt: null,
+      usedAt: null
     };
     await resetLinkRepository.insert(resetLink);
     await mailService.sendPasswordReset(resetLink.id, {
-      recipients: [user.email],
+      recipients: [user.email]
     });
   }
   // Avoid returning the reset link in the body because it would compromise
@@ -56,12 +58,12 @@ async function show(request: Request, response: Response) {
   response.status(constants.HTTP_STATUS_OK).json(link);
 }
 const showValidators: ValidationChain[] = [
-  param('id').isString().notEmpty().isAlphanumeric(),
+  param('id').isString().notEmpty().isAlphanumeric()
 ];
 
 export default {
   create,
   createValidators,
   show,
-  showValidators,
+  showValidators
 };

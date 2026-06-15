@@ -3,10 +3,12 @@ import Typography from '@mui/material/Typography';
 import { skipToken } from '@reduxjs/toolkit/query';
 import { format } from 'date-fns';
 import { match, Pattern } from 'ts-pattern';
+
 import type { Campaign } from '~/models/Campaign';
 import { formatAuthor } from '~/models/User';
 import { useGetEstablishmentQuery } from '~/services/establishment.service';
 import { useGetGroupQuery } from '~/services/group.service';
+
 import AppLink from '../_app/AppLink/AppLink';
 
 interface Props {

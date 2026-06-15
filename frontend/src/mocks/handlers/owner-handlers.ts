@@ -1,3 +1,5 @@
+import { constants } from 'node:http2';
+
 import { faker } from '@faker-js/faker/locale/fr';
 import {
   type HousingOwnerDTO,
@@ -11,7 +13,6 @@ import {
 import schemas from '@zerologementvacant/schemas';
 import { Array, pipe } from 'effect';
 import { http, HttpResponse, RequestHandler } from 'msw';
-import { constants } from 'node:http2';
 import qs from 'qs';
 
 import data from '~/mocks/handlers/data';

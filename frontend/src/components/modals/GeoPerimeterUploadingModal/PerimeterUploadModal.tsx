@@ -1,11 +1,12 @@
-import { Upload } from '@codegouvfr/react-dsfr/Upload';
 import { Alert } from '@codegouvfr/react-dsfr/Alert';
+import { Upload } from '@codegouvfr/react-dsfr/Upload';
 import Grid from '@mui/material/Grid';
 import { useState } from 'react';
 import * as yup from 'yup';
 
-import { fileValidator, useForm } from '~/hooks/useForm';
 import { createConfirmationModal } from '~/components/modals/ConfirmationModal/ConfirmationModalNext';
+import { fileValidator, useForm } from '~/hooks/useForm';
+
 import styles from './geo-perimeter-uploading-modal.module.scss';
 
 export interface GeoPerimeterUploadingModalProps {
@@ -28,7 +29,10 @@ function createPerimeterUploadModal() {
       const FileTypes = ['application/zip', 'application/x-zip-compressed'];
       const [file, setFile] = useState<File | undefined>();
 
-      const schema = yup.object().shape({ file: fileValidator(FileTypes).default(undefined) }).required();
+      const schema = yup
+        .object()
+        .shape({ file: fileValidator(FileTypes).default(undefined) })
+        .required();
 
       const { isValid, message, validate } = useForm(schema as any, {
         file
@@ -79,7 +83,9 @@ function createPerimeterUploadModal() {
                 label="Ajouter un fichier"
                 hint="Format : fichier géographique (SIG) au format .zip comprenant l'ensemble des extensions qui constituent le fichier (.cpg, .dbf, .shp, etc.)."
                 state={isFileTooLarge ? 'error' : 'default'}
-                stateRelatedMessage={isFileTooLarge ? props.error : message('file')}
+                stateRelatedMessage={
+                  isFileTooLarge ? props.error : message('file')
+                }
                 className={styles.upload}
               />
             </Grid>

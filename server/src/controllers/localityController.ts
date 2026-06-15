@@ -1,7 +1,8 @@
+import { constants } from 'http2';
+
 import { Request, Response } from 'express';
 import { AuthenticatedRequest } from 'express-jwt';
 import { body, param, query } from 'express-validator';
-import { constants } from 'http2';
 
 import LocalityMissingError from '~/errors/localityMissingError';
 import { logger } from '~/infra/logger';
@@ -46,10 +47,7 @@ async function listLocalities(request: Request, response: Response) {
 const updateLocalityTaxValidators = [
   param('geoCode').notEmpty().isAlphanumeric().isLength({ min: 5, max: 5 }),
   body('taxKind').isIn(['THLV', 'None']),
-  body('taxRate')
-    .if(body('taxKind').equals('THLV'))
-    .isNumeric()
-    .notEmpty(),
+  body('taxRate').if(body('taxKind').equals('THLV')).isNumeric().notEmpty(),
   body('taxRate').if(body('taxKind').equals('None')).not().exists()
 ];
 

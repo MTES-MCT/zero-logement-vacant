@@ -1,6 +1,11 @@
 import nock from 'nock';
 import { afterEach, describe, expect, it } from 'vitest';
-import type { CeremaGroup, CeremaPerimeter, CeremaUser } from './consultUserService';
+
+import type {
+  CeremaGroup,
+  CeremaPerimeter,
+  CeremaUser
+} from './consultUserService';
 import { verifyAccessRights } from './perimeterService';
 
 const GEO_API = 'https://geo.api.gouv.fr';
@@ -76,9 +81,7 @@ const epciPerimeter: CeremaPerimeter = {
   comm: []
 };
 
-function makeCeremaUser(
-  overrides: Partial<CeremaUser> = {}
-): CeremaUser {
+function makeCeremaUser(overrides: Partial<CeremaUser> = {}): CeremaUser {
   return {
     email: 'user@test.fr',
     establishmentSiren: '123456789',
@@ -102,7 +105,10 @@ describe('verifyAccessRights', () => {
     });
 
     it('returns invalid with niveau_acces_invalide when user lacks LOVAC access', async () => {
-      const user = makeCeremaUser({ group: nonLovacGroup, perimeter: frEntierePerimeter });
+      const user = makeCeremaUser({
+        group: nonLovacGroup,
+        perimeter: frEntierePerimeter
+      });
 
       const result = await verifyAccessRights(user, ['75056']);
 
@@ -164,7 +170,11 @@ describe('verifyAccessRights', () => {
     it('returns valid when EPCI matches establishment siren and no geo restriction', async () => {
       const user = makeCeremaUser({ perimeter: epciPerimeter });
 
-      const result = await verifyAccessRights(user, ['75056', '13055'], '123456789');
+      const result = await verifyAccessRights(
+        user,
+        ['75056', '13055'],
+        '123456789'
+      );
 
       expect(result.isValid).toBe(true);
     });

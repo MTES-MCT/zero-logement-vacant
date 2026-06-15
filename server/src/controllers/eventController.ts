@@ -1,8 +1,9 @@
+import { constants } from 'http2';
+
 import { EventDTO, EventType, EventUnionDTO } from '@zerologementvacant/models';
 import { Array, Order, pipe } from 'effect';
 import { Request, RequestHandler, Response } from 'express';
 import { AuthenticatedRequest } from 'express-jwt';
-import { constants } from 'http2';
 
 import HousingMissingError from '~/errors/housingMissingError';
 import { logger } from '~/infra/logger';
@@ -54,12 +55,13 @@ async function listByHousingId(
   request: Request,
   response: Response<FindByHousingResponse>
 ) {
-  const { effectiveGeoCodes, establishment, params } = request as AuthenticatedRequest<
-    { id: string },
-    FindByHousingResponse,
-    never,
-    never
-  >;
+  const { effectiveGeoCodes, establishment, params } =
+    request as AuthenticatedRequest<
+      { id: string },
+      FindByHousingResponse,
+      never,
+      never
+    >;
   logger.info('List housing events', { id: params.id });
 
   const housing = await housingRepository.findOne({

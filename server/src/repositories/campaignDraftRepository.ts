@@ -27,5 +27,5 @@ export interface CampaignDraftDBO {
 }
 
 export default {
-  save,
+  save
 };

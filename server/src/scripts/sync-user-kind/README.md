@@ -8,16 +8,17 @@ This script fetches user information from the Portail DF API and updates the loc
 
 ## Mapping Rules
 
-| exterieur | gestionnaire | kind                       |
-|-----------|--------------|----------------------------|
-| `true`    | `false`      | `"prestataire"`            |
-| `false`   | `true`       | `"gestionnaire"`           |
+| exterieur | gestionnaire | kind                          |
+| --------- | ------------ | ----------------------------- |
+| `true`    | `false`      | `"prestataire"`               |
+| `false`   | `true`       | `"gestionnaire"`              |
 | `true`    | `true`       | `"prestataire, gestionnaire"` |
-| `false`   | `false`      | `"aucun"`                  |
+| `false`   | `false`      | `"aucun"`                     |
 
 ## Prerequisites
 
 1. **Database Migration**: Run the migration to add the `kind` column:
+
    ```bash
    DATABASE_URL="<your-db-url>" yarn knex migrate:latest
    ```
@@ -32,12 +33,14 @@ This script fetches user information from the Portail DF API and updates the loc
 The script supports two authentication versions for the Portail DF API:
 
 ### V1 (Legacy - Default)
+
 - **Endpoint**: POST `/api/api-token-auth/`
 - **Response**: `{ "token": "..." }`
 - **Header**: `Authorization: Token <token>`
 - **URL**: `https://portaildf.cerema.fr/api`
 
 ### V2 (New DataFoncier API)
+
 - **Endpoint**: POST `/api/token/`
 - **Response**: `{ "access": "...", "refresh": "..." }`
 - **Header**: `Authorization: Bearer <access>`
@@ -120,19 +123,19 @@ python sync_user_kind.py \
 
 ## Command-Line Arguments
 
-| Argument | Required | Default | Description |
-|----------|----------|---------|-------------|
-| `--db-url` | Yes | - | PostgreSQL connection URI |
-| `--api-url` | Yes | - | Portail DF API base URL |
-| `--username` | Yes | - | API username for authentication |
-| `--password` | Yes | - | API password for authentication |
-| `--auth-version` | No | `v1` | Auth version: `v1` (legacy) or `v2` (DataFoncier) |
-| `--dry-run` | No | `false` | Simulation mode (no DB changes) |
-| `--limit` | No | - | Limit number of users to process |
-| `--batch-size` | No | `1000` | Batch size for DB updates |
-| `--num-workers` | No | `4` | Number of parallel workers |
-| `--verbose`, `-v` | No | `false` | Verbose output |
-| `--debug` | No | `false` | Debug logging |
+| Argument          | Required | Default | Description                                       |
+| ----------------- | -------- | ------- | ------------------------------------------------- |
+| `--db-url`        | Yes      | -       | PostgreSQL connection URI                         |
+| `--api-url`       | Yes      | -       | Portail DF API base URL                           |
+| `--username`      | Yes      | -       | API username for authentication                   |
+| `--password`      | Yes      | -       | API password for authentication                   |
+| `--auth-version`  | No       | `v1`    | Auth version: `v1` (legacy) or `v2` (DataFoncier) |
+| `--dry-run`       | No       | `false` | Simulation mode (no DB changes)                   |
+| `--limit`         | No       | -       | Limit number of users to process                  |
+| `--batch-size`    | No       | `1000`  | Batch size for DB updates                         |
+| `--num-workers`   | No       | `4`     | Number of parallel workers                        |
+| `--verbose`, `-v` | No       | `false` | Verbose output                                    |
+| `--debug`         | No       | `false` | Debug logging                                     |
 
 ## How It Works
 
@@ -200,6 +203,7 @@ Kind distribution:
 ## Logging
 
 Logs are written to:
+
 - **Console**: WARNING level (errors and important messages)
 - **File**: INFO level (`sync_user_kind_YYYYMMDD_HHMMSS.log`)
 
@@ -222,6 +226,7 @@ API request failed for user@example.com: Connection timeout
 ```
 
 **Solution**:
+
 - Check API URL is correct
 - Verify network connectivity
 - Try with `--limit 10` first to test

@@ -1,6 +1,7 @@
-import { Knex } from 'knex';
 import fs from 'node:fs/promises';
 import path from 'node:path';
+
+import { Knex } from 'knex';
 
 import config from '~/infra/config';
 import { logger } from '~/infra/logger';
@@ -44,7 +45,9 @@ export class CustomSeedSource implements Knex.SeedSource<string> {
         return [];
       }
 
-      logger.info(`✓ Running whitelisted seed in production: ${options.specific}`);
+      logger.info(
+        `✓ Running whitelisted seed in production: ${options.specific}`
+      );
     }
 
     const dirents = await fs.readdir(

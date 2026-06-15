@@ -1,8 +1,42 @@
 import { constants } from 'http2';
+
+import {
+  DraftCreationPayload,
+  DraftDTO,
+  DraftUpdatePayload,
+  SignatoriesDTO
+} from '@zerologementvacant/models';
 import request from 'supertest';
 
 import { createServer } from '~/infra/server';
+
+import { CampaignApi } from '../../models/CampaignApi';
 import { DraftApi } from '../../models/DraftApi';
+import { SenderApi } from '../../models/SenderApi';
+import { CampaignsDrafts } from '../../repositories/campaignDraftRepository';
+import {
+  Campaigns,
+  formatCampaignApi
+} from '../../repositories/campaignRepository';
+import {
+  Documents,
+  toDocumentDBO
+} from '../../repositories/documentRepository';
+import {
+  DraftRecordDBO,
+  Drafts,
+  formatDraftApi
+} from '../../repositories/draftRepository';
+import {
+  Establishments,
+  formatEstablishmentApi
+} from '../../repositories/establishmentRepository';
+import {
+  formatSenderApi,
+  SenderDBO,
+  Senders
+} from '../../repositories/senderRepository';
+import { toUserDBO, Users } from '../../repositories/userRepository';
 import {
   genCampaignApi,
   genDocumentApi,
@@ -12,38 +46,6 @@ import {
   genUserApi
 } from '../../test/testFixtures';
 import { tokenProvider } from '../../test/testUtils';
-import { CampaignApi } from '../../models/CampaignApi';
-import {
-  DraftRecordDBO,
-  Drafts,
-  formatDraftApi
-} from '../../repositories/draftRepository';
-import {
-  Campaigns,
-  formatCampaignApi
-} from '../../repositories/campaignRepository';
-import { CampaignsDrafts } from '../../repositories/campaignDraftRepository';
-import {
-  DraftCreationPayload,
-  DraftDTO,
-  DraftUpdatePayload,
-  SignatoriesDTO
-} from '@zerologementvacant/models';
-import {
-  Establishments,
-  formatEstablishmentApi
-} from '../../repositories/establishmentRepository';
-import { toUserDBO, Users } from '../../repositories/userRepository';
-import { SenderApi } from '../../models/SenderApi';
-import {
-  formatSenderApi,
-  SenderDBO,
-  Senders
-} from '../../repositories/senderRepository';
-import {
-  Documents,
-  toDocumentDBO
-} from '../../repositories/documentRepository';
 
 describe('Draft API', () => {
   let url: string;
@@ -356,6 +358,5 @@ describe('Draft API', () => {
         .first()) as SenderDBO;
       expect(actualSender.signatory_one_document_id).toBe(document.id);
     });
-
   });
 });

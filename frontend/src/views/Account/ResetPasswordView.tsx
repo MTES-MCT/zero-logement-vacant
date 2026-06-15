@@ -1,20 +1,21 @@
-import { Col, Container, Row, Text } from '../../components/_dsfr';
+import { Alert } from '@codegouvfr/react-dsfr/Alert';
+import Button from '@codegouvfr/react-dsfr/Button';
+import Typography from '@mui/material/Typography';
 import { type FormEvent, useState } from 'react';
-import building from '../../assets/images/building.svg';
 import { object, string } from 'yup';
+
+import building from '../../assets/images/building.svg';
+import AppTextInput from '../../components/_app/AppTextInput/AppTextInput';
+import { Col, Container, Row, Text } from '../../components/_dsfr';
+import { useDocumentTitle } from '../../hooks/useDocumentTitle';
+import { useEmailLink } from '../../hooks/useEmailLink';
 import {
   passwordConfirmationValidator,
   passwordFormatValidator,
   useForm
 } from '../../hooks/useForm';
 import authService from '../../services/auth.service';
-import { useEmailLink } from '../../hooks/useEmailLink';
 import resetLinkService from '../../services/reset-link.service';
-import { useDocumentTitle } from '../../hooks/useDocumentTitle';
-import AppTextInput from '../../components/_app/AppTextInput/AppTextInput';
-import { Alert } from '@codegouvfr/react-dsfr/Alert';
-import Button from '@codegouvfr/react-dsfr/Button';
-import Typography from '@mui/material/Typography';
 
 function ResetPasswordView() {
   useDocumentTitle('Nouveau mot de passe');

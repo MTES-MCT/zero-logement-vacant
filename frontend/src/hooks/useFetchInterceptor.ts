@@ -1,9 +1,9 @@
 import fetchIntercept from 'fetch-intercept';
+import { useEffect } from 'react';
 import { useNavigate } from 'react-router';
 
 import { logOut } from '../store/actions/authenticationAction';
 import { useAppDispatch } from './useStore';
-import { useEffect } from 'react';
 
 export function useFetchInterceptor() {
   const dispatch = useAppDispatch();

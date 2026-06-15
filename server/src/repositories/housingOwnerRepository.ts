@@ -219,7 +219,9 @@ export const fromRelativeLocationDBO = (
     .with(7, () => 'other')
     .otherwise(() => null);
 
-export const toRelativeLocationDBO = (loc: RelativeLocation | null): number | null =>
+export const toRelativeLocationDBO = (
+  loc: RelativeLocation | null
+): number | null =>
   match(loc)
     .returnType<number | null>()
     .with('same-address', () => 0)

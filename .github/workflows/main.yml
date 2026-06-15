@@ -30,7 +30,7 @@ jobs:
         ports:
           - 9090:9090
         env:
-          initialBuckets: "zerologementvacant"
+          initialBuckets: 'zerologementvacant'
     steps:
       - name: Checkout
         uses: actions/checkout@v6
@@ -130,4 +130,3 @@ jobs:
       alias: api-staging
       branch: main
     secrets: inherit
-

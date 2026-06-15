@@ -8,7 +8,7 @@ export async function up(knex: Knex): Promise<void> {
         status: 0,
         sub_status: null,
         precisions: null,
-        vacancy_reasons: null,
+        vacancy_reasons: null
       })
       .whereNotExists(function (whereBuilder: any) {
         whereBuilder
@@ -17,7 +17,7 @@ export async function up(knex: Knex): Promise<void> {
       }),
     knex.schema.alterTable('housing', (table) => {
       table.integer('status').defaultTo(0).alter();
-    }),
+    })
   ]);
 }
 

@@ -4,16 +4,16 @@ import Select, { type SelectProps } from '@codegouvfr/react-dsfr/SelectNext';
 import { yupResolver } from '@hookform/resolvers/yup';
 import Box from '@mui/material/Box';
 import Grid from '@mui/material/Grid';
-import { styled } from '@mui/material/styles';
 import Skeleton from '@mui/material/Skeleton';
+import { styled } from '@mui/material/styles';
+import type { HousingCountDTO } from '@zerologementvacant/models';
 import { FormProvider, useController, useForm } from 'react-hook-form';
 import * as yup from 'yup';
 
-import type { HousingCountDTO } from '@zerologementvacant/models';
-import { useFindGroupsQuery } from '../../services/group.service';
 import type { Group } from '../../models/Group';
-import { createExtendedModal } from '../modals/ConfirmationModal/ExtendedModal';
+import { useFindGroupsQuery } from '../../services/group.service';
 import HousingCount from '../HousingCount/HousingCount';
+import { createExtendedModal } from '../modals/ConfirmationModal/ExtendedModal';
 
 interface GroupAddHousingModalProps {
   count?: HousingCountDTO;

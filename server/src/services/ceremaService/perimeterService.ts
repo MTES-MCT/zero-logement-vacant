@@ -1,9 +1,10 @@
-import { CeremaPerimeter, CeremaGroup, CeremaUser } from './consultUserService';
 import { logger } from '~/infra/logger';
 import {
   filterGeoCodesByPerimeter,
   PerimeterShape
 } from '~/models/UserPerimeterApi';
+
+import { CeremaPerimeter, CeremaGroup, CeremaUser } from './consultUserService';
 
 /**
  * Result of access rights verification
@@ -116,6 +117,8 @@ export async function verifyAccessRights(
 /**
  * Convert access rights errors to a suspension cause string
  */
-export function accessErrorsToSuspensionCause(errors: AccessRightsError[]): string {
+export function accessErrorsToSuspensionCause(
+  errors: AccessRightsError[]
+): string {
   return errors.join(', ');
 }

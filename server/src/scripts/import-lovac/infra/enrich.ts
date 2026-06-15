@@ -1,5 +1,6 @@
-import { Array as Arr, Option } from 'effect';
 import { TransformStream } from 'node:stream/web';
+
+import { Array as Arr, Option } from 'effect';
 
 export interface EnrichOptions<S, E> {
   chunkSize?: number;

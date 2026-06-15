@@ -1,5 +1,6 @@
 import config from '~/infra/config';
 import { logger } from '~/infra/logger';
+
 import { createAuthProvider } from './ceremaAuthProvider';
 
 export interface PortailDFUser {

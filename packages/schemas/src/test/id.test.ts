@@ -1,4 +1,5 @@
 import { fc, test } from '@fast-check/vitest';
+
 import { id } from '../id';
 
 describe('id', () => {

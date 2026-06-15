@@ -1,5 +1,6 @@
 import { faker } from '@faker-js/faker/locale/fr';
 import { AddressKinds } from '@zerologementvacant/models';
+
 import db from '~/infra/database';
 import { AddressApi } from '~/models/AddressApi';
 import banAddressesRepository, {

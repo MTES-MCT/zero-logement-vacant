@@ -1,7 +1,8 @@
-import { stringify } from 'csv-stringify';
 import fs from 'node:fs/promises';
 import path from 'node:path';
 import { WritableStream } from 'node:stream/web';
+
+import { stringify } from 'csv-stringify';
 
 import createSourceHousingFileRepository from '~/scripts/import-lovac/source-housings/source-housing-file-repository';
 

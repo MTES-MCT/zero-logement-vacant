@@ -1,13 +1,13 @@
 import { faker } from '@faker-js/faker/locale/fr';
-import {
-  HousingStatus,
-  Occupancy
-} from '@zerologementvacant/models';
+import { HousingStatus, Occupancy } from '@zerologementvacant/models';
 import { v5 as uuidv5 } from 'uuid';
+
 import { formatHousingRecordApi } from '~/repositories/housingRepository';
 import { LOVAC_NAMESPACE } from '~/scripts/import-lovac/infra';
 import { genSourceHousing } from '~/scripts/import-lovac/infra/fixtures';
 import { createNoopReporter } from '~/scripts/import-lovac/infra/reporters/noop-reporter';
+import { genHousingApi } from '~/test/testFixtures';
+
 import { EnrichedSourceHousing } from '../source-housing-enricher';
 import {
   createHousingTransform,
@@ -16,7 +16,6 @@ import {
   HousingRecordInsert,
   SourceHousingChange
 } from '../source-housing-transform';
-import { genHousingApi } from '~/test/testFixtures';
 
 const ADMIN_USER_ID = faker.string.uuid();
 
@@ -69,8 +68,12 @@ describe('createHousingTransform', () => {
         existing: { housing: null, events: [], notes: [] }
       };
       const [c1, c2] = [transform(enriched), transform(enriched)];
-      const id1 = (c1.find((c: SourceHousingChange): c is HousingChange => c.type === 'housing')!).value.id;
-      const id2 = (c2.find((c: SourceHousingChange): c is HousingChange => c.type === 'housing')!).value.id;
+      const id1 = c1.find(
+        (c: SourceHousingChange): c is HousingChange => c.type === 'housing'
+      )!.value.id;
+      const id2 = c2.find(
+        (c: SourceHousingChange): c is HousingChange => c.type === 'housing'
+      )!.value.id;
       expect(id1).toBe(id2);
       expect(id1).toBe(
         uuidv5(source.local_id + ':' + source.geo_code, LOVAC_NAMESPACE)
@@ -89,7 +92,10 @@ describe('createHousingTransform', () => {
           change.type === 'event'
       );
       expect(
-        eventChanges.some((change: HousingEventChange) => change.value.type === 'housing:created')
+        eventChanges.some(
+          (change: HousingEventChange) =>
+            change.value.type === 'housing:created'
+        )
       ).toBe(true);
     });
 
@@ -100,7 +106,9 @@ describe('createHousingTransform', () => {
         existing: { housing: null, events: [], notes: [] }
       };
       const changes = transform(enriched);
-      expect(changes.some((c: SourceHousingChange) => c.type === 'address')).toBe(true);
+      expect(
+        changes.some((c: SourceHousingChange) => c.type === 'address')
+      ).toBe(true);
     });
 
     it('should NOT add an address change when ban_label is absent', () => {
@@ -110,7 +118,9 @@ describe('createHousingTransform', () => {
         existing: { housing: null, events: [], notes: [] }
       };
       const changes = transform(enriched);
-      expect(changes.some((c: SourceHousingChange) => c.type === 'address')).toBe(false);
+      expect(
+        changes.some((c: SourceHousingChange) => c.type === 'address')
+      ).toBe(false);
     });
   });
 
@@ -157,11 +167,13 @@ describe('createHousingTransform', () => {
         const housingChange = changes.find(
           (c: SourceHousingChange): c is HousingChange => c.type === 'housing'
         )!;
-        expect(housingChange.value).toMatchObject<Partial<HousingRecordInsert>>({
-          occupancy: Occupancy.VACANT,
-          status: HousingStatus.NEVER_CONTACTED,
-          sub_status: null
-        });
+        expect(housingChange.value).toMatchObject<Partial<HousingRecordInsert>>(
+          {
+            occupancy: Occupancy.VACANT,
+            status: HousingStatus.NEVER_CONTACTED,
+            sub_status: null
+          }
+        );
       });
 
       it('should produce an occupancy-updated event', () => {
@@ -186,7 +198,8 @@ describe('createHousingTransform', () => {
         );
         expect(
           eventChanges.some(
-            (change: HousingEventChange) => change.value.type === 'housing:occupancy-updated'
+            (change: HousingEventChange) =>
+              change.value.type === 'housing:occupancy-updated'
           )
         ).toBe(true);
       });
@@ -214,17 +227,23 @@ describe('createHousingTransform', () => {
         };
         const enriched: EnrichedSourceHousing = {
           source,
-          existing: { housing: housing as any, events: [adminEvent as any], notes: [] }
+          existing: {
+            housing: housing as any,
+            events: [adminEvent as any],
+            notes: []
+          }
         };
         const changes = transform(enriched);
         const housingChange = changes.find(
           (c: SourceHousingChange): c is HousingChange => c.type === 'housing'
         )!;
-        expect(housingChange.value).toMatchObject<Partial<HousingRecordInsert>>({
-          occupancy: Occupancy.VACANT,
-          status: HousingStatus.NEVER_CONTACTED,
-          sub_status: null
-        });
+        expect(housingChange.value).toMatchObject<Partial<HousingRecordInsert>>(
+          {
+            occupancy: Occupancy.VACANT,
+            status: HousingStatus.NEVER_CONTACTED,
+            sub_status: null
+          }
+        );
       });
     });
 
@@ -250,7 +269,11 @@ describe('createHousingTransform', () => {
         };
         const enriched: EnrichedSourceHousing = {
           source,
-          existing: { housing: housing as any, events: [userEvent as any], notes: [] }
+          existing: {
+            housing: housing as any,
+            events: [userEvent as any],
+            notes: []
+          }
         };
         const changes = transform(enriched);
         const housingChange = changes.find(
@@ -281,7 +304,11 @@ describe('createHousingTransform', () => {
         };
         const enriched: EnrichedSourceHousing = {
           source,
-          existing: { housing: housing as any, events: [userEvent as any], notes: [] }
+          existing: {
+            housing: housing as any,
+            events: [userEvent as any],
+            notes: []
+          }
         };
         const changes = transform(enriched);
         const housingChange = changes.find(

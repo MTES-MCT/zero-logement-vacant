@@ -12,10 +12,10 @@ import {
 import async from 'async';
 import { Provider } from 'react-redux';
 
-import { genEvent, genUser } from '../../../test/fixtures';
 import type { Event } from '../../../models/Event';
 import type { Note } from '../../../models/Note';
 import type { User } from '../../../models/User';
+import { genEvent, genUser } from '../../../test/fixtures';
 import configureTestStore from '../../../utils/storeUtils';
 import { HousingEditionProvider } from '../../HousingEdition/useHousingEdition';
 import EventsHistory from '../EventsHistory';

@@ -7,7 +7,7 @@ export default class BadRequestError extends HttpError implements HttpError {
     super({
       name: 'BadRequestError',
       message,
-      status: constants.HTTP_STATUS_BAD_REQUEST,
+      status: constants.HTTP_STATUS_BAD_REQUEST
     });
   }
 }

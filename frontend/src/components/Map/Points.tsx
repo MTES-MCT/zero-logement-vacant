@@ -1,12 +1,11 @@
 import * as turf from '@turf/turf';
-import { Source } from 'react-map-gl/maplibre';
 import type { Feature, GeoJsonProperties, Point } from 'geojson';
+import { Source } from 'react-map-gl/maplibre';
 import type { MapRef } from 'react-map-gl/maplibre';
 
 import { useMapLayerClick } from '../../hooks/useMapLayerClick';
-import HousingPoints from './HousingPoints';
 import BuildingPoints from './BuildingPoints';
-
+import HousingPoints from './HousingPoints';
 
 type IdentifiableGeoJson = GeoJsonProperties & { id: string };
 

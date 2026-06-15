@@ -11,10 +11,8 @@ import { string } from 'yup';
  */
 export const PHONE_REGEXP = /^(\+33|0)[1-9][0-9]{8}$/;
 
-export const phone = string()
-  .trim()
-  .matches(PHONE_REGEXP, {
-    message:
-      'Numéro de téléphone invalide. Formats valides : +33XXXXXXXXX ou 0XXXXXXXXX',
-    excludeEmptyString: true
-  });
+export const phone = string().trim().matches(PHONE_REGEXP, {
+  message:
+    'Numéro de téléphone invalide. Formats valides : +33XXXXXXXXX ou 0XXXXXXXXX',
+  excludeEmptyString: true
+});

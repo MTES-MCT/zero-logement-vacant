@@ -1,5 +1,6 @@
-import { NextFunction, Request, Response } from 'express';
 import { constants } from 'http2';
+
+import { NextFunction, Request, Response } from 'express';
 import {
   AnyObject,
   Maybe,
@@ -7,6 +8,7 @@ import {
   ObjectSchema,
   ValidationError as YupValidationError
 } from 'yup';
+
 import { HttpError } from '~/errors/httpError';
 
 type RequestSchema = Partial<{

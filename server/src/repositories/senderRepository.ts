@@ -27,10 +27,20 @@ async function findOne(opts: FindOneOptions): Promise<SenderApi | null> {
   );
 
   const query = Senders().where(whereOptions(opts));
-  joinDocumentWithCreator(query, `${sendersTable}.signatory_one_document_id`, 'signatory_one_document');
-  joinDocumentWithCreator(query, `${sendersTable}.signatory_two_document_id`, 'signatory_two_document');
+  joinDocumentWithCreator(
+    query,
+    `${sendersTable}.signatory_one_document_id`,
+    'signatory_one_document'
+  );
+  joinDocumentWithCreator(
+    query,
+    `${sendersTable}.signatory_two_document_id`,
+    'signatory_two_document'
+  );
 
-  const sender = await query.select(`${sendersTable}.*`).first() as SenderDBOWithDocuments | undefined;
+  const sender = (await query.select(`${sendersTable}.*`).first()) as
+    | SenderDBOWithDocuments
+    | undefined;
   if (!sender) {
     return null;
   }
@@ -122,7 +132,9 @@ type SenderDBOWithDocuments = SenderDBO & {
   signatory_two_document: DocumentWithCreatorDBO | null;
 };
 
-export const parseSenderApi = async (sender: SenderDBOWithDocuments): Promise<SenderApi> => {
+export const parseSenderApi = async (
+  sender: SenderDBOWithDocuments
+): Promise<SenderApi> => {
   let signatory_one_file;
   try {
     signatory_one_file = sender.signatory_one_file

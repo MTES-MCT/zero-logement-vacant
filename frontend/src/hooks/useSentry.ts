@@ -1,6 +1,7 @@
-import { useCallback } from 'react';
-import sentry from '../utils/sentry';
 import type { Breadcrumb, User } from '@sentry/react';
+import { useCallback } from 'react';
+
+import sentry from '../utils/sentry';
 
 /**
  * Hook for using Sentry in React components
@@ -62,6 +63,6 @@ export function useSentry() {
     setContext,
     setTag
   };
-};
+}
 
 export default useSentry;

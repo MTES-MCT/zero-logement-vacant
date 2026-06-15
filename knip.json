@@ -18,17 +18,10 @@
       ]
     },
     "frontend": {
-      "entry": [
-        "src/mocks/**/*.{ts,tsx}",
-        "src/scripts/**/*.ts"
-      ],
+      "entry": ["src/mocks/**/*.{ts,tsx}", "src/scripts/**/*.ts"],
       "project": ["src/**/*.{ts,tsx}"],
-      "ignoreDependencies": [
-        "prop-types"
-      ],
-      "ignoreFiles": [
-        "src/components/_dsfr/**/*.d.ts"
-      ]
+      "ignoreDependencies": ["prop-types"],
+      "ignoreFiles": ["src/components/_dsfr/**/*.d.ts"]
     },
     "server": {
       "entry": [
@@ -40,14 +33,8 @@
         "src/scripts/**/cli.ts"
       ],
       "project": ["src/**/*.ts"],
-      "ignoreDependencies": [
-        "pg",
-        "pg-query-stream",
-        "@sentry/integrations"
-      ],
-      "ignoreFiles": [
-        "src/types/**/*.d.ts"
-      ]
+      "ignoreDependencies": ["pg", "pg-query-stream", "@sentry/integrations"],
+      "ignoreFiles": ["src/types/**/*.d.ts"]
     },
     "queue": {
       "entry": ["src/bin/index.ts", "src/index.ts"],
@@ -83,9 +70,7 @@
         "src/preview/main.tsx"
       ],
       "project": ["src/**/*.{ts,tsx}"],
-      "ignoreDependencies": [
-        "@codegouvfr/react-dsfr"
-      ]
+      "ignoreDependencies": ["@codegouvfr/react-dsfr"]
     },
     "packages/schemas": {
       "entry": ["src/index.ts"],

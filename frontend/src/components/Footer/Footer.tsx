@@ -1,8 +1,12 @@
-import { Footer as DSFRFooter, type FooterProps } from '@codegouvfr/react-dsfr/Footer';
+import {
+  Footer as DSFRFooter,
+  type FooterProps
+} from '@codegouvfr/react-dsfr/Footer';
 
-import { useUser } from '../../hooks/useUser';
 import anah from '../../assets/images/anah.svg';
 import fnv from '../../assets/images/france-nation-verte.svg';
+import { useUser } from '../../hooks/useUser';
+
 import styles from './footer.module.scss';
 
 function Footer() {
@@ -43,7 +47,9 @@ function Footer() {
             rel: 'noopener noreferrer'
           }
         },
-        ...(isAuthenticated ? [] : [{ linkProps: { to: '/connexion' }, text: 'Connexion' }])
+        ...(isAuthenticated
+          ? []
+          : [{ linkProps: { to: '/connexion' }, text: 'Connexion' }])
       ]}
       linkList={
         [
@@ -52,7 +58,10 @@ function Footer() {
                 {
                   categoryName: 'Navigation',
                   links: [
-                    { linkProps: { to: '/parc-de-logements' }, text: 'Parc de logements' },
+                    {
+                      linkProps: { to: '/parc-de-logements' },
+                      text: 'Parc de logements'
+                    },
                     { linkProps: { to: '/campagnes' }, text: 'Campagnes' },
                     { linkProps: { to: '/ressources' }, text: 'Ressources' },
                     { linkProps: { to: '/compte' }, text: 'Profil' }
@@ -64,12 +73,14 @@ function Footer() {
             categoryName: 'Liens utiles',
             links: [
               {
-                linkProps: { to: 'mailto:contact@zerologementvacant.beta.gouv.fr' },
+                linkProps: {
+                  to: 'mailto:contact@zerologementvacant.beta.gouv.fr'
+                },
                 text: 'Nous contacter'
               },
               {
                 linkProps: { to: 'https://zerologementvacant.crisp.help/fr/' },
-                text: "Centre d’aide et guide d’utilisation"
+                text: 'Centre d’aide et guide d’utilisation'
               },
               {
                 linkProps: {
@@ -78,7 +89,9 @@ function Footer() {
                 text: 'Nouveautés'
               },
               {
-                linkProps: { to: 'https://zerologementvacant.beta.gouv.fr/statistiques' },
+                linkProps: {
+                  to: 'https://zerologementvacant.beta.gouv.fr/statistiques'
+                },
                 text: 'Statistiques'
               }
             ] as FooterProps.LinkList.Links
@@ -88,11 +101,11 @@ function Footer() {
       partnersLogos={{
         sub: [
           {
-            alt: "Agence nationale de l’habitat",
+            alt: 'Agence nationale de l’habitat',
             imgUrl: anah,
             linkProps: {
               to: 'https://www.anah.gouv.fr/',
-              title: "Agence nationale de l’habitat"
+              title: 'Agence nationale de l’habitat'
             }
           },
           {

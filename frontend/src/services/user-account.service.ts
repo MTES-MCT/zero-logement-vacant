@@ -5,15 +5,15 @@ export const userAccountApi = zlvApi.injectEndpoints({
   endpoints: (builder) => ({
     getUserAccount: builder.query<UserAccount, void>({
       query: () => 'account',
-      providesTags: () => ['Account'],
+      providesTags: () => ['Account']
     }),
     updateUserAccount: builder.mutation<void, UserAccount>({
       query: (userAccount) => ({
         url: 'account',
         method: 'PUT',
-        body: userAccount,
+        body: userAccount
       }),
-      invalidatesTags: () => ['Account'],
+      invalidatesTags: () => ['Account']
     }),
     updatePassword: builder.mutation<
       void,
@@ -22,14 +22,14 @@ export const userAccountApi = zlvApi.injectEndpoints({
       query: ({ currentPassword, newPassword }) => ({
         url: 'account/password',
         method: 'PUT',
-        body: { currentPassword, newPassword },
-      }),
-    }),
-  }),
+        body: { currentPassword, newPassword }
+      })
+    })
+  })
 });
 
 export const {
   useGetUserAccountQuery,
   useUpdateUserAccountMutation,
-  useUpdatePasswordMutation,
+  useUpdatePasswordMutation
 } = userAccountApi;

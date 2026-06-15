@@ -1,11 +1,11 @@
 import type { OwnerRank } from '@zerologementvacant/models';
-import { genHousingOwner, genOwner } from '~/test/fixtures';
 
 import {
   computeOwnersAfterRankTransition,
   labelToRank
 } from '~/models/HousingOwnerRank';
 import type { HousingOwner } from '~/models/Owner';
+import { genHousingOwner, genOwner } from '~/test/fixtures';
 
 describe('HousingOwnerRank', () => {
   describe('computeOwnersAfterRankTransition', () => {

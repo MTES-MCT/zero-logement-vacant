@@ -1,5 +1,7 @@
 import { ReadableStream, WritableStream } from 'node:stream/web';
+
 import { describe, expect, it } from 'vitest';
+
 import { formatOwnerApi, Owners } from '~/repositories/ownerRepository';
 import { genSourceOwner } from '~/scripts/import-lovac/infra/fixtures';
 import {
@@ -9,10 +11,11 @@ import {
 import { genOwnerApi } from '~/test/testFixtures';
 
 describe('createOwnerEnricher', () => {
-
   it('should annotate a known owner with its existing DB record', async () => {
     const source = genSourceOwner();
-    await Owners().insert(formatOwnerApi({ ...genOwnerApi(), idpersonne: source.idpersonne }));
+    await Owners().insert(
+      formatOwnerApi({ ...genOwnerApi(), idpersonne: source.idpersonne })
+    );
 
     const result: EnrichedOwner[] = [];
     await new ReadableStream({
@@ -22,7 +25,13 @@ describe('createOwnerEnricher', () => {
       }
     })
       .pipeThrough(createOwnerEnricher())
-      .pipeTo(new WritableStream({ write(item) { result.push(item); } }));
+      .pipeTo(
+        new WritableStream({
+          write(item) {
+            result.push(item);
+          }
+        })
+      );
 
     expect(result).toHaveLength(1);
     expect(result[0].source).toEqual(source);
@@ -40,7 +49,13 @@ describe('createOwnerEnricher', () => {
       }
     })
       .pipeThrough(createOwnerEnricher())
-      .pipeTo(new WritableStream({ write(item) { result.push(item); } }));
+      .pipeTo(
+        new WritableStream({
+          write(item) {
+            result.push(item);
+          }
+        })
+      );
 
     expect(result).toHaveLength(1);
     expect(result[0].existing).toBeNull();
@@ -51,7 +66,9 @@ describe('createOwnerEnricher', () => {
     await Owners().insert(
       sources
         .slice(0, 2)
-        .map((s) => formatOwnerApi({ ...genOwnerApi(), idpersonne: s.idpersonne }))
+        .map((s) =>
+          formatOwnerApi({ ...genOwnerApi(), idpersonne: s.idpersonne })
+        )
     );
 
     const result: EnrichedOwner[] = [];
@@ -62,7 +79,13 @@ describe('createOwnerEnricher', () => {
       }
     })
       .pipeThrough(createOwnerEnricher())
-      .pipeTo(new WritableStream({ write(item) { result.push(item); } }));
+      .pipeTo(
+        new WritableStream({
+          write(item) {
+            result.push(item);
+          }
+        })
+      );
 
     expect(result).toHaveLength(5);
     expect(result.filter((r) => r.existing !== null)).toHaveLength(2);

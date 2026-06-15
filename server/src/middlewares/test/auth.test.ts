@@ -1,10 +1,11 @@
+import { constants } from 'http2';
+
 import { UserRole } from '@zerologementvacant/models';
 import express, { NextFunction, Request, Response } from 'express';
-import { constants } from 'http2';
 import request from 'supertest';
+
 import { hasRole } from '~/middlewares/auth';
 import { UserApi } from '~/models/UserApi';
-
 import { genEstablishmentApi, genUserApi } from '~/test/testFixtures';
 
 describe('Auth', () => {

@@ -79,7 +79,9 @@ export function userCheck(options?: CheckOptions) {
     request.establishment = establishment;
     request.userPerimeter = userPerimeter;
     // ADMIN and VISITOR bypass perimeter filtering entirely
-    const isAdminOrVisitor = [UserRole.ADMIN, UserRole.VISITOR].includes(user.role);
+    const isAdminOrVisitor = [UserRole.ADMIN, UserRole.VISITOR].includes(
+      user.role
+    );
     // Compute filtered geoCodes based on user perimeter.
     // undefined = no restriction (ADMIN/VISITOR, no perimeter, or fr_entiere)
     // string[] = restricted (may be empty if perimeter has no intersecting communes)

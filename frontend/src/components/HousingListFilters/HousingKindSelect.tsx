@@ -1,7 +1,9 @@
 import type { HousingKind } from '@zerologementvacant/models';
-import { housingKindOptions } from '../../models/HousingFilters';
+
 import Select from '~/components/ui/Select/Select';
 import type { SelectProps } from '~/components/ui/Select/Select';
+
+import { housingKindOptions } from '../../models/HousingFilters';
 
 export type HousingKindSelectProps<Multiple extends boolean> = Pick<
   SelectProps<HousingKind, Multiple>,

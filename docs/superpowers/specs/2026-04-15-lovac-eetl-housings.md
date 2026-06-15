@@ -74,8 +74,8 @@ GROUP BY h.id
 ```typescript
 interface HousingEnrichment {
   housing: HousingRecordDBO | null;
-  events: ReadonlyArray<EventRecordDBO>;   // [] when housing is null
-  notes: ReadonlyArray<NoteRecordDBO>;     // [] when housing is null
+  events: ReadonlyArray<EventRecordDBO>; // [] when housing is null
+  notes: ReadonlyArray<NoteRecordDBO>; // [] when housing is null
 }
 
 export type EnrichedSourceHousing = {
@@ -83,7 +83,10 @@ export type EnrichedSourceHousing = {
   existing: HousingEnrichment;
 };
 
-export function createSourceHousingEnricher(): TransformStream<SourceHousing, EnrichedSourceHousing>
+export function createSourceHousingEnricher(): TransformStream<
+  SourceHousing,
+  EnrichedSourceHousing
+>;
 ```
 
 Implemented as a custom `TransformStream` (not using `enrichWith` — compound enrichment shape).
@@ -93,16 +96,21 @@ Implemented as a custom `TransformStream` (not using `enrichWith` — compound e
 Pure synchronous function — no DB calls.
 
 ```typescript
-export type HousingChange    = Change<HousingRecordDBO, 'housing'>;
+export type HousingChange = Change<HousingRecordDBO, 'housing'>;
 export type HousingEventChange = Change<EventRecordDBO, 'event'>;
-export type AddressChange    = Change<AddressDBO, 'address'>;
-export type SourceHousingChange = HousingChange | HousingEventChange | AddressChange;
+export type AddressChange = Change<AddressDBO, 'address'>;
+export type SourceHousingChange =
+  | HousingChange
+  | HousingEventChange
+  | AddressChange;
 
-export function createHousingTransform(opts: TransformOptions):
-  (enriched: EnrichedSourceHousing) => SourceHousingChange[]
+export function createHousingTransform(
+  opts: TransformOptions
+): (enriched: EnrichedSourceHousing) => SourceHousingChange[];
 ```
 
 Logic:
+
 - `existing.housing === null` → `{ kind: 'create', value: HousingRecordDBO }` +
   optional `AddressChange` (when `ban_label` is present)
 - `existing.housing !== null` → `{ kind: 'update', value: HousingRecordDBO }` +
@@ -144,6 +152,7 @@ console.timeEnd('Import housings');
 ```
 
 `writeReport` writes `sourceHousingReporter.getSummary()` as JSON to:
+
 - S3: `{file}.report.json`
 - Local: `./import-lovac-{year}-housings.report.json`
 
@@ -159,6 +168,7 @@ enrichment, same position as today). One group = one housing.
 **Two queries per group:**
 
 Query 1 — housing + existing housing owners (single JOIN):
+
 ```sql
 SELECT h.*, ho.*
 FROM fast_housing h
@@ -166,12 +176,15 @@ LEFT JOIN housing_owners ho
   ON ho.housing_geo_code = h.geo_code AND ho.housing_id = h.id
 WHERE h.geo_code = ? AND h.local_id = ?
 ```
+
 Result: `HousingRecordDBO | null` + `HousingOwnerDBO[]` (grouped from multiple rows).
 
 Query 2 — owners by idpersonne (from source):
+
 ```sql
 SELECT * FROM owners WHERE idpersonne IN (source_idpersonnes)
 ```
+
 Result: `OwnerDBO[]`
 
 **Types:**
@@ -180,7 +193,7 @@ Result: `OwnerDBO[]`
 interface HousingOwnerEnrichment {
   housing: HousingRecordDBO | null;
   owners: ReadonlyArray<OwnerDBO>;
-  existingHousingOwners: ReadonlyArray<HousingOwnerDBO>;  // [] when housing is null
+  existingHousingOwners: ReadonlyArray<HousingOwnerDBO>; // [] when housing is null
 }
 
 export type EnrichedSourceHousingOwners = {
@@ -188,8 +201,12 @@ export type EnrichedSourceHousingOwners = {
   existing: HousingOwnerEnrichment;
 };
 
-export function createSourceHousingOwnerEnricher(opts):
-  TransformStream<ReadonlyArray<SourceHousingOwner>, EnrichedSourceHousingOwners>
+export function createSourceHousingOwnerEnricher(
+  opts
+): TransformStream<
+  ReadonlyArray<SourceHousingOwner>,
+  EnrichedSourceHousingOwners
+>;
 ```
 
 ### Transform — `source-housing-owner-transform.ts`
@@ -198,14 +215,16 @@ Pure synchronous function — no DB calls.
 
 ```typescript
 export type HousingOwnersChange = Change<HousingOwnerDBO[], 'housingOwners'>;
-export type HousingEventChange  = Change<EventRecordDBO, 'event'>;
-export type HousingOwnerChange  = HousingOwnersChange | HousingEventChange;
+export type HousingEventChange = Change<EventRecordDBO, 'event'>;
+export type HousingOwnerChange = HousingOwnersChange | HousingEventChange;
 
-export function createHousingOwnerTransform(opts: TransformOptions):
-  (enriched: EnrichedSourceHousingOwners) => HousingOwnerChange[]
+export function createHousingOwnerTransform(
+  opts: TransformOptions
+): (enriched: EnrichedSourceHousingOwners) => HousingOwnerChange[];
 ```
 
 Logic (mirrors current processor):
+
 - `existing.housing === null` → `reporter.failed()`, return `[]`
 - Missing owners → `reporter.failed()`, return `[]`
 - Computes `activeHousingOwners: HousingOwnerDBO[]` from source + `existing.owners`
@@ -233,6 +252,7 @@ stream
 ```
 
 Structural changes:
+
 - Add `console.time('Import housing owners')` at start
 - Replace `try/catch/finally` with `try/finally` (remove redundant catch-and-rethrow)
 - Add `writeReport` + `console.timeEnd` in `finally`
@@ -249,23 +269,27 @@ updated to accept `HousingOwnerDBO[]` (currently accepts `HousingOwnerApi[]`).
 #### New unit tests
 
 **`source-housing-enricher.test.ts`**
+
 - Housing not in DB → `existing.housing` is `null`, events/notes are `[]`
 - Housing in DB, no events/notes → correct shape, arrays empty
 - Housing in DB with events and notes → arrays populated
 - Batch of N → single `db.raw` call (spy)
 
 **`source-housing-transform.test.ts`**
+
 - `existing.housing === null` → create change + optional address change
 - Housing exists, no occupancy change → update change only
 - Housing exists, occupancy needs reset, no user events → update + occupancy event
 - Housing exists, occupancy needs reset, has user events → no reset (occupancy preserved)
 
 **`source-housing-owner-enricher.test.ts`**
+
 - Housing not found → `existing.housing` is `null`
 - Some source idpersonnes not in DB → `existing.owners` partial
 - All found → housing + existing housing owners + owners correct
 
 **`source-housing-owner-transform.test.ts`**
+
 - Missing housing → `reporter.failed()`, returns `[]`
 - Missing owners → `reporter.failed()`, returns `[]`
 - New owners → correct `HousingOwnersChange` with active owners
@@ -279,6 +303,7 @@ updated to accept `HousingOwnerDBO[]` (currently accepts `HousingOwnerApi[]`).
 #### Fixes to existing command tests
 
 **`source-housing-owner-command.test.ts`**
+
 - Extract inline file-write to `write()` helper (matches owner test style)
 - Add `afterAll(async () => { await rm(file); })` (fixes untracked `housing-owners.jsonl`)
 

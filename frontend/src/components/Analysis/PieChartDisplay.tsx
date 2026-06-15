@@ -1,6 +1,5 @@
 import '@gouvfr/dsfr-chart/PieChart';
 import '@gouvfr/dsfr-chart/PieChart.css';
-
 import type { PieChartDataDTO } from '@zerologementvacant/models';
 
 import ChartTranscription from './ChartTranscription';

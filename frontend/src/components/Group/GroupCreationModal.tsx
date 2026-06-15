@@ -1,14 +1,14 @@
 import { yupResolver } from '@hookform/resolvers/yup';
 import Grid from '@mui/material/Grid';
 import Skeleton from '@mui/material/Skeleton';
+import type { HousingCountDTO } from '@zerologementvacant/models';
 import { FormProvider, useForm } from 'react-hook-form';
 import * as yup from 'yup';
 
-import type { HousingCountDTO } from '@zerologementvacant/models';
-import { createExtendedModal } from '../modals/ConfirmationModal/ExtendedModal';
-import AppTextInputNext from '../_app/AppTextInput/AppTextInputNext';
 import type { Group } from '../../models/Group';
+import AppTextInputNext from '../_app/AppTextInput/AppTextInputNext';
 import HousingCount from '../HousingCount/HousingCount';
+import { createExtendedModal } from '../modals/ConfirmationModal/ExtendedModal';
 
 type Payload = Pick<Group, 'title' | 'description'>;
 

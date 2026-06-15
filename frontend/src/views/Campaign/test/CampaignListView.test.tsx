@@ -130,7 +130,9 @@ describe('CampaignListView', () => {
       await user.click(sort);
 
       const cells = await within(table).findAllByText(/^\d+ propriétaires?$/);
-      const counts = cells.map((cell) => Number(cell.textContent?.split(' ')[0]));
+      const counts = cells.map((cell) =>
+        Number(cell.textContent?.split(' ')[0])
+      );
       expect(counts.length).toBeGreaterThan(0);
       expect(counts).toBeSorted({
         descending: true
@@ -181,9 +183,27 @@ describe('CampaignListView', () => {
     it('should sort by return count ascending', async () => {
       renderView({
         campaigns: [
-          { ...genCampaignDTO(), sentAt: '2024-01-01', housingCount: 10, returnCount: 5, returnRate: 0.5 },
-          { ...genCampaignDTO(), sentAt: '2024-01-01', housingCount: 10, returnCount: 1, returnRate: 0.1 },
-          { ...genCampaignDTO(), sentAt: '2024-01-01', housingCount: 10, returnCount: 3, returnRate: 0.3 }
+          {
+            ...genCampaignDTO(),
+            sentAt: '2024-01-01',
+            housingCount: 10,
+            returnCount: 5,
+            returnRate: 0.5
+          },
+          {
+            ...genCampaignDTO(),
+            sentAt: '2024-01-01',
+            housingCount: 10,
+            returnCount: 1,
+            returnRate: 0.1
+          },
+          {
+            ...genCampaignDTO(),
+            sentAt: '2024-01-01',
+            housingCount: 10,
+            returnCount: 3,
+            returnRate: 0.3
+          }
         ]
       });
 
@@ -194,7 +214,9 @@ describe('CampaignListView', () => {
       await user.click(sort);
 
       const cells = await within(table).findAllByText(/^\d+ retours$/);
-      const counts = cells.map((cell) => Number(cell.textContent?.split(' ')[0]));
+      const counts = cells.map((cell) =>
+        Number(cell.textContent?.split(' ')[0])
+      );
       expect(counts.length).toBeGreaterThan(0);
       expect(counts).toBeSorted({
         descending: true
@@ -206,9 +228,27 @@ describe('CampaignListView', () => {
     it('should sort by return rate ascending', async () => {
       renderView({
         campaigns: [
-          { ...genCampaignDTO(), sentAt: '2024-01-01', housingCount: 10, returnCount: 5, returnRate: 0.5 },
-          { ...genCampaignDTO(), sentAt: '2024-01-01', housingCount: 10, returnCount: 1, returnRate: 0.1 },
-          { ...genCampaignDTO(), sentAt: '2024-01-01', housingCount: 10, returnCount: 3, returnRate: 0.3 }
+          {
+            ...genCampaignDTO(),
+            sentAt: '2024-01-01',
+            housingCount: 10,
+            returnCount: 5,
+            returnRate: 0.5
+          },
+          {
+            ...genCampaignDTO(),
+            sentAt: '2024-01-01',
+            housingCount: 10,
+            returnCount: 1,
+            returnRate: 0.1
+          },
+          {
+            ...genCampaignDTO(),
+            sentAt: '2024-01-01',
+            housingCount: 10,
+            returnCount: 3,
+            returnRate: 0.3
+          }
         ]
       });
 
@@ -326,10 +366,7 @@ function renderView(options?: RenderViewOptions) {
   data.campaigns.push(...campaigns);
 
   const store = configureTestStore({
-    auth: genAuthUser(
-      fromUserDTO(auth),
-      fromEstablishmentDTO(establishment)
-    )
+    auth: genAuthUser(fromUserDTO(auth), fromEstablishmentDTO(establishment))
   });
   const router = createMemoryRouter(
     [

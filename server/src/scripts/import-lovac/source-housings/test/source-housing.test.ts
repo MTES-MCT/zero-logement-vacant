@@ -1,11 +1,11 @@
 import { fc, test } from '@fast-check/vitest';
-
 import {
   CADASTRAL_CLASSIFICATION_VALUES,
   HOUSING_KIND_VALUES,
   OCCUPANCY_VALUES,
   OWNERSHIP_KIND_INTERNAL_VALUES
 } from '@zerologementvacant/models';
+
 import {
   SourceHousing,
   sourceHousingSchema
@@ -52,13 +52,31 @@ describe('SourceHousing', () => {
         max: new Date().getUTCFullYear()
       }),
       mutation_date: fc.option(
-        fc.date({ min: new Date('1970-01-01'), max: new Date('9999-12-31'), noInvalidDate: true }).map((d) => d.toISOString().substring(0, 'yyyy-mm-dd'.length))
+        fc
+          .date({
+            min: new Date('1970-01-01'),
+            max: new Date('9999-12-31'),
+            noInvalidDate: true
+          })
+          .map((d) => d.toISOString().substring(0, 'yyyy-mm-dd'.length))
       ),
       last_mutation_date: fc.option(
-        fc.date({ min: new Date('1970-01-01'), max: new Date('9999-12-31'), noInvalidDate: true }).map((d) => d.toISOString().substring(0, 'yyyy-mm-dd'.length))
+        fc
+          .date({
+            min: new Date('1970-01-01'),
+            max: new Date('9999-12-31'),
+            noInvalidDate: true
+          })
+          .map((d) => d.toISOString().substring(0, 'yyyy-mm-dd'.length))
       ),
       last_transaction_date: fc.option(
-        fc.date({ min: new Date('1970-01-01'), max: new Date('9999-12-31'), noInvalidDate: true }).map((d) => d.toISOString().substring(0, 'yyyy-mm-dd'.length))
+        fc
+          .date({
+            min: new Date('1970-01-01'),
+            max: new Date('9999-12-31'),
+            noInvalidDate: true
+          })
+          .map((d) => d.toISOString().substring(0, 'yyyy-mm-dd'.length))
       ),
       last_transaction_value: fc.option(fc.integer({ min: 0 })),
       geolocation: fc.option(fc.string({ minLength: 1 })),

@@ -1,5 +1,6 @@
-import { HttpError } from './httpError';
 import { constants } from 'http2';
+
+import { HttpError } from './httpError';
 
 export default class ResetLinkExpiredError
   extends HttpError
@@ -9,7 +10,7 @@ export default class ResetLinkExpiredError
     super({
       name: 'ResetLinkExpiredError',
       message: `Reset link expired`,
-      status: constants.HTTP_STATUS_GONE,
+      status: constants.HTTP_STATUS_GONE
     });
   }
 }

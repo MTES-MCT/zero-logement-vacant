@@ -1,4 +1,5 @@
 import { Comparison } from '@zerologementvacant/utils';
+
 import { byKind, byKindDesc, EstablishmentKind } from '../EstablishmentKind';
 
 describe('EstablishmentKind', () => {

@@ -14,20 +14,21 @@
 
 ## File Map
 
-| File | Action | Responsibility |
-|---|---|---|
-| `analytics/import-lovac/src/housings/transform.py` | Rewrite | Column mapping, create/update split, applyChanges, event generation |
-| `analytics/import-lovac/src/housings/read.py` | Modify | Add `sub_status` to existing housing SELECT; add `read_admin_user_id` |
-| `analytics/import-lovac/src/housings/write.py` | Modify | Update to handle two event tables (`events` + `housing_events`), explicit column lists for staging COPY |
-| `analytics/import-lovac/src/config.py` | Modify | Add `system_account_email` field |
-| `analytics/import-lovac/src/assets.py` | Modify | Pass `year` and `admin_user_id` to `transform_housings` |
-| `analytics/import-lovac/tests/test_housings_transform.py` | Create | Unit tests for all transform scenarios |
+| File                                                      | Action  | Responsibility                                                                                          |
+| --------------------------------------------------------- | ------- | ------------------------------------------------------------------------------------------------------- |
+| `analytics/import-lovac/src/housings/transform.py`        | Rewrite | Column mapping, create/update split, applyChanges, event generation                                     |
+| `analytics/import-lovac/src/housings/read.py`             | Modify  | Add `sub_status` to existing housing SELECT; add `read_admin_user_id`                                   |
+| `analytics/import-lovac/src/housings/write.py`            | Modify  | Update to handle two event tables (`events` + `housing_events`), explicit column lists for staging COPY |
+| `analytics/import-lovac/src/config.py`                    | Modify  | Add `system_account_email` field                                                                        |
+| `analytics/import-lovac/src/assets.py`                    | Modify  | Pass `year` and `admin_user_id` to `transform_housings`                                                 |
+| `analytics/import-lovac/tests/test_housings_transform.py` | Create  | Unit tests for all transform scenarios                                                                  |
 
 ---
 
 ### Task 1: Add `system_account_email` to config and `read_admin_user_id` to read module
 
 **Files:**
+
 - Modify: `analytics/import-lovac/src/config.py`
 - Modify: `analytics/import-lovac/src/housings/read.py`
 
@@ -94,6 +95,7 @@ git commit -m "feat(server): add system_account_email config and read_admin_user
 ### Task 2: Write failing tests for `_build_creates`
 
 **Files:**
+
 - Create: `analytics/import-lovac/tests/test_housings_transform.py`
 
 - [ ] **Step 1: Write the test file with create scenarios**
@@ -255,6 +257,7 @@ git commit -m "test(server): add failing tests for housing transform creates"
 ### Task 3: Implement `_build_creates` and make create tests pass
 
 **Files:**
+
 - Rewrite: `analytics/import-lovac/src/housings/transform.py`
 
 - [ ] **Step 1: Rewrite `transform.py` with create logic**
@@ -607,6 +610,7 @@ git commit -m "feat(server): implement housing transform create logic with colum
 ### Task 4: Write failing tests for update scenarios
 
 **Files:**
+
 - Modify: `analytics/import-lovac/tests/test_housings_transform.py`
 
 - [ ] **Step 1: Add update test classes**
@@ -780,6 +784,7 @@ git commit -m "test(server): add update scenario tests for housing transform"
 ### Task 5: Update write module for two event tables and explicit column lists
 
 **Files:**
+
 - Modify: `analytics/import-lovac/src/housings/write.py`
 
 - [ ] **Step 1: Rewrite `write_housings` to accept 4 DataFrames and use explicit column lists**
@@ -942,6 +947,7 @@ git commit -m "feat(server): update housing write to handle events and housing_e
 ### Task 6: Update asset to pass `year`, `admin_user_id`, and 4-tuple return
 
 **Files:**
+
 - Modify: `analytics/import-lovac/src/assets.py`
 
 - [ ] **Step 1: Update `source_housings` asset**
@@ -1050,6 +1056,7 @@ cd /Users/inad/dev/zero-logement-vacant.feat-import-lovac-owner-eetl/analytics/i
 - [ ] **Step 2: Materialize a single partition**
 
 In the Dagster UI, materialize `source_housings` for partition `01` (or whichever department has test data). Verify:
+
 - No column errors
 - Creates and updates logged correctly
 - Events inserted into both `events` and `housing_events` tables

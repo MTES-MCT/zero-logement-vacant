@@ -1,12 +1,12 @@
 import { program } from '@commander-js/extra-typings';
+import { DATA_FILE_YEAR_VALUES } from '@zerologementvacant/models';
 
 import { createLogger } from '~/infra/logger';
+import { createExistingHousingCommand } from '~/scripts/import-lovac/housings/housing-command';
 import { FromOptionValue } from '~/scripts/import-lovac/infra/options/from';
 import { createSourceHousingOwnerCommand } from '~/scripts/import-lovac/source-housing-owners/source-housing-owner-command';
 import { createSourceHousingCommand } from '~/scripts/import-lovac/source-housings/source-housing-command';
-import { createExistingHousingCommand } from '~/scripts/import-lovac/housings/housing-command';
 import { createSourceOwnerCommand } from '~/scripts/import-lovac/source-owners/source-owner-command';
-import { DATA_FILE_YEAR_VALUES } from '@zerologementvacant/models';
 
 const logger = createLogger('cli');
 

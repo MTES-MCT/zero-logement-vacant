@@ -1,4 +1,5 @@
 import { Array, pipe, Record } from 'effect';
+
 import type { HousingWithCoordinates } from './Housing';
 
 type Ordered<T> = { order: string } & T;

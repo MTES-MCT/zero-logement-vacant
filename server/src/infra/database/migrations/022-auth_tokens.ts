@@ -20,14 +20,14 @@ export async function up(knex: Knex): Promise<void> {
     knex.raw(
       'update users set ' +
         'role = (case when (establishment_id is null) then 1 else 0 end), ' +
-        'activated_at = (case when (password is not null) then current_timestamp end)',
+        'activated_at = (case when (password is not null) then current_timestamp end)'
     ),
     knex.schema.alterTable('users', (table) => {
       table.integer('role').notNullable().alter();
     }),
     knex.schema.alterTable('housing', (table) => {
       table.integer('cadastral_classification').nullable().alter();
-    }),
+    })
   ]);
 }
 
@@ -37,6 +37,6 @@ export async function down(knex: Knex): Promise<void> {
     knex.schema.alterTable('users', (table) => {
       table.dropColumn('role');
       table.dropColumn('activated_at');
-    }),
+    })
   ]);
 }

@@ -14,6 +14,7 @@ import { type Campaign } from '~/models/Campaign';
 import { useFindCampaignsQuery } from '~/services/campaign.service';
 import { toPercentage } from '~/utils/number-utils';
 import { displayCount } from '~/utils/stringUtils';
+
 import AppLink from '../_app/AppLink/AppLink';
 import WaitingBadge from './WaitingBadge';
 

@@ -1,9 +1,10 @@
+import { constants } from 'node:http2';
+
 import { faker } from '@faker-js/faker/locale/fr';
 import type { GroupDTO, GroupPayloadDTO } from '@zerologementvacant/models';
 import { genGroupDTO } from '@zerologementvacant/models/fixtures';
 import { Array, Record } from 'effect';
 import { http, HttpResponse, RequestHandler } from 'msw';
-import { constants } from 'node:http2';
 
 import config from '../../utils/config';
 import data from './data';

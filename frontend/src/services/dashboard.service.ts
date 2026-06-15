@@ -3,6 +3,7 @@ import type {
   DashboardDTO,
   Resource
 } from '@zerologementvacant/models';
+
 import { zlvApi } from './api.service';
 
 interface FindOneOptions {

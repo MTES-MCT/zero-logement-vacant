@@ -51,7 +51,11 @@ span.fr-icon-checkbox-circle-line.ds-fr-tag-icon {
   }
 }
 
-.fr-header .fr-links-group .fr-link:not([class^=fr-icon-]):not([class*=" fr-icon-"]):not([class^=fr-fi-]):not([class*=" fr-fi-"]) {
+.fr-header
+  .fr-links-group
+  .fr-link:not([class^='fr-icon-']):not([class*=' fr-icon-']):not(
+    [class^='fr-fi-']
+  ):not([class*=' fr-fi-']) {
   font-size: initial !important;
   line-height: initial !important;
   min-height: initial !important;
@@ -66,13 +70,13 @@ span.fr-icon-checkbox-circle-line.ds-fr-tag-icon {
 }
 
 .fr-icon-xs::before {
-  --icon-size: .75em;
+  --icon-size: 0.75em;
 }
 
 .fr-btn--close {
   margin-left: auto !important;
   margin-right: -1rem !important;
-  margin-bottom: 0 ! important;
+  margin-bottom: 0 !important;
 }
 
 .fr-modal__footer {
@@ -94,18 +98,20 @@ span.fr-icon-checkbox-circle-line.ds-fr-tag-icon {
 }
 
 .fr-accordion {
-
   .select-multi-input .select-multi-options {
     padding: 1rem 0 0 1rem;
   }
 
-  .select-multi-options, .select-single-options {
-
+  .select-multi-options,
+  .select-single-options {
     .fr-fieldset__content .fr-checkbox-group label {
       padding: 0 0;
     }
 
-    .fr-fieldset__content .fr-checkbox-group input[type="checkbox"] + label::before {
+    .fr-fieldset__content
+      .fr-checkbox-group
+      input[type='checkbox']
+      + label::before {
       top: 0rem;
     }
   }

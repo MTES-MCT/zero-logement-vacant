@@ -1,9 +1,9 @@
 import type { RelativeLocationFilter } from '@zerologementvacant/models';
 import { RELATIVE_LOCATION_FILTER_VALUES } from '@zerologementvacant/models';
 
-import { RELATIVE_LOCATION_OPTIONS } from '~/models/HousingFilters';
 import Select from '~/components/ui/Select/Select';
 import type { SelectProps } from '~/components/ui/Select/Select';
+import { RELATIVE_LOCATION_OPTIONS } from '~/models/HousingFilters';
 
 export type RelativeLocationSelectProps<Multiple extends boolean> = Pick<
   SelectProps<RelativeLocationFilter, Multiple>,

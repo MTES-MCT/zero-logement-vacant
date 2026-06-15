@@ -40,19 +40,27 @@ function ChartTranscription(props: Readonly<ChartTranscriptionProps>) {
       });
       return pipe(
         Array.zip(labels, data),
-        Array.map(([label, value]) => `${label} : ${formatter.format(value / total)}`)
+        Array.map(
+          ([label, value]) => `${label} : ${formatter.format(value / total)}`
+        )
       );
     })
     .with('bar-chart', () =>
       pipe(
         Array.zip(labels, data),
-        Array.map(([label, value]) => `${label} : ${formatValue(value, format, decimals)}`)
+        Array.map(
+          ([label, value]) =>
+            `${label} : ${formatValue(value, format, decimals)}`
+        )
       )
     )
     .with('line-chart', () =>
       pipe(
         Array.zip(labels, data),
-        Array.map(([label, value]) => `${label} : ${formatValue(value, format, decimals)}`)
+        Array.map(
+          ([label, value]) =>
+            `${label} : ${formatValue(value, format, decimals)}`
+        )
       )
     )
     .exhaustive();

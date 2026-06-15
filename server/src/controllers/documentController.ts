@@ -1,3 +1,5 @@
+import { constants } from 'node:http2';
+
 import { DeleteObjectCommand } from '@aws-sdk/client-s3';
 import {
   ACCEPTED_HOUSING_DOCUMENT_EXTENSIONS,
@@ -13,7 +15,6 @@ import async from 'async';
 import { Array, Either } from 'effect';
 import { RequestHandler } from 'express';
 import { AuthenticatedRequest } from 'express-jwt';
-import { constants } from 'node:http2';
 import { match } from 'ts-pattern';
 import { v4 as uuidv4 } from 'uuid';
 
@@ -327,12 +328,13 @@ const linkToHousing: RequestHandler<
   HousingDocumentPayload,
   never
 > = async (request, response) => {
-  const { effectiveGeoCodes, establishment, params, body } = request as AuthenticatedRequest<
-    { id: HousingDTO['id'] },
-    ReadonlyArray<DocumentDTO>,
-    HousingDocumentPayload,
-    never
-  >;
+  const { effectiveGeoCodes, establishment, params, body } =
+    request as AuthenticatedRequest<
+      { id: HousingDTO['id'] },
+      ReadonlyArray<DocumentDTO>,
+      HousingDocumentPayload,
+      never
+    >;
 
   logger.info('Linking documents to housing', {
     housing: params.id,
@@ -408,14 +410,15 @@ const listByHousing: RequestHandler<
   never,
   never
 > = async (request, response): Promise<void> => {
-  const { effectiveGeoCodes, establishment, params } = request as AuthenticatedRequest<
-    {
-      id: HousingDTO['id'];
-    },
-    HousingDocumentDTO[],
-    never,
-    never
-  >;
+  const { effectiveGeoCodes, establishment, params } =
+    request as AuthenticatedRequest<
+      {
+        id: HousingDTO['id'];
+      },
+      HousingDocumentDTO[],
+      never,
+      never
+    >;
   logger.debug('Finding documents by housing...', { housing: params.id });
   const housing = await housingRepository.findOne({
     establishment: establishment.id,
@@ -453,12 +456,13 @@ const removeByHousing: RequestHandler<
   never,
   never
 > = async (request, response) => {
-  const { effectiveGeoCodes, establishment, params } = request as AuthenticatedRequest<
-    { housingId: HousingDTO['id']; documentId: DocumentDTO['id'] },
-    void,
-    never,
-    never
-  >;
+  const { effectiveGeoCodes, establishment, params } =
+    request as AuthenticatedRequest<
+      { housingId: HousingDTO['id']; documentId: DocumentDTO['id'] },
+      void,
+      never,
+      never
+    >;
 
   logger.info('Removing document-housing association', {
     housing: params.housingId,

@@ -2,7 +2,9 @@ import Grid from '@mui/material/Grid';
 import Typography from '@mui/material/Typography';
 
 import type { DraftFormSchema } from '~/components/Draft/DraftForm';
+
 import AppTextInputNext from '../_app/AppTextInput/AppTextInputNext';
+
 import styles from './draft.module.scss';
 
 function DraftRedaction() {

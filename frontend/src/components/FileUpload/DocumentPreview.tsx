@@ -11,6 +11,7 @@ import Typography, { type TypographyProps } from '@mui/material/Typography';
 import { type DocumentDTO, isImage, isPDF } from '@zerologementvacant/models';
 import { memo, useMemo, useState } from 'react';
 import { Page, pdfjs, Document as UnstyledDocument } from 'react-pdf';
+
 import 'react-pdf/dist/Page/AnnotationLayer.css';
 import 'react-pdf/dist/Page/TextLayer.css';
 import { useMeasure } from 'react-use';
@@ -39,7 +40,7 @@ interface DocumentCommon {
   onDownload?(): void;
 }
 
-export type DocumentPreviewProps = DocumentCommon; 
+export type DocumentPreviewProps = DocumentCommon;
 
 const PreviewButton = styled('button')({
   width: '100%',

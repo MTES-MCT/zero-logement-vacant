@@ -1,8 +1,9 @@
+import { constants } from 'http2';
+
 import { BuildingDTO } from '@zerologementvacant/models';
 import { RequestHandler } from 'express';
-import { constants } from 'http2';
-import BuildingMissingError from '~/errors/buildingMissingError';
 
+import BuildingMissingError from '~/errors/buildingMissingError';
 import { toBuildingDTO } from '~/models/BuildingApi';
 import buildingRepository from '~/repositories/buildingRepository';
 

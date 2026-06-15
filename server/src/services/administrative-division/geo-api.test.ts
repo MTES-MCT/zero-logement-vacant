@@ -1,5 +1,6 @@
 import nock from 'nock';
 import { afterEach, describe, expect, it } from 'vitest';
+
 import { createGeoAPI, getDepartmentFromCommune } from './geo-api';
 
 const GEO_API = 'https://geo.api.gouv.fr';

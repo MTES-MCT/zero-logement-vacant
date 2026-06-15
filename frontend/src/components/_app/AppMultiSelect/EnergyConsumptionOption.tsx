@@ -1,7 +1,7 @@
+import DPE from '../../DPE/DPE';
 import AppMultiSelectOption, {
   type AppMultiSelectOptionProps
 } from './AppMultiSelectOption';
-import DPE from '../../DPE/DPE';
 
 interface Props extends AppMultiSelectOptionProps<string> {
   label: string;

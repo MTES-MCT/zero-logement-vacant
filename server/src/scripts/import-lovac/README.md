@@ -65,13 +65,13 @@ done
 
 ## Options disponibles
 
-| Option | Description |
-|---|---|
-| `--year <millésime>` | Obligatoire. Ex: `lovac-2026` |
-| `--file <clé-s3>` | Fichier source sur S3 |
-| `--dry-run` | Simule l'import sans écrire en base |
-| `--abort-early` | Arrête au premier échec de validation |
-| `--departments <dep...>` | Filtre par département(s) |
+| Option                   | Description                           |
+| ------------------------ | ------------------------------------- |
+| `--year <millésime>`     | Obligatoire. Ex: `lovac-2026`         |
+| `--file <clé-s3>`        | Fichier source sur S3                 |
+| `--dry-run`              | Simule l'import sans écrire en base   |
+| `--abort-early`          | Arrête au premier échec de validation |
+| `--departments <dep...>` | Filtre par département(s)             |
 
 ## Architecture
 
@@ -89,6 +89,7 @@ Le rapport est publié **en français** via le skill Claude Code `/publish-lovac
 Il lit les fichiers `snapshot-<entité>-<suffixe>-pre.json` / `snapshot-<entité>-<suffixe>-post.json` produits par `stats/snapshot.sh` (un fichier par requête SQL).
 
 Sections générées :
+
 - Propriétaires (total, par type, avec/sans `idpersonne`, avec/sans adresse DGFIP)
 - Bâtiments (insérés, ignorés, couverture RNB) — lu depuis `import-lovac-buildings.report.json`
 - Logements (total, par occupation, par statut de suivi)

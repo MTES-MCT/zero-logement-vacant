@@ -1,10 +1,11 @@
-import { Factory } from 'fishery';
 import { faker } from '@faker-js/faker/locale/fr';
 import {
   TIME_PER_WEEK_VALUES,
   UserRole,
   type UserDTO
 } from '@zerologementvacant/models';
+import { Factory } from 'fishery';
+
 import type { Adapter } from '../adapter';
 
 export function createUserFactory(adapter: Adapter) {

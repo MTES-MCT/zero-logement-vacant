@@ -3,8 +3,10 @@ import { Struct } from 'effect';
 
 import { toUserDTO, UserApi } from './UserApi';
 
-export interface GroupApi
-  extends Omit<GroupDTO, 'createdAt' | 'createdBy' | 'archivedAt'> {
+export interface GroupApi extends Omit<
+  GroupDTO,
+  'createdAt' | 'createdBy' | 'archivedAt'
+> {
   userId: string;
   createdAt: Date;
   /**

@@ -1,4 +1,5 @@
 import { Comparison } from '@zerologementvacant/utils';
+
 import {
   byCreatedAt,
   byHousingCount,
@@ -30,9 +31,12 @@ describe('CampaignDTO', () => {
   });
 
   describe('isCampaignStatus', () => {
-    it.each(CAMPAIGN_STATUS_VALUES)('returns true for valid status "%s"', (status) => {
-      expect(isCampaignStatus(status)).toBe(true);
-    });
+    it.each(CAMPAIGN_STATUS_VALUES)(
+      'returns true for valid status "%s"',
+      (status) => {
+        expect(isCampaignStatus(status)).toBe(true);
+      }
+    );
 
     it.each(['unknown', '', 'DRAFT', 123, null, undefined])(
       'returns false for invalid value %j',

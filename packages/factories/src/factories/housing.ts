@@ -1,4 +1,3 @@
-import { Factory } from 'fishery';
 import { faker } from '@faker-js/faker/locale/fr';
 import {
   CADASTRAL_CLASSIFICATION_VALUES,
@@ -15,7 +14,9 @@ import {
   READ_WRITE_OCCUPANCY_VALUES,
   type HousingDTO
 } from '@zerologementvacant/models';
+import { Factory } from 'fishery';
 import { match, Pattern } from 'ts-pattern';
+
 import type { Adapter } from '../adapter';
 
 function genGeoCode(): string {
@@ -69,9 +70,7 @@ export function createHousingFactory(adapter: Adapter) {
     ]);
     const subStatuses = [...getSubStatuses(status)];
     const subStatus =
-      subStatuses.length === 0
-        ? null
-        : faker.helpers.arrayElement(subStatuses);
+      subStatuses.length === 0 ? null : faker.helpers.arrayElement(subStatuses);
 
     return {
       id: faker.string.uuid(),
@@ -120,7 +119,9 @@ export function createHousingFactory(adapter: Adapter) {
       ]),
       energyConsumptionAt: faker.helpers.maybe(() => faker.date.past()) ?? null,
       occupancy: faker.helpers.arrayElement(READ_WRITE_OCCUPANCY_VALUES),
-      occupancyIntended: faker.helpers.arrayElement(READ_WRITE_OCCUPANCY_VALUES),
+      occupancyIntended: faker.helpers.arrayElement(
+        READ_WRITE_OCCUPANCY_VALUES
+      ),
       campaignIds: [],
       source: faker.helpers.arrayElement(HOUSING_SOURCE_VALUES),
       plotId:
@@ -133,11 +134,14 @@ export function createHousingFactory(adapter: Adapter) {
       rentalValue: faker.number.int({ min: 500, max: 1000 }),
       lastMutationType: faker.helpers.arrayElement(MUTATION_TYPE_VALUES),
       lastMutationDate:
-        faker.helpers.maybe(() => faker.date.past({ years: 20 }).toJSON()) ?? null,
+        faker.helpers.maybe(() => faker.date.past({ years: 20 }).toJSON()) ??
+        null,
       lastTransactionDate:
-        faker.helpers.maybe(() => faker.date.past({ years: 20 }).toJSON()) ?? null,
+        faker.helpers.maybe(() => faker.date.past({ years: 20 }).toJSON()) ??
+        null,
       lastTransactionValue:
-        faker.helpers.maybe(() => Number(faker.finance.amount({ dec: 0 }))) ?? null
+        faker.helpers.maybe(() => Number(faker.finance.amount({ dec: 0 }))) ??
+        null
     };
   }).onCreate((entity) => adapter.create('housings', entity));
 }

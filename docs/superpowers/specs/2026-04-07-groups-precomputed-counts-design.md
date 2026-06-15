@@ -22,6 +22,7 @@ File created via `yarn workspace @zerologementvacant/server db migrate:make grou
    - `owner_count INTEGER NOT NULL DEFAULT 0`
 
 2. **Backfill** existing rows (in the migration — `groups` is a small user-created table, not imported data, so the one-time COUNT cost at deploy time is acceptable):
+
    ```sql
    UPDATE groups g
    SET

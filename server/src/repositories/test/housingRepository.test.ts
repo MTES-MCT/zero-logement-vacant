@@ -34,10 +34,10 @@ import { isDefined } from '@zerologementvacant/utils';
 import async from 'async';
 import { differenceInYears, endOfYear } from 'date-fns';
 import { Array, Predicate, Record } from 'effect';
+import { flow } from 'effect/Function';
 import fp from 'lodash/fp';
 import { match } from 'ts-pattern';
 
-import { flow } from 'effect/Function';
 import { AddressApi } from '~/models/AddressApi';
 import { BuildingApi } from '~/models/BuildingApi';
 import { CampaignApi } from '~/models/CampaignApi';
@@ -74,6 +74,7 @@ import {
   manyOf,
   oneOf
 } from '~/test/testFixtures';
+
 import {
   Buildings,
   formatBuildingApi,

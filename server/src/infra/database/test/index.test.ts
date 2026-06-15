@@ -1,5 +1,6 @@
-import db, { onConflict, where } from '~/infra/database';
 import { faker } from '@faker-js/faker/locale/fr';
+
+import db, { onConflict, where } from '~/infra/database';
 
 describe('Database utils', () => {
   const TEST_TABLE = 'test';

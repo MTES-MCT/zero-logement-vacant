@@ -1,7 +1,9 @@
+import { constants } from 'http2';
+
 import { faker } from '@faker-js/faker/locale/fr';
 import { Occupancy } from '@zerologementvacant/models';
-import { constants } from 'http2';
 import request from 'supertest';
+
 import { createServer } from '~/infra/server';
 import {
   CampaignHousingEventApi,
@@ -56,7 +58,6 @@ import {
   genOwnerApi,
   genUserApi
 } from '~/test/testFixtures';
-
 import { tokenProvider } from '~/test/testUtils';
 
 describe('Event API', () => {

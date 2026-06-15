@@ -67,5 +67,5 @@ export async function seed(knex: Knex): Promise<void> {
     await knex.batchInsert(GROUPS_HOUSING_TABLE, groupHousings);
   });
   console.timeEnd('20240404235731_groups');
-  console.log('\n')
+  console.log('\n');
 }

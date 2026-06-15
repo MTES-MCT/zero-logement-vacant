@@ -1,6 +1,6 @@
 import * as turf from '@turf/turf';
-import { Layer, Source } from 'react-map-gl/maplibre';
 import type { Geometry } from 'geojson';
+import { Layer, Source } from 'react-map-gl/maplibre';
 import type { MapRef } from 'react-map-gl/maplibre';
 
 import type {

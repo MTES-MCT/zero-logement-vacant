@@ -1,9 +1,10 @@
 import { fr } from '@codegouvfr/react-dsfr';
-import Stack from '@mui/material/Stack';
-import Typography from '@mui/material/Typography';
-import { styled } from '@mui/material/styles';
 import type { FrIconClassName, RiIconClassName } from '@codegouvfr/react-dsfr';
+import Stack from '@mui/material/Stack';
+import { styled } from '@mui/material/styles';
+import Typography from '@mui/material/Typography';
 import type { ReactNode } from 'react';
+
 import Icon from '~/components/ui/Icon';
 
 interface Props {

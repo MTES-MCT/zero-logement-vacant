@@ -8,8 +8,10 @@ import {
 
 export type ConfirmationModalOptions = ExtendedModalOptions;
 
-export interface ConfirmationModalProps
-  extends Omit<ExtendedModalProps, 'buttons'> {
+export interface ConfirmationModalProps extends Omit<
+  ExtendedModalProps,
+  'buttons'
+> {
   onSubmit?(): void;
 }
 

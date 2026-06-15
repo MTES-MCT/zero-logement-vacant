@@ -135,17 +135,18 @@ describe('Housing view', () => {
         housingOwners: [housingOwner]
       });
 
-      const tag = await screen.findByLabelText(
-        'Lieu de résidence'
-      );
+      const tag = await screen.findByLabelText('Lieu de résidence');
       expect(tag).toHaveTextContent(RELATIVE_LOCATION_LABELS['same-commune']);
     });
 
     const labels = pipe(
       RELATIVE_LOCATION_LABELS,
       Record.filter((_, key) => key !== 'other'),
-      test => Record.toEntries(test) as Array<[keyof typeof RELATIVE_LOCATION_LABELS, string]>
-    )
+      (test) =>
+        Record.toEntries(test) as Array<
+          [keyof typeof RELATIVE_LOCATION_LABELS, string]
+        >
+    );
 
     it.each(labels)(
       'should display the relative location "%s" for the primary owner with label "%s"',
@@ -167,9 +168,7 @@ describe('Housing view', () => {
           housingOwners: [housingOwner]
         });
 
-        const tag = await screen.findByLabelText(
-          'Lieu de résidence'
-        );
+        const tag = await screen.findByLabelText('Lieu de résidence');
         expect(tag).toHaveTextContent(expectedLabel);
       }
     );
@@ -230,7 +229,9 @@ describe('Housing view', () => {
       establishment: establishment
     });
 
-    const name = await screen.findByText(new RegExp(getOwnerDisplayName(owner), 'i'));
+    const name = await screen.findByText(
+      new RegExp(getOwnerDisplayName(owner), 'i')
+    );
     expect(name).toBeVisible();
     const title = screen.queryByTitle('Modifier les propriétaires');
     expect(title).not.toBeInTheDocument();
@@ -360,7 +361,9 @@ describe('Housing view', () => {
       const panel = await screen.findByRole('tabpanel', {
         name: 'Informations sur le logement'
       });
-      const dpeSelect = await within(panel).findByLabelText('Étiquette DPE renseignée');
+      const dpeSelect = await within(panel).findByLabelText(
+        'Étiquette DPE renseignée'
+      );
       await user.click(dpeSelect);
       const options = await screen.findByRole('listbox');
       const option = await within(options).findByRole('option', { name: 'B' });
@@ -1679,7 +1682,7 @@ describe('Housing view', () => {
     });
 
     it('should cancel the removal of a document', async () => {
-     const establishment = genEstablishmentDTO();
+      const establishment = genEstablishmentDTO();
       const auth = genUserDTO(UserRole.USUAL, establishment);
       const housing = genHousingDTO();
       const documents = faker.helpers.multiple(() =>
@@ -1721,7 +1724,7 @@ describe('Housing view', () => {
       const document = within(panelAgain).queryByText(
         new RegExp(documents[0].filename, 'i')
       );
-      expect(document).toBeInTheDocument(); 
-    })
+      expect(document).toBeInTheDocument();
+    });
   });
 });

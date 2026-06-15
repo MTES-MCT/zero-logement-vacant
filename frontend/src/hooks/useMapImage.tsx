@@ -1,5 +1,5 @@
-import { useMap } from 'react-map-gl/maplibre';
 import { useEffect } from 'react';
+import { useMap } from 'react-map-gl/maplibre';
 
 interface UseMapImageOptions {
   id: string;

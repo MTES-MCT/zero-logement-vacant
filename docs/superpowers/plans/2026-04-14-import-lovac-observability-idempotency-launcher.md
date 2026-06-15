@@ -14,36 +14,37 @@
 
 ## File Map
 
-| File | Action |
-|---|---|
-| `server/src/scripts/import-lovac/infra/reporters/reporter.ts` | **Modify** — add `ImportSummary`, `created(n)`, `updated(n)`, `getSummary()` |
-| `server/src/scripts/import-lovac/infra/reporters/logger-reporter.ts` | **Modify** — implement counters, log idpersonne on failure, durationMs, getSummary |
-| `server/src/scripts/import-lovac/infra/reporters/noop-reporter.ts` | **Modify** — add no-op implementations for new methods |
-| `server/src/scripts/import-lovac/infra/reporters/test/logger-reporter.test.ts` | **Create** — tests for new reporter behaviour |
-| `server/src/scripts/import-lovac/source-owners/source-owner-command.ts` | **Modify** — add `year` to ExecOptions, wire reporter callbacks, write report file |
-| `server/src/scripts/import-lovac/infra/constants.ts` | **Create** — `LOVAC_NAMESPACE` UUID constant |
-| `server/src/scripts/import-lovac/cli.ts` | **Modify** — add `--year` required option to all subcommands |
-| `server/src/scripts/import-lovac/source-owners/source-owner-transform.ts` | **Modify** — `v5(idpersonne, LOVAC_NAMESPACE)` in `toCreate()` |
-| `server/src/scripts/import-lovac/source-owners/test/source-owner-transform.test.ts` | **Modify** — add determinism test |
-| `server/src/scripts/import-lovac/source-housings/source-housing-processor.ts` | **Modify** — add `year` to ProcessorOptions, `v5` for housing create + event IDs |
-| `server/src/scripts/import-lovac/source-housings/source-housing-command.ts` | **Modify** — add `year` to ExecOptions, pass to processor |
-| `server/src/scripts/import-lovac/source-housing-owners/source-housing-owner-processor.ts` | **Modify** — add `year` to ProcessorOptions, `v5` for 3 event IDs |
-| `server/src/scripts/import-lovac/source-housing-owners/source-housing-owner-command.ts` | **Modify** — add `year` to ExecOptions, pass to processor |
-| `clevercloud/import-lovac-entrypoint.sh` | **Create** — task app start script |
-| `server/src/scripts/import-lovac/run-on-clevercloud.sh` | **Create** — operator trigger script |
-| `server/src/scripts/import-lovac/stats/queries/owners.sql` | **Create** |
-| `server/src/scripts/import-lovac/stats/queries/housings.sql` | **Create** |
-| `server/src/scripts/import-lovac/stats/queries/housing-owners.sql` | **Create** |
-| `server/src/scripts/import-lovac/stats/queries/events.sql` | **Create** |
-| `server/src/scripts/import-lovac/stats/snapshot.sh` | **Create** — DuckDB + Youplot |
-| `server/src/scripts/import-lovac/stats/diff.sh` | **Create** — jq delta comparison |
-| `.claude/skills/publish-lovac-report/SKILL.md` | **Create** — Notion export Skill |
+| File                                                                                      | Action                                                                             |
+| ----------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------- |
+| `server/src/scripts/import-lovac/infra/reporters/reporter.ts`                             | **Modify** — add `ImportSummary`, `created(n)`, `updated(n)`, `getSummary()`       |
+| `server/src/scripts/import-lovac/infra/reporters/logger-reporter.ts`                      | **Modify** — implement counters, log idpersonne on failure, durationMs, getSummary |
+| `server/src/scripts/import-lovac/infra/reporters/noop-reporter.ts`                        | **Modify** — add no-op implementations for new methods                             |
+| `server/src/scripts/import-lovac/infra/reporters/test/logger-reporter.test.ts`            | **Create** — tests for new reporter behaviour                                      |
+| `server/src/scripts/import-lovac/source-owners/source-owner-command.ts`                   | **Modify** — add `year` to ExecOptions, wire reporter callbacks, write report file |
+| `server/src/scripts/import-lovac/infra/constants.ts`                                      | **Create** — `LOVAC_NAMESPACE` UUID constant                                       |
+| `server/src/scripts/import-lovac/cli.ts`                                                  | **Modify** — add `--year` required option to all subcommands                       |
+| `server/src/scripts/import-lovac/source-owners/source-owner-transform.ts`                 | **Modify** — `v5(idpersonne, LOVAC_NAMESPACE)` in `toCreate()`                     |
+| `server/src/scripts/import-lovac/source-owners/test/source-owner-transform.test.ts`       | **Modify** — add determinism test                                                  |
+| `server/src/scripts/import-lovac/source-housings/source-housing-processor.ts`             | **Modify** — add `year` to ProcessorOptions, `v5` for housing create + event IDs   |
+| `server/src/scripts/import-lovac/source-housings/source-housing-command.ts`               | **Modify** — add `year` to ExecOptions, pass to processor                          |
+| `server/src/scripts/import-lovac/source-housing-owners/source-housing-owner-processor.ts` | **Modify** — add `year` to ProcessorOptions, `v5` for 3 event IDs                  |
+| `server/src/scripts/import-lovac/source-housing-owners/source-housing-owner-command.ts`   | **Modify** — add `year` to ExecOptions, pass to processor                          |
+| `clevercloud/import-lovac-entrypoint.sh`                                                  | **Create** — task app start script                                                 |
+| `server/src/scripts/import-lovac/run-on-clevercloud.sh`                                   | **Create** — operator trigger script                                               |
+| `server/src/scripts/import-lovac/stats/queries/owners.sql`                                | **Create**                                                                         |
+| `server/src/scripts/import-lovac/stats/queries/housings.sql`                              | **Create**                                                                         |
+| `server/src/scripts/import-lovac/stats/queries/housing-owners.sql`                        | **Create**                                                                         |
+| `server/src/scripts/import-lovac/stats/queries/events.sql`                                | **Create**                                                                         |
+| `server/src/scripts/import-lovac/stats/snapshot.sh`                                       | **Create** — DuckDB + Youplot                                                      |
+| `server/src/scripts/import-lovac/stats/diff.sh`                                           | **Create** — jq delta comparison                                                   |
+| `.claude/skills/publish-lovac-report/SKILL.md`                                            | **Create** — Notion export Skill                                                   |
 
 ---
 
 ## Task 1: Extend Reporter interface + update NoopReporter
 
 **Files:**
+
 - Modify: `server/src/scripts/import-lovac/infra/reporters/reporter.ts`
 - Modify: `server/src/scripts/import-lovac/infra/reporters/noop-reporter.ts`
 
@@ -101,7 +102,11 @@ export interface ReporterOptions<T> {
 Replace the full content of `server/src/scripts/import-lovac/infra/reporters/noop-reporter.ts`:
 
 ```typescript
-import { ImportSummary, Reporter, ReporterError } from '~/scripts/import-lovac/infra/reporters/reporter';
+import {
+  ImportSummary,
+  Reporter,
+  ReporterError
+} from '~/scripts/import-lovac/infra/reporters/reporter';
 
 class NoopReporter<T> implements Reporter<T> {
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
@@ -152,6 +157,7 @@ git commit -m "feat(server): extend Reporter interface with created/updated/getS
 ## Task 2: Implement LoggerReporter improvements
 
 **Files:**
+
 - Create: `server/src/scripts/import-lovac/infra/reporters/test/logger-reporter.test.ts`
 - Modify: `server/src/scripts/import-lovac/infra/reporters/logger-reporter.ts`
 
@@ -267,7 +273,9 @@ class LoggerReporter<T extends { idpersonne?: string }> implements Reporter<T> {
   }
 }
 
-export function createLoggerReporter<T extends { idpersonne?: string }>(): Reporter<T> {
+export function createLoggerReporter<
+  T extends { idpersonne?: string }
+>(): Reporter<T> {
   return new LoggerReporter<T>();
 }
 ```
@@ -293,6 +301,7 @@ git commit -m "feat(server): implement created/updated counters and getSummary i
 ## Task 3: Wire reporter into owner load sink + write report file
 
 **Files:**
+
 - Modify: `server/src/scripts/import-lovac/source-owners/source-owner-command.ts`
 
 The load sink calls `reporter.created(batch.length)` / `reporter.updated(batch.length)` after each flush. After the pipeline, the command writes `reporter.getSummary()` to a file (if `--from file`) or S3 (if `--from s3`).
@@ -364,13 +373,21 @@ export function createSourceOwnerCommand() {
       console.time('Import owners');
       logger.info('Computing total...', { file });
       const total = await count(
-        createSourceOwnerRepository({ from: options.from, file, ...config.s3 }).stream({
+        createSourceOwnerRepository({
+          from: options.from,
+          file,
+          ...config.s3
+        }).stream({
           departments: options.departments
         })
       );
 
       logger.info('Starting import...', { file, total });
-      await createSourceOwnerRepository({ from: options.from, file, ...config.s3 })
+      await createSourceOwnerRepository({
+        from: options.from,
+        file,
+        ...config.s3
+      })
         .stream({ departments: options.departments })
         .pipeThrough(
           progress({
@@ -380,10 +397,17 @@ export function createSourceOwnerCommand() {
           })
         )
         .pipeThrough(
-          validator(sourceOwnerSchema, { abortEarly: options.abortEarly, reporter })
+          validator(sourceOwnerSchema, {
+            abortEarly: options.abortEarly,
+            reporter
+          })
         )
         .pipeThrough(createOwnerEnricher())
-        .pipeThrough(map(createOwnerTransform({ reporter, abortEarly: options.abortEarly })))
+        .pipeThrough(
+          map(
+            createOwnerTransform({ reporter, abortEarly: options.abortEarly })
+          )
+        )
         .pipeTo(createOwnerLoadSink(options, reporter));
 
       logger.info(`File ${file} imported.`);
@@ -495,6 +519,7 @@ git commit -m "feat(server): wire reporter created/updated counters and write re
 ## Task 4: LOVAC_NAMESPACE constant + --year required CLI option
 
 **Files:**
+
 - Create: `server/src/scripts/import-lovac/infra/constants.ts`
 - Modify: `server/src/scripts/import-lovac/cli.ts`
 - Modify: `server/src/scripts/import-lovac/source-housings/source-housing-command.ts` (ExecOptions only)
@@ -711,6 +736,7 @@ git commit -m "feat(server): add LOVAC_NAMESPACE constant and --year required CL
 ## Task 5: UUID v5 in owner transform
 
 **Files:**
+
 - Modify: `server/src/scripts/import-lovac/source-owners/source-owner-transform.ts`
 - Modify: `server/src/scripts/import-lovac/source-owners/test/source-owner-transform.test.ts`
 
@@ -750,20 +776,26 @@ Expected: FAIL — last test fails (random UUID differs from expected v5).
 In `server/src/scripts/import-lovac/source-owners/source-owner-transform.ts`:
 
 Change line 1 from:
+
 ```typescript
 import { v4 as uuidv4 } from 'uuid';
 ```
+
 to:
+
 ```typescript
 import { v5 as uuidv5 } from 'uuid';
 import { LOVAC_NAMESPACE } from '~/scripts/import-lovac/infra/constants';
 ```
 
 In the `toCreate` function, change:
+
 ```typescript
       id: uuidv4(),
 ```
+
 to:
+
 ```typescript
       id: uuidv5(source.idpersonne, LOVAC_NAMESPACE),
 ```
@@ -771,6 +803,7 @@ to:
 Also replace the hardcoded `dataSource: 'lovac-2026'` with the actual year from options. To do this, `toCreate` needs the year. Extend `TransformOptions` to include `year` and pass it through:
 
 In the file, update `TransformOptions`:
+
 ```typescript
 interface TransformOptions extends ReporterOptions<SourceOwner> {
   year?: string;
@@ -778,6 +811,7 @@ interface TransformOptions extends ReporterOptions<SourceOwner> {
 ```
 
 Update `createOwnerTransform` signature:
+
 ```typescript
 export function createOwnerTransform(options: TransformOptions) {
   const { reporter, year } = options;
@@ -793,6 +827,7 @@ export function createOwnerTransform(options: TransformOptions) {
 ```
 
 Update `toCreate`:
+
 ```typescript
 function toCreate(source: SourceOwner, year: string): OwnerChange {
   const now = new Date().toJSON();
@@ -822,6 +857,7 @@ function toCreate(source: SourceOwner, year: string): OwnerChange {
 ```
 
 Update `source-owner-command.ts` to pass `year` to `createOwnerTransform`:
+
 ```typescript
 .pipeThrough(map(createOwnerTransform({ reporter, abortEarly: options.abortEarly, year: options.year })))
 ```
@@ -848,10 +884,12 @@ git commit -m "feat(server): use UUID v5 for deterministic owner IDs"
 ## Task 6: UUID v5 in housing processor
 
 **Files:**
+
 - Modify: `server/src/scripts/import-lovac/source-housings/source-housing-processor.ts`
 - Modify: `server/src/scripts/import-lovac/source-housings/source-housing-command.ts`
 
 Three `uuidv4()` calls to replace:
+
 1. Housing create id (line ~85): `v5(localId + ':' + geoCode, LOVAC_NAMESPACE)`
 2. `housing:occupancy-updated` event id (line ~187): `v5(housingId + ':housing:occupancy-updated:' + year, LOVAC_NAMESPACE)`
 3. `housing:status-updated` event id (line ~202): `v5(housingId + ':housing:status-updated:' + year, LOVAC_NAMESPACE)`
@@ -904,17 +942,34 @@ describe('createSourceHousingProcessor — UUID v5', () => {
     };
 
     const transform = createSourceHousingProcessor(opts);
-    const source1 = new ReadableStream({ start(c) { c.enqueue(source); c.close(); } });
-    const source2 = new ReadableStream({ start(c) { c.enqueue(source); c.close(); } });
+    const source1 = new ReadableStream({
+      start(c) {
+        c.enqueue(source);
+        c.close();
+      }
+    });
+    const source2 = new ReadableStream({
+      start(c) {
+        c.enqueue(source);
+        c.close();
+      }
+    });
 
     const results1 = await collect(source1.pipeThrough(transform as any));
     opts.housingRepository.findOne.mockResolvedValue(null);
     const transform2 = createSourceHousingProcessor(opts);
     const results2 = await collect(source2.pipeThrough(transform2 as any));
 
-    const housing1 = (results1.flat() as any[]).find((c) => c.type === 'housing');
-    const housing2 = (results2.flat() as any[]).find((c) => c.type === 'housing');
-    const expectedId = uuidv5(source.local_id + ':' + source.geo_code, LOVAC_NAMESPACE);
+    const housing1 = (results1.flat() as any[]).find(
+      (c) => c.type === 'housing'
+    );
+    const housing2 = (results2.flat() as any[]).find(
+      (c) => c.type === 'housing'
+    );
+    const expectedId = uuidv5(
+      source.local_id + ':' + source.geo_code,
+      LOVAC_NAMESPACE
+    );
 
     expect(housing1.value.id).toBe(expectedId);
     expect(housing2.value.id).toBe(expectedId);
@@ -937,12 +992,14 @@ Expected: FAIL — determinism test fails (random UUID).
 In `server/src/scripts/import-lovac/source-housings/source-housing-processor.ts`:
 
 **Add import** (replace `import { v4 as uuidv4 } from 'uuid'`):
+
 ```typescript
 import { v5 as uuidv5 } from 'uuid';
 import { LOVAC_NAMESPACE } from '~/scripts/import-lovac/infra/constants';
 ```
 
 **Add `year` to ProcessorOptions** (after the existing fields):
+
 ```typescript
 export interface ProcessorOptions extends ReporterOptions<SourceHousing> {
   auth: UserApi;
@@ -954,25 +1011,38 @@ export interface ProcessorOptions extends ReporterOptions<SourceHousing> {
 ```
 
 **Destructure `year`** in `createSourceHousingProcessor`:
+
 ```typescript
-const { abortEarly, auth, year, housingEventRepository, housingNoteRepository, housingRepository, reporter } = opts;
+const {
+  abortEarly,
+  auth,
+  year,
+  housingEventRepository,
+  housingNoteRepository,
+  housingRepository,
+  reporter
+} = opts;
 ```
 
 **Replace housing create id** (in the `!existingHousing` branch):
+
 ```typescript
 id: uuidv5(sourceHousing.local_id + ':' + sourceHousing.geo_code, LOVAC_NAMESPACE),
 ```
 
 **Replace hardcoded `'lovac-2025'` strings with `year`:**
+
 - `dataFileYears: ['lovac-2025']` → `dataFileYears: [year]`
 - `normalizeDataFileYears(existingHousing.dataFileYears.concat('lovac-2025'))` → `normalizeDataFileYears(existingHousing.dataFileYears.concat(year))`
 
 **Replace `uuidv4()` for occupancy-updated event:**
+
 ```typescript
 id: uuidv5(existingHousing.id + ':housing:occupancy-updated:' + year, LOVAC_NAMESPACE),
 ```
 
 **Replace `uuidv4()` for status-updated event:**
+
 ```typescript
 id: uuidv5(existingHousing.id + ':housing:status-updated:' + year, LOVAC_NAMESPACE),
 ```
@@ -1015,10 +1085,12 @@ git commit -m "feat(server): use UUID v5 for deterministic housing and event IDs
 ## Task 7: UUID v5 in housing-owner processor
 
 **Files:**
+
 - Modify: `server/src/scripts/import-lovac/source-housing-owners/source-housing-owner-processor.ts`
 - Modify: `server/src/scripts/import-lovac/source-housing-owners/source-housing-owner-command.ts`
 
 Three `uuidv4()` calls (lines ~175, ~189, ~207) for:
+
 - `housing:owner-attached`
 - `housing:owner-detached`
 - `housing:owner-updated`
@@ -1065,8 +1137,16 @@ describe('createSourceHousingOwnerProcessor — UUID v5 events', () => {
       year: 'lovac-2026',
       housingRepository: { findOne: vi.fn().mockResolvedValue(housing) },
       ownerRepository: {
-        find: vi.fn().mockResolvedValue([{ ...owner, housingGeoCode: '75056', housingId: 'housing-1', rank: 1, fullName: 'Test' }]),
-        findByHousing: vi.fn().mockResolvedValue([])  // no existing owners → triggers attach
+        find: vi.fn().mockResolvedValue([
+          {
+            ...owner,
+            housingGeoCode: '75056',
+            housingId: 'housing-1',
+            rank: 1,
+            fullName: 'Test'
+          }
+        ]),
+        findByHousing: vi.fn().mockResolvedValue([]) // no existing owners → triggers attach
       }
     };
 
@@ -1084,10 +1164,16 @@ describe('createSourceHousingOwnerProcessor — UUID v5 events', () => {
 
     const results: any[] = [];
     await readable.pipeThrough(transform as any).pipeTo(
-      new WritableStream({ write(chunk) { results.push(...chunk); } })
+      new WritableStream({
+        write(chunk) {
+          results.push(...chunk);
+        }
+      })
     );
 
-    const attachedEvent = results.find((c) => c.type === 'event' && c.value.type === 'housing:owner-attached');
+    const attachedEvent = results.find(
+      (c) => c.type === 'event' && c.value.type === 'housing:owner-attached'
+    );
     if (attachedEvent) {
       const expectedId = uuidv5(
         'housing-1:owner-1:housing:owner-attached:lovac-2026',
@@ -1115,12 +1201,14 @@ Expected: FAIL.
 In `server/src/scripts/import-lovac/source-housing-owners/source-housing-owner-processor.ts`:
 
 **Replace import** (`v4` → `v5`):
+
 ```typescript
 import { v5 as uuidv5 } from 'uuid';
 import { LOVAC_NAMESPACE } from '~/scripts/import-lovac/infra/constants';
 ```
 
 **Add `year` to ProcessorOptions**:
+
 ```typescript
 export interface ProcessorOptions extends ReporterOptions<SourceHousingOwner> {
   auth: UserApi;
@@ -1131,23 +1219,28 @@ export interface ProcessorOptions extends ReporterOptions<SourceHousingOwner> {
 ```
 
 **Destructure `year`** in `createSourceHousingOwnerProcessor`:
+
 ```typescript
-const { abortEarly, housingRepository, ownerRepository, reporter, auth, year } = options;
+const { abortEarly, housingRepository, ownerRepository, reporter, auth, year } =
+  options;
 ```
 
 **Replace the three `uuidv4()` calls:**
 
 For `housing:owner-attached` (in `added.map`):
+
 ```typescript
 id: uuidv5(housingOwner.housingId + ':' + housingOwner.ownerId + ':housing:owner-attached:' + year, LOVAC_NAMESPACE),
 ```
 
 For `housing:owner-detached` (in `removed.map`):
+
 ```typescript
 id: uuidv5(housingOwner.housingId + ':' + housingOwner.ownerId + ':housing:owner-detached:' + year, LOVAC_NAMESPACE),
 ```
 
 For `housing:owner-updated` (in `updated.map`):
+
 ```typescript
 id: uuidv5(housingOwner.ownerId + ':' + newHousingOwner.housingId + ':housing:owner-updated:' + year, LOVAC_NAMESPACE),
 ```
@@ -1190,6 +1283,7 @@ git commit -m "feat(server): use UUID v5 for deterministic housing-owner event I
 ## Task 8: CleverCloud launcher scripts
 
 **Files:**
+
 - Create: `clevercloud/import-lovac-entrypoint.sh`
 - Create: `server/src/scripts/import-lovac/run-on-clevercloud.sh`
 
@@ -1229,6 +1323,7 @@ exec $CMD
 ```
 
 Make it executable:
+
 ```bash
 chmod +x clevercloud/import-lovac-entrypoint.sh
 ```
@@ -1307,6 +1402,7 @@ clever logs --app "${ZLV_IMPORT_APP_ID}" --follow
 ```
 
 Make it executable:
+
 ```bash
 chmod +x server/src/scripts/import-lovac/run-on-clevercloud.sh
 ```
@@ -1324,6 +1420,7 @@ git commit -m "feat(server): add CleverCloud task entrypoint and operator trigge
 ## Task 9: Stats SQL query files
 
 **Files:**
+
 - Create: `server/src/scripts/import-lovac/stats/queries/owners.sql`
 - Create: `server/src/scripts/import-lovac/stats/queries/housings.sql`
 - Create: `server/src/scripts/import-lovac/stats/queries/housing-owners.sql`
@@ -1490,6 +1587,7 @@ git commit -m "feat(server): add DuckDB SQL stat queries for pre/post snapshot"
 ## Task 10: Stats snapshot.sh + diff.sh
 
 **Files:**
+
 - Create: `server/src/scripts/import-lovac/stats/snapshot.sh`
 - Create: `server/src/scripts/import-lovac/stats/diff.sh`
 
@@ -1573,6 +1671,7 @@ fi
 ```
 
 Make it executable:
+
 ```bash
 chmod +x server/src/scripts/import-lovac/stats/snapshot.sh
 ```
@@ -1634,6 +1733,7 @@ EOF
 ```
 
 Make it executable:
+
 ```bash
 chmod +x server/src/scripts/import-lovac/stats/diff.sh
 ```
@@ -1651,6 +1751,7 @@ git commit -m "feat(server): add DuckDB snapshot and diff scripts for pre/post s
 ## Task 11: Notion export Skill
 
 **Files:**
+
 - Create: `.claude/skills/publish-lovac-report/SKILL.md`
 
 This is a Claude Code project-local Skill. The operator invokes it as `/publish-lovac-report lovac-2026` after all import subcommands and snapshots are complete. It reads local snapshot JSON files and reporter JSON files, then publishes a French-language Notion page via the Notion MCP.
@@ -1690,6 +1791,7 @@ example: /publish-lovac-report lovac-2026
 ### 1. Read all snapshot and report files
 
 Read each file listed above. Compute deltas for each entity:
+
 - `delta = post_value - pre_value`
 - `pct = delta / pre_value * 100` (formatted as `+1.9 %`)
 
@@ -1700,6 +1802,7 @@ Use the `mcp__claude_ai_Notion__authenticate` tool if not already authenticated.
 ### 3. Create a new Notion sub-page
 
 Create a new page under `NOTION_LOVAC_PARENT_PAGE_ID` with title:
+
 ```
 Import LOVAC <year> — <date in French, e.g. "14 avril 2026">
 ```
@@ -1807,23 +1910,23 @@ Expected: no errors.
 
 **Spec coverage:**
 
-| Spec section | Covered by |
-|---|---|
-| Reporter: created/updated counters | Tasks 1-2 |
-| Reporter: log idpersonne on failure | Task 2 |
-| Reporter: structured JSON report | Task 2 (getSummary) |
-| Reporter: write to file/S3 | Task 3 |
-| `--year` required CLI option | Task 4 |
-| LOVAC_NAMESPACE constant | Task 4 |
-| UUID v5 for owner creates | Task 5 |
-| UUID v5 for housing creates + events | Task 6 |
-| UUID v5 for housing-owner events | Task 7 |
-| CleverCloud entrypoint.sh | Task 8 |
-| run-on-clevercloud.sh | Task 8 |
-| Stats SQL queries (4 entities) | Task 9 |
-| snapshot.sh (DuckDB + Youplot) | Task 10 |
-| diff.sh (delta table) | Task 10 |
-| Notion Skill (French, MCP) | Task 11 |
+| Spec section                         | Covered by          |
+| ------------------------------------ | ------------------- |
+| Reporter: created/updated counters   | Tasks 1-2           |
+| Reporter: log idpersonne on failure  | Task 2              |
+| Reporter: structured JSON report     | Task 2 (getSummary) |
+| Reporter: write to file/S3           | Task 3              |
+| `--year` required CLI option         | Task 4              |
+| LOVAC_NAMESPACE constant             | Task 4              |
+| UUID v5 for owner creates            | Task 5              |
+| UUID v5 for housing creates + events | Task 6              |
+| UUID v5 for housing-owner events     | Task 7              |
+| CleverCloud entrypoint.sh            | Task 8              |
+| run-on-clevercloud.sh                | Task 8              |
+| Stats SQL queries (4 entities)       | Task 9              |
+| snapshot.sh (DuckDB + Youplot)       | Task 10             |
+| diff.sh (delta table)                | Task 10             |
+| Notion Skill (French, MCP)           | Task 11             |
 
 **No placeholders detected.** All code blocks are complete.
 

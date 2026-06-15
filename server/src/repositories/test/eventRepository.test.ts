@@ -19,6 +19,7 @@ import {
   Campaigns,
   formatCampaignApi
 } from '~/repositories/campaignRepository';
+import { Documents, toDocumentDBO } from '~/repositories/documentRepository';
 import {
   Establishments,
   formatEstablishmentApi
@@ -60,7 +61,6 @@ import {
   Precisions
 } from '~/repositories/precisionRepository';
 import { toUserDBO, Users } from '~/repositories/userRepository';
-import { Documents, toDocumentDBO } from '~/repositories/documentRepository';
 import {
   genCampaignApi,
   genDocumentApi,

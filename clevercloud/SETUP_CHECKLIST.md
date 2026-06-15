@@ -46,13 +46,16 @@ git push clever master
 ### 4. Verify Deployment
 
 #### 4.1 In Build Logs
+
 Search for:
+
 ```
 === Installing Python dependencies for Cerema scripts ===
 ✓ Python dependencies installed successfully
 ```
 
 #### 4.2 Via SSH
+
 ```bash
 # Connect
 clever ssh
@@ -69,21 +72,25 @@ cd /app/server/src/scripts/perimeters-portaildf
 ```
 
 #### 4.3 Verify Cron
+
 Clever Cloud dashboard → "Cron" tab → Verify that the task appears and executes
 
 ### 5. Monitoring
 
 #### Cron Logs
+
 ```bash
 clever logs --addon-app cron
 ```
 
 #### Application Logs
+
 ```bash
 clever logs
 ```
 
 #### Synchronization Logs on Server
+
 ```bash
 clever ssh
 tail -f /app/server/src/scripts/perimeters-portaildf/logs/sync-*.log
@@ -92,17 +99,20 @@ tail -f /app/server/src/scripts/perimeters-portaildf/logs/sync-*.log
 ## 🔧 Quick Troubleshooting
 
 ### Cron Doesn't Execute
+
 1. Verify that `cron.json` is committed
 2. Check environment variables
 3. Check permissions: `chmod +x cerema-sync.sh`
 4. Redeploy the application
 
 ### Python Not Found
+
 1. Add `CC_PYTHON_VERSION=3.11` in environment variables
 2. Redeploy
 3. Check with `clever ssh` then `python3 --version`
 
 ### Missing Python Dependencies
+
 1. Verify that `post_build.sh` executed in build logs
 2. Install manually:
    ```bash
@@ -111,9 +121,11 @@ tail -f /app/server/src/scripts/perimeters-portaildf/logs/sync-*.log
    ```
 
 ### Cerema Authentication Fails
+
 1. Check `CEREMA_USERNAME` and `CEREMA_PASSWORD`
 2. Check `CEREMA_AUTH_VERSION` (v1 or v2)
 3. Test manually:
+
    ```bash
    # V1 (legacy)
    curl -X POST https://portaildf.cerema.fr/api/api-token-auth/ \
@@ -127,6 +139,7 @@ tail -f /app/server/src/scripts/perimeters-portaildf/logs/sync-*.log
    ```
 
 ### Database Connection Error
+
 1. Check all `POSTGRESQL_ADDON_*` variables (automatically set by Clever Cloud addon)
 2. Test connection from SSH:
    ```bash
@@ -143,6 +156,7 @@ tail -f /app/server/src/scripts/perimeters-portaildf/logs/sync-*.log
 ## 🎯 Expected Result
 
 Once configured, the system will:
+
 - ✅ Automatically authenticate with Cerema API
 - ✅ Retrieve data every 30 minutes
 - ✅ Update structures and users

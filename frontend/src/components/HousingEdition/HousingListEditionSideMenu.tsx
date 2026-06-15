@@ -7,19 +7,20 @@ import {
   OCCUPANCY_VALUES,
   PRECISION_CATEGORY_VALUES
 } from '@zerologementvacant/models';
-import { capitalize } from "effect/String";
+import { capitalize } from 'effect/String';
 import { useState } from 'react';
 import { Controller, FormProvider, useForm } from 'react-hook-form';
 import { match } from 'ts-pattern';
 import { array, type InferType, number, object, string } from 'yup';
 
 import type { Selection } from '~/hooks/useSelection';
+
 import { HousingStates } from '../../models/HousingState';
 import { displayCount } from '../../utils/stringUtils';
+import AppTextInputNext from '../_app/AppTextInput/AppTextInputNext';
 import Aside from '../Aside/Aside';
 import OccupancySelect from '../HousingListFilters/OccupancySelect';
 import LabelNext from '../Label/LabelNext';
-import AppTextInputNext from '../_app/AppTextInput/AppTextInputNext';
 import { createConfirmationModal } from '../modals/ConfirmationModal/ConfirmationModalNext';
 import HousingEditionMobilizationTab from './HousingEditionMobilizationTab';
 import HousingListDocumentsTab, {

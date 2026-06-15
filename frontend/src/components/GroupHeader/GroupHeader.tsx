@@ -12,6 +12,7 @@ import search from '~/assets/images/search.svg';
 import GroupCard from '~/components/GroupCard/GroupCard';
 import type { Group } from '~/models/Group';
 import { useFindGroupsQuery } from '~/services/group.service';
+
 import styles from './group-header.module.scss';
 
 export const DISPLAY_GROUPS = 3;

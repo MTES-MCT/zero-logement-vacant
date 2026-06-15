@@ -55,6 +55,7 @@ python3 import_dpe_raw.py dpe_data_complete.jsonl --db-url "$DATABASE_URL"
 ```
 
 **Expected output:**
+
 ```
 ✅ SQL schema written to: create_dpe_raw_table_complete.sql
 ✅ Field list written to: dpe_raw_fields.py
@@ -90,6 +91,7 @@ python3 import_dpe_raw.py dpe_data_complete.jsonl \
 Automatically generates SQL schema from your JSON data.
 
 **Usage:**
+
 ```bash
 # Analyze 10,000 records (default, fast)
 python3 generate_schema.py dpe_data_complete.jsonl
@@ -102,6 +104,7 @@ python3 generate_schema.py dpe_data_complete.jsonl --sample-size 0
 ```
 
 **Generated files:**
+
 - `create_dpe_raw_table_complete.sql` - PostgreSQL schema with all fields
 - `dpe_raw_fields.py` - Python field definitions for import
 
@@ -114,9 +117,11 @@ python3 generate_schema.py dpe_data_complete.jsonl --sample-size 0
 Downloads DPE data from ADEME API.
 
 **Prerequisites:**
+
 - ADEME API key (get one at [data.ademe.fr](https://data.ademe.fr))
 
 **Usage:**
+
 ```bash
 # With environment variable (recommended)
 export ADEME_API_KEY="your_api_key_here"
@@ -134,6 +139,7 @@ python import-ademe.py \
 ```
 
 **Features:**
+
 - Automatic resume after interruption
 - JSON Lines streaming
 - Automatic retry on errors
@@ -145,6 +151,7 @@ python import-ademe.py \
 Imports **ALL 224 DPE fields** into `dpe_raw` table.
 
 **Features:**
+
 - ✅ Imports ALL fields (not just 20)
 - ✅ Parallel or sequential processing
 - ✅ Automatic duplicate handling
@@ -152,6 +159,7 @@ Imports **ALL 224 DPE fields** into `dpe_raw` table.
 - ✅ Dry-run mode for testing
 
 **Usage:**
+
 ```bash
 # Full import (all departments in parallel)
 python3 import_dpe_raw.py dpe_data_complete.jsonl --db-url "$DATABASE_URL"
@@ -170,6 +178,7 @@ python3 import_dpe_raw.py dpe_data_complete.jsonl --department 69 --limit 1000 -
 ```
 
 **Available options:**
+
 - `--department` / `--dept` : Process single department (e.g., 75, 01, 2A)
 - `--start-department` : Resume from specific department
 - `--sequential` : Sequential import instead of parallel
@@ -188,6 +197,7 @@ python3 import_dpe_raw.py dpe_data_complete.jsonl --department 69 --limit 1000 -
 Imports enriched DPE data into `buildings` table.
 
 **Matching strategy:**
+
 1. **Case 1**: Direct match via RNB ID
    - 1.1: Building DPE (apartment building or house)
    - 1.2: Apartment DPE
@@ -196,6 +206,7 @@ Imports enriched DPE data into `buildings` table.
    - 2.2: Apartment DPE
 
 **Usage:**
+
 ```bash
 # Full import
 python import-dpe.py dpe_data_complete.jsonl \
@@ -225,6 +236,7 @@ python import-dpe.py dpe_data_complete.jsonl \
 ```
 
 **Fields updated in `buildings`:**
+
 - `dpe_id` : DPE identifier
 - `class_dpe` : Energy class (A to G)
 - `class_ges` : GHG emissions class
@@ -264,6 +276,7 @@ pip install -r requirements.txt
 ```
 
 **Main dependencies:**
+
 - `psycopg2-binary` - PostgreSQL connection
 - `tqdm` - Progress bars
 - `requests` - API calls (import-ademe.py)
@@ -285,14 +298,17 @@ export DATABASE_URL="postgresql://user:password@host:port/database"
 The table stores **224 fields** organized in categories:
 
 #### 🆔 Identifiers (~10 fields)
+
 - `dpe_id`, `numero_dpe`, `id_rnb`, etc.
 
 #### 📍 Location (~20 fields)
+
 - BAN and raw addresses
 - INSEE, postal, department, region codes
 - Cartographic coordinates (Lambert 93)
 
 #### ⚡ Energy Performance (~80 fields)
+
 - DPE and GHG labels
 - Consumption by usage (heating, DHW, lighting, cooling)
 - Consumption by energy (n1, n2, n3)
@@ -300,23 +316,28 @@ The table stores **224 fields** organized in categories:
 - Detailed energy costs
 
 #### 🏠 Building Characteristics (~30 fields)
+
 - Type, construction year, surface area
 - Number of levels, floors
 - Construction period
 
 #### 🔧 Technical Installations (~50 fields)
+
 - Heating (types, generators, configurations)
 - DHW - Domestic Hot Water (types, generators)
 - Ventilation (type, quality)
 
 #### 🛡️ Insulation and Losses (~20 fields)
+
 - Insulation quality (walls, floors, windows, roof)
 - Thermal losses (walls, thermal bridges)
 
 #### 📅 Dates (~10 fields)
+
 - Establishment, reception, validity, visit, modification
 
 #### 🔬 Technical Metadata (~4 fields)
+
 - DPE version, model, method
 
 ### Automatically Created Indexes
@@ -337,6 +358,7 @@ The schema creates 8 indexes to optimize performance:
 ⚠️ **Important note**: DPE data uses **Lambert 93** projection system (EPSG:2154), not latitude/longitude.
 
 Available fields:
+
 - `coordonnee_cartographique_x_ban` (Lambert 93)
 - `coordonnee_cartographique_y_ban` (Lambert 93)
 - `_geopoint` (string "lat,lon")
@@ -598,12 +620,14 @@ python3 import_dpe_raw.py dpe_data_complete.jsonl \
 ## ✅ Complete Checklist
 
 ### Preparation
+
 - [ ] ADEME API key obtained and configured
 - [ ] Python environment created and activated
 - [ ] Dependencies installed (`pip install -r requirements.txt`)
 - [ ] PostgreSQL connection configured (`DATABASE_URL`)
 
 ### DPE Raw Import
+
 - [ ] JSONL file downloaded (`dpe_data_complete.jsonl`)
 - [ ] SQL schema generated (`generate_schema.py`)
 - [ ] Files created: `create_dpe_raw_table_complete.sql` and `dpe_raw_fields.py`
@@ -613,6 +637,7 @@ python3 import_dpe_raw.py dpe_data_complete.jsonl \
 - [ ] Verifications done (row count, indexes, etc.)
 
 ### DPE Buildings Import (optional)
+
 - [ ] `buildings` table migrated and ready
 - [ ] DPE import into `buildings` completed
 - [ ] Statistics report verified

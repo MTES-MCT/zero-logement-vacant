@@ -1,5 +1,5 @@
-import { fc } from '@fast-check/vitest';
 import { faker } from '@faker-js/faker/locale/fr';
+import { fc } from '@fast-check/vitest';
 
 import { getAddress, getOwnerDisplayName, OwnerDTO } from '../OwnerDTO';
 import { genAddressDTO, genOwnerDTO } from './fixtures';

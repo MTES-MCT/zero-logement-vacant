@@ -1,7 +1,13 @@
 import { faker } from '@faker-js/faker/locale/fr';
 import async from 'async';
+import { Array, pipe } from 'effect';
 import type { Knex } from 'knex';
 
+import {
+  CampaignHousingDBO,
+  CampaignsHousing,
+  campaignsHousingTable
+} from '~/repositories/campaignHousingRepository';
 import {
   CampaignDBO,
   Campaigns,
@@ -9,16 +15,10 @@ import {
   formatCampaignApi
 } from '~/repositories/campaignRepository';
 import { Establishments } from '~/repositories/establishmentRepository';
-import { genCampaignApi } from '~/test/testFixtures';
-import { fromUserDBO, Users } from '~/repositories/userRepository';
 import { Groups, parseGroupApi } from '~/repositories/groupRepository';
 import { Housing } from '~/repositories/housingRepository';
-import {
-  CampaignHousingDBO,
-  CampaignsHousing,
-  campaignsHousingTable
-} from '~/repositories/campaignHousingRepository';
-import { Array, pipe } from 'effect';
+import { fromUserDBO, Users } from '~/repositories/userRepository';
+import { genCampaignApi } from '~/test/testFixtures';
 
 export async function seed(knex: Knex): Promise<void> {
   console.time('20240807073309_campaigns');
@@ -73,5 +73,5 @@ export async function seed(knex: Knex): Promise<void> {
     });
   });
   console.timeEnd('20240807073309_campaigns');
-  console.log('\n')
+  console.log('\n');
 }

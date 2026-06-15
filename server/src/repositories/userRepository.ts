@@ -32,7 +32,9 @@ async function getByEmail(email: string): Promise<UserApi | null> {
   return result ? fromUserDBO(result) : null;
 }
 
-async function getByEmailIncludingDeleted(email: string): Promise<UserApi | null> {
+async function getByEmailIncludingDeleted(
+  email: string
+): Promise<UserApi | null> {
   logger.debug('Get user by email (including deleted)', email);
 
   const result = await Users()

@@ -1,14 +1,19 @@
 import { CampaignStatus, HousingFiltersDTO } from '@zerologementvacant/models';
 import { Knex } from 'knex';
+
 import db from '~/infra/database';
 import { withinTransaction } from '~/infra/database/transaction';
 import { logger } from '~/infra/logger';
 import { CampaignApi, CampaignSortApi } from '~/models/CampaignApi';
 import { CampaignFiltersApi } from '~/models/CampaignFiltersApi';
-import { campaignsHousingTable } from '~/repositories/campaignHousingRepository';
 import { sortQuery } from '~/models/SortApi';
+import { campaignsHousingTable } from '~/repositories/campaignHousingRepository';
 import eventRepository from '~/repositories/eventRepository';
-import { fromUserDBO, UserDBO, USERS_TABLE } from '~/repositories/userRepository';
+import {
+  fromUserDBO,
+  UserDBO,
+  USERS_TABLE
+} from '~/repositories/userRepository';
 
 export const campaignsTable = 'campaigns';
 export const Campaigns = (transaction = db) =>
@@ -57,7 +62,10 @@ function listQuery(filters: CampaignFiltersApi) {
 const filterQuery = (filters: CampaignFiltersApi) => {
   return function (query: Knex.QueryBuilder<CampaignDBO>) {
     if (filters?.establishmentId) {
-      query.where(`${campaignsTable}.establishment_id`, filters.establishmentId);
+      query.where(
+        `${campaignsTable}.establishment_id`,
+        filters.establishmentId
+      );
     }
     if (filters.groupIds?.length) {
       query.whereIn(`${campaignsTable}.group_id`, filters.groupIds);

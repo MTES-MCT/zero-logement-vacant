@@ -1,10 +1,11 @@
-import { Factory } from 'fishery';
 import { faker } from '@faker-js/faker/locale/fr';
 import {
   ESTABLISHMENT_KIND_VALUES,
   ESTABLISHMENT_SOURCE_VALUES,
   type EstablishmentDTO
 } from '@zerologementvacant/models';
+import { Factory } from 'fishery';
+
 import type { Adapter } from '../adapter';
 
 export function createEstablishmentFactory(adapter: Adapter) {

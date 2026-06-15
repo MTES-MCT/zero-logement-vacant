@@ -1,8 +1,7 @@
 import dotenvx from '@dotenvx/dotenvx';
+import { LOG_LEVELS, LogLevel } from '@zerologementvacant/utils';
 import { StringValue } from 'ms';
 import { z } from 'zod';
-
-import { LOG_LEVELS, LogLevel } from '@zerologementvacant/utils';
 
 dotenvx.config({
   convention: 'nextjs',

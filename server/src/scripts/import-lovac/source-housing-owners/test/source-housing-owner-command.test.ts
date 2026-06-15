@@ -1,3 +1,7 @@
+import fs from 'node:fs';
+import os from 'node:os';
+import path from 'node:path';
+
 import { faker } from '@faker-js/faker/locale/fr';
 import {
   ACTIVE_OWNER_RANKS,
@@ -7,9 +11,6 @@ import {
   OwnerRank,
   PREVIOUS_OWNER_RANK
 } from '@zerologementvacant/models';
-import fs from 'node:fs';
-import os from 'node:os';
-import path from 'node:path';
 
 import { HousingApi } from '~/models/HousingApi';
 import { HousingOwnerApi } from '~/models/HousingOwnerApi';
@@ -143,9 +144,15 @@ describe('Source housing owner command', () => {
       toSourceHousingOwner(housingOwner, existingHousing)
     ),
     // Rank change: same owner at a new rank
-    { ...toSourceHousingOwner(rankChangedHousingOwner, rankChangeHousing), rank: 2 as ActiveOwnerRank },
+    {
+      ...toSourceHousingOwner(rankChangedHousingOwner, rankChangeHousing),
+      rank: 2 as ActiveOwnerRank
+    },
     // Inactive preserved: only the new active owner appears in source
-    toSourceHousingOwner(newHousingOwnerForInactiveTest, inactivePreservedHousing)
+    toSourceHousingOwner(
+      newHousingOwnerForInactiveTest,
+      inactivePreservedHousing
+    )
   ];
 
   // Seed the database

@@ -4,6 +4,7 @@ import userEvent from '@testing-library/user-event';
 import { UserRole } from '@zerologementvacant/models';
 import { genUserDTO } from '@zerologementvacant/models/fixtures';
 import { Provider } from 'react-redux';
+
 import type { Group } from '../../../models/Group';
 import { fromUserDTO } from '../../../models/User';
 import configureTestStore from '../../../utils/storeUtils';

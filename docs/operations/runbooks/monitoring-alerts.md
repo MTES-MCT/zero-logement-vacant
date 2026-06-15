@@ -46,12 +46,12 @@ flowchart TB
 
 ### Alert Configuration
 
-| Alert | Condition | Severity | Action |
-|-------|-----------|----------|--------|
-| High error rate | > 10 errors/min | P2 | Investigate immediately |
-| New error | First occurrence | P3 | Review within 4h |
-| Error spike | 3x normal rate | P2 | Investigate within 1h |
-| Unhandled rejection | Any | P3 | Fix in next sprint |
+| Alert               | Condition        | Severity | Action                  |
+| ------------------- | ---------------- | -------- | ----------------------- |
+| High error rate     | > 10 errors/min  | P2       | Investigate immediately |
+| New error           | First occurrence | P3       | Review within 4h        |
+| Error spike         | 3x normal rate   | P2       | Investigate within 1h   |
+| Unhandled rejection | Any              | P3       | Fix in next sprint      |
 
 ### Responding to Sentry Alerts
 
@@ -87,6 +87,7 @@ Sentry.captureException(error, {
 ### Log Drain Setup
 
 Configured in Clever Cloud console:
+
 - **Destination:** Elasticsearch cluster
 - **Format:** JSON
 
@@ -121,12 +122,12 @@ duration:>2000
 
 ### Log Levels
 
-| Level | When to Use | Example |
-|-------|-------------|---------|
+| Level   | When to Use                  | Example              |
+| ------- | ---------------------------- | -------------------- |
 | `error` | Failures requiring attention | DB connection failed |
-| `warn` | Unexpected but handled | Retry succeeded |
-| `info` | Normal operations | Request completed |
-| `debug` | Development details | Query parameters |
+| `warn`  | Unexpected but handled       | Retry succeeded      |
+| `info`  | Normal operations            | Request completed    |
+| `debug` | Development details          | Query parameters     |
 
 ---
 
@@ -134,10 +135,10 @@ duration:>2000
 
 ### Endpoints
 
-| Service | Endpoint | Expected |
-|---------|----------|----------|
+| Service | Endpoint   | Expected                |
+| ------- | ---------- | ----------------------- |
 | Backend | `GET /api` | `{ status: "healthy" }` |
-| Queue | `GET /` | `{ status: "healthy" }` |
+| Queue   | `GET /`    | `{ status: "healthy" }` |
 
 ### Automated Monitoring
 
@@ -153,10 +154,10 @@ fi
 
 ### External Monitoring (Recommended Setup)
 
-| Tool | Purpose | Frequency |
-|------|---------|-----------|
-| UptimeRobot | Availability | 1 min |
-| Checkly | Synthetic tests | 5 min |
+| Tool         | Purpose         | Frequency  |
+| ------------ | --------------- | ---------- |
+| UptimeRobot  | Availability    | 1 min      |
+| Checkly      | Synthetic tests | 5 min      |
 | Clever Cloud | Instance health | Continuous |
 
 ---
@@ -165,13 +166,13 @@ fi
 
 ### Key Metrics
 
-| Metric | Target | Alert Threshold |
-|--------|--------|-----------------|
-| Response time (p50) | < 200ms | > 500ms |
-| Response time (p95) | < 1s | > 2s |
-| Error rate | < 0.1% | > 1% |
-| CPU usage | < 70% | > 90% |
-| Memory usage | < 80% | > 90% |
+| Metric              | Target  | Alert Threshold |
+| ------------------- | ------- | --------------- |
+| Response time (p50) | < 200ms | > 500ms         |
+| Response time (p95) | < 1s    | > 2s            |
+| Error rate          | < 0.1%  | > 1%            |
+| CPU usage           | < 70%   | > 90%           |
+| Memory usage        | < 80%   | > 90%           |
 
 ### Database Metrics
 
@@ -242,18 +243,21 @@ redis-cli -u $REDIS_URL INFO stats | grep -E "connected_clients|used_memory_huma
 ### Recommended Kibana Dashboards
 
 **1. Operations Dashboard**
+
 - Request rate over time
 - Error rate over time
 - Response time percentiles
 - Top errors by count
 
 **2. Database Dashboard**
+
 - Connection count
 - Query duration histogram
 - Slow queries list
 - Table sizes
 
 **3. Queue Dashboard**
+
 - Jobs processed
 - Job failures
 - Queue depth
@@ -278,6 +282,7 @@ Filter: level:error
 ### Clever Cloud Alerts
 
 Configure in Clever Cloud console:
+
 - Instance restart
 - Deployment failure
 - High resource usage
@@ -317,11 +322,11 @@ alerts:
 
 ### Retention Policy
 
-| Location | Retention | Purpose |
-|----------|-----------|---------|
-| Clever Cloud | 7 days | Real-time debugging |
-| Elasticsearch | 30 days | Search and analysis |
-| S3 Archive | 1 year | Compliance, audits |
+| Location      | Retention | Purpose             |
+| ------------- | --------- | ------------------- |
+| Clever Cloud  | 7 days    | Real-time debugging |
+| Elasticsearch | 30 days   | Search and analysis |
+| S3 Archive    | 1 year    | Compliance, audits  |
 
 ### Monthly Archive Process
 
@@ -333,6 +338,7 @@ Automated via cron:
 ```
 
 Manual export:
+
 ```bash
 ./server/src/scripts/logs/export-monthly-logs.sh 2024-01
 ```
@@ -343,27 +349,30 @@ Manual export:
 
 ### On-Call Rotation
 
-| Role | Responsibility |
-|------|----------------|
-| Primary | First response, initial triage |
-| Secondary | Backup, escalation point |
+| Role      | Responsibility                 |
+| --------- | ------------------------------ |
+| Primary   | First response, initial triage |
+| Secondary | Backup, escalation point       |
 | Tech Lead | Major decisions, P1 escalation |
 
 ### On-Call Checklist
 
 **Start of shift:**
+
 - [ ] Check current alerts
 - [ ] Review recent deployments
 - [ ] Check ongoing incidents
 - [ ] Verify access to all tools
 
 **During shift:**
+
 - [ ] Respond to alerts within SLA
 - [ ] Document actions taken
 - [ ] Escalate if needed
 - [ ] Communicate status updates
 
 **End of shift:**
+
 - [ ] Handoff open issues
 - [ ] Update incident notes
 - [ ] Log any maintenance done
@@ -374,11 +383,11 @@ Manual export:
 
 ### URLs
 
-| Tool | URL |
-|------|-----|
-| Sentry | https://sentry.io/organizations/<your-org>/ |
-| Clever Cloud | https://console.clever-cloud.com/ |
-| Metabase | [Internal URL] |
+| Tool         | URL                                         |
+| ------------ | ------------------------------------------- |
+| Sentry       | https://sentry.io/organizations/<your-org>/ |
+| Clever Cloud | https://console.clever-cloud.com/           |
+| Metabase     | [Internal URL]                              |
 
 ### Commands
 
@@ -401,8 +410,8 @@ clever activity
 
 ### Contacts
 
-| Role | Contact |
-|------|---------|
-| On-call | [Rotation schedule] |
-| Tech Lead | [Contact info] |
+| Role                 | Contact                  |
+| -------------------- | ------------------------ |
+| On-call              | [Rotation schedule]      |
+| Tech Lead            | [Contact info]           |
 | Clever Cloud Support | support@clever-cloud.com |

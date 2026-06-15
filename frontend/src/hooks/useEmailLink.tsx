@@ -1,6 +1,7 @@
-import { useLocation } from 'react-router';
 import { useEffect, useMemo, useState } from 'react';
 import { hideLoading, showLoading } from 'react-redux-loading-bar';
+import { useLocation } from 'react-router';
+
 import { useAppDispatch } from './useStore';
 
 interface LinkService<T> {

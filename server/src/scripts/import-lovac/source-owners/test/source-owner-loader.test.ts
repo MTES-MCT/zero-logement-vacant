@@ -1,5 +1,6 @@
-import { faker } from '@faker-js/faker/locale/fr';
 import { ReadableStream } from 'node:stream/web';
+
+import { faker } from '@faker-js/faker/locale/fr';
 
 import {
   formatOwnerApi,
@@ -7,9 +8,10 @@ import {
   OwnerRecordDBO
 } from '~/repositories/ownerRepository';
 import { createNoopReporter } from '~/scripts/import-lovac/infra/reporters/noop-reporter';
+import { genOwnerApi } from '~/test/testFixtures';
+
 import { createOwnerLoader } from '../source-owner-loader';
 import { OwnerChange } from '../source-owner-transform';
-import { genOwnerApi } from '~/test/testFixtures';
 
 // LOVAC owners always have an idpersonne — generate with one to avoid
 // null idpersonne clashing with ON CONFLICT (idpersonne) behavior in PostgreSQL
@@ -46,7 +48,11 @@ describe('createOwnerLoader', () => {
       full_name: 'CHANGED NAME',
       updated_at: new Date()
     };
-    const change: OwnerChange = { type: 'owner', kind: 'update', value: updated };
+    const change: OwnerChange = {
+      type: 'owner',
+      kind: 'update',
+      value: updated
+    };
 
     await ReadableStream.from([change]).pipeTo(
       createOwnerLoader({ dryRun: false, reporter })
@@ -77,7 +83,11 @@ describe('createOwnerLoader', () => {
     const newOwner = genOwnerWithIdpersonne();
     const existing = genOwnerWithIdpersonne();
     await Owners().insert(existing);
-    const updated: OwnerRecordDBO = { ...existing, full_name: 'X', updated_at: new Date() };
+    const updated: OwnerRecordDBO = {
+      ...existing,
+      full_name: 'X',
+      updated_at: new Date()
+    };
 
     const changes: OwnerChange[] = [
       { type: 'owner', kind: 'create', value: newOwner },

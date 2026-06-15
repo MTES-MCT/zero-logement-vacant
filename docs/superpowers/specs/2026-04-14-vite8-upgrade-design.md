@@ -27,11 +27,11 @@ Results (before and after) are saved to `docs/benchmarks/vite8-upgrade.md` and c
 
 ## Package Changes
 
-| Package | Action | From | To |
-|---|---|---|---|
-| `vite` | upgrade | `7.2.2` | `^8` |
-| `@vitejs/plugin-react` | upgrade | `4.7.0` | `^6` |
-| `@vitejs/plugin-react-swc` | **remove** | `3.11.0` | — |
+| Package                    | Action     | From     | To   |
+| -------------------------- | ---------- | -------- | ---- |
+| `vite`                     | upgrade    | `7.2.2`  | `^8` |
+| `@vitejs/plugin-react`     | upgrade    | `4.7.0`  | `^6` |
+| `@vitejs/plugin-react-swc` | **remove** | `3.11.0` | —    |
 
 Also check `vitest` and `@nx/vite` for peer dependency constraints; bump if required.
 

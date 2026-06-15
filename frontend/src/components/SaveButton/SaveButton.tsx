@@ -5,11 +5,10 @@ import {
   useNotification
 } from '~/hooks/useNotification';
 
-interface Props
-  extends Pick<
-    NotificationProps,
-    'autoClose' | 'isError' | 'isLoading' | 'isSuccess' | 'message'
-  > {
+interface Props extends Pick<
+  NotificationProps,
+  'autoClose' | 'isError' | 'isLoading' | 'isSuccess' | 'message'
+> {
   className?: string;
   type?: ButtonProps.AsButton['type'];
   onSave?(): void;

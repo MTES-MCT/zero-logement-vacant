@@ -1,19 +1,32 @@
+import { ReadableStream } from 'node:stream/web';
+
 import {
   AddressKinds,
   HousingStatus,
   Occupancy
 } from '@zerologementvacant/models';
-import { ReadableStream } from 'node:stream/web';
 
 import { AddressApi } from '~/models/AddressApi';
 import { HousingEventApi } from '~/models/EventApi';
 import { Addresses } from '~/repositories/banAddressesRepository';
+import {
+  Establishments,
+  formatEstablishmentApi
+} from '~/repositories/establishmentRepository';
 import { Events } from '~/repositories/eventRepository';
 import {
   formatHousingRecordApi,
   Housing
 } from '~/repositories/housingRepository';
+import { Users, toUserDBO } from '~/repositories/userRepository';
 import { createNoopReporter } from '~/scripts/import-lovac/infra/reporters/noop-reporter';
+import {
+  genEstablishmentApi,
+  genEventApi,
+  genHousingApi,
+  genUserApi
+} from '~/test/testFixtures';
+
 import { createHousingLoader } from '../source-housing-loader';
 import {
   AddressChange,
@@ -22,17 +35,6 @@ import {
   HousingRecordInsert,
   SourceHousingChange
 } from '../source-housing-transform';
-import {
-  Establishments,
-  formatEstablishmentApi
-} from '~/repositories/establishmentRepository';
-import { Users, toUserDBO } from '~/repositories/userRepository';
-import {
-  genEstablishmentApi,
-  genEventApi,
-  genHousingApi,
-  genUserApi
-} from '~/test/testFixtures';
 
 describe('createHousingLoader', () => {
   const establishment = genEstablishmentApi();

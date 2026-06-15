@@ -3,9 +3,10 @@ import Button from '@codegouvfr/react-dsfr/Button';
 import Grid from '@mui/material/Grid';
 import Typography from '@mui/material/Typography';
 import type { ReactElement } from 'react';
+
+import { findChild } from '../../utils/elementUtils';
 import { pluralize } from '../../utils/stringUtils';
 import SelectableListHeaderActions from './SelectableListHeaderActions';
-import { findChild } from '../../utils/elementUtils';
 
 export type SelectableEntity = 'logement' | 'périmètre';
 

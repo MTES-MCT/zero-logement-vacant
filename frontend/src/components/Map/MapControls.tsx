@@ -1,8 +1,9 @@
 import ToggleSwitch from '@codegouvfr/react-dsfr/ToggleSwitch';
 
-import { useUser } from '~/hooks/useUser';
-import PerimetersModalOpener from '~/components/modals/GeoPerimetersModal/PerimetersModalOpener';
 import createPerimetersModal from '~/components/modals/GeoPerimetersModal/PerimetersModal';
+import PerimetersModalOpener from '~/components/modals/GeoPerimetersModal/PerimetersModalOpener';
+import { useUser } from '~/hooks/useUser';
+
 import styles from './map-controls.module.scss';
 
 const perimetersModal = createPerimetersModal();

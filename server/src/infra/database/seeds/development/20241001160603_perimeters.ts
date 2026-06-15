@@ -1,8 +1,8 @@
 import { faker } from '@faker-js/faker/locale/fr';
 import async from 'async';
 import { Knex } from 'knex';
-import { Establishments } from '~/repositories/establishmentRepository';
 
+import { Establishments } from '~/repositories/establishmentRepository';
 import {
   formatGeoPerimeterApi,
   GeoPerimeters
@@ -36,5 +36,5 @@ export async function seed(knex: Knex): Promise<void> {
     await GeoPerimeters(knex).insert(perimeters.map(formatGeoPerimeterApi));
   });
   console.timeEnd('20241001160603_perimeters');
-  console.log('\n')
+  console.log('\n');
 }

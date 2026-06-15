@@ -1,3 +1,5 @@
+import { constants } from 'http2';
+
 import {
   AddressKinds,
   DATAFONCIER_OWNER_EQUIVALENCE,
@@ -31,9 +33,9 @@ import {
 import { RequestHandler } from 'express';
 import { AuthenticatedRequest } from 'express-jwt';
 import { oneOf, param } from 'express-validator';
-import { constants } from 'http2';
 import { match, Pattern } from 'ts-pattern';
 import { v4 as uuidv4 } from 'uuid';
+
 import DocumentMissingError from '~/errors/documentMissingError';
 import HousingExistsError from '~/errors/housingExistsError';
 import HousingMissingError from '~/errors/housingMissingError';
@@ -78,10 +80,11 @@ import documentRepository from '~/repositories/documentRepository';
 import eventRepository from '~/repositories/eventRepository';
 import housingDocumentRepository from '~/repositories/housingDocumentRepository';
 import housingOwnerRepository from '~/repositories/housingOwnerRepository';
-
 import housingRepository from '~/repositories/housingRepository';
 import noteRepository from '~/repositories/noteRepository';
-import ownerRepository, { refreshMultiOwnerFlags } from '~/repositories/ownerRepository';
+import ownerRepository, {
+  refreshMultiOwnerFlags
+} from '~/repositories/ownerRepository';
 import precisionRepository from '~/repositories/precisionRepository';
 import { createBanAPI } from '~/services/ban/ban-api';
 
@@ -102,12 +105,13 @@ const get: RequestHandler<
   never,
   never
 > = async (request, response): Promise<void> => {
-  const { params, establishment, effectiveGeoCodes } = request as AuthenticatedRequest<
-    { id: HousingDTO['id'] },
-    HousingApi,
-    never,
-    never
-  >;
+  const { params, establishment, effectiveGeoCodes } =
+    request as AuthenticatedRequest<
+      { id: HousingDTO['id'] },
+      HousingApi,
+      never,
+      never
+    >;
 
   logger.info('Get housing', params.id);
 
@@ -142,12 +146,13 @@ const list: RequestHandler<
   ListHousingPayload,
   HousingQuery
 > = async (request, response): Promise<void> => {
-  const { auth, user, query, effectiveGeoCodes } = request as AuthenticatedRequest<
-    never,
-    HousingPaginatedResultApi,
-    ListHousingPayload,
-    HousingQuery
-  >;
+  const { auth, user, query, effectiveGeoCodes } =
+    request as AuthenticatedRequest<
+      never,
+      HousingPaginatedResultApi,
+      ListHousingPayload,
+      HousingQuery
+    >;
 
   const pagination: Pagination = {
     paginate: query.paginate,
@@ -393,7 +398,7 @@ const create: RequestHandler<
       createdAt: new Date().toISOString(),
       createdBy: auth.userId,
       housingGeoCode: housing.geoCode,
-      housingId: housing.id,
+      housingId: housing.id
     }
   ];
   const ownerEvents: OwnerEventApi[] = missingOwners.map<OwnerEventApi>(
@@ -431,7 +436,7 @@ const create: RequestHandler<
         createdBy: auth.userId,
         housingGeoCode: housingOwner.housingGeoCode,
         housingId: housingOwner.housingId,
-        ownerId: housingOwner.ownerId,
+        ownerId: housingOwner.ownerId
       };
     });
 
@@ -443,7 +448,8 @@ const create: RequestHandler<
         merge: false
       })
     ]);
-    const affectedOwnerIds = await housingOwnerRepository.saveMany(housingOwners);
+    const affectedOwnerIds =
+      await housingOwnerRepository.saveMany(housingOwners);
     await Promise.all([
       refreshMultiOwnerFlags(affectedOwnerIds),
       banAddress ? banAddressesRepository.save(banAddress) : Promise.resolve(),
@@ -470,12 +476,13 @@ const update: RequestHandler<
   HousingUpdatePayloadDTO,
   never
 > = async (request, response): Promise<void> => {
-  const { auth, body, establishment, effectiveGeoCodes, params } = request as AuthenticatedRequest<
-    HousingPathParams,
-    HousingDTO,
-    HousingUpdatePayloadDTO,
-    never
-  >;
+  const { auth, body, establishment, effectiveGeoCodes, params } =
+    request as AuthenticatedRequest<
+      HousingPathParams,
+      HousingDTO,
+      HousingUpdatePayloadDTO,
+      never
+    >;
 
   // effectiveGeoCodes is undefined when no restriction applies, use all establishment geoCodes
   const housing = await housingRepository.findOne({
@@ -580,12 +587,13 @@ const updateMany: RequestHandler<
   HousingBatchUpdatePayload,
   never
 > = async (request, response): Promise<void> => {
-  const { body, establishment, user, effectiveGeoCodes } = request as AuthenticatedRequest<
-    never,
-    ReadonlyArray<HousingDTO>,
-    HousingBatchUpdatePayload,
-    never
-  >;
+  const { body, establishment, user, effectiveGeoCodes } =
+    request as AuthenticatedRequest<
+      never,
+      ReadonlyArray<HousingDTO>,
+      HousingBatchUpdatePayload,
+      never
+    >;
   logger.info('Updating many housings...', { body });
 
   const isAdminOrVisitor = [UserRole.ADMIN, UserRole.VISITOR].includes(

@@ -1,7 +1,3 @@
-import cors from 'cors';
-import express from 'express';
-import rateLimit from 'express-rate-limit';
-import helmet from 'helmet';
 import http from 'node:http';
 import util from 'node:util';
 
@@ -11,16 +7,21 @@ import {
   postgresCheck,
   s3Check
 } from '@zerologementvacant/healthcheck';
+import cors from 'cors';
+import express from 'express';
+import rateLimit from 'express-rate-limit';
+import getPort from 'get-port';
+import helmet from 'helmet';
+
 import RouteNotFoundError from '~/errors/routeNotFoundError';
 import config from '~/infra/config';
 import gracefulShutdown from '~/infra/graceful-shutdown';
 import { logger } from '~/infra/logger';
-import sentry from '~/infra/sentry';
 import { setupApiDocs } from '~/infra/openapi';
-import unprotectedRouter from '~/routers/unprotected';
-import protectedRouter from '~/routers/protected';
+import sentry from '~/infra/sentry';
 import errorHandler from '~/middlewares/error-handler';
-import getPort from 'get-port';
+import protectedRouter from '~/routers/protected';
+import unprotectedRouter from '~/routers/unprotected';
 
 export interface Server {
   app: http.Server;

@@ -1,7 +1,8 @@
-import { Container } from '../_dsfr';
 import Stack from '@mui/material/Stack';
 import Typography from '@mui/material/Typography';
 import type { ReactNode } from 'react';
+
+import { Container } from '../_dsfr';
 
 export interface Props {
   title?: ReactNode | ReactNode[];
@@ -17,7 +18,11 @@ function MainContainer(props: Props) {
         {props.title && (
           <Stack
             direction="row"
-            sx={{ alignItems: 'center', justifyContent: 'space-between', mb: '1.5rem' }}
+            sx={{
+              alignItems: 'center',
+              justifyContent: 'space-between',
+              mb: '1.5rem'
+            }}
           >
             <Typography component="h1" variant="h3">
               {props.title}

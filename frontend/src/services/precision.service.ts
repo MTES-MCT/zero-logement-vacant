@@ -1,4 +1,5 @@
 import type { HousingDTO, Precision } from '@zerologementvacant/models';
+
 import { zlvApi } from './api.service';
 
 const REFERENTIAL_ID = 'REFERENTIAL';

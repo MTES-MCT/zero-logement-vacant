@@ -15,12 +15,14 @@
 **Decision:** Two-step flow with automatic linking (Option A)
 
 **Implementation:**
+
 - Step 1: Upload files to `POST /documents` (returns document IDs)
 - Step 2: Automatically link returned documents to housing via `POST /housing/:id/documents`
 - User experience: Seamless, feels identical to current single-step upload
 - Benefit: Enables future document reuse features without UX changes
 
 **Alternatives Considered:**
+
 - Separate "Upload" and "Attach" buttons (rejected: premature complexity)
 - Legacy wrapper endpoint (rejected: hides architectural improvement)
 
@@ -29,12 +31,14 @@
 **Decision:** Unlink only, keep UI text unchanged (Option A)
 
 **Implementation:**
+
 - "Supprimer" button calls `DELETE /housing/:id/documents/:id` (unlinks)
 - Document remains in `documents` table, can be reattached later
 - No UI text changes (transparent behavioral change)
 - Backend change: old endpoint deleted document, new endpoint unlinks only
 
 **Rationale:**
+
 - Aligns with new many-to-many architecture
 - Enables future document reuse scenarios
 - Users don't need to understand the distinction
@@ -44,6 +48,7 @@
 **Decision:** Skip for initial implementation (Option B)
 
 **Rationale:**
+
 - Keeps scope manageable
 - Backend supports `PUT /housing` with `documentIds` field
 - Can be added to `HousingListEditionSideMenu` in future iteration
@@ -53,12 +58,14 @@
 **Decision:** Update existing endpoints in-place (Option A)
 
 **Implementation:**
+
 - Replace internal implementation of existing mutations
 - Component code remains unchanged (same hook names)
 - Two new primitive mutations exposed: `useUploadDocumentsMutation`, `useLinkDocumentsToHousingMutation`
 - Components orchestrate both mutations
 
 **Benefit:**
+
 - Minimal component changes
 - Explicit two-step flow at component level
 - Maximum flexibility for future features
@@ -109,7 +116,7 @@ uploadDocuments: builder.mutation<
     };
   },
   invalidatesTags: ['Document']
-})
+});
 
 // Link documents to housing
 linkDocumentsToHousing: builder.mutation<
@@ -124,7 +131,7 @@ linkDocumentsToHousing: builder.mutation<
   invalidatesTags: (_result, _error, { housingId }) => [
     { type: 'Document', id: `LIST-${housingId}` }
   ]
-})
+});
 
 // Update document (simplified - no housing context)
 updateDocument: builder.mutation<
@@ -140,7 +147,7 @@ updateDocument: builder.mutation<
     // Optimistic update for all housings that have this document
     // Implementation similar to existing pattern
   }
-})
+});
 
 // Unlink document from housing
 unlinkDocument: builder.mutation<
@@ -151,10 +158,13 @@ unlinkDocument: builder.mutation<
     url: `housing/${housingId}/documents/${documentId}`,
     method: 'DELETE'
   }),
-  async onQueryStarted({ housingId, documentId }, { dispatch, queryFulfilled }) {
+  async onQueryStarted(
+    { housingId, documentId },
+    { dispatch, queryFulfilled }
+  ) {
     // Optimistic update pattern (existing)
   }
-})
+});
 ```
 
 **Exported Hooks:**
@@ -162,10 +172,10 @@ unlinkDocument: builder.mutation<
 ```typescript
 export const {
   useListHousingDocumentsQuery,
-  useUploadDocumentsMutation,           // NEW
-  useLinkDocumentsToHousingMutation,    // NEW
-  useUpdateDocumentMutation,            // UPDATED
-  useUnlinkDocumentMutation             // RENAMED (was useRemoveDocumentMutation)
+  useUploadDocumentsMutation, // NEW
+  useLinkDocumentsToHousingMutation, // NEW
+  useUpdateDocumentMutation, // UPDATED
+  useUnlinkDocumentMutation // RENAMED (was useRemoveDocumentMutation)
 } = documentApi;
 ```
 
@@ -269,7 +279,7 @@ function rename(filename: string): void {
 
   updateDocument({
     documentId: selectedDocument.id,
-    filename  // No housingId needed
+    filename // No housingId needed
   })
     .unwrap()
     .then(() => {
@@ -295,7 +305,7 @@ function deleteDocument(): void {
 
   unlinkDocument({
     documentId: documentToDelete.id,
-    housingId: housingId  // Still needed for association removal
+    housingId: housingId // Still needed for association removal
   })
     .unwrap()
     .then(() => {
@@ -315,11 +325,7 @@ function deleteDocument(): void {
 **New Handler: Upload Documents**
 
 ```typescript
-const upload = http.post<
-  never,
-  FormData,
-  DocumentDTO[] | Error
->(
+const upload = http.post<never, FormData, DocumentDTO[] | Error>(
   `${config.apiEndpoint}/api/documents`,
   async ({ request }) => {
     const formData = await request.formData();
@@ -377,7 +383,10 @@ const linkToHousing = http.post<
     const housing = data.housings.find((h) => h.id === params.id);
     if (!housing) {
       return HttpResponse.json(
-        { name: 'HousingMissingError', message: `Housing ${params.id} missing` },
+        {
+          name: 'HousingMissingError',
+          message: `Housing ${params.id} missing`
+        },
         { status: constants.HTTP_STATUS_NOT_FOUND }
       );
     }
@@ -413,30 +422,30 @@ const update = http.put<
   { id: DocumentDTO['id'] },
   DocumentPayload,
   DocumentDTO | Error
->(
-  `${config.apiEndpoint}/api/documents/:id`,
-  async ({ params, request }) => {
-    const document = data.documents.get(params.id);
-    if (!document) {
-      return HttpResponse.json(
-        { name: 'DocumentMissingError', message: `Document ${params.id} missing` },
-        { status: constants.HTTP_STATUS_NOT_FOUND }
-      );
-    }
-
-    const payload = await request.json();
-    const updated: DocumentDTO = {
-      ...document,
-      filename: payload.filename,
-      updatedAt: new Date().toJSON()
-    };
-    data.documents.set(document.id, updated);
-
-    return HttpResponse.json(updated, {
-      status: constants.HTTP_STATUS_OK
-    });
+>(`${config.apiEndpoint}/api/documents/:id`, async ({ params, request }) => {
+  const document = data.documents.get(params.id);
+  if (!document) {
+    return HttpResponse.json(
+      {
+        name: 'DocumentMissingError',
+        message: `Document ${params.id} missing`
+      },
+      { status: constants.HTTP_STATUS_NOT_FOUND }
+    );
   }
-);
+
+  const payload = await request.json();
+  const updated: DocumentDTO = {
+    ...document,
+    filename: payload.filename,
+    updatedAt: new Date().toJSON()
+  };
+  data.documents.set(document.id, updated);
+
+  return HttpResponse.json(updated, {
+    status: constants.HTTP_STATUS_OK
+  });
+});
 ```
 
 **Updated Handler: Unlink Document**
@@ -492,10 +501,10 @@ const removeByHousing = http.delete<
 ```typescript
 export const documentHandlers: RequestHandler[] = [
   listByHousing,
-  upload,           // NEW
-  linkToHousing,    // NEW (replaces createByHousing)
-  update,           // UPDATED (replaces updateByHousing)
-  removeByHousing   // UPDATED (now unlinks only)
+  upload, // NEW
+  linkToHousing, // NEW (replaces createByHousing)
+  update, // UPDATED (replaces updateByHousing)
+  removeByHousing // UPDATED (now unlinks only)
 ];
 ```
 
@@ -506,6 +515,7 @@ export const documentHandlers: RequestHandler[] = [
 ### View-Level Tests (`HousingView.test.tsx`)
 
 **Existing tests continue to work:**
+
 - Document upload tests (lines 1283-1303)
 - Rename tests (lines 898-974)
 - Delete tests (lines 976-1046)
@@ -513,12 +523,14 @@ export const documentHandlers: RequestHandler[] = [
 - Download tests (lines 1214-1281)
 
 **Why no changes needed:**
+
 - Tests interact with view-level UI
 - Mock handlers abstract API changes
 - Test setup uses `data.documents` and `data.housingDocuments` maps
 - Component behavior remains the same from user perspective
 
 **Verification Steps:**
+
 1. Update mock handlers
 2. Update service layer
 3. Update components
@@ -529,12 +541,12 @@ export const documentHandlers: RequestHandler[] = [
 
 ## Files to Modify
 
-| File | Changes | Lines Changed | Complexity |
-|------|---------|---------------|------------|
-| `frontend/src/services/document.service.ts` | Replace 4 endpoints | ~80 | Medium |
-| `frontend/src/components/FileUpload/HousingDocumentUpload.tsx` | Two-step upload orchestration | ~40 | Medium |
-| `frontend/src/components/HousingDetails/DocumentsTab.tsx` | Simplify rename/unlink calls | ~10 | Low |
-| `frontend/src/mocks/handlers/document-handlers.ts` | Update 4 handlers | ~100 | Medium |
+| File                                                           | Changes                       | Lines Changed | Complexity |
+| -------------------------------------------------------------- | ----------------------------- | ------------- | ---------- |
+| `frontend/src/services/document.service.ts`                    | Replace 4 endpoints           | ~80           | Medium     |
+| `frontend/src/components/FileUpload/HousingDocumentUpload.tsx` | Two-step upload orchestration | ~40           | Medium     |
+| `frontend/src/components/HousingDetails/DocumentsTab.tsx`      | Simplify rename/unlink calls  | ~10           | Low        |
+| `frontend/src/mocks/handlers/document-handlers.ts`             | Update 4 handlers             | ~100          | Medium     |
 
 **Total Estimated Changes:** ~230 lines
 
@@ -543,6 +555,7 @@ export const documentHandlers: RequestHandler[] = [
 ## Implementation Checklist
 
 ### Phase 1: Mock Handlers (Enables Testing)
+
 - [ ] Add `upload` handler for `POST /documents`
 - [ ] Add `linkToHousing` handler for `POST /housing/:id/documents` (body: `{ documentIds }`)
 - [ ] Update `update` handler to use `PUT /documents/:id` (remove housing context)
@@ -551,6 +564,7 @@ export const documentHandlers: RequestHandler[] = [
 - [ ] Update `documentHandlers` export
 
 ### Phase 2: Service Layer
+
 - [ ] Add `uploadDocuments` mutation
 - [ ] Add `linkDocumentsToHousing` mutation
 - [ ] Update `updateDocument` mutation (remove `housingId` parameter)
@@ -558,6 +572,7 @@ export const documentHandlers: RequestHandler[] = [
 - [ ] Update exported hooks
 
 ### Phase 3: Components
+
 - [ ] Update `HousingDocumentUpload` to orchestrate upload + link
 - [ ] Handle combined loading/error states
 - [ ] Handle partial success (some uploads fail)
@@ -565,6 +580,7 @@ export const documentHandlers: RequestHandler[] = [
 - [ ] Update `DocumentsTab` delete call (use `unlinkDocument` hook)
 
 ### Phase 4: Verification
+
 - [ ] Run `yarn nx test frontend -- HousingView.test.ts`
 - [ ] Verify all document tests pass
 - [ ] Manual testing: upload documents
@@ -577,9 +593,11 @@ export const documentHandlers: RequestHandler[] = [
 ## Breaking Changes
 
 **For End Users:**
+
 - None (UI behavior identical)
 
 **For Developers:**
+
 - Service layer hook names changed
 - Hook signatures changed (removed `housingId` from rename)
 - Components must orchestrate two-step upload flow
@@ -611,18 +629,21 @@ export const documentHandlers: RequestHandler[] = [
 
 **Risk:** Two-step upload fails between upload and link
 **Mitigation:**
+
 - Documents uploaded but not linked (orphaned in database)
 - User can re-upload (will create duplicate)
 - Future: Add cleanup job for orphaned documents
 
 **Risk:** Partial upload success confuses users
 **Mitigation:**
+
 - Clear error messages distinguish upload vs link failures
 - Successful documents are linked even if some fail
 - Error UI shows which files failed and why
 
 **Risk:** Existing tests break
 **Mitigation:**
+
 - Mock handlers updated first
 - View-level tests unaffected by service layer changes
 - Manual testing plan included

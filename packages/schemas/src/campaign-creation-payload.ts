@@ -3,8 +3,9 @@ import { object, ObjectSchema, string } from 'yup';
 
 import { dateString } from './date-string';
 
-export const campaignCreationPayload: ObjectSchema<CampaignCreationPayload> = object({
-  title: string().trim().required('Veuillez renseigner un titre'),
-  description: string().trim().optional().default(''),
-  sentAt: dateString.nullable().optional().default(null)
-});
+export const campaignCreationPayload: ObjectSchema<CampaignCreationPayload> =
+  object({
+    title: string().trim().required('Veuillez renseigner un titre'),
+    description: string().trim().optional().default(''),
+    sentAt: dateString.nullable().optional().default(null)
+  });

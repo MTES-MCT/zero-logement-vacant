@@ -20,16 +20,16 @@ export async function up(knex: Knex): Promise<void> {
     knex.schema.alterTable('housing', (table) => {
       table.dropIndex(
         ['insee_code', 'data_years'],
-        'housing_insee_code_data_years_idx',
+        'housing_insee_code_data_years_idx'
       );
       table.dropIndex(['insee_code'], 'housing_insee_code_idx');
       table.renameColumn('insee_code', 'geo_code');
       table.index(
         ['geo_code', 'data_years'],
-        'housing_geo_code_data_years_idx',
+        'housing_geo_code_data_years_idx'
       );
       table.index(['geo_code'], 'housing_geo_code_idx');
-    }),
+    })
   ]);
 }
 
@@ -39,15 +39,15 @@ export async function down(knex: Knex): Promise<void> {
     knex.schema.alterTable('housing', (table) => {
       table.dropIndex(
         ['geo_code', 'data_years'],
-        'housing_geo_code_data_years_idx',
+        'housing_geo_code_data_years_idx'
       );
       table.dropIndex(['geo_code'], 'housing_geo_code_idx');
       table.renameColumn('geo_code', 'insee_code');
       table.index(
         ['insee_code', 'data_years'],
-        'housing_insee_code_data_years_idx',
+        'housing_insee_code_data_years_idx'
       );
       table.index(['insee_code'], 'housing_insee_code_idx');
-    }),
+    })
   ]);
 }

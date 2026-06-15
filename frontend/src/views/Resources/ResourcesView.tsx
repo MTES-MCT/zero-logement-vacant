@@ -1,12 +1,13 @@
 import Tile from '@codegouvfr/react-dsfr/Tile';
 import Container from '@mui/material/Container';
+import Grid from '@mui/material/Grid';
 import Stack from '@mui/material/Stack';
 import Typography from '@mui/material/Typography';
-import Grid from '@mui/material/Grid';
 import classNames from 'classnames';
 
 import { Icon } from '../../components/_dsfr';
 import { useDocumentTitle } from '../../hooks/useDocumentTitle';
+
 import styles from './resources.module.scss';
 
 interface Props {

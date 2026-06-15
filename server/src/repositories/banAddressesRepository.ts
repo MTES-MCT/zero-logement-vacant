@@ -1,4 +1,5 @@
 import { AddressKinds } from '@zerologementvacant/models';
+
 import db from '~/infra/database';
 import { createLogger } from '~/infra/logger';
 import { AddressApi } from '~/models/AddressApi';
@@ -113,10 +114,7 @@ export const formatAddressApi = (address: AddressApi): AddressDBO => ({
     : undefined
 });
 
-export const remove = async (
-  refId: string,
-  addressKind: AddressKinds
-) => {
+export const remove = async (refId: string, addressKind: AddressKinds) => {
   logger.debug('Get ban adresse with ref id', {
     ref: refId,
     addressKind
@@ -126,12 +124,12 @@ export const remove = async (
     .andWhere('address_kind', addressKind)
     .delete();
 
-    logger.debug(`Deleted ${addressKind} refId=${refId} address.`);
+  logger.debug(`Deleted ${addressKind} refId=${refId} address.`);
 };
 
 export default {
   save,
   saveMany,
   getByRefId,
-  remove,
+  remove
 };

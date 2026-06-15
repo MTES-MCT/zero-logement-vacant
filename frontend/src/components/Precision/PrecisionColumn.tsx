@@ -4,11 +4,12 @@ import Checkbox from '@codegouvfr/react-dsfr/Checkbox';
 import type { CheckboxProps } from '@codegouvfr/react-dsfr/Checkbox';
 import RadioButtons from '@codegouvfr/react-dsfr/RadioButtons';
 import Typography from '@mui/material/Typography';
+import type { Precision, PrecisionCategory } from '@zerologementvacant/models';
 import type { ElementOf } from 'ts-essentials';
 
-import type { Precision, PrecisionCategory } from '@zerologementvacant/models';
-import { NULL_PRECISION_ID } from '../../models/Precision';
 import Icon from '~/components/ui/Icon';
+
+import { NULL_PRECISION_ID } from '../../models/Precision';
 
 type PrecisionColumnCommonProps = {
   category: PrecisionCategory;
@@ -110,15 +111,15 @@ function PrecisionColumn(props: PrecisionColumnProps) {
         legend={props.title}
         classes={{ legend: 'fr-sr-only' }}
         options={allOptions.map(
-        (option): ElementOf<CheckboxProps['options']> => ({
-          label: option.label,
-          nativeInputProps: {
-            checked: isOptionChecked(option),
-            onChange: () =>
-              handleOptionClick(option, !isOptionChecked(option))
-          }
-        })
-      )}
+          (option): ElementOf<CheckboxProps['options']> => ({
+            label: option.label,
+            nativeInputProps: {
+              checked: isOptionChecked(option),
+              onChange: () =>
+                handleOptionClick(option, !isOptionChecked(option))
+            }
+          })
+        )}
       />
     </>
   );

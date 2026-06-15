@@ -36,9 +36,11 @@ The `to_update` DataFrame carries these from the existing join (with `_existing`
 ### 1.2 Write (`owners/write.py`)
 
 **Create path**:
+
 - Timestamps handled via SQL: `DEFAULT` for `created_at`, `now()` for `updated_at` in the INSERT
 
 **Update path** — use `COALESCE` for preserved fields:
+
 ```sql
 UPDATE owners SET
     id = s.id,
@@ -136,6 +138,7 @@ Update existing `tests/test_housings_transform.py` to assert `next_old`/`next_ne
 **Output**: `(to_update, events, housing_events)` — 3-tuple.
 
 **Logic** — for every row in `housings_missing`:
+
 - Set `occupancy = 'inconnu'`, `status = 4`, `sub_status = 'Sortie de la vacance'`
 - Generate `housing:occupancy-updated` event:
   - `id`: UUID5 of `{housing_id}:housing:occupancy-updated:{year}`
@@ -192,6 +195,7 @@ Events go into `events` table + `housing_events` join table.
 5. Output = full replacement set (new active + archived removed + preserved inactive)
 
 **Events** (into `events` table):
+
 - `id`: UUID5 of `{housing_id}:housing:{event_type}:{owner_id}:{year}`
 - `type`: `housing:owner-attached` | `housing:owner-detached` | `housing:owner-updated`
 - `next_old`: `null` for attached; `{"name": "<full_name>", "rank": <old_rank>}` for detached/updated
@@ -200,6 +204,7 @@ Events go into `events` table + `housing_events` join table.
 - `created_at`: now
 
 **Housing owner events** (into `housing_owner_events` join table):
+
 - `event_id`, `housing_geo_code`, `housing_id`, `owner_id`
 
 ### 4.2 Read (`housing_owners/read.py`)

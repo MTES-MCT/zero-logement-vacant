@@ -13,6 +13,7 @@
 ### Task 1: Extend `CampaignSortableApi`
 
 **Files:**
+
 - Modify: `server/src/models/CampaignApi.ts:72-78`
 
 No test needed — TypeScript enforces correctness at compile time. The change propagates to `CampaignSortApi` automatically.
@@ -59,6 +60,7 @@ git commit -m "feat(server): extend CampaignSortableApi with housingCount, owner
 ### Task 2: Write failing API sort tests
 
 **Files:**
+
 - Modify: `server/src/controllers/test/campaign-api.test.ts`
 
 Add a new `describe('sorting')` block inside the existing `describe('GET /campaigns')` block (after the `'should filter by group'` test, before the closing `}`).
@@ -99,7 +101,7 @@ describe('sorting', () => {
     expect(ids).toEqual([
       campaigns[2].id, // housing_count: 5
       campaigns[0].id, // housing_count: 10
-      campaigns[1].id  // housing_count: 20
+      campaigns[1].id // housing_count: 20
     ]);
   });
 
@@ -114,7 +116,7 @@ describe('sorting', () => {
     expect(ids).toEqual([
       campaigns[2].id, // owner_count: 8
       campaigns[0].id, // owner_count: 5
-      campaigns[1].id  // owner_count: 3
+      campaigns[1].id // owner_count: 3
     ]);
   });
 
@@ -129,7 +131,7 @@ describe('sorting', () => {
     expect(ids).toEqual([
       campaigns[0].id, // return_count: 1
       campaigns[2].id, // return_count: 2
-      campaigns[1].id  // return_count: 4
+      campaigns[1].id // return_count: 4
     ]);
   });
 
@@ -148,7 +150,7 @@ describe('sorting', () => {
     expect(ids).toEqual([
       campaigns[0].id, // 0.1
       campaigns[1].id, // 0.2
-      campaigns[2].id  // 0.4
+      campaigns[2].id // 0.4
     ]);
   });
 });
@@ -167,6 +169,7 @@ Expected: 4 failing tests — the sort fields are not handled, so the default `c
 ### Task 3: Add sort keys to `campaignSortQuery`
 
 **Files:**
+
 - Modify: `server/src/repositories/campaignRepository.ts:67-81`
 
 **Step 1: Add the four new keys**
@@ -224,6 +227,7 @@ git commit -m "feat(server): add housingCount, ownerCount, returnCount, returnRa
 Three files need updating so the MSW mock can sort by the new fields in frontend tests.
 
 **Files:**
+
 - Modify: `packages/models/src/CampaignDTO.ts`
 - Modify: `frontend/src/models/Campaign.tsx`
 - Modify: `frontend/src/mocks/handlers/campaign-handlers.ts`
@@ -257,7 +261,13 @@ Replace the current definitions:
 ```typescript
 export type CampaignSortable = Pick<
   Campaign,
-  'title' | 'createdAt' | 'sentAt' | 'housingCount' | 'ownerCount' | 'returnCount' | 'returnRate'
+  | 'title'
+  | 'createdAt'
+  | 'sentAt'
+  | 'housingCount'
+  | 'ownerCount'
+  | 'returnCount'
+  | 'returnRate'
 > & {
   status: string;
 };
@@ -290,7 +300,7 @@ import {
   byReturnRate,
   bySentAt,
   byStatus,
-  byTitle,
+  byTitle
   // ...existing imports
 } from '@zerologementvacant/models';
 ```
@@ -333,6 +343,7 @@ git commit -m "feat(models): add Ord comparators for campaign housingCount, owne
 ### Task 5: Write failing frontend sort tests
 
 **Files:**
+
 - Modify: `frontend/src/views/Campaign/test/CampaignListViewNext.test.tsx`
 
 **Step 1: Update `renderView` to accept and use `options.campaigns`**
@@ -443,8 +454,7 @@ describe('Sending date', () => {
     expect(dates.filter(Boolean).length).toBeGreaterThan(0);
     expect(dates.filter(Boolean)).toBeSorted({
       compare: (a: string, b: string) => {
-        const parse = (d: string) =>
-          new Date(d.split('/').reverse().join('-'));
+        const parse = (d: string) => new Date(d.split('/').reverse().join('-'));
         return Order.mapInput(parse)(Order.Date)(a, b);
       }
     });
@@ -455,9 +465,27 @@ describe('Return count', () => {
   it('should sort by return count ascending', async () => {
     renderView({
       campaigns: [
-        { ...genCampaignDTO(), sentAt: '2024-01-01', housingCount: 10, returnCount: 5, returnRate: 0.5 },
-        { ...genCampaignDTO(), sentAt: '2024-01-01', housingCount: 10, returnCount: 1, returnRate: 0.1 },
-        { ...genCampaignDTO(), sentAt: '2024-01-01', housingCount: 10, returnCount: 3, returnRate: 0.3 }
+        {
+          ...genCampaignDTO(),
+          sentAt: '2024-01-01',
+          housingCount: 10,
+          returnCount: 5,
+          returnRate: 0.5
+        },
+        {
+          ...genCampaignDTO(),
+          sentAt: '2024-01-01',
+          housingCount: 10,
+          returnCount: 1,
+          returnRate: 0.1
+        },
+        {
+          ...genCampaignDTO(),
+          sentAt: '2024-01-01',
+          housingCount: 10,
+          returnCount: 3,
+          returnRate: 0.3
+        }
       ]
     });
 
@@ -479,9 +507,27 @@ describe('Return rate', () => {
   it('should sort by return rate ascending', async () => {
     renderView({
       campaigns: [
-        { ...genCampaignDTO(), sentAt: '2024-01-01', housingCount: 10, returnCount: 5, returnRate: 0.5 },
-        { ...genCampaignDTO(), sentAt: '2024-01-01', housingCount: 10, returnCount: 1, returnRate: 0.1 },
-        { ...genCampaignDTO(), sentAt: '2024-01-01', housingCount: 10, returnCount: 3, returnRate: 0.3 }
+        {
+          ...genCampaignDTO(),
+          sentAt: '2024-01-01',
+          housingCount: 10,
+          returnCount: 5,
+          returnRate: 0.5
+        },
+        {
+          ...genCampaignDTO(),
+          sentAt: '2024-01-01',
+          housingCount: 10,
+          returnCount: 1,
+          returnRate: 0.1
+        },
+        {
+          ...genCampaignDTO(),
+          sentAt: '2024-01-01',
+          housingCount: 10,
+          returnCount: 3,
+          returnRate: 0.3
+        }
       ]
     });
 
@@ -515,6 +561,7 @@ Expected: 5 new failing tests — sort buttons don't exist yet because `meta.sor
 ### Task 6: Add sort metadata to frontend columns
 
 **Files:**
+
 - Modify: `frontend/src/components/Campaign/CampaignTableNext.tsx`
 
 **Step 1: Add `meta.sort` to the four columns**

@@ -1,5 +1,7 @@
 import { faker } from '@faker-js/faker/locale/fr';
 
+import { DraftApi } from '~/models/DraftApi';
+import { SenderApi } from '~/models/SenderApi';
 import {
   genCampaignApi,
   genDraftApi,
@@ -7,17 +9,16 @@ import {
   genSenderApi,
   genUserApi
 } from '~/test/testFixtures';
-import draftRepository, { Drafts, formatDraftApi } from '../draftRepository';
-import { Campaigns, formatCampaignApi } from '../campaignRepository';
+
 import { CampaignsDrafts } from '../campaignDraftRepository';
-import { DraftApi } from '~/models/DraftApi';
+import { Campaigns, formatCampaignApi } from '../campaignRepository';
+import draftRepository, { Drafts, formatDraftApi } from '../draftRepository';
 import {
   Establishments,
   formatEstablishmentApi
 } from '../establishmentRepository';
-import { toUserDBO, Users } from '../userRepository';
-import { SenderApi } from '~/models/SenderApi';
 import { formatSenderApi, Senders } from '../senderRepository';
+import { toUserDBO, Users } from '../userRepository';
 
 describe('Draft repository', () => {
   const establishment = genEstablishmentApi();

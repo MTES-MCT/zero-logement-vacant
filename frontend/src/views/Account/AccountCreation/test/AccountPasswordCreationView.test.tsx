@@ -1,7 +1,6 @@
 import { faker } from '@faker-js/faker/locale/fr';
 import { render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
-
 import type { ProspectDTO, SignupLinkDTO } from '@zerologementvacant/models';
 import {
   genEstablishmentDTO,
@@ -10,6 +9,7 @@ import {
 } from '@zerologementvacant/models/fixtures';
 import { Provider } from 'react-redux';
 import { createMemoryRouter, RouterProvider } from 'react-router';
+
 import OnboardingModal from '../../../../components/modals/OnboardingModal/OnboardingModal';
 import data from '../../../../mocks/handlers/data';
 import configureTestStore from '../../../../utils/storeUtils';

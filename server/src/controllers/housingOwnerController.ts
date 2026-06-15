@@ -1,10 +1,11 @@
+import { constants } from 'node:http2';
+
 import type {
   BaseHousingOwnerDTO,
   HousingDTO
 } from '@zerologementvacant/models';
 import type { RequestHandler } from 'express';
 import type { AuthenticatedRequest } from 'express-jwt';
-import { constants } from 'node:http2';
 
 import OwnerMissingError from '~/errors/ownerMissingError';
 import { createLogger } from '~/infra/logger';
@@ -28,10 +29,8 @@ const listByOwner: RequestHandler<
   never,
   never
 > = async (request, response): Promise<void> => {
-  const { effectiveGeoCodes, establishment, params } = request as AuthenticatedRequest<
-    PathParams,
-    ReadonlyArray<OwnerHousingDTO>
-  >;
+  const { effectiveGeoCodes, establishment, params } =
+    request as AuthenticatedRequest<PathParams, ReadonlyArray<OwnerHousingDTO>>;
   logger.info('List housings by owners', {
     params,
     establishment

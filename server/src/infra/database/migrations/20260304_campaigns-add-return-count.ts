@@ -132,9 +132,13 @@ export async function up(knex: Knex): Promise<void> {
 }
 
 export async function down(knex: Knex): Promise<void> {
-  await knex.raw('DROP TRIGGER IF EXISTS trg_recompute_return_count_on_sent_at_change ON campaigns');
+  await knex.raw(
+    'DROP TRIGGER IF EXISTS trg_recompute_return_count_on_sent_at_change ON campaigns'
+  );
   await knex.raw('DROP FUNCTION IF EXISTS recompute_campaign_return_count');
-  await knex.raw('DROP TRIGGER IF EXISTS trg_increment_return_count ON housing_events');
+  await knex.raw(
+    'DROP TRIGGER IF EXISTS trg_increment_return_count ON housing_events'
+  );
   await knex.raw('DROP FUNCTION IF EXISTS increment_campaign_return_count');
   await knex.schema.alterTable('campaigns', (table) => {
     table.dropColumn('return_count');

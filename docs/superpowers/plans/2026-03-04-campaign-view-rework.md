@@ -13,6 +13,7 @@
 ## Task 1: Add `returnCount` to `CampaignDTO`
 
 **Files:**
+
 - Modify: `packages/models/src/CampaignDTO.ts`
 - Modify: `packages/models/src/test/fixtures.ts`
 
@@ -40,7 +41,7 @@ export function genCampaignDTO(group?: GroupDTO): CampaignDTO {
     status: faker.helpers.arrayElement(CAMPAIGN_STATUS_VALUES),
     createdAt: faker.date.past().toJSON(),
     groupId: group?.id,
-    returnCount: null   // add this
+    returnCount: null // add this
   };
 }
 ```
@@ -65,6 +66,7 @@ git commit -m "feat(models): add returnCount field to CampaignDTO"
 ## Task 2: DB migration — `return_count` column + triggers
 
 **Files:**
+
 - Create: `server/src/infra/database/migrations/20260304_campaigns-add-return-count.ts`
 
 **Step 1: Write the migration**
@@ -204,9 +206,13 @@ export async function up(knex: Knex): Promise<void> {
 }
 
 export async function down(knex: Knex): Promise<void> {
-  await knex.raw('DROP TRIGGER IF EXISTS trg_recompute_return_count_on_sent_at_change ON campaigns');
+  await knex.raw(
+    'DROP TRIGGER IF EXISTS trg_recompute_return_count_on_sent_at_change ON campaigns'
+  );
   await knex.raw('DROP FUNCTION IF EXISTS recompute_campaign_return_count');
-  await knex.raw('DROP TRIGGER IF EXISTS trg_increment_return_count ON housing_events');
+  await knex.raw(
+    'DROP TRIGGER IF EXISTS trg_increment_return_count ON housing_events'
+  );
   await knex.raw('DROP FUNCTION IF EXISTS increment_campaign_return_count');
   await knex.schema.alterTable('campaigns', (table) => {
     table.dropColumn('return_count');
@@ -234,6 +240,7 @@ git commit -m "feat(server): add return_count column and triggers to campaigns"
 ## Task 3: Expose `returnCount` in the campaign repository and API model
 
 **Files:**
+
 - Modify: `server/src/repositories/campaignRepository.ts`
 - Modify: `server/src/models/CampaignApi.ts`
 
@@ -320,6 +327,7 @@ git commit -m "feat(server): map return_count to returnCount in campaign reposit
 ## Task 4: Gate `POST /campaigns` with the `new-campaigns` PostHog flag
 
 **Files:**
+
 - Create: `server/src/services/posthogService.ts`
 - Modify: `server/src/infra/config.ts`
 - Modify: `server/src/controllers/campaignController.ts`
@@ -407,7 +415,10 @@ export default posthog;
 At the very top of the `create` handler body, before any processing:
 
 ```typescript
-const flagEnabled = await isFeatureEnabled('new-campaigns', auth.establishmentId);
+const flagEnabled = await isFeatureEnabled(
+  'new-campaigns',
+  auth.establishmentId
+);
 if (flagEnabled) {
   response.status(constants.HTTP_STATUS_NOT_FOUND).end();
   return;
@@ -437,6 +448,7 @@ git commit -m "feat(server): return 404 on POST /campaigns when new-campaigns fl
 ## Task 5: Forward `returnCount` in the frontend campaign model
 
 **Files:**
+
 - Modify: `frontend/src/models/Campaign.ts` (only if needed)
 - Modify: `frontend/src/services/campaign.service.ts` (only if needed)
 
@@ -466,6 +478,7 @@ git commit -m "feat(frontend): forward returnCount from campaign API response"
 ## Task 6: `CampaignStatCard` component
 
 **Files:**
+
 - Create: `frontend/src/components/Campaign/CampaignStatCard.tsx`
 - Create: `frontend/src/components/Campaign/test/CampaignStatCard.test.tsx`
 
@@ -576,6 +589,7 @@ git commit -m "feat(frontend): add CampaignStatCard component"
 ## Task 7: `CampaignSentAtModal` component
 
 **Files:**
+
 - Create: `frontend/src/components/Campaign/CampaignSentAtModal.tsx`
 - Create: `frontend/src/components/Campaign/test/CampaignSentAtModal.test.tsx`
 
@@ -711,6 +725,7 @@ git commit -m "feat(frontend): add CampaignSentAtModal component"
 ## Task 8: Extract `CampaignDraftContent` from `CampaignDraft`
 
 **Files:**
+
 - Create: `frontend/src/views/Campaign/CampaignDraftContent.tsx`
 - Modify: `frontend/src/views/Campaign/CampaignDraft.tsx`
 
@@ -745,6 +760,7 @@ git commit -m "refactor(frontend): extract CampaignDraftContent for reuse in Cam
 ## Task 9: Implement `CampaignViewNext`
 
 **Files:**
+
 - Modify: `frontend/src/views/Campaign/CampaignViewNext.tsx`
 - Create: `frontend/src/views/Campaign/test/CampaignViewNext.test.tsx`
 

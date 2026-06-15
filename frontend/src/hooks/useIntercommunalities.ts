@@ -2,8 +2,9 @@ import {
   isChild,
   isDepartmentalEstablishment
 } from '@zerologementvacant/models';
-import { useAppSelector } from './useStore';
+
 import { useFindEstablishmentsQuery } from '../services/establishment.service';
+import { useAppSelector } from './useStore';
 
 export function useIntercommunalities() {
   const establishment = useAppSelector(

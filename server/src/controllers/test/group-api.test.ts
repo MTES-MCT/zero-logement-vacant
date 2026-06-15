@@ -1057,10 +1057,7 @@ describe('Group API', () => {
       beforeEach(async () => {
         await factories
           .campaign(establishment)
-          .create(
-            { groupId: group.id },
-            { associations: { createdBy: user } }
-          );
+          .create({ groupId: group.id }, { associations: { createdBy: user } });
       });
 
       it('should archive a group', async () => {

@@ -203,7 +203,9 @@ describe('Campaign repository', () => {
       // (trg_recompute_return_count_on_sent_at_change) recomputes return_count
       // whenever sent_at changes, so updating both in one statement would
       // overwrite the seeded return_count.
-      await Campaigns().where({ id: campaign.id }).update({ sent_at: new Date() });
+      await Campaigns()
+        .where({ id: campaign.id })
+        .update({ sent_at: new Date() });
       await Campaigns().where({ id: campaign.id }).update({ return_count: 5 });
 
       const result = await campaignRepository.findOne({
@@ -218,9 +220,7 @@ describe('Campaign repository', () => {
       const campaign = await factories
         .campaign(establishment)
         .create({}, { associations: { createdBy: user } });
-      await Campaigns()
-        .where({ id: campaign.id })
-        .update({ return_count: 0 });
+      await Campaigns().where({ id: campaign.id }).update({ return_count: 0 });
 
       const result = await campaignRepository.findOne({
         id: campaign.id,
@@ -234,9 +234,7 @@ describe('Campaign repository', () => {
       const campaign = await factories
         .campaign(establishment)
         .create({}, { associations: { createdBy: user } });
-      await Campaigns()
-        .where({ id: campaign.id })
-        .update({ housing_count: 3 });
+      await Campaigns().where({ id: campaign.id }).update({ housing_count: 3 });
 
       const result = await campaignRepository.findOne({
         id: campaign.id,
@@ -250,9 +248,7 @@ describe('Campaign repository', () => {
       const campaign = await factories
         .campaign(establishment)
         .create({}, { associations: { createdBy: user } });
-      await Campaigns()
-        .where({ id: campaign.id })
-        .update({ owner_count: 2 });
+      await Campaigns().where({ id: campaign.id }).update({ owner_count: 2 });
 
       const result = await campaignRepository.findOne({
         id: campaign.id,
@@ -270,7 +266,9 @@ describe('Campaign repository', () => {
       // (trg_recompute_return_count_on_sent_at_change) recomputes return_count
       // whenever sent_at changes, so updating both in one statement would
       // overwrite the seeded return_count.
-      await Campaigns().where({ id: campaign.id }).update({ sent_at: new Date() });
+      await Campaigns()
+        .where({ id: campaign.id })
+        .update({ sent_at: new Date() });
       await Campaigns().where({ id: campaign.id }).update({
         housing_count: 10,
         return_count: 4
@@ -758,7 +756,9 @@ describe('Campaign repository', () => {
         const campaign = await factories
           .campaign(establishment)
           .create({}, { associations: { createdBy: user } });
-        await Campaigns().where({ id: campaign.id }).update({ sent_at: sentAt });
+        await Campaigns()
+          .where({ id: campaign.id })
+          .update({ sent_at: sentAt });
 
         const housing = { ...genHousingApi(), status };
         await Housing().insert(formatHousingRecordApi(housing));
@@ -815,7 +815,9 @@ describe('Campaign repository', () => {
         const campaign = await factories
           .campaign(establishment)
           .create({}, { associations: { createdBy: user } });
-        await Campaigns().where({ id: campaign.id }).update({ sent_at: sentAt });
+        await Campaigns()
+          .where({ id: campaign.id })
+          .update({ sent_at: sentAt });
 
         const housing = {
           ...genHousingApi(),
@@ -868,7 +870,9 @@ describe('Campaign repository', () => {
         const campaign = await factories
           .campaign(establishment)
           .create({}, { associations: { createdBy: user } });
-        await Campaigns().where({ id: campaign.id }).update({ sent_at: sentAt });
+        await Campaigns()
+          .where({ id: campaign.id })
+          .update({ sent_at: sentAt });
 
         const housing = { ...genHousingApi(), status: HousingStatus.WAITING };
         await Housing().insert(formatHousingRecordApi(housing));

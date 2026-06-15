@@ -26,6 +26,7 @@
 ### Task 1: Add `AdapterContext` and `ContextArgs` types
 
 **Files:**
+
 - Modify: `packages/factories/src/adapter.ts`
 
 - [ ] **Step 1: Replace `packages/factories/src/adapter.ts`**
@@ -78,6 +79,7 @@ This proves the new contract is in effect. The next tasks fix the consumers.
 ### Task 2: Update `MemoryAdapter` to accept and ignore context
 
 **Files:**
+
 - Modify: `packages/factories/src/memory-adapter.ts`
 
 - [ ] **Step 1: Replace `packages/factories/src/memory-adapter.ts`**
@@ -146,6 +148,7 @@ Expected: PASS (both cases).
 ### Task 3: Convert campaign factory to closure-over-establishment
 
 **Files:**
+
 - Modify: `packages/factories/src/factories/campaign.ts`
 
 - [ ] **Step 1: Replace `packages/factories/src/factories/campaign.ts`**
@@ -192,6 +195,7 @@ export function createCampaignFactory(
 ```
 
 Notes:
+
 - The signature now takes `establishment` as a second arg.
 - The DTO still has no `establishmentId` field — it lives only in the adapter context.
 
@@ -200,6 +204,7 @@ Notes:
 ### Task 4: Convert group factory to closure-over-establishment
 
 **Files:**
+
 - Modify: `packages/factories/src/factories/group.ts`
 
 - [ ] **Step 1: Replace `packages/factories/src/factories/group.ts`**
@@ -241,6 +246,7 @@ export function createGroupFactory(
 ```
 
 Notes:
+
 - `GroupDTO.createdBy` is non-optional in the produced DTO; the factory throws if no association is provided. (The current factory omits this guard — added now for consistency with campaign.)
 - Verify `GroupDTO.createdBy` is a required field by reading `packages/models/src/GroupDTO.ts`. If it's optional, drop the `createdBy` assignment and the throw.
 
@@ -249,6 +255,7 @@ Notes:
 ### Task 5: Reshape `createFactories` to factory-of-factories for campaign/group
 
 **Files:**
+
 - Modify: `packages/factories/src/create-factories.ts`
 
 - [ ] **Step 1: Replace `packages/factories/src/create-factories.ts`**
@@ -303,6 +310,7 @@ Expected: PASS.
 ### Task 6: Update `createFactories` package tests for the new shape
 
 **Files:**
+
 - Modify: `packages/factories/src/test/create-factories.test.ts`
 
 - [ ] **Step 1: Replace `packages/factories/src/test/create-factories.test.ts`**
@@ -439,6 +447,7 @@ EOF
 ### Task 7: Update `KnexAdapter` to read context for campaigns and groups
 
 **Files:**
+
 - Modify: `server/src/test/knex-adapter.ts`
 
 - [ ] **Step 1: Replace `server/src/test/knex-adapter.ts`**
@@ -512,7 +521,9 @@ export class KnexAdapter implements Adapter {
       .with('groups', async () => {
         const group = entity as EntityMap['groups'];
         const [{ establishmentId }] = args as ContextArgs<'groups'>;
-        const createdBy = group.createdBy ? fromUserDTO(group.createdBy) : undefined;
+        const createdBy = group.createdBy
+          ? fromUserDTO(group.createdBy)
+          : undefined;
         await Groups().insert(
           formatGroupApi({
             ...group,
@@ -535,6 +546,7 @@ export const knexAdapter = new KnexAdapter();
 ```
 
 Notes:
+
 - The `args` rest tuple is empty for unscoped tables and a 1-tuple `[{ establishmentId }]` for `campaigns`/`groups`. Destructure inside each scoped arm.
 - The `match(table)` arms for users/establishments/owners/housings are unchanged — they don't reference `args`.
 - The error-throw guards (`if (!establishmentId) throw ...`) are gone — TypeScript's `ContextArgs<'campaigns'>` makes the field non-nullable.
@@ -549,6 +561,7 @@ Expected: FAIL at `server/src/test/factories.ts` (consumes the now-changed `crea
 ### Task 8: Rewrite `server/src/test/factories.ts` to a one-liner and migrate `campaign-api.test.ts`
 
 **Files:**
+
 - Modify: `server/src/test/factories.ts`
 - Modify: `server/src/controllers/test/campaign-api.test.ts`
 
@@ -668,6 +681,7 @@ EOF
 ### Task 9: Add `MswAdapter`
 
 **Files:**
+
 - Create: `frontend/src/test/msw-adapter.ts`
 - Create: `frontend/src/test/msw-adapter.test.ts`
 
@@ -714,7 +728,9 @@ describe('MswAdapter', () => {
     const adapter = new MswAdapter();
     const campaign = { id: 'campaign-1' } as unknown as CampaignDTO;
 
-    await adapter.create('campaigns', campaign, { establishmentId: 'establishment-1' });
+    await adapter.create('campaigns', campaign, {
+      establishmentId: 'establishment-1'
+    });
 
     expect(data.campaigns).toContain(campaign);
     expect(campaign).not.toHaveProperty('establishmentId');
@@ -799,6 +815,7 @@ EOF
 ### Task 10: Add `frontend/src/test/factories.ts`
 
 **Files:**
+
 - Create: `frontend/src/test/factories.ts`
 
 - [ ] **Step 1: Create `frontend/src/test/factories.ts`**
@@ -842,6 +859,7 @@ Each of Tasks 11–19 follows the same migration recipe. Apply the recipe per fi
 3. **For each call**, replace per the patterns below. Apply whichever maps to the call's signature.
 
    **Pattern A** — `genCampaignApi(establishmentId, user)`:
+
    ```ts
    // before
    const campaign = genCampaignApi(establishment.id, user);
@@ -853,6 +871,7 @@ Each of Tasks 11–19 follows the same migration recipe. Apply the recipe per fi
    ```
 
    **Pattern B** — `genCampaignApi(establishmentId, user, group)`:
+
    ```ts
    // before
    const campaign = genCampaignApi(establishment.id, user, group);
@@ -864,6 +883,7 @@ Each of Tasks 11–19 follows the same migration recipe. Apply the recipe per fi
    ```
 
    **Pattern C** — `genCampaignApiNext({ group, establishment, creator })`:
+
    ```ts
    // before
    const campaign = genCampaignApiNext({ group, establishment, creator: user });
@@ -875,6 +895,7 @@ Each of Tasks 11–19 follows the same migration recipe. Apply the recipe per fi
    ```
 
    **Pattern D** — `Array.from({ length: N }).map(() => genCampaignApi(...))`:
+
    ```ts
    // before
    const campaigns: CampaignApi[] = Array.from({ length: 3 }).map(() =>
@@ -892,10 +913,12 @@ Each of Tasks 11–19 follows the same migration recipe. Apply the recipe per fi
 4. **Remove `genCampaignApi` and `genCampaignApiNext` from the file's import list** (and the unused `CampaignApi` type if no longer referenced). Run the test to confirm the file still compiles.
 
 5. **Run that file's tests AND server typecheck** before committing — typecheck catches `CampaignApi` vs `CampaignDTO` mismatches at call sites the test body doesn't exercise (e.g., repository function signatures that still expect `CampaignApi`):
+
    ```bash
    yarn nx test server -- <file>
    yarn nx typecheck server
    ```
+
    If typecheck fails on a repository signature requiring `CampaignApi`, widen the signature to `Pick<CampaignApi, 'id'>` (or whatever subset is actually read). Precedent: `server/src/repositories/campaignHousingRepository.ts:55` `formatCampaignHousingApi` was widened this way in Wave 1.5. Include the production-file widening in the same commit as the test migration.
 
 6. **Commit:**
@@ -909,6 +932,7 @@ Each of Tasks 11–19 follows the same migration recipe. Apply the recipe per fi
 ### Task 11: Migrate `campaignRepository.test.ts`
 
 **Files:**
+
 - Modify: `server/src/repositories/test/campaignRepository.test.ts`
 
 - [ ] **Step 1: Apply the migration recipe above.**
@@ -930,6 +954,7 @@ git commit -m "refactor(server): migrate campaignRepository.test off genCampaign
 ### Task 12: Migrate `campaignHousingRepository.test.ts`
 
 **Files:**
+
 - Modify: `server/src/repositories/test/campaignHousingRepository.test.ts`
 
 - [ ] **Step 1: Apply the migration recipe.**
@@ -951,6 +976,7 @@ git commit -m "refactor(server): migrate campaignHousingRepository.test off genC
 ### Task 13: Migrate `draftRepository.test.ts`
 
 **Files:**
+
 - Modify: `server/src/repositories/test/draftRepository.test.ts`
 
 - [ ] **Step 1: Apply the migration recipe.**
@@ -972,6 +998,7 @@ git commit -m "refactor(server): migrate draftRepository.test off genCampaignApi
 ### Task 14: Migrate `housingRepository.test.ts`
 
 **Files:**
+
 - Modify: `server/src/repositories/test/housingRepository.test.ts`
 
 - [ ] **Step 1: Apply the migration recipe.**
@@ -993,6 +1020,7 @@ git commit -m "refactor(server): migrate housingRepository.test off genCampaignA
 ### Task 15: Migrate `eventRepository.test.ts`
 
 **Files:**
+
 - Modify: `server/src/repositories/test/eventRepository.test.ts`
 
 - [ ] **Step 1: Apply the migration recipe.**
@@ -1014,6 +1042,7 @@ git commit -m "refactor(server): migrate eventRepository.test off genCampaignApi
 ### Task 16: Migrate `groupController.test.ts`
 
 **Files:**
+
 - Modify: `server/src/controllers/groupController.test.ts`
 
 - [ ] **Step 1: Apply the migration recipe.**
@@ -1035,6 +1064,7 @@ git commit -m "refactor(server): migrate groupController.test off genCampaignApi
 ### Task 17: Migrate `housing-api.test.ts`
 
 **Files:**
+
 - Modify: `server/src/controllers/test/housing-api.test.ts`
 
 - [ ] **Step 1: Apply the migration recipe.**
@@ -1056,6 +1086,7 @@ git commit -m "refactor(server): migrate housing-api.test off genCampaignApi"
 ### Task 18: Migrate `event-api.test.ts`
 
 **Files:**
+
 - Modify: `server/src/controllers/test/event-api.test.ts`
 
 - [ ] **Step 1: Apply the migration recipe.**
@@ -1077,6 +1108,7 @@ git commit -m "refactor(server): migrate event-api.test off genCampaignApi"
 ### Task 19: Migrate `draft-api.test.ts`
 
 **Files:**
+
 - Modify: `server/src/controllers/test/draft-api.test.ts`
 
 - [ ] **Step 1: Apply the migration recipe.**
@@ -1100,6 +1132,7 @@ git commit -m "refactor(server): migrate draft-api.test off genCampaignApi"
 **Frontend migration recipe:**
 
 1. **Add the factories import**:
+
    ```ts
    import { factories } from '~/test/factories';
    ```
@@ -1107,7 +1140,6 @@ git commit -m "refactor(server): migrate draft-api.test off genCampaignApi"
 2. **Locate every `genCampaignDTO(...)` call** with `grep -n "genCampaignDTO" <file>`.
 
 3. **For each call**, choose between `.build()` (pure DTO) and `.create()` (also pushes into `data.campaigns`):
-
    - When the test passes the DTO into `renderView`'s `campaigns` option (the helper then pushes to `data` itself), use `.build()`.
    - When the test needs the campaign to be retrievable via MSW handlers immediately, use `.create()`.
 
@@ -1116,6 +1148,7 @@ git commit -m "refactor(server): migrate draft-api.test off genCampaignApi"
 4. **Replacement patterns:**
 
    **Pattern E** — bare `genCampaignDTO()`:
+
    ```ts
    // before
    { ...genCampaignDTO(), housingCount: 10 }
@@ -1127,26 +1160,29 @@ git commit -m "refactor(server): migrate draft-api.test off genCampaignApi"
    ```
 
    **Pattern F** — `genCampaignDTO(group, user)`:
+
    ```ts
    // before
-   genCampaignDTO(group, user)
+   genCampaignDTO(group, user);
    // after
-   factories.campaign(establishment).build(
-     { groupId: group.id },
-     { associations: { createdBy: user } }
-   )
+   factories
+     .campaign(establishment)
+     .build({ groupId: group.id }, { associations: { createdBy: user } });
    ```
 
    **Pattern G** — list generation:
+
    ```ts
    // before
-   faker.helpers.multiple(() => genCampaignDTO(group, auth))
+   faker.helpers.multiple(() => genCampaignDTO(group, auth));
    // after
-   factories.campaign(establishment).buildList(
-     faker.number.int({ min: 3, max: 5 }),
-     { groupId: group.id },
-     { associations: { createdBy: auth } }
-   )
+   factories
+     .campaign(establishment)
+     .buildList(
+       faker.number.int({ min: 3, max: 5 }),
+       { groupId: group.id },
+       { associations: { createdBy: auth } }
+     );
    ```
 
 5. **In the test's `renderView` (or equivalent helper)**: when the helper currently bootstraps an establishment via `genEstablishmentDTO()`, leave it alone — `genEstablishmentDTO` is **out of scope** for this slice. The factories instance does not need an establishment unless `factories.campaign(...)` is called; the helper continues to thread the `establishment` variable through.
@@ -1160,11 +1196,13 @@ git commit -m "refactor(server): migrate draft-api.test off genCampaignApi"
 ### Task 20: Migrate `CampaignListView.test.tsx`
 
 **Files:**
+
 - Modify: `frontend/src/views/Campaign/test/CampaignListView.test.tsx`
 
 - [ ] **Step 1: Apply the frontend migration recipe.**
 
 Special notes for this file:
+
 - The `renderView` helper currently generates a `group` via `genGroupDTO(auth, housings)`. Keep that — groups are out of scope. Use `group.id` in `factories.campaign(establishment).build(...)` calls.
 - Each `renderView({ campaigns: [...] })` call passes inline campaign DTOs. Rewrite the inline list to use `factories.campaign(establishment).build(overrides, { associations: { createdBy: auth } })`. Bootstrap `establishment` and `auth` once per test via the existing `genEstablishmentDTO` / `genUserDTO` calls.
 
@@ -1185,6 +1223,7 @@ git commit -m "refactor(front): migrate CampaignListView.test off genCampaignDTO
 ### Task 21: Migrate `CampaignView.test.tsx`
 
 **Files:**
+
 - Modify: `frontend/src/views/Campaign/test/CampaignView.test.tsx`
 
 - [ ] **Step 1: Apply the frontend migration recipe.**
@@ -1206,6 +1245,7 @@ git commit -m "refactor(front): migrate CampaignView.test off genCampaignDTO"
 ### Task 22: Migrate `HousingListView.test.tsx`
 
 **Files:**
+
 - Modify: `frontend/src/views/HousingList/test/HousingListView.test.tsx`
 
 - [ ] **Step 1: Apply the frontend migration recipe.**
@@ -1229,12 +1269,14 @@ git commit -m "refactor(front): migrate HousingListView.test off genCampaignDTO"
 ### Task 23: Delete `genCampaignApi`, `genCampaignApiNext`, `genCampaign`
 
 **Files:**
+
 - Modify: `server/src/test/testFixtures.ts`
 - Modify: `frontend/src/test/fixtures.ts`
 
 - [ ] **Step 1: Confirm no remaining consumers**
 
 Run:
+
 ```bash
 grep -rn "genCampaignApi\|genCampaignApiNext" server/src frontend/src --include="*.ts" --include="*.tsx"
 grep -rn "\bgenCampaign\b" frontend/src --include="*.ts" --include="*.tsx"
@@ -1298,6 +1340,7 @@ Expected: PASS.
 - [ ] **Step 4: Confirm no lingering references to the retired helpers**
 
 Run:
+
 ```bash
 grep -rn "genCampaignApi\|genCampaignApiNext\|createServerFactories\|ServerCampaignFactory\|ServerGroupFactory" server/src frontend/src --include="*.ts" --include="*.tsx"
 grep -rn "\bgenCampaign\b" frontend/src --include="*.ts" --include="*.tsx"
@@ -1321,4 +1364,4 @@ The branch is ready for `git push -u origin <branch>` and `gh pr create` per the
 - **Don't migrate seed files** — `server/src/infra/database/seeds/development/*.ts`. Out of scope.
 - **If a test file references `factories.campaign.something` (not `factories.campaign(establishment).something`)**, you've found a leftover from the previous wrapper shape. Apply the recipe and rerun.
 - **If a server test fails with "context.establishmentId is undefined"**, the call site is missing `factories.campaign(establishment).create(...)` — somewhere the test still calls the package factory bare. Search and fix.
-- **The `genCampaignDTO` import from `@zerologementvacant/models/fixtures`** stays on the import line only if the file still uses *other* `gen*DTO` symbols. If `genCampaignDTO` was the only one imported, drop the whole import line.
+- **The `genCampaignDTO` import from `@zerologementvacant/models/fixtures`** stays on the import line only if the file still uses _other_ `gen*DTO` symbols. If `genCampaignDTO` was the only one imported, drop the whole import line.

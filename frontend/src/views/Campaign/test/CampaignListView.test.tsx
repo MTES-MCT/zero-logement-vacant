@@ -93,18 +93,15 @@ describe('CampaignListView', () => {
     it('should sort by housing count descending', async () => {
       renderView({
         campaigns: [
-          factories.campaign(establishment).build(
-            { housingCount: 10 },
-            { associations: { createdBy: auth } }
-          ),
-          factories.campaign(establishment).build(
-            { housingCount: 3 },
-            { associations: { createdBy: auth } }
-          ),
-          factories.campaign(establishment).build(
-            { housingCount: 7 },
-            { associations: { createdBy: auth } }
-          )
+          factories
+            .campaign(establishment)
+            .build({ housingCount: 10 }, { associations: { createdBy: auth } }),
+          factories
+            .campaign(establishment)
+            .build({ housingCount: 3 }, { associations: { createdBy: auth } }),
+          factories
+            .campaign(establishment)
+            .build({ housingCount: 7 }, { associations: { createdBy: auth } })
         ]
       });
 
@@ -129,18 +126,15 @@ describe('CampaignListView', () => {
     it('should sort by owner count ascending', async () => {
       renderView({
         campaigns: [
-          factories.campaign(establishment).build(
-            { ownerCount: 8 },
-            { associations: { createdBy: auth } }
-          ),
-          factories.campaign(establishment).build(
-            { ownerCount: 2 },
-            { associations: { createdBy: auth } }
-          ),
-          factories.campaign(establishment).build(
-            { ownerCount: 5 },
-            { associations: { createdBy: auth } }
-          )
+          factories
+            .campaign(establishment)
+            .build({ ownerCount: 8 }, { associations: { createdBy: auth } }),
+          factories
+            .campaign(establishment)
+            .build({ ownerCount: 2 }, { associations: { createdBy: auth } }),
+          factories
+            .campaign(establishment)
+            .build({ ownerCount: 5 }, { associations: { createdBy: auth } })
         ]
       });
 
@@ -165,18 +159,24 @@ describe('CampaignListView', () => {
     it('should sort by sending date ascending', async () => {
       renderView({
         campaigns: [
-          factories.campaign(establishment).build(
-            { sentAt: '2024-03-15' },
-            { associations: { createdBy: auth } }
-          ),
-          factories.campaign(establishment).build(
-            { sentAt: '2024-01-10' },
-            { associations: { createdBy: auth } }
-          ),
-          factories.campaign(establishment).build(
-            { sentAt: '2024-06-01' },
-            { associations: { createdBy: auth } }
-          )
+          factories
+            .campaign(establishment)
+            .build(
+              { sentAt: '2024-03-15' },
+              { associations: { createdBy: auth } }
+            ),
+          factories
+            .campaign(establishment)
+            .build(
+              { sentAt: '2024-01-10' },
+              { associations: { createdBy: auth } }
+            ),
+          factories
+            .campaign(establishment)
+            .build(
+              { sentAt: '2024-06-01' },
+              { associations: { createdBy: auth } }
+            )
         ]
       });
 
@@ -213,18 +213,39 @@ describe('CampaignListView', () => {
     it('should sort by return count ascending', async () => {
       renderView({
         campaigns: [
-          factories.campaign(establishment).build(
-            { sentAt: '2024-01-01', housingCount: 10, returnCount: 5, returnRate: 0.5 },
-            { associations: { createdBy: auth } }
-          ),
-          factories.campaign(establishment).build(
-            { sentAt: '2024-01-01', housingCount: 10, returnCount: 1, returnRate: 0.1 },
-            { associations: { createdBy: auth } }
-          ),
-          factories.campaign(establishment).build(
-            { sentAt: '2024-01-01', housingCount: 10, returnCount: 3, returnRate: 0.3 },
-            { associations: { createdBy: auth } }
-          )
+          factories
+            .campaign(establishment)
+            .build(
+              {
+                sentAt: '2024-01-01',
+                housingCount: 10,
+                returnCount: 5,
+                returnRate: 0.5
+              },
+              { associations: { createdBy: auth } }
+            ),
+          factories
+            .campaign(establishment)
+            .build(
+              {
+                sentAt: '2024-01-01',
+                housingCount: 10,
+                returnCount: 1,
+                returnRate: 0.1
+              },
+              { associations: { createdBy: auth } }
+            ),
+          factories
+            .campaign(establishment)
+            .build(
+              {
+                sentAt: '2024-01-01',
+                housingCount: 10,
+                returnCount: 3,
+                returnRate: 0.3
+              },
+              { associations: { createdBy: auth } }
+            )
         ]
       });
 
@@ -249,18 +270,39 @@ describe('CampaignListView', () => {
     it('should sort by return rate ascending', async () => {
       renderView({
         campaigns: [
-          factories.campaign(establishment).build(
-            { sentAt: '2024-01-01', housingCount: 10, returnCount: 5, returnRate: 0.5 },
-            { associations: { createdBy: auth } }
-          ),
-          factories.campaign(establishment).build(
-            { sentAt: '2024-01-01', housingCount: 10, returnCount: 1, returnRate: 0.1 },
-            { associations: { createdBy: auth } }
-          ),
-          factories.campaign(establishment).build(
-            { sentAt: '2024-01-01', housingCount: 10, returnCount: 3, returnRate: 0.3 },
-            { associations: { createdBy: auth } }
-          )
+          factories
+            .campaign(establishment)
+            .build(
+              {
+                sentAt: '2024-01-01',
+                housingCount: 10,
+                returnCount: 5,
+                returnRate: 0.5
+              },
+              { associations: { createdBy: auth } }
+            ),
+          factories
+            .campaign(establishment)
+            .build(
+              {
+                sentAt: '2024-01-01',
+                housingCount: 10,
+                returnCount: 1,
+                returnRate: 0.1
+              },
+              { associations: { createdBy: auth } }
+            ),
+          factories
+            .campaign(establishment)
+            .build(
+              {
+                sentAt: '2024-01-01',
+                housingCount: 10,
+                returnCount: 3,
+                returnRate: 0.3
+              },
+              { associations: { createdBy: auth } }
+            )
         ]
       });
 
@@ -293,11 +335,9 @@ describe('CampaignListView', () => {
     });
 
     it('should limit visible rows according to page size', async () => {
-      const campaigns = factories.campaign(establishment).buildList(
-        15,
-        {},
-        { associations: { createdBy: auth } }
-      );
+      const campaigns = factories
+        .campaign(establishment)
+        .buildList(15, {}, { associations: { createdBy: auth } });
       renderView({ campaigns });
 
       await screen.findByRole('table');
@@ -311,11 +351,9 @@ describe('CampaignListView', () => {
     });
 
     it('should navigate to the next page', async () => {
-      const campaigns = factories.campaign(establishment).buildList(
-        15,
-        {},
-        { associations: { createdBy: auth } }
-      );
+      const campaigns = factories
+        .campaign(establishment)
+        .buildList(15, {}, { associations: { createdBy: auth } });
       renderView({ campaigns });
 
       await screen.findByRole('table');
@@ -375,11 +413,13 @@ function renderView(options?: RenderViewOptions) {
   const group = genGroupDTO(renderAuth, housings);
   const campaigns =
     options?.campaigns ??
-    factories.campaign(renderEstablishment).buildList(
-      faker.number.int({ min: 3, max: 5 }),
-      { groupId: group.id },
-      { associations: { createdBy: renderAuth } }
-    );
+    factories
+      .campaign(renderEstablishment)
+      .buildList(
+        faker.number.int({ min: 3, max: 5 }),
+        { groupId: group.id },
+        { associations: { createdBy: renderAuth } }
+      );
 
   data.establishments.push(renderEstablishment);
   data.users.push(renderAuth);

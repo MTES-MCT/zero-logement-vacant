@@ -6,6 +6,7 @@ import type {
 import { afterEach, describe, expect, it } from 'vitest';
 
 import data from '~/mocks/handlers/data';
+
 import { MswAdapter } from './msw-adapter';
 
 describe('MswAdapter', () => {

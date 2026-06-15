@@ -1,7 +1,11 @@
 import { faker } from '@faker-js/faker/locale/fr';
 import { render, screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
-import { UserRole, type CampaignDTO, type HousingDTO } from '@zerologementvacant/models';
+import {
+  UserRole,
+  type CampaignDTO,
+  type HousingDTO
+} from '@zerologementvacant/models';
 import {
   genDraftDTO,
   genEstablishmentDTO,

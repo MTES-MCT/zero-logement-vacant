@@ -966,11 +966,9 @@ describe('Housing list view', () => {
             rank: 1 as const
           };
         });
-        const campaigns = factories.campaign(establishment).buildList(
-          3,
-          {},
-          { associations: { createdBy: auth } }
-        );
+        const campaigns = factories
+          .campaign(establishment)
+          .buildList(3, {}, { associations: { createdBy: auth } });
         const campaignHousings = campaigns.map((campaign) => ({
           campaign,
           housings: faker.helpers.arrayElements(housings, 2)
@@ -1041,11 +1039,9 @@ describe('Housing list view', () => {
             rank: i as OwnerRank
           };
         });
-        const campaigns = factories.campaign(establishment).buildList(
-          3,
-          {},
-          { associations: { createdBy: auth } }
-        );
+        const campaigns = factories
+          .campaign(establishment)
+          .buildList(3, {}, { associations: { createdBy: auth } });
         const campaignHousings = campaigns.map((campaign) => ({
           campaign,
           housings: faker.helpers.arrayElements(housings, 2)
@@ -1110,10 +1106,9 @@ describe('Housing list view', () => {
           };
         });
         const campaigns = CAMPAIGN_STATUS_VALUES.map((status) =>
-          factories.campaign(establishment).build(
-            { status },
-            { associations: { createdBy: auth } }
-          )
+          factories
+            .campaign(establishment)
+            .build({ status }, { associations: { createdBy: auth } })
         );
         const campaignHousings = campaigns.map((campaign) => ({
           campaign,
@@ -1203,10 +1198,9 @@ describe('Housing list view', () => {
           };
         });
         const campaigns = CAMPAIGN_STATUS_VALUES.map((status) =>
-          factories.campaign(establishment).build(
-            { status },
-            { associations: { createdBy: auth } }
-          )
+          factories
+            .campaign(establishment)
+            .build({ status }, { associations: { createdBy: auth } })
         );
         const campaignHousings = campaigns.map((campaign) => ({
           campaign,
@@ -1274,10 +1268,9 @@ describe('Housing list view', () => {
           }));
         });
         const campaigns = CAMPAIGN_STATUS_VALUES.map((status) =>
-          factories.campaign(establishment).build(
-            { status },
-            { associations: { createdBy: auth } }
-          )
+          factories
+            .campaign(establishment)
+            .build({ status }, { associations: { createdBy: auth } })
         );
         const campaignHousings = campaigns.map((campaign) => ({
           campaign,
@@ -1350,10 +1343,9 @@ describe('Housing list view', () => {
           };
         });
         const campaigns = CAMPAIGN_STATUS_VALUES.map((status) =>
-          factories.campaign(establishment).build(
-            { status },
-            { associations: { createdBy: auth } }
-          )
+          factories
+            .campaign(establishment)
+            .build({ status }, { associations: { createdBy: auth } })
         );
         const campaignHousings = campaigns.map((campaign) => ({
           campaign,
@@ -1417,10 +1409,9 @@ describe('Housing list view', () => {
           }));
         });
         const campaigns = CAMPAIGN_STATUS_VALUES.map((status) =>
-          factories.campaign(establishment).build(
-            { status },
-            { associations: { createdBy: auth } }
-          )
+          factories
+            .campaign(establishment)
+            .build({ status }, { associations: { createdBy: auth } })
         );
         const campaignHousings = campaigns.map((campaign) => ({
           campaign,

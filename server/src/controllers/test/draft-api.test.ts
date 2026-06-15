@@ -6,13 +6,11 @@ import {
   DraftUpdatePayload,
   SignatoriesDTO
 } from '@zerologementvacant/models';
+import { CampaignDTO } from '@zerologementvacant/models';
 import request from 'supertest';
 
 import { createServer } from '~/infra/server';
 
-import {
-  CampaignDTO
-} from '@zerologementvacant/models';
 import { DraftApi } from '../../models/DraftApi';
 import { SenderApi } from '../../models/SenderApi';
 import { CampaignsDrafts } from '../../repositories/campaignDraftRepository';

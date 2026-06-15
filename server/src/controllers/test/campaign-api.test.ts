@@ -284,10 +284,7 @@ describe('Campaign API', () => {
       await Groups().insert(formatGroupApi(group));
       campaign = await factories
         .campaign(establishment)
-        .create(
-          { groupId: group.id },
-          { associations: { createdBy: user } }
-        );
+        .create({ groupId: group.id }, { associations: { createdBy: user } });
     });
 
     it('should be forbidden for a not authenticated user', async () => {

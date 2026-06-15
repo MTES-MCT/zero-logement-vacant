@@ -66,7 +66,7 @@ This slice fixes the API for that case, ships a frontend MSW adapter, migrates c
 // adapter.ts
 export type AdapterContext = {
   campaigns: { establishmentId: string };
-  groups:    { establishmentId: string };
+  groups: { establishmentId: string };
   // every other table omitted -> no context required
 };
 
@@ -89,21 +89,21 @@ export interface Adapter {
 ```ts
 export interface Factories {
   establishment: Factory<EstablishmentDTO>;
-  user:          Factory<UserDTO>;
-  owner:         Factory<OwnerDTO>;
-  housing:       Factory<HousingDTO>;
-  campaign:      (establishment: EstablishmentDTO) => Factory<CampaignDTO>;
-  group:         (establishment: EstablishmentDTO) => Factory<GroupDTO>;
+  user: Factory<UserDTO>;
+  owner: Factory<OwnerDTO>;
+  housing: Factory<HousingDTO>;
+  campaign: (establishment: EstablishmentDTO) => Factory<CampaignDTO>;
+  group: (establishment: EstablishmentDTO) => Factory<GroupDTO>;
 }
 
 export default function createFactories(adapter: Adapter): Factories {
   return {
     establishment: createEstablishmentFactory(adapter),
-    user:          createUserFactory(adapter),
-    owner:         createOwnerFactory(adapter),
-    housing:       createHousingFactory(adapter),
+    user: createUserFactory(adapter),
+    owner: createOwnerFactory(adapter),
+    housing: createHousingFactory(adapter),
     campaign: (establishment) => createCampaignFactory(adapter, establishment),
-    group:    (establishment) => createGroupFactory(adapter, establishment),
+    group: (establishment) => createGroupFactory(adapter, establishment)
   };
 }
 ```
@@ -134,10 +134,10 @@ export function createCampaignFactory(
       housingCount: 0,
       ownerCount: 0,
       returnCount: 0,
-      returnRate: null,
+      returnRate: null
       // no establishmentId — not part of CampaignDTO
     };
-  }).onCreate(entity =>
+  }).onCreate((entity) =>
     adapter.create('campaigns', entity, { establishmentId: establishment.id })
   );
 }
@@ -245,7 +245,11 @@ Symmetric with `frontend/src/test/factories.ts`. Consumers import `{ factories }
 ### `frontend/src/test/msw-adapter.ts` (new)
 
 ```ts
-import type { Adapter, ContextArgs, EntityMap } from '@zerologementvacant/factories';
+import type {
+  Adapter,
+  ContextArgs,
+  EntityMap
+} from '@zerologementvacant/factories';
 import { match } from 'ts-pattern';
 import data from '~/mocks/handlers/data';
 
@@ -257,12 +261,24 @@ export class MswAdapter implements Adapter {
     ..._args: ContextArgs<K>
   ): Promise<EntityMap[K]> {
     match(table as keyof EntityMap)
-      .with('establishments', () => { data.establishments.push(entity as EntityMap['establishments']); })
-      .with('users',          () => { data.users.push(entity as EntityMap['users']); })
-      .with('owners',         () => { data.owners.push(entity as EntityMap['owners']); })
-      .with('housings',       () => { data.housings.push(entity as EntityMap['housings']); })
-      .with('campaigns',      () => { data.campaigns.push(entity as EntityMap['campaigns']); })
-      .with('groups',         () => { data.groups.push(entity as EntityMap['groups']); })
+      .with('establishments', () => {
+        data.establishments.push(entity as EntityMap['establishments']);
+      })
+      .with('users', () => {
+        data.users.push(entity as EntityMap['users']);
+      })
+      .with('owners', () => {
+        data.owners.push(entity as EntityMap['owners']);
+      })
+      .with('housings', () => {
+        data.housings.push(entity as EntityMap['housings']);
+      })
+      .with('campaigns', () => {
+        data.campaigns.push(entity as EntityMap['campaigns']);
+      })
+      .with('groups', () => {
+        data.groups.push(entity as EntityMap['groups']);
+      })
       .exhaustive();
     return entity;
   }
@@ -330,7 +346,9 @@ with:
 
 ```ts
 // new — for MSW assertions, use .build() since handlers serve from data.campaigns
-factories.campaign(establishment).build({ housingCount: 10 }, { associations: { createdBy: user } })
+factories
+  .campaign(establishment)
+  .build({ housingCount: 10 }, { associations: { createdBy: user } });
 ```
 
 When the test needs the campaign in MSW's `data.campaigns` store, replace with `.create(...)`.

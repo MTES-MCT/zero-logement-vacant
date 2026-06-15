@@ -15,7 +15,7 @@ import config from '~/infra/config';
 import { jwtCheck, userCheck } from '~/middlewares/auth';
 import { noop } from '~/middlewares/noop';
 import { responseCache } from '~/middlewares/responseCache';
-import validatorNext from '~/middlewares/validator-next';
+import validator from '~/middlewares/validator';
 import { SIGNUP_LINK_LENGTH } from '~/models/SignupLinkApi';
 
 const router = Router();
@@ -35,7 +35,7 @@ function rateLimiter() {
 
 router.get(
   '/prospects/:email',
-  validatorNext.validate({
+  validator.validate({
     params: object({ email: schemas.email })
   }),
   prospectController.show
@@ -44,7 +44,7 @@ router.get(
 router.post(
   '/users/creation',
   rateLimiter(),
-  validatorNext.validate({
+  validator.validate({
     body: object({
       email: schemas.email,
       password: schemas.password.required(),
@@ -59,7 +59,7 @@ router.post(
 router.post(
   '/authenticate',
   rateLimiter(),
-  validatorNext.validate({
+  validator.validate({
     body: schemas.signIn
   }),
   authController.signIn
@@ -68,21 +68,21 @@ router.post(
 router.post(
   '/authenticate/verify-2fa',
   rateLimiter(),
-  validatorNext.validate(authController.verifyTwoFactorValidators),
+  validator.validate(authController.verifyTwoFactorValidators),
   authController.verifyTwoFactor
 );
 
 router.post(
   '/account/reset-password',
   rateLimiter(),
-  validatorNext.validate(authController.resetPasswordValidators),
+  validator.validate(authController.resetPasswordValidators),
   authController.resetPassword
 );
 
 router.post(
   '/reset-links',
   rateLimiter(),
-  validatorNext.validate({
+  validator.validate({
     body: object({ email: schemas.email })
   }),
   resetLinkController.create
@@ -92,7 +92,7 @@ router.post(
 router.get(
   '/reset-links/:id',
   rateLimiter(),
-  validatorNext.validate({
+  validator.validate({
     params: object({
       id: string()
         .matches(/^[a-zA-Z0-9]+$/)
@@ -105,7 +105,7 @@ router.get(
 router.post(
   '/signup-links',
   rateLimiter(),
-  validatorNext.validate({
+  validator.validate({
     body: object({ email: schemas.email })
   }),
   signupLinkController.create
@@ -115,7 +115,7 @@ router.post(
 router.get(
   '/signup-links/:id',
   rateLimiter(),
-  validatorNext.validate({
+  validator.validate({
     params: object({ id: string().required() })
   }),
   signupLinkController.show
@@ -125,7 +125,7 @@ router.get(
 router.put(
   '/signup-links/:id/prospect',
   rateLimiter(),
-  validatorNext.validate({
+  validator.validate({
     params: object({
       id: string()
         .matches(/^[a-zA-Z0-9]+$/)
@@ -140,7 +140,7 @@ router.get(
   '/establishments',
   jwtCheck({ required: false }),
   userCheck({ required: false }),
-  validatorNext.validate({
+  validator.validate({
     query: schemas.establishmentFilters
   }),
   responseCache(config.cache.establishment),
@@ -149,14 +149,14 @@ router.get(
 
 router.get(
   '/establishments/:id',
-  validatorNext.validate({ params: object({ id: schemas.id }) }),
+  validator.validate({ params: object({ id: schemas.id }) }),
   responseCache(config.cache.establishment),
   establishmentController.get
 );
 
 router.get(
   '/localities',
-  validatorNext.validate({
+  validator.validate({
     query: object({ establishmentId: string().uuid().required() })
   }),
   responseCache(config.cache.default),
@@ -165,7 +165,7 @@ router.get(
 
 router.get(
   '/localities/:geoCode',
-  validatorNext.validate({
+  validator.validate({
     params: object({ geoCode: schemas.geoCode.required() })
   }),
   responseCache(config.cache.default),

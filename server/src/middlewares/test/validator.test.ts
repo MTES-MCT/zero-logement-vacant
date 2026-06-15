@@ -6,16 +6,16 @@ import { v4 as uuidv4 } from 'uuid';
 import { object, string } from 'yup';
 
 import errorHandler from '~/middlewares/error-handler';
-import validatorNext from '~/middlewares/validator-next';
+import validator from '~/middlewares/validator';
 
-describe('ValidatorNext middleware', () => {
+describe('Validator middleware', () => {
   describe('Integration test', () => {
     const app = express();
     app.use(express.json());
     app.use(express.urlencoded({ extended: true }));
     app.post(
       '/validate/:id',
-      validatorNext.validate({
+      validator.validate({
         body: object({
           geoCode: string().length(5).required()
         })

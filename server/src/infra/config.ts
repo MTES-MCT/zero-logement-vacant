@@ -357,5 +357,11 @@ const config = configSchema.parse({
 // - metabase.token / apiToken typed as string (required in production; null only in dev)
 export default config as Omit<Config, 'auth' | 'metabase'> & {
   auth: Omit<Config['auth'], 'expiresIn'> & { expiresIn: StringValue };
-  metabase: { domain: string; token: string; apiToken: string; cacheTtlMs: number; cacheMaxEntries: number };
+  metabase: {
+    domain: string;
+    token: string;
+    apiToken: string;
+    cacheTtlMs: number;
+    cacheMaxEntries: number;
+  };
 };

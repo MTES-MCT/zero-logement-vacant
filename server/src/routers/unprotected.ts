@@ -5,8 +5,8 @@ import { object } from 'yup';
 
 import authController from '~/controllers/auth-controller';
 import establishmentController from '~/controllers/establishmentController';
-import precisionController from '~/controllers/precisionController';
 import localityController from '~/controllers/localityController';
+import precisionController from '~/controllers/precisionController';
 import prospectController from '~/controllers/prospectController';
 import resetLinkController from '~/controllers/resetLinkController';
 import signupLinkController from '~/controllers/signupLinkController';

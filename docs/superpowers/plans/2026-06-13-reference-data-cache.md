@@ -12,20 +12,21 @@
 
 ## File Map
 
-| Action | Path | Responsibility |
-|--------|------|---------------|
-| Create | `server/src/middlewares/responseCache.ts` | Cache middleware factory |
-| Create | `server/src/middlewares/test/responseCache.test.ts` | Tests for all 4 cache behaviors |
-| Modify | `server/src/infra/config.ts` | Add `referenceCache` and `establishmentCache` config blocks |
-| Modify | `server/.env.example` | Document the two new env vars |
-| Modify | `server/src/routers/protected.ts` | Remove `GET /precisions` |
-| Modify | `server/src/routers/unprotected.ts` | Add `GET /precisions` + apply `responseCache` to 5 routes |
+| Action | Path                                                | Responsibility                                              |
+| ------ | --------------------------------------------------- | ----------------------------------------------------------- |
+| Create | `server/src/middlewares/responseCache.ts`           | Cache middleware factory                                    |
+| Create | `server/src/middlewares/test/responseCache.test.ts` | Tests for all 4 cache behaviors                             |
+| Modify | `server/src/infra/config.ts`                        | Add `referenceCache` and `establishmentCache` config blocks |
+| Modify | `server/.env.example`                               | Document the two new env vars                               |
+| Modify | `server/src/routers/protected.ts`                   | Remove `GET /precisions`                                    |
+| Modify | `server/src/routers/unprotected.ts`                 | Add `GET /precisions` + apply `responseCache` to 5 routes   |
 
 ---
 
 ## Task 1: Write failing tests for `responseCache`
 
 **Files:**
+
 - Create: `server/src/middlewares/test/responseCache.test.ts`
 
 - [ ] **Step 1.1: Create the test file with all four test cases**
@@ -92,7 +93,7 @@ describe('responseCache', () => {
     const reqs = Promise.all([
       request(app).get('/data'),
       request(app).get('/data'),
-      request(app).get('/data'),
+      request(app).get('/data')
     ]);
     await new Promise<void>((resolve) => setImmediate(resolve));
     gateResolve();
@@ -154,6 +155,7 @@ git commit -m "test(server): add failing tests for responseCache middleware"
 ## Task 2: Implement `responseCache`
 
 **Files:**
+
 - Create: `server/src/middlewares/responseCache.ts`
 
 - [ ] **Step 2.1: Create the middleware**
@@ -233,6 +235,7 @@ git commit -m "feat(server): implement responseCache middleware"
 ## Task 3: Add config entries and env vars
 
 **Files:**
+
 - Modify: `server/src/infra/config.ts`
 - Modify: `server/.env.example`
 
@@ -293,6 +296,7 @@ git commit -m "feat(server): add REFERENCE_CACHE_TTL_MS and ESTABLISHMENT_CACHE_
 The other 4 routes (`/localities`, `/localities/:geoCode`, `/establishments`, `/establishments/:id`) are already in `unprotected.ts`. Only `/precisions` needs to move.
 
 **Files:**
+
 - Modify: `server/src/routers/protected.ts`
 - Modify: `server/src/routers/unprotected.ts`
 
@@ -340,6 +344,7 @@ git commit -m "feat(server): move GET /precisions to unprotected router"
 ## Task 5: Apply `responseCache` to the 5 target routes in `unprotected.ts`
 
 **Files:**
+
 - Modify: `server/src/routers/unprotected.ts`
 
 - [ ] **Step 5.1: Add imports at the top of `unprotected.ts`**
@@ -401,7 +406,11 @@ router.get(
   localityController.getLocality
 );
 
-router.get('/precisions', responseCache(REFERENCE_TTL), precisionController.find);
+router.get(
+  '/precisions',
+  responseCache(REFERENCE_TTL),
+  precisionController.find
+);
 ```
 
 > **Note:** `responseCache` is placed after validators and before the controller. This ensures invalid requests are rejected before writing a bad entry to the cache.
@@ -426,6 +435,7 @@ git commit -m "feat(server): apply responseCache to 5 reference data endpoints"
 ## Self-Review Checklist
 
 **Spec coverage:**
+
 - [x] `responseCache(ttl)` factory with `TTLCache<string, Promise<Buffer>>` → Task 2
 - [x] Cache key = `req.originalUrl` → Task 2 (`const key = req.originalUrl`)
 - [x] Promise coalescing for concurrent cold-cache requests → Task 2 + Task 1 test 3
@@ -438,6 +448,7 @@ git commit -m "feat(server): apply responseCache to 5 reference data endpoints"
 - [x] Cache placed after validators, before controller → Task 5 (noted in step 5.3)
 
 **Type consistency:**
+
 - `responseCache(ttl: number): RequestHandler` — consistent across Tasks 1, 2, 5
 - `REFERENCE_TTL` / `ESTABLISHMENT_TTL` — introduced in Task 5 step 5.2, used in step 5.3
 - `config.referenceCache.ttlMs` / `config.establishmentCache.ttlMs` — defined in Task 3, consumed in Task 5

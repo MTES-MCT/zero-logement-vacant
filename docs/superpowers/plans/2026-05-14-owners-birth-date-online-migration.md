@@ -512,8 +512,8 @@ Order:
 Rollback per stage:
 
 - After step 3: `DROP TRIGGER trg_sync_owners_birth_date_new ON owners;
- DROP FUNCTION sync_owners_birth_date_new();
- ALTER TABLE owners DROP COLUMN birth_date_new;`
+DROP FUNCTION sync_owners_birth_date_new();
+ALTER TABLE owners DROP COLUMN birth_date_new;`
 - After step 5 but before step 7: same as above (extra column is harmless).
 - After step 7: irreversible without the timestamptz source. Only `down()`
   in the Knex migration approximates a revert (loses the time component).

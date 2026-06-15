@@ -36,6 +36,10 @@ export type TagType = (typeof TAG_TYPE_VALUES)[number];
 export const zlvApi = createApi({
   baseQuery: fetchBaseQuery({
     baseUrl: config.apiEndpoint,
+    credentials: 'include',
+    // Legacy JWT support during the auth-v2 transition window. Once the flag
+    // is fully rolled out, `prepareHeaders` and the `authService` import can be
+    // removed (see frontend plan Part B).
     prepareHeaders: (headers: Headers) => authService.withAuthHeader(headers),
     paramsSerializer: (query) =>
       qs.stringify(

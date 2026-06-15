@@ -1,3 +1,4 @@
+import { useFeatureFlagEnabled } from 'posthog-js/react';
 import { lazy, useEffect } from 'react';
 import { hideLoading, showLoading } from 'react-redux-loading-bar';
 import {
@@ -7,6 +8,7 @@ import {
   RouterProvider
 } from 'react-router';
 
+import { AuthProvider } from '~/contexts/AuthContext';
 import { useAppDispatch, useAppSelector } from '~/hooks/useStore';
 import AuthenticatedLayout from '~/layouts/AuthenticatedLayout';
 import FeatureFlagLayout from '~/layouts/FeatureFlagLayout';
@@ -146,6 +148,7 @@ function App() {
       (query) => query?.status === 'pending'
     )
   );
+  const isV2 = useFeatureFlagEnabled('auth-v2');
 
   useEffect(() => {
     if (isSomeQueryPending) {
@@ -154,6 +157,20 @@ function App() {
       dispatch(hideLoading());
     }
   }, [dispatch, isSomeQueryPending]);
+
+  // Wait for PostHog to resolve the flag before rendering, otherwise the
+  // initial render of LoginView / RequireAuth might pick the wrong auth path.
+  if (isV2 === undefined) {
+    return null;
+  }
+
+  if (isV2) {
+    return (
+      <AuthProvider>
+        <RouterProvider router={router} />
+      </AuthProvider>
+    );
+  }
 
   return <RouterProvider router={router} />;
 }

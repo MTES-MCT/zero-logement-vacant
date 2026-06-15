@@ -27,7 +27,7 @@ const insertHousingList = async (
 };
 
 async function removeMany(
-  campaign: CampaignApi,
+  campaign: Pick<CampaignApi, 'id'>,
   housings: HousingApi[]
 ): Promise<void> {
   if (housings?.length === 0) {

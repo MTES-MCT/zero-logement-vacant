@@ -20,8 +20,6 @@ import {
   includeWith
 } from '~/utils/arrayUtils';
 
-import { Text } from '../../components/_dsfr';
-
 interface Props {
   filters: HousingFilters;
 }

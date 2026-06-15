@@ -156,7 +156,6 @@ router.get(
 
 router.get(
   '/localities',
-  localityController.listLocalitiesValidators,
   validatorNext.validate({
     query: object({ establishmentId: string().uuid().required() })
   }),
@@ -166,7 +165,6 @@ router.get(
 
 router.get(
   '/localities/:geoCode',
-  localityController.getLocalityValidators,
   validatorNext.validate({
     params: object({ geoCode: schemas.geoCode.required() })
   }),

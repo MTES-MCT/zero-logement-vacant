@@ -6,18 +6,14 @@ import {
   DraftUpdatePayload,
   SignatoriesDTO
 } from '@zerologementvacant/models';
+import { CampaignDTO } from '@zerologementvacant/models';
 import request from 'supertest';
 
 import { createServer } from '~/infra/server';
 
-import { CampaignApi } from '../../models/CampaignApi';
 import { DraftApi } from '../../models/DraftApi';
 import { SenderApi } from '../../models/SenderApi';
 import { CampaignsDrafts } from '../../repositories/campaignDraftRepository';
-import {
-  Campaigns,
-  formatCampaignApi
-} from '../../repositories/campaignRepository';
 import {
   Documents,
   toDocumentDBO
@@ -37,8 +33,8 @@ import {
   Senders
 } from '../../repositories/senderRepository';
 import { toUserDBO, Users } from '../../repositories/userRepository';
+import { factories } from '../../test/factories';
 import {
-  genCampaignApi,
   genDocumentApi,
   genDraftApi,
   genEstablishmentApi,
@@ -106,8 +102,9 @@ describe('Draft API', () => {
 
     it('should list drafts by campaign', async () => {
       const [firstDraft] = drafts;
-      const campaign: CampaignApi = genCampaignApi(establishment.id, user);
-      await Campaigns().insert(formatCampaignApi(campaign));
+      const campaign = await factories
+        .campaign(establishment)
+        .create({}, { associations: { createdBy: user } });
       await CampaignsDrafts().insert({
         campaign_id: campaign.id,
         draft_id: firstDraft.id
@@ -161,11 +158,12 @@ describe('Draft API', () => {
     });
 
     const testRoute = '/drafts';
-    let campaign: CampaignApi;
+    let campaign: CampaignDTO;
 
     beforeEach(async () => {
-      campaign = genCampaignApi(establishment.id, user);
-      await Campaigns().insert(formatCampaignApi(campaign));
+      campaign = await factories
+        .campaign(establishment)
+        .create({}, { associations: { createdBy: user } });
     });
 
     it('should create a draft with logoNext [null, null] and signatories [null, null]', async () => {

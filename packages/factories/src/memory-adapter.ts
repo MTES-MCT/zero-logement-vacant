@@ -1,4 +1,4 @@
-import type { Adapter } from './adapter';
+import type { Adapter, ContextArgs } from './adapter';
 import type { EntityMap } from './entity-map';
 
 export class MemoryAdapter implements Adapter {
@@ -6,7 +6,9 @@ export class MemoryAdapter implements Adapter {
 
   async create<K extends keyof EntityMap>(
     table: K,
-    entity: EntityMap[K]
+    entity: EntityMap[K],
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    ..._args: ContextArgs<K>
   ): Promise<EntityMap[K]> {
     const rows = (this.store.get(table) ?? []) as EntityMap[K][];
     this.store.set(table, [...rows, entity]);

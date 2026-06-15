@@ -8,7 +8,6 @@ import {
   type UserDTO
 } from '@zerologementvacant/models';
 import {
-  genCampaignDTO,
   genEstablishmentDTO,
   genGroupDTO,
   genHousingDTO,
@@ -22,10 +21,14 @@ import { HousingFiltersProvider } from '~/hooks/HousingFiltersContext';
 import data from '~/mocks/handlers/data';
 import { fromEstablishmentDTO } from '~/models/Establishment';
 import { fromUserDTO } from '~/models/User';
+import { factories } from '~/test/factories';
 import { genAuthUser } from '~/test/fixtures';
 import configureTestStore from '~/utils/storeUtils';
 import CampaignListView from '~/views/Campaign/CampaignListView';
 import CampaignView from '~/views/Campaign/CampaignView';
+
+const establishment = genEstablishmentDTO();
+const auth = genUserDTO(UserRole.USUAL, establishment);
 
 describe('CampaignListView', () => {
   const user = userEvent.setup();
@@ -90,9 +93,15 @@ describe('CampaignListView', () => {
     it('should sort by housing count descending', async () => {
       renderView({
         campaigns: [
-          { ...genCampaignDTO(), housingCount: 10 },
-          { ...genCampaignDTO(), housingCount: 3 },
-          { ...genCampaignDTO(), housingCount: 7 }
+          factories
+            .campaign(establishment)
+            .build({ housingCount: 10 }, { associations: { createdBy: auth } }),
+          factories
+            .campaign(establishment)
+            .build({ housingCount: 3 }, { associations: { createdBy: auth } }),
+          factories
+            .campaign(establishment)
+            .build({ housingCount: 7 }, { associations: { createdBy: auth } })
         ]
       });
 
@@ -117,9 +126,15 @@ describe('CampaignListView', () => {
     it('should sort by owner count ascending', async () => {
       renderView({
         campaigns: [
-          { ...genCampaignDTO(), ownerCount: 8 },
-          { ...genCampaignDTO(), ownerCount: 2 },
-          { ...genCampaignDTO(), ownerCount: 5 }
+          factories
+            .campaign(establishment)
+            .build({ ownerCount: 8 }, { associations: { createdBy: auth } }),
+          factories
+            .campaign(establishment)
+            .build({ ownerCount: 2 }, { associations: { createdBy: auth } }),
+          factories
+            .campaign(establishment)
+            .build({ ownerCount: 5 }, { associations: { createdBy: auth } })
         ]
       });
 
@@ -144,9 +159,24 @@ describe('CampaignListView', () => {
     it('should sort by sending date ascending', async () => {
       renderView({
         campaigns: [
-          { ...genCampaignDTO(), sentAt: '2024-03-15' },
-          { ...genCampaignDTO(), sentAt: '2024-01-10' },
-          { ...genCampaignDTO(), sentAt: '2024-06-01' }
+          factories
+            .campaign(establishment)
+            .build(
+              { sentAt: '2024-03-15' },
+              { associations: { createdBy: auth } }
+            ),
+          factories
+            .campaign(establishment)
+            .build(
+              { sentAt: '2024-01-10' },
+              { associations: { createdBy: auth } }
+            ),
+          factories
+            .campaign(establishment)
+            .build(
+              { sentAt: '2024-06-01' },
+              { associations: { createdBy: auth } }
+            )
         ]
       });
 
@@ -183,27 +213,33 @@ describe('CampaignListView', () => {
     it('should sort by return count ascending', async () => {
       renderView({
         campaigns: [
-          {
-            ...genCampaignDTO(),
-            sentAt: '2024-01-01',
-            housingCount: 10,
-            returnCount: 5,
-            returnRate: 0.5
-          },
-          {
-            ...genCampaignDTO(),
-            sentAt: '2024-01-01',
-            housingCount: 10,
-            returnCount: 1,
-            returnRate: 0.1
-          },
-          {
-            ...genCampaignDTO(),
-            sentAt: '2024-01-01',
-            housingCount: 10,
-            returnCount: 3,
-            returnRate: 0.3
-          }
+          factories.campaign(establishment).build(
+            {
+              sentAt: '2024-01-01',
+              housingCount: 10,
+              returnCount: 5,
+              returnRate: 0.5
+            },
+            { associations: { createdBy: auth } }
+          ),
+          factories.campaign(establishment).build(
+            {
+              sentAt: '2024-01-01',
+              housingCount: 10,
+              returnCount: 1,
+              returnRate: 0.1
+            },
+            { associations: { createdBy: auth } }
+          ),
+          factories.campaign(establishment).build(
+            {
+              sentAt: '2024-01-01',
+              housingCount: 10,
+              returnCount: 3,
+              returnRate: 0.3
+            },
+            { associations: { createdBy: auth } }
+          )
         ]
       });
 
@@ -228,27 +264,33 @@ describe('CampaignListView', () => {
     it('should sort by return rate ascending', async () => {
       renderView({
         campaigns: [
-          {
-            ...genCampaignDTO(),
-            sentAt: '2024-01-01',
-            housingCount: 10,
-            returnCount: 5,
-            returnRate: 0.5
-          },
-          {
-            ...genCampaignDTO(),
-            sentAt: '2024-01-01',
-            housingCount: 10,
-            returnCount: 1,
-            returnRate: 0.1
-          },
-          {
-            ...genCampaignDTO(),
-            sentAt: '2024-01-01',
-            housingCount: 10,
-            returnCount: 3,
-            returnRate: 0.3
-          }
+          factories.campaign(establishment).build(
+            {
+              sentAt: '2024-01-01',
+              housingCount: 10,
+              returnCount: 5,
+              returnRate: 0.5
+            },
+            { associations: { createdBy: auth } }
+          ),
+          factories.campaign(establishment).build(
+            {
+              sentAt: '2024-01-01',
+              housingCount: 10,
+              returnCount: 1,
+              returnRate: 0.1
+            },
+            { associations: { createdBy: auth } }
+          ),
+          factories.campaign(establishment).build(
+            {
+              sentAt: '2024-01-01',
+              housingCount: 10,
+              returnCount: 3,
+              returnRate: 0.3
+            },
+            { associations: { createdBy: auth } }
+          )
         ]
       });
 
@@ -281,9 +323,9 @@ describe('CampaignListView', () => {
     });
 
     it('should limit visible rows according to page size', async () => {
-      const campaigns = faker.helpers.multiple(() => genCampaignDTO(), {
-        count: 15
-      });
+      const campaigns = factories
+        .campaign(establishment)
+        .buildList(15, {}, { associations: { createdBy: auth } });
       renderView({ campaigns });
 
       await screen.findByRole('table');
@@ -297,9 +339,9 @@ describe('CampaignListView', () => {
     });
 
     it('should navigate to the next page', async () => {
-      const campaigns = faker.helpers.multiple(() => genCampaignDTO(), {
-        count: 15
-      });
+      const campaigns = factories
+        .campaign(establishment)
+        .buildList(15, {}, { associations: { createdBy: auth } });
       renderView({ campaigns });
 
       await screen.findByRole('table');
@@ -351,22 +393,31 @@ interface RenderViewOptions {
 }
 
 function renderView(options?: RenderViewOptions) {
-  const establishment = options?.establishment ?? genEstablishmentDTO();
-  const auth = options?.auth ?? genUserDTO(UserRole.USUAL, establishment);
+  const renderEstablishment = options?.establishment ?? establishment;
+  const renderAuth = options?.auth ?? auth;
   const housings = faker.helpers.multiple(() => genHousingDTO(), {
     count: { min: 1, max: 10 }
   });
-  const group = genGroupDTO(auth, housings);
+  const group = genGroupDTO(renderAuth, housings);
   const campaigns =
     options?.campaigns ??
-    faker.helpers.multiple(() => genCampaignDTO(group, auth));
+    factories
+      .campaign(renderEstablishment)
+      .buildList(
+        faker.number.int({ min: 3, max: 5 }),
+        { groupId: group.id },
+        { associations: { createdBy: renderAuth } }
+      );
 
-  data.establishments.push(establishment);
-  data.users.push(auth);
+  data.establishments.push(renderEstablishment);
+  data.users.push(renderAuth);
   data.campaigns.push(...campaigns);
 
   const store = configureTestStore({
-    auth: genAuthUser(fromUserDTO(auth), fromEstablishmentDTO(establishment))
+    auth: genAuthUser(
+      fromUserDTO(renderAuth),
+      fromEstablishmentDTO(renderEstablishment)
+    )
   });
   const router = createMemoryRouter(
     [

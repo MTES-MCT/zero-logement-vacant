@@ -34,6 +34,7 @@
     "@sentry/react": "9.47.1",
     "@tanstack/react-table": "8.21.3",
     "@turf/turf": "7.3.5",
+    "@zerologementvacant/factories": "workspace:*",
     "@zerologementvacant/models": "workspace:*",
     "@zerologementvacant/pdf": "workspace:*",
     "@zerologementvacant/schemas": "workspace:*",

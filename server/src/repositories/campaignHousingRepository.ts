@@ -27,7 +27,7 @@ const insertHousingList = async (
 };
 
 async function removeMany(
-  campaign: CampaignApi,
+  campaign: Pick<CampaignApi, 'id'>,
   housings: HousingApi[]
 ): Promise<void> {
   if (housings?.length === 0) {
@@ -53,7 +53,7 @@ export interface CampaignHousingDBO {
 }
 
 export const formatCampaignHousingApi = (
-  campaign: CampaignApi,
+  campaign: Pick<CampaignApi, 'id'>,
   housingList: HousingApi[]
 ): CampaignHousingDBO[] => {
   return housingList.map((housing) => ({

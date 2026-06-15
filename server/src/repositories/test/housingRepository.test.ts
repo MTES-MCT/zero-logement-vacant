@@ -4,6 +4,7 @@ import {
   AddressKinds,
   BENEFIARY_COUNT_VALUES,
   CADASTRAL_CLASSIFICATION_VALUES,
+  CampaignDTO,
   DataFileYear,
   ENERGY_CONSUMPTION_VALUES,
   fromHousing,
@@ -40,7 +41,6 @@ import { match } from 'ts-pattern';
 
 import { AddressApi } from '~/models/AddressApi';
 import { BuildingApi } from '~/models/BuildingApi';
-import { CampaignApi } from '~/models/CampaignApi';
 import { EstablishmentApi } from '~/models/EstablishmentApi';
 import { GeoPerimeterApi } from '~/models/GeoPerimeterApi';
 import { HousingApi } from '~/models/HousingApi';
@@ -60,10 +60,10 @@ import {
   HousingPrecisions,
   Precisions
 } from '~/repositories/precisionRepository';
+import { factories } from '~/test/factories';
 import {
   genAddressApi,
   genBuildingApi,
-  genCampaignApi,
   genEstablishmentApi,
   genGeoPerimeterApi,
   genGroupApi,
@@ -85,7 +85,6 @@ import {
   CampaignsHousing,
   formatCampaignHousingApi
 } from '../campaignHousingRepository';
-import { Campaigns, formatCampaignApi } from '../campaignRepository';
 import {
   Establishments,
   formatEstablishmentApi
@@ -555,14 +554,12 @@ describe('Housing repository', () => {
       });
 
       describe('by campaign id', () => {
-        let campaigns: ReadonlyArray<CampaignApi>;
+        let campaigns: ReadonlyArray<CampaignDTO>;
 
         beforeEach(async () => {
-          campaigns = faker.helpers.multiple(
-            () => genCampaignApi(establishment.id, user),
-            { count: 3 }
-          );
-          await Campaigns().insert(campaigns.map(formatCampaignApi));
+          campaigns = await factories
+            .campaign(establishment)
+            .createList(3, {}, { associations: { createdBy: user } });
           const campaignHousings = campaigns.map((campaign) => {
             return {
               campaign: campaign,
@@ -2830,8 +2827,9 @@ describe('Housing repository', () => {
     it('should remove the links with a campaign in cascade', async () => {
       const housing = genHousingApi();
       await Housing().insert(formatHousingRecordApi(housing));
-      const campaign = genCampaignApi(establishment.id, user);
-      await Campaigns().insert(formatCampaignApi(campaign));
+      const campaign = await factories
+        .campaign(establishment)
+        .create({}, { associations: { createdBy: user } });
       await CampaignsHousing().insert(
         formatCampaignHousingApi(campaign, [housing])
       );

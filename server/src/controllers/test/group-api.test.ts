@@ -32,14 +32,10 @@ import request from 'supertest';
 
 import db from '~/infra/database';
 import { createServer } from '~/infra/server';
-import { CampaignApi } from '~/models/CampaignApi';
 import { GroupApi } from '~/models/GroupApi';
 import { HousingApi } from '~/models/HousingApi';
 import { OwnerApi } from '~/models/OwnerApi';
 import { toUserDTO } from '~/models/UserApi';
-import campaignRepository, {
-  Campaigns
-} from '~/repositories/campaignRepository';
 import {
   Establishments,
   formatEstablishmentApi
@@ -71,8 +67,8 @@ import {
 } from '~/repositories/housingRepository';
 import { formatOwnerApi, Owners } from '~/repositories/ownerRepository';
 import { toUserDBO, Users } from '~/repositories/userRepository';
+import { factories } from '~/test/factories';
 import {
-  genCampaignApi,
   genEstablishmentApi,
   genGroupApi,
   genHousingApi,
@@ -1058,16 +1054,10 @@ describe('Group API', () => {
     });
 
     describe('If a campaign was created from the group', () => {
-      let campaign: CampaignApi;
-
       beforeEach(async () => {
-        campaign = {
-          ...genCampaignApi(establishment.id, user),
-          groupId: group.id
-        };
-        await Campaigns().insert(
-          campaignRepository.formatCampaignApi(campaign)
-        );
+        await factories
+          .campaign(establishment)
+          .create({ groupId: group.id }, { associations: { createdBy: user } });
       });
 
       it('should archive a group', async () => {

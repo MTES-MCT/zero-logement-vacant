@@ -1,4 +1,8 @@
-import type { Adapter, EntityMap } from '@zerologementvacant/factories';
+import type {
+  Adapter,
+  ContextArgs,
+  EntityMap
+} from '@zerologementvacant/factories';
 import { Struct } from 'effect';
 import { match } from 'ts-pattern';
 
@@ -22,7 +26,8 @@ import { toUserDBO, Users } from '~/repositories/userRepository';
 export class KnexAdapter implements Adapter {
   async create<K extends keyof EntityMap>(
     table: K,
-    entity: EntityMap[K]
+    entity: EntityMap[K],
+    ...args: ContextArgs<K>
   ): Promise<EntityMap[K]> {
     await match(table as keyof EntityMap)
       .with('users', async () => {
@@ -50,13 +55,7 @@ export class KnexAdapter implements Adapter {
       })
       .with('campaigns', async () => {
         const campaign = entity as EntityMap['campaigns'];
-        const establishmentId = campaign.createdBy.establishmentId;
-        if (!establishmentId) {
-          throw new Error(
-            'KnexAdapter: campaign.createdBy.establishmentId is required. ' +
-              'Use ServerCampaignFactory and pass establishment as a transient param.'
-          );
-        }
+        const [{ establishmentId }] = args as ContextArgs<'campaigns'>;
         await Campaigns().insert(
           formatCampaignApi({
             ...campaign,
@@ -67,21 +66,20 @@ export class KnexAdapter implements Adapter {
       })
       .with('groups', async () => {
         const group = entity as EntityMap['groups'];
-        const userId = group.createdBy?.id;
-        const establishmentId = group.createdBy?.establishmentId;
-        if (!userId || !establishmentId) {
+        const [{ establishmentId }] = args as ContextArgs<'groups'>;
+        if (!group.createdBy) {
           throw new Error(
-            'KnexAdapter: group.createdBy with an establishmentId is required. ' +
-              'Use ServerGroupFactory and pass establishment as a transient param.'
+            'KnexAdapter: group.createdBy is required for persistence. ' +
+              'factories.group(establishment).create() enforces this at build time; ' +
+              'if you are calling adapter.create("groups", …) directly, supply createdBy on the DTO.'
           );
         }
+        const createdBy = fromUserDTO(group.createdBy);
         await Groups().insert(
           formatGroupApi({
             ...group,
-            createdBy: group.createdBy
-              ? fromUserDTO(group.createdBy)
-              : undefined,
-            userId,
+            createdBy,
+            userId: group.createdBy.id,
             establishmentId,
             createdAt: new Date(group.createdAt),
             exportedAt: null,

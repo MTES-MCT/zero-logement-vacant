@@ -23,7 +23,6 @@ import {
 } from '@zerologementvacant/models';
 import {
   genBuildingDTO,
-  genCampaignDTO,
   genDatafoncierHousing,
   genEstablishmentDTO,
   genGroupDTO,
@@ -42,6 +41,7 @@ import { HousingFiltersProvider } from '~/hooks/HousingFiltersContext';
 import data from '~/mocks/handlers/data';
 import { fromEstablishmentDTO } from '~/models/Establishment';
 import { fromUserDTO } from '~/models/User';
+import { factories } from '~/test/factories';
 import { genAuthUser } from '~/test/fixtures';
 import configureTestStore from '~/utils/storeUtils';
 import CampaignView from '~/views/Campaign/CampaignView';
@@ -966,7 +966,9 @@ describe('Housing list view', () => {
             rank: 1 as const
           };
         });
-        const campaigns = faker.helpers.multiple(() => genCampaignDTO());
+        const campaigns = factories
+          .campaign(establishment)
+          .buildList(3, {}, { associations: { createdBy: auth } });
         const campaignHousings = campaigns.map((campaign) => ({
           campaign,
           housings: faker.helpers.arrayElements(housings, 2)
@@ -1037,7 +1039,9 @@ describe('Housing list view', () => {
             rank: i as OwnerRank
           };
         });
-        const campaigns = faker.helpers.multiple(() => genCampaignDTO());
+        const campaigns = factories
+          .campaign(establishment)
+          .buildList(3, {}, { associations: { createdBy: auth } });
         const campaignHousings = campaigns.map((campaign) => ({
           campaign,
           housings: faker.helpers.arrayElements(housings, 2)
@@ -1101,10 +1105,11 @@ describe('Housing list view', () => {
             rank: 1 as const
           };
         });
-        const campaigns = CAMPAIGN_STATUS_VALUES.map((status) => ({
-          ...genCampaignDTO(),
-          status
-        }));
+        const campaigns = CAMPAIGN_STATUS_VALUES.map((status) =>
+          factories
+            .campaign(establishment)
+            .build({ status }, { associations: { createdBy: auth } })
+        );
         const campaignHousings = campaigns.map((campaign) => ({
           campaign,
           housings: faker.helpers.arrayElements(housings, 2)
@@ -1192,10 +1197,11 @@ describe('Housing list view', () => {
             rank: 1 as const
           };
         });
-        const campaigns = CAMPAIGN_STATUS_VALUES.map((status) => ({
-          ...genCampaignDTO(),
-          status
-        }));
+        const campaigns = CAMPAIGN_STATUS_VALUES.map((status) =>
+          factories
+            .campaign(establishment)
+            .build({ status }, { associations: { createdBy: auth } })
+        );
         const campaignHousings = campaigns.map((campaign) => ({
           campaign,
           housings: faker.helpers.arrayElements(housings, 2)
@@ -1261,10 +1267,11 @@ describe('Housing list view', () => {
             rank: ACTIVE_OWNER_RANKS[i]
           }));
         });
-        const campaigns = CAMPAIGN_STATUS_VALUES.map((status) => ({
-          ...genCampaignDTO(),
-          status
-        }));
+        const campaigns = CAMPAIGN_STATUS_VALUES.map((status) =>
+          factories
+            .campaign(establishment)
+            .build({ status }, { associations: { createdBy: auth } })
+        );
         const campaignHousings = campaigns.map((campaign) => ({
           campaign,
           housings: faker.helpers.arrayElements(housings, 2)
@@ -1335,10 +1342,11 @@ describe('Housing list view', () => {
             rank: 1 as const
           };
         });
-        const campaigns = CAMPAIGN_STATUS_VALUES.map((status) => ({
-          ...genCampaignDTO(),
-          status
-        }));
+        const campaigns = CAMPAIGN_STATUS_VALUES.map((status) =>
+          factories
+            .campaign(establishment)
+            .build({ status }, { associations: { createdBy: auth } })
+        );
         const campaignHousings = campaigns.map((campaign) => ({
           campaign,
           housings: faker.helpers.arrayElements(housings, {
@@ -1400,10 +1408,11 @@ describe('Housing list view', () => {
             rank: ACTIVE_OWNER_RANKS[i]
           }));
         });
-        const campaigns = CAMPAIGN_STATUS_VALUES.map((status) => ({
-          ...genCampaignDTO(),
-          status
-        }));
+        const campaigns = CAMPAIGN_STATUS_VALUES.map((status) =>
+          factories
+            .campaign(establishment)
+            .build({ status }, { associations: { createdBy: auth } })
+        );
         const campaignHousings = campaigns.map((campaign) => ({
           campaign,
           housings: faker.helpers.arrayElements(housings, 2)

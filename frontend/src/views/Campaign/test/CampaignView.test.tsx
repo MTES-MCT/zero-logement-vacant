@@ -1,12 +1,17 @@
 import { faker } from '@faker-js/faker/locale/fr';
 import { render, screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
-import type { CampaignDTO, HousingDTO } from '@zerologementvacant/models';
 import {
-  genCampaignDTO,
+  UserRole,
+  type CampaignDTO,
+  type HousingDTO
+} from '@zerologementvacant/models';
+import {
   genDraftDTO,
+  genEstablishmentDTO,
   genHousingDTO,
-  genSenderDTO
+  genSenderDTO,
+  genUserDTO
 } from '@zerologementvacant/models/fixtures';
 import { Provider } from 'react-redux';
 import { createMemoryRouter, RouterProvider } from 'react-router';
@@ -14,6 +19,7 @@ import { describe, expect, it } from 'vitest';
 
 import { HousingFiltersProvider } from '~/hooks/HousingFiltersContext';
 import data from '~/mocks/handlers/data';
+import { factories } from '~/test/factories';
 import configureTestStore from '~/utils/storeUtils';
 import HousingListView from '~/views/HousingList/HousingListView';
 
@@ -30,6 +36,8 @@ vi.mock('@zerologementvacant/pdf', () => ({
 
 describe('CampaignView', () => {
   const user = userEvent.setup();
+  const establishment = genEstablishmentDTO();
+  const auth = genUserDTO(UserRole.USUAL, establishment);
 
   interface RenderViewOptions {
     housings?: HousingDTO[];
@@ -69,12 +77,14 @@ describe('CampaignView', () => {
   }
 
   it('renders the campaign title', async () => {
-    const campaign: CampaignDTO = {
-      ...genCampaignDTO(),
-      title: 'Ma campagne test',
-      sentAt: null,
-      returnCount: null
-    };
+    const campaign = factories.campaign(establishment).build(
+      {
+        title: 'Ma campagne test',
+        sentAt: null,
+        returnCount: null
+      },
+      { associations: { createdBy: auth } }
+    );
 
     renderView(campaign);
 
@@ -84,11 +94,13 @@ describe('CampaignView', () => {
   });
 
   it('shows a breadcrumb link to Campagnes', async () => {
-    const campaign: CampaignDTO = {
-      ...genCampaignDTO(),
-      sentAt: null,
-      returnCount: null
-    };
+    const campaign = factories.campaign(establishment).build(
+      {
+        sentAt: null,
+        returnCount: null
+      },
+      { associations: { createdBy: auth } }
+    );
 
     renderView(campaign);
 
@@ -98,11 +110,13 @@ describe('CampaignView', () => {
   });
 
   it('shows a button to set sentAt when sentAt is null', async () => {
-    const campaign: CampaignDTO = {
-      ...genCampaignDTO(),
-      sentAt: null,
-      returnCount: null
-    };
+    const campaign = factories.campaign(establishment).build(
+      {
+        sentAt: null,
+        returnCount: null
+      },
+      { associations: { createdBy: auth } }
+    );
 
     renderView(campaign);
 
@@ -114,11 +128,13 @@ describe('CampaignView', () => {
   });
 
   it('opens the sent-at modal on button click', async () => {
-    const campaign: CampaignDTO = {
-      ...genCampaignDTO(),
-      sentAt: null,
-      returnCount: null
-    };
+    const campaign = factories.campaign(establishment).build(
+      {
+        sentAt: null,
+        returnCount: null
+      },
+      { associations: { createdBy: auth } }
+    );
 
     renderView(campaign);
 
@@ -134,11 +150,13 @@ describe('CampaignView', () => {
   });
 
   it('opens a confirmation modal when clicking delete', async () => {
-    const campaign: CampaignDTO = {
-      ...genCampaignDTO(),
-      sentAt: null,
-      returnCount: null
-    };
+    const campaign = factories.campaign(establishment).build(
+      {
+        sentAt: null,
+        returnCount: null
+      },
+      { associations: { createdBy: auth } }
+    );
     renderView(campaign);
     await screen.findByRole('heading', { level: 1 });
 
@@ -152,11 +170,13 @@ describe('CampaignView', () => {
   });
 
   it('navigates to /campagnes after confirming deletion', async () => {
-    const campaign: CampaignDTO = {
-      ...genCampaignDTO(),
-      sentAt: null,
-      returnCount: null
-    };
+    const campaign = factories.campaign(establishment).build(
+      {
+        sentAt: null,
+        returnCount: null
+      },
+      { associations: { createdBy: auth } }
+    );
 
     const { router } = renderView(campaign);
 
@@ -172,11 +192,13 @@ describe('CampaignView', () => {
   });
 
   it('does not navigate when cancelling deletion', async () => {
-    const campaign: CampaignDTO = {
-      ...genCampaignDTO(),
-      sentAt: null,
-      returnCount: null
-    };
+    const campaign = factories.campaign(establishment).build(
+      {
+        sentAt: null,
+        returnCount: null
+      },
+      { associations: { createdBy: auth } }
+    );
 
     const { router } = renderView(campaign);
 
@@ -190,11 +212,13 @@ describe('CampaignView', () => {
   });
 
   it('displays the button "Voir les logements"', async () => {
-    const campaign: CampaignDTO = {
-      ...genCampaignDTO(),
-      sentAt: null,
-      returnCount: null
-    };
+    const campaign = factories.campaign(establishment).build(
+      {
+        sentAt: null,
+        returnCount: null
+      },
+      { associations: { createdBy: auth } }
+    );
 
     renderView(campaign);
 
@@ -204,11 +228,13 @@ describe('CampaignView', () => {
   });
 
   it('redirects to /parc-de-logements on click on "Voir les logements"', async () => {
-    const campaign: CampaignDTO = {
-      ...genCampaignDTO(),
-      sentAt: null,
-      returnCount: null
-    };
+    const campaign = factories.campaign(establishment).build(
+      {
+        sentAt: null,
+        returnCount: null
+      },
+      { associations: { createdBy: auth } }
+    );
     const housings: HousingDTO[] = faker.helpers.multiple(() =>
       genHousingDTO()
     );
@@ -227,11 +253,13 @@ describe('CampaignView', () => {
   });
 
   it('displays the sentAt date in dd/MM/yyyy format when set', async () => {
-    const campaign: CampaignDTO = {
-      ...genCampaignDTO(),
-      sentAt: '2024-03-15T00:00:00.000Z',
-      returnCount: null
-    };
+    const campaign = factories.campaign(establishment).build(
+      {
+        sentAt: '2024-03-15T00:00:00.000Z',
+        returnCount: null
+      },
+      { associations: { createdBy: auth } }
+    );
 
     renderView(campaign);
 
@@ -239,11 +267,13 @@ describe('CampaignView', () => {
   });
 
   it('renders the signatory upload sections in the Courrier tab', async () => {
-    const campaign: CampaignDTO = {
-      ...genCampaignDTO(),
-      sentAt: null,
-      returnCount: null
-    };
+    const campaign = factories.campaign(establishment).build(
+      {
+        sentAt: null,
+        returnCount: null
+      },
+      { associations: { createdBy: auth } }
+    );
     const draft = genDraftDTO(genSenderDTO());
     data.drafts.push(draft);
     data.campaignDrafts.set(campaign.id, [{ id: draft.id }]);

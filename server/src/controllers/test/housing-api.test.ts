@@ -44,10 +44,6 @@ import {
   CampaignsHousing,
   formatCampaignHousingApi
 } from '~/repositories/campaignHousingRepository';
-import {
-  Campaigns,
-  formatCampaignApi
-} from '~/repositories/campaignRepository';
 import { DatafoncierHouses } from '~/repositories/datafoncierHousingRepository';
 import { DatafoncierOwners } from '~/repositories/datafoncierOwnersRepository';
 import { Documents, toDocumentDBO } from '~/repositories/documentRepository';
@@ -99,9 +95,9 @@ import {
   type HousingPrecisionDBO
 } from '~/repositories/precisionRepository';
 import { toUserDBO, Users } from '~/repositories/userRepository';
+import { factories } from '~/test/factories';
 import {
   genBuildingApi,
-  genCampaignApi,
   genDocumentApi,
   genEstablishmentApi,
   genEventApi,
@@ -1103,8 +1099,9 @@ describe('Housing API', () => {
       const { housings } = await createHousings({
         status: HousingStatus.WAITING
       });
-      const campaign = genCampaignApi(establishment.id, user);
-      await Campaigns().insert(formatCampaignApi(campaign));
+      const campaign = await factories
+        .campaign(establishment)
+        .create({}, { associations: { createdBy: user } });
       await CampaignsHousing().insert(
         formatCampaignHousingApi(campaign, housings)
       );

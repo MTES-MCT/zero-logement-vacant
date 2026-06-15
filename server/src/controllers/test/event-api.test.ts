@@ -14,10 +14,6 @@ import {
   PrecisionHousingEventApi
 } from '~/models/EventApi';
 import {
-  Campaigns,
-  formatCampaignApi
-} from '~/repositories/campaignRepository';
-import {
   Establishments,
   formatEstablishmentApi
 } from '~/repositories/establishmentRepository';
@@ -48,8 +44,8 @@ import {
   type PrecisionDBO
 } from '~/repositories/precisionRepository';
 import { toUserDBO, Users } from '~/repositories/userRepository';
+import { factories } from '~/test/factories';
 import {
-  genCampaignApi,
   genEstablishmentApi,
   genEventApi,
   genGroupApi,
@@ -276,8 +272,9 @@ describe('Event API', () => {
         housingGeoCode: housing.geoCode,
         housingId: housing.id
       }));
-      const campaign = genCampaignApi(establishment.id, user);
-      await Campaigns().insert(formatCampaignApi(campaign));
+      const campaign = await factories
+        .campaign(establishment)
+        .create({}, { associations: { createdBy: user } });
       const campaignHousingEvents: ReadonlyArray<CampaignHousingEventApi> = [
         genEventApi({
           creator: user,

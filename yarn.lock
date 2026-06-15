@@ -11529,6 +11529,7 @@ __metadata:
     "@zerologementvacant/schemas": "workspace:*"
     "@zerologementvacant/utils": "workspace:*"
     async: "npm:3.2.6"
+    better-auth: "npm:1.6.18"
     carte-facile: "npm:0.8.3"
     classnames: "npm:2.5.1"
     copyfiles: "npm:2.4.1"

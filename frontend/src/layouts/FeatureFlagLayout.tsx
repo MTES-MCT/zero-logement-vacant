@@ -3,7 +3,7 @@ import { useFeatureFlagEnabled } from 'posthog-js/react';
 import config from '~/utils/config';
 
 // Add feature flag keys to this union type to use them in the layout
-type AvailableFeatureFlag = 'new-analysis-page';
+type AvailableFeatureFlag = 'new-analysis-page' | 'auth-v2';
 
 export interface FeatureFlagLayoutProps {
   flag: AvailableFeatureFlag;

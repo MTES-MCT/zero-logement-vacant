@@ -1,5 +1,6 @@
+import Typography from '@mui/material/Typography';
+
 import { pluralize } from '../../utils/stringUtils';
-import { Text } from '../_dsfr';
 import ConfirmationModal from '../modals/ConfirmationModal/ConfirmationModal';
 
 interface Props {
@@ -25,10 +26,10 @@ function GroupRemoveHousingModal(props: Props) {
       title={title}
       onSubmit={props.onSubmit}
     >
-      <Text>
+      <Typography component="p" variant="body1">
         Êtes-vous sûr de vouloir supprimer ces logements de ce groupe ? Vous
         pourrez toujours retrouver ces logements dans votre parc de logements.
-      </Text>
+      </Typography>
     </ConfirmationModal>
   );
 }

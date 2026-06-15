@@ -7,7 +7,7 @@ import classNames from 'classnames';
 import { useEffect, useMemo } from 'react';
 import { v4 as uuidv4 } from 'uuid';
 
-import { Icon } from '../_dsfr';
+import Icon from '~/components/ui/Icon';
 
 import styles from './extended-toggle.module.scss';
 
@@ -49,7 +49,7 @@ function ExtendedToggle(props: Props) {
         'data-fr-unchecked-label': 'Désactivé'
       };
 
-  const icon = props.iconId ?? 'fr-icon-check-fill';
+  const icon = props.iconId ?? 'ri-check-fill';
 
   return (
     <div className={classes}>
@@ -61,12 +61,7 @@ function ExtendedToggle(props: Props) {
           className={classNames(styles.input)}
           id={id}
         />
-        <Icon
-          className={styles.icon}
-          iconPosition="center"
-          name={icon}
-          size="xs"
-        />
+        <Icon className={styles.icon} name={icon} size="xs" />
       </div>
       <label className={styles.label} htmlFor={id} {...checkboxLabels}>
         {props.label}

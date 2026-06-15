@@ -1,8 +1,8 @@
+import Box from '@mui/material/Box';
+import Container from '@mui/material/Container';
 import Stack from '@mui/material/Stack';
 import Typography from '@mui/material/Typography';
 import type { ReactNode } from 'react';
-
-import { Container } from '../_dsfr';
 
 export interface Props {
   title?: ReactNode | ReactNode[];
@@ -13,8 +13,8 @@ export interface Props {
 
 function MainContainer(props: Props) {
   return (
-    <Container fluid spacing="py-4w" className={props.grey ? 'bg-100' : ''}>
-      <Container as="section">
+    <Box className={props.grey ? 'bg-100' : ''} sx={{ py: '2rem' }}>
+      <Container component="section" maxWidth="xl">
         {props.title && (
           <Stack
             direction="row"
@@ -32,7 +32,7 @@ function MainContainer(props: Props) {
         )}
         {props.children}
       </Container>
-    </Container>
+    </Box>
   );
 }
 

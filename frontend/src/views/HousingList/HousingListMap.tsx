@@ -1,4 +1,5 @@
 import Stack from '@mui/material/Stack';
+import Typography from '@mui/material/Typography';
 
 import Label from '~/components/Label/Label';
 import Map from '~/components/Map/Map';
@@ -18,8 +19,6 @@ import {
   includeExcludeWith,
   includeWith
 } from '~/utils/arrayUtils';
-
-import { Text } from '../../components/_dsfr';
 
 interface Props {
   filters: HousingFilters;
@@ -71,13 +70,13 @@ const HousingListMap = ({ filters }: Props) => {
 
   return (
     <Stack direction="column">
-      <Text spacing="mb-0">
+      <Typography component="p" variant="body1" sx={{ mb: 0 }}>
         {displayHousingCount({
           filteredHousingCount,
           filteredOwnerCount,
           totalCount
         })}
-      </Text>
+      </Typography>
       <Label spacing="mb-1w">
         Les nombres affichés dans les cercles correspondent aux nombres de
         bâtiments.

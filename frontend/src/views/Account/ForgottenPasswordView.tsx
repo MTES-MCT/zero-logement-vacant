@@ -1,11 +1,14 @@
 import { Alert } from '@codegouvfr/react-dsfr/Alert';
 import Button from '@codegouvfr/react-dsfr/Button';
 import { yupResolver } from '@hookform/resolvers/yup';
+import Container from '@mui/material/Container';
+import Grid from '@mui/material/Grid';
+import Stack from '@mui/material/Stack';
 import Typography from '@mui/material/Typography';
 import classNames from 'classnames';
 import { useState } from 'react';
 import { useForm, type SubmitHandler } from 'react-hook-form';
-import { type InferType, object } from 'yup';
+import { object, type InferType } from 'yup';
 
 import building from '~/assets/images/building.svg';
 import AppLinkAsButton from '~/components/_app/AppLinkAsButton/AppLinkAsButton';
@@ -14,8 +17,6 @@ import { useDocumentTitle } from '~/hooks/useDocumentTitle';
 import { emailValidator } from '~/hooks/useForm';
 import { useHide } from '~/hooks/useHide';
 import resetLinkService from '~/services/reset-link.service';
-
-import { Col, Container, Row, Text } from '../../components/_dsfr';
 
 import styles from './forgotten-password-view.module.scss';
 
@@ -31,8 +32,10 @@ function EmailSent(props: EmailSentProps) {
 
   return (
     <>
-      <Text>Un email vous a été envoyé avec les instructions à suivre.</Text>
-      <Text className="subtitle">
+      <Typography component="p" variant="body1">
+        Un email vous a été envoyé avec les instructions à suivre.
+      </Typography>
+      <Typography component="p" variant="body1" className="subtitle">
         Vous ne trouvez pas le mail ? Vérifiez qu’il ne s’est pas glissé dans
         vos spams ou 
         <AppLinkAsButton
@@ -44,10 +47,10 @@ function EmailSent(props: EmailSentProps) {
           renvoyer le mail
         </AppLinkAsButton>
         .
-      </Text>
-      <Text size="sm" className={confirmationClasses}>
+      </Typography>
+      <Typography component="p" variant="body2" className={confirmationClasses}>
         Email envoyé.
-      </Text>
+      </Typography>
     </>
   );
 }
@@ -84,9 +87,14 @@ function ForgottenPasswordView() {
   };
 
   return (
-    <Container as="main" spacing="py-4w" className="grow-container">
-      <Row gutters alignItems="middle">
-        <Col>
+    <Container
+      component="main"
+      maxWidth="xl"
+      className="grow-container"
+      sx={{ py: '2rem' }}
+    >
+      <Grid container spacing={2} alignItems="center">
+        <Grid size="grow">
           {error && (
             <Alert
               title="Erreur"
@@ -103,10 +111,10 @@ function ForgottenPasswordView() {
             <EmailSent hidden={hidden} submit={form.handleSubmit(onSubmit)} />
           ) : (
             <>
-              <Text>
+              <Typography sx={{ mb: '1rem' }}>
                 Vous allez <b>recevoir un email</b> qui vous permettra de créer
                 un nouveau mot de passe.
-              </Text>
+              </Typography>
               <form onSubmit={form.handleSubmit(onSubmit)}>
                 <AppTextInputNext<FormValues>
                   name="email"
@@ -120,23 +128,23 @@ function ForgottenPasswordView() {
                     autoComplete: 'email'
                   }}
                 />
-                <Row justifyContent="right">
+                <Stack direction="row" sx={{ justifyContent: 'flex-end' }}>
                   <Button type="submit">
                     Envoyer un email de réinitialisation
                   </Button>
-                </Row>
+                </Stack>
               </form>
             </>
           )}
-        </Col>
-        <Col n="5" offset="1" className="align-right">
+        </Grid>
+        <Grid size={5} offset={1} className="align-right">
           <img
             src={building}
             style={{ width: '100%', height: '100%' }}
             alt=""
           />
-        </Col>
-      </Row>
+        </Grid>
+      </Grid>
     </Container>
   );
 }

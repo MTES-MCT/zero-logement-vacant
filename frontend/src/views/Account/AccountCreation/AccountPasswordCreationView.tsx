@@ -2,6 +2,7 @@ import Button from '@codegouvfr/react-dsfr/Button';
 import Stepper from '@codegouvfr/react-dsfr/Stepper';
 import { yupResolver } from '@hookform/resolvers/yup';
 import Grid from '@mui/material/Grid';
+import Stack from '@mui/material/Stack';
 import Typography from '@mui/material/Typography';
 import { FormProvider, useForm } from 'react-hook-form';
 import { Navigate, useNavigate } from 'react-router';
@@ -10,7 +11,6 @@ import { type InferType, object } from 'yup';
 import image from '../../../assets/images/thousand-structures.svg';
 import AppLink from '../../../components/_app/AppLink/AppLink';
 import AppTextInputNext from '../../../components/_app/AppTextInput/AppTextInputNext';
-import { Row, Text } from '../../../components/_dsfr';
 import Image from '../../../components/Image/Image';
 import {
   passwordConfirmationValidator,
@@ -168,8 +168,10 @@ function LinkMissing() {
       <Typography component="h1" variant="h4" mb={3}>
         Ce lien n’existe pas ou est expiré !
       </Typography>
-      <Text>Recommencez la procédure ou contactez le support.</Text>
-      <Row>
+      <Typography component="p" variant="body1">
+        Recommencez la procédure ou contactez le support.
+      </Typography>
+      <Stack direction="row">
         <AppLink
           iconId="fr-icon-home-4-fill"
           iconPosition="left"
@@ -178,7 +180,7 @@ function LinkMissing() {
         >
           Revenir à l’accueil
         </AppLink>
-      </Row>
+      </Stack>
     </>
   );
 }

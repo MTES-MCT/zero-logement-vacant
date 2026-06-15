@@ -2,11 +2,13 @@ import Button from '@codegouvfr/react-dsfr/Button';
 import Card from '@codegouvfr/react-dsfr/Card';
 import Tag from '@codegouvfr/react-dsfr/Tag';
 import Grid from '@mui/material/Grid';
+import Stack from '@mui/material/Stack';
 import Typography from '@mui/material/Typography';
+
+import Icon from '~/components/ui/Icon';
 
 import type { GeoPerimeter } from '../../models/GeoPerimeter';
 import AppLink from '../_app/AppLink/AppLink';
-import { Icon, Row } from '../_dsfr';
 
 interface Props {
   geoPerimeter: GeoPerimeter;
@@ -29,11 +31,7 @@ function GeoPerimeterCard({ geoPerimeter, onEdit, onRemove }: Props) {
           >
             <Grid size={4}>
               <span className="card-title-icon">
-                <Icon
-                  name="fr-icon-france-fill"
-                  iconPosition="center"
-                  size="1x"
-                />
+                <Icon name="fr-icon-france-fill" size="md" />
               </span>
             </Grid>
             <Grid>
@@ -61,7 +59,7 @@ function GeoPerimeterCard({ geoPerimeter, onEdit, onRemove }: Props) {
           <Tag className="fr-mb-4w">
             {geoPerimeter.kind ? geoPerimeter.kind : 'Non renseigné'}
           </Tag>
-          <Row justifyContent="right">
+          <Stack direction="row" sx={{ justifyContent: 'flex-end' }}>
             <AppLink
               title="Afficher (.json)"
               target="_blank"
@@ -76,7 +74,7 @@ function GeoPerimeterCard({ geoPerimeter, onEdit, onRemove }: Props) {
             >
               Afficher (.json)
             </AppLink>
-          </Row>
+          </Stack>
         </div>
       }
     ></Card>

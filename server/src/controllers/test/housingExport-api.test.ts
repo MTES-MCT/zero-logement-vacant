@@ -3,6 +3,7 @@ import { constants } from 'http2';
 import request from 'supertest';
 
 import { createServer } from '~/infra/server';
+import { fromCampaignDTO } from '~/models/CampaignApi';
 import {
   Campaigns,
   formatCampaignApi
@@ -13,8 +14,8 @@ import {
 } from '~/repositories/establishmentRepository';
 import { formatGroupApi, Groups } from '~/repositories/groupRepository';
 import { toUserDBO, Users } from '~/repositories/userRepository';
+import { factories } from '~/test/factories';
 import {
-  genCampaignApiNext,
   genEstablishmentApi,
   genGroupApi,
   genUserApi
@@ -79,15 +80,15 @@ describe('Housing export API', () => {
     const testRoute = (id: string): string => `/campaigns/${id}/export`;
 
     const group = genGroupApi(user, establishment);
-    const campaign = genCampaignApiNext({
-      group,
-      creator: user,
-      establishment
-    });
+    const campaign = factories
+      .campaign(establishment)
+      .build({ groupId: group.id }, { associations: { createdBy: user } });
 
     beforeAll(async () => {
       await Groups().insert(formatGroupApi(group));
-      await Campaigns().insert(formatCampaignApi(campaign));
+      await Campaigns().insert(
+        formatCampaignApi(fromCampaignDTO(campaign, establishment))
+      );
     });
 
     it('should be forbidden for a non-authenticated user', async () => {

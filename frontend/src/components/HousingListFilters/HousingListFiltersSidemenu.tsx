@@ -18,6 +18,7 @@ import { isDefined } from '@zerologementvacant/utils';
 import classNames from 'classnames';
 import { usePostHog } from 'posthog-js/react';
 
+import Icon from '~/components/ui/Icon';
 import Tooltip from '~/components/ui/Tooltip/Tooltip';
 
 import { useIntercommunalities } from '../../hooks/useIntercommunalities';
@@ -29,7 +30,6 @@ import { getPrecision } from '../../models/Precision';
 import { useFindCampaignsQuery } from '../../services/campaign.service';
 import { useListGeoPerimetersQuery } from '../../services/geo.service';
 import { useFindPrecisionsQuery } from '../../services/precision.service';
-import Icon from '~/components/ui/Icon';
 import GroupHeader from '../GroupHeader/GroupHeader';
 import createPerimetersModal from '../modals/GeoPerimetersModal/PerimetersModal';
 import PerimetersModalOpener from '../modals/GeoPerimetersModal/PerimetersModalOpener';

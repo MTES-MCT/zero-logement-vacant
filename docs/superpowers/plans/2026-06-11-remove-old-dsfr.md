@@ -16,61 +16,61 @@ Use this table when editing each file.
 
 ### `Container` (`_dsfr`) → `@mui/material/Container`
 
-| Legacy prop | Replacement |
-|---|---|
-| `as="main"` | `component="main"` |
-| `as="section"` | `component="section"` |
-| `as="article"` etc. | `component="article"` etc. |
-| `fluid` | `maxWidth={false}` (or drop the wrapper, use `<Box component="…">` if you don't need padding) |
-| (no `fluid`, centered) | `maxWidth="xl"` (closest match to DSFR `fr-container`) |
-| `spacing="py-4w"` | `sx={{ py: '2rem' }}` (DSFR `4w` ≈ 2rem) |
-| `spacing="py-2w"` | `sx={{ py: '1rem' }}` |
-| `className="…"` | `className="…"` (DSFR utility classes like `fr-mb-2w` still work) |
+| Legacy prop            | Replacement                                                                                   |
+| ---------------------- | --------------------------------------------------------------------------------------------- |
+| `as="main"`            | `component="main"`                                                                            |
+| `as="section"`         | `component="section"`                                                                         |
+| `as="article"` etc.    | `component="article"` etc.                                                                    |
+| `fluid`                | `maxWidth={false}` (or drop the wrapper, use `<Box component="…">` if you don't need padding) |
+| (no `fluid`, centered) | `maxWidth="xl"` (closest match to DSFR `fr-container`)                                        |
+| `spacing="py-4w"`      | `sx={{ py: '2rem' }}` (DSFR `4w` ≈ 2rem)                                                      |
+| `spacing="py-2w"`      | `sx={{ py: '1rem' }}`                                                                         |
+| `className="…"`        | `className="…"` (DSFR utility classes like `fr-mb-2w` still work)                             |
 
 ### `Row` (`_dsfr`) → `@mui/material/Stack` (default) or `@mui/material/Grid` (only if `Col` siblings set sizes via `n=…`)
 
-| Legacy `Row` prop | `Stack` replacement | `Grid container` replacement |
-|---|---|---|
-| `gutters` | `spacing="1.5rem"` | `spacing={2}` (kept numeric — `Grid` accepts theme spacing) |
-| `alignItems="top"` | `alignItems="flex-start"` | same |
-| `alignItems="middle"` | `alignItems="center"` | same |
-| `alignItems="bottom"` | `alignItems="flex-end"` | same |
-| `justifyContent="left"` | `justifyContent="flex-start"` | same |
-| `justifyContent="center"` | `justifyContent="center"` | same |
-| `justifyContent="right"` | `justifyContent="flex-end"` | same |
-| `className="…"` | `className="…"` | `className="…"` |
+| Legacy `Row` prop         | `Stack` replacement           | `Grid container` replacement                                |
+| ------------------------- | ----------------------------- | ----------------------------------------------------------- |
+| `gutters`                 | `spacing="1.5rem"`            | `spacing={2}` (kept numeric — `Grid` accepts theme spacing) |
+| `alignItems="top"`        | `alignItems="flex-start"`     | same                                                        |
+| `alignItems="middle"`     | `alignItems="center"`         | same                                                        |
+| `alignItems="bottom"`     | `alignItems="flex-end"`       | same                                                        |
+| `justifyContent="left"`   | `justifyContent="flex-start"` | same                                                        |
+| `justifyContent="center"` | `justifyContent="center"`     | same                                                        |
+| `justifyContent="right"`  | `justifyContent="flex-end"`   | same                                                        |
+| `className="…"`           | `className="…"`               | `className="…"`                                             |
 
 `Row` defaults to `direction="row"` for `Stack`.
 
 ### `Col` (`_dsfr`) → `@mui/material/Grid` (size) when sibling of `Grid container`; or just remove (flow into parent `Stack`)
 
-| Legacy `Col` prop | Replacement |
-|---|---|
-| `n="4"` | `size={4}` |
-| `n="5"` | `size={5}` |
-| no `n` | `size="grow"` (fills remaining space) |
-| `offset="1"` | `offset={1}` |
-| `className="…"` | `className="…"` |
+| Legacy `Col` prop | Replacement                           |
+| ----------------- | ------------------------------------- |
+| `n="4"`           | `size={4}`                            |
+| `n="5"`           | `size={5}`                            |
+| no `n`            | `size="grow"` (fills remaining space) |
+| `offset="1"`      | `offset={1}`                          |
+| `className="…"`   | `className="…"`                       |
 
 If the parent is now a `Stack` (no column sizing in any sibling), drop `<Col>` entirely and inline its children.
 
 ### `Text` (`_dsfr`) → `@mui/material/Typography`
 
-| Legacy `Text` prop | Replacement |
-|---|---|
-| `as="p"` (default) | `component="p"` |
-| `as="span"` | `component="span"` |
-| `size="xs"` | `variant="caption"` |
-| `size="sm"` | `variant="body2"` |
-| `size="md"` (default) | `variant="body1"` |
-| `size="lg"` | `variant="subtitle1"` |
-| `size="lead"` | `variant="h6"` |
-| `bold` | `sx={{ fontWeight: 700 }}` |
-| `spacing="mb-0"` | `sx={{ mb: 0 }}` |
-| `spacing="mb-1w"` | `sx={{ mb: '0.25rem' }}` |
-| `spacing="mb-2w"` | `sx={{ mb: '0.5rem' }}` (or `className="fr-mb-2w"`) |
-| `className="…"` | `className="…"` (DSFR utility classes still work) |
-| `alt` (Spectral font) | not used in any consumer — ignore |
+| Legacy `Text` prop    | Replacement                                         |
+| --------------------- | --------------------------------------------------- |
+| `as="p"` (default)    | `component="p"`                                     |
+| `as="span"`           | `component="span"`                                  |
+| `size="xs"`           | `variant="caption"`                                 |
+| `size="sm"`           | `variant="body2"`                                   |
+| `size="md"` (default) | `variant="body1"`                                   |
+| `size="lg"`           | `variant="subtitle1"`                               |
+| `size="lead"`         | `variant="h6"`                                      |
+| `bold`                | `sx={{ fontWeight: 700 }}`                          |
+| `spacing="mb-0"`      | `sx={{ mb: 0 }}`                                    |
+| `spacing="mb-1w"`     | `sx={{ mb: '0.25rem' }}`                            |
+| `spacing="mb-2w"`     | `sx={{ mb: '0.5rem' }}` (or `className="fr-mb-2w"`) |
+| `className="…"`       | `className="…"` (DSFR utility classes still work)   |
+| `alt` (Spectral font) | not used in any consumer — ignore                   |
 
 When merging `bold` + `spacing` + `className`, use a single `sx={{…}}` block and keep `className` separate.
 
@@ -78,20 +78,20 @@ When merging `bold` + `spacing` + `className`, use a single `sx={{…}}` block a
 
 The new `Icon` (`frontend/src/components/ui/Icon.tsx`) accepts: `name: FrIconClassName | RiIconClassName`, `size?: 'xs' | 'sm' | 'md' | 'lg'`, `color?: string`, `className?: string`. It always renders a centered `<span>` with `aria-hidden`.
 
-| Legacy `Icon` prop | Replacement |
-|---|---|
-| `name="fr-icon-…"` | `name="fr-icon-…"` |
-| `size="xs"` | `size="xs"` |
-| `size="sm"` (default) | `size="sm"` |
-| `size="1x"` | `size="md"` (closest match; 1x ≈ 1em) |
-| `size="lg"` | `size="lg"` |
-| `size="xl"` | `size="lg"` (no `xl` in the new component — accepted visual drift) |
-| `iconPosition="center"` | drop — new component centers via `Box span` |
-| `iconPosition="left"` / `"right"` | drop — let the parent flex container handle position |
-| `verticalAlign="middle"` | drop — new component is a centered span |
-| `className="…"` | `className="…"` |
-| `color="…"` | `color="…"` |
-| `title="…"` | not used in any consumer — ignore |
+| Legacy `Icon` prop                | Replacement                                                        |
+| --------------------------------- | ------------------------------------------------------------------ |
+| `name="fr-icon-…"`                | `name="fr-icon-…"`                                                 |
+| `size="xs"`                       | `size="xs"`                                                        |
+| `size="sm"` (default)             | `size="sm"`                                                        |
+| `size="1x"`                       | `size="md"` (closest match; 1x ≈ 1em)                              |
+| `size="lg"`                       | `size="lg"`                                                        |
+| `size="xl"`                       | `size="lg"` (no `xl` in the new component — accepted visual drift) |
+| `iconPosition="center"`           | drop — new component centers via `Box span`                        |
+| `iconPosition="left"` / `"right"` | drop — let the parent flex container handle position               |
+| `verticalAlign="middle"`          | drop — new component is a centered span                            |
+| `className="…"`                   | `className="…"`                                                    |
+| `color="…"`                       | `color="…"`                                                        |
+| `title="…"`                       | not used in any consumer — ignore                                  |
 
 If a consumer relied on `iconPosition="right"` to reorder icon+text, restructure the JSX (icon comes after text in source order).
 
@@ -101,24 +101,25 @@ If a consumer relied on `iconPosition="right"` to reorder icon+text, restructure
 
 **Files modified (consumers — 15):**
 
-| Path | Imports used |
-|---|---|
-| `frontend/src/components/GroupRemoveHousingModal/GroupRemoveHousingModal.tsx` | `Text` |
-| `frontend/src/components/ExtendedToggle/ExtendedToggle.tsx` | `Icon` |
-| `frontend/src/components/Label/Label.tsx` | `Text`, `TextAs` (type) |
-| `frontend/src/components/modals/ConfirmationModal/ConfirmationModal.tsx` | `Container` |
-| `frontend/src/components/Collapse/Collapse.tsx` | `Icon`, `Text` |
-| `frontend/src/components/HousingListFilters/HousingListFiltersSidemenu.tsx` | `Icon` |
-| `frontend/src/components/MainContainer/MainContainer.tsx` | `Container` |
-| `frontend/src/components/GeoPerimeterCard/GeoPerimeterCard.tsx` | `Icon`, `Row` |
-| `frontend/src/views/HousingList/HousingListMap.tsx` | `Text` |
-| `frontend/src/views/Resources/ResourcesView.tsx` | `Icon` |
-| `frontend/src/views/Resources/StatusView.tsx` | `Col`, `Row` |
-| `frontend/src/views/Account/ResetPasswordView.tsx` | `Col`, `Container`, `Row`, `Text` |
-| `frontend/src/views/Account/ForgottenPasswordView.tsx` | `Col`, `Container`, `Row`, `Text` |
-| `frontend/src/views/Account/AccountCreation/AccountPasswordCreationView.tsx` | `Row`, `Text` |
+| Path                                                                          | Imports used                      |
+| ----------------------------------------------------------------------------- | --------------------------------- |
+| `frontend/src/components/GroupRemoveHousingModal/GroupRemoveHousingModal.tsx` | `Text`                            |
+| `frontend/src/components/ExtendedToggle/ExtendedToggle.tsx`                   | `Icon`                            |
+| `frontend/src/components/Label/Label.tsx`                                     | `Text`, `TextAs` (type)           |
+| `frontend/src/components/modals/ConfirmationModal/ConfirmationModal.tsx`      | `Container`                       |
+| `frontend/src/components/Collapse/Collapse.tsx`                               | `Icon`, `Text`                    |
+| `frontend/src/components/HousingListFilters/HousingListFiltersSidemenu.tsx`   | `Icon`                            |
+| `frontend/src/components/MainContainer/MainContainer.tsx`                     | `Container`                       |
+| `frontend/src/components/GeoPerimeterCard/GeoPerimeterCard.tsx`               | `Icon`, `Row`                     |
+| `frontend/src/views/HousingList/HousingListMap.tsx`                           | `Text`                            |
+| `frontend/src/views/Resources/ResourcesView.tsx`                              | `Icon`                            |
+| `frontend/src/views/Resources/StatusView.tsx`                                 | `Col`, `Row`                      |
+| `frontend/src/views/Account/ResetPasswordView.tsx`                            | `Col`, `Container`, `Row`, `Text` |
+| `frontend/src/views/Account/ForgottenPasswordView.tsx`                        | `Col`, `Container`, `Row`, `Text` |
+| `frontend/src/views/Account/AccountCreation/AccountPasswordCreationView.tsx`  | `Row`, `Text`                     |
 
 **Files deleted:**
+
 - `frontend/src/components/modals/GroupCampaignCreationModal/` — orphaned consumer (no callers).
 - `frontend/src/components/_dsfr/` — entire folder, after all consumers migrated.
 
@@ -127,6 +128,7 @@ If a consumer relied on `iconPosition="right"` to reorder icon+text, restructure
 ## Task 1: Verify dead `_dsfr` exports and delete the orphaned consumer
 
 **Files:**
+
 - Delete: `frontend/src/components/_dsfr/components/interface/` (Modal, Pagination, Select, Table — if grep is clean)
 - Keep (until Task 6): `frontend/src/components/_dsfr/utils/`, `frontend/src/components/_dsfr/hooks/` — still consumed by `_dsfr/components/foundation/*` (Icon, Container, Row, Col, Text). They are removed wholesale when Task 6 deletes the entire `_dsfr/` folder.
 - Delete: `frontend/src/components/modals/GroupCampaignCreationModal/` (entire directory)
@@ -218,6 +220,7 @@ Task 6 because foundation/* still depends on them."
 ## Task 2: Migrate `Icon` consumers to `~/components/ui/Icon`
 
 **Files (5):**
+
 - Modify: `frontend/src/components/ExtendedToggle/ExtendedToggle.tsx`
 - Modify: `frontend/src/components/Collapse/Collapse.tsx`
 - Modify: `frontend/src/components/HousingListFilters/HousingListFiltersSidemenu.tsx`
@@ -265,11 +268,13 @@ Replace the three `<Icon>` usages (all use `size="1x"` → `size="md"`; drop `ic
 
 ```tsx
 // before (first usage, inside the headerLeft span)
-{props.icon && (
-  <Icon name={props.icon} iconPosition="left" size="1x" />
-)}
+{
+  props.icon && <Icon name={props.icon} iconPosition="left" size="1x" />;
+}
 // after
-{props.icon && <Icon name={props.icon as FrIconClassName} size="md" />}
+{
+  props.icon && <Icon name={props.icon as FrIconClassName} size="md" />;
+}
 ```
 
 ```tsx
@@ -419,6 +424,7 @@ ui/Icon's centered span."
 ## Task 3: Migrate `Text` consumers to MUI `Typography`
 
 **Files (8):**
+
 - Modify: `frontend/src/components/GroupRemoveHousingModal/GroupRemoveHousingModal.tsx`
 - Modify: `frontend/src/components/Label/Label.tsx`
 - Modify: `frontend/src/components/Collapse/Collapse.tsx` (Icon already migrated in Task 2)
@@ -434,16 +440,16 @@ ui/Icon's centered span."
 import { Text } from '../_dsfr';
 // …
 <Text>
-  Êtes-vous sûr de vouloir supprimer ces logements de ce groupe ? Vous
-  pourrez toujours retrouver ces logements dans votre parc de logements.
-</Text>
+  Êtes-vous sûr de vouloir supprimer ces logements de ce groupe ? Vous pourrez
+  toujours retrouver ces logements dans votre parc de logements.
+</Text>;
 // after
 import Typography from '@mui/material/Typography';
 // …
 <Typography component="p" variant="body1">
-  Êtes-vous sûr de vouloir supprimer ces logements de ce groupe ? Vous
-  pourrez toujours retrouver ces logements dans votre parc de logements.
-</Typography>
+  Êtes-vous sûr de vouloir supprimer ces logements de ce groupe ? Vous pourrez
+  toujours retrouver ces logements dans votre parc de logements.
+</Typography>;
 ```
 
 - [ ] **Step 2: `Label.tsx`** (also drops the `TextAs` type import)
@@ -467,7 +473,10 @@ function Label(props: PropsWithChildren<Props>) {
     <Typography
       component={props.as ?? 'p'}
       variant="body2"
-      className={classNames(styles.label, props.spacing && `fr-${props.spacing}`)}
+      className={classNames(
+        styles.label,
+        props.spacing && `fr-${props.spacing}`
+      )}
     >
       {props.children}
     </Typography>
@@ -510,14 +519,22 @@ import Typography from '@mui/material/Typography';
 import { Text } from '../../components/_dsfr';
 // …
 <Text spacing="mb-0">
-  {displayHousingCount({ filteredHousingCount, filteredOwnerCount, totalCount })}
-</Text>
+  {displayHousingCount({
+    filteredHousingCount,
+    filteredOwnerCount,
+    totalCount
+  })}
+</Text>;
 // after
 import Typography from '@mui/material/Typography';
 // …
 <Typography component="p" variant="body1" sx={{ mb: 0 }}>
-  {displayHousingCount({ filteredHousingCount, filteredOwnerCount, totalCount })}
-</Typography>
+  {displayHousingCount({
+    filteredHousingCount,
+    filteredOwnerCount,
+    totalCount
+  })}
+</Typography>;
 ```
 
 - [ ] **Step 5: `ResetPasswordView.tsx`** (keep `Col`, `Container`, `Row` imports — they're migrated in Tasks 4 & 5)
@@ -577,14 +594,14 @@ Replace the three `<Text>` usages inside the `EmailSent` component and the form:
 // before
 <Text className="subtitle">
   Vous ne trouvez pas le mail ? Vérifiez qu’il ne s’est pas glissé dans
-  vos spams ou 
+  vos spams ou
   <AppLinkAsButton …>renvoyer le mail</AppLinkAsButton>
   .
 </Text>
 // after
 <Typography component="p" variant="body1" className="subtitle">
   Vous ne trouvez pas le mail ? Vérifiez qu’il ne s’est pas glissé dans
-  vos spams ou 
+  vos spams ou
   <AppLinkAsButton …>renvoyer le mail</AppLinkAsButton>
   .
 </Typography>
@@ -662,6 +679,7 @@ re-export."
 ## Task 4: Migrate `Container` consumers to `@mui/material/Container`
 
 **Files (4):**
+
 - Modify: `frontend/src/components/modals/ConfirmationModal/ConfirmationModal.tsx`
 - Modify: `frontend/src/components/MainContainer/MainContainer.tsx`
 - Modify: `frontend/src/views/Account/ResetPasswordView.tsx` (Text already migrated)
@@ -801,6 +819,7 @@ becomes sx={{ py: '2rem' }}."
 ## Task 5: Migrate `Row` / `Col` consumers to `Stack` / `Grid`
 
 **Files (5):**
+
 - Modify: `frontend/src/components/GeoPerimeterCard/GeoPerimeterCard.tsx` (Icon already migrated)
 - Modify: `frontend/src/views/Resources/StatusView.tsx`
 - Modify: `frontend/src/views/Account/ResetPasswordView.tsx` (Text + Container already migrated)
@@ -1047,7 +1066,7 @@ Visit each URL and check nothing is visibly broken (no oversized headings, no mi
 - `/ressources`
 - `/ressources/statuts`
 - `/analyses/parc-vacant`, `/analyses/lutte`
-- `/parc-de-logements` (list + map tabs, filters side-menu open, *Périmètres* modal open in both sidemenu and map)
+- `/parc-de-logements` (list + map tabs, filters side-menu open, _Périmètres_ modal open in both sidemenu and map)
 - `/groupes/:id` (open "Supprimer du groupe")
 - `/proprietaires/:id`, `/logements/:housingId`, `/compte`
 - `/campagnes/:id` (delete a campaign — `ConfirmationModal` smoke)
@@ -1070,6 +1089,7 @@ and Col now have no remaining consumers."
 ## Task 6: Delete `_dsfr/` folder
 
 **Files:**
+
 - Delete: `frontend/src/components/_dsfr/` (entire folder)
 
 - [ ] **Step 1: Confirm nothing in the repo still touches `_dsfr`**

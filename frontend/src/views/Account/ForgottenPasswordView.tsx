@@ -1,15 +1,15 @@
 import { Alert } from '@codegouvfr/react-dsfr/Alert';
 import Button from '@codegouvfr/react-dsfr/Button';
 import { yupResolver } from '@hookform/resolvers/yup';
+import Container from '@mui/material/Container';
+import Grid from '@mui/material/Grid';
+import Stack from '@mui/material/Stack';
 import Typography from '@mui/material/Typography';
 import classNames from 'classnames';
 import { useState } from 'react';
 import { useForm, type SubmitHandler } from 'react-hook-form';
 import { object, type InferType } from 'yup';
 
-import Container from '@mui/material/Container';
-import Grid from '@mui/material/Grid';
-import Stack from '@mui/material/Stack';
 import building from '~/assets/images/building.svg';
 import AppLinkAsButton from '~/components/_app/AppLinkAsButton/AppLinkAsButton';
 import AppTextInputNext from '~/components/_app/AppTextInput/AppTextInputNext';
@@ -17,7 +17,6 @@ import { useDocumentTitle } from '~/hooks/useDocumentTitle';
 import { emailValidator } from '~/hooks/useForm';
 import { useHide } from '~/hooks/useHide';
 import resetLinkService from '~/services/reset-link.service';
-
 
 import styles from './forgotten-password-view.module.scss';
 
@@ -88,7 +87,12 @@ function ForgottenPasswordView() {
   };
 
   return (
-    <Container component="main" maxWidth="xl" className="grow-container" sx={{ py: '2rem' }}>
+    <Container
+      component="main"
+      maxWidth="xl"
+      className="grow-container"
+      sx={{ py: '2rem' }}
+    >
       <Grid container spacing={2} alignItems="center">
         <Grid size="grow">
           {error && (

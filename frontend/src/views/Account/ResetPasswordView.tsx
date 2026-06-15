@@ -56,7 +56,12 @@ function ResetPasswordView() {
 
   if (!resetLink.exists) {
     return (
-      <Container component="main" className="grow-container" maxWidth="xl" sx={{ py: '2rem' }}>
+      <Container
+        component="main"
+        className="grow-container"
+        maxWidth="xl"
+        sx={{ py: '2rem' }}
+      >
         <Grid container spacing={2} alignItems="center">
           <Grid size="grow">
             <Typography component="h1" variant="h4" mb={3}>
@@ -85,7 +90,12 @@ function ResetPasswordView() {
 
   if (passwordReset) {
     return (
-      <Container component="main" className="grow-container" maxWidth="xl" sx={{ py: '2rem' }}>
+      <Container
+        component="main"
+        className="grow-container"
+        maxWidth="xl"
+        sx={{ py: '2rem' }}
+      >
         <Grid container spacing={2} alignItems="center">
           <Grid size="grow">
             <Typography component="h1" variant="h4" mb={3}>
@@ -111,7 +121,12 @@ function ResetPasswordView() {
   }
 
   return (
-    <Container component="main" className="grow-container" maxWidth="xl" sx={{ py: '2rem' }}>
+    <Container
+      component="main"
+      className="grow-container"
+      maxWidth="xl"
+      sx={{ py: '2rem' }}
+    >
       <Grid container spacing={2} alignItems="center">
         <Grid size="grow">
           {error && (

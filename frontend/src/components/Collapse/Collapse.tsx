@@ -1,14 +1,14 @@
 import type { FrIconClassName, RiIconClassName } from '@codegouvfr/react-dsfr';
+import Typography from '@mui/material/Typography';
 import classNames from 'classnames';
 import type { ReactNode } from 'react';
 import { useRef, useState } from 'react';
 
 import Icon from '~/components/ui/Icon';
-import Typography from '@mui/material/Typography';
 
 import { useOutsideClick } from '../../hooks/useOutsideClick';
-import styles from './collapse.module.scss';
 
+import styles from './collapse.module.scss';
 
 interface Props {
   className?: string;

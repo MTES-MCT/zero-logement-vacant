@@ -1,4 +1,5 @@
 import Typography from '@mui/material/Typography';
+
 import { pluralize } from '../../utils/stringUtils';
 import ConfirmationModal from '../modals/ConfirmationModal/ConfirmationModal';
 

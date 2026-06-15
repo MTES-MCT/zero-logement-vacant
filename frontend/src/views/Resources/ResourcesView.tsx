@@ -1,3 +1,4 @@
+import type { FrIconClassName, RiIconClassName } from '@codegouvfr/react-dsfr';
 import Tile from '@codegouvfr/react-dsfr/Tile';
 import Container from '@mui/material/Container';
 import Grid from '@mui/material/Grid';
@@ -5,9 +6,8 @@ import Stack from '@mui/material/Stack';
 import Typography from '@mui/material/Typography';
 import classNames from 'classnames';
 
-import type { FrIconClassName, RiIconClassName } from '@codegouvfr/react-dsfr';
-
 import Icon from '~/components/ui/Icon';
+
 import { useDocumentTitle } from '../../hooks/useDocumentTitle';
 
 import styles from './resources.module.scss';

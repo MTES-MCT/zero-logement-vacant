@@ -6,6 +6,7 @@ import Stack from '@mui/material/Stack';
 import Typography from '@mui/material/Typography';
 
 import Icon from '~/components/ui/Icon';
+
 import type { GeoPerimeter } from '../../models/GeoPerimeter';
 import AppLink from '../_app/AppLink/AppLink';
 

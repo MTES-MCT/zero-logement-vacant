@@ -213,39 +213,33 @@ describe('CampaignListView', () => {
     it('should sort by return count ascending', async () => {
       renderView({
         campaigns: [
-          factories
-            .campaign(establishment)
-            .build(
-              {
-                sentAt: '2024-01-01',
-                housingCount: 10,
-                returnCount: 5,
-                returnRate: 0.5
-              },
-              { associations: { createdBy: auth } }
-            ),
-          factories
-            .campaign(establishment)
-            .build(
-              {
-                sentAt: '2024-01-01',
-                housingCount: 10,
-                returnCount: 1,
-                returnRate: 0.1
-              },
-              { associations: { createdBy: auth } }
-            ),
-          factories
-            .campaign(establishment)
-            .build(
-              {
-                sentAt: '2024-01-01',
-                housingCount: 10,
-                returnCount: 3,
-                returnRate: 0.3
-              },
-              { associations: { createdBy: auth } }
-            )
+          factories.campaign(establishment).build(
+            {
+              sentAt: '2024-01-01',
+              housingCount: 10,
+              returnCount: 5,
+              returnRate: 0.5
+            },
+            { associations: { createdBy: auth } }
+          ),
+          factories.campaign(establishment).build(
+            {
+              sentAt: '2024-01-01',
+              housingCount: 10,
+              returnCount: 1,
+              returnRate: 0.1
+            },
+            { associations: { createdBy: auth } }
+          ),
+          factories.campaign(establishment).build(
+            {
+              sentAt: '2024-01-01',
+              housingCount: 10,
+              returnCount: 3,
+              returnRate: 0.3
+            },
+            { associations: { createdBy: auth } }
+          )
         ]
       });
 
@@ -270,39 +264,33 @@ describe('CampaignListView', () => {
     it('should sort by return rate ascending', async () => {
       renderView({
         campaigns: [
-          factories
-            .campaign(establishment)
-            .build(
-              {
-                sentAt: '2024-01-01',
-                housingCount: 10,
-                returnCount: 5,
-                returnRate: 0.5
-              },
-              { associations: { createdBy: auth } }
-            ),
-          factories
-            .campaign(establishment)
-            .build(
-              {
-                sentAt: '2024-01-01',
-                housingCount: 10,
-                returnCount: 1,
-                returnRate: 0.1
-              },
-              { associations: { createdBy: auth } }
-            ),
-          factories
-            .campaign(establishment)
-            .build(
-              {
-                sentAt: '2024-01-01',
-                housingCount: 10,
-                returnCount: 3,
-                returnRate: 0.3
-              },
-              { associations: { createdBy: auth } }
-            )
+          factories.campaign(establishment).build(
+            {
+              sentAt: '2024-01-01',
+              housingCount: 10,
+              returnCount: 5,
+              returnRate: 0.5
+            },
+            { associations: { createdBy: auth } }
+          ),
+          factories.campaign(establishment).build(
+            {
+              sentAt: '2024-01-01',
+              housingCount: 10,
+              returnCount: 1,
+              returnRate: 0.1
+            },
+            { associations: { createdBy: auth } }
+          ),
+          factories.campaign(establishment).build(
+            {
+              sentAt: '2024-01-01',
+              housingCount: 10,
+              returnCount: 3,
+              returnRate: 0.3
+            },
+            { associations: { createdBy: auth } }
+          )
         ]
       });
 

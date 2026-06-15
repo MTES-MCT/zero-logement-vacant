@@ -21,6 +21,10 @@ const validRaw = {
     api: { endpoint: 'https://api-adresse.data.gouv.fr' },
     update: { pageSize: '2000', delay: '1 months' }
   },
+  cache: {
+    default: 10 * 60 * 1000,
+    establishment: 5 * 60 * 1000
+  },
   clamav: {
     enabled: 'false',
     socket: '/var/run/clamav/clamd.sock',

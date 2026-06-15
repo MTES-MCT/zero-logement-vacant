@@ -4,6 +4,7 @@ import { object } from 'yup';
 
 import authController from '~/controllers/auth-controller';
 import establishmentController from '~/controllers/establishmentController';
+import precisionController from '~/controllers/precisionController';
 import localityController from '~/controllers/localityController';
 import prospectController from '~/controllers/prospectController';
 import resetLinkController from '~/controllers/resetLinkController';
@@ -11,6 +12,7 @@ import signupLinkController from '~/controllers/signupLinkController';
 import userController from '~/controllers/userController';
 import config from '~/infra/config';
 import { noop } from '~/middlewares/noop';
+import { responseCache } from '~/middlewares/responseCache';
 import validator from '~/middlewares/validator';
 import validatorNext from '~/middlewares/validator-next';
 import schemas from '@zerologementvacant/schemas';
@@ -116,12 +118,14 @@ router.get(
   validatorNext.validate({
     query: schemas.establishmentFilters
   }),
+  responseCache(config.cache.establishment),
   establishmentController.list
 );
 
 router.get(
   '/establishments/:id',
   validatorNext.validate({ params: object({ id: schemas.id }) }),
+  responseCache(config.cache.establishment),
   establishmentController.get
 );
 
@@ -129,6 +133,7 @@ router.get(
   '/localities',
   localityController.listLocalitiesValidators,
   validator.validate,
+  responseCache(config.cache.default),
   localityController.listLocalities
 );
 
@@ -136,7 +141,14 @@ router.get(
   '/localities/:geoCode',
   localityController.getLocalityValidators,
   validator.validate,
+  responseCache(config.cache.default),
   localityController.getLocality
+);
+
+router.get(
+  '/precisions',
+  responseCache(config.cache.default),
+  precisionController.find
 );
 
 export default router;

@@ -189,7 +189,6 @@ router.get(
   buildingController.get
 );
 
-router.get('/precisions', precisionController.find);
 router.get('/housing/:id/precisions', precisionController.findByHousing);
 router.put(
   '/housing/:id/precisions',

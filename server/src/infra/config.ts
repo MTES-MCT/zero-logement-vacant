@@ -44,6 +44,18 @@ export const configSchema = z.object({
       delay: z.string().default('1 months')
     })
   }),
+  cache: z.object({
+    default: z.coerce
+      .number()
+      .int()
+      .min(0)
+      .default(10 * 60 * 1000), // 10 minutes
+    establishment: z.coerce
+      .number()
+      .int()
+      .min(0)
+      .default(5 * 60 * 1000) // 5 minutes
+  }),
   clamav: z.object({
     enabled: z.stringbool().default(false),
     socket: z.string().default('/var/run/clamav/clamd.sock'),
@@ -158,7 +170,11 @@ export const configSchema = z.object({
     domain: z.url().nullable().default('http://localhost:4000'),
     token: z.string().default('example-token'),
     apiToken: z.string().default('example-api-token'),
-    cacheTtlMs: z.coerce.number().int().min(0).default(60 * 60 * 1000),
+    cacheTtlMs: z.coerce
+      .number()
+      .int()
+      .min(0)
+      .default(60 * 60 * 1000),
     cacheMaxEntries: z.coerce.number().int().min(1).default(10_000)
   }),
   rateLimit: z.object({
@@ -242,6 +258,10 @@ const config = configSchema.parse({
       pageSize: env('BAN_UPDATE_PAGE_SIZE'),
       delay: env('BAN_UPDATE_DELAY')
     }
+  },
+  cache: {
+    default: env('REFERENCE_CACHE_TTL_MS'),
+    establishment: env('ESTABLISHMENT_CACHE_TTL_MS')
   },
   clamav: {
     enabled: env('CLAMAV_ENABLED'),

@@ -55,16 +55,8 @@ describe('Precision API', () => {
   describe('GET /precisions', () => {
     const testRoute = '/precisions';
 
-    it('should be forbidden for non-authenticated users', async () => {
-      const { status } = await request(url).get(testRoute);
-
-      expect(status).toBe(constants.HTTP_STATUS_UNAUTHORIZED);
-    });
-
     it('should return the referential of precisions', async () => {
-      const { body, status } = await request(url)
-        .get(testRoute)
-        .use(tokenProvider(user));
+      const { body, status } = await request(url).get(testRoute);
 
       expect(status).toBe(constants.HTTP_STATUS_OK);
       const precisions = await Precisions()

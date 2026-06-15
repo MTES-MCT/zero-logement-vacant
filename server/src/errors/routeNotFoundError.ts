@@ -1,5 +1,6 @@
-import { Request } from 'express';
 import { constants } from 'http2';
+
+import { Request } from 'express';
 
 import { HttpError } from './httpError';
 
@@ -11,8 +12,8 @@ export default class RouteNotFoundError extends HttpError implements HttpError {
       status: constants.HTTP_STATUS_NOT_FOUND,
       data: {
         method: request.method,
-        url: request.url,
-      },
+        url: request.url
+      }
     });
   }
 }

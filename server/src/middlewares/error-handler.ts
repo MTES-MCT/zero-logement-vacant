@@ -1,6 +1,7 @@
+import { constants } from 'http2';
+
 import { errors as compose, ErrorHandler, Next } from 'compose-middleware';
 import { Request, Response } from 'express';
-import { constants } from 'http2';
 import multer from 'multer';
 
 import { isHttpError } from '~/errors/httpError';

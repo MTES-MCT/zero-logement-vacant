@@ -1,31 +1,33 @@
-import { faker } from '@faker-js/faker/locale/fr';
 import { constants } from 'http2';
+import fs from 'node:fs';
+import path from 'node:path';
+
+import { faker } from '@faker-js/faker/locale/fr';
+import AdmZip from 'adm-zip';
 import randomstring from 'randomstring';
 import request from 'supertest';
-import path from 'node:path';
-import fs from 'node:fs';
-import AdmZip from 'adm-zip';
 
-import { tokenProvider } from '~/test/testUtils';
+import { createServer } from '~/infra/server';
+import { GeoPerimeterApi } from '~/models/GeoPerimeterApi';
+import {
+  Establishments,
+  formatEstablishmentApi
+} from '~/repositories/establishmentRepository';
 import {
   formatGeoPerimeterApi,
   GeoPerimeters
 } from '~/repositories/geoRepository';
-import { createServer } from '~/infra/server';
+import { toUserDBO, Users } from '~/repositories/userRepository';
 import {
   genEstablishmentApi,
   genGeoPerimeterApi,
   genUserApi
 } from '~/test/testFixtures';
-import {
-  Establishments,
-  formatEstablishmentApi
-} from '~/repositories/establishmentRepository';
-import { toUserDBO, Users } from '~/repositories/userRepository';
-import { GeoPerimeterApi } from '~/models/GeoPerimeterApi';
+import { tokenProvider } from '~/test/testUtils';
 
 // EICAR test file - standard antivirus test string
-const EICAR_TEST_FILE = 'X5O!P%@AP[4\\PZX54(P^)7CC)7}$EICAR-STANDARD-ANTIVIRUS-TEST-FILE!$H+H*';
+const EICAR_TEST_FILE =
+  'X5O!P%@AP[4\\PZX54(P^)7CC)7}$EICAR-STANDARD-ANTIVIRUS-TEST-FILE!$H+H*';
 
 describe('Geo perimeters API', () => {
   let url: string;
@@ -272,9 +274,7 @@ describe('Geo perimeters API', () => {
           message: expect.stringContaining('malicious content'),
           details: {
             filename: expect.any(String),
-            viruses: expect.arrayContaining([
-              expect.stringContaining('EICAR')
-            ])
+            viruses: expect.arrayContaining([expect.stringContaining('EICAR')])
           }
         });
       } finally {

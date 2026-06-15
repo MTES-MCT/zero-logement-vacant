@@ -1,6 +1,6 @@
-import validator from 'validator';
-import { param, ValidationChain } from 'express-validator';
 import { Predicate } from '@zerologementvacant/utils';
+import { param, ValidationChain } from 'express-validator';
+import validator from 'validator';
 
 type Refinement = (value: unknown) => boolean;
 

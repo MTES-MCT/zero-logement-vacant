@@ -1,10 +1,14 @@
 import { fc, test } from '@fast-check/vitest';
 import { describe, expect } from 'vitest';
+
 import { housingDocumentPayload } from '../housing-document-payload';
 
 describe('Housing document payload', () => {
   test.prop({
-    documentIds: fc.array(fc.uuid({ version: 4 }), { minLength: 1, maxLength: 10 })
+    documentIds: fc.array(fc.uuid({ version: 4 }), {
+      minLength: 1,
+      maxLength: 10
+    })
   })('should validate valid document IDs', (payload) => {
     const validate = () => housingDocumentPayload.validateSync(payload);
 

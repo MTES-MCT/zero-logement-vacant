@@ -3,12 +3,11 @@ import ButtonsGroup from '@codegouvfr/react-dsfr/ButtonsGroup';
 import Tabs from '@codegouvfr/react-dsfr/Tabs';
 import Box from '@mui/material/Box';
 import Container from '@mui/material/Container';
-
 import Stack from '@mui/material/Stack';
 import Typography from '@mui/material/Typography';
+import { lazy, Suspense } from 'react';
 import { useNavigate, useParams } from 'react-router';
 
-import { lazy, Suspense } from 'react';
 import CampaignCreatedFromGroup from '~/components/Campaign/CampaignCreatedFromGroup';
 import { createCampaignDeleteModal } from '~/components/Campaign/CampaignDeleteModal';
 import CampaignReturnCountStatCard from '~/components/Campaign/CampaignReturnCountStatCard';
@@ -18,10 +17,12 @@ import CampaignSentAtStatCard from '~/components/Campaign/CampaignSentAtStatCard
 import CampaignStatCard from '~/components/Campaign/CampaignStatCard';
 import CampaignTitle from '~/components/Campaign/CampaignTitle';
 
-const CampaignRecipientsNext = lazy(() => import('~/components/Campaign/CampaignRecipients'));
+const CampaignRecipientsNext = lazy(
+  () => import('~/components/Campaign/CampaignRecipients')
+);
 const DraftForm = lazy(() => import('~/components/Draft/DraftForm'));
-import { useGetCampaignDraftQuery } from '~/hooks/useGetCampaignDraftQuery';
 import { useHousingFilters } from '~/hooks/HousingFiltersContext';
+import { useGetCampaignDraftQuery } from '~/hooks/useGetCampaignDraftQuery';
 import { useNotification } from '~/hooks/useNotification';
 import {
   useGetCampaignQuery,

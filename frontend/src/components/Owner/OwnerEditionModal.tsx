@@ -17,6 +17,7 @@ import Icon from '~/components/ui/Icon';
 import { useNotification } from '~/hooks/useNotification';
 import type { Owner } from '~/models/Owner';
 import { useUpdateOwnerMutation } from '~/services/owner.service';
+
 import OwnerAddressEdition from '../OwnerAddressEdition/OwnerAddressEdition';
 
 const schema = object({
@@ -35,11 +36,21 @@ const schema = object({
     longitude: number().min(-180).max(180).nullable().defined(),
     latitude: number().min(-90).max(90).nullable().defined(),
     postalCode: string()
-      .required("L'adresse doit avoir un code postal. Veuillez re-sélectionner l'adresse.")
-      .min(1, "L'adresse doit avoir un code postal. Veuillez re-sélectionner l'adresse."),
+      .required(
+        "L'adresse doit avoir un code postal. Veuillez re-sélectionner l'adresse."
+      )
+      .min(
+        1,
+        "L'adresse doit avoir un code postal. Veuillez re-sélectionner l'adresse."
+      ),
     city: string()
-      .required("L'adresse doit avoir une ville. Veuillez re-sélectionner l'adresse.")
-      .min(1, "L'adresse doit avoir une ville. Veuillez re-sélectionner l'adresse."),
+      .required(
+        "L'adresse doit avoir une ville. Veuillez re-sélectionner l'adresse."
+      )
+      .min(
+        1,
+        "L'adresse doit avoir une ville. Veuillez re-sélectionner l'adresse."
+      ),
     cityCode: string().nullable().defined(),
     street: string().nullable().defined(),
     houseNumber: string().nullable().defined()
@@ -127,7 +138,8 @@ function createOwnerEditionModalNext() {
         if (props.owner.banAddress && !payload.banAddress) {
           form.setError('banAddress', {
             type: 'manual',
-            message: "Veuillez sélectionner une adresse depuis la liste de suggestions."
+            message:
+              'Veuillez sélectionner une adresse depuis la liste de suggestions.'
           });
           return;
         }

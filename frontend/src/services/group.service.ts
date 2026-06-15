@@ -1,4 +1,5 @@
 import type { GroupDTO, PaginationOptions } from '@zerologementvacant/models';
+
 import { fromGroupDTO, type Group } from '../models/Group';
 import type { GroupFilters } from '../models/GroupFilters';
 import type { GroupPayload } from '../models/GroupPayload';

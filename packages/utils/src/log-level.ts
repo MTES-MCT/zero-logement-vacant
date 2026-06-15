@@ -5,7 +5,7 @@ export enum LogLevel {
   INFO = 'info',
   WARN = 'warn',
   ERROR = 'error',
-  FATAL = 'fatal',
+  FATAL = 'fatal'
 }
 
 export const LOG_LEVELS = Object.values(LogLevel);

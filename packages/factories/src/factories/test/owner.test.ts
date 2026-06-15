@@ -1,4 +1,5 @@
 import { describe, expect, it, vi } from 'vitest';
+
 import { MemoryAdapter } from '../../memory-adapter';
 import { createOwnerFactory } from '../owner';
 
@@ -25,7 +26,10 @@ describe('createOwnerFactory', () => {
 
     const owner = await factory.create();
 
-    expect(spy).toHaveBeenCalledWith('owners', expect.objectContaining({ id: owner.id }));
+    expect(spy).toHaveBeenCalledWith(
+      'owners',
+      expect.objectContaining({ id: owner.id })
+    );
   });
 
   it('builds a list of owners', () => {

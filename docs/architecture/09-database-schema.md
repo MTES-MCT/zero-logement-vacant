@@ -245,43 +245,43 @@ erDiagram
 
 ### Core Tables
 
-| Table | Description | PK | Soft Delete |
-|-------|-------------|----|----|
-| `fast_housing` | Vacant housing records | `(geo_code, id)` | ✓ |
-| `owners` | Property owners | `id` | ✓ |
-| `campaigns` | Outreach campaigns | `id` | ✓ |
-| `groups` | Housing groups | `id` | - |
-| `establishments` | Local authorities | `id` | - |
-| `users` | User accounts | `id` | ✓ |
-| `localities` | Geographic areas | `id` | - |
-| `buildings` | Building data | `id` | - |
-| `events` | Audit trail | `id` | - |
-| `notes` | Text notes | `id` | - |
-| `documents` | File uploads | `id` | ✓ |
+| Table            | Description            | PK               | Soft Delete |
+| ---------------- | ---------------------- | ---------------- | ----------- |
+| `fast_housing`   | Vacant housing records | `(geo_code, id)` | ✓           |
+| `owners`         | Property owners        | `id`             | ✓           |
+| `campaigns`      | Outreach campaigns     | `id`             | ✓           |
+| `groups`         | Housing groups         | `id`             | -           |
+| `establishments` | Local authorities      | `id`             | -           |
+| `users`          | User accounts          | `id`             | ✓           |
+| `localities`     | Geographic areas       | `id`             | -           |
+| `buildings`      | Building data          | `id`             | -           |
+| `events`         | Audit trail            | `id`             | -           |
+| `notes`          | Text notes             | `id`             | -           |
+| `documents`      | File uploads           | `id`             | ✓           |
 
 ### Junction Tables
 
-| Table | Links | PK |
-|-------|-------|-----|
-| `owners_housing` | owners ↔ housing | `(owner_id, housing_id, housing_geo_code)` |
-| `campaigns_housing` | campaigns ↔ housing | `(campaign_id, housing_id, housing_geo_code)` |
-| `groups_housing` | groups ↔ housing | `(group_id, housing_id, housing_geo_code)` |
-| `establishments_localities` | establishments ↔ localities | `(establishment_id, locality_id)` |
-| `housing_notes` | notes ↔ housing | `(note_id, housing_id, housing_geo_code)` |
-| `owner_notes` | notes ↔ owners | `(note_id, owner_id)` |
-| `documents_housings` | documents ↔ housing | `(document_id, housing_id, housing_geo_code)` |
+| Table                       | Links                       | PK                                            |
+| --------------------------- | --------------------------- | --------------------------------------------- |
+| `owners_housing`            | owners ↔ housing            | `(owner_id, housing_id, housing_geo_code)`    |
+| `campaigns_housing`         | campaigns ↔ housing         | `(campaign_id, housing_id, housing_geo_code)` |
+| `groups_housing`            | groups ↔ housing            | `(group_id, housing_id, housing_geo_code)`    |
+| `establishments_localities` | establishments ↔ localities | `(establishment_id, locality_id)`             |
+| `housing_notes`             | notes ↔ housing             | `(note_id, housing_id, housing_geo_code)`     |
+| `owner_notes`               | notes ↔ owners              | `(note_id, owner_id)`                         |
+| `documents_housings`        | documents ↔ housing         | `(document_id, housing_id, housing_geo_code)` |
 
 ### Event Junction Tables
 
-| Table | Tracks Events For |
-|-------|------------------|
-| `housing_events` | Housing changes |
-| `owner_events` | Owner changes |
-| `campaign_events` | Campaign changes |
-| `group_housing_events` | Group membership |
-| `campaign_housing_events` | Campaign membership |
-| `housing_owner_events` | Ownership changes |
-| `document_events` | Document actions |
+| Table                     | Tracks Events For      |
+| ------------------------- | ---------------------- |
+| `housing_events`          | Housing changes        |
+| `owner_events`            | Owner changes          |
+| `campaign_events`         | Campaign changes       |
+| `group_housing_events`    | Group membership       |
+| `campaign_housing_events` | Campaign membership    |
+| `housing_owner_events`    | Ownership changes      |
+| `document_events`         | Document actions       |
 | `housing_document_events` | Document-housing links |
 
 ---
@@ -448,11 +448,13 @@ CREATE TABLE fast_housing_2b PARTITION OF fast_housing
 ```
 
 **Benefits:**
+
 - Faster queries scoped to department
 - Parallel maintenance operations
 - Easier data archival per region
 
 **Constraint:**
+
 - Primary key must include partition key: `(geo_code, id)`
 - All FKs to housing include `housing_geo_code`
 
@@ -490,6 +492,7 @@ CREATE INDEX idx_housing_events_housing ON housing_events(housing_id);
 ## Soft Delete Pattern
 
 Tables with soft delete:
+
 - `fast_housing`
 - `owners`
 - `users`

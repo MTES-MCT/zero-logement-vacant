@@ -1,7 +1,7 @@
 import { OwnerDBO, OwnerRecordDBO } from '~/repositories/ownerRepository';
 import { ReporterError, ReporterOptions } from '~/scripts/import-lovac/infra';
-import { EnrichedOwner } from '~/scripts/import-lovac/source-owners/source-owner-enricher';
 import { SourceOwner } from '~/scripts/import-lovac/source-owners/source-owner';
+import { EnrichedOwner } from '~/scripts/import-lovac/source-owners/source-owner-enricher';
 
 interface Change<Value, Type extends string> {
   type: Type;

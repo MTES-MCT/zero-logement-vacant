@@ -1,7 +1,9 @@
 import { UserRole } from '@zerologementvacant/models';
-import { useAppDispatch, useAppSelector } from './useStore';
-import authenticationSlice from '~/store/reducers/authenticationReducer';
+
 import { zlvApi } from '~/services/api.service';
+import authenticationSlice from '~/store/reducers/authenticationReducer';
+
+import { useAppDispatch, useAppSelector } from './useStore';
 
 export function useUser() {
   const dispatch = useAppDispatch();
@@ -21,7 +23,8 @@ export function useUser() {
 
   // USUAL users with multiple authorized establishments can change establishment
   const hasMultipleEstablishments = (authorizedEstablishments?.length ?? 0) > 1;
-  const canChangeEstablishment = isAdmin || isVisitor || (isUsual && hasMultipleEstablishments);
+  const canChangeEstablishment =
+    isAdmin || isVisitor || (isUsual && hasMultipleEstablishments);
 
   function displayName(): string {
     if (user?.firstName && user?.lastName) {

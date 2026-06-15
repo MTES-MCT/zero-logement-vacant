@@ -7,10 +7,11 @@ import Typography from '@mui/material/Typography';
 import classNames from 'classnames';
 import { Navigate, useLocation } from 'react-router';
 
-import styles from '../forgotten-password-view.module.scss';
-import { useActivationEmail } from '../../../hooks/useActivationEmail';
 import image from '../../../assets/images/fifty-hours.svg';
 import Image from '../../../components/Image/Image';
+import { useActivationEmail } from '../../../hooks/useActivationEmail';
+
+import styles from '../forgotten-password-view.module.scss';
 
 interface State {
   email?: string;

@@ -5,6 +5,7 @@ import {
   TransformStream,
   WritableStream
 } from 'node:stream/web';
+
 import { AsyncOrSync } from 'ts-essentials';
 
 import { Eq, Predicate, Refinement } from './compare';

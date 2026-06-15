@@ -1,5 +1,6 @@
 import { faker } from '@faker-js/faker/locale/fr';
 import { PROPERTY_RIGHT_VALUES } from '@zerologementvacant/models';
+
 import { HousingOwnerApi } from '~/models/HousingOwnerApi';
 import { OwnerApi } from '~/models/OwnerApi';
 import housingOwnerRepository, {
@@ -153,18 +154,27 @@ describe('housingOwnerRepository', () => {
       const housing = genHousingApi();
 
       await Promise.all([
-        Owners().insert([formatOwnerApi(existingOwner), formatOwnerApi(newOwner)]),
+        Owners().insert([
+          formatOwnerApi(existingOwner),
+          formatOwnerApi(newOwner)
+        ]),
         Housing().insert(formatHousingRecordApi(housing))
       ]);
       await HousingOwners().insert(
-        formatHousingOwnerApi({ ...genHousingOwnerApi(housing, existingOwner), rank: 1 })
+        formatHousingOwnerApi({
+          ...genHousingOwnerApi(housing, existingOwner),
+          rank: 1
+        })
       );
 
       const affectedOwnerIds = await housingOwnerRepository.saveMany([
         { ...genHousingOwnerApi(housing, newOwner), rank: 1 }
       ]);
 
-      expect(affectedOwnerIds).toIncludeAllMembers([existingOwner.id, newOwner.id]);
+      expect(affectedOwnerIds).toIncludeAllMembers([
+        existingOwner.id,
+        newOwner.id
+      ]);
     });
   });
 });

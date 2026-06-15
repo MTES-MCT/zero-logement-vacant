@@ -1,10 +1,11 @@
-import { Factory } from 'fishery';
 import { faker } from '@faker-js/faker/locale/fr';
 import {
   OWNER_KIND_LABELS,
   type AddressDTO,
   type OwnerDTO
 } from '@zerologementvacant/models';
+import { Factory } from 'fishery';
+
 import type { Adapter } from '../adapter';
 
 function genAddressDTO(): AddressDTO {

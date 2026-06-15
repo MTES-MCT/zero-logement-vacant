@@ -1,17 +1,23 @@
-import { EventType } from '@zerologementvacant/models';
 import { TransformStream } from 'node:stream/web';
+
+import { EventType } from '@zerologementvacant/models';
+
 import db from '~/infra/database';
 import {
   EventRecordDBO,
   EVENTS_TABLE,
   HOUSING_EVENTS_TABLE
 } from '~/repositories/eventRepository';
-import { HousingRecordDBO, housingTable } from '~/repositories/housingRepository';
+import {
+  HousingRecordDBO,
+  housingTable
+} from '~/repositories/housingRepository';
 import {
   HOUSING_NOTES_TABLE,
   NoteRecordDBO,
   NOTES_TABLE
 } from '~/repositories/noteRepository';
+
 import { SourceHousing } from './source-housing';
 
 const CHUNK_SIZE = 500;
@@ -96,9 +102,7 @@ export function createSourceHousingEnricher(): TransformStream<
       }
     >;
 
-    const byKey = new Map(
-      rows.map((r) => [`${r.geo_code}:${r.local_id}`, r])
-    );
+    const byKey = new Map(rows.map((r) => [`${r.geo_code}:${r.local_id}`, r]));
 
     for (const source of chunk) {
       const row = byKey.get(`${source.geo_code}:${source.local_id}`);

@@ -1,8 +1,10 @@
+import { constants } from 'http2';
+
 import { isAdmin, NoteDTO, NotePayloadDTO } from '@zerologementvacant/models';
 import { RequestHandler } from 'express';
 import { AuthenticatedRequest } from 'express-jwt';
-import { constants } from 'http2';
 import { v4 as uuidv4 } from 'uuid';
+
 import HousingMissingError from '~/errors/housingMissingError';
 import NoteMissingError from '~/errors/noteMissingError';
 import { createLogger } from '~/infra/logger';
@@ -22,12 +24,8 @@ const findByHousing: RequestHandler<
   never,
   never
 > = async (request, response): Promise<void> => {
-  const { effectiveGeoCodes, establishment, params } = request as AuthenticatedRequest<
-    PathParams,
-    NoteDTO[],
-    never,
-    never
-  >;
+  const { effectiveGeoCodes, establishment, params } =
+    request as AuthenticatedRequest<PathParams, NoteDTO[], never, never>;
 
   logger.debug('Finding notes by housing...', { housing: params.id });
   const housing = await housingRepository.findOne({
@@ -53,12 +51,8 @@ const createByHousing: RequestHandler<
   NotePayloadDTO,
   never
 > = async (request, response): Promise<void> => {
-  const { body, effectiveGeoCodes, establishment, params, user } = request as AuthenticatedRequest<
-    PathParams,
-    NoteDTO,
-    NotePayloadDTO,
-    never
-  >;
+  const { body, effectiveGeoCodes, establishment, params, user } =
+    request as AuthenticatedRequest<PathParams, NoteDTO, NotePayloadDTO, never>;
   logger.debug('Create a note by housing', { housing: params.id, note: body });
 
   const housing = await housingRepository.findOne({

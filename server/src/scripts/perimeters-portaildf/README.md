@@ -19,14 +19,14 @@ graph TD
     A[Cerema API] --> B[Cerema Scraper]
     B --> C[structures.jsonl]
     B --> D[users.jsonl]
-    
+
     C --> E[Structure Verifier]
     E --> F[Establishments DB]
-    
+
     C --> G[Users Verifier]
     D --> G
     G --> H[Users DB]
-    
+
     F --> I[Updated Establishments]
     H --> J[Updated Users]
 ```
@@ -56,10 +56,10 @@ export POSTGRESQL_ADDON_PASSWORD="your_password"
 
 L'API Portail DF supporte deux versions d'authentification :
 
-| Version | Endpoint | Response | Header | URL |
-|---------|----------|----------|--------|-----|
-| **V1** (legacy) | `POST /api/api-token-auth/` | `{ "token": "..." }` | `Authorization: Token <token>` | `https://portaildf.cerema.fr` |
-| **V2** (DataFoncier) | `POST /api/token/` | `{ "access": "...", "refresh": "..." }` | `Authorization: Bearer <access>` | `https://datafoncier.cerema.fr` |
+| Version              | Endpoint                    | Response                                | Header                           | URL                             |
+| -------------------- | --------------------------- | --------------------------------------- | -------------------------------- | ------------------------------- |
+| **V1** (legacy)      | `POST /api/api-token-auth/` | `{ "token": "..." }`                    | `Authorization: Token <token>`   | `https://portaildf.cerema.fr`   |
+| **V2** (DataFoncier) | `POST /api/token/`          | `{ "access": "...", "refresh": "..." }` | `Authorization: Bearer <access>` | `https://datafoncier.cerema.fr` |
 
 #### Configuration (variables d'environnement)
 
@@ -146,12 +146,14 @@ cerema-data-management/
 **Purpose**: Retrieve structures and users from Cerema DF Portal API
 
 **Key Features**:
+
 - Automatic pagination handling
 - Resume capability on interruption
 - Duplicate prevention
 - Configurable rate limiting
 
 **Usage**:
+
 ```bash
 # Navigate to scraper directory
 cd 01-cerema-scraper/
@@ -168,6 +170,7 @@ python cerema-scraper.py \
 ```
 
 **Output Files**:
+
 - `structures.jsonl` - Structure data with LOVAC access information
 - `users.jsonl` - User data with expiration dates and structure associations
 
@@ -178,10 +181,12 @@ python cerema-scraper.py \
 **Purpose**: Validate establishments in database against structure data
 
 **Business Rules**:
+
 - Missing SIREN → mark establishment as deleted
 - Expired LOVAC access → suspend establishment
 
 **Usage**:
+
 ```bash
 # Navigate to establishment verifier directory
 cd 02-establishment-verifier/
@@ -194,6 +199,7 @@ python establishment-verifier.py --jsonl-file ../01-cerema-scraper/structures.js
 ```
 
 **Database Requirements**:
+
 - `establishments` table with `deleted_at`, `suspended_at`, `suspended_cause` columns
 
 **Documentation**: See `02-establishment-verifier/README.md` for detailed usage instructions.
@@ -203,12 +209,14 @@ python establishment-verifier.py --jsonl-file ../01-cerema-scraper/structures.js
 **Purpose**: Manage user deactivation based on business rules
 
 **Business Rules**:
+
 - Missing user → mark as deleted
 - Expired user rights → suspend user
 - Invalid Terms of Service → suspend user
 - Expired structure rights → suspend user
 
 **Usage**:
+
 ```bash
 # Navigate to users verifier directory
 cd 03-users-verifier/
@@ -226,6 +234,7 @@ python users-verifier.py \
 ```
 
 **Database Requirements**:
+
 - `users` table with `deleted_at`, `suspended_at`, `suspended_cause` columns
 
 **Documentation**: See `03-users-verifier/README.md` for detailed usage instructions.
@@ -282,6 +291,7 @@ find . -name "*.log" -exec grep "ERROR" {} \; | tail -10
 ### Common Issues
 
 #### 1. API Rate Limiting
+
 ```bash
 # Solution: Increase delays
 cd 01-cerema-scraper/
@@ -289,6 +299,7 @@ python cerema-scraper.py --delay 2.0 --retry-delay 10.0
 ```
 
 #### 2. Network Timeouts
+
 ```bash
 # Solution: Increase retries and timeout
 cd 01-cerema-scraper/
@@ -346,12 +357,14 @@ print(f'Authorization: Bearer {access}')
 ```
 
 **Important Notes:**
+
 - V1 tokens don't expire automatically but may be revoked
 - V2 tokens (JWT) have expiration times
 - Store tokens securely using environment variables
 - Never commit tokens to version control
 
 #### 5. File Permission Errors
+
 ```bash
 # Fix permissions
 chmod 644 01-cerema-scraper/*.jsonl
@@ -361,6 +374,7 @@ chown $USER:$USER 01-cerema-scraper/*.jsonl
 ### Recovery Procedures
 
 #### Resume Interrupted Scraping
+
 ```bash
 # The scraper automatically resumes
 cd 01-cerema-scraper/
@@ -369,6 +383,7 @@ python cerema-scraper.py
 ```
 
 #### Reset and Restart
+
 ```bash
 # Clear state and restart
 cd 01-cerema-scraper/
@@ -376,6 +391,7 @@ python cerema-scraper.py --reset-state
 ```
 
 #### Rollback Database Changes
+
 ```bash
 # Use database backups to rollback
 pg_restore -d $DB_NAME backup_before_sync.sql
@@ -408,7 +424,7 @@ python establishment-verifier.py --jsonl-file ../01-cerema-scraper/test-structur
 ### Log Locations
 
 - `01-cerema-scraper/api_scraper.log` - Scraper execution logs
-- `02-establishment-verifier/structure_verifier.log` - Structure verification logs  
+- `02-establishment-verifier/structure_verifier.log` - Structure verification logs
 - `03-users-verifier/user_deactivation.log` - User verification logs
 
 ### Debugging Commands
@@ -419,7 +435,7 @@ cd 01-cerema-scraper/
 python cerema-scraper.py --verbose
 
 cd ../02-establishment-verifier/
-python establishment-verifier.py --verbose  
+python establishment-verifier.py --verbose
 
 cd ../03-users-verifier/
 python user-verifier.py --verbose
@@ -429,6 +445,7 @@ python cerema-scraper.py --help
 python establishment-verifier.py --help
 python user-verifier.py --help
 ```
+
 ---
 
 This documentation provides a complete guide for managing the Cerema data synchronization workflow. For component-specific details, refer to individual script documentation.

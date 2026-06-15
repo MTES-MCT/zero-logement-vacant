@@ -5,11 +5,13 @@ import {
   createColumnHelper,
   type PaginationState
 } from '@tanstack/react-table';
-
 import type { Occupancy, Pagination } from '@zerologementvacant/models';
 import { Set } from 'immutable';
 import { useMemo, useState } from 'react';
 import type { ReactElement, ReactNode } from 'react';
+
+import { HousingProvider } from '~/hooks/useHousing';
+
 import { useCampaignList } from '../../hooks/useCampaignList';
 import { useSelection } from '../../hooks/useSelection';
 import { useSort } from '../../hooks/useSort';
@@ -34,7 +36,6 @@ import { HousingEditionProvider } from '../HousingEdition/useHousingEdition';
 import HousingStatusBadge from '../HousingStatusBadge/HousingStatusBadge';
 import OccupancyTag from '../OccupancyTag/OccupancyTag';
 import SelectableListHeader from '../SelectableListHeader/SelectableListHeader';
-import { HousingProvider } from '~/hooks/useHousing';
 
 export interface HousingListProps {
   actions?: (housing: Housing) => ReactNode | ReactNode[];

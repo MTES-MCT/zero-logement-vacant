@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest';
-import { ReporterError } from '~/scripts/import-lovac/infra/reporters/reporter';
+
 import { createLoggerReporter } from '~/scripts/import-lovac/infra/reporters/logger-reporter';
+import { ReporterError } from '~/scripts/import-lovac/infra/reporters/reporter';
 
 describe('LoggerReporter', () => {
   it('tracks created count via created(n)', () => {

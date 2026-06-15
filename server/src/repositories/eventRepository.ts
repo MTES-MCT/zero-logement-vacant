@@ -1,7 +1,4 @@
-import {
-  EventPayloads,
-  EventType
-} from '@zerologementvacant/models';
+import { EventPayloads, EventType } from '@zerologementvacant/models';
 
 import db from '~/infra/database';
 import { withinTransaction } from '~/infra/database/transaction';

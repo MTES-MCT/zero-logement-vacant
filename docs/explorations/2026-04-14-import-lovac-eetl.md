@@ -47,8 +47,9 @@ SourceRepository (file | S3)
 #### Critical
 
 **N+1 DB queries in processors.** Every source row triggers 1–3 synchronous DB lookups:
+
 - `sourceHousingProcessor`: `findOne` per row + `eventRepository.find` + `noteRepository.find`
-  for every *existing* housing.
+  for every _existing_ housing.
 - `sourceOwnerProcessor`: `findOne` per row.
 - `sourceHousingOwnerProcessor`: `findOne` (housing) + `find` (owners) + `findByHousing` per group.
 
@@ -68,9 +69,14 @@ geo-code update pass into the main import pass (it is a housing update and can b
 inline).
 
 **`tee()` causes memory pressure.** The fan-out pattern:
+
 ```ts
-const [a, b, c, d] = stream.tee().map(s => s.tee()).flat();
+const [a, b, c, d] = stream
+  .tee()
+  .map((s) => s.tee())
+  .flat();
 ```
+
 duplicates every item to every branch. The faster branch buffers items for the slower one.
 
 **Fix:** replace with a **dispatcher** (demultiplexer). Each item is routed to exactly one
@@ -114,10 +120,12 @@ after `groupBy` already guarantees grouping by `local_id`.
 ### `Change<Value, Type>` vs callbacks
 
 Callbacks passed as parameters (async visitor pattern) are viable:
+
 ```ts
 callee({ entity, onCreate: async (value) => buffer.push(value) });
 // caller flushes buffer
 ```
+
 The async visitor is a well-established pattern (SAX parsers, DB cursor streaming).
 However: backpressure requires the processor to `await` every callback, and flushing the
 final partial buffer requires an explicit `done()` / `flush()` signal.
@@ -155,11 +163,13 @@ update is an unconditional overwrite of LOVAC fields.
 Per-batch transactions mean partial progress on failure. Re-running creates duplicate events.
 
 **Fix:** UUID v5 (RFC 4122, SHA-1, deterministic) for import-generated events:
+
 ```ts
 import { v5 as uuidv5 } from 'uuid';
 const IMPORT_NS = '7b4e3c2a-1f5d-4e8b-9a6c-0d2f3e4b5c6a';
 const id = uuidv5(`${housingId}:${type}:${importDate}`, IMPORT_NS);
 ```
+
 Same housing + same transition + same import date → same UUID → `ON CONFLICT DO NOTHING`.
 The `uuid` package already used supports `v5` natively.
 
@@ -182,6 +192,7 @@ Building count update must run once after all departments complete.
 ### Polars
 
 DataFrame library (Rust-backed). Eliminates N+1 via an in-memory join:
+
 ```python
 source = pl.scan_ndjson("housings.jsonl")
 existing = pl.read_database("SELECT * FROM fast_housing", conn)
@@ -201,14 +212,15 @@ assets. This is the standard architecture in modern data engineering.
 
 ### Decision: TypeScript now, Python later
 
-| Concern | TypeScript fix | Python gain |
-|---|---|---|
-| N+1 queries | Batch enrichment with `chunkify` | Polars in-memory join (faster, simpler) |
-| Orchestration | Dagster can shell out to TS script | Native Dagster assets |
-| Type safety | Shared `@zerologementvacant/models` | Pydantic from Yup→JSON Schema codegen |
-| Team overhead | None | One more language to own |
+| Concern       | TypeScript fix                      | Python gain                             |
+| ------------- | ----------------------------------- | --------------------------------------- |
+| N+1 queries   | Batch enrichment with `chunkify`    | Polars in-memory join (faster, simpler) |
+| Orchestration | Dagster can shell out to TS script  | Native Dagster assets                   |
+| Type safety   | Shared `@zerologementvacant/models` | Pydantic from Yup→JSON Schema codegen   |
+| Team overhead | None                                | One more language to own                |
 
 **Now (2026 import, 2 days):** fix only what is broken or dangerous:
+
 1. Update hardcoded year strings (`lovac-2025` → `lovac-2026`, `[2024]` → `[2025]`).
 2. Apply batch enrichment to housing and owner processors (most impactful performance fix).
 3. Run on a single department first to validate.
@@ -246,7 +258,7 @@ function createDispatcher<C extends Change<any, any>>(
       await writers[`${change.type}:${change.kind}`]?.write(change.value);
     },
     async close() {
-      await Promise.all(Object.values(writers).map(w => w.close()));
+      await Promise.all(Object.values(writers).map((w) => w.close()));
     }
   });
 }

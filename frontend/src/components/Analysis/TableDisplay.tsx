@@ -1,9 +1,6 @@
-import { useMemo } from 'react';
 import type { ColumnDef } from '@tanstack/react-table';
-import type {
-  TableColumnMeta,
-  TableDataDTO
-} from '@zerologementvacant/models';
+import type { TableColumnMeta, TableDataDTO } from '@zerologementvacant/models';
+import { useMemo } from 'react';
 
 import AdvancedTable from '~/components/AdvancedTable/AdvancedTable';
 

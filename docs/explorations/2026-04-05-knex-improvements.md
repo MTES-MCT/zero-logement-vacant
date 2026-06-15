@@ -51,7 +51,10 @@ Knex supports `Knex.CompositeTableType<TBase, TInsert, TUpdate>` to differentiat
 
 ```typescript
 // Current — manual, error-prone
-export function where<T extends object>(props: Array<keyof T>, opts?: WhereOptions) {
+export function where<T extends object>(
+  props: Array<keyof T>,
+  opts?: WhereOptions
+) {
   return (values: T): Record<string, unknown> => {
     // ... manual camelToSnake conversion
   };
@@ -137,12 +140,12 @@ pool: {
 // Current — transaction propagates via ALS but withinTransaction still takes a callback
 export async function withinTransaction(
   cb: (transaction: Knex.Transaction) => AsyncOrSync<void>
-): Promise<void>
+): Promise<void>;
 ```
 
 The `startTransaction` / `getTransaction` ALS pattern is already good. The gap is that `withinTransaction` can create a new transaction internally when called without an active one — which can mask missing `startTransaction` calls in controllers.
 
-**Potential improvement:** Add a stricter `requireTransaction()` helper for repository methods that *must* run inside a controller-initiated transaction, making accidental standalone use a runtime error.
+**Potential improvement:** Add a stricter `requireTransaction()` helper for repository methods that _must_ run inside a controller-initiated transaction, making accidental standalone use a runtime error.
 
 **Effort:** Half a day.
 **Return:** Catches transaction misuse earlier (at repository call time, not at DB error time).
@@ -151,13 +154,13 @@ The `startTransaction` / `getTransaction` ALS pattern is already good. The gap i
 
 ## Summary
 
-| Axis | Effort | Risk | Return |
-|---|---|---|---|
-| 1. Type generation | 3–7d | Low | High — typed results everywhere |
-| 2. Auto camelCase ↔ snake_case | 1d + regression | Medium | Medium — eliminates `where()` helper |
-| 3. Query tracing / slow-query detection | 0.5d | Low | High — immediate observability |
-| 4. Connection pool `afterCreate` | 0.5d | Low | Low — defensive hardening |
-| 5. `withinTransaction` strictness | 0.5d | Low | Low — better misuse detection |
+| Axis                                    | Effort          | Risk   | Return                               |
+| --------------------------------------- | --------------- | ------ | ------------------------------------ |
+| 1. Type generation                      | 3–7d            | Low    | High — typed results everywhere      |
+| 2. Auto camelCase ↔ snake_case          | 1d + regression | Medium | Medium — eliminates `where()` helper |
+| 3. Query tracing / slow-query detection | 0.5d            | Low    | High — immediate observability       |
+| 4. Connection pool `afterCreate`        | 0.5d            | Low    | Low — defensive hardening            |
+| 5. `withinTransaction` strictness       | 0.5d            | Low    | Low — better misuse detection        |
 
 **Recommendation:** Axes 1 and 3 are the best immediate investments. Axis 1 addresses the root typing problem and is a natural stepping stone if a Kysely migration is decided later. Axis 3 is zero-risk and provides immediate production value.
 

@@ -1,20 +1,23 @@
 import { constants } from 'http2';
-import path from 'node:path';
 import fs from 'node:fs';
+import path from 'node:path';
+
 import request from 'supertest';
 
 import config from '~/infra/config';
 import { createServer } from '~/infra/server';
-import { tokenProvider } from '../../test/testUtils';
-import { genEstablishmentApi, genUserApi } from '../../test/testFixtures';
+
 import {
   Establishments,
   formatEstablishmentApi
 } from '../../repositories/establishmentRepository';
 import { toUserDBO, Users } from '../../repositories/userRepository';
+import { genEstablishmentApi, genUserApi } from '../../test/testFixtures';
+import { tokenProvider } from '../../test/testUtils';
 
 // EICAR test file - standard antivirus test string
-const EICAR_TEST_FILE = 'X5O!P%@AP[4\\PZX54(P^)7CC)7}$EICAR-STANDARD-ANTIVIRUS-TEST-FILE!$H+H*';
+const EICAR_TEST_FILE =
+  'X5O!P%@AP[4\\PZX54(P^)7CC)7}$EICAR-STANDARD-ANTIVIRUS-TEST-FILE!$H+H*';
 
 describe('File API', () => {
   let url: string;
@@ -37,15 +40,73 @@ describe('File API', () => {
     it('should upload a valid PNG file', async () => {
       // Create a valid 1x1 PNG file
       const pngBuffer = Buffer.from([
-        0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a, // PNG signature
-        0x00, 0x00, 0x00, 0x0d, 0x49, 0x48, 0x44, 0x52, // IHDR chunk
-        0x00, 0x00, 0x00, 0x01, 0x00, 0x00, 0x00, 0x01,
-        0x08, 0x06, 0x00, 0x00, 0x00, 0x1f, 0x15, 0xc4,
-        0x89, 0x00, 0x00, 0x00, 0x0a, 0x49, 0x44, 0x41,
-        0x54, 0x78, 0x9c, 0x63, 0x00, 0x01, 0x00, 0x00,
-        0x05, 0x00, 0x01, 0x0d, 0x0a, 0x2d, 0xb4, 0x00,
-        0x00, 0x00, 0x00, 0x49, 0x45, 0x4e, 0x44, 0xae,
-        0x42, 0x60, 0x82
+        0x89,
+        0x50,
+        0x4e,
+        0x47,
+        0x0d,
+        0x0a,
+        0x1a,
+        0x0a, // PNG signature
+        0x00,
+        0x00,
+        0x00,
+        0x0d,
+        0x49,
+        0x48,
+        0x44,
+        0x52, // IHDR chunk
+        0x00,
+        0x00,
+        0x00,
+        0x01,
+        0x00,
+        0x00,
+        0x00,
+        0x01,
+        0x08,
+        0x06,
+        0x00,
+        0x00,
+        0x00,
+        0x1f,
+        0x15,
+        0xc4,
+        0x89,
+        0x00,
+        0x00,
+        0x00,
+        0x0a,
+        0x49,
+        0x44,
+        0x41,
+        0x54,
+        0x78,
+        0x9c,
+        0x63,
+        0x00,
+        0x01,
+        0x00,
+        0x00,
+        0x05,
+        0x00,
+        0x01,
+        0x0d,
+        0x0a,
+        0x2d,
+        0xb4,
+        0x00,
+        0x00,
+        0x00,
+        0x00,
+        0x49,
+        0x45,
+        0x4e,
+        0x44,
+        0xae,
+        0x42,
+        0x60,
+        0x82
       ]);
 
       const tmpPath = path.join(import.meta.dirname, 'test-upload.png');
@@ -87,32 +148,36 @@ describe('File API', () => {
     // Test runs only when ClamAV is enabled (CLAMAV_ENABLED=true)
     const itIfClamavEnabled = config.clamav.enabled ? it : it.skip;
 
-    itIfClamavEnabled('should reject EICAR test file with virus detected error', async () => {
-      const tmpPath = path.join(import.meta.dirname, 'eicar-test.txt');
-      fs.writeFileSync(tmpPath, EICAR_TEST_FILE);
+    itIfClamavEnabled(
+      'should reject EICAR test file with virus detected error',
+      async () => {
+        const tmpPath = path.join(import.meta.dirname, 'eicar-test.txt');
+        fs.writeFileSync(tmpPath, EICAR_TEST_FILE);
 
-      try {
-        const { body, status } = await request(url)
-          .post(testRoute)
-          .attach('file', tmpPath)
-          .use(tokenProvider(user));
+        try {
+          const { body, status } = await request(url)
+            .post(testRoute)
+            .attach('file', tmpPath)
+            .use(tokenProvider(user));
 
-        expect(status).toBe(constants.HTTP_STATUS_BAD_REQUEST);
-        expect(body).toMatchObject({
-          error: 'Virus detected',
-          reason: 'virus_detected',
-          message: expect.stringContaining('malicious content'),
-          details: {
-            filename: expect.any(String),
-            viruses: expect.arrayContaining([
-              expect.stringContaining('EICAR')
-            ])
-          }
-        });
-      } finally {
-        fs.unlinkSync(tmpPath);
-      }
-    }, 30000);
+          expect(status).toBe(constants.HTTP_STATUS_BAD_REQUEST);
+          expect(body).toMatchObject({
+            error: 'Virus detected',
+            reason: 'virus_detected',
+            message: expect.stringContaining('malicious content'),
+            details: {
+              filename: expect.any(String),
+              viruses: expect.arrayContaining([
+                expect.stringContaining('EICAR')
+              ])
+            }
+          });
+        } finally {
+          fs.unlinkSync(tmpPath);
+        }
+      },
+      30000
+    );
 
     it('should reject file with wrong MIME type', async () => {
       // Create a text file pretending to be PNG

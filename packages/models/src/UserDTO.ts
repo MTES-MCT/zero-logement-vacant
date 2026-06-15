@@ -91,12 +91,14 @@ export function isAdmin(user: Pick<UserDTO, 'role'>): boolean {
  * parseSuspendedCauses(null)
  * // => []
  */
-export function parseSuspendedCauses(suspendedCause: SuspendedCauseField): SuspendedCause[] {
+export function parseSuspendedCauses(
+  suspendedCause: SuspendedCauseField
+): SuspendedCause[] {
   if (!suspendedCause) {
     return [];
   }
 
-  const causes = suspendedCause.split(',').map(c => c.trim());
+  const causes = suspendedCause.split(',').map((c) => c.trim());
   return causes.filter((cause): cause is SuspendedCause =>
     SUSPENDED_CAUSE_VALUES.includes(cause as SuspendedCause)
   );

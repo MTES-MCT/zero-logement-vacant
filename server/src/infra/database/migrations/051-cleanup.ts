@@ -9,7 +9,7 @@ export async function up(knex: Knex): Promise<void> {
       table.dropColumn('status_deprecated');
       table.dropColumn('step_deprecated');
       table.dropColumn('precision_deprecated');
-    }),
+    })
   ]);
 }
 
@@ -22,6 +22,6 @@ export async function down(knex: Knex): Promise<void> {
     }),
     knex.schema.alterTable('establishments', (table) => {
       table.specificType('housing_scopes', 'text[]');
-    }),
+    })
   ]);
 }

@@ -1,5 +1,6 @@
 import { OCCUPANCY_LABELS } from '@zerologementvacant/models';
 import { Occupancy } from '@zerologementvacant/models';
+
 import Select from '~/components/ui/Select/Select';
 import type { SelectProps } from '~/components/ui/Select/Select';
 

@@ -8,14 +8,14 @@ The analytics platform consolidates data from PostgreSQL production database and
 
 ## Technology Stack
 
-| Component | Technology | Purpose |
-|-----------|------------|---------|
-| **Orchestration** | Dagster | Pipeline scheduling & monitoring |
-| **Transformation** | dbt | SQL transformations |
-| **Storage** | DuckDB | Local analytical database |
-| **Cloud** | MotherDuck | Cloud DuckDB hosting |
-| **Visualization** | Metabase | BI dashboards |
-| **Storage** | S3/Cellar | External file storage |
+| Component          | Technology | Purpose                          |
+| ------------------ | ---------- | -------------------------------- |
+| **Orchestration**  | Dagster    | Pipeline scheduling & monitoring |
+| **Transformation** | dbt        | SQL transformations              |
+| **Storage**        | DuckDB     | Local analytical database        |
+| **Cloud**          | MotherDuck | Cloud DuckDB hosting             |
+| **Visualization**  | Metabase   | BI dashboards                    |
+| **Storage**        | S3/Cellar  | External file storage            |
 
 ## Architecture Diagram
 
@@ -107,9 +107,9 @@ flowchart LR
 
 ### Schedules
 
-| Schedule | Cron | Job | Description |
-|----------|------|-----|-------------|
-| `daily_refresh` | `@daily` | datawarehouse_synchronize_and_build | Daily ETL refresh |
+| Schedule          | Cron      | Job                                     | Description               |
+| ----------------- | --------- | --------------------------------------- | ------------------------- |
+| `daily_refresh`   | `@daily`  | datawarehouse_synchronize_and_build     | Daily ETL refresh         |
 | `yearly_external` | `@yearly` | datawarehouse_load_all_external_sources | Annual external data load |
 
 ### Assets Organization
@@ -133,14 +133,14 @@ analytics/dagster/src/assets/
 
 ### External Data Sources
 
-| Provider | Sources | Format | Frequency |
-|----------|---------|--------|-----------|
-| **CEREMA** | LOVAC (2019-2025), Fichiers Fonciers, Prix Volumes | CSV, XLSX | Yearly |
-| **INSEE** | Grille Densité, Recensement, COG | XLSX, Parquet | Yearly |
-| **DGALN** | Zonage ABC, Loyers | XLSX, CSV | Yearly |
-| **DGFIP** | Fiscalité, TLV | XLSX | Yearly |
-| **URSSAF** | Social data | CSV | Yearly |
-| **ANAH** | Housing programs | CSV | Yearly |
+| Provider   | Sources                                            | Format        | Frequency |
+| ---------- | -------------------------------------------------- | ------------- | --------- |
+| **CEREMA** | LOVAC (2019-2025), Fichiers Fonciers, Prix Volumes | CSV, XLSX     | Yearly    |
+| **INSEE**  | Grille Densité, Recensement, COG                   | XLSX, Parquet | Yearly    |
+| **DGALN**  | Zonage ABC, Loyers                                 | XLSX, CSV     | Yearly    |
+| **DGFIP**  | Fiscalité, TLV                                     | XLSX          | Yearly    |
+| **URSSAF** | Social data                                        | CSV           | Yearly    |
+| **ANAH**   | Housing programs                                   | CSV           | Yearly    |
 
 ## dbt Architecture
 
@@ -235,16 +235,16 @@ analytics/dbt/models/
 
 ### Key Models
 
-| Model | Layer | Purpose |
-|-------|-------|---------|
-| `marts_production_housing` | marts | Central housing fact table (136+ columns) |
-| `marts_production_owners` | marts | Owner dimension |
-| `marts_production_campaigns` | marts | Campaign dimension |
-| `marts_production_events` | marts | Event history |
-| `int_production_housing_last_status` | int | Last status per housing |
-| `marts_bi_housing_complete` | marts | Impact analysis with ZLV flags |
-| `marts_analysis_housing_out_features` | marts | ML feature table |
-| `marts_stats_monthly_global` | marts | Monthly KPIs |
+| Model                                 | Layer | Purpose                                   |
+| ------------------------------------- | ----- | ----------------------------------------- |
+| `marts_production_housing`            | marts | Central housing fact table (136+ columns) |
+| `marts_production_owners`             | marts | Owner dimension                           |
+| `marts_production_campaigns`          | marts | Campaign dimension                        |
+| `marts_production_events`             | marts | Event history                             |
+| `int_production_housing_last_status`  | int   | Last status per housing                   |
+| `marts_bi_housing_complete`           | marts | Impact analysis with ZLV flags            |
+| `marts_analysis_housing_out_features` | marts | ML feature table                          |
+| `marts_stats_monthly_global`          | marts | Monthly KPIs                              |
 
 ### dbt Configuration
 
@@ -294,12 +294,12 @@ duckdb_profile:
 
 ### Extensions
 
-| Extension | Purpose |
-|-----------|---------|
-| `httpfs` | HTTP file downloads |
+| Extension | Purpose              |
+| --------- | -------------------- |
+| `httpfs`  | HTTP file downloads  |
 | `parquet` | Parquet file support |
 | `spatial` | Geospatial functions |
-| `s3` | S3 file access |
+| `s3`      | S3 file access       |
 
 ## MotherDuck Integration
 
@@ -339,23 +339,23 @@ sequenceDiagram
 
 ### Key Dashboards
 
-| Dashboard | Purpose | Key Metrics |
-|-----------|---------|-------------|
-| Housing Overview | Vacancy trends | Total vacant, status distribution |
-| Campaign Impact | Outreach effectiveness | Contacted %, exit rate |
-| Territorial Analysis | Regional breakdown | By department, EPCI |
-| Monthly KPIs | Performance tracking | Month-over-month changes |
+| Dashboard            | Purpose                | Key Metrics                       |
+| -------------------- | ---------------------- | --------------------------------- |
+| Housing Overview     | Vacancy trends         | Total vacant, status distribution |
+| Campaign Impact      | Outreach effectiveness | Contacted %, exit rate            |
+| Territorial Analysis | Regional breakdown     | By department, EPCI               |
+| Monthly KPIs         | Performance tracking   | Month-over-month changes          |
 
 ## Environment Variables
 
-| Variable | Required | Description |
-|----------|----------|-------------|
-| `POSTGRES_PRODUCTION_*` | Yes | PostgreSQL connection |
-| `CELLAR_*` | Yes | S3 storage credentials |
-| `MD_TOKEN` | Yes | MotherDuck authentication |
-| `USE_MOTHER_DUCK` | No | Enable cloud (default: True) |
-| `DUCKDB_MEMORY_LIMIT` | No | Memory limit in GB |
-| `DUCKDB_THREAD_NUMBER` | No | Thread count |
+| Variable                | Required | Description                  |
+| ----------------------- | -------- | ---------------------------- |
+| `POSTGRES_PRODUCTION_*` | Yes      | PostgreSQL connection        |
+| `CELLAR_*`              | Yes      | S3 storage credentials       |
+| `MD_TOKEN`              | Yes      | MotherDuck authentication    |
+| `USE_MOTHER_DUCK`       | No       | Enable cloud (default: True) |
+| `DUCKDB_MEMORY_LIMIT`   | No       | Memory limit in GB           |
+| `DUCKDB_THREAD_NUMBER`  | No       | Thread count                 |
 
 ## Data Quality
 

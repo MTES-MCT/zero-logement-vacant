@@ -1,10 +1,8 @@
+import type { CardType, TableColumnMeta } from '@zerologementvacant/models';
 import axios from 'axios';
 
-import type {
-  CardType,
-  TableColumnMeta
-} from '@zerologementvacant/models';
 import config from '~/infra/config';
+
 import { createCachedMetabaseService } from './metabase-cache';
 import {
   findDashcardRef,
@@ -89,7 +87,10 @@ class MetabaseAPI implements MetabaseService {
     dashboardId: number,
     dashcardId: number
   ): Promise<DashcardRef | null> {
-    return findDashcardRef(await this.fetchDashboardRaw(dashboardId), dashcardId);
+    return findDashcardRef(
+      await this.fetchDashboardRaw(dashboardId),
+      dashcardId
+    );
   }
 
   async getCardValue(
@@ -122,7 +123,11 @@ class MetabaseAPI implements MetabaseService {
       if (direction === null) {
         throw new Error('direction is required for bar-chart card type');
       }
-      const { labels, values } = extractAxisValues(data, labelColumn, valueColumn);
+      const { labels, values } = extractAxisValues(
+        data,
+        labelColumn,
+        valueColumn
+      );
       const result: BarChartValue = {
         direction,
         format,
@@ -134,7 +139,11 @@ class MetabaseAPI implements MetabaseService {
     }
 
     if (cardType === 'line-chart') {
-      const { labels, values } = extractAxisValues(data, labelColumn, valueColumn);
+      const { labels, values } = extractAxisValues(
+        data,
+        labelColumn,
+        valueColumn
+      );
       const result: LineChartValue = {
         format,
         decimals,

@@ -1,4 +1,5 @@
 import type { NoteDTO } from '@zerologementvacant/models';
+
 import type { Housing } from './Housing';
 import type { Owner } from './Owner';
 import { fromUserDTO, toUserDTO } from './User';

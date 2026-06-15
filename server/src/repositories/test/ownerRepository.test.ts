@@ -1,18 +1,24 @@
+import { faker } from '@faker-js/faker';
+import { collect } from '@zerologementvacant/utils/node';
+
 import db from '~/infra/database';
 import { OwnerApi } from '~/models/OwnerApi';
-import { genHousingApi, genHousingOwnerApi, genOwnerApi } from '~/test/testFixtures';
-import ownerRepository, {
-  formatOwnerApi,
-  Owners,
-  ownerTable
-} from '../ownerRepository';
+import {
+  genHousingApi,
+  genHousingOwnerApi,
+  genOwnerApi
+} from '~/test/testFixtures';
+
 import {
   formatHousingOwnerApi,
   HousingOwners
 } from '../housingOwnerRepository';
 import { formatHousingRecordApi, Housing } from '../housingRepository';
-import { collect } from '@zerologementvacant/utils/node';
-import { faker } from '@faker-js/faker';
+import ownerRepository, {
+  formatOwnerApi,
+  Owners,
+  ownerTable
+} from '../ownerRepository';
 
 describe('Owner repository', () => {
   describe('find', () => {
@@ -262,7 +268,10 @@ describe('Owner repository', () => {
       await Housing().insert(housings.map(formatHousingRecordApi));
       await HousingOwners().insert(
         housings.map((housing) =>
-          formatHousingOwnerApi({ ...genHousingOwnerApi(housing, owner), rank: 1 })
+          formatHousingOwnerApi({
+            ...genHousingOwnerApi(housing, owner),
+            rank: 1
+          })
         )
       );
 
@@ -278,7 +287,10 @@ describe('Owner repository', () => {
       const housing = genHousingApi();
       await Housing().insert(formatHousingRecordApi(housing));
       await HousingOwners().insert(
-        formatHousingOwnerApi({ ...genHousingOwnerApi(housing, owner), rank: 1 })
+        formatHousingOwnerApi({
+          ...genHousingOwnerApi(housing, owner),
+          rank: 1
+        })
       );
 
       await ownerRepository.refreshMultiOwnerFlags([owner.id]);
@@ -289,7 +301,10 @@ describe('Owner repository', () => {
 
     it('should not update owners not in the list', async () => {
       const ownerToSkip = genOwnerApi();
-      await Owners().insert({ ...formatOwnerApi(ownerToSkip), is_multi_owner: true });
+      await Owners().insert({
+        ...formatOwnerApi(ownerToSkip),
+        is_multi_owner: true
+      });
 
       await ownerRepository.refreshMultiOwnerFlags([]);
 
@@ -303,7 +318,9 @@ describe('Owner repository', () => {
       // the bind message with 08P01. None of these IDs exist in the DB so the
       // UPDATE matches 0 rows — we only need the query to not throw.
       const ids = Array.from({ length: 70_000 }, () => genOwnerApi().id);
-      await expect(ownerRepository.refreshMultiOwnerFlags(ids)).resolves.toBeUndefined();
+      await expect(
+        ownerRepository.refreshMultiOwnerFlags(ids)
+      ).resolves.toBeUndefined();
     });
   });
 });

@@ -1,6 +1,7 @@
-import { Knex } from 'knex';
 import fs from 'fs';
 import path from 'path';
+
+import { Knex } from 'knex';
 
 export async function up(knex: Knex): Promise<void> {
   await knex.schema
@@ -33,8 +34,8 @@ export async function down(knex: Knex): Promise<void> {
       table.dropColumns(
         'energy_consumption',
         'energy_consumption_worst',
-        'occupancy',
+        'occupancy'
       );
-    }),
+    })
   ]);
 }

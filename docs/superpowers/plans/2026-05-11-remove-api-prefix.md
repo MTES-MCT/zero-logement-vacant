@@ -17,6 +17,7 @@
 ### Task 1: Remove `/api` from server router mounts
 
 **Files:**
+
 - Modify: `server/src/infra/server.ts:152-153`
 
 - [ ] **Step 1: Apply the change**
@@ -48,6 +49,7 @@ find server/src/controllers -name "*.test.ts" | xargs sed -i '' 's|/api/|/|g'
 ```
 
 This rewrites every occurrence of `/api/` to `/` in route strings. For example:
+
 - `'/api/housing'` → `'/housing'`
 - `` `/api/housing/${id}` `` → `` `/housing/${id}` ``
 - `request(url).post('/api/authenticate')` → `request(url).post('/authenticate')`
@@ -76,6 +78,7 @@ git commit -m "refactor(server): remove /api prefix from router mounts"
 ### Task 2: Remove `/api` from frontend RTK Query base URL and MSW handlers
 
 **Files:**
+
 - Modify: `frontend/src/services/api.service.ts:38`
 - Modify: `frontend/src/mocks/handlers/*.ts` (18 files)
 
@@ -106,6 +109,7 @@ find frontend/src/mocks/handlers -name "*.ts" | xargs sed -i '' 's|${config.apiE
 ```
 
 This rewrites every MSW handler URL. For example:
+
 - `` `${config.apiEndpoint}/api/housing` `` → `` `${config.apiEndpoint}/housing` ``
 - `` `${config.apiEndpoint}/api/housing/count` `` → `` `${config.apiEndpoint}/housing/count` ``
 

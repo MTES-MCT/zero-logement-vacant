@@ -7,6 +7,7 @@ import type {
   PaginationOptions
 } from '@zerologementvacant/models';
 import { parseISO } from 'date-fns';
+
 import type { Housing, HousingSort } from '../models/Housing';
 import type { HousingCount } from '../models/HousingCount';
 import type { HousingFilters } from '../models/HousingFilters';
@@ -17,9 +18,7 @@ import { zlvApi, type TagType } from './api.service';
 import { parseOwner } from './owner.service';
 
 export interface FindOptions
-  extends PaginationOptions,
-    SortOptions<HousingSort>,
-    AbortOptions {
+  extends PaginationOptions, SortOptions<HousingSort>, AbortOptions {
   filters: HousingFiltersDTO;
 }
 

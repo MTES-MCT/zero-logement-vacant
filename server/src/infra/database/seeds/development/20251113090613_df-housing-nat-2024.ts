@@ -51,7 +51,7 @@ export async function seed(knex: Knex): Promise<void> {
     500
   );
   console.timeEnd('20251113090613_df-housing-nat-2024');
-  console.log('\n')
+  console.log('\n');
 }
 
 function fromGeoJSON(db: Knex, geometry: Geometry | null): Knex.Raw | null {

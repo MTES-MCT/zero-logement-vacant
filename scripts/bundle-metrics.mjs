@@ -11,8 +11,8 @@
 
 import { createReadStream, existsSync, readFileSync, writeFileSync } from 'fs';
 import { readdir, stat } from 'fs/promises';
-import { createGzip } from 'zlib';
 import { join } from 'path';
+import { createGzip } from 'zlib';
 
 const DIST_DIR = new URL('../frontend/dist', import.meta.url).pathname;
 const ASSETS_DIR = join(DIST_DIR, 'assets');
@@ -33,7 +33,9 @@ function initialChunkNames() {
   const html = readFileSync(join(DIST_DIR, 'index.html'), 'utf8');
   // Extract all <script type="module" src="..."> and <link rel="modulepreload"> hrefs
   const matches = [
-    ...html.matchAll(/(?:script[^>]+src|link[^>]+href)="\/assets\/([^"]+\.js)"/g)
+    ...html.matchAll(
+      /(?:script[^>]+src|link[^>]+href)="\/assets\/([^"]+\.js)"/g
+    )
   ];
   return new Set(matches.map((m) => m[1]));
 }
@@ -62,7 +64,10 @@ async function measure() {
 
   const total = { size: sum(chunks, 'size'), gz: sum(chunks, 'gz') };
   const initialChunks = chunks.filter((c) => c.initial);
-  const initialTotal = { size: sum(initialChunks, 'size'), gz: sum(initialChunks, 'gz') };
+  const initialTotal = {
+    size: sum(initialChunks, 'size'),
+    gz: sum(initialChunks, 'gz')
+  };
 
   return {
     timestamp: new Date().toISOString(),
@@ -80,9 +85,15 @@ function fmt(bytes) {
 
 function printReport(metrics, label = 'Current build') {
   console.log(`\n── ${label} ─────────────────────────────────────`);
-  console.log(`Chunks: ${metrics.chunkCount} total, ${metrics.initialChunkCount} initial`);
-  console.log(`Total JS:   ${fmt(metrics.total.size).padStart(10)} raw   ${fmt(metrics.total.gz).padStart(10)} gz`);
-  console.log(`Initial JS: ${fmt(metrics.initialTotal.size).padStart(10)} raw   ${fmt(metrics.initialTotal.gz).padStart(10)} gz`);
+  console.log(
+    `Chunks: ${metrics.chunkCount} total, ${metrics.initialChunkCount} initial`
+  );
+  console.log(
+    `Total JS:   ${fmt(metrics.total.size).padStart(10)} raw   ${fmt(metrics.total.gz).padStart(10)} gz`
+  );
+  console.log(
+    `Initial JS: ${fmt(metrics.initialTotal.size).padStart(10)} raw   ${fmt(metrics.initialTotal.gz).padStart(10)} gz`
+  );
   console.log('\nTop 10 chunks (by gz):');
   metrics.chunks.slice(0, 10).forEach((c) => {
     const tag = c.initial ? '[initial]' : '[lazy]   ';
@@ -96,9 +107,15 @@ function printDiff(before, after) {
   const sign = diffGz > 0 ? '+' : '';
 
   console.log('\n── Diff (before → after) ────────────────────────────');
-  console.log(`Initial JS gz: ${fmt(before.initialTotal.gz)} → ${fmt(after.initialTotal.gz)}   ${sign}${fmt(diffGz)} (${sign}${pct}%)`);
-  console.log(`Total JS gz:   ${fmt(before.total.gz)} → ${fmt(after.total.gz)}`);
-  console.log(`Chunks:        ${before.chunkCount} → ${after.chunkCount}   (+${after.chunkCount - before.chunkCount} lazy chunks)`);
+  console.log(
+    `Initial JS gz: ${fmt(before.initialTotal.gz)} → ${fmt(after.initialTotal.gz)}   ${sign}${fmt(diffGz)} (${sign}${pct}%)`
+  );
+  console.log(
+    `Total JS gz:   ${fmt(before.total.gz)} → ${fmt(after.total.gz)}`
+  );
+  console.log(
+    `Chunks:        ${before.chunkCount} → ${after.chunkCount}   (+${after.chunkCount - before.chunkCount} lazy chunks)`
+  );
 }
 
 // ── main ──────────────────────────────────────────────────────────────────────

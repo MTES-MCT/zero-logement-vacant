@@ -1,3 +1,5 @@
+import { constants } from 'http2';
+
 import {
   GroupDTO,
   GroupPayloadDTO,
@@ -8,9 +10,9 @@ import { Array, pipe, Predicate } from 'effect';
 import { RequestHandler } from 'express';
 import { AuthenticatedRequest } from 'express-jwt';
 import { body, param, ValidationChain } from 'express-validator';
-import { constants } from 'http2';
 import { differenceBy, uniqBy } from 'lodash-es';
 import { v4 as uuidv4 } from 'uuid';
+
 import GroupMissingError from '~/errors/groupMissingError';
 import { startTransaction } from '~/infra/database/transaction';
 import { logger } from '~/infra/logger';
@@ -166,12 +168,13 @@ const update: RequestHandler<
   GroupPayloadDTO,
   never
 > = async (request, response): Promise<void> => {
-  const { auth, body, effectiveGeoCodes, params } = request as AuthenticatedRequest<
-    { id: GroupDTO['id'] },
-    GroupDTO,
-    GroupPayloadDTO,
-    never
-  >;
+  const { auth, body, effectiveGeoCodes, params } =
+    request as AuthenticatedRequest<
+      { id: GroupDTO['id'] },
+      GroupDTO,
+      GroupPayloadDTO,
+      never
+    >;
 
   const group = await groupRepository.findOne({
     id: params.id,
@@ -211,12 +214,13 @@ const addHousing: RequestHandler<
   GroupAddHousingPayload,
   never
 > = async (request, response): Promise<void> => {
-  const { auth, body, effectiveGeoCodes, params } = request as AuthenticatedRequest<
-    { id: GroupDTO['id'] },
-    GroupDTO,
-    GroupAddHousingPayload,
-    never
-  >;
+  const { auth, body, effectiveGeoCodes, params } =
+    request as AuthenticatedRequest<
+      { id: GroupDTO['id'] },
+      GroupDTO,
+      GroupAddHousingPayload,
+      never
+    >;
 
   const group = await groupRepository.findOne({
     id: params.id,
@@ -302,12 +306,13 @@ const removeHousing: RequestHandler<
   GroupRemoveHousingPayload,
   never
 > = async (request, response): Promise<void> => {
-  const { auth, body, effectiveGeoCodes, params } = request as AuthenticatedRequest<
-    { id: GroupDTO['id'] },
-    GroupDTO,
-    GroupRemoveHousingPayload,
-    never
-  >;
+  const { auth, body, effectiveGeoCodes, params } =
+    request as AuthenticatedRequest<
+      { id: GroupDTO['id'] },
+      GroupDTO,
+      GroupRemoveHousingPayload,
+      never
+    >;
 
   const group = await groupRepository.findOne({
     id: params.id,

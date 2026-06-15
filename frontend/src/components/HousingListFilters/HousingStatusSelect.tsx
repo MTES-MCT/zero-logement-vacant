@@ -3,9 +3,10 @@ import Stack from '@mui/material/Stack';
 import Typography from '@mui/material/Typography';
 import type { HousingStatus } from '@zerologementvacant/models';
 
-import { getHousingState } from '../../models/HousingState';
 import Select from '~/components/ui/Select/Select';
 import type { SelectProps } from '~/components/ui/Select/Select';
+
+import { getHousingState } from '../../models/HousingState';
 import HousingStatusBadge from '../HousingStatusBadge/HousingStatusBadge';
 
 export type HousingStatusSelectProps<Multiple extends boolean> = Pick<

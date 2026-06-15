@@ -1,6 +1,7 @@
+import { constants } from 'node:http2';
+
 import { faker } from '@faker-js/faker/locale/fr';
 import { HousingOwnerPayloadDTO } from '@zerologementvacant/models';
-import { constants } from 'node:http2';
 import request from 'supertest';
 
 import { createServer } from '~/infra/server';
@@ -42,8 +43,7 @@ describe('Housing owner API', () => {
   });
 
   describe('PUT /housing/:housingId/owners', () => {
-    const testRoute = (housingId: string) =>
-      `/housing/${housingId}/owners`;
+    const testRoute = (housingId: string) => `/housing/${housingId}/owners`;
 
     it('should refresh is_multi_owner for affected owners', async () => {
       const housing1 = genHousingApi(establishment.geoCodes[0]);

@@ -1,5 +1,6 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
+import { createCachedMetabaseService } from '../metabase-cache';
 import type {
   CardValue,
   DashboardData,
@@ -7,7 +8,6 @@ import type {
   MetabaseDashboardRaw,
   MetabaseService
 } from '../metabase-service';
-import { createCachedMetabaseService } from '../metabase-cache';
 
 function genRaw(id: number): MetabaseDashboardRaw {
   return {
@@ -186,10 +186,30 @@ describe('CachedMetabaseService.getCardValue', () => {
     const params = [{ id: 'p1', slug: 'id', type: 'category', value: 'est-1' }];
 
     await cached.getCardValue(
-      13, 100, 200, params, null, null, 'flat-number', null, 'number', 0, null
+      13,
+      100,
+      200,
+      params,
+      null,
+      null,
+      'flat-number',
+      null,
+      'number',
+      0,
+      null
     );
     await cached.getCardValue(
-      13, 100, 200, params, null, null, 'flat-number', null, 'number', 0, null
+      13,
+      100,
+      200,
+      params,
+      null,
+      null,
+      'flat-number',
+      null,
+      'number',
+      0,
+      null
     );
 
     expect(inner.getCardValue).toHaveBeenCalledTimes(1);
@@ -205,10 +225,30 @@ describe('CachedMetabaseService.getCardValue', () => {
     const p2 = [{ id: 'p1', slug: 'id', type: 'category', value: 'est-2' }];
 
     await cached.getCardValue(
-      13, 100, 200, p1, null, null, 'flat-number', null, 'number', 0, null
+      13,
+      100,
+      200,
+      p1,
+      null,
+      null,
+      'flat-number',
+      null,
+      'number',
+      0,
+      null
     );
     await cached.getCardValue(
-      13, 100, 200, p2, null, null, 'flat-number', null, 'number', 0, null
+      13,
+      100,
+      200,
+      p2,
+      null,
+      null,
+      'flat-number',
+      null,
+      'number',
+      0,
+      null
     );
 
     expect(inner.getCardValue).toHaveBeenCalledTimes(2);

@@ -1,8 +1,10 @@
 import { ENERGY_CONSUMPTION_VALUES } from '@zerologementvacant/models';
-import Select from '~/components/ui/Select/Select';
-import DPE from '../DPE/DPE';
 import type { EnergyConsumption } from '@zerologementvacant/models';
+
+import Select from '~/components/ui/Select/Select';
 import type { SelectProps } from '~/components/ui/Select/Select';
+
+import DPE from '../DPE/DPE';
 
 export type EnergyConsumptionSelectProps<Multiple extends boolean> = Pick<
   SelectProps<EnergyConsumption | null, Multiple>,

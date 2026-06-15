@@ -10,7 +10,7 @@ export default class LocalityMissingError
     super({
       name: 'LocalityError',
       message: `Locality ${geoCode} missing`,
-      status: constants.HTTP_STATUS_NOT_FOUND,
+      status: constants.HTTP_STATUS_NOT_FOUND
     });
   }
 }

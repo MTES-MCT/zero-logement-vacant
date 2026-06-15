@@ -12,24 +12,25 @@
 
 ## File structure
 
-| File | Action | Responsibility |
-|---|---|---|
-| `server/src/scripts/import-lovac/infra/enrich.ts` | **Create** | Generic `enrichWith<S, E>`: buffers S rows, bulk-fetches E records, emits `Enriched<S, E>` pairs |
-| `server/src/scripts/import-lovac/infra/test/enrich.test.ts` | **Create** | Tests for `enrichWith` |
-| `server/src/scripts/import-lovac/source-owners/source-owner-enricher.ts` | **Create** | Owner E-step: bulk SELECT by `idpersonne`, emits `EnrichedOwner` |
-| `server/src/scripts/import-lovac/source-owners/test/source-owner-enricher.test.ts` | **Create** | Tests for the owner enricher |
-| `server/src/scripts/import-lovac/source-owners/source-owner-transform.ts` | **Create** | Owner T-step: pure function `EnrichedOwner → OwnerChange`, no DB calls |
-| `server/src/scripts/import-lovac/source-owners/test/source-owner-transform.test.ts` | **Create** | Tests for the pure transform |
-| `server/src/scripts/import-lovac/source-owners/source-owner-processor.ts` | **Delete** | Replaced by enricher + transform |
-| `server/src/scripts/import-lovac/source-owners/test/source-owner-processor.test.ts` | **Delete** | Replaced by enricher + transform tests |
-| `server/src/scripts/import-lovac/source-owners/source-owner-command.ts` | **Modify** | Rewire to EETL; self-contained load sink with inline buffering and `ts-pattern` routing |
-| `server/src/scripts/import-lovac/infra/progress-bar.ts` | **Modify** | Make `total` optional (indeterminate mode) |
+| File                                                                                | Action     | Responsibility                                                                                   |
+| ----------------------------------------------------------------------------------- | ---------- | ------------------------------------------------------------------------------------------------ |
+| `server/src/scripts/import-lovac/infra/enrich.ts`                                   | **Create** | Generic `enrichWith<S, E>`: buffers S rows, bulk-fetches E records, emits `Enriched<S, E>` pairs |
+| `server/src/scripts/import-lovac/infra/test/enrich.test.ts`                         | **Create** | Tests for `enrichWith`                                                                           |
+| `server/src/scripts/import-lovac/source-owners/source-owner-enricher.ts`            | **Create** | Owner E-step: bulk SELECT by `idpersonne`, emits `EnrichedOwner`                                 |
+| `server/src/scripts/import-lovac/source-owners/test/source-owner-enricher.test.ts`  | **Create** | Tests for the owner enricher                                                                     |
+| `server/src/scripts/import-lovac/source-owners/source-owner-transform.ts`           | **Create** | Owner T-step: pure function `EnrichedOwner → OwnerChange`, no DB calls                           |
+| `server/src/scripts/import-lovac/source-owners/test/source-owner-transform.test.ts` | **Create** | Tests for the pure transform                                                                     |
+| `server/src/scripts/import-lovac/source-owners/source-owner-processor.ts`           | **Delete** | Replaced by enricher + transform                                                                 |
+| `server/src/scripts/import-lovac/source-owners/test/source-owner-processor.test.ts` | **Delete** | Replaced by enricher + transform tests                                                           |
+| `server/src/scripts/import-lovac/source-owners/source-owner-command.ts`             | **Modify** | Rewire to EETL; self-contained load sink with inline buffering and `ts-pattern` routing          |
+| `server/src/scripts/import-lovac/infra/progress-bar.ts`                             | **Modify** | Make `total` optional (indeterminate mode)                                                       |
 
 ---
 
 ## Task 1: Generic `enrichWith` utility
 
 **Files:**
+
 - Create: `server/src/scripts/import-lovac/infra/enrich.ts`
 - Create: `server/src/scripts/import-lovac/infra/test/enrich.test.ts`
 
@@ -48,7 +49,10 @@ describe('enrichWith', () => {
       { id: 'a', name: 'Alice' },
       { id: 'c', name: 'Carol' }
     ];
-    const result: { source: { id: string }; existing: { id: string; name: string } | null }[] = [];
+    const result: {
+      source: { id: string };
+      existing: { id: string; name: string } | null;
+    }[] = [];
 
     await new ReadableStream({
       pull(controller) {
@@ -58,16 +62,29 @@ describe('enrichWith', () => {
     })
       .pipeThrough(
         enrichWith({
-          fetch: async (chunk) => db.filter((e) => chunk.some((s) => s.id === e.id)),
+          fetch: async (chunk) =>
+            db.filter((e) => chunk.some((s) => s.id === e.id)),
           match: (source, enrichment) => source.id === enrichment.id
         })
       )
-      .pipeTo(new WritableStream({ write(item) { result.push(item); } }));
+      .pipeTo(
+        new WritableStream({
+          write(item) {
+            result.push(item);
+          }
+        })
+      );
 
     expect(result).toHaveLength(3);
-    expect(result[0]).toEqual({ source: { id: 'a' }, existing: { id: 'a', name: 'Alice' } });
+    expect(result[0]).toEqual({
+      source: { id: 'a' },
+      existing: { id: 'a', name: 'Alice' }
+    });
     expect(result[1]).toEqual({ source: { id: 'b' }, existing: null });
-    expect(result[2]).toEqual({ source: { id: 'c' }, existing: { id: 'c', name: 'Carol' } });
+    expect(result[2]).toEqual({
+      source: { id: 'c' },
+      existing: { id: 'c', name: 'Carol' }
+    });
   });
 
   it('should call fetch once per full chunk', async () => {
@@ -98,7 +115,13 @@ describe('enrichWith', () => {
       }
     })
       .pipeThrough(enrichWith({ fetch, match: () => false }))
-      .pipeTo(new WritableStream({ write(item) { result.push(item); } }));
+      .pipeTo(
+        new WritableStream({
+          write(item) {
+            result.push(item);
+          }
+        })
+      );
 
     expect(result).toHaveLength(1);
     expect(fetch).toHaveBeenCalledTimes(1);
@@ -186,6 +209,7 @@ git commit -m "feat(server): add generic enrichWith stream utility for EETL pipe
 ## Task 2: Owner enricher (E step)
 
 **Files:**
+
 - Create: `server/src/scripts/import-lovac/source-owners/source-owner-enricher.ts`
 - Create: `server/src/scripts/import-lovac/source-owners/test/source-owner-enricher.test.ts`
 
@@ -210,7 +234,9 @@ describe('createOwnerEnricher', () => {
 
   it('should annotate a known owner with its existing DB record', async () => {
     const source = genSourceOwner();
-    await Owners().insert(formatOwnerApi(genOwnerApi({ idpersonne: source.idpersonne })));
+    await Owners().insert(
+      formatOwnerApi(genOwnerApi({ idpersonne: source.idpersonne }))
+    );
 
     const result: EnrichedOwner[] = [];
     await new ReadableStream({
@@ -220,7 +246,13 @@ describe('createOwnerEnricher', () => {
       }
     })
       .pipeThrough(createOwnerEnricher())
-      .pipeTo(new WritableStream({ write(item) { result.push(item); } }));
+      .pipeTo(
+        new WritableStream({
+          write(item) {
+            result.push(item);
+          }
+        })
+      );
 
     expect(result).toHaveLength(1);
     expect(result[0].source).toEqual(source);
@@ -238,7 +270,13 @@ describe('createOwnerEnricher', () => {
       }
     })
       .pipeThrough(createOwnerEnricher())
-      .pipeTo(new WritableStream({ write(item) { result.push(item); } }));
+      .pipeTo(
+        new WritableStream({
+          write(item) {
+            result.push(item);
+          }
+        })
+      );
 
     expect(result).toHaveLength(1);
     expect(result[0].existing).toBeNull();
@@ -260,7 +298,13 @@ describe('createOwnerEnricher', () => {
       }
     })
       .pipeThrough(createOwnerEnricher())
-      .pipeTo(new WritableStream({ write(item) { result.push(item); } }));
+      .pipeTo(
+        new WritableStream({
+          write(item) {
+            result.push(item);
+          }
+        })
+      );
 
     expect(result).toHaveLength(5);
     expect(result.filter((r) => r.existing !== null)).toHaveLength(2);
@@ -288,7 +332,10 @@ import { SourceOwner } from '~/scripts/import-lovac/source-owners/source-owner';
 
 export type EnrichedOwner = Enriched<SourceOwner, OwnerDBO>;
 
-export function createOwnerEnricher(): TransformStream<SourceOwner, EnrichedOwner> {
+export function createOwnerEnricher(): TransformStream<
+  SourceOwner,
+  EnrichedOwner
+> {
   return enrichWith<SourceOwner, OwnerDBO>({
     async fetch(sources) {
       const idpersonnes = sources.map((s) => s.idpersonne);
@@ -322,6 +369,7 @@ git commit -m "feat(server): add owner enricher with batch DB lookup (E step)"
 Replace `source-owner-processor.ts` with `source-owner-transform.ts`. No DB calls. No async.
 
 **Files:**
+
 - Create: `server/src/scripts/import-lovac/source-owners/source-owner-transform.ts`
 - Create: `server/src/scripts/import-lovac/source-owners/test/source-owner-transform.test.ts`
 - Delete: `server/src/scripts/import-lovac/source-owners/source-owner-processor.ts`
@@ -364,7 +412,9 @@ describe('createOwnerTransform', () => {
 
   it('should produce an update change when the owner exists', () => {
     const source = genSourceOwner();
-    const existing = formatOwnerApi(genOwnerApi({ idpersonne: source.idpersonne }));
+    const existing = formatOwnerApi(
+      genOwnerApi({ idpersonne: source.idpersonne })
+    );
     const transform = createOwnerTransform({ reporter, abortEarly: false });
 
     const change = transform({ source, existing });
@@ -558,6 +608,7 @@ git commit -m "feat(server): add pure owner transform, remove N+1 processor (T s
 Drop the `count()` pre-pass, temp-table management, and `tee()` fan-out. The load sink is a single self-contained `WritableStream` with internal per-kind buffers, routed via `ts-pattern` exhaustive match.
 
 **Files:**
+
 - Modify: `server/src/scripts/import-lovac/infra/progress-bar.ts`
 - Modify: `server/src/scripts/import-lovac/source-owners/source-owner-command.ts`
 
@@ -652,14 +703,25 @@ export function createSourceOwnerCommand() {
       console.time('Import owners');
       logger.info('Starting import...', { file });
 
-      await createSourceOwnerRepository({ from: options.from, file, ...config.s3 })
+      await createSourceOwnerRepository({
+        from: options.from,
+        file,
+        ...config.s3
+      })
         .stream({ departments: options.departments })
         .pipeThrough(progress({ name: 'Importing owners' }))
         .pipeThrough(
-          validator(sourceOwnerSchema, { abortEarly: options.abortEarly, reporter })
+          validator(sourceOwnerSchema, {
+            abortEarly: options.abortEarly,
+            reporter
+          })
         )
         .pipeThrough(createOwnerEnricher())
-        .pipeThrough(map(createOwnerTransform({ reporter, abortEarly: options.abortEarly })))
+        .pipeThrough(
+          map(
+            createOwnerTransform({ reporter, abortEarly: options.abortEarly })
+          )
+        )
         .pipeTo(createOwnerLoadSink(options));
 
       logger.info(`File ${file} imported.`);
@@ -670,7 +732,9 @@ export function createSourceOwnerCommand() {
   };
 }
 
-function createOwnerLoadSink(options: ExecOptions): WritableStream<OwnerChange> {
+function createOwnerLoadSink(
+  options: ExecOptions
+): WritableStream<OwnerChange> {
   const insertBuffer: OwnerApi[] = [];
   const upsertBuffer: OwnerApi[] = [];
 
@@ -736,6 +800,7 @@ git commit -m "feat(server): rewire owner command to EETL pipeline with ts-patte
 ## Self-review
 
 **Spec coverage:**
+
 - `enrichWith` with `effect/Array.findFirst` + `Option.getOrNull`: Task 1 ✓
 - Owner enricher with bulk SELECT by `idpersonne`: Task 2 ✓
 - Pure synchronous transform, renamed to `source-owner-transform.ts`: Task 3 ✓
@@ -749,6 +814,7 @@ git commit -m "feat(server): rewire owner command to EETL pipeline with ts-patte
 **Placeholder scan:** None found.
 
 **Type consistency:**
+
 - `Enriched<S, E>` in `enrich.ts` → aliased as `EnrichedOwner` in `source-owner-enricher.ts` → parameter type of `createOwnerTransform` in `source-owner-transform.ts` ✓
 - `OwnerChange.kind` is `'create' | 'update'` — matches `.with({ kind: 'create' })` and `.with({ kind: 'update' })` in the exhaustive match ✓
 - `UPSERT_COLUMNS` typed as `const` array — passed to `.merge([...UPSERT_COLUMNS])` ✓

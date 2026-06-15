@@ -1,6 +1,8 @@
+import { constants } from 'http2';
+
 import { NextFunction, Request, Response } from 'express';
 import { matchedData, validationResult } from 'express-validator';
-import { constants } from 'http2';
+
 import { logger } from '~/infra/logger';
 
 function validate(

@@ -1,7 +1,7 @@
 import { pipe, Predicate, Record } from 'effect';
 
-import { FileUploadDTO } from './FileUploadDTO';
 import type { DocumentDTO } from './DocumentDTO';
+import { FileUploadDTO } from './FileUploadDTO';
 
 export interface SenderDTO {
   id: string;

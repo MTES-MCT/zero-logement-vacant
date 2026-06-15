@@ -1,16 +1,18 @@
-import { HousingStatus, Occupancy } from '@zerologementvacant/models';
 import { act, renderHook } from '@testing-library/react';
+import { HousingStatus, Occupancy } from '@zerologementvacant/models';
 import type { PropsWithChildren } from 'react';
 import { Provider as StoreProvider } from 'react-redux';
 
+import configureTestStore from '../../utils/storeUtils';
 import {
   HousingFiltersProvider,
   useHousingFilters
 } from '../HousingFiltersContext';
-import configureTestStore from '../../utils/storeUtils';
 
 function createWrapper(
-  initialFilters?: Parameters<typeof HousingFiltersProvider>[0]['initialFilters']
+  initialFilters?: Parameters<
+    typeof HousingFiltersProvider
+  >[0]['initialFilters']
 ) {
   const store = configureTestStore();
 
@@ -82,7 +84,9 @@ describe('HousingFiltersContext', () => {
       });
 
       act(() => {
-        result.current.onChange({ statusList: [HousingStatus.NEVER_CONTACTED] });
+        result.current.onChange({
+          statusList: [HousingStatus.NEVER_CONTACTED]
+        });
       });
 
       expect(result.current.filters.subStatus).toEqual([]);

@@ -1,10 +1,10 @@
-import { http, HttpResponse, RequestHandler } from 'msw';
-
 import type { CardDataDTO, DashboardDTO } from '@zerologementvacant/models';
 import {
   genCardDataDTO,
   genDashboardDTO
 } from '@zerologementvacant/models/fixtures';
+import { http, HttpResponse, RequestHandler } from 'msw';
+
 import config from '../../utils/config';
 
 const findOne = http.get<{ id: string }, never, DashboardDTO>(
@@ -14,8 +14,7 @@ const findOne = http.get<{ id: string }, never, DashboardDTO>(
 
 const findOneCard = http.get<{ did: string; cid: string }, never, CardDataDTO>(
   `${config.apiEndpoint}/dashboards/:did/cards/:cid`,
-  ({ params }) =>
-    HttpResponse.json(genCardDataDTO({ id: Number(params.cid) }))
+  ({ params }) => HttpResponse.json(genCardDataDTO({ id: Number(params.cid) }))
 );
 
 export const dashboardHandlers: RequestHandler[] = [findOne, findOneCard];

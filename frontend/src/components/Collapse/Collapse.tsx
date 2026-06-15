@@ -1,10 +1,11 @@
-import { Icon, Text } from '../_dsfr';
 import classNames from 'classnames';
 import { useRef, useState } from 'react';
 import type { ReactNode } from 'react';
 
-import styles from './collapse.module.scss';
 import { useOutsideClick } from '../../hooks/useOutsideClick';
+import { Icon, Text } from '../_dsfr';
+
+import styles from './collapse.module.scss';
 
 interface Props {
   className?: string;
@@ -34,10 +35,10 @@ function Collapse(props: Props) {
 
   const articleClasses = classNames(styles.article, props.className, {
     [styles.dropdown]: props.dropdown,
-    [styles.hidden]: hide,
+    [styles.hidden]: hide
   });
   const headerClasses = classNames(styles.header, {
-    [styles.clickable]: props.content,
+    [styles.clickable]: props.content
   });
   const contentClasses = classNames(styles.content);
 

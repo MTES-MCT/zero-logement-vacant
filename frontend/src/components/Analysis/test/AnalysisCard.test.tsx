@@ -1,8 +1,5 @@
 import { render, screen, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
-import { http, HttpResponse } from 'msw';
-import { Provider } from 'react-redux';
-
 import {
   genBarChartCard,
   genBarChartDataDTO,
@@ -16,9 +13,13 @@ import {
   genTableCard,
   genTableDataDTO
 } from '@zerologementvacant/models/fixtures';
+import { http, HttpResponse } from 'msw';
+import { Provider } from 'react-redux';
+
 import { mockAPI } from '~/mocks/mock-api';
 import config from '~/utils/config';
 import configureTestStore from '~/utils/storeUtils';
+
 import AnalysisCard from '../AnalysisCard';
 
 function setup(props: React.ComponentProps<typeof AnalysisCard>) {
@@ -30,7 +31,11 @@ function setup(props: React.ComponentProps<typeof AnalysisCard>) {
 }
 
 describe('AnalysisCard', () => {
-  const card = genFlatNumberCard({ id: 929, title: 'Logements vacants', decimals: 0 });
+  const card = genFlatNumberCard({
+    id: 929,
+    title: 'Logements vacants',
+    decimals: 0
+  });
   const dashboardId = '13-analyses' as const;
 
   it('shows a skeleton while loading', () => {
@@ -48,9 +53,8 @@ describe('AnalysisCard', () => {
 
   it('shows an error when the request fails', async () => {
     mockAPI.use(
-      http.get(
-        `${config.apiEndpoint}/dashboards/:did/cards/:cid`,
-        () => HttpResponse.json({ message: 'Error' }, { status: 500 })
+      http.get(`${config.apiEndpoint}/dashboards/:did/cards/:cid`, () =>
+        HttpResponse.json({ message: 'Error' }, { status: 500 })
       )
     );
 
@@ -61,9 +65,8 @@ describe('AnalysisCard', () => {
 
   it('displays a flat number value', async () => {
     mockAPI.use(
-      http.get(
-        `${config.apiEndpoint}/dashboards/:did/cards/:cid`,
-        () => HttpResponse.json(genScalarCardDataDTO({ id: 929, data: 51884 }))
+      http.get(`${config.apiEndpoint}/dashboards/:did/cards/:cid`, () =>
+        HttpResponse.json(genScalarCardDataDTO({ id: 929, data: 51884 }))
       )
     );
 
@@ -77,9 +80,8 @@ describe('AnalysisCard', () => {
   it('displays a percentage value', async () => {
     const percentCard = genPercentageCard({ id: 929, decimals: 1 });
     mockAPI.use(
-      http.get(
-        `${config.apiEndpoint}/dashboards/:did/cards/:cid`,
-        () => HttpResponse.json(genScalarCardDataDTO({ id: 929, data: 0.4823 }))
+      http.get(`${config.apiEndpoint}/dashboards/:did/cards/:cid`, () =>
+        HttpResponse.json(genScalarCardDataDTO({ id: 929, data: 0.4823 }))
       )
     );
 
@@ -97,9 +99,8 @@ describe('AnalysisCard', () => {
       data: [4876, 652]
     });
     mockAPI.use(
-      http.get(
-        `${config.apiEndpoint}/dashboards/:did/cards/:cid`,
-        () => HttpResponse.json(cardData)
+      http.get(`${config.apiEndpoint}/dashboards/:did/cards/:cid`, () =>
+        HttpResponse.json(cardData)
       )
     );
 
@@ -110,7 +111,10 @@ describe('AnalysisCard', () => {
   });
 
   it('renders a bar chart card without error when card type is bar-chart', async () => {
-    const barCard = genBarChartCard({ id: 80, title: 'Répartition par date de construction' });
+    const barCard = genBarChartCard({
+      id: 80,
+      title: 'Répartition par date de construction'
+    });
     const cardData = genBarChartDataDTO({
       id: 80,
       direction: 'vertical',
@@ -118,9 +122,8 @@ describe('AnalysisCard', () => {
       data: [3200, 1800]
     });
     mockAPI.use(
-      http.get(
-        `${config.apiEndpoint}/dashboards/:did/cards/:cid`,
-        () => HttpResponse.json(cardData)
+      http.get(`${config.apiEndpoint}/dashboards/:did/cards/:cid`, () =>
+        HttpResponse.json(cardData)
       )
     );
 
@@ -138,16 +141,17 @@ describe('AnalysisCard', () => {
       data: [4876, 652]
     });
     mockAPI.use(
-      http.get(
-        `${config.apiEndpoint}/dashboards/:did/cards/:cid`,
-        () => HttpResponse.json(cardData)
+      http.get(`${config.apiEndpoint}/dashboards/:did/cards/:cid`, () =>
+        HttpResponse.json(cardData)
       )
     );
 
     setup({ card: pieCard, dashboardId });
 
     await screen.findByText('Répartition par type');
-    expect(screen.getByRole('button', { name: /Transcription/i })).toBeInTheDocument();
+    expect(
+      screen.getByRole('button', { name: /Transcription/i })
+    ).toBeInTheDocument();
   });
 
   it('shows percentage transcription items for a pie chart', async () => {
@@ -160,9 +164,8 @@ describe('AnalysisCard', () => {
       data: [4876, 652]
     });
     mockAPI.use(
-      http.get(
-        `${config.apiEndpoint}/dashboards/:did/cards/:cid`,
-        () => HttpResponse.json(cardData)
+      http.get(`${config.apiEndpoint}/dashboards/:did/cards/:cid`, () =>
+        HttpResponse.json(cardData)
       )
     );
 
@@ -176,7 +179,10 @@ describe('AnalysisCard', () => {
   });
 
   it('shows a transcription accordion for a bar chart', async () => {
-    const barCard = genBarChartCard({ id: 80, title: 'Répartition par date de construction' });
+    const barCard = genBarChartCard({
+      id: 80,
+      title: 'Répartition par date de construction'
+    });
     const cardData = genBarChartDataDTO({
       id: 80,
       direction: 'vertical',
@@ -184,20 +190,24 @@ describe('AnalysisCard', () => {
       data: [3200, 1800]
     });
     mockAPI.use(
-      http.get(
-        `${config.apiEndpoint}/dashboards/:did/cards/:cid`,
-        () => HttpResponse.json(cardData)
+      http.get(`${config.apiEndpoint}/dashboards/:did/cards/:cid`, () =>
+        HttpResponse.json(cardData)
       )
     );
 
     setup({ card: barCard, dashboardId });
 
     await screen.findByText('Répartition par date de construction');
-    expect(screen.getByRole('button', { name: /Transcription/i })).toBeInTheDocument();
+    expect(
+      screen.getByRole('button', { name: /Transcription/i })
+    ).toBeInTheDocument();
   });
 
   it('shows raw value transcription items for a bar chart', async () => {
-    const barCard = genBarChartCard({ id: 80, title: 'Répartition par date de construction' });
+    const barCard = genBarChartCard({
+      id: 80,
+      title: 'Répartition par date de construction'
+    });
     const cardData = genBarChartDataDTO({
       id: 80,
       direction: 'vertical',
@@ -205,9 +215,8 @@ describe('AnalysisCard', () => {
       data: [3200, 1800]
     });
     mockAPI.use(
-      http.get(
-        `${config.apiEndpoint}/dashboards/:did/cards/:cid`,
-        () => HttpResponse.json(cardData)
+      http.get(`${config.apiEndpoint}/dashboards/:did/cards/:cid`, () =>
+        HttpResponse.json(cardData)
       )
     );
 
@@ -225,7 +234,13 @@ describe('AnalysisCard', () => {
       id: 90,
       columns: [
         { name: 'code', displayName: 'Code EPCI', baseType: 'string' },
-        { name: 'rate', displayName: 'Taux', baseType: 'number', decimals: 1, numberStyle: 'percent' }
+        {
+          name: 'rate',
+          displayName: 'Taux',
+          baseType: 'number',
+          decimals: 1,
+          numberStyle: 'percent'
+        }
       ],
       rows: [
         ['200054807', 0.123],
@@ -233,17 +248,20 @@ describe('AnalysisCard', () => {
       ]
     });
     mockAPI.use(
-      http.get(
-        `${config.apiEndpoint}/dashboards/:did/cards/:cid`,
-        () => HttpResponse.json(cardData)
+      http.get(`${config.apiEndpoint}/dashboards/:did/cards/:cid`, () =>
+        HttpResponse.json(cardData)
       )
     );
 
     setup({ card: tableCard, dashboardId });
 
     await screen.findByText('Statistiques par EPCI');
-    expect(screen.getByRole('columnheader', { name: /Code EPCI/i })).toBeInTheDocument();
-    expect(screen.getByRole('columnheader', { name: /Taux/i })).toBeInTheDocument();
+    expect(
+      screen.getByRole('columnheader', { name: /Code EPCI/i })
+    ).toBeInTheDocument();
+    expect(
+      screen.getByRole('columnheader', { name: /Taux/i })
+    ).toBeInTheDocument();
     expect(screen.getByRole('cell', { name: '200054807' })).toBeInTheDocument();
     // fr-FR locale formats 0.123 as "12,3 %" (narrow no-break space U+202F)
     expect(screen.getByText(/12[,.]3[\s ]%/)).toBeInTheDocument();
@@ -255,14 +273,18 @@ describe('AnalysisCard', () => {
       id: 91,
       columns: [
         { name: 'label', displayName: 'Libellé', baseType: 'string' },
-        { name: 'amount', displayName: 'Montant', baseType: 'number', suffix: ' €' }
+        {
+          name: 'amount',
+          displayName: 'Montant',
+          baseType: 'number',
+          suffix: ' €'
+        }
       ],
       rows: [['Total', 1234567]]
     });
     mockAPI.use(
-      http.get(
-        `${config.apiEndpoint}/dashboards/:did/cards/:cid`,
-        () => HttpResponse.json(cardData)
+      http.get(`${config.apiEndpoint}/dashboards/:did/cards/:cid`, () =>
+        HttpResponse.json(cardData)
       )
     );
 
@@ -283,9 +305,8 @@ describe('AnalysisCard', () => {
       rows: [['Sans donnée', null]]
     });
     mockAPI.use(
-      http.get(
-        `${config.apiEndpoint}/dashboards/:did/cards/:cid`,
-        () => HttpResponse.json(cardData)
+      http.get(`${config.apiEndpoint}/dashboards/:did/cards/:cid`, () =>
+        HttpResponse.json(cardData)
       )
     );
 
@@ -302,15 +323,12 @@ describe('AnalysisCard', () => {
     const tableCard = genTableCard({ id: 94, title: 'Dates' });
     const cardData = genTableDataDTO({
       id: 94,
-      columns: [
-        { name: 'event_at', displayName: 'Date', baseType: 'date' }
-      ],
+      columns: [{ name: 'event_at', displayName: 'Date', baseType: 'date' }],
       rows: [['2024-03-15T10:30:00.000Z']]
     });
     mockAPI.use(
-      http.get(
-        `${config.apiEndpoint}/dashboards/:did/cards/:cid`,
-        () => HttpResponse.json(cardData)
+      http.get(`${config.apiEndpoint}/dashboards/:did/cards/:cid`, () =>
+        HttpResponse.json(cardData)
       )
     );
 
@@ -327,9 +345,8 @@ describe('AnalysisCard', () => {
       rows: [['valeur']]
     });
     mockAPI.use(
-      http.get(
-        `${config.apiEndpoint}/dashboards/:did/cards/:cid`,
-        () => HttpResponse.json(cardData)
+      http.get(`${config.apiEndpoint}/dashboards/:did/cards/:cid`, () =>
+        HttpResponse.json(cardData)
       )
     );
 
@@ -356,9 +373,8 @@ describe('AnalysisCard', () => {
       ]
     });
     mockAPI.use(
-      http.get(
-        `${config.apiEndpoint}/dashboards/:did/cards/:cid`,
-        () => HttpResponse.json(cardData)
+      http.get(`${config.apiEndpoint}/dashboards/:did/cards/:cid`, () =>
+        HttpResponse.json(cardData)
       )
     );
 
@@ -368,29 +384,37 @@ describe('AnalysisCard', () => {
     // AdvancedTable renders a SortButton beside sortable headers. Its accessible name
     // comes from columnDef.meta?.sort?.title and falls back to `Trier par ${header.id}`.
     // We use the column id here, which equals meta.name ("amount").
-    const sortButton = await screen.findByRole('button', { name: /Trier par amount/i });
+    const sortButton = await screen.findByRole('button', {
+      name: /Trier par amount/i
+    });
     // First click → descending; second click → ascending
     await user.click(sortButton);
     await user.click(sortButton);
 
-    const labelCells = screen.getAllByRole('cell').filter(
-      (c) => c.textContent && /^[ABC]$/.test(c.textContent.trim())
-    );
+    const labelCells = screen
+      .getAllByRole('cell')
+      .filter((c) => c.textContent && /^[ABC]$/.test(c.textContent.trim()));
     // After ascending sort by amount: B (10), C (20), A (30)
-    expect(labelCells.map((c) => c.textContent?.trim())).toEqual(['B', 'C', 'A']);
+    expect(labelCells.map((c) => c.textContent?.trim())).toEqual([
+      'B',
+      'C',
+      'A'
+    ]);
   });
 
   it('renders a line chart card without error when card type is line-chart', async () => {
-    const lineCard = genLineChartCard({ id: 100, title: 'Évolution mensuelle' });
+    const lineCard = genLineChartCard({
+      id: 100,
+      title: 'Évolution mensuelle'
+    });
     const cardData = genLineChartDataDTO({
       id: 100,
       labels: ['2024-01', '2024-02', '2024-03'],
       data: [120, 145, 180]
     });
     mockAPI.use(
-      http.get(
-        `${config.apiEndpoint}/dashboards/:did/cards/:cid`,
-        () => HttpResponse.json(cardData)
+      http.get(`${config.apiEndpoint}/dashboards/:did/cards/:cid`, () =>
+        HttpResponse.json(cardData)
       )
     );
 
@@ -401,36 +425,42 @@ describe('AnalysisCard', () => {
   });
 
   it('shows a transcription accordion for a line chart', async () => {
-    const lineCard = genLineChartCard({ id: 100, title: 'Évolution mensuelle' });
+    const lineCard = genLineChartCard({
+      id: 100,
+      title: 'Évolution mensuelle'
+    });
     const cardData = genLineChartDataDTO({
       id: 100,
       labels: ['2024-01', '2024-02', '2024-03'],
       data: [120, 145, 180]
     });
     mockAPI.use(
-      http.get(
-        `${config.apiEndpoint}/dashboards/:did/cards/:cid`,
-        () => HttpResponse.json(cardData)
+      http.get(`${config.apiEndpoint}/dashboards/:did/cards/:cid`, () =>
+        HttpResponse.json(cardData)
       )
     );
 
     setup({ card: lineCard, dashboardId });
 
     await screen.findByText('Évolution mensuelle');
-    expect(screen.getByRole('button', { name: /Transcription/i })).toBeInTheDocument();
+    expect(
+      screen.getByRole('button', { name: /Transcription/i })
+    ).toBeInTheDocument();
   });
 
   it('shows raw value transcription items for a line chart', async () => {
-    const lineCard = genLineChartCard({ id: 100, title: 'Évolution mensuelle' });
+    const lineCard = genLineChartCard({
+      id: 100,
+      title: 'Évolution mensuelle'
+    });
     const cardData = genLineChartDataDTO({
       id: 100,
       labels: ['2024-01', '2024-02', '2024-03'],
       data: [120, 145, 180]
     });
     mockAPI.use(
-      http.get(
-        `${config.apiEndpoint}/dashboards/:did/cards/:cid`,
-        () => HttpResponse.json(cardData)
+      http.get(`${config.apiEndpoint}/dashboards/:did/cards/:cid`, () =>
+        HttpResponse.json(cardData)
       )
     );
 
@@ -443,7 +473,10 @@ describe('AnalysisCard', () => {
   });
 
   it('formats line chart transcription items as percent when format is "percent"', async () => {
-    const lineCard = genLineChartCard({ id: 506, title: 'Évolution du taux de logements vacants' });
+    const lineCard = genLineChartCard({
+      id: 506,
+      title: 'Évolution du taux de logements vacants'
+    });
     // Percent data crosses the wire as 0–1 fractions; Intl.NumberFormat
     // multiplies back by 100 to display "1,8 %".
     const cardData = genLineChartDataDTO({
@@ -454,9 +487,8 @@ describe('AnalysisCard', () => {
       data: [0.017889104687916527, 0.017543445298366108, 0.017916857986985584]
     });
     mockAPI.use(
-      http.get(
-        `${config.apiEndpoint}/dashboards/:did/cards/:cid`,
-        () => HttpResponse.json(cardData)
+      http.get(`${config.apiEndpoint}/dashboards/:did/cards/:cid`, () =>
+        HttpResponse.json(cardData)
       )
     );
 
@@ -479,9 +511,8 @@ describe('AnalysisCard', () => {
       data: [0.125, 0.875]
     });
     mockAPI.use(
-      http.get(
-        `${config.apiEndpoint}/dashboards/:did/cards/:cid`,
-        () => HttpResponse.json(cardData)
+      http.get(`${config.apiEndpoint}/dashboards/:did/cards/:cid`, () =>
+        HttpResponse.json(cardData)
       )
     );
 

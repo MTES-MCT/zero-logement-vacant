@@ -1,3 +1,5 @@
+import { constants } from 'http2';
+
 import {
   DocumentDTO,
   DraftCreationPayload,
@@ -11,7 +13,6 @@ import async from 'async';
 import { Predicate } from 'effect';
 import { RequestHandler } from 'express';
 import { AuthenticatedRequest } from 'express-jwt';
-import { constants } from 'http2';
 import type { ElementOf } from 'ts-essentials';
 import { v4 as uuidv4 } from 'uuid';
 

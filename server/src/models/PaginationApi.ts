@@ -1,8 +1,7 @@
+import { Pagination } from '@zerologementvacant/models';
 import { query, ValidationChain } from 'express-validator';
 import { Knex } from 'knex';
-
 import { boolean, number, object } from 'yup';
-import { Pagination } from '@zerologementvacant/models';
 
 export type PaginationApi = PaginationEnabled | PaginationDisabled;
 

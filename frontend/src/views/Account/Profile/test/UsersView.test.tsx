@@ -14,11 +14,12 @@ import { Provider } from 'react-redux';
 import { createMemoryRouter, RouterProvider } from 'react-router';
 
 import data from '~/mocks/handlers/data';
+import { fromEstablishmentDTO } from '~/models/Establishment';
 import { fromUserDTO } from '~/models/User';
 import configureTestStore from '~/utils/storeUtils';
 import UsersView from '~/views/Account/Profile/UsersView';
+
 import { genAuthUser } from '../../../../test/fixtures';
-import { fromEstablishmentDTO } from '~/models/Establishment';
 
 describe('Users view', () => {
   interface RenderViewOptions {

@@ -1,9 +1,9 @@
 import Button from '@codegouvfr/react-dsfr/Button';
 import Stack from '@mui/material/Stack';
 import Typography from '@mui/material/Typography';
+import type { CampaignDTO } from '@zerologementvacant/models';
 import { format } from 'date-fns';
 import { fr as dateFr } from 'date-fns/locale';
-import type { CampaignDTO } from '@zerologementvacant/models';
 
 import CampaignStatCard from '~/components/Campaign/CampaignStatCard';
 

@@ -1,12 +1,12 @@
 import type { Store } from '@reduxjs/toolkit';
 import { render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
+import type { GroupDTO } from '@zerologementvacant/models';
+import { genGroupDTO, genUserDTO } from '@zerologementvacant/models/fixtures';
 import { http, HttpResponse } from 'msw';
 import { Provider } from 'react-redux';
 import { MemoryRouter as Router } from 'react-router';
 
-import type { GroupDTO } from '@zerologementvacant/models';
-import { genGroupDTO, genUserDTO } from '@zerologementvacant/models/fixtures';
 import { mockAPI } from '../../mocks/mock-api';
 import config from '../../utils/config';
 import configureTestStore from '../../utils/storeUtils';

@@ -2,8 +2,8 @@ import express from 'express';
 import * as jwt from 'jsonwebtoken';
 import { MarkRequired } from 'ts-essentials';
 
-import { TokenPayload, UserApi } from '~/models/UserApi';
 import { EstablishmentApi } from '~/models/EstablishmentApi';
+import { TokenPayload, UserApi } from '~/models/UserApi';
 import { UserPerimeterApi } from '~/models/UserPerimeterApi';
 
 declare global {

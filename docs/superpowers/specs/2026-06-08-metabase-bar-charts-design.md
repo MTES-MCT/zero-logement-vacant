@@ -24,25 +24,29 @@ Three layers are touched in the same order as the existing pie chart feature: `p
 
 ```typescript
 // Extend existing union
-type CardType = 'flat-number' | 'percentage' | 'pie-chart' | 'bar-chart'
+type CardType = 'flat-number' | 'percentage' | 'pie-chart' | 'bar-chart';
 
 // Card metadata (no new fields beyond CardCommon)
 interface BarChartCard extends CardCommon {
-  type: 'bar-chart'
+  type: 'bar-chart';
 }
 
 // Data DTO — direction is a rendering property, lives on the data response
 interface BarChartDataDTO {
-  id: number
-  type: 'bar-chart'
-  direction: 'horizontal' | 'vertical'
-  labels: string[]
-  data: number[]
+  id: number;
+  type: 'bar-chart';
+  direction: 'horizontal' | 'vertical';
+  labels: string[];
+  data: number[];
 }
 
 // Updated unions
-type DashboardCard = FlatNumberCard | PercentageCard | PieChartCard | BarChartCard
-type CardDataDTO = ScalarCardDataDTO | PieChartDataDTO | BarChartDataDTO
+type DashboardCard =
+  | FlatNumberCard
+  | PercentageCard
+  | PieChartCard
+  | BarChartCard;
+type CardDataDTO = ScalarCardDataDTO | PieChartDataDTO | BarChartDataDTO;
 ```
 
 **New fixtures** in `packages/models/src/test/fixtures.ts`:
@@ -68,7 +72,7 @@ if (card.display === 'bar' || card.display === 'row') {
     decimals: 0,
     position: { col: dashcard.col, row: dashcard.row },
     size: { width: dashcard.size_x, height: dashcard.size_y }
-  }
+  };
 }
 ```
 
@@ -82,7 +86,7 @@ if (cardType === 'bar-chart') {
     direction: dashcard.direction,
     labels: data.data.rows.map((row) => String(row[0])),
     data: data.data.rows.map((row) => Number(row[1]))
-  }
+  };
 }
 ```
 
@@ -126,21 +130,29 @@ An Accordion with a heading + bullet list. Used by both `PieChartDisplay` and `B
 Uses `effect` (`Array`, `pipe`) and `ts-pattern` (`match(...).exhaustive()`):
 
 ```typescript
-import { Array, pipe } from 'effect'
-import { match } from 'ts-pattern'
+import { Array, pipe } from 'effect';
+import { match } from 'ts-pattern';
 
 const items = match(type)
   .with('pie-chart', () => {
-    const total = pipe(data, Array.reduce(0, (acc, v) => acc + v))
+    const total = pipe(
+      data,
+      Array.reduce(0, (acc, v) => acc + v)
+    );
     return pipe(
       Array.zip(labels, data),
-      Array.map(([label, value]) => `${label} : ${Math.round(value / total * 100)} %`)
-    )
+      Array.map(
+        ([label, value]) => `${label} : ${Math.round((value / total) * 100)} %`
+      )
+    );
   })
   .with('bar-chart', () =>
-    pipe(Array.zip(labels, data), Array.map(([label, value]) => `${label} : ${value}`))
+    pipe(
+      Array.zip(labels, data),
+      Array.map(([label, value]) => `${label} : ${value}`)
+    )
   )
-  .exhaustive()
+  .exhaustive();
 ```
 
 The `.exhaustive()` call ensures a compile error if a new chart type is added without updating the transcription.
@@ -165,10 +177,12 @@ import { match } from 'ts-pattern'
 **`packages/models`**: no new test files — fixtures are covered by the existing fixture test suite.
 
 **`server`** (`controllers/test/dashboard-api.test.ts`):
+
 - Bar chart card appears in dashboard response when `card.display === 'bar'` or `'row'`
 - `GET /dashboards/:did/cards/:cid` returns `BarChartDataDTO` with correct `direction`
 
 **`frontend`** (`components/Analysis/test/AnalysisCard.test.tsx`):
+
 - Renders `BarChart` when data type is `'bar-chart'`
 - Transcription accordion is rendered for both pie and bar charts
 - Pie chart transcription items use percentage format

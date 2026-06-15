@@ -1,6 +1,5 @@
 import Stack from '@mui/material/Stack';
 
-import { Text } from '../../components/_dsfr';
 import Label from '~/components/Label/Label';
 import Map from '~/components/Map/Map';
 import { type GeoPerimeter } from '~/models/GeoPerimeter';
@@ -19,6 +18,8 @@ import {
   includeExcludeWith,
   includeWith
 } from '~/utils/arrayUtils';
+
+import { Text } from '../../components/_dsfr';
 
 interface Props {
   filters: HousingFilters;

@@ -4,7 +4,7 @@
 
 **Goal:** Cache Metabase API responses in-process on the backend (TTL: 1h) and bump RTK Query's `keepUnusedDataFor` so the Analysis page reloads fast and Metabase isn't hit redundantly.
 
-**Architecture:** Refactor `metabase-api.ts` to expose a single `fetchDashboardRaw` step that both `getDashboard` and `findDashcard` consume. Wrap the `MetabaseService` interface with a `CachedMetabaseService` that holds two `@isaacs/ttlcache` instances — one keyed by `dashboardId`, one keyed by `${dashboardId}:${dashcardId}:${cardId}:${establishmentId}`. Caches store the *promise* so concurrent callers coalesce; rejected promises are evicted so the next caller retries. Replace the singleton export with the cached wrapper; the only consumer (`dashboardController`) needs no changes.
+**Architecture:** Refactor `metabase-api.ts` to expose a single `fetchDashboardRaw` step that both `getDashboard` and `findDashcard` consume. Wrap the `MetabaseService` interface with a `CachedMetabaseService` that holds two `@isaacs/ttlcache` instances — one keyed by `dashboardId`, one keyed by `${dashboardId}:${dashcardId}:${cardId}:${establishmentId}`. Caches store the _promise_ so concurrent callers coalesce; rejected promises are evicted so the next caller retries. Replace the singleton export with the cached wrapper; the only consumer (`dashboardController`) needs no changes.
 
 **Tech Stack:** TypeScript, `@isaacs/ttlcache`, Vitest (with fake timers), Express, RTK Query.
 
@@ -15,6 +15,7 @@
 ### Task 1: Add `@isaacs/ttlcache` dependency
 
 **Files:**
+
 - Modify: `server/package.json`
 
 - [ ] **Step 1: Add the dependency**
@@ -51,6 +52,7 @@ git commit -m "chore(server): add @isaacs/ttlcache dependency"
 The current `getDashboard` and `findDashcard` each call `GET /api/dashboard/:id` independently. Extract that fetch into a shared method exposed on the `MetabaseService` interface so it can be cached once.
 
 **Files:**
+
 - Modify: `server/src/services/metabase/metabase-service.ts`
 - Modify: `server/src/services/metabase/metabase-api.ts`
 
@@ -143,7 +145,10 @@ In `server/src/services/metabase/metabase-service.ts`, update the `MetabaseServi
 export interface MetabaseService {
   fetchDashboardRaw(id: number): Promise<MetabaseDashboardRaw>;
   getDashboard(id: number): Promise<DashboardData>;
-  findDashcard(dashboardId: number, dashcardId: number): Promise<DashcardRef | null>;
+  findDashcard(
+    dashboardId: number,
+    dashcardId: number
+  ): Promise<DashcardRef | null>;
   getCardValue(
     dashboardId: number,
     dashcardId: number,
@@ -228,6 +233,7 @@ git commit -m "refactor(server): share fetchDashboardRaw between getDashboard an
 Two env vars driving the cache behavior. Both default to safe production values; tests will override `ttlMs` to a small number via fake timers (no env override needed in tests).
 
 **Files:**
+
 - Modify: `server/src/infra/config.ts`
 
 - [ ] **Step 1: Extend the `metabase` schema and parser**
@@ -267,7 +273,7 @@ metabase: {
   apiToken: string;
   cacheTtlMs: number;
   cacheMaxEntries: number;
-};
+}
 ```
 
 - [ ] **Step 2: Typecheck**
@@ -294,6 +300,7 @@ git commit -m "feat(server): add metabase cache TTL and max-entries config"
 A `CachedMetabaseService` that implements `MetabaseService`, holds two `@isaacs/ttlcache` instances, caches promises (coalescing), and evicts rejected promises.
 
 **Files:**
+
 - Create: `server/src/services/metabase/metabase-cache.ts`
 - Create: `server/src/services/metabase/test/metabase-cache.test.ts`
 
@@ -440,10 +447,7 @@ Create `server/src/services/metabase/metabase-cache.ts`:
 ```ts
 import TTLCache from '@isaacs/ttlcache';
 
-import {
-  findDashcardRef,
-  normalizeDashboard
-} from './metabase-api';
+import { findDashcardRef, normalizeDashboard } from './metabase-api';
 import type {
   CardValue,
   DashboardData,
@@ -485,7 +489,10 @@ function cardKey(
 }
 
 class CachedMetabaseService implements MetabaseService {
-  private readonly dashboardCache: TTLCache<number, Promise<MetabaseDashboardRaw>>;
+  private readonly dashboardCache: TTLCache<
+    number,
+    Promise<MetabaseDashboardRaw>
+  >;
   private readonly cardCache: TTLCache<string, Promise<CardValue>>;
 
   constructor(
@@ -581,19 +588,19 @@ Expected: PASS.
 Append to the `describe('CachedMetabaseService.fetchDashboardRaw', …)` block:
 
 ```ts
-  it('re-fetches after TTL expiry', async () => {
-    const inner = genFakeService();
-    const cached = createCachedMetabaseService(inner, {
-      ttlMs: 60_000,
-      max: 100
-    });
-
-    await cached.fetchDashboardRaw(13);
-    vi.advanceTimersByTime(60_001);
-    await cached.fetchDashboardRaw(13);
-
-    expect(inner.calls.fetchDashboardRaw).toBe(2);
+it('re-fetches after TTL expiry', async () => {
+  const inner = genFakeService();
+  const cached = createCachedMetabaseService(inner, {
+    ttlMs: 60_000,
+    max: 100
   });
+
+  await cached.fetchDashboardRaw(13);
+  vi.advanceTimersByTime(60_001);
+  await cached.fetchDashboardRaw(13);
+
+  expect(inner.calls.fetchDashboardRaw).toBe(2);
+});
 ```
 
 Run:
@@ -609,29 +616,29 @@ Expected: PASS (TTLCache's `ttl` option uses the wall clock; fake timers control
 Append:
 
 ```ts
-  it('coalesces concurrent calls into one underlying fetch', async () => {
-    let resolveInner: ((v: MetabaseDashboardRaw) => void) | undefined;
-    const innerPromise = new Promise<MetabaseDashboardRaw>((resolve) => {
-      resolveInner = resolve;
-    });
-    const inner = genFakeService({
-      fetchDashboardRaw: vi.fn(() => innerPromise)
-    });
-    const cached = createCachedMetabaseService(inner, {
-      ttlMs: 60_000,
-      max: 100
-    });
-
-    const [a, b, c] = [
-      cached.fetchDashboardRaw(13),
-      cached.fetchDashboardRaw(13),
-      cached.fetchDashboardRaw(13)
-    ];
-    resolveInner!(genRaw(13));
-    await Promise.all([a, b, c]);
-
-    expect(inner.fetchDashboardRaw).toHaveBeenCalledTimes(1);
+it('coalesces concurrent calls into one underlying fetch', async () => {
+  let resolveInner: ((v: MetabaseDashboardRaw) => void) | undefined;
+  const innerPromise = new Promise<MetabaseDashboardRaw>((resolve) => {
+    resolveInner = resolve;
   });
+  const inner = genFakeService({
+    fetchDashboardRaw: vi.fn(() => innerPromise)
+  });
+  const cached = createCachedMetabaseService(inner, {
+    ttlMs: 60_000,
+    max: 100
+  });
+
+  const [a, b, c] = [
+    cached.fetchDashboardRaw(13),
+    cached.fetchDashboardRaw(13),
+    cached.fetchDashboardRaw(13)
+  ];
+  resolveInner!(genRaw(13));
+  await Promise.all([a, b, c]);
+
+  expect(inner.fetchDashboardRaw).toHaveBeenCalledTimes(1);
+});
 ```
 
 Run → PASS.
@@ -641,27 +648,27 @@ Run → PASS.
 Append:
 
 ```ts
-  it('removes the cached promise on rejection so the next call retries', async () => {
-    let attempt = 0;
-    const inner = genFakeService({
-      fetchDashboardRaw: vi.fn(async (id: number) => {
-        attempt++;
-        if (attempt === 1) throw new Error('boom');
-        return genRaw(id);
-      })
-    });
-    const cached = createCachedMetabaseService(inner, {
-      ttlMs: 60_000,
-      max: 100
-    });
-
-    await expect(cached.fetchDashboardRaw(13)).rejects.toThrow('boom');
-    await expect(cached.fetchDashboardRaw(13)).resolves.toMatchObject({
-      id: 13
-    });
-
-    expect(inner.fetchDashboardRaw).toHaveBeenCalledTimes(2);
+it('removes the cached promise on rejection so the next call retries', async () => {
+  let attempt = 0;
+  const inner = genFakeService({
+    fetchDashboardRaw: vi.fn(async (id: number) => {
+      attempt++;
+      if (attempt === 1) throw new Error('boom');
+      return genRaw(id);
+    })
   });
+  const cached = createCachedMetabaseService(inner, {
+    ttlMs: 60_000,
+    max: 100
+  });
+
+  await expect(cached.fetchDashboardRaw(13)).rejects.toThrow('boom');
+  await expect(cached.fetchDashboardRaw(13)).resolves.toMatchObject({
+    id: 13
+  });
+
+  expect(inner.fetchDashboardRaw).toHaveBeenCalledTimes(2);
+});
 ```
 
 Run → PASS.
@@ -681,10 +688,30 @@ describe('CachedMetabaseService.getCardValue', () => {
     const params = [{ id: 'p1', slug: 'id', type: 'category', value: 'est-1' }];
 
     await cached.getCardValue(
-      13, 100, 200, params, null, null, 'flat-number', null, 'number', 0, null
+      13,
+      100,
+      200,
+      params,
+      null,
+      null,
+      'flat-number',
+      null,
+      'number',
+      0,
+      null
     );
     await cached.getCardValue(
-      13, 100, 200, params, null, null, 'flat-number', null, 'number', 0, null
+      13,
+      100,
+      200,
+      params,
+      null,
+      null,
+      'flat-number',
+      null,
+      'number',
+      0,
+      null
     );
 
     expect(inner.getCardValue).toHaveBeenCalledTimes(1);
@@ -700,10 +727,30 @@ describe('CachedMetabaseService.getCardValue', () => {
     const p2 = [{ id: 'p1', slug: 'id', type: 'category', value: 'est-2' }];
 
     await cached.getCardValue(
-      13, 100, 200, p1, null, null, 'flat-number', null, 'number', 0, null
+      13,
+      100,
+      200,
+      p1,
+      null,
+      null,
+      'flat-number',
+      null,
+      'number',
+      0,
+      null
     );
     await cached.getCardValue(
-      13, 100, 200, p2, null, null, 'flat-number', null, 'number', 0, null
+      13,
+      100,
+      200,
+      p2,
+      null,
+      null,
+      'flat-number',
+      null,
+      'number',
+      0,
+      null
     );
 
     expect(inner.getCardValue).toHaveBeenCalledTimes(2);
@@ -785,6 +832,7 @@ git commit -m "feat(server): add CachedMetabaseService with TTL and promise coal
 Replace the singleton at the bottom of `metabase-api.ts` with the cached wrapper. The controller's import stays the same.
 
 **Files:**
+
 - Modify: `server/src/services/metabase/metabase-api.ts`
 - Modify: `server/src/controllers/test/dashboard-api.test.ts`
 
@@ -878,6 +926,7 @@ git commit -m "feat(server): cache metabase responses on the exported singleton"
 ### Task 6: Bump RTK Query `keepUnusedDataFor` on the Analysis page endpoints
 
 **Files:**
+
 - Modify: `frontend/src/services/dashboard.service.ts`
 
 - [ ] **Step 1: Add `keepUnusedDataFor` to the two endpoints used by `AnalysisViewNext`**

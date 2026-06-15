@@ -1,5 +1,5 @@
-import type { SetRequired } from 'type-fest';
 import { createPortal } from 'react-dom';
+import type { SetRequired } from 'type-fest';
 
 import {
   createConfirmationModal,

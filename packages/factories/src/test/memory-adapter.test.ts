@@ -1,5 +1,6 @@
-import { describe, expect, it } from 'vitest';
 import type { UserDTO } from '@zerologementvacant/models';
+import { describe, expect, it } from 'vitest';
+
 import { MemoryAdapter } from '../memory-adapter';
 
 describe('MemoryAdapter', () => {

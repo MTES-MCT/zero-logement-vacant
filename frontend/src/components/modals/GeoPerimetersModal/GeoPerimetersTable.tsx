@@ -3,6 +3,7 @@ import Tag from '@codegouvfr/react-dsfr/Tag';
 import { createColumnHelper } from '@tanstack/react-table';
 
 import AdvancedTable from '~/components/AdvancedTable/AdvancedTable';
+
 import { useSelection } from '../../../hooks/useSelection';
 import { type GeoPerimeter } from '../../../models/GeoPerimeter';
 import AppLink from '../../_app/AppLink/AppLink';

@@ -1,4 +1,5 @@
 import Tag from '@codegouvfr/react-dsfr/Tag';
+
 import type { SelectOption } from '../../models/SelectOption';
 
 export interface FilterBadgeProps<Value extends string | null> {

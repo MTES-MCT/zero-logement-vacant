@@ -1,6 +1,7 @@
-import { findStatus } from '../../models/HousingState';
 import Select from '~/components/ui/Select/Select';
 import type { SelectProps } from '~/components/ui/Select/Select';
+
+import { findStatus } from '../../models/HousingState';
 import HousingStatusBadge from '../HousingStatusBadge/HousingStatusBadge';
 
 export type HousingSubStatusSelectProps<Multiple extends boolean> = Pick<

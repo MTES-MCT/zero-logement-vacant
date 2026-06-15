@@ -13,6 +13,7 @@
 ### Task 1: Create `RenameGroupModal` component
 
 **Files:**
+
 - Create: `frontend/src/components/Group/RenameGroupModal.tsx`
 - Create: `frontend/src/components/Group/RenameGroupModal.test.tsx`
 
@@ -30,7 +31,16 @@ describe('RenameGroupModal', () => {
     const onSubmit = vi.fn();
     render(
       <modal.Component
-        group={{ id: '1', title: 'Old title', description: 'Old desc', housingCount: 0, ownerCount: 0, createdAt: '', archivedAt: null, createdBy: null }}
+        group={{
+          id: '1',
+          title: 'Old title',
+          description: 'Old desc',
+          housingCount: 0,
+          ownerCount: 0,
+          createdAt: '',
+          archivedAt: null,
+          createdBy: null
+        }}
         onSubmit={onSubmit}
         isOpenedByDefault
       />
@@ -42,7 +52,10 @@ describe('RenameGroupModal', () => {
     await userEvent.clear(descInput);
     await userEvent.type(descInput, 'New desc');
     await userEvent.click(screen.getByText('Confirmer'));
-    expect(onSubmit).toHaveBeenCalledWith({ title: 'New title', description: 'New desc' });
+    expect(onSubmit).toHaveBeenCalledWith({
+      title: 'New title',
+      description: 'New desc'
+    });
   });
 });
 ```
@@ -88,7 +101,9 @@ const schema = object({
 
 type FormSchema = InferType<typeof schema>;
 
-export function createRenameGroupModal(options?: Readonly<RenameGroupModalOptions>) {
+export function createRenameGroupModal(
+  options?: Readonly<RenameGroupModalOptions>
+) {
   const modal = createConfirmationModal({
     id: options?.id ?? 'rename-group-modal',
     isOpenedByDefault: options?.isOpenedByDefault ?? false
@@ -156,11 +171,13 @@ git commit -m "feat(frontend): add RenameGroupModal component"
 ### Task 2: Wire button + modal in `GroupNext.tsx`
 
 **Files:**
+
 - Modify: `frontend/src/components/Group/GroupNext.tsx`
 
 **Step 1: Add modal instance + button + Component render**
 
 In `GroupNext.tsx`:
+
 1. Import `createRenameGroupModal` from `./RenameGroupModal` and `Button` from `@codegouvfr/react-dsfr/Button`.
 2. Add `const renameGroupModal = createRenameGroupModal();` alongside the other modal constants at module top level.
 3. In the `<Stack direction="row">` next to the `<h1>` title (line ~68), add:

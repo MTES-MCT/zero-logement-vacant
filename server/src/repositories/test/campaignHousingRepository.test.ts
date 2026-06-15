@@ -1,4 +1,5 @@
 import { faker } from '@faker-js/faker/locale/fr';
+
 import campaignHousingRepository, {
   CampaignsHousing
 } from '~/repositories/campaignHousingRepository';

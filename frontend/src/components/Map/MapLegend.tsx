@@ -1,10 +1,10 @@
 import { fr } from '@codegouvfr/react-dsfr';
 import Button from '@codegouvfr/react-dsfr/Button';
-import { HousingStatus } from '@zerologementvacant/models';
 import Box from '@mui/material/Box';
 import Stack from '@mui/material/Stack';
-import Typography from '@mui/material/Typography';
 import { styled } from '@mui/material/styles';
+import Typography from '@mui/material/Typography';
+import { HousingStatus } from '@zerologementvacant/models';
 
 interface Props {
   isOpen: boolean;
@@ -28,8 +28,7 @@ const STATUS_LEGEND_ITEMS: Array<{
   {
     status: HousingStatus.WAITING,
     label: 'Logement en attente de retour',
-    backgroundColor:
-      hex.decisions.background.contrast.yellowTournesol.default,
+    backgroundColor: hex.decisions.background.contrast.yellowTournesol.default,
     borderColor: hex.decisions.text.label.yellowTournesol.default
   },
   {

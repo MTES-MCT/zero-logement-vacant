@@ -20,9 +20,8 @@ import { useSet } from 'react-use';
 import { match } from 'ts-pattern';
 import { array, mixed, number, object, string, type InferType } from 'yup';
 
-import { useHousing } from '~/hooks/useHousing';
-
 import HousingEditionInformationTab from '~/components/HousingEdition/HousingEditionInformationTab';
+import { useHousing } from '~/hooks/useHousing';
 import { useNotification } from '~/hooks/useNotification';
 import { HousingStates } from '~/models/HousingState';
 import {
@@ -37,6 +36,7 @@ import {
   useFindPrecisionsByHousingQuery,
   useSaveHousingPrecisionsMutation
 } from '~/services/precision.service';
+
 import type { Housing, HousingUpdate } from '../../models/Housing';
 import AppLink from '../_app/AppLink/AppLink';
 import Aside from '../Aside/Aside';

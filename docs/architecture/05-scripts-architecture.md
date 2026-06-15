@@ -45,10 +45,10 @@ flowchart TB
 
 Configured in `clevercloud/cron.json`:
 
-| Schedule | Script | Description |
-|----------|--------|-------------|
-| `*/30 * * * *` | `cerema-sync.sh` | Sync users/structures from Cerema DF Portal |
-| `0 3 1 * *` | `export-monthly-logs.sh` | Export Elasticsearch logs to S3 |
+| Schedule       | Script                   | Description                                 |
+| -------------- | ------------------------ | ------------------------------------------- |
+| `*/30 * * * *` | `cerema-sync.sh`         | Sync users/structures from Cerema DF Portal |
+| `0 3 1 * *`    | `export-monthly-logs.sh` | Export Elasticsearch logs to S3             |
 
 ## Script Directory Structure
 
@@ -161,6 +161,7 @@ python import_dpe.py --year 2024 --workers 6 --dry-run
 ```
 
 **Performance:**
+
 - Parallel processing (default 6 workers)
 - Progress tracking with tqdm
 - Retry logic for connection errors
@@ -309,27 +310,27 @@ def save_state(state: dict):
 
 ### Cerema Sync
 
-| Variable | Description |
-|----------|-------------|
-| `CEREMA_USERNAME` | Cerema API username |
-| `CEREMA_PASSWORD` | Cerema API password |
+| Variable             | Description         |
+| -------------------- | ------------------- |
+| `CEREMA_USERNAME`    | Cerema API username |
+| `CEREMA_PASSWORD`    | Cerema API password |
 | `POSTGRESQL_ADDON_*` | Database connection |
 
 ### DPE Import
 
-| Variable | Description |
-|----------|-------------|
-| `DATABASE_URL` | PostgreSQL connection |
-| `DPE_INPUT_DIR` | Input directory path |
+| Variable        | Description           |
+| --------------- | --------------------- |
+| `DATABASE_URL`  | PostgreSQL connection |
+| `DPE_INPUT_DIR` | Input directory path  |
 
 ### Logs Export
 
-| Variable | Description |
-|----------|-------------|
-| `ELASTIC_NODE` | Elasticsearch URL |
-| `ELASTIC_USERNAME` | ES username |
-| `ELASTIC_PASSWORD` | ES password |
-| `BACKUP_S3_*` | S3 credentials |
+| Variable           | Description       |
+| ------------------ | ----------------- |
+| `ELASTIC_NODE`     | Elasticsearch URL |
+| `ELASTIC_USERNAME` | ES username       |
+| `ELASTIC_PASSWORD` | ES password       |
+| `BACKUP_S3_*`      | S3 credentials    |
 
 ## Database Indexes
 

@@ -1,13 +1,15 @@
 import Grid from '@mui/material/Grid';
+import Stack from '@mui/material/Stack';
 import Typography from '@mui/material/Typography';
 import type { DocumentDTO } from '@zerologementvacant/models';
 import { useFormContext } from 'react-hook-form';
 
-import Stack from '@mui/material/Stack';
 import DraftDocumentUpload from '~/components/Draft/DraftDocumentUpload';
 import type { DraftFormSchema } from '~/components/Draft/DraftForm';
 import DocumentPreview from '~/components/FileUpload/DocumentPreview';
+
 import AppTextInputNext from '../_app/AppTextInput/AppTextInputNext';
+
 import styles from './draft.module.scss';
 
 function DraftSignature() {

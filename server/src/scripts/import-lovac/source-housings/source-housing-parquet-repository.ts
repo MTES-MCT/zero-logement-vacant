@@ -1,17 +1,16 @@
-import { DuckDBInstance } from '@duckdb/node-api';
 import { ReadableStream } from 'node:stream/web';
 
+import { DuckDBInstance } from '@duckdb/node-api';
+
 import { SourceRepository } from '~/scripts/import-lovac/infra';
+
 import { SourceHousing } from './source-housing';
 
-export interface ParquetSourceHousingRepository
-  extends SourceRepository<SourceHousing> {
+export interface ParquetSourceHousingRepository extends SourceRepository<SourceHousing> {
   count(): Promise<number>;
 }
 
-class ParquetSourceHousingRepositoryImpl
-  implements ParquetSourceHousingRepository
-{
+class ParquetSourceHousingRepositoryImpl implements ParquetSourceHousingRepository {
   constructor(private readonly filePath: string) {}
 
   async count(): Promise<number> {

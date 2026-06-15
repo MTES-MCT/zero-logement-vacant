@@ -1,7 +1,7 @@
+import { PrecisionCategory } from '@zerologementvacant/models';
 import { Knex } from 'knex';
 import { v4 as uuidv4 } from 'uuid';
 
-import { PrecisionCategory } from '@zerologementvacant/models';
 import { PRECISION_TREE_VALUES, PrecisionApi } from '~/models/PrecisionApi';
 
 const PRECISION_TABLE = 'precisions';

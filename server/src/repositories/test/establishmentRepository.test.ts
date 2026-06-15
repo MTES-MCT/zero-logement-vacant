@@ -3,6 +3,7 @@ import { faker } from '@faker-js/faker/locale/fr';
 import { EstablishmentApi } from '~/models/EstablishmentApi';
 import { UserApi } from '~/models/UserApi';
 import { genEstablishmentApi, genUserApi } from '~/test/testFixtures';
+
 import establishmentRepository, {
   EstablishmentDBO,
   Establishments,

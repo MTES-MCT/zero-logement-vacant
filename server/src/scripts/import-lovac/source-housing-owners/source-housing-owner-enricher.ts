@@ -1,10 +1,12 @@
 import { TransformStream } from 'node:stream/web';
+
 import {
   HousingOwnerDBO,
   HousingOwners
 } from '~/repositories/housingOwnerRepository';
 import { Housing, HousingRecordDBO } from '~/repositories/housingRepository';
 import { OwnerDBO, Owners } from '~/repositories/ownerRepository';
+
 import { SourceHousingOwner } from './source-housing-owner';
 
 const CHUNK_SIZE = 500;
@@ -72,9 +74,7 @@ export function createSourceHousingOwnerEnricher(): TransformStream<
     const existingOwnerIds = existingHousingOwners.map((ho) => ho.owner_id);
     const allOwnerIds = [...new Set([...sourceOwnerIds, ...existingOwnerIds])];
     const owners: OwnerDBO[] =
-      allOwnerIds.length === 0
-        ? []
-        : await Owners().whereIn('id', allOwnerIds);
+      allOwnerIds.length === 0 ? [] : await Owners().whereIn('id', allOwnerIds);
     const ownersById = new Map(owners.map((o) => [o.id, o]));
 
     for (const group of chunk) {

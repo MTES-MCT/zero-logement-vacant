@@ -9,6 +9,7 @@ import {
 } from '@zerologementvacant/models';
 import { Array, pipe } from 'effect';
 import { match, Pattern } from 'ts-pattern';
+
 import type { HousingOwner, Owner } from './Owner';
 
 export type OwnerRankLabel =

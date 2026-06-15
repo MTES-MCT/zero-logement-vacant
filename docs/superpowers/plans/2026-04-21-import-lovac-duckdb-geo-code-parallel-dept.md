@@ -12,17 +12,18 @@
 
 ## File Map
 
-| File | Action | Responsibility |
-|------|--------|----------------|
-| `server/src/scripts/import-lovac/source-housings/source-housing-duckdb.ts` | **Create** | DuckDB prepare step: detect geo_code changes + split by dept |
+| File                                                                                   | Action     | Responsibility                                                           |
+| -------------------------------------------------------------------------------------- | ---------- | ------------------------------------------------------------------------ |
+| `server/src/scripts/import-lovac/source-housings/source-housing-duckdb.ts`             | **Create** | DuckDB prepare step: detect geo_code changes + split by dept             |
 | `server/src/scripts/import-lovac/source-housings/source-housing-parquet-repository.ts` | **Create** | Read a single per-dept parquet file as `SourceRepository<SourceHousing>` |
-| `server/src/scripts/import-lovac/source-housings/source-housing-command.ts` | **Modify** | Orchestrate new pipeline; remove A-B-C; add parallel import |
+| `server/src/scripts/import-lovac/source-housings/source-housing-command.ts`            | **Modify** | Orchestrate new pipeline; remove A-B-C; add parallel import              |
 
 ---
 
 ### Task 1: Install `@duckdb/node-api`
 
 **Files:**
+
 - Modify: `server/package.json` (via yarn)
 
 - [ ] **Step 1: Add dependency**
@@ -51,10 +52,12 @@ git commit -m "chore(server): add @duckdb/node-api dependency"
 ### Task 2: Create `source-housing-duckdb.ts`
 
 **Files:**
+
 - Create: `server/src/scripts/import-lovac/source-housings/source-housing-duckdb.ts`
 - Create: `server/src/scripts/import-lovac/source-housings/source-housing-duckdb.test.ts`
 
 One exported function `prepareHousingImport` that:
+
 1. Attaches a PostgreSQL DB via the DuckDB postgres extension
 2. Loads the source JSONL into a DuckDB temp table (single read)
 3. Writes `geo_code_changes.parquet` — rows where `fast_housing.geo_code != source.geo_code`, identified by `local_id`. Queries the **parent** `fast_housing` table to catch cross-department moves.
@@ -75,7 +78,8 @@ import { DuckDBInstance } from '@duckdb/node-api';
 import { prepareHousingImport } from './source-housing-duckdb';
 
 const PG_URL =
-  process.env.DATABASE_URL ?? 'postgresql://postgres:postgres@localhost:5432/test';
+  process.env.DATABASE_URL ??
+  'postgresql://postgres:postgres@localhost:5432/test';
 
 describe('prepareHousingImport', () => {
   let workDir: string;
@@ -89,7 +93,7 @@ describe('prepareHousingImport', () => {
       sourceFile,
       [
         JSON.stringify({ local_id: 'TEST_L001', geo_code: '75056' }),
-        JSON.stringify({ local_id: 'TEST_L002', geo_code: '69123' }),
+        JSON.stringify({ local_id: 'TEST_L002', geo_code: '69123' })
       ].join('\n')
     );
   });
@@ -102,7 +106,7 @@ describe('prepareHousingImport', () => {
     const { changesFile } = await prepareHousingImport({
       sourceFile,
       pgUrl: PG_URL,
-      workDir,
+      workDir
     });
     expect(fs.existsSync(changesFile)).toBe(true);
   });
@@ -111,7 +115,7 @@ describe('prepareHousingImport', () => {
     const { deptsDir } = await prepareHousingImport({
       sourceFile,
       pgUrl: PG_URL,
-      workDir,
+      workDir
     });
     const entries = fs.readdirSync(deptsDir);
     expect(entries.some((e) => e.startsWith('dept=75'))).toBe(true);
@@ -122,16 +126,15 @@ describe('prepareHousingImport', () => {
     const { changesFile } = await prepareHousingImport({
       sourceFile,
       pgUrl: PG_URL,
-      workDir,
+      workDir
     });
     // Read back with DuckDB to verify schema
     const instance = await DuckDBInstance.create(':memory:');
     const conn = await instance.connect();
     try {
-      const reader = await conn.runAndReadAll(
-        `SELECT * FROM read_parquet(?)`,
-        [changesFile]
-      );
+      const reader = await conn.runAndReadAll(`SELECT * FROM read_parquet(?)`, [
+        changesFile
+      ]);
       const cols = reader.columnNames();
       expect(cols).toContain('id');
       expect(cols).toContain('new_geo_code');
@@ -178,15 +181,14 @@ export async function prepareHousingImport(
   options: PrepareOptions
 ): Promise<PrepareResult> {
   const workDir =
-    options.workDir ??
-    fs.mkdtempSync(path.join(os.tmpdir(), 'zlv-lovac-'));
+    options.workDir ?? fs.mkdtempSync(path.join(os.tmpdir(), 'zlv-lovac-'));
   const changesFile = path.join(workDir, 'geo_code_changes.parquet');
   const deptsDir = path.join(workDir, 'depts');
   fs.mkdirSync(deptsDir, { recursive: true });
 
   logger.info('Starting DuckDB prepare step...', {
     sourceFile: options.sourceFile,
-    workDir,
+    workDir
   });
 
   const instance = await DuckDBInstance.create(':memory:');
@@ -194,9 +196,7 @@ export async function prepareHousingImport(
 
   try {
     await connection.run(`INSTALL postgres; LOAD postgres;`);
-    await connection.run(
-      `ATTACH '${options.pgUrl}' AS pg (TYPE POSTGRES);`
-    );
+    await connection.run(`ATTACH '${options.pgUrl}' AS pg (TYPE POSTGRES);`);
 
     logger.info('Loading source file into DuckDB temp table...');
     await connection.run(`
@@ -266,6 +266,7 @@ git commit -m "feat(server): add DuckDB prepare step for geo_code detection and 
 ### Task 3: Create `source-housing-parquet-repository.ts`
 
 **Files:**
+
 - Create: `server/src/scripts/import-lovac/source-housings/source-housing-parquet-repository.ts`
 - Create: `server/src/scripts/import-lovac/source-housings/source-housing-parquet-repository.test.ts`
 
@@ -317,7 +318,11 @@ describe('createParquetSourceHousingRepository', () => {
     const repo = createParquetSourceHousingRepository(parquetFile);
     const rows: unknown[] = [];
     await repo.stream().pipeTo(
-      new WritableStream({ write: (row) => { rows.push(row); } })
+      new WritableStream({
+        write: (row) => {
+          rows.push(row);
+        }
+      })
     );
     expect(rows).toHaveLength(1);
     expect((rows[0] as Record<string, unknown>).local_id).toBe('L001');
@@ -348,9 +353,7 @@ import { ReadableStream } from 'node:stream/web';
 import { SourceRepository, StreamOptions } from '~/scripts/import-lovac/infra';
 import { SourceHousing } from './source-housing';
 
-class ParquetSourceHousingRepository
-  implements SourceRepository<SourceHousing>
-{
+class ParquetSourceHousingRepository implements SourceRepository<SourceHousing> {
   constructor(private readonly filePath: string) {}
 
   stream(_options?: StreamOptions): ReadableStream<SourceHousing> {
@@ -406,9 +409,11 @@ git commit -m "feat(server): add parquet source repository for per-dept housing 
 ### Task 4: Refactor `source-housing-command.ts`
 
 **Files:**
+
 - Modify: `server/src/scripts/import-lovac/source-housings/source-housing-command.ts`
 
 Replace the three-pass A-B-C geo-code loop and the single sequential second pass with:
+
 1. DuckDB prepare step (`prepareHousingImport`)
 2. Sequential geo-code correction via Knex temp table UPDATE on parent `fast_housing`
 3. Parallel per-dept import with `async.mapLimit(CONCURRENCY = 4)`
@@ -440,10 +445,7 @@ async function downloadIfS3(
   const response = await s3.send(
     new GetObjectCommand({ Bucket: config.s3.bucket, Key: file })
   );
-  await pipeline(
-    response.Body as Readable,
-    createWriteStream(tmpFile)
-  );
+  await pipeline(response.Body as Readable, createWriteStream(tmpFile));
   logger.info('Download complete.');
   return tmpFile;
 }
@@ -466,7 +468,10 @@ async function applyGeoCodeChanges(changesFile: string): Promise<void> {
       `SELECT * FROM read_parquet(?)`,
       [changesFile]
     );
-    changes = reader.getRowObjects() as Array<{ id: string; new_geo_code: string }>;
+    changes = reader.getRowObjects() as Array<{
+      id: string;
+      new_geo_code: string;
+    }>;
   } finally {
     await connection.close();
     await instance.close();
@@ -534,7 +539,7 @@ return async (file: string, options: ExecOptions): Promise<void> => {
     logger.info('Running DuckDB prepare step...');
     const { changesFile, deptsDir } = await prepareHousingImport({
       sourceFile: localFile,
-      pgUrl: config.database.url,
+      pgUrl: config.database.url
     });
 
     // 2. Apply geo_code corrections sequentially (cross-dept aware)
@@ -547,45 +552,41 @@ return async (file: string, options: ExecOptions): Promise<void> => {
     logger.info(`Importing ${deptDirs.length} departments...`);
 
     const CONCURRENCY = 4;
-    await async.mapLimit(
-      deptDirs,
-      CONCURRENCY,
-      async (deptDir: string) => {
-        const dept = deptDir.replace('dept=', '');
-        // Glob pattern: DuckDB handles multiple parquet files per partition
-        const parquetGlob = path.join(deptsDir, deptDir, '*.parquet');
-        logger.info(`[dept ${dept}] Starting import...`);
+    await async.mapLimit(deptDirs, CONCURRENCY, async (deptDir: string) => {
+      const dept = deptDir.replace('dept=', '');
+      // Glob pattern: DuckDB handles multiple parquet files per partition
+      const parquetGlob = path.join(deptsDir, deptDir, '*.parquet');
+      logger.info(`[dept ${dept}] Starting import...`);
 
-        await createParquetSourceHousingRepository(parquetGlob)
-          .stream()
-          .pipeThrough(
-            validator(sourceHousingSchema, {
+      await createParquetSourceHousingRepository(parquetGlob)
+        .stream()
+        .pipeThrough(
+          validator(sourceHousingSchema, {
+            abortEarly: options.abortEarly,
+            reporter: sourceHousingReporter
+          })
+        )
+        .pipeThrough(createSourceHousingEnricher())
+        .pipeThrough(
+          map(
+            createHousingTransform({
               abortEarly: options.abortEarly,
+              adminUserId: auth.id,
               reporter: sourceHousingReporter,
+              year: options.year
             })
           )
-          .pipeThrough(createSourceHousingEnricher())
-          .pipeThrough(
-            map(
-              createHousingTransform({
-                abortEarly: options.abortEarly,
-                adminUserId: auth.id,
-                reporter: sourceHousingReporter,
-                year: options.year,
-              })
-            )
-          )
-          .pipeThrough(flatten())
-          .pipeTo(
-            createHousingLoader({
-              dryRun: options.dryRun,
-              reporter: sourceHousingReporter,
-            })
-          );
+        )
+        .pipeThrough(flatten())
+        .pipeTo(
+          createHousingLoader({
+            dryRun: options.dryRun,
+            reporter: sourceHousingReporter
+          })
+        );
 
-        logger.info(`[dept ${dept}] Import complete.`);
-      }
-    );
+      logger.info(`[dept ${dept}] Import complete.`);
+    });
 
     // 4. Update building counts (unchanged)
     logger.info('Updating building counts...');
@@ -666,17 +667,17 @@ git commit -m "refactor(server): replace geo-code A-B-C loop with DuckDB detect+
 
 ### Spec coverage
 
-| Requirement | Task |
-|-------------|------|
-| One DuckDB pass (detect + split) | Task 2 |
-| Cross-dept geo_code moves handled (parent table JOIN) | Task 2 — `pg.fast_housing` (not per-dept) |
-| Geo-code correction sequential | Task 4 `applyGeoCodeChanges` |
-| PostgreSQL handles partition moves via UPDATE | Task 4 — single `UPDATE fast_housing` |
-| Per-dept parquet files | Task 2 PARTITION_BY output |
-| Parallel dept import | Task 4 `async.mapLimit(4)` |
-| S3 source still supported | Task 4 `downloadIfS3` |
-| Existing Validate→Enrich→Transform→Load pipeline unchanged | Task 3 + Task 4 |
-| Logs at each stage | Tasks 2, 4 — `logger.info` throughout |
+| Requirement                                                | Task                                      |
+| ---------------------------------------------------------- | ----------------------------------------- |
+| One DuckDB pass (detect + split)                           | Task 2                                    |
+| Cross-dept geo_code moves handled (parent table JOIN)      | Task 2 — `pg.fast_housing` (not per-dept) |
+| Geo-code correction sequential                             | Task 4 `applyGeoCodeChanges`              |
+| PostgreSQL handles partition moves via UPDATE              | Task 4 — single `UPDATE fast_housing`     |
+| Per-dept parquet files                                     | Task 2 PARTITION_BY output                |
+| Parallel dept import                                       | Task 4 `async.mapLimit(4)`                |
+| S3 source still supported                                  | Task 4 `downloadIfS3`                     |
+| Existing Validate→Enrich→Transform→Load pipeline unchanged | Task 3 + Task 4                           |
+| Logs at each stage                                         | Tasks 2, 4 — `logger.info` throughout     |
 
 ### Potential gaps
 

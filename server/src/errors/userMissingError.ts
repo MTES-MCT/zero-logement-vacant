@@ -7,7 +7,7 @@ export default class UserMissingError extends HttpError implements HttpError {
     super({
       name: 'UserMissingError',
       message: `User ${id} missing`,
-      status: constants.HTTP_STATUS_NOT_FOUND,
+      status: constants.HTTP_STATUS_NOT_FOUND
     });
   }
 }

@@ -4,16 +4,16 @@ on:
   workflow_dispatch:
     inputs:
       date:
-        description: "Export date prefix (YYYYMMDD). Defaults to today."
+        description: 'Export date prefix (YYYYMMDD). Defaults to today.'
         required: false
         type: string
       bucket:
-        description: "S3 bucket name"
+        description: 'S3 bucket name'
         required: false
         type: string
-        default: "zlv-production"
+        default: 'zlv-production'
       rebuild_models:
-        description: "Run dbt build before export (rebuilds views)"
+        description: 'Run dbt build before export (rebuilds views)'
         required: false
         type: boolean
         default: true

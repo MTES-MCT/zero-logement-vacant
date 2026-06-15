@@ -11,7 +11,11 @@ import { createLogger } from '~/infra/logger';
 import { HousingEventApi } from '~/models/EventApi';
 import { HousingApi } from '~/models/HousingApi';
 import { UserApi } from '~/models/UserApi';
-import { LOVAC_NAMESPACE, ReporterError, ReporterOptions } from '~/scripts/import-lovac/infra';
+import {
+  LOVAC_NAMESPACE,
+  ReporterError,
+  ReporterOptions
+} from '~/scripts/import-lovac/infra';
 
 const logger = createLogger('existingHousingTransform');
 
@@ -29,8 +33,7 @@ export type HousingEventChange = Change<HousingEventApi, 'event'> & {
 };
 export type ExistingHousingChange = HousingUpdateChange | HousingEventChange;
 
-export interface ExistingHousingTransformOptions
-  extends ReporterOptions<HousingApi> {
+export interface ExistingHousingTransformOptions extends ReporterOptions<HousingApi> {
   auth: UserApi;
   year: DataFileYear;
 }
@@ -131,4 +134,3 @@ export function createExistingHousingTransform(
     }
   };
 }
-

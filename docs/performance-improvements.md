@@ -9,14 +9,14 @@ Comprehensive optimization of Nx monorepo configuration focusing on cache effici
 
 ### Key Improvements
 
-| Metric | Baseline | Optimized | Improvement |
-|--------|----------|-----------|-------------|
-| **Cold Build** | 22.50s | 26.49s | -17.7% ⚠️ |
-| **Warm Build (Cache)** | 0.88s | 0.98s | -11.4% ⚠️ |
-| **Cold Lint** | 14.30s | 13.22s | **+7.5% ✓** |
-| **Warm Lint (Cache)** | 0.70s | 0.79s | -12.9% ⚠️ |
-| **Parallel Execution** | 3 tasks | 4 tasks | **+33% ✓** |
-| **Cache Hit Rate** | 100% | 100% | Maintained |
+| Metric                 | Baseline | Optimized | Improvement |
+| ---------------------- | -------- | --------- | ----------- |
+| **Cold Build**         | 22.50s   | 26.49s    | -17.7% ⚠️   |
+| **Warm Build (Cache)** | 0.88s    | 0.98s     | -11.4% ⚠️   |
+| **Cold Lint**          | 14.30s   | 13.22s    | **+7.5% ✓** |
+| **Warm Lint (Cache)**  | 0.70s    | 0.79s     | -12.9% ⚠️   |
+| **Parallel Execution** | 3 tasks  | 4 tasks   | **+33% ✓**  |
+| **Cache Hit Rate**     | 100%     | 100%      | Maintained  |
 
 ⚠️ **Note:** Build times slightly increased due to more thorough cache validation and input checking. This is expected with stricter caching rules and represents more accurate cache invalidation rather than performance regression.
 
@@ -54,7 +54,7 @@ Explicit inputs configuration for all target types:
 {
   "targetDefaults": {
     "build": {
-      "inputs": ["production", "^production"],  // Only production code
+      "inputs": ["production", "^production"], // Only production code
       "dependsOn": ["^build"],
       "outputs": ["{projectRoot}/dist"],
       "cache": true
@@ -69,13 +69,16 @@ Explicit inputs configuration for all target types:
       "cache": true
     },
     "test": {
-      "inputs": ["default", "^production"],  // Tests depend on production deps
+      "inputs": ["default", "^production"], // Tests depend on production deps
       "outputs": ["{workspaceRoot}/coverage/{projectRoot}"],
       "cache": true
     },
     "typecheck": {
       "inputs": ["default", "^default", "{workspaceRoot}/tsconfig.base.json"],
-      "outputs": ["{projectRoot}/dist/**/*.d.ts", "{projectRoot}/*.tsbuildinfo"],
+      "outputs": [
+        "{projectRoot}/dist/**/*.d.ts",
+        "{projectRoot}/*.tsbuildinfo"
+      ],
       "cache": true
     }
   }
@@ -86,7 +89,7 @@ Explicit inputs configuration for all target types:
 
 ```json
 {
-  "parallel": 4  // Increased from default of 3
+  "parallel": 4 // Increased from default of 3
 }
 ```
 
@@ -135,22 +138,22 @@ Cleaned up plugin configuration to remove unused `watch-deps` and `build-deps` t
 
 #### Cold Cache (Clean Build)
 
-| Run | Baseline | Optimized | Delta |
-|-----|----------|-----------|-------|
-| 1 | 27.348s | 27.025s | -0.32s |
-| 2 | 20.020s | 25.921s | +5.90s |
-| 3 | 20.143s | 26.530s | +6.39s |
+| Run         | Baseline    | Optimized   | Delta               |
+| ----------- | ----------- | ----------- | ------------------- |
+| 1           | 27.348s     | 27.025s     | -0.32s              |
+| 2           | 20.020s     | 25.921s     | +5.90s              |
+| 3           | 20.143s     | 26.530s     | +6.39s              |
 | **Average** | **22.504s** | **26.492s** | **+3.99s (+17.7%)** |
 
 **Analysis:** First run shows slight improvement. Subsequent runs are slower due to more thorough input validation. The production inputs configuration performs deeper analysis of file changes, which adds overhead but provides more accurate cache invalidation.
 
 #### Warm Cache (100% Cache Hit)
 
-| Run | Baseline | Optimized | Delta |
-|-----|----------|-----------|-------|
-| 1 | 0.983s | 1.066s | +0.08s |
-| 2 | 0.820s | 0.966s | +0.15s |
-| 3 | 0.829s | 0.922s | +0.09s |
+| Run         | Baseline   | Optimized  | Delta               |
+| ----------- | ---------- | ---------- | ------------------- |
+| 1           | 0.983s     | 1.066s     | +0.08s              |
+| 2           | 0.820s     | 0.966s     | +0.15s              |
+| 3           | 0.829s     | 0.922s     | +0.09s              |
 | **Average** | **0.877s** | **0.985s** | **+0.11s (+11.4%)** |
 
 **Analysis:** Cache restoration is slightly slower due to validation overhead from new input configurations. This is acceptable trade-off for more accurate cache invalidation.
@@ -159,22 +162,22 @@ Cleaned up plugin configuration to remove unused `watch-deps` and `build-deps` t
 
 #### Cold Cache (No Cache)
 
-| Run | Baseline | Optimized | Delta |
-|-----|----------|-----------|-------|
-| 1 | 15.014s | 14.340s | -0.67s |
-| 2 | 13.962s | 12.839s | -1.12s |
-| 3 | 13.924s | 12.495s | -1.43s |
+| Run         | Baseline    | Optimized   | Delta              |
+| ----------- | ----------- | ----------- | ------------------ |
+| 1           | 15.014s     | 14.340s     | -0.67s             |
+| 2           | 13.962s     | 12.839s     | -1.12s             |
+| 3           | 13.924s     | 12.495s     | -1.43s             |
 | **Average** | **14.300s** | **13.225s** | **-1.08s (-7.5%)** |
 
 **Analysis:** Modest improvement from better input configuration. ESLint's internal incremental linting provides most gains.
 
 #### Warm Cache (100% Cache Hit)
 
-| Run | Baseline | Optimized | Delta |
-|-----|----------|-----------|-------|
-| 1 | 0.678s | 0.782s | +0.10s |
-| 2 | 0.683s | 0.792s | +0.11s |
-| 3 | 0.739s | 0.781s | +0.04s |
+| Run         | Baseline   | Optimized  | Delta               |
+| ----------- | ---------- | ---------- | ------------------- |
+| 1           | 0.678s     | 0.782s     | +0.10s              |
+| 2           | 0.683s     | 0.792s     | +0.11s              |
+| 3           | 0.739s     | 0.781s     | +0.04s              |
 | **Average** | **0.700s** | **0.785s** | **+0.09s (+12.9%)** |
 
 **Analysis:** Similar to build cache, validation overhead adds ~100ms. Still extremely fast.
@@ -202,12 +205,12 @@ Cleaned up plugin configuration to remove unused `watch-deps` and `build-deps` t
 
 **Scenario:** Developer updates test file in `packages/models/src/test/fixtures.test.ts`
 
-| Build Target | Before | After |
-|--------------|--------|-------|
-| models:build | ❌ Rebuild | ✅ Cache |
-| models:test | ❌ Rerun | ❌ Rerun |
-| server:build | ❌ Rebuild (depends on models) | ✅ Cache |
-| server:test | ❌ Rerun | ❌ Rerun |
+| Build Target   | Before                         | After    |
+| -------------- | ------------------------------ | -------- |
+| models:build   | ❌ Rebuild                     | ✅ Cache |
+| models:test    | ❌ Rerun                       | ❌ Rerun |
+| server:build   | ❌ Rebuild (depends on models) | ✅ Cache |
+| server:test    | ❌ Rerun                       | ❌ Rerun |
 | frontend:build | ❌ Rebuild (depends on server) | ✅ Cache |
 
 **Result:** Only tests rerun. All builds stay cached.
@@ -236,6 +239,7 @@ Cleaned up plugin configuration to remove unused `watch-deps` and `build-deps` t
 The `@nx/js:tsc` executor uses its own logic for determining output paths that doesn't fully respect TypeScript's native `outDir`/`rootDir` configuration. The inferred approach using direct `tsc --build` is more reliable and respects the existing TypeScript project structure.
 
 **Conclusion:**
+
 - ✅ Kept inferred configuration (no `project.json` files for packages)
 - ✅ All optimizations working (namedInputs, parallel execution, clean caching)
 - ❌ Batch mode unavailable (requires `@nx/js:tsc` executor)
@@ -256,6 +260,7 @@ The `@nx/js:tsc` executor uses its own logic for determining output paths that d
 ### Immediate Actions
 
 1. **Test in CI/CD**
+
    ```bash
    # CI build script should use:
    yarn build  # Benefits from production inputs
@@ -263,6 +268,7 @@ The `@nx/js:tsc` executor uses its own logic for determining output paths that d
    ```
 
 2. **Monitor Cache Behavior**
+
    ```bash
    # Check cache hit rates:
    yarn build --verbose
@@ -284,6 +290,7 @@ The `@nx/js:tsc` executor uses its own logic for determining output paths that d
 **Issue:** The `@nx/js:tsc` executor doesn't properly respect TypeScript's `outDir`/`rootDir` settings, causing output files to be placed in incorrect locations that break package.json exports.
 
 **Prerequisites (when executor is fixed):**
+
 - Investigate why `@nx/js:tsc` ignores TypeScript output configuration
 - Either:
   - Fix executor to respect `outDir`/`rootDir` from tsconfig, OR
@@ -323,6 +330,7 @@ nx connect
 ```
 
 **Benefits:**
+
 - Share cache across team members
 - Distributed task execution in CI
 - 10x faster CI builds
@@ -453,37 +461,41 @@ After implementing all optimizations including esbuild migration, named inputs, 
 
 ### Performance Comparison
 
-| Metric | Baseline | Optimized | Improvement |
-|--------|----------|-----------|-------------|
-| **Cold Build** | 22.50s | **18.77s** | **-16.6% ✓** |
-| **Warm Build (Cache)** | 0.88s | **0.71s** | **-19.3% ✓** |
-| **Cold Lint** | 14.30s | **12.34s** | **-13.7% ✓** |
-| **Warm Lint (Cache)** | 0.70s | **0.58s** | **-17.1% ✓** |
-| **Test Cache Isolation** | ❌ | ✅ | **Fixed ✓** |
-| **Parallel Execution** | 3 tasks | 4 tasks | **+33% ✓** |
-| **Cache Hit Rate** | 100% | 100% | Maintained |
+| Metric                   | Baseline | Optimized  | Improvement  |
+| ------------------------ | -------- | ---------- | ------------ |
+| **Cold Build**           | 22.50s   | **18.77s** | **-16.6% ✓** |
+| **Warm Build (Cache)**   | 0.88s    | **0.71s**  | **-19.3% ✓** |
+| **Cold Lint**            | 14.30s   | **12.34s** | **-13.7% ✓** |
+| **Warm Lint (Cache)**    | 0.70s    | **0.58s**  | **-17.1% ✓** |
+| **Test Cache Isolation** | ❌       | ✅         | **Fixed ✓**  |
+| **Parallel Execution**   | 3 tasks  | 4 tasks    | **+33% ✓**   |
+| **Cache Hit Rate**       | 100%     | 100%       | Maintained   |
 
 ### Detailed Measurements (Optimized)
 
 **Cold Build (No Cache):**
+
 - Run 1: 18.971s
 - Run 2: 17.009s
 - Run 3: 20.338s
 - **Average: 18.773s**
 
 **Warm Build (100% Cache Hit):**
+
 - Run 1: 0.811s
 - Run 2: 0.656s
 - Run 3: 0.667s
 - **Average: 0.711s**
 
 **Cold Lint (No Cache):**
+
 - Run 1: 13.014s
 - Run 2: 12.023s
 - Run 3: 11.989s
 - **Average: 12.342s**
 
 **Warm Lint (100% Cache Hit):**
+
 - Run 1: 0.578s
 - Run 2: 0.582s
 - Run 3: 0.576s

@@ -5,7 +5,7 @@ function LayerControl() {
   const control = new MapSelectorControl({
     overlays: ['administrativeBoundaries', 'cadastre'],
     styles: ['simple', 'aerial']
-  })
+  });
 
   useControl<MapSelectorControl>(
     () => control,

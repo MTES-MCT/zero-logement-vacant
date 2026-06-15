@@ -1,4 +1,5 @@
 import Badge from '@codegouvfr/react-dsfr/Badge';
+import type { VariableOption } from '@zerologementvacant/models';
 import {
   DecoratorNode,
   type DOMConversionMap,
@@ -11,7 +12,6 @@ import {
 } from 'lexical';
 
 import type { Variable } from '../Variable';
-import type { VariableOption } from '@zerologementvacant/models';
 
 interface VariableProps {
   children: string;

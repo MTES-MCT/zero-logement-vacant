@@ -1,9 +1,9 @@
 import { match } from 'ts-pattern';
 
 import { DataFileYear } from './DataFileYear';
+import type { EnergyConsumption } from './EnergyConsumption';
 import { OwnerRank } from './HousingOwnerDTO';
 import { HousingStatus } from './HousingStatus';
-import type { EnergyConsumption } from './EnergyConsumption';
 
 interface EventChange<Old, New> {
   old: Old;

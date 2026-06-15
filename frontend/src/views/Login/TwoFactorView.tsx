@@ -1,23 +1,23 @@
 import { fr } from '@codegouvfr/react-dsfr';
 import { Alert } from '@codegouvfr/react-dsfr/Alert';
 import Button from '@codegouvfr/react-dsfr/Button';
-import Typography from '@mui/material/Typography';
+import { yupResolver } from '@hookform/resolvers/yup';
+import Box from '@mui/material/Box';
 import Container from '@mui/material/Container';
 import Grid from '@mui/material/Grid';
-import Box from '@mui/material/Box';
 import Stack from '@mui/material/Stack';
-import { yupResolver } from '@hookform/resolvers/yup';
+import Typography from '@mui/material/Typography';
+import { useState } from 'react';
 import { FormProvider, useForm } from 'react-hook-form';
 import { useLocation, useNavigate } from 'react-router';
-import { useState } from 'react';
-import { object, string, type InferType }  from 'yup';
+import { object, string, type InferType } from 'yup';
 
+import securityIcon from '~/assets/images/building.svg';
 import AppTextInputNext from '~/components/_app/AppTextInput/AppTextInputNext';
+import Image from '~/components/Image/Image';
 import { useDocumentTitle } from '~/hooks/useDocumentTitle';
 import { useAppDispatch, useAppSelector } from '~/hooks/useStore';
 import { verifyTwoFactor } from '~/store/thunks/auth-thunks';
-import Image from '~/components/Image/Image';
-import securityIcon from '~/assets/images/building.svg';
 
 const schema = object({
   code: string()
@@ -92,7 +92,8 @@ const TwoFactorView = () => {
           </Typography>
 
           <Typography sx={{ mb: 3 }}>
-            Saisissez le code de vérification à 6 chiffres envoyé à l’adresse mail <strong>{email}</strong>. Ce code est valable 5 minutes.
+            Saisissez le code de vérification à 6 chiffres envoyé à l’adresse
+            mail <strong>{email}</strong>. Ce code est valable 5 minutes.
           </Typography>
 
           <Alert
@@ -155,7 +156,9 @@ const TwoFactorView = () => {
                   iconId="fr-icon-lock-line"
                   iconPosition="left"
                 >
-                  {auth.verifyTwoFactor.isLoading ? 'Vérification...' : 'Vérifier'}
+                  {auth.verifyTwoFactor.isLoading
+                    ? 'Vérification...'
+                    : 'Vérifier'}
                 </Button>
               </Stack>
             </form>
@@ -169,14 +172,22 @@ const TwoFactorView = () => {
             sx={{ height: '100%' }}
           >
             <Stack alignItems="center" spacing={2}>
-              <Image
-                src={securityIcon}
-                alt="Sécurité renforcée"
-              />
-              <Typography variant="h4" sx={{ color: fr.colors.decisions.text.label.blueFrance.default }}>
+              <Image src={securityIcon} alt="Sécurité renforcée" />
+              <Typography
+                variant="h4"
+                sx={{
+                  color: fr.colors.decisions.text.label.blueFrance.default
+                }}
+              >
                 Sécurité renforcée
               </Typography>
-              <Typography variant="body1" sx={{ color: fr.colors.decisions.text.mention.grey.default, textAlign: 'center' }}>
+              <Typography
+                variant="body1"
+                sx={{
+                  color: fr.colors.decisions.text.mention.grey.default,
+                  textAlign: 'center'
+                }}
+              >
                 L&apos;authentification en deux étapes protège votre compte
                 contre les accès non autorisés
               </Typography>

@@ -1,8 +1,10 @@
 import { VACANCY_RATE_VALUES } from '@zerologementvacant/models';
 import type { VacancyRate } from '@zerologementvacant/models';
-import { VACANCY_RATE_OPTIONS } from '../../models/HousingFilters';
+
 import Select from '~/components/ui/Select/Select';
 import type { SelectProps } from '~/components/ui/Select/Select';
+
+import { VACANCY_RATE_OPTIONS } from '../../models/HousingFilters';
 
 export type VacancyRateSelectProps<Multiple extends boolean> = Pick<
   SelectProps<VacancyRate, Multiple>,

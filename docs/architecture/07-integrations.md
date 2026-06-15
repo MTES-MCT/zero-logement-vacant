@@ -58,22 +58,22 @@ flowchart TB
 
 **Purpose:** User and establishment synchronization
 
-| Aspect | Details |
-|--------|---------|
-| **Type** | REST API |
-| **Auth** | Username/Password → Bearer Token |
-| **Frequency** | Every 30 minutes (cron) |
-| **Direction** | Pull |
+| Aspect        | Details                          |
+| ------------- | -------------------------------- |
+| **Type**      | REST API                         |
+| **Auth**      | Username/Password → Bearer Token |
+| **Frequency** | Every 30 minutes (cron)          |
+| **Direction** | Pull                             |
 
 #### Endpoints
 
-| Endpoint | Method | Description |
-|----------|--------|-------------|
-| `/api/api-token-auth/` | POST | Get authentication token |
-| `/api/structures` | GET | List structures (establishments) |
-| `/api/utilisateurs` | GET | List users |
-| `/api/groupes` | GET | List groups |
-| `/api/perimetres` | GET | List perimeters |
+| Endpoint               | Method | Description                      |
+| ---------------------- | ------ | -------------------------------- |
+| `/api/api-token-auth/` | POST   | Get authentication token         |
+| `/api/structures`      | GET    | List structures (establishments) |
+| `/api/utilisateurs`    | GET    | List users                       |
+| `/api/groupes`         | GET    | List groups                      |
+| `/api/perimetres`      | GET    | List perimeters                  |
 
 #### Data Flow
 
@@ -109,20 +109,20 @@ sequenceDiagram
 
 **Purpose:** Address geocoding and validation
 
-| Aspect | Details |
-|--------|---------|
-| **Type** | REST API |
-| **Auth** | None (public) |
-| **Frequency** | On-demand |
-| **Direction** | Query |
-| **Endpoint** | https://api-adresse.data.gouv.fr |
+| Aspect        | Details                          |
+| ------------- | -------------------------------- |
+| **Type**      | REST API                         |
+| **Auth**      | None (public)                    |
+| **Frequency** | On-demand                        |
+| **Direction** | Query                            |
+| **Endpoint**  | https://api-adresse.data.gouv.fr |
 
 #### Endpoints
 
-| Endpoint | Method | Description |
-|----------|--------|-------------|
-| `/search/` | GET | Search addresses by text |
-| `/search/csv/` | POST | Bulk geocoding via CSV |
+| Endpoint       | Method | Description              |
+| -------------- | ------ | ------------------------ |
+| `/search/`     | GET    | Search addresses by text |
+| `/search/csv/` | POST   | Bulk geocoding via CSV   |
 
 #### Request Example
 
@@ -171,28 +171,31 @@ async function searchAddress(query: string, inseeCode: string) {
 
 **Purpose:** Transactional email delivery
 
-| Aspect | Details |
-|--------|---------|
-| **Type** | REST API |
-| **Auth** | API Key |
+| Aspect        | Details   |
+| ------------- | --------- |
+| **Type**      | REST API  |
+| **Auth**      | API Key   |
 | **Frequency** | On-demand |
-| **Direction** | Push |
+| **Direction** | Push      |
 
 #### Email Types
 
-| Type | Template | Trigger |
-|------|----------|---------|
-| Password Reset | Template ID | User request |
-| Account Activation | Template ID | User creation |
-| 2FA Code | Template ID | Login with 2FA |
-| Campaign Export | Template ID | Export ready |
+| Type               | Template    | Trigger        |
+| ------------------ | ----------- | -------------- |
+| Password Reset     | Template ID | User request   |
+| Account Activation | Template ID | User creation  |
+| 2FA Code           | Template ID | Login with 2FA |
+| Campaign Export    | Template ID | Export ready   |
 
 #### Implementation
 
 ```typescript
 // services/mailService/brevoService.ts
 const brevo = new Brevo.TransactionalEmailsApi();
-brevo.setApiKey(Brevo.TransactionalEmailsApiApiKeys.apiKey, config.brevo.apiKey);
+brevo.setApiKey(
+  Brevo.TransactionalEmailsApiApiKeys.apiKey,
+  config.brevo.apiKey
+);
 
 async function sendEmail(to: string, templateId: number, params: object) {
   await brevo.sendTransacEmail({
@@ -211,12 +214,12 @@ async function sendEmail(to: string, templateId: number, params: object) {
 
 **Purpose:** Import vacant housing records
 
-| Aspect | Details |
-|--------|---------|
-| **Source** | CEREMA |
-| **Format** | CSV, JSONL |
-| **Frequency** | Annual |
-| **Records** | ~2M housing units |
+| Aspect        | Details           |
+| ------------- | ----------------- |
+| **Source**    | CEREMA            |
+| **Format**    | CSV, JSONL        |
+| **Frequency** | Annual            |
+| **Records**   | ~2M housing units |
 
 #### Data Fields
 
@@ -242,12 +245,12 @@ flowchart LR
 
 **Purpose:** Land registry and property ownership data
 
-| Aspect | Details |
-|--------|---------|
-| **Source** | CEREMA/DGFIP |
-| **Format** | CSV |
-| **Frequency** | Annual |
-| **Records** | ~50M parcels |
+| Aspect        | Details      |
+| ------------- | ------------ |
+| **Source**    | CEREMA/DGFIP |
+| **Format**    | CSV          |
+| **Frequency** | Annual       |
+| **Records**   | ~50M parcels |
 
 #### Data Types
 
@@ -262,12 +265,12 @@ flowchart LR
 
 **Purpose:** Energy consumption data for buildings
 
-| Aspect | Details |
-|--------|---------|
-| **Source** | ADEME |
-| **Format** | JSONL |
+| Aspect        | Details            |
+| ------------- | ------------------ |
+| **Source**    | ADEME              |
+| **Format**    | JSONL              |
 | **Frequency** | Continuous updates |
-| **Records** | ~10M certificates |
+| **Records**   | ~10M certificates  |
 
 #### Data Fields
 
@@ -282,20 +285,20 @@ flowchart LR
 
 **Purpose:** Statistical and geographic reference data
 
-| Aspect | Details |
-|--------|---------|
-| **Source** | INSEE |
-| **Format** | CSV, XLSX, Parquet |
-| **Frequency** | Annual |
+| Aspect        | Details            |
+| ------------- | ------------------ |
+| **Source**    | INSEE              |
+| **Format**    | CSV, XLSX, Parquet |
+| **Frequency** | Annual             |
 
 #### Data Types
 
-| Dataset | Description |
-|---------|-------------|
-| COG | Code Officiel Géographique (commune codes) |
-| Grille Densité | Population density classification |
-| Recensement | Population census data |
-| Table Appartenance | Geographic hierarchy |
+| Dataset            | Description                                |
+| ------------------ | ------------------------------------------ |
+| COG                | Code Officiel Géographique (commune codes) |
+| Grille Densité     | Population density classification          |
+| Recensement        | Population census data                     |
+| Table Appartenance | Geographic hierarchy                       |
 
 ---
 
@@ -303,19 +306,19 @@ flowchart LR
 
 **Purpose:** Fiscal and taxation data
 
-| Aspect | Details |
-|--------|---------|
-| **Source** | DGFIP |
-| **Format** | XLSX, CSV |
-| **Frequency** | Annual |
+| Aspect        | Details   |
+| ------------- | --------- |
+| **Source**    | DGFIP     |
+| **Format**    | XLSX, CSV |
+| **Frequency** | Annual    |
 
 #### Data Types
 
-| Dataset | Description |
-|---------|-------------|
-| Fiscalité Locale | Local taxation data |
-| Délibérations | Tax deliberations |
-| Zonage TLV | Tax-linked area classification |
+| Dataset          | Description                    |
+| ---------------- | ------------------------------ |
+| Fiscalité Locale | Local taxation data            |
+| Délibérations    | Tax deliberations              |
+| Zonage TLV       | Tax-linked area classification |
 
 ---
 
@@ -323,10 +326,10 @@ flowchart LR
 
 **Purpose:** Document and file storage
 
-| Aspect | Details |
-|--------|---------|
-| **Provider** | Clever Cloud Cellar (S3-compatible) |
-| **Auth** | Access Key/Secret Key |
+| Aspect        | Details                                        |
+| ------------- | ---------------------------------------------- |
+| **Provider**  | Clever Cloud Cellar (S3-compatible)            |
+| **Auth**      | Access Key/Secret Key                          |
 | **Use Cases** | Campaign documents, log archives, data exports |
 
 #### Bucket Structure
@@ -357,13 +360,15 @@ const s3Client = new S3Client({
   }
 });
 
-await s3Client.send(new PutObjectCommand({
-  Bucket: config.s3.bucket,
-  Key: `documents/${documentId}/${filename}`,
-  Body: fileBuffer,
-  ContentType: mimeType,
-  ACL: 'authenticated-read'
-}));
+await s3Client.send(
+  new PutObjectCommand({
+    Bucket: config.s3.bucket,
+    Key: `documents/${documentId}/${filename}`,
+    Body: fileBuffer,
+    ContentType: mimeType,
+    ACL: 'authenticated-read'
+  })
+);
 ```
 
 ---
@@ -386,10 +391,7 @@ Sentry.init({
 // Frontend
 Sentry.init({
   dsn: config.sentry.dsn,
-  integrations: [
-    Sentry.replayIntegration(),
-    Sentry.browserTracingIntegration()
-  ]
+  integrations: [Sentry.replayIntegration(), Sentry.browserTracingIntegration()]
 });
 ```
 
@@ -443,7 +445,7 @@ breaker.fire(params).catch(handleFallback);
 ```typescript
 const rateLimiter = new Bottleneck({
   maxConcurrent: 5,
-  minTime: 200  // 5 requests per second
+  minTime: 200 // 5 requests per second
 });
 
 await rateLimiter.schedule(() => apiCall());
@@ -451,13 +453,13 @@ await rateLimiter.schedule(() => apiCall());
 
 ## Security Considerations
 
-| Integration | Auth Method | Secret Storage |
-|-------------|-------------|----------------|
-| Cerema | Bearer Token | Env vars |
-| BAN | None | N/A |
-| Brevo | API Key | Env vars |
-| S3/Cellar | Access Key/Secret | Env vars |
-| Sentry | DSN | Env vars |
-| PostHog | API Key | Env vars |
+| Integration | Auth Method       | Secret Storage |
+| ----------- | ----------------- | -------------- |
+| Cerema      | Bearer Token      | Env vars       |
+| BAN         | None              | N/A            |
+| Brevo       | API Key           | Env vars       |
+| S3/Cellar   | Access Key/Secret | Env vars       |
+| Sentry      | DSN               | Env vars       |
+| PostHog     | API Key           | Env vars       |
 
 All secrets are stored in environment variables and never committed to source control.

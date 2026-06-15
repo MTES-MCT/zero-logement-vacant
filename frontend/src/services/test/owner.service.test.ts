@@ -1,6 +1,6 @@
+import { genOwnerDTO } from '@zerologementvacant/models/fixtures';
 import { describe, expect, it } from 'vitest';
 
-import { genOwnerDTO } from '@zerologementvacant/models/fixtures';
 import { parseOwner } from '../owner.service';
 
 describe('parseOwner', () => {

@@ -1,4 +1,5 @@
 import type { UserEstablishment } from '@zerologementvacant/models';
+
 import db from '~/infra/database';
 import { withinTransaction } from '~/infra/database/transaction';
 import { logger } from '~/infra/logger';

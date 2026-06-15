@@ -1,7 +1,12 @@
-import { toArray } from '@zerologementvacant/utils/node';
-import { faker } from '@faker-js/faker/locale/fr';
-import { ACTIVE_OWNER_RANKS, ActiveOwnerRank } from '@zerologementvacant/models';
 import { ReadableStream } from 'node:stream/web';
+
+import { faker } from '@faker-js/faker/locale/fr';
+import {
+  ACTIVE_OWNER_RANKS,
+  ActiveOwnerRank
+} from '@zerologementvacant/models';
+import { toArray } from '@zerologementvacant/utils/node';
+
 import {
   formatHousingOwnerApi,
   HousingOwnerDBO,
@@ -16,13 +21,14 @@ import {
   OwnerDBO,
   Owners
 } from '~/repositories/ownerRepository';
-import { createSourceHousingOwnerEnricher } from '../source-housing-owner-enricher';
 import {
   genHousingApi,
   genHousingOwnerApi,
   genOwnerApi
 } from '~/test/testFixtures';
+
 import { SourceHousingOwner } from '../source-housing-owner';
+import { createSourceHousingOwnerEnricher } from '../source-housing-owner-enricher';
 import { EnrichedSourceHousingOwners } from '../source-housing-owner-enricher';
 
 function genValidIdpersonne(): string {
@@ -59,10 +65,9 @@ describe('createSourceHousingOwnerEnricher', () => {
   }
 
   it('should set existing.housing to null when housing is not found', async () => {
-    const group = makeGroup(
-      { geo_code: '99000', local_id: 'UNKNOWN00000' },
-      [owner.id]
-    );
+    const group = makeGroup({ geo_code: '99000', local_id: 'UNKNOWN00000' }, [
+      owner.id
+    ]);
     const [result] = (await toArray(
       ReadableStream.from([group]).pipeThrough(
         createSourceHousingOwnerEnricher()
@@ -98,9 +103,7 @@ describe('createSourceHousingOwnerEnricher', () => {
     const ownerB = { ...genOwnerApi(), idpersonne: genValidIdpersonne() };
 
     beforeAll(async () => {
-      await Housing().insert(
-        [housingA, housingB].map(formatHousingRecordApi)
-      );
+      await Housing().insert([housingA, housingB].map(formatHousingRecordApi));
       await Owners().insert([ownerA, ownerB].map(formatOwnerApi));
     });
 
@@ -136,8 +139,14 @@ describe('createSourceHousingOwnerEnricher', () => {
 
   describe('with existing housing owners', () => {
     const housingWithOwners = genHousingApi();
-    const existingOwner = { ...genOwnerApi(), idpersonne: genValidIdpersonne() };
-    const newSourceOwner = { ...genOwnerApi(), idpersonne: genValidIdpersonne() };
+    const existingOwner = {
+      ...genOwnerApi(),
+      idpersonne: genValidIdpersonne()
+    };
+    const newSourceOwner = {
+      ...genOwnerApi(),
+      idpersonne: genValidIdpersonne()
+    };
     let existingHousingOwner: HousingOwnerDBO;
 
     beforeAll(async () => {
@@ -155,7 +164,10 @@ describe('createSourceHousingOwnerEnricher', () => {
 
     it('should populate existingHousingOwners', async () => {
       const group = makeGroup(
-        { geo_code: housingWithOwners.geoCode, local_id: housingWithOwners.localId },
+        {
+          geo_code: housingWithOwners.geoCode,
+          local_id: housingWithOwners.localId
+        },
         [existingOwner.id, newSourceOwner.id]
       );
       const [result] = (await toArray(
@@ -171,7 +183,10 @@ describe('createSourceHousingOwnerEnricher', () => {
 
     it('should fetch owners for both source idpersonnes and existing housing owners', async () => {
       const group = makeGroup(
-        { geo_code: housingWithOwners.geoCode, local_id: housingWithOwners.localId },
+        {
+          geo_code: housingWithOwners.geoCode,
+          local_id: housingWithOwners.localId
+        },
         [newSourceOwner.id] // only the NEW owner in source
       );
       const [result] = (await toArray(

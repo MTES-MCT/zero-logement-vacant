@@ -1,8 +1,11 @@
+import { constants } from 'node:http2';
+
 import type { FileUploadDTO, HousingDTO } from '@zerologementvacant/models';
 import { http, HttpResponse, type RequestHandler } from 'msw';
+
 import config from '~/utils/config';
+
 import data from './data';
-import { constants } from 'node:http2';
 
 interface PathParams extends Record<string, string> {
   id: HousingDTO['id'];

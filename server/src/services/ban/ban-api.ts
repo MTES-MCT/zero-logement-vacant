@@ -1,8 +1,8 @@
 import axios from 'axios';
 import { parse as fromCSV } from 'csv-parse/sync';
 import { stringify as toCSV } from 'csv-stringify/sync';
-import { createLogger } from '~/infra/logger';
 
+import { createLogger } from '~/infra/logger';
 import { Address, AddressQuery, BAN, Point } from '~/services/ban/ban';
 
 const logger = createLogger('ban-api');

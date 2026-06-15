@@ -11,7 +11,6 @@ import { match, Pattern } from 'ts-pattern';
 import DPE from '~/components/DPE/DPE';
 import OccupancyBadge from '~/components/Housing/OccupancyBadge';
 import HousingAttribute from '~/components/HousingDetails/HousingAttribute';
-import styles from '~/components/HousingDetails/housing-details-card.module.scss';
 import Map from '~/components/Map/Map';
 import { useHousing } from '~/hooks/useHousing';
 import { formatOwnershipKind, getBuildingLocation } from '~/models/Housing';
@@ -20,7 +19,10 @@ import { toString as toMutationString } from '~/models/Mutation';
 import { useGetBuildingQuery } from '~/services/building.service';
 import { useFindPerimetersQuery } from '~/services/perimeter.service';
 import { age, birthdate } from '~/utils/dateUtils';
+
 import AppLink from '../_app/AppLink/AppLink';
+
+import styles from '~/components/HousingDetails/housing-details-card.module.scss';
 
 function HousingTab() {
   const { housing } = useHousing();

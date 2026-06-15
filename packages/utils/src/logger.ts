@@ -1,4 +1,5 @@
 import pino, { LoggerOptions as PinoLoggerOptions } from 'pino';
+
 import { LogLevel } from './log-level';
 
 interface LoggerOptions {

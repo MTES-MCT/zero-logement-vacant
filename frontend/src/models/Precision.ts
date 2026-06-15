@@ -1,5 +1,4 @@
 import type { FrIconClassName, RiIconClassName } from '@codegouvfr/react-dsfr';
-
 import type { Precision, PrecisionCategory } from '@zerologementvacant/models';
 
 export const NULL_PRECISION_ID = '__NULL_PRECISION__' as const;

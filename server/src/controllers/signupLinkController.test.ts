@@ -1,12 +1,25 @@
 import { constants } from 'http2';
+
+import { subHours } from 'date-fns';
 import request from 'supertest';
 import { vi } from 'vitest';
 
 import { createServer } from '~/infra/server';
+import { SignupLinkApi } from '~/models/SignupLinkApi';
+import {
+  Establishments,
+  formatEstablishmentApi
+} from '~/repositories/establishmentRepository';
+import {
+  formatProspectApi,
+  Prospects
+} from '~/repositories/prospectRepository';
 import {
   formatSignupLinkApi,
   SignupLinks
 } from '~/repositories/signupLinkRepository';
+import { toUserDBO, Users } from '~/repositories/userRepository';
+import ceremaService from '~/services/ceremaService';
 import {
   genEmail,
   genEstablishmentApi,
@@ -14,18 +27,6 @@ import {
   genSignupLinkApi,
   genUserApi
 } from '~/test/testFixtures';
-import { SignupLinkApi } from '~/models/SignupLinkApi';
-import { subHours } from 'date-fns';
-import {
-  Establishments,
-  formatEstablishmentApi
-} from '~/repositories/establishmentRepository';
-import { toUserDBO, Users } from '~/repositories/userRepository';
-import {
-  formatProspectApi,
-  Prospects
-} from '~/repositories/prospectRepository';
-import ceremaService from '~/services/ceremaService';
 
 describe('Signup link API', () => {
   let url: string;
@@ -47,7 +48,12 @@ describe('Signup link API', () => {
 
     beforeEach(() => {
       vi.spyOn(ceremaService, 'consultUsers').mockResolvedValue([
-        { email: '', establishmentSiren: '*', hasAccount: true, hasCommitment: true }
+        {
+          email: '',
+          establishmentSiren: '*',
+          hasAccount: true,
+          hasCommitment: true
+        }
       ]);
     });
 

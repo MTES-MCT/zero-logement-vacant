@@ -1,12 +1,15 @@
-import { describe, it, expect, beforeAll } from 'vitest';
 import { v4 as uuidv4 } from 'uuid';
+import { describe, it, expect, beforeAll } from 'vitest';
 
-import documentRepository, { Documents, toDocumentDBO } from '~/repositories/documentRepository';
-import { Users, toUserDBO } from '~/repositories/userRepository';
+import documentRepository, {
+  Documents,
+  toDocumentDBO
+} from '~/repositories/documentRepository';
 import {
   Establishments,
   formatEstablishmentApi
 } from '~/repositories/establishmentRepository';
+import { Users, toUserDBO } from '~/repositories/userRepository';
 import {
   genDocumentApi,
   genUserApi,

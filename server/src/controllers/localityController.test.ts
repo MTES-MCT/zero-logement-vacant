@@ -1,5 +1,6 @@
-import { genGeoCode } from '@zerologementvacant/models/fixtures';
 import { constants } from 'http2';
+
+import { genGeoCode } from '@zerologementvacant/models/fixtures';
 import request from 'supertest';
 
 import { createServer } from '~/infra/server';

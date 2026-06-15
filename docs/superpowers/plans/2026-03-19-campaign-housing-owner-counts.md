@@ -13,6 +13,7 @@
 ### Task 1: Write failing repository tests
 
 **Files:**
+
 - Modify: `server/src/repositories/test/campaignRepository.test.ts`
 
 **Step 1: Add four failing tests inside the `findOne` describe block, after the existing `returnCount` tests**
@@ -20,7 +21,10 @@
 ```typescript
 it('should expose housingCount from the database', async () => {
   const campaign = genCampaignApi(establishment.id, user);
-  await Campaigns().insert({ ...formatCampaignApi(campaign), housing_count: 3 });
+  await Campaigns().insert({
+    ...formatCampaignApi(campaign),
+    housing_count: 3
+  });
 
   const result = await campaignRepository.findOne({
     id: campaign.id,
@@ -96,6 +100,7 @@ git commit -m "test(server): add failing tests for housingCount, ownerCount, ret
 ### Task 2: Migration
 
 **Files:**
+
 - Create: `server/src/infra/database/migrations/20260319_campaigns-add-counts.ts`
 
 **Step 1: Create the migration file**
@@ -227,9 +232,13 @@ export async function up(knex: Knex): Promise<void> {
 }
 
 export async function down(knex: Knex): Promise<void> {
-  await knex.raw('DROP TRIGGER IF EXISTS trg_update_campaign_owner_count ON owners_housing');
+  await knex.raw(
+    'DROP TRIGGER IF EXISTS trg_update_campaign_owner_count ON owners_housing'
+  );
   await knex.raw('DROP FUNCTION IF EXISTS update_campaign_owner_count');
-  await knex.raw('DROP TRIGGER IF EXISTS trg_update_campaign_counts ON campaigns_housing');
+  await knex.raw(
+    'DROP TRIGGER IF EXISTS trg_update_campaign_counts ON campaigns_housing'
+  );
   await knex.raw('DROP FUNCTION IF EXISTS update_campaign_counts');
   await knex.schema.alterTable('campaigns', (table) => {
     table.dropColumn('return_rate');
@@ -259,6 +268,7 @@ git commit -m "chore(server): add migration for housing_count, owner_count, retu
 ### Task 3: Update parseCampaignApi and CampaignDBO
 
 **Files:**
+
 - Modify: `server/src/repositories/campaignRepository.ts` (lines 130–196)
 
 **Step 1: Fix `CampaignDBO.return_rate` type**
@@ -305,6 +315,7 @@ git commit -m "feat(server): expose housingCount, ownerCount, returnRate in pars
 ### Task 4: Propagate through CampaignApi and fix server fixture
 
 **Files:**
+
 - Modify: `server/src/models/CampaignApi.ts`
 - Modify: `server/src/test/testFixtures.ts`
 

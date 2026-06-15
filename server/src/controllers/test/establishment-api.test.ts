@@ -1,8 +1,7 @@
+import { constants } from 'http2';
+
 import { faker } from '@faker-js/faker/locale/fr';
 import { fc, test } from '@fast-check/vitest';
-import { constants } from 'http2';
-import request from 'supertest';
-
 import {
   ESTABLISHMENT_KIND_VALUES,
   EstablishmentFiltersDTO,
@@ -10,16 +9,18 @@ import {
   type EstablishmentDTO
 } from '@zerologementvacant/models';
 import { GEO_CODE_REGEXP } from '@zerologementvacant/schemas';
+import request from 'supertest';
+
 import { createServer } from '~/infra/server';
 import { EstablishmentApi } from '~/models/EstablishmentApi';
-import { genEstablishmentApi, genUserApi } from '~/test/testFixtures';
+import type { UserApi } from '~/models/UserApi';
 import {
   Establishments,
   formatEstablishmentApi
 } from '~/repositories/establishmentRepository';
-import { tokenProvider } from '~/test/testUtils';
 import { toUserDBO, Users } from '~/repositories/userRepository';
-import type { UserApi } from '~/models/UserApi';
+import { genEstablishmentApi, genUserApi } from '~/test/testFixtures';
+import { tokenProvider } from '~/test/testUtils';
 
 describe('Establishment API', () => {
   let url: string;

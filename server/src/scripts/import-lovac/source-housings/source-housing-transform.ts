@@ -7,10 +7,11 @@ import {
   HousingSource,
   HousingStatus,
   Occupancy,
-  OCCUPANCY_LABELS,
+  OCCUPANCY_LABELS
 } from '@zerologementvacant/models';
 import { Array, Option, Order, pipe } from 'effect';
 import { v5 as uuidv5 } from 'uuid';
+
 import { AddressApi } from '~/models/AddressApi';
 import { HousingEventApi } from '~/models/EventApi';
 import { normalizeDataFileYears } from '~/models/HousingApi';
@@ -21,8 +22,9 @@ import {
   ReporterError,
   ReporterOptions
 } from '~/scripts/import-lovac/infra';
-import { EnrichedSourceHousing } from './source-housing-enricher';
+
 import { SourceHousing } from './source-housing';
+import { EnrichedSourceHousing } from './source-housing-enricher';
 
 type READ_ONLY_FIELDS = 'last_mutation_type' | 'occupancy_history';
 export type HousingRecordInsert = Omit<HousingRecordDBO, READ_ONLY_FIELDS>;

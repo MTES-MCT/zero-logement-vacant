@@ -10,7 +10,7 @@ export default class EstablishmentMissingError
     super({
       name: 'EstablishmentMissingError',
       message: `Establishment ${id} missing`,
-      status: constants.HTTP_STATUS_NOT_FOUND,
+      status: constants.HTTP_STATUS_NOT_FOUND
     });
   }
 }

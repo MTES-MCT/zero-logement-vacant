@@ -30,6 +30,7 @@ We use [Conventional Commits](https://www.conventionalcommits.org/) specificatio
 Use the workspace/package name as scope:
 
 ### Main Applications
+
 - **analytics**: Data pipeline (DBT + DuckDB + Dagster)
 - **e2e**: End-to-end tests
 - **frontend**: React frontend (`@zerologementvacant/front`)
@@ -37,6 +38,7 @@ Use the workspace/package name as scope:
 - **server**: Backend API (`@zerologementvacant/server`)
 
 ### Packages
+
 - **api-sdk**: API client SDK (`@zerologementvacant/api-sdk`)
 - **draft**: Draft (`@zerologementvacant/draft`)
 - **healthcheck**: Draft (`@zerologementvacant/healthcheck`)
@@ -122,23 +124,26 @@ Closes #123
 3. **Capitalize the first letter** of the description
 4. **No period at the end** of the description
 5. **Reference issues** when applicable (`Closes #123`, `Fixes #456`)
-8. **Include migration info** for database changes
+6. **Include migration info** for database changes
 
 ## Special Cases
 
 ### Database Migrations
+
 ```bash
 feat(db): add housing_status_history table
 fix(db): correct index on housing.geo_code column
 ```
 
 ### API Endpoint Changes
+
 ```bash
 feat(server): add GET /api/housings/:id/campaigns endpoint
 fix(server): correct housing search pagination
 ```
 
 ### Testing
+
 ```bash
 test(e2e): add housing campaign creation flow
 test(server): add housing repository unit tests
@@ -147,6 +152,7 @@ test(server): add housing repository unit tests
 ## Validation
 
 Before committing, ensure:
+
 - [ ] The type matches the change category
 - [ ] The scope matches the affected workspace
 - [ ] The description is clear and concise

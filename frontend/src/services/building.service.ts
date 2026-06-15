@@ -1,4 +1,5 @@
 import type { BuildingDTO } from '@zerologementvacant/models';
+
 import { zlvApi } from './api.service';
 
 export const buildingAPI = zlvApi.injectEndpoints({

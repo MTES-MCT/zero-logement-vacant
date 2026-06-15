@@ -27,10 +27,7 @@ import {
   formatHousingRecordApi,
   housingTable
 } from '~/repositories/housingRepository';
-import {
-  Owners,
-  parseOwnerApi
-} from '~/repositories/ownerRepository';
+import { Owners, parseOwnerApi } from '~/repositories/ownerRepository';
 import { createBanAPI } from '~/services/ban/ban-api';
 import { genHousingApi, genHousingOwnerApi } from '~/test/testFixtures';
 
@@ -119,7 +116,9 @@ export async function seed(knex: Knex): Promise<void> {
         };
       });
 
-    console.log(`Generated ${housings.length} housings for ${establishment.name}`);
+    console.log(
+      `Generated ${housings.length} housings for ${establishment.name}`
+    );
 
     const housingAddresses: ReadonlyArray<AddressApi> = addresses.map(
       (address) => ({ ...address, addressKind: AddressKinds.Housing })
@@ -159,18 +158,30 @@ export async function seed(knex: Knex): Promise<void> {
   await knex.raw(`TRUNCATE TABLE ${housingTable} CASCADE`);
 
   console.log(`Inserting ${allHousings.length} housings...`);
-  await knex.batchInsert(housingTable, allHousings.map(formatHousingRecordApi), 100);
+  await knex.batchInsert(
+    housingTable,
+    allHousings.map(formatHousingRecordApi),
+    100
+  );
 
   if (allHousingAddresses.length > 0) {
-    console.log(`Inserting ${allHousingAddresses.length} BAN housing addresses...`);
-    await knex.batchInsert(banAddressesTable, allHousingAddresses.map(formatAddressApi));
+    console.log(
+      `Inserting ${allHousingAddresses.length} BAN housing addresses...`
+    );
+    await knex.batchInsert(
+      banAddressesTable,
+      allHousingAddresses.map(formatAddressApi)
+    );
   }
 
   console.log(`Inserting ${allHousingOwners.length} housing owners...`);
-  await knex.batchInsert(housingOwnersTable, allHousingOwners.map(formatHousingOwnerApi));
+  await knex.batchInsert(
+    housingOwnersTable,
+    allHousingOwners.map(formatHousingOwnerApi)
+  );
 
   console.timeEnd('20240404235459_housings');
-  console.log('\n')
+  console.log('\n');
 }
 
 async function perimeter(

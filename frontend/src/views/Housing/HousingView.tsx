@@ -4,8 +4,8 @@ import Container from '@mui/material/Container';
 import Grid from '@mui/material/Grid';
 import Stack from '@mui/material/Stack';
 import Typography from '@mui/material/Typography';
-import { getOwnerDisplayName } from '@zerologementvacant/models';
 import { skipToken } from '@reduxjs/toolkit/query';
+import { getOwnerDisplayName } from '@zerologementvacant/models';
 import { useNavigate, useParams } from 'react-router';
 import { assert } from 'ts-essentials';
 
@@ -88,7 +88,11 @@ function HousingView() {
             <Grid
               order={1}
               rowGap="1.5rem"
-              sx={{ display: 'flex', flexFlow: 'column nowrap', mb: { xs: '1.5rem', md: 0 } }}
+              sx={{
+                display: 'flex',
+                flexFlow: 'column nowrap',
+                mb: { xs: '1.5rem', md: 0 }
+              }}
               size={{ xs: 12, md: 4 }}
             >
               <Stack

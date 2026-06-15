@@ -1,5 +1,6 @@
 import nock from 'nock';
 import { afterEach, describe, expect, it } from 'vitest';
+
 import {
   filterGeoCodesByPerimeter,
   hasEpciAccess,
@@ -32,7 +33,10 @@ describe('hasGeoRestriction', () => {
   });
 
   it('returns true when geoCodes is non-empty', () => {
-    const perimeter: PerimeterShape = { ...emptyPerimeter, geoCodes: ['75056'] };
+    const perimeter: PerimeterShape = {
+      ...emptyPerimeter,
+      geoCodes: ['75056']
+    };
 
     const result = hasGeoRestriction(perimeter);
 
@@ -40,7 +44,10 @@ describe('hasGeoRestriction', () => {
   });
 
   it('returns true when departments is non-empty', () => {
-    const perimeter: PerimeterShape = { ...emptyPerimeter, departments: ['75'] };
+    const perimeter: PerimeterShape = {
+      ...emptyPerimeter,
+      departments: ['75']
+    };
 
     const result = hasGeoRestriction(perimeter);
 
@@ -58,7 +65,10 @@ describe('hasGeoRestriction', () => {
 
 describe('hasEpciAccess', () => {
   it('returns true when no geo restriction and EPCI includes the siren', () => {
-    const perimeter: PerimeterShape = { ...emptyPerimeter, epci: ['123456789'] };
+    const perimeter: PerimeterShape = {
+      ...emptyPerimeter,
+      epci: ['123456789']
+    };
 
     const result = hasEpciAccess(perimeter, '123456789');
 
@@ -78,7 +88,10 @@ describe('hasEpciAccess', () => {
   });
 
   it('returns false when no siren provided', () => {
-    const perimeter: PerimeterShape = { ...emptyPerimeter, epci: ['123456789'] };
+    const perimeter: PerimeterShape = {
+      ...emptyPerimeter,
+      epci: ['123456789']
+    };
 
     const result = hasEpciAccess(perimeter);
 
@@ -92,7 +105,10 @@ describe('hasEpciAccess', () => {
   });
 
   it('returns false when EPCI does not include the siren', () => {
-    const perimeter: PerimeterShape = { ...emptyPerimeter, epci: ['999999999'] };
+    const perimeter: PerimeterShape = {
+      ...emptyPerimeter,
+      epci: ['999999999']
+    };
 
     const result = hasEpciAccess(perimeter, '123456789');
 
@@ -110,7 +126,10 @@ describe('isCommuneInPerimeter', () => {
   });
 
   it('returns true when commune is in geoCodes', async () => {
-    const perimeter: PerimeterShape = { ...emptyPerimeter, geoCodes: ['75056'] };
+    const perimeter: PerimeterShape = {
+      ...emptyPerimeter,
+      geoCodes: ['75056']
+    };
 
     const result = await isCommuneInPerimeter('75056', perimeter);
 
@@ -118,7 +137,10 @@ describe('isCommuneInPerimeter', () => {
   });
 
   it('returns true when department matches', async () => {
-    const perimeter: PerimeterShape = { ...emptyPerimeter, departments: ['75'] };
+    const perimeter: PerimeterShape = {
+      ...emptyPerimeter,
+      departments: ['75']
+    };
 
     const result = await isCommuneInPerimeter('75056', perimeter);
 
@@ -178,7 +200,10 @@ describe('filterGeoCodesByPerimeter', () => {
   });
 
   it('returns undefined when EPCI matches and no geo restriction', async () => {
-    const perimeter: PerimeterShape = { ...emptyPerimeter, epci: ['123456789'] };
+    const perimeter: PerimeterShape = {
+      ...emptyPerimeter,
+      epci: ['123456789']
+    };
 
     const result = await filterGeoCodesByPerimeter(
       ['75056', '13055'],
@@ -190,9 +215,15 @@ describe('filterGeoCodesByPerimeter', () => {
   });
 
   it('returns only matching geoCodes when department perimeter applies', async () => {
-    const perimeter: PerimeterShape = { ...emptyPerimeter, departments: ['75'] };
+    const perimeter: PerimeterShape = {
+      ...emptyPerimeter,
+      departments: ['75']
+    };
 
-    const result = await filterGeoCodesByPerimeter(['75056', '13055'], perimeter);
+    const result = await filterGeoCodesByPerimeter(
+      ['75056', '13055'],
+      perimeter
+    );
 
     expect(result).toEqual(['75056']);
   });

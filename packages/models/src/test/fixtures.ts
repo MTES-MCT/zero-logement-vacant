@@ -1,10 +1,14 @@
 import { faker } from '@faker-js/faker/locale/fr';
 import { point } from '@turf/turf';
 import { Array, pipe, Predicate } from 'effect';
-import { MarkRequired } from 'ts-essentials';
-
 import type { BBox } from 'geojson';
+import { MarkRequired } from 'ts-essentials';
 import { match, Pattern } from 'ts-pattern';
+
+import { AddressDTO } from '../AddressDTO';
+import type { BuildingDTO } from '../BuildingDTO';
+import { CADASTRAL_CLASSIFICATION_VALUES } from '../CadastralClassification';
+import { CAMPAIGN_STATUS_VALUES, CampaignDTO } from '../CampaignDTO';
 import type {
   BarChartCard,
   BarChartDataDTO,
@@ -22,10 +26,6 @@ import type {
   TableColumnMeta,
   TableDataDTO
 } from '../DashboardDTO';
-import { AddressDTO } from '../AddressDTO';
-import type { BuildingDTO } from '../BuildingDTO';
-import { CADASTRAL_CLASSIFICATION_VALUES } from '../CadastralClassification';
-import { CAMPAIGN_STATUS_VALUES, CampaignDTO } from '../CampaignDTO';
 import { DATA_FILE_YEAR_VALUES } from '../DataFileYear';
 import type { DatafoncierHousing } from '../DatafoncierHousing';
 import type { DatafoncierOwner } from '../DatafoncierOwner';
@@ -1024,7 +1024,9 @@ export function genDashboardDTO(override?: {
   tabs?: Tab[];
 }): DashboardDTO {
   const id = override?.id ?? faker.number.int({ min: 1, max: 999 });
-  const url = override?.url ?? 'https://stats.zlv.beta.gouv.fr/embed/dashboard/fake-token';
+  const url =
+    override?.url ??
+    'https://stats.zlv.beta.gouv.fr/embed/dashboard/fake-token';
   if (override?.tabs) {
     return {
       id,
@@ -1162,9 +1164,7 @@ export function genTableColumnMeta(
   };
 }
 
-export function genTableCard(
-  override?: Partial<TableCard>
-): TableCard {
+export function genTableCard(override?: Partial<TableCard>): TableCard {
   return {
     id: faker.number.int({ min: 1, max: 9999 }),
     type: 'table',
@@ -1204,10 +1204,9 @@ export function genTableDataDTO(
 
   const rows: unknown[][] =
     override?.rows ??
-    faker.helpers.multiple(
-      () => columns.map((c) => genCellValue(c.baseType)),
-      { count: rowCount }
-    );
+    faker.helpers.multiple(() => columns.map((c) => genCellValue(c.baseType)), {
+      count: rowCount
+    });
 
   return {
     id: faker.number.int({ min: 1, max: 9999 }),

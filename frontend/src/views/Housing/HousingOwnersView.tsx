@@ -5,9 +5,6 @@ import Skeleton from '@mui/material/Skeleton';
 import Stack from '@mui/material/Stack';
 import Typography from '@mui/material/Typography';
 import { skipToken } from '@reduxjs/toolkit/query';
-import { useEffect, useState } from 'react';
-import { useLocation, useParams } from 'react-router';
-
 import type {
   AwaitingOwnerRank,
   InactiveOwnerRank,
@@ -15,6 +12,9 @@ import type {
 } from '@zerologementvacant/models';
 import { Array, Equivalence, Order, pipe } from 'effect';
 import type { NonEmptyArray } from 'effect/Array';
+import { useEffect, useState } from 'react';
+import { useLocation, useParams } from 'react-router';
+
 import HousingOwnersEmpty from '~/components/HousingOwnersEmpty/HousingOwnersEmpty';
 import createOwnerAttachmentModal from '~/components/Owner/HousingOwnerAdditionModals/OwnerAttachmentModal';
 import createOwnerSearchModal from '~/components/Owner/HousingOwnerAdditionModals/OwnerSearchModal';
@@ -36,6 +36,7 @@ import {
   useUpdateHousingOwnersMutation,
   useUpdateOwnerMutation
 } from '~/services/owner.service';
+
 import NotFoundView from '../NotFoundView';
 
 const ownerSearchModal = createOwnerSearchModal();

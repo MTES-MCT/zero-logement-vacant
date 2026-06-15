@@ -1,4 +1,5 @@
 import { faker } from '@faker-js/faker/locale/fr';
+
 import {
   HOUSING_OWNER_EQUIVALENCE,
   HOUSING_OWNER_RANK_EQUIVALENCE,

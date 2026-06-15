@@ -6,6 +6,7 @@ import { Link } from 'react-router';
 
 import HousingCount from '~/components/HousingCount/HousingCount';
 import type { Group } from '~/models/Group';
+
 import styles from './group-card.module.scss';
 
 export interface GroupCardProps {

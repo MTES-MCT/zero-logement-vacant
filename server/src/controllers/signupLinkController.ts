@@ -1,4 +1,13 @@
+import { constants } from 'http2';
+
+import { addHours } from 'date-fns';
 import { Request, Response } from 'express';
+import { body, param, ValidationChain } from 'express-validator';
+import randomstring from 'randomstring';
+
+import SignupLinkExpiredError from '~/errors/signupLinkExpiredError';
+import SignupLinkMissingError from '~/errors/signupLinkMissingError';
+import { logger } from '~/infra/logger';
 import {
   getAccountActivationLink,
   hasExpired,
@@ -6,17 +15,10 @@ import {
   SIGNUP_LINK_LENGTH,
   SignupLinkApi
 } from '~/models/SignupLinkApi';
-import randomstring from 'randomstring';
-import { addHours } from 'date-fns';
-import mailService from '~/services/mailService';
 import signupLinkRepository from '~/repositories/signupLinkRepository';
-import { body, param, ValidationChain } from 'express-validator';
-import SignupLinkMissingError from '~/errors/signupLinkMissingError';
-import { constants } from 'http2';
-import SignupLinkExpiredError from '~/errors/signupLinkExpiredError';
 import userRepository from '~/repositories/userRepository';
 import ceremaService from '~/services/ceremaService';
-import { logger } from '~/infra/logger';
+import mailService from '~/services/mailService';
 
 async function create(request: Request, response: Response) {
   const { email } = request.body;

@@ -1,3 +1,9 @@
+import fs from 'node:fs';
+import { rm } from 'node:fs/promises';
+import path from 'node:path';
+import { ReadableStream } from 'node:stream/web';
+
+import { DuckDBInstance } from '@duckdb/node-api';
 import { faker } from '@faker-js/faker/locale/fr';
 import {
   HOUSING_STATUS_VALUES,
@@ -5,11 +11,7 @@ import {
   Occupancy,
   OCCUPANCY_VALUES
 } from '@zerologementvacant/models';
-import { DuckDBInstance } from '@duckdb/node-api';
-import fs from 'node:fs';
-import { rm } from 'node:fs/promises';
-import path from 'node:path';
-import { ReadableStream } from 'node:stream/web';
+
 import { BuildingApi } from '~/models/BuildingApi';
 import { HousingEventApi } from '~/models/EventApi';
 import { HousingApi } from '~/models/HousingApi';
@@ -42,7 +44,6 @@ import { toUserDBO, Users } from '~/repositories/userRepository';
 import { genSourceHousing } from '~/scripts/import-lovac/infra/fixtures';
 import { createUpdater } from '~/scripts/import-lovac/infra/updater';
 import { SourceHousing } from '~/scripts/import-lovac/source-housings/source-housing';
-
 import { createSourceHousingCommand } from '~/scripts/import-lovac/source-housings/source-housing-command';
 import { updateHousings } from '~/scripts/import-lovac/source-housings/source-housing-loader';
 import {

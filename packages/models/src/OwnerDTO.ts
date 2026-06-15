@@ -1,4 +1,5 @@
 import { isDefined, isNotNull } from '@zerologementvacant/utils';
+
 import { AddressDTO, AddressPayloadDTO, formatAddress } from './AddressDTO';
 
 export interface OwnerDTO {

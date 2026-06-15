@@ -5,6 +5,7 @@
 The document upload system supports uploading documents once and linking them to multiple entities (housings, campaigns, etc.) with a many-to-many relationship architecture.
 
 **Key Features:**
+
 - Upload documents independently via `POST /documents`
 - Link documents to multiple entities after upload
 - Partial success handling (some uploads can fail while others succeed)
@@ -37,6 +38,7 @@ The document upload system supports uploading documents once and linking them to
 3. **Future:** `documents_campaigns` - Same pattern for campaigns
 
 **Key Design Decisions:**
+
 - Documents are establishment-scoped (RLS enforcement point)
 - Soft delete on documents (`deleted_at` timestamp)
 - Associations use ON DELETE CASCADE for automatic cleanup
@@ -97,6 +99,7 @@ interface DocumentDTO {
 ```
 
 **Example:**
+
 ```bash
 curl -X POST http://localhost:3001/api/documents \
   -H "Authorization: Bearer $TOKEN" \
@@ -105,6 +108,7 @@ curl -X POST http://localhost:3001/api/documents \
 ```
 
 **Partial Success Response (207):**
+
 ```json
 [
   {
@@ -136,14 +140,15 @@ Update document filename (metadata only, not file contents).
 ```typescript
 // Request body
 {
-  filename: string;  // New filename
+  filename: string; // New filename
 }
 
 // Response (200 OK)
-DocumentDTO
+DocumentDTO;
 ```
 
 **Example:**
+
 ```bash
 curl -X PUT http://localhost:3001/api/documents/doc-123 \
   -H "Authorization: Bearer $TOKEN" \
@@ -162,6 +167,7 @@ Soft-delete document (sets `deleted_at`). Cascade removes all associations autom
 ```
 
 **Example:**
+
 ```bash
 curl -X DELETE http://localhost:3001/api/documents/doc-123 \
   -H "Authorization: Bearer $TOKEN"
@@ -190,10 +196,12 @@ interface DocumentHousingLink {
 ```
 
 **Validation:**
+
 - Housing must exist and belong to user's establishment
 - Documents must exist, not be deleted, and belong to user's establishment
 
 **Example:**
+
 ```bash
 curl -X POST http://localhost:3001/api/housing/house-456/documents \
   -H "Authorization: Bearer $TOKEN" \
@@ -212,6 +220,7 @@ Remove document-housing association only. Document remains in database and can b
 ```
 
 **Example:**
+
 ```bash
 curl -X DELETE http://localhost:3001/api/housing/house-456/documents/doc-123 \
   -H "Authorization: Bearer $TOKEN"
@@ -238,6 +247,7 @@ HousingDTO[]
 ```
 
 **Example:**
+
 ```bash
 curl -X PUT http://localhost:3001/api/housing \
   -H "Authorization: Bearer $TOKEN" \
@@ -273,22 +283,22 @@ HousingDocumentDTO[]
 // 1. Upload documents
 const uploadResponse = await fetch('/api/documents', {
   method: 'POST',
-  headers: { 'Authorization': `Bearer ${token}` },
-  body: formData  // Contains File objects
+  headers: { Authorization: `Bearer ${token}` },
+  body: formData // Contains File objects
 });
 
 const documents = await uploadResponse.json();
-const successfulDocs = documents.filter(d => !d.name);  // Filter out errors
+const successfulDocs = documents.filter((d) => !d.name); // Filter out errors
 
 // 2. Link to housing
 await fetch(`/api/housing/${housingId}/documents`, {
   method: 'POST',
   headers: {
-    'Authorization': `Bearer ${token}`,
+    Authorization: `Bearer ${token}`,
     'Content-Type': 'application/json'
   },
   body: JSON.stringify({
-    documentIds: successfulDocs.map(d => d.id)
+    documentIds: successfulDocs.map((d) => d.id)
   })
 });
 ```
@@ -303,15 +313,15 @@ const docs = await uploadDocuments(files);
 await fetch('/api/housing', {
   method: 'PUT',
   headers: {
-    'Authorization': `Bearer ${token}`,
+    Authorization: `Bearer ${token}`,
     'Content-Type': 'application/json'
   },
   body: JSON.stringify({
     filters: {
       establishmentIds: [establishmentId],
-      housingIds: housingIds  // Array of 50 IDs
+      housingIds: housingIds // Array of 50 IDs
     },
-    documentIds: docs.map(d => d.id)
+    documentIds: docs.map((d) => d.id)
   })
 });
 ```
@@ -342,22 +352,23 @@ await linkToCampaign(campaignId, [docId]);
 export async function validate(
   file: Express.Multer.File,
   options?: { accept?: string[]; maxSize?: number }
-): Promise<void>
+): Promise<void>;
 
 // Uploads file to S3
 export async function upload(
   file: Express.Multer.File,
   options: { key: string }
-): Promise<void>
+): Promise<void>;
 ```
 
 **Usage in controller:**
+
 ```typescript
 for (const file of files) {
   // Validate
   await validate(file, {
     accept: ['.pdf', '.jpg', '.png'],
-    maxSize: 10 * 1024 * 1024  // 10 MB
+    maxSize: 10 * 1024 * 1024 // 10 MB
   });
 
   // Upload to S3
@@ -373,6 +384,7 @@ for (const file of files) {
 ### Repository Layer
 
 **`documentRepository`** (documents table):
+
 ```typescript
 findOne(id, options?): Promise<DocumentApi | null>
 findMany(ids, options?): Promise<DocumentApi[]>
@@ -383,6 +395,7 @@ remove(id): Promise<void>  // Soft delete
 ```
 
 **`housingDocumentRepository`** (consolidated: junction table + housing queries):
+
 ```typescript
 // Junction table operations
 link(document: HousingDocumentApi): Promise<void>
@@ -407,6 +420,7 @@ remove(document: HousingDocumentApi): Promise<void>  // Soft delete
 ```
 
 **Key Features:**
+
 - `link()` and `linkMany()` are idempotent (use `ON CONFLICT IGNORE`)
 - `linkMany()` creates cartesian product: documents × housings
 - Filtering by establishment in all queries (security)
@@ -420,6 +434,7 @@ remove(document: HousingDocumentApi): Promise<void>  // Soft delete
 **Example:** `documents/est-123/2026/01/28/doc-456`
 
 **Benefits:**
+
 - Easy to organize by date
 - Easy to identify establishment ownership
 - Unique per document (UUID)
@@ -428,17 +443,20 @@ remove(document: HousingDocumentApi): Promise<void>  // Soft delete
 ### Security
 
 **Row-Level Security:**
+
 - All queries filter by `establishment_id`
 - Users can only access documents in their establishment
 - Enforced at repository layer
 
 **File Validation:**
+
 - File type detection from magic bytes (not extension)
 - MIME type verification
 - Virus scanning (ClamAV if enabled)
 - Size limits enforced
 
 **S3 URLs:**
+
 - Pre-signed URLs with 15-minute expiry
 - Generated on-demand per request
 - No permanent public access
@@ -485,6 +503,7 @@ server/src/
 ### Test Fixtures
 
 **Backend:**
+
 ```typescript
 import { genDocumentApi } from '~/models/DocumentApi';
 
@@ -497,6 +516,7 @@ const document = genDocumentApi({
 ```
 
 **Frontend:**
+
 ```typescript
 import { genDocument } from '~/test/fixtures/document';
 
@@ -510,6 +530,7 @@ const document = genDocument({
 **Location:** `server/src/test/sample.pdf`
 
 **Usage:**
+
 ```typescript
 import path from 'node:path';
 
@@ -566,6 +587,7 @@ const url = await getCachedPresignedUrl(s3, bucket, key);
 ### Adding Campaign Documents
 
 **1. Create junction table:**
+
 ```sql
 CREATE TABLE documents_campaigns (
   document_id UUID NOT NULL REFERENCES documents(id) ON DELETE CASCADE,
@@ -575,6 +597,7 @@ CREATE TABLE documents_campaigns (
 ```
 
 **2. Create repository:**
+
 ```typescript
 // server/src/repositories/documentCampaignRepository.ts
 export default {
@@ -587,6 +610,7 @@ export default {
 ```
 
 **3. Add API endpoints:**
+
 ```typescript
 POST /api/campaigns/:id/documents    // Link documents
 DELETE /api/campaigns/:id/documents/:documentId  // Unlink
@@ -612,11 +636,13 @@ GET /api/campaigns/:id/documents     // List
 ### Document Not Found (404)
 
 **Possible causes:**
+
 1. Document belongs to different establishment
 2. Document soft-deleted (`deleted_at IS NOT NULL`)
 3. Document ID invalid
 
 **Debug:**
+
 ```sql
 SELECT * FROM documents WHERE id = 'doc-123';
 -- Check establishment_id and deleted_at

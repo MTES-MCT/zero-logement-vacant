@@ -15,15 +15,19 @@
 The worker file and the wrapper both need this type. It is currently `interface` (unexported).
 
 **Files:**
+
 - Modify: `packages/pdf/src/generators/campaigns.tsx:12`
 
 **Step 1: Export the interface**
 
 Change line 12 from:
+
 ```ts
 interface GenerateCampaignOptions {
 ```
+
 to:
+
 ```ts
 export interface GenerateCampaignOptions {
 ```
@@ -33,6 +37,7 @@ export interface GenerateCampaignOptions {
 ```bash
 yarn nx typecheck pdf
 ```
+
 Expected: no errors.
 
 **Step 3: Commit**
@@ -49,6 +54,7 @@ git commit -m "feat(pdf): export GenerateCampaignOptions"
 This file runs inside the worker thread. It reads `workerData`, generates the PDF, collects the stream into a `Buffer`, and sends it back to the main thread as a transferable `ArrayBuffer` (zero-copy).
 
 **Files:**
+
 - Create: `packages/pdf/src/generators/campaign.worker.ts`
 
 **Step 1: Create the file**
@@ -79,6 +85,7 @@ parentPort!.postMessage(buffer, [buffer.buffer]);
 ```bash
 yarn nx typecheck pdf
 ```
+
 Expected: no errors.
 
 **Step 3: Commit**
@@ -95,6 +102,7 @@ git commit -m "feat(pdf): add campaign worker thread entry"
 The worker must be compiled to its own `.js` file so Node.js can spawn it at runtime. It also needs `node:worker_threads` and `node:url` added to externals (currently missing).
 
 **Files:**
+
 - Modify: `packages/pdf/vite.config.mts`
 
 **Step 1: Add the worker entry and missing externals**
@@ -133,11 +141,13 @@ build: {
 ```bash
 yarn nx build pdf
 ```
+
 Expected: `dist/lib/generators/campaign.worker.js` is present alongside `dist/lib/node.js`.
 
 ```bash
 ls packages/pdf/dist/lib/generators/
 ```
+
 Expected: `campaign.worker.js` (and `.d.ts`).
 
 **Step 3: Commit**
@@ -156,6 +166,7 @@ The wrapper spawns a worker, waits for the `Buffer` message, and returns a `Read
 > **Note on testing:** `worker_threads` require the compiled `.js` file to exist and a Node.js environment. The unit test below runs after `yarn nx build pdf` (Task 3). The vitest environment is overridden to `node` via a docblock.
 
 **Files:**
+
 - Create: `packages/pdf/src/generators/test/campaign-worker.test.ts`
 - Modify: `packages/pdf/src/generators/index.ts`
 - Modify: `packages/pdf/src/node.ts`
@@ -223,6 +234,7 @@ describe('generateCampaignPDFInWorker', () => {
 ```bash
 yarn nx build pdf && yarn nx test pdf -- campaign-worker
 ```
+
 Expected: FAIL — `generateCampaignPDFInWorker` is not exported yet.
 
 **Step 3: Implement the wrapper**
@@ -246,9 +258,7 @@ export function generateCampaignPDFInWorker(
 ): Promise<ReadableStream<Uint8Array>> {
   return new Promise((resolve, reject) => {
     const worker = new Worker(
-      fileURLToPath(
-        new URL('./campaign.worker.js', import.meta.url)
-      ),
+      fileURLToPath(new URL('./campaign.worker.js', import.meta.url)),
       { workerData: options }
     );
     worker.on('message', (buffer: Buffer) => {
@@ -266,6 +276,7 @@ export function generateCampaignPDFInWorker(
 ```bash
 yarn nx build pdf && yarn nx test pdf -- campaign-worker
 ```
+
 Expected: PASS.
 
 **Step 5: Commit**
@@ -284,15 +295,19 @@ git commit -m "feat(pdf): add generateCampaignPDFInWorker"
 Swap `generateCampaignPDF` for `generateCampaignPDFInWorker` in the controller.
 
 **Files:**
+
 - Modify: `server/src/controllers/exportController.ts:2,69`
 
 **Step 1: Update the import**
 
 Line 2, change:
+
 ```ts
 import { generateCampaignPDF } from '@zerologementvacant/pdf/node';
 ```
+
 to:
+
 ```ts
 import { generateCampaignPDFInWorker } from '@zerologementvacant/pdf/node';
 ```
@@ -300,10 +315,13 @@ import { generateCampaignPDFInWorker } from '@zerologementvacant/pdf/node';
 **Step 2: Update the call site**
 
 Line 69, change:
+
 ```ts
 const stream = await generateCampaignPDF({
 ```
+
 to:
+
 ```ts
 const stream = await generateCampaignPDFInWorker({
 ```
@@ -313,6 +331,7 @@ const stream = await generateCampaignPDFInWorker({
 ```bash
 yarn nx typecheck server
 ```
+
 Expected: no errors.
 
 **Step 4: Commit**
@@ -329,16 +348,19 @@ git commit -m "feat(server): use worker thread for PDF generation"
 The temporary event loop monitor added during diagnosis is no longer needed.
 
 **Files:**
+
 - Modify: `server/src/infra/server.ts`
 
 **Step 1: Remove the import and monitor block**
 
 Remove line:
+
 ```ts
 import { monitorEventLoopDelay } from 'node:perf_hooks';
 ```
 
 Remove the block:
+
 ```ts
 // TEMP: event loop lag monitor — remove after testing
 const histogram = monitorEventLoopDelay({ resolution: 20 });
@@ -346,7 +368,9 @@ histogram.enable();
 setInterval(() => {
   const lag = histogram.mean / 1e6;
   if (lag > 10) {
-    console.warn(`[EL LAG] mean=${lag.toFixed(1)}ms max=${(histogram.max / 1e6).toFixed(1)}ms`);
+    console.warn(
+      `[EL LAG] mean=${lag.toFixed(1)}ms max=${(histogram.max / 1e6).toFixed(1)}ms`
+    );
   }
   histogram.reset();
 }, 500).unref();
@@ -357,6 +381,7 @@ setInterval(() => {
 ```bash
 yarn nx typecheck server
 ```
+
 Expected: no errors.
 
 **Step 3: Commit**
@@ -396,6 +421,7 @@ time curl http://localhost:3001/ -H "Authorization: Bearer <token>"
 ```
 
 Expected:
+
 - Terminal 2 returns in <100ms even while PDF is generating
 - `/tmp/test.pdf` is a valid PDF (open it)
 
@@ -404,4 +430,5 @@ Expected:
 ```bash
 head -c 4 /tmp/test.pdf
 ```
+
 Expected: `%PDF`

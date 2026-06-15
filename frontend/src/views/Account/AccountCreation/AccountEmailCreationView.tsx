@@ -1,18 +1,18 @@
 import Button from '@codegouvfr/react-dsfr/Button';
-import Typography from '@mui/material/Typography';
-import Grid from '@mui/material/Grid';
 import Stepper from '@codegouvfr/react-dsfr/Stepper';
 import { yupResolver } from '@hookform/resolvers/yup';
+import Grid from '@mui/material/Grid';
+import Typography from '@mui/material/Typography';
 import { FormProvider, useForm } from 'react-hook-form';
 import { useNavigate } from 'react-router';
 import { toast } from 'react-toastify';
 import { type InferType, object } from 'yup';
 
-import { emailValidator } from '../../../hooks/useForm';
-import AppTextInputNext from '../../../components/_app/AppTextInput/AppTextInputNext';
 import image from '../../../assets/images/fifty-hours.svg';
-import Image from '../../../components/Image/Image';
 import AppLink from '../../../components/_app/AppLink/AppLink';
+import AppTextInputNext from '../../../components/_app/AppTextInput/AppTextInputNext';
+import Image from '../../../components/Image/Image';
+import { emailValidator } from '../../../hooks/useForm';
 import { useSendActivationEmailMutation } from '../../../services/signup-link.service';
 
 const schema = object({

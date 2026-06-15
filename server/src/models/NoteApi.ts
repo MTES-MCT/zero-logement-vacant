@@ -43,4 +43,3 @@ export function isUserModified<Note extends NoteApi>(note: Note): boolean {
   const isBeta = /@(zerologementvacant\.)?beta\.gouv\.fr$/;
   return !isBeta.test(note.creator.email);
 }
-

@@ -1,11 +1,13 @@
 import { OWNER_AGE_VALUES } from '@zerologementvacant/models';
 import type { OwnerAge } from '@zerologementvacant/models';
+
+import Select from '~/components/ui/Select/Select';
+import type { SelectProps } from '~/components/ui/Select/Select';
+
 import {
   OWNER_AGE_EMPTY_OPTION,
   OWNER_AGE_OPTIONS
 } from '../../models/HousingFilters';
-import Select from '~/components/ui/Select/Select';
-import type { SelectProps } from '~/components/ui/Select/Select';
 
 export type OwnerAgeSelectProps<Multiple extends boolean> = Pick<
   SelectProps<OwnerAge | null, Multiple>,

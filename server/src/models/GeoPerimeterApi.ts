@@ -1,6 +1,5 @@
-import type { MultiPolygon } from 'geojson';
-
 import { GeoPerimeterDTO } from '@zerologementvacant/models';
+import type { MultiPolygon } from 'geojson';
 
 export interface GeoPerimeterApi {
   id: string;

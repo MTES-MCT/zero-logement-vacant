@@ -1,5 +1,6 @@
-import userEvent from '@testing-library/user-event';
 import { render, screen } from '@testing-library/react';
+import userEvent from '@testing-library/user-event';
+
 import Collapse from './Collapse';
 
 describe('Collapse', () => {

@@ -1,7 +1,27 @@
-import { vi } from 'vitest';
-import request from 'supertest';
 import { constants } from 'http2';
+
+import { subHours } from 'date-fns';
 import randomstring from 'randomstring';
+import request from 'supertest';
+import { vi } from 'vitest';
+
+import { createServer } from '~/infra/server';
+import { ProspectApi } from '~/models/ProspectApi';
+import { SignupLinkApi } from '~/models/SignupLinkApi';
+import {
+  Establishments,
+  formatEstablishmentApi
+} from '~/repositories/establishmentRepository';
+import {
+  formatProspectApi,
+  Prospects
+} from '~/repositories/prospectRepository';
+import signupLinkRepository, {
+  formatSignupLinkApi,
+  SignupLinks
+} from '~/repositories/signupLinkRepository';
+import { toUserDBO, Users } from '~/repositories/userRepository';
+import ceremaService from '~/services/ceremaService';
 import {
   genEmail,
   genEstablishmentApi,
@@ -10,24 +30,6 @@ import {
   genSiren,
   genUserApi
 } from '~/test/testFixtures';
-import { createServer } from '~/infra/server';
-import signupLinkRepository, {
-  formatSignupLinkApi,
-  SignupLinks
-} from '~/repositories/signupLinkRepository';
-import { ProspectApi } from '~/models/ProspectApi';
-import ceremaService from '~/services/ceremaService';
-import { SignupLinkApi } from '~/models/SignupLinkApi';
-import { subHours } from 'date-fns';
-import {
-  Establishments,
-  formatEstablishmentApi
-} from '~/repositories/establishmentRepository';
-import { toUserDBO, Users } from '~/repositories/userRepository';
-import {
-  formatProspectApi,
-  Prospects
-} from '~/repositories/prospectRepository';
 
 describe('Prospect API', () => {
   let url: string;
@@ -217,7 +219,9 @@ describe('Prospect API', () => {
         establishment: expect.objectContaining({
           id: expect.any(String),
           name: expect.any(String),
-          siren: expect.stringMatching(new RegExp(`(${establishment.siren}|${anotherEstablishment.siren})`))
+          siren: expect.stringMatching(
+            new RegExp(`(${establishment.siren}|${anotherEstablishment.siren})`)
+          )
         }),
         hasAccount: true,
         hasCommitment: true, // Should be true because at least one account has commitment

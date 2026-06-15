@@ -1,4 +1,5 @@
 import type { ProspectDTO, SignupLinkDTO } from '@zerologementvacant/models';
+
 import { zlvApi } from './api.service';
 
 export const prospectAPI = zlvApi.injectEndpoints({

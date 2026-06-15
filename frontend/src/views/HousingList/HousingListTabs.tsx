@@ -3,6 +3,7 @@ import Tabs from '@codegouvfr/react-dsfr/Tabs';
 
 import { useStatusTabs } from '~/hooks/useStatusTabs';
 import { type HousingFilters } from '~/models/HousingFilters';
+
 import HousingListTab from './HousingListTab';
 
 export interface HousingListTabsProps {
@@ -45,6 +46,6 @@ function HousingListTabs({
       />
     </Tabs>
   );
-};
+}
 
 export default HousingListTabs;

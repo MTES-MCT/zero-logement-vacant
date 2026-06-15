@@ -1,4 +1,5 @@
 import { HousingStatus } from '@zerologementvacant/models';
+
 import { EventApi, HousingEventApi } from '~/models/EventApi';
 import {
   diffHousingOccupancyUpdated,

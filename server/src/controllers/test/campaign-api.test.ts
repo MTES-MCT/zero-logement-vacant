@@ -1,3 +1,5 @@
+import { constants } from 'http2';
+
 import { faker } from '@faker-js/faker/locale/fr';
 import { fc, test } from '@fast-check/vitest';
 import {
@@ -10,12 +12,10 @@ import {
   type UserDTO
 } from '@zerologementvacant/models';
 import { isDefined } from '@zerologementvacant/utils';
-import { constants } from 'http2';
 import randomstring from 'randomstring';
 import request from 'supertest';
 import { v4 as uuidv4 } from 'uuid';
 
-import createServerFactories from '~/test/factories';
 import { createServer } from '~/infra/server';
 import { CampaignApi } from '~/models/CampaignApi';
 import { CampaignEventApi } from '~/models/EventApi';
@@ -59,6 +59,7 @@ import {
 } from '~/repositories/housingRepository';
 import { formatOwnerApi, Owners } from '~/repositories/ownerRepository';
 import { toUserDBO, Users } from '~/repositories/userRepository';
+import createServerFactories from '~/test/factories';
 import { knexAdapter } from '~/test/knex-adapter';
 import {
   genCampaignApi,

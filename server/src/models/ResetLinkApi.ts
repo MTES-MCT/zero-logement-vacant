@@ -1,5 +1,6 @@
-import { isPast } from 'date-fns';
 import { ResetLinkDTO } from '@zerologementvacant/models';
+import { isPast } from 'date-fns';
+
 import config from '~/infra/config';
 
 export interface ResetLinkApi extends ResetLinkDTO {

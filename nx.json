@@ -15,7 +15,7 @@
     ],
     "sharedGlobals": [
       "{workspaceRoot}/tsconfig.base.json",
-      "{workspaceRoot}/eslint.config.mjs"
+      "{workspaceRoot}/.oxlintrc.json"
     ]
   },
   "generators": {
@@ -44,15 +44,6 @@
       ],
       "cache": true
     },
-    "lint": {
-      "inputs": [
-        "default",
-        "{workspaceRoot}/eslint.config.mjs",
-        "{workspaceRoot}/.eslintignore"
-      ],
-      "outputs": ["{projectRoot}/.eslintcache"],
-      "cache": true
-    },
     "test": {
       "inputs": ["default", "^production"],
       "outputs": ["{workspaceRoot}/coverage/{projectRoot}"],
@@ -70,12 +61,6 @@
     }
   },
   "plugins": [
-    {
-      "plugin": "@nx/eslint/plugin",
-      "options": {
-        "targetName": "lint"
-      }
-    },
     {
       "plugin": "@nx/cypress/plugin",
       "options": {

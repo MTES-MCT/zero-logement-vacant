@@ -19,6 +19,7 @@ import classNames from 'classnames';
 import { usePostHog } from 'posthog-js/react';
 
 import Tooltip from '~/components/ui/Tooltip/Tooltip';
+
 import { useIntercommunalities } from '../../hooks/useIntercommunalities';
 import { useToggle } from '../../hooks/useToggle';
 import { useUser } from '../../hooks/useUser';
@@ -40,7 +41,6 @@ import CadastralClassificationSelect from './CadastralClassificationSelect';
 import CampaignSelect from './CampaignSelect';
 import DataFileYearSelect from './DataFileYearSelect';
 import EnergyConsumptionSelect from './EnergyConsumptionSelect';
-import styles from './housing-list-filters.module.scss';
 import HousingCountSelect from './HousingCountSelect';
 import HousingKindSelect from './HousingKindSelect';
 import HousingStatusSelect from './HousingStatusSelect';
@@ -60,6 +60,8 @@ import RoomCountSelect from './RoomCountSelect';
 import SurfaceSelect from './SurfaceSelect';
 import VacancyRateSelect from './VacancyRateSelect';
 import VacancyYearSelect from './VacancyYearSelect';
+
+import styles from './housing-list-filters.module.scss';
 
 interface TitleWithIconProps {
   icon: FrIconClassName | RiIconClassName;

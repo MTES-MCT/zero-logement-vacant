@@ -1,4 +1,7 @@
-import { normalizeAddressQuery, createArrayAddressSearchCondition } from './addressNormalization';
+import {
+  normalizeAddressQuery,
+  createArrayAddressSearchCondition
+} from './addressNormalization';
 
 describe('addressNormalization', () => {
   describe('normalizeAddressQuery', () => {
@@ -49,17 +52,21 @@ describe('addressNormalization', () => {
     });
 
     it('should remove punctuation and normalize spaces', () => {
-      const variations = normalizeAddressQuery('avenue  de  la  République,  75011');
-      expect(variations.some(v => v.includes('avenue de la republique'))).toBe(true);
+      const variations = normalizeAddressQuery(
+        'avenue  de  la  République,  75011'
+      );
+      expect(
+        variations.some((v) => v.includes('avenue de la republique'))
+      ).toBe(true);
     });
   });
 
   describe('createArrayAddressSearchCondition', () => {
     it('should create SQL condition with parameters for single variation', () => {
       const result = createArrayAddressSearchCondition(
-        'housing.address', 
-        '%', 
-        'rue', 
+        'housing.address',
+        '%',
+        'rue',
         'test'
       );
 
@@ -71,9 +78,9 @@ describe('addressNormalization', () => {
 
     it('should create SQL condition with multiple variations', () => {
       const result = createArrayAddressSearchCondition(
-        'housing.address', 
-        '%', 
-        'avenue République', 
+        'housing.address',
+        '%',
+        'avenue République',
         'test'
       );
 
@@ -99,8 +106,8 @@ describe('Real world examples', () => {
 
     testCases.forEach(({ input, expectedIncludes }) => {
       const variations = normalizeAddressQuery(input);
-      expectedIncludes.forEach(expected => {
-        expect(variations.some(v => v.includes(expected))).toBe(true);
+      expectedIncludes.forEach((expected) => {
+        expect(variations.some((v) => v.includes(expected))).toBe(true);
       });
     });
   });
@@ -109,7 +116,7 @@ describe('Real world examples', () => {
     const searchTerms = [
       'avenue',
       'av',
-      'boulevard', 
+      'boulevard',
       'bd',
       'place',
       'pl',
@@ -117,7 +124,7 @@ describe('Real world examples', () => {
       'pass'
     ];
 
-    searchTerms.forEach(term => {
+    searchTerms.forEach((term) => {
       const variations = normalizeAddressQuery(term);
       expect(variations.length).toBeGreaterThan(1);
     });

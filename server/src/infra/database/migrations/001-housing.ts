@@ -29,13 +29,13 @@ export async function up(knex: Knex): Promise<void> {
     }),
     knex.schema.table('housing', function (table) {
       table.index(['insee_code'], 'housing_insee_code_idx');
-    }),
+    })
   ]);
 }
 
 export async function down(knex: Knex): Promise<void> {
   await Promise.all([
     knex.schema.dropTable('housing'),
-    knex.raw('DROP EXTENSION IF EXISTS "uuid-ossp";'),
+    knex.raw('DROP EXTENSION IF EXISTS "uuid-ossp";')
   ]);
 }

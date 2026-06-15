@@ -6,20 +6,21 @@ import {
   type SenderPayload
 } from '@zerologementvacant/models';
 import schemas from '@zerologementvacant/schemas';
+import { Tuple } from 'effect';
 import { FormProvider, useForm, type SubmitHandler } from 'react-hook-form';
 import { mixed, tuple, type InferType } from 'yup';
 
-import { Tuple } from 'effect';
 import DraftBody from '~/components/Draft/DraftBody';
 import DraftRedaction from '~/components/Draft/DraftRedaction';
-import DraftSenderLogo from '~/components/Draft/DraftSenderLogo';
 import DraftSender from '~/components/Draft/DraftSender';
+import DraftSenderLogo from '~/components/Draft/DraftSenderLogo';
 import DraftSignature from '~/components/Draft/DraftSignature';
 import PreviewButton from '~/components/Draft/PreviewButton';
 import SaveButton from '~/components/SaveButton/SaveButton';
 import type { Campaign } from '~/models/Campaign';
 import type { Draft } from '~/models/Draft';
 import { useUpdateDraftNextMutation } from '~/services/draft.service';
+
 import DraftDownloaderButton from './DraftDownloaderButton';
 
 // Override logo and signatory’s document field to use DocumentDTO

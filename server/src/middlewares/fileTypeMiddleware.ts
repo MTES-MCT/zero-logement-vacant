@@ -1,7 +1,8 @@
 import { Request, Response, NextFunction, RequestHandler } from 'express';
 import { fileTypeFromBuffer } from 'file-type';
-import { logger } from '~/infra/logger';
+
 import BadRequestError from '~/errors/badRequestError';
+import { logger } from '~/infra/logger';
 
 /**
  * Allowed file types with their MIME types and magic bytes signatures
@@ -87,8 +88,8 @@ export const fileTypeMiddleware: RequestHandler = async (
     });
 
     // Check if detected type is allowed
-    const allowedType = Object.entries(ALLOWED_FILE_TYPES).find(
-      ([, config]) => config.mimeTypes.includes(detectedType.mime)
+    const allowedType = Object.entries(ALLOWED_FILE_TYPES).find(([, config]) =>
+      config.mimeTypes.includes(detectedType.mime)
     );
 
     if (!allowedType) {
@@ -111,8 +112,7 @@ export const fileTypeMiddleware: RequestHandler = async (
         userId,
         action: 'rejected'
       });
-      throw new BadRequestError(
-      );
+      throw new BadRequestError();
     }
 
     logger.info('File type validation successful', {

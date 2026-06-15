@@ -1,11 +1,13 @@
 import { CADASTRAL_CLASSIFICATION_VALUES } from '@zerologementvacant/models';
+import type { CadastralClassification } from '@zerologementvacant/models';
+
+import Select from '~/components/ui/Select/Select';
+import type { SelectProps } from '~/components/ui/Select/Select';
+
 import {
   CADASTRAL_CLASSIFICATION_EMPTY_OPTION,
   CADASTRAL_CLASSIFICATION_OPTIONS
 } from '../../models/HousingFilters';
-import Select from '~/components/ui/Select/Select';
-import type { CadastralClassification } from '@zerologementvacant/models';
-import type { SelectProps } from '~/components/ui/Select/Select';
 
 export type CadastralClassificationSelectProps<Multiple extends boolean> = Pick<
   SelectProps<CadastralClassification | null, Multiple>,

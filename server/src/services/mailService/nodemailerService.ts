@@ -2,6 +2,7 @@ import nodemailer from 'nodemailer';
 
 import config from '~/infra/config';
 import { logger } from '~/infra/logger';
+
 import { MailEvent, MailService, SendOptions } from './mailService';
 
 class NodemailerService implements MailService {

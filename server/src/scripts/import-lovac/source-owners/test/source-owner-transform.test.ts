@@ -1,4 +1,5 @@
 import { describe, expect, it } from 'vitest';
+
 import { formatOwnerApi } from '~/repositories/ownerRepository';
 import { genSourceOwner } from '~/scripts/import-lovac/infra/fixtures';
 import { createNoopReporter } from '~/scripts/import-lovac/infra/reporters/noop-reporter';
@@ -31,7 +32,10 @@ describe('createOwnerTransform', () => {
 
   it('should produce an update change when the owner exists', () => {
     const source = genSourceOwner();
-    const existing = formatOwnerApi({ ...genOwnerApi(), idpersonne: source.idpersonne });
+    const existing = formatOwnerApi({
+      ...genOwnerApi(),
+      idpersonne: source.idpersonne
+    });
     const transform = createOwnerTransform({ reporter, abortEarly: false });
 
     const change = transform({ source, existing });
@@ -49,9 +53,12 @@ describe('createOwnerTransform', () => {
 
   it('should preserve existing email and phone on update', () => {
     const source = genSourceOwner();
-    const existing = formatOwnerApi(
-      { ...genOwnerApi(), idpersonne: source.idpersonne, email: 'keep@example.com', phone: '0600000000' }
-    );
+    const existing = formatOwnerApi({
+      ...genOwnerApi(),
+      idpersonne: source.idpersonne,
+      email: 'keep@example.com',
+      phone: '0600000000'
+    });
     const transform = createOwnerTransform({ reporter, abortEarly: false });
 
     const change = transform({ source, existing });
@@ -63,9 +70,11 @@ describe('createOwnerTransform', () => {
   it('should prefer source siren over existing on update', () => {
     const source = genSourceOwner();
     source.siren = '123456789';
-    const existing = formatOwnerApi(
-      { ...genOwnerApi(), idpersonne: source.idpersonne, siren: '999999999' }
-    );
+    const existing = formatOwnerApi({
+      ...genOwnerApi(),
+      idpersonne: source.idpersonne,
+      siren: '999999999'
+    });
     const transform = createOwnerTransform({ reporter, abortEarly: false });
 
     const change = transform({ source, existing });
@@ -75,7 +84,11 @@ describe('createOwnerTransform', () => {
 
   it('should stamp dataSource with the provided year on create', () => {
     const source = genSourceOwner();
-    const transform = createOwnerTransform({ reporter, abortEarly: false, year: 'lovac-2026' });
+    const transform = createOwnerTransform({
+      reporter,
+      abortEarly: false,
+      year: 'lovac-2026'
+    });
 
     const change = transform({ source, existing: null });
 

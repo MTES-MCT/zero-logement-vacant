@@ -3,8 +3,8 @@ import Alert from '@codegouvfr/react-dsfr/Alert';
 import Box from '@mui/material/Box';
 import Skeleton from '@mui/material/Skeleton';
 import Stack from '@mui/material/Stack';
-import Typography from '@mui/material/Typography';
 import { styled } from '@mui/material/styles';
+import Typography from '@mui/material/Typography';
 import type { DashboardCard, Resource } from '@zerologementvacant/models';
 import { match } from 'ts-pattern';
 

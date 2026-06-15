@@ -29,18 +29,18 @@ export CEREMA_BASE_URL="https://portaildf.cerema.fr/api"
 
 ### Command Line Options
 
-| Option | Short | Default | Description |
-|--------|-------|---------|-------------|
-| `--token` | `-t` | *Required* | Bearer token for API authentication |
-| `--base-url` | `-u` | API default | Base API URL |
-| `--structures-output` | | `structures.jsonl` | Structures output file path |
-| `--users-output` | | `users.jsonl` | Users output file path |
-| `--structures-only` | | `False` | Only scrape structures |
-| `--users-only` | | `False` | Only scrape users |
-| `--delay` | | `0.5` | Delay between requests (seconds) |
-| `--max-retries` | | `3` | Maximum retries per page |
-| `--verbose` | `-v` | `False` | Enable verbose logging |
-| `--reset-state` | | `False` | Clear state files and restart |
+| Option                | Short | Default            | Description                         |
+| --------------------- | ----- | ------------------ | ----------------------------------- |
+| `--token`             | `-t`  | _Required_         | Bearer token for API authentication |
+| `--base-url`          | `-u`  | API default        | Base API URL                        |
+| `--structures-output` |       | `structures.jsonl` | Structures output file path         |
+| `--users-output`      |       | `users.jsonl`      | Users output file path              |
+| `--structures-only`   |       | `False`            | Only scrape structures              |
+| `--users-only`        |       | `False`            | Only scrape users                   |
+| `--delay`             |       | `0.5`              | Delay between requests (seconds)    |
+| `--max-retries`       |       | `3`                | Maximum retries per page            |
+| `--verbose`           | `-v`  | `False`            | Enable verbose logging              |
+| `--reset-state`       |       | `False`            | Clear state files and restart       |
 
 ## Usage
 
@@ -88,35 +88,55 @@ The script generates **JSON Lines** files where each line contains a record.
 ### Structures Output (`structures.jsonl`)
 
 ```json
-{"id_structure": 1, "raison_sociale": "DEPARTEMENT DE LA GIRONDE", "siret": "22330001300016", "naf": "84.11Z", "formjur": "7220", "mandataire": false, "niveau_acces": "df_non_ano", "acces_df_ano": "2027-12-04T00:00:00+01:00", "acces_df_non_ano": "2027-12-04T00:00:00+01:00", "acces_lovac": null}
+{
+  "id_structure": 1,
+  "raison_sociale": "DEPARTEMENT DE LA GIRONDE",
+  "siret": "22330001300016",
+  "naf": "84.11Z",
+  "formjur": "7220",
+  "mandataire": false,
+  "niveau_acces": "df_non_ano",
+  "acces_df_ano": "2027-12-04T00:00:00+01:00",
+  "acces_df_non_ano": "2027-12-04T00:00:00+01:00",
+  "acces_lovac": null
+}
 ```
 
 #### Structure Fields
 
-| Field | Description |
-|-------|-------------|
-| `id_structure` | Unique structure identifier |
-| `raison_sociale` | Company/organization name |
-| `siret` | French business registration number |
-| `niveau_acces` | Access level (df_ano, df_non_ano, etc.) |
-| `acces_lovac` | LOVAC access date (null if no access) |
+| Field            | Description                             |
+| ---------------- | --------------------------------------- |
+| `id_structure`   | Unique structure identifier             |
+| `raison_sociale` | Company/organization name               |
+| `siret`          | French business registration number     |
+| `niveau_acces`   | Access level (df_ano, df_non_ano, etc.) |
+| `acces_lovac`    | LOVAC access date (null if no access)   |
 
 ### Users Output (`users.jsonl`)
 
 ```json
-{"id_utilisateur": 1, "email": "user@example.com", "nom": "Dupont", "prenom": "Jean", "role": "admin", "is_active": true, "structure_id": 1, "date_creation": "2024-01-15T10:30:00+01:00"}
+{
+  "id_utilisateur": 1,
+  "email": "user@example.com",
+  "nom": "Dupont",
+  "prenom": "Jean",
+  "role": "admin",
+  "is_active": true,
+  "structure_id": 1,
+  "date_creation": "2024-01-15T10:30:00+01:00"
+}
 ```
 
 #### User Fields
 
-| Field | Description |
-|-------|-------------|
-| `id_utilisateur` | Unique user identifier |
-| `email` | User email address |
-| `nom` | Last name |
-| `prenom` | First name |
-| `role` | User role (admin, user, etc.) |
-| `is_active` | User status |
+| Field            | Description                   |
+| ---------------- | ----------------------------- |
+| `id_utilisateur` | Unique user identifier        |
+| `email`          | User email address            |
+| `nom`            | Last name                     |
+| `prenom`         | First name                    |
+| `role`           | User role (admin, user, etc.) |
+| `is_active`      | User status                   |
 
 ## Features
 
@@ -144,6 +164,7 @@ python cerema-scraper.py
 The script provides statistics at completion for both data types:
 
 ### Structure Analysis
+
 ```
 === STRUCTURE ANALYSIS ===
 Total structures: 15,847
@@ -156,6 +177,7 @@ Without LOVAC access: 12,426
 ```
 
 ### User Analysis
+
 ```
 === USER ANALYSIS ===
 Total users: 2,456
@@ -172,13 +194,13 @@ Inactive users: 155
 
 ### Generated Files
 
-| File | Description |
-|------|-------------|
-| `structures.jsonl` | Structure data |
-| `users.jsonl` | User data |
+| File                        | Description                |
+| --------------------------- | -------------------------- |
+| `structures.jsonl`          | Structure data             |
+| `users.jsonl`               | User data                  |
 | `api_structures_state.json` | Structure processing state |
-| `api_users_state.json` | User processing state |
-| `api_scraper.log` | Combined execution logs |
+| `api_users_state.json`      | User processing state      |
+| `api_scraper.log`           | Combined execution logs    |
 
 ### State Files
 
@@ -189,18 +211,21 @@ State files are automatically managed and removed upon completion. Each data typ
 ### Common Issues
 
 **Authentication Error:**
+
 ```bash
 # Ensure token is set
 export CEREMA_BEARER_TOKEN="your_token_here"
 ```
 
 **Network Issues:**
+
 ```bash
 # Increase delays and retries
 python cerema-scraper.py --delay 1.0 --max-retries 5
 ```
 
 **Debug Mode:**
+
 ```bash
 # Enable verbose logging
 python cerema-scraper.py --verbose
@@ -210,6 +235,7 @@ tail -f api_scraper.log
 ```
 
 **Resume Issues:**
+
 ```bash
 # Clear state and restart
 python cerema-scraper.py --reset-state
@@ -222,6 +248,7 @@ python cerema-scraper.py --users-only       # Only resume users
 ### Data Analysis
 
 #### Structure Analysis
+
 ```bash
 # Count structures by access level
 cat structures.jsonl | jq -r '.niveau_acces' | sort | uniq -c
@@ -234,6 +261,7 @@ cat structures.jsonl | jq -r '[.id_structure, .raison_sociale, .siret] | @csv' >
 ```
 
 #### User Analysis
+
 ```bash
 # Count users by role
 cat users.jsonl | jq -r '.role' | sort | uniq -c
@@ -246,6 +274,7 @@ cat users.jsonl | jq -r '[.id_utilisateur, .email, .nom, .prenom, .role] | @csv'
 ```
 
 #### Combined Analysis
+
 ```bash
 # Count total records
 echo "Structures: $(wc -l < structures.jsonl)"

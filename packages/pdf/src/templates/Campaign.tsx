@@ -1,8 +1,8 @@
-import { Document, Font, Image, Page, StyleSheet } from '@react-pdf/renderer';
 import MarianneBold from '@codegouvfr/react-dsfr/dsfr/fonts/Marianne-Bold.woff';
 import MarianneBoldItalic from '@codegouvfr/react-dsfr/dsfr/fonts/Marianne-Bold_Italic.woff';
 import MarianneRegular from '@codegouvfr/react-dsfr/dsfr/fonts/Marianne-Regular.woff';
 import MarianneRegularItalic from '@codegouvfr/react-dsfr/dsfr/fonts/Marianne-Regular_Italic.woff';
+import { Document, Font, Image, Page, StyleSheet } from '@react-pdf/renderer';
 import {
   replaceVariables,
   type CampaignDTO,

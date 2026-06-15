@@ -81,15 +81,6 @@
       }
     },
 
-    "lint": {
-      "executor": "nx:run-commands",
-      "outputs": ["{projectRoot}/.eslintcache"],
-      "options": {
-        "cwd": "server",
-        "command": "eslint . --cache"
-      }
-    },
-
     "start": {
       "executor": "nx:run-commands",
       "dependsOn": ["build"],

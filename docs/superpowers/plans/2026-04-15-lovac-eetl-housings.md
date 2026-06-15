@@ -40,6 +40,7 @@ source-housing-owners/
 ## Task 1: Source housing enricher — tests
 
 **Files:**
+
 - Create: `server/src/scripts/import-lovac/source-housings/test/source-housing-enricher.test.ts`
 
 - [ ] **Step 1.1: Write the failing test file**
@@ -150,7 +151,9 @@ describe('createSourceHousingEnricher', () => {
         ReadableStream.from([source]).pipeThrough(createSourceHousingEnricher())
       );
       expect(result.existing.events).toHaveLength(1);
-      expect(result.existing.events[0]).toMatchObject({ id: occupancyEvent.id });
+      expect(result.existing.events[0]).toMatchObject({
+        id: occupancyEvent.id
+      });
     });
 
     it('should exclude events of other types', async () => {
@@ -225,6 +228,7 @@ Expected: `Cannot find module '../source-housing-enricher'`
 ## Task 2: Source housing enricher — implementation
 
 **Files:**
+
 - Create: `server/src/scripts/import-lovac/source-housings/source-housing-enricher.ts`
 
 - [ ] **Step 2.1: Implement the enricher**
@@ -300,9 +304,7 @@ export function createSourceHousingEnricher(): TransformStream<
       values
     );
 
-    const byKey = new Map(
-      rows.map((r) => [`${r.geo_code}:${r.local_id}`, r])
-    );
+    const byKey = new Map(rows.map((r) => [`${r.geo_code}:${r.local_id}`, r]));
 
     for (const source of chunk) {
       const row = byKey.get(`${source.geo_code}:${source.local_id}`);
@@ -360,6 +362,7 @@ git commit -m "feat(server): add source-housing enricher with batch json_agg que
 ## Task 3: Source housing transform — tests
 
 **Files:**
+
 - Create: `server/src/scripts/import-lovac/source-housings/test/source-housing-transform.test.ts`
 
 - [ ] **Step 3.1: Write the failing test file**
@@ -367,10 +370,7 @@ git commit -m "feat(server): add source-housing enricher with batch json_agg que
 ```typescript
 // server/src/scripts/import-lovac/source-housings/test/source-housing-transform.test.ts
 import { faker } from '@faker-js/faker/locale/fr';
-import {
-  HousingStatus,
-  Occupancy
-} from '@zerologementvacant/models';
+import { HousingStatus, Occupancy } from '@zerologementvacant/models';
 import { v5 as uuidv5 } from 'uuid';
 import {
   formatHousingRecordApi,
@@ -438,8 +438,10 @@ describe('createHousingTransform', () => {
         existing: { housing: null, events: [], notes: [] }
       };
       const [c1, c2] = [transform(enriched), transform(enriched)];
-      const id1 = (c1.find((c): c is HousingChange => c.type === 'housing')!).value.id;
-      const id2 = (c2.find((c): c is HousingChange => c.type === 'housing')!).value.id;
+      const id1 = c1.find((c): c is HousingChange => c.type === 'housing')!
+        .value.id;
+      const id2 = c2.find((c): c is HousingChange => c.type === 'housing')!
+        .value.id;
       expect(id1).toBe(id2);
       expect(id1).toBe(
         uuidv5(source.local_id + ':' + source.geo_code, LOVAC_NAMESPACE)
@@ -592,6 +594,7 @@ Expected: `Cannot find module '../source-housing-transform'`
 ## Task 4: Source housing transform — implementation
 
 **Files:**
+
 - Create: `server/src/scripts/import-lovac/source-housings/source-housing-transform.ts`
 - Delete: `server/src/scripts/import-lovac/source-housings/source-housing-processor.ts`
 - Delete: `server/src/scripts/import-lovac/source-housings/test/source-housing-processor.test.ts`
@@ -615,9 +618,7 @@ import { AddressApi } from '~/models/AddressApi';
 import { HousingEventApi } from '~/models/EventApi';
 import { normalizeDataFileYears } from '~/models/HousingApi';
 import { EventRecordDBO } from '~/repositories/eventRepository';
-import {
-  HousingRecordDBO
-} from '~/repositories/housingRepository';
+import { HousingRecordDBO } from '~/repositories/housingRepository';
 import { NoteRecordDBO } from '~/repositories/noteRepository';
 import {
   LOVAC_NAMESPACE,
@@ -627,7 +628,10 @@ import {
 import { EnrichedSourceHousing } from './source-housing-enricher';
 import { SourceHousing } from './source-housing';
 
-type READ_ONLY_FIELDS = 'last_mutation_type' | 'plot_area' | 'occupancy_history';
+type READ_ONLY_FIELDS =
+  | 'last_mutation_type'
+  | 'plot_area'
+  | 'occupancy_history';
 export type HousingRecordInsert = Omit<HousingRecordDBO, READ_ONLY_FIELDS>;
 
 interface Change<Value, Type extends string> {
@@ -658,7 +662,10 @@ export function createHousingTransform(opts: TransformOptions) {
     const { source, existing } = enriched;
     try {
       const changes = existing.housing
-        ? toUpdate(source, existing.housing, existing.events, existing.notes, { adminUserId, year })
+        ? toUpdate(source, existing.housing, existing.events, existing.notes, {
+            adminUserId,
+            year
+          })
         : toCreate(source, year);
       reporter.passed(source);
       return changes;
@@ -755,10 +762,7 @@ function toUpdate(
   const patch = applyChanges(existing, events, notes, adminUserId);
   const eventChanges: HousingEventChange[] = [];
 
-  if (
-    patch.occupancy !== undefined &&
-    existing.occupancy !== patch.occupancy
-  ) {
+  if (patch.occupancy !== undefined && existing.occupancy !== patch.occupancy) {
     eventChanges.push({
       type: 'event',
       kind: 'create',
@@ -778,10 +782,7 @@ function toUpdate(
     });
   }
 
-  if (
-    patch.status !== undefined &&
-    existing.status !== patch.status
-  ) {
+  if (patch.status !== undefined && existing.status !== patch.status) {
     eventChanges.push({
       type: 'event',
       kind: 'create',
@@ -836,10 +837,7 @@ function toUpdate(
     last_transaction_value: source.last_transaction_value
   };
 
-  return [
-    { type: 'housing', kind: 'update', value: housing },
-    ...eventChanges
-  ];
+  return [{ type: 'housing', kind: 'update', value: housing }, ...eventChanges];
 }
 
 function applyChanges(
@@ -850,12 +848,8 @@ function applyChanges(
 ): Partial<HousingRecordInsert> {
   const rules: ReadonlyArray<Predicate<void>> = [
     () => housing.occupancy !== Occupancy.VACANT,
-    () =>
-      events.length === 0 ||
-      !hasUserEvents(events, adminUserId),
-    () =>
-      notes.length === 0 ||
-      !hasUserNotes(notes, adminUserId)
+    () => events.length === 0 || !hasUserEvents(events, adminUserId),
+    () => notes.length === 0 || !hasUserNotes(notes, adminUserId)
   ];
 
   if (rules.every((rule) => rule())) {
@@ -918,6 +912,7 @@ git commit -m "feat(server): add source-housing transform, delete processor"
 ## Task 5: Wire source housing command
 
 **Files:**
+
 - Modify: `server/src/scripts/import-lovac/source-housings/source-housing-command.ts`
 
 Replace the `createSourceHousingProcessor` import and usage with `createSourceHousingEnricher` + `createHousingTransform`. Add `writeReport`. Remove `formatHousingRecordApi` from the update pipeline step.
@@ -995,9 +990,9 @@ In the housing **creation** sink, the `insertHousings` function already calls `f
 
 ```typescript
 export async function insertHousings(
-  housings: ReadonlyArray<HousingRecordInsert>  // was ReadonlyArray<HousingApi>
+  housings: ReadonlyArray<HousingRecordInsert> // was ReadonlyArray<HousingApi>
 ): Promise<void> {
-  await Housing().insert(housings);             // no more map(formatHousingRecordApi)
+  await Housing().insert(housings); // no more map(formatHousingRecordApi)
 }
 ```
 
@@ -1038,6 +1033,7 @@ async function writeReport(
 ```
 
 Update `finally`:
+
 ```typescript
     } finally {
       logger.info('Enabling building triggers...');
@@ -1073,6 +1069,7 @@ git commit -m "feat(server): wire EETL pipeline and writeReport in source-housin
 ## Task 6: Source housing-owner enricher — tests
 
 **Files:**
+
 - Create: `server/src/scripts/import-lovac/source-housing-owners/test/source-housing-owner-enricher.test.ts`
 
 - [ ] **Step 6.1: Write the failing test file**
@@ -1081,7 +1078,10 @@ git commit -m "feat(server): wire EETL pipeline and writeReport in source-housin
 // server/src/scripts/import-lovac/source-housing-owners/test/source-housing-owner-enricher.test.ts
 import { toArray } from '@zerologementvacant/utils/node';
 import { faker } from '@faker-js/faker/locale/fr';
-import { ACTIVE_OWNER_RANKS, ActiveOwnerRank } from '@zerologementvacant/models';
+import {
+  ACTIVE_OWNER_RANKS,
+  ActiveOwnerRank
+} from '@zerologementvacant/models';
 import { ReadableStream } from 'node:stream/web';
 import {
   formatHousingOwnerApi,
@@ -1092,10 +1092,7 @@ import {
   formatHousingRecordApi,
   Housing
 } from '~/repositories/housingRepository';
-import {
-  formatOwnerApi,
-  Owners
-} from '~/repositories/ownerRepository';
+import { formatOwnerApi, Owners } from '~/repositories/ownerRepository';
 import { createSourceHousingOwnerEnricher } from '../source-housing-owner-enricher';
 import {
   genHousingApi,
@@ -1137,10 +1134,9 @@ describe('createSourceHousingOwnerEnricher', () => {
   }
 
   it('should set existing.housing to null when housing is not found', async () => {
-    const group = makeGroup(
-      { geo_code: '99000', local_id: 'UNKNOWN' },
-      [owner.idpersonne as string]
-    );
+    const group = makeGroup({ geo_code: '99000', local_id: 'UNKNOWN' }, [
+      owner.idpersonne as string
+    ]);
     const [result] = await toArray(
       ReadableStream.from([group]).pipeThrough(
         createSourceHousingOwnerEnricher()
@@ -1171,8 +1167,14 @@ describe('createSourceHousingOwnerEnricher', () => {
 
   describe('with existing housing owners', () => {
     const housingWithOwners = genHousingApi();
-    const existingOwner = { ...genOwnerApi(), idpersonne: genValidIdpersonne() };
-    const newSourceOwner = { ...genOwnerApi(), idpersonne: genValidIdpersonne() };
+    const existingOwner = {
+      ...genOwnerApi(),
+      idpersonne: genValidIdpersonne()
+    };
+    const newSourceOwner = {
+      ...genOwnerApi(),
+      idpersonne: genValidIdpersonne()
+    };
     let existingHousingOwner: HousingOwnerDBO;
 
     beforeAll(async () => {
@@ -1190,8 +1192,14 @@ describe('createSourceHousingOwnerEnricher', () => {
 
     it('should populate existingHousingOwners', async () => {
       const group = makeGroup(
-        { geo_code: housingWithOwners.geoCode, local_id: housingWithOwners.localId },
-        [existingOwner.idpersonne as string, newSourceOwner.idpersonne as string]
+        {
+          geo_code: housingWithOwners.geoCode,
+          local_id: housingWithOwners.localId
+        },
+        [
+          existingOwner.idpersonne as string,
+          newSourceOwner.idpersonne as string
+        ]
       );
       const [result] = await toArray(
         ReadableStream.from([group]).pipeThrough(
@@ -1206,7 +1214,10 @@ describe('createSourceHousingOwnerEnricher', () => {
 
     it('should fetch owners for both source idpersonnes and existing housing owners', async () => {
       const group = makeGroup(
-        { geo_code: housingWithOwners.geoCode, local_id: housingWithOwners.localId },
+        {
+          geo_code: housingWithOwners.geoCode,
+          local_id: housingWithOwners.localId
+        },
         [newSourceOwner.idpersonne as string] // only the NEW owner in source
       );
       const [result] = await toArray(
@@ -1236,6 +1247,7 @@ Expected: `Cannot find module '../source-housing-owner-enricher'`
 ## Task 7: Source housing-owner enricher — implementation
 
 **Files:**
+
 - Create: `server/src/scripts/import-lovac/source-housing-owners/source-housing-owner-enricher.ts`
 
 - [ ] **Step 7.1: Implement the enricher**
@@ -1273,31 +1285,32 @@ export function createSourceHousingOwnerEnricher(): TransformStream<
       const sourceIdpersonnes = group.map((s) => s.idpersonne);
 
       // Query 1: housing + existing housing owners (single JOIN)
-      const rows: Array<HousingRecordDBO & Partial<HousingOwnerDBO>> =
-        await db('fast_housing as h')
-          .select([
-            'h.*',
-            'ho.owner_id',
-            'ho.rank',
-            'ho.start_date',
-            'ho.end_date',
-            'ho.origin',
-            'ho.idprocpte',
-            'ho.idprodroit',
-            'ho.locprop_source',
-            'ho.locprop_relative_ban',
-            'ho.locprop_distance_ban',
-            'ho.property_right'
-          ])
-          .leftJoin('housing_owners as ho', function (this: any) {
-            this.on('ho.housing_geo_code', '=', 'h.geo_code').andOn(
-              'ho.housing_id',
-              '=',
-              'h.id'
-            );
-          })
-          .where('h.geo_code', geoCode)
-          .andWhere('h.local_id', localId);
+      const rows: Array<HousingRecordDBO & Partial<HousingOwnerDBO>> = await db(
+        'fast_housing as h'
+      )
+        .select([
+          'h.*',
+          'ho.owner_id',
+          'ho.rank',
+          'ho.start_date',
+          'ho.end_date',
+          'ho.origin',
+          'ho.idprocpte',
+          'ho.idprodroit',
+          'ho.locprop_source',
+          'ho.locprop_relative_ban',
+          'ho.locprop_distance_ban',
+          'ho.property_right'
+        ])
+        .leftJoin('housing_owners as ho', function (this: any) {
+          this.on('ho.housing_geo_code', '=', 'h.geo_code').andOn(
+            'ho.housing_id',
+            '=',
+            'h.id'
+          );
+        })
+        .where('h.geo_code', geoCode)
+        .andWhere('h.local_id', localId);
 
       if (rows.length === 0) {
         controller.enqueue({
@@ -1382,6 +1395,7 @@ git commit -m "feat(server): add source-housing-owner enricher with 2-query JOIN
 ## Task 8: Source housing-owner transform — tests
 
 **Files:**
+
 - Create: `server/src/scripts/import-lovac/source-housing-owners/test/source-housing-owner-transform.test.ts`
 
 - [ ] **Step 8.1: Write the failing test file**
@@ -1471,7 +1485,12 @@ describe('createHousingOwnerTransform', () => {
       const housing = formatHousingRecordApi(genHousingApi());
       const spy = vi.spyOn(reporter, 'failed');
       const source: SourceHousingOwner[] = [
-        makeSourceOwner(housing.geo_code, housing.local_id, genValidIdpersonne(), 1)
+        makeSourceOwner(
+          housing.geo_code,
+          housing.local_id,
+          genValidIdpersonne(),
+          1
+        )
       ];
       const enriched: EnrichedSourceHousingOwners = {
         source,
@@ -1485,7 +1504,10 @@ describe('createHousingOwnerTransform', () => {
 
   describe('new housing owners (no existing)', () => {
     const housing = formatHousingRecordApi(genHousingApi());
-    const owner = formatOwnerApi({ ...genOwnerApi(), idpersonne: genValidIdpersonne() });
+    const owner = formatOwnerApi({
+      ...genOwnerApi(),
+      idpersonne: genValidIdpersonne()
+    });
     const source = [
       makeSourceOwner(housing.geo_code, housing.local_id, owner.idpersonne!, 1)
     ];
@@ -1516,8 +1538,14 @@ describe('createHousingOwnerTransform', () => {
 
   describe('replacing existing housing owners', () => {
     const housing = formatHousingRecordApi(genHousingApi());
-    const existingOwner = formatOwnerApi({ ...genOwnerApi(), idpersonne: genValidIdpersonne() });
-    const newOwner = formatOwnerApi({ ...genOwnerApi(), idpersonne: genValidIdpersonne() });
+    const existingOwner = formatOwnerApi({
+      ...genOwnerApi(),
+      idpersonne: genValidIdpersonne()
+    });
+    const newOwner = formatOwnerApi({
+      ...genOwnerApi(),
+      idpersonne: genValidIdpersonne()
+    });
     const existingHousingOwner: HousingOwnerDBO = formatHousingOwnerApi({
       ...genHousingOwnerApi(genHousingApi(), genOwnerApi()),
       ownerId: existingOwner.id,
@@ -1526,7 +1554,12 @@ describe('createHousingOwnerTransform', () => {
       rank: 1
     });
     const source = [
-      makeSourceOwner(housing.geo_code, housing.local_id, newOwner.idpersonne!, 1)
+      makeSourceOwner(
+        housing.geo_code,
+        housing.local_id,
+        newOwner.idpersonne!,
+        1
+      )
     ];
     const enriched: EnrichedSourceHousingOwners = {
       source,
@@ -1586,6 +1619,7 @@ Expected: `Cannot find module '../source-housing-owner-transform'`
 ## Task 9: Source housing-owner transform — implementation
 
 **Files:**
+
 - Create: `server/src/scripts/import-lovac/source-housing-owners/source-housing-owner-transform.ts`
 - Delete: `server/src/scripts/import-lovac/source-housing-owners/source-housing-owner-processor.ts`
 - Delete: `server/src/scripts/import-lovac/source-housing-owners/test/source-housing-owner-processor.test.ts`
@@ -1604,9 +1638,7 @@ import { v5 as uuidv5 } from 'uuid';
 import HousingMissingError from '~/errors/housingMissingError';
 import OwnerMissingError from '~/errors/ownerMissingError';
 import { HousingOwnerEventApi } from '~/models/EventApi';
-import {
-  HousingOwnerDBO
-} from '~/repositories/housingOwnerRepository';
+import { HousingOwnerDBO } from '~/repositories/housingOwnerRepository';
 import { OwnerDBO } from '~/repositories/ownerRepository';
 import {
   LOVAC_NAMESPACE,
@@ -1648,13 +1680,10 @@ export function createHousingOwnerTransform(options: TransformOptions) {
       }
 
       const missingOwners = source.filter(
-        (s) =>
-          !existing.owners.some((o) => o.idpersonne === s.idpersonne)
+        (s) => !existing.owners.some((o) => o.idpersonne === s.idpersonne)
       );
       if (missingOwners.length > 0) {
-        throw new OwnerMissingError(
-          ...missingOwners.map((o) => o.idpersonne)
-        );
+        throw new OwnerMissingError(...missingOwners.map((o) => o.idpersonne));
       }
 
       const housing = existing.housing;
@@ -1709,27 +1738,37 @@ export function createHousingOwnerTransform(options: TransformOptions) {
       ];
 
       function ownerName(ownerId: string): string {
-        return (
-          existing.owners.find((o) => o.id === ownerId)?.full_name ?? ''
-        );
+        return existing.owners.find((o) => o.id === ownerId)?.full_name ?? '';
       }
 
-      const added = fp.differenceBy('owner_id', activeOwners, existingActive) as HousingOwnerDBO[];
-      const removed = fp.differenceBy('owner_id', existingActive, activeOwners) as HousingOwnerDBO[];
-      const updated = fp.intersectionBy('owner_id', existingActive, activeOwners).filter(
-        (existingHo: HousingOwnerDBO) => {
+      const added = fp.differenceBy(
+        'owner_id',
+        activeOwners,
+        existingActive
+      ) as HousingOwnerDBO[];
+      const removed = fp.differenceBy(
+        'owner_id',
+        existingActive,
+        activeOwners
+      ) as HousingOwnerDBO[];
+      const updated = fp
+        .intersectionBy('owner_id', existingActive, activeOwners)
+        .filter((existingHo: HousingOwnerDBO) => {
           const newHo = activeOwners.find(
             (ho) => ho.owner_id === existingHo.owner_id
           );
           return newHo && newHo.rank !== existingHo.rank;
-        }
-      ) as HousingOwnerDBO[];
+        }) as HousingOwnerDBO[];
 
       const events: HousingOwnerEventApi[] = [
         ...added.map(
           (ho): HousingOwnerEventApi => ({
             id: uuidv5(
-              ho.housing_id + ':housing:owner-attached:' + ho.owner_id + ':' + year,
+              ho.housing_id +
+                ':housing:owner-attached:' +
+                ho.owner_id +
+                ':' +
+                year,
               LOVAC_NAMESPACE
             ),
             type: 'housing:owner-attached',
@@ -1745,7 +1784,11 @@ export function createHousingOwnerTransform(options: TransformOptions) {
         ...removed.map(
           (ho): HousingOwnerEventApi => ({
             id: uuidv5(
-              ho.housing_id + ':housing:owner-detached:' + ho.owner_id + ':' + year,
+              ho.housing_id +
+                ':housing:owner-detached:' +
+                ho.owner_id +
+                ':' +
+                year,
               LOVAC_NAMESPACE
             ),
             type: 'housing:owner-detached',
@@ -1758,27 +1801,27 @@ export function createHousingOwnerTransform(options: TransformOptions) {
             housingId: ho.housing_id
           })
         ),
-        ...updated.map(
-          (ho): HousingOwnerEventApi => {
-            const newHo = activeOwners.find(
-              (a) => a.owner_id === ho.owner_id
-            )!;
-            return {
-              id: uuidv5(
-                ho.housing_id + ':housing:owner-updated:' + ho.owner_id + ':' + year,
-                LOVAC_NAMESPACE
-              ),
-              type: 'housing:owner-updated',
-              nextOld: { name: ownerName(ho.owner_id), rank: ho.rank },
-              nextNew: { name: ownerName(newHo.owner_id), rank: newHo.rank },
-              createdAt: new Date().toJSON(),
-              createdBy: adminUserId,
-              ownerId: ho.owner_id,
-              housingGeoCode: ho.housing_geo_code,
-              housingId: ho.housing_id
-            };
-          }
-        )
+        ...updated.map((ho): HousingOwnerEventApi => {
+          const newHo = activeOwners.find((a) => a.owner_id === ho.owner_id)!;
+          return {
+            id: uuidv5(
+              ho.housing_id +
+                ':housing:owner-updated:' +
+                ho.owner_id +
+                ':' +
+                year,
+              LOVAC_NAMESPACE
+            ),
+            type: 'housing:owner-updated',
+            nextOld: { name: ownerName(ho.owner_id), rank: ho.rank },
+            nextNew: { name: ownerName(newHo.owner_id), rank: newHo.rank },
+            createdAt: new Date().toJSON(),
+            createdBy: adminUserId,
+            ownerId: ho.owner_id,
+            housingGeoCode: ho.housing_geo_code,
+            housingId: ho.housing_id
+          };
+        })
       ];
 
       source.forEach((s) => reporter.passed(s));
@@ -1795,10 +1838,7 @@ export function createHousingOwnerTransform(options: TransformOptions) {
       ];
     } catch (error) {
       source.forEach((s) =>
-        reporter.failed(
-          s,
-          new ReporterError((error as Error).message, s)
-        )
+        reporter.failed(s, new ReporterError((error as Error).message, s))
       );
       if (abortEarly) throw error;
       return [];
@@ -1835,6 +1875,7 @@ git commit -m "feat(server): add source-housing-owner transform, delete processo
 ## Task 10: Wire source housing-owner command + fix test
 
 **Files:**
+
 - Modify: `server/src/scripts/import-lovac/source-housing-owners/source-housing-owner-command.ts`
 - Modify: `server/src/scripts/import-lovac/source-housing-owners/test/source-housing-owner-command.test.ts`
 
@@ -1897,7 +1938,10 @@ export function createSourceHousingOwnerCommand() {
   return async (file: string, options: ExecOptions): Promise<void> => {
     try {
       console.time('Import housing owners');
-      logger.debug('Starting source housing owner command...', { file, options });
+      logger.debug('Starting source housing owner command...', {
+        file,
+        options
+      });
 
       const auth = await userRepository.getByEmail(config.app.system);
       if (!auth) {
@@ -2043,11 +2087,13 @@ async function writeReport(
 In `test/source-housing-owner-command.test.ts`:
 
 1. Add the missing import at the top:
+
 ```typescript
 import { rm } from 'node:fs/promises';
 ```
 
 2. Extract the inline write into a `write()` helper at the bottom of the file (after the describe block):
+
 ```typescript
 async function write(
   file: string,
@@ -2065,24 +2111,26 @@ async function write(
 ```
 
 3. Replace the inline write in `beforeAll` with the helper call:
+
 ```typescript
-  // Write the file and run
-  beforeAll(async () => {
-    await write(file, sourceHousingOwners);
-    await command(file, {
-      abortEarly: false,
-      dryRun: false,
-      from: 'file',
-      year: 'lovac-2025'
-    });
+// Write the file and run
+beforeAll(async () => {
+  await write(file, sourceHousingOwners);
+  await command(file, {
+    abortEarly: false,
+    dryRun: false,
+    from: 'file',
+    year: 'lovac-2025'
   });
+});
 ```
 
 4. Add `afterAll` cleanup:
+
 ```typescript
-  afterAll(async () => {
-    await rm(file);
-  });
+afterAll(async () => {
+  await rm(file);
+});
 ```
 
 - [ ] **Step 10.3: Run all housing-owner tests**

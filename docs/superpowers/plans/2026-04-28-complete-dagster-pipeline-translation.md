@@ -17,6 +17,7 @@
 ### Task 1: Create shared constants module
 
 **Files:**
+
 - Create: `src/constants.py`
 - Modify: `src/housings/transform.py` (remove duplicated `LOVAC_NAMESPACE`)
 
@@ -59,10 +60,13 @@ HOUSING_STATUS_LABELS = {
 - [ ] **Step 2: Update `src/housings/transform.py` to use shared constants**
 
 Replace line 6:
+
 ```python
 LOVAC_NAMESPACE = uuid.UUID("6ba7b810-9dad-11d1-80b4-00c04fd430c8")  # uuidv5.DNS
 ```
+
 With:
+
 ```python
 from src.constants import LOVAC_NAMESPACE
 ```
@@ -89,6 +93,7 @@ git commit -m "refactor: extract shared constants module for Dagster pipelines"
 ### Task 2: Fix source-housings event structure
 
 **Files:**
+
 - Modify: `src/housings/transform.py`
 - Modify: `tests/test_housings_transform.py`
 
@@ -99,6 +104,7 @@ The events table uses columns `next_old`/`next_new` (JSONB), but the current cod
 In `tests/test_housings_transform.py`, update `test_generates_housing_created_event` (around line 144):
 
 Replace:
+
 ```python
     def test_generates_housing_created_event(self):
         to_create, _, events, housing_events = transform_housings(
@@ -120,6 +126,7 @@ Replace:
 ```
 
 With:
+
 ```python
     def test_generates_housing_created_event(self):
         to_create, _, events, housing_events = transform_housings(
@@ -185,6 +192,7 @@ Expected: New assertions fail (column `next_old` doesn't exist, etc.)
 - [ ] **Step 3: Update `_events_schema()` in `src/housings/transform.py`**
 
 Replace:
+
 ```python
 def _events_schema() -> dict:
     return {
@@ -198,6 +206,7 @@ def _events_schema() -> dict:
 ```
 
 With:
+
 ```python
 def _events_schema() -> dict:
     return {
@@ -228,6 +237,7 @@ Add `import json` at the top of the file (alongside other imports). Then in `_bu
 ```
 
 With:
+
 ```python
         events.append(
             {
@@ -244,11 +254,13 @@ With:
 - [ ] **Step 5: Update `_build_updates` event payloads**
 
 Import the labels at the top:
+
 ```python
 from src.constants import LOVAC_NAMESPACE, OCCUPANCY_LABELS, HOUSING_STATUS_LABELS
 ```
 
 Replace the occupancy-updated event block (around line 316):
+
 ```python
             events.append(
                 {
@@ -263,6 +275,7 @@ Replace the occupancy-updated event block (around line 316):
 ```
 
 With:
+
 ```python
             events.append(
                 {
@@ -277,6 +290,7 @@ With:
 ```
 
 Replace the status-updated event block (around line 341):
+
 ```python
             events.append(
                 {
@@ -291,6 +305,7 @@ Replace the status-updated event block (around line 341):
 ```
 
 With:
+
 ```python
             events.append(
                 {
@@ -324,6 +339,7 @@ git commit -m "fix: use next_old/next_new with structured JSON in housing events
 ### Task 3: Source-owners transform tests and fix
 
 **Files:**
+
 - Create: `tests/test_owners_transform.py`
 - Modify: `src/owners/read.py`
 - Modify: `src/owners/transform.py`
@@ -459,6 +475,7 @@ Expected: Failures (missing columns, wrong id, etc.)
 - [ ] **Step 3: Update `src/owners/read.py` — expand existing owners query**
 
 Replace `read_existing_owners`:
+
 ```python
 def read_existing_owners(connection_string: str) -> pl.DataFrame:
     """Read existing owners from PostgreSQL (only columns needed for join)."""
@@ -469,6 +486,7 @@ def read_existing_owners(connection_string: str) -> pl.DataFrame:
 ```
 
 With:
+
 ```python
 def read_existing_owners(connection_string: str) -> pl.DataFrame:
     """Read existing owners from PostgreSQL (columns needed for join + preserved fields)."""
@@ -489,6 +507,7 @@ Expected: All pass.
 - [ ] **Step 5: Update `src/owners/write.py` — timestamps and COALESCE**
 
 Replace the CREATE INSERT SQL block:
+
 ```python
                 cursor.execute("""
                     INSERT INTO owners (id, idpersonne, full_name, username, address_dgfip, birth_date, siren, kind_class, data_source)
@@ -499,6 +518,7 @@ Replace the CREATE INSERT SQL block:
 ```
 
 With:
+
 ```python
                 cursor.execute("""
                     INSERT INTO owners (id, idpersonne, full_name, username, address_dgfip, birth_date, siren, kind_class, data_source, created_at, updated_at)
@@ -509,6 +529,7 @@ With:
 ```
 
 Replace the UPDATE SQL block:
+
 ```python
                     cursor.execute("""
                         UPDATE owners SET
@@ -528,6 +549,7 @@ Replace the UPDATE SQL block:
 ```
 
 With:
+
 ```python
                     cursor.execute("""
                         UPDATE owners SET
@@ -566,6 +588,7 @@ git commit -m "feat: complete source-owners transform with merge logic and times
 ### Task 4: Existing-housings transform
 
 **Files:**
+
 - Create: `tests/test_existing_housings_transform.py`
 - Modify: `src/existing_housings/transform.py`
 - Modify: `src/existing_housings/write.py`
@@ -817,6 +840,7 @@ Expected: All pass.
 Replace `write_existing_housing_updates` signature and event handling. The current file writes to a `stg_eh_events` table with `LIKE housing_events` — but events go into TWO tables: `events` and `housing_events`. Replace the events section.
 
 Replace the events block (lines 68-80):
+
 ```python
         if events.height > 0:
             with connection.cursor() as cursor:
@@ -834,6 +858,7 @@ Replace the events block (lines 68-80):
 ```
 
 With:
+
 ```python
         if events.height > 0:
             with connection.cursor() as cursor:
@@ -863,6 +888,7 @@ With:
 ```
 
 Also update the function signature to accept `housing_events`:
+
 ```python
 def write_existing_housing_updates(
     to_update: pl.DataFrame,
@@ -876,6 +902,7 @@ def write_existing_housing_updates(
 - [ ] **Step 6: Update `src/assets.py` — existing_housings asset**
 
 Replace:
+
 ```python
     context.log.info(f"[{department}] Transforming existing housings...")
     to_update, events = transform_existing_housings(housings_missing)
@@ -888,6 +915,7 @@ Replace:
 ```
 
 With:
+
 ```python
     admin_user_id = read_admin_user_id(
         config.connection_string, config.system_account_email
@@ -927,6 +955,7 @@ git commit -m "feat: implement existing-housings transform with status reset and
 ### Task 5: Source-housing-owners transform
 
 **Files:**
+
 - Create: `tests/test_housing_owners_transform.py`
 - Modify: `src/housing_owners/read.py`
 - Modify: `src/housing_owners/transform.py`
@@ -1202,6 +1231,7 @@ Expected: TypeError (transform signature wrong).
 - [ ] **Step 3: Update `src/housing_owners/read.py` — add full_name to owner query**
 
 Replace `read_existing_owners_for_join`:
+
 ```python
 def read_existing_owners_for_join(connection_string: str) -> pl.DataFrame:
     """Read existing owner IDs for join.
@@ -1217,6 +1247,7 @@ def read_existing_owners_for_join(connection_string: str) -> pl.DataFrame:
 ```
 
 With:
+
 ```python
 def read_existing_owners_for_join(connection_string: str) -> pl.DataFrame:
     """Read existing owner IDs and names for join and event generation.

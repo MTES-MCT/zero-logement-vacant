@@ -5,6 +5,7 @@ import {
   usePDF
 } from '@zerologementvacant/pdf';
 import { useEffect } from 'react';
+
 import type { Campaign } from '~/models/Campaign';
 import type { Draft } from '~/models/Draft';
 import { toHousingDTO } from '~/models/Housing';

@@ -1,11 +1,12 @@
 import { fr } from '@codegouvfr/react-dsfr';
 import Stack from '@mui/material/Stack';
 import Typography from '@mui/material/Typography';
-
 import type { Precision, PrecisionCategory } from '@zerologementvacant/models';
 import type { ReactNode } from 'react';
-import { PRECISION_CATEGORY_LABELS } from '../../models/Precision';
+
 import Select from '~/components/ui/Select/Select';
+
+import { PRECISION_CATEGORY_LABELS } from '../../models/Precision';
 
 interface PrecisionFilterProps {
   label: ReactNode;

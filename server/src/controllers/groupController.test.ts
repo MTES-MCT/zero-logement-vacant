@@ -1,6 +1,7 @@
+import { constants } from 'http2';
+
 import { faker } from '@faker-js/faker/locale/fr';
 import { fc, test } from '@fast-check/vitest';
-
 import {
   BENEFIARY_COUNT_VALUES,
   BUILDING_PERIOD_VALUES,
@@ -26,9 +27,9 @@ import {
   VACANCY_YEAR_VALUES,
   type OwnerRank
 } from '@zerologementvacant/models';
-import { constants } from 'http2';
 import fp from 'lodash/fp';
 import request from 'supertest';
+
 import db from '~/infra/database';
 import { createServer } from '~/infra/server';
 import { CampaignApi } from '~/models/CampaignApi';
@@ -432,7 +433,7 @@ describe('Group API', () => {
         })
         .use(tokenProvider(user));
       expect(status).toBe(constants.HTTP_STATUS_CREATED);
-      const groupHousings = await GroupsHousing().where({ group_id: body.id })
+      const groupHousings = await GroupsHousing().where({ group_id: body.id });
       const events = await Events()
         .join(
           GROUP_HOUSING_EVENTS_TABLE,

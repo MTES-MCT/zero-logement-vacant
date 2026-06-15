@@ -1,6 +1,8 @@
-import { faker } from '@faker-js/faker/locale/fr';
 import { constants } from 'http2';
+
+import { faker } from '@faker-js/faker/locale/fr';
 import request from 'supertest';
+
 import { createServer } from '~/infra/server';
 import { toBuildingDTO } from '~/models/BuildingApi';
 import {

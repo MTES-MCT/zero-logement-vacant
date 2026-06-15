@@ -1,5 +1,6 @@
-import { faker } from '@faker-js/faker/locale/fr';
+import { constants } from 'node:http2';
 
+import { faker } from '@faker-js/faker/locale/fr';
 import type {
   DraftCreationPayloadDTO,
   DraftDTO,
@@ -7,7 +8,7 @@ import type {
 } from '@zerologementvacant/models';
 import { Predicate } from 'effect';
 import { http, HttpResponse, RequestHandler } from 'msw';
-import { constants } from 'node:http2';
+
 import config from '../../utils/config';
 import data from './data';
 

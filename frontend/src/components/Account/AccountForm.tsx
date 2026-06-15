@@ -3,7 +3,11 @@ import { yupResolver } from '@hookform/resolvers/yup';
 import Box from '@mui/material/Box';
 import Stack from '@mui/material/Stack';
 import Typography from '@mui/material/Typography';
-import { TIME_PER_WEEK_VALUES, type TimePerWeek } from '@zerologementvacant/models';
+import { skipToken } from '@reduxjs/toolkit/query';
+import {
+  TIME_PER_WEEK_VALUES,
+  type TimePerWeek
+} from '@zerologementvacant/models';
 import schemas from '@zerologementvacant/schemas';
 import { Controller, FormProvider, useForm } from 'react-hook-form';
 import { object, ref, string, type InferType } from 'yup';
@@ -13,10 +17,10 @@ import {
   useGetUserQuery,
   useUpdateUserMutation
 } from '~/services/user.service';
+
 import { useNotification } from '../../hooks/useNotification';
 import AppTextInputNext from '../_app/AppTextInput/AppTextInputNext';
 import TimePerWeekSelect from '../Users/TimePerWeekSelect';
-import { skipToken } from '@reduxjs/toolkit/query';
 
 const schema = object({
   firstName: string().nullable().default(null),
@@ -173,7 +177,11 @@ function AccountForm() {
               <AppTextInputNext<FormSchema>
                 name="currentPassword"
                 label="Mot de passe actuel (obligatoire)"
-                nativeInputProps={{ type: 'password', autoComplete: 'current-password', 'aria-required': 'true' }}
+                nativeInputProps={{
+                  type: 'password',
+                  autoComplete: 'current-password',
+                  'aria-required': 'true'
+                }}
                 mapValue={(value) => value ?? ''}
                 contramapValue={(value) => (value === '' ? null : value)}
               />
@@ -181,14 +189,22 @@ function AccountForm() {
                 name="password"
                 label="Nouveau mot de passe (obligatoire)"
                 hintText="Votre nouveau mot de passe doit contenir au moins 12 caractères, une majuscule, une minuscule et un chiffre."
-                nativeInputProps={{ type: 'password', autoComplete: 'new-password', 'aria-required': 'true' }}
+                nativeInputProps={{
+                  type: 'password',
+                  autoComplete: 'new-password',
+                  'aria-required': 'true'
+                }}
                 mapValue={(value) => value ?? ''}
                 contramapValue={(value) => (value === '' ? null : value)}
               />
               <AppTextInputNext<FormSchema>
                 name="passwordConfirmation"
                 label="Confirmation du nouveau mot de passe (obligatoire)"
-                nativeInputProps={{ type: 'password', autoComplete: 'new-password', 'aria-required': 'true' }}
+                nativeInputProps={{
+                  type: 'password',
+                  autoComplete: 'new-password',
+                  'aria-required': 'true'
+                }}
                 mapValue={(value) => value ?? ''}
                 contramapValue={(value) => (value === '' ? null : value)}
               />

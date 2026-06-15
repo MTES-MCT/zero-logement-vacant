@@ -7,6 +7,7 @@ import Typography from '@mui/material/Typography';
 import { useMemo, useState } from 'react';
 
 import { createConfirmationModal } from '~/components/modals/ConfirmationModal/ConfirmationModalNext';
+
 import { type GeoPerimeter } from '../../../models/GeoPerimeter';
 import {
   useDeleteGeoPerimetersMutation,
@@ -46,7 +47,11 @@ function createPerimetersModal() {
 
       const [
         uploadGeoPerimeterFile,
-        { isSuccess: isUploadSuccess, isError: isUploadError, error: uploadError }
+        {
+          isSuccess: isUploadSuccess,
+          isError: isUploadError,
+          error: uploadError
+        }
       ] = useUploadGeoPerimeterFileMutation();
 
       // Error message is already formatted by RTK Query transformErrorResponse

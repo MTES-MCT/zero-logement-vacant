@@ -12,22 +12,23 @@
 
 ## File Map
 
-| File | Change |
-|------|--------|
-| `packages/models/src/DashboardDTO.ts` | Add `BarChartCard`, `BarChartDataDTO`, extend unions |
-| `packages/models/src/test/fixtures.ts` | Add `genBarChartCard()`, `genBarChartDataDTO()` |
-| `server/src/services/metabase/metabase-service.ts` | Add `BarChartValue`, extend `DashcardRef`, extend `CardValue` |
-| `server/src/services/metabase/metabase-api.ts` | Detect `bar`/`row`, resolve `direction`, handle bar chart in `getCardValue` |
-| `server/src/controllers/dashboardController.ts` | Pass `direction`, handle `BarChartDataDTO` response |
-| `server/src/controllers/test/dashboard-api.test.ts` | Add bar chart API tests |
-| `frontend/src/components/Analysis/AnalysisCard.tsx` | Add `ChartTranscription`, `BarChartDisplay`, update dispatch |
-| `frontend/src/components/Analysis/test/AnalysisCard.test.tsx` | Add bar chart + transcription tests |
+| File                                                          | Change                                                                      |
+| ------------------------------------------------------------- | --------------------------------------------------------------------------- |
+| `packages/models/src/DashboardDTO.ts`                         | Add `BarChartCard`, `BarChartDataDTO`, extend unions                        |
+| `packages/models/src/test/fixtures.ts`                        | Add `genBarChartCard()`, `genBarChartDataDTO()`                             |
+| `server/src/services/metabase/metabase-service.ts`            | Add `BarChartValue`, extend `DashcardRef`, extend `CardValue`               |
+| `server/src/services/metabase/metabase-api.ts`                | Detect `bar`/`row`, resolve `direction`, handle bar chart in `getCardValue` |
+| `server/src/controllers/dashboardController.ts`               | Pass `direction`, handle `BarChartDataDTO` response                         |
+| `server/src/controllers/test/dashboard-api.test.ts`           | Add bar chart API tests                                                     |
+| `frontend/src/components/Analysis/AnalysisCard.tsx`           | Add `ChartTranscription`, `BarChartDisplay`, update dispatch                |
+| `frontend/src/components/Analysis/test/AnalysisCard.test.tsx` | Add bar chart + transcription tests                                         |
 
 ---
 
 ## Task 1: Extend data model types
 
 **Files:**
+
 - Modify: `packages/models/src/DashboardDTO.ts`
 
 - [ ] **Step 1: Add `BarChartCard`, `BarChartDataDTO`, extend the unions**
@@ -85,7 +86,10 @@ interface WithoutTabs {
   cards: ReadonlyArray<DashboardCard>;
 }
 
-export type DashboardDTO = { id: number; url: string } & (WithTabs | WithoutTabs);
+export type DashboardDTO = { id: number; url: string } & (
+  | WithTabs
+  | WithoutTabs
+);
 
 export interface ScalarCardDataDTO {
   id: number;
@@ -140,6 +144,7 @@ git commit -m "feat(models): add BarChartCard and BarChartDataDTO types"
 ## Task 2: Add fixtures
 
 **Files:**
+
 - Modify: `packages/models/src/test/fixtures.ts`
 
 - [ ] **Step 1: Add `genBarChartCard` and `genBarChartDataDTO` after `genPieChartCard`**
@@ -205,6 +210,7 @@ git commit -m "feat(models): add genBarChartCard and genBarChartDataDTO fixtures
 ## Task 3: Backend failing tests
 
 **Files:**
+
 - Modify: `server/src/controllers/test/dashboard-api.test.ts`
 
 - [ ] **Step 1: Add mock Metabase dashboard and query-result data at the top of the test file**
@@ -223,7 +229,9 @@ const mockMetabaseDashboardWithBarCard = {
       col: 0,
       size_x: 6,
       size_y: 4,
-      visualization_settings: { 'card.title': 'Répartition par date de construction' },
+      visualization_settings: {
+        'card.title': 'Répartition par date de construction'
+      },
       card: {
         id: 810,
         name: 'Répartition par date de construction',
@@ -383,6 +391,7 @@ Expected: 4 new tests fail with errors like `"expected 'flat-number' to equal 'b
 ## Task 4: Extend MetabaseService types
 
 **Files:**
+
 - Modify: `server/src/services/metabase/metabase-service.ts`
 
 - [ ] **Step 1: Add `BarChartValue`, extend `DashcardRef` and `CardValue`**
@@ -421,7 +430,10 @@ export type CardValue = number | PieChartValue | BarChartValue;
 
 export interface MetabaseService {
   getDashboard(id: number): Promise<DashboardData>;
-  findDashcard(dashboardId: number, dashcardId: number): Promise<DashcardRef | null>;
+  findDashcard(
+    dashboardId: number,
+    dashcardId: number
+  ): Promise<DashcardRef | null>;
   getCardValue(
     dashboardId: number,
     dashcardId: number,
@@ -447,6 +459,7 @@ Expected: TypeScript errors in `metabase-api.ts` — this is fine, the next task
 ## Task 5: Implement bar chart detection in `metabase-api.ts`
 
 **Files:**
+
 - Modify: `server/src/services/metabase/metabase-api.ts`
 
 - [ ] **Step 1: Add `BarChartValue` import**
@@ -580,6 +593,7 @@ Expected: only the controller has remaining errors (not yet updated).
 ## Task 6: Update the dashboard controller
 
 **Files:**
+
 - Modify: `server/src/controllers/dashboardController.ts`
 
 - [ ] **Step 1: Import `BarChartValue` and `PieChartValue`**
@@ -587,7 +601,10 @@ Expected: only the controller has remaining errors (not yet updated).
 Update the import from `~/services/metabase/metabase-api`:
 
 ```typescript
-import type { BarChartValue, PieChartValue } from '~/services/metabase/metabase-service';
+import type {
+  BarChartValue,
+  PieChartValue
+} from '~/services/metabase/metabase-service';
 ```
 
 Add this alongside the existing imports at the top of the file.
@@ -670,6 +687,7 @@ git commit -m "feat(server): detect and map Metabase bar charts"
 ## Task 7: Frontend failing tests
 
 **Files:**
+
 - Modify: `frontend/src/components/Analysis/test/AnalysisCard.test.tsx`
 
 - [ ] **Step 1: Add imports for bar chart fixtures**
@@ -694,7 +712,10 @@ Add at the end of the `describe('AnalysisCard')` block:
 
 ```typescript
 it('renders a bar chart card without error when card type is bar-chart', async () => {
-  const barCard = genBarChartCard({ id: 80, title: 'Répartition par date de construction' });
+  const barCard = genBarChartCard({
+    id: 80,
+    title: 'Répartition par date de construction'
+  });
   const cardData = genBarChartDataDTO({
     id: 80,
     direction: 'vertical',
@@ -702,9 +723,8 @@ it('renders a bar chart card without error when card type is bar-chart', async (
     data: [3200, 1800]
   });
   mockAPI.use(
-    http.get(
-      `${config.apiEndpoint}/dashboards/:did/cards/:cid`,
-      () => HttpResponse.json(cardData)
+    http.get(`${config.apiEndpoint}/dashboards/:did/cards/:cid`, () =>
+      HttpResponse.json(cardData)
     )
   );
 
@@ -726,16 +746,17 @@ it('shows a transcription accordion for a pie chart', async () => {
     data: [4876, 652]
   });
   mockAPI.use(
-    http.get(
-      `${config.apiEndpoint}/dashboards/:did/cards/:cid`,
-      () => HttpResponse.json(cardData)
+    http.get(`${config.apiEndpoint}/dashboards/:did/cards/:cid`, () =>
+      HttpResponse.json(cardData)
     )
   );
 
   setup({ card: pieCard, dashboardId });
 
   await screen.findByText('Répartition par type');
-  expect(screen.getByRole('button', { name: /Transcription/i })).toBeInTheDocument();
+  expect(
+    screen.getByRole('button', { name: /Transcription/i })
+  ).toBeInTheDocument();
 });
 
 it('shows percentage transcription items for a pie chart', async () => {
@@ -748,9 +769,8 @@ it('shows percentage transcription items for a pie chart', async () => {
     data: [4876, 652]
   });
   mockAPI.use(
-    http.get(
-      `${config.apiEndpoint}/dashboards/:did/cards/:cid`,
-      () => HttpResponse.json(cardData)
+    http.get(`${config.apiEndpoint}/dashboards/:did/cards/:cid`, () =>
+      HttpResponse.json(cardData)
     )
   );
 
@@ -766,7 +786,10 @@ it('shows percentage transcription items for a pie chart', async () => {
 
 ```typescript
 it('shows a transcription accordion for a bar chart', async () => {
-  const barCard = genBarChartCard({ id: 80, title: 'Répartition par date de construction' });
+  const barCard = genBarChartCard({
+    id: 80,
+    title: 'Répartition par date de construction'
+  });
   const cardData = genBarChartDataDTO({
     id: 80,
     direction: 'vertical',
@@ -774,20 +797,24 @@ it('shows a transcription accordion for a bar chart', async () => {
     data: [3200, 1800]
   });
   mockAPI.use(
-    http.get(
-      `${config.apiEndpoint}/dashboards/:did/cards/:cid`,
-      () => HttpResponse.json(cardData)
+    http.get(`${config.apiEndpoint}/dashboards/:did/cards/:cid`, () =>
+      HttpResponse.json(cardData)
     )
   );
 
   setup({ card: barCard, dashboardId });
 
   await screen.findByText('Répartition par date de construction');
-  expect(screen.getByRole('button', { name: /Transcription/i })).toBeInTheDocument();
+  expect(
+    screen.getByRole('button', { name: /Transcription/i })
+  ).toBeInTheDocument();
 });
 
 it('shows raw value transcription items for a bar chart', async () => {
-  const barCard = genBarChartCard({ id: 80, title: 'Répartition par date de construction' });
+  const barCard = genBarChartCard({
+    id: 80,
+    title: 'Répartition par date de construction'
+  });
   const cardData = genBarChartDataDTO({
     id: 80,
     direction: 'vertical',
@@ -795,9 +822,8 @@ it('shows raw value transcription items for a bar chart', async () => {
     data: [3200, 1800]
   });
   mockAPI.use(
-    http.get(
-      `${config.apiEndpoint}/dashboards/:did/cards/:cid`,
-      () => HttpResponse.json(cardData)
+    http.get(`${config.apiEndpoint}/dashboards/:did/cards/:cid`, () =>
+      HttpResponse.json(cardData)
     )
   );
 
@@ -822,6 +848,7 @@ Expected: 6 new tests fail (no `BarChart` component, no transcription accordion)
 ## Task 8: Implement `ChartTranscription`, `BarChartDisplay`, and update dispatch
 
 **Files:**
+
 - Modify: `frontend/src/components/Analysis/AnalysisCard.tsx`
 
 - [ ] **Step 1: Add new imports**

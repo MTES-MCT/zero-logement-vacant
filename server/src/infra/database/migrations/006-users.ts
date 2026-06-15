@@ -15,7 +15,7 @@ export async function up(knex: Knex): Promise<void> {
     }),
     knex.schema.alterTable('events', (table) => {
       table.uuid('created_by').references('id').inTable('users').notNullable();
-    }),
+    })
   ]);
 }
 
@@ -27,6 +27,6 @@ export async function down(knex: Knex): Promise<void> {
     knex.schema.alterTable('campaigns', (table) => {
       table.dropColumn('created_by');
     }),
-    knex.schema.dropTable('users'),
+    knex.schema.dropTable('users')
   ]);
 }

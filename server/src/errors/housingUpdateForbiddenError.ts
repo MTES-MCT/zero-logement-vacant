@@ -1,5 +1,6 @@
-import { HttpError } from './httpError';
 import { constants } from 'http2';
+
+import { HttpError } from './httpError';
 
 export default class HousingUpdateForbiddenError
   extends HttpError
@@ -9,7 +10,7 @@ export default class HousingUpdateForbiddenError
     super({
       name: 'HousingUpdateForbiddenError',
       message: `Housing ${housingId.join(', ')} update forbidden`,
-      status: constants.HTTP_STATUS_FORBIDDEN,
+      status: constants.HTTP_STATUS_FORBIDDEN
     });
   }
 }

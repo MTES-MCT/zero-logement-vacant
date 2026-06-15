@@ -1,6 +1,7 @@
 import type { Adapter, EntityMap } from '@zerologementvacant/factories';
 import { Struct } from 'effect';
 import { match } from 'ts-pattern';
+
 import { fromUserDTO } from '~/models/UserApi';
 import {
   Campaigns,

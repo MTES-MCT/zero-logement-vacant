@@ -1,4 +1,5 @@
 # Dossier d'Installation (DI)
+
 # Zéro Logement Vacant
 
 **Version:** 1.1
@@ -39,14 +40,14 @@ Un prérequis est un logiciel ou une configuration qui doit être en place **ava
 
 ### 1.2 Liste des logiciels nécessaires
 
-| Logiciel | Version | Rôle | Comment vérifier |
-|----------|---------|------|------------------|
-| **Node.js** | v24+ | Exécute le code JavaScript | `node --version` |
-| **Yarn** | v4+ | Gère les dépendances | `yarn --version` |
-| **Docker** | 20+ | Lance les services (DB, Redis) | `docker --version` |
-| **Docker Compose** | 2.0+ | Orchestre plusieurs conteneurs | `docker compose version` |
-| **Git** | 2.30+ | Gestion de versions | `git --version` |
-| **PostgreSQL Client** | 14+ | Connexion à la base de données | `psql --version` |
+| Logiciel              | Version | Rôle                           | Comment vérifier         |
+| --------------------- | ------- | ------------------------------ | ------------------------ |
+| **Node.js**           | v24+    | Exécute le code JavaScript     | `node --version`         |
+| **Yarn**              | v4+     | Gère les dépendances           | `yarn --version`         |
+| **Docker**            | 20+     | Lance les services (DB, Redis) | `docker --version`       |
+| **Docker Compose**    | 2.0+    | Orchestre plusieurs conteneurs | `docker compose version` |
+| **Git**               | 2.30+   | Gestion de versions            | `git --version`          |
+| **PostgreSQL Client** | 14+     | Connexion à la base de données | `psql --version`         |
 
 **Qu'est-ce que chaque outil fait ?**
 
@@ -93,6 +94,7 @@ corepack enable
 Docker permet de faire tourner PostgreSQL, Redis et autres services sans les installer sur votre machine.
 
 **Sur macOS :**
+
 ```bash
 # Via Homebrew (si Homebrew est installé)
 brew install --cask docker
@@ -101,6 +103,7 @@ brew install --cask docker
 ```
 
 **Sur Linux (Ubuntu/Debian) :**
+
 ```bash
 # Télécharger et exécuter le script d'installation
 curl -fsSL https://get.docker.com -o get-docker.sh
@@ -113,6 +116,7 @@ sudo usermod -aG docker $USER
 ```
 
 **Vérifier que Docker fonctionne :**
+
 ```bash
 docker run hello-world
 # Doit afficher "Hello from Docker!"
@@ -253,11 +257,11 @@ docker compose -f .docker/docker-compose.yml ps
 
 **Services démarrés :**
 
-| Service | Port | Rôle |
-|---------|------|------|
-| PostgreSQL | 5432 | Stocke toutes les données (logements, utilisateurs, etc.) |
-| Redis | 6379 | File d'attente pour les tâches en arrière-plan |
-| Elasticsearch | 9200 | Recherche dans les logs (optionnel en développement) |
+| Service       | Port | Rôle                                                      |
+| ------------- | ---- | --------------------------------------------------------- |
+| PostgreSQL    | 5432 | Stocke toutes les données (logements, utilisateurs, etc.) |
+| Redis         | 6379 | File d'attente pour les tâches en arrière-plan            |
+| Elasticsearch | 9200 | Recherche dans les logs (optionnel en développement)      |
 
 **Que signifie "-d" ?** C'est l'option "detached" (détaché). Les services tournent en arrière-plan, vous récupérez votre terminal.
 
@@ -275,6 +279,7 @@ bash .docker/setup.sh
 ```
 
 Ce script :
+
 1. Démarre les conteneurs Docker
 2. Crée les bases de données
 3. Exécute les migrations
@@ -308,17 +313,18 @@ yarn workspace @zerologementvacant/server seed
 Le seed crée des données pour deux collectivités de test et plusieurs utilisateurs :
 
 **Collectivités de test :**
+
 - Eurométropole de Strasbourg
 - CA Saint-Lô Agglo
 
 **Comptes utilisateurs :**
 
-| Email | Rôle | Périmètre |
-|-------|------|-----------|
-| `test.strasbourg@zlv.fr` | Utilisateur | Eurométropole de Strasbourg |
-| `test.saintlo@zlv.fr` | Utilisateur | CA Saint-Lô Agglo |
-| `test.admin@zlv.fr` | Administrateur | National |
-| `test.visitor@zlv.fr` | Lecture seule | France entière |
+| Email                    | Rôle           | Périmètre                   |
+| ------------------------ | -------------- | --------------------------- |
+| `test.strasbourg@zlv.fr` | Utilisateur    | Eurométropole de Strasbourg |
+| `test.saintlo@zlv.fr`    | Utilisateur    | CA Saint-Lô Agglo           |
+| `test.admin@zlv.fr`      | Administrateur | National                    |
+| `test.visitor@zlv.fr`    | Lecture seule  | France entière              |
 
 **Mot de passe :** Tous les comptes de test utilisent le même mot de passe, défini par la variable d'environnement `TEST_PASSWORD` lors du seed. En développement local, ajoutez cette variable dans `server/.env` :
 
@@ -368,18 +374,21 @@ CREATE EXTENSION IF NOT EXISTS "postgis";
 Vous aurez besoin de **3 terminaux** pour lancer tous les services :
 
 **Terminal 1 - Backend (API) :**
+
 ```bash
 yarn workspace @zerologementvacant/server dev
 # → L'API est accessible sur http://localhost:3001/api
 ```
 
 **Terminal 2 - Frontend (Interface) :**
+
 ```bash
 yarn workspace @zerologementvacant/front dev
 # → L'application est accessible sur http://localhost:3000
 ```
 
 **Terminal 3 - Queue Worker (optionnel) :**
+
 ```bash
 yarn workspace @zerologementvacant/queue dev
 # → Traite les tâches en arrière-plan (exports, etc.)
@@ -404,6 +413,7 @@ L'API dispose d'une documentation interactive Swagger accessible en développeme
 - **Spécification OpenAPI (JSON)** : http://localhost:3001/api-docs.json
 
 **Fonctionnalités :**
+
 - Liste de tous les endpoints avec leurs paramètres
 - Schémas des requêtes et réponses
 - Possibilité de tester les endpoints directement
@@ -598,6 +608,7 @@ clevercloud/
 ```
 
 **Explication de la syntaxe :**
+
 - `*/30 * * * *` = toutes les 30 minutes
 - `0 3 1 * *` = le 1er du mois à 3h du matin
 
@@ -672,11 +683,13 @@ flowchart LR
 **Rôle :** Envoyer des emails transactionnels (confirmation d'inscription, notifications, etc.)
 
 **Configuration :**
+
 1. Créer un compte sur https://www.brevo.com/
 2. Obtenir une clé API dans les paramètres
 3. Configurer la variable `BREVO_API_KEY`
 
 **Tester que ça fonctionne :**
+
 ```bash
 curl -X GET "https://api.brevo.com/v3/account" \
   -H "api-key: $BREVO_API_KEY"
@@ -687,6 +700,7 @@ curl -X GET "https://api.brevo.com/v3/account" \
 **Rôle :** Capturer automatiquement les erreurs qui se produisent dans l'application et alerter l'équipe.
 
 **Configuration :**
+
 1. Créer un projet sur https://sentry.io/
 2. Obtenir le DSN (Data Source Name) du projet
 3. Configurer la variable `SENTRY_DSN`
@@ -696,12 +710,14 @@ curl -X GET "https://api.brevo.com/v3/account" \
 **Rôle :** Synchroniser les données de périmètres (intercommunalités, etc.) depuis le portail DataFoncier du Cerema.
 
 **Configuration :**
+
 1. Obtenir les identifiants API Cerema
 2. Configurer les variables :
    - `CEREMA_USERNAME`
    - `CEREMA_PASSWORD`
 
 **Tester l'authentification :**
+
 ```bash
 curl -X POST https://portaildf.cerema.fr/api/api-token-auth/ \
   -d "username=$CEREMA_USERNAME" \
@@ -723,6 +739,7 @@ curl -X POST https://portaildf.cerema.fr/api/api-token-auth/ \
 Cellar est le service S3 de Clever Cloud, compatible avec l'API Amazon S3.
 
 **Configuration :**
+
 1. Créer un bucket dans Cellar (via le dashboard Clever Cloud)
 2. Configurer les variables :
    - `S3_ENDPOINT`
@@ -739,6 +756,7 @@ Cellar est le service S3 de Clever Cloud, compatible avec l'API Amazon S3.
 **Endpoint :** https://recherche-entreprises.api.gouv.fr/
 
 **Exemple d'utilisation :**
+
 ```bash
 curl "https://recherche-entreprises.api.gouv.fr/search?q=mairie+paris&per_page=5"
 ```
@@ -759,6 +777,7 @@ curl "https://recherche-entreprises.api.gouv.fr/search?q=mairie+paris&per_page=5
 - `/regions` - Liste des régions
 
 **Exemple d'utilisation :**
+
 ```bash
 # Rechercher une commune par code postal
 curl "https://geo.api.gouv.fr/communes?codePostal=75001"
@@ -864,6 +883,7 @@ error This project requires Node.js version 24.x.x
 ```
 
 **Solution :**
+
 ```bash
 nvm install 24
 nvm use 24
@@ -879,12 +899,14 @@ Cannot connect to the Docker daemon
 **Solutions :**
 
 Sur macOS :
+
 ```bash
 # Ouvrir Docker Desktop
 open -a Docker
 ```
 
 Sur Linux :
+
 ```bash
 # Démarrer le service Docker
 sudo systemctl start docker
@@ -897,6 +919,7 @@ Error: connect ECONNREFUSED 127.0.0.1:5432
 ```
 
 **Solution :**
+
 ```bash
 # Vérifier que Docker est démarré
 docker compose -f .docker/docker-compose.yml up -d
@@ -912,6 +935,7 @@ Migration "xxx" has already been run
 ```
 
 **Solution :**
+
 ```bash
 # Vérifier l'état des migrations
 yarn workspace @zerologementvacant/server migrate:status
@@ -951,6 +975,7 @@ clever logs | head -100
 3. Redéployer l'application
 
 Pour tester manuellement un script :
+
 ```bash
 clever ssh
 /app/server/src/scripts/perimeters-portaildf/cerema-sync.sh
@@ -1026,13 +1051,13 @@ clever ssh                              # Se connecter au conteneur
 
 ### 9.3 Ports par défaut
 
-| Service | Port | URL |
-|---------|------|-----|
-| Frontend | 3000 | http://localhost:3000 |
-| Backend API | 3001 | http://localhost:3001/api |
-| PostgreSQL | 5432 | postgres://localhost:5432 |
-| Redis | 6379 | redis://localhost:6379 |
-| Elasticsearch | 9200 | http://localhost:9200 |
+| Service       | Port | URL                       |
+| ------------- | ---- | ------------------------- |
+| Frontend      | 3000 | http://localhost:3000     |
+| Backend API   | 3001 | http://localhost:3001/api |
+| PostgreSQL    | 5432 | postgres://localhost:5432 |
+| Redis         | 6379 | redis://localhost:6379    |
+| Elasticsearch | 9200 | http://localhost:9200     |
 
 ### 9.4 Checklist d'installation complète
 
@@ -1069,80 +1094,80 @@ clever ssh                              # Se connecter au conteneur
 
 ### 10.1 URLs du projet
 
-| Ressource | URL |
-|-----------|-----|
-| **Code source** | https://github.com/MTES-MCT/zero-logement-vacant |
-| **Fiche produit** | https://beta.gouv.fr/startups/zero-logement-vacant.html |
-| **Production** | https://zerologementvacant.beta.gouv.fr |
-| **Staging** | https://zerologementvacant-staging.incubateur.net |
-| **CI/CD** | https://github.com/MTES-MCT/zero-logement-vacant/actions |
+| Ressource         | URL                                                      |
+| ----------------- | -------------------------------------------------------- |
+| **Code source**   | https://github.com/MTES-MCT/zero-logement-vacant         |
+| **Fiche produit** | https://beta.gouv.fr/startups/zero-logement-vacant.html  |
+| **Production**    | https://zerologementvacant.beta.gouv.fr                  |
+| **Staging**       | https://zerologementvacant-staging.incubateur.net        |
+| **CI/CD**         | https://github.com/MTES-MCT/zero-logement-vacant/actions |
 
 ### 10.2 Documentation
 
-| Document | Description |
-|----------|-------------|
-| **DAT** | Dossier d'Architecture Technique - architecture du système |
-| **DE** | Dossier d'Exploitation - procédures opérationnelles |
-| **CLAUDE.md** | Guide de développement (racine du projet) |
-| **API Swagger** | http://localhost:3001/api-docs (développement) |
+| Document        | Description                                                |
+| --------------- | ---------------------------------------------------------- |
+| **DAT**         | Dossier d'Architecture Technique - architecture du système |
+| **DE**          | Dossier d'Exploitation - procédures opérationnelles        |
+| **CLAUDE.md**   | Guide de développement (racine du projet)                  |
+| **API Swagger** | http://localhost:3001/api-docs (développement)             |
 
 ### 10.3 Outils
 
-| Outil | URL | Usage |
-|-------|-----|-------|
-| **Vaultwarden** | https://vaultwarden.incubateur.net/ | Mots de passe partagés |
-| **Clever Cloud** | https://console.clever-cloud.com | Console d'administration |
-| **Sentry** | https://sentry.io | Monitoring des erreurs |
+| Outil            | URL                                 | Usage                    |
+| ---------------- | ----------------------------------- | ------------------------ |
+| **Vaultwarden**  | https://vaultwarden.incubateur.net/ | Mots de passe partagés   |
+| **Clever Cloud** | https://console.clever-cloud.com    | Console d'administration |
+| **Sentry**       | https://sentry.io                   | Monitoring des erreurs   |
 
 ---
 
 ## Glossaire
 
-| Terme | Définition |
-|-------|------------|
-| **Add-on** | Service géré par Clever Cloud (PostgreSQL, Redis, Elasticsearch, Cellar S3) |
-| **API** | Application Programming Interface - Interface permettant à des applications de communiquer |
-| **BAN** | Base Adresse Nationale - Référentiel officiel des adresses françaises |
-| **Brevo** | Service d'envoi d'emails transactionnels (ex-Sendinblue) |
-| **Build** | Compilation du code source en code exécutable |
-| **Cellar** | Service de stockage S3 compatible de Clever Cloud |
-| **Cerema** | Centre d'études qui gère les données des collectivités territoriales |
-| **CI/CD** | Continuous Integration / Continuous Deployment - Automatisation des tests et déploiements |
-| **CLI** | Command Line Interface - Outil en ligne de commande |
-| **Clever Cloud** | Plateforme française d'hébergement PaaS utilisée par ZLV |
-| **Conteneur** | Environnement isolé qui contient une application et ses dépendances |
-| **Dépendance** | Bibliothèque externe utilisée par le code |
-| **Déploiement** | Mise en ligne d'une nouvelle version de l'application |
-| **Docker** | Outil pour créer et gérer des conteneurs |
-| **Docker Compose** | Outil pour orchestrer plusieurs conteneurs Docker ensemble |
-| **Elasticsearch** | Moteur de recherche et d'analyse de logs |
-| **Endpoint** | URL à laquelle une API est accessible |
-| **Express** | Framework web minimaliste pour Node.js |
-| **Git** | Système de gestion de versions du code source |
-| **GitHub Actions** | Service d'automatisation CI/CD intégré à GitHub |
-| **Health Check** | Vérification automatique que l'application fonctionne |
-| **Knex** | Query builder SQL pour Node.js (gestion des migrations) |
-| **Migration** | Script versionné qui modifie la structure de la base de données |
-| **Monorepo** | Dépôt Git unique contenant plusieurs projets liés |
-| **Node.js** | Environnement d'exécution JavaScript côté serveur |
-| **nvm** | Node Version Manager - Gestionnaire de versions Node.js |
-| **Nx** | Outil d'orchestration pour les monorepos (builds, tests, cache intelligent) |
-| **OpenAPI** | Spécification standard pour documenter les API REST |
-| **PaaS** | Platform as a Service - Plateforme d'hébergement gérée |
-| **PostgreSQL** | Système de base de données relationnelle open source |
-| **React** | Bibliothèque JavaScript pour construire des interfaces utilisateur |
-| **Redis** | Base de données en mémoire pour le cache et les files d'attente |
-| **Review App** | Environnement temporaire créé pour tester une Pull Request |
-| **Seed** | Données initiales chargées dans la base pour les tests |
-| **Sentry** | Plateforme de monitoring des erreurs applicatives |
-| **Swagger** | Outil de documentation interactive des API (voir OpenAPI) |
-| **TypeScript** | Langage de programmation typé basé sur JavaScript |
-| **Variable d'environnement** | Paramètre de configuration externe au code (ex: mots de passe) |
-| **Vitest** | Framework de tests unitaires pour projets TypeScript |
-| **Workspace** | Sous-projet dans un monorepo Yarn |
-| **Yarn** | Gestionnaire de packages JavaScript (alternative à npm) |
-| **ZLV** | Zéro Logement Vacant - Nom du projet |
+| Terme                        | Définition                                                                                 |
+| ---------------------------- | ------------------------------------------------------------------------------------------ |
+| **Add-on**                   | Service géré par Clever Cloud (PostgreSQL, Redis, Elasticsearch, Cellar S3)                |
+| **API**                      | Application Programming Interface - Interface permettant à des applications de communiquer |
+| **BAN**                      | Base Adresse Nationale - Référentiel officiel des adresses françaises                      |
+| **Brevo**                    | Service d'envoi d'emails transactionnels (ex-Sendinblue)                                   |
+| **Build**                    | Compilation du code source en code exécutable                                              |
+| **Cellar**                   | Service de stockage S3 compatible de Clever Cloud                                          |
+| **Cerema**                   | Centre d'études qui gère les données des collectivités territoriales                       |
+| **CI/CD**                    | Continuous Integration / Continuous Deployment - Automatisation des tests et déploiements  |
+| **CLI**                      | Command Line Interface - Outil en ligne de commande                                        |
+| **Clever Cloud**             | Plateforme française d'hébergement PaaS utilisée par ZLV                                   |
+| **Conteneur**                | Environnement isolé qui contient une application et ses dépendances                        |
+| **Dépendance**               | Bibliothèque externe utilisée par le code                                                  |
+| **Déploiement**              | Mise en ligne d'une nouvelle version de l'application                                      |
+| **Docker**                   | Outil pour créer et gérer des conteneurs                                                   |
+| **Docker Compose**           | Outil pour orchestrer plusieurs conteneurs Docker ensemble                                 |
+| **Elasticsearch**            | Moteur de recherche et d'analyse de logs                                                   |
+| **Endpoint**                 | URL à laquelle une API est accessible                                                      |
+| **Express**                  | Framework web minimaliste pour Node.js                                                     |
+| **Git**                      | Système de gestion de versions du code source                                              |
+| **GitHub Actions**           | Service d'automatisation CI/CD intégré à GitHub                                            |
+| **Health Check**             | Vérification automatique que l'application fonctionne                                      |
+| **Knex**                     | Query builder SQL pour Node.js (gestion des migrations)                                    |
+| **Migration**                | Script versionné qui modifie la structure de la base de données                            |
+| **Monorepo**                 | Dépôt Git unique contenant plusieurs projets liés                                          |
+| **Node.js**                  | Environnement d'exécution JavaScript côté serveur                                          |
+| **nvm**                      | Node Version Manager - Gestionnaire de versions Node.js                                    |
+| **Nx**                       | Outil d'orchestration pour les monorepos (builds, tests, cache intelligent)                |
+| **OpenAPI**                  | Spécification standard pour documenter les API REST                                        |
+| **PaaS**                     | Platform as a Service - Plateforme d'hébergement gérée                                     |
+| **PostgreSQL**               | Système de base de données relationnelle open source                                       |
+| **React**                    | Bibliothèque JavaScript pour construire des interfaces utilisateur                         |
+| **Redis**                    | Base de données en mémoire pour le cache et les files d'attente                            |
+| **Review App**               | Environnement temporaire créé pour tester une Pull Request                                 |
+| **Seed**                     | Données initiales chargées dans la base pour les tests                                     |
+| **Sentry**                   | Plateforme de monitoring des erreurs applicatives                                          |
+| **Swagger**                  | Outil de documentation interactive des API (voir OpenAPI)                                  |
+| **TypeScript**               | Langage de programmation typé basé sur JavaScript                                          |
+| **Variable d'environnement** | Paramètre de configuration externe au code (ex: mots de passe)                             |
+| **Vitest**                   | Framework de tests unitaires pour projets TypeScript                                       |
+| **Workspace**                | Sous-projet dans un monorepo Yarn                                                          |
+| **Yarn**                     | Gestionnaire de packages JavaScript (alternative à npm)                                    |
+| **ZLV**                      | Zéro Logement Vacant - Nom du projet                                                       |
 
 ---
 
-*Document mis à jour le 25 mars 2026*
+_Document mis à jour le 25 mars 2026_

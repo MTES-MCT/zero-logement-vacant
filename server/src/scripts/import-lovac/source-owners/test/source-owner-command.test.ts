@@ -1,10 +1,11 @@
-import { faker } from '@faker-js/faker/locale/fr';
-import { stringify as writeJSONL } from 'jsonlines';
 import fs from 'node:fs';
 import { rm } from 'node:fs/promises';
 import path from 'node:path';
 import { Transform, Writable } from 'node:stream';
 import { ReadableStream } from 'node:stream/web';
+
+import { faker } from '@faker-js/faker/locale/fr';
+import { stringify as writeJSONL } from 'jsonlines';
 
 import {
   formatOwnerApi,

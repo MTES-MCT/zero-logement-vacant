@@ -1,4 +1,5 @@
 import { diffUpdatedOwner } from '~/models/OwnerApi';
+
 import { EventApi } from '../EventApi';
 
 describe('OwnerApi', () => {

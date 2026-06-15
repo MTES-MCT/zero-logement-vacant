@@ -7,7 +7,7 @@ export default class FileUploadError extends HttpError implements HttpError {
     super({
       name: 'FileUploadError',
       message: `A file must be uploaded`,
-      status: constants.HTTP_STATUS_BAD_REQUEST,
+      status: constants.HTTP_STATUS_BAD_REQUEST
     });
   }
 }

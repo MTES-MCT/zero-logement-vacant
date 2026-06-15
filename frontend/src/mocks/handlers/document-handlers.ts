@@ -1,3 +1,5 @@
+import { constants } from 'node:http2';
+
 import type {
   DocumentDTO,
   DocumentPayload,
@@ -5,11 +7,11 @@ import type {
 } from '@zerologementvacant/models';
 import { Predicate } from 'effect';
 import { http, HttpResponse, type RequestHandler } from 'msw';
-import { constants } from 'node:http2';
 import { v4 as uuidv4 } from 'uuid';
 
 import { toUserDTO } from '~/models/User';
 import config from '~/utils/config';
+
 import { decodeAuth } from './auth-helpers';
 import data from './data';
 

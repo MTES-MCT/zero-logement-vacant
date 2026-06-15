@@ -9,6 +9,7 @@ Production scripts to calculate distances between property owners and their hous
 Calculates distances in kilometers between each property owner and their real estate assets, and updates relative geographic classifications with intelligent foreign country detection.
 
 **Features**:
+
 - ✅ **Idempotent**: Can be run multiple times safely
 - ✅ **Progress tracking**: Real-time progress bar with tqdm
 - ✅ **Complete logging**: Timestamped logs in the `logs/` folder
@@ -21,6 +22,7 @@ Calculates distances in kilometers between each property owner and their real es
 - ✅ **Resume capability**: Automatic skip of already processed batches
 
 **Usage**:
+
 ```bash
 # Standard processing (only missing data)
 python calculate_distances.py --db-url "postgresql://user:pass@host:port/db"
@@ -33,6 +35,7 @@ python calculate_distances.py --limit 1000 --db-url "postgresql://user:pass@host
 ```
 
 **Parameters**:
+
 - `--db-url`: PostgreSQL connection URL (required)
 - `--force`: Force recalculation of all existing data
 - `--limit`: Limit the number of owner-housing pairs to process
@@ -44,12 +47,14 @@ python calculate_distances.py --limit 1000 --db-url "postgresql://user:pass@host
 Address classification module using the **official French FANTOIR reference**.
 
 **FANTOIR Features**:
+
 - ✅ **152 official road types**: FANTOIR Section 2.5 "Nature de la voie" reference
 - ✅ **100% accuracy**: Tested on 10,000 diverse addresses
 - ✅ **DOM-TOM enhanced**: Postal codes 97xxx/98xxx and overseas territories
 - ✅ **French exceptions**: Handling of "Promenade des Anglais" and similar cases
 
 **Usage**:
+
 ```python
 from country_detector import CountryDetector
 
@@ -71,12 +76,14 @@ print(f"France rate: {stats['france_count']}/{stats['total_processed']}")
 Generate a detailed report on coverage and distribution of calculated data.
 
 **Analyzed metrics**:
+
 - ✅ **Coverage rate**: Percentage of calculated data
 - ✅ **Classification distribution**: 7 types of geographic relationships
 - ✅ **Distance statistics**: Min, max, mean, median, standard deviation
 - ✅ **Quality analysis**: Missing data identification
 
 **Usage**:
+
 ```bash
 python statistics_report.py --db-url "postgresql://user:pass@host:port/db"
 ```
@@ -105,6 +112,7 @@ The system uses the **official French FANTOIR reference** (DGFiP/INSEE):
 - **Project consistency**: Same reference as `/server/src/utils/addressNormalization.ts`
 
 **FANTOIR Performance**:
+
 - ✅ **100% accuracy** on 10,000 test addresses
 - ✅ **0 false positives/negatives** on large dataset
 - ✅ **48k addresses/second** processing throughput
@@ -114,6 +122,7 @@ The system uses the **official French FANTOIR reference** (DGFiP/INSEE):
 ## Installation
 
 ### Prerequisites
+
 ```bash
 # Create virtual environment
 python3 -m venv venv
@@ -143,6 +152,7 @@ python statistics_report.py --db-url "postgresql://user:pass@host:port/db"
 ```
 
 **Performance Tips**:
+
 - Monitor PostgreSQL CPU usage during processing
 - Default 6 workers provide a safe baseline (40-60% CPU usage)
 - If CPU usage < 40%, consider increasing workers: `python calculate_distances.py --num-workers 12`
@@ -154,6 +164,7 @@ python statistics_report.py --db-url "postgresql://user:pass@host:port/db"
 ## Log Structure
 
 All logs are centralized in the `/logs` folder:
+
 ```
 logs/
 ├── distance_calculation_YYYYMMDD_HHMMSS.log    # calculate_distances.py
@@ -166,23 +177,23 @@ logs/
 
 ### FANTOIR Detection Performance
 
-| Metric | Value |
-|--------|-------|
-| **Accuracy** | 100% (FANTOIR rule-based) |
-| **Throughput** | 48,000 addresses/second |
-| **False positives** | 0% |
-| **False negatives** | 0% |
+| Metric              | Value                     |
+| ------------------- | ------------------------- |
+| **Accuracy**        | 100% (FANTOIR rule-based) |
+| **Throughput**      | 48,000 addresses/second   |
+| **False positives** | 0%                        |
+| **False negatives** | 0%                        |
 
 ### Database Processing Performance
 
-| Configuration | Value |
-|---------------|-------|
-| **Workers (default)** | 6 parallel threads (configurable) |
-| **Batch size (pairs)** | 50,000 pairs per processing batch |
-| **Batch size (commits)** | 10,000 records per database commit |
-| **Commit mode** | Asynchronous (`synchronous_commit = off`) |
-| **Expected throughput** | ~10,000-20,000 pairs/second |
-| **CPU usage (target)** | 40-60% with 6 workers, tune as needed |
+| Configuration            | Value                                     |
+| ------------------------ | ----------------------------------------- |
+| **Workers (default)**    | 6 parallel threads (configurable)         |
+| **Batch size (pairs)**   | 50,000 pairs per processing batch         |
+| **Batch size (commits)** | 10,000 records per database commit        |
+| **Commit mode**          | Asynchronous (`synchronous_commit = off`) |
+| **Expected throughput**  | ~10,000-20,000 pairs/second               |
+| **CPU usage (target)**   | 40-60% with 6 workers, tune as needed     |
 
 ### Required PostgreSQL Indexes
 
@@ -222,6 +233,7 @@ WHERE locprop_distance_ban IS NULL OR locprop_relative_ban IS NULL;
 The scripts update the following fields in the database:
 
 **`owners_housing` table**:
+
 - `owner_housing_distance_km`: Distance in kilometers
 - `owner_housing_relative_address`: Geographic classification (1-7)
 

@@ -1,10 +1,10 @@
 import { createModal } from '@codegouvfr/react-dsfr/Modal';
-import Typography from '@mui/material/Typography';
 import Grid from '@mui/material/Grid';
+import Typography from '@mui/material/Typography';
 import { useEffect } from 'react';
 import { useLocation } from 'react-router';
-import image from '../../../assets/images/community.svg';
 
+import image from '../../../assets/images/community.svg';
 import { useIsDsfrReady } from '../../../hooks/useIsDsfrReady';
 
 const id = 'onboarding-modal';

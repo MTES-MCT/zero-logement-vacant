@@ -3,14 +3,11 @@ import { UserRole } from '@zerologementvacant/models';
 import bcrypt from 'bcryptjs';
 import { Knex } from 'knex';
 import { v4 as uuidv4 } from 'uuid';
+
 import config from '~/infra/config';
 import { SALT_LENGTH, UserApi } from '~/models/UserApi';
 import { Establishments } from '~/repositories/establishmentRepository';
-import {
-  toUserDBO,
-  Users,
-  USERS_TABLE
-} from '~/repositories/userRepository';
+import { toUserDBO, Users, USERS_TABLE } from '~/repositories/userRepository';
 import { genUserApi } from '~/test/testFixtures';
 
 import {
@@ -21,9 +18,15 @@ import {
 
 // Types
 interface EstablishmentsData {
-  strasbourg: NonNullable<Awaited<ReturnType<ReturnType<typeof Establishments>['first']>>>;
-  saintLo: NonNullable<Awaited<ReturnType<ReturnType<typeof Establishments>['first']>>>;
-  zlv: NonNullable<Awaited<ReturnType<ReturnType<typeof Establishments>['first']>>>;
+  strasbourg: NonNullable<
+    Awaited<ReturnType<ReturnType<typeof Establishments>['first']>>
+  >;
+  saintLo: NonNullable<
+    Awaited<ReturnType<ReturnType<typeof Establishments>['first']>>
+  >;
+  zlv: NonNullable<
+    Awaited<ReturnType<ReturnType<typeof Establishments>['first']>>
+  >;
 }
 
 export async function seed(knex: Knex): Promise<void> {
@@ -64,7 +67,19 @@ async function fetchEstablishments(knex: Knex): Promise<EstablishmentsData> {
   return { strasbourg, saintLo, zlv };
 }
 
-function createBaseUser(overrides: Partial<UserApi> & Pick<UserApi, 'email' | 'password' | 'firstName' | 'lastName' | 'role' | 'activatedAt' | 'establishmentId'>): UserApi {
+function createBaseUser(
+  overrides: Partial<UserApi> &
+    Pick<
+      UserApi,
+      | 'email'
+      | 'password'
+      | 'firstName'
+      | 'lastName'
+      | 'role'
+      | 'activatedAt'
+      | 'establishmentId'
+    >
+): UserApi {
   return {
     id: uuidv4(),
     updatedAt: new Date().toJSON(),
@@ -193,7 +208,8 @@ async function createBaseUsers(
       activatedAt: now,
       role: UserRole.USUAL,
       suspendedAt: now,
-      suspendedCause: 'droits utilisateur expires, droits structure expires, cgu vides'
+      suspendedCause:
+        'droits utilisateur expires, droits structure expires, cgu vides'
     }),
     // New suspension causes for Portail DF access verification
     createBaseUser({
@@ -262,5 +278,5 @@ async function generateRandomUsers(knex: Knex): Promise<void> {
   });
   console.log(`Inserting ${users.length} random users...`);
   await knex.batchInsert(USERS_TABLE, users);
-  console.log('\n')
+  console.log('\n');
 }

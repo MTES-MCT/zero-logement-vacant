@@ -1,5 +1,6 @@
 import { faker } from '@faker-js/faker/locale/fr';
 import { v4 as uuidv4 } from 'uuid';
+
 import { GroupApi } from '~/models/GroupApi';
 import { HousingApi } from '~/models/HousingApi';
 
@@ -21,8 +22,8 @@ import groupRepository, {
   Groups,
   GroupsHousing
 } from '../groupRepository';
-import { formatHousingRecordApi, Housing } from '../housingRepository';
 import { HousingOwners } from '../housingOwnerRepository';
+import { formatHousingRecordApi, Housing } from '../housingRepository';
 import { formatOwnerApi, Owners } from '../ownerRepository';
 import { toUserDBO, Users } from '../userRepository';
 
@@ -104,7 +105,10 @@ describe('Group repository', () => {
         const housingIn = genHousingApi(inGeoCode);
         const housingOut = genHousingApi(outGeoCode);
 
-        await Groups().insert([formatGroupApi(groupIn), formatGroupApi(groupOut)]);
+        await Groups().insert([
+          formatGroupApi(groupIn),
+          formatGroupApi(groupOut)
+        ]);
         await Housing().insert([
           formatHousingRecordApi(housingIn),
           formatHousingRecordApi(housingOut)
@@ -217,7 +221,9 @@ describe('Group repository', () => {
         const housing = genHousingApi(establishment6.geoCodes[0]);
         await Groups().insert(formatGroupApi(targetGroup));
         await Housing().insert(formatHousingRecordApi(housing));
-        await GroupsHousing().insert(formatGroupHousingApi(targetGroup, [housing]));
+        await GroupsHousing().insert(
+          formatGroupHousingApi(targetGroup, [housing])
+        );
 
         const result = await groupRepository.findOne({
           id: targetGroup.id,
@@ -234,7 +240,9 @@ describe('Group repository', () => {
         const outsideHousing = genHousingApi(otherEstablishment.geoCodes[0]);
         await Groups().insert(formatGroupApi(targetGroup));
         await Housing().insert(formatHousingRecordApi(outsideHousing));
-        await GroupsHousing().insert(formatGroupHousingApi(targetGroup, [outsideHousing]));
+        await GroupsHousing().insert(
+          formatGroupHousingApi(targetGroup, [outsideHousing])
+        );
 
         const result = await groupRepository.findOne({
           id: targetGroup.id,
@@ -251,7 +259,9 @@ describe('Group repository', () => {
         const housing = genHousingApi(inGeoCode);
         await Groups().insert(formatGroupApi(targetGroup));
         await Housing().insert(formatHousingRecordApi(housing));
-        await GroupsHousing().insert(formatGroupHousingApi(targetGroup, [housing]));
+        await GroupsHousing().insert(
+          formatGroupHousingApi(targetGroup, [housing])
+        );
 
         const result = await groupRepository.findOne({
           id: targetGroup.id,

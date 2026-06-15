@@ -1,6 +1,6 @@
 import {
   type FindOptions,
-  useFindCampaignsQuery,
+  useFindCampaignsQuery
 } from '../services/campaign.service';
 
 export const useCampaignList = (opts?: FindOptions) => {

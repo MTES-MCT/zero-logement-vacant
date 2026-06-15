@@ -20,9 +20,11 @@
 - `packages/models/src/test/fixtures.ts` and `SenderDTO.test.ts` — updated
 
 **Verify before starting:**
+
 ```bash
 yarn nx typecheck schemas
 ```
+
 Expected: ✅ success
 
 ---
@@ -30,12 +32,14 @@ Expected: ✅ success
 ## Task 1: Schema property-based tests
 
 **Files:**
+
 - Create: `packages/schemas/src/test/draft-creation-payload.test.ts`
 - Create: `packages/schemas/src/test/draft-update-payload.test.ts`
 
 **Context:** Backend conventions require property-based tests for all Yup schemas. Use `@fast-check/vitest`. These tests must be written before the API handler tests.
 
 **Step 1: Check existing schema test structure**
+
 ```bash
 ls packages/schemas/src/test/
 ```
@@ -43,6 +47,7 @@ ls packages/schemas/src/test/
 **Step 2: Write the failing tests for `draftCreationPayload`**
 
 `packages/schemas/src/test/draft-creation-payload.test.ts`:
+
 ```typescript
 import { fc, test } from '@fast-check/vitest';
 import { describe, expect } from 'vitest';
@@ -51,15 +56,27 @@ import { DraftCreationPayload } from '@zerologementvacant/models';
 
 describe('draftCreationPayload', () => {
   describe('logo', () => {
-    test.prop([fc.constant(undefined)])('coerces undefined to [null, null]', async (value) => {
-      const result = await draftCreationPayload.validate({ campaign: crypto.randomUUID(), logo: value });
-      expect(result.logo).toStrictEqual([null, null]);
-    });
+    test.prop([fc.constant(undefined)])(
+      'coerces undefined to [null, null]',
+      async (value) => {
+        const result = await draftCreationPayload.validate({
+          campaign: crypto.randomUUID(),
+          logo: value
+        });
+        expect(result.logo).toStrictEqual([null, null]);
+      }
+    );
 
-    test.prop([fc.constant(null)])('coerces null to [null, null]', async (value) => {
-      const result = await draftCreationPayload.validate({ campaign: crypto.randomUUID(), logo: value });
-      expect(result.logo).toStrictEqual([null, null]);
-    });
+    test.prop([fc.constant(null)])(
+      'coerces null to [null, null]',
+      async (value) => {
+        const result = await draftCreationPayload.validate({
+          campaign: crypto.randomUUID(),
+          logo: value
+        });
+        expect(result.logo).toStrictEqual([null, null]);
+      }
+    );
 
     test.prop([
       fc.tuple(
@@ -76,55 +93,75 @@ describe('draftCreationPayload', () => {
   });
 
   describe('sender.signatories', () => {
-    test.prop([fc.constant(undefined)])('coerces undefined to [null, null]', async (value) => {
-      const result = await draftCreationPayload.validate({
-        campaign: crypto.randomUUID(),
-        sender: { signatories: value }
-      });
-      expect(result.sender?.signatories).toStrictEqual([null, null]);
-    });
+    test.prop([fc.constant(undefined)])(
+      'coerces undefined to [null, null]',
+      async (value) => {
+        const result = await draftCreationPayload.validate({
+          campaign: crypto.randomUUID(),
+          sender: { signatories: value }
+        });
+        expect(result.sender?.signatories).toStrictEqual([null, null]);
+      }
+    );
 
-    test.prop([fc.constant(null)])('coerces null to [null, null]', async (value) => {
-      const result = await draftCreationPayload.validate({
-        campaign: crypto.randomUUID(),
-        sender: { signatories: value }
-      });
-      expect(result.sender?.signatories).toStrictEqual([null, null]);
-    });
+    test.prop([fc.constant(null)])(
+      'coerces null to [null, null]',
+      async (value) => {
+        const result = await draftCreationPayload.validate({
+          campaign: crypto.randomUUID(),
+          sender: { signatories: value }
+        });
+        expect(result.sender?.signatories).toStrictEqual([null, null]);
+      }
+    );
 
-    test.prop([fc.constant([null, null])])('accepts [null, null]', async (value) => {
-      const result = await draftCreationPayload.validate({
-        campaign: crypto.randomUUID(),
-        sender: { signatories: value }
-      });
-      expect(result.sender?.signatories).toStrictEqual([null, null]);
-    });
+    test.prop([fc.constant([null, null])])(
+      'accepts [null, null]',
+      async (value) => {
+        const result = await draftCreationPayload.validate({
+          campaign: crypto.randomUUID(),
+          sender: { signatories: value }
+        });
+        expect(result.sender?.signatories).toStrictEqual([null, null]);
+      }
+    );
   });
 
   describe('sender.signatories[*].document', () => {
-    test.prop([fc.uuid({ version: 4 })])('accepts a UUID document ID', async (docId) => {
-      const result = await draftCreationPayload.validate({
-        campaign: crypto.randomUUID(),
-        sender: {
-          signatories: [
-            { firstName: 'Alice', lastName: 'Dupont', role: 'Maire', document: docId },
-            null
-          ]
-        }
-      });
-      expect(result.sender?.signatories?.[0]?.document).toBe(docId);
-    });
-
-    test.prop([fc.constant('not-a-uuid')])('rejects non-UUID document ID', async (badId) => {
-      await expect(
-        draftCreationPayload.validate({
+    test.prop([fc.uuid({ version: 4 })])(
+      'accepts a UUID document ID',
+      async (docId) => {
+        const result = await draftCreationPayload.validate({
           campaign: crypto.randomUUID(),
           sender: {
-            signatories: [{ document: badId }, null]
+            signatories: [
+              {
+                firstName: 'Alice',
+                lastName: 'Dupont',
+                role: 'Maire',
+                document: docId
+              },
+              null
+            ]
           }
-        })
-      ).rejects.toThrow();
-    });
+        });
+        expect(result.sender?.signatories?.[0]?.document).toBe(docId);
+      }
+    );
+
+    test.prop([fc.constant('not-a-uuid')])(
+      'rejects non-UUID document ID',
+      async (badId) => {
+        await expect(
+          draftCreationPayload.validate({
+            campaign: crypto.randomUUID(),
+            sender: {
+              signatories: [{ document: badId }, null]
+            }
+          })
+        ).rejects.toThrow();
+      }
+    );
   });
 });
 ```
@@ -132,33 +169,45 @@ describe('draftCreationPayload', () => {
 **Step 3: Write the failing tests for `draftUpdatePayload`**
 
 `packages/schemas/src/test/draft-update-payload.test.ts`:
+
 ```typescript
 import { fc, test } from '@fast-check/vitest';
 import { describe, expect } from 'vitest';
 import { draftUpdatePayload } from '../draft-update-payload';
 
 describe('draftUpdatePayload', () => {
-  test.prop([fc.uuid({ version: 4 })])('rejects payload with campaign field', async (campaignId) => {
-    // campaign is stripped by omit — it should be ignored/stripped, not rejected
-    const result = await draftUpdatePayload.validate({ campaign: campaignId });
-    expect((result as any).campaign).toBeUndefined();
-  });
+  test.prop([fc.uuid({ version: 4 })])(
+    'rejects payload with campaign field',
+    async (campaignId) => {
+      // campaign is stripped by omit — it should be ignored/stripped, not rejected
+      const result = await draftUpdatePayload.validate({
+        campaign: campaignId
+      });
+      expect((result as any).campaign).toBeUndefined();
+    }
+  );
 
-  test.prop([fc.constant(undefined)])('coerces missing logo to [null, null]', async (value) => {
-    const result = await draftUpdatePayload.validate({ logo: value });
-    expect(result.logo).toStrictEqual([null, null]);
-  });
+  test.prop([fc.constant(undefined)])(
+    'coerces missing logo to [null, null]',
+    async (value) => {
+      const result = await draftUpdatePayload.validate({ logo: value });
+      expect(result.logo).toStrictEqual([null, null]);
+    }
+  );
 });
 ```
 
 **Step 4: Run the tests to verify they pass**
+
 ```bash
 yarn nx test schemas -- draft-creation-payload
 yarn nx test schemas -- draft-update-payload
 ```
+
 Expected: ✅ all pass
 
 **Step 5: Commit**
+
 ```bash
 git add packages/schemas/src/test/draft-creation-payload.test.ts \
         packages/schemas/src/test/draft-update-payload.test.ts
@@ -170,6 +219,7 @@ git commit -m "test(schemas): add property-based tests for draftCreationPayload 
 ## Task 2: DB migration — add FK columns to `senders` and `drafts`
 
 **Files:**
+
 - Create: `server/src/infra/database/migrations/20260310000001_senders-add-signatory-document-id.ts`
 - Create: `server/src/infra/database/migrations/20260310000002_drafts-add-logo-next.ts`
 
@@ -238,12 +288,15 @@ export async function down(knex: Knex): Promise<void> {
 ```
 
 **Step: Run migrations**
+
 ```bash
 yarn workspace @zerologementvacant/server migrate
 ```
+
 Expected: ✅ both migrations applied
 
 **Step: Commit**
+
 ```bash
 git add server/src/infra/database/migrations/
 git commit -m "feat(server): add signatory document FK columns to senders and logo FK to drafts"
@@ -254,6 +307,7 @@ git commit -m "feat(server): add signatory document FK columns to senders and lo
 ## Task 3: Expand `SenderDBO` and repository — join-based document resolution
 
 **Files:**
+
 - Modify: `server/src/repositories/senderRepository.ts`
 
 **Context:** Do NOT call `documentRepository.findOne` in `parseSenderApi`. Instead, join `documents` into the sender query. The `SenderDBO` will carry the joined document rows. `parseSenderApi` becomes a pure sync transformation once the data is joined in.
@@ -277,12 +331,14 @@ export interface SenderDBO {
 **Step 3: Update `formatSenderApi`**
 
 Add to the returned object:
+
 ```typescript
 signatory_one_document_id: sender.signatories?.[0]?.document?.id ?? null,
 signatory_two_document_id: sender.signatories?.[1]?.document?.id ?? null,
 ```
 
 Add to the `.merge([...])` list in `save`:
+
 ```
 'signatory_one_document_id',
 'signatory_two_document_id',
@@ -329,6 +385,7 @@ Where `parseDocumentDBO` converts `DocumentDBO` → `DocumentApi` (without presi
 **Step 5: Update `genSenderApi` in `server/src/test/testFixtures.ts`**
 
 Add `document: null` to both signatories:
+
 ```typescript
 signatories: [
   { firstName: ..., lastName: ..., role: ..., file: null, document: null },
@@ -337,11 +394,13 @@ signatories: [
 ```
 
 **Step 6: Typecheck**
+
 ```bash
 yarn nx typecheck server
 ```
 
 **Step 7: Commit**
+
 ```bash
 git add server/src/repositories/senderRepository.ts \
         server/src/test/testFixtures.ts
@@ -353,6 +412,7 @@ git commit -m "feat(server): expand SenderDBO with signatory document FK columns
 ## Task 4: Expand `DraftDBO` + `DraftApi` — join document rows
 
 **Files:**
+
 - Modify: `server/src/repositories/draftRepository.ts`
 - Modify: `server/src/models/DraftApi.ts`
 
@@ -390,10 +450,10 @@ export interface DraftRecordDBO {
 ```typescript
 export interface DraftDBO extends DraftRecordDBO {
   sender: SenderDBO;
-  signatory_one_doc: DocumentDBO | null;   // joined
-  signatory_two_doc: DocumentDBO | null;   // joined
-  logo_next_one_doc: DocumentDBO | null;   // joined
-  logo_next_two_doc: DocumentDBO | null;   // joined
+  signatory_one_doc: DocumentDBO | null; // joined
+  signatory_two_doc: DocumentDBO | null; // joined
+  logo_next_one_doc: DocumentDBO | null; // joined
+  logo_next_two_doc: DocumentDBO | null; // joined
 }
 ```
 
@@ -444,7 +504,7 @@ function listQuery(query: Knex.QueryBuilder): void {
 export const formatDraftApi = (draft: DraftApi): DraftRecordDBO => ({
   // ... existing fields ...
   logo_next_one: draft.logoNext?.[0]?.id ?? null,
-  logo_next_two: draft.logoNext?.[1]?.id ?? null,
+  logo_next_two: draft.logoNext?.[1]?.id ?? null
 });
 ```
 
@@ -459,7 +519,9 @@ export const parseDraftApi = async (draft: DraftDBO): Promise<DraftApi> => {
   return {
     // ... existing fields ...
     logoNext: [
-      draft.logo_next_one_doc ? parseDocumentDBO(draft.logo_next_one_doc) : null,
+      draft.logo_next_one_doc
+        ? parseDocumentDBO(draft.logo_next_one_doc)
+        : null,
       draft.logo_next_two_doc ? parseDocumentDBO(draft.logo_next_two_doc) : null
     ],
     sender: await parseSenderApi(draft.sender, {
@@ -479,11 +541,13 @@ logoNext: [null, null],
 ```
 
 **Step 9: Typecheck**
+
 ```bash
 yarn nx typecheck server
 ```
 
 **Step 10: Commit**
+
 ```bash
 git add server/src/repositories/draftRepository.ts \
         server/src/models/DraftApi.ts \
@@ -496,11 +560,13 @@ git commit -m "feat(server): join document rows into draft query for logoNext an
 ## Task 5: Update `toDraftDTO` to include `logoNext`
 
 **Files:**
+
 - Modify: `server/src/models/DraftApi.ts`
 
 **Context:** `toDraftDTO` currently doesn't map `logoNext`. Since `parseDraftApi` returns `DocumentApi` (no presigned URL) for the joined docs, and the controller needs to hydrate URLs, this step explains how to wire it.
 
 **Two-level conversion:**
+
 1. `parseDraftApi` → `DraftApi` where `logoNext: [DocumentApi | null, DocumentApi | null]` (raw, no URL)
 2. In `draftController`, after fetching, generate presigned URLs and call `toDraftDTO`
 
@@ -511,7 +577,10 @@ For now, `toDraftDTO` can return `logoNext: [null, null]` as a safe default — 
 **Step 1: Update `toDraftDTO`**
 
 ```typescript
-export function toDraftDTO(draft: DraftApi, logoNextUrls?: [string, string]): DraftDTO {
+export function toDraftDTO(
+  draft: DraftApi,
+  logoNextUrls?: [string, string]
+): DraftDTO {
   return {
     id: draft.id,
     subject: draft.subject,
@@ -541,7 +610,10 @@ Import `toDocumentDTO` from `~/models/DocumentApi`.
 In `server/src/models/SenderApi.ts`, `toSenderDTO` currently maps `signatories` directly. Extend it to map the `document` field via `toDocumentDTO`:
 
 ```typescript
-export function toSenderDTO(sender: SenderApi, signatoryUrls?: [string | null, string | null]): SenderDTO {
+export function toSenderDTO(
+  sender: SenderApi,
+  signatoryUrls?: [string | null, string | null]
+): SenderDTO {
   return {
     // ...
     signatories: sender.signatories
@@ -550,7 +622,10 @@ export function toSenderDTO(sender: SenderApi, signatoryUrls?: [string | null, s
             ? {
                 ...sender.signatories[0],
                 document: sender.signatories[0].document
-                  ? toDocumentDTO(sender.signatories[0].document, signatoryUrls?.[0] ?? '')
+                  ? toDocumentDTO(
+                      sender.signatories[0].document,
+                      signatoryUrls?.[0] ?? ''
+                    )
                   : null
               }
             : null,
@@ -558,7 +633,10 @@ export function toSenderDTO(sender: SenderApi, signatoryUrls?: [string | null, s
             ? {
                 ...sender.signatories[1],
                 document: sender.signatories[1].document
-                  ? toDocumentDTO(sender.signatories[1].document, signatoryUrls?.[1] ?? '')
+                  ? toDocumentDTO(
+                      sender.signatories[1].document,
+                      signatoryUrls?.[1] ?? ''
+                    )
                   : null
               }
             : null
@@ -569,11 +647,13 @@ export function toSenderDTO(sender: SenderApi, signatoryUrls?: [string | null, s
 ```
 
 **Step 3: Typecheck**
+
 ```bash
 yarn nx typecheck server
 ```
 
 **Step 4: Commit**
+
 ```bash
 git add server/src/models/DraftApi.ts server/src/models/SenderApi.ts
 git commit -m "feat(server): update toDraftDTO and toSenderDTO to map logoNext and signatory documents"
@@ -584,10 +664,12 @@ git commit -m "feat(server): update toDraftDTO and toSenderDTO to map logoNext a
 ## Task 6: New `createNext` and `updateNext` handlers + rename test file
 
 **Files:**
+
 - Modify: `server/src/controllers/draftController.ts`
 - Rename: `server/src/controllers/test/draftController.test.ts` → `server/src/controllers/test/draft-api.test.ts`
 
 **Step 1: Rename the test file**
+
 ```bash
 git mv server/src/controllers/test/draftController.test.ts \
         server/src/controllers/test/draft-api.test.ts
@@ -599,10 +681,16 @@ Add a new `describe` block (after existing `PUT /drafts/{id}` block):
 
 ```typescript
 import * as posthogService from '~/services/posthogService';
-import { DraftCreationPayload, DraftUpdatePayload } from '@zerologementvacant/models';
+import {
+  DraftCreationPayload,
+  DraftUpdatePayload
+} from '@zerologementvacant/models';
 import schemas from '@zerologementvacant/schemas';
 // Import Documents table accessor from documentRepository
-import { Documents, formatDocumentApi } from '../../repositories/documentRepository';
+import {
+  Documents,
+  formatDocumentApi
+} from '../../repositories/documentRepository';
 import { genDocumentApi } from '../../test/testFixtures';
 
 describe('POST /api/drafts — new-campaigns', () => {
@@ -620,7 +708,10 @@ describe('POST /api/drafts — new-campaigns', () => {
   it('should fall back to legacy handler when flag is off', async () => {
     vi.spyOn(posthogService, 'isFeatureEnabled').mockResolvedValue(false);
     const payload = { campaign: campaign.id, logo: [], sender: null };
-    const { status } = await request(url).post(testRoute).send(payload).use(tokenProvider(user));
+    const { status } = await request(url)
+      .post(testRoute)
+      .send(payload)
+      .use(tokenProvider(user));
     expect(status).toBe(constants.HTTP_STATUS_CREATED);
   });
 
@@ -632,12 +723,22 @@ describe('POST /api/drafts — new-campaigns', () => {
       logo: [null, null],
       writtenAt: null,
       writtenFrom: null,
-      sender: { name: 'Mairie', service: null, firstName: null, lastName: null,
-                address: null, email: null, phone: null, signatories: [null, null] }
+      sender: {
+        name: 'Mairie',
+        service: null,
+        firstName: null,
+        lastName: null,
+        address: null,
+        email: null,
+        phone: null,
+        signatories: [null, null]
+      }
     };
 
     const { body, status } = await request(url)
-      .post(testRoute).send(payload).use(tokenProvider(user));
+      .post(testRoute)
+      .send(payload)
+      .use(tokenProvider(user));
 
     expect(status).toBe(constants.HTTP_STATUS_CREATED);
     expect(body).toMatchObject({ logoNext: [null, null] });
@@ -663,17 +764,29 @@ describe('POST /api/drafts — new-campaigns', () => {
       writtenAt: null,
       writtenFrom: null,
       sender: {
-        name: null, service: null, firstName: null, lastName: null,
-        address: null, email: null, phone: null,
+        name: null,
+        service: null,
+        firstName: null,
+        lastName: null,
+        address: null,
+        email: null,
+        phone: null,
         signatories: [
-          { firstName: 'Alice', lastName: 'Dupont', role: 'Maire', document: document.id },
+          {
+            firstName: 'Alice',
+            lastName: 'Dupont',
+            role: 'Maire',
+            document: document.id
+          },
           null
         ]
       }
     };
 
     const { body, status } = await request(url)
-      .post(testRoute).send(payload).use(tokenProvider(user));
+      .post(testRoute)
+      .send(payload)
+      .use(tokenProvider(user));
 
     expect(status).toBe(constants.HTTP_STATUS_CREATED);
 
@@ -688,13 +801,18 @@ describe('POST /api/drafts — new-campaigns', () => {
 
     const payload: DraftCreationPayload = {
       campaign: campaign.id,
-      subject: null, body: null,
+      subject: null,
+      body: null,
       logo: [logoDoc.id, null],
-      writtenAt: null, writtenFrom: null, sender: null
+      writtenAt: null,
+      writtenFrom: null,
+      sender: null
     };
 
     const { body, status } = await request(url)
-      .post(testRoute).send(payload).use(tokenProvider(user));
+      .post(testRoute)
+      .send(payload)
+      .use(tokenProvider(user));
 
     expect(status).toBe(constants.HTTP_STATUS_CREATED);
 
@@ -731,17 +849,29 @@ describe('PUT /api/drafts/:id — new-campaigns', () => {
       writtenAt: null,
       writtenFrom: null,
       sender: {
-        name: null, service: null, firstName: null, lastName: null,
-        address: null, email: null, phone: null,
+        name: null,
+        service: null,
+        firstName: null,
+        lastName: null,
+        address: null,
+        email: null,
+        phone: null,
         signatories: [
-          { firstName: 'Bob', lastName: 'Martin', role: 'DGA', document: document.id },
+          {
+            firstName: 'Bob',
+            lastName: 'Martin',
+            role: 'DGA',
+            document: document.id
+          },
           null
         ]
       }
     };
 
     const { body, status } = await request(url)
-      .put(testRoute(draft.id)).send(payload).use(tokenProvider(user));
+      .put(testRoute(draft.id))
+      .send(payload)
+      .use(tokenProvider(user));
 
     expect(status).toBe(constants.HTTP_STATUS_OK);
 
@@ -754,35 +884,61 @@ describe('PUT /api/drafts/:id — new-campaigns', () => {
 
   it('should fall back to legacy when flag is off', async () => {
     vi.spyOn(posthogService, 'isFeatureEnabled').mockResolvedValue(false);
-    const payload = { id: draft.id, subject: 'Old', body: null, logo: [],
-                      writtenAt: null, writtenFrom: null,
-                      sender: { name: null, service: null, firstName: null, lastName: null,
-                                address: null, email: null, phone: null, signatories: null } };
+    const payload = {
+      id: draft.id,
+      subject: 'Old',
+      body: null,
+      logo: [],
+      writtenAt: null,
+      writtenFrom: null,
+      sender: {
+        name: null,
+        service: null,
+        firstName: null,
+        lastName: null,
+        address: null,
+        email: null,
+        phone: null,
+        signatories: null
+      }
+    };
     const { status } = await request(url)
-      .put(testRoute(draft.id)).send(payload).use(tokenProvider(user));
+      .put(testRoute(draft.id))
+      .send(payload)
+      .use(tokenProvider(user));
     expect(status).toBe(constants.HTTP_STATUS_OK);
   });
 });
 ```
 
 **Step 3: Run tests to verify they fail**
+
 ```bash
 yarn nx test server -- draft-api
 ```
+
 Expected: FAIL — routes don't exist yet.
 
 **Step 4: Implement `createNext` and `updateNext`**
 
 In `draftController.ts`, add these imports:
+
 ```typescript
 import { RequestHandler } from 'express';
-import { DraftCreationPayload, DraftUpdatePayload, DocumentDTO, SignatoryDTO, SignatoriesDTO } from '@zerologementvacant/models';
+import {
+  DraftCreationPayload,
+  DraftUpdatePayload,
+  DocumentDTO,
+  SignatoryDTO,
+  SignatoriesDTO
+} from '@zerologementvacant/models';
 import documentRepository from '~/repositories/documentRepository';
 import { toDocumentDTO, DocumentApi } from '~/models/DocumentApi';
 import { generatePresignedUrl, createS3 } from '@zerologementvacant/utils/node';
 ```
 
 Extract a helper to resolve document IDs → presigned `DocumentDTO`:
+
 ```typescript
 async function resolveDocuments(
   ids: ReadonlyArray<string | null>,
@@ -792,12 +948,20 @@ async function resolveDocuments(
   if (!validIds.length) return new Map();
 
   const docs = await documentRepository.find({
-    filters: { ids: validIds, establishmentIds: [establishmentId], deleted: false }
+    filters: {
+      ids: validIds,
+      establishmentIds: [establishmentId],
+      deleted: false
+    }
   });
 
   const map = new Map<string, DocumentDTO>();
   for (const doc of docs) {
-    const url = await generatePresignedUrl({ s3, bucket: config.s3.bucket, key: doc.s3Key });
+    const url = await generatePresignedUrl({
+      s3,
+      bucket: config.s3.bucket,
+      key: doc.s3Key
+    });
     map.set(doc.id, toDocumentDTO(doc, url));
   }
   return map;
@@ -805,12 +969,20 @@ async function resolveDocuments(
 ```
 
 Then implement `createNext`:
+
 ```typescript
-const createNext: RequestHandler<never, DraftDTO, DraftCreationPayload, never> = async (
-  request,
-  response
-): Promise<void> => {
-  const { auth, body } = request as AuthenticatedRequest<never, DraftDTO, DraftCreationPayload, never>;
+const createNext: RequestHandler<
+  never,
+  DraftDTO,
+  DraftCreationPayload,
+  never
+> = async (request, response): Promise<void> => {
+  const { auth, body } = request as AuthenticatedRequest<
+    never,
+    DraftDTO,
+    DraftCreationPayload,
+    never
+  >;
 
   const campaign = await campaignRepository.findOne({
     id: body.campaign,
@@ -822,7 +994,8 @@ const createNext: RequestHandler<never, DraftDTO, DraftCreationPayload, never> =
 
   // Gather all document IDs to resolve
   const allDocIds = [
-    body.logo[0], body.logo[1],
+    body.logo[0],
+    body.logo[1],
     body.sender?.signatories?.[0]?.document ?? null,
     body.sender?.signatories?.[1]?.document ?? null
   ];
@@ -833,14 +1006,18 @@ const createNext: RequestHandler<never, DraftDTO, DraftCreationPayload, never> =
     body.logo[1] ? (docsMap.get(body.logo[1]) ?? null) : null
   ];
 
-  function buildSignatory(payload: SignatoryPayload | null | undefined): SignatoryDTO | null {
+  function buildSignatory(
+    payload: SignatoryPayload | null | undefined
+  ): SignatoryDTO | null {
     if (!payload) return null;
     return {
       firstName: payload.firstName,
       lastName: payload.lastName,
       role: payload.role,
       file: null,
-      document: payload.document ? (docsMap.get(payload.document) ?? null) : null
+      document: payload.document
+        ? (docsMap.get(payload.document) ?? null)
+        : null
     };
   }
 
@@ -888,18 +1065,30 @@ const createNext: RequestHandler<never, DraftDTO, DraftCreationPayload, never> =
 ```
 
 Implement `updateNext` analogously (same logic, different entry point):
-```typescript
-const updateNext: RequestHandler<DraftParams, DraftDTO, DraftUpdatePayload, never> = async (
-  request,
-  response
-): Promise<void> => {
-  const { auth, params, body } = request as AuthenticatedRequest<DraftParams, DraftDTO, DraftUpdatePayload, never>;
 
-  const draft = await draftRepository.findOne({ id: params.id, establishmentId: auth.establishmentId });
+```typescript
+const updateNext: RequestHandler<
+  DraftParams,
+  DraftDTO,
+  DraftUpdatePayload,
+  never
+> = async (request, response): Promise<void> => {
+  const { auth, params, body } = request as AuthenticatedRequest<
+    DraftParams,
+    DraftDTO,
+    DraftUpdatePayload,
+    never
+  >;
+
+  const draft = await draftRepository.findOne({
+    id: params.id,
+    establishmentId: auth.establishmentId
+  });
   if (!draft) throw new DraftMissingError(params.id);
 
   const allDocIds = [
-    body.logo[0], body.logo[1],
+    body.logo[0],
+    body.logo[1],
     body.sender?.signatories?.[0]?.document ?? null,
     body.sender?.signatories?.[1]?.document ?? null
   ];
@@ -910,14 +1099,18 @@ const updateNext: RequestHandler<DraftParams, DraftDTO, DraftUpdatePayload, neve
     body.logo[1] ? (docsMap.get(body.logo[1]) ?? null) : null
   ];
 
-  function buildSignatory(payload: SignatoryPayload | null | undefined): SignatoryDTO | null {
+  function buildSignatory(
+    payload: SignatoryPayload | null | undefined
+  ): SignatoryDTO | null {
     if (!payload) return null;
     return {
       firstName: payload.firstName,
       lastName: payload.lastName,
       role: payload.role,
       file: null,
-      document: payload.document ? (docsMap.get(payload.document) ?? null) : null
+      document: payload.document
+        ? (docsMap.get(payload.document) ?? null)
+        : null
     };
   }
 
@@ -966,12 +1159,16 @@ Export both from `draftController`.
 Add the flag-gated routes **before** the legacy ones (same pattern as `PUT /campaigns/:id`).
 
 For `POST /drafts`:
+
 ```typescript
 router.post(
   '/drafts',
   async (req, res, next) => {
     const { auth } = req as AuthenticatedRequest;
-    const enabled = await isFeatureEnabled('new-campaigns', auth.establishmentId);
+    const enabled = await isFeatureEnabled(
+      'new-campaigns',
+      auth.establishmentId
+    );
     if (!enabled) return next('route');
     next();
   },
@@ -982,12 +1179,16 @@ router.post(
 ```
 
 For `PUT /drafts/:id`:
+
 ```typescript
 router.put(
   '/drafts/:id',
   async (req, res, next) => {
     const { auth } = req as AuthenticatedRequest;
-    const enabled = await isFeatureEnabled('new-campaigns', auth.establishmentId);
+    const enabled = await isFeatureEnabled(
+      'new-campaigns',
+      auth.establishmentId
+    );
     if (!enabled) return next('route');
     next();
   },
@@ -1003,17 +1204,21 @@ router.put(
 Check if `schemas.draftCreationPayload` and `schemas.draftUpdatePayload` are re-exported from `@zerologementvacant/schemas`. If not, import directly.
 
 **Step 6: Run the tests**
+
 ```bash
 yarn nx test server -- draft-api
 ```
+
 Expected: ✅ all tests pass (new + existing)
 
 **Step 7: Typecheck**
+
 ```bash
 yarn nx typecheck server
 ```
 
 **Step 8: Commit**
+
 ```bash
 git add server/src/controllers/draftController.ts \
         server/src/routers/protected.ts \
@@ -1026,11 +1231,13 @@ git commit -m "feat(server): add createNext and updateNext draft handlers gated 
 ## Task 7: Frontend — RTK Query service update
 
 **Files:**
+
 - Modify: the draft service (find with `find frontend/src -name "*draft*service*"`)
 
 **Context:** Add `updateDraftNext` mutation posting `DraftUpdatePayload`. The existing `updateDraft` mutation stays for the legacy path.
 
 **Step 1: Locate the service file**
+
 ```bash
 find frontend/src -name "*draft*service*"
 ```
@@ -1045,17 +1252,19 @@ updateDraftNext: builder.mutation<DraftDTO, DraftUpdatePayload>({
     body: payload
   }),
   invalidatesTags: (_result, _error, { id }) => [{ type: 'Draft', id }]
-})
+});
 ```
 
 Export `useUpdateDraftNextMutation`.
 
 **Step 3: Typecheck**
+
 ```bash
 yarn nx typecheck frontend
 ```
 
 **Step 4: Commit**
+
 ```bash
 git add frontend/src/services/
 git commit -m "feat(frontend): add updateDraftNext RTK Query mutation"
@@ -1066,6 +1275,7 @@ git commit -m "feat(frontend): add updateDraftNext RTK Query mutation"
 ## Task 8: Frontend — Wire `DraftSignatureNext`
 
 **Files:**
+
 - Modify: `frontend/src/components/Draft/DraftSignatureNext.tsx`
 - Modify: `frontend/src/components/Draft/DraftForm.tsx`
 
@@ -1074,6 +1284,7 @@ git commit -m "feat(frontend): add updateDraftNext RTK Query mutation"
 **Step 1: Update `DraftForm` to use new schema**
 
 `DraftFormSchema` is currently `InferType<typeof schemas.draft>` (legacy). Change to:
+
 ```typescript
 export type DraftFormSchema = InferType<typeof schemas.draftCreationPayload>;
 ```
@@ -1081,6 +1292,7 @@ export type DraftFormSchema = InferType<typeof schemas.draftCreationPayload>;
 Update `useForm` values to include `signatories` array with `document` field and `logo` tuple.
 
 Initial values for signatories:
+
 ```typescript
 signatories: [
   {
@@ -1095,15 +1307,16 @@ signatories: [
     role: props.draft.sender.signatories?.[1]?.role ?? null,
     document: props.draft.sender.signatories?.[1]?.document?.id ?? null
   }
-]
+];
 ```
 
 Initial values for `logo`:
+
 ```typescript
 logo: [
   props.draft.logoNext?.[0]?.id ?? null,
   props.draft.logoNext?.[1]?.id ?? null
-]
+];
 ```
 
 Update `submit` to call `useUpdateDraftNextMutation`.
@@ -1164,11 +1377,13 @@ function DraftSignature() {
 **Note on second signatory:** The current `DraftSignatureNext` only renders one signatory. Add the second one following the same Grid pattern.
 
 **Step 3: Typecheck**
+
 ```bash
 yarn nx typecheck frontend
 ```
 
 **Step 4: Commit**
+
 ```bash
 git add frontend/src/components/Draft/DraftSignatureNext.tsx \
         frontend/src/components/Draft/DraftForm.tsx
@@ -1180,12 +1395,14 @@ git commit -m "feat(frontend): wire signatory document upload in DraftSignatureN
 ## Task 9: Frontend — MSW handler update + view-level test
 
 **Files:**
+
 - Modify: `frontend/src/mocks/handlers/` (find draft handler file)
 - Modify: the view-level test for the campaign draft view
 
 **Context:** No unit test for `DraftSignatureNext` — test at view level, covering the full flow from upload to form submission.
 
 **Step 1: Locate draft-related MSW handlers**
+
 ```bash
 find frontend/src/mocks -name "*draft*"
 ```
@@ -1194,21 +1411,21 @@ find frontend/src/mocks -name "*draft*"
 
 ```typescript
 http.put('/api/drafts/:id', async ({ request, params }) => {
-  const body = await request.json() as DraftUpdatePayload;
+  const body = (await request.json()) as DraftUpdatePayload;
   const dto: DraftDTO = {
     id: params.id as string,
     subject: body.subject,
     body: body.body,
     logo: null,
     logoNext: [null, null],
-    sender: genSenderDTO(),  // simplified
+    sender: genSenderDTO(), // simplified
     writtenAt: body.writtenAt,
     writtenFrom: body.writtenFrom,
     createdAt: new Date().toISOString(),
     updatedAt: new Date().toISOString()
   };
   return HttpResponse.json(dto, { status: 200 });
-})
+});
 ```
 
 **Step 3: Add view-level test covering signatory upload flow**
@@ -1224,7 +1441,10 @@ it('should upload a signature document and submit the draft form', async () => {
 
   // Act: interact with the file upload for signatory 0
   const fileInput = screen.getByLabelText(/signature du premier expéditeur/i);
-  await user.upload(fileInput, new File(['sig'], 'signature.png', { type: 'image/png' }));
+  await user.upload(
+    fileInput,
+    new File(['sig'], 'signature.png', { type: 'image/png' })
+  );
 
   // Assert: MSW intercepts POST /documents, returns DocumentDTO
   // Assert: form field sender.signatories.0.document is set (indirectly via submit)
@@ -1238,12 +1458,15 @@ it('should upload a signature document and submit the draft form', async () => {
 ```
 
 **Step 4: Run view-level tests**
+
 ```bash
 yarn nx test frontend -- CampaignViewNext
 ```
+
 Expected: ✅ passes
 
 **Step 5: Commit**
+
 ```bash
 git add frontend/src/mocks/handlers/ \
         frontend/src/views/Campaign/test/
@@ -1255,11 +1478,13 @@ git commit -m "test(frontend): add view-level test for signatory document upload
 ## Task 10: Final check
 
 **Step 1: Full typecheck**
+
 ```bash
 yarn nx run-many -t typecheck --exclude=zero-logement-vacant
 ```
 
 **Step 2: Full test run**
+
 ```bash
 yarn nx run-many -t test --exclude=zero-logement-vacant
 ```
@@ -1270,12 +1495,12 @@ Expected: ✅ all pass
 
 ## Expand-and-Contract Checklist
 
-| Phase | Task | Description |
-|-------|------|-------------|
-| Expand DB | 2 | Add FK columns alongside old S3-key columns |
-| Expand read | 3, 4 | Join documents into query; populate both `file` and `document` |
-| Expand write | 6 | New handlers write new columns; old handlers unchanged |
-| Feature flag | 6, 8 | Both backend routes and frontend form gated on `new-campaigns` |
-| Contract (future PR) | — | Drop `signatory_*_file`, `logo`, deprecated DTO types |
+| Phase                | Task | Description                                                    |
+| -------------------- | ---- | -------------------------------------------------------------- |
+| Expand DB            | 2    | Add FK columns alongside old S3-key columns                    |
+| Expand read          | 3, 4 | Join documents into query; populate both `file` and `document` |
+| Expand write         | 6    | New handlers write new columns; old handlers unchanged         |
+| Feature flag         | 6, 8 | Both backend routes and frontend form gated on `new-campaigns` |
+| Contract (future PR) | —    | Drop `signatory_*_file`, `logo`, deprecated DTO types          |
 
 **Do NOT drop old columns or deprecated types in this PR.**

@@ -4,8 +4,8 @@ import { Typography } from '@mui/material';
 import Container from '@mui/material/Container';
 import Grid from '@mui/material/Grid';
 import Stack from '@mui/material/Stack';
-import { getOwnerDisplayName } from '@zerologementvacant/models';
 import { skipToken } from '@reduxjs/toolkit/query';
+import { getOwnerDisplayName } from '@zerologementvacant/models';
 import { useParams } from 'react-router';
 
 import OwnerCard from '~/components/Owner/OwnerCard';
@@ -53,7 +53,6 @@ function OwnerView() {
       </Stack>
       <Grid container columnSpacing="3rem">
         <Grid size={{ xs: 12, md: 4 }}>
-
           <Stack
             direction="row"
             spacing="1rem"

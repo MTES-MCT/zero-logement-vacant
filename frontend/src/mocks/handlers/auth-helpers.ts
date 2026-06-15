@@ -3,6 +3,7 @@ import type { JsonBodyType, StrictRequest } from 'msw';
 
 import { fromEstablishmentDTO } from '~/models/Establishment';
 import { fromUserDTO, type AuthUser } from '~/models/User';
+
 import data from './data';
 
 /**

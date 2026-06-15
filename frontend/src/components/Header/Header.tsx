@@ -1,6 +1,7 @@
 import { Header as DSFRHeader } from '@codegouvfr/react-dsfr/Header';
 
 import logo from '../../assets/images/zlv.svg';
+
 import styles from './header.module.scss';
 
 function Header() {
@@ -8,8 +9,10 @@ function Header() {
     <DSFRHeader
       brandTop={
         <>
-         Ministère<br />
-          de la Ville<br />
+          Ministère
+          <br />
+          de la Ville
+          <br />
           et du Logement
         </>
       }

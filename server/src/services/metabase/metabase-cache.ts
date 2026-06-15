@@ -1,9 +1,7 @@
 import { TTLCache } from '@isaacs/ttlcache';
+import type { CardType } from '@zerologementvacant/models';
 
-import {
-  findDashcardRef,
-  normalizeDashboard
-} from './metabase-normalize';
+import { findDashcardRef, normalizeDashboard } from './metabase-normalize';
 import type {
   CardValue,
   DashboardData,
@@ -13,7 +11,6 @@ import type {
   MetabaseService,
   TableColumnRef
 } from './metabase-service';
-import type { CardType } from '@zerologementvacant/models';
 
 export interface CacheOptions {
   ttlMs: number;
@@ -45,7 +42,10 @@ function cardKey(
 }
 
 class CachedMetabaseService implements MetabaseService {
-  private readonly dashboardCache: TTLCache<number, Promise<MetabaseDashboardRaw>>;
+  private readonly dashboardCache: TTLCache<
+    number,
+    Promise<MetabaseDashboardRaw>
+  >;
   private readonly cardCache: TTLCache<string, Promise<CardValue>>;
 
   constructor(

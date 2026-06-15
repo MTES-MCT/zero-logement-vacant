@@ -1,8 +1,8 @@
 import { Predicate } from 'effect';
 import mime from 'mime';
 
-import type { UserDTO } from './UserDTO';
 import type { EstablishmentDTO } from './EstablishmentDTO';
+import type { UserDTO } from './UserDTO';
 
 export interface DocumentDTO {
   id: string;

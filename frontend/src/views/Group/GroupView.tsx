@@ -9,11 +9,11 @@ import GroupNext, { type GroupProps } from '~/components/Group/GroupNext';
 import { HousingDisplaySwitch } from '~/components/HousingDisplaySwitch/HousingDisplaySwitch';
 import HousingFiltersBadges from '~/components/HousingFiltersBadges/HousingFiltersBadges';
 import HousingListFiltersSidemenu from '~/components/HousingListFilters/HousingListFiltersSidemenu';
-import { useDocumentTitle } from '~/hooks/useDocumentTitle';
 import {
   HousingFiltersProvider,
   useHousingFilters
 } from '~/hooks/HousingFiltersContext';
+import { useDocumentTitle } from '~/hooks/useDocumentTitle';
 import { useNotification } from '~/hooks/useNotification';
 import { useAppSelector } from '~/hooks/useStore';
 import authService from '~/services/auth.service';
@@ -24,6 +24,7 @@ import {
   useUpdateGroupMutation
 } from '~/services/group.service';
 import config from '~/utils/config';
+
 import HousingListMap from '../HousingList/HousingListMap';
 import HousingListTabs from '../HousingList/HousingListTabs';
 import HousingListTabsProvider from '../HousingList/HousingListTabsProvider';

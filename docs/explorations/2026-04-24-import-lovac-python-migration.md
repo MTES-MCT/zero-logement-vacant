@@ -19,12 +19,12 @@ setup, testing, and reporting.
 
 ### Selected Stack
 
-| Tool | Role |
-|------|------|
-| **Polars** | Extract (parquet/jsonl via `scan_parquet`, `read_ndjson`) + Transform (joins, computed fields) |
-| **Pydantic** | Input validation with typed error messages |
-| **psycopg** (v3) | Load to PostgreSQL via COPY protocol + SQL |
-| **Dagster** | Orchestration (DAG, retries, lineage, UI, metadata) |
+| Tool             | Role                                                                                           |
+| ---------------- | ---------------------------------------------------------------------------------------------- |
+| **Polars**       | Extract (parquet/jsonl via `scan_parquet`, `read_ndjson`) + Transform (joins, computed fields) |
+| **Pydantic**     | Input validation with typed error messages                                                     |
+| **psycopg** (v3) | Load to PostgreSQL via COPY protocol + SQL                                                     |
+| **Dagster**      | Orchestration (DAG, retries, lineage, UI, metadata)                                            |
 
 ### Evaluated and Rejected
 
@@ -34,6 +34,7 @@ performance is identical to Polars (both are an order of magnitude faster than
 Spark/Dask/Pandas). Remains in use as the warehouse storage layer — no change there.
 
 **dlt (data load tool)** — Automates staging tables + merge, but:
+
 - Pollutes the production database with metadata tables (`_dlt_version`, `_dlt_loads`,
   `_dlt_pipeline_state`) and adds columns to every data table (`_dlt_id`, `_dlt_load_id`).
 - Cannot do update-only writes. The `merge` disposition always inserts unmatched rows.
@@ -58,10 +59,10 @@ A Polars `GROUP BY` one-liner is simpler and sufficient.
 
 From PDS-H benchmarks (May 2025, pola.rs/posts/benchmarks):
 
-| Scale | Polars streaming | DuckDB |
-|-------|-----------------|--------|
-| ~10 GB (SF-10) | 3.89s | 5.87s (1.5x slower) |
-| ~100 GB (SF-100) | 23.94s (1.2x slower) | 19.65s |
+| Scale            | Polars streaming     | DuckDB              |
+| ---------------- | -------------------- | ------------------- |
+| ~10 GB (SF-10)   | 3.89s                | 5.87s (1.5x slower) |
+| ~100 GB (SF-100) | 23.94s (1.2x slower) | 19.65s              |
 
 At our scale (<10 GB), effectively identical. The bottleneck is PostgreSQL writes, not
 the transform layer. Polars chosen for its typed DataFrame API and native Python
@@ -77,12 +78,12 @@ spilling. At our data volume this is irrelevant — both fit comfortably in RAM.
 
 ### Per-Entity Write Patterns
 
-| Entity | SQL Pattern | Rationale |
-|--------|-------------|-----------|
-| **Owners** | `UPDATE ... FROM staging` | Update-only — never insert owners from LOVAC |
-| **Housings** | `INSERT ... ON CONFLICT DO UPDATE` or `MERGE` (PG15+) | True upsert — new housings expected |
-| **Housing-Owners** | `INSERT ... ON CONFLICT DO UPDATE` or `MERGE` | True upsert |
-| **Events** | `INSERT ... ON CONFLICT DO NOTHING` | Append-only, idempotent via UUIDv5 |
+| Entity             | SQL Pattern                                           | Rationale                                    |
+| ------------------ | ----------------------------------------------------- | -------------------------------------------- |
+| **Owners**         | `UPDATE ... FROM staging`                             | Update-only — never insert owners from LOVAC |
+| **Housings**       | `INSERT ... ON CONFLICT DO UPDATE` or `MERGE` (PG15+) | True upsert — new housings expected          |
+| **Housing-Owners** | `INSERT ... ON CONFLICT DO UPDATE` or `MERGE`         | True upsert                                  |
+| **Events**         | `INSERT ... ON CONFLICT DO NOTHING`                   | Append-only, idempotent via UUIDv5           |
 
 ### Bulk Load: COPY Protocol via ADBC
 
@@ -104,6 +105,7 @@ staging data needs to be shared across connections.
 ### PostgreSQL Tuning for Bulk Operations
 
 During import runs, consider temporarily adjusting:
+
 - `maintenance_work_mem` — higher values speed up index rebuilds and VACUUM.
 - `max_wal_size` — increase to avoid excessive checkpoints during bulk writes.
 - `checkpoint_completion_target = 0.9` — spread checkpoint I/O.
@@ -142,13 +144,13 @@ No `RETURNING` support as of PG17.
 
 ### Other Patterns Considered
 
-| Pattern | When to use | Our case |
-|---------|-------------|----------|
-| **Table swap** (CREATE + RENAME) | Replacing >50% of rows | No — partial updates. Also: FKs reference tables by OID, not name — swap breaks them unless using pg_repack for catalog-level OID swapping |
-| **Partition swapping** (DETACH/ATTACH) | Table already partitioned | No — not partitioned |
-| **Drop indexes + rebuild** | Up to 14x faster bulk loads | Risky on live tables |
-| **HOT updates** | Only non-indexed columns updated | Worth enabling (fillfactor=80) |
-| **Disable triggers** | Audit triggers slow down bulk ops | Evaluate per table |
+| Pattern                                | When to use                       | Our case                                                                                                                                   |
+| -------------------------------------- | --------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------ |
+| **Table swap** (CREATE + RENAME)       | Replacing >50% of rows            | No — partial updates. Also: FKs reference tables by OID, not name — swap breaks them unless using pg_repack for catalog-level OID swapping |
+| **Partition swapping** (DETACH/ATTACH) | Table already partitioned         | No — not partitioned                                                                                                                       |
+| **Drop indexes + rebuild**             | Up to 14x faster bulk loads       | Risky on live tables                                                                                                                       |
+| **HOT updates**                        | Only non-indexed columns updated  | Worth enabling (fillfactor=80)                                                                                                             |
+| **Disable triggers**                   | Audit triggers slow down bulk ops | Evaluate per table                                                                                                                         |
 
 ---
 
@@ -251,13 +253,13 @@ upsert semantics.
 
 ### Reusing Existing Infrastructure
 
-| What | Reuse | New |
-|------|-------|-----|
-| S3 access (Cellar) | `Config.CELLAR_*` credentials, `boto3` already in deps | — |
-| PostgreSQL connection | `psycopg2_connection_resource` in `resources/` | Upgrade to psycopg v3 |
-| LOVAC S3 paths | `cerema.py` already defines paths per year | Reference same config |
-| Dagster instance | Same `definitions.py`, same UI | Add assets to `Definitions()` |
-| dbt / DuckDB / Metabase | Untouched — daily sync picks up PG changes | — |
+| What                    | Reuse                                                  | New                           |
+| ----------------------- | ------------------------------------------------------ | ----------------------------- |
+| S3 access (Cellar)      | `Config.CELLAR_*` credentials, `boto3` already in deps | —                             |
+| PostgreSQL connection   | `psycopg2_connection_resource` in `resources/`         | Upgrade to psycopg v3         |
+| LOVAC S3 paths          | `cerema.py` already defines paths per year             | Reference same config         |
+| Dagster instance        | Same `definitions.py`, same UI                         | Add assets to `Definitions()` |
+| dbt / DuckDB / Metabase | Untouched — daily sync picks up PG changes             | —                             |
 
 ### New Dependencies (pyproject.toml)
 
@@ -282,12 +284,12 @@ interface.
 Business rules live in **pure functions** (`transforms.py`, `schemas.py`), testable
 without Dagster, without Docker, without anything but `pytest`.
 
-| Layer | What to test | How | Speed |
-|-------|-------------|-----|-------|
-| **Validation** (`schemas.py`) | Pydantic rejects bad input | `pytest.raises`, hypothesis | ms |
-| **Transforms** (`transforms.py`) | Polars logic, correct output | Build DataFrame, assert result | ms |
-| **Writers** (`writers.py`) | SQL: update-only / upsert / idempotent | Real PostgreSQL test DB | ~100ms |
-| **Assets** (`assets.py`) | Not tested directly | Thin glue calling pure functions | — |
+| Layer                            | What to test                           | How                              | Speed  |
+| -------------------------------- | -------------------------------------- | -------------------------------- | ------ |
+| **Validation** (`schemas.py`)    | Pydantic rejects bad input             | `pytest.raises`, hypothesis      | ms     |
+| **Transforms** (`transforms.py`) | Polars logic, correct output           | Build DataFrame, assert result   | ms     |
+| **Writers** (`writers.py`)       | SQL: update-only / upsert / idempotent | Real PostgreSQL test DB          | ~100ms |
+| **Assets** (`assets.py`)         | Not tested directly                    | Thin glue calling pure functions | —      |
 
 ### Test Structure
 

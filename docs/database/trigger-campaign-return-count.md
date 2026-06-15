@@ -8,6 +8,7 @@
 ### What is the return count?
 
 `campaigns.return_count` is the number of **distinct housings** in a campaign that:
+
 - have a current status in the range **FIRST_CONTACT..BLOCKED** (numeric values 2–5), and
 - had at least one `housing:status-updated` or `housing:occupancy-updated` event created **after** the campaign's `sent_at` date.
 
@@ -23,11 +24,11 @@ Reads (campaign view loads) are far more frequent than writes (new events, `sent
 
 Three separate triggers maintain `return_count` because the events that invalidate it happen on different tables. PostgreSQL triggers are always bound to a single table.
 
-| Trigger | Table | Timing | Strategy |
-|---------|-------|--------|----------|
-| `trg_increment_return_count` | `housing_events` | `AFTER INSERT` | **Incremental** — `+1` if this is the first qualifying event for a housing/campaign pair (housing status also checked) |
-| `trg_recompute_return_count_on_sent_at_change` | `campaigns` | `AFTER UPDATE OF sent_at` | **Full recompute** — recounts from scratch because changing `sent_at` can qualify or disqualify any previously inserted events |
-| `trg_recompute_return_count_on_housing_status_change` | `fast_housing` | `AFTER UPDATE OF status` | **Full recompute** — fires only when a housing's status crosses the 2..5 boundary, updating all campaigns containing that housing |
+| Trigger                                               | Table            | Timing                    | Strategy                                                                                                                          |
+| ----------------------------------------------------- | ---------------- | ------------------------- | --------------------------------------------------------------------------------------------------------------------------------- |
+| `trg_increment_return_count`                          | `housing_events` | `AFTER INSERT`            | **Incremental** — `+1` if this is the first qualifying event for a housing/campaign pair (housing status also checked)            |
+| `trg_recompute_return_count_on_sent_at_change`        | `campaigns`      | `AFTER UPDATE OF sent_at` | **Full recompute** — recounts from scratch because changing `sent_at` can qualify or disqualify any previously inserted events    |
+| `trg_recompute_return_count_on_housing_status_change` | `fast_housing`   | `AFTER UPDATE OF status`  | **Full recompute** — fires only when a housing's status crosses the 2..5 boundary, updating all campaigns containing that housing |
 
 The incremental strategy is used for `housing_events` because it is the hot path (many events, frequent). Full recomputes are used for the other two because they are rare and the incremental approach cannot handle retroactive qualification changes.
 
@@ -37,11 +38,11 @@ A housing is counted **at most once** per campaign, regardless of how many quali
 
 ### Indexes used (all pre-existing)
 
-| Index | Migration | Used by |
-|-------|-----------|---------|
+| Index                                              | Migration        | Used by       |
+| -------------------------------------------------- | ---------------- | ------------- |
 | `campaigns_housing (housing_geo_code, housing_id)` | `20250611064718` | Both triggers |
-| `housing_events (housing_geo_code, housing_id)` | `20250716150612` | Both triggers |
-| `events (type, created_at DESC)` | `20250716132616` | Both triggers |
+| `housing_events (housing_geo_code, housing_id)`    | `20250716150612` | Both triggers |
+| `events (type, created_at DESC)`                   | `20250716132616` | Both triggers |
 
 ---
 
@@ -52,6 +53,7 @@ A housing is counted **at most once** per campaign, regardless of how many quali
 Fires on every insert into `housing_events`. Increments `return_count` by 1 for each campaign where this housing/event pair qualifies as the **first** return.
 
 **Early exit conditions (no DB writes):**
+
 - The event type (fetched from `events`) is not `housing:status-updated` or `housing:occupancy-updated`
 - The housing's current status is outside FIRST_CONTACT..BLOCKED (2..5)
 - No campaign contains this housing with a matching `sent_at`
@@ -145,6 +147,7 @@ EXECUTE FUNCTION increment_campaign_return_count();
 Fires whenever `sent_at` is updated on a campaign. Performs a **full recompute** of `return_count` from scratch, because changing `sent_at` can retroactively qualify or disqualify events that were already inserted before this update — something the incremental trigger on `housing_events` cannot handle.
 
 **Cases handled:**
+
 - `sent_at` set for the first time: counts all existing qualifying events
 - `sent_at` moved to an earlier date: more events may now qualify → count increases
 - `sent_at` moved to a later date: fewer events may qualify → count decreases
@@ -209,6 +212,7 @@ EXECUTE FUNCTION recompute_campaign_return_count();
 Fires whenever a housing's `status` column changes. Performs a **full recompute** for every campaign that contains this housing, but only when the status crosses the qualifying boundary (i.e., moves from inside 2..5 to outside, or vice versa). Changes within the same side of the boundary are no-ops.
 
 **No-op conditions:**
+
 - `status` did not change
 - Both `OLD.status` and `NEW.status` are inside 2..5 (still qualifying — count unchanged)
 - Both `OLD.status` and `NEW.status` are outside 2..5 (still non-qualifying — count unchanged)
@@ -282,20 +286,20 @@ EXECUTE FUNCTION recompute_return_count_on_housing_status_change();
 
 ### What are these columns?
 
-| Column | Type | Description |
-|--------|------|-------------|
-| `housing_count` | `integer` | Number of housings attached to the campaign via `campaigns_housing` |
-| `owner_count` | `integer` | Number of distinct primary owners (`rank = 1`) across those housings |
-| `return_rate` | `float` (generated) | `return_count::float / NULLIF(housing_count, 0)` — computed automatically by PostgreSQL, never written directly |
+| Column          | Type                | Description                                                                                                     |
+| --------------- | ------------------- | --------------------------------------------------------------------------------------------------------------- |
+| `housing_count` | `integer`           | Number of housings attached to the campaign via `campaigns_housing`                                             |
+| `owner_count`   | `integer`           | Number of distinct primary owners (`rank = 1`) across those housings                                            |
+| `return_rate`   | `float` (generated) | `return_count::float / NULLIF(housing_count, 0)` — computed automatically by PostgreSQL, never written directly |
 
 `return_rate` is a `STORED GENERATED ALWAYS AS` column; it is recomputed by Postgres whenever `return_count` or `housing_count` changes.
 
 ### Two-trigger design
 
-| Trigger | Table | Timing | Updates |
-|---------|-------|--------|---------|
-| `trg_update_campaign_counts` | `campaigns_housing` | `AFTER INSERT OR DELETE` | `housing_count`, `owner_count`, and (when `sent_at IS NOT NULL`) `return_count` |
-| `trg_update_campaign_owner_count` | `owners_housing` | `AFTER INSERT OR DELETE OR UPDATE OF rank` | `owner_count` only |
+| Trigger                           | Table               | Timing                                     | Updates                                                                         |
+| --------------------------------- | ------------------- | ------------------------------------------ | ------------------------------------------------------------------------------- |
+| `trg_update_campaign_counts`      | `campaigns_housing` | `AFTER INSERT OR DELETE`                   | `housing_count`, `owner_count`, and (when `sent_at IS NOT NULL`) `return_count` |
+| `trg_update_campaign_owner_count` | `owners_housing`    | `AFTER INSERT OR DELETE OR UPDATE OF rank` | `owner_count` only                                                              |
 
 Both triggers perform a **full recompute** (not incremental) because attach/detach operations are rare and correctness is simpler to guarantee with a fresh count.
 
@@ -372,6 +376,7 @@ EXECUTE FUNCTION update_campaign_counts();
 Fires when a primary-owner relationship changes. Updates `owner_count` for every campaign that contains the affected housing.
 
 **Early exit conditions (no DB writes):**
+
 - INSERT with `rank != 1`
 - DELETE with `rank != 1`
 - UPDATE where neither `OLD.rank` nor `NEW.rank` is 1
@@ -434,20 +439,20 @@ EXECUTE FUNCTION update_campaign_owner_count();
 
 ### What are these columns?
 
-| Column | Type | Description |
-|--------|------|-------------|
-| `housing_count` | `integer` | Number of housings attached to the group via `groups_housing` |
-| `owner_count` | `integer` | Number of distinct primary owners (`rank = 1`) across those housings |
+| Column          | Type      | Description                                                          |
+| --------------- | --------- | -------------------------------------------------------------------- |
+| `housing_count` | `integer` | Number of housings attached to the group via `groups_housing`        |
+| `owner_count`   | `integer` | Number of distinct primary owners (`rank = 1`) across those housings |
 
 These replace a `LEFT JOIN LATERAL COUNT(DISTINCT …)` that was computed on every listing request, causing ~8s latency for large groups (e.g. 90k housings).
 
 ### Three-trigger design
 
-| Trigger | Table | Timing | Updates |
-|---------|-------|--------|---------|
-| `trg_update_group_counts_after_insert` | `groups_housing` | `AFTER INSERT` (statement-level) | `housing_count`, `owner_count` (full recompute, once per affected group_id) |
-| `trg_update_group_counts_after_delete` | `groups_housing` | `AFTER DELETE` (statement-level) | `housing_count`, `owner_count` (full recompute, once per affected group_id) |
-| `trg_update_group_owner_count` | `owners_housing` | `AFTER INSERT OR DELETE OR UPDATE OF rank` | `owner_count` only (full recompute per row) |
+| Trigger                                | Table            | Timing                                     | Updates                                                                     |
+| -------------------------------------- | ---------------- | ------------------------------------------ | --------------------------------------------------------------------------- |
+| `trg_update_group_counts_after_insert` | `groups_housing` | `AFTER INSERT` (statement-level)           | `housing_count`, `owner_count` (full recompute, once per affected group_id) |
+| `trg_update_group_counts_after_delete` | `groups_housing` | `AFTER DELETE` (statement-level)           | `housing_count`, `owner_count` (full recompute, once per affected group_id) |
+| `trg_update_group_owner_count`         | `owners_housing` | `AFTER INSERT OR DELETE OR UPDATE OF rank` | `owner_count` only (full recompute per row)                                 |
 
 The `groups_housing` triggers use `FOR EACH STATEMENT` with transition tables (`REFERENCING NEW TABLE` / `REFERENCING OLD TABLE`) so that bulk housing additions (e.g. 90k housings at Bordeaux Métropole) trigger a single recompute per affected group rather than O(N) recomputes. Separate INSERT and DELETE triggers are required because PostgreSQL only allows `NEW TABLE` in INSERT triggers and `OLD TABLE` in DELETE triggers.
 
@@ -470,6 +475,7 @@ Uses `REFERENCING OLD TABLE AS old_rows`. Selects all distinct `group_id` values
 **Table:** `owners_housing` — **Timing:** `AFTER INSERT OR DELETE OR UPDATE OF rank FOR EACH ROW`
 
 **Early exit conditions (no DB writes):**
+
 - INSERT with `rank != 1`
 - DELETE with `rank != 1`
 - UPDATE where neither `OLD.rank` nor `NEW.rank` is 1
@@ -480,13 +486,13 @@ Iterates over all `group_id` values in `groups_housing` that contain the affecte
 
 ## Full trigger inventory
 
-| Trigger | Table | Timing | Function | Updates |
-|---------|-------|--------|----------|---------|
-| `trg_increment_return_count` | `housing_events` | `AFTER INSERT` | `increment_campaign_return_count()` | `return_count` (+1 incremental, status-filtered) |
-| `trg_recompute_return_count_on_sent_at_change` | `campaigns` | `AFTER UPDATE OF sent_at` | `recompute_campaign_return_count()` | `return_count` (full recompute, status-filtered) |
-| `trg_recompute_return_count_on_housing_status_change` | `fast_housing` | `AFTER UPDATE OF status` | `recompute_return_count_on_housing_status_change()` | `return_count` (full recompute, boundary crossings only) |
-| `trg_update_campaign_counts` | `campaigns_housing` | `AFTER INSERT OR DELETE` | `update_campaign_counts()` | `housing_count`, `owner_count`, `return_count` (full recompute, status-filtered) |
-| `trg_update_campaign_owner_count` | `owners_housing` | `AFTER INSERT OR DELETE OR UPDATE OF rank` | `update_campaign_owner_count()` | `owner_count` (full recompute) |
-| `trg_update_group_counts_after_insert` | `groups_housing` | `AFTER INSERT` (statement-level) | `update_group_counts_after_insert()` | `housing_count`, `owner_count` (full recompute, once per affected group) |
-| `trg_update_group_counts_after_delete` | `groups_housing` | `AFTER DELETE` (statement-level) | `update_group_counts_after_delete()` | `housing_count`, `owner_count` (full recompute, once per affected group) |
-| `trg_update_group_owner_count` | `owners_housing` | `AFTER INSERT OR DELETE OR UPDATE OF rank` | `update_group_owner_count()` | `owner_count` (full recompute) |
+| Trigger                                               | Table               | Timing                                     | Function                                            | Updates                                                                          |
+| ----------------------------------------------------- | ------------------- | ------------------------------------------ | --------------------------------------------------- | -------------------------------------------------------------------------------- |
+| `trg_increment_return_count`                          | `housing_events`    | `AFTER INSERT`                             | `increment_campaign_return_count()`                 | `return_count` (+1 incremental, status-filtered)                                 |
+| `trg_recompute_return_count_on_sent_at_change`        | `campaigns`         | `AFTER UPDATE OF sent_at`                  | `recompute_campaign_return_count()`                 | `return_count` (full recompute, status-filtered)                                 |
+| `trg_recompute_return_count_on_housing_status_change` | `fast_housing`      | `AFTER UPDATE OF status`                   | `recompute_return_count_on_housing_status_change()` | `return_count` (full recompute, boundary crossings only)                         |
+| `trg_update_campaign_counts`                          | `campaigns_housing` | `AFTER INSERT OR DELETE`                   | `update_campaign_counts()`                          | `housing_count`, `owner_count`, `return_count` (full recompute, status-filtered) |
+| `trg_update_campaign_owner_count`                     | `owners_housing`    | `AFTER INSERT OR DELETE OR UPDATE OF rank` | `update_campaign_owner_count()`                     | `owner_count` (full recompute)                                                   |
+| `trg_update_group_counts_after_insert`                | `groups_housing`    | `AFTER INSERT` (statement-level)           | `update_group_counts_after_insert()`                | `housing_count`, `owner_count` (full recompute, once per affected group)         |
+| `trg_update_group_counts_after_delete`                | `groups_housing`    | `AFTER DELETE` (statement-level)           | `update_group_counts_after_delete()`                | `housing_count`, `owner_count` (full recompute, once per affected group)         |
+| `trg_update_group_owner_count`                        | `owners_housing`    | `AFTER INSERT OR DELETE OR UPDATE OF rank` | `update_group_owner_count()`                        | `owner_count` (full recompute)                                                   |

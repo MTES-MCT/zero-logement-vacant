@@ -16,7 +16,7 @@ export async function up(knex: Knex): Promise<void> {
     }),
     knex.schema.alterTable('campaigns_housing', (table) => {
       table.string('advice');
-    }),
+    })
   ]);
 }
 
@@ -30,6 +30,6 @@ export async function down(knex: Knex): Promise<void> {
     }),
     knex.schema.alterTable('housing', (table) => {
       table.dropColumn('data_years');
-    }),
+    })
   ]);
 }

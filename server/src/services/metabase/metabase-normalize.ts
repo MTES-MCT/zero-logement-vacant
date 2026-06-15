@@ -3,6 +3,7 @@ import type {
   Tab,
   TableColumnMeta
 } from '@zerologementvacant/models';
+
 import type {
   DashboardData,
   DashboardParameter,
@@ -21,8 +22,12 @@ function mergeVisualizationSettings(
 ): MetabaseVisualizationSettings {
   return {
     ...card,
-    ...(dashcard['number.style'] !== undefined && { 'number.style': dashcard['number.style'] }),
-    ...(dashcard['scalar.field'] !== undefined && { 'scalar.field': dashcard['scalar.field'] }),
+    ...(dashcard['number.style'] !== undefined && {
+      'number.style': dashcard['number.style']
+    }),
+    ...(dashcard['scalar.field'] !== undefined && {
+      'scalar.field': dashcard['scalar.field']
+    }),
     ...(dashcard['table.columns'] !== undefined && {
       'table.columns': dashcard['table.columns']
     }),
@@ -32,7 +37,10 @@ function mergeVisualizationSettings(
     ...(dashcard['graph.metrics'] !== undefined && {
       'graph.metrics': dashcard['graph.metrics']
     }),
-    column_settings: { ...(card.column_settings ?? {}), ...(dashcard.column_settings ?? {}) }
+    column_settings: {
+      ...(card.column_settings ?? {}),
+      ...(dashcard.column_settings ?? {})
+    }
   };
 }
 
@@ -51,9 +59,10 @@ function activeColumnSettings(
   return settings.column_settings?.[JSON.stringify(['name', activeCol.name])];
 }
 
-function resolveAxisColumns(
-  settings: MetabaseVisualizationSettings
-): { labelColumn: string | null; valueColumn: string | null } {
+function resolveAxisColumns(settings: MetabaseVisualizationSettings): {
+  labelColumn: string | null;
+  valueColumn: string | null;
+} {
   return {
     labelColumn: settings['graph.dimensions']?.[0] ?? null,
     valueColumn: settings['graph.metrics']?.[0] ?? null
@@ -67,7 +76,8 @@ function detectColumnFormat(
   if (columnName === null) return { format: 'number', decimals: 0 };
   const col = settings.column_settings?.[JSON.stringify(['name', columnName])];
   if (!col) return { format: 'number', decimals: 0 };
-  const isPercent = col.suffix?.includes('%') === true || col.number_style === 'percent';
+  const isPercent =
+    col.suffix?.includes('%') === true || col.number_style === 'percent';
   return {
     format: isPercent ? 'percent' : 'number',
     decimals: col.decimals ?? 0
@@ -94,7 +104,8 @@ function detectCardType(
 }
 
 function detectDecimals(settings: MetabaseVisualizationSettings): number {
-  if (settings['scalar.decimals'] !== undefined) return settings['scalar.decimals'];
+  if (settings['scalar.decimals'] !== undefined)
+    return settings['scalar.decimals'];
   const col = activeColumnSettings(settings);
   return col?.decimals ?? 0;
 }

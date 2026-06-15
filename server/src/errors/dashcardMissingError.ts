@@ -12,8 +12,8 @@ export default class DashcardMissingError
       message: `Dashcard ${dashcardId} not found or not a supported type`,
       status: constants.HTTP_STATUS_NOT_FOUND,
       data: {
-        dashcardId,
-      },
+        dashcardId
+      }
     });
   }
 }

@@ -1,4 +1,5 @@
 import { faker } from '@faker-js/faker/locale/fr';
+import { HousingStatus } from '@zerologementvacant/models';
 
 import {
   CampaignEventApi,
@@ -27,13 +28,13 @@ import {
   HousingEvents
 } from '~/repositories/eventRepository';
 import {
-  formatHousingRecordApi,
-  Housing
-} from '~/repositories/housingRepository';
-import {
   formatHousingOwnerApi,
   HousingOwners
 } from '~/repositories/housingOwnerRepository';
+import {
+  formatHousingRecordApi,
+  Housing
+} from '~/repositories/housingRepository';
 import { formatOwnerApi, Owners } from '~/repositories/ownerRepository';
 import { toUserDBO, Users } from '~/repositories/userRepository';
 import {
@@ -45,7 +46,6 @@ import {
   genOwnerApi,
   genUserApi
 } from '~/test/testFixtures';
-import { HousingStatus } from '@zerologementvacant/models';
 
 describe('Campaign repository', () => {
   const establishment = genEstablishmentApi();
@@ -118,8 +118,16 @@ describe('Campaign repository', () => {
           formatHousingRecordApi(housingOut)
         ]);
         await CampaignsHousing().insert([
-          { campaign_id: campaignIn.id, housing_id: housingIn.id, housing_geo_code: housingIn.geoCode },
-          { campaign_id: campaignOut.id, housing_id: housingOut.id, housing_geo_code: housingOut.geoCode }
+          {
+            campaign_id: campaignIn.id,
+            housing_id: housingIn.id,
+            housing_geo_code: housingIn.geoCode
+          },
+          {
+            campaign_id: campaignOut.id,
+            housing_id: housingOut.id,
+            housing_geo_code: housingOut.geoCode
+          }
         ]);
 
         const result = await campaignRepository.find({
@@ -145,15 +153,25 @@ describe('Campaign repository', () => {
           formatHousingRecordApi(housingOut)
         ]);
         await CampaignsHousing().insert([
-          { campaign_id: campaign.id, housing_id: housingIn.id, housing_geo_code: housingIn.geoCode },
-          { campaign_id: campaign.id, housing_id: housingOut.id, housing_geo_code: housingOut.geoCode }
+          {
+            campaign_id: campaign.id,
+            housing_id: housingIn.id,
+            housing_geo_code: housingIn.geoCode
+          },
+          {
+            campaign_id: campaign.id,
+            housing_id: housingOut.id,
+            housing_geo_code: housingOut.geoCode
+          }
         ]);
 
         const result = await campaignRepository.find({
           filters: { establishmentId: establishment.id, geoCodes: [inGeoCode] }
         });
 
-        expect(result.map((campaign) => campaign.id)).not.toContain(campaign.id);
+        expect(result.map((campaign) => campaign.id)).not.toContain(
+          campaign.id
+        );
       });
     });
   });
@@ -176,7 +194,11 @@ describe('Campaign repository', () => {
 
     it('should expose returnCount from the database', async () => {
       const campaign = genCampaignApi(establishment.id, user);
-      await Campaigns().insert({ ...formatCampaignApi(campaign), return_count: 5, sent_at: new Date() });
+      await Campaigns().insert({
+        ...formatCampaignApi(campaign),
+        return_count: 5,
+        sent_at: new Date()
+      });
 
       const result = await campaignRepository.findOne({
         id: campaign.id,
@@ -188,7 +210,10 @@ describe('Campaign repository', () => {
 
     it('should expose returnCount as null when sentAt is null', async () => {
       const campaign = genCampaignApi(establishment.id, user);
-      await Campaigns().insert({ ...formatCampaignApi(campaign), return_count: 0 });
+      await Campaigns().insert({
+        ...formatCampaignApi(campaign),
+        return_count: 0
+      });
 
       const result = await campaignRepository.findOne({
         id: campaign.id,
@@ -200,7 +225,10 @@ describe('Campaign repository', () => {
 
     it('should expose housingCount from the database', async () => {
       const campaign = genCampaignApi(establishment.id, user);
-      await Campaigns().insert({ ...formatCampaignApi(campaign), housing_count: 3 });
+      await Campaigns().insert({
+        ...formatCampaignApi(campaign),
+        housing_count: 3
+      });
 
       const result = await campaignRepository.findOne({
         id: campaign.id,
@@ -212,7 +240,10 @@ describe('Campaign repository', () => {
 
     it('should expose ownerCount from the database', async () => {
       const campaign = genCampaignApi(establishment.id, user);
-      await Campaigns().insert({ ...formatCampaignApi(campaign), owner_count: 2 });
+      await Campaigns().insert({
+        ...formatCampaignApi(campaign),
+        owner_count: 2
+      });
 
       const result = await campaignRepository.findOne({
         id: campaign.id,
@@ -478,7 +509,9 @@ describe('Campaign repository', () => {
       await Owners().insert(formatOwnerApi(owner));
 
       const housingOwner = genHousingOwnerApi(housing, owner);
-      await HousingOwners().insert(formatHousingOwnerApi({ ...housingOwner, rank: 1 }));
+      await HousingOwners().insert(
+        formatHousingOwnerApi({ ...housingOwner, rank: 1 })
+      );
 
       const result = await campaignRepository.findOne({
         id: campaign.id,
@@ -505,7 +538,9 @@ describe('Campaign repository', () => {
       await Owners().insert(formatOwnerApi(owner));
 
       const housingOwner = genHousingOwnerApi(housing, owner);
-      await HousingOwners().insert(formatHousingOwnerApi({ ...housingOwner, rank: 1 }));
+      await HousingOwners().insert(
+        formatHousingOwnerApi({ ...housingOwner, rank: 1 })
+      );
 
       await HousingOwners()
         .where({ owner_id: owner.id, housing_id: housing.id })
@@ -536,7 +571,9 @@ describe('Campaign repository', () => {
       await Owners().insert(formatOwnerApi(owner));
 
       const housingOwner = genHousingOwnerApi(housing, owner);
-      await HousingOwners().insert(formatHousingOwnerApi({ ...housingOwner, rank: 1 }));
+      await HousingOwners().insert(
+        formatHousingOwnerApi({ ...housingOwner, rank: 1 })
+      );
 
       await HousingOwners()
         .where({ owner_id: owner.id, housing_id: housing.id })
@@ -592,9 +629,15 @@ describe('Campaign repository', () => {
     it('should decrement return_count when a housing with return events is detached', async () => {
       const sentAt = faker.date.past();
       const campaign = genCampaignApi(establishment.id, user);
-      await Campaigns().insert({ ...formatCampaignApi(campaign), sent_at: sentAt });
+      await Campaigns().insert({
+        ...formatCampaignApi(campaign),
+        sent_at: sentAt
+      });
 
-      const housing = { ...genHousingApi(), status: HousingStatus.FIRST_CONTACT };
+      const housing = {
+        ...genHousingApi(),
+        status: HousingStatus.FIRST_CONTACT
+      };
       await Housing().insert(formatHousingRecordApi(housing));
 
       await CampaignsHousing().insert({
@@ -668,7 +711,10 @@ describe('Campaign repository', () => {
         });
       const afterSentAt = new Date(sentAt.getTime() + 1000);
       await Events().insert(
-        housingEvents.map((e) => ({ ...formatEventApi(e), created_at: afterSentAt }))
+        housingEvents.map((e) => ({
+          ...formatEventApi(e),
+          created_at: afterSentAt
+        }))
       );
       await HousingEvents().insert(housingEvents.map(formatHousingEventApi));
 
@@ -684,7 +730,10 @@ describe('Campaign repository', () => {
       async function setupCampaignWithHousing(status: HousingStatus) {
         const sentAt = faker.date.past();
         const campaign = genCampaignApi(establishment.id, user);
-        await Campaigns().insert({ ...formatCampaignApi(campaign), sent_at: sentAt });
+        await Campaigns().insert({
+          ...formatCampaignApi(campaign),
+          sent_at: sentAt
+        });
 
         const housing = { ...genHousingApi(), status };
         await Housing().insert(formatHousingRecordApi(housing));
@@ -739,9 +788,15 @@ describe('Campaign repository', () => {
       it('should decrement return_count when housing status moves from qualifying to non-qualifying', async () => {
         const sentAt = faker.date.past();
         const campaign = genCampaignApi(establishment.id, user);
-        await Campaigns().insert({ ...formatCampaignApi(campaign), sent_at: sentAt });
+        await Campaigns().insert({
+          ...formatCampaignApi(campaign),
+          sent_at: sentAt
+        });
 
-        const housing = { ...genHousingApi(), status: HousingStatus.FIRST_CONTACT };
+        const housing = {
+          ...genHousingApi(),
+          status: HousingStatus.FIRST_CONTACT
+        };
         await Housing().insert(formatHousingRecordApi(housing));
         await CampaignsHousing().insert({
           campaign_id: campaign.id,
@@ -787,7 +842,10 @@ describe('Campaign repository', () => {
       it('should increment return_count when housing status moves from non-qualifying to qualifying', async () => {
         const sentAt = faker.date.past();
         const campaign = genCampaignApi(establishment.id, user);
-        await Campaigns().insert({ ...formatCampaignApi(campaign), sent_at: sentAt });
+        await Campaigns().insert({
+          ...formatCampaignApi(campaign),
+          sent_at: sentAt
+        });
 
         const housing = { ...genHousingApi(), status: HousingStatus.WAITING };
         await Housing().insert(formatHousingRecordApi(housing));

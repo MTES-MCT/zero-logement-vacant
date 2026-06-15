@@ -25,6 +25,7 @@ app.use('/', protectedRouter);
 ```
 
 Not affected:
+
 - `GET /` healthcheck (mounted directly on `app`)
 - `/api-docs` and `/api-docs.yaml` OpenAPI endpoints (mounted directly on `app`)
 
@@ -56,6 +57,7 @@ No logic changes — purely string substitution.
 ## Verification
 
 After the change:
+
 - `yarn nx test server` — all controller tests pass
 - `yarn nx test frontend` — all MSW-backed tests pass
 - Manual smoke test: authenticate and load the housing list in local dev

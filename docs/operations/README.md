@@ -4,13 +4,13 @@
 
 ## Runbooks
 
-| Runbook | Description | When to Use |
-|---------|-------------|-------------|
-| [Incident Response](runbooks/incident-response.md) | Handle production incidents | Service degradation or outage |
-| [Database Operations](runbooks/database-operations.md) | PostgreSQL maintenance | Backups, migrations, queries |
-| [Deployment & Rollback](runbooks/deployment-rollback.md) | Deploy and rollback procedures | Releasing code changes |
-| [Troubleshooting](runbooks/troubleshooting.md) | Common issues and solutions | Debugging problems |
-| [Monitoring & Alerts](runbooks/monitoring-alerts.md) | Monitoring stack and alerts | Setting up observability |
+| Runbook                                                  | Description                    | When to Use                   |
+| -------------------------------------------------------- | ------------------------------ | ----------------------------- |
+| [Incident Response](runbooks/incident-response.md)       | Handle production incidents    | Service degradation or outage |
+| [Database Operations](runbooks/database-operations.md)   | PostgreSQL maintenance         | Backups, migrations, queries  |
+| [Deployment & Rollback](runbooks/deployment-rollback.md) | Deploy and rollback procedures | Releasing code changes        |
+| [Troubleshooting](runbooks/troubleshooting.md)           | Common issues and solutions    | Debugging problems            |
+| [Monitoring & Alerts](runbooks/monitoring-alerts.md)     | Monitoring stack and alerts    | Setting up observability      |
 
 ## Quick Actions
 
@@ -57,19 +57,19 @@ yarn workspace @zerologementvacant/server migrate:status
 
 ## Incident Severity Levels
 
-| Level | Response Time | Examples |
-|-------|---------------|----------|
-| **P1** | 15 minutes | App down, data loss |
-| **P2** | 1 hour | Major feature broken |
-| **P3** | 4 hours | Minor feature degraded |
-| **P4** | 24 hours | Cosmetic issues |
+| Level  | Response Time | Examples               |
+| ------ | ------------- | ---------------------- |
+| **P1** | 15 minutes    | App down, data loss    |
+| **P2** | 1 hour        | Major feature broken   |
+| **P3** | 4 hours       | Minor feature degraded |
+| **P4** | 24 hours      | Cosmetic issues        |
 
 ## Key Contacts
 
-| Role | Responsibility |
-|------|----------------|
-| On-call Developer | First response |
-| Tech Lead | Escalation |
+| Role                 | Responsibility        |
+| -------------------- | --------------------- |
+| On-call Developer    | First response        |
+| Tech Lead            | Escalation            |
 | Clever Cloud Support | Infrastructure issues |
 
 ## Maintenance Windows

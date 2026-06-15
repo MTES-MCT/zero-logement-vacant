@@ -1,6 +1,8 @@
-import * as OTPAuth from 'otpauth';
 import crypto from 'crypto';
+
 import bcrypt from 'bcryptjs';
+import * as OTPAuth from 'otpauth';
+
 import { logger } from '~/infra/logger';
 
 const OTP_CODE_LENGTH = 6;
@@ -137,7 +139,10 @@ export async function hashCode(code: string): Promise<string> {
 /**
  * Verify a 2FA code against a hashed version
  */
-export async function verifyHashedCode(code: string, hashedCode: string): Promise<boolean> {
+export async function verifyHashedCode(
+  code: string,
+  hashedCode: string
+): Promise<boolean> {
   return bcrypt.compare(code, hashedCode);
 }
 

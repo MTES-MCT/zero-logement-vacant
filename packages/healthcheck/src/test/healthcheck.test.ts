@@ -1,10 +1,11 @@
-import express from 'express';
 import { constants } from 'node:http2';
+
+import { createLogger, LogLevel } from '@zerologementvacant/utils';
+import express from 'express';
 import request from 'supertest';
 
-import { CheckStatus, healthcheck } from '../healthcheck';
 import { postgresCheck } from '../checks/postgres';
-import { createLogger, LogLevel } from '@zerologementvacant/utils';
+import { CheckStatus, healthcheck } from '../healthcheck';
 
 describe('Healthcheck API', () => {
   it('should return HTTP 200 OK', async () => {
@@ -16,9 +17,7 @@ describe('Healthcheck API', () => {
     app.get(
       '/',
       healthcheck({
-        checks: [
-          postgresCheck('postgres://postgres:postgres@localhost:5432')
-        ],
+        checks: [postgresCheck('postgres://postgres:postgres@localhost:5432')],
         logger
       })
     );
@@ -40,9 +39,7 @@ describe('Healthcheck API', () => {
     app.get(
       '/',
       healthcheck({
-        checks: [
-          postgresCheck('postgres://postgres:postgres@localhost:5000')
-        ],
+        checks: [postgresCheck('postgres://postgres:postgres@localhost:5000')],
         logger
       })
     );

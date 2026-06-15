@@ -5,8 +5,8 @@ import Container from '@mui/material/Container';
 import Skeleton from '@mui/material/Skeleton';
 import { styled } from '@mui/material/styles';
 import Typography from '@mui/material/Typography';
-
 import type { DashboardCard, Resource } from '@zerologementvacant/models';
+
 import AnalysisCard from '~/components/Analysis/AnalysisCard';
 import { useDocumentTitle } from '~/hooks/useDocumentTitle';
 import { useFindOneDashboardNextQuery } from '~/services/dashboard.service';

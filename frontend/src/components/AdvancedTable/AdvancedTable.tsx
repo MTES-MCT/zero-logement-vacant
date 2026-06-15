@@ -1,5 +1,6 @@
 import { fr } from '@codegouvfr/react-dsfr';
 import { Pagination as TablePagination } from '@codegouvfr/react-dsfr/Pagination';
+import SelectNext from '@codegouvfr/react-dsfr/SelectNext';
 import { type TableProps } from '@codegouvfr/react-dsfr/Table';
 import Skeleton from '@mui/material/Skeleton';
 import Stack from '@mui/material/Stack';
@@ -15,10 +16,9 @@ import {
   type TableOptions
 } from '@tanstack/react-table';
 import classNames from 'classnames';
-import { match } from 'ts-pattern';
 import { createRef, memo, useEffect, useState, type MouseEvent } from 'react';
+import { match } from 'ts-pattern';
 
-import SelectNext from '@codegouvfr/react-dsfr/SelectNext';
 import SingleCheckbox from '~/components/_app/AppCheckbox/SingleCheckbox';
 import SortButton from '~/components/AdvancedTable/SortButton';
 import { type Selection } from '~/hooks/useSelection';
@@ -182,10 +182,7 @@ function AdvancedTable<Data extends object>(props: AdvancedTableProps<Data>) {
                 <thead>
                   <tr>
                     {!enableSelection ? null : (
-                      <th
-                        className={fr.cx('fr-cell--fixed')}
-                        role="columnheader"
-                      >
+                      <th className={fr.cx('fr-cell--fixed')}>
                         <SingleCheckbox
                           small
                           option={{

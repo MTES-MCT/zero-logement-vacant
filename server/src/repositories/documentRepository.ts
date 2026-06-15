@@ -4,6 +4,7 @@ import db, { fromDateDBO, toDateDBO } from '~/infra/database';
 import { withinTransaction } from '~/infra/database/transaction';
 import { createLogger } from '~/infra/logger';
 import { DocumentApi } from '~/models/DocumentApi';
+
 import { UserDBO, fromUserDBO, USERS_TABLE } from './userRepository';
 
 const logger = createLogger('documentRepository');

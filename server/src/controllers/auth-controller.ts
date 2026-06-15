@@ -1,10 +1,12 @@
+import { constants } from 'http2';
+
 import { UserAccountDTO, UserRole } from '@zerologementvacant/models';
 import bcrypt from 'bcryptjs';
 import { Request, Response, type RequestHandler } from 'express';
 import { AuthenticatedRequest } from 'express-jwt';
-import { constants } from 'http2';
 import jwt from 'jsonwebtoken';
 import { object, string } from 'yup';
+
 import AuthenticationFailedError from '~/errors/authenticationFailedError';
 import EstablishmentMissingError from '~/errors/establishmentMissingError';
 import ResetLinkExpiredError from '~/errors/resetLinkExpiredError';
@@ -15,6 +17,7 @@ import UserMissingError from '~/errors/userMissingError';
 import config from '~/infra/config';
 import { logger } from '~/infra/logger';
 import { hasExpired } from '~/models/ResetLinkApi';
+import type { SignInPayload } from '~/models/SignInPayload';
 import {
   SALT_LENGTH,
   TokenPayload,
@@ -22,18 +25,18 @@ import {
   toUserDTO,
   UserApi
 } from '~/models/UserApi';
+import { filterGeoCodesByPerimeter } from '~/models/UserPerimeterApi';
 import establishmentRepository from '~/repositories/establishmentRepository';
 import resetLinkRepository from '~/repositories/resetLinkRepository';
-import userRepository from '~/repositories/userRepository';
 import userEstablishmentRepository from '~/repositories/user-establishment-repository';
+import userPerimeterRepository from '~/repositories/userPerimeterRepository';
+import userRepository from '~/repositories/userRepository';
 import ceremaService from '~/services/ceremaService';
 import {
   verifyAccessRights,
   accessErrorsToSuspensionCause
 } from '~/services/ceremaService/perimeterService';
 import { fetchUserKind } from '~/services/ceremaService/userKindService';
-import userPerimeterRepository from '~/repositories/userPerimeterRepository';
-import { filterGeoCodesByPerimeter } from '~/models/UserPerimeterApi';
 import mailService from '~/services/mailService';
 import {
   generateSimpleCode,
@@ -44,7 +47,6 @@ import {
   calculateLockoutEnd,
   MAX_FAILED_ATTEMPTS
 } from '~/services/twoFactorService';
-import type { SignInPayload } from '~/models/SignInPayload';
 
 // TODO: remove get, updateAccount
 // because they shall be implemented in userController

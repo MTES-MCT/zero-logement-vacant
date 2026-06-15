@@ -4,6 +4,7 @@ import {
   isActiveOwnerRank,
   isPreviousOwnerRank
 } from '@zerologementvacant/models';
+
 import {
   formatHousingOwnerApi,
   HousingOwnerDBO
@@ -11,18 +12,19 @@ import {
 import { formatHousingRecordApi } from '~/repositories/housingRepository';
 import { formatOwnerApi } from '~/repositories/ownerRepository';
 import { createNoopReporter } from '~/scripts/import-lovac/infra/reporters/noop-reporter';
+import {
+  genHousingApi,
+  genHousingOwnerApi,
+  genOwnerApi
+} from '~/test/testFixtures';
+
+import { SourceHousingOwner } from '../source-housing-owner';
 import { EnrichedSourceHousingOwners } from '../source-housing-owner-enricher';
 import {
   createHousingOwnerTransform,
   HousingOwnerChange,
   HousingOwnersChange
 } from '../source-housing-owner-transform';
-import {
-  genHousingApi,
-  genHousingOwnerApi,
-  genOwnerApi
-} from '~/test/testFixtures';
-import { SourceHousingOwner } from '../source-housing-owner';
 
 const ADMIN_USER_ID = faker.string.uuid();
 
@@ -74,11 +76,20 @@ describe('createHousingOwnerTransform', () => {
       const housing = formatHousingRecordApi(genHousingApi());
       const spy = vi.spyOn(reporter, 'failed');
       const source: SourceHousingOwner[] = [
-        makeSourceOwner(housing.geo_code, housing.local_id, faker.string.uuid(), 1)
+        makeSourceOwner(
+          housing.geo_code,
+          housing.local_id,
+          faker.string.uuid(),
+          1
+        )
       ];
       const enriched: EnrichedSourceHousingOwners = {
         source,
-        existing: { housing: housing as any, owners: [], existingHousingOwners: [] }
+        existing: {
+          housing: housing as any,
+          owners: [],
+          existingHousingOwners: []
+        }
       };
       const changes = transform(enriched);
       expect(changes).toStrictEqual([]);
@@ -104,7 +115,8 @@ describe('createHousingOwnerTransform', () => {
     it('should produce a housingOwners replace change with the new owner as active', () => {
       const changes = transform(enriched);
       const ownerChange = changes.find(
-        (c: HousingOwnerChange): c is HousingOwnersChange => c.type === 'housingOwners'
+        (c: HousingOwnerChange): c is HousingOwnersChange =>
+          c.type === 'housingOwners'
       )!;
       expect(ownerChange.kind).toBe('replace');
       const activeOwners = ownerChange.value.filter((ho: HousingOwnerDBO) =>
@@ -143,7 +155,8 @@ describe('createHousingOwnerTransform', () => {
     it('should archive the old owner with PREVIOUS_OWNER_RANK', () => {
       const changes = transform(enriched);
       const ownerChange = changes.find(
-        (c: HousingOwnerChange): c is HousingOwnersChange => c.type === 'housingOwners'
+        (c: HousingOwnerChange): c is HousingOwnersChange =>
+          c.type === 'housingOwners'
       )!;
       const archivedOwner = ownerChange.value.find(
         (ho: HousingOwnerDBO) => ho.owner_id === existingOwner.id

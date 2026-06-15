@@ -37,11 +37,11 @@ export interface TableCard extends CardCommon {
 
 // Column metadata — what the frontend needs to render headers and format cells
 export interface TableColumnMeta {
-  name: string;          // raw Metabase column name (stable key)
-  displayName: string;   // header label; falls back to name
+  name: string; // raw Metabase column name (stable key)
+  displayName: string; // header label; falls back to name
   baseType: 'number' | 'string' | 'date' | 'boolean' | 'unknown';
-  decimals?: number;     // from column_settings.decimals
-  suffix?: string;       // from column_settings.suffix (e.g. " €", " %")
+  decimals?: number; // from column_settings.decimals
+  suffix?: string; // from column_settings.suffix (e.g. " €", " %")
   numberStyle?: 'decimal' | 'percent' | 'currency' | 'scientific';
 }
 
@@ -50,7 +50,7 @@ export interface TableDataDTO {
   id: number;
   type: 'table';
   columns: TableColumnMeta[]; // visible columns in display order
-  rows: unknown[][];          // each row: values aligned to columns[]
+  rows: unknown[][]; // each row: values aligned to columns[]
 }
 
 // Updated unions
@@ -69,10 +69,12 @@ export type CardDataDTO =
 ```
 
 Notes:
+
 - `baseType` is normalized from Metabase's `cols[i].base_type` (`type/BigInteger`, `type/Date`, …). The detector collapses Metabase's many numeric types (`Integer`, `BigInteger`, `Decimal`, `Float`) into a single `'number'`.
 - Per-column `decimals`, `suffix`, `numberStyle` are only set when the PM configured them in `column_settings`; otherwise omitted.
 
 **New fixtures in `packages/models/src/test/fixtures.ts`:**
+
 - `genTableCard(override?)` — extends `CardCommon` pattern.
 - `genTableColumnMeta(override?)` — random `name`, `displayName`, `baseType`.
 - `genTableDataDTO(override?)` — generates 2–4 columns and 3–8 rows; row values match each column's `baseType` (numbers for `'number'`, words for `'string'`, ISO dates for `'date'`).
@@ -118,10 +120,10 @@ Add an optional **pre-resolved** column list — _not_ the raw Metabase settings
 ```typescript
 export interface TableColumnRef {
   name: string;
-  columnTitle?: string;   // from column_settings.column_title
+  columnTitle?: string; // from column_settings.column_title
   decimals?: number;
   suffix?: string;
-  numberStyle?: string;   // raw Metabase value; narrowed at the model boundary
+  numberStyle?: string; // raw Metabase value; narrowed at the model boundary
 }
 
 export interface DashcardRef {
@@ -191,7 +193,8 @@ function normalizeBaseType(
   if (/Integer|Decimal|Float|Number/.test(metabaseType)) return 'number';
   if (/Date|Time/.test(metabaseType)) return 'date';
   if (metabaseType.endsWith('Boolean')) return 'boolean';
-  if (metabaseType.endsWith('Text') || metabaseType.endsWith('String')) return 'string';
+  if (metabaseType.endsWith('Text') || metabaseType.endsWith('String'))
+    return 'string';
   return 'unknown';
 }
 ```
@@ -205,16 +208,18 @@ if (cardType === 'table') {
     const index = data.data.cols.findIndex((c) => c.name === ref.name);
     if (index === -1) return [];
     const col = data.data.cols[index];
-    return [{
-      name: ref.name,
-      displayName: ref.columnTitle ?? col.display_name ?? ref.name,
-      baseType: normalizeBaseType(col.base_type),
-      ...(ref.decimals !== undefined && { decimals: ref.decimals }),
-      ...(ref.suffix !== undefined && { suffix: ref.suffix }),
-      ...(ref.numberStyle !== undefined && {
-        numberStyle: ref.numberStyle as TableColumnMeta['numberStyle']
-      })
-    }];
+    return [
+      {
+        name: ref.name,
+        displayName: ref.columnTitle ?? col.display_name ?? ref.name,
+        baseType: normalizeBaseType(col.base_type),
+        ...(ref.decimals !== undefined && { decimals: ref.decimals }),
+        ...(ref.suffix !== undefined && { suffix: ref.suffix }),
+        ...(ref.numberStyle !== undefined && {
+          numberStyle: ref.numberStyle as TableColumnMeta['numberStyle']
+        })
+      }
+    ];
   });
 
   const indices = columns.map((c) =>
@@ -316,6 +321,7 @@ export default TableDisplay;
 ```
 
 Why these knobs:
+
 - `paginate={false}` — analysis tables are PM-curated summaries, not data grids.
 - `enableSorting` — client-side sort on raw values, free from tanstack.
 - `caption={card.title}` + `noCaption: true` — preserves DSFR padding while exposing the title to screen readers via `aria-label` (per the existing `AdvancedTable` contract).
@@ -344,6 +350,7 @@ No transcription accordion — a `<table>` is already an accessible textual stru
 **`packages/models`:** no new test files — fixtures are covered by the existing fixture test suite.
 
 **`server` (`controllers/test/dashboard-api.test.ts`):**
+
 - Table card appears in dashboard response when `card.display === 'table'`.
 - `GET /dashboards/:did/cards/:cid` returns `TableDataDTO`.
 - Respects `table.columns`: disabled columns filtered out, order preserved.
@@ -353,6 +360,7 @@ No transcription accordion — a `<table>` is already an accessible textual stru
 - `decimals` / `suffix` / `numberStyle` only included when present in `column_settings`.
 
 **`frontend` (`components/Analysis/test/AnalysisCard.test.tsx`):**
+
 - Renders `AdvancedTable` when data type is `'table'`.
 - Headers use `column.displayName`.
 - Numeric cells formatted with `fr-FR` locale (thousand separators).

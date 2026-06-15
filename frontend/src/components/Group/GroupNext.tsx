@@ -171,7 +171,6 @@ function Group(props: Readonly<GroupProps>) {
             }}
           >
             <ul
-             
               style={{
                 listStyle: 'none',
                 padding: 0,

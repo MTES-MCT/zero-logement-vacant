@@ -1,11 +1,12 @@
-import { useMemo } from 'react';
-import { Container } from '../../_dsfr';
-import { createModal } from '@codegouvfr/react-dsfr/Modal';
 import Button from '@codegouvfr/react-dsfr/Button';
-import AppLinkAsButton from '../../_app/AppLinkAsButton/AppLinkAsButton';
-import type { ReactElement, ReactNode } from 'react';
 import type { ButtonProps } from '@codegouvfr/react-dsfr/Button';
+import { createModal } from '@codegouvfr/react-dsfr/Modal';
+import { useMemo } from 'react';
+import type { ReactElement, ReactNode } from 'react';
+
+import AppLinkAsButton from '../../_app/AppLinkAsButton/AppLinkAsButton';
 import type { AppLinkAsButtonProps } from '../../_app/AppLinkAsButton/AppLinkAsButton';
+import { Container } from '../../_dsfr';
 
 interface Props {
   modalId: string;

@@ -14,14 +14,17 @@ export function brevoCheck(apiKey: string, options?: BrevoCheckOptions): Check {
       }
 
       try {
-        await fetch('https://api.brevo.com/v3/smtp/statistics/aggregatedReport', {
-          method: 'GET',
-          headers: {
-            accept: 'application/json',
-            'api-key': apiKey
-          },
-          signal: AbortSignal.timeout(2000),
-        }).then((res) => {
+        await fetch(
+          'https://api.brevo.com/v3/smtp/statistics/aggregatedReport',
+          {
+            method: 'GET',
+            headers: {
+              accept: 'application/json',
+              'api-key': apiKey
+            },
+            signal: AbortSignal.timeout(2000)
+          }
+        ).then((res) => {
           if (res.status !== 200) {
             throw new Error('Brevo API is not available');
           }

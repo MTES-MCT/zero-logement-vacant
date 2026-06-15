@@ -4,9 +4,9 @@ import Button from '@codegouvfr/react-dsfr/Button';
 import Grid from '@mui/material/Grid';
 import Typography from '@mui/material/Typography';
 
-import Image from '../../../components/Image/Image';
 import image from '../../../assets/images/fifty-hours.svg';
 import AppLink from '../../../components/_app/AppLink/AppLink';
+import Image from '../../../components/Image/Image';
 
 function AccountAccessForbiddenView() {
   return (

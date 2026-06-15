@@ -25,7 +25,10 @@ async function used(id: string): Promise<void> {
 async function getByEmail(email: string): Promise<SignupLinkApi | null> {
   logger.debug('Get signupLinkApi by prospect_email', email);
 
-  const link = await SignupLinks().select().where('prospect_email', email).first();
+  const link = await SignupLinks()
+    .select()
+    .where('prospect_email', email)
+    .first();
   return link ? parseSignupLinkApi(link) : null;
 }
 
@@ -38,18 +41,18 @@ interface SignupLinkDBO {
 export const parseSignupLinkApi = (link: SignupLinkDBO): SignupLinkApi => ({
   id: link.id,
   prospectEmail: link.prospect_email,
-  expiresAt: link.expires_at,
+  expiresAt: link.expires_at
 });
 
 export const formatSignupLinkApi = (link: SignupLinkApi): SignupLinkDBO => ({
   id: link.id,
   prospect_email: link.prospectEmail,
-  expires_at: link.expiresAt,
+  expires_at: link.expiresAt
 });
 
 export default {
   insert,
   get,
   used,
-  getByEmail,
+  getByEmail
 };

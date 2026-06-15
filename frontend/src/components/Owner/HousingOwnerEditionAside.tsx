@@ -1,6 +1,8 @@
 import { fr } from '@codegouvfr/react-dsfr';
 import RadioButtons from '@codegouvfr/react-dsfr/RadioButtons';
+import ToggleSwitch from '@codegouvfr/react-dsfr/ToggleSwitch';
 import { yupResolver } from '@hookform/resolvers/yup';
+import Box from '@mui/material/Box';
 import Stack from '@mui/material/Stack';
 import Typography from '@mui/material/Typography';
 import {
@@ -9,43 +11,41 @@ import {
   PREVIOUS_OWNER_RANK
 } from '@zerologementvacant/models';
 import { Controller, FormProvider, useForm } from 'react-hook-form';
+import { match, Pattern } from 'ts-pattern';
 import * as yup from 'yup';
 
-import ToggleSwitch from '@codegouvfr/react-dsfr/ToggleSwitch';
-import Box from '@mui/material/Box';
-import { match, Pattern } from 'ts-pattern';
 import Aside, { type AsideProps } from '~/components/Aside/Aside';
 import type { HousingOwner } from '~/models/Owner';
+
 import HousingOwnerInactiveSelect from './HousingOwnerInactiveSelect';
 import OwnerFormFields, { OWNER_FORM_FIELD_SCHEMA } from './OwnerFormFields';
 
-const schema = yup.object({
-  isActive: yup.boolean().required(),
-  rank: yup.string()
-    .oneOf(['primary', 'secondary'])
-    .nullable()
-    .optional()
-    .default(undefined)
-    .when('isActive', ([isActive], schema) =>
-      isActive === true
-        ? schema.required('Veuillez sélectionner un rang de contact')
-        : schema.nullable()
-    ),
-  inactiveRank: yup.number()
-    .oneOf([
-      DECEASED_OWNER_RANK,
-      INCORRECT_OWNER_RANK,
-      PREVIOUS_OWNER_RANK
-    ])
-    .nullable()
-    .optional()
-    .default(undefined)
-    .when('isActive', ([isActive], schema) =>
-      isActive === false
-        ? schema.required('Veuillez sélectionner un état du propriétaire')
-        : schema.nullable()
-    )
-})
+const schema = yup
+  .object({
+    isActive: yup.boolean().required(),
+    rank: yup
+      .string()
+      .oneOf(['primary', 'secondary'])
+      .nullable()
+      .optional()
+      .default(undefined)
+      .when('isActive', ([isActive], schema) =>
+        isActive === true
+          ? schema.required('Veuillez sélectionner un rang de contact')
+          : schema.nullable()
+      ),
+    inactiveRank: yup
+      .number()
+      .oneOf([DECEASED_OWNER_RANK, INCORRECT_OWNER_RANK, PREVIOUS_OWNER_RANK])
+      .nullable()
+      .optional()
+      .default(undefined)
+      .when('isActive', ([isActive], schema) =>
+        isActive === false
+          ? schema.required('Veuillez sélectionner un état du propriétaire')
+          : schema.nullable()
+      )
+  })
   .concat(OWNER_FORM_FIELD_SCHEMA)
   .required();
 
@@ -133,7 +133,8 @@ function HousingOwnerEditionAside(props: HousingOwnerEditionAsideProps) {
     if (housingOwner.banAddress && !payload.banAddress) {
       form.setError('banAddress', {
         type: 'manual',
-        message: "Veuillez sélectionner une adresse depuis la liste de suggestions."
+        message:
+          'Veuillez sélectionner une adresse depuis la liste de suggestions.'
       });
       return;
     }

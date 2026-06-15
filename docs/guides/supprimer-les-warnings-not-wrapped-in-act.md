@@ -6,4 +6,3 @@ enveloppées dans un appel `act(...)`.
 
 `@testing-library/react` wrap automatiquement les fonctions asynchrones
 lorsqu’on utilise par exemple `await screen.findByRole('button', { name: /^Confirmer/ })`.
-

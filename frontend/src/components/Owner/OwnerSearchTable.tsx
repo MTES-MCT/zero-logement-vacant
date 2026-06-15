@@ -5,8 +5,8 @@ import {
   createColumnHelper,
   type PaginationState
 } from '@tanstack/react-table';
-import { useMemo } from 'react';
 import { getOwnerDisplayName } from '@zerologementvacant/models';
+import { useMemo } from 'react';
 
 import AdvancedTable, {
   type AdvancedTableProps

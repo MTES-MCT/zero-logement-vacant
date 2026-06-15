@@ -1,7 +1,8 @@
-import { Knex } from 'knex';
 import path from 'node:path';
-import { match } from 'ts-pattern';
 import { WritableStream } from 'node:stream/web';
+
+import { Knex } from 'knex';
+import { match } from 'ts-pattern';
 
 import db from '~/infra/database';
 import { createLogger } from '~/infra/logger';
@@ -19,6 +20,7 @@ import {
 } from '~/repositories/housingRepository';
 import { Reporter } from '~/scripts/import-lovac/infra/reporters/reporter';
 import { createUpdater } from '~/scripts/import-lovac/infra/updater';
+
 import { SourceHousing } from './source-housing';
 import {
   HousingRecordInsert,
@@ -122,7 +124,11 @@ export function createHousingLoader(
     async close() {
       // Inserts must complete before events: housing_events has a FK to fast_housing.
       await flushInserts();
-      await Promise.all([flushEvents(), flushAddresses(), updateWriterStream.close()]);
+      await Promise.all([
+        flushEvents(),
+        flushAddresses(),
+        updateWriterStream.close()
+      ]);
     }
   });
 }
@@ -201,7 +207,9 @@ export async function updateHousings(
     );
 }
 
-function stripReadOnlyFields(housing: HousingRecordInsert): HousingRecordInsert {
+function stripReadOnlyFields(
+  housing: HousingRecordInsert
+): HousingRecordInsert {
   const {
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
     last_mutation_type,

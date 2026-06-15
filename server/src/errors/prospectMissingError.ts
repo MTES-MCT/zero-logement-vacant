@@ -10,7 +10,7 @@ export default class ProspectMissingError
     super({
       name: 'ProspectMissingError',
       message: `Prospect ${id} missing`,
-      status: constants.HTTP_STATUS_NOT_FOUND,
+      status: constants.HTTP_STATUS_NOT_FOUND
     });
   }
 }

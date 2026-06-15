@@ -2,8 +2,8 @@ import Input, { type InputProps } from '@codegouvfr/react-dsfr/Input';
 import Autocomplete from '@mui/material/Autocomplete';
 import { useDebounce, useList, usePreviousDistinct } from 'react-use';
 import type { MarkOptional } from 'ts-essentials';
-import type { Address } from '../../models/Address';
 
+import type { Address } from '../../models/Address';
 import addressService, {
   type AddressSearchResult
 } from '../../services/address.service';

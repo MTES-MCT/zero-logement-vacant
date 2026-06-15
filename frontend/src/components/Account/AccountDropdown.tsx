@@ -1,9 +1,9 @@
 import { fr } from '@codegouvfr/react-dsfr';
 import Button from '@codegouvfr/react-dsfr/Button';
-import { styled } from '@mui/material/styles';
 import { Divider } from '@mui/material';
 import Box from '@mui/material/Box';
 import Stack from '@mui/material/Stack';
+import { styled } from '@mui/material/styles';
 import Typography from '@mui/material/Typography';
 import { useState } from 'react';
 import { useLocation } from 'react-router';
@@ -82,7 +82,8 @@ function AccountDropdown() {
                 linkProps={{
                   to: '/compte',
                   onClick: doClose,
-                  'aria-current': location.pathname === '/compte' ? 'page' : undefined
+                  'aria-current':
+                    location.pathname === '/compte' ? 'page' : undefined
                 }}
                 size="small"
                 priority="tertiary no outline"
@@ -108,7 +109,8 @@ function AccountDropdown() {
                 linkProps={{
                   to: '/utilisateurs',
                   onClick: doClose,
-                  'aria-current': location.pathname === '/utilisateurs' ? 'page' : undefined
+                  'aria-current':
+                    location.pathname === '/utilisateurs' ? 'page' : undefined
                 }}
                 priority="tertiary no outline"
                 size="small"
@@ -116,7 +118,7 @@ function AccountDropdown() {
                 Utilisateurs rattachés à votre structure
               </MutedButton>
             </li>
-            <li role="separator" aria-hidden="true">
+            <li aria-hidden="true">
               <Divider sx={{ padding: 0 }} />
             </li>
             <li>
@@ -124,7 +126,10 @@ function AccountDropdown() {
                 linkProps={{
                   to: '/autres-structures',
                   onClick: doClose,
-                  'aria-current': location.pathname === '/autres-structures' ? 'page' : undefined
+                  'aria-current':
+                    location.pathname === '/autres-structures'
+                      ? 'page'
+                      : undefined
                 }}
                 priority="tertiary no outline"
                 size="small"

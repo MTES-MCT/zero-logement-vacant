@@ -88,5 +88,5 @@ export async function seed(knex: Knex): Promise<void> {
     precisionHousingEvents.map(formatPrecisionHousingEventApi)
   );
   console.timeEnd('20250528170439_precision-housing-events');
-  console.log('\n')
+  console.log('\n');
 }

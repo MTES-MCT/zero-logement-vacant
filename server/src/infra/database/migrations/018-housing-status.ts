@@ -16,7 +16,7 @@ export async function up(knex: Knex): Promise<void> {
         '    where c.id = ch.campaign_id\n' +
         '    order by ch.housing_id, c.campaign_number desc, reminder_number desc\n' +
         ') sub\n' +
-        ' where h.id = sub.housing_id',
+        ' where h.id = sub.housing_id'
     ),
     knex.schema.alterTable('campaigns_housing', (table) => {
       table.renameColumn('status', 'status_deprecated');
@@ -37,8 +37,8 @@ export async function up(knex: Knex): Promise<void> {
         '         0,\n' +
         "        (select id from users where establishment_id is null and upper(last_name) = 'RIVALS')\n" +
         ' from establishments e\n' +
-        ' where not exists(select * from campaigns where establishment_id = e.id and campaign_number = 0)',
-    ),
+        ' where not exists(select * from campaigns where establishment_id = e.id and campaign_number = 0)'
+    )
   ]);
 }
 
@@ -51,6 +51,6 @@ export async function down(knex: Knex): Promise<void> {
       table.renameColumn('status_deprecated', 'status');
       table.renameColumn('step_deprecated', 'step');
       table.renameColumn('precision_deprecated', 'precision');
-    }),
+    })
   ]);
 }

@@ -1,5 +1,6 @@
-import { MultiBar, SingleBar } from 'cli-progress';
 import { TransformStream } from 'node:stream/web';
+
+import { MultiBar, SingleBar } from 'cli-progress';
 
 interface ProgressOptions {
   initial: number;

@@ -1,17 +1,19 @@
+import { writeFileSync } from 'node:fs';
+
+import { PutObjectCommand } from '@aws-sdk/client-s3';
 import {
   DataFileYear,
   HousingStatus,
   Occupancy
 } from '@zerologementvacant/models';
 import { createS3, flatten, map } from '@zerologementvacant/utils/node';
-import { PutObjectCommand } from '@aws-sdk/client-s3';
-import { writeFileSync } from 'node:fs';
 import { match } from 'ts-pattern';
 
 import UserMissingError from '~/errors/userMissingError';
 import config from '~/infra/config';
 import { createLogger } from '~/infra/logger';
 import { HousingApi } from '~/models/HousingApi';
+import type { HousingFiltersApi } from '~/models/HousingFiltersApi';
 import housingRepository from '~/repositories/housingRepository';
 import userRepository from '~/repositories/userRepository';
 import { createLoggerReporter } from '~/scripts/import-lovac/infra';
@@ -24,9 +26,9 @@ import {
 import { FromOptionValue } from '~/scripts/import-lovac/infra/options/from';
 import { progress } from '~/scripts/import-lovac/infra/progress-bar';
 import { Reporter } from '~/scripts/import-lovac/infra/reporters/reporter';
+
 import { createExistingHousingLoader } from './housing-loader';
 import { createExistingHousingTransform } from './housing-transform';
-import type { HousingFiltersApi } from '~/models/HousingFiltersApi';
 
 const logger = createLogger('existingHousingCommand');
 

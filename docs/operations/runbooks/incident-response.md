@@ -2,12 +2,12 @@
 
 > **Severity Levels & Response Times**
 
-| Severity | Definition | Response Time | Examples |
-|----------|------------|---------------|----------|
-| **P1 - Critical** | Service down, data loss risk | 15 min | App unreachable, DB corruption |
-| **P2 - High** | Major feature broken | 1 hour | Auth failing, campaigns broken |
-| **P3 - Medium** | Feature degraded | 4 hours | Slow performance, minor bugs |
-| **P4 - Low** | Minor issue | 24 hours | UI glitches, non-blocking |
+| Severity          | Definition                   | Response Time | Examples                       |
+| ----------------- | ---------------------------- | ------------- | ------------------------------ |
+| **P1 - Critical** | Service down, data loss risk | 15 min        | App unreachable, DB corruption |
+| **P2 - High**     | Major feature broken         | 1 hour        | Auth failing, campaigns broken |
+| **P3 - Medium**   | Feature degraded             | 4 hours       | Slow performance, minor bugs   |
+| **P4 - Low**      | Minor issue                  | 24 hours      | UI glitches, non-blocking      |
 
 ---
 
@@ -296,12 +296,12 @@ Create a document with:
 
 ## 4. Emergency Contacts
 
-| Role | Contact | When to Escalate |
-|------|---------|------------------|
-| On-call Dev | [Slack/Phone] | P1/P2 incidents |
-| Tech Lead | [Slack/Phone] | P1 or data loss |
+| Role                 | Contact                  | When to Escalate      |
+| -------------------- | ------------------------ | --------------------- |
+| On-call Dev          | [Slack/Phone]            | P1/P2 incidents       |
+| Tech Lead            | [Slack/Phone]            | P1 or data loss       |
 | Clever Cloud Support | support@clever-cloud.com | Infrastructure issues |
-| Brevo Support | [Dashboard] | Email delivery issues |
+| Brevo Support        | [Dashboard]              | Email delivery issues |
 
 ---
 

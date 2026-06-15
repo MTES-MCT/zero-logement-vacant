@@ -7,18 +7,18 @@ import { FormProvider, useForm } from 'react-hook-form';
 import { Navigate, useNavigate } from 'react-router';
 import { type InferType, object } from 'yup';
 
+import image from '../../../assets/images/thousand-structures.svg';
+import AppLink from '../../../components/_app/AppLink/AppLink';
+import AppTextInputNext from '../../../components/_app/AppTextInput/AppTextInputNext';
+import { Row, Text } from '../../../components/_dsfr';
+import Image from '../../../components/Image/Image';
 import {
   passwordConfirmationValidator,
   passwordFormatValidator
 } from '../../../hooks/useForm';
-import { Row, Text } from '../../../components/_dsfr';
-import AppLink from '../../../components/_app/AppLink/AppLink';
 import { useProspect } from '../../../hooks/useProspect';
-import AppTextInputNext from '../../../components/_app/AppTextInput/AppTextInputNext';
-import image from '../../../assets/images/thousand-structures.svg';
-import Image from '../../../components/Image/Image';
-import { useCreateUserMutation } from '../../../services/user.service';
 import { useAppDispatch } from '../../../hooks/useStore';
+import { useCreateUserMutation } from '../../../services/user.service';
 import { logIn } from '../../../store/actions/authenticationAction';
 
 const schema = object({

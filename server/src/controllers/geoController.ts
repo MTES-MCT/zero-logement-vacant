@@ -1,3 +1,5 @@
+import { constants } from 'http2';
+
 import * as turf from '@turf/turf';
 import AdmZip from 'adm-zip';
 import async from 'async';
@@ -11,31 +13,35 @@ import {
   MultiPolygon,
   Position
 } from 'geojson';
-import { constants } from 'http2';
 import proj4 from 'proj4';
 import shapefile from 'shapefile';
-import { v4 as uuidv4 } from 'uuid';
 import { match, Pattern } from 'ts-pattern';
+import { v4 as uuidv4 } from 'uuid';
 
-import geoRepository from '~/repositories/geoRepository';
-import { isArrayOf, isUUID } from '~/utils/validators';
 import { logger } from '~/infra/logger';
 import { GeoPerimeterApi, toGeoPerimeterDTO } from '~/models/GeoPerimeterApi';
+import geoRepository from '~/repositories/geoRepository';
+import { isArrayOf, isUUID } from '~/utils/validators';
 
 // Common projections for French territories
 const KNOWN_PROJECTIONS: Record<string, string> = {
   // Metropolitan France
-  'EPSG:2154': '+proj=lcc +lat_0=46.5 +lon_0=3 +lat_1=49 +lat_2=44 +x_0=700000 +y_0=6600000 +ellps=GRS80 +towgs84=0,0,0,0,0,0,0 +units=m +no_defs +type=crs',
+  'EPSG:2154':
+    '+proj=lcc +lat_0=46.5 +lon_0=3 +lat_1=49 +lat_2=44 +x_0=700000 +y_0=6600000 +ellps=GRS80 +towgs84=0,0,0,0,0,0,0 +units=m +no_defs +type=crs',
   // Réunion (standard UTM zone 40S)
-  'EPSG:2975': '+proj=utm +zone=40 +south +ellps=GRS80 +towgs84=0,0,0,0,0,0,0 +units=m +no_defs +type=crs',
+  'EPSG:2975':
+    '+proj=utm +zone=40 +south +ellps=GRS80 +towgs84=0,0,0,0,0,0,0 +units=m +no_defs +type=crs',
   // Martinique
-  'EPSG:5490': '+proj=utm +zone=20 +ellps=GRS80 +towgs84=0,0,0,0,0,0,0 +units=m +no_defs +type=crs',
+  'EPSG:5490':
+    '+proj=utm +zone=20 +ellps=GRS80 +towgs84=0,0,0,0,0,0,0 +units=m +no_defs +type=crs',
   // Guadeloupe
   'EPSG:32620': '+proj=utm +zone=20 +datum=WGS84 +units=m +no_defs +type=crs',
   // Guyane
-  'EPSG:2972': '+proj=utm +zone=22 +ellps=GRS80 +towgs84=0,0,0,0,0,0,0 +units=m +no_defs +type=crs',
+  'EPSG:2972':
+    '+proj=utm +zone=22 +ellps=GRS80 +towgs84=0,0,0,0,0,0,0 +units=m +no_defs +type=crs',
   // Mayotte
-  'EPSG:4471': '+proj=utm +zone=38 +south +ellps=GRS80 +towgs84=0,0,0,0,0,0,0 +units=m +no_defs +type=crs'
+  'EPSG:4471':
+    '+proj=utm +zone=38 +south +ellps=GRS80 +towgs84=0,0,0,0,0,0,0 +units=m +no_defs +type=crs'
 };
 
 // Special projections with coordinate offsets (non-standard grids)
@@ -49,7 +55,7 @@ interface ProjectionWithOffset {
 const OFFSET_PROJECTIONS: Record<string, ProjectionWithOffset> = {
   // Réunion with non-standard offsets (X+1.35M, Y+1.57M added to standard UTM 40S)
   // Detected from shapefiles with X: ~1.6M-1.9M, Y: ~9.0M-9.5M
-  'REUNION_OFFSET': {
+  REUNION_OFFSET: {
     proj4: '+proj=utm +zone=40 +south +datum=WGS84 +units=m +no_defs +type=crs',
     xOffset: -1350000,
     yOffset: -1570000
@@ -119,7 +125,9 @@ function detectProjectionFromCoordinates(
  */
 function parseWktProjection(wkt: string): string | null {
   // Look for EPSG code in AUTHORITY
-  const authorityMatch = wkt.match(/AUTHORITY\s*\[\s*"EPSG"\s*,\s*"(\d+)"\s*\]/i);
+  const authorityMatch = wkt.match(
+    /AUTHORITY\s*\[\s*"EPSG"\s*,\s*"(\d+)"\s*\]/i
+  );
   if (authorityMatch) {
     return `EPSG:${authorityMatch[1]}`;
   }
@@ -335,10 +343,7 @@ async function listGeoPerimeters(request: Request, response: Response) {
   response.status(constants.HTTP_STATUS_OK).json(geoPerimeters);
 }
 
-async function createGeoPerimeter(
-  request: Request,
-  response: Response
-) {
+async function createGeoPerimeter(request: Request, response: Response) {
   const { establishmentId, userId } = (request as AuthenticatedRequest).auth;
   const file = request.file;
 
@@ -370,8 +375,10 @@ async function createGeoPerimeter(
   const perimeters = await async.map(features, async (feature: Feature) => {
     // Reproject geometry if source projection was detected
     let geometry = feature.geometry;
-    const hasKnownProjection = sourceProjection && KNOWN_PROJECTIONS[sourceProjection];
-    const hasOffsetProjection = sourceProjection && OFFSET_PROJECTIONS[sourceProjection];
+    const hasKnownProjection =
+      sourceProjection && KNOWN_PROJECTIONS[sourceProjection];
+    const hasOffsetProjection =
+      sourceProjection && OFFSET_PROJECTIONS[sourceProjection];
     if (hasKnownProjection || hasOffsetProjection) {
       geometry = reprojectGeometry(geometry, sourceProjection);
     }

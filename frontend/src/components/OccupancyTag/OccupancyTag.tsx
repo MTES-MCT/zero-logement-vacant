@@ -1,5 +1,4 @@
 import Tag, { type TagProps } from '@codegouvfr/react-dsfr/Tag';
-
 import { Occupancy, OCCUPANCY_LABELS } from '@zerologementvacant/models';
 import type { MarkOptional } from 'ts-essentials';
 

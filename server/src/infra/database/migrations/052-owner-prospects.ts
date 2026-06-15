@@ -11,7 +11,7 @@ export async function up(knex: Knex): Promise<void> {
       table.string('phone').notNullable();
       table.string('notes');
       table.timestamp('created_at').defaultTo(knex.fn.now());
-    }),
+    })
   ]);
 }
 

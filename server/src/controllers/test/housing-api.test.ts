@@ -1,3 +1,5 @@
+import { constants } from 'http2';
+
 import { faker } from '@faker-js/faker/locale/fr';
 import { fc, test } from '@fast-check/vitest';
 import {
@@ -25,11 +27,10 @@ import {
   genIdprodroit
 } from '@zerologementvacant/models/fixtures';
 import async from 'async';
-import { constants } from 'http2';
 import randomstring from 'randomstring';
 import request from 'supertest';
-import db from '~/infra/database';
 
+import db from '~/infra/database';
 import { createServer } from '~/infra/server';
 import { EstablishmentApi } from '~/models/EstablishmentApi';
 import { HousingApi } from '~/models/HousingApi';
@@ -49,6 +50,7 @@ import {
 } from '~/repositories/campaignRepository';
 import { DatafoncierHouses } from '~/repositories/datafoncierHousingRepository';
 import { DatafoncierOwners } from '~/repositories/datafoncierOwnersRepository';
+import { Documents, toDocumentDBO } from '~/repositories/documentRepository';
 import {
   Establishments,
   formatEstablishmentApi
@@ -65,6 +67,10 @@ import {
   PRECISION_HOUSING_EVENTS_TABLE,
   PrecisionHousingEvents
 } from '~/repositories/eventRepository';
+import housingDocumentRepository, {
+  HousingDocumentDBO,
+  HousingDocuments
+} from '~/repositories/housingDocumentRepository';
 import {
   formatHousingOwnersApi,
   HousingOwners,
@@ -105,11 +111,6 @@ import {
   oneOf
 } from '~/test/testFixtures';
 import { tokenProvider } from '~/test/testUtils';
-import { Documents, toDocumentDBO } from '~/repositories/documentRepository';
-import housingDocumentRepository, {
-  HousingDocumentDBO,
-  HousingDocuments
-} from '~/repositories/housingDocumentRepository';
 
 describe('Housing API', () => {
   let url: string;
@@ -671,7 +672,9 @@ describe('Housing API', () => {
           ban_geom: db.raw('ST_GeomFromGeoJson(?)', [
             JSON.stringify(datafoncierHousing.ban_geom)
           ]),
-          geomrnb: db.raw('ST_GeomFromGeoJson(?)', [JSON.stringify(datafoncierHousing.geomrnb)])
+          geomrnb: db.raw('ST_GeomFromGeoJson(?)', [
+            JSON.stringify(datafoncierHousing.geomrnb)
+          ])
         }),
         DatafoncierOwners().insert(datafoncierOwners)
       ]);
@@ -717,7 +720,9 @@ describe('Housing API', () => {
           ban_geom: db.raw('ST_GeomFromGeoJson(?)', [
             JSON.stringify(datafoncierHousing.ban_geom)
           ]),
-          geomrnb: db.raw('ST_GeomFromGeoJson(?)', [JSON.stringify(datafoncierHousing.geomrnb)])
+          geomrnb: db.raw('ST_GeomFromGeoJson(?)', [
+            JSON.stringify(datafoncierHousing.geomrnb)
+          ])
         }),
         DatafoncierOwners().insert(datafoncierOwners),
         Owners().insert(existingOwners.map(formatOwnerApi))
@@ -775,7 +780,9 @@ describe('Housing API', () => {
           ban_geom: db.raw('ST_GeomFromGeoJson(?)', [
             JSON.stringify(datafoncierHousing.ban_geom)
           ]),
-          geomrnb: db.raw('ST_GeomFromGeoJson(?)', [JSON.stringify(datafoncierHousing.geomrnb)])
+          geomrnb: db.raw('ST_GeomFromGeoJson(?)', [
+            JSON.stringify(datafoncierHousing.geomrnb)
+          ])
         }),
         DatafoncierOwners().insert(datafoncierOwners)
       ]);
@@ -813,7 +820,9 @@ describe('Housing API', () => {
           ban_geom: db.raw('ST_GeomFromGeoJson(?)', [
             JSON.stringify(datafoncierHousing.ban_geom)
           ]),
-          geomrnb: db.raw('ST_GeomFromGeoJson(?)', [JSON.stringify(datafoncierHousing.geomrnb)])
+          geomrnb: db.raw('ST_GeomFromGeoJson(?)', [
+            JSON.stringify(datafoncierHousing.geomrnb)
+          ])
         }),
         DatafoncierOwners().insert(datafoncierOwners)
       ]);
@@ -864,7 +873,9 @@ describe('Housing API', () => {
           ban_geom: db.raw('ST_GeomFromGeoJson(?)', [
             JSON.stringify(datafoncierHousing.ban_geom)
           ]),
-          geomrnb: db.raw('ST_GeomFromGeoJson(?)', [JSON.stringify(datafoncierHousing.geomrnb)])
+          geomrnb: db.raw('ST_GeomFromGeoJson(?)', [
+            JSON.stringify(datafoncierHousing.geomrnb)
+          ])
         }),
         DatafoncierOwners().insert(datafoncierOwners)
       ]);
@@ -911,7 +922,9 @@ describe('Housing API', () => {
           ban_geom: db.raw('ST_GeomFromGeoJson(?)', [
             JSON.stringify(datafoncierHousing.ban_geom)
           ]),
-          geomrnb: db.raw('ST_GeomFromGeoJson(?)', [JSON.stringify(datafoncierHousing.geomrnb)])
+          geomrnb: db.raw('ST_GeomFromGeoJson(?)', [
+            JSON.stringify(datafoncierHousing.geomrnb)
+          ])
         }),
         DatafoncierOwners().insert(datafoncierOwners)
       ]);
@@ -1490,7 +1503,7 @@ describe('Housing API', () => {
           created_at: new Date()
         }
       ];
-      const newPrecision = travaux[1]
+      const newPrecision = travaux[1];
 
       // Add initial precision
       await HousingPrecisions().insert(initialPrecisions);
@@ -1499,7 +1512,7 @@ describe('Housing API', () => {
         .put('/housing')
         .send({
           filters: {
-            housingIds: housings.map(housing => housing.id)
+            housingIds: housings.map((housing) => housing.id)
           },
           precisions: [newPrecision.id]
         } satisfies HousingBatchUpdatePayload)
@@ -1507,8 +1520,11 @@ describe('Housing API', () => {
 
       expect(status).toBe(constants.HTTP_STATUS_OK);
 
-      const actual = await HousingPrecisions().whereIn(['housing_geo_code', 'housing_id'], housings.map(housing => [housing.geoCode, housing.id]));
-      expect(actual).toHaveLength(2)
+      const actual = await HousingPrecisions().whereIn(
+        ['housing_geo_code', 'housing_id'],
+        housings.map((housing) => [housing.geoCode, housing.id])
+      );
+      expect(actual).toHaveLength(2);
       expect(actual).toIncludeAllPartialMembers([
         {
           housing_geo_code: housings[0].geoCode,
@@ -1520,7 +1536,7 @@ describe('Housing API', () => {
           housing_id: housings[1].id,
           precision_id: newPrecision.id
         }
-      ])
+      ]);
     });
 
     it('should link documents to multiple housings in batch update', async () => {
@@ -1537,7 +1553,7 @@ describe('Housing API', () => {
         .send({
           filters: {
             establishmentIds: [establishment.id],
-            housingIds: housings.map(housing => housing.id)
+            housingIds: housings.map((housing) => housing.id)
           },
           documents: [document.id],
           status: HousingStatus.IN_PROGRESS

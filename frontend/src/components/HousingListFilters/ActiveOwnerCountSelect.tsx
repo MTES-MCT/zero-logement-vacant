@@ -1,8 +1,10 @@
 import { BENEFIARY_COUNT_VALUES } from '@zerologementvacant/models';
 import type { BeneficiaryCount } from '@zerologementvacant/models';
-import { BENEFICIARY_COUNT_OPTIONS } from '../../models/HousingFilters';
+
 import Select from '~/components/ui/Select/Select';
 import type { SelectProps } from '~/components/ui/Select/Select';
+
+import { BENEFICIARY_COUNT_OPTIONS } from '../../models/HousingFilters';
 
 export type ActiveOwnerCountSelectProps<Multiple extends boolean> = Pick<
   SelectProps<BeneficiaryCount, Multiple>,

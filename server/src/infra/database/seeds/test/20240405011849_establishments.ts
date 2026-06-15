@@ -1,10 +1,10 @@
 import { Knex } from 'knex';
 
 import { LocalityApi } from '~/models/LocalityApi';
+import { establishmentsLocalitiesTable } from '~/repositories/establishmentLocalityRepository';
 import establishmentRepository, {
   establishmentsTable
 } from '~/repositories/establishmentRepository';
-import { establishmentsLocalitiesTable } from '~/repositories/establishmentLocalityRepository';
 import localityRepository, {
   localitiesTable
 } from '~/repositories/localityRepository';

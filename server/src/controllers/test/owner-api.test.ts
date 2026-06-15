@@ -1,6 +1,7 @@
+import { constants } from 'http2';
+
 import { faker } from '@faker-js/faker/locale/fr';
 import { fc, test } from '@fast-check/vitest';
-
 import {
   AddressDTO,
   AddressKinds,
@@ -10,9 +11,9 @@ import {
   OwnerUpdatePayload
 } from '@zerologementvacant/models';
 import { genAddressDTO } from '@zerologementvacant/models/fixtures';
-import { constants } from 'http2';
 import request from 'supertest';
 import { v4 as uuidv4 } from 'uuid';
+
 import { createServer } from '~/infra/server';
 import { HousingApi } from '~/models/HousingApi';
 import { HousingOwnerApi } from '~/models/HousingOwnerApi';
@@ -279,7 +280,7 @@ describe('Owner API', () => {
         fullName: payload.fullName,
         birthDate: payload.birthDate,
         email: payload.email,
-        phone: payload.phone,
+        phone: payload.phone
       });
     });
 

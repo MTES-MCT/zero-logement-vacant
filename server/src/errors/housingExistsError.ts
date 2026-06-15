@@ -7,7 +7,7 @@ export default class HousingExistsError extends HttpError implements HttpError {
     super({
       name: 'HousingExistsError',
       message: `Housing ${id} exists`,
-      status: constants.HTTP_STATUS_CONFLICT,
+      status: constants.HTTP_STATUS_CONFLICT
     });
   }
 }

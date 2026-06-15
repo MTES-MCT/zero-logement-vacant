@@ -1,6 +1,6 @@
-import ConfirmationModal from '../modals/ConfirmationModal/ConfirmationModal';
 import { pluralize } from '../../utils/stringUtils';
 import { Text } from '../_dsfr';
+import ConfirmationModal from '../modals/ConfirmationModal/ConfirmationModal';
 
 interface Props {
   housingCount: number;
@@ -19,7 +19,7 @@ function GroupRemoveHousingModal(props: Props) {
         children: 'Supprimer du groupe',
         iconId: 'ri-close-line',
         priority: 'secondary',
-        size: 'small',
+        size: 'small'
       }}
       size="large"
       title={title}

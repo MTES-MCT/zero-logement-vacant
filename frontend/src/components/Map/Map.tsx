@@ -1,5 +1,7 @@
-import * as turf from '@turf/turf';
 import { fr } from '@codegouvfr/react-dsfr';
+import Box from '@mui/material/Box';
+import { styled } from '@mui/material/styles';
+import * as turf from '@turf/turf';
 import { mapStyles } from 'carte-facile';
 import { type CSSProperties, memo, useEffect, useMemo, useState } from 'react';
 import ReactiveMap, {
@@ -8,8 +10,6 @@ import ReactiveMap, {
   type ViewState,
   type ViewStateChangeEvent
 } from 'react-map-gl/maplibre';
-import Box from '@mui/material/Box';
-import { styled } from '@mui/material/styles';
 import { useNavigate } from 'react-router';
 
 import { useMapImage } from '../../hooks/useMapImage';

@@ -31,7 +31,7 @@ established in `metabase-cache.ts`.
 Factory function returning an Express `RequestHandler`:
 
 ```ts
-function responseCache(ttl: number): RequestHandler
+function responseCache(ttl: number): RequestHandler;
 ```
 
 Backed by a `TTLCache<string, Promise<Buffer>>`:
@@ -59,31 +59,51 @@ Two routes move from `protected.ts` → `unprotected.ts` (data confirmed non-sen
 Cache middleware applied in `unprotected.ts`:
 
 ```ts
-router.get('/localities',          responseCache(REFERENCE_TTL), localityController.list)
-router.get('/localities/:geoCode', responseCache(REFERENCE_TTL), localityController.get)
-router.get('/establishments',      responseCache(ESTABLISHMENT_TTL), establishmentController.list)
-router.get('/establishments/:id',  responseCache(ESTABLISHMENT_TTL), establishmentController.get)
-router.get('/precisions',          responseCache(REFERENCE_TTL), precisionController.find)
+router.get(
+  '/localities',
+  responseCache(REFERENCE_TTL),
+  localityController.list
+);
+router.get(
+  '/localities/:geoCode',
+  responseCache(REFERENCE_TTL),
+  localityController.get
+);
+router.get(
+  '/establishments',
+  responseCache(ESTABLISHMENT_TTL),
+  establishmentController.list
+);
+router.get(
+  '/establishments/:id',
+  responseCache(ESTABLISHMENT_TTL),
+  establishmentController.get
+);
+router.get(
+  '/precisions',
+  responseCache(REFERENCE_TTL),
+  precisionController.find
+);
 ```
 
 ### Config (`server/src/infra/config.ts`)
 
 Two new env vars (same convention as `METABASE_CACHE_TTL_MS`):
 
-| Var | Default | Applied to |
-|---|---|---|
-| `REFERENCE_CACHE_TTL_MS` | `600_000` (10 min) | `/localities`, `/precisions` |
-| `ESTABLISHMENT_CACHE_TTL_MS` | `300_000` (5 min) | `/establishments`, `/establishments/:id` |
+| Var                          | Default            | Applied to                               |
+| ---------------------------- | ------------------ | ---------------------------------------- |
+| `REFERENCE_CACHE_TTL_MS`     | `600_000` (10 min) | `/localities`, `/precisions`             |
+| `ESTABLISHMENT_CACHE_TTL_MS` | `300_000` (5 min)  | `/establishments`, `/establishments/:id` |
 
 ### Cache key summary
 
-| Endpoint | Cache key | TTL |
-|---|---|---|
-| `GET /localities` | `"/localities"` | 10 min |
-| `GET /localities/:geoCode` | `"/localities/76000"` etc. | 10 min |
-| `GET /establishments` | `"/establishments"` | 5 min |
-| `GET /establishments/:id` | `"/establishments/uuid"` etc. | 5 min |
-| `GET /precisions` | `"/precisions"` | 10 min |
+| Endpoint                   | Cache key                     | TTL    |
+| -------------------------- | ----------------------------- | ------ |
+| `GET /localities`          | `"/localities"`               | 10 min |
+| `GET /localities/:geoCode` | `"/localities/76000"` etc.    | 10 min |
+| `GET /establishments`      | `"/establishments"`           | 5 min  |
+| `GET /establishments/:id`  | `"/establishments/uuid"` etc. | 5 min  |
+| `GET /precisions`          | `"/precisions"`               | 10 min |
 
 ## Implementation order (TDD)
 

@@ -1,3 +1,5 @@
+import { constants } from 'http2';
+
 import { faker } from '@faker-js/faker/locale/fr';
 import type {
   HousingBatchUpdatePayload,
@@ -15,7 +17,6 @@ import {
   genUserDTO
 } from '@zerologementvacant/models/fixtures';
 import { Array, pipe, Predicate, Struct } from 'effect';
-import { constants } from 'http2';
 import { http, HttpResponse, RequestHandler } from 'msw';
 import qs from 'qs';
 import { match } from 'ts-pattern';

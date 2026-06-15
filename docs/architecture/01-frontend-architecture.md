@@ -8,21 +8,21 @@ The frontend is a single-page React application that provides the user interface
 
 ## Technology Stack
 
-| Category | Technology | Version | Purpose |
-|----------|------------|---------|---------|
-| **Framework** | React | 18.3.1 | UI components |
-| **Language** | TypeScript | 5.x | Type safety |
-| **Routing** | React Router | 6.30 | Navigation |
-| **State** | Redux Toolkit | 1.9.7 | Global state |
-| **API** | RTK Query | - | Data fetching |
-| **Forms** | React Hook Form | 7.66 | Form handling |
-| **Validation** | Yup | 1.7 | Schema validation |
-| **UI Components** | MUI + DSFR | 7.3 / 1.28 | Design system |
-| **Maps** | MapLibre GL | 5.16 | Mapping |
-| **Rich Text** | Lexical | 0.39 | Text editor |
-| **Build** | Vite | 5.x | Build tool |
-| **Testing** | Vitest | - | Unit tests |
-| **Mocking** | MSW | 2.12 | API mocking |
+| Category          | Technology      | Version    | Purpose           |
+| ----------------- | --------------- | ---------- | ----------------- |
+| **Framework**     | React           | 18.3.1     | UI components     |
+| **Language**      | TypeScript      | 5.x        | Type safety       |
+| **Routing**       | React Router    | 6.30       | Navigation        |
+| **State**         | Redux Toolkit   | 1.9.7      | Global state      |
+| **API**           | RTK Query       | -          | Data fetching     |
+| **Forms**         | React Hook Form | 7.66       | Form handling     |
+| **Validation**    | Yup             | 1.7        | Schema validation |
+| **UI Components** | MUI + DSFR      | 7.3 / 1.28 | Design system     |
+| **Maps**          | MapLibre GL     | 5.16       | Mapping           |
+| **Rich Text**     | Lexical         | 0.39       | Text editor       |
+| **Build**         | Vite            | 5.x        | Build tool        |
+| **Testing**       | Vitest          | -          | Unit tests        |
+| **Mocking**       | MSW             | 2.12       | API mocking       |
 
 ## Application Architecture Diagram
 
@@ -182,25 +182,44 @@ flowchart TB
 
 ### Redux Slices
 
-| Slice | State | Purpose |
-|-------|-------|---------|
-| `app` | `isDsfrReady: boolean` | DSFR initialization status |
+| Slice            | State                                                 | Purpose                       |
+| ---------------- | ----------------------------------------------------- | ----------------------------- |
+| `app`            | `isDsfrReady: boolean`                                | DSFR initialization status    |
 | `authentication` | `authUser`, `logIn`, `verifyTwoFactor`, `isLoggedOut` | Auth state & async operations |
-| `housing` | `filters`, `selected`, `view`, `totalCount` | Housing list state |
-| `loadingBar` | Loading indicator state | Global loading bar |
+| `housing`        | `filters`, `selected`, `view`, `totalCount`           | Housing list state            |
+| `loadingBar`     | Loading indicator state                               | Global loading bar            |
 
 ### RTK Query Cache Tags
 
 ```typescript
 tagTypes: [
-  'Account', 'Building', 'Campaign', 'Datafoncier housing',
-  'Document', 'Draft', 'Establishment', 'Event', 'GeoPerimeter',
-  'Group', 'Housing', 'HousingByStatus', 'HousingCountByStatus',
-  'HousingEvent', 'HousingOwner', 'Locality', 'Note', 'Owner',
-  'OwnerHousing', 'Precision', 'Prospect', 'Settings', 'Stats',
-  'SignupLink', 'User'
+  'Account',
+  'Building',
+  'Campaign',
+  'Datafoncier housing',
+  'Document',
+  'Draft',
+  'Establishment',
+  'Event',
+  'GeoPerimeter',
+  'Group',
+  'Housing',
+  'HousingByStatus',
+  'HousingCountByStatus',
+  'HousingEvent',
+  'HousingOwner',
+  'Locality',
+  'Note',
+  'Owner',
+  'OwnerHousing',
+  'Precision',
+  'Prospect',
+  'Settings',
+  'Stats',
+  'SignupLink',
+  'User'
   // ... 33 total
-]
+];
 ```
 
 ## Routing Structure
@@ -234,22 +253,22 @@ flowchart TB
 
 ### Route Table
 
-| Path | Component | Description |
-|------|-----------|-------------|
-| `/` | Redirect | → `/parc-de-logements` |
-| `/parc-de-logements` | HousingListView | Main housing list |
-| `/logements/:id` | HousingView | Housing details |
-| `/logements/:id/proprietaires` | HousingOwnersView | Housing owners |
-| `/proprietaires/:id` | OwnerView | Owner details |
-| `/campagnes` | CampaignListView | Campaign list |
-| `/campagnes/:id` | CampaignView | Campaign details |
-| `/groupes/:id` | GroupView | Group details |
-| `/analyses/*` | AnalysisView | Analytics dashboards |
-| `/compte` | AccountView | User account |
-| `/utilisateurs` | UsersView | User management |
-| `/connexion` | LoginView | Login page |
-| `/verification-2fa` | TwoFactorView | 2FA verification |
-| `/inscription/*` | AccountCreationView | Signup flow |
+| Path                           | Component           | Description            |
+| ------------------------------ | ------------------- | ---------------------- |
+| `/`                            | Redirect            | → `/parc-de-logements` |
+| `/parc-de-logements`           | HousingListView     | Main housing list      |
+| `/logements/:id`               | HousingView         | Housing details        |
+| `/logements/:id/proprietaires` | HousingOwnersView   | Housing owners         |
+| `/proprietaires/:id`           | OwnerView           | Owner details          |
+| `/campagnes`                   | CampaignListView    | Campaign list          |
+| `/campagnes/:id`               | CampaignView        | Campaign details       |
+| `/groupes/:id`                 | GroupView           | Group details          |
+| `/analyses/*`                  | AnalysisView        | Analytics dashboards   |
+| `/compte`                      | AccountView         | User account           |
+| `/utilisateurs`                | UsersView           | User management        |
+| `/connexion`                   | LoginView           | Login page             |
+| `/verification-2fa`            | TwoFactorView       | 2FA verification       |
+| `/inscription/*`               | AccountCreationView | Signup flow            |
 
 ## Component Architecture
 
@@ -348,10 +367,11 @@ export const zlvApi = createApi({
   baseQuery: fetchBaseQuery({
     baseUrl: `${config.apiEndpoint}/api`,
     prepareHeaders: (headers) => authService.withAuthHeader(headers),
-    paramsSerializer: (query) =>
-      qs.stringify(query, { arrayFormat: 'comma' })
+    paramsSerializer: (query) => qs.stringify(query, { arrayFormat: 'comma' })
   }),
-  tagTypes: [/* 33 tags */],
+  tagTypes: [
+    /* 33 tags */
+  ],
   endpoints: () => ({})
 });
 ```
@@ -401,19 +421,19 @@ export const {
 
 ### Services Summary
 
-| Service | Resource | Key Operations |
-|---------|----------|----------------|
-| `auth.service` | Authentication | Login, logout, 2FA |
-| `housing.service` | Housing | CRUD, batch update, counts |
-| `owner.service` | Owners | CRUD, search |
-| `campaign.service` | Campaigns | CRUD, export |
-| `group.service` | Groups | CRUD, add/remove housing |
-| `document.service` | Documents | Upload, link/unlink |
-| `event.service` | Events | History retrieval |
-| `note.service` | Notes | CRUD |
-| `user.service` | Users | Management |
-| `geo.service` | Geography | Perimeters, localities |
-| `dashboard.service` | Dashboards | Analytics data |
+| Service             | Resource       | Key Operations             |
+| ------------------- | -------------- | -------------------------- |
+| `auth.service`      | Authentication | Login, logout, 2FA         |
+| `housing.service`   | Housing        | CRUD, batch update, counts |
+| `owner.service`     | Owners         | CRUD, search               |
+| `campaign.service`  | Campaigns      | CRUD, export               |
+| `group.service`     | Groups         | CRUD, add/remove housing   |
+| `document.service`  | Documents      | Upload, link/unlink        |
+| `event.service`     | Events         | History retrieval          |
+| `note.service`      | Notes          | CRUD                       |
+| `user.service`      | Users          | Management                 |
+| `geo.service`       | Geography      | Perimeters, localities     |
+| `dashboard.service` | Dashboards     | Analytics data             |
 
 ## State Management Patterns
 

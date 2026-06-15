@@ -8,15 +8,16 @@ import {
   OWNERSHIP_KIND_INTERNAL_VALUES,
   PROPERTY_RIGHT_VALUES
 } from '@zerologementvacant/models';
-
 import { genGeoCode } from '@zerologementvacant/models/fixtures';
+
 import { SourceHousingOwner } from '~/scripts/import-lovac/source-housing-owners/source-housing-owner';
 import { SourceHousing } from '~/scripts/import-lovac/source-housings/source-housing';
 import { SourceOwner } from '~/scripts/import-lovac/source-owners/source-owner';
 
 export function genSourceHousing(): SourceHousing {
   const geoCode = genGeoCode();
-  const isoDate = () => faker.date.past().toISOString().substring(0, 'yyyy-mm-dd'.length);
+  const isoDate = () =>
+    faker.date.past().toISOString().substring(0, 'yyyy-mm-dd'.length);
 
   return {
     invariant: faker.string.numeric(10),
@@ -39,7 +40,9 @@ export function genSourceHousing(): SourceHousing {
     condominium: faker.helpers.arrayElement(OWNERSHIP_KIND_INTERNAL_VALUES),
     rooms_count: faker.number.int({ min: 1, max: 10 }),
     uncomfortable: faker.datatype.boolean(),
-    cadastral_classification: faker.helpers.arrayElement(CADASTRAL_CLASSIFICATION_VALUES),
+    cadastral_classification: faker.helpers.arrayElement(
+      CADASTRAL_CLASSIFICATION_VALUES
+    ),
     living_area: faker.number.float({ min: 10, max: 100, fractionDigits: 2 }),
     taxed: faker.datatype.boolean(),
     vacancy_start_year: faker.date.past().getFullYear(),
@@ -50,7 +53,12 @@ export function genSourceHousing(): SourceHousing {
     occupancy_source: Occupancy.VACANT,
     rental_value: faker.number.int({ min: 500, max: 10000 }),
     geolocation: null,
-    geolocation_source: faker.helpers.arrayElement([null, 'parcelle-ff', 'bati-rnb', 'adresse-ban'])
+    geolocation_source: faker.helpers.arrayElement([
+      null,
+      'parcelle-ff',
+      'bati-rnb',
+      'adresse-ban'
+    ])
   };
 }
 
@@ -84,4 +92,3 @@ export function genSourceHousingOwner(
     property_right: faker.helpers.arrayElement(PROPERTY_RIGHT_VALUES)
   };
 }
-

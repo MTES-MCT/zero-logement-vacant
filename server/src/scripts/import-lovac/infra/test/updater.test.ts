@@ -1,14 +1,15 @@
-import { vi } from 'vitest';
-import { faker } from '@faker-js/faker/locale/fr';
-import { OCCUPANCY_VALUES } from '@zerologementvacant/models';
-import { map, toArray } from '@zerologementvacant/utils/node';
-import { parse as parseJSONL } from 'jsonlines';
 import fs from 'node:fs';
 import path from 'node:path';
 import { Readable, Transform } from 'node:stream';
 import { ReadableStream } from 'node:stream/web';
-import db from '~/infra/database';
 
+import { faker } from '@faker-js/faker/locale/fr';
+import { OCCUPANCY_VALUES } from '@zerologementvacant/models';
+import { map, toArray } from '@zerologementvacant/utils/node';
+import { parse as parseJSONL } from 'jsonlines';
+import { vi } from 'vitest';
+
+import db from '~/infra/database';
 import { HousingApi } from '~/models/HousingApi';
 import {
   formatHousingRecordApi,

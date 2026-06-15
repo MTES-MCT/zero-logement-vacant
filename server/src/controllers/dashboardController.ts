@@ -1,21 +1,26 @@
+import { constants } from 'node:http2';
+
+import type {
+  CardDataDTO,
+  DashboardDTO,
+  Resource
+} from '@zerologementvacant/models';
+import { RESOURCE_VALUES } from '@zerologementvacant/models';
 import { Request, Response } from 'express';
 import { AuthenticatedRequest } from 'express-jwt';
-import { constants } from 'node:http2';
 import jwt from 'jsonwebtoken';
 
-import type { CardDataDTO, DashboardDTO, Resource } from '@zerologementvacant/models';
+import DashcardMissingError from '~/errors/dashcardMissingError';
+import UnprocessableEntityError from '~/errors/unprocessableEntityError';
+import config from '~/infra/config';
+import { createURL, getResource } from '~/models/DashboardApi';
+import { metabaseAPI } from '~/services/metabase/metabase-api';
 import type {
   BarChartValue,
   LineChartValue,
   PieChartValue,
   TableValue
 } from '~/services/metabase/metabase-service';
-import { RESOURCE_VALUES } from '@zerologementvacant/models';
-import DashcardMissingError from '~/errors/dashcardMissingError';
-import UnprocessableEntityError from '~/errors/unprocessableEntityError';
-import config from '~/infra/config';
-import { createURL, getResource } from '~/models/DashboardApi';
-import { metabaseAPI } from '~/services/metabase/metabase-api';
 
 async function findOne(
   request: Request<{ id: Resource }>,

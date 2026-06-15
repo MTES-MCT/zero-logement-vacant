@@ -15,6 +15,7 @@
 ## File Map
 
 **Create:**
+
 - `server/src/errors/dashcardMissingError.ts`
 - `server/src/controllers/test/dashboard-api.test.ts`
 - `frontend/src/mocks/handlers/dashboard-handlers.ts`
@@ -24,6 +25,7 @@
 - `frontend/src/views/Analysis/test/AnalysisViewNext.test.tsx`
 
 **Modify:**
+
 - `packages/models/src/DashboardDTO.ts`
 - `packages/models/src/test/fixtures.ts`
 - `server/src/models/DashboardApi.ts`
@@ -39,6 +41,7 @@
 ## Task 1: Update DashboardDTO and add fixtures
 
 **Files:**
+
 - Modify: `packages/models/src/DashboardDTO.ts`
 - Modify: `packages/models/src/test/fixtures.ts`
 
@@ -84,7 +87,10 @@ interface WithoutTabs {
 }
 
 // url is transitional — remove when new-analysis-page flag is deleted
-export type DashboardDTO = { id: number; url: string } & (WithTabs | WithoutTabs);
+export type DashboardDTO = { id: number; url: string } & (
+  | WithTabs
+  | WithoutTabs
+);
 
 export interface CardDataDTO {
   id: number;
@@ -170,6 +176,7 @@ git commit -m "feat(models): update DashboardDTO with native card types and Card
 ## Task 2: Add Metabase API helpers to DashboardApi.ts
 
 **Files:**
+
 - Modify: `server/src/models/DashboardApi.ts`
 
 - [ ] **Step 1: Replace DashboardApi.ts**
@@ -303,9 +310,9 @@ function detectCardType(
   settings: MetabaseVisualizationSettings
 ): 'flat-number' | 'percentage' {
   if (settings['number.style'] === 'percent') return 'percentage';
-  const hasPercentColumn = Object.values(
-    settings.column_settings ?? {}
-  ).some((col) => col.number_style === 'percent');
+  const hasPercentColumn = Object.values(settings.column_settings ?? {}).some(
+    (col) => col.number_style === 'percent'
+  );
   return hasPercentColumn ? 'percentage' : 'flat-number';
 }
 
@@ -358,10 +365,9 @@ export function findDashcard(
   raw: MetabaseDashboard,
   dashcardId: number
 ): { dashcardId: number; cardId: number } | null {
-  const allDashcards =
-    raw.ordered_tabs?.length
-      ? raw.ordered_tabs.flatMap((t) => t.ordered_cards)
-      : raw.dashcards;
+  const allDashcards = raw.ordered_tabs?.length
+    ? raw.ordered_tabs.flatMap((t) => t.ordered_cards)
+    : raw.dashcards;
   const found = allDashcards.find((dc) => dc.id === dashcardId);
   if (!found) return null;
   if (normalizeDashcard(found) === null) return null;
@@ -389,6 +395,7 @@ git commit -m "feat(server): add Metabase API client and dashboard normalization
 ## Task 3: Create DashcardMissingError
 
 **Files:**
+
 - Create: `server/src/errors/dashcardMissingError.ts`
 
 - [ ] **Step 1: Create error class**
@@ -425,6 +432,7 @@ git commit -m "feat(server): add DashcardMissingError"
 ## Task 4: Update GET /dashboards/:id + add GET /dashboards/:did/cards/:cid (TDD)
 
 **Files:**
+
 - Create: `server/src/controllers/test/dashboard-api.test.ts`
 - Modify: `server/src/controllers/dashboardController.ts`
 - Modify: `server/src/routers/protected.ts`
@@ -521,7 +529,10 @@ describe('Dashboard API', () => {
       vi.spyOn(global, 'fetch').mockImplementation(async (input) => {
         const reqUrl = String(input);
         if (reqUrl.includes('/query')) {
-          return { ok: true, json: async () => mockCardQueryResult } as Response;
+          return {
+            ok: true,
+            json: async () => mockCardQueryResult
+          } as Response;
         }
         return {
           ok: true,
@@ -581,7 +592,11 @@ import { param, ValidationChain } from 'express-validator';
 import { constants } from 'node:http2';
 import jwt from 'jsonwebtoken';
 
-import type { CardDataDTO, DashboardDTO, Resource } from '@zerologementvacant/models';
+import type {
+  CardDataDTO,
+  DashboardDTO,
+  Resource
+} from '@zerologementvacant/models';
 import { RESOURCE_VALUES } from '@zerologementvacant/models';
 import DashcardMissingError from '~/errors/dashcardMissingError';
 import config from '~/infra/config';
@@ -721,6 +736,7 @@ git commit -m "feat(server): update dashboard endpoint and add card data endpoin
 ## Task 5: Frontend MSW handlers + RTK Query service
 
 **Files:**
+
 - Create: `frontend/src/mocks/handlers/dashboard-handlers.ts`
 - Modify: `frontend/src/mocks/handlers/index.ts`
 - Modify: `frontend/src/services/dashboard.service.ts`
@@ -745,8 +761,7 @@ const findOne = http.get<{ id: string }, never, DashboardDTO>(
 
 const findOneCard = http.get<{ did: string; cid: string }, never, CardDataDTO>(
   `${config.apiEndpoint}/dashboards/:did/cards/:cid`,
-  ({ params }) =>
-    HttpResponse.json(genCardDataDTO({ id: Number(params.cid) }))
+  ({ params }) => HttpResponse.json(genCardDataDTO({ id: Number(params.cid) }))
 );
 
 export const dashboardHandlers: RequestHandler[] = [findOne, findOneCard];
@@ -832,6 +847,7 @@ git commit -m "feat(frontend): add dashboard MSW handlers and findOneCard RTK en
 ## Task 6: Feature flag + routing
 
 **Files:**
+
 - Modify: `frontend/src/layouts/FeatureFlagLayout.tsx`
 - Modify: `frontend/src/App.tsx`
 
@@ -848,7 +864,9 @@ type AvailableFeatureFlag = 'new-analysis-page';
 - [ ] **Step 2: Update analysis routes in App.tsx** — add lazy import after the existing `AnalysisView` import line:
 
 ```typescript
-const AnalysisViewNext = lazy(() => import('~/views/Analysis/AnalysisViewNext'));
+const AnalysisViewNext = lazy(
+  () => import('~/views/Analysis/AnalysisViewNext')
+);
 ```
 
 Add `FeatureFlagLayout` import alongside other layout imports:
@@ -905,6 +923,7 @@ git commit -m "feat(frontend): register new-analysis-page flag and wrap analysis
 ## Task 7: AnalysisCard component (TDD)
 
 **Files:**
+
 - Create: `frontend/src/components/Analysis/test/AnalysisCard.test.tsx`
 - Create: `frontend/src/components/Analysis/AnalysisCard.tsx`
 
@@ -1106,6 +1125,7 @@ git commit -m "feat(frontend): add AnalysisCard component with loading, error an
 ## Task 8: AnalysisViewNext (TDD)
 
 **Files:**
+
 - Create: `frontend/src/views/Analysis/test/AnalysisViewNext.test.tsx`
 - Create: `frontend/src/views/Analysis/AnalysisViewNext.tsx`
 

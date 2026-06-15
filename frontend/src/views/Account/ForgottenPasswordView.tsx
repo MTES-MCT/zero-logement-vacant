@@ -107,7 +107,7 @@ function ForgottenPasswordView() {
             <EmailSent hidden={hidden} submit={form.handleSubmit(onSubmit)} />
           ) : (
             <>
-              <Typography component="p" variant="body1">
+              <Typography sx={{ mb: '1rem' }}>
                 Vous allez <b>recevoir un email</b> qui vous permettra de créer
                 un nouveau mot de passe.
               </Typography>

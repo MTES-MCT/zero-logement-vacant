@@ -182,10 +182,7 @@ function AdvancedTable<Data extends object>(props: AdvancedTableProps<Data>) {
                 <thead>
                   <tr>
                     {!enableSelection ? null : (
-                      <th
-                        className={fr.cx('fr-cell--fixed')}
-                        role="columnheader"
-                      >
+                      <th className={fr.cx('fr-cell--fixed')}>
                         <SingleCheckbox
                           small
                           option={{

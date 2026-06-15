@@ -82,7 +82,8 @@ function AccountDropdown() {
                 linkProps={{
                   to: '/compte',
                   onClick: doClose,
-                  'aria-current': location.pathname === '/compte' ? 'page' : undefined
+                  'aria-current':
+                    location.pathname === '/compte' ? 'page' : undefined
                 }}
                 size="small"
                 priority="tertiary no outline"
@@ -108,7 +109,8 @@ function AccountDropdown() {
                 linkProps={{
                   to: '/utilisateurs',
                   onClick: doClose,
-                  'aria-current': location.pathname === '/utilisateurs' ? 'page' : undefined
+                  'aria-current':
+                    location.pathname === '/utilisateurs' ? 'page' : undefined
                 }}
                 priority="tertiary no outline"
                 size="small"
@@ -116,7 +118,7 @@ function AccountDropdown() {
                 Utilisateurs rattachés à votre structure
               </MutedButton>
             </li>
-            <li role="separator" aria-hidden="true">
+            <li aria-hidden="true">
               <Divider sx={{ padding: 0 }} />
             </li>
             <li>
@@ -124,7 +126,10 @@ function AccountDropdown() {
                 linkProps={{
                   to: '/autres-structures',
                   onClick: doClose,
-                  'aria-current': location.pathname === '/autres-structures' ? 'page' : undefined
+                  'aria-current':
+                    location.pathname === '/autres-structures'
+                      ? 'page'
+                      : undefined
                 }}
                 priority="tertiary no outline"
                 size="small"

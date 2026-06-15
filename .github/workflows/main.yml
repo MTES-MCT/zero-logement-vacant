@@ -57,7 +57,7 @@ jobs:
           METABASE_TOKEN: token
 
       - name: Lint
-        run: yarn lint
+        run: yarn lint && yarn format
 
       - name: Test
         run: yarn coverage --test-timeout=60000

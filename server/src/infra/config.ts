@@ -44,6 +44,18 @@ export const configSchema = z.object({
       delay: z.string().default('1 months')
     })
   }),
+  cache: z.object({
+    default: z.coerce
+      .number()
+      .int()
+      .min(0)
+      .default(10 * 60 * 1000), // 10 minutes
+    establishment: z.coerce
+      .number()
+      .int()
+      .min(0)
+      .default(5 * 60 * 1000) // 5 minutes
+  }),
   clamav: z.object({
     enabled: z.stringbool().default(false),
     socket: z.string().default('/var/run/clamav/clamd.sock'),
@@ -158,14 +170,12 @@ export const configSchema = z.object({
     domain: z.url().nullable().default('http://localhost:4000'),
     token: z.string().default('example-token'),
     apiToken: z.string().default('example-api-token'),
-    cacheTtlMs: z.coerce.number().int().min(0).default(60 * 60 * 1000),
+    cacheTtlMs: z.coerce
+      .number()
+      .int()
+      .min(0)
+      .default(60 * 60 * 1000),
     cacheMaxEntries: z.coerce.number().int().min(1).default(10_000)
-  }),
-  referenceCache: z.object({
-    ttlMs: z.coerce.number().int().min(0).default(600_000)
-  }),
-  establishmentCache: z.object({
-    ttlMs: z.coerce.number().int().min(0).default(300_000)
   }),
   rateLimit: z.object({
     max: z.coerce.number().int().default(10_000)
@@ -249,6 +259,10 @@ const config = configSchema.parse({
       delay: env('BAN_UPDATE_DELAY')
     }
   },
+  cache: {
+    default: env('REFERENCE_CACHE_TTL_MS'),
+    establishment: env('ESTABLISHMENT_CACHE_TTL_MS')
+  },
   clamav: {
     enabled: env('CLAMAV_ENABLED'),
     socket: env('CLAMAV_SOCKET'),
@@ -314,12 +328,6 @@ const config = configSchema.parse({
     apiToken: env('METABASE_API_TOKEN'),
     cacheTtlMs: env('METABASE_CACHE_TTL_MS'),
     cacheMaxEntries: env('METABASE_CACHE_MAX_ENTRIES')
-  },
-  referenceCache: {
-    ttlMs: env('REFERENCE_CACHE_TTL_MS')
-  },
-  establishmentCache: {
-    ttlMs: env('ESTABLISHMENT_CACHE_TTL_MS')
   },
   rateLimit: {
     max: env('RATE_LIMIT_MAX')

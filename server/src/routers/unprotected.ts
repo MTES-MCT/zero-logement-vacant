@@ -111,9 +111,6 @@ router.put(
   prospectController.upsert
 );
 
-const REFERENCE_TTL = config.referenceCache.ttlMs;
-const ESTABLISHMENT_TTL = config.establishmentCache.ttlMs;
-
 router.get(
   '/establishments',
   jwtCheck({ required: false }),
@@ -121,14 +118,14 @@ router.get(
   validatorNext.validate({
     query: schemas.establishmentFilters
   }),
-  responseCache(ESTABLISHMENT_TTL),
+  responseCache(config.cache.establishment),
   establishmentController.list
 );
 
 router.get(
   '/establishments/:id',
   validatorNext.validate({ params: object({ id: schemas.id }) }),
-  responseCache(ESTABLISHMENT_TTL),
+  responseCache(config.cache.establishment),
   establishmentController.get
 );
 
@@ -136,7 +133,7 @@ router.get(
   '/localities',
   localityController.listLocalitiesValidators,
   validator.validate,
-  responseCache(REFERENCE_TTL),
+  responseCache(config.cache.default),
   localityController.listLocalities
 );
 
@@ -144,10 +141,14 @@ router.get(
   '/localities/:geoCode',
   localityController.getLocalityValidators,
   validator.validate,
-  responseCache(REFERENCE_TTL),
+  responseCache(config.cache.default),
   localityController.getLocality
 );
 
-router.get('/precisions', responseCache(REFERENCE_TTL), precisionController.find);
+router.get(
+  '/precisions',
+  responseCache(config.cache.default),
+  precisionController.find
+);
 
 export default router;

@@ -1,6 +1,11 @@
 import { TTLCache } from '@isaacs/ttlcache';
 import type { NextFunction, Request, RequestHandler, Response } from 'express';
 
+function toBuffer(chunk: unknown, encoding: BufferEncoding = 'utf8'): Buffer {
+  if (chunk === null || chunk === undefined) return Buffer.alloc(0);
+  return Buffer.isBuffer(chunk) ? chunk : Buffer.from(chunk as string, encoding);
+}
+
 export function responseCache(ttl: number): RequestHandler {
   const store = new TTLCache<string, Promise<Buffer>>({ ttl });
 
@@ -10,44 +15,23 @@ export function responseCache(ttl: number): RequestHandler {
 
     if (hit !== undefined) {
       hit
-        .then((body) => {
-          res.set('Content-Type', 'application/json; charset=utf-8').end(body);
-        })
+        .then((body) => res.set('Content-Type', 'application/json; charset=utf-8').end(body))
         .catch(next);
       return;
     }
 
-    // Cold cache: intercept res.end to capture the response body.
-    let promiseResolve!: (buf: Buffer) => void;
-    let promiseReject!: (err: unknown) => void;
-    const promise = new Promise<Buffer>((resolve, reject) => {
-      promiseResolve = resolve;
-      promiseReject = reject;
-    });
+    const { promise: pending, resolve, reject } = Promise.withResolvers<Buffer>();
+    store.set(key, pending);
+    pending.catch(() => store.delete(key));
 
-    store.set(key, promise);
-    // Evict on rejection so the next caller retries rather than replaying the error.
-    promise.catch(() => store.delete(key));
-
-    const originalEnd = res.end.bind(res);
-    (res as any).end = function (chunk?: unknown, encoding?: BufferEncoding, ...args: any[]) {
-      if (chunk != null) {
-        const buf = Buffer.isBuffer(chunk)
-          ? chunk
-          : Buffer.from(chunk as string, encoding ?? 'utf8');
-        if (res.statusCode >= 200 && res.statusCode < 300) {
-          promiseResolve(buf);
-        } else {
-          promiseReject(new Error(`HTTP ${res.statusCode}`));
-        }
+    const originalEnd = res.end.bind(res) as (...args: any[]) => void;
+    (res as any).end = (chunk?: unknown, enc?: BufferEncoding, ...rest: any[]) => {
+      if (res.statusCode >= 200 && res.statusCode < 300) {
+        resolve(toBuffer(chunk, enc));
       } else {
-        if (res.statusCode >= 200 && res.statusCode < 300) {
-          promiseResolve(Buffer.alloc(0));
-        } else {
-          promiseReject(new Error(`HTTP ${res.statusCode}`));
-        }
+        reject(new Error(`HTTP ${res.statusCode}`));
       }
-      return (originalEnd as any)(chunk, encoding, ...args);
+      originalEnd(chunk, enc, ...rest);
     };
 
     next();

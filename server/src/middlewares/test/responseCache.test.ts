@@ -79,18 +79,10 @@ describe('responseCache', () => {
       }
       res.json({ ok: true });
     });
-    app.use(
-      (
-        _err: Error,
-        _req: express.Request,
-        res: express.Response,
-        _next: express.NextFunction
-      ) => {
-        res
-          .status(constants.HTTP_STATUS_INTERNAL_SERVER_ERROR)
-          .json({ error: 'boom' });
-      }
-    );
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    app.use((_err: Error, _req: express.Request, res: express.Response, _next: express.NextFunction) => {
+      res.status(constants.HTTP_STATUS_INTERNAL_SERVER_ERROR).json({ error: 'boom' });
+    });
 
     await request(app).get('/data'); // first call fails → evicts promise
     const { status } = await request(app).get('/data'); // second call retries

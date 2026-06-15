@@ -5,8 +5,7 @@ import {
 } from '@zerologementvacant/models';
 import schemas from '@zerologementvacant/schemas';
 import Router from 'express-promise-router';
-import { param } from 'express-validator';
-import { object, string } from 'yup';
+import { array, number, object, string } from 'yup';
 
 import authController from '~/controllers/auth-controller';
 import buildingController from '~/controllers/buildingController';
@@ -34,12 +33,10 @@ import { hasRole, jwtCheck, userCheck } from '~/middlewares/auth';
 import fileTypeMiddleware from '~/middlewares/fileTypeMiddleware';
 import shapefileValidationMiddleware from '~/middlewares/shapefileValidation';
 import { upload } from '~/middlewares/upload';
-import validator from '~/middlewares/validator';
 import validatorNext from '~/middlewares/validator-next';
 import zipValidationMiddleware from '~/middlewares/zipValidation';
 import { paginationSchema } from '~/models/PaginationApi';
 import sortApi from '~/models/SortApi';
-import { isUUIDParam } from '~/utils/validators';
 
 const router = Router();
 
@@ -149,10 +146,27 @@ router.get(
   }),
   housingController.count
 );
+// `:id` accepts EITHER a 12-char localId OR a UUID, so we cannot reuse the
+// UUID-only `schemas.id` here.
 router.get(
   '/housing/:id',
-  housingController.getValidators,
-  validator.validate,
+  validatorNext.validate({
+    params: object({
+      id: string()
+        .required()
+        .test(
+          'localId-or-uuid',
+          ':id must be a 12-char localId or a UUID',
+          (value) => {
+            if (!value) return false;
+            if (value.length === 12) return true;
+            return /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(
+              value
+            );
+          }
+        )
+    })
+  }),
   housingController.get
 );
 router.put(
@@ -205,45 +219,55 @@ router.post(
 );
 router.get(
   '/groups/:id',
-  groupController.showValidators,
-  validator.validate,
+  validatorNext.validate({
+    params: object({ id: schemas.id })
+  }),
   groupController.show
 );
 router.put(
   '/groups/:id',
-  groupController.updateValidators,
-  validator.validate,
+  validatorNext.validate({
+    params: object({ id: schemas.id }),
+    body: schemas.groupCreationPayload
+  }),
   groupController.update
 );
 router.delete(
   '/groups/:id',
-  groupController.removeValidators,
-  validator.validate,
+  validatorNext.validate({
+    params: object({ id: schemas.id })
+  }),
   groupController.remove
 );
 router.get(
   '/groups/:id/export',
-  housingExportController.exportGroupValidators,
-  validator.validate,
+  validatorNext.validate({
+    params: object({ id: schemas.id })
+  }),
   housingExportController.exportGroup
 );
 router.post(
   '/groups/:id/housing',
-  groupController.addHousingValidators,
-  validator.validate,
+  validatorNext.validate({
+    params: object({ id: schemas.id }),
+    body: schemas.groupHousingPayload
+  }),
   groupController.addHousing
 );
 router.delete(
   '/groups/:id/housing',
-  groupController.removeHousingValidators,
-  validator.validate,
+  validatorNext.validate({
+    params: object({ id: schemas.id }),
+    body: schemas.groupHousingPayload
+  }),
   groupController.removeHousing
 );
 
 router.get(
   '/campaigns',
-  campaignController.listValidators,
-  validator.validate,
+  validatorNext.validate({
+    query: schemas.campaignFilters.concat(schemas.sort)
+  }),
   campaignController.list
 );
 router.get(
@@ -330,14 +354,15 @@ router.post('/owners', ownerController.search);
 router.get('/owners/:id', ownerController.get);
 router.post(
   '/owners/creation',
-  ownerController.ownerValidators,
-  validator.validate,
+  validatorNext.validate({ body: schemas.ownerPayload }),
   ownerController.create
 );
 router.put(
   '/owners/:id',
-  [param('id').isUUID().notEmpty(), ...ownerController.ownerValidators],
-  validator.validate,
+  validatorNext.validate({
+    params: object({ id: schemas.id }),
+    body: schemas.ownerPayload
+  }),
   ownerController.update
 );
 router.get(
@@ -362,21 +387,24 @@ router.get(
 
 router.get(
   '/owners/:id/events',
-  [isUUIDParam('id')],
-  validator.validate,
+  validatorNext.validate({
+    params: object({ id: schemas.id })
+  }),
   eventController.listByOwnerId
 );
 router.get(
   '/housing/:id/events',
-  [isUUIDParam('id')],
-  validator.validate,
+  validatorNext.validate({
+    params: object({ id: schemas.id })
+  }),
   eventController.listByHousingId
 );
 
 router.get(
   '/housing/:id/notes',
-  [isUUIDParam('id')],
-  validator.validate,
+  validatorNext.validate({
+    params: object({ id: schemas.id })
+  }),
   noteController.findByHousing
 );
 router.post(
@@ -404,7 +432,7 @@ router.delete(
 );
 
 // TODO: rework and merge this API with the User API
-router.get('/account', [], validator.validate, authController.get);
+router.get('/account', authController.get);
 router.put(
   '/account',
   validatorNext.validate(authController.updateAccountValidators),
@@ -412,8 +440,9 @@ router.put(
 );
 router.get(
   '/account/establishments/:establishmentId',
-  [isUUIDParam('establishmentId')],
-  validator.validate,
+  validatorNext.validate({
+    params: object({ establishmentId: schemas.id })
+  }),
   authController.changeEstablishment
 );
 
@@ -467,21 +496,43 @@ router.post(
 );
 router.put(
   '/geo/perimeters/:geoPerimeterId',
-  geoController.updateGeoPerimeterValidators,
-  validator.validate,
+  validatorNext.validate({
+    params: object({ geoPerimeterId: string().uuid().required() }),
+    body: object({
+      kind: string().min(1).required(),
+      name: string().nullable().notRequired()
+    })
+  }),
   geoController.updateGeoPerimeter
 );
 router.delete(
   '/geo/perimeters',
-  geoController.deleteGeoPerimeterListValidators,
-  validator.validate,
+  validatorNext.validate({
+    body: object({
+      geoPerimeterIds: array().of(string().uuid().required()).required()
+    })
+  }),
   geoController.deleteGeoPerimeterList
 );
 
 router.put(
   '/localities/:geoCode/tax',
-  localityController.updateLocalityTaxValidators,
-  validator.validate,
+  validatorNext.validate({
+    params: object({ geoCode: schemas.geoCode.required() }),
+    body: object({
+      taxKind: string().oneOf(['THLV', 'None']).required(),
+      taxRate: number().when('taxKind', {
+        is: 'THLV',
+        then: (s) => s.required(),
+        otherwise: (s) =>
+          s.test(
+            'must-not-exist-when-tax-kind-is-none',
+            'taxRate must not be provided when taxKind is None',
+            (v) => v === undefined
+          )
+      })
+    })
+  }),
   localityController.updateLocalityTax
 );
 

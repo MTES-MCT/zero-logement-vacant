@@ -383,4 +383,63 @@ describe('Geo perimeters API', () => {
       }
     }, 30000);
   });
+
+  describe('PUT /geo/perimeters/:geoPerimeterId — validation', () => {
+    const validId = '00000000-0000-4000-8000-000000000001';
+
+    it('should return 400 when :geoPerimeterId is not a UUID', async () => {
+      const { status, body } = await request(url)
+        .put('/geo/perimeters/not-a-uuid')
+        .send({ kind: 'something' })
+        .use(tokenProvider(user));
+
+      expect(status).toBe(constants.HTTP_STATUS_BAD_REQUEST);
+      expect(body).toMatchObject({ name: 'ValidationError' });
+      expect(body.message).toMatch(/geoPerimeterId/i);
+    });
+
+    it('should return 400 when body.kind is missing', async () => {
+      const { status, body } = await request(url)
+        .put(`/geo/perimeters/${validId}`)
+        .send({})
+        .use(tokenProvider(user));
+
+      expect(status).toBe(constants.HTTP_STATUS_BAD_REQUEST);
+      expect(body).toMatchObject({ name: 'ValidationError' });
+    });
+
+    it('should return 400 when body.kind is empty', async () => {
+      const { status, body } = await request(url)
+        .put(`/geo/perimeters/${validId}`)
+        .send({ kind: '' })
+        .use(tokenProvider(user));
+
+      expect(status).toBe(constants.HTTP_STATUS_BAD_REQUEST);
+      expect(body).toMatchObject({ name: 'ValidationError' });
+      expect(body.message).toMatch(/kind/i);
+    });
+  });
+
+  describe('DELETE /geo/perimeters — validation', () => {
+    it('should return 400 when body.geoPerimeterIds is missing', async () => {
+      const { status, body } = await request(url)
+        .delete('/geo/perimeters')
+        .send({})
+        .use(tokenProvider(user));
+
+      expect(status).toBe(constants.HTTP_STATUS_BAD_REQUEST);
+      expect(body).toMatchObject({ name: 'ValidationError' });
+    });
+
+    it('should return 400 when body.geoPerimeterIds contains a non-UUID', async () => {
+      const { status, body } = await request(url)
+        .delete('/geo/perimeters')
+        .send({ geoPerimeterIds: ['not-a-uuid'] })
+        .use(tokenProvider(user));
+
+      expect(status).toBe(constants.HTTP_STATUS_BAD_REQUEST);
+      expect(body).toMatchObject({ name: 'ValidationError' });
+      expect(body.message).toMatch(/geoPerimeterIds/i);
+    });
+  });
 });

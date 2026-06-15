@@ -12,7 +12,6 @@ import {
 import { Struct } from 'effect';
 import { RequestHandler } from 'express';
 import { AuthenticatedRequest } from 'express-jwt';
-import { ValidationChain } from 'express-validator';
 import { v4 as uuidv4 } from 'uuid';
 
 import BadRequestError from '~/errors/badRequestError';
@@ -25,10 +24,7 @@ import {
   CampaignSortableApi,
   toCampaignDTO
 } from '~/models/CampaignApi';
-import {
-  campaignFiltersValidators,
-  CampaignQuery
-} from '~/models/CampaignFiltersApi';
+import { CampaignQuery } from '~/models/CampaignFiltersApi';
 import type { DraftApi } from '~/models/DraftApi';
 import { CampaignHousingEventApi, HousingEventApi } from '~/models/EventApi';
 import { HousingApi, shouldReset } from '~/models/HousingApi';
@@ -97,11 +93,6 @@ const get: RequestHandler<
 
   response.status(constants.HTTP_STATUS_OK).json(toCampaignDTO(campaign));
 };
-
-const listValidators: ValidationChain[] = [
-  ...campaignFiltersValidators,
-  ...sortApi.queryValidators
-];
 
 const createFromGroup: RequestHandler<
   { id: GroupDTO['id'] },
@@ -461,7 +452,6 @@ const removeHousings: RequestHandler<
 
 const campaignController = {
   get,
-  listValidators,
   list,
   createFromGroup,
   update,

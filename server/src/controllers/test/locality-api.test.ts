@@ -233,4 +233,70 @@ describe('Locality API', () => {
       });
     });
   });
+
+  describe('GET /localities — validation', () => {
+    it('should return 400 when query.establishmentId is missing', async () => {
+      const { status, body } = await request(url)
+        .get('/localities')
+        .use(tokenProvider(user));
+
+      expect(status).toBe(constants.HTTP_STATUS_BAD_REQUEST);
+      expect(body).toMatchObject({ name: 'ValidationError' });
+    });
+
+    it('should return 400 when query.establishmentId is not a UUID', async () => {
+      const { status, body } = await request(url)
+        .get('/localities?establishmentId=not-a-uuid')
+        .use(tokenProvider(user));
+
+      expect(status).toBe(constants.HTTP_STATUS_BAD_REQUEST);
+      expect(body).toMatchObject({ name: 'ValidationError' });
+      expect(body.message).toMatch(/establishmentId/i);
+    });
+  });
+
+  describe('GET /localities/:geoCode — validation', () => {
+    it('should return 400 when :geoCode is not 5 characters', async () => {
+      const { status, body } = await request(url)
+        .get('/localities/abc')
+        .use(tokenProvider(user));
+
+      expect(status).toBe(constants.HTTP_STATUS_BAD_REQUEST);
+      expect(body).toMatchObject({ name: 'ValidationError' });
+      expect(body.message).toMatch(/geoCode/i);
+    });
+  });
+
+  describe('PUT /localities/:geoCode/tax — validation', () => {
+    it('should return 400 when body.taxKind is invalid', async () => {
+      const { status, body } = await request(url)
+        .put(`/localities/${locality.geoCode}/tax`)
+        .send({ taxKind: 'invalid' })
+        .use(tokenProvider(user));
+
+      expect(status).toBe(constants.HTTP_STATUS_BAD_REQUEST);
+      expect(body).toMatchObject({ name: 'ValidationError' });
+      expect(body.message).toMatch(/taxKind/i);
+    });
+
+    it('should return 400 when taxKind is THLV and taxRate is missing', async () => {
+      const { status, body } = await request(url)
+        .put(`/localities/${locality.geoCode}/tax`)
+        .send({ taxKind: 'THLV' })
+        .use(tokenProvider(user));
+
+      expect(status).toBe(constants.HTTP_STATUS_BAD_REQUEST);
+      expect(body).toMatchObject({ name: 'ValidationError' });
+    });
+
+    it('should return 400 when taxKind is None and taxRate is provided', async () => {
+      const { status, body } = await request(url)
+        .put(`/localities/${locality.geoCode}/tax`)
+        .send({ taxKind: 'None', taxRate: 5 })
+        .use(tokenProvider(user));
+
+      expect(status).toBe(constants.HTTP_STATUS_BAD_REQUEST);
+      expect(body).toMatchObject({ name: 'ValidationError' });
+    });
+  });
 });

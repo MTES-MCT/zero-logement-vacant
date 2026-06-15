@@ -9,7 +9,6 @@ import {
 import { Array, pipe, Predicate } from 'effect';
 import { RequestHandler } from 'express';
 import { AuthenticatedRequest } from 'express-jwt';
-import { body, param, ValidationChain } from 'express-validator';
 import { differenceBy, uniqBy } from 'lodash-es';
 import { v4 as uuidv4 } from 'uuid';
 
@@ -19,12 +18,10 @@ import { logger } from '~/infra/logger';
 import { GroupHousingEventApi } from '~/models/EventApi';
 import { GroupApi, toGroupDTO } from '~/models/GroupApi';
 import { HousingApi } from '~/models/HousingApi';
-import housingFiltersApi from '~/models/HousingFiltersApi';
 import campaignRepository from '~/repositories/campaignRepository';
 import eventRepository from '~/repositories/eventRepository';
 import groupRepository from '~/repositories/groupRepository';
 import housingRepository from '~/repositories/housingRepository';
-import { isArrayOf, isString, isUUIDParam } from '~/utils/validators';
 
 const list: RequestHandler<
   never,
@@ -125,17 +122,6 @@ const create: RequestHandler<never, GroupDTO, GroupPayloadDTO, never> = async (
   response.status(constants.HTTP_STATUS_CREATED).json(toGroupDTO(group));
 };
 
-const createValidators: ValidationChain[] = [
-  body('title').isString().notEmpty(),
-  body('description').isString().notEmpty(),
-  body('housing').isObject({ strict: true }).optional(),
-  body('housing.all').if(body('housing').notEmpty()).isBoolean().notEmpty(),
-  body('housing.ids')
-    .if(body('housing').notEmpty())
-    .custom(isArrayOf(isString)),
-  ...housingFiltersApi.validators('housing.filters')
-];
-
 const show: RequestHandler<
   { id: GroupDTO['id'] },
   GroupDTO,
@@ -160,7 +146,6 @@ const show: RequestHandler<
 
   response.status(constants.HTTP_STATUS_OK).json(toGroupDTO(group));
 };
-const showValidators: ValidationChain[] = [param('id').isString().notEmpty()];
 
 const update: RequestHandler<
   { id: GroupDTO['id'] },
@@ -203,10 +188,6 @@ const update: RequestHandler<
 
   response.status(constants.HTTP_STATUS_OK).json(toGroupDTO(updatedGroup));
 };
-const updateValidators: ValidationChain[] = [
-  ...createValidators,
-  isUUIDParam('id')
-];
 
 const addHousing: RequestHandler<
   { id: GroupDTO['id'] },
@@ -293,12 +274,6 @@ const addHousing: RequestHandler<
   };
   response.status(constants.HTTP_STATUS_OK).json(toGroupDTO(updatedGroup));
 };
-const addHousingValidators: ValidationChain[] = [
-  isUUIDParam('id'),
-  body('all').isBoolean().notEmpty(),
-  body('ids').custom(isArrayOf(isString)),
-  ...housingFiltersApi.validators('filters')
-];
 
 const removeHousing: RequestHandler<
   { id: GroupDTO['id'] },
@@ -384,7 +359,6 @@ const removeHousing: RequestHandler<
   };
   response.status(constants.HTTP_STATUS_OK).json(toGroupDTO(updatedGroup));
 };
-const removeHousingValidators: ValidationChain[] = addHousingValidators;
 
 const remove: RequestHandler<
   { id: GroupDTO['id'] },
@@ -471,22 +445,15 @@ const remove: RequestHandler<
   });
   response.status(constants.HTTP_STATUS_NO_CONTENT).send();
 };
-const removeValidators: ValidationChain[] = [param('id').isString().notEmpty()];
 
 const groupController = {
   list,
   show,
-  showValidators,
   create,
-  createValidators,
   update,
-  updateValidators,
   addHousing,
-  addHousingValidators,
   removeHousing,
-  removeHousingValidators,
-  remove,
-  removeValidators
+  remove
 };
 
 export default groupController;

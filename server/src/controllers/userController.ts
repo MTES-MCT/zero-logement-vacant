@@ -10,7 +10,6 @@ import {
 import bcrypt from 'bcryptjs';
 import { type RequestHandler } from 'express';
 import { type AuthenticatedRequest } from 'express-jwt';
-import { body, param, ValidationChain } from 'express-validator';
 import { v4 as uuidv4 } from 'uuid';
 
 import EstablishmentMissingError from '~/errors/establishmentMissingError';
@@ -65,24 +64,6 @@ const list: RequestHandler<
 
   response.status(constants.HTTP_STATUS_OK).json(users.map(toUserDTO));
 };
-
-const createUserValidators = [
-  body('email').isEmail().withMessage('Must be an email'),
-  body('password')
-    .isStrongPassword({
-      minLength: 12,
-      minNumbers: 1,
-      minUppercase: 1,
-      minSymbols: 0,
-      minLowercase: 1
-    })
-    .withMessage(
-      'Must be at least 12 characters long, have 1 number, 1 uppercase, 1 lowercase'
-    ),
-  body('establishmentId').isUUID(),
-  body('firstName').isString().optional(),
-  body('lastName').isString().optional()
-];
 
 interface CreateUserBody {
   email: string;
@@ -366,16 +347,12 @@ const remove: RequestHandler<PathParams, void, never, never> = async (
   response.status(constants.HTTP_STATUS_NO_CONTENT).send();
 };
 
-const userIdValidator: ValidationChain[] = [param('userId').isUUID()];
-
 const userController = {
   list,
-  createUserValidators,
   create,
   get,
   update,
-  remove,
-  userIdValidator
+  remove
 };
 
 export default userController;

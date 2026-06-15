@@ -1,7 +1,6 @@
 import { constants } from 'http2';
 
 import { Request, Response } from 'express';
-import { param, ValidationChain } from 'express-validator';
 
 import ProspectMissingError from '~/errors/prospectMissingError';
 import SignupLinkExpiredError from '~/errors/signupLinkExpiredError';
@@ -9,7 +8,7 @@ import SignupLinkMissingError from '~/errors/signupLinkMissingError';
 import { logger } from '~/infra/logger';
 import { EstablishmentApi } from '~/models/EstablishmentApi';
 import { ProspectApi } from '~/models/ProspectApi';
-import { hasExpired, SIGNUP_LINK_LENGTH } from '~/models/SignupLinkApi';
+import { hasExpired } from '~/models/SignupLinkApi';
 import establishmentRepository from '~/repositories/establishmentRepository';
 import prospectRepository from '~/repositories/prospectRepository';
 import signupLinkRepository from '~/repositories/signupLinkRepository';
@@ -69,13 +68,6 @@ async function upsert(request: Request, response: Response) {
   response.status(status).json(prospect);
 }
 
-const createProspectValidator: ValidationChain[] = [
-  param('id').isString().notEmpty().isAlphanumeric().isLength({
-    min: SIGNUP_LINK_LENGTH,
-    max: SIGNUP_LINK_LENGTH
-  })
-];
-
 async function show(request: Request, response: Response) {
   const email = request.params.email as string;
   logger.info('Get account', email);
@@ -87,13 +79,7 @@ async function show(request: Request, response: Response) {
   return response.status(constants.HTTP_STATUS_OK).json(prospect);
 }
 
-const showProspectValidator: ValidationChain[] = [
-  param('email').notEmpty().isEmail()
-];
-
 export default {
   upsert,
-  createProspectValidator,
-  show,
-  showProspectValidator
+  show
 };

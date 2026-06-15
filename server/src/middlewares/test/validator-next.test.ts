@@ -53,5 +53,16 @@ describe('ValidatorNext middleware', () => {
         name: 'ValidationError'
       });
     });
+
+    it('should strip unknown body keys', async () => {
+      const { body, status } = await request(app)
+        .post(testRoute)
+        .send({ geoCode: '12345', extra: 'should-be-stripped' })
+        .set('Content-Type', 'application/json');
+
+      expect(status).toBe(constants.HTTP_STATUS_OK);
+      expect(body).toStrictEqual({ geoCode: '12345' });
+      expect(body).not.toHaveProperty('extra');
+    });
   });
 });

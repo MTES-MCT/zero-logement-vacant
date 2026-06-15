@@ -167,6 +167,18 @@ describe('Group API', () => {
         id: group.id
       });
     });
+
+    describe('validation', () => {
+      it('should return 400 when :id is not a UUID', async () => {
+        const { status, body } = await request(url)
+          .get(testRoute('not-a-uuid'))
+          .use(tokenProvider(user));
+
+        expect(status).toBe(constants.HTTP_STATUS_BAD_REQUEST);
+        expect(body).toMatchObject({ name: 'ValidationError' });
+        expect(body.message).toMatch(/id/i);
+      });
+    });
   });
 
   describe('POST /groups', () => {
@@ -545,6 +557,49 @@ describe('Group API', () => {
         archivedAt: group.archivedAt?.toJSON() ?? null
       });
     });
+
+    describe('validation', () => {
+      it('should return 400 when body.title is missing', async () => {
+        const { status, body: responseBody } = await request(url)
+          .put(testRoute(group.id))
+          .send({
+            description: 'Some description',
+            housing: { all: false, ids: [], filters: {} }
+          })
+          .set({ 'Content-Type': 'application/json' })
+          .use(tokenProvider(user));
+
+        expect(status).toBe(constants.HTTP_STATUS_BAD_REQUEST);
+        expect(responseBody).toMatchObject({ name: 'ValidationError' });
+        expect(responseBody.message).toMatch(/titre|title/i);
+      });
+
+      it('should return 400 when body.description is missing', async () => {
+        const { status, body: responseBody } = await request(url)
+          .put(testRoute(group.id))
+          .send({
+            title: 'Some title',
+            housing: { all: false, ids: [], filters: {} }
+          })
+          .set({ 'Content-Type': 'application/json' })
+          .use(tokenProvider(user));
+
+        expect(status).toBe(constants.HTTP_STATUS_BAD_REQUEST);
+        expect(responseBody).toMatchObject({ name: 'ValidationError' });
+      });
+
+      it('should return 400 when :id is not a UUID', async () => {
+        const { status, body: responseBody } = await request(url)
+          .put(testRoute('not-a-uuid'))
+          .send(payload)
+          .set({ 'Content-Type': 'application/json' })
+          .use(tokenProvider(user));
+
+        expect(status).toBe(constants.HTTP_STATUS_BAD_REQUEST);
+        expect(responseBody).toMatchObject({ name: 'ValidationError' });
+        expect(responseBody.message).toMatch(/id/i);
+      });
+    });
   });
 
   describe('POST /groups/{id}/housing', () => {
@@ -708,6 +763,32 @@ describe('Group API', () => {
         }
       ]);
     });
+
+    describe('validation', () => {
+      it('should return 400 when body.all is missing', async () => {
+        const { status, body: responseBody } = await request(url)
+          .post(testRoute(group.id))
+          .send({ ids: [], filters: {} })
+          .set({ 'Content-Type': 'application/json' })
+          .use(tokenProvider(user));
+
+        expect(status).toBe(constants.HTTP_STATUS_BAD_REQUEST);
+        expect(responseBody).toMatchObject({ name: 'ValidationError' });
+        expect(responseBody.message).toMatch(/all/i);
+      });
+
+      it('should return 400 when :id is not a UUID', async () => {
+        const { status, body: responseBody } = await request(url)
+          .post(testRoute('not-a-uuid'))
+          .send(payload)
+          .set({ 'Content-Type': 'application/json' })
+          .use(tokenProvider(user));
+
+        expect(status).toBe(constants.HTTP_STATUS_BAD_REQUEST);
+        expect(responseBody).toMatchObject({ name: 'ValidationError' });
+        expect(responseBody.message).toMatch(/id/i);
+      });
+    });
   });
 
   describe('DELETE /groups/{id}/housing', () => {
@@ -852,6 +933,31 @@ describe('Group API', () => {
         });
       });
     });
+
+    describe('validation', () => {
+      it('should return 400 when body.all is missing', async () => {
+        const { status, body: responseBody } = await request(url)
+          .delete(testRoute(group.id))
+          .send({ ids: [], filters: {} })
+          .set({ 'Content-Type': 'application/json' })
+          .use(tokenProvider(user));
+
+        expect(status).toBe(constants.HTTP_STATUS_BAD_REQUEST);
+        expect(responseBody).toMatchObject({ name: 'ValidationError' });
+        expect(responseBody.message).toMatch(/all/i);
+      });
+
+      it('should return 400 when :id is not a UUID', async () => {
+        const { status, body: responseBody } = await request(url)
+          .delete(testRoute('not-a-uuid'))
+          .send(payload)
+          .set({ 'Content-Type': 'application/json' })
+          .use(tokenProvider(user));
+
+        expect(status).toBe(constants.HTTP_STATUS_BAD_REQUEST);
+        expect(responseBody).toMatchObject({ name: 'ValidationError' });
+      });
+    });
   });
 
   describe('DELETE /groups/{id}', () => {
@@ -936,6 +1042,18 @@ describe('Group API', () => {
         type: 'housing:group-removed',
         created_by: user.id,
         group_id: null
+      });
+    });
+
+    describe('validation', () => {
+      it('should return 400 when :id is not a UUID', async () => {
+        const { status, body } = await request(url)
+          .delete(testRoute('not-a-uuid'))
+          .use(tokenProvider(user));
+
+        expect(status).toBe(constants.HTTP_STATUS_BAD_REQUEST);
+        expect(body).toMatchObject({ name: 'ValidationError' });
+        expect(body.message).toMatch(/id/i);
       });
     });
 

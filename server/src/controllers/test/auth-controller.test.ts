@@ -27,6 +27,14 @@ vi.mock('../../services/mailService', () => ({
 
 vi.mock('../../services/ceremaService/mockCeremaService');
 
+// Mock posthogService — default: auth-v2 flag is OFF so existing tests
+// exercise the legacy signIn path. Individual tests can flip it per-call
+// via `mockResolvedValueOnce(true)`.
+vi.mock('../../services/posthogService', () => ({
+  isFeatureEnabled: vi.fn().mockResolvedValue(false),
+  default: { isFeatureEnabled: vi.fn() }
+}));
+
 // Mock better-auth so we can simulate a session-cookie request without
 // going through the full better-auth sign-in flow (covered by Task 10).
 vi.mock('../../infra/auth', () => ({
@@ -76,6 +84,7 @@ import { toUserDBO, Users } from '~/repositories/userRepository';
 import userRepository from '~/repositories/userRepository';
 import { UsersEstablishments } from '~/repositories/user-establishment-repository';
 import { auth } from '~/infra/auth';
+import { isFeatureEnabled } from '~/services/posthogService';
 
 import {
   genEstablishmentApi,
@@ -223,6 +232,41 @@ describe('Account controller', () => {
 
       // Cleanup
       await Users().where('id', deletedUser.id).delete();
+    });
+  });
+
+  describe('POST /api/authenticate — auth-v2 flag', () => {
+    const testRoute = '/authenticate';
+    const mockIsFeatureEnabled = vi.mocked(isFeatureEnabled);
+
+    afterEach(() => {
+      mockIsFeatureEnabled.mockReset();
+      // Restore default behaviour for the rest of the suite
+      mockIsFeatureEnabled.mockResolvedValue(false);
+    });
+
+    it('returns 410 Gone when auth-v2 flag is enabled', async () => {
+      mockIsFeatureEnabled.mockResolvedValueOnce(true);
+
+      const { body, status } = await request(url).post(testRoute).send({
+        email: user.email,
+        password: user.password
+      });
+
+      expect(status).toBe(constants.HTTP_STATUS_GONE);
+      expect(body).toMatchObject({ message: 'Use /api/auth/sign-in/email' });
+    });
+
+    it('proceeds normally when auth-v2 flag is disabled', async () => {
+      mockIsFeatureEnabled.mockResolvedValueOnce(false);
+
+      const { status } = await request(url).post(testRoute).send({
+        email: user.email,
+        password: 'WrongPassword123!'
+      });
+
+      // Reaches the legacy auth logic and fails with 401 (bogus password)
+      expect(status).toBe(constants.HTTP_STATUS_UNAUTHORIZED);
     });
   });
 

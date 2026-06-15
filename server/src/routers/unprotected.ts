@@ -17,6 +17,7 @@ import { noop } from '~/middlewares/noop';
 import { responseCache } from '~/middlewares/responseCache';
 import validator from '~/middlewares/validator';
 import validatorNext from '~/middlewares/validator-next';
+import { SIGNUP_LINK_LENGTH } from '~/models/SignupLinkApi';
 
 const router = Router();
 
@@ -35,8 +36,9 @@ function rateLimiter() {
 
 router.get(
   '/prospects/:email',
-  prospectController.showProspectValidator,
-  validator.validate,
+  validatorNext.validate({
+    params: object({ email: schemas.email })
+  }),
   prospectController.show
 );
 
@@ -109,11 +111,15 @@ router.get(
   signupLinkController.show
 );
 
+// signup link ids are randomstring (not UUIDs) — don't use schemas.id
 router.put(
   '/signup-links/:id/prospect',
   rateLimiter(),
-  prospectController.createProspectValidator,
-  validator.validate,
+  validatorNext.validate({
+    params: object({
+      id: string().matches(/^[a-zA-Z0-9]+$/).length(SIGNUP_LINK_LENGTH).required()
+    })
+  }),
   prospectController.upsert
 );
 

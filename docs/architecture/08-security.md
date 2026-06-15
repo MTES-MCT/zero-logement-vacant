@@ -223,7 +223,7 @@ const housingUpdateSchema = yup.object({
 // Middleware
 router.put(
   '/housing/:id',
-  validatorNext.body(housingUpdateSchema),
+  validator.body(housingUpdateSchema),
   housingController.update
 );
 ```

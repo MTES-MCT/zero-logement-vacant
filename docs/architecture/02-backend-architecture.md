@@ -131,7 +131,7 @@ server/src/
 ├── middlewares/              # Express middleware
 │   ├── auth.ts              # JWT + user checks
 │   ├── error-handler.ts     # Error handling
-│   ├── validator-next.ts    # Yup validation
+│   ├── validator.ts         # Yup validation
 │   ├── upload.ts            # Multer config
 │   └── antivirus.ts         # ClamScan
 │
@@ -554,12 +554,12 @@ function errorHandler(
 
 ```typescript
 // Validation middleware
-import { validatorNext } from '@middlewares/validator-next';
+import { validator } from '@middlewares/validator';
 
 // In router
 router.post(
   '/housing',
-  validatorNext.body(housingCreatePayload),
+  validator.body(housingCreatePayload),
   housingController.create
 );
 

@@ -1,4 +1,5 @@
 import { betterAuth } from 'better-auth';
+import { CamelCasePlugin, Kysely, PostgresDialect } from 'kysely';
 import { Pool } from 'pg';
 import { UserRole } from '@zerologementvacant/models';
 import config from '~/infra/config';
@@ -10,8 +11,22 @@ import { logger } from '~/infra/logger';
 
 const pool = new Pool({ connectionString: config.db.url });
 
+// Wrap the pool in a Kysely instance with CamelCasePlugin so that better-auth's
+// camelCase field names (emailVerified, createdAt, activeEstablishmentId, …)
+// are transparently mapped to the snake_case columns defined by ZLV's
+// migration (20260613120000_better_auth_tables.ts). Without this plugin,
+// queries fail with "column emailVerified does not exist". Verified by
+// integration test (Task 10).
+const kyselyDb = new Kysely<any>({
+  dialect: new PostgresDialect({ pool }),
+  plugins: [new CamelCasePlugin()]
+});
+
 export const auth = betterAuth({
-  database: pool,
+  database: {
+    db: kyselyDb,
+    type: 'postgres'
+  },
   session: {
     expiresIn: 30 * 24 * 60 * 60,
     updateAge: 8 * 60 * 60,
@@ -54,9 +69,26 @@ export const auth = betterAuth({
     session: {
       create: {
         before: async (session) => {
-          const authorised = await userEstablishmentRepository
-            .getAuthorizedEstablishments(session.userId);
-          const first = authorised.find((e) => e.hasCommitment);
+          // Resilient lookup. better-auth `auth_users.id` is a nanoid string,
+          // but the legacy `users_establishments.user_id` is a UUID with a FK
+          // to the legacy `users` table. For users that exist in `auth_users`
+          // but not in the legacy `users` table (e.g. brand-new signups, or
+          // tests), the query will raise `invalid input syntax for type uuid`
+          // — which we treat as "no authorised establishments" and fall back
+          // to `activeEstablishmentId: null`. Once the legacy `users` table
+          // is fully migrated to `auth_users`, this try/catch becomes dead
+          // code and can be removed.
+          let first: { establishmentId: string } | undefined;
+          try {
+            const authorised = await userEstablishmentRepository
+              .getAuthorizedEstablishments(session.userId);
+            first = authorised.find((e) => e.hasCommitment);
+          } catch (error) {
+            logger.warn(
+              'Could not resolve authorized establishments for session.userId; defaulting to null',
+              { userId: session.userId, error }
+            );
+          }
           return {
             data: {
               ...session,

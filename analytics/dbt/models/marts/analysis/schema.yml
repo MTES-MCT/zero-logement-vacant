@@ -104,6 +104,17 @@ models:
       Table Marts - Metriques d utilisation ZLV au niveau etablissement.
       Champs strictement issus du spec fields_usage_establishments.csv.
       Inclut les echelons inscrits (communes inscrites dans les EPCI, etc).
+
+      Attribution des "logements mis a jour": les compteurs logements_maj_* sont
+      calcules a partir des EVENEMENTS crees par les utilisateurs de l etablissement
+      (int_production_events.establishment_id), et NON par le territoire geographique
+      du logement. Un logement n est donc compte que pour l etablissement dont un
+      utilisateur a reellement effectue la mise a jour.
+    tests:
+      - dbt_utils.expression_is_true:
+          expression: logements_maj_suivi <= logements_maj_situation
+      - dbt_utils.expression_is_true:
+          expression: logements_maj_occupation <= logements_maj_situation
     columns:
       - name: establishment_id
         description: Identifiant unique de l etablissement
@@ -114,6 +125,14 @@ models:
         description: Nom de l etablissement
       - name: ouvert
         description: TRUE si l etablissement est disponible et a au moins 1 utilisateur
+      - name: logements_maj_situation
+        description: |
+          Nombre de logements distincts mis a jour (suivi OU occupation) par les
+          utilisateurs de cet etablissement.
+      - name: logements_maj_suivi
+        description: Nombre de logements distincts dont le dernier statut de suivi a ete pose par un utilisateur de l etablissement
+      - name: logements_maj_occupation
+        description: Nombre de logements distincts dont le dernier statut d occupation a ete pose par un utilisateur de l etablissement
       - name: communes_inscrites
         description: Nombre de communes inscrites dans le territoire de l EPCI
       - name: communes_inscrites_pct

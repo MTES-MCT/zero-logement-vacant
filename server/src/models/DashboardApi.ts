@@ -8,10 +8,13 @@ export function getResource(id: string): number {
       return 6;
     case '7-autres-structures-de-votre-territoires-inscrites-sur-zlv':
       return 7;
+    // TODO: remove this dashboard when the feature flag is removed
     case '13-analyses':
       return 13;
     case '15-analyses-activites':
       return 15;
+    case '38-parcs-de-logements':
+      return 38;
     default:
       throw new UnprocessableEntityError();
   }

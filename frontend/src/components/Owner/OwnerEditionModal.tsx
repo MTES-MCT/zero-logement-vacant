@@ -21,14 +21,7 @@ import { useUpdateOwnerMutation } from '~/services/owner.service';
 import OwnerAddressEdition from '../OwnerAddressEdition/OwnerAddressEdition';
 
 const schema = object({
-  birthDate: string()
-    .nullable()
-    .defined()
-    .test(
-      'birth-date-required',
-      'Veuillez renseigner une date de naissance.',
-      (value) => Boolean(value)
-    ),
+  birthDate: string().nullable().defined(),
   banAddress: object({
     id: string().required(),
     label: string().required(),
@@ -222,15 +215,14 @@ function createOwnerEditionModalNext() {
 
                 <AppTextInputNext<FormSchema, 'birthDate'>
                   name="birthDate"
-                  label="Date de naissance (obligatoire)"
+                  label="Date de naissance (facultatif)"
                   hintText="Format attendu : jj/mm/aaaa"
                   nativeInputProps={{
                     type: 'date',
                     max: new Date()
                       .toISOString()
                       .substring(0, 'yyyy-mm-dd'.length),
-                    autoComplete: 'bday',
-                    'aria-required': 'true'
+                    autoComplete: 'bday'
                   }}
                   mapValue={(value) => value ?? ''}
                   contramapValue={(value) => value || null}

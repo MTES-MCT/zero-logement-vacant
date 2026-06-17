@@ -13,14 +13,7 @@ import Icon from '~/components/ui/Icon';
 import type { Owner } from '~/models/Owner';
 
 export const OWNER_FORM_FIELD_SCHEMA = object({
-  birthDate: string()
-    .defined()
-    .nullable()
-    .test(
-      'birth-date-required',
-      'Veuillez renseigner une date de naissance.',
-      (value) => Boolean(value)
-    ),
+  birthDate: string().defined().nullable(),
   banAddress: object({
     id: string().required(),
     label: string().required(),
@@ -69,13 +62,12 @@ function OwnerFormFields(props: OwnerFormFieldsProps) {
 
       <AppTextInputNext<OwnerFormFieldsSchema, 'birthDate'>
         name="birthDate"
-        label="Date de naissance (obligatoire)"
+        label="Date de naissance (facultatif)"
         hintText="Format attendu : jj/mm/aaaa"
         nativeInputProps={{
           type: 'date',
           max: new Date().toISOString().substring(0, 'yyyy-mm-dd'.length),
-          autoComplete: 'bday',
-          'aria-required': 'true'
+          autoComplete: 'bday'
         }}
         mapValue={(value) => value ?? ''}
         contramapValue={(value) => value || null}

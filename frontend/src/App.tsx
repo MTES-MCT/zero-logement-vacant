@@ -77,7 +77,7 @@ const router = sentry.createBrowserRouter(
           element={
             <FeatureFlagLayout
               flag="new-analysis-page"
-              then={<AnalysisViewNext id="13-analyses" />}
+              then={<AnalysisViewNext id="38-parcs-de-logements" />}
               else={<AnalysisView id="13-analyses" />}
             />
           }

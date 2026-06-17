@@ -1,6 +1,8 @@
 {
   "permissions": {
-    "allow": ["mcp__figma__get_design_context"]
+    "allow": [
+      "mcp__figma__get_design_context"
+    ]
   },
   "hooks": {
     "PostToolUse": [
@@ -16,20 +18,6 @@
       }
     ]
   },
-  "extraKnownMarketplaces": {
-    "nx-claude-plugins": {
-      "source": {
-        "source": "github",
-        "repo": "nrwl/nx-ai-agents-config"
-      }
-    },
-    "claude-plugins-official": {
-      "source": {
-        "source": "github",
-        "repo": "anthropics/claude-plugins-official"
-      }
-    }
-  },
   "enabledPlugins": {
     "nx@nx-claude-plugins": true,
     "superpowers@claude-plugins-official": true,
@@ -38,5 +26,13 @@
     "figma@claude-plugins-official": true,
     "claude-md-management@claude-plugins-official": true,
     "skill-creator@claude-plugins-official": true
+  },
+  "extraKnownMarketplaces": {
+    "nx-claude-plugins": {
+      "source": {
+        "source": "github",
+        "repo": "nrwl/nx-ai-agents-config"
+      }
+    }
   }
 }

@@ -46,9 +46,11 @@ From ``analytics/dagster/`` with the same Postgres + BAN env as Dagster:
     uv run python scripts/backfill_ban_owners.py --reset          # ignore cursor
 
     # housing-lovac mode: geocode owners linked to any lovac-2026 housing,
-    # regardless of the owner's own data_source
+    # regardless of the owner's own data_source. First run builds a persistent
+    # ban_backfill_targets_<tag> table (one heavy join), then paginates it.
     uv run python scripts/backfill_ban_owners.py --by housing-lovac
-    uv run python scripts/backfill_ban_owners.py --by housing-lovac --data-source lovac-2026 --count
+    uv run python scripts/backfill_ban_owners.py --by housing-lovac --data-source lovac-2026
+    uv run python scripts/backfill_ban_owners.py --by housing-lovac --rebuild-targets  # after a new import
 
 Required env: POSTGRES_PRODUCTION_DB, POSTGRES_PRODUCTION_PORT,
 POSTGRES_PRODUCTION_DB_NAME, POSTGRES_PRODUCTION_WRITE_ACCESS_USER,
@@ -64,6 +66,7 @@ import importlib.util
 import json
 import logging
 import os
+import re
 import signal
 import sys
 from concurrent.futures import ThreadPoolExecutor, as_completed
@@ -130,12 +133,75 @@ WHERE o.address_dgfip IS NOT NULL
 # housing-lovac mode
 # Geocodes owners linked to at least one housing whose data_file_years contains
 # the target cohort tag, regardless of the owner's own data_source.
-# Uses EXISTS (semi-join) so there is no fan-out from the one-to-many
-# owners_housing relation — keyset pagination on o.id stays correct.
-# The fast_housing join uses both fh.id and fh.geo_code to hit the composite PK
-# and benefit from partition pruning on the RANGE-partitioned table.
+#
+# A live EXISTS / JOIN does NOT work here: the owner<-housing link is "all of
+# owners_housing (~6.6M rows) hash-joined to a 96-partition seq scan of
+# fast_housing". The planner materialises that whole semi-join *before* applying
+# ORDER BY id / LIMIT, so keyset pagination buys nothing — every batch redoes the
+# full join and exceeds the Postgres duration cap (connection dies, SSL EOF).
+#
+# So we pay that join ONCE into a persistent table of distinct owner ids
+# (`ban_backfill_targets_<tag>`), add a PK, then every batch is a cheap keyset
+# index scan over that small table joined back to owners. The table is persistent
+# (not TEMP) because each run opens a fresh connection and must resume against the
+# same set. ensure_targets() builds it automatically on first run.
 # ---------------------------------------------------------------------------
+
+# Built once (see ensure_targets). {table} is a validated identifier; the cohort
+# tag is bound as %(data_source)s.
+HOUSING_LOVAC_BUILD_SQL = """
+DROP TABLE IF EXISTS {table};
+CREATE TABLE {table} AS
+SELECT DISTINCT oh.owner_id AS id
+FROM owners_housing oh
+JOIN fast_housing fh
+  ON fh.id = oh.housing_id AND fh.geo_code = oh.housing_geo_code
+WHERE %(data_source)s = ANY(fh.data_file_years);
+ALTER TABLE {table} ADD PRIMARY KEY (id);
+"""
+
+# Per-batch: keyset over the small targets table, anti-joined to ban_addresses
+# so already-geocoded owners drop out and the run is resumable/idempotent.
 HOUSING_LOVAC_CANDIDATES_SQL = """
+SELECT o.id AS ref_id,
+       array_to_string(o.address_dgfip, ' ') AS address_dgfip
+FROM {table} t
+JOIN owners o ON o.id = t.id
+LEFT JOIN ban_addresses ba
+  ON ba.ref_id = o.id AND ba.address_kind = 'Owner'
+WHERE o.address_dgfip IS NOT NULL
+  AND ba.ref_id IS NULL
+  AND t.id > %(last_id)s
+ORDER BY t.id
+LIMIT %(limit)s;
+"""
+
+HOUSING_LOVAC_REMAINING_SQL = """
+SELECT COUNT(*)
+FROM {table} t
+JOIN owners o ON o.id = t.id
+LEFT JOIN ban_addresses ba
+  ON ba.ref_id = o.id AND ba.address_kind = 'Owner'
+WHERE o.address_dgfip IS NOT NULL
+  AND ba.ref_id IS NULL;
+"""
+
+
+def _targets_table(data_source: str) -> str:
+    """Persistent targets-table name for a cohort tag, e.g.
+    lovac-2026 -> ban_backfill_targets_lovac_2026. Validates the tag so it is safe
+    to inline as an SQL identifier (table names cannot be bind params)."""
+    if not re.fullmatch(r"[a-z0-9-]+", data_source):
+        sys.exit(f"Refusing unsafe data-source identifier: {data_source!r}")
+    return "ban_backfill_targets_" + data_source.replace("-", "_")
+
+
+# ---------------------------------------------------------------------------
+# all-owners mode
+# Every owner with an address and no BAN row yet — no cohort/housing filter.
+# Pure keyset over the owners PK + (ref_id) anti-join: the lightest query of all.
+# ---------------------------------------------------------------------------
+ALL_OWNERS_CANDIDATES_SQL = """
 SELECT o.id AS ref_id,
        array_to_string(o.address_dgfip, ' ') AS address_dgfip
 FROM owners o
@@ -144,38 +210,31 @@ LEFT JOIN ban_addresses ba
 WHERE o.address_dgfip IS NOT NULL
   AND ba.ref_id IS NULL
   AND o.id > %(last_id)s
-  AND EXISTS (
-    SELECT 1 FROM owners_housing oh
-    JOIN fast_housing fh
-      ON fh.id = oh.housing_id AND fh.geo_code = oh.housing_geo_code
-    WHERE oh.owner_id = o.id
-      AND %(data_source)s = ANY(fh.data_file_years)
-  )
 ORDER BY o.id
 LIMIT %(limit)s;
 """
 
-HOUSING_LOVAC_REMAINING_SQL = """
+ALL_OWNERS_REMAINING_SQL = """
 SELECT COUNT(*)
 FROM owners o
 LEFT JOIN ban_addresses ba
   ON ba.ref_id = o.id AND ba.address_kind = 'Owner'
 WHERE o.address_dgfip IS NOT NULL
-  AND ba.ref_id IS NULL
-  AND EXISTS (
-    SELECT 1 FROM owners_housing oh
-    JOIN fast_housing fh
-      ON fh.id = oh.housing_id AND fh.geo_code = oh.housing_geo_code
-    WHERE oh.owner_id = o.id
-      AND %(data_source)s = ANY(fh.data_file_years)
-  );
+  AND ba.ref_id IS NULL;
 """
 
-# Map mode name -> (candidates_sql, remaining_sql)
-_SQL_BY_MODE: dict[str, tuple[str, str]] = {
-    "owner-cohort": (OWNER_COHORT_CANDIDATES_SQL, OWNER_COHORT_REMAINING_SQL),
-    "housing-lovac": (HOUSING_LOVAC_CANDIDATES_SQL, HOUSING_LOVAC_REMAINING_SQL),
-}
+
+def _mode_sql(by: str, data_source: str) -> tuple[str, str]:
+    """Return (candidates_sql, remaining_sql) for the selection mode."""
+    if by == "owner-cohort":
+        return OWNER_COHORT_CANDIDATES_SQL, OWNER_COHORT_REMAINING_SQL
+    if by == "all-owners":
+        return ALL_OWNERS_CANDIDATES_SQL, ALL_OWNERS_REMAINING_SQL
+    table = _targets_table(data_source)
+    return (
+        HOUSING_LOVAC_CANDIDATES_SQL.format(table=table),
+        HOUSING_LOVAC_REMAINING_SQL.format(table=table),
+    )
 
 ZERO_UUID = "00000000-0000-0000-0000-000000000000"
 
@@ -196,6 +255,12 @@ def connect():
         # Clever Cloud Postgres: libpq default "prefer" works; override with
         # POSTGRES_SSLMODE=require if the addon enforces TLS.
         sslmode=os.environ.get("POSTGRES_SSLMODE", "prefer"),
+        # Long EXISTS scans can sit silent long enough for a NAT/proxy to drop the
+        # socket ("SSL SYSCALL error: EOF detected"). TCP keepalives keep it warm.
+        keepalives=1,
+        keepalives_idle=30,
+        keepalives_interval=10,
+        keepalives_count=5,
     )
 
 
@@ -220,6 +285,34 @@ def remaining(conn, remaining_sql: str, data_source: str) -> int:
     with conn.cursor() as cur:
         cur.execute(remaining_sql, {"data_source": data_source})
         return cur.fetchone()[0]
+
+
+def ensure_targets(conn, data_source: str, rebuild: bool) -> None:
+    """housing-lovac mode: make sure the persistent targets table exists.
+
+    Builds it once (the heavy owners_housing<->fast_housing join) with jit off and
+    a fat work_mem so the hash doesn't spill. Subsequent runs reuse it. Pass
+    rebuild=True to force a fresh build (e.g. after a new LOVAC import)."""
+    table = _targets_table(data_source)
+    with conn.cursor() as cur:
+        cur.execute("SELECT to_regclass(%s)", (table,))
+        exists = cur.fetchone()[0] is not None
+
+    if exists and not rebuild:
+        with conn.cursor() as cur:
+            cur.execute(f"SELECT count(*) FROM {table}")
+            LOG.info("Targets table %s present — %d owners.", table, cur.fetchone()[0])
+        return
+
+    LOG.info("Building targets table %s (one-time heavy join)…", table)
+    with conn.cursor() as cur:
+        cur.execute("SET jit = off")
+        cur.execute("SET work_mem = '512MB'")
+        cur.execute(HOUSING_LOVAC_BUILD_SQL.format(table=table), {"data_source": data_source})
+    conn.commit()
+    with conn.cursor() as cur:
+        cur.execute(f"SELECT count(*) FROM {table}")
+        LOG.info("Built %s — %d target owners.", table, cur.fetchone()[0])
 
 
 def fetch_batch(conn, candidates_sql: str, data_source: str, last_id: str, limit: int) -> pd.DataFrame:
@@ -250,19 +343,22 @@ def geocode_parallel(df: pd.DataFrame, chunk: int, workers: int, api_url: str) -
 def run(args: argparse.Namespace) -> None:
     ds = args.data_source
     by = args.by
-    candidates_sql, remaining_sql = _SQL_BY_MODE[by]
+    candidates_sql, remaining_sql = _mode_sql(by, ds)
 
     api_url = os.environ["BAN_API_URL"]
     conn = connect()
     conn.autocommit = False
 
-    total_left = remaining(conn, remaining_sql, ds)
-    LOG.info("Mode %s / cohort %s — %d owners missing a BAN address", by, ds, total_left)
+    # housing-lovac reads from a precomputed targets table; build it if missing.
+    if by == "housing-lovac":
+        ensure_targets(conn, ds, rebuild=args.rebuild_targets)
+
+    # The remaining COUNT(*) now just counts the small targets table joined to
+    # owners — cheap. Still only run it on demand to keep a plain run fast.
+    total_left: int | None = None
     if args.count:
+        total_left = remaining(conn, remaining_sql, ds)
         print(total_left)
-        return
-    if total_left == 0:
-        LOG.info("Nothing to do.")
         return
 
     last_id = ZERO_UUID if args.reset else load_cursor(by, ds)
@@ -300,8 +396,9 @@ def run(args: argparse.Namespace) -> None:
             save_cursor(by, ds, last_id)
             processed += len(df)
             LOG.info(
-                "batch: in=%d ok_total=%d nf_total=%d processed=%d/%d cursor=%s",
-                len(df), ok, nf, processed, total_left, last_id,
+                "batch: in=%d ok_total=%d nf_total=%d processed=%d/%s cursor=%s",
+                len(df), ok, nf, processed,
+                total_left if total_left is not None else "?", last_id,
             )
 
     LOG.info("Done. processed=%d ok=%d not_found=%d", processed, ok, nf)
@@ -314,13 +411,14 @@ def main() -> None:
     )
     p.add_argument(
         "--by",
-        choices=["owner-cohort", "housing-lovac"],
+        choices=["owner-cohort", "housing-lovac", "all-owners"],
         default="owner-cohort",
         help=(
             "Candidate selection mode. "
             "'owner-cohort' (default): owners whose data_source matches --data-source. "
             "'housing-lovac': owners linked to a housing whose data_file_years contains "
-            "--data-source, regardless of the owner's own data_source."
+            "--data-source, regardless of the owner's own data_source. "
+            "'all-owners': every owner missing a BAN address, no filter."
         ),
     )
     p.add_argument(
@@ -338,6 +436,11 @@ def main() -> None:
     p.add_argument("--limit", type=int, default=0, help="stop after N owners (0 = all)")
     p.add_argument("--count", action="store_true", help="print remaining count and exit")
     p.add_argument("--reset", action="store_true", help="ignore saved cursor, start over")
+    p.add_argument(
+        "--rebuild-targets",
+        action="store_true",
+        help="housing-lovac: force a rebuild of the ban_backfill_targets_<tag> table",
+    )
     args = p.parse_args()
 
     logging.basicConfig(

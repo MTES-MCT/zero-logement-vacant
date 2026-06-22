@@ -10,6 +10,7 @@ import {
 
 import RankBadge from '~/components/Owner/RankBadge';
 import Icon from '~/components/ui/Icon';
+
 import PropertyRightTag from './PropertyRightTag';
 
 interface OtherOwnerCardProps {

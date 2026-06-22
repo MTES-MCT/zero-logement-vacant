@@ -101,9 +101,12 @@ describe('HousingOwnerDTO', () => {
       expect(isPrimaryOwner({ rank: 1 })).toBe(true);
     });
 
-    it.each([-4, -3, -2, -1, 0, 2, 3, 6])('returns false when rank is %i', (rank) => {
-      expect(isPrimaryOwner({ rank: rank as any })).toBe(false);
-    });
+    it.each([-4, -3, -2, -1, 0, 2, 3, 6])(
+      'returns false when rank is %i',
+      (rank) => {
+        expect(isPrimaryOwner({ rank: rank as any })).toBe(false);
+      }
+    );
   });
 
   describe('isSecondaryOwner', () => {

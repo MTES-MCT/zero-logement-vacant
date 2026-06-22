@@ -8,6 +8,7 @@
 
 Permettre d'indiquer qu'un propriétaire ne souhaite pas (ou plus) être contacté, depuis
 la modale d'édition d'un propriétaire dans un logement. Le propriétaire :
+
 - est affiché parmi les **destinataires secondaires** (jamais principal) avec un badge rouge **« Ne pas contacter »** ;
 - est **exclu des campagnes** (les campagnes ne ciblent que le destinataire principal, rang 1) ;
 - déclenche un **message informatif** lors de la création d'une campagne depuis un groupe.
@@ -36,6 +37,7 @@ la modale d'édition d'un propriétaire dans un logement. Le propriétaire :
 ## Implémentation (TDD — tests d'abord à chaque étape)
 
 ### 1. `packages/models` — `HousingOwnerDTO.ts`
+
 - `export const DO_NOT_CONTACT_OWNER_RANK = -4 as const;`
 - `type DoNotContactOwnerRank = typeof DO_NOT_CONTACT_OWNER_RANK;`
 - Étendre `OwnerRank = InactiveOwnerRank | ActiveOwnerRank | DoNotContactOwnerRank`.
@@ -46,6 +48,7 @@ la modale d'édition d'un propriétaire dans un logement. Le propriétaire :
 - Tests : `isDoNotContactOwnerRank` + propriété « -4 n'est ni actif ni inactif ni secondaire ».
 
 ### 2. Frontend — `models/HousingOwnerRank.ts` (cœur logique)
+
 - `OwnerRankLabel` += `'doNotContact'`.
 - `rankToLabel(-4) → 'doNotContact'` ; `labelToRank('doNotContact') → -4`.
 - **`computeOwnersAfterRankTransition`** : ajouter un bucket `doNotContactOwners` (rang -4) ;
@@ -59,6 +62,7 @@ la modale d'édition d'un propriétaire dans un logement. Le propriétaire :
 - Tests `HousingOwnerRank.test.ts` : une assertion par transition + « préserve les NPC lors d'une transition non liée ».
 
 ### 3. Frontend — UI modale `HousingOwnerEditionAside.tsx`
+
 - Schéma `rank: yup.string().oneOf(['primary','secondary','doNotContact'])`.
 - `isActive` initial : `housingOwner != null && !isInactiveOwnerRank(housingOwner.rank)` (donc `true` pour -4).
 - Mapping initial du rang : ajouter `.with(-4, () => 'doNotContact')`.
@@ -66,6 +70,7 @@ la modale d'édition d'un propriétaire dans un logement. Le propriétaire :
 - Tests composant : la 3ᵉ option s'affiche ; la sélectionner ⇒ `onSave` reçoit `rank: 'doNotContact'`.
 
 ### 4. Frontend — badges & regroupements
+
 - `RankBadge.tsx` : `.when(isDoNotContactOwnerRank, () => 'Ne pas contacter')`, famille de couleur rouge
   (via `fr.colors.*` / `ColorFamily`, jamais de hex), icône d'avertissement conforme à la maquette.
 - `useHousingOwners.tsx` : exposer `doNotContactOwners` et les inclure dans `activeOwners`
@@ -76,12 +81,14 @@ la modale d'édition d'un propriétaire dans un logement. Le propriétaire :
 - Vérifier que la carte destinataire secondaire (OwnerList/OwnerCard) rend bien le badge.
 
 ### 5. Frontend — fiche propriétaire `OwnerView.tsx`
+
 - Badge par logement : **déjà gratuit** via `RankBadge` dans `OwnerHousingCard`.
 - Badge au niveau du nom : afficher « Ne pas contacter » lorsque le propriétaire est NPC
   sur **tous** ses logements ZLV (cas « un seul logement » de la maquette).
   → **à confirmer** avec Lucas (tous vs au moins un) en revue.
 
 ### 6. Frontend — alerte création de campagne `CreateCampaignFromGroupModal.tsx`
+
 - Ajouter un `<Alert severity="warning" small>` informatif (non bloquant).
 - Décompte : si l'agrégat `group.ownerCount` se calcule à un seul endroit côté serveur,
   ajouter un `doNotContactCount` (petit ajout) ; **sinon** message statique
@@ -90,6 +97,7 @@ la modale d'édition d'un propriétaire dans un logement. Le propriétaire :
 - Test : l'alerte est présente dans la modale.
 
 ### 7. Backend
+
 - **Aucune migration** si la colonne `rank` n'a pas de contrainte CHECK (à vérifier par grep) ; sinon ajouter une migration.
 - `updateHousingOwners` : aucun changement (persiste le rang du payload). Vérifier que les events
   `housing:owner-updated` acceptent -4 (type `OwnerRank`).
@@ -98,9 +106,11 @@ la modale d'édition d'un propriétaire dans un logement. Le propriétaire :
 - Test API : `PUT /housing/:id/owners` accepte et persiste rang -4 ; un NPC n'est jamais destinataire de campagne.
 
 ## Hors périmètre (à confirmer)
+
 - Exports de publipostage : les destinataires = principal uniquement, donc les NPC ne sont jamais
   envoyés ; pas de changement attendu (à vérifier sur le stream « owners » de l'export).
 
 ## Ordre d'exécution
+
 models → HousingOwnerRank (logique) → modale → badges/regroupements → fiche propriétaire →
 alerte campagne → backend (vérif + test API). Tests d'abord à chaque étape.

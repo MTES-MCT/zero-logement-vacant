@@ -1,5 +1,6 @@
 import { faker } from '@faker-js/faker/locale/fr';
 import { DO_NOT_CONTACT_OWNER_RANK } from '@zerologementvacant/models';
+
 import {
   HOUSING_OWNER_EQUIVALENCE,
   HOUSING_OWNER_RANK_EQUIVALENCE,
@@ -76,9 +77,18 @@ describe('HousingOwnerApi', () => {
     const housing = genHousingApi();
 
     it('should promote the next owner to primary when the primary is marked', () => {
-      const a: HousingOwnerApi = { ...genHousingOwnerApi(housing, genOwnerApi()), rank: 1 };
-      const b: HousingOwnerApi = { ...genHousingOwnerApi(housing, genOwnerApi()), rank: 2 };
-      const c: HousingOwnerApi = { ...genHousingOwnerApi(housing, genOwnerApi()), rank: 3 };
+      const a: HousingOwnerApi = {
+        ...genHousingOwnerApi(housing, genOwnerApi()),
+        rank: 1
+      };
+      const b: HousingOwnerApi = {
+        ...genHousingOwnerApi(housing, genOwnerApi()),
+        rank: 2
+      };
+      const c: HousingOwnerApi = {
+        ...genHousingOwnerApi(housing, genOwnerApi()),
+        rank: 3
+      };
 
       const actual = markOwnerDoNotContact([a, b, c], a.ownerId);
 
@@ -90,9 +100,18 @@ describe('HousingOwnerApi', () => {
     });
 
     it('should re-rank remaining active owners when a secondary is marked', () => {
-      const a: HousingOwnerApi = { ...genHousingOwnerApi(housing, genOwnerApi()), rank: 1 };
-      const b: HousingOwnerApi = { ...genHousingOwnerApi(housing, genOwnerApi()), rank: 2 };
-      const c: HousingOwnerApi = { ...genHousingOwnerApi(housing, genOwnerApi()), rank: 3 };
+      const a: HousingOwnerApi = {
+        ...genHousingOwnerApi(housing, genOwnerApi()),
+        rank: 1
+      };
+      const b: HousingOwnerApi = {
+        ...genHousingOwnerApi(housing, genOwnerApi()),
+        rank: 2
+      };
+      const c: HousingOwnerApi = {
+        ...genHousingOwnerApi(housing, genOwnerApi()),
+        rank: 3
+      };
 
       const actual = markOwnerDoNotContact([a, b, c], b.ownerId);
 
@@ -104,9 +123,18 @@ describe('HousingOwnerApi', () => {
     });
 
     it('should keep inactive owners untouched', () => {
-      const a: HousingOwnerApi = { ...genHousingOwnerApi(housing, genOwnerApi()), rank: 1 };
-      const b: HousingOwnerApi = { ...genHousingOwnerApi(housing, genOwnerApi()), rank: 2 };
-      const previous: HousingOwnerApi = { ...genHousingOwnerApi(housing, genOwnerApi()), rank: 0 };
+      const a: HousingOwnerApi = {
+        ...genHousingOwnerApi(housing, genOwnerApi()),
+        rank: 1
+      };
+      const b: HousingOwnerApi = {
+        ...genHousingOwnerApi(housing, genOwnerApi()),
+        rank: 2
+      };
+      const previous: HousingOwnerApi = {
+        ...genHousingOwnerApi(housing, genOwnerApi()),
+        rank: 0
+      };
 
       const actual = markOwnerDoNotContact([a, b, previous], a.ownerId);
 
@@ -122,7 +150,10 @@ describe('HousingOwnerApi', () => {
     const housing = genHousingApi();
 
     it('should rejoin as the next secondary owner', () => {
-      const a: HousingOwnerApi = { ...genHousingOwnerApi(housing, genOwnerApi()), rank: 1 };
+      const a: HousingOwnerApi = {
+        ...genHousingOwnerApi(housing, genOwnerApi()),
+        rank: 1
+      };
       const b: HousingOwnerApi = {
         ...genHousingOwnerApi(housing, genOwnerApi()),
         rank: DO_NOT_CONTACT_OWNER_RANK

@@ -13,10 +13,11 @@ const NoLegend = styled('div')({
 
 interface BarChartDisplayProps {
   chart: BarChartDataDTO;
+  aspectRatio?: number;
 }
 
 function BarChartDisplay(props: Readonly<BarChartDisplayProps>) {
-  const { chart } = props;
+  const { chart, aspectRatio } = props;
   const horizontal = chart.direction === 'horizontal';
   // Percent values cross the wire as 0–1 fractions (matching the scalar
   // percentage convention). The chart axis needs them scaled back up to be
@@ -30,7 +31,11 @@ function BarChartDisplay(props: Readonly<BarChartDisplayProps>) {
         <bar-chart
           x={JSON.stringify([chart.labels])}
           y={JSON.stringify([yValues])}
+          name={JSON.stringify([chart.name])}
           horizontal={horizontal ? 'true' : undefined}
+          aspect-ratio={
+            aspectRatio !== undefined ? String(aspectRatio) : undefined
+          }
         />
       </NoLegend>
       <ChartTranscription

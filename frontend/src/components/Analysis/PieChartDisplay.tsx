@@ -6,10 +6,11 @@ import ChartTranscription from './ChartTranscription';
 
 interface PieChartDisplayProps {
   chart: PieChartDataDTO;
+  aspectRatio?: number;
 }
 
 function PieChartDisplay(props: Readonly<PieChartDisplayProps>) {
-  const { chart } = props;
+  const { chart, aspectRatio } = props;
 
   return (
     <>
@@ -17,6 +18,9 @@ function PieChartDisplay(props: Readonly<PieChartDisplayProps>) {
         x={JSON.stringify([chart.labels])}
         y={JSON.stringify([chart.data])}
         name={JSON.stringify(chart.labels)}
+        aspect-ratio={
+          aspectRatio !== undefined ? String(aspectRatio) : undefined
+        }
       />
       <ChartTranscription
         labels={chart.labels}

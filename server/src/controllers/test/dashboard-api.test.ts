@@ -45,6 +45,123 @@ const mockMetabaseDashboard = {
   ]
 };
 
+// A dashboard with a single tab: the tab is not worth a tab UI, so it should
+// be flattened to cards.
+const mockMetabaseDashboardWithSingleTab = {
+  id: 13,
+  tabs: [{ id: 54, name: 'Portrait du parc vacant', position: 0 }],
+  dashcards: [
+    {
+      id: 929,
+      card_id: 771,
+      dashboard_tab_id: 54,
+      row: 0,
+      col: 0,
+      size_x: 6,
+      size_y: 4,
+      visualization_settings: {},
+      card: {
+        id: 771,
+        name: 'Total logements vacants',
+        display: 'scalar',
+        description: null,
+        visualization_settings: { 'scalar.decimals': 0 }
+      }
+    }
+  ]
+};
+
+// A dashboard with two tabs: the tabs must be preserved.
+const mockMetabaseDashboardWithTwoTabs = {
+  id: 13,
+  tabs: [
+    { id: 54, name: 'Portrait du parc vacant', position: 0 },
+    { id: 55, name: 'Évolution de la vacance', position: 1 }
+  ],
+  dashcards: [
+    {
+      id: 929,
+      card_id: 771,
+      dashboard_tab_id: 54,
+      row: 0,
+      col: 0,
+      size_x: 6,
+      size_y: 4,
+      visualization_settings: {},
+      card: {
+        id: 771,
+        name: 'Total logements vacants',
+        display: 'scalar',
+        description: null,
+        visualization_settings: { 'scalar.decimals': 0 }
+      }
+    },
+    {
+      id: 930,
+      card_id: 772,
+      dashboard_tab_id: 55,
+      row: 0,
+      col: 0,
+      size_x: 6,
+      size_y: 4,
+      visualization_settings: {},
+      card: {
+        id: 772,
+        name: 'Évolution',
+        display: 'scalar',
+        description: null,
+        visualization_settings: { 'scalar.decimals': 0 }
+      }
+    }
+  ]
+};
+
+// Dashboard with an `id` parameter and two scalar cards: dashcard 915 does NOT
+// map the parameter (a global count), dashcard 916 does. Forwarding the
+// parameter to an unmapped card makes Metabase return 400.
+const mockMetabaseDashboardWithUnmappedParameter = {
+  id: 13,
+  parameters: [{ id: '5ce08038', slug: 'id', type: 'string/contains' }],
+  dashcards: [
+    {
+      id: 915,
+      card_id: 764,
+      dashboard_tab_id: null,
+      row: 0,
+      col: 0,
+      size_x: 6,
+      size_y: 4,
+      parameter_mappings: [],
+      visualization_settings: {},
+      card: {
+        id: 764,
+        name: 'Nombre de logements',
+        display: 'scalar',
+        description: null,
+        visualization_settings: {}
+      }
+    },
+    {
+      id: 916,
+      card_id: 765,
+      dashboard_tab_id: null,
+      row: 0,
+      col: 6,
+      size_x: 6,
+      size_y: 4,
+      parameter_mappings: [{ parameter_id: '5ce08038', card_id: 765 }],
+      visualization_settings: {},
+      card: {
+        id: 765,
+        name: 'Logements de la structure',
+        display: 'scalar',
+        description: null,
+        visualization_settings: {}
+      }
+    }
+  ]
+};
+
 // Scalar card with table.columns configured and column_settings containing % —
 // the % is a per-column table override, not a scalar format signal, so it
 // must NOT be classified as percentage (regression guard for false-positive detection).
@@ -122,6 +239,44 @@ const mockMetabaseDashboardWithPieCard = {
       card: {
         id: 801,
         name: 'Répartition par type',
+        display: 'pie',
+        description: null,
+        visualization_settings: {}
+      }
+    }
+  ]
+};
+
+// Pie dashcard using Metabase's "visualizer" format: the settings — including
+// the card.title / card.description overrides — are nested under
+// visualization_settings.visualization.settings instead of at the top level.
+const mockMetabaseDashboardWithVisualizerPieCard = {
+  id: 13,
+  dashcards: [
+    {
+      id: 951,
+      card_id: 802,
+      dashboard_tab_id: null,
+      row: 0,
+      col: 0,
+      size_x: 16,
+      size_y: 4,
+      visualization_settings: {
+        visualization: {
+          display: 'pie',
+          settings: {
+            'card.title': 'Répartition par type de logements vacants',
+            'card.description': 'En valeur relative et absolue',
+            'pie.rows': [
+              { key: 'APPART', name: 'Appartements', enabled: true },
+              { key: 'MAISON', name: 'Maisons', enabled: true }
+            ]
+          }
+        }
+      },
+      card: {
+        id: 802,
+        name: '[ANALYSE-parc] Répartition par type de logements (2026)',
         display: 'pie',
         description: null,
         visualization_settings: {}
@@ -242,7 +397,7 @@ const mockBarCardQueryResult = {
       ['1991 et apres', 3200],
       ['1946 - 1990', 1800]
     ],
-    cols: [{ name: 'period' }, { name: 'count' }]
+    cols: [{ name: 'period' }, { name: 'count', display_name: 'Nombre' }]
   },
   status: 'completed'
 };
@@ -293,7 +448,10 @@ const mockLineCardQueryResult = {
       { name: 'year' },
       { name: 'count_vacant_housing_private' },
       { name: 'count_housing_private' },
-      { name: 'taux_logements-vacants' }
+      {
+        name: 'taux_logements-vacants',
+        display_name: 'Taux de logements vacants >2 ans'
+      }
     ]
   },
   status: 'completed'
@@ -494,6 +652,45 @@ describe('Dashboard API', () => {
       }
     });
 
+    it('flattens a single-tab dashboard to cards instead of exposing one tab', async () => {
+      nock(METABASE_URL)
+        .get('/api/dashboard/13')
+        .reply(200, mockMetabaseDashboardWithSingleTab);
+
+      const response = await request(url)
+        .get('/dashboards/13-analyses')
+        .use(tokenProvider(user));
+
+      expect(response.status).toBe(constants.HTTP_STATUS_OK);
+      const body = response.body as DashboardDTO;
+      expect('tabs' in body).toBe(false);
+      expect('cards' in body).toBe(true);
+      if ('cards' in body) {
+        expect(body.cards).toHaveLength(1);
+        expect(body.cards[0].id).toBe(929);
+      }
+    });
+
+    it('exposes tabs when the dashboard has more than one tab', async () => {
+      nock(METABASE_URL)
+        .get('/api/dashboard/13')
+        .reply(200, mockMetabaseDashboardWithTwoTabs);
+
+      const response = await request(url)
+        .get('/dashboards/13-analyses')
+        .use(tokenProvider(user));
+
+      expect(response.status).toBe(constants.HTTP_STATUS_OK);
+      const body = response.body as DashboardDTO;
+      expect('tabs' in body).toBe(true);
+      if ('tabs' in body) {
+        expect(body.tabs).toHaveLength(2);
+        expect(body.tabs[0].title).toBe('Portrait du parc vacant');
+        expect(body.tabs[0].cards).toHaveLength(1);
+        expect(body.tabs[1].cards[0].id).toBe(930);
+      }
+    });
+
     it('classifies scalar card as flat-number when table.columns is set and column_settings has %', async () => {
       nock(METABASE_URL)
         .get('/api/dashboard/13')
@@ -562,6 +759,28 @@ describe('Dashboard API', () => {
           id: 950,
           type: 'pie-chart',
           title: 'Répartition par type'
+        });
+      }
+    });
+
+    it('uses the visualizer-nested card.title and card.description override for a pie card', async () => {
+      nock(METABASE_URL)
+        .get('/api/dashboard/13')
+        .reply(200, mockMetabaseDashboardWithVisualizerPieCard);
+
+      const response = await request(url)
+        .get('/dashboards/13-analyses')
+        .use(tokenProvider(user));
+
+      expect(response.status).toBe(constants.HTTP_STATUS_OK);
+      const body = response.body as DashboardDTO;
+      expect('cards' in body).toBe(true);
+      if ('cards' in body) {
+        expect(body.cards[0]).toMatchObject({
+          id: 951,
+          type: 'pie-chart',
+          title: 'Répartition par type de logements vacants',
+          description: 'En valeur relative et absolue'
         });
       }
     });
@@ -664,6 +883,51 @@ describe('Dashboard API', () => {
   });
 
   describe('GET /dashboards/:did/cards/:cid', () => {
+    it('does not forward a dashboard parameter the dashcard does not map', async () => {
+      let sentBody: unknown;
+      nock(METABASE_URL)
+        .get('/api/dashboard/13')
+        .reply(200, mockMetabaseDashboardWithUnmappedParameter);
+      nock(METABASE_URL)
+        .post('/api/dashboard/13/dashcard/915/card/764/query', (body) => {
+          sentBody = body;
+          return true;
+        })
+        .reply(200, mockCardQueryResult);
+
+      const response = await request(url)
+        .get('/dashboards/13-analyses/cards/915')
+        .use(tokenProvider(user));
+
+      expect(response.status).toBe(constants.HTTP_STATUS_OK);
+      expect(sentBody).toEqual({ parameters: [] });
+    });
+
+    it('forwards a dashboard parameter the dashcard maps', async () => {
+      let sentBody: { parameters: Array<{ slug: string }> } | undefined;
+      nock(METABASE_URL)
+        .get('/api/dashboard/13')
+        .reply(200, mockMetabaseDashboardWithUnmappedParameter);
+      nock(METABASE_URL)
+        .post('/api/dashboard/13/dashcard/916/card/765/query', (body) => {
+          sentBody = body;
+          return true;
+        })
+        .reply(200, mockCardQueryResult);
+
+      const response = await request(url)
+        .get('/dashboards/13-analyses/cards/916')
+        .use(tokenProvider(user));
+
+      expect(response.status).toBe(constants.HTTP_STATUS_OK);
+      expect(sentBody?.parameters).toHaveLength(1);
+      expect(sentBody?.parameters[0]).toMatchObject({
+        id: '5ce08038',
+        slug: 'id',
+        type: 'string/contains'
+      });
+    });
+
     it('returns CardDataDTO for a scalar dashcard', async () => {
       nock(METABASE_URL)
         .get('/api/dashboard/13')
@@ -725,6 +989,27 @@ describe('Dashboard API', () => {
       });
     });
 
+    it('relabels pie-chart labels using pie.rows display names', async () => {
+      nock(METABASE_URL)
+        .get('/api/dashboard/13')
+        .reply(200, mockMetabaseDashboardWithVisualizerPieCard);
+      nock(METABASE_URL)
+        .post('/api/dashboard/13/dashcard/951/card/802/query')
+        .reply(200, mockPieCardQueryResult);
+
+      const response = await request(url)
+        .get('/dashboards/13-analyses/cards/951')
+        .use(tokenProvider(user));
+
+      expect(response.status).toBe(constants.HTTP_STATUS_OK);
+      expect(response.body).toMatchObject({
+        id: 951,
+        type: 'pie-chart',
+        labels: ['Appartements', 'Maisons'],
+        data: [4876, 652]
+      });
+    });
+
     it('returns BarChartDataDTO with direction "vertical" for display "bar"', async () => {
       nock(METABASE_URL)
         .get('/api/dashboard/13')
@@ -745,7 +1030,8 @@ describe('Dashboard API', () => {
         format: 'number',
         decimals: 0,
         labels: ['1991 et apres', '1946 - 1990'],
-        data: [3200, 1800]
+        data: [3200, 1800],
+        name: 'Nombre'
       });
     });
 
@@ -791,6 +1077,7 @@ describe('Dashboard API', () => {
         type: 'line-chart',
         format: 'percent',
         decimals: 1,
+        name: 'Taux de logements vacants >2 ans',
         labels: ['2019', '2020', '2021'],
         // Percent values are stored as display values in Metabase (1.79 for 1.79%)
         // and divided by 100 in the response to match the scalar percentage

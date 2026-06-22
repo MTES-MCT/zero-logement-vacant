@@ -90,6 +90,8 @@ export interface BarChartDataDTO {
   decimals: number;
   labels: string[];
   data: number[];
+  /** Display name of the plotted series (the metric column). */
+  name: string;
 }
 
 export interface LineChartDataDTO {
@@ -99,6 +101,8 @@ export interface LineChartDataDTO {
   decimals: number;
   labels: string[];
   data: number[];
+  /** Display name of the plotted series (the metric column). */
+  name: string;
 }
 
 export interface TableColumnMeta {
@@ -129,7 +133,8 @@ export const RESOURCE_VALUES = [
   '7-autres-structures-de-votre-territoires-inscrites-sur-zlv',
   '13-analyses',
   '15-analyses-activites',
-  '38-parcs-de-logements'
+  '38-parcs-de-logements',
+  '39-analyse-de-la-lutte-contre-la-vacance-2026'
 ] as const;
 
 export type Resource = (typeof RESOURCE_VALUES)[number];

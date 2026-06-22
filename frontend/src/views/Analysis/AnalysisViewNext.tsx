@@ -13,6 +13,8 @@ import { useFindOneDashboardNextQuery } from '~/services/dashboard.service';
 
 interface Props {
   id: Resource;
+  title?: string;
+  description?: string;
 }
 
 const CardGrid = styled(Box)({
@@ -62,8 +64,12 @@ function CardGridContent({
   );
 }
 
-function AnalysisViewNext({ id }: Readonly<Props>) {
-  useDocumentTitle('Analyse du parc vacant');
+function AnalysisViewNext({
+  id,
+  title = 'Analyse du parc vacant',
+  description
+}: Readonly<Props>) {
+  useDocumentTitle(title);
   const {
     data: dashboard,
     isLoading,
@@ -72,9 +78,16 @@ function AnalysisViewNext({ id }: Readonly<Props>) {
 
   return (
     <Container maxWidth={false} sx={{ py: '2rem' }}>
-      <Typography component="h1" variant="h2" sx={{ mb: '1.5rem' }}>
-        Analyse du parc vacant
-      </Typography>
+      <Box sx={{ mb: '1.5rem' }}>
+        <Typography
+          component="h1"
+          variant="h2"
+          sx={{ mb: description ? '0.5rem' : 0 }}
+        >
+          {title}
+        </Typography>
+        {description && <Typography>{description}</Typography>}
+      </Box>
 
       {isLoading && (
         <Skeleton

@@ -27,7 +27,9 @@ function setup(dashboardHandler: Parameters<typeof http.get>[1]) {
     [
       {
         path: '/analyses/parc-vacant',
-        element: <AnalysisViewNext id="13-analyses" />
+        element: (
+          <AnalysisViewNext id="13-analyses" title="Analyse du parc vacant" />
+        )
       }
     ],
     { initialEntries: ['/analyses/parc-vacant'] }

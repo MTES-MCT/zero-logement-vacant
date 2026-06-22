@@ -96,7 +96,8 @@ async function findOneCard(
       format: barRaw.format,
       decimals: barRaw.decimals,
       labels: barRaw.labels,
-      data: barRaw.data
+      data: barRaw.data,
+      name: barRaw.name
     });
     return;
   }
@@ -109,17 +110,21 @@ async function findOneCard(
       format: lineRaw.format,
       decimals: lineRaw.decimals,
       labels: lineRaw.labels,
-      data: lineRaw.data
+      data: lineRaw.data,
+      name: lineRaw.name
     });
     return;
   }
 
   if (dashcard.type === 'pie-chart') {
     const pieRaw = raw as PieChartValue;
+    const labelMap = dashcard.labelMap;
     response.status(constants.HTTP_STATUS_OK).json({
       id: numericCid,
       type: 'pie-chart',
-      labels: pieRaw.labels,
+      labels: labelMap
+        ? pieRaw.labels.map((label) => labelMap[label] ?? label)
+        : pieRaw.labels,
       data: pieRaw.data
     });
     return;

@@ -1104,6 +1104,7 @@ export function genBarChartDataDTO(
     decimals: 0,
     labels,
     data,
+    name: faker.word.noun(),
     ...override
   };
 }
@@ -1140,6 +1141,7 @@ export function genLineChartDataDTO(
     decimals: 0,
     labels,
     data,
+    name: faker.word.noun(),
     ...override
   };
 }

@@ -1,4 +1,5 @@
 import type {
+  BuildingDTO,
   CampaignDTO,
   EstablishmentDTO,
   GroupDTO,
@@ -8,6 +9,7 @@ import type {
 } from '@zerologementvacant/models';
 
 export type EntityMap = {
+  buildings: BuildingDTO;
   campaigns: CampaignDTO;
   establishments: EstablishmentDTO;
   groups: GroupDTO;

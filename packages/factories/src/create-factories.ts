@@ -1,4 +1,5 @@
 import type {
+  BuildingDTO,
   CampaignDTO,
   EstablishmentDTO,
   GroupDTO,
@@ -9,6 +10,7 @@ import type {
 import type { Factory } from 'fishery';
 
 import type { Adapter } from './adapter';
+import { createBuildingFactory } from './factories/building';
 import { createCampaignFactory } from './factories/campaign';
 import { createEstablishmentFactory } from './factories/establishment';
 import { createGroupFactory } from './factories/group';
@@ -17,6 +19,7 @@ import { createOwnerFactory } from './factories/owner';
 import { createUserFactory } from './factories/user';
 
 export interface Factories {
+  building: Factory<BuildingDTO>;
   campaign: (establishment: EstablishmentDTO) => Factory<CampaignDTO>;
   establishment: Factory<EstablishmentDTO>;
   group: (establishment: EstablishmentDTO) => Factory<GroupDTO>;
@@ -27,6 +30,7 @@ export interface Factories {
 
 export default function createFactories(adapter: Adapter): Factories {
   return {
+    building: createBuildingFactory(adapter),
     campaign: (establishment) => createCampaignFactory(adapter, establishment),
     establishment: createEstablishmentFactory(adapter),
     group: (establishment) => createGroupFactory(adapter, establishment),

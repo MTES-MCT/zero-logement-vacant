@@ -79,6 +79,10 @@ function AnalysisCard(props: Readonly<Props>) {
     return null;
   }
 
+  // Match the chart to the cell's column/row proportions so it fills the space
+  // allotted by the dashboard instead of expanding to its default 2:1 ratio.
+  const aspectRatio = card.size.width / card.size.height;
+
   return (
     <CardBox>
       <Stack component="header">
@@ -92,16 +96,16 @@ function AnalysisCard(props: Readonly<Props>) {
 
       {match(data)
         .with({ type: 'pie-chart' }, (chart) => (
-          <PieChartDisplay chart={chart} />
+          <PieChartDisplay chart={chart} aspectRatio={aspectRatio} />
         ))
         .with({ type: 'bar-chart' }, (chart) => (
-          <BarChartDisplay chart={chart} />
+          <BarChartDisplay chart={chart} aspectRatio={aspectRatio} />
         ))
         .with({ type: 'table' }, (chart) => (
           <TableDisplay chart={chart} caption={card.title} />
         ))
         .with({ type: 'line-chart' }, (chart) => (
-          <LineChartDisplay chart={chart} />
+          <LineChartDisplay chart={chart} aspectRatio={aspectRatio} />
         ))
         .otherwise((scalar) => (
           <ShowcaseValue>{formatValue(scalar.data, card)}</ShowcaseValue>

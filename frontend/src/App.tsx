@@ -87,7 +87,13 @@ const router = sentry.createBrowserRouter(
           element={
             <FeatureFlagLayout
               flag="new-analysis-page"
-              then={<AnalysisViewNext id="15-analyses-activites" />}
+              then={
+                <AnalysisViewNext
+                  id="39-analyse-de-la-lutte-contre-la-vacance-2026"
+                  title="Analyse de la lutte contre la vacance"
+                  description="Ces statistiques portent sur les mises à jour effectuées sur ZLV. Elles évoluent donc en fonction de vos actions de lutte contre la vacance."
+                />
+              }
               else={<AnalysisView id="15-analyses-activites" />}
             />
           }

@@ -157,19 +157,37 @@ function buildTableColumnRefs(
   });
 }
 
+// Metabase "visualizer" dashcards nest their real settings — including the
+// card.title / card.description overrides — under visualization.settings rather
+// than on visualization_settings directly. Resolve to whichever holds them.
+function dashcardSettings(
+  dashcard: MetabaseDashcard
+): MetabaseDashcardVisualizationSettings {
+  return (
+    dashcard.visualization_settings.visualization?.settings ??
+    dashcard.visualization_settings
+  );
+}
+
 function normalizeDashcard(dashcard: MetabaseDashcard): DashboardCard | null {
   if (dashcard.card === null) return null;
   const { card } = dashcard;
+
+  const overrides = dashcardSettings(dashcard);
+  const title = overrides['card.title'] ?? card.name;
+  const description = overrides['card.description'] ?? card.description;
+  const position = { col: dashcard.col, row: dashcard.row };
+  const size = { width: dashcard.size_x, height: dashcard.size_y };
 
   if (card.display === 'pie') {
     return {
       id: dashcard.id,
       type: 'pie-chart',
-      title: dashcard.visualization_settings['card.title'] ?? card.name,
-      description: card.description,
+      title,
+      description,
       decimals: 0,
-      position: { col: dashcard.col, row: dashcard.row },
-      size: { width: dashcard.size_x, height: dashcard.size_y }
+      position,
+      size
     };
   }
 
@@ -177,11 +195,11 @@ function normalizeDashcard(dashcard: MetabaseDashcard): DashboardCard | null {
     return {
       id: dashcard.id,
       type: 'bar-chart',
-      title: dashcard.visualization_settings['card.title'] ?? card.name,
-      description: card.description,
+      title,
+      description,
       decimals: 0,
-      position: { col: dashcard.col, row: dashcard.row },
-      size: { width: dashcard.size_x, height: dashcard.size_y }
+      position,
+      size
     };
   }
 
@@ -189,11 +207,11 @@ function normalizeDashcard(dashcard: MetabaseDashcard): DashboardCard | null {
     return {
       id: dashcard.id,
       type: 'table',
-      title: dashcard.visualization_settings['card.title'] ?? card.name,
-      description: card.description,
+      title,
+      description,
       decimals: 0,
-      position: { col: dashcard.col, row: dashcard.row },
-      size: { width: dashcard.size_x, height: dashcard.size_y }
+      position,
+      size
     };
   }
 
@@ -201,11 +219,11 @@ function normalizeDashcard(dashcard: MetabaseDashcard): DashboardCard | null {
     return {
       id: dashcard.id,
       type: 'line-chart',
-      title: dashcard.visualization_settings['card.title'] ?? card.name,
-      description: card.description,
+      title,
+      description,
       decimals: 0,
-      position: { col: dashcard.col, row: dashcard.row },
-      size: { width: dashcard.size_x, height: dashcard.size_y }
+      position,
+      size
     };
   }
 
@@ -213,21 +231,24 @@ function normalizeDashcard(dashcard: MetabaseDashcard): DashboardCard | null {
 
   const settings = mergeVisualizationSettings(
     card.visualization_settings,
-    dashcard.visualization_settings
+    overrides
   );
   return {
     id: dashcard.id,
     type: detectCardType(settings),
-    title: dashcard.visualization_settings['card.title'] ?? card.name,
-    description: card.description,
+    title,
+    description,
     decimals: detectDecimals(settings),
-    position: { col: dashcard.col, row: dashcard.row },
-    size: { width: dashcard.size_x, height: dashcard.size_y }
+    position,
+    size
   };
 }
 
 export function normalizeDashboard(raw: MetabaseDashboardRaw): DashboardData {
-  if (raw.tabs && raw.tabs.length > 0) {
+  // A single Metabase tab is not worth a tab UI: flatten it to cards so the
+  // frontend renders them directly. Only expose tabs when there's a real
+  // multi-tab choice.
+  if (raw.tabs && raw.tabs.length > 1) {
     const sortedTabs = [...raw.tabs].sort((a, b) => a.position - b.position);
     const tabs: Tab[] = sortedTabs.map((tab) => ({
       id: tab.id,
@@ -259,11 +280,30 @@ export function findDashcardRef(
     found.card!.visualization_settings,
     found.visualization_settings
   );
-  const dashboardParameters = (raw.parameters ?? []).map(
-    (p): DashboardParameter => ({ id: p.id, slug: p.slug, type: p.type })
+  // Only forward dashboard parameters this dashcard actually maps. Metabase
+  // 400s if we send a parameter the card has no mapping for (e.g. a global
+  // count not scoped to the establishment filter).
+  const mappedParameterIds = new Set(
+    (found.parameter_mappings ?? []).map((m) => m.parameter_id)
   );
+  const dashboardParameters = (raw.parameters ?? [])
+    .filter((p) => mappedParameterIds.has(p.id))
+    .map((p): DashboardParameter => ({ id: p.id, slug: p.slug, type: p.type }));
 
   if (normalized.type === 'pie-chart') {
+    // pie.rows carries the PM-curated key→name relabeling (e.g. APPART →
+    // Appartements). It lives in the dashcard's (visualizer-aware) settings,
+    // falling back to the underlying card's settings.
+    const pieRows =
+      dashcardSettings(found)['pie.rows'] ??
+      found.card!.visualization_settings['pie.rows'] ??
+      [];
+    const labelMap: Record<string, string> = {};
+    for (const { key, name } of pieRows) {
+      if (name !== undefined) {
+        labelMap[key] = name;
+      }
+    }
     return {
       dashcardId: found.id,
       cardId: found.card_id,
@@ -274,6 +314,7 @@ export function findDashcardRef(
       format: 'number',
       decimals: 0,
       tableColumns: null,
+      labelMap: Object.keys(labelMap).length > 0 ? labelMap : null,
       dashboardParameters
     };
   }
@@ -296,6 +337,7 @@ export function findDashcardRef(
       format,
       decimals,
       tableColumns: null,
+      labelMap: null,
       dashboardParameters
     };
   }
@@ -311,6 +353,7 @@ export function findDashcardRef(
       format: 'number',
       decimals: 0,
       tableColumns: buildTableColumnRefs(settings),
+      labelMap: null,
       dashboardParameters
     };
   }
@@ -325,6 +368,7 @@ export function findDashcardRef(
     format: 'number',
     decimals: 0,
     tableColumns: null,
+    labelMap: null,
     dashboardParameters
   };
 }

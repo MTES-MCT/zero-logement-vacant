@@ -39,7 +39,7 @@ function extractAxisValues(
   data: MetabaseQueryResult,
   labelColumn: string | null,
   valueColumn: string | null
-): { labels: string[]; values: number[] } {
+): { labels: string[]; values: number[]; valueName: string } {
   const labelIdx = labelColumn
     ? data.data.cols.findIndex((c) => c.name === labelColumn)
     : -1;
@@ -48,9 +48,11 @@ function extractAxisValues(
     : -1;
   const xIndex = labelIdx !== -1 ? labelIdx : 0;
   const yIndex = valueIdx !== -1 ? valueIdx : 1;
+  const valueCol = data.data.cols[yIndex];
   return {
     labels: data.data.rows.map((row) => String(row[xIndex])),
-    values: data.data.rows.map((row) => Number(row[yIndex]))
+    values: data.data.rows.map((row) => Number(row[yIndex])),
+    valueName: valueCol?.display_name ?? valueCol?.name ?? ''
   };
 }
 
@@ -123,7 +125,7 @@ class MetabaseAPI implements MetabaseService {
       if (direction === null) {
         throw new Error('direction is required for bar-chart card type');
       }
-      const { labels, values } = extractAxisValues(
+      const { labels, values, valueName } = extractAxisValues(
         data,
         labelColumn,
         valueColumn
@@ -133,13 +135,14 @@ class MetabaseAPI implements MetabaseService {
         format,
         decimals,
         labels,
-        data: scaleForFormat(values, format)
+        data: scaleForFormat(values, format),
+        name: valueName
       };
       return result;
     }
 
     if (cardType === 'line-chart') {
-      const { labels, values } = extractAxisValues(
+      const { labels, values, valueName } = extractAxisValues(
         data,
         labelColumn,
         valueColumn
@@ -148,7 +151,8 @@ class MetabaseAPI implements MetabaseService {
         format,
         decimals,
         labels,
-        data: scaleForFormat(values, format)
+        data: scaleForFormat(values, format),
+        name: valueName
       };
       return result;
     }

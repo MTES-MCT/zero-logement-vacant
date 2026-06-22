@@ -15,6 +15,13 @@ export interface MetabaseColumnSettings {
   column_title?: string;
 }
 
+export interface MetabasePieRow {
+  key: string;
+  name?: string;
+  enabled?: boolean;
+  hidden?: boolean;
+}
+
 export interface MetabaseVisualizationSettings {
   'number.style'?: string;
   'scalar.decimals'?: number;
@@ -22,6 +29,7 @@ export interface MetabaseVisualizationSettings {
   'table.columns'?: Array<{ name: string; enabled: boolean }>;
   'graph.dimensions'?: string[];
   'graph.metrics'?: string[];
+  'pie.rows'?: MetabasePieRow[];
   column_settings?: Record<string, MetabaseColumnSettings>;
 }
 
@@ -35,12 +43,25 @@ export interface MetabaseCard {
 
 export interface MetabaseDashcardVisualizationSettings {
   'card.title'?: string | null;
+  'card.description'?: string | null;
   'number.style'?: string;
   'scalar.field'?: string;
   'table.columns'?: Array<{ name: string; enabled: boolean }>;
   'graph.dimensions'?: string[];
   'graph.metrics'?: string[];
+  'pie.rows'?: MetabasePieRow[];
   column_settings?: Record<string, MetabaseColumnSettings>;
+  // "Visualizer" dashcards nest their real settings (including the title /
+  // description overrides) here instead of at the top level.
+  visualization?: {
+    settings?: MetabaseDashcardVisualizationSettings;
+  };
+}
+
+export interface MetabaseDashcardParameterMapping {
+  parameter_id: string;
+  card_id: number | null;
+  target?: unknown;
 }
 
 export interface MetabaseDashcard {
@@ -52,6 +73,7 @@ export interface MetabaseDashcard {
   size_x: number;
   size_y: number;
   visualization_settings: MetabaseDashcardVisualizationSettings;
+  parameter_mappings?: MetabaseDashcardParameterMapping[];
   card: MetabaseCard | null;
 }
 
@@ -109,6 +131,9 @@ export interface DashcardRef {
   format: 'number' | 'percent';
   decimals: number;
   tableColumns: ReadonlyArray<TableColumnRef> | null;
+  // Pie charts: maps raw query keys (e.g. "APPART") to the PM-curated display
+  // names from pie.rows (e.g. "Appartements"). Null for non-pie cards.
+  labelMap: Readonly<Record<string, string>> | null;
   dashboardParameters: ReadonlyArray<DashboardParameter>;
 }
 
@@ -119,12 +144,14 @@ export type BarChartValue = {
   decimals: number;
   labels: string[];
   data: number[];
+  name: string;
 };
 export type LineChartValue = {
   format: 'number' | 'percent';
   decimals: number;
   labels: string[];
   data: number[];
+  name: string;
 };
 export type TableValue = {
   columns: TableColumnMeta[];

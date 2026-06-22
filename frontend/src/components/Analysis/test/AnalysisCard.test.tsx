@@ -110,6 +110,32 @@ describe('AnalysisCard', () => {
     expect(screen.queryByRole('alert')).not.toBeInTheDocument();
   });
 
+  it('sizes the pie chart to the card column/row proportions via aspect-ratio', async () => {
+    const card = genPieChartCard({
+      id: 78,
+      title: 'Répartition par type de logements vacants',
+      size: { width: 16, height: 4 }
+    });
+    const cardData = genPieChartDataDTO({
+      id: 78,
+      labels: ['APPART', 'MAISON'],
+      data: [4876, 652]
+    });
+    mockAPI.use(
+      http.get(`${config.apiEndpoint}/dashboards/:did/cards/:cid`, () =>
+        HttpResponse.json(cardData)
+      )
+    );
+
+    setup({ card, dashboardId });
+
+    await screen.findByText('Répartition par type de logements vacants');
+    expect(document.querySelector('pie-chart')).toHaveAttribute(
+      'aspect-ratio',
+      '4'
+    );
+  });
+
   it('renders a bar chart card without error when card type is bar-chart', async () => {
     const barCard = genBarChartCard({
       id: 80,

@@ -1,7 +1,10 @@
 import { constants } from 'node:http2';
 
 import { faker } from '@faker-js/faker/locale/fr';
-import { HousingOwnerPayloadDTO, type OwnerRank } from '@zerologementvacant/models';
+import {
+  HousingOwnerPayloadDTO,
+  type OwnerRank
+} from '@zerologementvacant/models';
 import request from 'supertest';
 
 import { createServer } from '~/infra/server';
@@ -43,8 +46,7 @@ describe('Housing owner API', () => {
   });
 
   describe('PUT /housing/:housingId/owners', () => {
-    const testRoute = (housingId: string) =>
-      `/housing/${housingId}/owners`;
+    const testRoute = (housingId: string) => `/housing/${housingId}/owners`;
 
     // Seeds an owner with two housings — one inside the user's perimeter
     // (editable) and one OUTSIDE it — plus a co-owner on the second housing.
@@ -143,22 +145,13 @@ describe('Housing owner API', () => {
         coOwnerOnB: 2
       });
 
-      const payload: HousingOwnerPayloadDTO[] = [
-        {
-          id: owner.id,
-          rank: -4,
-          idprocpte: null,
-          idprodroit: null,
-          locprop: null,
-          propertyRight: null
-        }
-      ];
+      await putOwnerRank(housingA.id, owner.id, -4);
 
       expect(await rankOf(housingA.id, owner.id)).toBe(-4);
       // Propagated to the out-of-perimeter housing too
       expect(await rankOf(housingB.id, owner.id)).toBe(-4);
       // The next owner is promoted to primary on the propagated housing
-      expect(coOwnerOnB?.rank).toBe(1);
+      expect(await rankOf(housingB.id, coOwner.id)).toBe(1);
     });
 
     it('should clear "do not contact" globally when the owner is reactivated', async () => {
@@ -168,29 +161,12 @@ describe('Housing owner API', () => {
         coOwnerOnB: 1
       });
 
-      const payload: HousingOwnerPayloadDTO[] = [
-        {
-          id: owner.id,
-          rank: 1,
-          idprocpte: null,
-          idprodroit: null,
-          locprop: null,
-          propertyRight: null
-        }
-      ];
+      await putOwnerRank(housingA.id, owner.id, 1);
 
-      await request(url)
-        .put(testRoute(housingA.id))
-        .send(payload)
-        .use(tokenProvider(user));
-
-      const onB = await HousingOwners()
-        .where({ housing_id: housingB.id, owner_id: owner.id })
-        .first();
-
+      const rank = await rankOf(housingB.id, owner.id);
       // No longer do-not-contact on the other perimeter housing
-      expect(onB?.rank).not.toBe(-4);
-      expect(onB?.rank).toBeGreaterThanOrEqual(1);
+      expect(rank).not.toBe(-4);
+      expect(rank).toBeGreaterThanOrEqual(1);
     });
   });
 

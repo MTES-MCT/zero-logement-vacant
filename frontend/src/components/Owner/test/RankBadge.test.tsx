@@ -28,7 +28,11 @@ describe('RankBadge', () => {
   it('should not render a recipient label for the do-not-contact rank', () => {
     render(<RankBadge value={DO_NOT_CONTACT_OWNER_RANK} />);
 
-    expect(screen.queryByText('Destinataire secondaire')).not.toBeInTheDocument();
-    expect(screen.queryByText('Destinataire principal')).not.toBeInTheDocument();
+    expect(
+      screen.queryByText('Destinataire secondaire')
+    ).not.toBeInTheDocument();
+    expect(
+      screen.queryByText('Destinataire principal')
+    ).not.toBeInTheDocument();
   });
 });

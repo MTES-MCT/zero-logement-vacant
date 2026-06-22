@@ -256,11 +256,11 @@ const update: RequestHandler<
 
   const banAddress: AddressApi | null = body.banAddress
     ? {
-      ...body.banAddress,
-      refId: existingOwner.id,
-      addressKind: AddressKinds.Owner,
-      lastUpdatedAt: new Date().toJSON()
-    }
+        ...body.banAddress,
+        refId: existingOwner.id,
+        addressKind: AddressKinds.Owner,
+        lastUpdatedAt: new Date().toJSON()
+      }
     : null;
   const owner: OwnerApi = {
     id: existingOwner.id,
@@ -536,7 +536,9 @@ const updateHousingOwners: RequestHandler<
     );
     return Promise.all(
       targets.map(async (target) => {
-        const owners = await ownerRepository.findByHousing(target as HousingApi);
+        const owners = await ownerRepository.findByHousing(
+          target as HousingApi
+        );
         return apply(owners, ownerId);
       })
     );
@@ -568,7 +570,8 @@ const updateHousingOwners: RequestHandler<
   ];
 
   await startTransaction(async () => {
-    const affectedOwnerIds = await housingOwnerRepository.saveMany(housingOwners);
+    const affectedOwnerIds =
+      await housingOwnerRepository.saveMany(housingOwners);
     const propagatedOwnerIds: string[] = [];
     for (const owners of propagatedHousingOwners) {
       const ids = await housingOwnerRepository.saveMany(owners);

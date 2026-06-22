@@ -12,7 +12,6 @@ import ReactiveMap, {
 } from 'react-map-gl/maplibre';
 import { useNavigate } from 'react-router';
 
-import { useMapImage } from '../../hooks/useMapImage';
 import {
   type Building,
   groupByBuilding,
@@ -25,6 +24,7 @@ import {
   type HousingWithCoordinates
 } from '../../models/Housing';
 import BuildingAside from './BuildingAside';
+import BuildingStatusImages from './BuildingStatusImages';
 import Clusters from './Clusters';
 import LayerControl from './LayerControl';
 import LegendButtonControl from './LegendButtonControl';
@@ -104,31 +104,6 @@ function Map(props: MapProps) {
   const excludedPerimeters = props.perimetersExcluded ?? [];
   const [showPerimeters, setShowPerimeters] = useState(true);
 
-  useMapImage({
-    id: 'square-fill-0',
-    path: '/map/square-fill-0.png'
-  });
-  useMapImage({
-    id: 'square-fill-1',
-    path: '/map/square-fill-1.png'
-  });
-  useMapImage({
-    id: 'square-fill-2',
-    path: '/map/square-fill-2.png'
-  });
-  useMapImage({
-    id: 'square-fill-3',
-    path: '/map/square-fill-3.png'
-  });
-  useMapImage({
-    id: 'square-fill-4',
-    path: '/map/square-fill-4.png'
-  });
-  useMapImage({
-    id: 'square-fill-5',
-    path: '/map/square-fill-5.png'
-  });
-
   useEffect(() => {
     if (map && points.length > 0) {
       if (points.length === 1) {
@@ -191,6 +166,7 @@ function Map(props: MapProps) {
             ...props.style
           }}
         >
+          <BuildingStatusImages />
           <Perimeters
             id="remaining-perimeters"
             isVisible={showPerimeters}

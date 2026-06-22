@@ -215,7 +215,7 @@ function createOwnerEditionModalNext() {
 
                 <AppTextInputNext<FormSchema, 'birthDate'>
                   name="birthDate"
-                  label="Date de naissance (facultatif)"
+                  label="Date de naissance"
                   hintText="Format attendu : jj/mm/aaaa"
                   nativeInputProps={{
                     type: 'date',

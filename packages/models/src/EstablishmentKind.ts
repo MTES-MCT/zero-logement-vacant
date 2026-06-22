@@ -6,11 +6,16 @@ export const ESTABLISHMENT_KIND_VALUES = [
   'CC', // Communauté de Communes
   'COM', // Commune
   'COM-TOM', // Commune d'Outre-Mer
+  'CTU', // Collectivité Territoriale Unique
   'CU', // Communauté Urbaine
   'DEP', // Département
   'EPT', // Établissement Public Territorial
   'METRO', // Métropole
+  'PETR', // Pôle d'Équilibre Territorial et Rural
   'REG', // Région
+  'SDED', // Service déconcentré de l'État à compétence (inter)départementale
+  'SDER', // Service déconcentré de l'État à compétence (inter)régionale
+  'SIVOM', // Syndicat Intercommunal à Vocation Multiple
   'TOM' // Territoire d'Outre-Mer
 ] as const;
 
@@ -20,21 +25,26 @@ const ESTABLISHMENT_KIND_ORDER: Record<EstablishmentKind, number> = {
   // Regional level
   REG: 1, // Région
   TOM: 2, // Territoire d'Outre-Mer
+  SDER: 3, // Service déconcentré de l'État à compétence (inter)régionale
+  CTU: 4, // Collectivité Territoriale Unique
 
   // Departmental level
-  DEP: 3, // Département
+  DEP: 5, // Département
+  SDED: 6, // Service déconcentré de l'État à compétence (inter)départementale
 
   // Intercommunal level (from largest to smallest)
-  METRO: 4, // Métropole
-  CU: 5, // Communauté Urbaine
-  CA: 6, // Communauté d'Agglomération
-  CC: 7, // Communauté de Communes
-  EPT: 8, // Établissement Public Territorial
+  METRO: 7, // Métropole
+  CU: 8, // Communauté Urbaine
+  CA: 9, // Communauté d'Agglomération
+  CC: 10, // Communauté de Communes
+  EPT: 11, // Établissement Public Territorial
+  PETR: 12, // Pôle d'Équilibre Territorial et Rural
+  SIVOM: 13, // Syndicat Intercommunal à Vocation Multiple
 
   // Municipal level
-  COM: 9, // Commune
-  'COM-TOM': 10, // Commune d'Outre-Mer
-  ARR: 11 // Arrondissement
+  COM: 14, // Commune
+  'COM-TOM': 15, // Commune d'Outre-Mer
+  ARR: 16 // Arrondissement
 };
 export const byKindDesc = Order.mapInput(
   Order.number,

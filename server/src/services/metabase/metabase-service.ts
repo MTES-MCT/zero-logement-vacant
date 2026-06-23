@@ -49,6 +49,7 @@ export interface MetabaseDashcardVisualizationSettings {
   'table.columns'?: Array<{ name: string; enabled: boolean }>;
   'graph.dimensions'?: string[];
   'graph.metrics'?: string[];
+  'graph.x_axis.title_text'?: string;
   'pie.rows'?: MetabasePieRow[];
   column_settings?: Record<string, MetabaseColumnSettings>;
   // "Visualizer" dashcards nest their real settings (including the title /
@@ -134,6 +135,9 @@ export interface DashcardRef {
   // Pie charts: maps raw query keys (e.g. "APPART") to the PM-curated display
   // names from pie.rows (e.g. "Appartements"). Null for non-pie cards.
   labelMap: Readonly<Record<string, string>> | null;
+  // PM-curated series label (line/bar charts). When set, overrides the column
+  // display_name from the query result. Sourced from graph.x_axis.title_text.
+  seriesName: string | null;
   dashboardParameters: ReadonlyArray<DashboardParameter>;
 }
 

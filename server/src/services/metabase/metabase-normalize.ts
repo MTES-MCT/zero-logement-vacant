@@ -315,6 +315,7 @@ export function findDashcardRef(
       decimals: 0,
       tableColumns: null,
       labelMap: Object.keys(labelMap).length > 0 ? labelMap : null,
+      seriesName: null,
       dashboardParameters
     };
   }
@@ -322,6 +323,7 @@ export function findDashcardRef(
   if (normalized.type === 'bar-chart' || normalized.type === 'line-chart') {
     const { labelColumn, valueColumn } = resolveAxisColumns(settings);
     const { format, decimals } = detectColumnFormat(settings, valueColumn);
+    const effSettings = dashcardSettings(found);
     return {
       dashcardId: found.id,
       cardId: found.card_id,
@@ -338,6 +340,7 @@ export function findDashcardRef(
       decimals,
       tableColumns: null,
       labelMap: null,
+      seriesName: effSettings['graph.x_axis.title_text'] ?? null,
       dashboardParameters
     };
   }
@@ -354,6 +357,7 @@ export function findDashcardRef(
       decimals: 0,
       tableColumns: buildTableColumnRefs(settings),
       labelMap: null,
+      seriesName: null,
       dashboardParameters
     };
   }
@@ -369,6 +373,7 @@ export function findDashcardRef(
     decimals: 0,
     tableColumns: null,
     labelMap: null,
+    seriesName: null,
     dashboardParameters
   };
 }

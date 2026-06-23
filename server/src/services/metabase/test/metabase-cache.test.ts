@@ -47,6 +47,7 @@ function genDashcardRef(): DashcardRef {
     decimals: 0,
     tableColumns: null,
     labelMap: null,
+    seriesName: null,
     dashboardParameters: []
   };
 }

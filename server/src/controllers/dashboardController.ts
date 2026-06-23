@@ -97,7 +97,7 @@ async function findOneCard(
       decimals: barRaw.decimals,
       labels: barRaw.labels,
       data: barRaw.data,
-      name: barRaw.name
+      name: dashcard.seriesName ?? barRaw.name
     });
     return;
   }
@@ -111,7 +111,7 @@ async function findOneCard(
       decimals: lineRaw.decimals,
       labels: lineRaw.labels,
       data: lineRaw.data,
-      name: lineRaw.name
+      name: dashcard.seriesName ?? lineRaw.name
     });
     return;
   }

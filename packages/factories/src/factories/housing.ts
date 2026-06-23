@@ -17,7 +17,7 @@ import {
 import { Factory } from 'fishery';
 import { match, Pattern } from 'ts-pattern';
 
-import type { Adapter } from '../adapter';
+import type { PersistenceAdapter } from '../persistence-adapter';
 
 function genGeoCode(): string {
   const geoCode = faker.helpers.arrayElement([
@@ -36,7 +36,7 @@ function genGeoCode(): string {
   return needsReroll ? genGeoCode() : geoCode;
 }
 
-export function createHousingFactory(adapter: Adapter) {
+export function createHousingFactory(adapter: PersistenceAdapter) {
   return Factory.define<HousingDTO>(() => {
     const geoCode = genGeoCode();
     const department = geoCode.substring(0, 2);

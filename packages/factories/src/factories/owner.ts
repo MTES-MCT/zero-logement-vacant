@@ -6,7 +6,7 @@ import {
 } from '@zerologementvacant/models';
 import { Factory } from 'fishery';
 
-import type { Adapter } from '../adapter';
+import type { PersistenceAdapter } from '../persistence-adapter';
 
 function genAddressDTO(): AddressDTO {
   return {
@@ -23,7 +23,7 @@ function genAddressDTO(): AddressDTO {
   };
 }
 
-export function createOwnerFactory(adapter: Adapter) {
+export function createOwnerFactory(adapter: PersistenceAdapter) {
   return Factory.define<OwnerDTO>(() => {
     const address = genAddressDTO();
     const firstName = faker.person.firstName();

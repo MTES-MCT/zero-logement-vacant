@@ -7,9 +7,9 @@ import {
 } from '@zerologementvacant/models';
 import { Factory } from 'fishery';
 
-import type { Adapter } from '../adapter';
+import type { PersistenceAdapter } from '../persistence-adapter';
 
-export function createBuildingFactory(adapter: Adapter) {
+export function createBuildingFactory(adapter: PersistenceAdapter) {
   return Factory.define<BuildingDTO>(() => {
     const hasEnergyConsumption = faker.datatype.boolean({ probability: 0.8 });
     return {

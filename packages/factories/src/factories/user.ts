@@ -6,9 +6,9 @@ import {
 } from '@zerologementvacant/models';
 import { Factory } from 'fishery';
 
-import type { Adapter } from '../adapter';
+import type { PersistenceAdapter } from '../persistence-adapter';
 
-export function createUserFactory(adapter: Adapter) {
+export function createUserFactory(adapter: PersistenceAdapter) {
   return Factory.define<UserDTO>(() => ({
     id: faker.string.uuid(),
     email: faker.internet.email(),

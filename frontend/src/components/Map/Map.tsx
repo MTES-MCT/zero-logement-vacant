@@ -26,6 +26,7 @@ import {
 import BuildingAside from './BuildingAside';
 import BuildingStatusImages from './BuildingStatusImages';
 import Clusters from './Clusters';
+import FullscreenControl from './FullscreenControl';
 import LayerControl from './LayerControl';
 import LegendButtonControl from './LegendButtonControl';
 import MapControls from './MapControls';
@@ -224,6 +225,7 @@ function Map(props: MapProps) {
             showZoom
             visualizePitch={false}
           />
+          <FullscreenControl />
         </ReactiveMap>
       </MapWrapper>
 

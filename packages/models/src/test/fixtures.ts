@@ -873,6 +873,7 @@ export function genOwnerDTO(): OwnerDTO {
     kind,
     siren: kind === 'Particulier' ? null : faker.string.numeric(9),
     username: faker.helpers.maybe(() => faker.person.lastName()) ?? null,
+    doNotContact: false,
     createdAt: faker.date.past().toJSON(),
     updatedAt: faker.date.recent().toJSON()
   };

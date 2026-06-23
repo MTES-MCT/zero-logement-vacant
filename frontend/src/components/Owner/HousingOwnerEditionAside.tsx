@@ -7,7 +7,6 @@ import Stack from '@mui/material/Stack';
 import Typography from '@mui/material/Typography';
 import {
   DECEASED_OWNER_RANK,
-  DO_NOT_CONTACT_OWNER_RANK,
   INCORRECT_OWNER_RANK,
   isInactiveOwnerRank,
   PREVIOUS_OWNER_RANK
@@ -28,7 +27,7 @@ const schema = yup
     isActive: yup.boolean().required(),
     rank: yup
       .string()
-      .oneOf(['primary', 'secondary', 'doNotContact'])
+      .oneOf(['primary', 'secondary', 'do-not-contact'])
       .nullable()
       .optional()
       .default(undefined)
@@ -67,12 +66,15 @@ function HousingOwnerEditionAside(props: HousingOwnerEditionAsideProps) {
 
   const form = useForm<HousingOwnerEditionSchema>({
     values: {
-      rank: match(housingOwner?.rank)
-        .returnType<'primary' | 'secondary' | 'doNotContact' | null>()
-        .with(1, () => 'primary')
-        .with(DO_NOT_CONTACT_OWNER_RANK, () => 'doNotContact')
-        .with(Pattern.number.int().gte(2), () => 'secondary')
-        .otherwise(() => null),
+      // "Do not contact" is an owner-level flag, not a rank, so it takes
+      // precedence over the per-housing rank in the selector.
+      rank: housingOwner?.doNotContact
+        ? ('do-not-contact' as const)
+        : match(housingOwner?.rank)
+            .returnType<'primary' | 'secondary' | null>()
+            .with(1, () => 'primary')
+            .with(Pattern.number.int().gte(2), () => 'secondary')
+            .otherwise(() => null),
       isActive:
         housingOwner?.rank !== undefined &&
         !isInactiveOwnerRank(housingOwner.rank),
@@ -252,8 +254,9 @@ function HousingOwnerEditionAside(props: HousingOwnerEditionAsideProps) {
                               {
                                 label: 'À ne pas contacter',
                                 nativeInputProps: {
-                                  checked: field.value === 'doNotContact',
-                                  onChange: () => field.onChange('doNotContact')
+                                  checked: field.value === 'do-not-contact',
+                                  onChange: () =>
+                                    field.onChange('do-not-contact')
                                 }
                               }
                             ]}

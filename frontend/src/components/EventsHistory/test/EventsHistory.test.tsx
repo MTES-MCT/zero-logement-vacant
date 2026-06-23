@@ -870,5 +870,29 @@ describe('EventsHistory', () => {
       );
       expect(description).toBeVisible();
     });
+
+    it('should display when the owner is marked as do not contact', () => {
+      renderComponentWithOwnerUpdated({
+        nextOld: { name: 'Jean Dupont', doNotContact: false },
+        nextNew: { name: 'Jean Dupont', doNotContact: true }
+      });
+
+      const description = screen.getByText(
+        'Le propriétaire “Jean Dupont” a été marqué comme “à ne pas contacter”.'
+      );
+      expect(description).toBeVisible();
+    });
+
+    it('should display when the owner is no longer marked as do not contact', () => {
+      renderComponentWithOwnerUpdated({
+        nextOld: { name: 'Jean Dupont', doNotContact: true },
+        nextNew: { name: 'Jean Dupont', doNotContact: false }
+      });
+
+      const description = screen.getByText(
+        'Le propriétaire “Jean Dupont” n’est plus marqué comme “à ne pas contacter”.'
+      );
+      expect(description).toBeVisible();
+    });
   });
 });

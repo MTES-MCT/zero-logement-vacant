@@ -1,4 +1,4 @@
-import { array, mixed, object, string } from 'yup';
+import { array, boolean, mixed, object, string } from 'yup';
 
 const banIdMessage =
   "L'adresse BAN doit avoir un identifiant BAN. Veuillez sélectionner une adresse depuis la liste de suggestions.";
@@ -63,5 +63,6 @@ export const ownerPayload = object({
         return true;
       }
     }),
-  additionalAddress: string().nullable().notRequired()
+  additionalAddress: string().nullable().notRequired(),
+  doNotContact: boolean().nullable().notRequired()
 });

@@ -103,6 +103,10 @@ fileignoreconfig:
   checksum: a14a2aa9a61802abddd61da2e37d536f58e7a2864fb4158b838849abbf732696
 - filename: server/src/infra/database/seeds/development/20240404235443_users.ts
   checksum: 459ad7c52a09b1a5d885f0e13acd68a894b862470125529ecc28a4116c737df7
+- filename: server/src/test/factories/user.ts
+  checksum: 3fb0eade27b1776e65f2c9ac0a0c567caf3b73662d2478f55bc29fef5d96c8ae
+- filename: server/src/test/factories/campaign.ts
+  checksum: 4cd25601852b71cfa6154baf3d29b3299fd00807ad7ebe76e5bdc9092f25ed64
 - filename: server/src/models/test/DocumentApi.test.ts
   checksum: 1d816ff7b060a0100cbd90a60182bb7c3e230ab5761909b18871af6ced2a6efb
 - filename: server/src/repositories/documentRepository.ts

@@ -1,12 +1,10 @@
-import type {
-  Adapter,
-  ContextArgs,
-  EntityMap
-} from '@zerologementvacant/factories';
-import { Struct } from 'effect';
+import type { ContextArgs } from '@zerologementvacant/factories';
 import { match } from 'ts-pattern';
 
-import { fromUserDTO } from '~/models/UserApi';
+import {
+  Buildings,
+  formatBuildingApi
+} from '~/repositories/buildingRepository';
 import {
   Campaigns,
   formatCampaignApi
@@ -15,7 +13,10 @@ import {
   Establishments,
   formatEstablishmentApi
 } from '~/repositories/establishmentRepository';
-import { formatGroupApi, Groups } from '~/repositories/groupRepository';
+import {
+  formatHousingOwnerApi,
+  HousingOwners
+} from '~/repositories/housingOwnerRepository';
 import {
   formatHousingRecordApi,
   Housing
@@ -23,68 +24,52 @@ import {
 import { formatOwnerApi, Owners } from '~/repositories/ownerRepository';
 import { toUserDBO, Users } from '~/repositories/userRepository';
 
-export class KnexAdapter implements Adapter {
+import type { EntityMap } from './entity-map';
+import type { PersistenceAdapter } from './persistence-adapter';
+
+/**
+ * Persists fully-formed `*Api` entities to the database. Conversion from the
+ * shared DTOs happens in the factories, so each case here only has to format
+ * the `*Api` object to its DBO and insert it. API entities are self-contained,
+ * so no per-entity context is taken.
+ */
+export class KnexAdapter implements PersistenceAdapter {
   async create<K extends keyof EntityMap>(
     table: K,
     entity: EntityMap[K],
-    ...args: ContextArgs<K>
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    ..._args: ContextArgs<Record<never, never>, K>
   ): Promise<EntityMap[K]> {
     await match(table as keyof EntityMap)
       .with('users', async () => {
-        const user = entity as EntityMap['users'];
-        await Users().insert(toUserDBO(fromUserDTO(user)));
+        await Users().insert(toUserDBO(entity as EntityMap['users']));
       })
       .with('establishments', async () => {
-        const establishment = entity as EntityMap['establishments'];
-        await Establishments().insert(formatEstablishmentApi(establishment));
+        await Establishments().insert(
+          formatEstablishmentApi(entity as EntityMap['establishments'])
+        );
       })
       .with('owners', async () => {
-        const owner = entity as EntityMap['owners'];
-        await Owners().insert(formatOwnerApi({ ...owner, entity: null }));
+        await Owners().insert(formatOwnerApi(entity as EntityMap['owners']));
       })
-      .with('housings', async () => {
-        const housing = Struct.omit(entity as EntityMap['housings'], 'owner');
-        await Housing().insert(
-          formatHousingRecordApi({
-            ...housing,
-            buildingGroupId: null,
-            geolocation: null,
-            occupancyRegistered: housing.occupancy
-          })
+      .with('buildings', async () => {
+        await Buildings().insert(
+          formatBuildingApi(entity as EntityMap['buildings'])
         );
       })
       .with('campaigns', async () => {
-        const campaign = entity as EntityMap['campaigns'];
-        const [{ establishmentId }] = args as ContextArgs<'campaigns'>;
         await Campaigns().insert(
-          formatCampaignApi({
-            ...campaign,
-            userId: campaign.createdBy.id,
-            establishmentId
-          })
+          formatCampaignApi(entity as EntityMap['campaigns'])
         );
       })
-      .with('groups', async () => {
-        const group = entity as EntityMap['groups'];
-        const [{ establishmentId }] = args as ContextArgs<'groups'>;
-        if (!group.createdBy) {
-          throw new Error(
-            'KnexAdapter: group.createdBy is required for persistence. ' +
-              'factories.group(establishment).create() enforces this at build time; ' +
-              'if you are calling adapter.create("groups", …) directly, supply createdBy on the DTO.'
-          );
-        }
-        const createdBy = fromUserDTO(group.createdBy);
-        await Groups().insert(
-          formatGroupApi({
-            ...group,
-            createdBy,
-            userId: group.createdBy.id,
-            establishmentId,
-            createdAt: new Date(group.createdAt),
-            exportedAt: null,
-            archivedAt: group.archivedAt ? new Date(group.archivedAt) : null
-          })
+      .with('housings', async () => {
+        await Housing().insert(
+          formatHousingRecordApi(entity as EntityMap['housings'])
+        );
+      })
+      .with('housingOwners', async () => {
+        await HousingOwners().insert(
+          formatHousingOwnerApi(entity as EntityMap['housingOwners'])
         );
       })
       .exhaustive();

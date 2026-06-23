@@ -13,6 +13,7 @@ import {
   Establishments,
   formatEstablishmentApi
 } from '~/repositories/establishmentRepository';
+import { formatGroupApi, Groups } from '~/repositories/groupRepository';
 import {
   formatHousingOwnerApi,
   HousingOwners
@@ -61,6 +62,9 @@ export class KnexAdapter implements PersistenceAdapter {
         await Campaigns().insert(
           formatCampaignApi(entity as EntityMap['campaigns'])
         );
+      })
+      .with('groups', async () => {
+        await Groups().insert(formatGroupApi(entity as EntityMap['groups']));
       })
       .with('housings', async () => {
         await Housing().insert(

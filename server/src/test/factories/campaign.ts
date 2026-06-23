@@ -10,7 +10,7 @@ export function createCampaignFactory(
   adapter: PersistenceAdapter,
   establishment: EstablishmentApi
 ) {
-  return Factory.define<CampaignApi>(({ associations }) => {
+  return Factory.define<CampaignApi>(({ associations, params }) => {
     if (!associations.createdBy) {
       throw new Error(
         'Campaign factory: createdBy association is required. ' +
@@ -20,7 +20,7 @@ export function createCampaignFactory(
     const createdBy = associations.createdBy;
     const dto = dtoFactories
       .campaign(establishment)
-      .build({}, { associations: { createdBy } });
+      .build(params, { associations: { createdBy } });
     return {
       ...dto,
       createdBy,

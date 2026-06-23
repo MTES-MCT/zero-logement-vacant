@@ -4,6 +4,7 @@ import { createBuildingFactory } from './building';
 import { createCampaignFactory } from './campaign';
 import type { EntityMap } from './entity-map';
 import { createEstablishmentFactory } from './establishment';
+import { createGroupFactory } from './group';
 import { createHousingFactory } from './housing';
 import {
   createHousingOwnerFactory,
@@ -24,6 +25,9 @@ export interface Factories {
     establishment: EntityMap['establishments']
   ) => Factory<EntityMap['campaigns']>;
   establishment: Factory<EntityMap['establishments']>;
+  group: (
+    establishment: EntityMap['establishments']
+  ) => Factory<EntityMap['groups']>;
   housing: Factory<EntityMap['housings']>;
   housingOwner: (
     params: HousingOwnerFactoryParams
@@ -37,6 +41,7 @@ export function createFactories(adapter: PersistenceAdapter): Factories {
     building: createBuildingFactory(adapter),
     campaign: (establishment) => createCampaignFactory(adapter, establishment),
     establishment: createEstablishmentFactory(adapter),
+    group: (establishment) => createGroupFactory(adapter, establishment),
     housing: createHousingFactory(adapter),
     housingOwner: (params) => createHousingOwnerFactory(adapter, params),
     owner: createOwnerFactory(adapter),

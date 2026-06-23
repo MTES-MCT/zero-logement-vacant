@@ -1,6 +1,7 @@
 import type { BuildingApi } from '~/models/BuildingApi';
 import type { CampaignApi } from '~/models/CampaignApi';
 import type { EstablishmentApi } from '~/models/EstablishmentApi';
+import type { GroupApi } from '~/models/GroupApi';
 import type { HousingApi } from '~/models/HousingApi';
 import type { HousingOwnerApi } from '~/models/HousingOwnerApi';
 import type { OwnerApi } from '~/models/OwnerApi';
@@ -14,6 +15,7 @@ export type EntityMap = {
   buildings: BuildingApi;
   campaigns: CampaignApi;
   establishments: EstablishmentApi;
+  groups: GroupApi;
   housings: HousingApi;
   housingOwners: HousingOwnerApi;
   owners: OwnerApi;

@@ -1,8 +1,10 @@
 [list]
 url = "http://localhost:{{ (branch ~ 'front') | hash_port }}"
 
-[pre-start]
+[[pre-start]]
 copy = "wt step copy-ignored"
+
+[[pre-start]]
 install = "yarn install --immutable --immutable-cache"
 
 [[post-start]]
@@ -34,10 +36,10 @@ sed -i '' "s|DATABASE_URL=.*|DATABASE_URL=postgres://postgres:postgres@localhost
 build = "yarn build"
 
 [[post-start]]
-migrate = "yarn workspace @zerologementvacant/server migrate"
+migrate = "yarn nx run server:migrate"
 
 [[post-start]]
-seed = "yarn workspace @zerologementvacant/server seed"
+seed = "yarn nx run server:seed"
 
 # Run dev servers after migrate
 [[post-start]]

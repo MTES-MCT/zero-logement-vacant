@@ -12,25 +12,26 @@
 
 ## File Map
 
-| Action | Path |
-|--------|------|
-| Modify | `server/src/repositories/buildingRepository.ts` |
-| Modify | `server/src/scripts/import-lovac/cli.ts` |
-| Modify | `server/src/scripts/import-lovac/infra/fixtures.ts` |
-| Delete | `server/src/scripts/import-lovac/source-buildings/source-building.ts` |
-| Delete | `server/src/scripts/import-lovac/source-buildings/source-building-command.ts` |
-| Delete | `server/src/scripts/import-lovac/source-buildings/source-building-processor.ts` |
-| Delete | `server/src/scripts/import-lovac/source-buildings/source-building-file-repository.ts` |
-| Delete | `server/src/scripts/import-lovac/source-buildings/test/source-building.test.ts` |
-| Delete | `server/src/scripts/import-lovac/source-buildings/test/source-building-processor.test.ts` |
+| Action | Path                                                                                            |
+| ------ | ----------------------------------------------------------------------------------------------- |
+| Modify | `server/src/repositories/buildingRepository.ts`                                                 |
+| Modify | `server/src/scripts/import-lovac/cli.ts`                                                        |
+| Modify | `server/src/scripts/import-lovac/infra/fixtures.ts`                                             |
+| Delete | `server/src/scripts/import-lovac/source-buildings/source-building.ts`                           |
+| Delete | `server/src/scripts/import-lovac/source-buildings/source-building-command.ts`                   |
+| Delete | `server/src/scripts/import-lovac/source-buildings/source-building-processor.ts`                 |
+| Delete | `server/src/scripts/import-lovac/source-buildings/source-building-file-repository.ts`           |
+| Delete | `server/src/scripts/import-lovac/source-buildings/test/source-building.test.ts`                 |
+| Delete | `server/src/scripts/import-lovac/source-buildings/test/source-building-processor.test.ts`       |
 | Delete | `server/src/scripts/import-lovac/source-buildings/test/source-building-file-repository.test.ts` |
-| Create | `server/src/scripts/import-lovac/source-buildings/import-buildings.sh` |
+| Create | `server/src/scripts/import-lovac/source-buildings/import-buildings.sh`                          |
 
 ---
 
 ## Task 1: Add `rnb_footprint` to `BuildingDBO`
 
 **Files:**
+
 - Modify: `server/src/repositories/buildingRepository.ts`
 
 - [ ] **Step 1: Add `rnb_footprint` to `BuildingDBO`**
@@ -45,7 +46,7 @@ export interface BuildingDBO {
   rent_housing_count: number | null;
   rnb_id: string | null;
   rnb_id_score: number | null;
-  rnb_footprint: number | null;   // ← add this
+  rnb_footprint: number | null; // ← add this
   dpe_id: string | null;
   // ... rest unchanged
 }
@@ -64,7 +65,7 @@ export function formatBuildingApi(building: BuildingApi): BuildingDBO {
     rent_housing_count: building.rentHousingCount,
     rnb_id: building.rnb?.id ?? null,
     rnb_id_score: building.rnb?.score ?? null,
-    rnb_footprint: null,          // ← add this
+    rnb_footprint: null, // ← add this
     dpe_id: building.dpe?.id ?? null,
     class_dpe: building.dpe?.class ?? null,
     class_ges: building.ges?.class ?? null,
@@ -98,6 +99,7 @@ git commit -m "feat(server): add rnb_footprint to BuildingDBO"
 ## Task 2: Remove the source-building Node.js importer
 
 **Files:**
+
 - Delete: all `source-buildings/` TypeScript files and tests
 - Modify: `server/src/scripts/import-lovac/cli.ts`
 - Modify: `server/src/scripts/import-lovac/infra/fixtures.ts`
@@ -184,9 +186,11 @@ git commit -m "feat(server): remove source-building Node.js importer"
 ## Task 3: Create `import-buildings.sh`
 
 **Files:**
+
 - Create: `server/src/scripts/import-lovac/source-buildings/import-buildings.sh`
 
 The script uses the DuckDB CLI to:
+
 1. Read source file stats (total rows, RNB coverage)
 2. Snapshot the `buildings` table count before import
 3. Insert all rows `ON CONFLICT (id) DO NOTHING`
@@ -267,26 +271,31 @@ chmod +x server/src/scripts/import-lovac/source-buildings/import-buildings.sh
 ```
 
 The report shape written to `$REPORT_FILE`:
+
 ```json
-[{
-  "source_total": 1000,
-  "source_with_rnb": 800,
-  "source_without_rnb": 200,
-  "before_count": 500,
-  "after_count": 1400,
-  "inserted": 900,
-  "skipped": 100
-}]
+[
+  {
+    "source_total": 1000,
+    "source_with_rnb": 800,
+    "source_without_rnb": 200,
+    "before_count": 500,
+    "after_count": 1400,
+    "inserted": 900,
+    "skipped": 100
+  }
+]
 ```
 
 - [ ] **Step 2: Smoke-test the script locally**
 
 You need:
+
 - `duckdb` CLI installed (`brew install duckdb` or from https://duckdb.org/docs/installation)
 - A sample JSONL file with the right shape
 - A reachable Postgres URL
 
 Create a minimal test file:
+
 ```bash
 cat > /tmp/buildings-test.jsonl << 'EOF'
 {"building_id":"TEST001","rnb_id":"RNB001","rnb_id_score":0.9,"rnb_footprint":120}
@@ -295,6 +304,7 @@ EOF
 ```
 
 Run:
+
 ```bash
 bash server/src/scripts/import-lovac/source-buildings/import-buildings.sh \
   /tmp/buildings-test.jsonl \
@@ -303,6 +313,7 @@ bash server/src/scripts/import-lovac/source-buildings/import-buildings.sh \
 ```
 
 Expected output (counts may vary):
+
 ```
 Importing buildings from /tmp/buildings-test.jsonl...
 Report will be written to /tmp/test-buildings.report.json

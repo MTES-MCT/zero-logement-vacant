@@ -1,5 +1,6 @@
 import { FileUploadDTO } from '@zerologementvacant/models';
 import { createS3, getContent, toBase64 } from '@zerologementvacant/utils/node';
+
 import FileMissingError from '~/errors/fileMissingError';
 import config from '~/infra/config';
 import { createLogger } from '~/infra/logger';
@@ -13,7 +14,6 @@ const s3 = createS3({
 });
 
 export async function download(logo: string): Promise<FileUploadDTO> {
-
   logger.debug('Downloading logo from S3...');
   try {
     const { content, response } = await getContent(logo, {

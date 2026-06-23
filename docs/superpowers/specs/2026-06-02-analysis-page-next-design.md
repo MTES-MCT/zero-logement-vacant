@@ -19,41 +19,52 @@ Metabase is self-hosted open-source — the Embedded Analytics SDK is not availa
 Replaces the current `{ url: string }` shape. `url` is kept temporarily so both the old `AnalysisView` (reads `url`) and the new `AnalysisViewNext` (reads `tabs`/`cards`) can share the same endpoint during the feature flag transition.
 
 ```typescript
-import type { IntClosedRange, NonNegativeInteger } from 'type-fest'
+import type { IntClosedRange, NonNegativeInteger } from 'type-fest';
 
-export type CardType = 'flat-number' | 'percentage'
+export type CardType = 'flat-number' | 'percentage';
 
 export interface CardCommon {
-  id: number                        // dashcard_id (Metabase placement ID)
-  type: CardType
-  title: string
-  description: string | null
-  decimals: number                  // from card visualization_settings, resolved at dashboard fetch
+  id: number; // dashcard_id (Metabase placement ID)
+  type: CardType;
+  title: string;
+  description: string | null;
+  decimals: number; // from card visualization_settings, resolved at dashboard fetch
   position: {
-    col: IntClosedRange<0, 23>      // 0-indexed, 24-column grid
-    row: NonNegativeInteger
-  }
+    col: IntClosedRange<0, 23>; // 0-indexed, 24-column grid
+    row: NonNegativeInteger;
+  };
   size: {
-    width: IntClosedRange<1, 24>
-    height: NonNegativeInteger
-  }
+    width: IntClosedRange<1, 24>;
+    height: NonNegativeInteger;
+  };
 }
 
-export interface FlatNumberCard extends CardCommon { type: 'flat-number' }
-export interface PercentageCard extends CardCommon { type: 'percentage' }
-export type DashboardCard = FlatNumberCard | PercentageCard
+export interface FlatNumberCard extends CardCommon {
+  type: 'flat-number';
+}
+export interface PercentageCard extends CardCommon {
+  type: 'percentage';
+}
+export type DashboardCard = FlatNumberCard | PercentageCard;
 
 interface Tab {
-  id: number
-  title: string
-  cards: ReadonlyArray<DashboardCard>
+  id: number;
+  title: string;
+  cards: ReadonlyArray<DashboardCard>;
 }
 
-interface WithTabs    { tabs: ReadonlyArray<Tab> }
-interface WithoutTabs { cards: ReadonlyArray<DashboardCard> }
+interface WithTabs {
+  tabs: ReadonlyArray<Tab>;
+}
+interface WithoutTabs {
+  cards: ReadonlyArray<DashboardCard>;
+}
 
 // url is transitional — remove when feature flag is deleted
-export type DashboardDTO = { id: number; url: string } & (WithTabs | WithoutTabs)
+export type DashboardDTO = { id: number; url: string } & (
+  | WithTabs
+  | WithoutTabs
+);
 ```
 
 ### `CardDataDTO`
@@ -62,8 +73,8 @@ Returned by the per-card data endpoint. `decimals` lives on `CardCommon` (metada
 
 ```typescript
 export interface CardDataDTO {
-  id: number    // dashcard_id, mirrors CardCommon.id
-  data: number
+  id: number; // dashcard_id, mirrors CardCommon.id
+  data: number;
 }
 ```
 
@@ -80,12 +91,14 @@ export interface CardDataDTO {
 - Returns merged `DashboardDTO` with both `url` (existing) and `tabs`/`cards` (new)
 
 **Type mapping from Metabase response:**
+
 - `dashcard.card.display !== 'scalar'` → filtered out entirely
 - `scalar` + `visualization_settings['number.style'] === 'percent'` (or `column_settings[key].number_style === 'percent'`) → `'percentage'`
 - `scalar` otherwise → `'flat-number'`
 - `decimals`: from `visualization_settings['scalar.decimals']` or `column_settings[key].decimals`, defaulting to `0`
 
 **Tab normalization:**
+
 - `ordered_tabs` non-empty → `WithTabs`, each tab's `ordered_cards` mapped
 - `ordered_tabs` empty or absent → `WithoutTabs`, top-level `dashcards` mapped
 
@@ -104,6 +117,7 @@ export interface CardDataDTO {
 - Returns `502` if Metabase is unreachable
 
 **Confirmed Metabase query response shape** (from live instance):
+
 ```json
 {
   "data": {
@@ -143,6 +157,7 @@ Existing routes are untouched. Each analysis route gets a `FeatureFlagLayout` wr
 ### `dashboard.service.ts`
 
 Two new RTK Query endpoints added alongside the existing `findOneDashboard` (untouched):
+
 - `findOneDashboardNext` — `GET /dashboards/:id` returning new `DashboardDTO`
 - `findOneCard` — `GET /dashboards/:did/cards/:cid` returning `CardDataDTO`
 
@@ -159,10 +174,12 @@ Two new RTK Query endpoints added alongside the existing `findOneDashboard` (unt
 ### Card grid
 
 CSS Grid, 24 columns. Each card placed via:
+
 ```css
 grid-column: {card.position.col + 1} / span {card.size.width};
 grid-row:    {card.position.row + 1} / span {card.size.height};
 ```
+
 This maps directly from Metabase's coordinate system with no translation.
 
 ### `components/Analysis/AnalysisCard.tsx`
@@ -170,11 +187,13 @@ This maps directly from Metabase's coordinate system with no translation.
 Smart component — owns its own data fetch. Accepts `card: DashboardCard` and `dashboardId: number | Resource`.
 
 Three render states:
+
 - **Loading** → MUI `Skeleton` sized to match the card's grid cell
 - **Error** → inline DSFR `Alert` with `severity="error"`
 - **Data** → title, formatted value, description (if present)
 
 Value formatting via `Intl.NumberFormat`:
+
 - `'flat-number'` → `{ maximumFractionDigits: card.decimals }`
 - `'percentage'` → `{ style: 'percent', maximumFractionDigits: card.decimals }`
 
@@ -193,6 +212,7 @@ Test: `components/Analysis/test/AnalysisCard.test.tsx`
 ## Migration path
 
 When `new-analysis-page` flag is permanently enabled and the old `AnalysisView` is deleted:
+
 1. Remove `url` from `DashboardDTO`
 2. Remove `findOneDashboard` from `dashboard.service.ts`
 3. Remove `getResource()` JWT logic from `dashboardController.ts`

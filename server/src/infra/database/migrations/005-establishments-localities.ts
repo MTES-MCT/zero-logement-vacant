@@ -27,7 +27,7 @@ export async function up(knex: Knex): Promise<void> {
     }),
     knex.schema.table('campaigns', function (table) {
       table.index(['establishment_id'], 'campaigns_establishment_idx');
-    }),
+    })
   ]);
 }
 
@@ -43,6 +43,6 @@ export async function down(knex: Knex): Promise<void> {
       table.dropColumn('establishment_id');
     }),
     knex.schema.dropTable('localities'),
-    knex.schema.dropTable('establishments'),
+    knex.schema.dropTable('establishments')
   ]);
 }

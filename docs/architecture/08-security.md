@@ -55,17 +55,17 @@ sequenceDiagram
 ```typescript
 // Token structure
 interface TokenPayload {
-  userId: string;           // User UUID
-  establishmentId: string;  // Establishment UUID
-  iat: number;              // Issued at (Unix timestamp)
-  exp: number;              // Expiration (7 days default)
+  userId: string; // User UUID
+  establishmentId: string; // Establishment UUID
+  iat: number; // Issued at (Unix timestamp)
+  exp: number; // Expiration (7 days default)
 }
 
 // Token settings
 const jwtConfig = {
   algorithm: 'HS256',
   expiresIn: '7d',
-  secret: process.env.AUTH_SECRET  // Min 256 bits
+  secret: process.env.AUTH_SECRET // Min 256 bits
 };
 ```
 
@@ -136,14 +136,14 @@ flowchart TB
 
 ### Role Permissions
 
-| Permission | ADMIN | USUAL | VISITOR |
-|------------|-------|-------|---------|
-| View housing | ✓ | ✓ | ✓ |
-| Edit housing | ✓ | ✓ | ✗ |
-| Create campaigns | ✓ | ✓ | ✗ |
-| Delete data | ✓ | ✗ | ✗ |
-| Manage users | ✓ | ✗ | ✗ |
-| Manage settings | ✓ | ✗ | ✗ |
+| Permission       | ADMIN | USUAL | VISITOR |
+| ---------------- | ----- | ----- | ------- |
+| View housing     | ✓     | ✓     | ✓       |
+| Edit housing     | ✓     | ✓     | ✗       |
+| Create campaigns | ✓     | ✓     | ✗       |
+| Delete data      | ✓     | ✗     | ✗       |
+| Manage users     | ✓     | ✗     | ✗       |
+| Manage settings  | ✓     | ✗     | ✗       |
 
 ### Middleware Implementation
 
@@ -172,7 +172,11 @@ Data is scoped to the user's establishment:
 // Repository pattern with establishment scoping
 async function findHousing(establishmentId: string, filters: HousingFilters) {
   return db('housing')
-    .join('establishments_localities', 'housing.insee_code', 'establishments_localities.geo_code')
+    .join(
+      'establishments_localities',
+      'housing.insee_code',
+      'establishments_localities.geo_code'
+    )
     .where('establishments_localities.establishment_id', establishmentId)
     .andWhere(filters);
 }
@@ -219,7 +223,7 @@ const housingUpdateSchema = yup.object({
 // Middleware
 router.put(
   '/housing/:id',
-  validatorNext.body(housingUpdateSchema),
+  validator.body(housingUpdateSchema),
   housingController.update
 );
 ```
@@ -229,7 +233,7 @@ router.put(
 ```typescript
 // Parameterized queries with Knex
 await db('housing')
-  .where({ id })  // Parameterized
+  .where({ id }) // Parameterized
   .update({ status: newStatus });
 
 // Never use string interpolation
@@ -301,36 +305,38 @@ if (scanResult.isInfected) {
 ### Security Headers (Helmet)
 
 ```typescript
-app.use(helmet({
-  contentSecurityPolicy: {
-    directives: {
-      defaultSrc: ["'self'"],
-      scriptSrc: ["'self'", "'unsafe-inline'"],
-      styleSrc: ["'self'", "'unsafe-inline'"],
-      imgSrc: ["'self'", "data:", "https:"],
-      connectSrc: ["'self'", "https://api-adresse.data.gouv.fr"],
-      fontSrc: ["'self'"],
-      objectSrc: ["'none'"],
-      frameAncestors: ["'none'"]
-    }
-  },
-  hsts: {
-    maxAge: 31536000,
-    includeSubDomains: true,
-    preload: true
-  },
-  referrerPolicy: { policy: 'strict-origin-when-cross-origin' },
-  noSniff: true,
-  xssFilter: true
-}));
+app.use(
+  helmet({
+    contentSecurityPolicy: {
+      directives: {
+        defaultSrc: ["'self'"],
+        scriptSrc: ["'self'", "'unsafe-inline'"],
+        styleSrc: ["'self'", "'unsafe-inline'"],
+        imgSrc: ["'self'", 'data:', 'https:'],
+        connectSrc: ["'self'", 'https://api-adresse.data.gouv.fr'],
+        fontSrc: ["'self'"],
+        objectSrc: ["'none'"],
+        frameAncestors: ["'none'"]
+      }
+    },
+    hsts: {
+      maxAge: 31536000,
+      includeSubDomains: true,
+      preload: true
+    },
+    referrerPolicy: { policy: 'strict-origin-when-cross-origin' },
+    noSniff: true,
+    xssFilter: true
+  })
+);
 ```
 
 ### Rate Limiting
 
 ```typescript
 const rateLimiter = rateLimit({
-  windowMs: 5 * 60 * 1000,  // 5 minutes
-  max: 100,                  // 100 requests per window
+  windowMs: 5 * 60 * 1000, // 5 minutes
+  max: 100, // 100 requests per window
   standardHeaders: true,
   legacyHeaders: false
 });
@@ -340,8 +346,8 @@ app.use(rateLimiter);
 
 // Stricter limits for auth endpoints
 const authLimiter = rateLimit({
-  windowMs: 60 * 1000,  // 1 minute
-  max: 10               // 10 requests
+  windowMs: 60 * 1000, // 1 minute
+  max: 10 // 10 requests
 });
 
 router.post('/authenticate', authLimiter, accountController.signIn);
@@ -350,61 +356,63 @@ router.post('/authenticate', authLimiter, accountController.signIn);
 ### CORS Configuration
 
 ```typescript
-app.use(cors({
-  origin: config.app.frontendUrl,
-  credentials: false,  // No cookies cross-origin
-  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
-  allowedHeaders: ['Content-Type', 'x-access-token']
-}));
+app.use(
+  cors({
+    origin: config.app.frontendUrl,
+    credentials: false, // No cookies cross-origin
+    methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+    allowedHeaders: ['Content-Type', 'x-access-token']
+  })
+);
 ```
 
 ## Data Encryption
 
 ### At Rest
 
-| Data | Encryption | Provider |
-|------|------------|----------|
-| PostgreSQL | AES-256 | Clever Cloud |
-| Redis | TLS | Clever Cloud |
-| S3/Cellar | AES-256 | Clever Cloud |
+| Data       | Encryption | Provider     |
+| ---------- | ---------- | ------------ |
+| PostgreSQL | AES-256    | Clever Cloud |
+| Redis      | TLS        | Clever Cloud |
+| S3/Cellar  | AES-256    | Clever Cloud |
 
 ### In Transit
 
-| Connection | Protocol |
-|------------|----------|
-| Client → API | TLS 1.3 |
-| API → Database | TLS 1.2 |
-| API → Redis | TLS 1.2 |
-| API → S3 | TLS 1.2 |
+| Connection     | Protocol |
+| -------------- | -------- |
+| Client → API   | TLS 1.3  |
+| API → Database | TLS 1.2  |
+| API → Redis    | TLS 1.2  |
+| API → S3       | TLS 1.2  |
 
 ## GDPR Compliance
 
 ### Personal Data Categories
 
-| Category | Examples | Legal Basis |
-|----------|----------|-------------|
-| Owner identity | Name, address | Legitimate interest |
-| Contact info | Email, phone | Consent |
-| Housing data | Address, status | Public interest |
-| User accounts | Email, role | Contract |
+| Category       | Examples        | Legal Basis         |
+| -------------- | --------------- | ------------------- |
+| Owner identity | Name, address   | Legitimate interest |
+| Contact info   | Email, phone    | Consent             |
+| Housing data   | Address, status | Public interest     |
+| User accounts  | Email, role     | Contract            |
 
 ### Data Subject Rights
 
-| Right | Implementation |
-|-------|----------------|
-| Access | Export functionality |
-| Rectification | Edit endpoints |
-| Erasure | Soft delete + anonymization |
-| Portability | JSON/CSV export |
+| Right         | Implementation              |
+| ------------- | --------------------------- |
+| Access        | Export functionality        |
+| Rectification | Edit endpoints              |
+| Erasure       | Soft delete + anonymization |
+| Portability   | JSON/CSV export             |
 
 ### Data Retention
 
-| Data Type | Retention | Action |
-|-----------|-----------|--------|
-| User accounts | Active + 3 years | Anonymize |
-| Housing data | Indefinite | Archive |
-| Logs | 1 year | Delete |
-| Session tokens | 7 days | Auto-expire |
+| Data Type      | Retention        | Action      |
+| -------------- | ---------------- | ----------- |
+| User accounts  | Active + 3 years | Anonymize   |
+| Housing data   | Indefinite       | Archive     |
+| Logs           | 1 year           | Delete      |
+| Session tokens | 7 days           | Auto-expire |
 
 ## Audit Logging
 
@@ -429,15 +437,15 @@ interface Event {
   type: EventType;
   old: object | null;
   new: object | null;
-  createdBy: string;  // User ID
+  createdBy: string; // User ID
   createdAt: Date;
 }
 
 // Entity-specific event tables reference the base event
 // Example: housing_events table
 interface HousingEvent {
-  eventId: string;      // FK to events.id
-  housingId: string;    // FK to fast_housing.id
+  eventId: string; // FK to events.id
+  housingId: string; // FK to fast_housing.id
   housingGeoCode: string;
 }
 
@@ -482,12 +490,12 @@ Sentry.init({
 
 ### Alerts
 
-| Event | Severity | Action |
-|-------|----------|--------|
-| Failed logins (5+) | Warning | Email alert |
-| SQL errors | Error | Sentry alert |
-| Rate limit exceeded | Warning | Log |
-| Invalid JWT | Info | Log |
+| Event               | Severity | Action       |
+| ------------------- | -------- | ------------ |
+| Failed logins (5+)  | Warning  | Email alert  |
+| SQL errors          | Error    | Sentry alert |
+| Rate limit exceeded | Warning  | Log          |
+| Invalid JWT         | Info     | Log          |
 
 ## Security Checklist
 

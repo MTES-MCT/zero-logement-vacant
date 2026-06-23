@@ -1,4 +1,7 @@
+import { AddressKinds } from '@zerologementvacant/models';
 import { describe, it, expect } from 'vitest';
+
+import { AddressApi } from '~/models/AddressApi';
 
 import {
   haversineDistance,
@@ -7,8 +10,6 @@ import {
   calculateGeographicClassification,
   calculateDistance
 } from '../ownerDistanceService';
-import { AddressKinds } from '@zerologementvacant/models';
-import { AddressApi } from '~/models/AddressApi';
 
 describe('Owner Distance Service', () => {
   describe('haversineDistance', () => {
@@ -257,7 +258,7 @@ describe('Owner Distance Service', () => {
     it('should return same-commune for same postal code but different location (>= 50m)', () => {
       // Two addresses in the same commune but different streets (~500m apart)
       const ownerAddress = createMockAddress('75001', 48.8566, 2.3522);
-      const housingAddress = createMockAddress('75001', 48.8610, 2.3470);
+      const housingAddress = createMockAddress('75001', 48.861, 2.347);
 
       const result = calculateDistance(ownerAddress, housingAddress);
 
@@ -272,7 +273,7 @@ describe('Owner Distance Service', () => {
         banId: 'same-ban-id'
       };
       const housingAddress: AddressApi = {
-        ...createMockAddress('75001', 48.8610, 2.3470),
+        ...createMockAddress('75001', 48.861, 2.347),
         banId: 'same-ban-id'
       };
 

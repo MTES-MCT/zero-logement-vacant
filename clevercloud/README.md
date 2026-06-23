@@ -23,15 +23,18 @@ The `cron.json` file defines scheduled tasks:
 The following environment variables must be configured on Clever Cloud:
 
 #### For Python
+
 - `CC_PYTHON_VERSION`: Python version (recommended: `3.11`)
   - Allows Clever Cloud to install Python alongside Node.js
   - Required for sync scripts execution
 
 #### For Cerema API
+
 - `CEREMA_USERNAME`: Username for Cerema DF Portal API
 - `CEREMA_PASSWORD`: Password for Cerema DF Portal API
 
 > **Note**: The script automatically authenticates on each execution by calling `https://portaildf.cerema.fr/api/api-token-auth/` with these credentials as form-data. The JSON response contains the temporary token:
+>
 > ```bash
 > # Request: POST https://portaildf.cerema.fr/api/api-token-auth/
 > # Form data: username=xxx&password=xxx
@@ -40,9 +43,11 @@ The following environment variables must be configured on Clever Cloud:
 >   "token": "222a9ac058496742ff2922533d90847621314629"
 > }
 > ```
+>
 > This token is then used as `CEREMA_BEARER_TOKEN` for all API calls in the session.
 
 #### For Database (Clever Cloud naming convention)
+
 - `POSTGRESQL_ADDON_HOST`: Database host
 - `POSTGRESQL_ADDON_PORT`: Database port (default: 5432)
 - `POSTGRESQL_ADDON_DB`: Database name
@@ -66,6 +71,7 @@ The standard cron format is used:
 ```
 
 **Examples:**
+
 - `*/30 * * * *`: Every 30 minutes
 - `0 */2 * * *`: Every 2 hours (on the hour)
 - `0 2 * * *`: Every day at 2 AM
@@ -92,6 +98,7 @@ To verify that the cron is properly configured on Clever Cloud:
 Changes to the `cron.json` file are automatically applied during the next application deployment.
 
 To force a redeployment:
+
 ```bash
 git commit --allow-empty -m "Trigger redeploy for cron update"
 git push clever master
@@ -115,6 +122,7 @@ If the cron doesn't work:
 Python dependencies are automatically installed during deployment via the `post_build.sh` script.
 
 **Related Files**:
+
 - `server/src/scripts/perimeters-portaildf/requirements.txt`: Dependencies list
   - `requests>=2.31.0`: HTTP calls to Cerema API
   - `click>=8.1.7`: CLI interface for Python scripts
@@ -127,6 +135,7 @@ Python dependencies are automatically installed during deployment via the `post_
 
 **Verification**:
 To verify dependency installation after deployment:
+
 ```bash
 clever ssh
 pip3 list | grep -E "requests|click|psycopg2|dateutil"

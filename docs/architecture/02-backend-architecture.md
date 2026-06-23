@@ -8,20 +8,20 @@ The backend is an Express.js REST API that provides data access, business logic,
 
 ## Technology Stack
 
-| Category | Technology | Version | Purpose |
-|----------|------------|---------|---------|
-| **Runtime** | Node.js | 24+ | JavaScript runtime |
-| **Framework** | Express.js | 4.22 | HTTP server |
-| **Language** | TypeScript | 5.x | Type safety |
-| **Database** | PostgreSQL | 14+ | Primary database |
-| **ORM** | Knex.js | 3.1 | Query builder |
-| **Validation** | Yup | 1.7 | Schema validation |
-| **Auth** | jsonwebtoken | 9.0 | JWT tokens |
-| **Email** | Brevo | 1.0 | Email service |
-| **Storage** | AWS S3 | 3.x | File storage |
-| **Search** | Elasticsearch | 8.19 | Indexing |
-| **Cache** | Redis | 4.7 | Caching |
-| **Testing** | Vitest | - | Test framework |
+| Category       | Technology    | Version | Purpose            |
+| -------------- | ------------- | ------- | ------------------ |
+| **Runtime**    | Node.js       | 24+     | JavaScript runtime |
+| **Framework**  | Express.js    | 4.22    | HTTP server        |
+| **Language**   | TypeScript    | 5.x     | Type safety        |
+| **Database**   | PostgreSQL    | 14+     | Primary database   |
+| **ORM**        | Knex.js       | 3.1     | Query builder      |
+| **Validation** | Yup           | 1.7     | Schema validation  |
+| **Auth**       | jsonwebtoken  | 9.0     | JWT tokens         |
+| **Email**      | Brevo         | 1.0     | Email service      |
+| **Storage**    | AWS S3        | 3.x     | File storage       |
+| **Search**     | Elasticsearch | 8.19    | Indexing           |
+| **Cache**      | Redis         | 4.7     | Caching            |
+| **Testing**    | Vitest        | -       | Test framework     |
 
 ## Architecture Diagram
 
@@ -131,7 +131,7 @@ server/src/
 ├── middlewares/              # Express middleware
 │   ├── auth.ts              # JWT + user checks
 │   ├── error-handler.ts     # Error handling
-│   ├── validator-next.ts    # Yup validation
+│   ├── validator.ts         # Yup validation
 │   ├── upload.ts            # Multer config
 │   └── antivirus.ts         # ClamScan
 │
@@ -161,71 +161,71 @@ server/src/
 
 #### Housing
 
-| Method | Endpoint | Description |
-|--------|----------|-------------|
-| `GET` | `/api/housing` | List with filters/pagination |
-| `GET` | `/api/housing/count` | Count matching housing |
-| `GET` | `/api/housing/:id` | Get single housing |
-| `POST` | `/api/housing` | Create housing |
-| `PUT` | `/api/housing/:id` | Update single |
-| `PUT` | `/api/housing` | Batch update |
+| Method | Endpoint             | Description                  |
+| ------ | -------------------- | ---------------------------- |
+| `GET`  | `/api/housing`       | List with filters/pagination |
+| `GET`  | `/api/housing/count` | Count matching housing       |
+| `GET`  | `/api/housing/:id`   | Get single housing           |
+| `POST` | `/api/housing`       | Create housing               |
+| `PUT`  | `/api/housing/:id`   | Update single                |
+| `PUT`  | `/api/housing`       | Batch update                 |
 
 #### Owners
 
-| Method | Endpoint | Description |
-|--------|----------|-------------|
-| `GET` | `/api/owners` | List owners |
-| `POST` | `/api/owners` | Search owners |
-| `GET` | `/api/owners/:id` | Get owner |
-| `POST` | `/api/owners/creation` | Create owner |
-| `PUT` | `/api/owners/:id` | Update owner |
-| `GET` | `/api/owners/:id/housings` | Owner's housings |
-| `GET` | `/api/owners/:id/events` | Owner events |
+| Method | Endpoint                   | Description      |
+| ------ | -------------------------- | ---------------- |
+| `GET`  | `/api/owners`              | List owners      |
+| `POST` | `/api/owners`              | Search owners    |
+| `GET`  | `/api/owners/:id`          | Get owner        |
+| `POST` | `/api/owners/creation`     | Create owner     |
+| `PUT`  | `/api/owners/:id`          | Update owner     |
+| `GET`  | `/api/owners/:id/housings` | Owner's housings |
+| `GET`  | `/api/owners/:id/events`   | Owner events     |
 
 #### Campaigns
 
-| Method | Endpoint | Description |
-|--------|----------|-------------|
-| `GET` | `/api/campaigns` | List campaigns |
-| `POST` | `/api/campaigns` | Create campaign |
-| `GET` | `/api/campaigns/:id` | Get campaign |
-| `PUT` | `/api/campaigns/:id` | Update campaign |
-| `DELETE` | `/api/campaigns/:id` | Delete campaign |
-| `GET` | `/api/campaigns/:id/export` | Export data |
-| `GET` | `/api/campaigns/:id/download` | Download files |
+| Method   | Endpoint                      | Description     |
+| -------- | ----------------------------- | --------------- |
+| `GET`    | `/api/campaigns`              | List campaigns  |
+| `POST`   | `/api/campaigns`              | Create campaign |
+| `GET`    | `/api/campaigns/:id`          | Get campaign    |
+| `PUT`    | `/api/campaigns/:id`          | Update campaign |
+| `DELETE` | `/api/campaigns/:id`          | Delete campaign |
+| `GET`    | `/api/campaigns/:id/export`   | Export data     |
+| `GET`    | `/api/campaigns/:id/download` | Download files  |
 
 #### Groups
 
-| Method | Endpoint | Description |
-|--------|----------|-------------|
-| `GET` | `/api/groups` | List groups |
-| `POST` | `/api/groups` | Create group |
-| `GET` | `/api/groups/:id` | Get group |
-| `PUT` | `/api/groups/:id` | Update group |
-| `DELETE` | `/api/groups/:id` | Delete group |
-| `POST` | `/api/groups/:id/housing` | Add housing |
+| Method   | Endpoint                  | Description    |
+| -------- | ------------------------- | -------------- |
+| `GET`    | `/api/groups`             | List groups    |
+| `POST`   | `/api/groups`             | Create group   |
+| `GET`    | `/api/groups/:id`         | Get group      |
+| `PUT`    | `/api/groups/:id`         | Update group   |
+| `DELETE` | `/api/groups/:id`         | Delete group   |
+| `POST`   | `/api/groups/:id/housing` | Add housing    |
 | `DELETE` | `/api/groups/:id/housing` | Remove housing |
 
 #### Documents
 
-| Method | Endpoint | Description |
-|--------|----------|-------------|
-| `POST` | `/api/documents` | Upload document |
-| `PUT` | `/api/documents/:id` | Update metadata |
-| `DELETE` | `/api/documents/:id` | Delete document |
-| `GET` | `/api/housing/:id/documents` | Housing documents |
-| `POST` | `/api/housing/:id/documents` | Link to housing |
+| Method   | Endpoint                     | Description       |
+| -------- | ---------------------------- | ----------------- |
+| `POST`   | `/api/documents`             | Upload document   |
+| `PUT`    | `/api/documents/:id`         | Update metadata   |
+| `DELETE` | `/api/documents/:id`         | Delete document   |
+| `GET`    | `/api/housing/:id/documents` | Housing documents |
+| `POST`   | `/api/housing/:id/documents` | Link to housing   |
 
 ### Unprotected Routes (Public)
 
-| Method | Endpoint | Description |
-|--------|----------|-------------|
-| `POST` | `/api/authenticate` | Sign in |
-| `POST` | `/api/authenticate/verify-2fa` | 2FA verify |
-| `POST` | `/api/users/creation` | Create account |
-| `POST` | `/api/reset-links` | Password reset |
-| `GET` | `/api/establishments` | List establishments |
-| `GET` | `/api/localities` | List localities |
+| Method | Endpoint                       | Description         |
+| ------ | ------------------------------ | ------------------- |
+| `POST` | `/api/authenticate`            | Sign in             |
+| `POST` | `/api/authenticate/verify-2fa` | 2FA verify          |
+| `POST` | `/api/users/creation`          | Create account      |
+| `POST` | `/api/reset-links`             | Password reset      |
+| `GET`  | `/api/establishments`          | List establishments |
+| `GET`  | `/api/localities`              | List localities     |
 
 ## Database Schema
 
@@ -323,21 +323,21 @@ erDiagram
 
 ### Key Tables
 
-| Table | Purpose | Key Columns |
-|-------|---------|-------------|
-| `housing` / `fast_housing` | Vacant properties | id, local_id, status, occupancy |
-| `owners` | Property owners | id, full_name, raw_address |
-| `owners_housing` | Owner-housing link | owner_id, housing_id, property_right |
-| `campaigns` | Outreach campaigns | id, status, filters |
-| `campaigns_housing` | Campaign-housing link | campaign_id, housing_id |
-| `groups` | Housing groups | id, title, establishment_id |
-| `groups_housing` | Group-housing link | group_id, housing_id |
-| `establishments` | Local authorities | id, name, siret, kind |
-| `users` | User accounts | id, email, role, password_hash |
-| `events` | Event sourcing | id, type, source, created_by |
-| `localities` | INSEE localities | geo_code, name, taxed |
-| `buildings` | Building data | id, coordinates, dpe |
-| `documents` | Uploaded files | id, filename, mime_type |
+| Table                      | Purpose               | Key Columns                          |
+| -------------------------- | --------------------- | ------------------------------------ |
+| `housing` / `fast_housing` | Vacant properties     | id, local_id, status, occupancy      |
+| `owners`                   | Property owners       | id, full_name, raw_address           |
+| `owners_housing`           | Owner-housing link    | owner_id, housing_id, property_right |
+| `campaigns`                | Outreach campaigns    | id, status, filters                  |
+| `campaigns_housing`        | Campaign-housing link | campaign_id, housing_id              |
+| `groups`                   | Housing groups        | id, title, establishment_id          |
+| `groups_housing`           | Group-housing link    | group_id, housing_id                 |
+| `establishments`           | Local authorities     | id, name, siret, kind                |
+| `users`                    | User accounts         | id, email, role, password_hash       |
+| `events`                   | Event sourcing        | id, type, source, created_by         |
+| `localities`               | INSEE localities      | geo_code, name, taxed                |
+| `buildings`                | Building data         | id, coordinates, dpe                 |
+| `documents`                | Uploaded files        | id, filename, mime_type              |
 
 ### PostgreSQL Extensions
 
@@ -382,29 +382,29 @@ sequenceDiagram
 
 ```typescript
 // Protected route middleware chain
-router.use(jwtCheck());      // Validate JWT signature
-router.use(userCheck());     // Load User + Establishment
-router.use(hasRole(['ADMIN', 'USUAL']));  // Check role
+router.use(jwtCheck()); // Validate JWT signature
+router.use(userCheck()); // Load User + Establishment
+router.use(hasRole(['ADMIN', 'USUAL'])); // Check role
 ```
 
 ### JWT Payload
 
 ```typescript
 interface TokenPayload {
-  userId: string;           // User UUID
-  establishmentId: string;  // Establishment UUID
-  iat: number;              // Issued at
-  exp: number;              // Expiration (7 days)
+  userId: string; // User UUID
+  establishmentId: string; // Establishment UUID
+  iat: number; // Issued at
+  exp: number; // Expiration (7 days)
 }
 ```
 
 ### User Roles
 
-| Role | Permissions |
-|------|-------------|
-| `ADMIN` | Full access, user management |
-| `USUAL` | Standard access, no user management |
-| `VISITOR` | Read-only access |
+| Role      | Permissions                         |
+| --------- | ----------------------------------- |
+| `ADMIN`   | Full access, user management        |
+| `USUAL`   | Standard access, no user management |
+| `VISITOR` | Read-only access                    |
 
 ## Repository Pattern
 
@@ -417,7 +417,7 @@ interface Repository<T, Filter> {
   count(filter: Filter): Promise<number>;
   create(entity: T): Promise<void>;
   update(entity: T): Promise<void>;
-  remove(id: string): Promise<void>;  // Soft delete
+  remove(id: string): Promise<void>; // Soft delete
   insert(entities: readonly T[]): Promise<void>;
 }
 ```
@@ -514,7 +514,12 @@ classDiagram
 
 ```typescript
 // middlewares/error-handler.ts
-function errorHandler(err: Error, req: Request, res: Response, next: NextFunction) {
+function errorHandler(
+  err: Error,
+  req: Request,
+  res: Response,
+  next: NextFunction
+) {
   if (err instanceof HttpError) {
     return res.status(err.status).json(err.toJSON());
   }
@@ -532,16 +537,16 @@ function errorHandler(err: Error, req: Request, res: Response, next: NextFunctio
 
 ### Common Error Classes
 
-| Error | Status | Use Case |
-|-------|--------|----------|
-| `AuthenticationMissingError` | 401 | No/invalid token |
-| `AuthenticationFailedError` | 401 | Wrong credentials |
-| `ForbiddenError` | 403 | Insufficient permissions |
-| `HousingMissingError` | 404 | Housing not found |
-| `OwnerMissingError` | 404 | Owner not found |
-| `CampaignMissingError` | 404 | Campaign not found |
-| `ValidationError` | 400 | Invalid request data |
-| `FileUploadError` | 400 | Upload failed |
+| Error                        | Status | Use Case                 |
+| ---------------------------- | ------ | ------------------------ |
+| `AuthenticationMissingError` | 401    | No/invalid token         |
+| `AuthenticationFailedError`  | 401    | Wrong credentials        |
+| `ForbiddenError`             | 403    | Insufficient permissions |
+| `HousingMissingError`        | 404    | Housing not found        |
+| `OwnerMissingError`          | 404    | Owner not found          |
+| `CampaignMissingError`       | 404    | Campaign not found       |
+| `ValidationError`            | 400    | Invalid request data     |
+| `FileUploadError`            | 400    | Upload failed            |
 
 ## Validation
 
@@ -549,12 +554,12 @@ function errorHandler(err: Error, req: Request, res: Response, next: NextFunctio
 
 ```typescript
 // Validation middleware
-import { validatorNext } from '@middlewares/validator-next';
+import { validator } from '@middlewares/validator';
 
 // In router
 router.post(
   '/housing',
-  validatorNext.body(housingCreatePayload),
+  validator.body(housingCreatePayload),
   housingController.create
 );
 
@@ -562,7 +567,7 @@ router.post(
 export const housingCreatePayload = yup.object({
   localId: yup.string().required(),
   rawAddress: yup.array().of(yup.string()).required(),
-  inseeCode: yup.string().length(5).required(),
+  inseeCode: yup.string().length(5).required()
   // ...
 });
 ```
@@ -607,18 +612,18 @@ const config = convict({
   },
   database: {
     url: { format: String, env: 'DATABASE_URL', sensitive: true }
-  },
+  }
   // ...
 });
 ```
 
 ### Key Environment Variables
 
-| Variable | Required | Description |
-|----------|----------|-------------|
-| `DATABASE_URL` | Yes | PostgreSQL connection |
-| `AUTH_SECRET` | Yes | JWT signing secret |
-| `REDIS_URL` | Yes | Redis connection |
-| `S3_BUCKET` | Yes | S3 bucket name |
-| `BREVO_API_KEY` | Yes | Email service key |
-| `SENTRY_DSN` | No | Error tracking |
+| Variable        | Required | Description           |
+| --------------- | -------- | --------------------- |
+| `DATABASE_URL`  | Yes      | PostgreSQL connection |
+| `AUTH_SECRET`   | Yes      | JWT signing secret    |
+| `REDIS_URL`     | Yes      | Redis connection      |
+| `S3_BUCKET`     | Yes      | S3 bucket name        |
+| `BREVO_API_KEY` | Yes      | Email service key     |
+| `SENTRY_DSN`    | No       | Error tracking        |

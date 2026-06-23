@@ -1,11 +1,12 @@
-import { useMemo } from 'react';
-import { Container } from '../../_dsfr';
-import { createModal } from '@codegouvfr/react-dsfr/Modal';
-import Button from '@codegouvfr/react-dsfr/Button';
-import AppLinkAsButton from '../../_app/AppLinkAsButton/AppLinkAsButton';
-import type { ReactElement, ReactNode } from 'react';
 import type { ButtonProps } from '@codegouvfr/react-dsfr/Button';
+import Button from '@codegouvfr/react-dsfr/Button';
+import { createModal } from '@codegouvfr/react-dsfr/Modal';
+import Box from '@mui/material/Box';
+import type { ReactElement, ReactNode } from 'react';
+import { useMemo } from 'react';
+
 import type { AppLinkAsButtonProps } from '../../_app/AppLinkAsButton/AppLinkAsButton';
+import AppLinkAsButton from '../../_app/AppLinkAsButton/AppLinkAsButton';
 
 interface Props {
   modalId: string;
@@ -78,9 +79,7 @@ function ConfirmationModal({
         ]}
         style={{ textAlign: 'initial' }}
       >
-        <Container as="section" fluid>
-          {children}
-        </Container>
+        <Box component="section">{children}</Box>
       </modal.Component>
     </>
   );

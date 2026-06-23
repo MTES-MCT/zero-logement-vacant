@@ -1,4 +1,5 @@
 import { AddressKinds, RelativeLocation } from '@zerologementvacant/models';
+
 import { createLogger } from '~/infra/logger';
 import { AddressApi } from '~/models/AddressApi';
 import banAddressesRepository from '~/repositories/banAddressesRepository';
@@ -13,22 +14,125 @@ const logger = createLogger('ownerDistanceService');
 // Metropolitan regions: 11, 24, 27, 28, 32, 44, 52, 53, 75, 76, 84, 93, 94
 // Overseas regions: 01, 02, 03, 04, 06
 const DEPT_TO_REGION: Record<string, string> = {
-  '01': '84', '02': '32', '03': '84', '04': '93', '05': '93', '06': '93', '07': '84', '08': '44',
-  '09': '76', '10': '44', '11': '76', '12': '76', '13': '93', '14': '28', '15': '84', '16': '75',
-  '17': '75', '18': '24', '19': '75', '20': '94', '2A': '94', '2B': '94', '21': '27', '22': '53',
-  '23': '75', '24': '75', '25': '27', '26': '84', '27': '28', '28': '24', '29': '53', '30': '76',
-  '31': '76', '32': '76', '33': '75', '34': '76', '35': '53', '36': '24', '37': '24', '38': '84',
-  '39': '27', '40': '75', '41': '24', '42': '84', '43': '84', '44': '52', '45': '24', '46': '76',
-  '47': '75', '48': '76', '49': '52', '50': '28', '51': '44', '52': '44', '53': '52', '54': '44',
-  '55': '44', '56': '53', '57': '44', '58': '27', '59': '32', '60': '32', '61': '28', '62': '32',
-  '63': '84', '64': '75', '65': '76', '66': '76', '67': '44', '68': '44', '69': '84', '70': '27',
-  '71': '27', '72': '52', '73': '84', '74': '84', '75': '11', '76': '28', '77': '11', '78': '11',
-  '79': '75', '80': '32', '81': '76', '82': '76', '83': '93', '84': '93', '85': '52', '86': '75',
-  '87': '75', '88': '44', '89': '27', '90': '27', '91': '11', '92': '11', '93': '11', '94': '11',
-  '95': '11', '971': '01', '972': '02', '973': '03', '974': '04', '976': '06'
+  '01': '84',
+  '02': '32',
+  '03': '84',
+  '04': '93',
+  '05': '93',
+  '06': '93',
+  '07': '84',
+  '08': '44',
+  '09': '76',
+  '10': '44',
+  '11': '76',
+  '12': '76',
+  '13': '93',
+  '14': '28',
+  '15': '84',
+  '16': '75',
+  '17': '75',
+  '18': '24',
+  '19': '75',
+  '20': '94',
+  '2A': '94',
+  '2B': '94',
+  '21': '27',
+  '22': '53',
+  '23': '75',
+  '24': '75',
+  '25': '27',
+  '26': '84',
+  '27': '28',
+  '28': '24',
+  '29': '53',
+  '30': '76',
+  '31': '76',
+  '32': '76',
+  '33': '75',
+  '34': '76',
+  '35': '53',
+  '36': '24',
+  '37': '24',
+  '38': '84',
+  '39': '27',
+  '40': '75',
+  '41': '24',
+  '42': '84',
+  '43': '84',
+  '44': '52',
+  '45': '24',
+  '46': '76',
+  '47': '75',
+  '48': '76',
+  '49': '52',
+  '50': '28',
+  '51': '44',
+  '52': '44',
+  '53': '52',
+  '54': '44',
+  '55': '44',
+  '56': '53',
+  '57': '44',
+  '58': '27',
+  '59': '32',
+  '60': '32',
+  '61': '28',
+  '62': '32',
+  '63': '84',
+  '64': '75',
+  '65': '76',
+  '66': '76',
+  '67': '44',
+  '68': '44',
+  '69': '84',
+  '70': '27',
+  '71': '27',
+  '72': '52',
+  '73': '84',
+  '74': '84',
+  '75': '11',
+  '76': '28',
+  '77': '11',
+  '78': '11',
+  '79': '75',
+  '80': '32',
+  '81': '76',
+  '82': '76',
+  '83': '93',
+  '84': '93',
+  '85': '52',
+  '86': '75',
+  '87': '75',
+  '88': '44',
+  '89': '27',
+  '90': '27',
+  '91': '11',
+  '92': '11',
+  '93': '11',
+  '94': '11',
+  '95': '11',
+  '971': '01',
+  '972': '02',
+  '973': '03',
+  '974': '04',
+  '976': '06'
 };
 
-const METRO_REGIONS = ['11', '24', '27', '28', '32', '44', '52', '53', '75', '76', '84', '93', '94'];
+const METRO_REGIONS = [
+  '11',
+  '24',
+  '27',
+  '28',
+  '32',
+  '44',
+  '52',
+  '53',
+  '75',
+  '76',
+  '84',
+  '93',
+  '94'
+];
 const OVERSEAS_REGIONS = ['01', '02', '03', '04', '06'];
 
 /**
@@ -56,8 +160,10 @@ export function haversineDistance(
   const dLon = toRad(lon2 - lon1);
   const a =
     Math.sin(dLat / 2) * Math.sin(dLat / 2) +
-    Math.cos(toRad(lat1)) * Math.cos(toRad(lat2)) *
-    Math.sin(dLon / 2) * Math.sin(dLon / 2);
+    Math.cos(toRad(lat1)) *
+      Math.cos(toRad(lat2)) *
+      Math.sin(dLon / 2) *
+      Math.sin(dLon / 2);
   const c = 2 * Math.asin(Math.sqrt(a));
 
   return Math.round(R * c);
@@ -75,7 +181,9 @@ export function getRegionFromDept(dept: string): string | null {
  * Get region code from postal code.
  * Handles DOM-TOM (3-digit dept codes) and metropolitan France (2-digit).
  */
-export function getRegionFromPostalCode(postalCode: string | undefined): string | null {
+export function getRegionFromPostalCode(
+  postalCode: string | undefined
+): string | null {
   if (!postalCode || postalCode.length < 2) return null;
 
   // Try 3 digits first for DOM-TOM (971, 972, 973, 974, 976)
@@ -120,10 +228,18 @@ export function calculateGeographicClassification(
   }
 
   // Rule 0: Same address (same banId or very close distance)
-  if (options?.ownerBanId && options?.housingBanId && options.ownerBanId === options.housingBanId) {
+  if (
+    options?.ownerBanId &&
+    options?.housingBanId &&
+    options.ownerBanId === options.housingBanId
+  ) {
     return 'same-address';
   }
-  if (options?.absoluteDistance !== null && options?.absoluteDistance !== undefined && options.absoluteDistance < SAME_ADDRESS_THRESHOLD_METERS) {
+  if (
+    options?.absoluteDistance !== null &&
+    options?.absoluteDistance !== undefined &&
+    options.absoluteDistance < SAME_ADDRESS_THRESHOLD_METERS
+  ) {
     return 'same-address';
   }
 
@@ -226,7 +342,9 @@ export async function updateOwnerHousingDistances(
     return 0;
   }
 
-  logger.debug(`Found ${housingOwnerRecords.length} housings for owner`, { ownerId });
+  logger.debug(`Found ${housingOwnerRecords.length} housings for owner`, {
+    ownerId
+  });
 
   let updatedCount = 0;
 
@@ -272,9 +390,12 @@ export async function updateOwnerHousingDistances(
     }
   }
 
-  logger.info(`Updated distances for ${updatedCount}/${housingOwnerRecords.length} housings`, {
-    ownerId
-  });
+  logger.info(
+    `Updated distances for ${updatedCount}/${housingOwnerRecords.length} housings`,
+    {
+      ownerId
+    }
+  );
 
   return updatedCount;
 }

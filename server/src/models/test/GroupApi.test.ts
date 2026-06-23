@@ -1,4 +1,5 @@
 import { GroupDTO } from '@zerologementvacant/models';
+
 import { toGroupDTO } from '~/models/GroupApi';
 import {
   genEstablishmentApi,

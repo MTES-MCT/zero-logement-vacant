@@ -17,9 +17,7 @@ export async function up(knex: Knex): Promise<void> {
   // idx_owners_housing_update and idx_owners_housing_owner_housing are both
   // non-unique (owner_id, housing_id) indexes — exact duplicates of each other
   // and redundant with the PK (owner_id, housing_id, housing_geo_code).
-  await knex.raw(
-    'DROP INDEX CONCURRENTLY IF EXISTS idx_owners_housing_update'
-  );
+  await knex.raw('DROP INDEX CONCURRENTLY IF EXISTS idx_owners_housing_update');
   await knex.raw(
     'DROP INDEX CONCURRENTLY IF EXISTS idx_owners_housing_owner_housing'
   );

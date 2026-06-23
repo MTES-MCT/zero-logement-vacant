@@ -3,16 +3,18 @@ import { yupResolver } from '@hookform/resolvers/yup';
 import Stack from '@mui/material/Stack';
 import Typography from '@mui/material/Typography';
 import classNames from 'classnames';
+import { createPortal } from 'react-dom';
 import { FormProvider, useForm } from 'react-hook-form';
 import * as yup from 'yup';
 
 import { useNotification } from '~/hooks/useNotification';
+
 import type { Campaign } from '../../models/Campaign';
 import { useUpdateCampaignMutation } from '../../services/campaign.service';
 import AppTextInputNext from '../_app/AppTextInput/AppTextInputNext';
 import { createConfirmationModal } from '../modals/ConfirmationModal/ConfirmationModalNext';
+
 import styles from './campaign.module.scss';
-import { createPortal } from 'react-dom';
 
 type TitleAs = 'h1' | 'h2' | 'h3' | 'h4' | 'h5' | 'h6';
 

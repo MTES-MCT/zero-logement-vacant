@@ -1,14 +1,15 @@
-import { ContactsApi, TransactionalEmailsApi } from '@sendinblue/client';
-import { sibTracker as EventsApi } from '@wecre8websites/sendinblue-tracker';
 // TODO: remove custom types when it will be officially supported.
 // See https://github.com/getbrevo/brevo-node/issues/1
 import Brevo from '@getbrevo/brevo';
+import { ContactsApi, TransactionalEmailsApi } from '@sendinblue/client';
+import { sibTracker as EventsApi } from '@wecre8websites/sendinblue-tracker';
+
+import config from '~/infra/config';
+import { logger } from '~/infra/logger';
+import { getPasswordResetLink } from '~/models/ResetLinkApi';
+import { getAccountActivationLink } from '~/models/SignupLinkApi';
 
 import { MailEvent, MailService, SendOptions } from './mailService';
-import config from '~/infra/config';
-import { getAccountActivationLink } from '~/models/SignupLinkApi';
-import { getPasswordResetLink } from '~/models/ResetLinkApi';
-import { logger } from '~/infra/logger';
 
 const PASSWORD_RESET_TEMPLATE_ID = 8;
 const ACCOUNT_ACTIVATION_TEMPLATE_ID = 5;

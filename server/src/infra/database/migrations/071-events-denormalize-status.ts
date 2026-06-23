@@ -8,7 +8,7 @@ const statuses = [
   'Suivi en cours',
   'Non-vacant',
   'Bloqué',
-  'Sortie de la vacance',
+  'Sortie de la vacance'
 ];
 
 export async function up(knex: Knex): Promise<void> {
@@ -19,9 +19,9 @@ export async function up(knex: Knex): Promise<void> {
           UPDATE ${eventsTable}
           SET old = jsonb_set(old, '{status}', '"${status}"')
           WHERE old @> '{ "status": ${i} }'
-        `,
+        `
       );
-    }),
+    })
   );
 
   await Promise.all(
@@ -31,7 +31,7 @@ export async function up(knex: Knex): Promise<void> {
         SET new = jsonb_set(new, '{status}', '"${status}"', false)
         WHERE new @> '{ "status": ${i} }'::jsonb
       `);
-    }),
+    })
   );
 }
 
@@ -43,7 +43,7 @@ export async function down(knex: Knex): Promise<void> {
         SET old = jsonb_set(old, '{status}', '${i}', false)
         WHERE old @> '{ "status": "${status}" }'::jsonb
       `);
-    }),
+    })
   );
 
   await Promise.all(
@@ -53,6 +53,6 @@ export async function down(knex: Knex): Promise<void> {
         SET new = jsonb_set(new, '{status}', '${i}', false)
         WHERE new @> '{ "status": "${status}" }'::jsonb
       `);
-    }),
+    })
   );
 }

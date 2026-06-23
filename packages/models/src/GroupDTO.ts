@@ -12,8 +12,10 @@ export interface GroupDTO {
   archivedAt: string | null;
 }
 
-export interface GroupPayloadDTO
-  extends Pick<GroupDTO, 'title' | 'description'> {
+export interface GroupPayloadDTO extends Pick<
+  GroupDTO,
+  'title' | 'description'
+> {
   housing: {
     all: boolean;
     ids: string[];

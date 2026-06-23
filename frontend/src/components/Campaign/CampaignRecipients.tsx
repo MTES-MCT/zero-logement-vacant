@@ -27,14 +27,14 @@ import { type Address, isBanEligible } from '~/models/Address';
 import type { Campaign } from '~/models/Campaign';
 import type { Housing } from '~/models/Housing';
 import { useRemoveCampaignHousingsMutation } from '~/services/campaign.service';
+import { useExportCampaignMutation } from '~/services/export.service';
 import {
   useCountHousingQuery,
   useFindHousingQuery
 } from '~/services/housing.service';
 import { toSortRecord } from '~/utils/tableSortUtils';
-import AppLink from '../_app/AppLink/AppLink';
 
-import { useExportCampaignMutation } from '~/services/export.service';
+import AppLink from '../_app/AppLink/AppLink';
 
 interface CampaignRecipientsProps {
   campaign: Campaign;

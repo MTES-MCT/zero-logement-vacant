@@ -1,7 +1,8 @@
-import excel, { type Workbook } from 'exceljs';
-import { Response } from 'express';
 import { constants } from 'http2';
 import { Writable } from 'node:stream';
+
+import excel, { type Workbook } from 'exceljs';
+import { Response } from 'express';
 
 import { createLogger } from '~/infra/logger';
 
@@ -92,7 +93,8 @@ function withColumnOptions<A extends Record<string, unknown>>(
   return columns.map((col, i) => ({
     ...col,
     width: col.width ?? DEFAULT_COLUMN_WIDTH,
-    style: alternateColumnColors && i % 2 !== 0 ? { fill: GREY_FILL } : undefined
+    style:
+      alternateColumnColors && i % 2 !== 0 ? { fill: GREY_FILL } : undefined
   }));
 }
 
@@ -109,9 +111,12 @@ function withColumnOptions<A extends Record<string, unknown>>(
 function createWorksheet<A extends Record<string, unknown>>(
   workbook: Workbook,
   options: WorksheetOptions<A>
-) {
+): WritableStream<unknown> {
   const { name, alternateColumnColors } = options;
-  const columns = withColumnOptions(options.columns, alternateColumnColors ?? false);
+  const columns = withColumnOptions(
+    options.columns,
+    alternateColumnColors ?? false
+  );
 
   return new WritableStream<A>({
     start() {

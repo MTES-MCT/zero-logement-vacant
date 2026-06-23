@@ -1,26 +1,25 @@
 import { render, screen } from '@testing-library/react';
-import { http, HttpResponse } from 'msw';
-import { Provider } from 'react-redux';
-import { createMemoryRouter, RouterProvider } from 'react-router';
-
 import type { DashboardDTO } from '@zerologementvacant/models';
 import {
   genCardDataDTO,
   genDashboardDTO,
   genFlatNumberCard
 } from '@zerologementvacant/models/fixtures';
+import { http, HttpResponse } from 'msw';
+import { Provider } from 'react-redux';
+import { createMemoryRouter, RouterProvider } from 'react-router';
+
 import { mockAPI } from '~/mocks/mock-api';
 import config from '~/utils/config';
 import configureTestStore from '~/utils/storeUtils';
+
 import AnalysisViewNext from '../AnalysisViewNext';
 
 function setup(dashboardHandler: Parameters<typeof http.get>[1]) {
   mockAPI.use(
     http.get(`${config.apiEndpoint}/dashboards/:id`, dashboardHandler),
-    http.get(
-      `${config.apiEndpoint}/dashboards/:did/cards/:cid`,
-      ({ params }) =>
-        HttpResponse.json(genCardDataDTO({ id: Number(params.cid), data: 12345 }))
+    http.get(`${config.apiEndpoint}/dashboards/:did/cards/:cid`, ({ params }) =>
+      HttpResponse.json(genCardDataDTO({ id: Number(params.cid), data: 12345 }))
     )
   );
 
@@ -28,7 +27,9 @@ function setup(dashboardHandler: Parameters<typeof http.get>[1]) {
     [
       {
         path: '/analyses/parc-vacant',
-        element: <AnalysisViewNext id="13-analyses" />
+        element: (
+          <AnalysisViewNext id="13-analyses" title="Analyse du parc vacant" />
+        )
       }
     ],
     { initialEntries: ['/analyses/parc-vacant'] }

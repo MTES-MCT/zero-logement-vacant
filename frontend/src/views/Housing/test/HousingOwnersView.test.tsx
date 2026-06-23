@@ -46,7 +46,6 @@ describe('HousingOwnersView', () => {
     data.owners.push(...options.owners);
     data.housingOwners.set(options.housing.id, options.housingOwners);
 
-    
     const store = configureTestStore({
       auth: genAuthUser(
         fromUserDTO(auth),

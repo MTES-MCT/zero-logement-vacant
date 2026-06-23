@@ -1,12 +1,13 @@
-import localityRepository, {
-  formatLocalityApi,
-  Localities
-} from '../localityRepository';
 import { genEstablishmentApi, genLocalityApi } from '~/test/testFixtures';
+
 import {
   Establishments,
   formatEstablishmentApi
 } from '../establishmentRepository';
+import localityRepository, {
+  formatLocalityApi,
+  Localities
+} from '../localityRepository';
 
 describe('Locality repository', () => {
   describe('find', () => {

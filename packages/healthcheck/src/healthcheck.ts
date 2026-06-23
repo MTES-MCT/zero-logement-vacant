@@ -1,9 +1,10 @@
-import async from 'async';
-import { Request, Response } from 'express';
 import { constants } from 'node:http2';
 import process from 'node:process';
 
 import { Logger } from '@zerologementvacant/utils';
+import async from 'async';
+import { Request, Response } from 'express';
+
 import { Check } from './checks/check';
 
 interface Options {
@@ -27,16 +28,16 @@ export function healthcheck(opts?: Options) {
           await check.test();
           return {
             ...check,
-            status: 'up',
+            status: 'up'
           };
         } catch (error) {
           logger.error('Healthcheck error', error);
           return {
             ...check,
-            status: 'down',
+            status: 'down'
           };
         }
-      },
+      }
     );
 
     const code = statuses.every(({ status }) => status === 'up')
@@ -44,7 +45,7 @@ export function healthcheck(opts?: Options) {
       : constants.HTTP_STATUS_SERVICE_UNAVAILABLE;
     response.status(code).json({
       uptime: process.uptime(),
-      checks: statuses,
+      checks: statuses
     });
   };
 }

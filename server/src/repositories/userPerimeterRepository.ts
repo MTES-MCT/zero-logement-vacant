@@ -11,17 +11,14 @@ async function upsert(perimeter: UserPerimeterApi): Promise<void> {
 
   const dbo = toUserPerimeterDBO(perimeter);
 
-  await UserPerimeters()
-    .insert(dbo)
-    .onConflict('user_id')
-    .merge({
-      geo_codes: dbo.geo_codes,
-      departments: dbo.departments,
-      regions: dbo.regions,
-      epci: dbo.epci,
-      fr_entiere: dbo.fr_entiere,
-      updated_at: dbo.updated_at
-    });
+  await UserPerimeters().insert(dbo).onConflict('user_id').merge({
+    geo_codes: dbo.geo_codes,
+    departments: dbo.departments,
+    regions: dbo.regions,
+    epci: dbo.epci,
+    fr_entiere: dbo.fr_entiere,
+    updated_at: dbo.updated_at
+  });
 }
 
 async function get(userId: string): Promise<UserPerimeterApi | null> {

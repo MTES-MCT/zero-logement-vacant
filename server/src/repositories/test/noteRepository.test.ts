@@ -10,7 +10,6 @@ import {
   formatHousingRecordApi,
   Housing
 } from '~/repositories/housingRepository';
-
 import noteRepository, {
   formatHousingNoteApi,
   formatNoteApi,

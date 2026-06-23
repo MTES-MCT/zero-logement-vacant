@@ -1,6 +1,6 @@
 import { fc, test } from '@fast-check/vitest';
-
 import { NotePayloadDTO } from '@zerologementvacant/models';
+
 import { notePayload } from '../note-payload';
 
 describe('Note payload', () => {

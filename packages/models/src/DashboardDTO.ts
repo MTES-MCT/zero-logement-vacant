@@ -1,6 +1,12 @@
 // packages/models/src/DashboardDTO.ts
 
-export type CardType = 'flat-number' | 'percentage';
+export type CardType =
+  | 'flat-number'
+  | 'percentage'
+  | 'pie-chart'
+  | 'bar-chart'
+  | 'line-chart'
+  | 'table';
 
 export interface CardCommon {
   id: number;
@@ -20,7 +26,29 @@ export interface PercentageCard extends CardCommon {
   type: 'percentage';
 }
 
-export type DashboardCard = FlatNumberCard | PercentageCard;
+export interface PieChartCard extends CardCommon {
+  type: 'pie-chart';
+}
+
+export interface BarChartCard extends CardCommon {
+  type: 'bar-chart';
+}
+
+export interface LineChartCard extends CardCommon {
+  type: 'line-chart';
+}
+
+export interface TableCard extends CardCommon {
+  type: 'table';
+}
+
+export type DashboardCard =
+  | FlatNumberCard
+  | PercentageCard
+  | PieChartCard
+  | BarChartCard
+  | TableCard
+  | LineChartCard;
 
 export interface Tab {
   id: number;
@@ -36,18 +64,77 @@ interface WithoutTabs {
   cards: ReadonlyArray<DashboardCard>;
 }
 
-export type DashboardDTO = { id: number; url: string } & (WithTabs | WithoutTabs);
+export type DashboardDTO = { id: number; url: string } & (
+  | WithTabs
+  | WithoutTabs
+);
 
-export interface CardDataDTO {
+export interface ScalarCardDataDTO {
   id: number;
+  type: 'flat-number' | 'percentage';
   data: number;
 }
+
+export interface PieChartDataDTO {
+  id: number;
+  type: 'pie-chart';
+  data: number[];
+  labels: string[];
+}
+
+export interface BarChartDataDTO {
+  id: number;
+  type: 'bar-chart';
+  direction: 'horizontal' | 'vertical';
+  format: 'number' | 'percent';
+  decimals: number;
+  labels: string[];
+  data: number[];
+  /** Display name of the plotted series (the metric column). */
+  name: string;
+}
+
+export interface LineChartDataDTO {
+  id: number;
+  type: 'line-chart';
+  format: 'number' | 'percent';
+  decimals: number;
+  labels: string[];
+  data: number[];
+  /** Display name of the plotted series (the metric column). */
+  name: string;
+}
+
+export interface TableColumnMeta {
+  name: string;
+  displayName: string;
+  baseType: 'number' | 'string' | 'date' | 'boolean' | 'unknown';
+  decimals?: number;
+  suffix?: string;
+  numberStyle?: 'decimal' | 'percent' | 'currency' | 'scientific';
+}
+
+export interface TableDataDTO {
+  id: number;
+  type: 'table';
+  columns: TableColumnMeta[];
+  rows: unknown[][];
+}
+
+export type CardDataDTO =
+  | ScalarCardDataDTO
+  | PieChartDataDTO
+  | BarChartDataDTO
+  | LineChartDataDTO
+  | TableDataDTO;
 
 export const RESOURCE_VALUES = [
   '6-utilisateurs-de-zlv-sur-votre-structure',
   '7-autres-structures-de-votre-territoires-inscrites-sur-zlv',
   '13-analyses',
-  '15-analyses-activites'
+  '15-analyses-activites',
+  '38-parcs-de-logements',
+  '39-analyse-de-la-lutte-contre-la-vacance-2026'
 ] as const;
 
 export type Resource = (typeof RESOURCE_VALUES)[number];

@@ -2,6 +2,11 @@ import async from 'async';
 import { Knex } from 'knex';
 
 import {
+  CampaignDraftDBO,
+  campaignsDraftsTable
+} from '~/repositories/campaignDraftRepository';
+import { Campaigns } from '~/repositories/campaignRepository';
+import {
   DraftDBO,
   DraftRecordDBO,
   Drafts,
@@ -9,17 +14,12 @@ import {
   formatDraftApi
 } from '~/repositories/draftRepository';
 import { Establishments } from '~/repositories/establishmentRepository';
-import { Campaigns } from '~/repositories/campaignRepository';
-import { genDraftApi, genSenderApi } from '~/test/testFixtures';
-import {
-  CampaignDraftDBO,
-  campaignsDraftsTable
-} from '~/repositories/campaignDraftRepository';
 import {
   formatSenderApi,
   SenderDBO,
   sendersTable
 } from '~/repositories/senderRepository';
+import { genDraftApi, genSenderApi } from '~/test/testFixtures';
 
 export async function seed(knex: Knex): Promise<void> {
   console.time('20241028160748_drafts');
@@ -62,5 +62,5 @@ export async function seed(knex: Knex): Promise<void> {
 
   await Drafts(knex);
   console.timeEnd('20241028160748_drafts');
-  console.log('\n')
+  console.log('\n');
 }

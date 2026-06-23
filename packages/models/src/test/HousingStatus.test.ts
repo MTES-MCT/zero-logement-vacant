@@ -8,13 +8,19 @@ import {
 
 describe('HousingStatus', () => {
   describe('isHousingStatus', () => {
-    it.each(HOUSING_STATUS_VALUES)('returns true for valid status %i', (status) => {
-      expect(isHousingStatus(status)).toBe(true);
-    });
+    it.each(HOUSING_STATUS_VALUES)(
+      'returns true for valid status %i',
+      (status) => {
+        expect(isHousingStatus(status)).toBe(true);
+      }
+    );
 
-    it.each([-1, 6, 7, 100])('returns false for out-of-range number %i', (value) => {
-      expect(isHousingStatus(value)).toBe(false);
-    });
+    it.each([-1, 6, 7, 100])(
+      'returns false for out-of-range number %i',
+      (value) => {
+        expect(isHousingStatus(value)).toBe(false);
+      }
+    );
   });
 
   describe('toHousingStatusId', () => {

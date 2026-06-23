@@ -1,5 +1,6 @@
 import type { OwnerFiltersDTO } from '@zerologementvacant/models';
 import { mixed, object, string, type ObjectSchema } from 'yup';
+
 import { commaSeparatedString } from './transforms';
 
 export const UNICODE_REGEXP = /(\p{L}|\p{Nd})+/u;

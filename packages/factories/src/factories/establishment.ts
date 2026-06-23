@@ -1,15 +1,17 @@
-import { Factory } from 'fishery';
 import { faker } from '@faker-js/faker/locale/fr';
 import {
   ESTABLISHMENT_KIND_VALUES,
   ESTABLISHMENT_SOURCE_VALUES,
   type EstablishmentDTO
 } from '@zerologementvacant/models';
-import type { Adapter } from '../adapter';
+import { Factory } from 'fishery';
 
-export function createEstablishmentFactory(adapter: Adapter) {
-  return Factory.define<EstablishmentDTO>(() => {
-    const name = faker.location.city();
+import type { PersistenceAdapter } from '../persistence-adapter';
+
+export function createEstablishmentFactory(adapter: PersistenceAdapter) {
+  return Factory.define<EstablishmentDTO>(({ params }) => {
+    // Honour an overridden name so the short name defaults consistently to it.
+    const name = params.name ?? faker.location.city();
     return {
       id: faker.string.uuid(),
       name,

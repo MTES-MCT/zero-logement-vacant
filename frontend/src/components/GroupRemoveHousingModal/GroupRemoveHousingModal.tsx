@@ -1,6 +1,7 @@
-import ConfirmationModal from '../modals/ConfirmationModal/ConfirmationModal';
+import Typography from '@mui/material/Typography';
+
 import { pluralize } from '../../utils/stringUtils';
-import { Text } from '../_dsfr';
+import ConfirmationModal from '../modals/ConfirmationModal/ConfirmationModal';
 
 interface Props {
   housingCount: number;
@@ -19,16 +20,16 @@ function GroupRemoveHousingModal(props: Props) {
         children: 'Supprimer du groupe',
         iconId: 'ri-close-line',
         priority: 'secondary',
-        size: 'small',
+        size: 'small'
       }}
       size="large"
       title={title}
       onSubmit={props.onSubmit}
     >
-      <Text>
+      <Typography component="p" variant="body1">
         Êtes-vous sûr de vouloir supprimer ces logements de ce groupe ? Vous
         pourrez toujours retrouver ces logements dans votre parc de logements.
-      </Text>
+      </Typography>
     </ConfirmationModal>
   );
 }

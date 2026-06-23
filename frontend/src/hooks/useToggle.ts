@@ -10,6 +10,6 @@ export function useToggle(init?: boolean) {
   return {
     active,
     setActive,
-    toggle,
+    toggle
   };
 }

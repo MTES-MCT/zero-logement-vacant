@@ -2,12 +2,13 @@ import Box from '@mui/material/Box';
 import Grid from '@mui/material/Grid';
 import Stack from '@mui/material/Stack';
 import Typography from '@mui/material/Typography';
-
 import { Controller } from 'react-hook-form';
-import type { DraftFormSchema } from '~/components/Draft/DraftForm';
-import RichEditor from '~/components/RichEditor/RichEditor';
+
 import AppLink from '~/components/_app/AppLink/AppLink';
 import AppTextInputNext from '~/components/_app/AppTextInput/AppTextInputNext';
+import type { DraftFormSchema } from '~/components/Draft/DraftForm';
+import RichEditor from '~/components/RichEditor/RichEditor';
+
 import styles from './draft.module.scss';
 
 function DraftBody() {

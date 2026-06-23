@@ -1,8 +1,10 @@
-import Select from '~/components/ui/Select/Select';
-import CampaignStatusBadge from '../Campaign/CampaignStatusBadge';
 import type { CampaignStatus } from '@zerologementvacant/models';
-import type { Campaign } from '../../models/Campaign';
+
+import Select from '~/components/ui/Select/Select';
 import type { SelectProps } from '~/components/ui/Select/Select';
+
+import type { Campaign } from '../../models/Campaign';
+import CampaignStatusBadge from '../Campaign/CampaignStatusBadge';
 
 type CampaignSelectProps<Multiple extends boolean> = Pick<
   SelectProps<Campaign | null, Multiple>,

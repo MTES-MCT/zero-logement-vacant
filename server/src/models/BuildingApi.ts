@@ -17,6 +17,14 @@ export interface BuildingApi extends BuildingDTO {
   heating: string | null;
 }
 
+export function fromBuildingDTO(building: BuildingDTO): BuildingApi {
+  return {
+    ...building,
+    ges: null,
+    heating: null
+  };
+}
+
 export function toBuildingDTO(building: BuildingApi): BuildingDTO {
   return {
     id: building.id,

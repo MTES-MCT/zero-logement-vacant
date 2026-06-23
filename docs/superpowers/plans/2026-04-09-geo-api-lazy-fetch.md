@@ -12,21 +12,22 @@
 
 ## File Map
 
-| Action | File |
-|--------|------|
-| **Modify** | `server/src/services/administrative-division/geo-api.ts` |
+| Action     | File                                                          |
+| ---------- | ------------------------------------------------------------- |
+| **Modify** | `server/src/services/administrative-division/geo-api.ts`      |
 | **Create** | `server/src/services/administrative-division/geo-api.test.ts` |
-| **Modify** | `server/src/services/ceremaService/perimeterService.ts` |
-| **Modify** | `server/src/models/UserPerimeterApi.ts` |
-| **Modify** | `server/src/middlewares/auth.ts` |
-| **Modify** | `server/src/controllers/auth-controller.ts` |
-| **Modify** | `server/src/controllers/userController.ts` |
+| **Modify** | `server/src/services/ceremaService/perimeterService.ts`       |
+| **Modify** | `server/src/models/UserPerimeterApi.ts`                       |
+| **Modify** | `server/src/middlewares/auth.ts`                              |
+| **Modify** | `server/src/controllers/auth-controller.ts`                   |
+| **Modify** | `server/src/controllers/userController.ts`                    |
 
 ---
 
 ## Task 1: Add `p-memoize`, singleton, and `getDepartmentFromCommune` to `geo-api.ts`
 
 **Files:**
+
 - Modify: `server/src/services/administrative-division/geo-api.ts`
 - Create: `server/src/services/administrative-division/geo-api.test.ts`
 
@@ -150,11 +151,13 @@ Expected: FAIL — `getDepartmentFromCommune` is not exported, memoization not i
 Read the current file, then apply these changes:
 
 **3a. Add `p-memoize` import at the top:**
+
 ```typescript
 import pMemoize from 'p-memoize';
 ```
 
 **3b. Add `getDepartmentFromCommune` export before the `GeoAPI` class:**
+
 ```typescript
 /**
  * Extract department code from a commune INSEE code.
@@ -194,6 +197,7 @@ async getDepartment(code: string): Promise<Department | null> {
 ```
 
 **3c. Replace `createGeoAPI()` to wrap each method with `pMemoize`:**
+
 ```typescript
 export function createGeoAPI(): AdministrativeDivisionService {
   const api = new GeoAPI();
@@ -207,6 +211,7 @@ export function createGeoAPI(): AdministrativeDivisionService {
 ```
 
 **3d. Add module-level singleton export after `createGeoAPI`:**
+
 ```typescript
 /**
  * Singleton GeoAPI instance with per-argument memoization.
@@ -234,6 +239,7 @@ cd /Users/inad/dev/zero-logement-vacant.feat-portaildf-rights-v2 && git add serv
 ## Task 2: Update `perimeterService.ts`
 
 **Files:**
+
 - Modify: `server/src/services/ceremaService/perimeterService.ts`
 
 - [ ] **Step 1: Edit the file**
@@ -241,6 +247,7 @@ cd /Users/inad/dev/zero-logement-vacant.feat-portaildf-rights-v2 && git add serv
 Read `server/src/services/ceremaService/perimeterService.ts`, then apply:
 
 **2a. Replace the existing imports block at the top** — add the new imports:
+
 ```typescript
 import { CeremaPerimeter, CeremaGroup, CeremaUser } from './consultUserService';
 import { logger } from '~/infra/logger';
@@ -251,10 +258,12 @@ import {
 ```
 
 **2b. Delete these three items entirely** (they are replaced by the imports above):
+
 - The `getDepartmentFromCommune` function (lines 25–42)
 - The `getRegionFromDepartment` function (lines 48–93) including the full `departmentToRegion` object
 
 **2c. Replace `isCommuneInPerimeter` with the async version:**
+
 ```typescript
 async function isCommuneInPerimeter(
   communeCode: string,
@@ -289,15 +298,19 @@ async function isCommuneInPerimeter(
 **2d. Make `verifyAccessRights` async** — change its signature and update the `.some()` call:
 
 Change:
+
 ```typescript
 export function verifyAccessRights(
 ```
+
 to:
+
 ```typescript
 export async function verifyAccessRights(
 ```
 
 Replace the synchronous `.some()` call:
+
 ```typescript
 // Before:
 const hasValidPerimeter = establishmentGeoCodes.some((geoCode) =>
@@ -333,6 +346,7 @@ cd /Users/inad/dev/zero-logement-vacant.feat-portaildf-rights-v2 && git add serv
 ## Task 3: Update `UserPerimeterApi.ts`
 
 **Files:**
+
 - Modify: `server/src/models/UserPerimeterApi.ts`
 
 - [ ] **Step 1: Edit the file**
@@ -340,6 +354,7 @@ cd /Users/inad/dev/zero-logement-vacant.feat-portaildf-rights-v2 && git add serv
 Read `server/src/models/UserPerimeterApi.ts`, then apply:
 
 **3a. Add import at the very top of the file:**
+
 ```typescript
 import {
   getDepartmentFromCommune,
@@ -348,10 +363,12 @@ import {
 ```
 
 **3b. Delete these two items entirely:**
+
 - The `getDepartmentFromCommune` function (lines 50–67)
 - The `getRegionFromDepartment` function (lines 72–115) including the full `departmentToRegion` object
 
 **3c. Replace `isCommuneInUserPerimeter` with the async version:**
+
 ```typescript
 async function isCommuneInUserPerimeter(
   communeCode: string,
@@ -386,6 +403,7 @@ async function isCommuneInUserPerimeter(
 **3d. Make `filterGeoCodesByPerimeter` async** — update signature and final filter:
 
 Change:
+
 ```typescript
 export function filterGeoCodesByPerimeter(
   establishmentGeoCodes: string[],
@@ -393,7 +411,9 @@ export function filterGeoCodesByPerimeter(
   establishmentSiren?: string | number
 ): string[] | undefined {
 ```
+
 to:
+
 ```typescript
 export async function filterGeoCodesByPerimeter(
   establishmentGeoCodes: string[],
@@ -403,6 +423,7 @@ export async function filterGeoCodesByPerimeter(
 ```
 
 Replace the final `.filter()`:
+
 ```typescript
 // Before:
 return establishmentGeoCodes.filter((geoCode) =>
@@ -437,6 +458,7 @@ cd /Users/inad/dev/zero-logement-vacant.feat-portaildf-rights-v2 && git add serv
 ## Task 4: Update call sites
 
 **Files:**
+
 - Modify: `server/src/middlewares/auth.ts`
 - Modify: `server/src/controllers/auth-controller.ts`
 - Modify: `server/src/controllers/userController.ts`
@@ -463,11 +485,7 @@ request.effectiveGeoCodes = await filterGeoCodesByPerimeter(
 
 ```typescript
 // Before:
-const accessRights = verifyAccessRights(
-  ceremaUser,
-  est.geoCodes,
-  est.siren
-);
+const accessRights = verifyAccessRights(ceremaUser, est.geoCodes, est.siren);
 
 // After:
 const accessRights = await verifyAccessRights(

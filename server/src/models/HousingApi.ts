@@ -106,7 +106,9 @@ export function fromDatafoncierHousing(
   const street = housing.dvoilib.trim();
   const geoCode = housing.idcom;
   const commune = housing.idcomtxt.trim();
-  const jannath: number | null = !!housing.jannath ? Number(housing.jannath) : null;
+  const jannath: number | null = !!housing.jannath
+    ? Number(housing.jannath)
+    : null;
 
   const [longitude, latitude] = housing.geomloc
     ? housing.geomloc.coordinates

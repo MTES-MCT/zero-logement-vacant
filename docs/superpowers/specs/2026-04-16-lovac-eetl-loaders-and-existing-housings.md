@@ -31,12 +31,12 @@ This spec generalizes that pattern to all three import pipelines and EETL-ifies 
 
 ## Naming convention
 
-| Aspect | Convention | Example |
-|---|---|---|
-| File (lives in `source-*/` dir) | `source-{entity}-{role}.ts` | `source-owner-loader.ts` |
-| File (lives in `housings/` dir) | `housing-{role}.ts` | `housing-loader.ts` |
-| Function | `create{Entity}{Role}` (target entity, not source) | `createOwnerLoader`, `createHousingLoader`, `createHousingOwnerLoader` |
-| Function (disambiguator) | when two pipelines target the same entity, prefix with the CLI subcommand qualifier | `createExistingHousingTransform`, `createExistingHousingLoader`, `createExistingHousingCommand` |
+| Aspect                          | Convention                                                                          | Example                                                                                         |
+| ------------------------------- | ----------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------- |
+| File (lives in `source-*/` dir) | `source-{entity}-{role}.ts`                                                         | `source-owner-loader.ts`                                                                        |
+| File (lives in `housings/` dir) | `housing-{role}.ts`                                                                 | `housing-loader.ts`                                                                             |
+| Function                        | `create{Entity}{Role}` (target entity, not source)                                  | `createOwnerLoader`, `createHousingLoader`, `createHousingOwnerLoader`                          |
+| Function (disambiguator)        | when two pipelines target the same entity, prefix with the CLI subcommand qualifier | `createExistingHousingTransform`, `createExistingHousingLoader`, `createExistingHousingCommand` |
 
 Rationale: function names reflect what the unit **produces** (target table). `createSourceOwnerLoader` would be misleading — the loader writes to `owners`, not to a source table. When both `source-housings/` and `housings/` (verification) target the `housings` table, the verification pipeline gets the `Existing` qualifier (matching its CLI subcommand `existing-housings`) to avoid the collision.
 
@@ -119,12 +119,12 @@ Input: `HousingChange | HousingEventChange | AddressChange` (existing types from
 
 Internal buffers (4):
 
-| Buffer | Source change | Sink behavior | Flush at |
-|---|---|---|---|
-| `inserts` | `{ type: 'housing', kind: 'create' }` | `Housing().insert(batch)` | 1_000 |
-| `updates` | `{ type: 'housing', kind: 'update' }` | `db.transaction → updateHousings(batch, { temporaryTable: 'source_housing_updates_tmp' })` (createUpdater pattern, like the current Phase 2 inline) | 1_000 |
-| `events` | `{ type: 'event', kind: 'create' }` | `eventRepository.insertManyHousingEvents(batch)` | 1_000 |
-| `addresses` | `{ type: 'address', kind: 'create' }` | `Addresses().insert(batch.map(formatAddressApi)).onConflict(['ref_id', 'address_kind']).ignore()` | 1_000 |
+| Buffer      | Source change                         | Sink behavior                                                                                                                                       | Flush at |
+| ----------- | ------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------- | -------- |
+| `inserts`   | `{ type: 'housing', kind: 'create' }` | `Housing().insert(batch)`                                                                                                                           | 1_000    |
+| `updates`   | `{ type: 'housing', kind: 'update' }` | `db.transaction → updateHousings(batch, { temporaryTable: 'source_housing_updates_tmp' })` (createUpdater pattern, like the current Phase 2 inline) | 1_000    |
+| `events`    | `{ type: 'event', kind: 'create' }`   | `eventRepository.insertManyHousingEvents(batch)`                                                                                                    | 1_000    |
+| `addresses` | `{ type: 'address', kind: 'create' }` | `Addresses().insert(batch.map(formatAddressApi)).onConflict(['ref_id', 'address_kind']).ignore()`                                                   | 1_000    |
 
 Helpers `insertHousings`, `updateHousings`, `stripReadOnlyFields` move from `source-housing-command.ts` into `source-housing-loader.ts` as private internal helpers (not re-exported).
 
@@ -158,10 +158,10 @@ Input: `HousingOwnersChange | HousingEventChange` (existing types from `source-h
 
 Internal buffers (2):
 
-| Buffer | Source change | Sink behavior | Flush at |
-|---|---|---|---|
+| Buffer          | Source change                                | Sink behavior                                                                                                                                                                              | Flush at                                                      |
+| --------------- | -------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ | ------------------------------------------------------------- |
 | `housingOwners` | `{ type: 'housingOwners', kind: 'replace' }` | per-group transactional `delete by (housing_geo_code, housing_id) → insert(group)` (mirrors current inline write at `source-housing-owner-command.ts:1962-1976` from the implemented plan) | per-write (no batching — each replace is its own transaction) |
-| `events` | `{ type: 'event', kind: 'create' }` | `eventRepository.insertManyHousingEvents(batch)` | 1_000 |
+| `events`        | `{ type: 'event', kind: 'create' }`          | `eventRepository.insertManyHousingEvents(batch)`                                                                                                                                           | 1_000                                                         |
 
 Note: housing-owner replace is naturally per-group (not buffered) because the delete-key is the group's housing identifier. The events buffer batches across groups.
 
@@ -196,7 +196,10 @@ program
   .description(
     'Verify existing housings against the imported LOVAC year. Resets occupancy/status for housings missing from the file. Run after `housings`.'
   )
-  .argument('<file>', 'Reserved (currently unused — verification reads from the database)')
+  .argument(
+    '<file>',
+    'Reserved (currently unused — verification reads from the database)'
+  )
   .addOption(abortEarly)
   .addOption(departments)
   .addOption(dryRun)
@@ -215,7 +218,7 @@ Pure synchronous function. Signature:
 
 ```typescript
 type HousingUpdateChange = Change<HousingApi, 'housing'> & { kind: 'update' };
-type HousingEventChange  = Change<HousingEventApi, 'event'> & { kind: 'create' };
+type HousingEventChange = Change<HousingEventApi, 'event'> & { kind: 'create' };
 type ExistingHousingChange = HousingUpdateChange | HousingEventChange;
 
 function createExistingHousingTransform(opts: {
@@ -249,10 +252,10 @@ Input: `ExistingHousingChange`.
 
 Internal buffers (2):
 
-| Buffer | Source change | Sink behavior | Flush at |
-|---|---|---|---|
-| `updates` | `{ type: 'housing', kind: 'update' }` | values pass through `formatHousingRecordApi` then `createUpdater` (stage to `existing_housing_updates_tmp`, bulk `updateHousings`, drop temp) | 1_000 |
-| `events` | `{ type: 'event', kind: 'create' }` | `eventRepository.insertManyHousingEvents(batch)` | 1_000 |
+| Buffer    | Source change                         | Sink behavior                                                                                                                                 | Flush at |
+| --------- | ------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------- | -------- |
+| `updates` | `{ type: 'housing', kind: 'update' }` | values pass through `formatHousingRecordApi` then `createUpdater` (stage to `existing_housing_updates_tmp`, bulk `updateHousings`, drop temp) | 1_000    |
+| `events`  | `{ type: 'event', kind: 'create' }`   | `eventRepository.insertManyHousingEvents(batch)`                                                                                              | 1_000    |
 
 The `updateHousings` body and column allowlist are duplicated from `source-housing-loader.ts` — copy, don't share. The `formatHousingRecordApi` step is needed because the transform emits `HousingApi` values (matching the `housingRepository.stream` input type).
 
@@ -270,16 +273,25 @@ async (options: ExecOptions): Promise<void> => {
 
     const total = await count(housingRepository.stream({ filters: {} }));
 
-    await housingRepository.stream({ filters: {} })
-      .pipeThrough(progress({ initial: 0, total, name: 'Verifying existing housings' }))
-      .pipeThrough(map(createExistingHousingTransform({
-        auth,
-        year: options.year,
-        reporter,
-        abortEarly: options.abortEarly
-      })))
+    await housingRepository
+      .stream({ filters: {} })
+      .pipeThrough(
+        progress({ initial: 0, total, name: 'Verifying existing housings' })
+      )
+      .pipeThrough(
+        map(
+          createExistingHousingTransform({
+            auth,
+            year: options.year,
+            reporter,
+            abortEarly: options.abortEarly
+          })
+        )
+      )
       .pipeThrough(flatten())
-      .pipeTo(createExistingHousingLoader({ dryRun: options.dryRun, reporter }));
+      .pipeTo(
+        createExistingHousingLoader({ dryRun: options.dryRun, reporter })
+      );
 
     // Update building counts (same SQL as source-housing-command Phase 3 cleanup)
     await db.raw(`WITH building_counts AS (...) UPDATE buildings ...`);
@@ -293,6 +305,7 @@ async (options: ExecOptions): Promise<void> => {
 ```
 
 The `writeReport` helper writes to:
+
 - **file mode:** `./import-lovac-{year}-existing-housings.report.json`
 - **S3 mode:** `existing-housings/{year}.report.json` (fixed key — no input file to derive from)
 
@@ -304,14 +317,14 @@ The trigger toggling and `building_counts` SQL move out of `source-housing-comma
 
 ### TDD per file
 
-| File | Test type | Coverage |
-|---|---|---|
-| `source-owner-loader.ts` | integration | `OwnerChange` produces correct `Owners().insert` / `onConflict-merge`; `dryRun` skips writes; `reporter.created/updated` called with batch size |
-| `source-housing-loader.ts` | integration | each of 4 change kinds routes correctly; chunking + close-flush; `dryRun`; temporary-table-based update path works (knex-aware) |
-| `source-housing-owner-loader.ts` | integration | per-group transactional delete+insert; events batched separately; `dryRun` |
-| `housings/housing-transform.ts` | unit (no DB) | port the existing `housing-processor.test.ts` cases verbatim, parameterized by `year`; verifies skip cases (year-included, non-vacant, in-progress, completed) and the reset emission (housing update + 2 events) |
-| `housings/housing-loader.ts` | integration | update + event changes route correctly; `dryRun` |
-| `housings/housing-command.ts` | integration | end-to-end against seeded DB: housing missing from year is reset; housing in year is unchanged; in-progress and completed housings are preserved |
+| File                             | Test type    | Coverage                                                                                                                                                                                                          |
+| -------------------------------- | ------------ | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `source-owner-loader.ts`         | integration  | `OwnerChange` produces correct `Owners().insert` / `onConflict-merge`; `dryRun` skips writes; `reporter.created/updated` called with batch size                                                                   |
+| `source-housing-loader.ts`       | integration  | each of 4 change kinds routes correctly; chunking + close-flush; `dryRun`; temporary-table-based update path works (knex-aware)                                                                                   |
+| `source-housing-owner-loader.ts` | integration  | per-group transactional delete+insert; events batched separately; `dryRun`                                                                                                                                        |
+| `housings/housing-transform.ts`  | unit (no DB) | port the existing `housing-processor.test.ts` cases verbatim, parameterized by `year`; verifies skip cases (year-included, non-vacant, in-progress, completed) and the reset emission (housing update + 2 events) |
+| `housings/housing-loader.ts`     | integration  | update + event changes route correctly; `dryRun`                                                                                                                                                                  |
+| `housings/housing-command.ts`    | integration  | end-to-end against seeded DB: housing missing from year is reset; housing in year is unchanged; in-progress and completed housings are preserved                                                                  |
 
 ### Existing tests to update
 

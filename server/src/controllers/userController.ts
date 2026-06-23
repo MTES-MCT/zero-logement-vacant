@@ -1,3 +1,5 @@
+import { constants } from 'http2';
+
 import {
   isAdmin,
   UserRole,
@@ -8,8 +10,6 @@ import {
 import bcrypt from 'bcryptjs';
 import { type RequestHandler } from 'express';
 import { type AuthenticatedRequest } from 'express-jwt';
-import { body, param, ValidationChain } from 'express-validator';
-import { constants } from 'http2';
 import { v4 as uuidv4 } from 'uuid';
 
 import EstablishmentMissingError from '~/errors/establishmentMissingError';
@@ -24,8 +24,8 @@ import { isValid } from '~/models/ProspectApi';
 import { SALT_LENGTH, toUserDTO, UserApi } from '~/models/UserApi';
 import establishmentRepository from '~/repositories/establishmentRepository';
 import prospectRepository from '~/repositories/prospectRepository';
-import userRepository from '~/repositories/userRepository';
 import userEstablishmentRepository from '~/repositories/user-establishment-repository';
+import userRepository from '~/repositories/userRepository';
 import ceremaService from '~/services/ceremaService';
 import { isTestAccount } from '~/services/ceremaService/consultUserService';
 import {
@@ -65,24 +65,6 @@ const list: RequestHandler<
   response.status(constants.HTTP_STATUS_OK).json(users.map(toUserDTO));
 };
 
-const createUserValidators = [
-  body('email').isEmail().withMessage('Must be an email'),
-  body('password')
-    .isStrongPassword({
-      minLength: 12,
-      minNumbers: 1,
-      minUppercase: 1,
-      minSymbols: 0,
-      minLowercase: 1
-    })
-    .withMessage(
-      'Must be at least 12 characters long, have 1 number, 1 uppercase, 1 lowercase'
-    ),
-  body('establishmentId').isUUID(),
-  body('firstName').isString().optional(),
-  body('lastName').isString().optional()
-];
-
 interface CreateUserBody {
   email: string;
   password: string;
@@ -91,8 +73,11 @@ interface CreateUserBody {
   lastName?: string;
 }
 
-const create: RequestHandler<never, UserDTO, CreateUserBody, never> = async (request, response): Promise<void> => {
-  const { body } = request
+const create: RequestHandler<never, UserDTO, CreateUserBody, never> = async (
+  request,
+  response
+): Promise<void> => {
+  const { body } = request;
 
   if (isTestAccount(body.email)) {
     throw new TestAccountError(body.email);
@@ -120,7 +105,9 @@ const create: RequestHandler<never, UserDTO, CreateUserBody, never> = async (req
   // Find the user entry matching this establishment
   // Note: '*' is a wildcard SIREN used in mock service for tests
   const matchingCeremaUser = ceremaUsers.find(
-    (user) => user.establishmentSiren === userEstablishment.siren || user.establishmentSiren === '*'
+    (user) =>
+      user.establishmentSiren === userEstablishment.siren ||
+      user.establishmentSiren === '*'
   );
 
   if (!matchingCeremaUser) {
@@ -135,11 +122,14 @@ const create: RequestHandler<never, UserDTO, CreateUserBody, never> = async (req
 
   // Check structure LOVAC commitment (acces_lovac date in future)
   if (!matchingCeremaUser.hasCommitment) {
-    logger.warn('User does not have valid LOVAC commitment at account creation', {
-      email: body.email,
-      establishmentId: body.establishmentId,
-      establishmentSiren: userEstablishment.siren
-    });
+    logger.warn(
+      'User does not have valid LOVAC commitment at account creation',
+      {
+        email: body.email,
+        establishmentId: body.establishmentId,
+        establishmentSiren: userEstablishment.siren
+      }
+    );
     throw new ProspectInvalidError(prospect);
   }
 
@@ -203,23 +193,27 @@ const create: RequestHandler<never, UserDTO, CreateUserBody, never> = async (req
 
   // Populate users_establishments with all establishments the user has access to
   // Filter Cerema users that have LOVAC commitment and find matching establishments
-  const ceremaUsersWithCommitment = ceremaUsers.filter((cu) => cu.hasCommitment);
+  const ceremaUsersWithCommitment = ceremaUsers.filter(
+    (cu) => cu.hasCommitment
+  );
   // Filter out the wildcard SIREN '*' used in mock tests (not a valid SIREN for DB queries)
   const establishmentSirens = ceremaUsersWithCommitment
     .map((cu) => cu.establishmentSiren)
     .filter((siren) => siren !== '*');
 
   // Find all known establishments matching the SIRENs
-  const knownEstablishments = establishmentSirens.length > 0
-    ? await establishmentRepository.find({
-        filters: { siren: establishmentSirens }
-      })
-    : [];
+  const knownEstablishments =
+    establishmentSirens.length > 0
+      ? await establishmentRepository.find({
+          filters: { siren: establishmentSirens }
+        })
+      : [];
 
   // Create authorized establishments entries
   const authorizedEstablishments = knownEstablishments.map((est) => {
     const ceremaUser = ceremaUsersWithCommitment.find(
-      (cu) => cu.establishmentSiren === est.siren || cu.establishmentSiren === '*'
+      (cu) =>
+        cu.establishmentSiren === est.siren || cu.establishmentSiren === '*'
     );
     return {
       establishmentId: est.id,
@@ -235,7 +229,8 @@ const create: RequestHandler<never, UserDTO, CreateUserBody, never> = async (req
       authorizedEstablishments
     );
 
-    const isMultiStructure = authorizedEstablishments.filter((e) => e.hasCommitment).length > 1;
+    const isMultiStructure =
+      authorizedEstablishments.filter((e) => e.hasCommitment).length > 1;
     if (isMultiStructure) {
       logger.info('User created as multi-structure user', {
         userId: createdUser.id,
@@ -278,10 +273,12 @@ const get: RequestHandler<PathParams, UserDTO, never, never> = async (
   response.status(constants.HTTP_STATUS_OK).json(toUserDTO(user));
 };
 
-const update: RequestHandler<PathParams, UserDTO, UserUpdatePayload, never> = async (
-  request,
-  response
-): Promise<void> => {
+const update: RequestHandler<
+  PathParams,
+  UserDTO,
+  UserUpdatePayload,
+  never
+> = async (request, response): Promise<void> => {
   const {
     user: authUser,
     body,
@@ -350,16 +347,12 @@ const remove: RequestHandler<PathParams, void, never, never> = async (
   response.status(constants.HTTP_STATUS_NO_CONTENT).send();
 };
 
-const userIdValidator: ValidationChain[] = [param('userId').isUUID()];
-
 const userController = {
   list,
-  createUserValidators,
   create,
   get,
   update,
-  remove,
-  userIdValidator
+  remove
 };
 
 export default userController;

@@ -6,6 +6,7 @@ import createDatafoncierHousingRepository, {
   DatafoncierHouses
 } from '~/repositories/datafoncierHousingRepository';
 import { genBuildingApi, genDatafoncierHousing } from '~/test/testFixtures';
+
 import { Buildings, formatBuildingApi } from '../buildingRepository';
 
 describe('DatafoncierHousingRepository', () => {
@@ -22,8 +23,12 @@ describe('DatafoncierHousingRepository', () => {
         ban_geom: db.raw('ST_GeomFromGeoJson(?)', [
           JSON.stringify(datafoncierHousing.ban_geom)
         ]),
-        geomloc: db.raw('ST_GeomFromGeoJson(?)', [JSON.stringify(datafoncierHousing.geomloc)]),
-        geomrnb: db.raw('ST_GeomFromGeoJson(?)', [JSON.stringify(datafoncierHousing.geomrnb)])
+        geomloc: db.raw('ST_GeomFromGeoJson(?)', [
+          JSON.stringify(datafoncierHousing.geomloc)
+        ]),
+        geomrnb: db.raw('ST_GeomFromGeoJson(?)', [
+          JSON.stringify(datafoncierHousing.geomrnb)
+        ])
       });
 
       const actual = await repository.findOne({

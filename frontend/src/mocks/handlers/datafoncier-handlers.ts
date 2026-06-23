@@ -1,7 +1,8 @@
-import { http, HttpResponse, RequestHandler } from 'msw';
 import { constants } from 'node:http2';
 
 import type { DatafoncierHousing } from '@zerologementvacant/models';
+import { http, HttpResponse, RequestHandler } from 'msw';
+
 import config from '../../utils/config';
 import data from './data';
 

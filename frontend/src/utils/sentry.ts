@@ -31,7 +31,7 @@ function init(): void {
           useLocation,
           useNavigationType,
           createRoutesFromChildren,
-          matchRoutes,
+          matchRoutes
         }),
         // Web Vitals for Frontend Insights
         Sentry.reportingObserverIntegration(),
@@ -40,8 +40,8 @@ function init(): void {
         // Replay for debugging
         Sentry.replayIntegration({
           maskAllText: false,
-          blockAllMedia: false,
-        }),
+          blockAllMedia: false
+        })
       ],
       sampleRate: config.sentry.sampleRate,
       tracesSampleRate: config.sentry.tracesSampleRate,
@@ -51,7 +51,7 @@ function init(): void {
       replaysSessionSampleRate: 0.1,
       replaysOnErrorSampleRate: 1.0,
       tracePropagationTargets: ['localhost', config.apiEndpoint, /^\//],
-      
+
       // Enhanced error handling
       beforeSend(event) {
         // Add custom tags for better organization
@@ -59,7 +59,7 @@ function init(): void {
           ...event.tags,
           component: 'frontend',
           framework: 'react',
-          bundler: 'vite',
+          bundler: 'vite'
         };
 
         // Add user context if available
@@ -67,7 +67,7 @@ function init(): void {
         if (userInfo) {
           event.user = {
             ...event.user,
-            ...userInfo,
+            ...userInfo
           };
         }
 
@@ -84,12 +84,11 @@ function init(): void {
         event.tags = {
           ...event.tags,
           component: 'frontend',
-          framework: 'react',
+          framework: 'react'
         };
         return event;
       },
 
-      
       // Auto-capture console errors
       beforeBreadcrumb(breadcrumb) {
         if (breadcrumb.category === 'console' && breadcrumb.level === 'error') {
@@ -129,7 +128,7 @@ function getUserInfo() {
       return {
         id: parsed.id,
         email: parsed.email,
-        role: parsed.role,
+        role: parsed.role
       };
     }
   } catch (error) {
@@ -141,57 +140,60 @@ function getUserInfo() {
 // Web Vitals integration for Frontend Insights
 function initWebVitals() {
   // Import web-vitals dynamically to avoid bundle bloat
-  import('web-vitals').then(({ onCLS, onINP, onFCP, onLCP, onTTFB }) => {
-    onCLS((metric: any) => {
-      Sentry.addBreadcrumb({
-        message: `CLS: ${metric.value}`,
-        category: 'web-vital',
-        level: 'info',
-        data: metric,
+  import('web-vitals')
+    .then(({ onCLS, onINP, onFCP, onLCP, onTTFB }) => {
+      onCLS((metric: any) => {
+        Sentry.addBreadcrumb({
+          message: `CLS: ${metric.value}`,
+          category: 'web-vital',
+          level: 'info',
+          data: metric
+        });
       });
-    });
 
-    onINP((metric: any) => {
-      Sentry.addBreadcrumb({
-        message: `INP: ${metric.value}ms`,
-        category: 'web-vital', 
-        level: 'info',
-        data: metric,
+      onINP((metric: any) => {
+        Sentry.addBreadcrumb({
+          message: `INP: ${metric.value}ms`,
+          category: 'web-vital',
+          level: 'info',
+          data: metric
+        });
       });
-    });
 
-    onFCP((metric: any) => {
-      Sentry.addBreadcrumb({
-        message: `FCP: ${metric.value}ms`,
-        category: 'web-vital',
-        level: 'info',
-        data: metric,
+      onFCP((metric: any) => {
+        Sentry.addBreadcrumb({
+          message: `FCP: ${metric.value}ms`,
+          category: 'web-vital',
+          level: 'info',
+          data: metric
+        });
       });
-    });
 
-    onLCP((metric: any) => {
-      Sentry.addBreadcrumb({
-        message: `LCP: ${metric.value}ms`,
-        category: 'web-vital',
-        level: 'info',
-        data: metric,
+      onLCP((metric: any) => {
+        Sentry.addBreadcrumb({
+          message: `LCP: ${metric.value}ms`,
+          category: 'web-vital',
+          level: 'info',
+          data: metric
+        });
       });
-    });
 
-    onTTFB((metric: any) => {
-      Sentry.addBreadcrumb({
-        message: `TTFB: ${metric.value}ms`,
-        category: 'web-vital',
-        level: 'info',
-        data: metric,
+      onTTFB((metric: any) => {
+        Sentry.addBreadcrumb({
+          message: `TTFB: ${metric.value}ms`,
+          category: 'web-vital',
+          level: 'info',
+          data: metric
+        });
       });
+    })
+    .catch((error) => {
+      console.warn('Failed to load web-vitals:', error);
     });
-  }).catch((error) => {
-    console.warn('Failed to load web-vitals:', error);
-  });
 }
 
-const createSentryRouter: typeof createBrowserRouter = Sentry.wrapCreateBrowserRouterV7(createBrowserRouter);
+const createSentryRouter: typeof createBrowserRouter =
+  Sentry.wrapCreateBrowserRouterV7(createBrowserRouter);
 
 // Export Sentry ErrorBoundary and utilities
 const ErrorBoundary = Sentry.ErrorBoundary;

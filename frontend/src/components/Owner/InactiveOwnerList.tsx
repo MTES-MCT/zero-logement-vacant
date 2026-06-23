@@ -1,8 +1,9 @@
+import Accordion from '@codegouvfr/react-dsfr/Accordion';
 import { isInactiveOwnerRank } from '@zerologementvacant/models';
 
-import { useFindOwnersByHousingQuery } from '../../services/owner.service';
 import OwnerList from '~/components/Owner/OwnerList';
-import Accordion from '@codegouvfr/react-dsfr/Accordion';
+
+import { useFindOwnersByHousingQuery } from '../../services/owner.service';
 
 export interface InactiveOwnerListProps {
   housingId: string;

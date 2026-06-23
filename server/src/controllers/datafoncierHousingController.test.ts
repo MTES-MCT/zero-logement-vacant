@@ -1,12 +1,13 @@
+import { constants } from 'http2';
+
 import { faker } from '@faker-js/faker';
 import {
   genDatafoncierHousing,
   genIdprocpte
 } from '@zerologementvacant/models/fixtures';
-import { constants } from 'http2';
 import request from 'supertest';
-import db from '~/infra/database';
 
+import db from '~/infra/database';
 import { createServer } from '~/infra/server';
 import {
   Buildings,
@@ -41,8 +42,7 @@ describe('Datafoncier housing controller', () => {
   });
 
   describe('findOne', () => {
-    const testRoute = (localId: string) =>
-      `/datafoncier/housing/${localId}`;
+    const testRoute = (localId: string) => `/datafoncier/housing/${localId}`;
 
     it('should return the housing if it exists', async () => {
       const idprocpte = genIdprocpte(
@@ -53,9 +53,15 @@ describe('Datafoncier housing controller', () => {
       await Buildings().insert(formatBuildingApi(building));
       await DatafoncierHouses().insert({
         ...housing,
-        ban_geom: db.raw('ST_GeomFromGeoJSON(?)', [JSON.stringify(housing.ban_geom)]),
-        geomloc: db.raw('ST_GeomFromGeoJSON(?)', [JSON.stringify(housing.geomloc)]),
-        geomrnb: db.raw('ST_GeomFromGeoJSON(?)', [JSON.stringify(housing.geomrnb)])
+        ban_geom: db.raw('ST_GeomFromGeoJSON(?)', [
+          JSON.stringify(housing.ban_geom)
+        ]),
+        geomloc: db.raw('ST_GeomFromGeoJSON(?)', [
+          JSON.stringify(housing.geomloc)
+        ]),
+        geomrnb: db.raw('ST_GeomFromGeoJSON(?)', [
+          JSON.stringify(housing.geomrnb)
+        ])
       });
 
       const { body, status } = await request(url)
@@ -73,9 +79,15 @@ describe('Datafoncier housing controller', () => {
       await Buildings().insert(formatBuildingApi(building));
       await DatafoncierHouses().insert({
         ...housing,
-        ban_geom: db.raw('ST_GeomFromGeoJSON(?)', [JSON.stringify(housing.ban_geom)]),
-        geomloc: db.raw('ST_GeomFromGeoJSON(?)', [JSON.stringify(housing.geomloc)]),
-        geomrnb: db.raw('ST_GeomFromGeoJSON(?)', [JSON.stringify(housing.geomrnb)])
+        ban_geom: db.raw('ST_GeomFromGeoJSON(?)', [
+          JSON.stringify(housing.ban_geom)
+        ]),
+        geomloc: db.raw('ST_GeomFromGeoJSON(?)', [
+          JSON.stringify(housing.geomloc)
+        ]),
+        geomrnb: db.raw('ST_GeomFromGeoJSON(?)', [
+          JSON.stringify(housing.geomrnb)
+        ])
       });
 
       const { status } = await request(url)

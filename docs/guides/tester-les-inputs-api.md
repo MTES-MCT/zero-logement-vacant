@@ -13,5 +13,5 @@ import { fc, test } from '@fast-check/jest';
 test.prop({
   title: fc.string(),
   description: fc.string()
-})('should detect')
+})('should detect');
 ```

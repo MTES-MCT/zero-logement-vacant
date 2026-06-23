@@ -4,48 +4,52 @@ variable "branch" {
   default     = "main"
 }
 
-variable "clevercloud_org" {
-  description = "Clever Cloud Organisation ID"
-  type        = string
-}
-
-variable "clevercloud_api_token" {
-  description = "Clever Cloud API Token"
-  type        = string
-}
-
-variable "clevercloud_api_secret" {
-  description = "Clever Cloud API Secret"
-  type        = string
+variable "clevercloud" {
+  description = "Clever Cloud credentials"
+  type = object({
+    org        = string
+    api_token  = string
+    api_secret = string
+  })
 }
 
 variable "mailer" {
   description = "Mailer configuration"
   type = object({
-    api_key       = string
-    event_api_key = string
-    host          = string
-    password      = string
-    port          = string
-    provider      = string
-    user          = string
+    host     = optional(string, "maildev.zerologementvacant.beta.gouv.fr")
+    port     = optional(number, 5037)
+    provider = optional(string, "nodemailer")
+    username = string
+    password = string
+  })
+  sensitive = true
+}
+
+variable "metabase" {
+  description = "Metabase configuration"
+  type = object({
+    api_token = string
+    token     = string
+  })
+  sensitive = true
+}
+
+variable "posthog" {
+  description = "PostHog configuration"
+  type = object({
+    api_key = string
+    enabled = bool
   })
   sensitive = true
   default = {
-    api_key       = ""
-    event_api_key = ""
-    host          = "maildev.zerologementvacant.beta.gouv.fr"
-    password      = ""
-    port          = "5037"
-    provider      = "nodemailer"
-    user          = ""
+    api_key = null
+    enabled = false
   }
 }
 
 variable "project_name" {
-  description = "Nom du projet"
+  description = "Project name"
   type        = string
-  default     = "terraform"
 }
 
 variable "region" {

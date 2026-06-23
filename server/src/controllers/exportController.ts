@@ -1,10 +1,12 @@
+import { constants } from 'node:http2';
+import { Writable } from 'node:stream';
+
 import { hasPrimaryOwner, type CampaignDTO } from '@zerologementvacant/models';
 import { generateCampaignPDFInWorker } from '@zerologementvacant/pdf/node';
 import { createS3 } from '@zerologementvacant/utils/node';
 import type { RequestHandler } from 'express';
 import type { AuthenticatedRequest } from 'express-jwt';
-import { constants } from 'node:http2';
-import { Writable } from 'node:stream';
+import { match } from 'ts-pattern';
 
 import CampaignMissingError from '~/errors/campaignMissingError';
 import DraftMissingError from '~/errors/draftMissingError';
@@ -16,8 +18,8 @@ import { toHousingDTO } from '~/models/HousingApi';
 import campaignRepository from '~/repositories/campaignRepository';
 import draftRepository from '~/repositories/draftRepository';
 import housingRepository from '~/repositories/housingRepository';
+
 import housingExportController from './housingExportController';
-import { match } from 'ts-pattern';
 
 const logger = createLogger('exportController');
 const s3 = createS3(config.s3);
@@ -37,7 +39,7 @@ const exportCampaignDrafts: RequestHandler<
   logger.info('Exporting campaign drafts', {
     campaign: params.id,
     establishment: auth.establishmentId
-  })
+  });
 
   const campaign = await campaignRepository.findOne({
     id: params.id,

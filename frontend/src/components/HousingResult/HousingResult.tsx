@@ -5,6 +5,7 @@ import Typography from '@mui/material/Typography';
 import type { Occupancy } from '@zerologementvacant/models';
 
 import OccupancyBadge from '../Housing/OccupancyBadge';
+
 import styles from './housing-result.module.scss';
 
 interface Props {
@@ -25,8 +26,12 @@ function HousingResult(props: Props) {
     <Typography component="span">- Appartement {props.apartment}</Typography>
   ) : null;
   const occupancy = (
-    <Stack component="p" direction="row" sx={{ alignItems: 'center', margin: 0 }}>
-      <Typography component="span">{"Statut d’occupation"}&nbsp;</Typography>
+    <Stack
+      component="p"
+      direction="row"
+      sx={{ alignItems: 'center', margin: 0 }}
+    >
+      <Typography component="span">{'Statut d’occupation'}&nbsp;</Typography>
       <OccupancyBadge occupancy={props.occupancy} tagProps={{ as: 'span' }} />
     </Stack>
   );
@@ -38,7 +43,11 @@ function HousingResult(props: Props) {
       </Typography>
       {display === 'two-lines' && (
         <Stack direction="column" spacing="0.5rem">
-          <Stack component="p" direction="row" sx={{ alignItems: 'center', margin: 0 }}>
+          <Stack
+            component="p"
+            direction="row"
+            sx={{ alignItems: 'center', margin: 0 }}
+          >
             <Typography component="span">
               Identifiant du local :&nbsp;
             </Typography>

@@ -1,5 +1,9 @@
 import { faker } from '@faker-js/faker/locale/fr';
-import { ActiveOwnerRank, Occupancy } from '@zerologementvacant/models';
+import {
+  ActiveOwnerRank,
+  CampaignDTO,
+  Occupancy
+} from '@zerologementvacant/models';
 
 import {
   CampaignEventApi,
@@ -15,10 +19,7 @@ import {
 import { HousingApi } from '~/models/HousingApi';
 import { HousingOwnerApi } from '~/models/HousingOwnerApi';
 import type { PrecisionApi } from '~/models/PrecisionApi';
-import {
-  Campaigns,
-  formatCampaignApi
-} from '~/repositories/campaignRepository';
+import { Documents, toDocumentDBO } from '~/repositories/documentRepository';
 import {
   Establishments,
   formatEstablishmentApi
@@ -60,9 +61,8 @@ import {
   Precisions
 } from '~/repositories/precisionRepository';
 import { toUserDBO, Users } from '~/repositories/userRepository';
-import { Documents, toDocumentDBO } from '~/repositories/documentRepository';
+import { factories } from '~/test/factories';
 import {
-  genCampaignApi,
   genDocumentApi,
   genEstablishmentApi,
   genEventApi,
@@ -202,9 +202,15 @@ describe('Event repository', () => {
       genPrecisionApi(faker.number.int({ min: 10000, max: 99999 }))
     );
     // Add campaign housing events fixtures
-    const campaigns = faker.helpers.multiple(() =>
-      genCampaignApi(establishment.id, creator)
-    );
+    let campaigns: ReadonlyArray<CampaignDTO>;
+    let campaignHousingEvents: ReadonlyArray<CampaignHousingEventApi>;
+    let events: ReadonlyArray<
+      | HousingEventApi
+      | GroupHousingEventApi
+      | PrecisionHousingEventApi
+      | HousingOwnerEventApi
+      | CampaignHousingEventApi
+    >;
 
     const housingEvents: ReadonlyArray<HousingEventApi> =
       housings.map<HousingEventApi>((housing) => {
@@ -271,10 +277,13 @@ describe('Event repository', () => {
         housingId: housingOwner.housingId,
         ownerId: housingOwner.ownerId
       }));
-    const campaignHousingEvents: ReadonlyArray<CampaignHousingEventApi> =
-      campaigns
+    beforeAll(async () => {
+      campaigns = await factories
+        .campaign(establishment)
+        .createList(3, {}, { associations: { createdBy: creator } });
+      campaignHousingEvents = campaigns
         .map((campaign) => {
-          return housings.map((housing) => ({
+          return housings.map<CampaignHousingEventApi>((housing) => ({
             ...genEventApi({
               creator,
               type: 'housing:campaign-attached',
@@ -289,16 +298,14 @@ describe('Event repository', () => {
           }));
         })
         .flat();
+      events = [
+        ...housingEvents,
+        ...groupHousingEvents,
+        ...precisionHousingEvents,
+        ...housingOwnerEvents,
+        ...campaignHousingEvents
+      ];
 
-    const events = [
-      ...housingEvents,
-      ...groupHousingEvents,
-      ...precisionHousingEvents,
-      ...housingOwnerEvents,
-      ...campaignHousingEvents
-    ];
-
-    beforeAll(async () => {
       await Housing().insert(housings.map(formatHousingRecordApi));
       await Events().insert(events.map(formatEventApi));
       await HousingEvents().insert(housingEvents.map(formatHousingEventApi));
@@ -315,7 +322,6 @@ describe('Event repository', () => {
       await HousingOwnerEvents().insert(
         housingOwnerEvents.map(formatHousingOwnerEventApi)
       );
-      await Campaigns().insert(campaigns.map(formatCampaignApi));
       await CampaignHousingEvents().insert(
         campaignHousingEvents.map(formatCampaignHousingEventApi)
       );
@@ -677,23 +683,26 @@ describe('Event repository', () => {
     const establishment = genEstablishmentApi();
     const user = genUserApi(establishment.id);
 
-    const campaign = genCampaignApi(establishment.id, user);
-    const events: ReadonlyArray<CampaignEventApi> = [
-      {
-        ...genEventApi({
-          creator: user,
-          type: 'campaign:updated',
-          nextOld: { title: 'Old Title' },
-          nextNew: { title: 'New Title' }
-        }),
-        campaignId: campaign.id
-      }
-    ];
+    let campaign: CampaignDTO;
+    let events: ReadonlyArray<CampaignEventApi>;
 
     beforeAll(async () => {
       await Establishments().insert(formatEstablishmentApi(establishment));
       await Users().insert(toUserDBO(user));
-      await Campaigns().insert(formatCampaignApi(campaign));
+      campaign = await factories
+        .campaign(establishment)
+        .create({}, { associations: { createdBy: user } });
+      events = [
+        {
+          ...genEventApi({
+            creator: user,
+            type: 'campaign:updated',
+            nextOld: { title: 'Old Title' },
+            nextNew: { title: 'New Title' }
+          }),
+          campaignId: campaign.id
+        }
+      ];
       await Events().insert(events.map(formatEventApi));
       await CampaignEvents().insert(events.map(formatCampaignEventApi));
 

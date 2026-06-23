@@ -1,0 +1,156 @@
+import { constants } from 'http2';
+
+import { subDays } from 'date-fns';
+import request from 'supertest';
+import { vi, type MockedFunction } from 'vitest';
+
+import { createServer } from '~/infra/server';
+import { ResetLinkApi } from '~/models/ResetLinkApi';
+import {
+  Establishments,
+  formatEstablishmentApi
+} from '~/repositories/establishmentRepository';
+import resetLinkRepository, {
+  formatResetLinkApi,
+  ResetLinks
+} from '~/repositories/resetLinkRepository';
+import { toUserDBO, Users } from '~/repositories/userRepository';
+import mailService from '~/services/mailService';
+import {
+  genEstablishmentApi,
+  genResetLinkApi,
+  genUserApi
+} from '~/test/testFixtures';
+
+describe('Reset link API', () => {
+  let url: string;
+
+  beforeAll(async () => {
+    url = await createServer().testing();
+  });
+
+  const establishment = genEstablishmentApi();
+  const user = genUserApi(establishment.id);
+
+  beforeAll(async () => {
+    await Establishments().insert(formatEstablishmentApi(establishment));
+    await Users().insert(toUserDBO(user));
+  });
+
+  describe('POST /reset-links', () => {
+    const testRoute = '/reset-links';
+
+    let createLink: MockedFunction<typeof resetLinkRepository.insert>;
+    let sendEmail: MockedFunction<typeof mailService.sendPasswordReset>;
+
+    beforeEach(() => {
+      createLink = vi.spyOn(resetLinkRepository, 'insert');
+      sendEmail = vi.spyOn(mailService, 'sendPasswordReset');
+    });
+
+    afterEach(() => {
+      createLink.mockClear();
+      sendEmail.mockClear();
+    });
+
+    it('should return 400 when body.email is missing', async () => {
+      const { status, body } = await request(url)
+        .post(testRoute)
+        .send({})
+        .set('Content-Type', 'application/json');
+
+      expect(status).toBe(constants.HTTP_STATUS_BAD_REQUEST);
+      expect(body).toMatchObject({ name: 'ValidationError' });
+    });
+
+    it('should return 400 when body.email is not a valid email', async () => {
+      const { status, body } = await request(url)
+        .post(testRoute)
+        .send({ email: 'not-an-email' })
+        .set('Content-Type', 'application/json');
+
+      expect(status).toBe(constants.HTTP_STATUS_BAD_REQUEST);
+      expect(body).toMatchObject({ name: 'ValidationError' });
+      expect(body.message).toMatch(/email/i);
+    });
+
+    it('should create a reset link', async () => {
+      const email = user.email;
+
+      const { status } = await request(url).post(testRoute).send({
+        email
+      });
+
+      expect(status).toBe(constants.HTTP_STATUS_OK);
+
+      const link = await ResetLinks()
+        .select()
+        .where('user_id', user.id)
+        .first();
+      expect(link).toBeDefined();
+    });
+
+    it('should return OK if the user is missing without sending an email', async () => {
+      const email = 'test@test.test';
+
+      const { status } = await request(url).post(testRoute).send({ email });
+
+      expect(status).toBe(constants.HTTP_STATUS_OK);
+      expect(createLink).not.toHaveBeenCalled();
+      expect(sendEmail).not.toHaveBeenCalled();
+    });
+  });
+
+  describe('GET /reset-links/{id}', () => {
+    const testRoute = (id: string) => `/reset-links/${id}`;
+
+    it('should return 400 when id contains non-alphanumeric characters', async () => {
+      const { status, body } = await request(url)
+        .get(testRoute('abc!def'))
+        .set('Content-Type', 'application/json');
+
+      expect(status).toBe(constants.HTTP_STATUS_BAD_REQUEST);
+      expect(body).toMatchObject({ name: 'ValidationError' });
+      expect(body.message).toMatch(/id/i);
+    });
+
+    it('should be missing', async () => {
+      const { status } = await request(url).get(testRoute('unknown'));
+
+      expect(status).toBe(constants.HTTP_STATUS_NOT_FOUND);
+    });
+
+    it('should be gone if expired', async () => {
+      const link: ResetLinkApi = {
+        ...genResetLinkApi(user.id),
+        expiresAt: subDays(new Date(), 1)
+      };
+      await ResetLinks().insert(formatResetLinkApi(link));
+
+      const { status } = await request(url).get(testRoute(link.id));
+
+      expect(status).toBe(constants.HTTP_STATUS_GONE);
+    });
+
+    it('should be gone if already used', async () => {
+      const link: ResetLinkApi = {
+        ...genResetLinkApi(user.id),
+        usedAt: new Date()
+      };
+      await ResetLinks().insert(formatResetLinkApi(link));
+
+      const { status } = await request(url).get(testRoute(link.id));
+
+      expect(status).toBe(constants.HTTP_STATUS_GONE);
+    });
+
+    it('should return a valid reset link', async () => {
+      const link = genResetLinkApi(user.id);
+      await ResetLinks().insert(formatResetLinkApi(link));
+
+      const { status } = await request(url).get(testRoute(link.id));
+
+      expect(status).toBe(constants.HTTP_STATUS_OK);
+    });
+  });
+});

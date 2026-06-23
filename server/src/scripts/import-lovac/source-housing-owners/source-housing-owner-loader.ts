@@ -1,6 +1,7 @@
+import { WritableStream } from 'node:stream/web';
+
 import { isActiveOwnerRank } from '@zerologementvacant/models';
 import { match } from 'ts-pattern';
-import { WritableStream } from 'node:stream/web';
 
 import { withinTransaction } from '~/infra/database/transaction';
 import { createLogger } from '~/infra/logger';
@@ -11,6 +12,7 @@ import {
   HousingOwners
 } from '~/repositories/housingOwnerRepository';
 import { Reporter } from '~/scripts/import-lovac/infra/reporters/reporter';
+
 import { SourceHousingOwner } from './source-housing-owner';
 import { HousingOwnerChange } from './source-housing-owner-transform';
 
@@ -68,7 +70,9 @@ export function createHousingOwnerLoader(
         await HousingOwners(transaction).insert(allRows);
       }
     });
-    const activeCount = allRows.filter((row) => isActiveOwnerRank(row.rank)).length;
+    const activeCount = allRows.filter((row) =>
+      isActiveOwnerRank(row.rank)
+    ).length;
     options.reporter.created(activeCount);
     options.reporter.updated(allRows.length - activeCount);
   }

@@ -1,6 +1,10 @@
-import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { Request, Response, NextFunction } from 'express';
-import { shapefileValidationMiddleware, ShapefileValidationError } from './shapefileValidation';
+import { describe, it, expect, vi, beforeEach } from 'vitest';
+
+import {
+  shapefileValidationMiddleware,
+  ShapefileValidationError
+} from './shapefileValidation';
 
 // Partial type for multer file in tests
 type MockMulterFile = {
@@ -16,8 +20,8 @@ vi.mock('~/infra/logger', () => ({
     info: vi.fn(),
     debug: vi.fn(),
     warn: vi.fn(),
-    error: vi.fn(),
-  },
+    error: vi.fn()
+  }
 }));
 
 // Mock AdmZip
@@ -73,7 +77,10 @@ vi.mock('shapefile', () => {
   return {
     default: {
       open: vi.fn().mockImplementation(async () => {
-        const featureCount = parseInt(process.env.TEST_FEATURE_COUNT || '5', 10);
+        const featureCount = parseInt(
+          process.env.TEST_FEATURE_COUNT || '5',
+          10
+        );
         let readCount = 0;
         return {
           read: vi.fn().mockImplementation(async () => {
@@ -83,12 +90,12 @@ vi.mock('shapefile', () => {
             }
             return {
               done: false,
-              value: { type: 'Feature', properties: {}, geometry: {} },
+              value: { type: 'Feature', properties: {}, geometry: {} }
             };
-          }),
+          })
         };
-      }),
-    },
+      })
+    }
   };
 });
 
@@ -99,7 +106,7 @@ describe('shapefileValidationMiddleware', () => {
 
   beforeEach(() => {
     mockRequest = {
-      file: undefined,
+      file: undefined
     };
     mockResponse = {};
     mockNext = vi.fn();
@@ -124,7 +131,7 @@ describe('shapefileValidationMiddleware', () => {
       originalname: 'test.zip',
       buffer: Buffer.from('VALID_SHAPEFILE'),
       mimetype: 'application/zip',
-      size: 1024,
+      size: 1024
     } as MockMulterFile;
 
     process.env.TEST_FEATURE_COUNT = '5';
@@ -145,7 +152,7 @@ describe('shapefileValidationMiddleware', () => {
       originalname: 'test.zip',
       buffer: Buffer.from('NO_SHP'),
       mimetype: 'application/zip',
-      size: 1024,
+      size: 1024
     } as MockMulterFile;
 
     await shapefileValidationMiddleware(
@@ -162,7 +169,7 @@ describe('shapefileValidationMiddleware', () => {
       originalname: 'test.zip',
       buffer: Buffer.from('NO_DBF'),
       mimetype: 'application/zip',
-      size: 1024,
+      size: 1024
     } as MockMulterFile;
 
     await shapefileValidationMiddleware(

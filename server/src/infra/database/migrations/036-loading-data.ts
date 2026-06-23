@@ -1,5 +1,6 @@
-import path from 'path';
 import fs from 'fs';
+import path from 'path';
+
 import type { Knex } from 'knex';
 
 export async function up(knex: Knex): Promise<void> {

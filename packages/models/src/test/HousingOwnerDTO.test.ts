@@ -17,9 +17,12 @@ describe('HousingOwnerDTO', () => {
       expect(isActiveOwnerRank(rank)).toBe(true);
     });
 
-    it.each(INACTIVE_OWNER_RANKS)('returns false for inactive rank %i', (rank) => {
-      expect(isActiveOwnerRank(rank)).toBe(false);
-    });
+    it.each(INACTIVE_OWNER_RANKS)(
+      'returns false for inactive rank %i',
+      (rank) => {
+        expect(isActiveOwnerRank(rank)).toBe(false);
+      }
+    );
   });
 
   describe('isPreviousOwnerRank', () => {
@@ -77,9 +80,12 @@ describe('HousingOwnerDTO', () => {
       expect(isPrimaryOwner({ rank: 1 })).toBe(true);
     });
 
-    it.each([-3, -2, -1, 0, 2, 3, 6])('returns false when rank is %i', (rank) => {
-      expect(isPrimaryOwner({ rank: rank as any })).toBe(false);
-    });
+    it.each([-3, -2, -1, 0, 2, 3, 6])(
+      'returns false when rank is %i',
+      (rank) => {
+        expect(isPrimaryOwner({ rank: rank as any })).toBe(false);
+      }
+    );
   });
 
   describe('isSecondaryOwner', () => {

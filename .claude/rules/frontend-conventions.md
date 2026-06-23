@@ -37,6 +37,9 @@ paths: ["frontend/**"]
 
 ## Testing
 - MSW handlers in `src/mocks/handlers/`. Fixtures extend `gen*DTO()`.
+- The MSW server instance is `mockAPI` from `~/mocks/mock-api` (created via `setupServer(...handlers)`). **Never** import a `server` variable — it does not exist.
+- Global handlers live in `src/mocks/handlers/<feature>-handlers.ts` and are registered for every test automatically. Override per-test with `mockAPI.use(handler)` — MSW's `afterEach` reset restores the global handlers after each test.
+- **Never use `vi.mock` to mock React components** for the purpose of intercepting network data. Use `mockAPI.use()` for that. `vi.mock` is reserved for non-network dependencies that genuinely cannot run in jsdom (e.g. `Map`, `RichEditor`).
 - The MSW server is started automatically by Vitest setup — never call `server.listen()` / `server.close()` manually in test files.
 - Always use `userEvent.setup()` for user interactions — never call `fireEvent` directly.
   ```typescript

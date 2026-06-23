@@ -1,15 +1,26 @@
+import { constants } from 'node:http2';
+
+import type {
+  CardDataDTO,
+  DashboardDTO,
+  Resource
+} from '@zerologementvacant/models';
+import { RESOURCE_VALUES } from '@zerologementvacant/models';
 import { Request, Response } from 'express';
 import { AuthenticatedRequest } from 'express-jwt';
-import { constants } from 'node:http2';
 import jwt from 'jsonwebtoken';
 
-import type { CardDataDTO, DashboardDTO, Resource } from '@zerologementvacant/models';
-import { RESOURCE_VALUES } from '@zerologementvacant/models';
 import DashcardMissingError from '~/errors/dashcardMissingError';
 import UnprocessableEntityError from '~/errors/unprocessableEntityError';
 import config from '~/infra/config';
 import { createURL, getResource } from '~/models/DashboardApi';
 import { metabaseAPI } from '~/services/metabase/metabase-api';
+import type {
+  BarChartValue,
+  LineChartValue,
+  PieChartValue,
+  TableValue
+} from '~/services/metabase/metabase-service';
 
 async function findOne(
   request: Request<{ id: Resource }>,
@@ -67,11 +78,76 @@ async function findOneCard(
     dashcard.dashcardId,
     dashcard.cardId,
     queryParameters,
-    dashcard.valueColumn
+    dashcard.valueColumn,
+    dashcard.labelColumn,
+    dashcard.type,
+    dashcard.direction,
+    dashcard.format,
+    dashcard.decimals,
+    dashcard.tableColumns
   );
-  const data = dashcard.type === 'percentage' ? raw / 100 : raw;
 
-  response.status(constants.HTTP_STATUS_OK).json({ id: numericCid, data });
+  if (dashcard.type === 'bar-chart') {
+    const barRaw = raw as BarChartValue;
+    response.status(constants.HTTP_STATUS_OK).json({
+      id: numericCid,
+      type: 'bar-chart',
+      direction: barRaw.direction,
+      format: barRaw.format,
+      decimals: barRaw.decimals,
+      labels: barRaw.labels,
+      data: barRaw.data,
+      name: dashcard.seriesName ?? barRaw.name
+    });
+    return;
+  }
+
+  if (dashcard.type === 'line-chart') {
+    const lineRaw = raw as LineChartValue;
+    response.status(constants.HTTP_STATUS_OK).json({
+      id: numericCid,
+      type: 'line-chart',
+      format: lineRaw.format,
+      decimals: lineRaw.decimals,
+      labels: lineRaw.labels,
+      data: lineRaw.data,
+      name: dashcard.seriesName ?? lineRaw.name
+    });
+    return;
+  }
+
+  if (dashcard.type === 'pie-chart') {
+    const pieRaw = raw as PieChartValue;
+    const labelMap = dashcard.labelMap;
+    response.status(constants.HTTP_STATUS_OK).json({
+      id: numericCid,
+      type: 'pie-chart',
+      labels: labelMap
+        ? pieRaw.labels.map((label) => labelMap[label] ?? label)
+        : pieRaw.labels,
+      data: pieRaw.data
+    });
+    return;
+  }
+
+  if (dashcard.type === 'table') {
+    const tableRaw = raw as TableValue;
+    response.status(constants.HTTP_STATUS_OK).json({
+      id: numericCid,
+      type: 'table',
+      columns: tableRaw.columns,
+      rows: tableRaw.rows
+    });
+    return;
+  }
+
+  const scalar = raw as number;
+  const data = dashcard.type === 'percentage' ? scalar / 100 : scalar;
+  response.status(constants.HTTP_STATUS_OK).json({
+    id: numericCid,
+    type: dashcard.type as 'flat-number' | 'percentage',
+    data
+  });
 }
 
 function sign(payload: object): Promise<string> {

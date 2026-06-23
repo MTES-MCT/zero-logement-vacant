@@ -1,5 +1,5 @@
-import EventCard from '../EventCard';
 import type { Event } from '../../../models/Event';
+import EventCard from '../EventCard';
 
 interface Props {
   event: Event<'housing:group-archived'>;

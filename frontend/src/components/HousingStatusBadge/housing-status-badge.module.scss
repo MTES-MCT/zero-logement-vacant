@@ -6,18 +6,13 @@
   vertical-align: middle;
 }
 
-
 .statusBadgeContainer {
-
   & + .statusBadgeContainer {
     margin-top: 0.5rem;
   }
-
 }
 
-
 .statusBadgeContainerInline {
-
   display: inline-block;
   vertical-align: middle;
 

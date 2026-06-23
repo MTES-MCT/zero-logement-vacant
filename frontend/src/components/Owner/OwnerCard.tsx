@@ -14,9 +14,9 @@ import {
   type PropertyRight,
   type RelativeLocation
 } from '@zerologementvacant/models';
-
 import { useId, type ReactNode } from 'react';
 import { match, Pattern } from 'ts-pattern';
+
 import AppLink from '~/components/_app/AppLink/AppLink';
 import HousingOwnersEmpty from '~/components/HousingOwnersEmpty/HousingOwnersEmpty';
 import LabelNext from '~/components/Label/LabelNext';
@@ -24,6 +24,7 @@ import OwnerKindTag from '~/components/Owner/OwnerKindTag';
 import { isBanEligible, type Address } from '~/models/Address';
 import { age, birthdate } from '~/utils/dateUtils';
 import { mailto } from '~/utils/stringUtils';
+
 import PropertyRightTag from './PropertyRightTag';
 import RelativeLocationTag from './RelativeLocationTag';
 
@@ -293,7 +294,7 @@ function OwnerAttribute(props: OwnerPropertyProps) {
         {props.label}
       </LabelNext>
       <Typography component="p" aria-labelledby={label}>
-        {props.value ?? "Pas d’information"}
+        {props.value ?? 'Pas d’information'}
       </Typography>
     </Stack>
   );

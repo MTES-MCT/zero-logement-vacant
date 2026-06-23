@@ -1,4 +1,3 @@
-import { Knex } from 'knex';
 import { Readable } from 'node:stream';
 import { ReadableStream } from 'node:stream/web';
 
@@ -7,9 +6,12 @@ import {
   EstablishmentKind,
   EstablishmentSource
 } from '@zerologementvacant/models';
+import { Knex } from 'knex';
+
 import db, { likeUnaccent, notDeleted } from '~/infra/database';
 import { createLogger } from '~/infra/logger';
 import { EstablishmentApi } from '~/models/EstablishmentApi';
+
 import { fromUserDBO, UserDBO, USERS_TABLE } from './userRepository';
 
 export const establishmentsTable = 'establishments';

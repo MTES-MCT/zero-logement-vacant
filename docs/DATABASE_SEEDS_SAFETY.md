@@ -7,6 +7,7 @@ To prevent accidental data loss in production, several protection mechanisms are
 ### 1. Environment separation
 
 Seeds are organized in environment-specific folders:
+
 - `seeds/development/` - Development seeds (complete test data)
 - `seeds/test/` - Seeds for automated tests
 - `seeds/production/` - Production seeds (reference data only)
@@ -20,6 +21,7 @@ The environment is determined by the `DATABASE_ENV` or `NODE_ENV` variable.
 #### Allowed seeds in production
 
 Only the following seeds can run in production:
+
 - `20240405010603_establishments.ts` - Reference establishments
 - `20240405011035_buildings.ts` - Reference buildings
 - `20240405011127_users.ts` - System users
@@ -29,6 +31,7 @@ Only the following seeds can run in production:
 #### Behavior
 
 **Without the `--specific` flag:**
+
 ```bash
 # In production, this command will do NOTHING
 yarn workspace @zerologementvacant/server seed
@@ -36,6 +39,7 @@ yarn workspace @zerologementvacant/server seed
 ```
 
 **With an allowed seed:**
+
 ```bash
 # OK - allowed seed
 yarn workspace @zerologementvacant/server seed --specific 20240405011127_users.ts
@@ -43,6 +47,7 @@ yarn workspace @zerologementvacant/server seed --specific 20240405011127_users.t
 ```
 
 **With a non-allowed seed:**
+
 ```bash
 # BLOCKED - unauthorized seed
 yarn workspace @zerologementvacant/server seed --specific 20240404235459_housings.ts
@@ -52,6 +57,7 @@ yarn workspace @zerologementvacant/server seed --specific 20240404235459_housing
 ### 3. Minimal production seeds
 
 Production seeds **NEVER** contain transactional data:
+
 - ❌ No housings
 - ❌ No owners
 - ❌ No ban_addresses
@@ -67,11 +73,13 @@ The `server/src/test/global-setup.ts` file automatically TRUNCATEs all tables be
 ### Adding a new seed in production
 
 1. **Create the seed in `seeds/production/`**
+
    ```bash
    yarn workspace @zerologementvacant/server knex seed:make my_seed --env production
    ```
 
 2. **Add the seed to the whitelist in `knexfile.ts`**
+
    ```typescript
    const allowedSeeds = new Set([
      // ... existing seeds
@@ -89,6 +97,7 @@ The `server/src/test/global-setup.ts` file automatically TRUNCATEs all tables be
 **DO NOT use seeds** for transactional data. Use instead:
 
 #### BAN addresses data
+
 - **Housing**: Dagster job `housings_ban_addresses_job`
   - Script: `analytics/dagster/src/assets/populate_housings_ban_addresses.py`
   - Calls the BAN API to geocode addresses
@@ -100,6 +109,7 @@ The `server/src/test/global-setup.ts` file automatically TRUNCATEs all tables be
   - Only deletes addresses not found (`not-found`)
 
 #### Other data
+
 - Use migrations for schema changes
 - Use Dagster scripts for bulk data imports
 - Use the API for normal CRUD operations
@@ -110,6 +120,7 @@ If data has been accidentally deleted:
 
 1. **Check database backups**
 2. **Re-run the appropriate Dagster jobs**:
+
    ```bash
    # For Housing addresses
    dagster job execute -f analytics/dagster/src/definitions.py -j housings_ban_addresses_job

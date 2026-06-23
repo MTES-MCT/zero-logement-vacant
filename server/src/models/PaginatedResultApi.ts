@@ -1,4 +1,5 @@
 import { HousingDTO } from '@zerologementvacant/models';
+
 import { HousingApi } from './HousingApi';
 
 export interface PaginatedResultApi<T> {

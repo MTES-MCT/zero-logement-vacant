@@ -1,6 +1,7 @@
 import db from '~/infra/database';
 import { logger } from '~/infra/logger';
 import { ProspectApi } from '~/models/ProspectApi';
+
 import { establishmentsTable } from './establishmentRepository';
 
 export const prospectsTable = 'prospects';

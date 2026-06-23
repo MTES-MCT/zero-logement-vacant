@@ -1,8 +1,10 @@
 import { VACANCY_YEAR_VALUES } from '@zerologementvacant/models';
 import type { VacancyYear } from '@zerologementvacant/models';
-import { VACANCY_YEAR_OPTIONS } from '../../models/HousingFilters';
+
 import Select from '~/components/ui/Select/Select';
 import type { SelectProps } from '~/components/ui/Select/Select';
+
+import { VACANCY_YEAR_OPTIONS } from '../../models/HousingFilters';
 
 export type VacancyYearSelectProps<Multiple extends boolean> = Pick<
   SelectProps<VacancyYear, Multiple>,

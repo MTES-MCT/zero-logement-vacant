@@ -1,3 +1,4 @@
+import Button from '@codegouvfr/react-dsfr/Button';
 import { Card } from '@codegouvfr/react-dsfr/Card';
 import Stack from '@mui/material/Stack';
 import Typography from '@mui/material/Typography';
@@ -8,16 +9,15 @@ import {
   type OwnerRank,
   type PropertyRight
 } from '@zerologementvacant/models';
+import type { ReactNode } from 'react';
+import { match, Pattern } from 'ts-pattern';
 
 import Label from '~/components/Label/LabelNext';
 import PropertyRightTag from '~/components/Owner/PropertyRightTag';
+import RankBadge from '~/components/Owner/RankBadge';
+
 import OccupancyBadge from '../Housing/OccupancyBadge';
 import HousingStatusBadge from '../HousingStatusBadge/HousingStatusBadge';
-import type { ReactNode } from 'react';
-import { match, Pattern } from 'ts-pattern';
-import Button from '@codegouvfr/react-dsfr/Button';
-
-import RankBadge from '~/components/Owner/RankBadge';
 
 export interface OwnerHousingCardProps {
   /**

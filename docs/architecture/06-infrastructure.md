@@ -63,12 +63,12 @@ flowchart TB
 
 ## Environments
 
-| Environment | URL | Purpose |
-|-------------|-----|---------|
-| **Production** | https://zerologementvacant.beta.gouv.fr | Live system |
-| **Staging** | https://zerologementvacant-staging.incubateur.net | Pre-production testing |
-| **Review Apps** | https://prXXXX-api.cleverapps.io | Temporary PR environments |
-| **Development** | http://localhost:3000 / :3001 | Local dev |
+| Environment     | URL                                               | Purpose                   |
+| --------------- | ------------------------------------------------- | ------------------------- |
+| **Production**  | https://zerologementvacant.beta.gouv.fr           | Live system               |
+| **Staging**     | https://zerologementvacant-staging.incubateur.net | Pre-production testing    |
+| **Review Apps** | https://prXXXX-api.cleverapps.io                  | Temporary PR environments |
+| **Development** | http://localhost:3000 / :3001                     | Local dev                 |
 
 ## Clever Cloud Configuration
 
@@ -96,37 +96,37 @@ clevercloud/
 
 #### Application
 
-| Variable | Description |
-|----------|-------------|
+| Variable   | Description                      |
+| ---------- | -------------------------------- |
 | `NODE_ENV` | Environment (production/staging) |
-| `PORT` | Application port |
-| `APP_URL` | Public application URL |
+| `PORT`     | Application port                 |
+| `APP_URL`  | Public application URL           |
 
 #### Database
 
-| Variable | Description |
-|----------|-------------|
+| Variable               | Description                  |
+| ---------------------- | ---------------------------- |
 | `POSTGRESQL_ADDON_URI` | PostgreSQL connection string |
-| `REDIS_URL` | Redis connection string |
-| `ES_ADDON_HOST` | Elasticsearch host |
+| `REDIS_URL`            | Redis connection string      |
+| `ES_ADDON_HOST`        | Elasticsearch host           |
 
 #### Authentication
 
-| Variable | Description |
-|----------|-------------|
-| `AUTH_SECRET` | JWT signing secret |
+| Variable          | Description                    |
+| ----------------- | ------------------------------ |
+| `AUTH_SECRET`     | JWT signing secret             |
 | `AUTH_EXPIRES_IN` | Token expiration (default: 7d) |
 
 #### External Services
 
-| Variable | Description |
-|----------|-------------|
-| `BREVO_API_KEY` | Email service API key |
-| `S3_ENDPOINT` | S3/Cellar endpoint |
-| `S3_ACCESS_KEY_ID` | S3 access key |
-| `S3_SECRET_ACCESS_KEY` | S3 secret key |
-| `S3_BUCKET` | S3 bucket name |
-| `SENTRY_DSN` | Error tracking DSN |
+| Variable               | Description           |
+| ---------------------- | --------------------- |
+| `BREVO_API_KEY`        | Email service API key |
+| `S3_ENDPOINT`          | S3/Cellar endpoint    |
+| `S3_ACCESS_KEY_ID`     | S3 access key         |
+| `S3_SECRET_ACCESS_KEY` | S3 secret key         |
+| `S3_BUCKET`            | S3 bucket name        |
+| `SENTRY_DSN`           | Error tracking DSN    |
 
 ## CI/CD Pipeline
 
@@ -309,32 +309,34 @@ flowchart TB
 
 ```typescript
 // Helmet configuration
-app.use(helmet({
-  contentSecurityPolicy: {
-    directives: {
-      defaultSrc: ["'self'"],
-      scriptSrc: ["'self'", "'unsafe-inline'"],
-      styleSrc: ["'self'", "'unsafe-inline'"],
-      imgSrc: ["'self'", "data:", "https:"],
+app.use(
+  helmet({
+    contentSecurityPolicy: {
+      directives: {
+        defaultSrc: ["'self'"],
+        scriptSrc: ["'self'", "'unsafe-inline'"],
+        styleSrc: ["'self'", "'unsafe-inline'"],
+        imgSrc: ["'self'", 'data:', 'https:']
+      }
+    },
+    hsts: {
+      maxAge: 31536000,
+      includeSubDomains: true
     }
-  },
-  hsts: {
-    maxAge: 31536000,
-    includeSubDomains: true
-  }
-}));
+  })
+);
 ```
 
 ## Scaling
 
 ### Horizontal Scaling
 
-| Component | Strategy |
-|-----------|----------|
-| Frontend | Static files, CDN |
-| Backend | Multiple instances |
-| Queue | Multiple workers |
-| Database | Vertical + read replicas |
+| Component | Strategy                 |
+| --------- | ------------------------ |
+| Frontend  | Static files, CDN        |
+| Backend   | Multiple instances       |
+| Queue     | Multiple workers         |
+| Database  | Vertical + read replicas |
 
 ### Auto-scaling Triggers
 
@@ -346,12 +348,12 @@ app.use(helmet({
 
 ### Backup Strategy
 
-| Component | Frequency | Retention |
-|-----------|-----------|-----------|
-| PostgreSQL | Daily | 30 days |
-| Redis | Hourly | 7 days |
-| S3/Cellar | - | Persistent |
-| ES Logs | Monthly | 1 year |
+| Component  | Frequency | Retention  |
+| ---------- | --------- | ---------- |
+| PostgreSQL | Daily     | 30 days    |
+| Redis      | Hourly    | 7 days     |
+| S3/Cellar  | -         | Persistent |
+| ES Logs    | Monthly   | 1 year     |
 
 ### Recovery Procedures
 

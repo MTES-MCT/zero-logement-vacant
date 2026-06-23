@@ -1,4 +1,5 @@
 import type { EstablishmentDTO } from '@zerologementvacant/models';
+
 import { fromEstablishmentDTO } from '../models/Establishment';
 import type { AuthUser, User } from '../models/User';
 import config from '../utils/config';
@@ -22,7 +23,8 @@ function transformAuthUser(raw: AuthUserRaw): AuthUser {
     user: raw.user,
     accessToken: raw.accessToken,
     establishment: fromEstablishmentDTO(raw.establishment),
-    authorizedEstablishments: raw.authorizedEstablishments?.map(fromEstablishmentDTO),
+    authorizedEstablishments:
+      raw.authorizedEstablishments?.map(fromEstablishmentDTO),
     effectiveGeoCodes: raw.effectiveGeoCodes
   };
 }
@@ -64,7 +66,9 @@ const verifyTwoFactor = async (
     body: JSON.stringify({ email, code, establishmentId })
   }).then((response) => {
     if (response.ok) {
-      return response.json().then((data) => transformAuthUser(data as AuthUserRaw));
+      return response
+        .json()
+        .then((data) => transformAuthUser(data as AuthUserRaw));
     } else {
       throw new Error('2FA verification failed');
     }
@@ -76,20 +80,19 @@ const logout = (): void => {
 };
 
 const resetPassword = async (key: string, password: string) => {
-  const response = await fetch(
-    `${config.apiEndpoint}/account/reset-password`,
-    {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ key, password })
-    }
-  );
+  const response = await fetch(`${config.apiEndpoint}/account/reset-password`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ key, password })
+  });
   if (!response.ok) {
     throw new Error('Password reset failed');
   }
 };
 
-const changeEstablishment = async (establishmentId: string): Promise<AuthUser> => {
+const changeEstablishment = async (
+  establishmentId: string
+): Promise<AuthUser> => {
   return fetch(
     `${config.apiEndpoint}/account/establishments/${establishmentId}`,
     {
@@ -101,7 +104,9 @@ const changeEstablishment = async (establishmentId: string): Promise<AuthUser> =
     }
   ).then((response) => {
     if (response.ok) {
-      return response.json().then((data) => transformAuthUser(data as AuthUserRaw));
+      return response
+        .json()
+        .then((data) => transformAuthUser(data as AuthUserRaw));
     } else {
       throw new Error('Authentication failed');
     }

@@ -12,23 +12,23 @@
 
 ## File Map
 
-| Action | File |
-|--------|------|
-| **Create** | `server/src/repositories/userEstablishmentRepository.ts` |
-| **Modify** | `server/src/repositories/userRepository.ts` |
-| **Modify** | `server/src/controllers/accountController.ts` |
-| **Modify** | `server/src/controllers/userController.ts` |
-| **Modify** | `server/src/repositories/groupRepository.ts` |
-| **Modify** | `server/src/repositories/establishmentRepository.ts` |
-| **Modify** | `server/src/repositories/documentRepository.ts` |
-| **Modify** | `server/src/repositories/eventRepository.ts` |
-| **Modify** | `server/src/repositories/housingDocumentRepository.ts` |
-| **Modify** | `server/src/repositories/campaignRepository.ts` |
-| **Modify** | `server/src/repositories/noteRepository.ts` |
-| **Modify** | `server/src/controllers/test/user-api.test.ts` |
-| **Modify** | `server/src/infra/database/seeds/development/20240404235457_users.ts` |
-| **Modify** | `server/src/infra/database/seeds/production/20240405011127_users.ts` |
-| **Modify** | `server/src/scripts/import-unified-owners/command.ts` |
+| Action              | File                                                                             |
+| ------------------- | -------------------------------------------------------------------------------- |
+| **Create**          | `server/src/repositories/userEstablishmentRepository.ts`                         |
+| **Modify**          | `server/src/repositories/userRepository.ts`                                      |
+| **Modify**          | `server/src/controllers/accountController.ts`                                    |
+| **Modify**          | `server/src/controllers/userController.ts`                                       |
+| **Modify**          | `server/src/repositories/groupRepository.ts`                                     |
+| **Modify**          | `server/src/repositories/establishmentRepository.ts`                             |
+| **Modify**          | `server/src/repositories/documentRepository.ts`                                  |
+| **Modify**          | `server/src/repositories/eventRepository.ts`                                     |
+| **Modify**          | `server/src/repositories/housingDocumentRepository.ts`                           |
+| **Modify**          | `server/src/repositories/campaignRepository.ts`                                  |
+| **Modify**          | `server/src/repositories/noteRepository.ts`                                      |
+| **Modify**          | `server/src/controllers/test/user-api.test.ts`                                   |
+| **Modify**          | `server/src/infra/database/seeds/development/20240404235457_users.ts`            |
+| **Modify**          | `server/src/infra/database/seeds/production/20240405011127_users.ts`             |
+| **Modify**          | `server/src/scripts/import-unified-owners/command.ts`                            |
 | **Modify (rename)** | All 48 files importing `parseUserApi` or `formatUserApi` (listed in Tasks 3 & 4) |
 
 ---
@@ -36,6 +36,7 @@
 ## Task 1: Extract `userEstablishmentRepository.ts`
 
 **Files:**
+
 - Create: `server/src/repositories/userEstablishmentRepository.ts`
 - Modify: `server/src/repositories/userRepository.ts`
 - Modify: `server/src/controllers/accountController.ts`
@@ -175,6 +176,7 @@ export default {
 - [ ] **Step 2: Remove establishment code from `userRepository.ts`**
 
 Remove these exports/declarations entirely:
+
 - `export const usersEstablishmentsTable = 'users_establishments';`
 - `export const UsersEstablishments = ...`
 - `export interface UserEstablishmentDBO { ... }`
@@ -182,6 +184,7 @@ Remove these exports/declarations entirely:
 - `const parseUserEstablishment = ...`
 
 Remove from the `export default { ... }` block:
+
 - `getAuthorizedEstablishments`
 - `setAuthorizedEstablishments`
 - `addAuthorizedEstablishment`
@@ -193,15 +196,19 @@ Remove the import of `UserEstablishment` from `@zerologementvacant/models` if it
 - [ ] **Step 3: Update `accountController.ts` imports**
 
 Find the import of `userRepository`:
+
 ```typescript
 import userRepository from '~/repositories/userRepository';
 ```
+
 Add a new import below it:
+
 ```typescript
 import userEstablishmentRepository from '~/repositories/userEstablishmentRepository';
 ```
 
 Then replace all 5 call sites that use establishment functions through `userRepository`:
+
 - `userRepository.getAuthorizedEstablishments(...)` → `userEstablishmentRepository.getAuthorizedEstablishments(...)`
 - `userRepository.setAuthorizedEstablishments(...)` → `userEstablishmentRepository.setAuthorizedEstablishments(...)`
 - `userRepository.isMultiStructure(...)` → `userEstablishmentRepository.isMultiStructure(...)`
@@ -209,6 +216,7 @@ Then replace all 5 call sites that use establishment functions through `userRepo
 - [ ] **Step 4: Update `userController.ts` imports**
 
 Same pattern as Step 3 — add `userEstablishmentRepository` import and replace:
+
 - `userRepository.setAuthorizedEstablishments(...)` → `userEstablishmentRepository.setAuthorizedEstablishments(...)`
 - `userRepository.isMultiStructure(...)` → `userEstablishmentRepository.isMultiStructure(...)`
 
@@ -232,6 +240,7 @@ git commit -m "refactor(server): extract userEstablishmentRepository from userRe
 ## Task 2: Rename table constants to `UPPER_SNAKE_CASE`
 
 **Files:**
+
 - Modify: `server/src/repositories/userRepository.ts`
 - Modify: `server/src/repositories/userEstablishmentRepository.ts` (already uses `USERS_ESTABLISHMENTS_TABLE`)
 - Modify: `server/src/repositories/groupRepository.ts`
@@ -249,6 +258,7 @@ git commit -m "refactor(server): extract userEstablishmentRepository from userRe
 - [ ] **Step 1: Rename `usersTable` → `USERS_TABLE` in `userRepository.ts`**
 
 Change the export declaration:
+
 ```typescript
 // Before
 export const usersTable = 'users';
@@ -260,6 +270,7 @@ export const Users = (transaction = db) => transaction<UserDBO>(USERS_TABLE);
 ```
 
 Replace all internal uses of `usersTable` within `userRepository.ts`:
+
 ```typescript
 // Every occurrence of usersTable → USERS_TABLE inside the file
 ```
@@ -308,6 +319,7 @@ git commit -m "refactor(server): rename usersTable → USERS_TABLE, usersEstabli
 **Files (49 files):**
 
 Production repositories (import the function by name):
+
 - `server/src/repositories/userRepository.ts`
 - `server/src/repositories/groupRepository.ts`
 - `server/src/repositories/documentRepository.ts`
@@ -317,6 +329,7 @@ Production repositories (import the function by name):
 - `server/src/repositories/eventRepository.ts`
 
 Seeds:
+
 - `server/src/infra/database/seeds/development/20240404235731_groups.ts`
 - `server/src/infra/database/seeds/development/20241001160603_perimeters.ts`
 - `server/src/infra/database/seeds/development/20240807073309_campaigns.ts`
@@ -374,11 +387,13 @@ git commit -m "refactor(server): rename parseUserApi → fromUserDBO"
 **Files (49 files):**
 
 Production:
+
 - `server/src/repositories/userRepository.ts` (definition + 2 call sites)
 - `server/src/infra/database/seeds/development/20240404235457_users.ts`
 - `server/src/infra/database/seeds/production/20240405011127_users.ts`
 
 Test files (import the function to seed DB rows):
+
 - `server/src/controllers/accountController.test.ts`
 - `server/src/controllers/datafoncierHousingController.test.ts`
 - `server/src/controllers/geoController.test.ts`

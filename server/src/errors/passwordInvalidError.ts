@@ -10,7 +10,7 @@ export default class PasswordInvalidError
     super({
       name: 'PasswordInvalidError',
       message: `Password invalid`,
-      status: constants.HTTP_STATUS_FORBIDDEN,
+      status: constants.HTTP_STATUS_FORBIDDEN
     });
   }
 }

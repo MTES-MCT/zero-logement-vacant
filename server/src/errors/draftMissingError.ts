@@ -7,7 +7,7 @@ export default class DraftMissingError extends HttpError implements HttpError {
     super({
       name: 'DraftMissingError',
       message: `Draft ${id} missing`,
-      status: constants.HTTP_STATUS_NOT_FOUND,
+      status: constants.HTTP_STATUS_NOT_FOUND
     });
   }
 }

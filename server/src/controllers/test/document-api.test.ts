@@ -1,3 +1,6 @@
+import { constants } from 'http2';
+import path from 'node:path';
+
 import { HeadObjectCommand, PutObjectCommand } from '@aws-sdk/client-s3';
 import { faker } from '@faker-js/faker/locale/fr';
 import {
@@ -7,10 +10,9 @@ import {
   type DocumentPayload
 } from '@zerologementvacant/models';
 import { createS3 } from '@zerologementvacant/utils/node';
-import { constants } from 'http2';
-import path from 'node:path';
 import request from 'supertest';
 import { beforeAll, describe, expect, it } from 'vitest';
+
 import config from '~/infra/config';
 import { createServer } from '~/infra/server';
 import { UserApi } from '~/models/UserApi';
@@ -231,9 +233,7 @@ describe('Document API', () => {
     });
 
     it('should be forbidden for a non-authenticated user', async () => {
-      const { status } = await request(url).get(
-        testRoute(faker.string.uuid())
-      );
+      const { status } = await request(url).get(testRoute(faker.string.uuid()));
 
       expect(status).toBe(constants.HTTP_STATUS_UNAUTHORIZED);
     });
@@ -480,8 +480,7 @@ describe('Document API', () => {
   });
 
   describe('GET /housing/:id/documents', () => {
-    const testRoute = (housingId: string) =>
-      `/housing/${housingId}/documents`;
+    const testRoute = (housingId: string) => `/housing/${housingId}/documents`;
 
     const housing = genHousingApi(
       faker.helpers.arrayElement(establishment.geoCodes)

@@ -1,5 +1,7 @@
-import NodeClam from 'clamscan';
 import { Readable } from 'stream';
+
+import NodeClam from 'clamscan';
+
 import config from './config';
 import { logger } from './logger';
 
@@ -66,7 +68,9 @@ export async function initClamAV(): Promise<NodeClam> {
       error: error instanceof Error ? error.message : String(error),
       options: CLAMAV_OPTIONS
     });
-    throw new Error(`ClamAV initialization failed: ${error instanceof Error ? error.message : String(error)}`);
+    throw new Error(
+      `ClamAV initialization failed: ${error instanceof Error ? error.message : String(error)}`
+    );
   }
 }
 

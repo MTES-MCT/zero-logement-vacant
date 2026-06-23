@@ -29,7 +29,9 @@ const schema = object({
 
 type FormSchema = InferType<typeof schema>;
 
-export function createRenameGroupModal(options?: Readonly<RenameGroupModalOptions>) {
+export function createRenameGroupModal(
+  options?: Readonly<RenameGroupModalOptions>
+) {
   const modal = createConfirmationModal({
     id: options?.id ?? 'rename-group-modal',
     isOpenedByDefault: options?.isOpenedByDefault ?? false

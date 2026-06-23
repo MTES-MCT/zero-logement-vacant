@@ -1,6 +1,6 @@
+import { CampaignUpdatePayload } from '@zerologementvacant/models';
 import { ObjectSchema, object, string } from 'yup';
 
-import { CampaignUpdatePayload } from '@zerologementvacant/models';
 import { dateString } from './date-string';
 
 export const campaignUpdateNextPayload: ObjectSchema<CampaignUpdatePayload> =

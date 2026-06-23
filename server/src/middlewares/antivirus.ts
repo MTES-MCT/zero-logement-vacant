@@ -1,9 +1,11 @@
-import { Request, Response, NextFunction, RequestHandler } from 'express';
-import { logger } from '~/infra/logger';
-import { scanBuffer, isClamAVAvailable } from '~/infra/clamav';
-import VirusDetectedError from '~/errors/virusDetectedError';
 import { constants } from 'node:http2';
+
+import { Request, Response, NextFunction, RequestHandler } from 'express';
+
+import VirusDetectedError from '~/errors/virusDetectedError';
+import { scanBuffer, isClamAVAvailable } from '~/infra/clamav';
 import config from '~/infra/config';
+import { logger } from '~/infra/logger';
 
 /**
  * Antivirus middleware for scanning uploaded files
@@ -65,7 +67,8 @@ export const antivirusMiddleware: RequestHandler = async (
         res.status(constants.HTTP_STATUS_INTERNAL_SERVER_ERROR).json({
           error: 'Antivirus service unavailable',
           reason: 'service_unavailable',
-          message: 'The antivirus service is currently unavailable. Please try again later.',
+          message:
+            'The antivirus service is currently unavailable. Please try again later.',
           details: {
             service: 'ClamAV'
           }

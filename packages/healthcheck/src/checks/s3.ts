@@ -1,6 +1,6 @@
 import { HeadBucketCommand } from '@aws-sdk/client-s3';
-
 import { createS3, S3Options } from '@zerologementvacant/utils/node';
+
 import { Check } from './check';
 
 interface Options extends S3Options {
@@ -14,10 +14,10 @@ export function s3Check(opts: Options): Check {
     async test() {
       const client = createS3(rest);
       const command = new HeadBucketCommand({
-        Bucket: bucket,
+        Bucket: bucket
       });
       await client.send(command);
       client.destroy();
-    },
+    }
   };
 }

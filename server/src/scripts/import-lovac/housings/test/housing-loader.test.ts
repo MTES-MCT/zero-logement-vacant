@@ -1,33 +1,32 @@
-import {
-  HousingStatus,
-  Occupancy
-} from '@zerologementvacant/models';
-import { v4 as uuidv4 } from 'uuid';
 import { ReadableStream } from 'node:stream/web';
 
+import { HousingStatus, Occupancy } from '@zerologementvacant/models';
+import { v4 as uuidv4 } from 'uuid';
+
 import { HousingApi } from '~/models/HousingApi';
+import {
+  Establishments,
+  formatEstablishmentApi
+} from '~/repositories/establishmentRepository';
 import { Events } from '~/repositories/eventRepository';
 import {
   formatHousingRecordApi,
   Housing
 } from '~/repositories/housingRepository';
+import { Users, toUserDBO } from '~/repositories/userRepository';
 import { createNoopReporter } from '~/scripts/import-lovac/infra/reporters/noop-reporter';
+import {
+  genEstablishmentApi,
+  genHousingApi,
+  genUserApi
+} from '~/test/testFixtures';
+
 import { createExistingHousingLoader } from '../housing-loader';
 import {
   ExistingHousingChange,
   HousingEventChange,
   HousingUpdateChange
 } from '../housing-transform';
-import {
-  Establishments,
-  formatEstablishmentApi
-} from '~/repositories/establishmentRepository';
-import { Users, toUserDBO } from '~/repositories/userRepository';
-import {
-  genEstablishmentApi,
-  genHousingApi,
-  genUserApi
-} from '~/test/testFixtures';
 
 describe('createExistingHousingLoader', () => {
   const establishment = genEstablishmentApi();

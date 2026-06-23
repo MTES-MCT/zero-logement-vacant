@@ -1,12 +1,13 @@
 import { count } from '@zerologementvacant/utils/node';
-import { createLoggerReporter } from '~/scripts/import-lovac/infra';
-import { History } from '~/scripts/import-lovac/history/history';
+
 import { createLogger } from '~/infra/logger';
-import createHistoryFileRepository from '~/scripts/import-lovac/history/history-file-repository';
-import { progress } from '~/scripts/import-lovac/infra/progress-bar';
 import { HousingApi } from '~/models/HousingApi';
 import { Housing } from '~/repositories/housingRepository';
+import { History } from '~/scripts/import-lovac/history/history';
+import createHistoryFileRepository from '~/scripts/import-lovac/history/history-file-repository';
 import { historyProcessor } from '~/scripts/import-lovac/history/history-processor';
+import { createLoggerReporter } from '~/scripts/import-lovac/infra';
+import { progress } from '~/scripts/import-lovac/infra/progress-bar';
 
 const logger = createLogger('historyCommand');
 

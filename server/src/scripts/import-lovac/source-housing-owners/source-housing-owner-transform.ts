@@ -5,20 +5,20 @@ import {
 } from '@zerologementvacant/models';
 import { Array } from 'effect';
 import { v5 as uuidv5 } from 'uuid';
+
 import HousingMissingError from '~/errors/housingMissingError';
 import OwnerMissingError from '~/errors/ownerMissingError';
 import { HousingOwnerEventApi } from '~/models/EventApi';
-import {
-  HousingOwnerDBO
-} from '~/repositories/housingOwnerRepository';
+import { HousingOwnerDBO } from '~/repositories/housingOwnerRepository';
 import { OwnerDBO } from '~/repositories/ownerRepository';
 import {
   LOVAC_NAMESPACE,
   ReporterError,
   ReporterOptions
 } from '~/scripts/import-lovac/infra';
-import { EnrichedSourceHousingOwners } from './source-housing-owner-enricher';
+
 import { SourceHousingOwner } from './source-housing-owner';
+import { EnrichedSourceHousingOwners } from './source-housing-owner-enricher';
 
 export type HousingOwnersChange = {
   type: 'housingOwners';
@@ -95,7 +95,10 @@ export function createHousingOwnerTransform(options: TransformOptions) {
 
       const byOwnerId = (a: HousingOwnerDBO, b: HousingOwnerDBO) =>
         a.owner_id === b.owner_id;
-      const removedActive = Array.differenceWith(byOwnerId)(existingActive, activeOwners);
+      const removedActive = Array.differenceWith(byOwnerId)(
+        existingActive,
+        activeOwners
+      );
       const inactiveOwners: HousingOwnerDBO[] = [
         ...removedActive.map((ho) => ({
           ...ho,
@@ -116,21 +119,29 @@ export function createHousingOwnerTransform(options: TransformOptions) {
         );
       }
 
-      const added = Array.differenceWith(byOwnerId)(activeOwners, existingActive);
-      const updated = Array.intersectionWith(byOwnerId)(existingActive, activeOwners).filter(
-        (existingHo) => {
-          const newHo = activeOwners.find(
-            (activeHo) => activeHo.owner_id === existingHo.owner_id
-          );
-          return newHo && newHo.rank !== existingHo.rank;
-        }
+      const added = Array.differenceWith(byOwnerId)(
+        activeOwners,
+        existingActive
       );
+      const updated = Array.intersectionWith(byOwnerId)(
+        existingActive,
+        activeOwners
+      ).filter((existingHo) => {
+        const newHo = activeOwners.find(
+          (activeHo) => activeHo.owner_id === existingHo.owner_id
+        );
+        return newHo && newHo.rank !== existingHo.rank;
+      });
 
       const events: HousingOwnerEventApi[] = [
         ...added.map(
           (ho): HousingOwnerEventApi => ({
             id: uuidv5(
-              ho.housing_id + ':housing:owner-attached:' + ho.owner_id + ':' + year,
+              ho.housing_id +
+                ':housing:owner-attached:' +
+                ho.owner_id +
+                ':' +
+                year,
               LOVAC_NAMESPACE
             ),
             type: 'housing:owner-attached',
@@ -146,7 +157,11 @@ export function createHousingOwnerTransform(options: TransformOptions) {
         ...removedActive.map(
           (ho): HousingOwnerEventApi => ({
             id: uuidv5(
-              ho.housing_id + ':housing:owner-detached:' + ho.owner_id + ':' + year,
+              ho.housing_id +
+                ':housing:owner-detached:' +
+                ho.owner_id +
+                ':' +
+                year,
               LOVAC_NAMESPACE
             ),
             type: 'housing:owner-detached',
@@ -159,27 +174,29 @@ export function createHousingOwnerTransform(options: TransformOptions) {
             housingId: ho.housing_id
           })
         ),
-        ...updated.map(
-          (ho): HousingOwnerEventApi => {
-            const newHo = activeOwners.find(
-              (activeHo) => activeHo.owner_id === ho.owner_id
-            )!;
-            return {
-              id: uuidv5(
-                ho.housing_id + ':housing:owner-updated:' + ho.owner_id + ':' + year,
-                LOVAC_NAMESPACE
-              ),
-              type: 'housing:owner-updated',
-              nextOld: { name: ownerName(ho.owner_id), rank: ho.rank },
-              nextNew: { name: ownerName(newHo.owner_id), rank: newHo.rank },
-              createdAt: new Date().toJSON(),
-              createdBy: adminUserId,
-              ownerId: ho.owner_id,
-              housingGeoCode: ho.housing_geo_code,
-              housingId: ho.housing_id
-            };
-          }
-        )
+        ...updated.map((ho): HousingOwnerEventApi => {
+          const newHo = activeOwners.find(
+            (activeHo) => activeHo.owner_id === ho.owner_id
+          )!;
+          return {
+            id: uuidv5(
+              ho.housing_id +
+                ':housing:owner-updated:' +
+                ho.owner_id +
+                ':' +
+                year,
+              LOVAC_NAMESPACE
+            ),
+            type: 'housing:owner-updated',
+            nextOld: { name: ownerName(ho.owner_id), rank: ho.rank },
+            nextNew: { name: ownerName(newHo.owner_id), rank: newHo.rank },
+            createdAt: new Date().toJSON(),
+            createdBy: adminUserId,
+            ownerId: ho.owner_id,
+            housingGeoCode: ho.housing_geo_code,
+            housingId: ho.housing_id
+          };
+        })
       ];
 
       source.forEach((sourceOwner) => reporter.passed(sourceOwner));

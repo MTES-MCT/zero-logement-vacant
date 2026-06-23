@@ -1,6 +1,7 @@
 import { Equivalence, Option, pipe } from 'effect';
 import { parse } from 'effect/Number';
 import { match } from 'ts-pattern';
+
 import { isActiveOwnerRank, type ActiveOwnerRank } from './HousingOwnerDTO';
 import type { PropertyRight } from './PropertyRight';
 
@@ -148,7 +149,9 @@ export function toSourceRelativeLocation(
     .otherwise(() => null);
 }
 
-export function toActiveRank(dnulp: DatafoncierOwner['dnulp']): ActiveOwnerRank {
+export function toActiveRank(
+  dnulp: DatafoncierOwner['dnulp']
+): ActiveOwnerRank {
   return pipe(
     dnulp,
     parse,

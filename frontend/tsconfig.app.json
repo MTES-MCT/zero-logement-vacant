@@ -41,6 +41,9 @@
     },
     {
       "path": "../packages/models/tsconfig.lib.json"
+    },
+    {
+      "path": "../packages/factories/tsconfig.lib.json"
     }
   ]
 }

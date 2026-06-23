@@ -66,7 +66,9 @@ function NoteCard(props: NoteCardProps) {
     mode: 'onSubmit',
     resolver: yupResolver(
       yup.object({
-        content: yup.string().required('Veuillez renseigner le contenu de la note')
+        content: yup
+          .string()
+          .required('Veuillez renseigner le contenu de la note')
       })
     )
   });

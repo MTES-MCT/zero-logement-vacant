@@ -1,8 +1,7 @@
-import type { Knex } from "knex";
-
+import type { Knex } from 'knex';
 
 export async function up(knex: Knex): Promise<void> {
-  return knex.schema.alterTable('buildings', function(table) {
+  return knex.schema.alterTable('buildings', function (table) {
     table.text('dpe_id');
     table.text('class_dpe');
     table.text('class_ges');
@@ -13,9 +12,8 @@ export async function up(knex: Knex): Promise<void> {
   });
 }
 
-
 export async function down(knex: Knex): Promise<void> {
-  return knex.schema.alterTable('buildings', function(table) {
+  return knex.schema.alterTable('buildings', function (table) {
     table.dropColumn('dpe_id');
     table.dropColumn('class_dpe');
     table.dropColumn('class_ges');

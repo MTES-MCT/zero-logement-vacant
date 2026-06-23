@@ -1,9 +1,12 @@
-import type { SelectOption } from '../../../models/SelectOption';
 import type { ChangeEvent, ReactNode } from 'react';
+
+import type { SelectOption } from '../../../models/SelectOption';
 import AppCheckbox from '../AppCheckbox/AppCheckbox';
 
-export interface AppMultiSelectOptionProps<Value extends string>
-  extends Omit<SelectOption<Value>, 'label' | 'markup'> {
+export interface AppMultiSelectOptionProps<Value extends string> extends Omit<
+  SelectOption<Value>,
+  'label' | 'markup'
+> {
   label: ReactNode;
   checked?: boolean;
   onChangeValue?(value: Value, isChecked: boolean): void;

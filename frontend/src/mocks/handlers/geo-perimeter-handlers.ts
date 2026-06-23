@@ -1,6 +1,6 @@
+import type { GeoPerimeterDTO } from '@zerologementvacant/models';
 import { http, HttpResponse, RequestHandler } from 'msw';
 
-import type { GeoPerimeterDTO } from '@zerologementvacant/models';
 import config from '../../utils/config';
 
 export const geoPerimeterHandlers: RequestHandler[] = [

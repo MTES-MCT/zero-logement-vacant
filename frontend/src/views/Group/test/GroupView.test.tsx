@@ -2,7 +2,6 @@ import { faker } from '@faker-js/faker/locale/fr';
 import type { Store } from '@reduxjs/toolkit';
 import { render, screen, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
-
 import {
   OWNER_RANKS,
   UserRole,
@@ -23,12 +22,14 @@ import {
 import { Provider } from 'react-redux';
 import { createMemoryRouter, RouterProvider } from 'react-router';
 
+import { HousingFiltersProvider } from '~/hooks/HousingFiltersContext';
 import data from '~/mocks/handlers/data';
 import { fromEstablishmentDTO } from '~/models/Establishment';
 import { fromUserDTO } from '~/models/User';
 import { genAuthUser } from '~/test/fixtures';
 import configureTestStore from '~/utils/storeUtils';
 import CampaignView from '~/views/Campaign/CampaignView';
+
 import GroupView from '../GroupView';
 
 interface RenderViewOptions {
@@ -97,7 +98,9 @@ describe('Group view', () => {
 
     render(
       <Provider store={store}>
-        <RouterProvider router={router} />
+        <HousingFiltersProvider>
+          <RouterProvider router={router} />
+        </HousingFiltersProvider>
       </Provider>
     );
 
@@ -195,7 +198,7 @@ describe('Group view', () => {
       // Implemented later...
       // const sentAtParagraph = await screen.findByText('Nombre de retours : 0');
       // expect(sentAtParagraph).toBeInTheDocument();
-    })
+    });
   });
 
   describe('Rename the group', () => {

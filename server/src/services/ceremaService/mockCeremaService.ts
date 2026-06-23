@@ -1,10 +1,10 @@
+import { SirenStrasbourg } from '~/infra/database/seeds/development/20240404235442_establishments';
+
 import {
   CeremaUser,
   ConsultUserService,
   getTestAccount
 } from './consultUserService';
-
-import { SirenStrasbourg } from '~/infra/database/seeds/development/20240404235442_establishments';
 
 // Special SIREN that matches any establishment in tests
 export const MOCK_ANY_SIREN = '*';
@@ -16,7 +16,10 @@ export class MockCeremaService implements ConsultUserService {
       return [testAccount];
     }
     // Return two entries: one with Strasbourg SIREN (for seed data) and one with wildcard (for any generated data)
-    return [defaultOK(email, SirenStrasbourg), defaultOK(email, MOCK_ANY_SIREN)];
+    return [
+      defaultOK(email, SirenStrasbourg),
+      defaultOK(email, MOCK_ANY_SIREN)
+    ];
   }
 }
 

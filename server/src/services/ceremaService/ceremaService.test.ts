@@ -1,8 +1,10 @@
 import nock from 'nock';
 import { afterEach, beforeEach, describe, expect, it } from 'vitest';
+
 import config from '~/infra/config';
-import type { CeremaGroup, CeremaPerimeter } from './consultUserService';
+
 import { CeremaService } from './ceremaService';
+import type { CeremaGroup, CeremaPerimeter } from './consultUserService';
 
 const BASE_URL = config.cerema.api;
 const TOKEN = 'test-token';
@@ -181,7 +183,10 @@ describe('CeremaService', () => {
     });
 
     it('returns user with group but no perimeter when group has no perimetre', async () => {
-      const groupWithoutPerimeter: CeremaGroup = { ...lovacGroup, perimetre: 0 };
+      const groupWithoutPerimeter: CeremaGroup = {
+        ...lovacGroup,
+        perimetre: 0
+      };
       interceptAuth();
       interceptUsers('user@test.fr', [
         { email: 'user@test.fr', structure: 10, groupe: 1 }
@@ -204,7 +209,10 @@ describe('CeremaService', () => {
       interceptAuth();
       interceptUsers('user@test.fr', users);
       interceptStructure(10, structure);
-      interceptStructure(11, { siret: '98765432100001', acces_lovac: futureDate });
+      interceptStructure(11, {
+        siret: '98765432100001',
+        acces_lovac: futureDate
+      });
       const service = new CeremaService();
 
       const result = await service.consultUsers('user@test.fr');

@@ -1,4 +1,3 @@
-import { RequestHandler } from 'express';
 import { constants } from 'http2';
 
 import {
@@ -6,6 +5,8 @@ import {
   EstablishmentFiltersDTO,
   UserRole
 } from '@zerologementvacant/models';
+import { RequestHandler } from 'express';
+
 import EstablishmentMissingError from '~/errors/establishmentMissingError';
 import { createLogger } from '~/infra/logger';
 import establishmentRepository from '~/repositories/establishmentRepository';

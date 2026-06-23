@@ -1,8 +1,9 @@
-import { from as copyFrom } from 'pg-copy-streams';
-import { Knex } from 'knex';
 import { createReadStream } from 'node:fs';
 import path from 'node:path';
 import { pipeline } from 'node:stream/promises';
+
+import { Knex } from 'knex';
+import { from as copyFrom } from 'pg-copy-streams';
 
 import { establishmentsLocalitiesTable } from '~/repositories/establishmentLocalityRepository';
 import { establishmentsTable } from '~/repositories/establishmentRepository';
@@ -22,11 +23,23 @@ export async function seed(knex: Knex): Promise<void> {
   }
 
   await knex.raw(`TRUNCATE TABLE ${localitiesTable} CASCADE`);
-  await copyFromCsv(knex, localitiesTable, path.join(DATA_DIR, 'localities.csv'));
+  await copyFromCsv(
+    knex,
+    localitiesTable,
+    path.join(DATA_DIR, 'localities.csv')
+  );
 
   await knex.raw(`TRUNCATE TABLE ${establishmentsTable} CASCADE`);
-  await copyFromCsv(knex, establishmentsTable, path.join(DATA_DIR, 'establishments.csv'));
-  await copyFromCsv(knex, establishmentsLocalitiesTable, path.join(DATA_DIR, 'establishments_localities.csv'));
+  await copyFromCsv(
+    knex,
+    establishmentsTable,
+    path.join(DATA_DIR, 'establishments.csv')
+  );
+  await copyFromCsv(
+    knex,
+    establishmentsLocalitiesTable,
+    path.join(DATA_DIR, 'establishments_localities.csv')
+  );
 
   console.log('Loaded common data.');
   console.timeEnd('20240404234042_load-common-data');

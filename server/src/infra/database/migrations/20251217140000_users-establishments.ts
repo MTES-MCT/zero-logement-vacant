@@ -11,13 +11,19 @@ import { Knex } from 'knex';
  */
 export async function up(knex: Knex): Promise<void> {
   await knex.schema.createTable('users_establishments', (table) => {
-    table.uuid('user_id').notNullable()
-      .references('id').inTable('users')
+    table
+      .uuid('user_id')
+      .notNullable()
+      .references('id')
+      .inTable('users')
       .onUpdate('CASCADE')
       .onDelete('CASCADE');
 
-    table.uuid('establishment_id').notNullable()
-      .references('id').inTable('establishments')
+    table
+      .uuid('establishment_id')
+      .notNullable()
+      .references('id')
+      .inTable('establishments')
       .onUpdate('CASCADE')
       .onDelete('CASCADE');
 

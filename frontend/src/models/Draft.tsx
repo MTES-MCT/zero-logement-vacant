@@ -11,8 +11,9 @@ import type { SenderPayload } from './Sender';
 // eslint-disable-next-line @typescript-eslint/no-empty-object-type
 export interface Draft extends DraftDTO {}
 
-export interface DraftCreationPayload
-  extends DeepNonNullable<Omit<DraftCreationPayloadDTO, 'sender'>> {
+export interface DraftCreationPayload extends DeepNonNullable<
+  Omit<DraftCreationPayloadDTO, 'sender'>
+> {
   sender: SenderPayload;
 }
 

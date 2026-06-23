@@ -1,11 +1,12 @@
 import type { BadgeProps } from '@codegouvfr/react-dsfr/Badge';
-
-import AppBadge from '../_app/AppBadge/AppBadge';
 import {
   CAMPAIGN_STATUS_LABELS,
   type CampaignStatus
 } from '@zerologementvacant/models';
+
 import type { ColorFamily } from '~/models/ColorFamily';
+
+import AppBadge from '../_app/AppBadge/AppBadge';
 
 interface Props {
   status: CampaignStatus;

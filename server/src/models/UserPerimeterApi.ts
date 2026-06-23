@@ -87,7 +87,9 @@ export async function filterGeoCodesByPerimeter(
     return undefined;
   }
   const results = await Promise.all(
-    establishmentGeoCodes.map((geoCode) => isCommuneInPerimeter(geoCode, perimeter))
+    establishmentGeoCodes.map((geoCode) =>
+      isCommuneInPerimeter(geoCode, perimeter)
+    )
   );
   return establishmentGeoCodes.filter((_, index) => results[index]);
 }

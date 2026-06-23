@@ -1,4 +1,5 @@
 import axios from 'axios';
+
 import config from '~/infra/config';
 import { createLogger } from '~/infra/logger';
 
@@ -37,9 +38,15 @@ class CeremaAuthProviderV1 implements CeremaAuthProvider {
         `${config.cerema.api}/api/api-token-auth/`,
         { username: config.cerema.username, password: config.cerema.password }
       );
-      return { token: data.token, authPrefix: 'Token', apiUrl: config.cerema.api };
+      return {
+        token: data.token,
+        authPrefix: 'Token',
+        apiUrl: config.cerema.api
+      };
     } catch (error) {
-      const status = axios.isAxiosError(error) ? error.response?.status : undefined;
+      const status = axios.isAxiosError(error)
+        ? error.response?.status
+        : undefined;
       const message = axios.isAxiosError(error) ? error.message : String(error);
       logger.error('V1 authentication failed', { status, error: message });
       throw new Error(`Cerema V1 authentication failed: ${status}`);
@@ -64,7 +71,9 @@ class CeremaAuthProviderV2 implements CeremaAuthProvider {
         apiUrl: config.cerema.apiV2
       };
     } catch (error) {
-      const status = axios.isAxiosError(error) ? error.response?.status : undefined;
+      const status = axios.isAxiosError(error)
+        ? error.response?.status
+        : undefined;
       const message = axios.isAxiosError(error) ? error.message : String(error);
       logger.error('V2 authentication failed', { status, error: message });
       throw new Error(`Cerema V2 authentication failed: ${status}`);

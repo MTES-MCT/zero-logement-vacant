@@ -12,18 +12,19 @@
 
 ## File Map
 
-| File | Change |
-|---|---|
-| `benchmark.sh` (repo root, **not committed**) | Created temporarily; deleted after results are recorded |
-| `docs/benchmarks/vite8-upgrade.md` | Created; records before/after timing results |
-| `package.json` | `vite` 7→^8, `@vitejs/plugin-react` 4→^6, remove `@vitejs/plugin-react-swc` |
-| `frontend/vite.config.mts` | Swap plugin import |
+| File                                          | Change                                                                      |
+| --------------------------------------------- | --------------------------------------------------------------------------- |
+| `benchmark.sh` (repo root, **not committed**) | Created temporarily; deleted after results are recorded                     |
+| `docs/benchmarks/vite8-upgrade.md`            | Created; records before/after timing results                                |
+| `package.json`                                | `vite` 7→^8, `@vitejs/plugin-react` 4→^6, remove `@vitejs/plugin-react-swc` |
+| `frontend/vite.config.mts`                    | Swap plugin import                                                          |
 
 ---
 
 ## Task 1: Write benchmark script and record baseline
 
 **Files:**
+
 - Create: `benchmark.sh` (repo root, temporary — do not `git add`)
 
 - [ ] **Step 1: Write `benchmark.sh`**
@@ -96,27 +97,27 @@ Create `docs/benchmarks/vite8-upgrade.md` with this structure, filling in the ac
 
 ## Before (Vite 7.2.2 + plugin-react-swc 3.11.0)
 
-| Metric | Time |
-|---|---|
-| Production build | <!-- e.g. 45.2s --> |
-| Test suite | <!-- e.g. 32.1s --> |
+| Metric                | Time                           |
+| --------------------- | ------------------------------ |
+| Production build      | <!-- e.g. 45.2s -->            |
+| Test suite            | <!-- e.g. 32.1s -->            |
 | Dev server cold start | <!-- e.g. ready in 1843 ms --> |
 
 ## After (Vite 8 + plugin-react 6)
 
-| Metric | Time |
-|---|---|
-| Production build | <!-- fill after upgrade --> |
-| Test suite | <!-- fill after upgrade --> |
+| Metric                | Time                        |
+| --------------------- | --------------------------- |
+| Production build      | <!-- fill after upgrade --> |
+| Test suite            | <!-- fill after upgrade --> |
 | Dev server cold start | <!-- fill after upgrade --> |
 
 ## Delta
 
-| Metric | Before | After | Δ |
-|---|---|---|---|
-| Production build | | | |
-| Test suite | | | |
-| Dev server cold start | | | |
+| Metric                | Before | After | Δ   |
+| --------------------- | ------ | ----- | --- |
+| Production build      |        |       |     |
+| Test suite            |        |       |     |
+| Dev server cold start |        |       |     |
 ```
 
 - [ ] **Step 4: Commit the empty benchmark doc**
@@ -131,6 +132,7 @@ git commit -m "chore: add vite8 benchmark results doc (before)"
 ## Task 2: Upgrade packages
 
 **Files:**
+
 - Modify: `package.json`
 
 - [ ] **Step 1: Update versions and remove the SWC plugin**
@@ -177,6 +179,7 @@ git commit -m "chore: upgrade vite to v8 and @vitejs/plugin-react to v6"
 ## Task 3: Update frontend Vite config
 
 **Files:**
+
 - Modify: `frontend/vite.config.mts:3`
 
 - [ ] **Step 1: Swap the plugin import**

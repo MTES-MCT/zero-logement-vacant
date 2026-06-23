@@ -1,7 +1,9 @@
+import { constants } from 'http2';
+
 import { faker } from '@faker-js/faker/locale/fr';
 import { Occupancy } from '@zerologementvacant/models';
-import { constants } from 'http2';
 import request from 'supertest';
+
 import { createServer } from '~/infra/server';
 import {
   CampaignHousingEventApi,
@@ -11,10 +13,6 @@ import {
   OwnerEventApi,
   PrecisionHousingEventApi
 } from '~/models/EventApi';
-import {
-  Campaigns,
-  formatCampaignApi
-} from '~/repositories/campaignRepository';
 import {
   Establishments,
   formatEstablishmentApi
@@ -46,8 +44,8 @@ import {
   type PrecisionDBO
 } from '~/repositories/precisionRepository';
 import { toUserDBO, Users } from '~/repositories/userRepository';
+import { factories } from '~/test/factories';
 import {
-  genCampaignApi,
   genEstablishmentApi,
   genEventApi,
   genGroupApi,
@@ -56,7 +54,6 @@ import {
   genOwnerApi,
   genUserApi
 } from '~/test/testFixtures';
-
 import { tokenProvider } from '~/test/testUtils';
 
 describe('Event API', () => {
@@ -275,8 +272,9 @@ describe('Event API', () => {
         housingGeoCode: housing.geoCode,
         housingId: housing.id
       }));
-      const campaign = genCampaignApi(establishment.id, user);
-      await Campaigns().insert(formatCampaignApi(campaign));
+      const campaign = await factories
+        .campaign(establishment)
+        .create({}, { associations: { createdBy: user } });
       const campaignHousingEvents: ReadonlyArray<CampaignHousingEventApi> = [
         genEventApi({
           creator: user,

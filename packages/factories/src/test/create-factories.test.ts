@@ -1,4 +1,5 @@
 import { describe, expect, it } from 'vitest';
+
 import createFactories, { MemoryAdapter } from '../index';
 
 describe('createFactories', () => {
@@ -9,32 +10,86 @@ describe('createFactories', () => {
     expect(factories.establishment).toBeDefined();
     expect(factories.owner).toBeDefined();
     expect(factories.housing).toBeDefined();
-    expect(factories.group).toBeDefined();
-    expect(factories.campaign).toBeDefined();
+    expect(typeof factories.group).toBe('function');
+    expect(typeof factories.campaign).toBe('function');
   });
 
-  it('each factory builds its entity', () => {
+  it('each unscoped factory builds its entity', () => {
     const factories = createFactories(new MemoryAdapter());
-    const user = factories.user.build();
 
-    expect(user.id).toBeDefined();
+    expect(factories.user.build().id).toBeDefined();
     expect(factories.establishment.build().siren).toBeDefined();
     expect(factories.owner.build().fullName).toBeDefined();
     expect(factories.housing.build().geoCode).toBeDefined();
-    expect(factories.group.build().title).toBeDefined();
-    expect(
-      factories.campaign.build({}, { associations: { createdBy: user } }).status
-    ).toBeDefined();
   });
 
-  it('each factory creates via the adapter', async () => {
-    const adapter = new MemoryAdapter();
-    const factories = createFactories(adapter);
+  it('scoped campaign factory builds a CampaignDTO with no establishmentId', () => {
+    const factories = createFactories(new MemoryAdapter());
+    const establishment = factories.establishment.build();
+    const user = factories.user.build();
 
-    const user = await factories.user.create();
-    const housing = await factories.housing.create();
+    const campaign = factories
+      .campaign(establishment)
+      .build({}, { associations: { createdBy: user } });
 
-    expect(user.id).toBeDefined();
-    expect(housing.id).toBeDefined();
+    expect(campaign.id).toBeDefined();
+    expect(campaign.status).toBeDefined();
+    expect(campaign).not.toHaveProperty('establishmentId');
+  });
+
+  it('scoped group factory builds a GroupDTO with no establishmentId', () => {
+    const factories = createFactories(new MemoryAdapter());
+    const establishment = factories.establishment.build();
+    const user = factories.user.build();
+
+    const group = factories
+      .group(establishment)
+      .build({}, { associations: { createdBy: user } });
+
+    expect(group.id).toBeDefined();
+    expect(group.title).toBeDefined();
+    expect(group).not.toHaveProperty('establishmentId');
+  });
+
+  it('campaign.create forwards establishmentId as adapter context', async () => {
+    const calls: Array<{ table: string; context: unknown }> = [];
+    const adapter = {
+      async create(table: string, entity: unknown, ...args: unknown[]) {
+        calls.push({ table, context: args[0] });
+        return entity as never;
+      }
+    };
+    const factories = createFactories(adapter as never);
+    const establishment = factories.establishment.build();
+    const user = factories.user.build();
+
+    await factories
+      .campaign(establishment)
+      .create({}, { associations: { createdBy: user } });
+
+    expect(calls).toEqual([
+      { table: 'campaigns', context: { establishmentId: establishment.id } }
+    ]);
+  });
+
+  it('group.create forwards establishmentId as adapter context', async () => {
+    const calls: Array<{ table: string; context: unknown }> = [];
+    const adapter = {
+      async create(table: string, entity: unknown, ...args: unknown[]) {
+        calls.push({ table, context: args[0] });
+        return entity as never;
+      }
+    };
+    const factories = createFactories(adapter as never);
+    const establishment = factories.establishment.build();
+    const user = factories.user.build();
+
+    await factories
+      .group(establishment)
+      .create({}, { associations: { createdBy: user } });
+
+    expect(calls).toEqual([
+      { table: 'groups', context: { establishmentId: establishment.id } }
+    ]);
   });
 });

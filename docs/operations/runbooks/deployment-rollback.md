@@ -20,10 +20,10 @@ flowchart LR
 
 ### Environments
 
-| Environment | Branch | URL | Auto-deploy |
-|-------------|--------|-----|-------------|
-| Production | `main` | zerologementvacant.beta.gouv.fr | Yes |
-| Staging | `main` | <staging-url> | Yes |
+| Environment | Branch | URL                             | Auto-deploy |
+| ----------- | ------ | ------------------------------- | ----------- |
+| Production  | `main` | zerologementvacant.beta.gouv.fr | Yes         |
+| Staging     | `main` | <staging-url>                   | Yes         |
 
 ---
 
@@ -167,6 +167,7 @@ clever scale --instances 1
 ### Safe Migration Patterns
 
 **Adding a column:**
+
 ```sql
 -- Safe: nullable column
 ALTER TABLE housing ADD COLUMN new_field VARCHAR(255);
@@ -176,12 +177,14 @@ UPDATE housing SET new_field = 'default' WHERE new_field IS NULL LIMIT 10000;
 ```
 
 **Adding an index:**
+
 ```sql
 -- Safe: concurrent index
 CREATE INDEX CONCURRENTLY idx_name ON table(column);
 ```
 
 **Removing a column:**
+
 ```sql
 -- Step 1: Stop using column in code (deploy)
 -- Step 2: Wait for all instances to update
@@ -306,12 +309,12 @@ clever logs | grep -i "listening\|port"
 
 ### Recommended Times
 
-| Day | Time (Paris) | Risk |
-|-----|--------------|------|
-| Mon-Thu | 10:00-16:00 | Low |
-| Friday | 10:00-14:00 | Medium |
-| Friday afternoon | Avoid | High |
-| Weekend | Emergency only | High |
+| Day              | Time (Paris)   | Risk   |
+| ---------------- | -------------- | ------ |
+| Mon-Thu          | 10:00-16:00    | Low    |
+| Friday           | 10:00-14:00    | Medium |
+| Friday afternoon | Avoid          | High   |
+| Weekend          | Emergency only | High   |
 
 ### High-Traffic Periods to Avoid
 

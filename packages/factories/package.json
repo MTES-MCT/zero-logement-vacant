@@ -14,6 +14,7 @@
   "dependencies": {
     "@faker-js/faker": "8.4.1",
     "@zerologementvacant/models": "workspace:*",
+    "effect": "3.21.2",
     "fishery": "2.4.0",
     "ts-pattern": "5.9.0"
   },

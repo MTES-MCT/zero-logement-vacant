@@ -1,13 +1,14 @@
-import { Factory } from 'fishery';
 import { faker } from '@faker-js/faker/locale/fr';
 import {
   TIME_PER_WEEK_VALUES,
   UserRole,
   type UserDTO
 } from '@zerologementvacant/models';
-import type { Adapter } from '../adapter';
+import { Factory } from 'fishery';
 
-export function createUserFactory(adapter: Adapter) {
+import type { PersistenceAdapter } from '../persistence-adapter';
+
+export function createUserFactory(adapter: PersistenceAdapter) {
   return Factory.define<UserDTO>(() => ({
     id: faker.string.uuid(),
     email: faker.internet.email(),

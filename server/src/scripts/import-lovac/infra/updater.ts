@@ -1,8 +1,9 @@
-import { chunkify } from '@zerologementvacant/utils/node';
-import { stringify as writeJSONL } from 'jsonlines';
 import fs from 'node:fs';
 import { Transform, Writable } from 'node:stream';
 import { TransformStream, WritableStream } from 'node:stream/web';
+
+import { chunkify } from '@zerologementvacant/utils/node';
+import { stringify as writeJSONL } from 'jsonlines';
 import { match } from 'ts-pattern';
 
 import db from '~/infra/database';

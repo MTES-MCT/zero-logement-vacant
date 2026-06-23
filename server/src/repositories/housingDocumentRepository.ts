@@ -1,10 +1,12 @@
 import type { Knex } from 'knex';
+
 import db from '~/infra/database';
 import { withinTransaction } from '~/infra/database/transaction';
 import { createLogger } from '~/infra/logger';
 import { HousingId } from '~/models/HousingApi';
 import { HousingDocumentApi } from '~/models/HousingDocumentApi';
 import { UserDBO, USERS_TABLE } from '~/repositories/userRepository';
+
 import {
   Documents,
   DOCUMENTS_TABLE,
@@ -80,9 +82,7 @@ async function unlink(link: {
     .delete();
 }
 
-async function unlinkMany(params: {
-  documentIds: string[];
-}): Promise<void> {
+async function unlinkMany(params: { documentIds: string[] }): Promise<void> {
   if (!params.documentIds.length) {
     logger.debug('No documents to unlink. Skipping...');
     return;

@@ -12,8 +12,8 @@ export default class CampaignMissingError
       message: `Campaign file missing`,
       status: constants.HTTP_STATUS_NOT_FOUND,
       data: {
-        id,
-      },
+        id
+      }
     });
   }
 }

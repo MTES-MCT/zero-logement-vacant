@@ -40,7 +40,7 @@ import { v4 as uuidv4 } from 'uuid';
 import { logger } from '~/infra/logger';
 import { AddressApi } from '~/models/AddressApi';
 import { BuildingApi } from '~/models/BuildingApi';
-import { CampaignApi, fromCampaignDTO } from '~/models/CampaignApi';
+import { CampaignApi } from '~/models/CampaignApi';
 import { DocumentApi } from '~/models/DocumentApi';
 import { DraftApi } from '~/models/DraftApi';
 import { EstablishmentApi } from '~/models/EstablishmentApi';
@@ -140,11 +140,10 @@ export function genUserApi(establishmentId: string): UserApi {
   };
 }
 
-export function genDocumentApi(
-  overrides?: Partial<DocumentApi>
-): DocumentApi {
+export function genDocumentApi(overrides?: Partial<DocumentApi>): DocumentApi {
   // If creator is provided, use their establishmentId unless explicitly overridden
-  const establishmentId = overrides?.establishmentId ??
+  const establishmentId =
+    overrides?.establishmentId ??
     overrides?.creator?.establishmentId ??
     uuidv4();
   const creator = overrides?.creator ?? genUserApi(establishmentId);
@@ -294,18 +293,6 @@ export const genHousingApi = (
     precisions: []
   };
 };
-
-interface GenCampaignOptions {
-  group: GroupApi;
-  establishment: EstablishmentApi;
-  creator: UserApi;
-}
-
-export function genCampaignApiNext(options: GenCampaignOptions): CampaignApi {
-  const { group, establishment, creator } = options;
-  const campaign = genCampaignDTO(toGroupDTO(group), creator);
-  return fromCampaignDTO(campaign, establishment);
-}
 
 export const genCampaignApi = (
   establishmentId: string,

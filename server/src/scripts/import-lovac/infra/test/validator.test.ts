@@ -1,8 +1,9 @@
 import { ReadableStream, WritableStream } from 'node:stream/web';
+
 import { z } from 'zod';
 
-import validator from '~/scripts/import-lovac/infra/validator';
 import { createNoopReporter } from '~/scripts/import-lovac/infra/reporters/noop-reporter';
+import validator from '~/scripts/import-lovac/infra/validator';
 
 describe('Validator', () => {
   const schema = z.object({

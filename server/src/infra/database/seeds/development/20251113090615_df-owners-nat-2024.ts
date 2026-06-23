@@ -1,11 +1,8 @@
 import { faker } from '@faker-js/faker/locale/fr';
-import {
-  genDatafoncierOwners
-} from '@zerologementvacant/models/fixtures';
+import { genDatafoncierOwners } from '@zerologementvacant/models/fixtures';
 import type { Knex } from 'knex';
 
 import { DatafoncierHouses } from '~/repositories/datafoncierHousingRepository';
-
 
 const TABLE = 'df_owners_nat_2024';
 

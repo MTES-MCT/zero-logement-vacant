@@ -7,7 +7,7 @@ export default class FileMissingError extends HttpError implements HttpError {
     super({
       name: 'FileMissingError',
       message: `File not found on bucket`,
-      status: constants.HTTP_STATUS_NOT_FOUND,
+      status: constants.HTTP_STATUS_NOT_FOUND
     });
   }
 }

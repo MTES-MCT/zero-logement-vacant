@@ -82,7 +82,7 @@ export type DatafoncierOwnerSortApi = Sort<DatafoncierOwnerSortable>;
 /**
  * @deprecated Use `fromDatafoncierOwner` from `@zerologementvacant/models` instead
  * @param owner
- * @returns 
+ * @returns
  */
 export function toOwnerApi(owner: DatafoncierOwner): OwnerApi {
   const kinds: Record<string, string> = {

@@ -12,20 +12,21 @@
 
 ## File Map
 
-| File | Action | Responsibility |
-|------|--------|----------------|
-| `server/src/scripts/import-lovac/source-housings/prepare-housings.sh` | **Create** | DuckDB script: detect + apply geo_code changes, split by dept |
-| `server/src/scripts/import-lovac/source-housings/source-housing-command.ts` | **Modify** | Accept `deptsDir`, remove DuckDB/S3 helpers |
-| `server/src/scripts/import-lovac/source-housings/test/source-housing-command.test.ts` | **Modify** | Write parquet fixtures, remove geo_code change tests |
-| `server/src/scripts/import-lovac/cli.ts` | **Modify** | Update `housings` subcommand argument from `<file>` to `<deptsDir>` |
-| `server/src/scripts/import-lovac/source-housings/source-housing-duckdb.ts` | **Delete** | Logic moved to shell script |
-| `server/src/scripts/import-lovac/source-housings/source-housing-duckdb.test.ts` | **Delete** | No longer needed |
+| File                                                                                  | Action     | Responsibility                                                      |
+| ------------------------------------------------------------------------------------- | ---------- | ------------------------------------------------------------------- |
+| `server/src/scripts/import-lovac/source-housings/prepare-housings.sh`                 | **Create** | DuckDB script: detect + apply geo_code changes, split by dept       |
+| `server/src/scripts/import-lovac/source-housings/source-housing-command.ts`           | **Modify** | Accept `deptsDir`, remove DuckDB/S3 helpers                         |
+| `server/src/scripts/import-lovac/source-housings/test/source-housing-command.test.ts` | **Modify** | Write parquet fixtures, remove geo_code change tests                |
+| `server/src/scripts/import-lovac/cli.ts`                                              | **Modify** | Update `housings` subcommand argument from `<file>` to `<deptsDir>` |
+| `server/src/scripts/import-lovac/source-housings/source-housing-duckdb.ts`            | **Delete** | Logic moved to shell script                                         |
+| `server/src/scripts/import-lovac/source-housings/source-housing-duckdb.test.ts`       | **Delete** | No longer needed                                                    |
 
 ---
 
 ### Task 1: Create `prepare-housings.sh`
 
 **Files:**
+
 - Create: `server/src/scripts/import-lovac/source-housings/prepare-housings.sh`
 
 Follow the existing `import-buildings.sh` pattern.
@@ -127,6 +128,7 @@ git commit -m "feat(server): add prepare-housings.sh DuckDB script for geo-code 
 ### Task 2: Simplify `source-housing-command.ts`
 
 **Files:**
+
 - Modify: `server/src/scripts/import-lovac/source-housings/source-housing-command.ts`
 
 Remove `downloadIfS3`, `applyGeoCodeChanges`, `prepareHousingImport` import. The `file` parameter becomes a `deptsDir` — the directory containing hive-partitioned parquet files (output of `prepare-housings.sh`). Keep `writeReport` unchanged.
@@ -207,44 +209,40 @@ export function createSourceHousingCommand() {
       logger.info(`Importing ${deptDirs.length} departments...`);
 
       const CONCURRENCY = 4;
-      await async.mapLimit(
-        deptDirs,
-        CONCURRENCY,
-        async (deptDir: string) => {
-          const dept = deptDir.replace('dept=', '');
-          const parquetGlob = path.join(deptsDir, deptDir, '*.parquet');
-          logger.info(`[dept ${dept}] Starting import...`);
+      await async.mapLimit(deptDirs, CONCURRENCY, async (deptDir: string) => {
+        const dept = deptDir.replace('dept=', '');
+        const parquetGlob = path.join(deptsDir, deptDir, '*.parquet');
+        logger.info(`[dept ${dept}] Starting import...`);
 
-          await createParquetSourceHousingRepository(parquetGlob)
-            .stream()
-            .pipeThrough(
-              validator(sourceHousingSchema, {
+        await createParquetSourceHousingRepository(parquetGlob)
+          .stream()
+          .pipeThrough(
+            validator(sourceHousingSchema, {
+              abortEarly: options.abortEarly,
+              reporter: sourceHousingReporter
+            })
+          )
+          .pipeThrough(createSourceHousingEnricher())
+          .pipeThrough(
+            map(
+              createHousingTransform({
                 abortEarly: options.abortEarly,
-                reporter: sourceHousingReporter
+                adminUserId: auth.id,
+                reporter: sourceHousingReporter,
+                year: options.year
               })
             )
-            .pipeThrough(createSourceHousingEnricher())
-            .pipeThrough(
-              map(
-                createHousingTransform({
-                  abortEarly: options.abortEarly,
-                  adminUserId: auth.id,
-                  reporter: sourceHousingReporter,
-                  year: options.year
-                })
-              )
-            )
-            .pipeThrough(flatten())
-            .pipeTo(
-              createHousingLoader({
-                dryRun: options.dryRun,
-                reporter: sourceHousingReporter
-              })
-            );
+          )
+          .pipeThrough(flatten())
+          .pipeTo(
+            createHousingLoader({
+              dryRun: options.dryRun,
+              reporter: sourceHousingReporter
+            })
+          );
 
-          logger.info(`[dept ${dept}] Import complete.`);
-        }
-      );
+        logger.info(`[dept ${dept}] Import complete.`);
+      });
 
       // Update building counts
       logger.info('Updating building counts...');
@@ -333,6 +331,7 @@ git commit -m "refactor(server): simplify housing command to accept pre-split de
 ### Task 3: Update CLI argument
 
 **Files:**
+
 - Modify: `server/src/scripts/import-lovac/cli.ts`
 
 Change the `housings` subcommand argument from `<file>` (JSONL path) to `<deptsDir>` (path to hive-partitioned parquet directory).
@@ -401,9 +400,11 @@ git commit -m "refactor(server): update housings CLI to accept deptsDir instead 
 ### Task 4: Update the command test
 
 **Files:**
+
 - Modify: `server/src/scripts/import-lovac/source-housings/test/source-housing-command.test.ts`
 
 The test currently writes a JSONL file and relies on the command to handle geo_code detection internally. Now:
+
 1. Write parquet files in hive-partitioned format (using DuckDB) instead of JSONL
 2. Remove geo_code change assertions (that's `prepare-housings.sh`'s job now)
 3. Pre-apply geo_code changes in the test DB setup (simulating `prepare-housings.sh` having run)
@@ -846,6 +847,7 @@ async function writeParquetDepts(
 ```
 
 Key changes from the original test:
+
 - Removed `geoCodeChangedHousings` and the test `should update the housing geo code if it changed` (geo-code correction is now `prepare-housings.sh`'s responsibility)
 - Replaced `write()` (JSONL writer) with `writeParquetDepts()` (writes hive-partitioned parquet via DuckDB)
 - Command called with `deptsDir` instead of `file`
@@ -873,6 +875,7 @@ git commit -m "test(server): update housing command tests to use parquet fixture
 ### Task 5: Delete `source-housing-duckdb.ts` and its test
 
 **Files:**
+
 - Delete: `server/src/scripts/import-lovac/source-housings/source-housing-duckdb.ts`
 - Delete: `server/src/scripts/import-lovac/source-housings/source-housing-duckdb.test.ts`
 
@@ -911,16 +914,16 @@ git commit -m "refactor(server): remove source-housing-duckdb.ts (logic moved to
 
 ### Spec coverage
 
-| Requirement | Task |
-|-------------|------|
-| DuckDB shell script for geo-code detection + correction | Task 1 |
+| Requirement                                               | Task   |
+| --------------------------------------------------------- | ------ |
+| DuckDB shell script for geo-code detection + correction   | Task 1 |
 | Direct UPDATE via `postgres_execute` (no Knex temp table) | Task 1 |
-| Dept split in shell script | Task 1 |
-| Report (changes count, dept count) | Task 1 |
-| Simplified Node.js command (deptsDir input) | Task 2 |
-| CLI updated | Task 3 |
-| Tests updated (parquet fixtures, no geo-code assertions) | Task 4 |
-| `source-housing-duckdb.ts` removed | Task 5 |
+| Dept split in shell script                                | Task 1 |
+| Report (changes count, dept count)                        | Task 1 |
+| Simplified Node.js command (deptsDir input)               | Task 2 |
+| CLI updated                                               | Task 3 |
+| Tests updated (parquet fixtures, no geo-code assertions)  | Task 4 |
+| `source-housing-duckdb.ts` removed                        | Task 5 |
 
 ### Placeholder scan
 

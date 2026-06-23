@@ -110,7 +110,9 @@ export type DocumentEventApi = EventUnion<
 
 // Housing-document association events
 export type HousingDocumentEventApi = EventUnion<
-  'housing:document-attached' | 'housing:document-detached' | 'housing:document-removed'
+  | 'housing:document-attached'
+  | 'housing:document-detached'
+  | 'housing:document-removed'
 > & {
   housingGeoCode: string;
   housingId: string;

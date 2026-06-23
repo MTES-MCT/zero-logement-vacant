@@ -10,7 +10,7 @@ export async function up(knex: Knex): Promise<void> {
       table.integer('rank');
     }),
     knex.raw("update owners set raw_address = array_remove(raw_address, '')"),
-    knex.raw('update owners_housing set rank = 1'),
+    knex.raw('update owners_housing set rank = 1')
   ]);
 }
 
@@ -19,6 +19,6 @@ export async function down(knex: Knex): Promise<void> {
     knex.raw('delete from owners_housing where rank > 1'),
     knex.schema.alterTable('owners_housing', (table) => {
       table.dropColumn('rank');
-    }),
+    })
   ]);
 }

@@ -36,16 +36,16 @@ export DB_PASSWORD="your_password"
 
 ### Command Line Options
 
-| Option | Short | Default | Description |
-|--------|-------|---------|-------------|
-| `--jsonl-file` | `-f` | `structures.jsonl` | Path to JSON Lines structures file |
-| `--db-host` | `-h` | `localhost` | Database host |
-| `--db-port` | `-p` | `5432` | Database port |
-| `--db-name` | `-d` | *Required* | Database name |
-| `--db-user` | `-u` | *Required* | Database user |
-| `--db-password` | `-w` | *Required* | Database password |
-| `--dry-run` | | `False` | Show changes without applying them |
-| `--verbose` | `-v` | `False` | Enable verbose logging |
+| Option          | Short | Default            | Description                        |
+| --------------- | ----- | ------------------ | ---------------------------------- |
+| `--jsonl-file`  | `-f`  | `structures.jsonl` | Path to JSON Lines structures file |
+| `--db-host`     | `-h`  | `localhost`        | Database host                      |
+| `--db-port`     | `-p`  | `5432`             | Database port                      |
+| `--db-name`     | `-d`  | _Required_         | Database name                      |
+| `--db-user`     | `-u`  | _Required_         | Database user                      |
+| `--db-password` | `-w`  | _Required_         | Database password                  |
+| `--dry-run`     |       | `False`            | Show changes without applying them |
+| `--verbose`     | `-v`  | `False`            | Enable verbose logging             |
 
 ## Usage
 
@@ -105,10 +105,10 @@ The script reads a JSON Lines file where each line contains structure data:
 
 ### Required Fields
 
-| Field | Description |
-|-------|-------------|
-| `siret` | 14-digit SIRET (first 9 digits used as SIREN) |
-| `acces_lovac` | LOVAC access date (ISO-8601) or null |
+| Field         | Description                                   |
+| ------------- | --------------------------------------------- |
+| `siret`       | 14-digit SIRET (first 9 digits used as SIREN) |
+| `acces_lovac` | LOVAC access date (ISO-8601) or null          |
 
 ## Processing Logic
 
@@ -122,6 +122,7 @@ The script reads a JSON Lines file where each line contains structure data:
 ## Output Examples
 
 ### Dry Run Mode
+
 ```
 DRY RUN — 15 updates to perform:
   DELETE  → 12345678-1234-5678-9abc-123456789012
@@ -129,6 +130,7 @@ DRY RUN — 15 updates to perform:
 ```
 
 ### Normal Execution
+
 ```
 === STRUCTURE RIGHTS CHECK ===
 Structures loaded: 1,247
@@ -160,6 +162,7 @@ This shows exactly what would be changed without modifying the database.
 ### Common Issues
 
 **Database Connection Error:**
+
 ```bash
 # Check connection parameters
 python establishment-verifier.py --verbose
@@ -169,15 +172,19 @@ psql -h localhost -p 5432 -d mydb -U myuser
 ```
 
 **Missing Schema:**
+
 ```
 Missing columns on establishments: deleted_at, suspended_at
 ```
+
 **Solution:** Add required columns to the establishments table.
 
 **File Not Found:**
+
 ```
 JSONL file not found: structures.jsonl
 ```
+
 **Solution:** Ensure the JSONL file exists or specify correct path with `--jsonl-file`.
 
 ### Debug Mode
@@ -197,7 +204,7 @@ python establishment-verifier.py --dry-run --verbose
 
 ```sql
 -- Check establishment status
-SELECT 
+SELECT
     COUNT(*) as total,
     COUNT(deleted_at) as deleted,
     COUNT(suspended_at) as suspended

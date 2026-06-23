@@ -42,10 +42,11 @@ vi.mock('../../infra/config', async () => {
   };
 });
 
+import { constants } from 'http2';
+
 import { UserRole } from '@zerologementvacant/models';
 import bcrypt from 'bcryptjs';
 import { subDays } from 'date-fns';
-import { constants } from 'http2';
 import randomstring from 'randomstring';
 import request from 'supertest';
 
@@ -62,7 +63,6 @@ import {
 } from '~/repositories/resetLinkRepository';
 import { toUserDBO, Users } from '~/repositories/userRepository';
 import userRepository from '~/repositories/userRepository';
-
 import {
   genEstablishmentApi,
   genNumber,

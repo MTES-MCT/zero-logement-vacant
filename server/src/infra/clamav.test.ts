@@ -1,19 +1,25 @@
 import { describe, it, expect, beforeAll } from 'vitest';
-import config from './config';
+
 import { scanBuffer } from './clamav';
+import config from './config';
 
 // EICAR test file - standard antivirus test string
 // This is NOT a real virus, it's a test pattern recognized by all antivirus software
-const EICAR_TEST_FILE = 'X5O!P%@AP[4\\PZX54(P^)7CC)7}$EICAR-STANDARD-ANTIVIRUS-TEST-FILE!$H+H*';
+const EICAR_TEST_FILE =
+  'X5O!P%@AP[4\\PZX54(P^)7CC)7}$EICAR-STANDARD-ANTIVIRUS-TEST-FILE!$H+H*';
 
 // Run tests only when ClamAV is enabled
-const describeIfClamavEnabled = config.clamav.enabled ? describe : describe.skip;
+const describeIfClamavEnabled = config.clamav.enabled
+  ? describe
+  : describe.skip;
 
 describeIfClamavEnabled('ClamAV scanBuffer', () => {
   beforeAll(() => {
     // Ensure ClamAV is running
     if (!config.clamav.enabled) {
-      console.warn('ClamAV tests skipped. Set CLAMAV_ENABLED=true to run them.');
+      console.warn(
+        'ClamAV tests skipped. Set CLAMAV_ENABLED=true to run them.'
+      );
     }
   });
 
@@ -51,15 +57,73 @@ describeIfClamavEnabled('ClamAV scanBuffer', () => {
   it('should scan binary file (PNG)', async () => {
     // Valid 1x1 PNG file
     const pngBuffer = Buffer.from([
-      0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a, // PNG signature
-      0x00, 0x00, 0x00, 0x0d, 0x49, 0x48, 0x44, 0x52, // IHDR chunk
-      0x00, 0x00, 0x00, 0x01, 0x00, 0x00, 0x00, 0x01,
-      0x08, 0x06, 0x00, 0x00, 0x00, 0x1f, 0x15, 0xc4,
-      0x89, 0x00, 0x00, 0x00, 0x0a, 0x49, 0x44, 0x41,
-      0x54, 0x78, 0x9c, 0x63, 0x00, 0x01, 0x00, 0x00,
-      0x05, 0x00, 0x01, 0x0d, 0x0a, 0x2d, 0xb4, 0x00,
-      0x00, 0x00, 0x00, 0x49, 0x45, 0x4e, 0x44, 0xae,
-      0x42, 0x60, 0x82
+      0x89,
+      0x50,
+      0x4e,
+      0x47,
+      0x0d,
+      0x0a,
+      0x1a,
+      0x0a, // PNG signature
+      0x00,
+      0x00,
+      0x00,
+      0x0d,
+      0x49,
+      0x48,
+      0x44,
+      0x52, // IHDR chunk
+      0x00,
+      0x00,
+      0x00,
+      0x01,
+      0x00,
+      0x00,
+      0x00,
+      0x01,
+      0x08,
+      0x06,
+      0x00,
+      0x00,
+      0x00,
+      0x1f,
+      0x15,
+      0xc4,
+      0x89,
+      0x00,
+      0x00,
+      0x00,
+      0x0a,
+      0x49,
+      0x44,
+      0x41,
+      0x54,
+      0x78,
+      0x9c,
+      0x63,
+      0x00,
+      0x01,
+      0x00,
+      0x00,
+      0x05,
+      0x00,
+      0x01,
+      0x0d,
+      0x0a,
+      0x2d,
+      0xb4,
+      0x00,
+      0x00,
+      0x00,
+      0x00,
+      0x49,
+      0x45,
+      0x4e,
+      0x44,
+      0xae,
+      0x42,
+      0x60,
+      0x82
     ]);
 
     const result = await scanBuffer(pngBuffer, 'test.png');

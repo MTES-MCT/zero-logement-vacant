@@ -1,16 +1,16 @@
-import type { SetNonNullable } from 'type-fest';
 import { Equivalence, pipe, Record, Struct } from 'effect';
+import type { SetNonNullable } from 'type-fest';
 
+import type { CadastralClassification } from './CadastralClassification';
 import { DataFileYear } from './DataFileYear';
+import type { DocumentDTO } from './DocumentDTO';
 import { EnergyConsumption } from './EnergyConsumption';
+import type { HousingFiltersDTO } from './HousingFiltersDTO';
 import { HousingKind } from './HousingKind';
 import { HousingStatus } from './HousingStatus';
 import { MutationType } from './Mutation';
 import { Occupancy } from './Occupancy';
 import { OwnerDTO } from './OwnerDTO';
-import type { HousingFiltersDTO } from './HousingFiltersDTO';
-import type { CadastralClassification } from './CadastralClassification';
-import type { DocumentDTO } from './DocumentDTO';
 import type { Precision } from './Precision';
 
 export interface HousingDTO {

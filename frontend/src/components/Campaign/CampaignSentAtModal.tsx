@@ -6,6 +6,7 @@ import { FormProvider, useForm, type SubmitHandler } from 'react-hook-form';
 import { object, type InferType } from 'yup';
 
 import { createConfirmationModal } from '~/components/modals/ConfirmationModal/ConfirmationModalNext';
+
 import AppTextInputNext from '../_app/AppTextInput/AppTextInputNext';
 
 const schema = object({

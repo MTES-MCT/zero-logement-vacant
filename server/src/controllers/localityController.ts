@@ -1,17 +1,13 @@
+import { constants } from 'http2';
+
 import { Request, Response } from 'express';
 import { AuthenticatedRequest } from 'express-jwt';
-import { body, param, query } from 'express-validator';
-import { constants } from 'http2';
 
 import LocalityMissingError from '~/errors/localityMissingError';
 import { logger } from '~/infra/logger';
 import { LocalityApi } from '~/models/LocalityApi';
 import establishmentRepository from '~/repositories/establishmentRepository';
 import localityRepository from '~/repositories/localityRepository';
-
-const getLocalityValidators = [
-  param('geoCode').notEmpty().isAlphanumeric().isLength({ min: 5, max: 5 })
-];
 
 async function getLocality(request: Request, response: Response) {
   const geoCode = request.params.geoCode;
@@ -25,8 +21,6 @@ async function getLocality(request: Request, response: Response) {
 
   response.status(constants.HTTP_STATUS_OK).json(locality);
 }
-
-const listLocalitiesValidators = [query('establishmentId').notEmpty().isUUID()];
 
 async function listLocalities(request: Request, response: Response) {
   const { effectiveGeoCodes } = request as AuthenticatedRequest;
@@ -42,16 +36,6 @@ async function listLocalities(request: Request, response: Response) {
   });
   response.status(constants.HTTP_STATUS_OK).json(localities);
 }
-
-const updateLocalityTaxValidators = [
-  param('geoCode').notEmpty().isAlphanumeric().isLength({ min: 5, max: 5 }),
-  body('taxKind').isIn(['THLV', 'None']),
-  body('taxRate')
-    .if(body('taxKind').equals('THLV'))
-    .isNumeric()
-    .notEmpty(),
-  body('taxRate').if(body('taxKind').equals('None')).not().exists()
-];
 
 async function updateLocalityTax(request: Request, response: Response) {
   const geoCode = request.params.geoCode;
@@ -90,11 +74,8 @@ async function updateLocalityTax(request: Request, response: Response) {
 }
 
 const localityController = {
-  getLocalityValidators,
   getLocality,
-  listLocalitiesValidators,
   listLocalities,
-  updateLocalityTaxValidators,
   updateLocalityTax
 };
 

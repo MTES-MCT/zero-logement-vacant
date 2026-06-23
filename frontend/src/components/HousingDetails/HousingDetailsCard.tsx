@@ -1,6 +1,7 @@
 import Tabs from '@codegouvfr/react-dsfr/Tabs';
 import Skeleton from '@mui/material/Skeleton';
 import { skipToken } from '@reduxjs/toolkit/query';
+import type { DocumentDTO } from '@zerologementvacant/models';
 
 import type { HousingDocumentUploadProps } from '~/components/FileUpload/HousingDocumentUpload';
 import { useHousing } from '~/hooks/useHousing';
@@ -11,12 +12,12 @@ import {
   useUnlinkDocumentMutation,
   useUpdateDocumentMutation
 } from '~/services/document.service';
+
 import type { DocumentCardProps } from './DocumentCard';
 import DocumentsTab from './DocumentsTab';
 import HistoryTab from './HistoryTab';
 import HousingTab from './HousingTab';
 import MobilizationTab from './MobilizationTab';
-import type { DocumentDTO } from '@zerologementvacant/models';
 
 function HousingDetailsCard() {
   const { housing, isLoading: isHousingLoading } = useHousing();
@@ -44,7 +45,7 @@ function HousingDetailsCard() {
       id: document.id,
       filename: document.filename
     });
-  };
+  }
 
   const [unlinkDocument, unlinkDocumentMutation] = useUnlinkDocumentMutation();
   useNotification({

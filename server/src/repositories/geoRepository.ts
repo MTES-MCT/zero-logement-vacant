@@ -1,8 +1,8 @@
 import type { Geometry, MultiPolygon } from 'geojson';
 
 import db from '~/infra/database';
-import { GeoPerimeterApi } from '~/models/GeoPerimeterApi';
 import { logger } from '~/infra/logger';
+import { GeoPerimeterApi } from '~/models/GeoPerimeterApi';
 
 export const geoPerimetersTable = 'geo_perimeters';
 export const GeoPerimeters = (transaction = db) =>

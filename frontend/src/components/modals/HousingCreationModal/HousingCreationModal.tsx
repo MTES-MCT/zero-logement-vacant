@@ -1,9 +1,10 @@
 import Button from '@codegouvfr/react-dsfr/Button';
 import { useState } from 'react';
 
+import type { Housing } from '~/models/Housing';
+
 import createFillLocalIdModal from './FillLocalId';
 import createReviewHousingModal from './ReviewHousing';
-import type { Housing } from '~/models/Housing';
 
 interface Props {
   onFinish?(housing: Housing): void;

@@ -10,7 +10,7 @@ Router → Controller test → Controller → Repository test → Repository
 
 ## Validation
 - Always in routers, never in controllers.
-- Use `validatorNext.validate()` with Yup schemas.
+- Use `validator.validate()` with Yup schemas.
 - Never use express-validator for new code (legacy).
 - Property-based tests mandatory for all schemas (`@fast-check/vitest`).
 
@@ -32,7 +32,7 @@ Router → Controller test → Controller → Repository test → Repository
 ## Legacy → current (do not replicate legacy)
 | Legacy | Current |
 |--------|---------|
-| express-validator | validatorNext (Yup) |
+| express-validator | validator (Yup) |
 | try-catch in controllers | Throw `HttpError` subclass |
 | Direct Knex in controllers | Repositories |
 | Transactions in repositories | `startTransaction()` in controllers |

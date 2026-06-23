@@ -1,7 +1,7 @@
 import { Predicate } from 'effect';
 
-import EventCard from '../EventCard';
 import type { Event } from '../../../models/Event';
+import EventCard from '../EventCard';
 
 interface HousingOccupancyEventCardProps {
   event: Event<'housing:occupancy-updated'>;

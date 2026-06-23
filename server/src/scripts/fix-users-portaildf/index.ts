@@ -1,6 +1,8 @@
 import fs from 'fs';
+
 import axios from 'axios';
 import { parse as csvParse } from 'csv-parse';
+
 import config from '~/infra/config';
 import userRepository from '~/repositories/userRepository';
 import { createAuthProvider } from '~/services/ceremaService/ceremaAuthProvider';
@@ -24,25 +26,24 @@ async function getAuth(): Promise<AuthResult> {
 }
 
 async function readEmailsFromCSV(): Promise<string[]> {
-    return new Promise((resolve, reject) => {
-        const emails: string[] = [];
-        fs.createReadStream(CSV_INPUT_PATH)
-            .pipe(csvParse({ columns: ['email'], relax_column_count: true, trim: true }))
-            .on('data', (row) => {
-                const email = row['email']?.trim();
-                if (email) {
-                    emails.push(email);
-                }
-            })
-            .on('end', () => resolve(emails))
-            .on('error', reject);
-    });
+  return new Promise((resolve, reject) => {
+    const emails: string[] = [];
+    fs.createReadStream(CSV_INPUT_PATH)
+      .pipe(
+        csvParse({ columns: ['email'], relax_column_count: true, trim: true })
+      )
+      .on('data', (row) => {
+        const email = row['email']?.trim();
+        if (email) {
+          emails.push(email);
+        }
+      })
+      .on('end', () => resolve(emails))
+      .on('error', reject);
+  });
 }
 
-async function checkEmailWithRetry(
-  email: string,
-  auth: AuthResult
-) {
+async function checkEmailWithRetry(email: string, auth: AuthResult) {
   const { default: pRetry } = await import('p-retry');
   return pRetry(
     async () => {

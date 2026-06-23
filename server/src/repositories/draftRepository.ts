@@ -94,7 +94,7 @@ function listQuery(query: Knex.QueryBuilder): void {
       `${draftsTable}.sender_id`,
       `${sendersTable}.id`
     )
-    .select(db.raw(`to_json(${sendersTable}.*) AS sender`))
+    .select(db.raw(`to_json(${sendersTable}.*) AS sender`));
   // signatory documents
   joinDocumentWithCreator(
     query,
@@ -107,8 +107,16 @@ function listQuery(query: Knex.QueryBuilder): void {
     'signatory_two_doc'
   );
   // logo next documents
-  joinDocumentWithCreator(query, `${draftsTable}.logo_next_one`, 'logo_next_one_doc');
-  joinDocumentWithCreator(query, `${draftsTable}.logo_next_two`, 'logo_next_two_doc');
+  joinDocumentWithCreator(
+    query,
+    `${draftsTable}.logo_next_one`,
+    'logo_next_one_doc'
+  );
+  joinDocumentWithCreator(
+    query,
+    `${draftsTable}.logo_next_two`,
+    'logo_next_two_doc'
+  );
 }
 
 function filterQuery(filters?: DraftFilters) {

@@ -1,7 +1,8 @@
 import type { MouseEventHandler } from 'react';
 
-import styles from './link-as-button.module.scss';
 import AppLink, { type AppLinkProps } from '../AppLink/AppLink';
+
+import styles from './link-as-button.module.scss';
 
 export type AppLinkAsButtonProps = Omit<AppLinkProps, 'to'> & {
   onClick: MouseEventHandler;

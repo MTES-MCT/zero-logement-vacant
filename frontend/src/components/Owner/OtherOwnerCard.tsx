@@ -5,6 +5,7 @@ import Typography from '@mui/material/Typography';
 import type { PropertyRight } from '@zerologementvacant/models';
 
 import Icon from '~/components/ui/Icon';
+
 import PropertyRightTag from './PropertyRightTag';
 
 interface OtherOwnerCardProps {

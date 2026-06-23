@@ -1,5 +1,6 @@
-import { match } from 'ts-pattern';
 import { WritableStream } from 'node:stream/web';
+
+import { match } from 'ts-pattern';
 
 import db from '~/infra/database';
 import { createLogger } from '~/infra/logger';
@@ -9,11 +10,11 @@ import {
   OwnerRecordDBO,
   ownerTable
 } from '~/repositories/ownerRepository';
+import { Reporter } from '~/scripts/import-lovac/infra/reporters/reporter';
 import {
   disableOwnersHousingTriggers,
   enableOwnersHousingTriggers
 } from '~/scripts/import-lovac/source-housing-owners/owners-housing-counts-maintenance';
-import { Reporter } from '~/scripts/import-lovac/infra/reporters/reporter';
 import { SourceOwner } from '~/scripts/import-lovac/source-owners/source-owner';
 import { OwnerChange } from '~/scripts/import-lovac/source-owners/source-owner-transform';
 

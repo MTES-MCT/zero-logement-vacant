@@ -1,10 +1,40 @@
 import { constants } from 'http2';
+
+import {
+  DraftCreationPayload,
+  DraftDTO,
+  DraftUpdatePayload,
+  SignatoriesDTO
+} from '@zerologementvacant/models';
+import { CampaignDTO } from '@zerologementvacant/models';
 import request from 'supertest';
 
 import { createServer } from '~/infra/server';
+
 import { DraftApi } from '../../models/DraftApi';
+import { SenderApi } from '../../models/SenderApi';
+import { CampaignsDrafts } from '../../repositories/campaignDraftRepository';
 import {
-  genCampaignApi,
+  Documents,
+  toDocumentDBO
+} from '../../repositories/documentRepository';
+import {
+  DraftRecordDBO,
+  Drafts,
+  formatDraftApi
+} from '../../repositories/draftRepository';
+import {
+  Establishments,
+  formatEstablishmentApi
+} from '../../repositories/establishmentRepository';
+import {
+  formatSenderApi,
+  SenderDBO,
+  Senders
+} from '../../repositories/senderRepository';
+import { toUserDBO, Users } from '../../repositories/userRepository';
+import { factories } from '../../test/factories';
+import {
   genDocumentApi,
   genDraftApi,
   genEstablishmentApi,
@@ -12,38 +42,6 @@ import {
   genUserApi
 } from '../../test/testFixtures';
 import { tokenProvider } from '../../test/testUtils';
-import { CampaignApi } from '../../models/CampaignApi';
-import {
-  DraftRecordDBO,
-  Drafts,
-  formatDraftApi
-} from '../../repositories/draftRepository';
-import {
-  Campaigns,
-  formatCampaignApi
-} from '../../repositories/campaignRepository';
-import { CampaignsDrafts } from '../../repositories/campaignDraftRepository';
-import {
-  DraftCreationPayload,
-  DraftDTO,
-  DraftUpdatePayload,
-  SignatoriesDTO
-} from '@zerologementvacant/models';
-import {
-  Establishments,
-  formatEstablishmentApi
-} from '../../repositories/establishmentRepository';
-import { toUserDBO, Users } from '../../repositories/userRepository';
-import { SenderApi } from '../../models/SenderApi';
-import {
-  formatSenderApi,
-  SenderDBO,
-  Senders
-} from '../../repositories/senderRepository';
-import {
-  Documents,
-  toDocumentDBO
-} from '../../repositories/documentRepository';
 
 describe('Draft API', () => {
   let url: string;
@@ -104,8 +102,9 @@ describe('Draft API', () => {
 
     it('should list drafts by campaign', async () => {
       const [firstDraft] = drafts;
-      const campaign: CampaignApi = genCampaignApi(establishment.id, user);
-      await Campaigns().insert(formatCampaignApi(campaign));
+      const campaign = await factories
+        .campaign(establishment)
+        .create({}, { associations: { createdBy: user } });
       await CampaignsDrafts().insert({
         campaign_id: campaign.id,
         draft_id: firstDraft.id
@@ -159,11 +158,12 @@ describe('Draft API', () => {
     });
 
     const testRoute = '/drafts';
-    let campaign: CampaignApi;
+    let campaign: CampaignDTO;
 
     beforeEach(async () => {
-      campaign = genCampaignApi(establishment.id, user);
-      await Campaigns().insert(formatCampaignApi(campaign));
+      campaign = await factories
+        .campaign(establishment)
+        .create({}, { associations: { createdBy: user } });
     });
 
     it('should create a draft with logoNext [null, null] and signatories [null, null]', async () => {
@@ -356,6 +356,5 @@ describe('Draft API', () => {
         .first()) as SenderDBO;
       expect(actualSender.signatory_one_document_id).toBe(document.id);
     });
-
   });
 });

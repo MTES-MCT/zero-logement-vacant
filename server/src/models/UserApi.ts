@@ -70,4 +70,3 @@ export interface TokenPayload {
   userId: string;
   establishmentId: string;
 }
-

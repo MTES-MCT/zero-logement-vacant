@@ -5,14 +5,19 @@ import {
   Occupancy,
   OCCUPANCY_LABELS
 } from '@zerologementvacant/models';
+
 import { HousingApi } from '~/models/HousingApi';
-import { createNoopReporter } from '~/scripts/import-lovac/infra/reporters/noop-reporter';
 import {
   createExistingHousingTransform,
   HousingUpdateChange,
   HousingEventChange
 } from '~/scripts/import-lovac/housings/housing-transform';
-import { genEstablishmentApi, genHousingApi, genUserApi } from '~/test/testFixtures';
+import { createNoopReporter } from '~/scripts/import-lovac/infra/reporters/noop-reporter';
+import {
+  genEstablishmentApi,
+  genHousingApi,
+  genUserApi
+} from '~/test/testFixtures';
 
 describe('createExistingHousingTransform', () => {
   const establishment = genEstablishmentApi();
@@ -56,27 +61,27 @@ describe('createExistingHousingTransform', () => {
           status !== HousingStatus.WAITING
       );
 
-      it.each(skippedStatuses)(
-        'should skip if status is %s',
-        (status) => {
-          expect(transform({ ...housing, status })).toHaveLength(0);
-        }
-      );
+      it.each(skippedStatuses)('should skip if status is %s', (status) => {
+        expect(transform({ ...housing, status })).toHaveLength(0);
+      });
 
       it.each([HousingStatus.NEVER_CONTACTED, HousingStatus.WAITING])(
         'should be set as out of vacancy when status is %s',
         (status) => {
-        const actual = transform({ ...housing, status });
-        expect(actual).toPartiallyContain<HousingUpdateChange>({
-          type: 'housing',
-          kind: 'update',
-          value: expect.objectContaining<Partial<HousingUpdateChange['value']>>({
-            occupancy: Occupancy.UNKNOWN,
-            status: HousingStatus.COMPLETED,
-            subStatus: 'Sortie de la vacance'
-          })
-        });
-      });
+          const actual = transform({ ...housing, status });
+          expect(actual).toPartiallyContain<HousingUpdateChange>({
+            type: 'housing',
+            kind: 'update',
+            value: expect.objectContaining<
+              Partial<HousingUpdateChange['value']>
+            >({
+              occupancy: Occupancy.UNKNOWN,
+              status: HousingStatus.COMPLETED,
+              subStatus: 'Sortie de la vacance'
+            })
+          });
+        }
+      );
 
       it('should create a "Changement de statut d\'occupation" event', () => {
         const actual = transform(housing);

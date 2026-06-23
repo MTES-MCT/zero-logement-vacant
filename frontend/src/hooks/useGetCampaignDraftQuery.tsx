@@ -1,4 +1,5 @@
 import type { CampaignDTO } from '@zerologementvacant/models';
+
 import { useFindDraftsQuery } from '~/services/draft.service';
 
 /**

@@ -11,6 +11,7 @@
 The repository used Claude-specific `CLAUDE.md` files for AI agent instructions, which are not discoverable by other AI coding assistants like GitHub Copilot, Cursor, Windsurf, and other tools that follow the emerging `AGENTS.md` open standard.
 
 **Goals:**
+
 1. Make instructions discoverable by all AI agents (vendor-neutral)
 2. Improve overall documentation for frontend and server development
 3. Maintain backward compatibility with Claude Code
@@ -48,6 +49,7 @@ zero-logement-vacant/
 ### Root AGENTS.md
 
 **Sections:**
+
 - Project overview and tech stack
 - Monorepo structure with navigation guide
 - Essential commands (Nx via Yarn)
@@ -58,6 +60,7 @@ zero-logement-vacant/
 - Common pitfalls
 
 **Key additions:**
+
 - Navigation guide for AI agents (when to work in each workspace)
 - Cross-workspace patterns (how frontend/backend share types)
 - Test fixture pattern enforcement (extend `gen*DTO()` from shared models)
@@ -66,6 +69,7 @@ zero-logement-vacant/
 ### Frontend AGENTS.md
 
 **Sections:**
+
 - Quick reference (agent-friendly task→solution mapping)
 - Project structure and file naming conventions
 - Styling guide with decision tree:
@@ -83,6 +87,7 @@ zero-logement-vacant/
 - Common pitfalls
 
 **Corrected conventions:**
+
 - Styled components with Emotion (not SCSS modules - legacy)
 - Default imports for MUI (not barrel imports)
 - Explicit rem spacing (not numeric multipliers)
@@ -91,6 +96,7 @@ zero-logement-vacant/
 ### Server AGENTS.md
 
 **Sections:**
+
 - Quick reference with task→file path mapping
 - Project structure
 - API development workflow (step-by-step with TDD emphasis)
@@ -106,6 +112,7 @@ zero-logement-vacant/
 - Common pitfalls
 
 **Key patterns documented:**
+
 - Validation happens in routers, not controllers
 - Transaction handling: controllers start, repositories use `withinTransaction()`
 - Test fixtures must extend `gen*DTO()` from shared models
@@ -116,6 +123,7 @@ zero-logement-vacant/
 ### Symlink Strategy
 
 Created symlinks at three levels:
+
 ```bash
 ln -sf AGENTS.md CLAUDE.md                    # root
 ln -sf AGENTS.md frontend/CLAUDE.md           # frontend
@@ -152,6 +160,7 @@ ln -sf AGENTS.md server/CLAUDE.md             # server
 ## Files Created/Modified
 
 **Created:**
+
 - `/AGENTS.md` (224 lines)
 - `/frontend/AGENTS.md` (484 lines)
 - `/server/AGENTS.md` (742 lines)
@@ -159,6 +168,7 @@ ln -sf AGENTS.md server/CLAUDE.md             # server
 - `/docs/plans/2026-01-26-agents-md-configuration-design.md` (this file)
 
 **Modified:**
+
 - `/CLAUDE.md` (converted to symlink)
 - `/server/CLAUDE.md` (converted to symlink)
 - `/.talismanrc` (added AGENTS.md checksums)

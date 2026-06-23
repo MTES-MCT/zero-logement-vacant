@@ -1,6 +1,9 @@
 import Typography from '@mui/material/Typography';
 import { skipToken } from '@reduxjs/toolkit/query';
-import { toOccupancy, type DatafoncierHousing } from '@zerologementvacant/models';
+import {
+  toOccupancy,
+  type DatafoncierHousing
+} from '@zerologementvacant/models';
 
 import HousingResult from '~/components/HousingResult/HousingResult';
 import { createExtendedModal } from '~/components/modals/ConfirmationModal/ExtendedModal';

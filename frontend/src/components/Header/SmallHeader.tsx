@@ -16,14 +16,16 @@ import { Link, useLocation } from 'react-router';
 
 import AccountDropdown from '~/components/Account/AccountDropdown';
 import EstablishmentSearchableSelect from '~/components/establishment/EstablishmentSearchableSelect';
+
 import logo from '../../assets/images/zlv.svg';
-import { useFilters } from '../../hooks/useFilters';
+import { useHousingFilters } from '../../hooks/HousingFiltersContext';
 import { useAppDispatch } from '../../hooks/useStore';
 import { useUser } from '../../hooks/useUser';
 import { type Establishment } from '../../models/Establishment';
 import { getUserNavItem, UserNavItems } from '../../models/UserNavItem';
 import { zlvApi } from '../../services/api.service';
 import { changeEstablishment } from '../../store/actions/authenticationAction';
+
 import styles from './small-header.module.scss';
 
 const MenuOverlay = styled(Box)(({ theme }) => ({
@@ -41,7 +43,14 @@ const MenuOverlay = styled(Box)(({ theme }) => ({
 function SmallHeader() {
   const dispatch = useAppDispatch();
   const location = useLocation();
-  const { establishment, isAdmin, isVisitor, isAuthenticated, canChangeEstablishment, authorizedEstablishments } = useUser();
+  const {
+    establishment,
+    isAdmin,
+    isVisitor,
+    isAuthenticated,
+    canChangeEstablishment,
+    authorizedEstablishments
+  } = useUser();
   const [menuOpen, setMenuOpen] = useState(false);
 
   // Close menu on navigation
@@ -70,9 +79,8 @@ function SmallHeader() {
       ),
       isActive:
         location.pathname.startsWith(link.url) ||
-        (link.activeFor?.some((path) =>
-          location.pathname.startsWith(path)
-        ) ?? false)
+        (link.activeFor?.some((path) => location.pathname.startsWith(path)) ??
+          false)
     };
     const props = link.items?.length
       ? {
@@ -93,7 +101,7 @@ function SmallHeader() {
     };
   }
 
-  const { onResetFilters } = useFilters({ storage: 'store' });
+  const { onReset } = useHousingFilters();
 
   async function onChangeEstablishment(
     establishment: Establishment
@@ -101,7 +109,7 @@ function SmallHeader() {
     await dispatch(changeEstablishment(establishment.id)).unwrap();
     // Reset all state instead of reloading the page
     dispatch(zlvApi.util.resetApiState());
-    onResetFilters();
+    onReset();
   }
 
   const navItems: MainNavigationProps.Item[] = isAuthenticated

@@ -1,3 +1,5 @@
+import { constants } from 'http2';
+
 import {
   AddressKinds,
   HousingOwnerDTO,
@@ -10,8 +12,6 @@ import async from 'async';
 import { Array, pipe, Record } from 'effect';
 import { RequestHandler } from 'express';
 import { AuthenticatedRequest } from 'express-jwt';
-import { body, ValidationChain } from 'express-validator';
-import { constants } from 'http2';
 import type { ParsedQs } from 'qs';
 import { match } from 'ts-pattern';
 import { v4 as uuidv4 } from 'uuid';
@@ -35,13 +35,15 @@ import banAddressesRepository from '~/repositories/banAddressesRepository';
 import eventRepository from '~/repositories/eventRepository';
 import housingOwnerRepository from '~/repositories/housingOwnerRepository';
 import housingRepository from '~/repositories/housingRepository';
-import ownerRepository, { refreshMultiOwnerFlags } from '~/repositories/ownerRepository';
+import ownerRepository, {
+  refreshMultiOwnerFlags
+} from '~/repositories/ownerRepository';
 import ownerDistanceService from '~/services/ownerDistanceService';
-import { isArrayOf, isString } from '~/utils/validators';
 
-type ListOwnersQuery = ParsedQs & PaginationApi & {
-  search?: string;
-};
+type ListOwnersQuery = ParsedQs &
+  PaginationApi & {
+    search?: string;
+  };
 
 const list: RequestHandler<
   never,
@@ -482,7 +484,8 @@ const updateHousingOwners: RequestHandler<
   ];
 
   await startTransaction(async () => {
-    const affectedOwnerIds = await housingOwnerRepository.saveMany(housingOwners);
+    const affectedOwnerIds =
+      await housingOwnerRepository.saveMany(housingOwners);
     await Promise.all([
       refreshMultiOwnerFlags(affectedOwnerIds),
       eventRepository.insertManyHousingOwnerEvents(events)
@@ -493,40 +496,12 @@ const updateHousingOwners: RequestHandler<
     .json(housingOwners.map(toHousingOwnerDTO));
 };
 
-const ownerValidators: ValidationChain[] = [
-  body('fullName').isString(),
-  body('birthDate').isString().isISO8601().optional({ nullable: true }),
-  body('rawAddress').custom(isArrayOf(isString)).optional({ nullable: true }),
-  body('email').optional({ checkFalsy: true }).isEmail(),
-  body('phone').isString().optional({ nullable: true }),
-  body('banAddress').optional({ nullable: true }).custom((value) => {
-    if (value === null || value === undefined) {
-      return true;
-    }
-    if (!value.banId || typeof value.banId !== 'string' || value.banId.trim() === '') {
-      throw new Error("L'adresse BAN doit avoir un identifiant BAN. Veuillez sélectionner une adresse depuis la liste de suggestions.");
-    }
-    if (!value.label || typeof value.label !== 'string' || value.label.trim() === '') {
-      throw new Error("L'adresse BAN doit avoir un libellé. Veuillez sélectionner une adresse depuis la liste de suggestions.");
-    }
-    if (!value.postalCode || typeof value.postalCode !== 'string' || value.postalCode.trim() === '') {
-      throw new Error("L'adresse BAN doit avoir un code postal. Veuillez sélectionner une adresse depuis la liste de suggestions.");
-    }
-    if (!value.city || typeof value.city !== 'string' || value.city.trim() === '') {
-      throw new Error("L'adresse BAN doit avoir une ville. Veuillez sélectionner une adresse depuis la liste de suggestions.");
-    }
-    return true;
-  }),
-  body('additionalAddress').isString().optional({ nullable: true })
-];
-
 const ownerController = {
   list,
   get,
   search,
   create,
   update,
-  ownerValidators,
   listByHousing,
   updateHousingOwners
 };

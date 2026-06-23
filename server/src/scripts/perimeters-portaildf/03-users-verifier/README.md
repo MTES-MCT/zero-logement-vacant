@@ -40,17 +40,17 @@ export DB_PASSWORD="your_password"
 
 ### Command Line Options
 
-| Option | Short | Default | Description |
-|--------|-------|---------|-------------|
-| `--users-file` | `-u` | `users.jsonl` | Path to JSON Lines users file |
-| `--structures-file` | `-s` | `structures.jsonl` | Path to JSON Lines structures file |
-| `--db-host` | `-h` | `localhost` | Database host |
-| `--db-port` | `-p` | `5432` | Database port |
-| `--db-name` | `-d` | *Required* | Database name |
-| `--db-user` | `-U` | *Required* | Database user |
-| `--db-password` | `-w` | *Required* | Database password |
-| `--dry-run` | | `False` | Show changes without applying them |
-| `--verbose` | `-v` | `False` | Enable verbose logging |
+| Option              | Short | Default            | Description                        |
+| ------------------- | ----- | ------------------ | ---------------------------------- |
+| `--users-file`      | `-u`  | `users.jsonl`      | Path to JSON Lines users file      |
+| `--structures-file` | `-s`  | `structures.jsonl` | Path to JSON Lines structures file |
+| `--db-host`         | `-h`  | `localhost`        | Database host                      |
+| `--db-port`         | `-p`  | `5432`             | Database port                      |
+| `--db-name`         | `-d`  | _Required_         | Database name                      |
+| `--db-user`         | `-U`  | _Required_         | Database user                      |
+| `--db-password`     | `-w`  | _Required_         | Database password                  |
+| `--dry-run`         |       | `False`            | Show changes without applying them |
+| `--verbose`         | `-v`  | `False`            | Enable verbose logging             |
 
 ## Usage
 
@@ -109,34 +109,49 @@ CREATE TABLE public.users (
 Each line contains user data:
 
 ```json
-{"id_user": 1, "email": "user@example.com", "date_rattachement": "2024-01-15T10:30:00+01:00", "structure": 123, "date_expiration": "2025-12-31T23:59:59+01:00", "exterieur": false, "gestionnaire": true, "groupe": 1, "cgu_valide": "2024-01-15T10:30:00+01:00", "str_mandataire": null}
+{
+  "id_user": 1,
+  "email": "user@example.com",
+  "date_rattachement": "2024-01-15T10:30:00+01:00",
+  "structure": 123,
+  "date_expiration": "2025-12-31T23:59:59+01:00",
+  "exterieur": false,
+  "gestionnaire": true,
+  "groupe": 1,
+  "cgu_valide": "2024-01-15T10:30:00+01:00",
+  "str_mandataire": null
+}
 ```
 
 #### Required User Fields
 
-| Field | Description |
-|-------|-------------|
-| `id_user` | Unique user identifier |
-| `email` | User email address |
+| Field             | Description                            |
+| ----------------- | -------------------------------------- |
+| `id_user`         | Unique user identifier                 |
+| `email`           | User email address                     |
 | `date_expiration` | User rights expiration date (ISO-8601) |
-| `structure` | Associated structure ID |
-| `cgu_valide` | Terms of service validation date |
+| `structure`       | Associated structure ID                |
+| `cgu_valide`      | Terms of service validation date       |
 
 ### Structures File (`structures.jsonl`)
 
 Each line contains structure data:
 
 ```json
-{"id_structure": 123, "siret": "12345678901234", "acces_lovac": "2025-12-31T23:59:59+01:00"}
+{
+  "id_structure": 123,
+  "siret": "12345678901234",
+  "acces_lovac": "2025-12-31T23:59:59+01:00"
+}
 ```
 
 #### Required Structure Fields
 
-| Field | Description |
-|-------|-------------|
-| `id_structure` | Unique structure identifier |
-| `siret` | 14-digit SIRET number |
-| `acces_lovac` | LOVAC access expiration date (ISO-8601) or null |
+| Field          | Description                                     |
+| -------------- | ----------------------------------------------- |
+| `id_structure` | Unique structure identifier                     |
+| `siret`        | 14-digit SIRET number                           |
+| `acces_lovac`  | LOVAC access expiration date (ISO-8601) or null |
 
 ## Processing Logic
 
@@ -153,6 +168,7 @@ Each line contains structure data:
 ## Output Examples
 
 ### Dry Run Mode
+
 ```
 DRY RUN MODE - 23 actions would be performed:
   DELETE: john.doe@example.com - user absent from API
@@ -160,6 +176,7 @@ DRY RUN MODE - 23 actions would be performed:
 ```
 
 ### Normal Execution
+
 ```
 === AUTOMATIC DEACTIVATION SCRIPT ===
 Users loaded from API: 1,247
@@ -212,6 +229,7 @@ Total actions: 23
 ### Common Issues
 
 **Database Connection Error:**
+
 ```bash
 # Check connection parameters
 python users-verifier.py --verbose
@@ -221,21 +239,27 @@ psql -h localhost -p 5432 -d mydb -U myuser
 ```
 
 **Missing Schema:**
+
 ```
 Missing columns: suspended_at, suspended_cause
 ```
+
 **Solution:** Add required columns to the users table or run database migrations.
 
 **File Not Found:**
+
 ```
 JSON Lines file not found: users.jsonl
 ```
+
 **Solution:** Ensure the JSONL files exist or specify correct paths with `--users-file` and `--structures-file`.
 
 **Structure Not Found:**
+
 ```
 Structure 123 not found in structures file
 ```
+
 **Solution:** Ensure the structures file contains all referenced structures or regenerate it.
 
 ### Debug Mode
@@ -255,7 +279,7 @@ python users-verifier.py --dry-run --verbose
 
 ```sql
 -- Check user status
-SELECT 
+SELECT
     COUNT(*) as total,
     COUNT(deleted_at) as deleted,
     COUNT(suspended_at) as suspended
@@ -268,7 +292,7 @@ WHERE deleted_at > NOW() - INTERVAL '1 day'
    OR suspended_at > NOW() - INTERVAL '1 day';
 
 -- Suspension reasons analysis
-SELECT 
+SELECT
     suspended_cause,
     COUNT(*) as count
 FROM public.users

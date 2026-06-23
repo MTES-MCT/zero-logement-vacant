@@ -19,10 +19,10 @@ on:
   workflow_dispatch:
     inputs:
       mode:
-        description: "What to run"
+        description: 'What to run'
         type: choice
         required: true
-        default: "asset"
+        default: 'asset'
         options:
           - asset
           - job
@@ -35,7 +35,7 @@ on:
         type: string
         required: true
       use_motherduck:
-        description: "Write to MotherDuck (prod warehouse)?"
+        description: 'Write to MotherDuck (prod warehouse)?'
         type: boolean
         required: false
         default: true

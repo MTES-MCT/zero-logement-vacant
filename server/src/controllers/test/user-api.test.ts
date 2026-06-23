@@ -1,6 +1,7 @@
-import { fc, test } from '@fast-check/vitest';
-import { vi } from 'vitest';
+import { constants } from 'http2';
+
 import { faker } from '@faker-js/faker/locale/fr';
+import { fc, test } from '@fast-check/vitest';
 import {
   TIME_PER_WEEK_VALUES,
   UserRole,
@@ -8,10 +9,10 @@ import {
   type UserUpdatePayload
 } from '@zerologementvacant/models';
 import bcrypt from 'bcryptjs';
-import { constants } from 'http2';
 import randomstring from 'randomstring';
 import request from 'supertest';
 import { v4 as uuidv4 } from 'uuid';
+import { vi } from 'vitest';
 
 import db from '~/infra/database';
 
@@ -50,13 +51,9 @@ import {
   formatProspectApi,
   Prospects
 } from '~/repositories/prospectRepository';
-import {
-  toUserDBO,
-  Users,
-  USERS_TABLE
-} from '~/repositories/userRepository';
-import { TEST_ACCOUNTS } from '~/services/ceremaService/consultUserService';
+import { toUserDBO, Users, USERS_TABLE } from '~/repositories/userRepository';
 import ceremaService from '~/services/ceremaService';
+import { TEST_ACCOUNTS } from '~/services/ceremaService/consultUserService';
 import {
   genEstablishmentApi,
   genProspectApi,
@@ -174,7 +171,12 @@ describe('User API', () => {
       prospect = genProspectApi(establishment);
       await Prospects().insert(formatProspectApi(prospect));
       vi.spyOn(ceremaService, 'consultUsers').mockResolvedValue([
-        { email: prospect.email, establishmentSiren: '*', hasAccount: true, hasCommitment: true }
+        {
+          email: prospect.email,
+          establishmentSiren: '*',
+          hasAccount: true,
+          hasCommitment: true
+        }
       ]);
     });
 
@@ -316,6 +318,68 @@ describe('User API', () => {
         id: establishment.id,
         available: true
       });
+    });
+  });
+
+  describe('POST /users/creation — validation', () => {
+    const testRoute = '/users/creation';
+
+    it('should return 400 when body.email is missing', async () => {
+      const { status, body } = await request(url)
+        .post(testRoute)
+        .send({
+          password: 'Password123abc!',
+          establishmentId: uuidv4()
+        })
+        .set('Content-Type', 'application/json');
+
+      expect(status).toBe(constants.HTTP_STATUS_BAD_REQUEST);
+      expect(body).toMatchObject({ name: 'ValidationError' });
+    });
+
+    it('should return 400 when body.email is malformed', async () => {
+      const { status, body } = await request(url)
+        .post(testRoute)
+        .send({
+          email: 'not-an-email',
+          password: 'Password123abc!',
+          establishmentId: uuidv4()
+        })
+        .set('Content-Type', 'application/json');
+
+      expect(status).toBe(constants.HTTP_STATUS_BAD_REQUEST);
+      expect(body).toMatchObject({ name: 'ValidationError' });
+      expect(body.message).toMatch(/email/i);
+    });
+
+    it('should return 400 when body.password is weak (too short)', async () => {
+      const { status, body } = await request(url)
+        .post(testRoute)
+        .send({
+          email: 'test@example.com',
+          password: 'short',
+          establishmentId: uuidv4()
+        })
+        .set('Content-Type', 'application/json');
+
+      expect(status).toBe(constants.HTTP_STATUS_BAD_REQUEST);
+      expect(body).toMatchObject({ name: 'ValidationError' });
+      expect(body.message).toMatch(/password|caractères/i);
+    });
+
+    it('should return 400 when body.establishmentId is not a UUID', async () => {
+      const { status, body } = await request(url)
+        .post(testRoute)
+        .send({
+          email: 'test@example.com',
+          password: 'Password123abc!',
+          establishmentId: 'not-a-uuid'
+        })
+        .set('Content-Type', 'application/json');
+
+      expect(status).toBe(constants.HTTP_STATUS_BAD_REQUEST);
+      expect(body).toMatchObject({ name: 'ValidationError' });
+      expect(body.message).toMatch(/establishmentId/i);
     });
   });
 

@@ -12,33 +12,33 @@
 
 ## File Map
 
-| File | Role |
-|------|------|
-| `packages/factories/package.json` | Package manifest, deps |
-| `packages/factories/tsconfig.json` | Project-level tsconfig (references lib + spec) |
-| `packages/factories/tsconfig.lib.json` | Compilation config (excludes tests) |
-| `packages/factories/tsconfig.spec.json` | Test compilation config |
-| `packages/factories/vitest.config.ts` | Vitest config |
-| `packages/factories/vitest.setup.ts` | Vitest setup (jest-extended) |
-| `packages/factories/src/entity-map.ts` | `EntityMap` type: table name → DTO |
-| `packages/factories/src/adapter.ts` | `Adapter` interface |
-| `packages/factories/src/memory-adapter.ts` | `MemoryAdapter` concrete class |
-| `packages/factories/src/memory-adapter.test.ts` | Tests for MemoryAdapter |
-| `packages/factories/src/factories/user.ts` | User factory |
-| `packages/factories/src/factories/user.test.ts` | Tests for user factory |
-| `packages/factories/src/factories/establishment.ts` | Establishment factory |
-| `packages/factories/src/factories/establishment.test.ts` | Tests for establishment factory |
-| `packages/factories/src/factories/owner.ts` | Owner factory |
-| `packages/factories/src/factories/owner.test.ts` | Tests for owner factory |
-| `packages/factories/src/factories/housing.ts` | Housing factory |
-| `packages/factories/src/factories/housing.test.ts` | Tests for housing factory |
-| `packages/factories/src/factories/group.ts` | Group factory |
-| `packages/factories/src/factories/group.test.ts` | Tests for group factory |
-| `packages/factories/src/factories/campaign.ts` | Campaign factory |
-| `packages/factories/src/factories/campaign.test.ts` | Tests for campaign factory |
-| `packages/factories/src/create-factories.ts` | `createFactories()` + `Factories` type |
-| `packages/factories/src/create-factories.test.ts` | Integration test |
-| `packages/factories/src/index.ts` | Public exports |
+| File                                                     | Role                                           |
+| -------------------------------------------------------- | ---------------------------------------------- |
+| `packages/factories/package.json`                        | Package manifest, deps                         |
+| `packages/factories/tsconfig.json`                       | Project-level tsconfig (references lib + spec) |
+| `packages/factories/tsconfig.lib.json`                   | Compilation config (excludes tests)            |
+| `packages/factories/tsconfig.spec.json`                  | Test compilation config                        |
+| `packages/factories/vitest.config.ts`                    | Vitest config                                  |
+| `packages/factories/vitest.setup.ts`                     | Vitest setup (jest-extended)                   |
+| `packages/factories/src/entity-map.ts`                   | `EntityMap` type: table name → DTO             |
+| `packages/factories/src/adapter.ts`                      | `Adapter` interface                            |
+| `packages/factories/src/memory-adapter.ts`               | `MemoryAdapter` concrete class                 |
+| `packages/factories/src/memory-adapter.test.ts`          | Tests for MemoryAdapter                        |
+| `packages/factories/src/factories/user.ts`               | User factory                                   |
+| `packages/factories/src/factories/user.test.ts`          | Tests for user factory                         |
+| `packages/factories/src/factories/establishment.ts`      | Establishment factory                          |
+| `packages/factories/src/factories/establishment.test.ts` | Tests for establishment factory                |
+| `packages/factories/src/factories/owner.ts`              | Owner factory                                  |
+| `packages/factories/src/factories/owner.test.ts`         | Tests for owner factory                        |
+| `packages/factories/src/factories/housing.ts`            | Housing factory                                |
+| `packages/factories/src/factories/housing.test.ts`       | Tests for housing factory                      |
+| `packages/factories/src/factories/group.ts`              | Group factory                                  |
+| `packages/factories/src/factories/group.test.ts`         | Tests for group factory                        |
+| `packages/factories/src/factories/campaign.ts`           | Campaign factory                               |
+| `packages/factories/src/factories/campaign.test.ts`      | Tests for campaign factory                     |
+| `packages/factories/src/create-factories.ts`             | `createFactories()` + `Factories` type         |
+| `packages/factories/src/create-factories.test.ts`        | Integration test                               |
+| `packages/factories/src/index.ts`                        | Public exports                                 |
 
 ---
 
@@ -101,9 +101,7 @@
   },
   "include": ["src/**/*.ts"],
   "exclude": ["src/**/*.test.ts"],
-  "references": [
-    { "path": "../models/tsconfig.lib.json" }
-  ]
+  "references": [{ "path": "../models/tsconfig.lib.json" }]
 }
 ```
 
@@ -119,9 +117,7 @@
     "types": ["jest-extended", "node", "vitest/globals"]
   },
   "include": ["src/**/*.test.ts"],
-  "references": [
-    { "path": "./tsconfig.lib.json" }
-  ]
+  "references": [{ "path": "./tsconfig.lib.json" }]
 }
 ```
 
@@ -180,6 +176,7 @@ git commit -m "chore: scaffold @zerologementvacant/factories package"
 ## Task 2: EntityMap + Adapter interface
 
 **Files:**
+
 - Create: `packages/factories/src/entity-map.ts`
 - Create: `packages/factories/src/adapter.ts`
 
@@ -238,6 +235,7 @@ git commit -m "feat(factories): add EntityMap and Adapter interface"
 ## Task 3: MemoryAdapter
 
 **Files:**
+
 - Create: `packages/factories/src/memory-adapter.ts`
 - Create: `packages/factories/src/memory-adapter.test.ts`
 
@@ -311,6 +309,7 @@ git commit -m "feat(factories): add MemoryAdapter"
 ## Task 4: User factory
 
 **Files:**
+
 - Create: `packages/factories/src/factories/user.ts`
 - Create: `packages/factories/src/factories/user.test.ts`
 
@@ -346,7 +345,10 @@ describe('createUserFactory', () => {
 
     const user = await factory.create();
 
-    expect(spy).toHaveBeenCalledWith('users', expect.objectContaining({ id: user.id }));
+    expect(spy).toHaveBeenCalledWith(
+      'users',
+      expect.objectContaining({ id: user.id })
+    );
   });
 
   it('builds a list of users', () => {
@@ -420,6 +422,7 @@ git commit -m "feat(factories): add user factory"
 ## Task 5: Establishment factory
 
 **Files:**
+
 - Create: `packages/factories/src/factories/establishment.ts`
 - Create: `packages/factories/src/factories/establishment.test.ts`
 
@@ -454,7 +457,10 @@ describe('createEstablishmentFactory', () => {
 
     const establishment = await factory.create();
 
-    expect(spy).toHaveBeenCalledWith('establishments', expect.objectContaining({ id: establishment.id }));
+    expect(spy).toHaveBeenCalledWith(
+      'establishments',
+      expect.objectContaining({ id: establishment.id })
+    );
   });
 
   it('builds a list of establishments', () => {
@@ -525,6 +531,7 @@ git commit -m "feat(factories): add establishment factory"
 ## Task 6: Owner factory
 
 **Files:**
+
 - Create: `packages/factories/src/factories/owner.ts`
 - Create: `packages/factories/src/factories/owner.test.ts`
 
@@ -558,7 +565,10 @@ describe('createOwnerFactory', () => {
 
     const owner = await factory.create();
 
-    expect(spy).toHaveBeenCalledWith('owners', expect.objectContaining({ id: owner.id }));
+    expect(spy).toHaveBeenCalledWith(
+      'owners',
+      expect.objectContaining({ id: owner.id })
+    );
   });
 
   it('builds a list of owners', () => {
@@ -662,6 +672,7 @@ git commit -m "feat(factories): add owner factory"
 ## Task 7: Housing factory
 
 **Files:**
+
 - Create: `packages/factories/src/factories/housing.ts`
 - Create: `packages/factories/src/factories/housing.test.ts`
 
@@ -699,7 +710,10 @@ describe('createHousingFactory', () => {
 
     const housing = await factory.create();
 
-    expect(spy).toHaveBeenCalledWith('housings', expect.objectContaining({ id: housing.id }));
+    expect(spy).toHaveBeenCalledWith(
+      'housings',
+      expect.objectContaining({ id: housing.id })
+    );
   });
 
   it('builds a list of housings', () => {
@@ -838,7 +852,9 @@ export function createHousingFactory(adapter: Adapter) {
       ]),
       energyConsumptionAt: faker.helpers.maybe(() => faker.date.past()) ?? null,
       occupancy: faker.helpers.arrayElement(READ_WRITE_OCCUPANCY_VALUES),
-      occupancyIntended: faker.helpers.arrayElement(READ_WRITE_OCCUPANCY_VALUES),
+      occupancyIntended: faker.helpers.arrayElement(
+        READ_WRITE_OCCUPANCY_VALUES
+      ),
       campaignIds: [],
       source: faker.helpers.arrayElement(HOUSING_SOURCE_VALUES),
       plotId:
@@ -851,11 +867,14 @@ export function createHousingFactory(adapter: Adapter) {
       rentalValue: faker.number.int({ min: 500, max: 1000 }),
       lastMutationType: faker.helpers.arrayElement(MUTATION_TYPE_VALUES),
       lastMutationDate:
-        faker.helpers.maybe(() => faker.date.past({ years: 20 }).toJSON()) ?? null,
+        faker.helpers.maybe(() => faker.date.past({ years: 20 }).toJSON()) ??
+        null,
       lastTransactionDate:
-        faker.helpers.maybe(() => faker.date.past({ years: 20 }).toJSON()) ?? null,
+        faker.helpers.maybe(() => faker.date.past({ years: 20 }).toJSON()) ??
+        null,
       lastTransactionValue:
-        faker.helpers.maybe(() => Number(faker.finance.amount({ dec: 0 }))) ?? null
+        faker.helpers.maybe(() => Number(faker.finance.amount({ dec: 0 }))) ??
+        null
     };
   }).onCreate((entity) => adapter.create('housings', entity));
 }
@@ -881,6 +900,7 @@ git commit -m "feat(factories): add housing factory"
 ## Task 8: Group factory
 
 **Files:**
+
 - Create: `packages/factories/src/factories/group.ts`
 - Create: `packages/factories/src/factories/group.test.ts`
 
@@ -918,7 +938,10 @@ describe('createGroupFactory', () => {
 
     const group = await factory.create();
 
-    expect(spy).toHaveBeenCalledWith('groups', expect.objectContaining({ id: group.id }));
+    expect(spy).toHaveBeenCalledWith(
+      'groups',
+      expect.objectContaining({ id: group.id })
+    );
   });
 
   it('builds a list of groups', () => {
@@ -979,6 +1002,7 @@ git commit -m "feat(factories): add group factory"
 ## Task 9: Campaign factory
 
 **Files:**
+
 - Create: `packages/factories/src/factories/campaign.ts`
 - Create: `packages/factories/src/factories/campaign.test.ts`
 
@@ -1015,7 +1039,10 @@ describe('createCampaignFactory', () => {
 
     const campaign = await factory.create();
 
-    expect(spy).toHaveBeenCalledWith('campaigns', expect.objectContaining({ id: campaign.id }));
+    expect(spy).toHaveBeenCalledWith(
+      'campaigns',
+      expect.objectContaining({ id: campaign.id })
+    );
   });
 
   it('builds a list of campaigns', () => {
@@ -1107,6 +1134,7 @@ git commit -m "feat(factories): add campaign factory"
 ## Task 10: createFactories + public exports
 
 **Files:**
+
 - Create: `packages/factories/src/create-factories.ts`
 - Modify: `packages/factories/src/index.ts`
 - Create: `packages/factories/src/create-factories.test.ts`

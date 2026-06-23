@@ -5,8 +5,7 @@ import {
 } from '@zerologementvacant/models';
 import schemas from '@zerologementvacant/schemas';
 import Router from 'express-promise-router';
-import { param } from 'express-validator';
-import { object, string } from 'yup';
+import { array, number, object, string } from 'yup';
 
 import authController from '~/controllers/auth-controller';
 import buildingController from '~/controllers/buildingController';
@@ -35,11 +34,9 @@ import fileTypeMiddleware from '~/middlewares/fileTypeMiddleware';
 import shapefileValidationMiddleware from '~/middlewares/shapefileValidation';
 import { upload } from '~/middlewares/upload';
 import validator from '~/middlewares/validator';
-import validatorNext from '~/middlewares/validator-next';
 import zipValidationMiddleware from '~/middlewares/zipValidation';
 import { paginationSchema } from '~/models/PaginationApi';
 import sortApi from '~/models/SortApi';
-import { isUUIDParam } from '~/utils/validators';
 
 const router = Router();
 
@@ -67,7 +64,7 @@ router.post(
 
 router.get(
   '/documents/:id',
-  validatorNext.validate({
+  validator.validate({
     params: object({ id: schemas.id })
   }),
   documentController.get
@@ -76,7 +73,7 @@ router.get(
 router.put(
   '/documents/:id',
   hasRole([UserRole.USUAL, UserRole.ADMIN]),
-  validatorNext.validate({
+  validator.validate({
     params: object({ id: schemas.id }),
     body: schemas.documentPayload
   }),
@@ -86,7 +83,7 @@ router.put(
 router.delete(
   '/documents/:id',
   hasRole([UserRole.USUAL, UserRole.ADMIN]),
-  validatorNext.validate({
+  validator.validate({
     params: object({ id: schemas.id })
   }),
   documentController.remove
@@ -94,7 +91,7 @@ router.delete(
 
 router.get(
   '/housing/:id/documents',
-  validatorNext.validate({
+  validator.validate({
     params: object({ id: schemas.id })
   }),
   documentController.listByHousing
@@ -103,7 +100,7 @@ router.get(
 router.post(
   '/housing/:id/documents',
   hasRole([UserRole.USUAL, UserRole.ADMIN]),
-  validatorNext.validate({
+  validator.validate({
     params: object({ id: schemas.id }),
     body: schemas.housingDocumentPayload
   }),
@@ -113,7 +110,7 @@ router.post(
 router.delete(
   '/housing/:housingId/documents/:documentId',
   hasRole([UserRole.USUAL, UserRole.ADMIN]),
-  validatorNext.validate({
+  validator.validate({
     params: object({
       housingId: schemas.id,
       documentId: schemas.id
@@ -124,7 +121,7 @@ router.delete(
 
 router.get(
   '/housing',
-  validatorNext.validate({
+  validator.validate({
     query: schemas.housingFilters
       .concat(sortApi.sortSchema)
       .concat(paginationSchema)
@@ -133,7 +130,7 @@ router.get(
 );
 router.post(
   '/housing',
-  validatorNext.validate({
+  validator.validate({
     body: object({
       localId: string().required().length(12)
     })
@@ -142,23 +139,40 @@ router.post(
 );
 router.get(
   '/housing/count',
-  validatorNext.validate({
+  validator.validate({
     query: schemas.housingFilters
       .concat(sortApi.sortSchema)
       .concat(paginationSchema)
   }),
   housingController.count
 );
+// `:id` accepts EITHER a 12-char localId OR a UUID, so we cannot reuse the
+// UUID-only `schemas.id` here.
 router.get(
   '/housing/:id',
-  housingController.getValidators,
-  validator.validate,
+  validator.validate({
+    params: object({
+      id: string()
+        .required()
+        .test(
+          'localId-or-uuid',
+          ':id must be a 12-char localId or a UUID',
+          (value) => {
+            if (!value) return false;
+            if (value.length === 12) return true;
+            return /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(
+              value
+            );
+          }
+        )
+    })
+  }),
   housingController.get
 );
 router.put(
   '/housing',
   hasRole([UserRole.USUAL, UserRole.ADMIN]),
-  validatorNext.validate({
+  validator.validate({
     body: schemas.housingBatchUpdatePayload
   }),
   housingController.updateMany
@@ -166,7 +180,7 @@ router.put(
 router.put(
   '/housing/:id',
   hasRole([UserRole.USUAL, UserRole.ADMIN]),
-  validatorNext.validate({
+  validator.validate({
     params: object({ id: schemas.id }),
     body: schemas.housingUpdatePayload
   }),
@@ -176,12 +190,12 @@ router.put(
 // Buildings
 router.get(
   '/buildings',
-  validatorNext.validate({ query: schemas.buildingFilters }),
+  validator.validate({ query: schemas.buildingFilters }),
   buildingController.find
 );
 router.get(
   '/buildings/:id',
-  validatorNext.validate({
+  validator.validate({
     params: object({
       id: string().required()
     })
@@ -189,7 +203,6 @@ router.get(
   buildingController.get
 );
 
-router.get('/precisions', precisionController.find);
 router.get('/housing/:id/precisions', precisionController.findByHousing);
 router.put(
   '/housing/:id/precisions',
@@ -199,64 +212,74 @@ router.put(
 router.get('/groups', groupController.list);
 router.post(
   '/groups',
-  validatorNext.validate({
+  validator.validate({
     body: schemas.groupCreationPayload
   }),
   groupController.create
 );
 router.get(
   '/groups/:id',
-  groupController.showValidators,
-  validator.validate,
+  validator.validate({
+    params: object({ id: schemas.id })
+  }),
   groupController.show
 );
 router.put(
   '/groups/:id',
-  groupController.updateValidators,
-  validator.validate,
+  validator.validate({
+    params: object({ id: schemas.id }),
+    body: schemas.groupCreationPayload
+  }),
   groupController.update
 );
 router.delete(
   '/groups/:id',
-  groupController.removeValidators,
-  validator.validate,
+  validator.validate({
+    params: object({ id: schemas.id })
+  }),
   groupController.remove
 );
 router.get(
   '/groups/:id/export',
-  housingExportController.exportGroupValidators,
-  validator.validate,
+  validator.validate({
+    params: object({ id: schemas.id })
+  }),
   housingExportController.exportGroup
 );
 router.post(
   '/groups/:id/housing',
-  groupController.addHousingValidators,
-  validator.validate,
+  validator.validate({
+    params: object({ id: schemas.id }),
+    body: schemas.groupHousingPayload
+  }),
   groupController.addHousing
 );
 router.delete(
   '/groups/:id/housing',
-  groupController.removeHousingValidators,
-  validator.validate,
+  validator.validate({
+    params: object({ id: schemas.id }),
+    body: schemas.groupHousingPayload
+  }),
   groupController.removeHousing
 );
 
 router.get(
   '/campaigns',
-  campaignController.listValidators,
-  validator.validate,
+  validator.validate({
+    query: schemas.campaignFilters.concat(schemas.sort)
+  }),
   campaignController.list
 );
 router.get(
   '/campaigns/:id',
-  validatorNext.validate({
+  validator.validate({
     params: object({ id: schemas.id })
   }),
   campaignController.get
 );
 router.put(
   '/campaigns/:id',
-  validatorNext.validate({
+  validator.validate({
     params: object({ id: schemas.id }),
     body: schemas.campaignUpdateNextPayload
   }),
@@ -264,14 +287,14 @@ router.put(
 );
 router.delete(
   '/campaigns/:id',
-  validatorNext.validate({
+  validator.validate({
     params: object({ id: schemas.id })
   }),
   campaignController.removeCampaign
 );
 router.post(
   '/groups/:id/campaigns',
-  validatorNext.validate({
+  validator.validate({
     body: schemas.campaignCreationPayload,
     params: object({ id: schemas.id })
   }),
@@ -281,7 +304,7 @@ router.post(
 // New route
 router.post(
   '/campaigns/:id/exports',
-  validatorNext.validate({
+  validator.validate({
     params: object({ id: schemas.id }),
     body: object({
       type: string().oneOf(['drafts', 'recipients']).required()
@@ -291,14 +314,14 @@ router.post(
 );
 router.get(
   '/campaigns/:id/export',
-  validatorNext.validate({
+  validator.validate({
     params: object({ id: schemas.id })
   }),
   housingExportController.exportCampaign
 );
 router.delete(
   '/campaigns/:id/housings',
-  validatorNext.validate({
+  validator.validate({
     params: object({ id: schemas.id }),
     body: schemas.housingFilters
   }),
@@ -308,12 +331,12 @@ router.delete(
 router.get('/drafts', draftController.list);
 router.post(
   '/drafts',
-  validatorNext.validate({ body: schemas.draftCreationPayload }),
+  validator.validate({ body: schemas.draftCreationPayload }),
   draftController.createNext
 );
 router.put(
   '/drafts/:id',
-  validatorNext.validate({
+  validator.validate({
     params: object({ id: schemas.id }),
     body: schemas.draftUpdatePayload
   }),
@@ -322,7 +345,7 @@ router.put(
 
 router.get(
   '/owners',
-  validatorNext.validate({
+  validator.validate({
     query: schemas.ownerFilters.concat(paginationSchema)
   }),
   ownerController.list
@@ -331,19 +354,20 @@ router.post('/owners', ownerController.search);
 router.get('/owners/:id', ownerController.get);
 router.post(
   '/owners/creation',
-  ownerController.ownerValidators,
-  validator.validate,
+  validator.validate({ body: schemas.ownerPayload }),
   ownerController.create
 );
 router.put(
   '/owners/:id',
-  [param('id').isUUID().notEmpty(), ...ownerController.ownerValidators],
-  validator.validate,
+  validator.validate({
+    params: object({ id: schemas.id }),
+    body: schemas.ownerPayload
+  }),
   ownerController.update
 );
 router.get(
   '/housings/:id/owners',
-  validatorNext.validate({ params: object({ id: schemas.id }) }),
+  validator.validate({ params: object({ id: schemas.id }) }),
   ownerController.listByHousing
 );
 router.put(
@@ -355,7 +379,7 @@ router.put(
 // Housing owners
 router.get(
   '/owners/:id/housings',
-  validatorNext.validate({
+  validator.validate({
     params: object({ id: schemas.id })
   }),
   housingOwnerController.listByOwner
@@ -363,27 +387,30 @@ router.get(
 
 router.get(
   '/owners/:id/events',
-  [isUUIDParam('id')],
-  validator.validate,
+  validator.validate({
+    params: object({ id: schemas.id })
+  }),
   eventController.listByOwnerId
 );
 router.get(
   '/housing/:id/events',
-  [isUUIDParam('id')],
-  validator.validate,
+  validator.validate({
+    params: object({ id: schemas.id })
+  }),
   eventController.listByHousingId
 );
 
 router.get(
   '/housing/:id/notes',
-  [isUUIDParam('id')],
-  validator.validate,
+  validator.validate({
+    params: object({ id: schemas.id })
+  }),
   noteController.findByHousing
 );
 router.post(
   '/housing/:id/notes',
   hasRole([UserRole.USUAL, UserRole.ADMIN]),
-  validatorNext.validate({
+  validator.validate({
     params: object({ id: schemas.id }),
     body: schemas.notePayload
   }),
@@ -392,7 +419,7 @@ router.post(
 router.put(
   '/notes/:id',
   hasRole([UserRole.USUAL, UserRole.ADMIN]),
-  validatorNext.validate({
+  validator.validate({
     params: object({ id: schemas.id }),
     body: schemas.notePayload
   }),
@@ -405,16 +432,17 @@ router.delete(
 );
 
 // TODO: rework and merge this API with the User API
-router.get('/account', [], validator.validate, authController.get);
+router.get('/account', authController.get);
 router.put(
   '/account',
-  validatorNext.validate(authController.updateAccountValidators),
+  validator.validate(authController.updateAccountValidators),
   authController.updateAccount
 );
 router.get(
   '/account/establishments/:establishmentId',
-  [isUUIDParam('establishmentId')],
-  validator.validate,
+  validator.validate({
+    params: object({ establishmentId: schemas.id })
+  }),
   authController.changeEstablishment
 );
 
@@ -422,14 +450,14 @@ router.get(
 
 router.get(
   '/users',
-  validatorNext.validate({
+  validator.validate({
     query: schemas.userFilters
   }),
   userController.list
 );
 router.get(
   '/users/:id',
-  validatorNext.validate({
+  validator.validate({
     params: object({ id: schemas.id })
   }),
   userController.get
@@ -437,7 +465,7 @@ router.get(
 router.put(
   '/users/:id',
   hasRole([UserRole.USUAL, UserRole.ADMIN]),
-  validatorNext.validate({
+  validator.validate({
     params: object({ id: schemas.id }),
     body: schemas.userUpdatePayload
   }),
@@ -446,7 +474,7 @@ router.put(
 router.delete(
   '/users/:id',
   hasRole([UserRole.ADMIN]),
-  validatorNext.validate({
+  validator.validate({
     params: object({ id: schemas.id })
   }),
   userController.remove
@@ -468,27 +496,49 @@ router.post(
 );
 router.put(
   '/geo/perimeters/:geoPerimeterId',
-  geoController.updateGeoPerimeterValidators,
-  validator.validate,
+  validator.validate({
+    params: object({ geoPerimeterId: string().uuid().required() }),
+    body: object({
+      kind: string().min(1).required(),
+      name: string().nullable().notRequired()
+    })
+  }),
   geoController.updateGeoPerimeter
 );
 router.delete(
   '/geo/perimeters',
-  geoController.deleteGeoPerimeterListValidators,
-  validator.validate,
+  validator.validate({
+    body: object({
+      geoPerimeterIds: array().of(string().uuid().required()).required()
+    })
+  }),
   geoController.deleteGeoPerimeterList
 );
 
 router.put(
   '/localities/:geoCode/tax',
-  localityController.updateLocalityTaxValidators,
-  validator.validate,
+  validator.validate({
+    params: object({ geoCode: schemas.geoCode.required() }),
+    body: object({
+      taxKind: string().oneOf(['THLV', 'None']).required(),
+      taxRate: number().when('taxKind', {
+        is: 'THLV',
+        then: (s) => s.required(),
+        otherwise: (s) =>
+          s.test(
+            'must-not-exist-when-tax-kind-is-none',
+            'taxRate must not be provided when taxKind is None',
+            (v) => v === undefined
+          )
+      })
+    })
+  }),
   localityController.updateLocalityTax
 );
 
 router.get(
   '/dashboards/:id',
-  validatorNext.validate({
+  validator.validate({
     params: object({
       id: string().required()
     })
@@ -498,7 +548,7 @@ router.get(
 
 router.get(
   '/dashboards/:did/cards/:cid',
-  validatorNext.validate({
+  validator.validate({
     params: object({
       did: string().required(),
       cid: string()

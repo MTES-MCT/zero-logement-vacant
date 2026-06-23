@@ -5,17 +5,17 @@ import Stack from '@mui/material/Stack';
 import { useState } from 'react';
 import { useLocation, useNavigate } from 'react-router';
 
-import Tooltip from '~/components/ui/Tooltip/Tooltip';
+import AppSearchBar from '~/components/_app/AppSearchBar/AppSearchBar';
 import createGroupAddHousingModal from '~/components/Group/GroupAddHousingModal';
 import createGroupCreationModal from '~/components/Group/GroupCreationModal';
 import { HousingDisplaySwitch } from '~/components/HousingDisplaySwitch/HousingDisplaySwitch';
 import { HousingEditionProvider } from '~/components/HousingEdition/useHousingEdition';
 import HousingFiltersBadges from '~/components/HousingFiltersBadges/HousingFiltersBadges';
 import HousingListFiltersSidemenu from '~/components/HousingListFilters/HousingListFiltersSidemenu';
-import AppSearchBar from '~/components/_app/AppSearchBar/AppSearchBar';
 import HousingCreationModal from '~/components/modals/HousingCreationModal/HousingCreationModal';
+import Tooltip from '~/components/ui/Tooltip/Tooltip';
+import { useHousingFilters } from '~/hooks/HousingFiltersContext';
 import { useDocumentTitle } from '~/hooks/useDocumentTitle';
-import { useFilters } from '~/hooks/useFilters';
 import { useNotification } from '~/hooks/useNotification';
 import { useSelection } from '~/hooks/useSelection';
 import { useAppDispatch, useAppSelector } from '~/hooks/useStore';
@@ -27,6 +27,7 @@ import {
 } from '~/services/group.service';
 import { useCountHousingQuery } from '~/services/housing.service';
 import housingSlice from '~/store/reducers/housingReducer';
+
 import HousingListMap from './HousingListMap';
 import HousingListTabs from './HousingListTabs';
 import { useHousingListTabs } from './HousingListTabsProvider';
@@ -41,22 +42,16 @@ const HousingListView = () => {
     expand,
     filters,
     setExpand,
-    setFilters,
-    onChangeFilters,
-    onResetFilters
-  } = useFilters({
-    storage: 'store'
-  });
+    onChange: onChangeFilters,
+    onReset: onResetFilters
+  } = useHousingFilters();
 
   const dispatch = useAppDispatch();
   const { changeView } = housingSlice.actions;
   const { view } = useAppSelector((state) => state.housing);
 
   const searchWithQuery = (query: string) => {
-    setFilters({
-      ...filters,
-      query
-    });
+    onChangeFilters({ query });
   };
 
   const location: { state?: RouterState } = useLocation();
@@ -185,8 +180,12 @@ const HousingListView = () => {
               <Stack
                 direction="row"
                 component="ul"
-               
-                sx={{ justifyContent: 'flex-end', listStyle: 'none', padding: 0, margin: 0 }}
+                sx={{
+                  justifyContent: 'flex-end',
+                  listStyle: 'none',
+                  padding: 0,
+                  margin: 0
+                }}
               >
                 {!isVisitor && (
                   <li>
@@ -237,7 +236,6 @@ const HousingListView = () => {
           </Grid>
         </Grid>
       </Stack>
-
 
       <groupAddHousingModal.Component
         count={count}

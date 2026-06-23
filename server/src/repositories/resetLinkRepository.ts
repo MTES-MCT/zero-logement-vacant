@@ -35,7 +35,7 @@ export const parseResetLinkApi = (link: ResetLinkDBO): ResetLinkApi => ({
   userId: link.user_id,
   createdAt: link.created_at,
   expiresAt: link.expires_at,
-  usedAt: link.used_at,
+  usedAt: link.used_at
 });
 
 export const formatResetLinkApi = (link: ResetLinkApi): ResetLinkDBO => ({
@@ -43,11 +43,11 @@ export const formatResetLinkApi = (link: ResetLinkApi): ResetLinkDBO => ({
   user_id: link.userId,
   created_at: link.createdAt,
   expires_at: link.expiresAt,
-  used_at: link.usedAt ?? null,
+  used_at: link.usedAt ?? null
 });
 
 export default {
   insert,
   get,
-  used,
+  used
 };

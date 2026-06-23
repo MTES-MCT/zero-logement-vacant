@@ -1,15 +1,31 @@
 import { faker } from '@faker-js/faker/locale/fr';
 import { point } from '@turf/turf';
 import { Array, pipe, Predicate } from 'effect';
-import { MarkRequired } from 'ts-essentials';
-
 import type { BBox } from 'geojson';
+import { MarkRequired } from 'ts-essentials';
 import { match, Pattern } from 'ts-pattern';
-import type { CardDataDTO, DashboardCard, DashboardDTO, FlatNumberCard, PercentageCard, Tab } from '../DashboardDTO';
+
 import { AddressDTO } from '../AddressDTO';
 import type { BuildingDTO } from '../BuildingDTO';
 import { CADASTRAL_CLASSIFICATION_VALUES } from '../CadastralClassification';
 import { CAMPAIGN_STATUS_VALUES, CampaignDTO } from '../CampaignDTO';
+import type {
+  BarChartCard,
+  BarChartDataDTO,
+  DashboardCard,
+  DashboardDTO,
+  FlatNumberCard,
+  LineChartCard,
+  LineChartDataDTO,
+  PercentageCard,
+  PieChartCard,
+  PieChartDataDTO,
+  ScalarCardDataDTO,
+  Tab,
+  TableCard,
+  TableColumnMeta,
+  TableDataDTO
+} from '../DashboardDTO';
 import { DATA_FILE_YEAR_VALUES } from '../DataFileYear';
 import type { DatafoncierHousing } from '../DatafoncierHousing';
 import type { DatafoncierOwner } from '../DatafoncierOwner';
@@ -986,6 +1002,21 @@ export function genPercentageCard(
   };
 }
 
+export function genPieChartCard(
+  override?: Partial<PieChartCard>
+): PieChartCard {
+  return {
+    id: faker.number.int({ min: 1, max: 9999 }),
+    type: 'pie-chart',
+    title: faker.lorem.words(3),
+    description: null,
+    decimals: 0,
+    position: { col: 0, row: 0 },
+    size: { width: 6, height: 4 },
+    ...override
+  };
+}
+
 export function genDashboardDTO(override?: {
   id?: number;
   url?: string;
@@ -993,7 +1024,9 @@ export function genDashboardDTO(override?: {
   tabs?: Tab[];
 }): DashboardDTO {
   const id = override?.id ?? faker.number.int({ min: 1, max: 999 });
-  const url = override?.url ?? 'https://stats.zlv.beta.gouv.fr/embed/dashboard/fake-token';
+  const url =
+    override?.url ??
+    'https://stats.zlv.beta.gouv.fr/embed/dashboard/fake-token';
   if (override?.tabs) {
     return {
       id,
@@ -1008,10 +1041,180 @@ export function genDashboardDTO(override?: {
   };
 }
 
-export function genCardDataDTO(override?: Partial<CardDataDTO>): CardDataDTO {
+export function genScalarCardDataDTO(
+  override?: Partial<ScalarCardDataDTO>
+): ScalarCardDataDTO {
   return {
     id: faker.number.int({ min: 1, max: 9999 }),
+    type: 'flat-number',
     data: faker.number.int({ min: 0, max: 100000 }),
+    ...override
+  };
+}
+
+export function genPieChartDataDTO(
+  override?: Partial<PieChartDataDTO>
+): PieChartDataDTO {
+  const series = faker.number.int({ min: 2, max: 5 });
+  const labels = [];
+  const data = [];
+  for (let i = 0; i < series; i++) {
+    labels.push(faker.word.noun());
+    data.push(faker.number.int({ min: 1, max: 10000 }));
+  }
+  return {
+    id: faker.number.int({ min: 1, max: 9999 }),
+    type: 'pie-chart',
+    labels,
+    data,
+    ...override
+  };
+}
+
+export function genBarChartCard(
+  override?: Partial<BarChartCard>
+): BarChartCard {
+  return {
+    id: faker.number.int({ min: 1, max: 9999 }),
+    type: 'bar-chart',
+    title: faker.lorem.words(3),
+    description: null,
+    decimals: 0,
+    position: { col: 0, row: 0 },
+    size: { width: 6, height: 4 },
+    ...override
+  };
+}
+
+export function genBarChartDataDTO(
+  override?: Partial<BarChartDataDTO>
+): BarChartDataDTO {
+  const series = faker.number.int({ min: 2, max: 5 });
+  const labels: string[] = [];
+  const data: number[] = [];
+  for (let i = 0; i < series; i++) {
+    labels.push(faker.word.noun());
+    data.push(faker.number.int({ min: 1, max: 10000 }));
+  }
+  return {
+    id: faker.number.int({ min: 1, max: 9999 }),
+    type: 'bar-chart',
+    direction: faker.helpers.arrayElement(['horizontal', 'vertical'] as const),
+    format: 'number',
+    decimals: 0,
+    labels,
+    data,
+    name: faker.word.noun(),
+    ...override
+  };
+}
+
+export function genLineChartCard(
+  override?: Partial<LineChartCard>
+): LineChartCard {
+  return {
+    id: faker.number.int({ min: 1, max: 9999 }),
+    type: 'line-chart',
+    title: faker.lorem.words(3),
+    description: null,
+    decimals: 0,
+    position: { col: 0, row: 0 },
+    size: { width: 6, height: 4 },
+    ...override
+  };
+}
+
+export function genLineChartDataDTO(
+  override?: Partial<LineChartDataDTO>
+): LineChartDataDTO {
+  const series = faker.number.int({ min: 2, max: 5 });
+  const labels: string[] = [];
+  const data: number[] = [];
+  for (let i = 0; i < series; i++) {
+    labels.push(faker.word.noun());
+    data.push(faker.number.int({ min: 1, max: 10000 }));
+  }
+  return {
+    id: faker.number.int({ min: 1, max: 9999 }),
+    type: 'line-chart',
+    format: 'number',
+    decimals: 0,
+    labels,
+    data,
+    name: faker.word.noun(),
+    ...override
+  };
+}
+
+/** @deprecated Use genScalarCardDataDTO or genPieChartDataDTO */
+export function genCardDataDTO(
+  override?: Partial<ScalarCardDataDTO>
+): ScalarCardDataDTO {
+  return genScalarCardDataDTO(override);
+}
+
+const TABLE_BASE_TYPES = ['number', 'string', 'date', 'boolean'] as const;
+
+export function genTableColumnMeta(
+  override?: Partial<TableColumnMeta>
+): TableColumnMeta {
+  return {
+    name: faker.lorem.word(),
+    displayName: faker.lorem.words(2),
+    baseType: faker.helpers.arrayElement(TABLE_BASE_TYPES),
+    ...override
+  };
+}
+
+export function genTableCard(override?: Partial<TableCard>): TableCard {
+  return {
+    id: faker.number.int({ min: 1, max: 9999 }),
+    type: 'table',
+    title: faker.lorem.words(3),
+    description: null,
+    decimals: 0,
+    position: { col: 0, row: 0 },
+    size: { width: 12, height: 6 },
+    ...override
+  };
+}
+
+function genCellValue(baseType: TableColumnMeta['baseType']): unknown {
+  switch (baseType) {
+    case 'number':
+      return faker.number.int({ min: 0, max: 100000 });
+    case 'string':
+      return faker.word.noun();
+    case 'date':
+      return faker.date.recent().toISOString();
+    case 'boolean':
+      return faker.datatype.boolean();
+    default:
+      return null;
+  }
+}
+
+export function genTableDataDTO(
+  override?: Partial<TableDataDTO>
+): TableDataDTO {
+  const columnCount = faker.number.int({ min: 2, max: 4 });
+  const rowCount = faker.number.int({ min: 3, max: 8 });
+
+  const columns: TableColumnMeta[] =
+    override?.columns ??
+    faker.helpers.multiple(() => genTableColumnMeta(), { count: columnCount });
+
+  const rows: unknown[][] =
+    override?.rows ??
+    faker.helpers.multiple(() => columns.map((c) => genCellValue(c.baseType)), {
+      count: rowCount
+    });
+
+  return {
+    id: faker.number.int({ min: 1, max: 9999 }),
+    type: 'table',
+    columns,
+    rows,
     ...override
   };
 }

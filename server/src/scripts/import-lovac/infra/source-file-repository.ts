@@ -1,11 +1,12 @@
-import { parse as parseCSV } from 'csv-parse';
-import { parse as parseJSONL } from 'jsonlines';
 import fs from 'node:fs';
 import path from 'node:path';
 import { Readable, Transform } from 'node:stream';
 import { ReadableStream } from 'node:stream/web';
-import { createLogger } from '~/infra/logger';
 
+import { parse as parseCSV } from 'csv-parse';
+import { parse as parseJSONL } from 'jsonlines';
+
+import { createLogger } from '~/infra/logger';
 import { SourceRepository } from '~/scripts/import-lovac/infra/source-repository';
 
 const ALLOWED_EXTENSIONS = ['.csv', '.jsonl'] as const;

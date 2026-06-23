@@ -1,8 +1,13 @@
 import Container from '@mui/material/Container';
+import Stack from '@mui/material/Stack';
 import Typography from '@mui/material/Typography';
 import { useState } from 'react';
 
-import Stack from '@mui/material/Stack';
+import createCampaignDeleteModal from '~/components/Campaign/CampaignDeleteModal';
+import {
+  createCampaignSentAtModal,
+  type CampaignSentAtModalProps
+} from '~/components/Campaign/CampaignSentAtModal';
 import CampaignTable from '~/components/Campaign/CampaignTable';
 import { useDocumentTitle } from '~/hooks/useDocumentTitle';
 import { useNotification } from '~/hooks/useNotification';
@@ -11,11 +16,6 @@ import {
   useRemoveCampaignMutation,
   useUpdateCampaignMutation
 } from '~/services/campaign.service';
-import createCampaignDeleteModal from '~/components/Campaign/CampaignDeleteModal';
-import {
-  createCampaignSentAtModal,
-  type CampaignSentAtModalProps
-} from '~/components/Campaign/CampaignSentAtModal';
 
 const sentAtCampaignModal = createCampaignSentAtModal();
 const removeCampaignModal = createCampaignDeleteModal();

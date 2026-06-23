@@ -14,14 +14,15 @@ import { useLocation, useNavigate } from 'react-router';
 import * as yup from 'yup';
 
 import EstablishmentSearchableSelect from '~/components/establishment/EstablishmentSearchableSelect';
-import { type Establishment } from '../../models/Establishment';
+import Image from '~/components/Image/Image';
+
 import building from '../../assets/images/building.svg';
 import AppLink from '../../components/_app/AppLink/AppLink';
 import AppTextInputNext from '../../components/_app/AppTextInput/AppTextInputNext';
 import { useDocumentTitle } from '../../hooks/useDocumentTitle';
 import { useAppDispatch, useAppSelector } from '../../hooks/useStore';
+import { type Establishment } from '../../models/Establishment';
 import { logIn } from '../../store/thunks/auth-thunks';
-import Image from '~/components/Image/Image';
 
 const schema = yup
   .object({
@@ -121,7 +122,11 @@ const LoginView = () => {
             <Typography component="h1" variant="h2" mb={3}>
               Connexion
             </Typography>
-            <form onSubmit={form.handleSubmit(submitLoginForm)} id="login_form" noValidate>
+            <form
+              onSubmit={form.handleSubmit(submitLoginForm)}
+              id="login_form"
+              noValidate
+            >
               <AppTextInputNext
                 name="email"
                 label="Adresse e-mail (obligatoire)"
@@ -159,10 +164,19 @@ const LoginView = () => {
                 </AppLink>
               </Box>
               {auth.logIn.isLoading ? (
-                <Stack direction="row" alignItems="center" gap="1rem" sx={{ mt: '0.5rem' }}>
+                <Stack
+                  direction="row"
+                  alignItems="center"
+                  gap="1rem"
+                  sx={{ mt: '0.5rem' }}
+                >
                   <CircularProgress
                     size="1.5rem"
-                    sx={{ color: fr.colors.decisions.text.actionHigh.blueFrance.default, flexShrink: 0 }}
+                    sx={{
+                      color:
+                        fr.colors.decisions.text.actionHigh.blueFrance.default,
+                      flexShrink: 0
+                    }}
                   />
                   <Typography variant="body1" sx={{ fontWeight: 500 }}>
                     Connexion en cours, veuillez patienter quelques instants…

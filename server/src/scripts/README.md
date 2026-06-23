@@ -5,18 +5,18 @@
 
 async function run() {
   if (config.application.isReviewApp) {
-    logger.info('This is a review app. Skipping...')
-    return
+    logger.info('This is a review app. Skipping...');
+    return;
   }
-  
+
   // Do something
 }
 
 run()
   .finally(() => db.destroy())
   .then(() => {
-    logger.info('DB connection destroyed.')
-  })
+    logger.info('DB connection destroyed.');
+  });
 ```
 
 ## List of available scripts

@@ -24,11 +24,10 @@ export interface DraftDTO {
 /**
  * @deprecated Use {@link DraftCreationPayload} instead.
  */
-export interface DraftCreationPayloadDTO
-  extends Pick<
-    DraftDTO,
-    'subject' | 'body' | 'logo' | 'writtenAt' | 'writtenFrom'
-  > {
+export interface DraftCreationPayloadDTO extends Pick<
+  DraftDTO,
+  'subject' | 'body' | 'logo' | 'writtenAt' | 'writtenFrom'
+> {
   campaign: string;
   sender: SenderPayloadDTO | null;
 }
@@ -45,11 +44,10 @@ export type DraftCreationPayload = Pick<
 /**
  * @deprecated Use {@link DraftUpdatePayload} instead.
  */
-export interface DraftUpdatePayloadDTO
-  extends Pick<
-    DraftDTO,
-    'id' | 'subject' | 'body' | 'logo' | 'writtenAt' | 'writtenFrom'
-  > {
+export interface DraftUpdatePayloadDTO extends Pick<
+  DraftDTO,
+  'id' | 'subject' | 'body' | 'logo' | 'writtenAt' | 'writtenFrom'
+> {
   sender: SenderPayloadDTO;
 }
 

@@ -11,10 +11,13 @@ import {
   type FieldValues
 } from 'react-hook-form';
 
+import PrecisionLists, {
+  type PrecisionListProps
+} from '~/components/Precision/PrecisionLists';
 import { getSubStatusOptions } from '~/models/HousingState';
+
 import HousingStatusSelect from '../HousingListFilters/HousingStatusSelect';
 import HousingSubStatusSelect from '../HousingListFilters/HousingSubStatusSelect';
-import PrecisionLists, { type PrecisionListProps } from '~/components/Precision/PrecisionLists';
 
 interface BaseSchema extends FieldValues {
   status: HousingStatus | null;

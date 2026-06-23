@@ -96,12 +96,12 @@ export const EVENT_TYPE_VALUES = [
   'housing:campaign-attached',
   'housing:campaign-detached',
   'housing:campaign-removed',
-  'housing:document-attached',    // NEW
-  'housing:document-detached',    // NEW
-  'housing:document-removed',     // NEW
-  'document:created',             // NEW
-  'document:updated',             // NEW
-  'document:removed',             // NEW
+  'housing:document-attached', // NEW
+  'housing:document-detached', // NEW
+  'housing:document-removed', // NEW
+  'document:created', // NEW
+  'document:updated', // NEW
+  'document:removed', // NEW
   'owner:updated',
   'campaign:updated'
 ] as const satisfies ReadonlyArray<EventType>;
@@ -121,7 +121,9 @@ export type DocumentEventApi = EventUnion<
 
 // Housing-document association events
 export type HousingDocumentEventApi = EventUnion<
-  'housing:document-attached' | 'housing:document-detached' | 'housing:document-removed'
+  | 'housing:document-attached'
+  | 'housing:document-detached'
+  | 'housing:document-removed'
 > & {
   housingGeoCode: string;
   housingId: string;
@@ -140,8 +142,18 @@ import { Knex } from 'knex';
 
 export async function up(knex: Knex): Promise<void> {
   await knex.schema.createTable('document_events', (table) => {
-    table.uuid('event_id').primary().references('id').inTable('events').onDelete('CASCADE');
-    table.uuid('document_id').notNullable().references('id').inTable('documents').onDelete('CASCADE');
+    table
+      .uuid('event_id')
+      .primary()
+      .references('id')
+      .inTable('events')
+      .onDelete('CASCADE');
+    table
+      .uuid('document_id')
+      .notNullable()
+      .references('id')
+      .inTable('documents')
+      .onDelete('CASCADE');
     table.index('document_id');
   });
 }
@@ -160,13 +172,24 @@ import { Knex } from 'knex';
 
 export async function up(knex: Knex): Promise<void> {
   await knex.schema.createTable('housing_document_events', (table) => {
-    table.uuid('event_id').primary().references('id').inTable('events').onDelete('CASCADE');
+    table
+      .uuid('event_id')
+      .primary()
+      .references('id')
+      .inTable('events')
+      .onDelete('CASCADE');
     table.string('housing_geo_code').notNullable();
     table.uuid('housing_id').notNullable();
-    table.uuid('document_id').notNullable().references('id').inTable('documents').onDelete('CASCADE');
+    table
+      .uuid('document_id')
+      .notNullable()
+      .references('id')
+      .inTable('documents')
+      .onDelete('CASCADE');
 
     // Composite foreign key for housing
-    table.foreign(['housing_geo_code', 'housing_id'])
+    table
+      .foreign(['housing_geo_code', 'housing_id'])
       .references(['geo_code', 'id'])
       .inTable('fast_housing')
       .onDelete('CASCADE');
@@ -329,8 +352,8 @@ export default {
   insertManyGroupHousingEvents,
   insertManyOwnerEvents,
   insertManyPrecisionHousingEvents,
-  insertManyDocumentEvents,           // NEW
-  insertManyHousingDocumentEvents,    // NEW
+  insertManyDocumentEvents, // NEW
+  insertManyHousingDocumentEvents, // NEW
   find,
   removeCampaignEvents
 };
@@ -343,9 +366,7 @@ export default {
 Add `unlinkMany` method:
 
 ```typescript
-async function unlinkMany(params: {
-  documentIds: string[];
-}): Promise<void> {
+async function unlinkMany(params: { documentIds: string[] }): Promise<void> {
   if (!params.documentIds.length) {
     logger.debug('No documents to unlink. Skipping...');
     return;
@@ -372,7 +393,7 @@ Export the new method:
 ```typescript
 export default {
   // ... existing methods ...
-  unlinkMany  // NEW
+  unlinkMany // NEW
 };
 ```
 
@@ -439,18 +460,20 @@ const remove: RequestHandler = async (request, response) => {
   });
 
   // Create housing:document-removed events for each linked housing
-  const removeEvents = housingDocuments.map<HousingDocumentEventApi>((housingDocument) => ({
-    id: uuidv4(),
-    type: 'housing:document-removed',
-    name: 'Suppression d’un document du logement',
-    nextOld: { filename: document.filename },
-    nextNew: null,
-    createdAt: new Date().toJSON(),
-    createdBy: auth.userId,
-    documentId: params.id,
-    housingGeoCode: housingDocument.housingGeoCode,
-    housingId: housingDocument.housingId
-  }));
+  const removeEvents = housingDocuments.map<HousingDocumentEventApi>(
+    (housingDocument) => ({
+      id: uuidv4(),
+      type: 'housing:document-removed',
+      name: 'Suppression d’un document du logement',
+      nextOld: { filename: document.filename },
+      nextNew: null,
+      createdAt: new Date().toJSON(),
+      createdBy: auth.userId,
+      documentId: params.id,
+      housingGeoCode: housingDocument.housingGeoCode,
+      housingId: housingDocument.housingId
+    })
+  );
 
   // Create document:removed event
   const documentRemoveEvent: DocumentEventApi = {
@@ -485,7 +508,7 @@ const remove: RequestHandler = async (request, response) => {
 ```typescript
 // After successful linking
 const attachEvents = documentIds.map<HousingDocumentEventApi>((documentId) => {
-  const document = documents.find(document => document.id === documentId);
+  const document = documents.find((document) => document.id === documentId);
   return {
     id: uuidv4(),
     type: 'housing:document-attached',
@@ -533,7 +556,7 @@ await eventRepository.insertManyHousingDocumentEvents([detachEvent]);
 
 const batchAttachEvents = updatedHousings.flatMap((housing) =>
   documentIds.map<HousingDocumentEventApi>((documentId) => {
-    const document = documents.find(document => document.id === documentId);
+    const document = documents.find((document) => document.id === documentId);
     return {
       id: uuidv4(),
       type: 'housing:document-attached',
@@ -576,16 +599,18 @@ describe('Document Events', () => {
     it('should insert document:created events', async () => {
       const document = genDocumentApi();
       const user = genUserApi();
-      const events: DocumentEventApi[] = [{
-        id: uuidv4(),
-        type: 'document:created',
-        name: 'Création d’un document',
-        nextOld: null,
-        nextNew: { filename: document.filename },
-        createdAt: new Date().toJSON(),
-        createdBy: user.id,
-        documentId: document.id
-      }];
+      const events: DocumentEventApi[] = [
+        {
+          id: uuidv4(),
+          type: 'document:created',
+          name: 'Création d’un document',
+          nextOld: null,
+          nextNew: { filename: document.filename },
+          createdAt: new Date().toJSON(),
+          createdBy: user.id,
+          documentId: document.id
+        }
+      ];
 
       await eventRepository.insertManyDocumentEvents(events);
 
@@ -596,8 +621,9 @@ describe('Document Events', () => {
         next_old: null
       });
 
-      const [documentEvent] = await DocumentEvents()
-        .where({ event_id: events[0].id });
+      const [documentEvent] = await DocumentEvents().where({
+        event_id: events[0].id
+      });
       expect(documentEvent).toMatchObject({
         document_id: document.id
       });
@@ -606,16 +632,18 @@ describe('Document Events', () => {
     it('should insert document:updated events', async () => {
       const document = genDocumentApi();
       const user = genUserApi();
-      const events: DocumentEventApi[] = [{
-        id: uuidv4(),
-        type: 'document:updated',
-        name: 'Modification d’un document',
-        nextOld: { filename: 'old.pdf' },
-        nextNew: { filename: 'new.pdf' },
-        createdAt: new Date().toJSON(),
-        createdBy: user.id,
-        documentId: document.id
-      }];
+      const events: DocumentEventApi[] = [
+        {
+          id: uuidv4(),
+          type: 'document:updated',
+          name: 'Modification d’un document',
+          nextOld: { filename: 'old.pdf' },
+          nextNew: { filename: 'new.pdf' },
+          createdAt: new Date().toJSON(),
+          createdBy: user.id,
+          documentId: document.id
+        }
+      ];
 
       await eventRepository.insertManyDocumentEvents(events);
 
@@ -630,16 +658,18 @@ describe('Document Events', () => {
     it('should insert document:removed events', async () => {
       const document = genDocumentApi();
       const user = genUserApi();
-      const events: DocumentEventApi[] = [{
-        id: uuidv4(),
-        type: 'document:removed',
-        name: 'Suppression d’un document',
-        nextOld: { filename: document.filename },
-        nextNew: null,
-        createdAt: new Date().toJSON(),
-        createdBy: user.id,
-        documentId: document.id
-      }];
+      const events: DocumentEventApi[] = [
+        {
+          id: uuidv4(),
+          type: 'document:removed',
+          name: 'Suppression d’un document',
+          nextOld: { filename: document.filename },
+          nextNew: null,
+          createdAt: new Date().toJSON(),
+          createdBy: user.id,
+          documentId: document.id
+        }
+      ];
 
       await eventRepository.insertManyDocumentEvents(events);
 
@@ -657,18 +687,20 @@ describe('Document Events', () => {
       const housing = genHousingApi();
       const document = genDocumentApi();
       const user = genUserApi();
-      const events: HousingDocumentEventApi[] = [{
-        id: uuidv4(),
-        type: 'housing:document-attached',
-        name: 'Ajout d’un document au logement',
-        nextOld: null,
-        nextNew: { filename: document.filename },
-        createdAt: new Date().toJSON(),
-        createdBy: user.id,
-        documentId: document.id,
-        housingGeoCode: housing.geoCode,
-        housingId: housing.id
-      }];
+      const events: HousingDocumentEventApi[] = [
+        {
+          id: uuidv4(),
+          type: 'housing:document-attached',
+          name: 'Ajout d’un document au logement',
+          nextOld: null,
+          nextNew: { filename: document.filename },
+          createdAt: new Date().toJSON(),
+          createdBy: user.id,
+          documentId: document.id,
+          housingGeoCode: housing.geoCode,
+          housingId: housing.id
+        }
+      ];
 
       await eventRepository.insertManyHousingDocumentEvents(events);
 
@@ -678,8 +710,9 @@ describe('Document Events', () => {
         next_new: { filename: document.filename }
       });
 
-      const [housingDocumentEvent] = await HousingDocumentEvents()
-        .where({ event_id: events[0].id });
+      const [housingDocumentEvent] = await HousingDocumentEvents().where({
+        event_id: events[0].id
+      });
       expect(housingDocumentEvent).toMatchObject({
         housing_geo_code: housing.geoCode,
         housing_id: housing.id,
@@ -691,18 +724,20 @@ describe('Document Events', () => {
       const housing = genHousingApi();
       const document = genDocumentApi();
       const user = genUserApi();
-      const events: HousingDocumentEventApi[] = [{
-        id: uuidv4(),
-        type: 'housing:document-detached',
-        name: 'Retrait d’un document du logement',
-        nextOld: { filename: document.filename },
-        nextNew: null,
-        createdAt: new Date().toJSON(),
-        createdBy: user.id,
-        documentId: document.id,
-        housingGeoCode: housing.geoCode,
-        housingId: housing.id
-      }];
+      const events: HousingDocumentEventApi[] = [
+        {
+          id: uuidv4(),
+          type: 'housing:document-detached',
+          name: 'Retrait d’un document du logement',
+          nextOld: { filename: document.filename },
+          nextNew: null,
+          createdAt: new Date().toJSON(),
+          createdBy: user.id,
+          documentId: document.id,
+          housingGeoCode: housing.geoCode,
+          housingId: housing.id
+        }
+      ];
 
       await eventRepository.insertManyHousingDocumentEvents(events);
 
@@ -718,18 +753,20 @@ describe('Document Events', () => {
       const housing = genHousingApi();
       const document = genDocumentApi();
       const user = genUserApi();
-      const events: HousingDocumentEventApi[] = [{
-        id: uuidv4(),
-        type: 'housing:document-removed',
-        name: 'Suppression d’un document du logement',
-        nextOld: { filename: document.filename },
-        nextNew: null,
-        createdAt: new Date().toJSON(),
-        createdBy: user.id,
-        documentId: document.id,
-        housingGeoCode: housing.geoCode,
-        housingId: housing.id
-      }];
+      const events: HousingDocumentEventApi[] = [
+        {
+          id: uuidv4(),
+          type: 'housing:document-removed',
+          name: 'Suppression d’un document du logement',
+          nextOld: { filename: document.filename },
+          nextNew: null,
+          createdAt: new Date().toJSON(),
+          createdBy: user.id,
+          documentId: document.id,
+          housingGeoCode: housing.geoCode,
+          housingId: housing.id
+        }
+      ];
 
       await eventRepository.insertManyHousingDocumentEvents(events);
 
@@ -757,17 +794,19 @@ describe('unlinkMany', () => {
 
     // Link all documents to all housings
     await housingDocumentRepository.linkMany({
-      documentIds: documents.map(document => document.id),
-      housingIds: housings.map(housing => housing.id),
-      housingGeoCodes: housings.map(housing => housing.geoCode)
+      documentIds: documents.map((document) => document.id),
+      housingIds: housings.map((housing) => housing.id),
+      housingGeoCodes: housings.map((housing) => housing.geoCode)
     });
 
     await housingDocumentRepository.unlinkMany({
-      documentIds: documents.map(document => document.id)
+      documentIds: documents.map((document) => document.id)
     });
 
-    const links = await HousingDocuments()
-      .whereIn('document_id', documents.map(document => document.id));
+    const links = await HousingDocuments().whereIn(
+      'document_id',
+      documents.map((document) => document.id)
+    );
     expect(links).toBeEmpty();
   });
 
@@ -790,7 +829,11 @@ import path from 'node:path';
 import request from 'supertest';
 
 import { createServer } from '~/infra/server';
-import { Events, DocumentEvents, HousingDocumentEvents } from '~/repositories/eventRepository';
+import {
+  Events,
+  DocumentEvents,
+  HousingDocumentEvents
+} from '~/repositories/eventRepository';
 
 const samplePdfPath = path.join(__dirname, '../../test/sample.pdf');
 
@@ -815,8 +858,9 @@ describe('POST /api/documents', () => {
     });
     expect(eventRecord.next_old).toBeNull();
 
-    const [documentEvent] = await DocumentEvents()
-      .where({ event_id: eventRecord.id });
+    const [documentEvent] = await DocumentEvents().where({
+      event_id: eventRecord.id
+    });
     expect(documentEvent).toMatchObject({
       document_id: document.id
     });
@@ -890,8 +934,9 @@ describe('DELETE /api/documents/:id', () => {
     });
     expect(housingRemoveEvent.next_new).toBeNull();
 
-    const [housingDocumentEvent] = await HousingDocumentEvents()
-      .where({ event_id: housingRemoveEvent.id });
+    const [housingDocumentEvent] = await HousingDocumentEvents().where({
+      event_id: housingRemoveEvent.id
+    });
     expect(housingDocumentEvent).toMatchObject({
       housing_id: housing.id,
       document_id: document.id
@@ -909,7 +954,7 @@ describe('POST /api/housing/:id/documents', () => {
     const { status } = await request(url)
       .post(`/api/housing/${housing.id}/documents`)
       .use(tokenProvider(user))
-      .send({ documentIds: documents.map(document => document.id) });
+      .send({ documentIds: documents.map((document) => document.id) });
 
     expect(status).toBe(constants.HTTP_STATUS_CREATED);
 
@@ -919,15 +964,18 @@ describe('POST /api/housing/:id/documents', () => {
 
     expect(eventRecords).toHaveLength(2);
 
-    const housingDocumentEvents = await HousingDocumentEvents()
-      .whereIn('event_id', eventRecords.map(event => event.id));
+    const housingDocumentEvents = await HousingDocumentEvents().whereIn(
+      'event_id',
+      eventRecords.map((event) => event.id)
+    );
 
     expect(housingDocumentEvents).toHaveLength(2);
-    expect(housingDocumentEvents).toSatisfyAll((housingDocumentEvent) =>
-      housingDocumentEvent.housing_id === housing.id
+    expect(housingDocumentEvents).toSatisfyAll(
+      (housingDocumentEvent) => housingDocumentEvent.housing_id === housing.id
     );
-    expect(housingDocumentEvents.map(event => event.document_id))
-      .toIncludeSameMembers(documents.map(document => document.id));
+    expect(
+      housingDocumentEvents.map((event) => event.document_id)
+    ).toIncludeSameMembers(documents.map((document) => document.id));
   });
 });
 
@@ -960,8 +1008,9 @@ describe('DELETE /api/housing/:housingId/documents/:documentId', () => {
     });
     expect(eventRecord.next_new).toBeNull();
 
-    const [housingDocumentEvent] = await HousingDocumentEvents()
-      .where({ event_id: eventRecord.id });
+    const [housingDocumentEvent] = await HousingDocumentEvents().where({
+      event_id: eventRecord.id
+    });
     expect(housingDocumentEvent).toMatchObject({
       housing_id: housing.id,
       document_id: document.id
@@ -982,9 +1031,9 @@ describe('PUT /api/housing (batch)', () => {
       .send({
         filters: {
           establishmentIds: [establishment.id],
-          housingIds: housings.map(housing => housing.id)
+          housingIds: housings.map((housing) => housing.id)
         },
-        documentIds: documents.map(document => document.id)
+        documentIds: documents.map((document) => document.id)
       });
 
     expect(status).toBe(constants.HTTP_STATUS_OK);
@@ -996,8 +1045,10 @@ describe('PUT /api/housing (batch)', () => {
 
     expect(eventRecords).toHaveLength(4);
 
-    const housingDocumentEvents = await HousingDocumentEvents()
-      .whereIn('event_id', eventRecords.map(event => event.id));
+    const housingDocumentEvents = await HousingDocumentEvents().whereIn(
+      'event_id',
+      eventRecords.map((event) => event.id)
+    );
 
     expect(housingDocumentEvents).toHaveLength(4);
   });
@@ -1009,25 +1060,30 @@ describe('PUT /api/housing (batch)', () => {
 ### Files to Create/Modify
 
 **1. Shared Models** (`packages/models/src/`):
+
 - ✏️ `EventPayloads.ts` - Add 6 new event payload types
 - ✏️ `EventType.ts` - Add 6 new event type constants
 
 **2. Server Models** (`server/src/models/`):
+
 - ✏️ `EventApi.ts` - Add `DocumentEventApi` and `HousingDocumentEventApi` types
 
 **3. Repository** (`server/src/repositories/`):
+
 - ✏️ `eventRepository.ts` - Add tables, query builders, insert methods, DBOs, update `find()`
 - ✏️ `housingDocumentRepository.ts` - Add `unlinkMany()` method
 - ✏️ `test/eventRepository.test.ts` - Add repository tests
 - ✏️ `test/housingDocumentRepository.test.ts` - Add `unlinkMany()` tests
 
 **4. Controllers** (`server/src/controllers/`):
+
 - ✏️ `documentController.ts` - Add event creation for all operations
 - ✏️ Housing document link controller - Add event creation
 - ✏️ Housing batch update controller - Add event creation
 - ✏️ `test/document-api.test.ts` - Add ALL document-related event tests
 
 **5. Database** (`server/src/infra/database/migrations/`):
+
 - 📄 `YYYYMMDDHHMMSS_document-events.ts` - Create `document_events` table
 - 📄 `YYYYMMDDHHMMSS_housing-document-events.ts` - Create `housing_document_events` table
 

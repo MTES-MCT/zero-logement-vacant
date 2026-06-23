@@ -1,14 +1,15 @@
 import Button from '@codegouvfr/react-dsfr/Button';
 import Input from '@codegouvfr/react-dsfr/Input';
 import Box from '@mui/material/Box';
+import Grid from '@mui/material/Grid';
 import Stack from '@mui/material/Stack';
 import Typography from '@mui/material/Typography';
-import Grid from '@mui/material/Grid';
 import { isSameDay } from 'date-fns';
 import { Array, Order, pipe, Predicate, Record } from 'effect';
-
 import { useState } from 'react';
 import type { ReactNode } from 'react';
+
+import Select from '~/components/ui/Select/Select';
 
 import NoEvent from '../../assets/images/no-event.svg';
 import type { Event } from '../../models/Event';
@@ -16,7 +17,6 @@ import type { Note } from '../../models/Note';
 import { formatAuthor, USER_EQUIVALENCE } from '../../models/User';
 import type { User } from '../../models/User';
 import { useFindEstablishmentsQuery } from '../../services/establishment.service';
-import Select from '~/components/ui/Select/Select';
 import { useHousingEdition } from '../HousingEdition/useHousingEdition';
 import Image from '../Image/Image';
 import AggregatedEventCard from './AggregatedEventCard';

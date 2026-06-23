@@ -93,17 +93,23 @@ export async function recomputeOwnersHousingCounts(): Promise<void> {
     let attempt = 0;
     while (true) {
       const start = Date.now();
-      logger.info(`Recomputing owner_count for ${table}${attempt > 0 ? ` (attempt ${attempt + 1})` : ''}`);
+      logger.info(
+        `Recomputing owner_count for ${table}${attempt > 0 ? ` (attempt ${attempt + 1})` : ''}`
+      );
       try {
         await db.raw(sql);
-        logger.info(`Recomputed owner_count for ${table} in ${Date.now() - start}ms`);
+        logger.info(
+          `Recomputed owner_count for ${table} in ${Date.now() - start}ms`
+        );
         break;
       } catch (error: any) {
         // 40P01 = deadlock_detected — a concurrent trigger fired by live
         // traffic raced with this full-table UPDATE and lost. Retry; the
         // other transaction already committed so the next attempt will win.
         if (error?.code === '40P01' && attempt < DEADLOCK_MAX_RETRIES) {
-          logger.warn(`Deadlock on ${table} recompute, retrying (attempt ${attempt + 1})...`);
+          logger.warn(
+            `Deadlock on ${table} recompute, retrying (attempt ${attempt + 1})...`
+          );
           attempt++;
           continue;
         }

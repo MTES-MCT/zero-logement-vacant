@@ -26,7 +26,6 @@ function OwnerList(props: OwnerListProps) {
   return (
     <Stack
       component="ul"
-     
       spacing="0.75rem"
       useFlexGap
       sx={{ listStyle: 'none', padding: 0, margin: 0 }}

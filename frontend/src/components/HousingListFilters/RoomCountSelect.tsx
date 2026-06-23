@@ -1,8 +1,10 @@
 import { ROOM_COUNT_VALUES } from '@zerologementvacant/models';
 import type { RoomCount } from '@zerologementvacant/models';
-import { ROOM_COUNT_OPTIONS } from '../../models/HousingFilters';
+
 import Select from '~/components/ui/Select/Select';
 import type { SelectProps } from '~/components/ui/Select/Select';
+
+import { ROOM_COUNT_OPTIONS } from '../../models/HousingFilters';
 
 export type RoomCountSelectProps<Multiple extends boolean> = Pick<
   SelectProps<RoomCount, Multiple>,

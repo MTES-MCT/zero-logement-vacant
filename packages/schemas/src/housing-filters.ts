@@ -24,6 +24,7 @@ import {
   VACANCY_YEAR_VALUES
 } from '@zerologementvacant/models';
 import { array, boolean, number, object, ObjectSchema, string } from 'yup';
+
 import { commaSeparatedString, parseNull } from './transforms';
 
 export const housingFilters: ObjectSchema<HousingFiltersDTO> = object({

@@ -1,6 +1,6 @@
 import { faker } from '@faker-js/faker/locale/fr';
-import { GeoPerimeterApi } from '~/models/GeoPerimeterApi';
 
+import { GeoPerimeterApi } from '~/models/GeoPerimeterApi';
 import {
   Establishments,
   formatEstablishmentApi
@@ -11,6 +11,7 @@ import {
   genGeoPerimeterApi,
   genUserApi
 } from '~/test/testFixtures';
+
 import perimeterRepository, {
   formatGeoPerimeterApi,
   GeoPerimeters

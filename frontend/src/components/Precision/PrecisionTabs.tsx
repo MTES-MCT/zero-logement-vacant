@@ -1,10 +1,10 @@
 import Tabs from '@codegouvfr/react-dsfr/Tabs';
 import Grid from '@mui/material/Grid';
-
 import type { Precision, PrecisionCategory } from '@zerologementvacant/models';
 import { List } from 'immutable';
 import type { ReactElement } from 'react';
 import { useMemo } from 'react';
+
 import PrecisionColumn, {
   type PrecisionColumnRadioProps
 } from './PrecisionColumn';

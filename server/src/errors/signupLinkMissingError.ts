@@ -1,5 +1,6 @@
-import { HttpError } from './httpError';
 import { constants } from 'http2';
+
+import { HttpError } from './httpError';
 
 export default class SignupLinkMissingError
   extends HttpError
@@ -9,7 +10,7 @@ export default class SignupLinkMissingError
     super({
       name: 'SignupLinkMissingError',
       message: `Signup ${id} link missing`,
-      status: constants.HTTP_STATUS_NOT_FOUND,
+      status: constants.HTTP_STATUS_NOT_FOUND
     });
   }
 }

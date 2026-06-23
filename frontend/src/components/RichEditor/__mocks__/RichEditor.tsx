@@ -1,8 +1,8 @@
 import type { ComponentPropsWithoutRef } from 'react';
 import * as yup from 'yup';
 
-import AppTextInput from '../../_app/AppTextInput/AppTextInput';
 import { useForm } from '../../../hooks/useForm';
+import AppTextInput from '../../_app/AppTextInput/AppTextInput';
 import RichEditor from '../RichEditor';
 
 type MockRichEditorProps = ComponentPropsWithoutRef<typeof RichEditor>;

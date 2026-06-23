@@ -1,8 +1,9 @@
+import { constants } from 'http2';
+
 import { Precision, PRECISION_EQUIVALENCE } from '@zerologementvacant/models';
 import { Array } from 'effect';
 import { RequestHandler } from 'express';
 import { AuthenticatedRequest } from 'express-jwt';
-import { constants } from 'http2';
 import { v4 as uuidv4 } from 'uuid';
 
 import HousingMissingError from '~/errors/housingMissingError';
@@ -34,12 +35,8 @@ const findByHousing: RequestHandler<
   never,
   never
 > = async (request, response): Promise<void> => {
-  const { effectiveGeoCodes, establishment, params } = request as AuthenticatedRequest<
-    PathParams,
-    Precision[],
-    never,
-    never
-  >;
+  const { effectiveGeoCodes, establishment, params } =
+    request as AuthenticatedRequest<PathParams, Precision[], never, never>;
 
   const [housing, precisions] = await Promise.all([
     housingRepository.findOne({
@@ -68,12 +65,13 @@ const updatePrecisionsByHousing: RequestHandler<
   Array<Precision['id']>,
   never
 > = async (request, response): Promise<void> => {
-  const { auth, body, effectiveGeoCodes, establishment, params } = request as AuthenticatedRequest<
-    PathParams,
-    Array<Precision>,
-    Array<Precision['id']>,
-    never
-  >;
+  const { auth, body, effectiveGeoCodes, establishment, params } =
+    request as AuthenticatedRequest<
+      PathParams,
+      Array<Precision>,
+      Array<Precision['id']>,
+      never
+    >;
 
   const [housing, precisions] = await Promise.all([
     housingRepository.findOne({

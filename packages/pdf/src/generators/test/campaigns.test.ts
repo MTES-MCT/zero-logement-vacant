@@ -55,7 +55,11 @@ describe('generate campaign PDF', () => {
       writtenFrom: null
     };
 
-    const stream = await generate({ campaign, housings: [housing as HousingWithOwnerDTO], draft });
+    const stream = await generate({
+      campaign,
+      housings: [housing as HousingWithOwnerDTO],
+      draft
+    });
     const reader = stream.getReader();
     const chunks: Uint8Array[] = [];
 

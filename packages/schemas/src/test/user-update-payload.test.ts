@@ -1,9 +1,9 @@
 import { fc, test } from '@fast-check/vitest';
-
 import {
   TIME_PER_WEEK_VALUES,
   UserUpdatePayload
 } from '@zerologementvacant/models';
+
 import { userUpdatePayload } from '../user-update-payload';
 
 // Generate valid French phone numbers

@@ -1,5 +1,4 @@
 import { fc, test } from '@fast-check/vitest';
-
 import {
   BENEFIARY_COUNT_VALUES,
   BUILDING_PERIOD_VALUES,
@@ -24,6 +23,7 @@ import {
   VACANCY_RATE_VALUES,
   VACANCY_YEAR_VALUES
 } from '@zerologementvacant/models';
+
 import { housingFilters } from '../housing-filters';
 
 describe('Housing filters', () => {

@@ -1,20 +1,23 @@
-import { Col, Container, Row, Text } from '../../components/_dsfr';
+import { Alert } from '@codegouvfr/react-dsfr/Alert';
+import Button from '@codegouvfr/react-dsfr/Button';
+import Container from '@mui/material/Container';
+import Grid from '@mui/material/Grid';
+import Stack from '@mui/material/Stack';
+import Typography from '@mui/material/Typography';
 import { type FormEvent, useState } from 'react';
-import building from '../../assets/images/building.svg';
 import { object, string } from 'yup';
+
+import building from '../../assets/images/building.svg';
+import AppTextInput from '../../components/_app/AppTextInput/AppTextInput';
+import { useDocumentTitle } from '../../hooks/useDocumentTitle';
+import { useEmailLink } from '../../hooks/useEmailLink';
 import {
   passwordConfirmationValidator,
   passwordFormatValidator,
   useForm
 } from '../../hooks/useForm';
 import authService from '../../services/auth.service';
-import { useEmailLink } from '../../hooks/useEmailLink';
 import resetLinkService from '../../services/reset-link.service';
-import { useDocumentTitle } from '../../hooks/useDocumentTitle';
-import AppTextInput from '../../components/_app/AppTextInput/AppTextInput';
-import { Alert } from '@codegouvfr/react-dsfr/Alert';
-import Button from '@codegouvfr/react-dsfr/Button';
-import Typography from '@mui/material/Typography';
 
 function ResetPasswordView() {
   useDocumentTitle('Nouveau mot de passe');
@@ -53,62 +56,79 @@ function ResetPasswordView() {
 
   if (!resetLink.exists) {
     return (
-      <Container as="main" className="grow-container" spacing="py-4w">
-        <Row gutters alignItems="middle">
-          <Col>
+      <Container
+        component="main"
+        className="grow-container"
+        maxWidth="xl"
+        sx={{ py: '2rem' }}
+      >
+        <Grid container spacing={2} alignItems="center">
+          <Grid size="grow">
             <Typography component="h1" variant="h4" mb={3}>
               Ce lien n’existe pas ou est expiré !
             </Typography>
-            <Text>Recommencez la procédure ou contactez le support.</Text>
-            <Row justifyContent="right">
+            <Typography component="p" variant="body1">
+              Recommencez la procédure ou contactez le support.
+            </Typography>
+            <Stack direction="row" sx={{ justifyContent: 'flex-end' }}>
               <Button linkProps={{ to: '/', replace: true }}>
                 Revenir à l’accueil
               </Button>
-            </Row>
-          </Col>
-          <Col n="5" offset="1" className="align-right">
+            </Stack>
+          </Grid>
+          <Grid size={5} offset={1} className="align-right">
             <img
               src={building}
               style={{ width: '100%', height: '100%' }}
               alt=""
             />
-          </Col>
-        </Row>
+          </Grid>
+        </Grid>
       </Container>
     );
   }
 
   if (passwordReset) {
     return (
-      <Container as="main" className="grow-container" spacing="py-4w">
-        <Row gutters alignItems="middle">
-          <Col>
+      <Container
+        component="main"
+        className="grow-container"
+        maxWidth="xl"
+        sx={{ py: '2rem' }}
+      >
+        <Grid container spacing={2} alignItems="center">
+          <Grid size="grow">
             <Typography component="h1" variant="h4" mb={3}>
               Votre mot de passe a été réinitialisé !
             </Typography>
-            <Text>
+            <Typography component="p" variant="body1">
               Essayez de vous connecter en utilisant votre nouveau mot de passe.
-            </Text>
-            <Row justifyContent="right">
+            </Typography>
+            <Stack direction="row" sx={{ justifyContent: 'flex-end' }}>
               <Button linkProps={{ to: '/connexion' }}>Se connecter</Button>
-            </Row>
-          </Col>
-          <Col n="5" offset="1" className="align-right">
+            </Stack>
+          </Grid>
+          <Grid size={5} offset={1} className="align-right">
             <img
               src={building}
               style={{ width: '100%', height: '100%' }}
               alt=""
             />
-          </Col>
-        </Row>
+          </Grid>
+        </Grid>
       </Container>
     );
   }
 
   return (
-    <Container as="main" className="grow-container" spacing="py-4w">
-      <Row gutters alignItems="middle">
-        <Col>
+    <Container
+      component="main"
+      className="grow-container"
+      maxWidth="xl"
+      sx={{ py: '2rem' }}
+    >
+      <Grid container spacing={2} alignItems="center">
+        <Grid size="grow">
           {error && (
             <Alert
               title="Erreur"
@@ -148,19 +168,19 @@ function ResetPasswordView() {
               label="Confirmer votre mot de passe (obligatoire)"
               required
             />
-            <Row justifyContent="right">
+            <Stack direction="row" sx={{ justifyContent: 'flex-end' }}>
               <Button type="submit">Enregistrer le nouveau mot de passe</Button>
-            </Row>
+            </Stack>
           </form>
-        </Col>
-        <Col n="5" offset="1" className="align-right">
+        </Grid>
+        <Grid size={5} offset={1} className="align-right">
           <img
             src={building}
             style={{ width: '100%', height: '100%' }}
             alt=""
           />
-        </Col>
-      </Row>
+        </Grid>
+      </Grid>
     </Container>
   );
 }

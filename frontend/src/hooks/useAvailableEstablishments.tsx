@@ -1,19 +1,20 @@
-import { useMemo } from 'react';
 import type { EstablishmentKind } from '@zerologementvacant/models';
+import { useMemo } from 'react';
+
 import { useFindEstablishmentsQuery } from '../services/establishment.service';
 
 export const useAvailableEstablishments = () => {
   const { data: availableEstablishments } = useFindEstablishmentsQuery({
-    available: true,
+    available: true
   });
 
   const availableEstablishmentOptions = useMemo(
     () =>
       (availableEstablishments ?? []).map((establishment) => ({
         value: establishment.id,
-        label: establishment.name,
+        label: establishment.name
       })),
-    [availableEstablishments],
+    [availableEstablishments]
   );
 
   const availableEstablishmentWithKinds = useMemo(
@@ -21,12 +22,12 @@ export const useAvailableEstablishments = () => {
       (availableEstablishments ?? [])
         .filter((establishment) => kinds.includes(establishment.kind))
         .sort((e1, e2) => e1.shortName.localeCompare(e2.shortName)),
-    [availableEstablishments],
+    [availableEstablishments]
   );
 
   return {
     availableEstablishments,
     availableEstablishmentOptions,
-    availableEstablishmentWithKinds,
+    availableEstablishmentWithKinds
   };
 };

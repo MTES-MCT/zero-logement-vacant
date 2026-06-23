@@ -1,18 +1,19 @@
+import fs from 'node:fs';
+import path from 'node:path';
+import { Readable, Transform } from 'node:stream';
+
 import {
   HOUSING_STATUS_LABELS,
   HousingStatus
 } from '@zerologementvacant/models';
 import { groupBy } from '@zerologementvacant/utils/node';
 import jsonlines from 'jsonlines';
-import fs from 'node:fs';
-import path from 'node:path';
-import { Readable, Transform } from 'node:stream';
 import { v4 as uuidv4 } from 'uuid';
-import type { HousingEventApi } from '~/models/EventApi';
 
 import UserMissingError from '~/errors/userMissingError';
 import { startTransaction } from '~/infra/database/transaction';
 import { createLogger } from '~/infra/logger';
+import type { HousingEventApi } from '~/models/EventApi';
 import type { UserApi } from '~/models/UserApi';
 import eventRepository from '~/repositories/eventRepository';
 import housingRepository from '~/repositories/housingRepository';
@@ -41,9 +42,7 @@ interface WriterOptions {
 function writer(options: WriterOptions) {
   const now = new Date().toJSON();
 
-  return new WritableStream<
-    ReadonlyArray<Input>
-  >({
+  return new WritableStream<ReadonlyArray<Input>>({
     async write(housings) {
       const events = housings.map<HousingEventApi>((housing) => ({
         id: uuidv4(),

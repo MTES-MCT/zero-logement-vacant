@@ -10,7 +10,7 @@ export default class UnprocessableEntityError
     super({
       name: 'UnprocessableEntityError',
       message: `Unprocessable entity`,
-      status: constants.HTTP_STATUS_UNPROCESSABLE_ENTITY,
+      status: constants.HTTP_STATUS_UNPROCESSABLE_ENTITY
     });
   }
 }

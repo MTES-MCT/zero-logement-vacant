@@ -44,16 +44,19 @@ Ce document recense les bonnes pratiques identifiées dans l'API ZLV ainsi que l
 **Problème** : POST est utilisé pour une opération de lecture (recherche).
 
 **Arguments** :
+
 - ✅ **HTTP standard** : GET pour les lectures, POST pour les écritures
 - ✅ **Cache** : Les requêtes GET sont cachables par les navigateurs et CDN, pas POST
 - ✅ **Bookmarkable** : Une URL GET peut être partagée/bookmarkée
 - ❌ **Complexité** : Si les filtres sont très complexes (nested objects), GET peut devenir difficile avec les query params
 
 **Impact** :
+
 - 🔴 **Breaking change frontend**
 - Nécessite de transformer le body JSON en query parameters
 
 **Coût** : ⭐⭐ Moyen (4-8h)
+
 - Refactoring du endpoint backend
 - Adapter le frontend
 - Gérer la sérialisation des filtres complexes
@@ -65,10 +68,12 @@ Ce document recense les bonnes pratiques identifiées dans l'API ZLV ainsi que l
 **Problème** : Incohérence de nommage avec les autres endpoints.
 
 **Arguments** :
+
 - ✅ **Cohérence** : Tous les autres endpoints utilisent des tirets (`contact-points`, `owner-prospects`)
 - ✅ **REST convention** : Les ressources sont nommées en kebab-case
 
 **Impact** :
+
 - 🔴 **Breaking change frontend** (mineur)
 
 **Coût** : ⭐ Faible (1-2h)
@@ -80,6 +85,7 @@ Ce document recense les bonnes pratiques identifiées dans l'API ZLV ainsi que l
 **Problème** : L'API n'est pas versionnée, ce qui rend les changements breaking impossibles sans casser les clients existants.
 
 **Arguments** :
+
 - ✅ **Évolutivité** : Permet d'introduire des breaking changes sans impacter les clients existants
 - ✅ **Migration progressive** : Les clients peuvent migrer à leur rythme
 - ✅ **Best practice** : Standard de l'industrie (Google, Stripe, GitHub...)
@@ -87,16 +93,19 @@ Ce document recense les bonnes pratiques identifiées dans l'API ZLV ainsi que l
 - ❌ **Overhead** : Plus de code si plusieurs versions coexistent
 
 **Recommandation** :
+
 ```
 /api/v1/housing
 /api/v1/campaigns
 ```
 
 **Impact** :
+
 - 🔴 **Breaking change majeur** sur tous les endpoints
 - Nécessite une stratégie de migration (v1 par défaut, v2 en preview)
 
 **Coût** : ⭐⭐⭐ Élevé (2-3 jours)
+
 - Refactoring de la structure des routers
 - Mise à jour de tous les appels frontend
 - Documentation des versions
@@ -111,12 +120,14 @@ Ce document recense les bonnes pratiques identifiées dans l'API ZLV ainsi que l
 **Problème** : Le format des erreurs varie selon les endpoints, rendant le traitement côté client inconsistant.
 
 **Arguments** :
+
 - ✅ **Standard** : RFC 7807 est un standard IETF adopté par de nombreuses APIs
 - ✅ **Debugging** : Structure claire avec `type`, `title`, `detail`, `instance`
 - ✅ **Extensible** : Champs additionnels possibles (`errors[]` pour les validations)
 - ✅ **Machine-readable** : Le champ `type` permet une gestion automatisée des erreurs
 
 **Format recommandé** :
+
 ```json
 {
   "type": "https://zlv.beta.gouv.fr/errors/validation-error",
@@ -124,17 +135,17 @@ Ce document recense les bonnes pratiques identifiées dans l'API ZLV ainsi que l
   "status": 400,
   "detail": "Le champ 'email' est invalide",
   "instance": "/api/users/creation",
-  "errors": [
-    { "field": "email", "message": "Format d'email invalide" }
-  ]
+  "errors": [{ "field": "email", "message": "Format d'email invalide" }]
 }
 ```
 
 **Impact** :
+
 - 🟡 **Changement non-breaking** si implémenté progressivement
 - Frontend doit adapter la gestion des erreurs
 
 **Coût** : ⭐⭐ Moyen (1-2 jours)
+
 - Créer un error handler centralisé
 - Adapter les classes d'erreur existantes
 - Mettre à jour le frontend pour parser le nouveau format
@@ -146,6 +157,7 @@ Ce document recense les bonnes pratiques identifiées dans l'API ZLV ainsi que l
 **Problème** : Les réponses ne contiennent pas de liens vers les ressources liées, le client doit connaître les URLs à l'avance.
 
 **Arguments** :
+
 - ✅ **Découvrabilité** : Le client peut naviguer l'API sans documentation
 - ✅ **Découplage** : Les URLs peuvent changer sans casser les clients
 - ✅ **Richardson Maturity Level 3** : Plus haut niveau de maturité REST
@@ -154,6 +166,7 @@ Ce document recense les bonnes pratiques identifiées dans l'API ZLV ainsi que l
 - ❌ **Over-engineering** : Pour une application avec un seul frontend, peu de valeur ajoutée
 
 **Format recommandé** :
+
 ```json
 {
   "id": "uuid",
@@ -167,9 +180,11 @@ Ce document recense les bonnes pratiques identifiées dans l'API ZLV ainsi que l
 ```
 
 **Impact** :
+
 - 🟢 **Non-breaking** si ajouté comme champs optionnels
 
 **Coût** : ⭐⭐⭐ Élevé (3-5 jours)
+
 - Modifier tous les DTOs
 - Créer un helper de génération de liens
 - Adapter le frontend (optionnel)
@@ -184,11 +199,11 @@ Ce document recense les bonnes pratiques identifiées dans l'API ZLV ainsi que l
 
 **Améliorations possibles** :
 
-| Amélioration | Argument | Impact | Coût |
-|--------------|----------|--------|------|
-| Documentation des opérateurs | Les développeurs ne savent pas quels filtres sont disponibles | 🟢 Non-breaking | ⭐ Faible |
-| Tri multi-champs (`sort=status,-createdAt`) | Permet des tris composés | 🟢 Non-breaking | ⭐ Faible |
-| Standard JSON:API | Standardisation | 🔴 Breaking | ⭐⭐⭐ Élevé |
+| Amélioration                                | Argument                                                      | Impact          | Coût         |
+| ------------------------------------------- | ------------------------------------------------------------- | --------------- | ------------ |
+| Documentation des opérateurs                | Les développeurs ne savent pas quels filtres sont disponibles | 🟢 Non-breaking | ⭐ Faible    |
+| Tri multi-champs (`sort=status,-createdAt`) | Permet des tris composés                                      | 🟢 Non-breaking | ⭐ Faible    |
+| Standard JSON:API                           | Standardisation                                               | 🔴 Breaking     | ⭐⭐⭐ Élevé |
 
 **Recommandation** : Documenter les filtres existants dans Swagger, ajouter le tri multi-champs.
 
@@ -203,6 +218,7 @@ Ce document recense les bonnes pratiques identifiées dans l'API ZLV ainsi que l
 **Si non activé au niveau infra** :
 
 **Arguments** :
+
 - ✅ **Performance** : Réduction de 70-90% de la taille des réponses JSON
 - ✅ **Bande passante** : Économie pour les utilisateurs mobiles
 - ✅ **Temps de réponse** : Transfert plus rapide malgré la compression
@@ -210,15 +226,18 @@ Ce document recense les bonnes pratiques identifiées dans l'API ZLV ainsi que l
 - ❌ **CPU** : Légère augmentation de l'utilisation CPU serveur (négligeable)
 
 **Implémentation** :
+
 ```typescript
 import compression from 'compression';
 app.use(compression());
 ```
 
 **Impact** :
+
 - 🟢 **Non-breaking**, transparent pour les clients
 
 **Coût** : ⭐ Très faible (30 min)
+
 - Installer le package `compression`
 - Ajouter une ligne dans `server.ts`
 
@@ -231,6 +250,7 @@ app.use(compression());
 **Problème** : Aucun header de cache, chaque requête va jusqu'au serveur même pour des données statiques.
 
 **Arguments** :
+
 - ✅ **Performance** : Les données peu changeantes (établissements, communes) peuvent être cachées
 - ✅ **Économie serveur** : Moins de requêtes à traiter
 - ✅ **UX** : Réponses instantanées pour les données cachées
@@ -245,9 +265,11 @@ app.use(compression());
 | `/campaigns` | `no-cache, private` | Données sensibles |
 
 **Impact** :
+
 - 🟢 **Non-breaking**
 
 **Coût** : ⭐ Faible (2-4h)
+
 - Ajouter les headers dans les controllers concernés
 - Documenter la stratégie de cache
 
@@ -258,6 +280,7 @@ app.use(compression());
 **Problème** : Deux utilisateurs peuvent modifier le même logement simultanément, le dernier écrase les modifications du premier sans avertissement.
 
 **Arguments** :
+
 - ✅ **Intégrité** : Prévient la perte de données lors de modifications concurrentes
 - ✅ **UX** : Alerte l'utilisateur qu'il travaille sur une version obsolète
 - ✅ **Standard HTTP** : `If-Match`, `ETag` sont des headers standards
@@ -265,6 +288,7 @@ app.use(compression());
 - ❌ **Calcul hash** : Légère surcharge pour calculer l'ETag
 
 **Implémentation** :
+
 ```typescript
 // GET - Génération
 res.set('ETag', `"${hash(resource)}"`);
@@ -277,9 +301,11 @@ if (ifMatch && ifMatch !== currentETag) {
 ```
 
 **Impact** :
+
 - 🟡 **Potentiellement breaking** si le frontend ne gère pas le 412
 
 **Coût** : ⭐⭐ Moyen (1-2 jours)
+
 - Middleware de génération d'ETag
 - Middleware de vérification If-Match
 - Gestion du 412 côté frontend
@@ -296,18 +322,22 @@ if (ifMatch && ifMatch !== currentETag) {
 **Problème** : Le health check actuel vérifie tout (DB, Redis, S3, Brevo), ce qui peut bloquer le déploiement si un service non-critique est down.
 
 **Arguments** :
+
 - ✅ **Kubernetes-ready** : Standard K8s avec `livenessProbe` et `readinessProbe`
 - ✅ **Résilience** : Le serveur peut continuer à fonctionner même si Brevo est down
 - ✅ **Déploiement** : Un check `/health/ready` trop strict peut empêcher les rolling updates
 
 **Endpoints recommandés** :
+
 - `/health/live` : L'application est en cours d'exécution (toujours 200 si le process tourne)
 - `/health/ready` : L'application peut accepter du trafic (DB connectée)
 
 **Impact** :
+
 - 🟢 **Non-breaking** (nouveaux endpoints)
 
 **Coût** : ⭐ Faible (2-4h)
+
 - Créer les deux nouveaux endpoints
 - Configurer Clever Cloud pour utiliser `/health/ready`
 
@@ -316,17 +346,18 @@ if (ifMatch && ifMatch !== currentETag) {
 ### 10. Documentation OpenAPI (✅ Implémenté)
 
 **Nouvellement implémenté** :
+
 - Swagger UI disponible à `/api-docs`
 - Spécification OpenAPI à `/api-docs.json`
 - Désactivé en production par défaut (activer avec `SWAGGER_ENABLED=true`)
 
 **Améliorations futures** :
 
-| Amélioration | Argument | Coût |
-|--------------|----------|------|
-| Exemples de requêtes/réponses | Facilite l'onboarding | ⭐ Faible |
-| Documentation des codes d'erreur | Gestion d'erreur exhaustive | ⭐ Faible |
-| Génération TypeScript depuis OpenAPI | DRY, types toujours à jour | ⭐⭐ Moyen |
+| Amélioration                         | Argument                    | Coût       |
+| ------------------------------------ | --------------------------- | ---------- |
+| Exemples de requêtes/réponses        | Facilite l'onboarding       | ⭐ Faible  |
+| Documentation des codes d'erreur     | Gestion d'erreur exhaustive | ⭐ Faible  |
+| Génération TypeScript depuis OpenAPI | DRY, types toujours à jour  | ⭐⭐ Moyen |
 
 ---
 
@@ -334,44 +365,44 @@ if (ifMatch && ifMatch !== currentETag) {
 
 ### Priorité 1 - Quick Wins (ROI élevé, coût faible)
 
-| Amélioration | Coût | Impact | Justification |
-|--------------|------|--------|---------------|
-| ✅ Documentation Swagger | ⭐ | Aucun breaking | Déjà implémenté |
-| [ ] Compression gzip | ⭐ (30 min) | Aucun breaking | -70% taille réponses, 1 ligne de code |
-| [ ] Health checks live/ready | ⭐ (2-4h) | Aucun breaking | Meilleure résilience déploiement |
+| Amélioration                 | Coût        | Impact         | Justification                         |
+| ---------------------------- | ----------- | -------------- | ------------------------------------- |
+| ✅ Documentation Swagger     | ⭐          | Aucun breaking | Déjà implémenté                       |
+| [ ] Compression gzip         | ⭐ (30 min) | Aucun breaking | -70% taille réponses, 1 ligne de code |
+| [ ] Health checks live/ready | ⭐ (2-4h)   | Aucun breaking | Meilleure résilience déploiement      |
 
 ### Priorité 2 - Corrections API (améliore la cohérence)
 
-| Amélioration | Coût | Impact | Quand |
-|--------------|------|--------|-------|
-| ✅ `POST /campaigns/:id/groups` → `POST /groups/:id/campaigns` | ⭐ (2-4h) | Breaking frontend | Déjà implémenté |
-| [ ] `/geo/perimeters` → `/geo-perimeters` | ⭐ (1-2h) | Breaking frontend | Prochain sprint |
-| [ ] `POST /owners` → `GET /owners?q=` | ⭐⭐ (4-8h) | Breaking frontend | Prochain sprint |
+| Amélioration                                                   | Coût        | Impact            | Quand           |
+| -------------------------------------------------------------- | ----------- | ----------------- | --------------- |
+| ✅ `POST /campaigns/:id/groups` → `POST /groups/:id/campaigns` | ⭐ (2-4h)   | Breaking frontend | Déjà implémenté |
+| [ ] `/geo/perimeters` → `/geo-perimeters`                      | ⭐ (1-2h)   | Breaking frontend | Prochain sprint |
+| [ ] `POST /owners` → `GET /owners?q=`                          | ⭐⭐ (4-8h) | Breaking frontend | Prochain sprint |
 
 ### Priorité 3 - Améliorations structurelles
 
-| Amélioration | Coût | Impact | Recommandation |
-|--------------|------|--------|----------------|
-| [ ] Cache HTTP (headers) | ⭐ (2-4h) | Aucun breaking | À faire |
-| [ ] Erreurs RFC 7807 | ⭐⭐ (1-2j) | Semi-breaking | À planifier |
-| [ ] ETags concurrence | ⭐⭐ (1-2j) | Semi-breaking | Sur ressources critiques |
+| Amélioration             | Coût        | Impact         | Recommandation           |
+| ------------------------ | ----------- | -------------- | ------------------------ |
+| [ ] Cache HTTP (headers) | ⭐ (2-4h)   | Aucun breaking | À faire                  |
+| [ ] Erreurs RFC 7807     | ⭐⭐ (1-2j) | Semi-breaking  | À planifier              |
+| [ ] ETags concurrence    | ⭐⭐ (1-2j) | Semi-breaking  | Sur ressources critiques |
 
 ### Priorité 4 - Évolutions majeures (à planifier)
 
-| Amélioration | Coût | Impact | Recommandation |
-|--------------|------|--------|----------------|
-| [ ] Versioning API v1/v2 | ⭐⭐⭐ (2-3j) | Breaking majeur | Lors d'une refonte |
-| [ ] HATEOAS | ⭐⭐⭐ (3-5j) | Non-breaking | ❌ Non prioritaire |
-| [ ] GraphQL | ⭐⭐⭐⭐ (semaines) | Parallèle à REST | ❌ Non recommandé actuellement |
+| Amélioration             | Coût                | Impact           | Recommandation                 |
+| ------------------------ | ------------------- | ---------------- | ------------------------------ |
+| [ ] Versioning API v1/v2 | ⭐⭐⭐ (2-3j)       | Breaking majeur  | Lors d'une refonte             |
+| [ ] HATEOAS              | ⭐⭐⭐ (3-5j)       | Non-breaking     | ❌ Non prioritaire             |
+| [ ] GraphQL              | ⭐⭐⭐⭐ (semaines) | Parallèle à REST | ❌ Non recommandé actuellement |
 
 ### Synthèse des Coûts
 
-| Priorité | Effort total estimé | Valeur ajoutée |
-|----------|---------------------|----------------|
-| P1 Quick Wins | ~4h | Haute (performance, résilience) |
-| P2 Corrections | ~12h | Moyenne (cohérence, maintenabilité) |
-| P3 Améliorations | ~3 jours | Moyenne (robustesse) |
-| P4 Évolutions | 1-2 semaines | Variable |
+| Priorité         | Effort total estimé | Valeur ajoutée                      |
+| ---------------- | ------------------- | ----------------------------------- |
+| P1 Quick Wins    | ~4h                 | Haute (performance, résilience)     |
+| P2 Corrections   | ~12h                | Moyenne (cohérence, maintenabilité) |
+| P3 Améliorations | ~3 jours            | Moyenne (robustesse)                |
+| P4 Évolutions    | 1-2 semaines        | Variable                            |
 
 **Recommandation** : Commencer par P1, intégrer P2 dans le prochain sprint de refactoring, planifier P3 sur 2-3 sprints.
 

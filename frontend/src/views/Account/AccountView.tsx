@@ -1,8 +1,8 @@
 import { fr } from '@codegouvfr/react-dsfr';
 import Alert from '@codegouvfr/react-dsfr/Alert';
 import { Box, Stack, Typography } from '@mui/material';
-import AppLink from '~/components/_app/AppLink/AppLink';
 
+import AppLink from '~/components/_app/AppLink/AppLink';
 import AccountForm from '~/components/Account/AccountForm';
 import LabelNext from '~/components/Label/LabelNext';
 import { useDocumentTitle } from '~/hooks/useDocumentTitle';

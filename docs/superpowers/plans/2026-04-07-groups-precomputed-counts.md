@@ -13,6 +13,7 @@
 ### Task 1: Write failing repository tests
 
 **Files:**
+
 - Modify: `server/src/repositories/test/groupRepository.test.ts`
 
 - [ ] **Step 1: Add import at the top of the file (after the existing imports)**
@@ -125,6 +126,7 @@ git commit -m "test(server): add failing tests for precomputed housingCount and 
 ### Task 2: Create the migration
 
 **Files:**
+
 - Create: `server/src/infra/database/migrations/<timestamp>_groups-add-counts.ts` (filename set by the tool)
 
 - [ ] **Step 1: Generate the migration file**
@@ -260,9 +262,13 @@ export async function up(knex: Knex): Promise<void> {
 }
 
 export async function down(knex: Knex): Promise<void> {
-  await knex.raw('DROP TRIGGER IF EXISTS trg_update_group_owner_count ON owners_housing');
+  await knex.raw(
+    'DROP TRIGGER IF EXISTS trg_update_group_owner_count ON owners_housing'
+  );
   await knex.raw('DROP FUNCTION IF EXISTS update_group_owner_count');
-  await knex.raw('DROP TRIGGER IF EXISTS trg_update_group_counts ON groups_housing');
+  await knex.raw(
+    'DROP TRIGGER IF EXISTS trg_update_group_counts ON groups_housing'
+  );
   await knex.raw('DROP FUNCTION IF EXISTS update_group_counts');
   await knex.schema.alterTable('groups', (table) => {
     table.dropColumn('owner_count');
@@ -291,6 +297,7 @@ git commit -m "chore(server): add migration for precomputed housing_count and ow
 ### Task 3: Update groupRepository.ts
 
 **Files:**
+
 - Modify: `server/src/repositories/groupRepository.ts`
 
 - [ ] **Step 1: Remove the `LEFT JOIN LATERAL` from `listQuery` and clean up the select**
@@ -433,6 +440,7 @@ git commit -m "feat(server): use precomputed housing_count and owner_count on gr
 ### Task 4: Update documentation
 
 **Files:**
+
 - Modify: `docs/database/trigger-campaign-return-count.md`
 
 - [ ] **Step 1: Add a new section documenting the group count triggers**
@@ -448,10 +456,10 @@ Append the following at the end of `docs/database/trigger-campaign-return-count.
 
 ### What are these columns?
 
-| Column | Type | Description |
-|--------|------|-------------|
-| `housing_count` | `integer` | Number of housings attached to the group via `groups_housing` |
-| `owner_count` | `integer` | Number of distinct primary owners (`rank = 1`) across those housings |
+| Column          | Type      | Description                                                          |
+| --------------- | --------- | -------------------------------------------------------------------- |
+| `housing_count` | `integer` | Number of housings attached to the group via `groups_housing`        |
+| `owner_count`   | `integer` | Number of distinct primary owners (`rank = 1`) across those housings |
 
 These replace a `LEFT JOIN LATERAL COUNT(DISTINCT …)` that was computed on every listing request, causing ~8s latency for large groups (e.g. 90k housings).
 
@@ -459,10 +467,10 @@ These replace a `LEFT JOIN LATERAL COUNT(DISTINCT …)` that was computed on eve
 
 Same pattern as the campaign counts (`trg_update_campaign_counts` / `trg_update_campaign_owner_count`).
 
-| Trigger | Table | Timing | Updates |
-|---------|-------|--------|---------|
-| `trg_update_group_counts` | `groups_housing` | `AFTER INSERT OR DELETE` | `housing_count`, `owner_count` (full recompute) |
-| `trg_update_group_owner_count` | `owners_housing` | `AFTER INSERT OR DELETE OR UPDATE OF rank` | `owner_count` only (full recompute) |
+| Trigger                        | Table            | Timing                                     | Updates                                         |
+| ------------------------------ | ---------------- | ------------------------------------------ | ----------------------------------------------- |
+| `trg_update_group_counts`      | `groups_housing` | `AFTER INSERT OR DELETE`                   | `housing_count`, `owner_count` (full recompute) |
+| `trg_update_group_owner_count` | `owners_housing` | `AFTER INSERT OR DELETE OR UPDATE OF rank` | `owner_count` only (full recompute)             |
 
 Both triggers perform a **full recompute** rather than incremental `±1` because group membership changes are infrequent and correctness is simpler to guarantee.
 
@@ -477,6 +485,7 @@ Resolves `v_group_id` as `COALESCE(NEW.group_id, OLD.group_id)` to handle both I
 **Table:** `owners_housing` — **Timing:** `AFTER INSERT OR DELETE OR UPDATE OF rank FOR EACH ROW`
 
 **Early exit conditions (no DB writes):**
+
 - INSERT with `rank != 1`
 - DELETE with `rank != 1`
 - UPDATE where neither `OLD.rank` nor `NEW.rank` is 1

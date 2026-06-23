@@ -8,14 +8,14 @@ The queue system handles background job processing for long-running tasks like c
 
 ## Technology Stack
 
-| Component | Technology | Version | Purpose |
-|-----------|------------|---------|---------|
-| **Queue** | BullMQ | 5.56 | Job queue library |
-| **Dashboard** | Bull Board | 6.13 | Queue monitoring UI |
-| **Backend** | Redis | 7.x | Queue storage |
-| **Storage** | AWS S3 | 3.x | File uploads |
-| **PDF** | @zerologementvacant/draft | - | PDF generation |
-| **Archive** | archiver | 7.0 | ZIP creation |
+| Component     | Technology                | Version | Purpose             |
+| ------------- | ------------------------- | ------- | ------------------- |
+| **Queue**     | BullMQ                    | 5.56    | Job queue library   |
+| **Dashboard** | Bull Board                | 6.13    | Queue monitoring UI |
+| **Backend**   | Redis                     | 7.x     | Queue storage       |
+| **Storage**   | AWS S3                    | 3.x     | File uploads        |
+| **PDF**       | @zerologementvacant/draft | -       | PDF generation      |
+| **Archive**   | archiver                  | 7.0     | ZIP creation        |
 
 ## Architecture Diagram
 
@@ -93,12 +93,12 @@ Generates mail documents for a campaign.
 
 ```typescript
 interface CampaignGeneratePayload {
-  campaignId: string;      // Campaign to process
+  campaignId: string; // Campaign to process
   establishmentId: string; // Establishment context
 }
 
 interface CampaignGenerateResult {
-  id: string;              // S3 file ID
+  id: string; // S3 file ID
 }
 ```
 
@@ -146,7 +146,7 @@ const worker = new Worker(
   },
   {
     connection: redis,
-    concurrency: 1  // Process one job at a time
+    concurrency: 1 // Process one job at a time
   }
 );
 ```
@@ -159,7 +159,7 @@ const app = express();
 
 // Health check endpoint
 app.get('/', async (req, res) => {
-  const health = await checkHealth();  // Redis, PostgreSQL, S3
+  const health = await checkHealth(); // Redis, PostgreSQL, S3
   res.json(health);
 });
 
@@ -218,13 +218,13 @@ const uploadParams = {
 const queue = new Queue('campaign-generate', {
   connection: redis,
   defaultJobOptions: {
-    attempts: 3,           // Retry up to 3 times
+    attempts: 3, // Retry up to 3 times
     backoff: {
       type: 'exponential',
-      delay: 5000          // Start with 5s delay
+      delay: 5000 // Start with 5s delay
     },
     removeOnComplete: 100, // Keep last 100 completed
-    removeOnFail: 50       // Keep last 50 failed
+    removeOnFail: 50 // Keep last 50 failed
   }
 });
 ```
@@ -255,6 +255,7 @@ worker.on('error', (error) => {
 Access at `/queues` with basic authentication.
 
 Features:
+
 - View pending, active, completed, failed jobs
 - Retry failed jobs
 - Remove jobs
@@ -277,18 +278,18 @@ GET /
 
 ## Environment Variables
 
-| Variable | Required | Description |
-|----------|----------|-------------|
-| `PORT` | No | Server port (default: 8080) |
-| `REDIS_URL` | Yes | Redis connection string |
-| `DATABASE_URL` | Yes | PostgreSQL connection |
-| `S3_ENDPOINT` | Yes | S3 endpoint URL |
-| `S3_REGION` | Yes | S3 region |
-| `S3_BUCKET` | Yes | S3 bucket name |
-| `S3_ACCESS_KEY_ID` | Yes | S3 access key |
-| `S3_SECRET_ACCESS_KEY` | Yes | S3 secret key |
-| `QUEUE_PASSWORD` | Yes | Bull Board password |
-| `API_ENDPOINT` | Yes | Backend API URL |
+| Variable               | Required | Description                 |
+| ---------------------- | -------- | --------------------------- |
+| `PORT`                 | No       | Server port (default: 8080) |
+| `REDIS_URL`            | Yes      | Redis connection string     |
+| `DATABASE_URL`         | Yes      | PostgreSQL connection       |
+| `S3_ENDPOINT`          | Yes      | S3 endpoint URL             |
+| `S3_REGION`            | Yes      | S3 region                   |
+| `S3_BUCKET`            | Yes      | S3 bucket name              |
+| `S3_ACCESS_KEY_ID`     | Yes      | S3 access key               |
+| `S3_SECRET_ACCESS_KEY` | Yes      | S3 secret key               |
+| `QUEUE_PASSWORD`       | Yes      | Bull Board password         |
+| `API_ENDPOINT`         | Yes      | Backend API URL             |
 
 ## Deployment
 

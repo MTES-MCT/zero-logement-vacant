@@ -76,85 +76,171 @@ establishment_connexions AS (
     GROUP BY u.establishment_id
 ),
 
-housing_status_counts AS (
+-- =====================================================================
+-- LOGEMENTS MIS A JOUR (SITUATION / SUIVI / OCCUPATION)
+-- =====================================================================
+-- Attribution par ÉVÉNEMENT, lié à l'établissement de l'UTILISATEUR qui a
+-- créé l'événement (int_production_events.establishment_id), et NON par
+-- territoire géographique du logement.
+--
+-- L'ancienne version partait de int_production_establishments_housing
+-- (logement -> établissement par geo_code) joint à
+-- int_production_housing_last_status (dernier statut du logement, toutes
+-- sources confondues). Conséquence: la mise à jour d'un logement était
+-- comptée pour TOUS les établissements couvrant son territoire (commune +
+-- EPCI + département + région + DDT...), soit ~25 établissements par
+-- logement, et attribuée même quand l'utilisateur appartenait à un autre
+-- établissement. Sur-comptage d'un facteur ~28 et ~36 000 établissements
+-- crédités au lieu de ~600 réellement actifs.
+--
+-- On recalcule donc le dernier statut par (établissement, logement) à partir
+-- des seuls événements créés par les utilisateurs ('user') de l'établissement.
+-- Logique alignée sur la macro get_last_event_status / int_production_housing_last_status.
+
+user_followup_last AS (
     SELECT
-        eh.establishment_id,
+        establishment_id,
+        housing_id,
+        event_status_label,
+        new_sub_status,
+        created_at
+    FROM (
+        SELECT
+            establishment_id,
+            housing_id,
+            event_status_label,
+            new_sub_status,
+            created_at,
+            ROW_NUMBER() OVER (
+                PARTITION BY establishment_id, housing_id
+                ORDER BY created_at DESC
+            ) AS row_num
+        FROM {{ ref('int_production_events') }}
+        WHERE user_source = 'user'
+          AND status_changed = TRUE
+          AND type IN ('housing:status-updated', 'housing:occupancy-updated')
+          AND establishment_id IS NOT NULL
+          AND housing_id IS NOT NULL
+    )
+    WHERE row_num = 1
+),
+
+user_occupancy_last AS (
+    SELECT
+        establishment_id,
+        housing_id,
+        created_at
+    FROM (
+        SELECT
+            establishment_id,
+            housing_id,
+            created_at,
+            ROW_NUMBER() OVER (
+                PARTITION BY establishment_id, housing_id
+                ORDER BY created_at DESC
+            ) AS row_num
+        FROM {{ ref('int_production_events') }}
+        WHERE user_source = 'user'
+          AND occupancy_changed = TRUE
+          AND type IN ('housing:status-updated', 'housing:occupancy-updated')
+          AND establishment_id IS NOT NULL
+          AND housing_id IS NOT NULL
+    )
+    WHERE row_num = 1
+),
+
+followup_counts AS (
+    SELECT
+        establishment_id,
+        COUNT(DISTINCT housing_id) AS logements_maj_suivi,
         COUNT(DISTINCT CASE
-            WHEN hls.last_event_status_label_user_followup IS NOT NULL
-              OR hls.last_event_status_label_user_occupancy IS NOT NULL
-            THEN eh.housing_id
-        END) AS logements_maj_situation,
-        COUNT(DISTINCT CASE
-            WHEN hls.last_event_status_label_user_occupancy IS NOT NULL
-            THEN eh.housing_id
-        END) AS logements_maj_occupation,
-        COUNT(DISTINCT CASE
-            WHEN hls.last_event_status_label_user_followup IS NOT NULL
-            THEN eh.housing_id
-        END) AS logements_maj_suivi,
-        COUNT(DISTINCT CASE
-            WHEN hls.last_event_status_label_user_followup = 'Non-suivi'
-            THEN eh.housing_id
+            WHEN event_status_label = 'Non-suivi' THEN housing_id
         END) AS logements_maj_non_suivi,
         COUNT(DISTINCT CASE
-            WHEN hls.last_event_status_label_user_followup = 'En attente de retour'
-            THEN eh.housing_id
+            WHEN event_status_label = 'En attente de retour' THEN housing_id
         END) AS logements_maj_en_attente,
         COUNT(DISTINCT CASE
-            WHEN hls.last_event_status_label_user_followup = 'Premier contact'
-            THEN eh.housing_id
+            WHEN event_status_label = 'Premier contact' THEN housing_id
         END) AS logements_maj_premier_contact,
         COUNT(DISTINCT CASE
-            WHEN hls.last_event_status_label_user_followup = 'Suivi en cours'
-            THEN eh.housing_id
+            WHEN event_status_label = 'Suivi en cours' THEN housing_id
         END) AS logements_maj_suivi_en_cours,
         COUNT(DISTINCT CASE
-            WHEN hls.last_event_status_label_user_followup = 'Suivi terminé'
-            THEN eh.housing_id
+            WHEN event_status_label = 'Suivi terminé' THEN housing_id
         END) AS logements_maj_suivi_termine,
         COUNT(DISTINCT CASE
-            WHEN hls.last_event_status_label_user_followup = 'Suivi terminé'
-              AND hls.last_event_sub_status_label_user_followup IN (
+            WHEN event_status_label = 'Suivi terminé'
+              AND new_sub_status IN (
                   'Sortie de la vacance',
                   'Sortie de la passoire énergétique',
                   'Sortie de la passoire thermique',
                   'Autre objectif rempli'
               )
-            THEN eh.housing_id
+            THEN housing_id
         END) AS logements_maj_suivi_termine_sortis,
         COUNT(DISTINCT CASE
-            WHEN hls.last_event_status_label_user_followup = 'Suivi terminé'
-              AND hls.last_event_sub_status_label_user_followup IN (
+            WHEN event_status_label = 'Suivi terminé'
+              AND new_sub_status IN (
                   'N''était pas vacant',
                   'N''était pas une passoire énergétique',
                   'N''était pas une passoire thermique'
               )
-            THEN eh.housing_id
+            THEN housing_id
         END) AS logements_maj_suivi_termine_fiabilises,
         COUNT(DISTINCT CASE
-            WHEN hls.last_event_status_label_user_followup = 'Bloqué'
-            THEN eh.housing_id
+            WHEN event_status_label = 'Bloqué' THEN housing_id
         END) AS logements_maj_bloque,
-        MIN(CASE
-            WHEN hls.last_event_date_user_followup IS NOT NULL
-              OR hls.last_event_date_user_occupancy IS NOT NULL
-            THEN LEAST(
-                COALESCE(hls.last_event_date_user_followup, hls.last_event_date_user_occupancy),
-                COALESCE(hls.last_event_date_user_occupancy, hls.last_event_date_user_followup)
-            )
-        END) AS date_premiere_maj_situation,
-        MAX(CASE
-            WHEN hls.last_event_date_user_followup IS NOT NULL
-              OR hls.last_event_date_user_occupancy IS NOT NULL
-            THEN GREATEST(
-                COALESCE(hls.last_event_date_user_followup, hls.last_event_date_user_occupancy),
-                COALESCE(hls.last_event_date_user_occupancy, hls.last_event_date_user_followup)
-            )
-        END) AS date_derniere_maj_situation
-    FROM {{ ref('int_production_establishments_housing') }} eh
-    LEFT JOIN {{ ref('int_production_housing_last_status') }} hls
-        ON eh.housing_id = hls.housing_id
-    GROUP BY eh.establishment_id
+        MIN(created_at) AS first_followup_at,
+        MAX(created_at) AS last_followup_at
+    FROM user_followup_last
+    GROUP BY establishment_id
+),
+
+occupancy_counts AS (
+    SELECT
+        establishment_id,
+        COUNT(DISTINCT housing_id) AS logements_maj_occupation,
+        MIN(created_at) AS first_occupancy_at,
+        MAX(created_at) AS last_occupancy_at
+    FROM user_occupancy_last
+    GROUP BY establishment_id
+),
+
+situation_counts AS (
+    SELECT
+        establishment_id,
+        COUNT(DISTINCT housing_id) AS logements_maj_situation
+    FROM (
+        SELECT establishment_id, housing_id FROM user_followup_last
+        UNION
+        SELECT establishment_id, housing_id FROM user_occupancy_last
+    )
+    GROUP BY establishment_id
+),
+
+housing_status_counts AS (
+    SELECT
+        COALESCE(f.establishment_id, o.establishment_id, s.establishment_id) AS establishment_id,
+        COALESCE(s.logements_maj_situation, 0) AS logements_maj_situation,
+        COALESCE(o.logements_maj_occupation, 0) AS logements_maj_occupation,
+        COALESCE(f.logements_maj_suivi, 0) AS logements_maj_suivi,
+        COALESCE(f.logements_maj_non_suivi, 0) AS logements_maj_non_suivi,
+        COALESCE(f.logements_maj_en_attente, 0) AS logements_maj_en_attente,
+        COALESCE(f.logements_maj_premier_contact, 0) AS logements_maj_premier_contact,
+        COALESCE(f.logements_maj_suivi_en_cours, 0) AS logements_maj_suivi_en_cours,
+        COALESCE(f.logements_maj_suivi_termine, 0) AS logements_maj_suivi_termine,
+        COALESCE(f.logements_maj_suivi_termine_sortis, 0) AS logements_maj_suivi_termine_sortis,
+        COALESCE(f.logements_maj_suivi_termine_fiabilises, 0) AS logements_maj_suivi_termine_fiabilises,
+        COALESCE(f.logements_maj_bloque, 0) AS logements_maj_bloque,
+        -- DuckDB LEAST/GREATEST ignorent les NULL: si une seule des deux dates
+        -- existe (suivi OU occupation), la date renvoyée reste cohérente.
+        LEAST(f.first_followup_at, o.first_occupancy_at) AS date_premiere_maj_situation,
+        GREATEST(f.last_followup_at, o.last_occupancy_at) AS date_derniere_maj_situation
+    FROM followup_counts f
+    FULL OUTER JOIN occupancy_counts o
+        ON f.establishment_id = o.establishment_id
+    FULL OUTER JOIN situation_counts s
+        ON COALESCE(f.establishment_id, o.establishment_id) = s.establishment_id
 ),
 
 owner_enrichment_events AS (

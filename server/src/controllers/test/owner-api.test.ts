@@ -1,6 +1,7 @@
+import { constants } from 'http2';
+
 import { faker } from '@faker-js/faker/locale/fr';
 import { fc, test } from '@fast-check/vitest';
-
 import {
   AddressDTO,
   AddressKinds,
@@ -10,9 +11,9 @@ import {
   OwnerUpdatePayload
 } from '@zerologementvacant/models';
 import { genAddressDTO } from '@zerologementvacant/models/fixtures';
-import { constants } from 'http2';
 import request from 'supertest';
 import { v4 as uuidv4 } from 'uuid';
+
 import { createServer } from '~/infra/server';
 import { HousingApi } from '~/models/HousingApi';
 import { HousingOwnerApi } from '~/models/HousingOwnerApi';
@@ -232,6 +233,62 @@ describe('Owner API', () => {
     });
   });
 
+  describe('POST /owners/creation — validation', () => {
+    const testRoute = '/owners/creation';
+
+    it('should return 400 when body.fullName is missing', async () => {
+      const { status, body } = await request(url)
+        .post(testRoute)
+        .send({})
+        .set('Content-Type', 'application/json')
+        .use(tokenProvider(user));
+
+      expect(status).toBe(constants.HTTP_STATUS_BAD_REQUEST);
+      expect(body).toMatchObject({ name: 'ValidationError' });
+      expect(body.message).toMatch(/fullName/i);
+    });
+
+    it('should return 400 when body.email is malformed', async () => {
+      const { status, body } = await request(url)
+        .post(testRoute)
+        .send({ fullName: 'Jane Doe', email: 'not-an-email' })
+        .set('Content-Type', 'application/json')
+        .use(tokenProvider(user));
+
+      expect(status).toBe(constants.HTTP_STATUS_BAD_REQUEST);
+      expect(body).toMatchObject({ name: 'ValidationError' });
+    });
+
+    it('should return 400 when body.banAddress is present but missing banId', async () => {
+      const { status, body } = await request(url)
+        .post(testRoute)
+        .send({
+          fullName: 'Jane Doe',
+          banAddress: {
+            label: '1 rue des Lilas',
+            postalCode: '75001',
+            city: 'Paris'
+          }
+        })
+        .set('Content-Type', 'application/json')
+        .use(tokenProvider(user));
+
+      expect(status).toBe(constants.HTTP_STATUS_BAD_REQUEST);
+      expect(body).toMatchObject({ name: 'ValidationError' });
+      expect(body.message).toMatch(/identifiant BAN/i);
+    });
+
+    it('should accept an empty-string email (treated as absent)', async () => {
+      const { status } = await request(url)
+        .post(testRoute)
+        .send({ fullName: 'Jane Doe', email: '' })
+        .set('Content-Type', 'application/json')
+        .use(tokenProvider(user));
+
+      expect(status).toBe(constants.HTTP_STATUS_OK);
+    });
+  });
+
   describe('PUT /owners/{id}', () => {
     const testRoute = (id: string) => `/owners/${id}`;
 
@@ -279,7 +336,7 @@ describe('Owner API', () => {
         fullName: payload.fullName,
         birthDate: payload.birthDate,
         email: payload.email,
-        phone: payload.phone,
+        phone: payload.phone
       });
     });
 
@@ -306,6 +363,52 @@ describe('Owner API', () => {
         longitude: payload.banAddress?.longitude,
         score: payload.banAddress?.score,
         banId: payload.banAddress?.banId
+      });
+    });
+
+    describe('validation', () => {
+      const validId = uuidv4();
+
+      it('should return 400 when :id is not a UUID', async () => {
+        const { status, body } = await request(url)
+          .put(testRoute('not-a-uuid'))
+          .send({ fullName: 'Jane Doe' })
+          .set('Content-Type', 'application/json')
+          .use(tokenProvider(user));
+
+        expect(status).toBe(constants.HTTP_STATUS_BAD_REQUEST);
+        expect(body).toMatchObject({ name: 'ValidationError' });
+        expect(body.message).toMatch(/id/i);
+      });
+
+      it('should return 400 when body.fullName is missing', async () => {
+        const { status, body } = await request(url)
+          .put(testRoute(validId))
+          .send({})
+          .set('Content-Type', 'application/json')
+          .use(tokenProvider(user));
+
+        expect(status).toBe(constants.HTTP_STATUS_BAD_REQUEST);
+        expect(body).toMatchObject({ name: 'ValidationError' });
+      });
+
+      it('should return 400 when body.banAddress is incomplete (missing label)', async () => {
+        const { status, body } = await request(url)
+          .put(testRoute(validId))
+          .send({
+            fullName: 'Jane Doe',
+            banAddress: {
+              banId: 'ban-123',
+              postalCode: '75001',
+              city: 'Paris'
+            }
+          })
+          .set('Content-Type', 'application/json')
+          .use(tokenProvider(user));
+
+        expect(status).toBe(constants.HTTP_STATUS_BAD_REQUEST);
+        expect(body).toMatchObject({ name: 'ValidationError' });
+        expect(body.message).toMatch(/libellé/i);
       });
     });
 

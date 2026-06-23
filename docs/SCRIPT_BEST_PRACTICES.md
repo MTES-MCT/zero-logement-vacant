@@ -90,17 +90,20 @@ parser.add_argument('--verbose', '-v', action='store_true', help='Verbose output
 **Database Connection Best Practices:**
 
 ✅ **GOOD**: Single URI parameter
+
 ```bash
 python script.py --db-url "postgresql://user:password@localhost:5432/mydb"
 ```
 
 ❌ **BAD**: Multiple connection parameters (deprecated)
+
 ```bash
 # Don't use separate --db-host, --db-port, --db-name, --db-user, --db-password
 python script.py --db-host localhost --db-port 5432 --db-name mydb --db-user user --db-password pass
 ```
 
 **Why use URI format?**
+
 - **Consistency**: Standard PostgreSQL connection string format
 - **Security**: Single environment variable (`DATABASE_URL`) instead of multiple secrets
 - **Simplicity**: One parameter instead of 5+
@@ -108,11 +111,13 @@ python script.py --db-host localhost --db-port 5432 --db-name mydb --db-user use
 - **URL encoding**: Handles special characters in passwords automatically
 
 **URI Format:**
+
 ```
 postgresql://[user[:password]@][host][:port][/dbname][?param1=value1&...]
 ```
 
 **Examples:**
+
 ```bash
 # Local development
 postgresql://postgres:postgres@localhost:5432/zlv
@@ -126,6 +131,7 @@ python script.py --db-url "$DATABASE_URL"
 ```
 
 **Parsing URI in Python:**
+
 ```python
 import psycopg2
 
@@ -327,6 +333,7 @@ python migrate-data.py old.db --sequential --db-url "$DATABASE_URL"
 ### Best Practices for Partitioning
 
 ✅ **DO**:
+
 - Choose a natural discriminant (department, region, year, category)
 - Preprocess large files into partition files for faster re-runs
 - Add `--sequential` flag for memory-constrained environments
@@ -337,6 +344,7 @@ python migrate-data.py old.db --sequential --db-url "$DATABASE_URL"
 - Support resuming from a partition (`--start-department 50`)
 
 ❌ **DON'T**:
+
 - Create too many small partitions (overhead increases)
 - Create unbalanced partitions (some too large, others too small)
 - Load entire partition in memory at once (use batching within partition)
@@ -376,12 +384,12 @@ def process_partitions(self, partition_files: List[str]):
 
 ### Performance Considerations
 
-| Partition Strategy | Memory Usage | Speed | Use Case |
-|-------------------|--------------|-------|----------|
-| **All in parallel** | High | Fast | Small/medium datasets, powerful server |
-| **Sequential** | Low | Slower | Large datasets, limited resources |
-| **Single partition** | Low | Fastest for 1 | Testing, debugging, re-processing specific area |
-| **Hybrid (N workers)** | Medium | Fast | Balance between speed and resources |
+| Partition Strategy     | Memory Usage | Speed         | Use Case                                        |
+| ---------------------- | ------------ | ------------- | ----------------------------------------------- |
+| **All in parallel**    | High         | Fast          | Small/medium datasets, powerful server          |
+| **Sequential**         | Low          | Slower        | Large datasets, limited resources               |
+| **Single partition**   | Low          | Fastest for 1 | Testing, debugging, re-processing specific area |
+| **Hybrid (N workers)** | Medium       | Fast          | Balance between speed and resources             |
 
 ### Resume Capability
 
@@ -470,14 +478,14 @@ export async function down(knex: Knex): Promise<void> {
 
 #### Index Types by Use Case
 
-| Use Case | Index Type | Example |
-|----------|------------|---------|
-| **Composite key lookup** | Composite index | `(ref_id, address_kind)` |
-| **With additional columns** | INCLUDE clause | `INCLUDE (postal_code, address, ...)` |
-| **Subset filtering** | Partial index (WHERE) | `WHERE address_kind = 'Owner'` |
-| **JOIN between tables** | Index on FKs | `(owner_id, housing_id)` |
-| **ANY() queries** | Index on column | `(ref_id)` or `(ref_id, type)` |
-| **NULL filters** | Partial index | `WHERE field IS NULL` |
+| Use Case                    | Index Type            | Example                               |
+| --------------------------- | --------------------- | ------------------------------------- |
+| **Composite key lookup**    | Composite index       | `(ref_id, address_kind)`              |
+| **With additional columns** | INCLUDE clause        | `INCLUDE (postal_code, address, ...)` |
+| **Subset filtering**        | Partial index (WHERE) | `WHERE address_kind = 'Owner'`        |
+| **JOIN between tables**     | Index on FKs          | `(owner_id, housing_id)`              |
+| **ANY() queries**           | Index on column       | `(ref_id)` or `(ref_id, type)`        |
+| **NULL filters**            | Partial index         | `WHERE field IS NULL`                 |
 
 #### Documentation in Python Script
 
@@ -592,6 +600,7 @@ REINDEX INDEX CONCURRENTLY idx_name;
 #### 1. **Batch Processing - Avoid Individual Queries**
 
 ❌ **BAD**: Individual queries
+
 ```python
 for item in items:
     cursor.execute("UPDATE table SET field = %s WHERE id = %s",
@@ -600,6 +609,7 @@ for item in items:
 ```
 
 ✅ **GOOD**: Batch updates with `execute_values`
+
 ```python
 from psycopg2.extras import execute_values
 
@@ -624,6 +634,7 @@ conn.commit()  # Single commit for entire batch
 #### 2. **Batch Fetching - Load Data in Batches**
 
 ❌ **BAD**: Load all data at once
+
 ```python
 # Loads 10M rows in memory = OOM
 cursor.execute("SELECT * FROM huge_table")
@@ -631,6 +642,7 @@ all_rows = cursor.fetchall()
 ```
 
 ✅ **GOOD**: Process in chunks
+
 ```python
 # Process in batches of 50k
 batch_size = 50000
@@ -654,6 +666,7 @@ while True:
 #### 3. **Batch Loading with ANY() for Lookups**
 
 ❌ **BAD**: Individual queries in loop
+
 ```python
 for id in ids:
     cursor.execute("SELECT * FROM table WHERE id = %s", (id,))
@@ -661,6 +674,7 @@ for id in ids:
 ```
 
 ✅ **GOOD**: Single query with ANY()
+
 ```python
 cursor.execute("""
     SELECT * FROM table
@@ -699,6 +713,7 @@ WHERE table.id = data.id
 #### 5. **Automatic Recovery - Skip Already Processed Records**
 
 ✅ **GOOD**: Filter already processed data
+
 ```python
 # Load ONLY unprocessed data
 cursor.execute("""
@@ -781,12 +796,12 @@ def update_database_parallel(self, updates: List, num_workers: int = 4):
 
 ### Parallelization Recommendations
 
-| Use Case | num_workers | Reason |
-|----------|-------------|--------|
-| Slow network / Remote DB | 2-4 | Limit network contention |
-| Fast local DB (SSD) | 4-8 | Maximize throughput |
-| CPU intensive calculations | cpu_count() | Use all CPUs |
-| I/O intensive (external APIs) | 10-20 | Mask latency |
+| Use Case                      | num_workers | Reason                   |
+| ----------------------------- | ----------- | ------------------------ |
+| Slow network / Remote DB      | 2-4         | Limit network contention |
+| Fast local DB (SSD)           | 4-8         | Maximize throughput      |
+| CPU intensive calculations    | cpu_count() | Use all CPUs             |
+| I/O intensive (external APIs) | 10-20       | Mask latency             |
 
 **Note**: By default, use **6 workers** for bulk DB updates (good performance/resource compromise).
 
@@ -845,6 +860,7 @@ def _update_batch_worker(self, batch_data: tuple) -> tuple:
 ```
 
 **What to observe**:
+
 - Multiple different threads (ThreadPoolExecutor-0_0, ThreadPoolExecutor-0_1, etc.)
 - Interleaved logs (batch #3 may finish before batch #2)
 - Overlapping timestamps
@@ -1020,6 +1036,7 @@ def _update_batch_worker(self, batch_data: tuple) -> tuple:
 ```
 
 **Why `synchronous_commit = off`?**
+
 - **Before**: PostgreSQL waits for WAL to be physically written to disk (~3-10s)
 - **After**: PostgreSQL returns immediately, writes in background (~0.1-1s)
 - **Safety**: Data remains durable, just a few milliseconds delay
@@ -1389,6 +1406,7 @@ def calculer_distance(lat1: float, lon1: float, lat2: float, lon2: float) -> flo
 ```
 
 **Reasons**:
+
 - Consistency with international codebase
 - Facilitates collaboration with non-French-speaking developers
 - Improves long-term maintainability
@@ -1471,12 +1489,14 @@ class TestEndToEnd:
    - Data completeness
 
 **Recommended tools**:
+
 - `pytest`: Testing framework
 - `unittest.mock`: Dependency mocking
 - `pytest-cov`: Code coverage
 - `pytest.fixture`: Reusable setup/teardown
 
 **Example commands**:
+
 ```bash
 # Run all tests
 pytest test_script.py -v
@@ -1496,12 +1516,14 @@ pytest-watch test_script.py
 ## Pre-Production Checklist
 
 ### Code & Structure
+
 - [ ] **English comments**: All comments, docstrings, and variable names
 - [ ] **Tests implemented**: Unit and functional tests with pytest
 - [ ] **Error handling**: Try/except per batch, continue on error
 - [ ] **CLI args**: --dry-run, --limit, --batch-size, --num-workers, --db-url
 
 ### Large Datasets (if applicable)
+
 - [ ] **Data partitioning**: Implement `--department` / `--region` / discriminant filter
 - [ ] **Sequential mode**: Add `--sequential` flag for one-at-a-time processing
 - [ ] **Preprocessing**: Split large files into partition files
@@ -1509,6 +1531,7 @@ pytest-watch test_script.py
 - [ ] **Resume capability**: Support re-processing specific partitions
 
 ### Database
+
 - [ ] **SQL indexes created**: Knex migration with all necessary indexes
 - [ ] **Indexes documented**: Script docstring lists required indexes
 - [ ] **Index verification**: `check_required_indexes()` function implemented
@@ -1516,6 +1539,7 @@ pytest-watch test_script.py
 - [ ] **Batch loading**: Use `ANY()` for lookups
 
 ### Performance & Resilience
+
 - [ ] **Regular commits**: Commit per batch, not at end
 - [ ] **Independent commits**: Each worker does its own commit
 - [ ] **Optimized commits**: `SET synchronous_commit = off` for workers
@@ -1524,6 +1548,7 @@ pytest-watch test_script.py
 - [ ] **NaN/NULL handling**: Clean invalid values
 
 ### Interface & Monitoring
+
 - [ ] **Progress bars**: tqdm for visibility
 - [ ] **Dry-run mode**: Test without modifications
 - [ ] **Minimal logging**: Console WARNING, file INFO
@@ -1534,20 +1559,21 @@ pytest-watch test_script.py
 
 ## Expected Performance
 
-| Optimization | Approximate Gain |
-|--------------|------------------|
-| Batch updates vs individual | **100-1000x** |
-| Batch loading with ANY() | **10-100x** |
-| Parallelization (6 workers) | **4-6x** |
-| Batch vs final commits | **10-50x** |
-| `synchronous_commit = off` | **2-5x** (on commits) |
-| Skip processed data | **∞** (instant recovery) |
-| **Data partitioning** | **Memory control + resumability** |
+| Optimization                    | Approximate Gain                              |
+| ------------------------------- | --------------------------------------------- |
+| Batch updates vs individual     | **100-1000x**                                 |
+| Batch loading with ANY()        | **10-100x**                                   |
+| Parallelization (6 workers)     | **4-6x**                                      |
+| Batch vs final commits          | **10-50x**                                    |
+| `synchronous_commit = off`      | **2-5x** (on commits)                         |
+| Skip processed data             | **∞** (instant recovery)                      |
+| **Data partitioning**           | **Memory control + resumability**             |
 | Partition-level parallelization | **Linear speedup (N partitions = N workers)** |
 
 ### Cumulative Impact of Optimizations
 
 Concrete example (owner-housing-distances script):
+
 - **Before**: ~2 weeks estimated (memory loading impossible)
 - **After**: ~12-24 hours (batch processing + parallelization + optimized commits)
 

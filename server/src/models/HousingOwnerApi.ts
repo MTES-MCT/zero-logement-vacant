@@ -104,4 +104,3 @@ export function toHousingOwnerDTO(
     propertyRight: housingOwner.propertyRight
   };
 }
-

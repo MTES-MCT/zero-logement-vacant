@@ -1,7 +1,8 @@
 import { constants } from 'http2';
 
-import { HttpError } from './httpError';
 import { ProspectApi } from '~/models/ProspectApi';
+
+import { HttpError } from './httpError';
 
 export default class ProspectInvalidError
   extends HttpError
@@ -12,7 +13,7 @@ export default class ProspectInvalidError
       name: 'ProspectInvalidError',
       message: `Prospect ${prospect.email} invalid`,
       // TODO: add details
-      status: constants.HTTP_STATUS_FORBIDDEN,
+      status: constants.HTTP_STATUS_FORBIDDEN
     });
   }
 }

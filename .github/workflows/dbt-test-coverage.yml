@@ -48,6 +48,16 @@ jobs:
           m = json.loads(manifest_path.read_text())
           nodes = m["nodes"]
 
+          # Legacy models grandfathered out of the gate. New/renamed models are
+          # NOT here, so they must carry at least one test. Burn this down over time.
+          allowlist_path = pathlib.Path(".dbt-test-coverage-allowlist.txt")
+          allowlist = set()
+          if allowlist_path.exists():
+              for raw in allowlist_path.read_text().splitlines():
+                  line = raw.strip()
+                  if line and not line.startswith("#"):
+                      allowlist.add(line)
+
           tests_per_model = {
               uid: set()
               for uid, n in nodes.items()
@@ -62,9 +72,19 @@ jobs:
 
           missing = []
           for uid, tests in tests_per_model.items():
-              if not tests:
-                  node = nodes[uid]
-                  missing.append(f"  - {node['name']} ({node['path']})")
+              if tests:
+                  continue
+              node = nodes[uid]
+              if node["name"] in allowlist:
+                  continue
+              missing.append(f"  - {node['name']} ({node['path']})")
+
+          # Flag allowlisted models that now HAVE tests so the list stays honest.
+          stale = sorted(
+              nodes[uid]["name"]
+              for uid, tests in tests_per_model.items()
+              if tests and nodes[uid]["name"] in allowlist
+          )
 
           if missing:
               print("::error::The following dbt models have NO tests. Add at least one test in schema.yml (unique/not_null/dbt_utils.unique_combination_of_columns/relationships):")
@@ -72,5 +92,12 @@ jobs:
                   print(line)
               sys.exit(1)
 
-          print(f"OK - {len(tests_per_model)} models, all have at least one test.")
+          if stale:
+              print("::warning::These models are in .dbt-test-coverage-allowlist.txt but now have tests. Remove them from the allowlist:")
+              for name in stale:
+                  print(f"  - {name}")
+
+          allowed = len(allowlist)
+          enforced = len(tests_per_model) - allowed
+          print(f"OK - {enforced} enforced models all have a test; {allowed} legacy models grandfathered.")
           PY

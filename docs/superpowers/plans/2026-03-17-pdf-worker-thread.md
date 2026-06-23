@@ -74,7 +74,9 @@ export async function generateCampaignPDFInWorker(
 ): Promise<ReadableStream<Uint8Array>> {
   return new Promise((resolve, reject) => {
     const worker = new Worker(
-      fileURLToPath(new URL('./generators/campaign.worker.js', import.meta.url)),
+      fileURLToPath(
+        new URL('./generators/campaign.worker.js', import.meta.url)
+      ),
       { workerData: options }
     );
     worker.on('message', (buffer: Buffer) => {
@@ -89,9 +91,17 @@ export async function generateCampaignPDFInWorker(
 
 ```ts
 // before
-const stream = await generateCampaignPDF({ campaign, draft, housings: housingsWithOwner });
+const stream = await generateCampaignPDF({
+  campaign,
+  draft,
+  housings: housingsWithOwner
+});
 // after
-const stream = await generateCampaignPDFInWorker({ campaign, draft, housings: housingsWithOwner });
+const stream = await generateCampaignPDFInWorker({
+  campaign,
+  draft,
+  housings: housingsWithOwner
+});
 ```
 
 ## Build notes

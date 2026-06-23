@@ -3,12 +3,11 @@ import ButtonsGroup from '@codegouvfr/react-dsfr/ButtonsGroup';
 import Tabs from '@codegouvfr/react-dsfr/Tabs';
 import Box from '@mui/material/Box';
 import Container from '@mui/material/Container';
-
 import Stack from '@mui/material/Stack';
 import Typography from '@mui/material/Typography';
+import { lazy, Suspense } from 'react';
 import { useNavigate, useParams } from 'react-router';
 
-import { lazy, Suspense } from 'react';
 import CampaignCreatedFromGroup from '~/components/Campaign/CampaignCreatedFromGroup';
 import { createCampaignDeleteModal } from '~/components/Campaign/CampaignDeleteModal';
 import CampaignReturnCountStatCard from '~/components/Campaign/CampaignReturnCountStatCard';
@@ -18,18 +17,19 @@ import CampaignSentAtStatCard from '~/components/Campaign/CampaignSentAtStatCard
 import CampaignStatCard from '~/components/Campaign/CampaignStatCard';
 import CampaignTitle from '~/components/Campaign/CampaignTitle';
 
-const CampaignRecipientsNext = lazy(() => import('~/components/Campaign/CampaignRecipients'));
+const CampaignRecipientsNext = lazy(
+  () => import('~/components/Campaign/CampaignRecipients')
+);
 const DraftForm = lazy(() => import('~/components/Draft/DraftForm'));
+import { useHousingFilters } from '~/hooks/HousingFiltersContext';
 import { useGetCampaignDraftQuery } from '~/hooks/useGetCampaignDraftQuery';
 import { useNotification } from '~/hooks/useNotification';
-import { useAppDispatch } from '~/hooks/useStore';
 import {
   useGetCampaignQuery,
   useRemoveCampaignMutation,
   useUpdateCampaignMutation
 } from '~/services/campaign.service';
 import { useCountHousingQuery } from '~/services/housing.service';
-import housingSlice from '~/store/reducers/housingReducer';
 
 const campaignDeleteModal = createCampaignDeleteModal();
 const sentAtModal = createCampaignSentAtModal();
@@ -37,7 +37,7 @@ const sentAtModal = createCampaignSentAtModal();
 function CampaignView() {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
-  const dispatch = useAppDispatch();
+  const { setFilters } = useHousingFilters();
 
   const { data: campaign, isLoading } = useGetCampaignQuery(id as string);
   const { data: count } = useCountHousingQuery({ campaignIds: [id as string] });
@@ -125,11 +125,7 @@ function CampaignView() {
                   priority: 'secondary',
                   children: 'Voir les logements',
                   onClick: () => {
-                    dispatch(
-                      housingSlice.actions.changeFilters({
-                        campaignIds: [campaign.id]
-                      })
-                    );
+                    setFilters({ campaignIds: [campaign.id] });
                     navigate('/parc-de-logements');
                   }
                 },

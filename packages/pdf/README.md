@@ -22,26 +22,32 @@ src/
 
 ## Entrées d'export
 
-| Import                         | Environnement | Contenu                                              |
-|--------------------------------|---------------|------------------------------------------------------|
+| Import                         | Environnement | Contenu                                                           |
+| ------------------------------ | ------------- | ----------------------------------------------------------------- |
 | `@zerologementvacant/pdf`      | Navigateur    | Viewer, DownloadLink, BlobProvider, usePDF, composants, templates |
-| `@zerologementvacant/pdf/node` | Node.js       | `generateCampaignPDF`                                |
+| `@zerologementvacant/pdf/node` | Node.js       | `generateCampaignPDF`                                             |
 
 ## Usage navigateur
 
 ```tsx
 // Afficher un PDF inline
-import { Viewer, CampaignDocument, CampaignTemplate } from '@zerologementvacant/pdf';
-
+import {
+  Viewer,
+  CampaignDocument,
+  CampaignTemplate
+} from '@zerologementvacant/pdf';
 <Viewer>
   <CampaignDocument campaign={campaign}>
     <CampaignTemplate draft={draft} housing={housing} owner={owner} />
   </CampaignDocument>
-</Viewer>
+</Viewer>;
 
 // Lien de téléchargement
-import { DownloadLink, CampaignDocument, CampaignTemplate } from '@zerologementvacant/pdf';
-
+import {
+  DownloadLink,
+  CampaignDocument,
+  CampaignTemplate
+} from '@zerologementvacant/pdf';
 <DownloadLink
   document={
     <CampaignDocument campaign={campaign}>
@@ -51,7 +57,7 @@ import { DownloadLink, CampaignDocument, CampaignTemplate } from '@zerologementv
   fileName="courrier.pdf"
 >
   Télécharger
-</DownloadLink>
+</DownloadLink>;
 ```
 
 ## Usage Node.js (streaming)
@@ -74,16 +80,15 @@ Racine du document PDF. Porte les métadonnées (titre, description, auteur, lan
 
 ```tsx
 import { CampaignDocument } from '@zerologementvacant/pdf';
-
 <CampaignDocument campaign={campaign}>
   {/* une ou plusieurs CampaignTemplate */}
-</CampaignDocument>
+</CampaignDocument>;
 ```
 
-| Prop       | Type          | Description                    |
-|------------|---------------|--------------------------------|
-| `campaign` | `CampaignDTO` | Source des métadonnées PDF     |
-| `children` | `ReactNode`   | Pages du document              |
+| Prop       | Type          | Description                |
+| ---------- | ------------- | -------------------------- |
+| `campaign` | `CampaignDTO` | Source des métadonnées PDF |
+| `children` | `ReactNode`   | Pages du document          |
 
 ### CampaignTemplate
 
@@ -91,24 +96,23 @@ Rendu d'un courrier de campagne personnalisé. Une page A4 par logement.
 
 ```tsx
 import { CampaignTemplate } from '@zerologementvacant/pdf';
-
-<CampaignTemplate draft={draft} housing={housing} owner={owner} />
+<CampaignTemplate draft={draft} housing={housing} owner={owner} />;
 ```
 
-| Prop      | Type         | Description                                           |
-|-----------|--------------|-------------------------------------------------------|
+| Prop      | Type         | Description                                                             |
+| --------- | ------------ | ----------------------------------------------------------------------- |
 | `draft`   | `DraftDTO`   | Contenu du courrier (sujet, corps HTML, logos, expéditeur, signataires) |
-| `housing` | `HousingDTO` | Données du logement (pour la substitution de variables) |
-| `owner`   | `OwnerDTO`   | Destinataire (nom, adresse)                           |
+| `housing` | `HousingDTO` | Données du logement (pour la substitution de variables)                 |
+| `owner`   | `OwnerDTO`   | Destinataire (nom, adresse)                                             |
 
 **Substitution de variables** : le corps HTML (`draft.body`) supporte `{{owner.fullName}}`, `{{housing.*}}` etc. via `replaceVariables()` de `@zerologementvacant/models`.
 
 ## Composants primitifs
 
-| Composant    | Description                                               |
-|--------------|-----------------------------------------------------------|
-| `Typography` | Texte avec variantes `h1`–`h6`, `body`. Police Marianne.  |
-| `Stack`      | Flexbox : props `direction`, `spacing`, `style`.          |
+| Composant    | Description                                              |
+| ------------ | -------------------------------------------------------- |
+| `Typography` | Texte avec variantes `h1`–`h6`, `body`. Police Marianne. |
+| `Stack`      | Flexbox : props `direction`, `spacing`, `style`.         |
 
 Ces composants utilisent `@react-pdf/renderer` (pas du DOM) — ne pas les utiliser hors d'un contexte PDF.
 
@@ -117,7 +121,7 @@ Ces composants utilisent `@react-pdf/renderer` (pas du DOM) — ne pas les utili
 ### `generateCampaignPDF(options)` — Node.js uniquement
 
 | Paramètre          | Type           | Description                                    |
-|--------------------|----------------|------------------------------------------------|
+| ------------------ | -------------- | ---------------------------------------------- |
 | `options.campaign` | `CampaignDTO`  | Métadonnées PDF (titre, description, langue)   |
 | `options.draft`    | `DraftDTO`     | Contenu du courrier                            |
 | `options.housings` | `HousingDTO[]` | Logements (chacun doit avoir `owner` non-null) |

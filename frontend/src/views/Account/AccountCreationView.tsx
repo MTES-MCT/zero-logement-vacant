@@ -2,11 +2,11 @@ import { fr } from '@codegouvfr/react-dsfr';
 import Grid from '@mui/material/Grid';
 import { Navigate, Route, Routes } from 'react-router';
 
-import AccountEmailCreationView from './AccountCreation/AccountEmailCreationView';
-import AccountEmailActivationView from './AccountCreation/AccountEmailActivationView';
-import AccountPasswordCreationView from './AccountCreation/AccountPasswordCreationView';
-import AccountAccessForbiddenView from './AccountCreation/AccountAccessForbiddenView';
 import { useDocumentTitle } from '../../hooks/useDocumentTitle';
+import AccountAccessForbiddenView from './AccountCreation/AccountAccessForbiddenView';
+import AccountEmailActivationView from './AccountCreation/AccountEmailActivationView';
+import AccountEmailCreationView from './AccountCreation/AccountEmailCreationView';
+import AccountPasswordCreationView from './AccountCreation/AccountPasswordCreationView';
 
 function AccountCreationView() {
   useDocumentTitle('Créer un compte');

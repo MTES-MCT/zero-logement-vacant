@@ -3,8 +3,8 @@ import {
   type AutocompleteProps,
   type AutocompleteValue
 } from '@mui/material/Autocomplete';
-
 import { type ReactNode } from 'react';
+
 import { type Establishment } from '../../models/Establishment';
 import { useLazyFindEstablishmentsQuery } from '../../services/establishment.service';
 import SearchableSelectNext from '../SearchableSelectNext/SearchableSelectNext';

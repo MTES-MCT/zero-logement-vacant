@@ -1,4 +1,5 @@
 import { Knex } from 'knex';
+
 import db from '~/infra/database';
 import {
   getTransaction,
@@ -7,6 +8,7 @@ import {
 import { logger } from '~/infra/logger';
 import { GroupApi } from '~/models/GroupApi';
 import { HousingApi } from '~/models/HousingApi';
+
 import { fromUserDBO, UserDBO, USERS_TABLE } from './userRepository';
 
 export const GROUPS_TABLE = 'groups';
@@ -49,7 +51,12 @@ const findOne = async (opts: FindOneOptions): Promise<GroupApi | null> => {
   logger.debug('Finding group...', opts);
   const group: GroupDBO | undefined = await Groups()
     .modify(listQuery)
-    .modify(filterQuery({ establishmentId: opts.establishmentId, geoCodes: opts.geoCodes }))
+    .modify(
+      filterQuery({
+        establishmentId: opts.establishmentId,
+        geoCodes: opts.geoCodes
+      })
+    )
     .where(`${GROUPS_TABLE}.id`, opts.id)
     .first();
   if (!group) {

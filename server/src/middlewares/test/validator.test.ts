@@ -1,67 +1,68 @@
-import express, { Request, Response } from 'express';
-import { body, header, param, query } from 'express-validator';
 import { constants } from 'http2';
+
+import express, { Request, Response } from 'express';
 import request from 'supertest';
 import { v4 as uuidv4 } from 'uuid';
+import { object, string } from 'yup';
 
-import validator from '../validator';
+import errorHandler from '~/middlewares/error-handler';
+import validator from '~/middlewares/validator';
 
 describe('Validator middleware', () => {
   describe('Integration test', () => {
-    const testRoute = `/validate/${uuidv4()}`;
     const app = express();
     app.use(express.json());
     app.use(express.urlencoded({ extended: true }));
     app.post(
       '/validate/:id',
-      body('name').isString().isLength({ min: 5 }),
-      header('Custom-Header').isString().isLowercase().optional(),
-      param('id').isUUID(),
-      query('establishmentId').isString().optional(),
-      validator.validate,
-      (request: Request, response: Response) => {
-        response.status(201).json(request.body);
-      },
-    );
-
-    it('should validate body', () => {
-      return request(app)
-        .post(testRoute)
-        .send({ name: '1234' })
-        .expect(constants.HTTP_STATUS_BAD_REQUEST);
-    });
-
-    it('should validate header', () => {
-      return request(app)
-        .post(testRoute)
-        .set('Custom-Header', 'SHOULD BE LOWERCASE')
-        .expect(constants.HTTP_STATUS_BAD_REQUEST);
-    });
-
-    it('should validate params', () => {
-      return request(app)
-        .post('/validate/not-uuid')
-        .expect(constants.HTTP_STATUS_BAD_REQUEST);
-    });
-
-    it('should validate query', () => {
-      return request(app)
-        .post(testRoute)
-        .query({
-          establishmentId: '1234',
+      validator.validate({
+        body: object({
+          geoCode: string().length(5).required()
         })
-        .expect(constants.HTTP_STATUS_BAD_REQUEST);
+      }),
+      (request: Request, response: Response) => {
+        response.status(constants.HTTP_STATUS_OK).json(request.body);
+      }
+    );
+    app.use(errorHandler());
+
+    const testRoute = `/validate/${uuidv4()}`;
+
+    it('should validate the request body', async () => {
+      const { body, status } = await request(app)
+        .post(testRoute)
+        .send({ geoCode: '12345' })
+        .set('Content-Type', 'application/json');
+
+      expect(status).toBe(constants.HTTP_STATUS_OK);
+      expect(body).toStrictEqual({
+        geoCode: '12345'
+      });
     });
 
-    it('should pass and sanitize input', async () => {
-      await request(app)
+    it('should validate wrong input', async () => {
+      const { body, status } = await request(app)
         .post(testRoute)
         .send({
-          name: '12345',
-          should: 'be removed',
+          geoCode: '1'
         })
-        .expect(constants.HTTP_STATUS_CREATED)
-        .expect({ name: '12345' });
+        .set('Content-Type', 'application/json');
+
+      expect(status).toBe(constants.HTTP_STATUS_BAD_REQUEST);
+      expect(body).toMatchObject({
+        name: 'ValidationError'
+      });
+    });
+
+    it('should strip unknown body keys', async () => {
+      const { body, status } = await request(app)
+        .post(testRoute)
+        .send({ geoCode: '12345', extra: 'should-be-stripped' })
+        .set('Content-Type', 'application/json');
+
+      expect(status).toBe(constants.HTTP_STATUS_OK);
+      expect(body).toStrictEqual({ geoCode: '12345' });
+      expect(body).not.toHaveProperty('extra');
     });
   });
 });

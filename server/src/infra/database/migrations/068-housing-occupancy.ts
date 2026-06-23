@@ -24,6 +24,6 @@ export async function down(knex: Knex): Promise<void> {
     knex.schema.alterTable('housing', (table) => {
       table.dropColumns('occupancy_intended', 'occupancy');
       table.renameColumn('occupancy_registered', 'occupancy');
-    }),
+    })
   ]);
 }

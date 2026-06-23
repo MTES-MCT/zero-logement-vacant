@@ -6,7 +6,7 @@ describe('SortApi', () => {
 
     expect(actual).toStrictEqual({
       email: 'asc',
-      age: 'desc',
+      age: 'desc'
     });
   });
 });

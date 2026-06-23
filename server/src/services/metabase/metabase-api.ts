@@ -1,191 +1,68 @@
+import type { CardType, TableColumnMeta } from '@zerologementvacant/models';
 import axios from 'axios';
 
-import type { DashboardCard, Tab } from '@zerologementvacant/models';
 import config from '~/infra/config';
+
+import { createCachedMetabaseService } from './metabase-cache';
+import {
+  findDashcardRef,
+  normalizeBaseType,
+  normalizeDashboard
+} from './metabase-normalize';
 import type {
+  BarChartValue,
+  CardValue,
   DashboardData,
   DashboardParameter,
   DashcardRef,
-  MetabaseService
+  LineChartValue,
+  MetabaseDashboardRaw,
+  MetabaseQueryResult,
+  MetabaseService,
+  PieChartValue,
+  TableColumnRef,
+  TableValue
 } from './metabase-service';
 
-// ─── Metabase internal types (minimal subset) ─────────────────────────────────
-
-interface MetabaseColumnSettings {
-  number_style?: string;
-  decimals?: number;
-  suffix?: string;
+// Percent-formatted columns are stored as display values (e.g. 1.79 for 1.79%)
+// in Metabase. We divide by 100 here so the response shape matches the scalar
+// percentage convention — the frontend formats with Intl.NumberFormat({ style:
+// 'percent' }) which multiplies back for display.
+function scaleForFormat(
+  values: number[],
+  format: 'number' | 'percent'
+): number[] {
+  return format === 'percent' ? values.map((v) => v / 100) : values;
 }
 
-interface MetabaseVisualizationSettings {
-  'number.style'?: string;
-  'scalar.decimals'?: number;
-  'scalar.field'?: string;
-  'table.columns'?: Array<{ name: string; enabled: boolean }>;
-  column_settings?: Record<string, MetabaseColumnSettings>;
-}
-
-interface MetabaseCard {
-  id: number;
-  name: string;
-  display: string;
-  description: string | null;
-  visualization_settings: MetabaseVisualizationSettings;
-}
-
-interface MetabaseDashcardVisualizationSettings {
-  'card.title'?: string | null;
-  'number.style'?: string;
-  'scalar.field'?: string;
-  'table.columns'?: Array<{ name: string; enabled: boolean }>;
-  column_settings?: Record<string, MetabaseColumnSettings>;
-}
-
-interface MetabaseDashcard {
-  id: number;
-  card_id: number | null;
-  dashboard_tab_id: number | null;
-  row: number;
-  col: number;
-  size_x: number;
-  size_y: number;
-  visualization_settings: MetabaseDashcardVisualizationSettings;
-  card: MetabaseCard | null;
-}
-
-interface MetabaseTab {
-  id: number;
-  name: string;
-  position: number;
-}
-
-interface MetabaseDashboardRaw {
-  id: number;
-  tabs?: MetabaseTab[];
-  dashcards: MetabaseDashcard[];
-  parameters?: Array<{ id: string; slug: string; type: string }>;
-}
-
-interface MetabaseCol {
-  name: string;
-}
-
-interface MetabaseQueryResult {
-  data: { rows: unknown[][]; cols: MetabaseCol[] };
-}
-
-// ─── Normalization helpers ─────────────────────────────────────────────────────
-
-function mergeVisualizationSettings(
-  card: MetabaseVisualizationSettings,
-  dashcard: MetabaseDashcardVisualizationSettings
-): MetabaseVisualizationSettings {
-  return {
-    ...card,
-    ...(dashcard['number.style'] !== undefined && { 'number.style': dashcard['number.style'] }),
-    ...(dashcard['scalar.field'] !== undefined && { 'scalar.field': dashcard['scalar.field'] }),
-    column_settings: { ...(card.column_settings ?? {}), ...(dashcard.column_settings ?? {}) }
-  };
-}
-
-// Returns column settings for the active display column.
-// For multi-column scalar cards, scalar.field identifies which column is shown.
-// Falls back to the first enabled table column when scalar.field is absent.
-function activeColumnSettings(
-  settings: MetabaseVisualizationSettings
-): MetabaseColumnSettings | undefined {
-  const scalarField = settings['scalar.field'];
-  if (scalarField !== undefined) {
-    return settings.column_settings?.[JSON.stringify(['name', scalarField])];
+function formatLabel(value: unknown, unit: string | undefined): string {
+  if (unit === 'year' && typeof value === 'string') {
+    return value.slice(0, 4);
   }
-  const activeCol = (settings['table.columns'] ?? []).find((c) => c.enabled);
-  if (!activeCol) return undefined;
-  return settings.column_settings?.[JSON.stringify(['name', activeCol.name])];
+  return String(value);
 }
 
-function detectCardType(
-  settings: MetabaseVisualizationSettings
-): 'flat-number' | 'percentage' {
-  if (settings['number.style'] === 'percent') return 'percentage';
-  const col = activeColumnSettings(settings);
-  if (col) {
-    return col.suffix?.includes('%') || col.number_style === 'percent'
-      ? 'percentage'
-      : 'flat-number';
-  }
-  // When table.columns is explicitly configured but no specific field is active,
-  // the column_settings are table-layout overrides — not scalar format signals.
-  if (settings['table.columns'] !== undefined) return 'flat-number';
-  const hasPercent = Object.values(settings.column_settings ?? {}).some(
-    (c) => c.number_style === 'percent' || c.suffix?.includes('%')
-  );
-  return hasPercent ? 'percentage' : 'flat-number';
-}
-
-function detectDecimals(settings: MetabaseVisualizationSettings): number {
-  if (settings['scalar.decimals'] !== undefined) return settings['scalar.decimals'];
-  const col = activeColumnSettings(settings);
-  return col?.decimals ?? 0;
-}
-
-function normalizeDashcard(dashcard: MetabaseDashcard): DashboardCard | null {
-  if (dashcard.card === null || dashcard.card.display !== 'scalar') return null;
-  const { card } = dashcard;
-  const settings = mergeVisualizationSettings(
-    card.visualization_settings,
-    dashcard.visualization_settings
-  );
+function extractAxisValues(
+  data: MetabaseQueryResult,
+  labelColumn: string | null,
+  valueColumn: string | null
+): { labels: string[]; values: number[]; valueName: string } {
+  const labelIdx = labelColumn
+    ? data.data.cols.findIndex((c) => c.name === labelColumn)
+    : -1;
+  const valueIdx = valueColumn
+    ? data.data.cols.findIndex((c) => c.name === valueColumn)
+    : -1;
+  const xIndex = labelIdx !== -1 ? labelIdx : 0;
+  const yIndex = valueIdx !== -1 ? valueIdx : 1;
+  const labelCol = data.data.cols[xIndex];
+  const valueCol = data.data.cols[yIndex];
   return {
-    id: dashcard.id,
-    type: detectCardType(settings),
-    title: dashcard.visualization_settings['card.title'] ?? card.name,
-    description: card.description,
-    decimals: detectDecimals(settings),
-    position: { col: dashcard.col, row: dashcard.row },
-    size: { width: dashcard.size_x, height: dashcard.size_y }
-  };
-}
-
-function normalizeDashboard(raw: MetabaseDashboardRaw): DashboardData {
-  if (raw.tabs && raw.tabs.length > 0) {
-    const sortedTabs = [...raw.tabs].sort((a, b) => a.position - b.position);
-    const tabs: Tab[] = sortedTabs.map((tab) => ({
-      id: tab.id,
-      title: tab.name,
-      cards: raw.dashcards
-        .filter((dc) => dc.dashboard_tab_id === tab.id)
-        .map(normalizeDashcard)
-        .filter((c): c is DashboardCard => c !== null)
-    }));
-    return { tabs };
-  }
-  return {
-    cards: raw.dashcards
-      .map(normalizeDashcard)
-      .filter((c): c is DashboardCard => c !== null)
-  };
-}
-
-function findDashcardRef(
-  raw: MetabaseDashboardRaw,
-  dashcardId: number
-): DashcardRef | null {
-  const found = raw.dashcards.find((dc) => dc.id === dashcardId);
-  if (!found || found.card_id === null) return null;
-  const normalized = normalizeDashcard(found);
-  if (!normalized) return null;
-  const settings = mergeVisualizationSettings(
-    found.card!.visualization_settings,
-    found.visualization_settings
-  );
-  return {
-    dashcardId: found.id,
-    cardId: found.card_id,
-    type: normalized.type,
-    valueColumn: settings['scalar.field'] ?? null,
-    dashboardParameters: (raw.parameters ?? []).map(
-      (p): DashboardParameter => ({ id: p.id, slug: p.slug, type: p.type })
-    )
+    labels: data.data.rows.map((row) =>
+      formatLabel(row[xIndex], labelCol?.unit)
+    ),
+    values: data.data.rows.map((row) => Number(row[yIndex])),
+    valueName: valueCol?.display_name ?? valueCol?.name ?? ''
   };
 }
 
@@ -207,14 +84,25 @@ class MetabaseAPI implements MetabaseService {
     });
   }
 
-  async getDashboard(id: number): Promise<DashboardData> {
-    const { data } = await this.http.get<MetabaseDashboardRaw>(`/api/dashboard/${id}`);
-    return normalizeDashboard(data);
+  async fetchDashboardRaw(id: number): Promise<MetabaseDashboardRaw> {
+    const { data } = await this.http.get<MetabaseDashboardRaw>(
+      `/api/dashboard/${id}`
+    );
+    return data;
   }
 
-  async findDashcard(dashboardId: number, dashcardId: number): Promise<DashcardRef | null> {
-    const { data } = await this.http.get<MetabaseDashboardRaw>(`/api/dashboard/${dashboardId}`);
-    return findDashcardRef(data, dashcardId);
+  async getDashboard(id: number): Promise<DashboardData> {
+    return normalizeDashboard(await this.fetchDashboardRaw(id));
+  }
+
+  async findDashcard(
+    dashboardId: number,
+    dashcardId: number
+  ): Promise<DashcardRef | null> {
+    return findDashcardRef(
+      await this.fetchDashboardRaw(dashboardId),
+      dashcardId
+    );
   }
 
   async getCardValue(
@@ -222,12 +110,100 @@ class MetabaseAPI implements MetabaseService {
     dashcardId: number,
     cardId: number,
     parameters: ReadonlyArray<DashboardParameter & { value: string }>,
-    valueColumn: string | null
-  ): Promise<number> {
+    valueColumn: string | null,
+    labelColumn: string | null,
+    cardType: CardType,
+    direction: 'horizontal' | 'vertical' | null,
+    format: 'number' | 'percent',
+    decimals: number,
+    tableColumns: ReadonlyArray<TableColumnRef> | null
+  ): Promise<CardValue> {
     const { data } = await this.http.post<MetabaseQueryResult>(
       `/api/dashboard/${dashboardId}/dashcard/${dashcardId}/card/${cardId}/query`,
       { parameters }
     );
+
+    if (cardType === 'pie-chart') {
+      const result: PieChartValue = {
+        labels: data.data.rows.map((row) => String(row[0])),
+        data: data.data.rows.map((row) => Number(row[1]))
+      };
+      return result;
+    }
+
+    if (cardType === 'bar-chart') {
+      if (direction === null) {
+        throw new Error('direction is required for bar-chart card type');
+      }
+      const { labels, values, valueName } = extractAxisValues(
+        data,
+        labelColumn,
+        valueColumn
+      );
+      const result: BarChartValue = {
+        direction,
+        format,
+        decimals,
+        labels,
+        data: scaleForFormat(values, format),
+        name: valueName
+      };
+      return result;
+    }
+
+    if (cardType === 'line-chart') {
+      const { labels, values, valueName } = extractAxisValues(
+        data,
+        labelColumn,
+        valueColumn
+      );
+      const result: LineChartValue = {
+        format,
+        decimals,
+        labels,
+        data: scaleForFormat(values, format),
+        name: valueName
+      };
+      return result;
+    }
+
+    if (cardType === 'table') {
+      if (tableColumns === null) {
+        throw new Error('tableColumns is required for table card type');
+      }
+      // Refs: PM curation, or empty → use every query column in query order.
+      const effectiveRefs: TableColumnRef[] =
+        tableColumns.length > 0
+          ? [...tableColumns]
+          : data.data.cols.map((c) => ({ name: c.name }));
+
+      const columns: TableColumnMeta[] = effectiveRefs.flatMap((ref) => {
+        const index = data.data.cols.findIndex((c) => c.name === ref.name);
+        if (index === -1) return [];
+        const col = data.data.cols[index];
+        return [
+          {
+            name: ref.name,
+            displayName: ref.columnTitle ?? col.display_name ?? ref.name,
+            baseType: normalizeBaseType(col.base_type),
+            ...(ref.decimals !== undefined && { decimals: ref.decimals }),
+            ...(ref.suffix !== undefined && { suffix: ref.suffix }),
+            ...(ref.numberStyle !== undefined && {
+              numberStyle: ref.numberStyle as TableColumnMeta['numberStyle']
+            })
+          }
+        ];
+      });
+
+      const indices = columns.map((c) =>
+        data.data.cols.findIndex((qc) => qc.name === c.name)
+      );
+      const rows = data.data.rows.map((row) => indices.map((i) => row[i]));
+
+      const result: TableValue = { columns, rows };
+      return result;
+    }
+
     const colIndex = valueColumn
       ? data.data.cols.findIndex((c) => c.name === valueColumn)
       : -1;
@@ -239,7 +215,12 @@ export function createMetabaseAPI(opts: MetabaseAPIOptions): MetabaseService {
   return new MetabaseAPI(opts);
 }
 
-export const metabaseAPI = createMetabaseAPI({
+const baseMetabaseAPI = createMetabaseAPI({
   domain: config.metabase.domain,
   apiToken: config.metabase.apiToken
+});
+
+export const metabaseAPI = createCachedMetabaseService(baseMetabaseAPI, {
+  ttlMs: config.metabase.cacheTtlMs,
+  max: config.metabase.cacheMaxEntries
 });

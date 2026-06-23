@@ -1,4 +1,5 @@
 import type { DocumentDTO } from '@zerologementvacant/models';
+
 import type { DocumentUploadProps } from '~/components/FileUpload/DocumentUpload';
 import DocumentUpload, {
   DEFAULT_EXTENSIONS

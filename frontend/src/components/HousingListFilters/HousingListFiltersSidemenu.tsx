@@ -18,7 +18,9 @@ import { isDefined } from '@zerologementvacant/utils';
 import classNames from 'classnames';
 import { usePostHog } from 'posthog-js/react';
 
+import Icon from '~/components/ui/Icon';
 import Tooltip from '~/components/ui/Tooltip/Tooltip';
+
 import { useIntercommunalities } from '../../hooks/useIntercommunalities';
 import { useToggle } from '../../hooks/useToggle';
 import { useUser } from '../../hooks/useUser';
@@ -28,7 +30,6 @@ import { getPrecision } from '../../models/Precision';
 import { useFindCampaignsQuery } from '../../services/campaign.service';
 import { useListGeoPerimetersQuery } from '../../services/geo.service';
 import { useFindPrecisionsQuery } from '../../services/precision.service';
-import { Icon } from '../_dsfr';
 import GroupHeader from '../GroupHeader/GroupHeader';
 import createPerimetersModal from '../modals/GeoPerimetersModal/PerimetersModal';
 import PerimetersModalOpener from '../modals/GeoPerimetersModal/PerimetersModalOpener';
@@ -40,7 +41,6 @@ import CadastralClassificationSelect from './CadastralClassificationSelect';
 import CampaignSelect from './CampaignSelect';
 import DataFileYearSelect from './DataFileYearSelect';
 import EnergyConsumptionSelect from './EnergyConsumptionSelect';
-import styles from './housing-list-filters.module.scss';
 import HousingCountSelect from './HousingCountSelect';
 import HousingKindSelect from './HousingKindSelect';
 import HousingStatusSelect from './HousingStatusSelect';
@@ -61,6 +61,8 @@ import SurfaceSelect from './SurfaceSelect';
 import VacancyRateSelect from './VacancyRateSelect';
 import VacancyYearSelect from './VacancyYearSelect';
 
+import styles from './housing-list-filters.module.scss';
+
 interface TitleWithIconProps {
   icon: FrIconClassName | RiIconClassName;
   title: string;
@@ -69,7 +71,7 @@ interface TitleWithIconProps {
 function TitleWithIcon(props: TitleWithIconProps) {
   return (
     <>
-      <Icon name={props.icon} className={styles.icon} verticalAlign="middle" />
+      <Icon name={props.icon} className={styles.icon} />
       <span>{props.title}</span>
     </>
   );

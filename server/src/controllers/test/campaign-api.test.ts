@@ -1,3 +1,5 @@
+import { constants } from 'http2';
+
 import { faker } from '@faker-js/faker/locale/fr';
 import { fc, test } from '@fast-check/vitest';
 import {
@@ -10,14 +12,11 @@ import {
   type UserDTO
 } from '@zerologementvacant/models';
 import { isDefined } from '@zerologementvacant/utils';
-import { constants } from 'http2';
 import randomstring from 'randomstring';
 import request from 'supertest';
 import { v4 as uuidv4 } from 'uuid';
 
-import createServerFactories from '~/test/factories';
 import { createServer } from '~/infra/server';
-import { CampaignApi } from '~/models/CampaignApi';
 import { CampaignEventApi } from '~/models/EventApi';
 import { GroupApi } from '~/models/GroupApi';
 import { HousingApi } from '~/models/HousingApi';
@@ -26,10 +25,7 @@ import {
   CampaignsHousing,
   formatCampaignHousingApi
 } from '~/repositories/campaignHousingRepository';
-import {
-  Campaigns,
-  formatCampaignApi
-} from '~/repositories/campaignRepository';
+import { Campaigns } from '~/repositories/campaignRepository';
 import {
   Establishments,
   formatEstablishmentApi
@@ -59,10 +55,8 @@ import {
 } from '~/repositories/housingRepository';
 import { formatOwnerApi, Owners } from '~/repositories/ownerRepository';
 import { toUserDBO, Users } from '~/repositories/userRepository';
-import { knexAdapter } from '~/test/knex-adapter';
+import { factories } from '~/test/factories';
 import {
-  genCampaignApi,
-  genCampaignApiNext,
   genEstablishmentApi,
   genEventApi,
   genGroupApi,
@@ -74,8 +68,6 @@ import {
 import { tokenProvider } from '~/test/testUtils';
 
 describe('Campaign API', () => {
-  const factories = createServerFactories(knexAdapter);
-
   let url: string;
 
   beforeAll(async () => {
@@ -93,12 +85,12 @@ describe('Campaign API', () => {
   describe('GET /campaigns', () => {
     const testRoute = '/campaigns';
 
-    const campaigns: CampaignApi[] = Array.from({ length: 3 }).map(() =>
-      genCampaignApi(establishment.id, user)
-    );
+    let campaigns: CampaignDTO[];
 
     beforeAll(async () => {
-      await Campaigns().insert(campaigns.map(formatCampaignApi));
+      campaigns = await factories
+        .campaign(establishment)
+        .createList(3, {}, { associations: { createdBy: user } });
     });
 
     it('should be forbidden for a not authenticated user', async () => {
@@ -127,10 +119,16 @@ describe('Campaign API', () => {
         genGroupApi(user, establishment)
       );
       await Groups().insert(groups.map(formatGroupApi));
-      const campaigns = groups.map((group) => {
-        return genCampaignApi(establishment.id, user, group);
-      });
-      await Campaigns().insert(campaigns.map(formatCampaignApi));
+      const campaigns = await Promise.all(
+        groups.map((group) =>
+          factories
+            .campaign(establishment)
+            .create(
+              { groupId: group.id },
+              { associations: { createdBy: user } }
+            )
+        )
+      );
       const query = 'groups=' + groups.map((group) => group.id).join(',');
 
       const { body, status } = await request(url)
@@ -150,13 +148,12 @@ describe('Campaign API', () => {
     });
 
     describe('sorting', () => {
-      let sortCampaigns: CampaignApi[];
+      let sortCampaigns: CampaignDTO[];
 
       beforeEach(async () => {
-        sortCampaigns = Array.from({ length: 3 }).map(() =>
-          genCampaignApi(establishment.id, user)
-        );
-        await Campaigns().insert(sortCampaigns.map(formatCampaignApi));
+        sortCampaigns = await factories
+          .campaign(establishment)
+          .createList(3, {}, { associations: { createdBy: user } });
         await Promise.all([
           Campaigns()
             .where({ id: sortCampaigns[0].id })
@@ -253,21 +250,41 @@ describe('Campaign API', () => {
         ]);
       });
     });
+
+    describe('validation', () => {
+      it('should return 400 when query.groups contains a non-UUID', async () => {
+        const { status, body } = await request(url)
+          .get(`${testRoute}?groups=not-a-uuid`)
+          .use(tokenProvider(user));
+
+        expect(status).toBe(constants.HTTP_STATUS_BAD_REQUEST);
+        expect(body).toMatchObject({ name: 'ValidationError' });
+        expect(body.message).toMatch(/groups/i);
+      });
+
+      it('should return 400 when query.sort contains invalid characters', async () => {
+        const { status, body } = await request(url)
+          .get(`${testRoute}?sort=1!nope`)
+          .use(tokenProvider(user));
+
+        expect(status).toBe(constants.HTTP_STATUS_BAD_REQUEST);
+        expect(body).toMatchObject({ name: 'ValidationError' });
+        expect(body.message).toMatch(/sort/i);
+      });
+    });
   });
 
   describe('GET /campaigns/{id}', () => {
     const group = genGroupApi(user, establishment);
-    const campaign = genCampaignApiNext({
-      group,
-      creator: user,
-      establishment
-    });
+    let campaign: CampaignDTO;
 
     const testRoute = (id: string) => `/campaigns/${id}`;
 
     beforeAll(async () => {
       await Groups().insert(formatGroupApi(group));
-      await Campaigns().insert(formatCampaignApi(campaign));
+      campaign = await factories
+        .campaign(establishment)
+        .create({ groupId: group.id }, { associations: { createdBy: user } });
     });
 
     it('should be forbidden for a not authenticated user', async () => {
@@ -592,11 +609,12 @@ describe('Campaign API', () => {
   describe('PUT /campaigns/{id}', () => {
     const testRoute = (id: string) => `/campaigns/${id}`;
 
-    let campaign: CampaignApi;
+    let campaign: CampaignDTO;
 
     beforeEach(async () => {
-      campaign = genCampaignApi(establishment.id, user);
-      await Campaigns().insert(formatCampaignApi(campaign));
+      campaign = await factories
+        .campaign(establishment)
+        .create({}, { associations: { createdBy: user } });
     });
 
     it('should be forbidden for a non-authenticated user', async () => {
@@ -702,11 +720,12 @@ describe('Campaign API', () => {
     });
 
     it('should reject unsetting sentAt once it has been set', async () => {
-      const campaignWithSentAt: CampaignApi = {
-        ...genCampaignApi(establishment.id, user),
-        sentAt: '2024-06-15'
-      };
-      await Campaigns().insert(formatCampaignApi(campaignWithSentAt));
+      const campaignWithSentAt = await factories
+        .campaign(establishment)
+        .create(
+          { sentAt: '2024-06-15' },
+          { associations: { createdBy: user } }
+        );
 
       const payload: CampaignUpdatePayload = {
         title: campaignWithSentAt.title,
@@ -726,11 +745,12 @@ describe('Campaign API', () => {
   describe('DELETE /campaigns/{id}', () => {
     const testRoute = (id: string) => `/campaigns/${id}`;
 
-    let campaign: CampaignApi;
+    let campaign: CampaignDTO;
 
     beforeEach(async () => {
-      campaign = genCampaignApi(establishment.id, user);
-      await Campaigns().insert(formatCampaignApi(campaign));
+      campaign = await factories
+        .campaign(establishment)
+        .create({}, { associations: { createdBy: user } });
     });
 
     it('should be forbidden for a non-authenticated user', async () => {
@@ -914,12 +934,13 @@ describe('Campaign API', () => {
   describe('DELETE /campaigns/{id}/housings', () => {
     const testRoute = (id: string) => `/campaigns/${id}/housings`;
 
-    let campaign: CampaignApi;
+    let campaign: CampaignDTO;
     let housings: HousingApi[];
 
     beforeEach(async () => {
-      campaign = genCampaignApi(establishment.id, user);
-      await Campaigns().insert(formatCampaignApi(campaign));
+      campaign = await factories
+        .campaign(establishment)
+        .create({}, { associations: { createdBy: user } });
 
       housings = faker.helpers.multiple(() =>
         genHousingApi(faker.helpers.arrayElement(establishment.geoCodes))
@@ -1029,11 +1050,11 @@ describe('Campaign API', () => {
         factories.housing.create({ status: HousingStatus.WAITING, geoCode }),
         factories.housing.create({ status: HousingStatus.BLOCKED, geoCode })
       ]);
-      const campaign = await factories.campaign
-        .forEstablishment(establishment)
+      const campaign = await factories
+        .campaign(establishment)
         .create({}, { associations: { createdBy: user } });
-      const otherCampaign = await factories.campaign
-        .forEstablishment(establishment)
+      const otherCampaign = await factories
+        .campaign(establishment)
         .create({}, { associations: { createdBy: user } });
       await CampaignsHousing().insert([
         {
@@ -1104,11 +1125,11 @@ describe('Campaign API', () => {
         factories.housing.create({ status: HousingStatus.WAITING, geoCode }),
         factories.housing.create({ status: HousingStatus.BLOCKED, geoCode })
       ]);
-      const campaign = await factories.campaign
-        .forEstablishment(establishment)
+      const campaign = await factories
+        .campaign(establishment)
         .create({}, { associations: { createdBy: user } });
-      const otherCampaign = await factories.campaign
-        .forEstablishment(establishment)
+      const otherCampaign = await factories
+        .campaign(establishment)
         .create({}, { associations: { createdBy: user } });
       await CampaignsHousing().insert([
         {

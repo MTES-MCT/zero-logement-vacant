@@ -1,9 +1,12 @@
-import { ActiveOwnerRank } from '@zerologementvacant/models';
 import { ReadableStream } from 'node:stream/web';
 
+import { ActiveOwnerRank } from '@zerologementvacant/models';
+
 import {
-  Events
-} from '~/repositories/eventRepository';
+  Establishments,
+  formatEstablishmentApi
+} from '~/repositories/establishmentRepository';
+import { Events } from '~/repositories/eventRepository';
 import {
   formatHousingOwnerApi,
   HousingOwners
@@ -12,16 +15,9 @@ import {
   formatHousingRecordApi,
   Housing
 } from '~/repositories/housingRepository';
-import {
-  formatOwnerApi,
-  Owners
-} from '~/repositories/ownerRepository';
+import { formatOwnerApi, Owners } from '~/repositories/ownerRepository';
+import { Users, toUserDBO } from '~/repositories/userRepository';
 import { createNoopReporter } from '~/scripts/import-lovac/infra/reporters/noop-reporter';
-import { createHousingOwnerLoader } from '../source-housing-owner-loader';
-import {
-  HousingEventChange,
-  HousingOwnersChange
-} from '../source-housing-owner-transform';
 import {
   genEstablishmentApi,
   genEventApi,
@@ -30,11 +26,12 @@ import {
   genOwnerApi,
   genUserApi
 } from '~/test/testFixtures';
+
+import { createHousingOwnerLoader } from '../source-housing-owner-loader';
 import {
-  Establishments,
-  formatEstablishmentApi
-} from '~/repositories/establishmentRepository';
-import { Users, toUserDBO } from '~/repositories/userRepository';
+  HousingEventChange,
+  HousingOwnersChange
+} from '../source-housing-owner-transform';
 
 describe('createHousingOwnerLoader', () => {
   const establishment = genEstablishmentApi();
@@ -66,11 +63,10 @@ describe('createHousingOwnerLoader', () => {
       createHousingOwnerLoader({ dryRun: false, reporter })
     );
 
-    const actual = await HousingOwners()
-      .where({
-        housing_geo_code: housing.geoCode,
-        housing_id: housing.id
-      });
+    const actual = await HousingOwners().where({
+      housing_geo_code: housing.geoCode,
+      housing_id: housing.id
+    });
     expect(actual).toHaveLength(1);
     expect(actual[0].owner_id).toBe(owner.id);
   });
@@ -83,7 +79,12 @@ describe('createHousingOwnerLoader', () => {
     await Owners().insert(formatOwnerApi(owner));
 
     const eventApi = {
-      ...genEventApi({ type: 'housing:owner-attached', creator: user, nextOld: null, nextNew: { name: owner.fullName, rank: 1 } }),
+      ...genEventApi({
+        type: 'housing:owner-attached',
+        creator: user,
+        nextOld: null,
+        nextNew: { name: owner.fullName, rank: 1 }
+      }),
       ownerId: owner.id,
       housingGeoCode: housing.geoCode,
       housingId: housing.id
@@ -111,9 +112,7 @@ describe('createHousingOwnerLoader', () => {
     const ownerB1 = genOwnerApi();
     const stalePriorOwner = genOwnerApi();
 
-    await Housing().insert(
-      [housingA, housingB].map(formatHousingRecordApi)
-    );
+    await Housing().insert([housingA, housingB].map(formatHousingRecordApi));
     await Owners().insert(
       [ownerA1, ownerA2, ownerB1, stalePriorOwner].map(formatOwnerApi)
     );
@@ -192,8 +191,10 @@ describe('createHousingOwnerLoader', () => {
       createHousingOwnerLoader({ dryRun: true, reporter })
     );
 
-    const actual = await HousingOwners()
-      .where({ housing_geo_code: housing.geoCode, housing_id: housing.id });
+    const actual = await HousingOwners().where({
+      housing_geo_code: housing.geoCode,
+      housing_id: housing.id
+    });
     expect(actual).toHaveLength(0);
   });
 });

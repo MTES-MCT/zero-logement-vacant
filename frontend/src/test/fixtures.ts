@@ -1,4 +1,3 @@
-import jwt from 'jsonwebtoken';
 import { faker } from '@faker-js/faker/locale/fr';
 import {
   type EventType,
@@ -7,7 +6,6 @@ import {
 } from '@zerologementvacant/models';
 import {
   genAddressDTO,
-  genCampaignDTO,
   genDraftDTO,
   genEstablishmentDTO,
   genEventDTO,
@@ -21,12 +19,15 @@ import {
   genUserDTO
 } from '@zerologementvacant/models/fixtures';
 import { addHours } from 'date-fns';
+import jwt from 'jsonwebtoken';
 import randomstring from 'randomstring';
+
+import type { Establishment } from '~/models/Establishment';
+
 import type { Address } from '../models/Address';
-import { type Event, fromEventDTO } from '../models/Event';
-import { type Group, fromGroupDTO } from '../models/Group';
-import { type Campaign, fromCampaignDTO } from '../models/Campaign';
 import type { Draft } from '../models/Draft';
+import { type Event, fromEventDTO } from '../models/Event';
+import { fromGroupDTO, type Group } from '../models/Group';
 import type { Housing } from '../models/Housing';
 import { fromNoteDTO, type Note } from '../models/Note';
 import {
@@ -43,7 +44,6 @@ import {
   toUserDTO,
   type User
 } from '../models/User';
-import type { Establishment } from '~/models/Establishment';
 
 export const genBoolean = () => Math.random() < 0.5;
 
@@ -88,7 +88,7 @@ export function genAuthUser(
   return {
     accessToken,
     user,
-establishment
+    establishment
   };
 }
 
@@ -161,10 +161,6 @@ export function genEvent<Type extends EventType>(
 
 export function genNote(creator: User): Note {
   return fromNoteDTO(genNoteDTO(toUserDTO(creator)));
-}
-
-export function genCampaign(): Campaign {
-  return fromCampaignDTO(genCampaignDTO());
 }
 
 export function genDraft(): Draft {

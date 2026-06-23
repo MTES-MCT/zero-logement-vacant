@@ -1,10 +1,12 @@
+import type { DataFileYear } from '@zerologementvacant/models';
+
+import Select from '~/components/ui/Select/Select';
+import type { SelectProps } from '~/components/ui/Select/Select';
+
 import {
   DATA_FILE_YEAR_EXCLUDED_OPTIONS,
   DATA_FILE_YEAR_INCLUDED_OPTIONS
 } from '../../models/HousingFilters';
-import Select from '~/components/ui/Select/Select';
-import type { DataFileYear } from '@zerologementvacant/models';
-import type { SelectProps } from '~/components/ui/Select/Select';
 
 type DataFileYearFilterValue = DataFileYear | 'datafoncier-manual' | null;
 

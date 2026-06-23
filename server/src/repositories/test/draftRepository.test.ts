@@ -1,23 +1,23 @@
 import { faker } from '@faker-js/faker/locale/fr';
 
+import { DraftApi } from '~/models/DraftApi';
+import { SenderApi } from '~/models/SenderApi';
+import { factories } from '~/test/factories';
 import {
-  genCampaignApi,
   genDraftApi,
   genEstablishmentApi,
   genSenderApi,
   genUserApi
 } from '~/test/testFixtures';
-import draftRepository, { Drafts, formatDraftApi } from '../draftRepository';
-import { Campaigns, formatCampaignApi } from '../campaignRepository';
+
 import { CampaignsDrafts } from '../campaignDraftRepository';
-import { DraftApi } from '~/models/DraftApi';
+import draftRepository, { Drafts, formatDraftApi } from '../draftRepository';
 import {
   Establishments,
   formatEstablishmentApi
 } from '../establishmentRepository';
-import { toUserDBO, Users } from '../userRepository';
-import { SenderApi } from '~/models/SenderApi';
 import { formatSenderApi, Senders } from '../senderRepository';
+import { toUserDBO, Users } from '../userRepository';
 
 describe('Draft repository', () => {
   const establishment = genEstablishmentApi();
@@ -50,8 +50,9 @@ describe('Draft repository', () => {
 
     it('should find drafts by campaign', async () => {
       const [firstDraft] = drafts;
-      const campaign = genCampaignApi(establishment.id, user);
-      await Campaigns().insert(formatCampaignApi(campaign));
+      const campaign = await factories
+        .campaign(establishment)
+        .create({}, { associations: { createdBy: user } });
       await CampaignsDrafts().insert({
         campaign_id: campaign.id,
         draft_id: firstDraft.id

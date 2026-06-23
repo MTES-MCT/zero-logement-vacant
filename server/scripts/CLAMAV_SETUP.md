@@ -12,6 +12,7 @@ cd server
 ```
 
 This script will:
+
 - ✅ Install ClamAV via Homebrew (if needed)
 - ✅ Create necessary directories
 - ✅ Generate configuration files (`clamd.conf`, `freshclam.conf`)
@@ -24,6 +25,7 @@ This script will:
 ```
 
 The daemon will be accessible via:
+
 - **Unix Socket**: `/opt/homebrew/var/run/clamav/clamd.sock`
 - **TCP**: `127.0.0.1:3310`
 
@@ -129,10 +131,12 @@ ls -la /opt/homebrew/var/run/clamav/
 ### Socket not found
 
 The socket path depends on your Homebrew installation:
+
 - Intel Mac: `/usr/local/var/run/clamav/clamd.sock`
 - Apple Silicon: `/opt/homebrew/var/run/clamav/clamd.sock`
 
 Check with:
+
 ```bash
 brew --prefix
 ```
@@ -148,7 +152,7 @@ services:
   clamav:
     image: clamav/clamav:latest
     ports:
-      - "3310:3310"
+      - '3310:3310'
     volumes:
       - clamav-db:/var/lib/clamav
     environment:

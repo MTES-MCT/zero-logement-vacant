@@ -3,9 +3,9 @@ import Avatar from '@codegouvfr/react-dsfr/picto/Avatar';
 import SearchBar from '@codegouvfr/react-dsfr/SearchBar';
 import Stack from '@mui/material/Stack';
 import Typography from '@mui/material/Typography';
+import { type PaginationState } from '@tanstack/react-table';
 import { useState } from 'react';
 import { match, Pattern } from 'ts-pattern';
-import { type PaginationState } from '@tanstack/react-table';
 
 import LabelNext from '~/components/Label/LabelNext';
 import {
@@ -14,6 +14,7 @@ import {
 } from '~/components/modals/ConfirmationModal/ExtendedModal';
 import type { Owner } from '~/models/Owner';
 import { useFindOwnersNextQuery } from '~/services/owner.service';
+
 import OwnerSearchTable from '../OwnerSearchTable';
 
 export type OwnerSearchModalProps = Omit<

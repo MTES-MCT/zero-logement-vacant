@@ -14,12 +14,13 @@ import { OnChangePlugin } from '@lexical/react/LexicalOnChangePlugin';
 import { RichTextPlugin } from '@lexical/react/LexicalRichTextPlugin';
 import type { EditorState, LexicalEditor } from 'lexical';
 
-import ToolbarPlugin from './ToolbarPlugin';
-import './rich-editor.scss';
-import theme from './rich-editor-theme';
-import { VARIABLE_OPTIONS } from './variable-options';
 import { VariableNode } from './nodes/VariableNode';
+
+import './rich-editor.scss';
 import RestorePlugin from './RestorePlugin';
+import theme from './rich-editor-theme';
+import ToolbarPlugin from './ToolbarPlugin';
+import { VARIABLE_OPTIONS } from './variable-options';
 
 interface Props {
   ariaLabelledBy?: string;
@@ -34,7 +35,7 @@ function RichEditor(props: Readonly<Props>) {
     nodes: [ListNode, ListItemNode, VariableNode],
     onError(error: Error) {
       console.error(error);
-    },
+    }
   };
 
   function onChange(state: EditorState, editor: LexicalEditor): void {

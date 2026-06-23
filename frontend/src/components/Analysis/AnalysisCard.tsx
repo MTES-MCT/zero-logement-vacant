@@ -3,11 +3,17 @@ import Alert from '@codegouvfr/react-dsfr/Alert';
 import Box from '@mui/material/Box';
 import Skeleton from '@mui/material/Skeleton';
 import Stack from '@mui/material/Stack';
-import Typography from '@mui/material/Typography';
 import { styled } from '@mui/material/styles';
+import Typography from '@mui/material/Typography';
 import type { DashboardCard, Resource } from '@zerologementvacant/models';
+import { match } from 'ts-pattern';
 
 import { useFindOneCardQuery } from '~/services/dashboard.service';
+
+import BarChartDisplay from './BarChartDisplay';
+import LineChartDisplay from './LineChartDisplay';
+import PieChartDisplay from './PieChartDisplay';
+import TableDisplay from './TableDisplay';
 
 interface Props {
   card: DashboardCard;
@@ -40,7 +46,9 @@ function formatValue(data: number, card: DashboardCard): string {
   }).format(data);
 }
 
-function AnalysisCard({ card, dashboardId }: Readonly<Props>) {
+function AnalysisCard(props: Readonly<Props>) {
+  const { card, dashboardId } = props;
+
   const { data, isLoading, isError } = useFindOneCardQuery({
     did: dashboardId,
     cid: card.id
@@ -71,6 +79,10 @@ function AnalysisCard({ card, dashboardId }: Readonly<Props>) {
     return null;
   }
 
+  // Match the chart to the cell's column/row proportions so it fills the space
+  // allotted by the dashboard instead of expanding to its default 2:1 ratio.
+  const aspectRatio = card.size.width / card.size.height;
+
   return (
     <CardBox>
       <Stack component="header">
@@ -82,7 +94,22 @@ function AnalysisCard({ card, dashboardId }: Readonly<Props>) {
         )}
       </Stack>
 
-      <ShowcaseValue>{formatValue(data.data, card)}</ShowcaseValue>
+      {match(data)
+        .with({ type: 'pie-chart' }, (chart) => (
+          <PieChartDisplay chart={chart} aspectRatio={aspectRatio} />
+        ))
+        .with({ type: 'bar-chart' }, (chart) => (
+          <BarChartDisplay chart={chart} aspectRatio={aspectRatio} />
+        ))
+        .with({ type: 'table' }, (chart) => (
+          <TableDisplay chart={chart} caption={card.title} />
+        ))
+        .with({ type: 'line-chart' }, (chart) => (
+          <LineChartDisplay chart={chart} aspectRatio={aspectRatio} />
+        ))
+        .otherwise((scalar) => (
+          <ShowcaseValue>{formatValue(scalar.data, card)}</ShowcaseValue>
+        ))}
     </CardBox>
   );
 }

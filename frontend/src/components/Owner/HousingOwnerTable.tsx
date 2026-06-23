@@ -1,9 +1,9 @@
 import Button from '@codegouvfr/react-dsfr/Button';
 import Skeleton from '@mui/material/Skeleton';
-import { getOwnerDisplayName } from '@zerologementvacant/models';
 import Stack from '@mui/material/Stack';
 import Typography from '@mui/material/Typography';
 import { createColumnHelper } from '@tanstack/react-table';
+import { getOwnerDisplayName } from '@zerologementvacant/models';
 import { pipe, Record } from 'effect';
 import { useMemo, type ReactNode } from 'react';
 
@@ -17,6 +17,7 @@ import RankBadge from '~/components/Owner/RankBadge';
 import { useUser } from '~/hooks/useUser';
 import type { Housing } from '~/models/Housing';
 import type { HousingOwner } from '~/models/Owner';
+
 import { useIgnoredAddresses } from './useIgnoredAddresses';
 
 const HOUSING_OWNER_TABLE_COLUMN_VALUES = [

@@ -1,7 +1,8 @@
-import { apiReference } from '@scalar/express-api-reference';
-import { Express } from 'express';
 import { readFileSync } from 'node:fs';
 import path from 'node:path';
+
+import { apiReference } from '@scalar/express-api-reference';
+import { Express } from 'express';
 
 import config from '~/infra/config';
 import { logger } from '~/infra/logger';

@@ -16,6 +16,7 @@ import UserDeletedError from '~/errors/userDeletedError';
 import UserMissingError from '~/errors/userMissingError';
 import config from '~/infra/config';
 import { logger } from '~/infra/logger';
+import type { EstablishmentApi } from '~/models/EstablishmentApi';
 import { hasExpired } from '~/models/ResetLinkApi';
 import type { SignInPayload } from '~/models/SignInPayload';
 import {
@@ -32,11 +33,11 @@ import userEstablishmentRepository from '~/repositories/user-establishment-repos
 import userPerimeterRepository from '~/repositories/userPerimeterRepository';
 import userRepository from '~/repositories/userRepository';
 import ceremaService from '~/services/ceremaService';
-import type { CeremaUser } from '~/services/ceremaService/consultUserService';
 import {
   verifyAccessRights,
   type AccessRightsError
 } from '~/services/ceremaService/perimeterService';
+import { getCeremaSuspensionState } from '~/services/ceremaService/suspensionService';
 import { fetchUserKind } from '~/services/ceremaService/userKindService';
 import mailService from '~/services/mailService';
 import {
@@ -52,151 +53,6 @@ import {
 // TODO: remove get, updateAccount
 // because they shall be implemented in userController
 
-const CEREMA_SUSPENSION_CAUSES = [
-  'droits utilisateur expires',
-  'droits structure expires',
-  'cgu vides',
-  'niveau_acces_invalide',
-  'perimetre_invalide',
-  'groupe_manquant'
-] as const;
-
-function unique(causes: string[]): string[] {
-  return [...new Set(causes)];
-}
-
-function splitSuspensionCauses(cause: string | null): string[] {
-  return (
-    cause
-      ?.split(',')
-      .map((value) => value.trim())
-      .filter(Boolean) ?? []
-  );
-}
-
-function isCeremaSuspensionCause(cause: string): boolean {
-  return CEREMA_SUSPENSION_CAUSES.includes(
-    cause as (typeof CEREMA_SUSPENSION_CAUSES)[number]
-  );
-}
-
-function isPastDate(value: string | null | undefined): boolean {
-  if (!value) {
-    return false;
-  }
-
-  const date = new Date(value);
-  return !Number.isNaN(date.getTime()) && date <= new Date();
-}
-
-function isLovacAccessExpired(value: string | null | undefined): boolean {
-  if (value === undefined) {
-    return false;
-  }
-
-  if (value === null || value === '') {
-    return true;
-  }
-
-  return isPastDate(value);
-}
-
-function computeCeremaSuspensionCauses(ceremaUser: CeremaUser): string[] {
-  const causes: string[] = [];
-
-  if (ceremaUser.cguValide === null || ceremaUser.cguValide === '') {
-    causes.push('cgu vides');
-  }
-
-  if (isPastDate(ceremaUser.userExpiresAt)) {
-    causes.push('droits utilisateur expires');
-  }
-
-  if (
-    ceremaUser.structureHasLovac === false ||
-    isLovacAccessExpired(ceremaUser.structureAccessExpiresAt)
-  ) {
-    causes.push('droits structure expires');
-  }
-
-  if (ceremaUser.groupHasLovac === false) {
-    causes.push('niveau_acces_invalide');
-  }
-
-  return causes;
-}
-
-async function syncCeremaSuspension(
-  user: UserApi,
-  ceremaUsers: CeremaUser[],
-  accessErrors: AccessRightsError[]
-): Promise<void> {
-  const currentEstablishment = user.establishmentId
-    ? await establishmentRepository.get(user.establishmentId)
-    : null;
-  const usersForCurrentEstablishment = currentEstablishment
-    ? ceremaUsers.filter(
-        (cu) =>
-          cu.establishmentSiren === currentEstablishment.siren ||
-          cu.establishmentSiren === '*'
-      )
-    : ceremaUsers;
-
-  if (currentEstablishment && usersForCurrentEstablishment.length === 0) {
-    logger.info('No Portail DF entry found for current establishment', {
-      userId: user.id,
-      email: user.email,
-      establishmentId: user.establishmentId,
-      establishmentSiren: currentEstablishment.siren
-    });
-    return;
-  }
-
-  const previousCauses = splitSuspensionCauses(user.suspendedCause);
-  const manualCauses = previousCauses.filter(
-    (cause) => !isCeremaSuspensionCause(cause)
-  );
-  const ceremaCauses = unique([
-    ...usersForCurrentEstablishment.flatMap(computeCeremaSuspensionCauses),
-    ...accessErrors
-  ]);
-  const nextCauses = unique([...manualCauses, ...ceremaCauses]);
-  const nextSuspendedCause =
-    nextCauses.length > 0 ? nextCauses.join(', ') : null;
-  const previousSuspendedCause = user.suspendedCause;
-  const nextSuspendedAt =
-    nextSuspendedCause === null
-      ? null
-      : previousSuspendedCause === nextSuspendedCause && user.suspendedAt
-        ? user.suspendedAt
-        : new Date().toJSON();
-
-  if (
-    user.suspendedAt === nextSuspendedAt &&
-    previousSuspendedCause === nextSuspendedCause
-  ) {
-    return;
-  }
-
-  const currentUser = await userRepository.get(user.id);
-  if (!currentUser) {
-    return;
-  }
-
-  await userRepository.update({
-    ...currentUser,
-    suspendedAt: nextSuspendedAt,
-    suspendedCause: nextSuspendedCause
-  });
-
-  logger.info('User suspension synchronized from Portail DF', {
-    userId: user.id,
-    email: user.email,
-    previousSuspendedCause,
-    nextSuspendedCause
-  });
-}
-
 /**
  * Refresh authorized establishments for a user from Portail DF.
  * This is called at login to keep the users_establishments table in sync
@@ -205,7 +61,10 @@ async function syncCeremaSuspension(
  * Also verifies access rights (LOVAC access level + geographic perimeter)
  * and suspends user if rights are no longer valid.
  */
-async function refreshAuthorizedEstablishments(user: UserApi): Promise<void> {
+async function refreshAuthorizedEstablishments(
+  user: UserApi,
+  establishment: EstablishmentApi
+): Promise<UserApi> {
   try {
     // Fetch current rights from Portail DF
     const ceremaUsers = await ceremaService.consultUsers(user.email);
@@ -215,7 +74,7 @@ async function refreshAuthorizedEstablishments(user: UserApi): Promise<void> {
         userId: user.id,
         email: user.email
       });
-      return;
+      return user;
     }
 
     // Filter users with valid LOVAC commitment
@@ -303,7 +162,38 @@ async function refreshAuthorizedEstablishments(user: UserApi): Promise<void> {
       }
     }
 
-    await syncCeremaSuspension(user, ceremaUsers, accessErrors);
+    let refreshedUser = user;
+    const suspensionState = getCeremaSuspensionState(
+      user,
+      establishment,
+      ceremaUsers,
+      accessErrors
+    );
+
+    if (!suspensionState) {
+      logger.info('No Portail DF entry found for current establishment', {
+        userId: user.id,
+        email: user.email,
+        establishmentId: user.establishmentId,
+        establishmentSiren: establishment.siren
+      });
+    } else if (
+      user.suspendedAt !== suspensionState.suspendedAt ||
+      user.suspendedCause !== suspensionState.suspendedCause
+    ) {
+      refreshedUser = {
+        ...user,
+        ...suspensionState
+      };
+      await userRepository.update(refreshedUser);
+
+      logger.info('User suspension synchronized from Portail DF', {
+        userId: user.id,
+        email: user.email,
+        previousSuspendedCause: user.suspendedCause,
+        nextSuspendedCause: suspensionState.suspendedCause
+      });
+    }
 
     // Get current authorized establishments for comparison
     const currentAuthorized =
@@ -353,6 +243,7 @@ async function refreshAuthorizedEstablishments(user: UserApi): Promise<void> {
     }
 
     // User perimeters are saved per establishment while validating rights above.
+    return refreshedUser;
   } catch (error) {
     // Log error but don't fail login
     logger.error('Failed to refresh authorized establishments at login', {
@@ -360,6 +251,7 @@ async function refreshAuthorizedEstablishments(user: UserApi): Promise<void> {
       email: user.email,
       error
     });
+    return user;
   }
 }
 
@@ -485,8 +377,10 @@ async function signInToEstablishment(
 
   // Refresh authorized establishments and save perimeter from Portail DF at login
   // This MUST complete before returning the token to ensure perimeter filtering works
-  await refreshAuthorizedEstablishments(user);
-  const refreshedUser = (await userRepository.get(user.id)) ?? user;
+  const refreshedUser = await refreshAuthorizedEstablishments(
+    user,
+    establishment
+  );
 
   // Get authorized establishments for multi-structure dropdown (after refresh)
   const authorizedEstablishmentLinks =

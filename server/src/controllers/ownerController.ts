@@ -2,12 +2,10 @@ import { constants } from 'http2';
 
 import {
   AddressKinds,
-  DO_NOT_CONTACT_OWNER_RANK,
   HousingOwnerDTO,
   HousingOwnerPayloadDTO,
   OwnerCreationPayload,
   OwnerDTO,
-  type OwnerRank,
   OwnerUpdatePayload
 } from '@zerologementvacant/models';
 import async from 'async';
@@ -24,14 +22,11 @@ import { startTransaction } from '~/infra/database/transaction';
 import { logger } from '~/infra/logger';
 import { AddressApi } from '~/models/AddressApi';
 import { HousingOwnerEventApi, OwnerEventApi } from '~/models/EventApi';
-import type { HousingApi } from '~/models/HousingApi';
 import {
   HOUSING_OWNER_EQUIVALENCE,
   HOUSING_OWNER_RANK_EQUIVALENCE,
   HousingOwnerApi,
-  markOwnerDoNotContact,
-  toHousingOwnerDTO,
-  unmarkOwnerDoNotContact
+  toHousingOwnerDTO
 } from '~/models/HousingOwnerApi';
 import { diffUpdatedOwner, OwnerApi, toOwnerDTO } from '~/models/OwnerApi';
 import type { PaginatedResultApi } from '~/models/PaginatedResultApi';
@@ -206,6 +201,7 @@ const create: RequestHandler<
     entity: 'personnes-physiques',
     siren: null,
     username: null,
+    doNotContact: false,
     createdAt: new Date().toJSON(),
     updatedAt: new Date().toJSON()
   };
@@ -276,6 +272,7 @@ const update: RequestHandler<
     idpersonne: existingOwner.idpersonne,
     siren: existingOwner.siren,
     username: existingOwner.username,
+    doNotContact: body.doNotContact ?? existingOwner.doNotContact,
     dataSource: existingOwner.dataSource,
     entity: existingOwner.entity,
     createdAt: existingOwner.createdAt,
@@ -290,7 +287,8 @@ const update: RequestHandler<
       email: existingOwner.email,
       phone: existingOwner.phone,
       address: existingOwner.banAddress?.label ?? null,
-      additionalAddress: existingOwner.additionalAddress
+      additionalAddress: existingOwner.additionalAddress,
+      doNotContact: existingOwner.doNotContact ?? false
     },
     {
       name: owner.fullName,
@@ -298,7 +296,8 @@ const update: RequestHandler<
       email: owner.email,
       phone: owner.phone,
       address: owner.banAddress?.label ?? null,
-      additionalAddress: owner.additionalAddress
+      additionalAddress: owner.additionalAddress,
+      doNotContact: owner.doNotContact ?? false
     }
   );
   const events: OwnerEventApi[] = [];
@@ -329,6 +328,7 @@ const update: RequestHandler<
         'email',
         'phone',
         'additional_address',
+        'do_not_contact',
         'updated_at'
       ]
     }),
@@ -488,99 +488,11 @@ const updateHousingOwners: RequestHandler<
     })
   ];
 
-  // "Do not contact" applies at the owner level, globally: it is not scoped to
-  // the user's establishment perimeter. When an owner is (un)marked on this
-  // housing, propagate the change to ALL of their other housings, so every user
-  // (whatever their establishment) sees the same status.
-  const currentHousingId = housing.id;
-  const currentHousingGeoCode = housing.geoCode;
-  const wasDoNotContact = (ownerId: string): boolean =>
-    existingHousingOwners.some(
-      (housingOwner) =>
-        housingOwner.ownerId === ownerId &&
-        housingOwner.rank === DO_NOT_CONTACT_OWNER_RANK
-    );
-  const becameDoNotContact = housingOwners
-    .filter(
-      (housingOwner) =>
-        housingOwner.rank === DO_NOT_CONTACT_OWNER_RANK &&
-        !wasDoNotContact(housingOwner.ownerId)
-    )
-    .map((housingOwner) => housingOwner.ownerId);
-  const stoppedDoNotContact = housingOwners
-    .filter(
-      (housingOwner) =>
-        housingOwner.rank !== DO_NOT_CONTACT_OWNER_RANK &&
-        wasDoNotContact(housingOwner.ownerId)
-    )
-    .map((housingOwner) => housingOwner.ownerId);
-
-  async function propagateDoNotContact(
-    ownerId: string,
-    apply: (owners: HousingOwnerApi[], ownerId: string) => HousingOwnerApi[],
-    shouldUpdate: (rank: OwnerRank) => boolean
-  ): Promise<HousingOwnerApi[][]> {
-    const owner = await ownerRepository.get(ownerId);
-    if (!owner) {
-      return [];
-    }
-    // No geoCodes filter: the status is global across all the owner's housings.
-    const ownerHousings = await housingOwnerRepository.findByOwner(owner);
-    const targets = ownerHousings.filter(
-      (ownerHousing) =>
-        // Skip the housing already handled by the request payload
-        !(
-          ownerHousing.housingId === currentHousingId &&
-          ownerHousing.housingGeoCode === currentHousingGeoCode
-        ) && shouldUpdate(ownerHousing.rank)
-    );
-    return Promise.all(
-      targets.map(async (target) => {
-        const owners = await ownerRepository.findByHousing(
-          target as HousingApi
-        );
-        return apply(owners, ownerId);
-      })
-    );
-  }
-
-  const propagatedHousingOwners: HousingOwnerApi[][] = [
-    ...(
-      await Promise.all(
-        becameDoNotContact.map((ownerId) =>
-          propagateDoNotContact(
-            ownerId,
-            markOwnerDoNotContact,
-            (rank) => rank !== DO_NOT_CONTACT_OWNER_RANK
-          )
-        )
-      )
-    ).flat(),
-    ...(
-      await Promise.all(
-        stoppedDoNotContact.map((ownerId) =>
-          propagateDoNotContact(
-            ownerId,
-            unmarkOwnerDoNotContact,
-            (rank) => rank === DO_NOT_CONTACT_OWNER_RANK
-          )
-        )
-      )
-    ).flat()
-  ];
-
   await startTransaction(async () => {
     const affectedOwnerIds =
       await housingOwnerRepository.saveMany(housingOwners);
-    const propagatedOwnerIds: string[] = [];
-    for (const owners of propagatedHousingOwners) {
-      const ids = await housingOwnerRepository.saveMany(owners);
-      propagatedOwnerIds.push(...ids);
-    }
     await Promise.all([
-      refreshMultiOwnerFlags([
-        ...new Set([...affectedOwnerIds, ...propagatedOwnerIds])
-      ]),
+      refreshMultiOwnerFlags(affectedOwnerIds),
       eventRepository.insertManyHousingOwnerEvents(events)
     ]);
   });

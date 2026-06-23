@@ -32,13 +32,7 @@ import configureTestStore from '~/utils/storeUtils';
 import HousingOwnersView from '~/views/Housing/HousingOwnersView';
 
 describe('HousingOwnersView', () => {
-  // A fresh userEvent instance per test: sharing a single instance across this
-  // heavy suite makes clicks intermittently not register, which then cascades
-  // into flaky "Unable to find row" failures after a save.
-  let user: ReturnType<typeof userEvent.setup>;
-  beforeEach(() => {
-    user = userEvent.setup();
-  });
+  const user = userEvent.setup();
   const auth = genUserDTO(UserRole.USUAL);
 
   interface RenderViewOptions {
@@ -192,6 +186,44 @@ describe('HousingOwnersView', () => {
     expect(cell).toBeVisible();
   });
 
+  it('should mark an owner as "do not contact"', async () => {
+    const housing = genHousingDTO();
+    const owners: ReadonlyArray<OwnerDTO> = [
+      { ...genOwnerDTO(), doNotContact: false },
+      { ...genOwnerDTO(), doNotContact: false }
+    ];
+    const housingOwners: ReadonlyArray<HousingOwnerDTO> = [
+      { ...genHousingOwnerDTO(owners[0]), rank: 1 },
+      { ...genHousingOwnerDTO(owners[1]), rank: 2 }
+    ];
+
+    renderView({
+      housing,
+      owners,
+      housingOwners
+    });
+
+    const button = await screen.findByRole('button', {
+      name: `Éditer ${getOwnerDisplayName(owners[1])}`
+    });
+    await user.click(button);
+    const rank = await screen.findByRole('radio', {
+      name: 'À ne pas contacter'
+    });
+    await user.click(rank);
+    const save = await screen.findByRole('button', {
+      name: 'Enregistrer'
+    });
+    await user.click(save);
+    const row = await screen.findByRole('row', {
+      name: new RegExp(`^${getOwnerDisplayName(owners[1])}`)
+    });
+    const cell = await within(row).findByRole('cell', {
+      name: 'Ne pas contacter'
+    });
+    expect(cell).toBeVisible();
+  });
+
   it('should change an inactive owner to primary', async () => {
     const housing = genHousingDTO();
     const owners: ReadonlyArray<OwnerDTO> = [genOwnerDTO(), genOwnerDTO()];
@@ -280,46 +312,6 @@ describe('HousingOwnersView', () => {
     });
     expect(cell).toBeVisible();
   });
-
-  it('should mark a secondary owner as "do not contact"', async () => {
-    const housing = genHousingDTO();
-    const owners: ReadonlyArray<OwnerDTO> = [genOwnerDTO(), genOwnerDTO()];
-    const housingOwners: ReadonlyArray<HousingOwnerDTO> = [
-      { ...genHousingOwnerDTO(owners[0]), rank: 1 },
-      { ...genHousingOwnerDTO(owners[1]), rank: 2 }
-    ];
-
-    renderView({
-      housing,
-      owners,
-      housingOwners
-    });
-
-    const button = await screen.findByRole('button', {
-      name: `Éditer ${owners[1].fullName}`
-    });
-    await user.click(button);
-    const rank = await screen.findByRole('radio', {
-      name: 'À ne pas contacter'
-    });
-    await user.click(rank);
-    const save = await screen.findByRole('button', {
-      name: 'Enregistrer'
-    });
-    await user.click(save);
-
-    const row = await screen.findByRole('row', {
-      name: new RegExp(`^${owners[1].fullName}`)
-    });
-    const cell = await within(row).findByRole('cell', {
-      name: 'Ne pas contacter'
-    });
-    expect(cell).toBeVisible();
-  });
-
-  // NB: the "primary → do not contact promotes the next owner" behaviour is
-  // covered by the unit test in models/test/HousingOwnerRank.test.ts. It is not
-  // duplicated here as a view-level test to keep this heavy suite lean.
 
   it('should set the primary owner as deceased', async () => {
     const housing = genHousingDTO();

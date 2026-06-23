@@ -56,6 +56,7 @@ export interface OwnerRecordDBO {
   kind_class: string | null;
   entity: OwnerEntity | null;
   username: string | null;
+  do_not_contact: boolean | null;
   created_at: Date | string | null;
   updated_at: Date | string | null;
   is_multi_owner: boolean | null;
@@ -564,7 +565,9 @@ function filter(filters?: OwnerFilters) {
               `${campaignsHousingTable}.housing_geo_code`
             )
         )
-        .where(`${campaignsHousingTable}.campaign_id`, filters.campaignId);
+        .where(`${campaignsHousingTable}.campaign_id`, filters.campaignId)
+        // Owners who refused contact are never campaign recipients.
+        .whereRaw('?? is not true', [`${ownerTable}.do_not_contact`]);
     }
 
     if (filters?.groupId) {
@@ -611,6 +614,7 @@ export const parseOwnerApi = (owner: OwnerDBO): OwnerApi => {
     additionalAddress: owner.additional_address ?? null,
     entity: owner.entity,
     username: owner.username ?? null,
+    doNotContact: owner.do_not_contact ?? null,
     createdAt: owner.created_at ? new Date(owner.created_at).toJSON() : null,
     updatedAt: owner.updated_at ? new Date(owner.updated_at).toJSON() : null
   };
@@ -653,6 +657,7 @@ export const formatOwnerApi = (owner: OwnerApi): OwnerRecordDBO => ({
   kind_class: owner.kind ?? null,
   entity: owner.entity,
   username: owner.username ?? null,
+  do_not_contact: owner.doNotContact ?? null,
   created_at: owner.createdAt ? new Date(owner.createdAt) : null,
   updated_at: owner.updatedAt ? new Date(owner.updatedAt) : null,
   is_multi_owner: null

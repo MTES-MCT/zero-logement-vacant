@@ -15,6 +15,31 @@ describe('Owner payload', () => {
     expect(() => ownerPayload.validateSync({})).toThrow(/fullName/i);
   });
 
+  test.prop([fc.option(fc.boolean(), { nil: null })])(
+    'should accept a boolean or null doNotContact',
+    (doNotContact) => {
+      const result = ownerPayload.validateSync({
+        fullName: 'Jane Doe',
+        doNotContact
+      });
+      expect(result.doNotContact).toBe(doNotContact);
+    }
+  );
+
+  it('should accept a payload without doNotContact', () => {
+    const result = ownerPayload.validateSync({ fullName: 'Jane Doe' });
+    expect(result.doNotContact).toBeUndefined();
+  });
+
+  it('should reject a non-boolean doNotContact', () => {
+    expect(() =>
+      ownerPayload.validateSync({
+        fullName: 'Jane Doe',
+        doNotContact: 'yes'
+      })
+    ).toThrow();
+  });
+
   it('should accept an empty-string email (treated as absent)', () => {
     const result = ownerPayload.validateSync({
       fullName: 'Jane Doe',

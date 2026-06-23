@@ -194,6 +194,85 @@ describe('Account controller', () => {
       await Users().where('id', suspendedUser.id).delete();
     });
 
+    it('should replace an obsolete CGU suspension with the current Cerema structure expiration', async () => {
+      const suspendedUser: UserApi = {
+        ...genUserApi(establishment.id),
+        password: bcrypt.hashSync('TestPassword123!', SALT_LENGTH),
+        suspendedAt: new Date('2026-02-15T00:00:00.000Z').toJSON(),
+        suspendedCause: 'cgu vides'
+      };
+      await Users().insert(toUserDBO(suspendedUser));
+      const consultUsers = vi
+        .spyOn(ceremaService, 'consultUsers')
+        .mockResolvedValue([
+          {
+            email: suspendedUser.email,
+            establishmentSiren: establishment.siren,
+            hasAccount: true,
+            hasCommitment: false,
+            cguValide: '2026-03-11T12:36:01.255000+01:00',
+            userExpiresAt: null,
+            structureAccessExpiresAt: '2025-01-15T09:16:31+01:00',
+            structureHasLovac: false,
+            groupHasLovac: true
+          }
+        ]);
+
+      const { body, status } = await request(url).post(testRoute).send({
+        email: suspendedUser.email,
+        password: 'TestPassword123!'
+      });
+
+      expect(status).toBe(constants.HTTP_STATUS_OK);
+      expect(body.user.suspendedCause).toBe('droits structure expires');
+      const updatedUser = await userRepository.get(suspendedUser.id);
+      expect(updatedUser?.suspendedAt).not.toBeNull();
+      expect(updatedUser?.suspendedCause).toBe('droits structure expires');
+
+      consultUsers.mockRestore();
+      await Users().where('id', suspendedUser.id).delete();
+    });
+
+    it('should clear an obsolete Cerema suspension when current Cerema rights are valid', async () => {
+      const suspendedUser: UserApi = {
+        ...genUserApi(establishment.id),
+        password: bcrypt.hashSync('TestPassword123!', SALT_LENGTH),
+        suspendedAt: new Date('2026-02-15T00:00:00.000Z').toJSON(),
+        suspendedCause: 'cgu vides'
+      };
+      await Users().insert(toUserDBO(suspendedUser));
+      const consultUsers = vi
+        .spyOn(ceremaService, 'consultUsers')
+        .mockResolvedValue([
+          {
+            email: suspendedUser.email,
+            establishmentSiren: establishment.siren,
+            hasAccount: true,
+            hasCommitment: true,
+            cguValide: '2026-03-11T12:36:01.255000+01:00',
+            userExpiresAt: null,
+            structureAccessExpiresAt: '2028-01-15T09:16:31+01:00',
+            structureHasLovac: true,
+            groupHasLovac: true
+          }
+        ]);
+
+      const { body, status } = await request(url).post(testRoute).send({
+        email: suspendedUser.email,
+        password: 'TestPassword123!'
+      });
+
+      expect(status).toBe(constants.HTTP_STATUS_OK);
+      expect(body.user.suspendedAt).toBeNull();
+      expect(body.user.suspendedCause).toBeNull();
+      const updatedUser = await userRepository.get(suspendedUser.id);
+      expect(updatedUser?.suspendedAt).toBeNull();
+      expect(updatedUser?.suspendedCause).toBeNull();
+
+      consultUsers.mockRestore();
+      await Users().where('id', suspendedUser.id).delete();
+    });
+
     it('should fail if the user is deleted', async () => {
       const deletedUser: UserApi = {
         ...genUserApi(establishment.id),

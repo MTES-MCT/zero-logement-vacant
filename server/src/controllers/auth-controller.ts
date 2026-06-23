@@ -32,9 +32,10 @@ import userEstablishmentRepository from '~/repositories/user-establishment-repos
 import userPerimeterRepository from '~/repositories/userPerimeterRepository';
 import userRepository from '~/repositories/userRepository';
 import ceremaService from '~/services/ceremaService';
+import type { CeremaUser } from '~/services/ceremaService/consultUserService';
 import {
   verifyAccessRights,
-  accessErrorsToSuspensionCause
+  type AccessRightsError
 } from '~/services/ceremaService/perimeterService';
 import { fetchUserKind } from '~/services/ceremaService/userKindService';
 import mailService from '~/services/mailService';
@@ -50,6 +51,151 @@ import {
 
 // TODO: remove get, updateAccount
 // because they shall be implemented in userController
+
+const CEREMA_SUSPENSION_CAUSES = [
+  'droits utilisateur expires',
+  'droits structure expires',
+  'cgu vides',
+  'niveau_acces_invalide',
+  'perimetre_invalide',
+  'groupe_manquant'
+] as const;
+
+function unique(causes: string[]): string[] {
+  return [...new Set(causes)];
+}
+
+function splitSuspensionCauses(cause: string | null): string[] {
+  return (
+    cause
+      ?.split(',')
+      .map((value) => value.trim())
+      .filter(Boolean) ?? []
+  );
+}
+
+function isCeremaSuspensionCause(cause: string): boolean {
+  return CEREMA_SUSPENSION_CAUSES.includes(
+    cause as (typeof CEREMA_SUSPENSION_CAUSES)[number]
+  );
+}
+
+function isPastDate(value: string | null | undefined): boolean {
+  if (!value) {
+    return false;
+  }
+
+  const date = new Date(value);
+  return !Number.isNaN(date.getTime()) && date <= new Date();
+}
+
+function isLovacAccessExpired(value: string | null | undefined): boolean {
+  if (value === undefined) {
+    return false;
+  }
+
+  if (value === null || value === '') {
+    return true;
+  }
+
+  return isPastDate(value);
+}
+
+function computeCeremaSuspensionCauses(ceremaUser: CeremaUser): string[] {
+  const causes: string[] = [];
+
+  if (ceremaUser.cguValide === null || ceremaUser.cguValide === '') {
+    causes.push('cgu vides');
+  }
+
+  if (isPastDate(ceremaUser.userExpiresAt)) {
+    causes.push('droits utilisateur expires');
+  }
+
+  if (
+    ceremaUser.structureHasLovac === false ||
+    isLovacAccessExpired(ceremaUser.structureAccessExpiresAt)
+  ) {
+    causes.push('droits structure expires');
+  }
+
+  if (ceremaUser.groupHasLovac === false) {
+    causes.push('niveau_acces_invalide');
+  }
+
+  return causes;
+}
+
+async function syncCeremaSuspension(
+  user: UserApi,
+  ceremaUsers: CeremaUser[],
+  accessErrors: AccessRightsError[]
+): Promise<void> {
+  const currentEstablishment = user.establishmentId
+    ? await establishmentRepository.get(user.establishmentId)
+    : null;
+  const usersForCurrentEstablishment = currentEstablishment
+    ? ceremaUsers.filter(
+        (cu) =>
+          cu.establishmentSiren === currentEstablishment.siren ||
+          cu.establishmentSiren === '*'
+      )
+    : ceremaUsers;
+
+  if (currentEstablishment && usersForCurrentEstablishment.length === 0) {
+    logger.info('No Portail DF entry found for current establishment', {
+      userId: user.id,
+      email: user.email,
+      establishmentId: user.establishmentId,
+      establishmentSiren: currentEstablishment.siren
+    });
+    return;
+  }
+
+  const previousCauses = splitSuspensionCauses(user.suspendedCause);
+  const manualCauses = previousCauses.filter(
+    (cause) => !isCeremaSuspensionCause(cause)
+  );
+  const ceremaCauses = unique([
+    ...usersForCurrentEstablishment.flatMap(computeCeremaSuspensionCauses),
+    ...accessErrors
+  ]);
+  const nextCauses = unique([...manualCauses, ...ceremaCauses]);
+  const nextSuspendedCause =
+    nextCauses.length > 0 ? nextCauses.join(', ') : null;
+  const previousSuspendedCause = user.suspendedCause;
+  const nextSuspendedAt =
+    nextSuspendedCause === null
+      ? null
+      : previousSuspendedCause === nextSuspendedCause && user.suspendedAt
+        ? user.suspendedAt
+        : new Date().toJSON();
+
+  if (
+    user.suspendedAt === nextSuspendedAt &&
+    previousSuspendedCause === nextSuspendedCause
+  ) {
+    return;
+  }
+
+  const currentUser = await userRepository.get(user.id);
+  if (!currentUser) {
+    return;
+  }
+
+  await userRepository.update({
+    ...currentUser,
+    suspendedAt: nextSuspendedAt,
+    suspendedCause: nextSuspendedCause
+  });
+
+  logger.info('User suspension synchronized from Portail DF', {
+    userId: user.id,
+    email: user.email,
+    previousSuspendedCause,
+    nextSuspendedCause
+  });
+}
 
 /**
  * Refresh authorized establishments for a user from Portail DF.
@@ -92,7 +238,7 @@ async function refreshAuthorizedEstablishments(user: UserApi): Promise<void> {
       hasCommitment: boolean;
     }> = [];
 
-    const accessErrors: string[] = [];
+    const accessErrors: AccessRightsError[] = [];
 
     for (const est of knownEstablishments) {
       const ceremaUser = ceremaUsersWithCommitment.find(
@@ -150,41 +296,14 @@ async function refreshAuthorizedEstablishments(user: UserApi): Promise<void> {
               errors: accessRights.errors
             }
           );
-          accessErrors.push(...accessRights.errors);
+          if (!user.establishmentId || est.id === user.establishmentId) {
+            accessErrors.push(...accessRights.errors);
+          }
         }
       }
     }
 
-    // Check if user's current establishment lost access rights
-    if (user.establishmentId) {
-      const currentEstablishmentStillValid = authorizedEstablishments.some(
-        (e) => e.establishmentId === user.establishmentId
-      );
-
-      if (!currentEstablishmentStillValid && accessErrors.length > 0) {
-        // Suspend user if their current establishment lost access
-        const suspensionCause = accessErrorsToSuspensionCause([
-          ...new Set(accessErrors)
-        ] as any);
-
-        logger.warn('Suspending user at login due to lost access rights', {
-          userId: user.id,
-          email: user.email,
-          establishmentId: user.establishmentId,
-          suspensionCause
-        });
-
-        // Re-fetch user to get latest lastAuthenticatedAt (updated by signIn)
-        const currentUser = await userRepository.get(user.id);
-        if (currentUser) {
-          await userRepository.update({
-            ...currentUser,
-            suspendedAt: new Date().toJSON(),
-            suspendedCause: suspensionCause
-          });
-        }
-      }
-    }
+    await syncCeremaSuspension(user, ceremaUsers, accessErrors);
 
     // Get current authorized establishments for comparison
     const currentAuthorized =
@@ -367,10 +486,13 @@ async function signInToEstablishment(
   // Refresh authorized establishments and save perimeter from Portail DF at login
   // This MUST complete before returning the token to ensure perimeter filtering works
   await refreshAuthorizedEstablishments(user);
+  const refreshedUser = (await userRepository.get(user.id)) ?? user;
 
   // Get authorized establishments for multi-structure dropdown (after refresh)
   const authorizedEstablishmentLinks =
-    await userEstablishmentRepository.getAuthorizedEstablishments(user.id);
+    await userEstablishmentRepository.getAuthorizedEstablishments(
+      refreshedUser.id
+    );
   const authorizedEstablishmentIds = authorizedEstablishmentLinks
     .filter((e) => e.hasCommitment)
     .map((e) => e.establishmentId);
@@ -388,9 +510,12 @@ async function signInToEstablishment(
   // Compute effective geoCodes based on user's perimeter
   // ADMIN and VISITOR users have no restriction (effectiveGeoCodes = undefined)
   let effectiveGeoCodes: string[] | undefined;
-  if (user.role !== UserRole.ADMIN && user.role !== UserRole.VISITOR) {
+  if (
+    refreshedUser.role !== UserRole.ADMIN &&
+    refreshedUser.role !== UserRole.VISITOR
+  ) {
     const userPerimeter = await userPerimeterRepository.get(
-      user.id,
+      refreshedUser.id,
       establishment.id
     );
     effectiveGeoCodes = await filterGeoCodesByPerimeter(
@@ -402,16 +527,16 @@ async function signInToEstablishment(
 
   const accessToken = jwt.sign(
     {
-      userId: user.id,
+      userId: refreshedUser.id,
       establishmentId: establishment.id,
-      role: user.role
+      role: refreshedUser.role
     } as TokenPayload,
     config.auth.secret,
     { expiresIn: config.auth.expiresIn }
   );
 
   response.status(constants.HTTP_STATUS_OK).json({
-    user: toUserDTO(user),
+    user: toUserDTO(refreshedUser),
     establishment,
     accessToken,
     // Include authorized establishments for multi-structure users

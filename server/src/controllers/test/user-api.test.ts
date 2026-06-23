@@ -51,8 +51,8 @@ import {
   formatProspectApi,
   Prospects
 } from '~/repositories/prospectRepository';
-import { toUserDBO, Users, USERS_TABLE } from '~/repositories/userRepository';
 import { UsersEstablishments } from '~/repositories/user-establishment-repository';
+import { toUserDBO, Users, USERS_TABLE } from '~/repositories/userRepository';
 import ceremaService from '~/services/ceremaService';
 import { TEST_ACCOUNTS } from '~/services/ceremaService/consultUserService';
 import {

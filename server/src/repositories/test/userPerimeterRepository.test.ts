@@ -4,10 +4,7 @@ import {
 } from '~/repositories/establishmentRepository';
 import userPerimeterRepository from '~/repositories/userPerimeterRepository';
 import { toUserDBO, Users } from '~/repositories/userRepository';
-import {
-  genEstablishmentApi,
-  genUserApi
-} from '~/test/testFixtures';
+import { genEstablishmentApi, genUserApi } from '~/test/testFixtures';
 
 describe('User perimeter repository', () => {
   it('stores one perimeter per user and establishment', async () => {

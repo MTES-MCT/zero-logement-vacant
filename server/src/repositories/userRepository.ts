@@ -5,6 +5,7 @@ import db, { notDeleted } from '~/infra/database';
 import { logger } from '~/infra/logger';
 import { PaginationApi, paginationQuery } from '~/models/PaginationApi';
 import { UserApi } from '~/models/UserApi';
+
 import { USERS_ESTABLISHMENTS_TABLE } from './user-establishment-repository';
 
 export const USERS_TABLE = 'users';

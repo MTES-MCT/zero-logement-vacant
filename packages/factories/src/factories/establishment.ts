@@ -9,8 +9,9 @@ import { Factory } from 'fishery';
 import type { PersistenceAdapter } from '../persistence-adapter';
 
 export function createEstablishmentFactory(adapter: PersistenceAdapter) {
-  return Factory.define<EstablishmentDTO>(() => {
-    const name = faker.location.city();
+  return Factory.define<EstablishmentDTO>(({ params }) => {
+    // Honour an overridden name so the short name defaults consistently to it.
+    const name = params.name ?? faker.location.city();
     return {
       id: faker.string.uuid(),
       name,

@@ -11150,6 +11150,7 @@ __metadata:
     "@tsconfig/node24": "npm:24.0.4"
     "@types/node": "npm:24"
     "@zerologementvacant/models": "workspace:*"
+    effect: "npm:3.21.2"
     fishery: "npm:2.4.0"
     jest-extended: "npm:4.0.2"
     ts-pattern: "npm:5.9.0"

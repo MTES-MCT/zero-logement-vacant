@@ -1,7 +1,7 @@
 import { faker } from '@faker-js/faker/locale/fr';
 import {
   CADASTRAL_CLASSIFICATION_VALUES,
-  DATA_FILE_YEAR_VALUES,
+  DataFileYear,
   ENERGY_CONSUMPTION_VALUES,
   getSubStatuses,
   HOUSING_KIND_VALUES,
@@ -14,6 +14,7 @@ import {
   READ_WRITE_OCCUPANCY_VALUES,
   type HousingDTO
 } from '@zerologementvacant/models';
+import { Array, pipe } from 'effect';
 import { Factory } from 'fishery';
 import { match, Pattern } from 'ts-pattern';
 
@@ -37,17 +38,33 @@ function genGeoCode(): string {
 }
 
 export function createHousingFactory(adapter: PersistenceAdapter) {
-  return Factory.define<HousingDTO>(() => {
-    const geoCode = genGeoCode();
+  return Factory.define<HousingDTO>(({ params }) => {
+    // Honour an overridden geoCode so the derived identifiers (invariant,
+    // localId, plotId, rawAddress) stay consistent with it.
+    const geoCode = params.geoCode ?? genGeoCode();
     const department = geoCode.substring(0, 2);
     const locality = geoCode.substring(2, 5);
     const invariant = locality + faker.string.alpha(7);
     const localId = department + invariant;
-    const dataFileYears = faker.helpers
-      .arrayElements(DATA_FILE_YEAR_VALUES)
-      .toSorted();
-    const dataYears = dataFileYears
-      .map((dataFileYear) =>
+    const dataFileYears = faker.helpers.arrayElements(
+      faker.helpers.arrayElement<DataFileYear[]>([
+        ['ff-2023', 'ff-2024'],
+        ['ff-2023-locatif', 'ff-2024-locatif'],
+        [
+          'lovac-2019',
+          'lovac-2020',
+          'lovac-2021',
+          'lovac-2022',
+          'lovac-2023',
+          'lovac-2024',
+          'lovac-2025',
+          'lovac-2026'
+        ]
+      ])
+    );
+    const dataYears = pipe(
+      dataFileYears,
+      Array.map((dataFileYear) =>
         match(dataFileYear)
           .returnType<string>()
           .with(Pattern.string.startsWith('ff-'), (y) =>
@@ -57,8 +74,11 @@ export function createHousingFactory(adapter: PersistenceAdapter) {
             y.substring('lovac-'.length, 'lovac-YYYY'.length)
           )
           .exhaustive()
-      )
-      .map(Number);
+      ),
+      Array.map(Number),
+      Array.dedupe
+    );
+
     const status = faker.helpers.weightedArrayElement([
       {
         value: HousingStatus.NEVER_CONTACTED,

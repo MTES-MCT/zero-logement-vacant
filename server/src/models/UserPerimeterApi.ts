@@ -21,6 +21,7 @@ export interface PerimeterShape {
  */
 export interface UserPerimeterApi extends PerimeterShape {
   userId: string;
+  establishmentId: string;
   updatedAt: string;
 }
 

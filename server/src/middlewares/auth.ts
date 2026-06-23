@@ -64,7 +64,7 @@ export function userCheck(options?: CheckOptions) {
     const [user, establishment, userPerimeter] = await Promise.all([
       getUser(request.auth.userId),
       getEstablishment(request.auth.establishmentId),
-      getUserPerimeter(request.auth.userId)
+      getUserPerimeter(request.auth.userId, request.auth.establishmentId)
     ]);
     if (!user) {
       // Should never happen

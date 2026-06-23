@@ -5,6 +5,7 @@ import db, { notDeleted } from '~/infra/database';
 import { logger } from '~/infra/logger';
 import { PaginationApi, paginationQuery } from '~/models/PaginationApi';
 import { UserApi } from '~/models/UserApi';
+import { USERS_ESTABLISHMENTS_TABLE } from './user-establishment-repository';
 
 export const USERS_TABLE = 'users';
 
@@ -64,10 +65,22 @@ interface FindOptions {
 
 async function find(opts?: FindOptions): Promise<UserApi[]> {
   const users: UserDBO[] = await db<UserDBO>(USERS_TABLE)
+    .select(`${USERS_TABLE}.*`)
     .where(notDeleted)
     .modify((builder) => {
       if (opts?.filters?.establishments?.length) {
-        builder.whereIn('establishment_id', opts.filters.establishments);
+        builder
+          .join(
+            USERS_ESTABLISHMENTS_TABLE,
+            `${USERS_ESTABLISHMENTS_TABLE}.user_id`,
+            `${USERS_TABLE}.id`
+          )
+          .whereIn(
+            `${USERS_ESTABLISHMENTS_TABLE}.establishment_id`,
+            opts.filters.establishments
+          )
+          .where(`${USERS_ESTABLISHMENTS_TABLE}.has_commitment`, true)
+          .distinct(`${USERS_TABLE}.id`);
       }
     })
     // TODO: flexible sort
@@ -84,7 +97,17 @@ interface CountOptions {
 function filter(filters?: UserFilters) {
   return (builder: Knex.QueryBuilder<UserDBO>) => {
     if (filters?.establishments?.length) {
-      builder.whereIn('establishment_id', filters.establishments);
+      builder
+        .join(
+          USERS_ESTABLISHMENTS_TABLE,
+          `${USERS_ESTABLISHMENTS_TABLE}.user_id`,
+          `${USERS_TABLE}.id`
+        )
+        .whereIn(
+          `${USERS_ESTABLISHMENTS_TABLE}.establishment_id`,
+          filters.establishments
+        )
+        .where(`${USERS_ESTABLISHMENTS_TABLE}.has_commitment`, true);
     }
   };
 }
@@ -93,7 +116,7 @@ async function count(opts?: CountOptions): Promise<number> {
   const result = await db<UserDBO>(USERS_TABLE)
     .where(notDeleted)
     .modify(filter(opts?.filters))
-    .count('id')
+    .countDistinct(`${USERS_TABLE}.id`)
     .first();
 
   return Number(result?.count);

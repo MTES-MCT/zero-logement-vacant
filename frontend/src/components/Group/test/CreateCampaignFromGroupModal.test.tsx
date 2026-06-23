@@ -1,18 +1,13 @@
 import { render, screen, within } from '@testing-library/react';
-import {
-  genGroupDTO,
-  genHousingDTO,
-  genUserDTO
-} from '@zerologementvacant/models/fixtures';
 import { Provider } from 'react-redux';
 
 import { createCampaignFromGroupModal } from '~/components/Group/CreateCampaignFromGroupModal';
-import { fromGroupDTO } from '~/models/Group';
+import { genGroup } from '~/test/fixtures';
 import configureTestStore from '~/utils/storeUtils';
 
 const modal = createCampaignFromGroupModal();
-const creator = genUserDTO();
-const group = fromGroupDTO(genGroupDTO(creator, [genHousingDTO()]));
+const group = genGroup();
+
 
 describe('CreateCampaignFromGroupModal', () => {
   function renderModal(stepper?: { currentStep: number; stepCount: number }) {

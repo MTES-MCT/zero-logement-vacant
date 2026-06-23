@@ -34,7 +34,6 @@ export type HousingOwnerPayloadDTO = Omit<
 > &
   Pick<OwnerDTO, 'id'>;
 
-export const DO_NOT_CONTACT_OWNER_RANK = -4 as const;
 export const DECEASED_OWNER_RANK = -3 as const;
 export const AWAITING_OWNER_RANK = -2 as const;
 export const INCORRECT_OWNER_RANK = -1 as const;
@@ -51,7 +50,6 @@ export const OWNER_RANKS = [
   PREVIOUS_OWNER_RANK,
   ...ACTIVE_OWNER_RANKS
 ] as const;
-export type DoNotContactOwnerRank = typeof DO_NOT_CONTACT_OWNER_RANK;
 export type DeceasedOwnerRank = typeof DECEASED_OWNER_RANK;
 export type AwaitingOwnerRank = typeof AWAITING_OWNER_RANK;
 export type IncorrectOwnerRank = typeof INCORRECT_OWNER_RANK;
@@ -62,10 +60,7 @@ export type InactiveOwnerRank =
   | AwaitingOwnerRank
   | IncorrectOwnerRank
   | PreviousOwnerRank;
-export type OwnerRank =
-  | InactiveOwnerRank
-  | ActiveOwnerRank
-  | DoNotContactOwnerRank;
+export type OwnerRank = InactiveOwnerRank | ActiveOwnerRank;
 
 export function isActiveOwnerRank(rank: number): rank is ActiveOwnerRank {
   return rank >= 1;
@@ -81,11 +76,6 @@ export function isAwaitingOwnerRank(rank: number): rank is AwaitingOwnerRank {
 }
 export function isDeceasedOwnerRank(rank: number): rank is AwaitingOwnerRank {
   return rank === -3;
-}
-export function isDoNotContactOwnerRank(
-  rank: number
-): rank is DoNotContactOwnerRank {
-  return rank === DO_NOT_CONTACT_OWNER_RANK;
 }
 export function isInactiveOwnerRank(rank: number): rank is InactiveOwnerRank {
   return (

@@ -72,7 +72,12 @@ const exportCampaignDrafts: RequestHandler<
     throw new DraftMissingError(campaign.id);
   }
 
-  const housingsWithOwner = housings.map(toHousingDTO).filter(hasPrimaryOwner);
+  // Exclude housings whose primary owner refused to be contacted: they must
+  // not receive a campaign letter.
+  const housingsWithOwner = housings
+    .map(toHousingDTO)
+    .filter(hasPrimaryOwner)
+    .filter((housing) => !housing.owner?.doNotContact);
 
   const stream = await generateCampaignPDFInWorker({
     campaign: toCampaignDTO(campaign),

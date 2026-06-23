@@ -1,10 +1,8 @@
 import {
   AWAITING_OWNER_RANK,
   DECEASED_OWNER_RANK,
-  DO_NOT_CONTACT_OWNER_RANK,
   INCORRECT_OWNER_RANK,
   isActiveOwnerRank,
-  isDoNotContactOwnerRank,
   isInactiveOwnerRank,
   type OwnerRank,
   PREVIOUS_OWNER_RANK
@@ -17,7 +15,6 @@ import type { HousingOwner, Owner } from './Owner';
 export type OwnerRankLabel =
   | 'primary'
   | 'secondary'
-  | 'doNotContact'
   | 'previous'
   | 'incorrect'
   | 'deceased'
@@ -31,7 +28,6 @@ export function rankToLabel(rank: OwnerRank): OwnerRankLabel {
     .with(1, () => 'primary' as const)
     .with(2, 3, 4, 5, 6, () => 'secondary' as const)
     .with(Pattern.number.int().gte(7), () => 'secondary' as const)
-    .with(DO_NOT_CONTACT_OWNER_RANK, () => 'doNotContact' as const)
     .with(PREVIOUS_OWNER_RANK, () => 'previous' as const)
     .with(INCORRECT_OWNER_RANK, () => 'incorrect' as const)
     .with(AWAITING_OWNER_RANK, () => 'awaiting' as const)
@@ -47,7 +43,6 @@ export function labelToRank(label: OwnerRankLabel): OwnerRank {
   return match(label)
     .with('primary', () => 1 as const)
     .with('secondary', () => 2 as const)
-    .with('doNotContact', () => DO_NOT_CONTACT_OWNER_RANK)
     .with('previous', () => PREVIOUS_OWNER_RANK)
     .with('incorrect', () => INCORRECT_OWNER_RANK)
     .with('awaiting', () => AWAITING_OWNER_RANK)
@@ -89,20 +84,11 @@ export function computeOwnersAfterRankTransition(
 ): ReadonlyArray<HousingOwner> {
   const activeOwners = owners.filter(({ rank }) => isActiveOwnerRank(rank));
   const inactiveOwners = owners.filter(({ rank }) => isInactiveOwnerRank(rank));
-  const doNotContactOwners = owners.filter(({ rank }) =>
-    isDoNotContactOwnerRank(rank)
-  );
   const selectedOwner = owners.find((owner) => owner.id === transition.id);
 
   if (!selectedOwner) {
     return owners;
   }
-
-  // Do-not-contact owners that are not the one being edited. They must be kept
-  // through every transition so they are never silently dropped.
-  const otherDoNotContact = doNotContactOwners.filter(
-    (owner) => owner.id !== selectedOwner.id
-  );
 
   return match(transition)
     .with({ from: 'secondary', to: 'primary' }, () => {
@@ -114,8 +100,7 @@ export function computeOwnersAfterRankTransition(
             ...owner,
             rank: (2 + index) as OwnerRank
           })),
-        ...inactiveOwners,
-        ...otherDoNotContact
+        ...inactiveOwners
       ];
     })
     .with({ from: 'primary', to: 'secondary' }, () => {
@@ -125,8 +110,7 @@ export function computeOwnersAfterRankTransition(
           // Rebuild secondary owner ranks
           rank: (2 + index) as OwnerRank
         }))
-        .concat(inactiveOwners)
-        .concat(otherDoNotContact);
+        .concat(inactiveOwners);
     })
     .with(
       {
@@ -145,8 +129,7 @@ export function computeOwnersAfterRankTransition(
             inactiveOwners.filter(
               (inactiveOwner) => inactiveOwner.id !== selectedOwner.id
             )
-          ),
-          Array.appendAll(otherDoNotContact)
+          )
         );
       }
     )
@@ -168,8 +151,7 @@ export function computeOwnersAfterRankTransition(
             }
 
             return housingOwner;
-          }),
-          Array.appendAll(otherDoNotContact)
+          })
         );
       }
     )
@@ -205,8 +187,7 @@ export function computeOwnersAfterRankTransition(
                 ...housingOwner,
                 rank: rankAfter
               }))
-          ),
-          Array.appendAll(otherDoNotContact)
+          )
         );
       }
     )
@@ -223,85 +204,6 @@ export function computeOwnersAfterRankTransition(
           }
           return owner;
         });
-      }
-    )
-    .with(
-      { from: Pattern.union('primary', 'secondary'), to: 'doNotContact' },
-      () => {
-        // Mark an active owner as do-not-contact: rebuild the remaining active
-        // ranks (the next owner becomes primary) and move the selected one out.
-        return pipe(
-          activeOwners.filter((owner) => owner.id !== selectedOwner.id),
-          Array.map((housingOwner, index) => ({
-            ...housingOwner,
-            rank: (1 + index) as OwnerRank
-          })),
-          Array.append({
-            ...selectedOwner,
-            rank: DO_NOT_CONTACT_OWNER_RANK
-          }),
-          Array.appendAll(otherDoNotContact),
-          Array.appendAll(inactiveOwners)
-        );
-      }
-    )
-    .with({ from: 'doNotContact', to: 'primary' }, () => {
-      return pipe(
-        activeOwners,
-        Array.map((housingOwner, index) => ({
-          ...housingOwner,
-          rank: (2 + index) as OwnerRank
-        })),
-        Array.prepend({ ...selectedOwner, rank: 1 as const }),
-        Array.appendAll(otherDoNotContact),
-        Array.appendAll(inactiveOwners)
-      );
-    })
-    .with({ from: 'doNotContact', to: 'secondary' }, () => {
-      return pipe(
-        activeOwners,
-        Array.append({
-          ...selectedOwner,
-          rank: (activeOwners.length + 1) as OwnerRank
-        }),
-        Array.appendAll(otherDoNotContact),
-        Array.appendAll(inactiveOwners)
-      );
-    })
-    .with(
-      {
-        from: 'doNotContact',
-        to: Pattern.union('previous', 'incorrect', 'awaiting', 'deceased')
-      },
-      ({ to }) => {
-        const rankAfter = labelToRank(to);
-        return pipe(
-          activeOwners,
-          Array.appendAll(inactiveOwners),
-          Array.appendAll(otherDoNotContact),
-          Array.append({ ...selectedOwner, rank: rankAfter })
-        );
-      }
-    )
-    .with(
-      {
-        from: Pattern.union('previous', 'incorrect', 'awaiting', 'deceased'),
-        to: 'doNotContact'
-      },
-      () => {
-        return pipe(
-          activeOwners,
-          Array.append({
-            ...selectedOwner,
-            rank: DO_NOT_CONTACT_OWNER_RANK
-          }),
-          Array.appendAll(otherDoNotContact),
-          Array.appendAll(
-            inactiveOwners.filter(
-              (inactiveOwner) => inactiveOwner.id !== selectedOwner.id
-            )
-          )
-        );
       }
     )
     .otherwise(() => owners);

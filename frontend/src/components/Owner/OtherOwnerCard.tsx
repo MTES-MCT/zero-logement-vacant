@@ -2,22 +2,18 @@ import { fr } from '@codegouvfr/react-dsfr';
 import Button from '@codegouvfr/react-dsfr/Button';
 import Stack from '@mui/material/Stack';
 import Typography from '@mui/material/Typography';
-import {
-  isDoNotContactOwnerRank,
-  type OwnerRank,
-  type PropertyRight
-} from '@zerologementvacant/models';
+import type { PropertyRight } from '@zerologementvacant/models';
 
-import RankBadge from '~/components/Owner/RankBadge';
 import Icon from '~/components/ui/Icon';
 
+import DoNotContactBadge from './DoNotContactBadge';
 import PropertyRightTag from './PropertyRightTag';
 
 interface OtherOwnerCardProps {
   id: string;
   name: string;
   propertyRight: PropertyRight | null;
-  rank?: OwnerRank | null;
+  doNotContact?: boolean | null;
 }
 
 function OtherOwnerCardNext(props: OtherOwnerCardProps) {
@@ -45,12 +41,7 @@ function OtherOwnerCardNext(props: OtherOwnerCardProps) {
           <Typography sx={{ fontWeight: 700 }}>{props.name}</Typography>
         </Stack>
 
-        {typeof props.rank === 'number' &&
-        isDoNotContactOwnerRank(props.rank) ? (
-          <Stack direction="row" useFlexGap>
-            <RankBadge value={props.rank} />
-          </Stack>
-        ) : null}
+        <DoNotContactBadge doNotContact={props.doNotContact ?? null} />
 
         {!props.propertyRight ? null : (
           <PropertyRightTag value={props.propertyRight} />

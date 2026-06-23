@@ -33,6 +33,7 @@ export function toOwnerDTO(owner: OwnerApi): OwnerDTO {
       'kind',
       'siren',
       'username',
+      'doNotContact',
       'createdAt',
       'updatedAt'
     ),
@@ -65,7 +66,12 @@ export function diffUpdatedOwner(
       email: Equivalence.strict<string | null>(),
       phone: Equivalence.strict<string | null>(),
       address: Equivalence.strict<string | null>(),
-      additionalAddress: Equivalence.strict<string | null>()
+      additionalAddress: Equivalence.strict<string | null>(),
+      // Normalise null/undefined to false: an unset flag and an explicit
+      // "false" describe the same "may be contacted" state.
+      doNotContact: Equivalence.make<boolean | null | undefined>(
+        (a, b) => (a ?? false) === (b ?? false)
+      )
     },
     Record.map((equivalence: Equivalence.Equivalence<any>, key) =>
       equivalence(before[key], after[key])
@@ -176,6 +182,7 @@ export function fromDatafoncierOwner(
     phone: null,
     siren: owner.dsiren,
     username: null,
+    doNotContact: null,
     banAddress: null,
     additionalAddress: null,
     createdAt: new Date().toISOString(),

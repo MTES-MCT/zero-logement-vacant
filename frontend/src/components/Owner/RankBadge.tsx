@@ -2,7 +2,6 @@ import { type BadgeProps } from '@codegouvfr/react-dsfr/Badge';
 import {
   isAwaitingOwnerRank,
   isDeceasedOwnerRank,
-  isDoNotContactOwnerRank,
   isIncorrectOwnerRank,
   isPrimaryOwner,
   isPreviousOwnerRank,
@@ -29,7 +28,6 @@ function RankBadge(props: RankBadgeProps) {
       (rank) => isSecondaryOwner({ rank }),
       () => 'Destinataire secondaire'
     )
-    .when(isDoNotContactOwnerRank, () => 'Ne pas contacter')
     .when(isDeceasedOwnerRank, () => 'Propriétaire décédé')
     .when(isIncorrectOwnerRank, () => 'Propriétaire incorrect')
     .when(isAwaitingOwnerRank, () => 'Propriétaire en attente')
@@ -56,19 +54,8 @@ function RankBadge(props: RankBadgeProps) {
     return null;
   }
 
-  // The do-not-contact badge uses the DSFR "error" severity to render in red
-  // (with its warning icon), matching the design. Other ranks keep their
-  // illustrative colour family and no icon.
-  const isDoNotContact = isDoNotContactOwnerRank(props.value);
-
   return (
-    <AppBadge
-      small
-      noIcon={!isDoNotContact}
-      severity={isDoNotContact ? 'error' : undefined}
-      colorFamily={isDoNotContact ? undefined : colorFamily}
-      {...props.badgeProps}
-    >
+    <AppBadge noIcon small colorFamily={colorFamily} {...props.badgeProps}>
       {value}
     </AppBadge>
   );

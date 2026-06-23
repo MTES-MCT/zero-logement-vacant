@@ -655,6 +655,7 @@ export interface Owners {
   birthDate: Timestamp | null;
   createdAt: Timestamp | null;
   dataSource: string | null;
+  doNotContact: boolean | null;
   email: string | null;
   entity: string | null;
   fullName: string;

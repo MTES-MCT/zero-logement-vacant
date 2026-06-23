@@ -1,11 +1,9 @@
 import {
   ACTIVE_OWNER_RANKS,
-  DO_NOT_CONTACT_OWNER_RANK,
   INACTIVE_OWNER_RANKS,
   isActiveOwnerRank,
   isAwaitingOwnerRank,
   isDeceasedOwnerRank,
-  isDoNotContactOwnerRank,
   isInactiveOwnerRank,
   isIncorrectOwnerRank,
   isPreviousOwnerRank,
@@ -25,10 +23,6 @@ describe('HousingOwnerDTO', () => {
         expect(isActiveOwnerRank(rank)).toBe(false);
       }
     );
-
-    it('returns false for the do-not-contact rank', () => {
-      expect(isActiveOwnerRank(DO_NOT_CONTACT_OWNER_RANK)).toBe(false);
-    });
   });
 
   describe('isPreviousOwnerRank', () => {
@@ -79,21 +73,6 @@ describe('HousingOwnerDTO', () => {
     it.each(ACTIVE_OWNER_RANKS)('returns false for active rank %i', (rank) => {
       expect(isInactiveOwnerRank(rank)).toBe(false);
     });
-
-    it('returns false for the do-not-contact rank', () => {
-      expect(isInactiveOwnerRank(DO_NOT_CONTACT_OWNER_RANK)).toBe(false);
-    });
-  });
-
-  describe('isDoNotContactOwnerRank', () => {
-    it('returns true for rank -4', () => {
-      expect(isDoNotContactOwnerRank(DO_NOT_CONTACT_OWNER_RANK)).toBe(true);
-      expect(isDoNotContactOwnerRank(-4)).toBe(true);
-    });
-
-    it.each([-3, -2, -1, 0, 1, 2, 6])('returns false for rank %i', (rank) => {
-      expect(isDoNotContactOwnerRank(rank)).toBe(false);
-    });
   });
 
   describe('isPrimaryOwner', () => {
@@ -101,7 +80,7 @@ describe('HousingOwnerDTO', () => {
       expect(isPrimaryOwner({ rank: 1 })).toBe(true);
     });
 
-    it.each([-4, -3, -2, -1, 0, 2, 3, 6])(
+    it.each([-3, -2, -1, 0, 2, 3, 6])(
       'returns false when rank is %i',
       (rank) => {
         expect(isPrimaryOwner({ rank: rank as any })).toBe(false);
@@ -114,7 +93,7 @@ describe('HousingOwnerDTO', () => {
       expect(isSecondaryOwner({ rank: rank as any })).toBe(true);
     });
 
-    it.each([-4, -3, -2, -1, 0, 1])('returns false when rank is %i', (rank) => {
+    it.each([-3, -2, -1, 0, 1])('returns false when rank is %i', (rank) => {
       expect(isSecondaryOwner({ rank: rank as any })).toBe(false);
     });
   });

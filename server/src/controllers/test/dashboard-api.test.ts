@@ -343,6 +343,55 @@ const mockPieCardQueryResult = {
   status: 'completed'
 };
 
+// Bar chart where the x-axis is a year-bucketed date column. Metabase returns
+// full ISO timestamps; the column has temporal_unit: 'year' so labels should
+// be formatted as plain years.
+const mockMetabaseDashboardWithYearBarCard = {
+  id: 13,
+  dashcards: [
+    {
+      id: 974,
+      card_id: 824,
+      dashboard_tab_id: null,
+      row: 0,
+      col: 0,
+      size_x: 6,
+      size_y: 4,
+      visualization_settings: { 'card.title': 'Logements contactés par année' },
+      card: {
+        id: 824,
+        name: 'Logements contactés par année',
+        display: 'bar',
+        description: null,
+        visualization_settings: {
+          'graph.dimensions': ['contacted_at'],
+          'graph.metrics': ['count']
+        }
+      }
+    }
+  ]
+};
+
+const mockYearBarCardQueryResult = {
+  data: {
+    rows: [
+      ['2021-01-01T00:00:00.000Z', 4200],
+      ['2022-01-01T00:00:00.000Z', 5100],
+      ['2023-01-01T00:00:00.000Z', 3800]
+    ],
+    cols: [
+      {
+        name: 'contacted_at',
+        display_name: 'Contacted At: Year',
+        base_type: 'type/DateTime',
+        unit: 'year'
+      },
+      { name: 'count', display_name: 'Nombre de logements' }
+    ]
+  },
+  status: 'completed'
+};
+
 const mockMetabaseDashboardWithBarCard = {
   id: 13,
   dashcards: [
@@ -1110,6 +1159,27 @@ describe('Dashboard API', () => {
         type: 'pie-chart',
         labels: ['Appartements', 'Maisons'],
         data: [4876, 652]
+      });
+    });
+
+    it('formats year-bucketed date labels as plain years', async () => {
+      nock(METABASE_URL)
+        .get('/api/dashboard/13')
+        .reply(200, mockMetabaseDashboardWithYearBarCard);
+      nock(METABASE_URL)
+        .post('/api/dashboard/13/dashcard/974/card/824/query')
+        .reply(200, mockYearBarCardQueryResult);
+
+      const response = await request(url)
+        .get('/dashboards/13-analyses/cards/974')
+        .use(tokenProvider(user));
+
+      expect(response.status).toBe(constants.HTTP_STATUS_OK);
+      expect(response.body).toMatchObject({
+        id: 974,
+        type: 'bar-chart',
+        labels: ['2021', '2022', '2023'],
+        data: [4200, 5100, 3800]
       });
     });
 

@@ -95,6 +95,7 @@ export interface MetabaseCol {
   name: string;
   display_name?: string;
   base_type?: string;
+  unit?: string;
 }
 
 export interface MetabaseQueryResult {

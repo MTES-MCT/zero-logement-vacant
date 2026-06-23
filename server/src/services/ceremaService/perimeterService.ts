@@ -14,10 +14,13 @@ export interface AccessRightsResult {
   errors: AccessRightsError[];
 }
 
-export type AccessRightsError =
-  | 'niveau_acces_invalide'
-  | 'perimetre_invalide'
-  | 'groupe_manquant';
+export const ACCESS_RIGHTS_ERROR_VALUES = [
+  'niveau_acces_invalide',
+  'perimetre_invalide',
+  'groupe_manquant'
+] as const;
+
+export type AccessRightsError = (typeof ACCESS_RIGHTS_ERROR_VALUES)[number];
 
 function toPerimeterShape(perimeter: CeremaPerimeter): PerimeterShape {
   return {

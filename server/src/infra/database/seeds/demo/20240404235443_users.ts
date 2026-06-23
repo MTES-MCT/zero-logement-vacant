@@ -1,13 +1,13 @@
 import { faker } from '@faker-js/faker/locale/fr';
-import createFactories, { MemoryAdapter } from '@zerologementvacant/factories';
 import { UserRole } from '@zerologementvacant/models';
 import bcrypt from 'bcryptjs';
 import { Knex } from 'knex';
 
 import config from '~/infra/config';
-import { fromUserDTO, SALT_LENGTH } from '~/models/UserApi';
+import { SALT_LENGTH } from '~/models/UserApi';
 import { Establishments } from '~/repositories/establishmentRepository';
 import { toUserDBO, USERS_TABLE } from '~/repositories/userRepository';
+import { factories } from '~/test/factories';
 
 import {
   SirenSaintLo,
@@ -36,7 +36,6 @@ export async function seed(knex: Knex): Promise<void> {
   }
 
   const now = new Date().toJSON();
-  const factories = createFactories(new MemoryAdapter());
   const baseUsers = [
     factories.user.build({
       email: 'test.strasbourg@zlv.fr',
@@ -82,7 +81,6 @@ export async function seed(knex: Knex): Promise<void> {
   const hashedPassword = await bcrypt.hash(password, SALT_LENGTH);
   const users = baseUsers
     .concat(randomUsers)
-    .map(fromUserDTO)
     .map(toUserDBO)
     .map((user) => ({
       ...user,

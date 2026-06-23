@@ -1,6 +1,5 @@
 import { faker } from '@faker-js/faker/locale/fr';
 import * as turf from '@turf/turf';
-import createFactories, { MemoryAdapter } from '@zerologementvacant/factories';
 import { AddressKinds } from '@zerologementvacant/models';
 import { genGeoCode } from '@zerologementvacant/models/fixtures';
 import async from 'async';
@@ -15,7 +14,6 @@ import pMemoize from 'p-memoize';
 import pRetry from 'p-retry';
 
 import { AddressApi } from '~/models/AddressApi';
-import { fromOwnerDTO } from '~/models/OwnerApi';
 import {
   Addresses,
   banAddressesTable,
@@ -24,6 +22,7 @@ import {
 import { Establishments } from '~/repositories/establishmentRepository';
 import { formatOwnerApi, ownerTable } from '~/repositories/ownerRepository';
 import { createBanAPI } from '~/services/ban/ban-api';
+import { factories } from '~/test/factories';
 
 export async function seed(knex: Knex): Promise<void> {
   console.time('20240404235456_owners');
@@ -59,14 +58,9 @@ export async function seed(knex: Knex): Promise<void> {
     return;
   }
 
-  const factories = createFactories(new MemoryAdapter());
-  const owners = establishments
-    .flatMap(() => {
-      return factories.owner.buildList(
-        faker.number.int({ min: 100, max: 5000 })
-      );
-    })
-    .map(fromOwnerDTO);
+  const owners = establishments.flatMap(() => {
+    return factories.owner.buildList(faker.number.int({ min: 100, max: 5000 }));
+  });
   const points = owners.map((owner) => {
     const communes = faker.helpers.arrayElement(communesByDepartment);
     const commune = faker.helpers.arrayElement(communes.features);

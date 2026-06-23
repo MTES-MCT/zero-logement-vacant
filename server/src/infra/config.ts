@@ -106,7 +106,9 @@ export const configSchema = z.object({
       }
     }),
   db: z.object({
-    env: envEnum,
+    env: z
+      .literal(['development', 'test', 'demo', 'production'])
+      .default('development'),
     url: z
       .string()
       .min(1)

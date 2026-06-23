@@ -1,6 +1,106 @@
 version: 2
 
 models:
+  - name: marts_analysis_sortie_vacance_features
+    description: |
+      Table de features pour l'analyse des déterminants de sortie de vacance (PRD 00 — v3).
+      Grain : 1 ligne par logement de la cohorte (≥1 tag LOVAC 2019–2025).
+      Spine = int_analysis_housing_with_out_flag. Toutes les jointures sont LEFT JOIN :
+      le nombre de lignes est INVARIANT et égal à la taille de la cohorte (2 530 118).
+      Chaque feature sparse est accompagnée d'un booléen *_is_missing.
+    tests:
+      - dbt_utils.expression_is_true:
+          expression: is_housing_out IN (0, 1)
+          name: is_housing_out_accepted_values
+    columns:
+      - name: housing_id
+        description: "Identifiant unique du logement (UUID, clé primaire)"
+        tests:
+          - not_null
+          - unique
+      - name: geo_code
+        description: "Code commune INSEE (5 caractères)"
+        tests:
+          - not_null
+      - name: is_housing_out
+        description: "Cible : 1=sorti de vacance (absent de lovac-2026), 0=toujours vacant"
+        tests:
+          - not_null
+          - accepted_values:
+              values: [0, 1]
+      - name: vacancy_duration_category
+        description: "Durée de vacance catégorisée (0-2 ans, 3-5 ans, 6-10 ans, Plus de 10 ans, Inconnu)"
+      - name: housing_kind
+        description: "Type de logement (maison, appartement)"
+      - name: housing_kind_is_missing
+        description: "TRUE si housing_kind est NULL"
+        tests:
+          - not_null
+      - name: rooms_count_is_missing
+        description: "TRUE si rooms_count est NULL"
+        tests:
+          - not_null
+      - name: living_area_is_missing
+        description: "TRUE si living_area est NULL"
+        tests:
+          - not_null
+      - name: building_year_is_missing
+        description: "TRUE si building_year est NULL"
+        tests:
+          - not_null
+      - name: cadastral_classification_is_missing
+        description: "TRUE si cadastral_classification est NULL"
+        tests:
+          - not_null
+      - name: energy_consumption_is_missing
+        description: "TRUE si energy_consumption_bdnb est NULL (DPE absent)"
+        tests:
+          - not_null
+      - name: owner_kind_is_missing
+        description: "TRUE si owner_kind_class est NULL (propriétaire absent)"
+        tests:
+          - not_null
+      - name: owner_age_is_missing
+        description: "TRUE si owner_age est NULL"
+        tests:
+          - not_null
+      - name: owner_distance_is_missing
+        description: "TRUE si owner_distance_km est NULL"
+        tests:
+          - not_null
+      - name: fiscal_is_missing
+        description: "TRUE si taux_tfb_2024 est NULL (commune sans données fiscales)"
+        tests:
+          - not_null
+      - name: dvf_is_missing
+        description: "TRUE si dvf_total_transactions est NULL"
+        tests:
+          - not_null
+      - name: prix_is_missing
+        description: "TRUE si evolution_prix_maisons_2019_2023_pct est NULL"
+        tests:
+          - not_null
+      - name: loyer_is_missing
+        description: "TRUE si loyer_predit_m2_appartements est NULL"
+        tests:
+          - not_null
+      - name: densite_is_missing
+        description: "TRUE si densite_grid est NULL"
+        tests:
+          - not_null
+      - name: dispositif_is_missing
+        description: "TRUE si city_code ne correspond à aucune commune dans marts_common_cities"
+        tests:
+          - not_null
+      - name: zlv_is_missing
+        description: "TRUE si was_contacted_by_zlv est NULL (hors territoire ZLV)"
+        tests:
+          - not_null
+      - name: geo_hierarchy_is_missing
+        description: "TRUE si dep_name est NULL (commune sans hiérarchie géo)"
+        tests:
+          - not_null
+
   - name: marts_analysis_housing_out_features
     description: Table d'analyse au niveau logement avec indicateur de sortie de vacance
     columns:

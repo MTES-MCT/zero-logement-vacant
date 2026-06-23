@@ -1,6 +1,58 @@
 version: 2
 
 models:
+  - name: int_analysis_lovac_presence_panel
+    description: |
+      Panel LOVAC year-over-year : 1 ligne par (logement × année) pour les unités de la cohorte.
+      Années couvertes : 2019–2026. Inclut les flags de dispositifs datés par année :
+      - TLV (éditions 2013, 2023, 2026) : is_in_tlv*_at_year
+      - ORT (ort_signed_at) : is_in_ort_at_year
+      Source principale : int_lovac_history_housing (local_id + file_years).
+      Seules les unités présentes dans int_analysis_housing_with_out_flag (cohorte) sont incluses.
+      Usage : analyse causale (DiD) en Axe C.
+    tests:
+      - dbt_utils.unique_combination_of_columns:
+          combination_of_columns:
+            - housing_id
+            - lovac_year
+    columns:
+      - name: housing_id
+        description: "Identifiant unique du logement (UUID)"
+        tests:
+          - not_null
+      - name: lovac_year
+        description: "Année du millésime LOVAC (2019–2026)"
+        tests:
+          - not_null
+      - name: is_present_in_lovac
+        description: "TRUE si le logement est présent dans le millésime pour cette année"
+        tests:
+          - not_null
+      - name: geo_code
+        description: "Code commune INSEE"
+        tests:
+          - not_null
+      - name: is_in_tlv1_at_year
+        description: "TRUE si la commune est en TLV (édition 2013) à cette année"
+        tests:
+          - not_null
+      - name: is_in_tlv2_at_year
+        description: "TRUE si la commune est en TLV (édition 2023 art.1) à cette année"
+        tests:
+          - not_null
+      - name: is_in_tlv_2026_at_year
+        description: "TRUE si la commune est en TLV (post décret 22/12/2025) à cette année"
+        tests:
+          - not_null
+      - name: is_in_any_tlv_at_year
+        description: "TRUE si la commune est sous un régime TLV quelconque à cette année"
+        tests:
+          - not_null
+      - name: is_in_ort_at_year
+        description: "TRUE si la commune a une ORT signée avant ou pendant cette année"
+        tests:
+          - not_null
+
   - name: int_analysis_insee_features
     description: "Consolidation des données INSEE par commune : densité, démographie, évolution population"
     columns:
@@ -91,31 +143,40 @@ models:
         description: "Taux d'artificialisation de la commune (%)"
 
   - name: int_analysis_housing_with_out_flag
-    description: "Logements avec indicateur de sortie de vacance (is_housing_out)"
+    description: |
+      Cohorte de logements avec l'indicateur de sortie de vacance rebased sur LOVAC 2026.
+      Cohort = unités avec au moins 1 tag LOVAC en 2019–2025.
+      Les "nouveaux entrants 2026" (uniquement tag lovac-2026, 147 392 unités) sont EXCLUS.
+      exit = 1 si absent de lovac-2026, 0 si présent dans lovac-2026.
+      Baseline cible : 2 530 118 lignes, 59,2% de taux de sortie.
     columns:
       - name: housing_id
-        description: "Identifiant unique du logement"
+        description: "Identifiant unique du logement (UUID)"
         tests:
           - not_null
           - unique
       - name: geo_code
-        description: "Code géographique INSEE"
-      - name: city_code
-        description: "Code commune"
+        description: "Code commune INSEE (5 chiffres)"
+      - name: vacancy_start_year
+        description: "Première année d'apparition dans LOVAC (2019–2025)"
+      - name: has_lovac_history
+        description: "TRUE si le logement a au moins un tag LOVAC"
+      - name: lovac_years_present
+        description: "Tableau des millésimes LOVAC présents (ex: ['lovac-2019','lovac-2020'])"
+      - name: is_2026_new_entrant
+        description: "TRUE si le logement n'apparaît que dans lovac-2026 — ces unités sont exclues de la cohorte"
       - name: is_housing_out
-        description: "Indicateur de sortie de vacance (1=sorti, 0=toujours vacant)"
+        description: "Variable cible : 1=sorti de vacance (absent de lovac-2026), 0=toujours vacant"
         tests:
           - not_null
           - accepted_values:
               values: [0, 1]
       - name: vacancy_status_label
-        description: "Statut de vacance en texte"
+        description: "Statut lisible : 'Sorti de vacance' ou 'Toujours vacant'"
       - name: years_in_vacancy
-        description: "Nombre d'années de vacance"
+        description: "Nombre d'années de vacance (référence 2026)"
       - name: vacancy_duration_category
-        description: "Catégorie de durée de vacance"
-      - name: has_lovac_history
-        description: "Indicateur de présence dans LOVAC"
+        description: "Catégorie de durée : '0-2 ans', '3-5 ans', '6-10 ans', 'Plus de 10 ans', 'Inconnu'"
 
   - name: int_analysis_housing_owners
     description: |

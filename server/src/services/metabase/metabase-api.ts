@@ -35,6 +35,13 @@ function scaleForFormat(
   return format === 'percent' ? values.map((v) => v / 100) : values;
 }
 
+function formatLabel(value: unknown, unit: string | undefined): string {
+  if (unit === 'year' && typeof value === 'string') {
+    return value.slice(0, 4);
+  }
+  return String(value);
+}
+
 function extractAxisValues(
   data: MetabaseQueryResult,
   labelColumn: string | null,
@@ -48,9 +55,12 @@ function extractAxisValues(
     : -1;
   const xIndex = labelIdx !== -1 ? labelIdx : 0;
   const yIndex = valueIdx !== -1 ? valueIdx : 1;
+  const labelCol = data.data.cols[xIndex];
   const valueCol = data.data.cols[yIndex];
   return {
-    labels: data.data.rows.map((row) => String(row[xIndex])),
+    labels: data.data.rows.map((row) =>
+      formatLabel(row[xIndex], labelCol?.unit)
+    ),
     values: data.data.rows.map((row) => Number(row[yIndex])),
     valueName: valueCol?.display_name ?? valueCol?.name ?? ''
   };

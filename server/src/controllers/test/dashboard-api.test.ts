@@ -343,6 +343,55 @@ const mockPieCardQueryResult = {
   status: 'completed'
 };
 
+// Bar chart where the x-axis is a year-bucketed date column. Metabase returns
+// full ISO timestamps; the column has temporal_unit: 'year' so labels should
+// be formatted as plain years.
+const mockMetabaseDashboardWithYearBarCard = {
+  id: 13,
+  dashcards: [
+    {
+      id: 974,
+      card_id: 824,
+      dashboard_tab_id: null,
+      row: 0,
+      col: 0,
+      size_x: 6,
+      size_y: 4,
+      visualization_settings: { 'card.title': 'Logements contactés par année' },
+      card: {
+        id: 824,
+        name: 'Logements contactés par année',
+        display: 'bar',
+        description: null,
+        visualization_settings: {
+          'graph.dimensions': ['contacted_at'],
+          'graph.metrics': ['count']
+        }
+      }
+    }
+  ]
+};
+
+const mockYearBarCardQueryResult = {
+  data: {
+    rows: [
+      ['2021-01-01T00:00:00.000Z', 4200],
+      ['2022-01-01T00:00:00.000Z', 5100],
+      ['2023-01-01T00:00:00.000Z', 3800]
+    ],
+    cols: [
+      {
+        name: 'contacted_at',
+        display_name: 'Contacted At: Year',
+        base_type: 'type/DateTime',
+        unit: 'year'
+      },
+      { name: 'count', display_name: 'Nombre de logements' }
+    ]
+  },
+  status: 'completed'
+};
+
 const mockMetabaseDashboardWithBarCard = {
   id: 13,
   dashcards: [
@@ -490,6 +539,109 @@ const mockLineCardQueryResultNumber = {
       [2025, 145]
     ],
     cols: [{ name: 'year' }, { name: 'count' }]
+  },
+  status: 'completed'
+};
+
+// Visualizer bar chart: graph.x_axis.title_text holds the PM-curated series label.
+const mockMetabaseDashboardWithVisualizerBarCard = {
+  id: 13,
+  dashcards: [
+    {
+      id: 973,
+      card_id: 823,
+      dashboard_tab_id: null,
+      row: 0,
+      col: 0,
+      size_x: 6,
+      size_y: 4,
+      visualization_settings: {
+        visualization: {
+          settings: {
+            'card.title': 'Nombre de logements selon le statut de suivi',
+            'graph.dimensions': ['COLUMN_1'],
+            'graph.metrics': ['COLUMN_2'],
+            'graph.x_axis.title_text': 'Statuts de suivi'
+          }
+        }
+      },
+      card: {
+        id: 823,
+        name: 'Nombre de logements selon le statut de suivi',
+        display: 'bar',
+        description: null,
+        visualization_settings: {}
+      }
+    }
+  ]
+};
+
+const mockVisualizerBarCardQueryResult = {
+  data: {
+    rows: [
+      ['En suivi', 1200],
+      ['Sortie', 300]
+    ],
+    cols: [
+      { name: 'COLUMN_1', display_name: 'Status' },
+      {
+        name: 'COLUMN_2',
+        display_name: 'Valeurs distinctes de Housing ID'
+      }
+    ]
+  },
+  status: 'completed'
+};
+
+// Visualizer-style dashcard: real settings nested under visualization.settings.
+// COLUMN_1/COLUMN_2 are abstract names; graph.x_axis.title_text carries the
+// PM-curated series label "Années".
+const mockMetabaseDashboardWithVisualizerLineCard = {
+  id: 13,
+  dashcards: [
+    {
+      id: 972,
+      card_id: 822,
+      dashboard_tab_id: null,
+      row: 0,
+      col: 0,
+      size_x: 6,
+      size_y: 4,
+      visualization_settings: {
+        visualization: {
+          settings: {
+            'card.title':
+              'Évolution du nombre de logements vacants depuis plus de 2 ans',
+            'graph.dimensions': ['COLUMN_1'],
+            'graph.metrics': ['COLUMN_2'],
+            'graph.x_axis.title_text': 'Années'
+          }
+        }
+      },
+      card: {
+        id: 822,
+        name: 'Évolution du nombre de logements vacants depuis plus de 2 ans',
+        display: 'line',
+        description: null,
+        visualization_settings: {}
+      }
+    }
+  ]
+};
+
+const mockVisualizerLineCardQueryResult = {
+  data: {
+    rows: [
+      [2019, 45000],
+      [2020, 47000]
+    ],
+    cols: [
+      { name: 'COLUMN_1', display_name: 'Year' },
+      {
+        name: 'COLUMN_2',
+        display_name: 'Count Vacant Housing Private Fil Public'
+      }
+    ]
   },
   status: 'completed'
 };
@@ -1010,6 +1162,27 @@ describe('Dashboard API', () => {
       });
     });
 
+    it('formats year-bucketed date labels as plain years', async () => {
+      nock(METABASE_URL)
+        .get('/api/dashboard/13')
+        .reply(200, mockMetabaseDashboardWithYearBarCard);
+      nock(METABASE_URL)
+        .post('/api/dashboard/13/dashcard/974/card/824/query')
+        .reply(200, mockYearBarCardQueryResult);
+
+      const response = await request(url)
+        .get('/dashboards/13-analyses/cards/974')
+        .use(tokenProvider(user));
+
+      expect(response.status).toBe(constants.HTTP_STATUS_OK);
+      expect(response.body).toMatchObject({
+        id: 974,
+        type: 'bar-chart',
+        labels: ['2021', '2022', '2023'],
+        data: [4200, 5100, 3800]
+      });
+    });
+
     it('returns BarChartDataDTO with direction "vertical" for display "bar"', async () => {
       nock(METABASE_URL)
         .get('/api/dashboard/13')
@@ -1110,6 +1283,50 @@ describe('Dashboard API', () => {
         decimals: 0,
         labels: ['2024', '2025'],
         data: [120, 145]
+      });
+    });
+
+    it('uses graph.x_axis.title_text as series name for visualizer bar charts', async () => {
+      nock(METABASE_URL)
+        .get('/api/dashboard/13')
+        .reply(200, mockMetabaseDashboardWithVisualizerBarCard);
+      nock(METABASE_URL)
+        .post('/api/dashboard/13/dashcard/973/card/823/query')
+        .reply(200, mockVisualizerBarCardQueryResult);
+
+      const response = await request(url)
+        .get('/dashboards/13-analyses/cards/973')
+        .use(tokenProvider(user));
+
+      expect(response.status).toBe(constants.HTTP_STATUS_OK);
+      expect(response.body).toMatchObject({
+        id: 973,
+        type: 'bar-chart',
+        name: 'Statuts de suivi',
+        labels: ['En suivi', 'Sortie'],
+        data: [1200, 300]
+      });
+    });
+
+    it('uses graph.x_axis.title_text as series name for visualizer line charts', async () => {
+      nock(METABASE_URL)
+        .get('/api/dashboard/13')
+        .reply(200, mockMetabaseDashboardWithVisualizerLineCard);
+      nock(METABASE_URL)
+        .post('/api/dashboard/13/dashcard/972/card/822/query')
+        .reply(200, mockVisualizerLineCardQueryResult);
+
+      const response = await request(url)
+        .get('/dashboards/13-analyses/cards/972')
+        .use(tokenProvider(user));
+
+      expect(response.status).toBe(constants.HTTP_STATUS_OK);
+      expect(response.body).toMatchObject({
+        id: 972,
+        type: 'line-chart',
+        name: 'Années',
+        labels: ['2019', '2020'],
+        data: [45000, 47000]
       });
     });
 

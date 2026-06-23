@@ -111,7 +111,7 @@ function withColumnOptions<A extends Record<string, unknown>>(
 function createWorksheet<A extends Record<string, unknown>>(
   workbook: Workbook,
   options: WorksheetOptions<A>
-) {
+): WritableStream<unknown> {
   const { name, alternateColumnColors } = options;
   const columns = withColumnOptions(
     options.columns,

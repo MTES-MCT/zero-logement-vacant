@@ -1,5 +1,6 @@
 import type {
   Adapter,
+  AdapterContext,
   ContextArgs,
   EntityMap
 } from '@zerologementvacant/factories';
@@ -12,9 +13,12 @@ export class MswAdapter implements Adapter {
     table: K,
     entity: EntityMap[K],
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    ..._args: ContextArgs<K>
+    ..._args: ContextArgs<AdapterContext, K>
   ): Promise<EntityMap[K]> {
     match(table as keyof EntityMap)
+      .with('buildings', () => {
+        data.buildings.push(entity as EntityMap['buildings']);
+      })
       .with('establishments', () => {
         data.establishments.push(entity as EntityMap['establishments']);
       })

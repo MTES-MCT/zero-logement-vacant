@@ -99,8 +99,16 @@ fileignoreconfig:
   checksum: 780da83bced54995ae72c9f963c8bdeea7217b22793fd33c966bd8b28073acad
 - filename: server/src/infra/database/seeds/development/20240404234042_load-common-data.ts
   checksum: b6d7770f379732225fceeb9c4c9251b47199691043a46d2a719983b6655f2a18
+- filename: server/src/infra/database/seeds/demo/20240404235443_users.ts
+  checksum: a14a2aa9a61802abddd61da2e37d536f58e7a2864fb4158b838849abbf732696
 - filename: server/src/infra/database/seeds/development/20240404235443_users.ts
   checksum: 459ad7c52a09b1a5d885f0e13acd68a894b862470125529ecc28a4116c737df7
+- filename: server/src/test/factories/user.ts
+  checksum: 2098b2ba9038eb5b01f0290ed6edb8bf9e19b62fa695252547427817b579916f
+- filename: server/src/test/factories/campaign.ts
+  checksum: 4cd25601852b71cfa6154baf3d29b3299fd00807ad7ebe76e5bdc9092f25ed64
+- filename: server/src/test/factories/group.ts
+  checksum: ce650cc24f92b27f2b77be8c35ba0e4b26174672f4416e9867c05647b77c24fc
 - filename: server/src/models/test/DocumentApi.test.ts
   checksum: 1d816ff7b060a0100cbd90a60182bb7c3e230ab5761909b18871af6ced2a6efb
 - filename: server/src/repositories/documentRepository.ts

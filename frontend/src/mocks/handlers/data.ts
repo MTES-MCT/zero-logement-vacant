@@ -1,6 +1,7 @@
 import { faker } from '@faker-js/faker/locale/fr';
 import {
   type BaseHousingOwnerDTO,
+  type BuildingDTO,
   type CampaignDTO,
   type DatafoncierHousing,
   type DocumentDTO,
@@ -19,6 +20,8 @@ import {
   type SignupLinkDTO,
   type UserDTO
 } from '@zerologementvacant/models';
+
+const buildings: BuildingDTO[] = [];
 
 const campaigns: CampaignDTO[] = [];
 const campaignDrafts = new Map<
@@ -92,6 +95,7 @@ const signupLinks: SignupLinkDTO[] = [];
 const users: UserDTO[] = [];
 
 function reset(): void {
+  buildings.length = 0;
   campaigns.length = 0;
   campaignDrafts.clear();
   campaignHousings.clear();
@@ -117,6 +121,7 @@ function reset(): void {
 
 // Export immediately to avoid Vite SSR module wrapping
 export default {
+  buildings,
   campaigns,
   campaignDrafts,
   campaignHousings,

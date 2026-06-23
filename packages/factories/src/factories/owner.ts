@@ -6,7 +6,7 @@ import {
 } from '@zerologementvacant/models';
 import { Factory } from 'fishery';
 
-import type { Adapter } from '../adapter';
+import type { PersistenceAdapter } from '../persistence-adapter';
 
 function genAddressDTO(): AddressDTO {
   return {
@@ -23,12 +23,15 @@ function genAddressDTO(): AddressDTO {
   };
 }
 
-export function createOwnerFactory(adapter: Adapter) {
-  return Factory.define<OwnerDTO>(() => {
+export function createOwnerFactory(adapter: PersistenceAdapter) {
+  return Factory.define<OwnerDTO>(({ params }) => {
     const address = genAddressDTO();
     const firstName = faker.person.firstName();
     const lastName = faker.person.lastName();
-    const kind = faker.helpers.arrayElement(Object.values(OWNER_KIND_LABELS));
+    // Honour an overridden kind so the derived siren stays consistent with it.
+    const kind =
+      params.kind ??
+      faker.helpers.arrayElement(Object.values(OWNER_KIND_LABELS));
     return {
       id: faker.string.uuid(),
       idpersonne:

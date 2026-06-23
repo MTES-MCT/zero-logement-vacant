@@ -3,10 +3,10 @@ import { type GroupDTO } from '@zerologementvacant/models';
 import { type EstablishmentDTO } from '@zerologementvacant/models';
 import { Factory } from 'fishery';
 
-import type { Adapter } from '../adapter';
+import type { PersistenceAdapter } from '../persistence-adapter';
 
 export function createGroupFactory(
-  adapter: Adapter,
+  adapter: PersistenceAdapter,
   establishment: EstablishmentDTO
 ) {
   return Factory.define<GroupDTO>(({ associations }) => {

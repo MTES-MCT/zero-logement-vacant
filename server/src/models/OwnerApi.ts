@@ -40,6 +40,14 @@ export function toOwnerDTO(owner: OwnerApi): OwnerDTO {
   };
 }
 
+export function fromOwnerDTO(owner: OwnerDTO): OwnerApi {
+  return {
+    ...owner,
+    dataSource: undefined,
+    entity: null
+  };
+}
+
 interface Diff<A> {
   before: Partial<A>;
   after: Partial<A>;

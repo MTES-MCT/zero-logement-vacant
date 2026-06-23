@@ -41,6 +41,16 @@ export interface CeremaUser {
   establishmentSiren: string;
   hasAccount: boolean;
   hasCommitment: boolean;
+  /** Portail DF Terms of Service validation date. Null means CGU are not valid. */
+  cguValide?: string | null;
+  /** Portail DF user rights expiration date. Null means no expiration date. */
+  userExpiresAt?: string | null;
+  /** Structure LOVAC access expiration date. */
+  structureAccessExpiresAt?: string | null;
+  /** Whether the structure currently has valid LOVAC access. */
+  structureHasLovac?: boolean;
+  /** Whether the user group currently grants LOVAC access. */
+  groupHasLovac?: boolean;
   /** User's group info from Portail DF */
   group?: CeremaGroup;
   /** User's perimeter info from Portail DF */

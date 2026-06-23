@@ -6,7 +6,8 @@ import config from '~/infra/config';
 import { CeremaService } from './ceremaService';
 import type { CeremaGroup, CeremaPerimeter } from './consultUserService';
 
-const BASE_URL = config.cerema.api;
+const BASE_URL =
+  config.cerema.authVersion === 'v2' ? config.cerema.apiV2 : config.cerema.api;
 const TOKEN = 'test-token';
 
 const lovacGroup: CeremaGroup = {
@@ -36,7 +37,23 @@ const pastDate = new Date(Date.now() - 86_400_000).toISOString();
 const structure = { siret: '12345678900001', acces_lovac: futureDate };
 
 function interceptAuth() {
+  if (config.cerema.authVersion === 'v2') {
+    nock(BASE_URL)
+      .post('/api/token/')
+      .reply(200, { access: TOKEN, refresh: 'refresh-token' });
+    return;
+  }
+
   nock(BASE_URL).post('/api/api-token-auth/').reply(200, { token: TOKEN });
+}
+
+function interceptAuthFailure() {
+  if (config.cerema.authVersion === 'v2') {
+    nock(BASE_URL).post('/api/token/').reply(401, 'Unauthorized');
+    return;
+  }
+
+  nock(BASE_URL).post('/api/api-token-auth/').reply(401, 'Unauthorized');
 }
 
 function interceptUsers(email: string, users: object[]) {
@@ -71,7 +88,7 @@ afterEach(() => {
 describe('CeremaService', () => {
   describe('consultUsers', () => {
     it('returns [] when auth fails', async () => {
-      nock(BASE_URL).post('/api/api-token-auth/').reply(401, 'Unauthorized');
+      interceptAuthFailure();
       const service = new CeremaService();
 
       const result = await service.consultUsers('user@test.fr');
@@ -128,7 +145,13 @@ describe('CeremaService', () => {
     it('returns user with hasCommitment true when structure has valid LOVAC and group has LOVAC access', async () => {
       interceptAuth();
       interceptUsers('user@test.fr', [
-        { email: 'user@test.fr', structure: 10, groupe: 1 }
+        {
+          email: 'user@test.fr',
+          structure: 10,
+          groupe: 1,
+          cgu_valide: '2026-03-11T12:36:01.255000+01:00',
+          date_expiration: null
+        }
       ]);
       interceptStructure(10, structure);
       interceptGroup(1, lovacGroup);
@@ -142,6 +165,11 @@ describe('CeremaService', () => {
         email: 'user@test.fr',
         establishmentSiren: '123456789',
         hasCommitment: true,
+        cguValide: '2026-03-11T12:36:01.255000+01:00',
+        userExpiresAt: null,
+        structureAccessExpiresAt: futureDate,
+        structureHasLovac: true,
+        groupHasLovac: true,
         group: lovacGroup,
         perimeter: frEntierePerimeter
       });

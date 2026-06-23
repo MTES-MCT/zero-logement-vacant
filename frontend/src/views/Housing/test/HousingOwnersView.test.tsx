@@ -32,7 +32,13 @@ import configureTestStore from '~/utils/storeUtils';
 import HousingOwnersView from '~/views/Housing/HousingOwnersView';
 
 describe('HousingOwnersView', () => {
-  const user = userEvent.setup();
+  // A fresh userEvent instance per test: sharing a single instance across this
+  // heavy suite makes clicks intermittently not register, which then cascades
+  // into flaky "Unable to find row" failures after a save.
+  let user: ReturnType<typeof userEvent.setup>;
+  beforeEach(() => {
+    user = userEvent.setup();
+  });
   const auth = genUserDTO(UserRole.USUAL);
 
   interface RenderViewOptions {

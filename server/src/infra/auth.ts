@@ -1,10 +1,11 @@
-import { betterAuth } from 'better-auth';
+import { betterAuth, type BetterAuthOptions } from 'better-auth';
 import { APIError } from 'better-auth/api';
 import { hashPassword } from 'better-auth/crypto';
 import { customSession } from 'better-auth/plugins';
 import { CamelCasePlugin, Kysely, PostgresDialect } from 'kysely';
 import { Pool } from 'pg';
 import { UserRole } from '@zerologementvacant/models';
+import type { AuthRole, SessionDTO } from '@zerologementvacant/models';
 import config from '~/infra/config';
 import { createPasswordVerifier } from '~/infra/auth-password';
 import { filterGeoCodesByPerimeter } from '~/models/UserPerimeterApi';
@@ -30,7 +31,12 @@ const kyselyDb = new Kysely<any>({
   plugins: [new CamelCasePlugin()]
 });
 
-export const auth = betterAuth({
+// Extracted into a const + passed to customSession(fn, authOptions) below.
+// Per better-auth's docs, this second argument is what lets the plugin infer
+// `user` and `session` with our declared additionalFields — without it,
+// `user.firstName`, `user.role`, `session.activeEstablishmentId` are all
+// untyped.
+const authOptions = {
   basePath: '/auth',
   database: {
     db: kyselyDb,
@@ -153,22 +159,28 @@ export const auth = betterAuth({
   trustedOrigins: ['http://localhost:19930'],
   advanced: {
     cookiePrefix: 'zlv'
-  },
+  }
+} satisfies BetterAuthOptions;
+
+export const auth = betterAuth({
+  ...authOptions,
   plugins: [
     // Augment getSession (and useSession() on the client) with the ZLV
     // business data the frontend needs in one reactive call:
     //   - establishment: full Establishment for session.activeEstablishmentId
     //   - authorizedEstablishments: switcher options (filtered by commitment)
     //   - effectiveGeoCodes: server-computed perimeter intersection
-    // This replaces having to expose 2-3 standalone endpoints + hooks for
-    // single-use data. The session.cookieCache above amortizes the cost.
-    customSession(async ({ user, session }) => {
-      const activeEstablishmentId =
-        (session as { activeEstablishmentId?: string | null })
-          .activeEstablishmentId ?? null;
+    // The session.cookieCache configured in authOptions amortizes the cost.
+    //
+    // Passing authOptions as the second arg lets better-auth infer `user` /
+    // `session` with our declared additionalFields — `user.firstName`,
+    // `user.role`, `session.activeEstablishmentId` are all properly typed
+    // inside the callback (no casts needed).
+    customSession(async ({ user, session }): Promise<SessionDTO> => {
+      const activeEstablishmentId = session.activeEstablishmentId ?? null;
       // ADMIN and VISITOR bypass perimeter filtering (effectiveGeoCodes stays
       // undefined → no restriction). Skip the perimeter fetch for them.
-      const role = (user as { role?: string }).role;
+      const role = (user.role ?? 'usual') as AuthRole;
       const needsPerimeterFilter = role !== 'admin' && role !== 'visitor';
 
       // Batch 1: three independent reads in parallel.
@@ -202,12 +214,28 @@ export const auth = betterAuth({
       ]);
 
       return {
-        user,
-        session,
+        user: {
+          id: user.id,
+          email: user.email,
+          name: user.name,
+          image: user.image ?? null,
+          firstName: user.firstName ?? null,
+          lastName: user.lastName ?? null,
+          role
+        },
+        session: {
+          id: session.id,
+          userId: session.userId,
+          expiresAt:
+            session.expiresAt instanceof Date
+              ? session.expiresAt.toISOString()
+              : session.expiresAt,
+          activeEstablishmentId
+        },
         establishment,
         authorizedEstablishments,
         effectiveGeoCodes
       };
-    })
+    }, authOptions)
   ]
 });

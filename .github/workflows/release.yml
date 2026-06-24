@@ -27,11 +27,20 @@ jobs:
       branch: prod
     secrets: inherit
 
-  deploy-queue-production:
+  deploy-front-demo:
     uses: ./.github/workflows/deploy.yml
     with:
-      app: Queue production
-      alias: queue-production
+      app: zlv-demo-front
+      alias: zlv-demo-front
+      branch: prod
+      environment: Demo
+    secrets: inherit
+
+  deploy-api-demo:
+    uses: ./.github/workflows/deploy.yml
+    with:
+      app: zlv-demo-api
+      alias: zlv-demo-api
       branch: prod
     secrets: inherit
 

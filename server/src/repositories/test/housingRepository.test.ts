@@ -1309,8 +1309,8 @@ describe('Housing repository', () => {
               housing.vacancyStartYear === null
           },
           {
-            name: '2023 (incohérence donnée source)',
-            filter: ['inconsistency2023'],
+            name: '2023',
+            filter: ['2023'],
             predicate: (housing: HousingApi) =>
               (housing.vacancyStartYear as number) === 2023
           }

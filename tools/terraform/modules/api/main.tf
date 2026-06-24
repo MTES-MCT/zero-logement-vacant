@@ -26,12 +26,16 @@ resource "clevercloud_nodejs" "api" {
     commit     = "refs/heads/${var.branch}"
   }
 
+  start_script = "node server/dist/app/"
+
+  hooks {
+    post_build = "yarn nx build server && yarn nx run server:migrate && yarn nx run server:seed && yarn workspaces focus @zerologementvacant/server --production"
+  }
+
   environment = {
     AUTH_SECRET = var.auth_secret
 
     CC_HEALTH_CHECK_PATH = "/"
-    CC_POST_BUILD_HOOK   = "yarn nx build server && yarn nx run server:migrate && yarn nx run server:seed && yarn workspaces focus @zerologementvacant/server --production"
-    CC_RUN_COMMAND       = "node server/dist/app/"
 
     CEREMA_ENABLED = "false"
 

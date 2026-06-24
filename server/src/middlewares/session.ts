@@ -86,6 +86,16 @@ export function sessionCheck(options?: CheckOptions) {
     request.user = user;
     request.establishment = establishment;
     request.userPerimeter = userPerimeter;
+    // Transitional shim — controllers still read `request.auth.{userId,
+    // establishmentId, role}` (populated by the legacy expressjwt middleware
+    // on the JWT path). Mirror that shape here so controllers work
+    // unchanged. Remove once all controllers migrate to `request.user` /
+    // `request.establishment`.
+    request.auth = {
+      userId: user.id,
+      establishmentId: establishment.id,
+      role: user.role
+    };
     // ADMIN and VISITOR bypass perimeter filtering entirely
     const isAdminOrVisitor = [UserRole.ADMIN, UserRole.VISITOR].includes(
       user.role

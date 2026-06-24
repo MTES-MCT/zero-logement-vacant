@@ -51,6 +51,10 @@ export interface CeremaUser {
   structureHasLovac?: boolean;
   /** Whether the user group currently grants LOVAC access. */
   groupHasLovac?: boolean;
+  /** Whether the group details could not be retrieved from Portail DF. */
+  groupFetchFailed?: boolean;
+  /** Whether the perimeter details could not be retrieved from Portail DF. */
+  perimeterFetchFailed?: boolean;
   /** User's group info from Portail DF */
   group?: CeremaGroup;
   /** User's perimeter info from Portail DF */

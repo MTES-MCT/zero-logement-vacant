@@ -1,12 +1,20 @@
 import { betterAuth } from 'better-auth';
+import { APIError } from 'better-auth/api';
+import { hashPassword } from 'better-auth/crypto';
+import { customSession } from 'better-auth/plugins';
 import { CamelCasePlugin, Kysely, PostgresDialect } from 'kysely';
 import { Pool } from 'pg';
 import { UserRole } from '@zerologementvacant/models';
 import config from '~/infra/config';
+import { createPasswordVerifier } from '~/infra/auth-password';
+import { filterGeoCodesByPerimeter } from '~/models/UserPerimeterApi';
+import establishmentRepository from '~/repositories/establishmentRepository';
 import userEstablishmentRepository from '~/repositories/user-establishment-repository';
+import userPerimeterRepository from '~/repositories/userPerimeterRepository';
 import userRepository from '~/repositories/userRepository';
 import { refreshAuthorizedEstablishments } from '~/services/establishmentAuthService';
 import { fetchUserKind } from '~/services/ceremaService/userKindService';
+import UserMissingError from '~/errors/userMissingError';
 import { logger } from '~/infra/logger';
 
 const pool = new Pool({ connectionString: config.db.url });
@@ -23,6 +31,7 @@ const kyselyDb = new Kysely<any>({
 });
 
 export const auth = betterAuth({
+  basePath: '/auth',
   database: {
     db: kyselyDb,
     type: 'postgres'
@@ -30,6 +39,14 @@ export const auth = betterAuth({
   session: {
     expiresIn: 30 * 24 * 60 * 60,
     updateAge: 8 * 60 * 60,
+    // Sign the session payload into a short-lived cookie so getSession reads
+    // from it instead of hitting the DB on every focus/visibility refetch.
+    // 60s is small enough that establishment/perimeter changes surface within
+    // a minute on the next refetch.
+    cookieCache: {
+      enabled: true,
+      maxAge: 60
+    },
     additionalFields: {
       activeEstablishmentId: {
         type: 'string',
@@ -56,9 +73,25 @@ export const auth = betterAuth({
     }
   },
   emailAndPassword: {
-    enabled: true
+    enabled: true,
     // Default behaviour returns identical error for unknown email and wrong password.
     // Verified in integration tests (Task 10).
+    password: {
+      // Accept legacy bcrypt hashes (backfilled from the old `users` table)
+      // alongside better-auth's default scrypt hashes for new signups. On a
+      // successful bcrypt verify, opportunistically rehash to scrypt so the
+      // bcrypt support is bounded in time.
+      verify: createPasswordVerifier({
+        rehash: async ({ previousHash, password }) => {
+          const newHash = await hashPassword(password);
+          await kyselyDb
+            .updateTable('account')
+            .set({ password: newHash })
+            .where('password', '=', previousHash)
+            .execute();
+        }
+      })
+    }
   },
   // emailVerification intentionally omitted. The existing mailService.sendAccountActivationEmail(key, options)
   // signature is incompatible with better-auth's ({ user, url, token }) callback — it builds the activation
@@ -69,43 +102,46 @@ export const auth = betterAuth({
     session: {
       create: {
         before: async (session) => {
-          // Resilient lookup. better-auth `auth_users.id` is a nanoid string,
-          // but the legacy `users_establishments.user_id` is a UUID with a FK
-          // to the legacy `users` table. For users that exist in `auth_users`
-          // but not in the legacy `users` table (e.g. brand-new signups, or
-          // tests), the query will raise `invalid input syntax for type uuid`
-          // — which we treat as "no authorised establishments" and fall back
-          // to `activeEstablishmentId: null`. Once the legacy `users` table
-          // is fully migrated to `auth_users`, this try/catch becomes dead
-          // code and can be removed.
-          let first: { establishmentId: string } | undefined;
-          try {
-            const authorised = await userEstablishmentRepository
-              .getAuthorizedEstablishments(session.userId);
-            first = authorised.find((e) => e.hasCommitment);
-          } catch (error) {
-            logger.warn(
-              'Could not resolve authorized establishments for session.userId; defaulting to null',
-              { userId: session.userId, error }
-            );
+          // Mirror the legacy signInToEstablishment flow exactly:
+          //   1. Load the user; refuse the session if they don't exist in
+          //      the legacy `users` table — protected endpoints depend on it.
+          //   2. Refresh users_establishments from Portail DF so the
+          //      switch-establishment dropdown sees fresh data when it
+          //      renders.
+          //   3. Use `user.establishmentId` (the user's primary establishment)
+          //      as the active establishment for the session — same source of
+          //      truth as the legacy /signin endpoint. If null, abort with
+          //      UNPROCESSABLE_ENTITY (legacy parity).
+          const user = await userRepository.get(session.userId);
+          if (!user) {
+            throw new APIError('UNPROCESSABLE_ENTITY', {
+              message: 'User has no active establishment'
+            });
           }
+
+          await refreshAuthorizedEstablishments(user);
+
+          if (!user.establishmentId) {
+            throw new APIError('UNPROCESSABLE_ENTITY', {
+              message: 'User has no active establishment'
+            });
+          }
+
           return {
             data: {
               ...session,
-              activeEstablishmentId: first?.establishmentId ?? null
+              activeEstablishmentId: user.establishmentId
             }
           };
         },
         after: async (session) => {
-          // Refresh Portail DF rights and user kind after session creation.
-          // Errors are swallowed — login must not fail because Portail DF is down.
+          // Refresh user kind after session creation. Errors are swallowed —
+          // login must not fail because Portail DF is down.
           try {
             const user = await userRepository.get(session.userId);
             if (!user) {
-              logger.warn('Session created for unknown user', { userId: session.userId });
-              return;
+              throw new UserMissingError(session.userId);
             }
-            await refreshAuthorizedEstablishments(user);
             await fetchUserKind(user.email);
           } catch (error) {
             logger.warn('Post-session-create hook failed (non-fatal)', { error });
@@ -114,8 +150,64 @@ export const auth = betterAuth({
       }
     }
   },
-  trustedOrigins: [config.app.frontendUrl],
+  trustedOrigins: ['http://localhost:19930'],
   advanced: {
     cookiePrefix: 'zlv'
-  }
+  },
+  plugins: [
+    // Augment getSession (and useSession() on the client) with the ZLV
+    // business data the frontend needs in one reactive call:
+    //   - establishment: full Establishment for session.activeEstablishmentId
+    //   - authorizedEstablishments: switcher options (filtered by commitment)
+    //   - effectiveGeoCodes: server-computed perimeter intersection
+    // This replaces having to expose 2-3 standalone endpoints + hooks for
+    // single-use data. The session.cookieCache above amortizes the cost.
+    customSession(async ({ user, session }) => {
+      const activeEstablishmentId =
+        (session as { activeEstablishmentId?: string | null })
+          .activeEstablishmentId ?? null;
+      // ADMIN and VISITOR bypass perimeter filtering (effectiveGeoCodes stays
+      // undefined → no restriction). Skip the perimeter fetch for them.
+      const role = (user as { role?: string }).role;
+      const needsPerimeterFilter = role !== 'admin' && role !== 'visitor';
+
+      // Batch 1: three independent reads in parallel.
+      const [establishment, authorisedLinks, userPerimeter] = await Promise.all(
+        [
+          activeEstablishmentId
+            ? establishmentRepository.get(activeEstablishmentId)
+            : Promise.resolve(null),
+          userEstablishmentRepository.getAuthorizedEstablishments(user.id),
+          needsPerimeterFilter
+            ? userPerimeterRepository.get(user.id)
+            : Promise.resolve(null)
+        ]
+      );
+
+      // Batch 2: dependent on batch 1, but independent of each other.
+      const authorisedIds = authorisedLinks
+        .filter((link) => link.hasCommitment)
+        .map((link) => link.establishmentId);
+      const [authorizedEstablishments, effectiveGeoCodes] = await Promise.all([
+        authorisedIds.length > 0
+          ? establishmentRepository.find({ filters: { id: authorisedIds } })
+          : Promise.resolve([]),
+        establishment && needsPerimeterFilter
+          ? filterGeoCodesByPerimeter(
+              establishment.geoCodes,
+              userPerimeter,
+              establishment.siren
+            )
+          : Promise.resolve(undefined)
+      ]);
+
+      return {
+        user,
+        session,
+        establishment,
+        authorizedEstablishments,
+        effectiveGeoCodes
+      };
+    })
+  ]
 });

@@ -82,20 +82,23 @@ async function refreshAuthorizedEstablishments(
         ceremaUser.groupFetchFailed || ceremaUser.perimeterFetchFailed
     );
     if (hasIncompleteCeremaDetails) {
-      logger.warn('Skipping Portail DF synchronization with incomplete details', {
-        userId: user.id,
-        email: user.email,
-        failedEntries: ceremaUsers
-          .filter(
-            (ceremaUser) =>
-              ceremaUser.groupFetchFailed || ceremaUser.perimeterFetchFailed
-          )
-          .map((ceremaUser) => ({
-            establishmentSiren: ceremaUser.establishmentSiren,
-            groupFetchFailed: ceremaUser.groupFetchFailed,
-            perimeterFetchFailed: ceremaUser.perimeterFetchFailed
-          }))
-      });
+      logger.warn(
+        'Skipping Portail DF synchronization with incomplete details',
+        {
+          userId: user.id,
+          email: user.email,
+          failedEntries: ceremaUsers
+            .filter(
+              (ceremaUser) =>
+                ceremaUser.groupFetchFailed || ceremaUser.perimeterFetchFailed
+            )
+            .map((ceremaUser) => ({
+              establishmentSiren: ceremaUser.establishmentSiren,
+              groupFetchFailed: ceremaUser.groupFetchFailed,
+              perimeterFetchFailed: ceremaUser.perimeterFetchFailed
+            }))
+        }
+      );
       return user;
     }
 

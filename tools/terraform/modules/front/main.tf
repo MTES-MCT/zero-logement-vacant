@@ -7,7 +7,7 @@ terraform {
   }
 }
 
-resource "clevercloud_static" "front" {
+resource "clevercloud_static_apache" "front" {
   name               = "${var.project_name}-front"
   region             = var.region
   build_flavor       = "M"
@@ -22,9 +22,12 @@ resource "clevercloud_static" "front" {
     commit     = "refs/heads/${var.branch}"
   }
 
+  hooks {
+    pre_build = "corepack enable && yarn install --immutable && yarn nx prebuild front && yarn nx build front && yarn nx postbuild front"
+  }
+
   environment = {
     CC_OVERRIDE_BUILDCACHE = "frontend/dist"
-    CC_PRE_BUILD_HOOK      = "corepack enable && yarn install --immutable && yarn nx prebuild front && yarn nx build front && yarn nx postbuild front"
     CC_WEBROOT             = "/frontend/dist"
 
     VITE_POSTHOG_API_KEY = var.posthog.api_key

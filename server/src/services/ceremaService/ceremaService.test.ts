@@ -210,6 +210,25 @@ describe('CeremaService', () => {
       expect(result[0].hasCommitment).toBe(false);
     });
 
+    it('keeps group LOVAC access unknown when group fetch fails', async () => {
+      interceptAuth();
+      interceptUsers('user@test.fr', [
+        { email: 'user@test.fr', structure: 10, groupe: 1 }
+      ]);
+      interceptStructure(10, structure);
+      nock(BASE_URL).get('/api/groupes/1/').reply(503, 'Unavailable');
+      const service = new CeremaService();
+
+      const result = await service.consultUsers('user@test.fr');
+
+      expect(result[0]).toMatchObject({
+        hasCommitment: false,
+        group: undefined,
+        groupHasLovac: undefined,
+        groupFetchFailed: true
+      });
+    });
+
     it('returns user with group but no perimeter when group has no perimetre', async () => {
       const groupWithoutPerimeter: CeremaGroup = {
         ...lovacGroup,

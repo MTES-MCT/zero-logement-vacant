@@ -273,6 +273,48 @@ describe('Account controller', () => {
       await Users().where('id', suspendedUser.id).delete();
     });
 
+    it('should keep the current suspension when Cerema details are incomplete', async () => {
+      const suspendedAt = new Date('2026-02-15T00:00:00.000Z').toJSON();
+      const suspendedUser: UserApi = {
+        ...genUserApi(establishment.id),
+        password: bcrypt.hashSync('TestPassword123!', SALT_LENGTH),
+        suspendedAt,
+        suspendedCause: 'cgu vides'
+      };
+      await Users().insert(toUserDBO(suspendedUser));
+      const consultUsers = vi
+        .spyOn(ceremaService, 'consultUsers')
+        .mockResolvedValue([
+          {
+            email: suspendedUser.email,
+            establishmentSiren: establishment.siren,
+            hasAccount: true,
+            hasCommitment: false,
+            cguValide: '2026-03-11T12:36:01.255000+01:00',
+            userExpiresAt: null,
+            structureAccessExpiresAt: '2028-01-15T09:16:31+01:00',
+            structureHasLovac: true,
+            groupHasLovac: undefined,
+            groupFetchFailed: true
+          }
+        ]);
+
+      const { body, status } = await request(url).post(testRoute).send({
+        email: suspendedUser.email,
+        password: 'TestPassword123!'
+      });
+
+      expect(status).toBe(constants.HTTP_STATUS_OK);
+      expect(body.user.suspendedAt).toBe(suspendedAt);
+      expect(body.user.suspendedCause).toBe('cgu vides');
+      const updatedUser = await userRepository.get(suspendedUser.id);
+      expect(updatedUser?.suspendedAt).toBe(suspendedAt);
+      expect(updatedUser?.suspendedCause).toBe('cgu vides');
+
+      consultUsers.mockRestore();
+      await Users().where('id', suspendedUser.id).delete();
+    });
+
     it('should fail if the user is deleted', async () => {
       const deletedUser: UserApi = {
         ...genUserApi(establishment.id),

@@ -33,10 +33,7 @@ function isLovacAccessValid(accesLovac: string | null): boolean {
  * - niveau_acces is 'lovac', OR
  * - the lovac boolean flag is true
  */
-function hasGroupLovacAccess(group: CeremaGroup | undefined): boolean {
-  if (!group) {
-    return false;
-  }
+function hasGroupLovacAccess(group: CeremaGroup): boolean {
   return group.niveau_acces === 'lovac' || group.lovac === true;
 }
 
@@ -113,6 +110,8 @@ export class CeremaService implements ConsultUserService {
                   )) ?? undefined;
               }
             }
+            const groupFetchFailed = !!user.groupe && !group;
+            const perimeterFetchFailed = !!group?.perimetre && !perimeter;
 
             // hasCommitment is true only if:
             // 1. Structure has a valid LOVAC access date (future date)
@@ -120,7 +119,9 @@ export class CeremaService implements ConsultUserService {
             const structureHasLovac = isLovacAccessValid(
               establishmentContent.acces_lovac
             );
-            const groupHasLovac = hasGroupLovacAccess(group);
+            const groupHasLovac = group
+              ? hasGroupLovacAccess(group)
+              : undefined;
 
             logger.debug('LOVAC access check', {
               email: user.email,
@@ -131,19 +132,23 @@ export class CeremaService implements ConsultUserService {
               groupNiveauAcces: group?.niveau_acces,
               groupLovac: group?.lovac,
               groupHasLovac,
-              hasCommitment: structureHasLovac && groupHasLovac
+              groupFetchFailed,
+              perimeterFetchFailed,
+              hasCommitment: structureHasLovac && groupHasLovac === true
             });
 
             const u: CeremaUser = {
               email: user.email,
               establishmentSiren: establishmentContent.siret.substring(0, 9),
               hasAccount: true,
-              hasCommitment: structureHasLovac && groupHasLovac,
+              hasCommitment: structureHasLovac && groupHasLovac === true,
               cguValide: user.cgu_valide,
               userExpiresAt: user.date_expiration,
               structureAccessExpiresAt: establishmentContent.acces_lovac,
               structureHasLovac,
               groupHasLovac,
+              groupFetchFailed,
+              perimeterFetchFailed,
               group,
               perimeter
             };

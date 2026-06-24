@@ -1,4 +1,6 @@
 fileignoreconfig:
+- filename: .github/workflows/release.yml
+  checksum: 5b3a281c32a6fab83c8385a64a45faddcac10f226b8daa85bdbf6a29d6b062a8
 - filename: README.md
   checksum: e9453f34a422b94f243daf56302141d9fc22cddf802423f64da72cee91c407d2
 - filename: analytics/dagster/src/assets/dwh/ingest/ingest_postgres_asset.py

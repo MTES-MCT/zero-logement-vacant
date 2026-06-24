@@ -79,15 +79,19 @@ export function createHousingFactory(adapter: PersistenceAdapter) {
       Array.dedupe
     );
 
-    const status = faker.helpers.weightedArrayElement([
-      {
-        value: HousingStatus.NEVER_CONTACTED,
-        weight: HOUSING_STATUS_VALUES.length - 1
-      },
-      ...HOUSING_STATUS_VALUES.filter(
-        (s) => s !== HousingStatus.NEVER_CONTACTED
-      ).map((s) => ({ value: s, weight: 1 }))
-    ]);
+    // Honour an overridden status so the derived subStatus stays consistent
+    // with it (e.g. a NEVER_CONTACTED housing must have a null subStatus).
+    const status =
+      params.status ??
+      faker.helpers.weightedArrayElement([
+        {
+          value: HousingStatus.NEVER_CONTACTED,
+          weight: HOUSING_STATUS_VALUES.length - 1
+        },
+        ...HOUSING_STATUS_VALUES.filter(
+          (s) => s !== HousingStatus.NEVER_CONTACTED
+        ).map((s) => ({ value: s, weight: 1 }))
+      ]);
     const subStatuses = [...getSubStatuses(status)];
     const subStatus =
       subStatuses.length === 0 ? null : faker.helpers.arrayElement(subStatuses);

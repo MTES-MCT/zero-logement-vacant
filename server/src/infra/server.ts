@@ -7,6 +7,7 @@ import {
   postgresCheck,
   s3Check
 } from '@zerologementvacant/healthcheck';
+import { toNodeHandler } from 'better-auth/node';
 import cors from 'cors';
 import express from 'express';
 import rateLimit from 'express-rate-limit';
@@ -14,6 +15,7 @@ import getPort from 'get-port';
 import helmet from 'helmet';
 
 import RouteNotFoundError from '~/errors/routeNotFoundError';
+import { auth } from '~/infra/auth';
 import config from '~/infra/config';
 import gracefulShutdown from '~/infra/graceful-shutdown';
 import { logger } from '~/infra/logger';
@@ -115,9 +117,14 @@ export function createServer(): Server {
 
   app.use(
     cors({
-      credentials: false
+      origin: config.app.frontendUrl,
+      credentials: true,
+      methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+      allowedHeaders: ['Content-Type', 'x-access-token']
     })
   );
+
+  app.all('/api/auth/*', toNodeHandler(auth));
 
   app.use(express.json({ limit: '10mb' }));
 

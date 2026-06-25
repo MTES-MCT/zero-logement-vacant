@@ -2,6 +2,7 @@ import { faker } from '@faker-js/faker/locale/fr';
 import { UserRole } from '@zerologementvacant/models';
 import bcrypt from 'bcryptjs';
 import { Knex } from 'knex';
+import { randomUUID } from 'node:crypto';
 import { v4 as uuidv4 } from 'uuid';
 
 import config from '~/infra/config';
@@ -9,6 +10,14 @@ import { SALT_LENGTH, UserApi } from '~/models/UserApi';
 import { Establishments } from '~/repositories/establishmentRepository';
 import { toUserDBO, Users, USERS_TABLE } from '~/repositories/userRepository';
 import { genUserApi } from '~/test/testFixtures';
+
+// Mirror legacy numeric UserRole → the string form better-auth stores in
+// `auth_users.role` (per server/src/infra/auth.ts additionalFields).
+const ROLE_TO_STRING: Record<number, string> = {
+  [UserRole.USUAL]: 'usual',
+  [UserRole.ADMIN]: 'admin',
+  [UserRole.VISITOR]: 'visitor'
+};
 
 import {
   SirenSaintLo,
@@ -38,12 +47,17 @@ export async function seed(knex: Knex): Promise<void> {
   const establishments = await fetchEstablishments(knex);
   const baseUsers = await createBaseUsers(password, establishments);
 
-  await insertBaseUsers(baseUsers);
+  await insertBaseUsers(knex, baseUsers);
   await generateRandomUsers(knex);
   console.timeEnd('20240404235457_users');
 }
 
 async function clearExistingData(knex: Knex): Promise<void> {
+  // Delete in FK-aware order: account → session → auth_users → users.
+  // (account / session reference auth_users.id; auth_users mirrors users.id.)
+  await knex('account').delete();
+  await knex('session').delete();
+  await knex('auth_users').delete();
   await Users(knex).delete();
 }
 
@@ -259,24 +273,87 @@ async function createBaseUsers(
   ];
 }
 
-async function insertBaseUsers(baseUsers: UserApi[]): Promise<void> {
+async function insertBaseUsers(
+  knex: Knex,
+  baseUsers: UserApi[]
+): Promise<void> {
   console.log(`Inserting ${baseUsers.length} base users...`);
   await Users()
     .insert(baseUsers.map(toUserDBO))
     .onConflict('email')
     .merge(['establishment_id']);
+  await syncToAuthUsers(knex, baseUsers);
 }
 
 async function generateRandomUsers(knex: Knex): Promise<void> {
   const establishments = await Establishments(knex).where({ available: true });
   const users = establishments.flatMap((establishments) => {
-    return faker.helpers
-      .multiple(() => genUserApi(establishments.id), {
-        count: { min: 1, max: 10 }
-      })
-      .map(toUserDBO);
+    return faker.helpers.multiple(() => genUserApi(establishments.id), {
+      count: { min: 1, max: 10 }
+    });
   });
   console.log(`Inserting ${users.length} random users...`);
-  await knex.batchInsert(USERS_TABLE, users);
+  await knex.batchInsert(USERS_TABLE, users.map(toUserDBO));
+  await syncToAuthUsers(knex, users);
   console.log('\n');
+}
+
+/**
+ * Mirror inserted legacy users into `auth_users` and `account` so the
+ * auth-v2 (better-auth) sign-in path works against the seeded dataset
+ * without a separate `yarn workspace ... node backfill-auth-users` step.
+ *
+ * Mirrors the production `backfill-auth-users` script's contract:
+ * - `auth_users.id` = legacy `users.id` (same UUID).
+ * - Active users (not suspended, not deleted) also get an `account` row
+ *   with `provider_id='credential'` carrying the legacy bcrypt password.
+ * - Suspended / soft-deleted users get an `auth_users` row (for FK
+ *   integrity, reporting, etc.) but no `account` — they cannot sign in.
+ */
+async function syncToAuthUsers(
+  knex: Knex,
+  users: UserApi[]
+): Promise<void> {
+  if (users.length === 0) return;
+
+  const authUserRows = users.map((user) => {
+    const fullName = [user.firstName, user.lastName]
+      .filter((part): part is string => Boolean(part))
+      .join(' ')
+      .trim();
+    return {
+      id: user.id,
+      name: fullName.length > 0 ? fullName : user.email,
+      email: user.email,
+      email_verified: true,
+      first_name: user.firstName,
+      last_name: user.lastName,
+      role: ROLE_TO_STRING[user.role] ?? 'usual',
+      phone: user.phone,
+      position: user.position,
+      time_per_week: user.timePerWeek,
+      kind: user.kind,
+      activated_at: user.activatedAt,
+      last_authenticated_at: user.lastAuthenticatedAt,
+      suspended_at: user.suspendedAt,
+      suspended_cause: user.suspendedCause,
+      deleted_at: user.deletedAt,
+      created_at: user.activatedAt ?? user.updatedAt,
+      updated_at: user.updatedAt
+    };
+  });
+  await knex.batchInsert('auth_users', authUserRows);
+
+  const accountRows = users
+    .filter((user) => !user.suspendedAt && !user.deletedAt && user.password)
+    .map((user) => ({
+      id: randomUUID(),
+      account_id: user.email,
+      provider_id: 'credential',
+      user_id: user.id,
+      password: user.password
+    }));
+  if (accountRows.length > 0) {
+    await knex.batchInsert('account', accountRows);
+  }
 }

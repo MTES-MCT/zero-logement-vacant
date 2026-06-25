@@ -25,13 +25,13 @@ function RequireAuth(props: PropsWithChildren<RequireAuthProps>) {
 
   useEffect(() => {
     if (legacy.isUsual || legacy.isVisitor) {
-      if (legacy.user?.establishmentId) {
-        posthog.identify(legacy.user.establishmentId, {
-          name: legacy.establishment?.name
+      if (legacy.establishment?.id) {
+        posthog.identify(legacy.establishment.id, {
+          name: legacy.establishment.name
         });
       }
     }
-  }, [legacy.isUsual, legacy.isVisitor, legacy.user, posthog, legacy.establishment?.name]);
+  }, [legacy.isUsual, legacy.isVisitor, posthog, legacy.establishment?.id, legacy.establishment?.name]);
 
   if (isAuthenticated) {
     return props.children;

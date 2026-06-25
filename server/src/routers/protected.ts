@@ -460,6 +460,13 @@ router.get(
   }),
   authController.changeEstablishment
 );
+router.post(
+  '/account/establishments/:establishmentId',
+  validatorNext.validate({
+    params: object({ establishmentId: schemas.id })
+  }),
+  authController.changeEstablishmentBySession
+);
 
 /* Users */
 

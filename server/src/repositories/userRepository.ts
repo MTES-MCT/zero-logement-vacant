@@ -70,20 +70,10 @@ async function find(opts?: FindOptions): Promise<UserApi[]> {
     .where(notDeleted)
     .modify((builder) => {
       if (opts?.filters?.establishments?.length) {
-        builder
-          .join(
-            USERS_ESTABLISHMENTS_TABLE,
-            `${USERS_ESTABLISHMENTS_TABLE}.user_id`,
-            `${USERS_TABLE}.id`
-          )
-          .whereIn(
-            `${USERS_ESTABLISHMENTS_TABLE}.establishment_id`,
-            opts.filters.establishments
-          )
-          .where(`${USERS_ESTABLISHMENTS_TABLE}.has_commitment`, true)
-          .distinct(`${USERS_TABLE}.id`);
+        builder.distinct(`${USERS_TABLE}.id`);
       }
     })
+    .modify(filter(opts?.filters))
     // TODO: flexible sort
     .orderBy(['last_name', 'first_name'])
     .modify(paginationQuery(opts?.pagination));
@@ -97,18 +87,20 @@ interface CountOptions {
 
 function filter(filters?: UserFilters) {
   return (builder: Knex.QueryBuilder<UserDBO>) => {
-    if (filters?.establishments?.length) {
-      builder
-        .join(
-          USERS_ESTABLISHMENTS_TABLE,
+    const establishmentIds = filters?.establishments;
+    if (establishmentIds?.length) {
+      builder.join(USERS_ESTABLISHMENTS_TABLE, function () {
+        this.on(
           `${USERS_ESTABLISHMENTS_TABLE}.user_id`,
+          '=',
           `${USERS_TABLE}.id`
         )
-        .whereIn(
-          `${USERS_ESTABLISHMENTS_TABLE}.establishment_id`,
-          filters.establishments
-        )
-        .where(`${USERS_ESTABLISHMENTS_TABLE}.has_commitment`, true);
+          .onIn(
+            `${USERS_ESTABLISHMENTS_TABLE}.establishment_id`,
+            establishmentIds
+          )
+          .andOnVal(`${USERS_ESTABLISHMENTS_TABLE}.has_commitment`, true);
+      });
     }
   };
 }

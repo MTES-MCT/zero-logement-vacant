@@ -37,6 +37,9 @@ from .assets.dwh.ingest.ingest_external_sources_asset import (
     setup_external_schema,
     import_all_external_sources,
 )
+from .assets.dwh.ingest.ingest_cerema_lovac_users_asset import (
+    raw_cerema_lovac_users_raw,
+)
 from .assets.dwh.ingest.queries.external_sources_config import EXTERNAL_SOURCES
 from .assets.dwh.checks.ff_table_exists import check_ff_lovac_on_duckdb
 from .assets.dwh.upload.upload_ff_db_to_cellar import upload_ff_to_s3
@@ -112,11 +115,29 @@ ban_daily_sync_schedule = ScheduleDefinition(
     description="Daily BAN sync at 03:00 UTC. Starts STOPPED — enable via Dagster UI after backfill validation.",
 )
 
+cerema_lovac_users_monthly_job = define_asset_job(
+    name="cerema_lovac_users_monthly_sync",
+    selection=AssetSelection.assets(
+        "setup_duckdb",
+        setup_external_schema,
+        raw_cerema_lovac_users_raw,
+    ),
+    description="Monthly refresh of CEREMA Portail DF LOVAC users.",
+)
+
+cerema_lovac_users_monthly_schedule = ScheduleDefinition(
+    job=cerema_lovac_users_monthly_job,
+    cron_schedule="@monthly",
+    default_status=DefaultScheduleStatus.STOPPED,
+    description="Monthly sync of LOVAC users from CEREMA Portail DF (first day of each month, 00:00 UTC). Starts STOPPED — enable via Dagster UI after backfill validation.",
+)
+
 # Load definitions with assets, resources, and schedule
 defs = Definitions(
     assets=[
         sync_owners_ban_addresses,
         sync_housings_ban_addresses,
+        raw_cerema_lovac_users_raw,
         *dwh_assets,  # This already includes setup_external_schema and import_all_external_sources
         *dbt_analytics_assets,
         *clever_assets_assets,
@@ -140,9 +161,11 @@ defs = Definitions(
         daily_refresh_schedule,
         yearly_external_sources_refresh_schedule,
         ban_daily_sync_schedule,
+        cerema_lovac_users_monthly_schedule,
     ],
     jobs=[
         yearly_update_all_external_sources_job,
         ban_daily_sync_job,
+        cerema_lovac_users_monthly_job,
     ],
 )

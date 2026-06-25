@@ -684,6 +684,23 @@ models:
       - name: street_address
         description: "Adresse de rue"
 
+  - name: marts_production_cerema_lovac_users_unregistered
+    description: "LOVAC users from CEREMA Portail DF who do not yet have an account in ZLV — onboarding gap list refreshed monthly via Dagster."
+    columns:
+      - name: email
+        description: "Email of the LOVAC user from Portail DF. Unique within this mart since each user appears at most once in the source."
+        tests:
+          - unique
+          - not_null
+      - name: structure_acces_lovac
+        description: "Date the user's structure was granted LOVAC access."
+        tests:
+          - not_null
+      - name: structure_siret
+        description: "SIRET of the user's Portail DF structure — useful to map to the corresponding ZLV establishment."
+      - name: structure_raison_sociale
+        description: "Raison sociale of the user's Portail DF structure."
+
   - name: marts_production_users
     description: "Table des utilisateurs avec informations sur leurs établissements de rattachement"
     columns:

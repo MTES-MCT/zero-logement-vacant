@@ -2,7 +2,7 @@
 
 ## Configuration Files
 
-- **`cron.json`**: Periodic task scheduling (Cerema sync every 30 minutes)
+- **`cron.json`**: Periodic task scheduling
 - **`post_build.sh`**: Automatic Python dependencies installation after Node.js build
 - **`README.md`**: This file
 
@@ -14,9 +14,33 @@ This project uses Clever Cloud's cron system to schedule periodic tasks.
 
 The `cron.json` file defines scheduled tasks:
 
+- **Monthly logs export**: On the first day of each month at 03:00
+  - Command: `$ROOT/server/src/scripts/logs/export-monthly-logs.sh`
+  - Frequency: `0 3 1 * *`
+
+There is no active Clever Cloud cron for Cerema rights synchronization anymore.
+The former `cerema-sync.sh` cron was removed when Cerema rights checks moved to
+the application login flow. Users and establishments are refreshed from Portail
+DF when a user logs in or creates an account.
+
+The Python scripts under `server/src/scripts/perimeters-portaildf/` are kept for
+manual audits, exports, and troubleshooting. They are not scheduled by
+`clevercloud/cron.json`.
+
+### Deprecated Cerema Cron
+
+The former Cerema DF Portal synchronization cron is documented here for
+historical context only:
+
 - **Cerema DF Portal Synchronization**: Every 30 minutes
   - Command: `/app/server/src/scripts/perimeters-portaildf/cerema-sync.sh`
-  - Frequency: `*/30 * * * *` (every 30 minutes)
+  - Frequency: `*/30 * * * *`
+  - Status: removed from `clevercloud/cron.json`
+  - Replacement: Portail DF rights checks during login/account creation
+
+Do not re-enable this cron unless the product explicitly needs background rights
+synchronization again. In that case, the cron and scripts should be reviewed
+against the current login-based synchronization logic first.
 
 ### Prerequisites
 
@@ -79,10 +103,15 @@ The standard cron format is used:
 
 ### Logs
 
-Synchronization logs are stored in:
-`/app/server/src/scripts/perimeters-portaildf/logs/sync-YYYYMMDD-HHMMSS.log`
+Cron execution logs are available from Clever Cloud:
 
-Logs older than 30 days are automatically deleted.
+```bash
+clever logs --addon-app cron
+```
+
+The current scheduled cron writes the monthly application log export. Cerema
+rights synchronization logs are part of the application logs because the sync is
+performed during authentication.
 
 ### Verification
 
@@ -106,15 +135,15 @@ git push clever master
 
 ### Debug
 
-If the cron doesn't work:
+If a cron doesn't work:
 
 1. Check Clever Cloud logs in the dashboard
 2. Verify that all environment variables are configured
-3. Check that the script is executable (`chmod +x`)
-4. Test the script manually via SSH:
+3. Check that the scheduled script is executable (`chmod +x`)
+4. Test the scheduled script manually via SSH:
    ```bash
    clever ssh
-   /app/server/src/scripts/perimeters-portaildf/cerema-sync.sh
+   /app/server/src/scripts/logs/export-monthly-logs.sh
    ```
 
 ### Python Dependencies

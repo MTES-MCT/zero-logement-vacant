@@ -30,16 +30,27 @@ POSTGRESQL_ADDON_PASSWORD=your_password
 
 ### 2. Verify Configuration Files
 
-- [x] `clevercloud/cron.json` - Cron configured every 30 minutes
+- [x] `clevercloud/cron.json` - Monthly logs export cron configured
 - [x] `clevercloud/post_build.sh` - Python dependencies installation script
 - [x] `server/src/scripts/perimeters-portaildf/requirements.txt` - Python dependencies
-- [x] `server/src/scripts/perimeters-portaildf/cerema-sync.sh` - Synchronization script
+
+There is no active Clever Cloud cron for Cerema rights synchronization. Cerema
+rights checks are performed by the application during login/account creation.
+The scripts in `server/src/scripts/perimeters-portaildf/` are available for
+manual audits and troubleshooting only.
+
+Legacy reference:
+
+- `server/src/scripts/perimeters-portaildf/cerema-sync.sh`
+- Former frequency: `*/30 * * * *`
+- Current status: not scheduled by `clevercloud/cron.json`
+- Replacement: login/account creation Cerema rights synchronization
 
 ### 3. Deploy the Application
 
 ```bash
 git add .
-git commit -m "feat: configure Cerema sync cron job with Python dependencies"
+git commit -m "chore: update Clever Cloud cron configuration"
 git push clever master
 ```
 
@@ -66,14 +77,14 @@ python3 --version
 # Check dependencies
 pip3 list | grep -E "requests|click|psycopg2|dateutil"
 
-# Test the script
-cd /app/server/src/scripts/perimeters-portaildf
-./cerema-sync.sh
+# Test the scheduled cron script
+/app/server/src/scripts/logs/export-monthly-logs.sh
 ```
 
 #### 4.3 Verify Cron
 
-Clever Cloud dashboard → "Cron" tab → Verify that the task appears and executes
+Clever Cloud dashboard → "Cron" tab → Verify that the monthly logs export task
+appears and executes.
 
 ### 5. Monitoring
 
@@ -89,12 +100,14 @@ clever logs --addon-app cron
 clever logs
 ```
 
-#### Synchronization Logs on Server
+#### Cerema Synchronization Logs
 
 ```bash
-clever ssh
-tail -f /app/server/src/scripts/perimeters-portaildf/logs/sync-*.log
+clever logs
 ```
+
+Cerema rights synchronization is executed during authentication, so its logs are
+application logs, not cron logs.
 
 ## 🔧 Quick Troubleshooting
 
@@ -102,7 +115,7 @@ tail -f /app/server/src/scripts/perimeters-portaildf/logs/sync-*.log
 
 1. Verify that `cron.json` is committed
 2. Check environment variables
-3. Check permissions: `chmod +x cerema-sync.sh`
+3. Check permissions: `chmod +x server/src/scripts/logs/export-monthly-logs.sh`
 4. Redeploy the application
 
 ### Python Not Found
@@ -157,8 +170,6 @@ tail -f /app/server/src/scripts/perimeters-portaildf/logs/sync-*.log
 
 Once configured, the system will:
 
-- ✅ Automatically authenticate with Cerema API
-- ✅ Retrieve data every 30 minutes
-- ✅ Update structures and users
-- ✅ Generate logs for each synchronization
-- ✅ Clean up logs older than 30 days
+- ✅ Run the monthly application logs export
+- ✅ Keep Python dependencies available for manual Cerema audit scripts
+- ✅ Refresh Cerema rights from the application during login/account creation

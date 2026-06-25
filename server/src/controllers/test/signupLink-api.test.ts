@@ -4,6 +4,7 @@ import { subHours } from 'date-fns';
 import request from 'supertest';
 import { vi } from 'vitest';
 
+import { kysely } from '~/infra/database/kysely';
 import { createServer } from '~/infra/server';
 import { SignupLinkApi } from '~/models/SignupLinkApi';
 import {
@@ -14,10 +15,6 @@ import {
   formatProspectApi,
   Prospects
 } from '~/repositories/prospectRepository';
-import {
-  formatSignupLinkApi,
-  SignupLinks
-} from '~/repositories/signupLinkRepository';
 import { toUserDBO, Users } from '~/repositories/userRepository';
 import ceremaService from '~/services/ceremaService';
 import {
@@ -111,10 +108,11 @@ describe('Signup link API', () => {
 
       expect(status).toBe(constants.HTTP_STATUS_CREATED);
 
-      const actualLink = await SignupLinks()
-        .select()
-        .where('prospect_email', email)
-        .first();
+      const actualLink = await kysely
+        .selectFrom('signupLinks')
+        .where('prospectEmail', '=', email)
+        .selectAll()
+        .executeTakeFirst();
       expect(actualLink).toBeDefined();
     });
   });
@@ -126,7 +124,7 @@ describe('Signup link API', () => {
       const prospect = genProspectApi(establishment);
       await Prospects().insert(formatProspectApi(prospect));
       const link = genSignupLinkApi(prospect.email);
-      await SignupLinks().insert(formatSignupLinkApi(link));
+      await kysely.insertInto('signupLinks').values(link).execute();
 
       const { body, status } = await request(url).get(testRoute(link.id));
 
@@ -149,7 +147,7 @@ describe('Signup link API', () => {
         ...genSignupLinkApi(email),
         expiresAt: subHours(new Date(), 24)
       };
-      await SignupLinks().insert(formatSignupLinkApi(link));
+      await kysely.insertInto('signupLinks').values(link).execute();
 
       const { status } = await request(url).get(testRoute(link.id));
 

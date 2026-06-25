@@ -5,6 +5,7 @@ import randomstring from 'randomstring';
 import request from 'supertest';
 import { vi } from 'vitest';
 
+import { kysely } from '~/infra/database/kysely';
 import { createServer } from '~/infra/server';
 import { ProspectApi } from '~/models/ProspectApi';
 import { SIGNUP_LINK_LENGTH, SignupLinkApi } from '~/models/SignupLinkApi';
@@ -16,10 +17,7 @@ import {
   formatProspectApi,
   Prospects
 } from '~/repositories/prospectRepository';
-import signupLinkRepository, {
-  formatSignupLinkApi,
-  SignupLinks
-} from '~/repositories/signupLinkRepository';
+import signupLinkRepository from '~/repositories/signupLinkRepository';
 import { toUserDBO, Users } from '~/repositories/userRepository';
 import ceremaService from '~/services/ceremaService';
 import {
@@ -80,7 +78,7 @@ describe('Prospect API', () => {
       const user = genUserApi(establishment.id);
       await Users().insert(toUserDBO(user));
       const link = genSignupLinkApi(user.email);
-      await SignupLinks().insert(formatSignupLinkApi(link));
+      await kysely.insertInto('signupLinks').values(link).execute();
 
       const { status } = await request(url).put(testRoute(link.id));
 
@@ -112,7 +110,7 @@ describe('Prospect API', () => {
     it('should create a prospect for the first known establishment with lovac ok', async () => {
       const email = genEmail();
       const link = genSignupLinkApi(email);
-      await SignupLinks().insert(formatSignupLinkApi(link));
+      await kysely.insertInto('signupLinks').values(link).execute();
       vi.spyOn(ceremaService, 'consultUsers').mockResolvedValue([
         {
           email,
@@ -149,7 +147,7 @@ describe('Prospect API', () => {
     it('should create a prospect with an unknown establishment', async () => {
       const email = genEmail();
       const link = genSignupLinkApi(email);
-      await SignupLinks().insert(formatSignupLinkApi(link));
+      await kysely.insertInto('signupLinks').values(link).execute();
       vi.spyOn(ceremaService, 'consultUsers').mockResolvedValue([
         {
           email,
@@ -176,7 +174,7 @@ describe('Prospect API', () => {
       const email = prospect.email;
       const link = genSignupLinkApi(email);
       const siren = establishment.siren;
-      await SignupLinks().insert(formatSignupLinkApi(link));
+      await kysely.insertInto('signupLinks').values(link).execute();
       vi.spyOn(ceremaService, 'consultUsers').mockResolvedValue([
         {
           email,
@@ -201,7 +199,7 @@ describe('Prospect API', () => {
     it('should have hasCommitment=true when at least one account has commitment, even if first account does not', async () => {
       const email = genEmail();
       const link = genSignupLinkApi(email);
-      await SignupLinks().insert(formatSignupLinkApi(link));
+      await kysely.insertInto('signupLinks').values(link).execute();
 
       // Simulate the case where first account has no commitment but others do
       // This covers the scenario where a user has multiple Cerema accounts

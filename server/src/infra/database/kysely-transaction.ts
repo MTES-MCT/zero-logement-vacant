@@ -1,4 +1,5 @@
 import { AsyncLocalStorage } from 'async_hooks';
+
 import type { Transaction } from 'kysely';
 
 import type { DB } from '~/infra/database/db';
@@ -13,9 +14,9 @@ const storage = new AsyncLocalStorage<KyselyTransactionStore>();
 export async function startKyselyTransaction<R>(
   cb: () => Promise<R>
 ): Promise<R> {
-  return kysely.transaction().execute((trx) =>
-    storage.run({ transaction: trx }, cb)
-  );
+  return kysely
+    .transaction()
+    .execute((trx) => storage.run({ transaction: trx }, cb));
 }
 
 export const getKyselyTransaction = (): Transaction<DB> | undefined =>

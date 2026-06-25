@@ -1,23 +1,14 @@
 import { faker } from '@faker-js/faker/locale/fr';
 import { describe, it, expect, beforeAll } from 'vitest';
 
-import db from '~/infra/database';
-import resetLinkRepository from '~/repositories/resetLinkRepository';
+import { kysely } from '~/infra/database/kysely';
 import {
   Establishments,
   formatEstablishmentApi
 } from '~/repositories/establishmentRepository';
+import resetLinkRepository from '~/repositories/resetLinkRepository';
 import { Users, toUserDBO } from '~/repositories/userRepository';
 import { genEstablishmentApi, genUserApi } from '~/test/testFixtures';
-
-const ResetLinks = () =>
-  db<{
-    id: string;
-    user_id: string;
-    created_at: Date;
-    expires_at: Date;
-    used_at: Date | null;
-  }>('reset_links');
 
 function genResetLinkApi(userId: string) {
   return {
@@ -44,8 +35,12 @@ describe('resetLinkRepository', () => {
 
       await resetLinkRepository.insert(link);
 
-      const row = await ResetLinks().where('id', link.id).first();
-      expect(row).toMatchObject({ id: link.id, user_id: user.id });
+      const row = await kysely
+        .selectFrom('resetLinks')
+        .where('id', '=', link.id)
+        .selectAll()
+        .executeTakeFirst();
+      expect(row).toMatchObject({ id: link.id, userId: user.id });
     });
   });
 
@@ -57,13 +52,7 @@ describe('resetLinkRepository', () => {
 
     it('should return the reset link by id', async () => {
       const link = genResetLinkApi(user.id);
-      await ResetLinks().insert({
-        id: link.id,
-        user_id: link.userId,
-        created_at: link.createdAt,
-        expires_at: link.expiresAt,
-        used_at: null
-      });
+      await kysely.insertInto('resetLinks').values(link).execute();
 
       const result = await resetLinkRepository.get(link.id);
 
@@ -74,18 +63,16 @@ describe('resetLinkRepository', () => {
   describe('used', () => {
     it('should set used_at on the link', async () => {
       const link = genResetLinkApi(user.id);
-      await ResetLinks().insert({
-        id: link.id,
-        user_id: link.userId,
-        created_at: link.createdAt,
-        expires_at: link.expiresAt,
-        used_at: null
-      });
+      await kysely.insertInto('resetLinks').values(link).execute();
 
       await resetLinkRepository.used(link.id);
 
-      const row = await ResetLinks().where('id', link.id).first();
-      expect(row?.used_at).not.toBeNull();
+      const row = await kysely
+        .selectFrom('resetLinks')
+        .where('id', '=', link.id)
+        .selectAll()
+        .executeTakeFirst();
+      expect(row?.usedAt).not.toBeNull();
     });
   });
 });

@@ -87,6 +87,24 @@
       "options": {
         "command": "node server/dist/app/index.js"
       }
+    },
+
+    "migrate": {
+      "executor": "nx:run-commands",
+      "options": {
+        "cwd": "server",
+        "command": "yarn migrate"
+      }
+    },
+
+    "codegen": {
+      "executor": "nx:run-commands",
+      "outputs": ["{projectRoot}/src/infra/database/db.d.ts"],
+      "dependsOn": ["migrate"],
+      "options": {
+        "cwd": "server",
+        "command": "kysely-codegen"
+      }
     }
   }
 }

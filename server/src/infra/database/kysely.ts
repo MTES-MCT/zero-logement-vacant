@@ -1,8 +1,16 @@
-import { Kysely, PostgresDialect } from 'kysely';
+import {
+  Kysely,
+  PostgresDialect,
+  CamelCasePlugin,
+  DeduplicateJoinsPlugin,
+  SafeNullComparisonPlugin,
+  HandleEmptyInListsPlugin,
+  replaceWithNoncontingentExpression
+} from 'kysely';
 import pg from 'pg';
 
+import type { DB } from '~/infra/database/db';
 import config from '~/infra/database/knexfile';
-import type { DB } from '~/infra/database/db-types';
 
 // Return DATE columns as "YYYY-MM-DD" strings instead of local-timezone Date objects.
 // node-postgres uses new Date(year, month, day) for OID 1082, which shifts the day
@@ -15,5 +23,13 @@ const pool = new pg.Pool({
 });
 
 export const kysely = new Kysely<DB>({
-  dialect: new PostgresDialect({ pool })
+  dialect: new PostgresDialect({ pool }),
+  plugins: [
+    new CamelCasePlugin(),
+    new DeduplicateJoinsPlugin(),
+    new SafeNullComparisonPlugin(),
+    new HandleEmptyInListsPlugin({
+      strategy: replaceWithNoncontingentExpression
+    })
+  ]
 });

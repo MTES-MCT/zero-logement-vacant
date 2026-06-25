@@ -50,6 +50,7 @@ import { subDays } from 'date-fns';
 import randomstring from 'randomstring';
 import request from 'supertest';
 
+import { kysely } from '~/infra/database/kysely';
 import { createServer } from '~/infra/server';
 import { ResetLinkApi } from '~/models/ResetLinkApi';
 import { SALT_LENGTH, toUserAccountDTO, UserApi } from '~/models/UserApi';
@@ -57,13 +58,8 @@ import {
   Establishments,
   formatEstablishmentApi
 } from '~/repositories/establishmentRepository';
-import {
-  formatResetLinkApi,
-  ResetLinks
-} from '~/repositories/resetLinkRepository';
 import { UsersEstablishments } from '~/repositories/user-establishment-repository';
-import { toUserDBO, Users } from '~/repositories/userRepository';
-import userRepository from '~/repositories/userRepository';
+import userRepository, { toUserDBO, Users } from '~/repositories/userRepository';
 import ceremaService from '~/services/ceremaService';
 import {
   genEstablishmentApi,
@@ -504,7 +500,7 @@ describe('Account controller', () => {
         ...genResetLinkApi(user.id),
         expiresAt: subDays(new Date(), 1)
       };
-      await ResetLinks().insert(formatResetLinkApi(link));
+      await kysely.insertInto('resetLinks').values(link).execute();
 
       const { status } = await request(url).post(testRoute).send({
         key: link.id,
@@ -527,7 +523,7 @@ describe('Account controller', () => {
 
     it('should change password and use the reset link', async () => {
       const link = genResetLinkApi(user.id);
-      await ResetLinks().insert(formatResetLinkApi(link));
+      await kysely.insertInto('resetLinks').values(link).execute();
       const newPassword = '123QWEasd!@#';
 
       const { status } = await request(url).post(testRoute).send({
@@ -537,11 +533,12 @@ describe('Account controller', () => {
 
       expect(status).toBe(constants.HTTP_STATUS_OK);
 
-      const actualLink = await ResetLinks()
-        .select()
-        .where('id', link.id)
-        .first();
-      expect(actualLink?.used_at).toBeInstanceOf(Date);
+      const actualLink = await kysely
+        .selectFrom('resetLinks')
+        .where('id', '=', link.id)
+        .selectAll()
+        .executeTakeFirst();
+      expect(actualLink?.usedAt).toBeInstanceOf(Date);
 
       const actualUser = await Users()
         .select()

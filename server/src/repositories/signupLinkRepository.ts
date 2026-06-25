@@ -1,22 +1,13 @@
-import type { Insertable, Selectable } from 'kysely';
-
-import db from '~/infra/database';
-import type { DB } from '~/infra/database/db';
 import { kysely } from '~/infra/database/kysely';
 import { logger } from '~/infra/logger';
 import { SignupLinkApi } from '~/models/SignupLinkApi';
 
-// Legacy exports kept for backward compatibility with existing callers
+/** Real (snake_case) table name — used by raw-SQL callers such as seeds. */
 export const signupLinkTable = 'signup_links';
-export const SignupLinks = (transaction = db) =>
-  transaction<{ id: string; prospect_email: string; expires_at: Date }>(signupLinkTable);
-
-// Re-export DBO type — callers that import SignupLinkDBO continue to work.
-export type SignupLinkDBO = Selectable<DB['signupLinks']>;
 
 async function insert(link: SignupLinkApi): Promise<void> {
   logger.info('Insert signupLinkApi');
-  await kysely.insertInto('signupLinks').values(formatSignupLinkApi(link)).execute();
+  await kysely.insertInto('signupLinks').values(link).execute();
 }
 
 async function get(id: string): Promise<SignupLinkApi | null> {
@@ -26,7 +17,7 @@ async function get(id: string): Promise<SignupLinkApi | null> {
     .where('id', '=', id)
     .selectAll()
     .executeTakeFirst();
-  return row ? parseSignupLinkApi(row) : null;
+  return row ?? null;
 }
 
 async function used(id: string): Promise<void> {
@@ -41,20 +32,8 @@ async function getByEmail(email: string): Promise<SignupLinkApi | null> {
     .where('prospectEmail', '=', email)
     .selectAll()
     .executeTakeFirst();
-  return row ? parseSignupLinkApi(row) : null;
+  return row ?? null;
 }
-
-export const parseSignupLinkApi = (row: SignupLinkDBO): SignupLinkApi => ({
-  id: row.id,
-  prospectEmail: row.prospectEmail,
-  expiresAt: row.expiresAt
-});
-
-export const formatSignupLinkApi = (link: SignupLinkApi): Insertable<DB['signupLinks']> => ({
-  id: link.id,
-  prospectEmail: link.prospectEmail,
-  expiresAt: link.expiresAt
-});
 
 export default {
   insert,

@@ -1,0 +1,8 @@
+{
+  "outFile": "src/infra/database/db.d.ts",
+  "camelCase": true,
+  "dialect": "postgres",
+  "typeMapping": {
+    "date": "ColumnType<string, string, string>"
+  }
+}

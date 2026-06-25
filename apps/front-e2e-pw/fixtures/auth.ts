@@ -1,6 +1,6 @@
 import { test as base, type Page } from '@playwright/test';
 
-import config from '../config';
+import { loadConfig } from '../config';
 
 /**
  * Drives the login form. Extracted so individual specs don't re-implement
@@ -8,20 +8,15 @@ import config from '../config';
  */
 export async function signIn(
   page: Page,
-  credentials: { email: string; password: string } = {
-    email: config.email,
-    password: config.password
-  }
+  credentials?: { email: string; password: string }
 ): Promise<void> {
+  const { email, password } = credentials ?? {
+    email: loadConfig().email,
+    password: loadConfig().password
+  };
   await page.goto('/connexion');
-  await page
-    .getByLabel(/Adresse e-mail/i)
-    .first()
-    .fill(credentials.email);
-  await page
-    .getByLabel(/Mot de passe/i)
-    .first()
-    .fill(credentials.password);
+  await page.getByLabel(/Adresse e-mail/i).first().fill(email);
+  await page.getByLabel(/Mot de passe/i).first().fill(password);
   await page.getByRole('button', { name: /Se connecter/i }).click();
   // Auth-v2 redirects to /parc-de-logements on success.
   await page.waitForURL('**/parc-de-logements');

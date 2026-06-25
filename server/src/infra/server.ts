@@ -117,7 +117,7 @@ export function createServer(): Server {
 
   app.use(
     cors({
-      origin: config.app.frontendUrl,
+      origin: config.app.allowedOrigins,
       credentials: true,
       methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
       allowedHeaders: ['Content-Type', 'x-access-token']

@@ -23,7 +23,6 @@ import { useDocumentTitle } from '../../hooks/useDocumentTitle';
 import { useAppDispatch, useAppSelector } from '../../hooks/useStore';
 import { type Establishment } from '../../models/Establishment';
 import { logIn } from '../../store/thunks/auth-thunks';
-import Image from '~/components/Image/Image';
 import { useOptionalAuth } from '~/hooks/useAuth';
 
 const schema = yup

@@ -462,7 +462,7 @@ router.get(
 );
 router.post(
   '/account/establishments/:establishmentId',
-  validatorNext.validate({
+  validator.validate({
     params: object({ establishmentId: schemas.id })
   }),
   authController.changeEstablishmentBySession

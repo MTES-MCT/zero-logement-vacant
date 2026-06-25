@@ -235,7 +235,7 @@ describe('Account controller', () => {
     });
   });
 
-  describe('POST /api/authenticate — auth-v2 flag', () => {
+  describe('POST /authenticate — auth-v2 flag', () => {
     const testRoute = '/authenticate';
     const mockIsFeatureEnabled = vi.mocked(isFeatureEnabled);
 
@@ -254,7 +254,7 @@ describe('Account controller', () => {
       });
 
       expect(status).toBe(constants.HTTP_STATUS_GONE);
-      expect(body).toMatchObject({ message: 'Use /api/auth/sign-in/email' });
+      expect(body).toMatchObject({ message: 'Use /auth/sign-in/email' });
     });
 
     it('proceeds normally when auth-v2 flag is disabled', async () => {

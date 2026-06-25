@@ -124,7 +124,7 @@ export function createServer(): Server {
     })
   );
 
-  app.all('/api/auth/*', toNodeHandler(auth));
+  app.all('/auth/*', toNodeHandler(auth));
 
   app.use(express.json({ limit: '10mb' }));
 

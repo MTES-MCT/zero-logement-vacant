@@ -60,7 +60,7 @@ const signIn: RequestHandler<never, unknown, SignInPayload, never> = async (
   if (v2Enabled) {
     response
       .status(constants.HTTP_STATUS_GONE)
-      .json({ message: 'Use /api/auth/sign-in/email' });
+      .json({ message: 'Use /auth/sign-in/email' });
     return;
   }
 

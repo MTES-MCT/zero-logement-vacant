@@ -391,6 +391,19 @@ class CountryDetector:
         self.llm_type = None
         self.use_llm = False
 
+    @staticmethod
+    def _has_explicit_french_postal_code(address: str) -> bool:
+        """Return true when the address contains an explicit French postal code."""
+        for postal_code in re.findall(r'\b\d{5}\b', address):
+            if postal_code.startswith(('97', '98')):
+                return True
+            try:
+                if 1 <= int(postal_code[:2]) <= 95:
+                    return True
+            except ValueError:
+                continue
+        return False
+
     def _classify_with_llm(self, address: str) -> str:
         """Classify address using LLM model."""
         if not self.llm_type:
@@ -494,6 +507,12 @@ Classification:"""
             return "FRANCE"
 
         address_lower = address.lower().strip()
+
+        # French postal codes are authoritative for this script. Some French
+        # communes such as "Vienne" collide with foreign city names; the postal
+        # code must win over the textual foreign-city list.
+        if self._has_explicit_french_postal_code(address_lower):
+            return "FRANCE"
 
         # First priority: Check for explicit foreign country names
         # But first, check for French exceptions that contain foreign terms

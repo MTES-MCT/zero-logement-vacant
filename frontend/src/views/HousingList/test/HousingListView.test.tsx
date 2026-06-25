@@ -42,6 +42,7 @@ import data from '~/mocks/handlers/data';
 import { fromEstablishmentDTO } from '~/models/Establishment';
 import { fromUserDTO } from '~/models/User';
 import { factories } from '~/test/factories';
+import { MockAuthProvider } from '~/test/auth';
 import { genAuthUser } from '~/test/fixtures';
 import configureTestStore from '~/utils/storeUtils';
 import CampaignView from '~/views/Campaign/CampaignView';
@@ -123,9 +124,13 @@ describe('Housing list view', () => {
 
     render(
       <Provider store={store}>
-        <HousingFiltersProvider>
-          <RouterProvider router={router} />
-        </HousingFiltersProvider>
+        <MockAuthProvider
+          options={{ user: options.auth, establishment: options.establishment }}
+        >
+          <HousingFiltersProvider>
+            <RouterProvider router={router} />
+          </HousingFiltersProvider>
+        </MockAuthProvider>
       </Provider>
     );
 

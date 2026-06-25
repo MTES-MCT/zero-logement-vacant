@@ -19,6 +19,7 @@ import { fromUserDTO } from '~/models/User';
 import configureTestStore from '~/utils/storeUtils';
 import UsersView from '~/views/Account/Profile/UsersView';
 
+import { MockAuthProvider } from '~/test/auth';
 import { genAuthUser } from '../../../../test/fixtures';
 
 describe('Users view', () => {
@@ -48,7 +49,11 @@ describe('Users view', () => {
 
     render(
       <Provider store={store}>
-        <RouterProvider router={router} />
+        <MockAuthProvider
+          options={{ user: options.auth, establishment: options.establishment }}
+        >
+          <RouterProvider router={router} />
+        </MockAuthProvider>
       </Provider>
     );
   }

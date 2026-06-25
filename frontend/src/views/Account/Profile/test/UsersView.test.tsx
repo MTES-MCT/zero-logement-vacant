@@ -16,10 +16,10 @@ import { createMemoryRouter, RouterProvider } from 'react-router';
 import data from '~/mocks/handlers/data';
 import { fromEstablishmentDTO } from '~/models/Establishment';
 import { fromUserDTO } from '~/models/User';
+import { MockAuthProvider } from '~/test/auth';
 import configureTestStore from '~/utils/storeUtils';
 import UsersView from '~/views/Account/Profile/UsersView';
 
-import { MockAuthProvider } from '~/test/auth';
 import { genAuthUser } from '../../../../test/fixtures';
 
 describe('Users view', () => {

@@ -62,7 +62,7 @@ export interface BanAddresses {
 export interface Buildings {
   classDpe: string | null;
   classGes: string | null;
-  dpeDateAt: Timestamp | null;
+  dpeDateAt: ColumnType<string, string, string> | null;
   dpeId: string | null;
   dpeImportMatch: string | null;
   dpeType: string | null;
@@ -70,6 +70,7 @@ export interface Buildings {
   housingCount: number;
   id: string;
   rentHousingCount: number | null;
+  rnbFootprint: number | null;
   rnbId: string | null;
   rnbIdScore: number | null;
   vacantHousingCount: number;
@@ -446,6 +447,7 @@ export interface FastHousing {
   energyConsumptionBdnb: string | null;
   geoCode: string;
   geolocation: string | null;
+  geolocationSource: string | null;
   housingKind: string;
   id: string;
   invariant: string;
@@ -457,7 +459,7 @@ export interface FastHousing {
   livingArea: number | null;
   localId: string;
   longitudeDgfip: number | null;
-  mutationDate: Timestamp | null;
+  mutationDate: ColumnType<string, string, string> | null;
   occupancy: string;
   occupancyHistory: string | null;
   occupancyIntended: string | null;
@@ -603,11 +605,6 @@ export interface OwnerEvents {
   ownerId: string;
 }
 
-export interface OwnerMatches {
-  idpersonne: string;
-  ownerId: string;
-}
-
 export interface OwnerNotes {
   noteId: string;
   ownerId: string;
@@ -629,32 +626,16 @@ export interface Owners {
    * L’identifiant communal provenant de LOVAC
    */
   idpersonne: string | null;
+  isMultiOwner: boolean | null;
   kindClass: string | null;
   phone: string | null;
   siren: string | null;
   updatedAt: Timestamp | null;
-}
-
-export interface OwnersDept {
-  ownerId: string;
-  ownerIdpersonne: string;
-}
-
-export interface OwnersDuplicates {
-  administrator: string | null;
-  birthDate: Timestamp | null;
-  email: string | null;
-  fullName: string;
-  id: Generated<string>;
-  ownerKind: string | null;
-  ownerKindDetail: string | null;
-  phone: string | null;
-  rawAddress: string[];
-  sourceId: string;
+  username: string | null;
 }
 
 export interface OwnersHousing {
-  endDate: Timestamp | null;
+  endDate: ColumnType<string, string, string> | null;
   housingGeoCode: string;
   housingId: string;
   idprocpte: string | null;
@@ -666,7 +647,7 @@ export interface OwnersHousing {
   ownerId: string;
   propertyRight: string | null;
   rank: number | null;
-  startDate: Timestamp | null;
+  startDate: ColumnType<string, string, string> | null;
 }
 
 export interface PrecisionHousingEvents {
@@ -721,12 +702,6 @@ export interface Senders {
   signatoryTwoLastName: string | null;
   signatoryTwoRole: string | null;
   updatedAt: Timestamp;
-}
-
-export interface Settings {
-  establishmentId: string | null;
-  id: string;
-  inboxEnabled: Generated<boolean | null>;
 }
 
 export interface SignupLinks {
@@ -823,18 +798,14 @@ export interface DB {
   localities: Localities;
   notes: Notes;
   ownerEvents: OwnerEvents;
-  ownerMatches: OwnerMatches;
   ownerNotes: OwnerNotes;
   owners: Owners;
-  ownersDept: OwnersDept;
-  ownersDuplicates: OwnersDuplicates;
   ownersHousing: OwnersHousing;
   precisionHousingEvents: PrecisionHousingEvents;
   precisions: Precisions;
   prospects: Prospects;
   resetLinks: ResetLinks;
   senders: Senders;
-  settings: Settings;
   signupLinks: SignupLinks;
   spatialRefSys: SpatialRefSys;
   userPerimeters: UserPerimeters;

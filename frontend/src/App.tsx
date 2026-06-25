@@ -1,3 +1,5 @@
+import Box from '@mui/material/Box';
+import CircularProgress from '@mui/material/CircularProgress';
 import { useFeatureFlagEnabled } from 'posthog-js/react';
 import { lazy, useEffect } from 'react';
 import { hideLoading, showLoading } from 'react-redux-loading-bar';
@@ -15,6 +17,7 @@ import FeatureFlagLayout from '~/layouts/FeatureFlagLayout';
 import GuestLayout from '~/layouts/GuestLayout';
 import sentry from '~/utils/sentry';
 import NotFoundView from '~/views/NotFoundView';
+import './App.scss';
 
 const AccountCreationView = lazy(
   () => import('~/views/Account/AccountCreationView')
@@ -58,7 +61,6 @@ const OwnerView = lazy(() => import('~/views/Owner/OwnerView'));
 const ResourcesView = lazy(() => import('~/views/Resources/ResourcesView'));
 const StatusView = lazy(() => import('~/views/Resources/StatusView'));
 const SiteMapView = lazy(() => import('~/views/SiteMapView'));
-import './App.scss';
 
 const router = sentry.createBrowserRouter(
   createRoutesFromElements(
@@ -158,10 +160,19 @@ function App() {
     }
   }, [dispatch, isSomeQueryPending]);
 
-  // Wait for PostHog to resolve the flag before rendering, otherwise the
-  // initial render of LoginView / RequireAuth might pick the wrong auth path.
   if (isV2 === undefined) {
-    return null;
+    return (
+      <Box
+        sx={{
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          height: '100vh'
+        }}
+      >
+        <CircularProgress />
+      </Box>
+    );
   }
 
   if (isV2) {

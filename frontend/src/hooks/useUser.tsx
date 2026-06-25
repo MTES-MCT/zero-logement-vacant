@@ -2,6 +2,7 @@ import { UserRole } from '@zerologementvacant/models';
 import type { AuthRole } from '@zerologementvacant/models';
 
 import { fromEstablishmentDTO } from '~/models/Establishment';
+
 import { useAuth } from './useAuth';
 
 /**
@@ -47,17 +48,15 @@ export function useUser() {
   const projectedEstablishment = establishment
     ? fromEstablishmentDTO(establishment)
     : undefined;
-  const projectedAuthorizedEstablishments = authorizedEstablishments.map(
-    fromEstablishmentDTO
-  );
+  const projectedAuthorizedEstablishments =
+    authorizedEstablishments.map(fromEstablishmentDTO);
 
   const isAdmin = isAuthenticated && user?.role === UserRole.ADMIN;
   const isGuest = !isAuthenticated;
   const isUsual = isAuthenticated && user?.role === UserRole.USUAL;
   const isVisitor = isAuthenticated && user?.role === UserRole.VISITOR;
 
-  const hasMultipleEstablishments =
-    (authorizedEstablishments?.length ?? 0) > 1;
+  const hasMultipleEstablishments = (authorizedEstablishments?.length ?? 0) > 1;
   const canChangeEstablishment =
     isAdmin || isVisitor || (isUsual && hasMultipleEstablishments);
 

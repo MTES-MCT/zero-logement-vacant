@@ -1,14 +1,13 @@
-import { type PropsWithChildren, createContext, useCallback } from 'react';
-
 import type {
   AuthUserDTO,
   EstablishmentDTO,
   SessionDTO
 } from '@zerologementvacant/models';
+import { type PropsWithChildren, createContext, useCallback } from 'react';
 
+import { useAppDispatch } from '~/hooks/useStore';
 import { authClient } from '~/lib/auth-client';
 import { zlvApi } from '~/services/api.service';
-import { useAppDispatch } from '~/hooks/useStore';
 import config from '~/utils/config';
 
 export interface AuthContextValue {

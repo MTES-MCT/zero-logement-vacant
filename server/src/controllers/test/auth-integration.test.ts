@@ -37,8 +37,9 @@ vi.mock('~/services/posthogService', () => ({
   default: { isFeatureEnabled: vi.fn() }
 }));
 
-import bcrypt from 'bcryptjs';
 import { randomUUID } from 'node:crypto';
+
+import bcrypt from 'bcryptjs';
 import request from 'supertest';
 
 import db from '~/infra/database';

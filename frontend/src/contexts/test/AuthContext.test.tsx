@@ -1,6 +1,6 @@
+import { render, screen } from '@testing-library/react';
 import { useContext } from 'react';
 import { Provider } from 'react-redux';
-import { render, screen } from '@testing-library/react';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
 import { AuthContext, AuthProvider } from '~/contexts/AuthContext';

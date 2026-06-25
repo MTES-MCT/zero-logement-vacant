@@ -20,9 +20,7 @@ test.describe('Sign-out (auth-v2)', () => {
       .click();
 
     // Then click "Se déconnecter" inside the opened dropdown.
-    await signedInPage
-      .getByRole('button', { name: /Se déconnecter/i })
-      .click();
+    await signedInPage.getByRole('button', { name: /Se déconnecter/i }).click();
 
     // Header reverts to guest state.
     await expect(

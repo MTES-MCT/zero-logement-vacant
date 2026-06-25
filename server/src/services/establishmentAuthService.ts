@@ -1,9 +1,9 @@
 import { logger } from '~/infra/logger';
 import { UserApi } from '~/models/UserApi';
 import establishmentRepository from '~/repositories/establishmentRepository';
-import userRepository from '~/repositories/userRepository';
 import userEstablishmentRepository from '~/repositories/user-establishment-repository';
 import userPerimeterRepository from '~/repositories/userPerimeterRepository';
+import userRepository from '~/repositories/userRepository';
 import ceremaService from '~/services/ceremaService';
 import {
   verifyAccessRights,

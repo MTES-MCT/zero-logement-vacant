@@ -1,16 +1,17 @@
+import { constants } from 'http2';
+
 import { UserRole } from '@zerologementvacant/models';
 import express from 'express';
 import Router from 'express-promise-router';
-import { constants } from 'http2';
 import request from 'supertest';
 import { vi } from 'vitest';
 
+import { auth } from '~/infra/auth';
 import errorHandler from '~/middlewares/error-handler';
 import { sessionCheck } from '~/middlewares/session';
-import { auth } from '~/infra/auth';
-import * as userRepositoryModule from '~/repositories/userRepository';
 import * as establishmentRepositoryModule from '~/repositories/establishmentRepository';
 import * as userPerimeterRepositoryModule from '~/repositories/userPerimeterRepository';
+import * as userRepositoryModule from '~/repositories/userRepository';
 import { genEstablishmentApi, genUserApi } from '~/test/testFixtures';
 
 vi.mock('~/infra/auth', () => ({

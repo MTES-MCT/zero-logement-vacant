@@ -31,7 +31,13 @@ function RequireAuth(props: PropsWithChildren<RequireAuthProps>) {
         });
       }
     }
-  }, [legacy.isUsual, legacy.isVisitor, posthog, legacy.establishment?.id, legacy.establishment?.name]);
+  }, [
+    legacy.isUsual,
+    legacy.isVisitor,
+    posthog,
+    legacy.establishment?.id,
+    legacy.establishment?.name
+  ]);
 
   if (isAuthenticated) {
     return props.children;

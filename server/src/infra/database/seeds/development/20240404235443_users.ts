@@ -1,8 +1,9 @@
+import { randomUUID } from 'node:crypto';
+
 import { faker } from '@faker-js/faker/locale/fr';
 import { UserRole } from '@zerologementvacant/models';
 import bcrypt from 'bcryptjs';
 import { Knex } from 'knex';
-import { randomUUID } from 'node:crypto';
 import { v4 as uuidv4 } from 'uuid';
 
 import config from '~/infra/config';
@@ -310,10 +311,7 @@ async function generateRandomUsers(knex: Knex): Promise<void> {
  * - Suspended / soft-deleted users get an `auth_users` row (for FK
  *   integrity, reporting, etc.) but no `account` — they cannot sign in.
  */
-async function syncToAuthUsers(
-  knex: Knex,
-  users: UserApi[]
-): Promise<void> {
+async function syncToAuthUsers(knex: Knex, users: UserApi[]): Promise<void> {
   if (users.length === 0) return;
 
   const authUserRows = users.map((user) => {

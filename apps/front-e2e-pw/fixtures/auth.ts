@@ -15,8 +15,14 @@ export async function signIn(
     password: loadConfig().password
   };
   await page.goto('/connexion');
-  await page.getByLabel(/Adresse e-mail/i).first().fill(email);
-  await page.getByLabel(/Mot de passe/i).first().fill(password);
+  await page
+    .getByLabel(/Adresse e-mail/i)
+    .first()
+    .fill(email);
+  await page
+    .getByLabel(/Mot de passe/i)
+    .first()
+    .fill(password);
   await page.getByRole('button', { name: /Se connecter/i }).click();
   // Auth-v2 redirects to /parc-de-logements on success.
   await page.waitForURL('**/parc-de-logements');

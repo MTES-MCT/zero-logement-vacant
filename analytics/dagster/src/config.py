@@ -95,7 +95,8 @@ production_tables = [
     "marts_production_groups",
     "marts_production_users",
     "marts_production_campaigns",
-    "marts_production_events"
+    "marts_production_events",
+    "marts_production_cerema_lovac_users_unregistered"
 ]
 
 join_tables = [

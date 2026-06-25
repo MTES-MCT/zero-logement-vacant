@@ -128,7 +128,8 @@ cerema_lovac_users_monthly_job = define_asset_job(
 cerema_lovac_users_monthly_schedule = ScheduleDefinition(
     job=cerema_lovac_users_monthly_job,
     cron_schedule="@monthly",
-    description="Monthly sync of LOVAC users from CEREMA Portail DF (first day of each month, 00:00 UTC).",
+    default_status=DefaultScheduleStatus.STOPPED,
+    description="Monthly sync of LOVAC users from CEREMA Portail DF (first day of each month, 00:00 UTC). Starts STOPPED — enable via Dagster UI after backfill validation.",
 )
 
 # Load definitions with assets, resources, and schedule
@@ -136,6 +137,7 @@ defs = Definitions(
     assets=[
         sync_owners_ban_addresses,
         sync_housings_ban_addresses,
+        raw_cerema_lovac_users_raw,
         *dwh_assets,  # This already includes setup_external_schema and import_all_external_sources
         *dbt_analytics_assets,
         *clever_assets_assets,

@@ -18,23 +18,24 @@ Knex transactions (`startTransaction`) and Kysely transactions (`startKyselyTran
 
 ## File map
 
-| File | Action | Responsibility |
-|---|---|---|
-| `server/src/infra/database/db.d.ts` | Generated (do not hand-edit) | Complete DB type declarations, camelCase keys |
-| `server/src/infra/database/kysely-transaction.ts` | Create | ALS-based transaction helpers for Kysely |
-| `server/src/repositories/settingsRepository.ts` | Modify | Replace Knex with Kysely; `SettingsDBO = Selectable<DB['settings']>` |
-| `server/src/repositories/test/settingsRepository.test.ts` | Create | Integration tests for settingsRepository |
-| `server/src/repositories/resetLinkRepository.ts` | Modify | Replace Knex with Kysely; `ResetLinkDBO = Selectable<DB['resetLinks']>` |
-| `server/src/repositories/test/resetLinkRepository.test.ts` | Create | Integration tests for resetLinkRepository |
-| `server/src/repositories/signupLinkRepository.ts` | Modify | Replace Knex with Kysely; `SignupLinkDBO = Selectable<DB['signupLinks']>` |
-| `server/src/repositories/test/signupLinkRepository.test.ts` | Create | Integration tests for signupLinkRepository |
-| `server/src/repositories/precisionRepository.ts` | Modify | Replace Knex with Kysely + Kysely transactions |
+| File                                                        | Action                       | Responsibility                                                            |
+| ----------------------------------------------------------- | ---------------------------- | ------------------------------------------------------------------------- |
+| `server/src/infra/database/db.d.ts`                         | Generated (do not hand-edit) | Complete DB type declarations, camelCase keys                             |
+| `server/src/infra/database/kysely-transaction.ts`           | Create                       | ALS-based transaction helpers for Kysely                                  |
+| `server/src/repositories/settingsRepository.ts`             | Modify                       | Replace Knex with Kysely; `SettingsDBO = Selectable<DB['settings']>`      |
+| `server/src/repositories/test/settingsRepository.test.ts`   | Create                       | Integration tests for settingsRepository                                  |
+| `server/src/repositories/resetLinkRepository.ts`            | Modify                       | Replace Knex with Kysely; `ResetLinkDBO = Selectable<DB['resetLinks']>`   |
+| `server/src/repositories/test/resetLinkRepository.test.ts`  | Create                       | Integration tests for resetLinkRepository                                 |
+| `server/src/repositories/signupLinkRepository.ts`           | Modify                       | Replace Knex with Kysely; `SignupLinkDBO = Selectable<DB['signupLinks']>` |
+| `server/src/repositories/test/signupLinkRepository.test.ts` | Create                       | Integration tests for signupLinkRepository                                |
+| `server/src/repositories/precisionRepository.ts`            | Modify                       | Replace Knex with Kysely + Kysely transactions                            |
 
 ---
 
 ## Task 1: Generate DB types
 
 **Files:**
+
 - Generate: `server/src/infra/database/db.d.ts`
 
 This task has no code to write — run the Nx codegen target. It requires a migrated database at `$DATABASE_URL`.
@@ -58,6 +59,7 @@ settings, resetLinks, signupLinks, housingPrecisions, precisions, users, housing
 ```
 
 If a table is missing, the DB may not be migrated. Run:
+
 ```bash
 yarn nx migrate server
 yarn nx codegen server
@@ -75,6 +77,7 @@ git commit -m "chore(server): generate kysely db types from schema"
 ## Task 2: Kysely transaction infrastructure
 
 **Files:**
+
 - Create: `server/src/infra/database/kysely-transaction.ts`
 
 This file mirrors `transaction.ts` but for Kysely. It exports `startKyselyTransaction`, `getKyselyTransaction`, and `withinKyselyTransaction`.
@@ -98,9 +101,9 @@ const storage = new AsyncLocalStorage<KyselyTransactionStore>();
 export async function startKyselyTransaction<R>(
   cb: () => Promise<R>
 ): Promise<R> {
-  return kysely.transaction().execute((trx) =>
-    storage.run({ transaction: trx }, cb)
-  );
+  return kysely
+    .transaction()
+    .execute((trx) => storage.run({ transaction: trx }, cb));
 }
 
 export const getKyselyTransaction = (): Transaction<DB> | undefined =>
@@ -135,14 +138,20 @@ git commit -m "feat(server): add kysely transaction infrastructure"
 ## Task 3: Migrate `settingsRepository`
 
 **Files:**
+
 - Create: `server/src/repositories/test/settingsRepository.test.ts`
 - Modify: `server/src/repositories/settingsRepository.ts`
 
 **Setup note:** Tests use the existing Knex table accessor `Settings()` (from the current file) for seeding/assertion, while the repository functions under test use Kysely internally. After migration, `Settings()` is removed and replaced with a direct Knex table accessor for test use only.
 
 The `Selectable<DB['settings']>` type (after codegen) will look like:
+
 ```typescript
-{ id: string; establishmentId: string; inboxEnabled: boolean }
+{
+  id: string;
+  establishmentId: string;
+  inboxEnabled: boolean;
+}
 ```
 
 - [ ] **Step 3.1: Write failing tests**
@@ -159,12 +168,17 @@ import settingsRepository, {
 import { genEstablishmentApi } from '~/test/testFixtures';
 
 // Knex accessor for test setup/assertion only
-const Settings = () => db<{ id: string; establishment_id: string; inbox_enabled: boolean }>('settings');
+const Settings = () =>
+  db<{ id: string; establishment_id: string; inbox_enabled: boolean }>(
+    'settings'
+  );
 
 describe('settingsRepository', () => {
   describe('findOne', () => {
     it('should return null when no settings exist for an establishment', async () => {
-      const result = await settingsRepository.findOne({ establishmentId: faker.string.uuid() });
+      const result = await settingsRepository.findOne({
+        establishmentId: faker.string.uuid()
+      });
       expect(result).toBeNull();
     });
 
@@ -177,7 +191,9 @@ describe('settingsRepository', () => {
       };
       await Settings().insert(row);
 
-      const result = await settingsRepository.findOne({ establishmentId: establishment.id });
+      const result = await settingsRepository.findOne({
+        establishmentId: establishment.id
+      });
 
       expect(result).toMatchObject({
         id: row.id,
@@ -198,7 +214,9 @@ describe('settingsRepository', () => {
 
       await settingsRepository.upsert(settings);
 
-      const row = await Settings().where('establishment_id', establishment.id).first();
+      const row = await Settings()
+        .where('establishment_id', establishment.id)
+        .first();
       expect(row).toMatchObject({
         establishment_id: establishment.id,
         inbox_enabled: false
@@ -220,7 +238,9 @@ describe('settingsRepository', () => {
         inbox: { enabled: true }
       });
 
-      const row = await Settings().where('establishment_id', establishment.id).first();
+      const row = await Settings()
+        .where('establishment_id', establishment.id)
+        .first();
       expect(row?.inbox_enabled).toBe(true);
     });
   });
@@ -275,7 +295,9 @@ async function upsert(settings: SettingsApi): Promise<void> {
     .insertInto('settings')
     .values(formatSettingsApi(settings))
     .onConflict((oc) =>
-      oc.column('establishmentId').doUpdateSet({ inboxEnabled: settings.inbox.enabled })
+      oc
+        .column('establishmentId')
+        .doUpdateSet({ inboxEnabled: settings.inbox.enabled })
     )
     .execute();
 }
@@ -288,7 +310,9 @@ export function parseSettingsApi(row: SettingsDBO): SettingsApi {
   };
 }
 
-export function formatSettingsApi(settings: SettingsApi): Insertable<DB['settings']> {
+export function formatSettingsApi(
+  settings: SettingsApi
+): Insertable<DB['settings']> {
   return {
     id: settings.id,
     establishmentId: settings.establishmentId,
@@ -331,6 +355,7 @@ git commit -m "feat(server): migrate settingsRepository to kysely"
 ## Task 4: Migrate `resetLinkRepository`
 
 **Files:**
+
 - Create: `server/src/repositories/test/resetLinkRepository.test.ts`
 - Modify: `server/src/repositories/resetLinkRepository.ts`
 
@@ -476,7 +501,9 @@ export const parseResetLinkApi = (row: ResetLinkDBO): ResetLinkApi => ({
   usedAt: row.usedAt ?? null
 });
 
-export const formatResetLinkApi = (link: ResetLinkApi): Insertable<DB['resetLinks']> => ({
+export const formatResetLinkApi = (
+  link: ResetLinkApi
+): Insertable<DB['resetLinks']> => ({
   id: link.id,
   userId: link.userId,
   createdAt: link.createdAt,
@@ -518,6 +545,7 @@ git commit -m "feat(server): migrate resetLinkRepository to kysely"
 ## Task 5: Migrate `signupLinkRepository`
 
 **Files:**
+
 - Create: `server/src/repositories/test/signupLinkRepository.test.ts`
 - Modify: `server/src/repositories/signupLinkRepository.ts`
 
@@ -550,7 +578,10 @@ describe('signupLinkRepository', () => {
       await signupLinkRepository.insert(link);
 
       const row = await SignupLinks().where('id', link.id).first();
-      expect(row).toMatchObject({ id: link.id, prospect_email: link.prospectEmail });
+      expect(row).toMatchObject({
+        id: link.id,
+        prospect_email: link.prospectEmail
+      });
     });
   });
 
@@ -569,13 +600,18 @@ describe('signupLinkRepository', () => {
       });
 
       const result = await signupLinkRepository.get(link.id);
-      expect(result).toMatchObject({ id: link.id, prospectEmail: link.prospectEmail });
+      expect(result).toMatchObject({
+        id: link.id,
+        prospectEmail: link.prospectEmail
+      });
     });
   });
 
   describe('getByEmail', () => {
     it('should return null when no link exists for an email', async () => {
-      const result = await signupLinkRepository.getByEmail(faker.internet.email());
+      const result = await signupLinkRepository.getByEmail(
+        faker.internet.email()
+      );
       expect(result).toBeNull();
     });
 
@@ -588,7 +624,10 @@ describe('signupLinkRepository', () => {
       });
 
       const result = await signupLinkRepository.getByEmail(link.prospectEmail);
-      expect(result).toMatchObject({ id: link.id, prospectEmail: link.prospectEmail });
+      expect(result).toMatchObject({
+        id: link.id,
+        prospectEmail: link.prospectEmail
+      });
     });
   });
 
@@ -631,7 +670,10 @@ export type SignupLinkDBO = Selectable<DB['signupLinks']>;
 
 async function insert(link: SignupLinkApi): Promise<void> {
   logger.info('Insert signupLinkApi');
-  await kysely.insertInto('signupLinks').values(formatSignupLinkApi(link)).execute();
+  await kysely
+    .insertInto('signupLinks')
+    .values(formatSignupLinkApi(link))
+    .execute();
 }
 
 async function get(id: string): Promise<SignupLinkApi | null> {
@@ -665,7 +707,9 @@ export const parseSignupLinkApi = (row: SignupLinkDBO): SignupLinkApi => ({
   expiresAt: row.expiresAt
 });
 
-export const formatSignupLinkApi = (link: SignupLinkApi): Insertable<DB['signupLinks']> => ({
+export const formatSignupLinkApi = (
+  link: SignupLinkApi
+): Insertable<DB['signupLinks']> => ({
   id: link.id,
   prospectEmail: link.prospectEmail,
   expiresAt: link.expiresAt
@@ -704,6 +748,7 @@ git commit -m "feat(server): migrate signupLinkRepository to kysely"
 ## Task 6: Migrate `precisionRepository` (transaction pattern)
 
 **Files:**
+
 - Modify: `server/src/repositories/precisionRepository.ts`
 - No new tests — existing tests in `test/precisionRepository.test.ts` cover the behaviour
 
@@ -766,7 +811,11 @@ async function find(options?: FindOptions): Promise<PrecisionDBO[]> {
         `${PRECISION_TABLE}.id`,
         `${HOUSING_PRECISION_TABLE}.precisionId`
       )
-      .where(`${HOUSING_PRECISION_TABLE}.housingId`, 'in', options.filters.housingId);
+      .where(
+        `${HOUSING_PRECISION_TABLE}.housingId`,
+        'in',
+        options.filters.housingId
+      );
   }
 
   return query.execute();
@@ -776,7 +825,10 @@ async function link(
   housing: HousingApi,
   precisions: ReadonlyArray<PrecisionApi>
 ): Promise<void> {
-  logger.debug('Linking housing to precisions', { housing: housing.id, precisions });
+  logger.debug('Linking housing to precisions', {
+    housing: housing.id,
+    precisions
+  });
 
   await withinKyselyTransaction(async (trx) => {
     await trx
@@ -795,7 +847,10 @@ async function link(
 }
 
 async function linkMany(
-  links: ReadonlyArray<{ housing: HousingApi; precisions: ReadonlyArray<PrecisionApi> }>
+  links: ReadonlyArray<{
+    housing: HousingApi;
+    precisions: ReadonlyArray<PrecisionApi>;
+  }>
 ): Promise<void> {
   if (links.length === 0) {
     logger.debug('No housings to link. Skipping...');
@@ -817,8 +872,9 @@ async function linkMany(
         .execute();
     }
 
-    const rows: Insertable<DB['housingPrecisions']>[] = links.flatMap(({ housing, precisions }) =>
-      precisions.map(toHousingPrecisionInsert(housing))
+    const rows: Insertable<DB['housingPrecisions']>[] = links.flatMap(
+      ({ housing, precisions }) =>
+        precisions.map(toHousingPrecisionInsert(housing))
     );
 
     if (rows.length) {
@@ -866,10 +922,13 @@ Remove the import of `Precisions` and `HousingPrecisions` from `~/repositories/p
 
 ```typescript
 import db from '~/infra/database';
-import type { PrecisionDBO } from '~/repositories/precisionRepository';  // remove this if PrecisionDBO was exported
+import type { PrecisionDBO } from '~/repositories/precisionRepository'; // remove this if PrecisionDBO was exported
 
 // Replace with local Knex accessors:
-const Precisions = () => db<{ id: string; label: string; category: string; order: number }>('precisions');
+const Precisions = () =>
+  db<{ id: string; label: string; category: string; order: number }>(
+    'precisions'
+  );
 const HousingPrecisions = () =>
   db<{
     housing_geo_code: string;

@@ -23,7 +23,8 @@ export const configSchema = z.object({
     isReviewApp: z.stringbool().default(false),
     host: z.string().default('http://localhost:3001'),
     port: z.coerce.number().int().min(1).max(65535).default(3001),
-    system: z.string().default('admin@zerologementvacant.beta.gouv.fr')
+    system: z.string().default('admin@zerologementvacant.beta.gouv.fr'),
+    frontendUrl: z.string().default('http://localhost:3000')
   }),
   auth: z.object({
     secret: z
@@ -245,7 +246,8 @@ const config = configSchema.parse({
     isReviewApp: env('IS_REVIEW_APP'),
     host: env('HOST'),
     port: env('PORT'),
-    system: env('SYSTEM_ACCOUNT')
+    system: env('SYSTEM_ACCOUNT'),
+    frontendUrl: env('WEBSITE_URL')
   },
   auth: {
     secret: env('AUTH_SECRET'),

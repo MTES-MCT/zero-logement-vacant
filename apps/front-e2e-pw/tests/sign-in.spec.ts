@@ -8,8 +8,8 @@ test.describe('Sign-in (auth-v2)', () => {
     // Cookie shape — auth-v2 cookies are prefixed `zlv.` per
     // server/src/infra/auth.ts (`advanced.cookiePrefix: 'zlv'`).
     const cookies = await context.cookies();
-    const sessionCookie = cookies.find((c) =>
-      c.name.includes('zlv.session_token')
+    const sessionCookie = cookies.find((cookie) =>
+      cookie.name.includes('zlv.session_token')
     );
     expect(sessionCookie, 'session cookie should be set').toBeDefined();
     expect(sessionCookie?.httpOnly).toBe(true);

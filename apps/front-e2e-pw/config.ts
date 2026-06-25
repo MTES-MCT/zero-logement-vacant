@@ -17,9 +17,9 @@ import { z } from 'zod';
  */
 const schema = z
   .object({
-    CYPRESS_API: z.string().url(),
-    CYPRESS_BASE_URL: z.string().url(),
-    CYPRESS_EMAIL: z.string().email(),
+    CYPRESS_API: z.url(),
+    CYPRESS_BASE_URL: z.url(),
+    CYPRESS_EMAIL: z.email(),
     CYPRESS_PASSWORD: z.string().min(1)
   })
   .transform((env) => ({

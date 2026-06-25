@@ -8,13 +8,20 @@ test.describe('Sign-out (auth-v2)', () => {
     // Sanity-check: we're signed in.
     const beforeCookies = await context.cookies();
     expect(
-      beforeCookies.find((c) => c.name.includes('zlv.session_token'))
+      beforeCookies.find((cookie) => cookie.name.includes('zlv.session_token'))
     ).toBeDefined();
 
-    // The header "Déconnexion" / "Se déconnecter" link drives the sign-out.
+    // Open the account dropdown at the top right of the header. The trigger's
+    // label is the user's displayName so we target the wrapping <nav> instead,
+    // which has a stable aria-label set by SmallHeader.
     await signedInPage
-      .getByRole('button', { name: /Déconnexion|Se déconnecter/i })
-      .first()
+      .getByRole('navigation', { name: 'Navigation du compte utilisateur' })
+      .getByRole('button')
+      .click();
+
+    // Then click "Se déconnecter" inside the opened dropdown.
+    await signedInPage
+      .getByRole('button', { name: /Se déconnecter/i })
       .click();
 
     // Header reverts to guest state.

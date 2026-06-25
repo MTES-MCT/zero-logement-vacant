@@ -54,7 +54,9 @@ router.use((request: Request, response: Response, next: NextFunction) => {
   }
   return jwtMiddleware(request, response, (err: unknown) => {
     if (err) return next(err);
-    userMiddleware(request, response, next);
+    // userCheck is async; forward its rejection to next() since
+    // express-promise-router cannot observe this nested promise.
+    userMiddleware(request, response, next).catch(next);
   });
 });
 

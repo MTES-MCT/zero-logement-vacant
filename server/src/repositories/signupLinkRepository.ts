@@ -1,54 +1,39 @@
-import db from '~/infra/database';
+import { kysely } from '~/infra/database/kysely';
 import { logger } from '~/infra/logger';
 import { SignupLinkApi } from '~/models/SignupLinkApi';
 
+/** Real (snake_case) table name — used by raw-SQL callers such as seeds. */
 export const signupLinkTable = 'signup_links';
-export const SignupLinks = (transaction = db) =>
-  transaction<SignupLinkDBO>(signupLinkTable);
 
 async function insert(link: SignupLinkApi): Promise<void> {
   logger.info('Insert signupLinkApi');
-  await SignupLinks().insert(formatSignupLinkApi(link));
+  await kysely.insertInto('signupLinks').values(link).execute();
 }
 
 async function get(id: string): Promise<SignupLinkApi | null> {
-  logger.info('Get resetLinkApi with id', id);
-  const link = await SignupLinks().select().where('id', id).first();
-  return link ? parseSignupLinkApi(link) : null;
+  logger.info('Get signupLinkApi with id', id);
+  const row = await kysely
+    .selectFrom('signupLinks')
+    .where('id', '=', id)
+    .selectAll()
+    .executeTakeFirst();
+  return row ?? null;
 }
 
 async function used(id: string): Promise<void> {
   logger.info(`Remove used signup link ${id}`);
-  await SignupLinks().where('id', id).delete();
+  await kysely.deleteFrom('signupLinks').where('id', '=', id).execute();
 }
 
 async function getByEmail(email: string): Promise<SignupLinkApi | null> {
   logger.debug('Get signupLinkApi by prospect_email', email);
-
-  const link = await SignupLinks()
-    .select()
-    .where('prospect_email', email)
-    .first();
-  return link ? parseSignupLinkApi(link) : null;
+  const row = await kysely
+    .selectFrom('signupLinks')
+    .where('prospectEmail', '=', email)
+    .selectAll()
+    .executeTakeFirst();
+  return row ?? null;
 }
-
-interface SignupLinkDBO {
-  id: string;
-  prospect_email: string;
-  expires_at: Date;
-}
-
-export const parseSignupLinkApi = (link: SignupLinkDBO): SignupLinkApi => ({
-  id: link.id,
-  prospectEmail: link.prospect_email,
-  expiresAt: link.expires_at
-});
-
-export const formatSignupLinkApi = (link: SignupLinkApi): SignupLinkDBO => ({
-  id: link.id,
-  prospect_email: link.prospectEmail,
-  expires_at: link.expiresAt
-});
 
 export default {
   insert,

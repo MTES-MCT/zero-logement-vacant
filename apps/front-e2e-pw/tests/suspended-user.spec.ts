@@ -14,7 +14,9 @@ import { expect, test } from '../fixtures/auth';
  * to remove the test-only API requirement.
  */
 test.describe('Suspended user', () => {
-  test.skip('shows the SuspendedUserModal on login', async ({ signedInPage }) => {
+  test.skip('shows the SuspendedUserModal on login', async ({
+    signedInPage
+  }) => {
     await expect(
       signedInPage.getByRole('dialog', { name: /suspendu|compte suspendu/i })
     ).toBeVisible();

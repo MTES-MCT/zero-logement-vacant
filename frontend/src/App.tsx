@@ -17,6 +17,7 @@ import FeatureFlagLayout from '~/layouts/FeatureFlagLayout';
 import GuestLayout from '~/layouts/GuestLayout';
 import sentry from '~/utils/sentry';
 import NotFoundView from '~/views/NotFoundView';
+
 import './App.scss';
 
 const AccountCreationView = lazy(

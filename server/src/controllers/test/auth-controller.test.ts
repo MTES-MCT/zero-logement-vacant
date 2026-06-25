@@ -69,6 +69,7 @@ import { subDays } from 'date-fns';
 import randomstring from 'randomstring';
 import request from 'supertest';
 
+import { auth } from '~/infra/auth';
 import { createServer } from '~/infra/server';
 import { ResetLinkApi } from '~/models/ResetLinkApi';
 import { SALT_LENGTH, toUserAccountDTO, UserApi } from '~/models/UserApi';
@@ -80,12 +81,10 @@ import {
   formatResetLinkApi,
   ResetLinks
 } from '~/repositories/resetLinkRepository';
+import { UsersEstablishments } from '~/repositories/user-establishment-repository';
 import { toUserDBO, Users } from '~/repositories/userRepository';
 import userRepository from '~/repositories/userRepository';
-import { UsersEstablishments } from '~/repositories/user-establishment-repository';
-import { auth } from '~/infra/auth';
 import { isFeatureEnabled } from '~/services/posthogService';
-
 import {
   genEstablishmentApi,
   genNumber,
@@ -596,9 +595,7 @@ describe('Account controller', () => {
       expect(status).toBe(constants.HTTP_STATUS_FORBIDDEN);
       expect(mockUpdateSession).not.toHaveBeenCalled();
 
-      await Establishments()
-        .where('id', otherEstablishment.id)
-        .delete();
+      await Establishments().where('id', otherEstablishment.id).delete();
       await Users().where('id', usualUser.id).delete();
     });
 
@@ -646,12 +643,8 @@ describe('Account controller', () => {
       expect(body).not.toHaveProperty('accessToken');
       expect(mockUpdateSession).toHaveBeenCalledTimes(1);
 
-      await UsersEstablishments()
-        .where({ user_id: usualUser.id })
-        .delete();
-      await Establishments()
-        .where('id', targetEstablishment.id)
-        .delete();
+      await UsersEstablishments().where({ user_id: usualUser.id }).delete();
+      await Establishments().where('id', targetEstablishment.id).delete();
       await Users().where('id', usualUser.id).delete();
     });
 
@@ -689,9 +682,7 @@ describe('Account controller', () => {
       expect(body.effectiveGeoCodes).toBeUndefined();
       expect(mockUpdateSession).toHaveBeenCalledTimes(1);
 
-      await Establishments()
-        .where('id', targetEstablishment.id)
-        .delete();
+      await Establishments().where('id', targetEstablishment.id).delete();
       await Users().where('id', adminUser.id).delete();
     });
   });

@@ -10,15 +10,15 @@
 
 The current auth stack has four audit-critical issues:
 
-| # | Issue | Severity |
-|---|---|---|
-| 1 | JWT stored in **localStorage** — readable by any JS on the page | Critical |
-| 2 | Token accepted from **query string** (`x-access-token` URL param) — logged by proxies and browsers | High |
-| 3 | **No token revocation** — 7-day tokens cannot be invalidated after issuance | High |
-| 4 | `changeEstablishment` uses **GET** for a state mutation | High |
-| 5 | Email OTP 2FA is **phishable** — email account compromise breaks the second factor | Medium |
-| 6 | Session docs claim `[x] CSRF (SameSite cookies)` — there are no cookies | Low |
-| 7 | `AUTH_EXPIRES_IN` defaults to 12 hours; staging redeploys rotate the secret → forced logouts | UX |
+| #   | Issue                                                                                              | Severity |
+| --- | -------------------------------------------------------------------------------------------------- | -------- |
+| 1   | JWT stored in **localStorage** — readable by any JS on the page                                    | Critical |
+| 2   | Token accepted from **query string** (`x-access-token` URL param) — logged by proxies and browsers | High     |
+| 3   | **No token revocation** — 7-day tokens cannot be invalidated after issuance                        | High     |
+| 4   | `changeEstablishment` uses **GET** for a state mutation                                            | High     |
+| 5   | Email OTP 2FA is **phishable** — email account compromise breaks the second factor                 | Medium   |
+| 6   | Session docs claim `[x] CSRF (SameSite cookies)` — there are no cookies                            | Low      |
+| 7   | `AUTH_EXPIRES_IN` defaults to 12 hours; staging redeploys rotate the secret → forced logouts       | UX       |
 
 ---
 
@@ -103,26 +103,26 @@ Users currently logged in are logged out once when the flag flips. Both frontend
 
 ## What better-auth replaces
 
-| Current | better-auth equivalent |
-|---|---|
-| `authController.signIn()` | `emailAndPassword` plugin |
-| `authController.resetPassword()` | `sendResetPassword` callback |
-| `resetLinkRepository` | `verification` table (managed) |
-| bcrypt password hashing | handled internally |
-| `jwtCheck()` + JWT validation | `auth.api.getSession()` |
-| `authenticationReducer` + localStorage | `authClient.useSession()` |
-| `auth.service.ts` (authHeader, login, logout) | `authClient.*` |
-| `useFetchInterceptor.ts` | RTK Query `baseQuery` error handling |
+| Current                                       | better-auth equivalent               |
+| --------------------------------------------- | ------------------------------------ |
+| `authController.signIn()`                     | `emailAndPassword` plugin            |
+| `authController.resetPassword()`              | `sendResetPassword` callback         |
+| `resetLinkRepository`                         | `verification` table (managed)       |
+| bcrypt password hashing                       | handled internally                   |
+| `jwtCheck()` + JWT validation                 | `auth.api.getSession()`              |
+| `authenticationReducer` + localStorage        | `authClient.useSession()`            |
+| `auth.service.ts` (authHeader, login, logout) | `authClient.*`                       |
+| `useFetchInterceptor.ts`                      | RTK Query `baseQuery` error handling |
 
 ## What stays custom
 
-| Concern | Why it stays custom |
-|---|---|
-| Admin TOTP 2FA | Verification logic ties into user suspension + lockout |
-| Signup invite flow | Cerema API validation before account creation; no better-auth equivalent |
-| `changeEstablishment` | Updates session `additionalFields`; ZLV-specific |
-| `refreshAuthorizedEstablishments` | Called from better-auth `onSignIn` hook |
-| User suspension / perimeter filtering | Domain logic, not auth infrastructure |
+| Concern                               | Why it stays custom                                                      |
+| ------------------------------------- | ------------------------------------------------------------------------ |
+| Admin TOTP 2FA                        | Verification logic ties into user suspension + lockout                   |
+| Signup invite flow                    | Cerema API validation before account creation; no better-auth equivalent |
+| `changeEstablishment`                 | Updates session `additionalFields`; ZLV-specific                         |
+| `refreshAuthorizedEstablishments`     | Called from better-auth `onSignIn` hook                                  |
+| User suspension / perimeter filtering | Domain logic, not auth infrastructure                                    |
 
 ---
 
@@ -130,15 +130,15 @@ Users currently logged in are logged out once when the flag flips. Both frontend
 
 ```typescript
 export const auth = betterAuth({
-  database: knexAdapter(db),          // reuse existing Knex instance
+  database: knexAdapter(db), // reuse existing Knex instance
   session: {
     // Fully stateful — no JWT cache
-    expiresIn: 30 * 24 * 60 * 60,    // 30-day absolute max
-    updateAge:  8 * 60 * 60,          // extend session if active within 8h window
+    expiresIn: 30 * 24 * 60 * 60, // 30-day absolute max
+    updateAge: 8 * 60 * 60, // extend session if active within 8h window
     // 8h idle timeout: if updatedAt > 8h ago, session is expired
     additionalFields: {
       activeEstablishmentId: { type: 'string', required: false },
-      role:                  { type: 'string', required: false }
+      role: { type: 'string', required: false }
     }
   },
   user: {
@@ -151,23 +151,23 @@ export const auth = betterAuth({
       // ZLV-specific columns that have no better-auth equivalent.
       // better-auth owns: id, email, emailVerified, name, createdAt, updatedAt, image.
       // Everything else lives here:
-      firstName:           { type: 'string', required: false },
-      lastName:            { type: 'string', required: false },
-      role:                { type: 'string', required: true },
+      firstName: { type: 'string', required: false },
+      lastName: { type: 'string', required: false },
+      role: { type: 'string', required: true },
       // establishmentId intentionally absent — see "establishmentId removal" below
-      phone:               { type: 'string', required: false },
-      position:            { type: 'string', required: false },
-      timePerWeek:         { type: 'string', required: false },
-      kind:                { type: 'string', required: false },
-      activatedAt:         { type: 'date',   required: false },
-      lastAuthenticatedAt: { type: 'date',   required: false },
-      suspendedAt:         { type: 'date',   required: false },
-      suspendedCause:      { type: 'string', required: false },
-      deletedAt:           { type: 'date',   required: false }
+      phone: { type: 'string', required: false },
+      position: { type: 'string', required: false },
+      timePerWeek: { type: 'string', required: false },
+      kind: { type: 'string', required: false },
+      activatedAt: { type: 'date', required: false },
+      lastAuthenticatedAt: { type: 'date', required: false },
+      suspendedAt: { type: 'date', required: false },
+      suspendedCause: { type: 'string', required: false },
+      deletedAt: { type: 'date', required: false }
     }
   },
   emailAndPassword: {
-    enabled: true,
+    enabled: true
     // Return identical errors for 'user not found' and 'wrong password'
     // to prevent account enumeration
   },
@@ -205,12 +205,12 @@ export const auth = betterAuth({
 
 ## Session cookie
 
-| Property | Value |
-|---|---|
-| Name | `better-auth.session_token` |
-| Flags | `HttpOnly; Secure; SameSite=Strict` |
-| Path | `/` |
-| Max-Age | 30 days (absolute) |
+| Property    | Value                                                     |
+| ----------- | --------------------------------------------------------- |
+| Name        | `better-auth.session_token`                               |
+| Flags       | `HttpOnly; Secure; SameSite=Strict`                       |
+| Path        | `/`                                                       |
+| Max-Age     | 30 days (absolute)                                        |
 | Idle expiry | 8h — enforced server-side by checking `session.updatedAt` |
 
 ---
@@ -250,12 +250,14 @@ export function sessionCheck(options?: CheckOptions) {
 ## CORS update
 
 ```typescript
-app.use(cors({
-  origin: config.app.frontendUrl,
-  credentials: true,              // required for cookie auth
-  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
-  allowedHeaders: ['Content-Type'] // x-access-token removed
-}));
+app.use(
+  cors({
+    origin: config.app.frontendUrl,
+    credentials: true, // required for cookie auth
+    methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+    allowedHeaders: ['Content-Type'] // x-access-token removed
+  })
+);
 ```
 
 ---
@@ -263,6 +265,7 @@ app.use(cors({
 ## Frontend changes
 
 ### Removed
+
 - `auth.service.ts` → `login()`, `verifyTwoFactor()`, `logout()`, `authHeader()`, `withAuthHeader()`
 - `authenticationReducer.tsx`, `auth-thunks.ts`, `authenticationSlice`
 - `localStorage.getItem('authUser')` — all usages
@@ -278,28 +281,28 @@ Auth state moves from Redux into a React Context. Auth is not server state — i
 // frontend/src/contexts/AuthContext.tsx
 interface AuthContextValue {
   // Server-side state — not derivable on the client
-  user:                     User | null;
-  establishment:            Establishment | null;
+  user: User | null;
+  establishment: Establishment | null;
   authorizedEstablishments: Establishment[];
-  effectiveGeoCodes:        string[] | undefined;
-  isLoading:                boolean;
+  effectiveGeoCodes: string[] | undefined;
+  isLoading: boolean;
 
   // Actions
-  signIn:              (email: string, password: string) => Promise<void>;
-  signOut:             () => Promise<void>;
-  changeEstablishment: (establishmentId: string)         => Promise<void>;
+  signIn: (email: string, password: string) => Promise<void>;
+  signOut: () => Promise<void>;
+  changeEstablishment: (establishmentId: string) => Promise<void>;
 }
 ```
 
 **Removed from the old `useUser()` shape — and why:**
 
-| Removed | Replacement |
-|---|---|
-| `isAuthenticated` | `user !== null` — trivial derivation, not context's job |
-| `isAdmin / isUsual / isVisitor` | `user?.role === UserRole.ADMIN` — one expression, scales with role changes, no parallel state to keep in sync |
-| `canChangeEstablishment` | UI rule — belongs in the component or a local selector, not in the global context |
-| `displayName()` | Pure function of `user` — utility function, not state |
-| `isError / isLoading / isUninitialized / isSuccess` | RTK Query lifecycle flags; not applicable to a Context — `isLoading` covers the session hydration case |
+| Removed                                             | Replacement                                                                                                   |
+| --------------------------------------------------- | ------------------------------------------------------------------------------------------------------------- |
+| `isAuthenticated`                                   | `user !== null` — trivial derivation, not context's job                                                       |
+| `isAdmin / isUsual / isVisitor`                     | `user?.role === UserRole.ADMIN` — one expression, scales with role changes, no parallel state to keep in sync |
+| `canChangeEstablishment`                            | UI rule — belongs in the component or a local selector, not in the global context                             |
+| `displayName()`                                     | Pure function of `user` — utility function, not state                                                         |
+| `isError / isLoading / isUninitialized / isSuccess` | RTK Query lifecycle flags; not applicable to a Context — `isLoading` covers the session hydration case        |
 
 `effectiveGeoCodes` stays because it is server-computed from the user's Portail DF perimeter and the establishment's geo codes — it cannot be re-derived on the client.
 
@@ -346,9 +349,9 @@ The existing `POST /api/authenticate/verify-2fa` endpoint (email OTP, admin-only
 
 ## establishmentId removal
 
-`users.establishment_id` has always been semantically wrong: it stores which establishment a user is *currently active in*, but that is per-session state, not per-user state. Two concurrent sessions from the same user on different devices could legitimately target different establishments, but the column can only hold one value.
+`users.establishment_id` has always been semantically wrong: it stores which establishment a user is _currently active in_, but that is per-session state, not per-user state. Two concurrent sessions from the same user on different devices could legitimately target different establishments, but the column can only hold one value.
 
-`users_establishments` is the authoritative source for which establishments a user is *authorised* to access. The active one per session lives in `session.additionalFields.activeEstablishmentId`.
+`users_establishments` is the authoritative source for which establishments a user is _authorised_ to access. The active one per session lives in `session.additionalFields.activeEstablishmentId`.
 
 ### Sign-in behaviour
 
@@ -390,16 +393,16 @@ A dedicated spike is required before implementation to verify the `auth_users` a
 
 Flag name: `auth-v2` — managed in PostHog dashboard. Fallback: `FEATURE_FLAGS=auth-v2` env var (existing pattern from `config.featureFlags`).
 
-| Step | Who | When |
-|---|---|---|
-| Add better-auth DB tables (migration) | Backend | Before feature flag |
-| Implement new auth (flag off by default) | Backend + Frontend | Sprint N |
-| Enable `auth-v2` flag in PostHog for **staging** | Team | Sprint N |
-| Validate full flow on staging | Team | Sprint N |
-| Enable `auth-v2` flag in PostHog for **production** | Deploy | Sprint N+1 |
-| Remove legacy `authController.signIn` + `jwtCheck` | Backend | Sprint N+2 |
-| Remove legacy Redux auth slice + `auth.service.ts` | Frontend | Sprint N+2 |
-| Remove `auth-v2` flag from PostHog + codebase | Team | Sprint N+2 |
+| Step                                                | Who                | When                |
+| --------------------------------------------------- | ------------------ | ------------------- |
+| Add better-auth DB tables (migration)               | Backend            | Before feature flag |
+| Implement new auth (flag off by default)            | Backend + Frontend | Sprint N            |
+| Enable `auth-v2` flag in PostHog for **staging**    | Team               | Sprint N            |
+| Validate full flow on staging                       | Team               | Sprint N            |
+| Enable `auth-v2` flag in PostHog for **production** | Deploy             | Sprint N+1          |
+| Remove legacy `authController.signIn` + `jwtCheck`  | Backend            | Sprint N+2          |
+| Remove legacy Redux auth slice + `auth.service.ts`  | Frontend           | Sprint N+2          |
+| Remove `auth-v2` flag from PostHog + codebase       | Team               | Sprint N+2          |
 
 **Middleware strategy during the transition window:** after the migration deploy, both `sessionCheck` (new) and `jwtCheck` (legacy) are active. `sessionCheck` runs first; if no session cookie is found, `jwtCheck` handles the legacy `x-access-token` header. This means:
 

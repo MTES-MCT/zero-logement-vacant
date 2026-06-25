@@ -17,6 +17,7 @@
 This is investigation only — no code to commit.
 
 **Files:**
+
 - Read: `server/src/repositories/userRepository.ts`
 - Read: `packages/models/src/UserDTO.ts`
 
@@ -30,26 +31,26 @@ psql $DEV_DB -c "\d users"
 
 For each column, answer: is it a better-auth built-in field, an `additionalField`, or unused?
 
-| users column | better-auth destination |
-|---|---|
-| `id` | built-in `id` |
-| `email` | built-in `email` |
-| `first_name` | `additionalFields.firstName` |
-| `last_name` | `additionalFields.lastName` |
-| `role` | `additionalFields.role` |
-| `phone` | `additionalFields.phone` |
-| `position` | `additionalFields.position` |
-| `time_per_week` | `additionalFields.timePerWeek` |
-| `kind` | `additionalFields.kind` |
-| `activated_at` | `additionalFields.activatedAt` (maps to `emailVerified` conceptually) |
-| `last_authenticated_at` | `additionalFields.lastAuthenticatedAt` |
-| `suspended_at` | `additionalFields.suspendedAt` |
-| `suspended_cause` | `additionalFields.suspendedCause` |
-| `deleted_at` | `additionalFields.deletedAt` |
-| `establishment_id` | **dropped** — replaced by `session.activeEstablishmentId` |
-| `password` | stored in `account` table by better-auth |
-| `two_factor_*` columns | dropped — 2FA out of scope |
-| `created_at` / `updated_at` | built-in |
+| users column                | better-auth destination                                               |
+| --------------------------- | --------------------------------------------------------------------- |
+| `id`                        | built-in `id`                                                         |
+| `email`                     | built-in `email`                                                      |
+| `first_name`                | `additionalFields.firstName`                                          |
+| `last_name`                 | `additionalFields.lastName`                                           |
+| `role`                      | `additionalFields.role`                                               |
+| `phone`                     | `additionalFields.phone`                                              |
+| `position`                  | `additionalFields.position`                                           |
+| `time_per_week`             | `additionalFields.timePerWeek`                                        |
+| `kind`                      | `additionalFields.kind`                                               |
+| `activated_at`              | `additionalFields.activatedAt` (maps to `emailVerified` conceptually) |
+| `last_authenticated_at`     | `additionalFields.lastAuthenticatedAt`                                |
+| `suspended_at`              | `additionalFields.suspendedAt`                                        |
+| `suspended_cause`           | `additionalFields.suspendedCause`                                     |
+| `deleted_at`                | `additionalFields.deletedAt`                                          |
+| `establishment_id`          | **dropped** — replaced by `session.activeEstablishmentId`             |
+| `password`                  | stored in `account` table by better-auth                              |
+| `two_factor_*` columns      | dropped — 2FA out of scope                                            |
+| `created_at` / `updated_at` | built-in                                                              |
 
 Confirm or correct this table against the actual schema. If columns are missing, add them before Task 4.
 
@@ -66,6 +67,7 @@ Note the timestamp format (e.g. `20251215164103`). Use `20260613120000` for the 
 ### Task 2: Install better-auth
 
 **Files:**
+
 - Modify: `server/package.json` (via yarn)
 - Modify: `yarn.lock`
 
@@ -96,6 +98,7 @@ git commit -m "chore(server): add better-auth dependency"
 ### Task 3: Create the better-auth configuration
 
 **Files:**
+
 - Create: `server/src/infra/auth.ts`
 
 - [ ] **Step 1: Create the auth configuration file**
@@ -116,8 +119,8 @@ const pool = new Pool({ connectionString: config.db.url });
 export const auth = betterAuth({
   database: pool,
   session: {
-    expiresIn: 30 * 24 * 60 * 60,  // 30 days absolute max
-    updateAge: 8 * 60 * 60,          // extend if active within 8h window
+    expiresIn: 30 * 24 * 60 * 60, // 30 days absolute max
+    updateAge: 8 * 60 * 60, // extend if active within 8h window
     additionalFields: {
       activeEstablishmentId: {
         type: 'string',
@@ -129,22 +132,27 @@ export const auth = betterAuth({
   user: {
     modelName: 'auth_users',
     additionalFields: {
-      firstName:           { type: 'string', required: false },
-      lastName:            { type: 'string', required: false },
-      role:                { type: 'string', required: true, defaultValue: UserRole.USUAL, input: false },
-      phone:               { type: 'string', required: false },
-      position:            { type: 'string', required: false },
-      timePerWeek:         { type: 'string', required: false },
-      kind:                { type: 'string', required: false },
-      activatedAt:         { type: 'date',   required: false },
-      lastAuthenticatedAt: { type: 'date',   required: false },
-      suspendedAt:         { type: 'date',   required: false },
-      suspendedCause:      { type: 'string', required: false },
-      deletedAt:           { type: 'date',   required: false }
+      firstName: { type: 'string', required: false },
+      lastName: { type: 'string', required: false },
+      role: {
+        type: 'string',
+        required: true,
+        defaultValue: UserRole.USUAL,
+        input: false
+      },
+      phone: { type: 'string', required: false },
+      position: { type: 'string', required: false },
+      timePerWeek: { type: 'string', required: false },
+      kind: { type: 'string', required: false },
+      activatedAt: { type: 'date', required: false },
+      lastAuthenticatedAt: { type: 'date', required: false },
+      suspendedAt: { type: 'date', required: false },
+      suspendedCause: { type: 'string', required: false },
+      deletedAt: { type: 'date', required: false }
     }
   },
   emailAndPassword: {
-    enabled: true,
+    enabled: true
     // Prevent account enumeration: same error for unknown email and wrong password.
     // better-auth does this by default — verify in integration tests (Task 9).
   },
@@ -164,8 +172,10 @@ export const auth = betterAuth({
       create: {
         before: async (session) => {
           // Auto-select first authorised establishment at sign-in.
-          const authorised = await userEstablishmentRepository
-            .getAuthorizedEstablishments(session.userId);
+          const authorised =
+            await userEstablishmentRepository.getAuthorizedEstablishments(
+              session.userId
+            );
           const first = authorised.find((e) => e.hasCommitment);
           return {
             data: {
@@ -219,6 +229,7 @@ git commit -m "feat(server): add better-auth configuration"
 ### Task 4: Generate and apply the database migration
 
 **Files:**
+
 - Create: `server/src/infra/database/migrations/20260613120000_better_auth_tables.ts`
 
 - [ ] **Step 1: Generate the better-auth SQL schema**
@@ -228,6 +239,7 @@ cd server && npx @better-auth/cli generate --output /tmp/better-auth-schema.sql
 ```
 
 If the CLI is not available:
+
 ```bash
 cd server && npx better-auth generate --output /tmp/better-auth-schema.sql
 ```
@@ -270,8 +282,12 @@ export async function up(knex: Knex): Promise<void> {
     table.string('token').notNullable().unique();
     table.string('ip_address').nullable();
     table.string('user_agent').nullable();
-    table.string('user_id').notNullable()
-      .references('id').inTable('auth_users').onDelete('cascade');
+    table
+      .string('user_id')
+      .notNullable()
+      .references('id')
+      .inTable('auth_users')
+      .onDelete('cascade');
     // ZLV additionalFields
     table.string('active_establishment_id').nullable();
     table.timestamps(true, true);
@@ -281,8 +297,12 @@ export async function up(knex: Knex): Promise<void> {
     table.string('id').primary();
     table.string('account_id').notNullable();
     table.string('provider_id').notNullable();
-    table.string('user_id').notNullable()
-      .references('id').inTable('auth_users').onDelete('cascade');
+    table
+      .string('user_id')
+      .notNullable()
+      .references('id')
+      .inTable('auth_users')
+      .onDelete('cascade');
     table.text('access_token').nullable();
     table.text('refresh_token').nullable();
     table.text('id_token').nullable();
@@ -346,6 +366,7 @@ git commit -m "feat(server): add better-auth database tables migration"
 ### Task 5: Mount the better-auth Express handler and update CORS
 
 **Files:**
+
 - Modify: `server/src/app.ts` (or wherever Express is configured — find with `grep -r "express()" server/src`)
 - Modify: `server/src/infra/config.ts` (if db URL needs exposing)
 
@@ -372,12 +393,14 @@ app.all('/api/auth/*', toNodeHandler(auth));
 Find the existing `cors()` call and update:
 
 ```typescript
-app.use(cors({
-  origin: config.app.frontendUrl,
-  credentials: true,              // required for cookie auth
-  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
-  allowedHeaders: ['Content-Type'] // remove x-access-token
-}));
+app.use(
+  cors({
+    origin: config.app.frontendUrl,
+    credentials: true, // required for cookie auth
+    methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+    allowedHeaders: ['Content-Type'] // remove x-access-token
+  })
+);
 ```
 
 - [ ] **Step 4: Verify the server starts**
@@ -406,6 +429,7 @@ git commit -m "feat(server): mount better-auth handler and update CORS"
 `auth.ts` (Task 3) imports `refreshAuthorizedEstablishments`. `auth-controller.ts` will later import `auth.ts` via `sessionCheck`. This creates a circular dependency. Fix: move `refreshAuthorizedEstablishments` to a standalone service file before wiring it into `auth.ts`.
 
 **Files:**
+
 - Create: `server/src/services/establishmentAuthService.ts` (extracted function)
 - Modify: `server/src/controllers/auth-controller.ts` (import from new service, remove local definition)
 - Modify: `server/src/infra/auth.ts` (update import to new service path)
@@ -467,7 +491,9 @@ describe('sessionCheck', () => {
       session: { activeEstablishmentId: 'est-1' }
     } as any);
     vi.mocked(userRepo.default.get).mockResolvedValue(fakeUser as any);
-    vi.mocked(establishmentRepo.default.get).mockResolvedValue(fakeEstablishment as any);
+    vi.mocked(establishmentRepo.default.get).mockResolvedValue(
+      fakeEstablishment as any
+    );
 
     const req = createRequest();
     const res = createResponse();
@@ -500,17 +526,21 @@ Create `server/src/services/establishmentAuthService.ts`:
 import type { UserApi } from '~/models/UserApi';
 // ... same imports as in auth-controller.ts for this function
 
-export async function refreshAuthorizedEstablishments(user: UserApi): Promise<void> {
+export async function refreshAuthorizedEstablishments(
+  user: UserApi
+): Promise<void> {
   // paste existing function body here
 }
 ```
 
 In `server/src/controllers/auth-controller.ts`, delete the function body and add:
+
 ```typescript
 import { refreshAuthorizedEstablishments } from '~/services/establishmentAuthService';
 ```
 
 In `server/src/infra/auth.ts`, update the import:
+
 ```typescript
 import { refreshAuthorizedEstablishments } from '~/services/establishmentAuthService';
 ```
@@ -541,13 +571,19 @@ const CACHE_MAX_AGE = 5 * 60 * 1000;
 
 export function sessionCheck(options?: CheckOptions) {
   const getUser = memoize(userRepository.get, {
-    promise: true, primitive: true, maxAge: CACHE_MAX_AGE
+    promise: true,
+    primitive: true,
+    maxAge: CACHE_MAX_AGE
   });
   const getEstablishment = memoize(establishmentRepository.get, {
-    promise: true, primitive: true, maxAge: CACHE_MAX_AGE
+    promise: true,
+    primitive: true,
+    maxAge: CACHE_MAX_AGE
   });
   const getUserPerimeter = memoize(userPerimeterRepository.get, {
-    promise: true, primitive: true, maxAge: CACHE_MAX_AGE
+    promise: true,
+    primitive: true,
+    maxAge: CACHE_MAX_AGE
   });
 
   return async (request: Request, _: Response, next: NextFunction) => {
@@ -563,11 +599,15 @@ export function sessionCheck(options?: CheckOptions) {
     }
 
     const { user: sessionUser, session: sessionData } = session;
-    const establishmentId = (sessionData as any).activeEstablishmentId as string | null;
+    const establishmentId = (sessionData as any).activeEstablishmentId as
+      | string
+      | null;
 
     const [user, establishment, userPerimeter] = await Promise.all([
       getUser(sessionUser.id),
-      establishmentId ? getEstablishment(establishmentId) : Promise.resolve(null),
+      establishmentId
+        ? getEstablishment(establishmentId)
+        : Promise.resolve(null),
       getUserPerimeter(sessionUser.id)
     ]);
 
@@ -582,7 +622,9 @@ export function sessionCheck(options?: CheckOptions) {
     request.establishment = establishment;
     request.userPerimeter = userPerimeter;
 
-    const isAdminOrVisitor = [UserRole.ADMIN, UserRole.VISITOR].includes(user.role);
+    const isAdminOrVisitor = [UserRole.ADMIN, UserRole.VISITOR].includes(
+      user.role
+    );
     request.effectiveGeoCodes = isAdminOrVisitor
       ? undefined
       : await filterGeoCodesByPerimeter(
@@ -618,6 +660,7 @@ git commit -m "feat(server): add sessionCheck middleware backed by better-auth"
 ### Task 7: Wire sessionCheck into protected routes (alongside legacy jwtCheck)
 
 **Files:**
+
 - Modify: `server/src/routers/protected.ts`
 
 - [ ] **Step 1: Find how protected routes are wired**
@@ -676,6 +719,7 @@ git commit -m "feat(server): wire sessionCheck with jwtCheck fallback on protect
 ### Task 8: changeEstablishment — POST, session-based
 
 **Files:**
+
 - Modify: `server/src/controllers/auth-controller.ts`
 - Modify: `server/src/routers/unprotected.ts` or wherever the route is declared
 
@@ -793,12 +837,21 @@ grep -rn "establishments/:establishmentId\|changeEstablishment" server/src/route
 ```
 
 Change:
+
 ```typescript
-router.get('/account/establishments/:establishmentId', authController.changeEstablishment);
+router.get(
+  '/account/establishments/:establishmentId',
+  authController.changeEstablishment
+);
 ```
+
 To:
+
 ```typescript
-router.post('/account/establishments/:establishmentId', authController.changeEstablishment);
+router.post(
+  '/account/establishments/:establishmentId',
+  authController.changeEstablishment
+);
 ```
 
 - [ ] **Step 5: Run tests to confirm they pass**
@@ -823,6 +876,7 @@ git commit -m "feat(server): changeEstablishment POST, session-based (no user re
 When `auth-v2` is enabled in PostHog, the legacy sign-in endpoint returns 410 Gone, pushing clients to the new `/api/auth/sign-in/email` path.
 
 **Files:**
+
 - Modify: `server/src/controllers/auth-controller.ts`
 - Modify: `server/src/services/posthogService.ts` (if needed)
 
@@ -907,6 +961,7 @@ git commit -m "feat(server): gate legacy signIn behind auth-v2 PostHog flag"
 ### Task 10: End-to-end integration test for the new sign-in flow
 
 **Files:**
+
 - Modify: `server/src/controllers/test/auth-api.test.ts`
 
 - [ ] **Step 1: Write the integration test**

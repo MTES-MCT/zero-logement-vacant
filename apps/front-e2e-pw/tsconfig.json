@@ -14,6 +14,11 @@
     "skipLibCheck": true,
     "types": ["node"]
   },
-  "include": ["playwright.config.ts", "config.ts", "tests/**/*.ts", "fixtures/**/*.ts"],
+  "include": [
+    "playwright.config.ts",
+    "config.ts",
+    "tests/**/*.ts",
+    "fixtures/**/*.ts"
+  ],
   "references": [{ "path": "../../packages/models" }]
 }

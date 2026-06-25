@@ -1,22 +1,23 @@
+import { UserRole } from '@zerologementvacant/models';
+import type { AuthRole, SessionDTO } from '@zerologementvacant/models';
 import { betterAuth, type BetterAuthOptions } from 'better-auth';
 import { APIError } from 'better-auth/api';
 import { hashPassword } from 'better-auth/crypto';
 import { customSession } from 'better-auth/plugins';
 import { CamelCasePlugin, Kysely, PostgresDialect } from 'kysely';
 import { Pool } from 'pg';
-import { UserRole } from '@zerologementvacant/models';
-import type { AuthRole, SessionDTO } from '@zerologementvacant/models';
-import config from '~/infra/config';
+
+import UserMissingError from '~/errors/userMissingError';
 import { createPasswordVerifier } from '~/infra/auth-password';
+import config from '~/infra/config';
+import { logger } from '~/infra/logger';
 import { filterGeoCodesByPerimeter } from '~/models/UserPerimeterApi';
 import establishmentRepository from '~/repositories/establishmentRepository';
 import userEstablishmentRepository from '~/repositories/user-establishment-repository';
 import userPerimeterRepository from '~/repositories/userPerimeterRepository';
 import userRepository from '~/repositories/userRepository';
-import { refreshAuthorizedEstablishments } from '~/services/establishmentAuthService';
 import { fetchUserKind } from '~/services/ceremaService/userKindService';
-import UserMissingError from '~/errors/userMissingError';
-import { logger } from '~/infra/logger';
+import { refreshAuthorizedEstablishments } from '~/services/establishmentAuthService';
 
 const pool = new Pool({ connectionString: config.db.url });
 
@@ -64,18 +65,23 @@ const authOptions = {
   user: {
     modelName: 'auth_users',
     additionalFields: {
-      firstName:           { type: 'string', required: false },
-      lastName:            { type: 'string', required: false },
-      role:                { type: 'string', required: true, defaultValue: UserRole.USUAL, input: false },
-      phone:               { type: 'string', required: false },
-      position:            { type: 'string', required: false },
-      timePerWeek:         { type: 'string', required: false },
-      kind:                { type: 'string', required: false },
-      activatedAt:         { type: 'date',   required: false },
-      lastAuthenticatedAt: { type: 'date',   required: false },
-      suspendedAt:         { type: 'date',   required: false },
-      suspendedCause:      { type: 'string', required: false },
-      deletedAt:           { type: 'date',   required: false }
+      firstName: { type: 'string', required: false },
+      lastName: { type: 'string', required: false },
+      role: {
+        type: 'string',
+        required: true,
+        defaultValue: UserRole.USUAL,
+        input: false
+      },
+      phone: { type: 'string', required: false },
+      position: { type: 'string', required: false },
+      timePerWeek: { type: 'string', required: false },
+      kind: { type: 'string', required: false },
+      activatedAt: { type: 'date', required: false },
+      lastAuthenticatedAt: { type: 'date', required: false },
+      suspendedAt: { type: 'date', required: false },
+      suspendedCause: { type: 'string', required: false },
+      deletedAt: { type: 'date', required: false }
     }
   },
   emailAndPassword: {
@@ -150,7 +156,9 @@ const authOptions = {
             }
             await fetchUserKind(user.email);
           } catch (error) {
-            logger.warn('Post-session-create hook failed (non-fatal)', { error });
+            logger.warn('Post-session-create hook failed (non-fatal)', {
+              error
+            });
           }
         }
       }

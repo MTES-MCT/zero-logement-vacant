@@ -19,6 +19,7 @@
 ### Task 1: Install better-auth client and add feature flag type
 
 **Files:**
+
 - Modify: `frontend/package.json` (via yarn)
 - Modify: `frontend/src/layouts/FeatureFlagLayout.tsx`
 
@@ -56,6 +57,7 @@ git commit -m "chore(front): add better-auth client, register auth-v2 feature fl
 ### Task 2: Create the better-auth React client
 
 **Files:**
+
 - Create: `frontend/src/lib/auth-client.ts`
 
 - [ ] **Step 1: Find the API base URL config**
@@ -97,6 +99,7 @@ git commit -m "feat(front): create better-auth React client"
 ### Task 3: Create AuthContext and AuthProvider
 
 **Files:**
+
 - Create: `frontend/src/contexts/AuthContext.tsx`
 
 - [ ] **Step 1: Check what establishment data shape the existing code uses**
@@ -304,6 +307,7 @@ git commit -m "feat(front): add AuthContext and AuthProvider"
 ### Task 4: Create the useAuth hook
 
 **Files:**
+
 - Create: `frontend/src/hooks/useAuth.ts`
 
 - [ ] **Step 1: Write the failing test**
@@ -391,6 +395,7 @@ git commit -m "feat(front): add useAuth hook"
 ### Task 5: Update RTK Query base query
 
 **Files:**
+
 - Modify: `frontend/src/services/api.service.ts`
 
 - [ ] **Step 1: Write the failing test**
@@ -456,6 +461,7 @@ git commit -m "feat(front): RTK Query uses credentials:include, drops x-access-t
 ### Task 6: Update RequireAuth and RequireGuest
 
 **Files:**
+
 - Modify: `frontend/src/components/Auth/RequireAuth.tsx`
 - Modify: `frontend/src/components/Auth/RequireGuest.tsx`
 
@@ -578,6 +584,7 @@ git commit -m "feat(front): RequireAuth and RequireGuest use useAuth"
 ### Task 7: Update LoginView to use authClient
 
 **Files:**
+
 - Modify: `frontend/src/views/Login/LoginView.tsx`
 
 - [ ] **Step 1: Write the failing test**
@@ -774,21 +781,42 @@ grep -rn "useUser" frontend/src --include="*.tsx" --include="*.ts" | grep -v tes
 - [ ] **Step 2: For each file, apply the migration pattern**
 
 Replace:
+
 ```typescript
 import { useUser } from '~/hooks/useUser';
-const { user, establishment, isAdmin, isUsual, isVisitor, isAuthenticated, canChangeEstablishment, authorizedEstablishments, effectiveGeoCodes, logOut } = useUser();
+const {
+  user,
+  establishment,
+  isAdmin,
+  isUsual,
+  isVisitor,
+  isAuthenticated,
+  canChangeEstablishment,
+  authorizedEstablishments,
+  effectiveGeoCodes,
+  logOut
+} = useUser();
 ```
 
 With:
+
 ```typescript
 import { useAuth } from '~/hooks/useAuth';
 import { UserRole } from '@zerologementvacant/models';
-const { user, establishment, authorizedEstablishments, effectiveGeoCodes, signOut } = useAuth();
+const {
+  user,
+  establishment,
+  authorizedEstablishments,
+  effectiveGeoCodes,
+  signOut
+} = useAuth();
 const isAdmin = user?.role === UserRole.ADMIN;
 const isUsual = user?.role === UserRole.USUAL;
 const isVisitor = user?.role === UserRole.VISITOR;
 const isAuthenticated = user !== null && establishment !== null;
-const canChangeEstablishment = isAdmin || isVisitor ||
+const canChangeEstablishment =
+  isAdmin ||
+  isVisitor ||
   (isUsual && (authorizedEstablishments?.length ?? 0) > 1);
 ```
 
@@ -822,6 +850,7 @@ git commit -m "refactor(front): migrate all useUser() call sites to useAuth()"
 ### Task 9: Wrap the app with AuthProvider behind the feature flag
 
 **Files:**
+
 - Modify: `frontend/src/App.tsx` (or the router root — find with `grep -rn "BrowserRouter\|createBrowserRouter" frontend/src`)
 
 - [ ] **Step 1: Find the app root**
@@ -886,6 +915,7 @@ Run these tasks only after the `auth-v2` PostHog flag has been on in production 
 ### Task 10: Delete legacy auth Redux code
 
 **Files:**
+
 - Delete: `frontend/src/store/reducers/authenticationReducer.tsx`
 - Delete: `frontend/src/store/thunks/auth-thunks.ts`
 - Delete: `frontend/src/store/actions/authenticationAction.tsx`
@@ -955,6 +985,7 @@ git commit -m "chore(front): remove legacy Redux auth slice and useUser after au
 ### Task 11: Delete legacy auth.service.ts
 
 **Files:**
+
 - Delete: `frontend/src/services/auth.service.ts`
 - Modify: any remaining imports of `auth.service.ts`
 

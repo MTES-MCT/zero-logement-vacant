@@ -1,5 +1,5 @@
-import { describe, expect, it, vi } from 'vitest';
 import { render, screen } from '@testing-library/react';
+import { describe, expect, it, vi } from 'vitest';
 
 import { AuthContext, type AuthContextValue } from '~/contexts/AuthContext';
 import { useAuth } from '~/hooks/useAuth';
@@ -34,7 +34,9 @@ describe('useAuth', () => {
   });
 
   it('throws when used outside AuthProvider', () => {
-    const consoleError = vi.spyOn(console, 'error').mockImplementation(() => undefined);
+    const consoleError = vi
+      .spyOn(console, 'error')
+      .mockImplementation(() => undefined);
 
     expect(() => render(<Consumer />)).toThrow(
       'useAuth must be used within AuthProvider'

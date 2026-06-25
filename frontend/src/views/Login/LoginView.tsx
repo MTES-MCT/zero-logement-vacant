@@ -15,6 +15,7 @@ import * as yup from 'yup';
 
 import EstablishmentSearchableSelect from '~/components/establishment/EstablishmentSearchableSelect';
 import Image from '~/components/Image/Image';
+import { useOptionalAuth } from '~/hooks/useAuth';
 
 import building from '../../assets/images/building.svg';
 import AppLink from '../../components/_app/AppLink/AppLink';
@@ -23,7 +24,6 @@ import { useDocumentTitle } from '../../hooks/useDocumentTitle';
 import { useAppDispatch, useAppSelector } from '../../hooks/useStore';
 import { type Establishment } from '../../models/Establishment';
 import { logIn } from '../../store/thunks/auth-thunks';
-import { useOptionalAuth } from '~/hooks/useAuth';
 
 const schema = yup
   .object({

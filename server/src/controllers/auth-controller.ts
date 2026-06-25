@@ -287,8 +287,7 @@ async function changeEstablishmentBySession(
   const cookieHeader = request.headers.cookie ?? '';
   if (!cookieHeader.includes('zlv.session_token')) {
     response.status(constants.HTTP_STATUS_METHOD_NOT_ALLOWED).json({
-      message:
-        'POST requires a session cookie; legacy clients should use GET'
+      message: 'POST requires a session cookie; legacy clients should use GET'
     });
     return;
   }

@@ -1,11 +1,10 @@
 import { randomUUID } from 'node:crypto';
+
 import { UserRole } from '@zerologementvacant/models';
+
 import db from '~/infra/database';
 import { createLogger } from '~/infra/logger';
-import {
-  USERS_TABLE,
-  type UserDBO
-} from '~/repositories/userRepository';
+import { USERS_TABLE, type UserDBO } from '~/repositories/userRepository';
 
 const logger = createLogger('backfill-auth-users');
 

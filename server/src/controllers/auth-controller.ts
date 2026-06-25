@@ -2,18 +2,22 @@ import { constants } from 'http2';
 
 import { UserAccountDTO, UserRole } from '@zerologementvacant/models';
 import bcrypt from 'bcryptjs';
+import { fromNodeHeaders } from 'better-auth/node';
 import { Request, Response, type RequestHandler } from 'express';
 import { AuthenticatedRequest } from 'express-jwt';
 import jwt from 'jsonwebtoken';
 import { object, string } from 'yup';
 
 import AuthenticationFailedError from '~/errors/authenticationFailedError';
+import AuthenticationMissingError from '~/errors/authenticationMissingError';
 import EstablishmentMissingError from '~/errors/establishmentMissingError';
+import ForbiddenError from '~/errors/forbiddenError';
 import ResetLinkExpiredError from '~/errors/resetLinkExpiredError';
 import ResetLinkMissingError from '~/errors/resetLinkMissingError';
 import UnprocessableEntityError from '~/errors/unprocessableEntityError';
 import UserDeletedError from '~/errors/userDeletedError';
 import UserMissingError from '~/errors/userMissingError';
+import { auth } from '~/infra/auth';
 import config from '~/infra/config';
 import { logger } from '~/infra/logger';
 import { hasExpired } from '~/models/ResetLinkApi';
@@ -256,6 +260,83 @@ async function changeEstablishment(request: Request, response: Response) {
   });
 
   await signInToEstablishment(user, establishmentId, response);
+}
+
+/**
+ * Session-based equivalent of {@link changeEstablishment}.
+ *
+ * Requires a better-auth session cookie. Updates the active establishment
+ * stored on the session row via `auth.api.updateSession` — no JWT is
+ * issued, the response carries only the new establishment context.
+ *
+ * Legacy clients using `x-access-token` should keep calling the GET route.
+ */
+async function changeEstablishmentBySession(
+  request: Request,
+  response: Response
+): Promise<void> {
+  const cookieHeader = request.headers.cookie ?? '';
+  if (!cookieHeader.includes('zlv.session_token')) {
+    response.status(constants.HTTP_STATUS_METHOD_NOT_ALLOWED).json({
+      message:
+        'POST requires a session cookie; legacy clients should use GET'
+    });
+    return;
+  }
+
+  const session = await auth.api.getSession({
+    headers: fromNodeHeaders(request.headers)
+  });
+  if (!session) {
+    throw new AuthenticationMissingError();
+  }
+
+  const { user } = request as AuthenticatedRequest;
+  const establishmentId = request.params.establishmentId;
+
+  if (user.role !== UserRole.ADMIN && user.role !== UserRole.VISITOR) {
+    const authorised =
+      await userEstablishmentRepository.getAuthorizedEstablishments(user.id);
+    const authorisedIds = authorised
+      .filter((e) => e.hasCommitment)
+      .map((e) => e.establishmentId);
+    if (!authorisedIds.includes(establishmentId)) {
+      logger.warn('User tried to switch to unauthorised establishment', {
+        userId: user.id,
+        requestedEstablishment: establishmentId,
+        authorisedEstablishments: authorisedIds
+      });
+      throw new ForbiddenError();
+    }
+  }
+
+  const establishment = await establishmentRepository.get(establishmentId);
+  if (!establishment) {
+    throw new EstablishmentMissingError(establishmentId);
+  }
+
+  // better-auth's update-session route accepts a flat record of session
+  // additional fields. `activeEstablishmentId` is declared on the auth
+  // config (~/infra/auth.ts), so it's a valid update target.
+  await auth.api.updateSession({
+    headers: fromNodeHeaders(request.headers),
+    body: { activeEstablishmentId: establishmentId }
+  });
+
+  let effectiveGeoCodes: string[] | undefined;
+  if (user.role !== UserRole.ADMIN && user.role !== UserRole.VISITOR) {
+    const userPerimeter = await userPerimeterRepository.get(user.id);
+    effectiveGeoCodes = await filterGeoCodesByPerimeter(
+      establishment.geoCodes,
+      userPerimeter,
+      establishment.siren
+    );
+  }
+
+  response.status(constants.HTTP_STATUS_OK).json({
+    establishment,
+    effectiveGeoCodes
+  });
 }
 
 async function get(request: Request, response: Response) {
@@ -502,5 +583,6 @@ export default {
   resetPassword,
   resetPasswordSchema,
   resetPasswordValidators,
-  changeEstablishment
+  changeEstablishment,
+  changeEstablishmentBySession
 };

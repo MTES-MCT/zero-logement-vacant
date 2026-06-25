@@ -28,6 +28,11 @@ from .assets import production_dbt
 
 from .assets.ban.sync_owners import sync_owners_ban_addresses
 from .assets.ban.sync_housings import sync_housings_ban_addresses
+from .assets.lovac.owner_housing_locations import (
+    lovac_owner_ban_backfill,
+    lovac_owner_housing_location_quality_check,
+    lovac_owner_housing_locations,
+)
 from .resources.ban_config import ban_config_resource
 from .resources.database_resources import psycopg2_connection_resource
 
@@ -112,11 +117,27 @@ ban_daily_sync_schedule = ScheduleDefinition(
     description="Daily BAN sync at 03:00 UTC. Starts STOPPED — enable via Dagster UI after backfill validation.",
 )
 
+lovac_post_import_enrichment_job = define_asset_job(
+    name="lovac_post_import_enrichment",
+    selection=AssetSelection.assets(
+        lovac_owner_ban_backfill,
+        lovac_owner_housing_locations,
+        lovac_owner_housing_location_quality_check,
+    ),
+    description=(
+        "Post-import LOVAC enrichment: optional owner BAN backfill, "
+        "owner-housing relative-location calculation, and coverage check."
+    ),
+)
+
 # Load definitions with assets, resources, and schedule
 defs = Definitions(
     assets=[
         sync_owners_ban_addresses,
         sync_housings_ban_addresses,
+        lovac_owner_ban_backfill,
+        lovac_owner_housing_locations,
+        lovac_owner_housing_location_quality_check,
         *dwh_assets,  # This already includes setup_external_schema and import_all_external_sources
         *dbt_analytics_assets,
         *clever_assets_assets,
@@ -144,5 +165,6 @@ defs = Definitions(
     jobs=[
         yearly_update_all_external_sources_job,
         ban_daily_sync_job,
+        lovac_post_import_enrichment_job,
     ],
 )

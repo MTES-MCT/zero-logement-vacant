@@ -1,240 +1,187 @@
-# Owner-Housing Distance Calculator
+# Owner-Housing Location Calculator
 
-Production scripts to calculate distances between property owners and their housing with intelligent address classification using the official French FANTOIR reference.
+Calculates the relative location of an owner to a housing unit and writes the
+result to `owners_housing`:
 
-## Scripts
+- `locprop_relative_ban`: application classification used by filters and exports.
+- `locprop_distance_ban`: distance in meters when both BAN addresses have coordinates.
 
-### `calculate_distances.py` - Distance Calculator
+This script is designed as a scoped LOVAC post-process. Do not use it as an
+unbounded production backfill.
 
-Calculates distances in kilometers between each property owner and their real estate assets, and updates relative geographic classifications with intelligent foreign country detection.
+## Classification Values
 
-**Features**:
+| Value | Meaning |
+| ----- | ------- |
+| `0` | Same address |
+| `1` | Same commune |
+| `2` | Same department |
+| `3` | Same region |
+| `4` | Owner in another metropolitan region |
+| `5` | Owner overseas |
+| `6` | Owner abroad |
+| `7` | Missing or unclassified information |
 
-- ✅ **Idempotent**: Can be run multiple times safely
-- ✅ **Progress tracking**: Real-time progress bar with tqdm
-- ✅ **Complete logging**: Timestamped logs in the `logs/` folder
-- ✅ **Force mode**: `--force` option to recalculate all data
-- ✅ **FANTOIR country detection**: Classification with official French reference
-- ✅ **Error handling**: Robust handling of missing data
-- ✅ **Parallel processing**: 6 workers by default (configurable up to 16-20)
-- ✅ **Batch processing**: 50k pairs per batch with 10k records per commit
-- ✅ **Optimized commits**: `synchronous_commit = off` for 2-5x faster writes
-- ✅ **Resume capability**: Automatic skip of already processed batches
+`locprop_distance_ban` can remain `NULL` legitimately when coordinates are
+missing. For this reason, default candidate selection is based on
+`locprop_relative_ban IS NULL`, not on the distance column.
 
-**Usage**:
+## Safety Rules
 
-```bash
-# Standard processing (only missing data)
-python calculate_distances.py --db-url "postgresql://user:pass@host:port/db"
+- `--data-file-year` is mandatory, for example `lovac-2026`.
+- Prefer `--establishment-id` or one or more `--geo-code` values for production
+  corrections.
+- `--dry-run` processes data and prints counters without writing.
+- `--num-workers` defaults to `1`; increase only after a small successful pilot.
+- `--limit` is deterministic and uses keyset pagination; it does not use
+  `ORDER BY RANDOM()`.
+- `--force` recalculates existing values inside the selected scope.
 
-# Force mode - complete recalculation
-python calculate_distances.py --force --db-url "postgresql://user:pass@host:port/db"
+French postal codes are authoritative for country detection. For example,
+`38200 VIENNE` is classified as France, not as a foreign city named Vienna.
 
-# Limited for testing
-python calculate_distances.py --limit 1000 --db-url "postgresql://user:pass@host:port/db"
-```
+## CLI Usage
 
-**Parameters**:
-
-- `--db-url`: PostgreSQL connection URL (required)
-- `--force`: Force recalculation of all existing data
-- `--limit`: Limit the number of owner-housing pairs to process
-
----
-
-### `country_detector.py` - FANTOIR Detection Module
-
-Address classification module using the **official French FANTOIR reference**.
-
-**FANTOIR Features**:
-
-- ✅ **152 official road types**: FANTOIR Section 2.5 "Nature de la voie" reference
-- ✅ **100% accuracy**: Tested on 10,000 diverse addresses
-- ✅ **DOM-TOM enhanced**: Postal codes 97xxx/98xxx and overseas territories
-- ✅ **French exceptions**: Handling of "Promenade des Anglais" and similar cases
-
-**Usage**:
-
-```python
-from country_detector import CountryDetector
-
-# Rule-based model with FANTOIR
-detector = CountryDetector(model_name="rule-based", use_llm=False)
-result = detector.detect_country("282 Cours Jean-Baptiste Clément, 31000 Toulouse")
-# Returns: "FRANCE"
-
-# Performance statistics
-stats = detector.get_statistics()
-print(f"Total processed: {stats['total_processed']}")
-print(f"France rate: {stats['france_count']}/{stats['total_processed']}")
-```
-
----
-
-### `statistics_report.py` - Statistics Report
-
-Generate a detailed report on coverage and distribution of calculated data.
-
-**Analyzed metrics**:
-
-- ✅ **Coverage rate**: Percentage of calculated data
-- ✅ **Classification distribution**: 7 types of geographic relationships
-- ✅ **Distance statistics**: Min, max, mean, median, standard deviation
-- ✅ **Quality analysis**: Missing data identification
-
-**Usage**:
+Run from this directory or pass the script path explicitly.
 
 ```bash
-python statistics_report.py --db-url "postgresql://user:pass@host:port/db"
+export DATABASE_URL="postgresql://user:pass@host:5432/db"
+
+# Dry-run for a few communes
+python calculate_distances.py \
+  --data-file-year lovac-2026 \
+  --geo-code 38200 \
+  --geo-code 38544 \
+  --dry-run \
+  --limit 500
+
+# Dry-run for one establishment
+python calculate_distances.py \
+  --data-file-year lovac-2026 \
+  --establishment-id "00000000-0000-0000-0000-000000000000" \
+  --dry-run
+
+# Write a targeted correction after reviewing the dry-run counters
+python calculate_distances.py \
+  --data-file-year lovac-2026 \
+  --establishment-id "00000000-0000-0000-0000-000000000000" \
+  --num-workers 1
+
+# Recalculate existing values in the same scope
+python calculate_distances.py \
+  --data-file-year lovac-2026 \
+  --establishment-id "00000000-0000-0000-0000-000000000000" \
+  --force \
+  --num-workers 1
 ```
 
----
+Parameters:
 
-## Geographic Classifications (7 values)
+| Parameter | Description |
+| --------- | ----------- |
+| `--db-url` | PostgreSQL URL. Defaults to `DATABASE_URL`. |
+| `--data-file-year` | Required LOVAC cohort, for example `lovac-2026`. |
+| `--establishment-id` | Optional establishment UUID. Uses its `localities_geo_code`. |
+| `--geo-code` | Optional INSEE commune code. Can be repeated. |
+| `--dry-run` | Computes counters without updating `owners_housing`. |
+| `--limit` | Stops after N owner-housing pairs. |
+| `--force` | Recalculates existing rows in the selected scope. |
+| `--batch-size` | Number of pairs fetched per DB batch. Default: `50000`. |
+| `--num-workers` | Parallel DB update workers. Default: `1`. |
 
-1. **Same postal code** - Owner and housing in the same municipality
-2. **Same department** - Identical departments
-3. **Same region** - Identical regions
-4. **Owner in mainland** - Different regions, owner in mainland France
-5. **Owner overseas** - Different regions, owner in DOM-TOM
-6. **Foreign country detected** - **FANTOIR detection**: owner or housing abroad
-7. **Other French cases** - Default for French addresses or incomplete data
+## Dagster Usage
 
----
+The preferred production entry point is the Dagster job
+`lovac_post_import_enrichment`.
 
-## Integrated FANTOIR Reference
+The job contains three assets:
 
-The system uses the **official French FANTOIR reference** (DGFiP/INSEE):
+- `lovac_owner_ban_backfill`: optional owner BAN geocoding backfill. Dry-run
+  skips writes by default.
+- `lovac_owner_housing_locations`: runs this calculator.
+- `lovac_owner_housing_location_quality_check`: checks coverage of
+  `locprop_relative_ban`.
 
-- **152 official road types**: rue, avenue, boulevard, cours, etc.
-- **Standardized abbreviations**: r, av, bd, pl, crs, etc.
-- **Complete DOM-TOM**: Postal codes 97xxx/98xxx and territories
-- **Project consistency**: Same reference as `/server/src/utils/addressNormalization.ts`
+Example run config for a targeted dry-run:
 
-**FANTOIR Performance**:
-
-- ✅ **100% accuracy** on 10,000 test addresses
-- ✅ **0 false positives/negatives** on large dataset
-- ✅ **48k addresses/second** processing throughput
-
----
-
-## Installation
-
-### Prerequisites
-
-```bash
-# Create virtual environment
-python3 -m venv venv
-
-# Activate virtual environment
-source venv/bin/activate
-
-# Install dependencies
-pip install -r requirements.txt
+```yaml
+ops:
+  lovac_owner_ban_backfill:
+    config:
+      data_file_year: lovac-2026
+      dry_run: true
+  lovac_owner_housing_locations:
+    config:
+      data_file_year: lovac-2026
+      establishment_id: "00000000-0000-0000-0000-000000000000"
+      dry_run: true
+      limit: 500
+      num_workers: 1
+  lovac_owner_housing_location_quality_check:
+    config:
+      data_file_year: lovac-2026
+      establishment_id: "00000000-0000-0000-0000-000000000000"
+      min_coverage_ratio: 0.95
+      fail_on_low_coverage: false
 ```
 
-### Production Workflow
+For a real targeted correction, set `dry_run: false` only on
+`lovac_owner_housing_locations` after a successful dry-run. Keep
+`num_workers: 1` for the first write run.
 
-```bash
-# 1. Create required database indexes (IMPORTANT - do this first!)
-# Create a Knex migration following the pattern in SCRIPT_BEST_PRACTICES.md
-# Then run: yarn knex migrate:latest
+## Pre-Run SQL Checks
 
-# 2. Distance calculation with FANTOIR detection (normal mode)
-python calculate_distances.py --db-url "postgresql://user:pass@host:port/db"
-
-# 3. Complete recalculation (force mode)
-python calculate_distances.py --force --db-url "postgresql://user:pass@host:port/db"
-
-# 4. Generate statistical report
-python statistics_report.py --db-url "postgresql://user:pass@host:port/db"
-```
-
-**Performance Tips**:
-
-- Monitor PostgreSQL CPU usage during processing
-- Default 6 workers provide a safe baseline (40-60% CPU usage)
-- If CPU usage < 40%, consider increasing workers: `python calculate_distances.py --num-workers 12`
-- If CPU usage > 90%, reduce workers to avoid contention
-- Maximum recommended: 16-20 workers on powerful instances
-
----
-
-## Log Structure
-
-All logs are centralized in the `/logs` folder:
-
-```
-logs/
-├── distance_calculation_YYYYMMDD_HHMMSS.log    # calculate_distances.py
-└── statistics_report_YYYYMMDD_HHMMSS.log       # statistics_report.py
-```
-
----
-
-## Performance
-
-### FANTOIR Detection Performance
-
-| Metric              | Value                     |
-| ------------------- | ------------------------- |
-| **Accuracy**        | 100% (FANTOIR rule-based) |
-| **Throughput**      | 48,000 addresses/second   |
-| **False positives** | 0%                        |
-| **False negatives** | 0%                        |
-
-### Database Processing Performance
-
-| Configuration            | Value                                     |
-| ------------------------ | ----------------------------------------- |
-| **Workers (default)**    | 6 parallel threads (configurable)         |
-| **Batch size (pairs)**   | 50,000 pairs per processing batch         |
-| **Batch size (commits)** | 10,000 records per database commit        |
-| **Commit mode**          | Asynchronous (`synchronous_commit = off`) |
-| **Expected throughput**  | ~10,000-20,000 pairs/second               |
-| **CPU usage (target)**   | 40-60% with 6 workers, tune as needed     |
-
-### Required PostgreSQL Indexes
-
-**IMPORTANT**: The following indexes are required for optimal performance. Without them, processing time can increase by 10-100x.
-
-Create these indexes via Knex migration before running the script:
+Use these checks before and after a run. Replace the cohort and scope filter.
 
 ```sql
--- Owner addresses lookup (batch_get_address_data)
-CREATE INDEX IF NOT EXISTS idx_ban_addresses_owner_lookup
-ON ban_addresses(ref_id, address_kind)
-INCLUDE (postal_code, address, latitude, longitude)
-WHERE address_kind = 'Owner' AND postal_code IS NOT NULL;
-
--- Housing addresses lookup (batch_get_address_data)
-CREATE INDEX IF NOT EXISTS idx_ban_addresses_housing_lookup
-ON ban_addresses(ref_id, address_kind)
-INCLUDE (postal_code, address, latitude, longitude)
-WHERE address_kind = 'Housing' AND postal_code IS NOT NULL;
-
--- Update operations (update_database)
-CREATE INDEX IF NOT EXISTS idx_owners_housing_update
-ON owners_housing(owner_id, housing_id);
-
--- Filter unprocessed pairs (get_all_owner_housing_pairs)
-CREATE INDEX IF NOT EXISTS idx_owners_housing_distances
-ON owners_housing(owner_id, housing_id)
-WHERE locprop_distance_ban IS NULL OR locprop_relative_ban IS NULL;
+SELECT
+  COUNT(*) AS total_pairs,
+  COUNT(*) FILTER (WHERE oh.locprop_relative_ban IS NULL) AS missing_relative,
+  COUNT(*) FILTER (WHERE oh.locprop_relative_ban IS NOT NULL) AS classified,
+  COUNT(*) FILTER (WHERE oba.ref_id IS NULL) AS missing_owner_ban,
+  COUNT(*) FILTER (WHERE hba.ref_id IS NULL) AS missing_housing_ban
+FROM owners_housing oh
+JOIN fast_housing h
+  ON h.id = oh.housing_id
+ AND h.geo_code = oh.housing_geo_code
+LEFT JOIN ban_addresses oba
+  ON oba.ref_id = oh.owner_id
+ AND oba.address_kind = 'Owner'
+LEFT JOIN ban_addresses hba
+  ON hba.ref_id = oh.housing_id
+ AND hba.address_kind = 'Housing'
+WHERE oh.rank >= 1
+  AND 'lovac-2026' = ANY(h.data_file_years)
+  AND h.geo_code = ANY(ARRAY['38200']::text[]);
 ```
 
-**Migration file**: Create a migration in `/server/db/migrations/` following the pattern in [SCRIPT_BEST_PRACTICES.md](../../../docs/SCRIPT_BEST_PRACTICES.md#index-sql-pour-optimiser-les-performances)
+## Required Indexes
 
----
+The migration
+`server/src/infra/database/migrations/20260625130000_owner-housing-location-postprocess-indexes.ts`
+adds:
 
-## Database Schema
+- `fast_housing_data_file_years_gin_idx` on `fast_housing.data_file_years`.
+- `idx_owners_housing_distances` partial index on
+  `(owner_id, housing_id, housing_geo_code)` where `rank >= 1` and
+  `locprop_relative_ban IS NULL`.
 
-The scripts update the following fields in the database:
+Run migrations before a production write.
 
-**`owners_housing` table**:
+## Test Procedure
 
-- `owner_housing_distance_km`: Distance in kilometers
-- `owner_housing_relative_address`: Geographic classification (1-7)
+1. Run unit tests:
 
-Both fields are nullable and calculated on demand.
+   ```bash
+   pytest test_calculate_distances.py -q
+   ```
+
+2. Run a local or staging dry-run with `--limit`.
+
+3. Compare pre-run SQL counters with the dry-run report.
+
+4. Run a small write pilot with `--limit` and `--num-workers 1`.
+
+5. Re-run the SQL counters and verify that `missing_relative` decreased.
+
+6. Run the full targeted scope only after the pilot is correct.

@@ -17,7 +17,8 @@ Run tests with:
 import pytest
 import math
 from unittest.mock import Mock, patch, MagicMock
-from calculate_distances import DistanceCalculator
+from calculate_distances import DistanceCalculator, LocationScope
+from country_detector import CountryDetector
 
 
 class TestHaversineDistance:
@@ -137,6 +138,8 @@ class TestCountryDetection:
         with patch('calculate_distances.CountryDetector'):
             calc = Mock(spec=DistanceCalculator)
             calc.country_detector = Mock()
+            calc.country_cache = {}
+            calc.has_explicit_french_postal_code = DistanceCalculator.has_explicit_french_postal_code
             calc.detect_country_simple = DistanceCalculator.detect_country_simple.__get__(calc)
             return calc
 
@@ -160,6 +163,19 @@ class TestCountryDetection:
         result = calculator.detect_country_simple('10 Downing Street, London SW1A 2AA')
         assert result == 'FOREIGN'
 
+    def test_french_postal_code_beats_ambiguous_foreign_city(self):
+        """A French postal code should beat ambiguous city names like Vienne."""
+        detector = CountryDetector(model_name='rule-based', use_llm=False)
+
+        assert detector.detect_country('38200 VIENNE') == 'FRANCE'
+        assert detector.detect_country('12 RUE DES CLERCS 38200 VIENNE') == 'FRANCE'
+
+    def test_distance_calculator_treats_french_postal_code_as_france(self, calculator):
+        """DistanceCalculator should not delegate French postal codes to city-name detection."""
+        calculator.country_detector.detect_country.return_value = 'FOREIGN'
+
+        assert calculator.detect_country_simple('38200 VIENNE') == 'FRANCE'
+
     def test_detection_error_defaults_to_france(self, calculator):
         """Detection errors should default to FRANCE."""
         calculator.country_detector.detect_country.side_effect = Exception('Detection failed')
@@ -175,19 +191,10 @@ class TestProcessSinglePair:
         """Create a DistanceCalculator instance for testing."""
         with patch('calculate_distances.CountryDetector'):
             calc = Mock(spec=DistanceCalculator)
-            calc.stats = {
-                'missing_both_data': 0,
-                'missing_owner_data': 0,
-                'missing_housing_data': 0,
-                'addresses_with_coords': 0,
-                'addresses_without_coords': 0,
-                'france_detected': 0,
-                'foreign_detected': 0,
-                'distances_calculated': 0,
-                'geographic_rules_applied': 0
-            }
+            calc.stats = DistanceCalculator._empty_stats()
             calc.process_single_pair = DistanceCalculator.process_single_pair.__get__(calc)
             calc.haversine_distance = DistanceCalculator.haversine_distance
+            calc._has_coordinates = DistanceCalculator._has_coordinates
             calc.detect_country_simple = Mock(return_value='FRANCE')
             calc.calculate_french_geographic_rules = Mock(return_value=1)
             calc.log_classification = Mock()
@@ -196,8 +203,8 @@ class TestProcessSinglePair:
     def test_both_addresses_with_coordinates(self, calculator):
         """Test pair with both addresses having coordinates."""
         address_cache = {
-            ('owner123', 'Owner'): ('75001', '123 Rue de Rivoli', 48.8566, 2.3522, '75001'),
-            ('housing456', 'Housing'): ('75015', '456 Rue de Vaugirard', 48.8422, 2.2996, '75015')
+            ('owner123', 'Owner'): ('75001', '123 Rue de Rivoli', 48.8566, 2.3522, '75001', 'owner-ban'),
+            ('housing456', 'Housing'): ('75015', '456 Rue de Vaugirard', 48.8422, 2.2996, '75015', 'housing-ban')
         }
 
         distance, classification = calculator.process_single_pair('owner123', 'housing456', address_cache)
@@ -210,7 +217,7 @@ class TestProcessSinglePair:
     def test_missing_owner_data(self, calculator):
         """Test pair with missing owner data."""
         address_cache = {
-            ('housing456', 'Housing'): ('75015', '456 Rue de Vaugirard', 48.8422, 2.2996, '75015')
+            ('housing456', 'Housing'): ('75015', '456 Rue de Vaugirard', 48.8422, 2.2996, '75015', 'housing-ban')
         }
 
         distance, classification = calculator.process_single_pair('owner123', 'housing456', address_cache)
@@ -222,7 +229,7 @@ class TestProcessSinglePair:
     def test_missing_housing_data(self, calculator):
         """Test pair with missing housing data."""
         address_cache = {
-            ('owner123', 'Owner'): ('75001', '123 Rue de Rivoli', 48.8566, 2.3522, '75001')
+            ('owner123', 'Owner'): ('75001', '123 Rue de Rivoli', 48.8566, 2.3522, '75001', 'owner-ban')
         }
 
         distance, classification = calculator.process_single_pair('owner123', 'housing456', address_cache)
@@ -236,8 +243,8 @@ class TestProcessSinglePair:
         calculator.detect_country_simple = Mock(side_effect=lambda addr: 'FOREIGN' if 'London' in addr else 'FRANCE')
 
         address_cache = {
-            ('owner123', 'Owner'): ('SW1A', '10 Downing Street, London', None, None, None),
-            ('housing456', 'Housing'): ('75015', '456 Rue de Vaugirard', 48.8422, 2.2996, '75015')
+            ('owner123', 'Owner'): ('SW1A', '10 Downing Street, London', None, None, None, None),
+            ('housing456', 'Housing'): ('75015', '456 Rue de Vaugirard', 48.8422, 2.2996, '75015', 'housing-ban')
         }
 
         distance, classification = calculator.process_single_pair('owner123', 'housing456', address_cache)
@@ -249,8 +256,8 @@ class TestProcessSinglePair:
     def test_addresses_without_coordinates_but_french(self, calculator):
         """Test pair where addresses have no coordinates but are in France."""
         address_cache = {
-            ('owner123', 'Owner'): ('75001', '123 Rue de Rivoli', None, None, '75001'),
-            ('housing456', 'Housing'): ('75001', '456 Rue de Rivoli', None, None, '75001')
+            ('owner123', 'Owner'): ('75001', '123 Rue de Rivoli', None, None, '75001', 'owner-ban'),
+            ('housing456', 'Housing'): ('75001', '456 Rue de Rivoli', None, None, '75001', 'housing-ban')
         }
 
         distance, classification = calculator.process_single_pair('owner123', 'housing456', address_cache)
@@ -258,6 +265,28 @@ class TestProcessSinglePair:
         assert distance is None  # No coordinates, so no distance
         assert classification == 1  # Same postal code (75001)
         assert calculator.stats['geographic_rules_applied'] == 1
+
+    def test_same_ban_id_returns_same_address(self, calculator):
+        """Same BAN id should return app classification 0."""
+        address_cache = {
+            ('owner123', 'Owner'): ('75001', '123 Rue de Rivoli', 48.8566, 2.3522, '75001', 'ban-1'),
+            ('housing456', 'Housing'): ('75001', '123 Rue de Rivoli', 48.8566, 2.3522, '75001', 'ban-1')
+        }
+
+        _, classification = calculator.process_single_pair('owner123', 'housing456', address_cache)
+
+        assert classification == 0
+
+    def test_short_distance_returns_same_address(self, calculator):
+        """Distance below 50 meters should return app classification 0."""
+        address_cache = {
+            ('owner123', 'Owner'): ('75001', '123 Rue de Rivoli', 48.8566, 2.3522, '75001', 'owner-ban'),
+            ('housing456', 'Housing'): ('75001', '125 Rue de Rivoli', 48.8567, 2.3523, '75001', 'housing-ban')
+        }
+
+        _, classification = calculator.process_single_pair('owner123', 'housing456', address_cache)
+
+        assert classification == 0
 
 
 class TestBatchAddressData:
@@ -281,13 +310,13 @@ class TestBatchAddressData:
 
         # Mock cursor responses
         owner_rows = [
-            {'ref_id': 'owner1', 'postal_code': '75001', 'address': 'Addr 1', 'latitude': 48.86, 'longitude': 2.35, 'geo_code': '75001'},
-            {'ref_id': 'owner2', 'postal_code': '75002', 'address': 'Addr 2', 'latitude': 48.87, 'longitude': 2.34, 'geo_code': '75002'}
+            {'ref_id': 'owner1', 'postal_code': '75001', 'address': 'Addr 1', 'latitude': 48.86, 'longitude': 2.35, 'geo_code': '75001', 'ban_id': 'ban-owner-1'},
+            {'ref_id': 'owner2', 'postal_code': '75002', 'address': 'Addr 2', 'latitude': 48.87, 'longitude': 2.34, 'geo_code': '75002', 'ban_id': 'ban-owner-2'}
         ]
         housing_rows = [
-            {'ref_id': 'housing1', 'postal_code': '75011', 'address': 'Housing 1', 'latitude': 48.85, 'longitude': 2.38, 'geo_code': '75111'},
-            {'ref_id': 'housing2', 'postal_code': '75012', 'address': 'Housing 2', 'latitude': 48.84, 'longitude': 2.39, 'geo_code': '75112'},
-            {'ref_id': 'housing3', 'postal_code': '75013', 'address': 'Housing 3', 'latitude': 48.83, 'longitude': 2.36, 'geo_code': '75113'}
+            {'ref_id': 'housing1', 'postal_code': '75011', 'address': 'Housing 1', 'latitude': 48.85, 'longitude': 2.38, 'geo_code': '75111', 'ban_id': 'ban-housing-1'},
+            {'ref_id': 'housing2', 'postal_code': '75012', 'address': 'Housing 2', 'latitude': 48.84, 'longitude': 2.39, 'geo_code': '75112', 'ban_id': 'ban-housing-2'},
+            {'ref_id': 'housing3', 'postal_code': '75013', 'address': 'Housing 3', 'latitude': 48.83, 'longitude': 2.36, 'geo_code': '75113', 'ban_id': 'ban-housing-3'}
         ]
 
         calculator.cursor.execute = Mock()
@@ -330,21 +359,12 @@ class TestFunctionalEndToEnd:
         """Create a DistanceCalculator instance with minimal mocking."""
         with patch('calculate_distances.CountryDetector'):
             calc = Mock(spec=DistanceCalculator)
-            calc.stats = {
-                'missing_both_data': 0,
-                'missing_owner_data': 0,
-                'missing_housing_data': 0,
-                'addresses_with_coords': 0,
-                'addresses_without_coords': 0,
-                'france_detected': 0,
-                'foreign_detected': 0,
-                'distances_calculated': 0,
-                'geographic_rules_applied': 0
-            }
+            calc.stats = DistanceCalculator._empty_stats()
             calc.metro_regions = ['11', '84']
             calc.overseas_regions = ['01']
             calc.process_single_pair = DistanceCalculator.process_single_pair.__get__(calc)
             calc.haversine_distance = DistanceCalculator.haversine_distance
+            calc._has_coordinates = DistanceCalculator._has_coordinates
             calc.detect_country_simple = Mock(return_value='FRANCE')
             calc.calculate_french_geographic_rules = DistanceCalculator.calculate_french_geographic_rules.__get__(calc)
             calc.same_region = Mock(return_value=False)
@@ -362,8 +382,8 @@ class TestFunctionalEndToEnd:
         calculator.calculate_french_geographic_rules = Mock(return_value=1)
 
         address_cache = {
-            ('owner1', 'Owner'): ('75001', '1 Rue de Rivoli', 48.8606, 2.3376, '75001'),
-            ('housing1', 'Housing'): ('75001', '10 Rue de Rivoli', 48.8603, 2.3381, '75001')
+            ('owner1', 'Owner'): ('75001', '1 Rue de Rivoli', 48.8606, 2.3376, '75001', 'owner-ban'),
+            ('housing1', 'Housing'): ('75001', '10 Rue de Rivoli', 48.8616, 2.3386, '75001', 'housing-ban')
         }
 
         distance, classification = calculator.process_single_pair('owner1', 'housing1', address_cache)
@@ -380,8 +400,8 @@ class TestFunctionalEndToEnd:
         calculator.calculate_french_geographic_rules = Mock(return_value=4)
 
         address_cache = {
-            ('owner2', 'Owner'): ('75001', 'Paris Address', 48.8566, 2.3522, '75001'),
-            ('housing2', 'Housing'): ('69001', 'Lyon Address', 45.7640, 4.8357, '69001')
+            ('owner2', 'Owner'): ('75001', 'Paris Address', 48.8566, 2.3522, '75001', 'owner-ban'),
+            ('housing2', 'Housing'): ('69001', 'Lyon Address', 45.7640, 4.8357, '69001', 'housing-ban')
         }
 
         distance, classification = calculator.process_single_pair('owner2', 'housing2', address_cache)
@@ -398,8 +418,8 @@ class TestFunctionalEndToEnd:
         calculator.detect_country_simple = Mock(side_effect=lambda addr: 'FOREIGN' if 'London' in addr else 'FRANCE')
 
         address_cache = {
-            ('owner3', 'Owner'): ('SW1A', '10 Downing Street, London', None, None, None),
-            ('housing3', 'Housing'): ('75001', 'Paris Address', 48.8566, 2.3522, '75001')
+            ('owner3', 'Owner'): ('SW1A', '10 Downing Street, London', None, None, None, None),
+            ('housing3', 'Housing'): ('75001', 'Paris Address', 48.8566, 2.3522, '75001', 'housing-ban')
         }
 
         distance, classification = calculator.process_single_pair('owner3', 'housing3', address_cache)
@@ -413,7 +433,7 @@ class TestFunctionalEndToEnd:
         Expected: No distance, classification = 7 (default)
         """
         address_cache = {
-            ('housing4', 'Housing'): ('75001', 'Paris Address', 48.8566, 2.3522, '75001')
+            ('housing4', 'Housing'): ('75001', 'Paris Address', 48.8566, 2.3522, '75001', 'housing-ban')
         }
 
         distance, classification = calculator.process_single_pair('owner4', 'housing4', address_cache)
@@ -421,6 +441,102 @@ class TestFunctionalEndToEnd:
         assert distance is None
         assert classification == 7
         assert calculator.stats['missing_owner_data'] == 1
+
+
+class TestDatabaseUpdates:
+    """Test guarded persistence behavior."""
+
+    def test_update_database_dry_run_does_not_write(self):
+        calc = Mock(spec=DistanceCalculator)
+        calc.db_url = "postgresql://example"
+        calc.stats = DistanceCalculator._empty_stats()
+        calc.update_database = DistanceCalculator.update_database.__get__(calc)
+        calc._update_batch_worker = Mock()
+
+        updated = calc.update_database(
+            [
+                {
+                    "owner_id": "00000000-0000-0000-0000-000000000001",
+                    "housing_id": "00000000-0000-0000-0000-000000000002",
+                    "housing_geo_code": "38200",
+                    "distance": 0.123,
+                    "classification": 1,
+                }
+            ],
+            dry_run=True,
+        )
+
+        assert updated == 0
+        calc._update_batch_worker.assert_not_called()
+
+    def test_update_batch_filters_on_housing_geo_code(self):
+        calc = Mock(spec=DistanceCalculator)
+        calc._update_batch_worker = DistanceCalculator._update_batch_worker.__get__(calc)
+
+        cursor = Mock()
+        conn = Mock()
+        conn.cursor.return_value = cursor
+
+        with patch('calculate_distances.psycopg2.connect', return_value=conn), patch(
+            'calculate_distances.execute_values'
+        ) as execute_values:
+            _, updated, error = calc._update_batch_worker(
+                (
+                    0,
+                    [
+                        {
+                            "owner_id": "00000000-0000-0000-0000-000000000001",
+                            "housing_id": "00000000-0000-0000-0000-000000000002",
+                            "housing_geo_code": "38200",
+                            "distance": 0.123,
+                            "classification": 1,
+                        }
+                    ],
+                    "postgresql://example",
+                )
+            )
+
+        assert error is None
+        assert updated == 1
+        query = execute_values.call_args.args[1]
+        values = execute_values.call_args.args[2]
+        assert "oh.housing_geo_code = data.housing_geo_code::text" in query
+        assert values[0][-1] == "38200"
+
+
+class TestCandidateScope:
+    """Test candidate selection safeguards."""
+
+    def test_default_candidates_are_missing_relative_only(self):
+        calc = Mock(spec=DistanceCalculator)
+        calc.cursor = Mock()
+        calc.cursor.fetchone.return_value = {"count": 42}
+        calc._scope_sql = DistanceCalculator._scope_sql.__get__(calc)
+        calc.count_owner_housing_pairs = DistanceCalculator.count_owner_housing_pairs.__get__(calc)
+
+        count = calc.count_owner_housing_pairs(
+            LocationScope(data_file_year="lovac-2026", geo_codes=("38200",))
+        )
+
+        query = calc.cursor.execute.call_args.args[0]
+        params = calc.cursor.execute.call_args.args[1]
+        assert count == 42
+        assert "oh.locprop_relative_ban IS NULL" in query
+        assert "locprop_distance_ban IS NULL OR" not in query
+        assert params["data_file_year"] == "lovac-2026"
+        assert params["geo_codes"] == ["38200"]
+
+    def test_force_candidates_do_not_filter_missing_values(self):
+        calc = Mock(spec=DistanceCalculator)
+        calc.cursor = Mock()
+        calc.cursor.fetchone.return_value = {"count": 42}
+        calc._scope_sql = DistanceCalculator._scope_sql.__get__(calc)
+        calc.count_owner_housing_pairs = DistanceCalculator.count_owner_housing_pairs.__get__(calc)
+
+        calc.count_owner_housing_pairs(LocationScope(data_file_year="lovac-2026"), force=True)
+
+        query = calc.cursor.execute.call_args.args[0]
+        assert "locprop_relative_ban IS NULL" not in query
 
 
 class TestRegionDetection:

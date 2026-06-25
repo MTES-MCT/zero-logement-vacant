@@ -1,5 +1,5 @@
-import type { Insertable } from 'kysely';
 import { Knex } from 'knex';
+import type { Insertable } from 'kysely';
 
 import db from '~/infra/database';
 import type { DB } from '~/infra/database/db';
@@ -114,7 +114,8 @@ async function linkMany(
     }
 
     const rows: Insertable<DB['housingPrecisions']>[] = links.flatMap(
-      ({ housing, precisions }) => precisions.map(toHousingPrecisionInsert(housing))
+      ({ housing, precisions }) =>
+        precisions.map(toHousingPrecisionInsert(housing))
     );
 
     if (rows.length) {

@@ -24,7 +24,16 @@ export const configSchema = z.object({
     host: z.string().default('http://localhost:3001'),
     port: z.coerce.number().int().min(1).max(65535).default(3001),
     system: z.string().default('admin@zerologementvacant.beta.gouv.fr'),
-    frontendUrl: z.string().default('http://localhost:3000')
+    allowedOrigins: z
+      .string()
+      .min(1, 'ALLOWED_ORIGINS is required')
+      .transform((value) =>
+        value
+          .split(',')
+          .map((origin) => origin.trim())
+          .filter((origin) => origin.length > 0)
+      )
+      .pipe(z.array(z.url()).min(1))
   }),
   auth: z.object({
     secret: z
@@ -247,7 +256,11 @@ const config = configSchema.parse({
     host: env('HOST'),
     port: env('PORT'),
     system: env('SYSTEM_ACCOUNT'),
-    frontendUrl: env('WEBSITE_URL')
+    // Comma-separated list of origins allowed to call the API via CORS,
+    // e.g. `https://app.zlv.fr,https://staging.zlv.fr`. Replaces the
+    // single-origin WEBSITE_URL (renamed for clarity now that it accepts
+    // multiple values).
+    allowedOrigins: env('ALLOWED_ORIGINS')
   },
   auth: {
     secret: env('AUTH_SECRET'),

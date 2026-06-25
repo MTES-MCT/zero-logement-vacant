@@ -1,0 +1,12 @@
+{
+  "name": "@zerologementvacant/front-e2e-pw",
+  "version": "0.0.1",
+  "private": true,
+  "devDependencies": {
+    "@playwright/test": "1.49.1",
+    "@types/convict": "6.1.6",
+    "@types/node": "24.0.0",
+    "@zerologementvacant/models": "workspace:*",
+    "convict": "6.2.5"
+  }
+}

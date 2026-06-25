@@ -28,6 +28,9 @@
     },
     {
       "path": "./packages/factories"
+    },
+    {
+      "path": "./apps/front-e2e-pw"
     }
   ]
 }

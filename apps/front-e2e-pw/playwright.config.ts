@@ -1,6 +1,6 @@
 import { defineConfig, devices } from '@playwright/test';
 
-import config from './config';
+import { loadConfig } from './config';
 
 const isCI = !!process.env.CI;
 
@@ -14,7 +14,7 @@ export default defineConfig({
   workers: isCI ? 2 : undefined,
   reporter: isCI ? [['github'], ['html', { open: 'never' }]] : 'list',
   use: {
-    baseURL: config.baseURL,
+    baseURL: loadConfig().baseURL,
     // Trace on first retry — small enough that CI artifact size stays sane,
     // detailed enough to fully reconstruct any flaky failure in the trace
     // viewer (`npx playwright show-trace <path>`).

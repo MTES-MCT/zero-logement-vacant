@@ -1,49 +1,41 @@
-import convict from 'convict';
+import { z } from 'zod';
 
 /**
- * Env config for the Playwright pilot. Intentionally reuses the same
- * CYPRESS_* env vars the existing Cypress suite reads so the same .env
+ * Env config for the Playwright pilot. Intentionally reads the same
+ * CYPRESS_* env vars the existing Cypress suite uses, so the same .env
  * (or CI secret bundle) works for both — see `apps/front-e2e/config.ts`.
  * Rename to E2E_* once Cypress is decommissioned.
+ *
+ * `.transform()` projects the env-keyed input shape to camelCase output,
+ * so consumers read `config.api` / `config.baseURL`, not `config.CYPRESS_API`.
+ * `Config` is inferred from the schema — single source of truth.
+ *
+ * Parsing is deferred to `loadConfig()` (and memoized) so importing this
+ * module from tooling that doesn't have the env populated — e.g. the
+ * `@nx/playwright` plugin evaluating `playwright.config.ts` to infer
+ * per-spec targets — doesn't trip a `ZodError` at module load.
  */
-export interface Config {
-  api: string;
-  baseURL: string;
-  email: string;
-  password: string;
-}
+const schema = z
+  .object({
+    CYPRESS_API: z.string().url(),
+    CYPRESS_BASE_URL: z.string().url(),
+    CYPRESS_EMAIL: z.string().email(),
+    CYPRESS_PASSWORD: z.string().min(1)
+  })
+  .transform((env) => ({
+    api: env.CYPRESS_API,
+    baseURL: env.CYPRESS_BASE_URL,
+    email: env.CYPRESS_EMAIL,
+    password: env.CYPRESS_PASSWORD
+  }));
 
-const config = convict<Config>({
-  api: {
-    env: 'CYPRESS_API',
-    doc: 'The API URL',
-    format: String,
-    default: null,
-    nullable: false
-  },
-  baseURL: {
-    env: 'CYPRESS_BASE_URL',
-    doc: 'The base URL of the application under test',
-    format: String,
-    default: null,
-    nullable: false
-  },
-  email: {
-    env: 'CYPRESS_EMAIL',
-    doc: 'Email of the seeded test user',
-    format: String,
-    default: null,
-    sensitive: true,
-    nullable: false
-  },
-  password: {
-    env: 'CYPRESS_PASSWORD',
-    doc: 'Password of the seeded test user',
-    format: String,
-    default: null,
-    sensitive: true,
-    nullable: false
+export type Config = z.infer<typeof schema>;
+
+let cached: Config | undefined;
+
+export function loadConfig(): Config {
+  if (!cached) {
+    cached = schema.parse(process.env);
   }
-});
-
-export default config.get();
+  return cached;
+}

@@ -11516,10 +11516,9 @@ __metadata:
   resolution: "@zerologementvacant/front-e2e-pw@workspace:apps/front-e2e-pw"
   dependencies:
     "@playwright/test": "npm:1.49.1"
-    "@types/convict": "npm:6.1.6"
     "@types/node": "npm:24.0.0"
     "@zerologementvacant/models": "workspace:*"
-    convict: "npm:6.2.5"
+    zod: "npm:4.4.3"
   languageName: unknown
   linkType: soft
 

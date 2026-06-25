@@ -14,10 +14,12 @@ const fakeContext: AuthContextValue = {
   establishment: null,
   authorizedEstablishments: [],
   effectiveGeoCodes: undefined,
+  isAuthenticated: true,
   isLoading: false,
   signIn: vi.fn(),
   signOut: vi.fn(),
-  changeEstablishment: vi.fn()
+  changeEstablishment: vi.fn(),
+  refetch: vi.fn()
 };
 
 describe('useAuth', () => {

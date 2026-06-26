@@ -34,6 +34,7 @@ import data from '~/mocks/handlers/data';
 import { fromEstablishmentDTO } from '~/models/Establishment';
 import { RELATIVE_LOCATION_LABELS } from '~/models/HousingOwner';
 import { fromUserDTO } from '~/models/User';
+import { MockAuthProvider } from '~/test/auth';
 import { genAuthUser } from '~/test/fixtures';
 import configureTestStore from '~/utils/storeUtils';
 import HousingView from '~/views/Housing/HousingView';
@@ -94,7 +95,9 @@ describe('Housing view', () => {
     );
     render(
       <Provider store={store}>
-        <RouterProvider router={router} />
+        <MockAuthProvider options={{ user: auth, establishment }}>
+          <RouterProvider router={router} />
+        </MockAuthProvider>
       </Provider>
     );
   }

@@ -15,6 +15,7 @@ import * as yup from 'yup';
 
 import EstablishmentSearchableSelect from '~/components/establishment/EstablishmentSearchableSelect';
 import Image from '~/components/Image/Image';
+import { useOptionalAuth } from '~/hooks/useAuth';
 
 import building from '../../assets/images/building.svg';
 import AppLink from '../../components/_app/AppLink/AppLink';
@@ -59,6 +60,10 @@ const LoginView = () => {
   const { pathname } = useLocation();
   const navigate = useNavigate();
   const auth = useAppSelector((state) => state.authentication);
+  // When AuthProvider is mounted (auth-v2 flag ON), route the login through
+  // better-auth's cookie session. Otherwise fall back to the legacy Redux thunk.
+  const v2 = useOptionalAuth();
+  const [v2Error, setV2Error] = useState<string | null>(null);
 
   const [establishment, setEstablishment] = useState<Establishment | null>(
     null
@@ -76,7 +81,22 @@ const LoginView = () => {
     resolver: yupResolver(schema)
   });
 
-  function submitLoginForm(data: LoginSchema): void {
+  async function submitLoginForm(data: LoginSchema): Promise<void> {
+    if (v2 !== null) {
+      setV2Error(null);
+      try {
+        await v2.signIn(data.email, data.password);
+        navigate('/parc-de-logements');
+      } catch (error) {
+        setV2Error(
+          error instanceof Error
+            ? error.message
+            : 'Échec de l’authentification.'
+        );
+      }
+      return;
+    }
+
     dispatch(
       logIn({
         email: data.email,
@@ -110,11 +130,11 @@ const LoginView = () => {
       <Container maxWidth="xl" sx={{ py: 4 }}>
         <Grid container spacing={2} alignItems="center">
           <Grid size={{ xs: 12, md: 6 }}>
-            {auth.logIn.isError ? (
+            {auth.logIn.isError || v2Error ? (
               <Box data-testid="alert-error" sx={{ my: 2 }}>
                 <Alert
                   title="Erreur"
-                  description="Échec de l’authentification"
+                  description={v2Error ?? 'Échec de l’authentification'}
                   severity="error"
                 />
               </Box>

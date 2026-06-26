@@ -4,6 +4,7 @@ import {
   UserRole
 } from '@zerologementvacant/models';
 import schemas from '@zerologementvacant/schemas';
+import { NextFunction, Request, Response } from 'express';
 import Router from 'express-promise-router';
 import { array, number, object, string } from 'yup';
 
@@ -31,6 +32,7 @@ import config from '~/infra/config';
 import antivirusMiddleware from '~/middlewares/antivirus';
 import { hasRole, jwtCheck, userCheck } from '~/middlewares/auth';
 import fileTypeMiddleware from '~/middlewares/fileTypeMiddleware';
+import { sessionCheck } from '~/middlewares/session';
 import shapefileValidationMiddleware from '~/middlewares/shapefileValidation';
 import { upload } from '~/middlewares/upload';
 import validator from '~/middlewares/validator';
@@ -40,8 +42,37 @@ import sortApi from '~/models/SortApi';
 
 const router = Router();
 
-router.use(jwtCheck());
-router.use(userCheck());
+// Transition-window auth: prefer the better-auth cookie session; fall back to
+// the legacy JWT. `required: false` is what makes the fallback work — an
+// expired or revoked session leaves `request.user` unset (instead of throwing
+// a 401), so we can still try the JWT path before giving up.
+const sessionMiddleware = sessionCheck({ required: false });
+const jwtMiddleware = jwtCheck();
+const userMiddleware = userCheck();
+
+function jwtFallback(request: Request, response: Response, next: NextFunction) {
+  return jwtMiddleware(request, response, (err: unknown) => {
+    if (err) return next(err);
+    // userCheck is async; forward its rejection to next() since
+    // express-promise-router cannot observe this nested promise.
+    userMiddleware(request, response, next).catch(next);
+  });
+}
+
+router.use((request: Request, response: Response, next: NextFunction) => {
+  // Returning the promise lets express-promise-router forward any rejection
+  // (e.g. a session referencing a missing user/establishment) to the error
+  // handler.
+  return sessionMiddleware(request, response, (err: unknown) => {
+    if (err) return next(err);
+    // A valid session populates request.user; anything else (no session
+    // cookie, expired or revoked session) leaves it unset → try the JWT path.
+    if (request.user) {
+      return next();
+    }
+    return jwtFallback(request, response, next);
+  });
+});
 
 router.post(
   '/files',
@@ -444,6 +475,13 @@ router.get(
     params: object({ establishmentId: schemas.id })
   }),
   authController.changeEstablishment
+);
+router.post(
+  '/account/establishments/:establishmentId',
+  validator.validate({
+    params: object({ establishmentId: schemas.id })
+  }),
+  authController.changeEstablishmentBySession
 );
 
 /* Users */

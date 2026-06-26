@@ -21,6 +21,7 @@ import { HousingFiltersProvider } from '~/hooks/HousingFiltersContext';
 import data from '~/mocks/handlers/data';
 import { fromEstablishmentDTO } from '~/models/Establishment';
 import { fromUserDTO } from '~/models/User';
+import { MockAuthProvider } from '~/test/auth';
 import { factories } from '~/test/factories';
 import { genAuthUser } from '~/test/fixtures';
 import configureTestStore from '~/utils/storeUtils';
@@ -435,9 +436,13 @@ function renderView(options?: RenderViewOptions) {
 
   render(
     <Provider store={store}>
-      <HousingFiltersProvider>
-        <RouterProvider router={router} />
-      </HousingFiltersProvider>
+      <MockAuthProvider
+        options={{ user: renderAuth, establishment: renderEstablishment }}
+      >
+        <HousingFiltersProvider>
+          <RouterProvider router={router} />
+        </HousingFiltersProvider>
+      </MockAuthProvider>
     </Provider>
   );
 

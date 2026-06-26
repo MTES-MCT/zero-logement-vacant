@@ -2,18 +2,22 @@ import { constants } from 'http2';
 
 import { UserAccountDTO, UserRole } from '@zerologementvacant/models';
 import bcrypt from 'bcryptjs';
+import { fromNodeHeaders } from 'better-auth/node';
 import { Request, Response, type RequestHandler } from 'express';
 import { AuthenticatedRequest } from 'express-jwt';
 import jwt from 'jsonwebtoken';
 import { object, string } from 'yup';
 
 import AuthenticationFailedError from '~/errors/authenticationFailedError';
+import AuthenticationMissingError from '~/errors/authenticationMissingError';
 import EstablishmentMissingError from '~/errors/establishmentMissingError';
+import ForbiddenError from '~/errors/forbiddenError';
 import ResetLinkExpiredError from '~/errors/resetLinkExpiredError';
 import ResetLinkMissingError from '~/errors/resetLinkMissingError';
 import UnprocessableEntityError from '~/errors/unprocessableEntityError';
 import UserDeletedError from '~/errors/userDeletedError';
 import UserMissingError from '~/errors/userMissingError';
+import { auth } from '~/infra/auth';
 import config from '~/infra/config';
 import { logger } from '~/infra/logger';
 import { hasExpired } from '~/models/ResetLinkApi';
@@ -31,13 +35,10 @@ import resetLinkRepository from '~/repositories/resetLinkRepository';
 import userEstablishmentRepository from '~/repositories/user-establishment-repository';
 import userPerimeterRepository from '~/repositories/userPerimeterRepository';
 import userRepository from '~/repositories/userRepository';
-import ceremaService from '~/services/ceremaService';
-import {
-  verifyAccessRights,
-  accessErrorsToSuspensionCause
-} from '~/services/ceremaService/perimeterService';
 import { fetchUserKind } from '~/services/ceremaService/userKindService';
+import { refreshAuthorizedEstablishments } from '~/services/establishmentAuthService';
 import mailService from '~/services/mailService';
+import { isFeatureEnabled } from '~/services/posthogService';
 import {
   generateSimpleCode,
   isCodeExpired,
@@ -51,214 +52,18 @@ import {
 // TODO: remove get, updateAccount
 // because they shall be implemented in userController
 
-/**
- * Refresh authorized establishments for a user from Portail DF.
- * This is called at login to keep the users_establishments table in sync
- * with current Portail DF rights.
- *
- * Also verifies access rights (LOVAC access level + geographic perimeter)
- * and suspends user if rights are no longer valid.
- */
-async function refreshAuthorizedEstablishments(user: UserApi): Promise<void> {
-  try {
-    // Fetch current rights from Portail DF
-    const ceremaUsers = await ceremaService.consultUsers(user.email);
-
-    if (ceremaUsers.length === 0) {
-      logger.info('No Portail DF rights found for user at login', {
-        userId: user.id,
-        email: user.email
-      });
-      return;
-    }
-
-    // Filter users with valid LOVAC commitment
-    const ceremaUsersWithCommitment = ceremaUsers.filter(
-      (cu) => cu.hasCommitment
-    );
-    const establishmentSirens = ceremaUsersWithCommitment.map(
-      (cu) => cu.establishmentSiren
-    );
-
-    // Find all known establishments matching the SIRENs
-    const knownEstablishments = await establishmentRepository.find({
-      filters: { siren: establishmentSirens }
-    });
-
-    // Build authorized establishments list with access rights verification
-    const authorizedEstablishments: Array<{
-      establishmentId: string;
-      establishmentSiren: string;
-      hasCommitment: boolean;
-    }> = [];
-
-    const accessErrors: string[] = [];
-
-    for (const est of knownEstablishments) {
-      const ceremaUser = ceremaUsersWithCommitment.find(
-        (cu) =>
-          cu.establishmentSiren === est.siren || cu.establishmentSiren === '*'
-      );
-
-      if (ceremaUser) {
-        // Verify access rights for this establishment (pass SIREN for EPCI perimeter check)
-        const accessRights = await verifyAccessRights(
-          ceremaUser,
-          est.geoCodes,
-          est.siren
-        );
-
-        if (accessRights.isValid) {
-          authorizedEstablishments.push({
-            establishmentId: est.id,
-            establishmentSiren: est.siren,
-            hasCommitment: ceremaUser.hasCommitment
-          });
-        } else {
-          logger.warn(
-            'Access rights verification failed for establishment at login',
-            {
-              userId: user.id,
-              email: user.email,
-              establishmentId: est.id,
-              establishmentSiren: est.siren,
-              errors: accessRights.errors
-            }
-          );
-          accessErrors.push(...accessRights.errors);
-        }
-      }
-    }
-
-    // Check if user's current establishment lost access rights
-    if (user.establishmentId) {
-      const currentEstablishmentStillValid = authorizedEstablishments.some(
-        (e) => e.establishmentId === user.establishmentId
-      );
-
-      if (!currentEstablishmentStillValid && accessErrors.length > 0) {
-        // Suspend user if their current establishment lost access
-        const suspensionCause = accessErrorsToSuspensionCause([
-          ...new Set(accessErrors)
-        ] as any);
-
-        logger.warn('Suspending user at login due to lost access rights', {
-          userId: user.id,
-          email: user.email,
-          establishmentId: user.establishmentId,
-          suspensionCause
-        });
-
-        // Re-fetch user to get latest lastAuthenticatedAt (updated by signIn)
-        const currentUser = await userRepository.get(user.id);
-        if (currentUser) {
-          await userRepository.update({
-            ...currentUser,
-            suspendedAt: new Date().toJSON(),
-            suspendedCause: suspensionCause
-          });
-        }
-      }
-    }
-
-    // Get current authorized establishments for comparison
-    const currentAuthorized =
-      await userEstablishmentRepository.getAuthorizedEstablishments(user.id);
-    const currentIds = new Set(currentAuthorized.map((e) => e.establishmentId));
-    const newIds = new Set(
-      authorizedEstablishments.map((e) => e.establishmentId)
-    );
-
-    // Check if there are changes
-    const hasChanges =
-      currentIds.size !== newIds.size ||
-      [...currentIds].some((id) => !newIds.has(id)) ||
-      [...newIds].some((id) => !currentIds.has(id));
-
-    if (hasChanges) {
-      logger.info('Updating authorized establishments for user at login', {
-        userId: user.id,
-        email: user.email,
-        previousCount: currentAuthorized.length,
-        newCount: authorizedEstablishments.length,
-        previousIds: [...currentIds],
-        newIds: [...newIds]
-      });
-
-      // Update authorized establishments
-      await userEstablishmentRepository.setAuthorizedEstablishments(
-        user.id,
-        authorizedEstablishments
-      );
-
-      // Log multi-structure status
-      const isMultiStructure =
-        authorizedEstablishments.filter((e) => e.hasCommitment).length > 1;
-      if (isMultiStructure) {
-        logger.info('User identified as multi-structure at login', {
-          userId: user.id,
-          email: user.email,
-          authorizedEstablishmentsCount: authorizedEstablishments.length
-        });
-      }
-    } else {
-      logger.debug('No changes to authorized establishments for user', {
-        userId: user.id,
-        email: user.email
-      });
-    }
-
-    // Save user perimeter from Portail DF for filtering
-    // Use the perimeter from the user's current establishment
-    if (user.establishmentId) {
-      const currentEstablishment = knownEstablishments.find(
-        (est) => est.id === user.establishmentId
-      );
-      if (currentEstablishment) {
-        const currentCeremaUser = ceremaUsersWithCommitment.find(
-          (cu) =>
-            cu.establishmentSiren === currentEstablishment.siren ||
-            cu.establishmentSiren === '*'
-        );
-
-        if (currentCeremaUser?.perimeter) {
-          const perimeter = currentCeremaUser.perimeter;
-          await userPerimeterRepository.upsert({
-            userId: user.id,
-            geoCodes: perimeter.comm || [],
-            departments: perimeter.dep || [],
-            regions: perimeter.reg || [],
-            epci: perimeter.epci || [],
-            frEntiere: perimeter.fr_entiere || false,
-            updatedAt: new Date().toJSON()
-          });
-
-          logger.info('User perimeter saved from Portail DF', {
-            userId: user.id,
-            email: user.email,
-            frEntiere: perimeter.fr_entiere,
-            communesCount: perimeter.comm?.length || 0,
-            departmentsCount: perimeter.dep?.length || 0,
-            regionsCount: perimeter.reg?.length || 0,
-            epciCount: perimeter.epci?.length || 0
-          });
-        }
-      }
-    }
-  } catch (error) {
-    // Log error but don't fail login
-    logger.error('Failed to refresh authorized establishments at login', {
-      userId: user.id,
-      email: user.email,
-      error
-    });
-  }
-}
-
 const signIn: RequestHandler<never, unknown, SignInPayload, never> = async (
   request,
   response
 ): Promise<void> => {
+  const v2Enabled = await isFeatureEnabled('auth-v2', config.app.system);
+  if (v2Enabled) {
+    response
+      .status(constants.HTTP_STATUS_GONE)
+      .json({ message: 'Use /auth/sign-in/email' });
+    return;
+  }
+
   const payload = request.body;
 
   // Use getByEmailIncludingDeleted to be able to detect deleted users
@@ -464,6 +269,82 @@ async function changeEstablishment(request: Request, response: Response) {
   });
 
   await signInToEstablishment(user, establishmentId, response);
+}
+
+/**
+ * Session-based equivalent of {@link changeEstablishment}.
+ *
+ * Requires a better-auth session cookie. Updates the active establishment
+ * stored on the session row via `auth.api.updateSession` — no JWT is
+ * issued, the response carries only the new establishment context.
+ *
+ * Legacy clients using `x-access-token` should keep calling the GET route.
+ */
+async function changeEstablishmentBySession(
+  request: Request,
+  response: Response
+): Promise<void> {
+  const cookieHeader = request.headers.cookie ?? '';
+  if (!cookieHeader.includes('zlv.session_token')) {
+    response.status(constants.HTTP_STATUS_METHOD_NOT_ALLOWED).json({
+      message: 'POST requires a session cookie; legacy clients should use GET'
+    });
+    return;
+  }
+
+  const session = await auth.api.getSession({
+    headers: fromNodeHeaders(request.headers)
+  });
+  if (!session) {
+    throw new AuthenticationMissingError();
+  }
+
+  const { user } = request as AuthenticatedRequest;
+  const establishmentId = request.params.establishmentId;
+
+  if (user.role !== UserRole.ADMIN && user.role !== UserRole.VISITOR) {
+    const authorised =
+      await userEstablishmentRepository.getAuthorizedEstablishments(user.id);
+    const authorisedIds = authorised
+      .filter((e) => e.hasCommitment)
+      .map((e) => e.establishmentId);
+    if (!authorisedIds.includes(establishmentId)) {
+      logger.warn('User tried to switch to unauthorised establishment', {
+        userId: user.id,
+        requestedEstablishment: establishmentId,
+        authorisedEstablishments: authorisedIds
+      });
+      throw new ForbiddenError();
+    }
+  }
+
+  const establishment = await establishmentRepository.get(establishmentId);
+  if (!establishment) {
+    throw new EstablishmentMissingError(establishmentId);
+  }
+
+  // better-auth's update-session route accepts a flat record of session
+  // additional fields. `activeEstablishmentId` is declared on the auth
+  // config (~/infra/auth.ts), so it's a valid update target.
+  await auth.api.updateSession({
+    headers: fromNodeHeaders(request.headers),
+    body: { activeEstablishmentId: establishmentId }
+  });
+
+  let effectiveGeoCodes: string[] | undefined;
+  if (user.role !== UserRole.ADMIN && user.role !== UserRole.VISITOR) {
+    const userPerimeter = await userPerimeterRepository.get(user.id);
+    effectiveGeoCodes = await filterGeoCodesByPerimeter(
+      establishment.geoCodes,
+      userPerimeter,
+      establishment.siren
+    );
+  }
+
+  response.status(constants.HTTP_STATUS_OK).json({
+    establishment,
+    effectiveGeoCodes
+  });
 }
 
 async function get(request: Request, response: Response) {
@@ -710,5 +591,6 @@ export default {
   resetPassword,
   resetPasswordSchema,
   resetPasswordValidators,
-  changeEstablishment
+  changeEstablishment,
+  changeEstablishmentBySession
 };

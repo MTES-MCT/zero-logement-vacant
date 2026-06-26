@@ -23,7 +23,22 @@ export const configSchema = z.object({
     isReviewApp: z.stringbool().default(false),
     host: z.string().default('http://localhost:3001'),
     port: z.coerce.number().int().min(1).max(65535).default(3001),
-    system: z.string().default('admin@zerologementvacant.beta.gouv.fr')
+    system: z.string().default('admin@zerologementvacant.beta.gouv.fr'),
+    allowedOrigins: z
+      .string()
+      .min(1, 'ALLOWED_ORIGINS is required')
+      // Required in production (empty prefault fails min(1), forcing explicit
+      // config), defaulted to the dev frontend otherwise so existing dev/test/
+      // CI environments don't crash at startup. Mirrors the secret/db.url/s3
+      // prod-required pattern.
+      .prefault(isProduction ? '' : 'http://localhost:3000')
+      .transform((value) =>
+        value
+          .split(',')
+          .map((origin) => origin.trim())
+          .filter((origin) => origin.length > 0)
+      )
+      .pipe(z.array(z.url()).min(1))
   }),
   auth: z.object({
     secret: z
@@ -245,7 +260,12 @@ const config = configSchema.parse({
     isReviewApp: env('IS_REVIEW_APP'),
     host: env('HOST'),
     port: env('PORT'),
-    system: env('SYSTEM_ACCOUNT')
+    system: env('SYSTEM_ACCOUNT'),
+    // Comma-separated list of origins allowed to call the API via CORS,
+    // e.g. `https://app.zlv.fr,https://staging.zlv.fr`. Replaces the
+    // single-origin WEBSITE_URL (renamed for clarity now that it accepts
+    // multiple values).
+    allowedOrigins: env('ALLOWED_ORIGINS')
   },
   auth: {
     secret: env('AUTH_SECRET'),

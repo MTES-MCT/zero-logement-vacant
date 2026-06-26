@@ -10,7 +10,8 @@ const validRaw = {
     isReviewApp: 'false',
     host: 'http://localhost:3001',
     port: '3001',
-    system: 'admin@example.com'
+    system: 'admin@example.com',
+    allowedOrigins: 'http://localhost:3000'
   },
   auth: {
     secret: 'mysecret',

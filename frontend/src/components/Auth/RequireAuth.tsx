@@ -2,33 +2,54 @@ import { usePostHog } from 'posthog-js/react';
 import { type PropsWithChildren, useEffect } from 'react';
 import { Navigate, useLocation } from 'react-router';
 
-import { useFetchInterceptor } from '../../hooks/useFetchInterceptor';
-import { useUser } from '../../hooks/useUser';
+import { useOptionalAuth } from '~/hooks/useAuth';
+import { useFetchInterceptor } from '~/hooks/useFetchInterceptor';
+import { useUser } from '~/hooks/useUser';
 
 // eslint-disable-next-line @typescript-eslint/no-empty-object-type
 interface RequireAuthProps {}
 
 function RequireAuth(props: PropsWithChildren<RequireAuthProps>) {
-  const { establishment, isAuthenticated, isUsual, isVisitor, user } =
-    useUser();
+  // During the auth-v2 transition window, prefer the cookie-backed AuthContext
+  // when AuthProvider is mounted. Fall back to the legacy Redux-backed useUser
+  // for JWT clients. The dual-path is removed in Part B (post-cutover).
+  const v2 = useOptionalAuth();
+  const legacy = useUser();
   const location = useLocation();
   const posthog = usePostHog();
 
   useFetchInterceptor();
 
+  const v2Authenticated = v2 !== null && v2.user !== null;
+  const isAuthenticated = v2Authenticated || legacy.isAuthenticated;
+  // While the cookie-backed session is still being read, the v2 user is
+  // transiently null. Don't decide yet — redirecting here would bounce an
+  // authenticated user to /connexion on every page load until the session
+  // resolves.
+  const v2Loading = v2 !== null && v2.isLoading;
+
   useEffect(() => {
-    if (isUsual || isVisitor) {
-      if (user?.establishmentId) {
-        // Identify users by establishment to avoid tracking them individually
-        posthog.identify(user.establishmentId, {
-          name: establishment?.name
+    if (legacy.isUsual || legacy.isVisitor) {
+      if (legacy.establishment?.id) {
+        posthog.identify(legacy.establishment.id, {
+          name: legacy.establishment.name
         });
       }
     }
-  }, [isUsual, isVisitor, user, posthog, establishment?.name]);
+  }, [
+    legacy.isUsual,
+    legacy.isVisitor,
+    posthog,
+    legacy.establishment?.id,
+    legacy.establishment?.name
+  ]);
 
   if (isAuthenticated) {
     return props.children;
+  }
+
+  if (v2Loading) {
+    return null;
   }
 
   return (

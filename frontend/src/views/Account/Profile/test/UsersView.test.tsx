@@ -16,6 +16,7 @@ import { createMemoryRouter, RouterProvider } from 'react-router';
 import data from '~/mocks/handlers/data';
 import { fromEstablishmentDTO } from '~/models/Establishment';
 import { fromUserDTO } from '~/models/User';
+import { MockAuthProvider } from '~/test/auth';
 import configureTestStore from '~/utils/storeUtils';
 import UsersView from '~/views/Account/Profile/UsersView';
 
@@ -48,7 +49,11 @@ describe('Users view', () => {
 
     render(
       <Provider store={store}>
-        <RouterProvider router={router} />
+        <MockAuthProvider
+          options={{ user: options.auth, establishment: options.establishment }}
+        >
+          <RouterProvider router={router} />
+        </MockAuthProvider>
       </Provider>
     );
   }

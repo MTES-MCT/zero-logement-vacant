@@ -27,6 +27,25 @@ vi.mock('../../services/mailService', () => ({
 
 vi.mock('../../services/ceremaService/mockCeremaService');
 
+// Mock posthogService — default: auth-v2 flag is OFF so existing tests
+// exercise the legacy signIn path. Individual tests can flip it per-call
+// via `mockResolvedValueOnce(true)`.
+vi.mock('../../services/posthogService', () => ({
+  isFeatureEnabled: vi.fn().mockResolvedValue(false),
+  default: { isFeatureEnabled: vi.fn() }
+}));
+
+// Mock better-auth so we can simulate a session-cookie request without
+// going through the full better-auth sign-in flow (covered by Task 10).
+vi.mock('../../infra/auth', () => ({
+  auth: {
+    api: {
+      getSession: vi.fn(),
+      updateSession: vi.fn()
+    }
+  }
+}));
+
 // Mock config to enable 2FA for tests
 vi.mock('../../infra/config', async () => {
   const actual = await vi.importActual('../../infra/config');
@@ -50,6 +69,7 @@ import { subDays } from 'date-fns';
 import randomstring from 'randomstring';
 import request from 'supertest';
 
+import { auth } from '~/infra/auth';
 import { createServer } from '~/infra/server';
 import { ResetLinkApi } from '~/models/ResetLinkApi';
 import { SALT_LENGTH, toUserAccountDTO, UserApi } from '~/models/UserApi';
@@ -61,8 +81,10 @@ import {
   formatResetLinkApi,
   ResetLinks
 } from '~/repositories/resetLinkRepository';
+import { UsersEstablishments } from '~/repositories/user-establishment-repository';
 import { toUserDBO, Users } from '~/repositories/userRepository';
 import userRepository from '~/repositories/userRepository';
+import { isFeatureEnabled } from '~/services/posthogService';
 import {
   genEstablishmentApi,
   genNumber,
@@ -209,6 +231,41 @@ describe('Account controller', () => {
 
       // Cleanup
       await Users().where('id', deletedUser.id).delete();
+    });
+  });
+
+  describe('POST /authenticate — auth-v2 flag', () => {
+    const testRoute = '/authenticate';
+    const mockIsFeatureEnabled = vi.mocked(isFeatureEnabled);
+
+    afterEach(() => {
+      mockIsFeatureEnabled.mockReset();
+      // Restore default behaviour for the rest of the suite
+      mockIsFeatureEnabled.mockResolvedValue(false);
+    });
+
+    it('returns 410 Gone when auth-v2 flag is enabled', async () => {
+      mockIsFeatureEnabled.mockResolvedValueOnce(true);
+
+      const { body, status } = await request(url).post(testRoute).send({
+        email: user.email,
+        password: user.password
+      });
+
+      expect(status).toBe(constants.HTTP_STATUS_GONE);
+      expect(body).toMatchObject({ message: 'Use /auth/sign-in/email' });
+    });
+
+    it('proceeds normally when auth-v2 flag is disabled', async () => {
+      mockIsFeatureEnabled.mockResolvedValueOnce(false);
+
+      const { status } = await request(url).post(testRoute).send({
+        email: user.email,
+        password: 'WrongPassword123!'
+      });
+
+      // Reaches the legacy auth logic and fails with 401 (bogus password)
+      expect(status).toBe(constants.HTTP_STATUS_UNAUTHORIZED);
     });
   });
 
@@ -483,6 +540,150 @@ describe('Account controller', () => {
         actualUser.password
       );
       expect(passwordsMatch).toBeTrue();
+    });
+  });
+
+  describe('POST /account/establishments/:establishmentId', () => {
+    const mockGetSession = vi.mocked(auth.api.getSession);
+    const mockUpdateSession = vi.mocked(auth.api.updateSession);
+
+    beforeEach(() => {
+      mockGetSession.mockReset();
+      mockUpdateSession.mockReset();
+    });
+
+    it('should return 405 when posted without a session cookie', async () => {
+      const usualUser: UserApi = {
+        ...genUserApi(establishment.id),
+        role: UserRole.USUAL
+      };
+      await Users().insert(toUserDBO(usualUser));
+
+      const { status } = await request(url)
+        .post(`/account/establishments/${establishment.id}`)
+        .use(tokenProvider(usualUser));
+
+      expect(status).toBe(constants.HTTP_STATUS_METHOD_NOT_ALLOWED);
+
+      await Users().where('id', usualUser.id).delete();
+    });
+
+    it('should return 403 when a USUAL user requests an unauthorised establishment', async () => {
+      const usualUser: UserApi = {
+        ...genUserApi(establishment.id),
+        role: UserRole.USUAL
+      };
+      await Users().insert(toUserDBO(usualUser));
+
+      const otherEstablishment = genEstablishmentApi();
+      await Establishments().insert(formatEstablishmentApi(otherEstablishment));
+
+      mockGetSession.mockResolvedValue({
+        user: { id: usualUser.id },
+        session: {
+          id: 'sess-forbidden',
+          userId: usualUser.id,
+          activeEstablishmentId: establishment.id
+        }
+      } as any);
+
+      const { status } = await request(url)
+        .post(`/account/establishments/${otherEstablishment.id}`)
+        .set('Cookie', 'zlv.session_token=fake')
+        .use(tokenProvider(usualUser));
+
+      expect(status).toBe(constants.HTTP_STATUS_FORBIDDEN);
+      expect(mockUpdateSession).not.toHaveBeenCalled();
+
+      await Establishments().where('id', otherEstablishment.id).delete();
+      await Users().where('id', usualUser.id).delete();
+    });
+
+    it('should return 200 and update the session for an authorised USUAL user', async () => {
+      const usualUser: UserApi = {
+        ...genUserApi(establishment.id),
+        role: UserRole.USUAL
+      };
+      await Users().insert(toUserDBO(usualUser));
+
+      const targetEstablishment = genEstablishmentApi();
+      await Establishments().insert(
+        formatEstablishmentApi(targetEstablishment)
+      );
+
+      const now = new Date();
+      await UsersEstablishments().insert({
+        user_id: usualUser.id,
+        establishment_id: targetEstablishment.id,
+        establishment_siren: targetEstablishment.siren,
+        has_commitment: true,
+        created_at: now,
+        updated_at: now
+      });
+
+      mockGetSession.mockResolvedValue({
+        user: { id: usualUser.id },
+        session: {
+          id: 'sess-ok',
+          userId: usualUser.id,
+          activeEstablishmentId: establishment.id
+        }
+      } as any);
+      mockUpdateSession.mockResolvedValue({ session: {} } as any);
+
+      const { body, status } = await request(url)
+        .post(`/account/establishments/${targetEstablishment.id}`)
+        .set('Cookie', 'zlv.session_token=fake')
+        .use(tokenProvider(usualUser));
+
+      expect(status).toBe(constants.HTTP_STATUS_OK);
+      expect(body).toMatchObject({
+        establishment: { id: targetEstablishment.id }
+      });
+      expect(body).not.toHaveProperty('accessToken');
+      expect(mockUpdateSession).toHaveBeenCalledTimes(1);
+
+      await UsersEstablishments().where({ user_id: usualUser.id }).delete();
+      await Establishments().where('id', targetEstablishment.id).delete();
+      await Users().where('id', usualUser.id).delete();
+    });
+
+    it('should return 200 for an ADMIN switching to any establishment', async () => {
+      const adminUser: UserApi = {
+        ...genUserApi(establishment.id),
+        role: UserRole.ADMIN
+      };
+      await Users().insert(toUserDBO(adminUser));
+
+      const targetEstablishment = genEstablishmentApi();
+      await Establishments().insert(
+        formatEstablishmentApi(targetEstablishment)
+      );
+
+      mockGetSession.mockResolvedValue({
+        user: { id: adminUser.id },
+        session: {
+          id: 'sess-admin',
+          userId: adminUser.id,
+          activeEstablishmentId: establishment.id
+        }
+      } as any);
+      mockUpdateSession.mockResolvedValue({ session: {} } as any);
+
+      const { body, status } = await request(url)
+        .post(`/account/establishments/${targetEstablishment.id}`)
+        .set('Cookie', 'zlv.session_token=fake')
+        .use(tokenProvider(adminUser));
+
+      expect(status).toBe(constants.HTTP_STATUS_OK);
+      expect(body).toMatchObject({
+        establishment: { id: targetEstablishment.id }
+      });
+      expect(body.effectiveGeoCodes).toBeUndefined();
+      expect(mockUpdateSession).toHaveBeenCalledTimes(1);
+
+      await Establishments().where('id', targetEstablishment.id).delete();
+      await Users().where('id', adminUser.id).delete();
     });
   });
 });

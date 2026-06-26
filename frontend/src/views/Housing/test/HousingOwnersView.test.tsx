@@ -26,6 +26,7 @@ import { createMemoryRouter, RouterProvider } from 'react-router';
 import data from '~/mocks/handlers/data';
 import { fromEstablishmentDTO } from '~/models/Establishment';
 import { fromUserDTO } from '~/models/User';
+import { MockAuthProvider } from '~/test/auth';
 import { genAuthUser } from '~/test/fixtures';
 import config from '~/utils/config';
 import configureTestStore from '~/utils/storeUtils';
@@ -46,11 +47,9 @@ describe('HousingOwnersView', () => {
     data.owners.push(...options.owners);
     data.housingOwners.set(options.housing.id, options.housingOwners);
 
+    const establishment = genEstablishmentDTO();
     const store = configureTestStore({
-      auth: genAuthUser(
-        fromUserDTO(auth),
-        fromEstablishmentDTO(genEstablishmentDTO())
-      )
+      auth: genAuthUser(fromUserDTO(auth), fromEstablishmentDTO(establishment))
     });
     const router = createMemoryRouter(
       [
@@ -63,7 +62,9 @@ describe('HousingOwnersView', () => {
 
     render(
       <Provider store={store}>
-        <RouterProvider router={router} />
+        <MockAuthProvider options={{ user: auth, establishment }}>
+          <RouterProvider router={router} />
+        </MockAuthProvider>
       </Provider>
     );
   }

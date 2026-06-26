@@ -1,3 +1,6 @@
+import Box from '@mui/material/Box';
+import CircularProgress from '@mui/material/CircularProgress';
+import { useFeatureFlagEnabled } from 'posthog-js/react';
 import { lazy, useEffect } from 'react';
 import { hideLoading, showLoading } from 'react-redux-loading-bar';
 import {
@@ -7,12 +10,15 @@ import {
   RouterProvider
 } from 'react-router';
 
+import { AuthProvider } from '~/contexts/AuthContext';
 import { useAppDispatch, useAppSelector } from '~/hooks/useStore';
 import AuthenticatedLayout from '~/layouts/AuthenticatedLayout';
 import FeatureFlagLayout from '~/layouts/FeatureFlagLayout';
 import GuestLayout from '~/layouts/GuestLayout';
 import sentry from '~/utils/sentry';
 import NotFoundView from '~/views/NotFoundView';
+
+import './App.scss';
 
 const AccountCreationView = lazy(
   () => import('~/views/Account/AccountCreationView')
@@ -56,7 +62,6 @@ const OwnerView = lazy(() => import('~/views/Owner/OwnerView'));
 const ResourcesView = lazy(() => import('~/views/Resources/ResourcesView'));
 const StatusView = lazy(() => import('~/views/Resources/StatusView'));
 const SiteMapView = lazy(() => import('~/views/SiteMapView'));
-import './App.scss';
 
 const router = sentry.createBrowserRouter(
   createRoutesFromElements(
@@ -146,6 +151,7 @@ function App() {
       (query) => query?.status === 'pending'
     )
   );
+  const isV2 = useFeatureFlagEnabled('auth-v2');
 
   useEffect(() => {
     if (isSomeQueryPending) {
@@ -154,6 +160,29 @@ function App() {
       dispatch(hideLoading());
     }
   }, [dispatch, isSomeQueryPending]);
+
+  if (isV2 === undefined) {
+    return (
+      <Box
+        sx={{
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          height: '100vh'
+        }}
+      >
+        <CircularProgress />
+      </Box>
+    );
+  }
+
+  if (isV2) {
+    return (
+      <AuthProvider>
+        <RouterProvider router={router} />
+      </AuthProvider>
+    );
+  }
 
   return <RouterProvider router={router} />;
 }

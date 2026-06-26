@@ -53,6 +53,10 @@ fileignoreconfig:
   checksum: f543602319c43d5d38886e7ac48977ea0ac371164fe9390e16243847784ed596
 - filename: docs/superpowers/specs/2026-06-08-metabase-bar-charts-design.md
   checksum: 3b404f31883e5fc4f4171bcc3418127e4d60fc4636f8e8dae290423cff9e4284
+- filename: docs/superpowers/specs/2026-06-13-auth-hardening-design.md
+  checksum: bb7324a6ef5a5ec6f03a03e5c6dbb8fe56f2655d46a85292329265a48eb3ffe5
+- filename: docs/superpowers/specs/2026-06-13-reference-data-cache-design.md
+  checksum: f08020ffee6beeda135a04955eeeb4a9be0a8e11cf98e8cd18327b67848ca7e2
 - filename: frontend/.env.example
   checksum: b2a9a90b4638f73c5c3af34fe5e7e6bf5244b18f32f7c96fb35c48429836004d
 - filename: frontend/AGENTS.md
@@ -88,7 +92,7 @@ fileignoreconfig:
 - filename: scripts/bundle-metrics.mjs
   checksum: 591ac9d206504aca86efc0731cc283b2e2adb68b2d338cdc47d5c9263713f35f
 - filename: server/.env.example
-  checksum: 62a27c6b5ffc4f6f5f92d6e20a38bb897c14858cd2d1c61b30f64b002b76fe89
+  checksum: bea893bd9d0440813afe91d8b3a3a3fda48ca15f606fa2cb2aba3ba8fdc24e23
 - filename: server/AGENTS.md
   checksum: 7dcff7f92233af9d77b5756e39af3d2aa71cd7dab25d91c2a96bfb7cdd609bca
 - filename: server/src/controllers/campaignController.ts
@@ -107,18 +111,12 @@ fileignoreconfig:
   checksum: ef2763a2a7a64427aef3017f3ceeff80162ead0fbac9a5a329006d85d87a30d6
 - filename: server/src/infra/database/scripts/010-load-sder-sded.sql
   checksum: 780da83bced54995ae72c9f963c8bdeea7217b22793fd33c966bd8b28073acad
-- filename: server/src/infra/database/seeds/development/20240404234042_load-common-data.ts
-  checksum: b6d7770f379732225fceeb9c4c9251b47199691043a46d2a719983b6655f2a18
 - filename: server/src/infra/database/seeds/demo/20240404235443_users.ts
   checksum: a14a2aa9a61802abddd61da2e37d536f58e7a2864fb4158b838849abbf732696
+- filename: server/src/infra/database/seeds/development/20240404234042_load-common-data.ts
+  checksum: b6d7770f379732225fceeb9c4c9251b47199691043a46d2a719983b6655f2a18
 - filename: server/src/infra/database/seeds/development/20240404235443_users.ts
   checksum: 459ad7c52a09b1a5d885f0e13acd68a894b862470125529ecc28a4116c737df7
-- filename: server/src/test/factories/user.ts
-  checksum: 2098b2ba9038eb5b01f0290ed6edb8bf9e19b62fa695252547427817b579916f
-- filename: server/src/test/factories/campaign.ts
-  checksum: 4cd25601852b71cfa6154baf3d29b3299fd00807ad7ebe76e5bdc9092f25ed64
-- filename: server/src/test/factories/group.ts
-  checksum: ce650cc24f92b27f2b77be8c35ba0e4b26174672f4416e9867c05647b77c24fc
 - filename: server/src/models/test/DocumentApi.test.ts
   checksum: 1d816ff7b060a0100cbd90a60182bb7c3e230ab5761909b18871af6ced2a6efb
 - filename: server/src/repositories/documentRepository.ts
@@ -131,8 +129,16 @@ fileignoreconfig:
   checksum: 2005ee48d86de2c6e6e57b187862cdeaafcb9f0c49e9a82ec7031910957174e8
 - filename: server/src/services/document-upload.ts
   checksum: 0cb813413285efbcff1805170c8c6017b54d8708a0dab34a89ba08524ce9724b
+- filename: server/src/services/metabase/metabase-normalize.ts
+  checksum: 1bd122150d2d7806ebf7cb708750814288d528fad4b3a1a3da0e1f9ae91f2f5d
 - filename: server/src/services/test/document-upload.test.ts
   checksum: d72231d6b3e4620d79c61ac6470bce501b70780ca88a64b7e91d5510eab66fc5
+- filename: server/src/test/factories/campaign.ts
+  checksum: 4cd25601852b71cfa6154baf3d29b3299fd00807ad7ebe76e5bdc9092f25ed64
+- filename: server/src/test/factories/group.ts
+  checksum: ce650cc24f92b27f2b77be8c35ba0e4b26174672f4416e9867c05647b77c24fc
+- filename: server/src/test/factories/user.ts
+  checksum: 2098b2ba9038eb5b01f0290ed6edb8bf9e19b62fa695252547427817b579916f
 - filename: server/src/test/testFixtures.ts
   checksum: 85991d7ad1b2c8cb325947dfacc773689ff6bdf1b479d819725d7b2a878902be
 - filename: tools/check-env-example.sh
@@ -145,10 +151,6 @@ fileignoreconfig:
   checksum: 2304f4d7aae5a50399f1e841943d3644fa74b20d3eb23fac8bb13e0e6de95418
 - filename: tools/terraform/modules/front/main.tf
   checksum: d45082efb9f7475758beab81bb2d87f57bcb199d131648787d7541ecdfda3467
-- filename: docs/superpowers/specs/2026-06-13-reference-data-cache-design.md
-  checksum: f08020ffee6beeda135a04955eeeb4a9be0a8e11cf98e8cd18327b67848ca7e2
-- filename: server/src/services/metabase/metabase-normalize.ts
-  checksum: 1bd122150d2d7806ebf7cb708750814288d528fad4b3a1a3da0e1f9ae91f2f5d
 scopeconfig:
 - scope: node
 allowed_patterns:

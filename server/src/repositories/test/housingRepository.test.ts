@@ -2752,7 +2752,8 @@ describe('Housing repository', () => {
       await Housing().insert(formatHousingRecordApi(housing));
 
       const stream = housingRepository.stream({
-        filters: { localities: [geoCode] }
+        filters: { localities: [geoCode] },
+        includes: ['buildings']
       });
       const actual: HousingApi[] = [];
       for await (const h of stream) {

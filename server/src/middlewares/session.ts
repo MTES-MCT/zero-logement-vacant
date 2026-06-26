@@ -1,7 +1,6 @@
 import { UserRole } from '@zerologementvacant/models';
 import { fromNodeHeaders } from 'better-auth/node';
 import type { NextFunction, Request, Response } from 'express';
-import memoize from 'memoizee';
 
 import AuthenticationMissingError from '~/errors/authenticationMissingError';
 import EstablishmentMissingError from '~/errors/establishmentMissingError';
@@ -20,11 +19,6 @@ interface CheckOptions {
 }
 
 /**
- * Cache results for 5 minutes
- */
-const CACHE_MAX_AGE = 5 * 60 * 1000;
-
-/**
  * Better-auth session-based replacement for {@link userCheck}.
  *
  * Reads the better-auth session from the incoming cookies, then loads the
@@ -33,22 +27,6 @@ const CACHE_MAX_AGE = 5 * 60 * 1000;
  * Task 7 is trivial.
  */
 export function sessionCheck(options?: CheckOptions) {
-  const getUser = memoize(userRepository.get, {
-    promise: true,
-    primitive: true,
-    maxAge: CACHE_MAX_AGE
-  });
-  const getEstablishment = memoize(establishmentRepository.get, {
-    promise: true,
-    primitive: true,
-    maxAge: CACHE_MAX_AGE
-  });
-  const getUserPerimeter = memoize(userPerimeterRepository.get, {
-    promise: true,
-    primitive: true,
-    maxAge: CACHE_MAX_AGE
-  });
-
   return async (request: Request, _: Response, next: NextFunction) => {
     const session = await auth.api.getSession({
       headers: fromNodeHeaders(request.headers)
@@ -67,12 +45,16 @@ export function sessionCheck(options?: CheckOptions) {
       | string
       | null;
 
+    // Fetch fresh on every request — no caching. A suspended user, a revoked
+    // role or a removed establishment must take effect immediately, not after
+    // a cache window. (better-auth's 60s session cookieCache already bounds how
+    // stale the session row itself can be.)
     const [user, establishment, userPerimeter] = await Promise.all([
-      getUser(userId),
+      userRepository.get(userId),
       establishmentId
-        ? getEstablishment(establishmentId)
+        ? establishmentRepository.get(establishmentId)
         : Promise.resolve(null),
-      getUserPerimeter(userId)
+      userPerimeterRepository.get(userId)
     ]);
 
     if (!user) {

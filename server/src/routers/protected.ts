@@ -42,21 +42,35 @@ import sortApi from '~/models/SortApi';
 
 const router = Router();
 
-// Transition-window auth: prefer better-auth cookie session; fall back to legacy JWT.
-const sessionMiddleware = sessionCheck();
+// Transition-window auth: prefer the better-auth cookie session; fall back to
+// the legacy JWT. `required: false` is what makes the fallback work — an
+// expired or revoked session leaves `request.user` unset (instead of throwing
+// a 401), so we can still try the JWT path before giving up.
+const sessionMiddleware = sessionCheck({ required: false });
 const jwtMiddleware = jwtCheck();
 const userMiddleware = userCheck();
 
-router.use((request: Request, response: Response, next: NextFunction) => {
-  const cookieHeader = request.headers.cookie ?? '';
-  if (cookieHeader.includes('zlv.session_token')) {
-    return sessionMiddleware(request, response, next);
-  }
+function jwtFallback(request: Request, response: Response, next: NextFunction) {
   return jwtMiddleware(request, response, (err: unknown) => {
     if (err) return next(err);
     // userCheck is async; forward its rejection to next() since
     // express-promise-router cannot observe this nested promise.
     userMiddleware(request, response, next).catch(next);
+  });
+}
+
+router.use((request: Request, response: Response, next: NextFunction) => {
+  // Returning the promise lets express-promise-router forward any rejection
+  // (e.g. a session referencing a missing user/establishment) to the error
+  // handler.
+  return sessionMiddleware(request, response, (err: unknown) => {
+    if (err) return next(err);
+    // A valid session populates request.user; anything else (no session
+    // cookie, expired or revoked session) leaves it unset → try the JWT path.
+    if (request.user) {
+      return next();
+    }
+    return jwtFallback(request, response, next);
   });
 });
 

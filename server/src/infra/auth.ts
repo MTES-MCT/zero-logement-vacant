@@ -164,7 +164,10 @@ const authOptions = {
       }
     }
   },
-  trustedOrigins: ['http://localhost:19930'],
+  // Browser POSTs (sign-in/out) are CSRF-checked by better-auth against this
+  // list, which must therefore include the real frontend origin(s). Reuse the
+  // same allowlist that drives Express CORS so the two never drift apart.
+  trustedOrigins: config.app.allowedOrigins,
   advanced: {
     cookiePrefix: 'zlv'
   }
@@ -229,7 +232,12 @@ export const auth = betterAuth({
           image: user.image ?? null,
           firstName: user.firstName ?? null,
           lastName: user.lastName ?? null,
-          role
+          role,
+          suspendedAt:
+            user.suspendedAt instanceof Date
+              ? user.suspendedAt.toISOString()
+              : (user.suspendedAt ?? null),
+          suspendedCause: user.suspendedCause ?? null
         },
         session: {
           id: session.id,

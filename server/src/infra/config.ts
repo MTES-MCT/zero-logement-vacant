@@ -27,6 +27,11 @@ export const configSchema = z.object({
     allowedOrigins: z
       .string()
       .min(1, 'ALLOWED_ORIGINS is required')
+      // Required in production (empty prefault fails min(1), forcing explicit
+      // config), defaulted to the dev frontend otherwise so existing dev/test/
+      // CI environments don't crash at startup. Mirrors the secret/db.url/s3
+      // prod-required pattern.
+      .prefault(isProduction ? '' : 'http://localhost:3000')
       .transform((value) =>
         value
           .split(',')

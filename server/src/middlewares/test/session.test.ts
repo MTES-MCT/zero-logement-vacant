@@ -97,4 +97,26 @@ describe('sessionCheck', () => {
     expect(response.body.userId).toBe(user.id);
     expect(response.body.establishmentId).toBe(establishment.id);
   });
+
+  it('reads the user fresh on every request (no stale caching)', async () => {
+    const establishment = genEstablishmentApi();
+    const user = { ...genUserApi(establishment.id), role: UserRole.USUAL };
+    mockGetSession.mockResolvedValue({
+      user: { id: user.id },
+      session: { userId: user.id, activeEstablishmentId: establishment.id }
+    } as any);
+    mockEstablishmentGet.mockResolvedValue(establishment);
+    mockUserPerimeterGet.mockResolvedValue(null);
+    mockUserGet.mockResolvedValue(user);
+
+    // A single middleware instance, mirroring how the protected router
+    // instantiates sessionCheck() once at startup.
+    const app = buildApp(sessionCheck());
+    await request(app).get('/probe');
+    await request(app).get('/probe');
+
+    // Two requests → two fresh reads. A per-instance cache would collapse these
+    // into one, letting a suspended or role-changed user keep stale access.
+    expect(mockUserGet).toHaveBeenCalledTimes(2);
+  });
 });

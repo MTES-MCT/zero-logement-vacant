@@ -25,7 +25,9 @@ export function toAuthUserDTO(user: UserDTO): AuthUserDTO {
     name: [user.firstName, user.lastName].filter(Boolean).join(' '),
     firstName: user.firstName,
     lastName: user.lastName,
-    role: ROLE_ENUM_TO_STRING[user.role] ?? 'usual'
+    role: ROLE_ENUM_TO_STRING[user.role] ?? 'usual',
+    suspendedAt: user.suspendedAt,
+    suspendedCause: user.suspendedCause
   };
 }
 

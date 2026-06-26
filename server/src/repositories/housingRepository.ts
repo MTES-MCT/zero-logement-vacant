@@ -316,7 +316,7 @@ async function saveMany(
   });
 }
 
-type HousingInclude = 'owner' | 'campaigns' | 'perimeters' | 'precisions';
+type HousingInclude = 'owner' | 'campaigns' | 'perimeters' | 'precisions' | 'buildings';
 
 interface ListQueryOptions {
   filters: HousingFiltersApi;
@@ -382,7 +382,16 @@ function include(includes: HousingInclude[], filters?: HousingFiltersApi) {
         ) hp ON true`
         )
         .select('hp.precisions');
-    }
+    },
+    buildings: (query) =>
+      query
+        .leftJoin(
+          buildingTable,
+          `${housingTable}.building_id`,
+          `${buildingTable}.id`
+        )
+        .select(`${buildingTable}.class_dpe as building_class_dpe`)
+        .select(`${buildingTable}.dpe_date_at as building_dpe_date_at`)
   };
 
   const filterByOwner = [
@@ -484,14 +493,7 @@ export function ownerHousingJoinClause(query: any) {
 function fastListQuery(opts: ListQueryOptions) {
   return db
     .select(`${housingTable}.*`)
-    .select(`${buildingTable}.class_dpe as building_class_dpe`)
-    .select(`${buildingTable}.dpe_date_at as building_dpe_date_at`)
     .from(housingTable)
-    .leftJoin(
-      buildingTable,
-      `${housingTable}.building_id`,
-      `${buildingTable}.id`
-    )
     .modify(include(opts.includes ?? [], opts.filters))
     .modify(
       filteredQuery({
@@ -895,7 +897,15 @@ function filteredQuery(opts: FilteredQueryOptions) {
       });
     }
 
-    // buildings is always LEFT JOINed in fastListQuery — no additional join needed
+    if (filters.housingCounts?.length || filters.vacancyRates?.length) {
+      if (!opts.includes?.includes('buildings')) {
+        queryBuilder.join(
+          buildingTable,
+          `${housingTable}.building_id`,
+          `${buildingTable}.id`
+        );
+      }
+    }
 
     if (filters.housingCounts?.length) {
       queryBuilder.where((where) => {
@@ -1326,6 +1336,7 @@ export interface HousingDBO extends HousingRecordDBO {
   contact_count?: number;
   precisions?: Precision[];
   locprop_relative_ban?: number | null;
+  // Only populated when 'buildings' include is used
   building_class_dpe?: EnergyConsumption | null;
   building_dpe_date_at?: Date | string | null;
   // TODO: fix and fill this type

@@ -12,9 +12,10 @@ import type { EstablishmentDTO } from './EstablishmentDTO';
  *   transition) map at the boundary.
  * - No `establishmentId` on the user — the active establishment lives on
  *   `SessionDTO.session.activeEstablishmentId`.
- * - No phone / position / timePerWeek / activatedAt / suspendedAt / etc.
- *   Those are fetched on demand from `/api/account` or `/api/users/:id`
- *   by the views that need them.
+ * - No phone / position / timePerWeek / activatedAt / etc. Those are fetched
+ *   on demand from `/api/account` or `/api/users/:id` by the views that need
+ *   them. Suspension status (`suspendedAt` / `suspendedCause`) IS included so
+ *   the client can render the suspended-user warning without an extra fetch.
  */
 export type AuthRole = 'usual' | 'admin' | 'visitor';
 
@@ -26,6 +27,10 @@ export interface AuthUserDTO {
   firstName: string | null;
   lastName: string | null;
   role: AuthRole;
+  /** Suspension date, or null when the account is active. */
+  suspendedAt: string | null;
+  /** Suspension cause(s), or null when the account is active. */
+  suspendedCause: string | null;
 }
 
 /**

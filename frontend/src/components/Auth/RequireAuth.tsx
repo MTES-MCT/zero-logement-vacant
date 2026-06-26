@@ -22,6 +22,11 @@ function RequireAuth(props: PropsWithChildren<RequireAuthProps>) {
 
   const v2Authenticated = v2 !== null && v2.user !== null;
   const isAuthenticated = v2Authenticated || legacy.isAuthenticated;
+  // While the cookie-backed session is still being read, the v2 user is
+  // transiently null. Don't decide yet — redirecting here would bounce an
+  // authenticated user to /connexion on every page load until the session
+  // resolves.
+  const v2Loading = v2 !== null && v2.isLoading;
 
   useEffect(() => {
     if (legacy.isUsual || legacy.isVisitor) {
@@ -41,6 +46,10 @@ function RequireAuth(props: PropsWithChildren<RequireAuthProps>) {
 
   if (isAuthenticated) {
     return props.children;
+  }
+
+  if (v2Loading) {
+    return null;
   }
 
   return (

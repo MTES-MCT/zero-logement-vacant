@@ -73,7 +73,7 @@ async function exportCampaign(request: Request, response: Response) {
       establishmentIds: [auth.establishmentId],
       localities: effectiveGeoCodes
     },
-    includes: ['owner', 'campaigns', 'precisions']
+    includes: ['owner', 'campaigns', 'precisions', 'buildings']
   });
 
   const ownerStream = ownerRepository.stream({
@@ -134,7 +134,7 @@ async function exportGroup(request: Request, response: Response) {
       groupIds: [params.id],
       establishmentIds: [auth.establishmentId]
     },
-    includes: ['owner', 'campaigns', 'precisions']
+    includes: ['owner', 'campaigns', 'precisions', 'buildings']
   });
 
   await createGroupHousingWorksheet({

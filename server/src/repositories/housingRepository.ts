@@ -318,7 +318,7 @@ async function saveMany(
   });
 }
 
-type HousingInclude = 'owner' | 'campaigns' | 'perimeters' | 'precisions';
+type HousingInclude = 'owner' | 'campaigns' | 'perimeters' | 'precisions' | 'buildings';
 
 interface ListQueryOptions {
   filters: HousingFiltersApi;
@@ -384,7 +384,16 @@ function include(includes: HousingInclude[], filters?: HousingFiltersApi) {
         ) hp ON true`
         )
         .select('hp.precisions');
-    }
+    },
+    buildings: (query) =>
+      query
+        .leftJoin(
+          buildingTable,
+          `${housingTable}.building_id`,
+          `${buildingTable}.id`
+        )
+        .select(`${buildingTable}.class_dpe as building_class_dpe`)
+        .select(`${buildingTable}.dpe_date_at as building_dpe_date_at`)
   };
 
   const filterByOwner = [
@@ -893,11 +902,13 @@ function filteredQuery(opts: FilteredQueryOptions) {
     }
 
     if (filters.housingCounts?.length || filters.vacancyRates?.length) {
-      queryBuilder.join(
-        buildingTable,
-        `${housingTable}.building_id`,
-        `${buildingTable}.id`
-      );
+      if (!opts.includes?.includes('buildings')) {
+        queryBuilder.join(
+          buildingTable,
+          `${housingTable}.building_id`,
+          `${buildingTable}.id`
+        );
+      }
     }
 
     if (filters.housingCounts?.length) {
@@ -1329,6 +1340,9 @@ export interface HousingDBO extends HousingRecordDBO {
   contact_count?: number;
   precisions?: Precision[];
   locprop_relative_ban?: number | null;
+  // Only populated when 'buildings' include is used
+  building_class_dpe?: EnergyConsumption | null;
+  building_dpe_date_at?: Date | string | null;
   // TODO: fix and fill this type
 }
 
@@ -1422,9 +1436,9 @@ export const parseHousingApi = (housing: HousingDBO): HousingApi => ({
   subStatus: housing.sub_status,
   precisions: housing.precisions,
   actualEnergyConsumption: housing.actual_dpe,
-  energyConsumption: housing.energy_consumption_bdnb,
-  energyConsumptionAt: housing.energy_consumption_at_bdnb
-    ? new Date(housing.energy_consumption_at_bdnb)
+  energyConsumption: housing.building_class_dpe ?? null,
+  energyConsumptionAt: housing.building_dpe_date_at
+    ? new Date(housing.building_dpe_date_at)
     : null,
   occupancy: housing.occupancy,
   occupancyRegistered: housing.occupancy_source,

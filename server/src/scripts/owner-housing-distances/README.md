@@ -37,8 +37,19 @@ missing. For this reason, default candidate selection is based on
   `ORDER BY RANDOM()`.
 - `--force` recalculates existing values inside the selected scope.
 
-French postal codes are authoritative for country detection. For example,
-`38200 VIENNE` is classified as France, not as a foreign city named Vienna.
+Country detection is intentionally conservative. BAN geocoding is the source of
+authority for French addresses: when a `ban_addresses` row has coordinates, the
+script treats it as France and applies the French geographic rules. Text without
+coordinates is only used to detect explicit countries:
+
+- explicit foreign country -> `6`;
+- explicit France or French overseas territory -> French geographic rules;
+- no explicit country -> `7`.
+
+Postal codes, city names, street types, accents, departments, and
+French-looking words are not enough to classify an address as France. For
+example, `38200 VIENNE`, `10115 Berlin`, and `10115 Avenue Berlin` remain
+unclassified without BAN coordinates or an explicit country.
 
 ## CLI Usage
 

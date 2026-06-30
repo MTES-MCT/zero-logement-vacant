@@ -19,6 +19,11 @@ export interface OwnerDTO {
   kind: string | null;
   siren: string | null;
   username: string | null;
+  /**
+   * Whether this owner refused to be contacted. When true, the owner must not
+   * be contacted for any of their housings, whatever the establishment.
+   */
+  doNotContact: boolean | null;
   createdAt: string | null;
   updatedAt: string | null;
 }
@@ -33,6 +38,9 @@ export type OwnerUpdatePayload = Pick<
   'fullName' | 'birthDate' | 'email' | 'phone' | 'additionalAddress'
 > & {
   banAddress: AddressPayloadDTO | null;
+  // Optional: only the housing-owner edition modal sets it; other callers omit
+  // it and the existing value is preserved server-side.
+  doNotContact?: boolean | null;
 };
 
 export function getOwnerDisplayName(

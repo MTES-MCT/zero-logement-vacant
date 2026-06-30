@@ -366,6 +366,27 @@ describe('Owner API', () => {
       });
     });
 
+    it('should set the do not contact flag', async () => {
+      const payload: OwnerUpdatePayload = {
+        ...owner,
+        doNotContact: true
+      };
+
+      const { body, status } = await request(url)
+        .put(testRoute(owner.id))
+        .send(payload)
+        .set('Content-Type', 'application/json')
+        .use(tokenProvider(user));
+
+      expect(status).toBe(constants.HTTP_STATUS_OK);
+      expect(body).toMatchObject<Partial<OwnerDTO>>({
+        id: owner.id,
+        doNotContact: true
+      });
+      const actual = await Owners().where({ id: owner.id }).first();
+      expect(actual).toMatchObject({ do_not_contact: true });
+    });
+
     describe('validation', () => {
       const validId = uuidv4();
 
@@ -457,6 +478,53 @@ describe('Owner API', () => {
           email: payload.email,
           address: payload.banAddress.label,
           additionalAddress: payload.additionalAddress
+        },
+        created_by: user.id
+      });
+    });
+
+    it('should create an event when the do not contact flag changes', async () => {
+      const original = {
+        ...genOwnerApi(),
+        banAddress: null,
+        doNotContact: false
+      };
+      await Owners().insert(formatOwnerApi(original));
+
+      // Only the "do not contact" flag changes: every other field is identical.
+      const payload = {
+        fullName: original.fullName,
+        birthDate: original.birthDate,
+        phone: original.phone,
+        email: original.email,
+        banAddress: null,
+        additionalAddress: original.additionalAddress,
+        doNotContact: true
+      } satisfies OwnerUpdatePayload;
+
+      const { status } = await request(url)
+        .put(testRoute(original.id))
+        .send(payload)
+        .set('Content-Type', 'application/json')
+        .use(tokenProvider(user));
+
+      expect(status).toBe(constants.HTTP_STATUS_OK);
+      const event = await Events()
+        .join(OWNER_EVENTS_TABLE, 'event_id', 'id')
+        .where({
+          owner_id: original.id,
+          type: 'owner:updated'
+        })
+        .first();
+      expect(event).toMatchObject<Partial<EventRecordDBO<'owner:updated'>>>({
+        type: 'owner:updated',
+        next_old: {
+          name: original.fullName,
+          doNotContact: false
+        },
+        next_new: {
+          name: original.fullName,
+          doNotContact: true
         },
         created_by: user.id
       });

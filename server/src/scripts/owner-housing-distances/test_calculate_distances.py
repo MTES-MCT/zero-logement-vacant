@@ -139,17 +139,16 @@ class TestCountryDetection:
             calc = Mock(spec=DistanceCalculator)
             calc.country_detector = Mock()
             calc.country_cache = {}
-            calc.has_explicit_french_postal_code = DistanceCalculator.has_explicit_french_postal_code
             calc.detect_country_simple = DistanceCalculator.detect_country_simple.__get__(calc)
             return calc
 
-    def test_empty_address_returns_france(self, calculator):
-        """Empty or null addresses should default to FRANCE."""
-        assert calculator.detect_country_simple('') == 'FRANCE'
-        assert calculator.detect_country_simple('   ') == 'FRANCE'
-        assert calculator.detect_country_simple('nan') == 'FRANCE'
-        assert calculator.detect_country_simple('null') == 'FRANCE'
-        assert calculator.detect_country_simple('none') == 'FRANCE'
+    def test_empty_address_returns_unknown(self, calculator):
+        """Empty or null addresses should not be treated as French proof."""
+        assert calculator.detect_country_simple('') == 'UNKNOWN'
+        assert calculator.detect_country_simple('   ') == 'UNKNOWN'
+        assert calculator.detect_country_simple('nan') == 'UNKNOWN'
+        assert calculator.detect_country_simple('null') == 'UNKNOWN'
+        assert calculator.detect_country_simple('none') == 'UNKNOWN'
 
     def test_french_address_detected(self, calculator):
         """French addresses should be detected correctly."""
@@ -163,24 +162,108 @@ class TestCountryDetection:
         result = calculator.detect_country_simple('10 Downing Street, London SW1A 2AA')
         assert result == 'FOREIGN'
 
-    def test_french_postal_code_beats_ambiguous_foreign_city(self):
-        """A French postal code should beat ambiguous city names like Vienne."""
+    def test_french_like_address_without_ban_match_is_unknown(self):
+        """Text-only French-looking addresses are not authoritative enough."""
         detector = CountryDetector(model_name='rule-based', use_llm=False)
 
-        assert detector.detect_country('38200 VIENNE') == 'FRANCE'
-        assert detector.detect_country('12 RUE DES CLERCS 38200 VIENNE') == 'FRANCE'
+        assert detector.detect_country('38200 VIENNE') == 'UNKNOWN'
+        assert detector.detect_country('12 RUE DES CLERCS 38200 VIENNE') == 'UNKNOWN'
+        assert detector.detect_country('123 Rue de la Paix, 75001 Paris') == 'UNKNOWN'
 
-    def test_distance_calculator_treats_french_postal_code_as_france(self, calculator):
-        """DistanceCalculator should not delegate French postal codes to city-name detection."""
+    @pytest.mark.parametrize(
+        "address",
+        [
+            "10115 Berlin Allemagne",
+            "28013 Madrid Espagne",
+            "90210 Beverly Hills USA",
+            "98000 Monaco",
+            "10 Downing Street, London, Royaume-Uni",
+        ],
+    )
+    def test_explicit_foreign_country_beats_french_like_postal_code(self, address):
+        """Explicit foreign countries should win over French-like postal codes."""
+        detector = CountryDetector(model_name='rule-based', use_llm=False)
+
+        assert detector.detect_country(address) == 'FOREIGN'
+
+    @pytest.mark.parametrize(
+        "address",
+        [
+            "Berlin",
+            "10 Downing Street, London SW1A 2AA",
+            "98000 Monte Carlo",
+            "10115 Berlin",
+            "10115 Jean-Baptiste Clément Berlin",
+            "10115 A Berlin",
+            "10115 Avenue Berlin",
+            "10115 Main Street Berlin",
+            "123 A Main Street",
+        ],
+    )
+    def test_ambiguous_foreign_location_without_country_is_unknown(self, address):
+        """Foreign-looking addresses without an explicit country stay unclassified."""
+        detector = CountryDetector(model_name='rule-based', use_llm=False)
+
+        assert detector.detect_country(address) == 'UNKNOWN'
+
+    @pytest.mark.parametrize(
+        "address",
+        [
+            "Paris, France",
+            "1 rue de la Paix 75001 Paris France",
+            "97110 Pointe-à-Pitre Guadeloupe",
+            "98713 Papeete Polynésie française",
+            "97600 Mamoudzou Mayotte",
+        ],
+    )
+    def test_explicit_france_country_or_territory_is_france(self, address):
+        """Explicit France or French territory names are accepted as France."""
+        detector = CountryDetector(model_name='rule-based', use_llm=False)
+
+        assert detector.detect_country(address) == 'FRANCE'
+
+    @pytest.mark.parametrize(
+        "address",
+        [
+            "Avenue de l'Angleterre 75000 Paris",
+            "Avenue de l'Angleterre",
+            "Promenade des Anglais 06000 Nice",
+            "1 rue d'Italie",
+            "1 rue d'Italie 75013 Paris",
+        ],
+    )
+    def test_country_terms_inside_french_street_names_are_unknown(self, address):
+        """Street names that contain country words should not imply abroad."""
+        detector = CountryDetector(model_name='rule-based', use_llm=False)
+
+        assert detector.detect_country(address) == 'UNKNOWN'
+
+    @pytest.mark.parametrize(
+        "address",
+        [
+            "97110 Pointe-à-Pitre Guadeloupe",
+            "98713 Papeete Polynésie française",
+            "97600 Mamoudzou Mayotte",
+        ],
+    )
+    def test_french_overseas_postal_codes_stay_france(self, address):
+        """French overseas postal codes should still be classified as France."""
+        detector = CountryDetector(model_name='rule-based', use_llm=False)
+
+        assert detector.detect_country(address) == 'FRANCE'
+
+    def test_distance_calculator_delegates_country_detection(self, calculator):
+        """DistanceCalculator should keep country rules centralized in CountryDetector."""
         calculator.country_detector.detect_country.return_value = 'FOREIGN'
 
-        assert calculator.detect_country_simple('38200 VIENNE') == 'FRANCE'
+        assert calculator.detect_country_simple('38200 VIENNE') == 'FOREIGN'
+        calculator.country_detector.detect_country.assert_called_once_with('38200 VIENNE')
 
     def test_detection_error_defaults_to_france(self, calculator):
-        """Detection errors should default to FRANCE."""
+        """Detection errors should not make an address French by default."""
         calculator.country_detector.detect_country.side_effect = Exception('Detection failed')
         result = calculator.detect_country_simple('Some ambiguous address')
-        assert result == 'FRANCE'
+        assert result == 'UNKNOWN'
 
 
 class TestProcessSinglePair:
@@ -195,6 +278,7 @@ class TestProcessSinglePair:
             calc.process_single_pair = DistanceCalculator.process_single_pair.__get__(calc)
             calc.haversine_distance = DistanceCalculator.haversine_distance
             calc._has_coordinates = DistanceCalculator._has_coordinates
+            calc._country_from_address_data = DistanceCalculator._country_from_address_data.__get__(calc)
             calc.detect_country_simple = Mock(return_value='FRANCE')
             calc.calculate_french_geographic_rules = Mock(return_value=1)
             calc.log_classification = Mock()
@@ -252,6 +336,36 @@ class TestProcessSinglePair:
         assert distance is None
         assert classification == 6  # Foreign address rule
         assert calculator.stats['foreign_detected'] == 1
+
+    def test_unknown_owner_address(self, calculator):
+        """Ambiguous owner addresses should remain unclassified, not foreign."""
+        calculator.detect_country_simple = Mock(
+            side_effect=lambda addr: 'UNKNOWN' if 'Berlin' in addr else 'FRANCE'
+        )
+
+        address_cache = {
+            ('owner123', 'Owner'): ('10115', '10115 Berlin', None, None, None, None),
+            ('housing456', 'Housing'): ('75015', '456 Rue de Vaugirard', 48.8422, 2.2996, '75015', 'housing-ban')
+        }
+
+        distance, classification = calculator.process_single_pair('owner123', 'housing456', address_cache)
+
+        assert distance is None
+        assert classification == 7
+        assert calculator.stats['unknown_detected'] == 1
+
+    def test_address_without_coordinates_or_country_evidence_is_unclassified(self, calculator):
+        """A BAN row without coordinates or explicit country should not be assumed French."""
+        address_cache = {
+            ('owner123', 'Owner'): ('75001', None, None, None, '75001', None),
+            ('housing456', 'Housing'): ('75001', '456 Rue de Vaugirard', 48.8422, 2.2996, '75001', 'housing-ban')
+        }
+
+        distance, classification = calculator.process_single_pair('owner123', 'housing456', address_cache)
+
+        assert distance is None
+        assert classification == 7
+        assert calculator.stats['unknown_detected'] == 1
 
     def test_addresses_without_coordinates_but_french(self, calculator):
         """Test pair where addresses have no coordinates but are in France."""
@@ -365,6 +479,7 @@ class TestFunctionalEndToEnd:
             calc.process_single_pair = DistanceCalculator.process_single_pair.__get__(calc)
             calc.haversine_distance = DistanceCalculator.haversine_distance
             calc._has_coordinates = DistanceCalculator._has_coordinates
+            calc._country_from_address_data = DistanceCalculator._country_from_address_data.__get__(calc)
             calc.detect_country_simple = Mock(return_value='FRANCE')
             calc.calculate_french_geographic_rules = DistanceCalculator.calculate_french_geographic_rules.__get__(calc)
             calc.same_region = Mock(return_value=False)

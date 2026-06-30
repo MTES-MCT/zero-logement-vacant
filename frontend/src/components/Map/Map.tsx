@@ -186,7 +186,9 @@ function Map(props: MapProps) {
             id="included-perimeters"
             backgroundColor={props.hasPerimetersFilter ? '#b8fec9' : undefined}
             borderColor={props.hasPerimetersFilter ? '#18753c' : undefined}
-            isVisible={showPerimeters}
+            // Included perimeters keep showing (in green) even when "Afficher
+            // les périmètres" is off, so the user always sees what they kept.
+            isVisible={showPerimeters || includedPerimeters.length > 0}
             map={map}
             perimeters={includedPerimeters}
           />

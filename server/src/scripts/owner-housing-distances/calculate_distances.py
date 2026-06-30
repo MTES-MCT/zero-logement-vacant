@@ -13,7 +13,6 @@ import json
 import logging
 import math
 import os
-import re
 import sys
 from collections import Counter
 from dataclasses import asdict, dataclass, field
@@ -89,6 +88,7 @@ class DistanceCalculator:
             "geographic_rules_applied": 0,
             "france_detected": 0,
             "foreign_detected": 0,
+            "unknown_detected": 0,
             "errors": 0,
             "missing_owner_data": 0,
             "missing_housing_data": 0,
@@ -113,32 +113,13 @@ class DistanceCalculator:
         if self.conn:
             self.conn.close()
 
-    @staticmethod
-    def has_explicit_french_postal_code(address: str | None) -> bool:
-        if not address:
-            return False
-        for match in re.findall(r"\b\d{5}\b", str(address)):
-            dept = match[:3] if match.startswith(("97", "98")) else match[:2]
-            try:
-                if match.startswith(("97", "98")) or 1 <= int(dept) <= 95:
-                    return True
-            except ValueError:
-                continue
-        return False
-
     def detect_country_simple(self, address: str | None) -> str:
-        """Detect whether an address is French or foreign.
-
-        A French postal code is treated as authoritative because ambiguous city
-        names such as "Vienne" otherwise collide with foreign city names.
-        """
+        """Detect whether an address is French, foreign, or unknown."""
         if not address or not str(address).strip():
-            return "FRANCE"
+            return "UNKNOWN"
         normalized = str(address).strip()
         if normalized.lower() in ["nan", "null", "none"]:
-            return "FRANCE"
-        if self.has_explicit_french_postal_code(normalized):
-            return "FRANCE"
+            return "UNKNOWN"
         if normalized in self.country_cache:
             return self.country_cache[normalized]
 
@@ -146,7 +127,9 @@ class DistanceCalculator:
             result = self.country_detector.detect_country(normalized)
         except Exception as error:
             logging.debug("Country detection error for '%s': %s", normalized, error)
-            result = "FRANCE"
+            result = "UNKNOWN"
+        if result not in {"FRANCE", "FOREIGN", "UNKNOWN"}:
+            result = "UNKNOWN"
 
         self.country_cache[normalized] = result
         return result
@@ -383,6 +366,17 @@ class DistanceCalculator:
             and address_data[3] is not None
         )
 
+    def _country_from_address_data(self, address_data: tuple | None) -> str:
+        if not address_data:
+            return "UNKNOWN"
+        if self._has_coordinates(address_data):
+            return "FRANCE"
+
+        address = address_data[1]
+        if not address or not str(address).strip():
+            return "UNKNOWN"
+        return self.detect_country_simple(address)
+
     def process_single_pair(
         self, owner_id: str, housing_id: str, address_cache: dict | None = None
     ) -> tuple[Optional[float], int]:
@@ -439,24 +433,23 @@ class DistanceCalculator:
         else:
             self.stats["pairs_with_no_coords"] += 1
 
-        owner_country = "FRANCE"
-        housing_country = "FRANCE"
-        if owner_address:
-            if owner_has_coords:
-                self.stats["addresses_with_coords"] += 1
-            else:
-                self.stats["addresses_without_coords"] += 1
-                owner_country = self.detect_country_simple(owner_address)
-        if housing_address:
-            if housing_has_coords:
-                self.stats["addresses_with_coords"] += 1
-            else:
-                self.stats["addresses_without_coords"] += 1
-                housing_country = self.detect_country_simple(housing_address)
+        owner_country = self._country_from_address_data(owner_data)
+        housing_country = self._country_from_address_data(housing_data)
+        if owner_has_coords:
+            self.stats["addresses_with_coords"] += 1
+        else:
+            self.stats["addresses_without_coords"] += 1
+        if housing_has_coords:
+            self.stats["addresses_with_coords"] += 1
+        else:
+            self.stats["addresses_without_coords"] += 1
 
         if owner_country == "FOREIGN" or housing_country == "FOREIGN":
             self.stats["foreign_detected"] += 1
             return distance, 6
+        if owner_country == "UNKNOWN" or housing_country == "UNKNOWN":
+            self.stats["unknown_detected"] += 1
+            return distance, 7
         self.stats["france_detected"] += 1
 
         if owner_ban_id and housing_ban_id and owner_ban_id == housing_ban_id:

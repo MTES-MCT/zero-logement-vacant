@@ -178,7 +178,9 @@ function Map(props: MapProps) {
             id="excluded-perimeters"
             backgroundColor={props.hasPerimetersFilter ? '#ffe9e6' : undefined}
             borderColor={props.hasPerimetersFilter ? '#ce0500' : undefined}
-            isVisible={showPerimeters}
+            // Excluded perimeters keep showing (in red) even when "Afficher
+            // les périmètres" is off, mirroring the included ones in green.
+            isVisible={showPerimeters || excludedPerimeters.length > 0}
             map={map}
             perimeters={excludedPerimeters}
           />

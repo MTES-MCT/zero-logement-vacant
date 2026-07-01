@@ -33,10 +33,7 @@ function isLovacAccessValid(accesLovac: string | null): boolean {
  * - niveau_acces is 'lovac', OR
  * - the lovac boolean flag is true
  */
-function hasGroupLovacAccess(group: CeremaGroup | undefined): boolean {
-  if (!group) {
-    return false;
-  }
+function hasGroupLovacAccess(group: CeremaGroup): boolean {
   return group.niveau_acces === 'lovac' || group.lovac === true;
 }
 
@@ -73,7 +70,13 @@ export class CeremaService implements ConsultUserService {
       const auth = await this.authProvider.authenticate();
 
       const { data: userContent } = await axios.get<{
-        results: Array<{ email: string; structure: number; groupe: number }>;
+        results: Array<{
+          email: string;
+          structure: number;
+          groupe: number;
+          cgu_valide?: string | null;
+          date_expiration?: string | null;
+        }>;
       }>(`${auth.apiUrl}/api/utilisateurs`, {
         params: { email },
         headers: authHeaders(auth)
@@ -81,65 +84,76 @@ export class CeremaService implements ConsultUserService {
 
       if (userContent) {
         const users = await Promise.all(
-          userContent.results.map(
-            async (user: { email: any; structure: number; groupe: number }) => {
-              const { data: establishmentContent } = await axios.get<any>(
-                `${auth.apiUrl}/api/structures/${user.structure}`,
-                { headers: authHeaders(auth) }
-              );
+          userContent.results.map(async (user) => {
+            const { data: establishmentContent } = await axios.get<any>(
+              `${auth.apiUrl}/api/structures/${user.structure}`,
+              { headers: authHeaders(auth) }
+            );
 
-              // Fetch group info if available
-              let group: CeremaGroup | undefined;
-              let perimeter: CeremaPerimeter | undefined;
+            // Fetch group info if available
+            let group: CeremaGroup | undefined;
+            let perimeter: CeremaPerimeter | undefined;
 
-              if (user.groupe) {
-                group =
-                  (await fetchPortailDF<CeremaGroup>(
+            if (user.groupe) {
+              group =
+                (await fetchPortailDF<CeremaGroup>(
+                  auth,
+                  `/api/groupes/${user.groupe}/`
+                )) ?? undefined;
+
+              // Fetch perimeter if group has one
+              if (group?.perimetre) {
+                perimeter =
+                  (await fetchPortailDF<CeremaPerimeter>(
                     auth,
-                    `/api/groupes/${user.groupe}/`
+                    `/api/perimetres/${group.perimetre}/`
                   )) ?? undefined;
-
-                // Fetch perimeter if group has one
-                if (group?.perimetre) {
-                  perimeter =
-                    (await fetchPortailDF<CeremaPerimeter>(
-                      auth,
-                      `/api/perimetres/${group.perimetre}/`
-                    )) ?? undefined;
-                }
               }
-
-              // hasCommitment is true only if:
-              // 1. Structure has a valid LOVAC access date (future date)
-              // 2. AND user's group has LOVAC access (niveau_acces === 'lovac' OR lovac === true)
-              const structureHasLovac = isLovacAccessValid(
-                establishmentContent.acces_lovac
-              );
-              const groupHasLovac = hasGroupLovacAccess(group);
-
-              logger.debug('LOVAC access check', {
-                email: user.email,
-                structureId: user.structure,
-                accesLovac: establishmentContent.acces_lovac,
-                structureHasLovac,
-                groupId: user.groupe,
-                groupNiveauAcces: group?.niveau_acces,
-                groupLovac: group?.lovac,
-                groupHasLovac,
-                hasCommitment: structureHasLovac && groupHasLovac
-              });
-
-              const u: CeremaUser = {
-                email: user.email,
-                establishmentSiren: establishmentContent.siret.substring(0, 9),
-                hasAccount: true,
-                hasCommitment: structureHasLovac && groupHasLovac,
-                group,
-                perimeter
-              };
-              return u;
             }
-          )
+            const groupFetchFailed = !!user.groupe && !group;
+            const perimeterFetchFailed = !!group?.perimetre && !perimeter;
+
+            // hasCommitment is true only if:
+            // 1. Structure has a valid LOVAC access date (future date)
+            // 2. AND user's group has LOVAC access (niveau_acces === 'lovac' OR lovac === true)
+            const structureHasLovac = isLovacAccessValid(
+              establishmentContent.acces_lovac
+            );
+            const groupHasLovac = group
+              ? hasGroupLovacAccess(group)
+              : undefined;
+
+            logger.debug('LOVAC access check', {
+              email: user.email,
+              structureId: user.structure,
+              accesLovac: establishmentContent.acces_lovac,
+              structureHasLovac,
+              groupId: user.groupe,
+              groupNiveauAcces: group?.niveau_acces,
+              groupLovac: group?.lovac,
+              groupHasLovac,
+              groupFetchFailed,
+              perimeterFetchFailed,
+              hasCommitment: structureHasLovac && groupHasLovac === true
+            });
+
+            const u: CeremaUser = {
+              email: user.email,
+              establishmentSiren: establishmentContent.siret.substring(0, 9),
+              hasAccount: true,
+              hasCommitment: structureHasLovac && groupHasLovac === true,
+              cguValide: user.cgu_valide,
+              userExpiresAt: user.date_expiration,
+              structureAccessExpiresAt: establishmentContent.acces_lovac,
+              structureHasLovac,
+              groupHasLovac,
+              groupFetchFailed,
+              perimeterFetchFailed,
+              group,
+              perimeter
+            };
+            return u;
+          })
         );
         return users;
       }

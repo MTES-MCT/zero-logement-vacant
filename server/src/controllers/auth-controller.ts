@@ -77,33 +77,40 @@ async function refreshAuthorizedEstablishments(
       return user;
     }
 
-    const hasIncompleteCeremaDetails = ceremaUsers.some(
-      (ceremaUser) =>
-        ceremaUser.groupFetchFailed || ceremaUser.perimeterFetchFailed
+    const isIncompleteCeremaUser = (ceremaUser: (typeof ceremaUsers)[number]) =>
+      ceremaUser.groupFetchFailed || ceremaUser.perimeterFetchFailed;
+    const isCurrentEstablishmentCeremaUser = (
+      ceremaUser: (typeof ceremaUsers)[number]
+    ) =>
+      ceremaUser.establishmentSiren === establishment.siren ||
+      ceremaUser.establishmentSiren === '*';
+    const incompleteCeremaUsers = ceremaUsers.filter(isIncompleteCeremaUser);
+    const incompleteCurrentCeremaUsers = incompleteCeremaUsers.filter(
+      isCurrentEstablishmentCeremaUser
     );
-    if (hasIncompleteCeremaDetails) {
+
+    if (incompleteCurrentCeremaUsers.length > 0) {
       logger.warn(
-        'Skipping Portail DF synchronization with incomplete details',
+        'Skipping Portail DF synchronization with incomplete current establishment details',
         {
           userId: user.id,
           email: user.email,
-          failedEntries: ceremaUsers
-            .filter(
-              (ceremaUser) =>
-                ceremaUser.groupFetchFailed || ceremaUser.perimeterFetchFailed
-            )
-            .map((ceremaUser) => ({
-              establishmentSiren: ceremaUser.establishmentSiren,
-              groupFetchFailed: ceremaUser.groupFetchFailed,
-              perimeterFetchFailed: ceremaUser.perimeterFetchFailed
-            }))
+          failedEntries: incompleteCurrentCeremaUsers.map((ceremaUser) => ({
+            establishmentSiren: ceremaUser.establishmentSiren,
+            groupFetchFailed: ceremaUser.groupFetchFailed,
+            perimeterFetchFailed: ceremaUser.perimeterFetchFailed
+          }))
         }
       );
       return user;
     }
 
+    const syncableCeremaUsers = ceremaUsers.filter(
+      (ceremaUser) => !isIncompleteCeremaUser(ceremaUser)
+    );
+
     // Filter users with valid LOVAC commitment
-    const ceremaUsersWithCommitment = ceremaUsers.filter(
+    const ceremaUsersWithCommitment = syncableCeremaUsers.filter(
       (cu) => cu.hasCommitment
     );
     const establishmentSirens = ceremaUsersWithCommitment.map(
@@ -191,7 +198,7 @@ async function refreshAuthorizedEstablishments(
     const suspensionState = getCeremaSuspensionState(
       user,
       establishment,
-      ceremaUsers,
+      syncableCeremaUsers,
       accessErrors
     );
 
@@ -218,6 +225,22 @@ async function refreshAuthorizedEstablishments(
         previousSuspendedCause: user.suspendedCause,
         nextSuspendedCause: suspensionState.suspendedCause
       });
+    }
+
+    if (incompleteCeremaUsers.length > 0) {
+      logger.warn(
+        'Skipping authorized establishments synchronization with incomplete Portail DF details',
+        {
+          userId: user.id,
+          email: user.email,
+          failedEntries: incompleteCeremaUsers.map((ceremaUser) => ({
+            establishmentSiren: ceremaUser.establishmentSiren,
+            groupFetchFailed: ceremaUser.groupFetchFailed,
+            perimeterFetchFailed: ceremaUser.perimeterFetchFailed
+          }))
+        }
+      );
+      return refreshedUser;
     }
 
     // Get current authorized establishments for comparison

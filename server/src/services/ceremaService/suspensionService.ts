@@ -81,6 +81,21 @@ function computeCeremaSuspensionCauses(ceremaUser: CeremaUser): string[] {
   return causes;
 }
 
+function getSuspendedAt(
+  user: UserApi,
+  suspendedCause: string | null
+): string | null {
+  if (suspendedCause === null) {
+    return null;
+  }
+
+  if (user.suspendedCause === suspendedCause && user.suspendedAt) {
+    return user.suspendedAt;
+  }
+
+  return new Date().toJSON();
+}
+
 export function getCeremaSuspensionState(
   user: UserApi,
   currentEstablishment: EstablishmentApi | null,
@@ -109,12 +124,7 @@ export function getCeremaSuspensionState(
   ]);
   const nextCauses = unique([...manualCauses, ...ceremaCauses]);
   const suspendedCause = nextCauses.length > 0 ? nextCauses.join(', ') : null;
-  const suspendedAt =
-    suspendedCause === null
-      ? null
-      : user.suspendedCause === suspendedCause && user.suspendedAt
-        ? user.suspendedAt
-        : new Date().toJSON();
+  const suspendedAt = getSuspendedAt(user, suspendedCause);
 
   return {
     suspendedAt,

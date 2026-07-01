@@ -26,6 +26,7 @@ function configureTestStore(options?: Options) {
         isDsfrReady: true
       },
       authentication: {
+        authUser: options?.auth,
         logIn: options?.auth
           ? {
               data: options.auth,

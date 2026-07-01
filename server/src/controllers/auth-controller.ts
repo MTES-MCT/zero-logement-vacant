@@ -180,7 +180,7 @@ async function refreshAuthorizedEstablishments(
               errors: accessRights.errors
             }
           );
-          if (!user.establishmentId || est.id === user.establishmentId) {
+          if (est.id === establishment.id) {
             accessErrors.push(...accessRights.errors);
           }
         }

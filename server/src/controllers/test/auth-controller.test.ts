@@ -65,6 +65,11 @@ import { UsersEstablishments } from '~/repositories/user-establishment-repositor
 import { toUserDBO, Users } from '~/repositories/userRepository';
 import userRepository from '~/repositories/userRepository';
 import ceremaService from '~/services/ceremaService';
+import type {
+  CeremaGroup,
+  CeremaPerimeter,
+  CeremaUser
+} from '~/services/ceremaService/consultUserService';
 import {
   genEstablishmentApi,
   genNumber,
@@ -73,6 +78,55 @@ import {
   genUserApi
 } from '~/test/testFixtures';
 import { tokenProvider } from '~/test/testUtils';
+
+const lovacGroup: CeremaGroup = {
+  id_groupe: 1,
+  nom: 'LOVAC',
+  structure: 1,
+  perimetre: 1,
+  niveau_acces: 'lovac',
+  df_ano: false,
+  df_non_ano: false,
+  lovac: true
+};
+
+const frEntierePerimeter: CeremaPerimeter = {
+  perimetre_id: 1,
+  origine: 'test',
+  fr_entiere: true,
+  reg: [],
+  dep: [],
+  epci: [],
+  comm: []
+};
+
+const unrelatedCommunePerimeter: CeremaPerimeter = {
+  perimetre_id: 2,
+  origine: 'test',
+  fr_entiere: false,
+  reg: [],
+  dep: [],
+  epci: [],
+  comm: ['99999']
+};
+
+function genCeremaUser(
+  overrides: Partial<CeremaUser> &
+    Pick<CeremaUser, 'email' | 'establishmentSiren'>
+): CeremaUser {
+  return {
+    hasAccount: true,
+    hasCommitment: true,
+    cguValide: '2026-03-11T12:36:01.255000+01:00',
+    userExpiresAt: null,
+    structureAccessExpiresAt: '2028-01-15T09:16:31+01:00',
+    structureHasLovac: true,
+    groupHasLovac: true,
+    group: lovacGroup,
+    perimeter: frEntierePerimeter,
+    ...overrides
+  };
+}
 
 describe('Account controller', () => {
   let url: string;
@@ -271,6 +325,49 @@ describe('Account controller', () => {
 
       consultUsers.mockRestore();
       await Users().where('id', suspendedUser.id).delete();
+    });
+
+    it('should not suspend the selected establishment with access errors from another establishment', async () => {
+      const otherEstablishment = genEstablishmentApi('13055');
+      const userWithoutCurrentEstablishment: UserApi = {
+        ...genUserApi(establishment.id),
+        establishmentId: null,
+        password: bcrypt.hashSync('TestPassword123!', SALT_LENGTH)
+      };
+      await Establishments().insert(formatEstablishmentApi(otherEstablishment));
+      await Users().insert(toUserDBO(userWithoutCurrentEstablishment));
+      const consultUsers = vi
+        .spyOn(ceremaService, 'consultUsers')
+        .mockResolvedValue([
+          genCeremaUser({
+            email: userWithoutCurrentEstablishment.email,
+            establishmentSiren: establishment.siren
+          }),
+          genCeremaUser({
+            email: userWithoutCurrentEstablishment.email,
+            establishmentSiren: otherEstablishment.siren,
+            perimeter: unrelatedCommunePerimeter
+          })
+        ]);
+
+      const { body, status } = await request(url).post(testRoute).send({
+        email: userWithoutCurrentEstablishment.email,
+        password: 'TestPassword123!',
+        establishmentId: establishment.id
+      });
+
+      expect(status).toBe(constants.HTTP_STATUS_OK);
+      expect(body.user.suspendedAt).toBeNull();
+      expect(body.user.suspendedCause).toBeNull();
+      const updatedUser = await userRepository.get(
+        userWithoutCurrentEstablishment.id
+      );
+      expect(updatedUser?.suspendedAt).toBeNull();
+      expect(updatedUser?.suspendedCause).toBeNull();
+
+      consultUsers.mockRestore();
+      await Users().where('id', userWithoutCurrentEstablishment.id).delete();
+      await Establishments().where('id', otherEstablishment.id).delete();
     });
 
     it('should keep the current suspension when Cerema details are incomplete', async () => {

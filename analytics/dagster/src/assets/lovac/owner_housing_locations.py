@@ -32,6 +32,11 @@ def _analytics_dagster_dir() -> Path:
 
 
 def _owner_housing_location_module():
+    module_name = "owner_housing_location_calculator"
+    cached_module = sys.modules.get(module_name)
+    if cached_module is not None:
+        return cached_module
+
     script_dir = (
         _repository_root()
         / "server"
@@ -46,12 +51,19 @@ def _owner_housing_location_module():
 
     script_path = script_dir / "calculate_distances.py"
     spec = importlib.util.spec_from_file_location(
-        "owner_housing_location_calculator", script_path
+        module_name, script_path
     )
     module = importlib.util.module_from_spec(spec)
     if spec.loader is None:
         raise RuntimeError(f"Cannot load {script_path}")
-    spec.loader.exec_module(module)
+
+    sys.modules[module_name] = module
+    try:
+        spec.loader.exec_module(module)
+    except Exception:
+        sys.modules.pop(module_name, None)
+        raise
+
     return module
 
 

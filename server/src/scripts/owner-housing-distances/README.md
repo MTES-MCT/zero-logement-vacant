@@ -11,16 +11,16 @@ unbounded production backfill.
 
 ## Classification Values
 
-| Value | Meaning |
-| ----- | ------- |
-| `0` | Same address |
-| `1` | Same commune |
-| `2` | Same department |
-| `3` | Same region |
-| `4` | Owner in another metropolitan region |
-| `5` | Owner overseas |
-| `6` | Owner abroad |
-| `7` | Missing or unclassified information |
+| Value | Meaning                              |
+| ----- | ------------------------------------ |
+| `0`   | Same address                         |
+| `1`   | Same commune                         |
+| `2`   | Same department                      |
+| `3`   | Same region                          |
+| `4`   | Owner in another metropolitan region |
+| `5`   | Owner overseas                       |
+| `6`   | Owner abroad                         |
+| `7`   | Missing or unclassified information  |
 
 `locprop_distance_ban` can remain `NULL` legitimately when coordinates are
 missing. For this reason, default candidate selection is based on
@@ -88,17 +88,17 @@ python calculate_distances.py \
 
 Parameters:
 
-| Parameter | Description |
-| --------- | ----------- |
-| `--db-url` | PostgreSQL URL. Defaults to `DATABASE_URL`. |
-| `--data-file-year` | Required LOVAC cohort, for example `lovac-2026`. |
+| Parameter            | Description                                                  |
+| -------------------- | ------------------------------------------------------------ |
+| `--db-url`           | PostgreSQL URL. Defaults to `DATABASE_URL`.                  |
+| `--data-file-year`   | Required LOVAC cohort, for example `lovac-2026`.             |
 | `--establishment-id` | Optional establishment UUID. Uses its `localities_geo_code`. |
-| `--geo-code` | Optional INSEE commune code. Can be repeated. |
-| `--dry-run` | Computes counters without updating `owners_housing`. |
-| `--limit` | Stops after N owner-housing pairs. |
-| `--force` | Recalculates existing rows in the selected scope. |
-| `--batch-size` | Number of pairs fetched per DB batch. Default: `50000`. |
-| `--num-workers` | Parallel DB update workers. Default: `1`. |
+| `--geo-code`         | Optional INSEE commune code. Can be repeated.                |
+| `--dry-run`          | Computes counters without updating `owners_housing`.         |
+| `--limit`            | Stops after N owner-housing pairs.                           |
+| `--force`            | Recalculates existing rows in the selected scope.            |
+| `--batch-size`       | Number of pairs fetched per DB batch. Default: `50000`.      |
+| `--num-workers`      | Parallel DB update workers. Default: `1`.                    |
 
 ## Dagster Usage
 
@@ -124,14 +124,14 @@ ops:
   lovac_owner_housing_locations:
     config:
       data_file_year: lovac-2026
-      establishment_id: "00000000-0000-0000-0000-000000000000"
+      establishment_id: '00000000-0000-0000-0000-000000000000'
       dry_run: true
       limit: 500
       num_workers: 1
   lovac_owner_housing_location_quality_check:
     config:
       data_file_year: lovac-2026
-      establishment_id: "00000000-0000-0000-0000-000000000000"
+      establishment_id: '00000000-0000-0000-0000-000000000000'
       min_coverage_ratio: 0.95
       fail_on_low_coverage: false
 ```

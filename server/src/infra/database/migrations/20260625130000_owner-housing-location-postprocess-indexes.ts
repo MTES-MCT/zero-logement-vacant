@@ -3,10 +3,8 @@ import type { Knex } from 'knex';
 // CONCURRENTLY operations cannot run inside a transaction.
 export const config = { transaction: false };
 
-const FAST_HOUSING_DATA_FILE_YEARS_INDEX_SUFFIX =
-  'data_file_years_gin_idx';
-const OWNERS_HOUSING_LOCATION_MISSING_INDEX =
-  'idx_owners_housing_distances';
+const FAST_HOUSING_DATA_FILE_YEARS_INDEX_SUFFIX = 'data_file_years_gin_idx';
+const OWNERS_HOUSING_LOCATION_MISSING_INDEX = 'idx_owners_housing_distances';
 
 interface FastHousingPartition {
   schema_name: string;

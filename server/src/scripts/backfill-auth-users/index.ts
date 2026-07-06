@@ -67,8 +67,8 @@ function toAuthUserRow(user: UserDBO): AuthUserRow {
   };
 }
 
-function isActive(user: UserDBO): boolean {
-  return user.suspended_at === null && user.deleted_at === null;
+function canCreateCredentialAccount(user: UserDBO): boolean {
+  return user.deleted_at === null && Boolean(user.password);
 }
 
 interface Counts {
@@ -76,7 +76,7 @@ interface Counts {
   skippedExisting: number;
   accountInserted: number;
   accountSkippedExisting: number;
-  accountSkippedInactive: number;
+  accountSkippedUnavailable: number;
   errored: number;
 }
 
@@ -109,22 +109,27 @@ async function backfillOne(
         counts.inserted += 1;
       }
 
-      if (!isActive(user)) {
-        counts.accountSkippedInactive += 1;
-      } else if (inserted.length === 0) {
-        // auth_users row pre-existed (rerun, or a new signup via better-auth)
-        // => assume its `account` row is also already in the right shape and
-        // leave it alone.
-        counts.accountSkippedExisting += 1;
+      if (!canCreateCredentialAccount(user)) {
+        counts.accountSkippedUnavailable += 1;
       } else {
-        await trx(ACCOUNT_TABLE).insert({
-          id: randomUUID(),
-          account_id: user.email,
-          provider_id: CREDENTIAL_PROVIDER_ID,
-          user_id: user.id,
-          password: user.password
-        });
-        counts.accountInserted += 1;
+        const existingAccount = await trx(ACCOUNT_TABLE)
+          .where({
+            user_id: user.id,
+            provider_id: CREDENTIAL_PROVIDER_ID
+          })
+          .first();
+        if (existingAccount) {
+          counts.accountSkippedExisting += 1;
+        } else {
+          await trx(ACCOUNT_TABLE).insert({
+            id: randomUUID(),
+            account_id: user.email,
+            provider_id: CREDENTIAL_PROVIDER_ID,
+            user_id: user.id,
+            password: user.password
+          });
+          counts.accountInserted += 1;
+        }
       }
 
       if (opts.dryRun) {
@@ -151,7 +156,7 @@ async function run(opts: RunOptions): Promise<void> {
     skippedExisting: 0,
     accountInserted: 0,
     accountSkippedExisting: 0,
-    accountSkippedInactive: 0,
+    accountSkippedUnavailable: 0,
     errored: 0
   };
 

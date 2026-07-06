@@ -42,13 +42,20 @@ import sortApi from '~/models/SortApi';
 
 const router = Router();
 
-// Transition-window auth: prefer the better-auth cookie session; fall back to
-// the legacy JWT. `required: false` is what makes the fallback work — an
-// expired or revoked session leaves `request.user` unset (instead of throwing
-// a 401), so we can still try the JWT path before giving up.
+// Transition-window auth: when a legacy JWT is explicitly sent, honor it first
+// so a stale better-auth cookie cannot override the visible legacy session.
+// Otherwise, prefer the better-auth cookie session and fall back to JWT. The
+// `required: false` session option keeps invalid/expired cookies from blocking
+// the JWT fallback.
 const sessionMiddleware = sessionCheck({ required: false });
 const jwtMiddleware = jwtCheck();
 const userMiddleware = userCheck();
+
+function hasLegacyToken(request: Request): boolean {
+  const token =
+    request.headers['x-access-token'] ?? request.query['x-access-token'];
+  return Array.isArray(token) ? token.length > 0 : Boolean(token);
+}
 
 function jwtFallback(request: Request, response: Response, next: NextFunction) {
   return jwtMiddleware(request, response, (err: unknown) => {
@@ -60,6 +67,10 @@ function jwtFallback(request: Request, response: Response, next: NextFunction) {
 }
 
 router.use((request: Request, response: Response, next: NextFunction) => {
+  if (hasLegacyToken(request)) {
+    return jwtFallback(request, response, next);
+  }
+
   // Returning the promise lets express-promise-router forward any rejection
   // (e.g. a session referencing a missing user/establishment) to the error
   // handler.

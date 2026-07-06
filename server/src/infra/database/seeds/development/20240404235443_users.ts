@@ -306,10 +306,10 @@ async function generateRandomUsers(knex: Knex): Promise<void> {
  *
  * Mirrors the production `backfill-auth-users` script's contract:
  * - `auth_users.id` = legacy `users.id` (same UUID).
- * - Active users (not suspended, not deleted) also get an `account` row
+ * - Sign-in-capable users (not deleted, with a password) also get an `account` row
  *   with `provider_id='credential'` carrying the legacy bcrypt password.
- * - Suspended / soft-deleted users get an `auth_users` row (for FK
- *   integrity, reporting, etc.) but no `account` — they cannot sign in.
+ * - Suspended users keep their credential account so the frontend can show the
+ *   suspension warning modal after login.
  */
 async function syncToAuthUsers(knex: Knex, users: UserApi[]): Promise<void> {
   if (users.length === 0) return;
@@ -343,7 +343,7 @@ async function syncToAuthUsers(knex: Knex, users: UserApi[]): Promise<void> {
   await knex.batchInsert('auth_users', authUserRows);
 
   const accountRows = users
-    .filter((user) => !user.suspendedAt && !user.deletedAt && user.password)
+    .filter((user) => !user.deletedAt && user.password)
     .map((user) => ({
       id: randomUUID(),
       account_id: user.email,

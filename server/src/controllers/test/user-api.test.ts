@@ -1,4 +1,5 @@
 import { constants } from 'http2';
+import { randomUUID } from 'node:crypto';
 
 import { faker } from '@faker-js/faker/locale/fr';
 import { fc, test } from '@fast-check/vitest';
@@ -293,6 +294,26 @@ describe('User API', () => {
         establishment_id: prospect.establishment?.id,
         role: UserRole.USUAL
       });
+
+      const authUser = await db('auth_users')
+        .where({ id: body.id, email: prospect.email })
+        .first();
+      expect(authUser).toMatchObject({
+        email: prospect.email,
+        role: 'usual'
+      });
+
+      const account = await db('account')
+        .where({
+          user_id: body.id,
+          account_id: prospect.email,
+          provider_id: 'credential'
+        })
+        .first();
+      expect(account).toBeDefined();
+      await expect(
+        bcrypt.compare(validPassword, account.password)
+      ).resolves.toBeTrue();
     });
 
     it('should activate user establishment if needed', async () => {
@@ -524,6 +545,56 @@ describe('User API', () => {
           ...payload,
           id: user.id
         });
+      });
+
+      it('should sync password changes to the better-auth credential account', async () => {
+        const currentPassword = 'CurrentPassword123!';
+        const nextPassword = 'NextPassword123!';
+        const user: UserApi = {
+          ...genUserApi(establishment.id),
+          password: await bcrypt.hash(currentPassword, SALT_LENGTH)
+        };
+        await Users().insert(toUserDBO(user));
+        await db('auth_users').insert({
+          id: user.id,
+          name: `${user.firstName} ${user.lastName}`.trim(),
+          email: user.email,
+          email_verified: true,
+          role: 'usual'
+        });
+        await db('account').insert({
+          id: randomUUID(),
+          account_id: user.email,
+          provider_id: 'credential',
+          user_id: user.id,
+          password: user.password
+        });
+
+        const payload: UserUpdatePayload = {
+          firstName: user.firstName ?? faker.person.firstName(),
+          lastName: user.lastName ?? faker.person.lastName(),
+          phone: genFrenchPhone(),
+          position: faker.person.jobTitle(),
+          timePerWeek: faker.helpers.arrayElement(TIME_PER_WEEK_VALUES),
+          password: {
+            before: currentPassword,
+            after: nextPassword
+          }
+        };
+
+        const { status } = await request(url)
+          .put(testRoute(user.id))
+          .send(payload)
+          .type('json')
+          .use(tokenProvider(user));
+
+        expect(status).toBe(constants.HTTP_STATUS_OK);
+        const account = await db('account')
+          .where({ user_id: user.id, provider_id: 'credential' })
+          .first();
+        await expect(
+          bcrypt.compare(nextPassword, account.password)
+        ).resolves.toBeTrue();
       });
     });
 

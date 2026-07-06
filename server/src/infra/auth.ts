@@ -70,7 +70,7 @@ const authOptions = {
       role: {
         type: 'string',
         required: true,
-        defaultValue: UserRole.USUAL,
+        defaultValue: 'usual',
         input: false
       },
       phone: { type: 'string', required: false },
@@ -86,6 +86,7 @@ const authOptions = {
   },
   emailAndPassword: {
     enabled: true,
+    disableSignUp: true,
     // Default behaviour returns identical error for unknown email and wrong password.
     // Verified in integration tests (Task 10).
     password: {
@@ -128,6 +129,12 @@ const authOptions = {
           if (!user) {
             throw new APIError('UNPROCESSABLE_ENTITY', {
               message: 'User has no active establishment'
+            });
+          }
+
+          if (user.role === UserRole.ADMIN) {
+            throw new APIError('FORBIDDEN', {
+              message: 'Admins must use legacy two-factor sign-in'
             });
           }
 

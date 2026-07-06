@@ -39,6 +39,7 @@ vi.mock('~/services/posthogService', () => ({
 
 import { randomUUID } from 'node:crypto';
 
+import { UserRole } from '@zerologementvacant/models';
 import bcrypt from 'bcryptjs';
 import request from 'supertest';
 
@@ -59,11 +60,17 @@ async function seedBackfilledUser(opts: {
   email: string;
   plaintextPassword: string;
   establishmentId: string;
+  role?: UserRole;
+  suspendedAt?: string | null;
+  suspendedCause?: string | null;
 }): Promise<UserApi> {
   const user: UserApi = {
     ...genUserApi(opts.establishmentId),
     email: opts.email,
-    password: bcrypt.hashSync(opts.plaintextPassword, SALT_LENGTH)
+    password: bcrypt.hashSync(opts.plaintextPassword, SALT_LENGTH),
+    role: opts.role ?? UserRole.USUAL,
+    suspendedAt: opts.suspendedAt ?? null,
+    suspendedCause: opts.suspendedCause ?? null
   };
   await Users().insert(toUserDBO(user));
 
@@ -75,7 +82,14 @@ async function seedBackfilledUser(opts: {
     name: [user.firstName, user.lastName].filter(Boolean).join(' '),
     email: user.email,
     email_verified: true,
-    role: 'usual'
+    role:
+      user.role === UserRole.ADMIN
+        ? 'admin'
+        : user.role === UserRole.VISITOR
+          ? 'visitor'
+          : 'usual',
+    suspended_at: opts.suspendedAt ?? null,
+    suspended_cause: opts.suspendedCause ?? null
   });
   await db(ACCOUNT_TABLE).insert({
     id: randomUUID(),
@@ -86,6 +100,13 @@ async function seedBackfilledUser(opts: {
   });
 
   return user;
+}
+
+async function deleteBackfilledUser(userId: string): Promise<void> {
+  await db('session').where({ user_id: userId }).delete();
+  await db(ACCOUNT_TABLE).where({ user_id: userId }).delete();
+  await db(AUTH_USERS_TABLE).where({ id: userId }).delete();
+  await Users().where('id', userId).delete();
 }
 
 describe('better-auth sign-in (integration)', () => {
@@ -99,13 +120,6 @@ describe('better-auth sign-in (integration)', () => {
 
   afterAll(async () => {
     await Establishments().where('id', establishment.id).delete();
-  });
-
-  beforeEach(async () => {
-    // Clean better-auth tables in dependency order (children first).
-    await db('session').del();
-    await db('account').del();
-    await db('auth_users').del();
   });
 
   it('sets an HttpOnly cookie on successful sign-in', async () => {
@@ -139,7 +153,7 @@ describe('better-auth sign-in (integration)', () => {
       // better-auth defaults to SameSite=Lax (not Strict).
       expect(sessionCookie!.toLowerCase()).toContain('samesite=lax');
     } finally {
-      await Users().where('id', user.id).delete();
+      await deleteBackfilledUser(user.id);
     }
   });
 
@@ -168,7 +182,81 @@ describe('better-auth sign-in (integration)', () => {
       expect(unknownEmailResponse.status).toBe(wrongPasswordResponse.status);
       expect(unknownEmailResponse.body).toEqual(wrongPasswordResponse.body);
     } finally {
-      await Users().where('id', user.id).delete();
+      await deleteBackfilledUser(user.id);
+    }
+  });
+
+  it('rejects admin users on the better-auth password endpoint', async () => {
+    const email = 'admin-v2@zlv.fr';
+    const password = 'not-a-real-password';
+
+    const user = await seedBackfilledUser({
+      email,
+      plaintextPassword: password,
+      establishmentId: establishment.id,
+      role: UserRole.ADMIN
+    });
+
+    try {
+      const response = await request(url)
+        .post('/auth/sign-in/email')
+        .send({ email, password });
+
+      expect(response.status).toBeGreaterThanOrEqual(400);
+      const rawCookies = response.headers['set-cookie'];
+      const cookies = (
+        Array.isArray(rawCookies) ? rawCookies : rawCookies ? [rawCookies] : []
+      ) as string[];
+      expect(cookies.some((c) => c.includes('zlv.session_token'))).toBe(false);
+    } finally {
+      await deleteBackfilledUser(user.id);
+    }
+  });
+
+  it('does not expose public better-auth email sign-up', async () => {
+    const email = 'public-signup@zlv.fr';
+
+    const response = await request(url).post('/auth/sign-up/email').send({
+      name: 'Public Signup',
+      email,
+      password: 'not-a-real-password'
+    });
+
+    expect(response.status).toBe(400);
+    expect(response.body).toMatchObject({
+      code: 'EMAIL_PASSWORD_SIGN_UP_DISABLED'
+    });
+
+    const authUser = await db(AUTH_USERS_TABLE).where({ email }).first();
+    expect(authUser).toBeUndefined();
+  });
+
+  it('allows suspended users to sign in so the warning modal can render', async () => {
+    const email = 'suspended-v2@zlv.fr';
+    const password = 'not-a-real-password';
+    const suspendedAt = new Date().toJSON();
+
+    const user = await seedBackfilledUser({
+      email,
+      plaintextPassword: password,
+      establishmentId: establishment.id,
+      suspendedAt,
+      suspendedCause: 'droits utilisateur expires'
+    });
+
+    try {
+      const response = await request(url)
+        .post('/auth/sign-in/email')
+        .send({ email, password });
+
+      expect(response.status).toBe(200);
+      expect(response.body.user).toMatchObject({
+        email,
+        suspendedAt,
+        suspendedCause: 'droits utilisateur expires'
+      });
+    } finally {
+      await deleteBackfilledUser(user.id);
     }
   });
 });

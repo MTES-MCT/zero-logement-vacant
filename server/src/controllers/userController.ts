@@ -26,6 +26,10 @@ import establishmentRepository from '~/repositories/establishmentRepository';
 import prospectRepository from '~/repositories/prospectRepository';
 import userEstablishmentRepository from '~/repositories/user-establishment-repository';
 import userRepository from '~/repositories/userRepository';
+import {
+  insertUserAndAuth,
+  updateUserAndAuth
+} from '~/services/authUserSyncService';
 import ceremaService from '~/services/ceremaService';
 import { isTestAccount } from '~/services/ceremaService/consultUserService';
 import {
@@ -189,7 +193,7 @@ const create: RequestHandler<never, UserDTO, CreateUserBody, never> = async (
     kind
   });
 
-  const createdUser = await userRepository.insert(user);
+  const createdUser = await insertUserAndAuth(user);
 
   // Populate users_establishments with all establishments the user has access to
   // Filter Cerema users that have LOVAC commitment and find matching establishments
@@ -322,7 +326,7 @@ const update: RequestHandler<
     timePerWeek: body.timePerWeek,
     updatedAt: new Date().toJSON()
   };
-  await userRepository.update(updated);
+  await updateUserAndAuth(updated, { passwordChanged: Boolean(body.password) });
 
   response.status(constants.HTTP_STATUS_OK).json(toUserDTO(updated));
 };

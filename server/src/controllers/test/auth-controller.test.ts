@@ -62,6 +62,7 @@ vi.mock('../../infra/config', async () => {
 });
 
 import { constants } from 'http2';
+import { randomUUID } from 'node:crypto';
 
 import { UserRole } from '@zerologementvacant/models';
 import bcrypt from 'bcryptjs';
@@ -70,6 +71,7 @@ import randomstring from 'randomstring';
 import request from 'supertest';
 
 import { auth } from '~/infra/auth';
+import db from '~/infra/database';
 import { createServer } from '~/infra/server';
 import { ResetLinkApi } from '~/models/ResetLinkApi';
 import { SALT_LENGTH, toUserAccountDTO, UserApi } from '~/models/UserApi';
@@ -254,6 +256,21 @@ describe('Account controller', () => {
 
       expect(status).toBe(constants.HTTP_STATUS_GONE);
       expect(body).toMatchObject({ message: 'Use /auth/sign-in/email' });
+    });
+
+    it('keeps legacy 2FA sign-in available for admins when auth-v2 flag is enabled', async () => {
+      mockIsFeatureEnabled.mockResolvedValueOnce(true);
+
+      const { body, status } = await request(url).post(testRoute).send({
+        email: admin.email,
+        password: admin.password
+      });
+
+      expect(status).toBe(constants.HTTP_STATUS_OK);
+      expect(body).toMatchObject({
+        requiresTwoFactor: true,
+        email: admin.email
+      });
     });
 
     it('proceeds normally when auth-v2 flag is disabled', async () => {
@@ -513,6 +530,27 @@ describe('Account controller', () => {
       await ResetLinks().insert(formatResetLinkApi(link));
       const newPassword = '123QWEasd!@#';
 
+      await db('account')
+        .where({ user_id: user.id, provider_id: 'credential' })
+        .delete();
+      await db('auth_users')
+        .insert({
+          id: user.id,
+          name: `${user.firstName} ${user.lastName}`.trim(),
+          email: user.email,
+          email_verified: true,
+          role: 'usual'
+        })
+        .onConflict('id')
+        .ignore();
+      await db('account').insert({
+        id: randomUUID(),
+        account_id: user.email,
+        provider_id: 'credential',
+        user_id: user.id,
+        password: user.password
+      });
+
       const { status } = await request(url).post(testRoute).send({
         key: link.id,
         password: newPassword
@@ -540,6 +578,15 @@ describe('Account controller', () => {
         actualUser.password
       );
       expect(passwordsMatch).toBeTrue();
+
+      const actualAccount = await db('account')
+        .where({ user_id: user.id, provider_id: 'credential' })
+        .first();
+      const accountPasswordMatches = await bcrypt.compare(
+        newPassword,
+        actualAccount.password
+      );
+      expect(accountPasswordMatches).toBeTrue();
     });
   });
 

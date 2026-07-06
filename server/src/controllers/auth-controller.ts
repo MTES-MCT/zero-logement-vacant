@@ -35,6 +35,7 @@ import resetLinkRepository from '~/repositories/resetLinkRepository';
 import userEstablishmentRepository from '~/repositories/user-establishment-repository';
 import userPerimeterRepository from '~/repositories/userPerimeterRepository';
 import userRepository from '~/repositories/userRepository';
+import { updateUserAndAuth } from '~/services/authUserSyncService';
 import { fetchUserKind } from '~/services/ceremaService/userKindService';
 import { refreshAuthorizedEstablishments } from '~/services/establishmentAuthService';
 import mailService from '~/services/mailService';
@@ -57,19 +58,18 @@ const signIn: RequestHandler<never, unknown, SignInPayload, never> = async (
   response
 ): Promise<void> => {
   const v2Enabled = await isFeatureEnabled('auth-v2', config.app.system);
-  if (v2Enabled) {
-    response
-      .status(constants.HTTP_STATUS_GONE)
-      .json({ message: 'Use /auth/sign-in/email' });
-    return;
-  }
-
   const payload = request.body;
 
   // Use getByEmailIncludingDeleted to be able to detect deleted users
   // and return a proper 403 error instead of 401
   const user = await userRepository.getByEmailIncludingDeleted(payload.email);
   if (!user) {
+    if (v2Enabled) {
+      response
+        .status(constants.HTTP_STATUS_GONE)
+        .json({ message: 'Use /auth/sign-in/email' });
+      return;
+    }
     throw new AuthenticationFailedError();
   }
 
@@ -82,6 +82,13 @@ const signIn: RequestHandler<never, unknown, SignInPayload, never> = async (
       deletedAt: user.deletedAt
     });
     throw new UserDeletedError();
+  }
+
+  if (v2Enabled && user.role !== UserRole.ADMIN) {
+    response
+      .status(constants.HTTP_STATUS_GONE)
+      .json({ message: 'Use /auth/sign-in/email' });
+    return;
   }
 
   const isPasswordValid = await bcrypt.compare(payload.password, user.password);
@@ -431,7 +438,14 @@ async function resetPassword(request: Request, response: Response) {
   }
 
   const hash = await bcrypt.hash(password, SALT_LENGTH);
-  await userRepository.update({ ...user, password: hash });
+  await updateUserAndAuth(
+    {
+      ...user,
+      password: hash,
+      updatedAt: new Date().toJSON()
+    },
+    { passwordChanged: true }
+  );
   await resetLinkRepository.used(link.id);
   response.sendStatus(constants.HTTP_STATUS_OK);
 }

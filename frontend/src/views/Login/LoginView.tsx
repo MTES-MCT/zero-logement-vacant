@@ -60,8 +60,9 @@ const LoginView = () => {
   const { pathname } = useLocation();
   const navigate = useNavigate();
   const auth = useAppSelector((state) => state.authentication);
-  // When AuthProvider is mounted (auth-v2 flag ON), route the login through
-  // better-auth's cookie session. Otherwise fall back to the legacy Redux thunk.
+  // When AuthProvider is mounted (auth-v2 flag ON), route non-admin login
+  // through better-auth's cookie session. Admin login stays on the legacy thunk
+  // until the 2FA flow is ported.
   const v2 = useOptionalAuth();
   const [v2Error, setV2Error] = useState<string | null>(null);
 
@@ -82,7 +83,7 @@ const LoginView = () => {
   });
 
   async function submitLoginForm(data: LoginSchema): Promise<void> {
-    if (v2 !== null) {
+    if (v2 !== null && !isAdminView) {
       setV2Error(null);
       try {
         await v2.signIn(data.email, data.password);

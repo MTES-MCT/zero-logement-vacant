@@ -1,5 +1,3 @@
-import Box from '@mui/material/Box';
-import CircularProgress from '@mui/material/CircularProgress';
 import { useFeatureFlagEnabled } from 'posthog-js/react';
 import { lazy, useEffect } from 'react';
 import { hideLoading, showLoading } from 'react-redux-loading-bar';
@@ -15,6 +13,8 @@ import { useAppDispatch, useAppSelector } from '~/hooks/useStore';
 import AuthenticatedLayout from '~/layouts/AuthenticatedLayout';
 import FeatureFlagLayout from '~/layouts/FeatureFlagLayout';
 import GuestLayout from '~/layouts/GuestLayout';
+import { setAuthV2Active } from '~/services/api.service';
+import { resolveFeatureFlag } from '~/utils/featureFlags';
 import sentry from '~/utils/sentry';
 import NotFoundView from '~/views/NotFoundView';
 
@@ -151,7 +151,9 @@ function App() {
       (query) => query?.status === 'pending'
     )
   );
-  const isV2 = useFeatureFlagEnabled('auth-v2');
+  const isV2ByPosthog = useFeatureFlagEnabled('auth-v2');
+  const isV2 = resolveFeatureFlag('auth-v2', isV2ByPosthog);
+  setAuthV2Active(isV2);
 
   useEffect(() => {
     if (isSomeQueryPending) {
@@ -160,21 +162,6 @@ function App() {
       dispatch(hideLoading());
     }
   }, [dispatch, isSomeQueryPending]);
-
-  if (isV2 === undefined) {
-    return (
-      <Box
-        sx={{
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'center',
-          height: '100vh'
-        }}
-      >
-        <CircularProgress />
-      </Box>
-    );
-  }
 
   if (isV2) {
     return (

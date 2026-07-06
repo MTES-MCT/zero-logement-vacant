@@ -33,6 +33,19 @@ const TAG_TYPE_VALUES = [
 ] as const;
 export type TagType = (typeof TAG_TYPE_VALUES)[number];
 
+let isAuthV2Active = config.featureFlags.includes('auth-v2');
+
+export function setAuthV2Active(isActive: boolean): void {
+  isAuthV2Active = isActive;
+}
+
+export function prepareAuthHeaders(headers: Headers): Headers {
+  if (isAuthV2Active) {
+    return headers;
+  }
+  return authService.withAuthHeader(headers) ?? headers;
+}
+
 export const zlvApi = createApi({
   baseQuery: fetchBaseQuery({
     baseUrl: config.apiEndpoint,
@@ -40,7 +53,7 @@ export const zlvApi = createApi({
     // Legacy JWT support during the auth-v2 transition window. Once the flag
     // is fully rolled out, `prepareHeaders` and the `authService` import can be
     // removed (see frontend plan Part B).
-    prepareHeaders: (headers: Headers) => authService.withAuthHeader(headers),
+    prepareHeaders: prepareAuthHeaders,
     paramsSerializer: (query) =>
       qs.stringify(
         Record.map(query, (value) => {

@@ -1,4 +1,4 @@
-import { render, screen } from '@testing-library/react';
+import { fireEvent, render, screen, waitFor } from '@testing-library/react';
 import { useContext } from 'react';
 import { Provider } from 'react-redux';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
@@ -40,6 +40,9 @@ function TestConsumer() {
       <span data-testid="authorized-count">
         {auth.authorizedEstablishments.length}
       </span>
+      <button onClick={() => void auth.changeEstablishment('establishment-2')}>
+        change establishment
+      </button>
     </div>
   );
 }
@@ -57,6 +60,7 @@ function setup() {
 describe('AuthProvider', () => {
   beforeEach(() => {
     useSessionMock.mockReset();
+    vi.unstubAllGlobals();
   });
 
   it('exposes a null user when the session is absent', () => {
@@ -105,5 +109,31 @@ describe('AuthProvider', () => {
     setup();
 
     expect(screen.getByTestId('loading')).toHaveTextContent('true');
+  });
+
+  it('changes establishment through the cookie-backed endpoint and refetches the session', async () => {
+    const refetch = vi.fn();
+    const fetchMock = vi.fn().mockResolvedValue({ ok: true });
+    vi.stubGlobal('fetch', fetchMock);
+    useSessionMock.mockReturnValue({
+      data: {
+        user: { id: 'u1', email: 'agent@zlv.fr' },
+        session: { activeEstablishmentId: 'establishment-1' }
+      },
+      isPending: false,
+      error: null,
+      refetch
+    });
+
+    setup();
+    fireEvent.click(screen.getByText('change establishment'));
+
+    await waitFor(() => {
+      expect(fetchMock).toHaveBeenCalledWith(
+        expect.stringContaining('/account/establishments/establishment-2'),
+        { method: 'POST', credentials: 'include' }
+      );
+    });
+    expect(refetch).toHaveBeenCalled();
   });
 });

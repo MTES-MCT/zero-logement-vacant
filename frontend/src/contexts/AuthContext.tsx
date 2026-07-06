@@ -8,6 +8,7 @@ import { type PropsWithChildren, createContext, useCallback } from 'react';
 import { useAppDispatch } from '~/hooks/useStore';
 import { authClient } from '~/lib/auth-client';
 import { zlvApi } from '~/services/api.service';
+import authenticationSlice from '~/store/reducers/authenticationReducer';
 import config from '~/utils/config';
 
 export interface AuthContextValue {
@@ -51,6 +52,7 @@ export function AuthProvider(props: Readonly<PropsWithChildren>) {
   const signOut = useCallback(async () => {
     await authClient.signOut();
     dispatch(zlvApi.util.resetApiState());
+    dispatch(authenticationSlice.actions.logOut());
   }, [dispatch]);
 
   const changeEstablishment = useCallback(
@@ -62,7 +64,7 @@ export function AuthProvider(props: Readonly<PropsWithChildren>) {
       // `server/src/controllers/auth-controller.ts:changeEstablishmentBySession`
       // which mutates `session.activeEstablishmentId` on the DB row.
       const response = await fetch(
-        `${config.apiEndpoint}/api/account/establishments/${establishmentId}`,
+        `${config.apiEndpoint}/account/establishments/${establishmentId}`,
         { method: 'POST', credentials: 'include' }
       );
       if (!response.ok) {

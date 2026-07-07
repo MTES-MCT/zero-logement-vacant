@@ -688,7 +688,7 @@ models:
     description: "LOVAC users from CEREMA Portail DF who do not yet have an account in ZLV — onboarding gap list refreshed monthly via Dagster."
     columns:
       - name: email
-        description: "Email of the LOVAC user from Portail DF. Unique within this mart since each user appears at most once in the source."
+        description: "Email of the LOVAC user from Portail DF. Deduplicated to one row per user (a user can be attached to several Portail DF structures); we keep the structure with the most recent LOVAC access."
         tests:
           - unique
           - not_null

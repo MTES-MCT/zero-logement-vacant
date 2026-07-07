@@ -61,8 +61,10 @@ import {
   formatResetLinkApi,
   ResetLinks
 } from '~/repositories/resetLinkRepository';
+import { UsersEstablishments } from '~/repositories/user-establishment-repository';
 import { toUserDBO, Users } from '~/repositories/userRepository';
 import userRepository from '~/repositories/userRepository';
+import ceremaService from '~/services/ceremaService';
 import {
   genEstablishmentApi,
   genNumber,
@@ -327,6 +329,78 @@ describe('Account controller', () => {
 
       expect(status).toBe(constants.HTTP_STATUS_OK);
       expect(body).toStrictEqual(toUserAccountDTO(user));
+    });
+  });
+
+  describe('Change establishment', () => {
+    it('should use the target establishment perimeter for multi-structure users', async () => {
+      const sourceEstablishment = genEstablishmentApi();
+      const targetEstablishment = genEstablishmentApi();
+      const multiStructureUser: UserApi = {
+        ...genUserApi(sourceEstablishment.id),
+        role: UserRole.USUAL
+      };
+      await Establishments().insert(
+        [sourceEstablishment, targetEstablishment].map(formatEstablishmentApi)
+      );
+      await Users().insert(toUserDBO(multiStructureUser));
+      await UsersEstablishments().insert([
+        {
+          user_id: multiStructureUser.id,
+          establishment_id: sourceEstablishment.id,
+          establishment_siren: sourceEstablishment.siren,
+          has_commitment: true
+        },
+        {
+          user_id: multiStructureUser.id,
+          establishment_id: targetEstablishment.id,
+          establishment_siren: targetEstablishment.siren,
+          has_commitment: true
+        }
+      ]);
+      const consultUsers = vi
+        .spyOn(ceremaService, 'consultUsers')
+        .mockResolvedValue([
+          {
+            email: multiStructureUser.email,
+            establishmentSiren: sourceEstablishment.siren,
+            hasAccount: true,
+            hasCommitment: true,
+            perimeter: {
+              perimetre_id: 1,
+              origine: 'test',
+              fr_entiere: false,
+              reg: [],
+              dep: [],
+              epci: [sourceEstablishment.siren],
+              comm: []
+            }
+          },
+          {
+            email: multiStructureUser.email,
+            establishmentSiren: targetEstablishment.siren,
+            hasAccount: true,
+            hasCommitment: true,
+            perimeter: {
+              perimetre_id: 2,
+              origine: 'test',
+              fr_entiere: false,
+              reg: [],
+              dep: [],
+              epci: [targetEstablishment.siren],
+              comm: []
+            }
+          }
+        ]);
+
+      const { body, status } = await request(url)
+        .get(`/account/establishments/${targetEstablishment.id}`)
+        .use(tokenProvider(multiStructureUser));
+
+      expect(status).toBe(constants.HTTP_STATUS_OK);
+      expect(body.user.establishmentId).toBe(targetEstablishment.id);
+      expect(body.effectiveGeoCodes).toBeUndefined();
+      consultUsers.mockRestore();
     });
   });
 

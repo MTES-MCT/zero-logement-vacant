@@ -1,3 +1,8 @@
+import {
+  getSubStatuses,
+  HOUSING_STATUS_VALUES,
+  HousingStatus
+} from '@zerologementvacant/models';
 import { describe, expect, it, vi } from 'vitest';
 
 import { MemoryAdapter } from '../../memory-adapter';
@@ -34,6 +39,33 @@ describe('createHousingFactory', () => {
       'housings',
       expect.objectContaining({ id: housing.id })
     );
+  });
+
+  it('generates a null subStatus when the status is "never contacted"', () => {
+    const factory = createHousingFactory(new MemoryAdapter());
+
+    const housings = factory.buildList(20, {
+      status: HousingStatus.NEVER_CONTACTED
+    });
+
+    expect(housings.every((housing) => housing.subStatus === null)).toBe(true);
+  });
+
+  it('derives subStatus from an overridden status', () => {
+    const factory = createHousingFactory(new MemoryAdapter());
+
+    HOUSING_STATUS_VALUES.forEach((status) => {
+      const allowed = getSubStatuses(status);
+      const housings = factory.buildList(20, { status });
+
+      housings.forEach((housing) => {
+        if (allowed.size === 0) {
+          expect(housing.subStatus).toBeNull();
+        } else {
+          expect(allowed.has(housing.subStatus as string)).toBe(true);
+        }
+      });
+    });
   });
 
   it('builds a list of housings', () => {

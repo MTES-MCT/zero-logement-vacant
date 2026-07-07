@@ -119,15 +119,15 @@ function OwnerCard(props: OwnerCardProps) {
           }
         />
 
-        {match(props.kind)
-          .with(undefined, () => null)
-          .otherwise((value) => (
-            <OwnerAttribute
-              icon="ri-id-card-line"
-              label="Type de propriétaire"
-              value={<OwnerKindTag value={value} tagProps={{ small: false }} />}
-            />
-          ))}
+        <OwnerAttribute
+          icon="ri-id-card-line"
+          label="Type de propriétaire"
+          value={
+            !props.kind ? null : (
+              <OwnerKindTag value={props.kind} tagProps={{ small: false }} />
+            )
+          }
+        />
 
         {match(props.propertyRight)
           .with(Pattern.not(undefined), (value) => (

@@ -37,7 +37,7 @@ function Perimeters(props: Props) {
         type="fill"
         paint={{
           'fill-color': props.backgroundColor ?? '#f6f6f6',
-          'fill-opacity': isVisible ? 0.51 : 0
+          'fill-opacity': isVisible ? 0.25 : 0
         }}
       />
       <Layer

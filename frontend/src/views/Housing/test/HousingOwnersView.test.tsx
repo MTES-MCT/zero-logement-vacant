@@ -318,6 +318,53 @@ describe('HousingOwnersView', () => {
     expect(cell).toBeVisible();
   });
 
+  it('should set the primary owner as deceased even when their address has a score of zero', async () => {
+    const housing = genHousingDTO();
+    const [first, second] = [genOwnerDTO(), genOwnerDTO()];
+    const owners: ReadonlyArray<OwnerDTO> = [
+      { ...first, banAddress: { ...first.banAddress!, score: 0 } },
+      second
+    ];
+    const housingOwners: ReadonlyArray<HousingOwnerDTO> = [
+      { ...genHousingOwnerDTO(owners[0]), rank: 1 },
+      { ...genHousingOwnerDTO(owners[1]), rank: 2 }
+    ];
+
+    renderView({
+      housing,
+      owners,
+      housingOwners
+    });
+
+    const button = await screen.findByRole('button', {
+      name: `Éditer ${getOwnerDisplayName(owners[0])}`
+    });
+    await user.click(button);
+    const isActive = await screen.findByRole('checkbox', {
+      name: /Actuellement propriétaire/
+    });
+    await user.click(isActive);
+    const inactiveRank = await screen.findByRole('combobox', {
+      name: 'État du propriétaire'
+    });
+    await user.click(inactiveRank);
+    const deceased = await screen.findByRole('option', {
+      name: 'Propriétaire décédé'
+    });
+    await user.click(deceased);
+    const save = await screen.findByRole('button', {
+      name: 'Enregistrer'
+    });
+    await user.click(save);
+    const row = await screen.findByRole('row', {
+      name: new RegExp(`^${getOwnerDisplayName(owners[0])}`)
+    });
+    const cell = await within(row).findByRole('cell', {
+      name: 'Propriétaire décédé'
+    });
+    expect(cell).toBeVisible();
+  });
+
   it('should set a secondary owner as deceased', async () => {
     const housing = genHousingDTO();
     const owners: ReadonlyArray<OwnerDTO> = [genOwnerDTO(), genOwnerDTO()];

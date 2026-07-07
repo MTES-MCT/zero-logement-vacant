@@ -71,34 +71,31 @@ function ResourcesView() {
             icon="fr-icon-folder-2-fill"
             iconStyle={styles.iconResource}
           >
-            Découvrez une sélection de ressources autour de la lutte contre la
-            vacance.
+            Une sélection de ressources autour de la lutte contre la vacance.
           </ResourceTile>
         </Grid>
 
         <Grid size={6}>
           <ResourceTile
-            title="Communauté"
+            title="Clubs ZLV"
             titleAs="h2"
             linkHref="https://zerologementvacant.beta.gouv.fr/communaut%C3%A9/"
             icon="fr-icon-group-fill"
             iconStyle={styles.iconCommunity}
           >
-            La plateforme d’échanges Rencontre des Territoires et les Clubs ZLV,
-            c’est par ici !
+            Le calendrier et les supports des Clubs ZLV, c’est par ici !
           </ResourceTile>
         </Grid>
 
         <Grid size={6}>
           <ResourceTile
-            title="Besoin d’aide ?"
+            title="Guide d'utilisation"
             titleAs="h2"
             linkHref="https://zerologementvacant.crisp.help/fr/"
             icon="fr-icon-question-mark"
             iconStyle={styles.iconHelp}
           >
-            Une question sur ZLV ? La réponse est sûrement dans le centre
-            d’aide.
+            Une question sur ZLV ? La réponse est sûrement dans ce guide.
           </ResourceTile>
         </Grid>
 

@@ -113,3 +113,14 @@ sources:
       - name: cerema_prix_volumes_2013_communes_ensemble_des_appartements_raw
         description: "Prix volumes 2013 communes - Ensemble des appartements"
 
+      # Portail DF — LOVAC users
+      - name: cerema_lovac_users_raw
+        description: "Users belonging to a Portail DF structure with LOVAC access, fetched monthly from the Portail DF API."
+        meta:
+          dagster_asset_key: raw_cerema_lovac_users_raw
+        columns:
+          - name: email
+            description: "User email — the join key against the ZLV users table."
+            tests:
+              - not_null
+

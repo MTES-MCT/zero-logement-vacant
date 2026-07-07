@@ -1,4 +1,8 @@
-import type { FrIconClassName, RiIconClassName } from '@codegouvfr/react-dsfr';
+import {
+  fr,
+  type FrIconClassName,
+  type RiIconClassName
+} from '@codegouvfr/react-dsfr';
 import Accordion from '@codegouvfr/react-dsfr/Accordion';
 import Button from '@codegouvfr/react-dsfr/Button';
 import MuiDrawer from '@mui/material/Drawer';
@@ -71,7 +75,11 @@ interface TitleWithIconProps {
 function TitleWithIcon(props: TitleWithIconProps) {
   return (
     <>
-      <Icon name={props.icon} className={styles.icon} />
+      <Icon
+        name={props.icon}
+        className={styles.icon}
+        color={fr.colors.decisions.text.actionHigh.blueFrance.default}
+      />
       <span>{props.title}</span>
     </>
   );

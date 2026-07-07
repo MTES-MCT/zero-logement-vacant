@@ -10,6 +10,7 @@ import {
   INCORRECT_OWNER_RANK,
   PREVIOUS_OWNER_RANK
 } from '@zerologementvacant/models';
+import { Predicate } from 'effect';
 import { Controller, FormProvider, useForm } from 'react-hook-form';
 import { match, Pattern } from 'ts-pattern';
 import * as yup from 'yup';
@@ -82,9 +83,9 @@ function HousingOwnerEditionAside(props: HousingOwnerEditionAsideProps) {
       banAddress:
         housingOwner?.banAddress &&
         housingOwner.banAddress.banId &&
-        housingOwner.banAddress.score &&
-        housingOwner.banAddress.latitude &&
-        housingOwner.banAddress.longitude
+        Predicate.isNotNullable(housingOwner.banAddress.score) &&
+        Predicate.isNotNullable(housingOwner.banAddress.latitude) &&
+        Predicate.isNotNullable(housingOwner.banAddress.longitude)
           ? {
               id: housingOwner.banAddress.banId,
               label: housingOwner.banAddress.label,

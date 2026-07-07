@@ -24,6 +24,10 @@ class Config:
     CLEVER_TOKEN = os.environ.get("CLEVER_TOKEN")
     CLEVER_SECRET = os.environ.get("CLEVER_SECRET")
 
+    CEREMA_API_BASE_URL = os.environ.get("CEREMA_API_BASE_URL", "https://portaildf.cerema.fr/api")
+    CEREMA_USERNAME = os.environ.get("CEREMA_USERNAME")
+    CEREMA_PASSWORD = os.environ.get("CEREMA_PASSWORD")
+
     DUCKDB_MEMORY_LIMIT = os.environ.get("DUCKDB_MEMORY_LIMIT")
     DUCKDB_THREAD_NUMBER = os.environ.get("DUCKDB_THREAD_NUMBER", 4)
     METABASE_APP_ID = os.environ.get("METABASE_APP_ID")
@@ -91,7 +95,8 @@ production_tables = [
     "marts_production_groups",
     "marts_production_users",
     "marts_production_campaigns",
-    "marts_production_events"
+    "marts_production_events",
+    "marts_production_cerema_lovac_users_unregistered"
 ]
 
 join_tables = [

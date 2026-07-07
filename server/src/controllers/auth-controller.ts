@@ -114,6 +114,31 @@ async function refreshAuthorizedEstablishments(user: UserApi): Promise<void> {
             establishmentSiren: est.siren,
             hasCommitment: ceremaUser.hasCommitment
           });
+
+          if (ceremaUser.perimeter) {
+            const perimeter = ceremaUser.perimeter;
+            await userPerimeterRepository.upsert({
+              userId: user.id,
+              establishmentId: est.id,
+              geoCodes: perimeter.comm || [],
+              departments: perimeter.dep || [],
+              regions: perimeter.reg || [],
+              epci: perimeter.epci || [],
+              frEntiere: perimeter.fr_entiere || false,
+              updatedAt: new Date().toJSON()
+            });
+
+            logger.info('User perimeter saved from Portail DF', {
+              userId: user.id,
+              email: user.email,
+              establishmentId: est.id,
+              frEntiere: perimeter.fr_entiere,
+              communesCount: perimeter.comm?.length || 0,
+              departmentsCount: perimeter.dep?.length || 0,
+              regionsCount: perimeter.reg?.length || 0,
+              epciCount: perimeter.epci?.length || 0
+            });
+          }
         } else {
           logger.warn(
             'Access rights verification failed for establishment at login',
@@ -208,43 +233,7 @@ async function refreshAuthorizedEstablishments(user: UserApi): Promise<void> {
       });
     }
 
-    // Save user perimeter from Portail DF for filtering
-    // Use the perimeter from the user's current establishment
-    if (user.establishmentId) {
-      const currentEstablishment = knownEstablishments.find(
-        (est) => est.id === user.establishmentId
-      );
-      if (currentEstablishment) {
-        const currentCeremaUser = ceremaUsersWithCommitment.find(
-          (cu) =>
-            cu.establishmentSiren === currentEstablishment.siren ||
-            cu.establishmentSiren === '*'
-        );
-
-        if (currentCeremaUser?.perimeter) {
-          const perimeter = currentCeremaUser.perimeter;
-          await userPerimeterRepository.upsert({
-            userId: user.id,
-            geoCodes: perimeter.comm || [],
-            departments: perimeter.dep || [],
-            regions: perimeter.reg || [],
-            epci: perimeter.epci || [],
-            frEntiere: perimeter.fr_entiere || false,
-            updatedAt: new Date().toJSON()
-          });
-
-          logger.info('User perimeter saved from Portail DF', {
-            userId: user.id,
-            email: user.email,
-            frEntiere: perimeter.fr_entiere,
-            communesCount: perimeter.comm?.length || 0,
-            departmentsCount: perimeter.dep?.length || 0,
-            regionsCount: perimeter.reg?.length || 0,
-            epciCount: perimeter.epci?.length || 0
-          });
-        }
-      }
-    }
+    // User perimeters are saved per establishment while validating rights above.
   } catch (error) {
     // Log error but don't fail login
     logger.error('Failed to refresh authorized establishments at login', {
@@ -400,7 +389,10 @@ async function signInToEstablishment(
   // ADMIN and VISITOR users have no restriction (effectiveGeoCodes = undefined)
   let effectiveGeoCodes: string[] | undefined;
   if (user.role !== UserRole.ADMIN && user.role !== UserRole.VISITOR) {
-    const userPerimeter = await userPerimeterRepository.get(user.id);
+    const userPerimeter = await userPerimeterRepository.get(
+      user.id,
+      establishment.id
+    );
     effectiveGeoCodes = await filterGeoCodesByPerimeter(
       establishment.geoCodes,
       userPerimeter,
@@ -457,13 +449,14 @@ async function changeEstablishment(request: Request, response: Response) {
   }
 
   // Update user's current establishment
-  await userRepository.update({
+  const updatedUser = {
     ...user,
     establishmentId,
     updatedAt: new Date().toJSON()
-  });
+  };
+  await userRepository.update(updatedUser);
 
-  await signInToEstablishment(user, establishmentId, response);
+  await signInToEstablishment(updatedUser, establishmentId, response);
 }
 
 async function get(request: Request, response: Response) {

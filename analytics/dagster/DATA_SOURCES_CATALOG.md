@@ -25,6 +25,7 @@ This document catalogs all external data sources to be integrated into the Zero 
 |--------|------|-------------|-----|-----------|-------|
 | 🟢 | LOVAC | Logements vacants (2019-2025) | S3 Internal | CSV | Already implemented via S3 |
 | 🟢 | Fichiers Fonciers | Fichiers fonciers (2019-2024) | S3 Internal | CSV | Already implemented via S3 |
+| 🟢 | LOVAC users (Portail DF) | Users belonging to a structure with LOVAC access | Portail DF API | JSON | Monthly sync; auth via `CEREMA_USERNAME`/`CEREMA_PASSWORD` → `/api/token/` |
 | 🔴 | DV3F | Demandes de Valeurs Foncières | TBD | TBD | Large dataset, may need special handling |
 | ⚠️ | Prix immobiliers | Evolution des prix immobiliers par commune (2010-2021) | TBD | XLSX | Files: dv3f_prix_volumes_communes_20XX.xlsx |
 | ⚠️ | Consommation d'espace | Consommation d'espace (2009-2022) | TBD | CSV | |

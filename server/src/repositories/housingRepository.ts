@@ -318,7 +318,8 @@ async function saveMany(
   });
 }
 
-type HousingInclude = 'owner' | 'campaigns' | 'perimeters' | 'precisions' | 'buildings';
+type HousingInclude =
+  'owner' | 'campaigns' | 'perimeters' | 'precisions' | 'buildings';
 
 interface ListQueryOptions {
   filters: HousingFiltersApi;
@@ -1469,9 +1470,7 @@ export const parseHousingApi = (housing: HousingDBO): HousingApi => ({
 });
 
 type READ_ONLY_FIELDS =
-  | 'last_mutation_type'
-  | 'plot_area'
-  | 'occupancy_history';
+  'last_mutation_type' | 'plot_area' | 'occupancy_history';
 
 export const formatHousingRecordApi = (
   housing: HousingRecordApi

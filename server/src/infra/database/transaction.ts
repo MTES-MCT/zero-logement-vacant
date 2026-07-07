@@ -4,6 +4,8 @@ import { Knex } from 'knex';
 import { AsyncOrSync } from 'ts-essentials';
 
 import db from '~/infra/database/index';
+import { kysely } from '~/infra/database/kysely';
+import { runWithinKyselyTransaction } from '~/infra/database/kysely-transaction';
 
 interface TransactionStore {
   transaction: Knex.Transaction;
@@ -16,15 +18,24 @@ export async function startTransaction<R>(
   cb: () => AsyncOrSync<R>,
   options?: Knex.TransactionConfig
 ): Promise<R> {
-  const transaction = await db.transaction(options);
-  try {
-    const result = await storage.run({ transaction }, cb);
+  // One logical transaction spanning both engines: a Knex transaction nested
+  // inside a Kysely transaction. Both AsyncLocalStorage stores are seeded so
+  // repos on either engine join this unit. Knex commits first; Kysely commits
+  // as this callback resolves. Any error rolls back both.
+  return kysely.transaction().execute(async (kyselyTransaction) => {
+    const transaction = await db.transaction(options);
+    let result: R;
+    try {
+      result = await storage.run({ transaction }, () =>
+        runWithinKyselyTransaction(kyselyTransaction, async () => cb())
+      );
+    } catch (error) {
+      await transaction.rollback();
+      throw error;
+    }
     await transaction.commit();
     return result;
-  } catch (error) {
-    await transaction.rollback();
-    throw error;
-  }
+  });
 }
 
 /**

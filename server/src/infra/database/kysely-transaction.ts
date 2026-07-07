@@ -22,6 +22,13 @@ export async function startKyselyTransaction<R>(
 export const getKyselyTransaction = (): Transaction<DB> | undefined =>
   storage.getStore()?.transaction;
 
+export function runWithinKyselyTransaction<R>(
+  transaction: Transaction<DB>,
+  cb: () => Promise<R>
+): Promise<R> {
+  return storage.run({ transaction }, cb);
+}
+
 export async function withinKyselyTransaction<R>(
   cb: (trx: Transaction<DB>) => Promise<R>
 ): Promise<R> {

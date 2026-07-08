@@ -53,7 +53,13 @@ describe('useUser', () => {
     const establishment = genEstablishmentDTO();
     const wrapper = ({ children }: PropsWithChildren) => (
       <Provider store={store}>
-        <MockAuthProvider options={{ user: userDTO, establishment }}>
+        <MockAuthProvider
+          options={{
+            user: userDTO,
+            establishment,
+            effectiveGeoCodes: ['01001']
+          }}
+        >
           {children}
         </MockAuthProvider>
       </Provider>
@@ -66,5 +72,6 @@ describe('useUser', () => {
     expect(result.current.user?.email).toBe(userDTO.email);
     // EstablishmentDTO.siren (string) is projected to Establishment.siren (number).
     expect(typeof result.current.establishment?.siren).toBe('number');
+    expect(result.current.effectiveGeoCodes).toEqual(['01001']);
   });
 });

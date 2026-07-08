@@ -16,7 +16,7 @@ import { match, Pattern } from 'ts-pattern';
 import { useCampaignList } from '../../hooks/useCampaignList';
 import { useIntercommunalities } from '../../hooks/useIntercommunalities';
 import { useLocalityList } from '../../hooks/useLocalityList';
-import { useAppSelector } from '../../hooks/useStore';
+import { useUser } from '../../hooks/useUser';
 import { geoPerimeterOptions } from '../../models/GeoPerimeter';
 import type { HousingFilters } from '../../models/HousingFilters';
 import {
@@ -69,9 +69,7 @@ interface HousingFiltersBadgesProps {
 
 function HousingFiltersBadges(props: HousingFiltersBadgesProps) {
   const { filters, onChange, small } = props;
-  const establishment = useAppSelector(
-    (state) => state.authentication.authUser?.establishment
-  );
+  const { establishment } = useUser();
   const campaigns = useCampaignList();
   const { data: geoPerimeters } = useListGeoPerimetersQuery();
   const { data: intercommunalities } = useIntercommunalities();

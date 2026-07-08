@@ -4,12 +4,10 @@ import {
 } from '@zerologementvacant/models';
 
 import { useFindEstablishmentsQuery } from '../services/establishment.service';
-import { useAppSelector } from './useStore';
+import { useUser } from './useUser';
 
 export function useIntercommunalities() {
-  const establishment = useAppSelector(
-    (state) => state.authentication.authUser?.establishment
-  );
+  const { establishment } = useUser();
   const query = useFindEstablishmentsQuery(
     {
       kind: ['CA', 'CC', 'CU', 'METRO', 'EPT'] // Intercommunalities

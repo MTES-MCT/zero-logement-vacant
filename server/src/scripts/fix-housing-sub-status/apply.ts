@@ -1,11 +1,15 @@
 import fs from 'node:fs';
 import path from 'node:path';
 
+import { chunksOf } from 'effect/Array';
+
 import { startTransaction } from '~/infra/database/transaction';
 import { createLogger } from '~/infra/logger';
 import housingRepository from '~/repositories/housingRepository';
 
 import { groupByTarget, type PlanRow } from './transforms';
+
+const UPDATE_BATCH_SIZE = 1000;
 
 const logger = createLogger('fix-housing-sub-status:apply');
 
@@ -32,10 +36,12 @@ export async function apply(): Promise<void> {
         subStatus: group.subStatus,
         housings: group.housings.length
       });
-      await housingRepository.updateMany(group.housings, {
-        status: group.status,
-        subStatus: group.subStatus
-      });
+      for (const batch of chunksOf(group.housings, UPDATE_BATCH_SIZE)) {
+        await housingRepository.updateMany(batch, {
+          status: group.status,
+          subStatus: group.subStatus
+        });
+      }
     }
   });
 

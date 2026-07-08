@@ -31,6 +31,11 @@ SELECT source, count(*) FROM read_json_auto('plan.jsonl') GROUP BY source;
 SELECT reason, count(*) FROM read_json_auto('errors.jsonl') GROUP BY reason;
 ```
 
+> **Note:** `target_status` may differ from `current_status`. The repair uses the
+> latest event as source of truth, so a housing's `status` can be rewritten — not
+> just its `sub_status` backfilled. Both columns are recorded in `plan.jsonl`;
+> inspect them before applying.
+
 ## 3. Apply the plan
 
 ```bash
@@ -40,3 +45,6 @@ yarn workspace @zerologementvacant/server tsx \
 
 Reads `plan.jsonl`, groups by target `(status, sub_status)`, and updates in a single
 transaction. No audit events are written.
+
+> **Note:** `apply` overwrites rows from `plan.jsonl` without re-checking current DB
+> state. Re-generate and apply promptly — do not apply a stale plan.

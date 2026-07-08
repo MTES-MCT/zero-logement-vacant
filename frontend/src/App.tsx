@@ -14,7 +14,7 @@ import AuthenticatedLayout from '~/layouts/AuthenticatedLayout';
 import FeatureFlagLayout from '~/layouts/FeatureFlagLayout';
 import GuestLayout from '~/layouts/GuestLayout';
 import { setAuthV2Active } from '~/services/api.service';
-import { resolveFeatureFlag } from '~/utils/featureFlags';
+import { resolveAuthV2State } from '~/utils/featureFlags';
 import sentry from '~/utils/sentry';
 import NotFoundView from '~/views/NotFoundView';
 
@@ -152,8 +152,8 @@ function App() {
     )
   );
   const isV2ByPosthog = useFeatureFlagEnabled('auth-v2');
-  const isV2 = resolveFeatureFlag('auth-v2', isV2ByPosthog);
-  setAuthV2Active(isV2);
+  const authV2 = resolveAuthV2State(isV2ByPosthog);
+  setAuthV2Active(authV2.suppressLegacyAuthHeaders);
 
   useEffect(() => {
     if (isSomeQueryPending) {
@@ -163,7 +163,11 @@ function App() {
     }
   }, [dispatch, isSomeQueryPending]);
 
-  if (isV2) {
+  if (authV2.isPending) {
+    return null;
+  }
+
+  if (authV2.isEnabled) {
     return (
       <AuthProvider>
         <RouterProvider router={router} />

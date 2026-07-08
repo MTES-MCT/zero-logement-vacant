@@ -130,7 +130,35 @@ describe('Owner repository', () => {
     });
   });
 
+  describe('get', () => {
+    it('should return a matching OwnerApi for an existing owner', async () => {
+      const owner = genOwnerApi();
+      await Owners().insert(formatOwnerApi(owner));
+
+      const actual = await ownerRepository.get(owner.id);
+
+      expect(actual).toMatchObject<Partial<OwnerApi>>({
+        id: owner.id,
+        fullName: owner.fullName
+      });
+    });
+
+    it('should return null for a nonexistent owner id', async () => {
+      const actual = await ownerRepository.get(faker.string.uuid());
+
+      expect(actual).toBeNull();
+    });
+  });
+
   describe('findOne', () => {
+    it('should return null when no owner matches the given fullName', async () => {
+      const actual = await ownerRepository.findOne({
+        fullName: faker.string.uuid()
+      });
+
+      expect(actual).toBeNull();
+    });
+
     it('should find a owner without birth date', async () => {
       const owner: OwnerApi = {
         ...genOwnerApi(),
@@ -257,6 +285,50 @@ describe('Owner repository', () => {
           .map((owner: OwnerApi) => owner.fullName)
           .includes(owner.fullName);
       });
+    });
+  });
+
+  describe('parseOwnerApi edge branches', () => {
+    it('should format a JS Date birth_date as a yyyy-mm-dd string', async () => {
+      const owner = genOwnerApi();
+      const birthDate = new Date('1975-06-15T00:00:00.000Z');
+      await Owners().insert({
+        ...formatOwnerApi(owner),
+        birth_date: birthDate
+      });
+
+      const actual = await ownerRepository.get(owner.id);
+
+      expect(actual?.birthDate).toBe('1975-06-15');
+    });
+
+    it('should map null created_at/updated_at to null createdAt/updatedAt', async () => {
+      const owner = genOwnerApi();
+      await Owners().insert({
+        ...formatOwnerApi(owner),
+        created_at: null,
+        updated_at: null
+      });
+
+      const actual = await ownerRepository.get(owner.id);
+
+      expect(actual?.createdAt).toBeNull();
+      expect(actual?.updatedAt).toBeNull();
+    });
+
+    it('should map missing BAN row to null banAddress', async () => {
+      const owner = genOwnerApi();
+      await Owners().insert(formatOwnerApi(owner));
+      // Deliberately insert no ban_addresses row for this owner
+
+      const results = await ownerRepository.find({
+        includes: ['banAddress'],
+        filters: { fullName: owner.fullName }
+      });
+      const actual = results.find((o) => o.id === owner.id);
+
+      expect(actual).toBeDefined();
+      expect(actual?.banAddress).toBeNull();
     });
   });
 

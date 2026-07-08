@@ -53,7 +53,11 @@ export type Decision =
       currentStatus: HousingStatus;
       targetStatus: HousingStatus;
       targetSubStatus: string | null;
-      source: 'event' | 'fallback-lovac' | 'fallback-completed';
+      source:
+        | 'event'
+        | 'fallback-lovac'
+        | 'fallback-completed'
+        | 'clear-sub-status';
     }
   | {
       action: 'error';
@@ -115,6 +119,21 @@ export function decide(input: DecideInput): Decision {
     dataFileYears,
     latestEvent
   } = input;
+
+  // A status that forbids a sub-status (NEVER_CONTACTED / WAITING) is valid on
+  // its own; a stray sub-status is the only defect, so clear it and keep the
+  // status. Handled first, surgically — no need to reinterpret via events.
+  if (!requiresSubStatus(currentStatus)) {
+    return {
+      action: 'update',
+      geoCode,
+      id,
+      currentStatus,
+      targetStatus: currentStatus,
+      targetSubStatus: null,
+      source: 'clear-sub-status'
+    };
+  }
 
   // Still vacant in the latest data (lovac-2026): a follow-up event that says
   // the housing exited is contradicted. Keep only a valid ACTIVE event;

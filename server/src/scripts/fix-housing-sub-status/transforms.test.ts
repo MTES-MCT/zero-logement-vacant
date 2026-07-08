@@ -1,7 +1,7 @@
 import { HousingStatus } from '@zerologementvacant/models';
 import { describe, expect, it } from 'vitest';
 
-import { toDecideInput } from './transforms';
+import { selectedBy, toDecideInput } from './transforms';
 
 describe('toDecideInput', () => {
   it('maps a row with a latest event', () => {
@@ -9,6 +9,7 @@ describe('toDecideInput', () => {
       geo_code: '01001',
       id: 'h1',
       status: HousingStatus.COMPLETED,
+      sub_status: null,
       data_file_years: ['lovac-2026'],
       next_new: { status: 'Suivi terminé', subStatus: 'Sortie de la vacance' },
       event_created_at: '2026-01-01T00:00:00.000Z'
@@ -30,6 +31,7 @@ describe('toDecideInput', () => {
       geo_code: '01001',
       id: 'h2',
       status: HousingStatus.BLOCKED,
+      sub_status: null,
       data_file_years: null,
       next_new: null,
       event_created_at: null
@@ -43,11 +45,31 @@ describe('toDecideInput', () => {
       geo_code: '01001',
       id: 'h3',
       status: HousingStatus.BLOCKED,
+      sub_status: null,
       data_file_years: [],
       next_new: null,
       event_created_at: '2026-01-01T00:00:00.000Z'
     });
     expect(input.latestEvent).toEqual({});
+  });
+});
+
+describe('selectedBy', () => {
+  it('is null-sub when the sub-status is missing', () => {
+    expect(selectedBy(HousingStatus.IN_PROGRESS, null)).toBe('null-sub');
+  });
+
+  it('is forbidden-sub when NEVER_CONTACTED / WAITING carries a sub-status', () => {
+    expect(selectedBy(HousingStatus.NEVER_CONTACTED, 'anything')).toBe(
+      'forbidden-sub'
+    );
+    expect(selectedBy(HousingStatus.WAITING, 'anything')).toBe('forbidden-sub');
+  });
+
+  it('is wrong-sub when a required-sub-status housing carries a non-null one', () => {
+    expect(
+      selectedBy(HousingStatus.FIRST_CONTACT, 'Sortie de la vacance')
+    ).toBe('wrong-sub');
   });
 });
 

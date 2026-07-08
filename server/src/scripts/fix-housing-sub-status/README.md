@@ -1,23 +1,34 @@
 # fix-housing-sub-status
 
-Repairs `fast_housing` rows whose `status` requires a `sub_status` (FIRST_CONTACT,
-IN_PROGRESS, COMPLETED, BLOCKED) but have `sub_status IS NULL`.
+Repairs `fast_housing` rows whose `(status, sub_status)` is invalid, in any of three
+ways (each row is tagged `selected_by`):
+
+- `null-sub` — a status that requires a sub-status (FIRST_CONTACT, IN_PROGRESS,
+  COMPLETED, BLOCKED) has `sub_status IS NULL`;
+- `wrong-sub` — such a status carries a sub-status that isn't in its valid set;
+- `forbidden-sub` — NEVER_CONTACTED / WAITING carries a sub-status (it must have none).
 
 Two phases. `generate` reads the DB and writes an inspectable plan; `apply` writes
 the changes. The `*.jsonl` outputs are git-ignored — keep them as history.
 
 ## Decision rule (per housing)
 
-1. **Still vacant (in `lovac-2026`)** → the housing reappears in the latest file, so
+1. **Status forbids a sub-status** (NEVER_CONTACTED / WAITING) → keep the status and
+   just clear the stray sub-status (`source: clear-sub-status`). Surgical; the status
+   is already valid.
+2. **Still vacant (in `lovac-2026`)** → the housing reappears in the latest file, so
    any "exited" follow-up is contradicted. Reset to **NEVER_CONTACTED**, _unless_ the
    latest event is a valid **active** status (first-contact / in-progress / blocked),
    which is kept. This also rescues housings whose latest event was corrupted by the
    sub-status-nulling bug.
-2. **Not in `lovac-2026`** → trust the latest `housing:status-updated` event:
+3. **Not in `lovac-2026`** → trust the latest `housing:status-updated` event:
    - valid `(status, sub_status)` → restore it;
    - unusable event (unknown status / missing-or-invalid sub-status) → `errors.jsonl`;
    - no event, already COMPLETED → COMPLETED + "Sortie de la vacance";
    - no event, other status → `review.jsonl` (product decision).
+
+The definition of "valid" comes from the app's own `getSubStatuses` — the selection
+query is built from it, so it can't drift.
 
 ## 1. Stats (optional, run manually)
 
@@ -33,7 +44,8 @@ yarn workspace @zerologementvacant/server tsx \
 Produces three files, each carrying `data_file_years` for inspection:
 
 - `plan.jsonl` — housings that **will be updated**, with `source`
-  (`event` | `fallback-lovac` | `fallback-completed`).
+  (`event` | `fallback-lovac` | `fallback-completed` | `clear-sub-status`), plus
+  `current_sub_status` and `selected_by`.
 - `errors.jsonl` — housings **left untouched**: the latest `housing:status-updated`
   event could not yield a valid `(status, sub_status)` (`missing-or-unknown-status`
   | `invalid-sub-status`).

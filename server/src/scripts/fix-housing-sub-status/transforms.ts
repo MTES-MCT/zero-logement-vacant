@@ -8,9 +8,27 @@ export interface RawRow {
   geo_code: string;
   id: string;
   status: number;
+  sub_status: string | null;
   data_file_years: string[] | null;
   next_new: EventNextNew | null;
   event_created_at: Date | string | null;
+}
+
+/**
+ * Why a row was selected for repair — for inspection only; `decide()` computes
+ * the target from the status/event, not from this.
+ */
+export type SelectedBy = 'null-sub' | 'wrong-sub' | 'forbidden-sub';
+
+export function selectedBy(
+  status: number,
+  subStatus: string | null
+): SelectedBy {
+  if (subStatus === null) {
+    return 'null-sub';
+  }
+  // status 0 (NEVER_CONTACTED) / 1 (WAITING) must not carry a sub-status
+  return status === 0 || status === 1 ? 'forbidden-sub' : 'wrong-sub';
 }
 
 export function toDecideInput(row: RawRow): DecideInput {

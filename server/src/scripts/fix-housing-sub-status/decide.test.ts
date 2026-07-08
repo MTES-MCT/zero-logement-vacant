@@ -274,6 +274,33 @@ describe('decide — lovac-2026 takes precedence (still vacant)', () => {
   });
 });
 
+describe('decide — status forbids a sub-status (NEVER_CONTACTED / WAITING)', () => {
+  it('clears the stray sub-status and keeps the status, ignoring events/lovac', () => {
+    for (const status of [
+      HousingStatus.NEVER_CONTACTED,
+      HousingStatus.WAITING
+    ]) {
+      const result = decide(
+        base({
+          status,
+          // even with a lovac membership and an event, the fix is surgical
+          dataFileYears: ['lovac-2026'],
+          latestEvent: {
+            status: 'Suivi en cours',
+            subStatus: 'Intervention publique'
+          }
+        })
+      );
+      expect(result).toMatchObject({
+        action: 'update',
+        targetStatus: status,
+        targetSubStatus: null,
+        source: 'clear-sub-status'
+      });
+    }
+  });
+});
+
 describe('decide — not in lovac-2026 (exited): events are trusted', () => {
   it('keeps a COMPLETED exit event (Case E)', () => {
     const result = decide(

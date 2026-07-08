@@ -123,9 +123,13 @@ describe('decide', () => {
     });
   });
 
-  it('falls back to COMPLETED + "Sortie de la vacance" when no event and not in lovac-2026', () => {
+  it('backfills COMPLETED + "Sortie de la vacance" when no event, not in lovac-2026, and already COMPLETED', () => {
     const result = decide(
-      base({ latestEvent: null, dataFileYears: ['lovac-2025'] })
+      base({
+        status: HousingStatus.COMPLETED,
+        latestEvent: null,
+        dataFileYears: ['lovac-2025']
+      })
     );
     expect(result).toMatchObject({
       action: 'update',
@@ -133,5 +137,22 @@ describe('decide', () => {
       targetSubStatus: 'Sortie de la vacance',
       source: 'fallback-completed'
     });
+  });
+
+  it('sends a non-COMPLETED housing with no event (not in lovac-2026) to review, unchanged', () => {
+    for (const status of [
+      HousingStatus.FIRST_CONTACT,
+      HousingStatus.IN_PROGRESS,
+      HousingStatus.BLOCKED
+    ]) {
+      const result = decide(
+        base({ status, latestEvent: null, dataFileYears: ['lovac-2025'] })
+      );
+      expect(result).toMatchObject({
+        action: 'review',
+        currentStatus: status,
+        reason: 'no-event-non-completed'
+      });
+    }
   });
 });

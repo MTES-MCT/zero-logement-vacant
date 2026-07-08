@@ -62,6 +62,15 @@ export type Decision =
       currentStatus: HousingStatus;
       reason: 'missing-or-unknown-status' | 'invalid-sub-status';
       nextNew: EventNextNew | null;
+    }
+  | {
+      // No event history and not in lovac-2026: no basis to change the status,
+      // so leave the housing as-is and log it for a product decision.
+      action: 'review';
+      geoCode: string;
+      id: string;
+      currentStatus: HousingStatus;
+      reason: 'no-event-non-completed';
     };
 
 export function decide(input: DecideInput): Decision {
@@ -123,13 +132,26 @@ export function decide(input: DecideInput): Decision {
     };
   }
 
+  // No event, not in lovac-2026:
+  // - already COMPLETED → backfill the default sub-status
+  // - otherwise → no basis to rewrite the status; leave as-is for product review
+  if (currentStatus === HousingStatus.COMPLETED) {
+    return {
+      action: 'update',
+      geoCode,
+      id,
+      currentStatus,
+      targetStatus: HousingStatus.COMPLETED,
+      targetSubStatus: COMPLETED_SUB_STATUS,
+      source: 'fallback-completed'
+    };
+  }
+
   return {
-    action: 'update',
+    action: 'review',
     geoCode,
     id,
     currentStatus,
-    targetStatus: HousingStatus.COMPLETED,
-    targetSubStatus: COMPLETED_SUB_STATUS,
-    source: 'fallback-completed'
+    reason: 'no-event-non-completed'
   };
 }

@@ -87,6 +87,7 @@ async function seedBackfilledUser(opts: {
   plaintextPassword: string;
   establishmentId: string;
   role?: UserRole;
+  deletedAt?: string | null;
   suspendedAt?: string | null;
   suspendedCause?: string | null;
 }): Promise<UserApi> {
@@ -97,6 +98,7 @@ async function seedBackfilledUser(opts: {
     role: opts.role ?? UserRole.USUAL,
     kind: null,
     lastAuthenticatedAt: null,
+    deletedAt: opts.deletedAt ?? null,
     suspendedAt: opts.suspendedAt ?? null,
     suspendedCause: opts.suspendedCause ?? null
   };
@@ -116,6 +118,7 @@ async function seedBackfilledUser(opts: {
         : user.role === UserRole.VISITOR
           ? 'visitor'
           : 'usual',
+    deleted_at: opts.deletedAt ?? null,
     suspended_at: opts.suspendedAt ?? null,
     suspended_cause: opts.suspendedCause ?? null
   });
@@ -308,6 +311,132 @@ describe('better-auth sign-in (integration)', () => {
       expect(updatedUser?.two_factor_code_generated_at).toBeInstanceOf(Date);
     } finally {
       await deleteBackfilledUser(user.id);
+    }
+  });
+
+  it('returns identical errors on admin sign-in until credentials identify an active admin', async () => {
+    const password = 'not-a-real-password';
+    const regularUser = await seedBackfilledUser({
+      email: 'regular-admin-signin@zlv.fr',
+      plaintextPassword: password,
+      establishmentId: establishment.id
+    });
+    const deletedAdmin = await seedBackfilledUser({
+      email: 'deleted-admin-signin@zlv.fr',
+      plaintextPassword: password,
+      establishmentId: establishment.id,
+      role: UserRole.ADMIN,
+      deletedAt: new Date().toJSON()
+    });
+    const activeAdmin = await seedBackfilledUser({
+      email: 'active-admin-signin@zlv.fr',
+      plaintextPassword: password,
+      establishmentId: establishment.id,
+      role: UserRole.ADMIN
+    });
+
+    try {
+      const [unknownEmail, nonAdmin, deleted, wrongPassword] =
+        await Promise.all([
+          request(url).post('/auth/admin/sign-in').send({
+            email: 'unknown-admin-signin@zlv.fr',
+            password,
+            establishmentId: establishment.id
+          }),
+          request(url).post('/auth/admin/sign-in').send({
+            email: regularUser.email,
+            password,
+            establishmentId: establishment.id
+          }),
+          request(url).post('/auth/admin/sign-in').send({
+            email: deletedAdmin.email,
+            password,
+            establishmentId: establishment.id
+          }),
+          request(url).post('/auth/admin/sign-in').send({
+            email: activeAdmin.email,
+            password: 'WrongPassword1!',
+            establishmentId: establishment.id
+          })
+        ]);
+
+      expect(unknownEmail.status).toBeGreaterThanOrEqual(400);
+      expect(nonAdmin.status).toBe(unknownEmail.status);
+      expect(deleted.status).toBe(unknownEmail.status);
+      expect(wrongPassword.status).toBe(unknownEmail.status);
+      expect(nonAdmin.body).toEqual(unknownEmail.body);
+      expect(deleted.body).toEqual(unknownEmail.body);
+      expect(wrongPassword.body).toEqual(unknownEmail.body);
+    } finally {
+      await deleteBackfilledUser(regularUser.id);
+      await deleteBackfilledUser(deletedAdmin.id);
+      await deleteBackfilledUser(activeAdmin.id);
+    }
+  });
+
+  it('returns identical errors on admin 2FA until the challenge identifies an active admin', async () => {
+    const password = 'not-a-real-password';
+    const regularUser = await seedBackfilledUser({
+      email: 'regular-admin-2fa@zlv.fr',
+      plaintextPassword: password,
+      establishmentId: establishment.id
+    });
+    const deletedAdmin = await seedBackfilledUser({
+      email: 'deleted-admin-2fa@zlv.fr',
+      plaintextPassword: password,
+      establishmentId: establishment.id,
+      role: UserRole.ADMIN,
+      deletedAt: new Date().toJSON()
+    });
+    const activeAdmin = await seedBackfilledUser({
+      email: 'active-admin-2fa@zlv.fr',
+      plaintextPassword: password,
+      establishmentId: establishment.id,
+      role: UserRole.ADMIN
+    });
+
+    try {
+      const challenge = await request(url).post('/auth/admin/sign-in').send({
+        email: activeAdmin.email,
+        password,
+        establishmentId: establishment.id
+      });
+      expect(challenge.status).toBe(200);
+
+      const [unknownEmail, nonAdmin, deleted, wrongCode] = await Promise.all([
+        request(url).post('/auth/admin/verify-2fa').send({
+          email: 'unknown-admin-2fa@zlv.fr',
+          code: TEST_2FA_CODE,
+          establishmentId: establishment.id
+        }),
+        request(url).post('/auth/admin/verify-2fa').send({
+          email: regularUser.email,
+          code: TEST_2FA_CODE,
+          establishmentId: establishment.id
+        }),
+        request(url).post('/auth/admin/verify-2fa').send({
+          email: deletedAdmin.email,
+          code: TEST_2FA_CODE,
+          establishmentId: establishment.id
+        }),
+        request(url).post('/auth/admin/verify-2fa').send({
+          email: activeAdmin.email,
+          code: '000000',
+          establishmentId: establishment.id
+        })
+      ]);
+
+      expect(unknownEmail.status).toBeGreaterThanOrEqual(400);
+      expect(nonAdmin.status).toBe(unknownEmail.status);
+      expect(deleted.status).toBe(unknownEmail.status);
+      expect(wrongCode.status).toBe(unknownEmail.status);
+      expect(nonAdmin.body).toEqual(unknownEmail.body);
+      expect(deleted.body).toEqual(unknownEmail.body);
+      expect(wrongCode.body).toEqual(unknownEmail.body);
+    } finally {
+      await deleteBackfilledUser(regularUser.id);
+      await deleteBackfilledUser(deletedAdmin.id);
+      await deleteBackfilledUser(activeAdmin.id);
     }
   });
 

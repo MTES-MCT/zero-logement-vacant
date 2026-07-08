@@ -12,7 +12,7 @@ import * as z from 'zod';
 
 import config from '~/infra/config';
 import { logger } from '~/infra/logger';
-import type { UserApi } from '~/models/UserApi';
+import { SALT_LENGTH, type UserApi } from '~/models/UserApi';
 import establishmentRepository from '~/repositories/establishmentRepository';
 import userRepository from '~/repositories/userRepository';
 import { updateUserAndAuth } from '~/services/authUserSyncService';
@@ -55,19 +55,27 @@ function invalidEmailOrPassword(): APIError {
 
 async function getAdminUser(email: string): Promise<UserApi> {
   const user = await userRepository.getByEmailIncludingDeleted(email);
-  if (!user) {
+  if (!user || user.deletedAt || user.role !== UserRole.ADMIN) {
     throw authenticationFailed();
   }
-  if (user.deletedAt) {
-    throw new APIError('FORBIDDEN', {
-      message: 'User account has been deleted.'
-    });
+  return user;
+}
+
+async function getAdminUserForSignIn(
+  email: string,
+  password: string
+): Promise<UserApi> {
+  const user = await userRepository.getByEmailIncludingDeleted(email);
+  if (!user) {
+    await bcrypt.hash(password, SALT_LENGTH);
+    throw authenticationFailed();
   }
-  if (user.role !== UserRole.ADMIN) {
-    throw new APIError('FORBIDDEN', {
-      message: 'Only admins can use this sign-in endpoint.'
-    });
+
+  await assertPassword(user, password);
+  if (user.deletedAt || user.role !== UserRole.ADMIN) {
+    throw authenticationFailed();
   }
+
   return user;
 }
 
@@ -228,8 +236,10 @@ export function zlvAdminTwoFactor(): BetterAuthPlugin {
           body: adminSignInBody
         },
         async (ctx) => {
-          const user = await getAdminUser(ctx.body.email);
-          await assertPassword(user, ctx.body.password);
+          const user = await getAdminUserForSignIn(
+            ctx.body.email,
+            ctx.body.password
+          );
           await resolveActiveEstablishmentId(user, ctx.body.establishmentId);
 
           if (!config.auth.admin2faEnabled) {

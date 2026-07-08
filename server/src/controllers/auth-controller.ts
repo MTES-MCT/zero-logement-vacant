@@ -307,6 +307,14 @@ async function changeEstablishmentBySession(
   }
 
   const { user } = request as AuthenticatedRequest;
+  if (session.session.userId !== user.id) {
+    logger.warn('Session user does not match authorised request user', {
+      requestUserId: user.id,
+      sessionUserId: session.session.userId
+    });
+    throw new ForbiddenError();
+  }
+
   const establishmentId = request.params.establishmentId;
 
   if (user.role !== UserRole.ADMIN && user.role !== UserRole.VISITOR) {

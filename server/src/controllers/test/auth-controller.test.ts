@@ -646,6 +646,54 @@ describe('Account controller', () => {
       await Users().where('id', usualUser.id).delete();
     });
 
+    it('should reject a session switch when the JWT user differs from the session user', async () => {
+      const jwtUser: UserApi = {
+        ...genUserApi(establishment.id),
+        role: UserRole.USUAL
+      };
+      const sessionUser: UserApi = {
+        ...genUserApi(establishment.id),
+        role: UserRole.USUAL
+      };
+      await Users().insert([jwtUser, sessionUser].map(toUserDBO));
+
+      const jwtOnlyEstablishment = genEstablishmentApi();
+      await Establishments().insert(
+        formatEstablishmentApi(jwtOnlyEstablishment)
+      );
+
+      const now = new Date();
+      await UsersEstablishments().insert({
+        user_id: jwtUser.id,
+        establishment_id: jwtOnlyEstablishment.id,
+        establishment_siren: jwtOnlyEstablishment.siren,
+        has_commitment: true,
+        created_at: now,
+        updated_at: now
+      });
+
+      mockGetSession.mockResolvedValue({
+        user: { id: sessionUser.id },
+        session: {
+          id: 'sess-mismatch',
+          userId: sessionUser.id,
+          activeEstablishmentId: establishment.id
+        }
+      } as any);
+
+      const { status } = await request(url)
+        .post(`/account/establishments/${jwtOnlyEstablishment.id}`)
+        .set('Cookie', 'zlv.session_token=fake')
+        .use(tokenProvider(jwtUser));
+
+      expect(status).toBe(constants.HTTP_STATUS_FORBIDDEN);
+      expect(mockUpdateSession).not.toHaveBeenCalled();
+
+      await UsersEstablishments().where({ user_id: jwtUser.id }).delete();
+      await Establishments().where('id', jwtOnlyEstablishment.id).delete();
+      await Users().whereIn('id', [jwtUser.id, sessionUser.id]).delete();
+    });
+
     it('should return 200 and update the session for an authorised USUAL user', async () => {
       const usualUser: UserApi = {
         ...genUserApi(establishment.id),

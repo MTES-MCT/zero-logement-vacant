@@ -153,6 +153,8 @@ fileignoreconfig:
   checksum: d6a0c9d236c26ac927681537c778c9000b59b9da6d4ec26d10abf5424e34f255
 - filename: server/src/services/metabase/metabase-normalize.ts
   checksum: 1bd122150d2d7806ebf7cb708750814288d528fad4b3a1a3da0e1f9ae91f2f5d
+- filename: server/src/scripts/repairs/lib/apply.ts
+  checksum: 9a452fee8152ce96f903c341e79dd8070b1765e34b70f49e5ccc75bf623cfc4d
 scopeconfig:
 - scope: node
 allowed_patterns:

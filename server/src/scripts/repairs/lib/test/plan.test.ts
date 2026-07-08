@@ -1,0 +1,141 @@
+import fs from 'node:fs';
+import os from 'node:os';
+import path from 'node:path';
+
+import { HousingStatus } from '@zerologementvacant/models';
+import { afterEach, beforeEach, describe, expect, it } from 'vitest';
+
+import { genHousingApi } from '~/test/testFixtures';
+
+import { plan } from '../plan';
+import type { Repair } from '../types';
+
+let outDir: string;
+
+beforeEach(() => {
+  outDir = fs.mkdtempSync(path.join(os.tmpdir(), 'zlv-repair-'));
+});
+
+afterEach(() => {
+  fs.rmSync(outDir, { recursive: true });
+});
+
+describe('plan()', () => {
+  it('writes RepairActions to plan.jsonl', async () => {
+    const housing = genHousingApi();
+    const repair: Repair = {
+      name: 'test',
+      query: async () => [housing],
+      decide: () => ({
+        update: { status: HousingStatus.NEVER_CONTACTED, subStatus: null }
+      })
+    };
+
+    const summary = await plan(repair, { outDir });
+
+    expect(summary.planned).toBe(1);
+    expect(summary.skipped).toBe(0);
+    expect(summary.errors).toBe(0);
+
+    const lines = fs
+      .readFileSync(path.join(outDir, 'plan.jsonl'), 'utf-8')
+      .trim()
+      .split('\n');
+    expect(lines).toHaveLength(1);
+    const row = JSON.parse(lines[0]);
+    expect(row).toMatchObject({
+      housingId: housing.id,
+      housingGeoCode: housing.geoCode,
+      update: { status: HousingStatus.NEVER_CONTACTED, subStatus: null }
+    });
+  });
+
+  it('writes RepairSkips to skipped.jsonl', async () => {
+    const housing = genHousingApi();
+    const repair: Repair = {
+      name: 'test',
+      query: async () => [housing],
+      decide: () => ({ action: 'skip' })
+    };
+
+    const summary = await plan(repair, { outDir });
+
+    expect(summary.skipped).toBe(1);
+    expect(summary.planned).toBe(0);
+
+    const lines = fs
+      .readFileSync(path.join(outDir, 'skipped.jsonl'), 'utf-8')
+      .trim()
+      .split('\n');
+    expect(JSON.parse(lines[0])).toMatchObject({
+      housingId: housing.id,
+      housingGeoCode: housing.geoCode
+    });
+  });
+
+  it('writes RepairErrors to errors.jsonl', async () => {
+    const housing = genHousingApi();
+    const repair: Repair = {
+      name: 'test',
+      query: async () => [housing],
+      decide: () => ({ action: 'error', reason: 'no restorable event' })
+    };
+
+    const summary = await plan(repair, { outDir });
+
+    expect(summary.errors).toBe(1);
+
+    const lines = fs
+      .readFileSync(path.join(outDir, 'errors.jsonl'), 'utf-8')
+      .trim()
+      .split('\n');
+    expect(JSON.parse(lines[0])).toMatchObject({
+      housingId: housing.id,
+      housingGeoCode: housing.geoCode,
+      reason: 'no restorable event'
+    });
+  });
+
+  it('counts events to delete and create in summary', async () => {
+    const housing = genHousingApi();
+    const repair: Repair = {
+      name: 'test',
+      query: async () => [housing],
+      decide: () => ({
+        update: { status: HousingStatus.NEVER_CONTACTED },
+        deleteEventIds: ['evt-1', 'evt-2'],
+        createEvents: []
+      })
+    };
+
+    const summary = await plan(repair, { outDir });
+
+    expect(summary.eventsToDelete).toBe(2);
+    expect(summary.eventsToCreate).toBe(0);
+  });
+
+  it('returns correct totals across all outcomes', async () => {
+    const [h1, h2, h3] = [genHousingApi(), genHousingApi(), genHousingApi()];
+    const repair: Repair = {
+      name: 'test',
+      query: async () => [h1, h2, h3],
+      decide: (h) => {
+        if (h.id === h1.id)
+          return { update: { status: HousingStatus.NEVER_CONTACTED } };
+        if (h.id === h2.id) return { action: 'skip' };
+        return { action: 'error', reason: 'test' };
+      }
+    };
+
+    const summary = await plan(repair, { outDir });
+
+    expect(summary).toEqual({
+      total: 3,
+      planned: 1,
+      skipped: 1,
+      errors: 1,
+      eventsToDelete: 0,
+      eventsToCreate: 0
+    });
+  });
+});

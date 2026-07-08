@@ -229,19 +229,50 @@ contexte DSFR/MUI/React de ce repo.
 
 **Application concrète :** toute limite de temps (session, timeout) est contrôlable par l'utilisateur ; jamais de nouvelle fenêtre/onglet ouvert sans action explicite (et si c'est le cas, l'utilisateur est prévenu avant activation) ; tout contenu en mouvement/clignotant/auto-actualisé (carrousel, auto-refresh) est arrêtable ; export PDF/bureautique a, si besoin, une version accessible équivalente.
 
-## Comportement obligatoire de l'agent (auto-contrôle)
+## Comportement obligatoire de l'agent (auto-contrôle) — procédure à exécuter à chaque tâche frontend
 
-- Avant de considérer terminé tout changement touchant au balisage, au style
-  ou à l'interactivité frontend, **relis ton propre diff** à travers la liste
-  des 106 critères ci-dessus (au moins par thématique — les 13 titres, en
-  gardant en tête les critères concrets les plus probablement impactés par le
-  type de changement fait).
-- Si tu identifies une violation potentielle — même incertaine, même hors du
-  périmètre strict de la tâche demandée — tu dois **le signaler
-  explicitement** dans ta réponse à l'utilisateur, avec ce format :
+Ceci n'est pas une vérification informelle "si j'y pense" : c'est une étape
+**obligatoire de la définition de fini** pour toute tâche touchant
+`frontend/**`, au même titre que faire passer le typecheck. Exécute-la dans
+l'ordre, systématiquement :
 
-  > ⚠️ **RGAA (critère N.M — sujet)** : `<description du problème>` →
-  > `<correctif proposé>`
+1. **Identifier les critères concernés par la tâche demandée.** À partir de
+   la nature du changement, repère les thématiques et critères pertinents
+   dans la liste des 106 ci-dessus — pas les 106 à chaque fois, seulement
+   ceux que le changement touche réellement. Exemples de mapping :
+   - Formulaire/champ/validation → thématique 11 (+ 3 pour les couleurs
+     d'erreur, + 10.7 pour le focus).
+   - Image/icône/SVG → thématique 1.
+   - Tableau de données → thématique 5.
+   - Lien/bouton/CTA → thématique 6 (+ 10.6, 10.7).
+   - Modale/dropdown/accordéon/tout composant interactif JS → thématique 7
+     (+ 12.8, 12.9 pour le focus trap/ordre de tabulation).
+   - Nouvelle page/route → thématique 8, 9, 12.
+   - Nouveau composant visuel/couleurs custom → thématique 3, 10.
+   - Vidéo/audio → thématique 4.
+   - Contenu qui bouge/s'actualise seul (carrousel, auto-refresh, toast
+     auto-dismiss) → thématique 13.
+2. **Lire la procédure de test exacte** des critères identifiés dans
+   [docs/rgaa/methodologie-tests.md](../../docs/rgaa/methodologie-tests.md)
+   (lecture ciblée sur les critères concernés, pas le fichier entier si non
+   nécessaire) — c'est la procédure qu'un auditeur RGAA suivrait réellement,
+   pas une paraphrase.
+3. **Vérifier le code produit contre cette procédure**, étape par étape,
+   comme le ferait l'auditeur (ex. pour 1.1.1 : l'image a-t-elle bien
+   `aria-labelledby`, `aria-label`, `alt` ou `title` ? pour 11.4 : le
+   `<label>` est-il bien accolé à son champ ?).
+4. **Rends compte du résultat dans ta réponse**, brièvement : quels critères
+   ont été vérifiés et le résultat (conforme, ou alerte — voir format
+   ci-dessous). Ne saute pas cette étape même si tout est conforme :
+   l'utilisateur doit voir que le contrôle a eu lieu, pas juste le résultat
+   d'un travail qui prétend l'avoir fait.
+
+Si tu identifies une violation potentielle — même incertaine, même hors du
+périmètre strict de la tâche demandée — tu dois **le signaler
+explicitement** dans ta réponse à l'utilisateur, avec ce format :
+
+> ⚠️ **RGAA (critère N.M — sujet)** : `<description du problème>` →
+> `<correctif proposé>`
 
 - Ce signalement est **proactif** : tu ne l'inclus pas seulement quand on te
   le demande. Traite une violation RGAA avec le même niveau de sérieux qu'une
@@ -252,11 +283,6 @@ contexte DSFR/MUI/React de ce repo.
 - Ne jamais désactiver, contourner ou supprimer un attribut d'accessibilité
   existant (`alt`, `aria-*`, `role`, `tabIndex`, `label`) pour résoudre un
   problème visuel ou de layout — trouve la solution qui préserve les deux.
-- Pour un audit précis d'un composant, ou avant d'affirmer qu'un pattern
-  ARIA/HTML complexe respecte un critère donné, **lis
-  [docs/rgaa/methodologie-tests.md](../../docs/rgaa/methodologie-tests.md)**
-  et applique la procédure de test officielle correspondante plutôt que de
-  juger uniquement sur la base du titre du critère.
 
 ## Réutilisation et outillage
 

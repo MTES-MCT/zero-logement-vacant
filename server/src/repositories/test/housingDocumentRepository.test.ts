@@ -7,6 +7,7 @@ import {
   formatEstablishmentApi
 } from '~/repositories/establishmentRepository';
 import housingDocumentRepository, {
+  fromHousingDocumentDBO,
   HousingDocuments,
   toHousingDocumentDBO,
   type HousingDocumentDBO
@@ -340,6 +341,254 @@ describe('Housing document repository', () => {
       });
       expect(remainingLinks).toHaveLength(1);
       expect(remainingLinks[0].document_id).toBe(documents[1].id);
+    });
+  });
+
+  describe('find', () => {
+    it('should return linked documents with housingId, housingGeoCode, and creator populated (no filter)', async () => {
+      const housing = genHousingApi();
+      const document = genHousingDocumentApi({
+        createdBy: user.id,
+        creator: user,
+        housingId: housing.id,
+        housingGeoCode: housing.geoCode
+      });
+
+      await Housing().insert(formatHousingRecordApi(housing));
+      await Documents().insert(toDocumentDBO(document));
+      await HousingDocuments().insert(toHousingDocumentDBO(document));
+
+      const results = await housingDocumentRepository.find();
+
+      const actual = results.find((r) => r.id === document.id);
+      expect(actual).toBeDefined();
+      expect(actual).toMatchObject<Partial<HousingDocumentApi>>({
+        id: document.id,
+        housingId: housing.id,
+        housingGeoCode: housing.geoCode,
+        createdBy: user.id
+      });
+      expect(actual!.creator).toBeDefined();
+      expect(actual!.creator.id).toBe(user.id);
+    });
+
+    it('should filter by documentIds', async () => {
+      const housing1 = genHousingApi();
+      const housing2 = genHousingApi();
+      const document1 = genHousingDocumentApi({
+        createdBy: user.id,
+        creator: user,
+        housingId: housing1.id,
+        housingGeoCode: housing1.geoCode
+      });
+      const document2 = genHousingDocumentApi({
+        createdBy: user.id,
+        creator: user,
+        housingId: housing2.id,
+        housingGeoCode: housing2.geoCode
+      });
+
+      await Housing().insert([
+        formatHousingRecordApi(housing1),
+        formatHousingRecordApi(housing2)
+      ]);
+      await Documents().insert([toDocumentDBO(document1), toDocumentDBO(document2)]);
+      await HousingDocuments().insert([
+        toHousingDocumentDBO(document1),
+        toHousingDocumentDBO(document2)
+      ]);
+
+      const results = await housingDocumentRepository.find({
+        filters: { documentIds: [document1.id] }
+      });
+
+      const ids = results.map((r) => r.id);
+      expect(ids).toContain(document1.id);
+      expect(ids).not.toContain(document2.id);
+    });
+
+    it('should filter by housingIds composite key', async () => {
+      const housing1 = genHousingApi();
+      const housing2 = genHousingApi();
+      const document1 = genHousingDocumentApi({
+        createdBy: user.id,
+        creator: user,
+        housingId: housing1.id,
+        housingGeoCode: housing1.geoCode
+      });
+      const document2 = genHousingDocumentApi({
+        createdBy: user.id,
+        creator: user,
+        housingId: housing2.id,
+        housingGeoCode: housing2.geoCode
+      });
+
+      await Housing().insert([
+        formatHousingRecordApi(housing1),
+        formatHousingRecordApi(housing2)
+      ]);
+      await Documents().insert([toDocumentDBO(document1), toDocumentDBO(document2)]);
+      await HousingDocuments().insert([
+        toHousingDocumentDBO(document1),
+        toHousingDocumentDBO(document2)
+      ]);
+
+      const results = await housingDocumentRepository.find({
+        filters: { housingIds: [{ geoCode: housing1.geoCode, id: housing1.id }] }
+      });
+
+      const ids = results.map((r) => r.id);
+      expect(ids).toContain(document1.id);
+      expect(ids).not.toContain(document2.id);
+    });
+
+    it('should return only soft-deleted documents when deleted: true', async () => {
+      const housingLive = genHousingApi();
+      const housingDeleted = genHousingApi();
+      const liveDoc = genHousingDocumentApi({
+        createdBy: user.id,
+        creator: user,
+        housingId: housingLive.id,
+        housingGeoCode: housingLive.geoCode
+      });
+      const deletedDoc = genHousingDocumentApi({
+        createdBy: user.id,
+        creator: user,
+        housingId: housingDeleted.id,
+        housingGeoCode: housingDeleted.geoCode
+      });
+
+      await Housing().insert([
+        formatHousingRecordApi(housingLive),
+        formatHousingRecordApi(housingDeleted)
+      ]);
+      await Documents().insert([toDocumentDBO(liveDoc), toDocumentDBO(deletedDoc)]);
+      await HousingDocuments().insert([
+        toHousingDocumentDBO(liveDoc),
+        toHousingDocumentDBO(deletedDoc)
+      ]);
+
+      // Soft-delete one document
+      await Documents()
+        .where('id', deletedDoc.id)
+        .update({ deleted_at: new Date() });
+
+      const results = await housingDocumentRepository.find({
+        filters: {
+          deleted: true,
+          documentIds: [liveDoc.id, deletedDoc.id]
+        }
+      });
+
+      const ids = results.map((r) => r.id);
+      expect(ids).toContain(deletedDoc.id);
+      expect(ids).not.toContain(liveDoc.id);
+    });
+
+    it('should return only live documents when deleted: false', async () => {
+      const housingLive = genHousingApi();
+      const housingDeleted = genHousingApi();
+      const liveDoc = genHousingDocumentApi({
+        createdBy: user.id,
+        creator: user,
+        housingId: housingLive.id,
+        housingGeoCode: housingLive.geoCode
+      });
+      const deletedDoc = genHousingDocumentApi({
+        createdBy: user.id,
+        creator: user,
+        housingId: housingDeleted.id,
+        housingGeoCode: housingDeleted.geoCode
+      });
+
+      await Housing().insert([
+        formatHousingRecordApi(housingLive),
+        formatHousingRecordApi(housingDeleted)
+      ]);
+      await Documents().insert([toDocumentDBO(liveDoc), toDocumentDBO(deletedDoc)]);
+      await HousingDocuments().insert([
+        toHousingDocumentDBO(liveDoc),
+        toHousingDocumentDBO(deletedDoc)
+      ]);
+
+      // Soft-delete one document
+      await Documents()
+        .where('id', deletedDoc.id)
+        .update({ deleted_at: new Date() });
+
+      const results = await housingDocumentRepository.find({
+        filters: {
+          deleted: false,
+          documentIds: [liveDoc.id, deletedDoc.id]
+        }
+      });
+
+      const ids = results.map((r) => r.id);
+      expect(ids).toContain(liveDoc.id);
+      expect(ids).not.toContain(deletedDoc.id);
+    });
+
+    it('should return both live and soft-deleted documents when deleted filter is absent', async () => {
+      const housingLive = genHousingApi();
+      const housingDeleted = genHousingApi();
+      const liveDoc = genHousingDocumentApi({
+        createdBy: user.id,
+        creator: user,
+        housingId: housingLive.id,
+        housingGeoCode: housingLive.geoCode
+      });
+      const deletedDoc = genHousingDocumentApi({
+        createdBy: user.id,
+        creator: user,
+        housingId: housingDeleted.id,
+        housingGeoCode: housingDeleted.geoCode
+      });
+
+      await Housing().insert([
+        formatHousingRecordApi(housingLive),
+        formatHousingRecordApi(housingDeleted)
+      ]);
+      await Documents().insert([toDocumentDBO(liveDoc), toDocumentDBO(deletedDoc)]);
+      await HousingDocuments().insert([
+        toHousingDocumentDBO(liveDoc),
+        toHousingDocumentDBO(deletedDoc)
+      ]);
+
+      // Soft-delete one document
+      await Documents()
+        .where('id', deletedDoc.id)
+        .update({ deleted_at: new Date() });
+
+      const results = await housingDocumentRepository.find({
+        filters: { documentIds: [liveDoc.id, deletedDoc.id] }
+      });
+
+      const ids = results.map((r) => r.id);
+      expect(ids).toContain(liveDoc.id);
+      expect(ids).toContain(deletedDoc.id);
+    });
+  });
+
+  describe('fromHousingDocumentDBO', () => {
+    it('should throw "Creator not fetched" when creator is null', () => {
+      const dbo = {
+        id: faker.string.uuid(),
+        filename: faker.system.fileName(),
+        s3_key: faker.string.uuid(),
+        content_type: 'application/pdf',
+        size_bytes: 1024,
+        establishment_id: faker.string.uuid(),
+        created_by: faker.string.uuid(),
+        created_at: new Date(),
+        updated_at: null,
+        deleted_at: null,
+        document_id: faker.string.uuid(),
+        housing_geo_code: faker.location.zipCode('######'),
+        housing_id: faker.string.uuid(),
+        creator: null as unknown as import('~/repositories/userRepository').UserDBO
+      };
+
+      expect(() => fromHousingDocumentDBO(dbo)).toThrow('Creator not fetched');
     });
   });
 });

@@ -5,8 +5,11 @@ import { HousingOwnerApi } from '~/models/HousingOwnerApi';
 import { OwnerApi } from '~/models/OwnerApi';
 import housingOwnerRepository, {
   formatHousingOwnerApi,
+  fromRelativeLocationDBO,
   HousingOwnerDBO,
-  HousingOwners
+  HousingOwners,
+  relativeLocationFilterToDBO,
+  toRelativeLocationDBO
 } from '~/repositories/housingOwnerRepository';
 import {
   formatHousingRecordApi,
@@ -101,6 +104,116 @@ describe('housingOwnerRepository', () => {
       expect(actual).toMatchObject({
         rank: -2
       });
+    });
+  });
+
+  describe('fromRelativeLocationDBO', () => {
+    it('maps 0 to same-address', () => {
+      expect(fromRelativeLocationDBO(0)).toBe('same-address');
+    });
+
+    it('maps 1 to same-commune', () => {
+      expect(fromRelativeLocationDBO(1)).toBe('same-commune');
+    });
+
+    it('maps 2 to same-department', () => {
+      expect(fromRelativeLocationDBO(2)).toBe('same-department');
+    });
+
+    it('maps 3 to same-region', () => {
+      expect(fromRelativeLocationDBO(3)).toBe('same-region');
+    });
+
+    it('maps 4 to metropolitan', () => {
+      expect(fromRelativeLocationDBO(4)).toBe('metropolitan');
+    });
+
+    it('maps 5 to overseas', () => {
+      expect(fromRelativeLocationDBO(5)).toBe('overseas');
+    });
+
+    it('maps 6 to foreign-country', () => {
+      expect(fromRelativeLocationDBO(6)).toBe('foreign-country');
+    });
+
+    it('maps 7 to other', () => {
+      expect(fromRelativeLocationDBO(7)).toBe('other');
+    });
+
+    it('maps null to null', () => {
+      expect(fromRelativeLocationDBO(null)).toBeNull();
+    });
+
+    it('maps an unknown value to null', () => {
+      expect(fromRelativeLocationDBO(99)).toBeNull();
+    });
+  });
+
+  describe('toRelativeLocationDBO', () => {
+    it('maps same-address to 0', () => {
+      expect(toRelativeLocationDBO('same-address')).toBe(0);
+    });
+
+    it('maps same-commune to 1', () => {
+      expect(toRelativeLocationDBO('same-commune')).toBe(1);
+    });
+
+    it('maps same-department to 2', () => {
+      expect(toRelativeLocationDBO('same-department')).toBe(2);
+    });
+
+    it('maps same-region to 3', () => {
+      expect(toRelativeLocationDBO('same-region')).toBe(3);
+    });
+
+    it('maps metropolitan to 4', () => {
+      expect(toRelativeLocationDBO('metropolitan')).toBe(4);
+    });
+
+    it('maps overseas to 5', () => {
+      expect(toRelativeLocationDBO('overseas')).toBe(5);
+    });
+
+    it('maps foreign-country to 6', () => {
+      expect(toRelativeLocationDBO('foreign-country')).toBe(6);
+    });
+
+    it('maps other to 7', () => {
+      expect(toRelativeLocationDBO('other')).toBe(7);
+    });
+
+    it('maps null to null', () => {
+      expect(toRelativeLocationDBO(null)).toBeNull();
+    });
+  });
+
+  describe('relativeLocationFilterToDBO', () => {
+    it('maps same-address to [0]', () => {
+      expect(relativeLocationFilterToDBO('same-address')).toEqual([0]);
+    });
+
+    it('maps same-commune to [1]', () => {
+      expect(relativeLocationFilterToDBO('same-commune')).toEqual([1]);
+    });
+
+    it('maps same-department to [2]', () => {
+      expect(relativeLocationFilterToDBO('same-department')).toEqual([2]);
+    });
+
+    it('maps same-region to [3]', () => {
+      expect(relativeLocationFilterToDBO('same-region')).toEqual([3]);
+    });
+
+    it('maps other-region to [4, 5]', () => {
+      expect(relativeLocationFilterToDBO('other-region')).toEqual([4, 5]);
+    });
+
+    it('maps foreign-country to [6]', () => {
+      expect(relativeLocationFilterToDBO('foreign-country')).toEqual([6]);
+    });
+
+    it('maps other to [7]', () => {
+      expect(relativeLocationFilterToDBO('other')).toEqual([7]);
     });
   });
 

@@ -612,6 +612,82 @@ describe('Owner repository', () => {
     });
   });
 
+  describe('insert', () => {
+    it('should return the inserted OwnerApi and persist the row', async () => {
+      const draft = genOwnerApi();
+
+      const result = await ownerRepository.insert(draft);
+
+      expect(result).toMatchObject<Partial<OwnerApi>>({
+        fullName: draft.fullName,
+        email: draft.email
+      });
+      const row = await Owners().where({ id: result.id }).first();
+      expect(row).toBeDefined();
+      expect(row?.full_name).toBe(draft.fullName);
+    });
+  });
+
+  describe('update', () => {
+    it('should update the owner fields and return the updated OwnerApi', async () => {
+      const owner = genOwnerApi();
+      await Owners().insert(formatOwnerApi(owner));
+
+      const modified: OwnerApi = { ...owner, email: 'updated@example.com' };
+      const result = await ownerRepository.update(modified);
+
+      expect(result.email).toBe('updated@example.com');
+      const row = await Owners().where({ id: owner.id }).first();
+      expect(row?.email).toBe('updated@example.com');
+    });
+  });
+
+  describe('betterSave', () => {
+    it('should update an existing row on conflict and not duplicate it', async () => {
+      const owner = genOwnerApi();
+      await Owners().insert(formatOwnerApi(owner));
+
+      const updated: OwnerApi = { ...owner, email: 'bettersave@example.com' };
+      await ownerRepository.betterSave(updated, {
+        onConflict: ['id'],
+        merge: ['email']
+      });
+
+      const rows = await Owners().where({ id: owner.id });
+      expect(rows).toHaveLength(1);
+      expect(rows[0].email).toBe('bettersave@example.com');
+    });
+  });
+
+  describe('betterSaveMany', () => {
+    it('should persist all owners when given a non-empty array', async () => {
+      const owners = [genOwnerApi(), genOwnerApi(), genOwnerApi()];
+
+      await ownerRepository.betterSaveMany(owners, {
+        onConflict: ['id'],
+        merge: ['email']
+      });
+
+      for (const owner of owners) {
+        const row = await Owners().where({ id: owner.id }).first();
+        expect(row).toBeDefined();
+        expect(row?.full_name).toBe(owner.fullName);
+      }
+    });
+
+    it('should resolve without writing any rows when given an empty array', async () => {
+      const beforeCount = await ownerRepository.count();
+
+      await ownerRepository.betterSaveMany([], {
+        onConflict: ['id'],
+        merge: ['email']
+      });
+
+      const afterCount = await ownerRepository.count();
+      expect(afterCount).toBe(beforeCount);
+    });
+  });
+
   describe('refreshMultiOwnerFlags', () => {
     it('should set is_multi_owner to true for owners with rank=1 in more than one housing', async () => {
       const owner = genOwnerApi();

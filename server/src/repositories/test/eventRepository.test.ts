@@ -14,6 +14,7 @@ import {
   HousingEventApi,
   HousingOwnerEventApi,
   OwnerEventApi,
+  PerimeterHousingEventApi,
   PrecisionHousingEventApi
 } from '~/models/EventApi';
 import { HousingApi } from '~/models/HousingApi';
@@ -36,6 +37,7 @@ import eventRepository, {
   formatHousingEventApi,
   formatHousingOwnerEventApi,
   formatOwnerEventApi,
+  formatPerimeterHousingEventApi,
   formatPrecisionHousingEventApi,
   GroupHousingEvents,
   HousingDocumentEvents,
@@ -44,6 +46,7 @@ import eventRepository, {
   HousingOwnerEvents,
   OwnerEventDBO,
   OwnerEvents,
+  parseEventApi,
   PrecisionHousingEvents
 } from '~/repositories/eventRepository';
 import { formatGroupApi, Groups } from '~/repositories/groupRepository';
@@ -676,6 +679,106 @@ describe('Event repository', () => {
             .map((event) => ({ id: event.id }))
         );
       });
+    });
+  });
+
+  describe('format/parse edge cases', () => {
+    it('parseEventApi: creator absent → creator is undefined', () => {
+      const event = genEventApi({
+        creator,
+        type: 'housing:created',
+        nextOld: null,
+        nextNew: { source: 'datafoncier-manual', occupancy: Occupancy.VACANT }
+      });
+      const dbo = formatEventApi(event);
+      const result = parseEventApi(dbo);
+      expect(result.creator).toBeUndefined();
+    });
+
+    it('formatPrecisionHousingEventApi: precisionId null → precision_id is null', () => {
+      const housing = genHousingApi();
+      const event: PrecisionHousingEventApi = {
+        ...genEventApi({
+          creator,
+          type: 'housing:precision-attached',
+          nextOld: null,
+          nextNew: { category: 'travaux', label: 'some-label' }
+        }),
+        housingGeoCode: housing.geoCode,
+        housingId: housing.id,
+        precisionId: null
+      };
+      const result = formatPrecisionHousingEventApi(event);
+      expect(result.precision_id).toBeNull();
+    });
+
+    it('formatHousingOwnerEventApi: ownerId null → owner_id is null', () => {
+      const housing = genHousingApi();
+      const event: HousingOwnerEventApi = {
+        ...genEventApi({
+          creator,
+          type: 'housing:owner-attached',
+          nextOld: null,
+          nextNew: { name: faker.person.fullName(), rank: 1 }
+        }),
+        housingGeoCode: housing.geoCode,
+        housingId: housing.id,
+        ownerId: null
+      };
+      const result = formatHousingOwnerEventApi(event);
+      expect(result.owner_id).toBeNull();
+    });
+
+    it('formatPerimeterHousingEventApi: defined perimeterId → propagates to perimeter_id', () => {
+      const housing = genHousingApi();
+      const perimeterId = faker.string.uuid();
+      const event: PerimeterHousingEventApi = {
+        ...genEventApi({
+          creator,
+          type: 'housing:perimeter-attached',
+          nextOld: null,
+          nextNew: { name: faker.commerce.productName() }
+        }),
+        housingGeoCode: housing.geoCode,
+        housingId: housing.id,
+        perimeterId
+      };
+      const result = formatPerimeterHousingEventApi(event);
+      expect(result.perimeter_id).toBe(perimeterId);
+    });
+
+    it('formatPerimeterHousingEventApi: perimeterId null → perimeter_id is null', () => {
+      const housing = genHousingApi();
+      const event: PerimeterHousingEventApi = {
+        ...genEventApi({
+          creator,
+          type: 'housing:perimeter-attached',
+          nextOld: null,
+          nextNew: { name: faker.commerce.productName() }
+        }),
+        housingGeoCode: housing.geoCode,
+        housingId: housing.id,
+        perimeterId: null
+      };
+      const result = formatPerimeterHousingEventApi(event);
+      expect(result.perimeter_id).toBeNull();
+    });
+
+    it('formatGroupHousingEventApi: groupId null → group_id is null', () => {
+      const housing = genHousingApi();
+      const event: GroupHousingEventApi = {
+        ...genEventApi({
+          creator,
+          type: 'housing:group-attached',
+          nextOld: null,
+          nextNew: { name: faker.commerce.productName() }
+        }),
+        housingGeoCode: housing.geoCode,
+        housingId: housing.id,
+        groupId: null
+      };
+      const result = formatGroupHousingEventApi(event);
+      expect(result.group_id).toBeNull();
     });
   });
 

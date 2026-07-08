@@ -676,9 +676,17 @@ describe('Account controller', () => {
           activeEstablishmentId: establishment.id
         }
       } as any);
-      mockUpdateSession.mockResolvedValue({ session: {} } as any);
+      const updateSessionHeaders = new Headers();
+      updateSessionHeaders.append(
+        'set-cookie',
+        'zlv.session_data=fresh; Path=/; HttpOnly; SameSite=Lax'
+      );
+      mockUpdateSession.mockResolvedValue({
+        headers: updateSessionHeaders,
+        response: { session: {} }
+      } as any);
 
-      const { body, status } = await request(url)
+      const { body, headers, status } = await request(url)
         .post(`/account/establishments/${targetEstablishment.id}`)
         .set('Cookie', 'zlv.session_token=fake')
         .use(tokenProvider(usualUser));
@@ -689,6 +697,14 @@ describe('Account controller', () => {
       });
       expect(body).not.toHaveProperty('accessToken');
       expect(mockUpdateSession).toHaveBeenCalledTimes(1);
+      expect(mockUpdateSession).toHaveBeenCalledWith(
+        expect.objectContaining({ returnHeaders: true })
+      );
+      expect(headers['set-cookie']).toEqual(
+        expect.arrayContaining([
+          expect.stringContaining('zlv.session_data=fresh')
+        ])
+      );
 
       await UsersEstablishments().where({ user_id: usualUser.id }).delete();
       await Establishments().where('id', targetEstablishment.id).delete();
@@ -715,7 +731,15 @@ describe('Account controller', () => {
           activeEstablishmentId: establishment.id
         }
       } as any);
-      mockUpdateSession.mockResolvedValue({ session: {} } as any);
+      const updateSessionHeaders = new Headers();
+      updateSessionHeaders.append(
+        'set-cookie',
+        'zlv.session_data=fresh; Path=/; HttpOnly; SameSite=Lax'
+      );
+      mockUpdateSession.mockResolvedValue({
+        headers: updateSessionHeaders,
+        response: { session: {} }
+      } as any);
 
       const { body, status } = await request(url)
         .post(`/account/establishments/${targetEstablishment.id}`)

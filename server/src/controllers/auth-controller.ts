@@ -333,9 +333,15 @@ async function changeEstablishmentBySession(
   // better-auth's update-session route accepts a flat record of session
   // additional fields. `activeEstablishmentId` is declared on the auth
   // config (~/infra/auth.ts), so it's a valid update target.
-  await auth.api.updateSession({
+  const updateSession = await auth.api.updateSession({
     headers: fromNodeHeaders(request.headers),
-    body: { activeEstablishmentId: establishmentId }
+    body: { activeEstablishmentId: establishmentId },
+    returnHeaders: true
+  } as Parameters<typeof auth.api.updateSession>[0] & {
+    returnHeaders: true;
+  });
+  updateSession.headers.getSetCookie().forEach((cookie) => {
+    response.append('Set-Cookie', cookie);
   });
 
   let effectiveGeoCodes: string[] | undefined;

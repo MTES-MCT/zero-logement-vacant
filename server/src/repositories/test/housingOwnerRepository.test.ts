@@ -52,6 +52,63 @@ describe('housingOwnerRepository', () => {
         });
       });
     });
+
+    describe('geoCodes filter', () => {
+      it('should return empty array when geoCodes is empty (whereRaw 1=0 path)', async () => {
+        const owner = genOwnerApi();
+        const housing = genHousingApi();
+        await Promise.all([
+          Owners().insert(formatOwnerApi(owner)),
+          Housing().insert(formatHousingRecordApi(housing))
+        ]);
+        const housingOwner: HousingOwnerApi = genHousingOwnerApi(housing, owner);
+        await HousingOwners().insert(formatHousingOwnerApi(housingOwner));
+
+        const actuals = await housingOwnerRepository.findByOwner(owner, {
+          geoCodes: []
+        });
+
+        expect(actuals).toHaveLength(0);
+      });
+
+      it('should return linked housing when geoCodes matches housing geoCode', async () => {
+        const owner = genOwnerApi();
+        const housing = genHousingApi();
+        await Promise.all([
+          Owners().insert(formatOwnerApi(owner)),
+          Housing().insert(formatHousingRecordApi(housing))
+        ]);
+        const housingOwner: HousingOwnerApi = genHousingOwnerApi(housing, owner);
+        await HousingOwners().insert(formatHousingOwnerApi(housingOwner));
+
+        const actuals = await housingOwnerRepository.findByOwner(owner, {
+          geoCodes: [housing.geoCode]
+        });
+
+        expect(actuals).toHaveLength(1);
+        expect(actuals[0]).toMatchObject({
+          id: housing.id,
+          ownerId: owner.id
+        });
+      });
+
+      it('should return empty array when geoCodes does not match housing geoCode', async () => {
+        const owner = genOwnerApi();
+        const housing = genHousingApi();
+        await Promise.all([
+          Owners().insert(formatOwnerApi(owner)),
+          Housing().insert(formatHousingRecordApi(housing))
+        ]);
+        const housingOwner: HousingOwnerApi = genHousingOwnerApi(housing, owner);
+        await HousingOwners().insert(formatHousingOwnerApi(housingOwner));
+
+        const actuals = await housingOwnerRepository.findByOwner(owner, {
+          geoCodes: ['00000']
+        });
+
+        expect(actuals).toHaveLength(0);
+      });
+    });
   });
 
   describe('insert', () => {
@@ -315,6 +372,16 @@ describe('housingOwnerRepository', () => {
   });
 
   describe('saveMany', () => {
+    it('should return empty array and write nothing when called with empty array', async () => {
+      const before = await HousingOwners().count<{ count: string }>('*').first();
+
+      const result = await housingOwnerRepository.saveMany([]);
+
+      const after = await HousingOwners().count<{ count: string }>('*').first();
+      expect(result).toEqual([]);
+      expect(after?.count).toBe(before?.count);
+    });
+
     it('should replace housing owners', async () => {
       const existingOwner = genOwnerApi();
       const housing = genHousingApi();

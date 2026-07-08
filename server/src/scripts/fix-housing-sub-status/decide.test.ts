@@ -156,3 +156,141 @@ describe('decide', () => {
     }
   });
 });
+
+describe('decide — lovac-2026 takes precedence (still vacant)', () => {
+  const lovac = ['lovac-2024', 'lovac-2026'];
+
+  it('keeps a valid ACTIVE event — first-contact / in-progress / blocked (Case B)', () => {
+    const inProgress = decide(
+      base({
+        status: HousingStatus.IN_PROGRESS,
+        dataFileYears: lovac,
+        latestEvent: {
+          status: 'Suivi en cours',
+          subStatus: 'Intervention publique'
+        }
+      })
+    );
+    expect(inProgress).toMatchObject({
+      action: 'update',
+      targetStatus: HousingStatus.IN_PROGRESS,
+      targetSubStatus: 'Intervention publique',
+      source: 'event'
+    });
+
+    const blocked = decide(
+      base({
+        status: HousingStatus.BLOCKED,
+        dataFileYears: lovac,
+        latestEvent: {
+          status: 'Suivi bloqué',
+          subStatus: 'Blocage involontaire du propriétaire'
+        }
+      })
+    );
+    expect(blocked).toMatchObject({
+      action: 'update',
+      targetStatus: HousingStatus.BLOCKED,
+      source: 'event'
+    });
+  });
+
+  it('resets an exited/COMPLETED event to NEVER_CONTACTED (Case A — contradiction)', () => {
+    const result = decide(
+      base({
+        status: HousingStatus.COMPLETED,
+        dataFileYears: lovac,
+        latestEvent: {
+          status: 'Suivi terminé',
+          subStatus: "N'était pas vacant"
+        }
+      })
+    );
+    expect(result).toMatchObject({
+      action: 'update',
+      targetStatus: HousingStatus.NEVER_CONTACTED,
+      targetSubStatus: null,
+      source: 'fallback-lovac'
+    });
+  });
+
+  it('resets a passive (never/waiting) event to NEVER_CONTACTED (Case C)', () => {
+    const result = decide(
+      base({
+        status: HousingStatus.COMPLETED,
+        dataFileYears: lovac,
+        latestEvent: { status: 'Non suivi' }
+      })
+    );
+    expect(result).toMatchObject({
+      action: 'update',
+      targetStatus: HousingStatus.NEVER_CONTACTED,
+      source: 'fallback-lovac'
+    });
+  });
+
+  it('rescues an unusable event — empty or active-with-null-sub (Case D)', () => {
+    const empty = decide(
+      base({
+        status: HousingStatus.COMPLETED,
+        dataFileYears: lovac,
+        latestEvent: { subStatus: null }
+      })
+    );
+    expect(empty).toMatchObject({
+      action: 'update',
+      targetStatus: HousingStatus.NEVER_CONTACTED,
+      source: 'fallback-lovac'
+    });
+
+    // active status but the sub-status was nulled by the bug → not kept, reset
+    const brokenActive = decide(
+      base({
+        status: HousingStatus.BLOCKED,
+        dataFileYears: lovac,
+        latestEvent: { status: 'Suivi bloqué', subStatus: null }
+      })
+    );
+    expect(brokenActive).toMatchObject({
+      action: 'update',
+      targetStatus: HousingStatus.NEVER_CONTACTED,
+      source: 'fallback-lovac'
+    });
+  });
+
+  it('resets to NEVER_CONTACTED when in lovac-2026 with no event at all', () => {
+    const result = decide(
+      base({
+        status: HousingStatus.FIRST_CONTACT,
+        dataFileYears: lovac,
+        latestEvent: null
+      })
+    );
+    expect(result).toMatchObject({
+      action: 'update',
+      targetStatus: HousingStatus.NEVER_CONTACTED,
+      source: 'fallback-lovac'
+    });
+  });
+});
+
+describe('decide — not in lovac-2026 (exited): events are trusted', () => {
+  it('keeps a COMPLETED exit event (Case E)', () => {
+    const result = decide(
+      base({
+        status: HousingStatus.COMPLETED,
+        dataFileYears: ['lovac-2024'],
+        latestEvent: {
+          status: 'Suivi terminé',
+          subStatus: 'Sortie de la vacance'
+        }
+      })
+    );
+    expect(result).toMatchObject({
+      action: 'update',
+      targetStatus: HousingStatus.COMPLETED,
+      targetSubStatus: 'Sortie de la vacance',
+      source: 'event'
+    });
+  });
+});

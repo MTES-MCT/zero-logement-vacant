@@ -73,6 +73,40 @@ export type Decision =
       reason: 'no-event-non-completed';
     };
 
+type ResolvedEvent =
+  | { valid: true; status: HousingStatus; subStatus: string | null }
+  | {
+      valid: false;
+      reason: 'missing-or-unknown-status' | 'invalid-sub-status';
+    };
+
+/**
+ * Decode an event's `next_new` into a valid `(status, subStatus)` target, or
+ * the reason it cannot be used.
+ */
+function resolveEvent(event: EventNextNew): ResolvedEvent {
+  const status = decodeStatusLabel(event.status);
+  if (status === undefined) {
+    return { valid: false, reason: 'missing-or-unknown-status' };
+  }
+  const subStatus = event.subStatus ?? null;
+  if (requiresSubStatus(status)) {
+    if (subStatus === null || !getSubStatuses(status).has(subStatus)) {
+      return { valid: false, reason: 'invalid-sub-status' };
+    }
+    return { valid: true, status, subStatus };
+  }
+  return { valid: true, status, subStatus: null };
+}
+
+/**
+ * Active follow-up statuses: they require a sub-status but are not the terminal
+ * COMPLETED (exited) status.
+ */
+function isActiveFollowUp(status: HousingStatus): boolean {
+  return requiresSubStatus(status) && status !== HousingStatus.COMPLETED;
+}
+
 export function decide(input: DecideInput): Decision {
   const {
     geoCode,
@@ -82,45 +116,25 @@ export function decide(input: DecideInput): Decision {
     latestEvent
   } = input;
 
-  if (latestEvent !== null) {
-    const targetStatus = decodeStatusLabel(latestEvent.status);
-    if (targetStatus === undefined) {
-      return {
-        action: 'error',
-        geoCode,
-        id,
-        currentStatus,
-        reason: 'missing-or-unknown-status',
-        nextNew: latestEvent
-      };
-    }
-
-    const subStatus = latestEvent.subStatus ?? null;
-    if (requiresSubStatus(targetStatus)) {
-      if (subStatus === null || !getSubStatuses(targetStatus).has(subStatus)) {
+  // Still vacant in the latest data (lovac-2026): a follow-up event that says
+  // the housing exited is contradicted. Keep only a valid ACTIVE event;
+  // otherwise reset to NEVER_CONTACTED — this also rescues housings whose latest
+  // event was corrupted by the sub-status-nulling bug.
+  if (dataFileYears.includes(LOVAC_2026)) {
+    if (latestEvent !== null) {
+      const resolved = resolveEvent(latestEvent);
+      if (resolved.valid && isActiveFollowUp(resolved.status)) {
         return {
-          action: 'error',
+          action: 'update',
           geoCode,
           id,
           currentStatus,
-          reason: 'invalid-sub-status',
-          nextNew: latestEvent
+          targetStatus: resolved.status,
+          targetSubStatus: resolved.subStatus,
+          source: 'event'
         };
       }
     }
-
-    return {
-      action: 'update',
-      geoCode,
-      id,
-      currentStatus,
-      targetStatus,
-      targetSubStatus: requiresSubStatus(targetStatus) ? subStatus : null,
-      source: 'event'
-    };
-  }
-
-  if (dataFileYears.includes(LOVAC_2026)) {
     return {
       action: 'update',
       geoCode,
@@ -129,6 +143,30 @@ export function decide(input: DecideInput): Decision {
       targetStatus: HousingStatus.NEVER_CONTACTED,
       targetSubStatus: null,
       source: 'fallback-lovac'
+    };
+  }
+
+  // Not in lovac-2026 (left the file): trust the latest event.
+  if (latestEvent !== null) {
+    const resolved = resolveEvent(latestEvent);
+    if (!resolved.valid) {
+      return {
+        action: 'error',
+        geoCode,
+        id,
+        currentStatus,
+        reason: resolved.reason,
+        nextNew: latestEvent
+      };
+    }
+    return {
+      action: 'update',
+      geoCode,
+      id,
+      currentStatus,
+      targetStatus: resolved.status,
+      targetSubStatus: resolved.subStatus,
+      source: 'event'
     };
   }
 

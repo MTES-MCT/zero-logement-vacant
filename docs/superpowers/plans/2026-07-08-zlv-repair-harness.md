@@ -24,20 +24,18 @@
 
 ## File Map
 
-| Path                                                                                  | Action | Responsibility                                                                                                                                |
-| ------------------------------------------------------------------------------------- | ------ | --------------------------------------------------------------------------------------------------------------------------------------------- |
-| `server/src/scripts/repairs/lib/types.ts`                                             | Create | Core interfaces: `Repair<H>`, `RepairAction`, `RepairSkip`, `RepairError`, `PlanRow`, `SkippedRow`, `ErrorRow`, `PlanSummary`, `ApplySummary` |
-| `server/src/repositories/eventRepository.ts`                                          | Modify | Add `deleteManyHousingEvents(ids: string[])`                                                                                                  |
-| `server/src/scripts/repairs/lib/plan.ts`                                              | Create | `plan(repair, options)` — query → decide → write plan/skipped/errors JSONL                                                                    |
-| `server/src/scripts/repairs/lib/apply.ts`                                             | Create | `apply(planFile)` — read plan.jsonl → group by payload → chunk → single transaction                                                           |
-| `server/src/scripts/repairs/lib/stats.ts`                                             | Create | `stats(planFile)` — count plan.jsonl rows without touching DB                                                                                 |
-| `server/src/scripts/repairs/index.ts`                                                 | Create | Repair registry: maps name → `Repair<any>`                                                                                                    |
-| `server/src/scripts/repairs/cli.ts`                                                   | Create | `repairCommand()` returning a commander `Command`                                                                                             |
-| `server/src/bin/zlv.ts`                                                               | Create | Top-level `zlv` binary entry point                                                                                                            |
-| `server/package.json`                                                                 | Modify | Add `"zlv"` script entry                                                                                                                      |
-| `server/src/scripts/repairs/lib/test/plan.test.ts`                                    | Create | Unit tests for `plan()`                                                                                                                       |
-| `server/src/scripts/repairs/lib/test/apply.test.ts`                                   | Create | Integration tests for `apply()`                                                                                                               |
-| `server/src/scripts/repairs/lib/test/eventRepository-deleteManyHousingEvents.test.ts` | Create | Integration test for `deleteManyHousingEvents()`                                                                                              |
+| Path                                                | Action | Responsibility                                                                                                                                |
+| --------------------------------------------------- | ------ | --------------------------------------------------------------------------------------------------------------------------------------------- |
+| `server/src/scripts/repairs/lib/types.ts`           | Create | Core interfaces: `Repair<H>`, `RepairAction`, `RepairSkip`, `RepairError`, `PlanRow`, `SkippedRow`, `ErrorRow`, `PlanSummary`, `ApplySummary` |
+| `server/src/scripts/repairs/lib/plan.ts`            | Create | `plan(repair, options)` — query → decide → write plan/skipped/errors JSONL                                                                    |
+| `server/src/scripts/repairs/lib/apply.ts`           | Create | `apply(planFile)` — read plan.jsonl → group by payload → chunk → single transaction; inlines event deletion via `Events()`/`HousingEvents()`  |
+| `server/src/scripts/repairs/lib/stats.ts`           | Create | `stats(planFile)` — count plan.jsonl rows without touching DB                                                                                 |
+| `server/src/scripts/repairs/index.ts`               | Create | Repair registry: maps name → `Repair<any>`                                                                                                    |
+| `server/src/scripts/repairs/cli.ts`                 | Create | `repairCommand()` returning a commander `Command`                                                                                             |
+| `server/src/bin/zlv.ts`                             | Create | Top-level `zlv` binary entry point                                                                                                            |
+| `server/package.json`                               | Modify | Add `"zlv"` script entry                                                                                                                      |
+| `server/src/scripts/repairs/lib/test/plan.test.ts`  | Create | Unit tests for `plan()`                                                                                                                       |
+| `server/src/scripts/repairs/lib/test/apply.test.ts` | Create | Integration tests for `apply()`                                                                                                               |
 
 ---
 
@@ -127,134 +125,7 @@ git commit -m "feat(repairs): add core types for repair harness"
 
 ---
 
-## Task 2: `eventRepository.deleteManyHousingEvents()`
-
-**Files:**
-
-- Modify: `server/src/repositories/eventRepository.ts`
-- Test: `server/src/scripts/repairs/lib/test/eventRepository-deleteManyHousingEvents.test.ts`
-
-**Interfaces:**
-
-- Consumes: `Events`, `HousingEvents`, `EVENTS_TABLE`, `HOUSING_EVENTS_TABLE`, `withinTransaction` — all already in `eventRepository.ts`.
-- Produces: `eventRepository.deleteManyHousingEvents(ids: string[]): Promise<void>` — consumed by Task 4 (`apply.ts`).
-
-- [ ] **Step 1: Write the failing test**
-
-```typescript
-// server/src/scripts/repairs/lib/test/eventRepository-deleteManyHousingEvents.test.ts
-import { v4 as uuidv4 } from 'uuid';
-import { beforeEach, describe, expect, it } from 'vitest';
-
-import {
-  Events,
-  EVENTS_TABLE,
-  HousingEvents,
-  HOUSING_EVENTS_TABLE
-} from '~/repositories/eventRepository';
-import eventRepository from '~/repositories/eventRepository';
-import { genHousingApi } from '~/test/testFixtures';
-import { Housings } from '~/repositories/housingRepository';
-
-const housing = genHousingApi();
-
-beforeEach(async () => {
-  await Housings().insert({
-    /* minimal housing row */ id: housing.id,
-    geo_code: housing.geoCode
-  });
-});
-
-describe('deleteManyHousingEvents', () => {
-  it('hard-deletes the given event ids from events and housing_events', async () => {
-    const eventId = uuidv4();
-    await Events().insert({
-      id: eventId,
-      type: 'housing:status-updated',
-      next_old: null,
-      next_new: null,
-      created_at: new Date(),
-      created_by: uuidv4()
-    });
-    await HousingEvents().insert({
-      event_id: eventId,
-      housing_id: housing.id,
-      housing_geo_code: housing.geoCode
-    });
-
-    await eventRepository.deleteManyHousingEvents([eventId]);
-
-    const remainingEvents = await Events().where('id', eventId);
-    const remainingHousingEvents = await HousingEvents().where(
-      'event_id',
-      eventId
-    );
-    expect(remainingEvents).toHaveLength(0);
-    expect(remainingHousingEvents).toHaveLength(0);
-  });
-
-  it('is a no-op for an empty array', async () => {
-    await expect(
-      eventRepository.deleteManyHousingEvents([])
-    ).resolves.not.toThrow();
-  });
-});
-```
-
-- [ ] **Step 2: Run test to confirm it fails**
-
-```bash
-yarn nx test server -- eventRepository-deleteManyHousingEvents
-```
-
-Expected: FAIL — `eventRepository.deleteManyHousingEvents is not a function`.
-
-- [ ] **Step 3: Implement `deleteManyHousingEvents` in eventRepository.ts**
-
-Add before the `export default` block (after `removeCampaignEvents`):
-
-```typescript
-async function deleteManyHousingEvents(ids: string[]): Promise<void> {
-  if (ids.length === 0) {
-    return;
-  }
-  logger.debug('Deleting housing events...', { count: ids.length });
-  await withinTransaction(async (transaction) => {
-    await HousingEvents(transaction).whereIn('event_id', ids).delete();
-    await Events(transaction).whereIn('id', ids).delete();
-  });
-  logger.debug('Housing events deleted', { count: ids.length });
-}
-```
-
-Add to the `export default` object at the bottom:
-
-```typescript
-export default {
-  // ...existing exports...
-  deleteManyHousingEvents
-};
-```
-
-- [ ] **Step 4: Run test to confirm it passes**
-
-```bash
-yarn nx test server -- eventRepository-deleteManyHousingEvents
-```
-
-Expected: PASS.
-
-- [ ] **Step 5: Commit**
-
-```bash
-git add server/src/repositories/eventRepository.ts \
-        server/src/scripts/repairs/lib/test/eventRepository-deleteManyHousingEvents.test.ts
-git commit -m "feat(repairs): add deleteManyHousingEvents to eventRepository"
-```
-
----
-
-## Task 3: `plan()` function
+## Task 2: `plan()` function
 
 **Files:**
 
@@ -544,7 +415,7 @@ git commit -m "feat(repairs): add plan() function"
 
 ---
 
-## Task 4: `apply()` and `stats()` functions
+## Task 3: `apply()` and `stats()` functions
 
 **Files:**
 
@@ -556,9 +427,9 @@ git commit -m "feat(repairs): add plan() function"
 
 - Consumes:
   - `housingRepository.updateMany(housings: ReadonlyArray<HousingId>, payload)` from `~/repositories/housingRepository`
-  - `eventRepository.deleteManyHousingEvents(ids: string[])` from Task 2
   - `eventRepository.insertManyHousingEvents(events: HousingEventApi[])` from `~/repositories/eventRepository`
-  - `startTransaction()` from `~/infra/database/transaction`
+  - `Events`, `HousingEvents` table accessors from `~/repositories/eventRepository` (used directly for event deletion — not a promoted repository method)
+  - `startTransaction()`, `withinTransaction()` from `~/infra/database/transaction`
   - `chunksOf` from `'effect/Array'`
   - `PlanRow`, `ApplySummary`, `PlanSummary` from `./types`
 - Produces:
@@ -715,7 +586,11 @@ import readline from 'node:readline';
 
 import { chunksOf } from 'effect/Array';
 
-import { startTransaction } from '~/infra/database/transaction';
+import {
+  startTransaction,
+  withinTransaction
+} from '~/infra/database/transaction';
+import { Events, HousingEvents } from '~/repositories/eventRepository';
 import eventRepository from '~/repositories/eventRepository';
 import housingRepository from '~/repositories/housingRepository';
 
@@ -747,7 +622,12 @@ export async function apply(planFile: string): Promise<ApplySummary> {
     }
 
     if (allDeleteIds.length > 0) {
-      await eventRepository.deleteManyHousingEvents(allDeleteIds);
+      await withinTransaction(async (transaction) => {
+        await HousingEvents(transaction)
+          .whereIn('event_id', allDeleteIds)
+          .delete();
+        await Events(transaction).whereIn('id', allDeleteIds).delete();
+      });
     }
 
     if (allCreateEvents.length > 0) {
@@ -843,7 +723,7 @@ git commit -m "feat(repairs): add apply() and stats() functions"
 
 ---
 
-## Task 5: CLI, registry, and `zlv` binary
+## Task 4: CLI, registry, and `zlv` binary
 
 **Files:**
 
@@ -855,9 +735,8 @@ git commit -m "feat(repairs): add apply() and stats() functions"
 **Interfaces:**
 
 - Consumes:
-  - `plan()` from `./lib/plan`
-  - `apply()` from `./lib/apply`
-  - `stats()` from `./lib/stats`
+  - `plan()` from Task 2 (`./lib/plan`)
+  - `apply()`, `stats()` from Task 3 (`./lib/apply`, `./lib/stats`)
   - `Repair<any>` from `./lib/types`
   - `Command` from `@commander-js/extra-typings`
 - Produces: `zlv repair list|plan|stats|apply` CLI commands.
@@ -1023,8 +902,8 @@ After writing: spec coverage checked.
 - ✅ `RepairError` → `errors.jsonl` → Tasks 1, 3
 - ✅ `plan` command writes 3 JSONL files + prints summary → Tasks 3, 5
 - ✅ `apply` groups by payload, chunks to 1000, single transaction → Task 4
-- ✅ Hard-delete of events via `deleteManyHousingEvents` → Task 2
-- ✅ Optional `createEvents` → Task 4 (`insertManyHousingEvents`)
+- ✅ Hard-delete of events inlined in `apply.ts` via `Events()`/`HousingEvents()` — not promoted as a repository method → Task 3
+- ✅ Optional `createEvents` → Task 3 (`insertManyHousingEvents`)
 - ✅ `stats` command reads plan file without DB → Tasks 4, 5
 - ✅ `list` command shows registered repairs → Task 5
 - ✅ Repair registry in `index.ts` → Task 5

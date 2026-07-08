@@ -138,6 +138,13 @@ describe('Event repository', () => {
         (event) => event.housing_id === housing.id
       );
     });
+
+    it('does not write when given an empty array', async () => {
+      const before = (await HousingEvents()).length;
+      await eventRepository.insertManyHousingEvents([]);
+      const after = (await HousingEvents()).length;
+      expect(after).toBe(before);
+    });
   });
 
   describe('insertManyOwnerEvents', () => {
@@ -178,6 +185,58 @@ describe('Event repository', () => {
       expect(actual).toSatisfyAll<OwnerEventDBO>(
         (event) => event.owner_id === owner.id
       );
+    });
+
+    it('does not write when given an empty array', async () => {
+      const before = (await OwnerEvents()).length;
+      await eventRepository.insertManyOwnerEvents([]);
+      const after = (await OwnerEvents()).length;
+      expect(after).toBe(before);
+    });
+  });
+
+  describe('insertManyHousingOwnerEvents', () => {
+    it('does not write when given an empty array', async () => {
+      const before = (await HousingOwnerEvents()).length;
+      await eventRepository.insertManyHousingOwnerEvents([]);
+      const after = (await HousingOwnerEvents()).length;
+      expect(after).toBe(before);
+    });
+  });
+
+  describe('insertManyPrecisionHousingEvents', () => {
+    it('does not write when given an empty array', async () => {
+      const before = (await PrecisionHousingEvents()).length;
+      await eventRepository.insertManyPrecisionHousingEvents([]);
+      const after = (await PrecisionHousingEvents()).length;
+      expect(after).toBe(before);
+    });
+  });
+
+  describe('insertManyCampaignHousingEvents', () => {
+    it('does not write when given an empty array', async () => {
+      const before = (await CampaignHousingEvents()).length;
+      await eventRepository.insertManyCampaignHousingEvents([]);
+      const after = (await CampaignHousingEvents()).length;
+      expect(after).toBe(before);
+    });
+  });
+
+  describe('insertManyCampaignEvents', () => {
+    it('does not write when given an empty array', async () => {
+      const before = (await CampaignEvents()).length;
+      await eventRepository.insertManyCampaignEvents([]);
+      const after = (await CampaignEvents()).length;
+      expect(after).toBe(before);
+    });
+  });
+
+  describe('insertManyGroupHousingEvents', () => {
+    it('does not write when given an empty array', async () => {
+      const before = (await GroupHousingEvents()).length;
+      await eventRepository.insertManyGroupHousingEvents([]);
+      const after = (await GroupHousingEvents()).length;
+      expect(after).toBe(before);
     });
   });
 
@@ -909,6 +968,13 @@ describe('Event repository', () => {
         });
         expect(eventRecord.next_new).toBeNull();
       });
+
+      it('does not write when given an empty array', async () => {
+        const before = (await DocumentEvents()).length;
+        await eventRepository.insertManyDocumentEvents([]);
+        const after = (await DocumentEvents()).length;
+        expect(after).toBe(before);
+      });
     });
 
     describe('insertManyHousingDocumentEvents', () => {
@@ -1005,6 +1071,13 @@ describe('Event repository', () => {
           next_old: { filename: document.filename }
         });
         expect(eventRecord.next_new).toBeNull();
+      });
+
+      it('does not write when given an empty array', async () => {
+        const before = (await HousingDocumentEvents()).length;
+        await eventRepository.insertManyHousingDocumentEvents([]);
+        const after = (await HousingDocumentEvents()).length;
+        expect(after).toBe(before);
       });
     });
   });

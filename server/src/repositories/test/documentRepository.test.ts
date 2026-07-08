@@ -3,6 +3,7 @@ import { describe, it, expect, beforeAll } from 'vitest';
 
 import documentRepository, {
   Documents,
+  fromDocumentDBO,
   toDocumentDBO
 } from '~/repositories/documentRepository';
 import {
@@ -175,6 +176,86 @@ describe('documentRepository', () => {
 
       const actual = await Documents().where('id', document.id).first();
       expect(actual?.deleted_at).not.toBeNull();
+    });
+  });
+
+  describe('toDocumentDBO', () => {
+    it('should set updated_at when updatedAt is a Date', () => {
+      const document = genDocumentApi({
+        createdBy: user.id,
+        creator: user,
+        updatedAt: new Date().toISOString()
+      });
+      const dbo = toDocumentDBO({ ...document, updatedAt: new Date().toISOString() });
+      expect(dbo.updated_at).not.toBeNull();
+    });
+
+    it('should set deleted_at when deletedAt is a Date', () => {
+      const document = genDocumentApi({
+        createdBy: user.id,
+        creator: user
+      });
+      const dbo = toDocumentDBO({ ...document, deletedAt: new Date().toISOString() });
+      expect(dbo.deleted_at).not.toBeNull();
+    });
+  });
+
+  describe('fromDocumentDBO', () => {
+    const baseDBO = {
+      id: uuidv4(),
+      filename: 'test.pdf',
+      s3_key: 'documents/test.pdf',
+      content_type: 'application/pdf',
+      size_bytes: 1024,
+      establishment_id: uuidv4(),
+      created_by: uuidv4(),
+      created_at: new Date(),
+      updated_at: null,
+      deleted_at: null
+    };
+
+    const userDBO = {
+      id: uuidv4(),
+      email: 'test@example.com',
+      password: 'hash',
+      first_name: 'Test',
+      last_name: 'User',
+      establishment_id: uuidv4(),
+      role: 1,
+      activated_at: new Date(),
+      last_authenticated_at: null,
+      suspended_at: null,
+      suspended_cause: null,
+      deleted_at: null,
+      updated_at: new Date(),
+      phone: null,
+      position: null,
+      time_per_week: null,
+      kind: null,
+      two_factor_secret: null,
+      two_factor_enabled_at: null,
+      two_factor_code: null,
+      two_factor_code_generated_at: null,
+      two_factor_failed_attempts: 0,
+      two_factor_locked_until: null
+    };
+
+    it('should throw when creator is null', () => {
+      expect(() =>
+        fromDocumentDBO({ ...baseDBO, creator: null as never })
+      ).toThrow('Creator not fetched');
+    });
+
+    it('should return non-null updatedAt Date when updated_at is set', () => {
+      const dbo = { ...baseDBO, creator: userDBO, updated_at: new Date() };
+      const result = fromDocumentDBO(dbo);
+      expect(result.updatedAt).not.toBeNull();
+    });
+
+    it('should return non-null deletedAt Date when deleted_at is set', () => {
+      const dbo = { ...baseDBO, creator: userDBO, deleted_at: new Date() };
+      const result = fromDocumentDBO(dbo);
+      expect(result.deletedAt).not.toBeNull();
     });
   });
 });

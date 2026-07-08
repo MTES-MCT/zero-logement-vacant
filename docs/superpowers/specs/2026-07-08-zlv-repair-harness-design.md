@@ -119,9 +119,9 @@ The naming mirrors Terraform (`plan` / `apply`) to make the intent immediately c
 2. Call `query()` → array of `H`.
 3. For each housing, call `decide()`:
    - `RepairAction` → written to `plan.jsonl`
-   - `RepairSkip` → silently omitted
+   - `RepairSkip` → written to `skipped.jsonl`
    - `RepairError` → written to `errors.jsonl`
-4. Print summary: N housings to update, N events to delete, N events to create, M errors.
+4. Print summary: N housings to update, N skipped, N events to delete, N events to create, M errors.
 
 ### `zlv repair apply <plan-file>`
 
@@ -144,7 +144,16 @@ The naming mirrors Terraform (`plan` / `apply`) to make the intent immediately c
 {"housingId":"ghi","housingGeoCode":"13055","update":{"status":0},"createEvents":[{"type":"housing:status-updated","nextOld":{...},"nextNew":{...}}]}
 ```
 
-`errors.jsonl` — same shape plus `reason`:
+`skipped.jsonl` — housings `decide()` chose to leave untouched:
+
+```jsonl
+{
+  "housingId": "uvw",
+  "housingGeoCode": "75056"
+}
+```
+
+`errors.jsonl` — housings `decide()` could not handle, with reason:
 
 ```jsonl
 {

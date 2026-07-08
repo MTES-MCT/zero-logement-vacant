@@ -1105,6 +1105,21 @@ describe('Housing API', () => {
       expect(status).toBe(constants.HTTP_STATUS_BAD_REQUEST);
     });
 
+    it('should return 400 when a sub-status is provided without a status', async () => {
+      const payload: HousingBatchUpdatePayload = {
+        filters: { all: false },
+        subStatus: null
+      };
+
+      const { status } = await request(url)
+        .put(testRoute)
+        .send(payload)
+        .type('json')
+        .use(tokenProvider(user));
+
+      expect(status).toBe(constants.HTTP_STATUS_BAD_REQUEST);
+    });
+
     it('should be forbidden to set status "NeverContacted" for housings that have already been contacted', async () => {
       const { housings } = await createHousings({
         status: HousingStatus.WAITING

@@ -29,8 +29,20 @@ export const housingBatchUpdatePayload: ObjectSchema<HousingBatchUpdatePayload> 
             name: 'sub-status-coherence',
             test(value) {
               const { status } = this.parent as { status?: number };
-              // No status set in this payload: leave the sub-status untouched.
-              if (status === undefined || !isHousingStatus(status)) return true;
+              if (status === undefined) {
+                // A sub-status has no meaning without a status to attach it to:
+                // an omitted sub-status is a no-op, but a provided one (a value
+                // or an explicit null) is rejected.
+                if (value !== undefined) {
+                  return this.createError({
+                    message:
+                      'Un sous-statut ne peut pas être défini sans statut de suivi.'
+                  });
+                }
+                return true;
+              }
+              // An invalid status is rejected by the `status` field itself.
+              if (!isHousingStatus(status)) return true;
               // A valid status reaching the `otherwise` branch necessarily has
               // sub-statuses (statuses without any go through `then`), so a
               // sub-status is required here.

@@ -203,4 +203,22 @@ describe('Housing batch update payload', () => {
 
     expect(actual.subStatus).toBeNull();
   });
+
+  it('should reject a sub-status provided without a status', () => {
+    expect(() =>
+      housingBatchUpdatePayload.validateSync({
+        filters: { all: false },
+        subStatus: 'En accompagnement'
+      })
+    ).toThrow(ValidationError);
+  });
+
+  it('should reject an explicit null sub-status provided without a status', () => {
+    expect(() =>
+      housingBatchUpdatePayload.validateSync({
+        filters: { all: false },
+        subStatus: null
+      })
+    ).toThrow(ValidationError);
+  });
 });

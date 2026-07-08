@@ -211,6 +211,47 @@ describe('better-auth sign-in (integration)', () => {
     }
   });
 
+  it('returns identical error for admin and non-admin wrong credentials', async () => {
+    const password = 'not-a-real-password';
+    const regularUser = await seedBackfilledUser({
+      email: 'regular-enumeration@zlv.fr',
+      plaintextPassword: password,
+      establishmentId: establishment.id
+    });
+    const adminUser = await seedBackfilledUser({
+      email: 'admin-enumeration@zlv.fr',
+      plaintextPassword: password,
+      establishmentId: establishment.id,
+      role: UserRole.ADMIN
+    });
+
+    try {
+      const [unknownEmailResponse, wrongPasswordResponse, adminResponse] =
+        await Promise.all([
+          request(url)
+            .post('/auth/sign-in/email')
+            .send({ email: 'nobody-admin@zlv.fr', password: 'AnyP@ssword1' }),
+          request(url).post('/auth/sign-in/email').send({
+            email: regularUser.email,
+            password: 'WrongPassword1!'
+          }),
+          request(url).post('/auth/sign-in/email').send({
+            email: adminUser.email,
+            password: 'WrongPassword1!'
+          })
+        ]);
+
+      expect(unknownEmailResponse.status).toBeGreaterThanOrEqual(400);
+      expect(wrongPasswordResponse.status).toBe(unknownEmailResponse.status);
+      expect(adminResponse.status).toBe(unknownEmailResponse.status);
+      expect(wrongPasswordResponse.body).toEqual(unknownEmailResponse.body);
+      expect(adminResponse.body).toEqual(unknownEmailResponse.body);
+    } finally {
+      await deleteBackfilledUser(regularUser.id);
+      await deleteBackfilledUser(adminUser.id);
+    }
+  });
+
   it('rejects admin users on the better-auth password endpoint', async () => {
     const email = 'admin-v2@zlv.fr';
     const password = 'not-a-real-password';

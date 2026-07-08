@@ -46,6 +46,13 @@ function authenticationFailed(): APIError {
   });
 }
 
+function invalidEmailOrPassword(): APIError {
+  return new APIError('UNAUTHORIZED', {
+    code: 'INVALID_EMAIL_OR_PASSWORD',
+    message: 'Invalid email or password'
+  });
+}
+
 async function getAdminUser(email: string): Promise<UserApi> {
   const user = await userRepository.getByEmailIncludingDeleted(email);
   if (!user) {
@@ -202,9 +209,11 @@ export function zlvAdminTwoFactor(): BetterAuthPlugin {
 
             const user = await userRepository.getByEmailIncludingDeleted(email);
             if (user?.role === UserRole.ADMIN) {
-              throw new APIError('FORBIDDEN', {
-                message: 'Admins must use the admin two-factor sign-in endpoint.'
-              });
+              const password = ctx.body?.password;
+              if (typeof password === 'string') {
+                await ctx.context.password.hash(password);
+              }
+              throw invalidEmailOrPassword();
             }
           })
         }

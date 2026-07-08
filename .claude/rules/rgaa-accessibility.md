@@ -29,143 +29,208 @@ tableau, navigation, contenu, style) :
   refactoring ou d'une intégration Figma (voir
   [figma-design-system.md](figma-design-system.md)).
 
-## Source de référence (canonique)
+## Source de référence (canonique) et fiabilité de cette liste
 
 Référentiel officiel : <https://accessibilite.numerique.gouv.fr/methode/criteres-et-tests/>
 
-Version en vigueur au moment de la rédaction de ce fichier : **RGAA 4.1.2**
-(déclinaison française de WCAG 2.1 niveau AA), organisée en **13 thématiques**
-et **106 critères de contrôle**, eux-mêmes décomposés en tests élémentaires.
+**Version : RGAA 4.1.2** (tag `v4.1.2`, dernière version publiée), déclinaison
+française de WCAG 2.1 niveau AA — **13 thématiques, 106 critères de contrôle,
+693 tests élémentaires**.
 
-**Important — numérotation exacte :** la numérotation précise des critères
-(ex. « critère 7.3 ») peut varier d'une version du RGAA à l'autre, et les
-outils de résumé automatique ne restituent pas toujours l'intégralité de la
-page de référence de façon fiable. Par conséquent :
+La liste ci-dessous a été **validée le 2026-07-08 directement depuis les
+données JSON sources faisant autorité** du dépôt officiel
+(`RGAA/criteres.json` dans
+[DISIC/accessibilite.numerique.gouv.fr](https://github.com/DISIC/accessibilite.numerique.gouv.fr)),
+et non depuis un résumé généré par un outil de fetch web (ces résumés se sont
+révélés incohérents d'un appel à l'autre lors de la rédaction de ce
+document — ne jamais leur faire confiance pour ce niveau de précision).
+Les 106 titres de critères ci-dessous sont donc le **texte officiel exact**,
+et les totaux (13 / 106 / 693) ont été vérifiés par calcul sur le JSON source,
+pas estimés.
 
-- Tu dois connaître **le fond de chaque règle par cœur** (ce qui suit dans ce
-  document) — c'est ce qui doit guider ton code au quotidien, sans avoir à
-  consulter une page à chaque ligne écrite.
-- Si tu dois **citer un numéro de critère précis** dans un document formel
-  (rapport d'audit, description de PR, commentaire de revue officiel),
-  **revérifie-le** via WebFetch/WebSearch sur l'URL ci-dessus plutôt que de
-  te fier à un numéro mémorisé — ne jamais inventer ou approximer un numéro
-  de critère dans un livrable destiné à être cité comme référence.
-- L'absence de certitude sur un numéro exact n'est **jamais** une excuse pour
-  ignorer la règle de fond correspondante.
+**Cela signifie que tu peux citer un numéro de critère (ex. « critère 7.3 »)
+directement depuis cette liste, avec confiance.** Le seul cas où il faut
+revérifier à la source : si une nouvelle version majeure du RGAA succède à la
+4.1.2 (auquel cas cette liste devient un instantané historique à mettre à
+jour — voir la date de validation ci-dessus).
 
-## Les 13 thématiques du RGAA — checklist obligatoire
+## Les 106 critères RGAA — liste officielle complète, par thématique
 
-Pour chaque changement frontend, passe en revue mentalement ces 13 axes.
-Chaque ligne ci-dessous est une reformulation opérationnelle des critères
-officiels, applicable directement dans le contexte DSFR/MUI/React de ce repo.
+Pour chaque changement frontend, passe en revue mentalement les 13
+thématiques. Chaque section donne le **texte officiel exact** des critères
+(faisant autorité) puis, quand utile, une **application concrète** dans le
+contexte DSFR/MUI/React de ce repo.
 
-### 1. Images
-- Toute image informative (`<img>`, `background-image` porteuse de sens,
-  icône SVG cliquable) a une alternative textuelle pertinente (`alt`,
-  `aria-label`, ou équivalent).
-- Toute image décorative a `alt=""` (jamais d'`alt` absent) ou
-  `aria-hidden="true"`, et n'est jamais focusable.
-- Les images complexes (graphiques, cartes) ont une description détaillée
-  accessible à proximité, pas seulement dans l'`alt`.
-- Ne jamais utiliser une image pour représenter du texte quand une vraie
-  balise texte stylée peut faire l'affaire.
+### 1. Images (9 critères)
+1.1 — Chaque image porteuse d'information a-t-elle une alternative textuelle ?
+1.2 — Chaque image de décoration est-elle correctement ignorée par les technologies d'assistance ?
+1.3 — Pour chaque image porteuse d'information ayant une alternative textuelle, cette alternative est-elle pertinente (hors cas particuliers) ?
+1.4 — Pour chaque image utilisée comme CAPTCHA ou comme image-test, ayant une alternative textuelle, cette alternative permet-elle d'identifier la nature et la fonction de l'image ?
+1.5 — Pour chaque image utilisée comme CAPTCHA, une solution d'accès alternatif au contenu ou à la fonction du CAPTCHA est-elle présente ?
+1.6 — Chaque image porteuse d'information a-t-elle, si nécessaire, une description détaillée ?
+1.7 — Pour chaque image porteuse d'information ayant une description détaillée, cette description est-elle pertinente ?
+1.8 — Chaque image texte porteuse d'information, en l'absence d'un mécanisme de remplacement, doit si possible être remplacée par du texte stylé. Cette règle est-elle respectée (hors cas particuliers) ?
+1.9 — Chaque légende d'image est-elle, si nécessaire, correctement reliée à l'image correspondante ?
 
-### 2. Cadres (iframes)
-- Chaque `<iframe>` a un attribut `title` explicite et pertinent décrivant
-  son contenu/fonction (ex. carte, lecteur vidéo, widget tiers).
+**Application concrète :** `alt` pertinent sur toute `<img>`/icône SVG porteuse de sens ; `alt=""` (jamais absent) sur le décoratif ; jamais de texte représenté en image quand une balise texte stylée suffit.
 
-### 3. Couleurs
-- L'information ne doit **jamais** être portée par la couleur seule (ex. un
-  statut rouge/vert doit aussi avoir un texte, une icône ou un motif).
-- Tout élément recevant un effet de contraste (lien souligné au survol,
-  focus, état actif) reste perceptible même sans distinction de couleur.
+### 2. Cadres (2 critères)
+2.1 — Chaque cadre a-t-il un titre de cadre ?
+2.2 — Pour chaque cadre ayant un titre de cadre, ce titre de cadre est-il pertinent ?
 
-### 4. Multimédia
-- Toute vidéo/audio préenregistré a, si nécessaire, transcription textuelle,
-  sous-titres et/ou audiodescription pertinents.
-- Aucun contenu ne doit clignoter/flasher de façon susceptible de déclencher
-  une crise d'épilepsie photosensible.
+**Application concrète :** tout `<iframe>` a un `title` explicite décrivant son contenu (carte, lecteur vidéo, widget tiers).
 
-### 5. Tableaux
-- Tout tableau de données a un titre (`<caption>` ou équivalent accessible)
-  pertinent.
-- Structure correcte : en-têtes `<th scope="col"|"row">`, pas de tableau
-  utilisé à des fins de mise en page.
+### 3. Couleurs (3 critères)
+3.1 — Dans chaque page web, l'information ne doit pas être donnée uniquement par la couleur. Cette règle est-elle respectée ?
+3.2 — Dans chaque page web, le contraste entre la couleur du texte et la couleur de son arrière-plan est-il suffisamment élevé (hors cas particuliers) ?
+3.3 — Dans chaque page web, les couleurs utilisées dans les composants d'interface ou les éléments graphiques porteurs d'informations sont-elles suffisamment contrastées (hors cas particuliers) ?
 
-### 6. Liens
-- Tout lien est explicite hors contexte : jamais « cliquer ici », « en savoir
-  plus » sans contexte associé (utiliser `aria-label`/`aria-labelledby` si le
-  libellé visuel est insuffisant).
-- Deux liens au texte identique mais menant à des destinations différentes
-  doivent être distingués (libellé ou attribut accessible).
+**Application concrète :** un statut ne se distingue jamais par la couleur seule (texte/icône/motif en plus) ; contraste texte ≥ 4.5:1 (≥ 3:1 pour grand texte), et ≥ 3:1 pour les composants d'interface/icônes porteurs de sens.
 
-### 7. Scripts
-- Tout composant interactif en JS (dropdown, accordéon, modale, DSFR
-  `Modal`, tabs) reste **entièrement utilisable au clavier** (Tab, Shift+Tab,
-  Entrée, Espace, Échap, flèches si composite widget) et expose les rôles/
-  états ARIA corrects (`role`, `aria-expanded`, `aria-selected`,
-  `aria-modal`, etc.).
-- Tout contenu généré dynamiquement et pertinent pour l'utilisateur (message
-  d'erreur, résultat de recherche, toast) doit être annoncé aux technologies
-  d'assistance (`aria-live`, focus management), pas seulement affiché
-  visuellement.
+### 4. Multimédia (13 critères)
+4.1 — Chaque média temporel pré-enregistré a-t-il, si nécessaire, une transcription textuelle ou une audiodescription (hors cas particuliers) ?
+4.2 — Pour chaque média temporel pré-enregistré ayant une transcription textuelle ou une audiodescription synchronisée, celles-ci sont-elles pertinentes (hors cas particuliers) ?
+4.3 — Chaque média temporel synchronisé pré-enregistré a-t-il, si nécessaire, des sous-titres synchronisés (hors cas particuliers) ?
+4.4 — Pour chaque média temporel synchronisé pré-enregistré ayant des sous-titres synchronisés, ces sous-titres sont-ils pertinents ?
+4.5 — Chaque média temporel pré-enregistré a-t-il, si nécessaire, une audiodescription synchronisée (hors cas particuliers) ?
+4.6 — Pour chaque média temporel pré-enregistré ayant une audiodescription synchronisée, celle-ci est-elle pertinente ?
+4.7 — Chaque média temporel est-il clairement identifiable (hors cas particuliers) ?
+4.8 — Chaque média non temporel a-t-il, si nécessaire, une alternative (hors cas particuliers) ?
+4.9 — Pour chaque média non temporel ayant une alternative, cette alternative est-elle pertinente ?
+4.10 — Chaque son déclenché automatiquement est-il contrôlable par l'utilisateur ?
+4.11 — La consultation de chaque média temporel est-elle, si nécessaire, contrôlable par le clavier et tout dispositif de pointage ?
+4.12 — La consultation de chaque média non temporel est-elle contrôlable par le clavier et tout dispositif de pointage ?
+4.13 — Chaque média temporel et non temporel est-il compatible avec les technologies d'assistance (hors cas particuliers) ?
 
-### 8. Éléments obligatoires
-- Chaque page a un `<title>` de page pertinent et à jour selon le contenu.
-- La langue par défaut du document est déclarée (`<html lang="fr">`).
+**Application concrète :** tout son/vidéo autoplay doit être contrôlable (pause/stop/volume) par l'utilisateur ; aucun contenu ne clignote de façon susceptible de déclencher une crise photosensible.
 
-### 9. Structuration de l'information
-- Hiérarchie de titres cohérente et sans saut (`h1` → `h2` → `h3`, jamais de
-  niveau sauté pour des raisons de style).
-- Vraies listes sémantiques (`<ul>`, `<ol>`, `<dl>`) pour tout contenu qui est
-  une liste, jamais simulées avec des `<div>`/tirets.
-- Citations, mise en emphase, changements de langue, abréviations sont
-  balisés sémantiquement (`<blockquote>`, `<em>`/`<strong>`, `lang="en"`
-  inline, `<abbr>`), pas seulement stylés visuellement.
+### 5. Tableaux (8 critères)
+5.1 — Chaque tableau de données complexe a-t-il un résumé ?
+5.2 — Pour chaque tableau de données complexe ayant un résumé, celui-ci est-il pertinent ?
+5.3 — Pour chaque tableau de mise en forme, le contenu linéarisé reste-t-il compréhensible ?
+5.4 — Pour chaque tableau de données ayant un titre, le titre est-il correctement associé au tableau de données ?
+5.5 — Pour chaque tableau de données ayant un titre, celui-ci est-il pertinent ?
+5.6 — Pour chaque tableau de données, chaque en-tête de colonne et chaque en-tête de ligne sont-ils correctement déclarés ?
+5.7 — Pour chaque tableau de données, la technique appropriée permettant d'associer chaque cellule avec ses en-têtes est-elle utilisée (hors cas particuliers) ?
+5.8 — Chaque tableau de mise en forme ne doit pas utiliser d'éléments propres aux tableaux de données. Cette règle est-elle respectée ?
 
-### 10. Présentation de l'information
-- L'information n'est jamais donnée uniquement par la forme, la taille ou la
-  position (ex. « le bouton à droite » sans libellé).
-- Contraste minimum **4.5:1** pour le texte normal, **3:1** pour le grand
-  texte (≥18pt ou ≥14pt gras) et pour les éléments d'interface non textuels
-  significatifs (icônes porteuses de sens, bordures d'input en erreur).
-- Jamais de texte justifié. Interlignage et espacement suffisants. Pas de
-  texte sous forme d'image sauf logo/exception justifiée.
+**Application concrète :** `<caption>` pertinent, `<th scope="col"|"row">` correctement déclarés ; jamais de `<table>` pour de la mise en page.
 
-### 11. Formulaires
-- Chaque champ a un `<label>` associé programmatiquement (`htmlFor`/`id`),
-  jamais un simple placeholder en guise de label.
-- Type de champ approprié (`type="email"`, `type="tel"`, etc.) pour
-  bénéficier de l'assistance native.
-- Erreurs de saisie identifiées, décrites en texte, associées au champ
-  concerné (`aria-describedby`, `aria-invalid`) et suggérant une correction.
-- Présence d'un bouton de soumission explicite ; jamais de soumission
-  automatique au changement de valeur.
-- Champs obligatoires signalés de façon non ambiguë (pas uniquement par la
-  couleur — cf. thématique 3).
+### 6. Liens (2 critères)
+6.1 — Chaque lien est-il explicite (hors cas particuliers) ?
+6.2 — Dans chaque page web, chaque lien a-t-il un intitulé ?
 
-### 12. Navigation
-- Menu de navigation cohérent, présent au même endroit sur toutes les pages.
-- Lien d'évitement / accès direct au contenu principal (« skip to content »)
-  présent et fonctionnel en tout début de page.
+**Application concrète :** jamais « cliquer ici » / « en savoir plus » sans contexte ; utiliser `aria-label`/`aria-labelledby` si le libellé visuel seul est insuffisant.
 
-### 13. Consultation
-- L'utilisateur peut arrêter/mettre en pause tout contenu en mouvement,
-  clignotant ou qui se met à jour automatiquement (carrousel, auto-refresh).
-- Le contenu reste utilisable et lisible avec un zoom texte à 200 % et en
-  redimensionnement de fenêtre (reflow), sans scroll horizontal ni perte de
-  fonctionnalité.
+### 7. Scripts (5 critères)
+7.1 — Chaque script est-il, si nécessaire, compatible avec les technologies d'assistance ?
+7.2 — Pour chaque script ayant une alternative, cette alternative est-elle pertinente ?
+7.3 — Chaque script est-il contrôlable par le clavier et par tout dispositif de pointage (hors cas particuliers) ?
+7.4 — Pour chaque script qui initie un changement de contexte, l'utilisateur est-il averti ou en a-t-il le contrôle ?
+7.5 — Dans chaque page web, les messages de statut sont-ils correctement restitués par les technologies d'assistance ?
+
+**Application concrète :** tout composant interactif (dropdown, accordéon, DSFR `Modal`, tabs) reste utilisable **entièrement au clavier** (Tab, Shift+Tab, Entrée, Espace, Échap, flèches) avec les bons rôles/états ARIA (`role`, `aria-expanded`, `aria-selected`, `aria-modal`) ; tout contenu dynamique pertinent (erreur, résultat, toast) est annoncé via `aria-live`/gestion du focus, pas seulement affiché visuellement.
+
+### 8. Éléments obligatoires (10 critères)
+8.1 — Chaque page web est-elle définie par un type de document ?
+8.2 — Pour chaque page web, le code source généré est-il valide selon le type de document spécifié ?
+8.3 — Dans chaque page web, la langue par défaut est-elle présente ?
+8.4 — Pour chaque page web ayant une langue par défaut, le code de langue est-il pertinent ?
+8.5 — Chaque page web a-t-elle un titre de page ?
+8.6 — Pour chaque page web ayant un titre de page, ce titre est-il pertinent ?
+8.7 — Dans chaque page web, chaque changement de langue est-il indiqué dans le code source (hors cas particuliers) ?
+8.8 — Dans chaque page web, le code de langue de chaque changement de langue est-il valide et pertinent ?
+8.9 — Dans chaque page web, les balises ne doivent pas être utilisées uniquement à des fins de présentation. Cette règle est-elle respectée ?
+8.10 — Dans chaque page web, les changements du sens de lecture sont-ils signalés ?
+
+**Application concrète :** `<html lang="fr">` ; `<title>` de page pertinent et à jour ; tout passage dans une autre langue est balisé (`lang="en"` inline, etc.) ; pas de balises détournées de leur sémantique pour du style.
+
+### 9. Structuration de l'information (4 critères)
+9.1 — Dans chaque page web, l'information est-elle structurée par l'utilisation appropriée de titres ?
+9.2 — Dans chaque page web, la structure du document est-elle cohérente (hors cas particuliers) ?
+9.3 — Dans chaque page web, chaque liste est-elle correctement structurée ?
+9.4 — Dans chaque page web, chaque citation est-elle correctement indiquée ?
+
+**Application concrète :** hiérarchie de titres sans saut (`h1`→`h2`→`h3`) ; vraies listes sémantiques `<ul>`/`<ol>`/`<dl>`, jamais simulées avec des `<div>`/tirets ; citations en `<blockquote>`/`<q>`, pas juste stylées visuellement.
+
+### 10. Présentation de l'information (14 critères)
+10.1 — Dans le site web, des feuilles de styles sont-elles utilisées pour contrôler la présentation de l'information ?
+10.2 — Dans chaque page web, le contenu visible porteur d'information reste-t-il présent lorsque les feuilles de styles sont désactivées ?
+10.3 — Dans chaque page web, l'information reste-t-elle compréhensible lorsque les feuilles de styles sont désactivées ?
+10.4 — Dans chaque page web, le texte reste-t-il lisible lorsque la taille des caractères est augmentée jusqu'à 200 %, au moins (hors cas particuliers) ?
+10.5 — Dans chaque page web, les déclarations CSS de couleurs de fond d'élément et de police sont-elles correctement utilisées ?
+10.6 — Dans chaque page web, chaque lien dont la nature n'est pas évidente est-il visible par rapport au texte environnant ?
+10.7 — Dans chaque page web, pour chaque élément recevant le focus, la prise de focus est-elle visible ?
+10.8 — Pour chaque page web, les contenus cachés ont-ils vocation à être ignorés par les technologies d'assistance ?
+10.9 — Dans chaque page web, l'information ne doit pas être donnée uniquement par la forme, taille ou position. Cette règle est-elle respectée ?
+10.10 — Dans chaque page web, l'information ne doit pas être donnée par la forme, taille ou position uniquement. Cette règle est-elle implémentée de façon pertinente ?
+10.11 — Pour chaque page web, les contenus peuvent-ils être présentés sans perte d'information ou de fonctionnalité et sans avoir recours soit à un défilement vertical pour une fenêtre ayant une hauteur de 256 px, soit à un défilement horizontal pour une fenêtre ayant une largeur de 320 px (hors cas particuliers) ?
+10.12 — Dans chaque page web, les propriétés d'espacement du texte peuvent-elles être redéfinies par l'utilisateur sans perte de contenu ou de fonctionnalité (hors cas particuliers) ?
+10.13 — Dans chaque page web, les contenus additionnels apparaissant à la prise de focus ou au survol d'un composant d'interface sont-ils contrôlables par l'utilisateur (hors cas particuliers) ?
+10.14 — Dans chaque page web, les contenus additionnels apparaissant via les styles CSS uniquement peuvent-ils être rendus visibles au clavier et par tout dispositif de pointage ?
+
+**Application concrète :** indicateur de focus **toujours visible** (jamais de `outline: none` sans remplacement) ; jamais d'information portée uniquement par la forme/taille/position (« le bouton à droite ») ; le texte reste lisible en zoom 200 % et en reflow à 320px de large sans scroll horizontal ; tooltips/popovers au survol/focus doivent être atteignables au clavier et dismissables.
+
+### 11. Formulaires (13 critères)
+11.1 — Chaque champ de formulaire a-t-il une étiquette ?
+11.2 — Chaque étiquette associée à un champ de formulaire est-elle pertinente (hors cas particuliers) ?
+11.3 — Dans chaque formulaire, chaque étiquette associée à un champ de formulaire ayant la même fonction et répétée plusieurs fois dans une même page ou dans un ensemble de pages est-elle cohérente ?
+11.4 — Dans chaque formulaire, chaque étiquette de champ et son champ associé sont-ils accolés (hors cas particuliers) ?
+11.5 — Dans chaque formulaire, les champs de même nature sont-ils regroupés, si nécessaire ?
+11.6 — Dans chaque formulaire, chaque regroupement de champs de même nature a-t-il une légende ?
+11.7 — Dans chaque formulaire, chaque légende associée à un regroupement de champs de même nature est-elle pertinente ?
+11.8 — Dans chaque formulaire, les items de même nature d'une liste de choix sont-ils regroupés de manière pertinente ?
+11.9 — Dans chaque formulaire, l'intitulé de chaque bouton est-il pertinent (hors cas particuliers) ?
+11.10 — Dans chaque formulaire, le contrôle de saisie est-il utilisé de manière pertinente (hors cas particuliers) ?
+11.11 — Dans chaque formulaire, le contrôle de saisie est-il accompagné, si nécessaire, de suggestions facilitant la correction des erreurs de saisie ?
+11.12 — Pour chaque formulaire qui modifie ou supprime des données, ou qui transmet des réponses à un test ou à un examen, ou dont la validation a des conséquences financières ou juridiques, les données saisies peuvent-elles être modifiées, mises à jour ou récupérées par l'utilisateur ?
+11.13 — La finalité d'un champ de saisie peut-elle être déduite pour faciliter le remplissage automatique des champs avec les données de l'utilisateur ?
+
+**Application concrète :** `<label htmlFor>` associé à chaque champ (jamais un simple `placeholder` en guise de label) ; champs de même nature groupés sous `<fieldset>`/`<legend>` pertinent ; erreurs décrites en texte, associées au champ (`aria-describedby`, `aria-invalid`) et suggérant une correction ; type de champ approprié (`type="email"`, `autocomplete="..."`) ; jamais de soumission automatique au changement de valeur.
+
+### 12. Navigation (11 critères)
+12.1 — Chaque ensemble de pages dispose-t-il de deux systèmes de navigation différents, au moins (hors cas particuliers) ?
+12.2 — Dans chaque ensemble de pages, le menu et les barres de navigation sont-ils toujours à la même place (hors cas particuliers) ?
+12.3 — La page « plan du site » est-elle pertinente ?
+12.4 — Dans chaque ensemble de pages, la page « plan du site » est-elle accessible à partir d'une fonctionnalité identique ?
+12.5 — Dans chaque ensemble de pages, le moteur de recherche est-il atteignable de manière identique ?
+12.6 — Les zones de regroupement de contenus présentes dans plusieurs pages web (zones d'en-tête, de navigation principale, de contenu principal, de pied de page et de moteur de recherche) peuvent-elles être atteintes ou évitées ?
+12.7 — Dans chaque page web, un lien d'évitement ou d'accès rapide à la zone de contenu principal est-il présent (hors cas particuliers) ?
+12.8 — Dans chaque page web, l'ordre de tabulation est-il cohérent ?
+12.9 — Dans chaque page web, la navigation ne doit pas contenir de piège au clavier. Cette règle est-elle respectée ?
+12.10 — Dans chaque page web, les raccourcis clavier n'utilisant qu'une seule touche (lettre minuscule ou majuscule, ponctuation, chiffre ou symbole) sont-ils contrôlables par l'utilisateur ?
+12.11 — Dans chaque page web, les contenus additionnels apparaissant au survol, à la prise de focus ou à l'activation d'un composant d'interface sont-ils si nécessaire atteignables au clavier ?
+
+**Application concrète :** menu de navigation cohérent au même endroit sur toutes les pages ; lien d'évitement (« skip to content ») fonctionnel en tout début de page ; ordre de tabulation logique, jamais de piège au clavier (un utilisateur clavier doit toujours pouvoir sortir d'un composant).
+
+### 13. Consultation (12 critères)
+13.1 — Pour chaque page web, l'utilisateur a-t-il le contrôle de chaque limite de temps modifiant le contenu (hors cas particuliers) ?
+13.2 — Dans chaque page web, l'ouverture d'une nouvelle fenêtre ne doit pas être déclenchée sans action de l'utilisateur. Cette règle est-elle respectée ?
+13.3 — Dans chaque page web, chaque document bureautique en téléchargement possède-t-il, si nécessaire, une version accessible (hors cas particuliers) ?
+13.4 — Pour chaque document bureautique ayant une version accessible, cette version offre-t-elle la même information ?
+13.5 — Dans chaque page web, chaque contenu cryptique (art ASCII, émoticône, syntaxe cryptique) a-t-il une alternative ?
+13.6 — Dans chaque page web, pour chaque contenu cryptique (art ASCII, émoticône, syntaxe cryptique) ayant une alternative, cette alternative est-elle pertinente ?
+13.7 — Dans chaque page web, les changements brusques de luminosité ou les effets de flash sont-ils correctement utilisés ?
+13.8 — Dans chaque page web, chaque contenu en mouvement ou clignotant est-il contrôlable par l'utilisateur ?
+13.9 — Dans chaque page web, le contenu proposé est-il consultable quelle que soit l'orientation de l'écran (portrait ou paysage) (hors cas particuliers) ?
+13.10 — Dans chaque page web, les fonctionnalités utilisables ou disponibles au moyen d'un geste complexe peuvent-elles être également disponibles au moyen d'un geste simple (hors cas particuliers) ?
+13.11 — Dans chaque page web, les actions déclenchées au moyen d'un dispositif de pointage sur un point unique de l'écran peuvent-elles faire l'objet d'une annulation (hors cas particuliers) ?
+13.12 — Dans chaque page web, les fonctionnalités qui impliquent un mouvement de l'appareil ou vers l'appareil peuvent-elles être satisfaites de manière alternative (hors cas particuliers) ?
+
+**Application concrète :** toute limite de temps (session, timeout) est contrôlable par l'utilisateur ; jamais de nouvelle fenêtre/onglet ouvert sans action explicite (et si c'est le cas, l'utilisateur est prévenu avant activation) ; tout contenu en mouvement/clignotant/auto-actualisé (carrousel, auto-refresh) est arrêtable ; export PDF/bureautique a, si besoin, une version accessible équivalente.
 
 ## Comportement obligatoire de l'agent (auto-contrôle)
 
 - Avant de considérer terminé tout changement touchant au balisage, au style
-  ou à l'interactivité frontend, **relis ton propre diff** à travers la
-  checklist des 13 thématiques ci-dessus.
+  ou à l'interactivité frontend, **relis ton propre diff** à travers la liste
+  des 106 critères ci-dessus (au moins par thématique — les 13 titres, en
+  gardant en tête les critères concrets les plus probablement impactés par le
+  type de changement fait).
 - Si tu identifies une violation potentielle — même incertaine, même hors du
   périmètre strict de la tâche demandée — tu dois **le signaler
   explicitement** dans ta réponse à l'utilisateur, avec ce format :
 
-  > ⚠️ **RGAA (thématique N — sujet)** : `<description du problème>` →
+  > ⚠️ **RGAA (critère N.M — sujet)** : `<description du problème>` →
   > `<correctif proposé>`
 
 - Ce signalement est **proactif** : tu ne l'inclus pas seulement quand on te
@@ -195,9 +260,10 @@ officiels, applicable directement dans le contexte DSFR/MUI/React de ce repo.
 
 ## Ce que « connaître par cœur » signifie concrètement
 
-Connaître le **fond** de chaque règle ci-dessus au point de l'appliquer par
-réflexe en écrivant du code — pas mémoriser un tableau de numéros de
-critères qui peut devenir obsolète d'une version du RGAA à l'autre. La
-numérotation se vérifie à la source si besoin (voir section précédente) ;
-la substance des règles, elle, doit être connue et appliquée sans avoir à
-la relire.
+Connaître **le texte et le numéro de chaque critère ci-dessus** au point de
+les appliquer par réflexe en écrivant du code, et de pouvoir citer le bon
+numéro dans une alerte. Cette liste est la donnée de référence : ne la
+recopie pas de mémoire ailleurs, ne l'approxime pas — si ce fichier est un
+jour désynchronisé d'une nouvelle version du RGAA, mets-le à jour depuis la
+source JSON officielle (voir section « Source de référence ») plutôt que de
+deviner.

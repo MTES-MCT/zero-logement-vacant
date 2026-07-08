@@ -17,6 +17,8 @@ const fakeContext: AuthContextValue = {
   isAuthenticated: true,
   isLoading: false,
   signIn: vi.fn(),
+  signInAdmin: vi.fn(),
+  verifyAdminTwoFactor: vi.fn(),
   signOut: vi.fn(),
   changeEstablishment: vi.fn(),
   refetch: vi.fn()

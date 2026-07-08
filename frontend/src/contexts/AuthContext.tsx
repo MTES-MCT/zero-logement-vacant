@@ -19,6 +19,16 @@ export interface AuthContextValue {
   isAuthenticated: boolean;
   isLoading: boolean;
   signIn: (email: string, password: string) => Promise<void>;
+  signInAdmin: (
+    email: string,
+    password: string,
+    establishmentId?: string
+  ) => Promise<{ requiresTwoFactor: boolean; email: string }>;
+  verifyAdminTwoFactor: (
+    email: string,
+    code: string,
+    establishmentId?: string
+  ) => Promise<void>;
   signOut: () => Promise<void>;
   changeEstablishment: (establishmentId: string) => Promise<void>;
   /** Force a re-read of the session payload from the server. */
@@ -48,6 +58,48 @@ export function AuthProvider(props: Readonly<PropsWithChildren>) {
       throw new Error(error.message ?? 'Échec de l’authentification.');
     }
   }, []);
+
+  const signInAdmin = useCallback(
+    async (email: string, password: string, establishmentId?: string) => {
+      const response = await fetch(`${config.apiEndpoint}/auth/admin/sign-in`, {
+        method: 'POST',
+        credentials: 'include',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email, password, establishmentId })
+      });
+      if (!response.ok) {
+        throw new Error('Échec de l’authentification.');
+      }
+      const challenge = (await response.json()) as {
+        requiresTwoFactor: boolean;
+        email: string;
+      };
+      if (!challenge.requiresTwoFactor) {
+        refetch();
+      }
+      return challenge;
+    },
+    [refetch]
+  );
+
+  const verifyAdminTwoFactor = useCallback(
+    async (email: string, code: string, establishmentId?: string) => {
+      const response = await fetch(
+        `${config.apiEndpoint}/auth/admin/verify-2fa`,
+        {
+          method: 'POST',
+          credentials: 'include',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ email, code, establishmentId })
+        }
+      );
+      if (!response.ok) {
+        throw new Error('Code de vérification invalide ou expiré.');
+      }
+      refetch();
+    },
+    [refetch]
+  );
 
   const signOut = useCallback(async () => {
     await authClient.signOut();
@@ -85,6 +137,8 @@ export function AuthProvider(props: Readonly<PropsWithChildren>) {
     isAuthenticated: session !== null,
     isLoading: isPending,
     signIn,
+    signInAdmin,
+    verifyAdminTwoFactor,
     signOut,
     changeEstablishment,
     refetch

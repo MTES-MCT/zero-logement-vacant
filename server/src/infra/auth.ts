@@ -8,6 +8,7 @@ import { CamelCasePlugin, Kysely, PostgresDialect } from 'kysely';
 import { Pool } from 'pg';
 
 import UserMissingError from '~/errors/userMissingError';
+import { zlvAdminTwoFactor } from '~/infra/auth-admin-two-factor';
 import { createPasswordVerifier } from '~/infra/auth-password';
 import config from '~/infra/config';
 import { logger } from '~/infra/logger';
@@ -133,15 +134,12 @@ const authOptions = {
             });
           }
 
-          if (user.role === UserRole.ADMIN) {
-            throw new APIError('FORBIDDEN', {
-              message: 'Admins must use legacy two-factor sign-in'
-            });
-          }
-
           await refreshAuthorizedEstablishments(user);
 
-          if (!user.establishmentId) {
+          const activeEstablishmentId =
+            session.activeEstablishmentId ?? user.establishmentId;
+
+          if (!activeEstablishmentId) {
             throw new APIError('UNPROCESSABLE_ENTITY', {
               message: 'User has no active establishment'
             });
@@ -150,7 +148,7 @@ const authOptions = {
           return {
             data: {
               ...session,
-              activeEstablishmentId: user.establishmentId
+              activeEstablishmentId
             }
           };
         },
@@ -190,6 +188,7 @@ const authOptions = {
 export const auth = betterAuth({
   ...authOptions,
   plugins: [
+    zlvAdminTwoFactor(),
     // Augment getSession (and useSession() on the client) with the ZLV
     // business data the frontend needs in one reactive call:
     //   - establishment: full Establishment for session.activeEstablishmentId

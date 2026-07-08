@@ -1,5 +1,5 @@
 import { fireEvent, render, screen, waitFor } from '@testing-library/react';
-import { useContext } from 'react';
+import { useContext, useState } from 'react';
 import { Provider } from 'react-redux';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
@@ -25,6 +25,7 @@ vi.mock('~/lib/auth-client', () => ({
 
 function TestConsumer() {
   const auth = useContext(AuthContext);
+  const [adminChallengeEmail, setAdminChallengeEmail] = useState('none');
 
   if (!auth) {
     return <span data-testid="no-context">no context</span>;
@@ -40,8 +41,33 @@ function TestConsumer() {
       <span data-testid="authorized-count">
         {auth.authorizedEstablishments.length}
       </span>
+      <span data-testid="admin-challenge-email">{adminChallengeEmail}</span>
       <button onClick={() => void auth.changeEstablishment('establishment-2')}>
         change establishment
+      </button>
+      <button
+        onClick={() =>
+          void auth
+            .signInAdmin(
+              'admin@zlv.fr',
+              'not-a-real-password',
+              'admin-establishment'
+            )
+            .then((challenge) => setAdminChallengeEmail(challenge.email))
+        }
+      >
+        admin sign in
+      </button>
+      <button
+        onClick={() =>
+          void auth.verifyAdminTwoFactor(
+            'admin@zlv.fr',
+            '123456',
+            'admin-establishment'
+          )
+        }
+      >
+        admin verify 2fa
       </button>
     </div>
   );
@@ -132,6 +158,76 @@ describe('AuthProvider', () => {
       expect(fetchMock).toHaveBeenCalledWith(
         expect.stringContaining('/account/establishments/establishment-2'),
         { method: 'POST', credentials: 'include' }
+      );
+    });
+    expect(refetch).toHaveBeenCalled();
+  });
+
+  it('starts admin sign-in through the better-auth 2FA endpoint', async () => {
+    const fetchMock = vi.fn().mockResolvedValue({
+      ok: true,
+      json: async () => ({
+        requiresTwoFactor: true,
+        email: 'admin@zlv.fr'
+      })
+    });
+    vi.stubGlobal('fetch', fetchMock);
+    useSessionMock.mockReturnValue({
+      data: null,
+      isPending: false,
+      error: null,
+      refetch: vi.fn()
+    });
+
+    setup();
+    fireEvent.click(screen.getByText('admin sign in'));
+
+    await expect(
+      screen.findByTestId('admin-challenge-email')
+    ).resolves.toHaveTextContent('admin@zlv.fr');
+    expect(fetchMock).toHaveBeenCalledWith(
+      expect.stringContaining('/auth/admin/sign-in'),
+      expect.objectContaining({
+        method: 'POST',
+        credentials: 'include',
+        body: JSON.stringify({
+          email: 'admin@zlv.fr',
+          password: 'not-a-real-password',
+          establishmentId: 'admin-establishment'
+        })
+      })
+    );
+  });
+
+  it('verifies admin 2FA through better-auth and refetches the session', async () => {
+    const refetch = vi.fn();
+    const fetchMock = vi.fn().mockResolvedValue({
+      ok: true,
+      json: async () => ({ status: true })
+    });
+    vi.stubGlobal('fetch', fetchMock);
+    useSessionMock.mockReturnValue({
+      data: null,
+      isPending: false,
+      error: null,
+      refetch
+    });
+
+    setup();
+    fireEvent.click(screen.getByText('admin verify 2fa'));
+
+    await waitFor(() => {
+      expect(fetchMock).toHaveBeenCalledWith(
+        expect.stringContaining('/auth/admin/verify-2fa'),
+        expect.objectContaining({
+          method: 'POST',
+          credentials: 'include',
+          body: JSON.stringify({
+            email: 'admin@zlv.fr',
+            code: '123456',
+            establishmentId: 'admin-establishment'
+          })
+        })
       );
     });
     expect(refetch).toHaveBeenCalled();

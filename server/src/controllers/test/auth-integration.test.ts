@@ -37,6 +37,20 @@ vi.mock('~/services/posthogService', () => ({
   default: { isFeatureEnabled: vi.fn() }
 }));
 
+vi.mock('../../infra/config', async () => {
+  const actual = await vi.importActual('../../infra/config');
+  return {
+    ...actual,
+    default: {
+      ...(actual as any).default,
+      auth: {
+        ...(actual as any).default.auth,
+        admin2faEnabled: true
+      }
+    }
+  };
+});
+
 vi.mock('~/services/ceremaService/userKindService', () => ({
   fetchUserKind: vi.fn().mockResolvedValue('gestionnaire')
 }));
@@ -59,6 +73,14 @@ import { genEstablishmentApi, genUserApi } from '~/test/testFixtures';
 
 const AUTH_USERS_TABLE = 'auth_users';
 const ACCOUNT_TABLE = 'account';
+const TEST_2FA_CODE = '123456';
+
+function getCookies(response: request.Response): string[] {
+  const rawCookies = response.headers['set-cookie'];
+  return (
+    Array.isArray(rawCookies) ? rawCookies : rawCookies ? [rawCookies] : []
+  ) as string[];
+}
 
 async function seedBackfilledUser(opts: {
   email: string;
@@ -145,10 +167,7 @@ describe('better-auth sign-in (integration)', () => {
 
       expect(signInResponse.status).toBe(200);
 
-      const rawCookies = signInResponse.headers['set-cookie'];
-      const cookies = (
-        Array.isArray(rawCookies) ? rawCookies : rawCookies ? [rawCookies] : []
-      ) as string[];
+      const cookies = getCookies(signInResponse);
       expect(cookies.length).toBeGreaterThan(0);
 
       const sessionCookie = cookies.find((c) =>
@@ -209,11 +228,97 @@ describe('better-auth sign-in (integration)', () => {
         .send({ email, password });
 
       expect(response.status).toBeGreaterThanOrEqual(400);
-      const rawCookies = response.headers['set-cookie'];
-      const cookies = (
-        Array.isArray(rawCookies) ? rawCookies : rawCookies ? [rawCookies] : []
-      ) as string[];
+      const cookies = getCookies(response);
       expect(cookies.some((c) => c.includes('zlv.session_token'))).toBe(false);
+    } finally {
+      await deleteBackfilledUser(user.id);
+    }
+  });
+
+  it('starts admin better-auth sign-in with 2FA and no session cookie', async () => {
+    const email = 'admin-start-v2@zlv.fr';
+    const password = 'not-a-real-password';
+
+    const user = await seedBackfilledUser({
+      email,
+      plaintextPassword: password,
+      establishmentId: establishment.id,
+      role: UserRole.ADMIN
+    });
+
+    try {
+      const response = await request(url).post('/auth/admin/sign-in').send({
+        email,
+        password,
+        establishmentId: establishment.id
+      });
+
+      expect(response.status).toBe(200);
+      expect(response.body).toMatchObject({
+        requiresTwoFactor: true,
+        email
+      });
+      expect(getCookies(response).some((c) => c.includes('zlv.session_token'))).toBe(
+        false
+      );
+
+      const updatedUser = await Users().where({ id: user.id }).first();
+      expect(updatedUser?.two_factor_code).toEqual(expect.any(String));
+      expect(updatedUser?.two_factor_code_generated_at).toBeInstanceOf(Date);
+    } finally {
+      await deleteBackfilledUser(user.id);
+    }
+  });
+
+  it('creates a better-auth admin session after a valid 2FA code', async () => {
+    const email = 'admin-verify-v2@zlv.fr';
+    const password = 'not-a-real-password';
+
+    const user = await seedBackfilledUser({
+      email,
+      plaintextPassword: password,
+      establishmentId: establishment.id,
+      role: UserRole.ADMIN
+    });
+
+    try {
+      const challenge = await request(url).post('/auth/admin/sign-in').send({
+        email,
+        password,
+        establishmentId: establishment.id
+      });
+      expect(challenge.status).toBe(200);
+
+      const verify = await request(url).post('/auth/admin/verify-2fa').send({
+        email,
+        code: TEST_2FA_CODE,
+        establishmentId: establishment.id
+      });
+
+      expect(verify.status).toBe(200);
+      const cookies = getCookies(verify);
+      expect(cookies.some((c) => c.includes('zlv.session_token'))).toBe(true);
+
+      const session = await request(url).get('/auth/get-session').set('Cookie', cookies);
+      expect(session.status).toBe(200);
+      expect(session.body).toMatchObject({
+        user: {
+          id: user.id,
+          email,
+          role: 'admin'
+        },
+        session: {
+          activeEstablishmentId: establishment.id
+        },
+        establishment: {
+          id: establishment.id
+        }
+      });
+
+      const updatedUser = await Users().where({ id: user.id }).first();
+      expect(updatedUser?.two_factor_code).toBeNull();
+      expect(updatedUser?.two_factor_code_generated_at).toBeNull();
+      expect(updatedUser?.last_authenticated_at).toBeInstanceOf(Date);
     } finally {
       await deleteBackfilledUser(user.id);
     }

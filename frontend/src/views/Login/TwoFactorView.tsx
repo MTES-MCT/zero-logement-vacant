@@ -14,6 +14,7 @@ import { object, string, type InferType } from 'yup';
 
 import securityIcon from '~/assets/images/building.svg';
 import AppTextInputNext from '~/components/_app/AppTextInput/AppTextInputNext';
+import { useOptionalAuth } from '~/hooks/useAuth';
 import Image from '~/components/Image/Image';
 import { useDocumentTitle } from '~/hooks/useDocumentTitle';
 import { useAppDispatch, useAppSelector } from '~/hooks/useStore';
@@ -29,6 +30,7 @@ const schema = object({
 type FormSchema = InferType<typeof schema>;
 
 interface TwoFactorState {
+  authMode?: 'auth-v2' | 'legacy';
   email: string;
   establishmentId?: string;
 }
@@ -39,6 +41,7 @@ const TwoFactorView = () => {
   const navigate = useNavigate();
   const location = useLocation();
   const auth = useAppSelector((state) => state.authentication);
+  const v2 = useOptionalAuth();
 
   // Get email from location state (passed from LoginView)
   const state = location.state as TwoFactorState | undefined;
@@ -63,6 +66,25 @@ const TwoFactorView = () => {
 
   function submit(data: FormSchema): void {
     setError(null);
+
+    if (state?.authMode === 'auth-v2') {
+      if (v2 === null) {
+        setError('Échec de l’authentification.');
+        return;
+      }
+
+      v2.verifyAdminTwoFactor(email!, data.code, establishmentId)
+        .then(() => {
+          navigate('/parc-de-logements');
+        })
+        .catch((error) => {
+          console.error('2FA verification failed', error);
+          setError(
+            'Code de vérification invalide ou expiré. Veuillez vérifier votre email et réessayer.'
+          );
+        });
+      return;
+    }
 
     dispatch(
       verifyTwoFactor({

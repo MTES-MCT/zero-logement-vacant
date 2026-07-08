@@ -60,9 +60,8 @@ const LoginView = () => {
   const { pathname } = useLocation();
   const navigate = useNavigate();
   const auth = useAppSelector((state) => state.authentication);
-  // When AuthProvider is mounted (auth-v2 flag ON), route non-admin login
-  // through better-auth's cookie session. Admin login stays on the legacy thunk
-  // until the 2FA flow is ported.
+  // When AuthProvider is mounted (auth-v2 flag ON), route login through
+  // better-auth's cookie session. Admin login uses a dedicated 2FA endpoint.
   const v2 = useOptionalAuth();
   const [v2Error, setV2Error] = useState<string | null>(null);
 
@@ -83,6 +82,35 @@ const LoginView = () => {
   });
 
   async function submitLoginForm(data: LoginSchema): Promise<void> {
+    if (v2 !== null && isAdminView) {
+      setV2Error(null);
+      try {
+        const challenge = await v2.signInAdmin(
+          data.email,
+          data.password,
+          data.establishmentId || undefined
+        );
+        if (challenge.requiresTwoFactor) {
+          navigate('/verification-2fa', {
+            state: {
+              authMode: 'auth-v2',
+              email: challenge.email,
+              establishmentId: data.establishmentId || undefined
+            }
+          });
+        } else {
+          navigate('/parc-de-logements');
+        }
+      } catch (error) {
+        setV2Error(
+          error instanceof Error
+            ? error.message
+            : 'Échec de l’authentification.'
+        );
+      }
+      return;
+    }
+
     if (v2 !== null && !isAdminView) {
       setV2Error(null);
       try {

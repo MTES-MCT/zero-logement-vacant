@@ -59,6 +59,11 @@ export function genAuthContextValue(
     isAuthenticated: options?.isAuthenticated ?? user !== null,
     isLoading: options?.isLoading ?? false,
     signIn: async () => {},
+    signInAdmin: async (email: string) => ({
+      requiresTwoFactor: true,
+      email
+    }),
+    verifyAdminTwoFactor: async () => {},
     signOut: async () => {},
     changeEstablishment: async () => {},
     refetch: () => {}

@@ -37,6 +37,10 @@ vi.mock('~/services/posthogService', () => ({
   default: { isFeatureEnabled: vi.fn() }
 }));
 
+vi.mock('~/services/ceremaService/userKindService', () => ({
+  fetchUserKind: vi.fn().mockResolvedValue('gestionnaire')
+}));
+
 import { randomUUID } from 'node:crypto';
 
 import { UserRole } from '@zerologementvacant/models';
@@ -69,6 +73,8 @@ async function seedBackfilledUser(opts: {
     email: opts.email,
     password: bcrypt.hashSync(opts.plaintextPassword, SALT_LENGTH),
     role: opts.role ?? UserRole.USUAL,
+    kind: null,
+    lastAuthenticatedAt: null,
     suspendedAt: opts.suspendedAt ?? null,
     suspendedCause: opts.suspendedCause ?? null
   };
@@ -255,6 +261,35 @@ describe('better-auth sign-in (integration)', () => {
         suspendedAt,
         suspendedCause: 'droits utilisateur expires'
       });
+    } finally {
+      await deleteBackfilledUser(user.id);
+    }
+  });
+
+  it('persists user kind and last authentication date on better-auth sign-in', async () => {
+    const email = 'metadata-v2@zlv.fr';
+    const password = 'not-a-real-password';
+
+    const user = await seedBackfilledUser({
+      email,
+      plaintextPassword: password,
+      establishmentId: establishment.id
+    });
+
+    try {
+      const response = await request(url)
+        .post('/auth/sign-in/email')
+        .send({ email, password });
+
+      expect(response.status).toBe(200);
+
+      const legacyUser = await db('users').where({ id: user.id }).first();
+      expect(legacyUser.kind).toBe('gestionnaire');
+      expect(legacyUser.last_authenticated_at).toBeInstanceOf(Date);
+
+      const authUser = await db(AUTH_USERS_TABLE).where({ id: user.id }).first();
+      expect(authUser.kind).toBe('gestionnaire');
+      expect(authUser.last_authenticated_at).toBeInstanceOf(Date);
     } finally {
       await deleteBackfilledUser(user.id);
     }

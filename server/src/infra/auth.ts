@@ -16,6 +16,7 @@ import establishmentRepository from '~/repositories/establishmentRepository';
 import userEstablishmentRepository from '~/repositories/user-establishment-repository';
 import userPerimeterRepository from '~/repositories/userPerimeterRepository';
 import userRepository from '~/repositories/userRepository';
+import { updateUserAndAuth } from '~/services/authUserSyncService';
 import { fetchUserKind } from '~/services/ceremaService/userKindService';
 import { refreshAuthorizedEstablishments } from '~/services/establishmentAuthService';
 
@@ -161,7 +162,13 @@ const authOptions = {
             if (!user) {
               throw new UserMissingError(session.userId);
             }
-            await fetchUserKind(user.email);
+            const kind = await fetchUserKind(user.email);
+            await updateUserAndAuth({
+              ...user,
+              kind,
+              lastAuthenticatedAt: new Date().toJSON(),
+              updatedAt: new Date().toJSON()
+            });
           } catch (error) {
             logger.warn('Post-session-create hook failed (non-fatal)', {
               error

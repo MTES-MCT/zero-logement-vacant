@@ -149,6 +149,8 @@ fileignoreconfig:
   checksum: f08020ffee6beeda135a04955eeeb4a9be0a8e11cf98e8cd18327b67848ca7e2
 - filename: docs/superpowers/specs/2026-07-08-zlv-repair-harness-design.md
   checksum: 3b78f0af3737a4b295511ab8998d4a0b441dac861846f034bf2f674bd5cc3277
+- filename: docs/superpowers/plans/2026-07-08-zlv-repair-harness.md
+  checksum: d6a0c9d236c26ac927681537c778c9000b59b9da6d4ec26d10abf5424e34f255
 - filename: server/src/services/metabase/metabase-normalize.ts
   checksum: 1bd122150d2d7806ebf7cb708750814288d528fad4b3a1a3da0e1f9ae91f2f5d
 scopeconfig:

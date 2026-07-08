@@ -147,4 +147,35 @@ describe('apply()', () => {
     const summary = await apply(planFile);
     expect(summary).toEqual({ updated: 0, eventsDeleted: 0, eventsCreated: 0 });
   });
+
+  it('inserts createEvents into events and housing_events tables', async () => {
+    const housing = genHousingApi();
+    await Housing().insert(formatHousingRecordApi(housing));
+
+    const event = genEventApi({
+      creator,
+      type: 'housing:status-updated',
+      nextOld: { status: 'never-contacted' },
+      nextNew: { status: 'waiting' }
+    });
+    const housingEvent = {
+      ...event,
+      housingGeoCode: housing.geoCode,
+      housingId: housing.id
+    };
+
+    const planFile = writePlan([
+      {
+        housingId: housing.id,
+        housingGeoCode: housing.geoCode,
+        createEvents: [housingEvent]
+      }
+    ]);
+
+    const summary = await apply(planFile);
+
+    expect(summary.eventsCreated).toBe(1);
+    expect(await Events().where('id', event.id)).toHaveLength(1);
+    expect(await HousingEvents().where('event_id', event.id)).toHaveLength(1);
+  });
 });

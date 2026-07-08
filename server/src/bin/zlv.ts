@@ -8,4 +8,10 @@ const program = new Command('zlv')
 
 program.addCommand(repairCommand());
 
-program.parseAsync(process.argv).finally(() => process.exit());
+program.parseAsync(process.argv).then(
+  () => process.exit(0),
+  (e) => {
+    console.error(e);
+    process.exit(1);
+  }
+);

@@ -30,7 +30,7 @@ export async function apply(planFile: string): Promise<ApplySummary> {
 
   await startTransaction(async () => {
     for (const group of groups) {
-      if (!group.payload) continue;
+      if (!group.payload || Object.keys(group.payload).length === 0) continue;
       for (const chunk of chunksOf(group.rows, 1000)) {
         await housingRepository.updateMany(
           chunk.map((r) => ({ id: r.housingId, geoCode: r.housingGeoCode })),
@@ -41,16 +41,18 @@ export async function apply(planFile: string): Promise<ApplySummary> {
     }
 
     if (allDeleteIds.length > 0) {
-      await withinTransaction(async (transaction) => {
-        await HousingEvents(transaction)
-          .whereIn('event_id', allDeleteIds)
-          .delete();
-        await Events(transaction).whereIn('id', allDeleteIds).delete();
-      });
+      for (const chunk of chunksOf(allDeleteIds, 1000)) {
+        await withinTransaction(async (transaction) => {
+          await HousingEvents(transaction).whereIn('event_id', chunk).delete();
+          await Events(transaction).whereIn('id', chunk).delete();
+        });
+      }
     }
 
     if (allCreateEvents.length > 0) {
-      await eventRepository.insertManyHousingEvents(allCreateEvents);
+      for (const chunk of chunksOf(allCreateEvents, 1000)) {
+        await eventRepository.insertManyHousingEvents(chunk);
+      }
     }
   });
 

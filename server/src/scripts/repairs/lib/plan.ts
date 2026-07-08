@@ -37,42 +37,44 @@ export async function plan<H extends HousingApi>(
     eventsToDelete = 0,
     eventsToCreate = 0;
 
-  for (const housing of housings) {
-    const decision = repair.decide(housing);
+  try {
+    for (const housing of housings) {
+      const decision = repair.decide(housing);
 
-    if (isSkip(decision)) {
-      const row: SkippedRow = {
-        housingId: housing.id,
-        housingGeoCode: housing.geoCode
-      };
-      skippedStream.write(JSON.stringify(row) + '\n');
-      skipped++;
-    } else if (isError(decision)) {
-      const row: ErrorRow = {
-        housingId: housing.id,
-        housingGeoCode: housing.geoCode,
-        reason: decision.reason
-      };
-      errorsStream.write(JSON.stringify(row) + '\n');
-      errors++;
-    } else {
-      const row: PlanRow = {
-        housingId: housing.id,
-        housingGeoCode: housing.geoCode,
-        ...decision
-      };
-      planStream.write(JSON.stringify(row) + '\n');
-      planned++;
-      eventsToDelete += decision.deleteEventIds?.length ?? 0;
-      eventsToCreate += decision.createEvents?.length ?? 0;
+      if (isSkip(decision)) {
+        const row: SkippedRow = {
+          housingId: housing.id,
+          housingGeoCode: housing.geoCode
+        };
+        skippedStream.write(JSON.stringify(row) + '\n');
+        skipped++;
+      } else if (isError(decision)) {
+        const row: ErrorRow = {
+          housingId: housing.id,
+          housingGeoCode: housing.geoCode,
+          reason: decision.reason
+        };
+        errorsStream.write(JSON.stringify(row) + '\n');
+        errors++;
+      } else {
+        const row: PlanRow = {
+          housingId: housing.id,
+          housingGeoCode: housing.geoCode,
+          ...decision
+        };
+        planStream.write(JSON.stringify(row) + '\n');
+        planned++;
+        eventsToDelete += decision.deleteEventIds?.length ?? 0;
+        eventsToCreate += decision.createEvents?.length ?? 0;
+      }
     }
+  } finally {
+    await Promise.all([
+      streamEnd(planStream),
+      streamEnd(skippedStream),
+      streamEnd(errorsStream)
+    ]);
   }
-
-  await Promise.all([
-    streamEnd(planStream),
-    streamEnd(skippedStream),
-    streamEnd(errorsStream)
-  ]);
 
   return {
     total: housings.length,

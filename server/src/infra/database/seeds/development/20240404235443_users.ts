@@ -50,6 +50,7 @@ export async function seed(knex: Knex): Promise<void> {
 
   await insertBaseUsers(knex, baseUsers);
   await generateRandomUsers(knex);
+  await syncUserEstablishments(knex, establishments);
   console.timeEnd('20240404235457_users');
 }
 
@@ -297,6 +298,40 @@ async function generateRandomUsers(knex: Knex): Promise<void> {
   await knex.batchInsert(USERS_TABLE, users.map(toUserDBO));
   await syncToAuthUsers(knex, users);
   console.log('\n');
+}
+
+async function syncUserEstablishments(
+  knex: Knex,
+  { saintLo }: EstablishmentsData
+): Promise<void> {
+  await knex.raw(`
+    INSERT INTO users_establishments (user_id, establishment_id, establishment_siren, has_commitment)
+    SELECT
+      u.id,
+      u.establishment_id,
+      e.siren,
+      true
+    FROM users u
+    INNER JOIN establishments e ON e.id = u.establishment_id
+    WHERE u.establishment_id IS NOT NULL
+    AND u.deleted_at IS NULL
+    ON CONFLICT (user_id, establishment_id) DO NOTHING
+  `);
+
+  const strasbourgUser = await Users(knex)
+    .where({ email: 'test.strasbourg@zlv.fr' })
+    .first();
+  if (strasbourgUser) {
+    await knex('users_establishments')
+      .insert({
+        user_id: strasbourgUser.id,
+        establishment_id: saintLo.id,
+        establishment_siren: saintLo.siren,
+        has_commitment: true
+      })
+      .onConflict(['user_id', 'establishment_id'])
+      .ignore();
+  }
 }
 
 /**

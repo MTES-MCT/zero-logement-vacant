@@ -50,3 +50,54 @@ describe('toDecideInput', () => {
     expect(input.latestEvent).toEqual({});
   });
 });
+
+import { groupByTarget } from './transforms';
+
+describe('groupByTarget', () => {
+  it('groups rows sharing the same target status and sub-status', () => {
+    const groups = groupByTarget([
+      {
+        geo_code: '01001',
+        id: 'a',
+        target_status: 4,
+        target_sub_status: 'Sortie de la vacance'
+      },
+      {
+        geo_code: '01001',
+        id: 'b',
+        target_status: 4,
+        target_sub_status: 'Sortie de la vacance'
+      },
+      { geo_code: '01002', id: 'c', target_status: 0, target_sub_status: null }
+    ]);
+
+    expect(groups).toHaveLength(2);
+
+    const completed = groups.find((g) => g.status === 4);
+    expect(completed).toMatchObject({
+      status: 4,
+      subStatus: 'Sortie de la vacance'
+    });
+    expect(completed?.housings).toEqual([
+      { geoCode: '01001', id: 'a' },
+      { geoCode: '01001', id: 'b' }
+    ]);
+
+    const neverContacted = groups.find((g) => g.status === 0);
+    expect(neverContacted).toMatchObject({ status: 0, subStatus: null });
+    expect(neverContacted?.housings).toEqual([{ geoCode: '01002', id: 'c' }]);
+  });
+
+  it('keeps null and non-null sub-status as distinct groups for the same status', () => {
+    const groups = groupByTarget([
+      { geo_code: '01001', id: 'a', target_status: 4, target_sub_status: null },
+      {
+        geo_code: '01001',
+        id: 'b',
+        target_status: 4,
+        target_sub_status: 'Sortie de la vacance'
+      }
+    ]);
+    expect(groups).toHaveLength(2);
+  });
+});

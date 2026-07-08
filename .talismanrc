@@ -149,6 +149,8 @@ fileignoreconfig:
   checksum: f08020ffee6beeda135a04955eeeb4a9be0a8e11cf98e8cd18327b67848ca7e2
 - filename: server/src/services/metabase/metabase-normalize.ts
   checksum: 1bd122150d2d7806ebf7cb708750814288d528fad4b3a1a3da0e1f9ae91f2f5d
+- filename: server/src/scripts/fix-housing-sub-status/transforms.ts
+  checksum: 7efb4092aaff5a048a7d9b3842ea5123358e6a41d3158a0246e1805e0555f837
 scopeconfig:
 - scope: node
 allowed_patterns:

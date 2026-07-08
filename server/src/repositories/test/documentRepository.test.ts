@@ -114,6 +114,54 @@ describe('documentRepository', () => {
 
       expect(actual).toBeNull(); // doc1 belongs to establishment, filtered out by establishment2
     });
+
+    it('should return a soft-deleted document when deleted: true', async () => {
+      const document = genDocumentApi({ createdBy: user.id, creator: user });
+      await Documents().insert(toDocumentDBO(document));
+      await documentRepository.remove(document.id);
+
+      const actual = await documentRepository.findOne(document.id, {
+        filters: { deleted: true }
+      });
+
+      expect(actual).not.toBeNull();
+      expect(actual?.id).toBe(document.id);
+    });
+
+    it('should return null for a non-deleted document when deleted: true', async () => {
+      const document = genDocumentApi({ createdBy: user.id, creator: user });
+      await Documents().insert(toDocumentDBO(document));
+
+      const actual = await documentRepository.findOne(document.id, {
+        filters: { deleted: true }
+      });
+
+      expect(actual).toBeNull();
+    });
+
+    it('should return null for a soft-deleted document when deleted: false', async () => {
+      const document = genDocumentApi({ createdBy: user.id, creator: user });
+      await Documents().insert(toDocumentDBO(document));
+      await documentRepository.remove(document.id);
+
+      const actual = await documentRepository.findOne(document.id, {
+        filters: { deleted: false }
+      });
+
+      expect(actual).toBeNull();
+    });
+
+    it('should return a live document when deleted: false', async () => {
+      const document = genDocumentApi({ createdBy: user.id, creator: user });
+      await Documents().insert(toDocumentDBO(document));
+
+      const actual = await documentRepository.findOne(document.id, {
+        filters: { deleted: false }
+      });
+
+      expect(actual).not.toBeNull();
+      expect(actual?.id).toBe(document.id);
+    });
   });
 
   describe('findMany', () => {
@@ -145,6 +193,71 @@ describe('documentRepository', () => {
       });
 
       expect(actual).toEqual([]);
+    });
+
+    it('should find documents by establishmentId when no ids filter is provided', async () => {
+      const document = genDocumentApi({
+        createdBy: user.id,
+        creator: user,
+        establishmentId: establishment.id
+      });
+      await Documents().insert(toDocumentDBO(document));
+
+      const actual = await documentRepository.find({
+        filters: { establishmentIds: [establishment.id] }
+      });
+
+      expect(actual.some((d) => d.id === document.id)).toBe(true);
+    });
+
+    it('should only return documents belonging to the specified establishment', async () => {
+      const establishment2 = genEstablishmentApi();
+      await Establishments().insert(formatEstablishmentApi(establishment2));
+      const user2 = genUserApi(establishment2.id);
+      await Users().insert(toUserDBO(user2));
+
+      const doc1 = genDocumentApi({
+        createdBy: user.id,
+        creator: user,
+        establishmentId: establishment.id
+      });
+      const doc2 = genDocumentApi({
+        createdBy: user2.id,
+        creator: user2,
+        establishmentId: establishment2.id
+      });
+      await Documents().insert([doc1, doc2].map(toDocumentDBO));
+
+      const actual = await documentRepository.find({
+        filters: { establishmentIds: [establishment.id] }
+      });
+
+      expect(actual.some((d) => d.id === doc1.id)).toBe(true);
+      expect(actual.some((d) => d.id === doc2.id)).toBe(false);
+    });
+
+    it('should exclude soft-deleted documents when deleted: false', async () => {
+      const liveDocument = genDocumentApi({
+        createdBy: user.id,
+        creator: user,
+        establishmentId: establishment.id
+      });
+      const deletedDocument = genDocumentApi({
+        createdBy: user.id,
+        creator: user,
+        establishmentId: establishment.id
+      });
+      await Documents().insert(
+        [liveDocument, deletedDocument].map(toDocumentDBO)
+      );
+      await documentRepository.remove(deletedDocument.id);
+
+      const actual = await documentRepository.find({
+        filters: { deleted: false }
+      });
+
+      expect(actual.some((d) => d.id === liveDocument.id)).toBe(true);
+      expect(actual.some((d) => d.id === deletedDocument.id)).toBe(false);
     });
   });
 

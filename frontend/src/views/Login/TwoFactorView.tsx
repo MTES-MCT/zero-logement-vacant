@@ -7,7 +7,7 @@ import Container from '@mui/material/Container';
 import Grid from '@mui/material/Grid';
 import Stack from '@mui/material/Stack';
 import Typography from '@mui/material/Typography';
-import { useState } from 'react';
+import { useRef, useState } from 'react';
 import { FormProvider, useForm } from 'react-hook-form';
 import { useLocation, useNavigate } from 'react-router';
 import { object, string, type InferType } from 'yup';
@@ -49,6 +49,9 @@ const TwoFactorView = () => {
   const establishmentId = state?.establishmentId;
 
   const [error, setError] = useState<string | null>(null);
+  const [isV2Pending, setIsV2Pending] = useState(false);
+  const isV2PendingRef = useRef(false);
+  const isVerificationPending = auth.verifyTwoFactor.isLoading || isV2Pending;
 
   const form = useForm<FormSchema>({
     defaultValues: {
@@ -68,11 +71,17 @@ const TwoFactorView = () => {
     setError(null);
 
     if (state?.authMode === 'auth-v2') {
+      if (isV2PendingRef.current) {
+        return;
+      }
+
       if (v2 === null) {
         setError('Échec de l’authentification.');
         return;
       }
 
+      isV2PendingRef.current = true;
+      setIsV2Pending(true);
       v2.verifyAdminTwoFactor(email!, data.code, establishmentId)
         .then(() => {
           navigate('/parc-de-logements');
@@ -82,6 +91,10 @@ const TwoFactorView = () => {
           setError(
             'Code de vérification invalide ou expiré. Veuillez vérifier votre email et réessayer.'
           );
+        })
+        .finally(() => {
+          isV2PendingRef.current = false;
+          setIsV2Pending(false);
         });
       return;
     }
@@ -174,13 +187,11 @@ const TwoFactorView = () => {
                 </Button>
                 <Button
                   type="submit"
-                  disabled={auth.verifyTwoFactor.isLoading}
+                  disabled={isVerificationPending}
                   iconId="fr-icon-lock-line"
                   iconPosition="left"
                 >
-                  {auth.verifyTwoFactor.isLoading
-                    ? 'Vérification...'
-                    : 'Vérifier'}
+                  {isVerificationPending ? 'Vérification...' : 'Vérifier'}
                 </Button>
               </Stack>
             </form>

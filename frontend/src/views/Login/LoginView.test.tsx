@@ -4,6 +4,10 @@ import userEvent from '@testing-library/user-event';
 import { genUserDTO } from '@zerologementvacant/models/fixtures';
 import { Provider } from 'react-redux';
 import { createMemoryRouter, RouterProvider } from 'react-router';
+import { vi } from 'vitest';
+
+import type { AuthContextValue } from '~/contexts/AuthContext';
+import { genAuthContextValue, MockAuthProvider } from '~/test/auth';
 
 import data from '../../mocks/handlers/data';
 import configureTestStore from '../../utils/storeUtils';
@@ -12,7 +16,7 @@ import LoginView from './LoginView';
 describe('login view', () => {
   const user = userEvent.setup();
 
-  function setup() {
+  function setup(options?: { auth?: AuthContextValue }) {
     const store = configureTestStore();
     const router = createMemoryRouter(
       [
@@ -28,10 +32,17 @@ describe('login view', () => {
       ],
       { initialEntries: ['/connexion'] }
     );
-    render(
+    const view = (
       <Provider store={store}>
         <RouterProvider router={router} />
       </Provider>
+    );
+    render(
+      options?.auth ? (
+        <MockAuthProvider value={options.auth}>{view}</MockAuthProvider>
+      ) : (
+        view
+      )
     );
   }
 
@@ -89,5 +100,26 @@ describe('login view', () => {
 
     const alert = screen.queryByText(/^Échec de l'authentification/);
     expect(alert).not.toBeInTheDocument();
+  });
+
+  it('prevents duplicate v2 login submissions while pending', async () => {
+    const signIn = vi.fn(() => new Promise<void>(() => {}));
+    setup({
+      auth: {
+        ...genAuthContextValue(),
+        signIn
+      }
+    });
+
+    await user.type(screen.getByLabelText(/^Adresse e-mail/), 'agent@zlv.fr');
+    await user.type(screen.getByLabelText(/^Mot de passe/), 'not-a-real-password');
+
+    const logIn = screen.getByRole('button', { name: /^Se connecter/ });
+    await user.dblClick(logIn);
+
+    expect(signIn).toHaveBeenCalledTimes(1);
+    expect(
+      await screen.findByText(/Connexion en cours/)
+    ).toBeInTheDocument();
   });
 });

@@ -8,7 +8,7 @@ import Container from '@mui/material/Container';
 import Grid from '@mui/material/Grid';
 import Stack from '@mui/material/Stack';
 import Typography from '@mui/material/Typography';
-import { useState } from 'react';
+import { useRef, useState } from 'react';
 import { FormProvider, useForm } from 'react-hook-form';
 import { useLocation, useNavigate } from 'react-router';
 import * as yup from 'yup';
@@ -64,12 +64,15 @@ const LoginView = () => {
   // better-auth's cookie session. Admin login uses a dedicated 2FA endpoint.
   const v2 = useOptionalAuth();
   const [v2Error, setV2Error] = useState<string | null>(null);
+  const [isV2Pending, setIsV2Pending] = useState(false);
+  const isV2PendingRef = useRef(false);
 
   const [establishment, setEstablishment] = useState<Establishment | null>(
     null
   );
 
   const isAdminView = pathname === '/admin';
+  const isLoginPending = auth.logIn.isLoading || isV2Pending;
 
   const form = useForm<LoginSchema>({
     defaultValues: {
@@ -83,6 +86,11 @@ const LoginView = () => {
 
   async function submitLoginForm(data: LoginSchema): Promise<void> {
     if (v2 !== null && isAdminView) {
+      if (isV2PendingRef.current) {
+        return;
+      }
+      isV2PendingRef.current = true;
+      setIsV2Pending(true);
       setV2Error(null);
       try {
         const challenge = await v2.signInAdmin(
@@ -107,11 +115,19 @@ const LoginView = () => {
             ? error.message
             : 'Échec de l’authentification.'
         );
+      } finally {
+        isV2PendingRef.current = false;
+        setIsV2Pending(false);
       }
       return;
     }
 
     if (v2 !== null && !isAdminView) {
+      if (isV2PendingRef.current) {
+        return;
+      }
+      isV2PendingRef.current = true;
+      setIsV2Pending(true);
       setV2Error(null);
       try {
         await v2.signIn(data.email, data.password);
@@ -122,6 +138,9 @@ const LoginView = () => {
             ? error.message
             : 'Échec de l’authentification.'
         );
+      } finally {
+        isV2PendingRef.current = false;
+        setIsV2Pending(false);
       }
       return;
     }
@@ -212,7 +231,7 @@ const LoginView = () => {
                   Mot de passe perdu ?
                 </AppLink>
               </Box>
-              {auth.logIn.isLoading ? (
+              {isLoginPending ? (
                 <Stack
                   direction="row"
                   alignItems="center"

@@ -27,6 +27,7 @@ import {
 } from '~/repositories/establishmentRepository';
 import eventRepository, {
   CampaignEvents,
+  CampaignHousingEventDBO,
   CampaignHousingEvents,
   DocumentEvents,
   Events,
@@ -250,6 +251,53 @@ describe('Event repository', () => {
   });
 
   describe('insertManyPrecisionHousingEvents', () => {
+    const housing = genHousingApi();
+    let precision: PrecisionApi;
+    let events: ReadonlyArray<PrecisionHousingEventApi>;
+
+    beforeAll(async () => {
+      precision = await Precisions()
+        .first()
+        .then((p) => formatPrecisionApi(p!));
+      events = [
+        {
+          ...genEventApi({
+            creator,
+            type: 'housing:precision-attached',
+            nextOld: null,
+            nextNew: { category: precision.category, label: precision.label }
+          }),
+          precisionId: precision.id,
+          housingGeoCode: housing.geoCode,
+          housingId: housing.id
+        }
+      ];
+
+      await Housing().insert(formatHousingRecordApi(housing));
+      await eventRepository.insertManyPrecisionHousingEvents(events);
+    });
+
+    it('should insert events', async () => {
+      const ids = events.map((e) => e.id);
+      const actual = await Events().whereIn('id', ids);
+      expect(actual.length).toBe(events.length);
+    });
+
+    it('should link events to the housing and precision', async () => {
+      const ids = events.map((e) => e.id);
+      const actual = await PrecisionHousingEvents().whereIn('event_id', ids);
+      expect(actual.length).toBe(events.length);
+      expect(actual).toSatisfyAll(
+        (event) => event.housing_geo_code === housing.geoCode
+      );
+      expect(actual).toSatisfyAll(
+        (event) => event.housing_id === housing.id
+      );
+      expect(actual).toSatisfyAll(
+        (event) => event.precision_id === precision.id
+      );
+    });
+
     it('does not write when given an empty array', async () => {
       const before = (await PrecisionHousingEvents()).length;
       await eventRepository.insertManyPrecisionHousingEvents([]);
@@ -259,6 +307,53 @@ describe('Event repository', () => {
   });
 
   describe('insertManyCampaignHousingEvents', () => {
+    const housing = genHousingApi();
+    let campaign: CampaignDTO;
+    let events: ReadonlyArray<CampaignHousingEventApi>;
+
+    beforeAll(async () => {
+      campaign = await factories
+        .campaign(establishment)
+        .create({}, { associations: { createdBy: creator } });
+      events = [
+        {
+          ...genEventApi({
+            creator,
+            type: 'housing:campaign-attached',
+            nextOld: null,
+            nextNew: { name: campaign.title }
+          }),
+          campaignId: campaign.id,
+          housingGeoCode: housing.geoCode,
+          housingId: housing.id
+        }
+      ];
+
+      await Housing().insert(formatHousingRecordApi(housing));
+      await eventRepository.insertManyCampaignHousingEvents(events);
+    });
+
+    it('should insert events', async () => {
+      const ids = events.map((e) => e.id);
+      const actual = await Events().whereIn('id', ids);
+      expect(actual.length).toBe(events.length);
+    });
+
+    it('should link events to the housing and campaign', async () => {
+      const ids = events.map((e) => e.id);
+      const actual = await CampaignHousingEvents().whereIn('event_id', ids);
+      expect(actual.length).toBe(events.length);
+      expect(actual).toSatisfyAll<CampaignHousingEventDBO>(
+        (event) => event.housing_geo_code === housing.geoCode
+      );
+      expect(actual).toSatisfyAll<CampaignHousingEventDBO>(
+        (event) => event.housing_id === housing.id
+      );
+      expect(actual).toSatisfyAll<CampaignHousingEventDBO>(
+        (event) => event.campaign_id === campaign.id
+      );
+    });
+
     it('does not write when given an empty array', async () => {
       const before = (await CampaignHousingEvents()).length;
       await eventRepository.insertManyCampaignHousingEvents([]);
@@ -268,6 +363,43 @@ describe('Event repository', () => {
   });
 
   describe('insertManyCampaignEvents', () => {
+    let campaign: CampaignDTO;
+    let events: ReadonlyArray<CampaignEventApi>;
+
+    beforeAll(async () => {
+      campaign = await factories
+        .campaign(establishment)
+        .create({}, { associations: { createdBy: creator } });
+      events = [
+        {
+          ...genEventApi({
+            creator,
+            type: 'campaign:updated',
+            nextOld: { title: 'Old Title' },
+            nextNew: { title: 'New Title' }
+          }),
+          campaignId: campaign.id
+        }
+      ];
+
+      await eventRepository.insertManyCampaignEvents(events);
+    });
+
+    it('should insert events', async () => {
+      const ids = events.map((e) => e.id);
+      const actual = await Events().whereIn('id', ids);
+      expect(actual.length).toBe(events.length);
+    });
+
+    it('should link events to the campaign', async () => {
+      const ids = events.map((e) => e.id);
+      const actual = await CampaignEvents().whereIn('event_id', ids);
+      expect(actual.length).toBe(events.length);
+      expect(actual).toSatisfyAll(
+        (event) => event.campaign_id === campaign.id
+      );
+    });
+
     it('does not write when given an empty array', async () => {
       const before = (await CampaignEvents()).length;
       await eventRepository.insertManyCampaignEvents([]);

@@ -171,6 +171,8 @@ fileignoreconfig:
   checksum: e94c840ab2212d1fe1d7e8060937abfce87401b97cf7dc1abda44aaf14a5d3e7
 - filename: .claude/rules/rgaa-accessibility.md
   checksum: be723fd0573e0bf1f6acf30401f6f2c288a3d358c4ce2000361a2f6ae6c591b5
+- filename: docs/rgaa/methodologie-tests.md
+  checksum: b396fb5a9d17e2a81cad49491c35cc459db9f2ff494c94dada9f3eeae0efeb53
 scopeconfig:
 - scope: node
 allowed_patterns:

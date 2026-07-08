@@ -35,24 +35,34 @@ Référentiel officiel : <https://accessibilite.numerique.gouv.fr/methode/criter
 
 **Version : RGAA 4.1.2** (tag `v4.1.2`, dernière version publiée), déclinaison
 française de WCAG 2.1 niveau AA — **13 thématiques, 106 critères de contrôle,
-693 tests élémentaires**.
+258 tests élémentaires**.
 
 La liste ci-dessous a été **validée le 2026-07-08 directement depuis les
 données JSON sources faisant autorité** du dépôt officiel
-(`RGAA/criteres.json` dans
+(`RGAA/criteres.json` et `RGAA/methodologies.json` dans
 [DISIC/accessibilite.numerique.gouv.fr](https://github.com/DISIC/accessibilite.numerique.gouv.fr)),
 et non depuis un résumé généré par un outil de fetch web (ces résumés se sont
 révélés incohérents d'un appel à l'autre lors de la rédaction de ce
 document — ne jamais leur faire confiance pour ce niveau de précision).
 Les 106 titres de critères ci-dessous sont donc le **texte officiel exact**,
-et les totaux (13 / 106 / 693) ont été vérifiés par calcul sur le JSON source,
-pas estimés.
+et les totaux (13 / 106 / 258) ont été vérifiés par calcul sur le JSON
+source, pas estimés.
 
 **Cela signifie que tu peux citer un numéro de critère (ex. « critère 7.3 »)
 directement depuis cette liste, avec confiance.** Le seul cas où il faut
 revérifier à la source : si une nouvelle version majeure du RGAA succède à la
 4.1.2 (auquel cas cette liste devient un instantané historique à mettre à
 jour — voir la date de validation ci-dessus).
+
+**Procédures de test exactes (les 258 tests élémentaires) :** elles sont
+documentées intégralement, avec le même niveau de fidélité, dans
+[docs/rgaa/methodologie-tests.md](../../docs/rgaa/methodologie-tests.md).
+Ce fichier n'est **volontairement pas chargé automatiquement** (258 tests
+représentent ~34k tokens, ce qui alourdirait chaque tâche frontend même
+triviale) — va le lire explicitement quand tu dois : auditer précisément un
+composant, citer la procédure officielle d'un test dans un rapport, ou
+trancher un cas limite que le résumé "Application concrète" de chaque
+critère ci-dessous ne couvre pas.
 
 ## Les 106 critères RGAA — liste officielle complète, par thématique
 
@@ -242,6 +252,11 @@ contexte DSFR/MUI/React de ce repo.
 - Ne jamais désactiver, contourner ou supprimer un attribut d'accessibilité
   existant (`alt`, `aria-*`, `role`, `tabIndex`, `label`) pour résoudre un
   problème visuel ou de layout — trouve la solution qui préserve les deux.
+- Pour un audit précis d'un composant, ou avant d'affirmer qu'un pattern
+  ARIA/HTML complexe respecte un critère donné, **lis
+  [docs/rgaa/methodologie-tests.md](../../docs/rgaa/methodologie-tests.md)**
+  et applique la procédure de test officielle correspondante plutôt que de
+  juger uniquement sur la base du titre du critère.
 
 ## Réutilisation et outillage
 
@@ -266,4 +281,8 @@ numéro dans une alerte. Cette liste est la donnée de référence : ne la
 recopie pas de mémoire ailleurs, ne l'approxime pas — si ce fichier est un
 jour désynchronisé d'une nouvelle version du RGAA, mets-le à jour depuis la
 source JSON officielle (voir section « Source de référence ») plutôt que de
-deviner.
+deviner. Pour la procédure exacte d'un test (comment un auditeur RGAA
+vérifie concrètement un critère), la référence complète est
+[docs/rgaa/methodologie-tests.md](../../docs/rgaa/methodologie-tests.md) —
+volontairement séparée de ce fichier pour ne pas alourdir chaque tâche
+frontend, mais tout aussi exhaustive et vérifiée à la source (258 tests).

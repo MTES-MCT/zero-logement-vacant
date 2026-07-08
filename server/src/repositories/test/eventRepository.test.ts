@@ -39,10 +39,12 @@ import eventRepository, {
   formatOwnerEventApi,
   formatPerimeterHousingEventApi,
   formatPrecisionHousingEventApi,
+  GroupHousingEventDBO,
   GroupHousingEvents,
   HousingDocumentEvents,
   HousingEventDBO,
   HousingEvents,
+  HousingOwnerEventDBO,
   HousingOwnerEvents,
   OwnerEventDBO,
   OwnerEvents,
@@ -196,6 +198,49 @@ describe('Event repository', () => {
   });
 
   describe('insertManyHousingOwnerEvents', () => {
+    const housing = genHousingApi();
+    const owner = genOwnerApi();
+    const events: ReadonlyArray<HousingOwnerEventApi> = [
+      genEventApi({
+        creator,
+        type: 'housing:owner-attached',
+        nextOld: null,
+        nextNew: { name: owner.fullName, rank: 1 }
+      })
+    ].map((event) => ({
+      ...event,
+      housingGeoCode: housing.geoCode,
+      housingId: housing.id,
+      ownerId: owner.id
+    }));
+    const ids = events.map((event) => event.id);
+
+    beforeAll(async () => {
+      await Housing().insert(formatHousingRecordApi(housing));
+      await Owners().insert(formatOwnerApi(owner));
+
+      await eventRepository.insertManyHousingOwnerEvents(events);
+    });
+
+    it('should insert events', async () => {
+      const actual = await Events().whereIn('id', ids);
+      expect(actual.length).toBe(events.length);
+    });
+
+    it('should link events to the housing and owner', async () => {
+      const actual = await HousingOwnerEvents().whereIn('event_id', ids);
+      expect(actual.length).toBe(events.length);
+      expect(actual).toSatisfyAll<HousingOwnerEventDBO>(
+        (event) => event.housing_geo_code === housing.geoCode
+      );
+      expect(actual).toSatisfyAll<HousingOwnerEventDBO>(
+        (event) => event.housing_id === housing.id
+      );
+      expect(actual).toSatisfyAll<HousingOwnerEventDBO>(
+        (event) => event.owner_id === owner.id
+      );
+    });
+
     it('does not write when given an empty array', async () => {
       const before = (await HousingOwnerEvents()).length;
       await eventRepository.insertManyHousingOwnerEvents([]);
@@ -232,6 +277,49 @@ describe('Event repository', () => {
   });
 
   describe('insertManyGroupHousingEvents', () => {
+    const housing = genHousingApi();
+    const group = genGroupApi(creator, establishment);
+    const events: GroupHousingEventApi[] = [
+      genEventApi({
+        creator,
+        type: 'housing:group-attached',
+        nextOld: null,
+        nextNew: { name: group.title }
+      })
+    ].map((event) => ({
+      ...event,
+      housingGeoCode: housing.geoCode,
+      housingId: housing.id,
+      groupId: group.id
+    }));
+    const ids = events.map((event) => event.id);
+
+    beforeAll(async () => {
+      await Housing().insert(formatHousingRecordApi(housing));
+      await Groups().insert(formatGroupApi(group));
+
+      await eventRepository.insertManyGroupHousingEvents(events);
+    });
+
+    it('should insert events', async () => {
+      const actual = await Events().whereIn('id', ids);
+      expect(actual.length).toBe(events.length);
+    });
+
+    it('should link events to the housing and group', async () => {
+      const actual = await GroupHousingEvents().whereIn('event_id', ids);
+      expect(actual.length).toBe(events.length);
+      expect(actual).toSatisfyAll<GroupHousingEventDBO>(
+        (event) => event.housing_geo_code === housing.geoCode
+      );
+      expect(actual).toSatisfyAll<GroupHousingEventDBO>(
+        (event) => event.housing_id === housing.id
+      );
+      expect(actual).toSatisfyAll<GroupHousingEventDBO>(
+        (event) => event.group_id === group.id
+      );
+    });
+
     it('does not write when given an empty array', async () => {
       const before = (await GroupHousingEvents()).length;
       await eventRepository.insertManyGroupHousingEvents([]);

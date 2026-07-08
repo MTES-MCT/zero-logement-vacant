@@ -10,9 +10,10 @@ export async function signIn(
   page: Page,
   credentials?: { email: string; password: string }
 ): Promise<void> {
+  const config = loadConfig();
   const { email, password } = credentials ?? {
-    email: loadConfig().email,
-    password: loadConfig().password
+    email: config.email,
+    password: config.password
   };
   await page.goto('/connexion');
   await page
@@ -23,7 +24,19 @@ export async function signIn(
     .getByLabel(/Mot de passe/i)
     .first()
     .fill(password);
+  const signInResponse = page.waitForResponse(
+    (response) =>
+      response.url() === `${config.api}/auth/sign-in/email` &&
+      response.request().method() === 'POST',
+    { timeout: 10_000 }
+  );
   await page.getByRole('button', { name: /Se connecter/i }).click();
+  const response = await signInResponse;
+  if (!response.ok()) {
+    throw new Error(
+      `Auth-v2 sign-in failed with ${response.status()}: ${await response.text()}`
+    );
+  }
   // Auth-v2 redirects to /parc-de-logements on success.
   await page.waitForURL('**/parc-de-logements');
 }

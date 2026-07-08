@@ -1,6 +1,12 @@
-import { expect, test } from '../fixtures/auth';
+import { loadConfig } from '../config';
+import { expect, signIn, test } from '../fixtures/auth';
 
 test.describe('Sign-out (auth-v2)', () => {
+  test.skip(
+    loadConfig().authMode !== 'auth-v2',
+    'Run with E2E_AUTH_MODE=auth-v2 and a frontend with auth-v2'
+  );
+
   test('clears the session cookie and bounces protected routes', async ({
     signedInPage,
     context
@@ -36,5 +42,31 @@ test.describe('Sign-out (auth-v2)', () => {
     // Protected route bounces again.
     await signedInPage.goto('/parc-de-logements');
     await signedInPage.waitForURL('**/connexion**');
+  });
+
+  test('also clears any stale legacy authUser localStorage entry', async ({
+    page
+  }) => {
+    await page.addInitScript(() => {
+      localStorage.setItem(
+        'authUser',
+        JSON.stringify({ accessToken: 'stale-legacy-jwt' })
+      );
+    });
+    await signIn(page);
+
+    await expect
+      .poll(() => page.evaluate(() => localStorage.getItem('authUser')))
+      .not.toBeNull();
+
+    await page
+      .getByRole('navigation', { name: 'Navigation du compte utilisateur' })
+      .getByRole('button')
+      .click();
+    await page.getByRole('button', { name: /Se déconnecter/i }).click();
+
+    await expect
+      .poll(() => page.evaluate(() => localStorage.getItem('authUser')))
+      .toBeNull();
   });
 });

@@ -110,7 +110,7 @@ const TwoFactorView = () => {
           )}
 
           <FormProvider {...form}>
-            <form onSubmit={form.handleSubmit(submit)} id="2fa_form">
+            <form onSubmit={form.handleSubmit(submit)} id="2fa_form" noValidate>
               <AppTextInputNext<FormSchema>
                 name="code"
                 label="Code de vérification (6 chiffres)"

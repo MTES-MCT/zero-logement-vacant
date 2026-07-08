@@ -1,5 +1,9 @@
 import { defineConfig, devices } from '@playwright/test';
 
+import { loadLocalEnv } from './config';
+
+loadLocalEnv();
+
 const isCI = !!process.env.CI;
 
 export default defineConfig({

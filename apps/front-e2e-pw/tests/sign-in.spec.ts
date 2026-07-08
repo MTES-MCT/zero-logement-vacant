@@ -1,7 +1,13 @@
+import { loadConfig } from '../config';
 import { expect, test } from '../fixtures/auth';
 import { signIn } from '../fixtures/auth';
 
 test.describe('Sign-in (auth-v2)', () => {
+  test.skip(
+    loadConfig().authMode !== 'auth-v2',
+    'Run with E2E_AUTH_MODE=auth-v2 and a frontend with auth-v2'
+  );
+
   test('logs in and sets the zlv.session_token cookie', async ({
     page,
     context

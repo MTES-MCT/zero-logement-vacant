@@ -4,17 +4,27 @@ import { describe, it, expect, beforeAll } from 'vitest';
 import documentRepository, {
   Documents,
   fromDocumentDBO,
+  joinDocumentWithCreator,
   toDocumentDBO
 } from '~/repositories/documentRepository';
 import {
   Establishments,
   formatEstablishmentApi
 } from '~/repositories/establishmentRepository';
+import {
+  HousingDocuments,
+  HOUSING_DOCUMENT_TABLE
+} from '~/repositories/housingDocumentRepository';
+import {
+  formatHousingRecordApi,
+  Housing
+} from '~/repositories/housingRepository';
 import { Users, toUserDBO } from '~/repositories/userRepository';
 import {
   genDocumentApi,
-  genUserApi,
-  genEstablishmentApi
+  genEstablishmentApi,
+  genHousingApi,
+  genUserApi
 } from '~/test/testFixtures';
 
 describe('documentRepository', () => {
@@ -310,6 +320,43 @@ describe('documentRepository', () => {
       });
       const dbo = toDocumentDBO({ ...document, deletedAt: new Date().toISOString() });
       expect(dbo.deleted_at).not.toBeNull();
+    });
+  });
+
+  describe('joinDocumentWithCreator', () => {
+    it('should left-join documents and return the document JSON with a nested creator', async () => {
+      const housing = genHousingApi();
+      await Housing().insert(formatHousingRecordApi(housing));
+
+      const document = genDocumentApi({ createdBy: user.id, creator: user });
+      await Documents().insert(toDocumentDBO(document));
+
+      await HousingDocuments().insert({
+        document_id: document.id,
+        housing_geo_code: housing.geoCode,
+        housing_id: housing.id
+      });
+
+      const query = HousingDocuments().where(
+        `${HOUSING_DOCUMENT_TABLE}.document_id`,
+        document.id
+      );
+      joinDocumentWithCreator(query, `${HOUSING_DOCUMENT_TABLE}.document_id`, 'doc');
+
+      const row = await query.first<Record<string, unknown>>();
+
+      expect(row).toBeDefined();
+      const doc = row?.doc as Record<string, unknown>;
+      expect(doc).toBeDefined();
+      expect(doc).toMatchObject({
+        id: document.id,
+        filename: document.filename,
+        s3_key: document.s3Key,
+        creator: expect.objectContaining({
+          id: user.id,
+          email: user.email
+        })
+      });
     });
   });
 

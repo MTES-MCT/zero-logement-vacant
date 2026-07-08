@@ -104,8 +104,9 @@ const validStatusSubStatusArb = fc.oneof(
     )
     .chain((status) => {
       const validSubs = [...getSubStatuses(status)];
+      // A sub-status-requiring status must always carry a valid sub-status.
       return fc
-        .option(fc.constantFrom(...validSubs), { nil: undefined })
+        .constantFrom(...validSubs)
         .map((subStatus) => ({ status, subStatus }));
     })
 );
@@ -174,5 +175,32 @@ describe('Housing batch update payload', () => {
         subStatus: 'some-sub-status'
       })
     ).toThrow(ValidationError);
+  });
+
+  it('should leave the sub-status untouched (undefined) when both status and sub-status are omitted', () => {
+    const actual = housingBatchUpdatePayload.validateSync({
+      filters: { all: false },
+      note: 'Just a note'
+    });
+
+    expect(actual.subStatus).toBeUndefined();
+  });
+
+  it('should require a sub-status when the status requires one but none is provided', () => {
+    expect(() =>
+      housingBatchUpdatePayload.validateSync({
+        filters: { all: false },
+        status: HousingStatus.IN_PROGRESS
+      })
+    ).toThrow(ValidationError);
+  });
+
+  it('should force the sub-status to null when the status has no sub-statuses even if the sub-status is omitted', () => {
+    const actual = housingBatchUpdatePayload.validateSync({
+      filters: { all: false },
+      status: HousingStatus.NEVER_CONTACTED
+    });
+
+    expect(actual.subStatus).toBeNull();
   });
 });

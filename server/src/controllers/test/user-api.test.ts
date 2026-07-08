@@ -728,11 +728,42 @@ describe('User API', () => {
 
     describe('As an authenticated admin', () => {
       it('should delete any user', async () => {
+        await db('auth_users').insert({
+          id: user.id,
+          name: [user.firstName, user.lastName].filter(Boolean).join(' '),
+          email: user.email,
+          email_verified: true,
+          role: 'usual'
+        });
+        await db('account').insert({
+          id: randomUUID(),
+          account_id: user.email,
+          provider_id: 'credential',
+          user_id: user.id,
+          password: user.password
+        });
+        await db('session').insert({
+          id: randomUUID(),
+          token: randomUUID(),
+          user_id: user.id,
+          active_establishment_id: establishment.id,
+          expires_at: new Date(Date.now() + 60_000)
+        });
+
         const { status } = await request(url)
           .delete(testRoute(user.id))
           .use(tokenProvider(admin));
 
         expect(status).toBe(constants.HTTP_STATUS_NO_CONTENT);
+
+        const authUser = await db('auth_users').where({ id: user.id }).first();
+        expect(authUser.deleted_at).toBeInstanceOf(Date);
+        await expect(
+          db('account').where({ user_id: user.id }).first()
+        ).resolves.toBeUndefined();
+        await expect(
+          db('session').where({ user_id: user.id }).first()
+        ).resolves.toBeUndefined();
       });
     });
   });

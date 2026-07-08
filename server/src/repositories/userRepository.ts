@@ -101,7 +101,20 @@ async function count(opts?: CountOptions): Promise<number> {
 
 async function remove(userId: string): Promise<void> {
   logger.info('Remove user', userId);
-  await db(USERS_TABLE).where('id', userId).update({ deleted_at: new Date() });
+  const deletedAt = new Date();
+
+  await db.transaction(async (transaction) => {
+    await transaction('session').where({ user_id: userId }).delete();
+    await transaction('account').where({ user_id: userId }).delete();
+    await transaction('auth_users').where({ id: userId }).update({
+      deleted_at: deletedAt,
+      updated_at: deletedAt
+    });
+    await transaction(USERS_TABLE).where('id', userId).update({
+      deleted_at: deletedAt,
+      updated_at: deletedAt
+    });
+  });
 }
 
 export interface UserDBO {

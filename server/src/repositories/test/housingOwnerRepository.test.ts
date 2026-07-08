@@ -5,9 +5,11 @@ import { HousingOwnerApi } from '~/models/HousingOwnerApi';
 import { OwnerApi } from '~/models/OwnerApi';
 import housingOwnerRepository, {
   formatHousingOwnerApi,
+  formatHousingOwnersApi,
   fromRelativeLocationDBO,
   HousingOwnerDBO,
   HousingOwners,
+  parseOwnerHousingApi,
   relativeLocationFilterToDBO,
   toRelativeLocationDBO
 } from '~/repositories/housingOwnerRepository';
@@ -214,6 +216,101 @@ describe('housingOwnerRepository', () => {
 
     it('maps other to [7]', () => {
       expect(relativeLocationFilterToDBO('other')).toEqual([7]);
+    });
+  });
+
+  describe('parseOwnerHousingApi', () => {
+    it('should return locprop === null when locprop_source is null', () => {
+      const housing = genHousingApi();
+      const owner = genOwnerApi();
+      const housingOwner = genHousingOwnerApi(housing, owner);
+      const dbo = {
+        ...formatHousingRecordApi(housing),
+        plot_area: null,
+        occupancy_history: null,
+        last_mutation_type: null,
+        ...formatHousingOwnerApi(housingOwner),
+        locprop_source: null
+      };
+
+      const result = parseOwnerHousingApi(dbo);
+
+      expect(result.locprop).toBeNull();
+    });
+
+    it('should return relativeLocation === null when locprop_relative_ban is null', () => {
+      const housing = genHousingApi();
+      const owner = genOwnerApi();
+      const housingOwner = genHousingOwnerApi(housing, owner);
+      const dbo = {
+        ...formatHousingRecordApi(housing),
+        plot_area: null,
+        occupancy_history: null,
+        last_mutation_type: null,
+        ...formatHousingOwnerApi(housingOwner),
+        locprop_relative_ban: null
+      };
+
+      const result = parseOwnerHousingApi(dbo);
+
+      expect(result.relativeLocation).toBeNull();
+    });
+  });
+
+  describe('formatHousingOwnerApi', () => {
+    it('should set locprop_source === null when locprop is null', () => {
+      const housing = genHousingApi();
+      const owner = genOwnerApi();
+      const housingOwner: HousingOwnerApi = {
+        ...genHousingOwnerApi(housing, owner),
+        locprop: null
+      };
+
+      const dbo = formatHousingOwnerApi(housingOwner);
+
+      expect(dbo.locprop_source).toBeNull();
+    });
+  });
+
+  describe('formatHousingOwnersApi', () => {
+    it('should set origin === null when no origin is provided', () => {
+      const housing = genHousingApi();
+      const owner = genOwnerApi();
+
+      const dbos = formatHousingOwnersApi(housing, [owner]);
+
+      expect(dbos).toHaveLength(1);
+      expect(dbos[0]).toMatchObject({
+        origin: null,
+        start_date: expect.any(Date)
+      });
+    });
+
+    it('should set origin and rank === 1 when origin is provided', () => {
+      const housing = genHousingApi();
+      const owner = genOwnerApi();
+
+      const dbos = formatHousingOwnersApi(housing, [owner], 'lovac');
+
+      expect(dbos).toHaveLength(1);
+      expect(dbos[0]).toMatchObject({
+        origin: 'lovac',
+        rank: 1
+      });
+    });
+
+    it('should assign rank ordinally for multiple owners', () => {
+      const housing = genHousingApi();
+      const owner1 = genOwnerApi();
+      const owner2 = genOwnerApi();
+      const owner3 = genOwnerApi();
+
+      const dbos = formatHousingOwnersApi(housing, [owner1, owner2, owner3]);
+
+      expect(dbos).toHaveLength(3);
+      expect(dbos[0].rank).toBe(1);
+      expect(dbos[1].rank).toBe(2);
+      expect(dbos[2].rank).toBe(3);
     });
   });
 

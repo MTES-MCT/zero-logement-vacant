@@ -135,7 +135,7 @@ git commit -m "feat(repairs): add core types for repair harness"
 **Interfaces:**
 
 - Consumes: `Repair<H>`, `RepairAction`, `RepairSkip`, `RepairError`, `PlanRow`, `SkippedRow`, `ErrorRow`, `PlanSummary` from `./types`.
-- Produces: `plan(repair: Repair<H>, options?: PlanOptions): Promise<PlanSummary>` — consumed by Task 5 (CLI).
+- Produces: `plan(repair: Repair<H>, options?: PlanOptions): Promise<PlanSummary>` — consumed by Task 4 (CLI).
 - Side effects: writes `plan.jsonl`, `skipped.jsonl`, `errors.jsonl` to `options.outDir` (default: `process.cwd()`).
 
 - [ ] **Step 1: Write the failing tests**

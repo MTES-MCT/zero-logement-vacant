@@ -522,6 +522,96 @@ describe('Owner repository', () => {
     });
   });
 
+  describe('findByHousing', () => {
+    it('should return HousingOwnerApi entries for the linked owner', async () => {
+      const owner = genOwnerApi();
+      const housing = genHousingApi();
+
+      await Housing().insert(formatHousingRecordApi(housing));
+      await Owners().insert(formatOwnerApi(owner));
+      await HousingOwners().insert(
+        formatHousingOwnerApi({
+          ...genHousingOwnerApi(housing, owner),
+          rank: 1
+        })
+      );
+
+      const actual = await ownerRepository.findByHousing(housing);
+
+      expect(actual).toPartiallyContain({ id: owner.id });
+    });
+
+    it('should map null locprop_source to null locprop', async () => {
+      const owner = genOwnerApi();
+      const housing = genHousingApi();
+      const housingOwner = genHousingOwnerApi(housing, owner);
+
+      await Housing().insert(formatHousingRecordApi(housing));
+      await Owners().insert(formatOwnerApi(owner));
+      await HousingOwners().insert(
+        formatHousingOwnerApi({
+          ...housingOwner,
+          rank: 1,
+          locprop: null
+        })
+      );
+
+      const actual = await ownerRepository.findByHousing(housing);
+
+      const found = actual.find((ho) => ho.id === owner.id);
+      expect(found).toBeDefined();
+      expect(found?.locprop).toBeNull();
+    });
+  });
+
+  describe('insertHousingOwners', () => {
+    it('should insert rows into HousingOwners and return the inserted count', async () => {
+      const owner = genOwnerApi();
+      const housing = genHousingApi();
+
+      await Housing().insert(formatHousingRecordApi(housing));
+      await Owners().insert(formatOwnerApi(owner));
+
+      const housingOwners = [
+        { ...genHousingOwnerApi(housing, owner), rank: 1 as const }
+      ];
+
+      const result = await ownerRepository.insertHousingOwners(housingOwners);
+
+      expect(result).toBe(1);
+
+      const rows = await HousingOwners()
+        .where({ owner_id: owner.id, housing_id: housing.id });
+      expect(rows).toHaveLength(1);
+    });
+  });
+
+  describe('deleteHousingOwners', () => {
+    it('should remove the housing_owner link and return the deleted count', async () => {
+      const owner = genOwnerApi();
+      const housing = genHousingApi();
+
+      await Housing().insert(formatHousingRecordApi(housing));
+      await Owners().insert(formatOwnerApi(owner));
+      await HousingOwners().insert(
+        formatHousingOwnerApi({
+          ...genHousingOwnerApi(housing, owner),
+          rank: 1
+        })
+      );
+
+      const result = await ownerRepository.deleteHousingOwners(housing.id, [
+        owner.id
+      ]);
+
+      expect(result).toBe(1);
+
+      const rows = await HousingOwners()
+        .where({ owner_id: owner.id, housing_id: housing.id });
+      expect(rows).toHaveLength(0);
+    });
+  });
+
   describe('refreshMultiOwnerFlags', () => {
     it('should set is_multi_owner to true for owners with rank=1 in more than one housing', async () => {
       const owner = genOwnerApi();

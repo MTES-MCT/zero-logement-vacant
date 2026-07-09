@@ -66,59 +66,47 @@ export async function generate(): Promise<void> {
   const reviewLines: string[] = [];
   const bySource: Record<string, number> = {};
   const bySelectedBy: Record<string, number> = {};
+  const byCohort: Record<string, number> = {};
 
   for (const row of rows) {
-    const dataFileYears = row.data_file_years ?? [];
     const selected = selectedBy(row.status, row.sub_status);
     bySelectedBy[selected] = (bySelectedBy[selected] ?? 0) + 1;
 
     const decision = decide(toDecideInput(row));
+    byCohort[decision.cohort] = (byCohort[decision.cohort] ?? 0) + 1;
+
+    const common = {
+      geo_code: decision.geoCode,
+      id: decision.id,
+      current_status: decision.currentStatus,
+      current_sub_status: decision.currentSubStatus,
+      cohort: decision.cohort,
+      selected_by: selected,
+      data_file_years: row.data_file_years ?? [],
+      latest_event: row.next_new ?? null,
+      event_created_at: row.event_created_at
+        ? new Date(row.event_created_at).toISOString()
+        : null
+    };
+
     switch (decision.action) {
       case 'update':
         bySource[decision.source] = (bySource[decision.source] ?? 0) + 1;
         planLines.push(
           JSON.stringify({
-            geo_code: decision.geoCode,
-            id: decision.id,
-            current_status: decision.currentStatus,
-            current_sub_status: row.sub_status,
+            ...common,
             target_status: decision.targetStatus,
             target_sub_status: decision.targetSubStatus,
-            source: decision.source,
-            selected_by: selected,
-            data_file_years: dataFileYears,
-            event_created_at:
-              decision.source === 'event' && row.event_created_at
-                ? new Date(row.event_created_at).toISOString()
-                : null
+            source: decision.source
           })
         );
         break;
       case 'error':
-        errorLines.push(
-          JSON.stringify({
-            geo_code: decision.geoCode,
-            id: decision.id,
-            current_status: decision.currentStatus,
-            current_sub_status: row.sub_status,
-            reason: decision.reason,
-            selected_by: selected,
-            data_file_years: dataFileYears,
-            next_new: decision.nextNew
-          })
-        );
+        errorLines.push(JSON.stringify({ ...common, reason: decision.reason }));
         break;
       case 'review':
         reviewLines.push(
-          JSON.stringify({
-            geo_code: decision.geoCode,
-            id: decision.id,
-            current_status: decision.currentStatus,
-            current_sub_status: row.sub_status,
-            reason: decision.reason,
-            selected_by: selected,
-            data_file_years: dataFileYears
-          })
+          JSON.stringify({ ...common, reason: decision.reason })
         );
         break;
     }
@@ -140,14 +128,15 @@ export async function generate(): Promise<void> {
   logger.info('Wrote plan.', {
     path: planPath,
     updates: planLines.length,
+    byCohort,
     bySource,
     bySelectedBy
   });
-  logger.info('Wrote errors (latest event unusable).', {
+  logger.info('Wrote errors (unusable event — skip & log).', {
     path: errorsPath,
     errors: errorLines.length
   });
-  logger.info('Wrote review (no event, non-COMPLETED — product decision).', {
+  logger.info('Wrote review (no basis to decide — product decision).', {
     path: reviewPath,
     review: reviewLines.length
   });

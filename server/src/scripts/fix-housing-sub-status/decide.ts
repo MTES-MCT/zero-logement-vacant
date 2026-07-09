@@ -1,214 +1,145 @@
-import {
-  getSubStatuses,
-  HOUSING_STATUS_LABELS,
-  HOUSING_STATUS_VALUES,
-  HousingStatus
-} from '@zerologementvacant/models';
+import { HousingStatus } from '@zerologementvacant/models';
 
+import { normalizeEventPair, normalizePair, requiresSubStatus } from './legacy';
+
+const LOVAC_PREFIX = 'lovac-';
 const LOVAC_2026 = 'lovac-2026';
 const COMPLETED_SUB_STATUS = 'Sortie de la vacance';
-
-const STATUSES_REQUIRING_SUB_STATUS: ReadonlyArray<HousingStatus> = [
-  HousingStatus.FIRST_CONTACT,
-  HousingStatus.IN_PROGRESS,
-  HousingStatus.COMPLETED,
-  HousingStatus.BLOCKED
-];
-
-export function requiresSubStatus(status: HousingStatus): boolean {
-  return STATUSES_REQUIRING_SUB_STATUS.includes(status);
-}
-
-const LABEL_TO_STATUS: ReadonlyMap<string, HousingStatus> = new Map(
-  HOUSING_STATUS_VALUES.map((status) => [HOUSING_STATUS_LABELS[status], status])
-);
-
-export function decodeStatusLabel(
-  label: string | undefined
-): HousingStatus | undefined {
-  if (label === undefined) {
-    return undefined;
-  }
-  return LABEL_TO_STATUS.get(label);
-}
 
 export interface EventNextNew {
   status?: string;
   subStatus?: string | null;
 }
 
+/**
+ * Lovac-year cohort — the primary driver of the repair:
+ * - `still-vacant`: in lovac-2026;
+ * - `exited`: was in some lovac file but not 2026 (left the vacancy file);
+ * - `never-tracked`: never in any lovac file (rental / manual only).
+ */
+export type Cohort = 'still-vacant' | 'exited' | 'never-tracked';
+
 export interface DecideInput {
   geoCode: string;
   id: string;
   status: HousingStatus;
+  subStatus: string | null;
   dataFileYears: ReadonlyArray<string>;
   latestEvent: EventNextNew | null;
 }
 
-export type Decision =
-  | {
-      action: 'update';
-      geoCode: string;
-      id: string;
-      currentStatus: HousingStatus;
-      targetStatus: HousingStatus;
-      targetSubStatus: string | null;
-      source:
-        | 'event'
-        | 'fallback-lovac'
-        | 'fallback-completed'
-        | 'clear-sub-status';
-    }
-  | {
-      action: 'error';
-      geoCode: string;
-      id: string;
-      currentStatus: HousingStatus;
-      reason: 'missing-or-unknown-status' | 'invalid-sub-status';
-      nextNew: EventNextNew | null;
-    }
-  | {
-      // No event history and not in lovac-2026: no basis to change the status,
-      // so leave the housing as-is and log it for a product decision.
-      action: 'review';
-      geoCode: string;
-      id: string;
-      currentStatus: HousingStatus;
-      reason: 'no-event-non-completed';
-    };
+export type UpdateSource =
+  | 'keep-active'
+  | 'lovac-reset'
+  | 'lovac-exit'
+  | 'event-restore'
+  | 'legacy-rename';
 
-type ResolvedEvent =
-  | { valid: true; status: HousingStatus; subStatus: string | null }
-  | {
-      valid: false;
-      reason: 'missing-or-unknown-status' | 'invalid-sub-status';
-    };
-
-/**
- * Decode an event's `next_new` into a valid `(status, subStatus)` target, or
- * the reason it cannot be used.
- */
-function resolveEvent(event: EventNextNew): ResolvedEvent {
-  const status = decodeStatusLabel(event.status);
-  if (status === undefined) {
-    return { valid: false, reason: 'missing-or-unknown-status' };
-  }
-  const subStatus = event.subStatus ?? null;
-  if (requiresSubStatus(status)) {
-    if (subStatus === null || !getSubStatuses(status).has(subStatus)) {
-      return { valid: false, reason: 'invalid-sub-status' };
-    }
-    return { valid: true, status, subStatus };
-  }
-  return { valid: true, status, subStatus: null };
+interface Base {
+  geoCode: string;
+  id: string;
+  currentStatus: HousingStatus;
+  currentSubStatus: string | null;
+  cohort: Cohort;
 }
 
-/**
- * Active follow-up statuses: they require a sub-status but are not the terminal
- * COMPLETED (exited) status.
- */
+export type Decision =
+  | (Base & {
+      action: 'update';
+      targetStatus: HousingStatus;
+      targetSubStatus: string | null;
+      source: UpdateSource;
+    })
+  | (Base & {
+      action: 'error';
+      reason: 'unknown-status-label' | 'sub-status-nulled';
+    })
+  | (Base & { action: 'review'; reason: 'no-usable-event' });
+
+/** Active follow-up statuses: require a sub-status but are not terminal COMPLETED. */
 function isActiveFollowUp(status: HousingStatus): boolean {
   return requiresSubStatus(status) && status !== HousingStatus.COMPLETED;
 }
 
-export function decide(input: DecideInput): Decision {
-  const {
-    geoCode,
-    id,
-    status: currentStatus,
-    dataFileYears,
-    latestEvent
-  } = input;
-
-  // A status that forbids a sub-status (NEVER_CONTACTED / WAITING) is valid on
-  // its own; a stray sub-status is the only defect, so clear it and keep the
-  // status. Handled first, surgically — no need to reinterpret via events.
-  if (!requiresSubStatus(currentStatus)) {
-    return {
-      action: 'update',
-      geoCode,
-      id,
-      currentStatus,
-      targetStatus: currentStatus,
-      targetSubStatus: null,
-      source: 'clear-sub-status'
-    };
-  }
-
-  // Still vacant in the latest data (lovac-2026): a follow-up event that says
-  // the housing exited is contradicted. Keep only a valid ACTIVE event;
-  // otherwise reset to NEVER_CONTACTED — this also rescues housings whose latest
-  // event was corrupted by the sub-status-nulling bug.
+function cohortOf(dataFileYears: ReadonlyArray<string>): Cohort {
   if (dataFileYears.includes(LOVAC_2026)) {
-    if (latestEvent !== null) {
-      const resolved = resolveEvent(latestEvent);
-      if (resolved.valid && isActiveFollowUp(resolved.status)) {
-        return {
-          action: 'update',
-          geoCode,
-          id,
-          currentStatus,
-          targetStatus: resolved.status,
-          targetSubStatus: resolved.subStatus,
-          source: 'event'
-        };
-      }
-    }
-    return {
-      action: 'update',
-      geoCode,
-      id,
-      currentStatus,
-      targetStatus: HousingStatus.NEVER_CONTACTED,
-      targetSubStatus: null,
-      source: 'fallback-lovac'
-    };
+    return 'still-vacant';
   }
-
-  // Not in lovac-2026 (left the file): trust the latest event.
-  if (latestEvent !== null) {
-    const resolved = resolveEvent(latestEvent);
-    if (!resolved.valid) {
-      return {
-        action: 'error',
-        geoCode,
-        id,
-        currentStatus,
-        reason: resolved.reason,
-        nextNew: latestEvent
-      };
-    }
-    return {
-      action: 'update',
-      geoCode,
-      id,
-      currentStatus,
-      targetStatus: resolved.status,
-      targetSubStatus: resolved.subStatus,
-      source: 'event'
-    };
+  if (dataFileYears.some((year) => year.startsWith(LOVAC_PREFIX))) {
+    return 'exited';
   }
+  return 'never-tracked';
+}
 
-  // No event, not in lovac-2026:
-  // - already COMPLETED → backfill the default sub-status
-  // - otherwise → no basis to rewrite the status; leave as-is for product review
-  if (currentStatus === HousingStatus.COMPLETED) {
-    return {
-      action: 'update',
-      geoCode,
-      id,
-      currentStatus,
-      targetStatus: HousingStatus.COMPLETED,
-      targetSubStatus: COMPLETED_SUB_STATUS,
-      source: 'fallback-completed'
-    };
-  }
-
-  return {
-    action: 'review',
+export function decide(input: DecideInput): Decision {
+  const { geoCode, id, status, subStatus, dataFileYears, latestEvent } = input;
+  const cohort = cohortOf(dataFileYears);
+  const base: Base = {
     geoCode,
     id,
-    currentStatus,
-    reason: 'no-event-non-completed'
+    currentStatus: status,
+    currentSubStatus: subStatus,
+    cohort
   };
+
+  // Both the current pair and the latest event are normalised through the 073
+  // legacy maps before we decide.
+  const current = normalizePair(status, subStatus);
+  const event = latestEvent
+    ? normalizeEventPair(latestEvent.status, latestEvent.subStatus)
+    : null;
+
+  const update = (
+    targetStatus: HousingStatus,
+    targetSubStatus: string | null,
+    source: UpdateSource
+  ): Decision => ({
+    ...base,
+    action: 'update',
+    targetStatus,
+    targetSubStatus,
+    source
+  });
+
+  // Still vacant → reset for a fresh campaign, unless actively worked (keep it).
+  if (cohort === 'still-vacant') {
+    if (current.ok && isActiveFollowUp(current.status)) {
+      return update(current.status, current.subStatus, 'keep-active');
+    }
+    if (event?.ok && isActiveFollowUp(event.status)) {
+      return update(event.status, event.subStatus, 'keep-active');
+    }
+    return update(HousingStatus.NEVER_CONTACTED, null, 'lovac-reset');
+  }
+
+  // Exited the vacancy file → Suivi terminé, keeping the event's own COMPLETED
+  // sub-status when it has a valid one, else the default "Sortie de la vacance".
+  if (cohort === 'exited') {
+    if (event?.ok && event.status === HousingStatus.COMPLETED) {
+      return update(event.status, event.subStatus, 'lovac-exit');
+    }
+    return update(HousingStatus.COMPLETED, COMPLETED_SUB_STATUS, 'lovac-exit');
+  }
+
+  // Never vacancy-tracked → lovac rules do not apply.
+  // - the current pair becomes valid after a legacy rename → keep it;
+  // - else restore from a usable event;
+  // - else the event is unusable (log) or there is nothing to go on (review).
+  if (current.ok) {
+    return update(current.status, current.subStatus, 'legacy-rename');
+  }
+  if (event?.ok) {
+    return update(event.status, event.subStatus, 'event-restore');
+  }
+  if (event && !event.ok) {
+    return {
+      ...base,
+      action: 'error',
+      reason:
+        event.reason === 'unknown-status-label'
+          ? 'unknown-status-label'
+          : 'sub-status-nulled'
+    };
+  }
+  return { ...base, action: 'review', reason: 'no-usable-event' };
 }

@@ -18,6 +18,7 @@ describe('toDecideInput', () => {
       geoCode: '01001',
       id: 'h1',
       status: HousingStatus.COMPLETED,
+      subStatus: null,
       dataFileYears: ['lovac-2026'],
       latestEvent: {
         status: 'Suivi terminé',

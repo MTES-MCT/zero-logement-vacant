@@ -37,6 +37,7 @@ export function toDecideInput(row: RawRow): DecideInput {
     geoCode: row.geo_code,
     id: row.id,
     status: row.status as HousingStatus,
+    subStatus: row.sub_status,
     dataFileYears: row.data_file_years ?? [],
     latestEvent: hasEvent ? (row.next_new ?? {}) : null
   };

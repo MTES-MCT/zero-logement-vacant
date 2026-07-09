@@ -3,6 +3,8 @@ import { HousingStatus, Occupancy } from '@zerologementvacant/models';
 import type { PropsWithChildren } from 'react';
 import { Provider as StoreProvider } from 'react-redux';
 
+import { MockAuthProvider } from '~/test/auth';
+
 import configureTestStore from '../../utils/storeUtils';
 import {
   HousingFiltersProvider,
@@ -19,9 +21,11 @@ function createWrapper(
   // eslint-disable-next-line react/display-name
   return ({ children }: PropsWithChildren) => (
     <StoreProvider store={store}>
-      <HousingFiltersProvider initialFilters={initialFilters}>
-        {children}
-      </HousingFiltersProvider>
+      <MockAuthProvider options={{ user: null }}>
+        <HousingFiltersProvider initialFilters={initialFilters}>
+          {children}
+        </HousingFiltersProvider>
+      </MockAuthProvider>
     </StoreProvider>
   );
 }
@@ -212,11 +216,13 @@ describe('HousingFiltersContext', () => {
 
       const wrapper = ({ children }: PropsWithChildren) => (
         <StoreProvider store={store}>
-          <HousingFiltersProvider initialFilters={{ groupIds: ['outer'] }}>
-            <HousingFiltersProvider initialFilters={{ groupIds: ['inner'] }}>
-              {children}
+          <MockAuthProvider options={{ user: null }}>
+            <HousingFiltersProvider initialFilters={{ groupIds: ['outer'] }}>
+              <HousingFiltersProvider initialFilters={{ groupIds: ['inner'] }}>
+                {children}
+              </HousingFiltersProvider>
             </HousingFiltersProvider>
-          </HousingFiltersProvider>
+          </MockAuthProvider>
         </StoreProvider>
       );
 

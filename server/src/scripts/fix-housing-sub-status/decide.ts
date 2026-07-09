@@ -1,6 +1,11 @@
 import { HousingStatus } from '@zerologementvacant/models';
 
-import { normalizeEventPair, normalizePair, requiresSubStatus } from './legacy';
+import {
+  normalizeEventPair,
+  normalizePair,
+  requiresSubStatus,
+  type Normalized
+} from './legacy';
 
 const LOVAC_PREFIX = 'lovac-';
 const LOVAC_2026 = 'lovac-2026';
@@ -25,7 +30,12 @@ export interface DecideInput {
   status: HousingStatus;
   subStatus: string | null;
   dataFileYears: ReadonlyArray<string>;
+  /** `next_new` of the latest `housing:status-updated` event. */
   latestEvent: EventNextNew | null;
+  /** `next_old` of that event (needed to revert the sub-status-nulling bug). */
+  latestEventOld?: EventNextNew | null;
+  /** id of that event (needed to delete it). */
+  latestEventId?: string | null;
 }
 
 export type UpdateSource =
@@ -34,7 +44,9 @@ export type UpdateSource =
   | 'lovac-exit'
   | 'event-restore'
   | 'legacy-rename'
-  | 'fallback-completed';
+  | 'fallback-never-contacted'
+  | 'event-sub-adopt'
+  | 'event-revert';
 
 interface Base {
   geoCode: string;
@@ -50,6 +62,10 @@ export type Decision =
       targetStatus: HousingStatus;
       targetSubStatus: string | null;
       source: UpdateSource;
+      // `apply` writes an admin status-updated event when true, and deletes
+      // `deleteEventId` when set.
+      writeEvent: boolean;
+      deleteEventId: string | null;
     })
   | (Base & {
       action: 'error';
@@ -71,8 +87,25 @@ function cohortOf(dataFileYears: ReadonlyArray<string>): Cohort {
   return 'never-tracked';
 }
 
+function errorReason(
+  event: Normalized & { ok: false }
+): 'unknown-status-label' | 'sub-status-nulled' {
+  return event.reason === 'unknown-status-label'
+    ? 'unknown-status-label'
+    : 'sub-status-nulled';
+}
+
 export function decide(input: DecideInput): Decision {
-  const { geoCode, id, status, subStatus, dataFileYears, latestEvent } = input;
+  const {
+    geoCode,
+    id,
+    status,
+    subStatus,
+    dataFileYears,
+    latestEvent,
+    latestEventOld,
+    latestEventId
+  } = input;
   const cohort = cohortOf(dataFileYears);
   const base: Base = {
     geoCode,
@@ -82,26 +115,39 @@ export function decide(input: DecideInput): Decision {
     cohort
   };
 
-  // Both the current pair and the latest event are normalised through the 073
-  // legacy maps before we decide.
   const current = normalizePair(status, subStatus);
   const event = latestEvent
     ? normalizeEventPair(latestEvent.status, latestEvent.subStatus)
     : null;
 
+  // Does the latest event already record this exact target? Then `apply` only
+  // syncs the row — no new event.
+  const matchesEvent = (
+    targetStatus: HousingStatus,
+    targetSubStatus: string | null
+  ): boolean =>
+    !!event &&
+    event.ok &&
+    event.status === targetStatus &&
+    event.subStatus === targetSubStatus;
+
   const update = (
     targetStatus: HousingStatus,
     targetSubStatus: string | null,
-    source: UpdateSource
+    source: UpdateSource,
+    events?: { writeEvent?: boolean; deleteEventId?: string | null }
   ): Decision => ({
     ...base,
     action: 'update',
     targetStatus,
     targetSubStatus,
-    source
+    source,
+    writeEvent:
+      events?.writeEvent ?? !matchesEvent(targetStatus, targetSubStatus),
+    deleteEventId: events?.deleteEventId ?? null
   });
 
-  // Still vacant → reset for a fresh campaign, unless actively worked (keep it).
+  // Still vacant → reset unless actively worked (keep it).
   if (cohort === 'still-vacant') {
     if (current.ok && isActiveFollowUp(current.status)) {
       return update(current.status, current.subStatus, 'keep-active');
@@ -112,8 +158,7 @@ export function decide(input: DecideInput): Decision {
     return update(HousingStatus.NEVER_CONTACTED, null, 'lovac-reset');
   }
 
-  // Exited the vacancy file → Suivi terminé, keeping the event's own COMPLETED
-  // sub-status when it has a valid one, else the default "Sortie de la vacance".
+  // Exited → COMPLETED, keeping the event's own valid COMPLETED sub-status.
   if (cohort === 'exited') {
     if (event?.ok && event.status === HousingStatus.COMPLETED) {
       return update(event.status, event.subStatus, 'lovac-exit');
@@ -121,30 +166,55 @@ export function decide(input: DecideInput): Decision {
     return update(HousingStatus.COMPLETED, COMPLETED_SUB_STATUS, 'lovac-exit');
   }
 
-  // Never vacancy-tracked → lovac rules do not apply.
-  // - the current pair becomes valid after a legacy rename → keep it;
-  // - else restore from a usable event;
-  // - else the event is unusable (log) or there is nothing to go on (review).
+  // Never vacancy-tracked.
   if (current.ok) {
     return update(current.status, current.subStatus, 'legacy-rename');
   }
   if (event?.ok) {
     return update(event.status, event.subStatus, 'event-restore');
   }
-  if (event && !event.ok) {
-    return {
-      ...base,
-      action: 'error',
-      reason:
-        event.reason === 'unknown-status-label'
-          ? 'unknown-status-label'
-          : 'sub-status-nulled'
-    };
+
+  // The event is not directly usable — try to recover from it before erroring.
+  if (latestEvent && event) {
+    // The latest event only changed the sub-status (no status field). If its new
+    // sub-status is valid for the current status, adopt it and keep the event.
+    const statusAbsent =
+      latestEvent.status === undefined || latestEvent.status === null;
+    const eventSub = latestEvent.subStatus;
+    if (statusAbsent && eventSub !== undefined && eventSub !== null) {
+      const adopted = normalizePair(status, eventSub);
+      if (
+        adopted.ok &&
+        adopted.status === status &&
+        adopted.subStatus !== null
+      ) {
+        return update(adopted.status, adopted.subStatus, 'event-sub-adopt', {
+          writeEvent: false
+        });
+      }
+    }
+    // The latest event nulled a previously-valid sub-status (the bulk bug):
+    // revert to the event's `next_old` sub-status and delete the bug event.
+    if (latestEventOld && latestEventId) {
+      const reverted = normalizePair(status, latestEventOld.subStatus ?? null);
+      if (
+        reverted.ok &&
+        reverted.status === status &&
+        reverted.subStatus !== null
+      ) {
+        return update(reverted.status, reverted.subStatus, 'event-revert', {
+          writeEvent: false,
+          deleteEventId: latestEventId
+        });
+      }
+    }
+    return { ...base, action: 'error', reason: errorReason(event) };
   }
-  // No event and nothing to go on → assume the follow-up ended in exit.
+
+  // No event and nothing to go on → NEVER_CONTACTED.
   return update(
-    HousingStatus.COMPLETED,
-    COMPLETED_SUB_STATUS,
-    'fallback-completed'
+    HousingStatus.NEVER_CONTACTED,
+    null,
+    'fallback-never-contacted'
   );
 }

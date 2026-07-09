@@ -208,7 +208,7 @@ describe('decide — never vacancy-tracked (rental / manual)', () => {
     });
   });
 
-  it('falls back to COMPLETED / "Sortie de la vacance" when no event and invalid current', () => {
+  it('falls back to NEVER_CONTACTED when no event and invalid current', () => {
     const result = decide(
       base({
         status: HousingStatus.IN_PROGRESS,
@@ -220,9 +220,67 @@ describe('decide — never vacancy-tracked (rental / manual)', () => {
     expect(result).toMatchObject({
       action: 'update',
       cohort: 'never-tracked',
+      targetStatus: HousingStatus.NEVER_CONTACTED,
+      targetSubStatus: null,
+      source: 'fallback-never-contacted'
+    });
+  });
+
+  it('adopts a sub-status-only event with a valid sub, keeping the status and event (73023)', () => {
+    const result = decide(
+      base({
+        status: HousingStatus.COMPLETED,
+        subStatus: null,
+        dataFileYears: NEVER_TRACKED,
+        latestEvent: { subStatus: 'Autre objectif rempli' }
+      })
+    );
+    expect(result).toMatchObject({
+      action: 'update',
+      targetStatus: HousingStatus.COMPLETED,
+      targetSubStatus: 'Autre objectif rempli',
+      source: 'event-sub-adopt',
+      writeEvent: false,
+      deleteEventId: null
+    });
+  });
+
+  it('reverts to the event’s old sub and deletes the bug event (77257 / 84054)', () => {
+    const result = decide(
+      base({
+        status: HousingStatus.COMPLETED,
+        subStatus: null,
+        dataFileYears: NEVER_TRACKED,
+        latestEvent: { subStatus: null },
+        latestEventOld: {
+          status: 'Suivi terminé',
+          subStatus: 'Sortie de la vacance'
+        },
+        latestEventId: 'bug-event-1'
+      })
+    );
+    expect(result).toMatchObject({
+      action: 'update',
       targetStatus: HousingStatus.COMPLETED,
       targetSubStatus: 'Sortie de la vacance',
-      source: 'fallback-completed'
+      source: 'event-revert',
+      writeEvent: false,
+      deleteEventId: 'bug-event-1'
+    });
+  });
+
+  it('still errors when the event is unusable and cannot be recovered', () => {
+    const result = decide(
+      base({
+        status: HousingStatus.FIRST_CONTACT,
+        subStatus: 'Sortie de la vacance',
+        dataFileYears: NEVER_TRACKED,
+        latestEvent: { status: 'Suivi en cours', subStatus: null }
+      })
+    );
+    expect(result).toMatchObject({
+      action: 'error',
+      reason: 'sub-status-nulled'
     });
   });
 });

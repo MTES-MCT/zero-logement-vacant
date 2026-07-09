@@ -30,10 +30,10 @@ function buildQuery(): { sql: string; bindings: Array<number | string> } {
   const bindings = COHERENT_PAIRS.flat();
   const sql = `
     SELECT h.geo_code, h.id, h.status, h.sub_status, h.data_file_years,
-           le.next_new, le.created_at AS event_created_at
+           le.event_id, le.next_old, le.next_new, le.created_at AS event_created_at
     FROM fast_housing h
     LEFT JOIN LATERAL (
-      SELECT e.next_new, e.created_at
+      SELECT e.id AS event_id, e.next_old, e.next_new, e.created_at
       FROM housing_events he
       JOIN events e ON e.id = he.event_id AND e.type = 'housing:status-updated'
       WHERE he.housing_geo_code = h.geo_code AND he.housing_id = h.id
@@ -81,6 +81,8 @@ export async function generate(): Promise<void> {
       cohort: decision.cohort,
       selected_by: selected,
       data_file_years: row.data_file_years ?? [],
+      event_id: row.event_id ?? null,
+      next_old: row.next_old ?? null,
       latest_event: row.next_new ?? null,
       event_created_at: row.event_created_at
         ? new Date(row.event_created_at).toISOString()
@@ -95,7 +97,9 @@ export async function generate(): Promise<void> {
             ...common,
             target_status: decision.targetStatus,
             target_sub_status: decision.targetSubStatus,
-            source: decision.source
+            source: decision.source,
+            write_event: decision.writeEvent,
+            delete_event_id: decision.deleteEventId
           })
         );
         break;

@@ -1,64 +1,18 @@
 import { HousingStatus } from '@zerologementvacant/models';
 import { describe, expect, it } from 'vitest';
 
-import { needsEvent, selectedBy, toDecideInput } from './transforms';
-
-describe('needsEvent', () => {
-  const row = {
-    geo_code: '01001',
-    id: 'h1',
-    current_status: 3,
-    current_sub_status: null,
-    target_status: 4,
-    target_sub_status: 'Sortie de la vacance'
-  };
-
-  it('needs an event when there is no latest event', () => {
-    expect(needsEvent({ ...row, latest_event: null })).toBe(true);
-  });
-
-  it('needs no event when the latest event already records the target', () => {
-    expect(
-      needsEvent({
-        ...row,
-        latest_event: {
-          status: 'Suivi terminé',
-          subStatus: 'Sortie de la vacance'
-        }
-      })
-    ).toBe(false);
-  });
-
-  it('needs an event when the target differs from the latest event (override)', () => {
-    expect(
-      needsEvent({
-        ...row,
-        latest_event: {
-          status: 'Suivi en cours',
-          subStatus: 'En accompagnement'
-        }
-      })
-    ).toBe(true);
-  });
-
-  it('needs an event when the latest event is unusable', () => {
-    expect(
-      needsEvent({
-        ...row,
-        latest_event: { status: 'Suivi en cours', subStatus: null }
-      })
-    ).toBe(true);
-  });
-});
+import { selectedBy, toDecideInput } from './transforms';
 
 describe('toDecideInput', () => {
-  it('maps a row with a latest event', () => {
+  it('maps a row with a latest event, carrying its old payload and id', () => {
     const input = toDecideInput({
       geo_code: '01001',
       id: 'h1',
       status: HousingStatus.COMPLETED,
       sub_status: null,
       data_file_years: ['lovac-2026'],
+      event_id: 'evt-1',
+      next_old: { status: 'Suivi terminé', subStatus: "N'était pas vacant" },
       next_new: { status: 'Suivi terminé', subStatus: 'Sortie de la vacance' },
       event_created_at: '2026-01-01T00:00:00.000Z'
     });
@@ -71,35 +25,46 @@ describe('toDecideInput', () => {
       latestEvent: {
         status: 'Suivi terminé',
         subStatus: 'Sortie de la vacance'
-      }
+      },
+      latestEventOld: {
+        status: 'Suivi terminé',
+        subStatus: "N'était pas vacant"
+      },
+      latestEventId: 'evt-1'
     });
   });
 
-  it('treats a missing event (no event_created_at) as latestEvent null', () => {
+  it('treats a missing event (no event_created_at) as no latest event', () => {
     const input = toDecideInput({
       geo_code: '01001',
       id: 'h2',
       status: HousingStatus.BLOCKED,
       sub_status: null,
       data_file_years: null,
+      event_id: null,
+      next_old: null,
       next_new: null,
       event_created_at: null
     });
     expect(input.latestEvent).toBeNull();
+    expect(input.latestEventId).toBeNull();
     expect(input.dataFileYears).toEqual([]);
   });
 
-  it('treats an existing event with a null payload as an empty latestEvent (for review)', () => {
+  it('treats an existing event with a null payload as an empty latestEvent', () => {
     const input = toDecideInput({
       geo_code: '01001',
       id: 'h3',
       status: HousingStatus.BLOCKED,
       sub_status: null,
       data_file_years: [],
+      event_id: 'evt-3',
+      next_old: null,
       next_new: null,
       event_created_at: '2026-01-01T00:00:00.000Z'
     });
     expect(input.latestEvent).toEqual({});
+    expect(input.latestEventId).toBe('evt-3');
   });
 });
 

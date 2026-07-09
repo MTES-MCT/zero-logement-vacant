@@ -25,12 +25,20 @@ through the migration-073 legacy renames (status labels and sub-statuses — see
 3. **Never vacancy-tracked** (only `ff-*` / manual) →
    - the current pair is valid after renaming → keep it;
    - else a usable event → restore it;
-   - else the event is unusable (`sub-status-nulled` / `unknown-status-label`) →
-     `errors.jsonl` (skip & log);
-   - else (no event) → default to **COMPLETED / "Sortie de la vacance"**.
+   - else, recover from an otherwise-unusable event:
+     - a sub-status-only event whose sub is valid for the current status → adopt it,
+       keep the event (`event-sub-adopt`);
+     - the event nulled a previously-valid sub-status → revert to its `next_old`
+       sub-status and **delete** the bug event (`event-revert`);
+   - else the event is still unusable → `errors.jsonl` (skip & log);
+   - else (no event) → **NEVER_CONTACTED**.
 
 The definition of "valid" comes from the app's own `getSubStatuses` — the selection
 query is built from it, so it can't drift.
+
+On `apply`, an admin `housing:status-updated` event is written whenever the target
+differs from what the latest event recorded (`write_event`), and any `delete_event_id`
+is removed.
 
 ## 1. Stats (optional, run manually)
 
@@ -48,7 +56,8 @@ Produces two files, each carrying `cohort`, `current_sub_status`, `data_file_yea
 
 - `plan.jsonl` — housings that **will be updated**, with `source` (`keep-active` |
   `lovac-reset` | `lovac-exit` | `event-restore` | `legacy-rename` |
-  `fallback-completed`).
+  `fallback-never-contacted` | `event-sub-adopt` | `event-revert`), plus
+  `write_event` and `delete_event_id`.
 - `errors.jsonl` — housings **left untouched**: the latest event is unusable
   (`sub-status-nulled` | `unknown-status-label`), so there is no safe repair.
 

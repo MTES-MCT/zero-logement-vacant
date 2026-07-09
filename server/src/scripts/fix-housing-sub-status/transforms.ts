@@ -3,7 +3,6 @@ import { HousingStatus } from '@zerologementvacant/models';
 import type { HousingId } from '~/models/HousingApi';
 
 import type { DecideInput, EventNextNew } from './decide';
-import { normalizeEventPair } from './legacy';
 
 export interface RawRow {
   geo_code: string;
@@ -11,6 +10,8 @@ export interface RawRow {
   status: number;
   sub_status: string | null;
   data_file_years: string[] | null;
+  event_id: string | null;
+  next_old: EventNextNew | null;
   next_new: EventNextNew | null;
   event_created_at: Date | string | null;
 }
@@ -40,7 +41,9 @@ export function toDecideInput(row: RawRow): DecideInput {
     status: row.status as HousingStatus,
     subStatus: row.sub_status,
     dataFileYears: row.data_file_years ?? [],
-    latestEvent: hasEvent ? (row.next_new ?? {}) : null
+    latestEvent: hasEvent ? (row.next_new ?? {}) : null,
+    latestEventOld: hasEvent ? (row.next_old ?? {}) : null,
+    latestEventId: hasEvent ? row.event_id : null
   };
 }
 
@@ -51,28 +54,9 @@ export interface PlanRow {
   current_sub_status: string | null;
   target_status: number;
   target_sub_status: string | null;
-  latest_event: EventNextNew | null;
-}
-
-/**
- * An admin `housing:status-updated` event is written on `apply` whenever the
- * target differs from what the latest event already recorded (a genuine
- * override). Pure restores — where we merely sync the row to its latest event —
- * need none.
- */
-export function needsEvent(row: PlanRow): boolean {
-  if (!row.latest_event) {
-    return true;
-  }
-  const event = normalizeEventPair(
-    row.latest_event.status,
-    row.latest_event.subStatus
-  );
-  return (
-    !event.ok ||
-    event.status !== row.target_status ||
-    event.subStatus !== row.target_sub_status
-  );
+  // Event handling, decided by `decide()`:
+  write_event: boolean;
+  delete_event_id: string | null;
 }
 
 export interface UpdateGroup {

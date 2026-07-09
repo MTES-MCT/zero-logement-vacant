@@ -33,7 +33,8 @@ export type UpdateSource =
   | 'lovac-reset'
   | 'lovac-exit'
   | 'event-restore'
-  | 'legacy-rename';
+  | 'legacy-rename'
+  | 'fallback-completed';
 
 interface Base {
   geoCode: string;
@@ -53,8 +54,7 @@ export type Decision =
   | (Base & {
       action: 'error';
       reason: 'unknown-status-label' | 'sub-status-nulled';
-    })
-  | (Base & { action: 'review'; reason: 'no-usable-event' });
+    });
 
 /** Active follow-up statuses: require a sub-status but are not terminal COMPLETED. */
 function isActiveFollowUp(status: HousingStatus): boolean {
@@ -141,5 +141,10 @@ export function decide(input: DecideInput): Decision {
           : 'sub-status-nulled'
     };
   }
-  return { ...base, action: 'review', reason: 'no-usable-event' };
+  // No event and nothing to go on → assume the follow-up ended in exit.
+  return update(
+    HousingStatus.COMPLETED,
+    COMPLETED_SUB_STATUS,
+    'fallback-completed'
+  );
 }

@@ -53,7 +53,6 @@ function buildQuery(): { sql: string; bindings: Array<number | string> } {
 export async function generate(): Promise<void> {
   const planPath = path.join(import.meta.dirname, 'plan.jsonl');
   const errorsPath = path.join(import.meta.dirname, 'errors.jsonl');
-  const reviewPath = path.join(import.meta.dirname, 'review.jsonl');
 
   logger.info('Querying housings with an invalid (status, sub-status)...');
   const { sql, bindings } = buildQuery();
@@ -63,7 +62,6 @@ export async function generate(): Promise<void> {
 
   const planLines: string[] = [];
   const errorLines: string[] = [];
-  const reviewLines: string[] = [];
   const bySource: Record<string, number> = {};
   const bySelectedBy: Record<string, number> = {};
   const byCohort: Record<string, number> = {};
@@ -104,11 +102,6 @@ export async function generate(): Promise<void> {
       case 'error':
         errorLines.push(JSON.stringify({ ...common, reason: decision.reason }));
         break;
-      case 'review':
-        reviewLines.push(
-          JSON.stringify({ ...common, reason: decision.reason })
-        );
-        break;
     }
   }
 
@@ -119,10 +112,6 @@ export async function generate(): Promise<void> {
   fs.writeFileSync(
     errorsPath,
     errorLines.length ? errorLines.join('\n') + '\n' : ''
-  );
-  fs.writeFileSync(
-    reviewPath,
-    reviewLines.length ? reviewLines.join('\n') + '\n' : ''
   );
 
   logger.info('Wrote plan.', {
@@ -135,9 +124,5 @@ export async function generate(): Promise<void> {
   logger.info('Wrote errors (unusable event — skip & log).', {
     path: errorsPath,
     errors: errorLines.length
-  });
-  logger.info('Wrote review (no basis to decide — product decision).', {
-    path: reviewPath,
-    review: reviewLines.length
   });
 }

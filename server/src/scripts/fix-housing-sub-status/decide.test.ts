@@ -208,7 +208,7 @@ describe('decide — never vacancy-tracked (rental / manual)', () => {
     });
   });
 
-  it('reviews when there is no usable event and the current pair is invalid', () => {
+  it('falls back to COMPLETED / "Sortie de la vacance" when no event and invalid current', () => {
     const result = decide(
       base({
         status: HousingStatus.IN_PROGRESS,
@@ -218,9 +218,11 @@ describe('decide — never vacancy-tracked (rental / manual)', () => {
       })
     );
     expect(result).toMatchObject({
-      action: 'review',
+      action: 'update',
       cohort: 'never-tracked',
-      reason: 'no-usable-event'
+      targetStatus: HousingStatus.COMPLETED,
+      targetSubStatus: 'Sortie de la vacance',
+      source: 'fallback-completed'
     });
   });
 });

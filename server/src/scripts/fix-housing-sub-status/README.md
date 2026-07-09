@@ -13,19 +13,21 @@ the changes. The `*.jsonl` outputs are git-ignored — keep them as history.
 
 ## Decision rule (per housing)
 
-1. **Status forbids a sub-status** (NEVER_CONTACTED / WAITING) → keep the status and
-   just clear the stray sub-status (`source: clear-sub-status`). Surgical; the status
-   is already valid.
-2. **Still vacant (in `lovac-2026`)** → the housing reappears in the latest file, so
-   any "exited" follow-up is contradicted. Reset to **NEVER_CONTACTED**, _unless_ the
-   latest event is a valid **active** status (first-contact / in-progress / blocked),
-   which is kept. This also rescues housings whose latest event was corrupted by the
-   sub-status-nulling bug.
-3. **Not in `lovac-2026`** → trust the latest `housing:status-updated` event:
-   - valid `(status, sub_status)` → restore it;
-   - unusable event (unknown status / missing-or-invalid sub-status) → `errors.jsonl`;
-   - no event, already COMPLETED → COMPLETED + "Sortie de la vacance";
-   - no event, other status → `review.jsonl` (product decision).
+The current pair and the latest `housing:status-updated` event are first normalised
+through the migration-073 legacy renames (status labels and sub-statuses — see
+`legacy.ts`). Then, by **lovac-year cohort**:
+
+1. **Still vacant** (in `lovac-2026`) → reset to **NEVER_CONTACTED**, unless the
+   current pair or the latest event is a valid **active** status (first-contact /
+   in-progress / blocked), which is kept.
+2. **Exited** (was in some `lovac-*` file but not 2026) → **COMPLETED**, keeping the
+   event's own valid COMPLETED sub-status if it has one, else "Sortie de la vacance".
+3. **Never vacancy-tracked** (only `ff-*` / manual) →
+   - the current pair is valid after renaming → keep it;
+   - else a usable event → restore it;
+   - else the event is unusable (`sub-status-nulled` / `unknown-status-label`) →
+     `errors.jsonl` (skip & log);
+   - else (no event) → default to **COMPLETED / "Sortie de la vacance"**.
 
 The definition of "valid" comes from the app's own `getSubStatuses` — the selection
 query is built from it, so it can't drift.
@@ -41,27 +43,20 @@ yarn workspace @zerologementvacant/server tsx \
   src/scripts/fix-housing-sub-status/index.ts generate
 ```
 
-Produces three files, each carrying `data_file_years` for inspection:
+Produces two files, each carrying `cohort`, `current_sub_status`, `data_file_years`,
+`latest_event` and `selected_by`:
 
-- `plan.jsonl` — housings that **will be updated**, with `source`
-  (`event` | `fallback-lovac` | `fallback-completed` | `clear-sub-status`), plus
-  `current_sub_status` and `selected_by`.
-- `errors.jsonl` — housings **left untouched**: the latest `housing:status-updated`
-  event could not yield a valid `(status, sub_status)` (`missing-or-unknown-status`
-  | `invalid-sub-status`).
-- `review.jsonl` — housings **left untouched**: no event history and not in
-  lovac-2026, with a non-COMPLETED status (`no-event-non-completed`). No basis to
-  rewrite the status — hand these to the product team for a decision.
+- `plan.jsonl` — housings that **will be updated**, with `source` (`keep-active` |
+  `lovac-reset` | `lovac-exit` | `event-restore` | `legacy-rename` |
+  `fallback-completed`).
+- `errors.jsonl` — housings **left untouched**: the latest event is unusable
+  (`sub-status-nulled` | `unknown-status-label`), so there is no safe repair.
 
 Inspect, e.g. with DuckDB:
 
 ```sql
-SELECT source, count(*) FROM read_json_auto('plan.jsonl') GROUP BY source;
+SELECT cohort, source, count(*) FROM read_json_auto('plan.jsonl') GROUP BY 1, 2 ORDER BY 1, 2;
 SELECT reason, count(*) FROM read_json_auto('errors.jsonl') GROUP BY reason;
-SELECT count(*) FROM read_json_auto('review.jsonl');
--- lovac-2026 membership of event-sourced rows (drives the lovac-precedence decision):
-SELECT source, list_contains(data_file_years, 'lovac-2026') AS in_lovac_2026, count(*)
-FROM read_json_auto('plan.jsonl') GROUP BY 1, 2 ORDER BY 1, 2;
 ```
 
 > **Note:** `target_status` may differ from `current_status` — a housing's `status`

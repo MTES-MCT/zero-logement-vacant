@@ -1,4 +1,3 @@
-import { UserRole } from '@zerologementvacant/models';
 import type { AuthRole, SessionDTO } from '@zerologementvacant/models';
 import { betterAuth, type BetterAuthOptions } from 'better-auth';
 import { APIError } from 'better-auth/api';

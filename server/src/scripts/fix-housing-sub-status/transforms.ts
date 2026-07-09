@@ -3,6 +3,7 @@ import { HousingStatus } from '@zerologementvacant/models';
 import type { HousingId } from '~/models/HousingApi';
 
 import type { DecideInput, EventNextNew } from './decide';
+import { normalizeEventPair } from './legacy';
 
 export interface RawRow {
   geo_code: string;
@@ -46,8 +47,32 @@ export function toDecideInput(row: RawRow): DecideInput {
 export interface PlanRow {
   geo_code: string;
   id: string;
+  current_status: number;
+  current_sub_status: string | null;
   target_status: number;
   target_sub_status: string | null;
+  latest_event: EventNextNew | null;
+}
+
+/**
+ * An admin `housing:status-updated` event is written on `apply` whenever the
+ * target differs from what the latest event already recorded (a genuine
+ * override). Pure restores — where we merely sync the row to its latest event —
+ * need none.
+ */
+export function needsEvent(row: PlanRow): boolean {
+  if (!row.latest_event) {
+    return true;
+  }
+  const event = normalizeEventPair(
+    row.latest_event.status,
+    row.latest_event.subStatus
+  );
+  return (
+    !event.ok ||
+    event.status !== row.target_status ||
+    event.subStatus !== row.target_sub_status
+  );
 }
 
 export interface UpdateGroup {
@@ -56,7 +81,11 @@ export interface UpdateGroup {
   housings: HousingId[];
 }
 
-export function groupByTarget(rows: ReadonlyArray<PlanRow>): UpdateGroup[] {
+export function groupByTarget(
+  rows: ReadonlyArray<
+    Pick<PlanRow, 'geo_code' | 'id' | 'target_status' | 'target_sub_status'>
+  >
+): UpdateGroup[] {
   const groups = new Map<string, UpdateGroup>();
   for (const row of rows) {
     const key = `${row.target_status}|${row.target_sub_status ?? ''}`;

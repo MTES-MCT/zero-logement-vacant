@@ -1,7 +1,55 @@
 import { HousingStatus } from '@zerologementvacant/models';
 import { describe, expect, it } from 'vitest';
 
-import { selectedBy, toDecideInput } from './transforms';
+import { needsEvent, selectedBy, toDecideInput } from './transforms';
+
+describe('needsEvent', () => {
+  const row = {
+    geo_code: '01001',
+    id: 'h1',
+    current_status: 3,
+    current_sub_status: null,
+    target_status: 4,
+    target_sub_status: 'Sortie de la vacance'
+  };
+
+  it('needs an event when there is no latest event', () => {
+    expect(needsEvent({ ...row, latest_event: null })).toBe(true);
+  });
+
+  it('needs no event when the latest event already records the target', () => {
+    expect(
+      needsEvent({
+        ...row,
+        latest_event: {
+          status: 'Suivi terminé',
+          subStatus: 'Sortie de la vacance'
+        }
+      })
+    ).toBe(false);
+  });
+
+  it('needs an event when the target differs from the latest event (override)', () => {
+    expect(
+      needsEvent({
+        ...row,
+        latest_event: {
+          status: 'Suivi en cours',
+          subStatus: 'En accompagnement'
+        }
+      })
+    ).toBe(true);
+  });
+
+  it('needs an event when the latest event is unusable', () => {
+    expect(
+      needsEvent({
+        ...row,
+        latest_event: { status: 'Suivi en cours', subStatus: null }
+      })
+    ).toBe(true);
+  });
+});
 
 describe('toDecideInput', () => {
   it('maps a row with a latest event', () => {

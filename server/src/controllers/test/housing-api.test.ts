@@ -1053,16 +1053,11 @@ describe('Housing API', () => {
                   )
                   .chain((status) => {
                     const validSubs = [...getSubStatuses(status)];
-                    const subStatusArb =
-                      validSubs.length > 0
-                        ? fc.option(fc.constantFrom(...validSubs), {
-                            nil: undefined
-                          })
-                        : fc.constant(undefined as string | undefined);
-                    return subStatusArb.map((subStatus) => ({
-                      status,
-                      subStatus
-                    }));
+                    // A sub-status-requiring status must always carry a
+                    // valid sub-status.
+                    return fc
+                      .constantFrom(...validSubs)
+                      .map((subStatus) => ({ status, subStatus }));
                   })
               )
               .map((ss) => ({ ...base, ...ss }))
@@ -1084,6 +1079,36 @@ describe('Housing API', () => {
         filters: { all: false },
         status: HousingStatus.IN_PROGRESS,
         subStatus: 'invalid-sub-status'
+      };
+
+      const { status } = await request(url)
+        .put(testRoute)
+        .send(payload)
+        .type('json')
+        .use(tokenProvider(user));
+
+      expect(status).toBe(constants.HTTP_STATUS_BAD_REQUEST);
+    });
+
+    it('should return 400 when the status requires a sub-status but none is provided', async () => {
+      const payload: HousingBatchUpdatePayload = {
+        filters: { all: false },
+        status: HousingStatus.IN_PROGRESS
+      };
+
+      const { status } = await request(url)
+        .put(testRoute)
+        .send(payload)
+        .type('json')
+        .use(tokenProvider(user));
+
+      expect(status).toBe(constants.HTTP_STATUS_BAD_REQUEST);
+    });
+
+    it('should return 400 when a sub-status is provided without a status', async () => {
+      const payload: HousingBatchUpdatePayload = {
+        filters: { all: false },
+        subStatus: null
       };
 
       const { status } = await request(url)
@@ -1197,6 +1222,46 @@ describe('Housing API', () => {
         status: payload.status,
         subStatus: null
       });
+    });
+
+    it('should not touch the sub-status nor create a status event when only a note is added', async () => {
+      const { housings } = await createHousings({
+        status: HousingStatus.IN_PROGRESS,
+        subStatus: 'En accompagnement'
+      });
+      const payload: HousingBatchUpdatePayload = {
+        filters: {
+          all: false,
+          housingIds: housings.map((housing) => housing.id)
+        },
+        note: 'Une note ajoutee sans changement de statut'
+      };
+
+      const { status } = await request(url)
+        .put(testRoute)
+        .send(payload)
+        .type('json')
+        .use(tokenProvider(user));
+
+      expect(status).toBe(constants.HTTP_STATUS_OK);
+      const actual = await Housing().whereIn(
+        ['geo_code', 'id'],
+        housings.map((housing) => [housing.geoCode, housing.id])
+      );
+      actual.forEach((housing) => {
+        expect(housing).toMatchObject<Partial<HousingRecordDBO>>({
+          status: HousingStatus.IN_PROGRESS,
+          sub_status: 'En accompagnement'
+        });
+      });
+      const events = await Events()
+        .join(HOUSING_EVENTS_TABLE, 'event_id', 'id')
+        .whereIn(
+          ['housing_geo_code', 'housing_id'],
+          housings.map((housing) => [housing.geoCode, housing.id])
+        )
+        .where({ type: 'housing:status-updated' });
+      expect(events).toEqual([]);
     });
 
     it('should create events related to the status change', async () => {
@@ -1577,7 +1642,8 @@ describe('Housing API', () => {
             housingIds: housings.map((housing) => housing.id)
           },
           documents: [document.id],
-          status: HousingStatus.IN_PROGRESS
+          status: HousingStatus.IN_PROGRESS,
+          subStatus: 'En accompagnement'
         } satisfies HousingBatchUpdatePayload)
         .use(tokenProvider(user));
 
@@ -1620,6 +1686,7 @@ describe('Housing API', () => {
             housingIds: [housings[0].id]
           },
           status: HousingStatus.IN_PROGRESS,
+          subStatus: 'En accompagnement',
           note: 'Batch update with docs',
           documents: [document.id]
         } satisfies HousingBatchUpdatePayload)
@@ -1651,6 +1718,7 @@ describe('Housing API', () => {
             housingIds: [housings[0].id]
           },
           status: HousingStatus.IN_PROGRESS,
+          subStatus: 'En accompagnement',
           documents: []
         } satisfies HousingBatchUpdatePayload)
         .use(tokenProvider(user));

@@ -24,7 +24,6 @@ describe('two factor view', () => {
           {
             pathname: '/verification-2fa',
             state: {
-              authMode: 'auth-v2',
               email: 'admin@zlv.fr',
               establishmentId: 'establishment-id'
             }
@@ -48,7 +47,7 @@ describe('two factor view', () => {
     );
   }
 
-  it('prevents duplicate auth-v2 verification submissions while pending', async () => {
+  it('prevents duplicate verification submissions while pending', async () => {
     const verifyAdminTwoFactor = vi.fn(() => new Promise<void>(() => {}));
     setup({ verifyAdminTwoFactor });
 

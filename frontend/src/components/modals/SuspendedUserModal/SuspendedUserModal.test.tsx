@@ -6,8 +6,6 @@ import {
 import { Provider } from 'react-redux';
 
 import SuspendedUserModal from '~/components/modals/SuspendedUserModal/SuspendedUserModal';
-import { fromEstablishmentDTO } from '~/models/Establishment';
-import { fromUserDTO } from '~/models/User';
 import { MockAuthProvider } from '~/test/auth';
 import configureTestStore from '~/utils/storeUtils';
 
@@ -21,19 +19,15 @@ const renderWithUser = (
     suspendedCause
   };
 
-  const authUser = {
-    user: fromUserDTO(userDTO),
-    accessToken: 'fake-token',
-    establishment: fromEstablishmentDTO(genEstablishmentDTO())
-  };
-
-  const store = configureTestStore({
-    auth: authUser
-  });
+  const store = configureTestStore();
 
   render(
     <Provider store={store}>
-      <SuspendedUserModal />
+      <MockAuthProvider
+        options={{ user: userDTO, establishment: genEstablishmentDTO() }}
+      >
+        <SuspendedUserModal />
+      </MockAuthProvider>
     </Provider>
   );
 };

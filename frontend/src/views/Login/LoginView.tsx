@@ -15,15 +15,13 @@ import * as yup from 'yup';
 
 import EstablishmentSearchableSelect from '~/components/establishment/EstablishmentSearchableSelect';
 import Image from '~/components/Image/Image';
-import { useOptionalAuth } from '~/hooks/useAuth';
+import { useAuth } from '~/hooks/useAuth';
 
 import building from '../../assets/images/building.svg';
 import AppLink from '../../components/_app/AppLink/AppLink';
 import AppTextInputNext from '../../components/_app/AppTextInput/AppTextInputNext';
 import { useDocumentTitle } from '../../hooks/useDocumentTitle';
-import { useAppDispatch, useAppSelector } from '../../hooks/useStore';
 import { type Establishment } from '../../models/Establishment';
-import { logIn } from '../../store/thunks/auth-thunks';
 
 const schema = yup
   .object({
@@ -56,13 +54,11 @@ export type LoginSchema = yup.InferType<typeof schema>;
 
 const LoginView = () => {
   useDocumentTitle('Connexion');
-  const dispatch = useAppDispatch();
   const { pathname } = useLocation();
   const navigate = useNavigate();
-  const auth = useAppSelector((state) => state.authentication);
-  // When AuthProvider is mounted (auth-v2 flag ON), route login through
-  // better-auth's cookie session. Admin login uses a dedicated 2FA endpoint.
-  const v2 = useOptionalAuth();
+  // AuthProvider is mounted at app boot: route login through Better Auth's
+  // cookie session. Admin login uses a dedicated 2FA endpoint.
+  const auth = useAuth();
   const [v2Error, setV2Error] = useState<string | null>(null);
   const [isV2Pending, setIsV2Pending] = useState(false);
   const isV2PendingRef = useRef(false);
@@ -72,7 +68,7 @@ const LoginView = () => {
   );
 
   const isAdminView = pathname === '/admin';
-  const isLoginPending = auth.logIn.isLoading || isV2Pending;
+  const isLoginPending = isV2Pending;
 
   const form = useForm<LoginSchema>({
     defaultValues: {
@@ -85,7 +81,7 @@ const LoginView = () => {
   });
 
   async function submitLoginForm(data: LoginSchema): Promise<void> {
-    if (v2 !== null && isAdminView) {
+    if (isAdminView) {
       if (isV2PendingRef.current) {
         return;
       }
@@ -93,7 +89,7 @@ const LoginView = () => {
       setIsV2Pending(true);
       setV2Error(null);
       try {
-        const challenge = await v2.signInAdmin(
+        const challenge = await auth.signInAdmin(
           data.email,
           data.password,
           data.establishmentId || undefined
@@ -101,7 +97,6 @@ const LoginView = () => {
         if (challenge.requiresTwoFactor) {
           navigate('/verification-2fa', {
             state: {
-              authMode: 'auth-v2',
               email: challenge.email,
               establishmentId: data.establishmentId || undefined
             }
@@ -122,55 +117,23 @@ const LoginView = () => {
       return;
     }
 
-    if (v2 !== null && !isAdminView) {
-      if (isV2PendingRef.current) {
-        return;
-      }
-      isV2PendingRef.current = true;
-      setIsV2Pending(true);
-      setV2Error(null);
-      try {
-        await v2.signIn(data.email, data.password);
-        navigate('/parc-de-logements');
-      } catch (error) {
-        setV2Error(
-          error instanceof Error
-            ? error.message
-            : 'Échec de l’authentification.'
-        );
-      } finally {
-        isV2PendingRef.current = false;
-        setIsV2Pending(false);
-      }
+    if (isV2PendingRef.current) {
       return;
     }
-
-    dispatch(
-      logIn({
-        email: data.email,
-        password: data.password,
-        establishmentId: data.establishmentId || undefined
-      })
-    )
-      .unwrap()
-      .then((response) => {
-        // Check if 2FA is required
-        if ('requiresTwoFactor' in response && response.requiresTwoFactor) {
-          // Redirect to 2FA verification page
-          navigate('/verification-2fa', {
-            state: {
-              email: response.email,
-              establishmentId: data.establishmentId || undefined
-            }
-          });
-        } else {
-          // Normal login, redirect to dashboard
-          navigate('/parc-de-logements');
-        }
-      })
-      .catch((error) => {
-        console.error('Authentication failed', error);
-      });
+    isV2PendingRef.current = true;
+    setIsV2Pending(true);
+    setV2Error(null);
+    try {
+      await auth.signIn(data.email, data.password);
+      navigate('/parc-de-logements');
+    } catch (error) {
+      setV2Error(
+        error instanceof Error ? error.message : 'Échec de l’authentification.'
+      );
+    } finally {
+      isV2PendingRef.current = false;
+      setIsV2Pending(false);
+    }
   }
 
   return (
@@ -178,11 +141,11 @@ const LoginView = () => {
       <Container maxWidth="xl" sx={{ py: 4 }}>
         <Grid container spacing={2} alignItems="center">
           <Grid size={{ xs: 12, md: 6 }}>
-            {auth.logIn.isError || v2Error ? (
+            {v2Error ? (
               <Box data-testid="alert-error" sx={{ my: 2 }}>
                 <Alert
                   title="Erreur"
-                  description={v2Error ?? 'Échec de l’authentification'}
+                  description={v2Error}
                   severity="error"
                 />
               </Box>

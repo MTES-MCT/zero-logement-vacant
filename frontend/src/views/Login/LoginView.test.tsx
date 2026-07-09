@@ -1,4 +1,3 @@
-import { faker } from '@faker-js/faker/locale/fr';
 import { render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { genUserDTO } from '@zerologementvacant/models/fixtures';
@@ -9,7 +8,6 @@ import { vi } from 'vitest';
 import type { AuthContextValue } from '~/contexts/AuthContext';
 import { genAuthContextValue, MockAuthProvider } from '~/test/auth';
 
-import data from '../../mocks/handlers/data';
 import configureTestStore from '../../utils/storeUtils';
 import LoginView from './LoginView';
 
@@ -38,11 +36,9 @@ describe('login view', () => {
       </Provider>
     );
     render(
-      options?.auth ? (
-        <MockAuthProvider value={options.auth}>{view}</MockAuthProvider>
-      ) : (
-        view
-      )
+      <MockAuthProvider value={options?.auth ?? genAuthContextValue()}>
+        {view}
+      </MockAuthProvider>
     );
   }
 
@@ -58,15 +54,20 @@ describe('login view', () => {
   });
 
   it('should display error message when login failed', async () => {
-    const currentUser = genUserDTO();
-    expect(data.users).toSatisfyAll((user) => user.email !== currentUser.email);
-
-    setup();
+    const signIn = vi.fn(async () => {
+      throw new Error('Échec de l’authentification.');
+    });
+    setup({
+      auth: {
+        ...genAuthContextValue(),
+        signIn
+      }
+    });
 
     const email = screen.getByLabelText(/^Adresse e-mail/);
     await user.type(email, 'test@test.test');
     const password = screen.getByLabelText(/^Mot de passe/);
-    await user.type(password, faker.string.alphanumeric(16));
+    await user.type(password, 'wrong-password');
     const logIn = screen.getByRole('button', { name: /^Se connecter/ });
     await user.click(logIn);
 
@@ -86,9 +87,14 @@ describe('login view', () => {
 
   it('should succeed to log in', async () => {
     const currentUser = genUserDTO();
-    data.users.push(currentUser);
+    const signIn = vi.fn(async () => {});
 
-    setup();
+    setup({
+      auth: {
+        ...genAuthContextValue(),
+        signIn
+      }
+    });
 
     const email = screen.getByLabelText(/^Adresse e-mail/);
     await user.type(email, currentUser.email);
@@ -98,6 +104,7 @@ describe('login view', () => {
     const logIn = screen.getByRole('button', { name: /^Se connecter/ });
     await user.click(logIn);
 
+    expect(signIn).toHaveBeenCalledWith(currentUser.email, 'password');
     const alert = screen.queryByText(/^Échec de l'authentification/);
     expect(alert).not.toBeInTheDocument();
   });

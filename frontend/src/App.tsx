@@ -1,4 +1,3 @@
-import { useFeatureFlagEnabled } from 'posthog-js/react';
 import { lazy, useEffect } from 'react';
 import { hideLoading, showLoading } from 'react-redux-loading-bar';
 import {
@@ -13,8 +12,6 @@ import { useAppDispatch, useAppSelector } from '~/hooks/useStore';
 import AuthenticatedLayout from '~/layouts/AuthenticatedLayout';
 import FeatureFlagLayout from '~/layouts/FeatureFlagLayout';
 import GuestLayout from '~/layouts/GuestLayout';
-import { setAuthV2Active } from '~/services/api.service';
-import { resolveAuthV2State } from '~/utils/featureFlags';
 import sentry from '~/utils/sentry';
 import NotFoundView from '~/views/NotFoundView';
 
@@ -151,10 +148,6 @@ function App() {
       (query) => query?.status === 'pending'
     )
   );
-  const isV2ByPosthog = useFeatureFlagEnabled('auth-v2');
-  const authV2 = resolveAuthV2State(isV2ByPosthog);
-  setAuthV2Active(authV2.suppressLegacyAuthHeaders);
-
   useEffect(() => {
     if (isSomeQueryPending) {
       dispatch(showLoading());
@@ -163,19 +156,11 @@ function App() {
     }
   }, [dispatch, isSomeQueryPending]);
 
-  if (authV2.isPending) {
-    return null;
-  }
-
-  if (authV2.isEnabled) {
-    return (
-      <AuthProvider>
-        <RouterProvider router={router} />
-      </AuthProvider>
-    );
-  }
-
-  return <RouterProvider router={router} />;
+  return (
+    <AuthProvider>
+      <RouterProvider router={router} />
+    </AuthProvider>
+  );
 }
 
 export default App;

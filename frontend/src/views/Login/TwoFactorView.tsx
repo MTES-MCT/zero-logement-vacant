@@ -14,11 +14,9 @@ import { object, string, type InferType } from 'yup';
 
 import securityIcon from '~/assets/images/building.svg';
 import AppTextInputNext from '~/components/_app/AppTextInput/AppTextInputNext';
-import { useOptionalAuth } from '~/hooks/useAuth';
+import { useAuth } from '~/hooks/useAuth';
 import Image from '~/components/Image/Image';
 import { useDocumentTitle } from '~/hooks/useDocumentTitle';
-import { useAppDispatch, useAppSelector } from '~/hooks/useStore';
-import { verifyTwoFactor } from '~/store/thunks/auth-thunks';
 
 const schema = object({
   code: string()
@@ -30,18 +28,15 @@ const schema = object({
 type FormSchema = InferType<typeof schema>;
 
 interface TwoFactorState {
-  authMode?: 'auth-v2' | 'legacy';
   email: string;
   establishmentId?: string;
 }
 
 const TwoFactorView = () => {
   useDocumentTitle('Vérification en deux étapes');
-  const dispatch = useAppDispatch();
   const navigate = useNavigate();
   const location = useLocation();
-  const auth = useAppSelector((state) => state.authentication);
-  const v2 = useOptionalAuth();
+  const auth = useAuth();
 
   // Get email from location state (passed from LoginView)
   const state = location.state as TwoFactorState | undefined;
@@ -51,7 +46,7 @@ const TwoFactorView = () => {
   const [error, setError] = useState<string | null>(null);
   const [isV2Pending, setIsV2Pending] = useState(false);
   const isV2PendingRef = useRef(false);
-  const isVerificationPending = auth.verifyTwoFactor.isLoading || isV2Pending;
+  const isVerificationPending = isV2Pending;
 
   const form = useForm<FormSchema>({
     defaultValues: {
@@ -70,43 +65,14 @@ const TwoFactorView = () => {
   function submit(data: FormSchema): void {
     setError(null);
 
-    if (state?.authMode === 'auth-v2') {
-      if (isV2PendingRef.current) {
-        return;
-      }
-
-      if (v2 === null) {
-        setError('Échec de l’authentification.');
-        return;
-      }
-
-      isV2PendingRef.current = true;
-      setIsV2Pending(true);
-      v2.verifyAdminTwoFactor(email!, data.code, establishmentId)
-        .then(() => {
-          navigate('/parc-de-logements');
-        })
-        .catch((error) => {
-          console.error('2FA verification failed', error);
-          setError(
-            'Code de vérification invalide ou expiré. Veuillez vérifier votre email et réessayer.'
-          );
-        })
-        .finally(() => {
-          isV2PendingRef.current = false;
-          setIsV2Pending(false);
-        });
+    if (isV2PendingRef.current) {
       return;
     }
 
-    dispatch(
-      verifyTwoFactor({
-        email: email!,
-        code: data.code,
-        establishmentId
-      })
-    )
-      .unwrap()
+    isV2PendingRef.current = true;
+    setIsV2Pending(true);
+    auth
+      .verifyAdminTwoFactor(email!, data.code, establishmentId)
       .then(() => {
         navigate('/parc-de-logements');
       })
@@ -115,6 +81,10 @@ const TwoFactorView = () => {
         setError(
           'Code de vérification invalide ou expiré. Veuillez vérifier votre email et réessayer.'
         );
+      })
+      .finally(() => {
+        isV2PendingRef.current = false;
+        setIsV2Pending(false);
       });
   }
 

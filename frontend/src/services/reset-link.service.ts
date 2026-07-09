@@ -1,14 +1,10 @@
 import { type ResetLink } from '../models/ResetLink';
 import config from '../utils/config';
-import authService from './auth.service';
 
 const sendResetEmail = async (email: string): Promise<void> => {
   const { status } = await fetch(`${config.apiEndpoint}/reset-links`, {
     method: 'POST',
-    headers: {
-      ...authService.authHeader(),
-      'Content-Type': 'application/json'
-    },
+    headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({ email })
   });
   if (status >= 500) {
@@ -19,10 +15,7 @@ const sendResetEmail = async (email: string): Promise<void> => {
 const get = async (id: string): Promise<ResetLink> => {
   const response = await fetch(`${config.apiEndpoint}/reset-links/${id}`, {
     method: 'GET',
-    headers: {
-      ...authService.authHeader(),
-      'Content-Type': 'application/json'
-    }
+    headers: { 'Content-Type': 'application/json' }
   });
   if (!response.ok) {
     throw new Error('Impossible de récupérer le lien');

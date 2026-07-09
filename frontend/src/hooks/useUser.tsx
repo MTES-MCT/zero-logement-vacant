@@ -15,19 +15,16 @@ import { useOptionalAuth } from './useAuth';
  * Transition adapter, shaped like the legacy Redux-backed `useUser` so the
  * existing call-sites keep working unchanged.
  *
- * Dual-path during the auth-v2 transition window:
- * - When `AuthProvider` is mounted (auth-v2 flag on), source from the
- *   cookie-backed {@link useOptionalAuth} (which wraps better-auth's
- *   `useSession()`), projecting the better-auth shape onto the legacy shape:
+ * Auth-v2 is mounted at application boot, so production code sources from the
+ * cookie-backed {@link useOptionalAuth} / better-auth `useSession()` path and
+ * projects that shape onto the legacy shape:
  *   1. `AuthRole` string → `UserRole` enum.
  *   2. `EstablishmentDTO` (`siren: string`) → frontend `Establishment`
  *      (`siren: number`).
- * - When it is not mounted (flag off), fall back to the legacy Redux/JWT
- *   state. Calling `useOptionalAuth()` (not `useAuth()`) is what keeps this
- *   from throwing when there is no provider.
  *
- * The dual-path is removed in Part B (post-cutover); delete this hook once
- * every call-site has migrated to `useAuth()` directly.
+ * The Redux/JWT fallback is kept temporarily for isolated tests and legacy
+ * cleanup work. Delete it once every call-site has migrated to `useAuth()`
+ * directly and the legacy auth slice/thunks are removed.
  */
 const ROLE_STRING_TO_ENUM: Record<AuthRole, UserRole> = {
   usual: UserRole.USUAL,
@@ -77,9 +74,9 @@ function derive(
 }
 
 export function useUser() {
-  // Both hooks must run unconditionally (rules of hooks). `auth` is null when
-  // AuthProvider is not mounted (auth-v2 flag off) — then we fall back to the
-  // legacy Redux-backed state.
+  // Both hooks must run unconditionally (rules of hooks). `auth` should be
+  // present in the application shell; the fallback remains only as a temporary
+  // compatibility path for tests and legacy cleanup.
   const auth = useOptionalAuth();
   const dispatch = useAppDispatch();
   const { logIn } = useAppSelector((state) => state.authentication);

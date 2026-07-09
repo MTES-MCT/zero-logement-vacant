@@ -98,7 +98,6 @@ const changeEstablishment = async (
     {
       method: 'GET',
       headers: {
-        ...authService.authHeader(),
         'Content-Type': 'application/json'
       }
     }
@@ -113,23 +112,12 @@ const changeEstablishment = async (
   });
 };
 
-const authHeader = () => {
-  const authUser = JSON.parse(localStorage.getItem('authUser') ?? '{}');
-  return authUser && authUser.accessToken
-    ? { 'x-access-token': authUser.accessToken }
-    : undefined;
+const authHeader = (): undefined => {
+  return undefined;
 };
 
 const withAuthHeader = (headers?: Headers) => {
-  if (authHeader()) {
-    const newHeaders = new Headers(authHeader());
-    headers?.forEach((value, key) => {
-      newHeaders.append(key, value);
-    });
-    return newHeaders;
-  } else {
-    return headers;
-  }
+  return headers;
 };
 
 const authService = {

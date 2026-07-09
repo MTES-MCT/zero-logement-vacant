@@ -4,9 +4,8 @@ import Grid from '@mui/material/Grid';
 import Typography from '@mui/material/Typography';
 import { useEffect } from 'react';
 
-import { useOptionalAuth } from '~/hooks/useAuth';
+import { useAuth } from '~/hooks/useAuth';
 import { useModalReady } from '~/hooks/useModalReady';
-import { useAppSelector } from '~/hooks/useStore';
 
 const id = 'suspended-user-modal';
 const modal = createModal({
@@ -17,22 +16,11 @@ const modal = createModal({
 const PORTAIL_DF_URL = 'https://portaildf.cerema.fr/';
 
 function SuspendedUserModal() {
-  // Prefer the cookie-backed session (auth-v2) when AuthProvider is mounted;
-  // fall back to the legacy Redux store for JWT clients. The Redux slice is
-  // never populated on the v2 path, so reading it alone would silently hide
-  // the warning from suspended v2 users.
-  const v2 = useOptionalAuth();
-  const legacyUser = useAppSelector((state) => state.authentication.logIn.data);
+  const auth = useAuth();
   const ready = useModalReady(id);
 
-  const suspendedAt =
-    v2 !== null
-      ? (v2.user?.suspendedAt ?? null)
-      : (legacyUser?.user.suspendedAt ?? null);
-  const suspendedCause =
-    v2 !== null
-      ? (v2.user?.suspendedCause ?? null)
-      : (legacyUser?.user.suspendedCause ?? null);
+  const suspendedAt = auth.user?.suspendedAt ?? null;
+  const suspendedCause = auth.user?.suspendedCause ?? null;
 
   const isSuspended = suspendedAt !== null && suspendedAt !== undefined;
 

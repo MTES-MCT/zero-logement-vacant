@@ -39,11 +39,8 @@ import { createMemoryRouter, RouterProvider } from 'react-router';
 
 import { HousingFiltersProvider } from '~/hooks/HousingFiltersContext';
 import data from '~/mocks/handlers/data';
-import { fromEstablishmentDTO } from '~/models/Establishment';
-import { fromUserDTO } from '~/models/User';
 import { MockAuthProvider } from '~/test/auth';
 import { factories } from '~/test/factories';
-import { genAuthUser } from '~/test/fixtures';
 import configureTestStore from '~/utils/storeUtils';
 import CampaignView from '~/views/Campaign/CampaignView';
 import HousingListTabsProvider from '~/views/HousingList/HousingListTabsProvider';
@@ -91,12 +88,7 @@ describe('Housing list view', () => {
       });
     });
 
-    const store = configureTestStore({
-      auth: genAuthUser(
-        fromUserDTO(options.auth),
-        fromEstablishmentDTO(options.establishment)
-      )
-    });
+    const store = configureTestStore();
     const router = createMemoryRouter(
       [
         {

@@ -137,8 +137,7 @@ describe('SuspendedUserModal', () => {
   });
 
   it('should render for a suspended user on the auth-v2 cookie session', async () => {
-    // No legacy Redux auth — the suspended state must come from the
-    // cookie-backed AuthContext, not `state.authentication.logIn.data`.
+    // The suspended state must come from the cookie-backed AuthContext.
     const userDTO = {
       ...genUserDTO(),
       suspendedAt: '2025-01-01T00:00:00Z',

@@ -9,36 +9,16 @@ import { Provider } from 'react-redux';
 import { describe, expect, it } from 'vitest';
 
 import { useUser } from '~/hooks/useUser';
-import { fromEstablishmentDTO } from '~/models/Establishment';
-import { fromUserDTO } from '~/models/User';
 import { MockAuthProvider } from '~/test/auth';
 import configureTestStore from '~/utils/storeUtils';
 
 describe('useUser', () => {
-  it('falls back to the legacy Redux state when AuthProvider is not mounted', () => {
-    const userDTO = { ...genUserDTO(), role: UserRole.ADMIN };
-    const store = configureTestStore({
-      auth: {
-        user: fromUserDTO(userDTO),
-        accessToken: 'fake-token',
-        establishment: fromEstablishmentDTO(genEstablishmentDTO())
-      }
-    });
-    const wrapper = ({ children }: PropsWithChildren) => (
-      <Provider store={store}>{children}</Provider>
-    );
-
-    const { result } = renderHook(() => useUser(), { wrapper });
-
-    expect(result.current.isAuthenticated).toBe(true);
-    expect(result.current.isAdmin).toBe(true);
-    expect(result.current.user?.email).toBe(userDTO.email);
-  });
-
-  it('does not throw when neither AuthProvider nor a legacy session is present', () => {
+  it('returns a guest when the better-auth session is empty', () => {
     const store = configureTestStore();
     const wrapper = ({ children }: PropsWithChildren) => (
-      <Provider store={store}>{children}</Provider>
+      <Provider store={store}>
+        <MockAuthProvider options={{ user: null }}>{children}</MockAuthProvider>
+      </Provider>
     );
 
     const { result } = renderHook(() => useUser(), { wrapper });
@@ -47,7 +27,7 @@ describe('useUser', () => {
     expect(result.current.isGuest).toBe(true);
   });
 
-  it('sources from the cookie-backed session when AuthProvider is mounted', () => {
+  it('sources from the cookie-backed session', () => {
     const store = configureTestStore();
     const userDTO = { ...genUserDTO(), role: UserRole.USUAL };
     const establishment = genEstablishmentDTO();

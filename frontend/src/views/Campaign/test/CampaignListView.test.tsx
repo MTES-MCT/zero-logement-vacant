@@ -19,11 +19,8 @@ import { createMemoryRouter, RouterProvider } from 'react-router';
 
 import { HousingFiltersProvider } from '~/hooks/HousingFiltersContext';
 import data from '~/mocks/handlers/data';
-import { fromEstablishmentDTO } from '~/models/Establishment';
-import { fromUserDTO } from '~/models/User';
 import { MockAuthProvider } from '~/test/auth';
 import { factories } from '~/test/factories';
-import { genAuthUser } from '~/test/fixtures';
 import configureTestStore from '~/utils/storeUtils';
 import CampaignListView from '~/views/Campaign/CampaignListView';
 import CampaignView from '~/views/Campaign/CampaignView';
@@ -414,12 +411,7 @@ function renderView(options?: RenderViewOptions) {
   data.users.push(renderAuth);
   data.campaigns.push(...campaigns);
 
-  const store = configureTestStore({
-    auth: genAuthUser(
-      fromUserDTO(renderAuth),
-      fromEstablishmentDTO(renderEstablishment)
-    )
-  });
+  const store = configureTestStore();
   const router = createMemoryRouter(
     [
       {

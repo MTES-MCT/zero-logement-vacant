@@ -14,13 +14,9 @@ import { Provider } from 'react-redux';
 import { createMemoryRouter, RouterProvider } from 'react-router';
 
 import data from '~/mocks/handlers/data';
-import { fromEstablishmentDTO } from '~/models/Establishment';
-import { fromUserDTO } from '~/models/User';
 import { MockAuthProvider } from '~/test/auth';
 import configureTestStore from '~/utils/storeUtils';
 import UsersView from '~/views/Account/Profile/UsersView';
-
-import { genAuthUser } from '../../../../test/fixtures';
 
 describe('Users view', () => {
   interface RenderViewOptions {
@@ -34,12 +30,7 @@ describe('Users view', () => {
     data.users.push(options.auth);
     data.users.push(...options.users);
 
-    const store = configureTestStore({
-      auth: genAuthUser(
-        fromUserDTO(options.auth),
-        fromEstablishmentDTO(options.establishment)
-      )
-    });
+    const store = configureTestStore();
     const router = createMemoryRouter(
       [{ path: '/utilisateurs', element: <UsersView /> }],
       {

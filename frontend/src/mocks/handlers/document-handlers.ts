@@ -9,10 +9,9 @@ import { Predicate } from 'effect';
 import { http, HttpResponse, type RequestHandler } from 'msw';
 import { v4 as uuidv4 } from 'uuid';
 
-import { toUserDTO } from '~/models/User';
 import config from '~/utils/config';
 
-import { decodeAuth } from './auth-helpers';
+import { getMockSession } from './auth-helpers';
 import data from './data';
 
 const findByHousing = http.get<{ id: string }, never, DocumentDTO[]>(
@@ -31,8 +30,7 @@ const findByHousing = http.get<{ id: string }, never, DocumentDTO[]>(
 const upload = http.post<never, FormData, DocumentDTO[] | Error>(
   `${config.apiEndpoint}/documents`,
   async ({ request }) => {
-    // Simulate auth by decoding token (without verifying signature)
-    const auth = decodeAuth(request);
+    const auth = getMockSession();
     if (!auth) {
       return HttpResponse.json(
         { name: 'AuthenticationError', message: 'Invalid access token' },
@@ -65,7 +63,7 @@ const upload = http.post<never, FormData, DocumentDTO[] | Error>(
         createdAt: new Date().toJSON(),
         updatedAt: null,
         establishmentId: auth.establishment.id,
-        creator: toUserDTO(auth.user)
+        creator: auth.user
       };
       data.documents.set(document.id, document);
       return document;

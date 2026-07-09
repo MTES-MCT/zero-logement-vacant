@@ -24,10 +24,7 @@ import { Provider } from 'react-redux';
 import { createMemoryRouter, RouterProvider } from 'react-router';
 
 import data from '~/mocks/handlers/data';
-import { fromEstablishmentDTO } from '~/models/Establishment';
-import { fromUserDTO } from '~/models/User';
 import { MockAuthProvider } from '~/test/auth';
-import { genAuthUser } from '~/test/fixtures';
 import config from '~/utils/config';
 import configureTestStore from '~/utils/storeUtils';
 import HousingOwnersView from '~/views/Housing/HousingOwnersView';
@@ -48,9 +45,7 @@ describe('HousingOwnersView', () => {
     data.housingOwners.set(options.housing.id, options.housingOwners);
 
     const establishment = genEstablishmentDTO();
-    const store = configureTestStore({
-      auth: genAuthUser(fromUserDTO(auth), fromEstablishmentDTO(establishment))
-    });
+    const store = configureTestStore();
     const router = createMemoryRouter(
       [
         { path: '/logements/:id/proprietaires', element: <HousingOwnersView /> }

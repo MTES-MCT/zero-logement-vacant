@@ -450,6 +450,15 @@ describe('Account controller', () => {
         position: userAccountDTO.position,
         time_per_week: userAccountDTO.timePerWeek
       });
+
+      const authUser = await db('auth_users').where({ id: user.id }).first();
+      expect(authUser).toMatchObject({
+        first_name: userAccountDTO.firstName,
+        last_name: userAccountDTO.lastName,
+        phone: userAccountDTO.phone,
+        position: userAccountDTO.position,
+        time_per_week: userAccountDTO.timePerWeek
+      });
     });
   });
 

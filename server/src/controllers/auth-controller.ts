@@ -405,7 +405,7 @@ async function updateAccount(request: Request, response: Response) {
 
   logger.info('Update account for ', user.id);
 
-  await userRepository.update({
+  await updateUserAndAuth({
     ...user,
     ...account,
     updatedAt: new Date().toJSON()

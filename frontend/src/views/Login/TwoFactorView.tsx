@@ -14,8 +14,8 @@ import { object, string, type InferType } from 'yup';
 
 import securityIcon from '~/assets/images/building.svg';
 import AppTextInputNext from '~/components/_app/AppTextInput/AppTextInputNext';
-import { useAuth } from '~/hooks/useAuth';
 import Image from '~/components/Image/Image';
+import { useAuth } from '~/hooks/useAuth';
 import { useDocumentTitle } from '~/hooks/useDocumentTitle';
 
 const schema = object({

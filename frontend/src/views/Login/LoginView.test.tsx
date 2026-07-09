@@ -125,8 +125,6 @@ describe('login view', () => {
     await user.dblClick(logIn);
 
     expect(signIn).toHaveBeenCalledTimes(1);
-    expect(
-      await screen.findByText(/Connexion en cours/)
-    ).toBeInTheDocument();
+    expect(await screen.findByText(/Connexion en cours/)).toBeInTheDocument();
   });
 });

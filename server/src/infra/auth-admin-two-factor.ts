@@ -36,7 +36,10 @@ const adminSignInBody = z.object({
 
 const adminVerifyTwoFactorBody = z.object({
   email: z.string().email(),
-  code: z.string().length(6).regex(/^\d{6}$/),
+  code: z
+    .string()
+    .length(6)
+    .regex(/^\d{6}$/),
   establishmentId: z.string().uuid().optional()
 });
 
@@ -97,7 +100,9 @@ async function resolveActiveEstablishmentId(
     });
   }
 
-  const establishment = await establishmentRepository.get(activeEstablishmentId);
+  const establishment = await establishmentRepository.get(
+    activeEstablishmentId
+  );
   if (!establishment) {
     throw new APIError('UNPROCESSABLE_ENTITY', {
       message: 'Admin sign-in establishment does not exist.'

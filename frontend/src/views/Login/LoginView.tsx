@@ -143,11 +143,7 @@ const LoginView = () => {
           <Grid size={{ xs: 12, md: 6 }}>
             {v2Error ? (
               <Box data-testid="alert-error" sx={{ my: 2 }}>
-                <Alert
-                  title="Erreur"
-                  description={v2Error}
-                  severity="error"
-                />
+                <Alert title="Erreur" description={v2Error} severity="error" />
               </Box>
             ) : null}
             <Typography component="h1" variant="h2" mb={3}>

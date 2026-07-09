@@ -302,9 +302,9 @@ describe('better-auth sign-in (integration)', () => {
         requiresTwoFactor: true,
         email
       });
-      expect(getCookies(response).some((c) => c.includes('zlv.session_token'))).toBe(
-        false
-      );
+      expect(
+        getCookies(response).some((c) => c.includes('zlv.session_token'))
+      ).toBe(false);
 
       const updatedUser = await Users().where({ id: user.id }).first();
       expect(updatedUser?.two_factor_code).toEqual(expect.any(String));
@@ -469,7 +469,9 @@ describe('better-auth sign-in (integration)', () => {
       const cookies = getCookies(verify);
       expect(cookies.some((c) => c.includes('zlv.session_token'))).toBe(true);
 
-      const session = await request(url).get('/auth/get-session').set('Cookie', cookies);
+      const session = await request(url)
+        .get('/auth/get-session')
+        .set('Cookie', cookies);
       expect(session.status).toBe(200);
       expect(session.body).toMatchObject({
         user: {
@@ -562,7 +564,9 @@ describe('better-auth sign-in (integration)', () => {
       expect(legacyUser.kind).toBe('gestionnaire');
       expect(legacyUser.last_authenticated_at).toBeInstanceOf(Date);
 
-      const authUser = await db(AUTH_USERS_TABLE).where({ id: user.id }).first();
+      const authUser = await db(AUTH_USERS_TABLE)
+        .where({ id: user.id })
+        .first();
       expect(authUser.kind).toBe('gestionnaire');
       expect(authUser.last_authenticated_at).toBeInstanceOf(Date);
     } finally {

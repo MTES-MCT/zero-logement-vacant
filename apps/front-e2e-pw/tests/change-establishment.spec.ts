@@ -25,7 +25,9 @@ test.describe('Change establishment via header switcher', () => {
     const switcher = page.locator('header').getByRole('combobox').first();
     const hostname = new URL(config.baseURL).hostname;
     const expectsMultiEstablishment =
-      Boolean(config.multi) || hostname === 'localhost' || hostname === '127.0.0.1';
+      Boolean(config.multi) ||
+      hostname === 'localhost' ||
+      hostname === '127.0.0.1';
 
     if (expectsMultiEstablishment) {
       await expect(switcher).toBeVisible({ timeout: 15_000 });
@@ -33,7 +35,9 @@ test.describe('Change establishment via header switcher', () => {
       await switcher.waitFor({ state: 'visible', timeout: 5_000 }).catch(() => {
         // Single-establishment users render static text instead of a switcher.
       });
-      const isMultiEstablishment = await switcher.isVisible().catch(() => false);
+      const isMultiEstablishment = await switcher
+        .isVisible()
+        .catch(() => false);
       test.skip(
         !isMultiEstablishment,
         'Test user has only one establishment — set CYPRESS_MULTI_EMAIL/CYPRESS_MULTI_PASSWORD to assert switching'
@@ -76,7 +80,9 @@ test.describe('Change establishment via header switcher', () => {
       options.nth(targetIndex).click()
     ]);
     expect(switchResponse.ok()).toBe(true);
-    expect(switchResponse.request().headers()['x-access-token']).toBeUndefined();
+    expect(
+      switchResponse.request().headers()['x-access-token']
+    ).toBeUndefined();
 
     // The session re-fetches and the header label updates to the new name.
     await expect(switcher).toHaveValue(targetName);

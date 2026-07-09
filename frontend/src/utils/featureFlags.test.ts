@@ -5,9 +5,7 @@ import { resolveFeatureFlag } from './featureFlags';
 describe('resolveFeatureFlag', () => {
   it('uses the local fallback only when PostHog has no value yet', () => {
     expect(
-      resolveFeatureFlag('new-analysis-page', undefined, [
-        'new-analysis-page'
-      ])
+      resolveFeatureFlag('new-analysis-page', undefined, ['new-analysis-page'])
     ).toBe(true);
     expect(resolveFeatureFlag('new-analysis-page', undefined, [])).toBe(false);
   });

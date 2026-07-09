@@ -12,11 +12,11 @@ import image from '../../../assets/images/thousand-structures.svg';
 import AppLink from '../../../components/_app/AppLink/AppLink';
 import AppTextInputNext from '../../../components/_app/AppTextInput/AppTextInputNext';
 import Image from '../../../components/Image/Image';
+import { useAuth } from '../../../hooks/useAuth';
 import {
   passwordConfirmationValidator,
   passwordFormatValidator
 } from '../../../hooks/useForm';
-import { useAuth } from '../../../hooks/useAuth';
 import { useProspect } from '../../../hooks/useProspect';
 import { useCreateUserMutation } from '../../../services/user.service';
 

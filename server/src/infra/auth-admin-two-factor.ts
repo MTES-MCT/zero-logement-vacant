@@ -210,6 +210,18 @@ async function createAdminSession(
 export function zlvAdminTwoFactor(): BetterAuthPlugin {
   return {
     id: 'zlv-admin-two-factor',
+    rateLimit: [
+      {
+        pathMatcher: (path) => path === '/admin/sign-in',
+        window: 60,
+        max: 10
+      },
+      {
+        pathMatcher: (path) => path === '/admin/verify-2fa',
+        window: 60,
+        max: 10
+      }
+    ],
     hooks: {
       before: [
         {

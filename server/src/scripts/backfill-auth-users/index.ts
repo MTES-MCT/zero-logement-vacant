@@ -1,4 +1,5 @@
 import { randomUUID } from 'node:crypto';
+import { pathToFileURL } from 'node:url';
 
 import { UserRole } from '@zerologementvacant/models';
 
@@ -80,7 +81,7 @@ interface Counts {
   errored: number;
 }
 
-interface RunOptions {
+export interface RunOptions {
   dryRun: boolean;
 }
 
@@ -145,7 +146,7 @@ async function backfillOne(
   }
 }
 
-async function run(opts: RunOptions): Promise<void> {
+export async function run(opts: RunOptions): Promise<void> {
   logger.info('Starting backfill', { dryRun: opts.dryRun });
 
   const users = await db<UserDBO>(USERS_TABLE).select('*');
@@ -165,13 +166,23 @@ async function run(opts: RunOptions): Promise<void> {
   }
 
   logger.info('Backfill complete', counts);
+
+  if (counts.errored > 0) {
+    throw new Error(`Backfill completed with ${counts.errored} error(s)`);
+  }
 }
 
-const dryRun = process.argv.includes('--dry-run');
+const isDirectExecution =
+  process.argv[1] !== undefined &&
+  import.meta.url === pathToFileURL(process.argv[1]).href;
 
-run({ dryRun })
-  .catch((error) => {
-    logger.error('Backfill aborted', { error });
-    process.exitCode = 1;
-  })
-  .finally(() => db.destroy());
+if (isDirectExecution) {
+  const dryRun = process.argv.includes('--dry-run');
+
+  run({ dryRun })
+    .catch((error) => {
+      logger.error('Backfill aborted', { error });
+      process.exitCode = 1;
+    })
+    .finally(() => db.destroy());
+}

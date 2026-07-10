@@ -165,13 +165,37 @@ async function insertManyCampaignHousingEvents(
   logger.debug('Inserting campaign housing events...', {
     events: events.length
   });
-  await withinTransaction(async (transaction) => {
-    await transaction.batchInsert(EVENTS_TABLE, events.map(formatEventApi));
-    await transaction.batchInsert(
-      CAMPAIGN_HOUSING_EVENTS_TABLE,
-      events.map(formatCampaignHousingEventApi)
-    );
+  await withinKyselyTransaction(async (trx) => {
+    await trx.insertInto('events').values(events.map(toEventInsert)).execute();
+    await trx
+      .insertInto('campaignHousingEvents')
+      .values(events.map(toCampaignHousingEventInsert))
+      .execute();
   });
+}
+
+function toEventInsert<Type extends EventType>(
+  event: EventApi<Type>
+): Insertable<DB['events']> {
+  return {
+    id: event.id,
+    type: event.type,
+    nextOld: event.nextOld as Insertable<DB['events']>['nextOld'],
+    nextNew: event.nextNew as Insertable<DB['events']>['nextNew'],
+    createdAt: new Date(event.createdAt),
+    createdBy: event.createdBy
+  };
+}
+
+function toCampaignHousingEventInsert(
+  event: CampaignHousingEventApi
+): Insertable<DB['campaignHousingEvents']> {
+  return {
+    eventId: event.id,
+    campaignId: event.campaignId,
+    housingGeoCode: event.housingGeoCode,
+    housingId: event.housingId
+  };
 }
 
 async function insertManyCampaignEvents(
@@ -422,24 +446,25 @@ async function removeCampaignEvents(campaignId: string): Promise<void> {
   logger.debug('Removing campaign events...', {
     campaign: campaignId
   });
-  await withinTransaction(async (transaction) => {
+  await withinKyselyTransaction(async (trx) => {
     // Delete the parent `events` rows referenced both by campaign events and by
     // campaign document events; the join-table rows cascade from `events`.
     // Otherwise document events would be left orphaned when a campaign is removed.
-    await Events(transaction)
-      .whereIn(`${EVENTS_TABLE}.id`, (subquery) => {
-        subquery
-          .select('event_id')
-          .from(CAMPAIGN_EVENTS_TABLE)
-          .where('campaign_id', campaignId)
-          .unionAll((union) => {
-            union
-              .select('event_id')
-              .from(CAMPAIGN_DOCUMENT_EVENTS_TABLE)
-              .where('campaign_id', campaignId);
-          });
-      })
-      .delete();
+    await trx
+      .deleteFrom('events')
+      .where('id', 'in', (qb) =>
+        qb
+          .selectFrom('campaignEvents')
+          .select('eventId')
+          .where('campaignId', '=', campaignId)
+          .unionAll(
+            qb
+              .selectFrom('campaignDocumentEvents')
+              .select('eventId')
+              .where('campaignId', '=', campaignId)
+          )
+      )
+      .execute();
   });
   logger.debug('Campaign events removed', {
     campaign: campaignId

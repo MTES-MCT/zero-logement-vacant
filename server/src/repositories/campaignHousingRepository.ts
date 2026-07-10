@@ -1,5 +1,5 @@
 import db from '~/infra/database';
-import { withinTransaction } from '~/infra/database/transaction';
+import { withinKyselyTransaction } from '~/infra/database/kysely-transaction';
 import { CampaignApi } from '~/models/CampaignApi';
 import { HousingApi } from '~/models/HousingApi';
 
@@ -11,18 +11,24 @@ const insertHousingList = async (
   campaignId: string,
   housingList: HousingApi[]
 ): Promise<void> => {
-  await withinTransaction(async (transaction) => {
-    await CampaignsHousing(transaction)
-      .insert(
+  if (housingList.length === 0) {
+    return;
+  }
+
+  await withinKyselyTransaction(async (trx) => {
+    await trx
+      .insertInto('campaignsHousing')
+      .values(
         housingList.map((housing) => ({
-          campaign_id: campaignId,
-          housing_id: housing.id,
-          housing_geo_code: housing.geoCode
+          campaignId,
+          housingId: housing.id,
+          housingGeoCode: housing.geoCode
         }))
       )
-      .onConflict(['campaign_id', 'housing_id', 'housing_geo_code'])
-      .ignore()
-      .returning('housing_id');
+      .onConflict((oc) =>
+        oc.columns(['campaignId', 'housingId', 'housingGeoCode']).doNothing()
+      )
+      .execute();
   });
 };
 
@@ -34,14 +40,21 @@ async function removeMany(
     return;
   }
 
-  await withinTransaction(async (transaction) => {
-    await CampaignsHousing(transaction)
-      .where({ campaign_id: campaign.id })
-      .whereIn(
-        ['housing_geo_code', 'housing_id'],
-        housings.map((housing) => [housing.geoCode, housing.id])
+  await withinKyselyTransaction(async (trx) => {
+    await trx
+      .deleteFrom('campaignsHousing')
+      .where('campaignId', '=', campaign.id)
+      .where((eb) =>
+        eb.or(
+          housings.map((housing) =>
+            eb.and([
+              eb('housingGeoCode', '=', housing.geoCode),
+              eb('housingId', '=', housing.id)
+            ])
+          )
+        )
       )
-      .delete();
+      .execute();
   });
 }
 

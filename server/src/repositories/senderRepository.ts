@@ -1,6 +1,9 @@
+import type { Insertable } from 'kysely';
+
 import { download } from '~/controllers/fileRepository';
 import db, { where } from '~/infra/database';
-import { withinTransaction } from '~/infra/database/transaction';
+import type { DB } from '~/infra/database/db';
+import { withinKyselyTransaction } from '~/infra/database/kysely-transaction';
 import { createLogger } from '~/infra/logger';
 import { SenderApi } from '~/models/SenderApi';
 import {
@@ -51,32 +54,61 @@ async function findOne(opts: FindOneOptions): Promise<SenderApi | null> {
 
 async function save(sender: SenderApi): Promise<void> {
   logger.debug('Saving sender...', sender);
-  await withinTransaction(async (transaction) => {
-    await Senders(transaction)
-      .insert(formatSenderApi(sender))
-      .onConflict('id')
-      .merge([
-        'name',
-        'service',
-        'first_name',
-        'last_name',
-        'address',
-        'email',
-        'phone',
-        'signatory_one_last_name',
-        'signatory_one_first_name',
-        'signatory_one_role',
-        'signatory_one_file',
-        'signatory_one_document_id',
-        'signatory_two_first_name',
-        'signatory_two_last_name',
-        'signatory_two_role',
-        'signatory_two_file',
-        'signatory_two_document_id',
-        'updated_at'
-      ]);
+  await withinKyselyTransaction(async (trx) => {
+    await trx
+      .insertInto('senders')
+      .values(toSenderInsert(sender))
+      .onConflict((oc) =>
+        oc.column('id').doUpdateSet((eb) => ({
+          name: eb.ref('excluded.name'),
+          service: eb.ref('excluded.service'),
+          firstName: eb.ref('excluded.firstName'),
+          lastName: eb.ref('excluded.lastName'),
+          address: eb.ref('excluded.address'),
+          email: eb.ref('excluded.email'),
+          phone: eb.ref('excluded.phone'),
+          signatoryOneLastName: eb.ref('excluded.signatoryOneLastName'),
+          signatoryOneFirstName: eb.ref('excluded.signatoryOneFirstName'),
+          signatoryOneRole: eb.ref('excluded.signatoryOneRole'),
+          signatoryOneFile: eb.ref('excluded.signatoryOneFile'),
+          signatoryOneDocumentId: eb.ref('excluded.signatoryOneDocumentId'),
+          signatoryTwoFirstName: eb.ref('excluded.signatoryTwoFirstName'),
+          signatoryTwoLastName: eb.ref('excluded.signatoryTwoLastName'),
+          signatoryTwoRole: eb.ref('excluded.signatoryTwoRole'),
+          signatoryTwoFile: eb.ref('excluded.signatoryTwoFile'),
+          signatoryTwoDocumentId: eb.ref('excluded.signatoryTwoDocumentId'),
+          updatedAt: eb.ref('excluded.updatedAt')
+        }))
+      )
+      .execute();
   });
   logger.debug('Saved sender', sender);
+}
+
+function toSenderInsert(sender: SenderApi): Insertable<DB['senders']> {
+  return {
+    id: sender.id,
+    name: sender.name,
+    service: sender.service,
+    firstName: sender.firstName,
+    lastName: sender.lastName,
+    address: sender.address,
+    email: sender.email,
+    phone: sender.phone,
+    signatoryOneFirstName: sender.signatories?.[0]?.firstName ?? null,
+    signatoryOneLastName: sender.signatories?.[0]?.lastName ?? null,
+    signatoryOneRole: sender.signatories?.[0]?.role ?? null,
+    signatoryOneFile: sender.signatories?.[0]?.file?.id ?? null,
+    signatoryOneDocumentId: sender.signatories?.[0]?.document?.id ?? null,
+    signatoryTwoFirstName: sender.signatories?.[1]?.firstName ?? null,
+    signatoryTwoLastName: sender.signatories?.[1]?.lastName ?? null,
+    signatoryTwoRole: sender.signatories?.[1]?.role ?? null,
+    signatoryTwoFile: sender.signatories?.[1]?.file?.id ?? null,
+    signatoryTwoDocumentId: sender.signatories?.[1]?.document?.id ?? null,
+    createdAt: new Date(sender.createdAt),
+    updatedAt: new Date(sender.updatedAt),
+    establishmentId: sender.establishmentId
+  };
 }
 
 export interface SenderDBO {

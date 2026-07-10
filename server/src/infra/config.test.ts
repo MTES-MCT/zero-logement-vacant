@@ -15,7 +15,6 @@ const validRaw = {
   },
   auth: {
     secret: 'mysecret',
-    expiresIn: '1 hour',
     admin2faEnabled: 'false'
   },
   ban: {

@@ -11,6 +11,8 @@ import establishmentRepository from '~/repositories/establishmentRepository';
 import userPerimeterRepository from '~/repositories/userPerimeterRepository';
 import userRepository from '~/repositories/userRepository';
 
+import { readTestAuthentication } from './test-authentication';
+
 interface CheckOptions {
   /**
    * @default true
@@ -18,28 +20,24 @@ interface CheckOptions {
   required?: boolean;
 }
 
-/**
- * Better-auth session-based replacement for {@link userCheck}.
- *
- * Reads the better-auth session from the incoming cookies, then loads the
- * user, the active establishment and the user perimeter, and augments the
- * request the same way {@link userCheck} does. Designed so the swap in
- * Task 7 is trivial.
- */
+/** Loads the Better Auth session and its current ZLV authorization context. */
 export function sessionCheck(options?: CheckOptions) {
   return async (request: Request, _: Response, next: NextFunction) => {
-    const session = await auth.api.getSession({
-      headers: fromNodeHeaders(request.headers)
-    });
+    const testAuthentication = readTestAuthentication(request);
+    const session = testAuthentication
+      ? null
+      : await auth.api.getSession({
+          headers: fromNodeHeaders(request.headers)
+        });
+    const sessionData = testAuthentication ?? session?.session;
 
-    if (!session) {
+    if (!sessionData) {
       if (options?.required ?? true) {
         throw new AuthenticationMissingError();
       }
       return next();
     }
 
-    const { session: sessionData } = session;
     const userId = (sessionData as any).userId as string;
     const establishmentId = (sessionData as any).activeEstablishmentId as
       | string
@@ -68,11 +66,8 @@ export function sessionCheck(options?: CheckOptions) {
     request.user = user;
     request.establishment = establishment;
     request.userPerimeter = userPerimeter;
-    // Transitional shim — controllers still read `request.auth.{userId,
-    // establishmentId, role}` (populated by the legacy expressjwt middleware
-    // on the JWT path). Mirror that shape here so controllers work
-    // unchanged. Remove once all controllers migrate to `request.user` /
-    // `request.establishment`.
+    // Compatibility shim for controllers that still read
+    // `request.auth.{userId, establishmentId, role}`.
     request.auth = {
       userId: user.id,
       establishmentId: establishment.id,

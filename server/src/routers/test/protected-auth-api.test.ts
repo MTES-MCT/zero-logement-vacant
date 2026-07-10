@@ -1,18 +1,9 @@
-// Integration tests for the protected router's transition-window auth dispatch
-// (`server/src/routers/protected.ts`): explicit legacy JWT credentials keep
-// precedence during the transition, while invalid/expired session cookies still
-// fall back to JWT instead of causing a hard 401.
-import { vi } from 'vitest';
-
-vi.mock('../../services/ceremaService/mockCeremaService');
-
 import { constants } from 'http2';
 import { randomUUID } from 'node:crypto';
 
-import { UserRole } from '@zerologementvacant/models';
 import bcrypt from 'bcryptjs';
 import request from 'supertest';
-import { afterAll, beforeAll, describe, expect, it } from 'vitest';
+import { afterAll, beforeAll, describe, expect, it, vi } from 'vitest';
 
 import db from '~/infra/database';
 import { createServer } from '~/infra/server';
@@ -23,12 +14,9 @@ import {
 } from '~/repositories/establishmentRepository';
 import { toUserDBO, Users } from '~/repositories/userRepository';
 import { genEstablishmentApi, genUserApi } from '~/test/testFixtures';
-import { tokenProvider } from '~/test/testUtils';
+import { createTestToken } from '~/test/testUtils';
 
-// A syntactically-present but unverifiable better-auth session cookie:
-// getSession resolves it to null (no valid session) — exactly the expired or
-// revoked case.
-const INVALID_SESSION_COOKIE = 'zlv.session_token=not-a-real-token';
+vi.mock('../../services/ceremaService/mockCeremaService');
 
 async function seedBackfilledUser(
   establishmentId: string,
@@ -59,13 +47,10 @@ async function seedBackfilledUser(
   return user;
 }
 
-describe('Protected router auth (JWT precedence, session fallback)', () => {
+describe('Protected router cookie authentication', () => {
   let url: string;
   const establishment = genEstablishmentApi();
-  const user: UserApi = {
-    ...genUserApi(establishment.id),
-    role: UserRole.USUAL
-  };
+  const user = genUserApi(establishment.id);
 
   beforeAll(async () => {
     url = await createServer().testing();
@@ -78,87 +63,28 @@ describe('Protected router auth (JWT precedence, session fallback)', () => {
     await Establishments().where('id', establishment.id).delete();
   });
 
-  it('authenticates via JWT when no session cookie is present', async () => {
+  it('rejects a valid legacy JWT', async () => {
+    const token = createTestToken({
+      userId: user.id,
+      establishmentId: establishment.id
+    });
+
     const { status } = await request(url)
       .get('/account')
-      .use(tokenProvider(user));
-
-    expect(status).toBe(constants.HTTP_STATUS_OK);
-  });
-
-  it('falls back to JWT when the session cookie is invalid', async () => {
-    // An unusable session cookie alongside a valid JWT: the invalid session
-    // must not short-circuit to 401 — the request still authenticates via JWT.
-    const { status } = await request(url)
-      .get('/account')
-      .set('Cookie', INVALID_SESSION_COOKIE)
-      .use(tokenProvider(user));
-
-    expect(status).toBe(constants.HTTP_STATUS_OK);
-  });
-
-  it('uses the explicit JWT user when a valid session cookie belongs to another user', async () => {
-    const password = 'not-a-real-password';
-    const otherEstablishment = genEstablishmentApi();
-    await Establishments().insert(formatEstablishmentApi(otherEstablishment));
-    const sessionUser = await seedBackfilledUser(
-      otherEstablishment.id,
-      password
-    );
-
-    try {
-      await expect(
-        db('auth_users').where({ email: sessionUser.email }).first()
-      ).resolves.toBeDefined();
-
-      const signIn = await request(url)
-        .post('/auth/sign-in/email')
-        .send({ email: sessionUser.email, password });
-      expect(signIn.status).toBe(constants.HTTP_STATUS_OK);
-
-      const rawCookies = signIn.headers['set-cookie'];
-      const cookies = Array.isArray(rawCookies)
-        ? rawCookies
-        : rawCookies
-          ? [rawCookies]
-          : [];
-      expect(
-        cookies.some((cookie) => cookie.includes('zlv.session_token'))
-      ).toBe(true);
-
-      const { body, status } = await request(url)
-        .get('/users')
-        .set('Cookie', cookies)
-        .use(tokenProvider(user));
-
-      expect(status).toBe(constants.HTTP_STATUS_OK);
-      expect(body).toSatisfyAll(
-        (listedUser: UserApi) => listedUser.establishmentId === establishment.id
-      );
-      expect(
-        body.some((listedUser: UserApi) => listedUser.id === user.id)
-      ).toBe(true);
-      expect(
-        body.some((listedUser: UserApi) => listedUser.id === sessionUser.id)
-      ).toBe(false);
-    } finally {
-      await db('session').where({ user_id: sessionUser.id }).delete();
-      await db('account').where({ user_id: sessionUser.id }).delete();
-      await db('auth_users').where({ id: sessionUser.id }).delete();
-      await Users().where('id', sessionUser.id).delete();
-      await Establishments().where('id', otherEstablishment.id).delete();
-    }
-  });
-
-  it('responds 401 when the session cookie is invalid and no JWT is provided', async () => {
-    const { status } = await request(url)
-      .get('/account')
-      .set('Cookie', INVALID_SESSION_COOKIE);
+      .set('x-access-token', token);
 
     expect(status).toBe(constants.HTTP_STATUS_UNAUTHORIZED);
   });
 
-  it('responds 401 when an active session reaches thirty days old', async () => {
+  it('rejects an invalid session cookie', async () => {
+    const { status } = await request(url)
+      .get('/account')
+      .set('Cookie', 'zlv.session_token=not-a-real-token');
+
+    expect(status).toBe(constants.HTTP_STATUS_UNAUTHORIZED);
+  });
+
+  it('rejects a session whose absolute lifetime reached thirty days', async () => {
     const password = 'not-a-real-password';
     const sessionUser = await seedBackfilledUser(establishment.id, password);
 
@@ -201,7 +127,7 @@ describe('Protected router auth (JWT precedence, session fallback)', () => {
     }
   });
 
-  it('responds 401 when no credentials are provided', async () => {
+  it('rejects requests without credentials', async () => {
     const { status } = await request(url).get('/account');
 
     expect(status).toBe(constants.HTTP_STATUS_UNAUTHORIZED);

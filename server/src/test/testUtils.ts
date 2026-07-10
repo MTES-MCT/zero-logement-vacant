@@ -1,6 +1,10 @@
 import jwt from 'jsonwebtoken';
 import { Plugin } from 'superagent';
 
+import {
+  TEST_ESTABLISHMENT_ID_HEADER,
+  TEST_USER_ID_HEADER
+} from '~/middlewares/test-authentication';
 import { TokenPayload, UserApi } from '~/models/UserApi';
 
 export const createTestToken = (payload: TokenPayload) =>
@@ -9,10 +13,8 @@ export const createTestToken = (payload: TokenPayload) =>
 export function tokenProvider(user: UserApi): Plugin {
   return (request) => {
     request.set({
-      'x-access-token': createTestToken({
-        userId: user.id,
-        establishmentId: user.establishmentId as string
-      })
+      [TEST_USER_ID_HEADER]: user.id,
+      [TEST_ESTABLISHMENT_ID_HEADER]: user.establishmentId as string
     });
   };
 }

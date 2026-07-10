@@ -1,6 +1,5 @@
 import dotenvx from '@dotenvx/dotenvx';
 import { LOG_LEVELS, LogLevel } from '@zerologementvacant/utils';
-import { StringValue } from 'ms';
 import { z } from 'zod';
 
 dotenvx.config({
@@ -45,7 +44,6 @@ export const configSchema = z.object({
       .string()
       .min(1)
       .prefault(isProduction ? '' : 'secret'),
-    expiresIn: z.string().default('12 hours'),
     admin2faEnabled: z.stringbool().default(false),
     testPassword: z.string().default('test')
   }),
@@ -269,7 +267,6 @@ const config = configSchema.parse({
   },
   auth: {
     secret: env('AUTH_SECRET'),
-    expiresIn: env('AUTH_EXPIRES_IN'),
     admin2faEnabled: env('ADMIN_2FA_ENABLED'),
     testPassword: env('TEST_PASSWORD')
   },
@@ -374,11 +371,8 @@ const config = configSchema.parse({
   }
 });
 
-// Cast to match the contract expected by the rest of the codebase:
-// - auth.expiresIn typed as ms StringValue
-// - metabase.token / apiToken typed as string (required in production; null only in dev)
-export default config as Omit<Config, 'auth' | 'metabase'> & {
-  auth: Omit<Config['auth'], 'expiresIn'> & { expiresIn: StringValue };
+// Metabase tokens are required in production and null only in development.
+export default config as Omit<Config, 'metabase'> & {
   metabase: {
     domain: string;
     token: string;

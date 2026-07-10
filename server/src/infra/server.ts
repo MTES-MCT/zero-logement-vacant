@@ -120,7 +120,7 @@ export function createServer(): Server {
       origin: config.app.allowedOrigins,
       credentials: true,
       methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
-      allowedHeaders: ['Content-Type', 'x-access-token']
+      allowedHeaders: ['Content-Type']
     })
   );
 

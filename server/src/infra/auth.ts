@@ -44,6 +44,7 @@ const kyselyDb = new Kysely<any>({
 // untyped.
 const authOptions = {
   basePath: '/auth',
+  secret: config.auth.secret,
   database: {
     db: kyselyDb,
     type: 'postgres'
@@ -123,16 +124,15 @@ const authOptions = {
     session: {
       create: {
         before: async (session) => {
-          // Mirror the legacy signInToEstablishment flow exactly:
-          //   1. Load the user; refuse the session if they don't exist in
-          //      the legacy `users` table — protected endpoints depend on it.
+          // Refresh authorization context before creating the session:
+          //   1. Load the user; refuse the session if they don't exist in the
+          //      ZLV `users` table used by protected business endpoints.
           //   2. Refresh users_establishments from Portail DF so the
           //      switch-establishment dropdown sees fresh data when it
           //      renders.
           //   3. Use `user.establishmentId` (the user's primary establishment)
-          //      as the active establishment for the session — same source of
-          //      truth as the legacy /signin endpoint. If null, abort with
-          //      UNPROCESSABLE_ENTITY (legacy parity).
+          //      as the active establishment for the session. If null, abort
+          //      with UNPROCESSABLE_ENTITY.
           const user = await userRepository.get(session.userId);
           if (!user) {
             throw new APIError('UNPROCESSABLE_ENTITY', {

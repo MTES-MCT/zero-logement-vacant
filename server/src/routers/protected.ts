@@ -1,12 +1,9 @@
-import { constants } from 'node:http2';
-
 import {
   ACCEPTED_HOUSING_DOCUMENT_EXTENSIONS,
   MAX_HOUSING_DOCUMENT_SIZE_IN_MiB,
   UserRole
 } from '@zerologementvacant/models';
 import schemas from '@zerologementvacant/schemas';
-import { NextFunction, Request, Response } from 'express';
 import Router from 'express-promise-router';
 import { array, number, object, string } from 'yup';
 
@@ -32,7 +29,7 @@ import precisionController from '~/controllers/precisionController';
 import userController from '~/controllers/userController';
 import config from '~/infra/config';
 import antivirusMiddleware from '~/middlewares/antivirus';
-import { hasRole, jwtCheck, userCheck } from '~/middlewares/auth';
+import { hasRole } from '~/middlewares/auth';
 import fileTypeMiddleware from '~/middlewares/fileTypeMiddleware';
 import { sessionCheck } from '~/middlewares/session';
 import shapefileValidationMiddleware from '~/middlewares/shapefileValidation';
@@ -44,64 +41,7 @@ import sortApi from '~/models/SortApi';
 
 const router = Router();
 
-// Transition-window auth: when a legacy JWT is explicitly sent, honor it first
-// so a stale better-auth cookie cannot override the visible legacy session.
-// Otherwise, prefer the better-auth cookie session and fall back to JWT. The
-// `required: false` session option keeps invalid/expired cookies from blocking
-// the JWT fallback.
-const sessionMiddleware = sessionCheck({ required: false });
-const jwtMiddleware = jwtCheck();
-const userMiddleware = userCheck();
-
-function hasLegacyToken(request: Request): boolean {
-  const token =
-    request.headers['x-access-token'] ?? request.query['x-access-token'];
-  return Array.isArray(token) ? token.length > 0 : Boolean(token);
-}
-
-function requireLegacyToken(
-  request: Request,
-  response: Response,
-  next: NextFunction
-) {
-  if (!hasLegacyToken(request)) {
-    response.status(constants.HTTP_STATUS_METHOD_NOT_ALLOWED).json({
-      message:
-        'GET requires a legacy access token; session clients should use POST'
-    });
-    return;
-  }
-
-  next();
-}
-
-function jwtFallback(request: Request, response: Response, next: NextFunction) {
-  return jwtMiddleware(request, response, (err: unknown) => {
-    if (err) return next(err);
-    // userCheck is async; forward its rejection to next() since
-    // express-promise-router cannot observe this nested promise.
-    userMiddleware(request, response, next).catch(next);
-  });
-}
-
-router.use((request: Request, response: Response, next: NextFunction) => {
-  if (hasLegacyToken(request)) {
-    return jwtFallback(request, response, next);
-  }
-
-  // Returning the promise lets express-promise-router forward any rejection
-  // (e.g. a session referencing a missing user/establishment) to the error
-  // handler.
-  return sessionMiddleware(request, response, (err: unknown) => {
-    if (err) return next(err);
-    // A valid session populates request.user; anything else (no session
-    // cookie, expired or revoked session) leaves it unset → try the JWT path.
-    if (request.user) {
-      return next();
-    }
-    return jwtFallback(request, response, next);
-  });
-});
+router.use(sessionCheck());
 
 router.post(
   '/files',
@@ -497,14 +437,6 @@ router.put(
   '/account',
   validator.validate(authController.updateAccountValidators),
   authController.updateAccount
-);
-router.get(
-  '/account/establishments/:establishmentId',
-  requireLegacyToken,
-  validator.validate({
-    params: object({ establishmentId: schemas.id })
-  }),
-  authController.changeEstablishment
 );
 router.post(
   '/account/establishments/:establishmentId',

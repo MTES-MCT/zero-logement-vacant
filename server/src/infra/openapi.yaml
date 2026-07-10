@@ -8,11 +8,12 @@ info:
 
     ## Authentication
 
-    The API uses JWT (JSON Web Token) authentication. To access protected endpoints:
+    The API uses Better Auth cookie sessions. To access protected endpoints:
 
-    1. Authenticate via `POST /authenticate`
-    2. Retrieve the JWT token from the response
-    3. Include the token in the `Authorization: Bearer <token>` header
+    1. Authenticate via `POST /auth/sign-in/email` (usual users) or
+       `POST /auth/admin/sign-in` (administrators)
+    2. Keep the `zlv.session_token` HttpOnly cookie returned by the API
+    3. Send subsequent requests with credentials enabled
 
     ## Environments
 
@@ -32,7 +33,7 @@ servers:
     description: Root (health check)
 
 security:
-  - bearerAuth: []
+  - sessionCookie: []
 
 tags:
   - name: Authentication
@@ -62,11 +63,11 @@ tags:
 
 components:
   securitySchemes:
-    bearerAuth:
-      type: http
-      scheme: bearer
-      bearerFormat: JWT
-      description: JWT token obtained via /authenticate
+    sessionCookie:
+      type: apiKey
+      in: cookie
+      name: zlv.session_token
+      description: HttpOnly session cookie issued by Better Auth
 
   parameters:
     IdParam:
@@ -1462,28 +1463,6 @@ components:
         establishment:
           $ref: '#/components/schemas/EstablishmentComplete'
 
-    AuthResponse:
-      type: object
-      required: [accessToken, user]
-      properties:
-        accessToken:
-          type: string
-          description: JWT token
-          example: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...
-        user:
-          $ref: '#/components/schemas/User'
-
-    TwoFactorRequired:
-      type: object
-      required: [userId, require2FA]
-      properties:
-        userId:
-          type: string
-          format: uuid
-        require2FA:
-          type: boolean
-          example: true
-
     Event:
       type: object
       description: "Événement de l'historique d'un logement ou propriétaire"
@@ -1667,9 +1646,9 @@ paths:
           description: Connexion SSE établie
 
   # ── Authentication ───────────────────────────────────────────────────────────
-  /authenticate:
+  /auth/sign-in/email:
     post:
-      summary: Authentifier un utilisateur
+      summary: Authentifier un utilisateur usuel
       tags: [Authentication]
       security: []
       requestBody:
@@ -1689,19 +1668,40 @@ paths:
                   example: password123
       responses:
         '200':
-          description: Authentification réussie
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/AuthResponse'
+          description: Authentification réussie et cookie de session créé
         '401':
           description: Email ou mot de passe incorrect
-        '403':
-          description: Compte désactivé
 
-  /authenticate/verify-2fa:
+  /auth/admin/sign-in:
     post:
-      summary: Verify 2FA code
+      summary: Authentifier un administrateur et démarrer la 2FA
+      tags: [Authentication]
+      security: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [email, password]
+              properties:
+                email:
+                  type: string
+                  format: email
+                password:
+                  type: string
+                establishmentId:
+                  type: string
+                  format: uuid
+      responses:
+        '200':
+          description: Challenge 2FA créé, ou cookie de session créé si la 2FA est désactivée
+        '401':
+          description: Email ou mot de passe incorrect
+
+  /auth/admin/verify-2fa:
+    post:
+      summary: Vérifier le code 2FA administrateur
       tags: [Authentication]
       security: []
       requestBody:
@@ -1725,9 +1725,17 @@ paths:
                   format: uuid
       responses:
         '200':
-          description: 2FA code validated, JWT token returned
+          description: Code validé et cookie de session créé
         '401':
-          description: Invalid or expired code
+          description: Code invalide ou expiré
+
+  /auth/sign-out:
+    post:
+      summary: Fermer la session courante
+      tags: [Authentication]
+      responses:
+        '200':
+          description: Session supprimée et cookie expiré
 
   /account/reset-password:
     post:
@@ -3032,7 +3040,7 @@ paths:
           description: Non authentifié
 
   /account/establishments/{establishmentId}:
-    get:
+    post:
       summary: "Changer d'établissement courant"
       tags: [Users]
       parameters:

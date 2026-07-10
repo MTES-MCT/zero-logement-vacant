@@ -12,10 +12,10 @@ For every row in `users`:
    reused as `auth_users.id`, so every existing FK that references
    `users.id` — `users_establishments.user_id`, `events.*`, `groups.created_by`,
    … — keeps working unchanged).
-2. If the user is **active** (`suspended_at IS NULL AND deleted_at IS NULL`),
-   inserts a credential row into `account` with the legacy bcrypt password
-   hash. Suspended and soft-deleted users get an `auth_users` row but **no
-   `account` row**, so they cannot sign in through better-auth.
+2. If the user is not deleted and has a password, inserts a credential row
+   into `account` with the legacy bcrypt password hash. Suspended users keep a
+   credential so they can sign in and see the suspension notice; soft-deleted
+   users get an `auth_users` row but no `account` row.
 
 Both inserts happen in a single per-row transaction and are idempotent: a
 rerun skips users that already have an `auth_users` row.
@@ -37,8 +37,16 @@ NODE_OPTIONS='--import tsx/esm' \
 The script logs a final summary:
 
 ```
-{ inserted, skippedExisting, accountInserted, accountSkippedExisting, accountSkippedInactive, errored }
+{ inserted, skippedExisting, accountInserted, accountSkippedExisting, accountSkippedUnavailable, errored }
 ```
+
+## Staging cutover
+
+The staging API deployment runs the database migrations and this idempotent
+backfill in its Clever Cloud pre-run hook. The frontend deployment waits for
+the API deployment to succeed, so a migration or backfill error prevents the
+new frontend from being exposed. Subsequent runs should report existing rows
+as skipped.
 
 ## Password verification
 

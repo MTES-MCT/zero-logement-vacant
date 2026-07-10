@@ -294,7 +294,7 @@ class DistanceCalculator:
                       LEFT(ba.postal_code, 5) AS geo_code,
                       ba.ban_id
                     FROM ban_addresses ba
-                    WHERE ba.ref_id::text = ANY(%s) AND ba.address_kind = 'Owner'
+                    WHERE ba.ref_id = ANY(%s::uuid[]) AND ba.address_kind = 'Owner'
                     """,
                     (owner_ids,),
                 )
@@ -321,7 +321,7 @@ class DistanceCalculator:
                       ba.ban_id
                     FROM ban_addresses ba
                     LEFT JOIN fast_housing h ON h.id = ba.ref_id
-                    WHERE ba.ref_id::text = ANY(%s) AND ba.address_kind = 'Housing'
+                    WHERE ba.ref_id = ANY(%s::uuid[]) AND ba.address_kind = 'Housing'
                     """,
                     (housing_ids,),
                 )

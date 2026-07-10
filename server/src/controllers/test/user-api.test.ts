@@ -334,17 +334,17 @@ describe('User API', () => {
       });
 
       const authUser = await db('auth_users')
-        .where({ id: body.id, email: prospect.email })
+        .where({ id: body.id, email: prospect.email.toLowerCase() })
         .first();
       expect(authUser).toMatchObject({
-        email: prospect.email,
+        email: prospect.email.toLowerCase(),
         role: 'usual'
       });
 
       const account = await db('account')
         .where({
           user_id: body.id,
-          account_id: prospect.email,
+          account_id: prospect.email.toLowerCase(),
           provider_id: 'credential'
         })
         .first();

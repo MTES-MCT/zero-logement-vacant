@@ -1,6 +1,9 @@
 import { fireEvent, render, screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
-import { genUserDTO } from '@zerologementvacant/models/fixtures';
+import {
+  genEstablishmentDTO,
+  genUserDTO
+} from '@zerologementvacant/models/fixtures';
 import { useContext, useState } from 'react';
 import { Provider } from 'react-redux';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
@@ -41,6 +44,7 @@ function TestConsumer() {
   return (
     <div>
       <span data-testid="loading">{String(auth.isLoading)}</span>
+      <span data-testid="authenticated">{String(auth.isAuthenticated)}</span>
       <span data-testid="user-email">{auth.user?.email ?? 'none'}</span>
       <span data-testid="establishment">
         {auth.establishment?.name ?? 'none'}
@@ -145,7 +149,7 @@ describe('AuthProvider', () => {
     expect(screen.getByTestId('authorized-count')).toHaveTextContent('0');
   });
 
-  it('exposes the user when the session is present', () => {
+  it('invalidates a session without an establishment', async () => {
     useSessionMock.mockReturnValue({
       data: {
         user: { id: 'u1', email: 'agent@zlv.fr' },
@@ -158,10 +162,12 @@ describe('AuthProvider', () => {
 
     setup();
 
+    expect(screen.getByTestId('authenticated')).toHaveTextContent('false');
     expect(screen.getByTestId('user-email')).toHaveTextContent('agent@zlv.fr');
     // No backend hydration yet: establishment stays null even when a session is present.
     expect(screen.getByTestId('establishment')).toHaveTextContent('none');
     expect(screen.getByTestId('authorized-count')).toHaveTextContent('0');
+    await waitFor(() => expect(authClient.signOut).toHaveBeenCalledOnce());
   });
 
   it('reports the loading state from the auth client', () => {
@@ -178,9 +184,11 @@ describe('AuthProvider', () => {
   });
 
   it('does not expose cached API data after the authenticated identity changes', async () => {
+    const establishment = genEstablishmentDTO();
     let session = {
       user: { id: 'user-a', email: 'user-a@zlv.fr' },
-      session: { activeEstablishmentId: null }
+      session: { activeEstablishmentId: establishment.id },
+      establishment
     };
     useSessionMock.mockImplementation(() => ({
       data: session,
@@ -201,7 +209,8 @@ describe('AuthProvider', () => {
     });
     session = {
       user: { id: 'user-b', email: 'user-b@zlv.fr' },
-      session: { activeEstablishmentId: null }
+      session: { activeEstablishmentId: establishment.id },
+      establishment
     };
     view.rerender();
 
@@ -211,10 +220,50 @@ describe('AuthProvider', () => {
     ).not.toBeInTheDocument();
   });
 
+  it('does not expose cached API data after the active establishment changes', async () => {
+    const establishmentA = genEstablishmentDTO();
+    const establishmentB = genEstablishmentDTO();
+    let session = {
+      user: { id: 'user-a', email: 'user-a@zlv.fr' },
+      session: { activeEstablishmentId: establishmentA.id },
+      establishment: establishmentA
+    };
+    useSessionMock.mockImplementation(() => ({
+      data: session,
+      isPending: false,
+      error: null,
+      refetch: vi.fn()
+    }));
+    data.users.push({
+      ...genUserDTO(),
+      email: 'cached-for-establishment-a@zlv.fr'
+    });
+    const view = setup(<CachedUsersConsumer />);
+
+    await screen.findByText('cached-for-establishment-a@zlv.fr');
+    data.users.splice(0, data.users.length, {
+      ...genUserDTO(),
+      email: 'fresh-for-establishment-b@zlv.fr'
+    });
+    session = {
+      user: { id: 'user-a', email: 'user-a@zlv.fr' },
+      session: { activeEstablishmentId: establishmentB.id },
+      establishment: establishmentB
+    };
+    view.rerender();
+
+    await screen.findByText('fresh-for-establishment-b@zlv.fr');
+    expect(
+      screen.queryByText('cached-for-establishment-a@zlv.fr')
+    ).not.toBeInTheDocument();
+  });
+
   it('does not expose cached API data after the authenticated identity disappears', async () => {
+    const establishment = genEstablishmentDTO();
     const signedInSession = {
       user: { id: 'user-a', email: 'user-a@zlv.fr' },
-      session: { activeEstablishmentId: null }
+      session: { activeEstablishmentId: establishment.id },
+      establishment
     };
     let session: typeof signedInSession | null = signedInSession;
     useSessionMock.mockImplementation(() => ({
@@ -289,13 +338,15 @@ describe('AuthProvider', () => {
   });
 
   it('changes establishment through the cookie-backed endpoint and refetches the session', async () => {
+    const establishment = genEstablishmentDTO();
     const refetch = vi.fn();
     const fetchMock = vi.fn().mockResolvedValue({ ok: true });
     vi.stubGlobal('fetch', fetchMock);
     useSessionMock.mockReturnValue({
       data: {
         user: { id: 'u1', email: 'agent@zlv.fr' },
-        session: { activeEstablishmentId: 'establishment-1' }
+        session: { activeEstablishmentId: establishment.id },
+        establishment
       },
       isPending: false,
       error: null,

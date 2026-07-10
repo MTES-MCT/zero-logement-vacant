@@ -57,15 +57,30 @@ export function AuthProvider(props: Readonly<PropsWithChildren>) {
   const { data, isPending, refetch } = authClient.useSession();
 
   const session: SessionDTO | null = data ?? null;
+  const hasSession = session !== null;
   const authenticatedUserId = session?.user.id ?? null;
-  const previousAuthenticatedUserId = useRef(authenticatedUserId);
+  const activeEstablishmentId = session?.session.activeEstablishmentId ?? null;
+  const isAuthenticated = Boolean(
+    session?.user && session.establishment && activeEstablishmentId
+  );
+  const previousAuthenticatedScope = useRef({
+    userId: authenticatedUserId,
+    establishmentId: activeEstablishmentId
+  });
 
   useEffect(() => {
-    if (previousAuthenticatedUserId.current !== authenticatedUserId) {
+    const previousScope = previousAuthenticatedScope.current;
+    if (
+      previousScope.userId !== authenticatedUserId ||
+      previousScope.establishmentId !== activeEstablishmentId
+    ) {
       dispatch(zlvApi.util.resetApiState());
     }
-    previousAuthenticatedUserId.current = authenticatedUserId;
-  }, [authenticatedUserId, dispatch]);
+    previousAuthenticatedScope.current = {
+      userId: authenticatedUserId,
+      establishmentId: activeEstablishmentId
+    };
+  }, [activeEstablishmentId, authenticatedUserId, dispatch]);
 
   const signIn = useCallback(
     async (email: string, password: string) => {
@@ -126,6 +141,15 @@ export function AuthProvider(props: Readonly<PropsWithChildren>) {
     dispatch(zlvApi.util.resetApiState());
   }, [dispatch]);
 
+  useEffect(() => {
+    if (!isPending && hasSession && !isAuthenticated) {
+      // A Better Auth session without its ZLV authorization context cannot be
+      // used by protected API routes. Revoke it so the user returns to a clean
+      // sign-in state instead of being trapped between guest/protected routes.
+      void signOut().catch(() => undefined);
+    }
+  }, [hasSession, isAuthenticated, isPending, signOut]);
+
   const changeEstablishment = useCallback(
     async (establishmentId: string) => {
       // This continues to use the existing Express endpoint until changing an
@@ -152,7 +176,7 @@ export function AuthProvider(props: Readonly<PropsWithChildren>) {
       establishment: session?.establishment ?? null,
       authorizedEstablishments: session?.authorizedEstablishments ?? [],
       effectiveGeoCodes: session?.effectiveGeoCodes,
-      isAuthenticated: session !== null,
+      isAuthenticated,
       isLoading: isPending,
       signIn,
       signInAdmin,
@@ -163,6 +187,7 @@ export function AuthProvider(props: Readonly<PropsWithChildren>) {
     }),
     [
       changeEstablishment,
+      isAuthenticated,
       isPending,
       refetch,
       session,

@@ -28,7 +28,6 @@ sys.path.append(os.path.join(os.path.dirname(__file__), "..", "..", ".."))
 from country_detector import CountryDetector
 
 
-SAME_ADDRESS_THRESHOLD_KM = 0.05
 ACTIVE_OWNER_MIN_RANK = 1
 ZERO_KEY = (None, None, None)
 
@@ -453,8 +452,6 @@ class DistanceCalculator:
         self.stats["france_detected"] += 1
 
         if owner_ban_id and housing_ban_id and owner_ban_id == housing_ban_id:
-            return distance, 0
-        if distance is not None and distance < SAME_ADDRESS_THRESHOLD_KM:
             return distance, 0
 
         if owner_postal and housing_postal:

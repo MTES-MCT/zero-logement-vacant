@@ -158,6 +158,49 @@ describe('Protected router auth (JWT precedence, session fallback)', () => {
     expect(status).toBe(constants.HTTP_STATUS_UNAUTHORIZED);
   });
 
+  it('responds 401 when an active session reaches thirty days old', async () => {
+    const password = 'not-a-real-password';
+    const sessionUser = await seedBackfilledUser(establishment.id, password);
+
+    try {
+      const signIn = await request(url)
+        .post('/auth/sign-in/email')
+        .send({ email: sessionUser.email, password });
+      expect(signIn.status).toBe(constants.HTTP_STATUS_OK);
+
+      const rawCookies = signIn.headers['set-cookie'];
+      const cookies = Array.isArray(rawCookies)
+        ? rawCookies
+        : rawCookies
+          ? [rawCookies]
+          : [];
+      const sessionTokenCookie = cookies
+        .find((cookie) => cookie.includes('zlv.session_token'))
+        ?.split(';')[0];
+      expect(sessionTokenCookie).toBeDefined();
+
+      const now = Date.now();
+      await db('session')
+        .where({ user_id: sessionUser.id })
+        .update({
+          created_at: new Date(now - (30 * 24 * 60 * 60 * 1000 + 60_000)),
+          updated_at: new Date(now),
+          expires_at: new Date(now + 7 * 60 * 60 * 1000)
+        });
+
+      const { status } = await request(url)
+        .get('/account')
+        .set('Cookie', sessionTokenCookie!);
+
+      expect(status).toBe(constants.HTTP_STATUS_UNAUTHORIZED);
+    } finally {
+      await db('session').where({ user_id: sessionUser.id }).delete();
+      await db('account').where({ user_id: sessionUser.id }).delete();
+      await db('auth_users').where({ id: sessionUser.id }).delete();
+      await Users().where('id', sessionUser.id).delete();
+    }
+  });
+
   it('responds 401 when no credentials are provided', async () => {
     const { status } = await request(url).get('/account');
 

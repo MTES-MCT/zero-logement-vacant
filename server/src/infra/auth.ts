@@ -11,6 +11,10 @@ import { zlvAdminTwoFactor } from '~/infra/auth-admin-two-factor';
 import { createPasswordVerifier } from '~/infra/auth-password';
 import config from '~/infra/config';
 import { logger } from '~/infra/logger';
+import {
+  sessionLifetimeUpdateHook,
+  SESSION_IDLE_TIMEOUT_SECONDS
+} from '~/infra/session-policy';
 import { filterGeoCodesByPerimeter } from '~/models/UserPerimeterApi';
 import establishmentRepository from '~/repositories/establishmentRepository';
 import userEstablishmentRepository from '~/repositories/user-establishment-repository';
@@ -45,8 +49,11 @@ const authOptions = {
     type: 'postgres'
   },
   session: {
-    expiresIn: 30 * 24 * 60 * 60,
-    updateAge: 8 * 60 * 60,
+    // Better Auth slides expiresIn whenever updateAge elapses. Refresh on each
+    // authoritative read so expiresIn is an idle window; the 60s cookie cache
+    // below avoids a database write on every frontend refetch.
+    expiresIn: SESSION_IDLE_TIMEOUT_SECONDS,
+    updateAge: 0,
     // Sign the session payload into a short-lived cookie so getSession reads
     // from it instead of hitting the DB on every focus/visibility refetch.
     // 60s is small enough that establishment/perimeter changes surface within
@@ -172,6 +179,10 @@ const authOptions = {
             });
           }
         }
+      },
+      update: {
+        // Keep sliding idle expiry bounded by the original creation time.
+        before: sessionLifetimeUpdateHook
       }
     }
   },
@@ -180,7 +191,10 @@ const authOptions = {
   // same allowlist that drives Express CORS so the two never drift apart.
   trustedOrigins: config.app.allowedOrigins,
   advanced: {
-    cookiePrefix: 'zlv'
+    cookiePrefix: 'zlv',
+    defaultCookieAttributes: {
+      sameSite: 'strict'
+    }
   }
 } satisfies BetterAuthOptions;
 

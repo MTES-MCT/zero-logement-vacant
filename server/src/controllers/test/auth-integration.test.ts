@@ -178,8 +178,40 @@ describe('better-auth sign-in (integration)', () => {
       );
       expect(sessionCookie).toBeDefined();
       expect(sessionCookie).toContain('HttpOnly');
-      // better-auth defaults to SameSite=Lax (not Strict).
-      expect(sessionCookie!.toLowerCase()).toContain('samesite=lax');
+      expect(sessionCookie!.toLowerCase()).toContain('samesite=strict');
+    } finally {
+      await deleteBackfilledUser(user.id);
+    }
+  });
+
+  it('expires a session after eight hours without activity', async () => {
+    const email = 'idle-expiration@zlv.fr';
+    const password = 'not-a-real-password';
+    const user = await seedBackfilledUser({
+      email,
+      plaintextPassword: password,
+      establishmentId: establishment.id
+    });
+
+    try {
+      const signedInAt = Date.now();
+      const signInResponse = await request(url)
+        .post('/auth/sign-in/email')
+        .send({ email, password });
+      expect(signInResponse.status).toBe(200);
+
+      const sessionResponse = await request(url)
+        .get('/auth/get-session')
+        .set('Cookie', getCookies(signInResponse));
+
+      expect(sessionResponse.status).toBe(200);
+      const expiresAt = new Date(
+        sessionResponse.body.session.expiresAt
+      ).getTime();
+      expect(expiresAt).toBeGreaterThanOrEqual(signedInAt + 8 * 60 * 60 * 1000);
+      expect(expiresAt).toBeLessThanOrEqual(
+        signedInAt + 8 * 60 * 60 * 1000 + 5_000
+      );
     } finally {
       await deleteBackfilledUser(user.id);
     }

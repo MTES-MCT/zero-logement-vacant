@@ -34,10 +34,10 @@ export async function signIn(
   const response = await signInResponse;
   if (!response.ok()) {
     throw new Error(
-      `Auth-v2 sign-in failed with ${response.status()}: ${await response.text()}`
+      `Better Auth sign-in failed with ${response.status()}: ${await response.text()}`
     );
   }
-  // Auth-v2 redirects to /parc-de-logements on success.
+  // Better Auth redirects to /parc-de-logements on success.
   await page.waitForURL('**/parc-de-logements');
 }
 

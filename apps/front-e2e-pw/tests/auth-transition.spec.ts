@@ -1,12 +1,7 @@
 import { loadConfig } from '../config';
 import { expect, signIn, test } from '../fixtures/auth';
 
-test.describe('Auth transition hardening (auth-v2)', () => {
-  test.skip(
-    loadConfig().authMode !== 'auth-v2',
-    'Run with E2E_AUTH_MODE=auth-v2 and a frontend with auth-v2'
-  );
-
+test.describe('Better Auth hardening', () => {
   test('does not send a stale legacy JWT while using the cookie-backed session', async ({
     page
   }) => {
@@ -45,7 +40,7 @@ test.describe('Auth transition hardening (auth-v2)', () => {
     const config = loadConfig();
     test.skip(
       config.admin === undefined,
-      'Set CYPRESS_ADMIN_EMAIL/CYPRESS_ADMIN_PASSWORD to exercise admin auth-v2 rejection'
+      'Set CYPRESS_ADMIN_EMAIL/CYPRESS_ADMIN_PASSWORD to exercise Better Auth admin rejection'
     );
 
     const response = await request.post(`${config.api}/auth/sign-in/email`, {

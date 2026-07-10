@@ -12,7 +12,7 @@ import { useAuth } from './useAuth';
  * Compatibility adapter, shaped like the legacy Redux-backed `useUser` so the
  * existing call-sites keep working unchanged.
  *
- * Auth-v2 is mounted at application boot, so this hook sources from the
+ * Better Auth is mounted at application boot, so this hook sources from the
  * cookie-backed {@link useAuth} / better-auth `useSession()` path and projects
  * that shape onto the legacy shape:
  *   1. `AuthRole` string → `UserRole` enum.

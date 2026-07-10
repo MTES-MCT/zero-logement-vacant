@@ -30,7 +30,6 @@ const optionalPassword = z.preprocess(
 
 const schema = z
   .object({
-    E2E_AUTH_MODE: z.enum(['auth-v2', 'legacy']).default('auth-v2'),
     CYPRESS_API: z.url(),
     CYPRESS_BASE_URL: z.url(),
     CYPRESS_EMAIL: z.email(),
@@ -49,7 +48,6 @@ const schema = z
 
     return {
       api: env.CYPRESS_API,
-      authMode: env.E2E_AUTH_MODE,
       baseURL: env.CYPRESS_BASE_URL,
       email: env.CYPRESS_EMAIL,
       password: env.CYPRESS_PASSWORD,

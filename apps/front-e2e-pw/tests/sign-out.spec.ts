@@ -1,12 +1,6 @@
-import { loadConfig } from '../config';
 import { expect, signIn, test } from '../fixtures/auth';
 
-test.describe('Sign-out (auth-v2)', () => {
-  test.skip(
-    loadConfig().authMode !== 'auth-v2',
-    'Run with E2E_AUTH_MODE=auth-v2 and a frontend with auth-v2'
-  );
-
+test.describe('Sign-out', () => {
   test('clears the session cookie and bounces protected routes', async ({
     signedInPage,
     context

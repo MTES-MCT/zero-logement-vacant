@@ -7,11 +7,6 @@ import { expect, signIn, test } from '../fixtures/auth';
  * `useUser.tsx`). Skipped at runtime when the dropdown isn't present.
  */
 test.describe('Change establishment via header switcher', () => {
-  test.skip(
-    loadConfig().authMode !== 'auth-v2',
-    'Run with E2E_AUTH_MODE=auth-v2 and a frontend with auth-v2'
-  );
-
   test('updates the active establishment without a full reload', async ({
     page
   }) => {

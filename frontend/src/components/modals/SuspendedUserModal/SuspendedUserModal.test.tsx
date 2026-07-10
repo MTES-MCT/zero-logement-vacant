@@ -136,7 +136,7 @@ describe('SuspendedUserModal', () => {
     ).toBeInTheDocument();
   });
 
-  it('should render for a suspended user on the auth-v2 cookie session', async () => {
+  it('should render for a suspended user on the Better Auth cookie session', async () => {
     // The suspended state must come from the cookie-backed AuthContext.
     const userDTO = {
       ...genUserDTO(),

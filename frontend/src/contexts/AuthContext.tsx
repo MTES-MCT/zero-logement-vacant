@@ -8,7 +8,6 @@ import { type PropsWithChildren, createContext, useCallback } from 'react';
 import { useAppDispatch } from '~/hooks/useStore';
 import { authClient } from '~/lib/auth-client';
 import { zlvApi } from '~/services/api.service';
-import authenticationSlice from '~/store/reducers/authenticationReducer';
 import config from '~/utils/config';
 
 export interface AuthContextValue {
@@ -103,16 +102,16 @@ export function AuthProvider(props: Readonly<PropsWithChildren>) {
 
   const signOut = useCallback(async () => {
     await authClient.signOut();
+    localStorage.removeItem('authUser');
     dispatch(zlvApi.util.resetApiState());
-    dispatch(authenticationSlice.actions.logOut());
   }, [dispatch]);
 
   const changeEstablishment = useCallback(
     async (establishmentId: string) => {
       // TODO: migrate to a better-auth plugin endpoint
-      // (`authClient.changeEstablishment({ establishmentId })`) once auth-v1
-      // is decommissioned, so this stops bypassing better-auth's typed action
-      // surface. For now we hit the existing Express endpoint at
+      // (`authClient.changeEstablishment({ establishmentId })`) so this stops
+      // bypassing better-auth's typed action surface. For now we hit the
+      // existing Express endpoint at
       // `server/src/controllers/auth-controller.ts:changeEstablishmentBySession`
       // which mutates `session.activeEstablishmentId` on the DB row.
       const response = await fetch(

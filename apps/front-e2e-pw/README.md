@@ -1,6 +1,6 @@
 # front-e2e-pw — Playwright pilot
 
-End-to-end tests for the auth-v2 surface (`better-auth` + customSession +
+End-to-end tests for the Better Auth surface (`better-auth` + customSession +
 AuthContext-driven frontend) using Playwright. Runs alongside the existing
 Cypress suite (`apps/front-e2e/`) as a pilot — if it proves out, we'll plan
 a wider migration from Cypress to Playwright separately.

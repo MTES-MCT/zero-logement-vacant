@@ -4,6 +4,7 @@ import { Provider } from 'react-redux';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
 import { AuthContext, AuthProvider } from '~/contexts/AuthContext';
+import { authClient } from '~/lib/auth-client';
 import configureTestStore from '~/utils/storeUtils';
 
 // Mock the auth-client module: better-auth's session atom is module-level
@@ -45,6 +46,7 @@ function TestConsumer() {
       <button onClick={() => void auth.changeEstablishment('establishment-2')}>
         change establishment
       </button>
+      <button onClick={() => void auth.signOut()}>sign out</button>
       <button
         onClick={() =>
           void auth
@@ -86,7 +88,9 @@ function setup() {
 describe('AuthProvider', () => {
   beforeEach(() => {
     useSessionMock.mockReset();
+    vi.mocked(authClient.signOut).mockClear();
     vi.unstubAllGlobals();
+    localStorage.clear();
   });
 
   it('exposes a null user when the session is absent', () => {
@@ -135,6 +139,27 @@ describe('AuthProvider', () => {
     setup();
 
     expect(screen.getByTestId('loading')).toHaveTextContent('true');
+  });
+
+  it('clears a stale legacy session when signing out', async () => {
+    localStorage.setItem(
+      'authUser',
+      JSON.stringify({ accessToken: 'stale-legacy-jwt' })
+    );
+    useSessionMock.mockReturnValue({
+      data: null,
+      isPending: false,
+      error: null,
+      refetch: vi.fn()
+    });
+
+    setup();
+    fireEvent.click(screen.getByText('sign out'));
+
+    await waitFor(() => {
+      expect(authClient.signOut).toHaveBeenCalledOnce();
+      expect(localStorage.getItem('authUser')).toBeNull();
+    });
   });
 
   it('changes establishment through the cookie-backed endpoint and refetches the session', async () => {

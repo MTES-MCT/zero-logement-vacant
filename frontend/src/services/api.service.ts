@@ -32,17 +32,10 @@ const TAG_TYPE_VALUES = [
 ] as const;
 export type TagType = (typeof TAG_TYPE_VALUES)[number];
 
-export function prepareAuthHeaders(headers: Headers): Headers {
-  return headers;
-}
-
 export const zlvApi = createApi({
   baseQuery: fetchBaseQuery({
     baseUrl: config.apiEndpoint,
     credentials: 'include',
-    // Better Auth uses HttpOnly cookies. Never attach the legacy
-    // `localStorage.authUser` JWT during the cutover.
-    prepareHeaders: prepareAuthHeaders,
     paramsSerializer: (query) =>
       qs.stringify(
         Record.map(query, (value) => {

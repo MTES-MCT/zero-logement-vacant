@@ -22,14 +22,21 @@ interface CheckOptions {
 
 /** Loads the Better Auth session and its current ZLV authorization context. */
 export function sessionCheck(options?: CheckOptions) {
-  return async (request: Request, _: Response, next: NextFunction) => {
+  return async (request: Request, response: Response, next: NextFunction) => {
     const testAuthentication = readTestAuthentication(request);
-    const session = testAuthentication
+    const sessionResult = testAuthentication
       ? null
       : await auth.api.getSession({
-          headers: fromNodeHeaders(request.headers)
+          headers: fromNodeHeaders(request.headers),
+          returnHeaders: true
         });
-    const sessionData = testAuthentication ?? session?.session;
+    // getSession slides the idle expiry and may refresh Better Auth's cookie
+    // cache. Forward every cookie so the browser and database expirations stay
+    // aligned during continuous protected activity.
+    sessionResult?.headers.getSetCookie().forEach((cookie) => {
+      response.append('Set-Cookie', cookie);
+    });
+    const sessionData = testAuthentication ?? sessionResult?.response?.session;
 
     if (!sessionData) {
       if (options?.required ?? true) {

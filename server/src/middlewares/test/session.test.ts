@@ -62,7 +62,10 @@ describe('sessionCheck', () => {
   });
 
   it('responds 401 when no session and required is true (default)', async () => {
-    mockGetSession.mockResolvedValue(null as any);
+    mockGetSession.mockResolvedValue({
+      headers: new Headers(),
+      response: null
+    } as any);
 
     const { status } = await request(buildApp(sessionCheck())).get('/probe');
 
@@ -70,7 +73,10 @@ describe('sessionCheck', () => {
   });
 
   it('responds 200 with null user when no session and required is false', async () => {
-    mockGetSession.mockResolvedValue(null as any);
+    mockGetSession.mockResolvedValue({
+      headers: new Headers(),
+      response: null
+    } as any);
 
     const response = await request(
       buildApp(sessionCheck({ required: false }))
@@ -84,8 +90,11 @@ describe('sessionCheck', () => {
     const establishment = genEstablishmentApi();
     const user = { ...genUserApi(establishment.id), role: UserRole.USUAL };
     mockGetSession.mockResolvedValue({
-      user: { id: user.id },
-      session: { userId: user.id, activeEstablishmentId: establishment.id }
+      headers: new Headers(),
+      response: {
+        user: { id: user.id },
+        session: { userId: user.id, activeEstablishmentId: establishment.id }
+      }
     } as any);
     mockUserGet.mockResolvedValue(user);
     mockEstablishmentGet.mockResolvedValue(establishment);
@@ -98,12 +107,49 @@ describe('sessionCheck', () => {
     expect(response.body.establishmentId).toBe(establishment.id);
   });
 
+  it('forwards renewed browser expiry and every refreshed cookie', async () => {
+    const establishment = genEstablishmentApi();
+    const user = { ...genUserApi(establishment.id), role: UserRole.USUAL };
+    const headers = new Headers();
+    const sessionCookie =
+      'zlv.session_token=refreshed; Max-Age=28800; Expires=Thu, 01 Jan 2026 16:00:00 GMT; Path=/; HttpOnly; SameSite=Strict';
+    const cacheCookie =
+      'zlv.session_data=refreshed-cache; Max-Age=60; Path=/; HttpOnly; SameSite=Strict';
+    headers.append('set-cookie', sessionCookie);
+    headers.append('set-cookie', cacheCookie);
+    mockGetSession.mockResolvedValue({
+      headers,
+      response: {
+        user: { id: user.id },
+        session: { userId: user.id, activeEstablishmentId: establishment.id }
+      }
+    } as any);
+    mockUserGet.mockResolvedValue(user);
+    mockEstablishmentGet.mockResolvedValue(establishment);
+    mockUserPerimeterGet.mockResolvedValue(null);
+
+    const response = await request(buildApp(sessionCheck())).get('/probe');
+
+    expect(response.status).toBe(constants.HTTP_STATUS_OK);
+    expect(response.headers['set-cookie']).toEqual([
+      sessionCookie,
+      cacheCookie
+    ]);
+    expect(response.headers['set-cookie'][0]).toContain('Max-Age=28800');
+    expect(mockGetSession).toHaveBeenCalledWith(
+      expect.objectContaining({ returnHeaders: true })
+    );
+  });
+
   it('reads the user fresh on every request (no stale caching)', async () => {
     const establishment = genEstablishmentApi();
     const user = { ...genUserApi(establishment.id), role: UserRole.USUAL };
     mockGetSession.mockResolvedValue({
-      user: { id: user.id },
-      session: { userId: user.id, activeEstablishmentId: establishment.id }
+      headers: new Headers(),
+      response: {
+        user: { id: user.id },
+        session: { userId: user.id, activeEstablishmentId: establishment.id }
+      }
     } as any);
     mockEstablishmentGet.mockResolvedValue(establishment);
     mockUserPerimeterGet.mockResolvedValue(null);

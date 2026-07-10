@@ -391,8 +391,8 @@ class TestProcessSinglePair:
 
         assert classification == 0
 
-    def test_short_distance_returns_same_address(self, calculator):
-        """Distance below 50 meters should return app classification 0."""
+    def test_short_distance_with_distinct_ban_ids_uses_geographic_rules(self, calculator):
+        """Nearby coordinates are not enough to classify two addresses as identical."""
         address_cache = {
             ('owner123', 'Owner'): ('75001', '123 Rue de Rivoli', 48.8566, 2.3522, '75001', 'owner-ban'),
             ('housing456', 'Housing'): ('75001', '125 Rue de Rivoli', 48.8567, 2.3523, '75001', 'housing-ban')
@@ -400,7 +400,7 @@ class TestProcessSinglePair:
 
         _, classification = calculator.process_single_pair('owner123', 'housing456', address_cache)
 
-        assert classification == 0
+        assert classification == 1
 
 
 class TestBatchAddressData:

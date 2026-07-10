@@ -1,13 +1,13 @@
 import fetchIntercept from 'fetch-intercept';
-import { useEffect } from 'react';
+import { useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router';
 
-import { logOut } from '../store/actions/authenticationAction';
-import { useAppDispatch } from './useStore';
+import { useAuth } from '~/hooks/useAuth';
 
 export function useFetchInterceptor() {
-  const dispatch = useAppDispatch();
+  const { signOut } = useAuth();
   const navigate = useNavigate();
+  const signOutPromise = useRef<Promise<void> | null>(null);
 
   useEffect(() => {
     return fetchIntercept.register({
@@ -21,8 +21,12 @@ export function useFetchInterceptor() {
 
       response: function (response) {
         if (response.status === 401) {
-          dispatch(logOut());
-          navigate('/connexion');
+          signOutPromise.current ??= signOut().finally(() => {
+            signOutPromise.current = null;
+          });
+          void signOutPromise.current
+            .then(() => navigate('/connexion'))
+            .catch(() => undefined);
         }
         return response;
       },
@@ -31,5 +35,5 @@ export function useFetchInterceptor() {
         return Promise.reject(error);
       }
     });
-  }, [dispatch, navigate]);
+  }, [navigate, signOut]);
 }

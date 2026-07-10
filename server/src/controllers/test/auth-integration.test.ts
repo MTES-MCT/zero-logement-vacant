@@ -68,6 +68,7 @@ import {
   Establishments,
   formatEstablishmentApi
 } from '~/repositories/establishmentRepository';
+import { UsersEstablishments } from '~/repositories/user-establishment-repository';
 import { toUserDBO, Users } from '~/repositories/userRepository';
 import { genEstablishmentApi, genUserApi } from '~/test/testFixtures';
 
@@ -569,6 +570,125 @@ describe('better-auth sign-in (integration)', () => {
         email,
         suspendedAt,
         suspendedCause: 'droits utilisateur expires'
+      });
+    } finally {
+      await deleteBackfilledUser(user.id);
+    }
+  });
+
+  it('rejects direct establishment changes while allowing the authorized account endpoint', async () => {
+    const email = 'protected-establishment-switch@zlv.fr';
+    const password = 'not-a-real-password';
+    const targetEstablishment = genEstablishmentApi();
+    const user = await seedBackfilledUser({
+      email,
+      plaintextPassword: password,
+      establishmentId: establishment.id
+    });
+
+    await Establishments().insert(formatEstablishmentApi(targetEstablishment));
+    await UsersEstablishments().insert({
+      user_id: user.id,
+      establishment_id: targetEstablishment.id,
+      establishment_siren: targetEstablishment.siren,
+      has_commitment: true,
+      created_at: new Date(),
+      updated_at: new Date()
+    });
+
+    try {
+      const signInResponse = await request(url)
+        .post('/auth/sign-in/email')
+        .send({ email, password });
+      expect(signInResponse.status).toBe(200);
+      const cookies = getCookies(signInResponse);
+
+      const directUpdateResponse = await request(url)
+        .post('/auth/update-session')
+        .set('Cookie', cookies)
+        .send({ activeEstablishmentId: targetEstablishment.id });
+
+      expect(directUpdateResponse.status).toBeGreaterThanOrEqual(400);
+      const unchangedSession = await db('session')
+        .where({ user_id: user.id })
+        .first();
+      expect(unchangedSession.active_establishment_id).toBe(establishment.id);
+
+      const authorizedUpdateResponse = await request(url)
+        .post(`/account/establishments/${targetEstablishment.id}`)
+        .set('Cookie', cookies);
+
+      expect(authorizedUpdateResponse.status).toBe(200);
+      const updatedSession = await db('session')
+        .where({ user_id: user.id })
+        .first();
+      expect(updatedSession.active_establishment_id).toBe(
+        targetEstablishment.id
+      );
+    } finally {
+      await UsersEstablishments().where({ user_id: user.id }).delete();
+      await Establishments().where('id', targetEstablishment.id).delete();
+      await deleteBackfilledUser(user.id);
+    }
+  });
+
+  it('rejects updates to server-managed user fields', async () => {
+    const email = 'protected-user-fields@zlv.fr';
+    const password = 'not-a-real-password';
+    const suspendedAt = new Date('2026-01-02T03:04:05.000Z').toJSON();
+    const user = await seedBackfilledUser({
+      email,
+      plaintextPassword: password,
+      establishmentId: establishment.id,
+      suspendedAt,
+      suspendedCause: 'droits utilisateur expires'
+    });
+
+    try {
+      const signInResponse = await request(url)
+        .post('/auth/sign-in/email')
+        .send({ email, password });
+      expect(signInResponse.status).toBe(200);
+      const cookies = getCookies(signInResponse);
+      const beforeUpdate = await db(AUTH_USERS_TABLE)
+        .where({ id: user.id })
+        .first();
+
+      const updateResponse = await request(url)
+        .post('/auth/update-user')
+        .set('Cookie', cookies)
+        .send({
+          suspendedAt: null,
+          suspendedCause: null
+        });
+
+      expect(updateResponse.status).toBeGreaterThanOrEqual(400);
+      const protectedFieldResponses = await Promise.all(
+        [
+          { kind: 'attacker-controlled' },
+          { activatedAt: '2026-02-03T04:05:06.000Z' },
+          { lastAuthenticatedAt: '2026-02-03T04:05:06.000Z' },
+          { deletedAt: '2026-02-03T04:05:06.000Z' }
+        ].map((body) =>
+          request(url)
+            .post('/auth/update-user')
+            .set('Cookie', cookies)
+            .send(body)
+        )
+      );
+      expect(
+        protectedFieldResponses.every((response) => response.status >= 400)
+      ).toBeTrue();
+      const afterUpdate = await db(AUTH_USERS_TABLE)
+        .where({ id: user.id })
+        .first();
+      expect(afterUpdate).toMatchObject({
+        kind: beforeUpdate.kind,
+        activated_at: beforeUpdate.activated_at,
+        last_authenticated_at: beforeUpdate.last_authenticated_at,
+        suspended_at: beforeUpdate.suspended_at,
+        suspended_cause: beforeUpdate.suspended_cause,
+        deleted_at: beforeUpdate.deleted_at
       });
     } finally {
       await deleteBackfilledUser(user.id);

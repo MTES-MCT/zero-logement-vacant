@@ -85,12 +85,12 @@ const authOptions = {
       phone: { type: 'string', required: false },
       position: { type: 'string', required: false },
       timePerWeek: { type: 'string', required: false },
-      kind: { type: 'string', required: false },
-      activatedAt: { type: 'date', required: false },
-      lastAuthenticatedAt: { type: 'date', required: false },
-      suspendedAt: { type: 'date', required: false },
-      suspendedCause: { type: 'string', required: false },
-      deletedAt: { type: 'date', required: false }
+      kind: { type: 'string', required: false, input: false },
+      activatedAt: { type: 'date', required: false, input: false },
+      lastAuthenticatedAt: { type: 'date', required: false, input: false },
+      suspendedAt: { type: 'date', required: false, input: false },
+      suspendedCause: { type: 'string', required: false, input: false },
+      deletedAt: { type: 'date', required: false, input: false }
     }
   },
   emailAndPassword: {
@@ -190,6 +190,10 @@ const authOptions = {
   // list, which must therefore include the real frontend origin(s). Reuse the
   // same allowlist that drives Express CORS so the two never drift apart.
   trustedOrigins: config.app.allowedOrigins,
+  // Establishment changes must go through the checked account controller.
+  // disabledPaths applies to the HTTP router only, so the controller can still
+  // call auth.api.updateSession after validating the user's authorization.
+  disabledPaths: ['/update-session'],
   advanced: {
     cookiePrefix: 'zlv',
     defaultCookieAttributes: {

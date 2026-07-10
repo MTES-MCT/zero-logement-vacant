@@ -103,9 +103,9 @@ groups by target `(status, sub_status)` and `updateMany`; writes admin
 `housing:status-updated` + `housing:occupancy-updated` events for the lovac-exit rows (`exit`); deletes the bug
 events (`delete_event_id`). Atomic — any failure rolls the whole run back.
 
-> **Run once.** Events get fresh UUIDs each run, so re-running duplicates them. A
-> failed run rolls back cleanly and is safe to re-run; a successful run must not be
-> repeated.
+> **Idempotent.** Exit events use deterministic `uuidv5` ids (`onConflict.ignore`),
+> updates set absolute values, and deletes are no-ops when already gone — so a failed
+> run rolls back cleanly and re-running a successful run is safe.
 >
 > **Don't apply a stale plan.** `apply` overwrites from `plan.jsonl` without
 > re-checking the DB — re-`generate` immediately before applying, and run off-peak

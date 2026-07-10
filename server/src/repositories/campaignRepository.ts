@@ -4,10 +4,7 @@ import type { Insertable } from 'kysely';
 
 import db from '~/infra/database';
 import type { DB } from '~/infra/database/db';
-import {
-  runWithinKyselyTransaction,
-  withinKyselyTransaction
-} from '~/infra/database/kysely-transaction';
+import { withinKyselyTransaction } from '~/infra/database/kysely-transaction';
 import { logger } from '~/infra/logger';
 import { CampaignApi, CampaignSortApi } from '~/models/CampaignApi';
 import { CampaignFiltersApi } from '~/models/CampaignFiltersApi';
@@ -195,12 +192,7 @@ const update = async (campaignApi: CampaignApi): Promise<string> => {
 async function remove(id: string): Promise<void> {
   logger.debug('Removing campaign...', { id });
   await withinKyselyTransaction(async (trx) => {
-    // Seed the ambient transaction so removeCampaignEvents joins this trx
-    // instead of opening its own — otherwise the two deletes are not atomic
-    // (same wiring startTransaction uses to make repos share one unit).
-    await runWithinKyselyTransaction(trx, () =>
-      eventRepository.removeCampaignEvents(id)
-    );
+    await eventRepository.removeCampaignEvents(id);
     await trx.deleteFrom('campaigns').where('id', '=', id).execute();
   });
   logger.debug('Campaign removed', { id });

@@ -8,6 +8,7 @@ import { Pool } from 'pg';
 
 import UserMissingError from '~/errors/userMissingError';
 import { zlvAdminTwoFactor } from '~/infra/auth-admin-two-factor';
+import { getAuthCookieAttributes } from '~/infra/auth-cookie';
 import { createPasswordVerifier } from '~/infra/auth-password';
 import config from '~/infra/config';
 import { logger } from '~/infra/logger';
@@ -196,9 +197,7 @@ const authOptions = {
   disabledPaths: ['/update-session'],
   advanced: {
     cookiePrefix: 'zlv',
-    defaultCookieAttributes: {
-      sameSite: 'strict'
-    }
+    defaultCookieAttributes: getAuthCookieAttributes(config.app.isReviewApp)
   }
 } satisfies BetterAuthOptions;
 

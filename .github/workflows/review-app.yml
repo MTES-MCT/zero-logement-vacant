@@ -342,6 +342,7 @@ jobs:
           clever env set DATABASE_URL "$POSTGRES_URI" -a $APP_ALIAS
           clever env set HOST "https://$APP_ALIAS.cleverapps.io" -a $APP_ALIAS
           clever env set ALLOWED_ORIGINS "https://$PR_NAME-front.cleverapps.io" -a $APP_ALIAS
+          clever env set IS_REVIEW_APP "true" -a $APP_ALIAS
           clever env set S3_ACCESS_KEY_ID "$CELLAR_ADDON_KEY_ID" -a $APP_ALIAS
           clever env set S3_BUCKET "zerologementvacant-pr" -a $APP_ALIAS
           clever env set S3_ENDPOINT "https://$CELLAR_ADDON_HOST" -a $APP_ALIAS
@@ -444,8 +445,10 @@ jobs:
       - name: Link app
         run: clever link -o $CLEVER_ORG $APP_ALIAS
 
-      - name: Set frontend origin
-        run: clever env set ALLOWED_ORIGINS "https://$PR_NAME-front.cleverapps.io" -a $APP_ALIAS
+      - name: Configure review app authentication
+        run: |
+          clever env set ALLOWED_ORIGINS "https://$PR_NAME-front.cleverapps.io" -a $APP_ALIAS
+          clever env set IS_REVIEW_APP "true" -a $APP_ALIAS
 
       - name: Update the app
         run: clever deploy --force -a $APP_ALIAS --same-commit-policy rebuild

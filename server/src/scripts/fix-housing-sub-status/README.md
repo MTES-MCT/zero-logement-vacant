@@ -75,13 +75,35 @@ SELECT reason, count(*) FROM read_json_auto('errors.jsonl') GROUP BY reason;
 
 ## 3. Apply the plan
 
+Dry-run first (reads the plan + admin user, logs the counts, writes nothing):
+
+```bash
+yarn workspace @zerologementvacant/server tsx \
+  src/scripts/fix-housing-sub-status/index.ts apply --dry-run
+```
+
+Then apply for real:
+
 ```bash
 yarn workspace @zerologementvacant/server tsx \
   src/scripts/fix-housing-sub-status/index.ts apply
 ```
 
-Reads `plan.jsonl`, groups by target `(status, sub_status)`, and updates in a single
-transaction. No audit events are written.
+Reads `plan.jsonl` and, in a **single transaction** (each statement chunked at 1,000):
+groups by target `(status, sub_status)` and `updateMany`; writes admin
+`housing:status-updated` events for the overrides (`write_event`); deletes the bug
+events (`delete_event_id`). Atomic — any failure rolls the whole run back.
 
-> **Note:** `apply` overwrites rows from `plan.jsonl` without re-checking current DB
-> state. Re-generate and apply promptly — do not apply a stale plan.
+> **Run once.** Events get fresh UUIDs each run, so re-running duplicates them. A
+> failed run rolls back cleanly and is safe to re-run; a successful run must not be
+> repeated.
+>
+> **Don't apply a stale plan.** `apply` overwrites from `plan.jsonl` without
+> re-checking the DB — re-`generate` immediately before applying, and run off-peak
+> (it locks ~17k rows for the transaction's duration).
+
+## 4. Verify (before / after)
+
+Run `verify.sql` before and after `apply` and compare (coverage, status shift, event
+count). The definitive coverage check is to re-run `generate` after `apply` — it
+should report ~0 housings to repair.

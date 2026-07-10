@@ -13,11 +13,11 @@ async function run(): Promise<void> {
       await generate();
       break;
     case 'apply':
-      await apply();
+      await apply({ dryRun: process.argv.includes('--dry-run') });
       break;
     default:
       logger.error(
-        `Unknown mode "${mode ?? ''}". Usage: index.ts <generate|apply>`
+        `Unknown mode "${mode ?? ''}". Usage: index.ts <generate|apply [--dry-run]>`
       );
       process.exitCode = 1;
   }

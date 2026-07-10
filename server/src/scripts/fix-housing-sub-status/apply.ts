@@ -36,7 +36,7 @@ function readPlan(planPath: string): PlanRow[] {
     .map((line) => JSON.parse(line) as PlanRow);
 }
 
-export async function apply(): Promise<void> {
+export async function apply(options: { dryRun?: boolean } = {}): Promise<void> {
   const planPath = path.join(import.meta.dirname, 'plan.jsonl');
   const rows = readPlan(planPath);
 
@@ -71,9 +71,15 @@ export async function apply(): Promise<void> {
 
   const groups = groupByTarget(rows);
   logger.info(
-    `Applying ${rows.length} update(s) across ${groups.length} group(s); ` +
+    `${options.dryRun ? '[dry-run] Would apply' : 'Applying'} ${rows.length} ` +
+      `update(s) across ${groups.length} group(s); ` +
       `writing ${events.length} event(s); deleting ${deleteEventIds.length} event(s)...`
   );
+
+  if (options.dryRun) {
+    logger.info('Dry run — no changes written.');
+    return;
+  }
 
   await startTransaction(async () => {
     for (const group of groups) {

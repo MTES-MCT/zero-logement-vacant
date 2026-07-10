@@ -159,15 +159,6 @@ describe('Account controller', () => {
       const otherEstablishment = genEstablishmentApi();
       await Users().insert(toUserDBO(usualUser));
       await Establishments().insert(formatEstablishmentApi(otherEstablishment));
-      mockGetSession.mockResolvedValue({
-        user: { id: usualUser.id },
-        session: {
-          id: 'session-forbidden',
-          userId: usualUser.id,
-          activeEstablishmentId: establishment.id
-        }
-      } as any);
-
       try {
         const { status } = await request(url)
           .post(`/account/establishments/${otherEstablishment.id}`)
@@ -179,53 +170,6 @@ describe('Account controller', () => {
       } finally {
         await Establishments().where('id', otherEstablishment.id).delete();
         await Users().where('id', usualUser.id).delete();
-      }
-    });
-
-    it('rejects a switch when the request user differs from the session user', async () => {
-      const requestUser: UserApi = {
-        ...genUserApi(establishment.id),
-        role: UserRole.USUAL
-      };
-      const sessionUser: UserApi = {
-        ...genUserApi(establishment.id),
-        role: UserRole.USUAL
-      };
-      const targetEstablishment = genEstablishmentApi();
-      await Users().insert([requestUser, sessionUser].map(toUserDBO));
-      await Establishments().insert(
-        formatEstablishmentApi(targetEstablishment)
-      );
-      const now = new Date();
-      await UsersEstablishments().insert({
-        user_id: requestUser.id,
-        establishment_id: targetEstablishment.id,
-        establishment_siren: targetEstablishment.siren,
-        has_commitment: true,
-        created_at: now,
-        updated_at: now
-      });
-      mockGetSession.mockResolvedValue({
-        user: { id: sessionUser.id },
-        session: {
-          id: 'session-mismatch',
-          userId: sessionUser.id,
-          activeEstablishmentId: establishment.id
-        }
-      } as any);
-
-      try {
-        const { status } = await request(url)
-          .post(`/account/establishments/${targetEstablishment.id}`)
-          .set('Cookie', 'zlv.session_token=fake')
-          .use(tokenProvider(requestUser));
-
-        expect(status).toBe(constants.HTTP_STATUS_FORBIDDEN);
-        expect(mockUpdateSession).not.toHaveBeenCalled();
-      } finally {
-        await UsersEstablishments().where({ user_id: requestUser.id }).delete();
-        await Establishments().where('id', targetEstablishment.id).delete();
-        await Users().whereIn('id', [requestUser.id, sessionUser.id]).delete();
       }
     });
 
@@ -248,14 +192,6 @@ describe('Account controller', () => {
         updated_at: new Date()
       });
 
-      mockGetSession.mockResolvedValue({
-        user: { id: usualUser.id },
-        session: {
-          id: 'session-id',
-          userId: usualUser.id,
-          activeEstablishmentId: establishment.id
-        }
-      } as any);
       const headers = new Headers();
       headers.append(
         'set-cookie',
@@ -277,6 +213,7 @@ describe('Account controller', () => {
           establishment: { id: targetEstablishment.id }
         });
         expect(response.body).not.toHaveProperty('accessToken');
+        expect(mockGetSession).not.toHaveBeenCalled();
         expect(mockUpdateSession).toHaveBeenCalledWith(
           expect.objectContaining({
             body: { activeEstablishmentId: targetEstablishment.id },
@@ -300,14 +237,6 @@ describe('Account controller', () => {
       await Establishments().insert(
         formatEstablishmentApi(targetEstablishment)
       );
-      mockGetSession.mockResolvedValue({
-        user: { id: adminUser.id },
-        session: {
-          id: 'session-admin',
-          userId: adminUser.id,
-          activeEstablishmentId: establishment.id
-        }
-      } as any);
       const headers = new Headers();
       headers.append(
         'set-cookie',

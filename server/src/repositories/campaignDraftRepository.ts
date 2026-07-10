@@ -1,7 +1,7 @@
 import { Knex } from 'knex';
 
 import db from '~/infra/database';
-import { withinTransaction } from '~/infra/database/transaction';
+import { withinKyselyTransaction } from '~/infra/database/kysely-transaction';
 import { CampaignApi } from '~/models/CampaignApi';
 import { DraftApi } from '~/models/DraftApi';
 
@@ -10,14 +10,15 @@ export const CampaignsDrafts = (transaction: Knex<CampaignDraftDBO> = db) =>
   transaction(campaignsDraftsTable);
 
 async function save(campaign: CampaignApi, draft: DraftApi): Promise<void> {
-  await withinTransaction(async (transaction) => {
-    await CampaignsDrafts(transaction)
-      .insert({
-        campaign_id: campaign.id,
-        draft_id: draft.id
+  await withinKyselyTransaction(async (trx) => {
+    await trx
+      .insertInto('campaignsDrafts')
+      .values({
+        campaignId: campaign.id,
+        draftId: draft.id
       })
-      .onConflict(['campaign_id', 'draft_id'])
-      .ignore();
+      .onConflict((oc) => oc.columns(['campaignId', 'draftId']).doNothing())
+      .execute();
   });
 }
 

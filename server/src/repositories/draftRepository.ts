@@ -1,10 +1,12 @@
 import { FileUploadDTO } from '@zerologementvacant/models';
 import async from 'async';
 import { Knex } from 'knex';
+import type { Insertable } from 'kysely';
 
 import { download } from '~/controllers/fileRepository';
 import db from '~/infra/database';
-import { withinTransaction } from '~/infra/database/transaction';
+import type { DB } from '~/infra/database/db';
+import { withinKyselyTransaction } from '~/infra/database/kysely-transaction';
 import { createLogger } from '~/infra/logger';
 import { DraftApi } from '~/models/DraftApi';
 import { campaignsDraftsTable } from '~/repositories/campaignDraftRepository';
@@ -67,23 +69,43 @@ async function findOne(opts: FindOneOptions): Promise<DraftApi | null> {
 
 async function save(draft: DraftApi): Promise<void> {
   logger.debug('Saving draft...', draft);
-  await withinTransaction(async (transaction) => {
-    await Drafts(transaction)
-      .insert(formatDraftApi(draft))
-      .onConflict('id')
-      .merge([
-        'subject',
-        'body',
-        'logo',
-        'logo_next_one',
-        'logo_next_two',
-        'written_at',
-        'written_from',
-        'updated_at',
-        'sender_id'
-      ]);
+  await withinKyselyTransaction(async (trx) => {
+    await trx
+      .insertInto('drafts')
+      .values(toDraftInsert(draft))
+      .onConflict((oc) =>
+        oc.column('id').doUpdateSet((eb) => ({
+          subject: eb.ref('excluded.subject'),
+          body: eb.ref('excluded.body'),
+          logo: eb.ref('excluded.logo'),
+          logoNextOne: eb.ref('excluded.logoNextOne'),
+          logoNextTwo: eb.ref('excluded.logoNextTwo'),
+          writtenAt: eb.ref('excluded.writtenAt'),
+          writtenFrom: eb.ref('excluded.writtenFrom'),
+          updatedAt: eb.ref('excluded.updatedAt'),
+          senderId: eb.ref('excluded.senderId')
+        }))
+      )
+      .execute();
   });
   logger.debug('Saved draft', draft);
+}
+
+function toDraftInsert(draft: DraftApi): Insertable<DB['drafts']> {
+  return {
+    id: draft.id,
+    subject: draft.subject,
+    body: draft.body,
+    logo: draft.logo?.map((logo) => logo.id) ?? null,
+    logoNextOne: draft.logoNext?.[0]?.id ?? null,
+    logoNextTwo: draft.logoNext?.[1]?.id ?? null,
+    writtenAt: draft.writtenAt,
+    writtenFrom: draft.writtenFrom,
+    establishmentId: draft.establishmentId,
+    senderId: draft.senderId,
+    createdAt: new Date(draft.createdAt),
+    updatedAt: new Date(draft.updatedAt)
+  };
 }
 
 function listQuery(query: Knex.QueryBuilder): void {

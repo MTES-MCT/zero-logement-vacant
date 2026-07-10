@@ -119,7 +119,10 @@ describe('login view', () => {
     });
 
     await user.type(screen.getByLabelText(/^Adresse e-mail/), 'agent@zlv.fr');
-    await user.type(screen.getByLabelText(/^Mot de passe/), 'not-a-real-password');
+    await user.type(
+      screen.getByLabelText(/^Mot de passe/),
+      'not-a-real-password'
+    );
 
     const logIn = screen.getByRole('button', { name: /^Se connecter/ });
     await user.dblClick(logIn);

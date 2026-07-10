@@ -336,8 +336,8 @@ jobs:
       - name: Set environment variables
         run: |
           if [ "${{ github.event.inputs.iso_prod }}" == "true" ]; then
-            echo "🔧 Iso prod mode: CC_PRE_RUN_HOOK without seed"
-            clever env set CC_PRE_RUN_HOOK "yarn nx migrate server" -a $APP_ALIAS
+            echo "🔧 Iso prod mode: migrate and backfill without seed"
+            clever env set CC_PRE_RUN_HOOK "yarn workspace @zerologementvacant/server migrate && NODE_OPTIONS='--import tsx/esm' yarn workspace @zerologementvacant/server node src/scripts/backfill-auth-users/index.ts" -a $APP_ALIAS
           fi
           clever env set DATABASE_URL "$POSTGRES_URI" -a $APP_ALIAS
           clever env set HOST "https://$APP_ALIAS.cleverapps.io" -a $APP_ALIAS

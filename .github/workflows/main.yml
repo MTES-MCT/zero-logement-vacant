@@ -112,16 +112,6 @@ jobs:
       - name: Knip
         run: yarn knip
 
-  deploy-front-staging:
-    uses: ./.github/workflows/deploy.yml
-    needs: [build]
-    with:
-      app: Front staging
-      alias: front-staging
-      branch: main
-      environment: Staging
-    secrets: inherit
-
   deploy-api-staging:
     uses: ./.github/workflows/deploy.yml
     needs: [build]
@@ -129,4 +119,17 @@ jobs:
       app: API staging
       alias: api-staging
       branch: main
+      pre_run_hook: >-
+        yarn workspace @zerologementvacant/server migrate &&
+        NODE_OPTIONS='--import tsx/esm' yarn workspace @zerologementvacant/server node src/scripts/backfill-auth-users/index.ts
+    secrets: inherit
+
+  deploy-front-staging:
+    uses: ./.github/workflows/deploy.yml
+    needs: [build, deploy-api-staging]
+    with:
+      app: Front staging
+      alias: front-staging
+      branch: main
+      environment: Staging
     secrets: inherit

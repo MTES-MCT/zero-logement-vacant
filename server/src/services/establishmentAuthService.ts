@@ -1,14 +1,235 @@
 import { logger } from '~/infra/logger';
+import type { EstablishmentApi } from '~/models/EstablishmentApi';
 import { UserApi } from '~/models/UserApi';
 import establishmentRepository from '~/repositories/establishmentRepository';
 import userEstablishmentRepository from '~/repositories/user-establishment-repository';
 import userPerimeterRepository from '~/repositories/userPerimeterRepository';
 import userRepository from '~/repositories/userRepository';
 import ceremaService from '~/services/ceremaService';
+import type { CeremaUser } from '~/services/ceremaService/consultUserService';
 import {
   verifyAccessRights,
-  accessErrorsToSuspensionCause
+  accessErrorsToSuspensionCause,
+  type AccessRightsError
 } from '~/services/ceremaService/perimeterService';
+
+interface AuthorizedEstablishment {
+  establishmentId: string;
+  establishmentSiren: string;
+  hasCommitment: boolean;
+}
+
+interface AuthorizationResult {
+  authorizedEstablishments: AuthorizedEstablishment[];
+  accessErrors: AccessRightsError[];
+}
+
+function findCeremaUser(
+  ceremaUsers: ReadonlyArray<CeremaUser>,
+  establishmentSiren: string
+): CeremaUser | undefined {
+  return ceremaUsers.find(
+    (ceremaUser) =>
+      ceremaUser.establishmentSiren === establishmentSiren ||
+      ceremaUser.establishmentSiren === '*'
+  );
+}
+
+async function authorizeEstablishments(
+  user: UserApi,
+  knownEstablishments: ReadonlyArray<EstablishmentApi>,
+  ceremaUsers: ReadonlyArray<CeremaUser>
+): Promise<AuthorizationResult> {
+  const authorizedEstablishments: AuthorizedEstablishment[] = [];
+  const accessErrors: AccessRightsError[] = [];
+
+  for (const establishment of knownEstablishments) {
+    const ceremaUser = findCeremaUser(ceremaUsers, establishment.siren);
+    if (!ceremaUser) {
+      continue;
+    }
+
+    const accessRights = await verifyAccessRights(
+      ceremaUser,
+      establishment.geoCodes,
+      establishment.siren
+    );
+    if (accessRights.isValid) {
+      authorizedEstablishments.push({
+        establishmentId: establishment.id,
+        establishmentSiren: establishment.siren,
+        hasCommitment: ceremaUser.hasCommitment
+      });
+      continue;
+    }
+
+    logger.warn(
+      'Access rights verification failed for establishment at login',
+      {
+        userId: user.id,
+        email: user.email,
+        establishmentId: establishment.id,
+        establishmentSiren: establishment.siren,
+        errors: accessRights.errors
+      }
+    );
+    accessErrors.push(...accessRights.errors);
+  }
+
+  return { authorizedEstablishments, accessErrors };
+}
+
+async function suspendIfCurrentEstablishmentLostAccess(
+  user: UserApi,
+  authorizedEstablishments: AuthorizedEstablishment[],
+  accessErrors: AccessRightsError[]
+): Promise<void> {
+  const currentEstablishmentStillValid = authorizedEstablishments.some(
+    (establishment) => establishment.establishmentId === user.establishmentId
+  );
+  if (
+    !user.establishmentId ||
+    currentEstablishmentStillValid ||
+    accessErrors.length === 0
+  ) {
+    return;
+  }
+
+  const suspensionCause = accessErrorsToSuspensionCause([
+    ...new Set(accessErrors)
+  ]);
+
+  logger.warn('Suspending user at login due to lost access rights', {
+    userId: user.id,
+    email: user.email,
+    establishmentId: user.establishmentId,
+    suspensionCause
+  });
+
+  // Re-fetch user to get latest lastAuthenticatedAt (updated by signIn)
+  const currentUser = await userRepository.get(user.id);
+  if (!currentUser) {
+    return;
+  }
+
+  await userRepository.update({
+    ...currentUser,
+    suspendedAt: new Date().toJSON(),
+    suspendedCause: suspensionCause
+  });
+}
+
+function haveSameEstablishments(
+  currentEstablishments: Array<{ establishmentId: string }>,
+  authorizedEstablishments: AuthorizedEstablishment[]
+): boolean {
+  const currentIds = new Set(
+    currentEstablishments.map((establishment) => establishment.establishmentId)
+  );
+  const authorizedIds = new Set(
+    authorizedEstablishments.map(
+      (establishment) => establishment.establishmentId
+    )
+  );
+
+  return (
+    currentIds.size === authorizedIds.size &&
+    [...currentIds].every((id) => authorizedIds.has(id))
+  );
+}
+
+async function syncAuthorizedEstablishments(
+  user: UserApi,
+  authorizedEstablishments: AuthorizedEstablishment[]
+): Promise<void> {
+  const currentAuthorized =
+    await userEstablishmentRepository.getAuthorizedEstablishments(user.id);
+
+  if (haveSameEstablishments(currentAuthorized, authorizedEstablishments)) {
+    logger.debug('No changes to authorized establishments for user', {
+      userId: user.id,
+      email: user.email
+    });
+    return;
+  }
+
+  logger.info('Updating authorized establishments for user at login', {
+    userId: user.id,
+    email: user.email,
+    previousCount: currentAuthorized.length,
+    newCount: authorizedEstablishments.length,
+    previousIds: currentAuthorized.map(
+      (establishment) => establishment.establishmentId
+    ),
+    newIds: authorizedEstablishments.map(
+      (establishment) => establishment.establishmentId
+    )
+  });
+
+  await userEstablishmentRepository.setAuthorizedEstablishments(
+    user.id,
+    authorizedEstablishments
+  );
+
+  const hasMultipleCommittedEstablishments =
+    authorizedEstablishments.filter(
+      (establishment) => establishment.hasCommitment
+    ).length > 1;
+  if (hasMultipleCommittedEstablishments) {
+    logger.info('User identified as multi-structure at login', {
+      userId: user.id,
+      email: user.email,
+      authorizedEstablishmentsCount: authorizedEstablishments.length
+    });
+  }
+}
+
+async function saveCurrentEstablishmentPerimeter(
+  user: UserApi,
+  knownEstablishments: ReadonlyArray<EstablishmentApi>,
+  ceremaUsers: ReadonlyArray<CeremaUser>
+): Promise<void> {
+  if (!user.establishmentId) {
+    return;
+  }
+
+  const currentEstablishment = knownEstablishments.find(
+    (establishment) => establishment.id === user.establishmentId
+  );
+  if (!currentEstablishment) {
+    return;
+  }
+
+  const currentCeremaUser = findCeremaUser(
+    ceremaUsers,
+    currentEstablishment.siren
+  );
+  const perimeter = currentCeremaUser?.perimeter;
+  if (!perimeter) {
+    return;
+  }
+
+  await userPerimeterRepository.upsert({
+    userId: user.id,
+    establishmentId: currentEstablishment.id,
+    geoCodes: perimeter.comm || [],
+    departments: perimeter.dep || [],
+    regions: perimeter.reg || [],
+    epci: perimeter.epci || [],
+    frEntiere: perimeter.fr_entiere || false,
+    updatedAt: new Date().toJSON()
+  });
+
+  logger.info('User perimeter saved from Portail DF', {
+    userId: user.id,
+    email: user.email,
+    frEntiere: perimeter.fr_entiere,
+    communesCount: perimeter.comm?.length || 0,
+    departmentsCount: perimeter.dep?.length || 0,
+    regionsCount: perimeter.reg?.length || 0,
+    epciCount: perimeter.epci?.length || 0
+  });
+}
 
 /**
  * Refresh authorized establishments for a user from Portail DF.
@@ -22,7 +243,6 @@ export async function refreshAuthorizedEstablishments(
   user: UserApi
 ): Promise<void> {
   try {
-    // Fetch current rights from Portail DF
     const ceremaUsers = await ceremaService.consultUsers(user.email);
 
     if (ceremaUsers.length === 0) {
@@ -33,179 +253,34 @@ export async function refreshAuthorizedEstablishments(
       return;
     }
 
-    // Filter users with valid LOVAC commitment
     const ceremaUsersWithCommitment = ceremaUsers.filter(
-      (cu) => cu.hasCommitment
+      (ceremaUser) => ceremaUser.hasCommitment
     );
     const establishmentSirens = ceremaUsersWithCommitment.map(
-      (cu) => cu.establishmentSiren
+      (ceremaUser) => ceremaUser.establishmentSiren
     );
 
-    // Find all known establishments matching the SIRENs
     const knownEstablishments = await establishmentRepository.find({
       filters: { siren: establishmentSirens }
     });
-
-    // Build authorized establishments list with access rights verification
-    const authorizedEstablishments: Array<{
-      establishmentId: string;
-      establishmentSiren: string;
-      hasCommitment: boolean;
-    }> = [];
-
-    const accessErrors: string[] = [];
-
-    for (const est of knownEstablishments) {
-      const ceremaUser = ceremaUsersWithCommitment.find(
-        (cu) =>
-          cu.establishmentSiren === est.siren || cu.establishmentSiren === '*'
+    const { authorizedEstablishments, accessErrors } =
+      await authorizeEstablishments(
+        user,
+        knownEstablishments,
+        ceremaUsersWithCommitment
       );
 
-      if (ceremaUser) {
-        // Verify access rights for this establishment (pass SIREN for EPCI perimeter check)
-        const accessRights = await verifyAccessRights(
-          ceremaUser,
-          est.geoCodes,
-          est.siren
-        );
-
-        if (accessRights.isValid) {
-          authorizedEstablishments.push({
-            establishmentId: est.id,
-            establishmentSiren: est.siren,
-            hasCommitment: ceremaUser.hasCommitment
-          });
-        } else {
-          logger.warn(
-            'Access rights verification failed for establishment at login',
-            {
-              userId: user.id,
-              email: user.email,
-              establishmentId: est.id,
-              establishmentSiren: est.siren,
-              errors: accessRights.errors
-            }
-          );
-          accessErrors.push(...accessRights.errors);
-        }
-      }
-    }
-
-    // Check if user's current establishment lost access rights
-    if (user.establishmentId) {
-      const currentEstablishmentStillValid = authorizedEstablishments.some(
-        (e) => e.establishmentId === user.establishmentId
-      );
-
-      if (!currentEstablishmentStillValid && accessErrors.length > 0) {
-        // Suspend user if their current establishment lost access
-        const suspensionCause = accessErrorsToSuspensionCause([
-          ...new Set(accessErrors)
-        ] as any);
-
-        logger.warn('Suspending user at login due to lost access rights', {
-          userId: user.id,
-          email: user.email,
-          establishmentId: user.establishmentId,
-          suspensionCause
-        });
-
-        // Re-fetch user to get latest lastAuthenticatedAt (updated by signIn)
-        const currentUser = await userRepository.get(user.id);
-        if (currentUser) {
-          await userRepository.update({
-            ...currentUser,
-            suspendedAt: new Date().toJSON(),
-            suspendedCause: suspensionCause
-          });
-        }
-      }
-    }
-
-    // Get current authorized establishments for comparison
-    const currentAuthorized =
-      await userEstablishmentRepository.getAuthorizedEstablishments(user.id);
-    const currentIds = new Set(currentAuthorized.map((e) => e.establishmentId));
-    const newIds = new Set(
-      authorizedEstablishments.map((e) => e.establishmentId)
+    await suspendIfCurrentEstablishmentLostAccess(
+      user,
+      authorizedEstablishments,
+      accessErrors
     );
-
-    // Check if there are changes
-    const hasChanges =
-      currentIds.size !== newIds.size ||
-      [...currentIds].some((id) => !newIds.has(id)) ||
-      [...newIds].some((id) => !currentIds.has(id));
-
-    if (hasChanges) {
-      logger.info('Updating authorized establishments for user at login', {
-        userId: user.id,
-        email: user.email,
-        previousCount: currentAuthorized.length,
-        newCount: authorizedEstablishments.length,
-        previousIds: [...currentIds],
-        newIds: [...newIds]
-      });
-
-      // Update authorized establishments
-      await userEstablishmentRepository.setAuthorizedEstablishments(
-        user.id,
-        authorizedEstablishments
-      );
-
-      // Log multi-structure status
-      const isMultiStructure =
-        authorizedEstablishments.filter((e) => e.hasCommitment).length > 1;
-      if (isMultiStructure) {
-        logger.info('User identified as multi-structure at login', {
-          userId: user.id,
-          email: user.email,
-          authorizedEstablishmentsCount: authorizedEstablishments.length
-        });
-      }
-    } else {
-      logger.debug('No changes to authorized establishments for user', {
-        userId: user.id,
-        email: user.email
-      });
-    }
-
-    // Save user perimeter from Portail DF for filtering
-    // Use the perimeter from the user's current establishment
-    if (user.establishmentId) {
-      const currentEstablishment = knownEstablishments.find(
-        (est) => est.id === user.establishmentId
-      );
-      if (currentEstablishment) {
-        const currentCeremaUser = ceremaUsersWithCommitment.find(
-          (cu) =>
-            cu.establishmentSiren === currentEstablishment.siren ||
-            cu.establishmentSiren === '*'
-        );
-
-        if (currentCeremaUser?.perimeter) {
-          const perimeter = currentCeremaUser.perimeter;
-          await userPerimeterRepository.upsert({
-            userId: user.id,
-            geoCodes: perimeter.comm || [],
-            departments: perimeter.dep || [],
-            regions: perimeter.reg || [],
-            epci: perimeter.epci || [],
-            frEntiere: perimeter.fr_entiere || false,
-            updatedAt: new Date().toJSON()
-          });
-
-          logger.info('User perimeter saved from Portail DF', {
-            userId: user.id,
-            email: user.email,
-            frEntiere: perimeter.fr_entiere,
-            communesCount: perimeter.comm?.length || 0,
-            departmentsCount: perimeter.dep?.length || 0,
-            regionsCount: perimeter.reg?.length || 0,
-            epciCount: perimeter.epci?.length || 0
-          });
-        }
-      }
-    }
+    await syncAuthorizedEstablishments(user, authorizedEstablishments);
+    await saveCurrentEstablishmentPerimeter(
+      user,
+      knownEstablishments,
+      ceremaUsersWithCommitment
+    );
   } catch (error) {
     // Log error but don't fail login
     logger.error('Failed to refresh authorized establishments at login', {

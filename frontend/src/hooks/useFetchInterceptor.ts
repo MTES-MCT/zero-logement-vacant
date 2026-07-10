@@ -24,7 +24,7 @@ export function useFetchInterceptor() {
           signOutPromise.current ??= signOut().finally(() => {
             signOutPromise.current = null;
           });
-          void signOutPromise.current
+          signOutPromise.current
             .then(() => navigate('/connexion'))
             .catch(() => undefined);
         }

@@ -23,10 +23,7 @@ function readHeader(request: Request, name: string): string | null {
 export function readTestAuthentication(
   request: Request
 ): TestAuthentication | null {
-  if (
-    process.env.VITEST !== 'true' ||
-    process.env.NODE_ENV === 'production'
-  ) {
+  if (process.env.VITEST !== 'true' || process.env.NODE_ENV === 'production') {
     return null;
   }
 

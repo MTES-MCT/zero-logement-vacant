@@ -13,6 +13,8 @@ const AUTH_USERS_TABLE = 'auth_users';
 const ACCOUNT_TABLE = 'account';
 const CREDENTIAL_PROVIDER_ID = 'credential';
 
+type DatabaseDate = Date | string;
+
 const ROLE_TO_STRING: Record<number, string> = {
   [UserRole.USUAL]: 'usual',
   [UserRole.ADMIN]: 'admin',
@@ -31,13 +33,13 @@ interface AuthUserRow {
   position: string | null;
   time_per_week: string | null;
   kind: string | null;
-  activated_at: Date | string | null;
-  last_authenticated_at: Date | string | null;
-  suspended_at: Date | string | null;
+  activated_at: DatabaseDate | null;
+  last_authenticated_at: DatabaseDate | null;
+  suspended_at: DatabaseDate | null;
   suspended_cause: string | null;
-  deleted_at: Date | string | null;
-  created_at: Date | string;
-  updated_at: Date | string;
+  deleted_at: DatabaseDate | null;
+  created_at: DatabaseDate;
+  updated_at: DatabaseDate;
 }
 
 function toAuthUserRow(user: UserDBO): AuthUserRow {
@@ -179,10 +181,12 @@ const isDirectExecution =
 if (isDirectExecution) {
   const dryRun = process.argv.includes('--dry-run');
 
-  run({ dryRun })
-    .catch((error) => {
-      logger.error('Backfill aborted', { error });
-      process.exitCode = 1;
-    })
-    .finally(() => db.destroy());
+  try {
+    await run({ dryRun });
+  } catch (error) {
+    logger.error('Backfill aborted', { error });
+    process.exitCode = 1;
+  } finally {
+    await db.destroy();
+  }
 }

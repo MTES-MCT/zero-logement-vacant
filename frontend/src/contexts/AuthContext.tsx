@@ -3,7 +3,12 @@ import type {
   EstablishmentDTO,
   SessionDTO
 } from '@zerologementvacant/models';
-import { type PropsWithChildren, createContext, useCallback } from 'react';
+import {
+  type PropsWithChildren,
+  createContext,
+  useCallback,
+  useMemo
+} from 'react';
 
 import { useAppDispatch } from '~/hooks/useStore';
 import { authClient } from '~/lib/auth-client';
@@ -108,10 +113,8 @@ export function AuthProvider(props: Readonly<PropsWithChildren>) {
 
   const changeEstablishment = useCallback(
     async (establishmentId: string) => {
-      // TODO: migrate to a better-auth plugin endpoint
-      // (`authClient.changeEstablishment({ establishmentId })`) so this stops
-      // bypassing better-auth's typed action surface. For now we hit the
-      // existing Express endpoint at
+      // This continues to use the existing Express endpoint until changing an
+      // establishment is exposed through better-auth's typed action surface:
       // `server/src/controllers/auth-controller.ts:changeEstablishmentBySession`
       // which mutates `session.activeEstablishmentId` on the DB row.
       const response = await fetch(
@@ -128,20 +131,32 @@ export function AuthProvider(props: Readonly<PropsWithChildren>) {
     [refetch]
   );
 
-  const value: AuthContextValue = {
-    user: session?.user ?? null,
-    establishment: session?.establishment ?? null,
-    authorizedEstablishments: session?.authorizedEstablishments ?? [],
-    effectiveGeoCodes: session?.effectiveGeoCodes,
-    isAuthenticated: session !== null,
-    isLoading: isPending,
-    signIn,
-    signInAdmin,
-    verifyAdminTwoFactor,
-    signOut,
-    changeEstablishment,
-    refetch
-  };
+  const value = useMemo<AuthContextValue>(
+    () => ({
+      user: session?.user ?? null,
+      establishment: session?.establishment ?? null,
+      authorizedEstablishments: session?.authorizedEstablishments ?? [],
+      effectiveGeoCodes: session?.effectiveGeoCodes,
+      isAuthenticated: session !== null,
+      isLoading: isPending,
+      signIn,
+      signInAdmin,
+      verifyAdminTwoFactor,
+      signOut,
+      changeEstablishment,
+      refetch
+    }),
+    [
+      changeEstablishment,
+      isPending,
+      refetch,
+      session,
+      signIn,
+      signInAdmin,
+      signOut,
+      verifyAdminTwoFactor
+    ]
+  );
 
   return (
     <AuthContext.Provider value={value}>{props.children}</AuthContext.Provider>

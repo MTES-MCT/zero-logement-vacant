@@ -11,12 +11,12 @@ export function useModalReady(id: string) {
   useEffect(() => {
     const dialog = document.getElementById(id);
     if (dialog) {
-      if (dialog.hasAttribute('data-fr-js-modal')) {
+      if (dialog.dataset.frJsModal !== undefined) {
         setIsReady(true);
       }
 
       const observer = new MutationObserver(() => {
-        if (dialog.hasAttribute('data-fr-js-modal')) {
+        if (dialog.dataset.frJsModal !== undefined) {
           setIsReady(true);
         }
       });

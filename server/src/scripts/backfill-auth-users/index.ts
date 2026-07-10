@@ -21,6 +21,33 @@ const ROLE_TO_STRING: Record<number, string> = {
   [UserRole.VISITOR]: 'visitor'
 };
 
+function normalizeEmail(email: string): string {
+  return email.toLowerCase();
+}
+
+function assertNoCaseInsensitiveEmailCollisions(
+  users: ReadonlyArray<UserDBO>
+): void {
+  const userIdsByEmail = new Map<string, Set<string>>();
+
+  for (const user of users) {
+    const email = normalizeEmail(user.email);
+    const userIds = userIdsByEmail.get(email) ?? new Set<string>();
+    userIds.add(user.id);
+    userIdsByEmail.set(email, userIds);
+  }
+
+  const collisions = [...userIdsByEmail.entries()]
+    .filter(([, userIds]) => userIds.size > 1)
+    .map(([email, userIds]) => `${email} (${[...userIds].join(', ')})`);
+
+  if (collisions.length > 0) {
+    throw new Error(
+      `Case-insensitive email collisions detected: ${collisions.join('; ')}`
+    );
+  }
+}
+
 interface AuthUserRow {
   id: string;
   name: string;
@@ -51,7 +78,7 @@ function toAuthUserRow(user: UserDBO): AuthUserRow {
   return {
     id: user.id,
     name: fullName.length > 0 ? fullName : user.email,
-    email: user.email,
+    email: normalizeEmail(user.email),
     email_verified: true,
     first_name: user.first_name,
     last_name: user.last_name,
@@ -126,7 +153,7 @@ async function backfillOne(
         } else {
           await trx(ACCOUNT_TABLE).insert({
             id: randomUUID(),
-            account_id: user.email,
+            account_id: normalizeEmail(user.email),
             provider_id: CREDENTIAL_PROVIDER_ID,
             user_id: user.id,
             password: user.password
@@ -153,6 +180,7 @@ export async function run(opts: RunOptions): Promise<void> {
 
   const users = await db<UserDBO>(USERS_TABLE).select('*');
   logger.info(`Loaded ${users.length} legacy users`);
+  assertNoCaseInsensitiveEmailCollisions(users);
 
   const counts: Counts = {
     inserted: 0,

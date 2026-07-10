@@ -14,6 +14,10 @@ const CREDENTIAL_PROVIDER_ID = 'credential';
 type Database = Knex | Knex.Transaction;
 type AuthRole = 'admin' | 'usual' | 'visitor';
 
+function normalizeEmail(email: string): string {
+  return email.toLowerCase();
+}
+
 function toAuthRole(role: UserRole): AuthRole {
   switch (role) {
     case UserRole.ADMIN:
@@ -35,7 +39,7 @@ function toAuthUserRow(user: UserApi) {
   return {
     id: user.id,
     name: name.length > 0 ? name : user.email,
-    email: user.email,
+    email: normalizeEmail(user.email),
     email_verified: true,
     first_name: user.firstName,
     last_name: user.lastName,
@@ -96,17 +100,19 @@ async function syncCredentialAccount(
     .first();
 
   if (existing) {
-    await transaction(ACCOUNT_TABLE).where({ id: existing.id }).update({
-      account_id: user.email,
-      password: user.password,
-      updated_at: user.updatedAt
-    });
+    await transaction(ACCOUNT_TABLE)
+      .where({ id: existing.id })
+      .update({
+        account_id: normalizeEmail(user.email),
+        password: user.password,
+        updated_at: user.updatedAt
+      });
     return;
   }
 
   await transaction(ACCOUNT_TABLE).insert({
     id: randomUUID(),
-    account_id: user.email,
+    account_id: normalizeEmail(user.email),
     provider_id: CREDENTIAL_PROVIDER_ID,
     user_id: user.id,
     password: user.password,

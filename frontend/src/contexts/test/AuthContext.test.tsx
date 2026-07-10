@@ -1,10 +1,14 @@
 import { fireEvent, render, screen, waitFor } from '@testing-library/react';
+import userEvent from '@testing-library/user-event';
+import { genUserDTO } from '@zerologementvacant/models/fixtures';
 import { useContext, useState } from 'react';
 import { Provider } from 'react-redux';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
 import { AuthContext, AuthProvider } from '~/contexts/AuthContext';
 import { authClient } from '~/lib/auth-client';
+import data from '~/mocks/handlers/data';
+import { useFindUsersQuery } from '~/services/user.service';
 import configureTestStore from '~/utils/storeUtils';
 
 // Mock the auth-client module: better-auth's session atom is module-level
@@ -27,6 +31,8 @@ vi.mock('~/lib/auth-client', () => ({
 function TestConsumer() {
   const auth = useContext(AuthContext);
   const [adminChallengeEmail, setAdminChallengeEmail] = useState('none');
+  const [signInStatus, setSignInStatus] = useState('pending');
+  const [verifyStatus, setVerifyStatus] = useState('pending');
 
   if (!auth) {
     return <span data-testid="no-context">no context</span>;
@@ -43,10 +49,21 @@ function TestConsumer() {
         {auth.authorizedEstablishments.length}
       </span>
       <span data-testid="admin-challenge-email">{adminChallengeEmail}</span>
+      <span data-testid="sign-in-status">{signInStatus}</span>
+      <span data-testid="verify-status">{verifyStatus}</span>
       <button onClick={() => void auth.changeEstablishment('establishment-2')}>
         change establishment
       </button>
       <button onClick={() => void auth.signOut()}>sign out</button>
+      <button
+        onClick={() =>
+          void auth
+            .signIn('agent@zlv.fr', 'not-a-real-password')
+            .then(() => setSignInStatus('resolved'))
+        }
+      >
+        sign in
+      </button>
       <button
         onClick={() =>
           void auth
@@ -62,11 +79,13 @@ function TestConsumer() {
       </button>
       <button
         onClick={() =>
-          void auth.verifyAdminTwoFactor(
-            'admin@zlv.fr',
-            '123456',
-            'admin-establishment'
-          )
+          void auth
+            .verifyAdminTwoFactor(
+              'admin@zlv.fr',
+              '123456',
+              'admin-establishment'
+            )
+            .then(() => setVerifyStatus('resolved'))
         }
       >
         admin verify 2fa
@@ -75,19 +94,36 @@ function TestConsumer() {
   );
 }
 
-function setup() {
-  render(
-    <Provider store={configureTestStore()}>
-      <AuthProvider>
-        <TestConsumer />
-      </AuthProvider>
+function CachedUsersConsumer() {
+  const { data: users } = useFindUsersQuery();
+
+  return (
+    <span data-testid="cached-user">
+      {users ? (users[0]?.email ?? 'none') : 'loading'}
+    </span>
+  );
+}
+
+function setup(children = <TestConsumer />) {
+  const store = configureTestStore();
+  const renderProvider = () => (
+    <Provider store={store}>
+      <AuthProvider>{children}</AuthProvider>
     </Provider>
   );
+
+  const view = render(renderProvider());
+  return {
+    ...view,
+    rerender: () => view.rerender(renderProvider()),
+    store
+  };
 }
 
 describe('AuthProvider', () => {
   beforeEach(() => {
     useSessionMock.mockReset();
+    vi.mocked(authClient.signIn.email).mockClear();
     vi.mocked(authClient.signOut).mockClear();
     vi.unstubAllGlobals();
     localStorage.clear();
@@ -141,6 +177,69 @@ describe('AuthProvider', () => {
     expect(screen.getByTestId('loading')).toHaveTextContent('true');
   });
 
+  it('does not expose cached API data after the authenticated identity changes', async () => {
+    let session = {
+      user: { id: 'user-a', email: 'user-a@zlv.fr' },
+      session: { activeEstablishmentId: null }
+    };
+    useSessionMock.mockImplementation(() => ({
+      data: session,
+      isPending: false,
+      error: null,
+      refetch: vi.fn()
+    }));
+    data.users.push({
+      ...genUserDTO(),
+      email: 'cached-for-user-a@zlv.fr'
+    });
+    const view = setup(<CachedUsersConsumer />);
+
+    await screen.findByText('cached-for-user-a@zlv.fr');
+    data.users.splice(0, data.users.length, {
+      ...genUserDTO(),
+      email: 'fresh-for-user-b@zlv.fr'
+    });
+    session = {
+      user: { id: 'user-b', email: 'user-b@zlv.fr' },
+      session: { activeEstablishmentId: null }
+    };
+    view.rerender();
+
+    await screen.findByText('fresh-for-user-b@zlv.fr');
+    expect(
+      screen.queryByText('cached-for-user-a@zlv.fr')
+    ).not.toBeInTheDocument();
+  });
+
+  it('does not expose cached API data after the authenticated identity disappears', async () => {
+    const signedInSession = {
+      user: { id: 'user-a', email: 'user-a@zlv.fr' },
+      session: { activeEstablishmentId: null }
+    };
+    let session: typeof signedInSession | null = signedInSession;
+    useSessionMock.mockImplementation(() => ({
+      data: session,
+      isPending: false,
+      error: null,
+      refetch: vi.fn()
+    }));
+    data.users.push({
+      ...genUserDTO(),
+      email: 'cached-for-user-a@zlv.fr'
+    });
+    const view = setup(<CachedUsersConsumer />);
+
+    await screen.findByText('cached-for-user-a@zlv.fr');
+    data.users.length = 0;
+    session = null;
+    view.rerender();
+
+    await screen.findByText('none');
+    expect(
+      screen.queryByText('cached-for-user-a@zlv.fr')
+    ).not.toBeInTheDocument();
+  });
+
   it('clears a stale legacy session when signing out', async () => {
     localStorage.setItem(
       'authUser',
@@ -160,6 +259,33 @@ describe('AuthProvider', () => {
       expect(authClient.signOut).toHaveBeenCalledOnce();
       expect(localStorage.getItem('authUser')).toBeNull();
     });
+  });
+
+  it('resolves sign-in only after the authenticated session is hydrated', async () => {
+    const user = userEvent.setup();
+    let finishHydration: () => void = () => {};
+    const refetch = vi.fn(
+      () =>
+        new Promise<void>((resolve) => {
+          finishHydration = resolve;
+        })
+    );
+    useSessionMock.mockReturnValue({
+      data: null,
+      isPending: false,
+      error: null,
+      refetch
+    });
+    setup();
+
+    await user.click(screen.getByRole('button', { name: 'sign in' }));
+    await waitFor(() => expect(refetch).toHaveBeenCalledOnce());
+
+    expect(screen.getByTestId('sign-in-status')).toHaveTextContent('pending');
+    finishHydration();
+    await waitFor(() =>
+      expect(screen.getByTestId('sign-in-status')).toHaveTextContent('resolved')
+    );
   });
 
   it('changes establishment through the cookie-backed endpoint and refetches the session', async () => {
@@ -224,6 +350,47 @@ describe('AuthProvider', () => {
     );
   });
 
+  it('resolves admin sign-in without 2FA only after the session is hydrated', async () => {
+    const user = userEvent.setup();
+    let finishHydration: () => void = () => {};
+    const refetch = vi.fn(
+      () =>
+        new Promise<void>((resolve) => {
+          finishHydration = resolve;
+        })
+    );
+    vi.stubGlobal(
+      'fetch',
+      vi.fn().mockResolvedValue({
+        ok: true,
+        json: async () => ({
+          requiresTwoFactor: false,
+          email: 'admin@zlv.fr'
+        })
+      })
+    );
+    useSessionMock.mockReturnValue({
+      data: null,
+      isPending: false,
+      error: null,
+      refetch
+    });
+    setup();
+
+    await user.click(screen.getByRole('button', { name: 'admin sign in' }));
+    await waitFor(() => expect(refetch).toHaveBeenCalledOnce());
+
+    expect(screen.getByTestId('admin-challenge-email')).toHaveTextContent(
+      'none'
+    );
+    finishHydration();
+    await waitFor(() =>
+      expect(screen.getByTestId('admin-challenge-email')).toHaveTextContent(
+        'admin@zlv.fr'
+      )
+    );
+  });
+
   it('verifies admin 2FA through better-auth and refetches the session', async () => {
     const refetch = vi.fn();
     const fetchMock = vi.fn().mockResolvedValue({
@@ -256,5 +423,39 @@ describe('AuthProvider', () => {
       );
     });
     expect(refetch).toHaveBeenCalled();
+  });
+
+  it('resolves admin 2FA verification only after the session is hydrated', async () => {
+    const user = userEvent.setup();
+    let finishHydration: () => void = () => {};
+    const refetch = vi.fn(
+      () =>
+        new Promise<void>((resolve) => {
+          finishHydration = resolve;
+        })
+    );
+    vi.stubGlobal(
+      'fetch',
+      vi.fn().mockResolvedValue({
+        ok: true,
+        json: async () => ({ status: true })
+      })
+    );
+    useSessionMock.mockReturnValue({
+      data: null,
+      isPending: false,
+      error: null,
+      refetch
+    });
+    setup();
+
+    await user.click(screen.getByRole('button', { name: 'admin verify 2fa' }));
+    await waitFor(() => expect(refetch).toHaveBeenCalledOnce());
+
+    expect(screen.getByTestId('verify-status')).toHaveTextContent('pending');
+    finishHydration();
+    await waitFor(() =>
+      expect(screen.getByTestId('verify-status')).toHaveTextContent('resolved')
+    );
   });
 });

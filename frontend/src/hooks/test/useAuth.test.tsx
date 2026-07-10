@@ -21,7 +21,7 @@ const fakeContext: AuthContextValue = {
   verifyAdminTwoFactor: vi.fn(),
   signOut: vi.fn(),
   changeEstablishment: vi.fn(),
-  refetch: vi.fn()
+  refetch: vi.fn().mockResolvedValue(undefined)
 };
 
 describe('useAuth', () => {

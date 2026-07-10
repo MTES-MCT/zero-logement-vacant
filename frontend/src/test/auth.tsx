@@ -66,7 +66,7 @@ export function genAuthContextValue(
     verifyAdminTwoFactor: async () => {},
     signOut: async () => {},
     changeEstablishment: async () => {},
-    refetch: () => {}
+    refetch: async () => {}
   };
 }
 

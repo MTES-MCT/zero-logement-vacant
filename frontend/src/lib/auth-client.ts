@@ -26,7 +26,7 @@ interface AuthClient {
     data: SessionDTO | null;
     isPending: boolean;
     error: unknown;
-    refetch: () => void;
+    refetch: () => Promise<void>;
   };
   getSession: () => Promise<unknown>;
 }

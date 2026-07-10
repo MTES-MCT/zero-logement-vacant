@@ -7,6 +7,8 @@ import {
   type PropsWithChildren,
   createContext,
   useCallback,
+  useEffect,
+  useRef,
   useMemo
 } from 'react';
 
@@ -36,7 +38,7 @@ export interface AuthContextValue {
   signOut: () => Promise<void>;
   changeEstablishment: (establishmentId: string) => Promise<void>;
   /** Force a re-read of the session payload from the server. */
-  refetch: () => void;
+  refetch: () => Promise<void>;
 }
 
 export const AuthContext = createContext<AuthContextValue | null>(null);
@@ -55,13 +57,26 @@ export function AuthProvider(props: Readonly<PropsWithChildren>) {
   const { data, isPending, refetch } = authClient.useSession();
 
   const session: SessionDTO | null = data ?? null;
+  const authenticatedUserId = session?.user.id ?? null;
+  const previousAuthenticatedUserId = useRef(authenticatedUserId);
 
-  const signIn = useCallback(async (email: string, password: string) => {
-    const { error } = await authClient.signIn.email({ email, password });
-    if (error) {
-      throw new Error(error.message ?? 'Échec de l’authentification.');
+  useEffect(() => {
+    if (previousAuthenticatedUserId.current !== authenticatedUserId) {
+      dispatch(zlvApi.util.resetApiState());
     }
-  }, []);
+    previousAuthenticatedUserId.current = authenticatedUserId;
+  }, [authenticatedUserId, dispatch]);
+
+  const signIn = useCallback(
+    async (email: string, password: string) => {
+      const { error } = await authClient.signIn.email({ email, password });
+      if (error) {
+        throw new Error(error.message ?? 'Échec de l’authentification.');
+      }
+      await refetch();
+    },
+    [refetch]
+  );
 
   const signInAdmin = useCallback(
     async (email: string, password: string, establishmentId?: string) => {
@@ -79,7 +94,7 @@ export function AuthProvider(props: Readonly<PropsWithChildren>) {
         email: string;
       };
       if (!challenge.requiresTwoFactor) {
-        refetch();
+        await refetch();
       }
       return challenge;
     },
@@ -100,7 +115,7 @@ export function AuthProvider(props: Readonly<PropsWithChildren>) {
       if (!response.ok) {
         throw new Error('Code de vérification invalide ou expiré.');
       }
-      refetch();
+      await refetch();
     },
     [refetch]
   );

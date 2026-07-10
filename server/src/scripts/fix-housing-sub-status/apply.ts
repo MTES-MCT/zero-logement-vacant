@@ -21,6 +21,12 @@ import eventRepository from '~/repositories/eventRepository';
 import housingRepository from '~/repositories/housingRepository';
 import userRepository from '~/repositories/userRepository';
 import { LOVAC_NAMESPACE } from '~/scripts/import-lovac/infra';
+import {
+  disableHousingsTriggers,
+  enableHousingsTriggers,
+  ensureKnownHousingsTriggers,
+  recomputeHousingsCounts
+} from '~/scripts/import-lovac/infra/housings-counts-maintenance';
 
 import { groupByTarget, type PlanRow } from './transforms';
 
@@ -109,30 +115,57 @@ export async function apply(options: { dryRun?: boolean } = {}): Promise<void> {
     return;
   }
 
-  await startTransaction(async () => {
-    for (const group of groups) {
-      for (const batch of chunksOf(group.housings, BATCH_SIZE)) {
-        await housingRepository.updateMany(batch, {
-          status: group.status,
-          subStatus: group.subStatus,
-          ...(group.occupancy !== null && {
-            occupancy: group.occupancy as Occupancy
-          })
+  // fast_housing carries per-row count triggers (return_count, building stats)
+  // that make a 17k-row bulk update take hours. Bypass them for the write and
+  // recompute once at the end — mirroring the LOVAC import.
+  await ensureKnownHousingsTriggers();
+  await disableHousingsTriggers();
+  try {
+    await startTransaction(async () => {
+      let updated = 0;
+      for (const [index, group] of groups.entries()) {
+        for (const batch of chunksOf(group.housings, BATCH_SIZE)) {
+          await housingRepository.updateMany(batch, {
+            status: group.status,
+            subStatus: group.subStatus,
+            ...(group.occupancy !== null && {
+              occupancy: group.occupancy as Occupancy
+            })
+          });
+          updated += batch.length;
+        }
+        logger.info(
+          `Updated group ${index + 1}/${groups.length} · ${updated}/${rows.length} housings`
+        );
+      }
+
+      let written = 0;
+      for (const batch of chunksOf(events, BATCH_SIZE)) {
+        await eventRepository.insertManyHousingEvents(batch);
+        written += batch.length;
+        logger.info(`Wrote ${written}/${events.length} events`);
+      }
+
+      for (const batch of chunksOf(deleteEventIds, BATCH_SIZE)) {
+        await withinTransaction(async (transaction) => {
+          await transaction(HOUSING_EVENTS_TABLE)
+            .whereIn('event_id', batch)
+            .delete();
+          await transaction(EVENTS_TABLE).whereIn('id', batch).delete();
         });
       }
-    }
-    for (const batch of chunksOf(events, BATCH_SIZE)) {
-      await eventRepository.insertManyHousingEvents(batch);
-    }
-    for (const batch of chunksOf(deleteEventIds, BATCH_SIZE)) {
-      await withinTransaction(async (transaction) => {
-        await transaction(HOUSING_EVENTS_TABLE)
-          .whereIn('event_id', batch)
-          .delete();
-        await transaction(EVENTS_TABLE).whereIn('id', batch).delete();
-      });
-    }
-  });
+      if (deleteEventIds.length) {
+        logger.info(`Deleted ${deleteEventIds.length} events`);
+      }
+    });
+  } finally {
+    await enableHousingsTriggers();
+  }
+
+  logger.info(
+    'Recomputing derived counts (buildings, campaigns return_count)...'
+  );
+  await recomputeHousingsCounts();
 
   logger.info('Done. Housing repair applied.');
 }

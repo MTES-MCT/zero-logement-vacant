@@ -98,18 +98,28 @@ yarn workspace @zerologementvacant/server tsx \
   src/scripts/fix-housing-sub-status/index.ts apply
 ```
 
-Reads `plan.jsonl` and, in a **single transaction** (each statement chunked at 1,000):
-groups by target `(status, sub_status)` and `updateMany`; writes admin
-`housing:status-updated` + `housing:occupancy-updated` events for the lovac-exit rows (`exit`); deletes the bug
-events (`delete_event_id`). Atomic — any failure rolls the whole run back.
+Reads `plan.jsonl` and, in a **single transaction** (each statement chunked at 1,000,
+with progress logging): groups by target and `updateMany`; writes the lovac-exit
+events; deletes the bug events. Around it, the per-row count triggers on
+`fast_housing`/`housing_events` are **disabled** (`ALTER TABLE … DISABLE TRIGGER USER`)
+for the write and the derived counts (`buildings`, `campaigns.return_count`) are
+**recomputed once** at the end — reusing the LOVAC import's
+`housings-counts-maintenance`. Without this, the ~17k status updates fire the
+`return_count` trigger per row (~1s each → hours).
 
 > **Idempotent.** Exit events use deterministic `uuidv5` ids (`onConflict.ignore`),
-> updates set absolute values, and deletes are no-ops when already gone — so a failed
-> run rolls back cleanly and re-running a successful run is safe.
+> updates set absolute values, deletes are no-ops when gone, and the recompute is a
+> full recompute — so a failed run is safe to re-run.
 >
-> **Don't apply a stale plan.** `apply` overwrites from `plan.jsonl` without
-> re-checking the DB — re-`generate` immediately before applying, and run off-peak
-> (it locks ~17k rows for the transaction's duration).
+> **If `apply` dies mid-run**, the count triggers may be left disabled (the window is
+> now only seconds, since the write is fast). Re-enable and recompute:
+> ```sql
+> ALTER TABLE fast_housing ENABLE TRIGGER USER;
+> ALTER TABLE housing_events ENABLE TRIGGER USER;
+> ```
+> then re-run `apply` (which recomputes), or just re-run `apply`.
+>
+> **Don't apply a stale plan** — re-`generate` immediately before applying, off-peak.
 
 ## 4. Verify (before / after)
 

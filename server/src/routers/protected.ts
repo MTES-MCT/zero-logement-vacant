@@ -1,3 +1,5 @@
+import { constants } from 'node:http2';
+
 import {
   ACCEPTED_HOUSING_DOCUMENT_EXTENSIONS,
   MAX_HOUSING_DOCUMENT_SIZE_IN_MiB,
@@ -55,6 +57,22 @@ function hasLegacyToken(request: Request): boolean {
   const token =
     request.headers['x-access-token'] ?? request.query['x-access-token'];
   return Array.isArray(token) ? token.length > 0 : Boolean(token);
+}
+
+function requireLegacyToken(
+  request: Request,
+  response: Response,
+  next: NextFunction
+) {
+  if (!hasLegacyToken(request)) {
+    response.status(constants.HTTP_STATUS_METHOD_NOT_ALLOWED).json({
+      message:
+        'GET requires a legacy access token; session clients should use POST'
+    });
+    return;
+  }
+
+  next();
 }
 
 function jwtFallback(request: Request, response: Response, next: NextFunction) {
@@ -482,6 +500,7 @@ router.put(
 );
 router.get(
   '/account/establishments/:establishmentId',
+  requireLegacyToken,
   validator.validate({
     params: object({ establishmentId: schemas.id })
   }),

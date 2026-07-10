@@ -814,4 +814,51 @@ describe('Account controller', () => {
       await Users().where('id', adminUser.id).delete();
     });
   });
+
+  describe('GET /account/establishments/:establishmentId', () => {
+    const mockGetSession = vi.mocked(auth.api.getSession);
+
+    beforeEach(() => {
+      mockGetSession.mockReset();
+    });
+
+    it('rejects the legacy mutation for a cookie-authenticated caller', async () => {
+      mockGetSession.mockResolvedValue({
+        user: { id: user.id },
+        session: {
+          id: 'legacy-get-session',
+          userId: user.id,
+          activeEstablishmentId: establishment.id
+        }
+      } as any);
+
+      const { status } = await request(url)
+        .get(`/account/establishments/${establishment.id}`)
+        .set('Cookie', 'zlv.session_token=fake');
+
+      expect(status).toBe(constants.HTTP_STATUS_METHOD_NOT_ALLOWED);
+    });
+
+    it('keeps the legacy mutation available with an explicit JWT', async () => {
+      const now = new Date();
+      await UsersEstablishments().insert({
+        user_id: user.id,
+        establishment_id: establishment.id,
+        establishment_siren: establishment.siren,
+        has_commitment: true,
+        created_at: now,
+        updated_at: now
+      });
+
+      try {
+        const { status } = await request(url)
+          .get(`/account/establishments/${establishment.id}`)
+          .use(tokenProvider(user));
+
+        expect(status).toBe(constants.HTTP_STATUS_OK);
+      } finally {
+        await UsersEstablishments().where({ user_id: user.id }).delete();
+      }
+    });
+  });
 });

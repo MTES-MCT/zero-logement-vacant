@@ -19,11 +19,6 @@ on:
         type: string
         required: false
         description: The environment to deploy
-      pre_run_hook:
-        type: string
-        required: false
-        default: ''
-        description: Optional Clever Cloud CC_PRE_RUN_HOOK configured before deployment
 
     secrets:
       CLEVER_SECRET:
@@ -65,10 +60,6 @@ jobs:
           ORGA_ID: ${{ secrets.CLEVER_ORG }}
           APP_NAME: ${{ inputs.app }}
           APP_ALIAS: ${{ inputs.alias }}
-          PRE_RUN_HOOK: ${{ inputs.pre_run_hook }}
         run: |
           clever link --org "$ORGA_ID" --alias "$APP_ALIAS" "$APP_NAME"
-          if [ -n "$PRE_RUN_HOOK" ]; then
-            clever env set CC_PRE_RUN_HOOK "$PRE_RUN_HOOK" --alias "$APP_ALIAS"
-          fi
           clever deploy --alias "$APP_ALIAS" --same-commit-policy rebuild

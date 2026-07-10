@@ -1,6 +1,9 @@
 import { EventPayloads, EventType } from '@zerologementvacant/models';
+import type { Insertable } from 'kysely';
 
 import db from '~/infra/database';
+import type { DB } from '~/infra/database/db';
+import { withinKyselyTransaction } from '~/infra/database/kysely-transaction';
 import { withinTransaction } from '~/infra/database/transaction';
 import { createLogger } from '~/infra/logger';
 import {
@@ -188,13 +191,37 @@ async function insertManyGroupHousingEvents(
   logger.debug('Inserting group events...', {
     events: events.length
   });
-  await withinTransaction(async (transaction) => {
-    await transaction.batchInsert(EVENTS_TABLE, events.map(formatEventApi));
-    await transaction.batchInsert(
-      GROUP_HOUSING_EVENTS_TABLE,
-      events.map(formatGroupHousingEventApi)
-    );
+  await withinKyselyTransaction(async (trx) => {
+    await trx.insertInto('events').values(events.map(toEventInsert)).execute();
+    await trx
+      .insertInto('groupHousingEvents')
+      .values(events.map(toGroupHousingEventInsert))
+      .execute();
   });
+}
+
+function toEventInsert<Type extends EventType>(
+  event: EventApi<Type>
+): Insertable<DB['events']> {
+  return {
+    id: event.id,
+    type: event.type,
+    nextOld: event.nextOld as Insertable<DB['events']>['nextOld'],
+    nextNew: event.nextNew as Insertable<DB['events']>['nextNew'],
+    createdAt: new Date(event.createdAt),
+    createdBy: event.createdBy
+  };
+}
+
+function toGroupHousingEventInsert(
+  event: GroupHousingEventApi
+): Insertable<DB['groupHousingEvents']> {
+  return {
+    eventId: event.id,
+    housingGeoCode: event.housingGeoCode,
+    housingId: event.housingId,
+    groupId: event.groupId ?? null
+  };
 }
 
 async function insertManyDocumentEvents(

@@ -52,7 +52,9 @@ export function sessionCheck(options?: CheckOptions) {
       establishmentId
         ? establishmentRepository.get(establishmentId)
         : Promise.resolve(null),
-      userPerimeterRepository.get(userId)
+      establishmentId
+        ? userPerimeterRepository.get(userId, establishmentId)
+        : Promise.resolve(null)
     ]);
 
     if (!user) {

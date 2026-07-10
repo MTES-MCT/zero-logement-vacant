@@ -227,8 +227,8 @@ export const auth = betterAuth({
             ? establishmentRepository.get(activeEstablishmentId)
             : Promise.resolve(null),
           userEstablishmentRepository.getAuthorizedEstablishments(user.id),
-          needsPerimeterFilter
-            ? userPerimeterRepository.get(user.id)
+          needsPerimeterFilter && activeEstablishmentId
+            ? userPerimeterRepository.get(user.id, activeEstablishmentId)
             : Promise.resolve(null)
         ]
       );

@@ -1,10 +1,10 @@
 import { Knex } from 'knex';
+import type { Insertable } from 'kysely';
 
 import db from '~/infra/database';
-import {
-  getTransaction,
-  withinTransaction
-} from '~/infra/database/transaction';
+import type { DB } from '~/infra/database/db';
+import { kysely } from '~/infra/database/kysely';
+import { withinKyselyTransaction } from '~/infra/database/kysely-transaction';
 import { logger } from '~/infra/logger';
 import { GroupApi } from '~/models/GroupApi';
 import { HousingApi } from '~/models/HousingApi';
@@ -120,40 +120,37 @@ async function save(group: GroupApi, housings?: HousingApi[]): Promise<void> {
     housing: housings?.length
   });
 
-  const doSave = async (
-    transaction: Knex.Transaction,
-    group: GroupApi,
-    housings?: HousingApi[]
-  ): Promise<void> => {
-    await Groups(transaction)
-      .insert(formatGroupApi(group))
-      .onConflict(['id'])
-      .merge(['title', 'description', 'exported_at']);
+  await withinKyselyTransaction(async (trx) => {
+    await trx
+      .insertInto('groups')
+      .values(toGroupInsert(group))
+      .onConflict((oc) =>
+        oc.column('id').doUpdateSet((eb) => ({
+          title: eb.ref('excluded.title'),
+          description: eb.ref('excluded.description'),
+          exportedAt: eb.ref('excluded.exportedAt')
+        }))
+      )
+      .execute();
 
     if (housings) {
       // Replace existing housings from the group
-      await GroupsHousing(transaction).where({ group_id: group.id }).delete();
+      await trx
+        .deleteFrom('groupsHousing')
+        .where('groupId', '=', group.id)
+        .execute();
       if (housings.length > 0) {
-        await transaction.batchInsert(
-          GROUPS_HOUSING_TABLE,
-          formatGroupHousingApi(group, housings)
-        );
+        await trx
+          .insertInto('groupsHousing')
+          .values(toGroupHousingInserts(group, housings))
+          .execute();
       }
     }
     logger.info('Saved group', {
       group: group.id,
       housings: housings?.length ?? 0
     });
-  };
-
-  const transaction = getTransaction();
-  if (!transaction) {
-    await db.transaction(async (transaction) => {
-      await doSave(transaction, group, housings);
-    });
-  } else {
-    await doSave(transaction, group, housings);
-  }
+  });
 }
 
 const addHousing = async (
@@ -172,7 +169,10 @@ const addHousing = async (
     housing: housingList.length
   });
 
-  await GroupsHousing().insert(formatGroupHousingApi(group, housingList));
+  await kysely
+    .insertInto('groupsHousing')
+    .values(toGroupHousingInserts(group, housingList))
+    .execute();
   logger.info(`Added housing to a group.`, {
     group,
     housing: housingList.length
@@ -188,14 +188,25 @@ const removeHousing = async (
     housing: housingList.length
   });
 
-  await withinTransaction(async (transaction) => {
-    await GroupsHousing(transaction)
-      .where('group_id', group.id)
-      .whereIn(
-        ['housing_geo_code', 'housing_id'],
-        housingList.map((housing) => [housing.geoCode, housing.id])
+  if (housingList.length === 0) {
+    return;
+  }
+
+  await withinKyselyTransaction(async (trx) => {
+    await trx
+      .deleteFrom('groupsHousing')
+      .where('groupId', '=', group.id)
+      .where((eb) =>
+        eb.or(
+          housingList.map((housing) =>
+            eb.and([
+              eb('housingGeoCode', '=', housing.geoCode),
+              eb('housingId', '=', housing.id)
+            ])
+          )
+        )
       )
-      .delete();
+      .execute();
   });
 };
 
@@ -206,21 +217,47 @@ const archive = async (group: GroupApi): Promise<GroupApi> => {
     ...group,
     archivedAt: new Date()
   };
-  await withinTransaction(async (transaction) => {
-    await Groups(transaction).where({ id: group.id }).update({
-      archived_at: archived.archivedAt
-    });
+  await withinKyselyTransaction(async (trx) => {
+    await trx
+      .updateTable('groups')
+      .set({ archivedAt: archived.archivedAt })
+      .where('id', '=', group.id)
+      .execute();
   });
   return archived;
 };
 
 const remove = async (group: GroupApi): Promise<void> => {
   logger.debug('Removing group...', group);
-  await withinTransaction(async (transaction) => {
-    await Groups(transaction).where({ id: group.id }).delete();
+  await withinKyselyTransaction(async (trx) => {
+    await trx.deleteFrom('groups').where('id', '=', group.id).execute();
   });
   logger.debug('Removed group', group.id);
 };
+
+function toGroupInsert(group: GroupApi): Insertable<DB['groups']> {
+  return {
+    id: group.id,
+    title: group.title,
+    description: group.description,
+    createdAt: group.createdAt,
+    exportedAt: group.exportedAt,
+    userId: group.userId,
+    establishmentId: group.establishmentId,
+    archivedAt: group.archivedAt
+  };
+}
+
+function toGroupHousingInserts(
+  group: GroupApi,
+  housingList: HousingApi[]
+): Insertable<DB['groupsHousing']>[] {
+  return housingList.map((housing) => ({
+    groupId: group.id,
+    housingId: housing.id,
+    housingGeoCode: housing.geoCode
+  }));
+}
 
 export interface GroupRecordDBO {
   id: string;

@@ -1,7 +1,11 @@
 import fs from 'node:fs';
 import path from 'node:path';
 
-import { getSubStatuses, HousingStatus } from '@zerologementvacant/models';
+import {
+  getSubStatuses,
+  HousingStatus,
+  Occupancy
+} from '@zerologementvacant/models';
 
 import db from '~/infra/database';
 import { createLogger } from '~/infra/logger';
@@ -29,7 +33,7 @@ function buildQuery(): { sql: string; bindings: Array<number | string> } {
   const pairs = COHERENT_PAIRS.map(() => '(?, ?)').join(', ');
   const bindings = COHERENT_PAIRS.flat();
   const sql = `
-    SELECT h.geo_code, h.id, h.status, h.sub_status, h.data_file_years,
+    SELECT h.geo_code, h.id, h.status, h.sub_status, h.occupancy, h.data_file_years,
            le.event_id, le.next_old, le.next_new, le.created_at AS event_created_at
     FROM fast_housing h
     LEFT JOIN LATERAL (
@@ -78,6 +82,7 @@ export async function generate(): Promise<void> {
       id: decision.id,
       current_status: decision.currentStatus,
       current_sub_status: decision.currentSubStatus,
+      current_occupancy: row.occupancy,
       cohort: decision.cohort,
       selected_by: selected,
       data_file_years: row.data_file_years ?? [],
@@ -97,8 +102,9 @@ export async function generate(): Promise<void> {
             ...common,
             target_status: decision.targetStatus,
             target_sub_status: decision.targetSubStatus,
+            target_occupancy: decision.exit ? Occupancy.UNKNOWN : null,
             source: decision.source,
-            write_event: decision.writeEvent,
+            exit: decision.exit,
             delete_event_id: decision.deleteEventId
           })
         );

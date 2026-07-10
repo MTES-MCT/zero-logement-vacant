@@ -20,8 +20,16 @@ through the migration-073 legacy renames (status labels and sub-statuses — see
 1. **Still vacant** (in `lovac-2026`) → reset to **NEVER_CONTACTED**, unless the
    current pair or the latest event is a valid **active** status (first-contact /
    in-progress / blocked), which is kept.
-2. **Exited** (was in some `lovac-*` file but not 2026) → **COMPLETED**, keeping the
-   event's own valid COMPLETED sub-status if it has one, else "Sortie de la vacance".
+2. **Exited** (was in some `lovac-*` file but not 2026) — mirrors the LOVAC import's
+   existing-housing exit (`import-lovac/housings/housing-transform.ts`):
+   - a usable event → **restore it** (the event is the source of truth, e.g. a manual
+     `Suivi en cours / Intervention publique`);
+   - else if occupancy = **VACANT** and it was in **lovac-2025** → the import should
+     have exited it: occupancy → **"Pas d'information"**, status → **COMPLETED /
+     "Sortie de la vacance"**, and write a `housing:status-updated` **and** a
+     `housing:occupancy-updated` event (deterministic `uuidv5`, keyed on `lovac-2026`);
+   - else (older exit, or no longer vacant) → **COMPLETED / "Sortie de la vacance"**,
+     no event, no occupancy change.
 3. **Never vacancy-tracked** (only `ff-*` / manual) →
    - the current pair is valid after renaming → keep it;
    - else a usable event → restore it;
@@ -36,9 +44,10 @@ through the migration-073 legacy renames (status labels and sub-statuses — see
 The definition of "valid" comes from the app's own `getSubStatuses` — the selection
 query is built from it, so it can't drift.
 
-On `apply`, an admin `housing:status-updated` event is written whenever the target
-differs from what the latest event recorded (`write_event`), and any `delete_event_id`
-is removed.
+**Events are written by `apply` only for the lovac-exit rows** (`exit = true`): a
+`housing:status-updated` + a `housing:occupancy-updated`, with deterministic `uuidv5`
+ids (so re-runs don't duplicate). Every other case writes no event; `event-revert`
+additionally deletes its bug event (`delete_event_id`). No other cohort is touched.
 
 ## 1. Stats (optional, run manually)
 
@@ -55,9 +64,9 @@ Produces two files, each carrying `cohort`, `current_sub_status`, `data_file_yea
 `latest_event` and `selected_by`:
 
 - `plan.jsonl` — housings that **will be updated**, with `source` (`keep-active` |
-  `lovac-reset` | `lovac-exit` | `event-restore` | `legacy-rename` |
-  `fallback-never-contacted` | `event-sub-adopt` | `event-revert`), plus
-  `write_event` and `delete_event_id`.
+  `lovac-reset` | `lovac-exit` | `completed-fallback` | `event-restore` |
+  `legacy-rename` | `fallback-never-contacted` | `event-sub-adopt` | `event-revert`),
+  plus `current_occupancy`, `target_occupancy`, `exit` and `delete_event_id`.
 - `errors.jsonl` — housings **left untouched**: the latest event is unusable
   (`sub-status-nulled` | `unknown-status-label`), so there is no safe repair.
 
@@ -91,7 +100,7 @@ yarn workspace @zerologementvacant/server tsx \
 
 Reads `plan.jsonl` and, in a **single transaction** (each statement chunked at 1,000):
 groups by target `(status, sub_status)` and `updateMany`; writes admin
-`housing:status-updated` events for the overrides (`write_event`); deletes the bug
+`housing:status-updated` + `housing:occupancy-updated` events for the lovac-exit rows (`exit`); deletes the bug
 events (`delete_event_id`). Atomic — any failure rolls the whole run back.
 
 > **Run once.** Events get fresh UUIDs each run, so re-running duplicates them. A

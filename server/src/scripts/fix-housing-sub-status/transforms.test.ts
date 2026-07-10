@@ -10,6 +10,7 @@ describe('toDecideInput', () => {
       id: 'h1',
       status: HousingStatus.COMPLETED,
       sub_status: null,
+      occupancy: 'V',
       data_file_years: ['lovac-2026'],
       event_id: 'evt-1',
       next_old: { status: 'Suivi terminé', subStatus: "N'était pas vacant" },
@@ -21,6 +22,7 @@ describe('toDecideInput', () => {
       id: 'h1',
       status: HousingStatus.COMPLETED,
       subStatus: null,
+      occupancy: 'V',
       dataFileYears: ['lovac-2026'],
       latestEvent: {
         status: 'Suivi terminé',
@@ -40,6 +42,7 @@ describe('toDecideInput', () => {
       id: 'h2',
       status: HousingStatus.BLOCKED,
       sub_status: null,
+      occupancy: 'V',
       data_file_years: null,
       event_id: null,
       next_old: null,
@@ -57,6 +60,7 @@ describe('toDecideInput', () => {
       id: 'h3',
       status: HousingStatus.BLOCKED,
       sub_status: null,
+      occupancy: 'V',
       data_file_years: [],
       event_id: 'evt-3',
       next_old: null,
@@ -96,15 +100,23 @@ describe('groupByTarget', () => {
         geo_code: '01001',
         id: 'a',
         target_status: 4,
-        target_sub_status: 'Sortie de la vacance'
+        target_sub_status: 'Sortie de la vacance',
+        target_occupancy: null
       },
       {
         geo_code: '01001',
         id: 'b',
         target_status: 4,
-        target_sub_status: 'Sortie de la vacance'
+        target_sub_status: 'Sortie de la vacance',
+        target_occupancy: null
       },
-      { geo_code: '01002', id: 'c', target_status: 0, target_sub_status: null }
+      {
+        geo_code: '01002',
+        id: 'c',
+        target_status: 0,
+        target_sub_status: null,
+        target_occupancy: null
+      }
     ]);
 
     expect(groups).toHaveLength(2);
@@ -126,12 +138,19 @@ describe('groupByTarget', () => {
 
   it('keeps null and non-null sub-status as distinct groups for the same status', () => {
     const groups = groupByTarget([
-      { geo_code: '01001', id: 'a', target_status: 4, target_sub_status: null },
+      {
+        geo_code: '01001',
+        id: 'a',
+        target_status: 4,
+        target_sub_status: null,
+        target_occupancy: null
+      },
       {
         geo_code: '01001',
         id: 'b',
         target_status: 4,
-        target_sub_status: 'Sortie de la vacance'
+        target_sub_status: 'Sortie de la vacance',
+        target_occupancy: null
       }
     ]);
     expect(groups).toHaveLength(2);

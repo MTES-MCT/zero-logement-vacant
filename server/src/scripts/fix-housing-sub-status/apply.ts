@@ -3,10 +3,12 @@ import path from 'node:path';
 
 import {
   HOUSING_STATUS_LABELS,
-  HousingStatus
+  HousingStatus,
+  Occupancy,
+  OCCUPANCY_LABELS
 } from '@zerologementvacant/models';
 import { chunksOf } from 'effect/Array';
-import { v4 as uuidv4 } from 'uuid';
+import { v5 as uuidv5 } from 'uuid';
 
 import UserMissingError from '~/errors/userMissingError';
 import {
@@ -18,12 +20,16 @@ import type { HousingEventApi } from '~/models/EventApi';
 import eventRepository from '~/repositories/eventRepository';
 import housingRepository from '~/repositories/housingRepository';
 import userRepository from '~/repositories/userRepository';
+import { LOVAC_NAMESPACE } from '~/scripts/import-lovac/infra';
 
 import { groupByTarget, type PlanRow } from './transforms';
 
 const ADMIN_EMAIL = 'admin@zerologementvacant.beta.gouv.fr';
 const EVENTS_TABLE = 'events';
 const HOUSING_EVENTS_TABLE = 'housing_events';
+// The import year that should have exited these housings — keys the uuidv5 event
+// ids so they match what the real lovac-2026 import would produce (idempotent).
+const EXIT_YEAR = 'lovac-2026';
 const BATCH_SIZE = 1000;
 
 const logger = createLogger('fix-housing-sub-status:apply');
@@ -46,24 +52,46 @@ export async function apply(options: { dryRun?: boolean } = {}): Promise<void> {
   }
 
   const now = new Date().toJSON();
+  // Only the lovac-exit rows emit events, mirroring the import: a
+  // status-updated + an occupancy-updated event, with deterministic uuidv5 ids.
   const events: HousingEventApi[] = rows
-    .filter((row) => row.write_event)
-    .map((row) => ({
-      id: uuidv4(),
-      type: 'housing:status-updated',
-      nextOld: {
-        status: HOUSING_STATUS_LABELS[row.current_status as HousingStatus],
-        subStatus: row.current_sub_status
+    .filter((row) => row.exit)
+    .flatMap((row) => [
+      {
+        id: uuidv5(
+          `${row.id}:housing:status-updated:${EXIT_YEAR}`,
+          LOVAC_NAMESPACE
+        ),
+        type: 'housing:status-updated',
+        nextOld: {
+          status: HOUSING_STATUS_LABELS[row.current_status as HousingStatus],
+          subStatus: row.current_sub_status
+        },
+        nextNew: {
+          status: HOUSING_STATUS_LABELS[row.target_status as HousingStatus],
+          subStatus: row.target_sub_status
+        },
+        createdAt: now,
+        createdBy: admin.id,
+        housingGeoCode: row.geo_code,
+        housingId: row.id
       },
-      nextNew: {
-        status: HOUSING_STATUS_LABELS[row.target_status as HousingStatus],
-        subStatus: row.target_sub_status
-      },
-      createdAt: now,
-      createdBy: admin.id,
-      housingGeoCode: row.geo_code,
-      housingId: row.id
-    }));
+      {
+        id: uuidv5(
+          `${row.id}:housing:occupancy-updated:${EXIT_YEAR}`,
+          LOVAC_NAMESPACE
+        ),
+        type: 'housing:occupancy-updated',
+        nextOld: {
+          occupancy: OCCUPANCY_LABELS[row.current_occupancy as Occupancy]
+        },
+        nextNew: { occupancy: OCCUPANCY_LABELS[Occupancy.UNKNOWN] },
+        createdAt: now,
+        createdBy: admin.id,
+        housingGeoCode: row.geo_code,
+        housingId: row.id
+      }
+    ]);
 
   const deleteEventIds = rows
     .map((row) => row.delete_event_id)
@@ -86,7 +114,10 @@ export async function apply(options: { dryRun?: boolean } = {}): Promise<void> {
       for (const batch of chunksOf(group.housings, BATCH_SIZE)) {
         await housingRepository.updateMany(batch, {
           status: group.status,
-          subStatus: group.subStatus
+          subStatus: group.subStatus,
+          ...(group.occupancy !== null && {
+            occupancy: group.occupancy as Occupancy
+          })
         });
       }
     }

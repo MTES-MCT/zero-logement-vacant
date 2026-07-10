@@ -9,6 +9,7 @@ export interface RawRow {
   id: string;
   status: number;
   sub_status: string | null;
+  occupancy: string;
   data_file_years: string[] | null;
   event_id: string | null;
   next_old: EventNextNew | null;
@@ -40,6 +41,7 @@ export function toDecideInput(row: RawRow): DecideInput {
     id: row.id,
     status: row.status as HousingStatus,
     subStatus: row.sub_status,
+    occupancy: row.occupancy,
     dataFileYears: row.data_file_years ?? [],
     latestEvent: hasEvent ? (row.next_new ?? {}) : null,
     latestEventOld: hasEvent ? (row.next_old ?? {}) : null,
@@ -52,32 +54,43 @@ export interface PlanRow {
   id: string;
   current_status: number;
   current_sub_status: string | null;
+  current_occupancy: string;
   target_status: number;
   target_sub_status: string | null;
-  // Event handling, decided by `decide()`:
-  write_event: boolean;
+  // `target_occupancy` is set (→ UNKNOWN) only for the lovac-exit rows.
+  target_occupancy: string | null;
+  exit: boolean;
   delete_event_id: string | null;
 }
 
 export interface UpdateGroup {
   status: HousingStatus;
   subStatus: string | null;
+  occupancy: string | null;
   housings: HousingId[];
 }
 
 export function groupByTarget(
   rows: ReadonlyArray<
-    Pick<PlanRow, 'geo_code' | 'id' | 'target_status' | 'target_sub_status'>
+    Pick<
+      PlanRow,
+      | 'geo_code'
+      | 'id'
+      | 'target_status'
+      | 'target_sub_status'
+      | 'target_occupancy'
+    >
   >
 ): UpdateGroup[] {
   const groups = new Map<string, UpdateGroup>();
   for (const row of rows) {
-    const key = `${row.target_status}|${row.target_sub_status ?? ''}`;
+    const key = `${row.target_status}|${row.target_sub_status ?? ''}|${row.target_occupancy ?? ''}`;
     let group = groups.get(key);
     if (!group) {
       group = {
         status: row.target_status as HousingStatus,
         subStatus: row.target_sub_status,
+        occupancy: row.target_occupancy,
         housings: []
       };
       groups.set(key, group);

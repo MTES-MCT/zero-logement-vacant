@@ -119,8 +119,9 @@ export function createServer(): Server {
     cors({
       origin: config.app.allowedOrigins,
       credentials: true,
-      methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
-      allowedHeaders: ['Content-Type']
+      // Keep allowedHeaders unset so cors reflects the browser's requested
+      // headers, including Sentry's sentry-trace and baggage propagation.
+      methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS']
     })
   );
 

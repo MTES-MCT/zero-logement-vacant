@@ -226,6 +226,19 @@ async function insertManyCampaignHousingEvents(
   });
 }
 
+function toEventInsert<Type extends EventType>(
+  event: EventApi<Type>
+): Insertable<DB['events']> {
+  return {
+    id: event.id,
+    type: event.type,
+    nextOld: event.nextOld as Insertable<DB['events']>['nextOld'],
+    nextNew: event.nextNew as Insertable<DB['events']>['nextNew'],
+    createdAt: new Date(event.createdAt),
+    createdBy: event.createdBy
+  };
+}
+
 function toCampaignHousingEventInsert(
   event: CampaignHousingEventApi
 ): Insertable<DB['campaignHousingEvents']> {

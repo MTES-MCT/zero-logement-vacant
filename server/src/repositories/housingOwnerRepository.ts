@@ -3,10 +3,13 @@ import type {
   RelativeLocationFilter
 } from '@zerologementvacant/models';
 import { OwnerRank, PropertyRight } from '@zerologementvacant/models';
+import type { Insertable } from 'kysely';
 import { match } from 'ts-pattern';
 
 import db from '~/infra/database';
-import { withinTransaction } from '~/infra/database/transaction';
+import type { DB } from '~/infra/database/db';
+import { kysely } from '~/infra/database/kysely';
+import { withinKyselyTransaction } from '~/infra/database/kysely-transaction';
 import { logger } from '~/infra/logger';
 import { HousingRecordApi } from '~/models/HousingApi';
 import { HousingOwnerApi } from '~/models/HousingOwnerApi';
@@ -75,11 +78,38 @@ async function insert(housingOwner: HousingOwnerApi): Promise<void> {
     housingOwner
   });
 
-  await HousingOwners()
-    .insert(formatHousingOwnerApi(housingOwner))
-    .onConflict()
-    .ignore();
+  await kysely
+    .insertInto('ownersHousing')
+    .values(toHousingOwnerInsert(housingOwner))
+    .onConflict((oc) => oc.doNothing())
+    .execute();
   logger.debug('Saved housing owner.');
+}
+
+// Camel-case Insertable mirror of formatHousingOwnerApi. start_date/end_date are
+// `date` columns typed as string by kysely-codegen; the API carries Date values,
+// so they are passed through unchanged (pg serializes them exactly as Knex did).
+function toHousingOwnerInsert(
+  housingOwner: Omit<HousingOwnerApi, keyof OwnerApi>
+): Insertable<DB['ownersHousing']> {
+  return {
+    ownerId: housingOwner.ownerId,
+    housingId: housingOwner.housingId,
+    housingGeoCode: housingOwner.housingGeoCode,
+    rank: housingOwner.rank,
+    startDate: housingOwner.startDate as unknown as string | null,
+    endDate: housingOwner.endDate as unknown as string | null,
+    origin: housingOwner.origin,
+    idprocpte: housingOwner.idprocpte,
+    idprodroit: housingOwner.idprodroit,
+    locpropSource:
+      typeof housingOwner.locprop === 'number'
+        ? String(housingOwner.locprop)
+        : null,
+    locpropRelativeBan: toRelativeLocationDBO(housingOwner.relativeLocation),
+    locpropDistanceBan: housingOwner.absoluteDistance,
+    propertyRight: housingOwner.propertyRight
+  };
 }
 
 async function saveMany(
@@ -97,19 +127,25 @@ async function saveMany(
   let affectedOwnerIds: string[] = newOwnerIds;
 
   // Remove owners before inserting them back
-  await withinTransaction(async (transaction) => {
-    const existing = await HousingOwners(transaction)
-      .where({ housing_geo_code: housingGeoCode, housing_id: housingId })
-      .select('owner_id');
+  await withinKyselyTransaction(async (trx) => {
+    const existing = await trx
+      .selectFrom('ownersHousing')
+      .where('housingGeoCode', '=', housingGeoCode)
+      .where('housingId', '=', housingId)
+      .select('ownerId')
+      .execute();
     affectedOwnerIds = [
-      ...new Set([...existing.map((r) => r.owner_id), ...newOwnerIds])
+      ...new Set([...existing.map((row) => row.ownerId), ...newOwnerIds])
     ];
-    await HousingOwners(transaction)
-      .where({ housing_geo_code: housingGeoCode, housing_id: housingId })
-      .delete();
-    await HousingOwners(transaction).insert(
-      housingOwners.map(formatHousingOwnerApi)
-    );
+    await trx
+      .deleteFrom('ownersHousing')
+      .where('housingGeoCode', '=', housingGeoCode)
+      .where('housingId', '=', housingId)
+      .execute();
+    await trx
+      .insertInto('ownersHousing')
+      .values(housingOwners.map(toHousingOwnerInsert))
+      .execute();
   });
 
   logger.debug(`Saved ${housingOwners.length} housing owners.`);

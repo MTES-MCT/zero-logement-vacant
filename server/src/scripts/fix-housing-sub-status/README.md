@@ -98,14 +98,22 @@ yarn workspace @zerologementvacant/server tsx \
   src/scripts/fix-housing-sub-status/index.ts apply
 ```
 
-Reads `plan.jsonl` and, in a **single transaction** (each statement chunked at 1,000,
-with progress logging): groups by target and `updateMany`; writes the lovac-exit
-events; deletes the bug events. Around it, the per-row count triggers on
-`fast_housing`/`housing_events` are **disabled** (`ALTER TABLE … DISABLE TRIGGER USER`)
-for the write and the derived counts (`buildings`, `campaigns.return_count`) are
-**recomputed once** at the end — reusing the LOVAC import's
-`housings-counts-maintenance`. Without this, the ~17k status updates fire the
-`return_count` trigger per row (~1s each → hours).
+Reads `plan.jsonl` and, in a **single transaction** (with progress logging): loads
+the targets into a temp table, then updates `fast_housing` with one
+`UPDATE … FROM temp` join; writes the lovac-exit events; deletes the bug events.
+
+Two things keep this fast on the partitioned `fast_housing` (RANGE by `geo_code`,
+~96 department partitions):
+
+- The join is forced onto a **nested-loop index plan** (`SET LOCAL enable_hashjoin/
+  enable_mergejoin = off`) so each target reaches its row by the `(geo_code, id)` PK
+  with **runtime partition pruning** — one partition, one index lookup. A row-value
+  `(geo_code, id) IN (…)` instead scans many partitions (minutes per statement).
+- The per-row count triggers on `fast_housing`/`housing_events` are **disabled**
+  (`ALTER TABLE … DISABLE TRIGGER USER`) for the write, and the derived counts
+  (`buildings`, `campaigns.return_count`) are **recomputed once** at the end —
+  reusing the LOVAC import's `housings-counts-maintenance`. Otherwise the status
+  updates fire the `return_count` trigger per row (~1s each → hours).
 
 > **Idempotent.** Exit events use deterministic `uuidv5` ids (`onConflict.ignore`),
 > updates set absolute values, deletes are no-ops when gone, and the recompute is a
@@ -113,10 +121,12 @@ for the write and the derived counts (`buildings`, `campaigns.return_count`) are
 >
 > **If `apply` dies mid-run**, the count triggers may be left disabled (the window is
 > now only seconds, since the write is fast). Re-enable and recompute:
+>
 > ```sql
 > ALTER TABLE fast_housing ENABLE TRIGGER USER;
 > ALTER TABLE housing_events ENABLE TRIGGER USER;
 > ```
+>
 > then re-run `apply` (which recomputes), or just re-run `apply`.
 >
 > **Don't apply a stale plan** — re-`generate` immediately before applying, off-peak.

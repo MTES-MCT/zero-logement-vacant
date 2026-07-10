@@ -18,7 +18,6 @@ import {
 import { createLogger } from '~/infra/logger';
 import type { HousingEventApi } from '~/models/EventApi';
 import eventRepository from '~/repositories/eventRepository';
-import housingRepository from '~/repositories/housingRepository';
 import userRepository from '~/repositories/userRepository';
 import { LOVAC_NAMESPACE } from '~/scripts/import-lovac/infra';
 import {
@@ -28,11 +27,12 @@ import {
   recomputeHousingsCounts
 } from '~/scripts/import-lovac/infra/housings-counts-maintenance';
 
-import { groupByTarget, type PlanRow } from './transforms';
+import type { PlanRow } from './transforms';
 
 const ADMIN_EMAIL = 'admin@zerologementvacant.beta.gouv.fr';
 const EVENTS_TABLE = 'events';
 const HOUSING_EVENTS_TABLE = 'housing_events';
+const TARGETS_TABLE = '_fix_housing_targets';
 // The import year that should have exited these housings — keys the uuidv5 event
 // ids so they match what the real lovac-2026 import would produce (idempotent).
 const EXIT_YEAR = 'lovac-2026';
@@ -103,11 +103,10 @@ export async function apply(options: { dryRun?: boolean } = {}): Promise<void> {
     .map((row) => row.delete_event_id)
     .filter((eventId): eventId is string => eventId !== null);
 
-  const groups = groupByTarget(rows);
   logger.info(
     `${options.dryRun ? '[dry-run] Would apply' : 'Applying'} ${rows.length} ` +
-      `update(s) across ${groups.length} group(s); ` +
-      `writing ${events.length} event(s); deleting ${deleteEventIds.length} event(s)...`
+      `update(s); writing ${events.length} event(s); ` +
+      `deleting ${deleteEventIds.length} event(s)...`
   );
 
   if (options.dryRun) {
@@ -116,28 +115,60 @@ export async function apply(options: { dryRun?: boolean } = {}): Promise<void> {
   }
 
   // fast_housing carries per-row count triggers (return_count, building stats)
-  // that make a 17k-row bulk update take hours. Bypass them for the write and
-  // recompute once at the end — mirroring the LOVAC import.
+  // that make a bulk update take hours. Bypass them for the write and recompute
+  // once at the end — mirroring the LOVAC import.
   await ensureKnownHousingsTriggers();
   await disableHousingsTriggers();
   try {
     await startTransaction(async () => {
-      let updated = 0;
-      for (const [index, group] of groups.entries()) {
-        for (const batch of chunksOf(group.housings, BATCH_SIZE)) {
-          await housingRepository.updateMany(batch, {
-            status: group.status,
-            subStatus: group.subStatus,
-            ...(group.occupancy !== null && {
-              occupancy: group.occupancy as Occupancy
-            })
-          });
-          updated += batch.length;
+      await withinTransaction(async (transaction) => {
+        // fast_housing is RANGE-partitioned by geo_code. A row-value
+        // `(geo_code, id) IN (...)` doesn't prune, so each statement scans many
+        // partitions (minutes). Instead, load the targets into a temp table and
+        // drive a nested-loop index join: forcing off hash/merge joins makes the
+        // planner reach fast_housing by its `(geo_code, id)` PK with runtime
+        // partition pruning — one target, one partition, one index lookup.
+        await transaction.raw('SET LOCAL enable_hashjoin = off');
+        await transaction.raw('SET LOCAL enable_mergejoin = off');
+        await transaction.raw(`
+          CREATE TEMP TABLE ${TARGETS_TABLE} (
+            geo_code text NOT NULL,
+            id uuid NOT NULL,
+            status integer NOT NULL,
+            sub_status text,
+            occupancy text
+          ) ON COMMIT DROP
+        `);
+
+        let loaded = 0;
+        for (const batch of chunksOf(rows, BATCH_SIZE)) {
+          await transaction(TARGETS_TABLE).insert(
+            batch.map((row) => ({
+              geo_code: row.geo_code,
+              id: row.id,
+              status: row.target_status,
+              sub_status: row.target_sub_status,
+              occupancy: row.target_occupancy
+            }))
+          );
+          loaded += batch.length;
+          logger.info(
+            `Loaded ${loaded}/${rows.length} targets into temp table`
+          );
         }
-        logger.info(
-          `Updated group ${index + 1}/${groups.length} · ${updated}/${rows.length} housings`
-        );
-      }
+
+        // A null target_occupancy means "leave occupancy unchanged" (only the
+        // lovac-exit rows carry 'inconnu'); COALESCE preserves the existing value.
+        await transaction.raw(`
+          UPDATE fast_housing AS h
+          SET status = t.status,
+              sub_status = t.sub_status,
+              occupancy = COALESCE(t.occupancy, h.occupancy)
+          FROM ${TARGETS_TABLE} AS t
+          WHERE h.geo_code = t.geo_code AND h.id = t.id
+        `);
+        logger.info(`Updated ${rows.length} housings`);
+      });
 
       let written = 0;
       for (const batch of chunksOf(events, BATCH_SIZE)) {

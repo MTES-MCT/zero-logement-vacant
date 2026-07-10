@@ -178,12 +178,13 @@ export function decide(input: DecideInput): Decision {
     );
   }
 
-  // Never vacancy-tracked. No events.
-  if (current.ok) {
-    return update(current.status, current.subStatus, 'legacy-rename');
-  }
+  // Never vacancy-tracked. No events. The latest event is the source of truth,
+  // so restore it before falling back to renaming the current pair.
   if (event?.ok) {
     return update(event.status, event.subStatus, 'event-restore');
+  }
+  if (current.ok) {
+    return update(current.status, current.subStatus, 'legacy-rename');
   }
   if (latestEvent && event) {
     const statusAbsent =

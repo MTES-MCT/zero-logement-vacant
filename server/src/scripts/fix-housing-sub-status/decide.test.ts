@@ -158,6 +158,23 @@ describe('decide — never vacancy-tracked (rental / manual)', () => {
     });
   });
 
+  it('prefers restoring the event over renaming the current pair (76618)', () => {
+    const result = decide(
+      base({
+        status: HousingStatus.WAITING,
+        subStatus: 'Sortie de la vacance', // forbidden sub, fixable by clearing it
+        dataFileYears: [],
+        latestEvent: { status: 'En attente de retour', subStatus: null }
+      })
+    );
+    expect(result).toMatchObject({
+      action: 'update',
+      targetStatus: HousingStatus.WAITING,
+      targetSubStatus: null,
+      source: 'event-restore'
+    });
+  });
+
   it('restores from a usable event when the current pair is invalid', () => {
     const result = decide(
       base({

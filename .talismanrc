@@ -10,7 +10,7 @@ fileignoreconfig:
 - filename: analytics/dagster/src/config.py
   checksum: 8f99243a8283bb0b5ea0f6513647557274a5da958684e68a9dc3b86b44974a5b
 - filename: analytics/dbt/models/marts/production/marts_production_cerema_lovac_users_unregistered.sql
-  checksum: 4f5752352d75a7a4f9504cb7f1495c2a2cec6725942a34fa7f572feef03436a0
+  checksum: db7ab30e098c757dbb98638392782d97f90c745fab9944d327d17060441dcaa4
 - filename: analytics/dbt/models/staging/external/cerema/stg_external_cerema_lovac_users.sql
   checksum: e6ccfed9e9dd6d2b53f3f00eb89a1cb574e516736d7f2122e53c2f820b2f81f9
 - filename: analytics/dagster/src/assets/populate_edited_owners_ban_addresses.py
@@ -57,6 +57,8 @@ fileignoreconfig:
   checksum: bb7324a6ef5a5ec6f03a03e5c6dbb8fe56f2655d46a85292329265a48eb3ffe5
 - filename: docs/superpowers/specs/2026-06-13-reference-data-cache-design.md
   checksum: f08020ffee6beeda135a04955eeeb4a9be0a8e11cf98e8cd18327b67848ca7e2
+- filename: docs/superpowers/specs/2026-07-08-zlv-repair-harness-design.md
+  checksum: 3b78f0af3737a4b295511ab8998d4a0b441dac861846f034bf2f674bd5cc3277
 - filename: frontend/.env.example
   checksum: b2a9a90b4638f73c5c3af34fe5e7e6bf5244b18f32f7c96fb35c48429836004d
 - filename: frontend/AGENTS.md

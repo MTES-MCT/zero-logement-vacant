@@ -52,6 +52,7 @@ import {
   formatProspectApi,
   Prospects
 } from '~/repositories/prospectRepository';
+import { UsersEstablishments } from '~/repositories/user-establishment-repository';
 import { toUserDBO, Users, USERS_TABLE } from '~/repositories/userRepository';
 import ceremaService from '~/services/ceremaService';
 import { TEST_ACCOUNTS } from '~/services/ceremaService/consultUserService';
@@ -123,6 +124,30 @@ describe('User API', () => {
           (user) => user.establishmentId === establishment.id
         );
       });
+
+      it('should return users attached through multi-structure memberships', async () => {
+        const otherEstablishment = genEstablishmentApi();
+        const multiStructureUser = genUserApi(otherEstablishment.id);
+        await Establishments().insert(
+          formatEstablishmentApi(otherEstablishment)
+        );
+        await Users().insert(toUserDBO(multiStructureUser));
+        await UsersEstablishments().insert({
+          user_id: multiStructureUser.id,
+          establishment_id: establishment.id,
+          establishment_siren: establishment.siren,
+          has_commitment: true
+        });
+
+        const { body, status } = await request(url)
+          .get(route)
+          .use(tokenProvider(user));
+
+        expect(status).toBe(constants.HTTP_STATUS_OK);
+        expect(body).toSatisfyAny(
+          (user: UserDTO) => user.id === multiStructureUser.id
+        );
+      });
     });
 
     describe('As an authenticated admin', () => {
@@ -148,6 +173,19 @@ describe('User API', () => {
       });
 
       it('should filter by establishment', async () => {
+        const otherEstablishment = genEstablishmentApi();
+        const multiStructureUser = genUserApi(otherEstablishment.id);
+        await Establishments().insert(
+          formatEstablishmentApi(otherEstablishment)
+        );
+        await Users().insert(toUserDBO(multiStructureUser));
+        await UsersEstablishments().insert({
+          user_id: multiStructureUser.id,
+          establishment_id: establishment.id,
+          establishment_siren: establishment.siren,
+          has_commitment: true
+        });
+
         const { body, status } = await request(url)
           .get(route)
           .query({ establishments: [establishment.id] })
@@ -155,8 +193,8 @@ describe('User API', () => {
 
         expect(status).toBe(constants.HTTP_STATUS_OK);
         expect(body.length).toBeGreaterThan(0);
-        expect(body).toSatisfyAll<UserDTO>(
-          (user) => user.establishmentId === establishment.id
+        expect(body).toSatisfyAny(
+          (user: UserDTO) => user.id === multiStructureUser.id
         );
       });
     });

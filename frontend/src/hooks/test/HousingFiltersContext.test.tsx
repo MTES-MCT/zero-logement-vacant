@@ -1,33 +1,52 @@
-import { act, renderHook } from '@testing-library/react';
-import { HousingStatus, Occupancy } from '@zerologementvacant/models';
+import { act, renderHook, waitFor } from '@testing-library/react';
+import {
+  HousingStatus,
+  Occupancy,
+  UserRole,
+  type EstablishmentDTO
+} from '@zerologementvacant/models';
+import {
+  genEstablishmentDTO,
+  genUserDTO
+} from '@zerologementvacant/models/fixtures';
 import type { PropsWithChildren } from 'react';
 import { Provider as StoreProvider } from 'react-redux';
 
-import { MockAuthProvider } from '~/test/auth';
+import data from '~/mocks/handlers/data';
+import { MockAuthProvider, type MockAuthOptions } from '~/test/auth';
 
 import configureTestStore from '../../utils/storeUtils';
 import {
   HousingFiltersProvider,
   useHousingFilters
 } from '../HousingFiltersContext';
+import { useIntercommunalities } from '../useIntercommunalities';
 
 function createWrapper(
   initialFilters?: Parameters<
     typeof HousingFiltersProvider
-  >[0]['initialFilters']
+  >[0]['initialFilters'],
+  auth: MockAuthOptions = { user: null }
 ) {
   const store = configureTestStore();
 
   // eslint-disable-next-line react/display-name
   return ({ children }: PropsWithChildren) => (
     <StoreProvider store={store}>
-      <MockAuthProvider options={{ user: null }}>
+      <MockAuthProvider options={auth}>
         <HousingFiltersProvider initialFilters={initialFilters}>
           {children}
         </HousingFiltersProvider>
       </MockAuthProvider>
     </StoreProvider>
   );
+}
+
+function createAuthOptions(establishment: EstablishmentDTO): MockAuthOptions {
+  return {
+    establishment,
+    user: genUserDTO(UserRole.USUAL, establishment)
+  };
 }
 
 describe('HousingFiltersContext', () => {
@@ -143,6 +162,47 @@ describe('HousingFiltersContext', () => {
       });
 
       expect(result.current.filters.vacancyYears).toEqual(['2022']);
+    });
+
+    it('keeps locality filters unset when selecting an intercommunality without selected localities', async () => {
+      const department: EstablishmentDTO = {
+        ...genEstablishmentDTO(),
+        kind: 'DEP',
+        geoCodes: ['06004', '06012', '06088']
+      };
+      const intercommunality: EstablishmentDTO = {
+        ...genEstablishmentDTO(),
+        kind: 'CA',
+        geoCodes: ['06004', '06012']
+      };
+      data.establishments.push(department, intercommunality);
+
+      const { result } = renderHook(
+        () => ({
+          filters: useHousingFilters(),
+          intercommunalities: useIntercommunalities()
+        }),
+        {
+          wrapper: createWrapper(undefined, createAuthOptions(department))
+        }
+      );
+
+      await waitFor(() => {
+        expect(result.current.intercommunalities.data).toContainEqual(
+          expect.objectContaining({ id: intercommunality.id })
+        );
+      });
+
+      act(() => {
+        result.current.filters.onChange({
+          intercommunalities: [intercommunality.id]
+        });
+      });
+
+      expect(result.current.filters.filters).toMatchObject({
+        intercommunalities: [intercommunality.id]
+      });
+      expect(result.current.filters.filters.localities).toBeUndefined();
     });
   });
 

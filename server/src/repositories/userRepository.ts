@@ -6,6 +6,8 @@ import { logger } from '~/infra/logger';
 import { PaginationApi, paginationQuery } from '~/models/PaginationApi';
 import { UserApi } from '~/models/UserApi';
 
+import { USERS_ESTABLISHMENTS_TABLE } from './user-establishment-repository';
+
 export const USERS_TABLE = 'users';
 
 export const Users = (transaction = db) => transaction<UserDBO>(USERS_TABLE);
@@ -64,12 +66,14 @@ interface FindOptions {
 
 async function find(opts?: FindOptions): Promise<UserApi[]> {
   const users: UserDBO[] = await db<UserDBO>(USERS_TABLE)
+    .select(`${USERS_TABLE}.*`)
     .where(notDeleted)
     .modify((builder) => {
       if (opts?.filters?.establishments?.length) {
-        builder.whereIn('establishment_id', opts.filters.establishments);
+        builder.distinct(`${USERS_TABLE}.id`);
       }
     })
+    .modify(filter(opts?.filters))
     // TODO: flexible sort
     .orderBy(['last_name', 'first_name'])
     .modify(paginationQuery(opts?.pagination));
@@ -83,8 +87,20 @@ interface CountOptions {
 
 function filter(filters?: UserFilters) {
   return (builder: Knex.QueryBuilder<UserDBO>) => {
-    if (filters?.establishments?.length) {
-      builder.whereIn('establishment_id', filters.establishments);
+    const establishmentIds = filters?.establishments;
+    if (establishmentIds?.length) {
+      builder.join(USERS_ESTABLISHMENTS_TABLE, function () {
+        this.on(
+          `${USERS_ESTABLISHMENTS_TABLE}.user_id`,
+          '=',
+          `${USERS_TABLE}.id`
+        )
+          .onIn(
+            `${USERS_ESTABLISHMENTS_TABLE}.establishment_id`,
+            establishmentIds
+          )
+          .andOnVal(`${USERS_ESTABLISHMENTS_TABLE}.has_commitment`, true);
+      });
     }
   };
 }
@@ -93,7 +109,7 @@ async function count(opts?: CountOptions): Promise<number> {
   const result = await db<UserDBO>(USERS_TABLE)
     .where(notDeleted)
     .modify(filter(opts?.filters))
-    .count('id')
+    .countDistinct(`${USERS_TABLE}.id`)
     .first();
 
   return Number(result?.count);

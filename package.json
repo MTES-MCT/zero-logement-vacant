@@ -43,7 +43,7 @@
     "@vitest/ui": "4.1.6",
     "clever-tools": "4.10.0",
     "cypress": "15.15.0",
-    "esbuild": "0.28.0",
+    "esbuild": "0.28.1",
     "eslint-plugin-cypress": "6.4.1",
     "globals": "16.5.0",
     "husky": "9.1.7",
@@ -58,7 +58,7 @@
     "oxlint": "1.69.0",
     "sass": "1.99.0",
     "typescript": "5.9.3",
-    "vite": "8.0.12",
+    "vite": "8.0.16",
     "vitest": "4.1.6"
   },
   "resolutions": {

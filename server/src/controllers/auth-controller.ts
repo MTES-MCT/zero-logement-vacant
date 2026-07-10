@@ -212,7 +212,10 @@ async function signInToEstablishment(
   // ADMIN and VISITOR users have no restriction (effectiveGeoCodes = undefined)
   let effectiveGeoCodes: string[] | undefined;
   if (user.role !== UserRole.ADMIN && user.role !== UserRole.VISITOR) {
-    const userPerimeter = await userPerimeterRepository.get(user.id);
+    const userPerimeter = await userPerimeterRepository.get(
+      user.id,
+      establishment.id
+    );
     effectiveGeoCodes = await filterGeoCodesByPerimeter(
       establishment.geoCodes,
       userPerimeter,
@@ -269,13 +272,14 @@ async function changeEstablishment(request: Request, response: Response) {
   }
 
   // Update user's current establishment
-  await userRepository.update({
+  const updatedUser = {
     ...user,
     establishmentId,
     updatedAt: new Date().toJSON()
-  });
+  };
+  await userRepository.update(updatedUser);
 
-  await signInToEstablishment(user, establishmentId, response);
+  await signInToEstablishment(updatedUser, establishmentId, response);
 }
 
 /**
@@ -354,7 +358,10 @@ async function changeEstablishmentBySession(
 
   let effectiveGeoCodes: string[] | undefined;
   if (user.role !== UserRole.ADMIN && user.role !== UserRole.VISITOR) {
-    const userPerimeter = await userPerimeterRepository.get(user.id);
+    const userPerimeter = await userPerimeterRepository.get(
+      user.id,
+      establishment.id
+    );
     effectiveGeoCodes = await filterGeoCodesByPerimeter(
       establishment.geoCodes,
       userPerimeter,

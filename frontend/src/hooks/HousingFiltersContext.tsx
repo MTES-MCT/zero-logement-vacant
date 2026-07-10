@@ -76,6 +76,10 @@ export function HousingFiltersProvider({
             .toArray();
         }
 
+        if (next.localities?.length === 0) {
+          delete next.localities;
+        }
+
         return next;
       });
     },

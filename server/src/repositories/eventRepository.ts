@@ -90,7 +90,7 @@ async function insertManyHousingEvents(
       async (batch) => {
         await trx
           .insertInto('events')
-          .values(batch.map(toEventDBO))
+          .values(batch.map(toEventInsert))
           .onConflict((oc) => oc.column('id').doNothing())
           .execute();
         await trx
@@ -102,6 +102,19 @@ async function insertManyHousingEvents(
       { concurrency: 1 }
     );
   });
+}
+
+function toEventInsert<Type extends EventType>(
+  event: EventApi<Type>
+): Insertable<DB['events']> {
+  return {
+    id: event.id,
+    type: event.type,
+    nextOld: event.nextOld as Insertable<DB['events']>['nextOld'],
+    nextNew: event.nextNew as Insertable<DB['events']>['nextNew'],
+    createdAt: new Date(event.createdAt),
+    createdBy: event.createdBy
+  };
 }
 
 function toHousingEventInsert(
@@ -150,7 +163,7 @@ async function insertManyHousingOwnerEvents(
       async (batch) => {
         await trx
           .insertInto('events')
-          .values(batch.map(toEventDBO))
+          .values(batch.map(toEventInsert))
           .onConflict((oc) => oc.column('id').doNothing())
           .execute();
         await trx

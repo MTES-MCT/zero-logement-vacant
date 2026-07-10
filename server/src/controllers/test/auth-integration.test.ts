@@ -70,6 +70,7 @@ import {
 } from '~/repositories/establishmentRepository';
 import { UsersEstablishments } from '~/repositories/user-establishment-repository';
 import { toUserDBO, Users } from '~/repositories/userRepository';
+import ceremaService from '~/services/ceremaService';
 import { genEstablishmentApi, genUserApi } from '~/test/testFixtures';
 
 const AUTH_USERS_TABLE = 'auth_users';
@@ -595,12 +596,29 @@ describe('better-auth sign-in (integration)', () => {
       created_at: new Date(),
       updated_at: new Date()
     });
+    const consultUsers = vi
+      .spyOn(ceremaService, 'consultUsers')
+      .mockResolvedValue([
+        {
+          email,
+          establishmentSiren: establishment.siren,
+          hasAccount: true,
+          hasCommitment: true
+        },
+        {
+          email,
+          establishmentSiren: targetEstablishment.siren,
+          hasAccount: true,
+          hasCommitment: true
+        }
+      ]);
 
     try {
       const signInResponse = await request(url)
         .post('/auth/sign-in/email')
         .send({ email, password });
       expect(signInResponse.status).toBe(200);
+      expect(consultUsers).toHaveBeenCalledWith(email);
       const cookies = getCookies(signInResponse);
 
       const directUpdateResponse = await request(url)
@@ -626,6 +644,7 @@ describe('better-auth sign-in (integration)', () => {
         targetEstablishment.id
       );
     } finally {
+      consultUsers.mockRestore();
       await UsersEstablishments().where({ user_id: user.id }).delete();
       await Establishments().where('id', targetEstablishment.id).delete();
       await deleteBackfilledUser(user.id);

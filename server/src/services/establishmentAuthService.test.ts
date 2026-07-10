@@ -36,10 +36,14 @@ import { refreshAuthorizedEstablishments } from './establishmentAuthService';
 
 describe('refreshAuthorizedEstablishments', () => {
   const establishment = genEstablishmentApi('75056');
+  const secondEstablishment = genEstablishmentApi('69123');
   const user = genUserApi(establishment.id);
 
   beforeAll(async () => {
-    await Establishments().insert(formatEstablishmentApi(establishment));
+    await Establishments().insert([
+      formatEstablishmentApi(establishment),
+      formatEstablishmentApi(secondEstablishment)
+    ]);
     await Users().insert(toUserDBO(user));
   });
 
@@ -57,7 +61,9 @@ describe('refreshAuthorizedEstablishments', () => {
     await UsersEstablishments().where({ user_id: user.id }).delete();
     await UserPerimeters().where({ user_id: user.id }).delete();
     await Users().where({ id: user.id }).delete();
-    await Establishments().where({ id: establishment.id }).delete();
+    await Establishments()
+      .whereIn('id', [establishment.id, secondEstablishment.id])
+      .delete();
   });
 
   it('synchronizes valid establishments and the current perimeter', async () => {
@@ -108,6 +114,75 @@ describe('refreshAuthorizedEstablishments', () => {
       geoCodes: ['75056'],
       departments: ['75'],
       regions: ['11'],
+      epci: [],
+      frEntiere: false
+    });
+  });
+
+  it('saves a distinct perimeter for every authorized establishment', async () => {
+    mocks.consultUsers.mockResolvedValue([
+      {
+        email: user.email,
+        establishmentSiren: establishment.siren,
+        hasAccount: true,
+        hasCommitment: true,
+        group: {
+          id_groupe: 1,
+          nom: 'LOVAC',
+          structure: 1,
+          perimetre: 1,
+          niveau_acces: 'lovac',
+          df_ano: false,
+          df_non_ano: false,
+          lovac: true
+        },
+        perimeter: {
+          perimetre_id: 1,
+          origine: 'test',
+          fr_entiere: false,
+          reg: ['11'],
+          dep: ['75'],
+          epci: [],
+          comm: ['75056']
+        }
+      },
+      {
+        email: user.email,
+        establishmentSiren: secondEstablishment.siren,
+        hasAccount: true,
+        hasCommitment: true,
+        group: {
+          id_groupe: 2,
+          nom: 'LOVAC',
+          structure: 2,
+          perimetre: 2,
+          niveau_acces: 'lovac',
+          df_ano: false,
+          df_non_ano: false,
+          lovac: true
+        },
+        perimeter: {
+          perimetre_id: 2,
+          origine: 'test',
+          fr_entiere: false,
+          reg: ['84'],
+          dep: ['69'],
+          epci: [],
+          comm: ['69123']
+        }
+      }
+    ]);
+
+    await refreshAuthorizedEstablishments(user);
+
+    await expect(
+      userPerimeterRepository.get(user.id, secondEstablishment.id)
+    ).resolves.toMatchObject({
+      userId: user.id,
+      establishmentId: secondEstablishment.id,
+      geoCodes: ['69123'],
+      departments: ['69'],
+      regions: ['84'],
       epci: [],
       frEntiere: false
     });

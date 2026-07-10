@@ -184,51 +184,48 @@ async function syncAuthorizedEstablishments(
   }
 }
 
-async function saveCurrentEstablishmentPerimeter(
+async function saveAuthorizedEstablishmentPerimeters(
   user: UserApi,
+  authorizedEstablishments: ReadonlyArray<AuthorizedEstablishment>,
   knownEstablishments: ReadonlyArray<EstablishmentApi>,
   ceremaUsers: ReadonlyArray<CeremaUser>
 ): Promise<void> {
-  if (!user.establishmentId) {
-    return;
+  for (const authorizedEstablishment of authorizedEstablishments) {
+    const establishment = knownEstablishments.find(
+      (candidate) => candidate.id === authorizedEstablishment.establishmentId
+    );
+    if (!establishment) {
+      continue;
+    }
+
+    const ceremaUser = findCeremaUser(ceremaUsers, establishment.siren);
+    const perimeter = ceremaUser?.perimeter;
+    if (!perimeter) {
+      continue;
+    }
+
+    await userPerimeterRepository.upsert({
+      userId: user.id,
+      establishmentId: establishment.id,
+      geoCodes: perimeter.comm || [],
+      departments: perimeter.dep || [],
+      regions: perimeter.reg || [],
+      epci: perimeter.epci || [],
+      frEntiere: perimeter.fr_entiere || false,
+      updatedAt: new Date().toJSON()
+    });
+
+    logger.info('User perimeter saved from Portail DF', {
+      userId: user.id,
+      email: user.email,
+      establishmentId: establishment.id,
+      frEntiere: perimeter.fr_entiere,
+      communesCount: perimeter.comm?.length || 0,
+      departmentsCount: perimeter.dep?.length || 0,
+      regionsCount: perimeter.reg?.length || 0,
+      epciCount: perimeter.epci?.length || 0
+    });
   }
-
-  const currentEstablishment = knownEstablishments.find(
-    (establishment) => establishment.id === user.establishmentId
-  );
-  if (!currentEstablishment) {
-    return;
-  }
-
-  const currentCeremaUser = findCeremaUser(
-    ceremaUsers,
-    currentEstablishment.siren
-  );
-  const perimeter = currentCeremaUser?.perimeter;
-  if (!perimeter) {
-    return;
-  }
-
-  await userPerimeterRepository.upsert({
-    userId: user.id,
-    establishmentId: currentEstablishment.id,
-    geoCodes: perimeter.comm || [],
-    departments: perimeter.dep || [],
-    regions: perimeter.reg || [],
-    epci: perimeter.epci || [],
-    frEntiere: perimeter.fr_entiere || false,
-    updatedAt: new Date().toJSON()
-  });
-
-  logger.info('User perimeter saved from Portail DF', {
-    userId: user.id,
-    email: user.email,
-    frEntiere: perimeter.fr_entiere,
-    communesCount: perimeter.comm?.length || 0,
-    departmentsCount: perimeter.dep?.length || 0,
-    regionsCount: perimeter.reg?.length || 0,
-    epciCount: perimeter.epci?.length || 0
-  });
 }
 
 /**
@@ -276,8 +273,9 @@ export async function refreshAuthorizedEstablishments(
       accessErrors
     );
     await syncAuthorizedEstablishments(user, authorizedEstablishments);
-    await saveCurrentEstablishmentPerimeter(
+    await saveAuthorizedEstablishmentPerimeters(
       user,
+      authorizedEstablishments,
       knownEstablishments,
       ceremaUsersWithCommitment
     );

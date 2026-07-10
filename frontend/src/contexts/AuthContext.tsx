@@ -146,7 +146,7 @@ export function AuthProvider(props: Readonly<PropsWithChildren>) {
       // A Better Auth session without its ZLV authorization context cannot be
       // used by protected API routes. Revoke it so the user returns to a clean
       // sign-in state instead of being trapped between guest/protected routes.
-      void signOut().catch(() => undefined);
+      signOut().catch(() => undefined);
     }
   }, [hasSession, isAuthenticated, isPending, signOut]);
 

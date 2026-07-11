@@ -8,6 +8,7 @@ import {
   replaceWithNoncontingentExpression
 } from 'kysely';
 import pg from 'pg';
+import Cursor from 'pg-cursor';
 
 import type { DB } from '~/infra/database/db';
 import config from '~/infra/database/knexfile';
@@ -23,7 +24,7 @@ const pool = new pg.Pool({
 });
 
 export const kysely = new Kysely<DB>({
-  dialect: new PostgresDialect({ pool }),
+  dialect: new PostgresDialect({ pool, cursor: Cursor }),
   plugins: [
     // maintainNestedObjectKeys keeps keys inside JSON aggregates
     // (`to_json(users.*)`, `json_build_object(...)`) untouched, so the snake_case

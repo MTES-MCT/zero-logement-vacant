@@ -138,6 +138,14 @@ async function resolveActiveEstablishmentId(
 }
 
 async function sendAdminTwoFactorCode(user: UserApi): Promise<void> {
+  if (
+    isAccountLocked(
+      user.twoFactorLockedUntil ? new Date(user.twoFactorLockedUntil) : null
+    )
+  ) {
+    throw authenticationFailed();
+  }
+
   const code = generateSimpleCode();
   const now = new Date();
   const hashedCode = await hashCode(code);
@@ -146,8 +154,6 @@ async function sendAdminTwoFactorCode(user: UserApi): Promise<void> {
     ...user,
     twoFactorCode: hashedCode,
     twoFactorCodeGeneratedAt: now.toJSON(),
-    twoFactorFailedAttempts: 0,
-    twoFactorLockedUntil: null,
     updatedAt: now.toJSON()
   });
 

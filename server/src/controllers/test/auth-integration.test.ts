@@ -563,6 +563,56 @@ describe('better-auth sign-in (integration)', () => {
     }
   });
 
+  it('keeps an admin locked when a new two-factor code is requested', async () => {
+    const email = 'admin-locked-resend@zlv.fr';
+    const password = 'not-a-real-password';
+    const user = await seedBackfilledUser({
+      email,
+      plaintextPassword: password,
+      establishmentId: establishment.id,
+      role: UserRole.ADMIN
+    });
+
+    try {
+      const challenge = await request(url).post('/auth/admin/sign-in').send({
+        email,
+        password,
+        establishmentId: establishment.id
+      });
+      expect(challenge.status).toBe(200);
+
+      for (let attempt = 0; attempt < 3; attempt += 1) {
+        const response = await request(url)
+          .post('/auth/admin/verify-2fa')
+          .send({
+            email,
+            code: '000000',
+            establishmentId: establishment.id
+          });
+        expect(response.status).toBe(401);
+      }
+
+      const lockedUser = await Users().where({ id: user.id }).first();
+      expect(lockedUser?.two_factor_failed_attempts).toBe(3);
+      expect(lockedUser?.two_factor_locked_until).toBeInstanceOf(Date);
+
+      const resend = await request(url).post('/auth/admin/sign-in').send({
+        email,
+        password,
+        establishmentId: establishment.id
+      });
+
+      expect(resend.status).toBe(401);
+      const stillLockedUser = await Users().where({ id: user.id }).first();
+      expect(stillLockedUser?.two_factor_failed_attempts).toBe(3);
+      expect(stillLockedUser?.two_factor_locked_until).toEqual(
+        lockedUser?.two_factor_locked_until
+      );
+    } finally {
+      await deleteBackfilledUser(user.id);
+    }
+  });
+
   it('does not expose public better-auth email sign-up', async () => {
     const email = 'public-signup@zlv.fr';
 

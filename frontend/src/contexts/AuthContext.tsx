@@ -28,12 +28,12 @@ export interface AuthContextValue {
   signInAdmin: (
     email: string,
     password: string,
-    establishmentId?: string
+    establishmentId: string
   ) => Promise<{ requiresTwoFactor: boolean; email: string }>;
   verifyAdminTwoFactor: (
     email: string,
     code: string,
-    establishmentId?: string
+    establishmentId: string
   ) => Promise<void>;
   signOut: () => Promise<void>;
   changeEstablishment: (establishmentId: string) => Promise<void>;
@@ -94,7 +94,7 @@ export function AuthProvider(props: Readonly<PropsWithChildren>) {
   );
 
   const signInAdmin = useCallback(
-    async (email: string, password: string, establishmentId?: string) => {
+    async (email: string, password: string, establishmentId: string) => {
       const response = await fetch(`${config.apiEndpoint}/auth/admin/sign-in`, {
         method: 'POST',
         credentials: 'include',
@@ -117,7 +117,7 @@ export function AuthProvider(props: Readonly<PropsWithChildren>) {
   );
 
   const verifyAdminTwoFactor = useCallback(
-    async (email: string, code: string, establishmentId?: string) => {
+    async (email: string, code: string, establishmentId: string) => {
       const response = await fetch(
         `${config.apiEndpoint}/auth/admin/verify-2fa`,
         {

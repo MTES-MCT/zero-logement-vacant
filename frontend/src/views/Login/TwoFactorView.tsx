@@ -29,7 +29,7 @@ type FormSchema = InferType<typeof schema>;
 
 interface TwoFactorState {
   email: string;
-  establishmentId?: string;
+  establishmentId: string;
 }
 
 const TwoFactorView = () => {
@@ -56,11 +56,13 @@ const TwoFactorView = () => {
     resolver: yupResolver(schema)
   });
 
-  if (!email) {
+  if (!email || !establishmentId) {
     // If no email in state, redirect back to login
     navigate('/admin');
     return null;
   }
+  const verifiedEmail = email;
+  const verifiedEstablishmentId = establishmentId;
 
   function submit(data: FormSchema): void {
     setError(null);
@@ -72,7 +74,7 @@ const TwoFactorView = () => {
     isV2PendingRef.current = true;
     setIsV2Pending(true);
     auth
-      .verifyAdminTwoFactor(email!, data.code, establishmentId)
+      .verifyAdminTwoFactor(verifiedEmail, data.code, verifiedEstablishmentId)
       .then(() => {
         navigate('/parc-de-logements');
       })

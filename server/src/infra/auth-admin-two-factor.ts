@@ -29,7 +29,7 @@ import {
 const adminSignInBody = z.object({
   email: z.string().email(),
   password: z.string().min(1),
-  establishmentId: z.string().uuid().optional()
+  establishmentId: z.string().uuid()
 });
 
 const adminVerifyTwoFactorBody = z.object({
@@ -38,7 +38,7 @@ const adminVerifyTwoFactorBody = z.object({
     .string()
     .length(6)
     .regex(/^\d{6}$/),
-  establishmentId: z.string().uuid().optional()
+  establishmentId: z.string().uuid()
 });
 
 function authenticationFailed(): APIError {
@@ -114,19 +114,9 @@ async function getAdminUserForSignIn(
 }
 
 async function resolveActiveEstablishmentId(
-  user: UserApi,
-  establishmentId: string | undefined
+  establishmentId: string
 ): Promise<string> {
-  const activeEstablishmentId = establishmentId ?? user.establishmentId;
-  if (!activeEstablishmentId) {
-    throw new APIError('UNPROCESSABLE_ENTITY', {
-      message: 'Admin sign-in requires an establishment.'
-    });
-  }
-
-  const establishment = await establishmentRepository.get(
-    activeEstablishmentId
-  );
+  const establishment = await establishmentRepository.get(establishmentId);
   if (!establishment) {
     throw new APIError('UNPROCESSABLE_ENTITY', {
       message: 'Admin sign-in establishment does not exist.'
@@ -204,12 +194,10 @@ async function verifyAdminTwoFactorCode(
 async function createAdminSession(
   ctx: any,
   user: UserApi,
-  establishmentId: string | undefined
+  establishmentId: string
 ) {
-  const activeEstablishmentId = await resolveActiveEstablishmentId(
-    user,
-    establishmentId
-  );
+  const activeEstablishmentId =
+    await resolveActiveEstablishmentId(establishmentId);
 
   const session = await ctx.context.internalAdapter.createSession(
     user.id,
@@ -283,7 +271,7 @@ export function zlvAdminTwoFactor(): BetterAuthPlugin {
             ctx.body.email,
             ctx.body.password
           );
-          await resolveActiveEstablishmentId(user, ctx.body.establishmentId);
+          await resolveActiveEstablishmentId(ctx.body.establishmentId);
 
           if (!config.auth.admin2faEnabled) {
             await createAdminSession(ctx, user, ctx.body.establishmentId);

@@ -82,6 +82,12 @@ const LoginView = () => {
 
   async function submitLoginForm(data: LoginSchema): Promise<void> {
     if (isAdminView) {
+      if (!data.establishmentId) {
+        form.setError('establishmentId', {
+          message: 'Veuillez sélectionner un établissement.'
+        });
+        return;
+      }
       if (isV2PendingRef.current) {
         return;
       }
@@ -92,13 +98,13 @@ const LoginView = () => {
         const challenge = await auth.signInAdmin(
           data.email,
           data.password,
-          data.establishmentId || undefined
+          data.establishmentId
         );
         if (challenge.requiresTwoFactor) {
           navigate('/verification-2fa', {
             state: {
               email: challenge.email,
-              establishmentId: data.establishmentId || undefined
+              establishmentId: data.establishmentId
             }
           });
         } else {

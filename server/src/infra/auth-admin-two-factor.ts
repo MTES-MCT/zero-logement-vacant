@@ -1,5 +1,4 @@
 import { UserRole } from '@zerologementvacant/models';
-import bcrypt from 'bcryptjs';
 import type { BetterAuthPlugin } from 'better-auth';
 import {
   APIError,
@@ -12,7 +11,7 @@ import * as z from 'zod';
 
 import config from '~/infra/config';
 import { logger } from '~/infra/logger';
-import { SALT_LENGTH, type UserApi } from '~/models/UserApi';
+import type { UserApi } from '~/models/UserApi';
 import establishmentRepository from '~/repositories/establishmentRepository';
 import userRepository from '~/repositories/userRepository';
 import { updateUserAndAuth } from '~/services/authUserSyncService';
@@ -56,6 +55,23 @@ function invalidEmailOrPassword(): APIError {
   });
 }
 
+interface CredentialContext {
+  context: {
+    internalAdapter: {
+      findAccounts(userId: string): Promise<
+        Array<{
+          providerId: string;
+          password?: string | null;
+        }>
+      >;
+    };
+    password: {
+      hash(password: string): Promise<string>;
+      verify(input: { hash: string; password: string }): Promise<boolean>;
+    };
+  };
+}
+
 async function getAdminUser(email: string): Promise<UserApi> {
   const user = await userRepository.getByEmailIncludingDeleted(email);
   if (!user || user.deletedAt || user.role !== UserRole.ADMIN) {
@@ -65,28 +81,37 @@ async function getAdminUser(email: string): Promise<UserApi> {
 }
 
 async function getAdminUserForSignIn(
+  ctx: CredentialContext,
   email: string,
   password: string
 ): Promise<UserApi> {
   const user = await userRepository.getByEmailIncludingDeleted(email);
   if (!user) {
-    await bcrypt.hash(password, SALT_LENGTH);
+    await ctx.context.password.hash(password);
     throw authenticationFailed();
   }
 
-  await assertPassword(user, password);
+  const credentialAccount = (
+    await ctx.context.internalAdapter.findAccounts(user.id)
+  ).find((account) => account.providerId === 'credential');
+  if (!credentialAccount?.password) {
+    await ctx.context.password.hash(password);
+    throw authenticationFailed();
+  }
+
+  const isPasswordValid = await ctx.context.password.verify({
+    hash: credentialAccount.password,
+    password
+  });
+  if (!isPasswordValid) {
+    throw authenticationFailed();
+  }
+
   if (user.deletedAt || user.role !== UserRole.ADMIN) {
     throw authenticationFailed();
   }
 
   return user;
-}
-
-async function assertPassword(user: UserApi, password: string): Promise<void> {
-  const isPasswordValid = await bcrypt.compare(password, user.password);
-  if (!isPasswordValid) {
-    throw authenticationFailed();
-  }
 }
 
 async function resolveActiveEstablishmentId(
@@ -254,6 +279,7 @@ export function zlvAdminTwoFactor(): BetterAuthPlugin {
         },
         async (ctx) => {
           const user = await getAdminUserForSignIn(
+            ctx,
             ctx.body.email,
             ctx.body.password
           );

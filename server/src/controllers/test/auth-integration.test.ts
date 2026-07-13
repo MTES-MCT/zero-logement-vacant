@@ -348,6 +348,39 @@ describe('better-auth sign-in (integration)', () => {
     }
   });
 
+  it('verifies the admin password against the Better Auth credential account', async () => {
+    const email = 'admin-credential-account@zlv.fr';
+    const password = 'not-a-real-password';
+    const user = await seedBackfilledUser({
+      email,
+      plaintextPassword: password,
+      establishmentId: establishment.id,
+      role: UserRole.ADMIN
+    });
+
+    try {
+      await Users()
+        .where({ id: user.id })
+        .update({
+          password: bcrypt.hashSync('different-password', SALT_LENGTH)
+        });
+
+      const response = await request(url).post('/auth/admin/sign-in').send({
+        email,
+        password,
+        establishmentId: establishment.id
+      });
+
+      expect(response.status).toBe(200);
+      expect(response.body).toMatchObject({
+        requiresTwoFactor: true,
+        email
+      });
+    } finally {
+      await deleteBackfilledUser(user.id);
+    }
+  });
+
   it('returns identical errors on admin sign-in until credentials identify an active admin', async () => {
     const password = 'not-a-real-password';
     const regularUser = await seedBackfilledUser({

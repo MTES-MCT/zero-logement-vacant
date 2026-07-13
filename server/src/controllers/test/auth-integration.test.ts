@@ -613,6 +613,45 @@ describe('better-auth sign-in (integration)', () => {
     }
   });
 
+  it('counts concurrent invalid admin two-factor attempts atomically', async () => {
+    const email = 'admin-concurrent-2fa@zlv.fr';
+    const password = 'not-a-real-password';
+    const user = await seedBackfilledUser({
+      email,
+      plaintextPassword: password,
+      establishmentId: establishment.id,
+      role: UserRole.ADMIN
+    });
+
+    try {
+      const challenge = await request(url).post('/auth/admin/sign-in').send({
+        email,
+        password,
+        establishmentId: establishment.id
+      });
+      expect(challenge.status).toBe(200);
+
+      const responses = await Promise.all(
+        Array.from({ length: 3 }, () =>
+          request(url).post('/auth/admin/verify-2fa').send({
+            email,
+            code: '000000',
+            establishmentId: establishment.id
+          })
+        )
+      );
+      expect(responses.map((response) => response.status)).toEqual([
+        401, 401, 401
+      ]);
+
+      const lockedUser = await Users().where({ id: user.id }).first();
+      expect(lockedUser?.two_factor_failed_attempts).toBe(3);
+      expect(lockedUser?.two_factor_locked_until).toBeInstanceOf(Date);
+    } finally {
+      await deleteBackfilledUser(user.id);
+    }
+  });
+
   it('does not expose public better-auth email sign-up', async () => {
     const email = 'public-signup@zlv.fr';
 

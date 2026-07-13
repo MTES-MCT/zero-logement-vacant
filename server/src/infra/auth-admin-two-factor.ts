@@ -193,16 +193,11 @@ async function verifyAdminTwoFactorCode(
     return;
   }
 
-  const failedAttempts = user.twoFactorFailedAttempts + 1;
-  const shouldLock = failedAttempts >= MAX_FAILED_ATTEMPTS;
-  await userRepository.update({
-    ...user,
-    twoFactorFailedAttempts: failedAttempts,
-    twoFactorLockedUntil: shouldLock
-      ? calculateLockoutEnd().toJSON()
-      : user.twoFactorLockedUntil,
-    updatedAt: new Date().toJSON()
-  });
+  await userRepository.recordTwoFactorFailure(
+    user.id,
+    MAX_FAILED_ATTEMPTS,
+    calculateLockoutEnd()
+  );
 
   throw authenticationFailed();
 }

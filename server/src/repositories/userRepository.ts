@@ -51,6 +51,27 @@ async function update(user: UserApi): Promise<void> {
   await Users().where({ id: user.id }).update(toUserDBO(user));
 }
 
+async function recordTwoFactorFailure(
+  userId: string,
+  maximumAttempts: number,
+  lockedUntil: Date
+): Promise<void> {
+  await Users()
+    .where({ id: userId })
+    .update({
+      two_factor_failed_attempts: db.raw('two_factor_failed_attempts + 1'),
+      two_factor_locked_until: db.raw(
+        `CASE
+          WHEN two_factor_failed_attempts + 1 >= ?
+          THEN COALESCE(two_factor_locked_until, ?)
+          ELSE two_factor_locked_until
+        END`,
+        [maximumAttempts, lockedUntil]
+      ),
+      updated_at: new Date()
+    });
+}
+
 async function insert(userApi: UserApi): Promise<UserApi> {
   logger.info('Insert user with email', userApi.email);
   return db(USERS_TABLE)
@@ -236,6 +257,7 @@ export default {
   getByEmail,
   getByEmailIncludingDeleted,
   update,
+  recordTwoFactorFailure,
   count,
   find,
   insert,

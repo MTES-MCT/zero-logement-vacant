@@ -1,25 +1,21 @@
 import { FileUploadDTO } from '@zerologementvacant/models';
 import async from 'async';
 import { Knex } from 'knex';
-import type { Insertable } from 'kysely';
+import { sql, type Insertable } from 'kysely';
 
 import { download } from '~/controllers/fileRepository';
 import db from '~/infra/database';
 import type { DB } from '~/infra/database/db';
+import { kysely } from '~/infra/database/kysely';
 import { withinKyselyTransaction } from '~/infra/database/kysely-transaction';
 import { createLogger } from '~/infra/logger';
 import { DraftApi } from '~/models/DraftApi';
-import { campaignsDraftsTable } from '~/repositories/campaignDraftRepository';
 import {
   fromDocumentDBO,
-  joinDocumentWithCreator,
+  selectDocumentWithCreator,
   type DocumentWithCreatorDBO
 } from '~/repositories/documentRepository';
-import {
-  parseSenderApi,
-  SenderDBO,
-  sendersTable
-} from '~/repositories/senderRepository';
+import { parseSenderApi, SenderDBO } from '~/repositories/senderRepository';
 
 const logger = createLogger('draftRepository');
 
@@ -39,32 +35,29 @@ interface FindOptions {
 
 async function find(opts?: FindOptions): Promise<DraftApi[]> {
   logger.debug('Finding drafts...', opts);
-  const drafts: DraftDBO[] = await Drafts()
-    .modify(listQuery)
-    .modify(filterQuery(opts?.filters))
-    .orderBy('created_at', 'desc');
-  logger.debug('Found drafts', drafts);
-  return async.map(drafts, parseDraftApi);
+  let query = draftListQuery();
+  query = applyDraftFilters(query, opts?.filters);
+  query = query.orderBy('drafts.createdAt', 'desc');
+  const rows = await query.execute();
+  logger.debug('Found drafts', rows);
+  return async.map(rows, parseDraftRow);
 }
 
 type FindOneOptions = Pick<DraftApi, 'id' | 'establishmentId'>;
 
 async function findOne(opts: FindOneOptions): Promise<DraftApi | null> {
-  const draft = await Drafts()
-    .modify(listQuery)
-    .where(
-      filterQuery({
-        id: opts.id,
-        establishment: opts.establishmentId
-      })
-    )
-    .first();
-  if (!draft) {
+  let query = draftListQuery();
+  query = applyDraftFilters(query, {
+    id: opts.id,
+    establishment: opts.establishmentId
+  });
+  const row = await query.executeTakeFirst();
+  if (!row) {
     return null;
   }
 
-  logger.debug('Found draft', draft);
-  return parseDraftApi(draft);
+  logger.debug('Found draft', row);
+  return parseDraftRow(row);
 }
 
 async function save(draft: DraftApi): Promise<void> {
@@ -108,59 +101,50 @@ function toDraftInsert(draft: DraftApi): Insertable<DB['drafts']> {
   };
 }
 
-function listQuery(query: Knex.QueryBuilder): void {
-  query
-    .select(`${draftsTable}.*`)
-    .leftJoin<SenderDBO>(
-      sendersTable,
-      `${draftsTable}.sender_id`,
-      `${sendersTable}.id`
+function draftListQuery(): any {
+  return kysely
+    .selectFrom('drafts')
+    .selectAll('drafts')
+    .leftJoin('senders', 'drafts.senderId', 'senders.id')
+    .select(sql`to_json(senders.*)`.as('sender'))
+    // signatory documents (from the joined sender)
+    .select(
+      selectDocumentWithCreator(
+        'senders.signatory_one_document_id',
+        'signatory_one_doc'
+      )
     )
-    .select(db.raw(`to_json(${sendersTable}.*) AS sender`));
-  // signatory documents
-  joinDocumentWithCreator(
-    query,
-    `${sendersTable}.signatory_one_document_id`,
-    'signatory_one_doc'
-  );
-  joinDocumentWithCreator(
-    query,
-    `${sendersTable}.signatory_two_document_id`,
-    'signatory_two_doc'
-  );
-  // logo next documents
-  joinDocumentWithCreator(
-    query,
-    `${draftsTable}.logo_next_one`,
-    'logo_next_one_doc'
-  );
-  joinDocumentWithCreator(
-    query,
-    `${draftsTable}.logo_next_two`,
-    'logo_next_two_doc'
-  );
+    .select(
+      selectDocumentWithCreator(
+        'senders.signatory_two_document_id',
+        'signatory_two_doc'
+      )
+    )
+    // logo next documents (from the draft)
+    .select(
+      selectDocumentWithCreator('drafts.logo_next_one', 'logo_next_one_doc')
+    )
+    .select(
+      selectDocumentWithCreator('drafts.logo_next_two', 'logo_next_two_doc')
+    );
 }
 
-function filterQuery(filters?: DraftFilters) {
-  return (query: Knex.QueryBuilder): void => {
-    if (filters?.id) {
-      query.where(`${draftsTable}.id`, filters.id);
-    }
+function applyDraftFilters(query: any, filters?: DraftFilters): any {
+  if (filters?.id) {
+    query = query.where('drafts.id', '=', filters.id);
+  }
 
-    if (filters?.establishment) {
-      query.where(`${draftsTable}.establishment_id`, filters.establishment);
-    }
+  if (filters?.establishment) {
+    query = query.where('drafts.establishmentId', '=', filters.establishment);
+  }
 
-    if (filters?.campaign) {
-      query
-        .join(
-          campaignsDraftsTable,
-          `${campaignsDraftsTable}.draft_id`,
-          `${draftsTable}.id`
-        )
-        .where(`${campaignsDraftsTable}.campaign_id`, filters.campaign);
-    }
-  };
+  if (filters?.campaign) {
+    query = query
+      .innerJoin('campaignsDrafts', 'campaignsDrafts.draftId', 'drafts.id')
+      .where('campaignsDrafts.campaignId', '=', filters.campaign);
+  }
+
+  return query;
 }
 
 export interface DraftRecordDBO {
@@ -232,6 +216,46 @@ export const parseDraftApi = async (draft: DraftDBO): Promise<DraftApi> => {
     }),
     createdAt: draft.created_at.toJSON(),
     updatedAt: draft.updated_at.toJSON()
+  };
+};
+
+/**
+ * Camel-case Kysely mirror of {@link parseDraftApi}. The draft columns come back
+ * camelCase (CamelCasePlugin) while the joined `sender` (to_json) and document
+ * blobs stay snake_case (maintainNestedObjectKeys), so the existing snake-case
+ * {@link parseSenderApi} and {@link fromDocumentDBO} still read them.
+ */
+export const parseDraftRow = async (row: any): Promise<DraftApi> => {
+  let logo: FileUploadDTO[] | null = null;
+
+  if (Array.isArray(row.logo)) {
+    try {
+      logo = await Promise.all(row.logo.map(download));
+    } catch {
+      logo = null;
+    }
+  }
+
+  return {
+    id: row.id,
+    subject: row.subject,
+    body: row.body,
+    logo: logo,
+    logoNext: [
+      row.logoNextOneDoc ? fromDocumentDBO(row.logoNextOneDoc) : null,
+      row.logoNextTwoDoc ? fromDocumentDBO(row.logoNextTwoDoc) : null
+    ],
+    writtenAt: row.writtenAt,
+    writtenFrom: row.writtenFrom,
+    establishmentId: row.establishmentId,
+    senderId: row.senderId,
+    sender: await parseSenderApi({
+      ...row.sender,
+      signatory_one_document: row.signatoryOneDoc ?? null,
+      signatory_two_document: row.signatoryTwoDoc ?? null
+    }),
+    createdAt: new Date(row.createdAt).toJSON(),
+    updatedAt: new Date(row.updatedAt).toJSON()
   };
 };
 

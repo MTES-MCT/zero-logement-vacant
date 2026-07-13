@@ -27,9 +27,10 @@ export const kysely = new Kysely<DB>({
   dialect: new PostgresDialect({ pool, cursor: Cursor }),
   plugins: [
     // maintainNestedObjectKeys keeps keys inside JSON aggregates
-    // (`to_json(users.*)`, `json_build_object(...)`) untouched, so the snake_case
-    // DBO parsers (fromUserDBO, fromDocumentDBO) still read them. Without it the
-    // plugin recursively camelCases nested JSON and those parsers get undefined.
+    // (`to_json(users.*)`, `to_json(senders.*)`, `jsonb_build_object(...)`)
+    // untouched, so the snake_case DBO parsers (fromUserDBO, parseSenderApi,
+    // fromDocumentDBO) still read them. Without it the plugin recursively
+    // camelCases nested JSON and those parsers get undefined.
     new CamelCasePlugin({ maintainNestedObjectKeys: true }),
     new DeduplicateJoinsPlugin(),
     new SafeNullComparisonPlugin(),

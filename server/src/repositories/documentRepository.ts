@@ -195,6 +195,47 @@ export function joinDocumentWithCreator(
     );
 }
 
+/**
+ * Kysely mirror of {@link joinDocumentWithCreator}. Returns a correlated scalar
+ * subquery that builds the document + nested creator JSON blob for the document
+ * referenced by `fkColumn` (a raw, table-qualified snake_case column such as
+ * `senders.signatory_one_document_id`). The blob keys stay snake_case — the
+ * CamelCasePlugin's `maintainNestedObjectKeys` leaves them untouched, so
+ * {@link fromDocumentDBO} reads them. Resolves to NULL when the FK is null or
+ * no matching document exists, matching the Knex `CASE WHEN ... ELSE NULL END`.
+ */
+export function selectDocumentWithCreator(fkColumn: string, alias: string) {
+  return sql`(
+    SELECT jsonb_build_object(
+      'id', d.id,
+      'filename', d.filename,
+      's3_key', d.s3_key,
+      'content_type', d.content_type,
+      'size_bytes', d.size_bytes,
+      'establishment_id', d.establishment_id,
+      'created_by', d.created_by,
+      'created_at', d.created_at,
+      'updated_at', d.updated_at,
+      'deleted_at', d.deleted_at,
+      'creator', json_build_object(
+        'id', u.id,
+        'email', u.email,
+        'first_name', u.first_name,
+        'last_name', u.last_name,
+        'role', u.role,
+        'establishment_id', u.establishment_id,
+        'time_per_week', u.time_per_week,
+        'phone', u.phone,
+        'position', u.position,
+        'updated_at', u.updated_at
+      )
+    )
+    FROM ${sql.raw(DOCUMENTS_TABLE)} d
+    LEFT JOIN ${sql.raw(USERS_TABLE)} u ON u.id = d.created_by
+    WHERE d.id = ${sql.raw(fkColumn)}
+  )`.as(alias);
+}
+
 // Kysely query builder with the creator embedded as a JSON column.
 // The creator fields mirror the Knex `queryWithCreator` projection (no
 // sensitive columns) so the parsed `UserDBO` shape is unchanged.

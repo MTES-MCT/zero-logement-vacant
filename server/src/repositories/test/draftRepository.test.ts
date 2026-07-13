@@ -4,6 +4,7 @@ import { DraftApi } from '~/models/DraftApi';
 import { SenderApi } from '~/models/SenderApi';
 import { factories } from '~/test/factories';
 import {
+  genDocumentApi,
   genDraftApi,
   genEstablishmentApi,
   genSenderApi,
@@ -11,6 +12,7 @@ import {
 } from '~/test/testFixtures';
 
 import { CampaignsDrafts } from '../campaignDraftRepository';
+import { Documents, toDocumentDBO } from '../documentRepository';
 import draftRepository, { Drafts, formatDraftApi } from '../draftRepository';
 import {
   Establishments,
@@ -103,6 +105,46 @@ describe('Draft repository', () => {
       });
 
       expect(actual).toStrictEqual<DraftApi>(draft);
+    });
+
+    it('should hydrate a signatory document with its nested creator', async () => {
+      const document = genDocumentApi({
+        establishmentId: establishment.id,
+        creator: user
+      });
+      await Documents().insert(toDocumentDBO(document));
+
+      const documentSender = genSenderApi(establishment);
+      documentSender.signatories[0] = {
+        firstName: documentSender.signatories[0]?.firstName ?? null,
+        lastName: documentSender.signatories[0]?.lastName ?? null,
+        role: documentSender.signatories[0]?.role ?? null,
+        file: null,
+        document
+      };
+      await Senders().insert(formatSenderApi(documentSender));
+
+      const documentDraft = genDraftApi(establishment, documentSender);
+      await Drafts().insert(formatDraftApi(documentDraft));
+
+      const actual = await draftRepository.findOne({
+        id: documentDraft.id,
+        establishmentId: documentDraft.establishmentId
+      });
+
+      expect(actual).not.toBeNull();
+      expect(actual?.sender.signatories[0]?.document).toMatchObject({
+        id: document.id,
+        filename: document.filename,
+        s3Key: document.s3Key,
+        createdBy: user.id,
+        creator: expect.objectContaining({
+          id: user.id,
+          email: user.email
+        })
+      });
+      // the second (empty) signatory must stay null
+      expect(actual?.sender.signatories[1]?.document).toBeNull();
     });
   });
 

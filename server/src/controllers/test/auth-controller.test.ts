@@ -17,6 +17,11 @@ import {
 vi.mock('../../services/ceremaService/mockCeremaService');
 vi.mock('../../infra/auth', () => ({
   auth: {
+    $context: Promise.resolve({
+      internalAdapter: {
+        deleteUserSessions: vi.fn()
+      }
+    }),
     api: {
       getSession: vi.fn(),
       updateSession: vi.fn()

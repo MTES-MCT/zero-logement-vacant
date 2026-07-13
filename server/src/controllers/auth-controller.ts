@@ -195,6 +195,8 @@ async function resetPassword(request: Request, response: Response) {
     },
     { passwordChanged: true }
   );
+  const authContext = await auth.$context;
+  await authContext.internalAdapter.deleteUserSessions(user.id);
   await resetLinkRepository.used(link.id);
   response.sendStatus(constants.HTTP_STATUS_OK);
 }

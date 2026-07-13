@@ -68,10 +68,18 @@ import {
   Establishments,
   formatEstablishmentApi
 } from '~/repositories/establishmentRepository';
+import {
+  formatResetLinkApi,
+  ResetLinks
+} from '~/repositories/resetLinkRepository';
 import { UsersEstablishments } from '~/repositories/user-establishment-repository';
 import { toUserDBO, Users } from '~/repositories/userRepository';
 import ceremaService from '~/services/ceremaService';
-import { genEstablishmentApi, genUserApi } from '~/test/testFixtures';
+import {
+  genEstablishmentApi,
+  genResetLinkApi,
+  genUserApi
+} from '~/test/testFixtures';
 
 const AUTH_USERS_TABLE = 'auth_users';
 const ACCOUNT_TABLE = 'account';
@@ -182,6 +190,45 @@ describe('better-auth sign-in (integration)', () => {
       expect(sessionCookie).toContain('HttpOnly');
       expect(sessionCookie!.toLowerCase()).toContain('samesite=strict');
     } finally {
+      await deleteBackfilledUser(user.id);
+    }
+  });
+
+  it('revokes existing sessions after a password reset', async () => {
+    const email = 'reset-session@zlv.fr';
+    const password = 'not-a-real-password';
+    const user = await seedBackfilledUser({
+      email,
+      plaintextPassword: password,
+      establishmentId: establishment.id
+    });
+    const link = genResetLinkApi(user.id);
+    await ResetLinks().insert(formatResetLinkApi(link));
+
+    try {
+      const signInResponse = await request(url)
+        .post('/auth/sign-in/email')
+        .send({ email, password });
+      expect(signInResponse.status).toBe(200);
+      const cookies = getCookies(signInResponse);
+      expect(await db('session').where({ user_id: user.id })).toHaveLength(1);
+
+      const resetResponse = await request(url)
+        .post('/account/reset-password')
+        .send({
+          key: link.id,
+          password: 'A-new-secure-password1!'
+        });
+      expect(resetResponse.status).toBe(200);
+
+      expect(await db('session').where({ user_id: user.id })).toHaveLength(0);
+      const formerSession = await request(url)
+        .get('/auth/get-session')
+        .set('Cookie', cookies);
+      expect(formerSession.status).toBe(200);
+      expect(formerSession.body).toBeNull();
+    } finally {
+      await ResetLinks().where({ id: link.id }).delete();
       await deleteBackfilledUser(user.id);
     }
   });

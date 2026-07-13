@@ -7,7 +7,7 @@ import Container from '@mui/material/Container';
 import Grid from '@mui/material/Grid';
 import Stack from '@mui/material/Stack';
 import Typography from '@mui/material/Typography';
-import { useRef, useState } from 'react';
+import { useState } from 'react';
 import { FormProvider, useForm } from 'react-hook-form';
 import { useLocation, useNavigate } from 'react-router';
 import { object, string, type InferType } from 'yup';
@@ -15,6 +15,7 @@ import { object, string, type InferType } from 'yup';
 import securityIcon from '~/assets/images/building.svg';
 import AppTextInputNext from '~/components/_app/AppTextInput/AppTextInputNext';
 import Image from '~/components/Image/Image';
+import { useAsyncSubmission } from '~/hooks/useAsyncSubmission';
 import { useAuth } from '~/hooks/useAuth';
 import { useDocumentTitle } from '~/hooks/useDocumentTitle';
 
@@ -44,8 +45,8 @@ const TwoFactorView = () => {
   const establishmentId = state?.establishmentId;
 
   const [error, setError] = useState<string | null>(null);
-  const [isVerificationPending, setIsVerificationPending] = useState(false);
-  const isVerificationPendingRef = useRef(false);
+  const { isSubmitting: isVerificationPending, submit: submitVerification } =
+    useAsyncSubmission();
 
   const form = useForm<FormSchema>({
     defaultValues: {
@@ -63,30 +64,23 @@ const TwoFactorView = () => {
   const verifiedEmail = email;
   const verifiedEstablishmentId = establishmentId;
 
-  function submit(data: FormSchema): void {
-    setError(null);
-
-    if (isVerificationPendingRef.current) {
-      return;
-    }
-
-    isVerificationPendingRef.current = true;
-    setIsVerificationPending(true);
-    auth
-      .verifyAdminTwoFactor(verifiedEmail, data.code, verifiedEstablishmentId)
-      .then(() => {
+  async function submit(data: FormSchema): Promise<void> {
+    await submitVerification(async () => {
+      setError(null);
+      try {
+        await auth.verifyAdminTwoFactor(
+          verifiedEmail,
+          data.code,
+          verifiedEstablishmentId
+        );
         navigate('/parc-de-logements');
-      })
-      .catch((error) => {
+      } catch (error) {
         console.error('2FA verification failed', error);
         setError(
           'Code de vérification invalide ou expiré. Veuillez vérifier votre email et réessayer.'
         );
-      })
-      .finally(() => {
-        isVerificationPendingRef.current = false;
-        setIsVerificationPending(false);
-      });
+      }
+    });
   }
 
   return (

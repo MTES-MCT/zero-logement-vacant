@@ -8,13 +8,14 @@ import Container from '@mui/material/Container';
 import Grid from '@mui/material/Grid';
 import Stack from '@mui/material/Stack';
 import Typography from '@mui/material/Typography';
-import { useRef, useState } from 'react';
+import { useState } from 'react';
 import { FormProvider, useForm } from 'react-hook-form';
 import { useLocation, useNavigate } from 'react-router';
 import * as yup from 'yup';
 
 import EstablishmentSearchableSelect from '~/components/establishment/EstablishmentSearchableSelect';
 import Image from '~/components/Image/Image';
+import { useAsyncSubmission } from '~/hooks/useAsyncSubmission';
 import { useAuth } from '~/hooks/useAuth';
 
 import building from '../../assets/images/building.svg';
@@ -60,8 +61,8 @@ const LoginView = () => {
   // cookie session. Admin login uses a dedicated 2FA endpoint.
   const auth = useAuth();
   const [authError, setAuthError] = useState<string | null>(null);
-  const [isLoginPending, setIsLoginPending] = useState(false);
-  const isLoginPendingRef = useRef(false);
+  const { isSubmitting: isLoginPending, submit: submitLogin } =
+    useAsyncSubmission();
 
   const [establishment, setEstablishment] = useState<Establishment | null>(
     null
@@ -86,58 +87,49 @@ const LoginView = () => {
         });
         return;
       }
-      if (isLoginPendingRef.current) {
-        return;
-      }
-      isLoginPendingRef.current = true;
-      setIsLoginPending(true);
+      const establishmentId = data.establishmentId;
+      await submitLogin(async () => {
+        setAuthError(null);
+        try {
+          const challenge = await auth.signInAdmin(
+            data.email,
+            data.password,
+            establishmentId
+          );
+          if (challenge.requiresTwoFactor) {
+            navigate('/verification-2fa', {
+              state: {
+                email: challenge.email,
+                establishmentId
+              }
+            });
+          } else {
+            navigate('/parc-de-logements');
+          }
+        } catch (error) {
+          setAuthError(
+            error instanceof Error
+              ? error.message
+              : 'Échec de l’authentification.'
+          );
+        }
+      });
+      return;
+    }
+
+    await submitLogin(async () => {
       setAuthError(null);
       try {
-        const challenge = await auth.signInAdmin(
-          data.email,
-          data.password,
-          data.establishmentId
-        );
-        if (challenge.requiresTwoFactor) {
-          navigate('/verification-2fa', {
-            state: {
-              email: challenge.email,
-              establishmentId: data.establishmentId
-            }
-          });
-        } else {
-          navigate('/parc-de-logements');
-        }
+        await auth.signIn(data.email, data.password);
+        navigate('/parc-de-logements');
       } catch (error) {
         setAuthError(
           error instanceof Error
             ? error.message
             : 'Échec de l’authentification.'
         );
-      } finally {
-        isLoginPendingRef.current = false;
-        setIsLoginPending(false);
       }
-      return;
-    }
-
-    if (isLoginPendingRef.current) {
-      return;
-    }
-    isLoginPendingRef.current = true;
-    setIsLoginPending(true);
-    setAuthError(null);
-    try {
-      await auth.signIn(data.email, data.password);
-      navigate('/parc-de-logements');
-    } catch (error) {
-      setAuthError(
-        error instanceof Error ? error.message : 'Échec de l’authentification.'
-      );
-    } finally {
-      isLoginPendingRef.current = false;
-      setIsLoginPending(false);
-    }
+    });
   }
 
   return (

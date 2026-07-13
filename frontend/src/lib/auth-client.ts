@@ -30,7 +30,7 @@ interface AuthClient {
   };
   getSession: () => Promise<{
     data: SessionDTO | null;
-    error: unknown | null;
+    error: unknown;
   }>;
 }
 

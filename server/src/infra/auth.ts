@@ -192,12 +192,12 @@ export const auth = betterAuth({
 
       // ADMIN and VISITOR bypass perimeter filtering (effectiveGeoCodes stays
       // undefined → no restriction). Skip the perimeter fetch for them.
-      const role: AuthRole =
-        domainUser.role === UserRole.ADMIN
-          ? 'admin'
-          : domainUser.role === UserRole.VISITOR
-            ? 'visitor'
-            : 'usual';
+      let role: AuthRole = 'usual';
+      if (domainUser.role === UserRole.ADMIN) {
+        role = 'admin';
+      } else if (domainUser.role === UserRole.VISITOR) {
+        role = 'visitor';
+      }
       const needsPerimeterFilter = role !== 'admin' && role !== 'visitor';
 
       // Batch 1: three independent reads in parallel.

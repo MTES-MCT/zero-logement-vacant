@@ -36,6 +36,8 @@ function TestConsumer() {
   const [adminChallengeEmail, setAdminChallengeEmail] = useState('none');
   const [signInStatus, setSignInStatus] = useState('pending');
   const [verifyStatus, setVerifyStatus] = useState('pending');
+  const [establishmentChangeStatus, setEstablishmentChangeStatus] =
+    useState('pending');
 
   if (!auth) {
     return <span data-testid="no-context">no context</span>;
@@ -55,7 +57,16 @@ function TestConsumer() {
       <span data-testid="admin-challenge-email">{adminChallengeEmail}</span>
       <span data-testid="sign-in-status">{signInStatus}</span>
       <span data-testid="verify-status">{verifyStatus}</span>
-      <button onClick={() => void auth.changeEstablishment('establishment-2')}>
+      <span data-testid="establishment-change-status">
+        {establishmentChangeStatus}
+      </span>
+      <button
+        onClick={() =>
+          void auth
+            .changeEstablishment('establishment-2')
+            .then(() => setEstablishmentChangeStatus('resolved'))
+        }
+      >
         change establishment
       </button>
       <button onClick={() => void auth.signOut()}>sign out</button>
@@ -363,6 +374,42 @@ describe('AuthProvider', () => {
       );
     });
     expect(refetch).toHaveBeenCalled();
+  });
+
+  it('resolves an establishment change only after the session is hydrated', async () => {
+    const establishment = genEstablishmentDTO();
+    let finishHydration: () => void = () => {};
+    const refetch = vi.fn(
+      () =>
+        new Promise<void>((resolve) => {
+          finishHydration = resolve;
+        })
+    );
+    vi.stubGlobal('fetch', vi.fn().mockResolvedValue({ ok: true }));
+    useSessionMock.mockReturnValue({
+      data: {
+        user: { id: 'u1', email: 'agent@zlv.fr' },
+        session: { activeEstablishmentId: establishment.id },
+        establishment
+      },
+      isPending: false,
+      error: null,
+      refetch
+    });
+
+    setup();
+    fireEvent.click(screen.getByText('change establishment'));
+    await waitFor(() => expect(refetch).toHaveBeenCalledOnce());
+
+    expect(screen.getByTestId('establishment-change-status')).toHaveTextContent(
+      'pending'
+    );
+    finishHydration();
+    await waitFor(() =>
+      expect(
+        screen.getByTestId('establishment-change-status')
+      ).toHaveTextContent('resolved')
+    );
   });
 
   it('starts admin sign-in through the better-auth 2FA endpoint', async () => {

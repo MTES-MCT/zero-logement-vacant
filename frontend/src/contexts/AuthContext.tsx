@@ -165,7 +165,7 @@ export function AuthProvider(props: Readonly<PropsWithChildren>) {
       }
       // Re-read the session so useSession() consumers see the new
       // establishment / authorizedEstablishments / effectiveGeoCodes.
-      refetch();
+      await refetch();
     },
     [refetch]
   );

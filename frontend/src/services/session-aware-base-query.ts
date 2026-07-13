@@ -26,6 +26,9 @@ export function createSessionAwareBaseQuery(
     const currentCheck = sessionCheck;
     try {
       await currentCheck;
+    } catch {
+      // Session revalidation is best-effort. Preserve the API's original 401
+      // instead of turning a transient auth check failure into a thrown query.
     } finally {
       if (sessionCheck === currentCheck) {
         sessionCheck = null;

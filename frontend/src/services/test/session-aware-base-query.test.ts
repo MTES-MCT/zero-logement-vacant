@@ -40,6 +40,21 @@ describe('createSessionAwareBaseQuery', () => {
     expect(sessionClient.signOut).not.toHaveBeenCalled();
   });
 
+  it('preserves the original 401 when session revalidation fails', async () => {
+    const unauthorized = { error: { status: 401, data: null } };
+    const baseQuery = vi
+      .fn()
+      .mockResolvedValue(unauthorized) as unknown as FetchBaseQuery;
+    const sessionClient = {
+      getSession: vi.fn().mockRejectedValue(new Error('Network error')),
+      signOut: vi.fn().mockResolvedValue(undefined)
+    };
+    const query = createSessionAwareBaseQuery(baseQuery, sessionClient);
+
+    await expect(query('/protected', api, {})).resolves.toEqual(unauthorized);
+    expect(sessionClient.signOut).not.toHaveBeenCalled();
+  });
+
   it('checks the session only once for concurrent 401 responses', async () => {
     let resolveSession!: (value: { data: null; error: null }) => void;
     const baseQuery = vi.fn().mockResolvedValue({

@@ -401,6 +401,8 @@ describe('Account controller', () => {
             returnHeaders: true
           })
         );
+        const persistedUser = await Users().where({ id: usualUser.id }).first();
+        expect(persistedUser?.establishment_id).toBe(targetEstablishment.id);
       } finally {
         consultUsers.mockRestore();
         await UsersEstablishments().where({ user_id: usualUser.id }).delete();

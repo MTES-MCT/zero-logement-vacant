@@ -51,6 +51,16 @@ async function update(user: UserApi): Promise<void> {
   await Users().where({ id: user.id }).update(toUserDBO(user));
 }
 
+async function updateEstablishment(
+  userId: string,
+  establishmentId: string
+): Promise<void> {
+  await Users().where({ id: userId }).update({
+    establishment_id: establishmentId,
+    updated_at: new Date()
+  });
+}
+
 async function recordTwoFactorFailure(
   userId: string,
   maximumAttempts: number,
@@ -257,6 +267,7 @@ export default {
   getByEmail,
   getByEmailIncludingDeleted,
   update,
+  updateEstablishment,
   recordTwoFactorFailure,
   count,
   find,

@@ -92,6 +92,10 @@ async function changeEstablishmentBySession(
     response.append('Set-Cookie', cookie);
   });
 
+  if (user.role === UserRole.USUAL) {
+    await userRepository.updateEstablishment(user.id, establishmentId);
+  }
+
   let effectiveGeoCodes: string[] | undefined;
   if (user.role !== UserRole.ADMIN && user.role !== UserRole.VISITOR) {
     const userPerimeter = await userPerimeterRepository.get(

@@ -7,6 +7,7 @@ import { UserRole } from '@zerologementvacant/models';
 import type { PropsWithChildren } from 'react';
 
 import { AuthContext, type AuthContextValue } from '~/contexts/AuthContext';
+import data from '~/mocks/handlers/data';
 
 const ROLE_ENUM_TO_STRING: Record<UserRole, AuthUserDTO['role']> = {
   [UserRole.USUAL]: 'usual',
@@ -80,6 +81,10 @@ export function MockAuthProvider(
     options?: MockAuthOptions;
   }>
 ) {
+  if (props.options) {
+    data.authSession.userId = props.options.user?.id ?? null;
+    data.authSession.establishmentId = props.options.establishment?.id ?? null;
+  }
   const value = props.value ?? genAuthContextValue(props.options);
   return (
     <AuthContext.Provider value={value}>{props.children}</AuthContext.Provider>

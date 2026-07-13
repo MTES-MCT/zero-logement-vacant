@@ -29,7 +29,7 @@ vi.mock('~/infra/logger', () => ({
   logger: mocks.logger
 }));
 
-import { run } from './index';
+import { run } from '../index';
 
 describe('backfill-auth-users', () => {
   beforeEach(() => {

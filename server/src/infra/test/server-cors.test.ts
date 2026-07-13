@@ -1,8 +1,8 @@
 import request from 'supertest';
 import { describe, expect, it } from 'vitest';
 
-import config from '~/infra/config';
-import { createServer } from '~/infra/server';
+import config from '../config';
+import { createServer } from '../server';
 
 describe('CORS preflight', () => {
   it('allows tracing headers requested by the frontend', async () => {

@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest';
 
 // We test the schema directly, not the exported singleton.
-import { configSchema } from './config';
+import { configSchema } from '../config';
 
 const validRaw = {
   app: {

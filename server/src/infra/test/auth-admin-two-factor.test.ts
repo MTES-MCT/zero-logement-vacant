@@ -27,7 +27,7 @@ vi.mock('~/services/mailService', () => ({
   default: { sendTwoFactorCode: vi.fn() }
 }));
 
-import { zlvAdminTwoFactor } from './auth-admin-two-factor';
+import { zlvAdminTwoFactor } from '../auth-admin-two-factor';
 
 function createTestAuth() {
   return betterAuth({

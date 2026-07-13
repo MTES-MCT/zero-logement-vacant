@@ -32,7 +32,7 @@ vi.mock('~/services/ceremaService', () => ({
   default: { consultUsers: mocks.consultUsers }
 }));
 
-import { refreshAuthorizedEstablishments } from './establishmentAuthService';
+import { refreshAuthorizedEstablishments } from '../establishmentAuthService';
 
 describe('refreshAuthorizedEstablishments', () => {
   const establishment = genEstablishmentApi('75056');

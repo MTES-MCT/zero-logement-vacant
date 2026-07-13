@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 
-import { getAuthCookieAttributes } from './auth-cookie';
+import { getAuthCookieAttributes } from '../auth-cookie';
 
 describe('getAuthCookieAttributes', () => {
   it('uses strict same-site cookies outside review apps', () => {

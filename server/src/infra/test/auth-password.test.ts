@@ -2,7 +2,7 @@ import bcrypt from 'bcryptjs';
 import { hashPassword as scryptHash } from 'better-auth/crypto';
 import { describe, expect, it, vi } from 'vitest';
 
-import { createPasswordVerifier } from '~/infra/auth-password';
+import { createPasswordVerifier } from '../auth-password';
 
 const PLAINTEXT = 'correct-horse-battery-staple';
 const WRONG = 'tr0ub4dor&3';

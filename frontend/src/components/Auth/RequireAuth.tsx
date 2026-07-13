@@ -3,7 +3,6 @@ import { type PropsWithChildren, useEffect } from 'react';
 import { Navigate, useLocation } from 'react-router';
 
 import { useAuth } from '~/hooks/useAuth';
-import { useFetchInterceptor } from '~/hooks/useFetchInterceptor';
 import { useUser } from '~/hooks/useUser';
 
 // eslint-disable-next-line @typescript-eslint/no-empty-object-type
@@ -14,8 +13,6 @@ function RequireAuth(props: PropsWithChildren<RequireAuthProps>) {
   const user = useUser();
   const location = useLocation();
   const posthog = usePostHog();
-
-  useFetchInterceptor();
 
   useEffect(() => {
     if (user.isUsual || user.isVisitor) {

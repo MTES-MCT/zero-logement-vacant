@@ -28,7 +28,10 @@ interface AuthClient {
     error: unknown;
     refetch: () => Promise<void>;
   };
-  getSession: () => Promise<unknown>;
+  getSession: () => Promise<{
+    data: SessionDTO | null;
+    error: unknown | null;
+  }>;
 }
 
 // Cast through `unknown` because better-auth's inferred return type can't

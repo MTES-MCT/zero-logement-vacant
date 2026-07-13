@@ -11853,7 +11853,6 @@ __metadata:
     copyfiles: "npm:2.4.1"
     date-fns: "npm:4.1.0"
     effect: "npm:3.21.2"
-    fetch-intercept: "npm:2.4.0"
     happy-dom: "npm:20.9.0"
     immutable: "npm:5.1.5"
     jest-extended: "npm:4.0.2"
@@ -15861,13 +15860,6 @@ __metadata:
   version: 0.1.6
   resolution: "fetch-event-stream@npm:0.1.6"
   checksum: 10c0/f9afacafd03f8077e268becb13ace6a40f848fa293059fe1c04d9ed455ecb68adc450c6cfa86c510596e1c0c2352e1b46305311d205cee3324703dbe7ee405ad
-  languageName: node
-  linkType: hard
-
-"fetch-intercept@npm:2.4.0":
-  version: 2.4.0
-  resolution: "fetch-intercept@npm:2.4.0"
-  checksum: 10c0/e6b9599d6c63f7c1f9d81d4bac1433b740716ffd4d933d00e5b8b0ce1920251120870763b8ba9f2f2cabd01c6da6175fe0669c87978cb0399da6a21c057b196c
   languageName: node
   linkType: hard
 

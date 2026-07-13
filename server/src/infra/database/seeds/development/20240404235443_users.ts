@@ -12,14 +12,6 @@ import { Establishments } from '~/repositories/establishmentRepository';
 import { toUserDBO, Users, USERS_TABLE } from '~/repositories/userRepository';
 import { genUserApi } from '~/test/testFixtures';
 
-// Mirror legacy numeric UserRole → the string form better-auth stores in
-// `auth_users.role` (per server/src/infra/auth.ts additionalFields).
-const ROLE_TO_STRING: Record<number, string> = {
-  [UserRole.USUAL]: 'usual',
-  [UserRole.ADMIN]: 'admin',
-  [UserRole.VISITOR]: 'visitor'
-};
-
 import {
   SirenSaintLo,
   SirenStrasbourg,
@@ -357,20 +349,8 @@ async function syncToAuthUsers(knex: Knex, users: UserApi[]): Promise<void> {
     return {
       id: user.id,
       name: fullName.length > 0 ? fullName : user.email,
-      email: user.email,
+      email: user.email.toLowerCase(),
       email_verified: true,
-      first_name: user.firstName,
-      last_name: user.lastName,
-      role: ROLE_TO_STRING[user.role] ?? 'usual',
-      phone: user.phone,
-      position: user.position,
-      time_per_week: user.timePerWeek,
-      kind: user.kind,
-      activated_at: user.activatedAt,
-      last_authenticated_at: user.lastAuthenticatedAt,
-      suspended_at: user.suspendedAt,
-      suspended_cause: user.suspendedCause,
-      deleted_at: user.deletedAt,
       created_at: user.activatedAt ?? user.updatedAt,
       updated_at: user.updatedAt
     };
@@ -381,7 +361,7 @@ async function syncToAuthUsers(knex: Knex, users: UserApi[]): Promise<void> {
     .filter((user) => !user.deletedAt && user.password)
     .map((user) => ({
       id: randomUUID(),
-      account_id: user.email,
+      account_id: user.email.toLowerCase(),
       provider_id: 'credential',
       user_id: user.id,
       password: user.password

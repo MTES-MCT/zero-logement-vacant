@@ -7,7 +7,7 @@ import {
   type UserFilters,
   type UserUpdatePayload
 } from '@zerologementvacant/models';
-import bcrypt from 'bcryptjs';
+import { hashPassword } from 'better-auth/crypto';
 import { type RequestHandler } from 'express';
 import { type AuthenticatedRequest } from 'express-jwt';
 import { v4 as uuidv4 } from 'uuid';
@@ -21,15 +21,16 @@ import TestAccountError from '~/errors/testAccountError';
 import UserMissingError from '~/errors/userMissingError';
 import { logger } from '~/infra/logger';
 import { isValid } from '~/models/ProspectApi';
-import { SALT_LENGTH, toUserDTO, UserApi } from '~/models/UserApi';
+import { toUserDTO, UserApi } from '~/models/UserApi';
 import establishmentRepository from '~/repositories/establishmentRepository';
 import prospectRepository from '~/repositories/prospectRepository';
 import userEstablishmentRepository from '~/repositories/user-establishment-repository';
 import userRepository from '~/repositories/userRepository';
 import {
-  insertUserAndAuth,
-  updateUserAndAuth
-} from '~/services/authUserSyncService';
+  insertUserWithAuthIdentity,
+  updateUserWithAuthIdentity,
+  verifyCredentialPassword
+} from '~/services/authIdentityService';
 import ceremaService from '~/services/ceremaService';
 import { isTestAccount } from '~/services/ceremaService/consultUserService';
 import {
@@ -160,7 +161,7 @@ const create: RequestHandler<never, UserDTO, CreateUserBody, never> = async (
   const user: UserApi = {
     id: uuidv4(),
     email: body.email,
-    password: await bcrypt.hash(body.password, SALT_LENGTH),
+    password: '',
     firstName: body.firstName ?? null,
     lastName: body.lastName ?? null,
     role:
@@ -193,7 +194,8 @@ const create: RequestHandler<never, UserDTO, CreateUserBody, never> = async (
     kind
   });
 
-  const createdUser = await insertUserAndAuth(user);
+  const credentialHash = await hashPassword(body.password);
+  const createdUser = await insertUserWithAuthIdentity(user, credentialHash);
 
   // Populate users_establishments with all establishments the user has access to
   // Filter Cerema users that have LOVAC commitment and find matching establishments
@@ -304,21 +306,18 @@ const update: RequestHandler<
   // When a password change is requested, the current password
   // must be provided and valid. Also, passwords must match.
   const passwordEquals = body.password
-    ? await bcrypt.compare(body.password.before, user.password)
+    ? await verifyCredentialPassword(user.id, body.password.before)
     : false;
   if (body.password && !passwordEquals) {
     throw new PasswordInvalidError();
   }
 
-  const password = body.password
-    ? {
-        password: await bcrypt.hash(body.password.after, SALT_LENGTH)
-      }
-    : {};
+  const credentialHash = body.password
+    ? await hashPassword(body.password.after)
+    : undefined;
 
   const updated: UserApi = {
     ...user,
-    ...password,
     firstName: body.firstName,
     lastName: body.lastName,
     phone: body.phone,
@@ -326,7 +325,7 @@ const update: RequestHandler<
     timePerWeek: body.timePerWeek,
     updatedAt: new Date().toJSON()
   };
-  await updateUserAndAuth(updated, { passwordChanged: Boolean(body.password) });
+  await updateUserWithAuthIdentity(updated, { credentialHash });
 
   response.status(constants.HTTP_STATUS_OK).json(toUserDTO(updated));
 };

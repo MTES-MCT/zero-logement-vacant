@@ -1,8 +1,6 @@
 import { randomUUID } from 'node:crypto';
 import { pathToFileURL } from 'node:url';
 
-import { UserRole } from '@zerologementvacant/models';
-
 import db from '~/infra/database';
 import { createLogger } from '~/infra/logger';
 import { USERS_TABLE, type UserDBO } from '~/repositories/userRepository';
@@ -14,12 +12,6 @@ const ACCOUNT_TABLE = 'account';
 const CREDENTIAL_PROVIDER_ID = 'credential';
 
 type DatabaseDate = Date | string;
-
-const ROLE_TO_STRING: Record<number, string> = {
-  [UserRole.USUAL]: 'usual',
-  [UserRole.ADMIN]: 'admin',
-  [UserRole.VISITOR]: 'visitor'
-};
 
 function normalizeEmail(email: string): string {
   return email.toLowerCase();
@@ -53,18 +45,6 @@ interface AuthUserRow {
   name: string;
   email: string;
   email_verified: boolean;
-  first_name: string | null;
-  last_name: string | null;
-  role: string;
-  phone: string | null;
-  position: string | null;
-  time_per_week: string | null;
-  kind: string | null;
-  activated_at: DatabaseDate | null;
-  last_authenticated_at: DatabaseDate | null;
-  suspended_at: DatabaseDate | null;
-  suspended_cause: string | null;
-  deleted_at: DatabaseDate | null;
   created_at: DatabaseDate;
   updated_at: DatabaseDate;
 }
@@ -80,18 +60,6 @@ function toAuthUserRow(user: UserDBO): AuthUserRow {
     name: fullName.length > 0 ? fullName : user.email,
     email: normalizeEmail(user.email),
     email_verified: true,
-    first_name: user.first_name,
-    last_name: user.last_name,
-    role: ROLE_TO_STRING[user.role] ?? 'usual',
-    phone: user.phone,
-    position: user.position,
-    time_per_week: user.time_per_week,
-    kind: user.kind,
-    activated_at: user.activated_at,
-    last_authenticated_at: user.last_authenticated_at,
-    suspended_at: user.suspended_at,
-    suspended_cause: user.suspended_cause,
-    deleted_at: user.deleted_at,
     created_at: user.activated_at ?? user.updated_at,
     updated_at: user.updated_at
   };

@@ -120,17 +120,8 @@ async function seedBackfilledUser(opts: {
   await db(AUTH_USERS_TABLE).insert({
     id: user.id,
     name: [user.firstName, user.lastName].filter(Boolean).join(' '),
-    email: user.email,
-    email_verified: true,
-    role:
-      user.role === UserRole.ADMIN
-        ? 'admin'
-        : user.role === UserRole.VISITOR
-          ? 'visitor'
-          : 'usual',
-    deleted_at: opts.deletedAt ?? null,
-    suspended_at: opts.suspendedAt ?? null,
-    suspended_cause: opts.suspendedCause ?? null
+    email: user.email.toLowerCase(),
+    email_verified: true
   });
   await db(ACCOUNT_TABLE).insert({
     id: randomUUID(),
@@ -189,6 +180,43 @@ describe('better-auth sign-in (integration)', () => {
       expect(sessionCookie).toBeDefined();
       expect(sessionCookie).toContain('HttpOnly');
       expect(sessionCookie!.toLowerCase()).toContain('samesite=strict');
+    } finally {
+      await deleteBackfilledUser(user.id);
+    }
+  });
+
+  it('reads session profile and suspension from the domain user', async () => {
+    const email = 'domain-session-user@zlv.fr';
+    const password = 'not-a-real-password';
+    const user = await seedBackfilledUser({
+      email,
+      plaintextPassword: password,
+      establishmentId: establishment.id
+    });
+
+    try {
+      const signInResponse = await request(url)
+        .post('/auth/sign-in/email')
+        .send({ email, password });
+      expect(signInResponse.status).toBe(200);
+
+      const suspendedAt = new Date('2026-07-13T10:00:00.000Z');
+      await Users().where({ id: user.id }).update({
+        first_name: 'Profil métier',
+        suspended_at: suspendedAt,
+        suspended_cause: 'Accès métier suspendu'
+      });
+
+      const sessionResponse = await request(url)
+        .get('/auth/get-session')
+        .set('Cookie', getCookies(signInResponse));
+
+      expect(sessionResponse.status).toBe(200);
+      expect(sessionResponse.body.user).toMatchObject({
+        firstName: 'Profil métier',
+        suspendedAt: suspendedAt.toJSON(),
+        suspendedCause: 'Accès métier suspendu'
+      });
     } finally {
       await deleteBackfilledUser(user.id);
     }
@@ -796,12 +824,77 @@ describe('better-auth sign-in (integration)', () => {
         .send({ email, password });
 
       expect(response.status).toBe(200);
-      expect(response.body.user).toMatchObject({
+      const session = await request(url)
+        .get('/auth/get-session')
+        .set('Cookie', getCookies(response));
+      expect(session.body.user).toMatchObject({
         email,
         suspendedAt,
         suspendedCause: 'droits utilisateur expires'
       });
     } finally {
+      await deleteBackfilledUser(user.id);
+    }
+  });
+
+  it('exposes an admin suspension detected during two-factor sign-in', async () => {
+    const email = 'admin-suspended-during-2fa@zlv.fr';
+    const password = 'not-a-real-password';
+    const user = await seedBackfilledUser({
+      email,
+      plaintextPassword: password,
+      establishmentId: establishment.id,
+      role: UserRole.ADMIN
+    });
+    const consultUsers = vi
+      .spyOn(ceremaService, 'consultUsers')
+      .mockResolvedValue([
+        {
+          email,
+          establishmentSiren: establishment.siren,
+          hasAccount: true,
+          hasCommitment: true,
+          group: {
+            id_groupe: 1,
+            nom: 'Accès sans LOVAC',
+            structure: 1,
+            perimetre: 1,
+            niveau_acces: 'df',
+            df_ano: true,
+            df_non_ano: true,
+            lovac: false
+          }
+        }
+      ]);
+
+    try {
+      const challenge = await request(url).post('/auth/admin/sign-in').send({
+        email,
+        password,
+        establishmentId: establishment.id
+      });
+      expect(challenge.status).toBe(200);
+
+      const verification = await request(url)
+        .post('/auth/admin/verify-2fa')
+        .send({
+          email,
+          code: TEST_2FA_CODE,
+          establishmentId: establishment.id
+        });
+      expect(verification.status).toBe(200);
+
+      const session = await request(url)
+        .get('/auth/get-session')
+        .set('Cookie', getCookies(verification));
+      expect(session.status).toBe(200);
+      expect(session.body.user).toMatchObject({
+        email,
+        suspendedAt: expect.any(String),
+        suspendedCause: 'niveau_acces_invalide'
+      });
+    } finally {
+      consultUsers.mockRestore();
       await deleteBackfilledUser(user.id);
     }
   });
@@ -875,71 +968,8 @@ describe('better-auth sign-in (integration)', () => {
     } finally {
       consultUsers.mockRestore();
       await UsersEstablishments().where({ user_id: user.id }).delete();
+      await deleteBackfilledUser(user.id);
       await Establishments().where('id', targetEstablishment.id).delete();
-      await deleteBackfilledUser(user.id);
-    }
-  });
-
-  it('rejects updates to server-managed user fields', async () => {
-    const email = 'protected-user-fields@zlv.fr';
-    const password = 'not-a-real-password';
-    const suspendedAt = new Date('2026-01-02T03:04:05.000Z').toJSON();
-    const user = await seedBackfilledUser({
-      email,
-      plaintextPassword: password,
-      establishmentId: establishment.id,
-      suspendedAt,
-      suspendedCause: 'droits utilisateur expires'
-    });
-
-    try {
-      const signInResponse = await request(url)
-        .post('/auth/sign-in/email')
-        .send({ email, password });
-      expect(signInResponse.status).toBe(200);
-      const cookies = getCookies(signInResponse);
-      const beforeUpdate = await db(AUTH_USERS_TABLE)
-        .where({ id: user.id })
-        .first();
-
-      const updateResponse = await request(url)
-        .post('/auth/update-user')
-        .set('Cookie', cookies)
-        .send({
-          suspendedAt: null,
-          suspendedCause: null
-        });
-
-      expect(updateResponse.status).toBeGreaterThanOrEqual(400);
-      const protectedFieldResponses = await Promise.all(
-        [
-          { kind: 'attacker-controlled' },
-          { activatedAt: '2026-02-03T04:05:06.000Z' },
-          { lastAuthenticatedAt: '2026-02-03T04:05:06.000Z' },
-          { deletedAt: '2026-02-03T04:05:06.000Z' }
-        ].map((body) =>
-          request(url)
-            .post('/auth/update-user')
-            .set('Cookie', cookies)
-            .send(body)
-        )
-      );
-      expect(
-        protectedFieldResponses.every((response) => response.status >= 400)
-      ).toBeTrue();
-      const afterUpdate = await db(AUTH_USERS_TABLE)
-        .where({ id: user.id })
-        .first();
-      expect(afterUpdate).toMatchObject({
-        kind: beforeUpdate.kind,
-        activated_at: beforeUpdate.activated_at,
-        last_authenticated_at: beforeUpdate.last_authenticated_at,
-        suspended_at: beforeUpdate.suspended_at,
-        suspended_cause: beforeUpdate.suspended_cause,
-        deleted_at: beforeUpdate.deleted_at
-      });
-    } finally {
-      await deleteBackfilledUser(user.id);
     }
   });
 
@@ -967,8 +997,8 @@ describe('better-auth sign-in (integration)', () => {
       const authUser = await db(AUTH_USERS_TABLE)
         .where({ id: user.id })
         .first();
-      expect(authUser.kind).toBe('gestionnaire');
-      expect(authUser.last_authenticated_at).toBeInstanceOf(Date);
+      expect(authUser).not.toHaveProperty('kind');
+      expect(authUser).not.toHaveProperty('last_authenticated_at');
     } finally {
       await deleteBackfilledUser(user.id);
     }

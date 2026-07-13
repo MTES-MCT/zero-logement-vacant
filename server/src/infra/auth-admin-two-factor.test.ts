@@ -20,9 +20,6 @@ vi.mock('~/repositories/userRepository', () => ({
 vi.mock('~/repositories/establishmentRepository', () => ({
   default: { get: vi.fn() }
 }));
-vi.mock('~/services/authUserSyncService', () => ({
-  updateUserAndAuth: vi.fn()
-}));
 vi.mock('~/services/ceremaService/userKindService', () => ({
   fetchUserKind: vi.fn()
 }));

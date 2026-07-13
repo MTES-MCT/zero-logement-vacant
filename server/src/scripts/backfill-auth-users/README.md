@@ -9,9 +9,12 @@ able to sign in).
 For every row in `users`:
 
 1. Inserts a row into `auth_users` with the **same `id`** (the legacy UUID is
-   reused as `auth_users.id`, so every existing FK that references
-   `users.id` — `users_establishments.user_id`, `events.*`, `groups.created_by`,
-   … — keeps working unchanged).
+   reused as `auth_users.id` and references `users.id`, so every existing FK
+   that references `users.id` — `users_establishments.user_id`, `events.*`,
+   `groups.created_by`, … — keeps working unchanged). `auth_users` contains
+   only Better Auth's core identity fields; profile, role, activation and
+   suspension remain owned by `users` and are joined when the session payload
+   is built.
 2. If the user is not deleted and has a password, inserts a credential row
    into `account` with the legacy bcrypt password hash. Suspended users keep a
    credential so they can sign in and see the suspension notice; soft-deleted
@@ -141,8 +144,10 @@ the public frontend, then monitor authentication errors and HTTP `401`/`403`
 responses.
 
 If the cutover fails, redeploy the previous frontend and API together. Keep the
-new Better Auth tables in place during the emergency rollback; the migration is
-additive and the legacy application ignores them.
+new Better Auth tables in place during the emergency rollback. Existing users
+retain their legacy password during the cutover, so the previous API can still
+authenticate them; users created after the cutover have credentials only in
+`account` and will require the new API.
 
 ## Password verification
 

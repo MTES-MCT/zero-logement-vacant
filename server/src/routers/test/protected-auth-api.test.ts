@@ -32,9 +32,8 @@ async function seedBackfilledUser(
   await db('auth_users').insert({
     id: user.id,
     name: [user.firstName, user.lastName].filter(Boolean).join(' '),
-    email: user.email,
-    email_verified: true,
-    role: 'usual'
+    email: user.email.toLowerCase(),
+    email_verified: true
   });
   await db('account').insert({
     id: randomUUID(),

@@ -3,6 +3,7 @@ import { UserAccountDTO, UserDTO } from '@zerologementvacant/models';
 export const SALT_LENGTH = 10;
 
 export type UserApi = UserDTO & {
+  /** @deprecated Cutover-only legacy value. Runtime credentials live in account.password. */
   password: string;
   // 2FA fields
   twoFactorSecret: string | null;

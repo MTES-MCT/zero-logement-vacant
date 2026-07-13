@@ -1,4 +1,8 @@
-import type { AuthRole, SessionDTO } from '@zerologementvacant/models';
+import {
+  UserRole,
+  type AuthRole,
+  type SessionDTO
+} from '@zerologementvacant/models';
 import { betterAuth, type BetterAuthOptions } from 'better-auth';
 import { APIError } from 'better-auth/api';
 import { hashPassword } from 'better-auth/crypto';
@@ -21,7 +25,6 @@ import establishmentRepository from '~/repositories/establishmentRepository';
 import userEstablishmentRepository from '~/repositories/user-establishment-repository';
 import userPerimeterRepository from '~/repositories/userPerimeterRepository';
 import userRepository from '~/repositories/userRepository';
-import { updateUserAndAuth } from '~/services/authUserSyncService';
 import { fetchUserKind } from '~/services/ceremaService/userKindService';
 import { refreshAuthorizedEstablishments } from '~/services/establishmentAuthService';
 
@@ -38,11 +41,6 @@ const kyselyDb = new Kysely<any>({
   plugins: [new CamelCasePlugin()]
 });
 
-// Extracted into a const + passed to customSession(fn, authOptions) below.
-// Per better-auth's docs, this second argument is what lets the plugin infer
-// `user` and `session` with our declared additionalFields — without it,
-// `user.firstName`, `user.role`, `session.activeEstablishmentId` are all
-// untyped.
 const authOptions = {
   basePath: '/auth',
   secret: config.auth.secret,
@@ -52,18 +50,12 @@ const authOptions = {
   },
   session: {
     // Better Auth slides expiresIn whenever updateAge elapses. Refresh on each
-    // authoritative read so expiresIn is an idle window; the 60s cookie cache
-    // below avoids a database write on every frontend refetch.
+    // authoritative read so expiresIn is an idle window.
     expiresIn: SESSION_IDLE_TIMEOUT_SECONDS,
+    // Do not enable cookieCache: password resets and administrative revocation
+    // must invalidate a server-side session immediately, not after a cached
+    // session payload expires in the browser.
     updateAge: 0,
-    // Sign the session payload into a short-lived cookie so getSession reads
-    // from it instead of hitting the DB on every focus/visibility refetch.
-    // 60s is small enough that establishment/perimeter changes surface within
-    // a minute on the next refetch.
-    cookieCache: {
-      enabled: true,
-      maxAge: 60
-    },
     additionalFields: {
       activeEstablishmentId: {
         type: 'string',
@@ -73,26 +65,7 @@ const authOptions = {
     }
   },
   user: {
-    modelName: 'auth_users',
-    additionalFields: {
-      firstName: { type: 'string', required: false },
-      lastName: { type: 'string', required: false },
-      role: {
-        type: 'string',
-        required: true,
-        defaultValue: 'usual',
-        input: false
-      },
-      phone: { type: 'string', required: false },
-      position: { type: 'string', required: false },
-      timePerWeek: { type: 'string', required: false },
-      kind: { type: 'string', required: false, input: false },
-      activatedAt: { type: 'date', required: false, input: false },
-      lastAuthenticatedAt: { type: 'date', required: false, input: false },
-      suspendedAt: { type: 'date', required: false, input: false },
-      suspendedCause: { type: 'string', required: false, input: false },
-      deletedAt: { type: 'date', required: false, input: false }
-    }
+    modelName: 'auth_users'
   },
   emailAndPassword: {
     enabled: true,
@@ -168,7 +141,7 @@ const authOptions = {
               throw new UserMissingError(session.userId);
             }
             const kind = await fetchUserKind(user.email);
-            await updateUserAndAuth({
+            await userRepository.update({
               ...user,
               kind,
               lastAuthenticatedAt: new Date().toJSON(),
@@ -210,17 +183,21 @@ export const auth = betterAuth({
     //   - establishment: full Establishment for session.activeEstablishmentId
     //   - authorizedEstablishments: switcher options (filtered by commitment)
     //   - effectiveGeoCodes: server-computed perimeter intersection
-    // The session.cookieCache configured in authOptions amortizes the cost.
-    //
-    // Passing authOptions as the second arg lets better-auth infer `user` /
-    // `session` with our declared additionalFields — `user.firstName`,
-    // `user.role`, `session.activeEstablishmentId` are all properly typed
-    // inside the callback (no casts needed).
     customSession(async ({ user, session }): Promise<SessionDTO> => {
       const activeEstablishmentId = session.activeEstablishmentId ?? null;
+      const domainUser = await userRepository.get(user.id);
+      if (!domainUser) {
+        throw new UserMissingError(user.id);
+      }
+
       // ADMIN and VISITOR bypass perimeter filtering (effectiveGeoCodes stays
       // undefined → no restriction). Skip the perimeter fetch for them.
-      const role = (user.role ?? 'usual') as AuthRole;
+      const role: AuthRole =
+        domainUser.role === UserRole.ADMIN
+          ? 'admin'
+          : domainUser.role === UserRole.VISITOR
+            ? 'visitor'
+            : 'usual';
       const needsPerimeterFilter = role !== 'admin' && role !== 'visitor';
 
       // Batch 1: three independent reads in parallel.
@@ -229,9 +206,11 @@ export const auth = betterAuth({
           activeEstablishmentId
             ? establishmentRepository.get(activeEstablishmentId)
             : Promise.resolve(null),
-          userEstablishmentRepository.getAuthorizedEstablishments(user.id),
+          userEstablishmentRepository.getAuthorizedEstablishments(
+            domainUser.id
+          ),
           needsPerimeterFilter && activeEstablishmentId
-            ? userPerimeterRepository.get(user.id, activeEstablishmentId)
+            ? userPerimeterRepository.get(domainUser.id, activeEstablishmentId)
             : Promise.resolve(null)
         ]
       );
@@ -257,16 +236,17 @@ export const auth = betterAuth({
         user: {
           id: user.id,
           email: user.email,
-          name: user.name,
+          name:
+            [domainUser.firstName, domainUser.lastName]
+              .filter((part): part is string => Boolean(part))
+              .join(' ')
+              .trim() || user.name,
           image: user.image ?? null,
-          firstName: user.firstName ?? null,
-          lastName: user.lastName ?? null,
+          firstName: domainUser.firstName,
+          lastName: domainUser.lastName,
           role,
-          suspendedAt:
-            user.suspendedAt instanceof Date
-              ? user.suspendedAt.toISOString()
-              : (user.suspendedAt ?? null),
-          suspendedCause: user.suspendedCause ?? null
+          suspendedAt: domainUser.suspendedAt,
+          suspendedCause: domainUser.suspendedCause
         },
         session: {
           id: session.id,

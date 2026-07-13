@@ -30,9 +30,9 @@ export function sessionCheck(options?: CheckOptions) {
           headers: fromNodeHeaders(request.headers),
           returnHeaders: true
         });
-    // getSession slides the idle expiry and may refresh Better Auth's cookie
-    // cache. Forward every cookie so the browser and database expirations stay
-    // aligned during continuous protected activity.
+    // getSession slides the idle expiry. Forward every cookie so the browser
+    // and database expirations stay aligned during continuous protected
+    // activity.
     sessionResult?.headers.getSetCookie().forEach((cookie) => {
       response.append('Set-Cookie', cookie);
     });
@@ -51,9 +51,7 @@ export function sessionCheck(options?: CheckOptions) {
       | null;
 
     // Fetch fresh on every request — no caching. A suspended user, a revoked
-    // role or a removed establishment must take effect immediately, not after
-    // a cache window. (better-auth's 60s session cookieCache already bounds how
-    // stale the session row itself can be.)
+    // role or a removed establishment must take effect immediately.
     const [user, establishment, userPerimeter] = await Promise.all([
       userRepository.get(userId),
       establishmentId

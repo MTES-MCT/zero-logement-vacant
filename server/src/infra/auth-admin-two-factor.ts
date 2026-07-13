@@ -14,7 +14,6 @@ import { logger } from '~/infra/logger';
 import type { UserApi } from '~/models/UserApi';
 import establishmentRepository from '~/repositories/establishmentRepository';
 import userRepository from '~/repositories/userRepository';
-import { updateUserAndAuth } from '~/services/authUserSyncService';
 import { fetchUserKind } from '~/services/ceremaService/userKindService';
 import mailService from '~/services/mailService';
 import {
@@ -321,7 +320,7 @@ export function zlvAdminTwoFactor(): BetterAuthPlugin {
             lastAuthenticatedAt: now,
             updatedAt: now
           };
-          await updateUserAndAuth(updatedUser);
+          await userRepository.update(updatedUser);
           await createAdminSession(ctx, updatedUser, ctx.body.establishmentId);
 
           return ctx.json({ status: true });

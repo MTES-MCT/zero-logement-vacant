@@ -15,6 +15,7 @@ import request from 'supertest';
 import { v4 as uuidv4 } from 'uuid';
 import { vi } from 'vitest';
 
+import { createPasswordVerifier } from '~/infra/auth-password';
 import db from '~/infra/database';
 
 // Generate valid French phone numbers
@@ -337,8 +338,7 @@ describe('User API', () => {
         .where({ id: body.id, email: prospect.email.toLowerCase() })
         .first();
       expect(authUser).toMatchObject({
-        email: prospect.email.toLowerCase(),
-        role: 'usual'
+        email: prospect.email.toLowerCase()
       });
 
       const account = await db('account')
@@ -350,7 +350,10 @@ describe('User API', () => {
         .first();
       expect(account).toBeDefined();
       await expect(
-        bcrypt.compare(validPassword, account.password)
+        createPasswordVerifier({ rehash: null })({
+          hash: account.password,
+          password: validPassword
+        })
       ).resolves.toBeTrue();
     });
 
@@ -596,9 +599,8 @@ describe('User API', () => {
         await db('auth_users').insert({
           id: user.id,
           name: `${user.firstName} ${user.lastName}`.trim(),
-          email: user.email,
-          email_verified: true,
-          role: 'usual'
+          email: user.email.toLowerCase(),
+          email_verified: true
         });
         await db('account').insert({
           id: randomUUID(),
@@ -631,7 +633,10 @@ describe('User API', () => {
           .where({ user_id: user.id, provider_id: 'credential' })
           .first();
         await expect(
-          bcrypt.compare(nextPassword, account.password)
+          createPasswordVerifier({ rehash: null })({
+            hash: account.password,
+            password: nextPassword
+          })
         ).resolves.toBeTrue();
       });
     });
@@ -769,9 +774,8 @@ describe('User API', () => {
         await db('auth_users').insert({
           id: user.id,
           name: [user.firstName, user.lastName].filter(Boolean).join(' '),
-          email: user.email,
-          email_verified: true,
-          role: 'usual'
+          email: user.email.toLowerCase(),
+          email_verified: true
         });
         await db('account').insert({
           id: randomUUID(),
@@ -795,7 +799,7 @@ describe('User API', () => {
         expect(status).toBe(constants.HTTP_STATUS_NO_CONTENT);
 
         const authUser = await db('auth_users').where({ id: user.id }).first();
-        expect(authUser.deleted_at).toBeInstanceOf(Date);
+        expect(authUser).toBeUndefined();
         await expect(
           db('account').where({ user_id: user.id }).first()
         ).resolves.toBeUndefined();

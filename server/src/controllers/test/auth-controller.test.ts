@@ -30,6 +30,7 @@ vi.mock('../../infra/auth', () => ({
 }));
 
 import { auth } from '~/infra/auth';
+import { createPasswordVerifier } from '~/infra/auth-password';
 import db from '~/infra/database';
 import { createServer } from '~/infra/server';
 import { SALT_LENGTH, toUserAccountDTO, UserApi } from '~/models/UserApi';
@@ -95,7 +96,7 @@ describe('Account controller', () => {
   });
 
   describe('POST /account/reset-password', () => {
-    it('updates both the legacy and Better Auth password hashes', async () => {
+    it('updates only the Better Auth credential password', async () => {
       const link = genResetLinkApi(user.id);
       await ResetLinks().insert(formatResetLinkApi(link));
       const newPassword = '123QWEasd!@#';
@@ -104,9 +105,8 @@ describe('Account controller', () => {
         .insert({
           id: user.id,
           name: `${user.firstName} ${user.lastName}`.trim(),
-          email: user.email,
-          email_verified: true,
-          role: 'usual'
+          email: user.email.toLowerCase(),
+          email_verified: true
         })
         .onConflict('id')
         .ignore();
@@ -117,6 +117,8 @@ describe('Account controller', () => {
         user_id: user.id,
         password: user.password
       });
+      const legacyPasswordBefore = (await Users().where('id', user.id).first())!
+        .password;
 
       const { status } = await request(url)
         .post('/account/reset-password')
@@ -131,12 +133,13 @@ describe('Account controller', () => {
       const updatedAccount = await db('account')
         .where({ user_id: user.id, provider_id: 'credential' })
         .first();
-      expect(
-        await bcrypt.compare(newPassword, updatedUser!.password)
-      ).toBeTrue();
-      expect(
-        await bcrypt.compare(newPassword, updatedAccount.password)
-      ).toBeTrue();
+      expect(updatedUser!.password).toBe(legacyPasswordBefore);
+      await expect(
+        createPasswordVerifier({ rehash: null })({
+          hash: updatedAccount.password,
+          password: newPassword
+        })
+      ).resolves.toBeTrue();
     });
   });
 

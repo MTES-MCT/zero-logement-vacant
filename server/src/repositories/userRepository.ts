@@ -48,7 +48,8 @@ async function getByEmailIncludingDeleted(
 
 async function update(user: UserApi): Promise<void> {
   logger.debug('Updating user...', { id: user.id });
-  await Users().where({ id: user.id }).update(toUserDBO(user));
+  const { password: _legacyPassword, ...userRow } = toUserDBO(user);
+  await Users().where({ id: user.id }).update(userRow);
 }
 
 async function updateEstablishment(
@@ -85,7 +86,7 @@ async function recordTwoFactorFailure(
 async function insert(userApi: UserApi): Promise<UserApi> {
   logger.info('Insert user with email', userApi.email);
   return db(USERS_TABLE)
-    .insert(toUserDBO(userApi))
+    .insert({ ...toUserDBO(userApi), password: null })
     .returning('*')
     .then((_) => fromUserDBO(_[0]));
 }
@@ -153,10 +154,7 @@ async function remove(userId: string): Promise<void> {
   await db.transaction(async (transaction) => {
     await transaction('session').where({ user_id: userId }).delete();
     await transaction('account').where({ user_id: userId }).delete();
-    await transaction('auth_users').where({ id: userId }).update({
-      deleted_at: deletedAt,
-      updated_at: deletedAt
-    });
+    await transaction('auth_users').where({ id: userId }).delete();
     await transaction(USERS_TABLE).where('id', userId).update({
       deleted_at: deletedAt,
       updated_at: deletedAt
@@ -167,7 +165,8 @@ async function remove(userId: string): Promise<void> {
 export interface UserDBO {
   id: string;
   email: string;
-  password: string;
+  /** Legacy cutover source. Runtime authentication uses account.password. */
+  password: string | null;
   first_name: string | null;
   last_name: string | null;
   establishment_id: string | null;
@@ -193,7 +192,7 @@ export interface UserDBO {
 export const fromUserDBO = (userDBO: UserDBO): UserApi => ({
   id: userDBO.id,
   email: userDBO.email,
-  password: userDBO.password,
+  password: userDBO.password ?? '',
   firstName: userDBO.first_name,
   lastName: userDBO.last_name,
   establishmentId: userDBO.establishment_id,

@@ -163,7 +163,7 @@ async function sendAdminTwoFactorCode(user: UserApi): Promise<void> {
   logger.info('2FA code sent to admin user through better-auth', {
     userId: user.id,
     email: user.email,
-    action: 'auth_v2_2fa_code_sent'
+    action: 'auth_2fa_code_sent'
   });
 }
 

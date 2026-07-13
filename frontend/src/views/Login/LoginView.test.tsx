@@ -109,7 +109,7 @@ describe('login view', () => {
     expect(alert).not.toBeInTheDocument();
   });
 
-  it('prevents duplicate v2 login submissions while pending', async () => {
+  it('prevents duplicate login submissions while pending', async () => {
     const signIn = vi.fn(() => new Promise<void>(() => {}));
     setup({
       auth: {

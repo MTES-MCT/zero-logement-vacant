@@ -44,9 +44,8 @@ const TwoFactorView = () => {
   const establishmentId = state?.establishmentId;
 
   const [error, setError] = useState<string | null>(null);
-  const [isV2Pending, setIsV2Pending] = useState(false);
-  const isV2PendingRef = useRef(false);
-  const isVerificationPending = isV2Pending;
+  const [isVerificationPending, setIsVerificationPending] = useState(false);
+  const isVerificationPendingRef = useRef(false);
 
   const form = useForm<FormSchema>({
     defaultValues: {
@@ -67,12 +66,12 @@ const TwoFactorView = () => {
   function submit(data: FormSchema): void {
     setError(null);
 
-    if (isV2PendingRef.current) {
+    if (isVerificationPendingRef.current) {
       return;
     }
 
-    isV2PendingRef.current = true;
-    setIsV2Pending(true);
+    isVerificationPendingRef.current = true;
+    setIsVerificationPending(true);
     auth
       .verifyAdminTwoFactor(verifiedEmail, data.code, verifiedEstablishmentId)
       .then(() => {
@@ -85,8 +84,8 @@ const TwoFactorView = () => {
         );
       })
       .finally(() => {
-        isV2PendingRef.current = false;
-        setIsV2Pending(false);
+        isVerificationPendingRef.current = false;
+        setIsVerificationPending(false);
       });
   }
 

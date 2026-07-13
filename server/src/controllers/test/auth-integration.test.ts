@@ -652,6 +652,66 @@ describe('better-auth sign-in (integration)', () => {
     }
   });
 
+  it('locks admin two-factor verification at the failure threshold', async () => {
+    const email = 'admin-2fa-threshold@zlv.fr';
+    const password = 'not-a-real-password';
+    const user = await seedBackfilledUser({
+      email,
+      plaintextPassword: password,
+      establishmentId: establishment.id,
+      role: UserRole.ADMIN
+    });
+
+    try {
+      const challenge = await request(url).post('/auth/admin/sign-in').send({
+        email,
+        password,
+        establishmentId: establishment.id
+      });
+      expect(challenge.status).toBe(200);
+
+      for (let failedAttempts = 1; failedAttempts <= 2; failedAttempts += 1) {
+        const response = await request(url)
+          .post('/auth/admin/verify-2fa')
+          .send({
+            email,
+            code: '000000',
+            establishmentId: establishment.id
+          });
+        expect(response.status).toBe(401);
+
+        const pendingUser = await Users().where({ id: user.id }).first();
+        expect(pendingUser?.two_factor_failed_attempts).toBe(failedAttempts);
+        expect(pendingUser?.two_factor_locked_until).toBeNull();
+      }
+
+      const thresholdFailure = await request(url)
+        .post('/auth/admin/verify-2fa')
+        .send({
+          email,
+          code: '000000',
+          establishmentId: establishment.id
+        });
+      expect(thresholdFailure.status).toBe(401);
+
+      const lockedUser = await Users().where({ id: user.id }).first();
+      expect(lockedUser?.two_factor_failed_attempts).toBe(3);
+      expect(lockedUser?.two_factor_locked_until).toBeInstanceOf(Date);
+
+      const validCodeWhileLocked = await request(url)
+        .post('/auth/admin/verify-2fa')
+        .send({
+          email,
+          code: TEST_2FA_CODE,
+          establishmentId: establishment.id
+        });
+      expect(validCodeWhileLocked.status).toBe(401);
+      expect(getCookies(validCodeWhileLocked)).toEqual([]);
+    } finally {
+      await deleteBackfilledUser(user.id);
+    }
+  });
+
   it('does not expose public better-auth email sign-up', async () => {
     const email = 'public-signup@zlv.fr';
 

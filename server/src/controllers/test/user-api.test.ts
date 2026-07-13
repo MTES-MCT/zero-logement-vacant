@@ -55,6 +55,7 @@ import {
 } from '~/repositories/prospectRepository';
 import { UsersEstablishments } from '~/repositories/user-establishment-repository';
 import { toUserDBO, Users, USERS_TABLE } from '~/repositories/userRepository';
+import { insertUserWithAuthIdentity } from '~/services/authIdentityService';
 import ceremaService from '~/services/ceremaService';
 import { TEST_ACCOUNTS } from '~/services/ceremaService/consultUserService';
 import {
@@ -721,11 +722,12 @@ describe('User API', () => {
         },
         { interruptAfterTimeLimit: TIMEOUT }
       )('should validate inputs', async (payload) => {
+        const credentialHash = await bcrypt.hash(TEST_PASSWORD, SALT_LENGTH);
         const user: UserApi = {
           ...genUserApi(establishment.id),
-          password: await bcrypt.hash(TEST_PASSWORD, SALT_LENGTH)
+          password: credentialHash
         };
-        await Users().insert(toUserDBO(user));
+        await insertUserWithAuthIdentity(user, credentialHash);
 
         const { status } = await request(url)
           .put(testRoute(user.id))

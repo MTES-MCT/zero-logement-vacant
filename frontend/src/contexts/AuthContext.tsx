@@ -16,6 +16,7 @@ import { useAppDispatch } from '~/hooks/useStore';
 import { authClient } from '~/lib/auth-client';
 import { zlvApi } from '~/services/api.service';
 import config from '~/utils/config';
+import sentry from '~/utils/sentry';
 
 export interface AuthContextValue {
   user: AuthUserDTO | null;
@@ -67,6 +68,22 @@ export function AuthProvider(props: Readonly<PropsWithChildren>) {
     userId: authenticatedUserId,
     establishmentId: activeEstablishmentId
   });
+
+  useEffect(() => {
+    if (isPending) {
+      return;
+    }
+
+    sentry.setUser(
+      session?.user
+        ? {
+            id: session.user.id,
+            email: session.user.email,
+            role: session.user.role
+          }
+        : null
+    );
+  }, [isPending, session?.user]);
 
   useEffect(() => {
     const previousScope = previousAuthenticatedScope.current;

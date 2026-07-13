@@ -12,6 +12,7 @@ import { AuthContext, AuthProvider } from '~/contexts/AuthContext';
 import { authClient } from '~/lib/auth-client';
 import data from '~/mocks/handlers/data';
 import { useFindUsersQuery } from '~/services/user.service';
+import sentry from '~/utils/sentry';
 import configureTestStore from '~/utils/storeUtils';
 
 // Mock the auth-client module: better-auth's session atom is module-level
@@ -28,6 +29,12 @@ vi.mock('~/lib/auth-client', () => ({
     },
     signOut: vi.fn().mockResolvedValue(undefined),
     getSession: vi.fn().mockResolvedValue(null)
+  }
+}));
+
+vi.mock('~/utils/sentry', () => ({
+  default: {
+    setUser: vi.fn()
   }
 }));
 
@@ -140,8 +147,40 @@ describe('AuthProvider', () => {
     useSessionMock.mockReset();
     vi.mocked(authClient.signIn.email).mockClear();
     vi.mocked(authClient.signOut).mockClear();
+    vi.mocked(sentry.setUser).mockClear();
     vi.unstubAllGlobals();
     localStorage.clear();
+  });
+
+  it('synchronizes the hydrated user with Sentry and clears it on logout', () => {
+    const establishment = genEstablishmentDTO();
+    let session = {
+      user: {
+        ...genUserDTO(),
+        id: 'user-a',
+        email: 'user-a@zlv.fr'
+      },
+      session: { activeEstablishmentId: establishment.id },
+      establishment
+    };
+    useSessionMock.mockImplementation(() => ({
+      data: session,
+      isPending: false,
+      error: null,
+      refetch: vi.fn()
+    }));
+    const view = setup();
+
+    expect(sentry.setUser).toHaveBeenLastCalledWith({
+      id: 'user-a',
+      email: 'user-a@zlv.fr',
+      role: session.user.role
+    });
+
+    session = null as unknown as typeof session;
+    view.rerender();
+
+    expect(sentry.setUser).toHaveBeenLastCalledWith(null);
   });
 
   it('exposes a null user when the session is absent', () => {

@@ -192,7 +192,7 @@ async function verifyAdminTwoFactorCode(
 }
 
 async function createAdminSession(
-  ctx: any,
+  ctx: Parameters<typeof setSessionCookie>[0],
   user: UserApi,
   establishmentId: string
 ) {

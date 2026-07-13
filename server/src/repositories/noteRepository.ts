@@ -37,13 +37,10 @@ async function createManyByHousing(
 
   logger.debug('Inserting housing notes...', { notes: housingNotes.length });
   await withinKyselyTransaction(async (trx) => {
-    await trx
-      .insertInto('notes')
-      .values(housingNotes.map(toNoteInsert))
-      .execute();
+    await trx.insertInto('notes').values(housingNotes.map(toNoteDBO)).execute();
     await trx
       .insertInto('housingNotes')
-      .values(housingNotes.map(toHousingNoteInsert))
+      .values(housingNotes.map(toHousingNoteDBO))
       .execute();
   });
 }
@@ -66,7 +63,7 @@ async function findByHousing(
     .$if(options?.filters?.deleted === true, (query) =>
       query.where('notes.deletedAt', 'is not', null)
     )
-    .$if(options?.filters?.deleted === false, (query) =>
+    .$if(options?.filters?.deleted !== true, (query) =>
       query.where('notes.deletedAt', 'is', null)
     )
     .execute();
@@ -136,27 +133,7 @@ export interface HousingNoteDBO {
   housing_geo_code: string;
 }
 
-export const formatNoteApi = (note: NoteApi): NoteRecordDBO => ({
-  id: note.id,
-  created_by: note.createdBy,
-  note_kind: note.noteKind,
-  content: note.content,
-  contact_kind_deprecated: null,
-  title_deprecated: null,
-  created_at: new Date(note.createdAt),
-  updated_at: note.updatedAt ? new Date(note.updatedAt) : null,
-  deleted_at: note.deletedAt ? new Date(note.deletedAt) : null
-});
-
-export function formatHousingNoteApi(note: HousingNoteApi): HousingNoteDBO {
-  return {
-    note_id: note.id,
-    housing_id: note.housingId,
-    housing_geo_code: note.housingGeoCode
-  };
-}
-
-function toNoteInsert(note: NoteApi): Insertable<DB['notes']> {
+export function toNoteDBO(note: NoteApi): Insertable<DB['notes']> {
   return {
     id: note.id,
     createdBy: note.createdBy,
@@ -170,7 +147,7 @@ function toNoteInsert(note: NoteApi): Insertable<DB['notes']> {
   };
 }
 
-function toHousingNoteInsert(
+export function toHousingNoteDBO(
   note: HousingNoteApi
 ): Insertable<DB['housingNotes']> {
   return {
@@ -185,6 +162,9 @@ type NoteRow = Selectable<DB['notes']> & { creator: UserDBO | null };
 function parseNoteRow(row: NoteRow): NoteApi {
   if (!row.creator) {
     throw new Error('Note creator should be fetched together with the note');
+  }
+  if (!row.createdAt) {
+    throw new Error(`Note ${row.id} is missing createdAt`);
   }
 
   return {

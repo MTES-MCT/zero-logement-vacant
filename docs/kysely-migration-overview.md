@@ -2,7 +2,7 @@
 
 > One-page map of the server's Knex→Kysely migration: what it is, why it's structured the way it is, what's shipped, and what's left. Diagrams render on GitHub, Notion and VS Code.
 >
-> **Status:** entire **write path** migrated; **group / campaign / housing** reads migrated; **owner / housingOwner.findByOwner / draft / sender** reads + final Knex removal remain.
+> **Status:** entire **write path** and **all core-repository reads** migrated. Only **Step final** (collapse the dual-engine bridge) remains — and it's gated on merging the PR stack. Full removal of the `knex` dependency is out of scope (seeds, LOVAC import, migrations and test factories keep Knex).
 
 ---
 
@@ -19,8 +19,8 @@ flowchart LR
   A["Step 1<br/>Bridge + Phase-2 tests<br/>#1787"]:::done
   B["Write path<br/>6 clusters"]:::done
   C["Reads<br/>group · campaign · housing"]:::done
-  D["Remaining reads<br/>owner · housingOwner · draft/sender"]:::todo
-  E["Step final<br/>drop Knex"]:::todo
+  D["Reads (part 2)<br/>owner · housingOwner · draft/sender"]:::done
+  E["Step final<br/>collapse the bridge<br/>(gated on merge)"]:::todo
   A --> B --> C --> D --> E
 
   classDef done fill:#c8e6c9,stroke:#2e7d32,color:#000
@@ -31,9 +31,9 @@ flowchart LR
 |---|---|---|
 | **Step 1 — Bridge** | Dual-engine `startTransaction`, DATE parsing, camelCase plugin, Phase-2 characterization tests | ✅ Done (#1787) |
 | **Write path** | All repository writes → Kysely, migrated as FK-coupled clusters | ✅ Done (6 PRs) |
-| **Reads (done)** | group, campaign, housing (the big one) + note/document/housingDocument | ✅ Done (5 PRs) |
-| **Reads (left)** | owner, `housingOwner.findByOwner`, draft, sender | ⬜ Remaining |
-| **Step final** | Delete the Knex transaction store + `knex` dep; collapse `startTransaction` to Kysely-only | ⬜ Remaining |
+| **Reads (part 1)** | group, campaign, housing (the big one) + note/document/housingDocument | ✅ Done (5 PRs) |
+| **Reads (part 2)** | owner (#1912), `housingOwner.findByOwner` (#1913), draft + sender (#1914) | ✅ Done (3 PRs) |
+| **Step final** | Collapse `startTransaction` to Kysely-only (drop the Knex transaction store). *Not* full `knex` removal — seeds/LOVAC/migrations/factories keep it. | ⬜ Gated on merging the stack |
 
 ---
 
@@ -136,14 +136,17 @@ flowchart TD
 
   g --> gr["#1904 group reads"]:::done
   c --> cr["#1905 campaign reads"]:::done
+  c --> dsr["#1914 draft/sender reads"]:::done
   m --> hr["#1910 housing reads"]:::done
+  hr --> orr["#1912 owner reads"]:::done
+  hr --> hor["#1913 housingOwner.findByOwner"]:::done
 
   classDef base fill:#d1c4e9,stroke:#4527a0,color:#000
   classDef done fill:#c8e6c9,stroke:#2e7d32,color:#000
   classDef plan fill:#fff9c4,stroke:#f9a825,color:#000
 ```
 
-**Merge order:** `#1787` → the six write PRs (any order) → each stacked reads PR after its write PR. The two PLAN PRs (#1902, #1906) are docs and can merge anytime.
+**Merge order:** `#1787` → the six write PRs (any order) → each stacked reads PR after its write PR. Specifically: `#1910` before `#1912`/`#1913` (they add `parseHousingRecordRow` on top of it), and `#1901` before `#1914`. The two PLAN PRs (#1902, #1906) are docs and can merge anytime.
 
 ---
 
@@ -156,10 +159,10 @@ flowchart TD
 | **document** | ✅ | ✅ | #1898 |
 | **housingDocument** | ✅ | ✅ | #1899 |
 | **group** | ✅ #1900 | ✅ #1904 | — |
-| **campaign / draft / sender / campaignDraft / campaignHousing** | ✅ #1901 | campaign ✅ #1905 · **draft/sender ⬜** | — |
+| **campaign / draft / sender / campaignDraft / campaignHousing** | ✅ #1901 | campaign ✅ #1905 · draft/sender ✅ #1914 | — |
 | **housing** | ✅ #1903 | ✅ #1910 | the big one |
-| **owner** | ✅ #1903 | ⬜ (find/get/findOne/count/stream, FTS, housings-include) | unblocked by #1910 |
-| **housingOwner** | ✅ #1903 | ⬜ `findByOwner` | unblocked by #1910 |
+| **owner** | ✅ #1903 | ✅ #1912 (find/get/findOne/count/stream, FTS, housings-include) | stacked on #1910 |
+| **housingOwner** | ✅ #1903 | ✅ #1913 `findByOwner` | stacked on #1910 |
 | **eventRepository** | ✅ per-cluster event methods | n/a | linchpin, migrated piecemeal with clusters |
 
 ---
@@ -170,28 +173,31 @@ flowchart TD
 - **Nested-JSON CamelCase bug** — Kysely's `CamelCasePlugin` recursively camelCased keys *inside* `to_json(...)` / `json_build_object(...)`, so the snake_case DBO parsers (`fromUserDBO`, `fromDocumentDBO`) silently returned `undefined` for every multi-word field. Fixed with `maintainNestedObjectKeys: true`. It was a **latent production bug** in the already-shipped note/document/housingDocument creator reads — their looser tests only asserted `id`/`email` (camel-invariant), so it slipped through; the strict housing/group read tests caught it.
 - **DATE columns** return `YYYY-MM-DD` strings (pg type parser) to avoid the CET off-by-one; `date`-typed columns (`owners_housing.start_date`) are passed through as-is.
 - **Streaming** (`housing.stream`) uses Kysely's cursor stream, wired via `pg-cursor`.
+- **`text[]` equality filters** (e.g. `ownerRepository.findOne` on `address_dgfip`) must bind the array via a `sql\`col = ${arr}\`` fragment — a plain `.where(col, '=', array)` makes Kysely emit `text[] = record` and blows up at runtime.
+- **camelCase read rows vs snake writes.** Reads add a camelCase `parseXRow` reading `Selectable<DB['table']>` (Kysely returns camelCase columns) beside the kept snake `parseXApi`; the two are not interchangeable. The classic trap: `parseHousingOwnerRow` reading `row.housing_geo_code` returns `undefined`, which then surfaced as a null-constraint violation when writing housing-owner events.
+- **`joinDocumentWithCreator` → correlated subquery.** Draft/sender reads reproduce the Knex document+creator leftJoin as a Kysely correlated scalar subquery (`selectDocumentWithCreator`) that emits the same `jsonb_build_object(... 'creator', json_build_object(...))` blob and resolves to `NULL` when the FK is unset. The non-null branch (a real document with its nested creator) had **zero read-path coverage** before — the alias keys and nested-JSON handling had only ever been exercised with null documents, the exact blind spot behind the CamelCase bug above — so #1914 adds a `findOne` test that asserts the hydrated document + creator.
+- **`paginate()` default.** `ownerRepository.find` relied on `paginate()` defaulting to `{ page: 1, perPage: 50 }`; the Kysely rewrite must reproduce that default so unpaginated calls stay capped at 50 rows.
 - Every PR **keeps the full Knex export surface** (table accessors, `*DBO` types, `format*`/`parse*`) so seeds, the LOVAC import, the test factory, and still-Knex readers keep working.
 
 ---
 
 ## 8. What's left (the final stretch)
 
+All repository writes **and** reads are migrated. The only remaining work is **Step final**, and it is **gated on the PR stack merging** — no single branch holds every migration, so the bridge can only be collapsed once they're all on the integration branch.
+
 ```mermaid
 flowchart LR
-  hr["#1910 housing reads ✅<br/>(the enabler)"]:::done --> owner["owner reads +<br/>parseHousingRecordRow"]:::todo
-  hr --> ho["housingOwner.findByOwner"]:::todo
-  ds["draft / sender reads<br/>(joinDocumentWithCreator → Kysely)"]:::todo
-  owner --> final
-  ho --> final
-  ds --> final
-  final["Step final:<br/>drop Knex + collapse the bridge"]:::todo
+  reads["all reads ✅<br/>#1904 · #1905 · #1910 · #1912 · #1913 · #1914"]:::done --> merge["merge the stack<br/>onto #1787"]:::todo
+  merge --> final["Step final:<br/>collapse startTransaction to<br/>Kysely-only, drop the Knex txn store"]:::todo
 
   classDef done fill:#c8e6c9,stroke:#2e7d32,color:#000
   classDef todo fill:#ffe0b2,stroke:#e65100,color:#000
 ```
 
-1. **owner / housingOwner reads** — need a camelCase `parseHousingRecordRow` + the housings-include reproduced (patterns proven in #1910).
-2. **draft / sender reads** — port the Knex `joinDocumentWithCreator` to a Kysely correlated JSON (same shape as the housing includes).
-3. **Step final** — delete the Knex transaction store + `knex` dependency; reduce `startTransaction` to a Kysely-only implementation.
+**Step final — scope and non-scope:**
 
-Detailed, executable plans for the largest remaining pieces: [`plans/2026-07-10-kysely-housing-reads.md`](./superpowers/plans/2026-07-10-kysely-housing-reads.md) (mostly consumed by #1910) and [`plans/2026-07-10-kysely-housing-owner-mega-cluster.md`](./superpowers/plans/2026-07-10-kysely-housing-owner-mega-cluster.md).
+- **In scope:** once every transactional write is Kysely, simplify `server/src/infra/database/transaction.ts` — `startTransaction` drops its Knex side (`db.transaction`, the `AsyncLocalStorage` Knex store, `withinTransaction`) and becomes a plain `kysely.transaction().execute(...)`. This is a mechanical simplification, verifiable by the existing characterization tests.
+- **Out of scope:** removing the `knex` dependency itself. Seeds (demo/dev/prod), the LOVAC import scripts, the Knex migration files, and the test factories all still use raw Knex and the intentionally-kept repository accessors. Dropping `knex` would mean rewriting all of those — a separate, much larger effort with no behaviour benefit.
+- **Prerequisite:** it can't start until #1897–#1914 are merged onto #1787, because the FK-visibility constraint (§3) means a half-migrated tree still needs the Knex transaction side alive.
+
+Detailed, executable plans for the largest pieces already shipped: [`plans/2026-07-10-kysely-housing-reads.md`](./superpowers/plans/2026-07-10-kysely-housing-reads.md) (consumed by #1910) and [`plans/2026-07-10-kysely-housing-owner-mega-cluster.md`](./superpowers/plans/2026-07-10-kysely-housing-owner-mega-cluster.md).

@@ -22,6 +22,7 @@ import {
   genOwnerApi,
   genUserApi
 } from '~/test/testFixtures';
+
 import {
   Establishments,
   formatEstablishmentApi
@@ -99,9 +100,7 @@ describe('Owner repository', () => {
           ...genOwnerApi(),
           idpersonne: faker.string.alphanumeric(10)
         };
-        await Owners().insert(
-          [ownerWithNull, ownerWithId].map(formatOwnerApi)
-        );
+        await Owners().insert([ownerWithNull, ownerWithId].map(formatOwnerApi));
 
         const actual = await ownerRepository.find({
           filters: { idpersonne: false },
@@ -170,9 +169,7 @@ describe('Owner repository', () => {
         const unlinkedOwner = genOwnerApi();
 
         await Housing().insert(formatHousingRecordApi(housing));
-        await Owners().insert(
-          [linkedOwner, unlinkedOwner].map(formatOwnerApi)
-        );
+        await Owners().insert([linkedOwner, unlinkedOwner].map(formatOwnerApi));
         await HousingOwners().insert(
           formatHousingOwnerApi({
             ...genHousingOwnerApi(housing, linkedOwner),
@@ -212,9 +209,7 @@ describe('Owner repository', () => {
         const unlinkedOwner = genOwnerApi();
 
         await Housing().insert(formatHousingRecordApi(housing));
-        await Owners().insert(
-          [linkedOwner, unlinkedOwner].map(formatOwnerApi)
-        );
+        await Owners().insert([linkedOwner, unlinkedOwner].map(formatOwnerApi));
         await HousingOwners().insert(
           formatHousingOwnerApi({
             ...genHousingOwnerApi(housing, linkedOwner),
@@ -580,8 +575,10 @@ describe('Owner repository', () => {
 
       expect(result).toBe(1);
 
-      const rows = await HousingOwners()
-        .where({ owner_id: owner.id, housing_id: housing.id });
+      const rows = await HousingOwners().where({
+        owner_id: owner.id,
+        housing_id: housing.id
+      });
       expect(rows).toHaveLength(1);
     });
   });
@@ -606,8 +603,10 @@ describe('Owner repository', () => {
 
       expect(result).toBe(1);
 
-      const rows = await HousingOwners()
-        .where({ owner_id: owner.id, housing_id: housing.id });
+      const rows = await HousingOwners().where({
+        owner_id: owner.id,
+        housing_id: housing.id
+      });
       expect(rows).toHaveLength(0);
     });
   });

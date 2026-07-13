@@ -2,7 +2,7 @@
 
 > **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
 
-**Goal:** Make the single `startTransaction` open a Knex *and* a Kysely transaction that commit/roll back together, so a logical transaction spanning both engines is atomic — fixing the `precisionController` split-brain bug and unblocking safe incremental migration.
+**Goal:** Make the single `startTransaction` open a Knex _and_ a Kysely transaction that commit/roll back together, so a logical transaction spanning both engines is atomic — fixing the `precisionController` split-brain bug and unblocking safe incremental migration.
 
 **Architecture:** `startTransaction` wraps a Knex transaction inside a Kysely `.transaction().execute()` block, seeding both `AsyncLocalStorage` stores. Knex repos keep reading the Knex store via `getTransaction`; Kysely repos keep reading the Kysely store via `getKyselyTransaction`. Both stores are now populated by the one entry point, so ambient-transaction reuse works for either engine.
 
@@ -13,7 +13,7 @@
 - **Framework:** Vitest only, never Jest. Tests hit a real Postgres (`.env.test` → `test_feat_kysely_setup_rwr`); the DB must be running.
 - **Run tests via:** `yarn nx test server -- run <path>` (nx forwards args after `--` to vitest).
 - **Commit messages:** English; workspace-level scope `feat(server)` / `test(server)`.
-- **Disjoint-table invariant:** a single logical operation must not write the *same rows* through both engines (two connections → self-deadlock). Keep each operation's Knex-side and Kysely-side writes on different tables.
+- **Disjoint-table invariant:** a single logical operation must not write the _same rows_ through both engines (two connections → self-deadlock). Keep each operation's Knex-side and Kysely-side writes on different tables.
 - **Do not change** the public signatures of `getTransaction`, `withinTransaction`, `getKyselyTransaction`, `withinKyselyTransaction`, or `startKyselyTransaction`.
 - **Commit ordering (residual window, accepted):** commit Knex first, then let Kysely commit on callback return. If Knex commits and Kysely commit then fails, state is inconsistent — irreducible two-connection commit-time window, removed in the final Knex-removal step.
 
@@ -41,13 +41,15 @@ Each step ends at a review checkpoint before the next begins.
 
 ## Task 1: Kysely store primitive `runWithinKyselyTransaction`
 
-Adds the low-level hook the bridge needs: run a callback with the Kysely `AsyncLocalStorage` seeded by a transaction the *caller* created (the bridge creates it, not `kysely.transaction()`).
+Adds the low-level hook the bridge needs: run a callback with the Kysely `AsyncLocalStorage` seeded by a transaction the _caller_ created (the bridge creates it, not `kysely.transaction()`).
 
 **Files:**
+
 - Modify: `server/src/infra/database/kysely-transaction.ts`
 - Test: `server/src/infra/database/test/kysely-transaction.test.ts` (create)
 
 **Interfaces:**
+
 - Consumes: `kysely` from `~/infra/database/kysely`; `Transaction<DB>` from `kysely`.
 - Produces: `runWithinKyselyTransaction<R>(trx: Transaction<DB>, cb: () => Promise<R>): Promise<R>` — seeds the Kysely store with `trx` for the duration of `cb`. `getKyselyTransaction()` returns `trx` inside `cb`.
 
@@ -64,17 +66,19 @@ import {
 
 describe('runWithinKyselyTransaction', () => {
   it('exposes the supplied transaction via getKyselyTransaction', async () => {
-    const seen = await kysely.transaction().execute((trx) =>
-      runWithinKyselyTransaction(trx, async () => getKyselyTransaction())
-    );
+    const seen = await kysely
+      .transaction()
+      .execute((trx) =>
+        runWithinKyselyTransaction(trx, async () => getKyselyTransaction())
+      );
 
     expect(seen).toBeDefined();
   });
 
   it('restores no ambient transaction after the callback', async () => {
-    await kysely.transaction().execute((trx) =>
-      runWithinKyselyTransaction(trx, async () => undefined)
-    );
+    await kysely
+      .transaction()
+      .execute((trx) => runWithinKyselyTransaction(trx, async () => undefined));
 
     expect(getKyselyTransaction()).toBeUndefined();
   });
@@ -119,10 +123,12 @@ git commit -m "feat(server): add runWithinKyselyTransaction store primitive"
 Rewrites `startTransaction` to open both engines' transactions, seed both stores, and commit/roll back as a unit.
 
 **Files:**
+
 - Modify: `server/src/infra/database/transaction.ts`
 - Test: `server/src/infra/database/test/transaction.test.ts` (add cases; keep existing ones)
 
 **Interfaces:**
+
 - Consumes: `db` from `~/infra/database`; `kysely` from `~/infra/database/kysely`; `runWithinKyselyTransaction` from Task 1; existing Knex `storage`, `getTransaction`.
 - Produces: `startTransaction<R>(cb, options?)` unchanged signature, now dual-engine. Inside `cb`, both `getTransaction()` (Knex) and `getKyselyTransaction()` (Kysely) return live transactions on the same logical unit.
 
@@ -266,9 +272,11 @@ git commit -m "feat(server): make startTransaction a dual-engine Knex+Kysely bri
 Proves the exact reported bug is fixed: a `precisionRepository.link` (Kysely) call inside a Knex-initiated `startTransaction` now participates in the shared unit and rolls back on failure, instead of committing independently.
 
 **Files:**
+
 - Create: `server/src/infra/database/test/transaction-bridge-precision.test.ts`
 
 **Interfaces:**
+
 - Consumes: `startTransaction` (Task 2); `precisionRepository`, `Precisions`, `HousingPrecisions` from `~/repositories/precisionRepository`; `Housing`, `formatHousingRecordApi` from `~/repositories/housingRepository`; `genHousingApi` from `~/test/testFixtures`.
 
 - [ ] **Step 1: Write the failing regression test**

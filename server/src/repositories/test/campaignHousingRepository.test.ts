@@ -55,8 +55,8 @@ describe('Campaign housing repository', () => {
       const campaign = await factories
         .campaign(establishment)
         .create({}, { associations: { createdBy: user } });
-      const housings = faker.helpers.multiple(() =>
-        genHousingApi(faker.helpers.arrayElement(establishment.geoCodes)),
+      const housings = faker.helpers.multiple(
+        () => genHousingApi(faker.helpers.arrayElement(establishment.geoCodes)),
         { count: { min: 1, max: 3 } }
       );
       await Housing().insert(housings.map(formatHousingRecordApi));
@@ -92,10 +92,7 @@ describe('Campaign housing repository', () => {
         { count: { min: 2, max: 4 } }
       );
       await Housing().insert(housings.map(formatHousingRecordApi));
-      await campaignHousingRepository.insertHousingList(
-        campaign.id,
-        housings
-      );
+      await campaignHousingRepository.insertHousingList(campaign.id, housings);
 
       const toRemove = housings.slice(0, 1);
       const toKeep = housings.slice(1);

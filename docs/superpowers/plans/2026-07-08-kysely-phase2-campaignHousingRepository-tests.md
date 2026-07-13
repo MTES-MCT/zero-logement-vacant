@@ -57,9 +57,11 @@ Statements 60%, **Branches 66.7% (2/3)**, Functions 44.4%.
 **Files:** none (measurement + DoD gate).
 
 - [ ] **Step 1: Measure.**
+
 ```
 yarn nx test server -- run --coverage --coverage.provider=v8 --coverage.reporter=json-summary --coverage.include='src/repositories/campaignHousingRepository.ts' src/repositories/test/campaignHousingRepository.test.ts
 ```
+
 Read `server/coverage/coverage-summary.json` for `campaignHousingRepository.ts` branch %. Expected **≥ 85%** (from 66.7%).
 
 - [ ] **Step 2: If below 85%** — read remaining uncovered lines, add the missing case(s) (no production change), re-run. Commit as `test(server): close remaining campaignHousingRepository coverage gaps`.

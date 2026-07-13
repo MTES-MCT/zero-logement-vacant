@@ -6,17 +6,19 @@ import {
 
 describe('runWithinKyselyTransaction', () => {
   it('exposes the supplied transaction via getKyselyTransaction', async () => {
-    const seen = await kysely.transaction().execute((trx) =>
-      runWithinKyselyTransaction(trx, async () => getKyselyTransaction())
-    );
+    const seen = await kysely
+      .transaction()
+      .execute((trx) =>
+        runWithinKyselyTransaction(trx, async () => getKyselyTransaction())
+      );
 
     expect(seen).toBeDefined();
   });
 
   it('restores no ambient transaction after the callback', async () => {
-    await kysely.transaction().execute((trx) =>
-      runWithinKyselyTransaction(trx, async () => undefined)
-    );
+    await kysely
+      .transaction()
+      .execute((trx) => runWithinKyselyTransaction(trx, async () => undefined));
 
     expect(getKyselyTransaction()).toBeUndefined();
   });

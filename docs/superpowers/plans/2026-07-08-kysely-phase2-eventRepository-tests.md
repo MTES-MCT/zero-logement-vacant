@@ -37,6 +37,7 @@ Measured with:
 Covers 5 pure-function branch arms. No seeding, no DB writes — these call the exported format/parse functions directly and assert the returned object.
 
 **Files:**
+
 - Modify: `server/src/repositories/test/eventRepository.test.ts`
 
 **Interfaces (import the named exports from `~/repositories/eventRepository`):**
@@ -71,6 +72,7 @@ git commit -m "test(server): cover eventRepository format/parse null branches"
 Each `insertMany*` function early-returns on an empty array. Calling it with `[]` covers that guard arm. No seeding needed — just assert the target table gained no rows.
 
 **Files:**
+
 - Modify: `server/src/repositories/test/eventRepository.test.ts`
 
 **Interfaces:** default `eventRepository`; table accessors `Events`, `HousingEvents`, `HousingOwnerEvents`, `PrecisionHousingEvents`, `OwnerEvents`, `CampaignHousingEvents`, `CampaignEvents`, `GroupHousingEvents`, `DocumentEvents`, `HousingDocumentEvents` (named exports from `~/repositories/eventRepository`).
@@ -110,6 +112,7 @@ git commit -m "test(server): cover eventRepository insertMany empty-array guards
 Two of the five entirely-uncovered `insertMany*` functions. Each needs seeding, then asserts rows land in `Events()` and the link table. Mirror the existing `describe('insertManyHousingEvents')` non-empty test for structure.
 
 **Files:**
+
 - Modify: `server/src/repositories/test/eventRepository.test.ts`
 
 **Interfaces:** `eventRepository.insertManyHousingOwnerEvents`, `eventRepository.insertManyGroupHousingEvents`; accessors `Events`, `HousingOwnerEvents`, `GroupHousingEvents`, `Housing`, `Owners`, `Groups` (use whatever the existing tests use to seed housing/owner/group); generators `genEventApi`, `genHousingApi`, `genOwnerApi`, `genGroupApi`.
@@ -140,6 +143,7 @@ git commit -m "test(server): cover eventRepository housing-owner and group-housi
 The remaining three uncovered `insertMany*` functions. Campaign-housing and campaign events share campaign seeding; precision-housing carries the latent-bug flag.
 
 **Files:**
+
 - Modify: `server/src/repositories/test/eventRepository.test.ts`
 
 **Interfaces:** `eventRepository.insertManyCampaignHousingEvents`, `eventRepository.insertManyCampaignEvents`, `eventRepository.insertManyPrecisionHousingEvents`; accessors `Events`, `CampaignHousingEvents`, `CampaignEvents`, `PrecisionHousingEvents`, `Housing`, precision referential `Precisions`; fishery `factories.campaign(establishment)`; generators `genEventApi`, `genHousingApi`.
@@ -177,9 +181,11 @@ In your report's concerns, record: `insertManyPrecisionHousingEvents` uses `db.t
 - [ ] **Step 1: Measure eventRepository coverage**
 
 Run:
+
 ```
 yarn nx test server -- run --coverage --coverage.provider=v8 --coverage.reporter=text --coverage.include='src/repositories/eventRepository.ts' src/repositories/test/eventRepository.test.ts
 ```
+
 Expected: `eventRepository.ts` **Branch ≥ 85%** (up from 60%), all eventRepository tests green.
 
 - [ ] **Step 2: If below 85%**

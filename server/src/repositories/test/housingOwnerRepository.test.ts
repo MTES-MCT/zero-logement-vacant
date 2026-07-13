@@ -61,7 +61,10 @@ describe('housingOwnerRepository', () => {
           Owners().insert(formatOwnerApi(owner)),
           Housing().insert(formatHousingRecordApi(housing))
         ]);
-        const housingOwner: HousingOwnerApi = genHousingOwnerApi(housing, owner);
+        const housingOwner: HousingOwnerApi = genHousingOwnerApi(
+          housing,
+          owner
+        );
         await HousingOwners().insert(formatHousingOwnerApi(housingOwner));
 
         const actuals = await housingOwnerRepository.findByOwner(owner, {
@@ -78,7 +81,10 @@ describe('housingOwnerRepository', () => {
           Owners().insert(formatOwnerApi(owner)),
           Housing().insert(formatHousingRecordApi(housing))
         ]);
-        const housingOwner: HousingOwnerApi = genHousingOwnerApi(housing, owner);
+        const housingOwner: HousingOwnerApi = genHousingOwnerApi(
+          housing,
+          owner
+        );
         await HousingOwners().insert(formatHousingOwnerApi(housingOwner));
 
         const actuals = await housingOwnerRepository.findByOwner(owner, {
@@ -99,7 +105,10 @@ describe('housingOwnerRepository', () => {
           Owners().insert(formatOwnerApi(owner)),
           Housing().insert(formatHousingRecordApi(housing))
         ]);
-        const housingOwner: HousingOwnerApi = genHousingOwnerApi(housing, owner);
+        const housingOwner: HousingOwnerApi = genHousingOwnerApi(
+          housing,
+          owner
+        );
         await HousingOwners().insert(formatHousingOwnerApi(housingOwner));
 
         const actuals = await housingOwnerRepository.findByOwner(owner, {
@@ -373,7 +382,9 @@ describe('housingOwnerRepository', () => {
 
   describe('saveMany', () => {
     it('should return empty array and write nothing when called with empty array', async () => {
-      const before = await HousingOwners().count<{ count: string }>('*').first();
+      const before = await HousingOwners()
+        .count<{ count: string }>('*')
+        .first();
 
       const result = await housingOwnerRepository.saveMany([]);
 

@@ -114,9 +114,11 @@ This plan targets the core-CRUD functions; a full ≥85% is expected only after 
 **Files:** none (measurement).
 
 - [ ] **Step 1: Measure.**
+
 ```
 yarn nx test server -- run --coverage --coverage.provider=v8 --coverage.reporter=json-summary --coverage.include='src/repositories/ownerRepository.ts' src/repositories/test/ownerRepository.test.ts
 ```
+
 Read `server/coverage/coverage-summary.json` for `ownerRepository.ts` branch %. Record the new branch/stmt/func/line %.
 
 - [ ] **Step 2: Report the delta and the remaining tail.** Note how far core-CRUD got us from the 54% baseline, and confirm the remaining gap is concentrated in the deferred tail (`save`/`saveMany`/`searchOwners`/`updateAddressList`/`escapeValue`). This is the checkpoint deliverable — the tail is a separate plan.

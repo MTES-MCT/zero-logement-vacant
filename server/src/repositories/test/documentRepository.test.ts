@@ -309,7 +309,10 @@ describe('documentRepository', () => {
         creator: user,
         updatedAt: new Date().toISOString()
       });
-      const dbo = toDocumentDBO({ ...document, updatedAt: new Date().toISOString() });
+      const dbo = toDocumentDBO({
+        ...document,
+        updatedAt: new Date().toISOString()
+      });
       expect(dbo.updated_at).not.toBeNull();
     });
 
@@ -318,7 +321,10 @@ describe('documentRepository', () => {
         createdBy: user.id,
         creator: user
       });
-      const dbo = toDocumentDBO({ ...document, deletedAt: new Date().toISOString() });
+      const dbo = toDocumentDBO({
+        ...document,
+        deletedAt: new Date().toISOString()
+      });
       expect(dbo.deleted_at).not.toBeNull();
     });
   });
@@ -341,7 +347,11 @@ describe('documentRepository', () => {
         `${HOUSING_DOCUMENT_TABLE}.document_id`,
         document.id
       );
-      joinDocumentWithCreator(query, `${HOUSING_DOCUMENT_TABLE}.document_id`, 'doc');
+      joinDocumentWithCreator(
+        query,
+        `${HOUSING_DOCUMENT_TABLE}.document_id`,
+        'doc'
+      );
 
       const row = await query.first<Record<string, unknown>>();
 

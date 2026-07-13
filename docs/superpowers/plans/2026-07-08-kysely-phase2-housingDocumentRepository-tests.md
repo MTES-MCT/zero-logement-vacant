@@ -59,9 +59,11 @@ Covers all 9 uncovered branch arms across `find` (documentIds, housingIds, delet
 **Files:** none (measurement + DoD gate).
 
 - [ ] **Step 1: Measure.**
+
 ```
 yarn nx test server -- run --coverage --coverage.provider=v8 --coverage.reporter=json-summary --coverage.include='src/repositories/housingDocumentRepository.ts' src/repositories/test/housingDocumentRepository.test.ts
 ```
+
 Read `server/coverage/coverage-summary.json` for `housingDocumentRepository.ts` branch %. Expected **≥ 85%** (from 52.6%).
 
 - [ ] **Step 2: If below 85%** — read remaining uncovered lines, add the missing case(s) by the same mirroring method (no production change), re-run. Commit as `test(server): close remaining housingDocumentRepository coverage gaps`.

@@ -95,9 +95,11 @@ Characterizes the entirely-uncovered `joinDocumentWithCreator` (a `db.raw` CASE/
 **Files:** none (measurement + DoD gate).
 
 - [ ] **Step 1: Measure.**
+
 ```
 yarn nx test server -- run --coverage --coverage.provider=v8 --coverage.reporter=json-summary --coverage.include='src/repositories/documentRepository.ts' src/repositories/test/documentRepository.test.ts
 ```
+
 Read `server/coverage/coverage-summary.json` for `documentRepository.ts` branch %. Expected **≥ 85%** (from 63%). Note statement/function % too (Task 3 should push them toward 100%).
 
 - [ ] **Step 2: If branch < 85%** — read remaining uncovered lines, add the missing case(s) by the same mirroring method (no production change), re-run. Commit as `test(server): close remaining documentRepository coverage gaps`.

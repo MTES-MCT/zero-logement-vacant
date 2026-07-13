@@ -38,6 +38,7 @@ export const configSchema = z.object({
           .filter((origin) => origin.length > 0)
       )
       .pipe(z.array(z.url()).min(1))
+      .transform((origins) => origins.map((origin) => new URL(origin).origin))
   }),
   auth: z.object({
     secret: z

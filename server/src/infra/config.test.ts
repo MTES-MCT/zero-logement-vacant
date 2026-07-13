@@ -105,6 +105,22 @@ describe('configSchema', () => {
     expect(result.log.level).toBe('info');
   });
 
+  it('normalizes allowed origins before CORS and CSRF checks', () => {
+    const result = configSchema.parse({
+      ...validRaw,
+      app: {
+        ...validRaw.app,
+        allowedOrigins:
+          ' https://staging.example.com/, https://app.example.com/path '
+      }
+    });
+
+    expect(result.app.allowedOrigins).toEqual([
+      'https://staging.example.com',
+      'https://app.example.com'
+    ]);
+  });
+
   it('coerces "true" string to boolean true', () => {
     const result = configSchema.parse({
       ...validRaw,

@@ -43,6 +43,7 @@ import {
 } from '~/repositories/resetLinkRepository';
 import { UsersEstablishments } from '~/repositories/user-establishment-repository';
 import { toUserDBO, Users } from '~/repositories/userRepository';
+import ceremaService from '~/services/ceremaService';
 import {
   genEstablishmentApi,
   genResetLinkApi,
@@ -187,6 +188,108 @@ describe('Account controller', () => {
       }
     });
 
+    it('rejects a stale establishment after Portail DF revokes access', async () => {
+      const usualUser: UserApi = {
+        ...genUserApi(establishment.id),
+        role: UserRole.USUAL
+      };
+      const targetEstablishment = genEstablishmentApi();
+      await Users().insert(toUserDBO(usualUser));
+      await Establishments().insert(
+        formatEstablishmentApi(targetEstablishment)
+      );
+      await UsersEstablishments().insert({
+        user_id: usualUser.id,
+        establishment_id: targetEstablishment.id,
+        establishment_siren: targetEstablishment.siren,
+        has_commitment: true,
+        created_at: new Date(),
+        updated_at: new Date()
+      });
+      mockGetSession.mockResolvedValue({
+        user: { id: usualUser.id },
+        session: {
+          id: 'session-stale-rights',
+          userId: usualUser.id,
+          activeEstablishmentId: establishment.id
+        }
+      } as any);
+      const headers = new Headers();
+      mockUpdateSession.mockResolvedValue({
+        headers,
+        response: { session: {} }
+      } as any);
+      const consultUsers = vi
+        .spyOn(ceremaService, 'consultUsers')
+        .mockResolvedValue([]);
+
+      try {
+        const { status } = await request(url)
+          .post(`/account/establishments/${targetEstablishment.id}`)
+          .set('Cookie', 'zlv.session_token=fake')
+          .use(tokenProvider(usualUser));
+
+        expect(status).toBe(constants.HTTP_STATUS_FORBIDDEN);
+        expect(mockUpdateSession).not.toHaveBeenCalled();
+      } finally {
+        consultUsers.mockRestore();
+        await UsersEstablishments().where({ user_id: usualUser.id }).delete();
+        await Establishments().where('id', targetEstablishment.id).delete();
+        await Users().where('id', usualUser.id).delete();
+      }
+    });
+
+    it('keeps the current session when Portail DF is unavailable', async () => {
+      const usualUser: UserApi = {
+        ...genUserApi(establishment.id),
+        role: UserRole.USUAL
+      };
+      const targetEstablishment = genEstablishmentApi();
+      await Users().insert(toUserDBO(usualUser));
+      await Establishments().insert(
+        formatEstablishmentApi(targetEstablishment)
+      );
+      await UsersEstablishments().insert({
+        user_id: usualUser.id,
+        establishment_id: targetEstablishment.id,
+        establishment_siren: targetEstablishment.siren,
+        has_commitment: true,
+        created_at: new Date(),
+        updated_at: new Date()
+      });
+      mockGetSession.mockResolvedValue({
+        user: { id: usualUser.id },
+        session: {
+          id: 'session-portail-unavailable',
+          userId: usualUser.id,
+          activeEstablishmentId: establishment.id
+        }
+      } as any);
+      const headers = new Headers();
+      mockUpdateSession.mockResolvedValue({
+        headers,
+        response: { session: {} }
+      } as any);
+      const consultUsers = vi
+        .spyOn(ceremaService, 'consultUsers')
+        .mockRejectedValue(new Error('Portail DF unavailable'));
+
+      try {
+        const { status } = await request(url)
+          .post(`/account/establishments/${targetEstablishment.id}`)
+          .set('Cookie', 'zlv.session_token=fake')
+          .use(tokenProvider(usualUser));
+
+        expect(status).toBe(constants.HTTP_STATUS_SERVICE_UNAVAILABLE);
+        expect(mockUpdateSession).not.toHaveBeenCalled();
+      } finally {
+        consultUsers.mockRestore();
+        await UsersEstablishments().where({ user_id: usualUser.id }).delete();
+        await Establishments().where('id', targetEstablishment.id).delete();
+        await Users().where('id', usualUser.id).delete();
+      }
+    });
+
     it('rejects a switch when the request user differs from the session user', async () => {
       const requestUser: UserApi = {
         ...genUserApi(establishment.id),
@@ -270,6 +373,16 @@ describe('Account controller', () => {
         headers,
         response: { session: {} }
       } as any);
+      const consultUsers = vi
+        .spyOn(ceremaService, 'consultUsers')
+        .mockResolvedValue([
+          {
+            email: usualUser.email,
+            establishmentSiren: targetEstablishment.siren,
+            hasAccount: true,
+            hasCommitment: true
+          }
+        ]);
 
       try {
         const response = await request(url)
@@ -289,6 +402,7 @@ describe('Account controller', () => {
           })
         );
       } finally {
+        consultUsers.mockRestore();
         await UsersEstablishments().where({ user_id: usualUser.id }).delete();
         await Users().where('id', usualUser.id).delete();
         await Establishments().where('id', targetEstablishment.id).delete();

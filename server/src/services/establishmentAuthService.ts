@@ -1,3 +1,4 @@
+import ExternalServiceUnavailableError from '~/errors/externalServiceUnavailableError';
 import { logger } from '~/infra/logger';
 import type { EstablishmentApi } from '~/models/EstablishmentApi';
 import { UserApi } from '~/models/UserApi';
@@ -237,7 +238,8 @@ async function saveAuthorizedEstablishmentPerimeters(
  * and suspends user if rights are no longer valid.
  */
 export async function refreshAuthorizedEstablishments(
-  user: UserApi
+  user: UserApi,
+  options: { authoritative?: boolean } = {}
 ): Promise<void> {
   try {
     const ceremaUsers = await ceremaService.consultUsers(user.email);
@@ -247,6 +249,9 @@ export async function refreshAuthorizedEstablishments(
         userId: user.id,
         email: user.email
       });
+      if (options.authoritative) {
+        await syncAuthorizedEstablishments(user, []);
+      }
       return;
     }
 
@@ -286,5 +291,8 @@ export async function refreshAuthorizedEstablishments(
       email: user.email,
       error
     });
+    if (options.authoritative) {
+      throw new ExternalServiceUnavailableError('Portail DF');
+    }
   }
 }

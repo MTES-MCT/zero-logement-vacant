@@ -24,6 +24,7 @@ import userEstablishmentRepository from '~/repositories/user-establishment-repos
 import userPerimeterRepository from '~/repositories/userPerimeterRepository';
 import userRepository from '~/repositories/userRepository';
 import { updateUserAndAuth } from '~/services/authUserSyncService';
+import { refreshAuthorizedEstablishments } from '~/services/establishmentAuthService';
 
 /**
  * Switches the active establishment stored in the Better Auth session.
@@ -59,6 +60,7 @@ async function changeEstablishmentBySession(
   const establishmentId = request.params.establishmentId;
 
   if (user.role !== UserRole.ADMIN && user.role !== UserRole.VISITOR) {
+    await refreshAuthorizedEstablishments(user, { authoritative: true });
     const authorised =
       await userEstablishmentRepository.getAuthorizedEstablishments(user.id);
     const authorisedIds = authorised

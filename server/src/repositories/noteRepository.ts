@@ -1,15 +1,14 @@
-import { match } from 'ts-pattern';
+import type { Insertable, Selectable } from 'kysely';
+import { sql } from 'kysely';
 
 import db from '~/infra/database';
-import { withinTransaction } from '~/infra/database/transaction';
+import type { DB } from '~/infra/database/db';
+import { kysely } from '~/infra/database/kysely';
+import { withinKyselyTransaction } from '~/infra/database/kysely-transaction';
 import { createLogger } from '~/infra/logger';
 import { HousingId } from '~/models/HousingApi';
 import { HousingNoteApi, NoteApi } from '~/models/NoteApi';
-import {
-  fromUserDBO,
-  UserDBO,
-  USERS_TABLE
-} from '~/repositories/userRepository';
+import { fromUserDBO, UserDBO } from '~/repositories/userRepository';
 
 const logger = createLogger('noteRepository');
 
@@ -17,6 +16,7 @@ export const NOTES_TABLE = 'notes';
 export const OWNER_NOTES_TABLE = 'owner_notes';
 export const HOUSING_NOTES_TABLE = 'housing_notes';
 
+// Knex accessors — re-exported for backward compatibility with seeds and tests.
 export const Notes = (transaction = db) =>
   transaction<NoteRecordDBO>(NOTES_TABLE);
 export const OwnerNotes = () =>
@@ -36,12 +36,12 @@ async function createManyByHousing(
   }
 
   logger.debug('Inserting housing notes...', { notes: housingNotes.length });
-  await withinTransaction(async (transaction) => {
-    await transaction.batchInsert(NOTES_TABLE, housingNotes.map(formatNoteApi));
-    await transaction.batchInsert(
-      HOUSING_NOTES_TABLE,
-      housingNotes.map(formatHousingNoteApi)
-    );
+  await withinKyselyTransaction(async (trx) => {
+    await trx.insertInto('notes').values(housingNotes.map(toNoteDBO)).execute();
+    await trx
+      .insertInto('housingNotes')
+      .values(housingNotes.map(toHousingNoteDBO))
+      .execute();
   });
 }
 
@@ -56,55 +56,50 @@ async function findByHousing(
   options?: FindByHousingOptions
 ): Promise<NoteApi[]> {
   logger.debug('Finding housing notes...', housing);
-  const notes = await listQuery()
-    .join(
-      HOUSING_NOTES_TABLE,
-      `${HOUSING_NOTES_TABLE}.note_id`,
-      `${NOTES_TABLE}.id`
+  const rows = await noteListQuery()
+    .innerJoin('housingNotes', 'housingNotes.noteId', 'notes.id')
+    .where('housingNotes.housingGeoCode', '=', housing.geoCode)
+    .where('housingNotes.housingId', '=', housing.id)
+    .$if(options?.filters?.deleted === true, (query) =>
+      query.where('notes.deletedAt', 'is not', null)
     )
-    .where({
-      [`${HOUSING_NOTES_TABLE}.housing_geo_code`]: housing.geoCode,
-      [`${HOUSING_NOTES_TABLE}.housing_id`]: housing.id
-    })
-    .modify((query) => {
-      match(options?.filters?.deleted)
-        .with(true, () => {
-          query.whereNotNull(`${NOTES_TABLE}.deleted_at`);
-        })
-        .with(false, () => {
-          query.whereNull(`${NOTES_TABLE}.deleted_at`);
-        })
-        .otherwise(() => {
-          // No filter applied, return all notes
-        });
-    });
-  return notes.map(parseNoteApi);
+    .$if(options?.filters?.deleted !== true, (query) =>
+      query.where('notes.deletedAt', 'is', null)
+    )
+    .execute();
+  return rows.map(parseNoteRow);
 }
 
 async function get(id: string): Promise<NoteApi | null> {
   logger.debug('Getting a note by id...', { id });
-  const note = await listQuery().where(`${NOTES_TABLE}.id`, id).first();
-  return note ? parseNoteApi(note) : null;
+  const row = await noteListQuery()
+    .where('notes.id', '=', id)
+    .executeTakeFirst();
+  return row ? parseNoteRow(row) : null;
 }
 
 async function update(
   note: Pick<NoteApi, 'id' | 'content' | 'updatedAt'>
 ): Promise<void> {
   logger.debug('Updating note...', note);
-  await Notes()
-    .where({ id: note.id })
-    .update({
+  await kysely
+    .updateTable('notes')
+    .set({
       content: note.content,
-      updated_at: note.updatedAt ? new Date(note.updatedAt) : null
-    });
+      updatedAt: note.updatedAt ? new Date(note.updatedAt) : null
+    })
+    .where('id', '=', note.id)
+    .execute();
 }
 
 async function remove(id: string): Promise<void> {
   logger.debug('Removing note...', { id });
-  await withinTransaction(async (transaction) => {
-    await Notes(transaction).where({ id }).update({
-      deleted_at: new Date()
-    });
+  await withinKyselyTransaction(async (trx) => {
+    await trx
+      .updateTable('notes')
+      .set({ deletedAt: new Date() })
+      .where('id', '=', id)
+      .execute();
   });
 
   logger.debug('Note removed', { id });
@@ -138,49 +133,59 @@ export interface HousingNoteDBO {
   housing_geo_code: string;
 }
 
-export const formatNoteApi = (note: NoteApi): NoteRecordDBO => ({
-  id: note.id,
-  created_by: note.createdBy,
-  note_kind: note.noteKind,
-  content: note.content,
-  contact_kind_deprecated: null,
-  title_deprecated: null,
-  created_at: new Date(note.createdAt),
-  updated_at: note.updatedAt ? new Date(note.updatedAt) : null,
-  deleted_at: note.deletedAt ? new Date(note.deletedAt) : null
-});
-
-export function formatHousingNoteApi(note: HousingNoteApi): HousingNoteDBO {
+export function toNoteDBO(note: NoteApi): Insertable<DB['notes']> {
   return {
-    note_id: note.id,
-    housing_id: note.housingId,
-    housing_geo_code: note.housingGeoCode
+    id: note.id,
+    createdBy: note.createdBy,
+    noteKind: note.noteKind,
+    content: note.content,
+    contactKindDeprecated: null,
+    titleDeprecated: null,
+    createdAt: new Date(note.createdAt),
+    updatedAt: note.updatedAt ? new Date(note.updatedAt) : null,
+    deletedAt: note.deletedAt ? new Date(note.deletedAt) : null
   };
 }
 
-export function parseNoteApi(note: NoteDBO): NoteApi {
-  if (!note.creator) {
+export function toHousingNoteDBO(
+  note: HousingNoteApi
+): Insertable<DB['housingNotes']> {
+  return {
+    noteId: note.id,
+    housingId: note.housingId,
+    housingGeoCode: note.housingGeoCode
+  };
+}
+
+type NoteRow = Selectable<DB['notes']> & { creator: UserDBO | null };
+
+function parseNoteRow(row: NoteRow): NoteApi {
+  if (!row.creator) {
     throw new Error('Note creator should be fetched together with the note');
+  }
+  if (!row.createdAt) {
+    throw new Error(`Note ${row.id} is missing createdAt`);
   }
 
   return {
-    id: note.id,
-    createdBy: note.created_by,
-    content: note.content,
-    noteKind: note.note_kind,
-    createdAt: note.created_at.toJSON(),
-    updatedAt: note.updated_at ? note.updated_at.toJSON() : null,
-    deletedAt: note.deleted_at ? note.deleted_at.toJSON() : null,
-    creator: fromUserDBO(note.creator)
+    id: row.id,
+    createdBy: row.createdBy as string,
+    content: row.content,
+    noteKind: row.noteKind,
+    createdAt: (row.createdAt as Date).toJSON(),
+    updatedAt: row.updatedAt ? row.updatedAt.toJSON() : null,
+    deletedAt: row.deletedAt ? row.deletedAt.toJSON() : null,
+    creator: fromUserDBO(row.creator)
   };
 }
 
-const listQuery = () =>
-  Notes()
-    .select(`${NOTES_TABLE}.*`)
-    .join(USERS_TABLE, `${USERS_TABLE}.id`, `${NOTES_TABLE}.created_by`)
-    .select(db.raw(`to_json(${USERS_TABLE}.*) AS creator`))
-    .orderBy(`${NOTES_TABLE}.created_at`, 'desc');
+const noteListQuery = () =>
+  kysely
+    .selectFrom('notes')
+    .innerJoin('users', 'users.id', 'notes.createdBy')
+    .selectAll('notes')
+    .select(sql<UserDBO>`to_json(users.*)`.as('creator'))
+    .orderBy('notes.createdAt', 'desc');
 
 export default {
   createByHousing,

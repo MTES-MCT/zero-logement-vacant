@@ -1,6 +1,7 @@
 import { faker } from '@faker-js/faker/locale/fr';
 import { NotePayloadDTO } from '@zerologementvacant/models';
 
+import { kysely } from '~/infra/database/kysely';
 import { HousingNoteApi, NoteApi } from '~/models/NoteApi';
 import {
   Establishments,
@@ -11,11 +12,11 @@ import {
   Housing
 } from '~/repositories/housingRepository';
 import noteRepository, {
-  formatHousingNoteApi,
-  formatNoteApi,
   HousingNotes,
   NoteRecordDBO,
-  Notes
+  Notes,
+  toHousingNoteDBO,
+  toNoteDBO
 } from '~/repositories/noteRepository';
 import { toUserDBO, Users } from '~/repositories/userRepository';
 import {
@@ -91,16 +92,18 @@ describe('Note repository', () => {
 
     beforeAll(async () => {
       await Housing().insert(formatHousingRecordApi(housing));
-      await Notes().insert(notes.map(formatNoteApi));
-      await HousingNotes().insert(notes.map(formatHousingNoteApi));
+      await kysely.insertInto('notes').values(notes.map(toNoteDBO)).execute();
+      await kysely
+        .insertInto('housingNotes')
+        .values(notes.map(toHousingNoteDBO))
+        .execute();
     });
 
-    it('should return all the notes of a housing', async () => {
+    it('should return non-deleted notes of a housing by default', async () => {
       const actual = await noteRepository.findByHousing(housing);
 
-      expect(actual).toIncludeAllPartialMembers(
-        notes.map((note) => ({ id: note.id }))
-      );
+      expect(actual).toHaveLength(1);
+      expect(actual[0]).toMatchObject({ id: notes[0].id });
     });
 
     it('should return the deleted notes of a housing', async () => {
@@ -135,7 +138,7 @@ describe('Note repository', () => {
     const note = genHousingNoteApi(user, housing);
 
     beforeAll(async () => {
-      await Notes().insert(formatNoteApi(note));
+      await kysely.insertInto('notes').values(toNoteDBO(note)).execute();
     });
 
     it('should return null if the note is missing', async () => {
@@ -162,7 +165,7 @@ describe('Note repository', () => {
     const note = genHousingNoteApi(user, housing);
 
     beforeAll(async () => {
-      await Notes().insert(formatNoteApi(note));
+      await kysely.insertInto('notes').values(toNoteDBO(note)).execute();
     });
 
     it('should update the note content and updated_at field', async () => {
@@ -191,8 +194,11 @@ describe('Note repository', () => {
       const note = genHousingNoteApi(user, housing);
       await Promise.all([
         Housing().insert(formatHousingRecordApi(housing)),
-        Notes().insert(formatNoteApi(note)),
-        HousingNotes().insert(formatHousingNoteApi(note))
+        kysely.insertInto('notes').values(toNoteDBO(note)).execute(),
+        kysely
+          .insertInto('housingNotes')
+          .values(toHousingNoteDBO(note))
+          .execute()
       ]);
 
       await noteRepository.remove(note.id);

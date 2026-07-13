@@ -1,7 +1,3 @@
-import { existsSync, readFileSync } from 'node:fs';
-import { resolve } from 'node:path';
-import { parseEnv } from 'node:util';
-
 import { z } from 'zod';
 
 /**
@@ -78,39 +74,9 @@ const schema = z
 
 export type Config = z.infer<typeof schema>;
 
-let envLoaded = false;
 let cached: Config | undefined;
 
-export function loadLocalEnv(): void {
-  if (envLoaded) {
-    return;
-  }
-  envLoaded = true;
-
-  const requestedEnvFile = process.env.E2E_ENV_FILE;
-  const candidates = requestedEnvFile
-    ? [
-        resolve(process.cwd(), requestedEnvFile),
-        resolve(process.cwd(), 'apps/front-e2e-pw', requestedEnvFile)
-      ]
-    : [
-        resolve(process.cwd(), '.env'),
-        resolve(process.cwd(), 'apps/front-e2e-pw/.env')
-      ];
-
-  const envFile = candidates.find(existsSync);
-  if (envFile) {
-    const env = parseEnv(readFileSync(envFile, 'utf8'));
-    for (const [key, value] of Object.entries(env)) {
-      if (requestedEnvFile || process.env[key] === undefined) {
-        process.env[key] = value;
-      }
-    }
-  }
-}
-
 export function loadConfig(): Config {
-  loadLocalEnv();
   if (!cached) {
     cached = schema.parse(process.env);
   }

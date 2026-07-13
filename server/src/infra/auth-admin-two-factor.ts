@@ -71,6 +71,16 @@ interface CredentialContext {
   };
 }
 
+async function equalizeRejectedCredentialTiming(
+  ctx: CredentialContext,
+  password: string
+): Promise<void> {
+  // Deliberately perform an expensive password operation even when no
+  // credential can be verified. Without it, unknown/non-admin emails return
+  // noticeably faster and can be enumerated through response timing.
+  await ctx.context.password.hash(password);
+}
+
 async function getAdminUser(email: string): Promise<UserApi> {
   const user = await userRepository.getByEmailIncludingDeleted(email);
   if (!user || user.deletedAt || user.role !== UserRole.ADMIN) {
@@ -86,7 +96,7 @@ async function getAdminUserForSignIn(
 ): Promise<UserApi> {
   const user = await userRepository.getByEmailIncludingDeleted(email);
   if (!user) {
-    await ctx.context.password.hash(password);
+    await equalizeRejectedCredentialTiming(ctx, password);
     throw authenticationFailed();
   }
 
@@ -94,7 +104,7 @@ async function getAdminUserForSignIn(
     await ctx.context.internalAdapter.findAccounts(user.id)
   ).find((account) => account.providerId === 'credential');
   if (!credentialAccount?.password) {
-    await ctx.context.password.hash(password);
+    await equalizeRejectedCredentialTiming(ctx, password);
     throw authenticationFailed();
   }
 
@@ -249,7 +259,7 @@ export function zlvAdminTwoFactor(): BetterAuthPlugin {
             if (user?.role === UserRole.ADMIN) {
               const password = ctx.body?.password;
               if (typeof password === 'string') {
-                await ctx.context.password.hash(password);
+                await equalizeRejectedCredentialTiming(ctx, password);
               }
               throw invalidEmailOrPassword();
             }

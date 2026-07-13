@@ -3,7 +3,7 @@ import type {
   RelativeLocationFilter
 } from '@zerologementvacant/models';
 import { OwnerRank, PropertyRight } from '@zerologementvacant/models';
-import type { Insertable } from 'kysely';
+import type { Insertable, Selectable } from 'kysely';
 import { match } from 'ts-pattern';
 
 import db from '~/infra/database';
@@ -15,9 +15,10 @@ import { HousingRecordApi } from '~/models/HousingApi';
 import { HousingOwnerApi } from '~/models/HousingOwnerApi';
 import { OwnerApi } from '~/models/OwnerApi';
 import {
-  housingTable,
   parseHousingRecordApi,
-  type HousingRecordDBO
+  parseHousingRecordRow,
+  type HousingRecordDBO,
+  type HousingRecordRow
 } from '~/repositories/housingRepository';
 
 export const housingOwnersTable = 'owners_housing';
@@ -37,40 +38,33 @@ async function findByOwner(
 > {
   logger.debug('Finding housing owners by owner...');
 
-  const ownerHousings: ReadonlyArray<HousingOwnerDBO & HousingRecordDBO> =
-    await HousingOwners()
-      .select(`${housingOwnersTable}.*`)
-      .where({
-        owner_id: owner.id
-      })
-      .modify((query) => {
-        // Filter by geoCodes (user perimeter filtering)
-        // Note: geoCodes is an array when a restriction applies
-        //   - non-empty array: filter to housings in these geoCodes
-        //   - empty array: user should see NO housings (intersection with perimeter is empty)
-        if (options?.geoCodes !== undefined) {
-          if (options.geoCodes.length === 0) {
-            // Empty geoCodes means no access - return no results
-            query.whereRaw('1 = 0');
-          } else {
-            query.whereIn(
-              `${housingOwnersTable}.housing_geo_code`,
-              options.geoCodes as string[]
-            );
-          }
-        }
-      })
-      .join(housingTable, (join) => {
-        join
-          .on(`${housingOwnersTable}.housing_id`, `${housingTable}.id`)
-          .andOn(
-            `${housingOwnersTable}.housing_geo_code`,
-            `${housingTable}.geo_code`
-          );
-      })
-      .select(`${housingTable}.*`);
+  let query: any = kysely
+    .selectFrom('ownersHousing')
+    .innerJoin('fastHousing', (join) =>
+      join
+        .onRef('ownersHousing.housingId', '=', 'fastHousing.id')
+        .onRef('ownersHousing.housingGeoCode', '=', 'fastHousing.geoCode')
+    )
+    .selectAll('ownersHousing')
+    .selectAll('fastHousing')
+    .where('ownersHousing.ownerId', '=', owner.id);
 
-  return ownerHousings.map(parseOwnerHousingApi);
+  // Filter by geoCodes (user perimeter filtering)
+  //   - non-empty array: filter to housings in these geoCodes
+  //   - empty array: user should see NO housings (HandleEmptyInListsPlugin turns
+  //     the empty `in ()` into a non-contingent false, matching the old `1 = 0`)
+  if (options?.geoCodes !== undefined) {
+    query = query.where(
+      'ownersHousing.housingGeoCode',
+      'in',
+      options.geoCodes as string[]
+    );
+  }
+
+  const rows: ReadonlyArray<Selectable<DB['ownersHousing']> & HousingRecordRow> =
+    await query.execute();
+
+  return rows.map(parseOwnerHousingRow);
 }
 
 async function insert(housingOwner: HousingOwnerApi): Promise<void> {
@@ -198,6 +192,44 @@ export function parseOwnerHousingApi(
     ...owner
   };
 }
+
+/**
+ * Camel-case Kysely mirror of {@link parseOwnerHousingApi}. Reads a joined
+ * owners_housing + fast_housing row (camelCase columns; fast_housing supplies
+ * the housing id/geoCode) and returns the owner-housing link merged with the
+ * housing record.
+ */
+export function parseOwnerHousingRow(
+  row: Selectable<DB['ownersHousing']> & HousingRecordRow
+): Omit<HousingOwnerApi, keyof OwnerApi> & HousingRecordApi {
+  const owner: Omit<HousingOwnerApi, keyof OwnerApi> = {
+    housingGeoCode: row.geoCode,
+    housingId: row.id,
+    ownerId: row.ownerId,
+    rank: row.rank as OwnerRank,
+    // DATE columns come back as "YYYY-MM-DD" strings; the API type declares Date,
+    // matching the pre-migration passthrough.
+    startDate: row.startDate as unknown as Date | null,
+    endDate: row.endDate as unknown as Date | null,
+    origin: row.origin,
+    idprocpte: row.idprocpte,
+    idprodroit: row.idprodroit,
+    locprop:
+      row.locpropSource !== null ? Number(row.locpropSource) : null,
+    propertyRight: row.propertyRight as PropertyRight | null,
+    relativeLocation: row.locpropRelativeBan
+      ? fromRelativeLocationDBO(row.locpropRelativeBan)
+      : null,
+    absoluteDistance: row.locpropDistanceBan
+  };
+  const housing: HousingRecordApi = parseHousingRecordRow(row);
+
+  return {
+    ...housing,
+    ...owner
+  };
+}
+
 export const formatHousingOwnerApi = (
   housingOwner: Omit<HousingOwnerApi, keyof OwnerApi>
 ): HousingOwnerDBO => ({

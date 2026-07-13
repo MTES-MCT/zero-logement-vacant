@@ -638,6 +638,65 @@ export const parseHousingRecordApi = (
   lastTransactionValue: housing.last_transaction_value
 });
 
+/**
+ * Camel-case Kysely mirror of {@link parseHousingRecordApi}. Reads the plain
+ * fast_housing record columns (no joined includes) from a Kysely row and is
+ * used by the housingOwner read path (findByOwner).
+ */
+export type HousingRecordRow = Selectable<DB['fastHousing']>;
+
+export const parseHousingRecordRow = (
+  row: HousingRecordRow
+): HousingRecordApi => ({
+  id: row.id,
+  invariant: row.invariant,
+  localId: row.localId,
+  plotId: row.plotId,
+  plotArea: row.plotArea,
+  buildingGroupId: row.buildingGroupId,
+  buildingId: row.buildingId,
+  buildingYear: row.buildingYear,
+  buildingLocation: row.buildingLocation,
+  rawAddress: row.addressDgfip,
+  longitude: row.longitudeDgfip,
+  latitude: row.latitudeDgfip,
+  geoCode: row.geoCode,
+  geolocation: row.geolocation as unknown as Point | null,
+  cadastralClassification:
+    row.cadastralClassification as CadastralClassification | null,
+  uncomfortable: row.uncomfortable,
+  vacancyStartYear: row.vacancyStartYear,
+  housingKind: row.housingKind as HousingKind,
+  roomsCount: row.roomsCount,
+  livingArea: row.livingArea,
+  cadastralReference: row.cadastralReference,
+  beneficiaryCount: row.beneficiaryCount,
+  rentalValue: row.rentalValue,
+  taxed: row.taxed,
+  ownershipKind: row.condominium,
+  dataYears: row.dataYears,
+  dataFileYears: (row.dataFileYears ?? []) as DataFileYear[],
+  source: row.dataSource as HousingSource | null,
+  status: row.status as HousingStatus,
+  subStatus: row.subStatus,
+  actualEnergyConsumption: row.actualDpe as EnergyConsumption | null,
+  energyConsumption: row.energyConsumptionBdnb as EnergyConsumption | null,
+  energyConsumptionAt: row.energyConsumptionAtBdnb
+    ? new Date(row.energyConsumptionAtBdnb)
+    : null,
+  occupancy: row.occupancy as Occupancy,
+  occupancyRegistered: row.occupancySource as Occupancy,
+  occupancyIntended: row.occupancyIntended as Occupancy | null,
+  lastMutationType: row.lastMutationType as Mutation['type'] | null,
+  lastMutationDate: row.lastMutationDate
+    ? new Date(row.lastMutationDate).toJSON()
+    : null,
+  lastTransactionDate: row.lastTransactionDate
+    ? new Date(row.lastTransactionDate).toJSON()
+    : null,
+  lastTransactionValue: row.lastTransactionValue
+});
+
 // ---------------------------------------------------------------------------
 // Kysely read layer (find/findOne/stream/count). Mirrors the Knex builders
 // below; the Knex query surface is kept for seeds/LOVAC/still-Knex callers.

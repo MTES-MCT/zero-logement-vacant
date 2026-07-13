@@ -9,7 +9,7 @@ import Stack from '@mui/material/Stack';
 import Typography from '@mui/material/Typography';
 import { useState } from 'react';
 import { FormProvider, useForm } from 'react-hook-form';
-import { useLocation, useNavigate } from 'react-router';
+import { Navigate, useLocation, useNavigate } from 'react-router';
 import { object, string, type InferType } from 'yup';
 
 import securityIcon from '~/assets/images/building.svg';
@@ -57,9 +57,7 @@ const TwoFactorView = () => {
   });
 
   if (!email || !establishmentId) {
-    // If no email in state, redirect back to login
-    navigate('/admin');
-    return null;
+    return <Navigate to="/admin" replace />;
   }
   const verifiedEmail = email;
   const verifiedEstablishmentId = establishmentId;

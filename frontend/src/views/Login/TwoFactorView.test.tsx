@@ -12,7 +12,10 @@ import TwoFactorView from './TwoFactorView';
 describe('two factor view', () => {
   const user = userEvent.setup();
 
-  function setup(options?: { verifyAdminTwoFactor?: () => Promise<void> }) {
+  function setup(options?: {
+    verifyAdminTwoFactor?: () => Promise<void>;
+    withChallenge?: boolean;
+  }) {
     const router = createMemoryRouter(
       [
         { path: '/verification-2fa', element: <TwoFactorView /> },
@@ -20,15 +23,18 @@ describe('two factor view', () => {
         { path: '/parc-de-logements', element: 'Parc de logements' }
       ],
       {
-        initialEntries: [
-          {
-            pathname: '/verification-2fa',
-            state: {
-              email: 'admin@zlv.fr',
-              establishmentId: 'establishment-id'
-            }
-          }
-        ]
+        initialEntries:
+          options?.withChallenge === false
+            ? ['/verification-2fa']
+            : [
+                {
+                  pathname: '/verification-2fa',
+                  state: {
+                    email: 'admin@zlv.fr',
+                    establishmentId: 'establishment-id'
+                  }
+                }
+              ]
       }
     );
 
@@ -46,6 +52,18 @@ describe('two factor view', () => {
       </Provider>
     );
   }
+
+  it('redirects an incomplete challenge outside the render phase', async () => {
+    const consoleError = vi
+      .spyOn(console, 'error')
+      .mockImplementation(() => undefined);
+
+    setup({ withChallenge: false });
+
+    expect(await screen.findByText('Admin login')).toBeVisible();
+    expect(consoleError).not.toHaveBeenCalled();
+    consoleError.mockRestore();
+  });
 
   it('prevents duplicate verification submissions while pending', async () => {
     const verifyAdminTwoFactor = vi.fn(() => new Promise<void>(() => {}));

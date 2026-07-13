@@ -392,7 +392,10 @@ describe('Housing document repository', () => {
         formatHousingRecordApi(housing1),
         formatHousingRecordApi(housing2)
       ]);
-      await Documents().insert([toDocumentDBO(document1), toDocumentDBO(document2)]);
+      await Documents().insert([
+        toDocumentDBO(document1),
+        toDocumentDBO(document2)
+      ]);
       await HousingDocuments().insert([
         toHousingDocumentDBO(document1),
         toHousingDocumentDBO(document2)
@@ -427,14 +430,19 @@ describe('Housing document repository', () => {
         formatHousingRecordApi(housing1),
         formatHousingRecordApi(housing2)
       ]);
-      await Documents().insert([toDocumentDBO(document1), toDocumentDBO(document2)]);
+      await Documents().insert([
+        toDocumentDBO(document1),
+        toDocumentDBO(document2)
+      ]);
       await HousingDocuments().insert([
         toHousingDocumentDBO(document1),
         toHousingDocumentDBO(document2)
       ]);
 
       const results = await housingDocumentRepository.find({
-        filters: { housingIds: [{ geoCode: housing1.geoCode, id: housing1.id }] }
+        filters: {
+          housingIds: [{ geoCode: housing1.geoCode, id: housing1.id }]
+        }
       });
 
       const ids = results.map((r) => r.id);
@@ -462,7 +470,10 @@ describe('Housing document repository', () => {
         formatHousingRecordApi(housingLive),
         formatHousingRecordApi(housingDeleted)
       ]);
-      await Documents().insert([toDocumentDBO(liveDoc), toDocumentDBO(deletedDoc)]);
+      await Documents().insert([
+        toDocumentDBO(liveDoc),
+        toDocumentDBO(deletedDoc)
+      ]);
       await HousingDocuments().insert([
         toHousingDocumentDBO(liveDoc),
         toHousingDocumentDBO(deletedDoc)
@@ -505,7 +516,10 @@ describe('Housing document repository', () => {
         formatHousingRecordApi(housingLive),
         formatHousingRecordApi(housingDeleted)
       ]);
-      await Documents().insert([toDocumentDBO(liveDoc), toDocumentDBO(deletedDoc)]);
+      await Documents().insert([
+        toDocumentDBO(liveDoc),
+        toDocumentDBO(deletedDoc)
+      ]);
       await HousingDocuments().insert([
         toHousingDocumentDBO(liveDoc),
         toHousingDocumentDBO(deletedDoc)
@@ -548,7 +562,10 @@ describe('Housing document repository', () => {
         formatHousingRecordApi(housingLive),
         formatHousingRecordApi(housingDeleted)
       ]);
-      await Documents().insert([toDocumentDBO(liveDoc), toDocumentDBO(deletedDoc)]);
+      await Documents().insert([
+        toDocumentDBO(liveDoc),
+        toDocumentDBO(deletedDoc)
+      ]);
       await HousingDocuments().insert([
         toHousingDocumentDBO(liveDoc),
         toHousingDocumentDBO(deletedDoc)
@@ -585,7 +602,8 @@ describe('Housing document repository', () => {
         document_id: faker.string.uuid(),
         housing_geo_code: faker.location.zipCode('######'),
         housing_id: faker.string.uuid(),
-        creator: null as unknown as import('~/repositories/userRepository').UserDBO
+        creator:
+          null as unknown as import('~/repositories/userRepository').UserDBO
       };
 
       expect(() => fromHousingDocumentDBO(dbo)).toThrow('Creator not fetched');

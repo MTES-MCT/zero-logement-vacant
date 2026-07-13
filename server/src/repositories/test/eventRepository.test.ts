@@ -290,9 +290,7 @@ describe('Event repository', () => {
       expect(actual).toSatisfyAll(
         (event) => event.housing_geo_code === housing.geoCode
       );
-      expect(actual).toSatisfyAll(
-        (event) => event.housing_id === housing.id
-      );
+      expect(actual).toSatisfyAll((event) => event.housing_id === housing.id);
       expect(actual).toSatisfyAll(
         (event) => event.precision_id === precision.id
       );
@@ -395,9 +393,7 @@ describe('Event repository', () => {
       const ids = events.map((e) => e.id);
       const actual = await CampaignEvents().whereIn('event_id', ids);
       expect(actual.length).toBe(events.length);
-      expect(actual).toSatisfyAll(
-        (event) => event.campaign_id === campaign.id
-      );
+      expect(actual).toSatisfyAll((event) => event.campaign_id === campaign.id);
     });
 
     it('does not write when given an empty array', async () => {

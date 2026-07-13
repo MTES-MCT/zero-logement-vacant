@@ -25,9 +25,10 @@ Kysely query into a Knex transaction's connection.
 runs inside a Knex `startTransaction`:
 
 ```ts
-await startTransaction(async () => {              // opens a KNEX trx (Knex ALS)
+await startTransaction(async () => {
+  // opens a KNEX trx (Knex ALS)
   await Promise.all([
-    precisionRepository.link(housing, precisions),           // Kysely repo
+    precisionRepository.link(housing, precisions), // Kysely repo
     eventRepository.insertManyPrecisionHousingEvents(events) // Knex repo
   ]);
 });
@@ -59,18 +60,18 @@ clusters atomic during the transition.
 Branch coverage from the repository test suite alone (368/369 passing; controller
 API tests add more on top, so these are a conservative floor):
 
-| Repo | Branch % | Note |
-|---|---|---|
-| `ownerRepository` | 56% (44% stmt) | worst soft spot — 703 LOC, 9 raw SQL |
-| `eventRepository` | 60% | linchpin, under-covered |
-| `housingOwnerRepository` | 53% | harden |
-| `housingDocumentRepository` | 53% | harden |
-| `documentRepository` | 63% | harden |
-| `campaignHousingRepository` | 67% | borderline |
-| `campaignRepository` | 76% | adequate |
-| `groupRepository` | 75% | adequate |
-| `draftRepository` | 84% | adequate |
-| `housingRepository` | 89% | **best-covered big file — migrate-ready** |
+| Repo                        | Branch %       | Note                                      |
+| --------------------------- | -------------- | ----------------------------------------- |
+| `ownerRepository`           | 56% (44% stmt) | worst soft spot — 703 LOC, 9 raw SQL      |
+| `eventRepository`           | 60%            | linchpin, under-covered                   |
+| `housingOwnerRepository`    | 53%            | harden                                    |
+| `housingDocumentRepository` | 53%            | harden                                    |
+| `documentRepository`        | 63%            | harden                                    |
+| `campaignHousingRepository` | 67%            | borderline                                |
+| `campaignRepository`        | 76%            | adequate                                  |
+| `groupRepository`           | 75%            | adequate                                  |
+| `draftRepository`           | 84%            | adequate                                  |
+| `housingRepository`         | 89%            | **best-covered big file — migrate-ready** |
 
 The file most feared for its size (`housingRepository`, 1521 LOC, 45 raw-SQL
 spots) is already the best-guarded. The real risk sits in the mid-tier core repos,
@@ -122,9 +123,10 @@ store — both now populated. Deliverable includes a regression test asserting t
 mixed Knex+Kysely writes in one `startTransaction` roll back as a unit.
 
 **Accepted residual risks (transition-only, removed in the final step):**
-- *Commit window:* if Knex commit succeeds but Kysely commit then fails, state is
+
+- _Commit window:_ if Knex commit succeeds but Kysely commit then fails, state is
   inconsistent. Irreducible two-connection window; commit-time only.
-- *Self-deadlock:* mitigated by the disjoint-table invariant.
+- _Self-deadlock:_ mitigated by the disjoint-table invariant.
 
 **Stretch (not Step 1):** build Kysely over Knex's checked-out connection for true
 single-transaction atomicity. Cleaner but couples to Knex internals; keep in

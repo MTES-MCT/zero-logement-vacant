@@ -93,9 +93,11 @@ Three exported pure functions with many uncovered `ts-pattern` arms. No DB.
 **Files:** none (measurement + DoD gate).
 
 - [ ] **Step 1: Measure.**
+
 ```
 yarn nx test server -- run --coverage --coverage.provider=v8 --coverage.reporter=json-summary --coverage.include='src/repositories/housingOwnerRepository.ts' src/repositories/test/housingOwnerRepository.test.ts
 ```
+
 Read `server/coverage/coverage-summary.json` for `housingOwnerRepository.ts` branch %. Expected **≥ 85%** (from 40%).
 
 - [ ] **Step 2: If below 85%** — read remaining uncovered lines, add the missing case(s) by the same mirroring method (no production change), re-run. Commit as `test(server): close remaining housingOwnerRepository coverage gaps`.

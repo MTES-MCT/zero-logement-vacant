@@ -59,7 +59,10 @@ import {
   formatEstablishmentApi
 } from '~/repositories/establishmentRepository';
 import { UsersEstablishments } from '~/repositories/user-establishment-repository';
-import userRepository, { toUserDBO, Users } from '~/repositories/userRepository';
+import userRepository, {
+  toUserDBO,
+  Users
+} from '~/repositories/userRepository';
 import ceremaService from '~/services/ceremaService';
 import {
   genEstablishmentApi,

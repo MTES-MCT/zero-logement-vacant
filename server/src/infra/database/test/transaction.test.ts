@@ -122,7 +122,9 @@ describe('Transaction', () => {
           if (!knexTrx || !kyselyTrx) {
             throw new Error('Both transactions should be defined');
           }
-          await sql`insert into t2 (id) values (${kyselyId})`.execute(kyselyTrx);
+          await sql`insert into t2 (id) values (${kyselyId})`.execute(
+            kyselyTrx
+          );
           // Violates NOT NULL on the primary key → aborts the unit.
           await knexTrx('t1').insert({ id: null });
         })

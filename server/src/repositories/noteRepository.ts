@@ -37,7 +37,10 @@ async function createManyByHousing(
 
   logger.debug('Inserting housing notes...', { notes: housingNotes.length });
   await withinKyselyTransaction(async (trx) => {
-    await trx.insertInto('notes').values(housingNotes.map(toNoteInsert)).execute();
+    await trx
+      .insertInto('notes')
+      .values(housingNotes.map(toNoteInsert))
+      .execute();
     await trx
       .insertInto('housingNotes')
       .values(housingNotes.map(toHousingNoteInsert))
@@ -167,7 +170,9 @@ function toNoteInsert(note: NoteApi): Insertable<DB['notes']> {
   };
 }
 
-function toHousingNoteInsert(note: HousingNoteApi): Insertable<DB['housingNotes']> {
+function toHousingNoteInsert(
+  note: HousingNoteApi
+): Insertable<DB['housingNotes']> {
   return {
     noteId: note.id,
     housingId: note.housingId,

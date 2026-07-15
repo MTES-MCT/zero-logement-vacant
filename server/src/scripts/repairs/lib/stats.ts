@@ -10,9 +10,9 @@ export async function stats(
     input: fs.createReadStream(planFile),
     crlfDelay: Infinity
   });
-  let planned = 0,
-    eventsToDelete = 0,
-    eventsToCreate = 0;
+  let planned = 0;
+  let eventsToDelete = 0;
+  let eventsToCreate = 0;
 
   for await (const line of rl) {
     if (!line.trim()) continue;

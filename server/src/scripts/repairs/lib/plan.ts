@@ -31,11 +31,11 @@ export async function plan<H extends HousingApi>(
   const errorsStream = fs.createWriteStream(path.join(outDir, 'errors.jsonl'));
 
   const housings = await repair.query();
-  let planned = 0,
-    skipped = 0,
-    errors = 0,
-    eventsToDelete = 0,
-    eventsToCreate = 0;
+  let planned = 0;
+  let skipped = 0;
+  let errors = 0;
+  let eventsToDelete = 0;
+  let eventsToCreate = 0;
 
   try {
     for (const housing of housings) {
@@ -86,12 +86,16 @@ export async function plan<H extends HousingApi>(
   };
 }
 
-function isSkip(d: RepairAction | RepairSkip | RepairError): d is RepairSkip {
-  return 'action' in d && d.action === 'skip';
+function isSkip(
+  decision: RepairAction | RepairSkip | RepairError
+): decision is RepairSkip {
+  return 'action' in decision && decision.action === 'skip';
 }
 
-function isError(d: RepairAction | RepairSkip | RepairError): d is RepairError {
-  return 'action' in d && d.action === 'error';
+function isError(
+  decision: RepairAction | RepairSkip | RepairError
+): decision is RepairError {
+  return 'action' in decision && decision.action === 'error';
 }
 
 function streamEnd(stream: fs.WriteStream): Promise<void> {

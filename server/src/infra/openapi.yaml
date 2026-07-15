@@ -1683,7 +1683,7 @@ paths:
           application/json:
             schema:
               type: object
-              required: [email, password]
+              required: [email, password, establishmentId]
               properties:
                 email:
                   type: string
@@ -1710,7 +1710,7 @@ paths:
           application/json:
             schema:
               type: object
-              required: [email, code]
+              required: [email, code, establishmentId]
               properties:
                 email:
                   type: string

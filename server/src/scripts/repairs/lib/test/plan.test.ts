@@ -5,7 +5,7 @@ import path from 'node:path';
 import { HousingStatus } from '@zerologementvacant/models';
 import { afterEach, beforeEach, describe, expect, it } from 'vitest';
 
-import { genHousingApi } from '~/test/testFixtures';
+import { factories } from '~/test/factories';
 
 import { plan } from '../plan';
 import type { Repair } from '../types';
@@ -22,7 +22,7 @@ afterEach(() => {
 
 describe('plan()', () => {
   it('writes RepairActions to plan.jsonl', async () => {
-    const housing = genHousingApi();
+    const housing = factories.housing.build();
     const repair: Repair = {
       name: 'test',
       query: async () => [housing],
@@ -51,7 +51,7 @@ describe('plan()', () => {
   });
 
   it('writes RepairSkips to skipped.jsonl', async () => {
-    const housing = genHousingApi();
+    const housing = factories.housing.build();
     const repair: Repair = {
       name: 'test',
       query: async () => [housing],
@@ -74,7 +74,7 @@ describe('plan()', () => {
   });
 
   it('writes RepairErrors to errors.jsonl', async () => {
-    const housing = genHousingApi();
+    const housing = factories.housing.build();
     const repair: Repair = {
       name: 'test',
       query: async () => [housing],
@@ -97,7 +97,7 @@ describe('plan()', () => {
   });
 
   it('counts events to delete and create in summary', async () => {
-    const housing = genHousingApi();
+    const housing = factories.housing.build();
     const repair: Repair = {
       name: 'test',
       query: async () => [housing],
@@ -115,7 +115,11 @@ describe('plan()', () => {
   });
 
   it('returns correct totals across all outcomes', async () => {
-    const [h1, h2, h3] = [genHousingApi(), genHousingApi(), genHousingApi()];
+    const [h1, h2, h3] = [
+      factories.housing.build(),
+      factories.housing.build(),
+      factories.housing.build()
+    ];
     const repair: Repair = {
       name: 'test',
       query: async () => [h1, h2, h3],

@@ -16,15 +16,12 @@ import {
   formatHousingEventApi,
   HousingEvents
 } from '~/repositories/eventRepository';
-import {
-  formatHousingRecordApi,
-  Housing
-} from '~/repositories/housingRepository';
+import { Housing } from '~/repositories/housingRepository';
 import { toUserDBO, Users } from '~/repositories/userRepository';
+import { factories } from '~/test/factories';
 import {
   genEstablishmentApi,
   genEventApi,
-  genHousingApi,
   genUserApi
 } from '~/test/testFixtures';
 
@@ -57,14 +54,10 @@ function writePlan(rows: PlanRow[]): string {
 
 describe('apply()', () => {
   it('updates housing fields from plan rows', async () => {
-    const housing = genHousingApi();
-    await Housing().insert(
-      formatHousingRecordApi({
-        ...housing,
-        status: HousingStatus.WAITING,
-        subStatus: 'En attente de réponse'
-      })
-    );
+    const housing = await factories.housing.create({
+      status: HousingStatus.WAITING,
+      subStatus: 'En attente de réponse'
+    });
 
     const planFile = writePlan([
       {
@@ -83,8 +76,7 @@ describe('apply()', () => {
   });
 
   it('hard-deletes event ids listed in plan rows', async () => {
-    const housing = genHousingApi();
-    await Housing().insert(formatHousingRecordApi(housing));
+    const housing = await factories.housing.create();
 
     const event = genEventApi({
       creator,
@@ -118,12 +110,8 @@ describe('apply()', () => {
   });
 
   it('returns correct summary', async () => {
-    const h1 = genHousingApi();
-    const h2 = genHousingApi();
-    await Housing().insert([
-      formatHousingRecordApi(h1),
-      formatHousingRecordApi(h2)
-    ]);
+    const h1 = await factories.housing.create();
+    const h2 = await factories.housing.create();
 
     const planFile = writePlan([
       {
@@ -150,8 +138,7 @@ describe('apply()', () => {
   });
 
   it('inserts createEvents into events and housing_events tables', async () => {
-    const housing = genHousingApi();
-    await Housing().insert(formatHousingRecordApi(housing));
+    const housing = await factories.housing.create();
 
     const event = genEventApi({
       creator,
@@ -181,10 +168,9 @@ describe('apply()', () => {
   });
 
   it('applies with bypassTriggers and re-enables triggers afterwards', async () => {
-    const housing = genHousingApi();
-    await Housing().insert(
-      formatHousingRecordApi({ ...housing, status: HousingStatus.WAITING })
-    );
+    const housing = await factories.housing.create({
+      status: HousingStatus.WAITING
+    });
 
     const planFile = writePlan([
       {
@@ -210,15 +196,14 @@ describe('apply()', () => {
   });
 
   it('rolls back and re-enables triggers when the bypass transaction fails', async () => {
-    const housing = genHousingApi();
-    await Housing().insert(
-      formatHousingRecordApi({ ...housing, status: HousingStatus.WAITING })
-    );
+    const housing = await factories.housing.create({
+      status: HousingStatus.WAITING
+    });
 
     // A housing event pointing at a housing that does not exist violates the
     // housing_events -> fast_housing FK, so the transaction aborts *after* the
     // triggers were disabled inside it.
-    const ghost = genHousingApi();
+    const ghost = factories.housing.build();
     const event = genEventApi({
       creator,
       type: 'housing:status-updated',
@@ -253,11 +238,10 @@ describe('apply()', () => {
   });
 
   it('counts only rows the update actually matched', async () => {
-    const existing = genHousingApi();
-    await Housing().insert(
-      formatHousingRecordApi({ ...existing, status: HousingStatus.WAITING })
-    );
-    const missing = genHousingApi(); // never inserted
+    const existing = await factories.housing.create({
+      status: HousingStatus.WAITING
+    });
+    const missing = factories.housing.build(); // never persisted
 
     const planFile = writePlan([
       {
@@ -279,8 +263,7 @@ describe('apply()', () => {
   });
 
   it('counts only events actually deleted', async () => {
-    const housing = genHousingApi();
-    await Housing().insert(formatHousingRecordApi(housing));
+    const housing = await factories.housing.create();
 
     const planFile = writePlan([
       {
@@ -296,8 +279,7 @@ describe('apply()', () => {
   });
 
   it('counts only events actually inserted (re-apply is a no-op)', async () => {
-    const housing = genHousingApi();
-    await Housing().insert(formatHousingRecordApi(housing));
+    const housing = await factories.housing.create();
     const event = genEventApi({
       creator,
       type: 'housing:status-updated',

@@ -166,7 +166,7 @@ fileignoreconfig:
 - filename: server/src/scripts/repairs/test/cli.test.ts
   checksum: f4ce3945b8c77a11f90ea9016d3f59e4465657b07c52f13a78a25b834451e30c
 - filename: server/src/scripts/repairs/README.md
-  checksum: fd6d108f192084b285fc12d99c3445e180ffa60b3b5dc0cf2e48d721f2af64b4
+  checksum: e94c840ab2212d1fe1d7e8060937abfce87401b97cf7dc1abda44aaf14a5d3e7
 scopeconfig:
 - scope: node
 allowed_patterns:

@@ -22,6 +22,7 @@ import { logger } from '~/infra/logger';
 import {
   CampaignApi,
   CampaignSortableApi,
+  isSendDateReached,
   toCampaignDTO
 } from '~/models/CampaignApi';
 import { CampaignQuery } from '~/models/CampaignFiltersApi';
@@ -38,6 +39,8 @@ import eventRepository from '~/repositories/eventRepository';
 import groupRepository from '~/repositories/groupRepository';
 import housingRepository from '~/repositories/housingRepository';
 import senderRepository from '~/repositories/senderRepository';
+import { flipHousingsToWaiting } from '~/services/campaignHousingService';
+import { today } from '~/utils/date';
 
 const list: RequestHandler<
   never,
@@ -197,22 +200,6 @@ const createFromGroup: RequestHandler<
   const neverContactedHousings = housings.filter(
     (housing) => housing.status === HousingStatus.NEVER_CONTACTED
   );
-  const housingEvents = neverContactedHousings.map<HousingEventApi>(
-    (housing) => ({
-      id: uuidv4(),
-      type: 'housing:status-updated',
-      nextOld: {
-        status: HOUSING_STATUS_LABELS[HousingStatus.NEVER_CONTACTED]
-      },
-      nextNew: {
-        status: HOUSING_STATUS_LABELS[HousingStatus.WAITING]
-      },
-      createdAt: new Date().toJSON(),
-      createdBy: auth.userId,
-      housingGeoCode: housing.geoCode,
-      housingId: housing.id
-    })
-  );
 
   await startTransaction(async () => {
     await senderRepository.save(sender);
@@ -222,18 +209,17 @@ const createFromGroup: RequestHandler<
 
     await Promise.all([
       campaignHousingRepository.insertHousingList(campaign.id, housings),
-      housingRepository.updateMany(
-        neverContactedHousings.map((housing) =>
-          Struct.pick(housing, 'geoCode', 'id')
-        ),
-        {
-          status: HousingStatus.WAITING,
-          subStatus: null
-        }
-      ),
-      eventRepository.insertManyCampaignHousingEvents(campaignHousingEvents),
-      eventRepository.insertManyHousingEvents(housingEvents)
+      eventRepository.insertManyCampaignHousingEvents(campaignHousingEvents)
     ]);
+
+    // Gate the NEVER_CONTACTED -> WAITING flip on the sending date. Pass the
+    // in-memory housings: housingRepository.find would not see the campaign
+    // links just inserted in this transaction.
+    if (isSendDateReached(campaign.sentAt, today())) {
+      await flipHousingsToWaiting(neverContactedHousings, {
+        createdBy: auth.userId
+      });
+    }
   });
 
   response.status(constants.HTTP_STATUS_CREATED).json(toCampaignDTO(campaign));

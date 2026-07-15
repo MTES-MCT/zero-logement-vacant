@@ -88,3 +88,15 @@ export type CampaignSortableApi = Pick<
   status: string;
 };
 export type CampaignSortApi = Sort<CampaignSortableApi>;
+
+/**
+ * Whether a campaign's sending date has arrived: `sentAt` is set and on or
+ * before `today`. Both are compared as `yyyy-MM-dd` strings, so a longer ISO
+ * `sentAt` is truncated first.
+ */
+export function isSendDateReached(
+  sentAt: CampaignApi['sentAt'],
+  today: string
+): boolean {
+  return sentAt !== null && sentAt.slice(0, 10) <= today;
+}

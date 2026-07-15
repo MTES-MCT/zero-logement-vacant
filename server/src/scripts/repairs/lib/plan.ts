@@ -1,5 +1,8 @@
 import fs from 'node:fs';
+import { rename, unlink } from 'node:fs/promises';
 import path from 'node:path';
+import { Writable } from 'node:stream';
+import { pipeline } from 'node:stream/promises';
 
 import type { HousingApi } from '~/models/HousingApi';
 
@@ -24,28 +27,39 @@ export async function plan<H extends HousingApi>(
 ): Promise<PlanSummary> {
   const outDir = options.outDir ?? process.cwd();
 
-  // Query before opening the output files: `createWriteStream` truncates in
-  // 'w' mode, so opening first would wipe a previously reviewed plan if
-  // `query()` then throws.
-  const housings = await repair.query();
+  // Write to temp files and promote them only once everything succeeds, so a
+  // query that errors (or a mid-stream failure) never clobbers a previously
+  // reviewed plan — `query()` now returns a stream, so there is no pre-open
+  // point at which we know it will succeed.
+  const targets = {
+    plan: path.join(outDir, 'plan.jsonl'),
+    skipped: path.join(outDir, 'skipped.jsonl'),
+    errors: path.join(outDir, 'errors.jsonl')
+  };
+  const temps = {
+    plan: `${targets.plan}.tmp`,
+    skipped: `${targets.skipped}.tmp`,
+    errors: `${targets.errors}.tmp`
+  };
+  const planStream = fs.createWriteStream(temps.plan);
+  const skippedStream = fs.createWriteStream(temps.skipped);
+  const errorsStream = fs.createWriteStream(temps.errors);
 
-  const planStream = fs.createWriteStream(path.join(outDir, 'plan.jsonl'));
-  const skippedStream = fs.createWriteStream(
-    path.join(outDir, 'skipped.jsonl')
-  );
-  const errorsStream = fs.createWriteStream(path.join(outDir, 'errors.jsonl'));
-
+  let total = 0;
   let planned = 0;
   let skipped = 0;
   let errors = 0;
   let eventsToDelete = 0;
   let eventsToCreate = 0;
-  const planRows: PlanRow[] = [];
 
-  try {
-    housings.forEach((housing) => {
+  // Stream the candidate housings through a decider: no sort, so the plan is in
+  // query order (`apply` batches contiguous same-payload runs and is correct
+  // regardless of ordering).
+  const decider = new Writable({
+    objectMode: true,
+    write(housing: H, _encoding, callback) {
+      total++;
       const decision = repair.decide(housing);
-
       if (isSkip(decision)) {
         const row: SkippedRow = {
           housingId: housing.id,
@@ -62,48 +76,52 @@ export async function plan<H extends HousingApi>(
         errorsStream.write(JSON.stringify(row) + '\n');
         errors++;
       } else {
-        planRows.push({
+        const row: PlanRow = {
           housingId: housing.id,
           housingGeoCode: housing.geoCode,
           ...decision
-        });
+        };
+        planStream.write(JSON.stringify(row) + '\n');
         planned++;
         eventsToDelete += decision.deleteEventIds?.length ?? 0;
         eventsToCreate += decision.createEvents?.length ?? 0;
       }
-    });
+      callback();
+    }
+  });
 
-    // Order plan.jsonl by update payload so same-payload rows are contiguous:
-    // `apply` streams the file and batches one UPDATE per payload run, so it
-    // never has to hold the whole plan in memory to group it.
-    planRows.sort((a, b) => {
-      const keyA = payloadKey(a);
-      const keyB = payloadKey(b);
-      return keyA < keyB ? -1 : keyA > keyB ? 1 : 0;
-    });
-    planRows.forEach((row) => {
-      planStream.write(JSON.stringify(row) + '\n');
-    });
-  } finally {
+  try {
+    await pipeline(repair.query(), decider);
     await Promise.all([
       streamEnd(planStream),
       streamEnd(skippedStream),
       streamEnd(errorsStream)
     ]);
+    await Promise.all([
+      rename(temps.plan, targets.plan),
+      rename(temps.skipped, targets.skipped),
+      rename(temps.errors, targets.errors)
+    ]);
+  } catch (error) {
+    planStream.destroy();
+    skippedStream.destroy();
+    errorsStream.destroy();
+    await Promise.allSettled([
+      unlink(temps.plan),
+      unlink(temps.skipped),
+      unlink(temps.errors)
+    ]);
+    throw error;
   }
 
   return {
-    total: housings.length,
+    total,
     planned,
     skipped,
     errors,
     eventsToDelete,
     eventsToCreate
   };
-}
-
-function payloadKey(row: PlanRow): string {
-  return JSON.stringify(row.update ?? null);
 }
 
 function isSkip(

@@ -62,8 +62,9 @@ import type { Repair } from '../lib/types';
 
 export const myRepair: Repair = {
   name: 'my-repair',
-  // Pull the housings in scope from the DB.
-  query: () => housingRepository.find({ filters: { /* ... */ } }),
+  // Stream the housings in scope — a Knex `.stream()` (a Node object-mode
+  // Readable), so `plan` never holds them all in memory.
+  query: () => Housing().where({ /* ... */ }).stream(),
   // Decide, per housing, what to do — pure, no side effects.
   decide: (housing) => {
     if (/* nothing to do */) {
@@ -81,7 +82,8 @@ export const myRepair: Repair = {
 };
 ```
 
-- `query()` returns the candidate housings.
+- `query()` returns a Node object-mode stream of the candidate housings (e.g. a
+  Knex `.stream()`); `plan` streams it, so the whole set never sits in memory.
 - `decide(housing)` returns exactly one of:
   - a `RepairAction` — an optional field `update`, plus optional
     `deleteEventIds` / `createEvents`;
@@ -93,11 +95,11 @@ export const myRepair: Repair = {
 
 ### Needing related data in `decide`
 
-When a decision depends on other entities (a housing's events, its owner, a
-value from an external API), **do not fetch inside `decide`** — that would break
-its purity and make `plan` do per-housing I/O (N+1). Instead, fetch in bulk
-inside `query()` and attach the result to each item. The `H extends HousingApi`
-generic on `Repair` exists for exactly this:
+When a decision depends on other entities (a housing's events, its owner), **do
+not fetch inside `decide`** — that breaks its purity and makes `plan` do
+per-housing I/O (N+1). Because `query()` is a stream, enrich it _there_ so each
+emitted housing already carries what `decide` needs. Widen the item type (the
+`H extends HousingApi` generic) to hold the extra fields:
 
 ```ts
 interface HousingWithEvents extends HousingApi {
@@ -106,29 +108,9 @@ interface HousingWithEvents extends HousingApi {
 
 export const restoreStatus: Repair<HousingWithEvents> = {
   name: 'restore-status',
-
-  async query() {
-    const housings = await housingRepository.find({
-      filters: {
-        /* ... */
-      }
-    });
-
-    // ONE bulk fetch for all housings — never one call per housing
-    const events = await eventRepository.find({
-      filters: {
-        types: ['housing:status-updated'],
-        housings: housings.map(({ id, geoCode }) => ({ id, geoCode }))
-      }
-    });
-    const byHousing = groupBy(events, (event) => event.housingId);
-
-    return housings.map((housing) => ({
-      ...housing,
-      statusEvents: byHousing[housing.id] ?? []
-    }));
-  },
-
+  // A Knex stream whose query JOINs + aggregates the events onto each row
+  // (e.g. `json_agg(...) as "statusEvents"` + `groupBy`).
+  query: () => housingWithEventsQuery().stream(),
   // pure: reads housing.statusEvents, no I/O
   decide: (housing) => {
     const restorable = housing.statusEvents.find(/* ... */);
@@ -143,17 +125,18 @@ export const restoreStatus: Repair<HousingWithEvents> = {
 };
 ```
 
-This is the same **Enrich (bulk SELECT) → Transform (pure)** split as the
-`import-lovac` pipeline. The enriched fields (`statusEvents` here) are transient
-inputs to `decide` — they are never serialized into `plan.jsonl`, so the plan
-output stays clean.
+Two ways to enrich, both inside `query()`:
 
-- **External API:** same rule. Batch endpoint → call it once in `query()`.
-  Per-item only → still pre-fetch in `query()` with bounded concurrency (chunked
-  `Promise.all`) and build a `Map` keyed by the lookup field.
-- Make `decide` async only as a last resort — a per-item source with no batch
-  path _and_ a set too large to pre-fetch. It costs you the purity, the
-  N+1 guarantee, and the mock-free `plan` tests.
+- **JOIN in the query (preferred).** Aggregate the related rows in SQL so each
+  streamed housing carries them — no extra round trips.
+- **A Transform stage.** When the data can't be joined (an external API, an odd
+  key), return `source.pipe(enrich)` where `enrich` is an object-mode `Transform`
+  that buffers a **bounded** batch, bulk-fetches their related data, and pushes
+  enriched housings. That keeps the N+1 out _and_ memory flat.
+
+Either way the enriched fields are transient inputs to `decide` — never
+serialized into `plan.jsonl`, so the plan output stays clean. Don't fall back to
+a per-item fetch in `decide`.
 
 ## Registering a repair
 
@@ -227,11 +210,11 @@ export const restoreStatus: Repair = {
   name: 'restore-status',
   bypassTriggers: true, // large, status-changing repair
   query: () =>
-    housingRepository.find({
-      filters: {
+    Housing()
+      .where({
         /* ... */
-      }
-    }),
+      })
+      .stream(),
   decide: (housing) => ({ update: { status: HousingStatus.NEVER_CONTACTED } })
 };
 ```

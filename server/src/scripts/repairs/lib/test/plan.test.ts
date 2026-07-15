@@ -1,6 +1,7 @@
 import fs from 'node:fs';
 import os from 'node:os';
 import path from 'node:path';
+import { Readable } from 'node:stream';
 
 import { HousingStatus } from '@zerologementvacant/models';
 import { afterEach, beforeEach, describe, expect, it } from 'vitest';
@@ -25,7 +26,7 @@ describe('plan()', () => {
     const housing = factories.housing.build();
     const repair: Repair = {
       name: 'test',
-      query: async () => [housing],
+      query: () => Readable.from([housing]),
       decide: () => ({
         update: { status: HousingStatus.NEVER_CONTACTED, subStatus: null }
       })
@@ -54,7 +55,7 @@ describe('plan()', () => {
     const housing = factories.housing.build();
     const repair: Repair = {
       name: 'test',
-      query: async () => [housing],
+      query: () => Readable.from([housing]),
       decide: () => ({ action: 'skip' })
     };
 
@@ -77,7 +78,7 @@ describe('plan()', () => {
     const housing = factories.housing.build();
     const repair: Repair = {
       name: 'test',
-      query: async () => [housing],
+      query: () => Readable.from([housing]),
       decide: () => ({ action: 'error', reason: 'no restorable event' })
     };
 
@@ -100,7 +101,7 @@ describe('plan()', () => {
     const housing = factories.housing.build();
     const repair: Repair = {
       name: 'test',
-      query: async () => [housing],
+      query: () => Readable.from([housing]),
       decide: () => ({
         update: { status: HousingStatus.NEVER_CONTACTED },
         deleteEventIds: ['evt-1', 'evt-2'],
@@ -122,7 +123,7 @@ describe('plan()', () => {
     ];
     const repair: Repair = {
       name: 'test',
-      query: async () => [h1, h2, h3],
+      query: () => Readable.from([h1, h2, h3]),
       decide: (h) => {
         if (h.id === h1.id)
           return { update: { status: HousingStatus.NEVER_CONTACTED } };
@@ -152,8 +153,10 @@ describe('plan()', () => {
 
     const repair: Repair = {
       name: 'test',
-      query: async () => {
-        throw new Error('db unavailable');
+      query: () => {
+        const stream = new Readable({ objectMode: true, read() {} });
+        stream.destroy(new Error('db unavailable'));
+        return stream;
       },
       decide: () => ({ action: 'skip' })
     };

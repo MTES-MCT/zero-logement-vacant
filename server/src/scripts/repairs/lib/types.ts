@@ -1,3 +1,5 @@
+import type { Readable } from 'node:stream';
+
 import type { HousingEventApi } from '~/models/EventApi';
 import type { HousingApi } from '~/models/HousingApi';
 
@@ -11,7 +13,13 @@ export interface Repair<H extends HousingApi = HousingApi> {
    * `--bypass-triggers` / `--no-bypass-triggers` CLI flag overrides it.
    */
   bypassTriggers?: boolean;
-  query(): Promise<H[]>;
+  /**
+   * A Node object-mode stream of the candidate housings — e.g. a Knex
+   * `.stream()` — so `plan` never holds the whole set in memory. Each emitted
+   * value must be an `H`; enrich via a JOIN (or a Transform piped inside
+   * `query()`) so that {@link decide} can stay pure.
+   */
+  query(): Readable;
   decide(housing: H): RepairAction | RepairSkip | RepairError;
 }
 

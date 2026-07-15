@@ -1,7 +1,7 @@
-import type { Readable } from 'node:stream';
-
 import type { HousingEventApi } from '~/models/EventApi';
 import type { HousingApi } from '~/models/HousingApi';
+
+import type { RowStream } from './row-stream';
 
 export interface Repair<H extends HousingApi = HousingApi> {
   name: string;
@@ -14,12 +14,13 @@ export interface Repair<H extends HousingApi = HousingApi> {
    */
   bypassTriggers?: boolean;
   /**
-   * A Node object-mode stream of the candidate housings — e.g. a Knex
-   * `.stream()` — so `plan` never holds the whole set in memory. Each emitted
-   * value must be an `H`; enrich via a JOIN (or a Transform piped inside
-   * `query()`) so that {@link decide} can stay pure.
+   * A stream of the candidate housings — build it with {@link rows} (e.g.
+   * `rows<H>(db(...).stream())`) so its element type is tied to {@link decide}
+   * at compile time. `plan` streams it, so the whole set never sits in memory.
+   * Enrich via a JOIN (or a Transform piped inside `query()`) so `decide` stays
+   * pure.
    */
-  query(): Readable;
+  query(): RowStream<H>;
   decide(housing: H): RepairAction | RepairSkip | RepairError;
 }
 

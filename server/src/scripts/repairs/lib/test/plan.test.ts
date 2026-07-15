@@ -6,9 +6,11 @@ import { Readable } from 'node:stream';
 import { HousingStatus } from '@zerologementvacant/models';
 import { afterEach, beforeEach, describe, expect, it } from 'vitest';
 
+import type { HousingApi } from '~/models/HousingApi';
 import { factories } from '~/test/factories';
 
 import { plan } from '../plan';
+import { rows } from '../row-stream';
 import type { Repair } from '../types';
 
 let outDir: string;
@@ -26,7 +28,7 @@ describe('plan()', () => {
     const housing = factories.housing.build();
     const repair: Repair = {
       name: 'test',
-      query: () => Readable.from([housing]),
+      query: () => rows([housing]),
       decide: () => ({
         update: { status: HousingStatus.NEVER_CONTACTED, subStatus: null }
       })
@@ -55,7 +57,7 @@ describe('plan()', () => {
     const housing = factories.housing.build();
     const repair: Repair = {
       name: 'test',
-      query: () => Readable.from([housing]),
+      query: () => rows([housing]),
       decide: () => ({ action: 'skip' })
     };
 
@@ -78,7 +80,7 @@ describe('plan()', () => {
     const housing = factories.housing.build();
     const repair: Repair = {
       name: 'test',
-      query: () => Readable.from([housing]),
+      query: () => rows([housing]),
       decide: () => ({ action: 'error', reason: 'no restorable event' })
     };
 
@@ -101,7 +103,7 @@ describe('plan()', () => {
     const housing = factories.housing.build();
     const repair: Repair = {
       name: 'test',
-      query: () => Readable.from([housing]),
+      query: () => rows([housing]),
       decide: () => ({
         update: { status: HousingStatus.NEVER_CONTACTED },
         deleteEventIds: ['evt-1', 'evt-2'],
@@ -123,7 +125,7 @@ describe('plan()', () => {
     ];
     const repair: Repair = {
       name: 'test',
-      query: () => Readable.from([h1, h2, h3]),
+      query: () => rows([h1, h2, h3]),
       decide: (h) => {
         if (h.id === h1.id)
           return { update: { status: HousingStatus.NEVER_CONTACTED } };
@@ -156,7 +158,7 @@ describe('plan()', () => {
       query: () => {
         const stream = new Readable({ objectMode: true, read() {} });
         stream.destroy(new Error('db unavailable'));
-        return stream;
+        return rows<HousingApi>(stream);
       },
       decide: () => ({ action: 'skip' })
     };
@@ -166,5 +168,19 @@ describe('plan()', () => {
     expect(fs.readFileSync(planFile, 'utf-8')).toBe(
       '{"housingId":"keep","housingGeoCode":"01001"}\n'
     );
+  });
+});
+
+describe('Repair type safety', () => {
+  it('requires rows(): a plain Readable is not a RowStream<H>', () => {
+    const repair: Repair = {
+      name: 'test',
+      // @ts-expect-error query() must return RowStream<H>; wrap the stream with rows()
+      query: () => Readable.from([]),
+      decide: () => ({ action: 'skip' })
+    };
+    // The @ts-expect-error above is the assertion — it fails typecheck if a
+    // plain Readable ever becomes assignable (i.e. the brand stops enforcing).
+    expect(repair.name).toBe('test');
   });
 });

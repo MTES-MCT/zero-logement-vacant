@@ -62,9 +62,10 @@ import type { Repair } from '../lib/types';
 
 export const myRepair: Repair = {
   name: 'my-repair',
-  // Stream the housings in scope — a Knex `.stream()` (a Node object-mode
-  // Readable), so `plan` never holds them all in memory.
-  query: () => Housing().where({ /* ... */ }).stream(),
+  // Stream the housings in scope. `rows<H>()` tags a Knex `.stream()` with its
+  // element type, so `plan` never holds them all in memory and `query()` is
+  // tied to `decide()` at compile time.
+  query: () => rows<HousingApi>(Housing().where({ /* ... */ }).stream()),
   // Decide, per housing, what to do — pure, no side effects.
   decide: (housing) => {
     if (/* nothing to do */) {
@@ -82,8 +83,10 @@ export const myRepair: Repair = {
 };
 ```
 
-- `query()` returns a Node object-mode stream of the candidate housings (e.g. a
-  Knex `.stream()`); `plan` streams it, so the whole set never sits in memory.
+- `query()` returns a `RowStream<H>` of the candidate housings — build it with
+  `rows<H>(knexStream)` (or `rows([...])` for in-memory sources). `plan` streams
+  it, so the whole set never sits in memory, and the compiler ties its element
+  type to `decide`'s parameter.
 - `decide(housing)` returns exactly one of:
   - a `RepairAction` — an optional field `update`, plus optional
     `deleteEventIds` / `createEvents`;
@@ -110,7 +113,7 @@ export const restoreStatus: Repair<HousingWithEvents> = {
   name: 'restore-status',
   // A Knex stream whose query JOINs + aggregates the events onto each row
   // (e.g. `json_agg(...) as "statusEvents"` + `groupBy`).
-  query: () => housingWithEventsQuery().stream(),
+  query: () => rows<HousingWithEvents>(housingWithEventsQuery().stream()),
   // pure: reads housing.statusEvents, no I/O
   decide: (housing) => {
     const restorable = housing.statusEvents.find(/* ... */);
@@ -210,11 +213,13 @@ export const restoreStatus: Repair = {
   name: 'restore-status',
   bypassTriggers: true, // large, status-changing repair
   query: () =>
-    Housing()
-      .where({
-        /* ... */
-      })
-      .stream(),
+    rows<HousingApi>(
+      Housing()
+        .where({
+          /* ... */
+        })
+        .stream()
+    ),
   decide: (housing) => ({ update: { status: HousingStatus.NEVER_CONTACTED } })
 };
 ```

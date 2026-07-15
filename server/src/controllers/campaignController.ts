@@ -39,7 +39,10 @@ import eventRepository from '~/repositories/eventRepository';
 import groupRepository from '~/repositories/groupRepository';
 import housingRepository from '~/repositories/housingRepository';
 import senderRepository from '~/repositories/senderRepository';
-import { flipHousingsToWaiting } from '~/services/campaignHousingService';
+import {
+  flipCampaignHousingsToWaiting,
+  flipHousingsToWaiting
+} from '~/services/campaignHousingService';
 import { today } from '~/utils/date';
 
 const list: RequestHandler<
@@ -264,7 +267,16 @@ const update: RequestHandler<
     sentAt: body.sentAt ?? campaign.sentAt
   };
 
-  await campaignRepository.save(updated);
+  await startTransaction(async () => {
+    await campaignRepository.save(updated);
+    // If the saved sending date has arrived (same-day confirmation or a
+    // retroactive correction to a past date), flip the campaign's still
+    // NEVER_CONTACTED housings now instead of waiting for the daily cron.
+    if (isSendDateReached(updated.sentAt, today())) {
+      await flipCampaignHousingsToWaiting(updated, { createdBy: auth.userId });
+    }
+  });
+
   response.status(constants.HTTP_STATUS_OK).json(toCampaignDTO(updated));
 };
 

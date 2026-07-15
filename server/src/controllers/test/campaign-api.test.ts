@@ -857,6 +857,67 @@ describe('Campaign API', () => {
 
       expect(status).toBe(constants.HTTP_STATUS_BAD_REQUEST);
     });
+
+    it('flips housings when sentAt is set to today or the past', async () => {
+      const housing: HousingApi = {
+        ...genHousingApi(oneOf(establishment.geoCodes)),
+        status: HousingStatus.NEVER_CONTACTED,
+        subStatus: null
+      };
+      await Housing().insert(formatHousingRecordApi(housing));
+      await CampaignsHousing().insert({
+        campaign_id: campaign.id,
+        housing_geo_code: housing.geoCode,
+        housing_id: housing.id
+      });
+
+      const payload: CampaignUpdatePayload = {
+        title: campaign.title,
+        description: campaign.description,
+        sentAt: '2020-01-01'
+      };
+
+      const { status } = await request(url)
+        .put(testRoute(campaign.id))
+        .send(payload)
+        .use(tokenProvider(user));
+
+      expect(status).toBe(constants.HTTP_STATUS_OK);
+      const actual = await Housing()
+        .where({ geo_code: housing.geoCode, id: housing.id })
+        .first();
+      expect(actual?.status).toBe(HousingStatus.WAITING);
+    });
+
+    it('does not flip housings when sentAt is set to the future', async () => {
+      const housing: HousingApi = {
+        ...genHousingApi(oneOf(establishment.geoCodes)),
+        status: HousingStatus.NEVER_CONTACTED,
+        subStatus: null
+      };
+      await Housing().insert(formatHousingRecordApi(housing));
+      await CampaignsHousing().insert({
+        campaign_id: campaign.id,
+        housing_geo_code: housing.geoCode,
+        housing_id: housing.id
+      });
+
+      const payload: CampaignUpdatePayload = {
+        title: campaign.title,
+        description: campaign.description,
+        sentAt: '2999-01-01'
+      };
+
+      await request(url)
+        .put(testRoute(campaign.id))
+        .send(payload)
+        .use(tokenProvider(user));
+
+      const actual = await Housing()
+        .where({ geo_code: housing.geoCode, id: housing.id })
+        .first();
+      expect(actual?.status).toBe(HousingStatus.NEVER_CONTACTED);
+    });
   });
 
   describe('DELETE /campaigns/{id}', () => {

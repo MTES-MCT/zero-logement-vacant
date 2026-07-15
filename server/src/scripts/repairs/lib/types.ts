@@ -1,7 +1,5 @@
 import type { HousingEventApi } from '~/models/EventApi';
-import type { HousingApi, HousingId } from '~/models/HousingApi';
-
-export type { HousingId };
+import type { HousingApi } from '~/models/HousingApi';
 
 export interface Repair<H extends HousingApi = HousingApi> {
   name: string;

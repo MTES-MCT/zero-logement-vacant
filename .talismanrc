@@ -157,6 +157,8 @@ fileignoreconfig:
   checksum: 644044062362fa5da4d58e676e9b978d95d9b7e5ecc534733e69c5f270a80659
 - filename: server/src/scripts/repairs/lib/plan.ts
   checksum: 875c7afaf9b48ab4acefa485bc5c46068bed0dfbb256475e36992892023b6bd4
+- filename: server/src/scripts/repairs/lib/row-stream.ts
+  checksum: 3cbcb5a8a89cea040732055b3248de5aaa86920b30bf12ab9f7a1a05b6190a31
 - filename: server/src/scripts/repairs/lib/types.ts
   checksum: 540f2693f829a26060ea65edd3db1fe137de15e51d00c186f8ff7368bc91bcb8
 - filename: server/src/scripts/repairs/cli.ts

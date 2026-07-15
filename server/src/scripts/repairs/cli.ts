@@ -1,9 +1,13 @@
 import { Command } from '@commander-js/extra-typings';
 
+import { createLogger } from '~/infra/logger';
+
 import { repairs } from './index';
 import { apply } from './lib/apply';
 import { plan } from './lib/plan';
 import { stats } from './lib/stats';
+
+const logger = createLogger('repair');
 
 export function repairCommand(): Command {
   const cmd = new Command('repair').description(
@@ -16,10 +20,10 @@ export function repairCommand(): Command {
     .action(() => {
       const names = Object.keys(repairs);
       if (names.length === 0) {
-        console.log('No repairs registered.');
+        logger.info('No repairs registered.');
         return;
       }
-      names.forEach((name) => console.log(name));
+      names.forEach((name) => logger.info(name));
     });
 
   cmd
@@ -32,20 +36,16 @@ export function repairCommand(): Command {
     .action(async (name, options) => {
       const repair = repairs[name];
       if (!repair) {
-        console.error(
+        logger.error(
           `Unknown repair: "${name}". Run "zlv repair list" to see available repairs.`
         );
         process.exit(1);
       }
       const summary = await plan(repair, { outDir: options.out });
-      console.log(`Total:    ${summary.total}`);
-      console.log(`Planned:  ${summary.planned}`);
-      console.log(`Skipped:  ${summary.skipped}`);
-      console.log(`Errors:   ${summary.errors}`);
-      console.log(`Events to delete: ${summary.eventsToDelete}`);
-      console.log(`Events to create: ${summary.eventsToCreate}`);
-      console.log(`\nFiles written to: ${options.out}`);
-      console.log('  plan.jsonl, skipped.jsonl, errors.jsonl');
+      logger.info('Plan generated (plan.jsonl, skipped.jsonl, errors.jsonl)', {
+        ...summary,
+        outDir: options.out
+      });
     });
 
   cmd
@@ -54,9 +54,7 @@ export function repairCommand(): Command {
     .argument('<plan-file>', 'path to plan.jsonl')
     .action(async (planFile) => {
       const summary = await stats(planFile);
-      console.log(`Planned:  ${summary.planned}`);
-      console.log(`Events to delete: ${summary.eventsToDelete}`);
-      console.log(`Events to create: ${summary.eventsToCreate}`);
+      logger.info('Plan stats', summary);
     });
 
   cmd
@@ -77,7 +75,7 @@ export function repairCommand(): Command {
     .action(async (name, planFile, options) => {
       const repair = repairs[name];
       if (!repair) {
-        console.error(
+        logger.error(
           `Unknown repair: "${name}". Run "zlv repair list" to see available repairs.`
         );
         process.exit(1);
@@ -85,11 +83,8 @@ export function repairCommand(): Command {
       // Precedence: CLI flag > repair.bypassTriggers > false.
       const bypassTriggers =
         options.bypassTriggers ?? repair.bypassTriggers ?? false;
-      console.log(`Bypass triggers: ${bypassTriggers}`);
       const summary = await apply(planFile, { bypassTriggers });
-      console.log(`Updated:         ${summary.updated}`);
-      console.log(`Events deleted:  ${summary.eventsDeleted}`);
-      console.log(`Events created:  ${summary.eventsCreated}`);
+      logger.info('Plan applied', { ...summary, bypassTriggers });
     });
 
   return cmd;

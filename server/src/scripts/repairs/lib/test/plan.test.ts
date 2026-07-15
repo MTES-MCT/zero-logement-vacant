@@ -138,4 +138,26 @@ describe('plan()', () => {
       eventsToCreate: 0
     });
   });
+
+  it('does not truncate an existing plan when query() fails', async () => {
+    const planFile = path.join(outDir, 'plan.jsonl');
+    fs.writeFileSync(
+      planFile,
+      '{"housingId":"keep","housingGeoCode":"01001"}\n'
+    );
+
+    const repair: Repair = {
+      name: 'test',
+      query: async () => {
+        throw new Error('db unavailable');
+      },
+      decide: () => ({ action: 'skip' })
+    };
+
+    await expect(plan(repair, { outDir })).rejects.toThrow('db unavailable');
+    // A failed query must leave a previously reviewed plan untouched.
+    expect(fs.readFileSync(planFile, 'utf-8')).toBe(
+      '{"housingId":"keep","housingGeoCode":"01001"}\n'
+    );
+  });
 });

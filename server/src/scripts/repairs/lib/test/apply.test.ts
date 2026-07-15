@@ -251,4 +251,77 @@ describe('apply()', () => {
     const [row] = await Housing().where({ id: housing.id });
     expect(row.status).toBe(HousingStatus.WAITING);
   });
+
+  it('counts only rows the update actually matched', async () => {
+    const existing = genHousingApi();
+    await Housing().insert(
+      formatHousingRecordApi({ ...existing, status: HousingStatus.WAITING })
+    );
+    const missing = genHousingApi(); // never inserted
+
+    const planFile = writePlan([
+      {
+        housingId: existing.id,
+        housingGeoCode: existing.geoCode,
+        update: { status: HousingStatus.NEVER_CONTACTED }
+      },
+      {
+        housingId: missing.id,
+        housingGeoCode: missing.geoCode,
+        update: { status: HousingStatus.NEVER_CONTACTED }
+      }
+    ]);
+
+    const summary = await apply(planFile);
+
+    // Only the row that exists was matched, not both planned rows.
+    expect(summary.updated).toBe(1);
+  });
+
+  it('counts only events actually deleted', async () => {
+    const housing = genHousingApi();
+    await Housing().insert(formatHousingRecordApi(housing));
+
+    const planFile = writePlan([
+      {
+        housingId: housing.id,
+        housingGeoCode: housing.geoCode,
+        deleteEventIds: ['00000000-0000-0000-0000-000000000000']
+      }
+    ]);
+
+    const summary = await apply(planFile);
+
+    expect(summary.eventsDeleted).toBe(0);
+  });
+
+  it('counts only events actually inserted (re-apply is a no-op)', async () => {
+    const housing = genHousingApi();
+    await Housing().insert(formatHousingRecordApi(housing));
+    const event = genEventApi({
+      creator,
+      type: 'housing:status-updated',
+      nextOld: { status: 'never-contacted' },
+      nextNew: { status: 'waiting' }
+    });
+    const housingEvent = {
+      ...event,
+      housingGeoCode: housing.geoCode,
+      housingId: housing.id
+    };
+    const planFile = writePlan([
+      {
+        housingId: housing.id,
+        housingGeoCode: housing.geoCode,
+        createEvents: [housingEvent]
+      }
+    ]);
+
+    const first = await apply(planFile);
+    expect(first.eventsCreated).toBe(1);
+
+    // Re-applying the same plan inserts nothing (onConflict ignore).
+    const second = await apply(planFile);
+    expect(second.eventsCreated).toBe(0);
+  });
 });

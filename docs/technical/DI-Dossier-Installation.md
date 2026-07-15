@@ -213,8 +213,9 @@ NODE_ENV=development
 # Port sur lequel l'API écoute
 PORT=3001
 
-# URL publique de l'API et origine autorisée du frontend
-HOST=http://localhost:3001
+# URL publique du frontend utilisée dans les liens envoyés par email
+HOST=http://localhost:3000
+# Origine autorisée du frontend pour les requêtes vers l'API
 ALLOWED_ORIGINS=http://localhost:3000
 
 # Connexion à la base de données
@@ -559,7 +560,7 @@ Quand un add-on est lié à une application, les variables de connexion sont aut
 # Configuration de base
 clever env set NODE_ENV=production
 clever env set PORT=8080
-clever env set HOST=https://api.zerologementvacant.beta.gouv.fr
+clever env set HOST=https://zerologementvacant.beta.gouv.fr
 clever env set ALLOWED_ORIGINS=https://zerologementvacant.beta.gouv.fr
 
 # Authentification

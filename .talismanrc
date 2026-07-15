@@ -154,7 +154,17 @@ fileignoreconfig:
 - filename: server/src/services/metabase/metabase-normalize.ts
   checksum: 1bd122150d2d7806ebf7cb708750814288d528fad4b3a1a3da0e1f9ae91f2f5d
 - filename: server/src/scripts/repairs/lib/apply.ts
-  checksum: 9a452fee8152ce96f903c341e79dd8070b1765e34b70f49e5ccc75bf623cfc4d
+  checksum: 7490bef91def550bbb975b7196649bb5a59a1c4b2fa2b1f47461ea187b902bae
+- filename: server/src/scripts/repairs/lib/types.ts
+  checksum: 540f2693f829a26060ea65edd3db1fe137de15e51d00c186f8ff7368bc91bcb8
+- filename: server/src/scripts/repairs/cli.ts
+  checksum: e65f7bc1b35f9fd58e101304e593be01be75ff67dccf89a2d383325be50ffd65
+- filename: server/src/scripts/repairs/lib/test/apply.test.ts
+  checksum: 9742aa1c90380ffd7e296b4edaa006801094eb0a9b9fd9d7bcfd84dbbb8847d3
+- filename: server/src/scripts/repairs/test/cli.test.ts
+  checksum: b4f99dc53da779fdcf65042875b27bc9ea3cf5fb0c04b7aa8dffa4ec858aa83f
+- filename: server/src/scripts/repairs/README.md
+  checksum: fd6d108f192084b285fc12d99c3445e180ffa60b3b5dc0cf2e48d721f2af64b4
 scopeconfig:
 - scope: node
 allowed_patterns:

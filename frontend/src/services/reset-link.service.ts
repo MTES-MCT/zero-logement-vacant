@@ -23,9 +23,21 @@ const get = async (id: string): Promise<ResetLink> => {
   return response.json();
 };
 
+const resetPassword = async (key: string, password: string): Promise<void> => {
+  const response = await fetch(`${config.apiEndpoint}/account/reset-password`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ key, password })
+  });
+  if (!response.ok) {
+    throw new Error('Password reset failed');
+  }
+};
+
 const resetLinkService = {
   sendResetEmail,
-  get
+  get,
+  resetPassword
 };
 
 export default resetLinkService;

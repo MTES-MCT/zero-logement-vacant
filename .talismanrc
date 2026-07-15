@@ -164,7 +164,7 @@ fileignoreconfig:
 - filename: server/src/scripts/repairs/lib/test/apply.test.ts
   checksum: 9742aa1c90380ffd7e296b4edaa006801094eb0a9b9fd9d7bcfd84dbbb8847d3
 - filename: server/src/scripts/repairs/test/cli.test.ts
-  checksum: b4f99dc53da779fdcf65042875b27bc9ea3cf5fb0c04b7aa8dffa4ec858aa83f
+  checksum: f4ce3945b8c77a11f90ea9016d3f59e4465657b07c52f13a78a25b834451e30c
 - filename: server/src/scripts/repairs/README.md
   checksum: fd6d108f192084b285fc12d99c3445e180ffa60b3b5dc0cf2e48d721f2af64b4
 scopeconfig:

@@ -353,6 +353,46 @@ describe('Campaign API', () => {
         .execute();
     });
 
+    /**
+     * Creates a group with one housing per status, isolated from the shared
+     * `group`/`groupHousings` fixtures above. The sentAt-gating tests use this
+     * instead of the shared fixtures because other tests in this block send
+     * randomized `sentAt` values against the shared group, which would flip
+     * its NEVER_CONTACTED housings unpredictably.
+     */
+    async function createGroupWithHousings(): Promise<{
+      group: GroupApi;
+      housings: ReadonlyArray<HousingApi>;
+    }> {
+      const geoCode = faker.helpers.arrayElement(establishment.geoCodes);
+      const isolatedGroup = await factories
+        .group(establishment)
+        .create({}, { associations: { createdBy: user } });
+      const isolatedHousings = await Promise.all(
+        HOUSING_STATUS_VALUES.map((status) =>
+          factories.housing.create({ geoCode, status })
+        )
+      );
+      await Promise.all(
+        isolatedHousings.map(async (housing) => {
+          const owner = await factories.owner.create();
+          await factories.housingOwner({ housing, owner }).create();
+        })
+      );
+      await kysely
+        .insertInto('groupsHousing')
+        .values(
+          isolatedHousings.map((housing) => ({
+            groupId: isolatedGroup.id,
+            housingId: housing.id,
+            housingGeoCode: housing.geoCode
+          }))
+        )
+        .execute();
+
+      return { group: isolatedGroup, housings: isolatedHousings };
+    }
+
     test.prop<CampaignCreationPayload>(
       {
         title: fc.stringMatching(/\S/),
@@ -529,22 +569,25 @@ describe('Campaign API', () => {
       );
     });
 
-    it('should change each "never contacted" housing’ status to "waiting"', async () => {
+    it('does not flip housings when sentAt is null', async () => {
+      const { housings: isolatedHousings, group: isolatedGroup } =
+        await createGroupWithHousings();
+
       const payload: CampaignCreationPayload = {
         title: 'Logements prioritaires',
         description: 'Campagne pour les logements prioritaires',
         sentAt: null
       };
 
-      const { status } = await request(url)
-        .post(testRoute(group.id))
+      const { body, status } = await request(url)
+        .post(testRoute(isolatedGroup.id))
         .send(payload)
         .type('json')
         .use(tokenProvider(user));
 
       expect(status).toBe(constants.HTTP_STATUS_CREATED);
-      const neverContactedHousings = groupHousings.filter(
-        (groupHousing) => groupHousing.status === HousingStatus.NEVER_CONTACTED
+      const neverContactedHousings = isolatedHousings.filter(
+        (housing) => housing.status === HousingStatus.NEVER_CONTACTED
       );
       const actual = await kysely
         .selectFrom('fastHousing')
@@ -560,8 +603,48 @@ describe('Campaign API', () => {
         )
         .execute();
       expect(actual).toSatisfyAll<Selectable<DB['fastHousing']>>(
-        (housing) => housing.status === HousingStatus.WAITING
+        (housing) => housing.status === HousingStatus.NEVER_CONTACTED
       );
+
+      const statusEvents = await kysely
+        .selectFrom('events')
+        .innerJoin('housingEvents', 'housingEvents.eventId', 'events.id')
+        .selectAll('events')
+        .where('events.type', '=', 'housing:status-updated')
+        .where((eb) =>
+          eb(
+            eb.refTuple(
+              'housingEvents.housingGeoCode',
+              'housingEvents.housingId'
+            ),
+            'in',
+            isolatedHousings.map((housing) =>
+              eb.tuple(housing.geoCode, housing.id)
+            )
+          )
+        )
+        .execute();
+      expect(statusEvents).toBeArrayOfSize(0);
+
+      const links = await kysely
+        .selectFrom('campaignsHousing')
+        .selectAll('campaignsHousing')
+        .where('campaignId', '=', body.id)
+        .execute();
+      expect(links).toBeArrayOfSize(isolatedHousings.length);
+
+      const attachEvents = await kysely
+        .selectFrom('events')
+        .innerJoin(
+          'campaignHousingEvents',
+          'campaignHousingEvents.eventId',
+          'events.id'
+        )
+        .selectAll('events')
+        .where('campaignHousingEvents.campaignId', '=', body.id)
+        .where('events.type', '=', 'housing:campaign-attached')
+        .execute();
+      expect(attachEvents).toBeArrayOfSize(isolatedHousings.length);
     });
 
     it('should not change housings that are not "never contacted"', async () => {
@@ -603,21 +686,44 @@ describe('Campaign API', () => {
       );
     });
 
-    it('should create an event "housing:status-updated" for each "never contacted" housing that became "waiting"', async () => {
+    it('flips housings immediately when sentAt is already past', async () => {
+      const { housings: isolatedHousings, group: isolatedGroup } =
+        await createGroupWithHousings();
+
       const payload: CampaignCreationPayload = {
         title: 'Logements prioritaires',
         description: 'Campagne pour les logements prioritaires',
-        sentAt: null
+        sentAt: '2020-01-01'
       };
 
-      const { status } = await request(url)
-        .post(testRoute(group.id))
+      const { body, status } = await request(url)
+        .post(testRoute(isolatedGroup.id))
         .send(payload)
         .type('json')
         .use(tokenProvider(user));
 
       expect(status).toBe(constants.HTTP_STATUS_CREATED);
-      const events = await kysely
+      const neverContactedHousings = isolatedHousings.filter(
+        (housing) => housing.status === HousingStatus.NEVER_CONTACTED
+      );
+      const actual = await kysely
+        .selectFrom('fastHousing')
+        .selectAll('fastHousing')
+        .where((eb) =>
+          eb(
+            eb.refTuple('geoCode', 'id'),
+            'in',
+            neverContactedHousings.map((housing) =>
+              eb.tuple(housing.geoCode, housing.id)
+            )
+          )
+        )
+        .execute();
+      expect(actual).toSatisfyAll<Selectable<DB['fastHousing']>>(
+        (housing) => housing.status === HousingStatus.WAITING
+      );
+
+      const statusEvents = await kysely
         .selectFrom('events')
         .innerJoin('housingEvents', 'housingEvents.eventId', 'events.id')
         .selectAll('events')
@@ -629,17 +735,111 @@ describe('Campaign API', () => {
               'housingEvents.housingId'
             ),
             'in',
-            groupHousings.map((groupHousing) =>
-              eb.tuple(groupHousing.geoCode, groupHousing.id)
+            neverContactedHousings.map((housing) =>
+              eb.tuple(housing.geoCode, housing.id)
             )
           )
         )
         .execute();
-      const neverContactedHousings = groupHousings.filter(
-        (groupHousing) => groupHousing.status === HousingStatus.NEVER_CONTACTED
+      expect(statusEvents).toBeArrayOfSize(neverContactedHousings.length);
+
+      const links = await kysely
+        .selectFrom('campaignsHousing')
+        .selectAll('campaignsHousing')
+        .where('campaignId', '=', body.id)
+        .execute();
+      expect(links).toBeArrayOfSize(isolatedHousings.length);
+
+      const attachEvents = await kysely
+        .selectFrom('events')
+        .innerJoin(
+          'campaignHousingEvents',
+          'campaignHousingEvents.eventId',
+          'events.id'
+        )
+        .selectAll('events')
+        .where('campaignHousingEvents.campaignId', '=', body.id)
+        .where('events.type', '=', 'housing:campaign-attached')
+        .execute();
+      expect(attachEvents).toBeArrayOfSize(isolatedHousings.length);
+    });
+
+    it('does not flip housings when sentAt is in the future', async () => {
+      const { housings: isolatedHousings, group: isolatedGroup } =
+        await createGroupWithHousings();
+
+      const payload: CampaignCreationPayload = {
+        title: 'Logements prioritaires',
+        description: 'Campagne pour les logements prioritaires',
+        sentAt: '2999-01-01'
+      };
+
+      const { body, status } = await request(url)
+        .post(testRoute(isolatedGroup.id))
+        .send(payload)
+        .type('json')
+        .use(tokenProvider(user));
+
+      expect(status).toBe(constants.HTTP_STATUS_CREATED);
+      const neverContactedHousings = isolatedHousings.filter(
+        (housing) => housing.status === HousingStatus.NEVER_CONTACTED
       );
-      expect(events.length).toBeGreaterThan(0);
-      expect(events.length).toBe(neverContactedHousings.length);
+      const actual = await kysely
+        .selectFrom('fastHousing')
+        .selectAll('fastHousing')
+        .where((eb) =>
+          eb(
+            eb.refTuple('geoCode', 'id'),
+            'in',
+            neverContactedHousings.map((housing) =>
+              eb.tuple(housing.geoCode, housing.id)
+            )
+          )
+        )
+        .execute();
+      expect(actual).toSatisfyAll<Selectable<DB['fastHousing']>>(
+        (housing) => housing.status === HousingStatus.NEVER_CONTACTED
+      );
+
+      const statusEvents = await kysely
+        .selectFrom('events')
+        .innerJoin('housingEvents', 'housingEvents.eventId', 'events.id')
+        .selectAll('events')
+        .where('events.type', '=', 'housing:status-updated')
+        .where((eb) =>
+          eb(
+            eb.refTuple(
+              'housingEvents.housingGeoCode',
+              'housingEvents.housingId'
+            ),
+            'in',
+            isolatedHousings.map((housing) =>
+              eb.tuple(housing.geoCode, housing.id)
+            )
+          )
+        )
+        .execute();
+      expect(statusEvents).toBeArrayOfSize(0);
+
+      const links = await kysely
+        .selectFrom('campaignsHousing')
+        .selectAll('campaignsHousing')
+        .where('campaignId', '=', body.id)
+        .execute();
+      expect(links).toBeArrayOfSize(isolatedHousings.length);
+
+      const attachEvents = await kysely
+        .selectFrom('events')
+        .innerJoin(
+          'campaignHousingEvents',
+          'campaignHousingEvents.eventId',
+          'events.id'
+        )
+        .selectAll('events')
+        .where('campaignHousingEvents.campaignId', '=', body.id)
+        .where('events.type', '=', 'housing:campaign-attached')
+        .execute();
+      expect(attachEvents).toBeArrayOfSize(isolatedHousings.length);
     });
   });
 

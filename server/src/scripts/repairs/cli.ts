@@ -64,9 +64,29 @@ export function repairCommand(): Command {
     .description(
       'Apply a plan file atomically (single transaction, full rollback on failure)'
     )
+    .argument('<name>', 'repair name (see: zlv repair list)')
     .argument('<plan-file>', 'path to plan.jsonl')
-    .action(async (planFile) => {
-      const summary = await apply(planFile);
+    .option(
+      '--bypass-triggers',
+      'disable fast_housing count triggers and recompute once (for large repairs)'
+    )
+    .option(
+      '--no-bypass-triggers',
+      "keep count triggers enabled, overriding the repair's default"
+    )
+    .action(async (name, planFile, options) => {
+      const repair = repairs[name];
+      if (!repair) {
+        console.error(
+          `Unknown repair: "${name}". Run "zlv repair list" to see available repairs.`
+        );
+        process.exit(1);
+      }
+      // Precedence: CLI flag > repair.bypassTriggers > false.
+      const bypassTriggers =
+        options.bypassTriggers ?? repair.bypassTriggers ?? false;
+      console.log(`Bypass triggers: ${bypassTriggers}`);
+      const summary = await apply(planFile, { bypassTriggers });
       console.log(`Updated:         ${summary.updated}`);
       console.log(`Events deleted:  ${summary.eventsDeleted}`);
       console.log(`Events created:  ${summary.eventsCreated}`);

@@ -5,6 +5,14 @@ export type { HousingId };
 
 export interface Repair<H extends HousingApi = HousingApi> {
   name: string;
+  /**
+   * Disable the `fast_housing` / `housing_events` count triggers during
+   * `apply` and recompute the counts once at the end, instead of firing them
+   * per row. Set to `true` for large repairs that touch `status` or
+   * `occupancy` (the trigger-watched columns). Defaults to `false`; the
+   * `--bypass-triggers` / `--no-bypass-triggers` CLI flag overrides it.
+   */
+  bypassTriggers?: boolean;
   query(): Promise<H[]>;
   decide(housing: H): RepairAction | RepairSkip | RepairError;
 }

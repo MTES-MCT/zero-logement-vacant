@@ -5,6 +5,7 @@ import path from 'node:path';
 import { HousingStatus } from '@zerologementvacant/models';
 import { beforeAll, beforeEach, describe, expect, it } from 'vitest';
 
+import db from '~/infra/database';
 import {
   Establishments,
   formatEstablishmentApi
@@ -177,5 +178,77 @@ describe('apply()', () => {
     expect(summary.eventsCreated).toBe(1);
     expect(await Events().where('id', event.id)).toHaveLength(1);
     expect(await HousingEvents().where('event_id', event.id)).toHaveLength(1);
+  });
+
+  it('applies with bypassTriggers and re-enables triggers afterwards', async () => {
+    const housing = genHousingApi();
+    await Housing().insert(
+      formatHousingRecordApi({ ...housing, status: HousingStatus.WAITING })
+    );
+
+    const planFile = writePlan([
+      {
+        housingId: housing.id,
+        housingGeoCode: housing.geoCode,
+        update: { status: HousingStatus.NEVER_CONTACTED }
+      }
+    ]);
+
+    const summary = await apply(planFile, { bypassTriggers: true });
+
+    expect(summary.updated).toBe(1);
+    const [row] = await Housing().where({ id: housing.id });
+    expect(row.status).toBe(HousingStatus.NEVER_CONTACTED);
+
+    // The commit must leave the triggers enabled (tgenabled 'O' = enabled).
+    const { rows } = await db.raw(
+      `SELECT tgenabled FROM pg_trigger
+       WHERE tgrelid = 'fast_housing'::regclass
+         AND tgname = 'trg_recompute_return_count_on_housing_status_change'`
+    );
+    expect(rows[0].tgenabled).toBe('O');
+  });
+
+  it('rolls back and re-enables triggers when the bypass transaction fails', async () => {
+    const housing = genHousingApi();
+    await Housing().insert(
+      formatHousingRecordApi({ ...housing, status: HousingStatus.WAITING })
+    );
+
+    // A housing event pointing at a housing that does not exist violates the
+    // housing_events -> fast_housing FK, so the transaction aborts *after* the
+    // triggers were disabled inside it.
+    const ghost = genHousingApi();
+    const event = genEventApi({
+      creator,
+      type: 'housing:status-updated',
+      nextOld: { status: 'waiting' },
+      nextNew: { status: 'never-contacted' }
+    });
+
+    const planFile = writePlan([
+      {
+        housingId: housing.id,
+        housingGeoCode: housing.geoCode,
+        update: { status: HousingStatus.NEVER_CONTACTED },
+        createEvents: [
+          { ...event, housingGeoCode: ghost.geoCode, housingId: ghost.id }
+        ]
+      }
+    ]);
+
+    await expect(apply(planFile, { bypassTriggers: true })).rejects.toThrow();
+
+    // Rollback must have restored the triggers...
+    const { rows } = await db.raw(
+      `SELECT tgenabled FROM pg_trigger
+       WHERE tgrelid = 'fast_housing'::regclass
+         AND tgname = 'trg_recompute_return_count_on_housing_status_change'`
+    );
+    expect(rows[0].tgenabled).toBe('O');
+
+    // ...and reverted the status update.
+    const [row] = await Housing().where({ id: housing.id });
+    expect(row.status).toBe(HousingStatus.WAITING);
   });
 });

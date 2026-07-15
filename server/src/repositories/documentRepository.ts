@@ -98,7 +98,12 @@ async function find(options?: FindOptions): Promise<DocumentApi[]> {
 
 async function insert(document: DocumentApi): Promise<void> {
   logger.debug('Inserting document...', { id: document.id });
-  await kysely.insertInto('documents').values(toDocumentInsert(document)).execute();
+  await withinKyselyTransaction(async (trx) => {
+    await trx
+      .insertInto('documents')
+      .values(toDocumentInsert(document))
+      .execute();
+  });
 }
 
 async function insertMany(
@@ -109,10 +114,12 @@ async function insertMany(
   }
 
   logger.debug('Inserting documents...', { count: documents.length });
-  await kysely
-    .insertInto('documents')
-    .values(documents.map(toDocumentInsert))
-    .execute();
+  await withinKyselyTransaction(async (trx) => {
+    await trx
+      .insertInto('documents')
+      .values(documents.map(toDocumentInsert))
+      .execute();
+  });
 }
 
 async function update(document: DocumentApi): Promise<void> {
@@ -129,11 +136,13 @@ async function update(document: DocumentApi): Promise<void> {
 
 async function remove(id: string): Promise<void> {
   logger.debug('Soft-deleting document...', { id });
-  await kysely
-    .updateTable('documents')
-    .set({ deletedAt: new Date() })
-    .where('id', '=', id)
-    .execute();
+  await withinKyselyTransaction(async (trx) => {
+    await trx
+      .updateTable('documents')
+      .set({ deletedAt: new Date() })
+      .where('id', '=', id)
+      .execute();
+  });
 }
 
 /**

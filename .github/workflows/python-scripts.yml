@@ -7,6 +7,7 @@ on:
     paths:
       - server/src/scripts/**/*.py
       - server/src/scripts/**/requirements.txt
+      - analytics/dagster/scripts/owner-housing-distances/**/*.py
       - .github/workflows/python-scripts.yml
   push:
     branches:
@@ -14,6 +15,7 @@ on:
     paths:
       - server/src/scripts/**/*.py
       - server/src/scripts/**/requirements.txt
+      - analytics/dagster/scripts/owner-housing-distances/**/*.py
       - .github/workflows/python-scripts.yml
 
 jobs:
@@ -92,18 +94,24 @@ jobs:
 
       - name: Check code formatting with black
         run: |
-          black --check --diff server/src/scripts/
+          black --check --diff \
+            server/src/scripts/ \
+            analytics/dagster/scripts/owner-housing-distances/
         continue-on-error: true
 
       - name: Check import sorting with isort
         run: |
-          isort --check-only --diff server/src/scripts/
+          isort --check-only --diff \
+            server/src/scripts/ \
+            analytics/dagster/scripts/owner-housing-distances/
         continue-on-error: true
 
       - name: Lint with flake8
         run: |
           # Stop the build if there are Python syntax errors or undefined names
-          flake8 server/src/scripts/ --count --select=E9,F63,F7,F82 --show-source --statistics
+          flake8 server/src/scripts/ analytics/dagster/scripts/owner-housing-distances/ \
+            --count --select=E9,F63,F7,F82 --show-source --statistics
           # Exit-zero treats all errors as warnings
-          flake8 server/src/scripts/ --count --exit-zero --max-complexity=10 --max-line-length=120 --statistics
+          flake8 server/src/scripts/ analytics/dagster/scripts/owner-housing-distances/ \
+            --count --exit-zero --max-complexity=10 --max-line-length=120 --statistics
         continue-on-error: true

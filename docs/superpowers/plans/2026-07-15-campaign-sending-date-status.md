@@ -17,6 +17,7 @@
 - **Transactions:** `startTransaction()` in controllers/scripts, `withinTransaction()` inside repositories. Never open a top-level transaction in a repository.
 - **`housingRepository.find` does not participate in the caller's ambient transaction** — never rely on reading rows written earlier in the same transaction. `createFromGroup` therefore passes its already-in-memory housings to the flip (never re-queries them).
 - **Event status payloads store French label strings, not enum numbers.** Use `HOUSING_STATUS_LABELS[HousingStatus.NEVER_CONTACTED]` → `'Non suivi'` and `HOUSING_STATUS_LABELS[HousingStatus.WAITING]` → `'En attente de retour'` verbatim.
+- **The automated flip's `housing:status-updated` events are attributed to the system account** (`config.app.system`), resolved inside the flip service — no call site passes a `createdBy`. The flip is a rule the system applies, and `isUserModified` treats `@…beta.gouv.fr` creators as not user-modified, so system attribution keeps `isSupervised` honest. The user's genuine action — attaching housings to a campaign — keeps its `auth.userId` attribution on the `housing:campaign-attached` events.
 - **`HousingStatus` is a numeric enum:** `NEVER_CONTACTED = 0`, `WAITING = 1`.
 - **Date comparison is on `yyyy-MM-dd` strings**, compared lexicographically. `sentAt` may arrive as a longer ISO string, so always `.slice(0, 10)` before comparing.
 - **Commit scopes are workspace-level:** `feat(server)`, `fix(server)`, `chore(server)`, `test(server)` — never subdirectory names. Commit messages in English.
@@ -181,11 +182,10 @@ git commit -m "feat(server): add today() and isSendDateReached() helpers"
 - Test: `server/src/services/test/campaignHousingService.test.ts`
 
 **Interfaces:**
-- Consumes: `housingRepository.updateMany`, `housingRepository.find`, `eventRepository.insertManyHousingEvents`, `HousingId` (`{ geoCode, id }`), `HOUSING_STATUS_LABELS`, `HousingStatus`.
+- Consumes: `housingRepository.updateMany`, `housingRepository.find`, `eventRepository.insertManyHousingEvents`, `userRepository.getByEmail`, `config.app.system`, `UserMissingError`, `HousingId` (`{ geoCode, id }`), `HOUSING_STATUS_LABELS`, `HousingStatus`.
 - Produces:
-  - `FlipToWaitingOptions = { createdBy: string }`
-  - `flipHousingsToWaiting(housings: ReadonlyArray<Pick<HousingApi, 'id' | 'geoCode'>>, options: FlipToWaitingOptions): Promise<number>` — writes one `housing:status-updated` event per housing and sets `{ status: WAITING, subStatus: null }`. Assumes the caller filtered to NEVER_CONTACTED and owns the transaction. Returns the count flipped.
-  - `flipCampaignHousingsToWaiting(campaign: Pick<CampaignApi, 'id'>, options: FlipToWaitingOptions): Promise<number>` — fetches the campaign's still-NEVER_CONTACTED housings, then calls `flipHousingsToWaiting`. Idempotent; returns the count flipped.
+  - `flipHousingsToWaiting(housings: ReadonlyArray<Pick<HousingApi, 'id' | 'geoCode'>>): Promise<number>` — writes one `housing:status-updated` event per housing and sets `{ status: WAITING, subStatus: null }`. The events are attributed to the **system account** (`config.app.system`), resolved inside the service (throws `UserMissingError` if absent) — no `createdBy` parameter. Assumes the caller filtered to NEVER_CONTACTED and owns the transaction. Returns the count flipped.
+  - `flipCampaignHousingsToWaiting(campaign: Pick<CampaignApi, 'id'>): Promise<number>` — fetches the campaign's still-NEVER_CONTACTED housings, then calls `flipHousingsToWaiting`. Idempotent; returns the count flipped.
 
 - [ ] **Step 1: Write the failing test**
 
@@ -200,14 +200,18 @@ import {
   Establishments,
   formatEstablishmentApi
 } from '~/repositories/establishmentRepository';
-import { Users, toUserDBO } from '~/repositories/userRepository';
+import userRepository, {
+  Users,
+  toUserDBO
+} from '~/repositories/userRepository';
+import config from '~/infra/config';
 import {
   Housing,
   formatHousingRecordApi
 } from '~/repositories/housingRepository';
 import { Campaigns, formatCampaignApi } from '~/repositories/campaignRepository';
 import { CampaignsHousing } from '~/repositories/campaignHousingRepository';
-import { Events, HousingEvents } from '~/repositories/eventRepository';
+import { Events, HOUSING_EVENTS_TABLE } from '~/repositories/eventRepository';
 import {
   genEstablishmentApi,
   genUserApi,
@@ -238,7 +242,7 @@ describe('campaignHousingService', () => {
       await Housing().insert(formatHousingRecordApi(housing));
 
       const flipped = await startTransaction(() =>
-        flipHousingsToWaiting([housing], { createdBy: user.id })
+        flipHousingsToWaiting([housing])
       );
 
       expect(flipped).toBe(1);
@@ -248,20 +252,21 @@ describe('campaignHousingService', () => {
       expect(actual?.status).toBe(HousingStatus.WAITING);
       expect(actual?.sub_status).toBeNull();
 
-      const events = await HousingEvents()
-        .join(Events(), 'events.id', 'housing_events.event_id')
+      const events = await Events()
+        .where({ type: 'housing:status-updated' })
+        .join(HOUSING_EVENTS_TABLE, 'event_id', 'id')
         .where({
           housing_geo_code: housing.geoCode,
-          housing_id: housing.id,
-          type: 'housing:status-updated'
+          housing_id: housing.id
         });
       expect(events).toHaveLength(1);
+      // The automated flip is attributed to the system account, not the caller.
+      const system = await userRepository.getByEmail(config.app.system);
+      expect(events[0].created_by).toBe(system?.id);
     });
 
     it('returns 0 and writes nothing for an empty set', async () => {
-      const flipped = await startTransaction(() =>
-        flipHousingsToWaiting([], { createdBy: user.id })
-      );
+      const flipped = await startTransaction(() => flipHousingsToWaiting([]));
       expect(flipped).toBe(0);
     });
   });
@@ -292,7 +297,7 @@ describe('campaignHousingService', () => {
       );
 
       const flipped = await startTransaction(() =>
-        flipCampaignHousingsToWaiting(campaign, { createdBy: user.id })
+        flipCampaignHousingsToWaiting(campaign)
       );
 
       expect(flipped).toBe(1);
@@ -318,10 +323,10 @@ describe('campaignHousingService', () => {
       });
 
       await startTransaction(() =>
-        flipCampaignHousingsToWaiting(campaign, { createdBy: user.id })
+        flipCampaignHousingsToWaiting(campaign)
       );
       const second = await startTransaction(() =>
-        flipCampaignHousingsToWaiting(campaign, { createdBy: user.id })
+        flipCampaignHousingsToWaiting(campaign)
       );
       expect(second).toBe(0);
     });
@@ -344,16 +349,14 @@ Create `server/src/services/campaignHousingService.ts`:
 import { HOUSING_STATUS_LABELS, HousingStatus } from '@zerologementvacant/models';
 import { v4 as uuidv4 } from 'uuid';
 
+import UserMissingError from '~/errors/userMissingError';
+import config from '~/infra/config';
 import type { CampaignApi } from '~/models/CampaignApi';
 import type { HousingEventApi } from '~/models/EventApi';
 import type { HousingApi, HousingId } from '~/models/HousingApi';
 import eventRepository from '~/repositories/eventRepository';
 import housingRepository from '~/repositories/housingRepository';
-
-export interface FlipToWaitingOptions {
-  /** User id recorded as the author of the `housing:status-updated` events. */
-  createdBy: string;
-}
+import userRepository from '~/repositories/userRepository';
 
 /**
  * Flip an already-selected set of NEVER_CONTACTED housings to WAITING, writing
@@ -361,16 +364,26 @@ export interface FlipToWaitingOptions {
  * having filtered `housings` to NEVER_CONTACTED and for owning the transaction
  * (the repository writes join the ambient one). Returns the number flipped.
  *
+ * The flip is the send-date rule the system applies, not a manual status edit,
+ * so the events are attributed to the system account (`config.app.system`) —
+ * uniformly across campaign creation, update and the daily cron. That also keeps
+ * `isSupervised` from counting the automated change as human-touched, since a
+ * `@…beta.gouv.fr` creator is not treated as user-modified.
+ *
  * `createFromGroup` calls this with housings it already holds in memory rather
  * than re-querying, because `housingRepository.find` does not see rows written
  * earlier in the same transaction.
  */
 export async function flipHousingsToWaiting(
-  housings: ReadonlyArray<Pick<HousingApi, 'id' | 'geoCode'>>,
-  options: FlipToWaitingOptions
+  housings: ReadonlyArray<Pick<HousingApi, 'id' | 'geoCode'>>
 ): Promise<number> {
   if (housings.length === 0) {
     return 0;
+  }
+
+  const system = await userRepository.getByEmail(config.app.system);
+  if (!system) {
+    throw new UserMissingError(config.app.system);
   }
 
   const now = new Date().toJSON();
@@ -380,7 +393,7 @@ export async function flipHousingsToWaiting(
     nextOld: { status: HOUSING_STATUS_LABELS[HousingStatus.NEVER_CONTACTED] },
     nextNew: { status: HOUSING_STATUS_LABELS[HousingStatus.WAITING] },
     createdAt: now,
-    createdBy: options.createdBy,
+    createdBy: system.id,
     housingGeoCode: housing.geoCode,
     housingId: housing.id
   }));
@@ -405,8 +418,7 @@ export async function flipHousingsToWaiting(
  * empty set and writes nothing. Runs within the caller's transaction.
  */
 export async function flipCampaignHousingsToWaiting(
-  campaign: Pick<CampaignApi, 'id'>,
-  options: FlipToWaitingOptions
+  campaign: Pick<CampaignApi, 'id'>
 ): Promise<number> {
   const housings = await housingRepository.find({
     filters: {
@@ -415,7 +427,7 @@ export async function flipCampaignHousingsToWaiting(
     },
     pagination: { paginate: false }
   });
-  return flipHousingsToWaiting(housings, options);
+  return flipHousingsToWaiting(housings);
 }
 ```
 
@@ -559,9 +571,7 @@ Replace the transaction body (the `await startTransaction(async () => { ... })` 
     // in-memory housings: housingRepository.find would not see the campaign
     // links just inserted in this transaction.
     if (isSendDateReached(campaign.sentAt, today())) {
-      await flipHousingsToWaiting(neverContactedHousings, {
-        createdBy: auth.userId
-      });
+      await flipHousingsToWaiting(neverContactedHousings);
     }
   });
 ```
@@ -675,7 +685,7 @@ Replace the final save + response of `update` (the `await campaignRepository.sav
     // retroactive correction to a past date), flip the campaign's still
     // NEVER_CONTACTED housings now instead of waiting for the daily cron.
     if (isSendDateReached(updated.sentAt, today())) {
-      await flipCampaignHousingsToWaiting(updated, { createdBy: auth.userId });
+      await flipCampaignHousingsToWaiting(updated);
     }
   });
 
@@ -713,7 +723,7 @@ git commit -m "feat(server): flip campaign housings when update sets a reached s
 **Interfaces:**
 - Consumes: `flipCampaignHousingsToWaiting`, `startTransaction`, `CampaignsHousing`, `campaignsHousingTable`, `campaignsTable`, `housingTable`, `HousingStatus`.
 - Produces:
-  - `FlipSentCampaignHousingsOptions = { createdBy: string; today: string }`
+  - `FlipSentCampaignHousingsOptions = { today: string }`
   - `FlipSentCampaignHousingsSummary = { campaigns: number; housings: number }`
   - `flipSentCampaignHousings(options: FlipSentCampaignHousingsOptions): Promise<FlipSentCampaignHousingsSummary>` — finds campaigns whose `sent_at::date <= today` that still hold a NEVER_CONTACTED housing, and flips each within its own transaction.
 
@@ -775,10 +785,7 @@ describe('flipSentCampaignHousings', () => {
   it('flips housings of campaigns whose send date has passed', async () => {
     const { housing } = await seedCampaign('2020-01-01');
 
-    const summary = await flipSentCampaignHousings({
-      createdBy: user.id,
-      today
-    });
+    const summary = await flipSentCampaignHousings({ today });
 
     expect(summary.housings).toBeGreaterThanOrEqual(1);
     const actual = await Housing()
@@ -790,7 +797,7 @@ describe('flipSentCampaignHousings', () => {
   it('leaves future-dated campaigns untouched', async () => {
     const { housing } = await seedCampaign('2999-01-01');
 
-    await flipSentCampaignHousings({ createdBy: user.id, today });
+    await flipSentCampaignHousings({ today });
 
     const actual = await Housing()
       .where({ geo_code: housing.geoCode, id: housing.id })
@@ -801,7 +808,7 @@ describe('flipSentCampaignHousings', () => {
   it('is idempotent — a second run writes no new status events', async () => {
     const { housing } = await seedCampaign('2020-01-01');
 
-    await flipSentCampaignHousings({ createdBy: user.id, today });
+    await flipSentCampaignHousings({ today });
     const eventsAfterFirst = await Events()
       .where({ type: 'housing:status-updated' })
       .whereIn('id', (q) =>
@@ -814,7 +821,7 @@ describe('flipSentCampaignHousings', () => {
           })
       );
 
-    await flipSentCampaignHousings({ createdBy: user.id, today });
+    await flipSentCampaignHousings({ today });
     const eventsAfterSecond = await Events()
       .where({ type: 'housing:status-updated' })
       .whereIn('id', (q) =>
@@ -857,8 +864,6 @@ import { flipCampaignHousingsToWaiting } from '~/services/campaignHousingService
 const logger = createLogger('flip-sent-campaign-housings');
 
 export interface FlipSentCampaignHousingsOptions {
-  /** User id recorded as the author of the status-updated events. */
-  createdBy: string;
   /** Current calendar date as `yyyy-MM-dd`. */
   today: string;
 }
@@ -905,10 +910,7 @@ export async function flipSentCampaignHousings(
   let housings = 0;
   for (const id of campaignIds) {
     await startTransaction(async () => {
-      housings += await flipCampaignHousingsToWaiting(
-        { id },
-        { createdBy: options.createdBy }
-      );
+      housings += await flipCampaignHousingsToWaiting({ id });
     });
   }
 
@@ -948,7 +950,7 @@ git commit -m "feat(server): add task flipping sent-campaign housings to waiting
 - Modify: `clevercloud/cron.json`
 
 **Interfaces:**
-- Consumes: `flipSentCampaignHousings`, `today`, `userRepository.getByEmail`, `db`, `config.application.isReviewApp`, `UserMissingError`.
+- Consumes: `flipSentCampaignHousings`, `today`, `db`, `config.app.isReviewApp`.
 - Produces: a runnable cron that settles sent-campaign housings once a day.
 
 This task has no unit test (it is an entry-point wiring + a shell wrapper + a config line); it is verified by running the script against a database (Step 4).
@@ -958,32 +960,21 @@ This task has no unit test (it is an entry-point wiring + a shell wrapper + a co
 Create `server/src/scripts/flip-sent-campaign-housings/index.ts`:
 
 ```typescript
-import UserMissingError from '~/errors/userMissingError';
 import config from '~/infra/config';
 import db from '~/infra/database';
 import { createLogger } from '~/infra/logger';
-import userRepository from '~/repositories/userRepository';
 import { today } from '~/utils/date';
 import { flipSentCampaignHousings } from './task';
 
 const logger = createLogger('flip-sent-campaign-housings');
-const ADMIN_EMAIL = 'admin@zerologementvacant.beta.gouv.fr';
 
 async function run(): Promise<void> {
-  if (config.application.isReviewApp) {
+  if (config.app.isReviewApp) {
     logger.info('This is a review app. Skipping...');
     return;
   }
 
-  const admin = await userRepository.getByEmail(ADMIN_EMAIL);
-  if (!admin) {
-    throw new UserMissingError(ADMIN_EMAIL);
-  }
-
-  const summary = await flipSentCampaignHousings({
-    createdBy: admin.id,
-    today: today()
-  });
+  const summary = await flipSentCampaignHousings({ today: today() });
   logger.info('Flipped sent-campaign housings to WAITING', summary);
 }
 
@@ -994,7 +985,7 @@ run()
   });
 ```
 
-> Verify `config.application.isReviewApp` exists in `server/src/infra/config.ts`; if the property differs, use the same guard the scripts README documents. `UserMissingError` and `userRepository.getByEmail` are the pattern already used by `server/src/scripts/fix-campaign-housing-status/index.ts`.
+> The system account is resolved inside the flip service (`config.app.system`), so the entry point no longer looks up the admin user — it just guards on the review app and runs the task. The review-app flag is `config.app.isReviewApp` (verified in `server/src/infra/config.ts`; the scripts README's `config.application.isReviewApp` is stale).
 
 - [ ] **Step 2: Create the cron wrapper**
 
@@ -1673,4 +1664,4 @@ Expected: prints `Bypass triggers: true` and the `Updated / Events deleted / Eve
 
 **Placeholder scan:** No `TODO`/"handle edge cases"/"similar to Task N" in code steps. `ATTACHMENT_CORRELATION_TOLERANCE_MS` has a real value (`10_000`); Task 8 refines it operationally, not a code placeholder. ✓
 
-**Type consistency:** `flipHousingsToWaiting`/`flipCampaignHousingsToWaiting`, `FlipToWaitingOptions.createdBy`, `isSendDateReached(sentAt, today)`, `today()`, `flipSentCampaignHousings({ createdBy, today })`, `HousingWithContext` (`today`, `campaigns`, `lastStatusUpdatedEvent`, `campaignAttachedEvents`), and `ATTACHMENT_CORRELATION_TOLERANCE_MS` are named identically across every task that references them. ✓
+**Type consistency:** `flipHousingsToWaiting(housings)`/`flipCampaignHousingsToWaiting(campaign)` (no `createdBy` — the service resolves the system actor itself), `isSendDateReached(sentAt, today)`, `today()`, `flipSentCampaignHousings({ today })`, `HousingWithContext` (`today`, `campaigns`, `lastStatusUpdatedEvent`, `campaignAttachedEvents`), and `ATTACHMENT_CORRELATION_TOLERANCE_MS` are named identically across every task that references them. ✓

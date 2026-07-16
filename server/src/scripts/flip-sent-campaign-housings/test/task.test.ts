@@ -51,10 +51,7 @@ describe('flipSentCampaignHousings', () => {
   it('flips housings of campaigns whose send date has passed', async () => {
     const { housing } = await seedCampaign('2020-01-01');
 
-    const summary = await flipSentCampaignHousings({
-      createdBy: user.id,
-      today
-    });
+    const summary = await flipSentCampaignHousings({ today });
 
     expect(summary.housings).toBeGreaterThanOrEqual(1);
     const actual = await Housing()
@@ -66,7 +63,7 @@ describe('flipSentCampaignHousings', () => {
   it('leaves future-dated campaigns untouched', async () => {
     const { housing } = await seedCampaign('2999-01-01');
 
-    await flipSentCampaignHousings({ createdBy: user.id, today });
+    await flipSentCampaignHousings({ today });
 
     const actual = await Housing()
       .where({ geo_code: housing.geoCode, id: housing.id })
@@ -77,7 +74,7 @@ describe('flipSentCampaignHousings', () => {
   it('is idempotent — a second run writes no new status events', async () => {
     const { housing } = await seedCampaign('2020-01-01');
 
-    await flipSentCampaignHousings({ createdBy: user.id, today });
+    await flipSentCampaignHousings({ today });
     const eventsAfterFirst = await Events()
       .where({ type: 'housing:status-updated' })
       .whereIn('id', (q) =>
@@ -90,7 +87,7 @@ describe('flipSentCampaignHousings', () => {
           })
       );
 
-    await flipSentCampaignHousings({ createdBy: user.id, today });
+    await flipSentCampaignHousings({ today });
     const eventsAfterSecond = await Events()
       .where({ type: 'housing:status-updated' })
       .whereIn('id', (q) =>

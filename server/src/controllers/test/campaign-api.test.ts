@@ -54,7 +54,11 @@ import {
   type HousingRecordDBO
 } from '~/repositories/housingRepository';
 import { formatOwnerApi, Owners } from '~/repositories/ownerRepository';
-import { toUserDBO, Users } from '~/repositories/userRepository';
+import userRepository, {
+  toUserDBO,
+  Users
+} from '~/repositories/userRepository';
+import config from '~/infra/config';
 import { factories } from '~/test/factories';
 import {
   genEstablishmentApi,
@@ -666,6 +670,11 @@ describe('Campaign API', () => {
           neverContactedHousings.map((housing) => [housing.geoCode, housing.id])
         );
       expect(statusEvents).toBeArrayOfSize(neverContactedHousings.length);
+      // The automated flip is attributed to the system account, not the caller.
+      const system = await userRepository.getByEmail(config.app.system);
+      expect(statusEvents).toSatisfyAll(
+        (event) => event.created_by === system?.id
+      );
 
       const links = await CampaignsHousing().where('campaign_id', body.id);
       expect(links).toBeArrayOfSize(isolatedHousings.length);
@@ -674,6 +683,10 @@ describe('Campaign API', () => {
         .join(CAMPAIGN_HOUSING_EVENTS_TABLE, 'event_id', 'id')
         .where({ campaign_id: body.id, type: 'housing:campaign-attached' });
       expect(attachEvents).toBeArrayOfSize(isolatedHousings.length);
+      // ...while attaching housings — a genuine user action — stays the user's.
+      expect(attachEvents).toSatisfyAll(
+        (event) => event.created_by === user.id
+      );
     });
 
     it('does not flip housings when sentAt is in the future', async () => {

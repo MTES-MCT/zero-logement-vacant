@@ -219,9 +219,7 @@ const createFromGroup: RequestHandler<
     // in-memory housings: housingRepository.find would not see the campaign
     // links just inserted in this transaction.
     if (isSendDateReached(campaign.sentAt, today())) {
-      await flipHousingsToWaiting(neverContactedHousings, {
-        createdBy: auth.userId
-      });
+      await flipHousingsToWaiting(neverContactedHousings);
     }
   });
 
@@ -273,7 +271,7 @@ const update: RequestHandler<
     // retroactive correction to a past date), flip the campaign's still
     // NEVER_CONTACTED housings now instead of waiting for the daily cron.
     if (isSendDateReached(updated.sentAt, today())) {
-      await flipCampaignHousingsToWaiting(updated, { createdBy: auth.userId });
+      await flipCampaignHousingsToWaiting(updated);
     }
   });
 

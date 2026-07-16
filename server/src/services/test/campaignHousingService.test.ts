@@ -6,7 +6,8 @@ import {
   Establishments,
   formatEstablishmentApi
 } from '~/repositories/establishmentRepository';
-import { Users, toUserDBO } from '~/repositories/userRepository';
+import userRepository, { Users, toUserDBO } from '~/repositories/userRepository';
+import config from '~/infra/config';
 import {
   Housing,
   formatHousingRecordApi
@@ -44,7 +45,7 @@ describe('campaignHousingService', () => {
       await Housing().insert(formatHousingRecordApi(housing));
 
       const flipped = await startTransaction(() =>
-        flipHousingsToWaiting([housing], { createdBy: user.id })
+        flipHousingsToWaiting([housing])
       );
 
       expect(flipped).toBe(1);
@@ -62,12 +63,13 @@ describe('campaignHousingService', () => {
           housing_id: housing.id
         });
       expect(events).toHaveLength(1);
+      // The automated flip is attributed to the system account, not the caller.
+      const system = await userRepository.getByEmail(config.app.system);
+      expect(events[0].created_by).toBe(system?.id);
     });
 
     it('returns 0 and writes nothing for an empty set', async () => {
-      const flipped = await startTransaction(() =>
-        flipHousingsToWaiting([], { createdBy: user.id })
-      );
+      const flipped = await startTransaction(() => flipHousingsToWaiting([]));
       expect(flipped).toBe(0);
     });
   });
@@ -98,7 +100,7 @@ describe('campaignHousingService', () => {
       );
 
       const flipped = await startTransaction(() =>
-        flipCampaignHousingsToWaiting(campaign, { createdBy: user.id })
+        flipCampaignHousingsToWaiting(campaign)
       );
 
       expect(flipped).toBe(1);
@@ -124,10 +126,10 @@ describe('campaignHousingService', () => {
       });
 
       await startTransaction(() =>
-        flipCampaignHousingsToWaiting(campaign, { createdBy: user.id })
+        flipCampaignHousingsToWaiting(campaign)
       );
       const second = await startTransaction(() =>
-        flipCampaignHousingsToWaiting(campaign, { createdBy: user.id })
+        flipCampaignHousingsToWaiting(campaign)
       );
       expect(second).toBe(0);
     });

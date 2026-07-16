@@ -13,8 +13,6 @@ import { flipCampaignHousingsToWaiting } from '~/services/campaignHousingService
 const logger = createLogger('flip-sent-campaign-housings');
 
 export interface FlipSentCampaignHousingsOptions {
-  /** User id recorded as the author of the status-updated events. */
-  createdBy: string;
   /** Current calendar date as `yyyy-MM-dd`. */
   today: string;
 }
@@ -61,10 +59,7 @@ export async function flipSentCampaignHousings(
   let housings = 0;
   for (const id of campaignIds) {
     await startTransaction(async () => {
-      housings += await flipCampaignHousingsToWaiting(
-        { id },
-        { createdBy: options.createdBy }
-      );
+      housings += await flipCampaignHousingsToWaiting({ id });
     });
   }
 

@@ -17,6 +17,7 @@ import randomstring from 'randomstring';
 import request from 'supertest';
 import { v4 as uuidv4 } from 'uuid';
 
+import config from '~/infra/config';
 import type { DB } from '~/infra/database/db';
 import { kysely } from '~/infra/database/kysely';
 import { createServer } from '~/infra/server';
@@ -26,6 +27,7 @@ import { GroupApi } from '~/models/GroupApi';
 import { HousingApi } from '~/models/HousingApi';
 import { UserApi } from '~/models/UserApi';
 import { toEventInsert } from '~/repositories/eventRepository';
+import userRepository from '~/repositories/userRepository';
 import { factories } from '~/test/factories';
 import { genEventApi } from '~/test/testFixtures';
 import { tokenProvider } from '~/test/testUtils';
@@ -742,6 +744,11 @@ describe('Campaign API', () => {
         )
         .execute();
       expect(statusEvents).toBeArrayOfSize(neverContactedHousings.length);
+      // The automated flip is attributed to the system account, not the caller.
+      const system = await userRepository.getByEmail(config.app.system);
+      expect(statusEvents).toSatisfyAll(
+        (event) => event.createdBy === system?.id
+      );
 
       const links = await kysely
         .selectFrom('campaignsHousing')
@@ -762,6 +769,10 @@ describe('Campaign API', () => {
         .where('events.type', '=', 'housing:campaign-attached')
         .execute();
       expect(attachEvents).toBeArrayOfSize(isolatedHousings.length);
+      // ...while attaching housings — a genuine user action — stays the user's.
+      expect(attachEvents).toSatisfyAll(
+        (event) => event.createdBy === user.id
+      );
     });
 
     it('does not flip housings when sentAt is in the future', async () => {
@@ -983,17 +994,19 @@ describe('Campaign API', () => {
     });
 
     it('flips housings when sentAt is set to today or the past', async () => {
-      const housing: HousingApi = {
-        ...genHousingApi(oneOf(establishment.geoCodes)),
+      const housing = await factories.housing.create({
+        geoCode: faker.helpers.arrayElement(establishment.geoCodes),
         status: HousingStatus.NEVER_CONTACTED,
         subStatus: null
-      };
-      await Housing().insert(formatHousingRecordApi(housing));
-      await CampaignsHousing().insert({
-        campaign_id: campaign.id,
-        housing_geo_code: housing.geoCode,
-        housing_id: housing.id
       });
+      await kysely
+        .insertInto('campaignsHousing')
+        .values({
+          campaignId: campaign.id,
+          housingGeoCode: housing.geoCode,
+          housingId: housing.id
+        })
+        .execute();
 
       const payload: CampaignUpdatePayload = {
         title: campaign.title,
@@ -1007,24 +1020,29 @@ describe('Campaign API', () => {
         .use(tokenProvider(user));
 
       expect(status).toBe(constants.HTTP_STATUS_OK);
-      const actual = await Housing()
-        .where({ geo_code: housing.geoCode, id: housing.id })
-        .first();
+      const actual = await kysely
+        .selectFrom('fastHousing')
+        .selectAll('fastHousing')
+        .where('geoCode', '=', housing.geoCode)
+        .where('id', '=', housing.id)
+        .executeTakeFirst();
       expect(actual?.status).toBe(HousingStatus.WAITING);
     });
 
     it('does not flip housings when sentAt is set to the future', async () => {
-      const housing: HousingApi = {
-        ...genHousingApi(oneOf(establishment.geoCodes)),
+      const housing = await factories.housing.create({
+        geoCode: faker.helpers.arrayElement(establishment.geoCodes),
         status: HousingStatus.NEVER_CONTACTED,
         subStatus: null
-      };
-      await Housing().insert(formatHousingRecordApi(housing));
-      await CampaignsHousing().insert({
-        campaign_id: campaign.id,
-        housing_geo_code: housing.geoCode,
-        housing_id: housing.id
       });
+      await kysely
+        .insertInto('campaignsHousing')
+        .values({
+          campaignId: campaign.id,
+          housingGeoCode: housing.geoCode,
+          housingId: housing.id
+        })
+        .execute();
 
       const payload: CampaignUpdatePayload = {
         title: campaign.title,
@@ -1037,9 +1055,12 @@ describe('Campaign API', () => {
         .send(payload)
         .use(tokenProvider(user));
 
-      const actual = await Housing()
-        .where({ geo_code: housing.geoCode, id: housing.id })
-        .first();
+      const actual = await kysely
+        .selectFrom('fastHousing')
+        .selectAll('fastHousing')
+        .where('geoCode', '=', housing.geoCode)
+        .where('id', '=', housing.id)
+        .executeTakeFirst();
       expect(actual?.status).toBe(HousingStatus.NEVER_CONTACTED);
     });
   });

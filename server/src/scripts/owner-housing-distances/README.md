@@ -9,6 +9,11 @@ result to `owners_housing`:
 This script is designed as a scoped LOVAC post-process. Do not use it as an
 unbounded production backfill.
 
+The canonical implementation is packaged under
+`analytics/dagster/scripts/owner-housing-distances`. The Python files in this
+directory are compatibility entrypoints, so the documented CLI remains
+available from the server scripts directory.
+
 ## Classification Values
 
 | Value | Meaning                              |
@@ -36,6 +41,8 @@ missing. For this reason, default candidate selection is based on
 - `--limit` is deterministic and uses keyset pagination; it does not use
   `ORDER BY RANDOM()`.
 - `--force` recalculates existing values inside the selected scope.
+- Any address-loading or database-write failure aborts the run. Failed batches
+  are never converted into classification `7`.
 
 Country detection is intentionally conservative. BAN geocoding is the source of
 authority for French addresses: when a `ban_addresses` row has coordinates, the
@@ -172,7 +179,7 @@ The migration
 `server/src/infra/database/migrations/20260625130000_owner-housing-location-postprocess-indexes.ts`
 adds:
 
-- `fast_housing_data_file_years_gin_idx` on `fast_housing.data_file_years`.
+- one `data_file_years` GIN index on every existing `fast_housing` partition;
 - `idx_owners_housing_distances` partial index on
   `(owner_id, housing_id, housing_geo_code)` where `rank >= 1` and
   `locprop_relative_ban IS NULL`.

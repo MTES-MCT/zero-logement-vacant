@@ -198,14 +198,11 @@ export function getRegionFromPostalCode(
   return getRegionFromDept(dept);
 }
 
-// Threshold in meters to consider two addresses as "same address"
-const SAME_ADDRESS_THRESHOLD_METERS = 50;
-
 /**
  * Calculate geographic classification between owner and housing.
  *
  * Classifications:
- * - 0 (same-address): Same address (distance < 50m or same banId)
+ * - 0 (same-address): Same BAN address
  * - 1 (same-commune): Same postal code
  * - 2 (same-department): Same department (first 2 digits of postal code)
  * - 3 (same-region): Same region
@@ -227,7 +224,7 @@ export function calculateGeographicClassification(
     return 'other';
   }
 
-  // Rule 0: Same address (same banId or very close distance)
+  // Rule 0: Same address
   if (
     options?.ownerBanId &&
     options?.housingBanId &&
@@ -235,14 +232,6 @@ export function calculateGeographicClassification(
   ) {
     return 'same-address';
   }
-  if (
-    options?.absoluteDistance !== null &&
-    options?.absoluteDistance !== undefined &&
-    options.absoluteDistance < SAME_ADDRESS_THRESHOLD_METERS
-  ) {
-    return 'same-address';
-  }
-
   // Rule 1: Same postal code (same commune)
   if (ownerPostalCode === housingPostalCode) {
     return 'same-commune';
@@ -281,6 +270,26 @@ export interface DistanceResult {
   absoluteDistance: number | null;
 }
 
+type GeocodedAddress = AddressApi & {
+  latitude: number;
+  longitude: number;
+};
+
+function hasValidCoordinates(
+  address: AddressApi | null
+): address is GeocodedAddress {
+  return (
+    typeof address?.latitude === 'number' &&
+    Number.isFinite(address.latitude) &&
+    address.latitude >= -90 &&
+    address.latitude <= 90 &&
+    typeof address.longitude === 'number' &&
+    Number.isFinite(address.longitude) &&
+    address.longitude >= -180 &&
+    address.longitude <= 180
+  );
+}
+
 /**
  * Calculate distance and classification between owner and housing addresses.
  */
@@ -291,14 +300,8 @@ export function calculateDistance(
   // Calculate absolute distance if both have coordinates
   let absoluteDistance: number | null = null;
   if (
-    ownerAddress?.latitude !== null &&
-    ownerAddress?.latitude !== undefined &&
-    ownerAddress?.longitude !== null &&
-    ownerAddress?.longitude !== undefined &&
-    housingAddress?.latitude !== null &&
-    housingAddress?.latitude !== undefined &&
-    housingAddress?.longitude !== null &&
-    housingAddress?.longitude !== undefined
+    hasValidCoordinates(ownerAddress) &&
+    hasValidCoordinates(housingAddress)
   ) {
     absoluteDistance = haversineDistance(
       ownerAddress.latitude,
@@ -309,15 +312,20 @@ export function calculateDistance(
   }
 
   // Calculate geographic classification
-  const relativeLocation = calculateGeographicClassification(
-    ownerAddress?.postalCode,
-    housingAddress?.postalCode,
-    {
-      absoluteDistance,
-      ownerBanId: ownerAddress?.banId,
-      housingBanId: housingAddress?.banId
-    }
+  const hasMatchingBanIds = Boolean(
+    ownerAddress?.banId &&
+    housingAddress?.banId &&
+    ownerAddress.banId === housingAddress.banId
   );
+  const relativeLocation = hasMatchingBanIds
+    ? 'same-address'
+    : hasValidCoordinates(ownerAddress) && hasValidCoordinates(housingAddress)
+      ? calculateGeographicClassification(
+          ownerAddress?.postalCode,
+          housingAddress?.postalCode,
+          { absoluteDistance }
+        )
+      : 'other';
 
   return { relativeLocation, absoluteDistance };
 }

@@ -26,7 +26,16 @@ RUN uv sync --frozen
 ENV DAGSTER_HOME=/opt/dagster/dagster_home/
 RUN mkdir -p $DAGSTER_HOME
 COPY dagster.yaml workspace.yaml $DAGSTER_HOME
-COPY src/ $DAGSTER_HOME
+COPY src/ $DAGSTER_HOME/src/
+COPY scripts/ $DAGSTER_HOME/scripts/
+
+# Fail the image build if an asset executable or one of its local imports is absent.
+RUN test -f $DAGSTER_HOME/scripts/backfill_ban_owners.py && \
+    test -f $DAGSTER_HOME/scripts/owner-housing-distances/calculate_distances.py && \
+    test -f $DAGSTER_HOME/scripts/owner-housing-distances/country_detector.py && \
+    cd $DAGSTER_HOME && \
+    uv run python scripts/backfill_ban_owners.py --help >/dev/null && \
+    uv run python scripts/owner-housing-distances/calculate_distances.py --help >/dev/null
 
 # Définir le répertoire de travail
 WORKDIR $DAGSTER_HOME

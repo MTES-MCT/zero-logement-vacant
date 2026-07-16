@@ -1,10 +1,12 @@
 import importlib.util
 import os
+import re
 import subprocess
 import sys
 from pathlib import Path
 from typing import Any
 from urllib.parse import quote_plus
+from uuid import UUID
 
 import psycopg2
 from dagster import (
@@ -23,12 +25,24 @@ from dagster import (
 from ...config import Config
 
 
-def _repository_root() -> Path:
-    return Path(__file__).resolve().parents[5]
-
-
 def _analytics_dagster_dir() -> Path:
-    return _repository_root() / "analytics" / "dagster"
+    return Path(__file__).resolve().parents[3]
+
+
+def _runtime_script(
+    relative_path: Path,
+    *,
+    runtime_root: Path | None = None,
+) -> Path:
+    root = runtime_root or Path(
+        os.environ.get("DAGSTER_HOME", _analytics_dagster_dir())
+    )
+    runtime_path = root / relative_path
+    if runtime_path.is_file():
+        return runtime_path
+    raise RuntimeError(
+        "Required Dagster runtime script is missing. " f"Checked {runtime_path}."
+    )
 
 
 def _owner_housing_location_module():
@@ -37,22 +51,16 @@ def _owner_housing_location_module():
     if cached_module is not None:
         return cached_module
 
-    script_dir = (
-        _repository_root()
-        / "server"
-        / "src"
-        / "scripts"
-        / "owner-housing-distances"
+    script_path = _runtime_script(
+        Path("scripts/owner-housing-distances/calculate_distances.py"),
     )
-    for path in (script_dir, _repository_root() / "server" / "src"):
+    script_dir = script_path.parent
+    for path in (script_dir,):
         path_str = str(path)
         if path_str not in sys.path:
             sys.path.insert(0, path_str)
 
-    script_path = script_dir / "calculate_distances.py"
-    spec = importlib.util.spec_from_file_location(
-        module_name, script_path
-    )
+    spec = importlib.util.spec_from_file_location(module_name, script_path)
     module = importlib.util.module_from_spec(spec)
     if spec.loader is None:
         raise RuntimeError(f"Cannot load {script_path}")
@@ -90,10 +98,26 @@ def _database_url() -> str:
 
 
 def _scope_from_config(config: dict[str, Any]) -> tuple[str | None, tuple[str, ...]]:
+    data_file_year = config.get("data_file_year", "")
+    if not re.fullmatch(r"lovac-\d{4}", data_file_year):
+        raise Failure("Invalid LOVAC data_file_year. Expected the format lovac-YYYY.")
     establishment_id = config.get("establishment_id") or None
+    if establishment_id:
+        try:
+            establishment_id = str(UUID(establishment_id.strip()))
+        except (AttributeError, ValueError):
+            raise Failure("Invalid LOVAC scope: establishment_id must be a UUID.")
     geo_codes = tuple(
         code.strip() for code in config.get("geo_codes", []) if code and code.strip()
     )
+    invalid_geo_codes = [
+        code for code in geo_codes if not re.fullmatch(r"(?:\d{5}|2[AB]\d{3})", code)
+    ]
+    if invalid_geo_codes:
+        raise Failure(
+            "Invalid LOVAC scope: malformed INSEE geo_codes: "
+            + ", ".join(invalid_geo_codes)
+        )
     if not establishment_id and not geo_codes and not config.get("allow_full_year"):
         raise Failure(
             "Refusing an unscoped LOVAC location run. Set establishment_id, "
@@ -108,8 +132,7 @@ def _scope_where(config: dict[str, Any]) -> tuple[str, dict[str, Any]]:
     establishment_id, geo_codes = _scope_from_config(config)
 
     if establishment_id:
-        clauses.append(
-            """
+        clauses.append("""
             h.geo_code = ANY(
               COALESCE(
                 (
@@ -120,8 +143,7 @@ def _scope_where(config: dict[str, Any]) -> tuple[str, dict[str, Any]]:
                 ARRAY[]::text[]
               )
             )
-            """
-        )
+            """)
         params["establishment_id"] = establishment_id
 
     if geo_codes:
@@ -129,6 +151,15 @@ def _scope_where(config: dict[str, Any]) -> tuple[str, dict[str, Any]]:
         params["geo_codes"] = list(geo_codes)
 
     return "\nAND ".join(clauses), params
+
+
+def _normalized_scope(config: dict[str, Any]) -> dict[str, Any]:
+    establishment_id, geo_codes = _scope_from_config(config)
+    return {
+        "data_file_year": config["data_file_year"],
+        "establishment_id": establishment_id,
+        "geo_codes": list(geo_codes),
+    }
 
 
 def _metadata_from_dict(values: dict[str, Any]) -> dict[str, MetadataValue]:
@@ -178,10 +209,16 @@ LOVAC_SCOPE_CONFIG = {
         "Dry-run skips writes by default."
     ),
     config_schema={
-        "data_file_year": LOVAC_SCOPE_CONFIG["data_file_year"],
+        **LOVAC_SCOPE_CONFIG,
         "dry_run": Field(Bool, default_value=True),
-        "allow_full_year": Field(Bool, default_value=False),
-        "rebuild_targets": Field(Bool, default_value=False),
+        "rebuild_targets": Field(
+            Bool,
+            default_value=True,
+            description=(
+                "Rebuild the scoped owner target table and reset its cursor. "
+                "Disable only when resuming the same post-import operation."
+            ),
+        ),
         "limit": Field(Int, default_value=0, description="0 means all candidates."),
         "workers": Field(Int, default_value=2),
         "chunk": Field(Int, default_value=500),
@@ -200,15 +237,19 @@ def lovac_owner_ban_backfill(context: AssetExecutionContext):
             },
         )
 
+    establishment_id, geo_codes = _scope_from_config(config)
     if config["limit"] == 0 and not config["allow_full_year"]:
         raise Failure(
             "Refusing a full owner BAN backfill without allow_full_year=true. "
             "Use limit for a pilot run first."
         )
 
+    script_path = _runtime_script(
+        Path("scripts/backfill_ban_owners.py"),
+    )
     command = [
         sys.executable,
-        str(_analytics_dagster_dir() / "scripts" / "backfill_ban_owners.py"),
+        str(script_path),
         "--by",
         "housing-lovac",
         "--data-source",
@@ -222,13 +263,17 @@ def lovac_owner_ban_backfill(context: AssetExecutionContext):
     ]
     if config["limit"] > 0:
         command.extend(["--limit", str(config["limit"])])
+    if establishment_id:
+        command.extend(["--establishment-id", establishment_id])
+    for geo_code in geo_codes:
+        command.extend(["--geo-code", geo_code])
     if config["rebuild_targets"]:
-        command.append("--rebuild-targets")
+        command.extend(["--rebuild-targets", "--reset"])
 
     context.log.info("Running %s", " ".join(command))
     result = subprocess.run(
         command,
-        cwd=_analytics_dagster_dir(),
+        cwd=script_path.parent.parent,
         check=False,
         capture_output=True,
         text=True,
@@ -293,6 +338,22 @@ def lovac_owner_housing_locations(
     )
     report_dict = report.to_dict()
     context.log.info("Location computation report: %s", report_dict)
+    if report_dict["errors"] > 0:
+        raise Failure(
+            f"Owner-housing location run reported {report_dict['errors']} "
+            "processing error(s).",
+            metadata=_metadata_from_dict(report_dict),
+        )
+    if (
+        not config["dry_run"]
+        and report_dict["updated_pairs"] != report_dict["updates_prepared"]
+    ):
+        raise Failure(
+            "Owner-housing location run "
+            f"prepared {report_dict['updates_prepared']} updates but wrote "
+            f"{report_dict['updated_pairs']}.",
+            metadata=_metadata_from_dict(report_dict),
+        )
     return Output(
         value=report_dict,
         metadata=_metadata_from_dict(
@@ -302,6 +363,7 @@ def lovac_owner_housing_locations(
                 "processed_pairs": report_dict["processed_pairs"],
                 "updates_prepared": report_dict["updates_prepared"],
                 "updated_pairs": report_dict["updated_pairs"],
+                "errors": report_dict["errors"],
                 "classification_counts": report_dict["classification_counts"],
             }
         ),
@@ -322,6 +384,18 @@ def lovac_owner_housing_location_quality_check(
     lovac_owner_housing_locations,
 ):
     config = context.op_config
+    expected_scope = _normalized_scope(config)
+    report_scope = lovac_owner_housing_locations.get("scope")
+    if not isinstance(report_scope, dict):
+        raise Failure("Location report does not contain a valid scope.")
+    actual_scope = _normalized_scope(report_scope | {"allow_full_year": True})
+    if actual_scope != expected_scope:
+        raise Failure(
+            "Quality-check scope does not match the owner-housing location report.",
+            metadata=_metadata_from_dict(
+                {"expected_scope": expected_scope, "report_scope": actual_scope}
+            ),
+        )
     where_sql, params = _scope_where(config)
     query = f"""
         SELECT
@@ -364,7 +438,7 @@ def lovac_owner_housing_location_quality_check(
 
     total_pairs = int(row[0])
     classified_pairs = int(row[1])
-    coverage_ratio = classified_pairs / total_pairs if total_pairs else 1.0
+    coverage_ratio = classified_pairs / total_pairs if total_pairs else 0.0
     summary = {
         "total_pairs": total_pairs,
         "classified_pairs": classified_pairs,
@@ -378,6 +452,11 @@ def lovac_owner_housing_location_quality_check(
         "below_threshold": coverage_ratio < config["min_coverage_ratio"],
     }
     metadata = _metadata_from_dict(summary)
+    if total_pairs == 0:
+        raise Failure(
+            "LOVAC quality-check scope contains no owner-housing pairs.",
+            metadata=metadata,
+        )
     if summary["below_threshold"] and config["fail_on_low_coverage"]:
         raise Failure(
             "LOVAC owner-housing location coverage is below the configured threshold.",

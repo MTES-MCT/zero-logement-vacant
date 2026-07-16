@@ -39,7 +39,7 @@ From `analytics/dagster`:
 
 ```bash
 uv sync
-dagster dev
+uv run dagster dev -w workspace.yaml
 ```
 
 Open the Dagster UI, select the job `lovac_post_import_enrichment`, then use the
@@ -55,6 +55,7 @@ ops:
   lovac_owner_ban_backfill:
     config:
       data_file_year: lovac-2026
+      establishment_id: "<establishment_uuid>"
       dry_run: true
   lovac_owner_housing_locations:
     config:
@@ -78,6 +79,7 @@ ops:
   lovac_owner_ban_backfill:
     config:
       data_file_year: lovac-2026
+      geo_codes: ["38200"]
       dry_run: true
   lovac_owner_housing_locations:
     config:
@@ -100,7 +102,13 @@ Expected dry-run checks:
   `locprop_relative_ban IS NULL` in the same scope.
 - `updates_prepared` equals the number of processed pairs.
 - `updated_pairs` is `0`.
+- `errors` is `0`.
 - `classification_counts` contains non-zero values for the expected categories.
+
+The quality check fails when the requested scope is empty or differs from the
+scope reported by the calculation asset. Dry-runs and real calculations fail on
+processing errors; real calculations also fail when fewer rows are written than
+prepared.
 
 ## Write Pilot
 
@@ -111,6 +119,7 @@ ops:
   lovac_owner_ban_backfill:
     config:
       data_file_year: lovac-2026
+      establishment_id: "<establishment_uuid>"
       dry_run: true
   lovac_owner_housing_locations:
     config:
@@ -139,6 +148,7 @@ ops:
   lovac_owner_ban_backfill:
     config:
       data_file_year: lovac-2026
+      establishment_id: "<establishment_uuid>"
       dry_run: true
   lovac_owner_housing_locations:
     config:
@@ -168,11 +178,13 @@ ops:
   lovac_owner_ban_backfill:
     config:
       data_file_year: lovac-2026
+      establishment_id: "<establishment_uuid>"
       dry_run: false
       limit: 5000
       workers: 2
       chunk: 500
-      fetch_batch: 20000
+      fetch_batch: 5000
+      rebuild_targets: true
   lovac_owner_housing_locations:
     config:
       data_file_year: lovac-2026
@@ -187,6 +199,13 @@ ops:
       min_coverage_ratio: 0.95
       fail_on_low_coverage: false
 ```
+
+`limit` is a strict upper bound. The backfill stops the current batch on any BAN
+slice error and does not advance its resume cursor past failed owners. Fix the
+API or connectivity issue, then relaunch the same configuration to resume.
+Tables and cursor files are isolated by cohort and scope. Keep
+`rebuild_targets: true` for the first run after an import; set it to `false`
+only to resume that exact operation without rebuilding its target table.
 
 For a full-year owner BAN backfill, set `allow_full_year: true`. Do that only as
 a planned operation because it can geocode many owners:
@@ -215,3 +234,12 @@ After each annual LOVAC import:
 The long-term goal is to make this job the post-process step after
 `housing-owners` import, once the annual procedure has been validated on one
 millésime.
+
+## Runtime Packaging
+
+The canonical location calculator lives in
+`analytics/dagster/scripts/owner-housing-distances`. The files under
+`server/src/scripts/owner-housing-distances` are compatibility entrypoints for
+local CLI usage and existing tests. The Dagster image must be built with
+`analytics/dagster` as its Docker context; its build smoke-check verifies that
+the calculator, country detector, and BAN backfill are present and importable.

@@ -23,9 +23,8 @@ This script:
   - Is **resumable**: the cursor (last processed owner id) is persisted to disk,
     so Ctrl-C / crash / re-run picks up where it stopped.
 
-Cursor files are isolated per mode + data-source:
-    .backfill_ban_owners.{by}.{data_source}.cursor.json
-so the two modes never clobber each other's resume position.
+Cursor files are isolated per mode, data-source, and optional housing scope, so
+annual, establishment, and commune runs never share a resume position.
 
 It reuses the *exact* BAN client and upsert helpers as the Dagster asset
 (loaded directly from ``src/assets/ban/``), so the written rows are identical:
@@ -50,6 +49,8 @@ From ``analytics/dagster/`` with the same Postgres + BAN env as Dagster:
     # ban_backfill_targets_<tag> table (one heavy join), then paginates it.
     uv run python scripts/backfill_ban_owners.py --by housing-lovac
     uv run python scripts/backfill_ban_owners.py --by housing-lovac --data-source lovac-2026
+    uv run python scripts/backfill_ban_owners.py --by housing-lovac --geo-code 38200
+    uv run python scripts/backfill_ban_owners.py --by housing-lovac --establishment-id <uuid>
     uv run python scripts/backfill_ban_owners.py --by housing-lovac --rebuild-targets  # after a new import
 
 Required env: POSTGRES_PRODUCTION_DB, POSTGRES_PRODUCTION_PORT,
@@ -59,9 +60,11 @@ POSTGRES_PRODUCTION_WRITE_ACCESS_PASSWORD, BAN_API_URL.
 Tune --workers conservatively: the public BAN API rate-limits per IP. If you see
 429/503, lower --workers. For tens of millions, prefer a self-hosted addok.
 """
+
 from __future__ import annotations
 
 import argparse
+import hashlib
 import importlib.util
 import json
 import logging
@@ -156,7 +159,8 @@ SELECT DISTINCT oh.owner_id AS id
 FROM owners_housing oh
 JOIN fast_housing fh
   ON fh.id = oh.housing_id AND fh.geo_code = oh.housing_geo_code
-WHERE %(data_source)s = ANY(fh.data_file_years);
+WHERE %(data_source)s = ANY(fh.data_file_years)
+{scope_sql};
 ALTER TABLE {table} ADD PRIMARY KEY (id);
 """
 
@@ -187,13 +191,66 @@ WHERE o.address_dgfip IS NOT NULL
 """
 
 
-def _targets_table(data_source: str) -> str:
+def _scope_suffix(
+    establishment_id: str | None = None, geo_codes: tuple[str, ...] = ()
+) -> str:
+    normalized_geo_codes = sorted(set(geo_codes))
+    if not establishment_id and not normalized_geo_codes:
+        return ""
+    payload = json.dumps(
+        {
+            "establishment_id": establishment_id,
+            "geo_codes": normalized_geo_codes,
+        },
+        sort_keys=True,
+    )
+    return "_" + hashlib.sha256(payload.encode()).hexdigest()[:12]
+
+
+def _targets_table(
+    data_source: str,
+    establishment_id: str | None = None,
+    geo_codes: tuple[str, ...] = (),
+) -> str:
     """Persistent targets-table name for a cohort tag, e.g.
     lovac-2026 -> ban_backfill_targets_lovac_2026. Validates the tag so it is safe
     to inline as an SQL identifier (table names cannot be bind params)."""
     if not re.fullmatch(r"[a-z0-9-]+", data_source):
         sys.exit(f"Refusing unsafe data-source identifier: {data_source!r}")
-    return "ban_backfill_targets_" + data_source.replace("-", "_")
+    return (
+        "ban_backfill_targets_"
+        + data_source.replace("-", "_")
+        + _scope_suffix(establishment_id, geo_codes)
+    )
+
+
+def housing_lovac_build_query(
+    data_source: str,
+    establishment_id: str | None = None,
+    geo_codes: tuple[str, ...] = (),
+) -> tuple[str, dict]:
+    table = _targets_table(data_source, establishment_id, geo_codes)
+    clauses: list[str] = []
+    params: dict = {"data_source": data_source}
+    if establishment_id:
+        clauses.append("""
+  AND fh.geo_code = ANY(
+    COALESCE(
+      (
+        SELECT localities_geo_code
+        FROM establishments
+        WHERE id = %(establishment_id)s::uuid
+      ),
+      ARRAY[]::text[]
+    )
+  )
+            """.rstrip())
+        params["establishment_id"] = establishment_id
+    if geo_codes:
+        clauses.append("  AND fh.geo_code = ANY(%(geo_codes)s::text[])")
+        params["geo_codes"] = list(geo_codes)
+    scope_sql = "\n".join(clauses)
+    return HOUSING_LOVAC_BUILD_SQL.format(table=table, scope_sql=scope_sql), params
 
 
 # ---------------------------------------------------------------------------
@@ -224,17 +281,23 @@ WHERE o.address_dgfip IS NOT NULL
 """
 
 
-def _mode_sql(by: str, data_source: str) -> tuple[str, str]:
+def _mode_sql(
+    by: str,
+    data_source: str,
+    establishment_id: str | None = None,
+    geo_codes: tuple[str, ...] = (),
+) -> tuple[str, str]:
     """Return (candidates_sql, remaining_sql) for the selection mode."""
     if by == "owner-cohort":
         return OWNER_COHORT_CANDIDATES_SQL, OWNER_COHORT_REMAINING_SQL
     if by == "all-owners":
         return ALL_OWNERS_CANDIDATES_SQL, ALL_OWNERS_REMAINING_SQL
-    table = _targets_table(data_source)
+    table = _targets_table(data_source, establishment_id, geo_codes)
     return (
         HOUSING_LOVAC_CANDIDATES_SQL.format(table=table),
         HOUSING_LOVAC_REMAINING_SQL.format(table=table),
     )
+
 
 ZERO_UUID = "00000000-0000-0000-0000-000000000000"
 
@@ -264,12 +327,23 @@ def connect():
     )
 
 
-def cursor_file(by: str, data_source: str) -> Path:
-    return Path(f".backfill_ban_owners.{by}.{data_source}.cursor.json")
+def cursor_file(
+    by: str,
+    data_source: str,
+    establishment_id: str | None = None,
+    geo_codes: tuple[str, ...] = (),
+) -> Path:
+    suffix = _scope_suffix(establishment_id, geo_codes)
+    return Path(f".backfill_ban_owners.{by}.{data_source}{suffix}.cursor.json")
 
 
-def load_cursor(by: str, data_source: str) -> str:
-    f = cursor_file(by, data_source)
+def load_cursor(
+    by: str,
+    data_source: str,
+    establishment_id: str | None = None,
+    geo_codes: tuple[str, ...] = (),
+) -> str:
+    f = cursor_file(by, data_source, establishment_id, geo_codes)
     if f.exists():
         last_id = json.loads(f.read_text())["last_id"]
         LOG.info("Resuming from cursor %s (%s)", last_id, f)
@@ -277,8 +351,16 @@ def load_cursor(by: str, data_source: str) -> str:
     return ZERO_UUID
 
 
-def save_cursor(by: str, data_source: str, last_id: str) -> None:
-    cursor_file(by, data_source).write_text(json.dumps({"last_id": last_id}))
+def save_cursor(
+    by: str,
+    data_source: str,
+    last_id: str,
+    establishment_id: str | None = None,
+    geo_codes: tuple[str, ...] = (),
+) -> None:
+    cursor_file(by, data_source, establishment_id, geo_codes).write_text(
+        json.dumps({"last_id": last_id})
+    )
 
 
 def remaining(conn, remaining_sql: str, data_source: str) -> int:
@@ -287,13 +369,19 @@ def remaining(conn, remaining_sql: str, data_source: str) -> int:
         return cur.fetchone()[0]
 
 
-def ensure_targets(conn, data_source: str, rebuild: bool) -> None:
+def ensure_targets(
+    conn,
+    data_source: str,
+    rebuild: bool,
+    establishment_id: str | None = None,
+    geo_codes: tuple[str, ...] = (),
+) -> None:
     """housing-lovac mode: make sure the persistent targets table exists.
 
     Builds it once (the heavy owners_housing<->fast_housing join) with jit off and
     a fat work_mem so the hash doesn't spill. Subsequent runs reuse it. Pass
     rebuild=True to force a fresh build (e.g. after a new LOVAC import)."""
-    table = _targets_table(data_source)
+    table = _targets_table(data_source, establishment_id, geo_codes)
     with conn.cursor() as cur:
         cur.execute("SELECT to_regclass(%s)", (table,))
         exists = cur.fetchone()[0] is not None
@@ -308,14 +396,19 @@ def ensure_targets(conn, data_source: str, rebuild: bool) -> None:
     with conn.cursor() as cur:
         cur.execute("SET jit = off")
         cur.execute("SET work_mem = '512MB'")
-        cur.execute(HOUSING_LOVAC_BUILD_SQL.format(table=table), {"data_source": data_source})
+        query, params = housing_lovac_build_query(
+            data_source, establishment_id, geo_codes
+        )
+        cur.execute(query, params)
     conn.commit()
     with conn.cursor() as cur:
         cur.execute(f"SELECT count(*) FROM {table}")
         LOG.info("Built %s — %d target owners.", table, cur.fetchone()[0])
 
 
-def fetch_batch(conn, candidates_sql: str, data_source: str, last_id: str, limit: int) -> pd.DataFrame:
+def fetch_batch(
+    conn, candidates_sql: str, data_source: str, last_id: str, limit: int
+) -> pd.DataFrame:
     return pd.read_sql_query(
         candidates_sql,
         conn,
@@ -323,27 +416,47 @@ def fetch_batch(conn, candidates_sql: str, data_source: str, last_id: str, limit
     )
 
 
-def geocode_parallel(df: pd.DataFrame, chunk: int, workers: int, api_url: str) -> pd.DataFrame:
+def next_fetch_limit(fetch_batch: int, *, limit: int, processed: int) -> int:
+    if limit <= 0:
+        return fetch_batch
+    return min(fetch_batch, max(limit - processed, 0))
+
+
+def geocode_parallel(
+    df: pd.DataFrame, chunk: int, workers: int, api_url: str
+) -> pd.DataFrame:
     """Split df into `chunk`-sized slices, geocode them concurrently, concat."""
     slices = [df.iloc[i : i + chunk] for i in range(0, len(df), chunk)]
     results: list[pd.DataFrame] = []
     with ThreadPoolExecutor(max_workers=workers) as pool:
-        futures = {pool.submit(call_ban_api, s, api_url): i for i, s in enumerate(slices)}
+        futures = {
+            pool.submit(call_ban_api, s, api_url): i for i, s in enumerate(slices)
+        }
         for fut in as_completed(futures):
             i = futures[fut]
             try:
                 results.append(fut.result())
             except BanApiFatalError:
                 raise  # 4xx config error — abort, retrying won't help
-            except Exception as e:  # noqa: BLE001 — transient slice, log + skip
-                LOG.error("slice %d failed after retries: %s — skipped", i, e)
+            except Exception as error:
+                LOG.error(
+                    "slice %d failed after retries: %s — aborting batch", i, error
+                )
+                raise
     return pd.concat(results, ignore_index=True) if results else pd.DataFrame()
 
 
 def run(args: argparse.Namespace) -> None:
     ds = args.data_source
     by = args.by
-    candidates_sql, remaining_sql = _mode_sql(by, ds)
+    establishment_id = args.establishment_id or None
+    geo_codes = tuple(args.geo_code or ())
+    if by != "housing-lovac" and (establishment_id or geo_codes):
+        raise ValueError(
+            "--establishment-id/--geo-code are only supported with "
+            "--by housing-lovac."
+        )
+    candidates_sql, remaining_sql = _mode_sql(by, ds, establishment_id, geo_codes)
 
     api_url = os.environ["BAN_API_URL"]
     conn = connect()
@@ -351,7 +464,13 @@ def run(args: argparse.Namespace) -> None:
 
     # housing-lovac reads from a precomputed targets table; build it if missing.
     if by == "housing-lovac":
-        ensure_targets(conn, ds, rebuild=args.rebuild_targets)
+        ensure_targets(
+            conn,
+            ds,
+            rebuild=args.rebuild_targets,
+            establishment_id=establishment_id,
+            geo_codes=geo_codes,
+        )
 
     # The remaining COUNT(*) now just counts the small targets table joined to
     # owners — cheap. Still only run it on demand to keep a plain run fast.
@@ -361,7 +480,11 @@ def run(args: argparse.Namespace) -> None:
         print(total_left)
         return
 
-    last_id = ZERO_UUID if args.reset else load_cursor(by, ds)
+    last_id = (
+        ZERO_UUID
+        if args.reset or args.rebuild_targets
+        else load_cursor(by, ds, establishment_id, geo_codes)
+    )
     processed = ok = nf = 0
     stop = {"flag": False}
 
@@ -381,9 +504,18 @@ def run(args: argparse.Namespace) -> None:
                 LOG.info("Reached --limit %d — stopping.", args.limit)
                 break
 
-            df = fetch_batch(conn, candidates_sql, ds, last_id, args.fetch_batch)
+            fetch_limit = next_fetch_limit(
+                args.fetch_batch,
+                limit=args.limit,
+                processed=processed,
+            )
+            if fetch_limit <= 0:
+                break
+            df = fetch_batch(conn, candidates_sql, ds, last_id, fetch_limit)
             if df.empty:
-                LOG.info("No more candidates — mode %s / cohort %s fully geocoded.", by, ds)
+                LOG.info(
+                    "No more candidates — mode %s / cohort %s fully geocoded.", by, ds
+                )
                 break
 
             api = geocode_parallel(df, args.chunk, args.workers, api_url)
@@ -393,12 +525,16 @@ def run(args: argparse.Namespace) -> None:
                 conn.commit()
 
             last_id = str(df["ref_id"].iloc[-1])
-            save_cursor(by, ds, last_id)
+            save_cursor(by, ds, last_id, establishment_id, geo_codes)
             processed += len(df)
             LOG.info(
                 "batch: in=%d ok_total=%d nf_total=%d processed=%d/%s cursor=%s",
-                len(df), ok, nf, processed,
-                total_left if total_left is not None else "?", last_id,
+                len(df),
+                ok,
+                nf,
+                processed,
+                total_left if total_left is not None else "?",
+                last_id,
             )
 
     LOG.info("Done. processed=%d ok=%d not_found=%d", processed, ok, nf)
@@ -430,12 +566,31 @@ def main() -> None:
             "In housing-lovac mode: matched against fast_housing.data_file_years elements."
         ),
     )
-    p.add_argument("--fetch-batch", type=int, default=20_000, help="rows fetched per DB page")
-    p.add_argument("--chunk", type=int, default=500, help="addresses per BAN API request")
+    p.add_argument(
+        "--establishment-id",
+        default="",
+        help="housing-lovac: restrict targets to the establishment geo codes",
+    )
+    p.add_argument(
+        "--geo-code",
+        action="append",
+        default=[],
+        help="housing-lovac: restrict targets to an INSEE geo code; repeatable",
+    )
+    p.add_argument(
+        "--fetch-batch", type=int, default=20_000, help="rows fetched per DB page"
+    )
+    p.add_argument(
+        "--chunk", type=int, default=500, help="addresses per BAN API request"
+    )
     p.add_argument("--workers", type=int, default=8, help="concurrent BAN requests")
     p.add_argument("--limit", type=int, default=0, help="stop after N owners (0 = all)")
-    p.add_argument("--count", action="store_true", help="print remaining count and exit")
-    p.add_argument("--reset", action="store_true", help="ignore saved cursor, start over")
+    p.add_argument(
+        "--count", action="store_true", help="print remaining count and exit"
+    )
+    p.add_argument(
+        "--reset", action="store_true", help="ignore saved cursor, start over"
+    )
     p.add_argument(
         "--rebuild-targets",
         action="store_true",

@@ -1064,9 +1064,13 @@ git commit -m "feat(server): add daily cron settling sent-campaign housing statu
 - Modify: `server/src/scripts/repairs/index.ts`
 - Test: `server/src/scripts/repairs/test/campaign-sending-date.test.ts`
 
+> **⚠️ Harness contract (post-rebase onto `43e2d4de7`).** The repair harness was refactored to stream: `Repair.query()` now returns a **`RowStream<H>`** (a branded object-mode `Readable`), not `Promise<H[]>`. `plan()` pipes that stream through a `Writable` decider. `RepairAction` and `decide` are unchanged (`decide` still sync, returning `{ update, deleteEventIds, createEvents } | { action: 'skip' } | { action: 'error', reason }`), and `apply` still applies `update` (status/sub_status) and hard-deletes `deleteEventIds` exactly as this repair needs.
+>
+> Build the stream with `rows<H>(...)` from `./lib/row-stream`: `rows(knexStream)` for a Knex `.stream()`, or `rows(iterable)` for an in-memory set. **This repair enriches in bulk** (three per-batch join-table lookups, per the "pure transform + bulk enrich" rule) and returns a real camelCase `HousingApi` from `housingRepository.find`, so it uses the in-memory form: build the enriched candidates in an `async function buildCandidates()` and stream them via a `Readable` wrapped in `rows<HousingWithContext>()`. A raw `Housing().stream()` is **not** an option here — there is no response camel-casing (`index.ts:45` only camel→snakes query identifiers), so streamed rows would be snake_case DBO with `geoCode`/`subStatus` undefined, breaking both `decide` and `plan()`'s `housingGeoCode` extraction.
+
 **Interfaces:**
-- Consumes: `Repair` / `RepairAction` from `./lib/types`; `isSendDateReached`; `today`; `HOUSING_STATUS_LABELS`; `HousingStatus`; `housingRepository.find`; the `CampaignsHousing`, `HousingEvents`, `CampaignHousingEvents` accessors and the `campaignsTable`, `campaignsHousingTable`, `EVENTS_TABLE`, `HOUSING_EVENTS_TABLE`, `CAMPAIGN_HOUSING_EVENTS_TABLE` constants; `chunksOf` from `effect/Array`.
-- Produces: `campaignSendingDateRepair: Repair<HousingWithContext>`, registered under key `'campaign-sending-date'`.
+- Consumes: `Repair` from `./lib/types`; `rows` (value) and `RowStream` (type) from `./lib/row-stream`; `Readable` from `node:stream`; `isSendDateReached`; `today`; `HOUSING_STATUS_LABELS`; `HousingStatus`; `housingRepository.find`; the `CampaignsHousing`, `HousingEvents`, `CampaignHousingEvents` accessors and the `campaignsTable`, `campaignsHousingTable`, `EVENTS_TABLE`, `HOUSING_EVENTS_TABLE`, `CAMPAIGN_HOUSING_EVENTS_TABLE` constants; `chunksOf` from `effect/Array`.
+- Produces: `campaignSendingDateRepair: Repair<HousingWithContext>` (with `query(): RowStream<HousingWithContext>`), registered under key `'campaign-sending-date'`.
 
 The enriched working type (only these fields beyond `HousingApi` are read by `decide`):
 
@@ -1207,6 +1211,8 @@ Expected: FAIL — `../campaign-sending-date` does not exist.
 Create `server/src/scripts/repairs/campaign-sending-date.ts`:
 
 ```typescript
+import { Readable } from 'node:stream';
+
 import { HOUSING_STATUS_LABELS, HousingStatus } from '@zerologementvacant/models';
 import { chunksOf } from 'effect/Array';
 
@@ -1228,6 +1234,8 @@ import {
 } from '~/repositories/eventRepository';
 import housingRepository from '~/repositories/housingRepository';
 import { today } from '~/utils/date';
+import { rows } from './lib/row-stream';
+import type { RowStream } from './lib/row-stream';
 import type { Repair } from './lib/types';
 
 /**
@@ -1257,10 +1265,25 @@ export const campaignSendingDateRepair: Repair<HousingWithContext> = {
   // rows; disable the counts triggers and recompute once.
   bypassTriggers: true,
 
-  async query(): Promise<HousingWithContext[]> {
-    const now = today();
+  // Bulk-enrich the bounded candidate set once, then stream it. `rows<H>()`
+  // brands the Readable so `plan()` consumes it type-safely. `buildCandidates`
+  // is a hoisted declaration, so calling it above its definition is fine.
+  query(): RowStream<HousingWithContext> {
+    const output = new Readable({ objectMode: true, read() {} });
+    buildCandidates().then(
+      (candidates) => {
+        candidates.forEach((candidate) => output.push(candidate));
+        output.push(null);
+      },
+      (error) =>
+        output.destroy(error instanceof Error ? error : new Error(String(error)))
+    );
+    return rows<HousingWithContext>(output);
 
-    const waiting = (
+    async function buildCandidates(): Promise<HousingWithContext[]> {
+      const now = today();
+
+      const waiting = (
       await housingRepository.find({
         filters: { status: HousingStatus.WAITING },
         pagination: { paginate: false }
@@ -1390,16 +1413,17 @@ export const campaignSendingDateRepair: Repair<HousingWithContext> = {
       }
     }
 
-    return waiting.map((housing) => {
-      const k = key(housing);
-      return {
-        ...housing,
-        today: now,
-        campaigns: campaignsByHousing.get(k) ?? [],
-        lastStatusUpdatedEvent: statusEventByHousing.get(k) ?? null,
-        campaignAttachedEvents: attachedByHousing.get(k) ?? []
-      };
-    });
+      return waiting.map((housing) => {
+        const k = key(housing);
+        return {
+          ...housing,
+          today: now,
+          campaigns: campaignsByHousing.get(k) ?? [],
+          lastStatusUpdatedEvent: statusEventByHousing.get(k) ?? null,
+          campaignAttachedEvents: attachedByHousing.get(k) ?? []
+        };
+      });
+    }
   },
 
   decide(housing) {
@@ -1466,11 +1490,13 @@ export const repairs: Record<string, Repair<any>> = {
 
 - [ ] **Step 6: Add a `query()` integration test**
 
-Append to `server/src/scripts/repairs/test/campaign-sending-date.test.ts` a DB-backed test that seeds one WAITING housing (`subStatus: null`) attached to a campaign with `sentAt = null`, plus a pristine `housing:status-updated` event and a `housing:campaign-attached` event a few milliseconds apart, then asserts `query()` returns exactly that housing enriched with one campaign (`sentAt: null`), a `lastStatusUpdatedEvent` whose `nextNew.status` is `'En attente de retour'`, and one `campaignAttachedEvents` entry. Seed events with `genEventApi({ type, creator, nextOld, nextNew })` from `~/test/testFixtures` and attach the `housing_events` / `campaign_housing_events` join rows via the accessors (there is no `genHousingEventApi`; build the join rows explicitly, as in `campaignRepository.test.ts`). Then feed the result through `decide()` and assert it returns the revert action.
+Append to `server/src/scripts/repairs/test/campaign-sending-date.test.ts` a DB-backed test that seeds one WAITING housing (`subStatus: null`) attached to a campaign with `sentAt = null`, plus a pristine `housing:status-updated` event and a `housing:campaign-attached` event pinned to timestamps within `ATTACHMENT_CORRELATION_TOLERANCE_MS`, then **consumes the `query()` stream** and asserts it yields exactly that housing enriched with one campaign (`sentAt: null`), a `lastStatusUpdatedEvent` whose `nextNew.status` is `'En attente de retour'`, and one `campaignAttachedEvents` entry. `query()` now returns a `RowStream<HousingWithContext>` (a `Readable`), so collect it with `stream/promises` `pipeline` into a `Writable` — do NOT `await query()` as an array. Seed events with `genEventApi({ type, creator, nextOld, nextNew })` from `~/test/testFixtures` and attach the `housing_events` / `campaign_housing_events` join rows via the accessors (there is no `genHousingEventApi`; build the join rows explicitly, as in `campaignRepository.test.ts`). Then feed the yielded row through `decide()` and assert it returns the revert action.
 
 ```typescript
 // added to the same test file
-import { startTransaction } from '~/infra/database/transaction';
+import { Writable } from 'node:stream';
+import { pipeline } from 'node:stream/promises';
+
 import { Establishments, formatEstablishmentApi } from '~/repositories/establishmentRepository';
 import { Users, toUserDBO } from '~/repositories/userRepository';
 import { Housing, formatHousingRecordApi } from '~/repositories/housingRepository';
@@ -1478,6 +1504,7 @@ import { Campaigns, formatCampaignApi } from '~/repositories/campaignRepository'
 import { CampaignsHousing } from '~/repositories/campaignHousingRepository';
 import { Events, HousingEvents, CampaignHousingEvents, formatEventApi } from '~/repositories/eventRepository';
 import { genEstablishmentApi, genUserApi, genCampaignApi, genEventApi } from '~/test/testFixtures';
+// add HousingWithContext to the existing import from '../campaign-sending-date'
 
 describe('campaignSendingDateRepair.query (integration)', () => {
   const establishment = genEstablishmentApi();
@@ -1513,7 +1540,14 @@ describe('campaignSendingDateRepair.query (integration)', () => {
       nextOld: { status: HOUSING_STATUS_LABELS[HousingStatus.NEVER_CONTACTED] },
       nextNew: { status: HOUSING_STATUS_LABELS[HousingStatus.WAITING] }
     });
-    await Events().insert([attached, flip].map(formatEventApi));
+    // Pin created_at so attach + flip fall within ATTACHMENT_CORRELATION_TOLERANCE_MS
+    // (genEventApi uses faker.date.past(), which would otherwise place them far apart).
+    const flipTime = new Date('2026-01-01T10:00:00.000Z');
+    await Events().insert({ ...formatEventApi(flip), created_at: flipTime });
+    await Events().insert({
+      ...formatEventApi(attached),
+      created_at: new Date(flipTime.getTime() + 2000)
+    });
     await CampaignHousingEvents().insert({
       event_id: attached.id,
       campaign_id: campaign.id,
@@ -1526,7 +1560,18 @@ describe('campaignSendingDateRepair.query (integration)', () => {
       housing_id: housing.id
     });
 
-    const enriched = await campaignSendingDateRepair.query();
+    // query() returns a RowStream (Readable); collect it, don't await an array.
+    const enriched: HousingWithContext[] = [];
+    await pipeline(
+      campaignSendingDateRepair.query(),
+      new Writable({
+        objectMode: true,
+        write(row: HousingWithContext, _encoding, callback) {
+          enriched.push(row);
+          callback();
+        }
+      })
+    );
     const target = enriched.find((h) => h.id === housing.id);
     expect(target).toBeDefined();
     expect(target!.campaigns).toEqual([{ id: campaign.id, sentAt: null }]);
@@ -1541,7 +1586,7 @@ describe('campaignSendingDateRepair.query (integration)', () => {
 });
 ```
 
-> `genEventApi` timestamps events with `faker.date.past()`, so the seeded `attached` and `flip` events will not be within the tolerance window of each other. If the correlation assertion via `decide` matters here, override both events' `created_at` to close timestamps when inserting (e.g. `formatEventApi(flip)` then `.insert({ ...row, created_at: new Date(t) })`), mirroring `campaignRepository.test.ts` lines ~674–688.
+> The `created_at` pinning above is essential: `genEventApi` timestamps with `faker.date.past()`, so without it the attach and flip events land far apart and `decide` would (correctly) skip on the correlation check, failing the revert assertion. The pattern (`{ ...formatEventApi(event), created_at }`) mirrors `campaignRepository.test.ts` lines ~674–688. Add `HousingWithContext` to the `import type { ... } from '../campaign-sending-date'` you already have from Step 1.
 
 - [ ] **Step 7: Run all repair tests, verify `zlv repair list`**
 

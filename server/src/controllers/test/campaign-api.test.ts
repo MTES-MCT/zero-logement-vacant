@@ -1063,6 +1063,83 @@ describe('Campaign API', () => {
         .executeTakeFirst();
       expect(actual?.status).toBe(HousingStatus.NEVER_CONTACTED);
     });
+
+    it('does not re-run the flip when sentAt is unchanged', async () => {
+      const alreadySentCampaign = await factories
+        .campaign(establishment)
+        .create(
+          { sentAt: '2020-01-01' },
+          { associations: { createdBy: user } }
+        );
+
+      // Added after the campaign was already sent: if update() re-ran the
+      // flip on every save (even with sentAt unchanged), this housing would
+      // get swept up the next time the campaign's metadata is edited.
+      const housing = await factories.housing.create({
+        geoCode: faker.helpers.arrayElement(establishment.geoCodes),
+        status: HousingStatus.NEVER_CONTACTED,
+        subStatus: null
+      });
+      await kysely
+        .insertInto('campaignsHousing')
+        .values({
+          campaignId: alreadySentCampaign.id,
+          housingGeoCode: housing.geoCode,
+          housingId: housing.id
+        })
+        .execute();
+
+      const payload: CampaignUpdatePayload = {
+        title: faker.lorem.word(),
+        description: faker.lorem.words(),
+        sentAt: alreadySentCampaign.sentAt
+      };
+
+      const { status } = await request(url)
+        .put(testRoute(alreadySentCampaign.id))
+        .send(payload)
+        .use(tokenProvider(user));
+
+      expect(status).toBe(constants.HTTP_STATUS_OK);
+      const actual = await kysely
+        .selectFrom('fastHousing')
+        .selectAll('fastHousing')
+        .where('geoCode', '=', housing.geoCode)
+        .where('id', '=', housing.id)
+        .executeTakeFirst();
+      expect(actual?.status).toBe(HousingStatus.NEVER_CONTACTED);
+    });
+
+    it('still saves the campaign when the system account cannot be resolved', async () => {
+      const system = await userRepository.getByEmail(config.app.system);
+      await kysely
+        .updateTable('users')
+        .set({ deletedAt: new Date() })
+        .where('id', '=', system!.id)
+        .execute();
+
+      try {
+        const payload: CampaignUpdatePayload = {
+          title: faker.lorem.word(),
+          description: faker.lorem.words(),
+          sentAt: '2020-01-01'
+        };
+
+        const { status, body } = await request(url)
+          .put(testRoute(campaign.id))
+          .send(payload)
+          .use(tokenProvider(user));
+
+        expect(status).toBe(constants.HTTP_STATUS_OK);
+        expect(body.title).toBe(payload.title);
+      } finally {
+        await kysely
+          .updateTable('users')
+          .set({ deletedAt: null })
+          .where('id', '=', system!.id)
+          .execute();
+      }
+    });
   });
 
   describe('DELETE /campaigns/{id}', () => {

@@ -393,7 +393,7 @@ describe('Owner API', () => {
       it('should return 400 when :id is not a UUID', async () => {
         const { status, body } = await request(url)
           .put(testRoute('not-a-uuid'))
-          .send({ fullName: 'Jane Doe' })
+          .send({ fullName: 'Jane Doe', doNotContact: false })
           .set('Content-Type', 'application/json')
           .use(tokenProvider(user));
 
@@ -418,6 +418,7 @@ describe('Owner API', () => {
           .put(testRoute(validId))
           .send({
             fullName: 'Jane Doe',
+            doNotContact: false,
             banAddress: {
               banId: 'ban-123',
               postalCode: '75001',
@@ -443,7 +444,9 @@ describe('Owner API', () => {
         phone: faker.phone.number(),
         email: faker.internet.email(),
         banAddress: genAddressDTO(),
-        additionalAddress: 'Les Cabannes'
+        additionalAddress: 'Les Cabannes',
+        // Unchanged: send the existing value so it stays out of the event diff.
+        doNotContact: original.doNotContact
       } satisfies OwnerUpdatePayload;
 
       const { status } = await request(url)

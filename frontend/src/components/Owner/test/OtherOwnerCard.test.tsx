@@ -4,7 +4,7 @@ import { MemoryRouter } from 'react-router';
 import OtherOwnerCard from '~/components/Owner/OtherOwnerCard';
 
 describe('OtherOwnerCard', () => {
-  function renderCard(doNotContact: boolean | null) {
+  function renderCard(doNotContact: boolean) {
     return render(
       <MemoryRouter>
         <OtherOwnerCard

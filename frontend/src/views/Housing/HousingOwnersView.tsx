@@ -134,8 +134,7 @@ function HousingOwnersView() {
     // "Do not contact" is an owner-level flag (global), distinct from the
     // per-housing rank. It is set whenever that option is chosen.
     const doNotContact = payload.isActive && payload.rank === 'do-not-contact';
-    const doNotContactChanged =
-      (selectedOwner.doNotContact ?? false) !== doNotContact;
+    const doNotContactChanged = selectedOwner.doNotContact !== doNotContact;
 
     if (!ownerEquals || doNotContactChanged) {
       await updateOwner({

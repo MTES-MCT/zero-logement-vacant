@@ -64,5 +64,5 @@ export const ownerPayload = object({
       }
     }),
   additionalAddress: string().nullable().notRequired(),
-  doNotContact: boolean().nullable().notRequired()
+  doNotContact: boolean().required()
 });

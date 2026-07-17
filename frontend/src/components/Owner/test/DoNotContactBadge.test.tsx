@@ -17,10 +17,4 @@ describe('DoNotContactBadge', () => {
 
     expect(container).toBeEmptyDOMElement();
   });
-
-  it('should render nothing when doNotContact is null', () => {
-    const { container } = render(<DoNotContactBadge doNotContact={null} />);
-
-    expect(container).toBeEmptyDOMElement();
-  });
 });

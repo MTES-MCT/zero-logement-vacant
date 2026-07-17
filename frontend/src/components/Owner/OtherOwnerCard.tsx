@@ -13,7 +13,7 @@ interface OtherOwnerCardProps {
   id: string;
   name: string;
   propertyRight: PropertyRight | null;
-  doNotContact?: boolean | null;
+  doNotContact: boolean;
 }
 
 function OtherOwnerCardNext(props: OtherOwnerCardProps) {
@@ -41,7 +41,7 @@ function OtherOwnerCardNext(props: OtherOwnerCardProps) {
           <Typography sx={{ fontWeight: 700 }}>{props.name}</Typography>
         </Stack>
 
-        <DoNotContactBadge doNotContact={props.doNotContact ?? null} />
+        <DoNotContactBadge doNotContact={props.doNotContact} />
 
         {!props.propertyRight ? null : (
           <PropertyRightTag value={props.propertyRight} />

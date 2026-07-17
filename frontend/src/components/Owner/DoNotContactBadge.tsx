@@ -1,7 +1,7 @@
 import Badge, { type BadgeProps } from '@codegouvfr/react-dsfr/Badge';
 
 export interface DoNotContactBadgeProps {
-  doNotContact: boolean | null;
+  doNotContact: boolean;
   badgeProps?: BadgeProps;
 }
 

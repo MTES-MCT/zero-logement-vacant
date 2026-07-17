@@ -67,11 +67,7 @@ export function diffUpdatedOwner(
       phone: Equivalence.strict<string | null>(),
       address: Equivalence.strict<string | null>(),
       additionalAddress: Equivalence.strict<string | null>(),
-      // Normalise null/undefined to false: an unset flag and an explicit
-      // "false" describe the same "may be contacted" state.
-      doNotContact: Equivalence.make<boolean | null | undefined>(
-        (a, b) => (a ?? false) === (b ?? false)
-      )
+      doNotContact: Equivalence.boolean
     },
     Record.map((equivalence: Equivalence.Equivalence<any>, key) =>
       equivalence(before[key], after[key])
@@ -182,7 +178,7 @@ export function fromDatafoncierOwner(
     phone: null,
     siren: owner.dsiren,
     username: null,
-    doNotContact: null,
+    doNotContact: false,
     banAddress: null,
     additionalAddress: null,
     createdAt: new Date().toISOString(),

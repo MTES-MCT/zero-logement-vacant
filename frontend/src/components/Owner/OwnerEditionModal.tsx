@@ -140,6 +140,8 @@ function createOwnerEditionModalNext() {
         updateOwner({
           id: props.owner.id,
           fullName: props.owner.fullName,
+          // This form does not touch it: send the existing value for idempotency.
+          doNotContact: props.owner.doNotContact,
           birthDate: payload.birthDate,
           banAddress: payload.banAddress
             ? {

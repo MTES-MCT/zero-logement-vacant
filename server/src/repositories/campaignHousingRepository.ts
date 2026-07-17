@@ -1,3 +1,6 @@
+import { Array } from 'effect';
+import pMap from 'p-map';
+
 import db from '~/infra/database';
 import { withinKyselyTransaction } from '~/infra/database/kysely-transaction';
 import { CampaignApi } from '~/models/CampaignApi';
@@ -6,6 +9,10 @@ import { HousingApi } from '~/models/HousingApi';
 export const campaignsHousingTable = 'campaigns_housing';
 export const CampaignsHousing = (transaction = db) =>
   transaction<CampaignHousingDBO>(campaignsHousingTable);
+
+// Matches Knex's batchInsert default chunk size, replicated manually to keep the
+// bulk delete under Postgres's 65535 bind-parameter limit (2 params per housing).
+const INSERT_BATCH_SIZE = 1000;
 
 const insertHousingList = async (
   campaignId: string,
@@ -41,20 +48,26 @@ async function removeMany(
   }
 
   await withinKyselyTransaction(async (trx) => {
-    await trx
-      .deleteFrom('campaignsHousing')
-      .where('campaignId', '=', campaign.id)
-      .where((eb) =>
-        eb.or(
-          housings.map((housing) =>
-            eb.and([
-              eb('housingGeoCode', '=', housing.geoCode),
-              eb('housingId', '=', housing.id)
-            ])
+    await pMap(
+      Array.chunksOf(housings, INSERT_BATCH_SIZE),
+      async (batch) => {
+        await trx
+          .deleteFrom('campaignsHousing')
+          .where('campaignId', '=', campaign.id)
+          .where((eb) =>
+            eb.or(
+              batch.map((housing) =>
+                eb.and([
+                  eb('housingGeoCode', '=', housing.geoCode),
+                  eb('housingId', '=', housing.id)
+                ])
+              )
+            )
           )
-        )
-      )
-      .execute();
+          .execute();
+      },
+      { concurrency: 1 }
+    );
   });
 }
 

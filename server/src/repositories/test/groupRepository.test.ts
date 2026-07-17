@@ -1,8 +1,11 @@
 import { faker } from '@faker-js/faker/locale/fr';
 import { v4 as uuidv4 } from 'uuid';
 
+import { EstablishmentApi } from '~/models/EstablishmentApi';
 import { GroupApi } from '~/models/GroupApi';
 import { HousingApi } from '~/models/HousingApi';
+import { UserApi } from '~/models/UserApi';
+import { factories } from '~/test/factories';
 
 import {
   genEstablishmentApi,
@@ -302,12 +305,12 @@ describe('Group repository', () => {
         .first();
       expect(actualGroup).toMatchObject(formatGroupApi(group));
 
-      const actualHousingList = await GroupsHousing().where({
+      const actualhousings = await GroupsHousing().where({
         group_id: group.id
       });
       const ids = housings.map((housing) => ({ housing_id: housing.id }));
-      expect(actualHousingList).toBeArrayOfSize(housings.length);
-      expect(actualHousingList).toIncludeAllPartialMembers(ids);
+      expect(actualhousings).toBeArrayOfSize(housings.length);
+      expect(actualhousings).toIncludeAllPartialMembers(ids);
     });
 
     it('should update a group that exists', async () => {
@@ -331,11 +334,11 @@ describe('Group repository', () => {
         .first();
       expect(actualGroup).toMatchObject(formatGroupApi(newGroup));
 
-      const actualHousingList = await GroupsHousing().where({
+      const actualhousings = await GroupsHousing().where({
         group_id: group.id
       });
-      expect(actualHousingList).toBeArrayOfSize(1);
-      expect(actualHousingList).toIncludeAllPartialMembers<GroupHousingDBO>([
+      expect(actualhousings).toBeArrayOfSize(1);
+      expect(actualhousings).toIncludeAllPartialMembers<GroupHousingDBO>([
         {
           group_id: group.id,
           housing_id: newHousing.id,
@@ -380,6 +383,52 @@ describe('Group repository', () => {
     });
   });
 
+  describe('removeHousing', () => {
+    let establishment: EstablishmentApi;
+    let user: UserApi;
+
+    beforeAll(async () => {
+      establishment = await factories.establishment.create();
+      user = await factories.user.create({ establishmentId: establishment.id });
+    });
+
+    async function createGroupWithHousings(): Promise<{
+      group: GroupApi;
+      housings: HousingApi[];
+    }> {
+      const group = await factories
+        .group(establishment)
+        .create({}, { associations: { createdBy: user } });
+      const housings = await factories.housing.createList(3);
+      await GroupsHousing().insert(formatGroupHousingApi(group, housings));
+      return { group, housings };
+    }
+
+    it('should remove the given housings from the group', async () => {
+      const { group, housings } = await createGroupWithHousings();
+      const [removed, ...kept] = housings;
+
+      await groupRepository.removeHousing(group, [removed]);
+
+      const actual = await GroupsHousing().where({ group_id: group.id });
+      expect(actual).toBeArrayOfSize(kept.length);
+      expect(actual).not.toPartiallyContain({
+        group_id: group.id,
+        housing_id: removed.id,
+        housing_geo_code: removed.geoCode
+      });
+    });
+
+    it('should do nothing when the housing list is empty', async () => {
+      const { group, housings } = await createGroupWithHousings();
+
+      await groupRepository.removeHousing(group, []);
+
+      const actual = await GroupsHousing().where({ group_id: group.id });
+      expect(actual).toBeArrayOfSize(housings.length);
+    });
+  });
+
   describe('archive', () => {
     const establishment = genEstablishmentApi();
     const user = genUserApi(establishment.id);
@@ -406,7 +455,7 @@ describe('Group repository', () => {
     const establishment = genEstablishmentApi();
     const user = genUserApi(establishment.id);
     const group = genGroupApi(user, establishment);
-    const housingList: HousingApi[] = [
+    const housings: HousingApi[] = [
       genHousingApi(),
       genHousingApi(),
       genHousingApi()
@@ -416,8 +465,8 @@ describe('Group repository', () => {
       await Establishments().insert(formatEstablishmentApi(establishment));
       await Users().insert(toUserDBO(user));
       await Groups().insert(formatGroupApi(group));
-      await Housing().insert(housingList.map(formatHousingRecordApi));
-      await GroupsHousing().insert(formatGroupHousingApi(group, housingList));
+      await Housing().insert(housings.map(formatHousingRecordApi));
+      await GroupsHousing().insert(formatGroupHousingApi(group, housings));
     });
 
     it('should remove a group if it exists', async () => {
@@ -430,10 +479,10 @@ describe('Group repository', () => {
         })
         .first();
       expect(actualGroup).toBeUndefined();
-      const actualHousingList = await GroupsHousing().where({
+      const actualhousings = await GroupsHousing().where({
         group_id: group.id
       });
-      expect(actualHousingList).toBeArrayOfSize(0);
+      expect(actualhousings).toBeArrayOfSize(0);
     });
   });
 

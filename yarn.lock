@@ -11418,6 +11418,7 @@ __metadata:
     nock: "npm:14.0.15"
     nodemailer: "npm:9.0.1"
     otpauth: "npm:9.5.1"
+    p-map: "npm:7.0.5"
     p-memoize: "npm:8.0.0"
     p-retry: "npm:8.0.0"
     pg: "npm:8.20.0"
@@ -19618,6 +19619,13 @@ __metadata:
   dependencies:
     p-limit: "npm:^2.2.0"
   checksum: 10c0/1b476ad69ad7f6059744f343b26d51ce091508935c1dbb80c4e0a2f397ffce0ca3a1f9f5cd3c7ce19d7929a09719d5c65fe70d8ee289c3f267cd36f2881813e9
+  languageName: node
+  linkType: hard
+
+"p-map@npm:7.0.5":
+  version: 7.0.5
+  resolution: "p-map@npm:7.0.5"
+  checksum: 10c0/4ccbb67d36a8d6e2125ab64ccabee424d1c89b03c10afb43830523c7b9aacc1005e5d21ca7aea70bdc556bd548b7bde65df23c7a18091bbf2b5daf9b86fbc8c5
   languageName: node
   linkType: hard
 

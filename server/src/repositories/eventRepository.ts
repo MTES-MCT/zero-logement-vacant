@@ -1,6 +1,11 @@
 import { EventPayloads, EventType } from '@zerologementvacant/models';
+import { Array } from 'effect';
+import type { Insertable } from 'kysely';
+import pMap from 'p-map';
 
 import db from '~/infra/database';
+import type { DB } from '~/infra/database/db';
+import { withinKyselyTransaction } from '~/infra/database/kysely-transaction';
 import { withinTransaction } from '~/infra/database/transaction';
 import { createLogger } from '~/infra/logger';
 import {
@@ -26,6 +31,10 @@ import {
 } from '~/repositories/userRepository';
 
 const logger = createLogger('eventRepository');
+
+// Matches Knex's batchInsert default chunk size, which the Kysely inserts below
+// must replicate manually to stay under Postgres's 65535 bind-parameter limit.
+const INSERT_BATCH_SIZE = 1000;
 
 export const EVENTS_TABLE = 'events';
 export const OWNER_EVENTS_TABLE = 'owner_events';
@@ -188,13 +197,43 @@ async function insertManyGroupHousingEvents(
   logger.debug('Inserting group events...', {
     events: events.length
   });
-  await withinTransaction(async (transaction) => {
-    await transaction.batchInsert(EVENTS_TABLE, events.map(formatEventApi));
-    await transaction.batchInsert(
-      GROUP_HOUSING_EVENTS_TABLE,
-      events.map(formatGroupHousingEventApi)
+  await withinKyselyTransaction(async (trx) => {
+    await pMap(
+      Array.chunksOf(events, INSERT_BATCH_SIZE),
+      async (batch) => {
+        await trx.insertInto('events').values(batch.map(toEventDBO)).execute();
+        await trx
+          .insertInto('groupHousingEvents')
+          .values(batch.map(toGroupHousingEventDBO))
+          .execute();
+      },
+      { concurrency: 1 }
     );
   });
+}
+
+function toEventDBO<Type extends EventType>(
+  event: EventApi<Type>
+): Insertable<DB['events']> {
+  return {
+    id: event.id,
+    type: event.type,
+    nextOld: event.nextOld as Insertable<DB['events']>['nextOld'],
+    nextNew: event.nextNew as Insertable<DB['events']>['nextNew'],
+    createdAt: new Date(event.createdAt),
+    createdBy: event.createdBy
+  };
+}
+
+function toGroupHousingEventDBO(
+  event: GroupHousingEventApi
+): Insertable<DB['groupHousingEvents']> {
+  return {
+    eventId: event.id,
+    housingGeoCode: event.housingGeoCode,
+    housingId: event.housingId,
+    groupId: event.groupId ?? null
+  };
 }
 
 async function insertManyDocumentEvents(

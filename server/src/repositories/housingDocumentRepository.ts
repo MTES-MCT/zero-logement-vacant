@@ -266,9 +266,7 @@ export function fromHousingDocumentDBO(
   };
 }
 
-type HousingDocumentRow = Selectable<DB['documents']> & {
-  housingGeoCode: string;
-  housingId: string;
+type HousingDocumentRow = Selectable<DB['documents']> & Selectable<DB['documentsHousings']> & {
   creator: UserDBO | null;
 };
 

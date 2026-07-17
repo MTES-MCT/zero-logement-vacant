@@ -1,7 +1,7 @@
 # Save a Campaign from the Campaigns List — Design Spec
 
 **Date:** 2026-07-17
-**Scope:** Frontend only
+**Scope:** Frontend + one backend authorization guard
 **Ticket:** [GEN-1431] [Campagnes] Enregistrer une campagne
 
 ## Context
@@ -42,17 +42,22 @@ Three Figma frames (file `kfEYtoHqhonLyCDTcDm5wu`):
 7. **Modal architecture:** two separate, fully independent modal instances (step 1: new `SelectGroupModal`; step 2: existing `CreateCampaignFromGroupModal` unmodified) chained via a parent's `useState`, mirroring `HousingCreationModal.tsx` exactly. Considered and rejected a single-modal-with-internal-step-switch approach (avoids a possible close/reopen flicker, but requires extracting the existing modal's form into a headless component) in favor of simplicity and reuse of already-shipped code.
 8. **No back button** from step 2 to step 1 — Annuler/Fermer/click-outside on step 2 closes the entire flow rather than returning to step 1 (matches the ticket's spec text; deliberately differs from `HousingCreationModal`'s back-button precedent).
 9. **Post-creation behavior:** on success, close the modal, show a toast ("La campagne a été ajoutée"), and stay on `/campagnes` (list auto-refreshes via the existing `invalidatesTags` on the `Campaign` list). Deliberately differs from the group-page flow (`GroupView.tsx`), which navigates to the new campaign's detail page — this flow keeps the user on the page they started from, per the Figma annotation on the "Confirmer" button.
+10. **Only Usual/Admin can create campaigns — fixed at the backend, for both entry points.** The codebase survey found that campaign creation has *no* role check anywhere today: neither the existing "Créer une campagne" button (`GroupNext.tsx`) nor the endpoint it calls (`POST /groups/:id/campaigns`) restrict by role, so a VISITOR can currently create a campaign. Since both the existing and the new flow share that endpoint, the fix is applied at the backend (authoritative) and mirrored on both frontend entry points — a frontend-only check would leave the API callable directly by a Visitor.
+11. **Visitors don't see either "create campaign" button at all** (not shown-disabled) — matches the existing hide-based convention for permission gating elsewhere (`DocumentsTab.tsx`, `HousingView.tsx`), as opposed to the disabled-with-tooltip pattern which has no precedent in this codebase for permission (as opposed to data-availability) gating.
+12. **Scope of the guard is creation only.** `PUT/DELETE /campaigns/:id` (update, delete, send) have the same missing-role-check gap but are explicitly out of scope for this ticket — flagged as a separate follow-up, not fixed here.
 
 ## Architecture
 
-**Entry point:** a new `Button` ("Enregistrer une campagne", primary/MD, icon-left) added to the existing toolbar `Stack` in `CampaignTable.tsx`. No changes to `CampaignListView.tsx`.
+**Entry point:** a new `Button` ("Enregistrer une campagne", primary/MD, icon-left) added to the existing toolbar `Stack` in `CampaignTable.tsx`, rendered only when `isAdmin || isUsual` (via `useUser()`) — hidden entirely for VISITOR. No changes to `CampaignListView.tsx`.
 
 **New files:**
 - `frontend/src/components/Campaign/SelectGroupModal.tsx` — exports `createSelectGroupModal()`, a `createExtendedModal` (no confirm footer — selection happens per-row). Renders: `Stepper` (step 1/2), `AppSearchBar` (submit-only), `AdvancedTable` of eligible groups with a "Sélectionner" action column.
 - `frontend/src/components/Campaign/SaveCampaignFlow.tsx` — orchestrator component, parallel to `HousingCreationModal.tsx`. Creates both modal instances, holds `selectedGroup` state, wires the step transition and the submit handler. Mounted directly inside `CampaignTable.tsx`, self-contained (no prop drilling from `CampaignListView.tsx`).
 
-**Modified file:**
+**Modified files:**
 - `frontend/src/components/Group/CreateCampaignFromGroupModal.tsx` — add one optional prop, e.g. `stepper?: { currentStep: number; stepCount: number }`, rendering a `Stepper` at the top of the modal content when present. Omitted (no behavior change) for the existing `GroupNext.tsx` call site; passed `{ currentStep: 2, stepCount: 2 }` from the new flow. Purely additive — no changes to the existing schema, fields, or submit logic.
+- `frontend/src/components/Group/GroupNext.tsx` — wrap the existing "Créer une campagne" `FullWidthButton` in `const { isAdmin, isUsual } = useUser(); const canCreateCampaign = isAdmin || isUsual;`, hiding it entirely (not just disabling) for VISITOR. Same one-line convention as `DocumentsTab.tsx`/`HousingView.tsx`.
+- `server/src/routers/protected.ts` — add `hasRole([UserRole.USUAL, UserRole.ADMIN])` middleware to the `POST /groups/:id/campaigns` route (~line 295), matching the existing convention used for documents/notes/housing-update routes. This is the authoritative fix; it protects both the existing group-page flow and the new list-page flow since they share this endpoint. No other campaign routes are touched (see Decisions #12 and Out of Scope).
 
 ## Data Flow
 
@@ -84,13 +89,15 @@ handleGroupSelected(group):
 
 - `useFindGroupsQuery` failure or empty/no-match result: reuse the existing generic table error/empty-state convention (no new pattern invented).
 - `useCreateCampaignFromGroupMutation` failure: error toast; modal stays open with data intact.
+- 403 from the new `hasRole` guard: shouldn't be reachable through the UI (the button is hidden for VISITOR), but if hit directly (e.g. stale session, role changed mid-session) it's just another mutation failure — same error-toast handling as above, no special case needed.
 
 ## Testing (TDD — written before implementation)
 
 - `SelectGroupModal.test.tsx`: excludes archived/empty groups; substring search is case-insensitive; results sorted by `createdAt` descending; 5/page pagination; "Sélectionner" fires the callback with the correct group; empty/no-match state renders.
 - `SaveCampaignFlow.test.tsx`: button opens step 1; selecting a group closes step 1 and opens step 2 with that group; submit calls the mutation with `{ campaign, group }`, shows the success toast, closes the modal, does not navigate; mutation failure keeps the modal open and shows an error toast.
 - `CreateCampaignFromGroupModal.test.tsx` (existing file): add a case for the new `stepper` prop rendering/not-rendering — regression guard for the existing group-page flow.
-- No backend tests — frontend-only, reusing existing endpoints unmodified.
+- `CampaignTable.test.tsx` / `GroupNext.test.tsx`: assert the respective "create campaign" button is absent for a VISITOR user and present for USUAL/ADMIN, using the existing `useUser`-mocking convention from `DocumentsTab.test.tsx`/`HousingView.test.tsx`.
+- `server/src/routers/test/protected.test.ts` (or wherever `hasRole` is tested for other routes, e.g. `auth.test.ts`'s pattern): add a case asserting `POST /groups/:id/campaigns` returns 403 for a VISITOR and succeeds for USUAL/ADMIN.
 
 ## Accessibility (RGAA)
 
@@ -102,6 +109,7 @@ To verify explicitly during implementation against `.claude/rules/rgaa-accessibi
 
 ## Out of Scope
 
-- Any backend/API changes (`GET /groups` search, new campaign-creation endpoints).
-- Changing the group-page ("Créer une campagne" from `/groupes/:id`) flow's behavior.
+- Backend/API changes beyond the one `hasRole` guard on `POST /groups/:id/campaigns` — no `GET /groups` search endpoint, no new campaign-creation endpoints.
+- Extending the Usual/Admin-only guard to `PUT/DELETE /campaigns/:id` (update, delete, send) — same pre-existing gap, explicitly deferred as a follow-up (Decision #12).
+- Changing the group-page ("Créer une campagne" from `/groupes/:id`) flow's behavior, beyond adding the same permission guard (Decision #10/#11).
 - A "back" button from step 2 to step 1.

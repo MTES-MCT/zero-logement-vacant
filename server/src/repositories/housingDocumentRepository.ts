@@ -78,12 +78,14 @@ async function unlink(link: {
 }): Promise<void> {
   logger.debug('Unlinking document from housing...', link);
 
-  await kysely
-    .deleteFrom('documentsHousings')
-    .where('documentId', '=', link.documentId)
-    .where('housingGeoCode', '=', link.housingGeoCode)
-    .where('housingId', '=', link.housingId)
-    .execute();
+  await withinKyselyTransaction(async (trx) => {
+    await trx
+      .deleteFrom('documentsHousings')
+      .where('documentId', '=', link.documentId)
+      .where('housingGeoCode', '=', link.housingGeoCode)
+      .where('housingId', '=', link.housingId)
+      .execute();
+  });
 }
 
 async function unlinkMany(params: { documentIds: string[] }): Promise<void> {
@@ -112,6 +114,13 @@ interface FindOptions {
   filters?: {
     documentIds?: string[];
     housingIds?: HousingId[];
+    /**
+     * Filters on non-deleted documents by default to avoid leaking
+     * soft-deleted documents by omission. Pass `true` to fetch soft-deleted
+     * documents instead. There is no way to fetch both at once in a single
+     * call — issue two calls and merge if that's ever needed.
+     * @default false
+     */
     deleted?: boolean;
   };
 }
@@ -147,7 +156,7 @@ async function find(
 
   if (options?.filters?.deleted === true) {
     query = query.where('documents.deletedAt', 'is not', null);
-  } else if (options?.filters?.deleted === false) {
+  } else {
     query = query.where('documents.deletedAt', 'is', null);
   }
 

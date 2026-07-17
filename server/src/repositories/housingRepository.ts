@@ -446,11 +446,20 @@ async function updateMany(
   housings: ReadonlyArray<HousingId>,
   payload: Partial<
     Pick<HousingApi, 'status' | 'subStatus' | 'occupancy' | 'occupancyIntended'>
-  >
-): Promise<void> {
+  >,
+  opts?: {
+    /**
+     * Only update rows whose current status still matches this value.
+     * Makes the write an atomic conditional transition instead of a blind
+     * overwrite, so a stale caller-held snapshot cannot clobber a status
+     * change committed by a concurrent writer since the caller last read it.
+     */
+    onlyIfStatus?: HousingStatus;
+  }
+): Promise<ReadonlyArray<HousingId>> {
   if (housings.length === 0) {
     logger.debug('No housing to update. Skipping...');
-    return;
+    return [];
   }
 
   const fields = compactUndefined({
@@ -461,20 +470,26 @@ async function updateMany(
   });
   if (Object.keys(fields).length === 0) {
     logger.debug('No fields to update. Skipping...');
-    return;
+    return [];
   }
 
   logger.debug('Updating many housings...', {
     housings: housings.length,
     payload
   });
-  await withinTransaction(async (transaction) => {
-    await Housing(transaction)
+  return withinTransaction(async (transaction) => {
+    const query = Housing(transaction)
       .whereIn(
         ['geo_code', 'id'],
         housings.map((housing) => [housing.geoCode, housing.id])
-      )
-      .update(fields);
+      );
+    if (opts?.onlyIfStatus !== undefined) {
+      query.where('status', opts.onlyIfStatus);
+    }
+    const updated = await query
+      .update(fields)
+      .returning(['geo_code', 'id']);
+    return updated.map((row) => ({ geoCode: row.geo_code, id: row.id }));
   });
 }
 

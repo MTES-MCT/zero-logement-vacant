@@ -102,25 +102,75 @@ export const campaignSendingDateRepair: Repair<HousingWithContext> = {
       const attachedByHousing = new Map<string, CampaignHousingEventApi[]>();
 
       for (const chunk of chunksOf(pairs, 1000)) {
-        const campaignRows = await CampaignsHousing()
-          .join(
-            campaignsTable,
-            `${campaignsTable}.id`,
-            `${campaignsHousingTable}.campaign_id`
-          )
-          .whereIn(
-            [
-              `${campaignsHousingTable}.housing_geo_code`,
-              `${campaignsHousingTable}.housing_id`
-            ],
-            chunk
-          )
-          .select(
-            `${campaignsHousingTable}.housing_geo_code as housing_geo_code`,
-            `${campaignsHousingTable}.housing_id as housing_id`,
-            `${campaignsTable}.id as campaign_id`,
-            `${campaignsTable}.sent_at as sent_at`
-          );
+        const [campaignRows, statusRows, attachedRows] = await Promise.all([
+          CampaignsHousing()
+            .join(
+              campaignsTable,
+              `${campaignsTable}.id`,
+              `${campaignsHousingTable}.campaign_id`
+            )
+            .whereIn(
+              [
+                `${campaignsHousingTable}.housing_geo_code`,
+                `${campaignsHousingTable}.housing_id`
+              ],
+              chunk
+            )
+            .select(
+              `${campaignsHousingTable}.housing_geo_code as housing_geo_code`,
+              `${campaignsHousingTable}.housing_id as housing_id`,
+              `${campaignsTable}.id as campaign_id`,
+              `${campaignsTable}.sent_at as sent_at`
+            ),
+          HousingEvents()
+            .join(
+              EVENTS_TABLE,
+              `${EVENTS_TABLE}.id`,
+              `${HOUSING_EVENTS_TABLE}.event_id`
+            )
+            .where(`${EVENTS_TABLE}.type`, 'housing:status-updated')
+            .whereIn(
+              [
+                `${HOUSING_EVENTS_TABLE}.housing_geo_code`,
+                `${HOUSING_EVENTS_TABLE}.housing_id`
+              ],
+              chunk
+            )
+            .orderBy(`${EVENTS_TABLE}.created_at`, 'desc')
+            .select(
+              `${HOUSING_EVENTS_TABLE}.housing_geo_code as housing_geo_code`,
+              `${HOUSING_EVENTS_TABLE}.housing_id as housing_id`,
+              `${EVENTS_TABLE}.id as id`,
+              `${EVENTS_TABLE}.next_old as next_old`,
+              `${EVENTS_TABLE}.next_new as next_new`,
+              `${EVENTS_TABLE}.created_at as created_at`,
+              `${EVENTS_TABLE}.created_by as created_by`
+            ),
+          CampaignHousingEvents()
+            .join(
+              EVENTS_TABLE,
+              `${EVENTS_TABLE}.id`,
+              `${CAMPAIGN_HOUSING_EVENTS_TABLE}.event_id`
+            )
+            .where(`${EVENTS_TABLE}.type`, 'housing:campaign-attached')
+            .whereIn(
+              [
+                `${CAMPAIGN_HOUSING_EVENTS_TABLE}.housing_geo_code`,
+                `${CAMPAIGN_HOUSING_EVENTS_TABLE}.housing_id`
+              ],
+              chunk
+            )
+            .select(
+              `${CAMPAIGN_HOUSING_EVENTS_TABLE}.housing_geo_code as housing_geo_code`,
+              `${CAMPAIGN_HOUSING_EVENTS_TABLE}.housing_id as housing_id`,
+              `${CAMPAIGN_HOUSING_EVENTS_TABLE}.campaign_id as campaign_id`,
+              `${EVENTS_TABLE}.id as id`,
+              `${EVENTS_TABLE}.next_new as next_new`,
+              `${EVENTS_TABLE}.created_at as created_at`,
+              `${EVENTS_TABLE}.created_by as created_by`
+            )
+        ]);
+
         for (const row of campaignRows) {
           const k = `${row.housing_geo_code}:${row.housing_id}`;
           const list = campaignsByHousing.get(k) ?? [];
@@ -133,30 +183,6 @@ export const campaignSendingDateRepair: Repair<HousingWithContext> = {
           campaignsByHousing.set(k, list);
         }
 
-        const statusRows = await HousingEvents()
-          .join(
-            EVENTS_TABLE,
-            `${EVENTS_TABLE}.id`,
-            `${HOUSING_EVENTS_TABLE}.event_id`
-          )
-          .where(`${EVENTS_TABLE}.type`, 'housing:status-updated')
-          .whereIn(
-            [
-              `${HOUSING_EVENTS_TABLE}.housing_geo_code`,
-              `${HOUSING_EVENTS_TABLE}.housing_id`
-            ],
-            chunk
-          )
-          .orderBy(`${EVENTS_TABLE}.created_at`, 'desc')
-          .select(
-            `${HOUSING_EVENTS_TABLE}.housing_geo_code as housing_geo_code`,
-            `${HOUSING_EVENTS_TABLE}.housing_id as housing_id`,
-            `${EVENTS_TABLE}.id as id`,
-            `${EVENTS_TABLE}.next_old as next_old`,
-            `${EVENTS_TABLE}.next_new as next_new`,
-            `${EVENTS_TABLE}.created_at as created_at`,
-            `${EVENTS_TABLE}.created_by as created_by`
-          );
         for (const row of statusRows) {
           const k = `${row.housing_geo_code}:${row.housing_id}`;
           // Rows are DESC by created_at, so the first seen per housing is latest.
@@ -174,29 +200,6 @@ export const campaignSendingDateRepair: Repair<HousingWithContext> = {
           }
         }
 
-        const attachedRows = await CampaignHousingEvents()
-          .join(
-            EVENTS_TABLE,
-            `${EVENTS_TABLE}.id`,
-            `${CAMPAIGN_HOUSING_EVENTS_TABLE}.event_id`
-          )
-          .where(`${EVENTS_TABLE}.type`, 'housing:campaign-attached')
-          .whereIn(
-            [
-              `${CAMPAIGN_HOUSING_EVENTS_TABLE}.housing_geo_code`,
-              `${CAMPAIGN_HOUSING_EVENTS_TABLE}.housing_id`
-            ],
-            chunk
-          )
-          .select(
-            `${CAMPAIGN_HOUSING_EVENTS_TABLE}.housing_geo_code as housing_geo_code`,
-            `${CAMPAIGN_HOUSING_EVENTS_TABLE}.housing_id as housing_id`,
-            `${CAMPAIGN_HOUSING_EVENTS_TABLE}.campaign_id as campaign_id`,
-            `${EVENTS_TABLE}.id as id`,
-            `${EVENTS_TABLE}.next_new as next_new`,
-            `${EVENTS_TABLE}.created_at as created_at`,
-            `${EVENTS_TABLE}.created_by as created_by`
-          );
         for (const row of attachedRows) {
           const k = `${row.housing_geo_code}:${row.housing_id}`;
           const list = attachedByHousing.get(k) ?? [];

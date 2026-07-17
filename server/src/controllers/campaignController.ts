@@ -41,7 +41,8 @@ import housingRepository from '~/repositories/housingRepository';
 import senderRepository from '~/repositories/senderRepository';
 import {
   flipCampaignHousingsToWaiting,
-  flipHousingsToWaiting
+  flipHousingsToWaiting,
+  resolveSystemUser
 } from '~/services/campaignHousingService';
 import { today } from '~/utils/date';
 
@@ -204,6 +205,11 @@ const createFromGroup: RequestHandler<
     (housing) => housing.status === HousingStatus.NEVER_CONTACTED
   );
 
+  // Resolved outside the transaction: a misconfigured/deleted system account
+  // must not roll back the campaign creation itself, only defer the flip.
+  const shouldFlip = isSendDateReached(campaign.sentAt, today());
+  const system = shouldFlip ? await resolveSystemUser() : null;
+
   await startTransaction(async () => {
     await senderRepository.save(sender);
     await draftRepository.save(draft);
@@ -218,8 +224,8 @@ const createFromGroup: RequestHandler<
     // Gate the NEVER_CONTACTED -> WAITING flip on the sending date. Pass the
     // in-memory housings: housingRepository.find would not see the campaign
     // links just inserted in this transaction.
-    if (isSendDateReached(campaign.sentAt, today())) {
-      await flipHousingsToWaiting(neverContactedHousings);
+    if (system) {
+      await flipHousingsToWaiting(neverContactedHousings, system);
     }
   });
 
@@ -265,13 +271,21 @@ const update: RequestHandler<
     sentAt: body.sentAt ?? campaign.sentAt
   };
 
+  // Only a genuine sentAt change (same-day confirmation or a retroactive
+  // correction to a past date) should trigger the flip — otherwise every
+  // metadata-only edit of an already-sent campaign would re-scan and
+  // rewrite all of its housings for no reason.
+  const sentAtChanged = updated.sentAt !== campaign.sentAt;
+  const shouldFlip =
+    sentAtChanged && isSendDateReached(updated.sentAt, today());
+  // Resolved outside the transaction: a misconfigured/deleted system account
+  // must not roll back the campaign's own metadata save, only defer the flip.
+  const system = shouldFlip ? await resolveSystemUser() : null;
+
   await startTransaction(async () => {
     await campaignRepository.save(updated);
-    // If the saved sending date has arrived (same-day confirmation or a
-    // retroactive correction to a past date), flip the campaign's still
-    // NEVER_CONTACTED housings now instead of waiting for the daily cron.
-    if (isSendDateReached(updated.sentAt, today())) {
-      await flipCampaignHousingsToWaiting(updated);
+    if (system) {
+      await flipCampaignHousingsToWaiting(updated, system);
     }
   });
 

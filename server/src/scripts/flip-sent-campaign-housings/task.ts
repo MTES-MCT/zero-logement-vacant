@@ -2,13 +2,17 @@ import { HousingStatus } from '@zerologementvacant/models';
 
 import { startTransaction } from '~/infra/database/transaction';
 import { createLogger } from '~/infra/logger';
+import { isSendDateReached } from '~/models/CampaignApi';
 import {
   campaignsHousingTable,
   CampaignsHousing
 } from '~/repositories/campaignHousingRepository';
 import { campaignsTable } from '~/repositories/campaignRepository';
 import { housingTable } from '~/repositories/housingRepository';
-import { flipCampaignHousingsToWaiting } from '~/services/campaignHousingService';
+import {
+  flipCampaignHousingsToWaiting,
+  resolveSystemUser
+} from '~/services/campaignHousingService';
 
 const logger = createLogger('flip-sent-campaign-housings');
 
@@ -31,6 +35,12 @@ export interface FlipSentCampaignHousingsSummary {
 export async function flipSentCampaignHousings(
   options: FlipSentCampaignHousingsOptions
 ): Promise<FlipSentCampaignHousingsSummary> {
+  // Filter candidates in JS with the same isSendDateReached() the controller
+  // uses, rather than truncating `sent_at` in raw SQL: `sent_at` is a
+  // tz-less `timestamp`, so a raw `::date` cast reads whatever wall-clock
+  // digits were stored (which can differ from the app's reconstructed
+  // calendar date by a day depending on the writer's local offset) and could
+  // disagree with the controller's decision for the same campaign.
   const rows = await CampaignsHousing()
     .join(
       campaignsTable,
@@ -49,18 +59,32 @@ export async function flipSentCampaignHousings(
       );
     })
     .whereNotNull(`${campaignsTable}.sent_at`)
-    .whereRaw(`${campaignsTable}.sent_at::date <= ?::date`, [options.today])
     .where(`${housingTable}.status`, HousingStatus.NEVER_CONTACTED)
-    .distinct(`${campaignsTable}.id as id`);
+    .distinct(
+      `${campaignsTable}.id as id`,
+      `${campaignsTable}.sent_at as sentAt`
+    );
 
-  const campaignIds = rows.map((row) => row.id as string);
+  const campaignIds = rows
+    .filter((row) =>
+      isSendDateReached(
+        (row.sentAt as Date).toJSON().slice(0, 10),
+        options.today
+      )
+    )
+    .map((row) => row.id as string);
   logger.info(`Found ${campaignIds.length} campaign(s) to settle`);
 
   let housings = 0;
-  for (const id of campaignIds) {
-    await startTransaction(async () => {
-      housings += await flipCampaignHousingsToWaiting({ id });
-    });
+  if (campaignIds.length > 0) {
+    const system = await resolveSystemUser();
+    if (system) {
+      for (const id of campaignIds) {
+        await startTransaction(async () => {
+          housings += await flipCampaignHousingsToWaiting({ id }, system);
+        });
+      }
+    }
   }
 
   logger.info('Settled sent-campaign housings', {

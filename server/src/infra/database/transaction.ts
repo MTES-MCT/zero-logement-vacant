@@ -39,16 +39,14 @@ export const getTransaction = () => storage.getStore()?.transaction;
  * @param cb
  * @param options
  */
-export async function withinTransaction(
-  cb: (transaction: Knex.Transaction) => AsyncOrSync<void>,
+export async function withinTransaction<R = void>(
+  cb: (transaction: Knex.Transaction) => AsyncOrSync<R>,
   options?: Knex.TransactionConfig
-): Promise<void> {
+): Promise<R> {
   const transaction = getTransaction();
   if (transaction) {
     return cb(transaction);
   }
 
-  await db.transaction(async (transaction) => {
-    await cb(transaction);
-  }, options);
+  return db.transaction(async (transaction) => cb(transaction), options);
 }

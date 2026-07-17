@@ -16,6 +16,7 @@ import randomstring from 'randomstring';
 import request from 'supertest';
 import { v4 as uuidv4 } from 'uuid';
 
+import config from '~/infra/config';
 import { createServer } from '~/infra/server';
 import { CampaignEventApi } from '~/models/EventApi';
 import { GroupApi } from '~/models/GroupApi';
@@ -58,7 +59,6 @@ import userRepository, {
   toUserDBO,
   Users
 } from '~/repositories/userRepository';
-import config from '~/infra/config';
 import { factories } from '~/test/factories';
 import {
   genEstablishmentApi,

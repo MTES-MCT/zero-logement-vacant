@@ -1,11 +1,17 @@
 import { Readable } from 'node:stream';
 
-import { HOUSING_STATUS_LABELS, HousingStatus } from '@zerologementvacant/models';
+import {
+  HOUSING_STATUS_LABELS,
+  HousingStatus
+} from '@zerologementvacant/models';
 import { chunksOf } from 'effect/Array';
 
 import { isSendDateReached } from '~/models/CampaignApi';
 import type { CampaignApi } from '~/models/CampaignApi';
-import type { CampaignHousingEventApi, HousingEventApi } from '~/models/EventApi';
+import type {
+  CampaignHousingEventApi,
+  HousingEventApi
+} from '~/models/EventApi';
 import type { HousingApi } from '~/models/HousingApi';
 import {
   campaignsHousingTable,
@@ -21,6 +27,7 @@ import {
 } from '~/repositories/eventRepository';
 import housingRepository from '~/repositories/housingRepository';
 import { today } from '~/utils/date';
+
 import { rows } from './lib/row-stream';
 import type { RowStream } from './lib/row-stream';
 import type { Repair } from './lib/types';
@@ -63,7 +70,9 @@ export const campaignSendingDateRepair: Repair<HousingWithContext> = {
         output.push(null);
       },
       (error) =>
-        output.destroy(error instanceof Error ? error : new Error(String(error)))
+        output.destroy(
+          error instanceof Error ? error : new Error(String(error))
+        )
     );
     return rows<HousingWithContext>(output);
 
@@ -117,13 +126,19 @@ export const campaignSendingDateRepair: Repair<HousingWithContext> = {
           const list = campaignsByHousing.get(k) ?? [];
           list.push({
             id: row.campaign_id,
-            sentAt: row.sent_at ? new Date(row.sent_at).toJSON().slice(0, 10) : null
+            sentAt: row.sent_at
+              ? new Date(row.sent_at).toJSON().slice(0, 10)
+              : null
           });
           campaignsByHousing.set(k, list);
         }
 
         const statusRows = await HousingEvents()
-          .join(EVENTS_TABLE, `${EVENTS_TABLE}.id`, `${HOUSING_EVENTS_TABLE}.event_id`)
+          .join(
+            EVENTS_TABLE,
+            `${EVENTS_TABLE}.id`,
+            `${HOUSING_EVENTS_TABLE}.event_id`
+          )
           .where(`${EVENTS_TABLE}.type`, 'housing:status-updated')
           .whereIn(
             [
@@ -231,7 +246,8 @@ export const campaignSendingDateRepair: Repair<HousingWithContext> = {
     }
     const { nextOld, nextNew } = event;
     if (
-      nextOld?.status !== HOUSING_STATUS_LABELS[HousingStatus.NEVER_CONTACTED] ||
+      nextOld?.status !==
+        HOUSING_STATUS_LABELS[HousingStatus.NEVER_CONTACTED] ||
       nextNew?.status !== HOUSING_STATUS_LABELS[HousingStatus.WAITING]
     ) {
       return { action: 'skip' };

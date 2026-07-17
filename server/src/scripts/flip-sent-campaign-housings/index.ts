@@ -2,6 +2,7 @@ import config from '~/infra/config';
 import db from '~/infra/database';
 import { createLogger } from '~/infra/logger';
 import { today } from '~/utils/date';
+
 import { flipSentCampaignHousings } from './task';
 
 const logger = createLogger('flip-sent-campaign-housings');

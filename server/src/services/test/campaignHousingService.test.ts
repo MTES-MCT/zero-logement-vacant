@@ -1,30 +1,36 @@
 import { HousingStatus } from '@zerologementvacant/models';
 import { beforeAll, describe, expect, it } from 'vitest';
 
+import config from '~/infra/config';
 import { startTransaction } from '~/infra/database/transaction';
+import { CampaignsHousing } from '~/repositories/campaignHousingRepository';
+import {
+  Campaigns,
+  formatCampaignApi
+} from '~/repositories/campaignRepository';
 import {
   Establishments,
   formatEstablishmentApi
 } from '~/repositories/establishmentRepository';
-import userRepository, { Users, toUserDBO } from '~/repositories/userRepository';
-import config from '~/infra/config';
+import { Events, HOUSING_EVENTS_TABLE } from '~/repositories/eventRepository';
 import {
   Housing,
   formatHousingRecordApi
 } from '~/repositories/housingRepository';
-import { Campaigns, formatCampaignApi } from '~/repositories/campaignRepository';
-import { CampaignsHousing } from '~/repositories/campaignHousingRepository';
-import { Events, HOUSING_EVENTS_TABLE } from '~/repositories/eventRepository';
+import userRepository, {
+  Users,
+  toUserDBO
+} from '~/repositories/userRepository';
+import {
+  flipCampaignHousingsToWaiting,
+  flipHousingsToWaiting
+} from '~/services/campaignHousingService';
 import {
   genEstablishmentApi,
   genUserApi,
   genHousingApi,
   genCampaignApi
 } from '~/test/testFixtures';
-import {
-  flipCampaignHousingsToWaiting,
-  flipHousingsToWaiting
-} from '~/services/campaignHousingService';
 
 describe('campaignHousingService', () => {
   const establishment = genEstablishmentApi();
@@ -125,9 +131,7 @@ describe('campaignHousingService', () => {
         housing_geo_code: housing.geoCode
       });
 
-      await startTransaction(() =>
-        flipCampaignHousingsToWaiting(campaign)
-      );
+      await startTransaction(() => flipCampaignHousingsToWaiting(campaign));
       const second = await startTransaction(() =>
         flipCampaignHousingsToWaiting(campaign)
       );

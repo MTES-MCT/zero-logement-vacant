@@ -1,4 +1,7 @@
-import { HOUSING_STATUS_LABELS, HousingStatus } from '@zerologementvacant/models';
+import {
+  HOUSING_STATUS_LABELS,
+  HousingStatus
+} from '@zerologementvacant/models';
 import { v4 as uuidv4 } from 'uuid';
 
 import UserMissingError from '~/errors/userMissingError';

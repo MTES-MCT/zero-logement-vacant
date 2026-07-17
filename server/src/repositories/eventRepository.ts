@@ -4,7 +4,7 @@ import type { Insertable } from 'kysely';
 import pMap from 'p-map';
 
 import db from '~/infra/database';
-import type { DB, Json } from '~/infra/database/db';
+import type { DB } from '~/infra/database/db';
 import { withinKyselyTransaction } from '~/infra/database/kysely-transaction';
 import { withinTransaction } from '~/infra/database/transaction';
 import { createLogger } from '~/infra/logger';
@@ -212,24 +212,14 @@ async function insertManyGroupHousingEvents(
   });
 }
 
-// Round-tripping through JSON.stringify/parse enforces at runtime the
-// JSON-serializability that TypeScript can't verify here: `nextOld`/`nextNew`
-// are typed as `EventPayloads[Type]['old' | 'new']` for a generic `Type`, so the
-// compiler cannot prove they satisfy the `Json` column type without this check.
-function toJsonColumn(value: unknown): Json | null {
-  return value === null || value === undefined
-    ? null
-    : (JSON.parse(JSON.stringify(value)) as Json);
-}
-
 function toEventDBO<Type extends EventType>(
   event: EventApi<Type>
 ): Insertable<DB['events']> {
   return {
     id: event.id,
     type: event.type,
-    nextOld: toJsonColumn(event.nextOld),
-    nextNew: toJsonColumn(event.nextNew),
+    nextOld: event.nextOld as Insertable<DB['events']>['nextOld'],
+    nextNew: event.nextNew as Insertable<DB['events']>['nextNew'],
     createdAt: new Date(event.createdAt),
     createdBy: event.createdBy
   };

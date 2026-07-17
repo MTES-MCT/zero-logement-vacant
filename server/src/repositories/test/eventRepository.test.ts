@@ -2,13 +2,15 @@ import { faker } from '@faker-js/faker/locale/fr';
 import {
   ActiveOwnerRank,
   CampaignDTO,
-  Occupancy
+  Occupancy,
+  type EventType
 } from '@zerologementvacant/models';
 
 import {
   CampaignEventApi,
   CampaignHousingEventApi,
   DocumentEventApi,
+  EventApi,
   GroupHousingEventApi,
   HousingDocumentEventApi,
   HousingEventApi,
@@ -432,6 +434,12 @@ describe('Event repository', () => {
     it('should insert events', async () => {
       const actual = await Events().whereIn('id', ids);
       expect(actual.length).toBe(events.length);
+    });
+
+    it('should store nextOld/nextNew as JSON and read them back unchanged', async () => {
+      const [actual] = await Events().whereIn('id', ids);
+      expect(actual.next_old).toBeNull();
+      expect(actual.next_new).toStrictEqual({ name: group.title });
     });
 
     it('should link events to the housing and group', async () => {
@@ -1055,6 +1063,167 @@ describe('Event repository', () => {
       const result = formatGroupHousingEventApi(event);
       expect(result.group_id).toBeNull();
     });
+  });
+
+  describe('EventPayloads JSON compatibility', () => {
+    // Demonstrates the exact failure mode the round-trip check below guards
+    // against: JSON silently turns a `Date` into a string instead of
+    // preserving it, so a future payload field typed as `Date` would slip
+    // past a naive `toEqual` — `toStrictEqual` (used below) catches it because
+    // it distinguishes a `Date` instance from a plain string.
+    it('demonstrates that Date instances do not survive a JSON round-trip', () => {
+      const withDate = { occurredAt: new Date('2024-01-01T00:00:00.000Z') };
+
+      const restored = JSON.parse(JSON.stringify(withDate));
+
+      expect(restored.occurredAt).not.toBeInstanceOf(Date);
+      expect(typeof restored.occurredAt).toBe('string');
+      expect(restored).not.toStrictEqual(withDate);
+    });
+
+    type EventPayloadSample<Type extends EventType> = Pick<
+      EventApi<Type>,
+      'nextOld' | 'nextNew'
+    >;
+
+    // One representative sample per `EventType`. The type annotation forces
+    // every current event type to have an entry here — adding a new event
+    // type to `EventPayloads` without a matching sample fails `tsc`, and the
+    // round-trip check below fails if that sample isn't JSON-safe. Together
+    // they stand in for the compile-time check TypeScript can't do directly,
+    // since `toEventDBO` is generic over `Type` and can't statically prove
+    // `EventPayloads[Type]['old' | 'new']` satisfies the `Json` column type.
+    const EVENT_PAYLOAD_SAMPLES: {
+      [Type in EventType]: EventPayloadSample<Type>;
+    } = {
+      'housing:created': {
+        nextOld: null,
+        nextNew: { source: 'datafoncier-manual', occupancy: Occupancy.VACANT }
+      },
+      'housing:updated': {
+        nextOld: { actualEnergyConsumption: null },
+        nextNew: { actualEnergyConsumption: 'B' }
+      },
+      'housing:occupancy-updated': {
+        nextOld: { occupancy: Occupancy.VACANT },
+        nextNew: { occupancy: Occupancy.RENT, occupancyIntended: null }
+      },
+      'housing:status-updated': {
+        nextOld: { status: 'waiting' },
+        nextNew: { status: 'in-progress', subStatus: null }
+      },
+      'housing:precision-attached': {
+        nextOld: null,
+        nextNew: { category: 'travaux', label: 'Travaux' }
+      },
+      'housing:precision-detached': {
+        nextOld: { category: 'travaux', label: 'Travaux' },
+        nextNew: null
+      },
+      'housing:owner-attached': {
+        nextOld: null,
+        nextNew: { name: 'Jean Dupont', rank: 1 }
+      },
+      'housing:owner-updated': {
+        nextOld: { name: 'Jean Dupont', rank: 1 },
+        nextNew: { name: 'Jean Dupont', rank: 2 }
+      },
+      'housing:owner-detached': {
+        nextOld: { name: 'Jean Dupont', rank: 1 },
+        nextNew: null
+      },
+      'housing:perimeter-attached': {
+        nextOld: null,
+        nextNew: { name: 'Perimeter' }
+      },
+      'housing:perimeter-detached': {
+        nextOld: { name: 'Perimeter' },
+        nextNew: null
+      },
+      'housing:group-attached': {
+        nextOld: null,
+        nextNew: { name: 'Group' }
+      },
+      'housing:group-detached': {
+        nextOld: { name: 'Group' },
+        nextNew: null
+      },
+      'housing:group-archived': {
+        nextOld: { name: 'Group' },
+        nextNew: null
+      },
+      'housing:group-removed': {
+        nextOld: { name: 'Group' },
+        nextNew: null
+      },
+      'housing:campaign-attached': {
+        nextOld: null,
+        nextNew: { name: 'Campaign' }
+      },
+      'housing:campaign-detached': {
+        nextOld: { name: 'Campaign' },
+        nextNew: null
+      },
+      'housing:campaign-removed': {
+        nextOld: { name: 'Campaign' },
+        nextNew: null
+      },
+      'document:created': {
+        nextOld: null,
+        nextNew: { filename: 'document.pdf' }
+      },
+      'document:updated': {
+        nextOld: { filename: 'document.pdf' },
+        nextNew: { filename: 'document-v2.pdf' }
+      },
+      'document:removed': {
+        nextOld: { filename: 'document.pdf' },
+        nextNew: null
+      },
+      'housing:document-attached': {
+        nextOld: null,
+        nextNew: { filename: 'document.pdf' }
+      },
+      'housing:document-detached': {
+        nextOld: { filename: 'document.pdf' },
+        nextNew: null
+      },
+      'housing:document-removed': {
+        nextOld: { filename: 'document.pdf' },
+        nextNew: null
+      },
+      'owner:created': {
+        nextOld: null,
+        nextNew: {
+          name: 'Jean Dupont',
+          birthdate: null,
+          email: null,
+          phone: null,
+          address: null,
+          additionalAddress: null
+        }
+      },
+      'owner:updated': {
+        nextOld: { name: 'Jean Dupont' },
+        nextNew: { name: 'Jean Martin' }
+      },
+      'campaign:updated': {
+        nextOld: { status: 'draft' },
+        nextNew: { status: 'sending' }
+      }
+    };
+
+    it.each(Object.entries(EVENT_PAYLOAD_SAMPLES))(
+      '%s payload survives a JSON round-trip unchanged',
+      (_type, sample) => {
+        expect(JSON.parse(JSON.stringify(sample.nextOld))).toStrictEqual(
+          sample.nextOld
+        );
+        expect(JSON.parse(JSON.stringify(sample.nextNew))).toStrictEqual(
+          sample.nextNew
+        );
+      }
+    );
   });
 
   describe('removeCampaignEvents', () => {

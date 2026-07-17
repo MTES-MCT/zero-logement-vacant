@@ -542,7 +542,7 @@ describe('Housing document repository', () => {
       expect(ids).not.toContain(deletedDoc.id);
     });
 
-    it('should return both live and soft-deleted documents when deleted filter is absent', async () => {
+    it('should return only live documents when deleted filter is absent', async () => {
       const housingLive = genHousingApi();
       const housingDeleted = genHousingApi();
       const liveDoc = genHousingDocumentApi({
@@ -582,7 +582,7 @@ describe('Housing document repository', () => {
 
       const ids = results.map((r) => r.id);
       expect(ids).toContain(liveDoc.id);
-      expect(ids).toContain(deletedDoc.id);
+      expect(ids).not.toContain(deletedDoc.id);
     });
   });
 

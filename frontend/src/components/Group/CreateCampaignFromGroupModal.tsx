@@ -109,11 +109,6 @@ export function createCampaignFromGroupModal(
               </Stack>
             </Stack>
 
-            <Typography variant="body2" sx={{ mb: '0.25rem' }}>
-              Une fois la campagne créée, les logements « Non suivi » passeront
-              « En attente de retour ».
-            </Typography>
-
             <Box sx={{ '& .fr-input-group': { marginBottom: '0.75rem' } }}>
               <AppTextInputNext<FormSchema>
                 label="Nom (obligatoire)"
@@ -123,7 +118,6 @@ export function createCampaignFromGroupModal(
 
               <AppTextInputNext<FormSchema>
                 label="Description"
-                hintText="Vous pouvez par exemple définir les critères de votre campagne, comment vous l'avez construite, le planning de celle-ci, etc."
                 name="description"
                 control={form.control}
                 textArea
@@ -132,6 +126,7 @@ export function createCampaignFromGroupModal(
 
               <AppTextInputNext<FormSchema>
                 label="Date d’envoi"
+                hintText="Le jour de la date d’envoi, le statut des logements « Non suivi » passera à « En attente de retour » (si vous indiquez une date antérieure à aujourd’hui, cette mise à jour des statuts sera immédiate)."
                 name="sentAt"
                 control={form.control}
                 nativeInputProps={{ type: 'date' }}

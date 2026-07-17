@@ -22,6 +22,7 @@ import { logger } from '~/infra/logger';
 import {
   CampaignApi,
   CampaignSortableApi,
+  isSendDateReached,
   toCampaignDTO
 } from '~/models/CampaignApi';
 import { CampaignQuery } from '~/models/CampaignFiltersApi';
@@ -38,6 +39,12 @@ import eventRepository from '~/repositories/eventRepository';
 import groupRepository from '~/repositories/groupRepository';
 import housingRepository from '~/repositories/housingRepository';
 import senderRepository from '~/repositories/senderRepository';
+import {
+  flipCampaignHousingsToWaiting,
+  flipHousingsToWaiting,
+  resolveSystemUser
+} from '~/services/campaignHousingService';
+import { today } from '~/utils/date';
 
 const list: RequestHandler<
   never,
@@ -197,22 +204,11 @@ const createFromGroup: RequestHandler<
   const neverContactedHousings = housings.filter(
     (housing) => housing.status === HousingStatus.NEVER_CONTACTED
   );
-  const housingEvents = neverContactedHousings.map<HousingEventApi>(
-    (housing) => ({
-      id: uuidv4(),
-      type: 'housing:status-updated',
-      nextOld: {
-        status: HOUSING_STATUS_LABELS[HousingStatus.NEVER_CONTACTED]
-      },
-      nextNew: {
-        status: HOUSING_STATUS_LABELS[HousingStatus.WAITING]
-      },
-      createdAt: new Date().toJSON(),
-      createdBy: auth.userId,
-      housingGeoCode: housing.geoCode,
-      housingId: housing.id
-    })
-  );
+
+  // Resolved outside the transaction: a misconfigured/deleted system account
+  // must not roll back the campaign creation itself, only defer the flip.
+  const shouldFlip = isSendDateReached(campaign.sentAt, today());
+  const system = shouldFlip ? await resolveSystemUser() : null;
 
   await startTransaction(async () => {
     await senderRepository.save(sender);
@@ -222,18 +218,15 @@ const createFromGroup: RequestHandler<
 
     await Promise.all([
       campaignHousingRepository.insertHousingList(campaign.id, housings),
-      housingRepository.updateMany(
-        neverContactedHousings.map((housing) =>
-          Struct.pick(housing, 'geoCode', 'id')
-        ),
-        {
-          status: HousingStatus.WAITING,
-          subStatus: null
-        }
-      ),
-      eventRepository.insertManyCampaignHousingEvents(campaignHousingEvents),
-      eventRepository.insertManyHousingEvents(housingEvents)
+      eventRepository.insertManyCampaignHousingEvents(campaignHousingEvents)
     ]);
+
+    // Gate the NEVER_CONTACTED -> WAITING flip on the sending date. Pass the
+    // in-memory housings: housingRepository.find would not see the campaign
+    // links just inserted in this transaction.
+    if (system) {
+      await flipHousingsToWaiting(neverContactedHousings, system);
+    }
   });
 
   response.status(constants.HTTP_STATUS_CREATED).json(toCampaignDTO(campaign));
@@ -278,7 +271,24 @@ const update: RequestHandler<
     sentAt: body.sentAt ?? campaign.sentAt
   };
 
-  await campaignRepository.save(updated);
+  // Only a genuine sentAt change (same-day confirmation or a retroactive
+  // correction to a past date) should trigger the flip — otherwise every
+  // metadata-only edit of an already-sent campaign would re-scan and
+  // rewrite all of its housings for no reason.
+  const sentAtChanged = updated.sentAt !== campaign.sentAt;
+  const shouldFlip =
+    sentAtChanged && isSendDateReached(updated.sentAt, today());
+  // Resolved outside the transaction: a misconfigured/deleted system account
+  // must not roll back the campaign's own metadata save, only defer the flip.
+  const system = shouldFlip ? await resolveSystemUser() : null;
+
+  await startTransaction(async () => {
+    await campaignRepository.save(updated);
+    if (system) {
+      await flipCampaignHousingsToWaiting(updated, system);
+    }
+  });
+
   response.status(constants.HTTP_STATUS_OK).json(toCampaignDTO(updated));
 };
 

@@ -11,11 +11,12 @@ import {
   type CampaignCreationPayload,
   type UserDTO
 } from '@zerologementvacant/models';
-import { isDefined } from '@zerologementvacant/utils';
+import { isDefined, isNotNull } from '@zerologementvacant/utils';
 import randomstring from 'randomstring';
 import request from 'supertest';
 import { v4 as uuidv4 } from 'uuid';
 
+import config from '~/infra/config';
 import { createServer } from '~/infra/server';
 import { CampaignEventApi } from '~/models/EventApi';
 import { GroupApi } from '~/models/GroupApi';
@@ -54,7 +55,10 @@ import {
   type HousingRecordDBO
 } from '~/repositories/housingRepository';
 import { formatOwnerApi, Owners } from '~/repositories/ownerRepository';
-import { toUserDBO, Users } from '~/repositories/userRepository';
+import userRepository, {
+  toUserDBO,
+  Users
+} from '~/repositories/userRepository';
 import { factories } from '~/test/factories';
 import {
   genEstablishmentApi,
@@ -352,20 +356,55 @@ describe('Campaign API', () => {
         { count: 3 }
       );
     });
-    const owners = groupHousings
-      .map((housing) => housing.owner)
-      .filter(isDefined);
-    const housingOwners = groupHousings.map((housing) =>
-      genHousingOwnerApi(housing, housing.owner!)
-    );
 
-    beforeAll(async () => {
+    /**
+     * Seeds a group, its housings, their owners and the group-housing links —
+     * shared by the `beforeAll` fixtures below and by `createGroupWithHousings`.
+     */
+    async function seedGroupWithHousings(
+      group: GroupApi,
+      housings: HousingApi[]
+    ): Promise<void> {
+      const owners = housings
+        .map((housing) => housing.owner)
+        .filter(isDefined)
+        .filter(isNotNull);
+      const housingOwners = housings.map((housing) =>
+        genHousingOwnerApi(housing, housing.owner!)
+      );
+
       await Groups().insert(formatGroupApi(group));
-      await Housing().insert(groupHousings.map(formatHousingRecordApi));
+      await Housing().insert(housings.map(formatHousingRecordApi));
       await Owners().insert(owners.map(formatOwnerApi));
       await HousingOwners().insert(housingOwners.map(formatHousingOwnerApi));
-      await GroupsHousing().insert(formatGroupHousingApi(group, groupHousings));
+      await GroupsHousing().insert(formatGroupHousingApi(group, housings));
+    }
+
+    beforeAll(async () => {
+      await seedGroupWithHousings(group, groupHousings);
     });
+
+    /**
+     * Creates a group with one housing per status, isolated from the shared
+     * `group`/`groupHousings` fixtures above. The sentAt-gating tests use this
+     * instead of the shared fixtures because other tests in this block send
+     * randomized `sentAt` values against the shared group, which would flip
+     * its NEVER_CONTACTED housings unpredictably.
+     */
+    async function createGroupWithHousings(): Promise<{
+      group: GroupApi;
+      housings: ReadonlyArray<HousingApi>;
+    }> {
+      const isolatedGroup = genGroupApi(user, establishment);
+      const isolatedHousings = HOUSING_STATUS_VALUES.map((status) => ({
+        ...genHousingApi(geoCode),
+        status
+      }));
+
+      await seedGroupWithHousings(isolatedGroup, isolatedHousings);
+
+      return { group: isolatedGroup, housings: isolatedHousings };
+    }
 
     test.prop<CampaignCreationPayload>(
       {
@@ -515,30 +554,50 @@ describe('Campaign API', () => {
       );
     });
 
-    it('should change each "never contacted" housing’ status to "waiting"', async () => {
+    it('does not flip housings when sentAt is null', async () => {
+      const { housings: isolatedHousings, group: isolatedGroup } =
+        await createGroupWithHousings();
+
       const payload: CampaignCreationPayload = {
         title: 'Logements prioritaires',
         description: 'Campagne pour les logements prioritaires',
         sentAt: null
       };
 
-      const { status } = await request(url)
-        .post(testRoute(group.id))
+      const { body, status } = await request(url)
+        .post(testRoute(isolatedGroup.id))
         .send(payload)
         .type('json')
         .use(tokenProvider(user));
 
       expect(status).toBe(constants.HTTP_STATUS_CREATED);
-      const neverContactedHousings = groupHousings.filter(
-        (groupHousing) => groupHousing.status === HousingStatus.NEVER_CONTACTED
+      const neverContactedHousings = isolatedHousings.filter(
+        (housing) => housing.status === HousingStatus.NEVER_CONTACTED
       );
       const actual = await Housing().whereIn(
         ['geo_code', 'id'],
         neverContactedHousings.map((housing) => [housing.geoCode, housing.id])
       );
       expect(actual).toSatisfyAll<HousingRecordDBO>(
-        (housing) => housing.status === HousingStatus.WAITING
+        (housing) => housing.status === HousingStatus.NEVER_CONTACTED
       );
+
+      const statusEvents = await Events()
+        .where({ type: 'housing:status-updated' })
+        .join(HOUSING_EVENTS_TABLE, 'event_id', 'id')
+        .whereIn(
+          ['housing_geo_code', 'housing_id'],
+          isolatedHousings.map((housing) => [housing.geoCode, housing.id])
+        );
+      expect(statusEvents).toBeArrayOfSize(0);
+
+      const links = await CampaignsHousing().where('campaign_id', body.id);
+      expect(links).toBeArrayOfSize(isolatedHousings.length);
+
+      const attachEvents = await Events()
+        .join(CAMPAIGN_HOUSING_EVENTS_TABLE, 'event_id', 'id')
+        .where({ campaign_id: body.id, type: 'housing:campaign-attached' });
+      expect(attachEvents).toBeArrayOfSize(isolatedHousings.length);
     });
 
     it('should not change housings that are not "never contacted"', async () => {
@@ -574,35 +633,105 @@ describe('Campaign API', () => {
       );
     });
 
-    it('should create an event "housing:status-updated" for each "never contacted" housing that became "waiting"', async () => {
+    it('flips housings immediately when sentAt is already past', async () => {
+      const { housings: isolatedHousings, group: isolatedGroup } =
+        await createGroupWithHousings();
+
       const payload: CampaignCreationPayload = {
         title: 'Logements prioritaires',
         description: 'Campagne pour les logements prioritaires',
-        sentAt: null
+        sentAt: '2020-01-01'
       };
 
-      const { status } = await request(url)
-        .post(testRoute(group.id))
+      const { body, status } = await request(url)
+        .post(testRoute(isolatedGroup.id))
         .send(payload)
         .type('json')
         .use(tokenProvider(user));
 
       expect(status).toBe(constants.HTTP_STATUS_CREATED);
-      const events = await Events()
+      const neverContactedHousings = isolatedHousings.filter(
+        (housing) => housing.status === HousingStatus.NEVER_CONTACTED
+      );
+      const actual = await Housing().whereIn(
+        ['geo_code', 'id'],
+        neverContactedHousings.map((housing) => [housing.geoCode, housing.id])
+      );
+      expect(actual).toSatisfyAll<HousingRecordDBO>(
+        (housing) => housing.status === HousingStatus.WAITING
+      );
+
+      const statusEvents = await Events()
         .where({ type: 'housing:status-updated' })
         .join(HOUSING_EVENTS_TABLE, 'event_id', 'id')
         .whereIn(
           ['housing_geo_code', 'housing_id'],
-          groupHousings.map((groupHousing) => [
-            groupHousing.geoCode,
-            groupHousing.id
-          ])
+          neverContactedHousings.map((housing) => [housing.geoCode, housing.id])
         );
-      const neverContactedHousings = groupHousings.filter(
-        (groupHousing) => groupHousing.status === HousingStatus.NEVER_CONTACTED
+      expect(statusEvents).toBeArrayOfSize(neverContactedHousings.length);
+      // The automated flip is attributed to the system account, not the caller.
+      const system = await userRepository.getByEmail(config.app.system);
+      expect(statusEvents).toSatisfyAll(
+        (event) => event.created_by === system?.id
       );
-      expect(events.length).toBeGreaterThan(0);
-      expect(events.length).toBe(neverContactedHousings.length);
+
+      const links = await CampaignsHousing().where('campaign_id', body.id);
+      expect(links).toBeArrayOfSize(isolatedHousings.length);
+
+      const attachEvents = await Events()
+        .join(CAMPAIGN_HOUSING_EVENTS_TABLE, 'event_id', 'id')
+        .where({ campaign_id: body.id, type: 'housing:campaign-attached' });
+      expect(attachEvents).toBeArrayOfSize(isolatedHousings.length);
+      // ...while attaching housings — a genuine user action — stays the user's.
+      expect(attachEvents).toSatisfyAll(
+        (event) => event.created_by === user.id
+      );
+    });
+
+    it('does not flip housings when sentAt is in the future', async () => {
+      const { housings: isolatedHousings, group: isolatedGroup } =
+        await createGroupWithHousings();
+
+      const payload: CampaignCreationPayload = {
+        title: 'Logements prioritaires',
+        description: 'Campagne pour les logements prioritaires',
+        sentAt: '2999-01-01'
+      };
+
+      const { body, status } = await request(url)
+        .post(testRoute(isolatedGroup.id))
+        .send(payload)
+        .type('json')
+        .use(tokenProvider(user));
+
+      expect(status).toBe(constants.HTTP_STATUS_CREATED);
+      const neverContactedHousings = isolatedHousings.filter(
+        (housing) => housing.status === HousingStatus.NEVER_CONTACTED
+      );
+      const actual = await Housing().whereIn(
+        ['geo_code', 'id'],
+        neverContactedHousings.map((housing) => [housing.geoCode, housing.id])
+      );
+      expect(actual).toSatisfyAll<HousingRecordDBO>(
+        (housing) => housing.status === HousingStatus.NEVER_CONTACTED
+      );
+
+      const statusEvents = await Events()
+        .where({ type: 'housing:status-updated' })
+        .join(HOUSING_EVENTS_TABLE, 'event_id', 'id')
+        .whereIn(
+          ['housing_geo_code', 'housing_id'],
+          isolatedHousings.map((housing) => [housing.geoCode, housing.id])
+        );
+      expect(statusEvents).toBeArrayOfSize(0);
+
+      const links = await CampaignsHousing().where('campaign_id', body.id);
+      expect(links).toBeArrayOfSize(isolatedHousings.length);
+
+      const attachEvents = await Events()
+        .join(CAMPAIGN_HOUSING_EVENTS_TABLE, 'event_id', 'id')
+        .where({ campaign_id: body.id, type: 'housing:campaign-attached' });
+      expect(attachEvents).toBeArrayOfSize(isolatedHousings.length);
     });
   });
 
@@ -739,6 +868,133 @@ describe('Campaign API', () => {
         .use(tokenProvider(user));
 
       expect(status).toBe(constants.HTTP_STATUS_BAD_REQUEST);
+    });
+
+    it('flips housings when sentAt is set to today or the past', async () => {
+      const housing: HousingApi = {
+        ...genHousingApi(oneOf(establishment.geoCodes)),
+        status: HousingStatus.NEVER_CONTACTED,
+        subStatus: null
+      };
+      await Housing().insert(formatHousingRecordApi(housing));
+      await CampaignsHousing().insert({
+        campaign_id: campaign.id,
+        housing_geo_code: housing.geoCode,
+        housing_id: housing.id
+      });
+
+      const payload: CampaignUpdatePayload = {
+        title: campaign.title,
+        description: campaign.description,
+        sentAt: '2020-01-01'
+      };
+
+      const { status } = await request(url)
+        .put(testRoute(campaign.id))
+        .send(payload)
+        .use(tokenProvider(user));
+
+      expect(status).toBe(constants.HTTP_STATUS_OK);
+      const actual = await Housing()
+        .where({ geo_code: housing.geoCode, id: housing.id })
+        .first();
+      expect(actual?.status).toBe(HousingStatus.WAITING);
+    });
+
+    it('does not flip housings when sentAt is set to the future', async () => {
+      const housing: HousingApi = {
+        ...genHousingApi(oneOf(establishment.geoCodes)),
+        status: HousingStatus.NEVER_CONTACTED,
+        subStatus: null
+      };
+      await Housing().insert(formatHousingRecordApi(housing));
+      await CampaignsHousing().insert({
+        campaign_id: campaign.id,
+        housing_geo_code: housing.geoCode,
+        housing_id: housing.id
+      });
+
+      const payload: CampaignUpdatePayload = {
+        title: campaign.title,
+        description: campaign.description,
+        sentAt: '2999-01-01'
+      };
+
+      await request(url)
+        .put(testRoute(campaign.id))
+        .send(payload)
+        .use(tokenProvider(user));
+
+      const actual = await Housing()
+        .where({ geo_code: housing.geoCode, id: housing.id })
+        .first();
+      expect(actual?.status).toBe(HousingStatus.NEVER_CONTACTED);
+    });
+
+    it('does not re-run the flip when sentAt is unchanged', async () => {
+      const alreadySentCampaign = await factories
+        .campaign(establishment)
+        .create(
+          { sentAt: '2020-01-01' },
+          { associations: { createdBy: user } }
+        );
+
+      // Added after the campaign was already sent: if update() re-ran the
+      // flip on every save (even with sentAt unchanged), this housing would
+      // get swept up the next time the campaign's metadata is edited.
+      const housing: HousingApi = {
+        ...genHousingApi(oneOf(establishment.geoCodes)),
+        status: HousingStatus.NEVER_CONTACTED,
+        subStatus: null
+      };
+      await Housing().insert(formatHousingRecordApi(housing));
+      await CampaignsHousing().insert({
+        campaign_id: alreadySentCampaign.id,
+        housing_geo_code: housing.geoCode,
+        housing_id: housing.id
+      });
+
+      const payload: CampaignUpdatePayload = {
+        title: faker.lorem.word(),
+        description: faker.lorem.words(),
+        sentAt: alreadySentCampaign.sentAt
+      };
+
+      const { status } = await request(url)
+        .put(testRoute(alreadySentCampaign.id))
+        .send(payload)
+        .use(tokenProvider(user));
+
+      expect(status).toBe(constants.HTTP_STATUS_OK);
+      const actual = await Housing()
+        .where({ geo_code: housing.geoCode, id: housing.id })
+        .first();
+      expect(actual?.status).toBe(HousingStatus.NEVER_CONTACTED);
+    });
+
+    it('still saves the campaign when the system account cannot be resolved', async () => {
+      const system = await userRepository.getByEmail(config.app.system);
+      await Users()
+        .where({ id: system!.id })
+        .update({ deleted_at: new Date() });
+
+      try {
+        const payload: CampaignUpdatePayload = {
+          title: faker.lorem.word(),
+          description: faker.lorem.words(),
+          sentAt: '2020-01-01'
+        };
+
+        const { status, body } = await request(url)
+          .put(testRoute(campaign.id))
+          .send(payload)
+          .use(tokenProvider(user));
+
+        expect(status).toBe(constants.HTTP_STATUS_OK);
+        expect(body.title).toBe(payload.title);
+      } finally {
+        await Users().where({ id: system!.id }).update({ deleted_at: null });
+      }
     });
   });
 

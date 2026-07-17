@@ -160,25 +160,18 @@ async function insertManyCampaignHousingEvents(
     events: events.length
   });
   await withinKyselyTransaction(async (trx) => {
-    await trx.insertInto('events').values(events.map(toEventInsert)).execute();
-    await trx
-      .insertInto('campaignHousingEvents')
-      .values(events.map(toCampaignHousingEventInsert))
-      .execute();
+    await pMap(
+      Array.chunksOf(events, INSERT_BATCH_SIZE),
+      async (batch) => {
+        await trx.insertInto('events').values(batch.map(toEventDBO)).execute();
+        await trx
+          .insertInto('campaignHousingEvents')
+          .values(batch.map(toCampaignHousingEventInsert))
+          .execute();
+      },
+      { concurrency: 1 }
+    );
   });
-}
-
-function toEventInsert<Type extends EventType>(
-  event: EventApi<Type>
-): Insertable<DB['events']> {
-  return {
-    id: event.id,
-    type: event.type,
-    nextOld: event.nextOld as Insertable<DB['events']>['nextOld'],
-    nextNew: event.nextNew as Insertable<DB['events']>['nextNew'],
-    createdAt: new Date(event.createdAt),
-    createdBy: event.createdBy
-  };
 }
 
 function toCampaignHousingEventInsert(

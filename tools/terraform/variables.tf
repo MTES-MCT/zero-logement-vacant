@@ -57,3 +57,13 @@ variable "region" {
   type        = string
   default     = "par" # Paris (Europe)
 }
+
+variable "db" {
+  description = "Database configuration"
+  type = object({
+    flavor = string
+  })
+  default = {
+    flavor = "xxs_sml"
+  }
+}

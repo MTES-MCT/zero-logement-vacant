@@ -28,6 +28,7 @@ resource "random_password" "e2e_password" {
 module "database" {
   source = "./modules/database"
 
+  flavor       = var.db.flavor
   project_name = var.project_name
   region       = var.region
 }

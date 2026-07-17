@@ -4,7 +4,10 @@ import type { Insertable } from 'kysely';
 
 import db from '~/infra/database';
 import type { DB } from '~/infra/database/db';
-import { withinKyselyTransaction } from '~/infra/database/kysely-transaction';
+import {
+  runWithinKyselyTransaction,
+  withinKyselyTransaction
+} from '~/infra/database/kysely-transaction';
 import { logger } from '~/infra/logger';
 import { CampaignApi, CampaignSortApi } from '~/models/CampaignApi';
 import { CampaignFiltersApi } from '~/models/CampaignFiltersApi';
@@ -168,15 +171,11 @@ function toCampaignInsert(campaign: CampaignApi): Insertable<DB['campaigns']> {
     validatedAt: campaign.validatedAt
       ? new Date(campaign.validatedAt)
       : undefined,
-    exportedAt: campaign.exportedAt
-      ? new Date(campaign.exportedAt)
-      : undefined,
+    exportedAt: campaign.exportedAt ? new Date(campaign.exportedAt) : undefined,
     sentAt: campaign.sentAt
       ? new Date(campaign.sentAt.slice(0, 'yyyy-mm-dd'.length))
       : undefined,
-    archivedAt: campaign.archivedAt
-      ? new Date(campaign.archivedAt)
-      : undefined,
+    archivedAt: campaign.archivedAt ? new Date(campaign.archivedAt) : undefined,
     confirmedAt: campaign.confirmedAt
       ? new Date(campaign.confirmedAt)
       : undefined,
@@ -196,7 +195,12 @@ const update = async (campaignApi: CampaignApi): Promise<string> => {
 async function remove(id: string): Promise<void> {
   logger.debug('Removing campaign...', { id });
   await withinKyselyTransaction(async (trx) => {
-    await eventRepository.removeCampaignEvents(id);
+    // Seed the ambient transaction so removeCampaignEvents joins this trx
+    // instead of opening its own — otherwise the two deletes are not atomic
+    // (same wiring startTransaction uses to make repos share one unit).
+    await runWithinKyselyTransaction(trx, () =>
+      eventRepository.removeCampaignEvents(id)
+    );
     await trx.deleteFrom('campaigns').where('id', '=', id).execute();
   });
   logger.debug('Campaign removed', { id });

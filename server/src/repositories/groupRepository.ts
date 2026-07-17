@@ -1,9 +1,10 @@
+import { Array } from 'effect';
 import { Knex } from 'knex';
 import type { Insertable } from 'kysely';
+import pMap from 'p-map';
 
 import db from '~/infra/database';
 import type { DB } from '~/infra/database/db';
-import { kysely } from '~/infra/database/kysely';
 import { withinKyselyTransaction } from '~/infra/database/kysely-transaction';
 import { logger } from '~/infra/logger';
 import { GroupApi } from '~/models/GroupApi';
@@ -13,6 +14,10 @@ import { fromUserDBO, UserDBO, USERS_TABLE } from './userRepository';
 
 export const GROUPS_TABLE = 'groups';
 export const GROUPS_HOUSING_TABLE = 'groups_housing';
+
+// Matches Knex's batchInsert default chunk size, which the Kysely insert
+// below must replicate manually to stay under Postgres's 65535 bind-parameter limit.
+const INSERT_BATCH_SIZE = 1000;
 
 export const Groups = (transaction: Knex<GroupDBO> = db) =>
   transaction(GROUPS_TABLE);
@@ -123,7 +128,7 @@ async function save(group: GroupApi, housings?: HousingApi[]): Promise<void> {
   await withinKyselyTransaction(async (trx) => {
     await trx
       .insertInto('groups')
-      .values(toGroupInsert(group))
+      .values(toGroupDBO(group))
       .onConflict((oc) =>
         oc.column('id').doUpdateSet((eb) => ({
           title: eb.ref('excluded.title'),
@@ -140,10 +145,16 @@ async function save(group: GroupApi, housings?: HousingApi[]): Promise<void> {
         .where('groupId', '=', group.id)
         .execute();
       if (housings.length > 0) {
-        await trx
-          .insertInto('groupsHousing')
-          .values(toGroupHousingInserts(group, housings))
-          .execute();
+        await pMap(
+          Array.chunksOf(housings, INSERT_BATCH_SIZE),
+          async (batch) => {
+            await trx
+              .insertInto('groupsHousing')
+              .values(toGroupHousingDBOs(group, batch))
+              .execute();
+          },
+          { concurrency: 1 }
+        );
       }
     }
     logger.info('Saved group', {
@@ -169,10 +180,12 @@ const addHousing = async (
     housing: housingList.length
   });
 
-  await kysely
-    .insertInto('groupsHousing')
-    .values(toGroupHousingInserts(group, housingList))
-    .execute();
+  await withinKyselyTransaction(async (trx) => {
+    await trx
+      .insertInto('groupsHousing')
+      .values(toGroupHousingDBOs(group, housingList))
+      .execute();
+  });
   logger.info(`Added housing to a group.`, {
     group,
     housing: housingList.length
@@ -197,13 +210,10 @@ const removeHousing = async (
       .deleteFrom('groupsHousing')
       .where('groupId', '=', group.id)
       .where((eb) =>
-        eb.or(
-          housingList.map((housing) =>
-            eb.and([
-              eb('housingGeoCode', '=', housing.geoCode),
-              eb('housingId', '=', housing.id)
-            ])
-          )
+        eb(
+          eb.refTuple('housingGeoCode', 'housingId'),
+          'in',
+          housingList.map((housing) => eb.tuple(housing.geoCode, housing.id))
         )
       )
       .execute();
@@ -235,7 +245,7 @@ const remove = async (group: GroupApi): Promise<void> => {
   logger.debug('Removed group', group.id);
 };
 
-function toGroupInsert(group: GroupApi): Insertable<DB['groups']> {
+function toGroupDBO(group: GroupApi): Insertable<DB['groups']> {
   return {
     id: group.id,
     title: group.title,
@@ -248,7 +258,7 @@ function toGroupInsert(group: GroupApi): Insertable<DB['groups']> {
   };
 }
 
-function toGroupHousingInserts(
+function toGroupHousingDBOs(
   group: GroupApi,
   housingList: HousingApi[]
 ): Insertable<DB['groupsHousing']>[] {

@@ -280,9 +280,7 @@ type HousingDocumentRow = Selectable<DB['documents']> &
     creator: UserDBO | null;
   };
 
-function parseHousingDocumentRow(
-  row: HousingDocumentRow
-): HousingDocumentApi {
+function parseHousingDocumentRow(row: HousingDocumentRow): HousingDocumentApi {
   if (!row.creator) {
     throw new Error('Creator not fetched');
   }

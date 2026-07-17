@@ -56,7 +56,9 @@ function OwnerView() {
             sx={{ alignItems: 'center' }}
           >
             {owner?.kind ? <OwnerKindIcon kind={owner.kind} /> : null}
-            <DoNotContactBadge doNotContact={owner?.doNotContact ?? null} />
+            {owner ? (
+              <DoNotContactBadge doNotContact={owner.doNotContact} />
+            ) : null}
           </Stack>
         </Stack>
       </Stack>

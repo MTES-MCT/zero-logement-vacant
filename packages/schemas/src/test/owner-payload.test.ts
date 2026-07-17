@@ -5,18 +5,21 @@ import { ownerPayload } from '../owner-payload';
 describe('Owner payload', () => {
   test.prop([
     fc.record({
-      fullName: fc.string({ minLength: 1 })
+      fullName: fc.string({ minLength: 1 }),
+      doNotContact: fc.boolean()
     })
-  ])('should accept a payload with only fullName', (payload) => {
+  ])('should accept a payload with only the required fields', (payload) => {
     expect(() => ownerPayload.validateSync(payload)).not.toThrow();
   });
 
   it('should reject when fullName is missing', () => {
-    expect(() => ownerPayload.validateSync({})).toThrow(/fullName/i);
+    expect(() => ownerPayload.validateSync({ doNotContact: false })).toThrow(
+      /fullName/i
+    );
   });
 
-  test.prop([fc.option(fc.boolean(), { nil: null })])(
-    'should accept a boolean or null doNotContact',
+  test.prop([fc.boolean()])(
+    'should accept a boolean doNotContact',
     (doNotContact) => {
       const result = ownerPayload.validateSync({
         fullName: 'Jane Doe',
@@ -26,9 +29,10 @@ describe('Owner payload', () => {
     }
   );
 
-  it('should accept a payload without doNotContact', () => {
-    const result = ownerPayload.validateSync({ fullName: 'Jane Doe' });
-    expect(result.doNotContact).toBeUndefined();
+  it('should reject a payload without doNotContact', () => {
+    expect(() => ownerPayload.validateSync({ fullName: 'Jane Doe' })).toThrow(
+      /doNotContact/i
+    );
   });
 
   it('should reject a non-boolean doNotContact', () => {
@@ -43,6 +47,7 @@ describe('Owner payload', () => {
   it('should accept an empty-string email (treated as absent)', () => {
     const result = ownerPayload.validateSync({
       fullName: 'Jane Doe',
+      doNotContact: false,
       email: ''
     });
     expect(result.email).toBeUndefined();
@@ -52,6 +57,7 @@ describe('Owner payload', () => {
     expect(() =>
       ownerPayload.validateSync({
         fullName: 'Jane Doe',
+        doNotContact: false,
         email: 'not-an-email'
       })
     ).toThrow(/email/i);
@@ -61,6 +67,7 @@ describe('Owner payload', () => {
     expect(() =>
       ownerPayload.validateSync({
         fullName: 'Jane Doe',
+        doNotContact: false,
         banAddress: {}
       })
     ).toThrow(/identifiant BAN/i);
@@ -70,6 +77,7 @@ describe('Owner payload', () => {
     expect(() =>
       ownerPayload.validateSync({
         fullName: 'Jane Doe',
+        doNotContact: false,
         banAddress: null
       })
     ).not.toThrow();
@@ -89,6 +97,7 @@ describe('Owner payload', () => {
     };
     const result = ownerPayload.validateSync({
       fullName: 'Jane Doe',
+      doNotContact: false,
       banAddress
     });
     // mixed() passes the full object through unchanged.
@@ -99,6 +108,7 @@ describe('Owner payload', () => {
     expect(() =>
       ownerPayload.validateSync({
         fullName: 'Jane Doe',
+        doNotContact: false,
         banAddress: {
           banId: 'ban-123',
           postalCode: '75001',
@@ -112,6 +122,7 @@ describe('Owner payload', () => {
     expect(() =>
       ownerPayload.validateSync({
         fullName: 'Jane Doe',
+        doNotContact: false,
         banAddress: {
           banId: 'ban-123',
           label: '1 rue des Lilas',
@@ -125,6 +136,7 @@ describe('Owner payload', () => {
     expect(() =>
       ownerPayload.validateSync({
         fullName: 'Jane Doe',
+        doNotContact: false,
         banAddress: {
           banId: 'ban-123',
           label: '1 rue des Lilas',

@@ -132,9 +132,7 @@ export const ownerHandlers: RequestHandler[] = [
       owner.email = payload.email;
       owner.phone = payload.phone;
       owner.additionalAddress = payload.additionalAddress;
-      if (payload.doNotContact !== undefined) {
-        owner.doNotContact = payload.doNotContact;
-      }
+      owner.doNotContact = payload.doNotContact;
       owner.updatedAt = new Date().toJSON();
 
       return HttpResponse.json(owner);

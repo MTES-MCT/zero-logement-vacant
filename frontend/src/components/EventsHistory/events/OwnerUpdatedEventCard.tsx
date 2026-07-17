@@ -64,7 +64,7 @@ export function formatOwnerUpdatedDifferences({
       `Le complément d’adresse du propriétaire “${after.name}” est passée de “${before.additionalAddress ?? FALLBACK_VALUE}” à “${after.additionalAddress}”.`
     );
   }
-  if ((before.doNotContact ?? false) !== (after.doNotContact ?? false)) {
+  if (before.doNotContact !== after.doNotContact) {
     diffs.push(
       after.doNotContact
         ? `Le propriétaire “${after.name}” a été marqué comme “à ne pas contacter”.`

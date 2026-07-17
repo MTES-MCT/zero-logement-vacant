@@ -61,7 +61,7 @@ function toCreate(source: SourceOwner, year?: string): OwnerChange {
       created_at: now,
       updated_at: now,
       is_multi_owner: null,
-      do_not_contact: null
+      do_not_contact: false
     }
   };
 }
@@ -89,7 +89,7 @@ function toUpdate(source: SourceOwner, existing: OwnerDBO): OwnerChange {
       updated_at: new Date(),
       is_multi_owner: existing.is_multi_owner ?? null,
       // Preserve a user-set "do not contact" flag across re-imports.
-      do_not_contact: existing.do_not_contact ?? null
+      do_not_contact: existing.do_not_contact
     }
   };
 }

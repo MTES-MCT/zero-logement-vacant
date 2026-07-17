@@ -272,7 +272,7 @@ const update: RequestHandler<
     idpersonne: existingOwner.idpersonne,
     siren: existingOwner.siren,
     username: existingOwner.username,
-    doNotContact: body.doNotContact ?? existingOwner.doNotContact,
+    doNotContact: body.doNotContact,
     dataSource: existingOwner.dataSource,
     entity: existingOwner.entity,
     createdAt: existingOwner.createdAt,
@@ -288,7 +288,7 @@ const update: RequestHandler<
       phone: existingOwner.phone,
       address: existingOwner.banAddress?.label ?? null,
       additionalAddress: existingOwner.additionalAddress,
-      doNotContact: existingOwner.doNotContact ?? false
+      doNotContact: existingOwner.doNotContact
     },
     {
       name: owner.fullName,
@@ -297,7 +297,7 @@ const update: RequestHandler<
       phone: owner.phone,
       address: owner.banAddress?.label ?? null,
       additionalAddress: owner.additionalAddress,
-      doNotContact: owner.doNotContact ?? false
+      doNotContact: owner.doNotContact
     }
   );
   const events: OwnerEventApi[] = [];

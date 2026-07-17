@@ -305,12 +305,12 @@ describe('Group repository', () => {
         .first();
       expect(actualGroup).toMatchObject(formatGroupApi(group));
 
-      const actualHousingList = await GroupsHousing().where({
+      const actualhousings = await GroupsHousing().where({
         group_id: group.id
       });
       const ids = housings.map((housing) => ({ housing_id: housing.id }));
-      expect(actualHousingList).toBeArrayOfSize(housings.length);
-      expect(actualHousingList).toIncludeAllPartialMembers(ids);
+      expect(actualhousings).toBeArrayOfSize(housings.length);
+      expect(actualhousings).toIncludeAllPartialMembers(ids);
     });
 
     it('should update a group that exists', async () => {
@@ -334,11 +334,11 @@ describe('Group repository', () => {
         .first();
       expect(actualGroup).toMatchObject(formatGroupApi(newGroup));
 
-      const actualHousingList = await GroupsHousing().where({
+      const actualhousings = await GroupsHousing().where({
         group_id: group.id
       });
-      expect(actualHousingList).toBeArrayOfSize(1);
-      expect(actualHousingList).toIncludeAllPartialMembers<GroupHousingDBO>([
+      expect(actualhousings).toBeArrayOfSize(1);
+      expect(actualhousings).toIncludeAllPartialMembers<GroupHousingDBO>([
         {
           group_id: group.id,
           housing_id: newHousing.id,
@@ -394,23 +394,19 @@ describe('Group repository', () => {
 
     async function createGroupWithHousings(): Promise<{
       group: GroupApi;
-      housingList: HousingApi[];
+      housings: HousingApi[];
     }> {
       const group = await factories
         .group(establishment)
         .create({}, { associations: { createdBy: user } });
-      const housingList = await Promise.all([
-        factories.housing.create(),
-        factories.housing.create(),
-        factories.housing.create()
-      ]);
-      await GroupsHousing().insert(formatGroupHousingApi(group, housingList));
-      return { group, housingList };
+      const housings = await factories.housing.createList(3);
+      await GroupsHousing().insert(formatGroupHousingApi(group, housings));
+      return { group, housings };
     }
 
     it('should remove the given housings from the group', async () => {
-      const { group, housingList } = await createGroupWithHousings();
-      const [removed, ...kept] = housingList;
+      const { group, housings } = await createGroupWithHousings();
+      const [removed, ...kept] = housings;
 
       await groupRepository.removeHousing(group, [removed]);
 
@@ -424,12 +420,12 @@ describe('Group repository', () => {
     });
 
     it('should do nothing when the housing list is empty', async () => {
-      const { group, housingList } = await createGroupWithHousings();
+      const { group, housings } = await createGroupWithHousings();
 
       await groupRepository.removeHousing(group, []);
 
       const actual = await GroupsHousing().where({ group_id: group.id });
-      expect(actual).toBeArrayOfSize(housingList.length);
+      expect(actual).toBeArrayOfSize(housings.length);
     });
   });
 
@@ -459,7 +455,7 @@ describe('Group repository', () => {
     const establishment = genEstablishmentApi();
     const user = genUserApi(establishment.id);
     const group = genGroupApi(user, establishment);
-    const housingList: HousingApi[] = [
+    const housings: HousingApi[] = [
       genHousingApi(),
       genHousingApi(),
       genHousingApi()
@@ -469,8 +465,8 @@ describe('Group repository', () => {
       await Establishments().insert(formatEstablishmentApi(establishment));
       await Users().insert(toUserDBO(user));
       await Groups().insert(formatGroupApi(group));
-      await Housing().insert(housingList.map(formatHousingRecordApi));
-      await GroupsHousing().insert(formatGroupHousingApi(group, housingList));
+      await Housing().insert(housings.map(formatHousingRecordApi));
+      await GroupsHousing().insert(formatGroupHousingApi(group, housings));
     });
 
     it('should remove a group if it exists', async () => {
@@ -483,10 +479,10 @@ describe('Group repository', () => {
         })
         .first();
       expect(actualGroup).toBeUndefined();
-      const actualHousingList = await GroupsHousing().where({
+      const actualhousings = await GroupsHousing().where({
         group_id: group.id
       });
-      expect(actualHousingList).toBeArrayOfSize(0);
+      expect(actualhousings).toBeArrayOfSize(0);
     });
   });
 

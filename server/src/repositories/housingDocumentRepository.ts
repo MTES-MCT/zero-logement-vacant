@@ -266,9 +266,10 @@ export function fromHousingDocumentDBO(
   };
 }
 
-type HousingDocumentRow = Selectable<DB['documents']> & Selectable<DB['documentsHousings']> & {
-  creator: UserDBO | null;
-};
+type HousingDocumentRow = Selectable<DB['documents']> &
+  Pick<Selectable<DB['documentsHousings']>, 'housingGeoCode' | 'housingId'> & {
+    creator: UserDBO | null;
+  };
 
 function parseHousingDocumentRow(
   row: HousingDocumentRow

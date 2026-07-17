@@ -29,6 +29,7 @@
 ## File Structure
 
 **New files:**
+
 - `server/src/utils/date.ts` — `today()`: the server's current calendar date as `yyyy-MM-dd`.
 - `server/src/services/campaignHousingService.ts` — `flipHousingsToWaiting()` (writes for an already-selected set) and `flipCampaignHousingsToWaiting()` (queries a campaign's NEVER_CONTACTED housings, then flips).
 - `server/src/services/test/campaignHousingService.test.ts` — integration tests for the flip service.
@@ -40,6 +41,7 @@
 - `server/src/scripts/repairs/test/campaign-sending-date.test.ts` — unit tests for `decide()` (one per skip branch, happy path, tolerance boundary) + one `query()` integration test.
 
 **Modified files:**
+
 - `server/src/models/CampaignApi.ts` — add pure `isSendDateReached()`.
 - `server/src/models/test/CampaignApi.test.ts` (create if absent) — tests for `isSendDateReached()`.
 - `server/src/controllers/campaignController.ts` — gate the flip in `createFromGroup`; add a gated flip to `update`.
@@ -52,11 +54,13 @@
 ## Task 1: Date + send-date predicate helpers
 
 **Files:**
+
 - Create: `server/src/utils/date.ts`
 - Modify: `server/src/models/CampaignApi.ts` (add `isSendDateReached`)
 - Test: `server/src/utils/test/date.test.ts` (create), `server/src/models/test/CampaignApi.test.ts` (create if absent)
 
 **Interfaces:**
+
 - Produces:
   - `today(): string` — server's current date as `yyyy-MM-dd`.
   - `isSendDateReached(sentAt: string | null, today: string): boolean` — `true` iff `sentAt` is set and `sentAt.slice(0, 10) <= today`.
@@ -178,10 +182,12 @@ git commit -m "feat(server): add today() and isSendDateReached() helpers"
 ## Task 2: Flip service
 
 **Files:**
+
 - Create: `server/src/services/campaignHousingService.ts`
 - Test: `server/src/services/test/campaignHousingService.test.ts`
 
 **Interfaces:**
+
 - Consumes: `housingRepository.updateMany`, `housingRepository.find`, `eventRepository.insertManyHousingEvents`, `userRepository.getByEmail`, `config.app.system`, `UserMissingError`, `HousingId` (`{ geoCode, id }`), `HOUSING_STATUS_LABELS`, `HousingStatus`.
 - Produces:
   - `flipHousingsToWaiting(housings: ReadonlyArray<Pick<HousingApi, 'id' | 'geoCode'>>): Promise<number>` — writes one `housing:status-updated` event per housing and sets `{ status: WAITING, subStatus: null }`. The events are attributed to the **system account** (`config.app.system`), resolved inside the service (throws `UserMissingError` if absent) — no `createdBy` parameter. Assumes the caller filtered to NEVER_CONTACTED and owns the transaction. Returns the count flipped.
@@ -209,7 +215,10 @@ import {
   Housing,
   formatHousingRecordApi
 } from '~/repositories/housingRepository';
-import { Campaigns, formatCampaignApi } from '~/repositories/campaignRepository';
+import {
+  Campaigns,
+  formatCampaignApi
+} from '~/repositories/campaignRepository';
 import { CampaignsHousing } from '~/repositories/campaignHousingRepository';
 import { Events, HOUSING_EVENTS_TABLE } from '~/repositories/eventRepository';
 import {
@@ -322,9 +331,7 @@ describe('campaignHousingService', () => {
         housing_geo_code: housing.geoCode
       });
 
-      await startTransaction(() =>
-        flipCampaignHousingsToWaiting(campaign)
-      );
+      await startTransaction(() => flipCampaignHousingsToWaiting(campaign));
       const second = await startTransaction(() =>
         flipCampaignHousingsToWaiting(campaign)
       );
@@ -346,7 +353,10 @@ Expected: FAIL — `~/services/campaignHousingService` does not exist.
 Create `server/src/services/campaignHousingService.ts`:
 
 ```typescript
-import { HOUSING_STATUS_LABELS, HousingStatus } from '@zerologementvacant/models';
+import {
+  HOUSING_STATUS_LABELS,
+  HousingStatus
+} from '@zerologementvacant/models';
 import { v4 as uuidv4 } from 'uuid';
 
 import UserMissingError from '~/errors/userMissingError';
@@ -454,16 +464,19 @@ git commit -m "feat(server): add campaign housing flip-to-waiting service"
 ## Task 3: Gate the flip in `createFromGroup`
 
 **Files:**
+
 - Modify: `server/src/controllers/campaignController.ts` (`createFromGroup`, lines ~97–240, and imports)
 - Test: `server/src/controllers/test/campaign-api.test.ts`
 
 **Interfaces:**
+
 - Consumes: `isSendDateReached`, `today`, `flipHousingsToWaiting`.
 - Produces: no new exports; changes `createFromGroup` so the status flip happens only when `isSendDateReached(campaign.sentAt, today())`.
 
 - [ ] **Step 1: Update the existing `createFromGroup` tests to the gated behavior**
 
 In `server/src/controllers/test/campaign-api.test.ts`, find the `POST /groups/:id/campaigns` (`createFromGroup`) describe block. The current tests assert NEVER_CONTACTED housings always flip to WAITING. Change them so:
+
 - When the request body's `sentAt` is `null` (or omitted), NEVER_CONTACTED housings stay NEVER_CONTACTED and **no** `housing:status-updated` event is written.
 - Add a case: `sentAt` set to a **past** date (e.g. `'2020-01-01'`) → NEVER_CONTACTED housings flip to WAITING and one `housing:status-updated` event per flipped housing is written.
 - Add a case: `sentAt` set to a **future** date (e.g. `'2999-01-01'`) → housings stay NEVER_CONTACTED, no status event.
@@ -526,6 +539,7 @@ Expected: FAIL — the current unconditional flip flips even when `sentAt` is nu
 - [ ] **Step 3: Update the imports in `campaignController.ts`**
 
 At the top of `server/src/controllers/campaignController.ts`:
+
 - Add `isSendDateReached` to the existing import from `~/models/CampaignApi`:
 
 ```typescript
@@ -556,24 +570,24 @@ Keep `const neverContactedHousings = housings.filter((housing) => housing.status
 Replace the transaction body (the `await startTransaction(async () => { ... })` block) with:
 
 ```typescript
-  await startTransaction(async () => {
-    await senderRepository.save(sender);
-    await draftRepository.save(draft);
-    await campaignRepository.save(campaign);
-    await campaignDraftRepository.save(campaign, draft);
+await startTransaction(async () => {
+  await senderRepository.save(sender);
+  await draftRepository.save(draft);
+  await campaignRepository.save(campaign);
+  await campaignDraftRepository.save(campaign, draft);
 
-    await Promise.all([
-      campaignHousingRepository.insertHousingList(campaign.id, housings),
-      eventRepository.insertManyCampaignHousingEvents(campaignHousingEvents)
-    ]);
+  await Promise.all([
+    campaignHousingRepository.insertHousingList(campaign.id, housings),
+    eventRepository.insertManyCampaignHousingEvents(campaignHousingEvents)
+  ]);
 
-    // Gate the NEVER_CONTACTED -> WAITING flip on the sending date. Pass the
-    // in-memory housings: housingRepository.find would not see the campaign
-    // links just inserted in this transaction.
-    if (isSendDateReached(campaign.sentAt, today())) {
-      await flipHousingsToWaiting(neverContactedHousings);
-    }
-  });
+  // Gate the NEVER_CONTACTED -> WAITING flip on the sending date. Pass the
+  // in-memory housings: housingRepository.find would not see the campaign
+  // links just inserted in this transaction.
+  if (isSendDateReached(campaign.sentAt, today())) {
+    await flipHousingsToWaiting(neverContactedHousings);
+  }
+});
 ```
 
 - [ ] **Step 5: Remove now-unused imports**
@@ -603,10 +617,12 @@ git commit -m "feat(server): gate createFromGroup housing flip on the sending da
 ## Task 4: Gate a flip in `update`
 
 **Files:**
+
 - Modify: `server/src/controllers/campaignController.ts` (`update`, lines ~242–283)
 - Test: `server/src/controllers/test/campaign-api.test.ts`
 
 **Interfaces:**
+
 - Consumes: `isSendDateReached`, `today`, `flipCampaignHousingsToWaiting`, `startTransaction`.
 - Produces: `update` now flips the campaign's still-NEVER_CONTACTED housings when the saved `sentAt` is `<= today`.
 
@@ -679,17 +695,17 @@ Expected: FAIL — `update` currently performs no flip.
 Replace the final save + response of `update` (the `await campaignRepository.save(updated);` line and the response line) with:
 
 ```typescript
-  await startTransaction(async () => {
-    await campaignRepository.save(updated);
-    // If the saved sending date has arrived (same-day confirmation or a
-    // retroactive correction to a past date), flip the campaign's still
-    // NEVER_CONTACTED housings now instead of waiting for the daily cron.
-    if (isSendDateReached(updated.sentAt, today())) {
-      await flipCampaignHousingsToWaiting(updated);
-    }
-  });
+await startTransaction(async () => {
+  await campaignRepository.save(updated);
+  // If the saved sending date has arrived (same-day confirmation or a
+  // retroactive correction to a past date), flip the campaign's still
+  // NEVER_CONTACTED housings now instead of waiting for the daily cron.
+  if (isSendDateReached(updated.sentAt, today())) {
+    await flipCampaignHousingsToWaiting(updated);
+  }
+});
 
-  response.status(constants.HTTP_STATUS_OK).json(toCampaignDTO(updated));
+response.status(constants.HTTP_STATUS_OK).json(toCampaignDTO(updated));
 ```
 
 Leave the existing `sentAt cannot be unset` guard and the `updated` object construction unchanged.
@@ -717,10 +733,12 @@ git commit -m "feat(server): flip campaign housings when update sets a reached s
 ## Task 5: Daily cron task core
 
 **Files:**
+
 - Create: `server/src/scripts/flip-sent-campaign-housings/task.ts`
 - Test: `server/src/scripts/flip-sent-campaign-housings/test/task.test.ts`
 
 **Interfaces:**
+
 - Consumes: `flipCampaignHousingsToWaiting`, `startTransaction`, `CampaignsHousing`, `campaignsHousingTable`, `campaignsTable`, `housingTable`, `HousingStatus`.
 - Produces:
   - `FlipSentCampaignHousingsOptions = { today: string }`
@@ -744,7 +762,10 @@ import {
   Housing,
   formatHousingRecordApi
 } from '~/repositories/housingRepository';
-import { Campaigns, formatCampaignApi } from '~/repositories/campaignRepository';
+import {
+  Campaigns,
+  formatCampaignApi
+} from '~/repositories/campaignRepository';
 import { CampaignsHousing } from '~/repositories/campaignHousingRepository';
 import { Events } from '~/repositories/eventRepository';
 import {
@@ -812,26 +833,20 @@ describe('flipSentCampaignHousings', () => {
     const eventsAfterFirst = await Events()
       .where({ type: 'housing:status-updated' })
       .whereIn('id', (q) =>
-        q
-          .select('event_id')
-          .from('housing_events')
-          .where({
-            housing_geo_code: housing.geoCode,
-            housing_id: housing.id
-          })
+        q.select('event_id').from('housing_events').where({
+          housing_geo_code: housing.geoCode,
+          housing_id: housing.id
+        })
       );
 
     await flipSentCampaignHousings({ today });
     const eventsAfterSecond = await Events()
       .where({ type: 'housing:status-updated' })
       .whereIn('id', (q) =>
-        q
-          .select('event_id')
-          .from('housing_events')
-          .where({
-            housing_geo_code: housing.geoCode,
-            housing_id: housing.id
-          })
+        q.select('event_id').from('housing_events').where({
+          housing_geo_code: housing.geoCode,
+          housing_id: housing.id
+        })
       );
 
     expect(eventsAfterSecond).toHaveLength(eventsAfterFirst.length);
@@ -945,11 +960,13 @@ git commit -m "feat(server): add task flipping sent-campaign housings to waiting
 ## Task 6: Cron entry point, wrapper, and `cron.json`
 
 **Files:**
+
 - Create: `server/src/scripts/flip-sent-campaign-housings/index.ts`
 - Create: `server/src/scripts/flip-sent-campaign-housings/flip-sent-campaign-housings.sh`
 - Modify: `clevercloud/cron.json`
 
 **Interfaces:**
+
 - Consumes: `flipSentCampaignHousings`, `today`, `db`, `config.app.isReviewApp`.
 - Produces: a runnable cron that settles sent-campaign housings once a day.
 
@@ -1051,6 +1068,7 @@ git commit -m "feat(server): add daily cron settling sent-campaign housing statu
 ## Task 7: Backfill repair `campaign-sending-date`
 
 **Files:**
+
 - Create: `server/src/scripts/repairs/campaign-sending-date.ts`
 - Modify: `server/src/scripts/repairs/index.ts`
 - Test: `server/src/scripts/repairs/test/campaign-sending-date.test.ts`
@@ -1060,6 +1078,7 @@ git commit -m "feat(server): add daily cron settling sent-campaign housing statu
 > Build the stream with `rows<H>(...)` from `./lib/row-stream`: `rows(knexStream)` for a Knex `.stream()`, or `rows(iterable)` for an in-memory set. **This repair enriches in bulk** (three per-batch join-table lookups, per the "pure transform + bulk enrich" rule) and returns a real camelCase `HousingApi` from `housingRepository.find`, so it uses the in-memory form: build the enriched candidates in an `async function buildCandidates()` and stream them via a `Readable` wrapped in `rows<HousingWithContext>()`. A raw `Housing().stream()` is **not** an option here — there is no response camel-casing (`index.ts:45` only camel→snakes query identifiers), so streamed rows would be snake_case DBO with `geoCode`/`subStatus` undefined, breaking both `decide` and `plan()`'s `housingGeoCode` extraction.
 
 **Interfaces:**
+
 - Consumes: `Repair` from `./lib/types`; `rows` (value) and `RowStream` (type) from `./lib/row-stream`; `Readable` from `node:stream`; `isSendDateReached`; `today`; `HOUSING_STATUS_LABELS`; `HousingStatus`; `housingRepository.find`; the `CampaignsHousing`, `HousingEvents`, `CampaignHousingEvents` accessors and the `campaignsTable`, `campaignsHousingTable`, `EVENTS_TABLE`, `HOUSING_EVENTS_TABLE`, `CAMPAIGN_HOUSING_EVENTS_TABLE` constants; `chunksOf` from `effect/Array`.
 - Produces: `campaignSendingDateRepair: Repair<HousingWithContext>` (with `query(): RowStream<HousingWithContext>`), registered under key `'campaign-sending-date'`.
 
@@ -1079,10 +1098,16 @@ interface HousingWithContext extends HousingApi {
 Create `server/src/scripts/repairs/test/campaign-sending-date.test.ts`. `decide()` is pure, so these need no DB — construct `HousingWithContext` objects directly.
 
 ```typescript
-import { HOUSING_STATUS_LABELS, HousingStatus } from '@zerologementvacant/models';
+import {
+  HOUSING_STATUS_LABELS,
+  HousingStatus
+} from '@zerologementvacant/models';
 import { describe, expect, it } from 'vitest';
 
-import type { CampaignHousingEventApi, HousingEventApi } from '~/models/EventApi';
+import type {
+  CampaignHousingEventApi,
+  HousingEventApi
+} from '~/models/EventApi';
 import { genHousingApi } from '~/test/testFixtures';
 import {
   ATTACHMENT_CORRELATION_TOLERANCE_MS,
@@ -1143,13 +1168,20 @@ describe('campaignSendingDateRepair.decide', () => {
   });
 
   it('skips when a campaign has already sent', () => {
-    const housing = { ...base(), campaigns: [{ id: 'c', sentAt: '2020-01-01' }] };
-    expect(campaignSendingDateRepair.decide(housing)).toEqual({ action: 'skip' });
+    const housing = {
+      ...base(),
+      campaigns: [{ id: 'c', sentAt: '2020-01-01' }]
+    };
+    expect(campaignSendingDateRepair.decide(housing)).toEqual({
+      action: 'skip'
+    });
   });
 
   it('skips when there is no status-updated event', () => {
     const housing = { ...base(), lastStatusUpdatedEvent: null };
-    expect(campaignSendingDateRepair.decide(housing)).toEqual({ action: 'skip' });
+    expect(campaignSendingDateRepair.decide(housing)).toEqual({
+      action: 'skip'
+    });
   });
 
   it('skips when the status event is not the pristine flip shape', () => {
@@ -1160,7 +1192,9 @@ describe('campaignSendingDateRepair.decide', () => {
         nextNew: { status: HOUSING_STATUS_LABELS[HousingStatus.FIRST_CONTACT] }
       })
     };
-    expect(campaignSendingDateRepair.decide(housing)).toEqual({ action: 'skip' });
+    expect(campaignSendingDateRepair.decide(housing)).toEqual({
+      action: 'skip'
+    });
   });
 
   it('skips when no campaign-attached event correlates in time', () => {
@@ -1173,7 +1207,9 @@ describe('campaignSendingDateRepair.decide', () => {
       ...base(),
       campaignAttachedEvents: [attachedEvent(farApart)]
     };
-    expect(campaignSendingDateRepair.decide(housing)).toEqual({ action: 'skip' });
+    expect(campaignSendingDateRepair.decide(housing)).toEqual({
+      action: 'skip'
+    });
   });
 
   it('correlates at exactly the tolerance boundary', () => {
@@ -1204,12 +1240,18 @@ Create `server/src/scripts/repairs/campaign-sending-date.ts`:
 ```typescript
 import { Readable } from 'node:stream';
 
-import { HOUSING_STATUS_LABELS, HousingStatus } from '@zerologementvacant/models';
+import {
+  HOUSING_STATUS_LABELS,
+  HousingStatus
+} from '@zerologementvacant/models';
 import { chunksOf } from 'effect/Array';
 
 import { isSendDateReached } from '~/models/CampaignApi';
 import type { CampaignApi } from '~/models/CampaignApi';
-import type { CampaignHousingEventApi, HousingEventApi } from '~/models/EventApi';
+import type {
+  CampaignHousingEventApi,
+  HousingEventApi
+} from '~/models/EventApi';
 import type { HousingApi } from '~/models/HousingApi';
 import {
   campaignsHousingTable,
@@ -1267,7 +1309,9 @@ export const campaignSendingDateRepair: Repair<HousingWithContext> = {
         output.push(null);
       },
       (error) =>
-        output.destroy(error instanceof Error ? error : new Error(String(error)))
+        output.destroy(
+          error instanceof Error ? error : new Error(String(error))
+        )
     );
     return rows<HousingWithContext>(output);
 
@@ -1275,134 +1319,140 @@ export const campaignSendingDateRepair: Repair<HousingWithContext> = {
       const now = today();
 
       const waiting = (
-      await housingRepository.find({
-        filters: { status: HousingStatus.WAITING },
-        pagination: { paginate: false }
-      })
-    ).filter((housing) => housing.subStatus === null);
+        await housingRepository.find({
+          filters: { status: HousingStatus.WAITING },
+          pagination: { paginate: false }
+        })
+      ).filter((housing) => housing.subStatus === null);
 
-    if (waiting.length === 0) {
-      return [];
-    }
-
-    const pairs = waiting.map(
-      (housing) => [housing.geoCode, housing.id] as [string, string]
-    );
-
-    const campaignsByHousing = new Map<
-      string,
-      Pick<CampaignApi, 'id' | 'sentAt'>[]
-    >();
-    const statusEventByHousing = new Map<string, HousingEventApi>();
-    const attachedByHousing = new Map<string, CampaignHousingEventApi[]>();
-
-    for (const chunk of chunksOf(pairs, 1000)) {
-      const campaignRows = await CampaignsHousing()
-        .join(
-          campaignsTable,
-          `${campaignsTable}.id`,
-          `${campaignsHousingTable}.campaign_id`
-        )
-        .whereIn(
-          [
-            `${campaignsHousingTable}.housing_geo_code`,
-            `${campaignsHousingTable}.housing_id`
-          ],
-          chunk
-        )
-        .select(
-          `${campaignsHousingTable}.housing_geo_code as housing_geo_code`,
-          `${campaignsHousingTable}.housing_id as housing_id`,
-          `${campaignsTable}.id as campaign_id`,
-          `${campaignsTable}.sent_at as sent_at`
-        );
-      for (const row of campaignRows) {
-        const k = `${row.housing_geo_code}:${row.housing_id}`;
-        const list = campaignsByHousing.get(k) ?? [];
-        list.push({
-          id: row.campaign_id,
-          sentAt: row.sent_at ? new Date(row.sent_at).toJSON().slice(0, 10) : null
-        });
-        campaignsByHousing.set(k, list);
+      if (waiting.length === 0) {
+        return [];
       }
 
-      const statusRows = await HousingEvents()
-        .join(EVENTS_TABLE, `${EVENTS_TABLE}.id`, `${HOUSING_EVENTS_TABLE}.event_id`)
-        .where(`${EVENTS_TABLE}.type`, 'housing:status-updated')
-        .whereIn(
-          [
-            `${HOUSING_EVENTS_TABLE}.housing_geo_code`,
-            `${HOUSING_EVENTS_TABLE}.housing_id`
-          ],
-          chunk
-        )
-        .orderBy(`${EVENTS_TABLE}.created_at`, 'desc')
-        .select(
-          `${HOUSING_EVENTS_TABLE}.housing_geo_code as housing_geo_code`,
-          `${HOUSING_EVENTS_TABLE}.housing_id as housing_id`,
-          `${EVENTS_TABLE}.id as id`,
-          `${EVENTS_TABLE}.next_old as next_old`,
-          `${EVENTS_TABLE}.next_new as next_new`,
-          `${EVENTS_TABLE}.created_at as created_at`,
-          `${EVENTS_TABLE}.created_by as created_by`
-        );
-      for (const row of statusRows) {
-        const k = `${row.housing_geo_code}:${row.housing_id}`;
-        // Rows are DESC by created_at, so the first seen per housing is latest.
-        if (!statusEventByHousing.has(k)) {
-          statusEventByHousing.set(k, {
+      const pairs = waiting.map(
+        (housing) => [housing.geoCode, housing.id] as [string, string]
+      );
+
+      const campaignsByHousing = new Map<
+        string,
+        Pick<CampaignApi, 'id' | 'sentAt'>[]
+      >();
+      const statusEventByHousing = new Map<string, HousingEventApi>();
+      const attachedByHousing = new Map<string, CampaignHousingEventApi[]>();
+
+      for (const chunk of chunksOf(pairs, 1000)) {
+        const campaignRows = await CampaignsHousing()
+          .join(
+            campaignsTable,
+            `${campaignsTable}.id`,
+            `${campaignsHousingTable}.campaign_id`
+          )
+          .whereIn(
+            [
+              `${campaignsHousingTable}.housing_geo_code`,
+              `${campaignsHousingTable}.housing_id`
+            ],
+            chunk
+          )
+          .select(
+            `${campaignsHousingTable}.housing_geo_code as housing_geo_code`,
+            `${campaignsHousingTable}.housing_id as housing_id`,
+            `${campaignsTable}.id as campaign_id`,
+            `${campaignsTable}.sent_at as sent_at`
+          );
+        for (const row of campaignRows) {
+          const k = `${row.housing_geo_code}:${row.housing_id}`;
+          const list = campaignsByHousing.get(k) ?? [];
+          list.push({
+            id: row.campaign_id,
+            sentAt: row.sent_at
+              ? new Date(row.sent_at).toJSON().slice(0, 10)
+              : null
+          });
+          campaignsByHousing.set(k, list);
+        }
+
+        const statusRows = await HousingEvents()
+          .join(
+            EVENTS_TABLE,
+            `${EVENTS_TABLE}.id`,
+            `${HOUSING_EVENTS_TABLE}.event_id`
+          )
+          .where(`${EVENTS_TABLE}.type`, 'housing:status-updated')
+          .whereIn(
+            [
+              `${HOUSING_EVENTS_TABLE}.housing_geo_code`,
+              `${HOUSING_EVENTS_TABLE}.housing_id`
+            ],
+            chunk
+          )
+          .orderBy(`${EVENTS_TABLE}.created_at`, 'desc')
+          .select(
+            `${HOUSING_EVENTS_TABLE}.housing_geo_code as housing_geo_code`,
+            `${HOUSING_EVENTS_TABLE}.housing_id as housing_id`,
+            `${EVENTS_TABLE}.id as id`,
+            `${EVENTS_TABLE}.next_old as next_old`,
+            `${EVENTS_TABLE}.next_new as next_new`,
+            `${EVENTS_TABLE}.created_at as created_at`,
+            `${EVENTS_TABLE}.created_by as created_by`
+          );
+        for (const row of statusRows) {
+          const k = `${row.housing_geo_code}:${row.housing_id}`;
+          // Rows are DESC by created_at, so the first seen per housing is latest.
+          if (!statusEventByHousing.has(k)) {
+            statusEventByHousing.set(k, {
+              id: row.id,
+              type: 'housing:status-updated',
+              nextOld: row.next_old,
+              nextNew: row.next_new,
+              createdAt: new Date(row.created_at).toJSON(),
+              createdBy: row.created_by,
+              housingGeoCode: row.housing_geo_code,
+              housingId: row.housing_id
+            });
+          }
+        }
+
+        const attachedRows = await CampaignHousingEvents()
+          .join(
+            EVENTS_TABLE,
+            `${EVENTS_TABLE}.id`,
+            `${CAMPAIGN_HOUSING_EVENTS_TABLE}.event_id`
+          )
+          .where(`${EVENTS_TABLE}.type`, 'housing:campaign-attached')
+          .whereIn(
+            [
+              `${CAMPAIGN_HOUSING_EVENTS_TABLE}.housing_geo_code`,
+              `${CAMPAIGN_HOUSING_EVENTS_TABLE}.housing_id`
+            ],
+            chunk
+          )
+          .select(
+            `${CAMPAIGN_HOUSING_EVENTS_TABLE}.housing_geo_code as housing_geo_code`,
+            `${CAMPAIGN_HOUSING_EVENTS_TABLE}.housing_id as housing_id`,
+            `${CAMPAIGN_HOUSING_EVENTS_TABLE}.campaign_id as campaign_id`,
+            `${EVENTS_TABLE}.id as id`,
+            `${EVENTS_TABLE}.next_new as next_new`,
+            `${EVENTS_TABLE}.created_at as created_at`,
+            `${EVENTS_TABLE}.created_by as created_by`
+          );
+        for (const row of attachedRows) {
+          const k = `${row.housing_geo_code}:${row.housing_id}`;
+          const list = attachedByHousing.get(k) ?? [];
+          list.push({
             id: row.id,
-            type: 'housing:status-updated',
-            nextOld: row.next_old,
+            type: 'housing:campaign-attached',
+            nextOld: null,
             nextNew: row.next_new,
             createdAt: new Date(row.created_at).toJSON(),
             createdBy: row.created_by,
             housingGeoCode: row.housing_geo_code,
-            housingId: row.housing_id
+            housingId: row.housing_id,
+            campaignId: row.campaign_id
           });
+          attachedByHousing.set(k, list);
         }
       }
-
-      const attachedRows = await CampaignHousingEvents()
-        .join(
-          EVENTS_TABLE,
-          `${EVENTS_TABLE}.id`,
-          `${CAMPAIGN_HOUSING_EVENTS_TABLE}.event_id`
-        )
-        .where(`${EVENTS_TABLE}.type`, 'housing:campaign-attached')
-        .whereIn(
-          [
-            `${CAMPAIGN_HOUSING_EVENTS_TABLE}.housing_geo_code`,
-            `${CAMPAIGN_HOUSING_EVENTS_TABLE}.housing_id`
-          ],
-          chunk
-        )
-        .select(
-          `${CAMPAIGN_HOUSING_EVENTS_TABLE}.housing_geo_code as housing_geo_code`,
-          `${CAMPAIGN_HOUSING_EVENTS_TABLE}.housing_id as housing_id`,
-          `${CAMPAIGN_HOUSING_EVENTS_TABLE}.campaign_id as campaign_id`,
-          `${EVENTS_TABLE}.id as id`,
-          `${EVENTS_TABLE}.next_new as next_new`,
-          `${EVENTS_TABLE}.created_at as created_at`,
-          `${EVENTS_TABLE}.created_by as created_by`
-        );
-      for (const row of attachedRows) {
-        const k = `${row.housing_geo_code}:${row.housing_id}`;
-        const list = attachedByHousing.get(k) ?? [];
-        list.push({
-          id: row.id,
-          type: 'housing:campaign-attached',
-          nextOld: null,
-          nextNew: row.next_new,
-          createdAt: new Date(row.created_at).toJSON(),
-          createdBy: row.created_by,
-          housingGeoCode: row.housing_geo_code,
-          housingId: row.housing_id,
-          campaignId: row.campaign_id
-        });
-        attachedByHousing.set(k, list);
-      }
-    }
 
       return waiting.map((housing) => {
         const k = key(housing);
@@ -1435,7 +1485,8 @@ export const campaignSendingDateRepair: Repair<HousingWithContext> = {
     }
     const { nextOld, nextNew } = event;
     if (
-      nextOld?.status !== HOUSING_STATUS_LABELS[HousingStatus.NEVER_CONTACTED] ||
+      nextOld?.status !==
+        HOUSING_STATUS_LABELS[HousingStatus.NEVER_CONTACTED] ||
       nextNew?.status !== HOUSING_STATUS_LABELS[HousingStatus.WAITING]
     ) {
       return { action: 'skip' };
@@ -1488,13 +1539,32 @@ Append to `server/src/scripts/repairs/test/campaign-sending-date.test.ts` a DB-b
 import { Writable } from 'node:stream';
 import { pipeline } from 'node:stream/promises';
 
-import { Establishments, formatEstablishmentApi } from '~/repositories/establishmentRepository';
+import {
+  Establishments,
+  formatEstablishmentApi
+} from '~/repositories/establishmentRepository';
 import { Users, toUserDBO } from '~/repositories/userRepository';
-import { Housing, formatHousingRecordApi } from '~/repositories/housingRepository';
-import { Campaigns, formatCampaignApi } from '~/repositories/campaignRepository';
+import {
+  Housing,
+  formatHousingRecordApi
+} from '~/repositories/housingRepository';
+import {
+  Campaigns,
+  formatCampaignApi
+} from '~/repositories/campaignRepository';
 import { CampaignsHousing } from '~/repositories/campaignHousingRepository';
-import { Events, HousingEvents, CampaignHousingEvents, formatEventApi } from '~/repositories/eventRepository';
-import { genEstablishmentApi, genUserApi, genCampaignApi, genEventApi } from '~/test/testFixtures';
+import {
+  Events,
+  HousingEvents,
+  CampaignHousingEvents,
+  formatEventApi
+} from '~/repositories/eventRepository';
+import {
+  genEstablishmentApi,
+  genUserApi,
+  genCampaignApi,
+  genEventApi
+} from '~/test/testFixtures';
 // add HousingWithContext to the existing import from '../campaign-sending-date'
 
 describe('campaignSendingDateRepair.query (integration)', () => {
@@ -1510,7 +1580,10 @@ describe('campaignSendingDateRepair.query (integration)', () => {
       status: HousingStatus.WAITING,
       subStatus: null
     };
-    const campaign = { ...genCampaignApi(establishment.id, user), sentAt: null };
+    const campaign = {
+      ...genCampaignApi(establishment.id, user),
+      sentAt: null
+    };
     await Housing().insert(formatHousingRecordApi(housing));
     await Campaigns().insert(formatCampaignApi(campaign));
     await CampaignsHousing().insert({
@@ -1653,6 +1726,7 @@ Expected: prints `Bypass triggers: true` and the `Updated / Events deleted / Eve
 ## Self-Review
 
 **Spec coverage:**
+
 - Ongoing mechanism — shared flip function → Task 2. `createFromGroup` gated on `sentAt <= today` → Task 3. `update` flips when saved `sentAt` reaches today → Task 4. Daily idempotent cron for future-dated campaigns → Tasks 5–6. ✓
 - Non-goal (no automatic revert when `sentAt` pushed later) — honored: no call site reverts on `update`; only forward flips happen. ✓
 - Backfill via the repair harness (`campaign-sending-date`, registered, run via `zlv repair plan/stats/apply`) → Tasks 7–8. ✓

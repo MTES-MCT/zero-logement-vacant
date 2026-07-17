@@ -1,24 +1,28 @@
 import { HousingStatus } from '@zerologementvacant/models';
 import { beforeAll, describe, expect, it } from 'vitest';
 
+import { CampaignsHousing } from '~/repositories/campaignHousingRepository';
+import {
+  Campaigns,
+  formatCampaignApi
+} from '~/repositories/campaignRepository';
 import {
   Establishments,
   formatEstablishmentApi
 } from '~/repositories/establishmentRepository';
-import { Users, toUserDBO } from '~/repositories/userRepository';
+import { Events } from '~/repositories/eventRepository';
 import {
   Housing,
   formatHousingRecordApi
 } from '~/repositories/housingRepository';
-import { Campaigns, formatCampaignApi } from '~/repositories/campaignRepository';
-import { CampaignsHousing } from '~/repositories/campaignHousingRepository';
-import { Events } from '~/repositories/eventRepository';
+import { Users, toUserDBO } from '~/repositories/userRepository';
 import {
   genEstablishmentApi,
   genUserApi,
   genHousingApi,
   genCampaignApi
 } from '~/test/testFixtures';
+
 import { flipSentCampaignHousings } from '../task';
 
 describe('flipSentCampaignHousings', () => {
@@ -78,26 +82,20 @@ describe('flipSentCampaignHousings', () => {
     const eventsAfterFirst = await Events()
       .where({ type: 'housing:status-updated' })
       .whereIn('id', (q) =>
-        q
-          .select('event_id')
-          .from('housing_events')
-          .where({
-            housing_geo_code: housing.geoCode,
-            housing_id: housing.id
-          })
+        q.select('event_id').from('housing_events').where({
+          housing_geo_code: housing.geoCode,
+          housing_id: housing.id
+        })
       );
 
     await flipSentCampaignHousings({ today });
     const eventsAfterSecond = await Events()
       .where({ type: 'housing:status-updated' })
       .whereIn('id', (q) =>
-        q
-          .select('event_id')
-          .from('housing_events')
-          .where({
-            housing_geo_code: housing.geoCode,
-            housing_id: housing.id
-          })
+        q.select('event_id').from('housing_events').where({
+          housing_geo_code: housing.geoCode,
+          housing_id: housing.id
+        })
       );
 
     expect(eventsAfterSecond).toHaveLength(eventsAfterFirst.length);

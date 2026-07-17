@@ -1,19 +1,35 @@
-import { HOUSING_STATUS_LABELS, HousingStatus } from '@zerologementvacant/models';
 import { Writable } from 'node:stream';
 import { pipeline } from 'node:stream/promises';
+
+import {
+  HOUSING_STATUS_LABELS,
+  HousingStatus
+} from '@zerologementvacant/models';
 import { describe, expect, it } from 'vitest';
 
-import type { CampaignHousingEventApi, HousingEventApi } from '~/models/EventApi';
+import type {
+  CampaignHousingEventApi,
+  HousingEventApi
+} from '~/models/EventApi';
 import { CampaignsHousing } from '~/repositories/campaignHousingRepository';
-import { Campaigns, formatCampaignApi } from '~/repositories/campaignRepository';
+import {
+  Campaigns,
+  formatCampaignApi
+} from '~/repositories/campaignRepository';
+import {
+  Establishments,
+  formatEstablishmentApi
+} from '~/repositories/establishmentRepository';
 import {
   CampaignHousingEvents,
   Events,
   formatEventApi,
   HousingEvents
 } from '~/repositories/eventRepository';
-import { Establishments, formatEstablishmentApi } from '~/repositories/establishmentRepository';
-import { formatHousingRecordApi, Housing } from '~/repositories/housingRepository';
+import {
+  formatHousingRecordApi,
+  Housing
+} from '~/repositories/housingRepository';
 import { toUserDBO, Users } from '~/repositories/userRepository';
 import {
   genCampaignApi,
@@ -22,6 +38,7 @@ import {
   genHousingApi,
   genUserApi
 } from '~/test/testFixtures';
+
 import {
   ATTACHMENT_CORRELATION_TOLERANCE_MS,
   campaignSendingDateRepair,
@@ -82,13 +99,20 @@ describe('campaignSendingDateRepair.decide', () => {
   });
 
   it('skips when a campaign has already sent', () => {
-    const housing = { ...base(), campaigns: [{ id: 'c', sentAt: '2020-01-01' }] };
-    expect(campaignSendingDateRepair.decide(housing)).toEqual({ action: 'skip' });
+    const housing = {
+      ...base(),
+      campaigns: [{ id: 'c', sentAt: '2020-01-01' }]
+    };
+    expect(campaignSendingDateRepair.decide(housing)).toEqual({
+      action: 'skip'
+    });
   });
 
   it('skips when there is no status-updated event', () => {
     const housing = { ...base(), lastStatusUpdatedEvent: null };
-    expect(campaignSendingDateRepair.decide(housing)).toEqual({ action: 'skip' });
+    expect(campaignSendingDateRepair.decide(housing)).toEqual({
+      action: 'skip'
+    });
   });
 
   it('skips when the status event is not the pristine flip shape', () => {
@@ -99,7 +123,9 @@ describe('campaignSendingDateRepair.decide', () => {
         nextNew: { status: HOUSING_STATUS_LABELS[HousingStatus.FIRST_CONTACT] }
       })
     };
-    expect(campaignSendingDateRepair.decide(housing)).toEqual({ action: 'skip' });
+    expect(campaignSendingDateRepair.decide(housing)).toEqual({
+      action: 'skip'
+    });
   });
 
   it('skips when no campaign-attached event correlates in time', () => {
@@ -112,7 +138,9 @@ describe('campaignSendingDateRepair.decide', () => {
       ...base(),
       campaignAttachedEvents: [attachedEvent(farApart)]
     };
-    expect(campaignSendingDateRepair.decide(housing)).toEqual({ action: 'skip' });
+    expect(campaignSendingDateRepair.decide(housing)).toEqual({
+      action: 'skip'
+    });
   });
 
   it('correlates at exactly the tolerance boundary', () => {
@@ -143,7 +171,10 @@ describe('campaignSendingDateRepair.query (integration)', () => {
       status: HousingStatus.WAITING,
       subStatus: null
     };
-    const campaign = { ...genCampaignApi(establishment.id, user), sentAt: null };
+    const campaign = {
+      ...genCampaignApi(establishment.id, user),
+      sentAt: null
+    };
     await Housing().insert(formatHousingRecordApi(housing));
     await Campaigns().insert(formatCampaignApi(campaign));
     await CampaignsHousing().insert({

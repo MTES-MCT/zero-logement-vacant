@@ -1,8 +1,13 @@
 import { CampaignStatus, HousingFiltersDTO } from '@zerologementvacant/models';
 import { Knex } from 'knex';
+import type { Insertable } from 'kysely';
 
 import db from '~/infra/database';
-import { withinTransaction } from '~/infra/database/transaction';
+import type { DB } from '~/infra/database/db';
+import {
+  runWithinKyselyTransaction,
+  withinKyselyTransaction
+} from '~/infra/database/kysely-transaction';
 import { logger } from '~/infra/logger';
 import { CampaignApi, CampaignSortApi } from '~/models/CampaignApi';
 import { CampaignFiltersApi } from '~/models/CampaignFiltersApi';
@@ -134,13 +139,49 @@ const insert = async (campaignApi: CampaignApi): Promise<CampaignApi> => {
 
 async function save(campaign: CampaignApi): Promise<void> {
   logger.debug('Saving campaign', campaign);
-  await withinTransaction(async (transaction) => {
-    await Campaigns(transaction)
-      .insert(formatCampaignApi(campaign))
-      .onConflict(['id'])
-      .merge(['status', 'title', 'description', 'file', 'sent_at']);
+  await withinKyselyTransaction(async (trx) => {
+    await trx
+      .insertInto('campaigns')
+      .values(toCampaignInsert(campaign))
+      .onConflict((oc) =>
+        oc.column('id').doUpdateSet((eb) => ({
+          status: eb.ref('excluded.status'),
+          title: eb.ref('excluded.title'),
+          description: eb.ref('excluded.description'),
+          file: eb.ref('excluded.file'),
+          sentAt: eb.ref('excluded.sentAt')
+        }))
+      )
+      .execute();
   });
   logger.debug('Campaign saved', campaign);
+}
+
+function toCampaignInsert(campaign: CampaignApi): Insertable<DB['campaigns']> {
+  return {
+    id: campaign.id,
+    establishmentId: campaign.establishmentId,
+    status: campaign.status,
+    filters: campaign.filters as Insertable<DB['campaigns']>['filters'],
+    file: campaign.file,
+    title: campaign.title,
+    description: campaign.description,
+    userId: campaign.userId,
+    createdAt: new Date(campaign.createdAt),
+    validatedAt: campaign.validatedAt
+      ? new Date(campaign.validatedAt)
+      : undefined,
+    exportedAt: campaign.exportedAt ? new Date(campaign.exportedAt) : undefined,
+    sentAt: campaign.sentAt
+      ? new Date(campaign.sentAt.slice(0, 'yyyy-mm-dd'.length))
+      : undefined,
+    archivedAt: campaign.archivedAt ? new Date(campaign.archivedAt) : undefined,
+    confirmedAt: campaign.confirmedAt
+      ? new Date(campaign.confirmedAt)
+      : undefined,
+    groupId: campaign.groupId,
+    returnCount: campaign.returnCount ?? 0
+  };
 }
 
 const update = async (campaignApi: CampaignApi): Promise<string> => {
@@ -153,9 +194,14 @@ const update = async (campaignApi: CampaignApi): Promise<string> => {
 
 async function remove(id: string): Promise<void> {
   logger.debug('Removing campaign...', { id });
-  await withinTransaction(async (transaction) => {
-    await eventRepository.removeCampaignEvents(id);
-    await Campaigns(transaction).where({ id }).delete();
+  await withinKyselyTransaction(async (trx) => {
+    // Seed the ambient transaction so removeCampaignEvents joins this trx
+    // instead of opening its own — otherwise the two deletes are not atomic
+    // (same wiring startTransaction uses to make repos share one unit).
+    await runWithinKyselyTransaction(trx, () =>
+      eventRepository.removeCampaignEvents(id)
+    );
+    await trx.deleteFrom('campaigns').where('id', '=', id).execute();
   });
   logger.debug('Campaign removed', { id });
 }

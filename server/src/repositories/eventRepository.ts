@@ -159,13 +159,30 @@ async function insertManyCampaignHousingEvents(
   logger.debug('Inserting campaign housing events...', {
     events: events.length
   });
-  await withinTransaction(async (transaction) => {
-    await transaction.batchInsert(EVENTS_TABLE, events.map(formatEventApi));
-    await transaction.batchInsert(
-      CAMPAIGN_HOUSING_EVENTS_TABLE,
-      events.map(formatCampaignHousingEventApi)
+  await withinKyselyTransaction(async (trx) => {
+    await pMap(
+      Array.chunksOf(events, INSERT_BATCH_SIZE),
+      async (batch) => {
+        await trx.insertInto('events').values(batch.map(toEventDBO)).execute();
+        await trx
+          .insertInto('campaignHousingEvents')
+          .values(batch.map(toCampaignHousingEventInsert))
+          .execute();
+      },
+      { concurrency: 1 }
     );
   });
+}
+
+function toCampaignHousingEventInsert(
+  event: CampaignHousingEventApi
+): Insertable<DB['campaignHousingEvents']> {
+  return {
+    eventId: event.id,
+    campaignId: event.campaignId,
+    housingGeoCode: event.housingGeoCode,
+    housingId: event.housingId
+  };
 }
 
 async function insertManyCampaignEvents(
@@ -397,15 +414,16 @@ async function removeCampaignEvents(campaignId: string): Promise<void> {
   logger.debug('Removing campaign events...', {
     campaign: campaignId
   });
-  await withinTransaction(async (transaction) => {
-    await Events(transaction)
-      .join(
-        CAMPAIGN_EVENTS_TABLE,
-        `${CAMPAIGN_EVENTS_TABLE}.event_id`,
-        `${EVENTS_TABLE}.id`
+  await withinKyselyTransaction(async (trx) => {
+    await trx
+      .deleteFrom('events')
+      .where('id', 'in', (qb) =>
+        qb
+          .selectFrom('campaignEvents')
+          .select('eventId')
+          .where('campaignId', '=', campaignId)
       )
-      .where(`${CAMPAIGN_EVENTS_TABLE}.campaign_id`, campaignId)
-      .delete();
+      .execute();
   });
   logger.debug('Campaign events removed', {
     campaign: campaignId

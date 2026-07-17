@@ -1,8 +1,11 @@
 import { faker } from '@faker-js/faker/locale/fr';
 import { v4 as uuidv4 } from 'uuid';
 
+import { EstablishmentApi } from '~/models/EstablishmentApi';
 import { GroupApi } from '~/models/GroupApi';
 import { HousingApi } from '~/models/HousingApi';
+import { UserApi } from '~/models/UserApi';
+import { factories } from '~/test/factories';
 
 import {
   genEstablishmentApi,
@@ -377,6 +380,56 @@ describe('Group repository', () => {
           housing_id: housing.id
         });
       });
+    });
+  });
+
+  describe('removeHousing', () => {
+    let establishment: EstablishmentApi;
+    let user: UserApi;
+
+    beforeAll(async () => {
+      establishment = await factories.establishment.create();
+      user = await factories.user.create({ establishmentId: establishment.id });
+    });
+
+    async function createGroupWithHousings(): Promise<{
+      group: GroupApi;
+      housingList: HousingApi[];
+    }> {
+      const group = await factories
+        .group(establishment)
+        .create({}, { associations: { createdBy: user } });
+      const housingList = await Promise.all([
+        factories.housing.create(),
+        factories.housing.create(),
+        factories.housing.create()
+      ]);
+      await GroupsHousing().insert(formatGroupHousingApi(group, housingList));
+      return { group, housingList };
+    }
+
+    it('should remove the given housings from the group', async () => {
+      const { group, housingList } = await createGroupWithHousings();
+      const [removed, ...kept] = housingList;
+
+      await groupRepository.removeHousing(group, [removed]);
+
+      const actual = await GroupsHousing().where({ group_id: group.id });
+      expect(actual).toBeArrayOfSize(kept.length);
+      expect(actual).not.toPartiallyContain({
+        group_id: group.id,
+        housing_id: removed.id,
+        housing_geo_code: removed.geoCode
+      });
+    });
+
+    it('should do nothing when the housing list is empty', async () => {
+      const { group, housingList } = await createGroupWithHousings();
+
+      await groupRepository.removeHousing(group, []);
+
+      const actual = await GroupsHousing().where({ group_id: group.id });
+      expect(actual).toBeArrayOfSize(housingList.length);
     });
   });
 

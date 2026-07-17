@@ -1,18 +1,17 @@
 import type { Knex } from 'knex';
+import type { Insertable, Selectable } from 'kysely';
+import { sql } from 'kysely';
 
-import db from '~/infra/database';
-import { withinTransaction } from '~/infra/database/transaction';
+import db, { fromDateDBO } from '~/infra/database';
+import type { DB } from '~/infra/database/db';
+import { kysely } from '~/infra/database/kysely';
+import { withinKyselyTransaction } from '~/infra/database/kysely-transaction';
 import { createLogger } from '~/infra/logger';
 import { HousingId } from '~/models/HousingApi';
 import { HousingDocumentApi } from '~/models/HousingDocumentApi';
-import { UserDBO, USERS_TABLE } from '~/repositories/userRepository';
+import { UserDBO, fromUserDBO } from '~/repositories/userRepository';
 
-import {
-  Documents,
-  DOCUMENTS_TABLE,
-  fromDocumentDBO,
-  type DocumentDBO
-} from './documentRepository';
+import { fromDocumentDBO, type DocumentDBO } from './documentRepository';
 
 const logger = createLogger('housingDocumentRepository');
 
@@ -38,11 +37,14 @@ async function link(document: HousingDocumentApi): Promise<void> {
     housingId: document.housingId
   });
 
-  await withinTransaction(async (transaction) => {
-    await HousingDocuments(transaction)
-      .insert(toHousingDocumentDBO(document))
-      .onConflict(['document_id', 'housing_geo_code', 'housing_id'])
-      .ignore(); // Idempotent: ignore duplicate links
+  await withinKyselyTransaction(async (trx) => {
+    await trx
+      .insertInto('documentsHousings')
+      .values(toHousingDocumentInsert(document))
+      .onConflict((oc) =>
+        oc.columns(['documentId', 'housingGeoCode', 'housingId']).doNothing()
+      ) // Idempotent: ignore duplicate links
+      .execute();
   });
 }
 
@@ -58,11 +60,14 @@ async function linkMany(
     housingDocuments
   });
 
-  await withinTransaction(async (transaction) => {
-    await HousingDocuments(transaction)
-      .insert(housingDocuments)
-      .onConflict(['document_id', 'housing_geo_code', 'housing_id'])
-      .ignore();
+  await withinKyselyTransaction(async (trx) => {
+    await trx
+      .insertInto('documentsHousings')
+      .values(housingDocuments.map(linkToInsert))
+      .onConflict((oc) =>
+        oc.columns(['documentId', 'housingGeoCode', 'housingId']).doNothing()
+      )
+      .execute();
   });
 }
 
@@ -73,13 +78,14 @@ async function unlink(link: {
 }): Promise<void> {
   logger.debug('Unlinking document from housing...', link);
 
-  await HousingDocuments()
-    .where({
-      document_id: link.documentId,
-      housing_geo_code: link.housingGeoCode,
-      housing_id: link.housingId
-    })
-    .delete();
+  await withinKyselyTransaction(async (trx) => {
+    await trx
+      .deleteFrom('documentsHousings')
+      .where('documentId', '=', link.documentId)
+      .where('housingGeoCode', '=', link.housingGeoCode)
+      .where('housingId', '=', link.housingId)
+      .execute();
+  });
 }
 
 async function unlinkMany(params: { documentIds: string[] }): Promise<void> {
@@ -92,10 +98,11 @@ async function unlinkMany(params: { documentIds: string[] }): Promise<void> {
     documents: params.documentIds.length
   });
 
-  await withinTransaction(async (transaction) => {
-    await HousingDocuments(transaction)
-      .whereIn('document_id', params.documentIds)
-      .delete();
+  await withinKyselyTransaction(async (trx) => {
+    await trx
+      .deleteFrom('documentsHousings')
+      .where('documentId', 'in', params.documentIds)
+      .execute();
   });
 
   logger.debug('Documents unlinked from housings', {
@@ -107,6 +114,13 @@ interface FindOptions {
   filters?: {
     documentIds?: string[];
     housingIds?: HousingId[];
+    /**
+     * Filters on non-deleted documents by default to avoid leaking
+     * soft-deleted documents by omission. Pass `true` to fetch soft-deleted
+     * documents instead. There is no way to fetch both at once in a single
+     * call — issue two calls and merge if that's ever needed.
+     * @default false
+     */
     deleted?: boolean;
   };
 }
@@ -116,34 +130,38 @@ async function find(
 ): Promise<ReadonlyArray<HousingDocumentApi>> {
   logger.debug('Finding document-housing links...', options);
 
-  const documents = await listQuery()
-    .modify((query) => {
-      if (options?.filters?.documentIds?.length) {
-        query.whereIn(
-          `${HOUSING_DOCUMENT_TABLE}.document_id`,
-          options.filters.documentIds
-        );
-      }
+  let query = listQuery();
 
-      if (options?.filters?.housingIds?.length) {
-        query.whereIn(
-          [
-            `${HOUSING_DOCUMENT_TABLE}.housing_geo_code`,
-            `${HOUSING_DOCUMENT_TABLE}.housing_id`
-          ],
-          options.filters.housingIds.map((h) => [h.geoCode, h.id])
-        );
-      }
+  if (options?.filters?.documentIds?.length) {
+    query = query.where(
+      'documentsHousings.documentId',
+      'in',
+      options.filters.documentIds
+    );
+  }
 
-      if (options?.filters?.deleted === true) {
-        query.whereNotNull(`${DOCUMENTS_TABLE}.deleted_at`);
-      } else if (options?.filters?.deleted === false) {
-        query.whereNull(`${DOCUMENTS_TABLE}.deleted_at`);
-      }
-    })
-    .orderBy(`${DOCUMENTS_TABLE}.created_at`, 'desc');
+  if (options?.filters?.housingIds?.length) {
+    const housingIds = options.filters.housingIds;
+    query = query.where((eb) =>
+      eb.or(
+        housingIds.map((housing) =>
+          eb.and([
+            eb('documentsHousings.housingGeoCode', '=', housing.geoCode),
+            eb('documentsHousings.housingId', '=', housing.id)
+          ])
+        )
+      )
+    );
+  }
 
-  return documents.map(fromHousingDocumentDBO);
+  if (options?.filters?.deleted === true) {
+    query = query.where('documents.deletedAt', 'is not', null);
+  } else {
+    query = query.where('documents.deletedAt', 'is', null);
+  }
+
+  const rows = await query.orderBy('documents.createdAt', 'desc').execute();
+  return rows.map(parseHousingDocumentRow);
 }
 
 interface GetOptions {
@@ -155,55 +173,62 @@ async function get(
   options?: GetOptions
 ): Promise<HousingDocumentApi | null> {
   logger.debug('Getting housing document...', { id });
-  const document = await listQuery()
-    .where(`${HOUSING_DOCUMENT_TABLE}.document_id`, id)
-    .modify((query) => {
-      if (options?.housing?.length) {
-        query.whereIn(
-          [
-            `${HOUSING_DOCUMENT_TABLE}.housing_geo_code`,
-            `${HOUSING_DOCUMENT_TABLE}.housing_id`
-          ],
-          options.housing.map((housing) => [housing.geoCode, housing.id])
-        );
-      }
-    })
-    .first();
 
-  return document ? fromHousingDocumentDBO(document) : null;
+  let query = listQuery().where('documentsHousings.documentId', '=', id);
+
+  if (options?.housing?.length) {
+    const housings = options.housing;
+    query = query.where((eb) =>
+      eb.or(
+        housings.map((housing) =>
+          eb.and([
+            eb('documentsHousings.housingGeoCode', '=', housing.geoCode),
+            eb('documentsHousings.housingId', '=', housing.id)
+          ])
+        )
+      )
+    );
+  }
+
+  const row = await query.executeTakeFirst();
+  return row ? parseHousingDocumentRow(row) : null;
 }
 
 async function remove(document: HousingDocumentApi): Promise<void> {
   logger.debug('Soft-deleting housing document...', document);
-  await Documents().where('id', document.id).update({ deleted_at: new Date() });
+  await kysely
+    .updateTable('documents')
+    .set({ deletedAt: new Date() })
+    .where('id', '=', document.id)
+    .execute();
 }
 
-// Base query with creator join
+// Base query joining documents, their housing links, and the creator.
 function listQuery() {
-  return Documents()
+  return kysely
+    .selectFrom('documents')
+    .innerJoin(
+      'documentsHousings',
+      'documentsHousings.documentId',
+      'documents.id'
+    )
+    .innerJoin('users', 'users.id', 'documents.createdBy')
+    .selectAll('documents')
+    .select(['documentsHousings.housingGeoCode', 'documentsHousings.housingId'])
     .select(
-      `${DOCUMENTS_TABLE}.*`,
-      `${HOUSING_DOCUMENT_TABLE}.housing_geo_code`,
-      `${HOUSING_DOCUMENT_TABLE}.housing_id`,
-      db.raw(`json_build_object(
-        'id', ${USERS_TABLE}.id,
-        'email', ${USERS_TABLE}.email,
-        'first_name', ${USERS_TABLE}.first_name,
-        'last_name', ${USERS_TABLE}.last_name,
-        'role', ${USERS_TABLE}.role,
-        'establishment_id', ${USERS_TABLE}.establishment_id,
-        'time_per_week', ${USERS_TABLE}.time_per_week,
-        'phone', ${USERS_TABLE}.phone,
-        'position', ${USERS_TABLE}.position,
-        'updated_at', ${USERS_TABLE}.updated_at
-      ) as creator`)
-    )
-    .join(
-      HOUSING_DOCUMENT_TABLE,
-      `${HOUSING_DOCUMENT_TABLE}.document_id`,
-      `${DOCUMENTS_TABLE}.id`
-    )
-    .join(USERS_TABLE, `${USERS_TABLE}.id`, `${DOCUMENTS_TABLE}.created_by`);
+      sql<UserDBO>`json_build_object(
+        'id', users.id,
+        'email', users.email,
+        'first_name', users.first_name,
+        'last_name', users.last_name,
+        'role', users.role,
+        'establishment_id', users.establishment_id,
+        'time_per_week', users.time_per_week,
+        'phone', users.phone,
+        'position', users.position,
+        'updated_at', users.updated_at
+      )`.as('creator')
+    );
 }
 
 export function toHousingDocumentDBO(
@@ -213,6 +238,26 @@ export function toHousingDocumentDBO(
     document_id: document.id,
     housing_geo_code: document.housingGeoCode,
     housing_id: document.housingId
+  };
+}
+
+function toHousingDocumentInsert(
+  document: HousingDocumentApi
+): Insertable<DB['documentsHousings']> {
+  return {
+    documentId: document.id,
+    housingGeoCode: document.housingGeoCode,
+    housingId: document.housingId
+  };
+}
+
+function linkToInsert(
+  link: HousingDocumentDBO
+): Insertable<DB['documentsHousings']> {
+  return {
+    documentId: link.document_id,
+    housingGeoCode: link.housing_geo_code,
+    housingId: link.housing_id
   };
 }
 
@@ -227,6 +272,33 @@ export function fromHousingDocumentDBO(
     ...fromDocumentDBO(dbo),
     housingGeoCode: dbo.housing_geo_code,
     housingId: dbo.housing_id
+  };
+}
+
+type HousingDocumentRow = Selectable<DB['documents']> &
+  Pick<Selectable<DB['documentsHousings']>, 'housingGeoCode' | 'housingId'> & {
+    creator: UserDBO | null;
+  };
+
+function parseHousingDocumentRow(row: HousingDocumentRow): HousingDocumentApi {
+  if (!row.creator) {
+    throw new Error('Creator not fetched');
+  }
+
+  return {
+    id: row.id,
+    filename: row.filename,
+    s3Key: row.s3Key,
+    contentType: row.contentType,
+    sizeBytes: row.sizeBytes,
+    establishmentId: row.establishmentId,
+    createdBy: row.createdBy,
+    createdAt: fromDateDBO(row.createdAt),
+    updatedAt: row.updatedAt ? fromDateDBO(row.updatedAt) : null,
+    deletedAt: row.deletedAt ? fromDateDBO(row.deletedAt) : null,
+    creator: fromUserDBO(row.creator),
+    housingGeoCode: row.housingGeoCode,
+    housingId: row.housingId
   };
 }
 

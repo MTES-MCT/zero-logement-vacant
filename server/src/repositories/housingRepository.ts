@@ -478,17 +478,14 @@ async function updateMany(
     payload
   });
   return withinTransaction(async (transaction) => {
-    const query = Housing(transaction)
-      .whereIn(
-        ['geo_code', 'id'],
-        housings.map((housing) => [housing.geoCode, housing.id])
-      );
+    const query = Housing(transaction).whereIn(
+      ['geo_code', 'id'],
+      housings.map((housing) => [housing.geoCode, housing.id])
+    );
     if (opts?.onlyIfStatus !== undefined) {
       query.where('status', opts.onlyIfStatus);
     }
-    const updated = await query
-      .update(fields)
-      .returning(['geo_code', 'id']);
+    const updated = await query.update(fields).returning(['geo_code', 'id']);
     return updated.map((row) => ({ geoCode: row.geo_code, id: row.id }));
   });
 }

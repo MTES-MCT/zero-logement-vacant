@@ -150,6 +150,9 @@ function AggregatedEventCard(props: AggregatedEventCardProps) {
           {
             type: Pattern.union(
               'campaign:updated',
+              'campaign:document-attached',
+              'campaign:document-detached',
+              'campaign:document-removed',
               'document:created',
               'document:updated',
               'document:removed',

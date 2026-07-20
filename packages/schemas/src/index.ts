@@ -1,5 +1,6 @@
 import { buildingFilters } from './building-filters';
 import { campaignCreationPayload } from './campaign-creation-payload';
+import { campaignDocumentPayload } from './campaign-document-payload';
 import { campaignFilters } from './campaign-filters';
 import { campaignUpdateNextPayload } from './campaign-update-next-payload';
 import { dateString } from './date-string';
@@ -36,6 +37,7 @@ import { userUpdatePayload } from './user-update-payload';
 const schemas = {
   buildingFilters,
   campaignCreationPayload,
+  campaignDocumentPayload,
   campaignFilters,
   campaignUpdateNextPayload,
   dateString,
@@ -70,6 +72,7 @@ const schemas = {
 };
 
 export { GEO_CODE_REGEXP } from './geo-code';
+export { type CampaignDocumentPayload } from './campaign-document-payload';
 export { type HousingDocumentPayload } from './housing-document-payload';
 export { MAX_PER_PAGE } from './pagination';
 export { PHONE_REGEXP } from './phone';

@@ -59,7 +59,11 @@ function campaignListQuery(filters: CampaignFiltersApi) {
     .select(sql<UserDBO>`to_json(users.*)`.as('creator'));
 
   if (filters?.establishmentId) {
-    query = query.where('campaigns.establishmentId', '=', filters.establishmentId);
+    query = query.where(
+      'campaigns.establishmentId',
+      '=',
+      filters.establishmentId
+    );
   }
   if (filters.groupIds?.length) {
     query = query.where('campaigns.groupId', 'in', filters.groupIds);

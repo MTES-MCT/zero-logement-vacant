@@ -10,13 +10,18 @@ import {
   type DocumentPayload
 } from '@zerologementvacant/models';
 import { createS3 } from '@zerologementvacant/utils/node';
+import nock from 'nock';
 import request from 'supertest';
-import { beforeAll, describe, expect, it } from 'vitest';
+import { afterAll, beforeAll, describe, expect, it } from 'vitest';
 
 import config from '~/infra/config';
 import { createServer } from '~/infra/server';
 import { UserApi } from '~/models/UserApi';
 import { CampaignDocuments } from '~/repositories/campaignDocumentRepository';
+import {
+  CampaignsHousing,
+  formatCampaignHousingApi
+} from '~/repositories/campaignHousingRepository';
 import { Documents, toDocumentDBO } from '~/repositories/documentRepository';
 import {
   Establishments,
@@ -35,6 +40,7 @@ import {
   formatHousingRecordApi,
   Housing
 } from '~/repositories/housingRepository';
+import userPerimeterRepository from '~/repositories/userPerimeterRepository';
 import { toUserDBO, Users } from '~/repositories/userRepository';
 import { factories } from '~/test/factories';
 import {
@@ -750,6 +756,27 @@ describe('Document API', () => {
       expect(body[0]).toMatchObject({ id: document.id });
     });
 
+    it('should link documents to campaign when documentIds contains duplicates', async () => {
+      const campaign = await factories
+        .campaign(establishment)
+        .create({}, { associations: { createdBy: user } });
+      const document = genDocumentApi({
+        createdBy: user.id,
+        creator: user,
+        establishmentId: establishment.id
+      });
+      await Documents().insert(toDocumentDBO(document));
+
+      const { status, body } = await request(url)
+        .post(testRoute(campaign.id))
+        .use(tokenProvider(user))
+        .send({ documentIds: [document.id, document.id] });
+
+      expect(status).toBe(constants.HTTP_STATUS_CREATED);
+      expect(body).toHaveLength(1);
+      expect(body[0]).toMatchObject({ id: document.id });
+    });
+
     it('should create an event "campaign:document-attached"', async () => {
       const campaign = await factories
         .campaign(establishment)
@@ -990,6 +1017,101 @@ describe('Document API', () => {
       const { status } = await request(url)
         .delete(testRoute(campaign.id, document.id))
         .use(tokenProvider(user));
+
+      expect(status).toBe(constants.HTTP_STATUS_NOT_FOUND);
+    });
+  });
+
+  describe('Campaign document endpoints respect the geographic perimeter', () => {
+    const restrictedEstablishment = genEstablishmentApi('75056', '13055');
+    const restrictedUser: UserApi = {
+      ...genUserApi(restrictedEstablishment.id),
+      role: UserRole.USUAL
+    };
+
+    beforeAll(async () => {
+      await Establishments().insert(
+        formatEstablishmentApi(restrictedEstablishment)
+      );
+      await Users().insert(toUserDBO(restrictedUser));
+      await userPerimeterRepository.upsert({
+        userId: restrictedUser.id,
+        establishmentId: restrictedEstablishment.id,
+        // Restrict the user to 75056 only: 13055 is outside their perimeter
+        geoCodes: ['75056'],
+        departments: [],
+        regions: [],
+        epci: [],
+        frEntiere: false,
+        updatedAt: new Date().toJSON()
+      });
+      // isCommuneInPerimeter falls back to GeoAPI to resolve 13055's region
+      nock('https://geo.api.gouv.fr')
+        .persist()
+        .get('/departements/13')
+        .query({ fields: 'codeRegion' })
+        .reply(200, { code: '13', nom: 'Bouches-du-Rhône', codeRegion: '93' });
+    });
+
+    afterAll(() => {
+      nock.cleanAll();
+    });
+
+    async function createCampaignOutsidePerimeter() {
+      const campaign = await factories
+        .campaign(restrictedEstablishment)
+        .create({}, { associations: { createdBy: restrictedUser } });
+      const housing = genHousingApi('13055');
+      await Housing().insert(formatHousingRecordApi(housing));
+      await CampaignsHousing().insert(
+        formatCampaignHousingApi(campaign, [housing])
+      );
+      return campaign;
+    }
+
+    it('should return 404 when linking documents to a campaign with housing outside the perimeter', async () => {
+      const campaign = await createCampaignOutsidePerimeter();
+      const document = genDocumentApi({
+        createdBy: restrictedUser.id,
+        creator: restrictedUser,
+        establishmentId: restrictedEstablishment.id
+      });
+      await Documents().insert(toDocumentDBO(document));
+
+      const { status } = await request(url)
+        .post(`/campaigns/${campaign.id}/documents`)
+        .use(tokenProvider(restrictedUser))
+        .send({ documentIds: [document.id] });
+
+      expect(status).toBe(constants.HTTP_STATUS_NOT_FOUND);
+    });
+
+    it('should return 404 when listing documents of a campaign with housing outside the perimeter', async () => {
+      const campaign = await createCampaignOutsidePerimeter();
+
+      const { status } = await request(url)
+        .get(`/campaigns/${campaign.id}/documents`)
+        .use(tokenProvider(restrictedUser));
+
+      expect(status).toBe(constants.HTTP_STATUS_NOT_FOUND);
+    });
+
+    it('should return 404 when removing a document from a campaign with housing outside the perimeter', async () => {
+      const campaign = await createCampaignOutsidePerimeter();
+      const document = genDocumentApi({
+        createdBy: restrictedUser.id,
+        creator: restrictedUser,
+        establishmentId: restrictedEstablishment.id
+      });
+      await Documents().insert(toDocumentDBO(document));
+      await CampaignDocuments().insert({
+        document_id: document.id,
+        campaign_id: campaign.id
+      });
+
+      const { status } = await request(url)
+        .delete(`/campaigns/${campaign.id}/documents/${document.id}`)
+        .use(tokenProvider(restrictedUser));
 
       expect(status).toBe(constants.HTTP_STATUS_NOT_FOUND);
     });

@@ -1,11 +1,13 @@
 import {
   ACCEPTED_DOCUMENT_EXTENSIONS,
+  MAX_DOCUMENT_SIZE_IN_MiB,
   type DocumentDTO
 } from '@zerologementvacant/models';
 
 import DocumentUpload, {
   type DocumentUploadProps
 } from '~/components/FileUpload/DocumentUpload';
+import DocumentUploadHint from '~/components/FileUpload/DocumentUploadHint';
 import { useDocumentUpload } from '~/components/FileUpload/useDocumentUpload';
 
 export type HousingDocumentUploadProps = Pick<DocumentUploadProps, 'label'> & {
@@ -26,28 +28,12 @@ function HousingDocumentUpload(props: Readonly<HousingDocumentUploadProps>) {
       id="housing-document-upload"
       accept={ACCEPTED_DOCUMENT_EXTENSIONS as string[]}
       error={error}
-      hint={
-        <div>
-          Taille maximale par fichier : 25Mo. Formats supportés : images (png,
-          jpg, heic, webp) et documents (pdf, doc, docx, xls, xlsx, ppt, pptx).
-          Le nom du fichier doit faire moins de 255 caractères. Plusieurs
-          fichiers possibles. Veillez à ne pas partager de{' '}
-          <a
-            href="https://cnil.fr/fr/definition/donnee-sensible#:~:text=Ce%20sont%20des%20informations%20qui,physique%20de%20mani%C3%A8re%20unique%2C%20des."
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            données sensibles
-            <span className="fr-sr-only"> (nouvelle fenêtre)</span>
-          </a>
-          .
-        </div>
-      }
+      hint={<DocumentUploadHint />}
       isError={isError}
       isLoading={isLoading}
       isSuccess={isSuccess}
       label={props.label ?? 'Associez un ou plusieurs documents à ce logement'}
-      maxSize={25}
+      maxSize={MAX_DOCUMENT_SIZE_IN_MiB}
       multiple
       onUpload={upload}
     />

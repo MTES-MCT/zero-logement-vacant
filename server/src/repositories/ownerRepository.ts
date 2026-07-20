@@ -2,17 +2,17 @@ import { Readable } from 'node:stream';
 import { ReadableStream } from 'node:stream/web';
 
 import { AddressKinds, OwnerEntity } from '@zerologementvacant/models';
+import { snakeToCamel } from 'effect/String';
 import { Knex } from 'knex';
+import type { Insertable } from 'kysely';
+import { sql } from 'kysely';
 import _ from 'lodash';
 import { match, Pattern } from 'ts-pattern';
 
-import db, {
-  ConflictOptions,
-  groupBy,
-  onConflict,
-  where
-} from '~/infra/database';
-import { withinTransaction } from '~/infra/database/transaction';
+import db, { ConflictOptions, groupBy, where } from '~/infra/database';
+import type { DB } from '~/infra/database/db';
+import { kysely } from '~/infra/database/kysely';
+import { withinKyselyTransaction } from '~/infra/database/kysely-transaction';
 import { createLogger } from '~/infra/logger';
 import { AddressApi } from '~/models/AddressApi';
 import { HousingApi } from '~/models/HousingApi';
@@ -295,7 +295,11 @@ async function betterSave(
   opts: BetterSaveOptions
 ): Promise<void> {
   logger.debug(`Saving owner...`, { owner });
-  await Owners().insert(formatOwnerApi(owner)).modify(onConflict(opts));
+  await kysely
+    .insertInto('owners')
+    .values(toOwnerInsert(owner))
+    .onConflict(kyselyOwnerConflict(opts))
+    .execute();
 }
 
 async function betterSaveMany(
@@ -307,11 +311,66 @@ async function betterSaveMany(
     return;
   }
 
-  await withinTransaction(async (transaction) => {
-    await Owners(transaction)
-      .insert(owners.map(formatOwnerApi))
-      .modify(onConflict(opts));
+  await withinKyselyTransaction(async (trx) => {
+    await trx
+      .insertInto('owners')
+      .values(owners.map(toOwnerInsert))
+      .onConflict(kyselyOwnerConflict(opts))
+      .execute();
   });
+}
+
+// Camel-case Insertable mirror of formatOwnerApi for the Kysely write path.
+function toOwnerInsert(owner: OwnerApi): Insertable<DB['owners']> {
+  return {
+    id: owner.id,
+    idpersonne: owner.idpersonne ?? null,
+    fullName: owner.fullName,
+    birthDate: owner.birthDate,
+    administrator: owner.administrator ?? null,
+    siren: owner.siren ?? null,
+    addressDgfip: owner.rawAddress,
+    additionalAddress: owner.additionalAddress ?? null,
+    email: owner.email ?? null,
+    phone: owner.phone ?? null,
+    dataSource: owner.dataSource ?? null,
+    kindClass: owner.kind ?? null,
+    entity: owner.entity,
+    username: owner.username ?? null,
+    createdAt: owner.createdAt ? new Date(owner.createdAt) : null,
+    updatedAt: owner.updatedAt ? new Date(owner.updatedAt) : null,
+    isMultiOwner: null
+  };
+}
+
+// Reproduces the Knex `onConflict(opts)` helper for Kysely. Callers pass
+// snake_case column names (keyof OwnerDBO); map them to the camelCase DB keys.
+function kyselyOwnerConflict(opts: BetterSaveOptions) {
+  if (opts.onConflict.length === 0) {
+    throw new Error('onConflict must have at least one column');
+  }
+  const columns = (opts.onConflict as ReadonlyArray<string>).map((column) =>
+    snakeToCamel(column)
+  );
+  return (oc: any) => {
+    const builder = oc.columns(columns);
+    if (opts.merge === false) {
+      return builder.doNothing();
+    }
+    const mergeColumns =
+      opts.merge === true
+        ? (Object.keys(toOwnerInsert({} as OwnerApi)) as string[]).filter(
+            (column) => !columns.includes(column)
+          )
+        : (opts.merge as ReadonlyArray<string>).map((column) =>
+            snakeToCamel(column)
+          );
+    return builder.doUpdateSet((eb: any) =>
+      Object.fromEntries(
+        mergeColumns.map((column) => [column, eb.ref(`excluded.${column}`)])
+      )
+    );
+  };
 }
 
 interface SaveOptions {
@@ -668,14 +727,14 @@ async function refreshMultiOwnerFlags(
   if (!ownerIds.length) return;
   for (let i = 0; i < ownerIds.length; i += MULTI_OWNER_BATCH_SIZE) {
     const chunk = ownerIds.slice(i, i + MULTI_OWNER_BATCH_SIZE);
-    await withinTransaction(async (transaction) => {
-      await Owners(transaction)
-        .whereIn('id', chunk)
-        .update({
-          is_multi_owner: db.raw(
-            `(SELECT COUNT(*) > 1 FROM ${housingOwnersTable} WHERE owner_id = owners.id AND rank = 1)`
-          )
-        });
+    await withinKyselyTransaction(async (trx) => {
+      await trx
+        .updateTable('owners')
+        .set({
+          isMultiOwner: sql<boolean>`(SELECT COUNT(*) > 1 FROM ${sql.raw(housingOwnersTable)} WHERE owner_id = owners.id AND rank = 1)`
+        })
+        .where('id', 'in', chunk)
+        .execute();
     });
   }
 }

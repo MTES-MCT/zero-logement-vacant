@@ -23,17 +23,18 @@ import {
 } from '@zerologementvacant/models';
 import { compactUndefined, isNotNull } from '@zerologementvacant/utils';
 import { Array, identity, Predicate, Struct } from 'effect';
+import { snakeToCamel } from 'effect/String';
 import type { Point } from 'geojson';
 import { Set } from 'immutable';
 import { Knex } from 'knex';
+import type { Insertable } from 'kysely';
 import { uniq } from 'lodash-es';
 import { match, Pattern } from 'ts-pattern';
 
 import db, { toRawArray, where } from '~/infra/database';
-import {
-  getTransaction,
-  withinTransaction
-} from '~/infra/database/transaction';
+import type { DB } from '~/infra/database/db';
+import { kysely } from '~/infra/database/kysely';
+import { withinKyselyTransaction } from '~/infra/database/kysely-transaction';
 import { createLogger } from '~/infra/logger';
 import type { EstablishmentApi } from '~/models/EstablishmentApi';
 import {
@@ -304,17 +305,27 @@ async function saveMany(
     return;
   }
 
-  await withinTransaction(async (transaction) => {
-    await Housing(transaction)
-      .insert(housingList.map(formatHousingRecordApi))
-      .modify((builder) => {
-        if (opts?.onConflict === 'merge') {
-          return builder
-            .onConflict(['geo_code', 'local_id'])
-            .merge(opts?.merge);
+  await withinKyselyTransaction(async (trx) => {
+    await trx
+      .insertInto('fastHousing')
+      .values(housingList.map(toHousingInsert))
+      .onConflict((oc) => {
+        const conflict = oc.columns(['geoCode', 'localId']);
+        if (opts?.onConflict !== 'merge') {
+          return conflict.doNothing();
         }
-        return builder.onConflict(['geo_code', 'local_id']).ignore();
-      });
+        const columns = housingMergeColumns(opts?.merge);
+        // An explicit empty merge list means "update nothing on conflict".
+        if (columns.length === 0) {
+          return conflict.doNothing();
+        }
+        return conflict.doUpdateSet((eb: any) =>
+          Object.fromEntries(
+            columns.map((column) => [column, eb.ref(`excluded.${column}`)])
+          )
+        );
+      })
+      .execute();
   });
 }
 
@@ -324,6 +335,88 @@ type HousingInclude =
   | 'perimeters'
   | 'precisions'
   | 'buildings';
+
+// Camel-case Insertable mirror of formatHousingRecordApi for the Kysely write
+// path. plot_area/occupancy_history are READ_ONLY (nullable, no default): set
+// null to satisfy Insertable, matching the NULL the Knex path produced by
+// omitting them. last_mutation_type is Generated and stays omitted.
+function toHousingInsert(
+  housing: HousingRecordApi
+): Insertable<DB['fastHousing']> {
+  return {
+    id: housing.id,
+    invariant: housing.invariant,
+    localId: housing.localId,
+    plotId: housing.plotId,
+    buildingId: housing.buildingId,
+    buildingGroupId: housing.buildingGroupId,
+    buildingLocation: housing.buildingLocation,
+    buildingYear: housing.buildingYear,
+    addressDgfip: housing.rawAddress,
+    longitudeDgfip: housing.longitude,
+    latitudeDgfip: housing.latitude,
+    rentalValue: housing.rentalValue,
+    beneficiaryCount: housing.beneficiaryCount,
+    // geolocation is a PostGIS geometry column (typed `string` by codegen); the
+    // API carries a GeoJSON Point, passed through exactly as the Knex path did.
+    geolocation: housing.geolocation as unknown as string | null,
+    geoCode: housing.geoCode,
+    cadastralClassification: housing.cadastralClassification,
+    uncomfortable: housing.uncomfortable,
+    vacancyStartYear: housing.vacancyStartYear,
+    housingKind: housing.housingKind,
+    roomsCount: housing.roomsCount,
+    livingArea: housing.livingArea,
+    cadastralReference: housing.cadastralReference,
+    taxed: housing.taxed,
+    condominium: housing.ownershipKind,
+    dataYears: housing.dataYears,
+    dataFileYears: housing.dataFileYears,
+    status: housing.status,
+    subStatus: housing.subStatus ?? null,
+    actualDpe: housing.actualEnergyConsumption,
+    energyConsumptionBdnb: housing.energyConsumption,
+    energyConsumptionAtBdnb: housing.energyConsumptionAt,
+    occupancy: housing.occupancy,
+    occupancySource: housing.occupancyRegistered,
+    occupancyIntended: housing.occupancyIntended ?? null,
+    dataSource: housing.source,
+    mutationDate: null,
+    lastMutationDate: housing.lastMutationDate
+      ? new Date(housing.lastMutationDate)
+      : null,
+    lastTransactionDate: housing.lastTransactionDate
+      ? new Date(housing.lastTransactionDate)
+      : null,
+    lastTransactionValue: housing.lastTransactionValue,
+    geolocationSource: null,
+    plotArea: null,
+    occupancyHistory: null
+  };
+}
+
+// Reproduces Knex `.merge(columns)` for Kysely: returns the camelCase columns to
+// update on conflict. Callers pass snake_case columns (keyof HousingRecordDBO);
+// `undefined` means "merge all inserted fields" and an empty array means none.
+// The conflict-key columns are always excluded (updating them to excluded.* is a
+// no-op), and so are the READ_ONLY plotArea/occupancyHistory: toHousingInsert
+// forces those to null, so merging them would wipe LOVAC-imported values — the
+// Knex path omitted them via `Omit<HousingRecordDBO, READ_ONLY_FIELDS>`.
+const HOUSING_NON_MERGEABLE_COLUMNS = [
+  'geoCode',
+  'localId',
+  'plotArea',
+  'occupancyHistory'
+];
+function housingMergeColumns(merge?: Array<keyof HousingRecordDBO>): string[] {
+  const columns =
+    merge !== undefined
+      ? merge.map((column) => snakeToCamel(column as string))
+      : Object.keys(toHousingInsert({} as HousingRecordApi));
+  return columns.filter(
+    (column) => !HOUSING_NON_MERGEABLE_COLUMNS.includes(column)
+  );
+}
 
 interface ListQueryOptions {
   filters: HousingFiltersApi;
@@ -426,20 +519,21 @@ function include(includes: HousingInclude[], filters?: HousingFiltersApi) {
 async function update(housing: HousingApi): Promise<void> {
   logger.debug('Update housing', housing.id);
 
-  const transaction = getTransaction();
-  await Housing(transaction)
-    .where({
+  await withinKyselyTransaction(async (trx) => {
+    await trx
+      .updateTable('fastHousing')
       // Use the index on the partitioned table
-      geo_code: housing.geoCode,
-      id: housing.id
-    })
-    .update({
-      occupancy: housing.occupancy,
-      occupancy_intended: housing.occupancyIntended ?? null,
-      status: housing.status,
-      sub_status: housing.subStatus ?? null,
-      actual_dpe: housing.actualEnergyConsumption
-    });
+      .where('geoCode', '=', housing.geoCode)
+      .where('id', '=', housing.id)
+      .set({
+        occupancy: housing.occupancy,
+        occupancyIntended: housing.occupancyIntended ?? null,
+        status: housing.status,
+        subStatus: housing.subStatus ?? null,
+        actualDpe: housing.actualEnergyConsumption
+      })
+      .execute();
+  });
 }
 
 async function updateMany(
@@ -455,9 +549,9 @@ async function updateMany(
 
   const fields = compactUndefined({
     status: payload.status,
-    sub_status: payload.subStatus,
+    subStatus: payload.subStatus,
     occupancy: payload.occupancy,
-    occupancy_intended: payload.occupancyIntended
+    occupancyIntended: payload.occupancyIntended
   });
   if (Object.keys(fields).length === 0) {
     logger.debug('No fields to update. Skipping...');
@@ -468,25 +562,32 @@ async function updateMany(
     housings: housings.length,
     payload
   });
-  await withinTransaction(async (transaction) => {
-    await Housing(transaction)
-      .whereIn(
-        ['geo_code', 'id'],
-        housings.map((housing) => [housing.geoCode, housing.id])
+  await withinKyselyTransaction(async (trx) => {
+    await trx
+      .updateTable('fastHousing')
+      .where((eb) =>
+        eb.or(
+          housings.map((housing) =>
+            eb.and([
+              eb('geoCode', '=', housing.geoCode),
+              eb('id', '=', housing.id)
+            ])
+          )
+        )
       )
-      .update(fields);
+      .set(fields)
+      .execute();
   });
 }
 
 async function remove(housing: HousingApi): Promise<void> {
   const info = Struct.pick(housing, 'geoCode', 'id', 'localId');
   logger.debug('Removing housing...', info);
-  await Housing()
-    .where({
-      geo_code: housing.geoCode,
-      id: housing.id
-    })
-    .delete();
+  await kysely
+    .deleteFrom('fastHousing')
+    .where('geoCode', '=', housing.geoCode)
+    .where('id', '=', housing.id)
+    .execute();
   logger.info('Removed housing.', info);
 }
 

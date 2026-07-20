@@ -4,7 +4,11 @@ import Box from '@mui/material/Box';
 import Stack from '@mui/material/Stack';
 import { styled } from '@mui/material/styles';
 import Typography from '@mui/material/Typography';
-import type { DocumentDTO } from '@zerologementvacant/models';
+import {
+  canWriteDocument,
+  UserRole,
+  type DocumentDTO
+} from '@zerologementvacant/models';
 import mime from 'mime';
 import prettyBytes from 'pretty-bytes';
 import { useState } from 'react';
@@ -64,10 +68,13 @@ function DocumentCard(props: Readonly<DocumentCardProps>) {
     .getExtension(props.document.contentType)
     ?.toUpperCase();
 
-  const { isUsual, isAdmin, establishment } = useUser();
+  const { user, establishment } = useUser();
   const sameEstablishment: boolean =
     establishment?.id === props.document.establishmentId;
-  const canWrite: boolean = isAdmin || (isUsual && sameEstablishment);
+  const canWrite: boolean = canWriteDocument(
+    user?.role ?? UserRole.VISITOR,
+    sameEstablishment
+  );
 
   const [dropdownOpen, setDropdownOpen] = useState(false);
 

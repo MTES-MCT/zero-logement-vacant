@@ -91,6 +91,7 @@ function SaveCampaignFlow() {
       <campaignFromGroupModal.Component
         group={selectedGroup}
         stepper={{ currentStep: 2, stepCount: 2 }}
+        submitting={createCampaignFromGroupMutation.isLoading}
         onSubmit={handleCampaignSubmit}
       />
     </>

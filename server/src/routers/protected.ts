@@ -328,6 +328,31 @@ router.delete(
   campaignController.removeHousings
 );
 
+router.get(
+  '/campaigns/:id/documents',
+  validator.validate({
+    params: object({ id: schemas.id })
+  }),
+  documentController.listByCampaign
+);
+router.post(
+  '/campaigns/:id/documents',
+  hasRole([UserRole.USUAL, UserRole.ADMIN]),
+  validator.validate({
+    params: object({ id: schemas.id }),
+    body: schemas.campaignDocumentPayload
+  }),
+  documentController.linkToCampaign
+);
+router.delete(
+  '/campaigns/:id/documents/:documentId',
+  hasRole([UserRole.USUAL, UserRole.ADMIN]),
+  validator.validate({
+    params: object({ id: schemas.id, documentId: schemas.id })
+  }),
+  documentController.removeByCampaign
+);
+
 router.get('/drafts', draftController.list);
 router.post(
   '/drafts',

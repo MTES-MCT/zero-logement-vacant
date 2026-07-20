@@ -16,12 +16,14 @@ import { beforeAll, describe, expect, it } from 'vitest';
 import config from '~/infra/config';
 import { createServer } from '~/infra/server';
 import { UserApi } from '~/models/UserApi';
+import { CampaignDocuments } from '~/repositories/campaignDocumentRepository';
 import { Documents, toDocumentDBO } from '~/repositories/documentRepository';
 import {
   Establishments,
   formatEstablishmentApi
 } from '~/repositories/establishmentRepository';
 import {
+  CAMPAIGN_DOCUMENT_EVENTS_TABLE,
   DOCUMENT_EVENTS_TABLE,
   Events,
   EVENTS_TABLE,
@@ -34,6 +36,7 @@ import {
   Housing
 } from '~/repositories/housingRepository';
 import { toUserDBO, Users } from '~/repositories/userRepository';
+import { factories } from '~/test/factories';
 import {
   genDocumentApi,
   genEstablishmentApi,
@@ -720,6 +723,316 @@ describe('Document API', () => {
         .use(tokenProvider(user));
 
       expect(status).toBe(constants.HTTP_STATUS_NOT_FOUND);
+    });
+  });
+
+  describe('POST /campaigns/:id/documents', () => {
+    const testRoute = (id: string) => `/campaigns/${id}/documents`;
+
+    it('should link documents to campaign', async () => {
+      const campaign = await factories
+        .campaign(establishment)
+        .create({}, { associations: { createdBy: user } });
+      const document = genDocumentApi({
+        createdBy: user.id,
+        creator: user,
+        establishmentId: establishment.id
+      });
+      await Documents().insert(toDocumentDBO(document));
+
+      const { status, body } = await request(url)
+        .post(testRoute(campaign.id))
+        .use(tokenProvider(user))
+        .send({ documentIds: [document.id] });
+
+      expect(status).toBe(constants.HTTP_STATUS_CREATED);
+      expect(body).toHaveLength(1);
+      expect(body[0]).toMatchObject({ id: document.id });
+    });
+
+    it('should create an event "campaign:document-attached"', async () => {
+      const campaign = await factories
+        .campaign(establishment)
+        .create({}, { associations: { createdBy: user } });
+      const document = genDocumentApi({
+        createdBy: user.id,
+        creator: user,
+        establishmentId: establishment.id
+      });
+      await Documents().insert(toDocumentDBO(document));
+
+      const { status } = await request(url)
+        .post(testRoute(campaign.id))
+        .use(tokenProvider(user))
+        .send({ documentIds: [document.id] });
+
+      expect(status).toBe(constants.HTTP_STATUS_CREATED);
+      const event = await Events()
+        .where({ type: 'campaign:document-attached' })
+        .join(
+          CAMPAIGN_DOCUMENT_EVENTS_TABLE,
+          `${CAMPAIGN_DOCUMENT_EVENTS_TABLE}.event_id`,
+          `${EVENTS_TABLE}.id`
+        )
+        .where(`${CAMPAIGN_DOCUMENT_EVENTS_TABLE}.document_id`, document.id)
+        .first();
+      expect(event).toMatchObject<
+        Partial<EventDBO<'campaign:document-attached'>>
+      >({
+        type: 'campaign:document-attached',
+        next_old: null,
+        next_new: { filename: document.filename },
+        created_by: user.id
+      });
+    });
+
+    it('should return 404 if campaign not found', async () => {
+      const { status } = await request(url)
+        .post(testRoute(faker.string.uuid()))
+        .use(tokenProvider(user))
+        .send({ documentIds: [faker.string.uuid()] });
+
+      expect(status).toBe(constants.HTTP_STATUS_NOT_FOUND);
+    });
+
+    it('should return 404 if campaign belongs to another establishment', async () => {
+      const campaign = await factories
+        .campaign(anotherEstablishment)
+        .create(
+          {},
+          { associations: { createdBy: userFromAnotherEstablishment } }
+        );
+      const document = genDocumentApi({
+        createdBy: userFromAnotherEstablishment.id,
+        creator: userFromAnotherEstablishment,
+        establishmentId: anotherEstablishment.id
+      });
+      await Documents().insert(toDocumentDBO(document));
+
+      const { status } = await request(url)
+        .post(testRoute(campaign.id))
+        .use(tokenProvider(user))
+        .send({ documentIds: [document.id] });
+
+      expect(status).toBe(constants.HTTP_STATUS_NOT_FOUND);
+    });
+
+    it('should return 403 for a visitor', async () => {
+      const campaign = await factories
+        .campaign(establishment)
+        .create({}, { associations: { createdBy: user } });
+      const document = genDocumentApi({
+        createdBy: user.id,
+        creator: user,
+        establishmentId: establishment.id
+      });
+      await Documents().insert(toDocumentDBO(document));
+
+      const { status } = await request(url)
+        .post(testRoute(campaign.id))
+        .use(tokenProvider(visitor))
+        .send({ documentIds: [document.id] });
+
+      expect(status).toBe(constants.HTTP_STATUS_FORBIDDEN);
+    });
+  });
+
+  describe('GET /campaigns/:id/documents', () => {
+    const testRoute = (id: string) => `/campaigns/${id}/documents`;
+
+    it('should return 200 OK with documents list', async () => {
+      const campaign = await factories
+        .campaign(establishment)
+        .create({}, { associations: { createdBy: user } });
+      const document = genDocumentApi({
+        createdBy: user.id,
+        creator: user,
+        establishmentId: establishment.id
+      });
+      await Documents().insert(toDocumentDBO(document));
+      await CampaignDocuments().insert({
+        document_id: document.id,
+        campaign_id: campaign.id
+      });
+
+      const { status, body } = await request(url)
+        .get(testRoute(campaign.id))
+        .use(tokenProvider(user));
+
+      expect(status).toBe(constants.HTTP_STATUS_OK);
+      expect(body).toBeArrayOfSize(1);
+      expect(body[0]).toMatchObject({
+        id: document.id,
+        url: expect.stringContaining('http')
+      });
+    });
+
+    it('should return 404 if campaign belongs to another establishment', async () => {
+      const campaign = await factories
+        .campaign(anotherEstablishment)
+        .create(
+          {},
+          { associations: { createdBy: userFromAnotherEstablishment } }
+        );
+
+      const { status } = await request(url)
+        .get(testRoute(campaign.id))
+        .use(tokenProvider(user));
+
+      expect(status).toBe(constants.HTTP_STATUS_NOT_FOUND);
+    });
+  });
+
+  describe('DELETE /campaigns/:id/documents/:documentId', () => {
+    const testRoute = (id: string, documentId: string) =>
+      `/campaigns/${id}/documents/${documentId}`;
+
+    it('should remove association only (keep document)', async () => {
+      const campaign = await factories
+        .campaign(establishment)
+        .create({}, { associations: { createdBy: user } });
+      const document = genDocumentApi({
+        createdBy: user.id,
+        creator: user,
+        establishmentId: establishment.id
+      });
+      await Documents().insert(toDocumentDBO(document));
+      await CampaignDocuments().insert({
+        document_id: document.id,
+        campaign_id: campaign.id
+      });
+
+      const { status } = await request(url)
+        .delete(testRoute(campaign.id, document.id))
+        .use(tokenProvider(user));
+
+      expect(status).toBe(constants.HTTP_STATUS_NO_CONTENT);
+
+      const links = await CampaignDocuments()
+        .where({ document_id: document.id, campaign_id: campaign.id })
+        .select('*');
+      expect(links).toHaveLength(0);
+
+      const [doc] = await Documents().where({ id: document.id }).select('*');
+      expect(doc).toBeDefined();
+      expect(doc.deleted_at).toBeNull();
+    });
+
+    it('should create an event "campaign:document-detached"', async () => {
+      const campaign = await factories
+        .campaign(establishment)
+        .create({}, { associations: { createdBy: user } });
+      const document = genDocumentApi({
+        createdBy: user.id,
+        creator: user,
+        establishmentId: establishment.id
+      });
+      await Documents().insert(toDocumentDBO(document));
+      await CampaignDocuments().insert({
+        document_id: document.id,
+        campaign_id: campaign.id
+      });
+
+      const { status } = await request(url)
+        .delete(testRoute(campaign.id, document.id))
+        .use(tokenProvider(user));
+
+      expect(status).toBe(constants.HTTP_STATUS_NO_CONTENT);
+      const event = await Events()
+        .where({ type: 'campaign:document-detached' })
+        .join(
+          CAMPAIGN_DOCUMENT_EVENTS_TABLE,
+          `${CAMPAIGN_DOCUMENT_EVENTS_TABLE}.event_id`,
+          `${EVENTS_TABLE}.id`
+        )
+        .where(`${CAMPAIGN_DOCUMENT_EVENTS_TABLE}.document_id`, document.id)
+        .first();
+      expect(event).toMatchObject<
+        Partial<EventDBO<'campaign:document-detached'>>
+      >({
+        type: 'campaign:document-detached',
+        next_old: { filename: document.filename },
+        next_new: null,
+        created_by: user.id
+      });
+    });
+
+    it('should return 404 if association not found', async () => {
+      const campaign = await factories
+        .campaign(establishment)
+        .create({}, { associations: { createdBy: user } });
+
+      const { status } = await request(url)
+        .delete(testRoute(campaign.id, faker.string.uuid()))
+        .use(tokenProvider(user));
+
+      expect(status).toBe(constants.HTTP_STATUS_NOT_FOUND);
+    });
+
+    it('should return 404 if campaign belongs to another establishment', async () => {
+      const campaign = await factories
+        .campaign(anotherEstablishment)
+        .create(
+          {},
+          { associations: { createdBy: userFromAnotherEstablishment } }
+        );
+      const document = genDocumentApi({
+        createdBy: userFromAnotherEstablishment.id,
+        creator: userFromAnotherEstablishment,
+        establishmentId: anotherEstablishment.id
+      });
+      await Documents().insert(toDocumentDBO(document));
+      await CampaignDocuments().insert({
+        document_id: document.id,
+        campaign_id: campaign.id
+      });
+
+      const { status } = await request(url)
+        .delete(testRoute(campaign.id, document.id))
+        .use(tokenProvider(user));
+
+      expect(status).toBe(constants.HTTP_STATUS_NOT_FOUND);
+    });
+  });
+
+  describe('DELETE /documents/:id (campaign cascade)', () => {
+    it('should create an event "campaign:document-removed" for each campaign the document was attached to', async () => {
+      const document = genDocumentApi({
+        createdBy: user.id,
+        creator: user,
+        establishmentId: establishment.id
+      });
+      await Documents().insert(toDocumentDBO(document));
+      const campaign = await factories
+        .campaign(establishment)
+        .create({}, { associations: { createdBy: user } });
+      await CampaignDocuments().insert({
+        document_id: document.id,
+        campaign_id: campaign.id
+      });
+
+      const { status } = await request(url)
+        .delete(`/documents/${document.id}`)
+        .use(tokenProvider(user));
+
+      expect(status).toBe(constants.HTTP_STATUS_NO_CONTENT);
+      const event = await Events()
+        .where({ type: 'campaign:document-removed' })
+        .join(
+          CAMPAIGN_DOCUMENT_EVENTS_TABLE,
+          `${CAMPAIGN_DOCUMENT_EVENTS_TABLE}.event_id`,
+          `${EVENTS_TABLE}.id`
+        )
+        .where(`${CAMPAIGN_DOCUMENT_EVENTS_TABLE}.document_id`, document.id)
+        .first();
+      expect(event).toMatchObject<
+        Partial<EventDBO<'campaign:document-removed'>>
+      >({
+        type: 'campaign:document-removed',
+        next_old: { filename: document.filename },
+        next_new: null,
+        created_by: user.id
+      });
     });
   });
 });

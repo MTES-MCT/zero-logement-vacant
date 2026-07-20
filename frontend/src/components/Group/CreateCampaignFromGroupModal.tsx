@@ -1,3 +1,4 @@
+import Stepper from '@codegouvfr/react-dsfr/Stepper';
 import { yupResolver } from '@hookform/resolvers/yup';
 import Box from '@mui/material/Box';
 import Stack from '@mui/material/Stack';
@@ -26,6 +27,7 @@ export type CreateCampaignFromGroupModalProps = Omit<
   'title' | 'children' | 'onSubmit'
 > & {
   group: Group;
+  stepper?: { currentStep: number; stepCount: number };
   onSubmit(campaign: Pick<Campaign, 'title' | 'description' | 'sentAt'>): void;
 };
 
@@ -48,7 +50,7 @@ export function createCampaignFromGroupModal(
   return {
     ...modal,
     Component(props: Readonly<CreateCampaignFromGroupModalProps>) {
-      const { group, onSubmit, ...rest } = props;
+      const { group, stepper, onSubmit, ...rest } = props;
 
       const housing = pluralize(group.housingCount)('logement');
       const owners = pluralize(group.ownerCount)('propriétaire');
@@ -79,6 +81,14 @@ export function createCampaignFromGroupModal(
             onClose={form.reset}
             title="Créer une campagne"
           >
+            {stepper && (
+              <Stepper
+                currentStep={stepper.currentStep}
+                stepCount={stepper.stepCount}
+                title="Créer une campagne"
+              />
+            )}
+
             <Stack
               direction="row"
               spacing="1rem"

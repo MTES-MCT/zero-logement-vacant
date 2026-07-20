@@ -177,6 +177,8 @@ fileignoreconfig:
   checksum: b396fb5a9d17e2a81cad49491c35cc459db9f2ff494c94dada9f3eeae0efeb53
 - filename: docs/superpowers/specs/2026-07-20-campaign-documents-design.md
   checksum: 45db32afbf267b94ffb071c725691dad57b28c8bb12554e0b8397a5bf0a9d141
+- filename: docs/superpowers/plans/2026-07-20-campaign-documents.md
+  checksum: 1e3050356fc1503522f81a38384a26cf11310d81881707ccc34df0279ca6b90f
 scopeconfig:
 - scope: node
 allowed_patterns:

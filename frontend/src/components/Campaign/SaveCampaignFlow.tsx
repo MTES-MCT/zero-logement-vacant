@@ -1,5 +1,5 @@
 import Button from '@codegouvfr/react-dsfr/Button';
-import { useEffect, useState } from 'react';
+import { useState } from 'react';
 
 import { createCampaignFromGroupModal } from '~/components/Group/CreateCampaignFromGroupModal';
 import { useNotification } from '~/hooks/useNotification';
@@ -36,44 +36,18 @@ function SaveCampaignFlow() {
     }
   });
 
-  // `campaignFromGroupModal`'s dialog is only mounted once `selectedGroup` is
-  // set, so both opening it and wiring its conceal listener must run after that
-  // render commits (not synchronously in the click handler) — its DOM node
-  // doesn't exist before then.
-  //
-  // Resetting `selectedGroup` to `null` on conceal is mandatory: step 2 is
-  // opened by the edge-triggered `selectedGroup` change below, so a stale group
-  // left here would make re-selecting the SAME group a no-op (stable RTK Query
-  // ref → React bails the update → this effect never re-fires), yielding a dead
-  // "Enregistrer" click after a cancel. Clearing to `null` makes every
-  // selection a fresh `null → group` edge.
-  //
-  // We listen to DSFR's own `dsfr.conceal` event directly on the dialog element
-  // rather than via react-dsfr's `useIsModalOpen`, because this modal renders
-  // through `createPortal`: `useIsModalOpen`'s mount-detection MutationObserver
-  // only sees the top-level portal node (the `<form>`) added to `<body>`, never
-  // the nested `<dialog>`, so its `onConceal` never fires for this instance.
-  // `onClose` is also unavailable — `CreateCampaignFromGroupModal` hard-overrides
-  // it with `form.reset`.
-  useEffect(() => {
-    if (!selectedGroup) {
-      return;
-    }
-
-    campaignFromGroupModal.open();
-
-    const dialog = document.getElementById(campaignFromGroupModal.id);
-    const handleConceal = () => setSelectedGroup(null);
-    dialog?.addEventListener('dsfr.conceal', handleConceal);
-
-    return () => {
-      dialog?.removeEventListener('dsfr.conceal', handleConceal);
-    };
-  }, [selectedGroup]);
-
+  // Both modals are mounted unconditionally (step 2 tolerates a null group),
+  // mirroring `HousingCreationModal`. This is required: DSFR initialises a
+  // `<dialog>` asynchronously after it mounts, so `.open()` on a dialog that was
+  // *conditionally* mounted in the same interaction throws
+  // `Cannot read properties of null (reading 'modal')`. Keeping step 2 mounted
+  // means it is DSFR-initialised well before the user selects a group, so the
+  // synchronous `.open()` below always works. It also makes re-opening after a
+  // cancel trivial — `.open()` runs on every selection, not on a state edge.
   function handleGroupSelect(group: Group): void {
     setSelectedGroup(group);
     selectGroupModal.close();
+    campaignFromGroupModal.open();
   }
 
   function handleCampaignSubmit(
@@ -114,13 +88,11 @@ function SaveCampaignFlow() {
 
       <selectGroupModal.Component onSelect={handleGroupSelect} />
 
-      {selectedGroup && (
-        <campaignFromGroupModal.Component
-          group={selectedGroup}
-          stepper={{ currentStep: 2, stepCount: 2 }}
-          onSubmit={handleCampaignSubmit}
-        />
-      )}
+      <campaignFromGroupModal.Component
+        group={selectedGroup}
+        stepper={{ currentStep: 2, stepCount: 2 }}
+        onSubmit={handleCampaignSubmit}
+      />
     </>
   );
 }

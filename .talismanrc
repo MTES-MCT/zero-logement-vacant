@@ -175,6 +175,8 @@ fileignoreconfig:
   checksum: 7c3d25a7502faeb9fd4e438e7e6bdf39cc18ebd32401f1463420289cda46a4d3
 - filename: docs/rgaa/methodologie-tests.md
   checksum: b396fb5a9d17e2a81cad49491c35cc459db9f2ff494c94dada9f3eeae0efeb53
+- filename: docs/superpowers/specs/2026-07-20-campaign-documents-design.md
+  checksum: 45db32afbf267b94ffb071c725691dad57b28c8bb12554e0b8397a5bf0a9d141
 scopeconfig:
 - scope: node
 allowed_patterns:

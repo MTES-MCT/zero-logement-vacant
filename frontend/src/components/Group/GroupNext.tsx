@@ -13,6 +13,7 @@ import { createRemoveGroupModal } from '~/components/Group/RemoveGroupModal';
 import { createRenameGroupModal } from '~/components/Group/RenameGroupModal';
 import FullWidthButton from '~/components/ui/FullWidthButton';
 import Icon from '~/components/ui/Icon';
+import { useUser } from '~/hooks/useUser';
 import type { Campaign } from '~/models/Campaign';
 import type { Group as GroupModel } from '~/models/Group';
 import type { GroupPayload } from '~/models/GroupPayload';
@@ -40,6 +41,9 @@ function Group(props: Readonly<GroupProps>) {
   const findCampaignsQuery = useFindCampaignsQuery({
     filters: { groupIds: [props.group.id] }
   });
+
+  const { isAdmin, isUsual } = useUser();
+  const canCreateCampaign = isAdmin || isUsual;
 
   const housing = pluralize(props.group.housingCount)('logement');
   const owners = pluralize(props.group.ownerCount)('propriétaire');
@@ -182,15 +186,17 @@ function Group(props: Readonly<GroupProps>) {
                 alignItems: 'flex-end'
               }}
             >
-              <li style={{ width: '100%' }}>
-                <FullWidthButton
-                  priority="primary"
-                  onClick={campaignFromGroupModal.open}
-                  disabled={props.group.housingCount === 0}
-                >
-                  Créer une campagne
-                </FullWidthButton>
-              </li>
+              {canCreateCampaign ? (
+                <li style={{ width: '100%' }}>
+                  <FullWidthButton
+                    priority="primary"
+                    onClick={campaignFromGroupModal.open}
+                    disabled={props.group.housingCount === 0}
+                  >
+                    Créer une campagne
+                  </FullWidthButton>
+                </li>
+              ) : null}
 
               <li style={{ width: '100%' }}>
                 <FullWidthButton

@@ -28,9 +28,22 @@ const findByHousing = http.get<{ id: string }, never, DocumentDTO[]>(
   }
 );
 
-const findByCampaign = http.get<{ id: string }, never, DocumentDTO[]>(
+const findByCampaign = http.get<{ id: string }, never, DocumentDTO[] | Error>(
   `${config.apiEndpoint}/campaigns/:id/documents`,
   async ({ params }) => {
+    const campaign = data.campaigns.find(
+      (campaign) => campaign.id === params.id
+    );
+    if (!campaign) {
+      return HttpResponse.json(
+        {
+          name: 'CampaignMissingError',
+          message: `Campaign ${params.id} missing`
+        },
+        { status: constants.HTTP_STATUS_NOT_FOUND }
+      );
+    }
+
     const documents = (data.campaignDocuments.get(params.id) ?? [])
       .map((ref) => data.documents.get(ref.id))
       .filter(Predicate.isNotUndefined);

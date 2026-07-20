@@ -289,10 +289,15 @@ const remove: RequestHandler<
     throw new DocumentMissingError(params.id);
   }
 
-  // Find all housings linked to this document
-  const housingDocuments = await housingDocumentRepository.find({
-    filters: { documentIds: [params.id] }
-  });
+  // Find all housings and campaigns linked to this document
+  const [housingDocuments, campaignDocuments] = await Promise.all([
+    housingDocumentRepository.find({
+      filters: { documentIds: [params.id] }
+    }),
+    campaignDocumentRepository.find({
+      filters: { documentIds: [params.id] }
+    })
+  ]);
   const removeEvents = housingDocuments.map<HousingDocumentEventApi>(
     (housingDocument) => ({
       id: uuidv4(),
@@ -307,10 +312,6 @@ const remove: RequestHandler<
     })
   );
 
-  // Find all campaigns linked to this document
-  const campaignDocuments = await campaignDocumentRepository.find({
-    filters: { documentIds: [params.id] }
-  });
   const campaignRemoveEvents = campaignDocuments.map<CampaignDocumentEventApi>(
     (campaignDocument) => ({
       id: uuidv4(),
@@ -353,6 +354,34 @@ const remove: RequestHandler<
   response.status(constants.HTTP_STATUS_NO_CONTENT).send();
 };
 
+/**
+ * De-duplicates documentIds before checking existence: the DB lookup below
+ * naturally collapses duplicate ids to one row, so comparing its length
+ * against a raw (possibly duplicated) request array would misreport
+ * existing documents as missing.
+ */
+async function findDocumentsOrThrow(
+  documentIds: ReadonlyArray<DocumentDTO['id']>,
+  establishmentId: string
+): Promise<DocumentApi[]> {
+  const uniqueIds = [...new Set(documentIds)];
+  const documents = await documentRepository.find({
+    filters: {
+      ids: uniqueIds,
+      establishmentIds: [establishmentId],
+      deleted: false
+    }
+  });
+
+  if (documents.length !== uniqueIds.length) {
+    const foundIds = documents.map((document) => document.id);
+    const missingIds = uniqueIds.filter((id) => !foundIds.includes(id));
+    throw new DocumentMissingError(...missingIds);
+  }
+
+  return documents;
+}
+
 const linkToHousing: RequestHandler<
   { id: HousingDTO['id'] },
   ReadonlyArray<DocumentDTO>,
@@ -384,23 +413,14 @@ const linkToHousing: RequestHandler<
   }
 
   // Validate documents exist and belong to establishment
-  const documents = await documentRepository.find({
-    filters: {
-      ids: body.documentIds,
-      establishmentIds: [establishment.id],
-      deleted: false
-    }
-  });
-
-  if (documents.length !== body.documentIds.length) {
-    const foundIds = documents.map((document) => document.id);
-    const missingIds = body.documentIds.filter((id) => !foundIds.includes(id));
-    throw new DocumentMissingError(...missingIds);
-  }
+  const documents = await findDocumentsOrThrow(
+    body.documentIds,
+    establishment.id
+  );
 
   // Create housing document links (cartesian product)
-  const links = body.documentIds.map((documentId) => ({
-    document_id: documentId,
+  const links = documents.map((document) => ({
+    document_id: document.id,
     housing_id: housing.id,
     housing_geo_code: housing.geoCode
   }));
@@ -555,12 +575,13 @@ const linkToCampaign: RequestHandler<
   CampaignDocumentPayload,
   never
 > = async (request, response) => {
-  const { establishment, params, body, user } = request as AuthenticatedRequest<
-    { id: CampaignDTO['id'] },
-    ReadonlyArray<DocumentDTO>,
-    CampaignDocumentPayload,
-    never
-  >;
+  const { effectiveGeoCodes, establishment, params, body, user } =
+    request as AuthenticatedRequest<
+      { id: CampaignDTO['id'] },
+      ReadonlyArray<DocumentDTO>,
+      CampaignDocumentPayload,
+      never
+    >;
 
   logger.info('Linking documents to campaign', {
     campaign: params.id,
@@ -569,28 +590,20 @@ const linkToCampaign: RequestHandler<
 
   const campaign = await campaignRepository.findOne({
     id: params.id,
-    establishmentId: establishment.id
+    establishmentId: establishment.id,
+    geoCodes: effectiveGeoCodes
   });
   if (!campaign) {
     throw new CampaignMissingError(params.id);
   }
 
-  const documents = await documentRepository.find({
-    filters: {
-      ids: body.documentIds,
-      establishmentIds: [establishment.id],
-      deleted: false
-    }
-  });
+  const documents = await findDocumentsOrThrow(
+    body.documentIds,
+    establishment.id
+  );
 
-  if (documents.length !== body.documentIds.length) {
-    const foundIds = documents.map((document) => document.id);
-    const missingIds = body.documentIds.filter((id) => !foundIds.includes(id));
-    throw new DocumentMissingError(...missingIds);
-  }
-
-  const links = body.documentIds.map((documentId) => ({
-    document_id: documentId,
+  const links = documents.map((document) => ({
+    document_id: document.id,
     campaign_id: campaign.id
   }));
   const attachEvents = documents.map<CampaignDocumentEventApi>((document) => ({
@@ -626,17 +639,19 @@ const listByCampaign: RequestHandler<
   never,
   never
 > = async (request, response): Promise<void> => {
-  const { establishment, params } = request as AuthenticatedRequest<
-    { id: CampaignDTO['id'] },
-    DocumentDTO[],
-    never,
-    never
-  >;
+  const { effectiveGeoCodes, establishment, params } =
+    request as AuthenticatedRequest<
+      { id: CampaignDTO['id'] },
+      DocumentDTO[],
+      never,
+      never
+    >;
 
   logger.debug('Finding documents by campaign...', { campaign: params.id });
   const campaign = await campaignRepository.findOne({
     id: params.id,
-    establishmentId: establishment.id
+    establishmentId: establishment.id,
+    geoCodes: effectiveGeoCodes
   });
   if (!campaign) {
     throw new CampaignMissingError(params.id);
@@ -661,12 +676,13 @@ const removeByCampaign: RequestHandler<
   never,
   never
 > = async (request, response) => {
-  const { establishment, params, user } = request as AuthenticatedRequest<
-    { id: CampaignDTO['id']; documentId: DocumentDTO['id'] },
-    void,
-    never,
-    never
-  >;
+  const { effectiveGeoCodes, establishment, params, user } =
+    request as AuthenticatedRequest<
+      { id: CampaignDTO['id']; documentId: DocumentDTO['id'] },
+      void,
+      never,
+      never
+    >;
 
   logger.info('Removing document-campaign association', {
     campaign: params.id,
@@ -675,16 +691,16 @@ const removeByCampaign: RequestHandler<
 
   const campaign = await campaignRepository.findOne({
     id: params.id,
-    establishmentId: establishment.id
+    establishmentId: establishment.id,
+    geoCodes: effectiveGeoCodes
   });
   if (!campaign) {
     throw new CampaignMissingError(params.id);
   }
 
-  const links = await campaignDocumentRepository.find({
-    filters: { campaignIds: [campaign.id] }
+  const document = await campaignDocumentRepository.get(params.documentId, {
+    campaign: [campaign.id]
   });
-  const document = links.find((link) => link.id === params.documentId);
   if (!document) {
     throw new DocumentMissingError(params.documentId);
   }

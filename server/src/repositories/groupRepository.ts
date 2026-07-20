@@ -1,16 +1,18 @@
 import { Array } from 'effect';
 import { Knex } from 'knex';
-import type { Insertable } from 'kysely';
+import type { Insertable, Selectable } from 'kysely';
+import { sql } from 'kysely';
 import pMap from 'p-map';
 
 import db from '~/infra/database';
 import type { DB } from '~/infra/database/db';
+import { kysely } from '~/infra/database/kysely';
 import { withinKyselyTransaction } from '~/infra/database/kysely-transaction';
 import { logger } from '~/infra/logger';
 import { GroupApi } from '~/models/GroupApi';
 import { HousingApi } from '~/models/HousingApi';
 
-import { fromUserDBO, UserDBO, USERS_TABLE } from './userRepository';
+import { fromUserDBO, UserDBO } from './userRepository';
 
 export const GROUPS_TABLE = 'groups';
 export const GROUPS_HOUSING_TABLE = 'groups_housing';
@@ -37,13 +39,12 @@ interface FindOptions {
 
 const find = async (opts?: FindOptions): Promise<GroupApi[]> => {
   logger.debug('Finding groups...', opts);
-  const groups: GroupDBO[] = await Groups()
-    .modify(listQuery)
-    .modify(filterQuery(opts?.filters))
-    .orderBy('created_at', 'desc');
+  const rows = await applyGroupFilters(groupListQuery(), opts?.filters)
+    .orderBy('groups.createdAt', 'desc')
+    .execute();
 
-  logger.debug('Found groups', groups.length);
-  return groups.map(parseGroupApi);
+  logger.debug('Found groups', rows.length);
+  return rows.map(parseGroupRow);
 };
 
 interface FindOneOptions {
@@ -54,31 +55,14 @@ interface FindOneOptions {
 
 const findOne = async (opts: FindOneOptions): Promise<GroupApi | null> => {
   logger.debug('Finding group...', opts);
-  const group: GroupDBO | undefined = await Groups()
-    .modify(listQuery)
-    .modify(
-      filterQuery({
-        establishmentId: opts.establishmentId,
-        geoCodes: opts.geoCodes
-      })
-    )
-    .where(`${GROUPS_TABLE}.id`, opts.id)
-    .first();
-  if (!group) {
-    return null;
-  }
+  const row = await applyGroupFilters(groupListQuery(), {
+    establishmentId: opts.establishmentId,
+    geoCodes: opts.geoCodes
+  })
+    .where('groups.id', '=', opts.id)
+    .executeTakeFirst();
 
-  logger.debug('Found group', group);
-  return group ? parseGroupApi(group) : null;
-};
-
-// After — housing_count and owner_count are now plain columns on groups,
-// selected automatically via groups.*
-const listQuery = (query: Knex.QueryBuilder): void => {
-  query
-    .select(`${GROUPS_TABLE}.*`)
-    .join<UserDBO>(USERS_TABLE, `${USERS_TABLE}.id`, `${GROUPS_TABLE}.user_id`)
-    .select(db.raw(`to_json(${USERS_TABLE}.*) AS user`));
+  return row ? parseGroupRow(row) : null;
 };
 
 interface FilterOptions {
@@ -90,34 +74,51 @@ interface FilterOptions {
   geoCodes?: string[];
 }
 
-const filterQuery = (opts?: FilterOptions) => {
-  return function (query: Knex.QueryBuilder): void {
-    if (opts?.establishmentId) {
-      query.where(`${GROUPS_TABLE}.establishment_id`, opts.establishmentId);
+// housing_count and owner_count are plain columns on groups, selected via
+// selectAll('groups'). The creator is embedded as `to_json(users.*)` (snake_case
+// UserDBO), consumed by parseGroupRow.
+function groupListQuery() {
+  return kysely
+    .selectFrom('groups')
+    .innerJoin('users', 'users.id', 'groups.userId')
+    .selectAll('groups')
+    .select(sql<UserDBO>`to_json(users.*)`.as('user'));
+}
+
+function applyGroupFilters(
+  query: ReturnType<typeof groupListQuery>,
+  filters?: FilterOptions
+): ReturnType<typeof groupListQuery> {
+  let result = query;
+  if (filters?.establishmentId) {
+    result = result.where(
+      'groups.establishmentId',
+      '=',
+      filters.establishmentId
+    );
+  }
+  // Filter groups to only those where ALL housings are within the user's
+  // perimeter. Empty geoCodes means no access → return no groups.
+  if (filters?.geoCodes !== undefined) {
+    if (filters.geoCodes.length === 0) {
+      result = result.where(sql<boolean>`1 = 0`);
+    } else {
+      const geoCodes = filters.geoCodes;
+      result = result.where((eb) =>
+        eb.not(
+          eb.exists(
+            eb
+              .selectFrom('groupsHousing')
+              .select(sql`1`.as('one'))
+              .whereRef('groupsHousing.groupId', '=', 'groups.id')
+              .where('groupsHousing.housingGeoCode', 'not in', geoCodes)
+          )
+        )
+      );
     }
-    // Filter groups to only those where ALL housings are within the user's perimeter
-    // Note: geoCodes is an array when a restriction applies
-    //   - non-empty array: filter to groups with housings in these geoCodes
-    //   - empty array: user should see NO groups (intersection with perimeter is empty)
-    if (opts?.geoCodes !== undefined) {
-      if (opts.geoCodes.length === 0) {
-        // Empty geoCodes means no access - return no groups
-        query.whereRaw('1 = 0');
-      } else {
-        const geoCodes = opts.geoCodes;
-        query.whereNotExists(function () {
-          this.select(db.raw('1'))
-            .from(GROUPS_HOUSING_TABLE)
-            .whereRaw(`${GROUPS_HOUSING_TABLE}.group_id = ${GROUPS_TABLE}.id`)
-            .whereRaw(
-              `${GROUPS_HOUSING_TABLE}.housing_geo_code NOT IN (${geoCodes.map(() => '?').join(', ')})`,
-              geoCodes
-            );
-        });
-      }
-    }
-  };
-};
+  }
+  return result;
+}
 
 async function save(group: GroupApi, housings?: HousingApi[]): Promise<void> {
   logger.debug('Saving group...', {
@@ -298,6 +299,24 @@ export const formatGroupApi = (
   establishment_id: group.establishmentId,
   archived_at: group.archivedAt
 });
+
+type GroupRow = Selectable<DB['groups']> & { user: UserDBO | null };
+
+function parseGroupRow(row: GroupRow): GroupApi {
+  return {
+    id: row.id,
+    title: row.title,
+    description: row.description,
+    housingCount: row.housingCount,
+    ownerCount: row.ownerCount,
+    createdAt: row.createdAt,
+    exportedAt: row.exportedAt,
+    userId: row.userId,
+    createdBy: row.user ? fromUserDBO(row.user) : undefined,
+    establishmentId: row.establishmentId,
+    archivedAt: row.archivedAt
+  };
+}
 
 export const parseGroupApi = (group: GroupDBO): GroupApi => {
   return {

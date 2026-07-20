@@ -24,6 +24,10 @@ import {
 const buildings: BuildingDTO[] = [];
 
 const campaigns: CampaignDTO[] = [];
+const campaignDocuments = new Map<
+  CampaignDTO['id'],
+  ReadonlyArray<Pick<DocumentDTO, 'id'>>
+>();
 const campaignDrafts = new Map<
   CampaignDTO['id'],
   ReadonlyArray<Pick<DraftDTO, 'id'>>
@@ -132,6 +136,7 @@ function reset(): void {
 export default {
   buildings,
   campaigns,
+  campaignDocuments,
   campaignDrafts,
   campaignHousings,
   datafoncierHousings,

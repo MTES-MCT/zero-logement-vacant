@@ -313,4 +313,142 @@ describe('Campaign document repository', () => {
       expect(remainingLinks[0].document_id).toBe(documents[1].id);
     });
   });
+
+  describe('find', () => {
+    it('should filter by campaign ids', async () => {
+      const [campaignA, campaignB] = await factories
+        .campaign(establishment)
+        .createList(2, {}, { associations: { createdBy: user } });
+
+      const campaignADocuments = [
+        genCampaignDocumentApi({
+          createdBy: user.id,
+          creator: user,
+          campaignId: campaignA.id
+        }),
+        genCampaignDocumentApi({
+          createdBy: user.id,
+          creator: user,
+          campaignId: campaignA.id
+        })
+      ];
+      const campaignBDocument = genCampaignDocumentApi({
+        createdBy: user.id,
+        creator: user,
+        campaignId: campaignB.id
+      });
+      const allDocuments = [...campaignADocuments, campaignBDocument];
+
+      await Documents().insert(allDocuments.map(toDocumentDBO));
+      await campaignDocumentRepository.linkMany(
+        allDocuments.map(toCampaignDocumentDBO)
+      );
+
+      const actual = await campaignDocumentRepository.find({
+        filters: { campaignIds: [campaignA.id] }
+      });
+
+      expect(actual.map((document) => document.id).sort()).toEqual(
+        campaignADocuments.map((document) => document.id).sort()
+      );
+    });
+
+    it('should filter by document ids', async () => {
+      const campaign = await factories
+        .campaign(establishment)
+        .create({}, { associations: { createdBy: user } });
+
+      const documents = [
+        genCampaignDocumentApi({
+          createdBy: user.id,
+          creator: user,
+          campaignId: campaign.id
+        }),
+        genCampaignDocumentApi({
+          createdBy: user.id,
+          creator: user,
+          campaignId: campaign.id
+        }),
+        genCampaignDocumentApi({
+          createdBy: user.id,
+          creator: user,
+          campaignId: campaign.id
+        })
+      ];
+
+      await Documents().insert(documents.map(toDocumentDBO));
+      await campaignDocumentRepository.linkMany(
+        documents.map(toCampaignDocumentDBO)
+      );
+
+      const actual = await campaignDocumentRepository.find({
+        filters: { documentIds: [documents[1].id] }
+      });
+
+      expect(actual).toHaveLength(1);
+      expect(actual[0].id).toBe(documents[1].id);
+    });
+
+    it('should filter by deleted status', async () => {
+      const campaign = await factories
+        .campaign(establishment)
+        .create({}, { associations: { createdBy: user } });
+
+      const activeDocument = genCampaignDocumentApi({
+        createdBy: user.id,
+        creator: user,
+        campaignId: campaign.id
+      });
+      const deletedDocument = genCampaignDocumentApi({
+        createdBy: user.id,
+        creator: user,
+        campaignId: campaign.id
+      });
+
+      await Documents().insert(
+        [activeDocument, deletedDocument].map(toDocumentDBO)
+      );
+      await campaignDocumentRepository.linkMany(
+        [activeDocument, deletedDocument].map(toCampaignDocumentDBO)
+      );
+      await campaignDocumentRepository.remove(deletedDocument);
+
+      // Scoped to this test's campaign so that documents soft-deleted by
+      // other tests in this file don't affect the assertions below.
+      const active = await campaignDocumentRepository.find({
+        filters: { campaignIds: [campaign.id], deleted: false }
+      });
+      expect(active.map((document) => document.id)).toEqual([
+        activeDocument.id
+      ]);
+
+      const deleted = await campaignDocumentRepository.find({
+        filters: { campaignIds: [campaign.id], deleted: true }
+      });
+      expect(deleted.map((document) => document.id)).toEqual([
+        deletedDocument.id
+      ]);
+    });
+
+    it('should return all linked documents when no filters are provided', async () => {
+      const campaign = await factories
+        .campaign(establishment)
+        .create({}, { associations: { createdBy: user } });
+
+      const document = genCampaignDocumentApi({
+        createdBy: user.id,
+        creator: user,
+        campaignId: campaign.id
+      });
+
+      await Documents().insert(toDocumentDBO(document));
+      await campaignDocumentRepository.linkMany([
+        toCampaignDocumentDBO(document)
+      ]);
+
+      const actual = await campaignDocumentRepository.find();
+
+      expect(actual.map((linked) => linked.id)).toContain(document.id);
+    });
+  });
 });

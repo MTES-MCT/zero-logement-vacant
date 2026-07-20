@@ -8,10 +8,8 @@ import {
 import { Provider } from 'react-redux';
 
 import data from '~/mocks/handlers/data';
-import { fromEstablishmentDTO } from '~/models/Establishment';
-import { fromUserDTO } from '~/models/User';
+import { MockAuthProvider } from '~/test/auth';
 import { factories } from '~/test/factories';
-import { genAuthUser } from '~/test/fixtures';
 import configureTestStore from '~/utils/storeUtils';
 
 import CampaignDocumentsTab from '../CampaignDocumentsTab';
@@ -24,13 +22,15 @@ describe('CampaignDocumentsTab', () => {
       .campaign(establishment)
       .build({}, { associations: { createdBy: auth } });
     data.campaigns.push(campaign);
-    const store = configureTestStore({
-      auth: genAuthUser(fromUserDTO(auth), fromEstablishmentDTO(establishment))
-    });
+    data.users.push(auth);
+    data.establishments.push(establishment);
+    const store = configureTestStore();
 
     render(
       <Provider store={store}>
-        <CampaignDocumentsTab campaign={campaign} />
+        <MockAuthProvider options={{ user: auth, establishment }}>
+          <CampaignDocumentsTab campaign={campaign} />
+        </MockAuthProvider>
       </Provider>
     );
 
@@ -57,13 +57,15 @@ describe('CampaignDocumentsTab', () => {
     data.campaigns.push(campaign);
     data.documents.set(document.id, document);
     data.campaignDocuments.set(campaign.id, [document]);
-    const store = configureTestStore({
-      auth: genAuthUser(fromUserDTO(auth), fromEstablishmentDTO(establishment))
-    });
+    data.users.push(auth);
+    data.establishments.push(establishment);
+    const store = configureTestStore();
 
     render(
       <Provider store={store}>
-        <CampaignDocumentsTab campaign={campaign} />
+        <MockAuthProvider options={{ user: auth, establishment }}>
+          <CampaignDocumentsTab campaign={campaign} />
+        </MockAuthProvider>
       </Provider>
     );
 

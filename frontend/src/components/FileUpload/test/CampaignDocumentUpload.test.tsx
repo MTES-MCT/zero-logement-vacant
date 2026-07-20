@@ -9,9 +9,7 @@ import { Provider } from 'react-redux';
 import { vi } from 'vitest';
 
 import data from '~/mocks/handlers/data';
-import { fromEstablishmentDTO } from '~/models/Establishment';
-import { fromUserDTO } from '~/models/User';
-import { genAuthUser } from '~/test/fixtures';
+import { MockAuthProvider } from '~/test/auth';
 import configureTestStore from '~/utils/storeUtils';
 
 import CampaignDocumentUpload from '../CampaignDocumentUpload';
@@ -25,14 +23,14 @@ describe('CampaignDocumentUpload', () => {
     data.users.push(auth);
     data.establishments.push(establishment);
 
-    const store = configureTestStore({
-      auth: genAuthUser(fromUserDTO(auth), fromEstablishmentDTO(establishment))
-    });
+    const store = configureTestStore();
     const onUpload = vi.fn();
 
     render(
       <Provider store={store}>
-        <CampaignDocumentUpload onUpload={onUpload} />
+        <MockAuthProvider options={{ user: auth, establishment }}>
+          <CampaignDocumentUpload onUpload={onUpload} />
+        </MockAuthProvider>
       </Provider>
     );
 

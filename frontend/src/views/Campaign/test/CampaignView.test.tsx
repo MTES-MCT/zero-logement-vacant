@@ -84,7 +84,9 @@ describe('CampaignView', () => {
 
     render(
       <Provider store={configureTestStore()}>
-        <MockAuthProvider options={{ user: auth, establishment }}>
+        <MockAuthProvider
+          options={{ user: renderAuth, establishment: renderEstablishment }}
+        >
           <HousingFiltersProvider>
             <RouterProvider router={router} />
           </HousingFiltersProvider>

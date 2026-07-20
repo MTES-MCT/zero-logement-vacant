@@ -2,12 +2,12 @@ import { Readable } from 'node:stream';
 import { ReadableStream } from 'node:stream/web';
 
 import { AddressKinds, OwnerEntity } from '@zerologementvacant/models';
+import { snakeToCamel } from 'effect/String';
 import { Knex } from 'knex';
-import _ from 'lodash';
-import { match, Pattern } from 'ts-pattern';
-
 import type { Insertable } from 'kysely';
 import { sql } from 'kysely';
+import _ from 'lodash';
+import { match, Pattern } from 'ts-pattern';
 
 import db, { ConflictOptions, groupBy, where } from '~/infra/database';
 import type { DB } from '~/infra/database/db';
@@ -343,25 +343,24 @@ function toOwnerInsert(owner: OwnerApi): Insertable<DB['owners']> {
   };
 }
 
-const snakeToCamel = (value: string): string =>
-  value.replace(/_([a-z])/g, (_match, char: string) => char.toUpperCase());
-
 // Reproduces the Knex `onConflict(opts)` helper for Kysely. Callers pass
 // snake_case column names (keyof OwnerDBO); map them to the camelCase DB keys.
 function kyselyOwnerConflict(opts: BetterSaveOptions) {
+  if (opts.onConflict.length === 0) {
+    throw new Error('onConflict must have at least one column');
+  }
   const columns = (opts.onConflict as ReadonlyArray<string>).map(snakeToCamel);
   return (oc: any) => {
     const builder = oc.columns(columns);
     if (opts.merge === false) {
       return builder.doNothing();
     }
-    const mergeColumns = (
+    const mergeColumns =
       opts.merge === true
         ? (Object.keys(toOwnerInsert({} as OwnerApi)) as string[]).filter(
             (column) => !columns.includes(column)
           )
-        : (opts.merge as ReadonlyArray<string>).map(snakeToCamel)
-    );
+        : (opts.merge as ReadonlyArray<string>).map(snakeToCamel);
     return builder.doUpdateSet((eb: any) =>
       Object.fromEntries(
         mergeColumns.map((column) => [column, eb.ref(`excluded.${column}`)])

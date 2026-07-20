@@ -79,30 +79,23 @@ async function insertManyHousingEvents(
 
   logger.debug('Inserting housing events...', { events: events.length });
   await withinKyselyTransaction(async (trx) => {
-    await trx
-      .insertInto('events')
-      .values(events.map(toEventInsert))
-      .onConflict((oc) => oc.column('id').doNothing())
-      .execute();
-    await trx
-      .insertInto('housingEvents')
-      .values(events.map(toHousingEventInsert))
-      .onConflict((oc) => oc.column('eventId').doNothing())
-      .execute();
+    await pMap(
+      Array.chunksOf(events, INSERT_BATCH_SIZE),
+      async (batch) => {
+        await trx
+          .insertInto('events')
+          .values(batch.map(toEventDBO))
+          .onConflict((oc) => oc.column('id').doNothing())
+          .execute();
+        await trx
+          .insertInto('housingEvents')
+          .values(batch.map(toHousingEventInsert))
+          .onConflict((oc) => oc.column('eventId').doNothing())
+          .execute();
+      },
+      { concurrency: 1 }
+    );
   });
-}
-
-function toEventInsert<Type extends EventType>(
-  event: EventApi<Type>
-): Insertable<DB['events']> {
-  return {
-    id: event.id,
-    type: event.type,
-    nextOld: event.nextOld as Insertable<DB['events']>['nextOld'],
-    nextNew: event.nextNew as Insertable<DB['events']>['nextNew'],
-    createdAt: new Date(event.createdAt),
-    createdBy: event.createdBy
-  };
 }
 
 function toHousingEventInsert(
@@ -146,16 +139,22 @@ async function insertManyHousingOwnerEvents(
     events: events.length
   });
   await withinKyselyTransaction(async (trx) => {
-    await trx
-      .insertInto('events')
-      .values(events.map(toEventInsert))
-      .onConflict((oc) => oc.column('id').doNothing())
-      .execute();
-    await trx
-      .insertInto('housingOwnerEvents')
-      .values(events.map(toHousingOwnerEventInsert))
-      .onConflict((oc) => oc.column('eventId').doNothing())
-      .execute();
+    await pMap(
+      Array.chunksOf(events, INSERT_BATCH_SIZE),
+      async (batch) => {
+        await trx
+          .insertInto('events')
+          .values(batch.map(toEventDBO))
+          .onConflict((oc) => oc.column('id').doNothing())
+          .execute();
+        await trx
+          .insertInto('housingOwnerEvents')
+          .values(batch.map(toHousingOwnerEventInsert))
+          .onConflict((oc) => oc.column('eventId').doNothing())
+          .execute();
+      },
+      { concurrency: 1 }
+    );
   });
 }
 
@@ -188,11 +187,17 @@ async function insertManyOwnerEvents(
 
   logger.debug('Inserting owner events...', { events: events.length });
   await withinKyselyTransaction(async (trx) => {
-    await trx.insertInto('events').values(events.map(toEventInsert)).execute();
-    await trx
-      .insertInto('ownerEvents')
-      .values(events.map(toOwnerEventInsert))
-      .execute();
+    await pMap(
+      Array.chunksOf(events, INSERT_BATCH_SIZE),
+      async (batch) => {
+        await trx.insertInto('events').values(batch.map(toEventDBO)).execute();
+        await trx
+          .insertInto('ownerEvents')
+          .values(batch.map(toOwnerEventInsert))
+          .execute();
+      },
+      { concurrency: 1 }
+    );
   });
 }
 

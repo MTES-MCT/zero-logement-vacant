@@ -2819,6 +2819,27 @@ describe('Housing repository', () => {
         occupancy_intended: original.occupancyIntended
       });
     });
+
+    it('should preserve read-only columns (plot_area, occupancy_history) on a merge-all upsert', async () => {
+      const original = genHousingApi(oneOf(establishment.geoCodes));
+      // plot_area/occupancy_history are LOVAC-imported and never written by the
+      // API path (toHousingInsert forces them to null), so seed them directly.
+      await Housing().insert({
+        ...formatHousingRecordApi(original),
+        plot_area: 500,
+        occupancy_history: 'V;2020'
+      });
+      const update: HousingApi = { ...original, occupancy: Occupancy.RENT };
+
+      await housingRepository.save(update, { onConflict: 'merge' });
+
+      const actual = await Housing().where('id', original.id).first();
+      expect(actual).toMatchObject({
+        occupancy: update.occupancy,
+        plot_area: 500,
+        occupancy_history: 'V;2020'
+      });
+    });
   });
 
   describe('updateMany', () => {

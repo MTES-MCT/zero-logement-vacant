@@ -23,6 +23,7 @@ import {
 } from '@zerologementvacant/models';
 import { compactUndefined, isNotNull } from '@zerologementvacant/utils';
 import { Array, identity, Predicate, Struct } from 'effect';
+import { snakeToCamel } from 'effect/String';
 import type { Point } from 'geojson';
 import { Set } from 'immutable';
 import { Knex } from 'knex';
@@ -310,12 +311,19 @@ async function saveMany(
       .values(housingList.map(toHousingInsert))
       .onConflict((oc) => {
         const conflict = oc.columns(['geoCode', 'localId']);
-        if (opts?.onConflict === 'merge') {
-          return conflict.doUpdateSet((eb: any) =>
-            buildHousingMergeSet(eb, opts?.merge)
-          );
+        if (opts?.onConflict !== 'merge') {
+          return conflict.doNothing();
         }
-        return conflict.doNothing();
+        const columns = housingMergeColumns(opts?.merge);
+        // An explicit empty merge list means "update nothing on conflict".
+        if (columns.length === 0) {
+          return conflict.doNothing();
+        }
+        return conflict.doUpdateSet((eb: any) =>
+          Object.fromEntries(
+            columns.map((column) => [column, eb.ref(`excluded.${column}`)])
+          )
+        );
       })
       .execute();
   });
@@ -327,9 +335,6 @@ type HousingInclude =
   | 'perimeters'
   | 'precisions'
   | 'buildings';
-
-const snakeToCamel = (value: string): string =>
-  value.replace(/_([a-z])/g, (_match, char: string) => char.toUpperCase());
 
 // Camel-case Insertable mirror of formatHousingRecordApi for the Kysely write
 // path. plot_area/occupancy_history are READ_ONLY (nullable, no default): set
@@ -390,20 +395,26 @@ function toHousingInsert(
   };
 }
 
-// Reproduces Knex `.merge(columns)` for Kysely. Callers pass snake_case columns
-// (keyof HousingRecordDBO); undefined means "merge all inserted fields". The
-// conflict-key columns are excluded (updating them to excluded.* is a no-op).
-function buildHousingMergeSet(
-  eb: any,
-  merge?: Array<keyof HousingRecordDBO>
-): Record<string, unknown> {
-  const columns = (
-    merge && merge.length
+// Reproduces Knex `.merge(columns)` for Kysely: returns the camelCase columns to
+// update on conflict. Callers pass snake_case columns (keyof HousingRecordDBO);
+// `undefined` means "merge all inserted fields" and an empty array means none.
+// The conflict-key columns are always excluded (updating them to excluded.* is a
+// no-op), and so are the READ_ONLY plotArea/occupancyHistory: toHousingInsert
+// forces those to null, so merging them would wipe LOVAC-imported values — the
+// Knex path omitted them via `Omit<HousingRecordDBO, READ_ONLY_FIELDS>`.
+const HOUSING_NON_MERGEABLE_COLUMNS = [
+  'geoCode',
+  'localId',
+  'plotArea',
+  'occupancyHistory'
+];
+function housingMergeColumns(merge?: Array<keyof HousingRecordDBO>): string[] {
+  const columns =
+    merge !== undefined
       ? merge.map((column) => snakeToCamel(column as string))
-      : Object.keys(toHousingInsert({} as HousingRecordApi))
-  ).filter((column) => column !== 'geoCode' && column !== 'localId');
-  return Object.fromEntries(
-    columns.map((column) => [column, eb.ref(`excluded.${column}`)])
+      : Object.keys(toHousingInsert({} as HousingRecordApi));
+  return columns.filter(
+    (column) => !HOUSING_NON_MERGEABLE_COLUMNS.includes(column)
   );
 }
 

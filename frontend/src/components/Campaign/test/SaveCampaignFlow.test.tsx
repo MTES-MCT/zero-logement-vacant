@@ -2,12 +2,13 @@ import { render, screen, waitFor, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { UserRole } from '@zerologementvacant/models';
 import {
+  genCampaignDTO,
   genEstablishmentDTO,
   genGroupDTO,
   genHousingDTO,
   genUserDTO
 } from '@zerologementvacant/models/fixtures';
-import { http, HttpResponse } from 'msw';
+import { delay, http, HttpResponse } from 'msw';
 import { Provider } from 'react-redux';
 
 import SaveCampaignFlow from '~/components/Campaign/SaveCampaignFlow';
@@ -184,5 +185,47 @@ describe('SaveCampaignFlow', () => {
     expect(data.campaigns).not.toContainEqual(
       expect.objectContaining({ title: 'Ma campagne', groupId: group.id })
     );
+  });
+
+  it('should disable Confirmer while the create request is in flight, preventing a double-submit', async () => {
+    const group = genGroupDTO(creator, [genHousingDTO()]);
+    data.groups.push(group);
+
+    let posts = 0;
+    mockAPI.use(
+      http.post(`${config.apiEndpoint}/groups/:id/campaigns`, async () => {
+        posts += 1;
+        await delay(80);
+        return HttpResponse.json(genCampaignDTO(group), { status: 201 });
+      })
+    );
+
+    renderFlow();
+
+    await user.click(
+      screen.getByRole('button', { name: 'Enregistrer une campagne' })
+    );
+    const selectDialog = await screen.findByRole('dialog');
+    await user.click(
+      await within(selectDialog).findByRole('button', {
+        name: `Sélectionner le groupe ${group.title}`
+      })
+    );
+
+    const createDialog = await screen.findByRole('dialog');
+    await within(createDialog).findByText('Étape 2 sur 2');
+    await user.type(
+      await within(createDialog).findByLabelText(/^Nom/),
+      'Ma campagne'
+    );
+    const confirmer = await within(createDialog).findByRole('button', {
+      name: 'Confirmer'
+    });
+    await user.click(confirmer);
+
+    // While the POST is in flight the Confirmer is disabled, so a second click
+    // cannot fire a second create mutation.
+    await waitFor(() => expect(confirmer).toBeDisabled());
+    expect(posts).toBe(1);
   });
 });

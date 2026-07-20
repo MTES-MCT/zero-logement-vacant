@@ -8,9 +8,6 @@ import { useId, useMemo, useState } from 'react';
 import { match, Pattern } from 'ts-pattern';
 
 import DocumentFullscreenPreview from '~/components/FileUpload/DocumentFullscreenPreview';
-import HousingDocumentUpload, {
-  type HousingDocumentUploadProps
-} from '~/components/FileUpload/HousingDocumentUpload';
 import DocumentCard, {
   type DocumentCardProps
 } from '~/components/HousingDetails/DocumentCard';
@@ -23,7 +20,15 @@ export interface DocumentsTabProps {
   isLoading?: boolean;
   isSuccess?: boolean;
   documentCardProps?: Pick<DocumentCardProps, 'actions'>;
-  onUpload: HousingDocumentUploadProps['onUpload'];
+  /**
+   * The upload zone to render in the header, when the current user has write access.
+   * Rendered only if `canUpload` is true, so the caller does not need to gate it.
+   */
+  uploadSlot?: ReactNode;
+  /**
+   * @default 'Il n’y a pas de document associé à ce logement'
+   */
+  emptyStateMessage?: string;
   onRename(document: DocumentDTO): void;
   onDelete: DocumentCardProps['onDelete'];
 }
@@ -148,10 +153,8 @@ function DocumentsTab(props: Readonly<DocumentsTabProps>) {
       )}
 
       <Stack component="section" spacing="2rem" useFlexGap>
-        {canUpload ? (
-          <Stack component="header">
-            <HousingDocumentUpload onUpload={props.onUpload} />
-          </Stack>
+        {canUpload && props.uploadSlot ? (
+          <Stack component="header">{props.uploadSlot}</Stack>
         ) : null}
 
         {match({
@@ -173,7 +176,8 @@ function DocumentsTab(props: Readonly<DocumentsTabProps>) {
                 variant="subtitle2"
                 sx={{ fontWeight: 500, width: '17rem' }}
               >
-                Il n’y a pas de document associé à ce logement
+                {props.emptyStateMessage ??
+                  'Il n’y a pas de document associé à ce logement'}
               </Typography>
             </Stack>
           ))

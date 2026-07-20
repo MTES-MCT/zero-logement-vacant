@@ -40,6 +40,9 @@ import {
 import type { Housing, HousingUpdate } from '../../models/Housing';
 import AppLink from '../_app/AppLink/AppLink';
 import Aside from '../Aside/Aside';
+import HousingDocumentUpload, {
+  type HousingDocumentUploadProps
+} from '../FileUpload/HousingDocumentUpload';
 import DocumentsTab, {
   type DocumentsTabProps
 } from '../HousingDetails/DocumentsTab';
@@ -246,7 +249,7 @@ function HousingEditionSideMenu(props: HousingEditionSideMenuProps) {
     resetRemoving();
   };
 
-  const onUpload: DocumentsTabProps['onUpload'] = (documents) => {
+  const onUpload: HousingDocumentUploadProps['onUpload'] = (documents) => {
     const currentDocuments = form.getValues('documents');
     form.setValue('documents', [...currentDocuments, ...documents]);
   };
@@ -283,7 +286,7 @@ function HousingEditionSideMenu(props: HousingEditionSideMenuProps) {
             documentCardProps={{ actions: 'remove-only' }}
             isLoading={false}
             isSuccess={true}
-            onUpload={onUpload}
+            uploadSlot={<HousingDocumentUpload onUpload={onUpload} />}
             onRename={() => {}}
             onDelete={onDelete}
           />

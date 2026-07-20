@@ -1,6 +1,6 @@
+import { createColumnHelper } from '@tanstack/react-table';
 import { render, screen, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
-import { createColumnHelper } from '@tanstack/react-table';
 
 import AdvancedTable from '~/components/AdvancedTable/AdvancedTable';
 

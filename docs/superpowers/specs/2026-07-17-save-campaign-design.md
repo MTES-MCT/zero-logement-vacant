@@ -17,6 +17,7 @@ As a [user], I want to save a campaign from the campaigns list, in order to conv
 ## Mockups
 
 Three Figma frames (file `kfEYtoHqhonLyCDTcDm5wu`):
+
 - `16477:53770` — Campaigns list page, new "Enregistrer une campagne" button in the toolbar.
 - `16477:62849` — Step 1 modal: "Sélectionner le groupe de logements".
 - `16477:64023` — Step 2 modal: "Créer une campagne" (existing form + new stepper).
@@ -35,14 +36,14 @@ Three Figma frames (file `kfEYtoHqhonLyCDTcDm5wu`):
 
 1. **Group search is client-side.** `GET /groups` has no search param and none will be added — filter the already-fetched, unfiltered list in the browser (matches the existing `PerimetersModal` pattern). No backend changes.
 2. **Excluded groups:** archived groups and groups with `housingCount === 0` are excluded entirely from the results (not shown, not just disabled) — mirrors the existing disabled state of "Créer une campagne" on the group page.
-3. **Pagination is real, not decorative.** The table shows *all* matching/eligible groups, paginated 5/page via `AdvancedTable`'s existing pagination — not just a top-5 cutoff.
+3. **Pagination is real, not decorative.** The table shows _all_ matching/eligible groups, paginated 5/page via `AdvancedTable`'s existing pagination — not just a top-5 cutoff.
 4. **Sort order:** most recently created first (`createdAt` descending).
 5. **Default state (no search yet):** all eligible groups are shown, paginated, immediately when step 1 opens.
 6. **Search trigger:** submit-only (`AppSearchBar`'s `onSearch`, fired on button click or Enter) — no live filter-as-you-type.
 7. **Modal architecture:** two separate, fully independent modal instances (step 1: new `SelectGroupModal`; step 2: existing `CreateCampaignFromGroupModal` unmodified) chained via a parent's `useState`, mirroring `HousingCreationModal.tsx` exactly. Considered and rejected a single-modal-with-internal-step-switch approach (avoids a possible close/reopen flicker, but requires extracting the existing modal's form into a headless component) in favor of simplicity and reuse of already-shipped code.
 8. **No back button** from step 2 to step 1 — Annuler/Fermer/click-outside on step 2 closes the entire flow rather than returning to step 1 (matches the ticket's spec text; deliberately differs from `HousingCreationModal`'s back-button precedent).
 9. **Post-creation behavior:** on success, close the modal, show a toast ("La campagne a été ajoutée"), and stay on `/campagnes` (list auto-refreshes via the existing `invalidatesTags` on the `Campaign` list). Deliberately differs from the group-page flow (`GroupView.tsx`), which navigates to the new campaign's detail page — this flow keeps the user on the page they started from, per the Figma annotation on the "Confirmer" button.
-10. **Only Usual/Admin can create campaigns — fixed at the backend, for both entry points.** The codebase survey found that campaign creation has *no* role check anywhere today: neither the existing "Créer une campagne" button (`GroupNext.tsx`) nor the endpoint it calls (`POST /groups/:id/campaigns`) restrict by role, so a VISITOR can currently create a campaign. Since both the existing and the new flow share that endpoint, the fix is applied at the backend (authoritative) and mirrored on both frontend entry points — a frontend-only check would leave the API callable directly by a Visitor.
+10. **Only Usual/Admin can create campaigns — fixed at the backend, for both entry points.** The codebase survey found that campaign creation has _no_ role check anywhere today: neither the existing "Créer une campagne" button (`GroupNext.tsx`) nor the endpoint it calls (`POST /groups/:id/campaigns`) restrict by role, so a VISITOR can currently create a campaign. Since both the existing and the new flow share that endpoint, the fix is applied at the backend (authoritative) and mirrored on both frontend entry points — a frontend-only check would leave the API callable directly by a Visitor.
 11. **Visitors don't see either "create campaign" button at all** (not shown-disabled) — matches the existing hide-based convention for permission gating elsewhere (`DocumentsTab.tsx`, `HousingView.tsx`), as opposed to the disabled-with-tooltip pattern which has no precedent in this codebase for permission (as opposed to data-availability) gating.
 12. **Scope of the guard is creation only.** `PUT/DELETE /campaigns/:id` (update, delete, send) have the same missing-role-check gap but are explicitly out of scope for this ticket — flagged as a separate follow-up, not fixed here.
 
@@ -51,10 +52,12 @@ Three Figma frames (file `kfEYtoHqhonLyCDTcDm5wu`):
 **Entry point:** a new `Button` ("Enregistrer une campagne", primary/MD, icon-left) added to the existing toolbar `Stack` in `CampaignTable.tsx`, rendered only when `isAdmin || isUsual` (via `useUser()`) — hidden entirely for VISITOR. No changes to `CampaignListView.tsx`.
 
 **New files:**
+
 - `frontend/src/components/Campaign/SelectGroupModal.tsx` — exports `createSelectGroupModal()`, a `createExtendedModal` (no confirm footer — selection happens per-row). Renders: `Stepper` (step 1/2), `AppSearchBar` (submit-only), `AdvancedTable` of eligible groups with a "Sélectionner" action column.
 - `frontend/src/components/Campaign/SaveCampaignFlow.tsx` — orchestrator component, parallel to `HousingCreationModal.tsx`. Creates both modal instances, holds `selectedGroup` state, wires the step transition and the submit handler. Mounted directly inside `CampaignTable.tsx`, self-contained (no prop drilling from `CampaignListView.tsx`).
 
 **Modified files:**
+
 - `frontend/src/components/Group/CreateCampaignFromGroupModal.tsx` — add one optional prop, e.g. `stepper?: { currentStep: number; stepCount: number }`, rendering a `Stepper` at the top of the modal content when present. Omitted (no behavior change) for the existing `GroupNext.tsx` call site; passed `{ currentStep: 2, stepCount: 2 }` from the new flow. Purely additive — no changes to the existing schema, fields, or submit logic.
 - `frontend/src/components/Group/GroupNext.tsx` — wrap the existing "Créer une campagne" `FullWidthButton` in `const { isAdmin, isUsual } = useUser(); const canCreateCampaign = isAdmin || isUsual;`, hiding it entirely (not just disabling) for VISITOR. Same one-line convention as `DocumentsTab.tsx`/`HousingView.tsx`.
 - `server/src/routers/protected.ts` — add `hasRole([UserRole.USUAL, UserRole.ADMIN])` middleware to the `POST /groups/:id/campaigns` route (~line 295), matching the existing convention used for documents/notes/housing-update routes. This is the authoritative fix; it protects both the existing group-page flow and the new list-page flow since they share this endpoint. No other campaign routes are touched (see Decisions #12 and Out of Scope).
@@ -62,6 +65,7 @@ Three Figma frames (file `kfEYtoHqhonLyCDTcDm5wu`):
 ## Data Flow
 
 **Step 1 — search & select:**
+
 1. `useFindGroupsQuery()` (existing, unchanged) fetches all establishment groups.
 2. Filter to eligible groups: `archivedAt === null && housingCount > 0`.
 3. If `searchText` is set (updated only on `AppSearchBar` submit/Enter), filter further by case-insensitive substring match on `title`.
@@ -70,6 +74,7 @@ Three Figma frames (file `kfEYtoHqhonLyCDTcDm5wu`):
 6. Clicking a row's "Sélectionner" button calls `handleGroupSelected(group)`.
 
 **Step transition:**
+
 ```
 handleGroupSelected(group):
   setSelectedGroup(group)
@@ -78,6 +83,7 @@ handleGroupSelected(group):
 ```
 
 **Step 2 — create:**
+
 1. Existing form (unchanged): Nom (required), Description (optional), Date d'envoi (optional).
 2. On submit: `useCreateCampaignFromGroupMutation({ campaign: payload, group: selectedGroup })`.
 3. On success: toast "La campagne a été ajoutée", close modal, reset `selectedGroup`/`searchText`/pagination, stay on `/campagnes`.
@@ -102,6 +108,7 @@ handleGroupSelected(group):
 ## Accessibility (RGAA)
 
 To verify explicitly during implementation against `.claude/rules/rgaa-accessibility.md`, not deferred to review:
+
 - `Stepper` ARIA semantics when used inside a modal (first such usage in the codebase).
 - Search input label association (`AppSearchBar`).
 - Table header scoping (`AdvancedTable`).

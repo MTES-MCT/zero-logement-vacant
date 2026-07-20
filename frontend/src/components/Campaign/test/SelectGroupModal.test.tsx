@@ -177,4 +177,34 @@ describe('SelectGroupModal', () => {
     const status = await within(dialog).findByRole('status');
     await waitFor(() => expect(status).toHaveTextContent('2 groupes trouvés'));
   });
+
+  it('should restore the full list when an empty search is submitted', async () => {
+    const housings = [genHousingDTO()];
+    const match = { ...genGroupDTO(creator, housings), title: 'URBA-EXP' };
+    const other = { ...genGroupDTO(creator, housings), title: 'CITE-AVENIR' };
+    data.groups.push(match, other);
+
+    renderModal();
+
+    const dialog = await screen.findByRole('dialog');
+    await within(dialog).findByText(other.title);
+    const input = within(dialog).getByRole('searchbox', {
+      name: 'Rechercher un groupe'
+    });
+    const searchButton = within(dialog).getByRole('button', {
+      name: 'Rechercher'
+    });
+
+    // Filter down to a single group.
+    await user.type(input, 'urba');
+    await user.click(searchButton);
+    await within(dialog).findByText(match.title);
+    expect(within(dialog).queryByText(other.title)).not.toBeInTheDocument();
+
+    // Submitting an empty search brings the whole list back.
+    await user.clear(input);
+    await user.click(searchButton);
+    await within(dialog).findByText(other.title);
+    expect(within(dialog).getByText(match.title)).toBeInTheDocument();
+  });
 });

@@ -118,6 +118,7 @@ export function createSelectGroupModal(
           <AppSearchBar
             key={openCount}
             label="Rechercher un groupe"
+            allowEmptySearch
             onSearch={search}
           />
 

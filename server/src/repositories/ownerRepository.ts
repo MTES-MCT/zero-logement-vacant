@@ -349,7 +349,9 @@ function kyselyOwnerConflict(opts: BetterSaveOptions) {
   if (opts.onConflict.length === 0) {
     throw new Error('onConflict must have at least one column');
   }
-  const columns = (opts.onConflict as ReadonlyArray<string>).map(snakeToCamel);
+  const columns = (opts.onConflict as ReadonlyArray<string>).map((column) =>
+    snakeToCamel(column)
+  );
   return (oc: any) => {
     const builder = oc.columns(columns);
     if (opts.merge === false) {
@@ -360,7 +362,9 @@ function kyselyOwnerConflict(opts: BetterSaveOptions) {
         ? (Object.keys(toOwnerInsert({} as OwnerApi)) as string[]).filter(
             (column) => !columns.includes(column)
           )
-        : (opts.merge as ReadonlyArray<string>).map(snakeToCamel);
+        : (opts.merge as ReadonlyArray<string>).map((column) =>
+            snakeToCamel(column)
+          );
     return builder.doUpdateSet((eb: any) =>
       Object.fromEntries(
         mergeColumns.map((column) => [column, eb.ref(`excluded.${column}`)])

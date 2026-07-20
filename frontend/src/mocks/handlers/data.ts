@@ -108,6 +108,7 @@ const authSession: {
 function reset(): void {
   buildings.length = 0;
   campaigns.length = 0;
+  campaignDocuments.clear();
   campaignDrafts.clear();
   campaignHousings.clear();
   datafoncierHousings.length = 0;

@@ -38,6 +38,7 @@ function HousingDocumentUpload(props: Readonly<HousingDocumentUploadProps>) {
             rel="noopener noreferrer"
           >
             données sensibles
+            <span className="fr-sr-only"> (nouvelle fenêtre)</span>
           </a>
           .
         </div>

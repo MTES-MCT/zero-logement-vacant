@@ -1,4 +1,4 @@
-import { render, screen, within } from '@testing-library/react';
+import { render, screen, waitFor, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import {
   genGroupDTO,
@@ -17,10 +17,10 @@ const creator = genUserDTO();
 describe('SelectGroupModal', () => {
   const user = userEvent.setup();
 
-  function renderModal(onSelect = vi.fn()) {
+  function renderModal(onSelect = vi.fn(), openCount?: number) {
     render(
       <Provider store={configureTestStore()}>
-        <selectGroupModal.Component onSelect={onSelect} />
+        <selectGroupModal.Component onSelect={onSelect} openCount={openCount} />
       </Provider>
     );
     selectGroupModal.open();
@@ -141,5 +141,40 @@ describe('SelectGroupModal', () => {
     expect(onSelect).toHaveBeenCalledWith(
       expect.objectContaining({ id: group.id, title: group.title })
     );
+  });
+
+  it('should not query groups until the flow has been opened', async () => {
+    const group = genGroupDTO(creator, [genHousingDTO()]);
+    data.groups.push(group);
+
+    renderModal(vi.fn(), 0);
+
+    const dialog = await screen.findByRole('dialog');
+    // openCount 0 → the groups query is skipped, so nothing loads.
+    expect(within(dialog).queryByText(group.title)).not.toBeInTheDocument();
+  });
+
+  it('should query groups once the flow has been opened', async () => {
+    const group = genGroupDTO(creator, [genHousingDTO()]);
+    data.groups.push(group);
+
+    renderModal(vi.fn(), 1);
+
+    const dialog = await screen.findByRole('dialog');
+    await within(dialog).findByText(group.title);
+  });
+
+  it('should announce the result count in a status region', async () => {
+    const housings = [genHousingDTO()];
+    data.groups.push(
+      genGroupDTO(creator, housings),
+      genGroupDTO(creator, housings)
+    );
+
+    renderModal(vi.fn(), 1);
+
+    const dialog = await screen.findByRole('dialog');
+    const status = await within(dialog).findByRole('status');
+    await waitFor(() => expect(status).toHaveTextContent('2 groupes trouvés'));
   });
 });

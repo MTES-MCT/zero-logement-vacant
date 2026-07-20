@@ -54,4 +54,42 @@ describe('useUser', () => {
     expect(typeof result.current.establishment?.siren).toBe('number');
     expect(result.current.effectiveGeoCodes).toEqual(['01001']);
   });
+
+  it.each([
+    { role: UserRole.USUAL, expected: true },
+    { role: UserRole.ADMIN, expected: true },
+    { role: UserRole.VISITOR, expected: false }
+  ])(
+    'derives canCreateCampaign=$expected for a $role',
+    ({ role, expected }) => {
+      const store = configureTestStore();
+      const userDTO = { ...genUserDTO(), role };
+      const wrapper = ({ children }: PropsWithChildren) => (
+        <Provider store={store}>
+          <MockAuthProvider
+            options={{ user: userDTO, establishment: genEstablishmentDTO() }}
+          >
+            {children}
+          </MockAuthProvider>
+        </Provider>
+      );
+
+      const { result } = renderHook(() => useUser(), { wrapper });
+
+      expect(result.current.canCreateCampaign).toBe(expected);
+    }
+  );
+
+  it('denies canCreateCampaign to a guest', () => {
+    const store = configureTestStore();
+    const wrapper = ({ children }: PropsWithChildren) => (
+      <Provider store={store}>
+        <MockAuthProvider options={{ user: null }}>{children}</MockAuthProvider>
+      </Provider>
+    );
+
+    const { result } = renderHook(() => useUser(), { wrapper });
+
+    expect(result.current.canCreateCampaign).toBe(false);
+  });
 });

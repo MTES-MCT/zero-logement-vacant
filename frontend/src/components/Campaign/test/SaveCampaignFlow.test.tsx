@@ -223,4 +223,28 @@ describe('SaveCampaignFlow', () => {
     await waitFor(() => expect(confirmer).toBeDisabled());
     expect(posts).toBe(1);
   });
+
+  it('should clear the group search input when the flow is reopened', async () => {
+    const group = genGroupDTO(creator, [genHousingDTO()]);
+    data.groups.push(group);
+
+    renderFlow();
+
+    await user.click(
+      screen.getByRole('button', { name: 'Enregistrer une campagne' })
+    );
+    const searchbox = await screen.findByRole('searchbox', {
+      name: 'Rechercher un groupe'
+    });
+    await user.type(searchbox, 'zzz');
+    expect(searchbox).toHaveValue('zzz');
+
+    // Reopening the flow re-keys the search input, so it starts blank again.
+    await user.click(
+      screen.getByRole('button', { name: 'Enregistrer une campagne' })
+    );
+    expect(
+      screen.getByRole('searchbox', { name: 'Rechercher un groupe' })
+    ).toHaveValue('');
+  });
 });

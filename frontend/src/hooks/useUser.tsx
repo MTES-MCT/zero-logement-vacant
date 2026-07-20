@@ -47,6 +47,7 @@ function derive(
   const hasMultipleEstablishments = (authorizedEstablishments?.length ?? 0) > 1;
   const canChangeEstablishment =
     isAdmin || isVisitor || (isUsual && hasMultipleEstablishments);
+  const canCreateCampaign = isAdmin || isUsual;
 
   function displayName(): string {
     if (user?.firstName && user?.lastName) {
@@ -64,6 +65,7 @@ function derive(
     isUsual,
     isVisitor,
     canChangeEstablishment,
+    canCreateCampaign,
     displayName
   };
 }

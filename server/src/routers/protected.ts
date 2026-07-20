@@ -1,6 +1,6 @@
 import {
-  ACCEPTED_HOUSING_DOCUMENT_EXTENSIONS,
-  MAX_HOUSING_DOCUMENT_SIZE_IN_MiB,
+  ACCEPTED_DOCUMENT_EXTENSIONS,
+  MAX_DOCUMENT_SIZE_IN_MiB,
   UserRole
 } from '@zerologementvacant/models';
 import schemas from '@zerologementvacant/schemas';
@@ -55,9 +55,9 @@ router.post(
   '/documents',
   hasRole([UserRole.USUAL, UserRole.ADMIN]),
   upload({
-    accept: ACCEPTED_HOUSING_DOCUMENT_EXTENSIONS as string[],
+    accept: ACCEPTED_DOCUMENT_EXTENSIONS as string[],
     multiple: true,
-    maxSizeMiB: MAX_HOUSING_DOCUMENT_SIZE_IN_MiB
+    maxSizeMiB: MAX_DOCUMENT_SIZE_IN_MiB
   }),
   documentController.create
 );

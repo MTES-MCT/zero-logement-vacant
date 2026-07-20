@@ -1,5 +1,5 @@
 import {
-  ACCEPTED_HOUSING_DOCUMENT_EXTENSIONS,
+  ACCEPTED_DOCUMENT_EXTENSIONS,
   type DocumentDTO
 } from '@zerologementvacant/models';
 
@@ -24,7 +24,7 @@ function HousingDocumentUpload(props: Readonly<HousingDocumentUploadProps>) {
   return (
     <DocumentUpload
       id="housing-document-upload"
-      accept={ACCEPTED_HOUSING_DOCUMENT_EXTENSIONS as string[]}
+      accept={ACCEPTED_DOCUMENT_EXTENSIONS as string[]}
       error={error}
       hint={
         <div>

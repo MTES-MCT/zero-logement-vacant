@@ -2,9 +2,9 @@ import { constants } from 'node:http2';
 
 import { DeleteObjectCommand } from '@aws-sdk/client-s3';
 import {
-  ACCEPTED_HOUSING_DOCUMENT_EXTENSIONS,
+  ACCEPTED_DOCUMENT_EXTENSIONS,
   HousingDocumentDTO,
-  MAX_HOUSING_DOCUMENT_SIZE_IN_MiB,
+  MAX_DOCUMENT_SIZE_IN_MiB,
   type DocumentDTO,
   type DocumentPayload,
   type HousingDTO
@@ -80,8 +80,8 @@ const create: RequestHandler<
     ): Promise<Either.Either<DocumentDTO, FileValidationError>> => {
       try {
         await validate(file, {
-          accept: ACCEPTED_HOUSING_DOCUMENT_EXTENSIONS,
-          maxSize: MAX_HOUSING_DOCUMENT_SIZE_IN_MiB * 1024 ** 2
+          accept: ACCEPTED_DOCUMENT_EXTENSIONS,
+          maxSize: MAX_DOCUMENT_SIZE_IN_MiB * 1024 ** 2
         });
 
         const id = uuidv4();

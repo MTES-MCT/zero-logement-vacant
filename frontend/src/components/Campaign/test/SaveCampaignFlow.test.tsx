@@ -14,9 +14,7 @@ import { Provider } from 'react-redux';
 import SaveCampaignFlow from '~/components/Campaign/SaveCampaignFlow';
 import data from '~/mocks/handlers/data';
 import { mockAPI } from '~/mocks/mock-api';
-import { fromEstablishmentDTO } from '~/models/Establishment';
-import { fromUserDTO } from '~/models/User';
-import { genAuthUser } from '~/test/fixtures';
+import { MockAuthProvider } from '~/test/auth';
 import config from '~/utils/config';
 import configureTestStore from '~/utils/storeUtils';
 
@@ -29,16 +27,13 @@ describe('SaveCampaignFlow', () => {
     const authDTO = genUserDTO(role, establishment);
     data.establishments.push(establishment);
     data.users.push(authDTO);
-    const store = configureTestStore({
-      auth: genAuthUser(
-        fromUserDTO(authDTO),
-        fromEstablishmentDTO(establishment)
-      )
-    });
+    const store = configureTestStore();
 
     render(
       <Provider store={store}>
-        <SaveCampaignFlow />
+        <MockAuthProvider options={{ user: authDTO, establishment }}>
+          <SaveCampaignFlow />
+        </MockAuthProvider>
       </Provider>
     );
   }

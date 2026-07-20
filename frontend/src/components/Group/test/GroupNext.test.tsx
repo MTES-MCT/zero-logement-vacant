@@ -9,10 +9,8 @@ import {
 import { Provider } from 'react-redux';
 
 import GroupNext from '~/components/Group/GroupNext';
-import { fromEstablishmentDTO } from '~/models/Establishment';
 import { fromGroupDTO } from '~/models/Group';
-import { fromUserDTO } from '~/models/User';
-import { genAuthUser } from '~/test/fixtures';
+import { MockAuthProvider } from '~/test/auth';
 import configureTestStore from '~/utils/storeUtils';
 
 describe('GroupNext', () => {
@@ -22,22 +20,19 @@ describe('GroupNext', () => {
 
   function renderGroup(role: UserRole) {
     const authDTO = genUserDTO(role, establishment);
-    const store = configureTestStore({
-      auth: genAuthUser(
-        fromUserDTO(authDTO),
-        fromEstablishmentDTO(establishment)
-      )
-    });
+    const store = configureTestStore();
 
     render(
       <Provider store={store}>
-        <GroupNext
-          group={group}
-          onCreateCampaign={vi.fn()}
-          onExport={vi.fn()}
-          onUpdate={vi.fn()}
-          onRemove={vi.fn()}
-        />
+        <MockAuthProvider options={{ user: authDTO, establishment }}>
+          <GroupNext
+            group={group}
+            onCreateCampaign={vi.fn()}
+            onExport={vi.fn()}
+            onUpdate={vi.fn()}
+            onRemove={vi.fn()}
+          />
+        </MockAuthProvider>
       </Provider>
     );
   }

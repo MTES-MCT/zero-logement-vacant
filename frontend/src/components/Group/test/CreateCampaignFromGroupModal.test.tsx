@@ -39,4 +39,24 @@ describe('CreateCampaignFromGroupModal', () => {
     const dialog = await screen.findByRole('dialog');
     expect(within(dialog).getByText('Étape 2 sur 2')).toBeInTheDocument();
   });
+
+  it('should render without crashing when no group is provided', async () => {
+    render(
+      <Provider store={configureTestStore()}>
+        <modal.Component
+          group={null}
+          stepper={{ currentStep: 2, stepCount: 2 }}
+          onSubmit={vi.fn()}
+        />
+      </Provider>
+    );
+    modal.open();
+
+    const dialog = await screen.findByRole('dialog');
+    // The modal shell still renders; the group-dependent housing/owner counts
+    // are omitted. This guards the always-mounted usage in SaveCampaignFlow,
+    // where the step-2 modal is rendered with a null group until one is picked.
+    expect(within(dialog).getByText('Étape 2 sur 2')).toBeInTheDocument();
+    expect(within(dialog).queryByText(/propriétaire/)).not.toBeInTheDocument();
+  });
 });

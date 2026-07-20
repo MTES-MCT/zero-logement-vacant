@@ -26,7 +26,7 @@ export type CreateCampaignFromGroupModalProps = Omit<
   ConfirmationModalProps,
   'title' | 'children' | 'onSubmit'
 > & {
-  group: Group;
+  group: Group | null;
   stepper?: { currentStep: number; stepCount: number };
   onSubmit(campaign: Pick<Campaign, 'title' | 'description' | 'sentAt'>): void;
 };
@@ -52,8 +52,8 @@ export function createCampaignFromGroupModal(
     Component(props: Readonly<CreateCampaignFromGroupModalProps>) {
       const { group, stepper, onSubmit, ...rest } = props;
 
-      const housing = pluralize(group.housingCount)('logement');
-      const owners = pluralize(group.ownerCount)('propriétaire');
+      const housing = group ? pluralize(group.housingCount)('logement') : '';
+      const owners = group ? pluralize(group.ownerCount)('propriétaire') : '';
 
       const form = useForm<FormSchema>({
         resolver: yupResolver(schema),
@@ -89,35 +89,37 @@ export function createCampaignFromGroupModal(
               />
             )}
 
-            <Stack
-              direction="row"
-              spacing="1rem"
-              useFlexGap
-              sx={{ mt: '-1rem', mb: '0.5rem' }}
-            >
+            {group && (
               <Stack
                 direction="row"
-                spacing="0.25rem"
+                spacing="1rem"
                 useFlexGap
-                sx={{ alignItems: 'center' }}
+                sx={{ mt: '-1rem', mb: '0.5rem' }}
               >
-                <Icon name="ri-home-2-line" size="sm" color="inherit" />
-                <Typography component="span" variant="body2">
-                  {group.housingCount} {housing}
-                </Typography>
+                <Stack
+                  direction="row"
+                  spacing="0.25rem"
+                  useFlexGap
+                  sx={{ alignItems: 'center' }}
+                >
+                  <Icon name="ri-home-2-line" size="sm" color="inherit" />
+                  <Typography component="span" variant="body2">
+                    {group.housingCount} {housing}
+                  </Typography>
+                </Stack>
+                <Stack
+                  direction="row"
+                  spacing="0.25rem"
+                  useFlexGap
+                  sx={{ alignItems: 'center' }}
+                >
+                  <Icon name="ri-user-line" size="sm" color="inherit" />
+                  <Typography component="span" variant="body2">
+                    {group.ownerCount} {owners}
+                  </Typography>
+                </Stack>
               </Stack>
-              <Stack
-                direction="row"
-                spacing="0.25rem"
-                useFlexGap
-                sx={{ alignItems: 'center' }}
-              >
-                <Icon name="ri-user-line" size="sm" color="inherit" />
-                <Typography component="span" variant="body2">
-                  {group.ownerCount} {owners}
-                </Typography>
-              </Stack>
-            </Stack>
+            )}
 
             <Typography variant="body2" sx={{ mb: '0.25rem' }}>
               Une fois la campagne créée, les logements « Non suivi » passeront

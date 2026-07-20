@@ -7,13 +7,16 @@ import {
   genHousingDTO,
   genUserDTO
 } from '@zerologementvacant/models/fixtures';
+import { http, HttpResponse } from 'msw';
 import { Provider } from 'react-redux';
 
 import SaveCampaignFlow from '~/components/Campaign/SaveCampaignFlow';
 import data from '~/mocks/handlers/data';
+import { mockAPI } from '~/mocks/mock-api';
 import { fromEstablishmentDTO } from '~/models/Establishment';
 import { fromUserDTO } from '~/models/User';
 import { genAuthUser } from '~/test/fixtures';
+import config from '~/utils/config';
 import configureTestStore from '~/utils/storeUtils';
 
 describe('SaveCampaignFlow', () => {
@@ -131,5 +134,51 @@ describe('SaveCampaignFlow', () => {
     );
 
     expect(await screen.findByText('Étape 2 sur 2')).toBeInTheDocument();
+  });
+
+  it('should keep step 2 open and create no campaign when the submission fails', async () => {
+    const group = genGroupDTO(creator, [genHousingDTO()]);
+    data.groups.push(group);
+
+    let submitted = false;
+    mockAPI.use(
+      http.post(`${config.apiEndpoint}/groups/:id/campaigns`, () => {
+        submitted = true;
+        return HttpResponse.json(
+          { name: 'InternalError', message: 'Boom' },
+          { status: 500 }
+        );
+      })
+    );
+
+    renderFlow();
+
+    await user.click(
+      screen.getByRole('button', { name: 'Enregistrer une campagne' })
+    );
+    const selectDialog = await screen.findByRole('dialog');
+    await user.click(
+      await within(selectDialog).findByRole('button', {
+        name: `Sélectionner le groupe ${group.title}`
+      })
+    );
+
+    const createDialog = await screen.findByRole('dialog');
+    await within(createDialog).findByText('Étape 2 sur 2');
+    await user.type(
+      await within(createDialog).findByLabelText(/^Nom/),
+      'Ma campagne'
+    );
+    await user.click(await within(createDialog).findByText('Confirmer'));
+
+    await waitFor(() => {
+      expect(submitted).toBe(true);
+    });
+
+    // The modal stays open so the user can retry, and nothing is persisted.
+    expect(screen.getByRole('dialog')).toBeInTheDocument();
+    expect(data.campaigns).not.toContainEqual(
+      expect.objectContaining({ title: 'Ma campagne', groupId: group.id })
+    );
   });
 });

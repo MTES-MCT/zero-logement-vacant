@@ -82,10 +82,19 @@ function SaveCampaignFlow() {
     if (selectedGroup) {
       createCampaignFromGroup({ campaign, group: selectedGroup })
         .unwrap()
-        .then(() => {
-          campaignFromGroupModal.close();
-          setSelectedGroup(null);
-        });
+        .then(
+          () => {
+            campaignFromGroupModal.close();
+            setSelectedGroup(null);
+          },
+          // Swallow the rejection so a failed submit doesn't surface as an
+          // unhandled promise rejection. No recovery is needed here: on failure
+          // the modal stays open and `selectedGroup` is untouched (the success
+          // branch above never runs), letting the user retry, and the error
+          // toast is already driven by `useNotification` watching the
+          // mutation's `isError`.
+          () => {}
+        );
     }
   }
 

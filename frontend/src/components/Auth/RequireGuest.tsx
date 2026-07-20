@@ -1,15 +1,19 @@
 import type { PropsWithChildren } from 'react';
 import { Navigate } from 'react-router';
 
-import { useUser } from '../../hooks/useUser';
+import { useAuth } from '~/hooks/useAuth';
 
 // eslint-disable-next-line @typescript-eslint/no-empty-object-type
 interface RequireGuestProps {}
 
 function RequireGuest(props: PropsWithChildren<RequireGuestProps>) {
-  const { isGuest } = useUser();
+  const auth = useAuth();
 
-  if (isGuest) {
+  if (auth.isLoading) {
+    return null;
+  }
+
+  if (!auth.isAuthenticated) {
     return props.children;
   }
 

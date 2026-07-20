@@ -8,16 +8,6 @@ import { Equivalence } from 'effect';
 import type { Establishment } from '~/models/Establishment';
 import type { Sort } from '~/models/Sort';
 
-export interface AuthUser {
-  user: User;
-  accessToken: string;
-  establishment: Establishment;
-  /** List of establishments the user has access to (for multi-structure USUAL users) */
-  authorizedEstablishments?: Establishment[];
-  /** Effective geoCodes based on user's perimeter. undefined = no restriction */
-  effectiveGeoCodes?: string[];
-}
-
 export interface User extends Omit<UserDTO, 'activatedAt'> {
   activatedAt: Date | string;
 }

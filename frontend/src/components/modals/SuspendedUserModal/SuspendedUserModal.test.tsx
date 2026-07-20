@@ -6,8 +6,7 @@ import {
 import { Provider } from 'react-redux';
 
 import SuspendedUserModal from '~/components/modals/SuspendedUserModal/SuspendedUserModal';
-import { fromEstablishmentDTO } from '~/models/Establishment';
-import { fromUserDTO } from '~/models/User';
+import { MockAuthProvider } from '~/test/auth';
 import configureTestStore from '~/utils/storeUtils';
 
 const renderWithUser = (
@@ -20,19 +19,15 @@ const renderWithUser = (
     suspendedCause
   };
 
-  const authUser = {
-    user: fromUserDTO(userDTO),
-    accessToken: 'fake-token',
-    establishment: fromEstablishmentDTO(genEstablishmentDTO())
-  };
-
-  const store = configureTestStore({
-    auth: authUser
-  });
+  const store = configureTestStore();
 
   render(
     <Provider store={store}>
-      <SuspendedUserModal />
+      <MockAuthProvider
+        options={{ user: userDTO, establishment: genEstablishmentDTO() }}
+      >
+        <SuspendedUserModal />
+      </MockAuthProvider>
     </Provider>
   );
 };
@@ -138,6 +133,35 @@ describe('SuspendedUserModal', () => {
     ).toBeInTheDocument();
     expect(
       screen.getByText(/Plusieurs problèmes ont été détectés/i)
+    ).toBeInTheDocument();
+  });
+
+  it('should render for a suspended user on the Better Auth cookie session', async () => {
+    // The suspended state must come from the cookie-backed AuthContext.
+    const userDTO = {
+      ...genUserDTO(),
+      suspendedAt: '2025-01-01T00:00:00Z',
+      suspendedCause: 'droits utilisateur expires'
+    };
+    const store = configureTestStore();
+
+    render(
+      <Provider store={store}>
+        <MockAuthProvider options={{ user: userDTO }}>
+          <SuspendedUserModal />
+        </MockAuthProvider>
+      </Provider>
+    );
+
+    expect(
+      await screen.findByText(
+        /Vos droits d.accès à Zéro Logement Vacant ne sont plus valides/i
+      )
+    ).toBeInTheDocument();
+    expect(
+      await screen.findByText(
+        /La date d.expiration de vos droits d.accès aux données LOVAC en tant qu.utilisateur a été dépassée/i
+      )
     ).toBeInTheDocument();
   });
 

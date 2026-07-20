@@ -29,8 +29,9 @@ import precisionController from '~/controllers/precisionController';
 import userController from '~/controllers/userController';
 import config from '~/infra/config';
 import antivirusMiddleware from '~/middlewares/antivirus';
-import { hasRole, jwtCheck, userCheck } from '~/middlewares/auth';
+import { hasRole } from '~/middlewares/auth';
 import fileTypeMiddleware from '~/middlewares/fileTypeMiddleware';
+import { sessionCheck } from '~/middlewares/session';
 import shapefileValidationMiddleware from '~/middlewares/shapefileValidation';
 import { upload } from '~/middlewares/upload';
 import validator from '~/middlewares/validator';
@@ -40,8 +41,7 @@ import sortApi from '~/models/SortApi';
 
 const router = Router();
 
-router.use(jwtCheck());
-router.use(userCheck());
+router.use(sessionCheck());
 
 router.post(
   '/files',
@@ -438,12 +438,12 @@ router.put(
   validator.validate(authController.updateAccountValidators),
   authController.updateAccount
 );
-router.get(
+router.post(
   '/account/establishments/:establishmentId',
   validator.validate({
     params: object({ establishmentId: schemas.id })
   }),
-  authController.changeEstablishment
+  authController.changeEstablishmentBySession
 );
 
 /* Users */

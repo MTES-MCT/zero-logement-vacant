@@ -24,9 +24,7 @@ import { createMemoryRouter, RouterProvider } from 'react-router';
 
 import { HousingFiltersProvider } from '~/hooks/HousingFiltersContext';
 import data from '~/mocks/handlers/data';
-import { fromEstablishmentDTO } from '~/models/Establishment';
-import { fromUserDTO } from '~/models/User';
-import { genAuthUser } from '~/test/fixtures';
+import { MockAuthProvider } from '~/test/auth';
 import configureTestStore from '~/utils/storeUtils';
 import CampaignView from '~/views/Campaign/CampaignView';
 
@@ -51,9 +49,7 @@ describe('Group view', () => {
   function renderView(options: RenderViewOptions) {
     data.users.push(options.auth);
     data.establishments.push(establishment);
-    const store: Store = configureTestStore({
-      auth: genAuthUser(fromUserDTO(auth), fromEstablishmentDTO(establishment))
-    });
+    const store: Store = configureTestStore();
 
     if (options.group) {
       data.groups.push(options.group);
@@ -98,9 +94,11 @@ describe('Group view', () => {
 
     render(
       <Provider store={store}>
-        <HousingFiltersProvider>
-          <RouterProvider router={router} />
-        </HousingFiltersProvider>
+        <MockAuthProvider options={{ user: auth, establishment }}>
+          <HousingFiltersProvider>
+            <RouterProvider router={router} />
+          </HousingFiltersProvider>
+        </MockAuthProvider>
       </Provider>
     );
 

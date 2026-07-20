@@ -16,7 +16,6 @@ import {
   passwordFormatValidator,
   useForm
 } from '../../hooks/useForm';
-import authService from '../../services/auth.service';
 import resetLinkService from '../../services/reset-link.service';
 
 function ResetPasswordView() {
@@ -46,7 +45,7 @@ function ResetPasswordView() {
     try {
       e.preventDefault();
       await form.validate(async () => {
-        await authService.resetPassword(resetLink.hash, password);
+        await resetLinkService.resetPassword(resetLink.hash, password);
         setPasswordReset(true);
       });
     } catch (err) {

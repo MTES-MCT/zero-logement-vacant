@@ -7,12 +7,15 @@ import {
   RouterProvider
 } from 'react-router';
 
+import { AuthProvider } from '~/contexts/AuthContext';
 import { useAppDispatch, useAppSelector } from '~/hooks/useStore';
 import AuthenticatedLayout from '~/layouts/AuthenticatedLayout';
 import FeatureFlagLayout from '~/layouts/FeatureFlagLayout';
 import GuestLayout from '~/layouts/GuestLayout';
 import sentry from '~/utils/sentry';
 import NotFoundView from '~/views/NotFoundView';
+
+import './App.scss';
 
 const AccountCreationView = lazy(
   () => import('~/views/Account/AccountCreationView')
@@ -56,7 +59,6 @@ const OwnerView = lazy(() => import('~/views/Owner/OwnerView'));
 const ResourcesView = lazy(() => import('~/views/Resources/ResourcesView'));
 const StatusView = lazy(() => import('~/views/Resources/StatusView'));
 const SiteMapView = lazy(() => import('~/views/SiteMapView'));
-import './App.scss';
 
 const router = sentry.createBrowserRouter(
   createRoutesFromElements(
@@ -146,7 +148,6 @@ function App() {
       (query) => query?.status === 'pending'
     )
   );
-
   useEffect(() => {
     if (isSomeQueryPending) {
       dispatch(showLoading());
@@ -155,7 +156,11 @@ function App() {
     }
   }, [dispatch, isSomeQueryPending]);
 
-  return <RouterProvider router={router} />;
+  return (
+    <AuthProvider>
+      <RouterProvider router={router} />
+    </AuthProvider>
+  );
 }
 
 export default App;

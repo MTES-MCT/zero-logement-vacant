@@ -7,6 +7,7 @@ import {
   postgresCheck,
   s3Check
 } from '@zerologementvacant/healthcheck';
+import { toNodeHandler } from 'better-auth/node';
 import cors from 'cors';
 import express from 'express';
 import rateLimit from 'express-rate-limit';
@@ -14,6 +15,7 @@ import getPort from 'get-port';
 import helmet from 'helmet';
 
 import RouteNotFoundError from '~/errors/routeNotFoundError';
+import { auth } from '~/infra/auth';
 import config from '~/infra/config';
 import gracefulShutdown from '~/infra/graceful-shutdown';
 import { logger } from '~/infra/logger';
@@ -115,9 +117,15 @@ export function createServer(): Server {
 
   app.use(
     cors({
-      credentials: false
+      origin: config.app.allowedOrigins,
+      credentials: true,
+      // Keep allowedHeaders unset so cors reflects the browser's requested
+      // headers, including Sentry's sentry-trace and baggage propagation.
+      methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS']
     })
   );
+
+  app.all('/auth/*', toNodeHandler(auth));
 
   app.use(express.json({ limit: '10mb' }));
 

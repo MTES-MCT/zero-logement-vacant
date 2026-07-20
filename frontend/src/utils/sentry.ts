@@ -62,15 +62,6 @@ function init(): void {
           bundler: 'vite'
         };
 
-        // Add user context if available
-        const userInfo = getUserInfo();
-        if (userInfo) {
-          event.user = {
-            ...event.user,
-            ...userInfo
-          };
-        }
-
         // Log errors to console in development
         if (config.sentry.env === 'development') {
           console.error('Sentry error:', event);
@@ -117,24 +108,6 @@ function init(): void {
   } else {
     console.warn('Sentry is disabled. Errors will not be reported.');
   }
-}
-
-// Helper function to get user info (customize based on your auth system)
-function getUserInfo() {
-  try {
-    const user = localStorage.getItem('authUser');
-    if (user) {
-      const parsed = JSON.parse(user);
-      return {
-        id: parsed.id,
-        email: parsed.email,
-        role: parsed.role
-      };
-    }
-  } catch (error) {
-    console.warn('Failed to get user info for Sentry:', error);
-  }
-  return null;
 }
 
 // Web Vitals integration for Frontend Insights

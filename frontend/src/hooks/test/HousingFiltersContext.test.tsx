@@ -13,8 +13,7 @@ import type { PropsWithChildren } from 'react';
 import { Provider as StoreProvider } from 'react-redux';
 
 import data from '~/mocks/handlers/data';
-import { fromEstablishmentDTO } from '~/models/Establishment';
-import { fromUserDTO, type AuthUser } from '~/models/User';
+import { MockAuthProvider, type MockAuthOptions } from '~/test/auth';
 
 import configureTestStore from '../../utils/storeUtils';
 import {
@@ -27,25 +26,26 @@ function createWrapper(
   initialFilters?: Parameters<
     typeof HousingFiltersProvider
   >[0]['initialFilters'],
-  auth?: AuthUser
+  auth: MockAuthOptions = { user: null }
 ) {
-  const store = configureTestStore(auth ? { auth } : undefined);
+  const store = configureTestStore();
 
   // eslint-disable-next-line react/display-name
   return ({ children }: PropsWithChildren) => (
     <StoreProvider store={store}>
-      <HousingFiltersProvider initialFilters={initialFilters}>
-        {children}
-      </HousingFiltersProvider>
+      <MockAuthProvider options={auth}>
+        <HousingFiltersProvider initialFilters={initialFilters}>
+          {children}
+        </HousingFiltersProvider>
+      </MockAuthProvider>
     </StoreProvider>
   );
 }
 
-function createAuthUser(establishment: EstablishmentDTO): AuthUser {
+function createAuthOptions(establishment: EstablishmentDTO): MockAuthOptions {
   return {
-    accessToken: 'access-token',
-    establishment: fromEstablishmentDTO(establishment),
-    user: fromUserDTO(genUserDTO(UserRole.USUAL, establishment))
+    establishment,
+    user: genUserDTO(UserRole.USUAL, establishment)
   };
 }
 
@@ -183,7 +183,7 @@ describe('HousingFiltersContext', () => {
           intercommunalities: useIntercommunalities()
         }),
         {
-          wrapper: createWrapper(undefined, createAuthUser(department))
+          wrapper: createWrapper(undefined, createAuthOptions(department))
         }
       );
 
@@ -276,11 +276,13 @@ describe('HousingFiltersContext', () => {
 
       const wrapper = ({ children }: PropsWithChildren) => (
         <StoreProvider store={store}>
-          <HousingFiltersProvider initialFilters={{ groupIds: ['outer'] }}>
-            <HousingFiltersProvider initialFilters={{ groupIds: ['inner'] }}>
-              {children}
+          <MockAuthProvider options={{ user: null }}>
+            <HousingFiltersProvider initialFilters={{ groupIds: ['outer'] }}>
+              <HousingFiltersProvider initialFilters={{ groupIds: ['inner'] }}>
+                {children}
+              </HousingFiltersProvider>
             </HousingFiltersProvider>
-          </HousingFiltersProvider>
+          </MockAuthProvider>
         </StoreProvider>
       );
 

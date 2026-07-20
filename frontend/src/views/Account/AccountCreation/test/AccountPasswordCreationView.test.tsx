@@ -12,6 +12,7 @@ import { createMemoryRouter, RouterProvider } from 'react-router';
 
 import OnboardingModal from '../../../../components/modals/OnboardingModal/OnboardingModal';
 import data from '../../../../mocks/handlers/data';
+import { genAuthContextValue, MockAuthProvider } from '../../../../test/auth';
 import configureTestStore from '../../../../utils/storeUtils';
 import AccountPasswordCreationView from '../AccountPasswordCreationView';
 
@@ -42,7 +43,9 @@ describe('AccountPasswordCreationView', () => {
     const store = configureTestStore();
     render(
       <Provider store={store}>
-        <RouterProvider router={router} />
+        <MockAuthProvider value={genAuthContextValue()}>
+          <RouterProvider router={router} />
+        </MockAuthProvider>
       </Provider>
     );
   }

@@ -5,12 +5,10 @@ import { loadingBarReducer } from 'react-redux-loading-bar';
 
 import { zlvApi } from '../services/api.service';
 import appReducer from './reducers/appReducer';
-import authenticationReducer from './reducers/authenticationReducer';
 import housingReducer from './reducers/housingReducer';
 
 export const applicationReducer = {
   app: appReducer.reducer,
-  authentication: authenticationReducer.reducer,
   housing: housingReducer.reducer,
   loadingBar: loadingBarReducer,
   [zlvApi.reducerPath]: zlvApi.reducer

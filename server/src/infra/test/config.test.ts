@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest';
 
 // We test the schema directly, not the exported singleton.
-import { configSchema } from './config';
+import { configSchema } from '../config';
 
 const validRaw = {
   app: {
@@ -10,11 +10,11 @@ const validRaw = {
     isReviewApp: 'false',
     host: 'http://localhost:3001',
     port: '3001',
-    system: 'admin@example.com'
+    system: 'admin@example.com',
+    allowedOrigins: 'http://localhost:3000'
   },
   auth: {
     secret: 'mysecret',
-    expiresIn: '1 hour',
     admin2faEnabled: 'false'
   },
   ban: {
@@ -103,6 +103,22 @@ describe('configSchema', () => {
     );
     expect(result.cerema.username).toBeNull();
     expect(result.log.level).toBe('info');
+  });
+
+  it('normalizes allowed origins before CORS and CSRF checks', () => {
+    const result = configSchema.parse({
+      ...validRaw,
+      app: {
+        ...validRaw.app,
+        allowedOrigins:
+          ' https://staging.example.com/, https://app.example.com/path '
+      }
+    });
+
+    expect(result.app.allowedOrigins).toEqual([
+      'https://staging.example.com',
+      'https://app.example.com'
+    ]);
   });
 
   it('coerces "true" string to boolean true', () => {

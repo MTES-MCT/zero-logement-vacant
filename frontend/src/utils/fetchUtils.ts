@@ -1,7 +1,5 @@
 import { Record } from 'effect';
 
-import authService from '../services/auth.service';
-
 interface HttpService {
   name: string;
   fetch(input: string, init?: RequestOptions): ReturnType<typeof fetch>;
@@ -16,7 +14,6 @@ interface RequestOptions extends Omit<RequestInit, 'signal'> {
 }
 
 interface HttpOptions {
-  authenticated?: boolean;
   host?: string;
   json?: boolean;
 }
@@ -29,9 +26,6 @@ export function createHttpService(
 ): HttpService {
   function doFetch(method?: HttpMethod) {
     return (input: string, init?: RequestOptions): Promise<Response> => {
-      const authHeaders: Record<string, string> = options?.authenticated
-        ? (authService.authHeader() ?? {})
-        : {};
       const jsonHeaders: Record<string, string> = options?.json
         ? {
             Accept: 'application/json',
@@ -44,7 +38,6 @@ export function createHttpService(
         ...init,
         method: method ?? init?.method,
         headers: {
-          ...authHeaders,
           ...jsonHeaders,
           ...init?.headers
         },

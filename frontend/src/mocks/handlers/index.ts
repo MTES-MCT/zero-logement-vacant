@@ -1,6 +1,5 @@
 import { RequestHandler } from 'msw';
 
-import { authHandlers } from './auth-handlers';
 import { banHandlers } from './ban-handlers';
 import { campaignHandlers } from './campaign-handlers';
 import { dashboardHandlers } from './dashboard-handlers';
@@ -23,7 +22,6 @@ import { signupLinksHandlers } from './signup-links-handlers';
 import { userHandlers } from './user-handlers';
 
 export const handlers: RequestHandler[] = [
-  ...authHandlers,
   ...banHandlers,
   ...campaignHandlers,
   ...dashboardHandlers,

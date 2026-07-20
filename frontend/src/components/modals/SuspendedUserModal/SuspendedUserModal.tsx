@@ -4,8 +4,8 @@ import Grid from '@mui/material/Grid';
 import Typography from '@mui/material/Typography';
 import { useEffect } from 'react';
 
+import { useAuth } from '~/hooks/useAuth';
 import { useModalReady } from '~/hooks/useModalReady';
-import { useAppSelector } from '~/hooks/useStore';
 
 const id = 'suspended-user-modal';
 const modal = createModal({
@@ -16,28 +16,27 @@ const modal = createModal({
 const PORTAIL_DF_URL = 'https://portaildf.cerema.fr/';
 
 function SuspendedUserModal() {
-  const user = useAppSelector((state) => state.authentication.logIn.data);
+  const auth = useAuth();
   const ready = useModalReady(id);
 
-  const isSuspended =
-    user?.user.suspendedAt !== null && user?.user.suspendedAt !== undefined;
+  const suspendedAt = auth.user?.suspendedAt ?? null;
+  const suspendedCause = auth.user?.suspendedCause ?? null;
 
-  const isUserExpired = user?.user.suspendedCause?.includes(
-    'droits utilisateur expires'
-  );
+  const isSuspended = suspendedAt !== null && suspendedAt !== undefined;
 
-  const isEstablishmentExpired = user?.user.suspendedCause?.includes(
+  const isUserExpired = suspendedCause?.includes('droits utilisateur expires');
+
+  const isEstablishmentExpired = suspendedCause?.includes(
     'droits structure expires'
   );
 
-  const isCguEmpty = user?.user.suspendedCause?.includes('cgu vides');
+  const isCguEmpty = suspendedCause?.includes('cgu vides');
 
-  const isAccessLevelInvalid = user?.user.suspendedCause?.includes(
+  const isAccessLevelInvalid = suspendedCause?.includes(
     'niveau_acces_invalide'
   );
 
-  const isPerimeterInvalid =
-    user?.user.suspendedCause?.includes('perimetre_invalide');
+  const isPerimeterInvalid = suspendedCause?.includes('perimetre_invalide');
 
   const hasMultipleReasons =
     [

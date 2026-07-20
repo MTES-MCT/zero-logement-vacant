@@ -12,9 +12,9 @@ import resetLinkController from '~/controllers/resetLinkController';
 import signupLinkController from '~/controllers/signupLinkController';
 import userController from '~/controllers/userController';
 import config from '~/infra/config';
-import { jwtCheck, userCheck } from '~/middlewares/auth';
 import { noop } from '~/middlewares/noop';
 import { responseCache } from '~/middlewares/responseCache';
+import { sessionCheck } from '~/middlewares/session';
 import validator from '~/middlewares/validator';
 import { SIGNUP_LINK_LENGTH } from '~/models/SignupLinkApi';
 
@@ -54,22 +54,6 @@ router.post(
     })
   }),
   userController.create
-);
-
-router.post(
-  '/authenticate',
-  rateLimiter(),
-  validator.validate({
-    body: schemas.signIn
-  }),
-  authController.signIn
-);
-
-router.post(
-  '/authenticate/verify-2fa',
-  rateLimiter(),
-  validator.validate(authController.verifyTwoFactorValidators),
-  authController.verifyTwoFactor
 );
 
 router.post(
@@ -138,8 +122,7 @@ router.put(
 
 router.get(
   '/establishments',
-  jwtCheck({ required: false }),
-  userCheck({ required: false }),
+  sessionCheck({ required: false }),
   validator.validate({
     query: schemas.establishmentFilters
   }),

@@ -19,12 +19,10 @@ import EstablishmentSearchableSelect from '~/components/establishment/Establishm
 
 import logo from '../../assets/images/zlv.svg';
 import { useHousingFilters } from '../../hooks/HousingFiltersContext';
-import { useAppDispatch } from '../../hooks/useStore';
+import { useAuth } from '../../hooks/useAuth';
 import { useUser } from '../../hooks/useUser';
 import { type Establishment } from '../../models/Establishment';
 import { getUserNavItem, UserNavItems } from '../../models/UserNavItem';
-import { zlvApi } from '../../services/api.service';
-import { changeEstablishment } from '../../store/actions/authenticationAction';
 
 import styles from './small-header.module.scss';
 
@@ -41,7 +39,7 @@ const MenuOverlay = styled(Box)(({ theme }) => ({
 })) as typeof Box;
 
 function SmallHeader() {
-  const dispatch = useAppDispatch();
+  const auth = useAuth();
   const location = useLocation();
   const {
     establishment,
@@ -106,9 +104,7 @@ function SmallHeader() {
   async function onChangeEstablishment(
     establishment: Establishment
   ): Promise<void> {
-    await dispatch(changeEstablishment(establishment.id)).unwrap();
-    // Reset all state instead of reloading the page
-    dispatch(zlvApi.util.resetApiState());
+    await auth.changeEstablishment(establishment.id);
     onReset();
   }
 

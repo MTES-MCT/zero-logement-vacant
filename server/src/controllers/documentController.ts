@@ -5,11 +5,15 @@ import {
   ACCEPTED_DOCUMENT_EXTENSIONS,
   HousingDocumentDTO,
   MAX_DOCUMENT_SIZE_IN_MiB,
+  type CampaignDTO,
   type DocumentDTO,
   type DocumentPayload,
   type HousingDTO
 } from '@zerologementvacant/models';
-import { type HousingDocumentPayload } from '@zerologementvacant/schemas';
+import {
+  type CampaignDocumentPayload,
+  type HousingDocumentPayload
+} from '@zerologementvacant/schemas';
 import { createS3 } from '@zerologementvacant/utils/node';
 import async from 'async';
 import { Array, Either } from 'effect';
@@ -18,6 +22,7 @@ import { AuthenticatedRequest } from 'express-jwt';
 import { match } from 'ts-pattern';
 import { v4 as uuidv4 } from 'uuid';
 
+import CampaignMissingError from '~/errors/campaignMissingError';
 import DocumentMissingError from '~/errors/documentMissingError';
 import FilesMissingError from '~/errors/filesMissingError';
 import { FileValidationError } from '~/errors/fileValidationError';
@@ -26,15 +31,25 @@ import config from '~/infra/config';
 import { startTransaction } from '~/infra/database/transaction';
 import { createLogger } from '~/infra/logger';
 import {
+  CampaignDocumentApi,
+  toCampaignDocumentDTO
+} from '~/models/CampaignDocumentApi';
+import {
   DocumentFilenameEquivalence,
   toDocumentDTO,
   type DocumentApi
 } from '~/models/DocumentApi';
-import { DocumentEventApi, HousingDocumentEventApi } from '~/models/EventApi';
+import {
+  CampaignDocumentEventApi,
+  DocumentEventApi,
+  HousingDocumentEventApi
+} from '~/models/EventApi';
 import {
   HousingDocumentApi,
   toHousingDocumentDTO
 } from '~/models/HousingDocumentApi';
+import campaignDocumentRepository from '~/repositories/campaignDocumentRepository';
+import campaignRepository from '~/repositories/campaignRepository';
 import documentRepository from '~/repositories/documentRepository';
 import eventRepository from '~/repositories/eventRepository';
 import housingDocumentRepository from '~/repositories/housingDocumentRepository';
@@ -278,8 +293,6 @@ const remove: RequestHandler<
   const housingDocuments = await housingDocumentRepository.find({
     filters: { documentIds: [params.id] }
   });
-
-  // Create housing:document-removed events for each linked housing
   const removeEvents = housingDocuments.map<HousingDocumentEventApi>(
     (housingDocument) => ({
       id: uuidv4(),
@@ -294,7 +307,23 @@ const remove: RequestHandler<
     })
   );
 
-  // Create document:removed event
+  // Find all campaigns linked to this document
+  const campaignDocuments = await campaignDocumentRepository.find({
+    filters: { documentIds: [params.id] }
+  });
+  const campaignRemoveEvents = campaignDocuments.map<CampaignDocumentEventApi>(
+    (campaignDocument) => ({
+      id: uuidv4(),
+      type: 'campaign:document-removed',
+      nextOld: { filename: document.filename },
+      nextNew: null,
+      createdAt: new Date().toJSON(),
+      createdBy: user.id,
+      documentId: params.id,
+      campaignId: campaignDocument.campaignId
+    })
+  );
+
   const documentRemoveEvent: DocumentEventApi = {
     id: uuidv4(),
     type: 'document:removed',
@@ -312,8 +341,10 @@ const remove: RequestHandler<
   await startTransaction(async () => {
     await Promise.all([
       eventRepository.insertManyHousingDocumentEvents(removeEvents),
+      eventRepository.insertManyCampaignDocumentEvents(campaignRemoveEvents),
       eventRepository.insertManyDocumentEvents([documentRemoveEvent]),
       housingDocumentRepository.unlinkMany({ documentIds: [params.id] }),
+      campaignDocumentRepository.unlinkMany({ documentIds: [params.id] }),
       documentRepository.remove(params.id)
     ]);
     await s3.send(deleteCommand);
@@ -518,6 +549,170 @@ const removeByHousing: RequestHandler<
   response.status(constants.HTTP_STATUS_NO_CONTENT).send();
 };
 
+const linkToCampaign: RequestHandler<
+  { id: CampaignDTO['id'] },
+  ReadonlyArray<DocumentDTO>,
+  CampaignDocumentPayload,
+  never
+> = async (request, response) => {
+  const { establishment, params, body, user } = request as AuthenticatedRequest<
+    { id: CampaignDTO['id'] },
+    ReadonlyArray<DocumentDTO>,
+    CampaignDocumentPayload,
+    never
+  >;
+
+  logger.info('Linking documents to campaign', {
+    campaign: params.id,
+    documentCount: body.documentIds.length
+  });
+
+  const campaign = await campaignRepository.findOne({
+    id: params.id,
+    establishmentId: establishment.id
+  });
+  if (!campaign) {
+    throw new CampaignMissingError(params.id);
+  }
+
+  const documents = await documentRepository.find({
+    filters: {
+      ids: body.documentIds,
+      establishmentIds: [establishment.id],
+      deleted: false
+    }
+  });
+
+  if (documents.length !== body.documentIds.length) {
+    const foundIds = documents.map((document) => document.id);
+    const missingIds = body.documentIds.filter((id) => !foundIds.includes(id));
+    throw new DocumentMissingError(...missingIds);
+  }
+
+  const links = body.documentIds.map((documentId) => ({
+    document_id: documentId,
+    campaign_id: campaign.id
+  }));
+  const attachEvents = documents.map<CampaignDocumentEventApi>((document) => ({
+    id: uuidv4(),
+    type: 'campaign:document-attached',
+    nextOld: null,
+    nextNew: { filename: document.filename },
+    createdAt: new Date().toJSON(),
+    createdBy: user.id,
+    documentId: document.id,
+    campaignId: campaign.id
+  }));
+
+  await startTransaction(async () => {
+    await Promise.all([
+      campaignDocumentRepository.linkMany(links),
+      eventRepository.insertManyCampaignDocumentEvents(attachEvents)
+    ]);
+  });
+
+  const documentsWithURLs = await async.map(
+    documents,
+    async (document: DocumentApi) =>
+      toDocumentDTO(document, { s3, bucket: config.s3.bucket })
+  );
+
+  response.status(constants.HTTP_STATUS_CREATED).json(documentsWithURLs);
+};
+
+const listByCampaign: RequestHandler<
+  { id: CampaignDTO['id'] },
+  DocumentDTO[],
+  never,
+  never
+> = async (request, response): Promise<void> => {
+  const { establishment, params } = request as AuthenticatedRequest<
+    { id: CampaignDTO['id'] },
+    DocumentDTO[],
+    never,
+    never
+  >;
+
+  logger.debug('Finding documents by campaign...', { campaign: params.id });
+  const campaign = await campaignRepository.findOne({
+    id: params.id,
+    establishmentId: establishment.id
+  });
+  if (!campaign) {
+    throw new CampaignMissingError(params.id);
+  }
+
+  const documents = await campaignDocumentRepository.find({
+    filters: { campaignIds: [campaign.id], deleted: false }
+  });
+
+  const documentsWithURLs = await async.map(
+    [...documents],
+    async (document: CampaignDocumentApi) =>
+      toCampaignDocumentDTO(document, { s3, bucket: config.s3.bucket })
+  );
+
+  response.status(constants.HTTP_STATUS_OK).json(documentsWithURLs);
+};
+
+const removeByCampaign: RequestHandler<
+  { id: CampaignDTO['id']; documentId: DocumentDTO['id'] },
+  void,
+  never,
+  never
+> = async (request, response) => {
+  const { establishment, params, user } = request as AuthenticatedRequest<
+    { id: CampaignDTO['id']; documentId: DocumentDTO['id'] },
+    void,
+    never,
+    never
+  >;
+
+  logger.info('Removing document-campaign association', {
+    campaign: params.id,
+    document: params.documentId
+  });
+
+  const campaign = await campaignRepository.findOne({
+    id: params.id,
+    establishmentId: establishment.id
+  });
+  if (!campaign) {
+    throw new CampaignMissingError(params.id);
+  }
+
+  const links = await campaignDocumentRepository.find({
+    filters: { campaignIds: [campaign.id] }
+  });
+  const document = links.find((link) => link.id === params.documentId);
+  if (!document) {
+    throw new DocumentMissingError(params.documentId);
+  }
+
+  const detachEvent: CampaignDocumentEventApi = {
+    id: uuidv4(),
+    type: 'campaign:document-detached',
+    nextOld: { filename: document.filename },
+    nextNew: null,
+    createdAt: new Date().toJSON(),
+    createdBy: user.id,
+    documentId: params.documentId,
+    campaignId: campaign.id
+  };
+
+  await startTransaction(async () => {
+    await Promise.all([
+      eventRepository.insertManyCampaignDocumentEvents([detachEvent]),
+      campaignDocumentRepository.unlink({
+        documentId: params.documentId,
+        campaignId: campaign.id
+      })
+    ]);
+  });
+
+  response.status(constants.HTTP_STATUS_NO_CONTENT).send();
+};
+
 const documentController = {
   create,
   get,
@@ -525,7 +720,10 @@ const documentController = {
   remove,
   linkToHousing,
   listByHousing,
-  removeByHousing
+  removeByHousing,
+  linkToCampaign,
+  listByCampaign,
+  removeByCampaign
 };
 
 export default documentController;

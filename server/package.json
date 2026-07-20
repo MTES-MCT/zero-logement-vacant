@@ -7,7 +7,8 @@
     "test:migrations": "vitest run --config vitest.database.config.ts",
     "db": "NODE_OPTIONS='--import tsx/esm' knex --knexfile=src/infra/database/knexfile.ts",
     "migrate": "yarn db migrate:latest",
-    "seed": "yarn db seed:run"
+    "seed": "yarn db seed:run",
+    "zlv": "NODE_OPTIONS='--import tsx/esm' tsx src/bin/zlv.ts"
   },
   "dependencies": {
     "@aws-sdk/client-s3": "3.1045.0",

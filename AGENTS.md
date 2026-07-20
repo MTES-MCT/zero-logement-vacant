@@ -8,6 +8,12 @@ Yarn v4 monorepo with Nx for build orchestration and task running. French govern
 
 **Stack:** TypeScript, React (frontend), Express (backend), PostgreSQL
 
+## Accessibility (RGAA) — mandatory, non-negotiable
+
+**Zéro Logement Vacant is a French public service.** Any frontend work MUST comply with **every single criterion** of the RGAA (Référentiel Général d'Amélioration de l'Accessibilité — France's WCAG 2.1 AA implementation: <https://accessibilite.numerique.gouv.fr/methode/criteres-et-tests/>), with no exceptions. This is a hard requirement, not a best-effort guideline — treat an RGAA violation with the same severity as a functional bug or a security issue.
+
+Full rules, the 13 RGAA thematics broken down into actionable checks, and the mandatory self-review/alerting protocol are in [.claude/rules/rgaa-accessibility.md](.claude/rules/rgaa-accessibility.md). **Read and apply it for every change under `frontend/`.** You must proactively flag any suspected RGAA violation in your response — do not wait to be asked, and do not ship a known violation silently.
+
 ## Monorepo Structure
 
 ```
@@ -29,7 +35,7 @@ Yarn v4 monorepo with Nx for build orchestration and task running. French govern
 
 **When to work in each workspace:**
 
-- **Frontend work** (React components, UI, state management) → Work in `frontend/`; conventions in [.claude/rules/frontend-conventions.md](.claude/rules/frontend-conventions.md)
+- **Frontend work** (React components, UI, state management) → Work in `frontend/`; conventions in [.claude/rules/frontend-conventions.md](.claude/rules/frontend-conventions.md); accessibility is **mandatory** — see [.claude/rules/rgaa-accessibility.md](.claude/rules/rgaa-accessibility.md)
 - **Backend work** (API endpoints, database, validation) → Work in `server/`; conventions in [.claude/rules/backend-conventions.md](.claude/rules/backend-conventions.md)
 - **Shared types/models** → Work in `packages/models/` (DTOs used by both frontend and server)
 - **Validation schemas** → Work in `packages/schemas/` (shared Yup schemas)
@@ -242,6 +248,7 @@ After opening any PR with `gh pr create`, always:
 ## Workspace-Specific Documentation
 
 - **Frontend conventions** → [.claude/rules/frontend-conventions.md](.claude/rules/frontend-conventions.md)
+- **RGAA accessibility (mandatory for all frontend work)** → [.claude/rules/rgaa-accessibility.md](.claude/rules/rgaa-accessibility.md)
 - **Backend conventions** → [.claude/rules/backend-conventions.md](.claude/rules/backend-conventions.md)
 - **Packages conventions** → [.claude/rules/packages-conventions.md](.claude/rules/packages-conventions.md)
 

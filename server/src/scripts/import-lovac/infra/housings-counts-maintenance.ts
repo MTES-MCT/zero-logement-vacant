@@ -1,3 +1,5 @@
+import type { Knex } from 'knex';
+
 import db from '~/infra/database';
 import { createLogger } from '~/infra/logger';
 
@@ -83,9 +85,11 @@ interface PgTriggerRow {
   table: string;
 }
 
-export async function ensureKnownHousingsTriggers(): Promise<void> {
+export async function ensureKnownHousingsTriggers(
+  executor: Knex = db
+): Promise<void> {
   const placeholders = MANAGED_TABLES.map(() => '?').join(', ');
-  const { rows } = await db.raw<{ rows: PgTriggerRow[] }>(
+  const { rows } = await executor.raw<{ rows: PgTriggerRow[] }>(
     `
     SELECT t.tgname    AS name,
            c.relname   AS table
@@ -109,25 +113,31 @@ export async function ensureKnownHousingsTriggers(): Promise<void> {
   }
 }
 
-export async function disableHousingsTriggers(): Promise<void> {
+export async function disableHousingsTriggers(
+  executor: Knex = db
+): Promise<void> {
   for (const table of MANAGED_TABLES) {
     logger.info(`Disabling user triggers on ${table}`);
-    await db.raw(`ALTER TABLE ?? DISABLE TRIGGER USER`, [table]);
+    await executor.raw(`ALTER TABLE ?? DISABLE TRIGGER USER`, [table]);
   }
 }
 
-export async function enableHousingsTriggers(): Promise<void> {
+export async function enableHousingsTriggers(
+  executor: Knex = db
+): Promise<void> {
   for (const table of MANAGED_TABLES) {
     logger.info(`Enabling user triggers on ${table}`);
-    await db.raw(`ALTER TABLE ?? ENABLE TRIGGER USER`, [table]);
+    await executor.raw(`ALTER TABLE ?? ENABLE TRIGGER USER`, [table]);
   }
 }
 
-export async function recomputeHousingsCounts(): Promise<void> {
+export async function recomputeHousingsCounts(
+  executor: Knex = db
+): Promise<void> {
   for (const [name, sql] of Object.entries(RECOMPUTES)) {
     const start = Date.now();
     logger.info(`Recomputing ${name}`);
-    await db.raw(sql);
+    await executor.raw(sql);
     logger.info(`Recomputed ${name} in ${Date.now() - start}ms`);
   }
 }

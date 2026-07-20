@@ -294,6 +294,7 @@ router.delete(
 );
 router.post(
   '/groups/:id/campaigns',
+  hasRole([UserRole.USUAL, UserRole.ADMIN]),
   validator.validate({
     body: schemas.campaignCreationPayload,
     params: object({ id: schemas.id })

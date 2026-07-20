@@ -42,8 +42,7 @@ function Group(props: Readonly<GroupProps>) {
     filters: { groupIds: [props.group.id] }
   });
 
-  const { isAdmin, isUsual } = useUser();
-  const canCreateCampaign = isAdmin || isUsual;
+  const { canCreateCampaign } = useUser();
 
   const housing = pluralize(props.group.housingCount)('logement');
   const owners = pluralize(props.group.ownerCount)('propriétaire');

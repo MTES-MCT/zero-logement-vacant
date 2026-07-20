@@ -16,10 +16,13 @@ const campaignFromGroupModal = createCampaignFromGroupModal({
 });
 
 function SaveCampaignFlow() {
-  const { isAdmin, isUsual } = useUser();
-  const canCreateCampaign = isAdmin || isUsual;
+  const { canCreateCampaign } = useUser();
 
   const [selectedGroup, setSelectedGroup] = useState<Group | null>(null);
+  // Bumped every time the flow is (re)opened. Passed to SelectGroupModal to
+  // defer the groups query until the flow is first opened, and to re-key its
+  // search input so a reopen starts blank.
+  const [openCount, setOpenCount] = useState(0);
 
   const [createCampaignFromGroup, createCampaignFromGroupMutation] =
     useCreateCampaignFromGroupMutation();
@@ -81,12 +84,18 @@ function SaveCampaignFlow() {
       <Button
         iconId="fr-icon-save-line"
         priority="primary"
-        onClick={selectGroupModal.open}
+        onClick={() => {
+          setOpenCount((count) => count + 1);
+          selectGroupModal.open();
+        }}
       >
         Enregistrer une campagne
       </Button>
 
-      <selectGroupModal.Component onSelect={handleGroupSelect} />
+      <selectGroupModal.Component
+        openCount={openCount}
+        onSelect={handleGroupSelect}
+      />
 
       <campaignFromGroupModal.Component
         group={selectedGroup}

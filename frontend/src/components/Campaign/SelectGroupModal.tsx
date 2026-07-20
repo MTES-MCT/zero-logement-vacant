@@ -1,7 +1,8 @@
+import { fr } from '@codegouvfr/react-dsfr';
 import Button from '@codegouvfr/react-dsfr/Button';
 import Stepper from '@codegouvfr/react-dsfr/Stepper';
 import { createColumnHelper } from '@tanstack/react-table';
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 
 import AppSearchBar from '~/components/_app/AppSearchBar/AppSearchBar';
 import AdvancedTable from '~/components/AdvancedTable/AdvancedTable';
@@ -16,6 +17,13 @@ export type SelectGroupModalOptions = Partial<ExtendedModalOptions>;
 
 export interface SelectGroupModalProps {
   onSelect(group: Group): void;
+  /**
+   * Incremented by the parent each time the flow is (re)opened. When omitted
+   * (standalone usage) the groups query runs immediately. When provided, the
+   * query is skipped until the first open (`0` = not yet opened), and the value
+   * re-keys the search input so every reopen starts blank.
+   */
+  openCount?: number;
 }
 
 const columnHelper = createColumnHelper<Group>();
@@ -35,8 +43,17 @@ export function createSelectGroupModal(
   return {
     ...modal,
     Component(props: Readonly<SelectGroupModalProps>) {
-      const { data: groups } = useFindGroupsQuery();
+      const { openCount } = props;
+      const queryEnabled = openCount === undefined || openCount > 0;
+      const { data: groups, isFetching } = useFindGroupsQuery(undefined, {
+        skip: !queryEnabled
+      });
       const [searchText, setSearchText] = useState<string>('');
+
+      // Reset the search filter each time the flow is reopened.
+      useEffect(() => {
+        setSearchText('');
+      }, [openCount]);
 
       const filteredGroups = useMemo(() => {
         const eligible = (groups ?? []).filter(isEligible);
@@ -80,12 +97,17 @@ export function createSelectGroupModal(
         setSearchText(text);
       }
 
+      const groupCount = filteredGroups.length;
+      const statusMessage = isFetching
+        ? ''
+        : groupCount === 0
+          ? 'Aucun groupe trouvé'
+          : `${groupCount} groupe${groupCount > 1 ? 's' : ''} trouvé${
+              groupCount > 1 ? 's' : ''
+            }`;
+
       return (
-        <modal.Component
-          title="Enregistrer une campagne"
-          size="large"
-          onClose={() => setSearchText('')}
-        >
+        <modal.Component title="Enregistrer une campagne" size="large">
           <Stepper
             currentStep={1}
             stepCount={2}
@@ -93,7 +115,15 @@ export function createSelectGroupModal(
             nextTitle="Créer une campagne"
           />
 
-          <AppSearchBar label="Rechercher un groupe" onSearch={search} />
+          <AppSearchBar
+            key={openCount}
+            label="Rechercher un groupe"
+            onSearch={search}
+          />
+
+          <p role="status" className={fr.cx('fr-sr-only')}>
+            {statusMessage}
+          </p>
 
           <AdvancedTable
             caption="Groupes de logements"

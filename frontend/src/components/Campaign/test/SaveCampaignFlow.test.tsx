@@ -89,4 +89,47 @@ describe('SaveCampaignFlow', () => {
       })
     );
   });
+
+  it('should reopen step 2 when the same group is re-selected after cancelling', async () => {
+    const group = genGroupDTO(creator, [genHousingDTO()]);
+    data.groups.push(group);
+
+    renderFlow();
+
+    await user.click(
+      screen.getByRole('button', { name: 'Enregistrer une campagne' })
+    );
+    const firstSelectDialog = await screen.findByRole('dialog');
+    await user.click(
+      await within(firstSelectDialog).findByRole('button', {
+        name: `Sélectionner le groupe ${group.title}`
+      })
+    );
+    const createDialog = await screen.findByRole('dialog');
+    await within(createDialog).findByText('Étape 2 sur 2');
+
+    // Cancel step 2 without submitting. DSFR emits a `dsfr.conceal` event on
+    // the dialog for every dismissal (Annuler / Escape / backdrop click); the
+    // DSFR runtime that emits it is absent in jsdom, so we simulate that exact
+    // signal — the same one react-dsfr's own `useIsModalOpen` listens for.
+    createDialog.dispatchEvent(new CustomEvent('dsfr.conceal'));
+    await waitFor(() => {
+      expect(
+        document.getElementById('save-campaign-from-group-modal')
+      ).not.toBeInTheDocument();
+    });
+
+    // Re-run the flow and select the SAME group again (stable RTK Query ref).
+    await user.click(
+      screen.getByRole('button', { name: 'Enregistrer une campagne' })
+    );
+    const secondSelectDialog = await screen.findByRole('dialog');
+    await user.click(
+      await within(secondSelectDialog).findByRole('button', {
+        name: `Sélectionner le groupe ${group.title}`
+      })
+    );
+
+    expect(await screen.findByText('Étape 2 sur 2')).toBeInTheDocument();
+  });
 });

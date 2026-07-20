@@ -1,4 +1,5 @@
 import type {
+  CampaignDTO,
   DocumentDTO,
   DocumentPayload,
   HousingDocumentDTO,
@@ -54,6 +55,65 @@ export const documentApi = zlvApi.injectEndpoints({
       invalidatesTags: (_result, _error, { housingId }) => [
         { type: 'Document', id: `LIST-${housingId}` }
       ]
+    }),
+
+    findCampaignDocuments: builder.query<DocumentDTO[], CampaignDTO['id']>({
+      query: (campaignId) => `campaigns/${campaignId}/documents`,
+      providesTags: (documents, _error, campaignId) =>
+        documents
+          ? [
+              ...documents.map((document) => ({
+                type: 'Document' as const,
+                id: document.id
+              })),
+              { type: 'Document', id: `LIST-${campaignId}` }
+            ]
+          : [{ type: 'Document', id: `LIST-${campaignId}` }]
+    }),
+
+    linkDocumentsToCampaign: builder.mutation<
+      DocumentDTO[],
+      { campaignId: CampaignDTO['id']; documentIds: DocumentDTO['id'][] }
+    >({
+      query: ({ campaignId, documentIds }) => ({
+        url: `campaigns/${campaignId}/documents`,
+        method: 'POST',
+        body: { documentIds }
+      }),
+      invalidatesTags: (_result, _error, { campaignId }) => [
+        { type: 'Document', id: `LIST-${campaignId}` }
+      ]
+    }),
+
+    unlinkCampaignDocument: builder.mutation<
+      void,
+      { campaignId: CampaignDTO['id']; documentId: DocumentDTO['id'] }
+    >({
+      query: ({ campaignId, documentId }) => ({
+        url: `campaigns/${campaignId}/documents/${documentId}`,
+        method: 'DELETE'
+      }),
+      async onQueryStarted(
+        { campaignId, documentId },
+        { dispatch, queryFulfilled }
+      ) {
+        const patchResult = dispatch(
+          documentApi.util.updateQueryData(
+            'findCampaignDocuments',
+            campaignId,
+            (documents) => {
+              const index = documents.findIndex(
+                (draft) => draft.id === documentId
+              );
+              if (index !== -1) {
+                documents.splice(index, 1);
+              }
+            }
+          )
+        );
+
+        queryFulfilled.catch(patchResult.undo);
+      }
     }),
 
     updateDocument: builder.mutation<
@@ -121,5 +181,8 @@ export const {
   useUpdateDocumentMutation,
   useUnlinkDocumentMutation,
   useDeleteDocumentMutation,
-  useGetDocumentQuery
+  useGetDocumentQuery,
+  useFindCampaignDocumentsQuery,
+  useLinkDocumentsToCampaignMutation,
+  useUnlinkCampaignDocumentMutation
 } = documentApi;

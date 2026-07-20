@@ -16,6 +16,7 @@ import { toPercentage } from '~/utils/number-utils';
 import { displayCount } from '~/utils/stringUtils';
 
 import AppLink from '../_app/AppLink/AppLink';
+import SaveCampaignFlow from './SaveCampaignFlow';
 import WaitingBadge from './WaitingBadge';
 
 export interface CampaignTableProps {
@@ -213,6 +214,8 @@ function CampaignTable(props: CampaignTableProps) {
             })}
           </Typography>
         )}
+
+        <SaveCampaignFlow />
       </Stack>
 
       <AdvancedTable

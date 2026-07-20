@@ -73,10 +73,21 @@ interface PaginationProps {
    * You must define this when using server-side pagination.
    */
   pageCount?: number;
+  /**
+   * Options shown in the "results per page" selector.
+   * @default [10, 50, 200, 500]
+   */
+  perPageOptions?: number[];
+  /**
+   * Initial/uncontrolled page size.
+   * @default 50
+   */
+  defaultPageSize?: number;
 }
 
 const ROW_SIZE = 64;
 const PER_PAGE_OPTIONS = [10, 50, 200, 500];
+const DEFAULT_PAGE_SIZE = 50;
 
 function AdvancedTable<Data extends object>(props: AdvancedTableProps<Data>) {
   // Map our selection to the @tanstack/table internal selection state
@@ -96,9 +107,10 @@ function AdvancedTable<Data extends object>(props: AdvancedTableProps<Data>) {
   const enableSelection = props.selection !== undefined;
 
   const paginate = props.paginate ?? true;
+  const perPageOptions = props.perPageOptions ?? PER_PAGE_OPTIONS;
   const [pagination, setPagination] = useState<PaginationState>({
     pageIndex: 0,
-    pageSize: 50
+    pageSize: props.defaultPageSize ?? DEFAULT_PAGE_SIZE
   });
 
   const table = useReactTable<Data>({
@@ -321,7 +333,7 @@ function AdvancedTable<Data extends object>(props: AdvancedTableProps<Data>) {
         >
           <SelectNext
             label={null}
-            options={PER_PAGE_OPTIONS.map((option) => ({
+            options={perPageOptions.map((option) => ({
               label: `${option} résultats par page`,
               value: String(option)
             }))}

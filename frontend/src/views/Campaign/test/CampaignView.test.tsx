@@ -1,12 +1,16 @@
 import { faker } from '@faker-js/faker/locale/fr';
-import { render, screen, waitFor } from '@testing-library/react';
+import { render, screen, waitFor, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import {
   UserRole,
   type CampaignDTO,
-  type HousingDTO
+  type DocumentDTO,
+  type EstablishmentDTO,
+  type HousingDTO,
+  type UserDTO
 } from '@zerologementvacant/models';
 import {
+  genDocumentDTO,
   genDraftDTO,
   genEstablishmentDTO,
   genHousingDTO,
@@ -42,6 +46,9 @@ describe('CampaignView', () => {
 
   interface RenderViewOptions {
     housings?: HousingDTO[];
+    documents?: DocumentDTO[];
+    auth?: UserDTO;
+    establishment?: EstablishmentDTO;
   }
 
   function renderView(campaign: CampaignDTO, options?: RenderViewOptions) {
@@ -56,6 +63,15 @@ describe('CampaignView', () => {
         data.housingCampaigns.set(housing.id, [{ id: campaign.id }]);
       });
     }
+    if (options?.documents?.length) {
+      options.documents.forEach((document) => {
+        data.documents.set(document.id, document);
+      });
+      data.campaignDocuments.set(campaign.id, options.documents);
+    }
+
+    const renderAuth = options?.auth ?? auth;
+    const renderEstablishment = options?.establishment ?? establishment;
 
     const router = createMemoryRouter(
       [
@@ -298,5 +314,160 @@ describe('CampaignView', () => {
         level: 4
       })
     ).toBeInTheDocument();
+  });
+
+  describe('Documents tab', () => {
+    it('shows an empty state message when there are no documents', async () => {
+      const campaign = factories
+        .campaign(establishment)
+        .build(
+          { sentAt: null, returnCount: null },
+          { associations: { createdBy: auth } }
+        );
+
+      renderView(campaign, { documents: [] });
+
+      await screen.findByRole('heading', { level: 1 });
+      const tab = await screen.findByRole('tab', { name: 'Documents' });
+      await user.click(tab);
+      const tabpanel = await screen.findByRole('tabpanel', {
+        name: 'Documents'
+      });
+      expect(
+        await within(tabpanel).findByText(
+          /Il n’y a pas de document associé à cette campagne/i
+        )
+      ).toBeVisible();
+    });
+
+    it('displays existing documents', async () => {
+      const campaign = factories
+        .campaign(establishment)
+        .build(
+          { sentAt: null, returnCount: null },
+          { associations: { createdBy: auth } }
+        );
+      const document = genDocumentDTO(auth, establishment);
+
+      renderView(campaign, { documents: [document] });
+
+      const tab = await screen.findByRole('tab', { name: 'Documents' });
+      await user.click(tab);
+      const tabpanel = await screen.findByRole('tabpanel', {
+        name: 'Documents'
+      });
+      expect(
+        await within(tabpanel).findByText(new RegExp(document.filename, 'i'))
+      ).toBeVisible();
+    });
+
+    it('renames a document', async () => {
+      const campaign = factories
+        .campaign(establishment)
+        .build(
+          { sentAt: null, returnCount: null },
+          { associations: { createdBy: auth } }
+        );
+      const document = genDocumentDTO(auth, establishment);
+
+      renderView(campaign, { documents: [document] });
+
+      const tab = await screen.findByRole('tab', { name: 'Documents' });
+      await user.click(tab);
+      const tabpanel = await screen.findByRole('tabpanel', {
+        name: 'Documents'
+      });
+      const dropdown = await within(tabpanel).findByRole('button', {
+        name: 'Options'
+      });
+      await user.click(dropdown);
+      const renameButton = await screen.findByRole('button', {
+        name: 'Renommer'
+      });
+      await user.click(renameButton);
+      const modal = await screen.findByRole('dialog', {
+        name: 'Renommer le document'
+      });
+      const input = await within(modal).findByRole('textbox', {
+        name: /^Nouveau nom du document/
+      });
+      await user.clear(input);
+      await user.type(input, 'nouveau-nom-campagne.pdf');
+      const save = await within(modal).findByRole('button', {
+        name: 'Confirmer'
+      });
+      await user.click(save);
+
+      expect(
+        await within(tabpanel).findByText('nouveau-nom-campagne.pdf')
+      ).toBeVisible();
+    });
+
+    it('deletes a document', async () => {
+      const campaign = factories
+        .campaign(establishment)
+        .build(
+          { sentAt: null, returnCount: null },
+          { associations: { createdBy: auth } }
+        );
+      const document = genDocumentDTO(auth, establishment);
+
+      renderView(campaign, { documents: [document] });
+
+      const tab = await screen.findByRole('tab', { name: 'Documents' });
+      await user.click(tab);
+      const tabpanel = await screen.findByRole('tabpanel', {
+        name: 'Documents'
+      });
+      const dropdown = await within(tabpanel).findByRole('button', {
+        name: 'Options'
+      });
+      await user.click(dropdown);
+      const deleteButton = await screen.findByRole('button', {
+        name: 'Supprimer'
+      });
+      await user.click(deleteButton);
+      const modal = await screen.findByRole('dialog', {
+        name: 'Suppression du document'
+      });
+      const confirm = await within(modal).findByRole('button', {
+        name: 'Confirmer'
+      });
+      await user.click(confirm);
+
+      expect(
+        within(tabpanel).queryByText(new RegExp(document.filename, 'i'))
+      ).not.toBeInTheDocument();
+    });
+
+    it('hides rename and delete for a visitor', async () => {
+      const campaign = factories
+        .campaign(establishment)
+        .build(
+          { sentAt: null, returnCount: null },
+          { associations: { createdBy: auth } }
+        );
+      const document = genDocumentDTO(auth, establishment);
+      const visitor = genUserDTO(UserRole.VISITOR, establishment);
+
+      renderView(campaign, { documents: [document], auth: visitor });
+
+      const tab = await screen.findByRole('tab', { name: 'Documents' });
+      await user.click(tab);
+      const tabpanel = await screen.findByRole('tabpanel', {
+        name: 'Documents'
+      });
+      const dropdown = await within(tabpanel).findByRole('button', {
+        name: 'Options'
+      });
+      await user.click(dropdown);
+
+      expect(
+        screen.queryByRole('button', { name: 'Renommer' })
+      ).not.toBeInTheDocument();
+      expect(
+        screen.queryByRole('button', { name: 'Supprimer' })
+      ).not.toBeInTheDocument();
+    });
   });
 });

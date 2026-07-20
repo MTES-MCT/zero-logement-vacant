@@ -1,24 +1,16 @@
 import { CampaignStatus, HousingFiltersDTO } from '@zerologementvacant/models';
-import { Knex } from 'knex';
-import type { Insertable } from 'kysely';
+import type { Insertable, Selectable } from 'kysely';
+import { sql } from 'kysely';
 
 import db from '~/infra/database';
 import type { DB } from '~/infra/database/db';
-import {
-  runWithinKyselyTransaction,
-  withinKyselyTransaction
-} from '~/infra/database/kysely-transaction';
+import { kysely } from '~/infra/database/kysely';
+import { withinKyselyTransaction } from '~/infra/database/kysely-transaction';
 import { logger } from '~/infra/logger';
 import { CampaignApi, CampaignSortApi } from '~/models/CampaignApi';
 import { CampaignFiltersApi } from '~/models/CampaignFiltersApi';
-import { sortQuery } from '~/models/SortApi';
-import { campaignsHousingTable } from '~/repositories/campaignHousingRepository';
 import eventRepository from '~/repositories/eventRepository';
-import {
-  fromUserDBO,
-  UserDBO,
-  USERS_TABLE
-} from '~/repositories/userRepository';
+import { fromUserDBO, UserDBO } from '~/repositories/userRepository';
 
 export const campaignsTable = 'campaigns';
 export const Campaigns = (transaction = db) =>
@@ -32,15 +24,15 @@ interface FindOneOptions {
 
 const findOne = async (opts: FindOneOptions): Promise<CampaignApi | null> => {
   logger.debug('Finding campaign...', opts);
-  const campaign: CampaignDBO | undefined = await listQuery(opts)
-    .where(`${campaignsTable}.id`, opts.id)
-    .first();
-  if (!campaign) {
+  const row = await campaignListQuery(opts)
+    .where('campaigns.id', '=', opts.id)
+    .executeTakeFirst();
+  if (!row) {
     return null;
   }
 
-  logger.debug('Found campaign', campaign);
-  return parseCampaignApi(campaign);
+  logger.debug('Found campaign', row);
+  return parseCampaignRow(row);
 };
 
 interface FindOptions {
@@ -49,82 +41,99 @@ interface FindOptions {
 }
 
 const find = async (opts: FindOptions): Promise<CampaignApi[]> => {
-  const campaigns: CampaignDBO[] = await listQuery(opts.filters)
-    .modify(campaignSortQuery(opts.sort))
-    .orderBy('created_at');
+  const rows = await applyCampaignSort(
+    campaignListQuery(opts.filters),
+    opts.sort
+  )
+    .orderBy('campaigns.createdAt')
+    .execute();
 
-  return campaigns.map(parseCampaignApi);
+  return rows.map(parseCampaignRow);
 };
 
-function listQuery(filters: CampaignFiltersApi) {
-  return Campaigns()
-    .select(`${campaignsTable}.*`)
-    .select(db.raw(`to_json(${USERS_TABLE}.*) as creator`))
-    .join(USERS_TABLE, `${USERS_TABLE}.id`, `${campaignsTable}.user_id`)
-    .modify(filterQuery(filters));
-}
+function campaignListQuery(filters: CampaignFiltersApi) {
+  let query = kysely
+    .selectFrom('campaigns')
+    .innerJoin('users', 'users.id', 'campaigns.userId')
+    .selectAll('campaigns')
+    .select(sql<UserDBO>`to_json(users.*)`.as('creator'));
 
-const filterQuery = (filters: CampaignFiltersApi) => {
-  return function (query: Knex.QueryBuilder<CampaignDBO>) {
-    if (filters?.establishmentId) {
-      query.where(
-        `${campaignsTable}.establishment_id`,
-        filters.establishmentId
+  if (filters?.establishmentId) {
+    query = query.where(
+      'campaigns.establishmentId',
+      '=',
+      filters.establishmentId
+    );
+  }
+  if (filters.groupIds?.length) {
+    query = query.where('campaigns.groupId', 'in', filters.groupIds);
+  }
+  // Filter campaigns to only those where ALL housings are within the user's
+  // perimeter. Empty geoCodes means no access → return no campaigns.
+  if (filters?.geoCodes !== undefined) {
+    if (filters.geoCodes.length === 0) {
+      query = query.where(sql<boolean>`1 = 0`);
+    } else {
+      const geoCodes = filters.geoCodes;
+      query = query.where((eb) =>
+        eb.not(
+          eb.exists(
+            eb
+              .selectFrom('campaignsHousing')
+              .select(sql`1`.as('one'))
+              .whereRef('campaignsHousing.campaignId', '=', 'campaigns.id')
+              .where('campaignsHousing.housingGeoCode', 'not in', geoCodes)
+          )
+        )
       );
     }
-    if (filters.groupIds?.length) {
-      query.whereIn(`${campaignsTable}.group_id`, filters.groupIds);
-    }
-    // Filter campaigns to only those where ALL housings are within the user's perimeter
-    // Note: geoCodes is an array when a restriction applies
-    //   - non-empty array: filter to campaigns with housings in these geoCodes
-    //   - empty array: user should see NO campaigns (intersection with perimeter is empty)
-    if (filters?.geoCodes !== undefined) {
-      if (filters.geoCodes.length === 0) {
-        // Empty geoCodes means no access - return no campaigns
-        query.whereRaw('1 = 0');
-      } else {
-        const geoCodes = filters.geoCodes;
-        query.whereNotExists((subquery) => {
-          subquery
-            .select(db.raw('1'))
-            .from(campaignsHousingTable)
-            .where(
-              `${campaignsHousingTable}.campaign_id`,
-              db.ref(`${campaignsTable}.id`)
-            )
-            .whereNotIn(`${campaignsHousingTable}.housing_geo_code`, geoCodes);
-        });
-      }
-    }
-  };
-};
+  }
+  return query;
+}
 
-const campaignSortQuery = (sort?: CampaignSortApi) =>
-  sortQuery(sort, {
-    keys: {
-      title: (query) => query.orderBy(`${campaignsTable}.title`, sort?.title),
-      createdAt: (query) =>
-        query.orderBy(`${campaignsTable}.created_at`, sort?.createdAt),
-      sentAt: (query) =>
-        query.orderBy(`${campaignsTable}.sent_at`, sort?.sentAt),
-      status: (query) =>
-        query.orderByRaw(
-          `(case ${campaignsTable}.status when 'archived' then 3 when 'in-progress' then 2 when 'sending' then 1 else 0 end) ${sort?.status}`
-        ),
-      housingCount: (query) =>
-        query.orderBy(`${campaignsTable}.housing_count`, sort?.housingCount),
-      ownerCount: (query) =>
-        query.orderBy(`${campaignsTable}.owner_count`, sort?.ownerCount),
-      returnCount: (query) =>
-        query.orderBy(`${campaignsTable}.return_count`, sort?.returnCount),
-      returnRate: (query) =>
-        query.orderByRaw(
-          `${campaignsTable}.return_rate ${sort?.returnRate} NULLS LAST`
-        )
-    },
-    default: (query) => query.orderBy('created_at', 'desc')
-  });
+function applyCampaignSort(
+  query: ReturnType<typeof campaignListQuery>,
+  sort?: CampaignSortApi
+): ReturnType<typeof campaignListQuery> {
+  if (!sort) {
+    return query.orderBy('campaigns.createdAt', 'desc');
+  }
+  let result = query;
+  for (const key of Object.keys(sort) as Array<keyof CampaignSortApi>) {
+    switch (key) {
+      case 'title':
+        result = result.orderBy('campaigns.title', sort.title);
+        break;
+      case 'createdAt':
+        result = result.orderBy('campaigns.createdAt', sort.createdAt);
+        break;
+      case 'sentAt':
+        result = result.orderBy('campaigns.sentAt', sort.sentAt);
+        break;
+      case 'status':
+        result = result.orderBy(
+          sql`(case campaigns.status when 'archived' then 3 when 'in-progress' then 2 when 'sending' then 1 else 0 end)`,
+          sort.status
+        );
+        break;
+      case 'housingCount':
+        result = result.orderBy('campaigns.housingCount', sort.housingCount);
+        break;
+      case 'ownerCount':
+        result = result.orderBy('campaigns.ownerCount', sort.ownerCount);
+        break;
+      case 'returnCount':
+        result = result.orderBy('campaigns.returnCount', sort.returnCount);
+        break;
+      case 'returnRate':
+        result = result.orderBy(
+          sql`campaigns.return_rate ${sql.raw(sort.returnRate ?? 'asc')} nulls last`
+        );
+        break;
+    }
+  }
+  return result;
+}
 
 const insert = async (campaignApi: CampaignApi): Promise<CampaignApi> => {
   logger.info(
@@ -195,12 +204,7 @@ const update = async (campaignApi: CampaignApi): Promise<string> => {
 async function remove(id: string): Promise<void> {
   logger.debug('Removing campaign...', { id });
   await withinKyselyTransaction(async (trx) => {
-    // Seed the ambient transaction so removeCampaignEvents joins this trx
-    // instead of opening its own — otherwise the two deletes are not atomic
-    // (same wiring startTransaction uses to make repos share one unit).
-    await runWithinKyselyTransaction(trx, () =>
-      eventRepository.removeCampaignEvents(id)
-    );
+    await eventRepository.removeCampaignEvents(id);
     await trx.deleteFrom('campaigns').where('id', '=', id).execute();
   });
   logger.debug('Campaign removed', { id });
@@ -252,6 +256,33 @@ export interface CampaignDBO {
   owner_count: number;
   return_count: number;
   return_rate: number | null;
+}
+
+type CampaignRow = Selectable<DB['campaigns']> & { creator: UserDBO | null };
+
+function parseCampaignRow(row: CampaignRow): CampaignApi {
+  return {
+    id: row.id,
+    establishmentId: row.establishmentId,
+    status: row.status as CampaignStatus,
+    filters: row.filters as CampaignApi['filters'],
+    file: row.file as CampaignApi['file'],
+    userId: row.userId,
+    createdBy: fromUserDBO(row.creator!),
+    createdAt: (row.createdAt as Date).toJSON(),
+    validatedAt: row.validatedAt?.toJSON(),
+    exportedAt: row.exportedAt?.toJSON(),
+    sentAt: row.sentAt?.toJSON()?.slice(0, 'yyyy-mm-dd'.length) ?? null,
+    archivedAt: row.archivedAt?.toJSON(),
+    confirmedAt: row.confirmedAt?.toJSON(),
+    title: row.title,
+    description: row.description as CampaignApi['description'],
+    groupId: row.groupId as CampaignApi['groupId'],
+    returnCount: row.sentAt ? row.returnCount : null,
+    housingCount: row.housingCount,
+    ownerCount: row.ownerCount,
+    returnRate: row.sentAt ? row.returnRate : null
+  };
 }
 
 export const parseCampaignApi = (campaign: CampaignDBO): CampaignApi => ({

@@ -23,7 +23,11 @@ import { HousingApi } from '~/models/HousingApi';
 import { HousingOwnerApi } from '~/models/HousingOwnerApi';
 import { OwnerApi } from '~/models/OwnerApi';
 import { PaginatedResultApi } from '~/models/PaginatedResultApi';
-import { isPaginationEnabled, type PaginationApi } from '~/models/PaginationApi';
+import {
+  isPaginationEnabled,
+  type PaginationApi
+} from '~/models/PaginationApi';
+
 import { AddressDBO, parseAddressApi } from './banAddressesRepository';
 import {
   fromRelativeLocationDBO,
@@ -103,9 +107,7 @@ interface FindOptions {
 async function find(opts?: FindOptions): Promise<OwnerApi[]> {
   logger.debug('Finding owners...', opts);
 
-  let query: any = kysely
-    .selectFrom('owners')
-    .selectAll('owners');
+  let query: any = kysely.selectFrom('owners').selectAll('owners');
   query = applyOwnerIncludes(query, opts?.includes ?? []);
   query = applyOwnerFilters(query, opts?.filters);
   query = applyOwnerSearch(query, opts?.search ?? null);
@@ -151,9 +153,7 @@ async function count(opts?: FindOptions): Promise<number> {
 }
 
 const get = async (ownerId: string): Promise<OwnerApi | null> => {
-  let query: any = kysely
-    .selectFrom('owners')
-    .selectAll('owners');
+  let query: any = kysely.selectFrom('owners').selectAll('owners');
   query = applyOwnerIncludes(query, ['banAddress']);
   query = query.where('owners.id', '=', ownerId);
 
@@ -166,9 +166,7 @@ type StreamOptions = FindOptions;
 function stream(
   options?: StreamOptions
 ): ReadableStream<OwnerApi & { housings?: ReadonlyArray<HousingApi> }> {
-  let query: any = kysely
-    .selectFrom('owners')
-    .selectAll('owners');
+  let query: any = kysely.selectFrom('owners').selectAll('owners');
   query = applyOwnerIncludes(query, options?.includes ?? []);
   query = applyOwnerFilters(query, options?.filters);
   // Reproduce groupBy<OwnerDBO>(options?.groupBy): DISTINCT ON when columns given
@@ -183,9 +181,9 @@ function stream(
       yield parseHousingOwnerRow(row as HousingOwnerRow);
     }
   })();
-  return Readable.toWeb(
-    Readable.from(mapped)
-  ) as ReadableStream<OwnerApi & { housings?: ReadonlyArray<HousingApi> }>;
+  return Readable.toWeb(Readable.from(mapped)) as ReadableStream<
+    OwnerApi & { housings?: ReadonlyArray<HousingApi> }
+  >;
 }
 
 interface FindOneOptions extends Partial<
@@ -226,9 +224,7 @@ function applyOwnerSearch(query: any, searchQuery: string | null): any {
     .split(/\s+/)
     .map((term) => `${term}:*`) // permet le préfixe (ex: dupont:* = dupont, dupontet...)
     .join(' & '); // opérateur logique AND entre les mots
-  return query.where(
-    sql`full_name_fts @@ to_tsquery('simple', ${tsQuery})`
-  );
+  return query.where(sql`full_name_fts @@ to_tsquery('simple', ${tsQuery})`);
 }
 
 /**
@@ -249,9 +245,9 @@ const searchOwners = async (
     .map((term) => `${term}:*`) // permet le préfixe (ex: dupont:* = dupont, dupontet...)
     .join(' & '); // opérateur logique AND entre les mots
 
-  const filteredCount = await (kysely
-    .selectFrom('owners')
-    .select(sql`count(id)`.as('count')) as any)
+  const filteredCount = await (
+    kysely.selectFrom('owners').select(sql`count(id)`.as('count')) as any
+  )
     .where(sql`full_name_fts @@ to_tsquery('simple', ${tsQuery})`)
     .executeTakeFirst()
     .then((row: any) => Number(row?.count));
@@ -262,15 +258,13 @@ const searchOwners = async (
     .executeTakeFirst()
     .then((row) => Number(row?.count));
 
-  let filterQuery: any = (kysely
-    .selectFrom('owners')
-    .selectAll('owners') as any)
+  let filterQuery: any = (
+    kysely.selectFrom('owners').selectAll('owners') as any
+  )
     .where(sql`full_name_fts @@ to_tsquery('simple', ${tsQuery})`)
     .orderBy('full_name');
   if (page && perPage) {
-    filterQuery = filterQuery
-      .offset((page - 1) * perPage)
-      .limit(perPage);
+    filterQuery = filterQuery.offset((page - 1) * perPage).limit(perPage);
   }
   const results: OwnerRow[] = await filterQuery.execute();
 
@@ -291,18 +285,12 @@ const findByHousing = async (
   let query: any = kysely
     .selectFrom('owners')
     .selectAll('owners')
-    .innerJoin(
-      'ownersHousing',
-      'owners.id',
-      'ownersHousing.ownerId'
-    )
+    .innerJoin('ownersHousing', 'owners.id', 'ownersHousing.ownerId')
     .selectAll('ownersHousing')
     .where('ownersHousing.housingId', '=', housing.id)
     .where('ownersHousing.housingGeoCode', '=', housing.geoCode);
   query = applyOwnerIncludes(query, ['banAddress']);
-  query = query
-    .orderBy('end_date', 'desc')
-    .orderBy('rank');
+  query = query.orderBy('end_date', 'desc').orderBy('rank');
 
   const rows: HousingOwnerRow[] = await query.execute();
   return rows.map(parseHousingOwnerRow);
@@ -630,8 +618,12 @@ export const parseOwnerRow = (row: OwnerRow): OwnerApi => {
     additionalAddress: row.additionalAddress ?? null,
     entity: (row.entity as OwnerEntity | null) ?? null,
     username: row.username ?? null,
-    createdAt: row.createdAt ? new Date(row.createdAt as Date | string).toJSON() : null,
-    updatedAt: row.updatedAt ? new Date(row.updatedAt as Date | string).toJSON() : null
+    createdAt: row.createdAt
+      ? new Date(row.createdAt as Date | string).toJSON()
+      : null,
+    updatedAt: row.updatedAt
+      ? new Date(row.updatedAt as Date | string).toJSON()
+      : null
   };
 };
 
@@ -678,9 +670,8 @@ function applyOwnerIncludes(query: any, includes: OwnerInclude[]): any {
         )
         .select(sql`to_json(ban.*)`.as('ban'));
     } else if (inc === 'housings') {
-      query = query
-        .select(
-          sql`(
+      query = query.select(
+        sql`(
             SELECT json_agg(${sql.raw(housingTable)}.*)
             FROM ${sql.raw(housingOwnersTable)}
             JOIN ${sql.raw(housingTable)}
@@ -688,7 +679,7 @@ function applyOwnerIncludes(query: any, includes: OwnerInclude[]): any {
               AND ${sql.raw(housingOwnersTable)}.housing_id = ${sql.raw(housingTable)}.id
             WHERE owners.id = ${sql.raw(housingOwnersTable)}.owner_id
           )`.as('housings')
-        );
+      );
     }
   }
   return query;
@@ -705,9 +696,7 @@ function applyOwnerFilters(query: any, filters?: OwnerFilters): any {
         query.where('owners.idpersonne', '=', value)
       )
       .with(Pattern.array(Pattern.string), (value) =>
-        value.length > 0
-          ? query.where('owners.idpersonne', 'in', value)
-          : query
+        value.length > 0 ? query.where('owners.idpersonne', 'in', value) : query
       )
       .exhaustive();
   }
@@ -715,20 +704,16 @@ function applyOwnerFilters(query: any, filters?: OwnerFilters): any {
   if (filters.campaignId) {
     query = query
       .innerJoin('ownersHousing', 'owners.id', 'ownersHousing.ownerId')
-      .innerJoin(
-        'fastHousing',
-        (join: any) =>
-          join
-            .onRef('fastHousing.id', '=', 'ownersHousing.housingId')
-            .onRef('fastHousing.geoCode', '=', 'ownersHousing.housingGeoCode')
-            .on('ownersHousing.rank', '=', 1)
+      .innerJoin('fastHousing', (join: any) =>
+        join
+          .onRef('fastHousing.id', '=', 'ownersHousing.housingId')
+          .onRef('fastHousing.geoCode', '=', 'ownersHousing.housingGeoCode')
+          .on('ownersHousing.rank', '=', 1)
       )
-      .innerJoin(
-        'campaignsHousing',
-        (join: any) =>
-          join
-            .onRef('fastHousing.id', '=', 'campaignsHousing.housingId')
-            .onRef('fastHousing.geoCode', '=', 'campaignsHousing.housingGeoCode')
+      .innerJoin('campaignsHousing', (join: any) =>
+        join
+          .onRef('fastHousing.id', '=', 'campaignsHousing.housingId')
+          .onRef('fastHousing.geoCode', '=', 'campaignsHousing.housingGeoCode')
       )
       .where('campaignsHousing.campaignId', '=', filters.campaignId);
   }
@@ -736,20 +721,16 @@ function applyOwnerFilters(query: any, filters?: OwnerFilters): any {
   if (filters.groupId) {
     query = query
       .innerJoin('ownersHousing', 'owners.id', 'ownersHousing.ownerId')
-      .innerJoin(
-        'fastHousing',
-        (join: any) =>
-          join
-            .onRef('fastHousing.id', '=', 'ownersHousing.housingId')
-            .onRef('fastHousing.geoCode', '=', 'ownersHousing.housingGeoCode')
-            .on('ownersHousing.rank', '=', 1)
+      .innerJoin('fastHousing', (join: any) =>
+        join
+          .onRef('fastHousing.id', '=', 'ownersHousing.housingId')
+          .onRef('fastHousing.geoCode', '=', 'ownersHousing.housingGeoCode')
+          .on('ownersHousing.rank', '=', 1)
       )
-      .innerJoin(
-        'groupsHousing',
-        (join: any) =>
-          join
-            .onRef('fastHousing.id', '=', 'groupsHousing.housingId')
-            .onRef('fastHousing.geoCode', '=', 'groupsHousing.housingGeoCode')
+      .innerJoin('groupsHousing', (join: any) =>
+        join
+          .onRef('fastHousing.id', '=', 'groupsHousing.housingId')
+          .onRef('fastHousing.geoCode', '=', 'groupsHousing.housingGeoCode')
       )
       .where('groupsHousing.groupId', '=', filters.groupId);
   }

@@ -1,4 +1,6 @@
 fileignoreconfig:
+- filename: frontend/src/components/ui/Tooltip/test/Tooltip.test.tsx
+  checksum: b58f25cc1f0f02598ad33b9832b20a14cfbf9dedbd17e6a85bca0a120b9eb6c1
 - filename: .github/workflows/release.yml
   checksum: 5b3a281c32a6fab83c8385a64a45faddcac10f226b8daa85bdbf6a29d6b062a8
 - filename: README.md

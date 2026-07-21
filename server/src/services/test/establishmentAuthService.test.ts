@@ -22,6 +22,11 @@ import userRepository, {
   toUserDBO,
   Users
 } from '~/repositories/userRepository';
+import type {
+  CeremaGroup,
+  CeremaPerimeter,
+  CeremaUser
+} from '~/services/ceremaService/consultUserService';
 import { genEstablishmentApi, genUserApi } from '~/test/testFixtures';
 
 const mocks = vi.hoisted(() => ({
@@ -33,6 +38,44 @@ vi.mock('~/services/ceremaService', () => ({
 }));
 
 import { refreshAuthorizedEstablishments } from '../establishmentAuthService';
+
+const lovacGroup: CeremaGroup = {
+  id_groupe: 1,
+  nom: 'LOVAC',
+  structure: 1,
+  perimetre: 0,
+  niveau_acces: 'lovac',
+  df_ano: false,
+  df_non_ano: false,
+  lovac: true
+};
+
+const unrelatedCommunePerimeter: CeremaPerimeter = {
+  perimetre_id: 2,
+  origine: 'test',
+  fr_entiere: false,
+  reg: [],
+  dep: [],
+  epci: [],
+  comm: ['99999']
+};
+
+function genCeremaUser(
+  overrides: Partial<CeremaUser> &
+    Pick<CeremaUser, 'email' | 'establishmentSiren'>
+): CeremaUser {
+  return {
+    hasAccount: true,
+    hasCommitment: true,
+    cguValide: '2026-03-11T12:36:01.255000+01:00',
+    userExpiresAt: null,
+    structureAccessExpiresAt: '2028-01-15T09:16:31+01:00',
+    structureHasLovac: true,
+    groupHasLovac: true,
+    group: lovacGroup,
+    ...overrides
+  };
+}
 
 describe('refreshAuthorizedEstablishments', () => {
   const establishment = genEstablishmentApi('75056');
@@ -212,6 +255,209 @@ describe('refreshAuthorizedEstablishments', () => {
 
     await expect(userRepository.get(user.id)).resolves.toMatchObject({
       suspendedCause: 'niveau_acces_invalide'
+    });
+  });
+
+  it('replaces an obsolete CGU suspension with the current Cerema structure expiration', async () => {
+    const suspendedUser = {
+      ...user,
+      suspendedAt: new Date('2026-02-15T00:00:00.000Z').toJSON(),
+      suspendedCause: 'cgu vides'
+    };
+    await Users().where({ id: user.id }).update({
+      suspended_at: suspendedUser.suspendedAt,
+      suspended_cause: suspendedUser.suspendedCause
+    });
+    mocks.consultUsers.mockResolvedValue([
+      genCeremaUser({
+        email: user.email,
+        establishmentSiren: establishment.siren,
+        hasCommitment: false,
+        structureAccessExpiresAt: '2025-01-15T09:16:31+01:00',
+        structureHasLovac: false
+      })
+    ]);
+
+    await refreshAuthorizedEstablishments(suspendedUser);
+
+    await expect(userRepository.get(user.id)).resolves.toMatchObject({
+      suspendedAt: expect.any(String),
+      suspendedCause: 'droits structure expires'
+    });
+  });
+
+  it('clears an obsolete Cerema suspension when current rights are valid', async () => {
+    const suspendedUser = {
+      ...user,
+      suspendedAt: new Date('2026-02-15T00:00:00.000Z').toJSON(),
+      suspendedCause: 'cgu vides'
+    };
+    await Users().where({ id: user.id }).update({
+      suspended_at: suspendedUser.suspendedAt,
+      suspended_cause: suspendedUser.suspendedCause
+    });
+    mocks.consultUsers.mockResolvedValue([
+      genCeremaUser({
+        email: user.email,
+        establishmentSiren: establishment.siren
+      })
+    ]);
+
+    await refreshAuthorizedEstablishments(suspendedUser);
+
+    await expect(userRepository.get(user.id)).resolves.toMatchObject({
+      suspendedAt: null,
+      suspendedCause: null
+    });
+  });
+
+  it('preserves a manual suspension while clearing an obsolete Cerema cause', async () => {
+    const suspendedUser = {
+      ...user,
+      suspendedAt: new Date('2026-02-15T00:00:00.000Z').toJSON(),
+      suspendedCause: 'suspension manuelle, cgu vides'
+    };
+    await Users().where({ id: user.id }).update({
+      suspended_at: suspendedUser.suspendedAt,
+      suspended_cause: suspendedUser.suspendedCause
+    });
+    mocks.consultUsers.mockResolvedValue([
+      genCeremaUser({
+        email: user.email,
+        establishmentSiren: establishment.siren
+      })
+    ]);
+
+    await refreshAuthorizedEstablishments(suspendedUser);
+
+    await expect(userRepository.get(user.id)).resolves.toMatchObject({
+      suspendedAt: expect.any(String),
+      suspendedCause: 'suspension manuelle'
+    });
+  });
+
+  it('does not apply access errors from another establishment to the selected one', async () => {
+    mocks.consultUsers.mockResolvedValue([
+      genCeremaUser({
+        email: user.email,
+        establishmentSiren: establishment.siren
+      }),
+      genCeremaUser({
+        email: user.email,
+        establishmentSiren: secondEstablishment.siren,
+        perimeter: unrelatedCommunePerimeter
+      })
+    ]);
+
+    await refreshAuthorizedEstablishments(user, {
+      establishmentId: establishment.id
+    });
+
+    await expect(userRepository.get(user.id)).resolves.toMatchObject({
+      suspendedAt: null,
+      suspendedCause: null
+    });
+  });
+
+  it('updates the selected suspension without replacing links when another establishment is incomplete', async () => {
+    const suspendedUser = {
+      ...user,
+      suspendedAt: new Date('2026-02-15T00:00:00.000Z').toJSON(),
+      suspendedCause: 'cgu vides'
+    };
+    await Users().where({ id: user.id }).update({
+      suspended_at: suspendedUser.suspendedAt,
+      suspended_cause: suspendedUser.suspendedCause
+    });
+    await UsersEstablishments().insert({
+      user_id: user.id,
+      establishment_id: secondEstablishment.id,
+      establishment_siren: secondEstablishment.siren,
+      has_commitment: true
+    });
+    mocks.consultUsers.mockResolvedValue([
+      genCeremaUser({
+        email: user.email,
+        establishmentSiren: establishment.siren
+      }),
+      genCeremaUser({
+        email: user.email,
+        establishmentSiren: secondEstablishment.siren,
+        group: undefined,
+        groupHasLovac: undefined,
+        groupFetchFailed: true
+      })
+    ]);
+
+    await refreshAuthorizedEstablishments(suspendedUser, {
+      establishmentId: establishment.id
+    });
+
+    await expect(userRepository.get(user.id)).resolves.toMatchObject({
+      suspendedAt: null,
+      suspendedCause: null
+    });
+    await expect(
+      userEstablishmentRepository.getAuthorizedEstablishments(user.id)
+    ).resolves.toEqual([
+      {
+        establishmentId: secondEstablishment.id,
+        establishmentSiren: secondEstablishment.siren,
+        hasCommitment: true
+      }
+    ]);
+  });
+
+  it('rejects an authoritative refresh when the Cerema response is partial', async () => {
+    mocks.consultUsers.mockResolvedValue([
+      genCeremaUser({
+        email: user.email,
+        establishmentSiren: establishment.siren
+      }),
+      genCeremaUser({
+        email: user.email,
+        establishmentSiren: secondEstablishment.siren,
+        group: undefined,
+        groupHasLovac: undefined,
+        groupFetchFailed: true
+      })
+    ]);
+
+    await expect(
+      refreshAuthorizedEstablishments(user, {
+        authoritative: true,
+        establishmentId: establishment.id
+      })
+    ).rejects.toThrow('Portail DF is temporarily unavailable.');
+  });
+
+  it('keeps the current suspension when selected Cerema details are incomplete', async () => {
+    const suspendedUser = {
+      ...user,
+      suspendedAt: new Date('2026-02-15T00:00:00.000Z').toJSON(),
+      suspendedCause: 'cgu vides'
+    };
+    await Users().where({ id: user.id }).update({
+      suspended_at: suspendedUser.suspendedAt,
+      suspended_cause: suspendedUser.suspendedCause
+    });
+    mocks.consultUsers.mockResolvedValue([
+      genCeremaUser({
+        email: user.email,
+        establishmentSiren: establishment.siren,
+        group: undefined,
+        groupHasLovac: undefined,
+        groupFetchFailed: true
+      })
+    ]);
+
+    await refreshAuthorizedEstablishments(suspendedUser, {
+      establishmentId: establishment.id
+    });
+
+    await expect(userRepository.get(user.id)).resolves.toMatchObject({
+      suspendedAt: suspendedUser.suspendedAt,
+      suspendedCause: suspendedUser.suspendedCause
     });
   });
 });

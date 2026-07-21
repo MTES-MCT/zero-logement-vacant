@@ -10,9 +10,14 @@ import ceremaService from '~/services/ceremaService';
 import type { CeremaUser } from '~/services/ceremaService/consultUserService';
 import {
   verifyAccessRights,
-  accessErrorsToSuspensionCause,
   type AccessRightsError
 } from '~/services/ceremaService/perimeterService';
+import { getCeremaSuspensionState } from '~/services/ceremaService/suspensionService';
+
+interface RefreshOptions {
+  authoritative?: boolean;
+  establishmentId?: string | null;
+}
 
 interface AuthorizedEstablishment {
   establishmentId: string;
@@ -25,21 +30,52 @@ interface AuthorizationResult {
   accessErrors: AccessRightsError[];
 }
 
+function isIncompleteCeremaUser(ceremaUser: CeremaUser): boolean {
+  return !!(ceremaUser.groupFetchFailed || ceremaUser.perimeterFetchFailed);
+}
+
+function splitCeremaUsers(ceremaUsers: ReadonlyArray<CeremaUser>) {
+  const incompleteCeremaUsers = ceremaUsers.filter(isIncompleteCeremaUser);
+  return {
+    incompleteCeremaUsers,
+    syncableCeremaUsers: ceremaUsers.filter(
+      (ceremaUser) => !isIncompleteCeremaUser(ceremaUser)
+    )
+  };
+}
+
 function findCeremaUser(
   ceremaUsers: ReadonlyArray<CeremaUser>,
   establishmentSiren: string
 ): CeremaUser | undefined {
-  return ceremaUsers.find(
-    (ceremaUser) =>
-      ceremaUser.establishmentSiren === establishmentSiren ||
-      ceremaUser.establishmentSiren === '*'
+  return ceremaUsers.find((ceremaUser) =>
+    matchesCeremaSiren(ceremaUser, establishmentSiren)
   );
+}
+
+function matchesCeremaSiren(
+  ceremaUser: CeremaUser,
+  establishmentSiren: string
+): boolean {
+  return (
+    ceremaUser.establishmentSiren === establishmentSiren ||
+    ceremaUser.establishmentSiren === '*'
+  );
+}
+
+function getFailedCeremaEntries(ceremaUsers: ReadonlyArray<CeremaUser>) {
+  return ceremaUsers.map((ceremaUser) => ({
+    establishmentSiren: ceremaUser.establishmentSiren,
+    groupFetchFailed: ceremaUser.groupFetchFailed,
+    perimeterFetchFailed: ceremaUser.perimeterFetchFailed
+  }));
 }
 
 async function authorizeEstablishments(
   user: UserApi,
   knownEstablishments: ReadonlyArray<EstablishmentApi>,
-  ceremaUsers: ReadonlyArray<CeremaUser>
+  ceremaUsers: ReadonlyArray<CeremaUser>,
+  selectedEstablishment: EstablishmentApi | null
 ): Promise<AuthorizationResult> {
   const authorizedEstablishments: AuthorizedEstablishment[] = [];
   const accessErrors: AccessRightsError[] = [];
@@ -74,49 +110,61 @@ async function authorizeEstablishments(
         errors: accessRights.errors
       }
     );
-    accessErrors.push(...accessRights.errors);
+    if (establishment.id === selectedEstablishment?.id) {
+      accessErrors.push(...accessRights.errors);
+    }
   }
 
   return { authorizedEstablishments, accessErrors };
 }
 
-async function suspendIfCurrentEstablishmentLostAccess(
+async function syncCeremaSuspension(
   user: UserApi,
-  authorizedEstablishments: AuthorizedEstablishment[],
+  selectedEstablishment: EstablishmentApi | null,
+  ceremaUsers: CeremaUser[],
   accessErrors: AccessRightsError[]
 ): Promise<void> {
-  const currentEstablishmentStillValid = authorizedEstablishments.some(
-    (establishment) => establishment.establishmentId === user.establishmentId
-  );
-  if (
-    !user.establishmentId ||
-    currentEstablishmentStillValid ||
-    accessErrors.length === 0
-  ) {
-    return;
-  }
-
-  const suspensionCause = accessErrorsToSuspensionCause([
-    ...new Set(accessErrors)
-  ]);
-
-  logger.warn('Suspending user at login due to lost access rights', {
-    userId: user.id,
-    email: user.email,
-    establishmentId: user.establishmentId,
-    suspensionCause
-  });
-
-  // Re-fetch user to get latest lastAuthenticatedAt (updated by signIn)
+  // Re-fetch the user so we preserve fields updated by the sign-in flow and
+  // any manual suspension cause written concurrently.
   const currentUser = await userRepository.get(user.id);
   if (!currentUser) {
     return;
   }
 
+  const suspensionState = getCeremaSuspensionState(
+    currentUser,
+    selectedEstablishment,
+    ceremaUsers,
+    accessErrors
+  );
+  if (!suspensionState) {
+    logger.info('No Portail DF entry found for selected establishment', {
+      userId: user.id,
+      email: user.email,
+      establishmentId: selectedEstablishment?.id,
+      establishmentSiren: selectedEstablishment?.siren
+    });
+    return;
+  }
+
+  if (
+    currentUser.suspendedAt === suspensionState.suspendedAt &&
+    currentUser.suspendedCause === suspensionState.suspendedCause
+  ) {
+    return;
+  }
+
   await userRepository.update({
     ...currentUser,
-    suspendedAt: new Date().toJSON(),
-    suspendedCause: suspensionCause
+    ...suspensionState
+  });
+
+  logger.info('User suspension synchronized from Portail DF', {
+    userId: user.id,
+    email: user.email,
+    establishmentId: selectedEstablishment?.id,
+    previousSuspendedCause: currentUser.suspendedCause,
+    nextSuspendedCause: suspensionState.suspendedCause
   });
 }
 
@@ -239,7 +287,7 @@ async function saveAuthorizedEstablishmentPerimeters(
  */
 export async function refreshAuthorizedEstablishments(
   user: UserApi,
-  options: { authoritative?: boolean } = {}
+  options: RefreshOptions = {}
 ): Promise<void> {
   try {
     const ceremaUsers = await ceremaService.consultUsers(user.email);
@@ -255,7 +303,36 @@ export async function refreshAuthorizedEstablishments(
       return;
     }
 
-    const ceremaUsersWithCommitment = ceremaUsers.filter(
+    const selectedEstablishmentId =
+      options.establishmentId ?? user.establishmentId;
+    const selectedEstablishment = selectedEstablishmentId
+      ? await establishmentRepository.get(selectedEstablishmentId)
+      : null;
+    const { incompleteCeremaUsers, syncableCeremaUsers } =
+      splitCeremaUsers(ceremaUsers);
+    const incompleteSelectedCeremaUsers = selectedEstablishment
+      ? incompleteCeremaUsers.filter((ceremaUser) =>
+          matchesCeremaSiren(ceremaUser, selectedEstablishment.siren)
+        )
+      : [];
+
+    if (incompleteSelectedCeremaUsers.length > 0) {
+      logger.warn(
+        'Skipping Portail DF synchronization with incomplete selected establishment details',
+        {
+          userId: user.id,
+          email: user.email,
+          establishmentId: selectedEstablishment?.id,
+          failedEntries: getFailedCeremaEntries(incompleteSelectedCeremaUsers)
+        }
+      );
+      if (options.authoritative) {
+        throw new ExternalServiceUnavailableError('Portail DF');
+      }
+      return;
+    }
+
+    const ceremaUsersWithCommitment = syncableCeremaUsers.filter(
       (ceremaUser) => ceremaUser.hasCommitment
     );
     const establishmentSirens = ceremaUsersWithCommitment.map(
@@ -269,21 +346,41 @@ export async function refreshAuthorizedEstablishments(
       await authorizeEstablishments(
         user,
         knownEstablishments,
-        ceremaUsersWithCommitment
+        syncableCeremaUsers,
+        selectedEstablishment
       );
 
-    await suspendIfCurrentEstablishmentLostAccess(
-      user,
-      authorizedEstablishments,
-      accessErrors
-    );
-    await syncAuthorizedEstablishments(user, authorizedEstablishments);
+    if (selectedEstablishment) {
+      await syncCeremaSuspension(
+        user,
+        selectedEstablishment,
+        syncableCeremaUsers,
+        accessErrors
+      );
+    }
     await saveAuthorizedEstablishmentPerimeters(
       user,
       authorizedEstablishments,
       knownEstablishments,
-      ceremaUsersWithCommitment
+      syncableCeremaUsers
     );
+
+    if (incompleteCeremaUsers.length > 0) {
+      logger.warn(
+        'Skipping authorized establishments synchronization with incomplete Portail DF details',
+        {
+          userId: user.id,
+          email: user.email,
+          failedEntries: getFailedCeremaEntries(incompleteCeremaUsers)
+        }
+      );
+      if (options.authoritative) {
+        throw new ExternalServiceUnavailableError('Portail DF');
+      }
+      return;
+    }
+
+    await syncAuthorizedEstablishments(user, authorizedEstablishments);
   } catch (error) {
     // Log error but don't fail login
     logger.error('Failed to refresh authorized establishments at login', {

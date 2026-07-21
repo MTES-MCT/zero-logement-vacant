@@ -114,16 +114,22 @@ const authOptions = {
             });
           }
 
-          await refreshAuthorizedEstablishments(user);
-
+          const sessionEstablishmentId =
+            typeof session.activeEstablishmentId === 'string'
+              ? session.activeEstablishmentId
+              : null;
           const activeEstablishmentId =
-            session.activeEstablishmentId ?? user.establishmentId;
+            sessionEstablishmentId ?? user.establishmentId;
 
           if (!activeEstablishmentId) {
             throw new APIError('UNPROCESSABLE_ENTITY', {
               message: 'User has no active establishment'
             });
           }
+
+          await refreshAuthorizedEstablishments(user, {
+            establishmentId: activeEstablishmentId
+          });
 
           return {
             data: {

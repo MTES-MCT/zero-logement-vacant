@@ -63,7 +63,10 @@ async function changeEstablishmentBySession(
   const establishmentId = request.params.establishmentId;
 
   if (user.role !== UserRole.ADMIN && user.role !== UserRole.VISITOR) {
-    await refreshAuthorizedEstablishments(user, { authoritative: true });
+    await refreshAuthorizedEstablishments(user, {
+      authoritative: true,
+      establishmentId
+    });
     const authorised =
       await userEstablishmentRepository.getAuthorizedEstablishments(user.id);
     const authorisedIds = authorised

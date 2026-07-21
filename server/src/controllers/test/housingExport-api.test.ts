@@ -1,7 +1,10 @@
 import { constants } from 'http2';
 
+import { faker } from '@faker-js/faker/locale/fr';
+import excel from 'exceljs';
 import request from 'supertest';
 
+import { kysely } from '~/infra/database/kysely';
 import { createServer } from '~/infra/server';
 import { CampaignApi } from '~/models/CampaignApi';
 import { EstablishmentApi } from '~/models/EstablishmentApi';
@@ -9,6 +12,17 @@ import { GroupApi } from '~/models/GroupApi';
 import { UserApi } from '~/models/UserApi';
 import { factories } from '~/test/factories';
 import { tokenProvider } from '~/test/testUtils';
+
+function binaryParser(res: any, callback: (err: any, buffer: Buffer) => void) {
+  res.setEncoding('binary');
+  let data = '';
+  res.on('data', (chunk: string) => {
+    data += chunk;
+  });
+  res.on('end', () => {
+    callback(null, Buffer.from(data, 'binary'));
+  });
+}
 
 const XLSX_CONTENT_TYPE =
   'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet';
@@ -105,6 +119,65 @@ describe('Housing export API', () => {
 
       expect(status).toBe(constants.HTTP_STATUS_ACCEPTED);
       expect(headers['content-type']).toContain(XLSX_CONTENT_TYPE);
+    });
+
+    it('should exclude housings whose primary owner refused to be contacted', async () => {
+      const geoCode = faker.helpers.arrayElement(establishment.geoCodes);
+      const contactableOwner = await factories.owner.create();
+      const doNotContactOwner = await factories.owner.create({
+        doNotContact: true
+      });
+      const contactableHousing = await factories.housing.create({ geoCode });
+      const doNotContactHousing = await factories.housing.create({ geoCode });
+
+      await factories
+        .housingOwner({ housing: contactableHousing, owner: contactableOwner })
+        .create({ rank: 1 });
+      await factories
+        .housingOwner({
+          housing: doNotContactHousing,
+          owner: doNotContactOwner
+        })
+        .create({ rank: 1 });
+
+      await kysely
+        .insertInto('campaignsHousing')
+        .values(
+          [contactableHousing, doNotContactHousing].map((housing) => ({
+            campaignId: campaign.id,
+            housingId: housing.id,
+            housingGeoCode: housing.geoCode
+          }))
+        )
+        .execute();
+
+      const response = await request(url)
+        .get(testRoute(campaign.id))
+        .use(tokenProvider(user))
+        .buffer()
+        .parse(binaryParser);
+
+      expect(response.status).toBe(constants.HTTP_STATUS_ACCEPTED);
+      const workbook = new excel.Workbook();
+      await workbook.xlsx.load(response.body);
+      const worksheet = workbook.getWorksheet('Logements');
+      const headerRow = worksheet!.getRow(1);
+      let localIdColumn = 0;
+      headerRow.eachCell((cell, colNumber) => {
+        if (cell.text === 'Identifiant fiscal national') {
+          localIdColumn = colNumber;
+        }
+      });
+      const localIds: unknown[] = [];
+      worksheet!.eachRow((row, rowNumber) => {
+        if (rowNumber === 1) {
+          return;
+        }
+        localIds.push(row.getCell(localIdColumn).value);
+      });
+
+      expect(localIds).toContain(contactableHousing.localId);
+      expect(localIds).not.toContain(doNotContactHousing.localId);
     });
   });
 });

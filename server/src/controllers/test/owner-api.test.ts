@@ -365,8 +365,12 @@ describe('Owner API', () => {
         id: owner.id,
         doNotContact: true
       });
-      const actual = await Owners().where({ id: owner.id }).first();
-      expect(actual).toMatchObject({ do_not_contact: true });
+      const actual = await kysely
+        .selectFrom('owners')
+        .selectAll()
+        .where('id', '=', owner.id)
+        .executeTakeFirst();
+      expect(actual).toMatchObject({ doNotContact: true });
     });
 
     describe('validation', () => {
@@ -468,12 +472,10 @@ describe('Owner API', () => {
     });
 
     it('should create an event when the do not contact flag changes', async () => {
-      const original = {
-        ...genOwnerApi(),
+      const original = await factories.owner.create({
         banAddress: null,
         doNotContact: false
-      };
-      await Owners().insert(formatOwnerApi(original));
+      });
 
       // Only the "do not contact" flag changes: every other field is identical.
       const payload = {
@@ -493,24 +495,24 @@ describe('Owner API', () => {
         .use(tokenProvider(user));
 
       expect(status).toBe(constants.HTTP_STATUS_OK);
-      const event = await Events()
-        .join(OWNER_EVENTS_TABLE, 'event_id', 'id')
-        .where({
-          owner_id: original.id,
-          type: 'owner:updated'
-        })
-        .first();
-      expect(event).toMatchObject<Partial<EventRecordDBO<'owner:updated'>>>({
+      const event = await kysely
+        .selectFrom('events')
+        .innerJoin('ownerEvents', 'ownerEvents.eventId', 'events.id')
+        .selectAll('events')
+        .where('ownerEvents.ownerId', '=', original.id)
+        .where('events.type', '=', 'owner:updated')
+        .executeTakeFirst();
+      expect(event).toMatchObject<Partial<Selectable<DB['events']>>>({
         type: 'owner:updated',
-        next_old: {
+        nextOld: {
           name: original.fullName,
           doNotContact: false
         },
-        next_new: {
+        nextNew: {
           name: original.fullName,
           doNotContact: true
         },
-        created_by: user.id
+        createdBy: user.id
       });
     });
   });

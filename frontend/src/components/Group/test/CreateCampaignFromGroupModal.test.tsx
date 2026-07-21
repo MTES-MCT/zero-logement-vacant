@@ -8,7 +8,7 @@ import configureTestStore from '~/utils/storeUtils';
 describe('CreateCampaignFromGroupModal', () => {
   it('should warn that do-not-contact owners are excluded from the campaign', () => {
     const modal = createCampaignFromGroupModal({ isOpenedByDefault: true });
-    const store = configureTestStore({ withAuth: true });
+    const store = configureTestStore();
 
     render(
       <Provider store={store}>

@@ -44,7 +44,7 @@ Yarn v4 monorepo with Nx for build orchestration and task running. French govern
 ```bash
 yarn nx <target> <project>              # Run specific task for project
 yarn nx run-many -t <target>            # Run task for all projects
-yarn nx run-many -t <target> --exclude=zero-logement-vacant
+yarn nx run-many -t <target> --exclude=zero-logementvacant
 ```
 
 **Available targets:** `build`, `test`, `typecheck`, `lint`, `dev`
@@ -55,6 +55,8 @@ yarn nx run-many -t <target> --exclude=zero-logement-vacant
 yarn nx test server                     # Test server only
 yarn nx test server -- <file-pattern>   # Test specific files (vitest)
 yarn nx build frontend                  # Build frontend
+yarn nx dev front                       # Start frontend dev server (localhost:3000)
+yarn nx dev server                     # Start backend dev server (localhost:3001/api)
 yarn test                               # Test all (via nx run-many)
 ```
 
@@ -83,9 +85,135 @@ yarn workspace @zerologementvacant/server seed
 ### 3. Local Development
 
 ```bash
-yarn workspace @zerologementvacant/front dev    # localhost:3000
-yarn workspace @zerologementvacant/server dev   # localhost:3001/api
+yarn nx dev front       # localhost:3000
+yarn nx dev server      # localhost:3001/api
 ```
+
+---
+
+## 🤖 Mistral-Specific Workflow
+
+> **Note:** This section defines **specific rules** for working with Mistral on the Zéro Logement Vacant project.
+
+### 👥 Team Context
+- **Project** : [Zéro Logement Vacant](https://zerologementvacant.beta.gouv.fr) (public digital service).
+- **Stack** : Yarn v4 monorepo (Nx) with React (frontend), Express (backend), PostgreSQL.
+- **Objective** : Develop **frontend features** from Figma mockups, with rigor and respect for conventions.
+
+### 🚫 Absolute Prohibitions (for Mistral)
+1. **❌ No commits** without **explicit** team agreement (e.g., *"commit", "make a commit"*).
+2. **❌ No PRs** without **clear** consent (e.g., *"create a PR", "open a PR"*).
+3. **❌ Never merge a PR** (even if requested).
+4. **❌ No pushes** to `main`, `protected`, or any default branch.
+5. **❌ No modifications** to code not requested (except critical blocking bugs).
+
+### 🟢 Mandatory Workflow
+
+#### 1️⃣ **Team Provides**
+- Figma mockups (links or exports).
+- Expected behaviors (interactions, edge cases).
+- Business context (if necessary).
+
+#### 2️⃣ **Mistral Develops Locally**
+- **Frontend only** (React + TypeScript).
+- **TDD mandatory** :
+  - Tests **before** implementation (Vitest + `@fast-check/vitest`).
+  - 1 test → 1 implementation → validation → repeat.
+- **Strict respect** of conventions (see [Key Conventions](#-key-conventions)).
+- **No commit/PR** without team validation.
+
+#### 3️⃣ **Team Tests on localhost**
+- Mistral will provide commands to launch the front:
+  ```bash
+  yarn nx dev front  # localhost:3000
+  ```
+- **Visual** (vs Figma) and **functional** validation.
+
+#### 4️⃣ **If OK**
+- Team says **"commit"** → Mistral makes a commit **in English** (e.g., `feat(housing): add vacancy filter`).
+- Team says **"create a PR"** → Mistral creates a **draft PR** (never ready-for-review without agreement).
+- Mistral provides the **PR link** for review.
+
+---
+
+### 📚 Mandatory Resources
+- **Design Système de l'État (DSFR)** :
+  - [Official Documentation](https://www.systeme-de-design.gouv.fr/version-courante/fr)
+  - [Storybook DSFR](https://www.systeme-de-design.gouv.fr/v1.14/storybook/index.html?path=/)
+  - [Vue DS (for reference)](https://docs.vue-ds.fr/guide/pour-commencer)
+- **Tools** :
+  - Figma (mockups to be provided).
+  - [React DSFR (`@codegouvfr/react-dsfr`)](https://github.com/GouvernementFR/dsfr-react).
+
+---
+
+### 🎨 Key Conventions (Summary)
+
+#### 📂 Frontend Structure
+| Type | Location | Example |
+|------|----------|---------|
+| Shared components | `frontend/src/components/ui/` | `Button`, `Card` |
+| Business components | `frontend/src/components/<Feature>/` | `HousingCard`, `CampaignList` |
+| Views (pages) | `frontend/src/views/<Feature>/` | `HousingListView` |
+| Unit tests | `components/<X>/test/<X>.test.tsx` | `HousingCard.test.tsx` |
+| Integration tests | `views/<X>/test/<X>View.test.tsx` | `HousingListView.test.tsx` |
+
+#### ⚛️ Development
+- **Components** :
+  - **DSFR priority** (`@codegouvfr/react-dsfr`).
+  - **MUI** for layouts (`Box`, `Stack`, `Grid`).
+  - **Emotion** (`styled()`) for custom styles (never SCSS).
+- **Colors** :
+  - **DSFR tokens** : `fr.colors.blueFranceMain525` (from `@codegouvfr/react-dsfr`).
+  - **CSS variables** : `--blue-france-main-525` (from `frontend/src/colors.scss`).
+  - ❌ **Never** hex codes (`#6a6af4` → `--blue-france-main-525`).
+- **Spacing** :
+  - Always in `rem` (e.g., `margin: "1rem"`).
+  - ❌ **Never** `px` or `spacing={2}` (MUI).
+- **Typography** :
+  - Use DSFR components (`<Text>`, `<Title>`) with their props.
+
+#### 📦 Imports
+- **Alias** : `~` for `frontend/src/` (e.g., `import Button from '~/components/ui/Button'`).
+- **MUI** : Direct imports (e.g., `import Box from '@mui/material/Box'`).
+- **Workspace** : `@zerologementvacant/models`, `@zerologementvacant/schemas`, etc.
+
+#### 🧪 Tests (TDD)
+- **Framework** : **Vitest** (not Jest).
+- **API Mocks** :
+  - **MSW** (handlers in `src/mocks/handlers/`).
+  - ❌ **Never** `vi.mock` for components (use `mockAPI.use()`).
+- **Interactions** : `userEvent.setup()` (not `fireEvent`).
+- **Fixtures** : Always extend `gen*DTO()` from `@zerologementvacant/models`.
+- **Property-based tests** : `@fast-check/vitest` for validation schemas.
+
+#### 🔤 Language
+- **Code/Commits/PR** : **English** (e.g., `feat(housing): add filter`).
+- **UI Text** : **French** with apostrophe `'` (U+2019), never `'` (U+0027).
+
+#### 🧩 Forms
+- **Hook** : `react-hook-form` + `yup` (resolver).
+- **Validation** : Shared schemas in `@zerologementvacant/schemas`.
+- ❌ **Never** legacy `useForm` (in `hooks/useForm.tsx`).
+
+#### 🪟 Modals (DSFR)
+- **Opening** : Imperative via `createModal` or `createConfirmationModal`.
+- **Forms** : Always with `react-hook-form`.
+
+---
+
+### 📌 Additional Notes
+- **Figma → Code** :
+  - Mistral will translate mockups into **DSFR + MUI + Emotion** (no Tailwind).
+  - **Visual** validation with team before finalizing.
+- **Questions** :
+  - Mistral will ask **short and precise** questions if something is unclear (e.g., *"Should the button be `primary` or `secondary`?"*).
+- **Priorities** :
+  1. Respect Figma mockups.
+  2. Respect DSFR conventions.
+  3. Functionality > Code perfection (refactor later if needed).
+
+---
 
 ## Cross-Workspace Patterns
 
@@ -254,7 +382,7 @@ After opening any PR with `gh pr create`, always:
 - When running tasks (for example build, lint, test, e2e, etc.), always prefer running the task through `nx` (i.e. `nx run`, `nx run-many`, `nx affected`) instead of using the underlying tooling directly
 - Prefix nx commands with the workspace's package manager (e.g., `pnpm nx build`, `npm exec nx test`) - avoids using globally installed CLI
 - You have access to the Nx MCP server and its tools, use them to help the user
-- For Nx plugin best practices, check `node_modules/@nx/<plugin>/PLUGIN.md`. Not all plugins have this file - proceed without it if unavailable.
+- For Nx plugin best practices, check `node_modules/@nx/<plugin>/PLUGIN.md`. Not all plugins have this file - proceed without it if unavailable
 - NEVER guess CLI flags - always check nx_docs or `--help` first when unsure
 
 ## Scaffolding & Generators

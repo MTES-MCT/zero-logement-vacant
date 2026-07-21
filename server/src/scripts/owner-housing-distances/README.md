@@ -118,7 +118,8 @@ The job contains three assets:
   skips writes by default.
 - `lovac_owner_housing_locations`: runs this calculator.
 - `lovac_owner_housing_location_quality_check`: checks coverage of
-  `locprop_relative_ban`.
+  usable `locprop_relative_ban` classifications (`0` through `6`) and reports
+  unresolved class `7` or BAN sentinel rows separately.
 
 Example run config for a targeted dry-run:
 

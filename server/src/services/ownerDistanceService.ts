@@ -317,15 +317,21 @@ export function calculateDistance(
     housingAddress?.banId &&
     ownerAddress.banId === housingAddress.banId
   );
-  const relativeLocation = hasMatchingBanIds
-    ? 'same-address'
-    : hasValidCoordinates(ownerAddress) && hasValidCoordinates(housingAddress)
-      ? calculateGeographicClassification(
-          ownerAddress?.postalCode,
-          housingAddress?.postalCode,
-          { absoluteDistance }
-        )
-      : 'other';
+  let relativeLocation: RelativeLocation;
+  if (hasMatchingBanIds) {
+    relativeLocation = 'same-address';
+  } else if (
+    hasValidCoordinates(ownerAddress) &&
+    hasValidCoordinates(housingAddress)
+  ) {
+    relativeLocation = calculateGeographicClassification(
+      ownerAddress.postalCode,
+      housingAddress.postalCode,
+      { absoluteDistance }
+    );
+  } else {
+    relativeLocation = 'other';
+  }
 
   return { relativeLocation, absoluteDistance };
 }

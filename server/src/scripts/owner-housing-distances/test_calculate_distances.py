@@ -137,7 +137,9 @@ class TestFrenchGeographicRules:
         """Rule 4: Different regions, owner in metropolitan France should return 4."""
         # Paris (75) in Île-de-France (11) and Lyon (69) in Auvergne-Rhône-Alpes (84)
         with patch.object(calculator, "get_region_from_postal_code") as mock_get_region:
-            mock_get_region.side_effect = lambda pc: "11" if pc[:2] == "75" else "84"
+            mock_get_region.side_effect = lambda pc: (
+                "11" if pc.startswith("75") else "84"
+            )
             result = calculator.calculate_french_geographic_rules("75001", "69001")
             assert result == 4
 
@@ -145,7 +147,9 @@ class TestFrenchGeographicRules:
         """Rule 5: Owner in overseas territories should return 5."""
         # Guadeloupe (971) and Paris (75)
         with patch.object(calculator, "get_region_from_postal_code") as mock_get_region:
-            mock_get_region.side_effect = lambda pc: "01" if pc[:2] == "97" else "11"
+            mock_get_region.side_effect = lambda pc: (
+                "01" if pc.startswith("97") else "11"
+            )
             with patch.object(calculator, "is_overseas_region", return_value=True):
                 result = calculator.calculate_french_geographic_rules("97110", "75001")
                 assert result == 5
@@ -363,7 +367,7 @@ class TestProcessSinglePair:
             ),
         }
 
-        distance, classification = calculator.process_single_pair(
+        distance, _ = calculator.process_single_pair(
             "owner123", "housing456", address_cache
         )
 
@@ -925,9 +929,10 @@ class TestRunFailurePropagation:
         )
         calc.process_single_pair = Mock()
         calc.update_database = Mock()
+        scope = LocationScope(data_file_year="lovac-2026")
 
         with pytest.raises(RuntimeError, match="Address batch query failed"):
-            calc.run(LocationScope(data_file_year="lovac-2026"), batch_size=1)
+            calc.run(scope, batch_size=1)
 
         calc.process_single_pair.assert_not_called()
         calc.update_database.assert_not_called()
@@ -952,9 +957,10 @@ class TestRunFailurePropagation:
         calc.update_database = Mock(
             side_effect=RuntimeError("1 database update failed")
         )
+        scope = LocationScope(data_file_year="lovac-2026")
 
         with pytest.raises(RuntimeError, match="database update failed"):
-            calc.run(LocationScope(data_file_year="lovac-2026"), batch_size=1)
+            calc.run(scope, batch_size=1)
 
         calc.process_single_pair.assert_called_once_with("owner-1", "housing-1", {})
         calc.update_database.assert_called_once()
@@ -977,9 +983,10 @@ class TestRunFailurePropagation:
         calc.batch_get_address_data = Mock(return_value={})
         calc.process_single_pair = Mock(side_effect=RuntimeError("invalid pair"))
         calc.update_database = Mock()
+        scope = LocationScope(data_file_year="lovac-2026")
 
         with pytest.raises(RuntimeError, match="invalid pair"):
-            calc.run(LocationScope(data_file_year="lovac-2026"), batch_size=1)
+            calc.run(scope, batch_size=1)
 
         calc.update_database.assert_not_called()
         calc.disconnect.assert_called_once_with()
@@ -1123,6 +1130,7 @@ class TestCandidateScope:
         query = calc.cursor.execute.call_args.args[0]
         params = calc.cursor.execute.call_args.args[1]
         assert count == 42
+        assert "h.data_file_years @> ARRAY[%(data_file_year)s]::text[]" in query
         assert "oh.locprop_relative_ban IS NULL" in query
         assert "locprop_distance_ban IS NULL OR" not in query
         assert params["data_file_year"] == "lovac-2026"

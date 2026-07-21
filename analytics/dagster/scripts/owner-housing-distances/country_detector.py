@@ -384,7 +384,7 @@ class CountryDetector:
         try:
             result = self.classify_address(address).value
         except Exception as error:
-            logging.error("Country classification error for %r: %s", address, error)
+            logging.exception("Country classification error for %r: %s", address, error)
             self.stats["errors"] += 1
             return COUNTRY_UNKNOWN
 

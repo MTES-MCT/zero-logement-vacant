@@ -139,13 +139,12 @@ def test_owner_housing_location_module_loads_dataclasses():
 
 
 def test_runtime_script_fails_when_packaged_path_is_missing(tmp_path):
+    relative_path = Path("scripts/missing.py")
+
     with pytest.raises(
         RuntimeError, match="Required Dagster runtime script is missing"
     ):
-        asset_module._runtime_script(
-            Path("scripts/missing.py"),
-            runtime_root=tmp_path,
-        )
+        asset_module._runtime_script(relative_path, runtime_root=tmp_path)
 
 
 def test_location_asset_fails_real_run_when_report_contains_errors(monkeypatch):
@@ -156,12 +155,11 @@ def test_location_asset_fails_real_run_when_report_contains_errors(monkeypatch):
         asset_module, "_owner_housing_location_module", lambda: calculator
     )
     monkeypatch.setattr(asset_module, "_database_url", lambda: "postgresql://unused")
+    compute = _compute(asset_module.lovac_owner_housing_locations)
+    context = _location_context()
 
     with pytest.raises(asset_module.Failure, match="reported 1 processing error"):
-        _compute(asset_module.lovac_owner_housing_locations)(
-            _location_context(),
-            None,
-        )
+        compute(context, None)
 
 
 def test_location_asset_fails_dry_run_when_report_contains_errors(monkeypatch):
@@ -172,12 +170,11 @@ def test_location_asset_fails_dry_run_when_report_contains_errors(monkeypatch):
         asset_module, "_owner_housing_location_module", lambda: calculator
     )
     monkeypatch.setattr(asset_module, "_database_url", lambda: "postgresql://unused")
+    compute = _compute(asset_module.lovac_owner_housing_locations)
+    context = _location_context(dry_run=True)
 
     with pytest.raises(asset_module.Failure, match="reported 1 processing error"):
-        _compute(asset_module.lovac_owner_housing_locations)(
-            _location_context(dry_run=True),
-            None,
-        )
+        compute(context, None)
 
 
 def test_location_asset_fails_real_run_when_updates_are_incomplete(monkeypatch):
@@ -190,12 +187,11 @@ def test_location_asset_fails_real_run_when_updates_are_incomplete(monkeypatch):
         asset_module, "_owner_housing_location_module", lambda: calculator
     )
     monkeypatch.setattr(asset_module, "_database_url", lambda: "postgresql://unused")
+    compute = _compute(asset_module.lovac_owner_housing_locations)
+    context = _location_context()
 
     with pytest.raises(asset_module.Failure, match="prepared 2 updates but wrote 1"):
-        _compute(asset_module.lovac_owner_housing_locations)(
-            _location_context(),
-            None,
-        )
+        compute(context, None)
 
 
 @pytest.mark.parametrize("data_file_year", ["", "2026", "lovac-current", "lovac-26"])
@@ -221,6 +217,13 @@ def test_scope_rejects_malformed_identifiers(config_override):
         asset_module._scope_from_config(config)
 
 
+def test_scope_query_uses_gin_array_containment():
+    where_sql, params = asset_module._scope_where(_location_context().op_config)
+
+    assert "h.data_file_years @> ARRAY[%(data_file_year)s]::text[]" in where_sql
+    assert params["data_file_year"] == "lovac-2026"
+
+
 def test_quality_check_rejects_scope_different_from_location_report(monkeypatch):
     connect = Mock()
     monkeypatch.setattr(asset_module.psycopg2, "connect", connect)
@@ -231,12 +234,11 @@ def test_quality_check_rejects_scope_different_from_location_report(monkeypatch)
             "geo_codes": [],
         }
     ).to_dict()
+    compute = _compute(asset_module.lovac_owner_housing_location_quality_check)
+    context = _quality_context()
 
     with pytest.raises(asset_module.Failure, match="scope does not match"):
-        _compute(asset_module.lovac_owner_housing_location_quality_check)(
-            _quality_context(),
-            report,
-        )
+        compute(context, report)
 
     connect.assert_not_called()
 
@@ -250,14 +252,39 @@ def test_quality_check_fails_when_scope_contains_no_pairs(monkeypatch):
     connection.cursor.return_value = cursor
     monkeypatch.setattr(asset_module.psycopg2, "connect", Mock(return_value=connection))
     monkeypatch.setattr(asset_module, "_database_url", lambda: "postgresql://unused")
+    compute = _compute(asset_module.lovac_owner_housing_location_quality_check)
+    context = _quality_context()
+    report = _report().to_dict()
 
     with pytest.raises(
         asset_module.Failure, match="scope contains no owner-housing pairs"
     ):
-        _compute(asset_module.lovac_owner_housing_location_quality_check)(
-            _quality_context(),
-            _report().to_dict(),
-        )
+        compute(context, report)
+
+
+def test_quality_check_excludes_unknown_locations_and_ban_sentinels(monkeypatch):
+    cursor = MagicMock()
+    cursor.__enter__.return_value = cursor
+    cursor.fetchone.return_value = (10, 9, 1, 2, 1, 3, 4)
+    connection = MagicMock()
+    connection.__enter__.return_value = connection
+    connection.cursor.return_value = cursor
+    monkeypatch.setattr(asset_module.psycopg2, "connect", Mock(return_value=connection))
+    monkeypatch.setattr(asset_module, "_database_url", lambda: "postgresql://unused")
+    compute = _compute(asset_module.lovac_owner_housing_location_quality_check)
+    context = _quality_context(fail_on_low_coverage=False)
+    report = _report().to_dict()
+
+    output = compute(context, report)
+
+    query = cursor.execute.call_args.args[0]
+    assert "oh.locprop_relative_ban BETWEEN 0 AND 6" in query
+    assert "oh.locprop_relative_ban = 7" in query
+    assert "oba.ban_id IS NULL" in query
+    assert "hba.ban_id IS NULL" in query
+    assert output.value["coverage_ratio"] == pytest.approx(0.9)
+    assert output.value["owner_ban_missing_pairs"] == 3
+    assert output.value["housing_ban_missing_pairs"] == 4
 
 
 def test_backfill_fetch_limit_never_exceeds_remaining_global_limit():
@@ -297,6 +324,14 @@ def test_backfill_targets_and_cursor_are_isolated_by_scope(tmp_path, monkeypatch
     )
 
 
+def test_backfill_cursor_rejects_path_traversal(tmp_path, monkeypatch):
+    backfill = _load_backfill_module()
+    monkeypatch.chdir(tmp_path)
+
+    with pytest.raises(ValueError, match="Unsafe cursor path"):
+        backfill.cursor_file("housing-lovac", "../../outside")
+
+
 def test_scoped_housing_backfill_build_query_filters_target_housings():
     backfill = _load_backfill_module()
 
@@ -306,6 +341,7 @@ def test_scoped_housing_backfill_build_query_filters_target_housings():
         ("38200", "38544"),
     )
 
+    assert "fh.data_file_years @> ARRAY[%(data_source)s]::text[]" in query
     assert "establishments" in query
     assert "fh.geo_code = ANY(%(geo_codes)s::text[])" in query
     assert params == {
@@ -331,3 +367,19 @@ def test_backfill_asset_passes_scope_and_rebuilds_targets(monkeypatch):
     assert command[command.index("--establishment-id") + 1] == ESTABLISHMENT_ID
     assert "--rebuild-targets" in command
     assert "--reset" in command
+
+
+def test_scoped_backfill_allows_all_candidates_without_full_year_opt_in(monkeypatch):
+    completed = SimpleNamespace(returncode=0, stdout="ok", stderr="")
+    run = Mock(return_value=completed)
+    monkeypatch.setattr(asset_module.subprocess, "run", run)
+    monkeypatch.setattr(
+        asset_module,
+        "_runtime_script",
+        lambda relative_path: PROJECT_ROOT / "scripts" / "backfill_ban_owners.py",
+    )
+    context = _backfill_context(limit=0, allow_full_year=False)
+
+    _compute(asset_module.lovac_owner_ban_backfill)(context)
+
+    assert "--limit" not in run.call_args.args[0]

@@ -127,7 +127,7 @@ def _scope_from_config(config: dict[str, Any]) -> tuple[str | None, tuple[str, .
 
 
 def _scope_where(config: dict[str, Any]) -> tuple[str, dict[str, Any]]:
-    clauses = ["%(data_file_year)s = ANY(h.data_file_years)"]
+    clauses = ["h.data_file_years @> ARRAY[%(data_file_year)s]::text[]"]
     params: dict[str, Any] = {"data_file_year": config["data_file_year"]}
     establishment_id, geo_codes = _scope_from_config(config)
 
@@ -238,12 +238,6 @@ def lovac_owner_ban_backfill(context: AssetExecutionContext):
         )
 
     establishment_id, geo_codes = _scope_from_config(config)
-    if config["limit"] == 0 and not config["allow_full_year"]:
-        raise Failure(
-            "Refusing a full owner BAN backfill without allow_full_year=true. "
-            "Use limit for a pilot run first."
-        )
-
     script_path = _runtime_script(
         Path("scripts/backfill_ban_owners.py"),
     )
@@ -401,10 +395,11 @@ def lovac_owner_housing_location_quality_check(
         SELECT
           COUNT(*) AS total_pairs,
           COUNT(*) FILTER (
-            WHERE oh.locprop_relative_ban IS NOT NULL
+            WHERE oh.locprop_relative_ban BETWEEN 0 AND 6
           ) AS classified_pairs,
           COUNT(*) FILTER (
             WHERE oh.locprop_relative_ban IS NULL
+               OR oh.locprop_relative_ban = 7
           ) AS missing_relative_pairs,
           COUNT(*) FILTER (
             WHERE oh.locprop_relative_ban = 0
@@ -413,10 +408,10 @@ def lovac_owner_housing_location_quality_check(
             WHERE oh.locprop_relative_ban = 6
           ) AS foreign_pairs,
           COUNT(*) FILTER (
-            WHERE oba.ref_id IS NULL
+            WHERE oba.ref_id IS NULL OR oba.ban_id IS NULL
           ) AS owner_ban_missing_pairs,
           COUNT(*) FILTER (
-            WHERE hba.ref_id IS NULL
+            WHERE hba.ref_id IS NULL OR hba.ban_id IS NULL
           ) AS housing_ban_missing_pairs
         FROM owners_housing oh
         JOIN fast_housing h

@@ -29,6 +29,17 @@ from country_detector import CountryDetector
 
 ACTIVE_OWNER_MIN_RANK = 1
 ZERO_KEY = (None, None, None)
+MISSING_PAIR_DATA_STAT = {
+    (False, False): "missing_both_data",
+    (False, True): "missing_owner_data",
+    (True, False): "missing_housing_data",
+}
+PAIR_COORDINATE_STAT = {
+    (True, True): "pairs_with_both_coords",
+    (True, False): "pairs_with_owner_coords_only",
+    (False, True): "pairs_with_housing_coords_only",
+    (False, False): "pairs_with_no_coords",
+}
 
 
 @dataclass(frozen=True)
@@ -54,6 +65,29 @@ class LocationComputationReport:
 
     def to_dict(self) -> dict:
         return asdict(self)
+
+
+def _execute_update_batches(calculator, batches: list[tuple], num_workers: int):
+    if num_workers <= 1:
+        for batch in tqdm(batches, desc="Saving to database", unit="batch"):
+            yield batch, calculator._update_batch_worker(batch), None
+        return
+
+    from concurrent.futures import ThreadPoolExecutor, as_completed
+
+    with tqdm(
+        total=sum(len(batch[1]) for batch in batches),
+        desc="Saving to database",
+        unit="record",
+    ) as progress:
+        with ThreadPoolExecutor(max_workers=num_workers) as executor:
+            futures = {
+                executor.submit(calculator._update_batch_worker, batch): batch
+                for batch in batches
+            }
+            for future in as_completed(futures):
+                batch = futures[future]
+                yield batch, future.result(), progress
 
 
 class DistanceCalculator:
@@ -133,7 +167,7 @@ class DistanceCalculator:
         return result
 
     def _scope_sql(self, scope: LocationScope) -> tuple[list[str], dict]:
-        clauses = ["%(data_file_year)s = ANY(h.data_file_years)"]
+        clauses = ["h.data_file_years @> ARRAY[%(data_file_year)s]::text[]"]
         params: dict = {"data_file_year": scope.data_file_year}
 
         if scope.establishment_id:
@@ -333,7 +367,7 @@ class DistanceCalculator:
 
             return address_cache
         except Exception as error:
-            logging.error("Error in batch_get_address_data: %s", error)
+            logging.exception("Error in batch_get_address_data: %s", error)
             raise
 
     @staticmethod
@@ -381,18 +415,11 @@ class DistanceCalculator:
             owner_data = self.get_address_data(owner_id, "Owner")
             housing_data = self.get_address_data(housing_id, "Housing")
 
-        distance = None
-        classification = 7
-
-        if not owner_data and not housing_data:
-            self.stats["missing_both_data"] += 1
-            return distance, classification
-        if not owner_data:
-            self.stats["missing_owner_data"] += 1
-            return distance, classification
-        if not housing_data:
-            self.stats["missing_housing_data"] += 1
-            return distance, classification
+        data_presence = (bool(owner_data), bool(housing_data))
+        missing_data_stat = MISSING_PAIR_DATA_STAT.get(data_presence)
+        if missing_data_stat:
+            self.stats[missing_data_stat] += 1
+            return None, 7
 
         (
             owner_postal,
@@ -413,28 +440,18 @@ class DistanceCalculator:
 
         owner_has_coords = self._has_coordinates(owner_data)
         housing_has_coords = self._has_coordinates(housing_data)
+        coordinate_state = (owner_has_coords, housing_has_coords)
+        self.stats[PAIR_COORDINATE_STAT[coordinate_state]] += 1
+        coordinate_count = sum(coordinate_state)
+        self.stats["addresses_with_coords"] += coordinate_count
+        self.stats["addresses_without_coords"] += 2 - coordinate_count
 
-        if owner_has_coords and housing_has_coords:
-            self.stats["pairs_with_both_coords"] += 1
+        distance = None
+        if all(coordinate_state):
             distance = self.haversine_distance(
                 owner_lat, owner_lon, housing_lat, housing_lon
             )
             self.stats["distances_calculated"] += 1
-        elif owner_has_coords:
-            self.stats["pairs_with_owner_coords_only"] += 1
-        elif housing_has_coords:
-            self.stats["pairs_with_housing_coords_only"] += 1
-        else:
-            self.stats["pairs_with_no_coords"] += 1
-
-        if owner_has_coords:
-            self.stats["addresses_with_coords"] += 1
-        else:
-            self.stats["addresses_without_coords"] += 1
-        if housing_has_coords:
-            self.stats["addresses_with_coords"] += 1
-        else:
-            self.stats["addresses_without_coords"] += 1
 
         # Matching BAN IDs remain usable when geocoding coordinates are absent.
         if owner_ban_id and housing_ban_id and owner_ban_id == housing_ban_id:
@@ -450,6 +467,7 @@ class DistanceCalculator:
             return distance, 7
         self.stats["france_detected"] += 1
 
+        classification = 7
         if owner_postal and housing_postal:
             classification = self.calculate_french_geographic_rules(
                 owner_postal, housing_postal
@@ -706,38 +724,20 @@ class DistanceCalculator:
         total_updates = 0
         total_errors = 0
 
-        if num_workers <= 1:
-            iterator = batches
-            for batch in tqdm(iterator, desc="Saving to database", unit="batch"):
-                _, updated_count, error = self._update_batch_worker(batch)
-                if error:
-                    total_errors += len(batch[1])
-                    logging.error("Error updating batch %s: %s", batch[0] + 1, error)
-                else:
-                    total_updates += updated_count
-        else:
-            from concurrent.futures import ThreadPoolExecutor, as_completed
-
-            with tqdm(
-                total=len(updates), desc="Saving to database", unit="record"
-            ) as pbar:
-                with ThreadPoolExecutor(max_workers=num_workers) as executor:
-                    futures = {
-                        executor.submit(self._update_batch_worker, batch): batch
-                        for batch in batches
-                    }
-                    for future in as_completed(futures):
-                        batch_id, updated_count, error = future.result()
-                        if error:
-                            errored = len(batches[batch_id][1])
-                            total_errors += errored
-                            pbar.update(errored)
-                            logging.error(
-                                "Error updating batch %s: %s", batch_id + 1, error
-                            )
-                        else:
-                            total_updates += updated_count
-                            pbar.update(updated_count)
+        for batch, result, progress in _execute_update_batches(
+            self, batches, num_workers
+        ):
+            batch_id, updated_count, error = result
+            if error:
+                failed_count = len(batch[1])
+                total_errors += failed_count
+                logging.error("Error updating batch %s: %s", batch_id + 1, error)
+                if progress is not None:
+                    progress.update(failed_count)
+            else:
+                total_updates += updated_count
+                if progress is not None:
+                    progress.update(updated_count)
 
         if total_errors:
             self.stats["errors"] += total_errors
@@ -820,15 +820,13 @@ class DistanceCalculator:
                     pass
             return (batch_id, 0, str(error))
 
-    def run(
+    def _print_run_configuration(
         self,
         scope: LocationScope,
-        limit: int | None = None,
-        force: bool = False,
-        dry_run: bool = False,
-        batch_size: int = 50_000,
-        num_workers: int = 1,
-    ) -> LocationComputationReport:
+        limit: int | None,
+        force: bool,
+        dry_run: bool,
+    ) -> None:
         print("=" * 80)
         print("OWNER-HOUSING LOCATION CALCULATOR")
         print("=" * 80)
@@ -844,11 +842,101 @@ class DistanceCalculator:
         if force:
             print("Force mode: recalculating existing values within scope")
 
-        self.connect()
+    def _prepare_pair_updates(
+        self,
+        pairs: list[dict],
+        address_cache: dict,
+        classification_counts: Counter[int],
+    ) -> list[dict]:
+        updates = []
+        for pair in tqdm(pairs, desc="Processing pairs", unit="pair"):
+            try:
+                distance, classification = self.process_single_pair(
+                    pair["owner_id"], pair["housing_id"], address_cache
+                )
+                classification_counts[classification] += 1
+                updates.append(
+                    {
+                        "owner_id": pair["owner_id"],
+                        "housing_id": pair["housing_id"],
+                        "housing_geo_code": pair["housing_geo_code"],
+                        "distance": distance,
+                        "classification": classification,
+                    }
+                )
+                self.stats["processed_pairs"] += 1
+            except Exception as error:
+                logging.exception(
+                    "Error processing pair %s-%s: %s",
+                    pair["owner_id"],
+                    pair["housing_id"],
+                    error,
+                )
+                self.stats["errors"] += 1
+                raise
+        return updates
+
+    def _calculate_batches(
+        self,
+        scope: LocationScope,
+        *,
+        limit: int | None,
+        force: bool,
+        dry_run: bool,
+        batch_size: int,
+        num_workers: int,
+    ) -> tuple[int, int, int, Counter[int]]:
         classification_counts: Counter[int] = Counter()
         total_updated = 0
         processed = 0
         prepared = 0
+        last_key = ZERO_KEY
+
+        while True:
+            current_batch_size = batch_size
+            if limit is not None:
+                current_batch_size = min(batch_size, limit - processed)
+            if current_batch_size <= 0:
+                break
+
+            pairs = self.fetch_owner_housing_pair_batch(
+                scope,
+                last_key=last_key,
+                batch_size=current_batch_size,
+                force=force,
+            )
+            if not pairs:
+                break
+
+            last = pairs[-1]
+            last_key = (
+                last["owner_id"],
+                last["housing_id"],
+                last["housing_geo_code"],
+            )
+            address_cache = self.batch_get_address_data(pairs)
+            updates = self._prepare_pair_updates(
+                pairs, address_cache, classification_counts
+            )
+            processed += len(updates)
+            prepared += len(updates)
+            total_updated += self.update_database(
+                updates, num_workers=num_workers, dry_run=dry_run
+            )
+
+        return processed, prepared, total_updated, classification_counts
+
+    def run(
+        self,
+        scope: LocationScope,
+        limit: int | None = None,
+        force: bool = False,
+        dry_run: bool = False,
+        batch_size: int = 50_000,
+        num_workers: int = 1,
+    ) -> LocationComputationReport:
+        self._print_run_configuration(scope, limit, force, dry_run)
+        self.connect()
 
         try:
             candidate_count = self.count_owner_housing_pairs(scope, force=force)
@@ -867,65 +955,16 @@ class DistanceCalculator:
             if candidate_count == 0:
                 return report
 
-            last_key = ZERO_KEY
-            while True:
-                if limit is not None and processed >= limit:
-                    break
-                current_batch_size = batch_size
-                if limit is not None:
-                    current_batch_size = min(current_batch_size, limit - processed)
-                if current_batch_size <= 0:
-                    break
-
-                pairs = self.fetch_owner_housing_pair_batch(
+            processed, prepared, total_updated, classification_counts = (
+                self._calculate_batches(
                     scope,
-                    last_key=last_key,
-                    batch_size=current_batch_size,
+                    limit=limit,
                     force=force,
+                    dry_run=dry_run,
+                    batch_size=batch_size,
+                    num_workers=num_workers,
                 )
-                if not pairs:
-                    break
-
-                last = pairs[-1]
-                last_key = (
-                    last["owner_id"],
-                    last["housing_id"],
-                    last["housing_geo_code"],
-                )
-
-                address_cache = self.batch_get_address_data(pairs)
-                updates = []
-                for pair in tqdm(pairs, desc="Processing pairs", unit="pair"):
-                    try:
-                        distance, classification = self.process_single_pair(
-                            pair["owner_id"], pair["housing_id"], address_cache
-                        )
-                        classification_counts[classification] += 1
-                        updates.append(
-                            {
-                                "owner_id": pair["owner_id"],
-                                "housing_id": pair["housing_id"],
-                                "housing_geo_code": pair["housing_geo_code"],
-                                "distance": distance,
-                                "classification": classification,
-                            }
-                        )
-                        processed += 1
-                        self.stats["processed_pairs"] += 1
-                    except Exception as error:
-                        logging.exception(
-                            "Error processing pair %s-%s: %s",
-                            pair["owner_id"],
-                            pair["housing_id"],
-                            error,
-                        )
-                        self.stats["errors"] += 1
-                        raise
-
-                prepared += len(updates)
-                total_updated += self.update_database(
-                    updates, num_workers=num_workers, dry_run=dry_run
-                )
+            )
 
             report.processed_pairs = processed
             report.updates_prepared = prepared

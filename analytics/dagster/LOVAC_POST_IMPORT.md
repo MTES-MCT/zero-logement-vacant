@@ -106,7 +106,9 @@ Expected dry-run checks:
 - `classification_counts` contains non-zero values for the expected categories.
 
 The quality check fails when the requested scope is empty or differs from the
-scope reported by the calculation asset. Dry-runs and real calculations fail on
+scope reported by the calculation asset. Its coverage ratio includes only usable
+classifications `0` through `6`; class `7` and BAN sentinel rows with no `ban_id`
+remain visible as unresolved data. Dry-runs and real calculations fail on
 processing errors; real calculations also fail when fewer rows are written than
 prepared.
 

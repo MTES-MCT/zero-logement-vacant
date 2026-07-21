@@ -159,7 +159,7 @@ SELECT DISTINCT oh.owner_id AS id
 FROM owners_housing oh
 JOIN fast_housing fh
   ON fh.id = oh.housing_id AND fh.geo_code = oh.housing_geo_code
-WHERE %(data_source)s = ANY(fh.data_file_years)
+WHERE fh.data_file_years @> ARRAY[%(data_source)s]::text[]
 {scope_sql};
 ALTER TABLE {table} ADD PRIMARY KEY (id);
 """
@@ -333,8 +333,21 @@ def cursor_file(
     establishment_id: str | None = None,
     geo_codes: tuple[str, ...] = (),
 ) -> Path:
+    if by not in {"owner-cohort", "housing-lovac", "all-owners"} or not re.fullmatch(
+        r"[a-z0-9-]+", data_source
+    ):
+        raise ValueError("Unsafe cursor path: invalid mode or data source")
     suffix = _scope_suffix(establishment_id, geo_codes)
-    return Path(f".backfill_ban_owners.{by}.{data_source}{suffix}.cursor.json")
+    cursor_directory = Path.cwd().resolve()
+    cursor_path = (
+        cursor_directory
+        / f".backfill_ban_owners.{by}.{data_source}{suffix}.cursor.json"
+    ).resolve()
+    if cursor_path.parent != cursor_directory:
+        raise ValueError(
+            "Unsafe cursor path: cursor files must stay in the current directory"
+        )
+    return cursor_path
 
 
 def load_cursor(
@@ -439,11 +452,73 @@ def geocode_parallel(
             except BanApiFatalError:
                 raise  # 4xx config error — abort, retrying won't help
             except Exception as error:
-                LOG.error(
+                LOG.exception(
                     "slice %d failed after retries: %s — aborting batch", i, error
                 )
                 raise
     return pd.concat(results, ignore_index=True) if results else pd.DataFrame()
+
+
+def _run_batches(
+    conn,
+    candidates_sql: str,
+    args: argparse.Namespace,
+    *,
+    api_url: str,
+    establishment_id: str | None,
+    geo_codes: tuple[str, ...],
+    last_id: str,
+    stop: dict[str, bool],
+) -> None:
+    processed = ok = nf = 0
+    by = args.by
+    data_source = args.data_source
+
+    with conn.cursor() as write_cur:
+        create_temp_table(write_cur)
+        conn.commit()
+
+        while not stop["flag"]:
+            if args.limit and processed >= args.limit:
+                LOG.info("Reached --limit %d — stopping.", args.limit)
+                break
+
+            fetch_limit = next_fetch_limit(
+                args.fetch_batch,
+                limit=args.limit,
+                processed=processed,
+            )
+            if fetch_limit <= 0:
+                break
+            frame = fetch_batch(conn, candidates_sql, data_source, last_id, fetch_limit)
+            if frame.empty:
+                LOG.info(
+                    "No more candidates — mode %s / cohort %s fully geocoded.",
+                    by,
+                    data_source,
+                )
+                break
+
+            api = geocode_parallel(frame, args.chunk, args.workers, api_url)
+            if not api.empty:
+                ok += copy_upsert(write_cur, prepare_valid(api, "Owner"))
+                nf += copy_upsert(write_cur, prepare_not_found(api, "Owner"))
+                conn.commit()
+
+            last_id = str(frame["ref_id"].iloc[-1])
+            save_cursor(by, data_source, last_id, establishment_id, geo_codes)
+            processed += len(frame)
+            LOG.info(
+                "batch: in=%d ok_total=%d nf_total=%d processed=%d/%s cursor=%s",
+                len(frame),
+                ok,
+                nf,
+                processed,
+                "?",
+                last_id,
+            )
+
+    LOG.info("Done. processed=%d ok=%d not_found=%d", processed, ok, nf)
 
 
 def run(args: argparse.Namespace) -> None:
@@ -474,7 +549,6 @@ def run(args: argparse.Namespace) -> None:
 
     # The remaining COUNT(*) now just counts the small targets table joined to
     # owners — cheap. Still only run it on demand to keep a plain run fast.
-    total_left: int | None = None
     if args.count:
         total_left = remaining(conn, remaining_sql, ds)
         print(total_left)
@@ -485,7 +559,6 @@ def run(args: argparse.Namespace) -> None:
         if args.reset or args.rebuild_targets
         else load_cursor(by, ds, establishment_id, geo_codes)
     )
-    processed = ok = nf = 0
     stop = {"flag": False}
 
     def _handle(signum, frame):  # graceful Ctrl-C: stop after current batch
@@ -494,50 +567,16 @@ def run(args: argparse.Namespace) -> None:
 
     signal.signal(signal.SIGINT, _handle)
     signal.signal(signal.SIGTERM, _handle)
-
-    with conn.cursor() as write_cur:
-        create_temp_table(write_cur)
-        conn.commit()
-
-        while not stop["flag"]:
-            if args.limit and processed >= args.limit:
-                LOG.info("Reached --limit %d — stopping.", args.limit)
-                break
-
-            fetch_limit = next_fetch_limit(
-                args.fetch_batch,
-                limit=args.limit,
-                processed=processed,
-            )
-            if fetch_limit <= 0:
-                break
-            df = fetch_batch(conn, candidates_sql, ds, last_id, fetch_limit)
-            if df.empty:
-                LOG.info(
-                    "No more candidates — mode %s / cohort %s fully geocoded.", by, ds
-                )
-                break
-
-            api = geocode_parallel(df, args.chunk, args.workers, api_url)
-            if not api.empty:
-                ok += copy_upsert(write_cur, prepare_valid(api, "Owner"))
-                nf += copy_upsert(write_cur, prepare_not_found(api, "Owner"))
-                conn.commit()
-
-            last_id = str(df["ref_id"].iloc[-1])
-            save_cursor(by, ds, last_id, establishment_id, geo_codes)
-            processed += len(df)
-            LOG.info(
-                "batch: in=%d ok_total=%d nf_total=%d processed=%d/%s cursor=%s",
-                len(df),
-                ok,
-                nf,
-                processed,
-                total_left if total_left is not None else "?",
-                last_id,
-            )
-
-    LOG.info("Done. processed=%d ok=%d not_found=%d", processed, ok, nf)
+    _run_batches(
+        conn,
+        candidates_sql,
+        args,
+        api_url=api_url,
+        establishment_id=establishment_id,
+        geo_codes=geo_codes,
+        last_id=last_id,
+        stop=stop,
+    )
     conn.close()
 
 

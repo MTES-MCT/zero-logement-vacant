@@ -58,6 +58,7 @@ jobs:
     secrets: inherit
 
   deploy-metabase:
+    if: github.ref == 'refs/heads/main' && github.event_name == 'push'
     uses: ./.github/workflows/deploy.yml
     with:
       app: Production - Metabase

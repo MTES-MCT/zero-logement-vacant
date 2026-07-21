@@ -31,9 +31,14 @@ RUN curl "https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip" -o "awscliv2
     apt-get autoremove -y && \
     rm -rf /var/lib/apt/lists/*
 
-# Download Metabase and DuckDB driver
-ADD https://downloads.metabase.com/latest/metabase.jar /home
-ADD https://github.com/motherduckdb/metabase_duckdb_driver/releases/latest/download/duckdb.metabase-driver.jar $MB_PLUGINS_DIR
+# Download Metabase and DuckDB driver.
+# Versions are pinned as a pair: the DuckDB driver only supports specific
+# Metabase releases (1.5.4.0 targets Metabase 0.62.x). Using `latest` caused
+# silent upgrades that broke every DuckDB connection (2026-07-17 outage).
+# Upgrade both together only after checking
+# https://github.com/motherduckdb/metabase_duckdb_driver/releases
+ADD https://downloads.metabase.com/v0.62.5/metabase.jar /home
+ADD https://github.com/motherduckdb/metabase_duckdb_driver/releases/download/1.5.4.0/duckdb.metabase-driver.jar $MB_PLUGINS_DIR
 
 # Create necessary directories and set permissions
 RUN mkdir -p /data/duckdb/ && \

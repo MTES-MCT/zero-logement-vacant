@@ -1,4 +1,10 @@
 fileignoreconfig:
+# Generated Kysely types: column names/types only, never real secrets. Ignore
+# the secret detector (not a checksum) so schema regens don't re-trip it on the
+# `password` column of the account/users tables.
+- filename: server/src/infra/database/db.d.ts
+  ignore_detectors:
+    - filecontent
 - filename: .github/workflows/release.yml
   checksum: 5b3a281c32a6fab83c8385a64a45faddcac10f226b8daa85bdbf6a29d6b062a8
 - filename: README.md

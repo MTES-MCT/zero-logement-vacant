@@ -4,6 +4,7 @@ import SelectNext from '@codegouvfr/react-dsfr/SelectNext';
 import { type TableProps } from '@codegouvfr/react-dsfr/Table';
 import Skeleton from '@mui/material/Skeleton';
 import Stack from '@mui/material/Stack';
+import { styled } from '@mui/material/styles';
 import {
   flexRender,
   getCoreRowModel,
@@ -22,6 +23,8 @@ import { match } from 'ts-pattern';
 import SingleCheckbox from '~/components/_app/AppCheckbox/SingleCheckbox';
 import SortButton from '~/components/AdvancedTable/SortButton';
 import { type Selection } from '~/hooks/useSelection';
+
+import LabelNext from '../Label/LabelNext';
 
 /**
  *
@@ -62,6 +65,21 @@ export type AdvancedTableProps<Data extends object> = Pick<
      * Use alongside noCaption: true in tableProps to preserve DSFR padding.
      */
     caption?: string;
+    /**
+     * Per-slot className overrides, for callers that need to restyle an
+     * internal element (e.g. left-align the pagination footer inside a modal).
+     */
+    classes?: {
+      /** Pagination footer slots. */
+      pagination?: {
+        /**
+         * The row wrapping the page-size control and the pagination buttons.
+         * When provided, this class owns the row's horizontal alignment (the
+         * default `justify-content: center` is dropped so the override wins).
+         */
+        container?: string;
+      };
+    };
   };
 
 interface PaginationProps {
@@ -96,6 +114,16 @@ interface PaginationProps {
 const ROW_SIZE = 64;
 const PER_PAGE_OPTIONS = [10, 50, 200, 500];
 const DEFAULT_PAGE_SIZE = 50;
+
+// Slot defaults live in a styled() component (not instance `sx`) so that, under
+// this app's `StyledEngineProvider injectFirst`, they are injected first and a
+// caller-supplied `classes.pagination.container` class — appended below —
+// overrides them by injection order. This mirrors how MUI's own `classes` work.
+const PaginationFooter = styled(Stack)({
+  justifyContent: 'center',
+  alignItems: 'center',
+  flexWrap: 'wrap'
+});
 
 function AdvancedTable<Data extends object>(props: AdvancedTableProps<Data>) {
   // Map our selection to the @tanstack/table internal selection state
@@ -330,21 +358,17 @@ function AdvancedTable<Data extends object>(props: AdvancedTableProps<Data>) {
       </div>
 
       {paginate ? (
-        <Stack
+        <PaginationFooter
           direction="row"
-          spacing={staticPageSize ? '0.75rem' : '1rem'}
+          spacing="1rem"
           useFlexGap
-          sx={{
-            justifyContent: 'center',
-            alignItems: 'center',
-            flexWrap: staticPageSize ? 'nowrap' : 'wrap'
-          }}
+          className={props.classes?.pagination?.container}
         >
           {staticPageSize ? (
-            <span className={fr.cx('fr-text--sm')}>
+            <LabelNext>
               {table.getState().pagination.pageSize} ligne
               {table.getState().pagination.pageSize > 1 ? 's' : ''} par page
-            </span>
+            </LabelNext>
           ) : (
             <SelectNext
               label={null}
@@ -376,7 +400,7 @@ function AdvancedTable<Data extends object>(props: AdvancedTableProps<Data>) {
             })}
             showFirstLast
           />
-        </Stack>
+        </PaginationFooter>
       ) : null}
     </Stack>
   );

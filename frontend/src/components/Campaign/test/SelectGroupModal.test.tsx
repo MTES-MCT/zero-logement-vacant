@@ -220,9 +220,7 @@ describe('SelectGroupModal', () => {
     const dialog = await screen.findByRole('dialog');
     await within(dialog).findByText('Impossible de charger les groupes');
 
-    await user.click(
-      within(dialog).getByRole('button', { name: 'Réessayer' })
-    );
+    await user.click(within(dialog).getByRole('button', { name: 'Réessayer' }));
 
     await within(dialog).findByText(group.title);
     expect(

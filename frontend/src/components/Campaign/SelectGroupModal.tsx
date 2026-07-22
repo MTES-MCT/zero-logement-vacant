@@ -1,8 +1,8 @@
-import { ClassNames } from '@emotion/react';
 import { fr } from '@codegouvfr/react-dsfr';
 import Alert from '@codegouvfr/react-dsfr/Alert';
 import Button from '@codegouvfr/react-dsfr/Button';
 import Stepper from '@codegouvfr/react-dsfr/Stepper';
+import { ClassNames } from '@emotion/react';
 import Stack from '@mui/material/Stack';
 import { createColumnHelper } from '@tanstack/react-table';
 import { Array, Order, pipe } from 'effect';
@@ -165,7 +165,7 @@ export function createSelectGroupModal(
                 label="Rechercher un groupe"
                 allowEmptySearch
                 onSearch={search}
-                className='fr-mb-2w'
+                className="fr-mb-2w"
               />
 
               <LabelNext role="status" sx={{ fontWeight: 'normal' }}>

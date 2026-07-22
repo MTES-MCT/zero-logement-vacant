@@ -1,0 +1,2 @@
+# $1 is "rebase" or "amend"; only regenerate after a rebase.
+[ "$1" = "amend" ] || sh tools/regen-kysely-types.sh

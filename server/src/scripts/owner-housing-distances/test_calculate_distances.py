@@ -14,12 +14,37 @@ Run tests with:
     pytest test_calculate_distances.py -v -k test_haversine  # Run specific test
 """
 
+import json
 import math
+from pathlib import Path
 from unittest.mock import MagicMock, Mock, patch
 
 import pytest
-from calculate_distances import DistanceCalculator, LocationScope
+from calculate_distances import (
+    DistanceCalculator,
+    LocationScope,
+    calculate_owner_housing_locations,
+    main,
+)
 from country_detector import CountryDetector
+
+DISTANCE_CONTRACT_CASES = json.loads(
+    (
+        Path(__file__).resolve().parents[2] / "test" / "owner-distance-contract.json"
+    ).read_text()
+)["cases"]
+
+
+def contract_address(address: dict) -> tuple:
+    postal_code = address["postalCode"]
+    return (
+        postal_code,
+        address["label"],
+        address.get("latitude"),
+        address.get("longitude"),
+        postal_code,
+        address.get("banId"),
+    )
 
 
 class TestHaversineDistance:
@@ -172,7 +197,7 @@ class TestCountryDetection:
     @pytest.fixture
     def calculator(self):
         """Create a DistanceCalculator instance with mocked country detector."""
-        with patch("calculate_distances.CountryDetector"):
+        with patch("src.owner_housing_locations.calculator.CountryDetector"):
             calc = Mock(spec=DistanceCalculator)
             calc.country_detector = Mock()
             calc.country_cache = {}
@@ -330,7 +355,7 @@ class TestProcessSinglePair:
     @pytest.fixture
     def calculator(self):
         """Create a DistanceCalculator instance for testing."""
-        with patch("calculate_distances.CountryDetector"):
+        with patch("src.owner_housing_locations.calculator.CountryDetector"):
             calc = Mock(spec=DistanceCalculator)
             calc.stats = DistanceCalculator._empty_stats()
             calc.process_single_pair = DistanceCalculator.process_single_pair.__get__(
@@ -375,6 +400,24 @@ class TestProcessSinglePair:
         assert 0 < distance < 10  # Should be a few km within Paris
         assert calculator.stats["distances_calculated"] == 1
         assert calculator.stats["addresses_with_coords"] == 2
+
+    @pytest.mark.parametrize(
+        "contract_case",
+        DISTANCE_CONTRACT_CASES,
+        ids=lambda contract_case: contract_case["name"],
+    )
+    def test_shared_location_contract(self, contract_case):
+        calculator = DistanceCalculator("postgresql://unused")
+        address_cache = {
+            ("owner123", "Owner"): contract_address(contract_case["owner"]),
+            ("housing456", "Housing"): contract_address(contract_case["housing"]),
+        }
+
+        _, classification = calculator.process_single_pair(
+            "owner123", "housing456", address_cache
+        )
+
+        assert classification == contract_case["expectedDatabaseValue"]
 
     def test_missing_owner_data(self, calculator):
         """Test pair with missing owner data."""
@@ -755,7 +798,7 @@ class TestFunctionalEndToEnd:
     @pytest.fixture
     def calculator(self):
         """Create a DistanceCalculator instance with minimal mocking."""
-        with patch("calculate_distances.CountryDetector"):
+        with patch("src.owner_housing_locations.calculator.CountryDetector"):
             calc = Mock(spec=DistanceCalculator)
             calc.stats = DistanceCalculator._empty_stats()
             calc.metro_regions = ["11", "84"]
@@ -1053,8 +1096,12 @@ class TestDatabaseUpdates:
         conn = Mock()
         conn.cursor.return_value = cursor
 
-        with patch("calculate_distances.psycopg2.connect", return_value=conn), patch(
-            "calculate_distances.execute_values", return_value=[(1,)]
+        with patch(
+            "src.owner_housing_locations.calculator.psycopg2.connect",
+            return_value=conn,
+        ), patch(
+            "src.owner_housing_locations.calculator.execute_values",
+            return_value=[(1,)],
         ) as execute_values:
             _, updated, error = calc._update_batch_worker(
                 (
@@ -1098,8 +1145,11 @@ class TestDatabaseUpdates:
             "classification": 1,
         }
 
-        with patch("calculate_distances.psycopg2.connect", return_value=conn), patch(
-            "calculate_distances.execute_values", return_value=[]
+        with patch(
+            "src.owner_housing_locations.calculator.psycopg2.connect",
+            return_value=conn,
+        ), patch(
+            "src.owner_housing_locations.calculator.execute_values", return_value=[]
         ):
             _, updated, error = calc._update_batch_worker(
                 (0, [update], "postgresql://example")
@@ -1113,6 +1163,50 @@ class TestDatabaseUpdates:
 
 class TestCandidateScope:
     """Test candidate selection safeguards."""
+
+    def test_public_calculator_refuses_full_year_without_explicit_opt_in(self):
+        with patch.object(DistanceCalculator, "run") as run:
+            with pytest.raises(ValueError, match="unscoped LOVAC location run"):
+                calculate_owner_housing_locations(
+                    db_url="postgresql://unused",
+                    data_file_year="lovac-2026",
+                )
+
+        run.assert_not_called()
+
+    def test_public_calculator_accepts_explicit_full_year_opt_in(self):
+        expected_report = Mock()
+        with patch.object(
+            DistanceCalculator, "run", return_value=expected_report
+        ) as run:
+            report = calculate_owner_housing_locations(
+                db_url="postgresql://unused",
+                data_file_year="lovac-2026",
+                allow_full_year=True,
+            )
+
+        assert report is expected_report
+        assert run.call_args.kwargs["scope"] == LocationScope(
+            data_file_year="lovac-2026"
+        )
+
+    def test_cli_forwards_explicit_full_year_opt_in(self):
+        report = Mock(to_dict=Mock(return_value={}))
+        argv = [
+            "calculate_distances.py",
+            "--db-url",
+            "postgresql://unused",
+            "--data-file-year",
+            "lovac-2026",
+            "--allow-full-year",
+        ]
+        with patch("sys.argv", argv), patch(
+            "src.owner_housing_locations.calculator.calculate_owner_housing_locations",
+            return_value=report,
+        ) as calculate:
+            main()
+
+        assert calculate.call_args.kwargs["allow_full_year"] is True
 
     def test_default_candidates_are_missing_relative_only(self):
         calc = Mock(spec=DistanceCalculator)

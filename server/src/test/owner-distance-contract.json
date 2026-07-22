@@ -1,0 +1,75 @@
+{
+  "cases": [
+    {
+      "name": "matching non-empty BAN identifiers",
+      "owner": {
+        "banId": "shared-ban-id",
+        "label": "1 rue de la Paix, 75001 Paris",
+        "postalCode": "75001",
+        "latitude": 48.8566,
+        "longitude": 2.3522
+      },
+      "housing": {
+        "banId": "shared-ban-id",
+        "label": "1 rue de la Paix, 75001 Paris",
+        "postalCode": "75001",
+        "latitude": 48.8566,
+        "longitude": 2.3522
+      },
+      "expectedRelativeLocation": "same-address",
+      "expectedDatabaseValue": 0
+    },
+    {
+      "name": "explicit foreign country without coordinates",
+      "owner": {
+        "label": "10115 Berlin, Germany",
+        "postalCode": "10115"
+      },
+      "housing": {
+        "banId": "housing-ban-id",
+        "label": "15 rue de Vaugirard, 75015 Paris",
+        "postalCode": "75015",
+        "latitude": 48.8422,
+        "longitude": 2.2996
+      },
+      "expectedRelativeLocation": "foreign-country",
+      "expectedDatabaseValue": 6
+    },
+    {
+      "name": "valid BAN coordinates take precedence over free-text country",
+      "owner": {
+        "banId": "owner-ban-id",
+        "label": "1 place Bellecour, 69002 Lyon, Germany",
+        "postalCode": "69002",
+        "latitude": 45.7578,
+        "longitude": 4.832
+      },
+      "housing": {
+        "banId": "housing-ban-id",
+        "label": "15 rue de Vaugirard, 75015 Paris",
+        "postalCode": "75015",
+        "latitude": 48.8422,
+        "longitude": 2.2996
+      },
+      "expectedRelativeLocation": "metropolitan",
+      "expectedDatabaseValue": 4
+    },
+    {
+      "name": "coordinates outside geographic bounds",
+      "owner": {
+        "label": "1 rue de la Paix, 75001 Paris",
+        "postalCode": "75001",
+        "latitude": 91,
+        "longitude": 2.3522
+      },
+      "housing": {
+        "label": "15 rue de la Republique, 69001 Lyon",
+        "postalCode": "69001",
+        "latitude": 45.764,
+        "longitude": 4.8357
+      },
+      "expectedRelativeLocation": "other",
+      "expectedDatabaseValue": 7
+    }
+  ]
+}

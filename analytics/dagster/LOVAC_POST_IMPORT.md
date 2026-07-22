@@ -240,8 +240,9 @@ millésime.
 ## Runtime Packaging
 
 The canonical location calculator lives in
-`analytics/dagster/scripts/owner-housing-distances`. The files under
+`analytics/dagster/src/owner_housing_locations`. The files under
+`analytics/dagster/scripts/owner-housing-distances` and
 `server/src/scripts/owner-housing-distances` are compatibility entrypoints for
-local CLI usage and existing tests. The Dagster image must be built with
-`analytics/dagster` as its Docker context; its build smoke-check verifies that
-the calculator, country detector, and BAN backfill are present and importable.
+local CLI usage and existing tests. The production Dockerfile already packages
+`src`; it also copies `scripts/backfill_ban_owners.py` because the Dagster asset
+executes that script as a subprocess.

@@ -1,28 +1,17 @@
-"""Compatibility import for the canonical Dagster country detector."""
+"""Compatibility import for the Dagster country detector."""
 
 from __future__ import annotations
 
-import importlib.util
 import sys
 from pathlib import Path
 
-_SCRIPT = (
-    Path(__file__).resolve().parents[4]
-    / "analytics"
-    / "dagster"
-    / "scripts"
-    / "owner-housing-distances"
-    / "country_detector.py"
-)
-_SPEC = importlib.util.spec_from_file_location("zlv_country_detector", _SCRIPT)
-_MODULE = importlib.util.module_from_spec(_SPEC)
-if _SPEC.loader is None:
-    raise RuntimeError(f"Cannot load {_SCRIPT}")
-sys.modules[_SPEC.name] = _MODULE
-_SPEC.loader.exec_module(_MODULE)
+_DAGSTER_ROOT = Path(__file__).resolve().parents[4] / "analytics" / "dagster"
+if str(_DAGSTER_ROOT) not in sys.path:
+    sys.path.insert(0, str(_DAGSTER_ROOT))
 
-globals().update(
-    {name: value for name, value in vars(_MODULE).items() if not name.startswith("__")}
+from src.owner_housing_locations.country_detector import (  # noqa: E402
+    CountryDetectionResult,
+    CountryDetector,
 )
 
-sys.modules[__name__] = _MODULE
+__all__ = ["CountryDetectionResult", "CountryDetector"]

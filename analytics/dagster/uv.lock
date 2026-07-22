@@ -5700,6 +5700,7 @@ dependencies = [
     { name = "requests" },
     { name = "s3fs" },
     { name = "thefuzz" },
+    { name = "tqdm" },
 ]
 
 [package.optional-dependencies]
@@ -5730,4 +5731,5 @@ requires-dist = [
     { name = "requests", specifier = ">=2.32.3" },
     { name = "s3fs", specifier = ">=0.4.2" },
     { name = "thefuzz", specifier = ">=0.22.1" },
+    { name = "tqdm", specifier = ">=4.67.1" },
 ]

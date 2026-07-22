@@ -10,7 +10,7 @@ This script is designed as a scoped LOVAC post-process. Do not use it as an
 unbounded production backfill.
 
 The canonical implementation is packaged under
-`analytics/dagster/scripts/owner-housing-distances`. The Python files in this
+`analytics/dagster/src/owner_housing_locations`. The Python files in this
 directory are compatibility entrypoints, so the documented CLI remains
 available from the server scripts directory.
 
@@ -34,8 +34,8 @@ missing. For this reason, default candidate selection is based on
 ## Safety Rules
 
 - `--data-file-year` is mandatory, for example `lovac-2026`.
-- Prefer `--establishment-id` or one or more `--geo-code` values for production
-  corrections.
+- `--establishment-id` or one or more `--geo-code` values are required by
+  default. A whole-year run requires the explicit `--allow-full-year` flag.
 - `--dry-run` processes data and prints counters without writing.
 - `--num-workers` defaults to `1`; increase only after a small successful pilot.
 - `--limit` is deterministic and uses keyset pagination; it does not use
@@ -91,6 +91,12 @@ python calculate_distances.py \
   --establishment-id "00000000-0000-0000-0000-000000000000" \
   --force \
   --num-workers 1
+
+# Full-year runs require an explicit opt-in
+python calculate_distances.py \
+  --data-file-year lovac-2026 \
+  --allow-full-year \
+  --dry-run
 ```
 
 Parameters:
@@ -101,6 +107,7 @@ Parameters:
 | `--data-file-year`   | Required LOVAC cohort, for example `lovac-2026`.             |
 | `--establishment-id` | Optional establishment UUID. Uses its `localities_geo_code`. |
 | `--geo-code`         | Optional INSEE commune code. Can be repeated.                |
+| `--allow-full-year`  | Explicitly allows an unscoped whole-cohort run.              |
 | `--dry-run`          | Computes counters without updating `owners_housing`.         |
 | `--limit`            | Stops after N owner-housing pairs.                           |
 | `--force`            | Recalculates existing rows in the selected scope.            |
@@ -128,6 +135,7 @@ ops:
   lovac_owner_ban_backfill:
     config:
       data_file_year: lovac-2026
+      establishment_id: '00000000-0000-0000-0000-000000000000'
       dry_run: true
   lovac_owner_housing_locations:
     config:
@@ -170,7 +178,7 @@ LEFT JOIN ban_addresses hba
   ON hba.ref_id = oh.housing_id
  AND hba.address_kind = 'Housing'
 WHERE oh.rank >= 1
-  AND 'lovac-2026' = ANY(h.data_file_years)
+  AND h.data_file_years @> ARRAY['lovac-2026']::text[]
   AND h.geo_code = ANY(ARRAY['38200']::text[]);
 ```
 

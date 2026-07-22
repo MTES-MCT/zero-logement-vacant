@@ -1,4 +1,7 @@
+import { readFileSync } from 'node:fs';
+
 import { AddressKinds } from '@zerologementvacant/models';
+import type { RelativeLocation } from '@zerologementvacant/models';
 import { describe, it, expect } from 'vitest';
 
 import { AddressApi } from '~/models/AddressApi';
@@ -10,6 +13,41 @@ import {
   calculateGeographicClassification,
   calculateDistance
 } from '../ownerDistanceService';
+
+interface DistanceContractAddress {
+  banId?: string;
+  label: string;
+  postalCode: string;
+  latitude?: number;
+  longitude?: number;
+}
+
+interface DistanceContractCase {
+  name: string;
+  owner: DistanceContractAddress;
+  housing: DistanceContractAddress;
+  expectedRelativeLocation: RelativeLocation;
+  expectedDatabaseValue: number;
+}
+
+const distanceContract = JSON.parse(
+  readFileSync(
+    new URL('../../test/owner-distance-contract.json', import.meta.url),
+    'utf8'
+  )
+) as { cases: DistanceContractCase[] };
+
+function contractAddress(
+  address: DistanceContractAddress,
+  addressKind: AddressKinds
+): AddressApi {
+  return {
+    refId: `${addressKind.toLowerCase()}-id`,
+    addressKind,
+    city: '',
+    ...address
+  };
+}
 
 describe('Owner Distance Service', () => {
   describe('haversineDistance', () => {
@@ -205,6 +243,18 @@ describe('Owner Distance Service', () => {
       latitude,
       longitude
     });
+
+    it.each(distanceContract.cases)(
+      'follows the shared location contract: $name',
+      ({ owner, housing, expectedRelativeLocation }) => {
+        const result = calculateDistance(
+          contractAddress(owner, AddressKinds.Owner),
+          contractAddress(housing, AddressKinds.Housing)
+        );
+
+        expect(result.relativeLocation).toBe(expectedRelativeLocation);
+      }
+    );
 
     it('should calculate both distance and classification', () => {
       const ownerAddress = createMockAddress('75001', 48.8566, 2.3522);

@@ -4,6 +4,7 @@ import db from '~/infra/database';
 import { withinTransaction } from '~/infra/database/transaction';
 import { createLogger } from '~/infra/logger';
 import {
+  CampaignDocumentEventApi,
   CampaignEventApi,
   CampaignHousingEventApi,
   DocumentEventApi,
@@ -59,6 +60,11 @@ export const DocumentEvents = (transaction = db) =>
   transaction<DocumentEventDBO>(DOCUMENT_EVENTS_TABLE);
 export const HousingDocumentEvents = (transaction = db) =>
   transaction<HousingDocumentEventDBO>(HOUSING_DOCUMENT_EVENTS_TABLE);
+
+export const CAMPAIGN_DOCUMENT_EVENTS_TABLE = 'campaign_document_events';
+
+export const CampaignDocumentEvents = (transaction = db) =>
+  transaction<CampaignDocumentEventDBO>(CAMPAIGN_DOCUMENT_EVENTS_TABLE);
 
 async function insertManyHousingEvents(
   events: ReadonlyArray<HousingEventApi>
@@ -230,6 +236,25 @@ async function insertManyHousingDocumentEvents(
     await transaction.batchInsert(
       HOUSING_DOCUMENT_EVENTS_TABLE,
       events.map(formatHousingDocumentEventApi)
+    );
+  });
+}
+
+async function insertManyCampaignDocumentEvents(
+  events: ReadonlyArray<CampaignDocumentEventApi>
+): Promise<void> {
+  if (!events.length) {
+    return;
+  }
+
+  logger.debug('Inserting campaign document events...', {
+    events: events.length
+  });
+  await withinTransaction(async (transaction) => {
+    await transaction.batchInsert(EVENTS_TABLE, events.map(formatEventApi));
+    await transaction.batchInsert(
+      CAMPAIGN_DOCUMENT_EVENTS_TABLE,
+      events.map(formatCampaignDocumentEventApi)
     );
   });
 }
@@ -575,9 +600,26 @@ export function formatHousingDocumentEventApi(
   };
 }
 
+export interface CampaignDocumentEventDBO {
+  event_id: string;
+  campaign_id: string;
+  document_id: string;
+}
+
+export function formatCampaignDocumentEventApi(
+  event: CampaignDocumentEventApi
+): CampaignDocumentEventDBO {
+  return {
+    event_id: event.id,
+    campaign_id: event.campaignId,
+    document_id: event.documentId
+  };
+}
+
 export default {
   insertManyCampaignEvents,
   insertManyCampaignHousingEvents,
+  insertManyCampaignDocumentEvents,
   insertManyHousingEvents,
   insertManyHousingOwnerEvents,
   insertManyGroupHousingEvents,

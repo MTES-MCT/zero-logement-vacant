@@ -3,9 +3,9 @@ import type { ObjectSchema } from 'yup';
 
 import { documentIdsPayload } from './document-ids-payload';
 
-export interface HousingDocumentPayload {
+export interface CampaignDocumentPayload {
   documentIds: Array<DocumentDTO['id']>;
 }
 
-export const housingDocumentPayload: ObjectSchema<HousingDocumentPayload> =
+export const campaignDocumentPayload: ObjectSchema<CampaignDocumentPayload> =
   documentIdsPayload();

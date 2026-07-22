@@ -25,6 +25,9 @@ export const EVENT_TYPE_VALUES = [
   'document:created',
   'document:updated',
   'document:removed',
+  'campaign:document-attached',
+  'campaign:document-detached',
+  'campaign:document-removed',
   'owner:updated',
   'campaign:updated'
 ] as const satisfies ReadonlyArray<EventType>;

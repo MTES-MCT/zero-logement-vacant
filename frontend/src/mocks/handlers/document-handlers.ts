@@ -1,6 +1,7 @@
 import { constants } from 'node:http2';
 
 import type {
+  CampaignDTO,
   DocumentDTO,
   DocumentPayload,
   HousingDTO
@@ -23,6 +24,109 @@ const findByHousing = http.get<{ id: string }, never, DocumentDTO[]>(
 
     return HttpResponse.json(documents, {
       status: constants.HTTP_STATUS_OK
+    });
+  }
+);
+
+const findByCampaign = http.get<{ id: string }, never, DocumentDTO[] | Error>(
+  `${config.apiEndpoint}/campaigns/:id/documents`,
+  async ({ params }) => {
+    const campaign = data.campaigns.find(
+      (campaign) => campaign.id === params.id
+    );
+    if (!campaign) {
+      return HttpResponse.json(
+        {
+          name: 'CampaignMissingError',
+          message: `Campaign ${params.id} missing`
+        },
+        { status: constants.HTTP_STATUS_NOT_FOUND }
+      );
+    }
+
+    const documents = (data.campaignDocuments.get(params.id) ?? [])
+      .map((ref) => data.documents.get(ref.id))
+      .filter(Predicate.isNotUndefined);
+
+    return HttpResponse.json(documents, {
+      status: constants.HTTP_STATUS_OK
+    });
+  }
+);
+
+const linkToCampaign = http.post<
+  { id: CampaignDTO['id'] },
+  { documentIds: DocumentDTO['id'][] },
+  DocumentDTO[] | Error
+>(
+  `${config.apiEndpoint}/campaigns/:id/documents`,
+  async ({ params, request }) => {
+    const { documentIds } = await request.json();
+
+    const campaign = data.campaigns.find(
+      (campaign) => campaign.id === params.id
+    );
+    if (!campaign) {
+      return HttpResponse.json(
+        {
+          name: 'CampaignMissingError',
+          message: `Campaign ${params.id} missing`
+        },
+        { status: constants.HTTP_STATUS_NOT_FOUND }
+      );
+    }
+
+    const documents = documentIds
+      .map((id) => data.documents.get(id))
+      .filter(Predicate.isNotUndefined);
+
+    if (documents.length !== documentIds.length) {
+      return HttpResponse.json(
+        { name: 'DocumentMissingError', message: 'Some documents not found' },
+        { status: constants.HTTP_STATUS_BAD_REQUEST }
+      );
+    }
+
+    const existingDocuments = data.campaignDocuments.get(params.id) ?? [];
+    const newRefs = documentIds.map((id) => ({ id }));
+    data.campaignDocuments.set(params.id, [...existingDocuments, ...newRefs]);
+
+    return HttpResponse.json(documents, {
+      status: constants.HTTP_STATUS_CREATED
+    });
+  }
+);
+
+const unlinkFromCampaign = http.delete<
+  { id: CampaignDTO['id']; documentId: DocumentDTO['id'] },
+  never,
+  null | Error
+>(
+  `${config.apiEndpoint}/campaigns/:id/documents/:documentId`,
+  async ({ params }) => {
+    const exists = data.campaignDocuments
+      .get(params.id)
+      ?.map((document) => document.id)
+      ?.includes(params.documentId);
+    if (!exists) {
+      return HttpResponse.json(
+        {
+          name: 'DocumentMissingError',
+          message: `Document ${params.documentId} not linked to campaign`
+        },
+        { status: constants.HTTP_STATUS_NOT_FOUND }
+      );
+    }
+
+    data.campaignDocuments.set(
+      params.id,
+      (data.campaignDocuments.get(params.id) ?? []).filter(
+        (document) => document.id !== params.documentId
+      )
+    );
+
+    return HttpResponse.json(null, {
+      status: constants.HTTP_STATUS_NO_CONTENT
     });
   }
 );
@@ -217,5 +321,8 @@ export const documentHandlers: RequestHandler[] = [
   remove,
   findByHousing,
   linkToHousing,
-  unlinkFromHousing
+  unlinkFromHousing,
+  findByCampaign,
+  linkToCampaign,
+  unlinkFromCampaign
 ];

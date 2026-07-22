@@ -136,6 +136,19 @@ export type EventPayloads = {
     filename: string;
   }>;
 
+  // Campaign-document association events
+  'campaign:document-attached': CreationEventChange<{
+    filename: string;
+  }>;
+
+  'campaign:document-detached': RemoveEventChange<{
+    filename: string;
+  }>;
+
+  'campaign:document-removed': RemoveEventChange<{
+    filename: string;
+  }>;
+
   'owner:created': CreationEventChange<{
     name: string;
     birthdate: string | null;

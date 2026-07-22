@@ -10,7 +10,7 @@ import DocumentUpload, {
 import DocumentUploadHint from '~/components/FileUpload/DocumentUploadHint';
 import { useDocumentUpload } from '~/components/FileUpload/useDocumentUpload';
 
-export type HousingDocumentUploadProps = Pick<DocumentUploadProps, 'label'> & {
+export type CampaignDocumentUploadProps = Pick<DocumentUploadProps, 'label'> & {
   /**
    * Called every time documents are successfully uploaded.
    * @param documents
@@ -18,21 +18,23 @@ export type HousingDocumentUploadProps = Pick<DocumentUploadProps, 'label'> & {
   onUpload(documents: ReadonlyArray<DocumentDTO>): void;
 };
 
-function HousingDocumentUpload(props: Readonly<HousingDocumentUploadProps>) {
+function CampaignDocumentUpload(props: Readonly<CampaignDocumentUploadProps>) {
   const { error, isError, isLoading, isSuccess, upload } = useDocumentUpload({
     onUpload: props.onUpload
   });
 
   return (
     <DocumentUpload
-      id="housing-document-upload"
+      id="campaign-document-upload"
       accept={ACCEPTED_DOCUMENT_EXTENSIONS as string[]}
       error={error}
       hint={<DocumentUploadHint />}
       isError={isError}
       isLoading={isLoading}
       isSuccess={isSuccess}
-      label={props.label ?? 'Associez un ou plusieurs documents à ce logement'}
+      label={
+        props.label ?? 'Associez un ou plusieurs documents à cette campagne'
+      }
       maxSize={MAX_DOCUMENT_SIZE_IN_MiB}
       multiple
       onUpload={upload}
@@ -40,4 +42,4 @@ function HousingDocumentUpload(props: Readonly<HousingDocumentUploadProps>) {
   );
 }
 
-export default HousingDocumentUpload;
+export default CampaignDocumentUpload;

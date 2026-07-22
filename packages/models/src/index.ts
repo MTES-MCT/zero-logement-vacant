@@ -6,6 +6,7 @@ export * from './BuildingPeriod';
 export * from './CadastralClassification';
 export * from './CampaignCount';
 export * from './CampaignDTO';
+export * from './CampaignDocumentDTO';
 export * from './ContactPoint';
 export * from './DraftDTO';
 export * from './DashboardDTO';

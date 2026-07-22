@@ -5,10 +5,13 @@ import {
   genHousingDTO,
   genUserDTO
 } from '@zerologementvacant/models/fixtures';
+import { http, HttpResponse } from 'msw';
 import { Provider } from 'react-redux';
 
 import createSelectGroupModal from '~/components/Campaign/SelectGroupModal';
 import data from '~/mocks/handlers/data';
+import { mockAPI } from '~/mocks/mock-api';
+import config from '~/utils/config';
 import configureTestStore from '~/utils/storeUtils';
 
 const selectGroupModal = createSelectGroupModal();
@@ -176,6 +179,55 @@ describe('SelectGroupModal', () => {
     const dialog = await screen.findByRole('dialog');
     const status = await within(dialog).findByRole('status');
     await waitFor(() => expect(status).toHaveTextContent('2 groupes trouvés'));
+  });
+
+  it('should show an error with a retry action, not an empty result, when loading groups fails', async () => {
+    mockAPI.use(
+      http.get(`${config.apiEndpoint}/groups`, () =>
+        HttpResponse.json({ message: 'Boom' }, { status: 500 })
+      )
+    );
+
+    renderModal(vi.fn(), 1);
+
+    const dialog = await screen.findByRole('dialog');
+    await within(dialog).findByText('Impossible de charger les groupes');
+    expect(
+      within(dialog).getByRole('button', { name: 'Réessayer' })
+    ).toBeInTheDocument();
+    // A technical failure must not be announced as a genuine empty result.
+    expect(
+      within(dialog).queryByText('Aucun groupe trouvé')
+    ).not.toBeInTheDocument();
+  });
+
+  it('should reload the groups when the user retries after a failure', async () => {
+    const group = genGroupDTO(creator, [genHousingDTO()]);
+    data.groups.push(group);
+
+    let calls = 0;
+    mockAPI.use(
+      http.get(`${config.apiEndpoint}/groups`, () => {
+        calls += 1;
+        return calls === 1
+          ? HttpResponse.json({ message: 'Boom' }, { status: 500 })
+          : HttpResponse.json(data.groups);
+      })
+    );
+
+    renderModal(vi.fn(), 1);
+
+    const dialog = await screen.findByRole('dialog');
+    await within(dialog).findByText('Impossible de charger les groupes');
+
+    await user.click(
+      within(dialog).getByRole('button', { name: 'Réessayer' })
+    );
+
+    await within(dialog).findByText(group.title);
+    expect(
+      within(dialog).queryByText('Impossible de charger les groupes')
+    ).not.toBeInTheDocument();
   });
 
   it('should restore the full list when an empty search is submitted', async () => {

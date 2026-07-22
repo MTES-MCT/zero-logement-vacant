@@ -1,4 +1,5 @@
 import { fr } from '@codegouvfr/react-dsfr';
+import Alert from '@codegouvfr/react-dsfr/Alert';
 import Button from '@codegouvfr/react-dsfr/Button';
 import Stepper from '@codegouvfr/react-dsfr/Stepper';
 import { createColumnHelper } from '@tanstack/react-table';
@@ -45,7 +46,12 @@ export function createSelectGroupModal(
     Component(props: Readonly<SelectGroupModalProps>) {
       const { openCount } = props;
       const queryEnabled = openCount === undefined || openCount > 0;
-      const { data: groups, isFetching } = useFindGroupsQuery(undefined, {
+      const {
+        data: groups,
+        isFetching,
+        isError,
+        refetch
+      } = useFindGroupsQuery(undefined, {
         skip: !queryEnabled
       });
       const [searchText, setSearchText] = useState<string>('');
@@ -115,25 +121,48 @@ export function createSelectGroupModal(
             nextTitle="Créer une campagne"
           />
 
-          <AppSearchBar
-            key={openCount}
-            label="Rechercher un groupe"
-            allowEmptySearch
-            onSearch={search}
-          />
+          {isError ? (
+            // A failed load must be distinguished from a genuine empty result:
+            // show the error (announced via the Alert's own `role="alert"`) and
+            // offer a retry, instead of falling through to « Aucun groupe
+            // trouvé », which would misreport a technical failure as "no data".
+            <>
+              <Alert
+                severity="error"
+                title="Impossible de charger les groupes"
+                description="Une erreur est survenue lors du chargement des groupes."
+              />
+              <Button
+                className={fr.cx('fr-mt-2w')}
+                priority="secondary"
+                onClick={() => refetch()}
+              >
+                Réessayer
+              </Button>
+            </>
+          ) : (
+            <>
+              <AppSearchBar
+                key={openCount}
+                label="Rechercher un groupe"
+                allowEmptySearch
+                onSearch={search}
+              />
 
-          <p role="status" className={fr.cx('fr-sr-only')}>
-            {statusMessage}
-          </p>
+              <p role="status" className={fr.cx('fr-sr-only')}>
+                {statusMessage}
+              </p>
 
-          <AdvancedTable
-            caption="Groupes de logements"
-            columns={columns}
-            data={filteredGroups}
-            perPageOptions={[5, 10, 50]}
-            defaultPageSize={5}
-            tableProps={{ noCaption: true }}
-          />
+              <AdvancedTable
+                caption="Groupes de logements"
+                columns={columns}
+                data={filteredGroups}
+                perPageOptions={[5, 10, 50]}
+                defaultPageSize={5}
+                tableProps={{ noCaption: true }}
+              />
+            </>
+          )}
         </modal.Component>
       );
     }

@@ -26,6 +26,32 @@ export type Numeric = ColumnType<string, number | string, number | string>;
 
 export type Timestamp = ColumnType<Date, Date | string, Date | string>;
 
+export interface Account {
+  accessToken: string | null;
+  accessTokenExpiresAt: Timestamp | null;
+  accountId: string;
+  createdAt: Generated<Timestamp>;
+  id: string;
+  idToken: string | null;
+  password: string | null;
+  providerId: string;
+  refreshToken: string | null;
+  refreshTokenExpiresAt: Timestamp | null;
+  scope: string | null;
+  updatedAt: Generated<Timestamp>;
+  userId: string;
+}
+
+export interface AuthUsers {
+  createdAt: Generated<Timestamp>;
+  email: string;
+  emailVerified: Generated<boolean>;
+  id: string;
+  image: string | null;
+  name: string;
+  updatedAt: Generated<Timestamp>;
+}
+
 export interface BanAddresses {
   /**
    * The full street address
@@ -705,6 +731,18 @@ export interface Senders {
   updatedAt: Timestamp;
 }
 
+export interface Session {
+  activeEstablishmentId: string | null;
+  createdAt: Generated<Timestamp>;
+  expiresAt: Timestamp;
+  id: string;
+  ipAddress: string | null;
+  token: string;
+  updatedAt: Generated<Timestamp>;
+  userAgent: string | null;
+  userId: string;
+}
+
 export interface SignupLinks {
   expiresAt: Timestamp;
   id: string;
@@ -722,6 +760,7 @@ export interface SpatialRefSys {
 export interface UserPerimeters {
   departments: Generated<string[]>;
   epci: Generated<string[]>;
+  establishmentId: string;
   frEntiere: Generated<boolean>;
   geoCodes: Generated<string[]>;
   regions: Generated<string[]>;
@@ -764,7 +803,18 @@ export interface UsersEstablishments {
   userId: string;
 }
 
+export interface Verification {
+  createdAt: Generated<Timestamp>;
+  expiresAt: Timestamp;
+  id: string;
+  identifier: string;
+  updatedAt: Generated<Timestamp>;
+  value: string;
+}
+
 export interface DB {
+  account: Account;
+  authUsers: AuthUsers;
   banAddresses: BanAddresses;
   buildings: Buildings;
   campaignEvents: CampaignEvents;
@@ -807,9 +857,11 @@ export interface DB {
   prospects: Prospects;
   resetLinks: ResetLinks;
   senders: Senders;
+  session: Session;
   signupLinks: SignupLinks;
   spatialRefSys: SpatialRefSys;
   userPerimeters: UserPerimeters;
   users: Users;
   usersEstablishments: UsersEstablishments;
+  verification: Verification;
 }

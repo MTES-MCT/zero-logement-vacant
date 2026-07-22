@@ -61,8 +61,9 @@ async function findByOwner(
     );
   }
 
-  const rows: ReadonlyArray<Selectable<DB['ownersHousing']> & HousingRecordRow> =
-    await query.execute();
+  const rows: ReadonlyArray<
+    Selectable<DB['ownersHousing']> & HousingRecordRow
+  > = await query.execute();
 
   return rows.map(parseOwnerHousingRow);
 }
@@ -214,8 +215,7 @@ export function parseOwnerHousingRow(
     origin: row.origin,
     idprocpte: row.idprocpte,
     idprodroit: row.idprodroit,
-    locprop:
-      row.locpropSource !== null ? Number(row.locpropSource) : null,
+    locprop: row.locpropSource !== null ? Number(row.locpropSource) : null,
     propertyRight: row.propertyRight as PropertyRight | null,
     relativeLocation: row.locpropRelativeBan
       ? fromRelativeLocationDBO(row.locpropRelativeBan)

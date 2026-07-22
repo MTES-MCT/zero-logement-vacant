@@ -102,31 +102,33 @@ function toDraftInsert(draft: DraftApi): Insertable<DB['drafts']> {
 }
 
 function draftListQuery(): any {
-  return kysely
-    .selectFrom('drafts')
-    .selectAll('drafts')
-    .leftJoin('senders', 'drafts.senderId', 'senders.id')
-    .select(sql`to_json(senders.*)`.as('sender'))
-    // signatory documents (from the joined sender)
-    .select(
-      selectDocumentWithCreator(
-        'senders.signatory_one_document_id',
-        'signatory_one_doc'
+  return (
+    kysely
+      .selectFrom('drafts')
+      .selectAll('drafts')
+      .leftJoin('senders', 'drafts.senderId', 'senders.id')
+      .select(sql`to_json(senders.*)`.as('sender'))
+      // signatory documents (from the joined sender)
+      .select(
+        selectDocumentWithCreator(
+          'senders.signatory_one_document_id',
+          'signatory_one_doc'
+        )
       )
-    )
-    .select(
-      selectDocumentWithCreator(
-        'senders.signatory_two_document_id',
-        'signatory_two_doc'
+      .select(
+        selectDocumentWithCreator(
+          'senders.signatory_two_document_id',
+          'signatory_two_doc'
+        )
       )
-    )
-    // logo next documents (from the draft)
-    .select(
-      selectDocumentWithCreator('drafts.logo_next_one', 'logo_next_one_doc')
-    )
-    .select(
-      selectDocumentWithCreator('drafts.logo_next_two', 'logo_next_two_doc')
-    );
+      // logo next documents (from the draft)
+      .select(
+        selectDocumentWithCreator('drafts.logo_next_one', 'logo_next_one_doc')
+      )
+      .select(
+        selectDocumentWithCreator('drafts.logo_next_two', 'logo_next_two_doc')
+      )
+  );
 }
 
 function applyDraftFilters(query: any, filters?: DraftFilters): any {

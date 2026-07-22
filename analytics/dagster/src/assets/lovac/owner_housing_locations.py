@@ -1,14 +1,11 @@
-import importlib.util
 import os
 import re
 import subprocess
 import sys
 from pathlib import Path
 from typing import Any
-from urllib.parse import quote_plus
 from uuid import UUID
 
-import psycopg2
 from dagster import (
     AssetExecutionContext,
     Bool,
@@ -22,7 +19,7 @@ from dagster import (
     asset,
 )
 
-from ...config import Config
+from ...owner_housing_locations import calculate_owner_housing_locations
 
 
 def _analytics_dagster_dir() -> Path:
@@ -43,58 +40,6 @@ def _runtime_script(
     raise RuntimeError(
         "Required Dagster runtime script is missing. " f"Checked {runtime_path}."
     )
-
-
-def _owner_housing_location_module():
-    module_name = "owner_housing_location_calculator"
-    cached_module = sys.modules.get(module_name)
-    if cached_module is not None:
-        return cached_module
-
-    script_path = _runtime_script(
-        Path("scripts/owner-housing-distances/calculate_distances.py"),
-    )
-    script_dir = script_path.parent
-    for path in (script_dir,):
-        path_str = str(path)
-        if path_str not in sys.path:
-            sys.path.insert(0, path_str)
-
-    spec = importlib.util.spec_from_file_location(module_name, script_path)
-    module = importlib.util.module_from_spec(spec)
-    if spec.loader is None:
-        raise RuntimeError(f"Cannot load {script_path}")
-
-    sys.modules[module_name] = module
-    try:
-        spec.loader.exec_module(module)
-    except Exception:
-        sys.modules.pop(module_name, None)
-        raise
-
-    return module
-
-
-def _database_url() -> str:
-    required = {
-        "POSTGRES_PRODUCTION_DB": Config.POSTGRES_PRODUCTION_DB,
-        "POSTGRES_PRODUCTION_PORT": Config.POSTGRES_PRODUCTION_PORT,
-        "POSTGRES_PRODUCTION_DB_NAME": Config.POSTGRES_PRODUCTION_DB_NAME,
-        "POSTGRES_PRODUCTION_WRITE_ACCESS_USER": Config.POSTGRES_PRODUCTION_WRITE_ACCESS_USER,
-        "POSTGRES_PRODUCTION_WRITE_ACCESS_PASSWORD": Config.POSTGRES_PRODUCTION_WRITE_ACCESS_PASSWORD,
-    }
-    missing = [key for key, value in required.items() if not value]
-    if missing:
-        raise RuntimeError(f"Missing required env vars: {', '.join(missing)}")
-
-    user = quote_plus(Config.POSTGRES_PRODUCTION_WRITE_ACCESS_USER)
-    password = quote_plus(Config.POSTGRES_PRODUCTION_WRITE_ACCESS_PASSWORD)
-    host = Config.POSTGRES_PRODUCTION_DB
-    port = Config.POSTGRES_PRODUCTION_PORT
-    db_name = Config.POSTGRES_PRODUCTION_DB_NAME
-    sslmode = os.environ.get("POSTGRES_SSLMODE")
-    suffix = f"?sslmode={quote_plus(sslmode)}" if sslmode else ""
-    return f"postgresql://{user}:{password}@{host}:{port}/{db_name}{suffix}"
 
 
 def _scope_from_config(config: dict[str, Any]) -> tuple[str | None, tuple[str, ...]]:
@@ -227,13 +172,15 @@ LOVAC_SCOPE_CONFIG = {
 )
 def lovac_owner_ban_backfill(context: AssetExecutionContext):
     config = context.op_config
+    scope = _normalized_scope(config)
     if config["dry_run"]:
         context.log.info("Dry-run enabled: owner BAN backfill subprocess skipped.")
         return Output(
-            value={"dry_run": True, "skipped": True},
+            value={"dry_run": True, "skipped": True, "scope": scope},
             metadata={
                 "dry_run": MetadataValue.bool(True),
                 "skipped": MetadataValue.bool(True),
+                "scope": MetadataValue.json(scope),
             },
         )
 
@@ -286,10 +233,11 @@ def lovac_owner_ban_backfill(context: AssetExecutionContext):
         )
 
     return Output(
-        value={"dry_run": False, "returncode": result.returncode},
+        value={"dry_run": False, "returncode": result.returncode, "scope": scope},
         metadata={
             "dry_run": MetadataValue.bool(False),
             "returncode": MetadataValue.int(result.returncode),
+            "scope": MetadataValue.json(scope),
             "stdout_tail": MetadataValue.text(result.stdout[-4000:]),
         },
     )
@@ -309,6 +257,7 @@ def lovac_owner_ban_backfill(context: AssetExecutionContext):
         "batch_size": Field(Int, default_value=50_000),
         "num_workers": Field(Int, default_value=1),
     },
+    required_resource_keys={"psycopg2_connection"},
 )
 def lovac_owner_housing_locations(
     context: AssetExecutionContext,
@@ -316,14 +265,26 @@ def lovac_owner_housing_locations(
 ):
     config = context.op_config
     establishment_id, geo_codes = _scope_from_config(config)
-    module = _owner_housing_location_module()
+    expected_scope = _normalized_scope(config)
+    backfill_scope = lovac_owner_ban_backfill.get("scope")
+    if not isinstance(backfill_scope, dict):
+        raise Failure("Backfill report does not contain a valid scope.")
+    actual_scope = _normalized_scope(backfill_scope | {"allow_full_year": True})
+    if actual_scope != expected_scope:
+        raise Failure(
+            "Backfill scope does not match the owner-housing location scope.",
+            metadata=_metadata_from_dict(
+                {"expected_scope": expected_scope, "backfill_scope": actual_scope}
+            ),
+        )
     limit = config["limit"] or None
 
-    report = module.calculate_owner_housing_locations(
-        db_url=_database_url(),
+    report = calculate_owner_housing_locations(
+        db_url=context.resources.psycopg2_connection.dsn,
         data_file_year=config["data_file_year"],
         establishment_id=establishment_id,
         geo_codes=geo_codes,
+        allow_full_year=config["allow_full_year"],
         limit=limit,
         force=config["force"],
         dry_run=config["dry_run"],
@@ -372,6 +333,7 @@ def lovac_owner_housing_locations(
         "min_coverage_ratio": Field(Float, default_value=0.95),
         "fail_on_low_coverage": Field(Bool, default_value=True),
     },
+    required_resource_keys={"psycopg2_connection"},
 )
 def lovac_owner_housing_location_quality_check(
     context: AssetExecutionContext,
@@ -427,7 +389,7 @@ def lovac_owner_housing_location_quality_check(
           AND {where_sql}
     """
 
-    with psycopg2.connect(_database_url()) as conn, conn.cursor() as cursor:
+    with context.resources.psycopg2_connection.cursor() as cursor:
         cursor.execute(query, params)
         row = cursor.fetchone()
 

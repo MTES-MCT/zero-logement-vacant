@@ -8,6 +8,8 @@ import {
   toRelativeLocationDBO
 } from '~/repositories/housingOwnerRepository';
 
+import { hasExplicitForeignCountry } from './ownerCountryDetection';
+
 const logger = createLogger('ownerDistanceService');
 
 // French department to region mapping (INSEE codes)
@@ -290,6 +292,14 @@ function hasValidCoordinates(
   );
 }
 
+function hasUngeocodedExplicitForeignCountry(
+  address: AddressApi | null
+): boolean {
+  return (
+    !hasValidCoordinates(address) && hasExplicitForeignCountry(address?.label)
+  );
+}
+
 /**
  * Calculate distance and classification between owner and housing addresses.
  */
@@ -320,6 +330,11 @@ export function calculateDistance(
   let relativeLocation: RelativeLocation;
   if (hasMatchingBanIds) {
     relativeLocation = 'same-address';
+  } else if (
+    hasUngeocodedExplicitForeignCountry(ownerAddress) ||
+    hasUngeocodedExplicitForeignCountry(housingAddress)
+  ) {
+    relativeLocation = 'foreign-country';
   } else if (
     hasValidCoordinates(ownerAddress) &&
     hasValidCoordinates(housingAddress)

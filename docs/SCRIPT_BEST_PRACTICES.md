@@ -460,20 +460,11 @@ export async function up(knex: Knex): Promise<void> {
     ON owners_housing(owner_id, housing_id)
   `);
 
-  // Partial index for filtering owner-housing pairs still missing
-  // the app-facing relative-location classification.
+  // Partial index for filtering unprocessed pairs (get_all_owner_housing_pairs)
   await knex.raw(`
     CREATE INDEX IF NOT EXISTS idx_owners_housing_distances
-    ON owners_housing(owner_id, housing_id, housing_geo_code)
-    WHERE rank >= 1
-      AND locprop_relative_ban IS NULL
-  `);
-
-  // GIN index for LOVAC cohort filters such as:
-  // WHERE 'lovac-2026' = ANY(fast_housing.data_file_years)
-  await knex.raw(`
-    CREATE INDEX IF NOT EXISTS fast_housing_data_file_years_gin_idx
-    ON fast_housing USING GIN (data_file_years)
+    ON owners_housing(owner_id, housing_id)
+    WHERE locprop_distance_ban IS NULL OR locprop_relative_ban IS NULL
   `);
 }
 
@@ -482,7 +473,6 @@ export async function down(knex: Knex): Promise<void> {
   await knex.raw('DROP INDEX IF EXISTS idx_ban_addresses_housing_lookup');
   await knex.raw('DROP INDEX IF EXISTS idx_owners_housing_update');
   await knex.raw('DROP INDEX IF EXISTS idx_owners_housing_distances');
-  await knex.raw('DROP INDEX IF EXISTS fast_housing_data_file_years_gin_idx');
 }
 ```
 
@@ -514,7 +504,6 @@ These should be created via Knex migration before running the script.
 - idx_ban_addresses_housing_lookup: Speeds up housing address lookups
 - idx_owners_housing_update: Optimizes bulk updates
 - idx_owners_housing_distances: Filters unprocessed pairs efficiently
-- fast_housing_data_file_years_gin_idx: Filters LOVAC cohorts efficiently
 
 Migration file: migrations/20241028_add_indexes_for_distance_calculation.ts
 
@@ -538,8 +527,7 @@ def check_required_indexes(self):
         'idx_ban_addresses_owner_lookup',
         'idx_ban_addresses_housing_lookup',
         'idx_owners_housing_update',
-        'idx_owners_housing_distances',
-        'fast_housing_data_file_years_gin_idx'
+        'idx_owners_housing_distances'
     ]
 
     self.cursor.execute("""
@@ -1594,7 +1582,7 @@ Concrete example (owner-housing-distances script):
 ## References
 
 - Reference scripts:
-  - `analytics/dagster/scripts/owner-housing-distances/calculate_distances.py`
+  - `analytics/dagster/src/owner_housing_locations/calculator.py`
     (canonical implementation)
   - `server/src/scripts/owner-housing-distances/calculate_distances.py`
     (compatibility entrypoint)

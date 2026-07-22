@@ -1,8 +1,7 @@
 import importlib.util
 import sys
 from pathlib import Path
-from types import ModuleType
-from types import SimpleNamespace
+from types import ModuleType, SimpleNamespace
 from unittest.mock import MagicMock, Mock
 
 import pytest
@@ -40,6 +39,7 @@ def _load_asset_module():
 
 
 asset_module = _load_asset_module()
+from src.owner_housing_locations import LocationScope  # noqa: E402
 
 
 def _load_backfill_module():
@@ -71,6 +71,9 @@ def _location_context(*, dry_run: bool = False):
             "num_workers": 1,
         },
         log=SimpleNamespace(info=Mock()),
+        resources=SimpleNamespace(
+            psycopg2_connection=SimpleNamespace(dsn="postgresql://configured/test")
+        ),
     )
 
 
@@ -94,7 +97,7 @@ def _backfill_context(**overrides):
     )
 
 
-def _quality_context(**overrides):
+def _quality_context(*, database=None, **overrides):
     config = {
         "data_file_year": "lovac-2026",
         "establishment_id": ESTABLISHMENT_ID,
@@ -104,7 +107,10 @@ def _quality_context(**overrides):
         "fail_on_low_coverage": True,
     }
     config.update(overrides)
-    return SimpleNamespace(op_config=config)
+    return SimpleNamespace(
+        op_config=config,
+        resources=SimpleNamespace(psycopg2_connection=database),
+    )
 
 
 def _report(**overrides):
@@ -129,13 +135,12 @@ def _report(**overrides):
     return SimpleNamespace(to_dict=lambda: values)
 
 
-def test_owner_housing_location_module_loads_dataclasses():
-    sys.modules.pop("owner_housing_location_calculator", None)
+def _backfill_report():
+    return {"scope": _report().to_dict()["scope"]}
 
-    module = asset_module._owner_housing_location_module()
 
-    assert sys.modules["owner_housing_location_calculator"] is module
-    assert module.LocationScope(data_file_year="lovac-2026").geo_codes == ()
+def test_owner_housing_location_module_is_importable():
+    assert LocationScope(data_file_year="lovac-2026").geo_codes == ()
 
 
 def test_runtime_script_fails_when_packaged_path_is_missing(tmp_path):
@@ -148,50 +153,103 @@ def test_runtime_script_fails_when_packaged_path_is_missing(tmp_path):
 
 
 def test_location_asset_fails_real_run_when_report_contains_errors(monkeypatch):
-    calculator = SimpleNamespace(
-        calculate_owner_housing_locations=Mock(return_value=_report(errors=1))
-    )
-    monkeypatch.setattr(
-        asset_module, "_owner_housing_location_module", lambda: calculator
-    )
-    monkeypatch.setattr(asset_module, "_database_url", lambda: "postgresql://unused")
+    calculate = Mock(return_value=_report(errors=1))
+    monkeypatch.setattr(asset_module, "calculate_owner_housing_locations", calculate)
     compute = _compute(asset_module.lovac_owner_housing_locations)
     context = _location_context()
+    backfill_report = _backfill_report()
 
     with pytest.raises(asset_module.Failure, match="reported 1 processing error"):
-        compute(context, None)
+        compute(context, backfill_report)
+
+
+def test_dry_run_backfill_reports_its_normalized_scope():
+    compute = _compute(asset_module.lovac_owner_ban_backfill)
+    context = _backfill_context(dry_run=True)
+
+    output = compute(context)
+
+    assert output.value["scope"] == {
+        "data_file_year": "lovac-2026",
+        "establishment_id": ESTABLISHMENT_ID,
+        "geo_codes": [],
+    }
+
+
+def test_location_asset_rejects_a_different_backfill_scope(monkeypatch):
+    calculate = Mock()
+    monkeypatch.setattr(asset_module, "calculate_owner_housing_locations", calculate)
+    compute = _compute(asset_module.lovac_owner_housing_locations)
+    context = _location_context()
+    backfill_report = {
+        "scope": {
+            "data_file_year": "lovac-2025",
+            "establishment_id": ESTABLISHMENT_ID,
+            "geo_codes": [],
+        }
+    }
+
+    with pytest.raises(asset_module.Failure, match="Backfill scope does not match"):
+        compute(context, backfill_report)
+
+    calculate.assert_not_called()
+
+
+def test_location_asset_uses_the_configured_database_resource(monkeypatch):
+    calculate = Mock(return_value=_report())
+    monkeypatch.setattr(asset_module, "calculate_owner_housing_locations", calculate)
+    compute = _compute(asset_module.lovac_owner_housing_locations)
+    context = _location_context()
+    context.resources = SimpleNamespace(
+        psycopg2_connection=SimpleNamespace(dsn="postgresql://configured/test")
+    )
+    backfill_report = {"scope": _report().to_dict()["scope"]}
+
+    compute(context, backfill_report)
+
+    assert calculate.call_args.kwargs["db_url"] == "postgresql://configured/test"
+
+
+def test_location_asset_forwards_explicit_full_year_opt_in(monkeypatch):
+    full_year_scope = {
+        "data_file_year": "lovac-2026",
+        "establishment_id": None,
+        "geo_codes": [],
+    }
+    calculate = Mock(return_value=_report(scope=full_year_scope))
+    monkeypatch.setattr(asset_module, "calculate_owner_housing_locations", calculate)
+    compute = _compute(asset_module.lovac_owner_housing_locations)
+    context = _location_context()
+    context.op_config |= {
+        "establishment_id": "",
+        "allow_full_year": True,
+    }
+
+    compute(context, {"scope": full_year_scope})
+
+    assert calculate.call_args.kwargs["allow_full_year"] is True
 
 
 def test_location_asset_fails_dry_run_when_report_contains_errors(monkeypatch):
-    calculator = SimpleNamespace(
-        calculate_owner_housing_locations=Mock(return_value=_report(errors=1))
-    )
-    monkeypatch.setattr(
-        asset_module, "_owner_housing_location_module", lambda: calculator
-    )
-    monkeypatch.setattr(asset_module, "_database_url", lambda: "postgresql://unused")
+    calculate = Mock(return_value=_report(errors=1))
+    monkeypatch.setattr(asset_module, "calculate_owner_housing_locations", calculate)
     compute = _compute(asset_module.lovac_owner_housing_locations)
     context = _location_context(dry_run=True)
+    backfill_report = _backfill_report()
 
     with pytest.raises(asset_module.Failure, match="reported 1 processing error"):
-        compute(context, None)
+        compute(context, backfill_report)
 
 
 def test_location_asset_fails_real_run_when_updates_are_incomplete(monkeypatch):
-    calculator = SimpleNamespace(
-        calculate_owner_housing_locations=Mock(
-            return_value=_report(updates_prepared=2, updated_pairs=1)
-        )
-    )
-    monkeypatch.setattr(
-        asset_module, "_owner_housing_location_module", lambda: calculator
-    )
-    monkeypatch.setattr(asset_module, "_database_url", lambda: "postgresql://unused")
+    calculate = Mock(return_value=_report(updates_prepared=2, updated_pairs=1))
+    monkeypatch.setattr(asset_module, "calculate_owner_housing_locations", calculate)
     compute = _compute(asset_module.lovac_owner_housing_locations)
     context = _location_context()
+    backfill_report = _backfill_report()
 
     with pytest.raises(asset_module.Failure, match="prepared 2 updates but wrote 1"):
-        compute(context, None)
+        compute(context, backfill_report)
 
 
 @pytest.mark.parametrize("data_file_year", ["", "2026", "lovac-current", "lovac-26"])
@@ -224,9 +282,8 @@ def test_scope_query_uses_gin_array_containment():
     assert params["data_file_year"] == "lovac-2026"
 
 
-def test_quality_check_rejects_scope_different_from_location_report(monkeypatch):
-    connect = Mock()
-    monkeypatch.setattr(asset_module.psycopg2, "connect", connect)
+def test_quality_check_rejects_scope_different_from_location_report():
+    database = MagicMock()
     report = _report(
         scope={
             "data_file_year": "lovac-2025",
@@ -235,25 +292,22 @@ def test_quality_check_rejects_scope_different_from_location_report(monkeypatch)
         }
     ).to_dict()
     compute = _compute(asset_module.lovac_owner_housing_location_quality_check)
-    context = _quality_context()
+    context = _quality_context(database=database)
 
     with pytest.raises(asset_module.Failure, match="scope does not match"):
         compute(context, report)
 
-    connect.assert_not_called()
+    database.cursor.assert_not_called()
 
 
-def test_quality_check_fails_when_scope_contains_no_pairs(monkeypatch):
+def test_quality_check_fails_when_scope_contains_no_pairs():
     cursor = MagicMock()
     cursor.__enter__.return_value = cursor
     cursor.fetchone.return_value = (0, 0, 0, 0, 0, 0, 0)
-    connection = MagicMock()
-    connection.__enter__.return_value = connection
-    connection.cursor.return_value = cursor
-    monkeypatch.setattr(asset_module.psycopg2, "connect", Mock(return_value=connection))
-    monkeypatch.setattr(asset_module, "_database_url", lambda: "postgresql://unused")
+    database = MagicMock()
+    database.cursor.return_value = cursor
     compute = _compute(asset_module.lovac_owner_housing_location_quality_check)
-    context = _quality_context()
+    context = _quality_context(database=database)
     report = _report().to_dict()
 
     with pytest.raises(
@@ -262,17 +316,14 @@ def test_quality_check_fails_when_scope_contains_no_pairs(monkeypatch):
         compute(context, report)
 
 
-def test_quality_check_excludes_unknown_locations_and_ban_sentinels(monkeypatch):
+def test_quality_check_excludes_unknown_locations_and_ban_sentinels():
     cursor = MagicMock()
     cursor.__enter__.return_value = cursor
     cursor.fetchone.return_value = (10, 9, 1, 2, 1, 3, 4)
-    connection = MagicMock()
-    connection.__enter__.return_value = connection
-    connection.cursor.return_value = cursor
-    monkeypatch.setattr(asset_module.psycopg2, "connect", Mock(return_value=connection))
-    monkeypatch.setattr(asset_module, "_database_url", lambda: "postgresql://unused")
+    database = MagicMock()
+    database.cursor.return_value = cursor
     compute = _compute(asset_module.lovac_owner_housing_location_quality_check)
-    context = _quality_context(fail_on_low_coverage=False)
+    context = _quality_context(database=database, fail_on_low_coverage=False)
     report = _report().to_dict()
 
     output = compute(context, report)
@@ -285,6 +336,21 @@ def test_quality_check_excludes_unknown_locations_and_ban_sentinels(monkeypatch)
     assert output.value["coverage_ratio"] == pytest.approx(0.9)
     assert output.value["owner_ban_missing_pairs"] == 3
     assert output.value["housing_ban_missing_pairs"] == 4
+
+
+def test_quality_check_uses_the_configured_database_resource():
+    cursor = MagicMock()
+    cursor.__enter__.return_value = cursor
+    cursor.fetchone.return_value = (10, 10, 0, 2, 1, 0, 0)
+    database = MagicMock()
+    database.cursor.return_value = cursor
+    context = _quality_context()
+    context.resources = SimpleNamespace(psycopg2_connection=database)
+    compute = _compute(asset_module.lovac_owner_housing_location_quality_check)
+
+    compute(context, _report().to_dict())
+
+    database.cursor.assert_called_once_with()
 
 
 def test_backfill_fetch_limit_never_exceeds_remaining_global_limit():

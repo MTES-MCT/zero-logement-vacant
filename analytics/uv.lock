@@ -5988,6 +5988,7 @@ dependencies = [
     { name = "s3fs" },
     { name = "tenacity" },
     { name = "thefuzz" },
+    { name = "tqdm" },
 ]
 
 [package.optional-dependencies]
@@ -6019,6 +6020,7 @@ requires-dist = [
     { name = "s3fs", specifier = ">=0.4.2" },
     { name = "tenacity", specifier = ">=9.0.0" },
     { name = "thefuzz", specifier = ">=0.22.1" },
+    { name = "tqdm", specifier = ">=4.67.1" },
 ]
 provides-extras = ["dev"]
 

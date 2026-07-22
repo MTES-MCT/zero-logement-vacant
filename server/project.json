@@ -103,7 +103,8 @@
       "dependsOn": ["migrate"],
       "options": {
         "cwd": "server",
-        "command": "kysely-codegen"
+        "commands": ["kysely-codegen", "oxfmt src/infra/database/db.d.ts"],
+        "parallel": false
       }
     }
   }
